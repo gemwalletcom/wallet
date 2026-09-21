@@ -17,41 +17,41 @@ public struct SelectAssetScene: View {
 
     public var body: some View {
         list
-        .searchable(
-            text: $model.searchableQuery,
-            placement: .navigationBarDrawer(displayMode: .always),
-        )
-        .if(model.isNetworkSearchEnabled) {
-            $0.debounce(
-                value: $model.searchableQuery.wrappedValue,
-                interval: model.searchDebounce,
-                action: model.search(query:),
+            .searchable(
+                text: $model.searchableQuery,
+                placement: .navigationBarDrawer(displayMode: .always),
             )
-        }
-        .overlay {
-            if model.showLoading {
-                LoadingView()
-            } else if model.showEmpty {
-                EmptyContentView(
-                    model: EmptyContentTypeViewModel(
-                        type: .search(
-                            type: .assets,
-                            action: model.showAddToken ? { model.onSelectAddCustomToken() } : nil,
-                        ),
-                    ),
+            .if(model.isNetworkSearchEnabled) {
+                $0.debounce(
+                    value: $model.searchableQuery.wrappedValue,
+                    interval: model.searchDebounce,
+                    action: model.search(query:),
                 )
             }
-        }
-        .bindQuery(model.assetsQuery, model.recentModel.query)
-        .onChange(of: model.filterModel, model.onChangeFilterModel)
-        .onChange(of: model.searchableQuery, model.updateRequest)
-        .ifLet(model.copyTypeViewModel) {
-            $0.copyToast(
-                model: $1,
-                isPresenting: $model.isPresentingCopyToast,
-            )
-        }
-        .navigationBarTitle(model.title)
+            .overlay {
+                if model.showLoading {
+                    LoadingView()
+                } else if model.showEmpty {
+                    EmptyContentView(
+                        model: EmptyContentTypeViewModel(
+                            type: .search(
+                                type: .assets,
+                                action: model.showAddToken ? { model.onSelectAddCustomToken() } : nil,
+                            ),
+                        ),
+                    )
+                }
+            }
+            .bindQuery(model.assetsQuery, model.recentModel.query)
+            .onChange(of: model.filterModel, model.onChangeFilterModel)
+            .onChange(of: model.searchableQuery, model.updateRequest)
+            .ifLet(model.copyTypeViewModel) {
+                $0.copyToast(
+                    model: $1,
+                    isPresenting: $model.isPresentingCopyToast,
+                )
+            }
+            .navigationBarTitle(model.title)
     }
 
     var list: some View {

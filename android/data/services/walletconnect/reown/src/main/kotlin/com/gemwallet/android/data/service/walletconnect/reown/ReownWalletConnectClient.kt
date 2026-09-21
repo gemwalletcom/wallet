@@ -17,6 +17,7 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProp
 import com.gemwallet.android.application.wallet_connect.WalletConnectSessionRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectValidation
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
+import com.gemwallet.android.ext.toPrimitives
 import com.reown.android.Core
 import com.reown.android.CoreClient
 import com.reown.android.relay.ConnectionType
@@ -24,24 +25,23 @@ import com.reown.walletkit.client.Wallet
 import com.reown.walletkit.client.WalletKit
 import com.wallet.core.primitives.ApplicationMetadata
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.net.URI
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import uniffi.gemstone.Config
+import uniffi.gemstone.GemWalletConnectRejection
 import uniffi.gemstone.GemWalletConnectService
 import uniffi.gemstone.GemWalletConnectServiceInterface
+import java.net.URI
 import javax.inject.Inject
 import javax.inject.Singleton
-import com.gemwallet.android.ext.toPrimitives
-import uniffi.gemstone.GemWalletConnectRejection
 
 @Singleton
-class ReownWalletConnectClient @Inject constructor(
-    @param:ApplicationContext private val context: Context,
-    private val walletConnectService: GemWalletConnectServiceInterface,
-) : WalletConnectClient, WalletKit.WalletDelegate, CoreClient.CoreDelegate {
+class ReownWalletConnectClient @Inject constructor(@param:ApplicationContext private val context: Context, private val walletConnectService: GemWalletConnectServiceInterface) :
+    WalletConnectClient,
+    WalletKit.WalletDelegate,
+    CoreClient.CoreDelegate {
 
     override val isEnabled: Boolean = true
 
@@ -80,17 +80,11 @@ class ReownWalletConnectClient @Inject constructor(
         )
     }
 
-    override fun activeSessions(): List<WalletConnectSession> {
-        return WalletKit.getListOfActiveSessions().map { it.toWalletConnectSession() }
-    }
+    override fun activeSessions(): List<WalletConnectSession> = WalletKit.getListOfActiveSessions().map { it.toWalletConnectSession() }
 
-    override fun pendingSessionRequests(topic: String): List<WalletConnectSessionRequest> {
-        return WalletKit.getPendingListOfSessionRequests(topic).map { it.toWalletConnectSessionRequest() }
-    }
+    override fun pendingSessionRequests(topic: String): List<WalletConnectSessionRequest> = WalletKit.getPendingListOfSessionRequests(topic).map { it.toWalletConnectSessionRequest() }
 
-    override fun verifyContext(id: Long): WalletConnectVerifyContext? {
-        return WalletKit.getVerifyContext(id)?.toWalletConnectVerifyContext()
-    }
+    override fun verifyContext(id: Long): WalletConnectVerifyContext? = WalletKit.getVerifyContext(id)?.toWalletConnectVerifyContext()
 
     override fun pingSession(topic: String) {
         WalletKit.pingSession(Wallet.Params.Ping(topic), null)
@@ -112,10 +106,7 @@ class ReownWalletConnectClient @Inject constructor(
         )
     }
 
-    override fun generateApprovedNamespaces(
-        proposal: WalletConnectSessionProposal,
-        supportedNamespaces: Map<String, WalletConnectSessionNamespace>,
-    ): Map<String, WalletConnectSessionNamespace> {
+    override fun generateApprovedNamespaces(proposal: WalletConnectSessionProposal, supportedNamespaces: Map<String, WalletConnectSessionNamespace>): Map<String, WalletConnectSessionNamespace> {
         val sessionProposal = proposal.pendingReownProposal() ?: return supportedNamespaces
         return WalletKit.generateApprovedNamespaces(
             sessionProposal = sessionProposal,
@@ -123,13 +114,7 @@ class ReownWalletConnectClient @Inject constructor(
         ).mapValues { it.value.toWalletConnectSessionNamespace() }
     }
 
-    override fun approveSession(
-        proposal: WalletConnectSessionProposal,
-        namespaces: Map<String, WalletConnectSessionNamespace>,
-        properties: Map<String, String>,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit,
-    ) {
+    override fun approveSession(proposal: WalletConnectSessionProposal, namespaces: Map<String, WalletConnectSessionNamespace>, properties: Map<String, String>, onSuccess: () -> Unit, onError: (String) -> Unit) {
         val sessionProposal = proposal.pendingReownProposal()
         if (sessionProposal == null) {
             onError("WalletConnect session proposal is no longer available")
@@ -162,12 +147,7 @@ class ReownWalletConnectClient @Inject constructor(
         )
     }
 
-    override fun approveAuthentication(
-        request: WalletConnectAuthenticationRequest,
-        auths: List<WalletConnectAuthObject>,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit,
-    ) {
+    override fun approveAuthentication(request: WalletConnectAuthenticationRequest, auths: List<WalletConnectAuthObject>, onSuccess: () -> Unit, onError: (String) -> Unit) {
         WalletKit.approveSessionAuthenticate(
             params = Wallet.Params.ApproveSessionAuthenticate(
                 id = request.id,
@@ -189,13 +169,7 @@ class ReownWalletConnectClient @Inject constructor(
         )
     }
 
-    override fun respondSessionRequest(
-        topic: String,
-        id: Long,
-        response: WalletConnectJsonRpcResponse,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit,
-    ) {
+    override fun respondSessionRequest(topic: String, id: Long, response: WalletConnectJsonRpcResponse, onSuccess: () -> Unit, onError: (String) -> Unit) {
         WalletKit.respondSessionRequest(
             params = Wallet.Params.SessionRequestResponse(
                 sessionTopic = topic,
@@ -209,11 +183,7 @@ class ReownWalletConnectClient @Inject constructor(
         )
     }
 
-    override fun generateAuthPayloadParams(
-        payloadParams: WalletConnectAuthPayloadParams,
-        supportedChains: List<String>,
-        supportedMethods: List<String>,
-    ): WalletConnectAuthPayloadParams {
+    override fun generateAuthPayloadParams(payloadParams: WalletConnectAuthPayloadParams, supportedChains: List<String>, supportedMethods: List<String>): WalletConnectAuthPayloadParams {
         val result = WalletKit.generateAuthPayloadParams(
             payloadParams = payloadParams.toReownPayloadAuthRequestParams(),
             supportedChains = supportedChains,
@@ -222,31 +192,23 @@ class ReownWalletConnectClient @Inject constructor(
         return result.toWalletConnectAuthPayloadParams()
     }
 
-    override fun formatAuthMessage(payloadParams: WalletConnectAuthPayloadParams, issuer: String): String {
-        return WalletKit.formatAuthMessage(
-            Wallet.Params.FormatAuthMessage(
-                payloadParams = payloadParams.toReownPayloadAuthRequestParams(),
-                issuer = issuer,
-            )
-        )
-    }
+    override fun formatAuthMessage(payloadParams: WalletConnectAuthPayloadParams, issuer: String): String = WalletKit.formatAuthMessage(
+        Wallet.Params.FormatAuthMessage(
+            payloadParams = payloadParams.toReownPayloadAuthRequestParams(),
+            issuer = issuer,
+        ),
+    )
 
-    override fun generateAuthObject(
-        payloadParams: WalletConnectAuthPayloadParams,
-        issuer: String,
-        signature: String,
-    ): WalletConnectAuthObject {
-        return ReownAuthObject(
-            WalletKit.generateAuthObject(
-                payloadParams = payloadParams.toReownPayloadAuthRequestParams(),
-                issuer = issuer,
-                signature = Wallet.Model.Cacao.Signature(
-                    t = "eip191",
-                    s = signature,
-                ),
-            )
-        )
-    }
+    override fun generateAuthObject(payloadParams: WalletConnectAuthPayloadParams, issuer: String, signature: String): WalletConnectAuthObject = ReownAuthObject(
+        WalletKit.generateAuthObject(
+            payloadParams = payloadParams.toReownPayloadAuthRequestParams(),
+            issuer = issuer,
+            signature = Wallet.Model.Cacao.Signature(
+                t = "eip191",
+                s = signature,
+            ),
+        ),
+    )
 
     override val onSessionAuthenticate: (Wallet.Model.SessionAuthenticate, Wallet.Model.VerifyContext) -> Unit = { request, verifyContext ->
         walletEvents.tryEmit(WalletConnectEvent.AuthenticationRequest(request.toWalletConnectAuthenticationRequest(), verifyContext.toWalletConnectVerifyContext()))
@@ -285,30 +247,23 @@ class ReownWalletConnectClient @Inject constructor(
 
     override fun onSessionUpdateResponse(sessionUpdateResponse: Wallet.Model.SessionUpdateResponse) = Unit
 
-    private fun Wallet.Model.Session.toWalletConnectSession(): WalletConnectSession {
-        return WalletConnectSession(
-            topic = topic,
-            expiry = expiry,
-            metadata = metaData?.toApplicationMetadata(),
-            namespaces = namespaces.mapValues { it.value.toWalletConnectSessionNamespace() },
-            redirect = redirect,
-        )
-    }
+    private fun Wallet.Model.Session.toWalletConnectSession(): WalletConnectSession = WalletConnectSession(
+        topic = topic,
+        expiry = expiry,
+        metadata = metaData?.toApplicationMetadata(),
+        namespaces = namespaces.mapValues { it.value.toWalletConnectSessionNamespace() },
+        redirect = redirect,
+    )
 
-    private fun Wallet.Model.SessionAuthenticate.toWalletConnectAuthenticationRequest(): WalletConnectAuthenticationRequest {
-        return WalletConnectAuthenticationRequest(
-            id = id,
-            metadata = participant.metadata?.toApplicationMetadata(),
-            payloadParams = payloadParams.toWalletConnectAuthPayloadParams(),
-        )
-    }
+    private fun Wallet.Model.SessionAuthenticate.toWalletConnectAuthenticationRequest(): WalletConnectAuthenticationRequest = WalletConnectAuthenticationRequest(
+        id = id,
+        metadata = participant.metadata?.toApplicationMetadata(),
+        payloadParams = payloadParams.toWalletConnectAuthPayloadParams(),
+    )
 
-    private fun Core.Model.AppMetaData.toApplicationMetadata(): ApplicationMetadata =
-        walletConnectService.applicationMetadata(name, description, url, icons).toPrimitives()
+    private fun Core.Model.AppMetaData.toApplicationMetadata(): ApplicationMetadata = walletConnectService.applicationMetadata(name, description, url, icons).toPrimitives()
 
-    private fun WalletConnectSessionProposal.pendingReownProposal(): Wallet.Model.SessionProposal? {
-        return WalletKit.getSessionProposals().firstOrNull { it.proposerPublicKey == proposerPublicKey }
-    }
+    private fun WalletConnectSessionProposal.pendingReownProposal(): Wallet.Model.SessionProposal? = WalletKit.getSessionProposals().firstOrNull { it.proposerPublicKey == proposerPublicKey }
 
     private data class ReownAuthObject(val value: Wallet.Model.Cacao) : WalletConnectAuthObject
 
@@ -317,97 +272,80 @@ class ReownWalletConnectClient @Inject constructor(
     }
 }
 
+private fun Wallet.Model.Namespace.Session.toWalletConnectSessionNamespace(): WalletConnectSessionNamespace = WalletConnectSessionNamespace(
+    chains = chains,
+    methods = methods,
+    events = events,
+    accounts = accounts,
+)
 
-private fun Wallet.Model.Namespace.Session.toWalletConnectSessionNamespace(): WalletConnectSessionNamespace {
-    return WalletConnectSessionNamespace(
-        chains = chains,
-        methods = methods,
-        events = events,
-        accounts = accounts,
-    )
-}
+private fun WalletConnectSessionNamespace.toReownSessionNamespace(): Wallet.Model.Namespace.Session = Wallet.Model.Namespace.Session(
+    chains = chains,
+    accounts = accounts,
+    methods = methods,
+    events = events,
+)
 
-private fun WalletConnectSessionNamespace.toReownSessionNamespace(): Wallet.Model.Namespace.Session {
-    return Wallet.Model.Namespace.Session(
-        chains = chains,
-        accounts = accounts,
-        methods = methods,
-        events = events,
-    )
-}
+private fun Wallet.Model.Namespace.Proposal.toWalletConnectProposalNamespace(): WalletConnectProposalNamespace = WalletConnectProposalNamespace(chains = chains)
 
-private fun Wallet.Model.Namespace.Proposal.toWalletConnectProposalNamespace(): WalletConnectProposalNamespace {
-    return WalletConnectProposalNamespace(chains = chains)
-}
+private fun Wallet.Model.SessionProposal.toWalletConnectSessionProposal(): WalletConnectSessionProposal = WalletConnectSessionProposal(
+    name = name,
+    description = description,
+    url = url,
+    icons = icons.map(URI::toString),
+    requiredNamespaces = requiredNamespaces.mapValues { it.value.toWalletConnectProposalNamespace() },
+    optionalNamespaces = optionalNamespaces.mapValues { it.value.toWalletConnectProposalNamespace() },
+    proposerPublicKey = proposerPublicKey,
+    pairingTopic = pairingTopic,
+    properties = properties,
+)
 
-private fun Wallet.Model.SessionProposal.toWalletConnectSessionProposal(): WalletConnectSessionProposal {
-    return WalletConnectSessionProposal(
-        name = name,
-        description = description,
-        url = url,
-        icons = icons.map(URI::toString),
-        requiredNamespaces = requiredNamespaces.mapValues { it.value.toWalletConnectProposalNamespace() },
-        optionalNamespaces = optionalNamespaces.mapValues { it.value.toWalletConnectProposalNamespace() },
-        proposerPublicKey = proposerPublicKey,
-        pairingTopic = pairingTopic,
-        properties = properties,
-    )
-}
+private fun Wallet.Model.SessionRequest.toWalletConnectSessionRequest(): WalletConnectSessionRequest = WalletConnectSessionRequest(
+    topic = topic,
+    chainId = chainId,
+    request = WalletConnectJsonRpcRequest(
+        id = request.id,
+        method = request.method,
+        params = request.params,
+    ),
+)
 
-private fun Wallet.Model.SessionRequest.toWalletConnectSessionRequest(): WalletConnectSessionRequest {
-    return WalletConnectSessionRequest(
-        topic = topic,
-        chainId = chainId,
-        request = WalletConnectJsonRpcRequest(
-            id = request.id,
-            method = request.method,
-            params = request.params,
-        ),
-    )
-}
+private fun Wallet.Model.PayloadAuthRequestParams.toWalletConnectAuthPayloadParams(): WalletConnectAuthPayloadParams = WalletConnectAuthPayloadParams(
+    chains = chains,
+    domain = domain,
+    nonce = nonce,
+    aud = aud,
+    type = type,
+    iat = iat,
+    nbf = nbf,
+    exp = exp,
+    statement = statement,
+    requestId = requestId,
+    resources = resources,
+    signatureTypes = signatureTypes,
+)
 
-private fun Wallet.Model.PayloadAuthRequestParams.toWalletConnectAuthPayloadParams(): WalletConnectAuthPayloadParams {
-    return WalletConnectAuthPayloadParams(
-        chains = chains,
-        domain = domain,
-        nonce = nonce,
-        aud = aud,
-        type = type,
-        iat = iat,
-        nbf = nbf,
-        exp = exp,
-        statement = statement,
-        requestId = requestId,
-        resources = resources,
-        signatureTypes = signatureTypes,
-    )
-}
+private fun WalletConnectAuthPayloadParams.toReownPayloadAuthRequestParams(): Wallet.Model.PayloadAuthRequestParams = Wallet.Model.PayloadAuthRequestParams(
+    chains = chains,
+    domain = domain,
+    nonce = nonce,
+    aud = aud,
+    type = type,
+    iat = iat,
+    nbf = nbf,
+    exp = exp,
+    statement = statement,
+    requestId = requestId,
+    resources = resources,
+    signatureTypes = signatureTypes,
+)
 
-private fun WalletConnectAuthPayloadParams.toReownPayloadAuthRequestParams(): Wallet.Model.PayloadAuthRequestParams {
-    return Wallet.Model.PayloadAuthRequestParams(
-        chains = chains,
-        domain = domain,
-        nonce = nonce,
-        aud = aud,
-        type = type,
-        iat = iat,
-        nbf = nbf,
-        exp = exp,
-        statement = statement,
-        requestId = requestId,
-        resources = resources,
-        signatureTypes = signatureTypes,
-    )
-}
-
-private fun Wallet.Model.VerifyContext.toWalletConnectVerifyContext(): WalletConnectVerifyContext {
-    return WalletConnectVerifyContext(
-        origin = origin,
-        validation = when (validation) {
-            Wallet.Model.Validation.VALID -> WalletConnectValidation.Valid
-            Wallet.Model.Validation.INVALID -> WalletConnectValidation.Invalid
-            Wallet.Model.Validation.UNKNOWN -> WalletConnectValidation.Unknown
-        },
-        isScam = isScam,
-    )
-}
+private fun Wallet.Model.VerifyContext.toWalletConnectVerifyContext(): WalletConnectVerifyContext = WalletConnectVerifyContext(
+    origin = origin,
+    validation = when (validation) {
+        Wallet.Model.Validation.VALID -> WalletConnectValidation.Valid
+        Wallet.Model.Validation.INVALID -> WalletConnectValidation.Invalid
+        Wallet.Model.Validation.UNKNOWN -> WalletConnectValidation.Unknown
+    },
+    isScam = isScam,
+)

@@ -38,12 +38,7 @@ impl<C: Client> AlgorandClient<C> {
     }
 
     pub async fn get_pending_transaction(&self, transaction_id: &str) -> Result<TransactionStatus, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .client
-            .get(AlgorandTarget::GetPendingTransaction {
-                transaction_id: transaction_id.to_string(),
-            })
-            .await?)
+        Ok(self.client.get(AlgorandTarget::GetPendingTransaction { transaction_id: transaction_id.to_string() }).await?)
     }
 }
 

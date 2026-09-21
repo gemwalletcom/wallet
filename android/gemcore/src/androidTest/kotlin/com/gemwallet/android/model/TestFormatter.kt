@@ -5,10 +5,10 @@ import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.Currency
 import junit.framework.TestCase.assertEquals
 import org.junit.Test
+import uniffi.gemstone.GemValueStyle
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.Locale
-import uniffi.gemstone.GemValueStyle
 
 class TestFormatter {
     @Test

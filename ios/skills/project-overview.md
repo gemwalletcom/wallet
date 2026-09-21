@@ -40,6 +40,7 @@ Features/[FeatureName]/
 - `Features/` holds feature-specific UI, view models, services, tests, and test kits
 - `Packages/` holds shared primitives, components, formatting, localization, storage, and service layers
 - `Gem/` and widget targets handle app composition, navigation wiring, and platform integration
+- Widget targets never link `Gemstone` or `GemstonePrimitives`; they reach the API through `SwiftHTTPClient`
 - `../core/` owns shared product rules and blockchain behavior; apps consume its generated bindings
 
 ## Navigation

@@ -41,11 +41,7 @@ import com.wallet.core.primitives.AssetId
 import kotlinx.serialization.Serializable
 
 @Composable
-fun AutocloseNavGraph(
-    onDismiss: () -> Unit,
-    finishAction: FinishConfirmAction,
-    onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit,
-) {
+fun AutocloseNavGraph(onDismiss: () -> Unit, finishAction: FinishConfirmAction, onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit) {
     val rootOwner = rememberAutocloseRootViewModelStoreOwner()
     CompositionLocalProvider(LocalViewModelStoreOwner provides rootOwner) {
         AutocloseNavGraphContent(
@@ -57,11 +53,7 @@ fun AutocloseNavGraph(
 }
 
 @Composable
-private fun AutocloseNavGraphContent(
-    onDismiss: () -> Unit,
-    finishAction: FinishConfirmAction,
-    onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit,
-) {
+private fun AutocloseNavGraphContent(onDismiss: () -> Unit, finishAction: FinishConfirmAction, onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit) {
     val viewModel: AutocloseViewModel = hiltViewModel()
     val uiModel by viewModel.uiModel.collectAsStateWithLifecycle()
     val priceRows by viewModel.priceRows.collectAsStateWithLifecycle()
@@ -204,26 +196,23 @@ private fun rememberAutocloseNavEntryDecorator(): NavEntryDecorator<NavKey> {
     }
 }
 
-private class AutocloseNavEntryDecorator(
-    private val parent: ViewModelStoreOwner,
-    private val savedStateRegistryOwner: SavedStateRegistryOwner,
-    private val stores: MutableMap<Any, ViewModelStore>,
-) : NavEntryDecorator<NavKey>(
-    onPop = { contentKey -> stores.remove(contentKey)?.clear() },
-    decorate = { entry ->
-        val store = remember(entry.contentKey) {
-            stores.getOrPut(entry.contentKey) { ViewModelStore() }
-        }
-        val owner = remember(parent, store, savedStateRegistryOwner) {
-            NavEntryViewModelStoreOwner(
-                parent = parent,
-                store = store,
-                savedStateRegistryOwner = savedStateRegistryOwner,
-                defaultArgs = savedState(),
-            )
-        }
-        CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
-            entry.Content()
-        }
-    },
-)
+private class AutocloseNavEntryDecorator(private val parent: ViewModelStoreOwner, private val savedStateRegistryOwner: SavedStateRegistryOwner, private val stores: MutableMap<Any, ViewModelStore>) :
+    NavEntryDecorator<NavKey>(
+        onPop = { contentKey -> stores.remove(contentKey)?.clear() },
+        decorate = { entry ->
+            val store = remember(entry.contentKey) {
+                stores.getOrPut(entry.contentKey) { ViewModelStore() }
+            }
+            val owner = remember(parent, store, savedStateRegistryOwner) {
+                NavEntryViewModelStoreOwner(
+                    parent = parent,
+                    store = store,
+                    savedStateRegistryOwner = savedStateRegistryOwner,
+                    defaultArgs = savedState(),
+                )
+            }
+            CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
+                entry.Content()
+            }
+        },
+    )

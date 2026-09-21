@@ -7,6 +7,7 @@ use super::coin::CoinData;
 pub struct Account {
     #[serde(deserialize_with = "deserialize_u64_from_str")]
     pub sequence_number: u64,
+    pub authentication_key: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

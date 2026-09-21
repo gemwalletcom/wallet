@@ -13,6 +13,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SKIP = ("/Submodules/", "/build/", "/.build/", "/target/", "DerivedData")
+MINIMUM_COMPARED = 419
 
 
 def english_by_key():
@@ -52,7 +53,7 @@ def swift_mappings(paths):
             continue
         current = None
         for line in path.read_text().split("\n"):
-            opened = re.search(r"^extension (?:Gemstone\.)?(\w+)", line.strip())
+            opened = re.search(r"^(?:public |internal |private |fileprivate )?extension (?:Gemstone\.)?(\w+)", line.strip())
             if opened:
                 current = opened.group(1)
             arm = re.match(r"case (?:let )?([^:]+):\s*(Localized\.[\w.]+)", line.strip())
@@ -98,6 +99,11 @@ def main():
         print(f"  {core_type}.{case}")
         print(f"    iOS     {ios_key} = {english.get(ios_key)!r}")
         print(f"    Android {android_key} = {english.get(android_key)!r}")
+    if len(shared) < MINIMUM_COMPARED:
+        print(f"  the comparison covers {len(shared)} variants, below the {MINIMUM_COMPARED} it reached before")
+        print("  a mapper the checker used to read stopped matching, or a variant was removed on purpose")
+        print(f"  read the mappers before lowering MINIMUM_COMPARED in {pathlib.Path(__file__).name}")
+        return 1
     return 1 if divergent else 0
 
 

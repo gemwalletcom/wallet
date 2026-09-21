@@ -1,7 +1,4 @@
-use crate::{
-    AssetList, FetchQuoteData, ProviderData, ProviderType, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
-    SwapperSlippage, SwapperSlippageMode,
-};
+use crate::{AssetList, FetchQuoteData, ProviderData, ProviderType, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData, SwapperSlippage, SwapperSlippageMode};
 use async_trait::async_trait;
 use num_bigint::BigUint;
 use primitives::{AssetId, Chain, asset_constants::TON_USDT_TOKEN_ID};
@@ -19,6 +16,13 @@ impl ProviderData {
 }
 
 impl AssetList {
+    pub fn mock_with_chains(chains: &[Chain]) -> Self {
+        Self {
+            chains: chains.to_vec(),
+            asset_ids: Vec::new(),
+        }
+    }
+
     pub fn mock() -> Self {
         Self {
             chains: vec![Chain::Tron, Chain::Bitcoin],
@@ -100,10 +104,7 @@ pub fn mock_quote(from_asset: SwapperQuoteAsset, to_asset: SwapperQuoteAsset) ->
         destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
         value: BigUint::from(1000000u64),
         options: Options {
-            slippage: SwapperSlippage {
-                mode: SwapperSlippageMode::Auto,
-                bps: 50,
-            },
+            slippage: SwapperSlippage { mode: SwapperSlippageMode::Auto, bps: 50 },
             use_max_amount: false,
         },
     }
@@ -125,10 +126,7 @@ pub fn mock_ton(wallet_address: String) -> QuoteRequest {
         wallet_address: wallet_address.clone(),
         destination_address: wallet_address,
         value: BigUint::from(1000000000u64),
-        options: Options {
-            slippage: 100.into(),
-            use_max_amount: false,
-        },
+        options: Options { slippage: 100.into(), use_max_amount: false },
     }
 }
 

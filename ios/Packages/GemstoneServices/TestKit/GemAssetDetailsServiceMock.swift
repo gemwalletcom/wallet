@@ -4,15 +4,15 @@ import Foundation
 import typealias Gemstone.Asset
 import typealias Gemstone.AssetId
 import typealias Gemstone.BannerEvent
+import struct Gemstone.BlockExplorerLink
 import typealias Gemstone.Deeplink
-import protocol Gemstone.GemAssetDetailsServiceProtocol
 import struct Gemstone.GemAssetDetails
 import struct Gemstone.GemAssetDetailsInput
+import protocol Gemstone.GemAssetDetailsServiceProtocol
 import struct Gemstone.GemAssetDetailsState
-import struct Gemstone.GemAssetRefreshFailure
+import struct Gemstone.GemAssetRefresh
 import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerKey
-import struct Gemstone.BlockExplorerLink
 import struct Gemstone.GemSwapPairSuggestion
 import enum Gemstone.WalletType
 import Primitives
@@ -24,23 +24,13 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
         self.assetPair = assetPair
     }
 
-    public func refresh(assetId _: AssetId) async -> [GemAssetRefreshFailure] {
-        []
+    public func refresh(assetId _: AssetId, hasTransactions _: Bool) async -> GemAssetRefresh {
+        GemAssetRefresh(transactions: .data, failures: [])
     }
-
-    public func syncTransactions(assetId _: AssetId?) async throws {}
-
-    public func updateBalances(assetIds _: [AssetId]) async throws {}
 
     public func setAssetPinned(assetId _: AssetId, pinned _: Bool) async throws {}
 
     public func setAssetsEnabled(assetIds _: [AssetId], enabled _: Bool) async throws {}
-
-    public func addPrices(assetIds _: [AssetId]) async throws {}
-
-    public func bannerContent(event _: BannerEvent, asset _: Asset?) -> GemBannerContent {
-        GemBannerContent(icon: .none, title: .none, description: .none, destination: .none)
-    }
 
     public func closeBanner(key _: GemBannerKey) async throws {}
 
@@ -50,15 +40,12 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
                 isViewOnly: input.walletType == .view,
                 headerActions: input.walletType == .view ? .watchOnly : .buttons(buttons: []),
                 showsBanners: input.walletType != .view,
-                showsManage: !input.metadata.isBalanceEnabled,
-                showsResources: false,
-                showsPriceAlerts: false,
-                priceAlertsCount: 0,
                 priceAlert: .disabled,
-                showsEarn: false,
                 emptyTransactionsAction: nil,
             ),
+            sections: [],
             title: input.asset.name,
+            fiatValue: .none,
             explorerName: "Explorer",
             addressLink: input.ownerAddress.map { Gemstone.BlockExplorerLink(name: "Explorer", link: "https://gemwallet.com/\($0)") },
             tokenLink: .none,
@@ -70,8 +57,6 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
     }
 
     public func setPriceAlert(assetId _: AssetId, enabled _: Bool) async throws {}
-
-    public func syncPriceAlerts(assetId _: AssetId?) async throws {}
 
     public func deeplinkUrl(deeplink _: Deeplink) -> String {
         "https://gemwallet.com"

@@ -78,6 +78,7 @@ extension ManageContactAddressScene {
             AddressInputView(
                 model: $model.addressInputModel,
                 onSelectScan: model.onSelectScan,
+                onSelectPaste: model.onSelectPaste,
             )
             .focused($focusedField, equals: .address)
         }
@@ -106,7 +107,7 @@ extension ManageContactAddressScene {
     }
 
     private func onScan(_ result: String) {
-        model.onHandleScan(result)
+        model.onScan(result)
         focusedField = nil
     }
 

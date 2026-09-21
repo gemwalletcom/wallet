@@ -45,10 +45,7 @@ impl GemEIP712Message {
         let value = serde_json::from_str(json_str).map_err(|error| error.to_string())?;
         let message = parse_eip712_json(&value)?;
 
-        let mut section = GemEIP712Section {
-            name: message.primary_type,
-            values: vec![],
-        };
+        let mut section = GemEIP712Section { name: message.primary_type, values: vec![] };
         for field in &message.message {
             flatten_field(&field.name, &field.value, &mut section.values);
         }
@@ -70,11 +67,7 @@ fn flatten_field(name: &str, value: &EIP712TypedValue, out: &mut Vec<GemEIP712Va
             });
         }
         EIP712TypedValue::Uint256 { value } | EIP712TypedValue::Int256 { value } | EIP712TypedValue::String { value } => {
-            let value_type = if is_timestamp_field(name) {
-                GemEIP712ValueType::Timestamp
-            } else {
-                GemEIP712ValueType::Text
-            };
+            let value_type = if is_timestamp_field(name) { GemEIP712ValueType::Timestamp } else { GemEIP712ValueType::Text };
             out.push(GemEIP712Value {
                 name: name.to_string(),
                 value: value.clone(),
@@ -108,11 +101,7 @@ fn flatten_field(name: &str, value: &EIP712TypedValue, out: &mut Vec<GemEIP712Va
                 match item {
                     EIP712TypedValue::Struct { fields } => {
                         for field in fields {
-                            let field_name = if use_index {
-                                format!("{name}[{index}].{}", field.name)
-                            } else {
-                                format!("{name}.{}", field.name)
-                            };
+                            let field_name = if use_index { format!("{name}[{index}].{}", field.name) } else { format!("{name}.{}", field.name) };
                             flatten_field(&field_name, &field.value, out);
                         }
                     }

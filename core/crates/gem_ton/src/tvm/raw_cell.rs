@@ -41,12 +41,7 @@ impl RawCell {
         let references = cell
             .references
             .iter()
-            .map(|reference| {
-                indexed_cells
-                    .get(&reference.hash)
-                    .map(|indexed| indexed.borrow().index)
-                    .ok_or_else(|| invalid("missing referenced cell"))
-            })
+            .map(|reference| indexed_cells.get(&reference.hash).map(|indexed| indexed.borrow().index).ok_or_else(|| invalid("missing referenced cell")))
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(Self {

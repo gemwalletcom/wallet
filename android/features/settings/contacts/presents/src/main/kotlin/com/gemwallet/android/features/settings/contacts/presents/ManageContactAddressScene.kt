@@ -23,14 +23,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.QRScanType
 
 @Composable
-fun ManageContactAddressScene(
-    input: ContactAddressInput,
-    onAddressChange: (String) -> Unit,
-    onMemoChange: (String) -> Unit,
-    onScan: (String) -> Unit,
-    onPaste: (String) -> Unit,
-    onAction: (ManageContactAddressAction) -> Unit,
-) {
+fun ManageContactAddressScene(input: ContactAddressInput, onAddressChange: (String) -> Unit, onMemoChange: (String) -> Unit, onScan: (String) -> Unit, onPaste: (String) -> Unit, onAction: (ManageContactAddressAction) -> Unit) {
     var scanning by remember { mutableStateOf(false) }
 
     Scene(

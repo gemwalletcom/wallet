@@ -12,6 +12,7 @@ use num_bigint::BigInt;
 use payment::PaymentTransaction;
 use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER};
 use primitives::{AssetId, Chain, ChainAddress, FeePriority, GasPriceType, PaymentInvoice, TransactionType, TransferDataOutputType};
+use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
@@ -19,6 +20,7 @@ use std::sync::{Arc, Mutex};
 pub struct TestAlienProvider {
     response: Arc<AlienResponse>,
     by_path: Vec<(String, Arc<AlienResponse>)>,
+    by_request_type: Vec<(String, Arc<AlienResponse>)>,
     requested: Mutex<Vec<String>>,
     error: Option<AlienError>,
 }
@@ -28,6 +30,7 @@ impl TestAlienProvider {
         Self {
             response: Arc::new(response),
             by_path: Vec::new(),
+            by_request_type: Vec::new(),
             requested: Mutex::new(Vec::new()),
             error: None,
         }
@@ -42,11 +45,15 @@ impl TestAlienProvider {
 
     pub fn with_json_by_path(status: u16, bodies: &[(&str, &str)]) -> Self {
         Self {
-            by_path: bodies
-                .iter()
-                .map(|(path, body)| ((*path).to_string(), Arc::new(AlienResponse::new(Some(status), body.as_bytes().to_vec()))))
-                .collect(),
+            by_path: bodies.iter().map(|(path, body)| ((*path).to_string(), Arc::new(AlienResponse::new(Some(status), body.as_bytes().to_vec())))).collect(),
             ..Self::with_json(status, "[]")
+        }
+    }
+
+    pub fn with_json_by_request_type(bodies: &[(&str, &str)]) -> Self {
+        Self {
+            by_request_type: bodies.iter().map(|(kind, body)| ((*kind).to_string(), Arc::new(AlienResponse::new(Some(200), body.as_bytes().to_vec())))).collect(),
+            ..Self::with_status(404)
         }
     }
 
@@ -70,6 +77,15 @@ impl AlienProvider for TestAlienProvider {
         self.requested.lock().unwrap().push(path.clone());
         if let Some(error) = &self.error {
             return Err(error.clone());
+        }
+        if !self.by_request_type.is_empty() {
+            let body: Value = serde_json::from_slice(target.body.as_deref().unwrap()).unwrap();
+            return Ok(self
+                .by_request_type
+                .iter()
+                .find(|(kind, _)| body["type"].as_str() == Some(kind.as_str()))
+                .map(|(_, response)| response.clone())
+                .unwrap_or_else(|| self.response.clone()));
         }
         let matched = self.by_path.iter().find(|(fragment, _)| path.contains(fragment.as_str()));
         Ok(matched.map(|(_, response)| response.clone()).unwrap_or_else(|| self.response.clone()))

@@ -29,13 +29,7 @@ pub(super) struct PrefetchedSuiData {
 }
 
 impl PrefetchedSuiData {
-    pub(super) async fn prefetch(
-        client: &SuiClient,
-        sender: &str,
-        route: &MayanMctpQuote,
-        gas_budget: u64,
-        package_id_cache: &Cache<&'static str, String>,
-    ) -> Result<Self, SwapperError> {
+    pub(super) async fn prefetch(client: &SuiClient, sender: &str, route: &MayanMctpQuote, gas_budget: u64, package_id_cache: &Cache<&'static str, String>) -> Result<Self, SwapperError> {
         let mctp_input_contract = route.mctp_input_contract.clone().ok_or(SwapperError::InvalidRoute)?;
         let from_token_verified_address = route.from_token.verified_address.clone().ok_or(SwapperError::InvalidRoute)?;
         let mctp_verified_input_address = route.mctp_verified_input_address.clone().ok_or(SwapperError::InvalidRoute)?;
@@ -65,8 +59,7 @@ impl PrefetchedSuiData {
                 Ok(None)
             }
         };
-        let (transaction, input_coins, resolved_objects, mctp_package_id, fee_manager_package_id) =
-            try_join!(transaction, input_coins, resolved_objects, mctp_package_id, fee_manager_package_id)?;
+        let (transaction, input_coins, resolved_objects, mctp_package_id, fee_manager_package_id) = try_join!(transaction, input_coins, resolved_objects, mctp_package_id, fee_manager_package_id)?;
         let objects = object_ids.into_iter().zip(resolved_objects).collect();
 
         Ok(Self {

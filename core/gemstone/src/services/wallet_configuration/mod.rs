@@ -22,13 +22,15 @@ impl GemWalletConfigurationService {
     pub fn new(api: Arc<GemDeviceApiClient>, banners: Arc<dyn GemBannerStore>, preferences: Arc<GemWalletPreferencesService>) -> Self {
         Self { api, banners, preferences }
     }
+}
 
+impl GemWalletConfigurationService {
     pub async fn sync(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
         if self.preferences.is_wallet_configuration_completed(wallet_id.clone())? {
             return Ok(());
         }
         let result = self.api.client.get_wallet_configuration(wallet_id.id()).await.map_err(GemApiError::from)?;
-        for key in rules::multi_signature_banners(&wallet_id, &result.configuration) {
+        for key in rules::externally_controlled_banners(&wallet_id, &result.configuration) {
             let state = banner_rules::default_state(key.event);
             self.banners.set_state(key, state).await?;
         }

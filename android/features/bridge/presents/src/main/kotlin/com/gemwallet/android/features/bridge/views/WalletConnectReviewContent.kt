@@ -49,7 +49,6 @@ internal fun WalletConnectPayloadDetailsSheet(
     isVisible: Boolean,
     primaryFields: List<PayloadField>,
     secondaryFields: List<PayloadField>,
-    addressNames: Map<String, String>,
     onViewFullMessage: () -> Unit,
     onDismissRequest: () -> Unit,
     viewFullMessageListItem: ListItemModel,
@@ -64,7 +63,6 @@ internal fun WalletConnectPayloadDetailsSheet(
             simulationPayloadDetailsContent(
                 primaryFields = primaryFields,
                 secondaryFields = secondaryFields,
-                addressNames = addressNames,
             )
             item {
                 ListItem(
@@ -79,11 +77,7 @@ internal fun WalletConnectPayloadDetailsSheet(
 }
 
 @Composable
-internal fun WalletConnectFullMessageSheet(
-    isVisible: Boolean,
-    message: String,
-    onDismissRequest: () -> Unit,
-) {
+internal fun WalletConnectFullMessageSheet(isVisible: Boolean, message: String, onDismissRequest: () -> Unit) {
     ModalBottomSheet(
         isVisible = isVisible,
         expansion = SheetExpansion.Full,
@@ -104,13 +98,7 @@ internal fun WalletConnectFullMessageSheet(
 }
 
 @Composable
-internal fun WalletSelectionSheet(
-    isVisible: Boolean,
-    walletRows: List<WalletRowUIModel>,
-    selectedWalletId: WalletId?,
-    onWalletSelected: (WalletId) -> Unit,
-    onDismissRequest: () -> Unit,
-) {
+internal fun WalletSelectionSheet(isVisible: Boolean, walletRows: List<WalletRowUIModel>, selectedWalletId: WalletId?, onWalletSelected: (WalletId) -> Unit, onDismissRequest: () -> Unit) {
     ModalBottomSheet(
         isVisible = isVisible,
         dragHandle = { BottomSheetDefaults.DragHandle() },

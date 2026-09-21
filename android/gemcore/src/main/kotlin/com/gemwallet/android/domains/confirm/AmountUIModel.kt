@@ -8,10 +8,11 @@ import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.NFTAsset
-import java.math.BigInteger
 import uniffi.gemstone.GemTransactionHeaderKind
 import uniffi.gemstone.GemValueStyle
 import uniffi.gemstone.PaymentPrice
+
+import java.math.BigInteger
 
 class AmountUIModel(
     val headerKind: GemTransactionHeaderKind,

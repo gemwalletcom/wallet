@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import BigInt
+import Components
 import Formatters
 import Foundation
 import class Gemstone.GemCustomFee
-import struct Gemstone.GemNumberFormat
+import struct Gemstone.GemFeeRateRows
 import GemstonePrimitives
 import Localization
 import Observation
@@ -16,11 +16,8 @@ import Primitives
 public final class NetworkFeeCustomViewModel {
     private let chain: Chain
     private let feeAsset: Asset
-    private let unitType: FeeUnitType
+    private let rows: GemFeeRateRows
     private let baseFee: BigInt?
-    private let baseTotal: BigInt?
-    private let normalTotal: BigInt?
-    private let decimals: Int
     private let onSelect: @MainActor (BigInt) -> Void
     private let display: (BigInt) -> AmountDisplay
 
@@ -29,25 +26,19 @@ public final class NetworkFeeCustomViewModel {
     public init(
         chain: Chain,
         feeAsset: Asset,
-        unitType: FeeUnitType,
-        decimals: Int,
+        rows: GemFeeRateRows,
         baseFee: BigInt?,
-        baseTotal: BigInt?,
-        normalTotal: BigInt?,
         initialRate: BigInt?,
         onSelect: @escaping @MainActor (BigInt) -> Void,
         display: @escaping (BigInt) -> AmountDisplay,
     ) {
         self.chain = chain
         self.feeAsset = feeAsset
-        self.unitType = unitType
-        self.decimals = decimals
+        self.rows = rows
         self.baseFee = baseFee
-        self.baseTotal = baseTotal
-        self.normalTotal = normalTotal
         self.onSelect = onSelect
         self.display = display
-        input = initialRate.map { ValueFormatter.full.string($0, decimals: decimals) } ?? ""
+        input = initialRate.flatMap { NumberInput.format().inputText(value: $0.description, decimals: rows.unitDecimals) } ?? ""
     }
 
     public var title: String { Localized.FeeRate.custom }
@@ -58,11 +49,11 @@ public final class NetworkFeeCustomViewModel {
     public var networkFeeTitle: String { Localized.Transfer.networkFee }
 
     public var suffix: String {
-        FeeUnitViewModel(unit: FeeUnit(type: unitType, value: .zero), decimals: decimals, symbol: feeAsset.symbol).suffix
+        rows.unitType.toPrimitives().suffix(symbol: feeAsset.symbol)
     }
 
     public var placeholder: String {
-        baseTotal.map { ValueFormatter.auto.string($0, decimals: decimals) } ?? ""
+        estimate.placeholder()?.text() ?? ""
     }
 
     public var value: String? {
@@ -74,15 +65,11 @@ public final class NetworkFeeCustomViewModel {
     }
 
     public var errorText: String? {
-        if estimate.isBelowMinimum(), let minimumRate = estimate.minimumRate() {
-            let minText = FeeUnitViewModel(unit: FeeUnit(type: unitType, value: minimumRate), decimals: decimals, symbol: feeAsset.symbol).value
-            return Localized.Common.minimumValue(minText)
+        switch estimate.check() {
+        case let .belowMinimum(rate): Localized.Common.minimumValue(rate.text)
+        case let .overMaximum(rate): Localized.Common.maximumValue(rate.text)
+        case .valid: nil
         }
-        if estimate.isOverMax() {
-            let maxText = FeeUnitViewModel(unit: FeeUnit(type: unitType, value: estimate.maxRate()), decimals: decimals, symbol: feeAsset.symbol).value
-            return Localized.Common.maximumValue(maxText)
-        }
-        return nil
     }
 
     public var isConfirmEnabled: Bool {
@@ -90,26 +77,22 @@ public final class NetworkFeeCustomViewModel {
     }
 
     public func sanitize(_ text: String) -> String {
-        NumberInput.format().sanitize(input: text, maximumFractionDigits: UInt32(decimals), maximumIntegerDigits: nil)
+        NumberInput.format().sanitize(input: text, maximumFractionDigits: rows.unitDecimals, maximumIntegerDigits: nil)
     }
 
     public func confirm() {
-        guard let rate, estimate.isValid() else { return }
+        let estimate = estimate
+        guard let rate = estimate.rate(), estimate.isValid() else { return }
         onSelect(rate)
-    }
-
-    private var rate: BigInt? {
-        guard let value = try? NumberInput.value(input, decimals: decimals), value > .zero else { return nil }
-        return value
     }
 
     private var estimate: GemCustomFee {
         GemCustomFee.estimate(
             chain: chain.rawValue,
-            rate: rate,
+            input: input,
+            format: NumberInput.format(),
+            rows: rows,
             loadedFee: baseFee ?? .zero,
-            baseTotal: baseTotal ?? .zero,
-            normalTotal: normalTotal ?? .zero,
         )
     }
 

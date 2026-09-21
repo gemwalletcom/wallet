@@ -55,12 +55,7 @@ fn circle_max_fee64(route: &MayanFastMctpQuote) -> Result<&str, SwapperError> {
 }
 
 fn refund_relayer_fee64(route: &MayanFastMctpQuote) -> Result<u64, SwapperError> {
-    route
-        .refund_relayer_fee64
-        .as_deref()
-        .ok_or(SwapperError::InvalidRoute)?
-        .parse::<u64>()
-        .map_err(SwapperError::from)
+    route.refund_relayer_fee64.as_deref().ok_or(SwapperError::InvalidRoute)?.parse::<u64>().map_err(SwapperError::from)
 }
 
 fn token_out(route: &MayanFastMctpQuote) -> Result<[u8; 32], SwapperError> {

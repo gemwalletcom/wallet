@@ -64,9 +64,7 @@ fun Modifier.shake(shakeController: ShakeController, onComplete: () -> Unit) = c
 }
 
 @Composable
-fun rememberShakeController(): ShakeController {
-    return remember { ShakeController() }
-}
+fun rememberShakeController(): ShakeController = remember { ShakeController() }
 
 class ShakeController {
     var shakeConfig: ShakeConfig? by mutableStateOf(null)

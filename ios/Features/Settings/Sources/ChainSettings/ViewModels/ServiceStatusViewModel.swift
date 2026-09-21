@@ -1,52 +1,37 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
-import enum Gemstone.GemLatencyStatus
-import struct Gemstone.GemServiceEndpoint
+import struct Gemstone.GemListSection
 import protocol Gemstone.GemServiceStatusProtocol
 import Localization
+import PrimitivesComponents
 
 @Observable
 @MainActor
 public final class ServiceStatusViewModel {
     private let service: any GemServiceStatusProtocol
-    private let endpoints: [GemServiceEndpoint]
-    private var statusStates: [GemLatencyStatus]
+    private var items: [GemListSection]
 
     public init(service: any GemServiceStatusProtocol) {
         self.service = service
-        endpoints = service.getEndpoints()
-        statusStates = Array(repeating: .loading, count: endpoints.count)
+        items = service.sections()
     }
 
-    var title: String {
-        Localized.Transaction.status
-    }
+    var title: String { Localized.Transaction.status }
+}
 
-    var itemModels: [ServiceStatusItemViewModel] {
-        zip(endpoints, statusStates).map {
-            ServiceStatusItemViewModel(endpoint: $0, status: $1)
-        }
-    }
+extension ServiceStatusViewModel: ListSectionProvideable {
+    public var sections: [ListSection<GemListSectionRow>] { items.listSections }
 }
 
 // MARK: - Actions
 
 extension ServiceStatusViewModel {
     func load() async {
-        statusStates = Array(repeating: .loading, count: endpoints.count)
-
-        let service = service
-        await withTaskGroup(of: (Int, GemLatencyStatus).self) { group in
-            for (index, endpoint) in endpoints.enumerated() {
-                group.addTask {
-                    await (index, service.getEndpointStatus(url: endpoint.url))
-                }
-            }
-
-            for await (index, state) in group {
-                statusStates[index] = state
-            }
-        }
+        items = service.sections()
+        let result = await service.load()
+        guard !Task.isCancelled else { return }
+        items = result
     }
 }

@@ -10,12 +10,7 @@ use crate::{SwapperError, SwapperQuoteData, alien::RpcProvider, client_factory::
 
 pub async fn build_quote_data(wallet_address: &str, step: &SolanaStepData, rpc_provider: Arc<dyn RpcProvider>) -> Result<SwapperQuoteData, SwapperError> {
     let client = SolanaClient::new(create_client_with_chain(rpc_provider, Chain::Solana)?);
-    let lookup_tables = async {
-        client
-            .get_address_lookup_tables(step.address_lookup_table_addresses.clone())
-            .await
-            .map_err(SwapperError::transaction_error)
-    };
+    let lookup_tables = async { client.get_address_lookup_tables(step.address_lookup_table_addresses.clone()).await.map_err(SwapperError::transaction_error) };
     let blockhash = async { client.get_latest_blockhash().await.map(|response| response.value.blockhash).map_err(SwapperError::from) };
     let (lookup_tables, blockhash) = try_join!(lookup_tables, blockhash)?;
     build_transaction(wallet_address, step, &blockhash, &lookup_tables)
@@ -51,9 +46,6 @@ mod tests {
 
         let instructions = instructions_from_primitives::<HexInstructionData>(step.instructions.clone()).unwrap();
         assert_eq!(instructions[0].program_id.to_base58(), SOLANA_RELAY_DEPOSITORY_PROGRAM_ID);
-        assert_eq!(
-            instructions[0].data,
-            hex::decode("0d9e0ddf5fd51c0600e1f50500000000d8f6831d9a771a5b031cc86256987f54a9759e6107db24b07ec66eef4e555055").unwrap()
-        );
+        assert_eq!(instructions[0].data, hex::decode("0d9e0ddf5fd51c0600e1f50500000000d8f6831d9a771a5b031cc86256987f54a9759e6107db24b07ec66eef4e555055").unwrap());
     }
 }

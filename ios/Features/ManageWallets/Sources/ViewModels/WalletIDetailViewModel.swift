@@ -1,5 +1,13 @@
 import Components
+import enum Gemstone.GemServiceError
+import struct Gemstone.GemWalletDetails
+import struct Gemstone.GemWalletRow
+import enum Gemstone.GemWalletSecret
+import enum Gemstone.GemWalletSecretKind
+import protocol Gemstone.GemWalletServiceProtocol
+import func Gemstone.walletRow
 import GemstonePrimitives
+import GemstoneServices
 import Localization
 import Onboarding
 import Primitives
@@ -7,14 +15,6 @@ import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
-import struct Gemstone.GemWalletDetails
-import struct Gemstone.GemWalletRow
-import enum Gemstone.GemWalletSecret
-import enum Gemstone.GemWalletSecretKind
-import func Gemstone.walletDetails
-import func Gemstone.walletRow
-import protocol Gemstone.GemWalletServiceProtocol
-import GemstoneServices
 
 @Observable
 @MainActor
@@ -50,7 +50,7 @@ public final class WalletDetailViewModel {
     }
 
     var details: GemWalletDetails {
-        walletDetails(wallet: wallet.toGem())
+        service.walletDetails(wallet: wallet.toGem())
     }
 
     var row: GemWalletRow {
@@ -74,10 +74,10 @@ public final class WalletDetailViewModel {
     }
 
     var address: WalletDetailAddress? {
-        guard let account = details.address?.toPrimitives() else { return .none }
+        guard let account = details.address?.toPrimitives(), let link = details.addressExplorer?.toPrimitives() else { return .none }
         return .account(
             SimpleAccount(name: .none, chain: account.chain, address: account.address, assetImage: .none),
-            link: service.addressUrl(chain: account.chain.rawValue, address: account.address).toPrimitives(),
+            link: link,
         )
     }
 
@@ -100,7 +100,7 @@ extension WalletDetailViewModel {
     }
 
     func delete() async throws {
-        preferences.reload(after: try await service.delete(wallet))
+        try await preferences.reload(after: service.delete(wallet))
     }
 
     func onSelectImage() {
@@ -114,18 +114,18 @@ extension WalletDetailViewModel {
     func onChangeWalletName() async {
         do {
             try await rename(name: nameInput)
+        } catch let error as GemServiceError {
+            isPresentingAlertMessage = AlertMessage(message: error.text().text)
         } catch {
-            isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
+            debugLog("wallet detail error: \(error)")
         }
     }
 
-    func onShowSecret() {
-        Task {
-            do {
-                isPresentingExportWallet = try await service.exportSecret(walletId: wallet.id.id)
-            } catch {
-                isPresentingAlertMessage = AlertMessage(error: error)
-            }
+    func onShowSecret() async {
+        do {
+            isPresentingExportWallet = try await service.exportSecret(walletId: wallet.id.id)
+        } catch {
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
 
@@ -137,8 +137,11 @@ extension WalletDetailViewModel {
         do {
             try await delete()
             return true
+        } catch let error as GemServiceError {
+            isPresentingAlertMessage = AlertMessage(message: error.text().text)
+            return false
         } catch {
-            isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
+            debugLog("wallet detail error: \(error)")
             return false
         }
     }

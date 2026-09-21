@@ -26,8 +26,7 @@ pub(crate) fn reserve_address_balance(mut coins: OwnedCoins<Coin>, sender: &str,
     };
     let owner = SuiAddress::parse(sender)?.into();
     let balance = coins.address_balance;
-    let (reservation_object_id, reservation_version, reservation_digest) =
-        ObjectReference::coin_reservation(&coin_type, balance, context.epoch, context.chain_id, owner).into_parts();
+    let (reservation_object_id, reservation_version, reservation_digest) = ObjectReference::coin_reservation(&coin_type, balance, context.epoch, context.chain_id, owner).into_parts();
 
     coins.coins.push(Coin {
         coin_type: coins.coin_type.clone(),
@@ -88,9 +87,6 @@ mod tests {
         .unwrap();
         let transaction: Transaction = bcs::from_bytes(&output.tx_data).unwrap();
 
-        assert_eq!(
-            transaction.gas_payment.objects,
-            vec![ObjectReference::new(gas_object.object_id, gas_object.version, gas_object.digest)]
-        );
+        assert_eq!(transaction.gas_payment.objects, vec![ObjectReference::new(gas_object.object_id, gas_object.version, gas_object.digest)]);
     }
 }

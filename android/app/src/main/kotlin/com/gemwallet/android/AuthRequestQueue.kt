@@ -12,7 +12,7 @@ internal class AuthRequestQueue {
                 id = nextId++,
                 requiresConfirmation = requiresConfirmation,
                 onSuccess = onSuccess,
-            )
+            ),
         )
         return startNext()
     }
@@ -45,8 +45,4 @@ internal class AuthRequestQueue {
     }
 }
 
-internal data class PendingAuthRequest(
-    val id: Long,
-    val requiresConfirmation: Boolean = false,
-    val onSuccess: () -> Unit,
-)
+internal data class PendingAuthRequest(val id: Long, val requiresConfirmation: Boolean = false, val onSuccess: () -> Unit)

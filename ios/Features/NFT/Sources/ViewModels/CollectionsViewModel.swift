@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemNftServiceProtocol
 import Foundation
-import Localization
+import protocol Gemstone.GemNftServiceProtocol
 import GemstonePrimitives
+import Localization
 import Primitives
 import Store
 import SwiftUI
@@ -34,10 +34,9 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
 
     public var content: CollectionsContent {
         let data = query.value.map { $0.toGem() }
-        let unverifiedCount = service.unverifiedCollections(data: data).count
         return CollectionsContent(
             items: NFTGridPosterBuilder.items(service.listItems(data: data, list: .collections)),
-            unverifiedCount: unverifiedCount > 0 ? unverifiedCount.asString : nil,
+            unverifiedCount: service.unverifiedRow(data: data, list: .collections)?.countText,
         )
     }
 

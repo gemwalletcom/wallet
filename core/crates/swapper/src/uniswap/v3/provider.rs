@@ -78,39 +78,20 @@ impl UniswapV3 {
         Ok(())
     }
 
-    async fn check_erc20_approval(
-        &self,
-        client: &JsonRpcClient<RpcClient>,
-        wallet_address: Address,
-        token: &str,
-        amount: U256,
-        chain: &Chain,
-    ) -> Result<ApprovalType, SwapperError> {
+    async fn check_erc20_approval(&self, client: &JsonRpcClient<RpcClient>, wallet_address: Address, token: &str, amount: U256, chain: &Chain) -> Result<ApprovalType, SwapperError> {
         let deployment = self.provider.get_deployment_by_chain(chain).ok_or(SwapperError::NotSupportedChain)?;
         let spender = deployment.permit2.to_string();
         check_approval_erc20_with_client(wallet_address.to_string(), token.to_string(), spender, amount, client).await
     }
 
-    async fn check_permit2_approval(
-        &self,
-        client: &JsonRpcClient<RpcClient>,
-        wallet_address: Address,
-        token: &str,
-        amount: U256,
-        chain: &Chain,
-    ) -> Result<Option<Permit2ApprovalData>, SwapperError> {
+    async fn check_permit2_approval(&self, client: &JsonRpcClient<RpcClient>, wallet_address: Address, token: &str, amount: U256, chain: &Chain) -> Result<Option<Permit2ApprovalData>, SwapperError> {
         let deployment = self.provider.get_deployment_by_chain(chain).ok_or(SwapperError::NotSupportedChain)?;
 
-        Ok(check_approval_permit2_with_client(
-            deployment.permit2,
-            wallet_address.to_string(),
-            token.to_string(),
-            deployment.universal_router.to_string(),
-            amount,
-            client,
+        Ok(
+            check_approval_permit2_with_client(deployment.permit2, wallet_address.to_string(), token.to_string(), deployment.universal_router.to_string(), amount, client)
+                .await?
+                .permit2_data(),
         )
-        .await?
-        .permit2_data())
     }
 }
 
@@ -156,22 +137,13 @@ impl Swapper for UniswapV3 {
         let fee_token_is_input = is_quote_input_fee_token(Some(&base_pair), request, token_in, token_out);
         let fee_bps = default_referral_fees().evm.bps;
 
-        let quote_amount_in = if fee_token_is_input && fee_bps > 0 {
-            apply_slippage_in_bp(&from_value, fee_bps)
-        } else {
-            from_value
-        };
+        let quote_amount_in = if fee_token_is_input && fee_bps > 0 { apply_slippage_in_bp(&from_value, fee_bps) } else { from_value };
 
         _ = self.preload_pool_candidates(from_chain, token_in, token_out).await;
         let paths_array = super::path::build_paths(&token_in, &token_out, &fee_tiers, &base_pair);
         let paths_array = paths_array
             .into_iter()
-            .map(|paths| {
-                paths
-                    .into_iter()
-                    .filter(|(pairs, _)| self.pool_discovery.path_may_exist(from_chain, pairs))
-                    .collect::<Vec<_>>()
-            })
+            .map(|paths| paths.into_iter().filter(|(pairs, _)| self.pool_discovery.path_may_exist(from_chain, pairs)).collect::<Vec<_>>())
             .collect::<Vec<_>>();
         let quote_calls = paths_array
             .iter()
@@ -190,11 +162,7 @@ impl Swapper for UniswapV3 {
 
         let quote_result = get_best_quote(&results, &positions, super::quoter_v2::decode_quoter_response)?;
 
-        let to_value = if fee_token_is_input {
-            quote_result.amount_out
-        } else {
-            apply_slippage_in_bp(&quote_result.amount_out, fee_bps)
-        };
+        let to_value = if fee_token_is_input { quote_result.amount_out } else { apply_slippage_in_bp(&quote_result.amount_out, fee_bps) };
         let to_min_value = apply_slippage_in_bp(&to_value, request.options.slippage.bps);
 
         let fee_tier_idx = quote_result.fee_tier_idx;
@@ -243,8 +211,7 @@ impl Swapper for UniswapV3 {
         }
         let client = self.client_for(from_asset.chain)?;
         let wallet_address = eth_address::parse_str(&quote.request.wallet_address)?;
-        self.check_permit2_approval(&client, wallet_address, &input.address.to_checksum(None), amount_in, &from_asset.chain)
-            .await
+        self.check_permit2_approval(&client, wallet_address, &input.address.to_checksum(None), amount_in, &from_asset.chain).await
     }
 
     async fn get_quote_data(&self, quote: &Quote, data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
@@ -263,9 +230,7 @@ impl Swapper for UniswapV3 {
         let permit = data.permit2_data().map(Permit2Permit::try_from).transpose()?;
 
         let approval: Option<ApprovalData> = if input.funding == Funding::Permit2 {
-            self.check_erc20_approval(&client, wallet_address, &input.address.to_checksum(None), amount_in, &from_chain)
-                .await?
-                .approval_data()
+            self.check_erc20_approval(&client, wallet_address, &input.address.to_checksum(None), amount_in, &from_chain).await?.approval_data()
         } else {
             None
         };
@@ -277,17 +242,7 @@ impl Swapper for UniswapV3 {
         let fee_token_is_input = is_quote_input_fee_token(base_pair.as_ref(), request, input.address, output.address);
 
         let path: Bytes = build_paths_with_routes(&quote.data.routes)?;
-        let commands = build_commands(
-            request,
-            &input,
-            &output,
-            amount_in,
-            to_amount,
-            &path,
-            permit,
-            fee_token_is_input,
-            deployment.universal_router_abi,
-        )?;
+        let commands = build_commands(request, &input, &output, amount_in, to_amount, &path, permit, fee_token_is_input, deployment.universal_router_abi)?;
         let encoded = encode_commands(&commands, U256::from(sig_deadline));
 
         let value = match input.funding {
@@ -295,13 +250,7 @@ impl Swapper for UniswapV3 {
             Funding::Permit2 => BigUint::ZERO,
         };
 
-        Ok(SwapperQuoteData::new_contract(
-            deployment.universal_router.into(),
-            value,
-            HexEncode(encoded),
-            approval,
-            gas_limit,
-        ))
+        Ok(SwapperQuoteData::new_contract(deployment.universal_router.into(), value, HexEncode(encoded), approval, gas_limit))
     }
 }
 
@@ -351,26 +300,14 @@ mod swap_integration_tests {
     async fn test_robinhood_eth_to_usdg_quote() -> Result<(), SwapperError> {
         let network_provider = Arc::new(NativeProvider::default());
         let swap_provider = uniswap::default::boxed_uniswap_v3(network_provider.clone());
-        assert_native_to_token_quote(
-            Chain::Robinhood,
-            AssetId::from(Chain::Robinhood, Some(ROBINHOOD_USDG_TOKEN_ID.to_string())),
-            network_provider,
-            swap_provider,
-        )
-        .await
+        assert_native_to_token_quote(Chain::Robinhood, AssetId::from(Chain::Robinhood, Some(ROBINHOOD_USDG_TOKEN_ID.to_string())), network_provider, swap_provider).await
     }
 
     #[tokio::test]
     async fn test_robinhood_pancakeswap_eth_to_usdg_quote() -> Result<(), SwapperError> {
         let network_provider = Arc::new(NativeProvider::default());
         let swap_provider = uniswap::default::boxed_pancakeswap(network_provider.clone());
-        assert_native_to_token_quote(
-            Chain::Robinhood,
-            AssetId::from(Chain::Robinhood, Some(ROBINHOOD_USDG_TOKEN_ID.to_string())),
-            network_provider,
-            swap_provider,
-        )
-        .await
+        assert_native_to_token_quote(Chain::Robinhood, AssetId::from(Chain::Robinhood, Some(ROBINHOOD_USDG_TOKEN_ID.to_string())), network_provider, swap_provider).await
     }
 
     #[tokio::test]
@@ -383,10 +320,7 @@ mod swap_integration_tests {
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
             value: BigUint::from(1_000_000_000_000_000_000u64),
-            options: Options {
-                slippage: 100.into(),
-                use_max_amount: false,
-            },
+            options: Options { slippage: 100.into(), use_max_amount: false },
         };
         let quote = swap_provider.get_quote(&request).await?;
         assert!(quote.to_value > BigUint::from(500_000u64) && quote.to_value < BigUint::from(1_000_000u64));
@@ -406,10 +340,7 @@ mod swap_integration_tests {
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
             value: BigUint::from(1_000_000u64),
-            options: Options {
-                slippage: 100.into(),
-                use_max_amount: false,
-            },
+            options: Options { slippage: 100.into(), use_max_amount: false },
         };
         let quote = swap_provider.get_quote(&request).await?;
         assert!(quote.to_value > BigUint::ZERO);
@@ -417,10 +348,7 @@ mod swap_integration_tests {
     }
 
     async fn assert_native_to_token_quote(chain: Chain, to_asset: AssetId, network_provider: Arc<NativeProvider>, swap_provider: Box<dyn Swapper>) -> Result<(), SwapperError> {
-        let options = Options {
-            slippage: 100.into(),
-            use_max_amount: false,
-        };
+        let options = Options { slippage: 100.into(), use_max_amount: false };
 
         let request = QuoteRequest {
             from_asset: AssetId::from_chain(chain).into(),
@@ -436,13 +364,7 @@ mod swap_integration_tests {
 
         let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::EstimateGas).await?;
 
-        let estimate_value = format!(
-            "0x{:x}",
-            quote_data
-                .value
-                .to_u128()
-                .ok_or_else(|| SwapperError::ComputeQuoteError("quote value is too large".to_string()))?
-        );
+        let estimate_value = format!("0x{:x}", quote_data.value.to_u128().ok_or_else(|| SwapperError::ComputeQuoteError("quote value is too large".to_string()))?);
         let gas = create_eth_client(network_provider.clone(), chain)?
             .estimate_gas(Some(&request.wallet_address), &quote_data.to, Some(&estimate_value), Some(&quote_data.data))
             .await

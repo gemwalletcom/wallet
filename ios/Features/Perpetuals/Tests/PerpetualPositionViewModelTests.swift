@@ -25,32 +25,6 @@ struct PerpetualPositionViewModelTests {
     }
 
     @Test
-    func marginField() {
-        #expect(PerpetualPositionViewModel(.mock(position: .mock(marginAmount: 1000))).detailField(for: .margin).value.text == "$1,000.00 (Isolated)")
-    }
-
-    @Test
-    func pnlField() {
-        #expect(PerpetualPositionViewModel(.mock(position: .mock(marginAmount: 1000, pnl: 500))).detailField(for: .pnl).value.text == "+$500.00 (+50.00%)")
-        #expect(PerpetualPositionViewModel(.mock(position: .mock(marginAmount: 1000, pnl: -200))).detailField(for: .pnl).value.text == "-$200.00 (-20.00%)")
-    }
-
-    @Test
-    func pnlPercent() {
-        #expect(PerpetualPositionViewModel(.mock(position: .mock(marginAmount: 1000, pnl: 100))).pnlPercent == 10.0)
-    }
-
-    @Test
-    func entryPriceField() {
-        #expect(PerpetualPositionViewModel(.mock(position: .mock(entryPrice: 42000))).detailField(for: .entryPrice).value.text == "$42,000.00")
-    }
-
-    @Test
-    func liquidationPriceField() {
-        #expect(PerpetualPositionViewModel(.mock(position: .mock(liquidationPrice: 35000))).detailField(for: .liquidationPrice).value.text == "$35,000.00")
-    }
-
-    @Test
     func positionTypeColor() {
         #expect(PerpetualPositionViewModel(.mock(position: .mock(direction: .short))).positionTypeColor == Colors.red)
         #expect(PerpetualPositionViewModel(.mock(position: .mock(direction: .long))).positionTypeColor == Colors.green)

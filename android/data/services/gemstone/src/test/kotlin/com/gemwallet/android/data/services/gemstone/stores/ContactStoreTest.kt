@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.data.service.store.database.ContactsDao
 import com.gemwallet.android.data.service.store.database.entities.DbContactAddress
+import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
 import io.mockk.mockk

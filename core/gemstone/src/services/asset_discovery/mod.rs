@@ -75,8 +75,7 @@ impl GemAssetDiscoveryService {
     }
 
     async fn sync_transactions(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
-        self.run_initial_load(wallet_id.clone(), GemDiscoveryStep::Transactions, self.transactions.sync_wallet(wallet_id, None))
-            .await
+        self.run_initial_load(wallet_id.clone(), GemDiscoveryStep::Transactions, self.transactions.sync_wallet(wallet_id, None)).await
     }
 
     async fn sync_nfts(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
@@ -119,10 +118,7 @@ mod tests {
     #[test]
     fn test_a_completed_step_is_not_loaded_again() {
         block_on(async {
-            let testkit = DiscoveryTestkit::with_response(TestAlienProvider::with_json_by_path(
-                200,
-                &[("devices/transactions", r#"{"transactions":[],"addressNames":[]}"#), ("devices/", "[]")],
-            ));
+            let testkit = DiscoveryTestkit::with_response(TestAlienProvider::with_json_by_path(200, &[("devices/transactions", r#"{"transactions":[],"addressNames":[]}"#), ("devices/", "[]")]));
 
             testkit.discovery.discover(testkit.wallet_id.clone()).await.unwrap();
             let first = testkit.provider.requested_paths().len();
@@ -137,10 +133,7 @@ mod tests {
     #[test]
     fn test_the_assets_step_records_its_timestamp_once_the_list_arrives() {
         block_on(async {
-            let testkit = DiscoveryTestkit::with_response(TestAlienProvider::with_json_by_path(
-                200,
-                &[("devices/transactions", r#"{"transactions":[],"addressNames":[]}"#), ("devices/", "[]")],
-            ));
+            let testkit = DiscoveryTestkit::with_response(TestAlienProvider::with_json_by_path(200, &[("devices/transactions", r#"{"transactions":[],"addressNames":[]}"#), ("devices/", "[]")]));
 
             assert_eq!(testkit.wallet_preferences.get_assets_timestamp(testkit.wallet_id.clone()), 0);
 

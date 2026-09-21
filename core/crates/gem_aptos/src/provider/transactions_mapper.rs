@@ -1,7 +1,5 @@
 use crate::models::{DelegationPoolAddStakeData, DelegationPoolUnlockStakeData, Event, Transaction, TransactionResponse};
-use crate::{
-    APTOS_NATIVE_COIN, DELEGATION_POOL_ADD_STAKE_EVENT, DELEGATION_POOL_UNLOCK_STAKE_EVENT, FUNGIBLE_ASSET_DEPOSIT_EVENT, FUNGIBLE_ASSET_WITHDRAW_EVENT, STAKE_DEPOSIT_EVENT,
-};
+use crate::{APTOS_NATIVE_COIN, DELEGATION_POOL_ADD_STAKE_EVENT, DELEGATION_POOL_UNLOCK_STAKE_EVENT, FUNGIBLE_ASSET_DEPOSIT_EVENT, FUNGIBLE_ASSET_WITHDRAW_EVENT, STAKE_DEPOSIT_EVENT};
 use chain_primitives::{BalanceDiff, SwapMapper};
 use chrono::DateTime;
 use num_bigint::{BigInt, BigUint};
@@ -63,13 +61,7 @@ fn extract_meta(transaction: &Transaction) -> Option<TransactionMeta> {
     let fee = gas_used * gas_unit_price;
     let created_at = DateTime::from_timestamp_micros(transaction.timestamp as i64)?;
 
-    Some(TransactionMeta {
-        hash,
-        sender,
-        state,
-        fee,
-        created_at,
-    })
+    Some(TransactionMeta { hash, sender, state, fee, created_at })
 }
 
 fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Chain) -> Option<PrimitivesTransaction> {
@@ -100,15 +92,7 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
         let metadata = serde_json::to_value(&swap).ok();
         let to = meta.sender.clone();
 
-        return Some(build_transaction(
-            meta,
-            asset_id,
-            chain.as_asset_id(),
-            to,
-            swap.from_value.clone(),
-            TransactionType::Swap,
-            metadata,
-        ));
+        return Some(build_transaction(meta, asset_id, chain.as_asset_id(), to, swap.from_value.clone(), TransactionType::Swap, metadata));
     }
 
     let withdraw_event = events.iter().find(|e| e.event_type == FUNGIBLE_ASSET_WITHDRAW_EVENT)?;
@@ -122,11 +106,7 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
     }
 
     let map_asset = |coin_type: &str| {
-        if coin_type == APTOS_NATIVE_COIN {
-            chain.as_asset_id()
-        } else {
-            AssetId::from_token(chain, coin_type)
-        }
+        if coin_type == APTOS_NATIVE_COIN { chain.as_asset_id() } else { AssetId::from_token(chain, coin_type) }
     };
 
     let from_asset = map_asset(&type_args[0]);
@@ -143,54 +123,21 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
         },
     ];
 
-    let provider = events.iter().find(|e| e.event_type.contains(PANORA_SWAP_EVENT)).and_then(|e| {
-        if e.event_type.contains(PANORA_SWAP_EVENT_ADDRESS) {
-            Some(SwapProvider::Panora.id().to_owned())
-        } else {
-            None
-        }
-    });
+    let provider = events
+        .iter()
+        .find(|e| e.event_type.contains(PANORA_SWAP_EVENT))
+        .and_then(|e| if e.event_type.contains(PANORA_SWAP_EVENT_ADDRESS) { Some(SwapProvider::Panora.id().to_owned()) } else { None });
 
     let swap = SwapMapper::map_swap(&balance_diffs, &BigUint::from(0u8), &chain.as_asset_id(), provider)?;
     let asset_id = swap.from_asset.clone();
     let metadata = serde_json::to_value(&swap).ok();
     let to = meta.sender.clone();
 
-    Some(build_transaction(
-        meta,
-        asset_id,
-        chain.as_asset_id(),
-        to,
-        swap.from_value.clone(),
-        TransactionType::Swap,
-        metadata,
-    ))
+    Some(build_transaction(meta, asset_id, chain.as_asset_id(), to, swap.from_value.clone(), TransactionType::Swap, metadata))
 }
 
-fn build_transaction(
-    meta: TransactionMeta,
-    asset_id: AssetId,
-    fee_asset_id: AssetId,
-    to: String,
-    value: BigUint,
-    transaction_type: TransactionType,
-    metadata: Option<serde_json::Value>,
-) -> PrimitivesTransaction {
-    PrimitivesTransaction::new(
-        meta.hash,
-        asset_id,
-        meta.sender,
-        to,
-        None,
-        transaction_type,
-        meta.state,
-        meta.fee,
-        fee_asset_id,
-        value,
-        None,
-        metadata,
-        meta.created_at,
-    )
+fn build_transaction(meta: TransactionMeta, asset_id: AssetId, fee_asset_id: AssetId, to: String, value: BigUint, transaction_type: TransactionType, metadata: Option<serde_json::Value>) -> PrimitivesTransaction {
+    PrimitivesTransaction::new(meta.hash, asset_id, meta.sender, to, None, transaction_type, meta.state, meta.fee, fee_asset_id, value, None, metadata, meta.created_at)
 }
 
 pub fn map_transaction(transaction: Transaction) -> Option<PrimitivesTransaction> {
@@ -207,36 +154,18 @@ pub fn map_transaction(transaction: Transaction) -> Option<PrimitivesTransaction
         match event.event_type.as_str() {
             DELEGATION_POOL_ADD_STAKE_EVENT => {
                 let data: DelegationPoolAddStakeData = serde_json::from_value(event.data.clone()?).ok()?;
-                return Some(build_transaction(
-                    meta,
-                    asset_id.clone(),
-                    asset_id,
-                    data.pool_address,
-                    data.amount_added,
-                    TransactionType::StakeDelegate,
-                    None,
-                ));
+                return Some(build_transaction(meta, asset_id.clone(), asset_id, data.pool_address, data.amount_added, TransactionType::StakeDelegate, None));
             }
             DELEGATION_POOL_UNLOCK_STAKE_EVENT => {
                 let data: DelegationPoolUnlockStakeData = serde_json::from_value(event.data.clone()?).ok()?;
-                return Some(build_transaction(
-                    meta,
-                    asset_id.clone(),
-                    asset_id,
-                    data.pool_address,
-                    data.amount_unlocked,
-                    TransactionType::StakeUndelegate,
-                    None,
-                ));
+                return Some(build_transaction(meta, asset_id.clone(), asset_id, data.pool_address, data.amount_unlocked, TransactionType::StakeUndelegate, None));
             }
             _ => continue,
         }
     }
 
     if transaction.transaction_type.as_deref() == Some("user_transaction") && events.len() <= 4 {
-        let deposit_event = events
-            .iter()
-            .find(|x| x.event_type == STAKE_DEPOSIT_EVENT || x.event_type == FUNGIBLE_ASSET_DEPOSIT_EVENT)?;
+        let deposit_event = events.iter().find(|x| x.event_type == STAKE_DEPOSIT_EVENT || x.event_type == FUNGIBLE_ASSET_DEPOSIT_EVENT)?;
 
         let to = if deposit_event.event_type == FUNGIBLE_ASSET_DEPOSIT_EVENT {
             transaction.payload.as_ref()?.arguments.first()?.as_str()?.to_string()
@@ -282,10 +211,7 @@ mod tests {
 
         let result = map_transaction_broadcast(&response);
         assert!(result.is_err());
-        assert_eq!(
-            result.unwrap_err().to_string(),
-            "Invalid transaction: Type: Validation Code: MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS"
-        );
+        assert_eq!(result.unwrap_err().to_string(), "Invalid transaction: Type: Validation Code: MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS");
     }
 
     #[test]
@@ -294,10 +220,7 @@ mod tests {
 
         let result = map_transaction_broadcast(&response);
         assert!(result.is_err());
-        assert_eq!(
-            result.unwrap_err().to_string(),
-            "Invalid transaction: Type: Validation Code: MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS"
-        );
+        assert_eq!(result.unwrap_err().to_string(), "Invalid transaction: Type: Validation Code: MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS");
     }
 
     #[test]

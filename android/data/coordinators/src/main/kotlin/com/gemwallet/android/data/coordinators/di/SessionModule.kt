@@ -14,7 +14,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import uniffi.gemstone.GemDeviceService
 import uniffi.gemstone.GemCurrencyService
 import uniffi.gemstone.GemCurrencyServiceInterface
 import uniffi.gemstone.GemPreferencesService
@@ -28,11 +27,7 @@ object SessionModule {
 
     @Provides
     @Singleton
-    fun provideGemCurrencyService(
-        preferencesService: GemPreferencesService,
-        priceService: GemPriceService,
-        deviceService: GemDeviceService,
-    ): GemCurrencyService = GemCurrencyService(preferencesService, priceService, deviceService)
+    fun provideGemCurrencyService(preferencesService: GemPreferencesService, priceService: GemPriceService): GemCurrencyService = GemCurrencyService(preferencesService, priceService)
 
     @Provides
     fun provideGemCurrencyServiceInterface(service: GemCurrencyService): GemCurrencyServiceInterface = service

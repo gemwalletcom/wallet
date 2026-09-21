@@ -50,8 +50,7 @@ impl MultipartForm {
     }
 
     fn part_header(&mut self, disposition: &str, content_type: Option<&str>) {
-        self.body
-            .extend_from_slice(format!("--{}\r\nContent-Disposition: {disposition}\r\n", self.boundary).as_bytes());
+        self.body.extend_from_slice(format!("--{}\r\nContent-Disposition: {disposition}\r\n", self.boundary).as_bytes());
         if let Some(content_type) = content_type {
             self.body.extend_from_slice(format!("Content-Type: {content_type}\r\n").as_bytes());
         }
@@ -65,9 +64,7 @@ mod tests {
 
     #[test]
     fn test_into_body() {
-        let form = MultipartForm::new()
-            .text("message[timestamp]", "now")
-            .file("message[attachments][]", "a.png", "image/png", b"png");
+        let form = MultipartForm::new().text("message[timestamp]", "now").file("message[attachments][]", "a.png", "image/png", b"png");
         let boundary = form.boundary.clone();
         let body = String::from_utf8(form.into_body()).unwrap();
 

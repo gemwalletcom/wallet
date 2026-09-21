@@ -87,10 +87,7 @@ pub(crate) async fn run(request: Arc<NodeCheckRequest>, provider: Arc<dyn ChainT
             }
             Err(error) => {
                 profile_results.failed += 1;
-                method_results
-                    .entry("task".to_string())
-                    .or_default()
-                    .record(NodeCheckStatus::Failed { error: error.to_string() });
+                method_results.entry("task".to_string()).or_default().record(NodeCheckStatus::Failed { error: error.to_string() });
             }
         }
     }
@@ -119,10 +116,7 @@ fn print_results(table: &ResultTable, elapsed: Duration, profiles: CheckResults,
         &format!("passed: {}, warnings: {}, failed: {}", totals.passed, totals.warnings, totals.failed),
     );
     let (throughput_status, throughput) = if totals.failed == 0 {
-        (
-            profile_status,
-            format!("{check_throughput:.2} checks/s; at least {estimated_rpc:.2} successful RPC/s; {elapsed_seconds:.2}s; no failures"),
-        )
+        (profile_status, format!("{check_throughput:.2} checks/s; at least {estimated_rpc:.2} successful RPC/s; {elapsed_seconds:.2}s; no failures"))
     } else {
         let useful_checks = totals.passed + totals.failed;
         let failed_percent = f64::from(totals.failed) / f64::from(useful_checks) * 100.0;
@@ -154,9 +148,7 @@ mod tests {
     fn test_method_results_records_outcomes() {
         let mut results = MethodResults::default();
         results.record(NodeCheckStatus::Passed { result: "ok".to_string() });
-        results.record(NodeCheckStatus::Warning {
-            warning: "unsupported".to_string(),
-        });
+        results.record(NodeCheckStatus::Warning { warning: "unsupported".to_string() });
         results.record(NodeCheckStatus::Failed {
             error: "HTTP error: status 429 (-32900)".to_string(),
         });

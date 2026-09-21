@@ -1,26 +1,11 @@
 package com.gemwallet.android.features.confirm.viewmodels
 
 import android.content.Context
-import uniffi.gemstone.GemTransferAmount
-import uniffi.gemstone.GemTransferAmountResult
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.ext.toGem
-import uniffi.gemstone.GemConfirmInput
-import uniffi.gemstone.GemConfirmData
-import uniffi.gemstone.GemConfirmPreload
-import uniffi.gemstone.GemFeeOptions
-import uniffi.gemstone.GasPriceType
-import uniffi.gemstone.GemTransactionLoadFee
-import uniffi.gemstone.GemTransactionLoadMetadata
-import uniffi.gemstone.GemConfirmPhase
-import uniffi.gemstone.GemConfirmation
-import uniffi.gemstone.GemConfirmTransferService
-import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.PerpetualType
-import uniffi.gemstone.TransactionInputType
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetHyperCoreUBTC
 import com.gemwallet.android.testkit.mockGemConfirmLoad
@@ -40,10 +25,10 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.job
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.job
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -53,17 +38,32 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GasPriceType
+import uniffi.gemstone.GemConfirmData
+import uniffi.gemstone.GemConfirmFeeSelection
+import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemConfirmPhase
+import uniffi.gemstone.GemConfirmPreload
+import uniffi.gemstone.GemConfirmTransferService
+import uniffi.gemstone.GemConfirmation
+import uniffi.gemstone.GemFeeOptions
+import uniffi.gemstone.GemTransactionLoadFee
+import uniffi.gemstone.GemTransactionLoadMetadata
+import uniffi.gemstone.GemTransferAmount
+import uniffi.gemstone.GemTransferAmountResult
+import uniffi.gemstone.GemTransferData
+import uniffi.gemstone.PerpetualType
+import uniffi.gemstone.TransactionInputType
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConfirmViewModelRetryTest {
 
-
     private val testDispatcher = UnconfinedTestDispatcher()
     private val asset = mockAssetHyperCoreUBTC()
     private val account = mockAccount(chain = Chain.HyperCore)
     private val confirmService = mockk<GemConfirmTransferService>(relaxed = true)
-    private val confirmation = mockk<GemConfirmation>()
+    private val confirmation = mockk<GemConfirmation> { every { rowContents(any()) } returns emptyList() }
     private var model: ConfirmViewModel? = null
 
     @Before
@@ -76,7 +76,7 @@ class ConfirmViewModelRetryTest {
     }
 
     @Test
-    fun retryAfterPreloadFailureRunsThePreloaderAgain() = runTest(testDispatcher) {
+    fun retryAndRefreshUseTheCurrentFeeSelection() = runTest(testDispatcher) {
         val transfer = mockGemTransferData(
             inputType = TransactionInputType.Perpetual(asset.toGem(), PerpetualType.Open(mockPerpetualConfirmData(direction = PerpetualDirection.Long))),
             value = BigInteger.TEN,
@@ -93,6 +93,13 @@ class ConfirmViewModelRetryTest {
         coVerify(exactly = 2) { confirmation.load(any()) }
         assertEquals(GemConfirmPhase.READY, viewModel.screen.value.phase)
         assertEquals(asset, viewModel.feeAsset.value?.asset)
+
+        viewModel.changeFeePriority(FeePriority.Fast)
+        advanceUntilIdle()
+        viewModel.fetch()
+        advanceUntilIdle()
+        coVerify(exactly = 4) { confirmation.load(any()) }
+        coVerify(exactly = 2) { confirmation.load(match { it.feeSelection == GemConfirmFeeSelection.Priority(FeePriority.Fast.toGem()) }) }
     }
 
     private fun viewModel(transfer: GemTransferData): ConfirmViewModel {
@@ -137,11 +144,14 @@ class ConfirmViewModelRetryTest {
                     mockSession(wallet = mockWallet(accounts = listOf(account))),
                 )
             },
-            buildConfirmProperties = mockk(relaxed = true),
             confirmService = confirmService,
             savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transfer.pack()))),
+            connectionStatusObserver = mockk(relaxed = true),
             ioDispatcher = testDispatcher,
-            context = mockk<Context> { every { getString(any()) } returns "Error"; every { getString(any(), *anyVararg()) } returns "Error" },
+            context = mockk<Context> {
+                every { getString(any()) } returns "Error"
+                every { getString(any(), *anyVararg()) } returns "Error"
+            },
         )
     }
 }

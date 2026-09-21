@@ -35,10 +35,7 @@ fn map_pair_image(pair: Pair) -> Option<AssetImage> {
 
 pub(super) fn map_asset_image(asset_id: &AssetId, pairs: Vec<Pair>) -> Option<AssetImage> {
     let token_id = format_token_id(asset_id.chain, asset_id.token_id.clone()?)?;
-    pairs
-        .into_iter()
-        .filter_map(map_pair_image)
-        .find(|image| image.chain == asset_id.chain && image.token_id == token_id)
+    pairs.into_iter().filter_map(map_pair_image).find(|image| image.chain == asset_id.chain && image.token_id == token_id)
 }
 
 pub(super) fn map_ranked_images(pairs: Vec<Pair>, count: usize) -> Vec<AssetImage> {
@@ -54,11 +51,7 @@ pub(super) fn map_ranked_images(pairs: Vec<Pair>, count: usize) -> Vec<AssetImag
             })
         })
         .collect();
-    ranked.sort_by(|a, b| {
-        b.compare_liquidity(a)
-            .then_with(|| b.volume.total_cmp(&a.volume))
-            .then_with(|| a.image.image_url.cmp(&b.image.image_url))
-    });
+    ranked.sort_by(|a, b| b.compare_liquidity(a).then_with(|| b.volume.total_cmp(&a.volume)).then_with(|| a.image.image_url.cmp(&b.image.image_url)));
     let mut assets = HashSet::new();
     ranked.retain(|candidate| assets.insert((candidate.image.chain, candidate.image.token_id.clone())));
     ranked.sort_by(|a, b| {

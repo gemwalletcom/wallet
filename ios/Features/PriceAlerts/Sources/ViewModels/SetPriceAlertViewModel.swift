@@ -4,10 +4,10 @@ import Components
 import Formatters
 import Foundation
 import Gemstone
-import GemstonePrimitives
+import protocol Gemstone.GemPriceAlertServiceProtocol
 import struct Gemstone.GemPriceAlertSession
 import struct Gemstone.GemPriceAlertViewState
-import protocol Gemstone.GemPriceAlertServiceProtocol
+import GemstonePrimitives
 import GemstoneServices
 import Localization
 import Primitives
@@ -48,14 +48,12 @@ public final class SetPriceAlertViewModel {
         assetQuery = ObservableQuery(AssetRequest(walletId: walletId, assetId: asset.id), initialValue: .with(asset: asset))
     }
 
-    func percentageSuggestions(for price: Primitives.Price?) -> [PercentageSuggestion] {
-        viewState(price: price).percentageSuggestions.map { PercentageSuggestion(value: $0.asInt) }
+    func percentageSuggestions(for price: Primitives.Price?) -> [PriceSuggestion] {
+        viewState(price: price).percentageSuggestions.map { PriceSuggestion(title: $0.text(), value: $0.value) }
     }
 
     func priceSuggestions(for price: Primitives.Price?) -> [PriceSuggestion] {
-        viewState(price: price).priceSuggestions.map {
-            PriceSuggestion(title: currencyFormatter.string($0), value: $0)
-        }
+        viewState(price: price).priceSuggestions.map { PriceSuggestion(title: $0.text(), value: $0.value) }
     }
 
     func onSelectSuggestion(_ suggestion: some SuggestionViewable) {
@@ -112,7 +110,7 @@ public final class SetPriceAlertViewModel {
                 formatter: .short,
                 currency: currency,
             ),
-            row: GemSelectAssetType.priceAlert.flow().row,
+            rowStyle: GemSelectAssetType.priceAlert.flow().rowStyle,
         )
     }
 
@@ -127,12 +125,8 @@ public final class SetPriceAlertViewModel {
     }
 
     private var completeMessage: String {
-        guard let amountValue else { return .empty }
-        let amount: String = switch state.type {
-        case .price: currencyFormatter.string(amountValue)
-        case .percentage: "\(amountValue)%"
-        }
-        let message = [alertDirectionTitle.lowercased(), amount].joined(separator: " ")
+        guard let savedValue = session.viewState().savedValue else { return .empty }
+        let message = [alertDirectionTitle.lowercased(), savedValue.text()].joined(separator: " ")
         return Localized.PriceAlerts.addedFor(message)
     }
 

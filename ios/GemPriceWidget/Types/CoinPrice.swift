@@ -1,13 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.GemWidgetCoin
+import Primitives
 import SwiftUI
 
 struct CoinPrice: Identifiable {
-    let coin: GemWidgetCoin
+    let assetId: AssetId
+    let name: String
+    let symbol: String
+    let priceText: String
+    let changeText: String
+    let changeIsPositive: Bool
     let image: Image?
 
     var id: String {
-        coin.assetId
+        assetId.identifier
     }
 }

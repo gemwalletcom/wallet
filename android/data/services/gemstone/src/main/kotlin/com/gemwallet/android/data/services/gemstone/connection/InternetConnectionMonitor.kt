@@ -16,10 +16,7 @@ import uniffi.gemstone.GemConnectionService
 import uniffi.gemstone.GemConnectionServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class InternetConnectionMonitor(
-    private val context: Context,
-    private val connectionService: GemConnectionServiceInterface,
-) : ConnectionComponentMonitor {
+class InternetConnectionMonitor(private val context: Context, private val connectionService: GemConnectionServiceInterface) : ConnectionComponentMonitor {
 
     override val component: ConnectionComponent = ConnectionComponent.Internet
 
@@ -46,12 +43,8 @@ class InternetConnectionMonitor(
         }
         .distinctUntilChanged()
 
-    private fun ConnectivityManager.currentHealth(): Boolean {
-        return getNetworkCapabilities(activeNetwork)?.isHealthy() ?: false
-    }
+    private fun ConnectivityManager.currentHealth(): Boolean = getNetworkCapabilities(activeNetwork)?.isHealthy() ?: false
 
-    private fun NetworkCapabilities.isHealthy(): Boolean {
-        return hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            && hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-    }
+    private fun NetworkCapabilities.isHealthy(): Boolean = hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+        hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
 }

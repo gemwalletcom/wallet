@@ -6,8 +6,10 @@ XCODE_CONFIGURATION := env("CONFIGURATION", "Debug")
 GEMSTONE_IOS_PROFILE := if XCODE_CONFIGURATION == "Release" { "release" } else { "debug" }
 DERIVED_DATA := "build/DerivedData"
 SPM_CACHE := "build/SourcePackages"
-FAST_BUILD_FLAGS := "GCC_OPTIMIZATION_LEVEL=0 SWIFT_OPTIMIZATION_LEVEL=-Onone SWIFT_COMPILATION_MODE=incremental ENABLE_TESTABILITY=NO"
+XCODEBUILD := "xcodebuild -project Gem.xcodeproj -derivedDataPath " + DERIVED_DATA + " -clonedSourcePackagesDirPath " + SPM_CACHE
 GEMSTONE_LINKER_FLAGS := '"OTHER_LDFLAGS=\$(inherited) $PWD/../core/target/aarch64-apple-ios-sim/' + GEMSTONE_IOS_PROFILE + '/libgemstone.a"'
+COMPILATION_CACHE_FLAGS := if XCODE_CONFIGURATION == "Release" { "" } else { "COMPILATION_CACHE_ENABLE_CACHING=YES COMPILATION_CACHE_LIMIT_SIZE=40G" }
+SIMULATOR_BUILD_FLAGS := '-configuration "' + XCODE_CONFIGURATION + '" -destination "' + SIMULATOR_DEST + '" ONLY_ACTIVE_ARCH=YES -parallelizeTargets -jobs ' + BUILD_THREADS + ' ' + GEMSTONE_LINKER_FLAGS + ' ' + COMPILATION_CACHE_FLAGS
 
 default:
     @just --list
@@ -28,7 +30,7 @@ setup-git:
     @git config submodule.recurse true
 
 spm-resolve:
-    @xcodebuild -resolvePackageDependencies -project Gem.xcodeproj -scheme Gem -derivedDataPath {{DERIVED_DATA}} -clonedSourcePackagesDirPath {{SPM_CACHE}}
+    @{{ XCODEBUILD }} -resolvePackageDependencies -scheme Gem
 
 spm-resolve-all:
     @sh scripts/spm-resolve-all.sh
@@ -41,25 +43,18 @@ format:
     @echo "==> Running SwiftFormat"
     @git ls-files -z '*.swift' | xargs -0 swiftformat --config .swiftformat --quiet
 
-_build action extra_flags="":
-    @set -o pipefail && xcodebuild -project Gem.xcodeproj \
-    -scheme Gem \
-    -configuration "{{XCODE_CONFIGURATION}}" \
-    ONLY_ACTIVE_ARCH=YES \
-    -destination "{{SIMULATOR_DEST}}" \
-    -derivedDataPath {{DERIVED_DATA}} \
-    -clonedSourcePackagesDirPath {{SPM_CACHE}} \
-    -parallelizeTargets \
-    -jobs {{BUILD_THREADS}} \
+_build action scheme="Gem":
+    @set -o pipefail && {{ XCODEBUILD }} \
+    -scheme {{ scheme }} \
+    {{ SIMULATOR_BUILD_FLAGS }} \
     -showBuildTimingSummary \
-    {{ extra_flags }} \
     {{ action }} | xcbeautify {{ XCBEAUTIFY_ARGS }}
 
 # Example: just build
-build: (_build "build" FAST_BUILD_FLAGS)
+build: (_build "build")
 
 # Example: just build-for-testing
-build-for-testing: (_build "build-for-testing" GEMSTONE_LINKER_FLAGS)
+build-for-testing: (_build "build-for-testing")
 
 clean:
     #!/usr/bin/env bash
@@ -71,16 +66,15 @@ clean:
     done < <(find . -name Package.swift -print0)
     echo "iOS build folders cleaned"
 
-run: build
+run: build boot-simulator
     @echo "==> Installing app on simulator..."
-    @xcrun simctl boot "{{SIMULATOR_NAME}}" 2>/dev/null || true
     @open -a Simulator
     @xcrun simctl install "{{SIMULATOR_NAME}}" {{DERIVED_DATA}}/Build/Products/Debug-iphonesimulator/Gem.app
     @echo "==> Launching app..."
     @xcrun simctl launch --console-pty "{{SIMULATOR_NAME}}" com.gemwallet.ios
 
 # Fastest compile check while iterating: builds one package with SwiftPM, no xcodebuild.
-# ~1-2s warm against ~30s for `just build`, and reports every error in the package
+# ~1-2s warm against 8s or more for `just build`, and reports every error in the package
 # instead of stopping at the first failing file. SwiftPM builds for the host, so this
 # only works for packages that never import UIKit or SwiftUI; the rest need `just build`.
 # Example: just check GemstonePrimitives
@@ -99,27 +93,14 @@ check-test PACKAGE:
     cd "$dir" && swift test
 
 # Example: just build-package Primitives
-build-package PACKAGE:
-    @set -o pipefail && xcodebuild -project Gem.xcodeproj \
-    -scheme {{PACKAGE}} \
-    ONLY_ACTIVE_ARCH=YES \
-    -destination "{{SIMULATOR_DEST}}" \
-    -derivedDataPath {{DERIVED_DATA}} \
-    -clonedSourcePackagesDirPath {{SPM_CACHE}} \
-    -parallelizeTargets \
-    -jobs {{BUILD_THREADS}} \
-    GCC_OPTIMIZATION_LEVEL=0 \
-    SWIFT_OPTIMIZATION_LEVEL=-Onone \
-    build | xcbeautify {{XCBEAUTIFY_ARGS}}
+build-package PACKAGE: (_build "build" PACKAGE)
 
 archive-release: clean
-    @set -o pipefail && xcodebuild -project Gem.xcodeproj \
+    @set -o pipefail && {{ XCODEBUILD }} \
     -scheme Gem \
     -configuration Release \
     -sdk iphoneos \
     -destination "generic/platform=iOS" \
-    -derivedDataPath {{DERIVED_DATA}} \
-    -clonedSourcePackagesDirPath {{SPM_CACHE}} \
     -archivePath {{DERIVED_DATA}}/Gem.xcarchive \
     -jobs {{BUILD_THREADS}} \
     CODE_SIGNING_ALLOWED=NO \
@@ -130,45 +111,34 @@ show-simulator:
     @xcrun simctl list devices | grep "iPhone" | head -5 || true
 
 _test action target="":
-    @set -o pipefail && xcodebuild -project Gem.xcodeproj \
+    @set -o pipefail && {{ XCODEBUILD }} \
     -scheme Gem \
-    -configuration "{{XCODE_CONFIGURATION}}" \
-    ONLY_ACTIVE_ARCH=YES \
-    -destination "{{SIMULATOR_DEST}}" \
-    -derivedDataPath {{DERIVED_DATA}} \
-    -clonedSourcePackagesDirPath {{SPM_CACHE}} \
-    {{ if target != "" { "-only-testing " + target } else { "" } }} \
-    -parallel-testing-enabled YES \
-    -parallelizeTargets \
-    -jobs {{ BUILD_THREADS }} \
-    {{ GEMSTONE_LINKER_FLAGS }} \
+    {{ SIMULATOR_BUILD_FLAGS }} \
+    {{ if target != "" { "-only-testing " + target + " -parallel-testing-enabled NO" } else { "-parallel-testing-enabled YES" } }} \
     {{ action }} | xcbeautify {{ XCBEAUTIFY_ARGS }}
 
-test-without-building: (_test "test-without-building")
+test-without-building TARGET="": boot-simulator (_test "test-without-building" TARGET)
 
 # Example: just test
 # Example: just test PrimitivesTests
-test TARGET="": (_test "test" TARGET)
+test TARGET="": boot-simulator (_test "test" TARGET)
+
+test-package PACKAGE: (test (PACKAGE + "Tests"))
 
 test-all: test
 
 _test-integration action:
-    @set -o pipefail && xcodebuild -project Gem.xcodeproj \
+    @set -o pipefail && {{ XCODEBUILD }} \
     -scheme GemUITests \
-    -configuration "{{XCODE_CONFIGURATION}}" \
     -testPlan ui_tests \
-    ONLY_ACTIVE_ARCH=YES \
-    -destination "{{SIMULATOR_DEST}}" \
-    -derivedDataPath {{DERIVED_DATA}} \
-    -clonedSourcePackagesDirPath {{SPM_CACHE}} \
+    {{ SIMULATOR_BUILD_FLAGS }} \
     -allowProvisioningUpdates \
     -allowProvisioningDeviceRegistration \
-    {{ GEMSTONE_LINKER_FLAGS }} \
-    {{action}} | xcbeautify {{XCBEAUTIFY_ARGS}}
+    {{ action }} | xcbeautify {{ XCBEAUTIFY_ARGS }}
 
 test-integration: reset-simulator (_test-integration "test")
 
-test-ui: reset-simulator (_test-integration "test")
+test-ui: test-integration
 
 build-for-testing-integration: (_test-integration "build-for-testing")
 
@@ -177,6 +147,9 @@ test-integration-without-building: reset-simulator (_test-integration "test-with
 # Run full upgrade test: build old version, create wallet, build current, verify wallet survives
 test-upgrade COMMIT:
     @bash ./scripts/upgrade-test.sh {{COMMIT}}
+
+boot-simulator:
+    @xcrun simctl boot "{{SIMULATOR_NAME}}" 2>/dev/null || true
 
 reset-simulator NAME=SIMULATOR_NAME:
     @echo "==> Resetting {{NAME}} simulator to clean state"
@@ -196,7 +169,7 @@ generate-models:
     @cd ../core && cargo run --package generate --bin generate ios ../ios/Packages
 
 generate-stone BUILD_MODE="":
-    @./scripts/generate-stone.sh --force {{BUILD_MODE}}
+    @./scripts/generate-stone.sh {{BUILD_MODE}}
 
 bump TARGET="patch":
     @cd .. && just bump {{TARGET}}

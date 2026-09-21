@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import enum Gemstone.GemServiceError
-import protocol Gemstone.GemWalletConnectSigner
 import struct Gemstone.GemWalletConnectMessageRequest
+import protocol Gemstone.GemWalletConnectSigner
 import struct Gemstone.GemWalletConnectTransactionRequest
 import GemstonePrimitives
 import Primitives
@@ -42,12 +42,11 @@ extension WalletConnectorInteractor: WalletConnectorInteractable {
 
 extension WalletConnectorInteractor: GemWalletConnectSigner {
     public func signMessage(request: GemWalletConnectMessageRequest) async throws -> String {
-        let payload = try SignMessagePayload(request)
-        return try await present { try await presentSheet(payload: payload, sheetType: { .signMessage($0) }) }
+        try await present { try await presentSheet(payload: request, sheetType: { .signMessage($0) }) }
     }
 
     public func signTransaction(request: GemWalletConnectTransactionRequest) async throws -> String {
-        return try await present { try await presentSheet(payload: WCTransferData(request), sheetType: { .transferData($0) }) }
+        try await present { try await presentSheet(payload: WCTransferData(request), sheetType: { .transferData($0) }) }
     }
 
     private func present(_ action: () async throws -> String) async throws -> String {

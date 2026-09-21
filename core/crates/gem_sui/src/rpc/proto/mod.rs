@@ -20,18 +20,14 @@ pub(crate) use bcs::Bcs;
 pub(crate) use checkpoints::{Checkpoint, GetCheckpointRequest, GetCheckpointResponse};
 pub(crate) use field::FieldMask;
 pub(crate) use move_package::{FunctionDescriptor, GetFunctionRequest, GetFunctionResponse, OpenSignature, open_signature};
-pub(crate) use objects::{
-    BatchGetObjectsRequest, BatchGetObjectsResponse, GetObjectRequest, GetObjectResponse, GetObjectResult, ListOwnedObjectsRequest, ListOwnedObjectsResponse, Object, Owner,
-    OwnerKind,
-};
+pub(crate) use objects::{BatchGetObjectsRequest, BatchGetObjectsResponse, GetObjectRequest, GetObjectResponse, GetObjectResult, ListOwnedObjectsRequest, ListOwnedObjectsResponse, Object, Owner, OwnerKind};
 pub(crate) use service::{Epoch, GetEpochRequest, GetEpochResponse, GetServiceInfoRequest, GetServiceInfoResponse};
 pub(crate) use status::Status;
 pub(crate) use timestamp::Timestamp;
 pub(crate) use transaction_data::{Argument, Command, Input, MoveCall, ProgrammableTransaction, Transaction, TransactionKind, UserSignature};
 pub(crate) use transactions::{
-    BalanceChange, BatchGetTransactionsRequest, BatchGetTransactionsResponse, ExecuteTransactionRequest, ExecuteTransactionResponse, ExecutedTransaction, GasCostSummary,
-    GetTransactionRequest, GetTransactionResponse, GetTransactionResult, SimulateTransactionRequest, SimulateTransactionResponse, TransactionChecks, TransactionEffects,
-    TransactionEvents,
+    BalanceChange, BatchGetTransactionsRequest, BatchGetTransactionsResponse, ExecuteTransactionRequest, ExecuteTransactionResponse, ExecutedTransaction, GasCostSummary, GetTransactionRequest, GetTransactionResponse, GetTransactionResult,
+    SimulateTransactionRequest, SimulateTransactionResponse, TransactionChecks, TransactionEffects, TransactionEvents,
 };
 
 pub(crate) trait WithMut: Sized {

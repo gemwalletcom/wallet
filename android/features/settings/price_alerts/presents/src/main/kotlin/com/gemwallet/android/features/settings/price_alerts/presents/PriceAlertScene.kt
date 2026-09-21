@@ -70,16 +70,18 @@ internal fun PriceAlertScene(
         title = stringResource(R.string.settings_price_alerts_title),
         actions = @Composable {
             val assetId = asset?.id
-            IconButton(onClick = if (assetId == null) {
-                { onAction(PriceAlertAction.Add) }
-            } else {
-                { onAction(PriceAlertAction.AddTarget(assetId)) }
-            }) {
+            IconButton(
+                onClick = if (assetId == null) {
+                    { onAction(PriceAlertAction.Add) }
+                } else {
+                    { onAction(PriceAlertAction.AddTarget(assetId)) }
+                },
+            ) {
                 Icon(imageVector = AppIcons.Add, contentDescription = "")
             }
         },
         snackbar = snackbar,
-        onClose = { onAction(PriceAlertAction.Close) }
+        onClose = { onAction(PriceAlertAction.Close) },
     ) {
         PullToRefreshBox(
             modifier = Modifier.fillMaxSize(),
@@ -99,9 +101,9 @@ internal fun PriceAlertScene(
                 } else {
                     item {
                         SwitchProperty(
-                            text = stringResource(R.string.settings_enable_value, ""),
+                            text = stringResource(R.string.settings_enable_value, stringResource(R.string.settings_price_alerts_title)),
                             checked = enabled,
-                            onCheckedChange = { onAction(PriceAlertAction.TogglePriceAlerts(it)) }
+                            onCheckedChange = { onAction(PriceAlertAction.TogglePriceAlerts(it)) },
                         )
                         Text(
                             modifier = Modifier.padding(horizontal = paddingLarge),
@@ -123,11 +125,7 @@ internal fun PriceAlertScene(
     }
 }
 
-private fun LazyListScope.autoAlertToggle(
-    asset: AssetInfoDataAggregate?,
-    isAutoAlertEnabled: Boolean,
-    onToggleAutoAlert: (Boolean) -> Unit,
-) {
+private fun LazyListScope.autoAlertToggle(asset: AssetInfoDataAggregate?, isAutoAlertEnabled: Boolean, onToggleAutoAlert: (Boolean) -> Unit) {
     item {
         val currentAsset = asset ?: return@item
 
@@ -157,12 +155,7 @@ private fun LazyListScope.emptyAlertingAssets(empty: Boolean) {
     }
 }
 
-private fun LazyListScope.assets(
-    revealable: MutableState<String?>,
-    sections: List<ListSection<PriceAlertDataAggregate>>,
-    onChart: ((AssetId) -> Unit)?,
-    onExclude: (String) -> Unit,
-) {
+private fun LazyListScope.assets(revealable: MutableState<String?>, sections: List<ListSection<PriceAlertDataAggregate>>, onChart: ((AssetId) -> Unit)?, onExclude: (String) -> Unit) {
     listSections(sections) { position, item ->
         var minActionWidth by remember { mutableStateOf(space0) }
         val density = LocalDensity.current
@@ -184,8 +177,12 @@ private fun LazyListScope.assets(
             listPosition = position,
         ) { position ->
             PriceAlertAssetItem(
-                modifier = (onChart?.let { Modifier
-                    .clickable(onClick = { onChart(item.assetId) }) } ?: Modifier)
+                modifier = (
+                    onChart?.let {
+                        Modifier
+                            .clickable(onClick = { onChart(item.assetId) })
+                    } ?: Modifier
+                    )
                     .onSizeChanged {
                         minActionWidth = with(density) { it.height.toDp() }
                     },

@@ -65,18 +65,13 @@ impl DeviceLocale {
     }
 
     fn chinese_script(subtags: &[&str]) -> &'static str {
-        if let Some(script) = subtags
-            .iter()
-            .find(|subtag| subtag.len() == 4 && subtag.chars().all(|character| character.is_ascii_alphabetic()))
-        {
+        if let Some(script) = subtags.iter().find(|subtag| subtag.len() == 4 && subtag.chars().all(|character| character.is_ascii_alphabetic())) {
             return match script.eq_ignore_ascii_case(CHINESE_TRADITIONAL_SCRIPT) {
                 true => CHINESE_TRADITIONAL_SCRIPT,
                 false => CHINESE_SIMPLIFIED_SCRIPT,
             };
         }
-        let is_traditional_region = subtags
-            .iter()
-            .any(|subtag| CHINESE_TRADITIONAL_REGIONS.iter().any(|region| region.eq_ignore_ascii_case(subtag)));
+        let is_traditional_region = subtags.iter().any(|subtag| CHINESE_TRADITIONAL_REGIONS.iter().any(|region| region.eq_ignore_ascii_case(subtag)));
         match is_traditional_region {
             true => CHINESE_TRADITIONAL_SCRIPT,
             false => CHINESE_SIMPLIFIED_SCRIPT,
@@ -94,10 +89,8 @@ impl DeviceLocale {
             "pt" => Ok(Self::PtBR),
             "tl" => Ok(Self::FIL),
             "zh" => Ok(Self::ZhHans),
-            "af" | "am" | "az" | "be" | "bg" | "bs" | "ca" | "ckb" | "el" | "et" | "fi" | "gl" | "gu" | "hr" | "hu" | "hy" | "is" | "ka" | "kk" | "km" | "kn" | "ky" | "lo"
-            | "lt" | "lv" | "mfe" | "mg" | "mk" | "mn" | "mr" | "my" | "nb" | "ne" | "om" | "or" | "pa" | "sk" | "sl" | "so" | "sq" | "sr" | "sv" | "ta" | "te" | "tk" | "uz" => {
-                Ok(Self::EN)
-            }
+            "af" | "am" | "az" | "be" | "bg" | "bs" | "ca" | "ckb" | "el" | "et" | "fi" | "gl" | "gu" | "hr" | "hu" | "hy" | "is" | "ka" | "kk" | "km" | "kn" | "ky" | "lo" | "lt" | "lv" | "mfe" | "mg" | "mk" | "mn" | "mr" | "my" | "nb"
+            | "ne" | "om" | "or" | "pa" | "sk" | "sl" | "so" | "sq" | "sr" | "sv" | "ta" | "te" | "tk" | "uz" => Ok(Self::EN),
             _ => Err(format!("invalid device locale: {locale}")),
         }
     }

@@ -1,9 +1,7 @@
 use crate::models::custom_types::GemBigInt;
 use primitives::{Asset, AssetId, Banner, BannerEvent, BannerState, Chain, ChainAsset, VerificationStatus, Wallet, WalletSource, WalletType};
 
-use super::model::{
-    GemBannerAmount, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerDestination, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerLink, GemBannerTitle,
-};
+use super::model::{BannerScope, GemBannerAmount, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerDestination, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerLink, GemBannerTitle, banner_scope};
 use crate::config::chain::account_activation_fee_url;
 use crate::config::docs::DocsUrl;
 use crate::services::transfer::rules as transfer_rules;
@@ -51,11 +49,7 @@ pub fn wallet_setup_keys(wallet: &Wallet) -> Vec<GemBannerKey> {
         }),
         WalletSource::Import => None,
     };
-    ACCOUNT_ACTIVATION_CHAINS
-        .into_iter()
-        .map(|chain| asset_key(chain, BannerEvent::AccountActivation))
-        .chain(onboarding)
-        .collect()
+    ACCOUNT_ACTIVATION_CHAINS.into_iter().map(|chain| asset_key(chain, BannerEvent::AccountActivation)).chain(onboarding).collect()
 }
 
 fn is_visible_event(event: BannerEvent, context: &GemBannerContext) -> bool {
@@ -67,13 +61,7 @@ fn is_visible_event(event: BannerEvent, context: &GemBannerContext) -> bool {
         BannerEvent::Stake => can_sign && has_asset && !context.has_stake_balance,
         BannerEvent::ActivateAsset => can_sign && has_asset && !context.is_asset_activated,
         BannerEvent::SuspiciousAsset => has_asset && is_suspicious(context),
-        BannerEvent::TradePerpetuals => {
-            has_asset
-                && context
-                    .wallet
-                    .as_ref()
-                    .is_some_and(|wallet| crate::services::perpetual::rules::supports_perpetuals(wallet.wallet_type, &wallet.chains()))
-        }
+        BannerEvent::TradePerpetuals => has_asset && context.wallet.as_ref().is_some_and(|wallet| crate::services::perpetual::rules::supports_perpetuals(wallet.wallet_type, &wallet.chains())),
         BannerEvent::Onboarding => !has_asset && context.is_wallet_empty,
     }
 }
@@ -98,9 +86,7 @@ fn banner_destination(event: BannerEvent, asset: Option<&Asset>) -> Option<GemBa
         BannerEvent::AccountActivation => url(GemBannerLink::External {
             url: account_activation_fee_url(asset?.id.chain)?,
         }),
-        BannerEvent::AccountBlockedMultiSignature => url(GemBannerLink::Docs {
-            item: DocsUrl::TronMultiSignature,
-        }),
+        BannerEvent::AccountBlockedMultiSignature => url(GemBannerLink::Docs { item: DocsUrl::ExternallyControlledAccount }),
         BannerEvent::SuspiciousAsset => url(GemBannerLink::Docs { item: DocsUrl::TokenVerification }),
         BannerEvent::Onboarding => None,
     }
@@ -131,9 +117,7 @@ fn banner_title(event: BannerEvent, asset: Option<&Asset>) -> Option<GemBannerTi
 
 fn banner_description(event: BannerEvent, asset: Option<&Asset>) -> Option<GemBannerDescription> {
     match event {
-        BannerEvent::Stake => Some(GemBannerDescription::Stake {
-            asset_symbol: asset?.symbol.clone(),
-        }),
+        BannerEvent::Stake => Some(GemBannerDescription::Stake { asset_symbol: asset?.symbol.clone() }),
         BannerEvent::AccountActivation => {
             let asset = asset?;
             Some(GemBannerDescription::AccountActivation {
@@ -145,9 +129,7 @@ fn banner_description(event: BannerEvent, asset: Option<&Asset>) -> Option<GemBa
                 },
             })
         }
-        BannerEvent::AccountBlockedMultiSignature => Some(GemBannerDescription::MultiSignatureBlocked {
-            network_name: network_name(asset?.id.chain),
-        }),
+        BannerEvent::AccountBlockedMultiSignature => Some(GemBannerDescription::ExternallyControlledAccount { network_name: network_name(asset?.id.chain) }),
         BannerEvent::ActivateAsset => {
             let asset = asset?;
             Some(GemBannerDescription::ActivateAsset {
@@ -165,11 +147,19 @@ fn network_name(chain: Chain) -> String {
     ChainAsset::from_chain(chain).network_name
 }
 
+pub fn wallet_banner_events() -> Vec<BannerEvent> {
+    BannerEvent::all().into_iter().filter(|event| banner_scope(*event) != BannerScope::Asset).collect()
+}
+
 pub(super) fn visible_banners(stored: Vec<Banner>, context: &GemBannerContext) -> Vec<Banner> {
     let asset_id = context.asset_id();
     let mut banners: Vec<GemBannerItem> = Vec::new();
     for item in stored.iter().map(banner_item).chain(extra_banners(asset_id.clone())) {
-        if asset_id.as_ref().is_some_and(|asset_id| !item.applies_to_asset(asset_id)) {
+        let applies = match &asset_id {
+            Some(asset_id) => item.applies_to_asset(asset_id),
+            None => item.applies_to_wallet(),
+        };
+        if !applies {
             continue;
         }
         if banners.iter().any(|existing| existing.event == item.event) {
@@ -182,14 +172,9 @@ pub(super) fn visible_banners(stored: Vec<Banner>, context: &GemBannerContext) -
     banners.sort_by_key(|item| (state_priority(item.state), event_priority(item.event)));
     banners
         .into_iter()
-        .map(|item| {
-            match stored
-                .iter()
-                .find(|banner| banner.event == item.event && banner.asset.as_ref().map(|asset| &asset.id) == item.asset_id.as_ref())
-            {
-                Some(banner) => banner.clone(),
-                None => context.banner(item),
-            }
+        .map(|item| match stored.iter().find(|banner| banner.event == item.event && banner.asset.as_ref().map(|asset| &asset.id) == item.asset_id.as_ref()) {
+            Some(banner) => banner.clone(),
+            None => context.banner(item),
         })
         .collect()
 }
@@ -214,9 +199,7 @@ fn extra_banners(asset_id: Option<AssetId>) -> Vec<GemBannerItem> {
 }
 
 fn is_suspicious(context: &GemBannerContext) -> bool {
-    context
-        .asset_rank_score
-        .is_some_and(|score| VerificationStatus::from_rank(score) == VerificationStatus::Suspicious)
+    context.asset_rank_score.is_some_and(|score| VerificationStatus::from_rank(score) == VerificationStatus::Suspicious)
 }
 
 fn state_priority(state: BannerState) -> u8 {
@@ -249,15 +232,8 @@ mod tests {
     fn test_setup_keys() {
         let keys = setup_keys();
         assert!(keys.iter().all(|key| key.wallet_id.is_none()));
-        assert!(
-            keys.iter()
-                .any(|key| key.event == BannerEvent::Stake && key.asset_id == Some(AssetId::from_chain(Chain::Cosmos)))
-        );
-        assert!(
-            !keys
-                .iter()
-                .any(|key| key.event == BannerEvent::Stake && key.asset_id == Some(AssetId::from_chain(Chain::Bitcoin)))
-        );
+        assert!(keys.iter().any(|key| key.event == BannerEvent::Stake && key.asset_id == Some(AssetId::from_chain(Chain::Cosmos))));
+        assert!(!keys.iter().any(|key| key.event == BannerEvent::Stake && key.asset_id == Some(AssetId::from_chain(Chain::Bitcoin))));
         assert_eq!(keys.iter().filter(|key| key.event == BannerEvent::TradePerpetuals).count(), 2);
     }
 
@@ -271,10 +247,7 @@ mod tests {
         wallet.source = WalletSource::Create;
         let created = wallet_setup_keys(&wallet);
         assert_eq!(created.len(), 4);
-        assert_eq!(
-            created.last().map(|key| (key.event, key.wallet_id.clone())),
-            Some((BannerEvent::Onboarding, Some(wallet.id)))
-        );
+        assert_eq!(created.last().map(|key| (key.event, key.wallet_id.clone())), Some((BannerEvent::Onboarding, Some(wallet.id))));
     }
 
     fn events(banners: &[Banner]) -> Vec<BannerEvent> {
@@ -305,10 +278,7 @@ mod tests {
         assert_eq!(events(&visible_banners(vec![], &suspicious)), vec![BannerEvent::SuspiciousAsset]);
 
         let activation = vec![Banner::mock(BannerEvent::AccountActivation, BannerState::AlwaysActive)];
-        assert_eq!(
-            events(&visible_banners(activation.clone(), &GemBannerContext::mock())),
-            vec![BannerEvent::AccountActivation]
-        );
+        assert_eq!(events(&visible_banners(activation.clone(), &GemBannerContext::mock())), vec![BannerEvent::AccountActivation]);
         let funded = GemBannerContext {
             has_available_balance: true,
             ..GemBannerContext::mock()
@@ -322,10 +292,7 @@ mod tests {
             ..GemBannerContext::mock()
         };
         assert!(visible_banners(perpetuals.clone(), &unsupported).is_empty());
-        let no_wallet = GemBannerContext {
-            wallet: None,
-            ..GemBannerContext::mock()
-        };
+        let no_wallet = GemBannerContext { wallet: None, ..GemBannerContext::mock() };
         assert!(visible_banners(perpetuals, &no_wallet).is_empty());
     }
 
@@ -346,11 +313,38 @@ mod tests {
             Banner::mock(BannerEvent::AccountBlockedMultiSignature, BannerState::AlwaysActive),
         ];
 
-        assert_eq!(
-            events(&visible_banners(stored, &context)),
-            vec![BannerEvent::AccountBlockedMultiSignature, BannerEvent::SuspiciousAsset]
-        );
+        assert_eq!(events(&visible_banners(stored, &context)), vec![BannerEvent::AccountBlockedMultiSignature, BannerEvent::SuspiciousAsset]);
         assert_eq!(events(&visible_banners(vec![], &context)), vec![BannerEvent::SuspiciousAsset]);
+    }
+
+    #[test]
+    fn test_the_wallet_screen_reads_only_the_banners_no_asset_owns() {
+        let context = GemBannerContext {
+            asset: None,
+            is_wallet_empty: true,
+            ..GemBannerContext::mock()
+        };
+        let stored = vec![
+            Banner {
+                asset: Some(Asset::from_chain(Chain::Ethereum)),
+                ..Banner::mock(BannerEvent::Stake, BannerState::Active)
+            },
+            Banner {
+                asset: Some(Asset::from_chain(Chain::Ethereum)),
+                ..Banner::mock(BannerEvent::AccountActivation, BannerState::Active)
+            },
+            Banner {
+                asset: Some(Asset::from_chain(Chain::Tron)),
+                ..Banner::mock(BannerEvent::AccountBlockedMultiSignature, BannerState::AlwaysActive)
+            },
+            Banner {
+                asset: None,
+                ..Banner::mock(BannerEvent::Onboarding, BannerState::Active)
+            },
+        ];
+
+        assert_eq!(events(&visible_banners(stored, &context)), vec![BannerEvent::AccountBlockedMultiSignature, BannerEvent::Onboarding]);
+        assert_eq!(wallet_banner_events(), vec![BannerEvent::AccountBlockedMultiSignature, BannerEvent::Onboarding], "the apps ask their stores for these");
     }
 
     #[test]
@@ -415,10 +409,7 @@ mod tests {
 
     #[test]
     fn test_visible_banners_order_and_wallet_rules() {
-        let stored = vec![
-            Banner::mock(BannerEvent::Stake, BannerState::Active),
-            Banner::mock(BannerEvent::AccountActivation, BannerState::AlwaysActive),
-        ];
+        let stored = vec![Banner::mock(BannerEvent::Stake, BannerState::Active), Banner::mock(BannerEvent::AccountActivation, BannerState::AlwaysActive)];
         let suspicious = GemBannerContext {
             asset_rank_score: Some(5),
             ..GemBannerContext::mock()
@@ -429,15 +420,9 @@ mod tests {
         assert_eq!(banners[2].state, BannerState::Active);
 
         let wallet = vec![Banner::mock(BannerEvent::Onboarding, BannerState::AlwaysActive)];
-        let without_asset = GemBannerContext {
-            asset: None,
-            ..GemBannerContext::mock()
-        };
+        let without_asset = GemBannerContext { asset: None, ..GemBannerContext::mock() };
         assert!(visible_banners(wallet.clone(), &without_asset).is_empty());
-        let empty = GemBannerContext {
-            is_wallet_empty: true,
-            ..without_asset
-        };
+        let empty = GemBannerContext { is_wallet_empty: true, ..without_asset };
         assert_eq!(events(&visible_banners(wallet, &empty)), vec![BannerEvent::Onboarding]);
     }
 
@@ -454,21 +439,14 @@ mod tests {
     fn test_banner_content_names_the_asset_field_per_line() {
         let ethereum = Asset::from_chain(Chain::Ethereum);
         let stake = banner_content(BannerEvent::Stake, Some(&ethereum));
-        assert_eq!(
-            stake.title,
-            Some(GemBannerTitle::Stake {
-                asset_name: "Ethereum".to_string()
-            })
-        );
+        assert_eq!(stake.title, Some(GemBannerTitle::Stake { asset_name: "Ethereum".to_string() }));
         assert_eq!(stake.description, Some(GemBannerDescription::Stake { asset_symbol: "ETH".to_string() }));
 
         let arbitrum = Asset::from_chain(Chain::Arbitrum);
         assert_eq!(arbitrum.name, "Arbitrum ETH");
         assert_eq!(
             banner_content(BannerEvent::AccountBlockedMultiSignature, Some(&arbitrum)).description,
-            Some(GemBannerDescription::MultiSignatureBlocked {
-                network_name: "Arbitrum".to_string()
-            })
+            Some(GemBannerDescription::ExternallyControlledAccount { network_name: "Arbitrum".to_string() })
         );
 
         let usdc = Asset::mock_ethereum_usdc();
@@ -511,10 +489,7 @@ mod tests {
                 url: account_activation_fee_url(Chain::Xrp).unwrap()
             })
         );
-        assert_eq!(
-            destination_link(&banner_content(BannerEvent::SuspiciousAsset, Some(&ethereum))),
-            Some(GemBannerLink::Docs { item: DocsUrl::TokenVerification })
-        );
+        assert_eq!(destination_link(&banner_content(BannerEvent::SuspiciousAsset, Some(&ethereum))), Some(GemBannerLink::Docs { item: DocsUrl::TokenVerification }));
         assert_eq!(without_fee.title, Some(GemBannerTitle::AccountActivation));
     }
 

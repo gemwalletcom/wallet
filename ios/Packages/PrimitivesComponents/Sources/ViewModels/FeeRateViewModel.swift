@@ -3,6 +3,7 @@
 import BigInt
 import Components
 import Foundation
+import enum Gemstone.GemLocalizedText
 import Localization
 import Primitives
 import Style
@@ -10,26 +11,17 @@ import SwiftUI
 
 public struct FeeRateViewModel: Identifiable {
     public let priority: FeePriority
-    public let displayValue: BigInt
+    public let value: GemLocalizedText
     public let fee: BigInt?
-    public let unitType: FeeUnitType
-    public let decimals: Int
-    public let symbol: String
 
     public init(
         priority: FeePriority,
-        displayValue: BigInt,
+        value: GemLocalizedText,
         fee: BigInt?,
-        unitType: FeeUnitType,
-        decimals: Int,
-        symbol: String,
     ) {
         self.priority = priority
-        self.displayValue = displayValue
+        self.value = value
         self.fee = fee
-        self.unitType = unitType
-        self.decimals = decimals
-        self.symbol = symbol
     }
 
     public var id: String {
@@ -47,15 +39,7 @@ public struct FeeRateViewModel: Identifiable {
         priority.title
     }
 
-    public var feeUnitModel: FeeUnitViewModel {
-        FeeUnitViewModel(
-            unit: FeeUnit(type: unitType, value: displayValue),
-            decimals: decimals,
-            symbol: symbol,
-        )
-    }
-
     public var valueText: String {
-        feeUnitModel.value
+        value.text
     }
 }

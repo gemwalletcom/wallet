@@ -11,11 +11,7 @@ impl SupportSessionsStore for DatabaseClient {
     fn get_support_session(&mut self, device_id_value: i32) -> Result<Option<SupportSessionRow>, diesel::result::Error> {
         use crate::schema::support_sessions::dsl::*;
 
-        support_sessions
-            .filter(device_id.eq(device_id_value))
-            .select(SupportSessionRow::as_select())
-            .first(&mut self.connection)
-            .optional()
+        support_sessions.filter(device_id.eq(device_id_value)).select(SupportSessionRow::as_select()).first(&mut self.connection).optional()
     }
 
     fn set_support_session(&mut self, value: NewSupportSessionRow) -> Result<SupportSessionRow, diesel::result::Error> {

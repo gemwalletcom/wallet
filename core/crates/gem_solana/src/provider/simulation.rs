@@ -17,12 +17,7 @@ impl<C: Client + Clone> ChainSimulation for SolanaProvider<C> {
         let account_keys: Vec<String> = transaction.account_keys().iter().map(|key| key.to_string()).collect();
         let signer_addresses = match input.signer_address.as_deref().filter(|signer_address| !signer_address.is_empty()) {
             Some(signer_address) => HashSet::from([signer_address.to_string()]),
-            None => transaction
-                .account_keys()
-                .iter()
-                .take(transaction.num_required_signatures() as usize)
-                .map(|key| key.to_string())
-                .collect(),
+            None => transaction.account_keys().iter().take(transaction.num_required_signatures() as usize).map(|key| key.to_string()).collect(),
         };
 
         let simulation = self.simulate_encoded_transaction(&input.encoded_transaction).await?;

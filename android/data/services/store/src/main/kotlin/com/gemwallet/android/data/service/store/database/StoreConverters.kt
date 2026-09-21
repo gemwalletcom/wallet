@@ -7,8 +7,8 @@ import com.gemwallet.android.ext.toNftAssetId
 import com.gemwallet.android.ext.toNftCollectionId
 import com.gemwallet.android.ext.toPerpetualId
 import com.gemwallet.android.serializer.jsonEncoder
-import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetAssociation
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.CoreListItem
 import com.wallet.core.primitives.NFTAssetId
@@ -98,28 +98,19 @@ class StoreConverters {
     fun fromAssetAssociations(value: List<AssetAssociation>): String = jsonEncoder.encodeToString(assetAssociationsSerializer, value)
 
     @TypeConverter
-    fun toAssetAssociations(value: String): List<AssetAssociation> =
-        runCatching { jsonEncoder.decodeFromString(assetAssociationsSerializer, value) }.getOrDefault(emptyList())
+    fun toAssetAssociations(value: String): List<AssetAssociation> = runCatching { jsonEncoder.decodeFromString(assetAssociationsSerializer, value) }.getOrDefault(emptyList())
 
     @TypeConverter
-    fun fromAssetLinks(value: List<AssetLink>?): String? {
-        return value?.let { jsonEncoder.encodeToString(assetLinksSerializer, it) }
-    }
+    fun fromAssetLinks(value: List<AssetLink>?): String? = value?.let { jsonEncoder.encodeToString(assetLinksSerializer, it) }
 
     @TypeConverter
-    fun toAssetLinks(value: String?): List<AssetLink>? {
-        return value?.let { runCatching { jsonEncoder.decodeFromString(assetLinksSerializer, it) }.getOrDefault(emptyList()) }
-    }
+    fun toAssetLinks(value: String?): List<AssetLink>? = value?.let { runCatching { jsonEncoder.decodeFromString(assetLinksSerializer, it) }.getOrDefault(emptyList()) }
 
     @TypeConverter
-    fun fromNftAttributes(value: List<NFTAttribute>?): String? {
-        return value?.let { jsonEncoder.encodeToString(nftAttributesSerializer, it) }
-    }
+    fun fromNftAttributes(value: List<NFTAttribute>?): String? = value?.let { jsonEncoder.encodeToString(nftAttributesSerializer, it) }
 
     @TypeConverter
-    fun toNftAttributes(value: String?): List<NFTAttribute>? {
-        return value?.let { runCatching { jsonEncoder.decodeFromString(nftAttributesSerializer, it) }.getOrDefault(emptyList()) }
-    }
+    fun toNftAttributes(value: String?): List<NFTAttribute>? = value?.let { runCatching { jsonEncoder.decodeFromString(nftAttributesSerializer, it) }.getOrDefault(emptyList()) }
 
     @TypeConverter
     fun fromCoreListItem(value: CoreListItem): String = jsonEncoder.encodeToString(CoreListItem.serializer(), value)

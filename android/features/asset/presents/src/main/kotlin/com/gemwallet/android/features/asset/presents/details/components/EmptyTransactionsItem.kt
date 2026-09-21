@@ -9,14 +9,7 @@ import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.theme.paddingLarge
 
 @Composable
-internal fun EmptyTransactionsItem(
-    size: Int,
-    symbol: String,
-    modifier: Modifier = Modifier,
-    isViewOnly: Boolean = false,
-    onBuy: (() -> Unit)? = null,
-    onSwap: (() -> Unit)? = null,
-) {
+internal fun EmptyTransactionsItem(size: Int, symbol: String, modifier: Modifier = Modifier, isViewOnly: Boolean = false, onBuy: (() -> Unit)? = null, onSwap: (() -> Unit)? = null) {
     if (size > 0) {
         return
     }

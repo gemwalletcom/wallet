@@ -1,22 +1,33 @@
 use chrono::{DateTime, Utc};
-use primitives::{AddressFormatStyle, BlockExplorerLink, Chain, NFTAssetData, NFTAttribute, NFTAttributeType, NFTData, VerificationStatus, WalletType};
+use primitives::{AddressFormatStyle, Asset, BlockExplorerLink, Chain, NFTAssetData, NFTAttribute, NFTAttributeType, NFTData, VerificationStatus, WalletType};
 
-use super::model::{
-    GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleIdentifier, GemCollectibleRow, GemCollectibleSection, GemNftItem, GemNftList,
-    GemNftRow,
-};
+use super::model::{GemCollectibleAction, GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleSection, GemNftItem, GemNftList, GemNftRow, GemNftUnverifiedRow};
 use crate::address_formatter::format_address;
 use crate::config::chain::supports_nft_transfer;
+use crate::config::social::social_links;
+use crate::models::copy::{GemCopy, GemCopyKind, address_copy};
+use crate::models::list::{GemListRow, GemListRowTitle};
+use crate::services::assets::rules::asset_text;
 
 const TOKEN_ID_ADDRESS_LENGTH: usize = 16;
 
-pub fn unverified_collections(data: Vec<NFTData>) -> Vec<NFTData> {
+fn unverified_collections(data: Vec<NFTData>) -> Vec<NFTData> {
     collections(data, false)
+}
+
+pub fn unverified_row(data: Vec<NFTData>, list: GemNftList) -> Option<GemNftUnverifiedRow> {
+    match list {
+        GemNftList::Collections => {
+            let count = unverified_collections(data).len();
+            (count > 0).then(|| GemNftUnverifiedRow { count_text: count.to_string() })
+        }
+        GemNftList::Unverified | GemNftList::Collection | GemNftList::Avatar => None,
+    }
 }
 
 pub fn list_items(data: Vec<NFTData>, list: GemNftList) -> Vec<GemNftItem> {
     let collections = match list {
-        GemNftList::Collections => collections(data, true),
+        GemNftList::Collections | GemNftList::Avatar => collections(data, true),
         GemNftList::Unverified => collections(data, false),
         GemNftList::Collection => data.into_iter().filter(|item| !item.assets.is_empty()).collect(),
     };
@@ -24,7 +35,7 @@ pub fn list_items(data: Vec<NFTData>, list: GemNftList) -> Vec<GemNftItem> {
         .into_iter()
         .flat_map(|data| match list {
             GemNftList::Collections | GemNftList::Unverified => vec![item(data)],
-            GemNftList::Collection => asset_items(data),
+            GemNftList::Collection | GemNftList::Avatar => asset_items(data),
         })
         .collect()
 }
@@ -53,14 +64,14 @@ pub fn row(item: &GemNftItem) -> GemNftRow {
             id: data.collection.id.to_string(),
             title: data.collection.name.clone(),
             image_url: data.collection.images.preview.url.clone(),
-            count: Some(data.assets.len() as u32),
+            count_text: Some(data.assets.len().to_string()),
             is_verified: data.collection.status == VerificationStatus::Verified,
         },
         GemNftItem::Asset { data } => GemNftRow {
             id: data.asset.id.to_string(),
             title: data.asset.name.clone(),
             image_url: data.asset.images.preview.url.clone(),
-            count: None,
+            count_text: None,
             is_verified: data.collection.status == VerificationStatus::Verified,
         },
     }
@@ -70,10 +81,7 @@ fn item(mut data: NFTData) -> GemNftItem {
     if data.assets.len() == 1 {
         let asset = data.assets.remove(0);
         return GemNftItem::Asset {
-            data: NFTAssetData {
-                collection: data.collection,
-                asset,
-            },
+            data: NFTAssetData { collection: data.collection, asset },
         };
     }
     GemNftItem::Collection { data }
@@ -83,23 +91,14 @@ fn asset_items(data: NFTData) -> Vec<GemNftItem> {
     data.assets
         .into_iter()
         .map(|asset| GemNftItem::Asset {
-            data: NFTAssetData {
-                collection: data.collection.clone(),
-                asset,
-            },
+            data: NFTAssetData { collection: data.collection.clone(), asset },
         })
         .collect()
 }
 
 fn sorted_collections(data: Vec<NFTData>) -> Vec<NFTData> {
     let mut sorted = data;
-    sorted.sort_by(|left, right| {
-        right
-            .assets
-            .len()
-            .cmp(&left.assets.len())
-            .then_with(|| left.collection.name.to_lowercase().cmp(&right.collection.name.to_lowercase()))
-    });
+    sorted.sort_by(|left, right| right.assets.len().cmp(&left.assets.len()).then_with(|| left.collection.name.to_lowercase().cmp(&right.collection.name.to_lowercase())));
     sorted
 }
 
@@ -111,13 +110,7 @@ pub fn can_send(wallet_type: &WalletType, chain: Chain, is_owned: bool) -> bool 
     *wallet_type != WalletType::View && supports_nft_transfer(chain) && is_owned
 }
 
-pub fn collectible_details(
-    wallet_type: &WalletType,
-    data: &NFTAssetData,
-    is_owned: bool,
-    contract_explorer: Option<BlockExplorerLink>,
-    token_explorer: Option<BlockExplorerLink>,
-) -> GemCollectibleDetails {
+pub fn collectible_details(wallet_type: &WalletType, data: &NFTAssetData, is_owned: bool, contract_explorer: Option<BlockExplorerLink>, token_explorer: Option<BlockExplorerLink>, can_save_image: bool) -> GemCollectibleDetails {
     let status = (data.collection.status != VerificationStatus::Verified).then_some(GemCollectibleSection::Status { status: data.collection.status });
     let info = GemCollectibleSection::Info {
         rows: info_rows(data, contract_explorer, token_explorer),
@@ -125,25 +118,34 @@ pub fn collectible_details(
     let attributes = (!data.asset.attributes.is_empty()).then(|| GemCollectibleSection::Attributes {
         attributes: data.asset.attributes.iter().map(attribute).collect(),
     });
-    let links = (!data.collection.links.is_empty()).then(|| GemCollectibleSection::Links {
-        links: data.collection.links.clone(),
-    });
+    let links = Some(social_links(data.collection.links.clone())).filter(|links| !links.is_empty()).map(|links| GemCollectibleSection::Links { links });
     GemCollectibleDetails {
         can_send: can_send(wallet_type, data.asset.chain, is_owned),
+        actions: collectible_actions(can_save_image),
         sections: [status, Some(info), attributes, links].into_iter().flatten().collect(),
     }
 }
 
-fn info_rows(data: &NFTAssetData, contract_explorer: Option<BlockExplorerLink>, token_explorer: Option<BlockExplorerLink>) -> Vec<GemCollectibleRow> {
+fn collectible_actions(can_save_image: bool) -> Vec<GemCollectibleAction> {
+    [
+        can_save_image.then_some(GemCollectibleAction::SaveImage),
+        Some(GemCollectibleAction::SetAvatar),
+        Some(GemCollectibleAction::Refresh),
+        Some(GemCollectibleAction::Report),
+    ]
+    .into_iter()
+    .flatten()
+    .collect()
+}
+
+fn info_rows(data: &NFTAssetData, contract_explorer: Option<BlockExplorerLink>, token_explorer: Option<BlockExplorerLink>) -> Vec<GemListRow> {
     let chain = data.asset.chain;
     let token_id = &data.asset.token_id;
     let contract = &data.collection.contract_address;
-    let contract_row = (!contract.is_empty() && contract != token_id).then(|| GemCollectibleRow::Contract {
-        identifier: GemCollectibleIdentifier {
-            value: contract.clone(),
-            text: format_address(contract, Some(chain), AddressFormatStyle::Short),
-            explorer: contract_explorer,
-        },
+    let contract_row = (!contract.is_empty() && contract != token_id).then(|| GemListRow::Identifier {
+        title: GemListRowTitle::Contract,
+        copy: address_copy(chain, contract.clone()),
+        explorer: contract_explorer,
     });
     let token_text = if token_id.chars().count() > TOKEN_ID_ADDRESS_LENGTH {
         format_address(token_id, Some(chain), AddressFormatStyle::Short)
@@ -151,17 +153,24 @@ fn info_rows(data: &NFTAssetData, contract_explorer: Option<BlockExplorerLink>, 
         format!("#{token_id}")
     };
     [
-        Some(GemCollectibleRow::Collection {
-            name: data.collection.name.clone(),
+        Some(GemListRow::Text {
+            title: GemListRowTitle::Collection,
+            value: data.collection.name.clone(),
         }),
-        Some(GemCollectibleRow::Network { chain }),
+        Some(GemListRow::Network {
+            title: GemListRowTitle::Network,
+            chain,
+            name: asset_text(&Asset::from_chain(chain)).network_name,
+        }),
         contract_row,
-        Some(GemCollectibleRow::TokenId {
-            identifier: GemCollectibleIdentifier {
+        Some(GemListRow::Identifier {
+            title: GemListRowTitle::TokenId,
+            copy: GemCopy {
+                kind: GemCopyKind::Plain,
                 value: token_id.clone(),
-                text: token_text,
-                explorer: token_explorer,
+                display: token_text,
             },
+            explorer: token_explorer,
         }),
     ]
     .into_iter()
@@ -191,9 +200,7 @@ fn attribute_date(value: &str) -> Option<DateTime<Utc>> {
 }
 
 fn collections(data: Vec<NFTData>, verified: bool) -> Vec<NFTData> {
-    data.into_iter()
-        .filter(|item| !item.assets.is_empty() && (item.collection.status == VerificationStatus::Verified) == verified)
-        .collect()
+    data.into_iter().filter(|item| !item.assets.is_empty() && (item.collection.status == VerificationStatus::Verified) == verified).collect()
 }
 
 #[cfg(test)]
@@ -213,11 +220,11 @@ mod tests {
         });
 
         assert_eq!(collection.title, data.collection.name);
-        assert_eq!(collection.count, Some(2));
+        assert_eq!(collection.count_text.as_deref(), Some("2"));
         assert_eq!(collection.image_url, data.collection.images.preview.url);
         assert!(collection.is_verified);
         assert_eq!(asset.title, data.assets[0].name);
-        assert_eq!(asset.count, None, "one asset is not a count");
+        assert_eq!(asset.count_text, None, "one asset is not a count");
         assert_eq!(asset.image_url, data.assets[0].images.preview.url);
         assert!(asset.is_verified, "an asset takes the verification of its collection");
     }
@@ -227,10 +234,7 @@ mod tests {
         assert!(can_send(&WalletType::Multicoin, Chain::Ethereum, true));
         assert!(!can_send(&WalletType::View, Chain::Ethereum, true));
         assert!(!can_send(&WalletType::Multicoin, Chain::Bitcoin, true));
-        assert!(
-            !can_send(&WalletType::Multicoin, Chain::Ethereum, false),
-            "an asset the wallet sent away cannot be sent again"
-        );
+        assert!(!can_send(&WalletType::Multicoin, Chain::Ethereum, false), "an asset the wallet sent away cannot be sent again");
     }
 
     #[test]
@@ -251,13 +255,12 @@ mod tests {
         let empty = NFTData::mock_with("empty", VerificationStatus::Verified, 0);
         let items = vec![lone, unverified_lone, empty, big, unverified];
 
+        assert_eq!(labels(list_items(items.clone(), GemNftList::Collections)), vec!["collection zebra (3)", "asset alpha of alpha"]);
+        assert_eq!(labels(list_items(items.clone(), GemNftList::Unverified)), vec!["collection beta (2)", "asset gamma of gamma"]);
         assert_eq!(
-            labels(list_items(items.clone(), GemNftList::Collections)),
-            vec!["collection zebra (3)", "asset alpha of alpha"]
-        );
-        assert_eq!(
-            labels(list_items(items.clone(), GemNftList::Unverified)),
-            vec!["collection beta (2)", "asset gamma of gamma"]
+            labels(list_items(items, GemNftList::Avatar)),
+            vec!["asset zebra of zebra", "asset zebra of zebra", "asset zebra of zebra", "asset alpha of alpha"],
+            "an avatar is picked from the assets of the verified collections, in the same order"
         );
     }
 
@@ -295,10 +298,7 @@ mod tests {
         let lone = NFTData::mock_with("Punk Solo", VerificationStatus::Verified, 1);
         let items = vec![punks, apes, lone];
 
-        assert_eq!(
-            labels(search_collections(items.clone(), " punk ")),
-            vec!["asset Punk Ape of Apes", "collection Punks (2)", "asset Punk Solo of Punk Solo"]
-        );
+        assert_eq!(labels(search_collections(items.clone(), " punk ")), vec!["asset Punk Ape of Apes", "collection Punks (2)", "asset Punk Solo of Punk Solo"]);
         assert!(search_collections(items.clone(), "").is_empty());
         assert!(search_collections(items, "zzz").is_empty());
     }
@@ -311,20 +311,28 @@ mod tests {
         suspicious.collection.links = vec![AssetLink::new("https://example.com", LinkType::Website)];
         suspicious.asset.attributes = vec![NFTAttribute::new("Color", "Blue", NFTAttributeType::String)];
 
-        assert_eq!(section_names(&collectible_details(&WalletType::Multicoin, &verified, true, None, None)), vec!["info"]);
+        assert_eq!(section_names(&collectible_details(&WalletType::Multicoin, &verified, true, None, None, false)), vec!["info"]);
+        assert_eq!(section_names(&collectible_details(&WalletType::Multicoin, &suspicious, true, None, None, false)), vec!["status", "info", "attributes", "links"]);
+    }
+
+    #[test]
+    fn test_the_collectible_menu_only_offers_saving_an_image_where_the_app_can() {
+        let data = NFTAssetData::mock();
+
         assert_eq!(
-            section_names(&collectible_details(&WalletType::Multicoin, &suspicious, true, None, None)),
-            vec!["status", "info", "attributes", "links"]
+            collectible_details(&WalletType::Multicoin, &data, true, None, None, false).actions,
+            vec![GemCollectibleAction::SetAvatar, GemCollectibleAction::Refresh, GemCollectibleAction::Report]
         );
+        assert_eq!(collectible_details(&WalletType::Multicoin, &data, true, None, None, true).actions.first(), Some(&GemCollectibleAction::SaveImage));
     }
 
     #[test]
     fn test_collectible_details_can_send_follows_the_wallet_and_ownership() {
         let data = NFTAssetData::mock();
 
-        assert!(collectible_details(&WalletType::Multicoin, &data, true, None, None).can_send);
-        assert!(!collectible_details(&WalletType::Multicoin, &data, false, None, None).can_send);
-        assert!(!collectible_details(&WalletType::View, &data, true, None, None).can_send);
+        assert!(collectible_details(&WalletType::Multicoin, &data, true, None, None, false).can_send);
+        assert!(!collectible_details(&WalletType::Multicoin, &data, false, None, None, false).can_send);
+        assert!(!collectible_details(&WalletType::View, &data, true, None, None, false).can_send);
     }
 
     #[test]
@@ -335,23 +343,32 @@ mod tests {
         assert_eq!(
             rows,
             vec![
-                GemCollectibleRow::Collection {
-                    name: data.collection.name.clone()
+                GemListRow::Text {
+                    title: GemListRowTitle::Collection,
+                    value: data.collection.name.clone()
                 },
-                GemCollectibleRow::Network { chain: Chain::Ethereum },
-                GemCollectibleRow::Contract {
-                    identifier: GemCollectibleIdentifier {
+                GemListRow::Network {
+                    title: GemListRowTitle::Network,
+                    chain: Chain::Ethereum,
+                    name: "Ethereum".to_string()
+                },
+                GemListRow::Identifier {
+                    title: GemListRowTitle::Contract,
+                    copy: GemCopy {
+                        kind: GemCopyKind::Address { chain: Chain::Ethereum },
                         value: data.collection.contract_address.clone(),
-                        text: "0xdAC17...31ec7".to_string(),
-                        explorer: Some(link.clone()),
-                    }
+                        display: "0xdAC17...31ec7".to_string(),
+                    },
+                    explorer: Some(link.clone()),
                 },
-                GemCollectibleRow::TokenId {
-                    identifier: GemCollectibleIdentifier {
+                GemListRow::Identifier {
+                    title: GemListRowTitle::TokenId,
+                    copy: GemCopy {
+                        kind: GemCopyKind::Plain,
                         value: "1".to_string(),
-                        text: "#1".to_string(),
-                        explorer: Some(link),
-                    }
+                        display: "#1".to_string(),
+                    },
+                    explorer: Some(link),
                 },
             ]
         );
@@ -372,7 +389,7 @@ mod tests {
     #[test]
     fn test_collectible_token_id_reads_as_a_number_unless_it_is_address_sized() {
         let token_text = |data: NFTAssetData| match info_rows(&data, None, None).pop() {
-            Some(GemCollectibleRow::TokenId { identifier }) => identifier.text,
+            Some(GemListRow::Identifier { title: GemListRowTitle::TokenId, copy, .. }) => copy.display,
             row => panic!("expected a token id row, got {row:?}"),
         };
 
@@ -435,13 +452,14 @@ mod tests {
             .collect()
     }
 
-    fn row_names(rows: &[GemCollectibleRow]) -> Vec<&'static str> {
+    fn row_names(rows: &[GemListRow]) -> Vec<&'static str> {
         rows.iter()
             .map(|row| match row {
-                GemCollectibleRow::Collection { .. } => "collection",
-                GemCollectibleRow::Network { .. } => "network",
-                GemCollectibleRow::Contract { .. } => "contract",
-                GemCollectibleRow::TokenId { .. } => "token_id",
+                GemListRow::Text { .. } => "collection",
+                GemListRow::Network { .. } => "network",
+                GemListRow::Identifier { title: GemListRowTitle::Contract, .. } => "contract",
+                GemListRow::Identifier { .. } => "token_id",
+                _ => "other",
             })
             .collect()
     }

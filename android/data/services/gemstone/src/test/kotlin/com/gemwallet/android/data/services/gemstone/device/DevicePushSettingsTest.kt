@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.services.gemstone.device
 
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import android.content.Context
 import com.gemwallet.android.data.service.store.ConfigStore
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import dagger.Lazy
 import io.mockk.coEvery
 import io.mockk.coVerify

@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = সমর্থিত সম্পদ নয�
 errors_connections_no_supported_wallets = কোনও সমর্থিত ওয়ালেট উপলব্ধ নেই।
 errors_connections_unsupported_chain = প্রদত্ত চেইনটি সমর্থিত নয়।
 errors_swap_amount_too_small = পরিমাণ খুব কম
-errors_required = %@ প্রয়োজন
 errors_scan_transaction_malicious_description = এই লেনদেনটি সম্পন্ন করা যাবে না — গন্তব্যস্থলের ওয়ালেট ঠিকানাটি সন্দেহজনক বা ক্ষতিকারক কার্যকলাপের সাথে যুক্ত।
 errors_scan_transaction_memo_required = %@ গন্তব্য ওয়ালেট ঠিকানার জন্য একটি গন্তব্য ট্যাগ / মেমো প্রয়োজন।
 errors_scan_transaction_malicious_title = সন্দেহজনক কার্যকলাপ
@@ -315,7 +314,7 @@ asset_symbol = প্রতীক
 asset_decimals = দশমিক
 asset_token_id = টোকেন আইডি
 asset_contract = চুক্তি
-asset_state_empty_title = আপনার লেনদেন এখানে প্রদর্শিত হবে️
+asset_state_empty_title = আপনার লেনদেন এখানে প্রদর্শিত হবে
 asset_state_empty_description = %@ গ্রহণ, বিনিময় বা কিনুন
 asset_verification_unverified = যাচাই করা হয়নি
 asset_verification_suspicious = সন্দেহজনক
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = যখন দাম কমে যা
 price_alerts_set_alert_set_target_price = লক্ষ্য মূল্য নির্ধারণ করুন
 price_alerts_set_alert_current_price = বর্তমান মূল্য
 price_alerts_added_for = মূল্য সতর্কতা সেট করুন %@
-price_alerts_state_empty_title = আপনার সতর্কতাগুলি এখানে প্রদর্শিত হবে️
+price_alerts_state_empty_title = আপনার সতর্কতাগুলি এখানে প্রদর্শিত হবে
 price_alerts_state_empty_description = ট্র্যাকে কয়েন যোগ করে এগুলি সক্ষম করুন
 price_alerts_auto_footer = উল্লেখযোগ্য মূল্য পরিবর্তনের সময় সতর্কতাগুলি ট্রিগার করে।
 price_alerts_set_alert_title = মূল্য সতর্কতা সেট করুন
@@ -536,7 +535,7 @@ verify_phrase_title = নিশ্চিত করুন
 
 # Warnings
 
-warnings_multi_signature_blocked = এই %@ মাল্টি-সিগনেচার ওয়ালেটে তহবিল স্থানান্তর করবেন না যদি না আপনি নিশ্চিত হন যে আপনি ব্যক্তিগত কীগুলি নিয়ন্ত্রণ করছেন৷ এটি করতে ব্যর্থ হলে আপনি কেলেঙ্কারীতে প্রকাশ করতে পারেন এবং আপনি স্থায়ীভাবে আপনার সম্পদ হারাতে পারেন।
+warnings_externally_controlled_account = এই %@ অ্যাকাউন্টটি অন্য কেউ নিয়ন্ত্রণ করতে পারে। এটি আপনার নিয়ন্ত্রণে আছে বলে নিশ্চিত না হলে এতে তহবিল পাঠাবেন না, নইলে আপনি স্থায়ীভাবে আপনার সম্পদ হারাতে পারেন।
 
 # Sell
 
@@ -600,7 +599,7 @@ nft_collections = সংগ্রহ
 nft_collection = সংগ্রহ
 nft_save_to_photos = ফটোতে সেভ করুন
 nft_set_as_avatar = অবতার হিসাবে সেট করুন
-nft_state_empty_title = আপনার NFT গুলি এখানে প্রদর্শিত হবে️
+nft_state_empty_title = আপনার NFT গুলি এখানে প্রদর্শিত হবে
 nft_state_empty_description = আপনার প্রথম NFT গ্রহণ করুন
 nft_report_reason_spam = স্প্যাম
 nft_report_reason_malicious = দূষিত

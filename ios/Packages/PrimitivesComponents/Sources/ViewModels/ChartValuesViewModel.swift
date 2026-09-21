@@ -2,6 +2,7 @@
 
 import Formatters
 import Foundation
+import struct Gemstone.GemChartBounds
 import struct Gemstone.GemChartData
 import struct Gemstone.GemChartHeader
 import GemstonePrimitives
@@ -12,36 +13,48 @@ import SwiftUI
 public struct ChartValuesViewModel: Sendable {
     public let period: ChartPeriod
     public let lineColor: Color
-    public let values: ChartValues
+    let charts: [ChartDateValue]
 
     private let chartData: GemChartData
+    private let bounds: GemChartBounds
     private let formatter: CurrencyFormatter
 
-    public init?(
+    public init(
         period: ChartPeriod,
         chartData: GemChartData,
         lineColor: Color = Colors.blue,
     ) {
-        guard let values = try? ChartValues.from(charts: chartData.values.map { $0.toPrimitives() }) else {
-            return nil
-        }
         self.period = period
         self.chartData = chartData
         self.lineColor = lineColor
         formatter = CurrencyFormatter(currencyCode: chartData.currency.toPrimitives().rawValue)
-        self.values = values
+        charts = chartData.values.map { $0.toPrimitives() }
+        bounds = chartData.bounds()
     }
 
-    var charts: [ChartDateValue] {
-        values.charts
+    var yScale: [Double] {
+        [bounds.yMin, bounds.yMax]
+    }
+
+    var xScale: [Date] {
+        guard let first = charts.first?.date, let last = charts.last?.date else { return [] }
+        return [first, last.addingTimeInterval(last.timeIntervalSince(first) * 0.02)]
+    }
+
+    var lowerBoundDate: Date {
+        charts[Int(bounds.lowerIndex)].date
+    }
+
+    var upperBoundDate: Date {
+        charts[Int(bounds.upperIndex)].date
     }
 
     var lowerBoundValueText: String {
-        formatter.string(values.lowerBoundValue)
+        formatter.string(charts[Int(bounds.lowerIndex)].value)
     }
 
     var upperBoundValueText: String {
-        formatter.string(values.upperBoundValue)
+        formatter.string(charts[Int(bounds.upperIndex)].value)
     }
 
     var chartHeaderViewModel: ChartHeaderViewModel? {

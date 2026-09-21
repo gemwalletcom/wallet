@@ -1,10 +1,12 @@
+use crate::address::ethereum_address_checksum;
 use num_bigint::{BigInt, BigUint};
-use primitives::{TransactionState, contract_constants::EVM_ZERO_BLOCK_HASH};
-use serde::{Deserialize, Serialize};
-use serde_serializers::{
-    bigint_from_hex_str, deserialize_biguint_from_hex_str, deserialize_biguint_from_option_hex_str, deserialize_u64_from_str, deserialize_u64_from_str_or_int,
+use primitives::{
+    Chain, TransactionState,
+    contract_constants::{ARC_SYSTEM_LOG_ADDRESS, EVM_ZERO_BLOCK_HASH},
 };
-use std::collections::HashMap;
+use serde::{Deserialize, Serialize};
+use serde_serializers::{bigint_from_hex_str, deserialize_biguint_from_hex_str, deserialize_biguint_from_option_hex_str, deserialize_u64_from_str, deserialize_u64_from_str_or_int};
+use std::{borrow::Cow, collections::HashMap};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -64,6 +66,21 @@ pub struct TransactionReceipt {
 }
 
 impl TransactionReceipt {
+    pub fn strip_system_logs(&self, chain: Chain) -> Cow<'_, Self> {
+        if chain != Chain::Arc {
+            return Cow::Borrowed(self);
+        }
+        Cow::Owned(Self {
+            logs: self
+                .logs
+                .iter()
+                .filter(|log| !ethereum_address_checksum(&log.address).is_ok_and(|address| address == ARC_SYSTEM_LOG_ADDRESS))
+                .cloned()
+                .collect(),
+            ..self.clone()
+        })
+    }
+
     pub fn get_fee(&self) -> BigUint {
         let fee = self.gas_used.clone() * self.effective_gas_price.clone();
         if let Some(l1_fee) = self.l1_fee.clone() {

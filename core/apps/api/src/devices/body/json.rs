@@ -59,24 +59,9 @@ mod tests {
         let timestamp_ms = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as u64;
         let authorization = Header::new(AUTHORIZATION_HEADER, build_device_auth_header(&[1u8; 32], "POST", "/", "", body, timestamp_ms).unwrap());
 
+        assert_eq!(client.post("/").header(ContentType::JSON).header(authorization.clone()).body(body.as_slice()).dispatch().status(), Status::Ok);
         assert_eq!(
-            client
-                .post("/")
-                .header(ContentType::JSON)
-                .header(authorization.clone())
-                .body(body.as_slice())
-                .dispatch()
-                .status(),
-            Status::Ok
-        );
-        assert_eq!(
-            client
-                .post("/")
-                .header(ContentType::JSON)
-                .header(authorization)
-                .body(br#"{"value":"tampered"}"#.as_slice())
-                .dispatch()
-                .status(),
+            client.post("/").header(ContentType::JSON).header(authorization).body(br#"{"value":"tampered"}"#.as_slice()).dispatch().status(),
             Status::BadRequest
         );
     }

@@ -26,13 +26,7 @@ pub fn write_info_plist(localizations: &BTreeMap<String, Vec<(String, String)>>,
     Ok(())
 }
 
-fn write_package(
-    localizations: &BTreeMap<String, Vec<(String, String)>>,
-    package_path: &Path,
-    enum_name: &str,
-    swift_file_name: &str,
-    excluded_keys: &[&str],
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+fn write_package(localizations: &BTreeMap<String, Vec<(String, String)>>, package_path: &Path, enum_name: &str, swift_file_name: &str, excluded_keys: &[&str]) -> Result<(), Box<dyn Error + Send + Sync>> {
     let catalog_path = package_path.join(RESOURCES_DIRECTORY).join(CATALOG_FILE_NAME);
     let key_map = read_key_map(&catalog_path)?;
     let entries = catalog_entries(localizations, excluded_keys, &key_map);
@@ -44,19 +38,11 @@ fn write_package(
     Ok(())
 }
 
-fn catalog_entries(
-    localizations: &BTreeMap<String, Vec<(String, String)>>,
-    excluded_keys: &[&str],
-    key_map: &BTreeMap<String, String>,
-) -> BTreeMap<String, BTreeMap<String, String>> {
+fn catalog_entries(localizations: &BTreeMap<String, Vec<(String, String)>>, excluded_keys: &[&str], key_map: &BTreeMap<String, String>) -> BTreeMap<String, BTreeMap<String, String>> {
     localizations
         .iter()
         .map(|(language, entries)| {
-            let entries = entries
-                .iter()
-                .filter(|(key, _)| !excluded_keys.contains(&key.as_str()))
-                .map(|(key, value)| (ios_key(key, key_map), value.clone()))
-                .collect();
+            let entries = entries.iter().filter(|(key, _)| !excluded_keys.contains(&key.as_str())).map(|(key, value)| (ios_key(key, key_map), value.clone())).collect();
             (language.clone(), entries)
         })
         .collect()
@@ -87,10 +73,7 @@ fn read_key_map(catalog_path: &Path) -> Result<BTreeMap<String, String>, Box<dyn
         return Ok(BTreeMap::new());
     }
     let catalog: Value = serde_json::from_str(&fs::read_to_string(catalog_path)?)?;
-    let strings = catalog
-        .get("strings")
-        .and_then(|value| value.as_object())
-        .ok_or_else(|| format!("{} contains no strings object", catalog_path.display()))?;
+    let strings = catalog.get("strings").and_then(|value| value.as_object()).ok_or_else(|| format!("{} contains no strings object", catalog_path.display()))?;
     Ok(strings.keys().map(|key| (key.replace('.', "_"), key.clone())).collect())
 }
 

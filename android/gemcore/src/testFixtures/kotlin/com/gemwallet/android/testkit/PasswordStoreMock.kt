@@ -3,11 +3,8 @@ package com.gemwallet.android.testkit
 import com.gemwallet.android.application.PasswordNotFoundException
 import com.gemwallet.android.application.PasswordStore
 
-class PasswordStoreMock(
-    private val passwords: MutableMap<String, String> = mutableMapOf(),
-    private val readFailures: Map<String, RuntimeException> = emptyMap(),
-    private val generatedPassword: String = "generated-password",
-) : PasswordStore {
+class PasswordStoreMock(private val passwords: MutableMap<String, String> = mutableMapOf(), private val readFailures: Map<String, RuntimeException> = emptyMap(), private val generatedPassword: String = "generated-password") :
+    PasswordStore {
     var createdPasswords = 0
         private set
 

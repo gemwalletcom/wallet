@@ -12,7 +12,7 @@ object Migration_78_79 : Migration(78, 79) {
                 "`description` TEXT, " +
                 "`createdAt` INTEGER NOT NULL, " +
                 "`updatedAt` INTEGER NOT NULL, " +
-                "PRIMARY KEY(`id`))"
+                "PRIMARY KEY(`id`))",
         )
         db.execSQL(
             "CREATE TABLE IF NOT EXISTS `contacts_addresses` (" +
@@ -22,7 +22,7 @@ object Migration_78_79 : Migration(78, 79) {
                 "`chain` TEXT NOT NULL, " +
                 "`memo` TEXT, " +
                 "PRIMARY KEY(`id`), " +
-                "FOREIGN KEY(`contactId`) REFERENCES `contacts`(`id`) ON UPDATE CASCADE ON DELETE CASCADE)"
+                "FOREIGN KEY(`contactId`) REFERENCES `contacts`(`id`) ON UPDATE CASCADE ON DELETE CASCADE)",
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_contacts_addresses_contactId` ON `contacts_addresses` (`contactId`)")
     }

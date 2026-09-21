@@ -1,25 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import InfoSheet
 import GemstonePrimitives
+import InfoSheet
 import Primitives
 import Stake
 import SwiftUI
 import Transfer
 
 struct StakeNavigationView: View {
-    @Environment(\.viewModelFactory) private var viewModelFactory
-
     @State private var model: StakeSceneViewModel
-    @Binding private var navigationPath: NavigationPath
 
-    init(
-        model: StakeSceneViewModel,
-        navigationPath: Binding<NavigationPath>,
-    ) {
+    init(model: StakeSceneViewModel) {
         _model = State(initialValue: model)
-        _navigationPath = navigationPath
     }
 
     var body: some View {
@@ -32,33 +25,6 @@ struct StakeNavigationView: View {
         })
         .sheet(item: $model.isPresentingInfoSheet) {
             InfoSheetScene(type: $0)
-        }
-        .navigationDestination(for: AmountInput.self) { input in
-            AmountNavigationView(
-                model: viewModelFactory.amountScene(
-                    input: input,
-                    wallet: model.wallet,
-                    onTransferAction: {
-                        navigationPath.append(ConfirmTransferInput(data: $0))
-                    },
-                ),
-            )
-        }
-        .navigationDestination(for: Delegation.self) { delegation in
-            DelegationScene(
-                model: viewModelFactory.delegationScene(
-                    wallet: model.wallet,
-                    delegation: delegation,
-                    asset: delegation.base.assetId.chain.asset,
-                    validators: model.validators,
-                    onAmountInputAction: {
-                        navigationPath.append($0)
-                    },
-                    onTransferAction: {
-                        navigationPath.append(ConfirmTransferInput(data: $0))
-                    },
-                ),
-            )
         }
     }
 }

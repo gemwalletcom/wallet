@@ -59,11 +59,7 @@ pub fn map_asset_chain(asset: Asset) -> Option<Chain> {
 pub fn map_order(payload: Transaction) -> FiatTransactionUpdate {
     let transaction_id = payload.external_transaction_id.clone().unwrap_or_else(|| payload.id.clone());
     let provider_transaction_id = (transaction_id != payload.id).then_some(payload.id.clone());
-    let transaction_type = if payload.base_currency.currency_type == FiatCurrencyType::Fiat {
-        FiatQuoteType::Buy
-    } else {
-        FiatQuoteType::Sell
-    };
+    let transaction_type = if payload.base_currency.currency_type == FiatCurrencyType::Fiat { FiatQuoteType::Buy } else { FiatQuoteType::Sell };
     let currency_amount = match transaction_type {
         FiatQuoteType::Buy => payload.base_currency_amount.unwrap_or_default(),
         FiatQuoteType::Sell => payload.quote_currency_amount.unwrap_or_default(),
@@ -107,9 +103,7 @@ fn map_status(status: &str) -> FiatTransactionStatus {
 mod tests {
     use super::*;
     use crate::providers::moonpay::client::MoonPayClient;
-    use primitives::asset_constants::{
-        HYPEREVM_USDC_ASSET_ID, PLASMA_USDT_ASSET_ID, ROBINHOOD_USDG_ASSET_ID, TEMPO_BRIDGED_USDC_ASSET_ID, TEMPO_PATHUSD_ASSET_ID, TEMPO_USDT0_ASSET_ID,
-    };
+    use primitives::asset_constants::{HYPEREVM_USDC_ASSET_ID, PLASMA_USDT_ASSET_ID, ROBINHOOD_USDG_ASSET_ID, TEMPO_BRIDGED_USDC_ASSET_ID, TEMPO_PATHUSD_ASSET_ID, TEMPO_USDT0_ASSET_ID};
     use primitives::{AssetId, FiatTransactionStatus, FiatTransactionUpdate};
 
     #[test]

@@ -20,10 +20,7 @@ object ClientsModule {
 
     @Provides
     @Singleton
-    fun provideGemHttpClient(
-        @ApplicationContext context: Context,
-        buildInfo: BuildInfo,
-    ): OkHttpClient {
+    fun provideGemHttpClient(@ApplicationContext context: Context, buildInfo: BuildInfo): OkHttpClient {
         val userAgent = "Gem/${buildInfo.versionCode} Android/${Build.VERSION.RELEASE} Version/${buildInfo.versionName}"
         return OkHttpClient.Builder()
             .connectionPool(ConnectionPool(MAX_IDLE_CONNECTIONS, KEEP_ALIVE_MINUTES, TimeUnit.MINUTES))
@@ -36,7 +33,7 @@ object ClientsModule {
                     chain.request()
                         .newBuilder()
                         .header("User-Agent", userAgent)
-                        .build()
+                        .build(),
                 )
             }
             .build()

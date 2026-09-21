@@ -3,9 +3,7 @@ use num_bigint::{BigInt, BigUint};
 use primitives::{TransactionChange, TransactionUpdate};
 
 pub fn map_transaction_status(response: &BroadcastResult) -> TransactionUpdate {
-    let changes = vec![TransactionChange::NetworkFee(BigInt::from(
-        &response.transaction_outcome.outcome.tokens_burnt * BigUint::from(2u64),
-    ))];
+    let changes = vec![TransactionChange::NetworkFee(BigInt::from(&response.transaction_outcome.outcome.tokens_burnt * BigUint::from(2u64)))];
 
     TransactionUpdate::new(response.state(), changes)
 }

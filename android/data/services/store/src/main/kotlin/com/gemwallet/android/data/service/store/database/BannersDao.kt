@@ -20,24 +20,28 @@ interface BannersDao {
     fun observeBanner(id: String): Flow<DbBanner?>
 
     @Transaction
-    @Query("""
+    @Query(
+        """
         SELECT * FROM
             banners
         WHERE
             (wallet_id IS NULL OR wallet_id = :walletId)
             AND asset_id IN (:assetId, :chainAssetId)
-    """)
+    """,
+    )
     fun observeAssetBanners(walletId: String?, assetId: String, chainAssetId: String): Flow<List<DbBannerWithAsset>>
 
     @Transaction
-    @Query("""
+    @Query(
+        """
         SELECT * FROM
             banners
         WHERE
-            wallet_id = :walletId AND event IN (:events)
-    """)
+            (wallet_id IS NULL OR wallet_id = :walletId)
+            AND event IN (:events)
+    """,
+    )
     fun observeWalletBanners(walletId: String, events: List<BannerEvent>): Flow<List<DbBannerWithAsset>>
-
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveBanner(banner: DbBanner)

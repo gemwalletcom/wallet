@@ -106,15 +106,7 @@ mod tests {
             currency: "BTC".to_string(),
             fiat_amount: 1000.0,
         };
-        let mut widget = MercuryoWidget::new(
-            "widget123".to_string(),
-            "secret".to_string(),
-            "0x123".to_string(),
-            "127.0.0.1".to_string(),
-            quote,
-            FiatQuoteType::Buy,
-            "BITCOIN".to_string(),
-        );
+        let mut widget = MercuryoWidget::new("widget123".to_string(), "secret".to_string(), "0x123".to_string(), "127.0.0.1".to_string(), quote, FiatQuoteType::Buy, "BITCOIN".to_string());
         widget.merchant_transaction_id = "tx123".to_string();
 
         let signature = widget.signature();
@@ -132,15 +124,7 @@ mod tests {
             fiat_amount: 1000.0,
         };
 
-        let widget = MercuryoWidget::new(
-            "widget123".to_string(),
-            "secret".to_string(),
-            "0x123".to_string(),
-            "127.0.0.1".to_string(),
-            quote,
-            FiatQuoteType::Buy,
-            "BITCOIN".to_string(),
-        );
+        let widget = MercuryoWidget::new("widget123".to_string(), "secret".to_string(), "0x123".to_string(), "127.0.0.1".to_string(), quote, FiatQuoteType::Buy, "BITCOIN".to_string());
         let url = widget.to_url();
 
         assert!(url.starts_with("https://exchange.mercuryo.io"));
@@ -161,15 +145,7 @@ mod tests {
             fiat_amount: 3000.0,
         };
 
-        let widget = MercuryoWidget::new(
-            "widget123".to_string(),
-            "secret".to_string(),
-            "0xdef".to_string(),
-            "127.0.0.1".to_string(),
-            quote,
-            FiatQuoteType::Sell,
-            "ETHEREUM".to_string(),
-        );
+        let widget = MercuryoWidget::new("widget123".to_string(), "secret".to_string(), "0xdef".to_string(), "127.0.0.1".to_string(), quote, FiatQuoteType::Sell, "ETHEREUM".to_string());
         let url = widget.to_url();
 
         assert!(url.contains("type=sell"));

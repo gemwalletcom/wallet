@@ -1,9 +1,9 @@
 package com.gemwallet.android.ext
 
 import uniffi.gemstone.AlienException
+import uniffi.gemstone.GatewayException
 import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.alienErrorText
-import uniffi.gemstone.GatewayException
 import java.io.EOFException
 import java.io.IOException
 import java.net.ConnectException
@@ -14,12 +14,15 @@ import javax.net.ssl.SSLHandshakeException
 
 fun Throwable.toGemErrorText(): GemErrorText? = when (this) {
     is GatewayException -> text()
+
     is AlienException -> alienErrorText(this)
+
     is IOException -> if (isNetworkUnavailable()) {
         GemErrorText.NetworkOffline
     } else {
         GemErrorText.NetworkMessage(toGatewayNetworkMessage())
     }
+
     else -> cause?.toGemErrorText()
 }
 
@@ -28,12 +31,10 @@ fun IOException.toGatewayNetworkMessage(): String = when {
     else -> message ?: toString()
 }
 
-fun IOException.isNetworkUnavailable(): Boolean {
-    return this is UnknownHostException ||
-        this is ConnectException ||
-        this is NoRouteToHostException ||
-        hasCause<EOFException>()
-}
+fun IOException.isNetworkUnavailable(): Boolean = this is UnknownHostException ||
+    this is ConnectException ||
+    this is NoRouteToHostException ||
+    hasCause<EOFException>()
 
 private inline fun <reified T : Throwable> Throwable.hasCause(): Boolean {
     var err: Throwable? = this

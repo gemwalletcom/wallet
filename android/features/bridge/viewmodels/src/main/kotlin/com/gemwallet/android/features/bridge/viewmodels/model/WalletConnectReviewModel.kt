@@ -4,12 +4,10 @@ import com.gemwallet.android.ui.components.list_head.SimulationHeaderUIModel
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.PayloadField
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.GemSimulationWarningRow
+import uniffi.gemstone.GemListRow
 import uniffi.gemstone.MessageType
 
 interface WalletConnectReviewModel {
-    val appListItem: ListItemModel
-    val walletListItem: ListItemModel
     val viewFullMessageListItem: ListItemModel
     val icon: String?
     val name: String
@@ -19,9 +17,8 @@ interface WalletConnectReviewModel {
     val secondaryPayloadFields: List<PayloadField>
     val messageType: MessageType
     val message: String
-    val warnings: List<GemSimulationWarningRow> get() = emptyList()
+    val warnings: List<GemListRow> get() = emptyList()
     val hasCriticalWarning: Boolean get() = false
     val header: SimulationHeaderUIModel? get() = null
-    val addressNames: Map<String, String> get() = emptyMap()
     val hasPayload: Boolean get() = primaryPayloadFields.isNotEmpty() || secondaryPayloadFields.isNotEmpty()
 }

@@ -17,11 +17,7 @@ impl ReleasesStore for DatabaseClient {
 
     fn get_release(&mut self, store: &PlatformStore) -> Result<Option<ReleaseRow>, diesel::result::Error> {
         use crate::schema::releases::dsl::*;
-        releases
-            .filter(platform_store.eq(store))
-            .select(ReleaseRow::as_select())
-            .first(&mut self.connection)
-            .optional()
+        releases.filter(platform_store.eq(store)).select(ReleaseRow::as_select()).first(&mut self.connection).optional()
     }
 
     fn add_releases(&mut self, values: Vec<ReleaseRow>) -> Result<usize, diesel::result::Error> {

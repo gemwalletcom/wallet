@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = Неподдерживаемый актив.
 errors_connections_no_supported_wallets = Поддерживаемые кошельки отсутствуют.
 errors_connections_unsupported_chain = Предоставленная цепочка не поддерживается.
 errors_swap_amount_too_small = Сумма слишком мала
-errors_required = %@ требуется
 errors_scan_transaction_malicious_description = Эту транзакцию невозможно завершить — адрес кошелька назначения связан с подозрительной или вредоносной активностью.
 errors_scan_transaction_memo_required = %@ адрес кошелька назначения требует тега назначения / заметки
 errors_scan_transaction_malicious_title = Подозрительная активность
@@ -315,7 +314,7 @@ asset_symbol = Символ
 asset_decimals = Десятичные дроби
 asset_token_id = Токен ID
 asset_contract = Контракт
-asset_state_empty_title = Ваши транзакции будут отображаться здесь️
+asset_state_empty_title = Ваши транзакции будут отображаться здесь
 asset_state_empty_description = Получить, обменять или купить %@
 asset_verification_unverified = Непроверено
 asset_verification_suspicious = Подозрительный
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = Когда цена уменьшае
 price_alerts_set_alert_set_target_price = Установить целевую цену
 price_alerts_set_alert_current_price = Текущая цена
 price_alerts_added_for = Установить ценовое оповещение %@
-price_alerts_state_empty_title = Ваши оповещения о ценах будут появляться здесь️
+price_alerts_state_empty_title = Ваши оповещения о ценах будут появляться здесь
 price_alerts_state_empty_description = Включите их, добавив монеты для отслеживания
 price_alerts_auto_footer = Оповещения срабатывают при значительных изменениях цены.
 price_alerts_set_alert_title = Установить оповещение о цене
@@ -536,7 +535,7 @@ verify_phrase_title = Подтвердите
 
 # Warnings
 
-warnings_multi_signature_blocked = Не переводите средства на этот %@ кошелек Multi-Signature, если вы не уверены, что контролируете закрытые ключи. Невыполнение этого требования может подвергнуть вас мошенничеству, и вы можете навсегда потерять свои активы.
+warnings_externally_controlled_account = Этот аккаунт %@ может контролировать кто-то другой. Не отправляйте на него средства, если вы не уверены, что контролируете его, иначе вы можете навсегда потерять свои активы.
 
 # Sell
 
@@ -600,7 +599,7 @@ nft_collections = Коллекции
 nft_collection = Коллекция
 nft_save_to_photos = Сохранить в фото
 nft_set_as_avatar = Установить как аватар
-nft_state_empty_title = Ваши NFT будут здесь️
+nft_state_empty_title = Ваши NFT будут здесь
 nft_state_empty_description = Получите свой первый NFT
 nft_report_reason_spam = Спам
 nft_report_reason_malicious = Вредоносный

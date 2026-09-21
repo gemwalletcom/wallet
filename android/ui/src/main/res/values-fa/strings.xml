@@ -210,7 +210,6 @@
   <string name="errors_connections_no_supported_wallets">هیچ کیف پول پشتیبانی شده ای در دسترس نیست.</string>
   <string name="errors_connections_unsupported_chain">زنجیره ارائه شده پشتیبانی نمی‌شود.</string>
   <string name="errors_swap_amount_too_small">مقدار خیلی کم</string>
-  <string name="errors_required">%1$s الزامی است</string>
   <string name="errors_scan_transaction_malicious_description">این تراکنش قابل انجام نیست — آدرس کیف پول مقصد به فعالیت مشکوک یا مضر مرتبط است.</string>
   <string name="errors_scan_transaction_memo_required">%1$s آدرس کیف پول مقصد به یک برچسب / یادداشت مقصد نیاز دارد.</string>
   <string name="errors_scan_transaction_malicious_title">فعالیت مشکوک</string>
@@ -273,7 +272,7 @@
   <string name="asset_decimals">اعشار ها</string>
   <string name="asset_token_id">شناسه توکن</string>
   <string name="asset_contract">قرارداد</string>
-  <string name="asset_state_empty_title">تراکنش‌های شما اینجا نمایش داده می‌شوند️</string>
+  <string name="asset_state_empty_title">تراکنش‌های شما اینجا نمایش داده می‌شوند</string>
   <string name="asset_state_empty_description">دریافت، مبادله یا خرید %1$s</string>
   <string name="asset_verification_unverified">تایید نشده</string>
   <string name="asset_verification_suspicious">مشکوک</string>
@@ -422,7 +421,7 @@
   <string name="price_alerts_set_alert_set_target_price">تعیین قیمت هدف</string>
   <string name="price_alerts_set_alert_current_price">قیمت فعلی</string>
   <string name="price_alerts_added_for">تنظیم هشدار قیمت %1$s</string>
-  <string name="price_alerts_state_empty_title">هشدارهای شما اینجا نمایش داده می‌شوند️</string>
+  <string name="price_alerts_state_empty_title">هشدارهای شما اینجا نمایش داده می‌شوند</string>
   <string name="price_alerts_state_empty_description">با اضافه کردن سکه‌ها برای ردیابی، آنها را فعال کنید</string>
   <string name="price_alerts_auto_footer">هشدارها در صورت حرکت قابل توجه قیمت فعال می‌شوند.</string>
   <string name="price_alerts_set_alert_title">تنظیم هشدار قیمت</string>
@@ -437,7 +436,7 @@
   <string name="lock_privacy_lock">قفل حریم خصوصی</string>
   <string name="lock_footer">دسترسی به این برنامه را در دستگاه خود محافظت کنید</string>
   <string name="verify_phrase_title">تایید کنید</string>
-  <string name="warnings_multi_signature_blocked">وجه را به این کیف پول چند امضایی %1$s منتقل نکنید، مگر اینکه مطمئن باشید کلیدهای خصوصی را کنترل می کنید. عدم انجام این کار می تواند شما را در معرض کلاهبرداری قرار دهد و ممکن است برای همیشه دارایی های خود را از دست بدهید.</string>
+  <string name="warnings_externally_controlled_account">ممکن است شخص دیگری این حساب %1$s را کنترل کند. تا زمانی که مطمئن نیستید کنترل آن در دست شماست، وجهی به آن ارسال نکنید، وگرنه ممکن است دارایی‌های خود را برای همیشه از دست بدهید.</string>
   <string name="sell_title">فروش %1$s</string>
   <string name="info_network_fee_title">کارمزد شبکه</string>
   <string name="info_watch_wallet_title">کیف پول مشاهده‌ای</string>
@@ -489,7 +488,7 @@
   <string name="nft_collection">مجموعه</string>
   <string name="nft_save_to_photos">ذخیره در عکس ها</string>
   <string name="nft_set_as_avatar">به عنوان آواتار تنظیم کنید</string>
-  <string name="nft_state_empty_title">NFT های شما اینجا ظاهر خواهند شد️</string>
+  <string name="nft_state_empty_title">NFT های شما اینجا ظاهر خواهند شد</string>
   <string name="nft_state_empty_description">اولین NFT خود را دریافت کنید</string>
   <string name="nft_report_reason_spam">هرزنامه</string>
   <string name="nft_report_reason_malicious">مخرب</string>

@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,8 +34,8 @@ import com.gemwallet.android.ui.components.EmojiPickerGrid
 import com.gemwallet.android.ui.components.image.NftImage
 import com.gemwallet.android.ui.components.image.WalletAvatar
 import com.gemwallet.android.ui.components.image.toImageSource
-import com.gemwallet.android.ui.components.list_item.supportIcon
 import com.gemwallet.android.ui.components.list_item.iconModel
+import com.gemwallet.android.ui.components.list_item.supportIcon
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.NftItemUIModel
 import com.gemwallet.android.ui.theme.Spacer16
@@ -42,21 +43,13 @@ import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.secondaryFaded
-import androidx.compose.material3.SnackbarHostState
 
 private const val NFT_COLUMNS = 2
 
 private enum class WalletImageTab { EMOJI, COLLECTIONS }
 
 @Composable
-internal fun WalletImageScene(
-    wallet: WalletDetailsAggregate?,
-    emojis: List<String>,
-    nftImages: List<NftItemUIModel>,
-    source: WalletImageSource,
-    snackbar: SnackbarHostState? = null,
-    onAction: (WalletImageAction) -> Unit,
-) {
+internal fun WalletImageScene(wallet: WalletDetailsAggregate?, emojis: List<String>, nftImages: List<NftItemUIModel>, source: WalletImageSource, snackbar: SnackbarHostState? = null, onAction: (WalletImageAction) -> Unit) {
     wallet ?: return
     var selectedTab by remember { mutableStateOf(WalletImageTab.EMOJI) }
     val emojiBackground = MaterialTheme.colorScheme.secondaryFaded
@@ -116,6 +109,7 @@ internal fun WalletImageScene(
                     ) {
                         when (selectedTab) {
                             WalletImageTab.EMOJI -> EmojiPickerGrid(emojis = emojis, onSelect = onEmoji, background = emojiBackground)
+
                             WalletImageTab.COLLECTIONS -> if (nftImages.isEmpty()) {
                                 Text(
                                     text = stringResource(id = R.string.nft_state_empty_title),
@@ -140,10 +134,7 @@ internal fun WalletImageScene(
 }
 
 @Composable
-private fun NftGrid(
-    nftImages: List<NftItemUIModel>,
-    onNftImage: (String) -> Unit,
-) {
+private fun NftGrid(nftImages: List<NftItemUIModel>, onNftImage: (String) -> Unit) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(NFT_COLUMNS),
         modifier = Modifier.fillMaxSize(),

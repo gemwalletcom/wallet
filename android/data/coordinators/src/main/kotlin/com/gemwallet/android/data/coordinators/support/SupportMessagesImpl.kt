@@ -10,23 +10,19 @@ import com.wallet.core.primitives.SupportMessage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
-class GetSupportMessagesImpl(
-    private val supportStore: GemstoneSupportStore,
-) : GetSupportMessages {
+class GetSupportMessagesImpl(private val supportStore: GemstoneSupportStore) : GetSupportMessages {
 
     override fun invoke(): Flow<List<SupportMessage>> = supportStore.observeMessages()
 }
 
-class FailPendingSupportMessagesImpl(
-    private val supportStore: GemstoneSupportStore,
-) : FailPendingSupportMessages {
+class FailPendingSupportMessagesImpl(private val supportStore: GemstoneSupportStore) : FailPendingSupportMessages {
 
     override suspend fun invoke() = supportStore.failPendingMessages()
 }
 
-class SupportTypingCoordinator(
-    private val supportStore: GemstoneSupportStore,
-) : GetSupportTyping, ClearSupportTyping {
+class SupportTypingCoordinator(private val supportStore: GemstoneSupportStore) :
+    GetSupportTyping,
+    ClearSupportTyping {
 
     override fun typingAgent(): StateFlow<SupportAgent?> = supportStore.typingAgent
 

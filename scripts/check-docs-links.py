@@ -52,6 +52,8 @@ def main():
         own = headings(text)
         for link in re.finditer(r"\[([^\]]*)\]\(([^)]+)\)", text):
             label, target = link.group(1), link.group(2)
+            if target.startswith("<") and target.endswith(">"):
+                target = target[1:-1]
             if target.startswith(("http://", "https://", "mailto:", "gem:")):
                 continue
             path_part, _, fragment = target.partition("#")

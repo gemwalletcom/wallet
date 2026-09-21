@@ -90,9 +90,9 @@ public struct SwapScene: View {
         .onTimer(every: model.quoteRefreshInterval, id: model.loadTrigger) {
             await model.load()
         }
-        .onAppear {
+        .onAppear(perform: model.onAppear)
+        .taskOnce {
             focusedField = true
-            model.onAppear()
         }
         .task {
             await model.suggestPair()

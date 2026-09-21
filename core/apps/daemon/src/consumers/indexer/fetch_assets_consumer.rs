@@ -34,13 +34,7 @@ impl MessageConsumer<FetchAssetsPayload, usize> for FetchAssetsConsumer {
             self.stream_producer.publish_fetch_asset_status(payload.asset_id.clone()).await?;
         }
         let name = format!("{:?}", asset.name);
-        info_with_fields!(
-            "fetch asset",
-            chain = payload.asset_id.chain.as_ref(),
-            symbol = asset.symbol.as_str(),
-            name = name.as_str(),
-            added = added
-        );
+        info_with_fields!("fetch asset", chain = payload.asset_id.chain.as_ref(), symbol = asset.symbol.as_str(), name = name.as_str(), added = added);
         Ok(added)
     }
 }

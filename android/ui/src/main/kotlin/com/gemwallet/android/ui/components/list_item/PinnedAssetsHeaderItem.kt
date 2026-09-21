@@ -26,11 +26,11 @@ fun PinnedAssetsHeaderItem(type: AssetsGroupType) {
         modifier = Modifier
             .sectionHeaderItem(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(paddingHalfSmall)
+        horizontalArrangement = Arrangement.spacedBy(paddingHalfSmall),
     ) {
         Icon(
             modifier = Modifier.size(paddingDefault),
-            imageVector = when (type)  {
+            imageVector = when (type) {
                 AssetsGroupType.Popular -> AppIcons.StarOutlined
                 AssetsGroupType.Pinned -> AppIcons.PushPin
                 AssetsGroupType.None -> return
@@ -42,11 +42,11 @@ fun PinnedAssetsHeaderItem(type: AssetsGroupType) {
             modifier = Modifier
                 .fillMaxWidth(),
             text = stringResource(
-                when (type)  {
+                when (type) {
                     AssetsGroupType.Popular -> R.string.assets_popular
                     AssetsGroupType.Pinned -> R.string.common_pinned
                     AssetsGroupType.None -> return
-                }
+                },
             ),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.secondary,

@@ -88,11 +88,7 @@ pub(super) fn compile_instructions(instructions: &[Instruction], account_indexes
         .iter()
         .map(|instruction| {
             let program_id_index = account_index(account_indexes, instruction.program_id)?;
-            let accounts = instruction
-                .accounts
-                .iter()
-                .map(|account| account_index(account_indexes, account.pubkey))
-                .collect::<Result<Vec<_>>>()?;
+            let accounts = instruction.accounts.iter().map(|account| account_index(account_indexes, account.pubkey)).collect::<Result<Vec<_>>>()?;
             Ok(CompiledInstruction {
                 program_id_index,
                 accounts,

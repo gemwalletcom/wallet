@@ -2,17 +2,19 @@
 
 import BigInt
 import Foundation
-import struct Gemstone.ReferralAllowance
-import struct Gemstone.ReferralQuota
-import enum Gemstone.RedemptionStatus
-import struct Gemstone.RedemptionResult
-import struct Gemstone.RewardRedemption
+import struct Gemstone.GemDurationPart
 import struct Gemstone.GemFormattedNumber
+import enum Gemstone.GemListRow
 import struct Gemstone.GemRewardsRedemption
 import struct Gemstone.GemRewardsState
+import struct Gemstone.RedemptionResult
+import enum Gemstone.RedemptionStatus
+import struct Gemstone.ReferralAllowance
+import struct Gemstone.ReferralQuota
+import struct Gemstone.RewardRedemption
 import struct Gemstone.RewardRedemptionOption
-import enum Gemstone.RewardStatus
 import struct Gemstone.Rewards
+import enum Gemstone.RewardStatus
 import Primitives
 
 public extension Rewards {
@@ -75,40 +77,33 @@ public extension RedemptionResult {
 public extension GemRewardsState {
     static func mock(
         hasReferralCode: Bool = true,
-        hasUsedReferralCode: Bool = false,
         canInvite: Bool = true,
         canUseReferralCode: Bool = true,
         showsInfo: Bool = true,
-        isUnverified: Bool = false,
-        hasPendingReferral: Bool = false,
+        errorNotice: GemListRow? = nil,
+        statusNotice: GemListRow? = nil,
+        showsPendingActivation: Bool = false,
         canActivatePendingReferral: Bool = false,
-        inviteRewardPoints: Int32 = 100,
+        inviteRewardPoints: GemFormattedNumber = .mock(value: 100, display: .number(precision: .fraction(min: 0, max: 0)), notation: .plain),
         referralCode: String? = "test123",
         referralLink: String? = "https://gemwallet.com/join?code=test123",
         usedReferralCode: String? = nil,
-        verifyAfter: Date? = nil,
-        disableReason: String? = nil,
-        referralCountText: String = "5",
-        pointsText: String = "0",
         redemptions: [GemRewardsRedemption] = [],
     ) -> GemRewardsState {
         GemRewardsState(
             hasReferralCode: hasReferralCode,
-            hasUsedReferralCode: hasUsedReferralCode,
             canInvite: canInvite,
             canUseReferralCode: canUseReferralCode,
             showsInfo: showsInfo,
-            isUnverified: isUnverified,
-            hasPendingReferral: hasPendingReferral,
+            errorNotice: errorNotice,
+            statusNotice: statusNotice,
+            showsPendingActivation: showsPendingActivation,
             canActivatePendingReferral: canActivatePendingReferral,
             inviteRewardPoints: inviteRewardPoints,
             referralCode: referralCode,
             referralLink: referralLink,
             usedReferralCode: usedReferralCode,
-            verifyAfter: verifyAfter,
-            disableReason: disableReason,
-            referralCountText: referralCountText,
-            pointsText: pointsText,
+            infoRows: [],
             redemptions: redemptions,
         )
     }
@@ -118,9 +113,9 @@ public extension GemRewardsRedemption {
     static func mock(
         option: RewardRedemptionOption = .mock(),
         canRedeem: Bool = true,
-        pointsText: String = "100",
+        points: GemFormattedNumber = .mock(value: 100, display: .number(precision: .fraction(min: 0, max: 0)), notation: .plain),
         value: GemFormattedNumber = .mock(),
     ) -> GemRewardsRedemption {
-        GemRewardsRedemption(option: option, canRedeem: canRedeem, pointsText: pointsText, value: value)
+        GemRewardsRedemption(option: option, canRedeem: canRedeem, points: points, value: value)
     }
 }

@@ -1,10 +1,10 @@
 package com.gemwallet.android.ui.components.chart
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,21 +33,19 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlin.math.abs
-import kotlin.math.min
-import kotlin.math.roundToInt
-import kotlin.math.sqrt
-import com.gemwallet.android.ui.theme.space1
 import com.gemwallet.android.ui.theme.space0
+import com.gemwallet.android.ui.theme.space1
 import com.gemwallet.android.ui.theme.space24
 import com.gemwallet.android.ui.theme.space4
 import com.gemwallet.android.ui.theme.space6
 import com.gemwallet.android.ui.theme.space8
+import uniffi.gemstone.GemChartBounds
+import kotlin.math.abs
+import kotlin.math.min
+import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
-data class ChartPoint(
-    val x: Float,
-    val y: Float,
-)
+data class ChartPoint(val x: Float, val y: Float)
 
 private object Metrics {
     val lineWidth = 2.5.dp
@@ -63,9 +61,6 @@ private object Metrics {
     val pulsingDotSize = space8
     const val MAX_RENDER_POINTS = 120
     const val X_RIGHT_PADDING_FRACTION = 0.02f
-    const val FLAT_LINE_PADDING = 0.01f
-    const val FLAT_LINE_MIN_RANGE = 0.01f
-    const val RANGE_PADDING = 0.05f
 }
 
 private object Alpha {
@@ -79,15 +74,7 @@ private object Alpha {
 }
 
 @Composable
-fun GemLineChart(
-    points: List<ChartPoint>,
-    lineColor: Color,
-    modifier: Modifier = Modifier,
-    selectedIndex: Int? = null,
-    onSelectionChanged: (Int?) -> Unit = {},
-    minLabel: String? = null,
-    maxLabel: String? = null,
-) {
+fun GemLineChart(points: List<ChartPoint>, bounds: GemChartBounds, lineColor: Color, modifier: Modifier = Modifier, selectedIndex: Int? = null, onSelectionChanged: (Int?) -> Unit = {}, minLabel: String? = null, maxLabel: String? = null) {
     if (points.size < 2) return
 
     val density = LocalDensity.current
@@ -105,12 +92,11 @@ fun GemLineChart(
     val labelOffsetAbovePx = with(density) { Metrics.boundLabelOffsetAbove.toPx() }
     val glowExtraPx = with(density) { Metrics.selectionGlowExtra.toPx() }
 
-    val yMin = points.minOf { it.y }
-    val yMax = points.maxOf { it.y }
-    val (paddedMin, paddedRange) = calculatePaddedRange(yMin, yMax)
+    val paddedMin = bounds.yMin.toFloat()
+    val paddedRange = (bounds.yMax - bounds.yMin).toFloat()
 
-    val minIndex = points.indexOfFirst { it.y == yMin }
-    val maxIndex = points.indexOfFirst { it.y == yMax }
+    val minIndex = bounds.lowerIndex.toInt()
+    val maxIndex = bounds.upperIndex.toInt()
 
     val renderPoints = remember(points) {
         if (points.size > Metrics.MAX_RENDER_POINTS) reducePoints(points, Metrics.MAX_RENDER_POINTS) else points
@@ -149,7 +135,7 @@ fun GemLineChart(
                         points,
                         indexAt = { touchX -> findClosestIndex(points, touchX, curveLeft, curveWidth) },
                         onSelectionChanged = onSelectionChanged,
-                    )
+                    ),
             ) {
                 val screenPoints = renderPoints.map { point ->
                     Offset(renderScreenX(point.x), valueToScreenY(point.y))
@@ -172,7 +158,13 @@ fun GemLineChart(
                 if (selectedIndex != null && selectedIndex in points.indices) {
                     drawSelectionIndicator(
                         Offset(curveScreenX(selectedIndex, points.size), valueToScreenY(points[selectedIndex].y)),
-                        canvasHeight, selection.alpha, lineColor, lineWidthPx, selectionDotRadiusPx, dashLengthPx, glowExtraPx,
+                        canvasHeight,
+                        selection.alpha,
+                        lineColor,
+                        lineWidthPx,
+                        selectionDotRadiusPx,
+                        dashLengthPx,
+                        glowExtraPx,
                     )
                 }
             }
@@ -193,16 +185,7 @@ fun GemLineChart(
     }
 }
 
-private fun DrawScope.drawSelectionIndicator(
-    point: Offset,
-    canvasHeight: Float,
-    alpha: Float,
-    color: Color,
-    lineWidth: Float,
-    dotRadius: Float,
-    dashLength: Float,
-    glowExtra: Float,
-) {
+private fun DrawScope.drawSelectionIndicator(point: Offset, canvasHeight: Float, alpha: Float, color: Color, lineWidth: Float, dotRadius: Float, dashLength: Float, glowExtra: Float) {
     drawLine(
         color.copy(Alpha.SELECTION_LINE * alpha),
         Offset(point.x, 0f),
@@ -233,14 +216,7 @@ private fun DrawScope.drawSelectionIndicator(
     drawCircle(color.copy(alpha), dotRadius, point, style = Stroke(lineWidth))
 }
 
-private fun DrawScope.drawAreaGradient(
-    curvePath: Path,
-    screenPoints: List<Offset>,
-    bottomY: Float,
-    topY: Float,
-    color: Color,
-    isDark: Boolean,
-) {
+private fun DrawScope.drawAreaGradient(curvePath: Path, screenPoints: List<Offset>, bottomY: Float, topY: Float, color: Color, isDark: Boolean) {
     if (screenPoints.size < 2) return
     val areaPath = Path().apply {
         addPath(curvePath)
@@ -267,16 +243,7 @@ private fun DrawScope.drawAreaGradient(
     )
 }
 
-private fun DrawScope.drawBoundLabel(
-    measurer: TextMeasurer,
-    text: String,
-    style: TextStyle,
-    anchorX: Float,
-    anchorY: Float,
-    canvasWidth: Float,
-    labelWidth: Float,
-    edgePadding: Float,
-) {
+private fun DrawScope.drawBoundLabel(measurer: TextMeasurer, text: String, style: TextStyle, anchorX: Float, anchorY: Float, canvasWidth: Float, labelWidth: Float, edgePadding: Float) {
     val measured = measurer.measure(text, style)
     val halfLabel = labelWidth / 2
     val maxLeading = (canvasWidth - labelWidth - edgePadding).coerceAtLeast(edgePadding)
@@ -314,16 +281,18 @@ private fun buildCurvePath(screenPoints: List<Offset>): Path {
         val tangent2Y = (knot2 - knot1) * ((next.y - current.y) / (knot2 - knot1) - (afterNext.y - current.y) / (knot3 - knot1) + (afterNext.y - next.y) / (knot3 - knot2))
 
         path.cubicTo(
-            current.x + tangent1X / 3f, current.y + tangent1Y / 3f,
-            next.x - tangent2X / 3f, next.y - tangent2Y / 3f,
-            next.x, next.y,
+            current.x + tangent1X / 3f,
+            current.y + tangent1Y / 3f,
+            next.x - tangent2X / 3f,
+            next.y - tangent2Y / 3f,
+            next.x,
+            next.y,
         )
     }
     return path
 }
 
-private fun distanceBetween(from: Offset, to: Offset): Float =
-    sqrt((from.x - to.x).let { it * it } + (from.y - to.y).let { it * it })
+private fun distanceBetween(from: Offset, to: Offset): Float = sqrt((from.x - to.x).let { it * it } + (from.y - to.y).let { it * it })
 
 private fun reducePoints(data: List<ChartPoint>, targetCount: Int): List<ChartPoint> {
     if (data.size <= targetCount) return data
@@ -336,39 +305,39 @@ private fun reducePoints(data: List<ChartPoint>, targetCount: Int): List<ChartPo
         val bucketEnd = (bucketIndex * bucketSize + 1).toInt().coerceAtMost(data.size - 1)
         val nextBucketStart = (bucketIndex * bucketSize + 1).toInt()
         val nextBucketEnd = ((bucketIndex + 1) * bucketSize + 1).toInt().coerceAtMost(data.size - 1)
-        var avgX = 0f; var avgY = 0f; var count = 0
-        for (index in nextBucketStart..nextBucketEnd) { avgX += data[index].x; avgY += data[index].y; count++ }
-        if (count > 0) { avgX /= count; avgY /= count }
+        var avgX = 0f
+        var avgY = 0f
+        var count = 0
+        for (index in nextBucketStart..nextBucketEnd) {
+            avgX += data[index].x
+            avgY += data[index].y
+            count++
+        }
+        if (count > 0) {
+            avgX /= count
+            avgY /= count
+        }
         val previousPoint = data[previousSelectedIndex]
-        var largestArea = -1f; var largestAreaIndex = bucketStart
+        var largestArea = -1f
+        var largestAreaIndex = bucketStart
         for (index in bucketStart..bucketEnd) {
             val area = abs((previousPoint.x - avgX) * (data[index].y - previousPoint.y) - (previousPoint.x - data[index].x) * (avgY - previousPoint.y))
-            if (area > largestArea) { largestArea = area; largestAreaIndex = index }
+            if (area > largestArea) {
+                largestArea = area
+                largestAreaIndex = index
+            }
         }
-        result.add(data[largestAreaIndex]); previousSelectedIndex = largestAreaIndex
+        result.add(data[largestAreaIndex])
+        previousSelectedIndex = largestAreaIndex
     }
     result.add(data.last())
     return result
 }
 
-private fun calculatePaddedRange(min: Float, max: Float): Pair<Float, Float> {
-    val range = max - min
-    return if (range == 0f) {
-        val padding = (min * Metrics.FLAT_LINE_PADDING).coerceAtLeast(Metrics.FLAT_LINE_MIN_RANGE)
-        (min - padding) to (padding * 2f)
-    } else {
-        val padding = range * Metrics.RANGE_PADDING
-        (min - padding) to (range + padding * 2f)
-    }
+private fun indexToX(index: Int, count: Int, width: Float): Float = if (count <= 1) width / 2 else index.toFloat() / (count - 1) * width
+
+private fun valueToY(value: Float, minValue: Float, range: Float, height: Float): Float = height - ((value - minValue) / range) * height
+
+private fun findClosestIndex(points: List<ChartPoint>, touchX: Float, curveLeft: Float, curveWidth: Float): Int? = points.indices.minByOrNull { index ->
+    abs(curveLeft + indexToX(index, points.size, curveWidth) - touchX)
 }
-
-private fun indexToX(index: Int, count: Int, width: Float): Float =
-    if (count <= 1) width / 2 else index.toFloat() / (count - 1) * width
-
-private fun valueToY(value: Float, minValue: Float, range: Float, height: Float): Float =
-    height - ((value - minValue) / range) * height
-
-private fun findClosestIndex(points: List<ChartPoint>, touchX: Float, curveLeft: Float, curveWidth: Float): Int? =
-    points.indices.minByOrNull { index ->
-        abs(curveLeft + indexToX(index, points.size, curveWidth) - touchX)
-    }

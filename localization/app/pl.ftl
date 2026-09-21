@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = Nieobsługiwany zasób.
 errors_connections_no_supported_wallets = Brak obsługiwanych portfeli.
 errors_connections_unsupported_chain = Podany łańcuch nie jest obsługiwany.
 errors_swap_amount_too_small = Kwota jest za mała
-errors_required = %@ jest wymagane
 errors_scan_transaction_malicious_description = Nie można ukończyć tej transakcji — adres portfela docelowego jest powiązany z podejrzaną lub szkodliwą aktywnością.
 errors_scan_transaction_memo_required = %@ adres portfela docelowego wymaga znacznika/notatki docelowej
 errors_scan_transaction_malicious_title = Podejrzana aktywność
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = Gdy cena spada o
 price_alerts_set_alert_set_target_price = Ustaw cenę docelową
 price_alerts_set_alert_current_price = Aktualna cena
 price_alerts_added_for = Ustaw alert cenowy %@
-price_alerts_state_empty_title = Twoje alerty będą pojawiać się tutaj️
+price_alerts_state_empty_title = Twoje alerty będą pojawiać się tutaj
 price_alerts_state_empty_description = Włącz je, dodając monety do śledzenia
 price_alerts_auto_footer = Alerty uruchamiają się w przypadku znacznych wahań cen.
 price_alerts_set_alert_title = Ustaw alert cenowy
@@ -536,7 +535,7 @@ verify_phrase_title = Potwierdź
 
 # Warnings
 
-warnings_multi_signature_blocked = Nie przelewaj środków do tego portfela Multi-Signature %@ chyba że masz pewność, że kontrolujesz klucze prywatne. Niedopełnienie tego obowiązku może narazić Cię na oszustwa i możesz trwale utracić swoje aktywa.
+warnings_externally_controlled_account = To konto %@ może być kontrolowane przez kogoś innego. Nie wysyłaj na nie środków, chyba że masz pewność, że to Ty je kontrolujesz, w przeciwnym razie możesz trwale utracić swoje aktywa.
 
 # Sell
 
@@ -565,7 +564,7 @@ info_insufficient_balance_title = Niewystarczające saldo
 info_balance_required_description = Ta transakcja wymaga %@, ale dostępne jest tylko %@. Aby kontynuować, potrzebujesz jeszcze %@.
 info_account_minimum_balance_title = Minimalne saldo
 info_perpetual_funding_payments_title = Płatności finansowe
-info_perpetual_funding_payments_description = Płatności finansowe to okresowe płatności pomiędzy inwestorami, mające na celu utrzymanie ceny kontraktu wieczystego na poziomie zbliżonym do ceny spot instrumentu bazowego. Dodatnie finansowanie oznacza, że ​​długie pozycje opłacają krótkie pozycje, podczas gdy ujemne finansowanie oznacza, że ​​krótkie pozycje opłacają długie pozycje.
+info_perpetual_funding_payments_description = Płatności finansowe to okresowe płatności pomiędzy inwestorami, mające na celu utrzymanie ceny kontraktu wieczystego na poziomie zbliżonym do ceny spot instrumentu bazowego. Dodatnie finansowanie oznacza, że długie pozycje opłacają krótkie pozycje, podczas gdy ujemne finansowanie oznacza, że krótkie pozycje opłacają długie pozycje.
 info_perpetual_liquidation_price_title = Cena likwidacyjna
 info_perpetual_liquidation_price_description = Cena likwidacji to poziom ceny, przy którym Twoja pozycja zostanie automatycznie zamknięta, aby zapobiec dalszym stratom. Kiedy cena rynkowa osiągnie ten poziom, Twoja pozycja zostanie zlikwidowana, a Ty stracisz marżę.
 info_perpetual_open_interest_title = Otwarte zainteresowanie
@@ -600,7 +599,7 @@ nft_collections = Kolekcje
 nft_collection = Kolekcja
 nft_save_to_photos = Zapisz w Zdjęciach
 nft_set_as_avatar = Ustaw jako awatar
-nft_state_empty_title = Twoje NFT pojawią się tutaj️
+nft_state_empty_title = Twoje NFT pojawią się tutaj
 nft_state_empty_description = Otrzymaj swój pierwszy NFT
 nft_report_reason_spam = Spam
 nft_report_reason_malicious = Złośliwy

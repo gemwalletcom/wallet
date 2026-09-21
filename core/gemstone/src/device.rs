@@ -12,10 +12,7 @@ pub struct GemDeviceKeyPair {
 
 impl fmt::Debug for GemDeviceKeyPair {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("GemDeviceKeyPair")
-            .field("private_key", &"<redacted>")
-            .field("public_key", &self.public_key)
-            .finish()
+        f.debug_struct("GemDeviceKeyPair").field("private_key", &"<redacted>").field("public_key", &self.public_key).finish()
     }
 }
 

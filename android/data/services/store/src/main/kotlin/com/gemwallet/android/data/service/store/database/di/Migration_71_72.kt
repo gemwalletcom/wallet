@@ -32,7 +32,7 @@ object Migration_71_72 : Migration(71, 72) {
                 SELECT LOWER(chain) FROM accounts
                 UNION SELECT LOWER(chain) FROM asset
                 UNION SELECT LOWER(chain) FROM nodes
-            """
+            """,
         )
         cursor.use {
             while (it.moveToNext()) {
@@ -73,7 +73,7 @@ object Migration_71_72 : Migration(71, 72) {
                         assetBasic.properties.isSwapable.toSqlInt(),
                         assetBasic.properties.isStakeable.toSqlInt(),
                         assetBasic.score.rank,
-                    )
+                    ),
                 )
             }
         }
@@ -89,7 +89,7 @@ object Migration_71_72 : Migration(71, 72) {
             rewriteLegacyNativeAssetIdReferences(db, canonical)
             db.execSQL(
                 "DELETE FROM asset WHERE LOWER(id) = ? AND id != ? AND type = 'NATIVE'",
-                arrayOf(canonical, canonical)
+                arrayOf(canonical, canonical),
             )
         }
     }
@@ -104,7 +104,7 @@ object Migration_71_72 : Migration(71, 72) {
                         WHERE LOWER(id) = ? AND id != ? AND type = 'NATIVE'
                     )
                 """,
-                arrayOf(canonical, canonical, canonical)
+                arrayOf(canonical, canonical, canonical),
             )
             if (reference.deleteLeftovers) {
                 db.execSQL(
@@ -115,17 +115,17 @@ object Migration_71_72 : Migration(71, 72) {
                             WHERE LOWER(id) = ? AND id != ? AND type = 'NATIVE'
                         )
                     """,
-                    arrayOf(canonical, canonical)
+                    arrayOf(canonical, canonical),
                 )
             }
         }
         db.execSQL(
             "UPDATE OR IGNORE perpetual_asset SET id = ? WHERE LOWER(id) = ? AND id != ?",
-            arrayOf(canonical, canonical, canonical)
+            arrayOf(canonical, canonical, canonical),
         )
         db.execSQL(
             "DELETE FROM perpetual_asset WHERE LOWER(id) = ? AND id != ?",
-            arrayOf(canonical, canonical)
+            arrayOf(canonical, canonical),
         )
     }
 
@@ -143,7 +143,7 @@ object Migration_71_72 : Migration(71, 72) {
                     WHERE ${reference.column} IN (
                         SELECT id FROM asset WHERE chain NOT IN ($knownChains)
                     )
-                """
+                """,
             )
         }
     }
@@ -161,7 +161,7 @@ object Migration_71_72 : Migration(71, 72) {
                     FOREIGN KEY(chain) REFERENCES asset(id) ON UPDATE CASCADE ON DELETE CASCADE,
                     FOREIGN KEY(wallet_id) REFERENCES wallets(id) ON UPDATE CASCADE ON DELETE CASCADE
                 )
-            """
+            """,
         )
         db.execSQL(
             """
@@ -191,7 +191,7 @@ object Migration_71_72 : Migration(71, 72) {
                     FROM accounts AS grouped
                     GROUP BY grouped.wallet_id, LOWER(grouped.chain)
                 )
-            """
+            """,
         )
         db.execSQL("DROP TABLE accounts")
         db.execSQL("ALTER TABLE accounts_new RENAME TO accounts")
@@ -233,7 +233,7 @@ object Migration_71_72 : Migration(71, 72) {
                     FOREIGN KEY(asset_id) REFERENCES asset(id) ON UPDATE CASCADE ON DELETE CASCADE,
                     FOREIGN KEY(wallet_id) REFERENCES wallets(id) ON UPDATE CASCADE ON DELETE CASCADE
                 )
-            """
+            """,
         )
         db.execSQL(
             """
@@ -324,7 +324,7 @@ object Migration_71_72 : Migration(71, 72) {
                 )
                 LEFT JOIN asset_config ON asset_config.asset_id = wallet_assets.asset_id
                     AND asset_config.wallet_id = wallet_assets.wallet_id
-            """
+            """,
         )
         db.execSQL("UPDATE balances_new SET is_pinned = 0 WHERE is_visible = 0")
         db.execSQL("DROP TABLE balances")
@@ -362,7 +362,7 @@ object Migration_71_72 : Migration(71, 72) {
                     PRIMARY KEY(wallet_id, asset_id),
                     FOREIGN KEY(chain) REFERENCES asset(id) ON UPDATE CASCADE ON DELETE CASCADE
                 )
-            """
+            """,
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS index_banners_event ON banners(event)")
         db.execSQL("CREATE INDEX IF NOT EXISTS index_banners_wallet_id ON banners(wallet_id)")
@@ -380,7 +380,7 @@ object Migration_71_72 : Migration(71, 72) {
                     PRIMARY KEY(url),
                     FOREIGN KEY(chain) REFERENCES asset(id) ON UPDATE CASCADE ON DELETE CASCADE
                 )
-            """
+            """,
         )
         db.execSQL(
             """
@@ -388,7 +388,7 @@ object Migration_71_72 : Migration(71, 72) {
                 SELECT nodes.url, nodes.status, nodes.priority, LOWER(nodes.chain)
                 FROM nodes
                 JOIN asset ON asset.id = LOWER(nodes.chain)
-            """
+            """,
         )
         db.execSQL("DROP TABLE nodes")
         db.execSQL("ALTER TABLE nodes_new RENAME TO nodes")
@@ -409,7 +409,7 @@ object Migration_71_72 : Migration(71, 72) {
                     PRIMARY KEY(id),
                     FOREIGN KEY(chain) REFERENCES asset(id) ON UPDATE CASCADE ON DELETE CASCADE
                 )
-            """
+            """,
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS index_stake_delegation_validator_chain ON stake_delegation_validator(chain)")
         db.execSQL(
@@ -429,7 +429,7 @@ object Migration_71_72 : Migration(71, 72) {
                     shares TEXT,
                     PRIMARY KEY(id)
                 )
-            """
+            """,
         )
     }
 
@@ -450,7 +450,7 @@ object Migration_71_72 : Migration(71, 72) {
                     PRIMARY KEY(id),
                     FOREIGN KEY(chain) REFERENCES asset(id) ON UPDATE CASCADE ON DELETE CASCADE
                 )
-            """
+            """,
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS index_nft_collections_chain ON nft_collections(chain)")
         db.execSQL(
@@ -472,7 +472,7 @@ object Migration_71_72 : Migration(71, 72) {
                     FOREIGN KEY(collection_id) REFERENCES nft_collections(id) ON UPDATE CASCADE ON DELETE CASCADE,
                     FOREIGN KEY(chain) REFERENCES asset(id) ON UPDATE CASCADE ON DELETE CASCADE
                 )
-            """
+            """,
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS index_nft_assets_collection_id ON nft_assets(collection_id)")
         db.execSQL("CREATE INDEX IF NOT EXISTS index_nft_assets_chain ON nft_assets(chain)")
@@ -485,7 +485,7 @@ object Migration_71_72 : Migration(71, 72) {
                     FOREIGN KEY(asset_id) REFERENCES nft_assets(id) ON UPDATE CASCADE ON DELETE CASCADE,
                     FOREIGN KEY(wallet_id) REFERENCES wallets(id) ON UPDATE CASCADE ON DELETE CASCADE
                 )
-            """
+            """,
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS index_nft_assets_associations_asset_id ON nft_assets_associations(asset_id)")
     }
@@ -498,11 +498,7 @@ object Migration_71_72 : Migration(71, 72) {
 
     private fun Boolean.toSqlInt() = if (this) 1 else 0
 
-    private data class AssetReference(
-        val table: String,
-        val column: String,
-        val deleteLeftovers: Boolean,
-    )
+    private data class AssetReference(val table: String, val column: String, val deleteLeftovers: Boolean)
 
     private val nativeAssetIdReferences = listOf(
         AssetReference("asset_wallet", "asset_id", true),

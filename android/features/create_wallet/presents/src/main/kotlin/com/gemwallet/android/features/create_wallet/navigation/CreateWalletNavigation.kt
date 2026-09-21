@@ -13,12 +13,7 @@ data object CreateWalletAlertRoute : NavKey
 @Serializable
 data object CreateWalletRoute : NavKey
 
-fun EntryProviderScope<NavKey>.createWalletScreen(
-    onCreateWallet: () -> Unit,
-    onCancel: () -> Unit,
-    onCreated: (walletId: WalletId?) -> Unit,
-) {
-
+fun EntryProviderScope<NavKey>.createWalletScreen(onCreateWallet: () -> Unit, onCancel: () -> Unit, onCreated: (walletId: WalletId?) -> Unit) {
     entry<CreateWalletAlertRoute> {
         PhraseAlertDialog(onAccept = onCreateWallet, onCancel = onCancel)
     }

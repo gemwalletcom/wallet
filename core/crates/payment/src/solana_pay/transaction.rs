@@ -17,10 +17,7 @@ pub(super) fn prepare(transaction: &str, signer: &str) -> Result<PreparedTransac
         return Err("Solana Pay transaction must require exactly one signer".to_string());
     }
 
-    let fee_payer = transaction
-        .account_keys_mut()
-        .first_mut()
-        .ok_or_else(|| "Solana Pay transaction has no fee payer".to_string())?;
+    let fee_payer = transaction.account_keys_mut().first_mut().ok_or_else(|| "Solana Pay transaction has no fee payer".to_string())?;
     let zero = Pubkey::new([0u8; 32]);
     if *fee_payer != signer && *fee_payer != zero {
         return Err("Solana Pay transaction fee payer does not match the wallet account".to_string());
@@ -50,10 +47,7 @@ pub(super) fn prepare(transaction: &str, signer: &str) -> Result<PreparedTransac
         request,
         transaction_type,
         memo,
-        transaction: transaction
-            .serialize()
-            .map(|bytes| encode_base64(&bytes))
-            .map_err(|error| format!("failed to serialize Solana Pay transaction: {error}"))?,
+        transaction: transaction.serialize().map(|bytes| encode_base64(&bytes)).map_err(|error| format!("failed to serialize Solana Pay transaction: {error}"))?,
     })
 }
 

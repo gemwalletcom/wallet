@@ -17,11 +17,7 @@ pub fn price_rounded_values(price: f64, by_percent: f64) -> Vec<f64> {
     let step = price_step(lower_target);
 
     let lower = (lower_target / step).floor() * step;
-    let upper = if step > 1.0 {
-        (upper_target / step).round() * step
-    } else {
-        (upper_target / step).ceil() * step
-    };
+    let upper = if step > 1.0 { (upper_target / step).round() * step } else { (upper_target / step).ceil() * step };
 
     vec![lower, upper]
 }

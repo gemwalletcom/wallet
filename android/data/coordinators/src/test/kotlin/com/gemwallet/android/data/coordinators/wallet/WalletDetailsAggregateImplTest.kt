@@ -11,17 +11,22 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import uniffi.gemstone.GemWalletSecretKind
-import uniffi.gemstone.walletDetails
+import com.gemwallet.android.testkit.mockGemWalletRow
+import uniffi.gemstone.ChainAddress
+import uniffi.gemstone.GemWalletDetails
 
 class WalletDetailsAggregateImplTest {
 
     private val account = mockAccount(chain = Chain.Ethereum, address = "0x403BC00000000000000000000000000000051bDa")
 
-    private fun aggregate(
-        id: String,
-        type: WalletType,
-        accounts: List<Account>,
-    ) = WalletDetailsAggregateImpl(walletDetails(mockWallet(id = id, type = type, accounts = accounts).toGem()))
+    private fun aggregate(id: String, type: WalletType, accounts: List<Account>) = WalletDetailsAggregateImpl(
+        GemWalletDetails(
+            row = mockGemWalletRow(id = id),
+            secretKind = if (type == WalletType.View) null else GemWalletSecretKind.PHRASE,
+            address = accounts.singleOrNull()?.let { ChainAddress(it.chain.string, it.address) },
+            addressExplorer = null,
+        ),
+    )
 
     @Test
     fun singleAccountWallet_showsItsAddressAndSecret() {

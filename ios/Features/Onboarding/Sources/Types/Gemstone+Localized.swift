@@ -3,7 +3,6 @@
 import Foundation
 import enum Gemstone.GemAcceptTermsItem
 import enum Gemstone.GemSecurityReminderItem
-import enum Gemstone.GemWalletImportError
 import enum Gemstone.GemWalletImportKind
 import enum Gemstone.GemWalletSecret
 import Localization
@@ -69,23 +68,6 @@ extension GemWalletSecret {
         switch self {
         case .words: Localized.Common.secretPhrase
         case .privateKey: Localized.Common.privateKey
-        }
-    }
-}
-
-extension GemWalletImportError: @retroactive LocalizedError {
-    public var errorDescription: String? {
-        switch self {
-        case .InvalidSecretPhrase:
-            Localized.Errors.Import.invalidSecretPhrase
-        case let .InvalidSecretPhraseWords(words):
-            Localized.Errors.Import.invalidSecretPhraseWord(words.joined(separator: ", "))
-        case .InvalidPrivateKey:
-            Localized.Errors.Import.invalidPrivateKey
-        case .InvalidAddress:
-            Localized.Errors.invalidAddressName
-        case .MissingChain:
-            Localized.Errors.unknown
         }
     }
 }

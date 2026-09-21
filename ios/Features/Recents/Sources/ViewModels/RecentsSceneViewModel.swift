@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Style
-import protocol Gemstone.GemRecentActivityServiceProtocol
-import GemstoneServices
 import Components
+import Foundation
+import protocol Gemstone.GemRecentActivityServiceProtocol
 import struct Gemstone.GemRecentsSections
 import struct Gemstone.GemRecentsViewState
-import Foundation
 import GemstonePrimitives
+import GemstoneServices
 import Localization
 import Primitives
 import PrimitivesComponents
 import Store
+import Style
 
 @Observable
 @MainActor

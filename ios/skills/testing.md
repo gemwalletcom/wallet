@@ -5,27 +5,41 @@ Use when adding, changing, or running iOS tests, or registering a new test targe
 
 - Always run tests through the iOS `justfile`
 - Default commands:
+  - `just test-package <Package>` as shorthand for `just test <Package>Tests`
+  - `just check-test <Package>` for host-compatible packages without Gemstone linkage
   - `just test`
-  - `just test <TARGET>`
+  - `just test <TARGET>` for app-hosted tests and app-plan registration checks
   - `just build-for-testing` followed by `just test-without-building` for repeated test-debug loops
   - `just test-integration` or `just test-ui` for the iOS integration suite
 - Run the narrowest relevant target while iterating, then finish with the appropriate broader validation
+- Commands above run from `ios/`; from the repo root use `just ios <recipe>`. Read the owning `Package.swift` for package and test-target names. Confirm a nonzero test count and the expected suite in the output
+
+Performance benchmarks are opt-in: `TEST_RUNNER_BENCHMARKS=1 just test-package GemstoneServices` forwards `BENCHMARKS=1` to the simulator test process. Normal tests retain keystore correctness coverage and skip the repeated KDF timing benchmark; do not reduce cryptographic parameters to speed tests up.
 
 ## New Test Targets
 
-A test target only runs if it is registered in all three places:
+A package test target participates in the app/CI test plan only if it is registered in all three places:
 
 1. `.testTarget` in the package's `Package.swift`
 2. The package is referenced in `Gem.xcodeproj` (Packages group)
 3. An entry in `GemTests/unit_frameworks.xctestplan`
 
-`swift test` inside the package and Xcode's package scheme bypass the test plan, so green there proves nothing about CI. xcodebuild silently ignores targets missing from the plan and plan entries pointing at deleted targets. After adding a test target, verify with `just test <TARGET>` from `ios/` and confirm the target's tests appear in the output.
+`just check-test` bypasses the app test plan and does not verify CI registration. Both `just test-package` and `just test` use the app test plan. xcodebuild silently ignores targets missing from the plan and plan entries pointing at deleted targets. After adding a test target, verify with `just test <TARGET>` from `ios/` and confirm the target's tests appear in the output.
 
 ## Test Structure
 
 - Keep test names short and descriptive, for example `showManageToken`
 - Keep tests concise, usually one behavior with a small number of assertions
 - Skip trivial tests that only restate obvious behavior
+
+## Async Work
+
+A test awaits work, never time. `Task.sleep`, a polling loop, or a settle helper turns runner load into a failure and proves nothing when it passes.
+
+- A view model method that does async work is `async`; the view owns the `Task` (`Button { Task { await model.onDeleteNode() } }`). The test calls `await model.onDeleteNode()` and asserts, including the negative case where nothing should have happened
+- Work the model must keep running on its own (a debounced lookup) keeps its `Task` in the model and exposes the handle; the test awaits `model.nameRecordTask?.value` or asserts the synchronous state the request leaves behind
+- A test never needs to be in the middle of a request. A rule about a late or stale result belongs to Core (`GemSwapSession.on_quote_results` drops a result for a request that is no longer current) and is tested there with data; a lookup that a newer one supersedes is cancelled by the model (`ReceiveViewModel.selectNetworkTask`), so the test makes both calls back to back and awaits the handle
+- An external stream (a database observation) is awaited through `withObservationTracking` and a continuation, one change at a time until the state is there; the only deadline is the `.timeLimit(.minutes(1))` trait on the test
 
 ## Mocks
 

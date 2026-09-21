@@ -27,13 +27,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
-import com.gemwallet.android.domains.perpetual.values.PerpetualBalance
 import com.gemwallet.android.domains.price.values.EquivalentValue
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualMarketSceneState
 import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualMarketSectionUIModel
 import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualPositionRowUIModel
-import com.gemwallet.android.features.perpetual.views.components.MarketHeadActions
 import com.gemwallet.android.features.perpetual.views.components.PerpetualItem
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.clickable
@@ -41,6 +41,8 @@ import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_head.AmountListHead
+import com.gemwallet.android.ui.components.list_head.AssetHeadActions
+import com.gemwallet.android.ui.components.list_head.uiModel
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.PinnedAssetsHeaderItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
@@ -64,11 +66,15 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
+import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemPerpetualBalanceHeader
+import uniffi.gemstone.PerpetualBalance
+import uniffi.gemstone.perpetualBalanceHeader
 
 @Composable
 internal fun PerpetualMarketScene(
     sceneState: PerpetualMarketSceneState,
-    balance: PerpetualBalance,
+    balanceHeader: GemPerpetualBalanceHeader?,
     positions: List<PerpetualPositionRowUIModel>,
     unpinnedPerpetuals: List<PerpetualDataAggregate>,
     pinnedPerpetuals: List<PerpetualDataAggregate>,
@@ -112,21 +118,27 @@ internal fun PerpetualMarketScene(
             onRefresh = { onAction(PerpetualMarketAction.Refresh) },
         ) {
             LazyColumn(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
             ) {
-                if (!isSearching) {
+                if (!isSearching && balanceHeader != null) {
                     item {
                         AmountListHead(
-                            amount = balance.total,
+                            amount = balanceHeader.total.text(),
                             equivalent = stringResource(
                                 R.string.wallet_available_balance,
-                                balance.available
+                                balanceHeader.available.text(),
                             ),
                             onClick = { onAction(PerpetualMarketAction.OpenPortfolio) },
                         ) {
-                            MarketHeadActions(
-                                onWithdraw = { onAction(PerpetualMarketAction.Withdraw) },
-                                onDeposit = { onAction(PerpetualMarketAction.Deposit) },
+                            AssetHeadActions(
+                                balanceHeader.actions.uiModel(
+                                    onTransfer = null,
+                                    onReceive = null,
+                                    onBuy = null,
+                                    onSwap = null,
+                                    onDeposit = { onAction(PerpetualMarketAction.Deposit) },
+                                    onWithdraw = { onAction(PerpetualMarketAction.Withdraw) },
+                                ),
                             )
                         }
                     }
@@ -138,6 +150,7 @@ internal fun PerpetualMarketScene(
                             onSeeAll = { onAction(PerpetualMarketAction.OpenRecentsSheet) },
                             onSelect = { asset -> onAction(PerpetualMarketAction.OpenRecent(asset)) },
                         )
+
                         is PerpetualMarketSectionUIModel.Positions -> {
                             section.title?.let { title -> item { SubheaderItem(title) } }
                             itemsPositioned(positions) { position, item ->
@@ -148,6 +161,7 @@ internal fun PerpetualMarketScene(
                                 )
                             }
                         }
+
                         PerpetualMarketSectionUIModel.Pinned -> {
                             item {
                                 Spacer16()
@@ -163,6 +177,7 @@ internal fun PerpetualMarketScene(
                                 )
                             }
                         }
+
                         is PerpetualMarketSectionUIModel.Markets -> {
                             section.title?.let { title -> item { SubheaderItem(title) } }
                             itemsPositioned(unpinnedPerpetuals) { position, item ->
@@ -175,6 +190,7 @@ internal fun PerpetualMarketScene(
                                 )
                             }
                         }
+
                         PerpetualMarketSectionUIModel.Empty -> item {
                             EmptyContentView(
                                 type = EmptyContentType.SearchPerpetuals,
@@ -190,11 +206,7 @@ internal fun PerpetualMarketScene(
     }
 }
 
-private fun LazyListScope.recentPerpetuals(
-    items: List<Asset>,
-    onSeeAll: () -> Unit,
-    onSelect: (Asset) -> Unit,
-) {
+private fun LazyListScope.recentPerpetuals(items: List<Asset>, onSeeAll: () -> Unit, onSelect: (Asset) -> Unit) {
     if (items.isEmpty()) {
         return
     }
@@ -236,12 +248,10 @@ fun PreviewPerpetualMarketScene() {
             query = androidx.compose.foundation.text.input.TextFieldState(),
             sections = emptyList(),
             isSearching = false,
-            balance = object : PerpetualBalance {
-                override val deposit: String = "$50,000.00"
-                override val available: String = "$45,000.00"
-                override val withdrawable: String = "$42,000.00"
-                override val total: String = "$137,000.00"
-            },
+            balanceHeader = perpetualBalanceHeader(
+                PerpetualBalance(available = 45_000.0, reserved = 92_000.0, withdrawable = 42_000.0),
+                WalletType.Multicoin.toGem(),
+            ),
             positions = emptyList(),
             unpinnedPerpetuals = listOf(
                 object : PerpetualDataAggregate {
@@ -259,7 +269,7 @@ fun PreviewPerpetualMarketScene() {
                         name = "Bitcoin",
                         symbol = "BTC",
                         decimals = 8,
-                        type = AssetType.NATIVE
+                        type = AssetType.NATIVE,
                     )
                     override val isPinned: Boolean = false
                 },
@@ -278,7 +288,7 @@ fun PreviewPerpetualMarketScene() {
                         name = "Ethereum",
                         symbol = "ETH",
                         decimals = 18,
-                        type = AssetType.NATIVE
+                        type = AssetType.NATIVE,
                     )
                     override val isPinned: Boolean = false
                 },
@@ -297,7 +307,7 @@ fun PreviewPerpetualMarketScene() {
                         name = "Solana",
                         symbol = "SOL",
                         decimals = 9,
-                        type = AssetType.NATIVE
+                        type = AssetType.NATIVE,
                     )
                     override val isPinned: Boolean = false
                 },
@@ -316,7 +326,7 @@ fun PreviewPerpetualMarketScene() {
                         name = "Avalanche",
                         symbol = "AVAX",
                         decimals = 18,
-                        type = AssetType.NATIVE
+                        type = AssetType.NATIVE,
                     )
                     override val isPinned: Boolean = false
                 },
@@ -335,10 +345,10 @@ fun PreviewPerpetualMarketScene() {
                         name = "Chainlink",
                         symbol = "LINK",
                         decimals = 18,
-                        type = AssetType.ERC20
+                        type = AssetType.ERC20,
                     )
                     override val isPinned: Boolean = false
-                }
+                },
             ),
             pinnedPerpetuals = listOf(
                 object : PerpetualDataAggregate {
@@ -356,7 +366,7 @@ fun PreviewPerpetualMarketScene() {
                         name = "Bitcoin",
                         symbol = "BTC",
                         decimals = 8,
-                        type = AssetType.NATIVE
+                        type = AssetType.NATIVE,
                     )
                     override val isPinned: Boolean = false
                 },
@@ -375,7 +385,7 @@ fun PreviewPerpetualMarketScene() {
                         name = "Ethereum",
                         symbol = "ETH",
                         decimals = 18,
-                        type = AssetType.NATIVE
+                        type = AssetType.NATIVE,
                     )
                     override val isPinned: Boolean = false
                 },

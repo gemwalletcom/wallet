@@ -47,7 +47,7 @@ public extension DB {
 
     static func mockAssetsWithPrice(priceChangePercentage24h: Double) throws -> DB {
         let db = Self.mockAssets()
-        try FiatRateStore(db: db).add([FiatRate(symbol: .usd, rate: 1)])
+        try PriceStore(db: db).saveRates([FiatRate(symbol: .usd, rate: 1)])
         try PriceStore(db: db).updatePrices([
             .mock(assetId: AssetId(chain: .ethereum), price: 1100, priceChangePercentage24h: priceChangePercentage24h),
         ])
@@ -64,14 +64,14 @@ public extension DB {
             .mock(asset: perpetual),
         ])
         let balanceStore = BalanceStore(db: db)
-        let fiatRateStore = FiatRateStore(db: db)
         let priceStore = PriceStore(db: db)
 
-        try fiatRateStore.add([.mock()])
+        try priceStore.saveRates([.mock()])
         try priceStore.updatePrices([
-                .mock(assetId: ethereum.id, price: 100, priceChangePercentage24h: 0),
-                .mock(assetId: bnb.id, price: 1000, priceChangePercentage24h: 0),
-            ])
+            .mock(assetId: ethereum.id, price: 100, priceChangePercentage24h: 0),
+            .mock(assetId: bnb.id, price: 1000, priceChangePercentage24h: 0),
+            .mock(assetId: perpetual.id, price: 0.92, priceChangePercentage24h: 0),
+        ])
         try balanceStore.updateBalances(
             [
                 .mock(assetId: ethereum.id, available: 3),
@@ -81,7 +81,7 @@ public extension DB {
             for: .mock(),
         )
         // hypercoreUSDC is an internal asset and is always isEnabled=false so it stays out of the asset list UI.
-        try balanceStore.setIsEnabled(walletId: .mock(), assetIds: [bnb.id, perpetual.id], value: false)
+        try balanceStore.setConfiguration(walletId: .mock(), assetIds: [bnb.id, perpetual.id], configuration: .disabled)
 
         return db
     }

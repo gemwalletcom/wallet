@@ -14,11 +14,7 @@ fn configuration_path() -> Result<PathBuf, ConfigError> {
     if let Some(path) = env::var_os("DYNODE_CONFIG").or_else(|| env::var_os("EGRESS_CONFIG")) {
         return Ok(current.join(path));
     }
-    Ok(if current.join("config.yml").exists() {
-        current.join("config.yml")
-    } else {
-        current.join("apps/dynode/config.yml")
-    })
+    Ok(if current.join("config.yml").exists() { current.join("config.yml") } else { current.join("apps/dynode/config.yml") })
 }
 
 pub fn load_config() -> Result<(Config, HashMap<Chain, ChainConfig>), ConfigError> {
@@ -30,11 +26,7 @@ pub fn load_config() -> Result<(Config, HashMap<Chain, ChainConfig>), ConfigErro
 
 fn load_files(config_path: &Path, environment: Environment) -> Result<(Config, HashMap<Chain, ChainConfig>), ConfigError> {
     let base_dir = config_path.parent().ok_or_else(|| ConfigError::Message("configuration directory is unavailable".into()))?;
-    let mut config: Config = FileConfig::builder()
-        .add_source(File::from(config_path))
-        .add_source(environment.clone())
-        .build()?
-        .try_deserialize()?;
+    let mut config: Config = FileConfig::builder().add_source(File::from(config_path)).add_source(environment.clone()).build()?.try_deserialize()?;
     let mut chains = HashMap::new();
     let chain_files = find_chain_files(base_dir)?;
     if !chain_files.is_empty() {
@@ -49,13 +41,7 @@ fn load_files(config_path: &Path, environment: Environment) -> Result<(Config, H
     }
     let routes_path = base_dir.join("routes.yml");
     if routes_path.exists() {
-        config.routes = Some(
-            FileConfig::builder()
-                .add_source(File::from(routes_path))
-                .add_source(environment)
-                .build()?
-                .try_deserialize()?,
-        );
+        config.routes = Some(FileConfig::builder().add_source(File::from(routes_path)).add_source(environment).build()?.try_deserialize()?);
     }
     Ok((config, chains))
 }
@@ -146,10 +132,7 @@ fn expand_value(value: &str, mut get: impl FnMut(&str) -> Option<String>) -> Res
     let mut offset = 0;
     while let Some(start) = expanded[offset..].find("${").map(|start| offset + start) {
         let name_start = start + 2;
-        let end = expanded[name_start..]
-            .find('}')
-            .map(|end| name_start + end)
-            .ok_or_else(|| ConfigError::Message("unterminated environment variable".into()))?;
+        let end = expanded[name_start..].find('}').map(|end| name_start + end).ok_or_else(|| ConfigError::Message("unterminated environment variable".into()))?;
         let name = &expanded[name_start..end];
         let replacement = get(name).ok_or_else(|| ConfigError::Message(format!("missing environment variable: {name}")))?;
         expanded.replace_range(start..=end, &replacement);
@@ -165,11 +148,7 @@ fn find_chain_files(base_dir: &Path) -> Result<Vec<PathBuf>, ConfigError> {
         .map_err(|error| ConfigError::Message(format!("cannot read chain configuration entry: {error}")))?
         .into_iter()
         .map(|entry| entry.path())
-        .filter(|path| {
-            path.file_name()
-                .and_then(|name| name.to_str())
-                .is_some_and(|name| name.starts_with("chains") && name.ends_with(".yml"))
-        })
+        .filter(|path| path.file_name().and_then(|name| name.to_str()).is_some_and(|name| name.starts_with("chains") && name.ends_with(".yml")))
         .collect();
     files.sort();
     Ok(files)
@@ -188,10 +167,7 @@ mod tests {
 
     #[test]
     fn test_expand_value_preserves_literal_environment_contents() {
-        assert_eq!(
-            expand_value("Bearer ${TOKEN}", |_| Some("secret${LITERAL}".to_string())).unwrap(),
-            "Bearer secret${LITERAL}"
-        );
+        assert_eq!(expand_value("Bearer ${TOKEN}", |_| Some("secret${LITERAL}".to_string())).unwrap(), "Bearer secret${LITERAL}");
         assert_eq!(expand_value("${FIRST}/${SECOND}", |name| Some(name.to_lowercase())).unwrap(), "first/second");
         assert_eq!(expand_value("${MISSING}", |_| None).unwrap_err().to_string(), "missing environment variable: MISSING");
         assert_eq!(expand_value("${MISSING", |_| None).unwrap_err().to_string(), "unterminated environment variable");
@@ -236,10 +212,7 @@ mod tests {
         assert_eq!(endpoint.headers.as_ref().unwrap()["authorization"], "Bearer test-key");
         assert_eq!(endpoint.query.as_ref().unwrap()["key"], "test-key");
         assert_eq!(config.routes.as_ref().unwrap().proxies.as_ref().unwrap()["outbound"].url, "http://example.invalid:8080");
-        assert_eq!(
-            config.routes.as_ref().unwrap().proxies.as_ref().unwrap()["outbound"].health.url,
-            "https://example.invalid/health"
-        );
+        assert_eq!(config.routes.as_ref().unwrap().proxies.as_ref().unwrap()["outbound"].health.url, "https://example.invalid/health");
         assert_eq!(chains[&Chain::Ethereum].urls[0].url, "https://example.invalid/rpc");
         assert_eq!(chains[&Chain::Ethereum].urls[0].headers.as_ref().unwrap()["x-api-key"], "test-key");
         assert_eq!(chains[&Chain::Ethereum].overrides.as_ref().unwrap()[0].url, "https://example.invalid/override");
@@ -252,10 +225,7 @@ mod tests {
         config.routes.as_mut().unwrap().routes.get_mut("fastnear_tx").unwrap().endpoints[0].url = "invalid-test-secret".to_string();
         assert_eq!(prepare(&mut config, &mut chains, |_| None).unwrap_err().to_string(), "invalid upstream URL");
         config.routes.as_mut().unwrap().routes.get_mut("fastnear_tx").unwrap().endpoints.clear();
-        assert_eq!(
-            prepare(&mut config, &mut chains, |_| None).unwrap_err().to_string(),
-            "route must configure at least one endpoint"
-        );
+        assert_eq!(prepare(&mut config, &mut chains, |_| None).unwrap_err().to_string(), "route must configure at least one endpoint");
     }
 
     #[test]
@@ -300,9 +270,7 @@ mod tests {
         for chain in expected_chains.iter().filter(|chain| chain.chain != Chain::Ethereum) {
             assert_eq!(chains[&chain.chain].urls, chain.urls);
         }
-        let source = Environment::default()
-            .separator("_")
-            .source(Some(HashMap::from([("CACHE_MEMORY_MAX".to_string(), "2 MiB".to_string())])));
+        let source = Environment::default().separator("_").source(Some(HashMap::from([("CACHE_MEMORY_MAX".to_string(), "2 MiB".to_string())])));
         let (config, _) = load_files(&directory.join("config.yml"), source).unwrap();
         assert_eq!(config.chains.unwrap().cache.memory.max, 2 * 1024 * 1024);
         assert_eq!(config.routes.unwrap().cache.memory.max, 2 * 1024 * 1024);
@@ -346,10 +314,7 @@ mod tests {
         let directory = env::temp_dir().join(format!("dynode-config-{}", Uuid::new_v4()));
         fs::create_dir(&directory).unwrap();
         fs::write(directory.join("config.yml"), include_str!("../../config.yml")).unwrap();
-        for routes in [
-            include_str!("../../routes.yml").replace("routes:", "route:"),
-            include_str!("../../routes.yml").replace("    group: indexer\n", ""),
-        ] {
+        for routes in [include_str!("../../routes.yml").replace("routes:", "route:"), include_str!("../../routes.yml").replace("    group: indexer\n", "")] {
             fs::write(directory.join("routes.yml"), routes).unwrap();
             assert!(load_files(&directory.join("config.yml"), Environment::default().source(Some(HashMap::new()))).is_err());
         }

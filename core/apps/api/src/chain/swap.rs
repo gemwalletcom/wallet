@@ -9,13 +9,7 @@ use crate::params::{AddressParam, AssetIdParam, ChainParam, SwapProviderParam};
 use crate::responders::{ApiError, ApiResponse};
 
 #[get("/chain/swaps/<provider>/transaction/<hash>?<chain>")]
-pub async fn get_swap_result(
-    _permission: PermissionChainRead,
-    provider: SwapProviderParam,
-    hash: &str,
-    chain: ChainParam,
-    swapper: &State<GemSwapper>,
-) -> Result<ApiResponse<SwapResult>, ApiError> {
+pub async fn get_swap_result(_permission: PermissionChainRead, provider: SwapProviderParam, hash: &str, chain: ChainParam, swapper: &State<GemSwapper>) -> Result<ApiResponse<SwapResult>, ApiError> {
     Ok(swapper.get_swap_result(chain.0, provider.0, hash).await?.into())
 }
 

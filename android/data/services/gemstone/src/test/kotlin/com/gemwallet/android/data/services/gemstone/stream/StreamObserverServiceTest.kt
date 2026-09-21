@@ -1,14 +1,15 @@
 package com.gemwallet.android.data.services.gemstone.stream
 
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.gemstone.connection.ConnectionComponentHealth
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
-import com.gemwallet.android.data.services.gemstone.connection.ConnectionComponentHealth
 import com.wallet.core.primitives.ConnectionComponent
 import com.wallet.core.primitives.Currency
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.coVerifyOrder
 import io.mockk.coVerifySequence
 import io.mockk.every
 import io.mockk.mockk
@@ -29,6 +30,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemStreamEvent
 import uniffi.gemstone.GemStreamServiceInterface
+import java.time.Duration
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class StreamObserverServiceTest {
@@ -39,7 +41,7 @@ class StreamObserverServiceTest {
     }
     private val service = mockk<GemStreamServiceInterface>(relaxed = true) {
         coEvery { prepareConnection() } returns true
-        coEvery { handle(any()) } returns GemStreamEvent.Prices(prices = 0u, rates = 0u)
+        coEvery { decodeEvent(any()) } returns GemStreamEvent.Prices(prices = 0u, rates = 0u)
     }
     private val connection = Connection()
     private val health = ConnectionComponentHealth(ConnectionComponent.Stream)
@@ -236,7 +238,7 @@ class StreamObserverServiceTest {
     @Test
     fun handlesMessagesInOrder() = runTest {
         val snapshotGate = CompletableDeferred<Unit>()
-        coEvery { service.handle("snapshot") } coAnswers {
+        coEvery { service.decodeEvent("snapshot") } coAnswers {
             snapshotGate.await()
             GemStreamEvent.Prices(prices = 0u, rates = 0u)
         }
@@ -248,24 +250,43 @@ class StreamObserverServiceTest {
         connection.events.emit(WebSocketEvent.Message("update"))
         runCurrent()
 
-        coVerify(exactly = 1) { service.handle("snapshot") }
-        coVerify(exactly = 0) { service.handle("update") }
+        coVerify(exactly = 1) { service.decodeEvent("snapshot") }
+        coVerify(exactly = 0) { service.decodeEvent("update") }
 
         snapshotGate.complete(Unit)
         runCurrent()
 
-        coVerifySequence {
+        coVerifyOrder {
             service.prepareConnection()
             service.connected()
-            service.handle("snapshot")
-            service.handle("update")
+            service.decodeEvent("snapshot")
+            service.decodeEvent("update")
         }
+    }
+
+    @Test
+    fun aSlowSyncDoesNotHoldBackTheNextMessage() = runTest {
+        val balances = GemStreamEvent.Balances(walletId = "multicoin_0x1", assetIds = emptyList())
+        val syncGate = CompletableDeferred<Unit>()
+        coEvery { service.decodeEvent("balances") } returns balances
+        coEvery { service.sync(balances) } coAnswers { syncGate.await() }
+        observer().start()
+        runCurrent()
+
+        connection.events.emit(WebSocketEvent.Message("balances"))
+        runCurrent()
+        connection.events.emit(WebSocketEvent.Message("prices"))
+        runCurrent()
+
+        coVerify(exactly = 1) { service.sync(balances) }
+        coVerify(exactly = 1) { service.decodeEvent("prices") }
+        syncGate.complete(Unit)
     }
 
     @Test
     fun cancelsMessageHandlingWhenStopped() = runTest {
         val cancelled = CompletableDeferred<Unit>()
-        coEvery { service.handle("snapshot") } coAnswers {
+        coEvery { service.decodeEvent("snapshot") } coAnswers {
             try {
                 awaitCancellation()
             } finally {
@@ -298,6 +319,8 @@ class StreamObserverServiceTest {
             private set
         var activeConnections = 0
             private set
+
+        override val connectionLatency: Duration? = null
 
         override val isConnected: Boolean
             get() = activeConnections > 0

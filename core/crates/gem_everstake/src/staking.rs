@@ -36,14 +36,7 @@ impl<C: Client + Clone> EvmStakingClient for EverstakeStakingClient<C> {
     }
 
     async fn get_staking_validators(&self, apy: Option<f64>) -> Result<Vec<DelegationValidator>, Box<dyn Error + Sync + Send>> {
-        Ok(vec![DelegationValidator::stake(
-            Chain::Ethereum,
-            EVERSTAKE_POOL_ADDRESS.to_string(),
-            "Everstake".to_string(),
-            true,
-            0.1,
-            apy.unwrap_or(0.0),
-        )])
+        Ok(vec![DelegationValidator::stake(Chain::Ethereum, EVERSTAKE_POOL_ADDRESS.to_string(), "Everstake".to_string(), true, 0.1, apy.unwrap_or(0.0))])
     }
 
     async fn get_staking_delegations(&self, address: &str) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
@@ -129,12 +122,7 @@ mod chain_integration_tests {
 
         for delegation in &delegations {
             assert_eq!(delegation.asset_id.chain, Chain::Ethereum);
-            assert!(
-                delegation.state == DelegationState::Active
-                    || delegation.state == DelegationState::Activating
-                    || delegation.state == DelegationState::Deactivating
-                    || delegation.state == DelegationState::AwaitingWithdrawal
-            );
+            assert!(delegation.state == DelegationState::Active || delegation.state == DelegationState::Activating || delegation.state == DelegationState::Deactivating || delegation.state == DelegationState::AwaitingWithdrawal);
         }
 
         Ok(())

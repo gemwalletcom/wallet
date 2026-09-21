@@ -11,7 +11,9 @@ import com.gemwallet.android.ui.R
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-fun ClipboardManager.setPlainText(context: Context, data: String, isSensitive: Boolean = false) {
+fun ClipboardManager.setPlainText(context: Context, data: String) = setClip(context, data, isSensitive = false)
+
+internal fun ClipboardManager.setClip(context: Context, data: String, isSensitive: Boolean) {
     val clip = ClipData.newPlainText("", data).apply {
         if (isSensitive) {
             description.extras = PersistableBundle().apply {
@@ -34,9 +36,7 @@ fun ClipboardManager.setPlainText(context: Context, data: String, isSensitive: B
     }
 }
 
-fun ClipboardManager.getPlainText(): String? {
-    return primaryClip?.getItemAt(0)?.text?.toString()
-}
+fun ClipboardManager.getPlainText(): String? = primaryClip?.getItemAt(0)?.text?.toString()
 
 fun ClipboardManager.clear() {
     clearPrimaryClip()

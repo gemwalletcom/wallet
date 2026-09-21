@@ -1,8 +1,11 @@
+use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::payment::GemPaymentRecipient;
 use crate::services::balance::GemBalanceRequirement;
+use crate::services::stake::model::GemValidatorRow;
 use primitives::{Asset, Delegation, PerpetualDirection, Resource};
 
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemAmountType {
     Transfer,
@@ -13,6 +16,7 @@ pub enum GemAmountType {
     },
     Earn {
         earn_type: GemAmountEarnType,
+        provider: GemValidatorRow,
     },
     Perpetual {
         position: GemAmountPerpetualPosition,
@@ -121,7 +125,7 @@ impl GemAmountInputType {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemAmountEquivalent {
-    Fiat { amount: f64 },
+    Fiat { amount: GemFormattedNumber },
     Asset { value: GemBigInt },
 }
 
@@ -129,7 +133,7 @@ pub enum GemAmountEquivalent {
 pub struct GemAmountEntry {
     pub value: Option<GemBigInt>,
     pub error: Option<GemAmountError>,
-    pub equivalent: Option<GemAmountEquivalent>,
+    pub equivalent: GemAmountEquivalent,
     pub is_max: bool,
     pub reserved_fee: Option<GemBigInt>,
 }
@@ -214,6 +218,10 @@ impl GemNumberFormat {
         super::rules::input_text(&self.decimal_separator, &value, decimals)
     }
 
+    pub fn value_text(&self, value: f64) -> String {
+        super::rules::value_text(&self.decimal_separator, value)
+    }
+
     pub fn plain(&self, input: String) -> String {
         super::rules::plain_number(&self.decimal_separator, &input)
     }
@@ -254,10 +262,7 @@ mod tests {
             }
         );
 
-        let same = Asset {
-            name: asset.symbol.clone(),
-            ..asset
-        };
+        let same = Asset { name: asset.symbol.clone(), ..asset };
         assert_eq!(
             GemAmountError::InsufficientBalance { asset: same.clone(), requirement }.display(),
             GemAmountErrorDisplay::InsufficientBalance { title: same.symbol }

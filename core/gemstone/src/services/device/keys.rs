@@ -186,11 +186,7 @@ mod tests {
 
         let key_pairs = handles.into_iter().map(|handle| handle.join().unwrap()).collect::<Vec<_>>();
         let first = &key_pairs[0];
-        assert!(
-            key_pairs
-                .iter()
-                .all(|key_pair| key_pair.private_key == first.private_key && key_pair.public_key == first.public_key)
-        );
+        assert!(key_pairs.iter().all(|key_pair| key_pair.private_key == first.private_key && key_pair.public_key == first.public_key));
 
         let stored_private_key = store.values.lock().unwrap().get(DEVICE_PRIVATE_KEY).cloned();
         assert!(stored_private_key.is_some_and(|value| value == hex::encode(&first.private_key)));

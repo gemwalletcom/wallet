@@ -48,6 +48,7 @@ object AppIcons {
     val NotificationsOutlined: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_notifications_outlined)
     val Person: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_person)
     val PushPin: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_push_pin)
+    val KeepOff: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.keep_off)
     val QrCodeScanner: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_qr_code_scanner)
     val Refresh: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_refresh)
     val Search: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_search)

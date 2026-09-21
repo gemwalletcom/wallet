@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.buy.views
 
-import com.gemwallet.android.features.buy.localization.titleRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.heightIn
@@ -23,6 +22,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.features.buy.localization.titleRes
 import com.gemwallet.android.features.buy.viewmodels.FiatViewModel
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.features.buy.viewmodels.models.FiatUiState
@@ -31,6 +32,7 @@ import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.showSnackbar
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.iconSize
@@ -41,11 +43,7 @@ import com.wallet.core.primitives.FiatQuoteType
 import kotlinx.coroutines.launch
 
 @Composable
-fun FiatNavScreen(
-    cancelAction: CancelAction,
-    onFiatTransactions: () -> Unit,
-    viewModel: FiatViewModel = hiltViewModel()
-) {
+fun FiatNavScreen(cancelAction: CancelAction, onFiatTransactions: () -> Unit, viewModel: FiatViewModel = hiltViewModel()) {
     val type by viewModel.type.collectAsStateWithLifecycle()
     val suggestedAmounts by viewModel.suggestedAmounts.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -61,7 +59,6 @@ fun FiatNavScreen(
     val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
-    val errorOccurred = stringResource(R.string.errors_error_occurred)
     val title = stringResource(type.titleRes(), "")
     val currentAssetInfo = asset ?: return LoadingScene(title = title, onCancel = { cancelAction() })
     val currentAsset = currentAssetInfo.asset
@@ -96,19 +93,14 @@ fun FiatNavScreen(
             scope.launch {
                 viewModel.quoteUrl()
                     .onSuccess { uriHandler.open(context, it) }
-                    .onFailure { snackbar.showSnackbar(errorOccurred, R.drawable.ic_error) }
+                    .onFailure { snackbar.showSnackbar(it.errorText().text(context), R.drawable.ic_error) }
             }
-        }
+        },
     )
 }
 
 @Composable
-private fun FiatTitle(
-    asset: Asset,
-    type: FiatQuoteType,
-    showFiatTypePicker: Boolean,
-    onTypeClick: (FiatQuoteType) -> Unit,
-) {
+private fun FiatTitle(asset: Asset, type: FiatQuoteType, showFiatTypePicker: Boolean, onTypeClick: (FiatQuoteType) -> Unit) {
     if (showFiatTypePicker) {
         TabsBar(FiatQuoteType.entries, type, onTypeClick) { item ->
             Text(stringResource(item.titleRes(), ""))
@@ -140,4 +132,3 @@ fun LotButton(fiatSuggestion: FiatSuggestion, onLotClick: (FiatSuggestion) -> Un
         )
     }
 }
-

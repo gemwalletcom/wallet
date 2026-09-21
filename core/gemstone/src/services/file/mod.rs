@@ -8,6 +8,8 @@ use crate::alien::{AlienHttpMethod, AlienProvider, AlienTarget};
 use crate::services::error::GemServiceError;
 pub use store::GemFileStore;
 
+pub const IMAGE_EXTENSION: &str = "png";
+
 pub(crate) async fn download(provider: &Arc<dyn AlienProvider>, url: String) -> Result<Vec<u8>, GemServiceError> {
     let target = AlienTarget {
         url,
@@ -15,11 +17,7 @@ pub(crate) async fn download(provider: &Arc<dyn AlienProvider>, url: String) -> 
         headers: None,
         body: None,
     };
-    let response = provider
-        .request(target)
-        .await
-        .map_err(|error| GemServiceError::Api { msg: error.to_string() })?
-        .to_rpc_response();
+    let response = provider.request(target).await.map_err(|error| GemServiceError::Api { msg: error.to_string() })?.to_rpc_response();
     if let Some(status) = response.status
         && !(200..300).contains(&status)
     {

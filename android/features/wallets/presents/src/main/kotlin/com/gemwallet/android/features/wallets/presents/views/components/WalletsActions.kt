@@ -23,10 +23,7 @@ import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.smallPadding
 
 @Composable
-internal fun WalletsActions(
-    onCreate: () -> Unit,
-    onImport: () -> Unit,
-) {
+internal fun WalletsActions(onCreate: () -> Unit, onImport: () -> Unit) {
     Column {
         WalletsAction(
             text = R.string.wallet_create_new_wallet,
@@ -44,12 +41,7 @@ internal fun WalletsActions(
 }
 
 @Composable
-private fun WalletsAction(
-    @StringRes text: Int,
-    icon: ImageVector,
-    listPosition: ListPosition,
-    onClick: () -> Unit,
-) {
+private fun WalletsAction(@StringRes text: Int, icon: ImageVector, listPosition: ListPosition, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .listItem(listPosition)

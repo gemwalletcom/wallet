@@ -12,11 +12,7 @@ import com.gemwallet.android.ui.components.screen.SelectChain
 import com.wallet.core.primitives.Chain
 
 @Composable
-fun ContactChainSelectScene(
-    onSelect: (Chain) -> Unit,
-    onCancel: () -> Unit,
-    viewModel: ContactChainSelectViewModel = hiltViewModel(),
-) {
+fun ContactChainSelectScene(onSelect: (Chain) -> Unit, onCancel: () -> Unit, viewModel: ContactChainSelectViewModel = hiltViewModel()) {
     BackHandler { onCancel() }
 
     val chains by viewModel.chains.collectAsStateWithLifecycle()

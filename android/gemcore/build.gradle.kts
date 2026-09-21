@@ -56,6 +56,7 @@ android {
 
 dependencies {
     api(project(":gemstone"))
+    api(libs.javax.inject)
 
     api(libs.kotlinx.serialization.json)
     implementation(libs.compose.runtime.android)

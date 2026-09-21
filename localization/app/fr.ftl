@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = Actif non pris en charge.
 errors_connections_no_supported_wallets = Aucun portefeuille pris en charge n'est disponible.
 errors_connections_unsupported_chain = La chaîne fournie n'est pas prise en charge.
 errors_swap_amount_too_small = Montant trop petit
-errors_required = %@ est requis
 errors_scan_transaction_malicious_description = Cette transaction ne peut être effectuée — l'adresse du portefeuille de destination est liée à une activité suspecte ou malveillante.
 errors_scan_transaction_memo_required = %@ L'adresse du portefeuille de destination nécessite une étiquette/un mémo de destination
 errors_scan_transaction_malicious_title = Activité suspecte
@@ -315,7 +314,7 @@ asset_symbol = Symbole
 asset_decimals = Décimales
 asset_token_id = ID du jeton
 asset_contract = Contrat
-asset_state_empty_title = Vos transactions apparaîtront ici️
+asset_state_empty_title = Vos transactions apparaîtront ici
 asset_state_empty_description = Recevez, échangez ou achetez %@
 asset_verification_unverified = Non vérifié
 asset_verification_suspicious = Suspect
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = Lorsque le prix diminue de
 price_alerts_set_alert_set_target_price = Définir le prix cible
 price_alerts_set_alert_current_price = Prix actuel
 price_alerts_added_for = Définir une alerte de prix %@
-price_alerts_state_empty_title = Vos alertes apparaîtront ici️
+price_alerts_state_empty_title = Vos alertes apparaîtront ici
 price_alerts_state_empty_description = Activez-les en ajoutant des pièces à suivre
 price_alerts_auto_footer = Les alertes se déclenchent en cas de mouvements de prix importants.
 price_alerts_set_alert_title = Définir une alerte de prix
@@ -536,7 +535,7 @@ verify_phrase_title = Confirmer
 
 # Warnings
 
-warnings_multi_signature_blocked = Ne transférez pas de fonds vers ce portefeuille multisignature %@ à moins d'être certain de contrôler les clés privées. Le non-respect de cette règle pourrait vous exposer à des escroqueries et vous pourriez perdre définitivement vos actifs.
+warnings_externally_controlled_account = Ce compte %@ peut être contrôlé par quelqu'un d'autre. N'y envoyez pas de fonds à moins d'être certain de le contrôler, sinon vous pourriez perdre définitivement vos actifs.
 
 # Sell
 
@@ -600,7 +599,7 @@ nft_collections = Collections
 nft_collection = Collection
 nft_save_to_photos = Enregistrer dans Photos
 nft_set_as_avatar = Définir comme avatar
-nft_state_empty_title = Vos NFT apparaîtront ici️
+nft_state_empty_title = Vos NFT apparaîtront ici
 nft_state_empty_description = Recevez votre premier NFT
 nft_report_reason_spam = Spam
 nft_report_reason_malicious = Malveillant

@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import AppLock
 import AppService
 import Components
 import GemstoneServices
-import AppLock
 import Primitives
 import Store
 import Style
@@ -29,7 +29,7 @@ struct GemApp: App {
                     appStartService: resolver.services.appStartService,
                     pushNotificationEnablerService: resolver.services.pushNotificationEnablerService,
                     appLifecycleService: resolver.services.appLifecycleService,
-                    navigationHandler: resolver.services.navigationHandler,
+                    navigationRouter: resolver.services.navigationRouter,
                     lockWindowManager: LockWindow(lockModel: resolver.services.viewModelFactory.lockScene()),
                     viewModelFactory: resolver.services.viewModelFactory,
                     walletSessionService: resolver.services.walletSessionService,
@@ -79,7 +79,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UIWindowSceneDelegate {
     }
 
     func application(_: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any]) {
-        Task { await AppResolver.main.services.navigationHandler.handlePush(userInfo) }
+        Task { await AppResolver.main.services.navigationRouter.openNotification(userInfo: userInfo) }
     }
 
     func application(_: UIApplication, open url: URL, options _: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
@@ -109,7 +109,7 @@ extension AppDelegate: @preconcurrency UNUserNotificationCenterDelegate {
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void,
     ) {
-        Task { await AppResolver.main.services.navigationHandler.handlePush(response.notification.request.content.userInfo) }
+        Task { await AppResolver.main.services.navigationRouter.openNotification(userInfo: response.notification.request.content.userInfo) }
         completionHandler()
     }
 }

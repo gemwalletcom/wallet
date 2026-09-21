@@ -1,7 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.PriceAlertFormatter
+import Components
 import protocol Gemstone.GemPriceAlertServiceProtocol
+import class Gemstone.PriceAlertFormatter
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -9,7 +10,6 @@ import Primitives
 import PrimitivesComponents
 import Store
 import SwiftUI
-import Components
 
 @Observable
 @MainActor
@@ -41,27 +41,22 @@ public final class PriceAlertsSceneViewModel: Sendable {
     }
 
     var enableTitle: String {
-        Localized.Settings.enableValue("")
+        Localized.Settings.enableValue(Localized.Settings.PriceAlerts.title)
     }
 
     var emptyContentModel: EmptyContentTypeViewModel {
         EmptyContentTypeViewModel(type: .priceAlerts)
     }
 
-    func sections(for alerts: [PriceAlertData]) -> PriceAlertsSections {
-        let (autoAlerts, manualGroups) = alerts.displayedAlerts.reduce(into: ([PriceAlertData](), [Asset: [PriceAlertData]]())) { result, alert in
-            switch PriceAlertFormatter.shared.alertKind(alert: alert.priceAlert.toGem()).groupsByAsset() {
-            case false:
-                result.0.append(alert)
-            case true:
-                result.1[alert.asset, default: []].append(alert)
-            }
+    var sections: [ListItemValueSection<PriceAlertData>] {
+        let alerts = Dictionary(priceAlerts.map { ($0.priceAlert.id, $0) }, uniquingKeysWith: { first, _ in first })
+        return PriceAlertFormatter.shared.sections(alerts: priceAlerts.map { $0.toGem() }).map { section in
+            ListItemValueSection(
+                section: section.kind.title,
+                footer: section.kind.footer,
+                values: section.alertIds.compactMap { alerts[$0] }.map { ListItemValue(value: $0) },
+            )
         }
-
-        return PriceAlertsSections(
-            autoAlerts: autoAlerts,
-            manualAlerts: manualGroups,
-        )
     }
 }
 
@@ -84,12 +79,12 @@ extension PriceAlertsSceneViewModel {
         }
     }
 
-    func handleAlertsEnabled(enabled: Bool) async {
+    func setAlertsEnabled(_ enabled: Bool) async {
         do {
             try await service.setEnabled(enabled: enabled)
         } catch {
-            isPriceAlertsEnabled = service.isEnabled()
-            debugLog("setPriceAlertsEnabled error: \(error)")
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
+        isPriceAlertsEnabled = service.isEnabled()
     }
 }

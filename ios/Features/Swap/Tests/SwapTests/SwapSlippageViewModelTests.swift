@@ -1,7 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemSlippageCheck
-import GemstoneServicesTestKit
 import Primitives
 import PrimitivesComponents
 @testable import Swap
@@ -12,7 +10,7 @@ import Testing
 struct SwapSlippageViewModelTests {
     @Test
     func initAuto() {
-        let model = SwapSlippageViewModel.mock(service: GemSwapQuoteServiceMock(slippageCheck: .belowMinimum))
+        let model = SwapSlippageViewModel.mock()
 
         #expect(model.isAuto)
         #expect(model.inputModel.text.isEmpty)
@@ -61,9 +59,9 @@ struct SwapSlippageViewModelTests {
         #expect(applied == .manual(bps: expected))
     }
 
-    @Test(arguments: [("25", GemSlippageCheck.aboveMaximum), ("0.05", .belowMinimum)] as [(String, GemSlippageCheck)])
-    func rejectedInputShowsErrorAndDisablesConfirm(input: String, check: GemSlippageCheck) {
-        let model = SwapSlippageViewModel.mock(service: GemSwapQuoteServiceMock(slippageCheck: check), slippage: .manual(bps: 100))
+    @Test(arguments: ["25", "0.05"])
+    func rejectedInputShowsErrorAndDisablesConfirm(input: String) {
+        let model = SwapSlippageViewModel.mock(slippage: .manual(bps: 100))
         model.isAuto = false
         model.inputModel.text = input
 
@@ -74,7 +72,7 @@ struct SwapSlippageViewModelTests {
 
     @Test(arguments: ["", "0", "0.", "abc"])
     func incompleteInputDisablesConfirmWithoutError(input: String) {
-        let model = SwapSlippageViewModel.mock(service: GemSwapQuoteServiceMock(slippageCheck: .belowMinimum), slippage: .manual(bps: 100))
+        let model = SwapSlippageViewModel.mock(slippage: .manual(bps: 100))
         model.isAuto = false
         model.inputModel.text = input
 

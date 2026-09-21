@@ -16,20 +16,12 @@ use crate::{
 };
 
 #[get("/devices/support/messages?<from_timestamp>")]
-pub async fn get_support_messages(
-    device: AuthenticatedDevice,
-    from_timestamp: Option<u64>,
-    client: &State<SupportApiClient>,
-) -> Result<ApiResponse<Vec<SupportMessage>>, ApiError> {
+pub async fn get_support_messages(device: AuthenticatedDevice, from_timestamp: Option<u64>, client: &State<SupportApiClient>) -> Result<ApiResponse<Vec<SupportMessage>>, ApiError> {
     Ok(client.messages(&device.device_row, from_timestamp).await?.into())
 }
 
 #[post("/devices/support/messages", format = "json", data = "<input>")]
-pub async fn post_support_message(
-    device: AuthenticatedDevice,
-    input: DeviceJson<SupportMessageInput>,
-    client: &State<SupportApiClient>,
-) -> Result<ApiResponse<SupportMessage>, ApiError> {
+pub async fn post_support_message(device: AuthenticatedDevice, input: DeviceJson<SupportMessageInput>, client: &State<SupportApiClient>) -> Result<ApiResponse<SupportMessage>, ApiError> {
     Ok(client.send_message(&device.device_row, input.into_inner()).await?.into())
 }
 

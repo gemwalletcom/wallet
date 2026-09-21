@@ -12,9 +12,7 @@ use std::sync::Arc;
 use primitives::{NFTAssetData, NFTAssetId, NFTData, ReportNft, WalletId};
 
 pub use collectible::GemCollectibleService;
-pub use model::{
-    GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleIdentifier, GemCollectibleRow, GemCollectibleSection, GemNftItem, GemNftList,
-};
+pub use model::{GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleSection, GemNftItem, GemNftList, GemNftUnverifiedRow};
 pub use store::GemNftStore;
 
 use crate::api::{GemApiError, GemDeviceApiClient};
@@ -39,28 +37,15 @@ impl GemNftService {
     }
 
     pub async fn ensure_asset(&self, asset_id: NFTAssetId) -> Result<NFTAssetData, GemServiceError> {
-        cached_or_loaded(self.store.as_ref(), asset_id.clone(), async move {
-            Ok(self.api.client.get_nft_asset(asset_id).await.map_err(GemApiError::from)?)
-        })
-        .await
-    }
-
-    pub async fn refresh_asset(&self, wallet_id: WalletId, asset_id: NFTAssetId) -> Result<(), GemServiceError> {
-        self.api.client.refresh_nft_asset(wallet_id.id(), asset_id).await.map_err(GemApiError::from)?;
-        Ok(())
-    }
-
-    pub async fn report(&self, report: ReportNft) -> Result<(), GemServiceError> {
-        self.api.client.report_nft(report).await.map_err(GemApiError::from)?;
-        Ok(())
+        cached_or_loaded(self.store.as_ref(), asset_id.clone(), async move { Ok(self.api.client.get_nft_asset(asset_id).await.map_err(GemApiError::from)?) }).await
     }
 
     pub fn list_items(&self, data: Vec<NFTData>, list: GemNftList) -> Vec<GemNftItem> {
         rules::list_items(data, list)
     }
 
-    pub fn unverified_collections(&self, data: Vec<NFTData>) -> Vec<NFTData> {
-        rules::unverified_collections(data)
+    pub fn unverified_row(&self, data: Vec<NFTData>, list: GemNftList) -> Option<GemNftUnverifiedRow> {
+        rules::unverified_row(data, list)
     }
 }
 
@@ -77,6 +62,16 @@ where
 }
 
 impl GemNftService {
+    pub async fn refresh_asset(&self, wallet_id: WalletId, asset_id: NFTAssetId) -> Result<(), GemServiceError> {
+        self.api.client.refresh_nft_asset(wallet_id.id(), asset_id).await.map_err(GemApiError::from)?;
+        Ok(())
+    }
+
+    pub async fn report(&self, report: ReportNft) -> Result<(), GemServiceError> {
+        self.api.client.report_nft(report).await.map_err(GemApiError::from)?;
+        Ok(())
+    }
+
     pub async fn sync_wallet(&self, wallet_id: WalletId) -> Result<u32, GemServiceError> {
         let data = self.api.client.get_nft_assets(wallet_id.id()).await.map_err(GemApiError::from)?;
         let count = data.len() as u32;

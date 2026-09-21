@@ -18,9 +18,7 @@ use primitives::Asset;
 #[async_trait]
 impl<C: Client + Clone> ChainToken for EthereumProvider<C> {
     async fn get_token_data(&self, token_id: String) -> Result<Asset, Box<dyn Error + Sync + Send>> {
-        let [name, symbol, decimals] = self
-            .batch_eth_call(&token_id, [FUNCTION_ERC20_NAME, FUNCTION_ERC20_SYMBOL, FUNCTION_ERC20_DECIMALS])
-            .await?;
+        let [name, symbol, decimals] = self.batch_eth_call(&token_id, [FUNCTION_ERC20_NAME, FUNCTION_ERC20_SYMBOL, FUNCTION_ERC20_DECIMALS]).await?;
 
         map_token_data(self.get_chain(), token_id, name, symbol, decimals)
     }

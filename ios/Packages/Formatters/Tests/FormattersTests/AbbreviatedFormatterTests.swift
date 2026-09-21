@@ -10,12 +10,12 @@ struct AbbreviatedFormatterTests {
     @Test
     func abbreviatedFormatter() {
         #expect(formatter.string(from: 99999.0) == "99.99K")
-        #expect(formatter.string(from: 100000.0) == "100K")
-        #expect(formatter.string(from: 123456.0) == "123.45K")
+        #expect(formatter.string(from: 100_000.0) == "100K")
+        #expect(formatter.string(from: 123_456.0) == "123.45K")
         #expect(formatter.string(from: 1_500_000.0) == "1.5M")
         #expect(formatter.string(from: 2_300_000_000.0) == "2.3B")
         #expect(formatter.string(from: 1_200_000_000_000.0) == "1.2T")
-        #expect(formatter.string(from: 100000.0, currency: "USD") == "$100K")
+        #expect(formatter.string(from: 100_000.0, currency: "USD") == "$100K")
         #expect(formatter.string(from: 2_000_000.0, currency: "EUR") == "€2M")
         #expect(formatter.string(from: 2_500_000.0, currency: "USD") == "$2.5M")
     }
@@ -27,5 +27,4 @@ struct AbbreviatedFormatterTests {
         #expect(formatter.string(from: 19_876_725.0) == "19.87M")
         #expect(formatter.string(from: 267_123.0, currency: "USD") == "$267.12K")
     }
-
 }

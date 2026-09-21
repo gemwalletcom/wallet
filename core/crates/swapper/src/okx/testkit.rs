@@ -33,10 +33,7 @@ impl OkxProvider<MockClient> {
 }
 
 pub(super) fn mock_solana_request() -> QuoteRequest {
-    let mut request = mock_quote(
-        SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana)),
-        SwapperQuoteAsset::from(SOLANA_USDC_ASSET_ID.clone()),
-    );
+    let mut request = mock_quote(SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana)), SwapperQuoteAsset::from(SOLANA_USDC_ASSET_ID.clone()));
     request.wallet_address = TEST_SOLANA_SENDER.to_string();
     request.value = BigUint::from(100000000u64);
     request

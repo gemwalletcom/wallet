@@ -9,4 +9,5 @@ public enum ImageGalleryServiceError: Error {
     case unexpectedStatusCode(Int)
     case urlSessionError(Error)
     case permissionDenied
+    case saveFailed(Error)
 }

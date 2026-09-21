@@ -47,21 +47,13 @@ where
         let token0 = Address::parse(wallet0)?;
         let token1 = Address::parse(wallet1)?;
         let result = self
-            .run_validated_get_method(
-                router.address,
-                GET_POOL_ADDRESS_METHOD,
-                vec![StackArg::slice(token0.to_boc_base64()?), StackArg::slice(token1.to_boc_base64()?)],
-            )
+            .run_validated_get_method(router.address, GET_POOL_ADDRESS_METHOD, vec![StackArg::slice(token0.to_boc_base64()?), StackArg::slice(token1.to_boc_base64()?)])
             .await?;
         stack_cell_address(&result.stack, 0)
     }
 
     pub(super) async fn get_pool_data(&self, pool_address: &str) -> Result<PoolData, SwapperError> {
-        let result = self
-            .ton_client
-            .run_get_method(pool_address, GET_POOL_DATA_METHOD, Vec::new())
-            .await
-            .map_err(SwapperError::compute_quote_error)?;
+        let result = self.ton_client.run_get_method(pool_address, GET_POOL_DATA_METHOD, Vec::new()).await.map_err(SwapperError::compute_quote_error)?;
         if result.exit_code != 0 {
             return Err(SwapperError::NoQuoteAvailable);
         }
@@ -82,9 +74,7 @@ where
             return Ok(wallet);
         }
         let owner_address = Address::parse(owner)?;
-        let result = self
-            .run_validated_get_method(token, GET_WALLET_ADDRESS_METHOD, vec![StackArg::slice(owner_address.to_boc_base64()?)])
-            .await?;
+        let result = self.run_validated_get_method(token, GET_WALLET_ADDRESS_METHOD, vec![StackArg::slice(owner_address.to_boc_base64()?)]).await?;
         let wallet = stack_cell_address(&result.stack, 0)?;
         self.jetton_wallet_cache.put(key, wallet.clone());
         Ok(wallet)
@@ -128,25 +118,17 @@ fn parse_pool_data(result: &RunGetMethodResult) -> Result<PoolData, SwapperError
 }
 
 fn stack_cell_address(stack: &[StackEntry], index: usize) -> Result<String, SwapperError> {
-    let bytes = stack
-        .get(index)
-        .and_then(StackEntry::as_cell_bytes)
-        .ok_or_else(|| SwapperError::ComputeQuoteError("missing TON address stack cell".into()))?;
+    let bytes = stack.get(index).and_then(StackEntry::as_cell_bytes).ok_or_else(|| SwapperError::ComputeQuoteError("missing TON address stack cell".into()))?;
     Ok(PrimitiveAddress::encode(&Address::from_boc_base64(bytes)?))
 }
 
 fn stack_num(stack: &[StackEntry], index: usize) -> Result<BigUint, SwapperError> {
-    let value = stack
-        .get(index)
-        .and_then(StackEntry::as_num)
-        .ok_or_else(|| SwapperError::ComputeQuoteError("missing TON number stack entry".into()))?;
+    let value = stack.get(index).and_then(StackEntry::as_num).ok_or_else(|| SwapperError::ComputeQuoteError("missing TON number stack entry".into()))?;
     parse_ton_num(value)
 }
 
 fn stack_num_u32(stack: &[StackEntry], index: usize) -> Result<u32, SwapperError> {
-    stack_num(stack, index)?
-        .to_u32()
-        .ok_or_else(|| SwapperError::ComputeQuoteError("TON stack number does not fit u32".into()))
+    stack_num(stack, index)?.to_u32().ok_or_else(|| SwapperError::ComputeQuoteError("TON stack number does not fit u32".into()))
 }
 
 fn parse_ton_num(value: &str) -> Result<BigUint, SwapperError> {

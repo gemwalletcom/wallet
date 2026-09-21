@@ -18,9 +18,7 @@ data object AddContactRoute : NavKey
 @Serializable
 data class EditContactRoute(val contactId: String) : NavKey
 
-fun EntryProviderScope<NavKey>.contactsScreen(
-    onAction: (ContactsAction) -> Unit,
-) {
+fun EntryProviderScope<NavKey>.contactsScreen(onAction: (ContactsAction) -> Unit) {
     val onCancel = { onAction(ContactsAction.Cancel) }
 
     entry<ContactsRoute> {

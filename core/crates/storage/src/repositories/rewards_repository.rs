@@ -3,9 +3,7 @@ use crate::database::rewards::{RewardsFilter, RewardsStore, RewardsUpdate};
 use crate::database::transactions::{TransactionFilter, TransactionsStore};
 use crate::database::usernames::{UsernameLookup, UsernamesStore};
 use crate::database::wallets::WalletsStore;
-use crate::models::{
-    NewRewardEventRow, NewRewardReferralRow, NewRewardsRow, NewUsernameRow, ReferralAttemptRow, RewardEventRow, RewardReferralRow, RewardsRow, UsernameRow, WalletRow,
-};
+use crate::models::{NewRewardEventRow, NewRewardReferralRow, NewRewardsRow, NewUsernameRow, ReferralAttemptRow, RewardEventRow, RewardReferralRow, RewardsRow, UsernameRow, WalletRow};
 use crate::repositories::config_repository::ConfigRepository;
 use crate::repositories::rewards_redemptions_repository::RewardsRedemptionsRepository;
 use crate::sql_types::ChainRow;
@@ -157,12 +155,7 @@ fn ensure_wallet_reward_identity(client: &mut DatabaseClient, wallet_id: i32) ->
     }
 }
 
-fn add_referral_verified_event_rows(
-    client: &mut DatabaseClient,
-    referrer_username: &str,
-    referrer_status: &PrimitiveRewardStatus,
-    referred_username: &str,
-) -> Result<Vec<RewardEventRow>, DatabaseError> {
+fn add_referral_verified_event_rows(client: &mut DatabaseClient, referrer_username: &str, referrer_status: &PrimitiveRewardStatus, referred_username: &str) -> Result<Vec<RewardEventRow>, DatabaseError> {
     let mut events = Vec::new();
     if *referrer_status != PrimitiveRewardStatus::Attribution {
         events.push(RewardsStore::add_event(
@@ -188,12 +181,7 @@ fn add_referral_verified_event_rows(
     Ok(events)
 }
 
-fn add_referral_verified_events(
-    client: &mut DatabaseClient,
-    referrer_username: &str,
-    referrer_status: &PrimitiveRewardStatus,
-    referred_username: &str,
-) -> Result<Vec<RewardEvent>, DatabaseError> {
+fn add_referral_verified_events(client: &mut DatabaseClient, referrer_username: &str, referrer_status: &PrimitiveRewardStatus, referred_username: &str) -> Result<Vec<RewardEvent>, DatabaseError> {
     Ok(add_referral_verified_event_rows(client, referrer_username, referrer_status, referred_username)?
         .into_iter()
         .map(|event| event.as_primitive())
@@ -268,15 +256,7 @@ pub trait RewardsRepository {
     fn get_referral_code(&mut self, code: &str) -> Result<Option<String>, DatabaseError>;
     fn get_referrer_info(&mut self, username: &str) -> Result<ReferrerInfo, DatabaseError>;
     fn is_pending_referral(&mut self, referrer_username: &str, wallet_id: i32, device_id: i32) -> Result<bool, DatabaseError>;
-    fn validate_referral_use(
-        &mut self,
-        referrer_username: &str,
-        referrer_wallet_id: i32,
-        wallet_id: i32,
-        device_id: i32,
-        device_created_at: NaiveDateTime,
-        eligibility_days: Option<i64>,
-    ) -> Result<(), ReferralValidationError>;
+    fn validate_referral_use(&mut self, referrer_username: &str, referrer_wallet_id: i32, wallet_id: i32, device_id: i32, device_created_at: NaiveDateTime, eligibility_days: Option<i64>) -> Result<(), ReferralValidationError>;
     fn add_referral_attempt(&mut self, referrer_username: &str, referred_wallet_id: i32, device_id: i32, risk_signal_id: Option<i32>, reason: &str) -> Result<(), DatabaseError>;
     fn get_first_subscription_date_by_wallet_id(&mut self, wallet_id: i32) -> Result<Option<NaiveDateTime>, DatabaseError>;
     fn get_wallet_id_by_username(&mut self, username: &str) -> Result<i32, DatabaseError>;
@@ -290,14 +270,7 @@ pub trait RewardsRepository {
     fn check_eligibility(&mut self, username: &str, eligibility: RewardsEligibilityConfig) -> Result<Option<i32>, DatabaseError>;
     fn promote_to_verified(&mut self, username: &str) -> Result<Vec<i32>, DatabaseError>;
 
-    fn use_or_verify_referral(
-        &mut self,
-        referrer_username: &str,
-        referrer_status: &PrimitiveRewardStatus,
-        referred_wallet_id: i32,
-        device_id: i32,
-        risk_signal_id: Option<i32>,
-    ) -> Result<Vec<RewardEvent>, DatabaseError>;
+    fn use_or_verify_referral(&mut self, referrer_username: &str, referrer_status: &PrimitiveRewardStatus, referred_wallet_id: i32, device_id: i32, risk_signal_id: Option<i32>) -> Result<Vec<RewardEvent>, DatabaseError>;
 }
 
 impl RewardsRepository for DatabaseClient {
@@ -403,15 +376,7 @@ impl RewardsRepository for DatabaseClient {
         }
     }
 
-    fn validate_referral_use(
-        &mut self,
-        referrer_username: &str,
-        referrer_wallet_id: i32,
-        wallet_id: i32,
-        device_id: i32,
-        device_created_at: NaiveDateTime,
-        eligibility_days: Option<i64>,
-    ) -> Result<(), ReferralValidationError> {
+    fn validate_referral_use(&mut self, referrer_username: &str, referrer_wallet_id: i32, wallet_id: i32, device_id: i32, device_created_at: NaiveDateTime, eligibility_days: Option<i64>) -> Result<(), ReferralValidationError> {
         if let Some(eligibility_days) = eligibility_days {
             let eligibility_cutoff = now() - chrono::Duration::days(eligibility_days);
             if device_created_at <= eligibility_cutoff {
@@ -505,20 +470,11 @@ impl RewardsRepository for DatabaseClient {
             points: (referrals * points_per_referral) as i32,
         };
 
-        let daily = RewardsStore::get_top_referrers_since(self, &invite_types, current.days_ago(1), limit)?
-            .into_iter()
-            .map(map_entry)
-            .collect();
+        let daily = RewardsStore::get_top_referrers_since(self, &invite_types, current.days_ago(1), limit)?.into_iter().map(map_entry).collect();
 
-        let weekly = RewardsStore::get_top_referrers_since(self, &invite_types, current.days_ago(7), limit)?
-            .into_iter()
-            .map(map_entry)
-            .collect();
+        let weekly = RewardsStore::get_top_referrers_since(self, &invite_types, current.days_ago(7), limit)?.into_iter().map(map_entry).collect();
 
-        let monthly = RewardsStore::get_top_referrers_since(self, &invite_types, current.days_ago(30), limit)?
-            .into_iter()
-            .map(map_entry)
-            .collect();
+        let monthly = RewardsStore::get_top_referrers_since(self, &invite_types, current.days_ago(30), limit)?.into_iter().map(map_entry).collect();
 
         Ok(ReferralLeaderboard { daily, weekly, monthly })
     }
@@ -551,11 +507,7 @@ impl RewardsRepository for DatabaseClient {
             return Ok(None);
         }
 
-        let Some(latest_activity_at) = WalletsStore::get_devices_by_wallet_id(self, username_row.wallet_id)?
-            .into_iter()
-            .map(|device| device.updated_at)
-            .max()
-        else {
+        let Some(latest_activity_at) = WalletsStore::get_devices_by_wallet_id(self, username_row.wallet_id)?.into_iter().map(|device| device.updated_at).max() else {
             return Ok(None);
         };
 
@@ -563,13 +515,7 @@ impl RewardsRepository for DatabaseClient {
             return Ok(None);
         }
 
-        let transactions_current = TransactionsStore::get_transactions_by_wallet_since(
-            self,
-            username_row.wallet_id,
-            first_subscription_at,
-            vec![TransactionFilter::States(vec![TransactionState::Confirmed])],
-        )?
-        .len() as i64;
+        let transactions_current = TransactionsStore::get_transactions_by_wallet_since(self, username_row.wallet_id, first_subscription_at, vec![TransactionFilter::States(vec![TransactionState::Confirmed])])?.len() as i64;
 
         if transactions_current < eligibility.transactions_required {
             return Ok(None);
@@ -595,14 +541,7 @@ impl RewardsRepository for DatabaseClient {
         Ok(event_ids)
     }
 
-    fn use_or_verify_referral(
-        &mut self,
-        referrer_username: &str,
-        referrer_status: &PrimitiveRewardStatus,
-        referred_wallet_id: i32,
-        device_id: i32,
-        risk_signal_id: Option<i32>,
-    ) -> Result<Vec<RewardEvent>, DatabaseError> {
+    fn use_or_verify_referral(&mut self, referrer_username: &str, referrer_status: &PrimitiveRewardStatus, referred_wallet_id: i32, device_id: i32, risk_signal_id: Option<i32>) -> Result<Vec<RewardEvent>, DatabaseError> {
         let referred_username = ensure_wallet_reward_identity(self, referred_wallet_id)?.username;
         let referred_rewards = require_rewards(self, &referred_username)?;
         let can_verify = can_verify_referral(&referred_rewards.status, referred_rewards.verify_after);
@@ -613,9 +552,7 @@ impl RewardsRepository for DatabaseClient {
         }
 
         match ReferralsStore::get_referral_by_username(self, &referred_username)? {
-            Some(referral) if referral.verified_at.is_none() => {
-                self.confirm_pending_referral(referral, referrer_username, referrer_status, &referred_username, device_id, can_verify)
-            }
+            Some(referral) if referral.verified_at.is_none() => self.confirm_pending_referral(referral, referrer_username, referrer_status, &referred_username, device_id, can_verify),
             Some(_) => Err(DatabaseError::Error("Referral already verified".to_string())),
             None => self.create_new_referral(referrer_username, &referred_username, device_id, risk_signal_id, can_verify, referrer_status),
         }
@@ -646,15 +583,7 @@ impl DatabaseClient {
         }
     }
 
-    fn create_new_referral(
-        &mut self,
-        referrer_username: &str,
-        referred_username: &str,
-        device_id: i32,
-        risk_signal_id: Option<i32>,
-        can_verify: bool,
-        referrer_status: &PrimitiveRewardStatus,
-    ) -> Result<Vec<RewardEvent>, DatabaseError> {
+    fn create_new_referral(&mut self, referrer_username: &str, referred_username: &str, device_id: i32, risk_signal_id: Option<i32>, can_verify: bool, referrer_status: &PrimitiveRewardStatus) -> Result<Vec<RewardEvent>, DatabaseError> {
         let delay = referral_verification_delay(self.config(), referrer_status)?;
 
         if !can_verify && let Some(delay) = delay {
@@ -735,10 +664,7 @@ mod tests {
         assert!(!is_matching_pending_referral_confirmation(&referral, "charlie", "bob"));
         assert!(!is_matching_pending_referral_confirmation(&referral, "alice", "dave"));
 
-        let verified_referral = RewardReferralRow {
-            verified_at: Some(now),
-            ..referral
-        };
+        let verified_referral = RewardReferralRow { verified_at: Some(now), ..referral };
         assert!(!is_matching_pending_referral_confirmation(&verified_referral, "alice", "bob"));
     }
 

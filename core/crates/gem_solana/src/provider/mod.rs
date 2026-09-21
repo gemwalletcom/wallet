@@ -4,6 +4,10 @@ pub mod preload;
 pub mod testkit;
 
 #[cfg(feature = "rpc")]
+mod address;
+#[cfg(feature = "rpc")]
+pub mod address_mapper;
+#[cfg(feature = "rpc")]
 mod node_status;
 #[cfg(feature = "rpc")]
 mod parsers;

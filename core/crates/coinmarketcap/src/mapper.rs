@@ -4,12 +4,7 @@ use primitives::{Chain, Currency, FiatRate};
 pub(crate) fn map_fiat_rates(conversion: PriceConversion, currencies: &[Currency]) -> Vec<FiatRate> {
     currencies
         .iter()
-        .filter_map(|currency| {
-            conversion.quote.get(currency.as_ref()).map(|quote| FiatRate {
-                symbol: currency.clone(),
-                rate: quote.price,
-            })
-        })
+        .filter_map(|currency| conversion.quote.get(currency.as_ref()).map(|quote| FiatRate { symbol: currency.clone(), rate: quote.price }))
         .collect()
 }
 
@@ -95,11 +90,7 @@ mod tests {
         let response: Value = serde_json::from_str(include_str!("../testdata/cryptocurrency_info.json")).unwrap();
         let eth: Info = serde_json::from_value(response["data"]["1027"].clone()).unwrap();
 
-        let chains = eth
-            .contract_address
-            .iter()
-            .filter_map(|contract| get_chain_for_coinmarketcap_platform(&contract.platform))
-            .collect::<Vec<_>>();
+        let chains = eth.contract_address.iter().filter_map(|contract| get_chain_for_coinmarketcap_platform(&contract.platform)).collect::<Vec<_>>();
 
         assert_eq!(chains, vec![Chain::Ethereum, Chain::SmartChain, Chain::OpBNB]);
     }

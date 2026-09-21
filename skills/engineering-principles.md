@@ -4,21 +4,24 @@ Use for every code change. Guidance precedence is defined in [AGENTS.md](../AGEN
 
 ## Fix Causes, Not Symptoms
 
-Trace the failure to the code that owns the broken invariant. Fix that owner within the task's scope; this does not authorize a wider architectural migration.
+Trace the failure to the code that owns the broken invariant, and fix it there. Do the right fix even when it is the harder one: conform the type, change the Core contract, touch the extra files. Surrounding code is an example, never permission to copy a shape you can see is wrong.
+
+A real fix is not deferred into a plan item. Adding the correct change to [Open work](../docs/TODO.md) instead of making it leaves the wrong shape in place and hands the next change the same excuse. Only a scope the user set, another repository, a provider or a shipped client puts a fix genuinely out of reach.
 
 - Who produced this value or state? Fix it there (the parser that accepted the input, the mapper that built the value, the Core rule the apps consume, the config that declared support), not in the caller that noticed it, and delete the downstream guards the fix makes unnecessary (see § No Over-Defensive Code)
 - Is this condition real? A null check, swallowed error, retry, wider timeout, or sleep is a fix only when you can name the state it handles
 - Diagnose a failing test against the intended contract. Fix the implementation when it violates the contract; update the test when its expectation is stale or the task intentionally changes behavior. Never weaken an assertion just to pass
 - Is this the only place? Two similar patches usually mean one shared cause; check whether the failure recurs through another entry point, chain, provider, or timing
-- If the real fix is out of scope (another repository, a provider, shipped clients, a scope the user set), propose it in the handoff with the layer, the change, and what it would remove. Ship a symptom patch only if it is safe, minimal, and labeled temporary; never present it as the fix
+- If the real fix is genuinely out of reach (another repository, a provider, shipped clients, a scope the user set), propose it in the handoff with the layer, the change, and what it would remove. Ship a symptom patch only if it is safe, minimal, and labeled temporary; never present it as the fix
+- Verify a defect end to end before asserting it. Read the code that consumes the value, not only the code that produces it; a missing conformance or mapping is often already handled one layer down
 - The regression test reproduces the cause at the producer, not the guard at the consumer
 
 ## Clean Code Principles
 
 - Touch only what the task requires; adjacent improvements go in their own PR or stay out
 - No code comments. Convey intent through names and structure; if code seems to need a comment, rename or restructure it. Only compiler- or tooling-required comments (attributes, lint directives, license headers) are exceptions
-- Full domain terms in names (`transaction`, not `tx`) except when preserving external protocol fields, database columns, or URLs verbatim
-- Intent-specific names that state the domain action and result (`parse_destination_tag`, `build_transfer_message`, `map_balance_assets`). Generic verbs such as `process`, `handle`, `manage`, `perform`, `execute`, and `resolve` hide the contract; keep them only when a framework or protocol owns the signature
+- Full domain terms in names (`transaction`, not `tx`) except when preserving external protocol fields, database columns, or URLs verbatim. A Core error variant keeps `msg`: UniFFI turns each one into a Kotlin class extending `Exception`, and a field named `message` shadows `Throwable.message` and fails the Android build
+- Intent-specific names that state the domain action and result (`parse_destination_tag`, `build_transfer_message`, `map_balance_assets`). Generic verbs such as `apply`, `process`, `handle`, `manage`, `perform`, `execute`, and `resolve` hide the contract; keep them only when a framework or protocol owns the signature
 - Extend the existing component, domain type, mapper, or fixture before adding another. Reuse the flow's loading, error, navigation, and cancellation behavior; do not introduce a parallel path for the new entry point
 - Model variants with a type, not a boolean flag or a bare string. An enum or sealed hierarchy the compiler checks exhaustively replaces paired booleans, optional-plus-flag pairs, and default branches that hide a missing state
 - Keep types and functions single-purpose; expose only what current callers require

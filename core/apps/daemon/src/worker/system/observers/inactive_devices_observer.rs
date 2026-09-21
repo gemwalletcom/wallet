@@ -13,11 +13,7 @@ pub struct InactiveDevicesObserver {
 
 impl InactiveDevicesObserver {
     pub fn new(database: Database, cacher: CacherClient, stream_producer: StreamProducer) -> Self {
-        Self {
-            database,
-            cacher,
-            stream_producer,
-        }
+        Self { database, cacher, stream_producer }
     }
 
     pub async fn observe(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {

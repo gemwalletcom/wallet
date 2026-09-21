@@ -83,15 +83,7 @@ impl SearchIndexClient {
 
     // search
 
-    pub async fn search<T: DeserializeOwned + Send + Sync + 'static>(
-        &self,
-        index: &str,
-        query: &str,
-        filter: &str,
-        sort: &[&str],
-        limit: usize,
-        offset: usize,
-    ) -> Result<Vec<T>, Box<dyn Error + Send + Sync>> {
+    pub async fn search<T: DeserializeOwned + Send + Sync + 'static>(&self, index: &str, query: &str, filter: &str, sort: &[&str], limit: usize, offset: usize) -> Result<Vec<T>, Box<dyn Error + Send + Sync>> {
         let results = self
             .client
             .index(index)

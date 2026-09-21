@@ -1,11 +1,9 @@
-use crate::formatted_number::GemFormattedNumber;
+use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigUint;
+use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::services::swap::model::GemSwapRate;
 use chrono::{DateTime, Utc};
-use primitives::{
-    AddressName, Asset, AssetId, AssetPrice, Chain, NFTAssetId, PerpetualDirection, Resource, TransactionDirection, TransactionExtended, TransactionId, TransactionState,
-    TransactionType,
-};
+use primitives::{AddressName, Asset, AssetId, AssetPrice, Chain, ChainAsset, NFTAssetId, PerpetualDirection, Resource, Transaction, TransactionDirection, TransactionExtended, TransactionId, TransactionState, TransactionType};
 
 use super::rules;
 use primitives::BlockExplorerLink;
@@ -42,6 +40,11 @@ pub struct GemActivityFilters {
 #[uniffi::export]
 pub fn activity_filters(chains: Vec<Chain>, filters: Vec<GemTransactionFilter>) -> GemActivityFilters {
     rules::activity_filters(chains, filters)
+}
+
+#[uniffi::export]
+pub fn transaction_asset_ids(transaction: Transaction) -> Vec<AssetId> {
+    transaction.asset_ids()
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -118,6 +121,7 @@ pub enum GemTransactionParticipantRole {
 pub struct GemTransactionParticipant {
     pub role: GemTransactionParticipantRole,
     pub address: String,
+    pub text: String,
     pub name: Option<AddressName>,
     pub link: BlockExplorerLink,
     pub can_add_contact: bool,
@@ -138,19 +142,17 @@ pub enum GemTransactionRowSubtitle {
     FromAddress { participant: String },
     ToResource { resource: Resource },
     FromResource { resource: Resource },
-    Price { value: f64 },
+    Price { price: GemFormattedNumber },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemTransactionRowValue {
     None,
     AssetSymbol { asset: Asset },
-    Amount { amount: GemTransactionAmount },
-    Fiat { value: f64 },
-    Pnl { value: f64 },
+    Number { number: GemFormattedNumber },
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemTransactionStateTone {
     Pending,
     Success,
@@ -177,6 +179,7 @@ pub struct GemTransactionRow {
     pub title: GemTransactionTitle,
     pub subtitle: GemTransactionRowSubtitle,
     pub value: GemTransactionRowValue,
+    pub value_tone: GemValueTone,
     pub equivalent_value: GemTransactionRowValue,
     pub nft_image_url: Option<String>,
 }
@@ -227,24 +230,17 @@ pub enum GemTransactionHeaderAction {
     Perpetual { asset_id: AssetId },
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
 pub enum GemTransactionDetailRow {
     Header,
     SwapProgress,
     SwapAgain,
-    Date,
-    Status,
     EstimatedConfirmation,
     Participant,
-    Memo,
-    Resource,
     Rate,
-    Network,
-    Provider,
-    Pnl,
-    Price,
     Fee,
-    Explorer,
+    Row { row: GemListRow },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -280,7 +276,16 @@ pub struct GemTransactionDetailRows {
     pub pnl: Option<GemFormattedNumber>,
     pub price: Option<GemFormattedNumber>,
     pub fee: GemTransactionAmount,
+    pub fee_row: GemTransactionFeeRow,
     pub explorer: BlockExplorerLink,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemTransactionFeeRow {
+    pub title: GemListRowTitle,
+    pub amount: GemFormattedNumber,
+    pub fiat: Option<GemFormattedNumber>,
+    pub info: GemInfoTopic,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -313,6 +318,13 @@ pub struct GemSwapProgress {
     pub eta_seconds: Option<u32>,
 }
 
+#[uniffi::export]
+impl GemSwapProgress {
+    pub fn transfer_text(&self, formatted_value: String) -> String {
+        format!("{formatted_value} ({})", ChainAsset::from_chain(self.from_asset.chain()).network_name)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
 pub struct GemSwapProgressState {
     pub step: GemSwapProgressStep,
@@ -340,10 +352,7 @@ pub enum GemSwapProgressMarker {
 
 impl GemSwapProgressStep {
     pub fn state(self) -> GemSwapProgressState {
-        GemSwapProgressState {
-            step: self,
-            marker: self.marker(),
-        }
+        GemSwapProgressState { step: self, marker: self.marker() }
     }
 
     fn marker(self) -> GemSwapProgressMarker {
@@ -365,6 +374,27 @@ pub struct GemSwapAgain {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    #[test]
+    fn test_a_swap_transfer_names_the_network_beside_the_amount() {
+        let progress = GemSwapProgress {
+            from_asset: Asset::from_chain(Chain::Ethereum),
+            from_value: GemBigUint::ZERO,
+            provider_name: "Thorchain".to_string(),
+            transfer: GemSwapProgressState {
+                step: GemSwapProgressStep::Pending,
+                marker: GemSwapProgressMarker::Spinner,
+            },
+            swap: GemSwapProgressState {
+                step: GemSwapProgressStep::Waiting,
+                marker: GemSwapProgressMarker::Spinner,
+            },
+            eta_seconds: None,
+        };
+
+        assert_eq!(progress.transfer_text("0.5 ETH".to_string()), "0.5 ETH (Ethereum)");
+    }
     use super::GemAmountSign;
 
     #[test]

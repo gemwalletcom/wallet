@@ -13,14 +13,7 @@ use crate::{SwapperError, SwapperQuoteData, approval::get_swap_gas_limit_with_ap
 
 const EXPIRY_SECONDS: u64 = 86400;
 
-pub fn map_quote_data(
-    from_asset: &THORChainAsset,
-    route_data: &RouteData,
-    token_id: Option<String>,
-    value: BigUint,
-    memo: String,
-    approval: Option<ApprovalData>,
-) -> Result<SwapperQuoteData, SwapperError> {
+pub fn map_quote_data(from_asset: &THORChainAsset, route_data: &RouteData, token_id: Option<String>, value: BigUint, memo: String, approval: Option<ApprovalData>) -> Result<SwapperQuoteData, SwapperError> {
     let gas_limit = get_swap_gas_limit_with_approval(&approval, None, deposit_gas_limit(&memo));
 
     if from_asset.use_evm_router() {
@@ -43,13 +36,7 @@ pub fn map_quote_data(
 
         Ok(SwapperQuoteData::new_contract(router_address, BigUint::ZERO, HexEncode(call_data), approval, gas_limit))
     } else if from_asset.chain.is_evm_chain() {
-        Ok(SwapperQuoteData::new_contract(
-            route_data.inbound_address.clone(),
-            value,
-            HexEncode(memo.as_bytes()),
-            approval,
-            gas_limit,
-        ))
+        Ok(SwapperQuoteData::new_contract(route_data.inbound_address.clone(), value, HexEncode(memo.as_bytes()), approval, gas_limit))
     } else {
         Ok(SwapperQuoteData::new_transfer(route_data.inbound_address.clone(), value, Some(memo)))
     }

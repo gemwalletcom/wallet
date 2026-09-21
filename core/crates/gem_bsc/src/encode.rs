@@ -66,10 +66,7 @@ pub fn decode_undelegations(result: &[u8]) -> Result<Vec<BscUndelegation>, Box<d
 pub fn encode_stake(stake_type: &StakeType, amount: &BigInt) -> Result<TransactionParams, Box<dyn Error + Send + Sync>> {
     let (data, value) = match stake_type {
         StakeType::Stake(validator) => (encode_delegate_call(&validator.id, false)?, amount.clone()),
-        StakeType::Unstake(delegation) => (
-            encode_undelegate_call(&delegation.validator.id, amount_shares(amount, &delegation.base.balance, &delegation.base.shares)?)?,
-            BigInt::from(0),
-        ),
+        StakeType::Unstake(delegation) => (encode_undelegate_call(&delegation.validator.id, amount_shares(amount, &delegation.base.balance, &delegation.base.shares)?)?, BigInt::from(0)),
         StakeType::Redelegate(redelegate_data) => (
             encode_redelegate_call(
                 &redelegate_data.delegation.validator.id,
@@ -100,11 +97,7 @@ fn encode_delegate_call(operator_address: &str, delegate_vote_power: bool) -> Re
 
 fn encode_undelegate_call(operator_address: &str, shares: U256) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
     let operator_address = Address::from_str(operator_address)?;
-    Ok(IStakeHub::undelegateCall {
-        operatorAddress: operator_address,
-        shares,
-    }
-    .abi_encode())
+    Ok(IStakeHub::undelegateCall { operatorAddress: operator_address, shares }.abi_encode())
 }
 
 fn encode_redelegate_call(src_validator: &str, dst_validator: &str, shares: U256, delegate_vote_power: bool) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
@@ -175,25 +168,14 @@ mod tests {
     #[test]
     fn test_encode_stake() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let one_bnb = BigInt::from(1_000_000_000_000_000_000u64);
-        let validator = mock_delegation(
-            "0x773760b0708a5Cc369c346993a0c225D8e4043B1",
-            DelegationState::Active,
-            2_000_000_000_000_000_000,
-            1_900_000_000_000_000_000,
-        )
-        .validator;
+        let validator = mock_delegation("0x773760b0708a5Cc369c346993a0c225D8e4043B1", DelegationState::Active, 2_000_000_000_000_000_000, 1_900_000_000_000_000_000).validator;
 
         let params = encode_stake(&StakeType::Stake(validator.clone()), &one_bnb)?;
         assert_eq!(params.to, STAKE_HUB_ADDRESS);
         assert_eq!(hex::encode(&params.data[0..4]), "982ef0a7");
         assert_eq!(params.value, one_bnb);
 
-        let unstake = mock_delegation(
-            "0x343dA7Ff0446247ca47AA41e2A25c5Bbb230ED0A",
-            DelegationState::Active,
-            2_000_000_000_000_000_000,
-            1_900_000_000_000_000_000,
-        );
+        let unstake = mock_delegation("0x343dA7Ff0446247ca47AA41e2A25c5Bbb230ED0A", DelegationState::Active, 2_000_000_000_000_000_000, 1_900_000_000_000_000_000);
         let params = encode_stake(&StakeType::Unstake(unstake.clone()), &one_bnb)?;
         assert_eq!(params.to, STAKE_HUB_ADDRESS);
         assert_eq!(hex::encode(&params.data[0..4]), "4d99dd16");
@@ -210,12 +192,7 @@ mod tests {
         assert_eq!(hex::encode(&params.data[0..4]), "59491871");
         assert_eq!(params.value, BigInt::from(0));
 
-        let withdraw = mock_delegation(
-            "0x343dA7Ff0446247ca47AA41e2A25c5Bbb230ED0A",
-            DelegationState::AwaitingWithdrawal,
-            1_000_000_000_000_000_000,
-            1_000_000_000_000_000_000,
-        );
+        let withdraw = mock_delegation("0x343dA7Ff0446247ca47AA41e2A25c5Bbb230ED0A", DelegationState::AwaitingWithdrawal, 1_000_000_000_000_000_000, 1_000_000_000_000_000_000);
         let params = encode_stake(&StakeType::Withdraw(withdraw), &BigInt::from(0))?;
         assert_eq!(params.to, STAKE_HUB_ADDRESS);
         assert_eq!(hex::encode(&params.data[0..4]), "aad3ec96");

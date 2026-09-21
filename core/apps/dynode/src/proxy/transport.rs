@@ -27,11 +27,7 @@ impl TransportError {
 }
 
 pub(crate) fn filter_headers(headers: &HeaderMap, forward_headers: &HashSet<HeaderName>) -> HeaderMap {
-    headers
-        .iter()
-        .filter(|(name, _)| forward_headers.contains(*name))
-        .map(|(name, value)| (name.clone(), value.clone()))
-        .collect()
+    headers.iter().filter(|(name, _)| forward_headers.contains(*name)).map(|(name, value)| (name.clone(), value.clone())).collect()
 }
 
 pub(crate) async fn send(client: &Client, request: Request) -> Result<ProxyResponse, TransportError> {

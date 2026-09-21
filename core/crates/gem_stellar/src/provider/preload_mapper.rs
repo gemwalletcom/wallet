@@ -6,12 +6,7 @@ pub fn map_transaction_load(input: TransactionLoadInput) -> Result<TransactionLo
     let fee = if input.metadata.get_is_destination_address_exist()? {
         input.default_fee()
     } else {
-        TransactionFee::new_from_fee_with_option(
-            input.gas_price.gas_price(),
-            FeeOption::TokenAccountCreation,
-            BigInt::ZERO,
-            AssetId::from_chain(Chain::Stellar),
-        )
+        TransactionFee::new_from_fee_with_option(input.gas_price.gas_price(), FeeOption::TokenAccountCreation, BigInt::ZERO, AssetId::from_chain(Chain::Stellar))
     };
 
     Ok(TransactionLoadData { fee, metadata: input.metadata })
@@ -42,9 +37,7 @@ mod tests {
     #[test]
     fn test_map_transaction_load_destination_not_exist() {
         let input = TransactionLoadInput {
-            input_type: TransactionInputType::Transfer {
-                asset: Asset::from_chain(Chain::Stellar),
-            },
+            input_type: TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Stellar) },
             value: BigUint::from(15000000u64),
             gas_price: GasPriceType::regular(BigInt::from(100)),
             metadata: TransactionLoadMetadata::Stellar {

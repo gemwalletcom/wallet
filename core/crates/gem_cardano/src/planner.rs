@@ -56,12 +56,7 @@ pub(crate) fn plan_transfer(input: &TransactionLoadInput) -> Result<TransactionP
         change = 0;
     }
 
-    Ok(TransactionPlan {
-        utxos: selected_utxos,
-        amount,
-        fee,
-        change,
-    })
+    Ok(TransactionPlan { utxos: selected_utxos, amount, fee, change })
 }
 
 pub(crate) fn transaction_from_plan(input: &TransactionLoadInput, plan: &TransactionPlan) -> Result<Transaction, SignerError> {
@@ -97,10 +92,7 @@ fn transaction_destination_address(input: &TransactionLoadInput) -> &str {
 }
 
 fn transaction_memo(input: &TransactionLoadInput) -> Option<String> {
-    input
-        .get_memo()
-        .map(ToOwned::to_owned)
-        .or_else(|| input.input_type.get_swap_data().ok().and_then(|swap_data| swap_data.data.memo.clone()))
+    input.get_memo().map(ToOwned::to_owned).or_else(|| input.input_type.get_swap_data().ok().and_then(|swap_data| swap_data.data.memo.clone()))
 }
 
 fn utxos_from_metadata(metadata: &TransactionLoadMetadata, sender_address: &str) -> Result<Vec<UTXO>, SignerError> {
@@ -183,9 +175,9 @@ fn transaction_fee(transaction_size: u64) -> u64 {
 }
 
 fn sum_amounts(utxos: &[UTXO]) -> Result<u64, SignerError> {
-    utxos.iter().try_fold(0u64, |sum, utxo| {
-        sum.checked_add(utxo_amount(utxo)?).ok_or_else(|| SignerError::invalid_input("Cardano amount overflow"))
-    })
+    utxos
+        .iter()
+        .try_fold(0u64, |sum, utxo| sum.checked_add(utxo_amount(utxo)?).ok_or_else(|| SignerError::invalid_input("Cardano amount overflow")))
 }
 
 #[cfg(test)]
@@ -309,27 +301,13 @@ mod tests {
 
         input = TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "1");
         input.input_type = TransactionInputType::Transfer {
-            asset: Asset::mock_with_params(
-                Chain::Cardano,
-                Some("policy.asset".to_string()),
-                "Cardano Token".to_string(),
-                "TOKEN".to_string(),
-                0,
-                AssetType::TOKEN,
-            ),
+            asset: Asset::mock_with_params(Chain::Cardano, Some("policy.asset".to_string()), "Cardano Token".to_string(), "TOKEN".to_string(), 0, AssetType::TOKEN),
         };
         assert_eq!(plan_transfer(&input).err().unwrap().to_string(), "Invalid input: unsupported Cardano token transfer");
 
         input = TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "1");
         input.input_type = TransactionInputType::Swap {
-            from_asset: Asset::mock_with_params(
-                Chain::Cardano,
-                Some("policy.asset".to_string()),
-                "Cardano Token".to_string(),
-                "TOKEN".to_string(),
-                0,
-                AssetType::TOKEN,
-            ),
+            from_asset: Asset::mock_with_params(Chain::Cardano, Some("policy.asset".to_string()), "Cardano Token".to_string(), "TOKEN".to_string(), 0, AssetType::TOKEN),
             to_asset: Asset::from_chain(Chain::Ethereum),
             swap_data: SwapData::mock_transfer(SwapProvider::Mayachain, "1", "1", TO_ADDRESS),
         };
@@ -345,10 +323,7 @@ mod tests {
                 address: TO_ADDRESS.to_string(),
             }],
         };
-        assert_eq!(
-            plan_transfer(&input).err().unwrap().to_string(),
-            "Invalid input: Cardano UTXO address does not match sender address"
-        );
+        assert_eq!(plan_transfer(&input).err().unwrap().to_string(), "Invalid input: Cardano UTXO address does not match sender address");
     }
 
     #[test]

@@ -20,10 +20,7 @@ pub fn decode(path: &str) -> Result<Payment> {
     let (path, query) = path.split_once('?').unwrap_or((path, ""));
     let (target, function) = path.split_once('/').map_or((path, None), |(target, function)| (target, Some(function)));
     let (target, chain) = match target.split_once('@') {
-        Some((target, chain_id)) => (
-            target,
-            chain(chain_id).ok_or_else(|| PaymentDecoderError::InvalidFormat(format!("Unsupported chain id: {chain_id}")))?,
-        ),
+        Some((target, chain_id)) => (target, chain(chain_id).ok_or_else(|| PaymentDecoderError::InvalidFormat(format!("Unsupported chain id: {chain_id}")))?),
         None => (target, Chain::Ethereum),
     };
     let target = target.strip_prefix(PAY_PREFIX).unwrap_or(target);
@@ -34,9 +31,7 @@ pub fn decode(path: &str) -> Result<Payment> {
         Some(TRANSFER_FUNCTION) => Ok(Payment::Request {
             request: PaymentRequest {
                 address: query::value(&parameters, QUERY_ADDRESS).ok_or_else(|| PaymentDecoderError::MissingField(QUERY_ADDRESS.to_string()))?,
-                amount: query::value(&parameters, QUERY_UINT256)
-                    .and_then(|value| amount::atomic(&value))
-                    .map(|value| PaymentAmount::AtomicValue { value }),
+                amount: query::value(&parameters, QUERY_UINT256).and_then(|value| amount::atomic(&value)).map(|value| PaymentAmount::AtomicValue { value }),
                 memo,
                 label: None,
                 references: None,
@@ -118,9 +113,7 @@ mod tests {
             Payment::Request {
                 request: PaymentRequest {
                     address: ADDRESS.to_string(),
-                    amount: Some(PaymentAmount::ExactValue {
-                        value: "0.000000000001".to_string()
-                    }),
+                    amount: Some(PaymentAmount::ExactValue { value: "0.000000000001".to_string() }),
                     asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
                     ..PaymentRequest::mock()
                 }
@@ -131,9 +124,7 @@ mod tests {
             Payment::Request {
                 request: PaymentRequest {
                     address: "0x32Be343B94f860124dC4fEe278FDCBD38C102D88".to_string(),
-                    amount: Some(PaymentAmount::ExactValue {
-                        value: "0.00000000000000001".to_string()
-                    }),
+                    amount: Some(PaymentAmount::ExactValue { value: "0.00000000000000001".to_string() }),
                     asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
                     ..PaymentRequest::mock()
                 }
@@ -169,9 +160,7 @@ mod tests {
         let one_and_a_half_usdc = Payment::Request {
             request: PaymentRequest {
                 address: ADDRESS.to_string(),
-                amount: Some(PaymentAmount::AtomicValue {
-                    value: BigUint::from(1_500_000u32),
-                }),
+                amount: Some(PaymentAmount::AtomicValue { value: BigUint::from(1_500_000u32) }),
                 asset_id: token.clone(),
                 ..PaymentRequest::mock()
             },
@@ -197,26 +186,11 @@ mod tests {
             decode(&format!("{ADDRESS}/approve?value=1000000000000000000")),
             Err(PaymentDecoderError::InvalidFormat("Unsupported function: approve".to_string()))
         );
-        assert_eq!(
-            decode(&format!("{TOKEN}/transfer?uint256=1")),
-            Err(PaymentDecoderError::MissingField(QUERY_ADDRESS.to_string()))
-        );
+        assert_eq!(decode(&format!("{TOKEN}/transfer?uint256=1")), Err(PaymentDecoderError::MissingField(QUERY_ADDRESS.to_string())));
 
-        assert_eq!(
-            decode(&format!("{ADDRESS}@999999?amount=1")),
-            Err(PaymentDecoderError::InvalidFormat("Unsupported chain id: 999999".to_string()))
-        );
-        assert_eq!(
-            decode(&format!("{ADDRESS}@1337?amount=1")),
-            Err(PaymentDecoderError::InvalidFormat("Unsupported chain id: 1337".to_string()))
-        );
-        assert_eq!(
-            decode(&format!("{ADDRESS}@0x?amount=1")),
-            Err(PaymentDecoderError::InvalidFormat("Unsupported chain id: 0x".to_string()))
-        );
-        assert_eq!(
-            decode(&format!("{ADDRESS}@chain?amount=1")),
-            Err(PaymentDecoderError::InvalidFormat("Unsupported chain id: chain".to_string()))
-        );
+        assert_eq!(decode(&format!("{ADDRESS}@999999?amount=1")), Err(PaymentDecoderError::InvalidFormat("Unsupported chain id: 999999".to_string())));
+        assert_eq!(decode(&format!("{ADDRESS}@1337?amount=1")), Err(PaymentDecoderError::InvalidFormat("Unsupported chain id: 1337".to_string())));
+        assert_eq!(decode(&format!("{ADDRESS}@0x?amount=1")), Err(PaymentDecoderError::InvalidFormat("Unsupported chain id: 0x".to_string())));
+        assert_eq!(decode(&format!("{ADDRESS}@chain?amount=1")), Err(PaymentDecoderError::InvalidFormat("Unsupported chain id: chain".to_string())));
     }
 }

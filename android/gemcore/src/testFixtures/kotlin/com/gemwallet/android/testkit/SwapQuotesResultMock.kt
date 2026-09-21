@@ -4,11 +4,7 @@ import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
 import uniffi.gemstone.SwapperQuote
 
-fun mockSwapQuotesResult(
-    params: SwapQuoteRequestParams = mockSwapQuoteRequestParams(),
-    items: List<SwapperQuote> = emptyList(),
-    err: Throwable? = null,
-) = SwapQuotesResult(
+fun mockSwapQuotesResult(params: SwapQuoteRequestParams = mockSwapQuoteRequestParams(), items: List<SwapperQuote> = emptyList(), err: Throwable? = null) = SwapQuotesResult(
     items = items,
     requestKey = params.key,
     pay = params.pay,

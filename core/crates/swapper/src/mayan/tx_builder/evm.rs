@@ -71,11 +71,7 @@ pub(in crate::mayan::tx_builder) struct EvmForwarderProtocolCall {
 
 impl EvmForwarderProtocolCall {
     pub(in crate::mayan::tx_builder) fn new(amount_in: U256, protocol_address: Address, data: Vec<u8>) -> Self {
-        Self {
-            amount_in,
-            protocol_address,
-            data,
-        }
+        Self { amount_in, protocol_address, data }
     }
 }
 
@@ -110,12 +106,7 @@ pub(in crate::mayan::tx_builder) fn build_forward_erc20_transaction(token_in: Ad
     EvmTransaction::forwarder(value, data)
 }
 
-pub(in crate::mayan::tx_builder) fn build_swap_and_forward_eth_transaction(
-    protocol_call: &EvmForwarderProtocolCall,
-    swap: EvmSwapForwardData,
-    amount_in: U256,
-    value: impl Into<String>,
-) -> EvmTransaction {
+pub(in crate::mayan::tx_builder) fn build_swap_and_forward_eth_transaction(protocol_call: &EvmForwarderProtocolCall, swap: EvmSwapForwardData, amount_in: U256, value: impl Into<String>) -> EvmTransaction {
     let data = MayanForwarder::swapAndForwardEthCall {
         amountIn: amount_in,
         swapProtocol: swap.swap_router_address,
@@ -129,12 +120,7 @@ pub(in crate::mayan::tx_builder) fn build_swap_and_forward_eth_transaction(
     EvmTransaction::forwarder(value, data)
 }
 
-pub(in crate::mayan::tx_builder) fn build_swap_and_forward_erc20_transaction(
-    token_in: Address,
-    protocol_call: &EvmForwarderProtocolCall,
-    swap: EvmSwapForwardData,
-    value: impl Into<String>,
-) -> EvmTransaction {
+pub(in crate::mayan::tx_builder) fn build_swap_and_forward_erc20_transaction(token_in: Address, protocol_call: &EvmForwarderProtocolCall, swap: EvmSwapForwardData, value: impl Into<String>) -> EvmTransaction {
     let data = MayanForwarder::swapAndForwardERC20Call {
         tokenIn: token_in,
         amountIn: protocol_call.amount_in,
@@ -150,11 +136,7 @@ pub(in crate::mayan::tx_builder) fn build_swap_and_forward_erc20_transaction(
     EvmTransaction::forwarder(value, data)
 }
 
-pub(in crate::mayan::tx_builder) async fn build_quote_data(
-    transaction: impl Future<Output = Result<EvmTransaction, SwapperError>>,
-    quote: &Quote,
-    rpc_provider: Arc<dyn RpcProvider>,
-) -> Result<SwapperQuoteData, SwapperError> {
+pub(in crate::mayan::tx_builder) async fn build_quote_data(transaction: impl Future<Output = Result<EvmTransaction, SwapperError>>, quote: &Quote, rpc_provider: Arc<dyn RpcProvider>) -> Result<SwapperQuoteData, SwapperError> {
     let approval = approval_data(
         quote.request.wallet_address.clone(),
         quote.request.from_asset.asset_id(),
@@ -178,7 +160,5 @@ async fn approval_data(wallet_address: String, asset: AssetId, spender: &str, am
         return Ok(None);
     }
     let token = asset.token_id.ok_or(SwapperError::NotSupportedAsset)?;
-    Ok(check_approval_erc20(wallet_address, token, spender.to_string(), amount, rpc_provider, &asset.chain)
-        .await?
-        .approval_data())
+    Ok(check_approval_erc20(wallet_address, token, spender.to_string(), amount, rpc_provider, &asset.chain).await?.approval_data())
 }

@@ -27,9 +27,7 @@ internal val DEVICE_KEYS_STORE_CONFIG = TinkStoreConfig(
     masterKeyAlias = DEVICE_MASTER_KEY_ALIAS,
 )
 
-class TinkSecurityStore(
-    private val context: Context,
-) : SecurityStore<Any> {
+class TinkSecurityStore(private val context: Context) : SecurityStore<Any> {
 
     private val Context.dataStore by preferencesDataStore(name = LEGACY_DEVICE_KEYS_DATASTORE_NAME)
     private val aeadProvider = TinkAeadProvider(
@@ -61,12 +59,10 @@ class TinkSecurityStore(
         removeLegacyValue(keyValue)
     }
 
-    private suspend fun getLegacyValue(key: String): String? {
-        return context.dataStore.data.map { preferences -> preferences[stringPreferencesKey(key)] }
-            .firstOrNull()?.let {
-                String(aeadProvider.get().decrypt(it.fromHex(), null), UTF_8)
-            }
-    }
+    private suspend fun getLegacyValue(key: String): String? = context.dataStore.data.map { preferences -> preferences[stringPreferencesKey(key)] }
+        .firstOrNull()?.let {
+            String(aeadProvider.get().decrypt(it.fromHex(), null), UTF_8)
+        }
 
     private suspend fun removeLegacyValue(key: String) {
         context.dataStore.edit { preferences ->

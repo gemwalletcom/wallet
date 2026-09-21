@@ -20,9 +20,7 @@ impl ChainTypesConfig {
             return allowlist.allows(request_type);
         }
 
-        self.chain_types
-            .get(&chain_config.chain.chain_type())
-            .is_none_or(|config| config.allows(chain_config.chain, request_type))
+        self.chain_types.get(&chain_config.chain.chain_type()).is_none_or(|config| config.allows(chain_config.chain, request_type))
     }
 
     pub(crate) fn cache_rules(&self, chain: Chain) -> Option<CacheRules> {
@@ -30,14 +28,7 @@ impl ChainTypesConfig {
         let policy = config.chains.get(&chain);
         let cache = config.policy.cache.iter().chain(policy.into_iter().flat_map(|policy| &policy.cache)).cloned().collect();
         let contracts = ContractCacheConfig {
-            methods: config
-                .policy
-                .contracts
-                .methods
-                .iter()
-                .chain(policy.into_iter().flat_map(|policy| &policy.contracts.methods))
-                .cloned()
-                .collect(),
+            methods: config.policy.contracts.methods.iter().chain(policy.into_iter().flat_map(|policy| &policy.contracts.methods)).cloned().collect(),
         };
         let rules = CacheRules { cache, contracts };
         (!rules.is_empty()).then_some(rules)

@@ -30,7 +30,10 @@ impl ValueFormatter {
     }
 
     pub fn format_f64_currency(style: ValueStyle, value: f64, symbol: &str) -> String {
-        format!("{}{}", symbol, Self::format_f64(style, value))
+        match Self::format_f64(style, value) {
+            amount if amount.starts_with('-') => format!("-{}{}", symbol, &amount[1..]),
+            amount => format!("{}{}", symbol, amount),
+        }
     }
 
     pub fn format_with_symbol(style: ValueStyle, value: &str, decimals: i32, symbol: &str) -> Result<String, NumberFormatterError> {
@@ -91,11 +94,7 @@ fn format_middle(decimal: &BigDecimal) -> String {
 }
 
 fn truncate_significant(value_str: &str, max_sig: usize) -> String {
-    let (is_negative, abs_str) = if let Some(stripped) = value_str.strip_prefix('-') {
-        (true, stripped)
-    } else {
-        (false, value_str)
-    };
+    let (is_negative, abs_str) = if let Some(stripped) = value_str.strip_prefix('-') { (true, stripped) } else { (false, value_str) };
 
     let (_, fraction) = abs_str.split_once('.').unwrap_or((abs_str, ""));
     let leading_zeros = fraction.chars().take_while(|&c| c == '0').count();
@@ -110,11 +109,7 @@ fn strip_trailing_zeros(value: &str) -> String {
         return value.to_string();
     }
     let trimmed = value.trim_end_matches('0');
-    if let Some(stripped) = trimmed.strip_suffix('.') {
-        stripped.to_string()
-    } else {
-        trimmed.to_string()
-    }
+    if let Some(stripped) = trimmed.strip_suffix('.') { stripped.to_string() } else { trimmed.to_string() }
 }
 
 fn apply_thousands_separator(value: &str) -> String {
@@ -180,7 +175,7 @@ mod tests {
     #[test]
     fn test_format_f64_currency() {
         assert_eq!(ValueFormatter::format_f64_currency(ValueStyle::Auto, 25432.50, "$"), "$25,432.50");
-        assert_eq!(ValueFormatter::format_f64_currency(ValueStyle::Auto, -123.45, "$"), "$-123.45");
+        assert_eq!(ValueFormatter::format_f64_currency(ValueStyle::Auto, -123.45, "$"), "-$123.45");
         assert_eq!(ValueFormatter::format_f64_currency(ValueStyle::Auto, 0.0, "$"), "$0");
     }
 }

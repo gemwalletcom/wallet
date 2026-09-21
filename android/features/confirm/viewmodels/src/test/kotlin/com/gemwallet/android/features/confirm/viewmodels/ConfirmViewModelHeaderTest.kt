@@ -21,12 +21,12 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.job
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.job
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -36,8 +36,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemConfirmPhase
-import uniffi.gemstone.GemConfirmation
 import uniffi.gemstone.GemConfirmTransferService
+import uniffi.gemstone.GemConfirmation
 import uniffi.gemstone.GemTransferData
 import java.math.BigInteger
 
@@ -84,11 +84,11 @@ class ConfirmViewModelHeaderTest {
     }
 
     private fun viewModel(transfer: GemTransferData): ConfirmViewModel {
-        val confirmation = mockk<GemConfirmation>()
+        val confirmation = mockk<GemConfirmation> { every { rowContents(any()) } returns emptyList() }
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
         every { confirmation.insufficientNetworkFeeBuyAmount() } returns 10
         every { confirmation.screen() } returns mockGemConfirmScreen()
-        coEvery { confirmation.state() } returns mockGemConfirmLoad(asset)
+        coEvery { confirmation.state() } returns mockGemConfirmLoad(asset).copy(transfer = transfer)
         coEvery { confirmation.load(any()) } coAnswers { awaitCancellation() }
         every { confirmService.confirmation(any(), transfer, any()) } returns confirmation
         return ConfirmViewModel(
@@ -97,11 +97,14 @@ class ConfirmViewModelHeaderTest {
                     mockSession(wallet = mockWallet(accounts = listOf(account))),
                 )
             },
-            buildConfirmProperties = mockk(relaxed = true),
             confirmService = confirmService,
             savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transfer.pack()))),
+            connectionStatusObserver = mockk(relaxed = true),
             ioDispatcher = testDispatcher,
-            context = mockk<Context> { every { getString(any()) } returns "Error"; every { getString(any(), *anyVararg()) } returns "Error" },
+            context = mockk<Context> {
+                every { getString(any()) } returns "Error"
+                every { getString(any(), *anyVararg()) } returns "Error"
+            },
         )
     }
 }

@@ -3,12 +3,7 @@ use primitives::{Device, Wallet};
 pub fn subscriptions_signature(wallets: &[Wallet]) -> String {
     let mut entries: Vec<String> = wallets
         .iter()
-        .flat_map(|wallet| {
-            wallet
-                .accounts
-                .iter()
-                .map(move |account| format!("{}/{}/{}", wallet.id.id(), account.chain.as_ref(), account.address))
-        })
+        .flat_map(|wallet| wallet.accounts.iter().map(move |account| format!("{}/{}/{}", wallet.id.id(), account.chain.as_ref(), account.address)))
         .collect();
     entries.sort();
     entries.join(";")
@@ -61,26 +56,8 @@ mod tests {
         let remote = Device::mock();
 
         assert!(!device_changed(&remote, &remote.clone()));
-        assert!(device_changed(
-            &remote,
-            &Device {
-                currency: Currency::EUR,
-                ..remote.clone()
-            }
-        ));
-        assert!(device_changed(
-            &remote,
-            &Device {
-                subscriptions_version: 2,
-                ..remote.clone()
-            }
-        ));
-        assert!(!device_changed(
-            &remote,
-            &Device {
-                model: "Other".into(),
-                ..remote.clone()
-            }
-        ));
+        assert!(device_changed(&remote, &Device { currency: Currency::EUR, ..remote.clone() }));
+        assert!(device_changed(&remote, &Device { subscriptions_version: 2, ..remote.clone() }));
+        assert!(!device_changed(&remote, &Device { model: "Other".into(), ..remote.clone() }));
     }
 }

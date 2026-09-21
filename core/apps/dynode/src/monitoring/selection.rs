@@ -18,14 +18,8 @@ impl NodeSelectionPolicy {
         let current_index = configured_observations.iter().position(|observation| observation.url == *current)?;
         let current_observation = &configured_observations[current_index];
         let current_usable = current_observation.is_usable(latency_threshold);
-        let candidates = if current_usable {
-            &configured_observations[..current_index]
-        } else {
-            configured_observations
-        };
-        let candidate = candidates
-            .iter()
-            .find(|observation| observation.url != *current && observation.is_usable(latency_threshold))?;
+        let candidates = if current_usable { &configured_observations[..current_index] } else { configured_observations };
+        let candidate = candidates.iter().find(|observation| observation.url != *current && observation.is_usable(latency_threshold))?;
         let reason = switch_reason(current_observation, current_usable);
 
         Some(NodeSwitchResult { observation: candidate, reason })
@@ -75,10 +69,7 @@ mod tests {
 
     #[test]
     fn keeps_current_without_a_higher_priority_healthy_node() {
-        let configured = vec![
-            NodeStatusObservation::mock_healthy("https://a", 120, 100),
-            NodeStatusObservation::mock_healthy("https://b", 120, 50),
-        ];
+        let configured = vec![NodeStatusObservation::mock_healthy("https://a", 120, 100), NodeStatusObservation::mock_healthy("https://b", 120, 50)];
         assert!(NodeSelectionPolicy::select_node(&Url::mock("https://a"), &configured, None).is_none());
 
         let configured = vec![
@@ -88,27 +79,18 @@ mod tests {
         ];
         assert!(NodeSelectionPolicy::select_node(&Url::mock("https://b"), &configured, None).is_none());
 
-        let configured = vec![
-            NodeStatusObservation::mock_error("https://a", "unavailable"),
-            NodeStatusObservation::mock_error("https://b", "unavailable"),
-        ];
+        let configured = vec![NodeStatusObservation::mock_error("https://a", "unavailable"), NodeStatusObservation::mock_error("https://b", "unavailable")];
         assert!(NodeSelectionPolicy::select_node(&Url::mock("https://a"), &configured, None).is_none());
         assert!(NodeSelectionPolicy::select_node(&Url::mock("https://missing"), &configured, None).is_none());
     }
 
     #[test]
     fn reports_switch_reason() {
-        let configured = vec![
-            NodeStatusObservation::mock_not_in_sync("https://a", 100, 90, 100),
-            NodeStatusObservation::mock_healthy("https://b", 110, 500),
-        ];
+        let configured = vec![NodeStatusObservation::mock_not_in_sync("https://a", 100, 90, 100), NodeStatusObservation::mock_healthy("https://b", 110, 500)];
         let result = NodeSelectionPolicy::select_node(&Url::mock("https://a"), &configured, None).unwrap();
         assert_eq!(result.reason, NodeSwitchReason::BlockHeight);
 
-        let configured = vec![
-            NodeStatusObservation::mock_error("https://a", "connection failed"),
-            NodeStatusObservation::mock_healthy("https://b", 110, 500),
-        ];
+        let configured = vec![NodeStatusObservation::mock_error("https://a", "connection failed"), NodeStatusObservation::mock_healthy("https://b", 110, 500)];
         let result = NodeSelectionPolicy::select_node(&Url::mock("https://a"), &configured, None).unwrap();
         assert_eq!(
             result.reason,
@@ -118,20 +100,14 @@ mod tests {
             }
         );
 
-        let configured = vec![
-            NodeStatusObservation::mock_healthy("https://a", 110, 500),
-            NodeStatusObservation::mock_healthy("https://b", 110, 100),
-        ];
+        let configured = vec![NodeStatusObservation::mock_healthy("https://a", 110, 500), NodeStatusObservation::mock_healthy("https://b", 110, 100)];
         let result = NodeSelectionPolicy::select_node(&Url::mock("https://b"), &configured, None).unwrap();
         assert_eq!(result.reason, NodeSwitchReason::PreferredNode);
     }
 
     #[test]
     fn treats_slow_current_node_as_switch_candidate() {
-        let configured = vec![
-            NodeStatusObservation::mock_healthy("https://a", 120, 1200),
-            NodeStatusObservation::mock_healthy("https://b", 120, 300),
-        ];
+        let configured = vec![NodeStatusObservation::mock_healthy("https://a", 120, 1200), NodeStatusObservation::mock_healthy("https://b", 120, 300)];
 
         let result = NodeSelectionPolicy::select_node(&Url::mock("https://a"), &configured, Some(Duration::from_secs(1))).unwrap();
 
@@ -141,10 +117,7 @@ mod tests {
 
     #[test]
     fn does_not_select_slow_candidate() {
-        let configured = vec![
-            NodeStatusObservation::mock_healthy("https://a", 120, 1200),
-            NodeStatusObservation::mock_healthy("https://b", 120, 1100),
-        ];
+        let configured = vec![NodeStatusObservation::mock_healthy("https://a", 120, 1200), NodeStatusObservation::mock_healthy("https://b", 120, 1100)];
 
         assert!(NodeSelectionPolicy::select_node(&Url::mock("https://a"), &configured, Some(Duration::from_secs(1))).is_none());
     }

@@ -1,40 +1,34 @@
 package com.gemwallet.android.data.services.gemstone.config
 
-import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.ext.chainIds
-import com.gemwallet.android.ext.toGem
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.gemwallet.android.data.service.store.ConfigStore
+import com.gemwallet.android.ext.chainIds
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPreferencesServiceInterface
 import uniffi.gemstone.GemSecureStore
 import uniffi.gemstone.lockPeriodFromMinutes
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.onStart
 
 private val Context.dataStore by preferencesDataStore(name = "user_config")
 
-class UserConfig(
-    private val context: Context,
-    private val configStore: ConfigStore,
-    private val preferencesService: GemPreferencesServiceInterface,
-    private val secureStore: GemSecureStore,
-) {
+class UserConfig(private val context: Context, private val configStore: ConfigStore, private val preferencesService: GemPreferencesServiceInterface, private val secureStore: GemSecureStore) {
 
-    fun authRequired(): Boolean =
-        secureStore.get(SecureKey.Auth.string)?.toBooleanStrictOrNull() ?: configStore.getBoolean(ConfigKey.Auth.string)
+    fun authRequired(): Boolean = secureStore.get(SecureKey.Auth.string)?.toBooleanStrictOrNull() ?: configStore.getBoolean(ConfigKey.Auth.string)
 
     fun setAuthRequired(enabled: Boolean) {
         secureStore.set(SecureKey.Auth.string, enabled.toString())
@@ -55,16 +49,13 @@ class UserConfig(
 
     fun showPerpetuals(wallet: Wallet): Boolean = preferencesService.showPerpetuals(wallet.type.toGem(), wallet.chainIds)
 
-
-
-
     private val hideBalancesState = MutableStateFlow(preferencesService.isHideBalanceEnabled())
     private val perpetualEnabledState = MutableStateFlow(preferencesService.isPerpetualEnabled())
     private val appearanceState = MutableStateFlow(preferencesService.getAppearance().toPrimitives())
     private val termsAcceptedState = MutableStateFlow(preferencesService.isAcceptTermsCompleted())
     private val askNotificationsState = MutableStateFlow(preferencesService.shouldAskNotifications())
     private val lockIntervalState = MutableStateFlow(
-        secureStore.get(SecureKey.LockInterval.string)?.toIntOrNull() ?: lockPeriodFromMinutes(null).minutes().toInt()
+        secureStore.get(SecureKey.LockInterval.string)?.toIntOrNull() ?: lockPeriodFromMinutes(null).minutes().toInt(),
     )
 
     fun isHideBalances(): Flow<Boolean> = hideBalancesState
@@ -124,8 +115,7 @@ class UserConfig(
         askNotificationsState.value = preferencesService.shouldAskNotifications()
     }
 
-    private fun <T> read(key: Preferences.Key<T>, default: T): Flow<T> =
-        context.dataStore.data.map { it[key] ?: default }
+    private fun <T> read(key: Preferences.Key<T>, default: T): Flow<T> = context.dataStore.data.map { it[key] ?: default }
 
     private suspend fun <T> write(key: Preferences.Key<T>, value: T) {
         context.dataStore.edit { it[key] = value }
@@ -133,13 +123,11 @@ class UserConfig(
 
     private enum class ConfigKey(val string: String) {
         Auth("auth"),
-        ;
     }
 
     private enum class SecureKey(val string: String) {
         Auth("auth_required"),
         LockInterval("lock_interval"),
-        ;
     }
 
     private object Key {

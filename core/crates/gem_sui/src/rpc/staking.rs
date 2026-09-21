@@ -7,8 +7,8 @@ use sui_types::Address;
 use super::client::{PATH_LIST_OWNED_OBJECTS, PATH_SIMULATE_TRANSACTION, SuiClient};
 use super::mapper::timestamp_millis;
 use super::proto::{
-    self as proto, Argument, FieldMask, Input, ListOwnedObjectsRequest, ListOwnedObjectsResponse, MoveCall, ProgrammableTransaction, SimulateTransactionRequest,
-    SimulateTransactionResponse, Transaction as GrpcTransaction, TransactionChecks, TransactionKind, WithMut,
+    self as proto, Argument, FieldMask, Input, ListOwnedObjectsRequest, ListOwnedObjectsResponse, MoveCall, ProgrammableTransaction, SimulateTransactionRequest, SimulateTransactionResponse, Transaction as GrpcTransaction,
+    TransactionChecks, TransactionKind, WithMut,
 };
 use crate::models::staking::{SuiStake, SuiStakeDelegation, SuiStakeStatus, SuiSystemState, SuiValidator, SuiValidators};
 use crate::{SUI_SYSTEM_ID, sui_system_package_address, sui_system_state_object_id};
@@ -122,13 +122,7 @@ impl SuiClient {
     async fn create_delegated_stakes(&self, objects: Vec<proto::Object>) -> Result<Vec<DelegatedStake>, Box<dyn Error + Send + Sync>> {
         let staked_sui = objects
             .into_iter()
-            .map(|object| {
-                object
-                    .contents
-                    .ok_or("missing Sui staked object contents")?
-                    .deserialize::<StakedSuiObject>()
-                    .map_err(|error| error.into())
-            })
+            .map(|object| object.contents.ok_or("missing Sui staked object contents")?.deserialize::<StakedSuiObject>().map_err(|error| error.into()))
             .collect::<Result<Vec<_>, Box<dyn Error + Send + Sync>>>()?;
         if staked_sui.is_empty() {
             return Ok(Vec::new());
@@ -209,11 +203,7 @@ impl SuiClient {
             .iter()
             .zip(response.command_outputs)
             .map(|(id, output)| {
-                let address = output
-                    .return_values
-                    .first()
-                    .and_then(|value| value.value.as_ref())
-                    .ok_or("missing Sui validator address BCS value")?;
+                let address = output.return_values.first().and_then(|value| value.value.as_ref()).ok_or("missing Sui validator address BCS value")?;
                 if address.name.as_deref() != Some("address") || address.value.as_ref().map(|value| value.len()) != Some(Address::LENGTH) {
                     return Err("invalid Sui validator address BCS value".into());
                 }
@@ -245,13 +235,7 @@ impl SuiClient {
 }
 
 fn map_validator_apys(epochs: &[proto::Epoch]) -> Result<SuiValidators, Box<dyn Error + Send + Sync>> {
-    let latest_validators = epochs
-        .first()
-        .ok_or("missing Sui epoch")?
-        .system_state
-        .as_ref()
-        .and_then(|state| state.validators.as_ref())
-        .ok_or("missing Sui validators")?;
+    let latest_validators = epochs.first().ok_or("missing Sui epoch")?.system_state.as_ref().and_then(|state| state.validators.as_ref()).ok_or("missing Sui validators")?;
 
     let apys = latest_validators
         .active_validators
@@ -300,11 +284,7 @@ mod tests {
 
     #[test]
     fn test_map_validator_apys_from_grpc_epoch_snapshots() {
-        let validators = map_validator_apys(&[
-            proto::Epoch::mock_with_validator_rate(100, 1.0),
-            proto::Epoch::mock_with_validator_rate(99, (1.0 + APY).powf(1.0 / 365.0)),
-        ])
-        .unwrap();
+        let validators = map_validator_apys(&[proto::Epoch::mock_with_validator_rate(100, 1.0), proto::Epoch::mock_with_validator_rate(99, (1.0 + APY).powf(1.0 / 365.0))]).unwrap();
 
         assert_eq!(validators.apys.len(), 1);
         assert_eq!(validators.apys[0].address, TEST_VALIDATOR_ADDRESS);

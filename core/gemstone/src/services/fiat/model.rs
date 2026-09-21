@@ -1,7 +1,7 @@
 use super::rules;
 use crate::formatted_number::GemFormattedNumber;
 use crate::services::swap::GemAssetRate;
-use primitives::{FiatProviderName, FiatTransactionStatus};
+use primitives::{FiatProviderName, FiatQuoteType, FiatTransactionAssetData, FiatTransactionStatus};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemFiatAmountCheck {
@@ -12,14 +12,26 @@ pub enum GemFiatAmountCheck {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemFiatSuggestedAmount {
+    pub amount: u32,
+    pub value: GemFormattedNumber,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemFiatQuoteRow {
     pub quote_id: String,
     pub provider: FiatProviderName,
     pub provider_name: String,
-    pub provider_image_url: Option<String>,
     pub crypto_amount: GemFormattedNumber,
     pub fiat_amount: GemFormattedNumber,
     pub rate: Option<GemAssetRate>,
+}
+
+#[uniffi::export]
+impl GemFiatQuoteRow {
+    pub fn crypto_estimate_text(&self, formatted_value: String) -> String {
+        format!("≈ {formatted_value}")
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -32,6 +44,23 @@ pub enum GemFiatTransactionBadge {
 pub struct GemFiatTransactionStatus {
     pub badge: Option<GemFiatTransactionBadge>,
     pub is_dimmed: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemFiatTransactionRow {
+    pub quote_type: FiatQuoteType,
+    pub provider: FiatProviderName,
+    pub subtitle: String,
+    pub value: GemFormattedNumber,
+    pub fiat_value: GemFormattedNumber,
+    pub badge: Option<GemFiatTransactionBadge>,
+    pub is_dimmed: bool,
+    pub details_url: Option<String>,
+}
+
+#[uniffi::export]
+pub fn fiat_transaction_row(data: FiatTransactionAssetData) -> GemFiatTransactionRow {
+    rules::transaction_row(&data)
 }
 
 #[uniffi::export]

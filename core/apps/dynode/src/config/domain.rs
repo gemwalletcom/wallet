@@ -33,10 +33,7 @@ impl ChainConfig {
         };
 
         for override_config in overrides {
-            let rpc_matches = override_config
-                .rpc_method
-                .as_ref()
-                .is_none_or(|override_method| Some(override_method.as_str()) == rpc_method);
+            let rpc_matches = override_config.rpc_method.as_ref().is_none_or(|override_method| Some(override_method.as_str()) == rpc_method);
 
             let path_matches = override_config.path.as_ref().is_none_or(|override_path| Some(override_path.as_str()) == request_path);
 
@@ -132,10 +129,7 @@ mod tests {
             ..ChainConfig::mock(Chain::Ethereum)
         };
         let base_url = Url::mock("https://example.com/rpc");
-        assert_eq!(
-            chain_config.resolve_url(&base_url, Some("eth_sendTransaction"), None).url,
-            "https://tx-relay.example.com/tx/submit"
-        );
+        assert_eq!(chain_config.resolve_url(&base_url, Some("eth_sendTransaction"), None).url, "https://tx-relay.example.com/tx/submit");
     }
 
     #[test]
@@ -163,10 +157,7 @@ mod tests {
             ..ChainConfig::mock(Chain::Ethereum)
         };
         let base_url = Url::mock("https://example.com/rpc");
-        assert_eq!(
-            chain_config.resolve_url(&base_url, Some("eth_blockNumber"), None).url,
-            "https://fallback.example.com/v2/rpc"
-        );
+        assert_eq!(chain_config.resolve_url(&base_url, Some("eth_blockNumber"), None).url, "https://fallback.example.com/v2/rpc");
     }
 
     #[test]

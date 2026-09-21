@@ -17,26 +17,12 @@ impl<C: Transport + Clone> Client<C> {
     }
 
     pub async fn get_transactions(&self, address: &str, limit: usize) -> Result<Vec<Transaction>, JsonRpcError> {
-        let response: Transactions = self
-            .client
-            .request(AnkrRpc::TransactionsByAddress {
-                address,
-                network: self.network,
-                limit,
-            })
-            .await?;
+        let response: Transactions = self.client.request(AnkrRpc::TransactionsByAddress { address, network: self.network, limit }).await?;
         Ok(response.transactions)
     }
 
     pub async fn get_token_transfers(&self, address: &str, limit: usize) -> Result<Vec<TokenTransfer>, JsonRpcError> {
-        let response: TokenTransfers = self
-            .client
-            .request(AnkrRpc::TokenTransfers {
-                address,
-                network: self.network,
-                limit,
-            })
-            .await?;
+        let response: TokenTransfers = self.client.request(AnkrRpc::TokenTransfers { address, network: self.network, limit }).await?;
         Ok(response.transfers)
     }
 

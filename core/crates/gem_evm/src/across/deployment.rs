@@ -56,16 +56,10 @@ impl AcrossDeployment {
             Chain::Plasma => PLASMA_ACROSS_MULTICALL_HANDLER_CONTRACT,
             Chain::Robinhood => ROBINHOOD_ACROSS_MULTICALL_HANDLER_CONTRACT,
             Chain::Arc => ARC_ACROSS_MULTICALL_HANDLER_CONTRACT,
-            Chain::Ethereum | Chain::Arbitrum | Chain::Base | Chain::Optimism | Chain::Polygon | Chain::World | Chain::Ink | Chain::Unichain | Chain::Tron => {
-                ETHEREUM_ACROSS_MULTICALL_HANDLER_CONTRACT
-            }
+            Chain::Ethereum | Chain::Arbitrum | Chain::Base | Chain::Optimism | Chain::Polygon | Chain::World | Chain::Ink | Chain::Unichain | Chain::Tron => ETHEREUM_ACROSS_MULTICALL_HANDLER_CONTRACT,
             _ => return None,
         };
-        Some(Self {
-            chain_id,
-            spoke_pool,
-            multicall_handler,
-        })
+        Some(Self { chain_id, spoke_pool, multicall_handler })
     }
 
     pub fn multicall_handler(&self) -> &'static str {
@@ -74,22 +68,10 @@ impl AcrossDeployment {
 
     pub fn supported_assets() -> HashMap<Chain, Vec<AssetId>> {
         HashMap::from([
-            (
-                Chain::Ethereum,
-                vec![ETHEREUM_USDC_ASSET_ID.clone(), ETHEREUM_USDT_ASSET_ID.clone(), ETHEREUM_WETH_ASSET_ID.clone()],
-            ),
-            (
-                Chain::Optimism,
-                vec![OPTIMISM_USDT_ASSET_ID.clone(), OPTIMISM_USDC_ASSET_ID.clone(), OPTIMISM_WETH_ASSET_ID.clone()],
-            ),
-            (
-                Chain::Polygon,
-                vec![POLYGON_USDC_ASSET_ID.clone(), POLYGON_USDT_ASSET_ID.clone(), POLYGON_WETH_ASSET_ID.clone()],
-            ),
-            (
-                Chain::Arbitrum,
-                vec![ARBITRUM_USDT_ASSET_ID.clone(), ARBITRUM_USDC_ASSET_ID.clone(), ARBITRUM_WETH_ASSET_ID.clone()],
-            ),
+            (Chain::Ethereum, vec![ETHEREUM_USDC_ASSET_ID.clone(), ETHEREUM_USDT_ASSET_ID.clone(), ETHEREUM_WETH_ASSET_ID.clone()]),
+            (Chain::Optimism, vec![OPTIMISM_USDT_ASSET_ID.clone(), OPTIMISM_USDC_ASSET_ID.clone(), OPTIMISM_WETH_ASSET_ID.clone()]),
+            (Chain::Polygon, vec![POLYGON_USDC_ASSET_ID.clone(), POLYGON_USDT_ASSET_ID.clone(), POLYGON_WETH_ASSET_ID.clone()]),
+            (Chain::Arbitrum, vec![ARBITRUM_USDT_ASSET_ID.clone(), ARBITRUM_USDC_ASSET_ID.clone(), ARBITRUM_WETH_ASSET_ID.clone()]),
             (Chain::Base, vec![BASE_WETH_ASSET_ID.clone(), BASE_USDC_ASSET_ID.clone()]),
             (Chain::AvalancheC, vec![AVALANCHE_USDC_ASSET_ID.clone(), AVALANCHE_USDT_ASSET_ID.clone()]),
             (Chain::Hyperliquid, vec![HYPEREVM_USDC_ASSET_ID.clone(), HYPEREVM_USDT_ASSET_ID.clone()]),
@@ -283,12 +265,7 @@ impl AcrossDeployment {
                     cutoff: EtherConv::parse_ether("1000000"),
                     decimals: 18,
                 },
-                set: HashSet::from_iter([
-                    ARBITRUM_ACX_ASSET_ID.clone(),
-                    ETHEREUM_ACX_ASSET_ID.clone(),
-                    OPTIMISM_ACX_ASSET_ID.clone(),
-                    POLYGON_ACX_ASSET_ID.clone(),
-                ]),
+                set: HashSet::from_iter([ARBITRUM_ACX_ASSET_ID.clone(), ETHEREUM_ACX_ASSET_ID.clone(), OPTIMISM_ACX_ASSET_ID.clone(), POLYGON_ACX_ASSET_ID.clone()]),
             },
         ]
     }
@@ -300,9 +277,7 @@ mod tests {
     use primitives::{
         Chain,
         asset_constants::{ARC_USDC_TOKEN_ID, ROBINHOOD_USDG_ASSET_ID, ROBINHOOD_WETH_ASSET_ID},
-        contract_constants::{
-            ARC_ACROSS_MULTICALL_HANDLER_CONTRACT, ARC_ACROSS_SPOKE_POOL_CONTRACT, ROBINHOOD_ACROSS_MULTICALL_HANDLER_CONTRACT, ROBINHOOD_ACROSS_SPOKE_POOL_CONTRACT,
-        },
+        contract_constants::{ARC_ACROSS_MULTICALL_HANDLER_CONTRACT, ARC_ACROSS_SPOKE_POOL_CONTRACT, ROBINHOOD_ACROSS_MULTICALL_HANDLER_CONTRACT, ROBINHOOD_ACROSS_SPOKE_POOL_CONTRACT},
     };
 
     #[test]
@@ -311,10 +286,7 @@ mod tests {
         assert_eq!(deployment.chain_id, 4663);
         assert_eq!(deployment.spoke_pool, ROBINHOOD_ACROSS_SPOKE_POOL_CONTRACT);
         assert_eq!(deployment.multicall_handler(), ROBINHOOD_ACROSS_MULTICALL_HANDLER_CONTRACT);
-        assert_eq!(
-            AcrossDeployment::supported_assets().get(&Chain::Robinhood),
-            Some(&vec![ROBINHOOD_WETH_ASSET_ID.clone(), ROBINHOOD_USDG_ASSET_ID.clone()])
-        );
+        assert_eq!(AcrossDeployment::supported_assets().get(&Chain::Robinhood), Some(&vec![ROBINHOOD_WETH_ASSET_ID.clone(), ROBINHOOD_USDG_ASSET_ID.clone()]));
     }
 
     #[test]
@@ -324,9 +296,6 @@ mod tests {
         assert_eq!(deployment.spoke_pool, ARC_ACROSS_SPOKE_POOL_CONTRACT);
         assert_eq!(deployment.multicall_handler(), ARC_ACROSS_MULTICALL_HANDLER_CONTRACT);
         assert_eq!(AcrossDeployment::supported_assets().get(&Chain::Arc), Some(&vec![]));
-        assert_eq!(
-            AcrossDeployment::supported_asset_for_token(Chain::Arc, ARC_USDC_TOKEN_ID.parse().unwrap()),
-            Some(Chain::Arc.as_asset_id())
-        );
+        assert_eq!(AcrossDeployment::supported_asset_for_token(Chain::Arc, ARC_USDC_TOKEN_ID.parse().unwrap()), Some(Chain::Arc.as_asset_id()));
     }
 }

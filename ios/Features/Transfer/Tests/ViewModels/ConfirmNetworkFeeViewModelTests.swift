@@ -70,7 +70,7 @@ struct ConfirmNetworkFeeViewModelTests {
         let pathUSD = FeeAssetItem.mock(asset: .mockTempoPathUSD())
         let usdc = FeeAssetItem.mock(asset: .mockTempoUSDC())
         let model = ConfirmNetworkFeeViewModel(
-            feeRow: .unavailable,
+            feeRow: .unavailable(text: "-"),
             feeModel: .mock(
                 feeAsset: pathUSD.asset,
                 feeAssetPrice: .mock(price: 1),

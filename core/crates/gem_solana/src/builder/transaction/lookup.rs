@@ -18,11 +18,7 @@ impl LoadedAccounts {
     }
 
     pub(super) fn push(&mut self, account: AccountMeta, (table_index, entry_index): (usize, u8)) {
-        let accounts = if account.is_writable {
-            &mut self.writable[table_index]
-        } else {
-            &mut self.readonly[table_index]
-        };
+        let accounts = if account.is_writable { &mut self.writable[table_index] } else { &mut self.readonly[table_index] };
         accounts.push((account.pubkey, entry_index));
     }
 

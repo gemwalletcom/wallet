@@ -114,6 +114,6 @@ fun DbBalance.toDTO(): AssetBalance? {
             energyTotal = energyTotal.toUInt(),
             bandwidthAvailable = bandwidthAvailable.toUInt(),
             bandwidthTotal = bandwidthTotal.toUInt(),
-        )
+        ),
     )
 }

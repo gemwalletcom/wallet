@@ -33,19 +33,20 @@ struct CollectibleViewModelTests {
             collection: .mock(
                 contractAddress: "0x47A00fC8590C11bE4c419D9Ae50DEc267B6E24ee",
                 status: .unverified,
-                links: [AssetLink(name: "Website", url: "https://example.com")],
+                links: [AssetLink(name: "website", url: "https://example.com")],
             ),
             asset: .mock(tokenId: "11871", chain: .ethereum, attributes: [NFTAttribute(name: "Color", value: "Blue", percentage: nil)]),
         ))
         let sections = model.sections
 
         #expect(sections.count == 4)
-        guard case let .info(rows) = sections[1], case let .tokenId(identifier) = try #require(rows.last) else {
+        guard case let .info(rows) = sections[1], case let .identifier(title, copy, explorer) = try #require(rows.last) else {
             Issue.record("expected the token id row to close the info section")
             return
         }
-        #expect(identifier.text == "#11871")
-        #expect(identifier.explorer?.link == "https://etherscan.io/nft/0x47A00fC8590C11bE4c419D9Ae50DEc267B6E24ee/11871")
+        #expect(title == .tokenId)
+        #expect(copy.display == "#11871")
+        #expect(explorer?.link == "https://etherscan.io/nft/0x47A00fC8590C11bE4c419D9Ae50DEc267B6E24ee/11871")
     }
 
     @Test

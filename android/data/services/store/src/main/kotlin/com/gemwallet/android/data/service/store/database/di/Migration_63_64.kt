@@ -34,7 +34,7 @@ class Migration_63_64(context: Context, private val passwordStore: PasswordStore
         }
         walletsCursor.close()
 
-        val accountsCursor = db.query("SELECT wallet_id, address, chain FROM accounts",)
+        val accountsCursor = db.query("SELECT wallet_id, address, chain FROM accounts")
         while (accountsCursor.moveToNext()) {
             val walletId = accountsCursor.getString(0)
             val address = accountsCursor.getString(1)
@@ -43,7 +43,7 @@ class Migration_63_64(context: Context, private val passwordStore: PasswordStore
             val account = Account(
                 chain = chain,
                 address = address,
-                derivationPath = ""
+                derivationPath = "",
             )
             accounts[walletId]?.add(account) ?: accounts.put(walletId, mutableListOf(account))
         }
@@ -93,7 +93,7 @@ class Migration_63_64(context: Context, private val passwordStore: PasswordStore
         val sessionCursor = db.query("SELECT wallet_id FROM session WHERE id = 1")
         val sessionWalletId: String? = if (sessionCursor.moveToNext()) {
             val walletId = sessionCursor.getString(0)
-            newWalletIds.firstNotNullOfOrNull {  entry -> entry.takeIf { it.value == walletId }?.key } ?: newWalletIds.keys.firstOrNull()
+            newWalletIds.firstNotNullOfOrNull { entry -> entry.takeIf { it.value == walletId }?.key } ?: newWalletIds.keys.firstOrNull()
         } else {
             newWalletIds.keys.firstOrNull()
         }

@@ -93,10 +93,7 @@ impl ConfigCacher {
     where
         T: Copy + Eq + Hash,
     {
-        values
-            .into_iter()
-            .map(|value| self.get_param_duration(&key(value)).map(|duration| (value, duration)))
-            .collect()
+        values.into_iter().map(|value| self.get_param_duration(&key(value)).map(|duration| (value, duration))).collect()
     }
 
     pub fn get_param_usize(&self, param: &ConfigParamKey) -> Result<usize, DatabaseError> {
@@ -110,9 +107,7 @@ impl ConfigCacher {
 
     pub fn get_datetime(&self, key: ConfigKey) -> Result<NaiveDateTime, DatabaseError> {
         let ts = self.get_i64(key)?;
-        DateTime::from_timestamp(ts, 0)
-            .map(|dt| dt.naive_utc())
-            .ok_or_else(|| DatabaseError::Error(format!("Invalid timestamp: {}", ts)))
+        DateTime::from_timestamp(ts, 0).map(|dt| dt.naive_utc()).ok_or_else(|| DatabaseError::Error(format!("Invalid timestamp: {}", ts)))
     }
 
     pub fn set_datetime(&self, key: ConfigKey, time: NaiveDateTime) -> Result<usize, DatabaseError> {

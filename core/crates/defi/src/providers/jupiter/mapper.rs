@@ -3,9 +3,7 @@ use std::error::Error;
 
 use ::jupiter::{PortfolioAsset, PortfolioElement, PositionsResponse, TokenInfo};
 use number_formatter::BigNumberFormatter;
-use primitives::{
-    AssetId, Chain, DefiPosition, DefiPositionAsset, DefiPositionMetadata, DefiPositionType, DefiProtocol, DefiProvider, contract_constants::SOLANA_WRAPPED_SOL_TOKEN_ADDRESS,
-};
+use primitives::{AssetId, Chain, DefiPosition, DefiPositionAsset, DefiPositionMetadata, DefiPositionType, DefiProtocol, DefiProvider, contract_constants::SOLANA_WRAPPED_SOL_TOKEN_ADDRESS};
 
 type TokenInfoByAddress = HashMap<String, TokenInfo>;
 
@@ -14,11 +12,7 @@ pub fn map_positions(response: PositionsResponse) -> Result<Vec<DefiPosition>, B
         return Ok(Vec::new());
     }
 
-    let token_info = response
-        .token_info
-        .as_ref()
-        .and_then(|token_info| token_info.get(Chain::Solana.as_ref()))
-        .ok_or("Missing Jupiter Solana token info")?;
+    let token_info = response.token_info.as_ref().and_then(|token_info| token_info.get(Chain::Solana.as_ref())).ok_or("Missing Jupiter Solana token info")?;
 
     response.elements.into_iter().enumerate().try_fold(Vec::new(), |mut positions, (index, element)| {
         positions.extend(map_element_positions(element, token_info, index)?);
@@ -118,10 +112,7 @@ fn map_assets<'a>(assets: impl Iterator<Item = &'a PortfolioAsset>, token_info: 
 fn map_asset(asset: &PortfolioAsset, token_info: &TokenInfoByAddress) -> Result<DefiPositionAsset, Box<dyn Error + Send + Sync>> {
     let address = asset.data.address.as_ref().ok_or("Missing Jupiter asset address")?;
     let amount = asset.data.amount.as_ref().ok_or("Missing Jupiter asset amount")?;
-    let decimals = token_info
-        .get(address)
-        .map(|token_info| token_info.decimals)
-        .ok_or_else(|| format!("Missing Jupiter token info for asset {address}"))?;
+    let decimals = token_info.get(address).map(|token_info| token_info.decimals).ok_or_else(|| format!("Missing Jupiter token info for asset {address}"))?;
 
     Ok(DefiPositionAsset {
         asset_id: map_asset_id(address),
@@ -145,10 +136,7 @@ fn push_position(positions: &mut Vec<DefiPosition>, id: String, platform_id: &st
         id,
         provider: DefiProvider::Jupiter,
         chain: Chain::Solana,
-        protocol_info: DefiProtocol {
-            name: platform_id.to_string(),
-            url: None,
-        },
+        protocol_info: DefiProtocol { name: platform_id.to_string(), url: None },
         name,
         position_type,
         metadata: DefiPositionMetadata { apy: None },
@@ -157,10 +145,7 @@ fn push_position(positions: &mut Vec<DefiPosition>, id: String, platform_id: &st
 }
 
 fn position_id(platform_id: &str, label: &str, name: Option<&str>, reference: Option<&str>, index: usize) -> String {
-    let value = reference
-        .or(name)
-        .map(|value| format!("{platform_id}-{label}-{value}"))
-        .unwrap_or_else(|| format!("{platform_id}-{label}-{index}"));
+    let value = reference.or(name).map(|value| format!("{platform_id}-{label}-{value}")).unwrap_or_else(|| format!("{platform_id}-{label}-{index}"));
     value.replace(' ', "-").to_lowercase()
 }
 
@@ -194,10 +179,7 @@ mod tests {
         assert_eq!(positions[0].protocol_info.name, "jupiter-governance");
         assert_eq!(positions[0].name, "JUP Staked");
         assert_eq!(positions[0].position_type, DefiPositionType::Staking);
-        assert_eq!(
-            positions[0].assets[0].asset_id,
-            AssetId::from_token(Chain::Solana, "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN")
-        );
+        assert_eq!(positions[0].assets[0].asset_id, AssetId::from_token(Chain::Solana, "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN"));
         assert_eq!(positions[0].assets[0].value, BigUint::from(1250000000u64));
 
         assert_eq!(positions[1].id, "jupiter-exchange-liquiditypool-liquidity-position");

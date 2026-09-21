@@ -13,10 +13,10 @@ import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,7 +41,6 @@ import com.gemwallet.android.ui.theme.WindowDimension
 import com.gemwallet.android.ui.theme.isCompactDimension
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.sceneContentPadding
-
 import com.gemwallet.android.ui.theme.space0
 enum class MainActionWidth {
     Constrained,
@@ -64,7 +63,7 @@ fun Scene(
             start = sceneContentPadding(),
             top = paddingDefault,
             end = sceneContentPadding(),
-            bottom = paddingDefault
+            bottom = paddingDefault,
         )
     },
     mainActionWidth: MainActionWidth = MainActionWidth.Constrained,
@@ -118,7 +117,7 @@ fun Scene(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             Box(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 CenterAlignedTopAppBar(
                     title = titleContent,
@@ -149,7 +148,7 @@ fun Scene(
                     WindowInsets.systemBars
                         .union(WindowInsets.displayCutout)
                         .union(WindowInsets.keyboard)
-                        .only(WindowInsetsSides.Bottom)
+                        .only(WindowInsetsSides.Bottom),
                 ),
             ) {
                 ConnectionStatusBannerHost()
@@ -166,9 +165,9 @@ fun Scene(
                                     when (mainActionWidth) {
                                         MainActionWidth.FillWidth -> Modifier.fillMaxWidth()
                                         MainActionWidth.Constrained -> Modifier.widthIn(max = SceneSizing.buttonMaxWidth)
-                                    }
+                                    },
                                 )
-                                .padding(mainActionPadding)
+                                .padding(mainActionPadding),
                         ) {
                             mainAction()
                         }
@@ -180,7 +179,7 @@ fun Scene(
             if (snackbar != null) {
                 SnackbarHost(snackbar)
             }
-        }
+        },
     ) { paddingValues ->
         Box(
             modifier = Modifier

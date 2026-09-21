@@ -89,12 +89,7 @@ mod tests {
         }
 
         let input = "allowlist:\n  - path: /chains\n    method: GET\n";
-        let wrapper = Config::builder()
-            .add_source(File::from_str(input, FileFormat::Yaml))
-            .build()
-            .unwrap()
-            .try_deserialize::<Wrapper>()
-            .unwrap();
+        let wrapper = Config::builder().add_source(File::from_str(input, FileFormat::Yaml)).build().unwrap().try_deserialize::<Wrapper>().unwrap();
 
         assert!(wrapper.allowlist.allows("GET", "/chains"));
         assert!(!wrapper.allowlist.allows("GET", "/other"));

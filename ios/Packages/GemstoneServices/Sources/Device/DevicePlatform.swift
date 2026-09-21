@@ -2,8 +2,8 @@
 
 import Foundation
 import enum Gemstone.Currency
-import class Gemstone.GemDeviceKeyService
 import struct Gemstone.GemDeviceInfo
+import protocol Gemstone.GemDeviceKeyServiceProtocol
 import protocol Gemstone.GemDevicePlatform
 import protocol Gemstone.GemPreferencesServiceProtocol
 import GemstonePrimitives
@@ -21,7 +21,7 @@ public final class GemstoneDevicePlatform: GemDevicePlatform, @unchecked Sendabl
     }
 
     private let preferencesService: any GemPreferencesServiceProtocol
-    private let deviceKeyService: GemDeviceKeyService
+    private let deviceKeyService: any GemDeviceKeyServiceProtocol
     private let keychain: any Keychain
     private let os: String
     private let model: String
@@ -29,7 +29,7 @@ public final class GemstoneDevicePlatform: GemDevicePlatform, @unchecked Sendabl
     @MainActor
     public init(
         preferencesService: any GemPreferencesServiceProtocol,
-        deviceKeyService: GemDeviceKeyService,
+        deviceKeyService: any GemDeviceKeyServiceProtocol,
         keychain: any Keychain = KeychainDefault(),
     ) {
         self.preferencesService = preferencesService

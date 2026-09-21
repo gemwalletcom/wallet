@@ -23,16 +23,16 @@ class DbAssetInfoTest {
     }
 
     @Test
-    fun toDTO_usesNonNegativeRankForEnabledFlag() {
-        val hidden = mockDbAssetInfo(
-            assetRank = -1,
+    fun toDTO_readsTheStoredEnabledFlag() {
+        val disabled = mockDbAssetInfo(
+            isEnabled = false,
             visible = false,
         ).toDTO()
-        val visible = mockDbAssetInfo(assetRank = 0).toDTO()
+        val enabled = mockDbAssetInfo(assetRank = -1).toDTO()
 
-        assertEquals(false, hidden?.metadata?.isEnabled)
-        assertEquals(false, hidden?.metadata?.isBalanceEnabled)
-        assertEquals(true, visible?.metadata?.isEnabled)
+        assertEquals(false, disabled?.metadata?.isEnabled)
+        assertEquals(false, disabled?.metadata?.isBalanceEnabled)
+        assertEquals(true, enabled?.metadata?.isEnabled)
     }
 
     @Test

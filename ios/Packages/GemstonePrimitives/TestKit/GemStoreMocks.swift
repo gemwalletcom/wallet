@@ -3,11 +3,11 @@
 import BigInt
 import Foundation
 import Gemstone
+import enum Gemstone.GemNameInputStep
+import struct Gemstone.GemPriceAlertSession
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
-import struct Gemstone.GemPriceAlertSession
-import enum Gemstone.GemNameInputStep
 
 public final class GemSecureStoreMock: GemSecureStore, @unchecked Sendable {
     private var values: [String: String] = [:]
@@ -30,7 +30,9 @@ public final class GemSecureStoreMock: GemSecureStore, @unchecked Sendable {
 public final class GemNodeStoreMock: GemNodeStore, @unchecked Sendable {
     public init() {}
 
-    public func getNodes(chain _: Gemstone.Chain) async throws -> [Gemstone.Node] { [] }
+    public func getNodes(chain _: Gemstone.Chain) async throws -> [Gemstone.Node] {
+        []
+    }
 
     public func addNode(chain _: Gemstone.Chain, node _: Gemstone.Node) async throws {}
 
@@ -72,7 +74,6 @@ public final class StubAlienProvider: AlienProvider, @unchecked Sendable {
     public func request(target _: AlienTarget) async throws -> AlienResponse {
         throw AnyError("StubAlienProvider does not perform requests")
     }
-
 }
 
 public final class GemContactStoreMock: GemContactStore, @unchecked Sendable {
@@ -96,7 +97,7 @@ public final class GemAddressStoreMock: GemAddressStore, @unchecked Sendable {
         nil
     }
 
-    public func saveAddressNames(names _: [Gemstone.AddressName]) async throws {}
+    public func saveAddressNames(updates _: [GemAddressNameUpdate]) async throws {}
 
     public func deleteAddressNames(names _: [Gemstone.AddressName]) async throws {}
 }

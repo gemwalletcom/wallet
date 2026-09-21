@@ -26,21 +26,12 @@ mod tests {
             extended_public_key: None,
         };
 
-        assert_eq!(
-            derive_wallet_id_from_account(&account, WalletType::Multicoin).unwrap().to_string(),
-            "multicoin_0x4ce31c0b2114abe61Ac123E1E6254E961C18D10B"
-        );
-        assert_eq!(
-            derive_wallet_id_from_account(&account, WalletType::Single).unwrap().to_string(),
-            "single_ethereum_0x4ce31c0b2114abe61Ac123E1E6254E961C18D10B"
-        );
+        assert_eq!(derive_wallet_id_from_account(&account, WalletType::Multicoin).unwrap().to_string(), "multicoin_0x4ce31c0b2114abe61Ac123E1E6254E961C18D10B");
+        assert_eq!(derive_wallet_id_from_account(&account, WalletType::Single).unwrap().to_string(), "single_ethereum_0x4ce31c0b2114abe61Ac123E1E6254E961C18D10B");
         assert_eq!(
             derive_wallet_id_from_account(&account, WalletType::PrivateKey).unwrap().to_string(),
             "privateKey_ethereum_0x4ce31c0b2114abe61Ac123E1E6254E961C18D10B"
         );
-        assert_eq!(
-            derive_wallet_id_from_account(&account, WalletType::View).unwrap_err(),
-            AccountDerivationError::unsupported("view wallet id is app-only")
-        );
+        assert_eq!(derive_wallet_id_from_account(&account, WalletType::View).unwrap_err(), AccountDerivationError::unsupported("view wallet id is app-only"));
     }
 }

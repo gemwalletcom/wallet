@@ -264,12 +264,7 @@ mod tests {
 
     #[test]
     fn test_eip712_spot_send_core_to_evm() {
-        let spot_send = SpotSend::new(
-            "0.1".to_string(),
-            HYPERCORE_SYSTEM_ADDRESS.to_string(),
-            1754996222238,
-            HYPERCORE_CORE_HYPE_TOKEN_ID.to_string(),
-        );
+        let spot_send = SpotSend::new("0.1".to_string(), HYPERCORE_SYSTEM_ADDRESS.to_string(), 1754996222238, HYPERCORE_CORE_HYPE_TOKEN_ID.to_string());
 
         let eip712_json = transfer_to_hyper_evm_typed_data(spot_send).unwrap();
 

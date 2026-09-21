@@ -10,6 +10,8 @@ import Swap
 import SwiftUI
 
 public struct ConfirmTransferScene: View {
+    @Environment(\.connectionStatus) private var connectionStatus
+
     @Bindable var model: ConfirmTransferSceneViewModel
 
     public init(model: ConfirmTransferSceneViewModel) {
@@ -28,6 +30,10 @@ public struct ConfirmTransferScene: View {
         }
         .frame(maxWidth: .infinity)
         .task(id: model.preloadSelection) {
+            await model.load()
+        }
+        .refreshableTimer(every: connectionStatus.refreshInterval(for: .confirm)) { @MainActor _ in
+            guard model.state.screen.phase == .ready else { return }
             await model.load()
         }
         .navigationTitle(model.title)
@@ -49,27 +55,16 @@ extension ConfirmTransferScene {
                 showClearHeader: model.showClearHeader,
             )
             .isVisible(self.model.isHeaderVisible)
-        case let .app(model):
-            ListItemImageView(model: model)
-                .contextMenu(
-                    .url(title: self.model.websiteTitle, onOpen: self.model.onSelectOpenWebsiteURL),
-                )
-        case let .sender(model):
-            ListItemImageView(model: model)
-                .explorerContext(self.model.senderExplorerContext)
+        case let .row(row):
+            GemListRowView(row: row)
         case let .recipient(model):
             AddressListItemView(model: model)
-        case let .network(model):
-            ListItemImageView(model: model)
         case let .paymentAsset(model, selectable):
             NavigationCustomLink(
                 with: ListItemView(model: model),
                 isEnabled: selectable,
                 action: self.model.onSelectPaymentAsset,
             )
-        case let .memo(model):
-            ListItemView(model: model)
-                .contextMenu(model.subtitle.map { [.copy(value: $0)] } ?? [])
         case let .swapDetails(model):
             NavigationCustomLink(
                 with: SwapDetailsListView(model: model),
@@ -80,23 +75,26 @@ extension ConfirmTransferScene {
                 with: ListItemView(model: model.listItemModel),
                 action: { self.model.onSelectPerpetualDetails(model) },
             )
-        case let .perpetualModifyPosition(model):
-            if let listItemModel = model.listItemModel {
-                ListItemView(model: listItemModel)
+        case let .perpetualModifyPosition(row):
+            if let row {
+                GemListRowView(row: row)
             }
         case let .networkFee(model, selectable):
-            NavigationCustomLink(
-                with: ListItemView(model: model),
-                isEnabled: selectable,
-                action: self.model.onSelectFeePicker,
-            )
+            if selectable {
+                NavigationCustomLink(
+                    with: ListItemView(model: model),
+                    action: self.model.onSelectFeePicker,
+                )
+            } else {
+                ListItemView(model: model)
+            }
         case let .verification(model):
             NavigationCustomLink(
                 with: ListItemView(model: model),
                 action: self.model.onSelectVerification,
             )
-        case let .warnings(models):
-            SimulationWarningsContent(models: models)
+        case let .warnings(rows):
+            ForEach(rows, id: \.self) { GemListRowView(row: $0) }
         case let .balanceChange(model):
             ListItemView(model: model.listItem)
         case let .payload(models):

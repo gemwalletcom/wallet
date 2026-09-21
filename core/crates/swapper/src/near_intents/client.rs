@@ -33,18 +33,11 @@ where
     }
 
     fn build_headers(&self) -> HashMap<String, String> {
-        self.api_token
-            .as_ref()
-            .map(|token| HashMap::from([(String::from("Authorization"), format!("Bearer {token}"))]))
-            .unwrap_or_default()
+        self.api_token.as_ref().map(|token| HashMap::from([(String::from("Authorization"), format!("Bearer {token}"))])).unwrap_or_default()
     }
 
     pub async fn get_quote(&self, request: &QuoteRequest) -> Result<QuoteResponseResult, SwapperError> {
-        self.client
-            .post(NearIntentsTarget::Quote, request)
-            .headers(self.build_headers())
-            .await
-            .map_err(SwapperError::from)
+        self.client.post(NearIntentsTarget::Quote, request).headers(self.build_headers()).await.map_err(SwapperError::from)
     }
 }
 

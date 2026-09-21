@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import GemstonePrimitives
 import Localization
 import Style
 import SwiftUI
@@ -18,7 +19,7 @@ public struct ChainsFilterTypeViewModel: FilterTypeRepresentable {
         case .allChains:
             Localized.Common.all
         case let .chain(chain):
-            chain.rawValue.capitalized
+            chain.networkName
         case let .chains(selected):
             "\(selected.count)"
         }

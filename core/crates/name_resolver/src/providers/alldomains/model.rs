@@ -61,10 +61,7 @@ mod tests {
 
         assert_eq!(record.owner, Pubkey::new(owner));
         assert_eq!(record.expires_at, 42);
-        assert_eq!(
-            NameRecord::from_account_data(&account_data([0u8; 8], owner, 42)).unwrap_err().to_string(),
-            "invalid name record discriminator"
-        );
+        assert_eq!(NameRecord::from_account_data(&account_data([0u8; 8], owner, 42)).unwrap_err().to_string(), "invalid name record discriminator");
         assert_eq!(NameRecord::from_account_data(&[0u8; 10]).unwrap_err().to_string(), "invalid name record length: 10");
     }
 }

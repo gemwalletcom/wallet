@@ -1,11 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import protocol Gemstone.GemAmountServiceProtocol
 import enum Gemstone.GemAmountType
-import BigInt
+import protocol Gemstone.GemStakeServiceProtocol
+import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import Primitives
-import struct Gemstone.GemTransferData
 
 public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
     case transfer(AmountTransferViewModel)
@@ -13,7 +14,7 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
     case perpetual(AmountPerpetualViewModel)
     case earn(AmountEarnViewModel)
 
-    static func make(from input: AmountInput, service: any GemAmountServiceProtocol) -> AmountDataProvider {
+    static func make(from input: AmountInput, service: any GemAmountServiceProtocol, stakeService: any GemStakeServiceProtocol) -> AmountDataProvider {
         switch input.type {
         case let .transfer(recipient):
             .transfer(AmountTransferViewModel(asset: input.asset, transfer: .send(payment: recipient), service: service))
@@ -22,7 +23,7 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
         case .withdraw:
             .transfer(AmountTransferViewModel(asset: input.asset, transfer: .withdraw, service: service))
         case let .stake(stakeType):
-            .stake(AmountStakeViewModel(asset: input.asset, type: stakeType, service: service))
+            .stake(AmountStakeViewModel(asset: input.asset, type: stakeType, service: stakeService))
         case let .perpetual(action):
             .perpetual(AmountPerpetualViewModel(asset: input.asset, action: action, service: service))
         case let .earn(earnType):

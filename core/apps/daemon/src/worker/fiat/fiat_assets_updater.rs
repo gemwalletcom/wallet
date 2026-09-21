@@ -102,25 +102,12 @@ impl FiatAssetsUpdater {
 
         let validated_assets: Vec<(FiatProviderAsset, Option<AssetId>)> = assets
             .into_iter()
-            .map(|fiat_asset| {
-                (
-                    fiat_asset.clone(),
-                    fiat_asset
-                        .asset_id()
-                        .filter(|id| self.database.assets().ok().and_then(|mut c| c.get_asset(id).ok()).is_some()),
-                )
-            })
+            .map(|fiat_asset| (fiat_asset.clone(), fiat_asset.asset_id().filter(|id| self.database.assets().ok().and_then(|mut c| c.get_asset(id).ok()).is_some())))
             .collect();
 
-        let assets = validated_assets
-            .into_iter()
-            .map(|(fiat_asset, asset)| self.map_fiat_asset(fiat_asset, asset))
-            .collect::<Vec<primitives::FiatAsset>>();
+        let assets = validated_assets.into_iter().map(|(fiat_asset, asset)| self.map_fiat_asset(fiat_asset, asset)).collect::<Vec<primitives::FiatAsset>>();
 
-        let insert_assets = assets
-            .into_iter()
-            .map(storage::models::FiatAssetRow::from_primitive)
-            .collect::<Result<Vec<storage::models::FiatAssetRow>, _>>()?;
+        let insert_assets = assets.into_iter().map(storage::models::FiatAssetRow::from_primitive).collect::<Result<Vec<storage::models::FiatAssetRow>, _>>()?;
 
         if !insert_assets.is_empty() {
             self.database.fiat()?.add_fiat_assets(insert_assets)?;

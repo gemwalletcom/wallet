@@ -6,11 +6,13 @@ pub struct Account {
     pub assets: Vec<AccountAsset>,
     #[serde(rename = "min-balance")]
     pub min_balance: u64,
+    #[serde(rename = "auth-addr")]
+    pub auth_addr: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccountAsset {
     pub amount: u64,
     #[serde(rename = "asset-id")]
-    pub asset_id: i32,
+    pub asset_id: u64,
 }

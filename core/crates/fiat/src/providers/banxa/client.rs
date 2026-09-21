@@ -59,15 +59,7 @@ impl BanxaClient {
         Ok(self.client.get(BanxaTarget::FiatCurrencies { partner: self.partner.clone() }).await?)
     }
 
-    pub async fn create_buy_order(
-        &self,
-        quote_id: String,
-        fiat_amount: f64,
-        fiat_currency: String,
-        symbol: String,
-        network: String,
-        wallet_address: String,
-    ) -> Result<CheckoutOrder, Box<dyn Error + Send + Sync>> {
+    pub async fn create_buy_order(&self, quote_id: String, fiat_amount: f64, fiat_currency: String, symbol: String, network: String, wallet_address: String) -> Result<CheckoutOrder, Box<dyn Error + Send + Sync>> {
         let request = CreateOrderRequest::new(quote_id, symbol, fiat_currency, fiat_amount, network, wallet_address, self.redirect_url.clone());
         Ok(self.client.post(BanxaTarget::CreateBuyOrder { partner: self.partner.clone() }, &request).await?)
     }

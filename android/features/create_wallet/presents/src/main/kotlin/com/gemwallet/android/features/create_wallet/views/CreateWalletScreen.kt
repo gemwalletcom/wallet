@@ -38,7 +38,7 @@ import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.components.buttons.CopyButton
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.setPlainText
+import com.gemwallet.android.ui.components.clipboard.setCopy
 import com.gemwallet.android.ui.components.screen.PhraseLayout
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.phraseRows
@@ -50,14 +50,12 @@ import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 import com.wallet.core.primitives.WalletId
+import uniffi.gemstone.secretPhraseCopy
 
 private val loadingDialogSize = 100.dp
 
 @Composable
-fun CreateWalletScreen(
-    onCancel: () -> Unit,
-    onCreated: (walletId: WalletId?) -> Unit,
-) {
+fun CreateWalletScreen(onCancel: () -> Unit, onCreated: (walletId: WalletId?) -> Unit) {
     DisableScreenShooting()
     DetectScreenshot(AppUrl.howToSecureSecretPhrase)
 
@@ -65,9 +63,10 @@ fun CreateWalletScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val defaultNameText by viewModel.defaultNameText.collectAsStateWithLifecycle()
     val errorText by viewModel.errorText.collectAsStateWithLifecycle()
+    val verificationState by viewModel.verificationState.collectAsStateWithLifecycle()
 
     BackHandler(uiState.isShowSafeMessage) {
-        viewModel.handleCreateDismiss()
+        viewModel.dismissSafeMessage()
     }
 
     AnimatedContent(
@@ -75,21 +74,24 @@ fun CreateWalletScreen(
         transitionSpec = {
             navigationSlideTransition(forward = targetState)
         },
-        label = "phrase"
+        label = "phrase",
     ) { state ->
         when (state) {
-            true -> CheckPhrase(
-                words = uiState.data,
-                verificationWords = remember(uiState.data) { viewModel.phraseVerificationWords(uiState.data) },
-                loading = uiState.loading,
-                onDone = { viewModel.handleCreate(onCreated) },
-                onCancel = viewModel::handleCreateDismiss,
-            )
+            true -> verificationState?.let { verification ->
+                CheckPhrase(
+                    state = verification,
+                    loading = uiState.loading,
+                    onPick = viewModel::onPickWord,
+                    onDone = { viewModel.createWallet(onCreated) },
+                    onCancel = viewModel::dismissSafeMessage,
+                )
+            }
+
             false -> UI(
                 defaultName = defaultNameText,
                 data = uiState.data,
                 dataError = errorText,
-                onCreate = viewModel::handleReadyToCreate,
+                onCreate = viewModel::confirmPhrase,
                 onCancel = onCancel,
             )
         }
@@ -97,7 +99,7 @@ fun CreateWalletScreen(
     if (uiState.loading) {
         Dialog(
             onDismissRequest = {},
-            DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
+            DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
         ) {
             Box(
                 contentAlignment = Alignment.Center,
@@ -105,8 +107,8 @@ fun CreateWalletScreen(
                     .size(loadingDialogSize)
                     .background(
                         MaterialTheme.colorScheme.background,
-                        shape = RoundedCornerShape(paddingSmall)
-                    )
+                        shape = RoundedCornerShape(paddingSmall),
+                    ),
             ) {
                 CircularProgressIndicator()
             }
@@ -115,13 +117,7 @@ fun CreateWalletScreen(
 }
 
 @Composable
-private fun UI(
-    defaultName: String,
-    data: List<String>,
-    dataError: String?,
-    onCreate: (String) -> Unit,
-    onCancel: () -> Unit,
-) {
+private fun UI(defaultName: String, data: List<String>, dataError: String?, onCreate: (String) -> Unit, onCancel: () -> Unit) {
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
     val name = defaultName
@@ -132,9 +128,9 @@ private fun UI(
         mainAction = {
             MainActionButton(
                 title = stringResource(id = R.string.common_continue),
-                onClick = { onCreate(name) }
+                onClick = { onCreate(name) },
             )
-        }
+        },
     ) {
         Column(
             modifier = Modifier
@@ -157,11 +153,10 @@ private fun UI(
                 )
             }
             Spacer16()
-            CopyButton(onClick = { clipboardManager.setPlainText(context, data.joinToString(" "), true) })
+            CopyButton(onClick = { clipboardManager.setCopy(context, secretPhraseCopy(data)) })
         }
     }
 }
-
 
 @Composable
 @Preview
@@ -177,7 +172,7 @@ fun PreviewCreateUI() {
                 defaultName = "Wallet 2",
                 data = listOf(
                     "cinnamon", "two", "three", "cinnamon", "five", "six",
-                    "seven", "eight", "cinnamon", "ten", "eleven", "twelve"
+                    "seven", "eight", "cinnamon", "ten", "eleven", "twelve",
                 ),
                 dataError = null,
                 onCreate = {},

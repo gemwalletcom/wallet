@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import protocol Gemstone.GemNftStore
 import struct Gemstone.NftAssetData
 import typealias Gemstone.NftAssetId
 import struct Gemstone.NftData
-import protocol Gemstone.GemNftStore
 import GemstonePrimitives
 import Primitives
 import Store

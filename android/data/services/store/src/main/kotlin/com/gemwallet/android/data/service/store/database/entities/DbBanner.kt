@@ -15,13 +15,7 @@ import com.wallet.core.primitives.WalletId
     tableName = "banners",
     indices = [Index("event"), Index("wallet_id")],
 )
-data class DbBanner(
-    @PrimaryKey val id: String,
-    @ColumnInfo("wallet_id") val walletId: String?,
-    @ColumnInfo("asset_id") val assetId: String?,
-    val state: BannerState,
-    val event: BannerEvent,
-)
+data class DbBanner(@PrimaryKey val id: String, @ColumnInfo("wallet_id") val walletId: String?, @ColumnInfo("asset_id") val assetId: String?, val state: BannerState, val event: BannerEvent)
 
 data class DbBannerWithAsset(
     @Embedded val banner: DbBanner,
@@ -29,11 +23,9 @@ data class DbBannerWithAsset(
     val asset: DbAsset?,
 )
 
-fun DbBannerWithAsset.toDTO(): Banner {
-    return Banner(
-        walletId = banner.walletId?.let { WalletId(it) },
-        asset = asset?.toDTO(),
-        state = banner.state,
-        event = banner.event,
-    )
-}
+fun DbBannerWithAsset.toDTO(): Banner = Banner(
+    walletId = banner.walletId?.let { WalletId(it) },
+    asset = asset?.toDTO(),
+    state = banner.state,
+    event = banner.event,
+)

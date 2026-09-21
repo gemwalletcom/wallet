@@ -23,14 +23,7 @@ import com.wallet.core.primitives.PerpetualSearchData
         Index(value = ["listId", "query"], unique = true),
     ],
 )
-data class DbSearch(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val query: String,
-    val assetId: String? = null,
-    val perpetualId: String? = null,
-    val listId: String? = null,
-    val priority: Int,
-)
+data class DbSearch(@PrimaryKey(autoGenerate = true) val id: Long = 0, val query: String, val assetId: String? = null, val perpetualId: String? = null, val listId: String? = null, val priority: Int)
 
 @JvmName("assetsToSearchRecord")
 fun List<AssetBasic>.toSearchRecord(query: String): List<DbSearch> = mapIndexed { index, basic ->

@@ -20,22 +20,11 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Locale
 
-data class DateSection<T>(
-    val label: String,
-    val items: List<T>,
-)
+data class DateSection<T>(val label: String, val items: List<T>)
 
-data class DateSectionLabel(
-    val label: String,
-    val count: Int,
-)
+data class DateSectionLabel(val label: String, val count: Int)
 
-fun dateSectionLabels(
-    timestamps: List<Long>,
-    zone: ZoneId,
-    locale: Locale,
-    formatter: SectionDateFormatter,
-): List<DateSectionLabel> {
+fun dateSectionLabels(timestamps: List<Long>, zone: ZoneId, locale: Locale, formatter: SectionDateFormatter): List<DateSectionLabel> {
     val labels = mutableListOf<DateSectionLabel>()
     var day: LocalDate? = null
     timestamps.forEach { timestamp ->
@@ -51,10 +40,7 @@ fun dateSectionLabels(
 }
 
 @Composable
-fun <T> rememberDateSections(
-    items: List<T>,
-    createdAt: (T) -> Long,
-): List<DateSection<T>> {
+fun <T> rememberDateSections(items: List<T>, createdAt: (T) -> Long): List<DateSection<T>> {
     val todayLabel = stringResource(R.string.date_today)
     val yesterdayLabel = stringResource(R.string.date_yesterday)
     val locale = LocalConfiguration.current.locales[0]
@@ -80,11 +66,7 @@ fun <T> dateSections(labels: List<DateSectionLabel>, items: List<T>): List<DateS
 }
 
 @OptIn(ExperimentalFoundationApi::class)
-fun <T> LazyListScope.dateSectionedList(
-    sections: List<DateSection<T>>,
-    key: (Int, T) -> Any,
-    itemContent: @Composable LazyItemScope.(ListPosition, T) -> Unit,
-) {
+fun <T> LazyListScope.dateSectionedList(sections: List<DateSection<T>>, key: (Int, T) -> Any, itemContent: @Composable LazyItemScope.(ListPosition, T) -> Unit) {
     sections.forEach { section ->
         stickyHeader {
             SubheaderItem(

@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemWalletDeletion
 import protocol Gemstone.GemPreferencesServiceProtocol
+import enum Gemstone.GemWalletDeletion
 import GemstonePrimitives
 import Observation
 import Primitives
@@ -110,10 +110,6 @@ public final class ObservablePreferences: Sendable {
     public func showPerpetuals(for wallet: Wallet) -> Bool {
         access(keyPath: \.isPerpetualEnabled)
         return preferencesService.showPerpetuals(for: wallet)
-    }
-
-    public func showCollections(for wallet: Wallet) -> Bool {
-        preferencesService.showCollections(for: wallet)
     }
 
     private func write(_ operation: () throws -> Void) {

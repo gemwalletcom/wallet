@@ -1,16 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
 import protocol Gemstone.GemSupportServiceProtocol
 import GemstonePrimitives
+import GemstoneServices
 import Localization
 import PhotosUI
 import Primitives
-import Store
-import GemstoneServices
-import SwiftUI
-import Components
 import PrimitivesComponents
+import Store
+import SwiftUI
 
 @Observable
 @MainActor
@@ -35,15 +35,15 @@ public final class SupportChatSceneViewModel {
 
     @ObservationIgnored
     private(set) lazy var inputBarModel = SupportMessageInputBarViewModel(
-        onSendText: { [weak self] in self?.sendText($0) },
-        onSendImages: { [weak self] in self?.sendImages($0) },
+        onSendText: { [weak self] in self?.onSendText($0) },
+        onSendImages: { [weak self] in self?.onSendImages($0) },
     )
 
     var days: [SupportChatDay] {
         SupportChatDayBuilder(
             messages: query.value,
-            retryAction: { [weak self] in self?.retry($0) },
-            imageAction: { [weak self] in self?.openPreview($0) },
+            retryAction: { [weak self] in self?.onRetry($0) },
+            imageAction: { [weak self] in self?.onOpenPreview($0) },
         ).build()
     }
 
@@ -68,39 +68,33 @@ public final class SupportChatSceneViewModel {
         typing.clear()
     }
 
-    func sendText(_ content: String) {
-        Task {
-            await perform {
-                try await service.sendMessage(.text(content))
-            }
+    func sendText(_ content: String) async {
+        await alertOnFailure {
+            try await service.sendMessage(.text(content))
         }
     }
 
-    func sendImages(_ items: [PhotosPickerItem]) {
-        Task {
-            for item in items {
-                guard let attachment = try? await item.imageAttachment() else { continue }
-                await perform {
-                    try await service.sendMessage(.image(attachment))
+    func sendImages(_ items: [PhotosPickerItem]) async {
+        for item in items {
+            await alertOnFailure {
+                guard let attachment = try await item.imageAttachment() else {
+                    throw AnyError(Localized.Errors.notSupported)
                 }
+                try await service.sendMessage(.image(attachment))
             }
         }
     }
 
-    func retry(_ message: SupportMessage) {
-        Task {
-            await perform {
-                try await service.retryMessage(message)
-            }
+    func retry(_ message: SupportMessage) async {
+        await alertOnFailure {
+            try await service.retryMessage(message)
         }
     }
 
-    func openPreview(_ image: SupportMessageImage) {
+    func openPreview(_ image: SupportMessageImage) async {
         guard let url = image.url.asURL else { return }
-        Task {
-            await perform {
-                previewURL = URL(fileURLWithPath: try await service.imageFile(url: url.absoluteString))
-            }
+        await alertOnFailure {
+            previewURL = try await URL(fileURLWithPath: service.imageFile(url: url.absoluteString))
         }
     }
 }
@@ -108,7 +102,23 @@ public final class SupportChatSceneViewModel {
 // MARK: - Private
 
 private extension SupportChatSceneViewModel {
-    func perform(_ operation: () async throws -> Void) async {
+    func onSendText(_ content: String) {
+        Task { await sendText(content) }
+    }
+
+    func onSendImages(_ items: [PhotosPickerItem]) {
+        Task { await sendImages(items) }
+    }
+
+    func onRetry(_ message: SupportMessage) {
+        Task { await retry(message) }
+    }
+
+    func onOpenPreview(_ image: SupportMessageImage) {
+        Task { await openPreview(image) }
+    }
+
+    func alertOnFailure(_ operation: () async throws -> Void) async {
         do {
             try await operation()
         } catch {

@@ -7,20 +7,17 @@ import SwiftUI
 
 public struct TransactionView: View {
     private let model: TransactionViewModel
-    private let currency: Currency
 
-    public init(model: TransactionViewModel, currency: Currency) {
+    public init(model: TransactionViewModel) {
         self.model = model
-        self.currency = currency
     }
 
     public var body: some View {
-        ListItemView(model: model.listItem(currency: currency))
+        ListItemView(model: model.listItem)
     }
 }
 
 // MARK: - Previews
-
 
 #Preview {
     let pendingTransactionMock = Transaction(
@@ -57,5 +54,5 @@ public struct TransactionView: View {
         confirmationEtaSeconds: nil,
     )
 
-    TransactionView(model: TransactionViewModel(transaction: pendingTransactionExtendedMock), currency: .usd)
+    TransactionView(model: TransactionViewModel(transaction: pendingTransactionExtendedMock))
 }

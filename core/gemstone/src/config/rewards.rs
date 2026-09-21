@@ -13,11 +13,7 @@ impl RewardsUrl {
         };
 
         let website_locale = normalize_locale(locale);
-        let locale_prefix = if website_locale.is_empty() || website_locale == "en" {
-            String::new()
-        } else {
-            format!("/{}", website_locale)
-        };
+        let locale_prefix = if website_locale.is_empty() || website_locale == "en" { String::new() } else { format!("/{}", website_locale) };
 
         format!("{WEBSITE_URL}{locale_prefix}{path}")
     }

@@ -70,11 +70,13 @@ class BannersDaoTest {
 
     @Test
     fun tokenLoadsCandidatesForTheSameWalletAndChain() = runBlocking(Dispatchers.IO) {
-        database.bannersDao().addBanners(listOf(
-            warning.copy(id = "other-wallet", walletId = "wallet-2"),
-            warning.copy(id = "other-chain", assetId = Chain.Ethereum.string),
-            warning.copy(id = "stake", walletId = null, event = BannerEvent.Stake),
-        ))
+        database.bannersDao().addBanners(
+            listOf(
+                warning.copy(id = "other-wallet", walletId = "wallet-2"),
+                warning.copy(id = "other-chain", assetId = Chain.Ethereum.string),
+                warning.copy(id = "stake", walletId = null, event = BannerEvent.Stake),
+            ),
+        )
         val tokenId = AssetId(Chain.Tron, "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")
         val banners = database.bannersDao()
             .observeAssetBanners("wallet-1", tokenId.toIdentifier(), asset.id.toIdentifier())

@@ -128,12 +128,7 @@ mod tests {
         }
 
         let input = "allowlist:\n  - rpc_method: eth_call\n  - path: /api/v2/address/**\n    method: GET\n";
-        let wrapper = Config::builder()
-            .add_source(File::from_str(input, FileFormat::Yaml))
-            .build()
-            .unwrap()
-            .try_deserialize::<Wrapper>()
-            .unwrap();
+        let wrapper = Config::builder().add_source(File::from_str(input, FileFormat::Yaml)).build().unwrap().try_deserialize::<Wrapper>().unwrap();
 
         assert!(wrapper.allowlist.allows(&RequestType::mock_jsonrpc("eth_call")));
         assert!(!wrapper.allowlist.allows(&RequestType::mock_jsonrpc("eth_chainId")));

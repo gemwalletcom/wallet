@@ -38,12 +38,7 @@ impl GemChainSettingsService {
         Self::new(
             nodes.clone(),
             Arc::new(GemExplorerService::mock()),
-            Arc::new(GemGateway::new(
-                Arc::new(TestAlienProvider::with_status(200)),
-                nodes,
-                preferences,
-                Arc::new(EmptyPreferences),
-            )),
+            Arc::new(GemGateway::new(Arc::new(TestAlienProvider::with_status(200)), nodes, preferences, Arc::new(EmptyPreferences))),
         )
     }
 }

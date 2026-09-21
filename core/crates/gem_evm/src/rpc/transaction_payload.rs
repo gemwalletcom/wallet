@@ -62,12 +62,7 @@ impl TransactionPayload {
         let has_call_data = Self::has_call_data(transaction);
 
         match transaction.input.as_str() {
-            input
-                if has_recipient
-                    && input == INPUT_0X
-                    && (transaction_receipt.logs.is_empty() || transaction_receipt.gas_used == BigUint::from(TRANSFER_GAS_LIMIT))
-                    && (transaction.value > BigUint::from(0u8) || from == to) =>
-            {
+            input if has_recipient && input == INPUT_0X && (transaction_receipt.logs.is_empty() || transaction_receipt.gas_used == BigUint::from(TRANSFER_GAS_LIMIT)) && (transaction.value > BigUint::from(0u8) || from == to) => {
                 Self::NativeTransfer
             }
             input if input.starts_with(FUNCTION_ERC20_APPROVE) => match Self::erc20_approval(transaction_receipt) {
@@ -81,15 +76,10 @@ impl TransactionPayload {
             input if input.starts_with(FUNCTION_ERC721_TRANSFER) || input.starts_with(FUNCTION_ERC721_SAFE_TRANSFER) => {
                 Self::nft_transfer_or_contract_call(Self::erc721_transfer(transaction_receipt), Self::Erc721Transfer, transaction_receipt, from, to)
             }
-            input if input.starts_with(FUNCTION_ERC1155_TRANSFER) => {
-                Self::nft_transfer_or_contract_call(Self::erc1155_transfer(transaction_receipt), Self::Erc1155Transfer, transaction_receipt, from, to)
-            }
+            input if input.starts_with(FUNCTION_ERC1155_TRANSFER) => Self::nft_transfer_or_contract_call(Self::erc1155_transfer(transaction_receipt), Self::Erc1155Transfer, transaction_receipt, from, to),
             _ => match Self::single_erc20_transfer(transaction_receipt, from, to) {
                 Some(transfer) => Self::Erc20Transfer(transfer),
-                None if has_call_data
-                    && transaction.gas > TRANSFER_GAS_LIMIT
-                    && data_cost(&transaction.input).is_some_and(|data_cost| transaction_receipt.gas_used <= BigUint::from(TRANSFER_GAS_LIMIT + data_cost)) =>
-                {
+                None if has_call_data && transaction.gas > TRANSFER_GAS_LIMIT && data_cost(&transaction.input).is_some_and(|data_cost| transaction_receipt.gas_used <= BigUint::from(TRANSFER_GAS_LIMIT + data_cost)) => {
                     Self::NativeTransferWithCallData
                 }
                 None if has_call_data => Self::SmartContractCall,
@@ -108,12 +98,7 @@ impl TransactionPayload {
             let to = ethereum_address_from_topic(log.topics.get(2)?)?;
             let contract_address = ethereum_address_checksum(&log.address).ok()?;
             let value = biguint_from_hex(&log.data)?;
-            Some(Erc20TransferPayload {
-                from,
-                to,
-                contract_address,
-                value,
-            })
+            Some(Erc20TransferPayload { from, to, contract_address, value })
         })
     }
 
@@ -132,13 +117,7 @@ impl TransactionPayload {
         (transfer.from == transaction_from || transfer.from == transaction_to).then_some(transfer)
     }
 
-    fn nft_transfer_or_contract_call(
-        nft_transfer: Option<NftTransferPayload>,
-        nft_payload: fn(NftTransferPayload) -> Self,
-        transaction_receipt: &TransactionReceipt,
-        from: &str,
-        to: &str,
-    ) -> Self {
+    fn nft_transfer_or_contract_call(nft_transfer: Option<NftTransferPayload>, nft_payload: fn(NftTransferPayload) -> Self, transaction_receipt: &TransactionReceipt, from: &str, to: &str) -> Self {
         match nft_transfer {
             Some(transfer) => nft_payload(transfer),
             None => match Self::single_erc20_transfer(transaction_receipt, from, to) {

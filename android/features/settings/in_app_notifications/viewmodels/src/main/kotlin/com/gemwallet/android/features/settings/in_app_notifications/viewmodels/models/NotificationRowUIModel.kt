@@ -8,22 +8,18 @@ import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.wallet.core.primitives.InAppNotification
+import uniffi.gemstone.GemNotificationDestination
 import uniffi.gemstone.GemNotificationIcon
 import uniffi.gemstone.notificationRow
 
-data class NotificationRowUIModel(
-    val id: String,
-    val createdAt: Long,
-    val url: String?,
-    val model: ListItemModel,
-)
+data class NotificationRowUIModel(val id: String, val createdAt: Long, val destination: GemNotificationDestination?, val model: ListItemModel)
 
 internal fun InAppNotification.uiModel(context: Context): NotificationRowUIModel {
     val row = notificationRow(toGem())
     return NotificationRowUIModel(
         id = item.id,
         createdAt = createdAt,
-        url = row.url,
+        destination = row.destination,
         model = ListItemModel(
             title = row.title,
             titleTag = if (row.isUnread) context.getString(R.string.assets_tags_new) else null,

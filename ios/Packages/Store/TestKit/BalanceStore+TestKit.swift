@@ -8,3 +8,11 @@ public extension BalanceStore {
         BalanceStore(db: db)
     }
 }
+
+public extension AssetConfiguration {
+    static let disabled = AssetConfiguration(isEnabled: false, isPinned: false)
+
+    static func pinned(_ isPinned: Bool) -> AssetConfiguration {
+        AssetConfiguration(isEnabled: nil, isPinned: isPinned)
+    }
+}

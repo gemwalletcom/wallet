@@ -55,10 +55,7 @@ impl RewardsStore for DatabaseClient {
 
     fn create_rewards(&mut self, rewards: NewRewardsRow) -> Result<RewardsRow, DieselError> {
         use crate::schema::rewards::dsl;
-        diesel::insert_into(dsl::rewards)
-            .values(&rewards)
-            .returning(RewardsRow::as_returning())
-            .get_result(&mut self.connection)
+        diesel::insert_into(dsl::rewards).values(&rewards).returning(RewardsRow::as_returning()).get_result(&mut self.connection)
     }
 
     fn update_rewards(&mut self, username: &str, update: RewardsUpdate) -> Result<usize, DieselError> {
@@ -80,10 +77,7 @@ impl RewardsStore for DatabaseClient {
         }
 
         self.connection.transaction(|conn| {
-            let event = diesel::insert_into(rewards_events::table)
-                .values(&new_event)
-                .returning(RewardEventRow::as_returning())
-                .get_result(conn)?;
+            let event = diesel::insert_into(rewards_events::table).values(&new_event).returning(RewardEventRow::as_returning()).get_result(conn)?;
 
             diesel::update(rewards::table.filter(rewards::username.eq(&new_event.username)))
                 .set(rewards::points.eq(rewards::points + points))
@@ -96,10 +90,7 @@ impl RewardsStore for DatabaseClient {
 
     fn get_event(&mut self, event_id: i32) -> Result<RewardEventRow, DieselError> {
         use crate::schema::rewards_events::dsl;
-        dsl::rewards_events
-            .filter(dsl::id.eq(event_id))
-            .select(RewardEventRow::as_select())
-            .first(&mut self.connection)
+        dsl::rewards_events.filter(dsl::id.eq(event_id)).select(RewardEventRow::as_select()).first(&mut self.connection)
     }
 
     fn get_events(&mut self, username: &str) -> Result<Vec<RewardEventRow>, DieselError> {

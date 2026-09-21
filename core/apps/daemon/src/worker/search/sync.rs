@@ -65,11 +65,7 @@ pub struct IndexSync<'a> {
 
 impl IndexSync<'_> {
     pub fn action(&self) -> SearchSyncAction {
-        if self.should_replace_index() {
-            SearchSyncAction::ReplaceIndex
-        } else {
-            SearchSyncAction::IncrementalUpdate
-        }
+        if self.should_replace_index() { SearchSyncAction::ReplaceIndex } else { SearchSyncAction::IncrementalUpdate }
     }
 
     pub fn should_replace_index(&self) -> bool {

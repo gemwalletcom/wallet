@@ -1,9 +1,11 @@
 package com.gemwallet.android.features.asset.viewmodels.details.viewmodels
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.banner.cases.GetActiveBanners
@@ -13,9 +15,6 @@ import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
-import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
-import com.gemwallet.android.domains.banner.BannerRow
-import com.gemwallet.android.domains.connection.refreshInterval
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
@@ -23,15 +22,22 @@ import com.gemwallet.android.ext.toGemKey
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModelFactory
+import com.gemwallet.android.features.asset.viewmodels.localization.toastRes
 import com.gemwallet.android.model.ChainAssetInfo
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.model.toGem
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.screen.assetAddedToast
+import com.gemwallet.android.ui.components.screen.assetPinnedToast
+import com.gemwallet.android.ui.models.ToastEmitter
+import com.gemwallet.android.ui.models.ToastEmitterImpl
+import com.gemwallet.android.ui.models.ToastMessage
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Banner
 import com.wallet.core.primitives.PriceAlert
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -53,9 +59,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAssetDetailsInput
 import uniffi.gemstone.GemAssetDetailsServiceInterface
+import uniffi.gemstone.GemBannerRow
 import uniffi.gemstone.GemErrorText
+import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPriceAlertToggle
 import uniffi.gemstone.GemRefreshKind
+import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -72,10 +82,11 @@ class AssetDetailsViewModel @Inject constructor(
     private val userConfig: UserConfig,
     private val connectionStatusObserver: ConnectionStatusObserver,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) : ViewModel() {
+    @param:ApplicationContext private val context: Context,
+) : ViewModel(),
+    ToastEmitter by ToastEmitterImpl() {
 
-    val refreshIntervalMillis: StateFlow<Long> = connectionStatusObserver.status
-        .map { it.refreshInterval(GemRefreshKind.WALLET).toMillis() }
+    val refreshIntervalMillis: StateFlow<Long> = connectionStatusObserver.refreshIntervalMillis(GemRefreshKind.WALLET)
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
 
     private var syncJob: Job? = null
@@ -88,6 +99,15 @@ class AssetDetailsViewModel @Inject constructor(
     val error: StateFlow<GemErrorText?> = errorState.asStateFlow()
 
     private val assetId = savedStateHandle.requireAssetId()
+
+    private val transactionFilters = listOf(TransactionsRequestFilter.Asset(assetId))
+
+    val transactions = getTransactions.getTransactions(transactionFilters)
+        .map { it.toImmutableList() }
+        .flowOn(ioDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionFilters).toImmutableList())
+
+    private val transactionsState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
 
     private val chainAssetInfo = getChainAssetInfo(assetId)
         .onStart { restartAssetSync() }
@@ -102,18 +122,15 @@ class AssetDetailsViewModel @Inject constructor(
         return ChainAssetInfo(assetInfo, feeInfo)
     }
 
-    val transactions = getTransactions.getTransactions(listOf(TransactionsRequestFilter.Asset(assetId)))
-        .map { it.toImmutableList() }
-        .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val transactionsErrorRow: StateFlow<GemListRow?> = combine(transactionsState, transactions) { state, items ->
+        (state as? GemLoadState.Error)?.takeIf { items.isEmpty() }?.let { GemListRow.Error(it.error) }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val banners = chainAssetInfo.filterNotNull()
         .map { it.assetInfo.asset }
         .distinctUntilChanged()
         .flatMapLatest { asset ->
-            getActiveBanners(asset).map { banners ->
-                banners.map { banner -> BannerRow(banner, assetDetailsService.bannerContent(banner.event.toGem(), banner.asset?.toGem())) }
-            }
+            getActiveBanners(asset)
         }
 
     private val priceAlerts = getPriceAlerts.assetPriceAlerts(assetId)
@@ -122,13 +139,9 @@ class AssetDetailsViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private fun uiModel(
-        chainInfo: ChainAssetInfo?,
-        session: Session?,
-        banners: List<BannerRow>,
-        priceAlerts: List<PriceAlert>,
-    ): AssetInfoUIModel? {
-        val wallet = session?.wallet ?: return null
+    private fun uiModel(chainInfo: ChainAssetInfo?, session: Session?, banners: List<GemBannerRow>, priceAlerts: List<PriceAlert>): AssetInfoUIModel? {
+        session ?: return null
+        val wallet = session.wallet
         val assetInfo = chainInfo?.assetInfo ?: return null
         val details = assetDetailsService.details(
             GemAssetDetailsInput(
@@ -138,9 +151,11 @@ class AssetDetailsViewModel @Inject constructor(
                 metadata = assetInfo.metadata.toGem(),
                 balance = assetInfo.balance.toGem(),
                 price = assetInfo.price?.price?.price,
-                bannerEvents = banners.map { row -> row.banner.event.toGem() },
+                currency = session.currency.toGem(),
+                bannerEvents = banners.map { row -> row.banner.event },
                 priceAlerts = priceAlerts.map { alert -> alert.toGem() },
-            )
+                feeBalanceMetadata = chainInfo.feeAssetInfo.balance.metadata?.toGem(),
+            ),
         )
         return assetInfoUIModelFactory.create(chainAssetInfo = chainInfo, details = details, banners = banners)
     }
@@ -151,7 +166,6 @@ class AssetDetailsViewModel @Inject constructor(
         }
 
         isRefreshing.value = true
-        syncPriceAlerts()
         syncJob = viewModelScope.launch(ioDispatcher) {
             try {
                 syncAssetDetails()
@@ -164,37 +178,37 @@ class AssetDetailsViewModel @Inject constructor(
     private fun restartAssetSync() {
         val previousJob = syncJob
 
-        syncPriceAlerts()
         syncJob = viewModelScope.launch(ioDispatcher) {
             previousJob?.cancelAndJoin()
             syncAssetDetails()
         }
     }
 
-    private fun syncPriceAlerts() = viewModelScope.launch(ioDispatcher) {
-        runCatchingCancellable { assetDetailsService.syncPriceAlerts(assetId.toIdentifier()) }
-            .onFailure { Log.e(TAG, "price alerts sync failed for ${assetId.toIdentifier()}", it) }
-    }
-
     private suspend fun syncAssetDetails() {
-        assetDetailsService
-            .refresh(assetId.toIdentifier())
-            .forEach { Log.e(TAG, "asset refresh ${it.step} failed: ${it.message}") }
+        val refresh = assetDetailsService.refresh(assetId.toIdentifier(), transactions.value.isNotEmpty())
+        transactionsState.value = refresh.transactions
+        refresh.failures.forEach { Log.e(TAG, "asset refresh ${it.step} failed: ${it.message}") }
     }
 
     fun pin() = viewModelScope.launch(ioDispatcher) {
         val assetInfo = chainAssetInfo.value?.assetInfo ?: return@launch
-        assetDetailsService.setAssetPinned(assetInfo.id().toIdentifier(), !assetInfo.metadata.isPinned)
+        runCatchingCancellable { assetDetailsService.setAssetPinned(assetInfo.id().toIdentifier(), !assetInfo.metadata.isPinned) }
+            .onSuccess { emitToast(assetPinnedToast(context, assetInfo.asset.name, !assetInfo.metadata.isPinned)) }
+            .onFailure { Log.e(TAG, "pinning ${assetInfo.id().toIdentifier()} failed", it) }
     }
 
     fun add() = viewModelScope.launch(ioDispatcher) {
         val assetInfo = chainAssetInfo.value?.assetInfo ?: return@launch
-        assetDetailsService.setAssetsEnabled(listOf(assetInfo.id().toIdentifier()), true)
+        runCatchingCancellable { assetDetailsService.setAssetsEnabled(listOf(assetInfo.id().toIdentifier()), true) }
+            .onSuccess { emitToast(assetAddedToast(context)) }
+            .onFailure { Log.e(TAG, "enabling ${assetInfo.id().toIdentifier()} failed", it) }
     }
 
     fun togglePriceAlert(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {
-        val toggled = uiModel.value?.detailsState?.priceAlert?.toggled() ?: return@launch
-        runCatchingCancellable { assetDetailsService.setPriceAlert(assetId.toIdentifier(), toggled == GemPriceAlertToggle.ENABLED) }
+        val current = uiModel.value?.detailsState?.priceAlert ?: return@launch
+        val name = chainAssetInfo.value?.assetInfo?.asset?.name.orEmpty()
+        runCatchingCancellable { assetDetailsService.setPriceAlert(assetId.toIdentifier(), current.toggled() == GemPriceAlertToggle.ENABLED) }
+            .onSuccess { emitToast(ToastMessage(context.getString(current.toastRes(), name), R.drawable.ic_notifications)) }
             .onFailure { errorState.value = it.errorText() }
     }
 

@@ -124,45 +124,17 @@ mod tests {
         let providers = BroadcastProviders::from_chains([Chain::Ethereum, Chain::Tron]);
         for (chain, status, body, expected) in [
             (Chain::Ethereum, 200, r#"{"jsonrpc":"2.0","id":1,"result":"0xabc"}"#, Ok("0xabc")),
-            (
-                Chain::Ethereum,
-                200,
-                r#"{"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":"insufficient funds"}}"#,
-                Err("insufficient funds (-32000)"),
-            ),
-            (
-                Chain::Ethereum,
-                429,
-                r#"{"jsonrpc":"2.0","id":1,"result":"0xabc"}"#,
-                Err("Broadcast rejected or response could not be decoded (HTTP 429)"),
-            ),
-            (
-                Chain::Ethereum,
-                200,
-                "invalid response",
-                Err("Broadcast rejected or response could not be decoded (HTTP 200)"),
-            ),
-            (
-                Chain::Ethereum,
-                200,
-                r#"{"jsonrpc":"2.0","id":1,"result":""}"#,
-                Err("Broadcast rejected or response could not be decoded (HTTP 200)"),
-            ),
+            (Chain::Ethereum, 200, r#"{"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":"insufficient funds"}}"#, Err("insufficient funds (-32000)")),
+            (Chain::Ethereum, 429, r#"{"jsonrpc":"2.0","id":1,"result":"0xabc"}"#, Err("Broadcast rejected or response could not be decoded (HTTP 429)")),
+            (Chain::Ethereum, 200, "invalid response", Err("Broadcast rejected or response could not be decoded (HTTP 200)")),
+            (Chain::Ethereum, 200, r#"{"jsonrpc":"2.0","id":1,"result":""}"#, Err("Broadcast rejected or response could not be decoded (HTTP 200)")),
             (Chain::Tron, 200, r#"{"result":true,"txid":"abc"}"#, Ok("abc")),
-            (
-                Chain::Tron,
-                200,
-                r#"{"result":false,"txid":"abc","code":"SIGERROR","message":"invalid signature"}"#,
-                Err("invalid signature"),
-            ),
+            (Chain::Tron, 200, r#"{"result":false,"txid":"abc","code":"SIGERROR","message":"invalid signature"}"#, Err("invalid signature")),
         ] {
             let response = Ok(ProxyResponse::new(status, HeaderMap::new(), body.as_bytes().to_vec()));
             assert_eq!(broadcast_result(chain, b"", &response, &providers).as_deref().map_err(String::as_str), expected);
         }
-        assert_eq!(
-            broadcast_result(Chain::Ethereum, b"", &Err("connection failed".into()), &providers),
-            Err("request_error".into())
-        );
+        assert_eq!(broadcast_result(Chain::Ethereum, b"", &Err("connection failed".into()), &providers), Err("request_error".into()));
     }
 
     #[test]
@@ -170,10 +142,7 @@ mod tests {
         let providers = BroadcastProviders::from_chains([Chain::Bitcoin]);
         for (body, message) in [
             (br#"{"error":"-26: min relay fee not met, 432 < 576"}"#.as_slice(), "-26: min relay fee not met, 432 < 576"),
-            (
-                br#"{"error":{"message":"transaction already in block chain"}}"#.as_slice(),
-                "transaction already in block chain",
-            ),
+            (br#"{"error":{"message":"transaction already in block chain"}}"#.as_slice(), "transaction already in block chain"),
         ] {
             let response = Ok(ProxyResponse::new(400, HeaderMap::new(), body.to_vec()));
             assert_eq!(broadcast_result(Chain::Bitcoin, b"", &response, &providers), Err(message.to_string()));
@@ -205,28 +174,16 @@ mod tests {
                 br#"{"id":1,"result":{"accepted":false,"engine_result_message":"Insufficient XRP balance"}}"#.as_slice(),
                 "Transaction rejected: Insufficient XRP balance",
             ),
-            (
-                Chain::Near,
-                br#"{"id":1,"error":{"code":-32000,"message":"Invalid nonce"}}"#.as_slice(),
-                "Invalid nonce (-32000)",
-            ),
+            (Chain::Near, br#"{"id":1,"error":{"code":-32000,"message":"Invalid nonce"}}"#.as_slice(), "Invalid nonce (-32000)"),
             (Chain::Aptos, br#"{"message":"SEQUENCE_NUMBER_TOO_OLD"}"#.as_slice(), "SEQUENCE_NUMBER_TOO_OLD"),
-            (
-                Chain::Stellar,
-                br#"{"tx_status":"ERROR","title":"Transaction Failed"}"#.as_slice(),
-                "Broadcast error: Transaction Failed",
-            ),
+            (Chain::Stellar, br#"{"tx_status":"ERROR","title":"Transaction Failed"}"#.as_slice(), "Broadcast error: Transaction Failed"),
             (
                 Chain::Algorand,
                 include_bytes!("../../../../crates/gem_algorand/testdata/transaction_broadcast_error.json").as_slice(),
                 "txgroup had 0 in fees, which is less than the minimum 1 * 1000",
             ),
             (Chain::Cardano, br#"{"errors":[{"message":"BadInputsUTxO"}]}"#.as_slice(), "Failed to broadcast transaction"),
-            (
-                Chain::Polkadot,
-                br#"{"error":"Invalid Transaction","cause":"Stale"}"#.as_slice(),
-                "Invalid Transaction: Stale",
-            ),
+            (Chain::Polkadot, br#"{"error":"Invalid Transaction","cause":"Stale"}"#.as_slice(), "Invalid Transaction: Stale"),
             (
                 Chain::HyperCore,
                 include_bytes!("../../../../crates/gem_hypercore/testdata/order_broadcast_error.json").as_slice(),
@@ -251,11 +208,7 @@ mod tests {
 
     #[test]
     fn test_broadcast_error_message_excludes_response_data_and_transport_details() {
-        let response = Ok(ProxyResponse::new(
-            200,
-            HeaderMap::new(),
-            br#"{"error":{"message":"insufficient\nfunds","data":"signed-payload"},"id":1}"#.to_vec(),
-        ));
+        let response = Ok(ProxyResponse::new(200, HeaderMap::new(), br#"{"error":{"message":"insufficient\nfunds","data":"signed-payload"},"id":1}"#.to_vec()));
         assert_eq!(broadcast_error_message(&response), "insufficient funds");
         let response = Ok(ProxyResponse::new(503, HeaderMap::new(), b"private-response-body".to_vec()));
         assert_eq!(broadcast_error_message(&response), "Broadcast rejected or response could not be decoded (HTTP 503)");
@@ -267,20 +220,14 @@ mod tests {
         let metrics = Metrics::mock();
         let providers = BroadcastProviders::from_chains([Chain::Ethereum]);
         let request = ProxyRequest::mock(Chain::Ethereum, Method::POST, "/", &[]);
-        let response = Ok(ProxyResponse::new(
-            200,
-            HeaderMap::new(),
-            br#"{"jsonrpc":"2.0","id":1,"result":"private-identifier"}"#.to_vec(),
-        ));
+        let response = Ok(ProxyResponse::new(200, HeaderMap::new(), br#"{"jsonrpc":"2.0","id":1,"result":"private-identifier"}"#.to_vec()));
         metrics.record_transaction_broadcast(&request, &response, &providers, "rpc.example.com");
         let encoded = metrics.get_metrics();
         assert_eq!(encoded.find("private-identifier"), None);
         for name in ["dynode_transaction_broadcasts_total", "dynode_transaction_broadcast_latency_milliseconds_count"] {
             assert_eq!(
                 encoded.lines().filter(|line| line.starts_with(&format!("{name}{{"))).collect::<Vec<_>>(),
-                vec![format!(
-                    "{name}{{source=\"public\",group=\"evm\",service=\"ethereum\",chain=\"ethereum\",outcome=\"success\"}} 1"
-                )]
+                vec![format!("{name}{{source=\"public\",group=\"evm\",service=\"ethereum\",chain=\"ethereum\",outcome=\"success\"}} 1")]
             );
         }
     }

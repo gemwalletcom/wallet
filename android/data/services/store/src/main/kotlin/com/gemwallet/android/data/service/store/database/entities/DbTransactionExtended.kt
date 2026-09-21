@@ -2,13 +2,13 @@ package com.gemwallet.android.data.service.store.database.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Embedded
-import com.wallet.core.primitives.TransactionExtended
 import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetPrice
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Price
+import com.wallet.core.primitives.TransactionExtended
 import com.wallet.core.primitives.VerificationStatus
 
 data class DbTransactionExtended(
@@ -29,12 +29,7 @@ data class DbTransactionExtended(
     @Embedded(prefix = "to_address_") val toAddress: DbAddressProjection?,
 )
 
-data class DbAddressProjection(
-    val chain: Chain,
-    val name: String,
-    val type: AddressType,
-    val status: VerificationStatus,
-)
+data class DbAddressProjection(val chain: Chain, val name: String, val type: AddressType, val status: VerificationStatus)
 
 fun DbTransactionExtended.toDTO(): TransactionExtended? {
     val swapFrom = fromAsset?.toDTO()
@@ -57,8 +52,7 @@ fun DbTransactionExtended.toDTO(): TransactionExtended? {
     )
 }
 
-private fun assetPrice(assetId: AssetId, value: Double?, dayChanged: Double?): AssetPrice? =
-    value?.let { AssetPrice(assetId, it, dayChanged ?: 0.0, 0L) }
+private fun assetPrice(assetId: AssetId, value: Double?, dayChanged: Double?): AssetPrice? = value?.let { AssetPrice(assetId, it, dayChanged ?: 0.0, 0L) }
 
 private fun DbAddressProjection.toAddressName(address: String): AddressName = AddressName(
     chain = chain,

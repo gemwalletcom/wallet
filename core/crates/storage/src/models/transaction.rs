@@ -116,20 +116,12 @@ impl NewTransactionRow {
         } else {
             serde_json::to_value(transaction.utxo_outputs.clone()).ok()
         };
-        let metadata = if transaction.metadata.is_none() {
-            None
-        } else {
-            serde_json::to_value(transaction.metadata.clone()).ok()
-        };
+        let metadata = if transaction.metadata.is_none() { None } else { serde_json::to_value(transaction.metadata.clone()).ok() };
         let hash = transaction.hash().to_string();
         let from_address = if transaction.from.is_empty() { None } else { Some(transaction.from) };
         let to_address = if transaction.to.is_empty() { None } else { Some(transaction.to) };
         let memo = transaction.memo.map(|memo| memo.replace('\0', "")).filter(|memo| !memo.is_empty());
-        let value = if transaction.value == BigUint::ZERO {
-            None
-        } else {
-            Some(transaction.value.to_string())
-        };
+        let value = if transaction.value == BigUint::ZERO { None } else { Some(transaction.value.to_string()) };
 
         Self {
             chain: transaction.asset_id.chain.into(),

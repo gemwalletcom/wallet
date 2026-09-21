@@ -79,22 +79,20 @@ impl GemAppStartService {
     }
 
     pub async fn run(&self) -> Vec<GemAppStartFailure> {
-        let (banners, assets, device) = futures::join!(
+        let default_assets = recorded(GemAppStartStep::SetupAssets, self.assets.ensure_default_assets()).await;
+        let (banners, config_and_assets, device) = futures::join!(
             recorded(GemAppStartStep::SetupBanners, self.banners.setup()),
             self.sync_config_and_assets(),
             recorded(GemAppStartStep::SyncDevice, async { self.device.synchronize().await.map(|_| ()) }),
         );
-        [banners, assets, device].concat()
+        [default_assets, banners, config_and_assets, device].concat()
     }
 
     pub async fn setup_wallet(&self, wallet: Wallet) -> Vec<GemAppStartFailure> {
         let mut failures = Vec::new();
+        record(&mut failures, GemAppStartStep::SetupAssets, self.assets.ensure_default_assets()).await;
         record(&mut failures, GemAppStartStep::SetupWalletBanners, self.banners.setup_wallet(wallet.clone())).await;
-        record(&mut failures, GemAppStartStep::SetupWalletAssets, async {
-            self.assets.ensure_default_assets().await?;
-            self.balance.setup_wallet(wallet.clone()).await
-        })
-        .await;
+        record(&mut failures, GemAppStartStep::SetupWalletAssets, self.balance.setup_wallet(wallet.clone())).await;
         record(&mut failures, GemAppStartStep::SyncWalletConfiguration, self.wallet_configuration.sync(wallet.id)).await;
         failures
     }
@@ -127,6 +125,8 @@ where
 mod tests {
     use futures::executor::block_on;
 
+    use primitives::AssetId;
+
     use super::testkit::AppStartTestkit;
     use super::*;
 
@@ -142,6 +142,23 @@ mod tests {
             assert_eq!(chain_failures.len(), 1, "{failures:?}");
             assert!(chain_failures[0].message.contains(&testkit.first.id.id()));
             assert!(!chain_failures[0].message.contains(&testkit.second.id.id()));
+        })
+    }
+
+    #[test]
+    fn test_the_native_assets_a_banner_names_are_stored_before_the_app_start_writes_it() {
+        block_on(async {
+            let testkit = AppStartTestkit::new().await;
+
+            let failures = testkit.service.run().await;
+
+            let stored: Vec<AssetId> = testkit.assets.assets.lock().unwrap().iter().map(|basic| basic.asset.id.clone()).collect();
+            let named: Vec<AssetId> = testkit.banners.writes.lock().unwrap().iter().flatten().filter_map(|key| key.asset_id.clone()).collect();
+
+            assert!(!named.is_empty(), "the app start writes stake and perpetual banners");
+            for asset_id in named {
+                assert!(stored.contains(&asset_id), "banner names {asset_id}, which no asset row backs: {failures:?}");
+            }
         })
     }
 

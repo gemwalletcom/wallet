@@ -19,7 +19,6 @@ public struct NetworkSelectorViewModel: SelectableSheetViewable {
 
     public let title: String
 
-
     public init(
         state: StateViewType<SelectableListType<Chain>>,
         selectedItems: [Chain] = [],

@@ -93,13 +93,7 @@ impl InTransitUpdater {
         Ok(updated)
     }
 
-    async fn process_transaction(
-        &self,
-        row: &TransactionRow,
-        now: DateTime<Utc>,
-        cutoff: NaiveDateTime,
-        vault_addresses: &DepositAddressMap,
-    ) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn process_transaction(&self, row: &TransactionRow, now: DateTime<Utc>, cutoff: NaiveDateTime, vault_addresses: &DepositAddressMap) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let chain = row.chain();
         let transaction = row.as_primitive(row.get_addresses())?;
         let elapsed = match (now.naive_utc() - row.created_at).to_std() {
@@ -113,14 +107,7 @@ impl InTransitUpdater {
             Some(provider) => match self.swapper.get_swap_result(chain, provider, &row.hash).await {
                 Ok(r) => r,
                 Err(err) => {
-                    error_with_fields!(
-                        "in_transit check failed",
-                        &err as &dyn Error,
-                        chain = chain.as_ref(),
-                        hash = row.hash,
-                        provider = provider_name,
-                        elapsed = elapsed
-                    );
+                    error_with_fields!("in_transit check failed", &err as &dyn Error, chain = chain.as_ref(), hash = row.hash, provider = provider_name, elapsed = elapsed);
                     if row.created_at < cutoff {
                         info_with_fields!("in_transit timed out", chain = chain.as_ref(), hash = row.hash, provider = provider_name, elapsed = elapsed);
                         self.check_schedules().remove(&row.id);
@@ -173,27 +160,15 @@ impl InTransitUpdater {
         }
     }
 
-    async fn save_and_publish(
-        &self,
-        chain: Chain,
-        row: &TransactionRow,
-        state: &TransactionState,
-        metadata: Option<serde_json::Value>,
-    ) -> Result<(), Box<dyn Error + Send + Sync>> {
+    async fn save_and_publish(&self, chain: Chain, row: &TransactionRow, state: &TransactionState, metadata: Option<serde_json::Value>) -> Result<(), Box<dyn Error + Send + Sync>> {
         let updates = match metadata {
-            Some(ref json) => vec![
-                TransactionUpdate::State(state.clone()),
-                TransactionUpdate::Kind(TransactionType::Swap.into()),
-                TransactionUpdate::Metadata(json.clone()),
-            ],
+            Some(ref json) => vec![TransactionUpdate::State(state.clone()), TransactionUpdate::Kind(TransactionType::Swap.into()), TransactionUpdate::Metadata(json.clone())],
             None => vec![TransactionUpdate::State(state.clone()), TransactionUpdate::Kind(TransactionType::Swap.into())],
         };
         self.database.transactions()?.update_transaction(chain.as_ref(), &row.hash, updates)?;
 
         let transaction = row.as_primitive(row.get_addresses())?.with_swap_state(state.clone().into(), metadata.clone());
-        self.stream_producer
-            .publish_transactions(TransactionsPayload::new_state_change_with_notify(chain, vec![transaction]))
-            .await?;
+        self.stream_producer.publish_transactions(TransactionsPayload::new_state_change_with_notify(chain, vec![transaction])).await?;
         Ok(())
     }
 }

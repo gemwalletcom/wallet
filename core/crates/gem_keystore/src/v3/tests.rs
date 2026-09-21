@@ -75,16 +75,10 @@ fn test_v3_rejects_wrong_password_and_malformed_inputs() {
     assert_eq!(KeystoreV3::parse(bad_hex.as_bytes()).unwrap_err(), KeystoreError::corrupt_file("invalid v3 hex"));
 
     let bad_mnemonic = KeystoreV3::mock_json("mnemonic", b"not a recovery phrase", password);
-    assert_eq!(
-        ReaderV3::decrypt_json(&bad_mnemonic, password).unwrap_err(),
-        KeystoreError::corrupt_file("invalid v3 mnemonic")
-    );
+    assert_eq!(ReaderV3::decrypt_json(&bad_mnemonic, password).unwrap_err(), KeystoreError::corrupt_file("invalid v3 mnemonic"));
 
     let invalid_utf8_mnemonic = KeystoreV3::mock_json("mnemonic", &[0xff, 0xfe], password);
-    assert_eq!(
-        ReaderV3::decrypt_json(&invalid_utf8_mnemonic, password).unwrap_err(),
-        KeystoreError::corrupt_file("invalid v3 mnemonic")
-    );
+    assert_eq!(ReaderV3::decrypt_json(&invalid_utf8_mnemonic, password).unwrap_err(), KeystoreError::corrupt_file("invalid v3 mnemonic"));
 
     let large_password = vec![b'a'; 1024 * 1024 + 1];
     assert_eq!(ReaderV3::decrypt_json(&json, &large_password).unwrap_err(), KeystoreError::invalid_input("password input"));
@@ -93,10 +87,7 @@ fn test_v3_rejects_wrong_password_and_malformed_inputs() {
 #[test]
 fn test_v3_private_key_length() {
     let json = KeystoreV3::mock_json("private-key", &[1u8; 31], b"password");
-    assert_eq!(
-        ReaderV3::decrypt_json(&json, b"password").unwrap_err(),
-        KeystoreError::corrupt_file("invalid v3 private key")
-    );
+    assert_eq!(ReaderV3::decrypt_json(&json, b"password").unwrap_err(), KeystoreError::corrupt_file("invalid v3 private key"));
 }
 
 #[test]

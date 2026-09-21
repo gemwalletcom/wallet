@@ -11,19 +11,14 @@ import com.gemwallet.android.features.confirm.viewmodels.models.AcquireOptionUIM
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
-import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.Asset
 
 @Composable
-internal fun GetAssetBottomSheet(
-    asset: Asset?,
-    options: List<AcquireOptionUIModel>,
-    onDismiss: () -> Unit,
-    onAction: (AcquireAssetAction) -> Unit,
-) {
+internal fun GetAssetBottomSheet(asset: Asset?, options: List<AcquireOptionUIModel>, onDismiss: () -> Unit, onAction: (AcquireAssetAction) -> Unit) {
     ModalBottomSheet(
         item = asset,
         onDismissRequest = onDismiss,

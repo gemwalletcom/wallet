@@ -22,8 +22,7 @@ pub fn create_sui_client(provider: Arc<dyn RpcProvider>) -> Result<SuiClient, Sw
 }
 
 pub fn create_eth_client(provider: Arc<dyn RpcProvider>, chain: Chain) -> Result<EthereumClient<RpcClient>, SwapperError> {
-    let client = alien::create_client(provider, chain).map_err(|_| SwapperError::NotSupportedChain)?;
-    EthereumClient::for_chain(client, chain).ok_or(SwapperError::NotSupportedChain)
+    EthereumClient::<RpcClient>::for_provider(provider, chain).ok_or(SwapperError::NotSupportedChain)
 }
 
 pub fn create_tron_client(provider: Arc<dyn RpcProvider>) -> Result<TronClient<RpcClient>, SwapperError> {
@@ -48,10 +47,7 @@ mod tests {
     #[tokio::test]
     async fn test_solana_json_rpc() -> Result<(), String> {
         let rpc_client = create_client_with_chain(Arc::new(NativeProvider::default()), Chain::Solana).unwrap();
-        let response: SolanaBlockhashResult = rpc_client
-            .request(SolanaRpc::GetLatestBlockhash(SolanaRpcConfig::Default))
-            .await
-            .map_err(|e| e.to_string())?;
+        let response: SolanaBlockhashResult = rpc_client.request(SolanaRpc::GetLatestBlockhash(SolanaRpcConfig::Default)).await.map_err(|e| e.to_string())?;
         let recent_blockhash = response.value.blockhash;
 
         println!("recent_blockhash: {}", recent_blockhash);

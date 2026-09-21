@@ -1,10 +1,10 @@
 package com.gemwallet.android.domains.price.values
 
 import com.gemwallet.android.domains.percentage.formatAsPercentage
-import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.domains.price.tone
 import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Currency
+import uniffi.gemstone.GemValueTone
 
 interface EquivalentValue {
     val currency: Currency

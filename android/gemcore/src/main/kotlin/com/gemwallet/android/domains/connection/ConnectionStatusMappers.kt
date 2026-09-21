@@ -6,5 +6,4 @@ import com.wallet.core.primitives.ConnectionComponent
 import com.wallet.core.primitives.ConnectionStatus
 import uniffi.gemstone.connectionStatus
 
-fun List<ConnectionComponent>.toConnectionStatus(): ConnectionStatus =
-    connectionStatus(map { it.toGem() }).toPrimitives()
+fun List<ConnectionComponent>.toConnectionStatus(): ConnectionStatus = connectionStatus(map { it.toGem() }).toPrimitives()

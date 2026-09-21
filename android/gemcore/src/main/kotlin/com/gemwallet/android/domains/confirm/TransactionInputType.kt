@@ -38,17 +38,12 @@ val TransactionInputType.stakeType: StakeType?
 val TransactionInputType.perpetualType: PerpetualType?
     get() = (this as? TransactionInputType.Perpetual)?.perpetualType
 
-fun TransactionInputType.Companion.transfer(asset: Asset): TransactionInputType =
-    TransactionInputType.Transfer(asset.toGem())
+fun TransactionInputType.Companion.transfer(asset: Asset): TransactionInputType = TransactionInputType.Transfer(asset.toGem())
 
-fun TransactionInputType.Companion.deposit(asset: Asset): TransactionInputType =
-    TransactionInputType.Deposit(asset.toGem())
+fun TransactionInputType.Companion.deposit(asset: Asset): TransactionInputType = TransactionInputType.Deposit(asset.toGem())
 
-fun TransactionInputType.Companion.transferNft(asset: Asset, nftAsset: NFTAsset): TransactionInputType =
-    TransactionInputType.TransferNft(asset.toGem(), nftAsset.toGem())
+fun TransactionInputType.Companion.transferNft(asset: Asset, nftAsset: NFTAsset): TransactionInputType = TransactionInputType.TransferNft(asset.toGem(), nftAsset.toGem())
 
-fun TransactionInputType.Companion.swap(fromAsset: Asset, toAsset: Asset, swapData: SwapData): TransactionInputType =
-    TransactionInputType.Swap(fromAsset.toGem(), toAsset.toGem(), swapData)
+fun TransactionInputType.Companion.swap(fromAsset: Asset, toAsset: Asset, swapData: SwapData): TransactionInputType = TransactionInputType.Swap(fromAsset.toGem(), toAsset.toGem(), swapData)
 
-fun TransactionInputType.Companion.account(asset: Asset, accountType: AccountDataType): TransactionInputType =
-    TransactionInputType.Account(asset.toGem(), accountType.toGem())
+fun TransactionInputType.Companion.account(asset: Asset, accountType: AccountDataType): TransactionInputType = TransactionInputType.Account(asset.toGem(), accountType.toGem())

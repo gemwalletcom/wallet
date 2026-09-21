@@ -35,12 +35,7 @@ impl ChainSigner for SolanaChainSigner {
 
     fn sign_stake(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
         let sender = Pubkey::from_base58(&input.sender_address).map_err(SignerError::from_display)?;
-        Ok(vec![transaction::sign_single_signer_instructions(
-            input,
-            private_key,
-            sender,
-            instructions::stake(input, sender)?,
-        )?])
+        Ok(vec![transaction::sign_single_signer_instructions(input, private_key, sender, instructions::stake(input, sender)?)?])
     }
 
     fn sign_message(&self, message: &[u8], private_key: &[u8]) -> Result<String, SignerError> {
@@ -79,10 +74,7 @@ impl ChainSigner for SolanaChainSigner {
         match extra.output_type {
             TransferDataOutputType::Signature => Ok(bs58::encode(signature.as_bytes()).into_string()),
             TransferDataOutputType::EncodedTransaction => {
-                let signature_slot = transaction
-                    .signatures_mut()
-                    .first_mut()
-                    .ok_or_else(|| SignerError::signing_error("missing Solana signature slot"))?;
+                let signature_slot = transaction.signatures_mut().first_mut().ok_or_else(|| SignerError::signing_error("missing Solana signature slot"))?;
                 *signature_slot = signature;
                 let bytes = transaction.serialize().map_err(|e| SignerError::signing_error(format!("serialize transaction: {e}")))?;
                 Ok(encode_base64(&bytes))
@@ -196,26 +188,14 @@ mod tests {
     fn test_sign_message_siws() {
         let message = include_str!("../../testdata/siws_sign_in.txt");
         let signature = SolanaChainSigner.sign_message(message.as_bytes(), &TEST_PRIVATE_KEY).unwrap();
-        assert_eq!(
-            signature,
-            bs58::encode(sign_solana_message(&TEST_PRIVATE_KEY, message.as_bytes()).unwrap().as_bytes()).into_string()
-        );
-        assert_eq!(
-            SolanaChainSigner.sign_message(message.as_bytes(), &[2; 32]).unwrap_err().to_string(),
-            "Invalid input: SIWS account mismatch"
-        );
+        assert_eq!(signature, bs58::encode(sign_solana_message(&TEST_PRIVATE_KEY, message.as_bytes()).unwrap().as_bytes()).into_string());
+        assert_eq!(SolanaChainSigner.sign_message(message.as_bytes(), &[2; 32]).unwrap_err().to_string(), "Invalid input: SIWS account mismatch");
         let expired_message = include_str!("../../testdata/siws_complete.txt");
         assert_eq!(
             SolanaChainSigner.sign_message(expired_message.as_bytes(), &TEST_PRIVATE_KEY).unwrap_err().to_string(),
             "Invalid input: SIWS message expired or invalid expiration"
         );
-        assert_eq!(
-            bs58::decode(SolanaChainSigner.sign_message(&[255, 254, 253], &TEST_PRIVATE_KEY).unwrap())
-                .into_vec()
-                .unwrap()
-                .len(),
-            64
-        );
+        assert_eq!(bs58::decode(SolanaChainSigner.sign_message(&[255, 254, 253], &TEST_PRIVATE_KEY).unwrap()).into_vec().unwrap().len(), 64);
     }
 
     #[test]

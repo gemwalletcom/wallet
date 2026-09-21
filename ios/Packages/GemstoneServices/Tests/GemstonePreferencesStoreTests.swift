@@ -7,7 +7,7 @@ import Testing
 
 struct GemstonePreferencesStoreTests {
     @Test
-    func readsValuesStoredByTheLegacyAppPreferences() throws {
+    func readsValuesStoredByTheLegacyAppPreferences() {
         let defaults = UserDefaults.mock()
         let store = GemstonePreferencesStore.application(userDefaults: defaults, appGroupDefaults: .none)
 

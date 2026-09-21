@@ -70,11 +70,7 @@ mod tests {
         for (base, path, expected) in [
             ("https://example.com/rpc/key", "/", "https://example.com/rpc/key"),
             ("https://example.com/rpc?key=credential", "/", "https://example.com/rpc?key=credential"),
-            (
-                "https://example.com/rpc",
-                "/blocks/%2F?before=one%2Btwo&before=three",
-                "https://example.com/rpc/blocks/%2F?before=one%2Btwo&before=three",
-            ),
+            ("https://example.com/rpc", "/blocks/%2F?before=one%2Btwo&before=three", "https://example.com/rpc/blocks/%2F?before=one%2Btwo&before=three"),
         ] {
             assert_eq!(RequestUrl::from_parts(Url::mock(base), path).url.as_str(), expected);
         }
@@ -113,20 +109,14 @@ mod tests {
         let headers = HeaderMap::from_iter([(HeaderName::from_static("x-api-key"), HeaderValue::from_static("inbound"))]);
         let request = url.build_request(&Method::POST, Vec::new(), headers);
 
-        assert_eq!(
-            request.headers().get_all("x-api-key").iter().map(|value| value.to_str().unwrap()).collect::<Vec<_>>(),
-            vec!["inbound", "configured"]
-        );
+        assert_eq!(request.headers().get_all("x-api-key").iter().map(|value| value.to_str().unwrap()).collect::<Vec<_>>(), vec!["inbound", "configured"]);
     }
     #[test]
     fn test_build_request_preserves_wire_data() {
         let url = ReqwestUrl::parse("https://example.com/rpc/%2F?key=one%2Btwo&key=three").unwrap();
         let headers = HeaderMap::from_iter([(CONTENT_TYPE, HeaderValue::from_static("application/grpc+proto"))]);
         let body = vec![0, 0xff, 0x80, b'\n'];
-        let request_url = RequestUrl {
-            url: url.clone(),
-            headers: HashMap::new(),
-        };
+        let request_url = RequestUrl { url: url.clone(), headers: HashMap::new() };
         let request = request_url.build_request(&Method::POST, body.clone(), headers.clone());
 
         assert_eq!(request.method(), Method::POST);

@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstoneServices
 import Components
+import GemstoneServices
 import Localization
 import NFT
 import Primitives
@@ -27,17 +27,17 @@ public struct WalletSearchScene: View {
         .searchStateOverlay(model.searchState, background: Colors.sheetInsetGroupedListStyle)
         .bindQuery(model.searchQuery, model.recentModel.query)
         .searchable(
-            text: $model.searchModel.searchableQuery,
+            text: $model.searchableQuery,
             isPresented: $model.isSearchPresented,
             placement: .navigationBarDrawer(displayMode: .always),
         )
         .autocorrectionDisabled(true)
         .debounce(
-            value: $model.searchModel.searchableQuery.wrappedValue,
+            value: $model.searchableQuery.wrappedValue,
             interval: model.searchDebounce,
             action: model.onSearch(query:),
         )
-        .onChange(of: model.searchModel.searchableQuery, model.onChangeSearchQuery)
+        .onChange(of: model.searchableQuery, model.onChangeSearchQuery)
         .onChange(of: model.isSearchPresented, model.onChangeSearchPresented)
         .onAppear {
             model.onAppear()
@@ -140,7 +140,7 @@ public struct WalletSearchScene: View {
     private func listItems(for lists: [AssetList]) -> some View {
         ForEach(lists) { list in
             NavigationLink(value: model.listDestination(for: list)) {
-                AssetListItemView(model: AssetListItemViewModel(list: list))
+                ListItemView(model: model.listItem(for: list))
             }
         }
     }

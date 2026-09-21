@@ -8,7 +8,7 @@ object Migration_49_50 : Migration(49, 50) {
         db.execSQL(
             """
                 ALTER TABLE nft_asset ADD COLUMN contract_address TEXT DEFAULT NUll
-            """.trimIndent()
+            """.trimIndent(),
         )
     }
 }

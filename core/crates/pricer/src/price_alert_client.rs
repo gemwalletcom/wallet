@@ -3,10 +3,7 @@ use gem_tracing::info_with_fields;
 use localizer::LanguageLocalizer;
 use number_formatter::NumberFormatter;
 use primitives::currency::Currency;
-use primitives::{
-    Asset, AssetId, Device, FiatRate, GorushNotification, Price, PriceAlert, PriceAlertDirection, PriceAlertType, PriceAlerts, PriceData, PushNotification, PushNotificationAsset,
-    PushNotificationTypes,
-};
+use primitives::{Asset, AssetId, Device, FiatRate, GorushNotification, Price, PriceAlert, PriceAlertDirection, PriceAlertType, PriceAlerts, PriceData, PushNotification, PushNotificationAsset, PushNotificationTypes};
 use std::collections::HashSet;
 use std::error::Error;
 use std::time::Duration as StdDuration;
@@ -33,21 +30,15 @@ impl PriceAlertNotification {
     pub fn currency(&self) -> &Currency {
         match self.alert_type {
             PriceAlertType::PriceUp | PriceAlertType::PriceDown => &self.price_alert.currency,
-            PriceAlertType::PriceChangesUp
-            | PriceAlertType::PriceChangesDown
-            | PriceAlertType::PricePercentChangeUp
-            | PriceAlertType::PricePercentChangeDown
-            | PriceAlertType::AllTimeHigh
-            | PriceAlertType::PriceMilestone => &self.device.currency,
+            PriceAlertType::PriceChangesUp | PriceAlertType::PriceChangesDown | PriceAlertType::PricePercentChangeUp | PriceAlertType::PricePercentChangeDown | PriceAlertType::AllTimeHigh | PriceAlertType::PriceMilestone => {
+                &self.device.currency
+            }
         }
     }
 
     fn with_rates(self, rates: &[FiatRate]) -> Result<Self, Box<dyn Error + Send + Sync>> {
         let rate = fiat_rate(rates, self.currency()).ok_or_else(|| format!("missing fiat rate for {}", self.currency().as_ref()))?;
-        Ok(Self {
-            price: self.price.with_rate(rate),
-            ..self
-        })
+        Ok(Self { price: self.price.with_rate(rate), ..self })
     }
 }
 
@@ -71,10 +62,7 @@ impl AlertResult {
     }
 
     fn with_milestone(alert_type: PriceAlertType, milestone: f64) -> Self {
-        Self {
-            alert_type,
-            milestone: Some(milestone),
-        }
+        Self { alert_type, milestone: Some(milestone) }
     }
 }
 
@@ -111,13 +99,7 @@ impl PriceAlertClient {
     }
 
     pub async fn get_price_alerts(&self, device_id: &str, asset_id: Option<&AssetId>) -> Result<PriceAlerts, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .database
-            .price_alerts()?
-            .get_price_alerts_for_device_id(device_id, asset_id)?
-            .into_iter()
-            .map(|x| x.price_alert)
-            .collect())
+        Ok(self.database.price_alerts()?.get_price_alerts_for_device_id(device_id, asset_id)?.into_iter().map(|x| x.price_alert).collect())
     }
 
     pub async fn add_price_alerts(&self, device_id: &str, price_alerts: PriceAlerts) -> Result<usize, Box<dyn Error + Send + Sync>> {
@@ -147,9 +129,7 @@ impl PriceAlertClient {
             }
         }
 
-        self.database
-            .price_alerts()?
-            .update_price_alerts_set_notified_at(price_alert_ids.into_iter().collect(), now.naive_utc())?;
+        self.database.price_alerts()?.update_price_alerts_set_notified_at(price_alert_ids.into_iter().collect(), now.naive_utc())?;
         Ok(results)
     }
 
@@ -204,14 +184,7 @@ impl PriceAlertClient {
         None
     }
 
-    fn price_alert_notification(
-        &self,
-        device: Device,
-        price_data: &PriceData,
-        price_alert: PriceAlert,
-        alert_result: AlertResult,
-        rates: &[FiatRate],
-    ) -> Result<PriceAlertNotification, Box<dyn Error + Send + Sync>> {
+    fn price_alert_notification(&self, device: Device, price_data: &PriceData, price_alert: PriceAlert, alert_result: AlertResult, rates: &[FiatRate]) -> Result<PriceAlertNotification, Box<dyn Error + Send + Sync>> {
         PriceAlertNotification {
             device,
             asset: self.database.assets()?.get_asset(&price_alert.asset_id)?,
@@ -273,11 +246,7 @@ impl PriceAlertClient {
         match &alert.alert_type {
             PriceAlertType::PriceUp | PriceAlertType::PriceDown => alert.price_alert.price,
             PriceAlertType::PriceMilestone => alert.milestone,
-            PriceAlertType::PriceChangesUp
-            | PriceAlertType::PriceChangesDown
-            | PriceAlertType::PricePercentChangeUp
-            | PriceAlertType::PricePercentChangeDown
-            | PriceAlertType::AllTimeHigh => None,
+            PriceAlertType::PriceChangesUp | PriceAlertType::PriceChangesDown | PriceAlertType::PricePercentChangeUp | PriceAlertType::PricePercentChangeDown | PriceAlertType::AllTimeHigh => None,
         }
     }
 }
@@ -289,13 +258,7 @@ mod tests {
 
     use super::*;
 
-    const TEST_RATES: [FiatRate; 2] = [
-        FiatRate { symbol: Currency::USD, rate: 1.0 },
-        FiatRate {
-            symbol: Currency::EUR,
-            rate: 0.86,
-        },
-    ];
+    const TEST_RATES: [FiatRate; 2] = [FiatRate { symbol: Currency::USD, rate: 1.0 }, FiatRate { symbol: Currency::EUR, rate: 0.86 }];
 
     #[test]
     fn test_get_price_alert_type() {
@@ -316,10 +279,7 @@ mod tests {
             PriceAlertClient::get_price_alert_type(&over_usd, &price_data, &TEST_RATES, &PriceAlertRules::mock()),
             Some(AlertResult::new(PriceAlertType::PriceUp))
         );
-        assert_eq!(
-            PriceAlertClient::get_price_alert_type(&over_unknown, &price_data, &TEST_RATES, &PriceAlertRules::mock()),
-            None
-        );
+        assert_eq!(PriceAlertClient::get_price_alert_type(&over_unknown, &price_data, &TEST_RATES, &PriceAlertRules::mock()), None);
         assert_eq!(
             PriceAlertClient::get_price_alert_type(&auto, &PriceData::mock_with(78_987.0, 6.0), &[], &PriceAlertRules::mock()),
             Some(AlertResult::new(PriceAlertType::PriceChangesUp))

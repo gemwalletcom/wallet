@@ -7,9 +7,7 @@ const SIGNATURE_HEADER: &str = "x-signature";
 
 impl MercuryoClient {
     pub fn verify_webhook(&self, request: &FiatWebhookRequest) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let signature = request
-            .header(SIGNATURE_HEADER)
-            .ok_or_else(|| FiatQuoteError::InvalidRequest("Missing Mercuryo webhook signature".to_string()))?;
+        let signature = request.header(SIGNATURE_HEADER).ok_or_else(|| FiatQuoteError::InvalidRequest("Missing Mercuryo webhook signature".to_string()))?;
         if verify_hmac_signature_hex(&self.webhook_secret_key, &request.raw_body, signature) {
             Ok(())
         } else {

@@ -53,10 +53,7 @@ mod tests {
     fn test_asset_type_for_owner_program() {
         assert_eq!(asset_type_for_owner_program(TOKEN_PROGRAM).unwrap(), AssetType::SPL);
         assert_eq!(asset_type_for_owner_program(TOKEN_PROGRAM_2022).unwrap(), AssetType::SPL2022);
-        assert_eq!(
-            asset_type_for_owner_program("unsupported").unwrap_err().to_string(),
-            "unsupported Solana token owner program: unsupported"
-        );
+        assert_eq!(asset_type_for_owner_program("unsupported").unwrap_err().to_string(), "unsupported Solana token owner program: unsupported");
     }
 }
 

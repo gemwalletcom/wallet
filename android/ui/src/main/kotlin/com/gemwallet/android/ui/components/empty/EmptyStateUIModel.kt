@@ -10,15 +10,11 @@ import uniffi.gemstone.GemEmptyStateInput
 import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.emptyState
 
-data class EmptyStateUIModel(
-    val title: String,
-    val description: String?,
-    val image: EmptyStateImage,
-    val buttons: List<EmptyAction>,
-)
+data class EmptyStateUIModel(val title: String, val description: String?, val image: EmptyStateImage, val buttons: List<EmptyAction>)
 
 sealed interface EmptyStateImage {
     @JvmInline value class Drawable(@DrawableRes val id: Int) : EmptyStateImage
+
     @JvmInline value class Vector(@DrawableRes val id: Int) : EmptyStateImage
 }
 
@@ -67,37 +63,51 @@ private fun EmptyContentType.kind() = when (this) {
 
 private fun EmptyContentType.isViewOnly() = when (this) {
     is EmptyContentType.Asset -> isViewOnly
+
     is EmptyContentType.Activity -> isViewOnly
+
     is EmptyContentType.Nft, is EmptyContentType.PriceAlerts, is EmptyContentType.Contacts, is EmptyContentType.Stake,
     is EmptyContentType.Earn, is EmptyContentType.WalletConnect, is EmptyContentType.Recents, is EmptyContentType.Notifications,
     is EmptyContentType.NetworkAssets, is EmptyContentType.SearchAssets, is EmptyContentType.SearchNetworks,
-    is EmptyContentType.SearchActivity, is EmptyContentType.SearchPerpetuals -> false
+    is EmptyContentType.SearchActivity, is EmptyContentType.SearchPerpetuals,
+    -> false
 }
 
 private fun EmptyContentType.symbol() = when (this) {
     is EmptyContentType.Asset -> symbol
+
     is EmptyContentType.Stake -> symbol
+
     is EmptyContentType.Earn -> symbol
+
     is EmptyContentType.Nft, is EmptyContentType.PriceAlerts, is EmptyContentType.Contacts, is EmptyContentType.Activity,
     is EmptyContentType.WalletConnect, is EmptyContentType.Recents, is EmptyContentType.Notifications,
     is EmptyContentType.NetworkAssets, is EmptyContentType.SearchAssets, is EmptyContentType.SearchNetworks,
-    is EmptyContentType.SearchActivity, is EmptyContentType.SearchPerpetuals -> ""
+    is EmptyContentType.SearchActivity, is EmptyContentType.SearchPerpetuals,
+    -> ""
 }
 
 private fun EmptyContentType.actions(): Map<GemEmptyStateAction, () -> Unit> = when (this) {
     is EmptyContentType.Nft -> listOfNotNull(onReceive?.let { GemEmptyStateAction.RECEIVE to it }).toMap()
+
     is EmptyContentType.Asset -> listOfNotNull(
         onBuy?.let { GemEmptyStateAction.BUY to it },
         onSwap?.let { GemEmptyStateAction.SWAP to it },
     ).toMap()
+
     is EmptyContentType.Activity -> listOfNotNull(
         onBuy?.let { GemEmptyStateAction.BUY to it },
         onReceive?.let { GemEmptyStateAction.RECEIVE to it },
     ).toMap()
+
     is EmptyContentType.NetworkAssets -> listOfNotNull(onManageAssets?.let { GemEmptyStateAction.MANAGE_TOKEN_LIST to it }).toMap()
+
     is EmptyContentType.SearchAssets -> listOfNotNull(onAddCustomToken?.let { GemEmptyStateAction.ADD_CUSTOM_TOKEN to it }).toMap()
+
     is EmptyContentType.SearchActivity -> listOfNotNull(onClearFilters?.let { GemEmptyStateAction.CLEAR_FILTERS to it }).toMap()
+
     is EmptyContentType.PriceAlerts, is EmptyContentType.Contacts, is EmptyContentType.Stake, is EmptyContentType.Earn,
     is EmptyContentType.WalletConnect, is EmptyContentType.Recents, is EmptyContentType.Notifications,
-    is EmptyContentType.SearchNetworks, is EmptyContentType.SearchPerpetuals -> emptyMap()
+    is EmptyContentType.SearchNetworks, is EmptyContentType.SearchPerpetuals,
+    -> emptyMap()
 }

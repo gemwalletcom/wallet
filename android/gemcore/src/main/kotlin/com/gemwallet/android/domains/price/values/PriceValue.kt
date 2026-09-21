@@ -1,8 +1,8 @@
 package com.gemwallet.android.domains.price.values
 
 import androidx.compose.runtime.Immutable
-import uniffi.gemstone.GemValueTone
 import com.wallet.core.primitives.Currency
+import uniffi.gemstone.GemValueTone
 
 @Immutable
 data class PriceValue(

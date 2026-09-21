@@ -37,21 +37,13 @@ pub fn map_metadata_from_usage(usage: &TronAccountUsage, votes: u32) -> BalanceM
 }
 
 pub fn map_staking_balance(account: &TronAccount, reward: &TronReward, usage: &TronAccountUsage) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
-    let (bandwidth_frozen, energy_frozen) = account
-        .frozen_v2
-        .as_deref()
-        .unwrap_or_default()
-        .iter()
-        .fold((0u64, 0u64), |(bandwidth, energy), frozen| match frozen.resource() {
-            Some(Resource::Bandwidth) => (bandwidth + frozen.amount, energy),
-            Some(Resource::Energy) => (bandwidth, energy + frozen.amount),
-            None => (bandwidth, energy),
-        });
+    let (bandwidth_frozen, energy_frozen) = account.frozen_v2.as_deref().unwrap_or_default().iter().fold((0u64, 0u64), |(bandwidth, energy), frozen| match frozen.resource() {
+        Some(Resource::Bandwidth) => (bandwidth + frozen.amount, energy),
+        Some(Resource::Energy) => (bandwidth, energy + frozen.amount),
+        None => (bandwidth, energy),
+    });
     let votes: u64 = account.votes.as_ref().map_or(0, |votes| votes.iter().map(|vote| vote.vote_count).sum());
-    let pending_amount: u64 = account
-        .unfrozen_v2
-        .as_ref()
-        .map_or(0, |unfrozen_list| unfrozen_list.iter().map(|unfrozen| unfrozen.unfreeze_amount).sum());
+    let pending_amount: u64 = account.unfrozen_v2.as_ref().map_or(0, |unfrozen_list| unfrozen_list.iter().map(|unfrozen| unfrozen.unfreeze_amount).sum());
     let metadata = map_metadata_from_usage(usage, votes as u32);
 
     Ok(AssetBalance::new_balance(
@@ -74,14 +66,7 @@ pub fn map_balance_staking(account: &TronAccount, reward: &TronReward, usage: &T
         let metadata = map_metadata_from_usage(usage, 0);
         Ok(AssetBalance::new_balance(
             AssetId::from_chain(Chain::Tron),
-            new_stake_balance(
-                BigUint::from(0u32),
-                BigUint::from(0u32),
-                BigUint::from(0u32),
-                BigUint::from(0u32),
-                BigUint::from(0u32),
-                metadata,
-            ),
+            new_stake_balance(BigUint::from(0u32), BigUint::from(0u32), BigUint::from(0u32), BigUint::from(0u32), BigUint::from(0u32), metadata),
         ))
     }
 }
@@ -337,14 +322,7 @@ mod tests {
             bandwidth_total: 1000,
         };
 
-        let balance = new_stake_balance(
-            BigUint::from(100_u64),
-            BigUint::from(200_u64),
-            BigUint::from(300_u64),
-            BigUint::from(400_u64),
-            BigUint::from(500_u64),
-            metadata.clone(),
-        );
+        let balance = new_stake_balance(BigUint::from(100_u64), BigUint::from(200_u64), BigUint::from(300_u64), BigUint::from(400_u64), BigUint::from(500_u64), metadata.clone());
 
         assert_eq!(balance.available, BigUint::from(0_u32));
         assert_eq!(balance.frozen, BigUint::from(100_u64));

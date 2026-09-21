@@ -31,7 +31,7 @@ class Migration_76_77Test {
         InstrumentationRegistry.getInstrumentation(),
         GemDatabase::class.java,
         emptyList(),
-        FrameworkSQLiteOpenHelperFactory()
+        FrameworkSQLiteOpenHelperFactory(),
     )
 
     private lateinit var context: Context
@@ -76,14 +76,14 @@ class Migration_76_77Test {
     private fun SupportSQLiteDatabase.insertLegacyConnection(topic: String) {
         execSQL(
             "INSERT INTO room_connection (id, wallet_id, session_id, state, created_at, expire_at, app_name, app_description, app_url, app_icon, redirect_native, redirect_universal) " +
-                "VALUES ('$topic', 'wallet-1', '$topic', 'Active', 1000, 2000, 'App', 'Desc', 'https://app.example', 'https://app.example/icon.png', NULL, NULL)"
+                "VALUES ('$topic', 'wallet-1', '$topic', 'Active', 1000, 2000, 'App', 'Desc', 'https://app.example', 'https://app.example/icon.png', NULL, NULL)",
         )
     }
 
     private fun SupportSQLiteDatabase.insertConnectionWithChains(topic: String, chains: String) {
         execSQL(
             "INSERT INTO wallets_connections (id, wallet_id, session_id, state, chains, created_at, expire_at, app_name, app_description, app_url, app_icon, redirect_native, redirect_universal) " +
-                "VALUES ('$topic', 'wallet-1', '$topic', 'Active', '$chains', 1000, 2000, 'App', 'Desc', 'https://app.example', 'https://app.example/icon.png', NULL, NULL)"
+                "VALUES ('$topic', 'wallet-1', '$topic', 'Active', '$chains', 1000, 2000, 'App', 'Desc', 'https://app.example', 'https://app.example/icon.png', NULL, NULL)",
         )
     }
 

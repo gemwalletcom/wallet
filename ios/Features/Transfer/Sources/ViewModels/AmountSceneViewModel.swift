@@ -8,6 +8,7 @@ import enum Gemstone.GemAmountError
 import struct Gemstone.GemAmountInput
 import enum Gemstone.GemAmountInputType
 import protocol Gemstone.GemAmountServiceProtocol
+import protocol Gemstone.GemStakeServiceProtocol
 import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import GemstoneServices
@@ -29,6 +30,7 @@ public final class AmountSceneViewModel {
     private let formatter = ValueFormatter(style: .full)
     private let amountFormatter = ValueFormatter.auto
     let currencyFormatter: CurrencyFormatter
+    private let currency: Currency
 
     public let provider: AmountDataProvider
 
@@ -47,15 +49,17 @@ public final class AmountSceneViewModel {
         input: AmountInput,
         wallet: Wallet,
         service: any GemAmountServiceProtocol,
+        stakeService: any GemStakeServiceProtocol,
         onTransferAction: TransferDataAction,
     ) {
         self.wallet = wallet
         self.service = service
         self.onTransferAction = onTransferAction
-        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: service.getCurrency().toPrimitives().rawValue)
-        provider = .make(from: input, service: service)
+        currency = service.getCurrency().toPrimitives()
+        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: currency.rawValue)
+        provider = .make(from: input, service: service, stakeService: stakeService)
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: input.asset.id), initialValue: .with(asset: input.asset))
-        entry = provider.entry(from: assetQuery.value, inputType: .asset, text: .empty)
+        entry = provider.entry(from: assetQuery.value, inputType: .asset, text: .empty, currency: currency)
         amountInputModel = InputValidationViewModel(mode: .manual)
 
         if let amount = provider.prefilledAmount {
@@ -105,7 +109,9 @@ public final class AmountSceneViewModel {
     }
 
     var actionButtonState: ButtonState {
-        if transferState.isLoading { return .loading() }
+        if transferState.isLoading {
+            return .loading()
+        }
         return entry.allowsConfirm() ? .normal : .disabled
     }
 
@@ -178,6 +184,12 @@ extension AmountSceneViewModel {
         isPresentingSheet = .infoAction(.stakingReservedFees(image: assetImage))
     }
 
+    func onSelectBuy() {
+        guard let address = try? wallet.account(for: asset.chain).address else { return }
+        let assetAddress = AssetAddress(asset: asset, address: address)
+        isPresentingSheet = .fiatConnect(assetAddress: assetAddress, wallet: wallet)
+    }
+
     func onSelectLeverage() {
         guard case let .perpetual(perpetual) = provider,
               let selection = perpetual.leverageSelection else { return }
@@ -240,7 +252,7 @@ private extension AmountSceneViewModel {
     }
 
     func refreshEntry() {
-        entry = provider.entry(from: assetData, inputType: amountInputType, text: NumberInput.plain(amountInputModel.text))
+        entry = provider.entry(from: assetData, inputType: amountInputType, text: NumberInput.plain(amountInputModel.text), currency: currency)
         amountInputModel.update(error: entryError)
     }
 
@@ -274,21 +286,10 @@ private extension AmountSceneViewModel {
         }
     }
 
-    func onSelectBuy() {
-        let senderAddress = (try? wallet.account(for: asset.chain).address) ?? ""
-        let assetAddress = AssetAddress(asset: asset, address: senderAddress)
-        isPresentingSheet = .fiatConnect(assetAddress: assetAddress, wallet: wallet)
-    }
-
     var secondaryText: String {
         switch entry.equivalent {
-        case let .fiat(amount)?: currencyFormatter.string(amount)
-        case let .asset(value)?: amountFormatter.string(value, asset: asset)
-        case nil:
-            switch amountInputType {
-            case .asset: currencyFormatter.string(.zero)
-            case .fiat: amountFormatter.string(.zero, asset: asset)
-            }
+        case let .fiat(amount): amount.text()
+        case let .asset(value): amountFormatter.string(value, asset: asset)
         }
     }
 }

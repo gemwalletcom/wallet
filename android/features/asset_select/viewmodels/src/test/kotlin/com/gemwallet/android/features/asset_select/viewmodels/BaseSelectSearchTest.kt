@@ -63,7 +63,7 @@ class BaseSelectSearchTest {
 
         search.items(filters).first()
 
-        verify(exactly = 1) { searchService.search("", true, NO_QUERY_LIMIT, setOf(AssetFilter.Buyable)) }
+        verify(exactly = 1) { searchService.search("", true, NO_QUERY_LIMIT, setOf(AssetFilter.Enabled, AssetFilter.Buyable)) }
     }
 
     @Test
@@ -74,10 +74,8 @@ class BaseSelectSearchTest {
         val search = BaseSelectSearch(searchService)
         val filters = MutableStateFlow(
             mockSelectAssetFilters(
-                chainFilter = listOf(Chain.Ethereum),
-                hasBalance = true,
-                filters = listOf(GemAssetFilter.Buyable),
-            )
+                filters = listOf(GemAssetFilter.Buyable, GemAssetFilter.Chains(listOf(Chain.Ethereum.string)), GemAssetFilter.HasBalance),
+            ),
         )
         search.items(filters).first()
         verify(exactly = 1) {

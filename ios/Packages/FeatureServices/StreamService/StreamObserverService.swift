@@ -43,11 +43,9 @@ public actor StreamObserverService: Sendable {
         }
     }
 
-    public func disconnect() async {
+    public func disconnect() {
         isActive = false
         observeTask?.cancel()
-        await observeTask?.value
-        observeTask = nil
     }
 
     // MARK: - Private
@@ -56,12 +54,7 @@ public actor StreamObserverService: Sendable {
         guard isActive, observeTask == nil else { return }
         observeTask = Task { [weak self] in
             await self?.observeConnection()
-            await self?.stopObserving()
         }
-    }
-
-    private func stopObserving() {
-        observeTask = nil
     }
 
     private func observeConnection() async {
@@ -72,7 +65,7 @@ public actor StreamObserverService: Sendable {
             if shouldConnect {
                 for await event in await webSocket.connect() {
                     try Task.checkCancellation()
-                    await handle(event)
+                    await onSocketEvent(event)
                 }
             }
         } catch is CancellationError {
@@ -81,9 +74,13 @@ public actor StreamObserverService: Sendable {
         }
         await webSocket.disconnect()
         await service.disconnected()
+        observeTask = nil
+        if Task.isCancelled {
+            startObserving()
+        }
     }
 
-    private func handle(_ event: WebSocketEvent) async {
+    private func onSocketEvent(_ event: WebSocketEvent) async {
         do {
             switch event {
             case .connected:
@@ -91,8 +88,15 @@ public actor StreamObserverService: Sendable {
                 health.report(isHealthy: true)
                 try await service.connected()
             case let .message(data):
-                let event = try await service.handle(event: String(decoding: data, as: UTF8.self))
+                let event = try await service.decodeEvent(event: String(decoding: data, as: UTF8.self))
                 debugLog("stream event: \(event)")
+                Task { [service] in
+                    do {
+                        try await service.sync(event: event)
+                    } catch {
+                        debugLog("stream sync error: \(error)")
+                    }
+                }
             case .disconnected:
                 debugLog("stream disconnected")
                 if isActive {

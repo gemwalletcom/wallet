@@ -13,11 +13,7 @@ pub enum ConnectionStatus {
 
 impl ConnectionStatus {
     pub fn from_unhealthy_components(components: &[ConnectionComponent]) -> Self {
-        components
-            .iter()
-            .map(|component| component.failure_status())
-            .max_by_key(|status| status.severity())
-            .unwrap_or(Self::Online)
+        components.iter().map(|component| component.failure_status()).max_by_key(|status| status.severity()).unwrap_or(Self::Online)
     }
 
     fn severity(&self) -> u8 {
@@ -38,9 +34,6 @@ mod tests {
         assert_eq!(ConnectionStatus::from_unhealthy_components(&[]), ConnectionStatus::Online);
         assert_eq!(ConnectionStatus::from_unhealthy_components(&[ConnectionComponent::Internet]), ConnectionStatus::NoInternet);
         assert_eq!(ConnectionStatus::from_unhealthy_components(&[ConnectionComponent::Stream]), ConnectionStatus::NoService);
-        assert_eq!(
-            ConnectionStatus::from_unhealthy_components(&[ConnectionComponent::Stream, ConnectionComponent::Internet]),
-            ConnectionStatus::NoInternet
-        );
+        assert_eq!(ConnectionStatus::from_unhealthy_components(&[ConnectionComponent::Stream, ConnectionComponent::Internet]), ConnectionStatus::NoInternet);
     }
 }

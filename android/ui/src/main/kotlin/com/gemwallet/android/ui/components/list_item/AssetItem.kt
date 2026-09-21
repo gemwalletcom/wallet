@@ -38,9 +38,7 @@ import com.gemwallet.android.ui.theme.space6
 import com.wallet.core.primitives.Asset
 
 @Composable
-private fun assetListItemContentPadding(): Dp {
-    return adaptivePadding(default = paddingMiddle, compact = space6)
-}
+private fun assetListItemContentPadding(): Dp = adaptivePadding(default = paddingMiddle, compact = space6)
 
 @Composable
 fun AssetListItem(
@@ -60,22 +58,16 @@ fun AssetListItem(
         leading = @Composable { AssetIcon(asset.asset) },
         title = @Composable { ListItemTitleText(asset.title, { Badge(text = badge) }) },
         subtitle = support,
-        trailing = if (trailing == null) null else {
+        trailing = if (trailing == null) {
+            null
+        } else {
             { trailing.invoke() }
-        }
+        },
     )
 }
 
 @Composable
-fun AssetListItem(
-    asset: Asset,
-    listPosition: ListPosition,
-    modifier: Modifier = Modifier,
-    title: String = asset.name,
-    support: @Composable (() -> Unit)? = null,
-    badge: String? = null,
-    trailing: (@Composable () -> Unit)? = null,
-) {
+fun AssetListItem(asset: Asset, listPosition: ListPosition, modifier: Modifier = Modifier, title: String = asset.name, support: @Composable (() -> Unit)? = null, badge: String? = null, trailing: (@Composable () -> Unit)? = null) {
     ListItem(
         modifier = modifier,
         listPosition = listPosition,
@@ -85,9 +77,11 @@ fun AssetListItem(
         leading = @Composable { AssetIcon(asset) },
         title = @Composable { ListItemTitleText(title, { Badge(text = badge) }) },
         subtitle = support,
-        trailing = if (trailing == null) null else {
+        trailing = if (trailing == null) {
+            null
+        } else {
             { trailing.invoke() }
-        }
+        },
     )
 }
 
@@ -134,7 +128,7 @@ fun PriceInfo(
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(internalPadding)
+        horizontalArrangement = Arrangement.spacedBy(internalPadding),
     ) {
         Text(
             modifier = Modifier.weight(1f, false),
@@ -157,11 +151,10 @@ fun PriceInfo(
     }
 }
 
-fun getBalanceInfo(asset: AssetInfoDataAggregate): @Composable () -> Unit
-        = getBalanceInfo(asset.balance, asset.balanceEquivalent, asset.isZeroBalance)
+fun getBalanceInfo(asset: AssetInfoDataAggregate): @Composable () -> Unit = getBalanceInfo(asset.balance, asset.balanceEquivalent, asset.isZeroBalance)
 
-fun getBalanceInfo(crypto: CryptoFormattedUIModel, fiatFormattedUIModel: FiatFormattedUIModel): @Composable () -> Unit {
-    return (@Composable {
+fun getBalanceInfo(crypto: CryptoFormattedUIModel, fiatFormattedUIModel: FiatFormattedUIModel): @Composable () -> Unit = (
+    @Composable {
         val color = MaterialTheme.colorScheme.let {
             if (crypto.isZeroAmount) it.secondary else it.onSurface
         }
@@ -170,11 +163,11 @@ fun getBalanceInfo(crypto: CryptoFormattedUIModel, fiatFormattedUIModel: FiatFor
             equivalent = fiatFormattedUIModel.fiatFormatted.takeIf { !crypto.isZeroAmount }.orEmpty(),
             color = color,
         )
-    })
-}
+    }
+    )
 
-fun getBalanceInfo(crypto: String, equivalent: String, isZero: Boolean): @Composable () -> Unit {
-    return (@Composable {
+fun getBalanceInfo(crypto: String, equivalent: String, isZero: Boolean): @Composable () -> Unit = (
+    @Composable {
         val color = MaterialTheme.colorScheme.let {
             if (isZero) it.secondary else it.onSurface
         }
@@ -183,17 +176,13 @@ fun getBalanceInfo(crypto: String, equivalent: String, isZero: Boolean): @Compos
             equivalent = equivalent.takeIf { !isZero }.orEmpty(),
             color = color,
         )
-    })
-}
+    }
+    )
 
 @Composable
-private fun BalanceInfo(
-    crypto: String,
-    equivalent: String,
-    color: Color,
-) {
+private fun BalanceInfo(crypto: String, equivalent: String, color: Color) {
     Column(
-        horizontalAlignment = Alignment.End
+        horizontalAlignment = Alignment.End,
     ) {
         Text(
             modifier = Modifier,

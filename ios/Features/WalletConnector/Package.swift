@@ -28,7 +28,6 @@ let package = Package(
         .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
         .package(name: "Gemstone", path: "../../Packages/Gemstone"),
-        .package(name: "Formatters", path: "../../Packages/Formatters"),
     ],
     targets: [
         .target(
@@ -44,7 +43,6 @@ let package = Package(
                 "PrimitivesComponents",
                 "QRScanner",
                 "Gemstone",
-                "Formatters",
             ],
             path: "Sources",
         ),

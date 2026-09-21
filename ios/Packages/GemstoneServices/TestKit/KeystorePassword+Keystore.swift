@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
 import Foundation
 import GemstoneServices
 import LocalAuthentication
+import Primitives
 
 public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
     public private(set) var getPasswordCallsCount = 0

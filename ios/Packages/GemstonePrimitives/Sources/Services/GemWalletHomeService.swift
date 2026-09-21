@@ -2,18 +2,18 @@
 
 import Foundation
 import struct Gemstone.GemBannerContent
+import struct Gemstone.GemPerpetualCollateral
 import protocol Gemstone.GemWalletHomeServiceProtocol
 import struct Gemstone.GemWalletHomeViewState
 import Primitives
 
 public extension GemWalletHomeServiceProtocol {
-    func viewState(wallet: Wallet, balances: [AssetFiatValue], perpetual: PerpetualBalance?, banners: [Banner], isWalletEmpty: Bool) -> GemWalletHomeViewState {
+    func viewState(wallet: Wallet, balances: [AssetFiatValue], perpetual: GemPerpetualCollateral?, banners: [Banner]) -> GemWalletHomeViewState {
         viewState(
             wallet: wallet.toGem(),
             balances: balances.map { $0.toGem() },
-            perpetual: perpetual?.toGem(),
+            perpetual: perpetual,
             banners: banners.map { $0.toGem() },
-            isWalletEmpty: isWalletEmpty,
         )
     }
 
@@ -27,10 +27,6 @@ public extension GemWalletHomeServiceProtocol {
 
     func setAssetPinned(assetId: AssetId, pinned: Bool) async throws {
         try await setAssetPinned(assetId: assetId.identifier, pinned: pinned)
-    }
-
-    func content(for banner: Banner) -> GemBannerContent {
-        bannerContent(event: banner.event.toGem(), asset: banner.asset?.toGem())
     }
 
     func close(_ banner: Banner) async throws {

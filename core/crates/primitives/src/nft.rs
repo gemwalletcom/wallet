@@ -43,9 +43,7 @@ impl Hash for NFTCollection {
 impl NFTCollection {
     pub fn images(&self) -> NFTImages {
         let image = format!("{}/{}/collection_original.png", self.chain.as_ref(), self.contract_address);
-        NFTImages {
-            preview: NFTResource::from_url(&image),
-        }
+        NFTImages { preview: NFTResource::from_url(&image) }
     }
 
     pub fn with_preview_url(self, url: String) -> Self {
@@ -83,15 +81,9 @@ impl NFTAsset {
     pub fn with_urls(self, preview_url: String, resource_url: String) -> Self {
         Self {
             images: NFTImages {
-                preview: NFTResource {
-                    url: preview_url,
-                    ..self.images.preview
-                },
+                preview: NFTResource { url: preview_url, ..self.images.preview },
             },
-            resource: NFTResource {
-                url: resource_url,
-                ..self.resource
-            },
+            resource: NFTResource { url: resource_url, ..self.resource },
             ..self
         }
     }

@@ -18,13 +18,7 @@ import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.space2
 
 @Composable
-fun SelectionIndicator(
-    isSelected: Boolean,
-    modifier: Modifier = Modifier,
-    size: Dp = compactIconSize,
-    selectedColor: Color = MaterialTheme.colorScheme.primary,
-    unselectedColor: Color = MaterialTheme.colorScheme.secondary,
-) {
+fun SelectionIndicator(isSelected: Boolean, modifier: Modifier = Modifier, size: Dp = compactIconSize, selectedColor: Color = MaterialTheme.colorScheme.primary, unselectedColor: Color = MaterialTheme.colorScheme.secondary) {
     if (isSelected) {
         SelectionCheckmark(
             modifier = modifier,
@@ -41,11 +35,7 @@ fun SelectionIndicator(
 }
 
 @Composable
-fun SelectionCheckmark(
-    modifier: Modifier = Modifier,
-    size: Dp = compactIconSize,
-    color: Color = MaterialTheme.colorScheme.primary,
-) {
+fun SelectionCheckmark(modifier: Modifier = Modifier, size: Dp = compactIconSize, color: Color = MaterialTheme.colorScheme.primary) {
     Box(
         modifier = modifier
             .size(size)
@@ -73,11 +63,7 @@ fun SelectionCheckmark(
 }
 
 @Composable
-private fun SelectionCircle(
-    modifier: Modifier = Modifier,
-    size: Dp = compactIconSize,
-    color: Color = MaterialTheme.colorScheme.secondary,
-) {
+private fun SelectionCircle(modifier: Modifier = Modifier, size: Dp = compactIconSize, color: Color = MaterialTheme.colorScheme.secondary) {
     Canvas(modifier = modifier.size(size)) {
         val strokeWidth = selectionCircleStrokeWidth.toPx()
         drawCircle(

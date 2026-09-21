@@ -272,12 +272,7 @@ mod tests {
     fn test_map_trump_asset() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let currencies = serde_json::from_str::<Response<Currencies>>(include_str!("../../../testdata/mercuryo/assets.json"))?.data;
 
-        let trump_asset = currencies
-            .config
-            .crypto_currencies
-            .iter()
-            .find(|asset| asset.currency == "TRUMP" && asset.network == "SOLANA")
-            .unwrap();
+        let trump_asset = currencies.config.crypto_currencies.iter().find(|asset| asset.currency == "TRUMP" && asset.network == "SOLANA").unwrap();
 
         let result = map_asset_with_limits(trump_asset.clone(), vec![], vec![]).unwrap();
 
@@ -292,9 +287,7 @@ mod tests {
 
     #[test]
     fn test_map_asset_availability() {
-        let currencies = serde_json::from_str::<Response<Currencies>>(include_str!("../../../testdata/mercuryo/assets.json"))
-            .unwrap()
-            .data;
+        let currencies = serde_json::from_str::<Response<Currencies>>(include_str!("../../../testdata/mercuryo/assets.json")).unwrap().data;
         let limits = map_asset_limits(None, Currency::USD, &currencies.fiat_payment_methods);
         assert!(!limits.is_empty());
 
@@ -322,22 +315,14 @@ mod tests {
 
         assert_eq!(result.chain, Some(Chain::Stellar));
         assert_eq!(result.token_id, Some("GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN::USDC".to_string()));
-        assert_eq!(
-            result.asset_id(),
-            Some(AssetId::from_token(Chain::Stellar, "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN::USDC"))
-        );
+        assert_eq!(result.asset_id(), Some(AssetId::from_token(Chain::Stellar, "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN::USDC")));
     }
 
     #[test]
     fn test_contract_assets_mapping() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let currencies = serde_json::from_str::<Response<Currencies>>(include_str!("../../../testdata/mercuryo/assets.json"))?.data;
 
-        let all_assets: Vec<_> = currencies
-            .config
-            .crypto_currencies
-            .into_iter()
-            .flat_map(|asset| map_asset_with_limits(asset, vec![], vec![]))
-            .collect();
+        let all_assets: Vec<_> = currencies.config.crypto_currencies.into_iter().flat_map(|asset| map_asset_with_limits(asset, vec![], vec![])).collect();
 
         let contract_assets: Vec<_> = all_assets.iter().filter(|asset| asset.token_id.is_some()).collect();
 

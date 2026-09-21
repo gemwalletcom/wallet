@@ -8,6 +8,16 @@ import Testing
 
 struct SecurePreferencesStoreTests {
     @Test
+    func newSecureValueUsesDeviceOnlyStorage() throws {
+        let keychain = RecordingKeychain()
+        let store = GemstoneSecurePreferencesStore(namespace: "gateway", keychain: keychain)
+
+        try store.set(key: "credential", value: "test-value")
+
+        #expect(keychain.storage.accessibility(for: "gatewaycredential") == .whenUnlockedThisDeviceOnly)
+    }
+
+    @Test
     func deviceKeyMigratesFromTheLegacyKeychainEntry() throws {
         let keychain = RecordingKeychain()
         let privateKey = Data(repeating: 0x04, count: 32)

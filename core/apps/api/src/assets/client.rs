@@ -29,10 +29,7 @@ impl AssetsClient {
         Ok(self
             .database
             .assets()?
-            .get_assets_with_prices(
-                vec![AssetFilter::Ids(asset_ids.iter().map(ToString::to_string).collect())],
-                self.config.primary_price_max_age,
-            )?
+            .get_assets_with_prices(vec![AssetFilter::Ids(asset_ids.iter().map(ToString::to_string).collect())], self.config.primary_price_max_age)?
             .into_iter()
             .map(|asset| asset.asset_basic_with_rate(rate))
             .collect())
@@ -77,32 +74,20 @@ pub struct SearchClient {
 
 impl SearchClient {
     pub fn new(client: &SearchIndexClient, price_client: PriceClient) -> Self {
-        Self {
-            client: client.clone(),
-            price_client,
-        }
+        Self { client: client.clone(), price_client }
     }
 
     pub async fn get_assets_search(&self, request: &SearchRequest) -> Result<Vec<primitives::AssetBasic>, Box<dyn Error + Send + Sync>> {
         let filters = build_assets_filters(request);
 
-        let assets: Vec<AssetBasic> = self
-            .client
-            .search(ASSETS_INDEX_NAME, &request.query, &build_filter(filters), [].as_ref(), request.limit, request.offset)
-            .await?;
+        let assets: Vec<AssetBasic> = self.client.search(ASSETS_INDEX_NAME, &request.query, &build_filter(filters), [].as_ref(), request.limit, request.offset).await?;
 
         if assets.is_empty() {
             return Ok(vec![]);
         }
 
         let asset_ids: Vec<AssetId> = assets.iter().map(|x| x.asset.id.clone()).collect();
-        let prices: HashMap<AssetId, _> = self
-            .price_client
-            .get_cache_prices(asset_ids)
-            .await?
-            .into_iter()
-            .map(|p| (p.asset_id.clone(), p.as_price_primitive()))
-            .collect();
+        let prices: HashMap<AssetId, _> = self.price_client.get_cache_prices(asset_ids).await?.into_iter().map(|p| (p.asset_id.clone(), p.as_price_primitive())).collect();
 
         Ok(assets
             .into_iter()
@@ -119,10 +104,7 @@ impl SearchClient {
     }
 
     pub async fn get_asset_lists_search(&self, request: &SearchRequest) -> Result<Vec<AssetList>, Box<dyn Error + Send + Sync>> {
-        let lists: Vec<AssetListDocument> = self
-            .client
-            .search(ASSET_LISTS_INDEX_NAME, &request.query, &build_filter(vec![]), [].as_ref(), request.limit, request.offset)
-            .await?;
+        let lists: Vec<AssetListDocument> = self.client.search(ASSET_LISTS_INDEX_NAME, &request.query, &build_filter(vec![]), [].as_ref(), request.limit, request.offset).await?;
 
         Ok(lists.iter().filter_map(|list| list.as_primitive(&request.chains)).collect())
     }
@@ -130,19 +112,13 @@ impl SearchClient {
     pub async fn get_perpetuals_search(&self, request: &SearchRequest) -> Result<Vec<PerpetualSearchData>, Box<dyn Error + Send + Sync>> {
         let filters = build_perpetuals_filters(request);
 
-        let perpetuals: Vec<PerpetualDocument> = self
-            .client
-            .search(PERPETUALS_INDEX_NAME, &request.query, &build_filter(filters), [].as_ref(), request.limit, request.offset)
-            .await?;
+        let perpetuals: Vec<PerpetualDocument> = self.client.search(PERPETUALS_INDEX_NAME, &request.query, &build_filter(filters), [].as_ref(), request.limit, request.offset).await?;
 
         Ok(perpetuals.into_iter().map(Into::into).collect())
     }
 
     pub async fn get_nfts_search(&self, request: &SearchRequest) -> Result<Vec<NFTCollection>, Box<dyn Error + Send + Sync>> {
-        let nfts: Vec<NFTDocument> = self
-            .client
-            .search(NFTS_INDEX_NAME, &request.query, &build_filter(vec![]), [].as_ref(), request.limit, request.offset)
-            .await?;
+        let nfts: Vec<NFTDocument> = self.client.search(NFTS_INDEX_NAME, &request.query, &build_filter(vec![]), [].as_ref(), request.limit, request.offset).await?;
 
         Ok(nfts.into_iter().map(|x| x.collection).collect())
     }

@@ -35,20 +35,8 @@ pub struct GemPortfolioService {
 #[uniffi::export]
 impl GemPortfolioService {
     #[uniffi::constructor]
-    pub fn new(
-        api: Arc<GemDeviceApiClient>,
-        store: Arc<dyn GemPortfolioStore>,
-        price: Arc<GemPriceService>,
-        perpetual: Arc<GemPerpetualService>,
-        preferences: Arc<GemPreferencesService>,
-    ) -> Self {
-        Self {
-            api,
-            store,
-            price,
-            perpetual,
-            preferences,
-        }
+    pub fn new(api: Arc<GemDeviceApiClient>, store: Arc<dyn GemPortfolioStore>, price: Arc<GemPriceService>, perpetual: Arc<GemPerpetualService>, preferences: Arc<GemPreferencesService>) -> Self {
+        Self { api, store, price, perpetual, preferences }
     }
 
     pub fn currency(&self, portfolio_type: PortfolioType) -> Currency {
@@ -57,17 +45,12 @@ impl GemPortfolioService {
 
     pub async fn portfolio_data(&self, wallet: Wallet, portfolio_type: PortfolioType, period: ChartPeriod) -> Result<PortfolioData, GemServiceError> {
         match portfolio_type {
-            PortfolioType::Wallet => Ok(rules::wallet_portfolio_data(
-                self.sync_wallet_values(wallet.id, period, self.preferences.get_currency()).await?,
-            )),
+            PortfolioType::Wallet => Ok(rules::wallet_portfolio_data(self.sync_wallet_values(wallet.id, period, self.preferences.get_currency()).await?)),
             PortfolioType::Perpetuals => {
                 let account = hyperliquid_account(&wallet.accounts).ok_or(GemServiceError::NotFound {
                     msg: "wallet has no perpetual account".to_string(),
                 })?;
-                Ok(rules::perpetual_portfolio_data(
-                    self.perpetual.get_portfolio(Chain::HyperCore, account.address.clone()).await?,
-                    period,
-                ))
+                Ok(rules::perpetual_portfolio_data(self.perpetual.get_portfolio(Chain::HyperCore, account.address.clone()).await?, period))
             }
         }
     }

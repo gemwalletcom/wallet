@@ -27,10 +27,7 @@ async fn test_node_invalid_chain_and_missing_host_are_json_errors() {
         let response = client.get(path).dispatch().await;
         assert_eq!(response.status(), Status::BadRequest);
         assert_eq!(response.content_type(), Some(ContentType::JSON));
-        assert_eq!(
-            serde_json::from_str::<Value>(&response.into_string().await.unwrap()).unwrap(),
-            json!({ "error": { "message": message } })
-        );
+        assert_eq!(serde_json::from_str::<Value>(&response.into_string().await.unwrap()).unwrap(), json!({ "error": { "message": message } }));
     }
 }
 
@@ -49,10 +46,7 @@ async fn test_provider_health_and_route_access() {
         let response = client.req(method, path).dispatch().await;
         assert_eq!(response.status(), status, "{method} {path}");
         assert_eq!(response.content_type(), Some(ContentType::JSON));
-        assert_eq!(
-            serde_json::from_str::<Value>(&response.into_string().await.unwrap()).unwrap(),
-            json!({ "error": { "message": message } })
-        );
+        assert_eq!(serde_json::from_str::<Value>(&response.into_string().await.unwrap()).unwrap(), json!({ "error": { "message": message } }));
     }
 }
 
@@ -62,10 +56,7 @@ async fn test_egress_unavailable_endpoint_preserves_metrics() {
     let response = client.get("/worker/security_public/allowed?token=not-a-metric-label").dispatch().await;
     assert_eq!(response.status(), Status::ServiceUnavailable);
     assert_eq!(response.content_type(), Some(ContentType::JSON));
-    assert_eq!(
-        serde_json::from_str::<Value>(&response.into_string().await.unwrap()).unwrap(),
-        json!({ "error": { "message": "no endpoint is available" } })
-    );
+    assert_eq!(serde_json::from_str::<Value>(&response.into_string().await.unwrap()).unwrap(), json!({ "error": { "message": "no endpoint is available" } }));
 
     let response = client.get("/metrics").dispatch().await;
     assert_eq!(response.status(), Status::Ok);
@@ -85,16 +76,9 @@ async fn test_egress_unavailable_endpoint_preserves_metrics() {
 async fn test_request_body_limit_accepts_exact_size_and_rejects_truncation_in_both_modes() {
     for (client, path, denied_message) in [
         (Client::tracked(Server::mock_nodes().rocket()).await.unwrap(), "/ethereum/denied", "Request not allowed"),
-        (
-            Client::tracked(Server::mock_egress().rocket()).await.unwrap(),
-            "/worker/security_public/denied",
-            "request not allowed",
-        ),
+        (Client::tracked(Server::mock_egress().rocket()).await.unwrap(), "/worker/security_public/denied", "request not allowed"),
     ] {
-        for (length, status, message) in [
-            (TEST_REQUEST_LIMIT, Status::Forbidden, denied_message),
-            (TEST_REQUEST_LIMIT + 1, Status::PayloadTooLarge, "request body is too large"),
-        ] {
+        for (length, status, message) in [(TEST_REQUEST_LIMIT, Status::Forbidden, denied_message), (TEST_REQUEST_LIMIT + 1, Status::PayloadTooLarge, "request body is too large")] {
             let response = client.post(path).header(Header::new("Host", "localhost")).body(vec![b'x'; length]).dispatch().await;
             assert_eq!(response.status(), status, "{path} body length {length}");
             assert_eq!(response.content_type(), Some(ContentType::JSON));
@@ -109,10 +93,7 @@ fn test_mixed_routes_reserve_chain_prefixes() {
     let server = Server::new(Config::mock(), HashMap::from([(Chain::Ethereum, ChainConfig::mock(Chain::Ethereum))])).unwrap();
 
     assert!(matches!(server.routes.target("/ethereum"), Ok(Target::Node(_, Chain::Ethereum))));
-    assert!(matches!(
-        server.routes.target("/ethereum/fastnear_tx/v0/transactions"),
-        Ok(Target::Node(_, Chain::Ethereum))
-    ));
+    assert!(matches!(server.routes.target("/ethereum/fastnear_tx/v0/transactions"), Ok(Target::Node(_, Chain::Ethereum))));
     assert!(matches!(server.routes.target("/base/fastnear_tx/v0/transactions"), Ok(Target::Node(_, Chain::Base))));
     for source in ["api", "parser", "consumer", "daemon"] {
         assert!(matches!(server.routes.target(&format!("/{source}/fastnear_tx/v0/transactions")), Ok(Target::Provider(_))));

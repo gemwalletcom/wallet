@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import SwiftUI
-import GemstoneServices
 
 public struct ImportWalletNavigationStack: View {
     @State private var model: ImportWalletViewModel
@@ -25,8 +25,8 @@ public struct ImportWalletNavigationStack: View {
                 }
                 .navigationDestination(for: Scenes.WalletProfile.self) { scene in
                     SetupWalletScene(model: model.setupWalletModel(wallet: scene.wallet, onComplete: onSetupWalletComplete))
-                    .navigationBarBackButtonHidden()
-                    .interactiveDismissDisabled()
+                        .navigationBarBackButtonHidden()
+                        .interactiveDismissDisabled()
                 }
                 .navigationDestination(for: Scenes.ImportWalletType.self) { _ in
                     importWalletTypeScene
@@ -34,7 +34,7 @@ public struct ImportWalletNavigationStack: View {
                 .sheet(item: $model.isPresentingSelectImageWallet) { wallet in
                     NavigationStack {
                         WalletImageScene(model: model.walletImageModel(wallet: wallet))
-                        .toolbarDismissItem(type: .close, placement: .topBarLeading)
+                            .toolbarDismissItem(type: .close, placement: .topBarLeading)
                     }
                 }
         }
@@ -45,7 +45,7 @@ public struct ImportWalletNavigationStack: View {
         if model.isAcceptTermsCompleted {
             importWalletTypeScene
         } else {
-            AcceptTermsScene(model: AcceptTermsViewModel(onNext: { navigate(to: .importWalletType) }))
+            AcceptTermsScene(model: AcceptTermsViewModel(preferences: model.preferences, onNext: { navigate(to: .importWalletType) }))
         }
     }
 

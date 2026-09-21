@@ -11,18 +11,12 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.gemwallet.android.ui.components.GemTextField
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.theme.paddingHalfSmall
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 @Composable
-fun MemoTextField(
-    value: String,
-    label: String,
-    onValueChange: (String) -> Unit,
-    error: String = "",
-    onQrScanner: (() -> Unit)? = null,
-) {
+fun MemoTextField(value: String, label: String, onValueChange: (String) -> Unit, error: String = "", onQrScanner: (() -> Unit)? = null) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val clipboardManager = LocalContext.current.clipboardManager()
     Column(
@@ -46,9 +40,9 @@ fun MemoTextField(
                     qrScanner = onQrScanner,
                     onClean = {
                         onValueChange("")
-                    }
+                    },
                 )
-            }
+            },
         )
         if (error.isNotEmpty()) {
             Text(

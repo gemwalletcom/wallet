@@ -25,11 +25,7 @@ import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
 
 @Composable
-fun NftHead(
-    source: NftImageSource,
-    size: Dp = headerLargeImageSize,
-    onClick: (() -> Unit)? = null,
-) {
+fun NftHead(source: NftImageSource, size: Dp = headerLargeImageSize, onClick: (() -> Unit)? = null) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -59,9 +55,7 @@ fun NftHead(
 }
 
 @Composable
-fun NftHead(nftAsset: NFTAsset, size: Dp = headerLargeImageSize) =
-    NftHead(nftAsset.toImageSource(), size)
+fun NftHead(nftAsset: NFTAsset, size: Dp = headerLargeImageSize) = NftHead(nftAsset.toImageSource(), size)
 
 @Composable
-fun NftHead(metadata: TransactionNFTTransferMetadata, size: Dp = headerLargeImageSize, onClick: (() -> Unit)? = null) =
-    NftHead(metadata.toImageSource(), size, onClick)
+fun NftHead(metadata: TransactionNFTTransferMetadata, size: Dp = headerLargeImageSize, onClick: (() -> Unit)? = null) = NftHead(metadata.toImageSource(), size, onClick)

@@ -14,24 +14,12 @@ pub fn calculate_transaction_fee(input_type: &TransactionInputType, gas_price_ty
     let mut options = HashMap::new();
     let recipient_asset = input_type.get_recipient_asset();
     if recipient_asset.chain() == Chain::Solana && recipient_asset.id.token_subtype() == AssetSubtype::TOKEN && recipient_token_address.is_none() {
-        options.insert(
-            FeeOption::TokenAccountCreation,
-            BigInt::from(input_type.get_asset().id.chain.token_activation_fee().unwrap_or(0)),
-        );
+        options.insert(FeeOption::TokenAccountCreation, BigInt::from(input_type.get_asset().id.chain.token_activation_fee().unwrap_or(0)));
     }
-    if let TransactionInputType::Stake {
-        stake_type: StakeType::Stake(_), ..
-    } = input_type
-    {
+    if let TransactionInputType::Stake { stake_type: StakeType::Stake(_), .. } = input_type {
         options.insert(FeeOption::TokenAccountCreation, BigInt::from(STAKE_ACCOUNT_CREATION_FEE));
     }
-    TransactionFee::new_gas_price_type(
-        gas_price_type.clone(),
-        gas_price_type.total_fee(),
-        get_gas_limit(input_type),
-        options,
-        AssetId::from_chain(Chain::Solana),
-    )
+    TransactionFee::new_gas_price_type(gas_price_type.clone(), gas_price_type.total_fee(), get_gas_limit(input_type), options, AssetId::from_chain(Chain::Solana))
 }
 
 fn get_gas_limit(input_type: &TransactionInputType) -> BigInt {
@@ -46,13 +34,7 @@ fn get_gas_limit(input_type: &TransactionInputType) -> BigInt {
         | TransactionInputType::Payment { .. }
         | TransactionInputType::Perpetual { .. }
         | TransactionInputType::Earn { .. } => BigInt::from(DEFAULT_GAS_LIMIT),
-        TransactionInputType::Swap { swap_data, .. } => swap_data
-            .data
-            .gas_limit
-            .as_ref()
-            .and_then(|x| x.parse::<u64>().ok())
-            .map(BigInt::from)
-            .unwrap_or(BigInt::from(DEFAULT_SWAP_GAS_LIMIT)),
+        TransactionInputType::Swap { swap_data, .. } => swap_data.data.gas_limit.as_ref().and_then(|x| x.parse::<u64>().ok()).map(BigInt::from).unwrap_or(BigInt::from(DEFAULT_SWAP_GAS_LIMIT)),
         TransactionInputType::Stake { .. } => BigInt::from(DEFAULT_GAS_LIMIT),
     }
 }

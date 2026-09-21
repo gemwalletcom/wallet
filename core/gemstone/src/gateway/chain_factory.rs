@@ -55,12 +55,8 @@ impl ChainClientFactory {
         let alien_client = new_alien_client(url.clone(), self.alien.clone());
         match chain.chain_type() {
             ChainType::HyperCore => {
-                let preferences = Arc::new(PreferencesWrapper {
-                    preferences: self.preferences.clone(),
-                });
-                let secure_preferences = Arc::new(SecureStoreWrapper {
-                    store: self.secure_preferences.clone(),
-                });
+                let preferences = Arc::new(PreferencesWrapper { preferences: self.preferences.clone() });
+                let secure_preferences = Arc::new(SecureStoreWrapper { store: self.secure_preferences.clone() });
                 Ok(Arc::new(HyperCoreClient::new_with_preferences(alien_client, preferences, secure_preferences)))
             }
             ChainType::Bitcoin => Ok(Arc::new(BitcoinClient::new(alien_client, BitcoinChain::from_chain(chain).unwrap()))),
@@ -126,12 +122,7 @@ mod tests {
 
     #[test]
     fn test_get_is_token_address_matches_chain_config() {
-        let factory = ChainClientFactory::new(
-            Arc::new(TestAlienProvider::with_status(404)),
-            Arc::new(GemNodeService::mock()),
-            Arc::new(EmptyPreferences),
-            Arc::new(EmptyPreferences),
-        );
+        let factory = ChainClientFactory::new(Arc::new(TestAlienProvider::with_status(404)), Arc::new(GemNodeService::mock()), Arc::new(EmptyPreferences), Arc::new(EmptyPreferences));
         for chain in Chain::all() {
             let client = block_on(factory.create(chain)).unwrap();
             let is_token_supported = chain.default_asset_type().is_some();

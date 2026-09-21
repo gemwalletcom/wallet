@@ -7,10 +7,7 @@ import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.NFTCollectionId
 import com.wallet.core.primitives.NFTType
 
-fun mockDbNftAsset(
-    id: NFTAssetId = mockNftAssetId(),
-    collectionId: NFTCollectionId = mockNftCollectionId(),
-) = DbNFTAsset(
+fun mockDbNftAsset(id: NFTAssetId = mockNftAssetId(), collectionId: NFTCollectionId = mockNftCollectionId()) = DbNFTAsset(
     id = id,
     collectionId = collectionId,
     tokenId = id.tokenId,

@@ -11,11 +11,7 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.security.MessageDigest
 import java.util.Base64
 
-internal class TinkEncryptedKeyValueStore(
-    context: Context,
-    private val config: TinkStoreConfig,
-    private val aeadProvider: TinkAeadProvider,
-) : SecureStringStore {
+internal class TinkEncryptedKeyValueStore(context: Context, private val config: TinkStoreConfig, private val aeadProvider: TinkAeadProvider) : SecureStringStore {
 
     private val sharedPreferences = context.applicationContext.getSharedPreferences(
         config.preferencesFileName,
@@ -48,28 +44,17 @@ internal class TinkEncryptedKeyValueStore(
     }
 
     companion object {
-        fun create(context: Context, config: TinkStoreConfig): TinkEncryptedKeyValueStore {
-            return TinkEncryptedKeyValueStore(
-                context = context,
-                config = config,
-                aeadProvider = TinkAeadProvider(context = context, config = config),
-            )
-        }
+        fun create(context: Context, config: TinkStoreConfig): TinkEncryptedKeyValueStore = TinkEncryptedKeyValueStore(
+            context = context,
+            config = config,
+            aeadProvider = TinkAeadProvider(context = context, config = config),
+        )
     }
 }
 
-internal data class TinkStoreConfig(
-    val preferencesFileName: String,
-    val namespace: String,
-    val keysetName: String,
-    val keysetPreferencesFileName: String,
-    val masterKeyAlias: String,
-)
+internal data class TinkStoreConfig(val preferencesFileName: String, val namespace: String, val keysetName: String, val keysetPreferencesFileName: String, val masterKeyAlias: String)
 
-internal class TinkAeadProvider(
-    context: Context,
-    private val config: TinkStoreConfig,
-) {
+internal class TinkAeadProvider(context: Context, private val config: TinkStoreConfig) {
 
     private val context = context.applicationContext
 

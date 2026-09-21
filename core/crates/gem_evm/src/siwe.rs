@@ -120,22 +120,14 @@ mod tests {
 
     #[test]
     fn parses_message_with_explicit_scheme() {
-        let message = mock_siwe_message_full().replacen(
-            "login.xyz wants you to sign in with your Ethereum account:",
-            "https://login.xyz wants you to sign in with your Ethereum account:",
-            1,
-        );
+        let message = mock_siwe_message_full().replacen("login.xyz wants you to sign in with your Ethereum account:", "https://login.xyz wants you to sign in with your Ethereum account:", 1);
         let siwe = SiweMessage::try_parse(&message).unwrap();
         assert_eq!(siwe.domain, "login.xyz");
     }
 
     #[test]
     fn parses_message_with_port() {
-        let message = mock_siwe_message_full().replacen(
-            "login.xyz wants you to sign in with your Ethereum account:",
-            "login.xyz:8080 wants you to sign in with your Ethereum account:",
-            1,
-        );
+        let message = mock_siwe_message_full().replacen("login.xyz wants you to sign in with your Ethereum account:", "login.xyz:8080 wants you to sign in with your Ethereum account:", 1);
         let siwe = SiweMessage::try_parse(&message).unwrap();
         assert_eq!(siwe.domain, "login.xyz:8080");
     }
@@ -167,14 +159,7 @@ mod tests {
     #[test]
     fn test_validate_invalid_domain() {
         let message = SiweMessage::try_parse(&mock_siwe_message("example.com", 1)).unwrap();
-        for domain in [
-            "example.com/path",
-            "user@example.com",
-            "example.com?query",
-            "example.com#fragment",
-            "example.com\\path",
-            " example.com",
-        ] {
+        for domain in ["example.com/path", "user@example.com", "example.com?query", "example.com#fragment", "example.com\\path", " example.com"] {
             assert_eq!(
                 SiweMessage {
                     domain: domain.to_string(),
@@ -188,11 +173,7 @@ mod tests {
 
     #[test]
     fn ignores_port_when_matching_origin() {
-        let message = mock_siwe_message_full().replacen(
-            "login.xyz wants you to sign in with your Ethereum account:",
-            "login.xyz:8080 wants you to sign in with your Ethereum account:",
-            1,
-        );
+        let message = mock_siwe_message_full().replacen("login.xyz wants you to sign in with your Ethereum account:", "login.xyz:8080 wants you to sign in with your Ethereum account:", 1);
         let siwe = SiweMessage::try_parse(&message).unwrap();
         assert!(siwe.validate(Chain::Ethereum).is_ok());
     }

@@ -2,12 +2,12 @@ package com.gemwallet.android.features.assets.viewmodels
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.nft.cases.GetNftCollections
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
-import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.ext.chainIds
@@ -24,7 +24,6 @@ import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.PerpetualId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -42,6 +41,7 @@ import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.GemWalletSearchCounts
 import uniffi.gemstone.GemWalletSearchPhase
 import uniffi.gemstone.walletSearchPhase
+import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -100,7 +100,8 @@ class WalletSearchViewModel @Inject constructor(
         .flowOn(ioDispatcher)
 
     private val nfts: StateFlow<List<NftItemUIModel>> = combine(
-        nftData, currentQuery,
+        nftData,
+        currentQuery,
     ) { data, query ->
         if (query.isEmpty()) emptyList() else searchNfts(data, query)
     }
@@ -122,21 +123,26 @@ class WalletSearchViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val previewAssets: StateFlow<List<AssetInfoDataAggregate>> = combine(
-        unpinned, currentQuery,
+        unpinned,
+        currentQuery,
     ) { items, query ->
         items.take(assetsLimit(query))
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val hasMoreAssets: StateFlow<Boolean> = combine(
-        unpinned, currentQuery,
+        unpinned,
+        currentQuery,
     ) { unpinned, query ->
         limits(query).hasMoreAssets(unpinned.size.toUInt())
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val state: StateFlow<UIState> = combine(
-        uiState, previewPerpetuals, pinnedPerpetuals, previewNfts,
+        uiState,
+        previewPerpetuals,
+        pinnedPerpetuals,
+        previewNfts,
     ) { base, preview, pinnedPerps, nfts ->
         val counts = GemWalletSearchCounts(
             recents = 0u,
@@ -157,15 +163,14 @@ class WalletSearchViewModel @Inject constructor(
 
     private fun assetsLimit(query: String): Int = limits(query).assets.toInt()
 
-    private fun searchNfts(data: List<NFTData>, query: String): List<NftItemUIModel> =
-        service.searchCollections(data.map { it.toGem() }, query).toUIModels()
+    private fun searchNfts(data: List<NFTData>, query: String): List<NftItemUIModel> = service.searchCollections(data.map { it.toGem() }, query).toUIModels()
 
     override fun assetsSearchLimit(query: String): Int = limits(query).fetch.toInt()
 
     fun onTogglePerpetualPin(perpetualId: PerpetualId) = viewModelScope.launch {
         val item = visiblePerpetuals.value.firstOrNull { it.id == perpetualId } ?: return@launch
-        setPerpetualPinned(perpetualId, !item.isPinned)
-        emitToast(assetPinnedToast(context, item.title, !item.isPinned))
+        if (setPerpetualPinned(perpetualId, !item.isPinned).isSuccess) {
+            emitToast(assetPinnedToast(context, item.title, !item.isPinned))
+        }
     }
-
 }

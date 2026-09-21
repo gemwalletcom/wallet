@@ -28,7 +28,9 @@ public struct CollectibleScene: View {
                     }
                 case let .info(rows):
                     Section {
-                        ForEach(model.infoRows(rows), content: infoRowView)
+                        ForEach(rows, id: \.self) { row in
+                            GemListRowView(row: row)
+                        }
                     }
                 case let .attributes(attributes):
                     Section(Localized.Nft.properties) {
@@ -38,7 +40,7 @@ public struct CollectibleScene: View {
                     }
                 case let .links(links):
                     Section(Localized.Social.links) {
-                        SocialLinksView(model: model.socialLinksModel(links))
+                        SocialLinksView(model: SocialLinksViewModel(links: links))
                     }
                 }
             }
@@ -92,20 +94,5 @@ extension CollectibleScene {
         .listRowSeparator(.hidden)
         .listRowInsets(EdgeInsets())
         .contextMenu(model.imageContextMenuItems)
-    }
-
-    @ViewBuilder
-    private func infoRowView(_ row: CollectibleInfoRowModel) -> some View {
-        if let assetImage = row.assetImage {
-            ListItemImageView(title: row.title, subtitle: row.subtitle, assetImage: assetImage)
-        } else if let copyValue = row.copyValue, let explorer = row.explorer {
-            ListItemView(model: row.listItem)
-                .explorerContext(ExplorerContextData(copyValue: copyValue, explorerLink: explorer))
-        } else if let copyValue = row.copyValue {
-            ListItemView(model: row.listItem)
-                .contextMenu(.copy(value: copyValue.rawValue, onCopy: model.onSelectCopyValue))
-        } else {
-            ListItemView(model: row.listItem)
-        }
     }
 }

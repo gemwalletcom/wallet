@@ -76,13 +76,7 @@ impl PricesChangeset {
 }
 
 impl NewPriceRow {
-    pub fn with_market_data(
-        provider: PriceProvider,
-        provider_price_id: String,
-        market: Option<&AssetMarket>,
-        price: Option<f64>,
-        price_change_percentage_24h: Option<f64>,
-    ) -> Self {
+    pub fn with_market_data(provider: PriceProvider, provider_price_id: String, market: Option<&AssetMarket>, price: Option<f64>, price_change_percentage_24h: Option<f64>) -> Self {
         let id = PrimitivePriceId::new(provider, provider_price_id);
         Self {
             id: id.into(),
@@ -179,20 +173,14 @@ impl PriceRow {
             && point.value >= self.all_time_high
             && (point.value, Some(point.date)) != (self.all_time_high, self.all_time_high_date)
         {
-            updates.push(PriceUpdate::AllTimeHigh {
-                value: point.value,
-                date: Some(point.date),
-            });
+            updates.push(PriceUpdate::AllTimeHigh { value: point.value, date: Some(point.date) });
         }
         if let Some(point) = extremes.min
             && point.value > 0.0
             && (self.all_time_low == 0.0 || point.value <= self.all_time_low)
             && (point.value, Some(point.date)) != (self.all_time_low, self.all_time_low_date)
         {
-            updates.push(PriceUpdate::AllTimeLow {
-                value: point.value,
-                date: Some(point.date),
-            });
+            updates.push(PriceUpdate::AllTimeLow { value: point.value, date: Some(point.date) });
         }
         updates
     }
@@ -239,25 +227,12 @@ impl PriceRow {
     }
 
     pub fn as_primitive(&self) -> Price {
-        Price::new(
-            self.price,
-            self.price_change_percentage_24h.unwrap_or(0.0),
-            self.last_updated_at.and_utc(),
-            self.provider_value(),
-        )
+        Price::new(self.price, self.price_change_percentage_24h.unwrap_or(0.0), self.last_updated_at.and_utc(), self.provider_value())
     }
 
     pub fn as_market_primitive(&self, asset: &AssetRow) -> AssetMarket {
-        let ath_percentage = if self.all_time_high > 0.0 {
-            Some((self.price - self.all_time_high) / self.all_time_high * 100.0)
-        } else {
-            None
-        };
-        let atl_percentage = if self.all_time_low > 0.0 {
-            Some((self.price - self.all_time_low) / self.all_time_low * 100.0)
-        } else {
-            None
-        };
+        let ath_percentage = if self.all_time_high > 0.0 { Some((self.price - self.all_time_high) / self.all_time_high * 100.0) } else { None };
+        let atl_percentage = if self.all_time_low > 0.0 { Some((self.price - self.all_time_low) / self.all_time_low * 100.0) } else { None };
         let market_cap = asset.circulating_supply.map(|supply| self.price * supply);
         let market_cap_fdv = asset.total_supply.or(asset.max_supply).map(|supply| self.price * supply);
         AssetMarket {
@@ -381,19 +356,7 @@ mod tests {
         assert_eq!(updates.len(), 1);
         assert!(matches!(updates[0], PriceUpdate::AllTimeLow { value, .. } if value == 7.5));
 
-        let stored = PriceRow::new(
-            PriceProvider::Pyth,
-            "x".into(),
-            200.0,
-            None,
-            100.0,
-            Some(ts(100)),
-            10.0,
-            Some(ts(200)),
-            None,
-            None,
-            ts(1000),
-        );
+        let stored = PriceRow::new(PriceProvider::Pyth, "x".into(), 200.0, None, 100.0, Some(ts(100)), 10.0, Some(ts(200)), None, None, ts(1000));
         let wire = PriceRow::new(PriceProvider::Pyth, "x".into(), 200.0, None, 150.0, Some(ts(900)), 0.0, None, None, None, ts(1000));
         let updates = stored.merge_extremes(Some(&wire));
         assert_eq!(updates.len(), 1);

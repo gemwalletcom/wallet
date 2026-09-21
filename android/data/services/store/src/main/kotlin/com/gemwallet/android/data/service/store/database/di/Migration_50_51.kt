@@ -8,7 +8,7 @@ object Migration_50_51 : Migration(50, 51) {
         db.execSQL(
             """
                 ALTER TABLE prices ADD COLUMN usd_value REAL DEFAULT NUll
-            """.trimIndent()
+            """.trimIndent(),
         )
         db.execSQL(
             """
@@ -17,7 +17,7 @@ object Migration_50_51 : Migration(50, 51) {
                     rate REAL NOT NULL,
                     PRIMARY KEY(currency)
                 )
-            """.trimIndent()
+            """.trimIndent(),
         )
     }
 }

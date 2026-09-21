@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import class Gemstone.GemPerpetualDetailsService
+import enum Gemstone.GemPerpetualPositionAction
 import GemstonePrimitives
 import GemstoneServices
 import Perpetuals
@@ -8,12 +10,10 @@ import Primitives
 import PrimitivesComponents
 import Store
 import SwiftUI
-import class Gemstone.GemPerpetualDetailsService
-import enum Gemstone.GemPerpetualPositionAction
 
-extension ViewModelFactory {
+public extension ViewModelFactory {
     @MainActor
-    public func perpetualsScene(
+    func perpetualsScene(
         wallet: Wallet,
         onSelectAssetType: @escaping (SelectAssetType) -> Void,
         onSelectAsset: @escaping (Asset) -> Void,
@@ -31,7 +31,7 @@ extension ViewModelFactory {
     }
 
     @MainActor
-    public func perpetualScene(
+    func perpetualScene(
         asset: Asset,
         wallet: Wallet,
         onTransferData: TransferDataAction,

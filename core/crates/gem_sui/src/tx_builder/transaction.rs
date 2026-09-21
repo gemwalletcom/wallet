@@ -35,26 +35,15 @@ pub(crate) fn build_amount_coin(txb: &mut TransactionBuilder, coin_type_tag: Typ
     }
 
     let amount_arg = txb.pure(&amount);
-    txb.split_coins(primary, vec![amount_arg])
-        .pop()
-        .ok_or_else(|| SuiError::invalid_input("Sui split coin failed"))
+    txb.split_coins(primary, vec![amount_arg]).pop().ok_or_else(|| SuiError::invalid_input("Sui split coin failed"))
 }
 
 pub fn move_call(txb: &mut TransactionBuilder, package: Address, module: &str, function: &str, type_args: &[&str], arguments: Vec<Argument>) -> Result<Argument, SuiError> {
     let type_args = type_args
         .iter()
-        .map(|value| {
-            value
-                .parse::<TypeTag>()
-                .map_err(|err| SuiError::invalid_input(format!("Invalid Sui type argument {value}: {err}")))
-        })
+        .map(|value| value.parse::<TypeTag>().map_err(|err| SuiError::invalid_input(format!("Invalid Sui type argument {value}: {err}"))))
         .collect::<Result<Vec<_>, _>>()?;
-    let function = Function::new(
-        package,
-        Identifier::new(module).map_err(SuiError::from_display)?,
-        Identifier::new(function).map_err(SuiError::from_display)?,
-    )
-    .with_type_args(type_args);
+    let function = Function::new(package, Identifier::new(module).map_err(SuiError::from_display)?, Identifier::new(function).map_err(SuiError::from_display)?).with_type_args(type_args);
     Ok(txb.move_call(function, arguments))
 }
 
@@ -77,9 +66,7 @@ pub fn build_input_coin(txb: &mut TransactionBuilder, coin_type: &str, amount: u
         return Err(SuiError::InsufficientBalance { coin_type: coin_type.to_string() });
     }
 
-    let type_tag: TypeTag = coin_type
-        .parse()
-        .map_err(|err| SuiError::invalid_input(format!("Invalid Sui coin type {coin_type}: {err}")))?;
+    let type_tag: TypeTag = coin_type.parse().map_err(|err| SuiError::invalid_input(format!("Invalid Sui coin type {coin_type}: {err}")))?;
     build_amount_coin(txb, type_tag, amount, source.address_balance, &source.coins)
 }
 

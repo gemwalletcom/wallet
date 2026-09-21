@@ -35,12 +35,7 @@ pub fn transfer_checked_with_program_id(source: &Pubkey, mint: &Pubkey, destinat
 
     Instruction {
         program_id: *token_program_id,
-        accounts: vec![
-            AccountMeta::new_writable(*source),
-            AccountMeta::new_readonly(*mint),
-            AccountMeta::new_writable(*destination),
-            AccountMeta::new_signer(*owner),
-        ],
+        accounts: vec![AccountMeta::new_writable(*source), AccountMeta::new_readonly(*mint), AccountMeta::new_writable(*destination), AccountMeta::new_signer(*owner)],
         data,
     }
 }

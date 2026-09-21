@@ -14,29 +14,18 @@ import com.gemwallet.android.ui.navigation.assetIdArgument
 import com.gemwallet.android.ui.navigation.routeArguments
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.NFTAsset
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import uniffi.gemstone.GemPaymentRecipient
-import kotlinx.serialization.Contextual
 
 @Serializable
-data class RecipientInputRoute(
-    val assetId: AssetId,
-    val nftAssetId: String?,
-    val payment: @Contextual GemPaymentRecipient? = null,
-) : NavKey
+data class RecipientInputRoute(val assetId: AssetId, val nft: NFTAsset? = null, val payment: @Contextual GemPaymentRecipient? = null) : NavKey
 
 @Serializable
-data class SendSelectRoute(
-    val payment: @Contextual GemPaymentRecipient? = null,
-    val chains: List<Chain> = emptyList(),
-) : NavKey
+data class SendSelectRoute(val payment: @Contextual GemPaymentRecipient? = null, val chains: List<Chain> = emptyList()) : NavKey
 
-fun EntryProviderScope<NavKey>.recipientInput(
-    navigator: WalletNavigator,
-    cancelAction: CancelAction,
-    amountAction: AmountTransactionAction,
-    confirmAction: ConfirmTransactionAction,
-) {
+fun EntryProviderScope<NavKey>.recipientInput(navigator: WalletNavigator, cancelAction: CancelAction, amountAction: AmountTransactionAction, confirmAction: ConfirmTransactionAction) {
     entry<SendSelectRoute> { key ->
         SelectSendScreen(
             chains = key.chains,
@@ -49,7 +38,7 @@ fun EntryProviderScope<NavKey>.recipientInput(
         metadata = { key ->
             routeArguments(
                 assetIdArgument(key.assetId),
-                RouteArgument.NftAssetId to key.nftAssetId,
+                RouteArgument.Nft to key.nft?.packRoutePayload(),
                 RouteArgument.Payment to key.payment?.packRoutePayload(),
             )
         },

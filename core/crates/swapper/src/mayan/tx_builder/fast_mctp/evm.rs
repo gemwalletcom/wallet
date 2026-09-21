@@ -1,6 +1,6 @@
 use super::{
-    FAST_MCTP_PAYLOAD_TYPE_DEFAULT, FAST_MCTP_PAYLOAD_TYPE_ORDER, circle_max_fee64, destination_referrer_address, fast_mctp_contract, fast_mctp_input_contract,
-    fast_mctp_min_finality, redeem_relayer_fee, referrer_bytes, refund_relayer_fee64, token_out,
+    FAST_MCTP_PAYLOAD_TYPE_DEFAULT, FAST_MCTP_PAYLOAD_TYPE_ORDER, circle_max_fee64, destination_referrer_address, fast_mctp_contract, fast_mctp_input_contract, fast_mctp_min_finality, redeem_relayer_fee, referrer_bytes,
+    refund_relayer_fee64, token_out,
 };
 use crate::{
     Quote, RpcProvider, SwapperError, SwapperQuoteData,
@@ -141,11 +141,7 @@ fn build_direct_forward_transaction(route: &MayanFastMctpQuote, protocol_call: &
         return Err(SwapperError::transaction_error("Mayan FastMCTP does not support direct native order creation"));
     }
 
-    Ok(evm_builder::build_forward_erc20_transaction(
-        Address::from_str(&route.from_token.contract)?,
-        protocol_call,
-        "0",
-    ))
+    Ok(evm_builder::build_forward_erc20_transaction(Address::from_str(&route.from_token.contract)?, protocol_call, "0"))
 }
 
 async fn build_swap_forward_transaction<C>(client: &MayanClient<C>, route: &MayanFastMctpQuote, protocol_call: &EvmForwarderProtocolCall) -> Result<EvmTransaction, SwapperError>
@@ -165,20 +161,10 @@ where
     let swap = EvmSwapForwardData::new(&swap.swap_router_address, &swap.swap_router_calldata, fast_mctp_input_contract, min_middle_amount)?;
 
     if route.from_token.contract.eq_ignore_ascii_case(EVM_ZERO_ADDRESS) {
-        return Ok(evm_builder::build_swap_and_forward_eth_transaction(
-            protocol_call,
-            swap,
-            protocol_call.amount_in,
-            protocol_call.amount_in.to_string(),
-        ));
+        return Ok(evm_builder::build_swap_and_forward_eth_transaction(protocol_call, swap, protocol_call.amount_in, protocol_call.amount_in.to_string()));
     }
 
-    Ok(evm_builder::build_swap_and_forward_erc20_transaction(
-        Address::from_str(&route.from_token.contract)?,
-        protocol_call,
-        swap,
-        "0",
-    ))
+    Ok(evm_builder::build_swap_and_forward_erc20_transaction(Address::from_str(&route.from_token.contract)?, protocol_call, swap, "0"))
 }
 
 #[cfg(test)]

@@ -77,11 +77,7 @@ mod tests {
         assert_eq!(boundaries.label(GemDay { year: 2026, month: 3, day: 1 }), GemDayLabel::Today);
         assert_eq!(boundaries.label(GemDay { year: 2026, month: 2, day: 28 }), GemDayLabel::Yesterday);
         assert_eq!(boundaries.label(GemDay { year: 2026, month: 2, day: 27 }), GemDayLabel::Date);
-        assert_eq!(
-            boundaries.label(GemDay { year: 2026, month: 3, day: 2 }),
-            GemDayLabel::Date,
-            "a future day is dated, not named"
-        );
+        assert_eq!(boundaries.label(GemDay { year: 2026, month: 3, day: 2 }), GemDayLabel::Date, "a future day is dated, not named");
     }
 
     #[test]

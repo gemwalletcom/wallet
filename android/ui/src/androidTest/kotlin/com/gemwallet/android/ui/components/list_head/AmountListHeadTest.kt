@@ -1,12 +1,11 @@
 package com.gemwallet.android.ui.components.list_head
 
-import uniffi.gemstone.GemHeaderActions
 import android.content.Context
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.test.core.app.ApplicationProvider
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.theme.WalletTheme
@@ -42,13 +41,7 @@ class AmountListHeadTest {
     private fun setWatchWalletContent() {
         composeRule.setContent {
             WalletTheme {
-                AssetHeadActions(
-                    actions = GemHeaderActions.WatchOnly,
-                    onTransfer = null,
-                    onReceive = null,
-                    onBuy = null,
-                    onSwap = null,
-                )
+                AssetHeadActions(model = HeadActionsUIModel.WatchOnly)
             }
         }
     }

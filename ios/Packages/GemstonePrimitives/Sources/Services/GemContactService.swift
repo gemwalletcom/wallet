@@ -2,8 +2,6 @@
 
 import Foundation
 import struct Gemstone.GemContactAddressInput
-import enum Gemstone.GemContactAvatar
-import struct Gemstone.GemContactInput
 import protocol Gemstone.GemContactServiceProtocol
 import protocol Gemstone.GemManageContactServiceProtocol
 import Primitives
@@ -19,26 +17,6 @@ public extension GemContactServiceProtocol {
 }
 
 public extension GemManageContactServiceProtocol {
-    func saveContact(
-        id: String,
-        existing: Contact?,
-        name: String,
-        description: String,
-        avatar: GemContactAvatar,
-        addresses: [ContactAddress],
-    ) async throws -> Contact {
-        try await saveContact(
-            input: GemContactInput(
-                id: id,
-                existing: existing?.toGem(),
-                name: name,
-                description: description,
-                avatar: avatar,
-                addresses: addresses.map { $0.toGem() },
-            )
-        ).toPrimitives()
-    }
-
     var defaultContactChain: Chain {
         Chain(core: defaultChain())
     }

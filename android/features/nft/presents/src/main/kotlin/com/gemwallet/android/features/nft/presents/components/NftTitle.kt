@@ -16,12 +16,7 @@ import com.gemwallet.android.ui.theme.space4
 import com.gemwallet.android.ui.theme.tinyIconSize
 
 @Composable
-fun NftTitle(
-    name: String,
-    isVerified: Boolean,
-    modifier: Modifier = Modifier,
-    iconSize: Dp = tinyIconSize,
-) {
+fun NftTitle(name: String, isVerified: Boolean, modifier: Modifier = Modifier, iconSize: Dp = tinyIconSize) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(space4),

@@ -56,9 +56,9 @@ extension FiatScene {
                 balance: model.assetBalance,
                 secondary: {
                     HStack(spacing: .space10) {
-                        ForEach(model.suggestedAmounts, id: \.self) { amount in
-                            Button(model.buttonTitle(amount: amount)) {
-                                model.onSelect(amount: amount)
+                        ForEach(model.suggestedAmounts, id: \.amount) { suggestion in
+                            Button(suggestion.value.text()) {
+                                model.onSelect(amount: Int(suggestion.amount))
                             }
                             .font(.subheadline.weight(.semibold))
                             .buttonStyle(.amount())

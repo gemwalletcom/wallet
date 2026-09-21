@@ -41,12 +41,7 @@ struct Cooldown {
 impl Gateway {
     pub(crate) fn new(config: RoutesConfig, metrics: Metrics, cache: RequestCache) -> Result<Self, BoxError> {
         let RoutesConfig {
-            headers,
-            request,
-            retry,
-            proxies,
-            routes,
-            ..
+            headers, request, retry, proxies, routes, ..
         } = config;
         let direct_client = build_client(request.timeout, None)?;
         let proxies = proxies
@@ -149,21 +144,10 @@ impl Gateway {
                 Ok((mut response, retry_after)) => {
                     let cacheable = cacheable_response(&response);
                     response.headers = transport::filter_headers(&response.headers, &route.forward_headers);
-                    self.metrics
-                        .record_upstream_latency(source, &route.group, &route.service, &endpoint.name, response.status, started.elapsed());
+                    self.metrics.record_upstream_latency(source, &route.group, &route.service, &endpoint.name, response.status, started.elapsed());
                     self.metrics.record_request(source, &route.group, &route.service, &endpoint.name, &path, response.status);
                     if route.should_retry(response.status) {
-                        self.start_cooldown(
-                            route,
-                            endpoint,
-                            &path,
-                            Failure {
-                                status: response.status,
-                                reason: "cooldown",
-                            },
-                            retry_after.unwrap_or(self.cooldown),
-                        )
-                        .await;
+                        self.start_cooldown(route, endpoint, &path, Failure { status: response.status, reason: "cooldown" }, retry_after.unwrap_or(self.cooldown)).await;
                         let status = response.status;
                         last_response = Some((response, endpoint_index));
                         pending_failover = Some((endpoint_index, status, status.to_string()));
@@ -177,10 +161,8 @@ impl Gateway {
                     return Ok(response);
                 }
                 Err(reason) => {
-                    self.metrics
-                        .record_request(source, &route.group, &route.service, &endpoint.name, &path, Status::BadGateway.code);
-                    self.metrics
-                        .record_upstream_latency(source, &route.group, &route.service, &endpoint.name, Status::BadGateway.code, started.elapsed());
+                    self.metrics.record_request(source, &route.group, &route.service, &endpoint.name, &path, Status::BadGateway.code);
+                    self.metrics.record_upstream_latency(source, &route.group, &route.service, &endpoint.name, Status::BadGateway.code, started.elapsed());
                     access.upstream_failed(&endpoint.name, host, reason);
                     self.start_cooldown(
                         route,
@@ -273,13 +255,10 @@ impl Gateway {
 
     async fn start_cooldown(&self, route: &Route, endpoint: &Endpoint, path: &str, failure: Failure, duration: Duration) {
         self.metrics.set_cooldown(&route.group, &route.service, &endpoint.name, path, duration);
-        self.cooldowns.write().await.insert(
-            endpoint.cooldown_key(&route.group, &route.service, path),
-            Cooldown {
-                until: Instant::now() + duration,
-                failure,
-            },
-        );
+        self.cooldowns
+            .write()
+            .await
+            .insert(endpoint.cooldown_key(&route.group, &route.service, path), Cooldown { until: Instant::now() + duration, failure });
     }
 }
 
@@ -296,11 +275,7 @@ fn cacheable_response(response: &ProxyResponse) -> bool {
                 })
             })
         })
-        && !response
-            .headers
-            .get_all(VARY)
-            .iter()
-            .any(|value| value.to_str().map_or(true, |value| value.split(',').any(|name| name.trim() == "*")))
+        && !response.headers.get_all(VARY).iter().any(|value| value.to_str().map_or(true, |value| value.split(',').any(|name| name.trim() == "*")))
 }
 
 #[cfg(test)]
@@ -335,10 +310,7 @@ mod tests {
     fn test_route_header_inheritance() {
         let gateway = Gateway::new(RoutesConfig::mock(), Metrics::mock(), RequestCache::default()).unwrap();
         let routes = &gateway.routes;
-        assert_eq!(
-            routes["security_tronscan"].forward_headers,
-            HashSet::from([ACCEPT, HeaderName::from_static("tron-pro-api-key")])
-        );
+        assert_eq!(routes["security_tronscan"].forward_headers, HashSet::from([ACCEPT, HeaderName::from_static("tron-pro-api-key")]));
         assert_eq!(routes["security_goplus"].forward_headers, HashSet::from([ACCEPT, AUTHORIZATION]));
         assert_eq!(routes["security_public"].forward_headers, HashSet::from([ACCEPT]));
     }
@@ -351,12 +323,7 @@ mod tests {
             fixture.replace("accept", "invalid header"),
             fixture.replace("endpoints: []", "endpoints: [{name: direct, url: 'https://example.invalid', proxy: missing}]"),
         ] {
-            let config = FileConfig::builder()
-                .add_source(File::from_str(&input, FileFormat::Yaml))
-                .build()
-                .unwrap()
-                .try_deserialize::<RoutesConfig>()
-                .unwrap();
+            let config = FileConfig::builder().add_source(File::from_str(&input, FileFormat::Yaml)).build().unwrap().try_deserialize::<RoutesConfig>().unwrap();
             assert!(Gateway::new(config, Metrics::mock(), RequestCache::default()).is_err());
         }
     }
@@ -370,9 +337,7 @@ mod tests {
             reason: "cooldown",
         };
         for endpoint in &route.endpoints {
-            gateway
-                .start_cooldown(route, endpoint, "/api/v2/addresses/:value/token-transfers", failure, gateway.cooldown)
-                .await;
+            gateway.start_cooldown(route, endpoint, "/api/v2/addresses/:value/token-transfers", failure, gateway.cooldown).await;
         }
 
         let unavailable = gateway.available_endpoints(route, "/api/v2/addresses/:value/token-transfers").await.unwrap_err();

@@ -22,11 +22,7 @@ pub fn decode(url: &str, content_type: Option<&str>, bytes: &[u8], supported_typ
 }
 
 fn ensure_supported_type(image_type: ImageType, supported_types: &[ImageType]) -> std::result::Result<(), ImageDownloadError> {
-    if supported_types.contains(&image_type) {
-        Ok(())
-    } else {
-        Err(ImageDownloadError::UnsupportedType(Some(image_type)))
-    }
+    if supported_types.contains(&image_type) { Ok(()) } else { Err(ImageDownloadError::UnsupportedType(Some(image_type))) }
 }
 
 fn image_type(url: &str, content_type: Option<&str>, bytes: &[u8]) -> Option<ImageType> {
@@ -39,11 +35,7 @@ fn image_type(url: &str, content_type: Option<&str>, bytes: &[u8]) -> Option<Ima
 
 fn content_type_image_type(content_type: &str) -> Option<ImageType> {
     let label = content_type.split(';').next()?.rsplit_once('/')?.1;
-    if label == "svg+xml" {
-        ImageType::from_label("svg")
-    } else {
-        ImageType::from_label(label)
-    }
+    if label == "svg+xml" { ImageType::from_label("svg") } else { ImageType::from_label(label) }
 }
 
 fn svg_prefix_image_type(bytes: &[u8]) -> Option<ImageType> {

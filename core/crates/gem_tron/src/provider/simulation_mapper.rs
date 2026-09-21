@@ -1,8 +1,8 @@
 use num_bigint::BigInt;
 use num_traits::Zero;
 use primitives::{
-    AssetId, Chain, SimulationBalanceChange, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType,
-    SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningApproval, SimulationWarningType,
+    AssetId, Chain, SimulationBalanceChange, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity, SimulationWarning,
+    SimulationWarningApproval, SimulationWarningType,
 };
 
 use crate::TransactionApproval;
@@ -34,31 +34,13 @@ pub(crate) fn map_approval_simulation(decoded: TransactionApproval) -> Simulatio
         }),
         warnings: vec![SimulationWarning::new(
             SimulationSeverity::Low,
-            SimulationWarningType::TokenApproval(SimulationWarningApproval {
-                asset_id,
-                value: value.map(BigInt::from),
-            }),
+            SimulationWarningType::TokenApproval(SimulationWarningApproval { asset_id, value: value.map(BigInt::from) }),
             None,
         )],
         payload: vec![
-            SimulationPayloadField::standard(
-                SimulationPayloadFieldKind::Spender,
-                approval.spender,
-                SimulationPayloadFieldType::Address,
-                SimulationPayloadFieldDisplay::Primary,
-            ),
-            SimulationPayloadField::standard(
-                SimulationPayloadFieldKind::Contract,
-                contract,
-                SimulationPayloadFieldType::Address,
-                SimulationPayloadFieldDisplay::Secondary,
-            ),
-            SimulationPayloadField::standard(
-                SimulationPayloadFieldKind::Method,
-                "approve",
-                SimulationPayloadFieldType::Text,
-                SimulationPayloadFieldDisplay::Secondary,
-            ),
+            SimulationPayloadField::standard(SimulationPayloadFieldKind::Spender, approval.spender, SimulationPayloadFieldType::Address, SimulationPayloadFieldDisplay::Primary),
+            SimulationPayloadField::standard(SimulationPayloadFieldKind::Contract, contract, SimulationPayloadFieldType::Address, SimulationPayloadFieldDisplay::Secondary),
+            SimulationPayloadField::standard(SimulationPayloadFieldKind::Method, "approve", SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Secondary),
         ],
         balance_changes: vec![],
     };

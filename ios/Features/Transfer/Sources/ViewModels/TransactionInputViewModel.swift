@@ -1,16 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.GemConfirmMetadata
-import GemstoneServices
 import BigInt
 import Foundation
-import GemstonePrimitives
+import struct Gemstone.GemConfirmMetadata
+import class Gemstone.GemPerpetual
 import struct Gemstone.GemTransactionLoadFee
+import struct Gemstone.GemTransferData
+import GemstonePrimitives
+import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import Style
-import struct Gemstone.GemTransferData
-import class Gemstone.GemPerpetual
 
 public struct TransactionInputViewModel: Sendable {
     let data: GemTransferData
@@ -81,26 +81,11 @@ public struct TransactionInputViewModel: Sendable {
         }
     }
 
-    var networkFeeText: String? {
-        infoModel.feeDisplay?.amount.text ?? Placeholder.empty
-    }
-
-    var networkFeeFiatText: String? {
-        infoModel.feeDisplay?.fiat?.text
-    }
-
     var headerType: TransactionHeaderType {
         TransactionHeaderTypeBuilder.build(
             infoModel: infoModel,
             transfer: data,
             metadata: metaData,
         )
-    }
-
-    var isReady: Bool {
-        if case .success = transferAmount {
-            return true
-        }
-        return false
     }
 }

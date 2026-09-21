@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = تعاون یافتہ اثاثہ نہیں ہے
 errors_connections_no_supported_wallets = کوئی تعاون یافتہ بٹوے دستیاب نہیں ہیں۔
 errors_connections_unsupported_chain = فراہم کردہ سلسلہ تعاون یافتہ نہیں ہے۔
 errors_swap_amount_too_small = رقم بہت چھوٹی ہے۔
-errors_required = %@ درکار ہے۔
 errors_scan_transaction_malicious_description = یہ لین دین مکمل نہیں کیا جا سکتا — منزل مقصود والیٹ کا پتہ مشکوک یا نقصان دہ سرگرمی سے منسلک ہے۔
 errors_scan_transaction_memo_required = %@ منزل والے بٹوے کے پتے کے لیے منزل کا ٹیگ / میمو درکار ہے۔
 errors_scan_transaction_malicious_title = مشکوک سرگرمی
@@ -536,7 +535,7 @@ verify_phrase_title = تصدیق کریں۔
 
 # Warnings
 
-warnings_multi_signature_blocked = اس %@ کثیر دستخط والے والیٹ میں رقوم منتقل نہ کریں جب تک کہ آپ کو یقین نہ ہو کہ آپ نجی کلیدوں کو کنٹرول کرتے ہیں۔ ایسا کرنے میں ناکامی آپ کو گھوٹالوں کے سامنے آ سکتی ہے، اور آپ اپنے اثاثوں کو مستقل طور پر کھو سکتے ہیں۔
+warnings_externally_controlled_account = اس %@ اکاؤنٹ کو کوئی اور کنٹرول کر سکتا ہے۔ جب تک آپ کو یقین نہ ہو کہ اس کا کنٹرول آپ کے پاس ہے، اس میں رقوم نہ بھیجیں، ورنہ آپ اپنے اثاثے مستقل طور پر کھو سکتے ہیں۔
 
 # Sell
 
@@ -565,7 +564,7 @@ info_insufficient_balance_title = ناکافی بیلنس
 info_balance_required_description = اس لین دین کے لیے %@ درکار ہے، لیکن صرف %@ دستیاب ہے۔ جاری رکھنے کے لیے آپ کو مزید %@ درکار ہیں۔
 info_account_minimum_balance_title = کم از کم بیلنس
 info_perpetual_funding_payments_title = فنڈز کی ادائیگی
-info_perpetual_funding_payments_description = فنڈنگ ​​کی ادائیگیاں تاجروں کے درمیان متواتر ادائیگیاں ہوتی ہیں تاکہ دائمی معاہدے کی قیمت کو بنیادی اثاثہ کی جگہ کی قیمت کے قریب رکھا جا سکے۔ مثبت فنڈنگ ​​کا مطلب ہے لانگ پوزیشنز شارٹ پوزیشنز ادا کرتی ہیں، جبکہ منفی فنڈنگ ​​کا مطلب ہے کہ شارٹ پوزیشنز لانگ پوزیشنز ادا کرتی ہیں۔
+info_perpetual_funding_payments_description = فنڈنگ کی ادائیگیاں تاجروں کے درمیان متواتر ادائیگیاں ہوتی ہیں تاکہ دائمی معاہدے کی قیمت کو بنیادی اثاثہ کی جگہ کی قیمت کے قریب رکھا جا سکے۔ مثبت فنڈنگ کا مطلب ہے لانگ پوزیشنز شارٹ پوزیشنز ادا کرتی ہیں، جبکہ منفی فنڈنگ کا مطلب ہے کہ شارٹ پوزیشنز لانگ پوزیشنز ادا کرتی ہیں۔
 info_perpetual_liquidation_price_title = لیکویڈیشن کی قیمت
 info_perpetual_liquidation_price_description = لیکویڈیشن پرائس قیمت کی سطح ہے جس پر مزید نقصانات کو روکنے کے لیے آپ کی پوزیشن خود بخود بند ہو جائے گی۔ جب مارکیٹ کی قیمت اس سطح تک پہنچ جاتی ہے، تو آپ کی پوزیشن ختم ہو جاتی ہے اور آپ اپنا مارجن کھو دیتے ہیں۔
 info_perpetual_open_interest_title = کھلی دلچسپی
@@ -584,7 +583,7 @@ info_total_supply_description = موجود سکوں کی کل تعداد، بش�
 info_max_supply_title = زیادہ سے زیادہ سپلائی
 info_max_supply_description = سکوں کی زیادہ سے زیادہ تعداد جو کبھی موجود ہوں گے۔
 info_perpetual_funding_apr_title = فنڈنگ APR
-info_perpetual_funding_apr_description = سالانہ شرح جس پر لانگ شارٹس ادا کرتا ہے (اگر منفی، شارٹس لانگ ادا کرتے ہیں)۔ فنڈنگ ​​سے وابستہ کوئی فیس نہیں ہے، جو کہ قیمتوں کو اسپاٹ پرائس کی طرف دھکیلنے کے لیے صارفین کے درمیان پیئر ٹو پیئر ٹرانسفر ہے۔
+info_perpetual_funding_apr_description = سالانہ شرح جس پر لانگ شارٹس ادا کرتا ہے (اگر منفی، شارٹس لانگ ادا کرتے ہیں)۔ فنڈنگ سے وابستہ کوئی فیس نہیں ہے، جو کہ قیمتوں کو اسپاٹ پرائس کی طرف دھکیلنے کے لیے صارفین کے درمیان پیئر ٹو پیئر ٹرانسفر ہے۔
 info_minimum_amount_title = کم از کم رقم
 info_minimum_amount_description = %@ نیٹ ورک پر، اس ٹرانزیکشن کی کم از کم رقم %@ ہے۔
 info_swap_minimum_amount_description = %@ کے لیے کم از کم %@ درکار ہے، لیکن رقم %@ ہے۔ جاری رکھنے کے لیے اسے %@ بڑھائیں۔

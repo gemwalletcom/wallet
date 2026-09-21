@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = Aset yang tidak didukung.
 errors_connections_no_supported_wallets = Tidak ada dompet yang didukung tersedia.
 errors_connections_unsupported_chain = Rantai yang disediakan tidak didukung.
 errors_swap_amount_too_small = Jumlahnya terlalu kecil
-errors_required = %@ diperlukan
 errors_scan_transaction_malicious_description = Transaksi ini tidak dapat diselesaikan — alamat dompet tujuan terkait dengan aktivitas yang mencurigakan atau berbahaya.
 errors_scan_transaction_memo_required = %@ alamat dompet tujuan memerlukan tag / memo tujuan
 errors_scan_transaction_malicious_title = Aktivitas Mencurigakan
@@ -315,7 +314,7 @@ asset_symbol = Simbol
 asset_decimals = Desimal
 asset_token_id = ID Token
 asset_contract = Kontrak
-asset_state_empty_title = Transaksi Anda akan muncul di sini️
+asset_state_empty_title = Transaksi Anda akan muncul di sini
 asset_state_empty_description = Terima, tukar atau beli %@
 asset_verification_unverified = Belum diverifikasi
 asset_verification_suspicious = Mencurigakan
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = Ketika harga turun sebesar
 price_alerts_set_alert_set_target_price = Tetapkan target harga
 price_alerts_set_alert_current_price = Harga saat ini
 price_alerts_added_for = Tetapkan peringatan harga %@
-price_alerts_state_empty_title = Peringatan Anda akan muncul di sini️
+price_alerts_state_empty_title = Peringatan Anda akan muncul di sini
 price_alerts_state_empty_description = Aktifkan mereka dengan menambahkan koin untuk dilacak
 price_alerts_auto_footer = Peringatan dipicu pada pergerakan harga yang signifikan.
 price_alerts_set_alert_title = Tetapkan Peringatan Harga
@@ -536,7 +535,7 @@ verify_phrase_title = Mengonfirmasi
 
 # Warnings
 
-warnings_multi_signature_blocked = Jangan mentransfer dana ke dompet Multi-Signature %@ ini kecuali Anda yakin bahwa Anda memegang kunci pribadi. Kegagalan untuk melakukannya dapat membuat Anda rentan terhadap penipuan, dan Anda dapat kehilangan aset Anda secara permanen.
+warnings_externally_controlled_account = Akun %@ ini dapat dikendalikan oleh orang lain. Jangan kirim dana ke akun ini kecuali Anda yakin bahwa Anda yang mengendalikannya, atau Anda dapat kehilangan aset Anda secara permanen.
 
 # Sell
 
@@ -600,7 +599,7 @@ nft_collections = Koleksi
 nft_collection = Koleksi
 nft_save_to_photos = Simpan ke Foto
 nft_set_as_avatar = Tetapkan sebagai Avatar
-nft_state_empty_title = NFT Anda akan muncul di sini️
+nft_state_empty_title = NFT Anda akan muncul di sini
 nft_state_empty_description = Terima NFT pertama Anda
 nft_report_reason_spam = Spam
 nft_report_reason_malicious = Berbahaya

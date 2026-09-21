@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+@testable import Components
 import SwiftUI
 import Testing
-@testable import Components
 
 @MainActor
 struct CurrencyTextFieldTests {

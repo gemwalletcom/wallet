@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.wallet.core.primitives.TransactionType
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequests
 import com.gemwallet.android.ext.toGem
@@ -13,6 +12,7 @@ import com.gemwallet.android.testkit.mockSignMessage
 import com.gemwallet.android.testkit.mockTransferDataExtra
 import com.gemwallet.android.testkit.mockWalletConnectionSession
 import com.gemwallet.android.testkit.mockWalletMulticoin
+import com.wallet.core.primitives.TransactionType
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first

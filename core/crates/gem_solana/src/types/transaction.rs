@@ -95,10 +95,7 @@ impl VersionedTransaction {
     }
 
     fn compute_budget_program_index(&self) -> Option<u8> {
-        self.account_keys()
-            .iter()
-            .position(|key| *key == compute_budget_program())
-            .and_then(|index| u8::try_from(index).ok())
+        self.account_keys().iter().position(|key| *key == compute_budget_program()).and_then(|index| u8::try_from(index).ok())
     }
 
     fn compute_budget_data(&self) -> impl Iterator<Item = &[u8]> {
@@ -113,11 +110,7 @@ impl VersionedTransaction {
         let Some(program_id_index) = self.compute_budget_program_index() else {
             return false;
         };
-        let instruction = self
-            .message_mut()
-            .instructions
-            .iter_mut()
-            .find(|instruction| instruction.program_id_index == program_id_index && matches(&instruction.data));
+        let instruction = self.message_mut().instructions.iter_mut().find(|instruction| instruction.program_id_index == program_id_index && matches(&instruction.data));
         match instruction {
             Some(instruction) => {
                 instruction.data = data;

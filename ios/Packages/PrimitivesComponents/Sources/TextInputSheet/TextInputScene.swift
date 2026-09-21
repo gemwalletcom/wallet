@@ -59,7 +59,11 @@ public struct TextInputScene<ViewModel: TextInputViewModelProtocol>: View {
                 Localized.Errors.errorOccurred,
                 isPresented: Binding(
                     get: { model.errorMessage != nil },
-                    set: { if !$0 { model.errorMessage = nil } },
+                    set: {
+                        if !$0 {
+                            model.errorMessage = nil
+                        }
+                    },
                 ),
             ) {
                 Button(Localized.Common.done, role: .cancel) {}

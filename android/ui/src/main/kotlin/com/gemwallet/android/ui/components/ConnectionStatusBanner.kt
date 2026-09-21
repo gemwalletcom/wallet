@@ -27,11 +27,7 @@ import com.gemwallet.android.ui.theme.space10
 import com.gemwallet.android.ui.theme.tinyIconSize
 
 @Composable
-fun ConnectionStatusBanner(
-    title: String,
-    onDismiss: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun ConnectionStatusBanner(title: String, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier
             .fillMaxWidth()

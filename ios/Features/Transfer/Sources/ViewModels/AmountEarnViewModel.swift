@@ -2,14 +2,14 @@
 
 import BigInt
 import Foundation
-import enum Gemstone.GemAmountType
-import protocol Gemstone.GemAmountServiceProtocol
-import struct Gemstone.GemValidatorRow
 import enum Gemstone.EarnType
+import protocol Gemstone.GemAmountServiceProtocol
+import enum Gemstone.GemAmountType
+import struct Gemstone.GemTransferData
+import struct Gemstone.GemValidatorRow
 import GemstonePrimitives
 import Localization
 import Primitives
-import struct Gemstone.GemTransferData
 
 public final class AmountEarnViewModel: AmountDataProvidable {
     let asset: Asset
@@ -22,15 +22,9 @@ public final class AmountEarnViewModel: AmountDataProvidable {
         self.service = service
     }
 
-    var provider: DelegationValidator {
-        switch action {
-        case let .deposit(provider): provider.toPrimitives()
-        case let .withdraw(delegation): delegation.validator.toPrimitives()
-        }
-    }
-
-    var providerRow: GemValidatorRow {
-        service.validatorRow(validator: provider.toGem())
+    var providerRow: GemValidatorRow? {
+        guard case let .earn(_, provider) = gemAmountType else { return nil }
+        return provider
     }
 
     var providerTitle: String {

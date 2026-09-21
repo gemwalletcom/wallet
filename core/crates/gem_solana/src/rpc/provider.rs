@@ -1,7 +1,7 @@
 use std::{error::Error, ops::Deref};
 
 use async_trait::async_trait;
-use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainProvider, ChainTransactions, EmptyTransactionsProvider, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainAccount, ChainPerpetual, ChainProvider, ChainTransactions, EmptyTransactionsProvider, TransactionsRequest, TransactionsResult};
 use gem_client::Client;
 use primitives::Chain;
 
@@ -14,10 +14,7 @@ pub struct SolanaProvider<C: Client + Clone> {
 
 impl<C: Client + Clone> SolanaProvider<C> {
     pub fn new(client: SolanaClient<C>, transactions_by_address_provider: Box<dyn ChainTransactions>) -> Self {
-        Self {
-            client,
-            transactions_by_address_provider,
-        }
+        Self { client, transactions_by_address_provider }
     }
 
     pub fn new_rpc_only(client: SolanaClient<C>) -> Self {
@@ -48,4 +45,3 @@ impl<C: Client + Clone> ChainProvider for SolanaProvider<C> {
 
 impl<C: Client + Clone> ChainAccount for SolanaProvider<C> {}
 impl<C: Client + Clone> ChainPerpetual for SolanaProvider<C> {}
-impl<C: Client + Clone> ChainAddressStatus for SolanaProvider<C> {}

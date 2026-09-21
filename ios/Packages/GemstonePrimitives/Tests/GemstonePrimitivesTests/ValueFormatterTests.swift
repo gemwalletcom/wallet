@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-@testable import GemstonePrimitives
 import Foundation
+@testable import GemstonePrimitives
 import Testing
 
 final class ValueFormatterTests {

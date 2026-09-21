@@ -90,11 +90,7 @@ impl DatabaseClient {
 impl TransactionsStore for DatabaseClient {
     fn get_transaction_by_id(&mut self, chain: &str, hash: &str) -> Result<TransactionRow, diesel::result::Error> {
         use crate::schema::transactions::dsl;
-        dsl::transactions
-            .filter(dsl::chain.eq(chain))
-            .filter(dsl::hash.eq(hash))
-            .select(TransactionRow::as_select())
-            .first(&mut self.connection)
+        dsl::transactions.filter(dsl::chain.eq(chain)).filter(dsl::hash.eq(hash)).select(TransactionRow::as_select()).first(&mut self.connection)
     }
 
     fn get_transactions_by_hash(&mut self, transaction_hash: &str) -> Result<Vec<TransactionRow>, diesel::result::Error> {
@@ -114,30 +110,27 @@ impl TransactionsStore for DatabaseClient {
     }
 
     fn upsert_transactions(&mut self, transactions: Vec<Transaction>) -> Result<HashSet<TransactionId>, diesel::result::Error> {
-        self.connection
-            .build_transaction()
-            .read_write()
-            .run::<_, diesel::result::Error, _>(|conn: &mut diesel::pg::PgConnection| {
-                transactions
-                    .into_iter()
-                    .map(|transaction| {
-                        let (stored, is_inserted) = Self::upsert_transaction(conn, &transaction)?;
+        self.connection.build_transaction().read_write().run::<_, diesel::result::Error, _>(|conn: &mut diesel::pg::PgConnection| {
+            transactions
+                .into_iter()
+                .map(|transaction| {
+                    let (stored, is_inserted) = Self::upsert_transaction(conn, &transaction)?;
 
-                        let addresses = NewTransactionAddressesRow::from_transaction(stored.id, &transaction);
-                        if !addresses.is_empty() {
-                            use crate::schema::transactions_addresses::dsl as addr_dsl;
-                            diesel::insert_into(addr_dsl::transactions_addresses)
-                                .values(&addresses)
-                                .on_conflict((addr_dsl::transaction_id, addr_dsl::address, addr_dsl::asset_id))
-                                .do_nothing()
-                                .execute(conn)?;
-                        }
+                    let addresses = NewTransactionAddressesRow::from_transaction(stored.id, &transaction);
+                    if !addresses.is_empty() {
+                        use crate::schema::transactions_addresses::dsl as addr_dsl;
+                        diesel::insert_into(addr_dsl::transactions_addresses)
+                            .values(&addresses)
+                            .on_conflict((addr_dsl::transaction_id, addr_dsl::address, addr_dsl::asset_id))
+                            .do_nothing()
+                            .execute(conn)?;
+                    }
 
-                        Ok(is_inserted.then_some(transaction.id))
-                    })
-                    .collect::<Result<Vec<_>, diesel::result::Error>>()
-                    .map(|transaction_ids| transaction_ids.into_iter().flatten().collect())
-            })
+                    Ok(is_inserted.then_some(transaction.id))
+                })
+                .collect::<Result<Vec<_>, diesel::result::Error>>()
+                .map(|transaction_ids| transaction_ids.into_iter().flatten().collect())
+        })
     }
 
     fn get_transactions_by_device_id(
@@ -218,9 +211,11 @@ impl TransactionsStore for DatabaseClient {
         self.connection.transaction(|connection| {
             let mut transaction_ids = vec![];
             for row in chain_addresses {
-                let mut deleted_ids = diesel::delete(addr_dsl::transactions_addresses.filter(addr_dsl::address.eq(row.address)).filter(exists(
-                    tx_dsl::transactions.filter(tx_dsl::id.eq(addr_dsl::transaction_id)).filter(tx_dsl::chain.eq(row.chain_id)),
-                )))
+                let mut deleted_ids = diesel::delete(
+                    addr_dsl::transactions_addresses
+                        .filter(addr_dsl::address.eq(row.address))
+                        .filter(exists(tx_dsl::transactions.filter(tx_dsl::id.eq(addr_dsl::transaction_id)).filter(tx_dsl::chain.eq(row.chain_id)))),
+                )
                 .returning(addr_dsl::transaction_id)
                 .load(connection)?;
                 transaction_ids.append(&mut deleted_ids);
@@ -304,11 +299,7 @@ impl TransactionsStore for DatabaseClient {
             }
         }
 
-        query
-            .order(dsl::created_at.asc())
-            .limit(limit)
-            .select(TransactionRow::as_select())
-            .load(&mut self.connection)
+        query.order(dsl::created_at.asc()).limit(limit).select(TransactionRow::as_select()).load(&mut self.connection)
     }
 
     fn update_transaction(&mut self, chain: &str, hash: &str, updates: Vec<TransactionUpdate>) -> Result<usize, diesel::result::Error> {

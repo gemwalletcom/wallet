@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.GemConfirmMetadata
 import Foundation
-import GemstonePrimitivesTestKit
+import struct Gemstone.GemConfirmMetadata
 import struct Gemstone.GemTransactionLoadFee
+import struct Gemstone.GemTransferData
+import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
 import Transfer
-import struct Gemstone.GemTransferData
 
 public extension TransactionInputViewModel {
     static func mock(

@@ -5,9 +5,7 @@ use serde_json::{Map, Value};
 use std::collections::BTreeSet;
 
 use super::data::{TypeField, TypedData};
-use super::parse::{
-    MAX_WORD_BYTES, adjust_signed_value, base_type_name, left_pad, parse_array_type, parse_fixed_bytes_size, parse_int_value, parse_numeric_bits, parse_uint_value, right_pad,
-};
+use super::parse::{MAX_WORD_BYTES, adjust_signed_value, base_type_name, left_pad, parse_array_type, parse_fixed_bytes_size, parse_int_value, parse_numeric_bits, parse_uint_value, right_pad};
 
 const PREFIX_PERSONAL_MESSAGE: &[u8] = b"\x19\x01";
 
@@ -52,9 +50,7 @@ pub(super) fn validate_eip712_domain_chain_id_binding(value: &Value) -> Result<(
 }
 
 fn hash_struct(primary_type: &str, data: Option<&Value>, types: &std::collections::HashMap<String, Vec<TypeField>>) -> Result<[u8; 32], SignerError> {
-    let fields = types
-        .get(primary_type)
-        .ok_or_else(|| SignerError::invalid_input(format!("Unknown EIP-712 type '{primary_type}'")))?;
+    let fields = types.get(primary_type).ok_or_else(|| SignerError::invalid_input(format!("Unknown EIP-712 type '{primary_type}'")))?;
 
     let data_map: &Map<String, Value> = match data {
         Some(Value::Object(map)) => map,
@@ -88,11 +84,7 @@ fn encode_value(type_name: &str, value: Option<&Value>, types: &std::collections
                 if let Some(len) = expected_len
                     && items.len() != len
                 {
-                    return Err(SignerError::invalid_input(format!(
-                        "Expected array of length {len} for type '{ty}', got {}",
-                        items.len(),
-                        ty = type_name
-                    )));
+                    return Err(SignerError::invalid_input(format!("Expected array of length {len} for type '{ty}', got {}", items.len(), ty = type_name)));
                 }
 
                 for item in items {
@@ -184,9 +176,7 @@ fn encode_uint(type_name: &str, value: Option<&Value>) -> Result<[u8; 32], Signe
     let number = parse_uint_value(value)?;
 
     if number.bit_len() > bits {
-        return Err(SignerError::invalid_input(format!(
-            "Value out of range for type '{type_name}' ({bits}-bit unsigned integer)"
-        )));
+        return Err(SignerError::invalid_input(format!("Value out of range for type '{type_name}' ({bits}-bit unsigned integer)")));
     }
 
     Ok(number.to_be_bytes::<MAX_WORD_BYTES>())
@@ -238,9 +228,7 @@ fn encode_type(primary_type: &str, types: &std::collections::HashMap<String, Vec
 
     let mut encoded = String::new();
     for type_name in parts {
-        let fields = types
-            .get(&type_name)
-            .ok_or_else(|| SignerError::invalid_input(format!("Unknown EIP-712 type '{type_name}'")))?;
+        let fields = types.get(&type_name).ok_or_else(|| SignerError::invalid_input(format!("Unknown EIP-712 type '{type_name}'")))?;
 
         encoded.push_str(&type_name);
         encoded.push('(');

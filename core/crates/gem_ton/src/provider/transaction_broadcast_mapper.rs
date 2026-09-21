@@ -30,10 +30,7 @@ mod tests {
             r#"{"message_hash":"gyjq/7IJ5KpSvZlnwixaS3RjI2xk1+5pup0k++S/yXY="}"#,
             r#"{"ok":true,"result":{"hash":"gyjq/7IJ5KpSvZlnwixaS3RjI2xk1+5pup0k++S/yXY="}}"#,
         ] {
-            assert_eq!(
-                map_transaction_broadcast_response_from_str(response).unwrap(),
-                "8328eaffb209e4aa52bd9967c22c5a4b7463236c64d7ee69ba9d24fbe4bfc976"
-            );
+            assert_eq!(map_transaction_broadcast_response_from_str(response).unwrap(), "8328eaffb209e4aa52bd9967c22c5a4b7463236c64d7ee69ba9d24fbe4bfc976");
         }
         for response in [
             r#"{"ok":false,"result":{"hash":"gyjq/7IJ5KpSvZlnwixaS3RjI2xk1+5pup0k++S/yXY="}}"#,

@@ -10,8 +10,7 @@ fun GemWalletConnectResponse.toJsonRpcResponse(): WalletConnectJsonRpcResponse =
     is GemWalletConnectResponse.Error -> error.toJsonRpcResponse()
 }
 
-fun GemWalletConnectRpcError.toJsonRpcResponse(): WalletConnectJsonRpcResponse.Error =
-    WalletConnectJsonRpcResponse.Error(code = code, message = message)
+fun GemWalletConnectRpcError.toJsonRpcResponse(): WalletConnectJsonRpcResponse.Error = WalletConnectJsonRpcResponse.Error(code = code, message = message)
 
 private fun WalletConnectResponseType.payload(): String = when (this) {
     is WalletConnectResponseType.Object -> json

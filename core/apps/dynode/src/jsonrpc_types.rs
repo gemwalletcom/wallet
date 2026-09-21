@@ -50,10 +50,7 @@ impl JsonRpcErrorResponse {
     pub fn new(message: &str) -> Self {
         Self {
             jsonrpc: default_jsonrpc_version(),
-            error: JsonRpcError {
-                code: -32603,
-                message: message.to_string(),
-            },
+            error: JsonRpcError { code: -32603, message: message.to_string() },
             id: None,
         }
     }
@@ -114,11 +111,7 @@ impl RequestType {
                 return RequestType::JsonRpc(JsonRpcRequest::Batch(calls));
             }
         }
-        RequestType::Regular {
-            path,
-            method: method.to_string(),
-            body,
-        }
+        RequestType::Regular { path, method: method.to_string(), body }
     }
 
     pub fn get_methods_for_metrics(&self) -> Vec<String> {

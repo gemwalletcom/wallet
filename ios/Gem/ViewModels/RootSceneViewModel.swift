@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemAppUpdateServiceProtocol
-import protocol Gemstone.GemTransactionStateServiceProtocol
-import GemstonePrimitives
-import protocol Gemstone.GemAppStartServiceProtocol
-import AppService
-import GemstoneServices
-import Components
-import protocol Gemstone.GemWalletSessionServiceProtocol
-import Foundation
-import protocol Gemstone.GemDeviceServiceProtocol
-import Localization
 import AppLock
+import AppService
+import Components
+import Foundation
+import protocol Gemstone.GemAppStartServiceProtocol
+import protocol Gemstone.GemAppUpdateServiceProtocol
+import protocol Gemstone.GemDeviceServiceProtocol
+import protocol Gemstone.GemTransactionStateServiceProtocol
+import protocol Gemstone.GemWalletSessionServiceProtocol
+import GemstonePrimitives
+import GemstoneServices
+import Localization
 import Onboarding
 import Primitives
 import PrimitivesComponents
@@ -25,7 +25,7 @@ final class RootSceneViewModel {
     private let appStartService: any GemAppStartServiceProtocol
     private let pushNotificationEnablerService: PushNotificationEnablerService
     private let appLifecycleService: AppLifecycleService
-    private let navigationHandler: NavigationHandler
+    private let navigationRouter: NavigationRouter
     private let appUpdateService: any GemAppUpdateServiceProtocol
     private let rateService: RateService
     private let toastPresenter: ToastPresenter
@@ -40,6 +40,7 @@ final class RootSceneViewModel {
     var currentWallet: Wallet? {
         walletSessionService.currentWalletId.flatMap { try? viewModelFactory.stores.walletStore.getWallet(id: $0) }
     }
+
     var currentWalletId: WalletId? { walletSessionService.currentWalletId }
     var colorScheme: ColorScheme? { observablePreferences.appearance.colorScheme }
     var updateVersionAlertMessage: AlertMessage?
@@ -78,7 +79,7 @@ final class RootSceneViewModel {
         appStartService: any GemAppStartServiceProtocol,
         pushNotificationEnablerService: PushNotificationEnablerService,
         appLifecycleService: AppLifecycleService,
-        navigationHandler: NavigationHandler,
+        navigationRouter: NavigationRouter,
         lockWindowManager: any LockWindowPresentable,
         viewModelFactory: ViewModelFactory,
         walletSessionService: any GemWalletSessionServiceProtocol,
@@ -93,7 +94,7 @@ final class RootSceneViewModel {
         self.appStartService = appStartService
         self.pushNotificationEnablerService = pushNotificationEnablerService
         self.appLifecycleService = appLifecycleService
-        self.navigationHandler = navigationHandler
+        self.navigationRouter = navigationRouter
         lockWindow = lockWindowManager
         self.viewModelFactory = viewModelFactory
         self.walletSessionService = walletSessionService
@@ -108,7 +109,7 @@ final class RootSceneViewModel {
 
 extension RootSceneViewModel {
     func setup() {
-        rateService.perform()
+        rateService.requestReviewIfDue()
         Task { await checkForUpdate() }
         Task { await appLifecycleService.setup() }
         Task { await setupWallets() }
@@ -116,7 +117,7 @@ extension RootSceneViewModel {
 
     func onScenePhaseChanged(_: ScenePhase, _ newPhase: ScenePhase) {
         Task {
-            await appLifecycleService.handleScenePhase(newPhase)
+            await appLifecycleService.onScenePhase(newPhase)
         }
     }
 
@@ -135,12 +136,12 @@ extension RootSceneViewModel {
             Task { await appLifecycleService.updateWalletConnections() }
             return
         }
-        navigationHandler.resetNavigation()
+        navigationRouter.resetNavigation()
         setup(wallet: currentWallet)
     }
 
-    func handleOpenUrl(_ url: URL) async {
-        await navigationHandler.handle(url: url)
+    func openUrl(_ url: URL) async {
+        await navigationRouter.open(url: url)
     }
 
     func createWalletModel() -> CreateWalletModel {

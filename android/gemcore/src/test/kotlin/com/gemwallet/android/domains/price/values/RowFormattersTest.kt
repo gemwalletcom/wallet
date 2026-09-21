@@ -1,12 +1,12 @@
 package com.gemwallet.android.domains.price.values
 
-import uniffi.gemstone.GemValueTone
 import com.wallet.core.primitives.Currency
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemValueTone
 import java.util.Locale
 
 class RowFormattersTest {

@@ -97,19 +97,13 @@ impl ConsumerOptions {
             ConsumerServiceKind::Support => ConsumerService::Support,
             ConsumerServiceKind::Fiat => ConsumerService::Fiat,
         };
-        Ok(Self {
-            service: Some(service),
-            indexer: None,
-        })
+        Ok(Self { service: Some(service), indexer: None })
     }
 
     fn parse_indexer(parts: &[&str]) -> Result<Self, String> {
         let name = parts.first().ok_or_else(|| "Missing indexer service".to_owned())?;
         let service = name.parse::<IndexerService>().map_err(|_| format!("Invalid indexer service: {name}"))?;
-        let indexer = parts
-            .get(1)
-            .map(|name| name.parse::<IndexerConsumer>().map_err(|_| format!("Invalid indexer consumer: {name}")))
-            .transpose()?;
+        let indexer = parts.get(1).map(|name| name.parse::<IndexerConsumer>().map_err(|_| format!("Invalid indexer consumer: {name}"))).transpose()?;
         if let Some(indexer) = indexer
             && !service.consumers().contains(&indexer)
         {

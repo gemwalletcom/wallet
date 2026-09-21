@@ -13,7 +13,7 @@ public struct MappedRequest<Base: DatabaseQueryable, Value: Equatable & Sendable
     }
 
     public func fetch(_ db: Database) throws -> Value {
-        transform(try base.fetch(db))
+        try transform(base.fetch(db))
     }
 
     public static func == (lhs: Self, rhs: Self) -> Bool {

@@ -70,13 +70,7 @@ mod tests {
                 AssetId::from_chain(Chain::Monad),
                 "3306576785321161654272",
             ),
-            (
-                include_str!("test/sol_to_eth_swift.json"),
-                AssetId::from_chain(Chain::Solana),
-                "16195149",
-                AssetId::from_chain(Chain::Base),
-                "599671067569648",
-            ),
+            (include_str!("test/sol_to_eth_swift.json"), AssetId::from_chain(Chain::Solana), "16195149", AssetId::from_chain(Chain::Base), "599671067569648"),
             (
                 include_str!("test/usdc_to_brla_fast_mctp.json"),
                 BASE_USDC_ASSET_ID.clone(),

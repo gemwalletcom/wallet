@@ -83,10 +83,7 @@ impl TransactionFee {
     }
 
     pub fn priority_fee_u64(&self) -> Result<u64, SignerError> {
-        self.gas_price_type
-            .priority_fee()
-            .to_u64()
-            .ok_or_else(|| SignerError::invalid_input("invalid priority fee"))
+        self.gas_price_type.priority_fee().to_u64().ok_or_else(|| SignerError::invalid_input("invalid priority fee"))
     }
 
     pub fn unit_price_u64(&self) -> Result<u64, SignerError> {
@@ -114,13 +111,7 @@ mod tests {
     #[test]
     fn test_new_gas_price_type() {
         // Without options
-        let fee = TransactionFee::new_gas_price_type(
-            GasPriceType::regular(BigInt::from(200)),
-            BigInt::from(50000),
-            BigInt::from(500),
-            HashMap::new(),
-            Asset::mock_eth().id,
-        );
+        let fee = TransactionFee::new_gas_price_type(GasPriceType::regular(BigInt::from(200)), BigInt::from(50000), BigInt::from(500), HashMap::new(), Asset::mock_eth().id);
         assert_eq!(fee.fee, BigInt::from(50000));
         assert_eq!(fee.gas_limit, BigInt::from(500));
 
@@ -135,13 +126,7 @@ mod tests {
         assert_eq!(fee.fee, BigInt::from(35000)); // 30000 + 5000
 
         // With EIP-1559
-        let fee = TransactionFee::new_gas_price_type(
-            GasPriceType::eip1559(BigInt::from(300), BigInt::from(10)),
-            BigInt::from(60000),
-            BigInt::from(200),
-            HashMap::new(),
-            Asset::mock_eth().id,
-        );
+        let fee = TransactionFee::new_gas_price_type(GasPriceType::eip1559(BigInt::from(300), BigInt::from(10)), BigInt::from(60000), BigInt::from(200), HashMap::new(), Asset::mock_eth().id);
         assert_eq!(fee.gas_price_type.priority_fee(), BigInt::from(10));
     }
 
@@ -160,13 +145,7 @@ mod tests {
 
     #[test]
     fn test_fee_accessors() {
-        let fee = TransactionFee::new_gas_price_type(
-            GasPriceType::regular(BigInt::from(7u64)),
-            BigInt::from(70u64),
-            BigInt::from(10u64),
-            HashMap::new(),
-            Asset::mock_eth().id,
-        );
+        let fee = TransactionFee::new_gas_price_type(GasPriceType::regular(BigInt::from(7u64)), BigInt::from(70u64), BigInt::from(10u64), HashMap::new(), Asset::mock_eth().id);
         assert_eq!(fee.gas_limit().unwrap(), 10);
         assert_eq!(fee.gas_price_u64().unwrap(), 7);
 
@@ -179,9 +158,6 @@ mod tests {
         );
         assert_eq!(fee.unit_price_u64().unwrap(), 2);
 
-        assert_eq!(
-            TransactionFee::new_from_fee(BigInt::ZERO, Asset::mock_eth().id).gas_limit().unwrap_err().to_string(),
-            "Invalid input: missing gas limit"
-        );
+        assert_eq!(TransactionFee::new_from_fee(BigInt::ZERO, Asset::mock_eth().id).gas_limit().unwrap_err().to_string(), "Invalid input: missing gas limit");
     }
 }

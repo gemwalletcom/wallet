@@ -4,8 +4,6 @@ import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualProvider
-import uniffi.gemstone.GemPerpetualDetails
-import uniffi.gemstone.GemPerpetualDetailsAction
 import uniffi.gemstone.GemPerpetualTransferData
 import uniffi.gemstone.PerpetualConfirmData
 
@@ -38,18 +36,7 @@ fun mockPerpetualConfirmData(
     stopLoss = stopLoss,
 )
 
-fun mockPerpetualDetails(
-    direction: PerpetualDirection = PerpetualDirection.Long,
-    data: PerpetualConfirmData = mockPerpetualConfirmData(),
-) = GemPerpetualDetails(
-    action = GemPerpetualDetailsAction.OPEN,
-    direction = direction.toGem(),
-    data = data,
-)
-
-fun mockGemPerpetualTransferData(
-    direction: PerpetualDirection = PerpetualDirection.Long,
-) = GemPerpetualTransferData(
+fun mockGemPerpetualTransferData(direction: PerpetualDirection = PerpetualDirection.Long) = GemPerpetualTransferData(
     provider = PerpetualProvider.Hypercore.toGem(),
     direction = direction.toGem(),
     asset = mockAssetHyperCoreUBTC().toGem(),

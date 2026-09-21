@@ -56,7 +56,7 @@ final class WebSocket: NSObject, @unchecked Sendable {
         session?.invalidateAndCancel()
     }
 
-    private func handleDisconnect(error: Error?) {
+    private func onDisconnect(error: Error?) {
         guard isConnected else { return }
         isConnected = false
         onDisconnect?(error)
@@ -105,11 +105,11 @@ extension WebSocket: URLSessionWebSocketDelegate {
 
     func urlSession(_: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith _: URLSessionWebSocketTask.CloseCode, reason _: Data?) {
         guard isCurrentTask(webSocketTask) else { return }
-        handleDisconnect(error: nil)
+        onDisconnect(error: nil)
     }
 
     func urlSession(_: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         guard isCurrentTask(task) else { return }
-        handleDisconnect(error: error)
+        onDisconnect(error: error)
     }
 }

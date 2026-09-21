@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitivesTestKit
 import Foundation
+import GemstonePrimitivesTestKit
+import GemstoneServicesTestKit
 @testable import PriceAlerts
 import PriceAlertsTestKit
-import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store

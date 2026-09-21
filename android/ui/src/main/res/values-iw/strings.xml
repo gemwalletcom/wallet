@@ -210,7 +210,6 @@
   <string name="errors_connections_no_supported_wallets">אין ארנקים נתמכים זמינים.</string>
   <string name="errors_connections_unsupported_chain">השרשרת שסופקה אינה נתמכת.</string>
   <string name="errors_swap_amount_too_small">סכום קטן מדי</string>
-  <string name="errors_required">נדרש %1$s</string>
   <string name="errors_scan_transaction_malicious_description">לא ניתן להשלים עסקה זו - כתובת ארנק היעד מקושרת לפעילות חשודה או מזיקה.</string>
   <string name="errors_scan_transaction_memo_required">כתובת ארנק היעד %1$s דורשת תגית יעד / תזכיר</string>
   <string name="errors_scan_transaction_malicious_title">פעילות חשודה</string>
@@ -273,7 +272,7 @@
   <string name="asset_decimals">עשרוניות</string>
   <string name="asset_token_id">מזהה אסימון</string>
   <string name="asset_contract">חוֹזֶה</string>
-  <string name="asset_state_empty_title">העסקאות שלך יופיעו כאן️</string>
+  <string name="asset_state_empty_title">העסקאות שלך יופיעו כאן</string>
   <string name="asset_state_empty_description">קבל, החלף או קנה %1$s</string>
   <string name="asset_verification_unverified">לא מאומת</string>
   <string name="asset_verification_suspicious">חָשׁוּד</string>
@@ -422,7 +421,7 @@
   <string name="price_alerts_set_alert_set_target_price">קביעת מחיר יעד</string>
   <string name="price_alerts_set_alert_current_price">מחיר נוכחי</string>
   <string name="price_alerts_added_for">הגדר התראת מחיר %1$s</string>
-  <string name="price_alerts_state_empty_title">ההתראות שלך יופיעו כאן️</string>
+  <string name="price_alerts_state_empty_title">ההתראות שלך יופיעו כאן</string>
   <string name="price_alerts_state_empty_description">אפשרו להם על ידי הוספת מטבעות למעקב</string>
   <string name="price_alerts_auto_footer">התראות מופעלות על תנודות משמעותיות במחיר.</string>
   <string name="price_alerts_set_alert_title">הגדר התראת מחיר</string>
@@ -437,7 +436,7 @@
   <string name="lock_privacy_lock">נעילת פרטיות</string>
   <string name="lock_footer">הגן על הגישה לאפליקציה הזו במכשיר שלך</string>
   <string name="verify_phrase_title">לְאַשֵׁר</string>
-  <string name="warnings_multi_signature_blocked">אל תעביר כספים לארנק ריבוי חתימות %1$s זה אלא אם אתה בטוח שאתה שולט במפתחות הפרטיים. אם לא תעשה זאת, אתה עלול להיחשף להונאות ולאבד לצמיתות את הנכסים שלך.</string>
+  <string name="warnings_externally_controlled_account">ייתכן שמישהו אחר שולט בחשבון %1$s זה. אל תשלח אליו כספים אלא אם אתה בטוח שאתה שולט בו, אחרת אתה עלול לאבד את הנכסים שלך לצמיתות.</string>
   <string name="sell_title">למכור %1$s</string>
   <string name="info_network_fee_title">עמלת רשת</string>
   <string name="info_watch_wallet_title">ארנק במעקב</string>
@@ -476,7 +475,7 @@
   <string name="info_fully_diluted_valuation_description">שווי השוק התיאורטי אם כל המטבעות היו במחזור. מחושב כמחיר כפול היצע מקסימלי.</string>
   <string name="info_circulating_supply_description">מספר המטבעות הזמינים ונסחרים כעת בשוק.</string>
   <string name="info_total_supply_description">המספר הכולל של מטבעות שקיימים, כולל מטבעות נעולים או שמורים.</string>
-  <string name="info_max_supply_title">אספקה ​​מקסימלית</string>
+  <string name="info_max_supply_title">אספקה מקסימלית</string>
   <string name="info_max_supply_description">המספר המקסימלי של מטבעות שאי פעם יהיה קיים.</string>
   <string name="info_perpetual_funding_apr_title">APR מימון</string>
   <string name="info_perpetual_funding_apr_description">השיעור השנתי שבו לונג משלם שורט (אם שלילי, שורט משלם לונג). אין עמלות הקשורות למימון, שהוא העברה עמית לעמית בין משתמשים כדי לדחוף את המחירים לכיוון מחיר הספוט.</string>
@@ -489,7 +488,7 @@
   <string name="nft_collection">אוסף</string>
   <string name="nft_save_to_photos">שמור בתמונות</string>
   <string name="nft_set_as_avatar">הגדר כאווטר</string>
-  <string name="nft_state_empty_title">ה-NFT שלך יופיע כאן️</string>
+  <string name="nft_state_empty_title">ה-NFT שלך יופיע כאן</string>
   <string name="nft_state_empty_description">קבל את ה-NFT הראשון שלך</string>
   <string name="nft_report_reason_spam">ספאם</string>
   <string name="nft_report_reason_malicious">זְדוֹנִי</string>

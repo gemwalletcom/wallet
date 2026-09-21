@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.pricealerts
 
+import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetPriceInfo
 import com.gemwallet.android.testkit.mockAsset
@@ -7,18 +8,17 @@ import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockPriceAlert
-import uniffi.gemstone.PriceAlertFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
-import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
 import com.wallet.core.primitives.Price
 import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.PriceAlertData
+import org.junit.Assert.assertEquals
+import org.junit.Test
 import uniffi.gemstone.GemFormattedNumber
 import uniffi.gemstone.GemNumberUnit
 import uniffi.gemstone.GemPriceAlertText
-import org.junit.Assert.assertEquals
-import org.junit.Test
+import uniffi.gemstone.PriceAlertFormatter
 
 class PriceAlertDataAggregateImplTest {
 
@@ -28,14 +28,10 @@ class PriceAlertDataAggregateImplTest {
 
     private val solAsset = mockAssetSolana().copy(symbol = "sol")
 
-    private fun createAggregate(
-        id: String = "1",
-        asset: Asset = btcAsset,
-        assetPrice: AssetPriceInfo? = mockAssetPriceInfo(),
-        priceAlert: PriceAlert = mockPriceAlert(assetId = asset.id),
-    ) = PriceAlertDataAggregateImpl(
+    private fun createAggregate(id: String = "1", asset: Asset = btcAsset, assetPrice: AssetPriceInfo? = mockAssetPriceInfo(), priceAlert: PriceAlert = mockPriceAlert(assetId = asset.id)) = PriceAlertDataAggregateImpl(
         id = id,
         asset = asset,
+        rankScore = 20,
         priceAlert = priceAlert,
         row = PriceAlertFormatter().row(
             data = PriceAlertData(
@@ -48,6 +44,7 @@ class PriceAlertDataAggregateImplTest {
                     )
                 },
                 priceAlert = priceAlert,
+                rankScore = 20,
             ).toGem(),
             priceCurrency = (assetPrice?.currency ?: priceAlert.currency).toGem(),
         ),
@@ -67,16 +64,15 @@ class PriceAlertDataAggregateImplTest {
     }
 
     @Test
-    fun testTitleBadge_uppercase() {
+    fun testTitleBadge_keepsTheSymbolCase() {
         val aggregate = createAggregate(asset = solAsset)
 
-        assertEquals("SOL", aggregate.titleBadge)
+        assertEquals("sol", aggregate.titleBadge)
     }
 
-    private fun PriceAlertDataAggregate.number(currency: Boolean): GemFormattedNumber? =
-        listOf(prefix, suffix)
-            .mapNotNull { (it as? GemPriceAlertText.Number)?.value }
-            .firstOrNull { (it.unit is GemNumberUnit.Currency) == currency }
+    private fun PriceAlertDataAggregate.number(currency: Boolean): GemFormattedNumber? = listOf(prefix, suffix)
+        .mapNotNull { (it as? GemPriceAlertText.Number)?.value }
+        .firstOrNull { (it.unit is GemNumberUnit.Currency) == currency }
 
     private fun PriceAlertDataAggregate.price(): GemFormattedNumber? = number(currency = true)
 

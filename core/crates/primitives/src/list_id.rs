@@ -27,10 +27,7 @@ impl FromStr for ListId {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let id = ProviderScopedId::parse(s)?;
         let provider = id.provider_id.parse().map_err(|_| format!("Unknown provider: {}", id.provider_id))?;
-        Ok(Self {
-            provider,
-            provider_list_id: id.resource_id,
-        })
+        Ok(Self { provider, provider_list_id: id.resource_id })
     }
 }
 

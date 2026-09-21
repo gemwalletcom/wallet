@@ -7,20 +7,13 @@ use crate::provider::transactions_mapper::{base64_hash_to_hex, map_transaction_s
 
 pub fn map_transaction_status(request: TransactionStateRequest, traces: TraceResponse) -> Result<TransactionUpdate, Box<dyn Error + Sync + Send>> {
     let transaction = traces.root_transaction().ok_or("Transaction not found")?;
-    let state = if traces.has_actions() {
-        traces.action_state().ok_or("Trace not found")?
-    } else {
-        map_transaction_state(transaction)
-    };
+    let state = if traces.has_actions() { traces.action_state().ok_or("Trace not found")? } else { map_transaction_state(transaction) };
 
     let mut changes = vec![TransactionChange::NetworkFee(transaction.total_fees.clone().into())];
     if let Some(transaction_hash) = base64_hash_to_hex(&transaction.hash)
         && transaction_hash != request.id
     {
-        changes.push(TransactionChange::HashChange {
-            old: request.id,
-            new: transaction_hash,
-        });
+        changes.push(TransactionChange::HashChange { old: request.id, new: transaction_hash });
     }
 
     Ok(TransactionUpdate::new(state, changes))

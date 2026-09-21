@@ -19,21 +19,16 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.filters.FormDialog
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
-import com.gemwallet.android.ui.theme.Spacer16
-import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.theme.Spacer16
 
 @Composable
-fun ReferralCodeDialog(
-    isVisible: Boolean,
-    referralCode: String?,
-    onCode: (String, (Exception?) -> Unit) -> Unit,
-    onDismiss: () -> Unit,
-) {
+fun ReferralCodeDialog(isVisible: Boolean, referralCode: String?, onCode: (String, (Exception?) -> Unit) -> Unit, onDismiss: () -> Unit) {
     var code by remember(referralCode) { mutableStateOf(referralCode ?: "") }
     var showError by remember { mutableStateOf<Exception?>(null) }
     var showProgress by remember { mutableStateOf(false) }
@@ -102,7 +97,7 @@ fun ReferralCodeDialog(
             },
             text = {
                 Text(showError?.errorText()?.text() ?: return@AlertDialog)
-            }
+            },
         )
     }
 }

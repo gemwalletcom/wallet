@@ -24,6 +24,7 @@ import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemSymbol
+import com.gemwallet.android.ui.components.list_item.ListItemImageStyle
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.models.ListPosition
@@ -79,7 +80,7 @@ fun TransactionsFilter(
                             typesFilter.size == 1 -> typesFilter.firstOrNull()?.title ?: ""
                             else -> "${typesFilter.size}"
                         },
-                        image = ListItemImage.Symbol(ListItemSymbol.Article),
+                        image = ListItemImage.Symbol(ListItemSymbol.Article, style = ListItemImageStyle.Settings),
                     ),
                     listPosition = ListPosition.Last,
                     modifier = Modifier.clickable { showedSubFilter = FilterType.ByTypes },

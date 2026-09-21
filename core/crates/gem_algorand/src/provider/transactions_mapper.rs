@@ -69,10 +69,7 @@ mod tests {
     #[test]
     fn test_map_transaction_broadcast_error_data() {
         let broadcast: TransactionBroadcast = serde_json::from_str(include_str!("../../testdata/transaction_broadcast_error.json")).unwrap();
-        assert_eq!(
-            map_transaction_broadcast(&broadcast).unwrap_err().to_string(),
-            "txgroup had 0 in fees, which is less than the minimum 1 * 1000"
-        );
+        assert_eq!(map_transaction_broadcast(&broadcast).unwrap_err().to_string(), "txgroup had 0 in fees, which is less than the minimum 1 * 1000");
     }
 
     #[test]

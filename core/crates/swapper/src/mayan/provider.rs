@@ -9,8 +9,7 @@ use super::{
 };
 use crate::amount_to_value;
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError,
-    SwapperProvider, SwapperQuoteData,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     config::get_swap_proxy_url,
     cross_chain::VaultAddresses,
     fees::{default_referral_address, default_referral_fees},
@@ -77,9 +76,7 @@ where
 
     fn supports_chain_pair(&self, from_chain: Chain, to_chain: Chain) -> bool {
         let supported_assets = mayan_supported_assets();
-        Self::supported_source_chain(from_chain)
-            && supported_assets.iter().any(|asset| asset.get_chain() == from_chain)
-            && supported_assets.iter().any(|asset| asset.get_chain() == to_chain)
+        Self::supported_source_chain(from_chain) && supported_assets.iter().any(|asset| asset.get_chain() == from_chain) && supported_assets.iter().any(|asset| asset.get_chain() == to_chain)
     }
 }
 
@@ -157,9 +154,7 @@ where
             (ChainType::Solana, MayanQuote::Mctp(route)) => mctp::solana::build_quote_data(&self.price_client, quote, route, self.rpc_provider.clone()).await,
             (ChainType::Solana, MayanQuote::FastMctp(route)) => fast_mctp::solana::build_quote_data(&self.price_client, quote, route, self.rpc_provider.clone()).await,
             (ChainType::Sui, MayanQuote::Mctp(route)) => mctp::sui::build_quote_data(&self.price_client, quote, route, self.rpc_provider.clone(), &self.sui_package_id_cache).await,
-            (ChainType::Solana, MayanQuote::MonoChain(_)) | (ChainType::Sui, MayanQuote::Swift(_) | MayanQuote::FastMctp(_) | MayanQuote::MonoChain(_)) => {
-                Err(SwapperError::InvalidRoute)
-            }
+            (ChainType::Solana, MayanQuote::MonoChain(_)) | (ChainType::Sui, MayanQuote::Swift(_) | MayanQuote::FastMctp(_) | MayanQuote::MonoChain(_)) => Err(SwapperError::InvalidRoute),
             (
                 ChainType::Bitcoin
                 | ChainType::Cosmos
@@ -204,11 +199,7 @@ where
             return routes
                 .iter()
                 .find(|route| route.as_mono_chain().is_some())
-                .or_else(|| {
-                    routes
-                        .iter()
-                        .find(|route| route.as_swift().is_some_and(|swift| swift.swift_version == Some(SwiftVersion::V2)))
-                })
+                .or_else(|| routes.iter().find(|route| route.as_swift().is_some_and(|swift| swift.swift_version == Some(SwiftVersion::V2))))
                 .or_else(|| routes.iter().find(|route| route.as_mctp().is_some()));
         }
 
@@ -223,13 +214,7 @@ where
             ChainType::Solana => routes
                 .iter()
                 .find(|route| route.as_swift().is_some_and(|swift| swift.swift_version == Some(SwiftVersion::V2)))
-                .or_else(|| {
-                    if destination_chain == Chain::Sui {
-                        None
-                    } else {
-                        routes.iter().find(|route| route.as_fast_mctp().is_some())
-                    }
-                })
+                .or_else(|| if destination_chain == Chain::Sui { None } else { routes.iter().find(|route| route.as_fast_mctp().is_some()) })
                 .or_else(|| routes.iter().find(|route| route.as_mctp().is_some())),
             _ => routes
                 .iter()
@@ -255,15 +240,8 @@ mod tests {
 
     #[test]
     fn test_map_quote_error() {
-        let error = SwapperError::InputAmountError {
-            min_amount: Some("1,234.5".to_string()),
-        };
-        assert_eq!(
-            map_quote_error(error, 6),
-            SwapperError::InputAmountError {
-                min_amount: Some("1234500000".to_string())
-            }
-        );
+        let error = SwapperError::InputAmountError { min_amount: Some("1,234.5".to_string()) };
+        assert_eq!(map_quote_error(error, 6), SwapperError::InputAmountError { min_amount: Some("1234500000".to_string()) });
         assert_eq!(map_quote_error(SwapperError::NoQuoteAvailable, 6), SwapperError::NoQuoteAvailable);
     }
     use crate::mayan::model::{MayanFastMctpQuote, MayanMctpQuote};
@@ -288,11 +266,7 @@ mod tests {
                 ]"#
             .to_vec())
         });
-        let provider = Mayan::with_clients(
-            MayanClient::new(price_client),
-            MayanClient::new(MockClient::new()),
-            Arc::new(ProviderMock::new("{}".to_string())),
-        );
+        let provider = Mayan::with_clients(MayanClient::new(price_client), MayanClient::new(MockClient::new()), Arc::new(ProviderMock::new("{}".to_string())));
 
         let addresses = provider.get_vault_addresses(None).await.unwrap();
         let api_address = gem_evm::ethereum_address_checksum("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").unwrap();
@@ -303,13 +277,7 @@ mod tests {
             .collect::<BTreeSet<_>>()
             .into_iter()
             .collect::<Vec<_>>();
-        let expected_send = MAYAN_SEND_CONTRACTS
-            .iter()
-            .map(|address| address.to_string())
-            .chain([api_address])
-            .collect::<BTreeSet<_>>()
-            .into_iter()
-            .collect::<Vec<_>>();
+        let expected_send = MAYAN_SEND_CONTRACTS.iter().map(|address| address.to_string()).chain([api_address]).collect::<BTreeSet<_>>().into_iter().collect::<Vec<_>>();
 
         assert_eq!(addresses.deposit, expected_deposit);
         assert_eq!(addresses.send, expected_send);
@@ -321,11 +289,7 @@ mod tests {
             assert!(path.starts_with("/quote?"));
             Ok(include_bytes!("test/quote_response_swift_hypercore.json").to_vec())
         });
-        let provider = Mayan::with_clients(
-            MayanClient::new(price_client),
-            MayanClient::new(MockClient::new()),
-            Arc::new(ProviderMock::new("{}".to_string())),
-        );
+        let provider = Mayan::with_clients(MayanClient::new(price_client), MayanClient::new(MockClient::new()), Arc::new(ProviderMock::new("{}".to_string())));
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset {
                 id: ARBITRUM_USDC_ASSET_ID.to_string(),
@@ -353,11 +317,7 @@ mod tests {
     #[tokio::test]
     async fn test_get_quote_rejects_hypercore_native_asset_before_quote_request() {
         let price_client = MockClient::new().with_get(|_| panic!("unsupported asset should not call Mayan"));
-        let provider = Mayan::with_clients(
-            MayanClient::new(price_client),
-            MayanClient::new(MockClient::new()),
-            Arc::new(ProviderMock::new("{}".to_string())),
-        );
+        let provider = Mayan::with_clients(MayanClient::new(price_client), MayanClient::new(MockClient::new()), Arc::new(ProviderMock::new("{}".to_string())));
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)),
             to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::HyperCore)),
@@ -380,10 +340,7 @@ mod tests {
 
     #[test]
     fn test_select_route_prefers_fast_mctp_before_mctp_when_supported() {
-        let routes = vec![
-            MayanQuote::Mctp(Box::new(MayanMctpQuote::mock())),
-            MayanQuote::FastMctp(Box::new(MayanFastMctpQuote::mock())),
-        ];
+        let routes = vec![MayanQuote::Mctp(Box::new(MayanMctpQuote::mock())), MayanQuote::FastMctp(Box::new(MayanFastMctpQuote::mock()))];
 
         assert!(Mayan::<MockClient>::select_route(&routes, Chain::Ethereum, Chain::Base).unwrap().as_fast_mctp().is_some());
         assert!(Mayan::<MockClient>::select_route(&routes, Chain::Solana, Chain::Base).unwrap().as_fast_mctp().is_some());
@@ -391,10 +348,7 @@ mod tests {
 
     #[test]
     fn test_select_route_keeps_mctp_for_solana_to_sui_fast_mctp_gap() {
-        let routes = vec![
-            MayanQuote::FastMctp(Box::new(MayanFastMctpQuote::mock())),
-            MayanQuote::Mctp(Box::new(MayanMctpQuote::mock())),
-        ];
+        let routes = vec![MayanQuote::FastMctp(Box::new(MayanFastMctpQuote::mock())), MayanQuote::Mctp(Box::new(MayanMctpQuote::mock()))];
 
         assert!(Mayan::<MockClient>::select_route(&routes, Chain::Solana, Chain::Sui).unwrap().as_mctp().is_some());
     }
@@ -403,21 +357,12 @@ mod tests {
     fn test_select_route_prefers_mono_chain_for_hyperevm_to_hypercore() {
         let routes = vec![MayanQuote::Mctp(Box::new(MayanMctpQuote::mock())), MayanQuote::MonoChain(Box::default())];
 
-        assert!(
-            Mayan::<MockClient>::select_route(&routes, Chain::Hyperliquid, Chain::HyperCore)
-                .unwrap()
-                .as_mono_chain()
-                .is_some()
-        );
+        assert!(Mayan::<MockClient>::select_route(&routes, Chain::Hyperliquid, Chain::HyperCore).unwrap().as_mono_chain().is_some());
     }
 
     #[test]
     fn test_supports_chain_pair_allows_hyperevm_to_hypercore_only() {
-        let provider = Mayan::with_clients(
-            MayanClient::new(MockClient::new()),
-            MayanClient::new(MockClient::new()),
-            Arc::new(ProviderMock::new("{}".to_string())),
-        );
+        let provider = Mayan::with_clients(MayanClient::new(MockClient::new()), MayanClient::new(MockClient::new()), Arc::new(ProviderMock::new("{}".to_string())));
 
         assert!(provider.supports_chain_pair(Chain::Hyperliquid, Chain::HyperCore));
         assert!(!provider.supports_chain_pair(Chain::HyperCore, Chain::Hyperliquid));
@@ -635,10 +580,7 @@ mod swap_integration_tests {
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             destination_address: "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy".to_string(),
             value: BigUint::from(50000000000000000u64),
-            options: Options::new_with_slippage(Slippage {
-                bps: 250,
-                mode: SlippageMode::Exact,
-            }),
+            options: Options::new_with_slippage(Slippage { bps: 250, mode: SlippageMode::Exact }),
         };
 
         let quote = timed("mayan exact slippage quote", provider.get_quote(&request)).await?;

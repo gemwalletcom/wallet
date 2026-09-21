@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemFiatQuoteServiceProtocol
 import Components
-import GemstoneServices
 import Foundation
+import protocol Gemstone.GemFiatQuoteServiceProtocol
+import GemstoneServices
 import Localization
 import Primitives
 import PrimitivesComponents

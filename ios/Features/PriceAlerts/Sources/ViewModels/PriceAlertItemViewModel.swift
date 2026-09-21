@@ -59,5 +59,4 @@ struct PriceAlertItemViewModel: ListAssetItemViewable {
             style: TextStyle(font: .footnote, color: row.directionColor),
         )
     }
-
 }

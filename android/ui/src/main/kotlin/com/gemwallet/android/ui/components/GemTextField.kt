@@ -31,9 +31,8 @@ import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.gemwallet.android.ui.theme.space10
-
 import com.gemwallet.android.ui.theme.space0
+import com.gemwallet.android.ui.theme.space10
 
 private val minInputHeight = 36.dp
 private const val FloatingLabelScale = 0.8f
@@ -80,7 +79,7 @@ fun GemTextField(
                 readOnly = readOnly,
                 singleLine = singleLine,
                 textStyle = MaterialTheme.typography.bodyLarge.copy(
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 ),
                 keyboardActions = keyboardActions,
                 keyboardOptions = keyboardOptions,
@@ -110,7 +109,7 @@ fun GemTextField(
                             innerTextField()
                         }
                     }
-                }
+                },
             )
             trailing?.invoke()
         }

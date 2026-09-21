@@ -17,20 +17,17 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.AssetId
 
 @Composable
-fun PerpetualsPreviewSection(
-    onOpenPerpetuals: () -> Unit,
-    onOpenPerpetualDetails: (AssetId) -> Unit,
-    viewModel: PerpetualsPreviewViewModel = hiltViewModel(),
-) {
+fun PerpetualsPreviewSection(onOpenPerpetuals: () -> Unit, onOpenPerpetualDetails: (AssetId) -> Unit, viewModel: PerpetualsPreviewViewModel = hiltViewModel()) {
     val show by viewModel.showPerpetuals.collectAsStateWithLifecycle()
     if (!show) return
     val positions by viewModel.positions.collectAsStateWithLifecycle()
+    val tradeListItem by viewModel.tradeListItem.collectAsStateWithLifecycle()
 
     Column {
         SubheaderItem(stringResource(R.string.perpetuals_title), onClick = onOpenPerpetuals)
         if (positions.isEmpty()) {
             ListItem(
-                model = viewModel.bannerListItem,
+                model = tradeListItem,
                 listPosition = ListPosition.Single,
                 modifier = Modifier.clickable(onClick = onOpenPerpetuals),
                 accessory = { DataBadgeChevron() },

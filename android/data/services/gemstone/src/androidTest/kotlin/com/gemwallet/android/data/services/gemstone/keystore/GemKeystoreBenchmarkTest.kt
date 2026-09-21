@@ -26,7 +26,10 @@ class GemKeystoreBenchmarkTest {
 
     @Before
     fun setUp() {
-        baseDir = File(context.cacheDir, "gemk-benchmark").apply { deleteRecursively(); mkdirs() }
+        baseDir = File(context.cacheDir, "gemk-benchmark").apply {
+            deleteRecursively()
+            mkdirs()
+        }
     }
 
     @After

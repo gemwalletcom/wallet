@@ -66,11 +66,7 @@ async fn source_deposit(rpc_provider: Arc<dyn RpcProvider>, chain: Chain, transa
     let origin_chain_id = u64::from(AcrossDeployment::deployment_by_chain(&chain).ok_or(SwapperError::NotSupportedChain)?.chain_id);
 
     if chain == Chain::Tron {
-        let Some(receipt) = create_tron_client(rpc_provider)?
-            .get_transaction_receipt(transaction_hash.to_string())
-            .await
-            .map_err(SwapperError::transaction_error)?
-        else {
+        let Some(receipt) = create_tron_client(rpc_provider)?.get_transaction_receipt(transaction_hash.to_string()).await.map_err(SwapperError::transaction_error)? else {
             return Ok(SourceDeposit::Pending);
         };
 
@@ -84,11 +80,7 @@ async fn source_deposit(rpc_provider: Arc<dyn RpcProvider>, chain: Chain, transa
         return Ok(SourceDeposit::from_parsed(deposit));
     }
 
-    let Some(receipt) = create_eth_client(rpc_provider, chain)?
-        .get_transaction_receipt(transaction_hash)
-        .await
-        .map_err(SwapperError::from)?
-    else {
+    let Some(receipt) = create_eth_client(rpc_provider, chain)?.get_transaction_receipt(transaction_hash).await.map_err(SwapperError::from)? else {
         return Ok(SourceDeposit::Pending);
     };
 

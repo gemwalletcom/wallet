@@ -6,12 +6,11 @@ use gem_tracing::info_with_fields;
 use num_bigint::BigUint;
 use primitives::currency::Currency;
 use primitives::{
-    Asset, AssetAssociation, AssetAssociationType, AssetId, AssetType, Chain, ChartTimeframe, DeviceLocale, FiatProviderName, FiatQuoteType, FiatRateProvider, FiatTransaction,
-    FiatTransactionStatus, NotificationType, PriceAlert, PriceAlertDirection, PriceId, PriceProvider,
+    Asset, AssetAssociation, AssetAssociationType, AssetId, AssetType, Chain, ChartTimeframe, DeviceLocale, FiatProviderName, FiatQuoteType, FiatRateProvider, FiatTransaction, FiatTransactionStatus, NotificationType, PriceAlert,
+    PriceAlertDirection, PriceId, PriceProvider,
     asset_constants::{
-        ARBITRUM_USDC_ASSET_ID, ARBITRUM_USDT_ASSET_ID, BASE_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, POLYGON_USDC_ASSET_ID, SMARTCHAIN_USDT_ASSET_ID,
-        SOLANA_USDC_ASSET_ID, SOLANA_USDT_ASSET_ID, TON_DUST_ASSET_ID, TON_DUST_TOKEN_ID, TON_STON_ASSET_ID, TON_STON_TOKEN_ID, TON_USDT_ASSET_ID, TON_USDT_TOKEN_ID,
-        TRON_USDT_ASSET_ID,
+        ARBITRUM_USDC_ASSET_ID, ARBITRUM_USDT_ASSET_ID, BASE_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, POLYGON_USDC_ASSET_ID, SMARTCHAIN_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDT_ASSET_ID, TON_DUST_ASSET_ID,
+        TON_DUST_TOKEN_ID, TON_STON_ASSET_ID, TON_STON_TOKEN_ID, TON_USDT_ASSET_ID, TON_USDT_TOKEN_ID, TRON_USDT_ASSET_ID,
     },
     known_assets::{ARBITRUM_USDC, ARBITRUM_USDT, BASE_USDC, ETHEREUM_USDC, ETHEREUM_USDT, POLYGON_USDC, SMARTCHAIN_USDT, SOLANA_USDC, SOLANA_USDT, TRON_USDT},
 };
@@ -19,8 +18,8 @@ use settings::Settings;
 use storage::models::{ChartRow, FiatAssetRow, FiatProviderCountryRow, FiatRateRow, NewFiatTransactionRow, PriceAssetRow, UpdateDeviceRow, price::NewPriceRow};
 use storage::sql_types::{Platform, PlatformStore};
 use storage::{
-    ApiClientsRepository, AssetsRepository, ChartsRepository, Database, DevicesRepository, NewNotificationRow, NewWalletRow, NotificationsRepository, PriceAlertsRepository,
-    PricesRepository, RewardsRepository, WalletSource, WalletType, WalletsRepository,
+    ApiClientsRepository, AssetsRepository, ChartsRepository, Database, DevicesRepository, NewNotificationRow, NewWalletRow, NotificationsRepository, PriceAlertsRepository, PricesRepository, RewardsRepository, WalletSource, WalletType,
+    WalletsRepository,
 };
 
 pub async fn run_setup_dev(settings: Settings) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -219,10 +218,7 @@ fn setup_dev_fiat_transactions(database: &Database, device_id: i32, wallet_id: i
     };
 
     let transactions = [
-        FiatTransaction {
-            provider_transaction_id: None,
-            ..mock()
-        },
+        FiatTransaction { provider_transaction_id: None, ..mock() },
         FiatTransaction {
             id: "setup-dev-quote-mercuryo-complete".to_string(),
             provider: FiatProviderName::Mercuryo,
@@ -380,10 +376,7 @@ fn setup_dev_assets(database: &Database) -> Result<(), Box<dyn std::error::Error
         .map(|(provider, coin_id, _, base_price)| NewPriceRow::with_market_data(*provider, coin_id.to_string(), None, Some(*base_price), None))
         .collect();
 
-    let price_assets: Vec<PriceAssetRow> = coins
-        .iter()
-        .map(|(provider, coin_id, asset_id, _)| PriceAssetRow::new(asset_id.clone(), *provider, coin_id))
-        .collect();
+    let price_assets: Vec<PriceAssetRow> = coins.iter().map(|(provider, coin_id, asset_id, _)| PriceAssetRow::new(asset_id.clone(), *provider, coin_id)).collect();
 
     let result = database.prices()?.add_prices(prices)?;
     info_with_fields!("setup_dev", step = "prices added", count = result);
@@ -396,13 +389,9 @@ fn setup_dev_assets(database: &Database) -> Result<(), Box<dyn std::error::Error
         let gen_price = |i: f64, scale: f64| (base_price + ((i * 0.3 + seed * 7.0).sin() + (i * 0.07).cos()) * base_price * scale).max(base_price * 0.1);
         let price_id = PriceId::id_for(*provider, coin_id);
 
-        let hourly: Vec<ChartRow> = (0i64..720)
-            .map(|h| ChartRow::new(price_id.clone(), gen_price(h as f64, 0.1), now - chrono::Duration::hours(h)))
-            .collect();
+        let hourly: Vec<ChartRow> = (0i64..720).map(|h| ChartRow::new(price_id.clone(), gen_price(h as f64, 0.1), now - chrono::Duration::hours(h))).collect();
 
-        let daily: Vec<ChartRow> = (30i64..1825)
-            .map(|d| ChartRow::new(price_id.clone(), gen_price(d as f64, 0.15), now - chrono::Duration::days(d)))
-            .collect();
+        let daily: Vec<ChartRow> = (30i64..1825).map(|d| ChartRow::new(price_id.clone(), gen_price(d as f64, 0.15), now - chrono::Duration::days(d))).collect();
 
         database.charts()?.add_charts(ChartTimeframe::Hourly, hourly)?;
         database.charts()?.add_charts(ChartTimeframe::Daily, daily)?;

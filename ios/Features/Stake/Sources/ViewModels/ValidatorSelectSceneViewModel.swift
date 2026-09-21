@@ -1,10 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
+import Foundation
 import protocol Gemstone.GemStakeServiceProtocol
 import struct Gemstone.GemValidatorRow
-import Components
+import func Gemstone.validatorRow
 import GemstonePrimitives
-import Foundation
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -75,7 +76,7 @@ public final class ValidatorSelectSceneViewModel {
         let model = ValidatorViewModel(row: validatorRow(for: validator))
         return ListItemValue(
             title: model.name,
-            subtitle: model.aprModel.text,
+            subtitle: model.aprText,
             value: validator,
         )
     }
@@ -85,6 +86,6 @@ public final class ValidatorSelectSceneViewModel {
     }
 
     public func validatorRow(for validator: DelegationValidator) -> GemValidatorRow {
-        rowsById[validator.id] ?? service.validatorRow(validator: validator.toGem())
+        rowsById[validator.id] ?? Gemstone.validatorRow(validator: validator.toGem())
     }
 }

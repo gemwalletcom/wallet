@@ -57,13 +57,7 @@ impl NftStore for DatabaseClient {
             match filter {
                 NftAssetFilter::Identifiers(values) => query = query.filter(identifier.eq_any(values)),
                 NftAssetFilter::AddressId(value) => {
-                    query = query.filter(
-                        id.eq_any(
-                            nft_assets_associations::table
-                                .filter(nft_assets_associations::address_id.eq(value))
-                                .select(nft_assets_associations::asset_id),
-                        ),
-                    );
+                    query = query.filter(id.eq_any(nft_assets_associations::table.filter(nft_assets_associations::address_id.eq(value)).select(nft_assets_associations::asset_id)));
                 }
             }
         }
@@ -106,18 +100,12 @@ impl NftStore for DatabaseClient {
 
     fn get_nft_collection(&mut self, _identifier: &str) -> Result<NftCollectionRow, diesel::result::Error> {
         use crate::schema::nft_collections::dsl::*;
-        nft_collections
-            .filter(identifier.eq(_identifier))
-            .select(NftCollectionRow::as_select())
-            .first(&mut self.connection)
+        nft_collections.filter(identifier.eq(_identifier)).select(NftCollectionRow::as_select()).first(&mut self.connection)
     }
 
     fn get_nft_collection_links(&mut self, _collection_id: i32) -> Result<Vec<NftLinkRow>, diesel::result::Error> {
         use crate::schema::nft_collections_links::dsl::*;
-        nft_collections_links
-            .filter(collection_id.eq(_collection_id))
-            .select(NftLinkRow::as_select())
-            .load(&mut self.connection)
+        nft_collections_links.filter(collection_id.eq(_collection_id)).select(NftLinkRow::as_select()).load(&mut self.connection)
     }
 
     fn add_nft_collections(&mut self, values: Vec<NewNftCollectionRow>) -> Result<usize, diesel::result::Error> {
@@ -138,11 +126,7 @@ impl NftStore for DatabaseClient {
 
     fn add_nft_collections_links(&mut self, values: Vec<NftLinkRow>) -> Result<usize, diesel::result::Error> {
         use crate::schema::nft_collections_links::dsl::*;
-        diesel::insert_into(nft_collections_links)
-            .values(values)
-            .on_conflict((collection_id, link_type))
-            .do_nothing()
-            .execute(&mut self.connection)
+        diesel::insert_into(nft_collections_links).values(values).on_conflict((collection_id, link_type)).do_nothing().execute(&mut self.connection)
     }
 
     fn set_nft_collection_links(&mut self, collection_row_id: i32, values: Vec<NftLinkRow>) -> Result<usize, diesel::result::Error> {
@@ -190,11 +174,7 @@ impl NftStore for DatabaseClient {
 
     fn add_nft_asset_associations(&mut self, values: Vec<NewNftAssetAssociationRow>) -> Result<usize, diesel::result::Error> {
         use crate::schema::nft_assets_associations::dsl::*;
-        diesel::insert_into(nft_assets_associations)
-            .values(values)
-            .on_conflict((address_id, asset_id))
-            .do_nothing()
-            .execute(&mut self.connection)
+        diesel::insert_into(nft_assets_associations).values(values).on_conflict((address_id, asset_id)).do_nothing().execute(&mut self.connection)
     }
 
     fn delete_nft_asset_associations(&mut self, _address_id: i32, asset_ids: Vec<i32>) -> Result<usize, diesel::result::Error> {

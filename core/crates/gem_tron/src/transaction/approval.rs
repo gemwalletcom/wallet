@@ -33,9 +33,7 @@ impl TransactionApproval {
             }));
         }
         if data.starts_with(&PERMIT2_APPROVE_SELECTOR) && contract == SUN_PERMIT2_CONTRACT {
-            return Self::decode_permit2(contract, data)
-                .map(Some)
-                .ok_or_else(|| SignerError::invalid_input("Invalid Permit2 approval calldata"));
+            return Self::decode_permit2(contract, data).map(Some).ok_or_else(|| SignerError::invalid_input("Invalid Permit2 approval calldata"));
         }
         Ok(None)
     }

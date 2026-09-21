@@ -210,7 +210,6 @@
   <string name="errors_connections_no_supported_wallets">Babu goyan bayan walat.</string>
   <string name="errors_connections_unsupported_chain">Ba a tallafawa sarkar da aka bayar.</string>
   <string name="errors_swap_amount_too_small">Adadin yayi ƙanƙanta</string>
-  <string name="errors_required">%1$s ana bukata</string>
   <string name="errors_scan_transaction_malicious_description">Ba za a iya kammala wannan ma\'amala ba - adireshin walat ɗin da ake nufi yana da alaƙa da ayyuka masu ban tsoro ko cutarwa.</string>
   <string name="errors_scan_transaction_memo_required">%1$s Adireshin walat ɗin manufa yana buƙatar alamar manufa / memo</string>
   <string name="errors_scan_transaction_malicious_title">Ayyukan tuhuma</string>
@@ -273,7 +272,7 @@
   <string name="asset_decimals">Decimals</string>
   <string name="asset_token_id">ID na Alamar</string>
   <string name="asset_contract">Kwangila</string>
-  <string name="asset_state_empty_title">Ma\'amalolinku za su bayyana a nan️</string>
+  <string name="asset_state_empty_title">Ma\'amalolinku za su bayyana a nan</string>
   <string name="asset_state_empty_description">Karɓa, musanya ko siya %1$s</string>
   <string name="asset_verification_unverified">Ba a tantance ba</string>
   <string name="asset_verification_suspicious">Abin tuhuma</string>
@@ -422,7 +421,7 @@
   <string name="price_alerts_set_alert_set_target_price">Saita farashin manufa</string>
   <string name="price_alerts_set_alert_current_price">Farashin yanzu</string>
   <string name="price_alerts_added_for">Saita faɗakarwar farashi %1$s</string>
-  <string name="price_alerts_state_empty_title">Faɗin farashin ku zai bayyana anan️</string>
+  <string name="price_alerts_state_empty_title">Faɗin farashin ku zai bayyana anan</string>
   <string name="price_alerts_state_empty_description">Kunna su ta ƙara tsabar kudi don waƙa</string>
   <string name="price_alerts_auto_footer">Faɗakarwa yana haifar da ƙaƙƙarfan motsin farashi.</string>
   <string name="price_alerts_set_alert_title">Saita Faɗakarwar Farashi</string>
@@ -437,7 +436,7 @@
   <string name="lock_privacy_lock">Kulle Sirri</string>
   <string name="lock_footer">Kare damar shiga wannan app akan na\'urarka</string>
   <string name="verify_phrase_title">Tabbatar</string>
-  <string name="warnings_multi_signature_blocked">Kar a tura kuɗi zuwa wannan %1$s Wallet ɗin Sa hannu da yawa sai dai idan kun tabbata kuna sarrafa maɓallan sirri. Rashin yin hakan na iya fallasa ku ga zamba, kuma kuna iya rasa kadarorin ku na dindindin.</string>
+  <string name="warnings_externally_controlled_account">Wani na iya sarrafa wannan asusun %1$s. Kada ku tura kuɗi zuwa gare shi sai dai idan kun tabbata kuna sarrafa shi, in ba haka ba kuna iya rasa kadarorin ku na dindindin.</string>
   <string name="sell_title">Saya %1$s</string>
   <string name="info_network_fee_title">Kudin hanyar sadarwa</string>
   <string name="info_watch_wallet_title">Kalli Wallet</string>
@@ -489,7 +488,7 @@
   <string name="nft_collection">Tarin</string>
   <string name="nft_save_to_photos">Ajiye zuwa Hotuna</string>
   <string name="nft_set_as_avatar">Saita azaman Avatar</string>
-  <string name="nft_state_empty_title">NFT naku zasu bayyana anan️</string>
+  <string name="nft_state_empty_title">NFT naku zasu bayyana anan</string>
   <string name="nft_state_empty_description">Karɓi NFT na farko</string>
   <string name="nft_report_reason_spam">Spam</string>
   <string name="nft_report_reason_malicious">Mai mugunta</string>

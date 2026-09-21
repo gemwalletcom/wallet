@@ -11,15 +11,9 @@ use crate::{AddressPoisoningProviders, AddressScanProviders, TokenScanProviders,
 pub struct ScanProviderFactory;
 
 impl ScanProviderFactory {
-    pub fn new_transaction_providers(
-        config: AddressScanProviderConfig,
-        access_token_cacher: Arc<dyn AccessTokenCacher>,
-    ) -> Result<TransactionScanProviders, Box<dyn Error + Send + Sync>> {
+    pub fn new_transaction_providers(config: AddressScanProviderConfig, access_token_cacher: Arc<dyn AccessTokenCacher>) -> Result<TransactionScanProviders, Box<dyn Error + Send + Sync>> {
         let client = gem_client::builder().timeout(config.timeout).build()?;
-        let hashdit = Arc::new(HashDitProvider::new(
-            config.hashdit.configure_client(ReqwestClient::new(String::new(), client.clone())),
-            &config.hashdit.key,
-        ));
+        let hashdit = Arc::new(HashDitProvider::new(config.hashdit.configure_client(ReqwestClient::new(String::new(), client.clone())), &config.hashdit.key));
         let addresses: AddressScanProviders = vec![
             Arc::new(GoPlusProvider::new(
                 ReqwestClient::new(config.goplus.url, client.clone()),
@@ -28,10 +22,7 @@ impl ScanProviderFactory {
                 Some(access_token_cacher),
             )),
             hashdit.clone(),
-            Arc::new(TronscanProvider::new(
-                config.tronscan.configure_client(ReqwestClient::new(String::new(), client.clone())),
-                &config.tronscan.key,
-            )),
+            Arc::new(TronscanProvider::new(config.tronscan.configure_client(ReqwestClient::new(String::new(), client.clone())), &config.tronscan.key)),
         ];
         let poisoning: AddressPoisoningProviders = vec![hashdit.clone()];
         let websites: WebsiteScanProviders = vec![hashdit];
@@ -47,18 +38,9 @@ impl ScanProviderFactory {
                 &config.goplus.secret_key,
                 Some(access_token_cacher),
             )),
-            Arc::new(HashDitProvider::new(
-                config.hashdit.configure_client(ReqwestClient::new(String::new(), client.clone())),
-                &config.hashdit.key,
-            )),
-            Arc::new(JupiterProvider::new(
-                config.jupiter.configure_client(ReqwestClient::new(String::new(), client.clone())),
-                &config.jupiter.key,
-            )),
-            Arc::new(TronscanProvider::new(
-                config.tronscan.configure_client(ReqwestClient::new(String::new(), client)),
-                &config.tronscan.key,
-            )),
+            Arc::new(HashDitProvider::new(config.hashdit.configure_client(ReqwestClient::new(String::new(), client.clone())), &config.hashdit.key)),
+            Arc::new(JupiterProvider::new(config.jupiter.configure_client(ReqwestClient::new(String::new(), client.clone())), &config.jupiter.key)),
+            Arc::new(TronscanProvider::new(config.tronscan.configure_client(ReqwestClient::new(String::new(), client)), &config.tronscan.key)),
         ])
     }
 }

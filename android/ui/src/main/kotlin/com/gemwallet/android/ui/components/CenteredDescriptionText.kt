@@ -9,13 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.ui.theme.adaptivePadding
 import com.gemwallet.android.ui.theme.paddingSmall
-
 import com.gemwallet.android.ui.theme.space0
 @Composable
-fun CenteredDescriptionText(
-    text: String,
-    modifier: Modifier = Modifier,
-) {
+fun CenteredDescriptionText(text: String, modifier: Modifier = Modifier) {
     val horizontalPadding = adaptivePadding(default = paddingSmall, compact = space0)
 
     Text(

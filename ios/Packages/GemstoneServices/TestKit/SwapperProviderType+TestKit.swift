@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import enum Gemstone.SwapProvider
 import struct Gemstone.SwapperProviderType
+import enum Gemstone.SwapProvider
 
 public extension SwapperProviderType {
     static func mock(id: SwapProvider = .pancakeswapV3) -> SwapperProviderType {

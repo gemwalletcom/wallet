@@ -6,9 +6,6 @@ import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.FiatQuoteType
-import uniffi.gemstone.Payment
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,8 +13,11 @@ import kotlinx.coroutines.flow.update
 import uniffi.gemstone.Deeplink
 import uniffi.gemstone.GemDeeplinkService
 import uniffi.gemstone.GemDeeplinkServiceInterface
+import uniffi.gemstone.Payment
 import uniffi.gemstone.UrlAction
 import uniffi.gemstone.WalletConnectLink
+import javax.inject.Inject
+import javax.inject.Singleton
 
 internal sealed interface PendingNavigation {
 
@@ -47,13 +47,13 @@ class PendingNavigationCoordinator @Inject constructor(
     private val _pendingNavigation = MutableStateFlow<PendingNavigation?>(null)
     internal val pendingNavigation: StateFlow<PendingNavigation?> = _pendingNavigation.asStateFlow()
 
-    fun handleIntent(intent: Intent) {
+    fun pendIntent(intent: Intent) {
         if (intent.hasNotificationPayload() || intent.dataString != null) {
             _pendingNavigation.update { PendingNavigation.FromIntent(Intent(intent)) }
         }
     }
 
-    fun handleScan(code: String) {
+    fun pendScan(code: String) {
         _pendingNavigation.update { PendingNavigation.FromScan(code) }
     }
 
@@ -79,7 +79,7 @@ class PendingNavigationCoordinator @Inject constructor(
         replace(loading ?: pending, routes.takeIf { it.isNotEmpty() }?.let(PendingNavigation::Routes))
 
         return when (pending) {
-            is PendingNavigation.FromIntent -> true
+            is PendingNavigation.FromIntent -> routes.isNotEmpty() || action !is UrlAction.Payment
             is PendingNavigation.FromScan -> routes.isNotEmpty() || action is UrlAction.WalletConnect
         }
     }
@@ -93,7 +93,9 @@ class PendingNavigationCoordinator @Inject constructor(
             }
             emptyList()
         }
+
         is UrlAction.Deeplink -> routes(action.deeplink)
+
         is UrlAction.Payment -> paymentNavigation.routes(action.payment)
     }
 

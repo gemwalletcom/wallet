@@ -1,12 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import GemstonePrimitives
-import GemstoneServices
-import Primitives
-import PrimitivesComponents
-import Store
-import SwiftUI
 import class Gemstone.GemAmountService
 import class Gemstone.GemApiClient
 import class Gemstone.GemAppUpdateService
@@ -28,6 +22,7 @@ import class Gemstone.GemManageContactService
 import class Gemstone.GemNameService
 import class Gemstone.GemNftService
 import class Gemstone.GemNodeService
+import protocol Gemstone.GemNotificationPermissions
 import class Gemstone.GemNotificationService
 import class Gemstone.GemPaymentService
 import class Gemstone.GemPerpetualService
@@ -43,20 +38,24 @@ import class Gemstone.GemSignMessageService
 import class Gemstone.GemSimulationFormatter
 import class Gemstone.GemStakeService
 import class Gemstone.GemStreamSubscriptionService
+import protocol Gemstone.GemSupportServiceProtocol
 import class Gemstone.GemSwapService
-import class Gemstone.GemTransactionStateService
 import class Gemstone.GemTransactionsService
+import class Gemstone.GemTransactionStateService
 import class Gemstone.GemWalletConnectService
 import class Gemstone.GemWalletPreferencesService
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
-import protocol Gemstone.GemNotificationPermissions
-import protocol Gemstone.GemSupportServiceProtocol
+import GemstonePrimitives
+import GemstoneServices
+import Primitives
+import PrimitivesComponents
+import Store
+import SwiftUI
 
 public struct ViewModelFactory: Sendable {
     let apiClient: GemApiClient
     let assetConfig: GemAssetConfigService
-    let chainService: GemChainService
     let assetDiscoveryService: GemAssetDiscoveryService
     let assetsService: GemAssetsService
     let avatarService: GemAvatarService

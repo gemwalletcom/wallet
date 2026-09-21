@@ -91,7 +91,7 @@ public struct QRScannerScene: View {
         }
     }
 
-    nonisolated private static func actionLabel(_ title: String) -> some View {
+    private nonisolated static func actionLabel(_ title: String) -> some View {
         Text(title)
             .frame(height: .scene.button.height)
     }

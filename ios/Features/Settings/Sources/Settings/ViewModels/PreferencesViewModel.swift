@@ -1,14 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemPreferencesRow
 import Components
-import struct Gemstone.GemPreferencesState
-import protocol Gemstone.GemSettingsServiceProtocol
 import Foundation
+import enum Gemstone.GemListRowTitle
 import struct Gemstone.GemPerpetualDefaults
+import struct Gemstone.GemPerpetualPickers
+import struct Gemstone.GemPickerOption
+import struct Gemstone.GemPreferencesInput
+import protocol Gemstone.GemSettingsServiceProtocol
 import GemstonePrimitives
-import Localization
 import GemstoneServices
+import Localization
 import Primitives
 import PrimitivesComponents
 import Style
@@ -19,6 +21,7 @@ import SwiftUI
 public final class PreferencesViewModel {
     private let preferences: ObservablePreferences
     private let settings: any GemSettingsServiceProtocol
+    private let pickers: GemPerpetualPickers
 
     var isPresentingLeveragePicker = false
     var isPresentingTakeProfitPicker = false
@@ -30,14 +33,11 @@ public final class PreferencesViewModel {
     ) {
         self.settings = settings
         self.preferences = preferences
-        let defaults = settings.preferences(currency: preferences.currency.toGem(), perpetualsEnabled: preferences.isPerpetualEnabled).perpetualDefaults
-        perpetualLeverage = LeverageOption(value: defaults.leverage)
-        perpetualTakeProfit = AutocloseOption(value: defaults.takeProfitPercent)
-        perpetualStopLoss = AutocloseOption(value: defaults.stopLossPercent)
-    }
-
-    private var state: GemPreferencesState {
-        settings.preferences(currency: preferences.currency.toGem(), perpetualsEnabled: isPerpetualEnabled)
+        let defaults = settings.perpetualDefaults()
+        pickers = settings.perpetualPickers()
+        perpetualLeverage = Self.option(pickers.leverage, defaults.leverage)
+        perpetualTakeProfit = Self.option(pickers.takeProfit, defaults.takeProfitPercent)
+        perpetualStopLoss = Self.option(pickers.stopLoss, defaults.stopLossPercent)
     }
 
     var title: String {
@@ -45,51 +45,15 @@ public final class PreferencesViewModel {
     }
 
     var leverageTitle: String {
-        GemPreferencesRow.perpetualLeverage.title
+        GemListRowTitle.perpetualLeverage.text
     }
 
     var takeProfitTitle: String {
-        GemPreferencesRow.perpetualTakeProfit.title
+        GemListRowTitle.perpetualTakeProfit.text
     }
 
     var stopLossTitle: String {
-        GemPreferencesRow.perpetualStopLoss.title
-    }
-
-    var sections: [ListSection<PreferencesRowViewModel>] {
-        state.sections.enumerated().map { index, section in
-            ListSection(id: "\(index)", title: nil, image: nil, values: section.rows.map(rowViewModel))
-        }
-    }
-
-    private func rowViewModel(_ row: GemPreferencesRow) -> PreferencesRowViewModel {
-        PreferencesRowViewModel(id: String(describing: row), kind: kind(for: row), model: listItem(for: row))
-    }
-
-    private func kind(for row: GemPreferencesRow) -> PreferencesRowKind {
-        switch row {
-        case .currency: .currency
-        case .language: .language
-        case .appearance: .appearance
-        case .networks: .networks
-        case .contacts: .contacts
-        case .perpetuals: .perpetuals
-        case .perpetualLeverage: .perpetualLeverage
-        case .perpetualTakeProfit: .perpetualTakeProfit
-        case .perpetualStopLoss: .perpetualStopLoss
-        }
-    }
-
-    private func listItem(for row: GemPreferencesRow) -> ListItemModel {
-        switch row {
-        case .currency: ListItemModel(title: row.title, subtitle: state.currency.text(), imageStyle: .settings(assetImage: row.assetImage))
-        case .language: ListItemModel(title: row.title, subtitle: languageValue, imageStyle: .settings(assetImage: row.assetImage))
-        case .appearance: ListItemModel(title: row.title, subtitle: appearanceValue, imageStyle: .settings(assetImage: row.assetImage))
-        case .networks, .contacts, .perpetuals: ListItemModel(title: row.title, imageStyle: .settings(assetImage: row.assetImage))
-        case .perpetualLeverage: ListItemModel(title: row.title, subtitle: defaultLeverageValue)
-        case .perpetualTakeProfit: ListItemModel(title: row.title, subtitle: defaultTakeProfitValue)
-        case .perpetualStopLoss: ListItemModel(title: row.title, subtitle: defaultStopLossValue)
-        }
+        GemListRowTitle.perpetualStopLoss.text
     }
 
     var languageValue: String {
@@ -108,23 +72,19 @@ public final class PreferencesViewModel {
         set { preferences.isPerpetualEnabled = newValue }
     }
 
-    var perpetualLeverage: LeverageOption {
+    var perpetualLeverage: GemPickerOption {
         didSet { persistPerpetualDefaults() }
     }
 
-    var defaultLeverageValue: String {
-        "\(perpetualLeverage.value)x"
+    var leverageOptions: [GemPickerOption] {
+        pickers.leverage
     }
 
-    var leverageOptions: [LeverageOption] {
-        LeverageOption.allOptions
-    }
-
-    var perpetualTakeProfit: AutocloseOption {
+    var perpetualTakeProfit: GemPickerOption {
         didSet { persistPerpetualDefaults() }
     }
 
-    var perpetualStopLoss: AutocloseOption {
+    var perpetualStopLoss: GemPickerOption {
         didSet { persistPerpetualDefaults() }
     }
 
@@ -142,35 +102,55 @@ public final class PreferencesViewModel {
         }
     }
 
-    var defaultTakeProfitValue: String {
-        perpetualTakeProfit.displayText
+    var takeProfitOptions: [GemPickerOption] {
+        pickers.takeProfit
     }
 
-    var defaultStopLossValue: String {
-        perpetualStopLoss.displayText
+    var stopLossOptions: [GemPickerOption] {
+        pickers.stopLoss
     }
 
-    var takeProfitOptions: [AutocloseOption] {
-        AutocloseOption.takeProfitOptions
+    private static func option(_ options: [GemPickerOption], _ value: UInt8) -> GemPickerOption {
+        options.first { $0.value == value } ?? GemPickerOption(value: value, label: .none)
     }
+}
 
-    var stopLossOptions: [AutocloseOption] {
-        AutocloseOption.stopLossOptions
+// MARK: - ListSectionProvideable
+
+extension PreferencesViewModel: ListSectionProvideable {
+    public var sections: [ListSection<GemListSectionRow>] {
+        settings.preferencesSections(
+            input: GemPreferencesInput(
+                currency: preferences.currency.toGem(),
+                language: languageValue,
+                appearance: appearanceValue,
+                perpetualsEnabled: isPerpetualEnabled,
+                perpetualDefaults: GemPerpetualDefaults(
+                    leverage: perpetualLeverage.value,
+                    takeProfitPercent: perpetualTakeProfit.value,
+                    stopLossPercent: perpetualStopLoss.value,
+                ),
+            ),
+        ).listSections
     }
 }
 
 // MARK: - Actions
 
 extension PreferencesViewModel {
-    func onSelectLeverage() {
-        isPresentingLeveragePicker = true
+    func onToggle(_ title: GemListRowTitle, _ isOn: Bool) {
+        switch title {
+        case .perpetuals: isPerpetualEnabled = isOn
+        default: break
+        }
     }
 
-    func onSelectTakeProfit() {
-        isPresentingTakeProfitPicker = true
-    }
-
-    func onSelectStopLoss() {
-        isPresentingStopLossPicker = true
+    func onSelect(_ title: GemListRowTitle) {
+        switch title {
+        case .perpetualLeverage: isPresentingLeveragePicker = true
+        case .perpetualTakeProfit: isPresentingTakeProfitPicker = true
+        case .perpetualStopLoss: isPresentingStopLossPicker = true
+        default: break
+        }
     }
 }

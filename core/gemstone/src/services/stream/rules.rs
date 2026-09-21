@@ -22,14 +22,7 @@ mod tests {
     #[test]
     fn test_new_asset_ids_skips_subscribed_and_duplicates() {
         let subscribed: HashSet<AssetId> = [AssetId::from_chain(Chain::Bitcoin)].into_iter().collect();
-        let result = new_asset_ids(
-            &subscribed,
-            vec![
-                AssetId::from_chain(Chain::Bitcoin),
-                AssetId::from_chain(Chain::Ethereum),
-                AssetId::from_chain(Chain::Ethereum),
-            ],
-        );
+        let result = new_asset_ids(&subscribed, vec![AssetId::from_chain(Chain::Bitcoin), AssetId::from_chain(Chain::Ethereum), AssetId::from_chain(Chain::Ethereum)]);
         assert_eq!(result, vec![AssetId::from_chain(Chain::Ethereum)]);
     }
 

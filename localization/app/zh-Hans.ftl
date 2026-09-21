@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = 暂不支持该资产。
 errors_connections_no_supported_wallets = 暂无可用钱包
 errors_connections_unsupported_chain = 暂不支持该区块链网络
 errors_swap_amount_too_small = 金额太小，请输入更大的数额试试
-errors_required = %@为必填项
 errors_scan_transaction_malicious_description = 无法完成此交易：目标钱包地址与可疑或恶意行为有关。
 errors_scan_transaction_memo_required = %@ 收款地址需要填写目标标签或备注
 errors_scan_transaction_malicious_title = 可疑行为
@@ -398,7 +397,7 @@ stake_deactivating = 解除质押中
 stake_awaiting_withdrawal = 等待赎回
 stake_active_in = 距激活
 stake_minimum_amount = 最低金额
-stake_state_empty_title = 质押将显示在这里️
+stake_state_empty_title = 质押将显示在这里
 stake_state_empty_description = 首次质押 %@
 stake_resource = 资源
 stake_resource_energy = 能量
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = 当价格下跌
 price_alerts_set_alert_set_target_price = 设定目标价格
 price_alerts_set_alert_current_price = 当前价格
 price_alerts_added_for = 为 %@ 设置价格提醒
-price_alerts_state_empty_title = 价格提醒将显示在这里️
+price_alerts_state_empty_title = 价格提醒将显示在这里
 price_alerts_state_empty_description = 请添加币种，即可开始追踪资产
 price_alerts_auto_footer = 当价格发生重大变动时，警报就会触发。
 price_alerts_set_alert_title = 设置价格提醒
@@ -536,7 +535,7 @@ verify_phrase_title = 确认
 
 # Warnings
 
-warnings_multi_signature_blocked = 除非确定自己掌握私钥，否则切勿将资金转入此 %@ 多重签名钱包。否则可能遭受诈骗并永久损失资产。
+warnings_externally_controlled_account = 此 %@ 账户可能由他人控制。除非确定该账户由您掌控，切勿向其转入资金，以免永久损失资产。
 
 # Sell
 
@@ -600,7 +599,7 @@ nft_collections = NFT 系列
 nft_collection = 系列
 nft_save_to_photos = 保存到照片
 nft_set_as_avatar = 设为头像
-nft_state_empty_title = NFT 将显示在这里️
+nft_state_empty_title = NFT 将显示在这里
 nft_state_empty_description = 接收第一个 NFT
 nft_report_reason_spam = 垃圾信息
 nft_report_reason_malicious = 恶意

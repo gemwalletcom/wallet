@@ -79,13 +79,6 @@
     },
     {
       "target": {
-        "containerPath": "container:Features/MarketInsight",
-        "identifier": "MarketInsightTests",
-        "name": "MarketInsightTests"
-      }
-    },
-    {
-      "target": {
         "containerPath": "container:Packages/Store",
         "identifier": "StoreTests",
         "name": "StoreTests"

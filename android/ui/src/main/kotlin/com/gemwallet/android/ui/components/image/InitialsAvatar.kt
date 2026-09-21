@@ -17,12 +17,7 @@ import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.ui.theme.secondaryFaded
 
 @Composable
-fun InitialsAvatar(
-    text: String,
-    size: Dp,
-    modifier: Modifier = Modifier,
-    placeholder: ImageVector? = null,
-) {
+fun InitialsAvatar(text: String, size: Dp, modifier: Modifier = Modifier, placeholder: ImageVector? = null) {
     Box(
         modifier = modifier
             .size(size)

@@ -167,15 +167,11 @@ async fn record_parser_blocks<T: ChainBlockTransactions + ?Sized>(state: &T, rec
     };
 
     let recorder = recorder
-        .record_timed("block_transactions_latest", async {
-            state.get_transactions_by_block(latest_block).await.map(|transactions| transactions.len())
-        })
+        .record_timed("block_transactions_latest", async { state.get_transactions_by_block(latest_block).await.map(|transactions| transactions.len()) })
         .await;
     let stable_block = latest_block.saturating_sub(PARSER_BLOCK_OFFSET);
     recorder
-        .record_timed("block_transactions", async {
-            state.get_transactions_by_block(stable_block).await.map(|transactions| transactions.len())
-        })
+        .record_timed("block_transactions", async { state.get_transactions_by_block(stable_block).await.map(|transactions| transactions.len()) })
         .await
 }
 
@@ -189,14 +185,10 @@ pub async fn record_node_state<T: ChainState + ?Sized>(
     block_number_method: &str,
 ) -> NodeCheckRecorder {
     let started = Instant::now();
-    let chain_id = state
-        .get_chain_id()
-        .await
-        .map_err(|error| error.to_string())
-        .and_then(|chain_id| match (chain_id, expected_chain_id) {
-            (Some(chain_id), Some(expected)) if chain_id != expected => Err(format!("expected {expected}, received {chain_id}")),
-            (chain_id, _) => Ok(chain_id),
-        });
+    let chain_id = state.get_chain_id().await.map_err(|error| error.to_string()).and_then(|chain_id| match (chain_id, expected_chain_id) {
+        (Some(chain_id), Some(expected)) if chain_id != expected => Err(format!("expected {expected}, received {chain_id}")),
+        (chain_id, _) => Ok(chain_id),
+    });
     let recorder = match chain_id.transpose() {
         Some(chain_id) => recorder.record_value_with_latency(chain_id_method, chain_id, started.elapsed()).0,
         None => recorder,
@@ -285,14 +277,8 @@ mod tests {
         let state = TestState::default();
         let report = futures::executor::block_on(check_node(&state, &NodeCheckRequest::Parser, &NodeSyncStatus::in_sync(), Duration::ZERO));
 
-        assert_eq!(
-            report.get("block_transactions").map(|result| &result.status),
-            Some(&NodeCheckStatus::Passed { result: "0".to_string() })
-        );
-        assert_eq!(
-            report.get("block_transactions_latest").map(|result| &result.status),
-            Some(&NodeCheckStatus::Passed { result: "0".to_string() })
-        );
+        assert_eq!(report.get("block_transactions").map(|result| &result.status), Some(&NodeCheckStatus::Passed { result: "0".to_string() }));
+        assert_eq!(report.get("block_transactions_latest").map(|result| &result.status), Some(&NodeCheckStatus::Passed { result: "0".to_string() }));
         assert_eq!(report.checks.len(), 4);
         assert_eq!(state.latest_block_calls.load(Ordering::Relaxed), 1);
         assert_eq!(state.block_transaction_calls.load(Ordering::Relaxed), 2);
@@ -317,18 +303,8 @@ mod tests {
         };
         let report = futures::executor::block_on(check_node(&state, &request, &NodeSyncStatus::in_sync(), Duration::ZERO));
 
-        assert_eq!(
-            report.get("balance").map(|result| &result.status),
-            Some(&NodeCheckStatus::Failed {
-                error: "balance unavailable".to_string()
-            })
-        );
-        assert_eq!(
-            report.get("transaction").map(|result| &result.status),
-            Some(&NodeCheckStatus::Failed {
-                error: "returned null".to_string()
-            })
-        );
+        assert_eq!(report.get("balance").map(|result| &result.status), Some(&NodeCheckStatus::Failed { error: "balance unavailable".to_string() }));
+        assert_eq!(report.get("transaction").map(|result| &result.status), Some(&NodeCheckStatus::Failed { error: "returned null".to_string() }));
         assert_eq!(state.balance_calls.load(Ordering::Relaxed), 1);
         assert_eq!(state.transaction_calls.load(Ordering::Relaxed), 1);
     }
@@ -356,10 +332,7 @@ mod tests {
 
         let (recorder, recorded) = futures::executor::block_on(recorder.record_value_timed("method", async { result }));
         assert_eq!(recorded, Some(value));
-        assert_eq!(
-            recorder.finish().get("method").map(|result| result.status.clone()),
-            Some(NodeCheckStatus::Passed { result: "available".to_string() })
-        );
+        assert_eq!(recorder.finish().get("method").map(|result| result.status.clone()), Some(NodeCheckStatus::Passed { result: "available".to_string() }));
     }
 
     #[test]
@@ -367,12 +340,7 @@ mod tests {
         let result: Result<(), &str> = Err("method not found");
         let recorder = futures::executor::block_on(NodeCheckRecorder::default().record_optional_available_timed("method", async { result }));
 
-        assert_eq!(
-            recorder.finish().get("method").map(|result| result.status.clone()),
-            Some(NodeCheckStatus::Warning {
-                warning: "method not found".to_string()
-            })
-        );
+        assert_eq!(recorder.finish().get("method").map(|result| result.status.clone()), Some(NodeCheckStatus::Warning { warning: "method not found".to_string() }));
     }
 
     #[test]
@@ -389,9 +357,6 @@ mod tests {
             .record("first_alphabetically", Ok::<_, &str>("available"))
             .finish();
 
-        assert_eq!(
-            report.checks.iter().map(|result| result.method.as_str()).collect::<Vec<_>>(),
-            ["second_alphabetically", "first_alphabetically"]
-        );
+        assert_eq!(report.checks.iter().map(|result| result.method.as_str()).collect::<Vec<_>>(), ["second_alphabetically", "first_alphabetically"]);
     }
 }

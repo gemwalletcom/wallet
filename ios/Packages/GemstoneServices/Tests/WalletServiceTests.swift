@@ -1,18 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstoneServicesTestKit
-import GemstonePrimitives
 import class Gemstone.GemPreferencesService
 import class Gemstone.GemWalletPreferencesService
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
+import GemstonePrimitives
+import GemstonePrimitivesTestKit
+@testable import GemstoneServices
+import GemstoneServicesTestKit
 import Observation
 import Primitives
 import Store
 import StoreTestKit
-import GemstonePrimitivesTestKit
 import Testing
-@testable import GemstoneServices
 
 struct WalletServiceTests {
     @Test

@@ -83,9 +83,7 @@ impl TronAddress {
         }
 
         let hash = keccak256(&public_key[1..]);
-        let account_id: [u8; ADDRESS_LEN] = hash[hash.len() - ADDRESS_LEN..]
-            .try_into()
-            .map_err(|_| SignerError::invalid_input("invalid Tron account id length"))?;
+        let account_id: [u8; ADDRESS_LEN] = hash[hash.len() - ADDRESS_LEN..].try_into().map_err(|_| SignerError::invalid_input("invalid Tron account id length"))?;
         Ok(Self::from(account_id))
     }
 }
@@ -137,22 +135,10 @@ mod tests {
 
     #[test]
     fn test_from_hex() {
-        assert_eq!(
-            TronAddress::from_hex("4159f3440fd40722f716144e4490a4de162d3b3fcb").unwrap().encode(),
-            "TJApZYJwPKuQR7tL6FmvD6jDjbYpHESZGH".to_string()
-        );
-        assert_eq!(
-            TronAddress::from_hex("41357a7401a0f0c2d4a44a1881a0c622f15d986291").unwrap().encode(),
-            "TEqyWRKCzREYC2bK2fc3j7pp8XjAa6tJK1".to_string()
-        );
-        assert_eq!(
-            TronAddress::from_hex("41357a7401a0f0c2d4a44a1881a0c622f15d986291").unwrap().to_string(),
-            "TEqyWRKCzREYC2bK2fc3j7pp8XjAa6tJK1"
-        );
-        assert_eq!(
-            TronAddress::from_hex("357a7401a0f0c2d4a44a1881a0c622f15d986291").unwrap().to_string(),
-            "TEqyWRKCzREYC2bK2fc3j7pp8XjAa6tJK1"
-        );
+        assert_eq!(TronAddress::from_hex("4159f3440fd40722f716144e4490a4de162d3b3fcb").unwrap().encode(), "TJApZYJwPKuQR7tL6FmvD6jDjbYpHESZGH".to_string());
+        assert_eq!(TronAddress::from_hex("41357a7401a0f0c2d4a44a1881a0c622f15d986291").unwrap().encode(), "TEqyWRKCzREYC2bK2fc3j7pp8XjAa6tJK1".to_string());
+        assert_eq!(TronAddress::from_hex("41357a7401a0f0c2d4a44a1881a0c622f15d986291").unwrap().to_string(), "TEqyWRKCzREYC2bK2fc3j7pp8XjAa6tJK1");
+        assert_eq!(TronAddress::from_hex("357a7401a0f0c2d4a44a1881a0c622f15d986291").unwrap().to_string(), "TEqyWRKCzREYC2bK2fc3j7pp8XjAa6tJK1");
         assert_eq!(TronAddress::from_hex("42357a7401a0f0c2d4a44a1881a0c622f15d986291"), None);
     }
 
@@ -186,14 +172,8 @@ mod tests {
         let prefixed_address = TronAddress::parse("TTbCVPfUZmPhrB9sYC8GKgGBQQEdZovkmS").unwrap();
 
         assert_eq!(TronAddress::from_abi_word(&hex::decode(address.abi_address_parameter()).unwrap()).unwrap(), address);
-        assert_eq!(
-            TronAddress::from_abi_word(&hex::decode("000000000000000000000041c148af9b50bc03cc0c616cd85c66aae9bd90cd80").unwrap()).unwrap(),
-            prefixed_address
-        );
-        assert_eq!(
-            TronAddress::from_abi_word(&hex::decode("000000000000000000010000019e353a35efaa8e27c2a602a791ae1b19d9c9fa").unwrap()),
-            None
-        );
+        assert_eq!(TronAddress::from_abi_word(&hex::decode("000000000000000000000041c148af9b50bc03cc0c616cd85c66aae9bd90cd80").unwrap()).unwrap(), prefixed_address);
+        assert_eq!(TronAddress::from_abi_word(&hex::decode("000000000000000000010000019e353a35efaa8e27c2a602a791ae1b19d9c9fa").unwrap()), None);
         assert_eq!(TronAddress::from_abi_word(&hex::decode("019e353a35efaa8e27c2a602a791ae1b19d9c9fa").unwrap()), None);
     }
 
@@ -218,18 +198,9 @@ mod tests {
         assert_eq!(TronAddress::from_hex_or_base58("TEqyWRKCzREYC2bK2fc3j7pp8XjAa6tJK1").unwrap().as_bytes(), expected);
         assert_eq!(TronAddress::from_hex_or_base58("41357a7401a0f0c2d4a44a1881a0c622f15d986291").unwrap().as_bytes(), expected);
         assert_eq!(TronAddress::from_hex_or_base58("357a7401a0f0c2d4a44a1881a0c622f15d986291").unwrap().as_bytes(), expected);
-        assert_eq!(
-            TronAddress::from_hex_or_base58("TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi").unwrap().as_bytes(),
-            chainflip_expected
-        );
-        assert_eq!(
-            TronAddress::from_hex_or_base58("412523ae929fecd9d665f472f59b99a8ce6b179510").unwrap().as_bytes(),
-            chainflip_expected
-        );
-        assert_eq!(
-            TronAddress::from_hex_or_base58("2523ae929fecd9d665f472f59b99a8ce6b179510").unwrap().as_bytes(),
-            chainflip_expected
-        );
+        assert_eq!(TronAddress::from_hex_or_base58("TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi").unwrap().as_bytes(), chainflip_expected);
+        assert_eq!(TronAddress::from_hex_or_base58("412523ae929fecd9d665f472f59b99a8ce6b179510").unwrap().as_bytes(), chainflip_expected);
+        assert_eq!(TronAddress::from_hex_or_base58("2523ae929fecd9d665f472f59b99a8ce6b179510").unwrap().as_bytes(), chainflip_expected);
         assert_eq!(TronAddress::from_hex_or_base58("invalid"), None);
     }
 

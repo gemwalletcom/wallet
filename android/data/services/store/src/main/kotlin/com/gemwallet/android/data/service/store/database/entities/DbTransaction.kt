@@ -8,8 +8,8 @@ import androidx.room.PrimaryKey
 import com.gemwallet.android.ext.hash
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Transaction
-import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionDirection
+import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.WalletId
@@ -46,53 +46,49 @@ data class DbTransaction(
     @PrimaryKey(autoGenerate = true) val recordId: Long = 0,
 )
 
-fun Transaction.toRecord(walletId: WalletId): DbTransaction {
-    return DbTransaction(
-        id = this.id,
-        walletId = walletId,
-        hash = this.hash,
-        assetId = this.assetId,
-        feeAssetId = this.feeAssetId,
-        owner = this.from,
-        recipient = this.to,
-        contract = this.contract,
-        type = this.type,
-        state = this.state,
-        blockNumber = this.blockNumber ?: "",
-        sequence = this.sequence ?: "",
-        fee = this.fee,
-        value = this.value,
-        payload = this.memo,
-        metadata = this.metadata,
-        direction = this.direction,
-        updatedAt = System.currentTimeMillis(),
-        createdAt = this.createdAt,
-        confirmationEtaSeconds = null,
-    )
-}
+fun Transaction.toRecord(walletId: WalletId): DbTransaction = DbTransaction(
+    id = this.id,
+    walletId = walletId,
+    hash = this.hash,
+    assetId = this.assetId,
+    feeAssetId = this.feeAssetId,
+    owner = this.from,
+    recipient = this.to,
+    contract = this.contract,
+    type = this.type,
+    state = this.state,
+    blockNumber = this.blockNumber ?: "",
+    sequence = this.sequence ?: "",
+    fee = this.fee,
+    value = this.value,
+    payload = this.memo,
+    metadata = this.metadata,
+    direction = this.direction,
+    updatedAt = System.currentTimeMillis(),
+    createdAt = this.createdAt,
+    confirmationEtaSeconds = null,
+)
 
-fun DbTransaction.toDTO(): Transaction {
-    return Transaction(
-        id = this.id,
-        assetId = this.assetId,
-        from = this.owner,
-        to = this.recipient,
-        contract = this.contract,
-        type = this.type,
-        state = this.state,
-        blockNumber = this.blockNumber,
-        sequence = this.sequence,
-        fee = this.fee,
-        feeAssetId = this.feeAssetId,
-        value = this.value,
-        memo = this.payload,
-        direction = this.direction,
-        utxoInputs = emptyList(),
-        utxoOutputs = emptyList(),
-        createdAt = this.createdAt,
-        metadata = this.metadata,
-    )
-}
+fun DbTransaction.toDTO(): Transaction = Transaction(
+    id = this.id,
+    assetId = this.assetId,
+    from = this.owner,
+    to = this.recipient,
+    contract = this.contract,
+    type = this.type,
+    state = this.state,
+    blockNumber = this.blockNumber,
+    sequence = this.sequence,
+    fee = this.fee,
+    feeAssetId = this.feeAssetId,
+    value = this.value,
+    memo = this.payload,
+    direction = this.direction,
+    utxoInputs = emptyList(),
+    utxoOutputs = emptyList(),
+    createdAt = this.createdAt,
+    metadata = this.metadata,
+)
 
 fun List<DbTransaction>.toDTO() = map { it.toDTO() }
 

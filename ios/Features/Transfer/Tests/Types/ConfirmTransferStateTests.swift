@@ -8,10 +8,9 @@ import Testing
 import TransferTestKit
 
 struct ConfirmTransferStateTests {
-
     @Test
-    func loadWithoutAFeeStillCarriesThePricesAndTheRecipient() throws {
-        let state = try ConfirmTransferState(
+    func loadWithoutAFeeStillCarriesThePricesAndTheRecipient() {
+        let state = ConfirmTransferState(
             .mock(feeAssets: [.mock(asset: .mockTempoUSDC())], addressName: .mock(name: "Uniswap"), preload: nil),
             screen: .mock(),
         )
@@ -23,8 +22,8 @@ struct ConfirmTransferStateTests {
     }
 
     @Test
-    func loadWithAFeeCarriesTheTransactionInput() throws {
-        let state = try ConfirmTransferState(.mock(preload: .mock()), screen: .mock())
+    func loadWithAFeeCarriesTheTransactionInput() {
+        let state = ConfirmTransferState(.mock(preload: .mock()), screen: .mock())
 
         #expect(state.preload != nil)
         #expect(state.confirmData != nil)

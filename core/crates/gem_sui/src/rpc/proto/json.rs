@@ -62,10 +62,7 @@ struct JsonStructField {
 
 impl Default for JsonStructField {
     fn default() -> Self {
-        Self {
-            key: String::new(),
-            value: Value::Null,
-        }
+        Self { key: String::new(), value: Value::Null }
     }
 }
 
@@ -99,11 +96,7 @@ mod tests {
     fn test_decode_json_value() {
         let name = [encode_string_field(1, "name"), encode_message_field(2, &encode_string_field(3, "Sui"))].concat();
         let active = [encode_string_field(1, "active"), encode_message_field(2, &encode_raw_varint_field(4, 1))].concat();
-        let list = [
-            encode_message_field(1, &encode_string_field(3, "rpc")),
-            encode_message_field(1, &encode_raw_varint_field(4, 1)),
-        ]
-        .concat();
+        let list = [encode_message_field(1, &encode_string_field(3, "rpc")), encode_message_field(1, &encode_raw_varint_field(4, 1))].concat();
         let tags = [encode_string_field(1, "tags"), encode_message_field(2, &encode_message_field(6, &list))].concat();
         let object = [encode_message_field(1, &name), encode_message_field(1, &active), encode_message_field(1, &tags)].concat();
         let value = encode_message_field(5, &object);

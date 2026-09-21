@@ -5,12 +5,7 @@ use primitives::{Chain, DelegationBase, DelegationState, DelegationValidator};
 use crate::models::{DelegationPoolStake, StakingConfig, ValidatorInfo, ValidatorSet};
 
 pub fn map_validators(validator_set: ValidatorSet, apy: f64, pool_address: &str, commission: f64) -> Vec<DelegationValidator> {
-    validator_set
-        .active_validators
-        .iter()
-        .filter(|v| v.addr == pool_address)
-        .map(|v| map_validator(v, apy, commission, true))
-        .collect()
+    validator_set.active_validators.iter().filter(|v| v.addr == pool_address).map(|v| map_validator(v, apy, commission, true)).collect()
 }
 
 pub fn map_validator(validator: &ValidatorInfo, apy: f64, commission: f64, is_active: bool) -> DelegationValidator {
@@ -44,13 +39,7 @@ pub fn map_delegations(stakes: Vec<(String, DelegationPoolStake)>, lockup_secs: 
             }
 
             if stake.pending_inactive > BigUint::from(0u32) {
-                delegations.push(map_delegation(
-                    &asset_id,
-                    DelegationState::Deactivating,
-                    stake.pending_inactive,
-                    &pool_address,
-                    withdrawal_completion,
-                ));
+                delegations.push(map_delegation(&asset_id, DelegationState::Deactivating, stake.pending_inactive, &pool_address, withdrawal_completion));
             }
 
             if stake.inactive > BigUint::from(0u32) {

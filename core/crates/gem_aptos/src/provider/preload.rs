@@ -3,10 +3,7 @@ use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
 use std::error::Error;
 
 use gem_client::Client;
-use primitives::{
-    AssetId, Chain, FeePriority, FeeRate, GasPriceType, StakeType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata,
-    TransactionPreloadInput,
-};
+use primitives::{AssetId, Chain, FeePriority, FeeRate, GasPriceType, StakeType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 
 use super::preload_mapper::map_transaction_preload;
 use crate::provider::payload_builder::{build_stake_payload_data, build_unstake_payload_data, build_withdraw_payload_data};

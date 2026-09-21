@@ -4,13 +4,12 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.wallet.cases.GetWallets
-import com.gemwallet.android.domains.referral.values.ReferralError
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.referral.viewmodels.models.ReferralUIModel
 import com.gemwallet.android.features.referral.viewmodels.models.RewardRedemptionUIModel
 import com.gemwallet.android.features.referral.viewmodels.models.infoRows
 import com.gemwallet.android.features.referral.viewmodels.models.uiModel
@@ -19,7 +18,7 @@ import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,10 +33,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemIncomingCode
 import uniffi.gemstone.GemRewardsRedemption
 import uniffi.gemstone.GemRewardsServiceInterface
 import uniffi.gemstone.Rewards
+import uniffi.gemstone.incomingReferralCode
 import uniffi.gemstone.walletRows
+import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -47,6 +49,7 @@ class ReferralViewModel @Inject constructor(
     private val service: GemRewardsServiceInterface,
     private val savedStateHandle: SavedStateHandle,
     @param:ApplicationContext private val context: Context,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     val referralCode = savedStateHandle.getStateFlow<String?>(RouteArgument.Code.key, null)
@@ -58,9 +61,6 @@ class ReferralViewModel @Inject constructor(
 
     val uiState = rewards.mapLatest { service.state(it) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, service.state(null))
-
-    val referralState: StateFlow<ReferralUIModel> = uiState.map { it.uiModel() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, uiState.value.uiModel())
 
     val infoRows: StateFlow<List<ListItemModel>> = uiState.map { it.infoRows(context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -77,6 +77,10 @@ class ReferralViewModel @Inject constructor(
     val availableWalletRows = availableWallets.mapLatest { wallets -> walletRows(wallets.map { it.toGem() }) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    val incomingCode: StateFlow<GemIncomingCode?> = combine(referralCode, availableWallets) { code, wallets ->
+        incomingReferralCode(code, wallets.map { it.toGem() })
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     private val session = getSession()
         .filterNotNull()
         .combine(availableWallets) { session, wallets -> service.selectedWallet(session?.wallet?.toGem(), wallets.map { it.toGem() })?.toPrimitives() }
@@ -91,8 +95,8 @@ class ReferralViewModel @Inject constructor(
         }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val referralWallet = currentWallet.filterNotNull()
-    .onEach { sync(it, SyncType.Init) }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        .onEach { sync(it, SyncType.Init) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun setWallet(walletId: String) {
         val wallet = availableWallets.value.firstOrNull { it.id.id == walletId } ?: return
@@ -103,7 +107,7 @@ class ReferralViewModel @Inject constructor(
         sync(referralWallet.value ?: return, SyncType.Refresh)
     }
 
-    private fun sync(wallet: Wallet, type: SyncType) = viewModelScope.launch(Dispatchers.IO) {
+    private fun sync(wallet: Wallet, type: SyncType) = viewModelScope.launch(ioDispatcher) {
         inSync.update { type }
         val rewards = try {
             runCatchingCancellable { service.getRewards(wallet.id.id) }.getOrNull()
@@ -113,7 +117,7 @@ class ReferralViewModel @Inject constructor(
         this@ReferralViewModel.rewards.update { rewards }
     }
 
-    fun createReferral(username: String, callback: (Exception?) -> Unit) = viewModelScope.launch(Dispatchers.IO) {
+    fun createReferral(username: String, callback: (Exception?) -> Unit) = viewModelScope.launch(ioDispatcher) {
         val rewards = try {
             val wallet = currentWallet.value ?: return@launch
             val response = service.createReferral(wallet.toGem(), username)
@@ -130,10 +134,11 @@ class ReferralViewModel @Inject constructor(
         this@ReferralViewModel.rewards.update { rewards }
     }
 
-    fun useCode(code: String, callback: (Exception?) -> Unit) = viewModelScope.launch(Dispatchers.IO) {
+    fun useCode(code: String, callback: (Exception?) -> Unit) = viewModelScope.launch(ioDispatcher) {
         try {
             val wallet = currentWallet.value ?: return@launch
-            service.useReferralCode(wallet.toGem(), code)
+            val rewards = service.useReferralCode(wallet.toGem(), code)
+            this@ReferralViewModel.rewards.update { rewards }
             withContext(Dispatchers.Main) {
                 callback(null)
             }
@@ -146,9 +151,8 @@ class ReferralViewModel @Inject constructor(
 
     fun redeem(redemption: GemRewardsRedemption, callback: (Throwable?) -> Unit) {
         val wallet = currentWallet.value ?: return
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             try {
-                if (!redemption.canRedeem) throw ReferralError.InsufficientPoints
                 service.redeem(wallet.toGem(), redemption.option.id)
                 sync()
                 withContext(Dispatchers.Main) {

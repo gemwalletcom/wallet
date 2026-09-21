@@ -6,6 +6,8 @@ import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
 import com.gemwallet.android.ui.navigation.routes.ReferralRoute
+import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.FiatQuoteType
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -17,8 +19,6 @@ import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
-import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.FiatQuoteType
 import uniffi.gemstone.GemDeeplinkService
 
 class PendingNavigationCoordinatorTest {
@@ -39,7 +39,7 @@ class PendingNavigationCoordinatorTest {
     fun buildRoutes_walletConnectPairing_invokesPairingHandlerAndClears() = runTest {
         val handler = RecordingWalletConnect()
         val uri = "wc:abc@2?relay-protocol=irn"
-        coordinator.handleScan(uri)
+        coordinator.pendScan(uri)
 
         coordinator.buildRoutes(handler)
 
@@ -51,7 +51,7 @@ class PendingNavigationCoordinatorTest {
     fun buildRoutes_walletConnectRequest_invokesRequestHandlerAndClears() = runTest {
         val handler = RecordingWalletConnect()
         val uri = "gem://wc?requestId=42"
-        coordinator.handleScan(uri)
+        coordinator.pendScan(uri)
 
         coordinator.buildRoutes(handler)
 
@@ -62,7 +62,7 @@ class PendingNavigationCoordinatorTest {
     @Test
     fun buildRoutes_webDeepLink_storesRoute() = runTest {
         val uri = "https://gemwallet.com/join/gemcoder"
-        coordinator.handleScan(uri)
+        coordinator.pendScan(uri)
 
         coordinator.buildRoutes(NoOpWalletConnect)
 
@@ -74,7 +74,7 @@ class PendingNavigationCoordinatorTest {
     fun buildRoutes_buyDeepLink_storesRouteWhenCoreOpensTheAsset() = runTest {
         val asset = mockAsset(chain = Chain.Bitcoin)
         coEvery { assetNavigation.fiatRoute(asset.id, 100, FiatQuoteType.Buy) } returns FiatInputRoute(asset.id, 100, FiatQuoteType.Buy)
-        coordinator.handleScan("gem://tokens/bitcoin/buy?amount=100")
+        coordinator.pendScan("gem://tokens/bitcoin/buy?amount=100")
 
         coordinator.buildRoutes(NoOpWalletConnect)
 
@@ -85,7 +85,7 @@ class PendingNavigationCoordinatorTest {
     @Test
     fun buildRoutes_buyDeepLink_isDroppedWhenCoreRejectsTheAsset() = runTest {
         coEvery { assetNavigation.fiatRoute(any(), any(), any()) } returns null
-        coordinator.handleScan("gem://tokens/bitcoin/buy")
+        coordinator.pendScan("gem://tokens/bitcoin/buy")
 
         coordinator.buildRoutes(NoOpWalletConnect)
 
@@ -102,7 +102,7 @@ class PendingNavigationCoordinatorTest {
         )
 
         uris.forEach { uri ->
-            coordinator.handleScan(uri)
+            coordinator.pendScan(uri)
             coordinator.buildRoutes(NoOpWalletConnect)
 
             val routes = (coordinator.pendingNavigation.value as PendingNavigation.Routes).routes
@@ -113,7 +113,7 @@ class PendingNavigationCoordinatorTest {
     @Test
     fun buildRoutes_unknownScan_clears() = runTest {
         val uri = "https://example.com/unknown"
-        coordinator.handleScan(uri)
+        coordinator.pendScan(uri)
 
         coordinator.buildRoutes(NoOpWalletConnect)
 
@@ -128,7 +128,7 @@ class PendingNavigationCoordinatorTest {
             release.await()
             emptyList()
         }
-        coordinator.handleScan(uri)
+        coordinator.pendScan(uri)
 
         val build = launch { coordinator.buildRoutes(NoOpWalletConnect) }
         yield()
@@ -167,7 +167,7 @@ class PendingNavigationCoordinatorTest {
 
     @Test
     fun clear_clearsPendingNavigation() {
-        coordinator.handleScan("https://example.com")
+        coordinator.pendScan("https://example.com")
 
         coordinator.clear()
 
@@ -189,7 +189,11 @@ class PendingNavigationCoordinatorTest {
 
     private class RecordingWalletConnect : PendingNavigationCoordinator.WalletConnectHandler {
         val events = mutableListOf<String>()
-        override fun onPairing(uri: String) { events += "pairing:$uri" }
-        override fun onRequest() { events += "request" }
+        override fun onPairing(uri: String) {
+            events += "pairing:$uri"
+        }
+        override fun onRequest() {
+            events += "request"
+        }
     }
 }

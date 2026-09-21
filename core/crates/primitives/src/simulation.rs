@@ -181,11 +181,7 @@ pub struct SimulationPayloadField {
 #[serde(rename_all = "camelCase")]
 pub struct SimulationHeader {
     pub asset_id: AssetId,
-    #[serde(
-        default,
-        serialize_with = "serde_serializers::serialize_option_biguint",
-        deserialize_with = "serde_serializers::deserialize_option_biguint_from_str"
-    )]
+    #[serde(default, serialize_with = "serde_serializers::serialize_option_biguint", deserialize_with = "serde_serializers::deserialize_option_biguint_from_str")]
     pub value: Option<BigUint>,
     pub is_unlimited: bool,
 }
@@ -238,12 +234,7 @@ impl SimulationResult {
 
     pub fn asset_ids(&self) -> Vec<AssetId> {
         let mut asset_ids = Vec::new();
-        for asset_id in self
-            .balance_changes
-            .iter()
-            .map(|change| &change.asset_id)
-            .chain(self.header.as_ref().map(|header| &header.asset_id))
-        {
+        for asset_id in self.balance_changes.iter().map(|change| &change.asset_id).chain(self.header.as_ref().map(|header| &header.asset_id)) {
             if !asset_ids.contains(asset_id) {
                 asset_ids.push(asset_id.clone());
             }
@@ -318,8 +309,8 @@ mod tests {
     use num_bigint::{BigInt, BigUint};
 
     use super::{
-        SimulationBalanceChange, SimulationHeader, SimulationInput, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType,
-        SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningApproval, SimulationWarningType, promote_single_secondary_payload_field,
+        SimulationBalanceChange, SimulationHeader, SimulationInput, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity, SimulationWarning,
+        SimulationWarningApproval, SimulationWarningType, promote_single_secondary_payload_field,
     };
     use crate::{AssetId, Chain, testkit::signer_mock::TEST_SOLANA_SENDER};
 
@@ -340,20 +331,8 @@ mod tests {
             ..warning.clone()
         };
 
-        for (warnings, expected) in [
-            (vec![], false),
-            (vec![warning.clone()], false),
-            (vec![critical.clone()], true),
-            (vec![warning, critical], true),
-        ] {
-            assert_eq!(
-                SimulationResult {
-                    warnings,
-                    ..SimulationResult::default()
-                }
-                .has_critical_warning(),
-                expected
-            );
+        for (warnings, expected) in [(vec![], false), (vec![warning.clone()], false), (vec![critical.clone()], true), (vec![warning, critical], true)] {
+            assert_eq!(SimulationResult { warnings, ..SimulationResult::default() }.has_critical_warning(), expected);
         }
     }
 
@@ -362,10 +341,7 @@ mod tests {
         let changed = AssetId::from_chain(Chain::Ethereum);
         let header = AssetId::from_chain(Chain::Solana);
         let simulation = SimulationResult {
-            balance_changes: vec![
-                SimulationBalanceChange::mock(changed.clone(), BigInt::from(1i64), 0),
-                SimulationBalanceChange::mock(changed.clone(), BigInt::from(2i64), 0),
-            ],
+            balance_changes: vec![SimulationBalanceChange::mock(changed.clone(), BigInt::from(1i64), 0), SimulationBalanceChange::mock(changed.clone(), BigInt::from(2i64), 0)],
             header: Some(SimulationHeader {
                 asset_id: header.clone(),
                 value: Some(BigUint::from(2u32)),
@@ -453,11 +429,7 @@ mod tests {
         let result = SimulationResult::new(
             vec![
                 SimulationWarning::mock(SimulationWarningType::ExternallyOwnedSpender),
-                SimulationWarning::new(
-                    SimulationSeverity::Critical,
-                    SimulationWarningType::ValidationError,
-                    Some("Unable to verify spender is a contract".to_string()),
-                ),
+                SimulationWarning::new(SimulationSeverity::Critical, SimulationWarningType::ValidationError, Some("Unable to verify spender is a contract".to_string())),
             ],
             vec![],
         );
@@ -474,12 +446,7 @@ mod tests {
 
     #[test]
     fn approval_simulation_requires_spender_verification() {
-        let result = SimulationResult::new(
-            vec![SimulationWarning::mock(SimulationWarningType::PermitApproval(SimulationWarningApproval::mock(Some(
-                BigInt::from(100),
-            ))))],
-            vec![],
-        );
+        let result = SimulationResult::new(vec![SimulationWarning::mock(SimulationWarningType::PermitApproval(SimulationWarningApproval::mock(Some(BigInt::from(100)))))], vec![]);
 
         assert!(result.requires_spender_verification());
     }
@@ -489,11 +456,7 @@ mod tests {
         let result = SimulationResult::new(
             vec![
                 SimulationWarning::mock(SimulationWarningType::PermitApproval(SimulationWarningApproval::mock(Some(BigInt::from(100))))),
-                SimulationWarning::new(
-                    SimulationSeverity::Critical,
-                    SimulationWarningType::ValidationError,
-                    Some("Unable to verify spender is a contract".to_string()),
-                ),
+                SimulationWarning::new(SimulationSeverity::Critical, SimulationWarningType::ValidationError, Some("Unable to verify spender is a contract".to_string())),
             ],
             Vec::<SimulationPayloadField>::new(),
         );
@@ -515,10 +478,7 @@ mod tests {
             Vec::<SimulationPayloadField>::new(),
         );
 
-        assert_eq!(
-            result.warnings,
-            vec![SimulationWarning::mock(SimulationWarningType::PermitApproval(SimulationWarningApproval::mock(None)))]
-        );
+        assert_eq!(result.warnings, vec![SimulationWarning::mock(SimulationWarningType::PermitApproval(SimulationWarningApproval::mock(None)))]);
     }
 
     #[test]
@@ -531,27 +491,14 @@ mod tests {
             Vec::<SimulationPayloadField>::new(),
         );
 
-        assert_eq!(
-            result.warnings,
-            vec![SimulationWarning::mock(SimulationWarningType::TokenApproval(SimulationWarningApproval::mock(None)))]
-        );
+        assert_eq!(result.warnings, vec![SimulationWarning::mock(SimulationWarningType::TokenApproval(SimulationWarningApproval::mock(None)))]);
     }
 
     #[test]
     fn single_secondary_payload_field_is_promoted_to_primary() {
         let payload = promote_single_secondary_payload_field(vec![
-            SimulationPayloadField::standard(
-                SimulationPayloadFieldKind::Contract,
-                "0x123",
-                SimulationPayloadFieldType::Address,
-                SimulationPayloadFieldDisplay::Primary,
-            ),
-            SimulationPayloadField::standard(
-                SimulationPayloadFieldKind::Value,
-                "Unlimited",
-                SimulationPayloadFieldType::Text,
-                SimulationPayloadFieldDisplay::Secondary,
-            ),
+            SimulationPayloadField::standard(SimulationPayloadFieldKind::Contract, "0x123", SimulationPayloadFieldType::Address, SimulationPayloadFieldDisplay::Primary),
+            SimulationPayloadField::standard(SimulationPayloadFieldKind::Value, "Unlimited", SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Secondary),
         ]);
 
         assert_eq!(payload.len(), 2);
@@ -561,18 +508,8 @@ mod tests {
     #[test]
     fn multiple_secondary_payload_fields_stay_secondary() {
         let payload = promote_single_secondary_payload_field(vec![
-            SimulationPayloadField::standard(
-                SimulationPayloadFieldKind::Contract,
-                "0x123",
-                SimulationPayloadFieldType::Address,
-                SimulationPayloadFieldDisplay::Primary,
-            ),
-            SimulationPayloadField::standard(
-                SimulationPayloadFieldKind::Value,
-                "Unlimited",
-                SimulationPayloadFieldType::Text,
-                SimulationPayloadFieldDisplay::Secondary,
-            ),
+            SimulationPayloadField::standard(SimulationPayloadFieldKind::Contract, "0x123", SimulationPayloadFieldType::Address, SimulationPayloadFieldDisplay::Primary),
+            SimulationPayloadField::standard(SimulationPayloadFieldKind::Value, "Unlimited", SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Secondary),
             SimulationPayloadField::custom("expiration", "123", SimulationPayloadFieldType::Timestamp, SimulationPayloadFieldDisplay::Secondary),
         ]);
 

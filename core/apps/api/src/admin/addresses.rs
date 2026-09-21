@@ -8,12 +8,7 @@ use crate::api_clients::PermissionAdminWrite;
 use crate::responders::{ApiError, ApiResponse};
 
 #[post("/addresses/refresh", format = "json", data = "<addresses>")]
-pub async fn refresh_addresses(
-    _permission: PermissionAdminWrite,
-    addresses: Json<Vec<ChainAddress>>,
-    cacher: &State<CacherClient>,
-    stream_producer: &State<StreamProducer>,
-) -> Result<ApiResponse<Vec<ChainAddress>>, ApiError> {
+pub async fn refresh_addresses(_permission: PermissionAdminWrite, addresses: Json<Vec<ChainAddress>>, cacher: &State<CacherClient>, stream_producer: &State<StreamProducer>) -> Result<ApiResponse<Vec<ChainAddress>>, ApiError> {
     let addresses = addresses.into_inner();
     let cache_keys = addresses.iter().flat_map(refresh_cache_keys).collect::<Vec<_>>();
     cacher.delete_keys(&cache_keys).await?;

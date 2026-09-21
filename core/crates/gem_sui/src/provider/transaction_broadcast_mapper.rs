@@ -21,10 +21,7 @@ pub fn map_transaction_broadcast_response_from_str(response: &str) -> Result<Str
 pub fn map_transaction_broadcast_response_from_grpc(response: &[u8]) -> Result<String, Box<dyn Error + Sync + Send>> {
     let response: ExecuteTransactionResponse = decode_grpc_message(response)?;
     map_transaction_broadcast_response(SuiBroadcastTransaction {
-        digest: response
-            .transaction
-            .and_then(|transaction| transaction.digest)
-            .ok_or("missing Sui broadcast transaction digest")?,
+        digest: response.transaction.and_then(|transaction| transaction.digest).ok_or("missing Sui broadcast transaction digest")?,
     })
 }
 

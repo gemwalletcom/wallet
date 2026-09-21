@@ -53,11 +53,7 @@ impl SolanaRequestHandler {
 
     pub fn decode_send_transaction(data: String, output_type: TransferDataOutputType) -> Result<WalletConnectTransaction, String> {
         let json: Value = serde_json::from_str(&data).map_err(|e| e.to_string())?;
-        let transaction = json
-            .get("transaction")
-            .and_then(|value| value.as_str())
-            .ok_or_else(|| "Missing transaction field".to_string())?
-            .to_string();
+        let transaction = json.get("transaction").and_then(|value| value.as_str()).ok_or_else(|| "Missing transaction field".to_string())?.to_string();
         let transaction_type = decode_transaction(&transaction)?.transaction_type();
         Ok(WalletConnectTransaction::Solana {
             data: WCSolanaTransactionData { transaction },
@@ -127,8 +123,7 @@ mod tests {
     fn test_decode_transfer_transaction() {
         const TRANSACTION: &str = "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAECC4JMKqNplIXybGb/GhK1ofdVWeuEjXnQor7gi0Y2hMcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQECAAAMAgAAAAAAAAAAAAAA";
 
-        let decoded =
-            SolanaRequestHandler::decode_send_transaction(serde_json::json!({ "transaction": TRANSACTION }).to_string(), TransferDataOutputType::EncodedTransaction).unwrap();
+        let decoded = SolanaRequestHandler::decode_send_transaction(serde_json::json!({ "transaction": TRANSACTION }).to_string(), TransferDataOutputType::EncodedTransaction).unwrap();
 
         assert!(matches!(
             decoded,

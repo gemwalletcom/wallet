@@ -23,12 +23,7 @@ impl AssetListDocument {
     }
 
     pub fn as_primitive(&self, chains: &[String]) -> Option<AssetList> {
-        let count = self
-            .chain_counts
-            .iter()
-            .filter(|(chain, _)| chains.is_empty() || chains.contains(chain))
-            .map(|(_, count)| count)
-            .sum();
+        let count = self.chain_counts.iter().filter(|(chain, _)| chains.is_empty() || chains.contains(chain)).map(|(_, count)| count).sum();
         (count > 0).then(|| AssetList {
             id: self.id.clone(),
             name: self.name.clone(),

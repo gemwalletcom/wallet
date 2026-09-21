@@ -13,13 +13,7 @@ pub async fn get_latest_block_number(_permission: PermissionChainRead, chain: Ch
 }
 
 #[get("/chain/blocks/<chain>/<block_number>?<transaction_type>")]
-pub async fn get_block_transactions(
-    _permission: PermissionChainRead,
-    chain: ChainParam,
-    block_number: i64,
-    transaction_type: Option<&str>,
-    client: &State<ChainClient>,
-) -> Result<ApiResponse<Vec<Transaction>>, ApiError> {
+pub async fn get_block_transactions(_permission: PermissionChainRead, chain: ChainParam, block_number: i64, transaction_type: Option<&str>, client: &State<ChainClient>) -> Result<ApiResponse<Vec<Transaction>>, ApiError> {
     Ok(client.get_block_transactions(chain.0, block_number, transaction_type).await?.into())
 }
 
@@ -32,8 +26,5 @@ pub async fn get_block_transactions_finalize(
     transaction_type: Option<&str>,
     client: &State<ChainClient>,
 ) -> Result<ApiResponse<Vec<Transaction>>, ApiError> {
-    Ok(client
-        .get_block_transactions_finalize(chain.0, block_number, vec![address.0], transaction_type)
-        .await?
-        .into())
+    Ok(client.get_block_transactions_finalize(chain.0, block_number, vec![address.0], transaction_type).await?.into())
 }

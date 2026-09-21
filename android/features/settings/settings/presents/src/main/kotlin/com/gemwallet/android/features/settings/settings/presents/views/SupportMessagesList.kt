@@ -43,12 +43,7 @@ private sealed interface ChatRow {
 }
 
 @Composable
-internal fun SupportMessagesList(
-    days: List<SupportChatDay>,
-    typingAgentName: String?,
-    onImageClick: (String) -> Unit,
-    onRetry: (SupportMessage) -> Unit,
-) {
+internal fun SupportMessagesList(days: List<SupportChatDay>, typingAgentName: String?, onImageClick: (String) -> Unit, onRetry: (SupportMessage) -> Unit) {
     val todayLabel = stringResource(R.string.date_today)
     val yesterdayLabel = stringResource(R.string.date_yesterday)
     val boundaries = LocalDate.now().gemDay().boundaries()

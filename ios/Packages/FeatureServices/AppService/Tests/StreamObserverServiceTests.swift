@@ -45,28 +45,65 @@ struct StreamObserverServiceTests {
     }
 
     @Test
+    func slowSyncDoesNotHoldBackTheNextEvent() async {
+        let opened = AsyncStream<Void>.makeStream()
+        let handled = AsyncStream<String>.makeStream()
+        let syncing = AsyncStream<CheckedContinuation<Void, Never>>.makeStream()
+        let socket = WebSocketConnectionMock(onConnect: { opened.continuation.yield(()) })
+        let service = GemStreamServiceMock(
+            onEvent: {
+                handled.continuation.yield($0)
+                return $0 == "balances" ? .balances(walletId: "multicoin_0x1", assetIds: []) : .prices(prices: 1, rates: 0)
+            },
+            onSync: { event in
+                guard case .balances = event else { return }
+                await withCheckedContinuation { syncing.continuation.yield($0) }
+            },
+        )
+        let observer = StreamObserverService.mock(service: service, webSocket: socket)
+        await observer.connect()
+        var connections = opened.stream.makeAsyncIterator()
+        _ = await connections.next()
+        await socket.simulateConnected()
+        await socket.simulateMessage(Data("balances".utf8))
+        var syncs = syncing.stream.makeAsyncIterator()
+        let pendingSync = await syncs.next()
+        await socket.simulateMessage(Data("prices".utf8))
+        var events = handled.stream.makeAsyncIterator()
+        #expect(await events.next() == "balances")
+        #expect(await events.next() == "prices")
+        pendingSync?.resume()
+        await observer.disconnect()
+    }
+
+    @Test
     func cancellationDuringPreparationDoesNotOpenSocket() async {
         let preparing = AsyncStream<CheckedContinuation<Void, Never>>.makeStream()
         let canceled = AsyncStream<Void>.makeStream()
+        let closed = AsyncStream<Void>.makeStream()
         let opened = Locked(wrappedValue: false)
         let socket = WebSocketConnectionMock(onConnect: { opened.wrappedValue = true })
-        let service = GemStreamServiceMock(prepare: {
-            await withTaskCancellationHandler {
-                await withCheckedContinuation { preparing.continuation.yield($0) }
-            } onCancel: {
-                canceled.continuation.yield(())
-            }
-            return true
-        })
+        let service = GemStreamServiceMock(
+            prepare: {
+                await withTaskCancellationHandler {
+                    await withCheckedContinuation { preparing.continuation.yield($0) }
+                } onCancel: {
+                    canceled.continuation.yield(())
+                }
+                return true
+            },
+            onDisconnected: { closed.continuation.yield(()) },
+        )
         let observer = StreamObserverService.mock(service: service, webSocket: socket)
         await observer.connect()
         var preparations = preparing.stream.makeAsyncIterator()
         let completion = await preparations.next()
-        let stop = Task { await observer.disconnect() }
+        await observer.disconnect()
         var cancellations = canceled.stream.makeAsyncIterator()
         _ = await cancellations.next()
         completion?.resume()
-        await stop.value
+        var closures = closed.stream.makeAsyncIterator()
+        _ = await closures.next()
         #expect(opened.wrappedValue == false)
     }
 
@@ -78,10 +115,10 @@ struct StreamObserverServiceTests {
         let socket = WebSocketConnectionMock(onConnect: { opened.continuation.yield(()) })
         let service = GemStreamServiceMock(
             prepare: {
-                preparations.wrappedValue += 1
+                preparations.withLock { $0 += 1 }
                 return true
             },
-            onSession: { sessions.wrappedValue += 1 },
+            onSession: { sessions.withLock { $0 += 1 } },
         )
         let observer = StreamObserverService.mock(service: service, webSocket: socket)
         var connections = opened.stream.makeAsyncIterator()
@@ -138,5 +175,144 @@ struct StreamObserverServiceTests {
         var connections = opened.stream.makeAsyncIterator()
         _ = await connections.next()
         await observer.disconnect()
+    }
+
+    @Test(arguments: [false, true])
+    func foregroundReconnectsAcrossCleanup(resumeBeforeCleanup: Bool) async {
+        let opened = AsyncStream<Bool>.makeStream()
+        let cleanup = AsyncStream<CheckedContinuation<Void, Never>>.makeStream()
+        let closed = AsyncStream<Int>.makeStream()
+        let disconnects = Locked(wrappedValue: 0)
+        let socket = WebSocketConnectionMock(onConnect: { opened.continuation.yield(true) })
+        let service = GemStreamServiceMock(onDisconnected: {
+            disconnects.withLock { $0 += 1 }
+            if disconnects.wrappedValue == 1 {
+                await withCheckedContinuation { cleanup.continuation.yield($0) }
+            }
+            closed.continuation.yield(disconnects.wrappedValue)
+        })
+        let observer = StreamObserverService.mock(service: service, webSocket: socket)
+        await observer.connect()
+        var connections = opened.stream.makeAsyncIterator()
+        #expect(await connections.next() == true)
+
+        await observer.disconnect()
+        var cleanups = cleanup.stream.makeAsyncIterator()
+        let release = await cleanups.next()
+        if resumeBeforeCleanup {
+            await observer.connect()
+        }
+        release?.resume()
+        var closures = closed.stream.makeAsyncIterator()
+        #expect(await closures.next() == 1)
+        if !resumeBeforeCleanup {
+            await observer.connect()
+        }
+
+        let reconnected = await withTaskGroup(of: Bool.self) { group in
+            group.addTask {
+                var events = opened.stream.makeAsyncIterator()
+                return await events.next() == true
+            }
+            group.addTask {
+                try? await Task.sleep(for: .seconds(5))
+                return false
+            }
+            let result = await group.next() ?? false
+            group.cancelAll()
+            return result
+        }
+        #expect(reconnected, "Foreground must open a replacement connection, including during cleanup")
+        await observer.disconnect()
+        #expect(await closures.next() == 2)
+    }
+
+    @Test
+    func backgroundDuringCleanupStaysDisconnected() async {
+        let opened = AsyncStream<Bool>.makeStream()
+        let cleanup = AsyncStream<CheckedContinuation<Void, Never>>.makeStream()
+        let closed = AsyncStream<Void>.makeStream()
+        let disconnects = Locked(wrappedValue: 0)
+        let socket = WebSocketConnectionMock(onConnect: { opened.continuation.yield(true) })
+        let service = GemStreamServiceMock(onDisconnected: {
+            disconnects.withLock { $0 += 1 }
+            if disconnects.wrappedValue == 1 {
+                await withCheckedContinuation { cleanup.continuation.yield($0) }
+            }
+            closed.continuation.yield(())
+        })
+        let observer = StreamObserverService.mock(service: service, webSocket: socket)
+        await observer.connect()
+        var connections = opened.stream.makeAsyncIterator()
+        #expect(await connections.next() == true)
+
+        await observer.disconnect()
+        var cleanups = cleanup.stream.makeAsyncIterator()
+        let release = await cleanups.next()
+        await observer.connect()
+        await observer.disconnect()
+        release?.resume()
+        var closures = closed.stream.makeAsyncIterator()
+        _ = await closures.next()
+
+        let reconnected = await withTaskGroup(of: Bool.self) { group in
+            group.addTask {
+                var events = opened.stream.makeAsyncIterator()
+                return await events.next() == true
+            }
+            group.addTask {
+                try? await Task.sleep(for: .milliseconds(200))
+                return false
+            }
+            let result = await group.next() ?? false
+            group.cancelAll()
+            return result
+        }
+        #expect(!reconnected)
+        #expect(await socket.state == .disconnected)
+        await observer.disconnect()
+    }
+
+    @Test
+    func repeatedForegroundDuringCleanupOpensOneReplacement() async {
+        let opened = AsyncStream<Int>.makeStream()
+        let cleanup = AsyncStream<CheckedContinuation<Void, Never>>.makeStream()
+        let closed = AsyncStream<Int>.makeStream()
+        let connectionCount = Locked(wrappedValue: 0)
+        let disconnects = Locked(wrappedValue: 0)
+        let socket = WebSocketConnectionMock(onConnect: {
+            connectionCount.withLock { $0 += 1 }
+            opened.continuation.yield(connectionCount.wrappedValue)
+        })
+        let service = GemStreamServiceMock(onDisconnected: {
+            disconnects.withLock { $0 += 1 }
+            if disconnects.wrappedValue == 1 {
+                await withCheckedContinuation { cleanup.continuation.yield($0) }
+            }
+            closed.continuation.yield(disconnects.wrappedValue)
+        })
+        let observer = StreamObserverService.mock(service: service, webSocket: socket)
+        await observer.connect()
+        var connections = opened.stream.makeAsyncIterator()
+        #expect(await connections.next() == 1)
+
+        await observer.disconnect()
+        var cleanups = cleanup.stream.makeAsyncIterator()
+        let release = await cleanups.next()
+        for _ in 0 ..< 3 {
+            await observer.connect()
+        }
+        #expect(connectionCount.wrappedValue == 1)
+        release?.resume()
+        #expect(await connections.next() == 2)
+        for _ in 0 ..< 3 {
+            await observer.connect()
+        }
+
+        await observer.disconnect()
+        var closures = closed.stream.makeAsyncIterator()
+        #expect(await closures.next() == 1)
+        #expect(await closures.next() == 2)
+        #expect(connectionCount.wrappedValue == 2)
     }
 }

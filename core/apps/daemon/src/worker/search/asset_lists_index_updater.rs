@@ -85,11 +85,7 @@ mod tests {
         assert_eq!(
             documents,
             vec![
-                AssetListDocument::new(
-                    "stablecoins".to_string(),
-                    "stablecoins".to_string(),
-                    HashMap::from([("ethereum".to_string(), 2), ("solana".to_string(), 1)]),
-                ),
+                AssetListDocument::new("stablecoins".to_string(), "stablecoins".to_string(), HashMap::from([("ethereum".to_string(), 2), ("solana".to_string(), 1)]),),
                 AssetListDocument::new("stocks".to_string(), "stocks".to_string(), HashMap::from([("hypercore".to_string(), 1)])),
             ]
         );

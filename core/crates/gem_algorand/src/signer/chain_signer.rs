@@ -38,9 +38,7 @@ mod tests {
         let input = SignerInput {
             fee: TransactionFee::new_from_fee(2340.into(), AssetId::from_chain(Chain::Algorand)),
             ..SignerInput::mock_with_input_type(
-                TransactionInputType::Transfer {
-                    asset: Asset::from_chain(Chain::Algorand),
-                },
+                TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Algorand) },
                 SENDER,
                 DESTINATION,
                 "1000000",
@@ -56,13 +54,7 @@ mod tests {
         // Token transfer
         let input = SignerInput {
             fee: TransactionFee::new_from_fee(2340.into(), AssetId::from_chain(Chain::Algorand)),
-            ..SignerInput::mock_with_input_type(
-                TransactionInputType::Transfer { asset: token.clone() },
-                SENDER,
-                DESTINATION,
-                "1000000",
-                TransactionLoadMetadata::mock_algorand(15775683),
-            )
+            ..SignerInput::mock_with_input_type(TransactionInputType::Transfer { asset: token.clone() }, SENDER, DESTINATION, "1000000", TransactionLoadMetadata::mock_algorand(15775683))
         };
         let signed = AlgorandChainSigner.sign_token_transfer(&input, &key).unwrap();
         assert_eq!(
@@ -73,13 +65,7 @@ mod tests {
         // Account action (asset opt-in)
         let input = SignerInput {
             fee: TransactionFee::new_from_fee(2340.into(), AssetId::from_chain(Chain::Algorand)),
-            ..SignerInput::mock_with_input_type(
-                TransactionInputType::Transfer { asset: token },
-                SENDER,
-                "",
-                "0",
-                TransactionLoadMetadata::mock_algorand(15775553),
-            )
+            ..SignerInput::mock_with_input_type(TransactionInputType::Transfer { asset: token }, SENDER, "", "0", TransactionLoadMetadata::mock_algorand(15775553))
         };
         let signed = AlgorandChainSigner.sign_account_action(&input, &key).unwrap();
         assert_eq!(
@@ -94,9 +80,7 @@ mod tests {
         let mut input = SignerInput {
             fee: TransactionFee::new_from_fee(263000.into(), AssetId::from_chain(Chain::Algorand)),
             ..SignerInput::mock_with_input_type(
-                TransactionInputType::Transfer {
-                    asset: Asset::from_chain(Chain::Algorand),
-                },
+                TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Algorand) },
                 "MG7QMDX4ALRIQ7P77SHNQUTIZDAJDQAT53PTCW6FA6KNAKUHSGW4FGK32Q",
                 "CRLADAHJZEW2GFY2UPEHENLOGCUOU74WYSTUXQLVLJUJFHEUZOHYZNWYR4",
                 "1000000000000",

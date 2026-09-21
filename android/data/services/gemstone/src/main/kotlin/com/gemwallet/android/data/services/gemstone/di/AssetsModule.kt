@@ -1,66 +1,70 @@
 package com.gemwallet.android.data.services.gemstone.di
 
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.services.gemstone.connection.ConnectionComponentHealth
-import com.gemwallet.android.data.services.gemstone.stream.StreamObserverService
-import com.gemwallet.android.data.services.gemstone.stream.WebSocketConnection
-import com.gemwallet.android.data.services.gemstone.stream.WebSocketRequest
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
-import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
-import com.gemwallet.android.math.fromHex
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
-import com.gemwallet.android.data.services.gemstone.stores.GemstonePortfolioStore
-import uniffi.gemstone.GemApiClient
-import uniffi.gemstone.GemConnectionService
-import uniffi.gemstone.GemAssetStore
-import uniffi.gemstone.GemAssetDetailsService
-import uniffi.gemstone.GemAssetDetailsServiceInterface
-import uniffi.gemstone.GemWalletSessionService
-import uniffi.gemstone.GemAssetsService
-import uniffi.gemstone.GemAssetsServiceInterface
-import uniffi.gemstone.GemSwapServiceInterface
-import uniffi.gemstone.GemSwapService
-import uniffi.gemstone.GemExplorerService
-import uniffi.gemstone.GemDeeplinkService
-import uniffi.gemstone.GemBannerService
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneBalanceStore
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
-import uniffi.gemstone.GemBalanceService
-import uniffi.gemstone.GemBalanceStore
-import com.gemwallet.android.data.services.gemstone.stores.GemstonePriceStore
 import com.gemwallet.android.data.service.store.database.PricesDao
-import uniffi.gemstone.GemPreferencesService
-import uniffi.gemstone.GemPortfolioStore
-import uniffi.gemstone.GemPriceAlertStore
-import uniffi.gemstone.GemPriceService
-import uniffi.gemstone.GemAddAssetService
-import uniffi.gemstone.GemAddAssetServiceInterface
-import uniffi.gemstone.GemReceiveService
-import uniffi.gemstone.GemReceiveServiceInterface
-import uniffi.gemstone.GemSupportStore
-import uniffi.gemstone.GemNotificationStore
-import uniffi.gemstone.GemFiatService
-import uniffi.gemstone.GemPerpetualService
-import uniffi.gemstone.GemNftService
-import uniffi.gemstone.GemTransactionsService
-import uniffi.gemstone.GemPriceAlertService
-import uniffi.gemstone.GemStreamService
-import uniffi.gemstone.GemStreamServiceInterface
+import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
+import com.gemwallet.android.data.services.gemstone.connection.ConnectionComponentHealth
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneBalanceStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstonePortfolioStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstonePriceStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
+import com.gemwallet.android.data.services.gemstone.stream.GemstoneStreamConnection
+import com.gemwallet.android.data.services.gemstone.stream.StreamObserverService
+import com.gemwallet.android.data.services.gemstone.stream.WebSocketConnectable
+import com.gemwallet.android.data.services.gemstone.stream.WebSocketConnection
+import com.gemwallet.android.data.services.gemstone.stream.WebSocketRequest
+import com.gemwallet.android.math.fromHex
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import okhttp3.OkHttpClient
-import uniffi.gemstone.GemGateway
-import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import com.gemwallet.android.data.services.gemstone.stream.GemstoneStreamConnection
-import com.gemwallet.android.data.services.gemstone.stream.WebSocketConnectable
-import uniffi.gemstone.GemStreamSubscriptionService
-import uniffi.gemstone.GemDeviceService
+import okhttp3.OkHttpClient
+import uniffi.gemstone.GemAddAssetService
+import uniffi.gemstone.GemAddAssetServiceInterface
+import uniffi.gemstone.GemAddressDetailsService
+import uniffi.gemstone.GemAddressDetailsServiceInterface
+import uniffi.gemstone.GemApiClient
+import uniffi.gemstone.GemAssetDetailsService
+import uniffi.gemstone.GemAssetDetailsServiceInterface
+import uniffi.gemstone.GemAssetStore
+import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemAssetsServiceInterface
+import uniffi.gemstone.GemBalanceService
+import uniffi.gemstone.GemBalanceStore
+import uniffi.gemstone.GemBannerService
+import uniffi.gemstone.GemConnectionService
+import uniffi.gemstone.GemDeeplinkService
 import uniffi.gemstone.GemDeviceKeyService
+import uniffi.gemstone.GemDeviceService
+import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemFiatService
+import uniffi.gemstone.GemGateway
+import uniffi.gemstone.GemNameService
+import uniffi.gemstone.GemNftService
+import uniffi.gemstone.GemNotificationStore
+import uniffi.gemstone.GemPerpetualService
+import uniffi.gemstone.GemPortfolioStore
+import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemPriceAlertService
+import uniffi.gemstone.GemPriceAlertStore
+import uniffi.gemstone.GemPriceService
+import uniffi.gemstone.GemReceiveService
+import uniffi.gemstone.GemReceiveServiceInterface
+import uniffi.gemstone.GemRecentActivityService
+import uniffi.gemstone.GemStreamService
+import uniffi.gemstone.GemStreamServiceInterface
+import uniffi.gemstone.GemStreamSubscriptionService
+import uniffi.gemstone.GemSupportStore
+import uniffi.gemstone.GemSwapService
+import uniffi.gemstone.GemSwapServiceInterface
+import uniffi.gemstone.GemTransactionsService
+import uniffi.gemstone.GemWalletSessionService
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -68,11 +72,7 @@ object AssetsModule {
 
     @Provides
     @Singleton
-    fun provideGemBalanceStore(
-        assetsDao: AssetsDao,
-        balancesDao: BalancesDao,
-        transactionRunner: StoreTransactionRunner,
-    ): GemBalanceStore = GemstoneBalanceStore(balancesDao, assetsDao, transactionRunner)
+    fun provideGemBalanceStore(assetsDao: AssetsDao, balancesDao: BalancesDao, transactionRunner: StoreTransactionRunner): GemBalanceStore = GemstoneBalanceStore(balancesDao, assetsDao, transactionRunner)
 
     @Provides
     @Singleton
@@ -130,30 +130,20 @@ object AssetsModule {
 
     @Provides
     @Singleton
-    fun provideStreamConnection(
-        deviceKeyService: GemDeviceKeyService,
-        okHttpClient: OkHttpClient,
-        connectionService: GemConnectionService,
-    ): WebSocketConnectable {
-        return WebSocketConnection(
-            client = okHttpClient,
-            requestProvider = {
-                withContext(Dispatchers.IO) {
-                    val stream = deviceKeyService.deviceStreamRequest()
-                    WebSocketRequest(url = stream.url, headers = mapOf("Authorization" to stream.authorization))
-                }
-            },
-            connectionService = connectionService,
-        )
-    }
+    fun provideStreamConnection(deviceKeyService: GemDeviceKeyService, okHttpClient: OkHttpClient, connectionService: GemConnectionService): WebSocketConnectable = WebSocketConnection(
+        client = okHttpClient,
+        requestProvider = {
+            withContext(Dispatchers.IO) {
+                val stream = deviceKeyService.deviceStreamRequest()
+                WebSocketRequest(url = stream.url, headers = mapOf("Authorization" to stream.authorization))
+            }
+        },
+        connectionService = connectionService,
+    )
 
     @Provides
     @Singleton
-    fun provideStreamSubscriptionService(
-        balanceStore: GemBalanceStore,
-        priceAlertStore: GemPriceAlertStore,
-        connection: WebSocketConnectable,
-    ): GemStreamSubscriptionService = GemStreamSubscriptionService(
+    fun provideStreamSubscriptionService(balanceStore: GemBalanceStore, priceAlertStore: GemPriceAlertStore, connection: WebSocketConnectable): GemStreamSubscriptionService = GemStreamSubscriptionService(
         balances = balanceStore,
         alerts = priceAlertStore,
         connection = GemstoneStreamConnection(connection),
@@ -161,12 +151,7 @@ object AssetsModule {
 
     @Provides
     @Singleton
-    fun provideStreamObserverService(
-        getSession: GetSession,
-        streamService: GemStreamServiceInterface,
-        connection: WebSocketConnectable,
-        streamHealth: ConnectionComponentHealth,
-    ): StreamObserverService = StreamObserverService(
+    fun provideStreamObserverService(getSession: GetSession, streamService: GemStreamServiceInterface, connection: WebSocketConnectable, streamHealth: ConnectionComponentHealth): StreamObserverService = StreamObserverService(
         getSession = getSession,
         service = streamService,
         connection = connection,
@@ -175,9 +160,7 @@ object AssetsModule {
 
     @Provides
     @Singleton
-    fun provideGemstoneAssetStore(
-        assetsDao: AssetsDao,
-    ): GemstoneAssetStore = GemstoneAssetStore(assetsDao)
+    fun provideGemstoneAssetStore(assetsDao: AssetsDao): GemstoneAssetStore = GemstoneAssetStore(assetsDao)
 
     @Provides
     @Singleton
@@ -215,27 +198,18 @@ object AssetsModule {
 
     @Provides
     @Singleton
-    fun provideGemAssetsService(
-        apiClient: GemApiClient,
-        gateway: GemGateway,
-        assetStore: GemAssetStore,
-        priceService: GemPriceService,
-        preferencesService: GemPreferencesService,
-        session: GemWalletSessionService,
-    ): GemAssetsService = GemAssetsService(apiClient, gateway, assetStore, priceService, preferencesService, session)
+    fun provideGemAssetsService(apiClient: GemApiClient, gateway: GemGateway, assetStore: GemAssetStore, priceService: GemPriceService, preferencesService: GemPreferencesService, session: GemWalletSessionService): GemAssetsService =
+        GemAssetsService(apiClient, gateway, assetStore, priceService, preferencesService, session)
 
     @Provides
-    fun provideGemReceiveService(
-        balanceService: GemBalanceService,
-        assetsService: GemAssetsService,
-    ): GemReceiveServiceInterface = GemReceiveService(balanceService, assetsService)
+    fun provideGemReceiveService(balanceService: GemBalanceService, assetsService: GemAssetsService, recentActivityService: GemRecentActivityService): GemReceiveServiceInterface =
+        GemReceiveService(balanceService, assetsService, recentActivityService)
 
     @Provides
-    fun provideGemAddAssetService(
-        assetsService: GemAssetsService,
-        balanceService: GemBalanceService,
-        explorerService: GemExplorerService,
-    ): GemAddAssetServiceInterface = GemAddAssetService(assetsService, balanceService, explorerService)
+    fun provideGemAddressDetailsService(gateway: GemGateway, explorerService: GemExplorerService, nameService: GemNameService): GemAddressDetailsServiceInterface = GemAddressDetailsService(gateway, explorerService, nameService)
+
+    @Provides
+    fun provideGemAddAssetService(assetsService: GemAssetsService, balanceService: GemBalanceService, explorerService: GemExplorerService): GemAddAssetServiceInterface = GemAddAssetService(assetsService, balanceService, explorerService)
 
     @Provides
     @Singleton

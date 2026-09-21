@@ -55,11 +55,12 @@ impl GemSupportService {
         self.deliver(message, self.api.client.send_support_message(SupportMessageInput { content })).await
     }
 
-    pub async fn send_image(&self, image: Vec<u8>, file_name: String, mime_type: String) -> Result<(), GemServiceError> {
+    pub async fn send_image(&self, image: Vec<u8>) -> Result<(), GemServiceError> {
         let id = Uuid::new_v4().to_string();
+        let file_name = format!("image-{id}.jpg");
         let pending_image = rules::pending_image(id.clone(), file_name.clone(), image.len() as u64);
         let message = rules::pending_message(id, String::new(), vec![pending_image], Utc::now());
-        self.deliver(message, self.api.client.send_support_image(image, file_name, mime_type)).await
+        self.deliver(message, self.api.client.send_support_image(image, file_name, "image/jpeg".to_string())).await
     }
 
     pub async fn retry_message(&self, message: SupportMessage) -> Result<(), GemServiceError> {

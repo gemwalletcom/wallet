@@ -4,9 +4,10 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.walletChartPeriods
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
+import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
 import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
@@ -14,8 +15,6 @@ import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.PortfolioState
 import com.gemwallet.android.features.asset.viewmodels.chart.models.StopTimeoutMillis
 import com.gemwallet.android.features.asset.viewmodels.chart.models.listItem
-import com.gemwallet.android.model.CurrencyFormatter
-import com.gemwallet.android.model.PriceChangeFormatter
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.dataOrNull
@@ -25,7 +24,6 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PortfolioType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
@@ -42,9 +40,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import uniffi.gemstone.GemPortfolioServiceInterface
+import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.PortfolioChartType
-import uniffi.gemstone.PortfolioData
 import uniffi.gemstone.portfolioChartData
+import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -53,6 +52,7 @@ class PortfolioChartViewModel internal constructor(
     getSession: GetSession,
     observePerpetualWallet: ObservePerpetualWallet,
     initialType: PortfolioType,
+    connectionStatusObserver: ConnectionStatusObserver,
     private val ioDispatcher: CoroutineDispatcher,
     private val context: Context,
 ) : ViewModel() {
@@ -68,6 +68,9 @@ class PortfolioChartViewModel internal constructor(
     val showSegmentedControl = observePerpetualWallet()
         .map { it != null }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), false)
+
+    val refreshIntervalMillis = connectionStatusObserver.refreshIntervalMillis(GemRefreshKind.CHART)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
 
     val isRefreshing = refreshController.isRefreshing
 
@@ -89,8 +92,10 @@ class PortfolioChartViewModel internal constructor(
             val periods = data?.availablePeriods.orEmpty().map { it.toPrimitives() }
             when {
                 data == null -> emit(state.copy(data = StateViewType.Error))
+
                 periods.isNotEmpty() && !periods.contains(state.period) ->
                     selectedPeriod.compareAndSet(state.period, periods.first())
+
                 else -> emit(state.copy(data = StateViewType.Data(data)))
             }
         }
@@ -151,6 +156,7 @@ class PortfolioChartViewModel internal constructor(
         getSession: GetSession,
         observePerpetualWallet: ObservePerpetualWallet,
         savedStateHandle: SavedStateHandle,
+        connectionStatusObserver: ConnectionStatusObserver,
         @IoDispatcher ioDispatcher: CoroutineDispatcher,
         @ApplicationContext context: Context,
     ) : this(
@@ -158,8 +164,8 @@ class PortfolioChartViewModel internal constructor(
         getSession = getSession,
         observePerpetualWallet = observePerpetualWallet,
         initialType = savedStateHandle.portfolioType(),
+        connectionStatusObserver = connectionStatusObserver,
         ioDispatcher = ioDispatcher,
         context = context,
     )
 }
-

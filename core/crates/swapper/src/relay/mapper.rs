@@ -1,7 +1,8 @@
+use std::str::FromStr;
+
 use gem_tron::address::TronAddress;
 use num_bigint::BigUint;
 use primitives::{TransactionSwapMetadata, swap::ApprovalData};
-use std::str::FromStr;
 
 use super::{
     asset::map_currency_to_asset_id,
@@ -12,6 +13,21 @@ use crate::{
     SwapResult, SwapperError, SwapperProvider, SwapperQuoteData,
     approval::{DEFAULT_EVM_SWAP_GAS_LIMIT, DEFAULT_TRON_SWAP_ENERGY_LIMIT, get_swap_gas_limit_with_approval},
 };
+
+pub fn validate_quote_response(from_chain: RelayChain, quote_response: &RelayQuoteResponse, value: &BigUint) -> Result<(), SwapperError> {
+    match from_chain {
+        RelayChain::Bitcoin => map_bitcoin_quote_data(quote_response, value).map(drop),
+        RelayChain::Evm(_) | RelayChain::Tron | RelayChain::Solana | RelayChain::Ton => Ok(()),
+    }
+}
+
+pub fn map_bitcoin_quote_data(quote_response: &RelayQuoteResponse, value: &BigUint) -> Result<SwapperQuoteData, SwapperError> {
+    let (deposit_address, deposit) = quote_response.get_deposit_address().ok_or(SwapperError::InvalidRoute)?;
+    if deposit.amount != value.to_string() {
+        return Err(SwapperError::InvalidRoute);
+    }
+    Ok(SwapperQuoteData::new_transfer(deposit_address.to_string(), value.clone(), None))
+}
 
 pub fn map_evm_quote_data(quote_response: &RelayQuoteResponse, approval: Option<ApprovalData>) -> Result<SwapperQuoteData, SwapperError> {
     let evm = quote_response.get_evm_step().ok_or(SwapperError::InvalidRoute)?;
@@ -81,7 +97,27 @@ pub fn map_swap_result(request: &RelayRequest) -> SwapResult {
 mod tests {
     use super::*;
     use crate::relay::model::{RelayQuoteResponse, RelayRequest, RelayRequestsResponse, RelayStatus, Step};
-    use primitives::{AssetId, Chain, swap::SwapStatus};
+    use primitives::{AssetId, Chain, asset_constants::BASE_USDC_ASSET_ID, swap::SwapStatus};
+
+    #[test]
+    fn test_map_bitcoin_quote_data() {
+        let response: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_btc_to_base_usdc.json")).unwrap();
+        let value = BigUint::from(2_000_000u64);
+        assert_eq!(
+            map_bitcoin_quote_data(&response, &value).unwrap(),
+            SwapperQuoteData::new_transfer("bc1qa0z550eacdsxytnxf9yk7xvvhqzqvlx2tl44z2".to_string(), value.clone(), None)
+        );
+        assert_eq!(map_bitcoin_quote_data(&response, &BigUint::from(2_000_001u64)), Err(SwapperError::InvalidRoute));
+
+        let mut missing = response.clone();
+        missing.steps[0].deposit_address = None;
+        assert_eq!(map_bitcoin_quote_data(&missing, &value), Err(SwapperError::InvalidRoute));
+        let evm = RelayQuoteResponse::mock_with_steps(vec![Step::mock_transaction("deposit", "0xrouter", "0", "0x")]);
+        assert_eq!(map_bitcoin_quote_data(&evm, &value), Err(SwapperError::InvalidRoute));
+        assert_eq!(validate_quote_response(RelayChain::Bitcoin, &evm, &value), Err(SwapperError::InvalidRoute));
+        assert_eq!(validate_quote_response(RelayChain::Tron, &evm, &value), Ok(()));
+        assert_eq!(validate_quote_response(RelayChain::Bitcoin, &response, &value), Ok(()));
+    }
 
     #[test]
     fn test_map_evm_quote_data() {
@@ -155,6 +191,40 @@ mod tests {
         assert_eq!(map_evm_quote_data(&quote_response, None).unwrap_err(), SwapperError::InvalidRoute);
         let tron_quote: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_tron_to_base_usdc.json")).unwrap();
         assert_eq!(map_ton_quote_data(&tron_quote).unwrap_err(), SwapperError::InvalidRoute);
+    }
+
+    #[test]
+    fn test_map_bitcoin_swap_result() {
+        let response: RelayRequestsResponse = serde_json::from_str(include_str!("testdata/request_btc_to_robinhood.json")).unwrap();
+        assert_eq!(
+            map_swap_result(&response.requests[0]),
+            SwapResult {
+                status: SwapStatus::Completed,
+                metadata: Some(TransactionSwapMetadata {
+                    from_asset: AssetId::from_chain(Chain::Bitcoin),
+                    from_value: BigUint::from(75_357u64),
+                    to_asset: AssetId::from_chain(Chain::Robinhood),
+                    to_value: BigUint::from(22_836_941_417_936_141u64),
+                    provider: Some("relay".to_string()),
+                }),
+                eta_in_seconds: None,
+            }
+        );
+        let response: RelayRequestsResponse = serde_json::from_str(include_str!("testdata/request_base_usdc_to_btc.json")).unwrap();
+        assert_eq!(
+            map_swap_result(&response.requests[0]),
+            SwapResult {
+                status: SwapStatus::Completed,
+                metadata: Some(TransactionSwapMetadata {
+                    from_asset: BASE_USDC_ASSET_ID.clone(),
+                    from_value: BigUint::from(109_077_539u64),
+                    to_asset: AssetId::from_chain(Chain::Bitcoin),
+                    to_value: BigUint::from(137_291u64),
+                    provider: Some("relay".to_string()),
+                }),
+                eta_in_seconds: None,
+            }
+        );
     }
 
     #[test]

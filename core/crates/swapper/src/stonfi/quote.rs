@@ -56,11 +56,7 @@ impl DiscoveredPool {
 }
 
 pub(super) fn static_candidates(from_token: &str, to_token: &str) -> Vec<DiscoveredPool> {
-    STATIC_POOLS
-        .iter()
-        .filter(|pool| static_pool_matches(pool, from_token, to_token))
-        .map(DiscoveredPool::from_static)
-        .collect()
+    STATIC_POOLS.iter().filter(|pool| static_pool_matches(pool, from_token, to_token)).map(DiscoveredPool::from_static).collect()
 }
 
 fn static_pool_matches(pool: &StaticPool, from_token: &str, to_token: &str) -> bool {
@@ -94,10 +90,7 @@ pub(super) fn compute_amount_out(pool: &PoolData, offer_wallet: &str, amount: &B
     } else {
         return Err(SwapperError::InvalidRoute);
     };
-    let total_fee = pool
-        .lp_fee
-        .checked_add(pool.protocol_fee)
-        .ok_or_else(|| SwapperError::ComputeQuoteError("STON.fi fee overflow".into()))?;
+    let total_fee = pool.lp_fee.checked_add(pool.protocol_fee).ok_or_else(|| SwapperError::ComputeQuoteError("STON.fi fee overflow".into()))?;
     if total_fee >= BPS_DENOMINATOR {
         return Err(SwapperError::ComputeQuoteError("STON.fi fee exceeds 100%".into()));
     }
@@ -133,10 +126,7 @@ mod tests {
     #[test]
     fn test_token_address() {
         assert_eq!(token_address(&SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ton))), TON_PROXY_JETTON_ADDRESS);
-        assert_eq!(
-            token_address(&SwapperQuoteAsset::from(AssetId::from_token(Chain::Ton, TON_USDT_TOKEN_ID))),
-            TON_USDT_TOKEN_ID
-        );
+        assert_eq!(token_address(&SwapperQuoteAsset::from(AssetId::from_token(Chain::Ton, TON_USDT_TOKEN_ID))), TON_USDT_TOKEN_ID);
     }
 
     #[test]
@@ -151,10 +141,7 @@ mod tests {
     #[test]
     fn test_compute_amount_out_rejects_unknown_offer_wallet() {
         let amount = BigUint::from(1_000_000_000u64);
-        assert_eq!(
-            compute_amount_out(&PoolData::mock(), "EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c", &amount).unwrap_err(),
-            SwapperError::InvalidRoute
-        );
+        assert_eq!(compute_amount_out(&PoolData::mock(), "EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c", &amount).unwrap_err(), SwapperError::InvalidRoute);
     }
 
     #[test]

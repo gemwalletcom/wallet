@@ -1,22 +1,17 @@
 package com.gemwallet.android.features.settings.networks.viewmodels
 
 import android.content.Context
-import dagger.hilt.android.qualifiers.ApplicationContext
-import com.gemwallet.android.features.settings.networks.viewmodels.models.uiModel
-import uniffi.gemstone.GemAddNodeException
-import uniffi.gemstone.GemAddNodeFailure
-import uniffi.gemstone.GemAddNodeSession
-import uniffi.gemstone.GemChainSettingsServiceInterface
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CancellationException
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.features.settings.networks.viewmodels.models.AddNodeUIModel
-import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
+import com.gemwallet.android.features.settings.networks.viewmodels.models.uiModel
 import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,14 +19,15 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemAddNodeException
+import uniffi.gemstone.GemAddNodeSession
+import uniffi.gemstone.GemChainSettingsServiceInterface
+import uniffi.gemstone.GemServiceException
 import javax.inject.Inject
 
 @HiltViewModel
-class AddNodeViewModel @Inject constructor(
-    private val service: GemChainSettingsServiceInterface,
-    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    @param:ApplicationContext private val context: Context,
-) : ViewModel() {
+class AddNodeViewModel @Inject constructor(private val service: GemChainSettingsServiceInterface, @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher, @param:ApplicationContext private val context: Context) : ViewModel() {
 
     private val session = MutableStateFlow<GemAddNodeSession?>(null)
     val uiModel = session.map { it?.uiModel(context) ?: AddNodeUIModel() }
@@ -58,32 +54,38 @@ class AddNodeViewModel @Inject constructor(
         }
     }
 
-    fun addUrl() {
+    fun addUrl(onAdded: () -> Unit) {
         val current = session.value ?: return
         val status = current.viewState().canImport.takeIf { it }?.let { (current.check) } ?: return
         viewModelScope.launch {
-            if (runCatching { withContext(ioDispatcher) { service.addNode(current.chain, status.url) } }.isFailure) {
-                session.value = current.onFailed(GemAddNodeFailure.UNAVAILABLE)
+            try {
+                withContext(ioDispatcher) { service.addNode(current.chain, status.url) }
+            } catch (error: GemServiceException) {
+                session.value = current.onAddFailed(error)
+                return@launch
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Throwable) {
+                session.value = current.onAddFailed(null)
                 return@launch
             }
             url.value = ""
             checkUrlJob?.cancel()
             session.value = current.onImported()
+            onAdded()
         }
     }
 
     private suspend fun checkUrl(current: GemAddNodeSession) {
         session.value = current.onChecking()
         session.value = try {
-            current.onChecked(withContext(ioDispatcher) { service.checkNode(current.chain, current.url) })
-        } catch (error: GemAddNodeException.InvalidUrl) {
-            current.onFailed(GemAddNodeFailure.INVALID_URL)
-        } catch (error: GemAddNodeException.InvalidNetworkId) {
-            current.onFailed(GemAddNodeFailure.INVALID_NETWORK_ID)
+            current.onChecked(current.url, withContext(ioDispatcher) { service.checkNode(current.chain, current.url) })
+        } catch (error: GemAddNodeException) {
+            current.onCheckFailed(current.url, error)
         } catch (error: CancellationException) {
             throw error
         } catch (_: Throwable) {
-            current.onFailed(GemAddNodeFailure.UNAVAILABLE)
+            current.onCheckFailed(current.url, null)
         }
     }
 }

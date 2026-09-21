@@ -20,18 +20,15 @@ object SupportModule {
 
     @Provides
     @Singleton
-    fun provideGetSupportMessages(supportStore: GemstoneSupportStore): GetSupportMessages =
-        GetSupportMessagesImpl(supportStore)
+    fun provideGetSupportMessages(supportStore: GemstoneSupportStore): GetSupportMessages = GetSupportMessagesImpl(supportStore)
 
     @Provides
     @Singleton
-    fun provideFailPendingSupportMessages(supportStore: GemstoneSupportStore): FailPendingSupportMessages =
-        FailPendingSupportMessagesImpl(supportStore)
+    fun provideFailPendingSupportMessages(supportStore: GemstoneSupportStore): FailPendingSupportMessages = FailPendingSupportMessagesImpl(supportStore)
 
     @Provides
     @Singleton
-    fun provideSupportTypingCoordinator(supportStore: GemstoneSupportStore): SupportTypingCoordinator =
-        SupportTypingCoordinator(supportStore)
+    fun provideSupportTypingCoordinator(supportStore: GemstoneSupportStore): SupportTypingCoordinator = SupportTypingCoordinator(supportStore)
 
     @Provides
     @Singleton

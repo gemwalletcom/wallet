@@ -210,7 +210,6 @@
   <string name="errors_connections_no_supported_wallets">Поддерживаемые кошельки отсутствуют.</string>
   <string name="errors_connections_unsupported_chain">Предоставленная цепочка не поддерживается.</string>
   <string name="errors_swap_amount_too_small">Сумма слишком мала</string>
-  <string name="errors_required">%1$s требуется</string>
   <string name="errors_scan_transaction_malicious_description">Эту транзакцию невозможно завершить — адрес кошелька назначения связан с подозрительной или вредоносной активностью.</string>
   <string name="errors_scan_transaction_memo_required">%1$s адрес кошелька назначения требует тега назначения / заметки</string>
   <string name="errors_scan_transaction_malicious_title">Подозрительная активность</string>
@@ -273,7 +272,7 @@
   <string name="asset_decimals">Десятичные дроби</string>
   <string name="asset_token_id">Токен ID</string>
   <string name="asset_contract">Контракт</string>
-  <string name="asset_state_empty_title">Ваши транзакции будут отображаться здесь️</string>
+  <string name="asset_state_empty_title">Ваши транзакции будут отображаться здесь</string>
   <string name="asset_state_empty_description">Получить, обменять или купить %1$s</string>
   <string name="asset_verification_unverified">Непроверено</string>
   <string name="asset_verification_suspicious">Подозрительный</string>
@@ -422,7 +421,7 @@
   <string name="price_alerts_set_alert_set_target_price">Установить целевую цену</string>
   <string name="price_alerts_set_alert_current_price">Текущая цена</string>
   <string name="price_alerts_added_for">Установить ценовое оповещение %1$s</string>
-  <string name="price_alerts_state_empty_title">Ваши оповещения о ценах будут появляться здесь️</string>
+  <string name="price_alerts_state_empty_title">Ваши оповещения о ценах будут появляться здесь</string>
   <string name="price_alerts_state_empty_description">Включите их, добавив монеты для отслеживания</string>
   <string name="price_alerts_auto_footer">Оповещения срабатывают при значительных изменениях цены.</string>
   <string name="price_alerts_set_alert_title">Установить оповещение о цене</string>
@@ -437,7 +436,7 @@
   <string name="lock_privacy_lock">Блокировка конфиденциальности</string>
   <string name="lock_footer">Защитите доступ к этому приложению на вашем устройстве</string>
   <string name="verify_phrase_title">Подтвердите</string>
-  <string name="warnings_multi_signature_blocked">Не переводите средства на этот %1$s кошелек Multi-Signature, если вы не уверены, что контролируете закрытые ключи. Невыполнение этого требования может подвергнуть вас мошенничеству, и вы можете навсегда потерять свои активы.</string>
+  <string name="warnings_externally_controlled_account">Этот аккаунт %1$s может контролировать кто-то другой. Не отправляйте на него средства, если вы не уверены, что контролируете его, иначе вы можете навсегда потерять свои активы.</string>
   <string name="sell_title">Продать %1$s</string>
   <string name="info_network_fee_title">Сетевая плата</string>
   <string name="info_watch_wallet_title">Смотреть кошелек</string>
@@ -489,7 +488,7 @@
   <string name="nft_collection">Коллекция</string>
   <string name="nft_save_to_photos">Сохранить в фото</string>
   <string name="nft_set_as_avatar">Установить как аватар</string>
-  <string name="nft_state_empty_title">Ваши NFT будут здесь️</string>
+  <string name="nft_state_empty_title">Ваши NFT будут здесь</string>
   <string name="nft_state_empty_description">Получите свой первый NFT</string>
   <string name="nft_report_reason_spam">Спам</string>
   <string name="nft_report_reason_malicious">Вредоносный</string>

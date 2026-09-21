@@ -66,6 +66,8 @@ public struct AutocloseScene: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarDismissItem(type: .close, placement: .topBarLeading) }
         .onChange(of: focusedField, model.onChangeFocusField)
+        .onChange(of: model.input.takeProfit.text) { _, _ in model.onChangePrice() }
+        .onChange(of: model.input.stopLoss.text) { _, _ in model.onChangePrice() }
     }
 
     private func onSelectConfirm() {

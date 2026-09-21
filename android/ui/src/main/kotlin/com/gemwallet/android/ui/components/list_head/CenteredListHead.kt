@@ -7,14 +7,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.theme.headerIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -48,12 +48,14 @@ fun CenteredListHead(
         }
         when {
             subtitleText == null -> CenteredListHeadTitle(title)
+
             subtitleLayout == CenteredListHeadSubtitleLayout.Horizontal -> Row(
                 horizontalArrangement = Arrangement.spacedBy(paddingHalfSmall),
             ) {
                 CenteredListHeadTitle(title, modifier = Modifier.alignByBaseline())
                 CenteredListHeadSubtitle(subtitleText, modifier = Modifier.alignByBaseline())
             }
+
             else -> {
                 CenteredListHeadTitle(title)
                 Spacer(modifier = Modifier.height(paddingHalfSmall))

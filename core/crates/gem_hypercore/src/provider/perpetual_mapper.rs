@@ -7,8 +7,7 @@ use crate::models::{
     position::{AssetPositions, LeverageType, Position},
 };
 use primitives::{
-    Asset, AssetId, AssetType, Perpetual, PerpetualBalance, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualOrderType, PerpetualPosition, PerpetualProvider,
-    PerpetualTriggerOrder,
+    Asset, AssetId, AssetType, Perpetual, PerpetualBalance, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualOrderType, PerpetualPosition, PerpetualProvider, PerpetualTriggerOrder,
     chart::{ChartCandleStick, ChartDateValue},
     known_assets::USDC_SYMBOL,
     perpetual::{PerpetualData, PerpetualMetadata, PerpetualPositionsSummary},
@@ -40,11 +39,7 @@ pub fn map_perpetual_balance(positions: &AssetPositions) -> PerpetualBalance {
     let available = f64::max(equity - reserved, 0.0);
     let withdrawable = positions.withdrawable.parse().unwrap_or(0.0);
 
-    PerpetualBalance {
-        available,
-        reserved,
-        withdrawable,
-    }
+    PerpetualBalance { available, reserved, withdrawable }
 }
 
 pub fn map_perpetual_balance_from_spot(balances: &Balances) -> PerpetualBalance {
@@ -125,9 +120,7 @@ pub fn map_perpetuals_data(metadata: HypercoreMetadataResponse, perp_dex_index: 
             let asset_id = universe_asset.asset_id();
             let asset_index = perp_asset_index(perp_dex_index, index as u32);
 
-            let current_price = metadata_item
-                .and_then(|m| m.mid_px.as_ref().and_then(|mid| mid.parse().ok()).or_else(|| m.mark_px.parse().ok()))
-                .unwrap_or(0.0);
+            let current_price = metadata_item.and_then(|m| m.mid_px.as_ref().and_then(|mid| mid.parse().ok()).or_else(|| m.mark_px.parse().ok())).unwrap_or(0.0);
 
             let prev_price = metadata_item.and_then(|m| m.prev_day_px.parse().ok()).unwrap_or(0.0);
 
@@ -192,16 +185,13 @@ pub fn map_account_summary(positions: &AssetPositions) -> PerpetualAccountSummar
 }
 
 pub fn map_perpetual_portfolio(response: HypercorePortfolioResponse, positions: &AssetPositions) -> PerpetualPortfolio {
-    let (day, week, month, all_time) = response
-        .timeframes
-        .into_iter()
-        .fold((None, None, None, None), |(day, week, month, all_time), (timeframe, data)| match timeframe.as_str() {
-            "perpDay" => (Some(data.into()), week, month, all_time),
-            "perpWeek" => (day, Some(data.into()), month, all_time),
-            "perpMonth" => (day, week, Some(data.into()), all_time),
-            "perpAllTime" => (day, week, month, Some(data.into())),
-            _ => (day, week, month, all_time),
-        });
+    let (day, week, month, all_time) = response.timeframes.into_iter().fold((None, None, None, None), |(day, week, month, all_time), (timeframe, data)| match timeframe.as_str() {
+        "perpDay" => (Some(data.into()), week, month, all_time),
+        "perpWeek" => (day, Some(data.into()), month, all_time),
+        "perpMonth" => (day, week, Some(data.into()), all_time),
+        "perpAllTime" => (day, week, month, Some(data.into())),
+        _ => (day, week, month, all_time),
+    });
 
     PerpetualPortfolio {
         day,
@@ -224,11 +214,7 @@ pub fn map_account_summary_aggregate(positions: &[AssetPositions]) -> PerpetualA
     let account_value: f64 = positions.iter().map(|p| p.margin_summary.account_value.parse().unwrap_or(0.0)).sum();
     let total_ntl_pos: f64 = positions.iter().map(|p| p.margin_summary.total_ntl_pos.parse().unwrap_or(0.0)).sum();
     let total_margin_used: f64 = positions.iter().map(|p| p.margin_summary.total_margin_used.parse().unwrap_or(0.0)).sum();
-    let unrealized_pnl: f64 = positions
-        .iter()
-        .flat_map(|p| &p.asset_positions)
-        .map(|p| p.position.unrealized_pnl.parse().unwrap_or(0.0))
-        .sum();
+    let unrealized_pnl: f64 = positions.iter().flat_map(|p| &p.asset_positions).map(|p| p.position.unrealized_pnl.parse().unwrap_or(0.0)).sum();
 
     let account_leverage = if account_value > 0.0 { total_ntl_pos / account_value } else { 0.0 };
     let margin_usage = if account_value > 0.0 { total_margin_used / account_value } else { 0.0 };
@@ -291,36 +277,29 @@ fn merge_chart_histories(values: Vec<Vec<ChartDateValue>>) -> Vec<ChartDateValue
 }
 
 fn determine_order_type(order_type_str: &str) -> PerpetualOrderType {
-    if order_type_str.to_lowercase().contains("market") {
-        PerpetualOrderType::Market
-    } else {
-        PerpetualOrderType::Limit
-    }
+    if order_type_str.to_lowercase().contains("market") { PerpetualOrderType::Market } else { PerpetualOrderType::Limit }
 }
 
 pub fn map_tp_sl_from_orders(orders: &[OpenOrder], coin: &str) -> (Option<PerpetualTriggerOrder>, Option<PerpetualTriggerOrder>) {
-    orders
-        .iter()
-        .filter(|o| o.is_position_tpsl && o.coin == coin)
-        .fold((None, None), |(tp, sl), order| match order.trigger_px {
-            Some(price) if order.order_type.to_lowercase().contains("take profit") => (
-                Some(PerpetualTriggerOrder {
-                    price,
-                    order_type: determine_order_type(&order.order_type),
-                    order_id: order.oid.to_string(),
-                }),
-                sl,
-            ),
-            Some(price) if order.order_type.to_lowercase().contains("stop") => (
-                tp,
-                Some(PerpetualTriggerOrder {
-                    price,
-                    order_type: determine_order_type(&order.order_type),
-                    order_id: order.oid.to_string(),
-                }),
-            ),
-            _ => (tp, sl),
-        })
+    orders.iter().filter(|o| o.is_position_tpsl && o.coin == coin).fold((None, None), |(tp, sl), order| match order.trigger_px {
+        Some(price) if order.order_type.to_lowercase().contains("take profit") => (
+            Some(PerpetualTriggerOrder {
+                price,
+                order_type: determine_order_type(&order.order_type),
+                order_id: order.oid.to_string(),
+            }),
+            sl,
+        ),
+        Some(price) if order.order_type.to_lowercase().contains("stop") => (
+            tp,
+            Some(PerpetualTriggerOrder {
+                price,
+                order_type: determine_order_type(&order.order_type),
+                order_id: order.oid.to_string(),
+            }),
+        ),
+        _ => (tp, sl),
+    })
 }
 
 #[cfg(test)]
@@ -766,10 +745,7 @@ mod tests {
     fn test_map_tp_sl_from_orders_market() {
         use crate::testkit::*;
 
-        let orders = vec![
-            OpenOrder::mock("BTC", 123456789, "Stop Market", 40000.0, None),
-            OpenOrder::mock("BTC", 987654321, "Take Profit Market", 60000.0, None),
-        ];
+        let orders = vec![OpenOrder::mock("BTC", 123456789, "Stop Market", 40000.0, None), OpenOrder::mock("BTC", 987654321, "Take Profit Market", 60000.0, None)];
 
         let (take_profit, stop_loss) = map_tp_sl_from_orders(&orders, "BTC");
 

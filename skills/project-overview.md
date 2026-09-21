@@ -22,7 +22,7 @@ The apps share the same product domains: chains, assets, wallets, transactions, 
 | Data | Store (SQLite) + Services | Room + Repositories | — |
 | Blockchain and domain services | Gemstone (FFI) | Gemstone (JNI) | Rust `core/` |
 
-Domain decisions live in Core-owned Gemstone services; each app implements the store trait and maps the returned record to its UI. The reference is [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md); the migration backlog is [docs/SERVICES.md](../docs/SERVICES.md).
+Domain decisions live in Core-owned Gemstone services; each app implements the store trait and maps the returned record to its UI. The reference is [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md); the migration backlog is [docs/TODO.md](../docs/TODO.md).
 
 Read the repo root guide first, then load the relevant platform guides:
 

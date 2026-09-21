@@ -120,7 +120,9 @@ public struct ReceiveScene: View {
         .task(id: model.address) {
             await model.onLoadImage()
         }
-        .taskOnce(model.onTaskOnce)
+        .task(id: model.assetModel.asset.id) {
+            await model.onChangeAsset()
+        }
     }
 }
 

@@ -10,15 +10,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.style.textStyle
 
 @Composable
-internal fun AssetsHead(
-    walletSummary: WalletSummaryAggregate?,
-    onSendClick: () -> Unit,
-    onReceiveClick: () -> Unit,
-    onBuyClick: () -> Unit,
-    onSwapClick: () -> Unit,
-    onHideBalances: () -> Unit,
-    onPortfolio: () -> Unit,
-) {
+internal fun AssetsHead(walletSummary: WalletSummaryAggregate?, onSendClick: () -> Unit, onReceiveClick: () -> Unit, onBuyClick: () -> Unit, onSwapClick: () -> Unit, onHideBalances: () -> Unit, onPortfolio: () -> Unit) {
     walletSummary ?: return
 
     AmountListHead(
@@ -40,6 +32,6 @@ internal fun AssetsHead(
                     onSwap = onSwapClick,
                 ),
             )
-        }
+        },
     )
 }

@@ -6,11 +6,9 @@ import SwiftUI
 
 public struct TransactionsList: View {
     private let sections: [ListSection<TransactionViewModel>]
-    private let currency: Currency
 
-    public init(sections: [ListSection<TransactionViewModel>], currency: Currency) {
+    public init(sections: [ListSection<TransactionViewModel>]) {
         self.sections = sections
-        self.currency = currency
     }
 
     public var body: some View {
@@ -18,7 +16,7 @@ public struct TransactionsList: View {
             Section {
                 ForEach(section.values) { model in
                     NavigationLink(value: Scenes.Transaction(transaction: model.transaction)) {
-                        TransactionView(model: model, currency: currency)
+                        TransactionView(model: model)
                     }
                 }
             } header: {

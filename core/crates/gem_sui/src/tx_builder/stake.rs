@@ -34,11 +34,7 @@ fn build_split_and_stake_ptb(input: &StakeInput) -> Result<TransactionBuilder, B
     let mut ptb = TransactionBuilder::new();
 
     let stake_coin = if input.coins.address_balance >= input.stake_amount {
-        let coin_type: TypeTag = input
-            .coins
-            .coin_type
-            .parse()
-            .map_err(|err| format!("invalid Sui native coin type {}: {err}", input.coins.coin_type))?;
+        let coin_type: TypeTag = input.coins.coin_type.parse().map_err(|err| format!("invalid Sui native coin type {}: {err}", input.coins.coin_type))?;
         ptb.funds_withdrawal_coin(coin_type, input.stake_amount)
     } else {
         let stake_amount = ptb.pure(&input.stake_amount);
@@ -48,11 +44,7 @@ fn build_split_and_stake_ptb(input: &StakeInput) -> Result<TransactionBuilder, B
     };
 
     // move call request_add_stake
-    let function = Function::new(
-        ObjectId::from(SUI_SYSTEM_PACKAGE_ID).into(),
-        Identifier::new(SUI_SYSTEM_ID)?,
-        Identifier::new(SUI_REQUEST_ADD_STAKE)?,
-    );
+    let function = Function::new(ObjectId::from(SUI_SYSTEM_PACKAGE_ID).into(), Identifier::new(SUI_SYSTEM_ID)?, Identifier::new(SUI_REQUEST_ADD_STAKE)?);
 
     let sys_state = ptb.object(sui_system_state_object_input());
     let validator_argument = ptb.pure(&validator);
@@ -65,8 +57,7 @@ fn build_split_and_stake_ptb(input: &StakeInput) -> Result<TransactionBuilder, B
 pub fn encode_split_and_stake(input: &StakeInput) -> Result<TxOutput, Box<dyn Error + Send + Sync>> {
     let ptb = build_split_and_stake_ptb(input)?;
     let gas_objects = input.coins.coins.iter().map(|x| x.object.to_input()).collect::<Vec<_>>();
-    finish_transaction(ptb, TransactionBuilderInput::new(input.sender.as_str(), input.gas.price, input.gas.budget, gas_objects))
-        .map_err(|err| Box::new(err) as Box<dyn Error + Send + Sync>)
+    finish_transaction(ptb, TransactionBuilderInput::new(input.sender.as_str(), input.gas.price, input.gas.budget, gas_objects)).map_err(|err| Box::new(err) as Box<dyn Error + Send + Sync>)
 }
 
 fn build_unstake_ptb(input: &UnstakeInput) -> Result<(TransactionBuilder, ObjectInput), Box<dyn Error + Send + Sync>> {
@@ -74,11 +65,7 @@ fn build_unstake_ptb(input: &UnstakeInput) -> Result<(TransactionBuilder, Object
 
     let staked_sui = ptb.object(input.staked_sui.to_input());
     let gas_coin = input.gas_coin.to_input();
-    let function = Function::new(
-        ObjectId::from(SUI_SYSTEM_PACKAGE_ID).into(),
-        Identifier::new(SUI_SYSTEM_ID)?,
-        Identifier::new(SUI_REQUEST_WITHDRAW_STAKE)?,
-    );
+    let function = Function::new(ObjectId::from(SUI_SYSTEM_PACKAGE_ID).into(), Identifier::new(SUI_SYSTEM_ID)?, Identifier::new(SUI_REQUEST_WITHDRAW_STAKE)?);
 
     let sys_state = ptb.object(sui_system_state_object_input());
 
@@ -89,8 +76,7 @@ fn build_unstake_ptb(input: &UnstakeInput) -> Result<(TransactionBuilder, Object
 
 pub fn encode_unstake(input: &UnstakeInput) -> Result<TxOutput, Box<dyn Error + Send + Sync>> {
     let (ptb, gas_coin) = build_unstake_ptb(input)?;
-    finish_transaction(ptb, TransactionBuilderInput::new(input.sender.as_str(), input.gas.price, input.gas.budget, vec![gas_coin]))
-        .map_err(|err| Box::new(err) as Box<dyn Error + Send + Sync>)
+    finish_transaction(ptb, TransactionBuilderInput::new(input.sender.as_str(), input.gas.price, input.gas.budget, vec![gas_coin])).map_err(|err| Box::new(err) as Box<dyn Error + Send + Sync>)
 }
 
 #[cfg(test)]

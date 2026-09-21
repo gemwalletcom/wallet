@@ -13,14 +13,6 @@ public extension GemPreferencesServiceProtocol {
         try setCurrency(currency: currency.toGem())
     }
 
-    var chartPeriodValue: ChartPeriod {
-        getChartPeriod().toPrimitives()
-    }
-
-    func setChartPeriodValue(_ period: ChartPeriod) {
-        try? setChartPeriod(period: period.toGem())
-    }
-
     var appearanceValue: Primitives.Appearance {
         getAppearance().toPrimitives()
     }
@@ -31,9 +23,5 @@ public extension GemPreferencesServiceProtocol {
 
     func showPerpetuals(for wallet: Wallet) -> Bool {
         showPerpetuals(walletType: wallet.type.toGem(), chains: wallet.chains.map(\.rawValue))
-    }
-
-    func showCollections(for wallet: Wallet) -> Bool {
-        showCollections(walletType: wallet.type.toGem(), chains: wallet.chains.map(\.rawValue))
     }
 }

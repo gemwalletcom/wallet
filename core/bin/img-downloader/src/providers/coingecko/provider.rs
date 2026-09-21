@@ -34,13 +34,7 @@ impl ImageListProvider for CoingeckoProvider {
         }
 
         let pages = self.config.top.count.div_ceil(MAX_MARKETS_PER_PAGE);
-        let markets = self
-            .client
-            .get_all_coin_markets(None, MAX_MARKETS_PER_PAGE, pages)
-            .await?
-            .into_iter()
-            .take(self.config.top.count)
-            .collect();
+        let markets = self.client.get_all_coin_markets(None, MAX_MARKETS_PER_PAGE, pages).await?.into_iter().take(self.config.top.count).collect();
         let coins = self.client.get_coin_list().await?;
         Ok(mapper::map_market_images(markets, mapper::coins_by_id(coins)))
     }

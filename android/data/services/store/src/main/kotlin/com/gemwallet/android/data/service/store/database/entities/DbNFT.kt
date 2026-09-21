@@ -91,7 +91,4 @@ data class DbNFTAsset(
     ],
     indices = [Index("asset_id")],
 )
-data class DbNFTAssociation(
-    @ColumnInfo("wallet_id") val walletId: String,
-    @ColumnInfo("asset_id") val assetId: NFTAssetId,
-)
+data class DbNFTAssociation(@ColumnInfo("wallet_id") val walletId: String, @ColumnInfo("asset_id") val assetId: NFTAssetId)

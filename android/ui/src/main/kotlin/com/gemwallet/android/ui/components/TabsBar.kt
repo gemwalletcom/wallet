@@ -1,12 +1,12 @@
 package com.gemwallet.android.ui.components
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
@@ -28,14 +28,7 @@ import com.gemwallet.android.ui.theme.paddingHalfSmall
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun <T> TabsBar(
-    tabs: List<T>,
-    selected: T,
-    onSelect: (T) -> Unit,
-    scrollable: Boolean = false,
-    equalWidth: Boolean = true,
-    itemContent: @Composable RowScope.(T) -> Unit
-) {
+fun <T> TabsBar(tabs: List<T>, selected: T, onSelect: (T) -> Unit, scrollable: Boolean = false, equalWidth: Boolean = true, itemContent: @Composable RowScope.(T) -> Unit) {
     if (tabs.isEmpty()) {
         return
     }
@@ -51,17 +44,17 @@ fun <T> TabsBar(
                     Modifier.horizontalScroll(scrollState)
                 } else {
                     Modifier
-                }
+                },
             ),
         horizontalArrangement = Arrangement.spacedBy(paddingHalfSmall),
     ) {
         tabs.forEachIndexed { index, item ->
             ToggleButton(
                 modifier = if (equalWidth && itemsWidth.size == tabs.size) {
-                        Modifier.width(itemsWidth.values.max())
-                    } else {
-                        Modifier
-                    }.semantics { role = Role.RadioButton }
+                    Modifier.width(itemsWidth.values.max())
+                } else {
+                    Modifier
+                }.semantics { role = Role.RadioButton }
                     .then(
                         if (equalWidth) {
                             Modifier.onGloballyPositioned { coordinates ->
@@ -70,7 +63,7 @@ fun <T> TabsBar(
                             }
                         } else {
                             Modifier
-                        }
+                        },
                     ),
                 checked = item == selected,
                 onCheckedChange = { onSelect(item) },
@@ -86,7 +79,7 @@ fun <T> TabsBar(
                     else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                         .copy(checkedShape = ShapeDefaults.Small)
                 },
-                content = { itemContent(item) }
+                content = { itemContent(item) },
             )
         }
     }

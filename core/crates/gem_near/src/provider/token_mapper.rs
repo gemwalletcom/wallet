@@ -11,13 +11,7 @@ pub fn map_token_balance(token_id: &str, value: &str) -> Result<AssetBalance, Bo
 }
 
 pub fn map_token_data(token_id: &str, metadata: FungibleTokenMetadata) -> Asset {
-    Asset::new(
-        AssetId::from_token(Chain::Near, token_id),
-        metadata.name,
-        metadata.symbol,
-        metadata.decimals.into(),
-        AssetType::TOKEN,
-    )
+    Asset::new(AssetId::from_token(Chain::Near, token_id), metadata.name, metadata.symbol, metadata.decimals.into(), AssetType::TOKEN)
 }
 
 #[cfg(test)]

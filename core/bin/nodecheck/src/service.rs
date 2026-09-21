@@ -35,12 +35,7 @@ impl NodeCheckService {
                 report.is_healthy()
             }
             Err(error) => {
-                table.row(
-                    ResultStatus::Failed,
-                    "node_status",
-                    status_started.elapsed().as_millis().try_into().ok(),
-                    &error.to_string(),
-                );
+                table.row(ResultStatus::Failed, "node_status", status_started.elapsed().as_millis().try_into().ok(), &error.to_string());
                 false
             }
         };

@@ -93,14 +93,9 @@ impl WalletConnectionMethods {
 
     pub fn chain_type(&self) -> ChainType {
         match self {
-            Self::EthChainId
-            | Self::PersonalSign
-            | Self::EthSignTypedData
-            | Self::EthSignTypedDataV4
-            | Self::EthSignTransaction
-            | Self::EthSendTransaction
-            | Self::WalletSwitchEthereumChain
-            | Self::WalletAddEthereumChain => ChainType::Ethereum,
+            Self::EthChainId | Self::PersonalSign | Self::EthSignTypedData | Self::EthSignTypedDataV4 | Self::EthSignTransaction | Self::EthSendTransaction | Self::WalletSwitchEthereumChain | Self::WalletAddEthereumChain => {
+                ChainType::Ethereum
+            }
             Self::SolanaSignMessage | Self::SolanaSignTransaction | Self::SolanaSignAndSendTransaction | Self::SolanaSignAllTransactions => ChainType::Solana,
             Self::SuiGetAccounts | Self::SuiSignPersonalMessage | Self::SuiSignTransaction | Self::SuiSignAndExecuteTransaction => ChainType::Sui,
             Self::TonSendMessage | Self::TonSignData => ChainType::Ton,

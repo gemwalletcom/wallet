@@ -6,7 +6,9 @@ public enum ConnectivityState: Equatable, Sendable {
     case unsatisfied(UnavailableReason)
 
     public var isOffline: Bool {
-        if case .unsatisfied = self { return true }
+        if case .unsatisfied = self {
+            return true
+        }
         return false
     }
 }

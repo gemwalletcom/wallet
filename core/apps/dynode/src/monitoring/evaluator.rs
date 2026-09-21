@@ -21,13 +21,7 @@ pub(super) struct NodeHealthEvaluator {
 }
 
 impl NodeHealthEvaluator {
-    pub(super) fn new(
-        chain_config: ChainConfig,
-        latency_threshold: Option<Duration>,
-        request: NodeCheckRequest,
-        nodes: Arc<RwLock<HashMap<Chain, Url>>>,
-        metrics: Arc<Metrics>,
-    ) -> Self {
+    pub(super) fn new(chain_config: ChainConfig, latency_threshold: Option<Duration>, request: NodeCheckRequest, nodes: Arc<RwLock<HashMap<Chain, Url>>>, metrics: Arc<Metrics>) -> Self {
         Self {
             chain_config,
             latency_threshold,
@@ -96,8 +90,7 @@ impl NodeHealthEvaluator {
 
     async fn observe_node(&self, current: &Url, url: Url) -> NodeStatusObservation {
         let observation = observe_node(self.chain_config.chain, &self.request, url).await;
-        self.metrics
-            .record_node_monitor_observation(self.chain_config.chain.as_ref(), &observation.url.host(), &observation.state, observation.latency);
+        self.metrics.record_node_monitor_observation(self.chain_config.chain.as_ref(), &observation.url.host(), &observation.state, observation.latency);
         NodeTelemetry::log_observation(self.chain_config.chain, current, &observation);
         observation
     }
@@ -119,8 +112,7 @@ impl NodeHealthEvaluator {
         };
 
         self.metrics.move_node_host_current(self.chain_config.chain.as_ref(), &old_host, &new_host);
-        self.metrics
-            .add_node_switch(self.chain_config.chain.as_ref(), &old_host, &new_host, &reason.metric_reason());
+        self.metrics.add_node_switch(self.chain_config.chain.as_ref(), &old_host, &new_host, &reason.metric_reason());
         true
     }
 
@@ -156,18 +148,10 @@ mod tests {
         let nodes = Arc::new(RwLock::new(HashMap::from([(chain_config.chain, Url::mock("https://a"))])));
         let evaluator = NodeHealthEvaluator::new(chain_config, None, NodeCheckRequest::Basic, nodes, Arc::new(Metrics::mock()));
 
-        assert!(
-            evaluator
-                .switch_if_current(&Url::mock("https://a"), &Url::mock("https://b"), &NodeSwitchReason::PreferredNode)
-                .await
-        );
+        assert!(evaluator.switch_if_current(&Url::mock("https://a"), &Url::mock("https://b"), &NodeSwitchReason::PreferredNode).await);
         assert_eq!(*evaluator.nodes.read().await.get(&Chain::Ethereum).unwrap(), Url::mock("https://b"));
 
-        assert!(
-            !evaluator
-                .switch_if_current(&Url::mock("https://a"), &Url::mock("https://c"), &NodeSwitchReason::PreferredNode)
-                .await
-        );
+        assert!(!evaluator.switch_if_current(&Url::mock("https://a"), &Url::mock("https://c"), &NodeSwitchReason::PreferredNode).await);
         assert_eq!(*evaluator.nodes.read().await.get(&Chain::Ethereum).unwrap(), Url::mock("https://b"));
     }
 }

@@ -6,7 +6,7 @@ use swapper::{Quote, SwapperProvider};
 
 use super::GemSwapService;
 use super::model::{GemSwapButtonInput, GemSwapPair};
-use super::session::{GemSwapQuotesResult, GemSwapRequest, GemSwapSession};
+use super::session::{GemSwapQuoteInput, GemSwapQuotesResult, GemSwapRequest, GemSwapSession};
 use super::store::GemSwapStore;
 use crate::gem_swapper::GemSwapper;
 use crate::keystore::GemKeystore;
@@ -98,11 +98,15 @@ impl GemSwapQuotesResult {
 
 impl GemSwapSession {
     pub fn mock_ready() -> Self {
-        Self::default()
+        let session = Self::default()
             .on_request_changed(Some(GemSwapRequest::mock()))
-            .on_quote_results(GemSwapQuotesResult::mock(vec![
-                Quote::mock_with_provider(SwapperProvider::Okx, "10"),
-                Quote::mock_with_provider(SwapperProvider::Jupiter, "9"),
-            ]))
+            .on_quote_results(GemSwapQuotesResult::mock(vec![Quote::mock_with_provider(SwapperProvider::Okx, "10"), Quote::mock_with_provider(SwapperProvider::Jupiter, "9")]));
+        Self {
+            input: Some(GemSwapQuoteInput {
+                request: GemSwapRequest::mock(),
+                use_max_amount: false,
+            }),
+            ..session
+        }
     }
 }

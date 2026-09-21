@@ -10,9 +10,9 @@ use primitives::chart::ChartCandleStick;
 use primitives::perpetual::{PerpetualAccountMode, PerpetualData, PerpetualPositionsSummary};
 use primitives::portfolio::PerpetualPortfolio;
 use primitives::{
-    AddressStatus, Asset, AssetBalance, AssetId, BroadcastOptions, Chain, ChainRequest, ChainRequestType, ChartPeriod, DelegationBase, DelegationValidator, FeeRate,
-    NodeCheckReport, NodeCheckRequest, NodeStatus, NodeSyncStatus, PerpetualPosition, SimulationInput, SimulationResult, Transaction, TransactionFee, TransactionInputType,
-    TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, TransactionStateRequest, TransactionUpdate, UTXO,
+    AddressStatus, Asset, AssetBalance, AssetId, BroadcastOptions, Chain, ChainRequest, ChainRequestType, ChartPeriod, DelegationBase, DelegationValidator, FeeRate, NodeCheckReport, NodeCheckRequest, NodeStatus, NodeSyncStatus,
+    PerpetualPosition, SimulationInput, SimulationResult, Transaction, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, TransactionStateRequest,
+    TransactionUpdate, UTXO,
 };
 
 pub mod node_check;

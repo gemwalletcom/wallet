@@ -1,9 +1,10 @@
 use primitives::name::NameRecord;
+use primitives::{AddressName, AddressType, Chain};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemNameRecordState {
     None,
-    Loading { name: String },
+    Loading { name: String, chain: Chain },
     Error,
     Complete { record: NameRecord },
 }
@@ -16,10 +17,10 @@ impl GemNameRecordState {
 }
 
 impl GemNameRecordState {
-    pub fn requested_name(&self) -> Option<String> {
+    pub fn requested(&self) -> Option<(String, Chain)> {
         match self {
-            Self::Loading { name } => Some(name.clone()),
-            Self::Complete { record } => Some(record.name.clone()),
+            Self::Loading { name, chain } => Some((name.clone(), *chain)),
+            Self::Complete { record } => Some((record.name.clone(), record.chain)),
             Self::None | Self::Error => None,
         }
     }
@@ -44,4 +45,10 @@ pub enum GemNameInputStep {
     Unchanged,
     Reset,
     Resolve { name: String, debounce_milliseconds: u64 },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAddressNameUpdate {
+    pub name: AddressName,
+    pub replaces_types: Vec<AddressType>,
 }

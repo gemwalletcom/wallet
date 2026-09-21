@@ -43,12 +43,9 @@ pub struct RelayRequest {
 
 impl RelayRequest {
     pub fn has_input_transaction(&self, transaction_hashes: &[Vec<u8>]) -> bool {
-        self.data.as_ref().is_some_and(|data| {
-            data.in_txs
-                .iter()
-                .filter_map(|transaction| decode_hex(transaction.tx_hash.as_deref()?).ok())
-                .any(|hash| transaction_hashes.contains(&hash))
-        })
+        self.data
+            .as_ref()
+            .is_some_and(|data| data.in_txs.iter().filter_map(|transaction| decode_hex(transaction.tx_hash.as_deref()?).ok()).any(|hash| transaction_hashes.contains(&hash)))
     }
 }
 

@@ -26,11 +26,7 @@ import com.gemwallet.android.ui.theme.space6
 import com.gemwallet.android.ui.theme.space8
 
 @Composable
-fun PhraseLayout(
-    rows: List<PhraseRow>,
-    modifier: Modifier = Modifier,
-    highlightIndex: Int? = null,
-) {
+fun PhraseLayout(rows: List<PhraseRow>, modifier: Modifier = Modifier, highlightIndex: Int? = null) {
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -44,6 +40,7 @@ fun PhraseLayout(
                     PhraseWordItem(row.left, isHighlighted = row.left.index == highlightIndex, modifier = Modifier.weight(1f))
                     PhraseWordItem(row.right, isHighlighted = row.right.index == highlightIndex, modifier = Modifier.weight(1f))
                 }
+
                 is PhraseRow.Single -> PhraseWordItem(row.word, isHighlighted = row.word.index == highlightIndex)
             }
             Spacer(modifier = Modifier.height(space8))
@@ -52,11 +49,7 @@ fun PhraseLayout(
 }
 
 @Composable
-private fun PhraseWordItem(
-    word: PhraseWord,
-    isHighlighted: Boolean,
-    modifier: Modifier = Modifier,
-) {
+private fun PhraseWordItem(word: PhraseWord, isHighlighted: Boolean, modifier: Modifier = Modifier) {
     val verticalPadding = adaptivePadding(default = space10, compact = space6)
 
     Surface(
@@ -64,11 +57,11 @@ private fun PhraseWordItem(
         shadowElevation = space1,
         shape = RoundedCornerShape(space10),
         color = MaterialTheme.colorScheme.background,
-        border = if (isHighlighted) BorderStroke(space2, MaterialTheme.colorScheme.primary) else null
+        border = if (isHighlighted) BorderStroke(space2, MaterialTheme.colorScheme.primary) else null,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = paddingDefault, vertical = verticalPadding),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 text = "${word.index + 1}.",

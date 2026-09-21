@@ -19,7 +19,9 @@ impl GemSubscriptionService {
     pub fn new(api: Arc<GemDeviceApiClient>, store: Arc<dyn GemWalletStore>) -> Self {
         Self { api, store }
     }
+}
 
+impl GemSubscriptionService {
     pub async fn sync(&self) -> Result<bool, GemServiceError> {
         let local = rules::wallet_subscriptions(&self.store.get_wallets().await?);
         let remote = self.api.client.get_subscriptions().await.map_err(GemApiError::from)?;

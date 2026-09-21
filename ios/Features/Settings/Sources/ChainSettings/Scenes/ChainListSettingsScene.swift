@@ -23,7 +23,7 @@ public struct ChainListSettingsScene: View {
                 }
             }
 
-            Section("Chains") {
+            Section(Localized.Settings.Networks.title) {
                 ForEach(filteredChains) { chain in
                     NavigationLink(value: Scenes.ChainSettings(chain: chain)) {
                         ChainView(model: ChainViewModel(chain: chain))

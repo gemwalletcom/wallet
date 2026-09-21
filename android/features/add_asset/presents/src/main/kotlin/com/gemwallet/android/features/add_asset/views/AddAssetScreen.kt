@@ -18,20 +18,14 @@ import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.QRScanType
 
 @Composable
-fun AddAssetScreen(
-    onFinish: () -> Unit,
-    onCancel: () -> Unit,
-    viewModel: AddAssetViewModel = hiltViewModel(),
-) {
+fun AddAssetScreen(onFinish: () -> Unit, onCancel: () -> Unit, viewModel: AddAssetViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val availableChains by viewModel.availableChains.collectAsStateWithLifecycle()
     val chains by viewModel.chains.collectAsStateWithLifecycle()
     val network by viewModel.selectedChain.collectAsStateWithLifecycle()
-    val token by viewModel.token.collectAsStateWithLifecycle()
-    val assetRows by viewModel.assetRows.collectAsStateWithLifecycle()
+    val sections by viewModel.sections.collectAsStateWithLifecycle()
     val isSearching by viewModel.isSearching.collectAsStateWithLifecycle()
-    val searchFailed by viewModel.searchFailed.collectAsStateWithLifecycle()
-    val explorerLink by viewModel.explorerLink.collectAsStateWithLifecycle()
+    val verificationWarningRow by viewModel.verificationWarningRow.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = uiState.error?.text(), iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 
@@ -45,7 +39,7 @@ fun AddAssetScreen(
         transitionSpec = {
             navigationSlideTransition(forward = targetState)
         },
-        label = "phrase"
+        label = "phrase",
     ) { isSelectChain ->
         if (isSelectChain) {
             SelectChain(
@@ -57,12 +51,10 @@ fun AddAssetScreen(
         } else {
             AddAssetScene(
                 isSearching = isSearching,
-                searchFailed = searchFailed,
                 addressState = viewModel.addressState,
                 network = network?.asset(),
-                token = token,
-                assetRows = assetRows,
-                explorerLink = explorerLink,
+                sections = sections,
+                verificationWarningRow = verificationWarningRow,
                 buttonState = buttonState,
                 canSelectChain = (availableChains?.size ?: 0) > 1,
                 snackbar = snackbar,

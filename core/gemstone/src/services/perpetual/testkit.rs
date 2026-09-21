@@ -3,14 +3,15 @@ use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
 use num_bigint::BigInt;
+use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::perpetual::PerpetualData;
-use primitives::{Asset, AutocloseValidation, PerpetualDirection, PerpetualMarginType, PerpetualMarketData, PerpetualPosition, PerpetualProvider, TpslType, Wallet, WalletId};
+use primitives::{Asset, AssetBasic, AssetId, AssetProperties, AssetScore, AutocloseValidation, PerpetualDirection, PerpetualMarginType, PerpetualMarketData, PerpetualPosition, PerpetualProvider, TpslType, Wallet, WalletId};
 
 use super::model::{GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualTransferData};
 use super::{GemAutocloseField, GemAutocloseModify, GemPerpetualService, GemPerpetualStore};
 use crate::gateway::GemGateway;
-use crate::services::assets::GemAssetsService;
 use crate::services::assets::testkit::MemoryAssetStore;
+use crate::services::assets::{GemAssetStore, GemAssetsService};
 use crate::services::balance::GemBalanceService;
 use crate::services::balance::testkit::MemoryBalanceStore;
 use crate::services::error::GemServiceError;
@@ -36,18 +37,24 @@ pub struct MemoryPerpetualStore {
     pub markets: Mutex<Vec<PerpetualMarketData>>,
     pub price_writes: Mutex<Vec<HashMap<String, f64>>>,
     pub deleted: Mutex<u32>,
+    pub cleared_collateral: Mutex<Vec<Vec<AssetId>>>,
+    pub perpetual_writes: Mutex<Vec<Vec<PerpetualData>>>,
+    pub pin_writes: Mutex<Vec<(Vec<String>, bool)>>,
 }
 
 #[async_trait]
 impl GemPerpetualStore for MemoryPerpetualStore {
-    async fn save_perpetuals(&self, _: Vec<PerpetualData>) -> Result<(), GemServiceError> {
+    async fn save_perpetuals(&self, perpetuals: Vec<PerpetualData>) -> Result<(), GemServiceError> {
+        self.perpetual_writes.lock().unwrap().push(perpetuals);
         Ok(())
     }
-    async fn set_pinned(&self, _: Vec<String>, _: bool) -> Result<(), GemServiceError> {
+    async fn set_pinned(&self, ids: Vec<String>, pinned: bool) -> Result<(), GemServiceError> {
+        self.pin_writes.lock().unwrap().push((ids, pinned));
         Ok(())
     }
-    async fn delete_perpetuals(&self) -> Result<(), GemServiceError> {
+    async fn clear_perpetuals(&self, collateral_asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
         *self.deleted.lock().unwrap() += 1;
+        self.cleared_collateral.lock().unwrap().push(collateral_asset_ids);
         Ok(())
     }
     async fn get_positions(&self, _: WalletId, _: PerpetualProvider) -> Result<Vec<PerpetualPosition>, GemServiceError> {
@@ -74,6 +81,7 @@ pub struct PerpetualTestkit {
     pub service: GemPerpetualService,
     pub provider: Arc<TestAlienProvider>,
     pub store: Arc<MemoryPerpetualStore>,
+    pub asset_store: Arc<MemoryAssetStore>,
     pub wallets: Arc<MemoryWalletStore>,
     pub balances: Arc<MemoryBalanceStore>,
     pub preferences: Arc<GemPreferencesService>,
@@ -83,6 +91,30 @@ pub struct PerpetualTestkit {
 
 impl PerpetualTestkit {
     pub fn new() -> Self {
+        Self::with_provider(TestAlienProvider::with_status(503))
+    }
+
+    pub async fn with_unified_balance() -> Self {
+        let testkit = Self::with_provider(TestAlienProvider::with_json_by_request_type(&[
+            ("userAbstraction", r#""unifiedAccount""#),
+            (
+                "clearinghouseState",
+                r#"{"assetPositions":[],"marginSummary":{"accountValue":"0","totalNtlPos":"0","totalRawUsd":"0","totalMarginUsed":"0"},"crossMarginSummary":{"accountValue":"0","totalNtlPos":"0","totalRawUsd":"0","totalMarginUsed":"0"},"crossMaintenanceMarginUsed":"0","withdrawable":"0"}"#,
+            ),
+            (
+                "spotClearinghouseState",
+                r#"{"balances":[{"coin":"USDC","token":0,"total":"12.093224","hold":"0","entryNtl":"0"}],"tokenToAvailableAfterMaintenance":[[0,"12.093224"]]}"#,
+            ),
+        ]));
+        testkit
+            .asset_store
+            .save_assets(vec![AssetBasic::new(HYPERCORE_PERPETUAL_USDC.clone(), AssetProperties::default(HYPERCORE_PERPETUAL_USDC.id.clone()), AssetScore::new(0))])
+            .await
+            .unwrap();
+        testkit
+    }
+
+    fn with_provider(provider: TestAlienProvider) -> Self {
         let wallet = Wallet::mock();
         let preferences_store = Arc::new(MemoryPreferencesStore::default());
         let preferences = Arc::new(GemPreferencesService::new(preferences_store.clone()));
@@ -96,13 +128,8 @@ impl PerpetualTestkit {
             }),
             wallets.clone(),
         ));
-        let provider = Arc::new(TestAlienProvider::with_status(503));
-        let gateway = Arc::new(GemGateway::new(
-            provider.clone(),
-            Arc::new(GemNodeService::mock()),
-            preferences_store,
-            Arc::new(EmptyPreferences),
-        ));
+        let provider = Arc::new(provider);
+        let gateway = Arc::new(GemGateway::new(provider.clone(), Arc::new(GemNodeService::mock()), preferences_store, Arc::new(EmptyPreferences)));
         let price = Arc::new(GemPriceService::new(Arc::new(MemoryPriceStore::default())));
         let asset_store = Arc::new(MemoryAssetStore::default());
         let assets = Arc::new(GemAssetsService::mock(provider.clone(), asset_store.clone()));
@@ -112,7 +139,7 @@ impl PerpetualTestkit {
             wallets.clone(),
             asset_store.clone(),
             balances.clone(),
-            assets,
+            assets.clone(),
             Arc::new(SubscriptionTestkit::new(&[], &[]).service),
         ));
         let wallet_preferences = Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default())));
@@ -121,7 +148,7 @@ impl PerpetualTestkit {
             gateway,
             price,
             store.clone(),
-            asset_store,
+            assets,
             preferences.clone(),
             balance,
             wallet_preferences.clone(),
@@ -132,6 +159,7 @@ impl PerpetualTestkit {
             service,
             provider,
             store,
+            asset_store,
             wallets,
             balances,
             preferences,
@@ -202,7 +230,7 @@ impl GemAutocloseModify {
     pub fn mock(take_profit: GemAutocloseField, stop_loss: GemAutocloseField) -> Self {
         Self {
             direction: PerpetualDirection::Long,
-            asset_index: 5,
+            asset_index: Some(5),
             take_profit,
             stop_loss,
         }

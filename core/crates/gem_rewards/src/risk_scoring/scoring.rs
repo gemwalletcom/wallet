@@ -24,22 +24,11 @@ pub fn calculate_risk_score(
     let is_high_risk_platform_store = config.high_risk_platform_stores.iter().any(|s| s == input.device_platform_store.as_ref());
     let is_high_risk_country = config.high_risk_countries.iter().any(|c| c == &input.ip_country_code);
     let is_high_risk_locale = config.high_risk_locales.iter().any(|l| l == &input.device_locale);
-    let is_high_risk_device_model = config
-        .high_risk_device_models
-        .iter()
-        .any(|pattern| Regex::new(pattern).map(|re| re.is_match(&input.device_model)).unwrap_or(false));
-    let is_high_risk_user_agent = !input.user_agent.is_empty()
-        && config
-            .high_risk_user_agents
-            .iter()
-            .any(|pattern| Regex::new(pattern).map(|re| re.is_match(&input.user_agent)).unwrap_or(false));
+    let is_high_risk_device_model = config.high_risk_device_models.iter().any(|pattern| Regex::new(pattern).map(|re| re.is_match(&input.device_model)).unwrap_or(false));
+    let is_high_risk_user_agent = !input.user_agent.is_empty() && config.high_risk_user_agents.iter().any(|pattern| Regex::new(pattern).map(|re| re.is_match(&input.user_agent)).unwrap_or(false));
 
     let mut breakdown = RiskScoreBreakdown {
-        abuse_score: if is_blocked_type {
-            input.ip_abuse_score
-        } else {
-            input.ip_abuse_score.min(config.max_abuse_score)
-        },
+        abuse_score: if is_blocked_type { input.ip_abuse_score } else { input.ip_abuse_score.min(config.max_abuse_score) },
         ineligible_ip_type_score: if is_blocked_type {
             config.blocked_ip_type_penalty
         } else if is_penalty_isp {
@@ -301,10 +290,7 @@ mod tests {
     #[test]
     fn ip_reuse() {
         let input = RiskSignalInput::mock();
-        let config = RiskScoreConfig {
-            max_allowed_score: 40,
-            ..Default::default()
-        };
+        let config = RiskScoreConfig { max_allowed_score: 40, ..Default::default() };
 
         let existing = RiskSignalRow::mock("other_user", "different", "192.168.1.1", "Verizon", "Pixel 8", 2);
         let result = calculate_risk_score(&input, &[existing], 0, 0, 0, 0, 0, &config);
@@ -360,9 +346,7 @@ mod tests {
         let config = RiskScoreConfig::default();
 
         // 5 referrers * 50 = 250, but capped at 200
-        let signals: Vec<_> = (0..5)
-            .map(|i| RiskSignalRow::mock(&format!("referrer_{}", i), &format!("fp{}", i), &format!("10.0.0.{}", i), "ISP", "Model", 1))
-            .collect();
+        let signals: Vec<_> = (0..5).map(|i| RiskSignalRow::mock(&format!("referrer_{}", i), &format!("fp{}", i), &format!("10.0.0.{}", i), "ISP", "Model", 1)).collect();
         let result = calculate_risk_score(&input, &signals, 0, 0, 0, 0, 0, &config);
 
         assert_eq!(result.breakdown.device_id_reuse_score, 200);
@@ -709,32 +693,14 @@ mod tests {
     #[test]
     fn velocity_no_burst() {
         // Signals from different referrer don't trigger velocity for user1
-        let result = calculate_risk_score(
-            &RiskSignalInput::mock(),
-            &[RiskSignalRow::mock_recent("other", 60)],
-            0,
-            0,
-            0,
-            0,
-            0,
-            &RiskScoreConfig::default(),
-        );
+        let result = calculate_risk_score(&RiskSignalInput::mock(), &[RiskSignalRow::mock_recent("other", 60)], 0, 0, 0, 0, 0, &RiskScoreConfig::default());
         assert_eq!(result.breakdown.velocity_score, 0);
     }
 
     #[test]
     fn velocity_burst() {
         // Normal user threshold=2 (5/2), 1 signal - no penalty
-        let result = calculate_risk_score(
-            &RiskSignalInput::mock(),
-            &[RiskSignalRow::mock_recent("user1", 60)],
-            0,
-            0,
-            0,
-            0,
-            0,
-            &RiskScoreConfig::default(),
-        );
+        let result = calculate_risk_score(&RiskSignalInput::mock(), &[RiskSignalRow::mock_recent("user1", 60)], 0, 0, 0, 0, 0, &RiskScoreConfig::default());
         assert_eq!(result.breakdown.velocity_score, 0);
         // 2 signals triggers penalty
         let signals = vec![RiskSignalRow::mock_recent("user1", 60), RiskSignalRow::mock_recent("user1", 120)];
@@ -746,17 +712,9 @@ mod tests {
     fn velocity_scales_with_count_and_speed() {
         // More signals and tighter span = higher penalty
         let signals = vec![RiskSignalRow::mock_recent("user1", 60), RiskSignalRow::mock_recent("user1", 120)];
-        let score2 = calculate_risk_score(&RiskSignalInput::mock(), &signals, 0, 0, 0, 0, 0, &RiskScoreConfig::default())
-            .breakdown
-            .velocity_score;
-        let signals = vec![
-            RiskSignalRow::mock_recent("user1", 60),
-            RiskSignalRow::mock_recent("user1", 120),
-            RiskSignalRow::mock_recent("user1", 180),
-        ];
-        let score3 = calculate_risk_score(&RiskSignalInput::mock(), &signals, 0, 0, 0, 0, 0, &RiskScoreConfig::default())
-            .breakdown
-            .velocity_score;
+        let score2 = calculate_risk_score(&RiskSignalInput::mock(), &signals, 0, 0, 0, 0, 0, &RiskScoreConfig::default()).breakdown.velocity_score;
+        let signals = vec![RiskSignalRow::mock_recent("user1", 60), RiskSignalRow::mock_recent("user1", 120), RiskSignalRow::mock_recent("user1", 180)];
+        let score3 = calculate_risk_score(&RiskSignalInput::mock(), &signals, 0, 0, 0, 0, 0, &RiskScoreConfig::default()).breakdown.velocity_score;
         assert!(score3 > score2);
         assert!(score2 > 0);
     }
@@ -765,23 +723,11 @@ mod tests {
     fn velocity_faster_spam_higher_penalty() {
         // Same count but tighter time = higher penalty
         // 3 signals in 120s span: multiplier=1.6, penalty=300*1.6=480
-        let signals = vec![
-            RiskSignalRow::mock_recent("user1", 60),
-            RiskSignalRow::mock_recent("user1", 120),
-            RiskSignalRow::mock_recent("user1", 180),
-        ];
-        let slow = calculate_risk_score(&RiskSignalInput::mock(), &signals, 0, 0, 0, 0, 0, &RiskScoreConfig::default())
-            .breakdown
-            .velocity_score;
+        let signals = vec![RiskSignalRow::mock_recent("user1", 60), RiskSignalRow::mock_recent("user1", 120), RiskSignalRow::mock_recent("user1", 180)];
+        let slow = calculate_risk_score(&RiskSignalInput::mock(), &signals, 0, 0, 0, 0, 0, &RiskScoreConfig::default()).breakdown.velocity_score;
         // 3 signals in 20s span: multiplier=1+(300-20)/300=1.93, penalty=300*1.93=579
-        let signals = vec![
-            RiskSignalRow::mock_recent("user1", 60),
-            RiskSignalRow::mock_recent("user1", 70),
-            RiskSignalRow::mock_recent("user1", 80),
-        ];
-        let fast = calculate_risk_score(&RiskSignalInput::mock(), &signals, 0, 0, 0, 0, 0, &RiskScoreConfig::default())
-            .breakdown
-            .velocity_score;
+        let signals = vec![RiskSignalRow::mock_recent("user1", 60), RiskSignalRow::mock_recent("user1", 70), RiskSignalRow::mock_recent("user1", 80)];
+        let fast = calculate_risk_score(&RiskSignalInput::mock(), &signals, 0, 0, 0, 0, 0, &RiskScoreConfig::default()).breakdown.velocity_score;
         assert!(fast > slow);
     }
 
@@ -791,10 +737,7 @@ mod tests {
         input.referrer_status = RewardStatus::Verified;
         // Verified user threshold=5 (10/2), 4 signals - no penalty
         let signals: Vec<_> = (0..4).map(|i| RiskSignalRow::mock_recent("user1", 60 + i * 30)).collect();
-        assert_eq!(
-            calculate_risk_score(&input, &signals, 0, 0, 0, 0, 0, &RiskScoreConfig::default()).breakdown.velocity_score,
-            0
-        );
+        assert_eq!(calculate_risk_score(&input, &signals, 0, 0, 0, 0, 0, &RiskScoreConfig::default()).breakdown.velocity_score, 0);
         // 5 signals triggers penalty
         let signals: Vec<_> = (0..5).map(|i| RiskSignalRow::mock_recent("user1", 60 + i * 30)).collect();
         assert!(calculate_risk_score(&input, &signals, 0, 0, 0, 0, 0, &RiskScoreConfig::default()).breakdown.velocity_score > 0);
@@ -806,10 +749,7 @@ mod tests {
         input.referrer_status = RewardStatus::Trusted;
         // Trusted user threshold=7 (15/2), 6 signals - no penalty
         let signals: Vec<_> = (0..6).map(|i| RiskSignalRow::mock_recent("user1", 60 + i * 30)).collect();
-        assert_eq!(
-            calculate_risk_score(&input, &signals, 0, 0, 0, 0, 0, &RiskScoreConfig::default()).breakdown.velocity_score,
-            0
-        );
+        assert_eq!(calculate_risk_score(&input, &signals, 0, 0, 0, 0, 0, &RiskScoreConfig::default()).breakdown.velocity_score, 0);
         // 7 signals triggers penalty
         let signals: Vec<_> = (0..7).map(|i| RiskSignalRow::mock_recent("user1", 60 + i * 30)).collect();
         assert!(calculate_risk_score(&input, &signals, 0, 0, 0, 0, 0, &RiskScoreConfig::default()).breakdown.velocity_score > 0);

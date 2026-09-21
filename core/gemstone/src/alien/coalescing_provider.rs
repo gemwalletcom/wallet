@@ -142,11 +142,7 @@ mod tests {
     impl AlienProvider for CancelProvider {
         async fn request(&self, _target: AlienTarget) -> Result<Arc<AlienResponse>, AlienError> {
             let count = self.count.fetch_add(1, Ordering::SeqCst);
-            if count == 0 {
-                futures::future::pending().await
-            } else {
-                Ok(Arc::new(AlienResponse::new(Some(200), b"{}".to_vec())))
-            }
+            if count == 0 { futures::future::pending().await } else { Ok(Arc::new(AlienResponse::new(Some(200), b"{}".to_vec()))) }
         }
     }
 

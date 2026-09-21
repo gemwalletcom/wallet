@@ -4,9 +4,7 @@ use serde_json::{Value, from_str};
 use std::str::from_utf8;
 
 use super::abi::{PANORA_ROUTER_ENTRY_PARAMS, PANORA_ROUTER_FUNCTION, PANORA_ROUTER_MODULE};
-use super::{
-    EntryFunction, EntryFunctionPayload, build_raw_transaction, build_submit_transaction_bcs, expiration_timestamp_secs, sign_message as sign_aptos_message, sign_raw_transaction,
-};
+use super::{EntryFunction, EntryFunctionPayload, build_raw_transaction, build_submit_transaction_bcs, expiration_timestamp_secs, sign_message as sign_aptos_message, sign_raw_transaction};
 use crate::AccountAddress;
 use crate::token_id::is_fungible_asset_token_id;
 use crate::{APTOS_TRANSFER_FUNCTION, DELEGATION_POOL_ADD_STAKE_FUNCTION, DELEGATION_POOL_UNLOCK_FUNCTION, DELEGATION_POOL_WITHDRAW_FUNCTION, ENTRY_FUNCTION_PAYLOAD_TYPE};
@@ -140,9 +138,7 @@ fn get_generic_payload(input: &SignerInput) -> Result<(EntryFunctionPayload, u64
         if bytes.is_empty() {
             return Err(SignerError::InvalidInput("Missing Aptos payload data".to_string()));
         }
-        from_utf8(bytes)
-            .map_err(|_| SignerError::InvalidInput("Aptos payload must be valid UTF-8".to_string()))?
-            .to_string()
+        from_utf8(bytes).map_err(|_| SignerError::InvalidInput("Aptos payload must be valid UTF-8".to_string()))?.to_string()
     } else if let TransactionLoadMetadata::Aptos { data: Some(json), .. } = &input.metadata {
         json.clone()
     } else {
@@ -181,11 +177,7 @@ fn token_transfer_payload(input: &SignerInput) -> Result<(EntryFunctionPayload, 
             payload_type: ENTRY_FUNCTION_PAYLOAD_TYPE.to_string(),
             function: FUNGIBLE_TRANSFER_FUNCTION.to_string(),
             type_arguments: vec![OBJECT_CORE_TYPE.to_string()],
-            arguments: vec![
-                Value::String(token_id.to_string()),
-                Value::String(input.destination_address.clone()),
-                Value::String(input.value.to_string()),
-            ],
+            arguments: vec![Value::String(token_id.to_string()), Value::String(input.destination_address.clone()), Value::String(input.value.to_string())],
         },
         &FUNGIBLE_TRANSFER_ENTRY_PARAMS,
     ))
@@ -201,13 +193,7 @@ mod tests {
         let input = TransactionLoadInput::mock_aptos_token_transfer("0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b");
         let input = SignerInput::new(
             input,
-            TransactionFee::new_gas_price_type(
-                GasPriceType::regular(1u64),
-                42u64.into(),
-                42u64.into(),
-                Default::default(),
-                AssetId::from_chain(Chain::Aptos),
-            ),
+            TransactionFee::new_gas_price_type(GasPriceType::regular(1u64), 42u64.into(), 42u64.into(), Default::default(), AssetId::from_chain(Chain::Aptos)),
         );
 
         assert_eq!(input.fee.gas_limit().unwrap(), 42);

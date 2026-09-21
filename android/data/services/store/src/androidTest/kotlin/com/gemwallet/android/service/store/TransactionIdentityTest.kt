@@ -6,8 +6,8 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.data.service.store.database.GemDatabase
 import com.gemwallet.android.data.service.store.database.TransactionsDao
 import com.gemwallet.android.data.service.store.database.entities.DbTransaction
-import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.data.service.store.database.entities.toDTO
+import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockTransaction
 import com.gemwallet.android.testkit.mockTransactionId

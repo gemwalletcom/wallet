@@ -27,18 +27,11 @@ pub(in crate::mayan::tx_builder) struct SolanaTransaction {
 
 impl SolanaTransaction {
     pub(in crate::mayan::tx_builder) fn new(instructions: Vec<Instruction>, lookup_table_addresses: Vec<String>) -> Self {
-        Self {
-            instructions,
-            lookup_table_addresses,
-        }
+        Self { instructions, lookup_table_addresses }
     }
 }
 
-pub(in crate::mayan::tx_builder) async fn build_quote_data(
-    quote: &Quote,
-    transaction: SolanaTransaction,
-    rpc_provider: Arc<dyn RpcProvider>,
-) -> Result<SwapperQuoteData, SwapperError> {
+pub(in crate::mayan::tx_builder) async fn build_quote_data(quote: &Quote, transaction: SolanaTransaction, rpc_provider: Arc<dyn RpcProvider>) -> Result<SwapperQuoteData, SwapperError> {
     let client = create_client_with_chain(rpc_provider, Chain::Solana)?;
     let rpc_client = SolanaClient::new(client);
     let lookup_tables = async { rpc_client.get_address_lookup_tables(transaction.lookup_table_addresses).await.map_err(solana_error) };
@@ -75,12 +68,7 @@ pub(in crate::mayan::tx_builder) fn append_ledger_deposit_instructions(instructi
     ))?);
 
     let source_account = get_associated_token_address_with_program_id(deposit.user, deposit.mint, &program_ids::token_program()).map_err(solana_error)?;
-    instructions.push(wrap_instruction_in_cpi_proxy(token::transfer(
-        &source_account,
-        deposit.ledger_account,
-        deposit.user,
-        deposit.amount,
-    ))?);
+    instructions.push(wrap_instruction_in_cpi_proxy(token::transfer(&source_account, deposit.ledger_account, deposit.user, deposit.amount))?);
     Ok(())
 }
 
@@ -101,9 +89,7 @@ pub(in crate::mayan::tx_builder) fn append_client_swap_instructions(
     instructions.extend(setup_instructions(setup, relayer)?);
     instructions.push(instruction_from_primitive::<Base64InstructionData>(swap.swap_instruction).map_err(solana_error)?);
     if let Some(cleanup_instruction) = swap.cleanup_instruction {
-        instructions.push(wrap_instruction_in_cpi_proxy(
-            instruction_from_primitive::<Base64InstructionData>(cleanup_instruction).map_err(solana_error)?,
-        )?);
+        instructions.push(wrap_instruction_in_cpi_proxy(instruction_from_primitive::<Base64InstructionData>(cleanup_instruction).map_err(solana_error)?)?);
     }
     Ok(swap.address_lookup_table_addresses)
 }
@@ -122,9 +108,7 @@ pub(in crate::mayan::tx_builder) fn setup_instructions(instructions: Vec<SolanaI
 pub(in crate::mayan::tx_builder) fn setup_wraps_native_sol(instructions: &[SolanaInstruction], owner: &Pubkey) -> Result<bool, SwapperError> {
     let wrapped_account = wrapped_sol_account(owner)?;
     Ok(instructions.iter().any(|instruction| {
-        instruction.program_id == SYSTEM_PROGRAM_ID
-            && instruction.accounts.get(1).is_some_and(|account| account.pubkey == wrapped_account.to_string())
-            && decode_base64(&instruction.data).is_ok_and(|data| data.starts_with(&[2, 0, 0, 0]))
+        instruction.program_id == SYSTEM_PROGRAM_ID && instruction.accounts.get(1).is_some_and(|account| account.pubkey == wrapped_account.to_string()) && decode_base64(&instruction.data).is_ok_and(|data| data.starts_with(&[2, 0, 0, 0]))
     }))
 }
 
@@ -132,13 +116,7 @@ pub(in crate::mayan::tx_builder) fn wrap_native_sol_instructions(owner: &Pubkey,
     let wrapped_mint = wrapped_sol_mint()?;
     let wrapped_account = get_associated_token_address_with_program_id(owner, &wrapped_mint, &program_ids::token_program()).map_err(solana_error)?;
     Ok(vec![
-        wrap_instruction_in_cpi_proxy(create_associated_token_account_idempotent_with_address(
-            owner,
-            &wrapped_account,
-            owner,
-            &wrapped_mint,
-            &program_ids::token_program(),
-        ))?,
+        wrap_instruction_in_cpi_proxy(create_associated_token_account_idempotent_with_address(owner, &wrapped_account, owner, &wrapped_mint, &program_ids::token_program()))?,
         wrap_instruction_in_cpi_proxy(system::transfer(owner, &wrapped_account, amount))?,
         wrap_instruction_in_cpi_proxy(token::sync_native(&wrapped_account))?,
     ])

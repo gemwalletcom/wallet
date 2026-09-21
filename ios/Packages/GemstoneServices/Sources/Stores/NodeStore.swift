@@ -2,8 +2,8 @@
 
 import Foundation
 import typealias Gemstone.Chain
-import struct Gemstone.Node
 import protocol Gemstone.GemNodeStore
+import struct Gemstone.Node
 import GemstonePrimitives
 import Primitives
 import Store

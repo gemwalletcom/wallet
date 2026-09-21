@@ -81,18 +81,12 @@ mod tests {
 
     #[test]
     fn test_decode_refuses_what_it_cannot_sign() {
-        assert_eq!(
-            decode(&format!("//transfer/{ADDRESS}?amount=1&bin=te6cc")),
-            Err(PaymentDecoderError::InvalidFormat("Unsupported transfer payload".to_string()))
-        );
+        assert_eq!(decode(&format!("//transfer/{ADDRESS}?amount=1&bin=te6cc")), Err(PaymentDecoderError::InvalidFormat("Unsupported transfer payload".to_string())));
         assert_eq!(
             decode(&format!("//transfer/{ADDRESS}?amount=1&init=te6cc")),
             Err(PaymentDecoderError::InvalidFormat("Unsupported transfer payload".to_string()))
         );
-        assert_eq!(
-            decode(&format!("//transfer/{ADDRESS}?amount=1&BIN=te6cc")),
-            Err(PaymentDecoderError::InvalidFormat("Unsupported transfer payload".to_string()))
-        );
+        assert_eq!(decode(&format!("//transfer/{ADDRESS}?amount=1&BIN=te6cc")), Err(PaymentDecoderError::InvalidFormat("Unsupported transfer payload".to_string())));
         assert!(decode("//invalid/format").is_err());
     }
 }

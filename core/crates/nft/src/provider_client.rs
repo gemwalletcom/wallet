@@ -13,9 +13,7 @@ pub struct NFTProviderClient {
 impl NFTProviderClient {
     pub fn new(config: NFTProviderConfig) -> Self {
         let providers = NFTProviderFactory::new_providers(config);
-        Self {
-            providers: NFTProviders::new(providers),
-        }
+        Self { providers: NFTProviders::new(providers) }
     }
 
     pub async fn get_nft_asset(&self, asset_id: NFTAssetId) -> Result<NFTAsset, Box<dyn Error + Send + Sync>> {

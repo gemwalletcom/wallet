@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitives
 import Foundation
+import GemstonePrimitives
 @testable import Primitives
 import Testing
 

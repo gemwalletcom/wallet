@@ -1,9 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Formatters
 import Foundation
-import struct Gemstone.GemFormattedNumber
-import struct Gemstone.GemWidgetCoin
-import GemstonePrimitives
 import Primitives
 import Style
 import WidgetKit
@@ -56,13 +54,12 @@ struct PriceWidgetEntry: TimelineEntry {
 private extension CoinPrice {
     static func placeholder(chain: Chain, name: String, symbol: String, price: Double, change: Double) -> CoinPrice {
         CoinPrice(
-            coin: GemWidgetCoin(
-                assetId: AssetId(chain: chain, tokenId: nil).identifier,
-                name: name,
-                symbol: symbol,
-                price: GemFormattedNumber(value: price, unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain),
-                change: GemFormattedNumber(value: change, unit: .percent, display: .number(precision: .fraction(min: 2, max: 2)), notation: .signed, tone: change < 0 ? .negative : .positive),
-            ),
+            assetId: AssetId(chain: chain, tokenId: nil),
+            name: name,
+            symbol: symbol,
+            priceText: price.formatted(.currency(code: "USD").precision(.fractionLength(2))),
+            changeText: PercentFormatter().string(change),
+            changeIsPositive: change >= 0,
             image: Images.name(chain.rawValue),
         )
     }

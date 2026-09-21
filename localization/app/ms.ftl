@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = Aset tidak disokong.
 errors_connections_no_supported_wallets = Tiada dompet yang disokong tersedia.
 errors_connections_unsupported_chain = Rantaian yang disediakan tidak disokong.
 errors_swap_amount_too_small = Jumlah terlalu kecil
-errors_required = %@ diperlukan
 errors_scan_transaction_malicious_description = Urus niaga ini tidak dapat diselesaikan — alamat dompet destinasi dipautkan kepada aktiviti yang mencurigakan atau berbahaya.
 errors_scan_transaction_memo_required = %@ alamat dompet destinasi memerlukan teg / memo destinasi
 errors_scan_transaction_malicious_title = Aktiviti Meragukan
@@ -315,7 +314,7 @@ asset_symbol = Simbol
 asset_decimals = Perpuluhan
 asset_token_id = ID Token
 asset_contract = Kontrak
-asset_state_empty_title = Transaksi anda akan muncul di sini️
+asset_state_empty_title = Transaksi anda akan muncul di sini
 asset_state_empty_description = Terima, tukar atau beli %@
 asset_verification_unverified = Tidak disahkan
 asset_verification_suspicious = Mencurigakan
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = Apabila harga menurun sebanyak
 price_alerts_set_alert_set_target_price = Tetapkan harga sasaran
 price_alerts_set_alert_current_price = Harga semasa
 price_alerts_added_for = Tetapkan makluman harga %@
-price_alerts_state_empty_title = Makluman anda akan dipaparkan di sini️
+price_alerts_state_empty_title = Makluman anda akan dipaparkan di sini
 price_alerts_state_empty_description = Dayakan mereka dengan menambahkan syiling untuk dijejaki
 price_alerts_auto_footer = Makluman mencetuskan pergerakan harga yang ketara.
 price_alerts_set_alert_title = Tetapkan Makluman Harga
@@ -536,7 +535,7 @@ verify_phrase_title = Sahkan
 
 # Warnings
 
-warnings_multi_signature_blocked = Jangan pindahkan dana ke %@ dompet Berbilang Tandatangan ini melainkan anda pasti anda mengawal kunci peribadi. Kegagalan berbuat demikian boleh mendedahkan anda kepada penipuan dan anda mungkin kehilangan aset anda secara kekal.
+warnings_externally_controlled_account = Akaun %@ ini mungkin dikawal oleh orang lain. Jangan hantar dana ke akaun ini melainkan anda pasti anda yang mengawalnya, atau anda mungkin kehilangan aset anda secara kekal.
 
 # Sell
 
@@ -600,7 +599,7 @@ nft_collections = Koleksi
 nft_collection = Koleksi
 nft_save_to_photos = Simpan ke Foto
 nft_set_as_avatar = Tetapkan sebagai Avatar
-nft_state_empty_title = NFT anda akan muncul di sini️
+nft_state_empty_title = NFT anda akan muncul di sini
 nft_state_empty_description = Terima NFT pertama anda
 nft_report_reason_spam = Spam
 nft_report_reason_malicious = Berniat jahat

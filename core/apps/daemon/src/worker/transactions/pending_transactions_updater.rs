@@ -95,26 +95,12 @@ impl PendingTransactionsUpdater {
         let start = Instant::now();
         match self.providers.get_transaction_by_hash(TransactionIdRequest::new(chain, identifier.to_string(), None)).await {
             Ok(Some(transaction)) => {
-                info_with_fields!(
-                    "pending transaction load success",
-                    chain = chain.as_ref(),
-                    identifier = identifier,
-                    elapsed = elapsed,
-                    latency = DurationMs(start.elapsed())
-                );
-                self.stream_producer
-                    .publish_transactions(TransactionsPayload::new_with_notify(chain, vec![], vec![transaction]))
-                    .await?;
+                info_with_fields!("pending transaction load success", chain = chain.as_ref(), identifier = identifier, elapsed = elapsed, latency = DurationMs(start.elapsed()));
+                self.stream_producer.publish_transactions(TransactionsPayload::new_with_notify(chain, vec![], vec![transaction])).await?;
                 Ok(true)
             }
             Ok(None) => {
-                info_with_fields!(
-                    "pending transaction not loaded",
-                    chain = chain.as_ref(),
-                    identifier = identifier,
-                    elapsed = elapsed,
-                    latency = DurationMs(start.elapsed())
-                );
+                info_with_fields!("pending transaction not loaded", chain = chain.as_ref(), identifier = identifier, elapsed = elapsed, latency = DurationMs(start.elapsed()));
                 Ok(false)
             }
             Err(err) => {
@@ -132,9 +118,7 @@ impl PendingTransactionsUpdater {
     }
 
     async fn remove_pending_transaction(&self, chain: Chain, identifier: &str) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        self.cacher
-            .remove_from_sorted_set_cached(CacheKey::PendingTransactions(chain.as_ref()), &[identifier.to_string()])
-            .await
+        self.cacher.remove_from_sorted_set_cached(CacheKey::PendingTransactions(chain.as_ref()), &[identifier.to_string()]).await
     }
 
     async fn has_pending_transactions(&self, chain: Chain) -> Result<bool, Box<dyn Error + Send + Sync>> {

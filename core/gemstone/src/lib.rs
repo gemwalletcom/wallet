@@ -26,7 +26,6 @@ pub mod perpetual;
 pub mod precision;
 pub mod price;
 pub mod price_alert_formatter;
-pub mod service_status;
 pub mod services;
 pub mod signer;
 pub mod siwe;

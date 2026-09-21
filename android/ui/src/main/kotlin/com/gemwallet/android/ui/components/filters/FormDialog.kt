@@ -22,13 +22,13 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.theme.normalPadding
-
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space4
 
 private val dragHandleWidth = 32.dp
 private val dragHandleHeight = space4
+
 @Composable
 fun FormDialog(
     isVisible: Boolean,
@@ -45,7 +45,7 @@ fun FormDialog(
         expansion = expansion,
         onDismissRequest = onDismiss,
         dragHandle = {
-            Row (
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .normalPadding(),
@@ -74,7 +74,7 @@ fun FormDialog(
                     Surface(
                         modifier = Modifier.padding(vertical = space0),
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f),
-                        shape = MaterialTheme.shapes.extraLarge
+                        shape = MaterialTheme.shapes.extraLarge,
                     ) {
                         Box(Modifier.size(width = dragHandleWidth, height = dragHandleHeight))
                     }

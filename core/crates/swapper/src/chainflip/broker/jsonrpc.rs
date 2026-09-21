@@ -55,10 +55,7 @@ mod tests {
                 chain: "Ethereum".into(),
                 asset: "ETH".into(),
             },
-            destination_asset: ChainflipAsset {
-                chain: "Solana".into(),
-                asset: "SOL".into(),
-            },
+            destination_asset: ChainflipAsset { chain: "Solana".into(), asset: "SOL".into() },
             destination_address: "destination".into(),
             broker_commission: 10,
             extra_params: extras.clone(),

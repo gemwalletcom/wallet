@@ -26,10 +26,7 @@ pub struct YoGatewayClient {
 
 impl YoGatewayClient {
     pub fn new(ethereum_client: EthereumClient<RpcClient>, contract_address: Address) -> Self {
-        Self {
-            ethereum_client,
-            contract_address,
-        }
+        Self { ethereum_client, contract_address }
     }
 
     pub fn build_deposit_transaction(&self, from: Address, yo_token: Address, assets: U256, min_shares_out: U256, receiver: Address, partner_id: u32) -> TransactionObject {
@@ -86,11 +83,7 @@ impl YoGatewayClient {
         let spender = self.contract_address;
         let allowance = self.ethereum_client.call_contract(token, IERC20::allowanceCall { owner, spender }).await?;
 
-        if allowance < amount {
-            Ok(Some(build_token_approval_data(token, spender, amount)))
-        } else {
-            Ok(None)
-        }
+        if allowance < amount { Ok(Some(build_token_approval_data(token, spender, amount))) } else { Ok(None) }
     }
 
     pub async fn get_quote_shares(&self, yo_token: Address, assets: U256) -> Result<U256, YielderError> {

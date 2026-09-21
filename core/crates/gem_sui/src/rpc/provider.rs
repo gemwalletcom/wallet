@@ -12,10 +12,7 @@ pub struct SuiProvider {
 
 impl SuiProvider {
     pub fn new(client: SuiClient, transactions_by_address_provider: Box<dyn ChainTransactions>) -> Self {
-        Self {
-            client,
-            transactions_by_address_provider,
-        }
+        Self { client, transactions_by_address_provider }
     }
 
     pub fn new_rpc_only(client: SuiClient) -> Self {

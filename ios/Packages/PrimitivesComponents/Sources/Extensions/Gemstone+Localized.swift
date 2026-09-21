@@ -2,65 +2,145 @@
 
 import BigInt
 import Formatters
-import struct Gemstone.GemBannerAmount
-import enum Gemstone.GemBannerTitle
-import enum Gemstone.GemBannerDescription
-import enum Gemstone.PerpetualDirection
+import enum Gemstone.DelegationState
 import enum Gemstone.FeeOption
-import enum Gemstone.GemAssetMenuAction
-import enum Gemstone.GemContactAddressField
-import enum Gemstone.PerpetualType
 import enum Gemstone.GemApprovalValue
-import enum Gemstone.GemAssetInfoKind
+import enum Gemstone.GemAssetMenuAction
+import enum Gemstone.GemBalanceRowValue
+import struct Gemstone.GemBannerAmount
+import enum Gemstone.GemBannerDescription
+import enum Gemstone.GemBannerTitle
+import enum Gemstone.GemContactAddressField
+import enum Gemstone.GemCopyKind
+import enum Gemstone.GemDayLabel
 import enum Gemstone.GemEmptyStateAction
-import enum Gemstone.GemErrorText
-import enum Gemstone.GemSelectAssetSection
-import enum Gemstone.GemSelectAssetTitle
 import enum Gemstone.GemEmptyStateText
+import enum Gemstone.GemErrorText
 import enum Gemstone.GemFiatTransactionBadge
-import enum Gemstone.LinkType
 import enum Gemstone.GemHeaderButtonKind
+import enum Gemstone.GemListRowTitle
+import enum Gemstone.GemListSectionFooter
+import enum Gemstone.GemListSectionTitle
 import enum Gemstone.GemLocalizedText
+import class Gemstone.GemPerpetual
 import enum Gemstone.PaymentStatus
 import enum Gemstone.GemPriceAlertLabel
 import struct Gemstone.GemPriceAlertRow
 import enum Gemstone.GemPriceAlertText
+import enum Gemstone.GemRecipientError
 import enum Gemstone.GemRecipientErrorDisplay
-import enum Gemstone.GemSimulationWarningKind
-import enum Gemstone.SimulationPayloadFieldKind
+import enum Gemstone.GemSelectAssetSection
+import enum Gemstone.GemSelectAssetTitle
+import enum Gemstone.GemSimulationPayloadTitle
 import enum Gemstone.GemTransactionRowSubtitle
 import enum Gemstone.GemTransactionStateTone
 import enum Gemstone.GemTransactionTitle
+import enum Gemstone.GemTriggerOrder
 import enum Gemstone.GemWalletSubtitle
+import enum Gemstone.LinkType
+import enum Gemstone.PerpetualDirection
+import enum Gemstone.PerpetualType
+import class Gemstone.PriceChangeCalculator
 import GemstonePrimitives
-import enum Gemstone.GemDayLabel
 import Localization
 import Primitives
 import Style
 import SwiftUI
 
-
-extension FeeOption {
-    public var title: String {
+public extension FeeOption {
+    var title: String {
         switch self {
         case .tokenAccountCreation: Localized.Banner.AccountActivation.title
         }
     }
 }
 
-extension GemLocalizedText {
-    public var text: String {
+public extension GemLocalizedText {
+    var text: String {
         switch self {
         case let .walletDefaultName(index):
             Localized.Wallet.defaultName(Int(index))
-        case let .walletDefaultNameChain(chain, index):
-            Localized.Wallet.defaultNameChain(Chain(core: chain).networkName, Int(index))
+        case let .walletDefaultNameChain(networkName, index):
+            Localized.Wallet.defaultNameChain(networkName, Int(index))
+        case .walletMulticoin:
+            Localized.Wallet.multicoin
+        case let .chainNetworkName(chain):
+            Chain(core: chain).networkName
+        case let .delegationState(state):
+            state.title
+        case let .transactionState(state):
+            state.toPrimitives().statusTitle
+        case let .resource(resource):
+            resource.toPrimitives().title
+        case let .feeRate(rate, unit):
+            switch unit {
+            case .satVb: "\(rate.text()) \(Localized.FeeRate.satvB)"
+            case .gwei: "\(rate.text()) \(Localized.FeeRate.gwei)"
+            case .native: rate.text()
+            }
+        case let .text(text):
+            text
+        case let .number(number):
+            number.text()
+        case .none:
+            Localized.Common.none
+        case .rewardsUnverified:
+            Localized.Rewards.Unverified.description
+        case let .rewardsPending(countdown):
+            CountdownFormatter().string(parts: countdown).map { Localized.Rewards.Pending.description($0) } ?? .empty
+        case .rewardsPendingReady:
+            Localized.Rewards.Pending.descriptionReady
+        case .errorOccurred:
+            Localized.Errors.errorOccurred
+        case .unlimitedApprovalWarning:
+            Localized.Simulation.Warning.UnlimitedTokenApproval.description
+        case .externallyOwnedSpenderWarning:
+            Localized.Simulation.warningExternallyOwnedSpenderDescription
+        case .suspiciousAddress:
+            Localized.Common.suspiciousAddress
+        case .invalidTokenId:
+            Localized.Errors.Token.invalidId
+        case let .triggerOrder(order, price):
+            GemPerpetual(provider: .hypercore).triggerOrderText(label: order.title, formattedPrice: price?.text())
+        case let .pnl(amount, percent):
+            PriceChangeCalculator().pnlText(formattedAmount: amount.text(), formattedPercentage: percent.text())
+        case let .margin(amount, marginType):
+            GemPerpetual(provider: .hypercore).marginText(formattedAmount: amount.text(), marginTypeName: marginType.toPrimitives().title)
+        case let .position(direction, leverage):
+            GemPerpetual(provider: .hypercore).positionText(directionName: direction.toPrimitives().title, formattedLeverage: leverage)
+        case let .positionChange(change, direction):
+            switch change {
+            case .increase: Localized.Perpetual.increaseDirection(direction.toPrimitives().title)
+            case .reduce: Localized.Perpetual.reduceDirection(direction.toPrimitives().title)
+            }
         }
     }
 }
 
-extension GemPriceAlertText {
-    public var text: String {
+public extension GemBalanceRowValue {
+    var text: String {
+        switch self {
+        case let .amount(amount): amount.text()
+        case let .apr(apr): Localized.Stake.apr(apr?.text() ?? "")
+        }
+    }
+}
+
+public extension Gemstone.DelegationState {
+    var title: String {
+        switch self {
+        case .active: Localized.Stake.active
+        case .pending: Localized.Stake.pending
+        case .inactive: Localized.Stake.inactive
+        case .activating: Localized.Stake.activating
+        case .deactivating: Localized.Stake.deactivating
+        case .awaitingWithdrawal: Localized.Stake.awaitingWithdrawal
+        }
+    }
+}
+
+public extension GemPriceAlertText {
+    var text: String {
         switch self {
         case .empty: Placeholder.empty
         case let .number(value): value.text()
@@ -69,18 +149,18 @@ extension GemPriceAlertText {
     }
 }
 
-extension GemPriceAlertRow {
-    public var prefixText: String {
+public extension GemPriceAlertRow {
+    var prefixText: String {
         prefix.text
     }
 
-    public var suffixText: String {
+    var suffixText: String {
         suffix.text
     }
 }
 
-extension GemPriceAlertLabel {
-    public var text: String {
+public extension GemPriceAlertLabel {
+    var text: String {
         switch self {
         case .over: Localized.PriceAlerts.Direction.over
         case .under: Localized.PriceAlerts.Direction.under
@@ -126,8 +206,8 @@ extension GemTransactionTitle {
     }
 }
 
-extension GemWalletSubtitle {
-    public var text: String {
+public extension GemWalletSubtitle {
+    var text: String {
         switch self {
         case .multicoin: Localized.Wallet.multicoin
         case let .address(value): value
@@ -135,29 +215,8 @@ extension GemWalletSubtitle {
     }
 }
 
-extension GemSimulationWarningKind {
-    var warningTitle: String {
-        switch self {
-        case .unlimitedApproval: Localized.Simulation.Warning.UnlimitedTokenApproval.title
-        case .nftCollectionApproval: Localized.Simulation.Warning.NftCollectionApproval.title
-        case .externallyOwnedSpender: Localized.Common.warning
-        case .suspiciousSpender, .validationError: Localized.Errors.errorOccurred
-        }
-    }
-
-    var defaultMessage: String? {
-        switch self {
-        case .unlimitedApproval: Localized.Simulation.Warning.UnlimitedTokenApproval.description
-        case .validationError: Localized.Errors.errorOccurred
-        case .externallyOwnedSpender: Localized.Simulation.warningExternallyOwnedSpenderDescription
-        case .suspiciousSpender: Localized.Common.suspiciousAddress
-        case .nftCollectionApproval: nil
-        }
-    }
-}
-
-extension GemFiatTransactionBadge {
-    public var text: String {
+public extension GemFiatTransactionBadge {
+    var text: String {
         switch self {
         case .pending: Localized.Transaction.Status.pending
         case .failed: Localized.Transaction.Status.failed
@@ -165,8 +224,8 @@ extension GemFiatTransactionBadge {
     }
 }
 
-extension GemHeaderButtonKind {
-    public var title: String {
+public extension GemHeaderButtonKind {
+    var title: String {
         switch self {
         case .send: Localized.Wallet.send
         case .receive: Localized.Wallet.receive
@@ -179,19 +238,8 @@ extension GemHeaderButtonKind {
     }
 }
 
-extension GemAssetInfoKind {
-    public var title: String {
-        switch self {
-        case .name: Localized.Asset.name
-        case .symbol: Localized.Asset.symbol
-        case .decimals: Localized.Asset.decimals
-        case .kind: Localized.Common.type
-        }
-    }
-}
-
-extension ChartPeriod {
-    public var title: String {
+public extension ChartPeriod {
+    var title: String {
         switch self {
         case .hour: Localized.Charts.hour
         case .day: Localized.Charts.day
@@ -203,8 +251,8 @@ extension ChartPeriod {
     }
 }
 
-extension LinkType {
-    public var title: String {
+public extension LinkType {
+    var title: String {
         switch self {
         case .x: Localized.Social.x
         case .discord: Localized.Social.discord
@@ -224,8 +272,8 @@ extension LinkType {
     }
 }
 
-extension PerpetualMarginType {
-    public var title: String {
+public extension PerpetualMarginType {
+    var title: String {
         switch self {
         case .cross: Localized.Perpetual.Margin.cross
         case .isolated: Localized.Perpetual.Margin.isolated
@@ -233,8 +281,8 @@ extension PerpetualMarginType {
     }
 }
 
-extension Resource {
-    public var title: String {
+public extension Resource {
+    var title: String {
         switch self {
         case .bandwidth: Localized.Stake.Resource.bandwidth
         case .energy: Localized.Stake.Resource.energy
@@ -242,8 +290,8 @@ extension Resource {
     }
 }
 
-extension SimulationPayloadFieldKind {
-    public var title: String? {
+public extension GemSimulationPayloadTitle {
+    var text: String {
         switch self {
         case .contract: Localized.Asset.contract
         case .method: Localized.Common.method
@@ -251,13 +299,13 @@ extension SimulationPayloadFieldKind {
         case .spender: Localized.Transfer.to
         case .value: Localized.Perpetual.value
         case .expiration: Localized.Common.expiration
-        case .custom: nil
+        case let .custom(label): label
         }
     }
 }
 
-extension TransactionState {
-    public var statusTitle: String {
+public extension TransactionState {
+    var statusTitle: String {
         switch self {
         case .confirmed: Localized.Transaction.Status.confirmed
         case .pending, .inTransit: Localized.Transaction.Status.pending
@@ -268,8 +316,8 @@ extension TransactionState {
     }
 }
 
-extension GemTransactionStateTone {
-    public var infoDescription: String {
+public extension GemTransactionStateTone {
+    var infoDescription: String {
         switch self {
         case .pending: Localized.Info.Transaction.Pending.description
         case .success: Localized.Info.Transaction.Success.description
@@ -278,8 +326,8 @@ extension GemTransactionStateTone {
     }
 }
 
-extension Primitives.PerpetualDirection {
-    public var title: String {
+public extension Primitives.PerpetualDirection {
+    var title: String {
         switch self {
         case .short: Localized.Perpetual.short
         case .long: Localized.Perpetual.long
@@ -287,8 +335,8 @@ extension Primitives.PerpetualDirection {
     }
 }
 
-extension Primitives.FeePriority {
-    public var title: String {
+public extension Primitives.FeePriority {
+    var title: String {
         switch self {
         case .normal: Localized.FeeRates.normal
         case .fast: Localized.FeeRates.fast
@@ -296,8 +344,8 @@ extension Primitives.FeePriority {
     }
 }
 
-extension GemApprovalValue {
-    public func title(symbol: String, formatter: ValueFormatter, decimals: Int) -> String {
+public extension GemApprovalValue {
+    func title(symbol: String, formatter: ValueFormatter, decimals: Int) -> String {
         switch self {
         case .unlimited: Localized.Simulation.Header.unlimitedAsset(symbol)
         case let .exact(value): formatter.string(BigInt(value), decimals: decimals, currency: symbol)
@@ -305,8 +353,8 @@ extension GemApprovalValue {
     }
 }
 
-extension ConnectionStatus {
-    public var bannerTitle: String? {
+public extension ConnectionStatus {
+    var bannerTitle: String? {
         switch self {
         case .online: nil
         case .noInternet: Localized.Errors.noInternetConnection
@@ -315,8 +363,8 @@ extension ConnectionStatus {
     }
 }
 
-extension FeeUnitType {
-    public func suffix(symbol: String) -> String {
+public extension FeeUnitType {
+    func suffix(symbol: String) -> String {
         switch self {
         case .satVb: Localized.FeeRate.satvB
         case .gwei: Localized.FeeRate.gwei
@@ -325,8 +373,8 @@ extension FeeUnitType {
     }
 }
 
-extension GemAssetMenuAction {
-    public var title: String? {
+public extension GemAssetMenuAction {
+    var title: String? {
         switch self {
         case .addToWallet: Localized.Asset.addToWallet
         case .copyAddress: Localized.Wallet.copyAddress
@@ -335,8 +383,8 @@ extension GemAssetMenuAction {
     }
 }
 
-extension PerpetualType {
-    public var confirmedTitle: String {
+public extension PerpetualType {
+    var confirmedTitle: String {
         switch self {
         case let .open(data): Localized.Perpetual.openDirection(data.direction.toPrimitives().title)
         case .close: Localized.Perpetual.closePosition
@@ -347,8 +395,8 @@ extension PerpetualType {
     }
 }
 
-extension ScanReceiveMode {
-    public var title: String {
+public extension ScanReceiveMode {
+    var title: String {
         switch self {
         case .scan: Localized.Wallet.scan
         case .receive: Localized.Wallet.receive
@@ -356,8 +404,8 @@ extension ScanReceiveMode {
     }
 }
 
-extension GemTransactionRowSubtitle {
-    public var prefix: String? {
+public extension GemTransactionRowSubtitle {
+    var prefix: String? {
         switch self {
         case .toAddress, .toResource: Localized.Transfer.to
         case .fromAddress, .fromResource: Localized.Transfer.from
@@ -367,8 +415,8 @@ extension GemTransactionRowSubtitle {
     }
 }
 
-extension VerificationStatus {
-    public var statusTitle: String {
+public extension VerificationStatus {
+    var statusTitle: String {
         switch self {
         case .verified: ""
         case .unverified: Localized.Asset.Verification.unverified
@@ -376,7 +424,7 @@ extension VerificationStatus {
         }
     }
 
-    public var statusDescription: String {
+    var statusDescription: String {
         switch self {
         case .verified: ""
         case .unverified: Localized.Info.AssetStatus.Unverified.description
@@ -385,15 +433,15 @@ extension VerificationStatus {
     }
 }
 
-extension FiatQuoteType {
-    public func title(asset: String) -> String {
+public extension FiatQuoteType {
+    func title(asset: String) -> String {
         switch self {
         case .buy: Localized.Buy.title(asset)
         case .sell: Localized.Sell.title(asset)
         }
     }
 
-    public var action: String {
+    var action: String {
         switch self {
         case .buy: Localized.Wallet.buy
         case .sell: Localized.Wallet.sell
@@ -401,8 +449,8 @@ extension FiatQuoteType {
     }
 }
 
-extension GemEmptyStateText {
-    public func text(symbol: String) -> String {
+public extension GemEmptyStateText {
+    func text(symbol: String) -> String {
         switch self {
         case .nftsTitle: Localized.Nft.State.Empty.title
         case .nftsDescription: Localized.Nft.State.Empty.description
@@ -437,8 +485,8 @@ extension GemEmptyStateText {
     }
 }
 
-extension GemEmptyStateAction {
-    public var title: String {
+public extension GemEmptyStateAction {
+    var title: String {
         switch self {
         case .buy: Localized.Wallet.buy
         case .swap: Localized.Wallet.swap
@@ -450,8 +498,8 @@ extension GemEmptyStateAction {
     }
 }
 
-extension GemErrorText {
-    public var text: String {
+public extension GemErrorText {
+    var text: String {
         switch self {
         case .cancelled: Localized.Errors.cancelled
         case .networkOffline: Localized.Errors.networkOffline
@@ -464,6 +512,12 @@ extension GemErrorText {
         case .maliciousOrigin: Localized.Errors.Connections.maliciousOrigin
         case .noSupportedWallets: Localized.Errors.Connections.noSupportedWallets
         case let .payment(status): status.errorText
+        case .invalidSecretPhrase: Localized.Errors.Import.invalidSecretPhrase
+        case let .invalidSecretPhraseWords(words): Localized.Errors.Import.invalidSecretPhraseWord(words.joined(separator: ", "))
+        case .invalidPrivateKey: Localized.Errors.Import.invalidPrivateKey
+        case .invalidAddress: Localized.Errors.invalidAddressName
+        case .noAccountForChain: Localized.Errors.walletAccountMissing
+        case .unknown: Localized.Errors.unknown
         case let .message(text): text
         }
     }
@@ -481,8 +535,8 @@ extension PaymentStatus {
     }
 }
 
-extension GemSelectAssetTitle {
-    public var text: String {
+public extension GemSelectAssetTitle {
+    var text: String {
         switch self {
         case .send: Localized.Wallet.send
         case .payWith: Localized.Transfer.payWith
@@ -500,8 +554,8 @@ extension GemSelectAssetTitle {
     }
 }
 
-extension GemSelectAssetSection {
-    public var text: String {
+public extension GemSelectAssetSection {
+    var text: String {
         switch self {
         case .assets: Localized.Assets.title
         case .networks: Localized.Settings.Networks.title
@@ -548,7 +602,7 @@ public extension GemBannerDescription {
         switch self {
         case let .stake(assetSymbol): Localized.Banner.Stake.description(assetSymbol)
         case let .accountActivation(networkName, fee): Localized.Banner.AccountActivation.description(networkName, amount(fee))
-        case let .multiSignatureBlocked(networkName): Localized.Warnings.multiSignatureBlocked(networkName)
+        case let .externallyControlledAccount(networkName): Localized.Warnings.externallyControlledAccount(networkName)
         case let .activateAsset(assetSymbol, networkName): Localized.Banner.ActivateAsset.description(assetSymbol, networkName)
         case .suspiciousAsset: Localized.Banner.AssetStatus.description
         case .onboarding: Localized.Banner.Onboarding.description
@@ -557,10 +611,159 @@ public extension GemBannerDescription {
     }
 }
 
+extension GemRecipientError: @retroactive LocalizedError {
+    public var errorDescription: String? { display().errorDescription }
+}
+
 extension GemRecipientErrorDisplay: @retroactive LocalizedError {
     public var errorDescription: String? {
         switch self {
         case let .invalidAddress(network): Localized.Errors.invalidAssetAddress(network.boldMarkdown())
+        }
+    }
+}
+
+public extension GemListSectionTitle {
+    var text: String? {
+        switch self {
+        case .none: nil
+        case .balances: Localized.Asset.balances
+        case .community: Localized.Settings.community
+        case .manage: Localized.Common.manage
+        case .resources: Localized.Asset.resources
+        case .socialLinks: Localized.Social.links
+        }
+    }
+}
+
+public extension GemListSectionFooter {
+    var text: String? {
+        switch self {
+        case .none: nil
+        case .authentication: Localized.Lock.footer
+        }
+    }
+}
+
+public extension GemListRowTitle {
+    var text: String {
+        switch self {
+        case .api: "API"
+        case .stream: "Stream"
+        case .gemWalletNode: Localized.Nodes.gemWalletNode
+        case .name: Localized.Asset.name
+        case .network: Localized.Transfer.network
+        case .address: Localized.Common.address
+        case .available: Localized.Asset.Balances.available
+        case .stake: Localized.Wallet.stake
+        case .earn: Localized.Common.earn
+        case .pendingUnconfirmed: Localized.Stake.pending
+        case .reserved: Localized.Asset.Balances.reserved
+        case .error: Localized.Errors.errorOccurred
+        case .termsOfService: Localized.Settings.termsOfServices
+        case .privacyPolicy: Localized.Settings.privacyPolicy
+        case .website: Localized.Settings.website
+        case .version: Localized.Settings.version
+        case .updateApp: Localized.UpdateApp.title
+        case .wallets: Localized.Wallets.title
+        case .security: Localized.Settings.security
+        case .notifications: Localized.Settings.Notifications.title
+        case .preferences: Localized.Settings.Preferences.title
+        case .walletConnect: Localized.WalletConnect.title
+        case .support: Localized.Settings.support
+        case .rewards: Localized.Rewards.title
+        case .myReferralCode: Localized.Rewards.myReferralCode
+        case .referrals: Localized.Rewards.referrals
+        case .points: Localized.Rewards.points
+        case .invitedBy: Localized.Rewards.invitedBy
+        case .aboutUs: Localized.Settings.aboutus
+        case .developer: Localized.Settings.developer
+        case .authentication: Localized.Settings.enablePasscode
+        case .lockPeriod: Localized.Lock.requireAuthentication
+        case .privacyLock: Localized.Lock.privacyLock
+        case .hideBalance: Localized.Settings.hideBalance
+        case .currency: Localized.Settings.currency
+        case .language: Localized.Settings.language
+        case .appearance: Localized.Settings.appearanceTitle
+        case .networks: Localized.Settings.Networks.title
+        case .contacts: Localized.Contacts.title
+        case .perpetuals: Localized.Perpetuals.title
+        case .perpetualLeverage: Localized.Settings.Preferences.Perpetual.defaultLeverage
+        case .perpetualTakeProfit: Localized.Settings.Preferences.Perpetual.defaultTakeProfit
+        case .perpetualStopLoss: Localized.Settings.Preferences.Perpetual.defaultStopLoss
+        case .dailyVolume: Localized.Markets.dailyVolume
+        case .openInterest: Localized.Info.Perpetual.OpenInterest.title
+        case .fundingApr: Localized.Info.Perpetual.FundingApr.title
+        case .stakeApr: Localized.Stake.apr("")
+        case .lockTime: Localized.Stake.lockTime
+        case .minimumAmount: Localized.Stake.minimumAmount
+        case .networkFee: Localized.Transfer.networkFee
+        case .validator: Localized.Stake.validator
+        case .provider: Localized.Common.provider
+        case .status: Localized.Transaction.status
+        case .activeIn: Localized.Stake.activeIn
+        case .availableIn: Localized.Stake.availableIn
+        case .date: Localized.Transaction.date
+        case .resource: Localized.Stake.resource
+        case .price: Localized.Asset.price
+        case .pnl: Localized.Perpetual.pnl
+        case .pin: Localized.Common.pin
+        case .unpin: Localized.Common.unpin
+        case .addToWallet: Localized.Asset.addToWallet
+        case .priceAlerts: Localized.Settings.PriceAlerts.title
+        case .setPriceAlert: Localized.PriceAlerts.SetAlert.title
+        case .energy: Localized.Stake.Resource.energy
+        case .bandwidth: Localized.Stake.Resource.bandwidth
+        case .rewardsUnverified: Localized.Rewards.Unverified.title
+        case .rewardsPending: Localized.Rewards.Pending.title
+        case .warning: Localized.Common.warning
+        case .unlimitedApproval: Localized.Simulation.Warning.UnlimitedTokenApproval.title
+        case .nftCollectionApproval: Localized.Simulation.Warning.NftCollectionApproval.title
+        case .symbol: Localized.Asset.symbol
+        case .decimals: Localized.Asset.decimals
+        case .type: Localized.Common.type
+        case .autoClose: Localized.Perpetual.autoClose
+        case .size: Localized.Perpetual.size
+        case .entryPrice: Localized.Perpetual.entryPrice
+        case .liquidationPrice: Localized.Info.Perpetual.LiquidationPrice.title
+        case .margin: Localized.Perpetual.margin
+        case .position: Localized.Perpetual.position
+        case .details: Localized.Common.details
+        case .slippage: Localized.Swap.slippage
+        case .marketPrice: Localized.Perpetual.marketPrice
+        case .fundingPayments: Localized.Info.Perpetual.FundingPayments.title
+        case .marketCap: Localized.Asset.marketCap
+        case .fullyDilutedValuation: Localized.Info.FullyDilutedValuation.title
+        case .tradingVolume: Localized.Asset.tradingVolume
+        case .circulatingSupply: Localized.Asset.circulatingSupply
+        case .totalSupply: Localized.Asset.totalSupply
+        case .maxSupply: Localized.Info.MaxSupply.title
+        case .allTimeHigh: Localized.Asset.allTimeHigh
+        case .allTimeLow: Localized.Asset.allTimeLow
+        case .wallet: Localized.Common.wallet
+        case .contract: Localized.Asset.contract
+        case .tokenId: Localized.Asset.tokenId
+        case .collection: Localized.Nft.collection
+        }
+    }
+}
+
+extension GemCopyKind {
+    func copiedMessage(display: String) -> String {
+        switch self {
+        case .plain: Localized.Common.copied(display)
+        case .secretPhrase: Localized.Common.copied(Localized.Common.secretPhrase)
+        case .privateKey: Localized.Common.copied(Localized.Common.privateKey)
+        case let .address(chain): Localized.Common.copied(String(format: "%@ (%@)", Chain(core: chain).networkName, display))
+        }
+    }
+}
+
+extension GemTriggerOrder {
+    var title: String {
+        switch self {
+        case .takeProfit: Localized.Perpetual.takeProfit
+        case .stopLoss: Localized.Perpetual.stopLoss
         }
     }
 }

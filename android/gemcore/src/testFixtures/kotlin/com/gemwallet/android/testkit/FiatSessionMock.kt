@@ -6,10 +6,7 @@ import uniffi.gemstone.GemFiatQuotePhase
 import uniffi.gemstone.GemFiatSession
 import java.math.BigInteger
 
-fun mockGemFiatSession(
-    quoteType: FiatQuoteType = FiatQuoteType.BUY,
-    amount: UInt? = null,
-): GemFiatSession {
+fun mockGemFiatSession(quoteType: FiatQuoteType = FiatQuoteType.BUY, amount: UInt? = null): GemFiatSession {
     val operation = { type: FiatQuoteType, default: UInt ->
         val value = amount?.takeIf { type == quoteType } ?: default
         GemFiatOperation(type, value.toString(), emptyList(), null, GemFiatQuotePhase.Loading(value.toDouble()))

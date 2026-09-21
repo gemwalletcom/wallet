@@ -2,8 +2,8 @@
 
 import BigInt
 import Foundation
-import enum Gemstone.SwapProvider
 import struct Gemstone.SwapperQuote
+import enum Gemstone.SwapProvider
 
 public extension SwapperQuote {
     static func mock(

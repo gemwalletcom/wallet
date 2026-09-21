@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 internal import Security
+import Foundation
 
 enum Status: OSStatus, Error {
     case success = 0
@@ -424,6 +424,8 @@ extension Status: RawRepresentable, CustomStringConvertible {
 }
 
 extension Status: CustomNSError {
+    static var errorDomain: String { NSOSStatusErrorDomain }
+
     var errorCode: Int {
         Int(rawValue)
     }

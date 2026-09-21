@@ -46,13 +46,7 @@ pub fn build_pool_keys(token_in: &Address, token_out: &Address, fee_tiers: &[Fee
         .collect()
 }
 
-pub fn build_quote_exact_params(
-    amount_in: u128,
-    token_in: &Address,
-    token_out: &Address,
-    fee_tiers: &[FeeTier],
-    intermediaries: &[Address],
-) -> Vec<Vec<(Vec<TokenPair>, QuoteExactParams)>> {
+pub fn build_quote_exact_params(amount_in: u128, token_in: &Address, token_out: &Address, fee_tiers: &[FeeTier], intermediaries: &[Address]) -> Vec<Vec<(Vec<TokenPair>, QuoteExactParams)>> {
     intermediaries
         .iter()
         .map(|intermediary| {
@@ -97,11 +91,7 @@ impl TryFrom<&Route> for PathKey {
     type Error = SwapperError;
 
     fn try_from(value: &Route) -> Result<Self, Self::Error> {
-        let token_id = value
-            .output
-            .token_id
-            .as_ref()
-            .ok_or_else(|| SwapperError::ComputeQuoteError(format!("{}: {}", INVALID_ADDRESS, value.output)))?;
+        let token_id = value.output.token_id.as_ref().ok_or_else(|| SwapperError::ComputeQuoteError(format!("{}: {}", INVALID_ADDRESS, value.output)))?;
         let currency = eth_address::parse_str(token_id)?;
 
         let route_data: RouteData = serde_json::from_str(&value.route_data).map_err(|_| SwapperError::InvalidRoute)?;
@@ -137,10 +127,7 @@ mod tests {
         assert_eq!(quote_exact_params.len(), intermediaries.len());
         assert_eq!(get_intermediary_token(&quote_exact_params, 0), None);
         assert_eq!(get_intermediary_token(&quote_exact_params, 1), Some(intermediaries[0]));
-        assert_eq!(
-            get_intermediary_token(&quote_exact_params, intermediaries.len()),
-            Some(intermediaries[intermediaries.len() - 1])
-        );
+        assert_eq!(get_intermediary_token(&quote_exact_params, intermediaries.len()), Some(intermediaries[intermediaries.len() - 1]));
         assert_eq!(get_intermediary_token(&quote_exact_params, intermediaries.len() + 1), None);
     }
 }

@@ -239,3 +239,9 @@ pub struct AssetList {
     pub chains: Vec<Chain>,
     pub asset_ids: Vec<AssetId>,
 }
+
+impl AssetList {
+    pub fn contains(&self, asset_id: &AssetId) -> bool {
+        self.chains.contains(&asset_id.chain) || self.asset_ids.contains(asset_id)
+    }
+}

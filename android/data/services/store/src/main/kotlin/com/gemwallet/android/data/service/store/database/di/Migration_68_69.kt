@@ -21,7 +21,7 @@ object Migration_68_69 : Migration(68, 69) {
                 PRIMARY KEY(`id`, `walletId`),
                 FOREIGN KEY(`walletId`) REFERENCES `wallets`(`id`) ON UPDATE CASCADE ON DELETE CASCADE,
                 FOREIGN KEY(`assetId`) REFERENCES `asset`(`id`) ON UPDATE CASCADE ON DELETE CASCADE
-            )"""
+            )""",
         )
     }
 }

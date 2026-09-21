@@ -100,14 +100,7 @@ impl CacherClient {
     }
 
     pub async fn can_process_now(&self, key: &str, ttl_seconds: u64) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        let result: Option<String> = redis::cmd("SET")
-            .arg(key)
-            .arg(1)
-            .arg("NX")
-            .arg("EX")
-            .arg(ttl_seconds)
-            .query_async(&mut self.connection.clone())
-            .await?;
+        let result: Option<String> = redis::cmd("SET").arg(key).arg(1).arg("NX").arg("EX").arg(ttl_seconds).query_async(&mut self.connection.clone()).await?;
         Ok(result.is_some())
     }
 
@@ -249,15 +242,7 @@ impl CacherClient {
     }
 
     pub async fn sorted_set_range_by_score(&self, key: &str, min: f64, max: f64, limit: usize) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
-        Ok(redis::cmd("ZRANGEBYSCORE")
-            .arg(key)
-            .arg(min)
-            .arg(max)
-            .arg("LIMIT")
-            .arg(0)
-            .arg(limit)
-            .query_async(&mut self.connection.clone())
-            .await?)
+        Ok(redis::cmd("ZRANGEBYSCORE").arg(key).arg(min).arg(max).arg("LIMIT").arg(0).arg(limit).query_async(&mut self.connection.clone()).await?)
     }
 
     pub async fn sorted_set_card(&self, key: &str) -> Result<u64, Box<dyn Error + Send + Sync>> {
@@ -265,13 +250,7 @@ impl CacherClient {
     }
 
     pub async fn sorted_set_range_with_scores(&self, key: &str, start: isize, stop: isize) -> Result<Vec<(String, f64)>, Box<dyn Error + Send + Sync>> {
-        Ok(redis::cmd("ZRANGE")
-            .arg(key)
-            .arg(start)
-            .arg(stop)
-            .arg("WITHSCORES")
-            .query_async(&mut self.connection.clone())
-            .await?)
+        Ok(redis::cmd("ZRANGE").arg(key).arg(start).arg(stop).arg("WITHSCORES").query_async(&mut self.connection.clone()).await?)
     }
 
     pub async fn take_sorted_set_with_scores(&self, key: &str) -> Result<Vec<(String, f64)>, Box<dyn Error + Send + Sync>> {

@@ -36,26 +36,12 @@ impl ImageProvider for CoinMarketCapProvider {
 #[async_trait]
 impl ImageListProvider for CoinMarketCapProvider {
     async fn get_top_asset_images(&self) -> Result<Vec<AssetImage>, Box<dyn Error + Send + Sync>> {
-        let ids = self
-            .client
-            .get_latest_listings(self.config.top.count)
-            .await?
-            .into_iter()
-            .filter(Listing::is_token)
-            .map(|listing| listing.id)
-            .collect();
+        let ids = self.client.get_latest_listings(self.config.top.count).await?.into_iter().filter(Listing::is_token).map(|listing| listing.id).collect();
         self.get_asset_images_by_ids(ids).await
     }
 
     async fn get_trending_asset_images(&self) -> Result<Vec<AssetImage>, Box<dyn Error + Send + Sync>> {
-        let ids = self
-            .client
-            .get_trending_latest(self.config.trending.count)
-            .await?
-            .into_iter()
-            .filter(Listing::is_token)
-            .map(|listing| listing.id)
-            .collect();
+        let ids = self.client.get_trending_latest(self.config.trending.count).await?.into_iter().filter(Listing::is_token).map(|listing| listing.id).collect();
         self.get_asset_images_by_ids(ids).await
     }
 }

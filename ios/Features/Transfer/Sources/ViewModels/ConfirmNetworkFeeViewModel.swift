@@ -29,11 +29,11 @@ extension ConfirmNetworkFeeViewModel {
             .init(
                 title: feeModel.title,
                 subtitle: networkFeeValue,
-                subtitleExtra: feeRow == .unavailable ? nil : feeModel.feeAssetSymbol,
+                subtitleExtra: isUnavailable ? nil : feeModel.feeAssetSymbol,
                 placeholders: [.subtitle],
                 infoAction: infoAction,
             ),
-            selectable: feeModel.showFeeDetails && feeRow != .unavailable,
+            selectable: feeModel.showFeeDetails && !isUnavailable,
         )
     }
 }
@@ -41,9 +41,17 @@ extension ConfirmNetworkFeeViewModel {
 // MARK: - Private
 
 extension ConfirmNetworkFeeViewModel {
+    private var isUnavailable: Bool {
+        if case .unavailable = feeRow {
+            true
+        } else {
+            false
+        }
+    }
+
     private var networkFeeValue: String? {
         switch feeRow {
-        case .unavailable: "-"
+        case let .unavailable(text): text
         case .loading: nil
         case .ready: feeModel.fiatValue ?? feeModel.value
         }

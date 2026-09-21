@@ -9,14 +9,7 @@ use crate::models::{BroadcastTransaction, Outcome, TransactionAction};
 
 use super::fungible_token::map_fungible_token_transfers;
 
-pub(in crate::rpc) fn map_transaction(
-    transaction: BroadcastTransaction,
-    receipts: Vec<Outcome>,
-    block_height: u64,
-    block_timestamp: u64,
-    state: TransactionState,
-    fee: BigUint,
-) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
+pub(in crate::rpc) fn map_transaction(transaction: BroadcastTransaction, receipts: Vec<Outcome>, block_height: u64, block_timestamp: u64, state: TransactionState, fee: BigUint) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
     let created_at = DateTime::<Utc>::from_timestamp_nanos(i64::try_from(block_timestamp)?);
     let asset_transfers = map_fungible_token_transfers(&receipts)?;
     let (transfer, transaction_type, metadata) = if let Some(transfer) = asset_transfers.first().cloned() {
@@ -32,11 +25,7 @@ pub(in crate::rpc) fn map_transaction(
             .iter()
             .find_map(|action| {
                 if let TransactionAction::Delegate { delegate } = action {
-                    Some((
-                        delegate.delegate_action.sender_id.as_str(),
-                        delegate.delegate_action.receiver_id.as_str(),
-                        delegate.delegate_action.actions.as_slice(),
-                    ))
+                    Some((delegate.delegate_action.sender_id.as_str(), delegate.delegate_action.receiver_id.as_str(), delegate.delegate_action.actions.as_slice()))
                 } else {
                     None
                 }
@@ -50,10 +39,7 @@ pub(in crate::rpc) fn map_transaction(
             })
             .peekable();
         let (transaction_type, value) = if transfer_deposits.peek().is_some() {
-            (
-                TransactionType::Transfer,
-                transfer_deposits.map(|deposit| deposit.parse::<BigUint>()).sum::<Result<BigUint, _>>()?,
-            )
+            (TransactionType::Transfer, transfer_deposits.map(|deposit| deposit.parse::<BigUint>()).sum::<Result<BigUint, _>>()?)
         } else {
             (
                 TransactionType::SmartContractCall,

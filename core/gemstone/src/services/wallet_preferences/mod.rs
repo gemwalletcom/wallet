@@ -66,10 +66,8 @@ impl GemWalletPreferencesService {
 
 impl GemWalletPreferencesService {
     pub fn reset_transactions_timestamp(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
-        self.store
-            .set(wallet_id.clone(), WalletPreferenceKey::TransactionsTimestamp.as_ref().to_string(), 0.to_string())?;
-        self.store
-            .set(wallet_id, WalletPreferenceKey::CompleteInitialLoadTransactions.as_ref().to_string(), "false".to_string())
+        self.store.set(wallet_id.clone(), WalletPreferenceKey::TransactionsTimestamp.as_ref().to_string(), 0.to_string())?;
+        self.store.set(wallet_id, WalletPreferenceKey::CompleteInitialLoadTransactions.as_ref().to_string(), "false".to_string())
     }
 
     pub fn delete_preferences(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
@@ -93,8 +91,7 @@ impl GemWalletPreferencesService {
     }
 
     pub fn set_notifications_timestamp(&self, wallet_id: WalletId, timestamp: u64) -> Result<(), GemServiceError> {
-        self.store
-            .set(wallet_id, WalletPreferenceKey::NotificationsTimestamp.as_ref().to_string(), timestamp.to_string())
+        self.store.set(wallet_id, WalletPreferenceKey::NotificationsTimestamp.as_ref().to_string(), timestamp.to_string())
     }
 
     pub fn set_initial_load_completed(&self, wallet_id: WalletId, step: GemDiscoveryStep) -> Result<(), GemServiceError> {

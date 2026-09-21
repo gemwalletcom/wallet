@@ -6,9 +6,7 @@ mod target;
 pub mod testkit;
 
 pub use self::client::MAX_MARKETS_PER_PAGE;
-pub use self::mapper::{
-    get_asset_ids_for_coin, get_chain_for_coingecko_platform_id, get_chains_for_coingecko_market_id, get_coingecko_market_id_for_chain, get_coingecko_platform_id_for_chain,
-};
+pub use self::mapper::{get_asset_ids_for_coin, get_chain_for_coingecko_platform_id, get_chains_for_coingecko_market_id, get_coingecko_market_id_for_chain, get_coingecko_platform_id_for_chain};
 pub use self::model::{Coin, CoinGeckoErrorResponse, CoinGeckoResponse, CoinInfo, CoinMarket};
 
 use gem_client::ReqwestClient;

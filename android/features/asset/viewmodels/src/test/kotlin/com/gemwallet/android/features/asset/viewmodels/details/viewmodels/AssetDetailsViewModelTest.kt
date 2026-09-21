@@ -22,10 +22,12 @@ import com.gemwallet.android.testkit.mockGemAssetDetailsState
 import com.gemwallet.android.testkit.mockPriceAlert
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.wallet.core.primitives.Banner
 import com.wallet.core.primitives.PriceAlert
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -33,6 +35,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -44,6 +47,9 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAssetDetailsInput
 import uniffi.gemstone.GemAssetDetailsServiceInterface
+import uniffi.gemstone.GemAssetRefresh
+import uniffi.gemstone.GemBannerRow
+import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPriceAlertToggle
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -56,7 +62,7 @@ class AssetDetailsViewModelTest {
         mockChainAssetInfo(mockAssetInfo(asset)),
     )
     private val sessionFlow = MutableStateFlow<Session?>(mockSession())
-    private val banners = MutableSharedFlow<List<Banner>>(replay = 1)
+    private val banners = MutableSharedFlow<List<GemBannerRow>>(replay = 1)
     private val priceAlerts = MutableSharedFlow<List<PriceAlert>>(replay = 1)
 
     private val getChainAssetInfo = mockk<GetChainAssetInfo>(relaxed = true)
@@ -75,11 +81,12 @@ class AssetDetailsViewModelTest {
         every { getChainAssetInfo(asset.id) } returns chainAssetInfoFlow
         every { getSession() } returns sessionFlow
         every { getTransactions.getTransactions(any()) } returns MutableStateFlow(emptyList())
+        every { getTransactions.stored(any()) } returns emptyList()
         every { getActiveBanners(any()) } returns banners
         every { getPriceAlerts.assetPriceAlerts(asset.id) } returns priceAlerts
         every { service.details(any()) } answers {
             val input = firstArg<GemAssetDetailsInput>()
-            mockGemAssetDetails(asset, mockGemAssetDetailsState(showsBanners = input.bannerEvents.isNotEmpty(), priceAlertsCount = input.priceAlerts.size.toUInt()))
+            mockGemAssetDetails(asset, mockGemAssetDetailsState(showsBanners = input.bannerEvents.isNotEmpty(), priceAlertsCount = input.priceAlerts.size))
         }
     }
 
@@ -105,11 +112,21 @@ class AssetDetailsViewModelTest {
         priceAlerts.emit(listOf(mockPriceAlert(assetId = asset.id)))
         val uiModel = viewModel.uiModel.first { it != null }!!
 
-        assertEquals(1u, uiModel.detailsState.priceAlertsCount)
         assertEquals(GemPriceAlertToggle.ENABLED, uiModel.detailsState.priceAlert)
     }
 
-    private fun createViewModel(): AssetDetailsViewModel = AssetDetailsViewModel(
+    @Test
+    fun `the sync the screen starts while it is built reads only state that is already set`() = runTest(testDispatcher) {
+        val immediate = UnconfinedTestDispatcher(testScheduler)
+        Dispatchers.setMain(immediate)
+        coEvery { service.refresh(any(), any()) } returns GemAssetRefresh(transactions = GemLoadState.Data, failures = emptyList())
+
+        createViewModel(ioDispatcher = immediate)
+
+        coVerify { service.refresh(asset.id.toIdentifier(), false) }
+    }
+
+    private fun createViewModel(ioDispatcher: CoroutineDispatcher = testDispatcher): AssetDetailsViewModel = AssetDetailsViewModel(
         getSession = getSession,
         savedStateHandle = SavedStateHandle(mapOf(RouteArgument.AssetId.key to asset.id.toIdentifier())),
         getChainAssetInfo = getChainAssetInfo,
@@ -120,7 +137,8 @@ class AssetDetailsViewModelTest {
         getPriceAlerts = getPriceAlerts,
         assetInfoUIModelFactory = AssetInfoUIModelFactory(mockk<Context> { every { getString(any()) } answers { firstArg<Int>().toString() } }),
         userConfig = mockk(relaxed = true),
-        ioDispatcher = testDispatcher,
+        ioDispatcher = ioDispatcher,
         connectionStatusObserver = mockk(relaxed = true),
+        context = mockk(relaxed = true),
     ).also(viewModels::add)
 }

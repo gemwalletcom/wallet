@@ -12,10 +12,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 
-class ActiveWalletConnectRequest(
-    events: Flow<WalletConnectEvent>,
-    scope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob()),
-) {
+class ActiveWalletConnectRequest(events: Flow<WalletConnectEvent>, scope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())) {
 
     private val _current = MutableStateFlow<WalletConnectUserRequest?>(null)
     val current: StateFlow<WalletConnectUserRequest?> = _current.asStateFlow()
@@ -42,8 +39,7 @@ class ActiveWalletConnectRequest(
     }
 }
 
-private fun WalletConnectUserRequest.isRequest(expired: WalletConnectEvent.RequestExpired): Boolean =
-    this is WalletConnectUserRequest.SessionRequest && request.topic == expired.topic && request.request.id == expired.id
+private fun WalletConnectUserRequest.isRequest(expired: WalletConnectEvent.RequestExpired): Boolean = this is WalletConnectUserRequest.SessionRequest && request.topic == expired.topic && request.request.id == expired.id
 
 private val WalletConnectUserRequest.payload: Any
     get() = when (this) {
@@ -63,27 +59,22 @@ sealed interface WalletConnectUserRequest {
             is SessionProposal -> "proposal/${proposal.proposerPublicKey}"
         }
 
-    class SessionRequest(
-        val request: WalletConnectSessionRequest,
-        override val verifyContext: WalletConnectVerifyContext,
-    ) : WalletConnectUserRequest
+    class SessionRequest(val request: WalletConnectSessionRequest, override val verifyContext: WalletConnectVerifyContext) : WalletConnectUserRequest
 
-    class AuthenticationRequest(
-        val request: WalletConnectAuthenticationRequest,
-        override val verifyContext: WalletConnectVerifyContext,
-    ) : WalletConnectUserRequest
+    class AuthenticationRequest(val request: WalletConnectAuthenticationRequest, override val verifyContext: WalletConnectVerifyContext) : WalletConnectUserRequest
 
-    class SessionProposal(
-        val proposal: WalletConnectSessionProposal,
-        override val verifyContext: WalletConnectVerifyContext,
-    ) : WalletConnectUserRequest
+    class SessionProposal(val proposal: WalletConnectSessionProposal, override val verifyContext: WalletConnectVerifyContext) : WalletConnectUserRequest
 }
 
 private fun WalletConnectEvent.toUserRequest(): WalletConnectUserRequest? = when (this) {
     is WalletConnectEvent.SessionRequest -> WalletConnectUserRequest.SessionRequest(request, verifyContext)
+
     is WalletConnectEvent.AuthenticationRequest -> WalletConnectUserRequest.AuthenticationRequest(request, verifyContext)
+
     is WalletConnectEvent.SessionProposal -> WalletConnectUserRequest.SessionProposal(proposal, verifyContext)
+
     is WalletConnectEvent.RequestExpired,
     is WalletConnectEvent.SessionDeleted,
-    is WalletConnectEvent.SessionSettled -> null
+    is WalletConnectEvent.SessionSettled,
+    -> null
 }

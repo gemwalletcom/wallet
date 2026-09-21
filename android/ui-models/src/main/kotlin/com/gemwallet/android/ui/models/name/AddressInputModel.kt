@@ -1,6 +1,5 @@
 package com.gemwallet.android.ui.models.name
 
-import com.gemwallet.android.ext.display
 import com.gemwallet.android.ext.validateRecipient
 import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.CoroutineScope
@@ -16,11 +15,7 @@ import uniffi.gemstone.GemRecipientErrorDisplay
 import uniffi.gemstone.GemRecipientException
 import uniffi.gemstone.GemRecipientValidation
 
-class AddressInputModel(
-    private val nameService: GemNameServiceInterface,
-    scope: CoroutineScope,
-    initialChain: Chain? = null,
-) {
+class AddressInputModel(private val nameService: GemNameServiceInterface, scope: CoroutineScope, initialChain: Chain? = null) {
     private val nameRecordController = NameRecordController(nameService, scope)
     private val _text = MutableStateFlow("")
     private val _error = MutableStateFlow<GemRecipientErrorDisplay?>(null)
@@ -71,7 +66,7 @@ class AddressInputModel(
     }
 
     fun markInvalid(rejection: GemRecipientException) {
-        _error.value = _chain.value?.let { rejection.display(it) }
+        _error.value = rejection.display()
     }
 
     fun reset() {
@@ -80,9 +75,7 @@ class AddressInputModel(
         _error.value = null
     }
 
-    private fun isValid(text: String, resolve: GemNameRecordState, chain: Chain?): Boolean =
-        chain != null && validation(text, resolve, chain).isValid
+    private fun isValid(text: String, resolve: GemNameRecordState, chain: Chain?): Boolean = chain != null && validation(text, resolve, chain).isValid
 
-    private fun validation(text: String, state: GemNameRecordState, chain: Chain): GemRecipientValidation =
-        nameService.validateRecipient(chain, text, state)
+    private fun validation(text: String, state: GemNameRecordState, chain: Chain): GemRecipientValidation = nameService.validateRecipient(chain, text, state)
 }

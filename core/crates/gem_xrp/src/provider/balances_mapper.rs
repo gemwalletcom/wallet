@@ -15,10 +15,7 @@ pub fn map_balance_coin(account: Option<AccountInfo>, asset_id: AssetId, base_re
         })
         .unwrap_or_default();
 
-    Ok(AssetBalance::new_balance(
-        asset_id,
-        Balance::with_reserved(BigUint::from(available), BigUint::from(reserved)),
-    ))
+    Ok(AssetBalance::new_balance(asset_id, Balance::with_reserved(BigUint::from(available), BigUint::from(reserved))))
 }
 
 fn account_objects_to_balances(objects: &AccountObjects, chain: Chain) -> Vec<AssetBalance> {
@@ -43,10 +40,7 @@ fn account_objects_to_balances(objects: &AccountObjects, chain: Chain) -> Vec<As
 }
 
 pub fn map_balance_tokens(objects: &AccountObjects, token_ids: Vec<String>, chain: Chain) -> Vec<AssetBalance> {
-    let available_balances: HashMap<String, AssetBalance> = account_objects_to_balances(objects, chain)
-        .into_iter()
-        .filter_map(|x| x.asset_id.token_id.clone().map(|token_id| (token_id, x)))
-        .collect();
+    let available_balances: HashMap<String, AssetBalance> = account_objects_to_balances(objects, chain).into_iter().filter_map(|x| x.asset_id.token_id.clone().map(|token_id| (token_id, x))).collect();
 
     token_ids
         .into_iter()
@@ -61,10 +55,7 @@ pub fn map_balance_tokens(objects: &AccountObjects, token_ids: Vec<String>, chai
 }
 
 pub fn map_balance_assets(objects: &AccountObjects, chain: Chain) -> Vec<AssetBalance> {
-    account_objects_to_balances(objects, chain)
-        .into_iter()
-        .filter(|x| x.balance.available > BigUint::from(0u32))
-        .collect()
+    account_objects_to_balances(objects, chain).into_iter().filter(|x| x.balance.available > BigUint::from(0u32)).collect()
 }
 
 #[cfg(test)]

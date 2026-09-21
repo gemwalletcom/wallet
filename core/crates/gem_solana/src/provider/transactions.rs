@@ -48,10 +48,7 @@ impl<C: Client + Clone> ChainTransactions for SolanaIndexer<C> {
         let TransactionsRequest { address, limit, .. } = request;
         let transaction_ids = self.get_transaction_ids_by_address(&address, limit).await?;
         Ok(TransactionsResult::TransactionRequests(
-            transaction_ids
-                .into_iter()
-                .map(|transaction_id| TransactionIdRequest::new(primitives::Chain::Solana, transaction_id, None))
-                .collect(),
+            transaction_ids.into_iter().map(|transaction_id| TransactionIdRequest::new(primitives::Chain::Solana, transaction_id, None)).collect(),
         ))
     }
 }
@@ -78,10 +75,7 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_solana_get_transactions_by_address() {
         let client = create_solana_test_client();
-        let result = client
-            .get_transactions_by_address(TransactionsRequest::new(TEST_SOLANA_SENDER.to_string(), 100))
-            .await
-            .unwrap();
+        let result = client.get_transactions_by_address(TransactionsRequest::new(TEST_SOLANA_SENDER.to_string(), 100)).await.unwrap();
         let transactions = result.transaction_requests().unwrap();
 
         println!("Address: {}, transactions count: {}", TEST_SOLANA_SENDER, transactions.len());

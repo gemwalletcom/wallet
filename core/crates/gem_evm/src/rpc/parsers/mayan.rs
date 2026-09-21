@@ -102,10 +102,7 @@ impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for MayanParser 
             MayanSwiftCalls::fulfillOrder(call) => Self::decode_fulfill_order(&call.encodedVm)?,
         };
         let output_amount = context.metadata.receipt.logs.iter().find_map(|log| {
-            if !log.address.eq_ignore_ascii_case(MAYAN_SWIFT_CONTRACT)
-                || log.topics.len() != 1
-                || log.topics.first()?.parse::<B256>().ok()? != MayanSwift::OrderFulfilled::SIGNATURE_HASH
-            {
+            if !log.address.eq_ignore_ascii_case(MAYAN_SWIFT_CONTRACT) || log.topics.len() != 1 || log.topics.first()?.parse::<B256>().ok()? != MayanSwift::OrderFulfilled::SIGNATURE_HASH {
                 return None;
             }
             let (key, _, net_amount) = MayanSwift::OrderFulfilled::abi_decode_data(&decode_hex(&log.data).ok()?).ok()?;
@@ -132,9 +129,7 @@ impl MayanParser {
         const FULFILL_ACTION: u8 = 1;
 
         let signature_count = usize::from(*encoded_vm.get(5)?);
-        let payload_offset = VAA_HEADER_SIZE
-            .checked_add(signature_count.checked_mul(VAA_SIGNATURE_SIZE)?)?
-            .checked_add(VAA_BODY_HEADER_SIZE)?;
+        let payload_offset = VAA_HEADER_SIZE.checked_add(signature_count.checked_mul(VAA_SIGNATURE_SIZE)?)?.checked_add(VAA_BODY_HEADER_SIZE)?;
         let payload = encoded_vm.get(payload_offset..)?;
         if payload.first() != Some(&FULFILL_ACTION) {
             return None;
@@ -242,10 +237,7 @@ mod tests {
             .unwrap()
             .data
             .replace_range(2..66, "0000000000000000000000000000000000000000000000000000000000000001");
-        assert_eq!(
-            ProtocolParsers::map_transaction(&Chain::Polygon, &transaction, &mismatched_receipt, DateTime::default()),
-            None
-        );
+        assert_eq!(ProtocolParsers::map_transaction(&Chain::Polygon, &transaction, &mismatched_receipt, DateTime::default()), None);
     }
 
     fn fulfillment_input(amount: u64, order_hash: &str, method: FulfillMethod) -> String {

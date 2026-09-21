@@ -1,10 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemHeaderButtonKind
 import Components
 import Formatters
 import Foundation
+import struct Gemstone.GemBannerRow
+import enum Gemstone.GemHeaderButtonKind
+import struct Gemstone.GemPerpetualCollateral
 import protocol Gemstone.GemWalletHomeServiceProtocol
+import func Gemstone.walletBannerEvents
 import func Gemstone.walletRow
 import GemstonePrimitives
 import GemstoneServices
@@ -69,7 +72,10 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
             initialValue: nil,
         )
         assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: [.enabledBalance]), initialValue: [])
-        bannersQuery = ObservableQuery(BannersRequest(walletId: wallet.id, assetId: .none, events: [.accountBlockedMultiSignature, .onboarding]), initialValue: [])
+        bannersQuery = ObservableQuery(
+            BannersRequest(walletId: wallet.id, assetId: .none, events: walletBannerEvents().map { $0.toPrimitives() }),
+            initialValue: [],
+        )
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
         self.isPresentingWallets = isPresentingWallets
     }
@@ -106,7 +112,6 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         Images.Actions.manage
     }
 
-
     public var walletBarModel: WalletBarViewViewModel {
         let row = walletRow(wallet: wallet.toGem())
         return WalletBarViewViewModel(
@@ -120,9 +125,8 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         let viewState = service.viewState(
             wallet: wallet,
             balances: fiatValuesQuery.value,
-            perpetual: perpetualBalanceQuery.value,
+            perpetual: perpetualCollateral,
             banners: bannersQuery.value,
-            isWalletEmpty: assets.allSatisfy(\.balance.total.isZero),
         )
         return WalletHomeState(
             sections: AssetsSections.from(assets),
@@ -133,14 +137,14 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
                 actions: viewState.headerActions,
             ),
             currency: currency,
-            showPerpetuals: observablePreferences.showPerpetuals(for: wallet),
+            showPerpetuals: viewState.showsPerpetuals,
             showCollections: viewState.showCollections,
-            visibleBanners: viewState.visibleBanners.map { $0.toPrimitives() },
+            visibleBanners: viewState.visibleBanners,
         )
     }
 
-    func bannerModel(for banner: Banner) -> BannerViewModel {
-        BannerViewModel(banner: banner, content: service.content(for: banner))
+    func bannerModel(for row: GemBannerRow) -> BannerViewModel {
+        BannerViewModel(row: row)
     }
 }
 
@@ -232,6 +236,10 @@ public extension WalletSceneViewModel {
 // MARK: - Private
 
 extension WalletSceneViewModel {
+    private var perpetualCollateral: GemPerpetualCollateral? {
+        perpetualBalanceQuery.value.map { GemPerpetualCollateral(balance: $0.balance.toGem(), price: $0.price) }
+    }
+
     private func loadOnce(wallet: Wallet) async {
         let shouldShowLoadingAssets = shouldShowInitialLoadingAssets
 
@@ -255,7 +263,7 @@ extension WalletSceneViewModel {
     }
 
     private var shouldShowInitialLoadingAssets: Bool {
-        (try? service.showsInitialLoading()) ?? false
+        service.showsInitialLoading()
     }
 
     func setAssetPinned(_ assetId: AssetId, pinned: Bool) async throws {
@@ -265,8 +273,8 @@ extension WalletSceneViewModel {
     func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
         try await service.setAssetsEnabled(assetIds: assetIds, enabled: enabled)
     }
-    var assetItems: ListAssetItemsViewModel {
-        ListAssetItemsViewModel(currency: observablePreferences.currency, row: service.assetRow())
-    }
 
+    var assetItems: ListAssetItemsViewModel {
+        ListAssetItemsViewModel(currency: observablePreferences.currency, rowStyle: service.assetRowStyle())
+    }
 }

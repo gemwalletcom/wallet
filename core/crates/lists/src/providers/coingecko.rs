@@ -36,24 +36,10 @@ impl CoinGeckoListProvider {
             })
             .collect::<HashMap<_, _>>();
 
-        let asset_ids = coin_ids
-            .iter()
-            .filter_map(|coin_id| asset_ids_by_coin_id.get(coin_id))
-            .flatten()
-            .cloned()
-            .collect::<Vec<_>>();
-        let existing_asset_ids = self
-            .database
-            .assets()?
-            .get_assets_rows(asset_ids.clone())?
-            .into_iter()
-            .map(|asset| asset.as_asset_id())
-            .collect::<HashSet<_>>();
+        let asset_ids = coin_ids.iter().filter_map(|coin_id| asset_ids_by_coin_id.get(coin_id)).flatten().cloned().collect::<Vec<_>>();
+        let existing_asset_ids = self.database.assets()?.get_assets_rows(asset_ids.clone())?.into_iter().map(|asset| asset.as_asset_id()).collect::<HashSet<_>>();
         let mut seen = HashSet::new();
-        Ok(asset_ids
-            .into_iter()
-            .filter(|asset_id| existing_asset_ids.contains(asset_id) && seen.insert(asset_id.clone()))
-            .collect())
+        Ok(asset_ids.into_iter().filter(|asset_id| existing_asset_ids.contains(asset_id) && seen.insert(asset_id.clone())).collect())
     }
 }
 

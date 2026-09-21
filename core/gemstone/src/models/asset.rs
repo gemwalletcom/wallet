@@ -53,10 +53,7 @@ mod tests {
         assert!(wallet_asset_is_enabled(TEMPO_USDT0.id.clone(), WalletType::Single));
         assert!(!wallet_asset_is_enabled(TEMPO_BRIDGED_USDC.id.clone(), WalletType::Multicoin));
         assert!(!wallet_asset_is_enabled(AssetId::from_chain(Chain::Tempo), WalletType::Single));
-        assert!(!wallet_asset_is_enabled(
-            AssetId::from_token(Chain::Tempo, "0x20C0000000000000000000000000000000000001"),
-            WalletType::Single,
-        ));
+        assert!(!wallet_asset_is_enabled(AssetId::from_token(Chain::Tempo, "0x20C0000000000000000000000000000000000001"), WalletType::Single,));
         assert!(wallet_asset_is_enabled(SOLANA_USDC.id.clone(), WalletType::Single));
         assert!(wallet_asset_is_enabled(SOLANA_USDT.id.clone(), WalletType::Single));
         assert!(!wallet_asset_is_enabled(SOLANA_USDC.id.clone(), WalletType::Multicoin));

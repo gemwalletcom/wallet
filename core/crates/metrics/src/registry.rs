@@ -12,9 +12,7 @@ impl MetricsRegistry {
     }
 
     pub fn with_prefix(prefix: impl Into<String>) -> Self {
-        Self {
-            registry: Registry::with_prefix(prefix),
-        }
+        Self { registry: Registry::with_prefix(prefix) }
     }
 
     pub fn registry_mut(&mut self) -> &mut Registry {

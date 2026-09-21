@@ -57,7 +57,9 @@ private struct OptionalMessageToastModifier: ViewModifier {
                 isPresenting: Binding(
                     get: { message != nil },
                     set: { showing in
-                        if showing == false { message = nil }
+                        if showing == false {
+                            message = nil
+                        }
                     },
                 ),
                 message: message ?? .empty(),

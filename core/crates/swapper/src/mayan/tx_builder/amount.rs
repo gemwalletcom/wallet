@@ -67,10 +67,7 @@ mod tests {
     #[test]
     fn test_fractional_amount_value() {
         assert_eq!(fractional_amount::<u64>(&serde_json::json!(1.183818719), 9).unwrap(), 1_183_818_719);
-        assert_eq!(
-            fractional_amount_value(&serde_json::json!("123456789012345678.123456789"), 18).unwrap(),
-            "123456789012345678123456789000000000"
-        );
+        assert_eq!(fractional_amount_value(&serde_json::json!("123456789012345678.123456789"), 18).unwrap(), "123456789012345678123456789000000000");
         assert_eq!(fractional_amount::<u64>(&serde_json::json!("0.000000009"), 9).unwrap(), 9);
         assert_eq!(fractional_amount_value(&serde_json::json!("-1"), 9), Err(SwapperError::InvalidRoute));
     }

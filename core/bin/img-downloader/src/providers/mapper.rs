@@ -8,8 +8,7 @@ const POLYGON_NATIVE_TOKEN_ID: &str = "0x000000000000000000000000000000000000101
 const ZKSYNC_NATIVE_TOKEN_ID: &str = "0x000000000000000000000000000000000000800a";
 const COMMON_NATIVE_TOKEN_IDS: &[&str] = &[EVM_NATIVE_TOKEN_ID, ZERO_ADDRESS_TOKEN_ID];
 
-static CHAIN_NATIVE_TOKEN_IDS: LazyLock<HashMap<Chain, &[&str]>> =
-    LazyLock::new(|| HashMap::from([(Chain::Polygon, &[POLYGON_NATIVE_TOKEN_ID][..]), (Chain::ZkSync, &[ZKSYNC_NATIVE_TOKEN_ID][..])]));
+static CHAIN_NATIVE_TOKEN_IDS: LazyLock<HashMap<Chain, &[&str]>> = LazyLock::new(|| HashMap::from([(Chain::Polygon, &[POLYGON_NATIVE_TOKEN_ID][..]), (Chain::ZkSync, &[ZKSYNC_NATIVE_TOKEN_ID][..])]));
 
 pub fn is_native_token(image: &AssetImage) -> bool {
     let token_id = image.token_id.to_lowercase();

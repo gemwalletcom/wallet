@@ -1,3 +1,8 @@
+import func Gemstone.addressCopy
+import func Gemstone.privateKeyCopy
+import func Gemstone.secretPhraseCopy
+import GemstonePrimitives
+import Primitives
 @testable import PrimitivesComponents
 import PrimitivesTestKit
 import Testing
@@ -21,8 +26,8 @@ struct CopyTypeViewModelTests {
 
     @Test
     func expirationTimeInternal() {
-        #expect(CopyTypeViewModel(type: .secretPhrase, copyValue: "").expirationTimeInternal == 60)
-        #expect(CopyTypeViewModel(type: .privateKey, copyValue: "").expirationTimeInternal == 60)
-        #expect(CopyTypeViewModel(type: .address(.mock(), address: ""), copyValue: "").expirationTimeInternal == nil)
+        #expect(CopyTypeViewModel(content: secretPhraseCopy(words: [])).expirationTimeInternal == 60)
+        #expect(CopyTypeViewModel(content: privateKeyCopy(key: "")).expirationTimeInternal == 60)
+        #expect(CopyTypeViewModel(content: addressCopy(chain: Chain.ethereum.toGem(), address: "")).expirationTimeInternal == nil)
     }
 }

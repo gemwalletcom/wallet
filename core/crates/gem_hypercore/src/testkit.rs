@@ -57,14 +57,8 @@ impl OpenOrder {
 impl HypercorePortfolioTimeframeData {
     pub fn mock(vlm: &str) -> Self {
         Self {
-            account_value_history: vec![HypercoreDataPoint {
-                timestamp_ms: 1640995200000,
-                value: 1000.0,
-            }],
-            pnl_history: vec![HypercoreDataPoint {
-                timestamp_ms: 1640995200000,
-                value: 50.0,
-            }],
+            account_value_history: vec![HypercoreDataPoint { timestamp_ms: 1640995200000, value: 1000.0 }],
+            pnl_history: vec![HypercoreDataPoint { timestamp_ms: 1640995200000, value: 50.0 }],
             vlm: vlm.to_string(),
         }
     }
@@ -100,10 +94,7 @@ impl AssetMetadata {
 
 impl OrderbookLevel {
     pub fn mock(px: &str, sz: &str) -> Self {
-        Self {
-            px: px.to_string(),
-            sz: sz.to_string(),
-        }
+        Self { px: px.to_string(), sz: sz.to_string() }
     }
 }
 
@@ -127,9 +118,7 @@ impl Validator {
             name: name.to_string(),
             commission,
             is_active: true,
-            stats: predicted_apr
-                .map(|apr| vec![("month".to_string(), ValidatorStats { predicted_apr: apr })])
-                .unwrap_or_default(),
+            stats: predicted_apr.map(|apr| vec![("month".to_string(), ValidatorStats { predicted_apr: apr })]).unwrap_or_default(),
         }
     }
 }

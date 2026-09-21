@@ -29,7 +29,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DocsInfoButton
 import com.gemwallet.android.ui.components.buttons.CopyButton
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.setPlainText
+import com.gemwallet.android.ui.components.clipboard.setCopy
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.PhraseLayout
 import com.gemwallet.android.ui.components.screen.Scene
@@ -43,10 +43,7 @@ import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 import com.gemwallet.android.ui.theme.space8
 
 @Composable
-fun WalletSecretDataNavScreen(
-    onCancel: () -> Unit,
-    viewModel: WalletSecretDataViewModel = hiltViewModel()
-) {
+fun WalletSecretDataNavScreen(onCancel: () -> Unit, viewModel: WalletSecretDataViewModel = hiltViewModel()) {
     DisableScreenShooting()
     DetectScreenshot(AppUrl.howToSecureSecretPhrase)
 
@@ -78,21 +75,21 @@ fun WalletSecretDataNavScreen(
 
         Column(
             modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(paddingDefault)
+            verticalArrangement = Arrangement.spacedBy(paddingDefault),
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
                         color = MaterialTheme.colorScheme.error.copy(alpha = alpha10),
-                        shape = MaterialTheme.shapes.small
+                        shape = MaterialTheme.shapes.small,
                     )
                     .padding(horizontal = warningHorizontalPadding, vertical = paddingDefault),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(space8)
+                verticalArrangement = Arrangement.spacedBy(space8),
             ) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
@@ -115,10 +112,11 @@ fun WalletSecretDataNavScreen(
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center,
                 )
+
                 is WalletSecretContentUIModel.Words -> PhraseLayout(rows = remember(secret.words) { phraseRows(secret.words) })
             }
 
-            CopyButton(onClick = { clipboardManager.setPlainText(context, secret.text, true) })
+            CopyButton(onClick = { clipboardManager.setCopy(context, secret.copy()) })
         }
     }
 }

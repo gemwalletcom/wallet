@@ -1,9 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import Foundation
+import enum Gemstone.GemListRow
 import enum Gemstone.GemTransactionDetailRow
 import struct Gemstone.GemTransactionDetailSection
-import Foundation
 import Primitives
 import PrimitivesComponents
 import SwiftUI
@@ -25,12 +26,15 @@ public enum TransactionItemModel {
     case fee(ListItemModel)
     case header(TransactionHeaderItemModel)
     case swapProgress(TransactionSwapProgressItemModel)
-    case participant(TransactionParticipantItemModel)
+    case participant(AddressListItemViewModel)
     case rate(title: String, value: String)
-    case network(title: String, subtitle: String, image: AssetImage)
-    case pnl(ListItemModel)
-    case price(ListItemModel)
-    case explorer(url: URL, text: String)
+    case row(GemListRow)
     case swapAgain(text: String)
     case empty
+}
+
+extension TransactionItemModel: ItemModelProvidable {
+    public var itemModel: TransactionItemModel {
+        self
+    }
 }

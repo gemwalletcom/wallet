@@ -28,13 +28,7 @@ struct DepositArguments {
 
 impl TransactionParser<ParseContext<'_>, Transaction> for RelayParser {
     fn matches(&self, context: &ParseContext<'_>) -> bool {
-        context
-            .transaction
-            .transaction
-            .message
-            .instructions
-            .iter()
-            .any(|instruction| is_relay_instruction(context, instruction))
+        context.transaction.transaction.message.instructions.iter().any(|instruction| is_relay_instruction(context, instruction))
     }
 
     fn parse(&self, context: &ParseContext<'_>) -> Option<Transaction> {

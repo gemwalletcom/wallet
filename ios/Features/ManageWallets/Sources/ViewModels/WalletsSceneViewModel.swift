@@ -1,14 +1,14 @@
 import Components
 import Foundation
+import protocol Gemstone.GemWalletServiceProtocol
+import func Gemstone.walletRow
 import GemstonePrimitives
 import GemstoneServices
 import Localization
 import Primitives
+import PrimitivesComponents
 import Store
 import SwiftUI
-import func Gemstone.walletRow
-import protocol Gemstone.GemWalletServiceProtocol
-import PrimitivesComponents
 
 @Observable
 @MainActor
@@ -80,7 +80,7 @@ extension WalletsSceneViewModel {
     }
 
     private func delete(_ wallet: Wallet) async throws {
-        preferences.reload(after: try await service.delete(wallet))
+        try await preferences.reload(after: service.delete(wallet))
     }
 
     private func pin(_ wallet: Wallet) async throws {

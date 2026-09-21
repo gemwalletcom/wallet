@@ -179,4 +179,19 @@ struct AmountSceneViewModelTests {
         model.onAppear()
         #expect(model.amountInputModel.text.isEmpty == false)
     }
+
+    @Test
+    func buyWithoutAccountDoesNotPresentSheet() {
+        let assetData = AssetData.mock(asset: .mockBNB())
+        let model = AmountSceneViewModel.mock(assetData: assetData)
+        model.onSelectBuy()
+        #expect(model.isPresentingSheet == nil)
+
+        let withAccount = AmountSceneViewModel.mock(
+            wallet: Wallet.mock(accounts: [.mock(chain: .smartChain)]),
+            assetData: assetData,
+        )
+        withAccount.onSelectBuy()
+        #expect(withAccount.isPresentingSheet != nil)
+    }
 }

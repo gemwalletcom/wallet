@@ -6,10 +6,6 @@ use crate::provider::BroadcastProvider;
 
 impl ChainRequestClassifier for BroadcastProvider {
     fn classify_request(&self, request: ChainRequest<'_>) -> ChainRequestType {
-        if request.is_json_rpc_method(method::SUBMIT) {
-            ChainRequestType::Broadcast
-        } else {
-            ChainRequestType::Unknown
-        }
+        if request.is_json_rpc_method(method::SUBMIT) { ChainRequestType::Broadcast } else { ChainRequestType::Unknown }
     }
 }

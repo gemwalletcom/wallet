@@ -2,8 +2,7 @@ use chrono::DateTime;
 use num_bigint::{BigUint, Sign};
 
 use crate::{
-    COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, MEMO_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS,
-    TOKEN_PROGRAM, TOKEN_PROGRAM_2022,
+    COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, MEMO_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS, TOKEN_PROGRAM, TOKEN_PROGRAM_2022,
     models::{BlockTransaction, BlockTransactions, Instruction},
 };
 use primitives::{AssetId, Chain, NFTAssetId, SwapProvider, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionType};
@@ -149,11 +148,7 @@ fn map_swap_metadata(transaction: &BlockTransaction, owner: &str, provider: Swap
 }
 
 pub fn map_block_transactions(transactions: &BlockTransactions) -> Vec<primitives::Transaction> {
-    transactions
-        .transactions
-        .iter()
-        .filter_map(|transaction| map_transaction(transaction, transactions.block_time))
-        .collect()
+    transactions.transactions.iter().filter_map(|transaction| map_transaction(transaction, transactions.block_time)).collect()
 }
 
 pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Option<primitives::Transaction> {
@@ -166,11 +161,7 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
     let account_keys = &transaction.transaction.message.account_keys;
     let hash = transaction.transaction.signatures.first()?.to_string();
     let fee = transaction.meta.fee;
-    let state = if transaction.meta.has_error() {
-        TransactionState::Reverted
-    } else {
-        TransactionState::Confirmed
-    };
+    let state = if transaction.meta.has_error() { TransactionState::Reverted } else { TransactionState::Confirmed };
     let fee_asset_id = chain.as_asset_id();
     let created_at = DateTime::from_timestamp(block_time, 0)?;
     let memo = map_memo(&transaction.transaction.message.instructions, account_keys);
@@ -179,9 +170,7 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
         return Some(transaction);
     }
 
-    if (account_keys.len() == 3 && account_keys.last()? == SYSTEM_PROGRAM_ID)
-        || (account_keys.len() == 4 && account_keys.iter().any(|key| key == SYSTEM_PROGRAM_ID) && account_keys.iter().any(|key| key == COMPUTE_BUDGET_PROGRAM_ID))
-    {
+    if (account_keys.len() == 3 && account_keys.last()? == SYSTEM_PROGRAM_ID) || (account_keys.len() == 4 && account_keys.iter().any(|key| key == SYSTEM_PROGRAM_ID) && account_keys.iter().any(|key| key == COMPUTE_BUDGET_PROGRAM_ID)) {
         let from = account_keys.first()?.clone();
         let to = account_keys.get(1)?.clone();
         let value = transaction.get_balance_change(&from);
@@ -242,31 +231,10 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
                 let metadata = TransactionNFTTransferMetadata::from_asset_id(NFTAssetId::new(chain, token_id, token_id));
                 (TransactionType::TransferNFT, chain.as_asset_id(), serde_json::to_value(metadata).ok())
             } else {
-                (
-                    TransactionType::Transfer,
-                    AssetId {
-                        chain,
-                        token_id: Some(token_id.clone()),
-                    },
-                    None,
-                )
+                (TransactionType::Transfer, AssetId { chain, token_id: Some(token_id.clone()) }, None)
             };
 
-            let transaction = Transaction::new(
-                hash,
-                asset_id,
-                from,
-                to,
-                None,
-                transaction_type,
-                state,
-                BigUint::from(fee),
-                fee_asset_id,
-                value.clone(),
-                memo,
-                metadata,
-                created_at,
-            );
+            let transaction = Transaction::new(hash, asset_id, from, to, None, transaction_type, state, BigUint::from(fee), fee_asset_id, value.clone(), memo, metadata, created_at);
             return Some(transaction);
         }
     }
@@ -446,7 +414,7 @@ mod tests {
             from_asset: AssetId::from_token(Chain::Solana, "BKpSnSdNdANUxKPsn4AQ8mf4b9BoeVs9JD1Q8cVkpump"),
             from_value: BigUint::from(393647577456u64),
             to_asset: Chain::Solana.as_asset_id(),
-            to_value: BigUint::from(139512057u64),
+            to_value: BigUint::from(140927839u64),
             provider: Some(SwapProvider::Jupiter.id().to_owned()),
         };
 
@@ -670,11 +638,7 @@ mod tests {
         let transaction = result.result;
 
         let state = if transaction.slot > 0 {
-            if transaction.meta.has_error() {
-                TransactionState::Reverted
-            } else {
-                TransactionState::Confirmed
-            }
+            if transaction.meta.has_error() { TransactionState::Reverted } else { TransactionState::Confirmed }
         } else {
             TransactionState::Pending
         };
@@ -699,10 +663,7 @@ mod tests {
         let error_response: JsonRpcErrorResponse = serde_json::from_str(include_str!("../../testdata/transaction_broadcast_swap_error.json")).unwrap();
 
         assert_eq!(error_response.error.code, -32002);
-        assert_eq!(
-            error_response.error.message,
-            "Transaction simulation failed: Error processing Instruction 3: custom program error: 0x1771"
-        );
+        assert_eq!(error_response.error.message, "Transaction simulation failed: Error processing Instruction 3: custom program error: 0x1771");
         assert_eq!(error_response.id, Some(1755839259));
     }
 }

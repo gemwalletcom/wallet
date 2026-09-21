@@ -22,15 +22,9 @@ impl AssetsAddressesStore for DatabaseClient {
         if values.is_empty() {
             return Ok(0);
         }
-        let insert = diesel::insert_into(assets_addresses)
-            .values(&values)
-            .on_conflict((asset_id, address))
-            .do_update()
-            .set(value.eq(excluded(value)));
+        let insert = diesel::insert_into(assets_addresses).values(&values).on_conflict((asset_id, address)).do_update().set(value.eq(excluded(value)));
 
-        insert
-            .filter(excluded(value).is_not_null().and(value.is_distinct_from(excluded(value))))
-            .execute(&mut self.connection)
+        insert.filter(excluded(value).is_not_null().and(value.is_distinct_from(excluded(value)))).execute(&mut self.connection)
     }
 
     fn get_assets_by_addresses(&mut self, values: Vec<ChainAddress>, from_datetime: Option<NaiveDateTime>) -> Result<Vec<AssetAddressRow>, diesel::result::Error> {
@@ -80,13 +74,7 @@ impl AssetsAddressesStore for DatabaseClient {
             let mut deleted = 0;
 
             for row in values {
-                deleted += diesel::delete(
-                    assets_addresses
-                        .filter(chain.eq(&row.chain))
-                        .filter(asset_id.eq(&row.asset_id))
-                        .filter(address.eq(&row.address)),
-                )
-                .execute(connection)?;
+                deleted += diesel::delete(assets_addresses.filter(chain.eq(&row.chain)).filter(asset_id.eq(&row.asset_id)).filter(address.eq(&row.address))).execute(connection)?;
             }
 
             Ok(deleted)

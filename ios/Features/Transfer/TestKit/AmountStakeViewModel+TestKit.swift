@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemAmountService
 import enum Gemstone.GemStakeAmountInput
+import class Gemstone.GemStakeService
 import GemstonePrimitives
 import GemstoneServicesTestKit
 import Primitives
@@ -13,6 +13,6 @@ public extension AmountStakeViewModel {
         asset: Asset = .mockBNB(),
         type: GemStakeAmountInput = .stake(validators: [DelegationValidator.mock().toGem()], validator: nil),
     ) -> AmountStakeViewModel {
-        AmountStakeViewModel(asset: asset, type: type, service: GemAmountService.mock())
+        AmountStakeViewModel(asset: asset, type: type, service: GemStakeService.mock())
     }
 }

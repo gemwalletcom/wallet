@@ -27,16 +27,16 @@ public struct EarnScene: View {
                     .id(UUID())
             case .data:
                 Section {
-                    ListItemView(model: model.aprListItem)
+                    GemListRowView(row: model.aprRow)
                 }
             case let .error(error):
                 ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
             }
 
-            if model.showDeposit {
+            if model.canDeposit {
                 Section(Localized.Common.manage) {
-                    NavigationLink(value: model.depositDestination) {
-                        ListItemView(model: model.depositListItem)
+                    NavigationCustomLink(with: ListItemView(model: model.depositListItem)) {
+                        model.onSelectDeposit()
                     }
                 }
             }
@@ -44,8 +44,8 @@ public struct EarnScene: View {
             Section(model.positionsSectionTitle) {
                 if model.hasPositions {
                     ForEach(model.positionModels) { delegation in
-                        NavigationLink(value: model.navigationDestination(for: delegation)) {
-                            DelegationView(delegation: delegation)
+                        NavigationCustomLink(with: DelegationView(delegation: delegation)) {
+                            model.onSelect(delegation: delegation)
                         }
                     }
                     .listRowInsets(.assetListRowInsets)

@@ -8,14 +8,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ListSelectSearch(
-    private val searchService: AssetsSearchService,
-    private val searchKey: String,
-) : SelectSearch {
+class ListSelectSearch(private val searchService: AssetsSearchService, private val searchKey: String) : SelectSearch {
 
-    override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> {
-        return filters.flatMapLatest { filters ->
-            searchService.searchAssetsByKey(searchKey, filters?.limit ?: NO_QUERY_LIMIT, filters?.queryFilters().orEmpty())
-        }
+    override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> = filters.flatMapLatest { filters ->
+        searchService.searchAssetsByKey(searchKey, filters?.limit ?: NO_QUERY_LIMIT, filters?.queryFilters().orEmpty())
     }
 }

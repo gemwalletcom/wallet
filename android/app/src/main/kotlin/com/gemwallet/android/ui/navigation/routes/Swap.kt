@@ -22,11 +22,7 @@ data object SwapRoute : NavKey
 data class SwapPairRoute(val from: AssetId, val to: AssetId?) : NavKey
 
 @Serializable
-data class SwapSelectRoute(
-    val itemType: SwapItemType,
-    val payAssetId: AssetId?,
-    val receiveAssetId: AssetId?,
-) : NavKey
+data class SwapSelectRoute(val itemType: SwapItemType, val payAssetId: AssetId?, val receiveAssetId: AssetId?) : NavKey
 
 fun EntryProviderScope<NavKey>.swapSelect(navigator: WalletNavigator, onCancel: () -> Unit) {
     entry<SwapSelectRoute>(
@@ -45,12 +41,7 @@ fun EntryProviderScope<NavKey>.swapSelect(navigator: WalletNavigator, onCancel: 
     }
 }
 
-fun EntryProviderScope<NavKey>.swap(
-    navigator: WalletNavigator,
-    onConfirm: (ConfirmTransferInput) -> Unit,
-    onSelect: (select: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) -> Unit,
-    onCancel: () -> Unit,
-) {
+fun EntryProviderScope<NavKey>.swap(navigator: WalletNavigator, onConfirm: (ConfirmTransferInput) -> Unit, onSelect: (select: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) -> Unit, onCancel: () -> Unit) {
     entry<SwapRoute> {
         swapScreenContent(navigator, SwapRoute, from = null, to = null, onConfirm, onSelect, onCancel)
     }

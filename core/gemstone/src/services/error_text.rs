@@ -4,6 +4,7 @@ use crate::gateway::GatewayError;
 use crate::payment::GemPaymentError;
 use crate::services::error::GemServiceError;
 use crate::services::node::model::GemAddNodeError;
+use crate::services::wallet::error::GemWalletImportError;
 use crate::services::wallet_connect::error::GemWalletConnectError;
 use primitives::PaymentStatus;
 
@@ -20,6 +21,12 @@ pub enum GemErrorText {
     MaliciousOrigin,
     NoSupportedWallets,
     Payment { status: PaymentStatus },
+    InvalidSecretPhrase,
+    InvalidSecretPhraseWords { words: Vec<String> },
+    InvalidPrivateKey,
+    InvalidAddress,
+    NoAccountForChain,
+    Unknown,
     Message { text: String },
 }
 
@@ -27,15 +34,26 @@ pub enum GemErrorText {
 impl GemServiceError {
     pub fn text(&self) -> GemErrorText {
         match self {
-            Self::Api { msg }
-            | Self::Gateway { msg }
-            | Self::Store { msg }
-            | Self::Core { msg }
-            | Self::Platform { msg }
-            | Self::InvalidInput { msg }
-            | Self::NotFound { msg }
-            | Self::Unsupported { msg } => GemErrorText::Message { text: msg.clone() },
+            Self::Api { msg } | Self::Gateway { msg } | Self::Store { msg } | Self::Core { msg } | Self::Platform { msg } | Self::InvalidInput { msg } | Self::NotFound { msg } | Self::Unsupported { msg } => {
+                GemErrorText::Message { text: msg.clone() }
+            }
+            Self::NoAccountForChain { .. } => GemErrorText::NoAccountForChain,
+            Self::Offline => GemErrorText::NetworkOffline,
+            Self::WalletImport { error } => error.text(),
             Self::Cancelled => GemErrorText::Cancelled,
+        }
+    }
+}
+
+#[uniffi::export]
+impl GemWalletImportError {
+    pub fn text(&self) -> GemErrorText {
+        match self {
+            Self::InvalidSecretPhrase => GemErrorText::InvalidSecretPhrase,
+            Self::InvalidSecretPhraseWords { words } => GemErrorText::InvalidSecretPhraseWords { words: words.clone() },
+            Self::InvalidPrivateKey => GemErrorText::InvalidPrivateKey,
+            Self::InvalidAddress => GemErrorText::InvalidAddress,
+            Self::MissingChain => GemErrorText::Unknown,
         }
     }
 }
@@ -105,6 +123,15 @@ pub fn payment_error_text(error: GemPaymentError) -> GemErrorText {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::api::GemApiError;
+
+    #[test]
+    fn test_a_missing_account_names_the_chain() {
+        let error = GemServiceError::NoAccountForChain { chain: primitives::Chain::Ethereum };
+
+        assert_eq!(error.text(), GemErrorText::NoAccountForChain);
+        assert_eq!(error.to_string(), "wallet has no ethereum account");
+    }
 
     #[test]
     fn test_a_transport_message_is_named_apart_from_a_service_message() {
@@ -114,12 +141,24 @@ mod tests {
             "a transport failure reads as a network error on both apps"
         );
         assert_eq!(alien_error_text(AlienError::Offline), GemErrorText::NetworkOffline);
+        assert_eq!(GemServiceError::from(GatewayError::Offline).text(), GemErrorText::NetworkOffline);
+        assert_eq!(GemServiceError::from(GemApiError::Network { msg: AlienError::Offline.to_string() }).text(), GemErrorText::NetworkOffline);
+        assert_ne!(GemServiceError::from(GatewayError::NetworkError { msg: "reset".to_string() }).text(), GemErrorText::NetworkOffline);
         assert_eq!(alien_error_text(AlienError::Http { status: 503, len: 0 }), GemErrorText::NetworkStatus { status: 503 });
         assert_eq!(
             GatewayError::NetworkError { msg: "reverted".into() }.text(),
             GemErrorText::Message { text: "reverted".into() },
             "a message the gateway already phrased is shown as it is"
         );
+    }
+
+    #[test]
+    fn test_an_import_error_reaches_the_apps_as_its_own_text() {
+        let words = GemWalletImportError::InvalidSecretPhraseWords { words: vec!["abandom".to_string()] };
+
+        assert_eq!(GemServiceError::from(words.clone()).text(), GemErrorText::InvalidSecretPhraseWords { words: vec!["abandom".to_string()] });
+        assert_eq!(GemServiceError::from(GemWalletImportError::InvalidPrivateKey).text(), GemErrorText::InvalidPrivateKey);
+        assert!(!GemServiceError::from(words).to_string().contains("abandom"), "the log text never repeats a phrase word");
     }
 
     #[test]

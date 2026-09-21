@@ -10,13 +10,13 @@ import typealias Gemstone.Currency
 import enum Gemstone.GemAssetAction
 import protocol Gemstone.GemAssetSelectionServiceProtocol
 import enum Gemstone.GemNftItem
+import enum Gemstone.GemSearchScope
 import struct Gemstone.GemSelectAssetFlow
 import enum Gemstone.GemSelectAssetType
 import struct Gemstone.GemWalletSearchLimits
+import typealias Gemstone.NftData
 import struct Gemstone.Wallet
 import enum Gemstone.WalletType
-import typealias Gemstone.NftData
-import enum Gemstone.GemSearchScope
 import Primitives
 
 public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtocol, @unchecked Sendable {
@@ -76,7 +76,9 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
     }
 
     public func search(query _: String, scope _: GemSearchScope) async throws -> Bool {
-        if let error { throw error }
+        if let error {
+            throw error
+        }
         return true
     }
 
@@ -97,7 +99,9 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
     }
 
     public func searchAssets(query _: String) async throws -> [AssetBasic] {
-        if let error { throw error }
+        if let error {
+            throw error
+        }
         return assets
     }
 

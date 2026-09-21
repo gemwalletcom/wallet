@@ -36,11 +36,7 @@ fun rememberChartSelection(selectedIndex: Int?): ChartSelection {
     return selection
 }
 
-fun Modifier.chartSelection(
-    vararg keys: Any?,
-    indexAt: (Float) -> Int?,
-    onSelectionChanged: (Int?) -> Unit,
-): Modifier = this
+fun Modifier.chartSelection(vararg keys: Any?, indexAt: (Float) -> Int?, onSelectionChanged: (Int?) -> Unit): Modifier = this
     .pointerInput(*keys) {
         detectTapGestures(onPress = { touch ->
             indexAt(touch.x)?.let { index ->

@@ -5,7 +5,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 object Migration_58_59 : Migration(58, 59) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("""
+        db.execSQL(
+            """
             CREATE TABLE perpetual_asset (
                 id TEXT NOT NULL,
                 name TEXT NOT NULL,
@@ -14,6 +15,7 @@ object Migration_58_59 : Migration(58, 59) {
                 type TEXT NOT NULL,
                 PRIMARY KEY (id)
             )
-        """.trimIndent())
+            """.trimIndent(),
+        )
     }
 }

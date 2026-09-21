@@ -14,11 +14,7 @@ pub struct RewardsEligibilityChecker {
 impl RewardsEligibilityChecker {
     pub fn new(database: Database, stream_producer: StreamProducer) -> Self {
         let config = ConfigCacher::new(database.clone());
-        Self {
-            database,
-            config,
-            stream_producer,
-        }
+        Self { database, config, stream_producer }
     }
 
     pub async fn check(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
@@ -66,21 +62,14 @@ impl RewardsEligibilityChecker {
 
         let reward_event_ids = self.database.rewards()?.promote_to_verified(username)?;
 
-        info_with_fields!(
-            "rewards eligibility promoted user",
-            username = username,
-            wallet_id = wallet_id,
-            events = reward_event_ids.len()
-        );
+        info_with_fields!("rewards eligibility promoted user", username = username, wallet_id = wallet_id, events = reward_event_ids.len());
 
         self.publish_promotion(reward_event_ids).await?;
         Ok(true)
     }
 
     async fn publish_promotion(&self, reward_event_ids: Vec<i32>) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.stream_producer
-            .publish_rewards_events(reward_event_ids.into_iter().map(RewardsNotificationPayload::new).collect())
-            .await?;
+        self.stream_producer.publish_rewards_events(reward_event_ids.into_iter().map(RewardsNotificationPayload::new).collect()).await?;
 
         Ok(())
     }

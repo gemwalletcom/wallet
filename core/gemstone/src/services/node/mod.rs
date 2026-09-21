@@ -15,7 +15,7 @@ use primitives::Chain;
 use primitives::node::{Node, NodeState};
 use primitives::node_config::NodeRegion;
 
-pub use model::{GemAddNodeError, GemChainSettingsSection, GemExplorerRow, GemNodeCheck, GemNodeRow, GemNodeRowTitle, GemNodeSelection, GemNodeStatusState, GemNodeSubtitle};
+pub use model::{GemAddNodeError, GemExplorerRow, GemNodeCheck, GemNodeRow, GemNodeRowTitle, GemNodeSelection, GemNodeStatusState, GemNodeSubtitle};
 pub use settings::GemChainSettingsService;
 pub use store::GemNodeStore;
 
@@ -43,7 +43,9 @@ impl GemNodeService {
     pub fn websocket_node_url(&self, chain: Chain) -> String {
         rules::websocket_url(&self.node_url(chain))
     }
+}
 
+impl GemNodeService {
     pub async fn select_node(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {
         let stored = self.store.get_nodes(chain).await?;
         let selected = rules::chain_node(chain, Some(url), stored);
@@ -54,16 +56,7 @@ impl GemNodeService {
         if !rules::can_delete_node(chain, &url) {
             return Ok(());
         }
-        self.store
-            .add_node(
-                chain,
-                Node {
-                    url,
-                    status: NodeState::Active,
-                    priority: 0,
-                },
-            )
-            .await
+        self.store.add_node(chain, Node { url, status: NodeState::Active, priority: 0 }).await
     }
 
     pub async fn delete_node(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {
@@ -75,9 +68,7 @@ impl GemNodeService {
         }
         self.store.delete_node(chain, url).await
     }
-}
 
-impl GemNodeService {
     pub(crate) fn selected_node(&self, chain: Chain) -> Node {
         rules::preferred_chain_node(chain, self.selected_url(chain))
     }

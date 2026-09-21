@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.recipient.presents
 
-import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
+import uniffi.gemstone.GemRecipient
 
 internal sealed interface RecipientAction {
     data class SetAddress(val address: String) : RecipientAction

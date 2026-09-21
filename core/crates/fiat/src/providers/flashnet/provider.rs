@@ -28,13 +28,7 @@ impl FiatProvider for FlashnetClient {
 
     async fn get_assets(&self) -> Result<Vec<FiatProviderAsset>, Box<dyn Error + Send + Sync>> {
         let routes = self.get_routes().await?;
-        Ok(map_assets(
-            routes
-                .routes
-                .into_iter()
-                .filter(|route| route.source_chain == "lightning" && route.source_asset == "BTC")
-                .collect(),
-        ))
+        Ok(map_assets(routes.routes.into_iter().filter(|route| route.source_chain == "lightning" && route.source_asset == "BTC").collect()))
     }
 
     async fn get_countries(&self) -> Result<Vec<FiatProviderCountry>, Box<dyn Error + Send + Sync>> {
@@ -143,13 +137,7 @@ mod tests {
     #[test]
     fn map_assets_maps_supported_routes() {
         let response: FlashnetRoutesResponse = serde_json::from_str(include_str!("../../../testdata/flashnet/routes.json")).unwrap();
-        let assets = map_assets(
-            response
-                .routes
-                .into_iter()
-                .filter(|route| route.source_chain == "lightning" && route.source_asset == "BTC")
-                .collect(),
-        );
+        let assets = map_assets(response.routes.into_iter().filter(|route| route.source_chain == "lightning" && route.source_asset == "BTC").collect());
 
         assert_eq!(assets.len(), 3);
         assert!(assets.iter().any(|asset| asset.id == "btc_bitcoin"));

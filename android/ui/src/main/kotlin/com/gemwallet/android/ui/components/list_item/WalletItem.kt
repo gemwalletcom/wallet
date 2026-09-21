@@ -18,13 +18,7 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space0
 
 @Composable
-fun WalletItem(
-    model: WalletRowUIModel,
-    isCurrent: Boolean,
-    modifier: Modifier = Modifier,
-    listPosition: ListPosition,
-    onEdit: ((String) -> Unit)? = null,
-) {
+fun WalletItem(model: WalletRowUIModel, isCurrent: Boolean, modifier: Modifier = Modifier, listPosition: ListPosition, onEdit: ((String) -> Unit)? = null) {
     ListItem(
         modifier = modifier,
         minHeight = ListItemDefaults.iconMinHeight,
@@ -56,14 +50,12 @@ fun WalletItem(
                     WalletEditButton(onClick = { onEdit(model.id) })
                 }
             }
-        }
+        },
     )
 }
 
 @Composable
-private fun WalletEditButton(
-    onClick: () -> Unit,
-) {
+private fun WalletEditButton(onClick: () -> Unit) {
     IconButton(onClick = onClick) {
         Icon(
             imageVector = AppIcons.SettingsOutlined,

@@ -37,11 +37,7 @@ impl<C: Client> GoPlusProvider<C> {
     }
 
     async fn access_token(&self) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
-        self.access_token_cacher
-            .as_ref()
-            .ok_or("GoPlus access token cacher is missing")?
-            .get_or_refresh(Box::pin(self.refresh_access_token()))
-            .await
+        self.access_token_cacher.as_ref().ok_or("GoPlus access token cacher is missing")?.get_or_refresh(Box::pin(self.refresh_access_token())).await
     }
 
     async fn refresh_access_token(&self) -> Result<(String, Duration), Box<dyn Error + Send + Sync>> {
@@ -99,11 +95,7 @@ impl<C: Client> AddressScanProvider for GoPlusProvider<C> {
         Ok(ScanResult {
             target: target.clone(),
             is_malicious,
-            reason: if is_partial {
-                Some(response.message)
-            } else {
-                security.is_none().then(|| "No address data found".to_string())
-            },
+            reason: if is_partial { Some(response.message) } else { security.is_none().then(|| "No address data found".to_string()) },
             provider: Self::NAME.into(),
         })
     }
@@ -120,11 +112,7 @@ impl<C: Client> TokenScanProvider for GoPlusProvider<C> {
     }
 
     async fn scan_token(&self, target: &TokenTarget) -> Result<ScanResult<TokenTarget>, Box<dyn std::error::Error + Send + Sync>> {
-        let token_id = if target.chain == Chain::Tron {
-            target.token_id.clone()
-        } else {
-            target.token_id.to_lowercase()
-        };
+        let token_id = if target.chain == Chain::Tron { target.token_id.clone() } else { target.token_id.to_lowercase() };
         let response = self
             .client
             .get::<Response<Option<HashMap<String, SecurityToken>>>>(GoPlusTarget::TokenSecurity {

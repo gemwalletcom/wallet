@@ -11,10 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.R as AppR
-import com.gemwallet.android.ui.R as UiR
 import com.gemwallet.android.ui.components.empty.EmptyAction
 import com.gemwallet.android.ui.components.empty.EmptyStateView
+import com.gemwallet.android.R as AppR
+import com.gemwallet.android.ui.R as UiR
 
 private fun Modifier.consumeAllPointerEvents(): Modifier = pointerInput(Unit) {
     awaitPointerEventScope {
@@ -30,7 +30,7 @@ internal fun LockedSplash() {
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface)
-            .consumeAllPointerEvents()
+            .consumeAllPointerEvents(),
     ) {
         Image(
             modifier = Modifier
@@ -42,9 +42,7 @@ internal fun LockedSplash() {
 }
 
 @Composable
-internal fun SystemAuthEnrollmentRequired(
-    onOpenSettings: () -> Unit,
-) {
+internal fun SystemAuthEnrollmentRequired(onOpenSettings: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -58,7 +56,7 @@ internal fun SystemAuthEnrollmentRequired(
                 EmptyAction(
                     title = stringResource(UiR.string.common_open_settings),
                     onClick = onOpenSettings,
-                )
+                ),
             ),
         )
     }

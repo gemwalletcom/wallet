@@ -1,20 +1,17 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
-import com.gemwallet.android.data.service.store.database.AssetsDao
-import uniffi.gemstone.GemAssetBalance
+import com.gemwallet.android.ext.toPrimitives
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemBalanceStore
+import uniffi.gemstone.GemAssetBalance
+import uniffi.gemstone.GemAssetConfiguration
 import uniffi.gemstone.GemBalanceRecord
+import uniffi.gemstone.GemBalanceStore
 
-class GemstoneBalanceStore(
-    private val balancesDao: BalancesDao,
-    private val assetsDao: AssetsDao,
-    private val transactionRunner: StoreTransactionRunner,
-) : GemBalanceStore {
+class GemstoneBalanceStore(private val balancesDao: BalancesDao, private val assetsDao: AssetsDao, private val transactionRunner: StoreTransactionRunner) : GemBalanceStore {
 
     override suspend fun getAvailableBalances(walletId: String, assetIds: List<String>): List<GemAssetBalance> = withContext(Dispatchers.IO) {
         balancesDao.getByAssets(walletId, assetIds).map { it.toGemAssetBalance() }
@@ -22,13 +19,8 @@ class GemstoneBalanceStore(
 
     override suspend fun getEnabledAssetIds(walletId: String): List<String> = balancesDao.getEnabledAssetIds(walletId)
 
-    override suspend fun setAssetsEnabled(walletId: String, assetIds: List<String>, enabled: Boolean) =
-        assetsDao.setWalletAssetsVisibility(walletId, assetIds, enabled)
-
-    override suspend fun setAssetPinned(walletId: String, assetId: String, pinned: Boolean) {
-        val balance = assetsDao.getBalance(walletId, assetId) ?: return
-        assetsDao.setBalanceConfig(walletId, assetId, isPinned = pinned, isVisible = balance.isVisible, listPosition = balance.listPosition)
-    }
+    override suspend fun setAssetConfiguration(walletId: String, assetIds: List<String>, configuration: GemAssetConfiguration) =
+        assetsDao.setAssetConfiguration(walletId, assetIds, isVisible = configuration.isEnabled, isPinned = configuration.isPinned)
 
     override suspend fun updateBalances(walletId: String, balances: List<GemBalanceRecord>) = transactionRunner.run {
         val updatedAt = System.currentTimeMillis()

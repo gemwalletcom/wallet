@@ -5,16 +5,17 @@ plugins {
 }
 
 val gemstoneRoot = rootProject.projectDir.resolve("../core/gemstone")
+val coreRoot = gemstoneRoot.parentFile
 val gemstoneSrc = gemstoneRoot.resolve("android/gemstone/src")
-val rustSrcDir = gemstoneRoot.resolve("src")
-val cratesDir = rootProject.projectDir.resolve("../core/crates")
 val jniLibsDir = gemstoneSrc.resolve("main/jniLibs")
 val generatedKotlinDir = gemstoneSrc.resolve("main/java")
-val cargoBuildFlag = if (System.getenv("BUILD_MODE") == "release") "--release" else null
-val defaultCargoNdkAbis = if (System.getenv("UNIT_TESTS") == "true") {
-    "x86_64"
-} else {
-    "arm64-v8a,armeabi-v7a"
+val isRelease = System.getenv("BUILD_MODE") == "release"
+val cargoBuildFlag = if (isRelease) "--release" else ""
+val gemstoneHostLibrary: File by rootProject.extra
+val defaultCargoNdkAbis = when {
+    System.getenv("UNIT_TESTS") == "true" -> "x86_64"
+    isRelease -> "arm64-v8a,armeabi-v7a"
+    else -> "arm64-v8a"
 }
 val cargoNdkTargets = (System.getenv("GEMSTONE_ANDROID_ABIS") ?: defaultCargoNdkAbis)
     .split(",")
@@ -61,12 +62,37 @@ kotlin {
     }
 }
 
+tasks.withType<Exec>().configureEach {
+    environment("CARGO_TARGET_DIR", coreRoot.resolve("target").absolutePath)
+}
+
+val buildGemstoneHost = tasks.register<Exec>("buildGemstoneHost") {
+    description = "Build the host Gemstone library used by JVM tests"
+    workingDir = coreRoot
+    outputs.file(gemstoneHostLibrary)
+    outputs.upToDateWhen { false }
+    commandLine("/bin/sh", "-l", "-c", "cargo build --package gemstone --lib")
+}
+
 val bindgenKotlin = tasks.register<Exec>("bindgenKotlin") {
     description = "Generate Kotlin bindings from gemstone via uniffi"
     workingDir = gemstoneRoot
-    inputs.dir(rustSrcDir)
-    inputs.dir(cratesDir)
-    inputs.file(gemstoneRoot.resolve("Cargo.toml"))
+    if (isRelease) {
+        outputs.upToDateWhen { false }
+    } else {
+        dependsOn(buildGemstoneHost)
+        inputs.file(gemstoneHostLibrary)
+    }
+    inputs.dir(coreRoot.resolve("bin/uniffi-bindgen"))
+    inputs.files(
+        coreRoot.resolve("Cargo.toml"),
+        coreRoot.resolve("Cargo.lock"),
+        coreRoot.resolve(".cargo/config.toml"),
+        coreRoot.parentFile.resolve("rust-toolchain.toml"),
+        gemstoneRoot.resolve("uniffi.toml"),
+        gemstoneRoot.resolve("justfile"),
+    )
+    inputs.property("cargoBuildFlag", cargoBuildFlag)
     outputs.dir(generatedKotlinDir.resolve("uniffi"))
     commandLine("/bin/sh", "-l", "-c", "just bindgen-kotlin")
 }
@@ -74,12 +100,9 @@ val bindgenKotlin = tasks.register<Exec>("bindgenKotlin") {
 val buildCargoNdk = tasks.register<Exec>("buildCargoNdk") {
     description = "Build gemstone native libraries using cargo-ndk"
     workingDir = gemstoneRoot
-    inputs.dir(rustSrcDir)
-    inputs.dir(cratesDir)
-    inputs.file(gemstoneRoot.resolve("Cargo.toml"))
-    inputs.property("cargoBuildFlag", cargoBuildFlag.orEmpty())
     outputs.dir(jniLibsDir)
-    commandLine("/bin/sh", "-l", "-c", "cargo ndk $cargoNdkTargets -o ${jniLibsDir.absolutePath} build --lib ${cargoBuildFlag.orEmpty()}")
+    outputs.upToDateWhen { false }
+    commandLine("/bin/sh", "-l", "-c", "cargo ndk $cargoNdkTargets -o ${jniLibsDir.absolutePath} build --lib $cargoBuildFlag")
 }
 
 tasks.configureEach {

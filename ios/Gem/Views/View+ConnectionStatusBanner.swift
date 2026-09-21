@@ -24,7 +24,7 @@ private struct ConnectionStatusBannerModifier: ViewModifier {
         let model = model
         let isPresented = model.isVisible && !isDismissed
         return content
-            .contentMargins(.bottom, isPresented ? bannerHeight + .small : .zero, for: .scrollContent)
+            .contentMargins(.bottom, isPresented ? bannerHeight + .small : nil, for: .scrollContent)
             .overlay(alignment: .bottom) {
                 if isPresented {
                     ConnectionStatusBanner(model: model) {

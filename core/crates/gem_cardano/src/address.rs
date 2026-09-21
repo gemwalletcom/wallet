@@ -103,10 +103,7 @@ mod tests {
         let stake_hash = hex::decode("df22424b6880b39e4bac8c58de9fe6d23d79aaf44756389d827aa09b").unwrap().try_into().unwrap();
         let address = ShelleyAddress::from_public_key_hashes(payment_hash, stake_hash);
 
-        assert_eq!(
-            address.encode().unwrap(),
-            "addr1q8043m5heeaydnvtmmkyuhe6qv5havvhsf0d26q3jygsspxlyfpyk6yqkw0yhtyvtr0flekj84u64az82cufmqn65zdsylzk23"
-        );
+        assert_eq!(address.encode().unwrap(), "addr1q8043m5heeaydnvtmmkyuhe6qv5havvhsf0d26q3jygsspxlyfpyk6yqkw0yhtyvtr0flekj84u64az82cufmqn65zdsylzk23");
     }
 
     #[test]

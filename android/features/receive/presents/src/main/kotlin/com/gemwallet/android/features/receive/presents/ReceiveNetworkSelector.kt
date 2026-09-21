@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.receive.presents
 
-import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,17 +13,13 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ChainItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.AssetId
 
 @Composable
-internal fun ReceiveNetworkSelector(
-    isVisible: Boolean,
-    assetIds: List<AssetId>,
-    onSelect: (AssetId) -> Unit,
-    onDismiss: () -> Unit,
-) {
+internal fun ReceiveNetworkSelector(isVisible: Boolean, assetIds: List<AssetId>, onSelect: (AssetId) -> Unit, onDismiss: () -> Unit) {
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismiss,

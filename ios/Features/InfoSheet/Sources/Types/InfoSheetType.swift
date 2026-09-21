@@ -4,6 +4,7 @@ import BigInt
 import Components
 import Formatters
 import Foundation
+import enum Gemstone.GemInfoTopic
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -14,7 +15,7 @@ import SwiftUI
 public enum InfoSheetType: Identifiable, Sendable, Equatable {
     case networkFee(Asset)
     case balanceRequired(Asset, image: AssetImage, requirement: BalanceRequirement, button: InfoSheetButton)
-    case insufficientNetworkFee(Asset, image: AssetImage, requirement: BalanceRequirement?, price: Price?, currency: String, button: InfoSheetButton)
+    case insufficientNetworkFee(Asset, title: String, image: AssetImage, requirement: BalanceRequirement?, price: Price?, currency: String, button: InfoSheetButton)
     case transactionState(imageURL: URL?, placeholder: Image?, model: TransactionStateViewModel)
     case estimatedConfirmation(Chain)
     case watchWallet
@@ -54,7 +55,7 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
     public var id: String {
         switch self {
         case .networkFee: "networkFees"
-        case let .insufficientNetworkFee(asset, _, _, _, _, _): "insufficientNetworkFee_\(asset.id.identifier)"
+        case let .insufficientNetworkFee(asset, _, _, _, _, _, _): "insufficientNetworkFee_\(asset.id.identifier)"
         case let .balanceRequired(asset, _, _, _): "balanceRequired_\(asset.id.identifier)"
         case let .transactionState(_, _, model): model.state.id
         case let .estimatedConfirmation(chain): "estimatedConfirmation_\(chain.rawValue)"
@@ -89,5 +90,30 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
 
     public static func == (lhs: InfoSheetType, rhs: InfoSheetType) -> Bool {
         lhs.id == rhs.id
+    }
+}
+
+public extension InfoSheetType {
+    init(topic: GemInfoTopic, assetImage: AssetImage?) {
+        self = switch topic {
+        case let .networkFee(asset): .networkFee(asset.toPrimitives())
+        case .openInterest: .openInterest
+        case .fundingApr: .fundingApr
+        case .stakeApr: .stakeApr(assetImage?.placeholder)
+        case .stakeLockTime: .stakeLockTime(assetImage?.placeholder)
+        case .autoClose: .autoclose
+        case .liquidationPrice: .liquidationPrice
+        case .fundingPayments: .fundingPayments
+        case .fullyDilutedValuation: .fullyDilutedValuation
+        case .circulatingSupply: .circulatingSupply
+        case .totalSupply: .totalSupply
+        case .maxSupply: .maxSupply
+        case let .transactionStatus(state, tone):
+            .transactionState(
+                imageURL: assetImage?.imageURL,
+                placeholder: assetImage?.placeholder,
+                model: TransactionStateViewModel(state: state.toPrimitives(), tone: tone),
+            )
+        }
     }
 }

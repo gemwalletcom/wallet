@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Primitives
+import struct Gemstone.GemCurrencyRow
 import SwiftUI
 
 public struct CurrencyScene: View {
@@ -13,36 +13,48 @@ public struct CurrencyScene: View {
     }
 
     public var body: some View {
-        List(model.list) { section in
-            Section(section.section) {
-                ForEach(section.values) {
+        let sections = model.sections
+        List(sections, id: \.kind) { section in
+            Section(section.kind.title) {
+                ForEach(section.rows, id: \.currency) { row in
                     ListItemSelectionView(
-                        title: $0.title,
-                        titleExtra: .none,
-                        titleTag: .none,
-                        titleTagType: .none,
-                        subtitle: .none,
-                        subtitleExtra: .none,
-                        value: $0.value.currency,
-                        selection: model.currency,
-                    ) {
-                        onSelectCurrency($0)
+                        title: row.title,
+                        value: row.currency,
+                        selection: row.isSelected ? row.currency : nil,
+                    ) { _ in
+                        onSelectCurrency(row)
                     }
                 }
             }
         }
         .listSectionSpacing(.compact)
+        .searchable(text: $model.searchQuery, placement: .navigationBarDrawer(displayMode: .always))
+        .autocorrectionDisabled(true)
+        .textInputAutocapitalization(.never)
+        .scrollDismissesKeyboard(.interactively)
+        .overlay {
+            if sections.isEmpty {
+                ContentUnavailableView.search(text: model.searchQuery)
+            }
+        }
         .navigationTitle(model.title)
+        .alertSheet($model.isPresentingAlertMessage)
     }
 }
 
 // MARK: - Actions
 
 extension CurrencyScene {
-    private func onSelectCurrency(_ currency: Currency) {
-        guard currency != model.currency else { return }
+    private func onSelectCurrency(_ row: GemCurrencyRow) {
+        guard !row.isSelected else { return }
 
-        Task { try? await model.setCurrency(currency) }
-        dismiss()
+        Task {
+            do {
+                try await model.setCurrency(row.currency)
+                dismiss()
+            } catch {
+                model.isPresentingAlertMessage = AlertMessage(error: error)
+            }
+        }
     }
 }

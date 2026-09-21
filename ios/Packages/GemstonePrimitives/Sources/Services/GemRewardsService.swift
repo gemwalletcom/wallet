@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import protocol Gemstone.GemRewardsServiceProtocol
 import struct Gemstone.GemRewardsState
 import struct Gemstone.RedemptionResult
-import protocol Gemstone.GemRewardsServiceProtocol
 import struct Gemstone.Rewards
 import Primitives
 
@@ -16,7 +16,7 @@ public extension GemRewardsServiceProtocol {
         try await createReferral(wallet: wallet.toGem(), code: code)
     }
 
-    func useReferralCode(wallet: Primitives.Wallet, code: String) async throws {
+    func useReferralCode(wallet: Primitives.Wallet, code: String) async throws -> Rewards {
         try await useReferralCode(wallet: wallet.toGem(), code: code)
     }
 

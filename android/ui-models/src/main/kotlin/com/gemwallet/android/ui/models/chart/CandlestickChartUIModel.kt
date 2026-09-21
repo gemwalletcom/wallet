@@ -20,22 +20,11 @@ enum class CandleDirection {
     Flat,
 }
 
-data class ChartReferenceLineUIModel(
-    val kind: ChartReferenceLineKind,
-    val price: Double,
-    val overlapLevel: Int,
-    val label: String,
-)
+data class ChartReferenceLineUIModel(val kind: ChartReferenceLineKind, val price: Double, val overlapLevel: Int, val label: String)
 
 data class ChartAxisTick(val value: Double, val fraction: Float, val label: String)
 
-data class CandleUIModel(
-    val open: Double,
-    val high: Double,
-    val low: Double,
-    val close: Double,
-    val direction: CandleDirection,
-)
+data class CandleUIModel(val open: Double, val high: Double, val low: Double, val close: Double, val direction: CandleDirection)
 
 data class CandlestickChartUIModel(
     val candles: List<CandleUIModel>,
@@ -50,11 +39,7 @@ data class CandlestickChartUIModel(
 
     companion object {
 
-        fun from(
-            candles: List<ChartCandleStick>,
-            layout: GemPerpetualChartLayout,
-            lineLabel: (GemPerpetualChartLineKind) -> String,
-        ): CandlestickChartUIModel {
+        fun from(candles: List<ChartCandleStick>, layout: GemPerpetualChartLayout, lineLabel: (GemPerpetualChartLineKind) -> String): CandlestickChartUIModel {
             val span = layout.priceHigh - layout.priceLow
             return CandlestickChartUIModel(
                 candles = candles.map(::candleUIModel),
@@ -88,9 +73,13 @@ data class CandlestickChartUIModel(
             close = candle.close,
             direction = when ((candle.close - candle.open).tone()) {
                 GemValueTone.POSITIVE -> CandleDirection.Up
+
                 GemValueTone.NEGATIVE -> CandleDirection.Down
+
                 GemValueTone.NEUTRAL,
-                GemValueTone.PLAIN -> CandleDirection.Flat
+                GemValueTone.PLAIN,
+                GemValueTone.WARNING,
+                -> CandleDirection.Flat
             },
         )
 

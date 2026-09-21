@@ -13,19 +13,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.gemwallet.android.domains.asset.icon
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.Asset
 
 @Composable
-fun AssetIcon(
-    asset: Asset,
-    size: Dp = listItemIconSize,
-    badgeBackgroundColor: Color? = null,
-) {
+fun AssetIcon(asset: Asset, size: Dp = listItemIconSize, badgeBackgroundColor: Color? = null) {
     IconWithBadge(
         icon = asset.iconModel(),
-        placeholder = asset.symbol,
+        placeholder = asset.id.icon().placeholder,
         supportIcon = asset.supportIconModel(),
         size = size,
         badgeBackgroundColor = badgeBackgroundColor,
@@ -33,13 +30,7 @@ fun AssetIcon(
 }
 
 @Composable
-fun IconWithBadge(
-    icon: Any?,
-    placeholder: String? = null,
-    supportIcon: Any? = null,
-    size: Dp = listItemIconSize,
-    badgeBackgroundColor: Color? = null,
-) {
+fun IconWithBadge(icon: Any?, placeholder: String? = null, supportIcon: Any? = null, size: Dp = listItemIconSize, badgeBackgroundColor: Color? = null) {
     icon ?: return
     IconWithBadge(
         size = size,
@@ -51,13 +42,7 @@ fun IconWithBadge(
 }
 
 @Composable
-fun IconWithBadge(
-    icon: Any?,
-    placeholder: String? = null,
-    size: Dp = listItemIconSize,
-    badgeBackgroundColor: Color? = null,
-    badge: @Composable () -> Unit,
-) {
+fun IconWithBadge(icon: Any?, placeholder: String? = null, size: Dp = listItemIconSize, badgeBackgroundColor: Color? = null, badge: @Composable () -> Unit) {
     icon ?: return
     IconWithBadge(size = size, badgeBackgroundColor = badgeBackgroundColor, badge = badge) {
         MainIcon(icon = icon, placeholder = placeholder, size = size)
@@ -65,12 +50,7 @@ fun IconWithBadge(
 }
 
 @Composable
-fun IconWithBadge(
-    size: Dp = listItemIconSize,
-    badgeBackgroundColor: Color? = null,
-    badge: (@Composable () -> Unit)? = null,
-    content: @Composable () -> Unit,
-) {
+fun IconWithBadge(size: Dp = listItemIconSize, badgeBackgroundColor: Color? = null, badge: (@Composable () -> Unit)? = null, content: @Composable () -> Unit) {
     BadgedBox(
         size = size,
         badgeBackgroundColor = badgeBackgroundColor ?: MaterialTheme.colorScheme.background,
@@ -86,12 +66,7 @@ private const val BADGE_OFFSET_RATIO = 5f
 private val LARGE_BADGE_THRESHOLD = 48.dp
 private val MAX_BADGE_RING_WIDTH = space2
 
-internal data class BadgeLayout(
-    val contentSize: Dp,
-    val ringWidth: Dp,
-    val badgeSize: Dp,
-    val offset: Dp,
-)
+internal data class BadgeLayout(val contentSize: Dp, val ringWidth: Dp, val badgeSize: Dp, val offset: Dp)
 
 internal fun badgeLayout(size: Dp): BadgeLayout {
     val contentSize = if (size <= LARGE_BADGE_THRESHOLD) {
@@ -111,11 +86,7 @@ internal fun badgeLayout(size: Dp): BadgeLayout {
 }
 
 @Composable
-private fun MainIcon(
-    icon: Any,
-    placeholder: String?,
-    size: Dp,
-) {
+private fun MainIcon(icon: Any, placeholder: String?, size: Dp) {
     AsyncImage(
         model = icon,
         placeholderText = placeholder,
@@ -125,10 +96,7 @@ private fun MainIcon(
 }
 
 @Composable
-private fun SupportIconBadge(
-    icon: Any,
-    size: Dp,
-) {
+private fun SupportIconBadge(icon: Any, size: Dp) {
     AsyncImage(
         model = icon,
         size = badgeLayout(size).contentSize,
@@ -137,11 +105,7 @@ private fun SupportIconBadge(
 }
 
 @Composable
-internal fun BadgeCircle(
-    size: Dp,
-    color: Color,
-    content: @Composable () -> Unit,
-) {
+internal fun BadgeCircle(size: Dp, color: Color, content: @Composable () -> Unit) {
     Box(
         modifier = Modifier
             .size(badgeLayout(size).contentSize)
@@ -154,12 +118,7 @@ internal fun BadgeCircle(
 }
 
 @Composable
-private fun BadgedBox(
-    size: Dp,
-    badgeBackgroundColor: Color,
-    badge: (@Composable () -> Unit)?,
-    content: @Composable () -> Unit,
-) {
+private fun BadgedBox(size: Dp, badgeBackgroundColor: Color, badge: (@Composable () -> Unit)?, content: @Composable () -> Unit) {
     Box {
         content()
         if (badge != null) {

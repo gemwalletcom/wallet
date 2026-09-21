@@ -9,4 +9,3 @@ fun Banner.toGemKey() = GemBannerKey(
     assetId = asset?.id?.toIdentifier(),
     event = event.toGem(),
 )
-

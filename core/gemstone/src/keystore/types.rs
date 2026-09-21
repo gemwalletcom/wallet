@@ -25,7 +25,7 @@ impl From<Account> for GemKeystoreAccount {
             chain: account.chain,
             address: account.address,
             derivation_path: account.derivation_path,
-            public_key: Some(account.extended_public_key.unwrap_or_default()),
+            public_key: account.extended_public_key,
         }
     }
 }

@@ -24,10 +24,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingLarge
 
 @Composable
-fun NftImagePlaceholder(
-    modifier: Modifier = Modifier,
-    name: String = "",
-) {
+fun NftImagePlaceholder(modifier: Modifier = Modifier, name: String = "") {
     BoxWithConstraints(
         modifier = modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest),
         contentAlignment = Alignment.Center,

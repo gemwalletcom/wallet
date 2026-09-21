@@ -5,27 +5,24 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetValidators
-import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
-import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemModel
-import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.StakeProviderType
 import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.math.BigInteger
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,9 +38,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import uniffi.gemstone.GemPercentageStyle
+import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemListRowTitle
+import uniffi.gemstone.GemLoadState
+import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemStakeServiceInterface
 import uniffi.gemstone.GemValidatorRow
+import uniffi.gemstone.validatorRow
+import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -74,33 +76,32 @@ class EarnViewModel @Inject constructor(
 
     val positions = session.filterNotNull()
         .flatMapLatest { current -> getDelegations(current.wallet.id, assetId, StakeProviderType.Earn) }
-        .map { delegations -> delegations.filter { it.base.balance > BigInteger.ZERO } }
+        .map { delegations -> stakeService.positions(delegations.map { it.toGem() }).map { it.toPrimitives() } }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val validatorRows = positions
-        .map { items -> items.associate { it.validator.id to stakeService.validatorRow(it.validator.toGem()) } }
+        .map { items -> items.associate { it.validator.id to validatorRow(it.validator.toGem()) } }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap<String, GemValidatorRow>())
 
-    val apr = combine(providers, assetInfo) { items, current ->
-        stakeService.earnApr(items.map { it.toGem() }, current?.metadata?.earnApr)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, 0.0)
-
-    val aprListItem: StateFlow<ListItemModel> = apr.map {
-        ListItemModel(title = context.getString(R.string.stake_apr, ""), subtitle = it.formatAsPercentage(style = GemPercentageStyle.UNSIGNED), subtitleStyle = ListItemTextStyle.Positive)
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, ListItemModel(title = context.getString(R.string.stake_apr, "")))
+    val aprRow: StateFlow<GemListRow> = combine(providers, assetInfo) { items, current ->
+        stakeService.earnAprRow(items.map { it.toGem() }, current?.metadata?.earnApr)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, GemListRow.Text(GemListRowTitle.STAKE_APR, ""))
 
     val depositListItem = ListItemModel(title = context.getString(R.string.wallet_deposit))
 
     val depositParams = combine(providers, session) { items, current ->
-        val provider = items.firstOrNull() ?: return@combine null
-        if (current?.wallet?.type == WalletType.View) return@combine null
+        val provider = stakeService.earnActions((current?.wallet?.type ?: WalletType.View).toGem(), items.map { it.toGem() }).depositProvider ?: return@combine null
         AmountParams.Earn.Deposit(assetId, provider.id)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val sync = MutableStateFlow(true)
+    private val loadState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
+
+    val loadError: StateFlow<GemServiceException?> = loadState
+        .map { (it as? GemLoadState.Error)?.error }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val isSync = sync
         .flatMapLatest { isSync ->
@@ -111,8 +112,9 @@ class EarnViewModel @Inject constructor(
                 }
                 assetInfo.filterNotNull().first()
                 emit(true)
-                runCatchingCancellable { stakeService.syncEarn(assetId.toIdentifier()) }
-                    .onFailure { Log.e(TAG, "earn sync failed", it) }
+                val state = stakeService.refreshEarn(assetId.toIdentifier(), positions.value.isNotEmpty())
+                (state as? GemLoadState.Error)?.let { Log.e(TAG, "earn sync failed", it.error) }
+                loadState.value = state
                 emit(false)
                 sync.update { false }
             }

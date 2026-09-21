@@ -28,20 +28,9 @@ pub fn price_feed_id_for_chain(chain: Chain) -> Option<&'static str> {
         Chain::Bitcoin => "e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43",
         Chain::BitcoinCash => "3dd2b63686a450ec7290df3a1e0b583c0481f651351edfa7636f39aed55cf8a3",
         Chain::Litecoin => "6e3f3fa8253588df9326580180233eb791e03b443a3ba7a1d892e73874e19a54",
-        Chain::Ethereum
-        | Chain::Arbitrum
-        | Chain::Optimism
-        | Chain::Base
-        | Chain::Linea
-        | Chain::Manta
-        | Chain::ZkSync
-        | Chain::Abstract
-        | Chain::Ink
-        | Chain::Unichain
-        | Chain::Blast
-        | Chain::World
-        | Chain::Plasma
-        | Chain::Robinhood => "ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
+        Chain::Ethereum | Chain::Arbitrum | Chain::Optimism | Chain::Base | Chain::Linea | Chain::Manta | Chain::ZkSync | Chain::Abstract | Chain::Ink | Chain::Unichain | Chain::Blast | Chain::World | Chain::Plasma | Chain::Robinhood => {
+            "ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace"
+        }
         Chain::SmartChain | Chain::OpBNB => "2f95862b045670cd22bee3114c39763a4a08beeb663b145d283c31d7d1101c4f",
         Chain::Solana => "ef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d",
         Chain::Polygon => "ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",

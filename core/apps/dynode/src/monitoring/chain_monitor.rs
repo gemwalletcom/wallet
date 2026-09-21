@@ -22,12 +22,7 @@ pub(super) struct ChainMonitor {
 
 impl ChainMonitor {
     pub(super) fn new(evaluator: NodeHealthEvaluator, interval: Duration, initial_delay: Duration, signal: RequestFailureSignal) -> Self {
-        Self {
-            evaluator,
-            interval,
-            initial_delay,
-            signal,
-        }
+        Self { evaluator, interval, initial_delay, signal }
     }
 
     pub(super) async fn run(self) {

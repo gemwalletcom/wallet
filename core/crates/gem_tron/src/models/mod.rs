@@ -114,10 +114,7 @@ impl TriggerContractResult {
             return None;
         }
 
-        let message = self
-            .message
-            .as_deref()
-            .map(|message_hex| decode_hex_utf8(message_hex).unwrap_or_else(|| message_hex.to_string()));
+        let message = self.message.as_deref().map(|message_hex| decode_hex_utf8(message_hex).unwrap_or_else(|| message_hex.to_string()));
 
         Some(TronRpcError { code: self.code.clone(), message })
     }

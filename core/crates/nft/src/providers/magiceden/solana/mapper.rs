@@ -34,9 +34,7 @@ impl Nft {
             name: self.name.clone(),
             description: None,
             resource: NFTResource::from_url(&self.image),
-            images: NFTImages {
-                preview: NFTResource::from_url(&self.image),
-            },
+            images: NFTImages { preview: NFTResource::from_url(&self.image) },
             attributes: traits.iter().flat_map(|x| x.as_attribute()).collect(),
         })
     }
@@ -58,9 +56,7 @@ impl Collection {
             name: self.name.clone(),
             symbol: self.symbol.clone(),
             description: Some(self.description.clone()),
-            images: NFTImages {
-                preview: NFTResource::from_url(&self.image),
-            },
+            images: NFTImages { preview: NFTResource::from_url(&self.image) },
             status: VerificationStatus::Verified,
             links: self.as_links(),
         }

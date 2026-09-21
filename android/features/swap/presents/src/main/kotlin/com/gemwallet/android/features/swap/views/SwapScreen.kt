@@ -75,18 +75,24 @@ fun SwapScreen(
         onAction = { action ->
             when (action) {
                 is SwapSceneAction.SelectAsset -> onSelect(action.type, pay?.id(), receive?.id())
+
                 is SwapSceneAction.SelectPercent -> viewModel.onSelectPercent(action.percent)
+
                 SwapSceneAction.SwitchAssets -> viewModel.switchSwap()
+
                 SwapSceneAction.ShowDetails -> isShowDetails = true
+
                 SwapSceneAction.Slippage -> if (swapState.isQuoteInteractionEnabled) {
                     slippageSeedBps = selectedSlippage
                     isShowSlippage = true
                 }
+
                 SwapSceneAction.Swap -> viewModel.onPrimaryAction(
                     onConfirm = onConfirm,
                     onShowPriceImpactWarning = { isShowPriceImpactAlert = true },
                     authorize = { action -> context.requestAuth(AuthRequest.Confirmation, action) },
                 )
+
                 SwapSceneAction.Cancel -> onCancel()
             }
         },
@@ -116,7 +122,7 @@ fun SwapScreen(
         defaultBps = defaultSlippageBps,
         slippageState = viewModel::slippageState,
         slippageBps = viewModel::slippageBps,
-        slippagePercent = viewModel::slippagePercent,
+        slippageText = viewModel::slippageText,
         onConfirm = viewModel::setSlippage,
         onDismiss = { isShowSlippage = false },
     )

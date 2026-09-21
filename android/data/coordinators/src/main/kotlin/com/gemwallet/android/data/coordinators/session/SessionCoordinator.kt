@@ -1,7 +1,5 @@
 package com.gemwallet.android.data.coordinators.session
 
-import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetCurrentWallet
 import com.gemwallet.android.application.session.cases.GetSession
@@ -9,6 +7,8 @@ import com.gemwallet.android.application.session.cases.SetCurrentCurrency
 import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletSessionStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.Session
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Wallet
@@ -20,8 +20,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -44,7 +44,11 @@ class SessionCoordinator(
     private val preferencesService: GemPreferencesServiceInterface,
     private val currencyService: GemCurrencyServiceInterface,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
-) : GetSession, GetCurrentWallet, GetCurrentCurrency, SetCurrentCurrency, SetCurrentWallet {
+) : GetSession,
+    GetCurrentWallet,
+    GetCurrentCurrency,
+    SetCurrentCurrency,
+    SetCurrentWallet {
 
     private val currencyState = MutableStateFlow(preferencesService.getCurrency().toPrimitives())
 
@@ -74,14 +78,12 @@ class SessionCoordinator(
 
     override fun getCurrency(): StateFlow<Currency> = currencyState
 
-    override fun setCurrentCurrency(currency: Currency) {
-        scope.launch {
-            if (currencyState.value == currency) {
-                return@launch
-            }
-            currencyService.setCurrency(currency.toGem())
-            currencyState.value = currency
+    override suspend fun setCurrentCurrency(currency: Currency) = withContext(Dispatchers.IO) {
+        if (currencyState.value == currency) {
+            return@withContext
         }
+        currencyService.setCurrency(currency.toGem())
+        currencyState.value = currency
     }
 
     override suspend fun setCurrentWallet(walletId: WalletId) = withContext(Dispatchers.IO) {
@@ -93,6 +95,5 @@ class SessionCoordinator(
         currencyState.value = currency
     }
 
-    private fun localeCurrencyCode(): String? =
-        runCatching { java.util.Currency.getInstance(Locale.getDefault()).currencyCode }.getOrNull()
+    private fun localeCurrencyCode(): String? = runCatching { java.util.Currency.getInstance(Locale.getDefault()).currencyCode }.getOrNull()
 }

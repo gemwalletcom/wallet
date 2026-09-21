@@ -46,9 +46,7 @@ pub mod option {
     where
         D: Deserializer<'de>,
     {
-        Option::<String>::deserialize(deserializer)?
-            .map(|value| decode(&value).map_err(D::Error::custom))
-            .transpose()
+        Option::<String>::deserialize(deserializer)?.map(|value| decode(&value).map_err(D::Error::custom)).transpose()
     }
 }
 

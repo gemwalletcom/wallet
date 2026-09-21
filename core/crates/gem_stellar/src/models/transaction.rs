@@ -14,9 +14,7 @@ where
     D: de::Deserializer<'de>,
 {
     let amount = Option::<String>::deserialize(deserializer)?;
-    amount
-        .map(|amount| BigNumberFormatter::value_from_amount_biguint(&amount, STELLAR_DECIMALS).map_err(de::Error::custom))
-        .transpose()
+    amount.map(|amount| BigNumberFormatter::value_from_amount_biguint(&amount, STELLAR_DECIMALS).map_err(de::Error::custom)).transpose()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -118,10 +116,7 @@ impl Payment {
     }
 
     pub fn fee_charged(&self) -> BigUint {
-        self.transaction
-            .as_ref()
-            .and_then(|transaction| transaction.fee_charged.clone())
-            .unwrap_or_else(|| BigUint::from(BASE_FEE_STROOPS))
+        self.transaction.as_ref().and_then(|transaction| transaction.fee_charged.clone()).unwrap_or_else(|| BigUint::from(BASE_FEE_STROOPS))
     }
 }
 

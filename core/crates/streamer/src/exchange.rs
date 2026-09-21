@@ -23,12 +23,7 @@ impl ExchangeName {
 
     pub fn queues(&self) -> Vec<QueueName> {
         match self {
-            ExchangeName::NewAddresses => vec![
-                QueueName::FetchTokenAssociations,
-                QueueName::FetchCoinAssociations,
-                QueueName::FetchAddressTransactions,
-                QueueName::FetchNftAssociations,
-            ],
+            ExchangeName::NewAddresses => vec![QueueName::FetchTokenAssociations, QueueName::FetchCoinAssociations, QueueName::FetchAddressTransactions, QueueName::FetchNftAssociations],
         }
     }
 }

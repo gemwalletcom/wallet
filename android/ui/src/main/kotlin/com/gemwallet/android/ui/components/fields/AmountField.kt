@@ -72,11 +72,11 @@ fun ColumnScope.AmountField(
         maxLines = 1,
         textStyle = textStyle.copy(
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         ),
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Next),
         keyboardActions = KeyboardActions(
-            onNext = { onNext() }
+            onNext = { onNext() },
         ),
         interactionSource = interactionSource,
         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
@@ -85,11 +85,15 @@ fun ColumnScope.AmountField(
     Spacer(modifier = Modifier.height(paddingSmall))
     if (equivalent.isNotEmpty()) {
         Row(
-            modifier = if (onInputTypeClick == null) Modifier else Modifier.clickable(
-                interactionSource = null,
-                indication = null,
-                onClick = onInputTypeClick,
-            ),
+            modifier = if (onInputTypeClick == null) {
+                Modifier
+            } else {
+                Modifier.clickable(
+                    interactionSource = null,
+                    indication = null,
+                    onClick = onInputTypeClick,
+                )
+            },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(paddingSmall),
         ) {
@@ -132,6 +136,7 @@ class CryptoAmountTransformation(symbol: String, placement: AmountSymbolPlacemen
                         end = zeroValue.length,
                     )
                 }
+
                 AmountSymbolPlacement.Leading -> {
                     append(symbol)
                     append(" ")
@@ -157,20 +162,14 @@ class CryptoAmountTransformation(symbol: String, placement: AmountSymbolPlacemen
     }
 }
 
-abstract class AmountTransformation(
-    val placement: AmountSymbolPlacement,
-    val symbol: String,
-    val color: Color,
-) : VisualTransformation {
+abstract class AmountTransformation(val placement: AmountSymbolPlacement, val symbol: String, val color: Color) : VisualTransformation {
 
     override fun filter(text: AnnotatedString): TransformedText {
         val result = transformText(text)
         val offsetMapping = object : OffsetMapping {
-            override fun originalToTransformed(offset: Int): Int {
-                return offset + when (placement) {
-                    AmountSymbolPlacement.Trailing -> 0
-                    AmountSymbolPlacement.Leading -> symbol.length + 1 + if (text.isEmpty()) 1 else 0
-                }
+            override fun originalToTransformed(offset: Int): Int = offset + when (placement) {
+                AmountSymbolPlacement.Trailing -> 0
+                AmountSymbolPlacement.Leading -> symbol.length + 1 + if (text.isEmpty()) 1 else 0
             }
 
             override fun transformedToOriginal(offset: Int): Int = convertToOriginal(text, offset)
@@ -184,12 +183,7 @@ abstract class AmountTransformation(
     abstract fun convertToOriginal(text: AnnotatedString, offset: Int): Int
 }
 
-private fun AnnotatedString.Builder.addPlaceholderStyle(
-    zeroValue: String,
-    color: Color,
-    start: Int,
-    end: Int,
-) {
+private fun AnnotatedString.Builder.addPlaceholderStyle(zeroValue: String, color: Color, start: Int, end: Int) {
     if (zeroValue.isEmpty()) {
         return
     }

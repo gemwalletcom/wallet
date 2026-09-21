@@ -40,11 +40,7 @@ import com.wallet.core.primitives.PerpetualId
 import kotlinx.collections.immutable.toImmutableList
 
 @Composable
-fun WalletSearchScreen(
-    onAction: (WalletSearchAction) -> Unit,
-    viewModel: WalletSearchViewModel = hiltViewModel(),
-    recentsViewModel: RecentsSheetViewModel = hiltViewModel(),
-) {
+fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: WalletSearchViewModel = hiltViewModel(), recentsViewModel: RecentsSheetViewModel = hiltViewModel()) {
     val isAddAssetAvailable by viewModel.isAddAssetAvailable.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val pinned by viewModel.pinned.collectAsStateWithLifecycle()
@@ -65,24 +61,31 @@ fun WalletSearchScreen(
     val handleAction: (WalletSearchAction) -> Unit = { action ->
         when (action) {
             is WalletSearchAction.PinAsset -> viewModel.onTogglePin(action.assetId)
+
             is WalletSearchAction.AddToWallet -> viewModel.onAddToWallet(action.assetId)
+
             is WalletSearchAction.TogglePerpetualPin -> viewModel.onTogglePerpetualPin(action.perpetualId)
+
             WalletSearchAction.OpenRecentsSheet -> recentsViewModel.show(filters = viewModel.assetFilters())
+
             is WalletSearchAction.OpenRecent -> onAction(
                 if (action.asset.type == AssetType.PERPETUAL) {
                     WalletSearchAction.OpenPerpetual(action.asset)
                 } else {
                     WalletSearchAction.OpenAsset(action.asset)
-                }
+                },
             )
+
             is WalletSearchAction.OpenAsset -> {
                 viewModel.openRecent(action.asset)
                 onAction(action)
             }
+
             is WalletSearchAction.OpenPerpetual -> {
                 viewModel.openRecent(action.asset)
                 onAction(action)
             }
+
             WalletSearchAction.AddAsset,
             WalletSearchAction.Cancel,
             WalletSearchAction.OpenPerpetuals,
@@ -90,7 +93,8 @@ fun WalletSearchScreen(
             is WalletSearchAction.OpenNftCollection,
             is WalletSearchAction.OpenNftAsset,
             is WalletSearchAction.OpenList,
-            is WalletSearchAction.ShowAllAssets -> onAction(action)
+            is WalletSearchAction.ShowAllAssets,
+            -> onAction(action)
         }
     }
 
@@ -174,7 +178,7 @@ fun WalletSearchScreen(
                 autoFocus = true,
             )
         },
-        titleBadge = { item -> getAssetBadge(item, viewModel.flow.row.showsSymbol) },
+        titleBadge = { item -> getAssetBadge(item, viewModel.flow.rowStyle.showsSymbol) },
         support = { assetPriceSupport(it.price) },
         query = viewModel.queryState,
         pinned = pinned,
@@ -187,16 +191,23 @@ fun WalletSearchScreen(
         onAction = { action ->
             when (action) {
                 AssetSelectAction.Cancel -> handleAction(WalletSearchAction.Cancel)
+
                 AssetSelectAction.AddAsset -> handleAction(WalletSearchAction.AddAsset)
+
                 AssetSelectAction.OpenRecentsSheet -> handleAction(WalletSearchAction.OpenRecentsSheet)
+
                 AssetSelectAction.ShowAllAssets -> handleAction(
-                    WalletSearchAction.ShowAllAssets(viewModel.queryState.text.toString())
+                    WalletSearchAction.ShowAllAssets(viewModel.queryState.text.toString()),
                 )
+
                 is AssetSelectAction.Select -> handleAction(WalletSearchAction.OpenAsset(action.asset))
+
                 is AssetSelectAction.SelectRecent -> handleAction(WalletSearchAction.OpenRecent(action.asset))
+
                 is AssetSelectAction.ChainFilter,
                 is AssetSelectAction.BalanceFilter,
-                AssetSelectAction.ClearFilters -> Unit
+                AssetSelectAction.ClearFilters,
+                -> Unit
             }
         },
         recentsSheetEnabled = true,
@@ -218,11 +229,7 @@ fun WalletSearchScreen(
 }
 
 @Composable
-private fun SearchListItem(
-    list: AssetListRowUIModel,
-    listPosition: ListPosition,
-    onClick: () -> Unit,
-) {
+private fun SearchListItem(list: AssetListRowUIModel, listPosition: ListPosition, onClick: () -> Unit) {
     ListItem(
         model = list.model,
         listPosition = listPosition,

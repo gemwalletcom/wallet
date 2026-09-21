@@ -5,7 +5,4 @@ import kotlinx.serialization.Serializable
 import uniffi.gemstone.GemWalletSecretKind
 
 @Serializable
-data class WalletSecretInput(
-    val walletId: WalletId,
-    val kind: GemWalletSecretKind,
-)
+data class WalletSecretInput(val walletId: WalletId, val kind: GemWalletSecretKind)

@@ -1,6 +1,5 @@
 use primitives::{
-    ChartPeriod, ChartValuePercentage, Currency, PerpetualPortfolio, PerpetualPortfolioTimeframeData, PortfolioAssets, PortfolioChartData, PortfolioChartType, PortfolioData,
-    PortfolioMarginUsage, PortfolioStatistic, PortfolioType,
+    ChartPeriod, ChartValuePercentage, Currency, PerpetualPortfolio, PerpetualPortfolioTimeframeData, PortfolioAssets, PortfolioChartData, PortfolioChartType, PortfolioData, PortfolioMarginUsage, PortfolioStatistic, PortfolioType,
 };
 
 use super::model::GemPortfolioValues;
@@ -68,9 +67,7 @@ pub fn perpetual_portfolio_data(portfolio: PerpetualPortfolio, period: ChartPeri
         },
         PortfolioChartData {
             chart_type: PortfolioChartType::Value,
-            values: timeframe
-                .map(|data| data.account_value_history.iter().skip_while(|value| value.value == 0.0).cloned().collect())
-                .unwrap_or_default(),
+            values: timeframe.map(|data| data.account_value_history.iter().skip_while(|value| value.value == 0.0).cloned().collect()).unwrap_or_default(),
         },
     ];
 
@@ -127,11 +124,7 @@ mod tests {
 
     #[test]
     fn test_a_perpetuals_portfolio_is_quoted_in_dollars() {
-        assert_eq!(
-            portfolio_currency(PortfolioType::Perpetuals, Currency::EUR),
-            Currency::USD,
-            "perpetual collateral is dollars whatever the wallet is set to"
-        );
+        assert_eq!(portfolio_currency(PortfolioType::Perpetuals, Currency::EUR), Currency::USD, "perpetual collateral is dollars whatever the wallet is set to");
         assert_eq!(portfolio_currency(PortfolioType::Wallet, Currency::EUR), Currency::EUR);
     }
 
@@ -205,10 +198,7 @@ mod tests {
 
         let data = perpetual_portfolio_data(portfolio.clone(), ChartPeriod::Day);
 
-        assert_eq!(
-            data.charts.iter().map(|chart| chart.chart_type).collect::<Vec<_>>(),
-            vec![PortfolioChartType::Pnl, PortfolioChartType::Value]
-        );
+        assert_eq!(data.charts.iter().map(|chart| chart.chart_type).collect::<Vec<_>>(), vec![PortfolioChartType::Pnl, PortfolioChartType::Value]);
         assert_eq!(
             data.statistics,
             vec![
@@ -237,11 +227,7 @@ mod tests {
         let date = Utc::now();
         let mut portfolio = PerpetualPortfolio::mock();
         portfolio.day = Some(PerpetualPortfolioTimeframeData {
-            account_value_history: vec![
-                ChartDateValue { date, value: 0.0 },
-                ChartDateValue { date, value: 10.0 },
-                ChartDateValue { date, value: 0.0 },
-            ],
+            account_value_history: vec![ChartDateValue { date, value: 0.0 }, ChartDateValue { date, value: 10.0 }, ChartDateValue { date, value: 0.0 }],
             pnl_history: vec![],
             volume: 0.0,
         });

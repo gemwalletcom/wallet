@@ -80,17 +80,8 @@ mod tests {
 
     #[test]
     fn test_stack_entry_deserialization() {
-        let stack: Vec<StackEntry> =
-            serde_json::from_str(r#"[{"type":"num","value":"0x7"},{"type":"cell","value":"te6cc"},{"type":"slice","value":"te6slice"},{"type":"null"}]"#).unwrap();
-        assert_eq!(
-            stack,
-            vec![
-                StackEntry::Num("0x7".into()),
-                StackEntry::Cell("te6cc".into()),
-                StackEntry::Slice("te6slice".into()),
-                StackEntry::Unsupported
-            ]
-        );
+        let stack: Vec<StackEntry> = serde_json::from_str(r#"[{"type":"num","value":"0x7"},{"type":"cell","value":"te6cc"},{"type":"slice","value":"te6slice"},{"type":"null"}]"#).unwrap();
+        assert_eq!(stack, vec![StackEntry::Num("0x7".into()), StackEntry::Cell("te6cc".into()), StackEntry::Slice("te6slice".into()), StackEntry::Unsupported]);
         assert_eq!(stack[0].as_num(), Some("0x7"));
         assert_eq!(stack[1].as_cell_bytes(), Some("te6cc"));
         assert_eq!(stack[2].as_cell_bytes(), Some("te6slice"));

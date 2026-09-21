@@ -75,9 +75,6 @@ mod tests {
 
     #[test]
     fn test_ethereum_address_from_topic() {
-        assert_eq!(
-            ethereum_address_from_topic("0x0000000000000000000000005615e8ab93b9d695b6d4d6545f7792aa59e1069a"),
-            Some(VALID_ADDRESS.to_string())
-        );
+        assert_eq!(ethereum_address_from_topic("0x0000000000000000000000005615e8ab93b9d695b6d4d6545f7792aa59e1069a"), Some(VALID_ADDRESS.to_string()));
     }
 }

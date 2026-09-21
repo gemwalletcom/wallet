@@ -52,26 +52,19 @@ data class DbDelegationBase(
     val completionDate: Long? = null,
 )
 
-fun DelegationBase.toRecord(walletId: WalletId): DbDelegationBase {
-    return DbDelegationBase(
-        id = delegationRecordId(assetId.toIdentifier(), validatorId, state, delegationId),
-        walletId = walletId.id,
-        assetId = assetId.toIdentifier(),
-        validatorId = validatorRecordId(chain = assetId.chain, validatorId = validatorId),
-        state = state,
-        delegationId = delegationId,
-        balance = balance.toString(),
-        shares = shares.toString(),
-        rewards = rewards.toString(),
-        completionDate = completionDate,
-    )
-}
+fun DelegationBase.toRecord(walletId: WalletId): DbDelegationBase = DbDelegationBase(
+    id = delegationRecordId(assetId.toIdentifier(), validatorId, state, delegationId),
+    walletId = walletId.id,
+    assetId = assetId.toIdentifier(),
+    validatorId = validatorRecordId(chain = assetId.chain, validatorId = validatorId),
+    state = state,
+    delegationId = delegationId,
+    balance = balance.toString(),
+    shares = shares.toString(),
+    rewards = rewards.toString(),
+    completionDate = completionDate,
+)
 
 fun List<DelegationBase>.toRecord(walletId: WalletId) = map { it.toRecord(walletId) }
 
-internal fun delegationRecordId(
-    assetId: String,
-    validatorId: String,
-    state: DelegationState,
-    delegationId: String,
-): String = "${assetId}_${validatorId}_${state.string}_$delegationId"
+internal fun delegationRecordId(assetId: String, validatorId: String, state: DelegationState, delegationId: String): String = "${assetId}_${validatorId}_${state.string}_$delegationId"

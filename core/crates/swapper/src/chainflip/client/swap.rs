@@ -21,9 +21,6 @@ where
     }
 
     pub async fn get_tx_status(&self, tx_hash: &str) -> Result<SwapTxResponse, SwapperError> {
-        self.client
-            .get(ChainflipTarget::SwapStatus { tx_hash: tx_hash.to_string() })
-            .await
-            .map_err(SwapperError::from)
+        self.client.get(ChainflipTarget::SwapStatus { tx_hash: tx_hash.to_string() }).await.map_err(SwapperError::from)
     }
 }

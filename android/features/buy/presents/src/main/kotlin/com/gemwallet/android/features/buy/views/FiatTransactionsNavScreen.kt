@@ -8,10 +8,7 @@ import com.gemwallet.android.features.buy.viewmodels.FiatTransactionsViewModel
 import com.gemwallet.android.ui.models.actions.CancelAction
 
 @Composable
-fun FiatTransactionsNavScreen(
-    onClose: CancelAction,
-    viewModel: FiatTransactionsViewModel = hiltViewModel(),
-) {
+fun FiatTransactionsNavScreen(onClose: CancelAction, viewModel: FiatTransactionsViewModel = hiltViewModel()) {
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 

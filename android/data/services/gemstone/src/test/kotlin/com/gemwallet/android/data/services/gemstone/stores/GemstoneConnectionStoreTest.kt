@@ -1,11 +1,11 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.data.service.store.database.ConnectionsDao
 import com.gemwallet.android.data.service.store.database.entities.DbConnection
 import com.gemwallet.android.data.service.store.database.entities.mockDbConnection
 import com.gemwallet.android.data.service.store.database.entities.toDTO
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
@@ -32,7 +32,7 @@ class GemstoneConnectionStoreTest {
             listOf(
                 mockDbConnection(id = "connection-1", walletId = "wallet-1"),
                 mockDbConnection(id = "connection-2", walletId = "missing-wallet"),
-            )
+            ),
         )
 
         val connections = store.observeConnections().first()

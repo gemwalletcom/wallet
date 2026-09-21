@@ -2,7 +2,6 @@ package com.gemwallet.android.features.perpetual.viewmodels
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.perpetual.cases.BuildPerpetualParams
 import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPosition
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
@@ -61,7 +60,6 @@ class PerpetualDetailsViewModelTest {
         service: GemPerpetualDetailsServiceInterface = mockk(relaxed = true) {
             every { chartPeriod() } returns uniffi.gemstone.ChartPeriod.DAY
         },
-        params: BuildPerpetualParams = mockk(relaxed = true),
     ): PerpetualDetailsViewModel {
         val session: GetSession = mockk {
             every { this@mockk.invoke() } returns MutableStateFlow(mockSession())
@@ -72,6 +70,7 @@ class PerpetualDetailsViewModelTest {
         val positions: GetPerpetualPosition = mockk(relaxed = true)
         val transactions: GetTransactions = mockk {
             every { getTransactions(any()) } returns emptyFlow()
+            every { stored(any()) } returns emptyList()
         }
         val observer: PerpetualObserver = mockk(relaxed = true) {
             every { chartUpdates } returns emptyFlow()
@@ -80,7 +79,6 @@ class PerpetualDetailsViewModelTest {
             perpetual,
             positions,
             transactions,
-            params,
             observer,
             service,
             session,
@@ -120,14 +118,16 @@ class PerpetualDetailsViewModelTest {
 
     @Test
     fun `closing a position without a perpetual does nothing`() = runTest(dispatcher) {
-        val params: BuildPerpetualParams = mockk(relaxed = true)
-        val model = viewModel(params = params)
+        val service: GemPerpetualDetailsServiceInterface = mockk(relaxed = true) {
+            every { chartPeriod() } returns uniffi.gemstone.ChartPeriod.DAY
+        }
+        val model = viewModel(service = service)
         val confirm: ConfirmTransactionAction = mockk(relaxed = true)
 
         model.closePosition(confirm)
 
         assertNull(model.error.value)
-        coVerify(exactly = 0) { params.close(any()) }
+        coVerify(exactly = 0) { service.closeTransfer(any(), any(), any()) }
     }
 
     @Test

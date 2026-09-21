@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+@testable import Gem
 import Primitives
 import Testing
-@testable import Gem
 
 @MainActor
 struct AppUpdateAlertTests {

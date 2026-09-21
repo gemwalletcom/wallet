@@ -43,9 +43,7 @@ impl BrokerAsset {
 
 impl AssetsResponse {
     pub(crate) fn asset(&self, asset: &ChainflipAsset) -> Option<&BrokerAsset> {
-        self.assets
-            .iter()
-            .find(|broker_asset| broker_asset.network == asset.chain && broker_asset.ticker == asset.asset)
+        self.assets.iter().find(|broker_asset| broker_asset.network == asset.chain && broker_asset.ticker == asset.asset)
     }
 }
 

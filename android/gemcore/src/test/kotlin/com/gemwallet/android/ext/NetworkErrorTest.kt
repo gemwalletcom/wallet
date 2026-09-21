@@ -2,12 +2,12 @@ package com.gemwallet.android.ext
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.AlienException
-import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GatewayException
+import uniffi.gemstone.GemErrorText
 import java.io.EOFException
 import java.io.IOException
 import java.net.ConnectException
@@ -55,7 +55,7 @@ class NetworkErrorTest {
     @Test
     fun mapsSslCertificateErrorToReadableMessage() {
         val source = SSLHandshakeException(
-            "java.security.cert.CertPathValidatorException: Trust anchor for certification path not found."
+            "java.security.cert.CertPathValidatorException: Trust anchor for certification path not found.",
         ).apply {
             initCause(CertPathValidatorException("Trust anchor for certification path not found."))
         }

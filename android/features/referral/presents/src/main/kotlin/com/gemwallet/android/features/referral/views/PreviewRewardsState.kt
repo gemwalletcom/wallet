@@ -1,33 +1,42 @@
 package com.gemwallet.android.features.referral.views
 
-import com.gemwallet.android.features.referral.viewmodels.models.ReferralUIModel
+import uniffi.gemstone.GemFormattedNumber
+import uniffi.gemstone.GemNumberDisplay
+import uniffi.gemstone.GemNumberNotation
+import uniffi.gemstone.GemNumberRounding
+import uniffi.gemstone.GemNumberUnit
+import uniffi.gemstone.GemPrecision
+import uniffi.gemstone.GemRewardsState
+import uniffi.gemstone.GemValueTone
 
 internal fun previewRewardsState(
     referralCode: String? = null,
-    referralCountText: String = "0",
-    pointsText: String = "0",
     hasReferralCode: Boolean = false,
-    hasUsedReferralCode: Boolean = false,
     canInvite: Boolean = false,
     canUseReferralCode: Boolean = false,
     showsInfo: Boolean = false,
-    isUnverified: Boolean = false,
-    hasPendingReferral: Boolean = false,
     canActivatePendingReferral: Boolean = false,
     usedReferralCode: String? = null,
-    verifyAfter: Long? = null,
-    disableReason: String? = null,
-) = ReferralUIModel(
+) = GemRewardsState(
     hasReferralCode = hasReferralCode,
-    hasUsedReferralCode = hasUsedReferralCode,
     canInvite = canInvite,
     canUseReferralCode = canUseReferralCode,
     showsInfo = showsInfo,
-    isUnverified = isUnverified,
-    hasPendingReferral = hasPendingReferral,
+    errorNotice = null,
+    statusNotice = null,
+    showsPendingActivation = false,
     canActivatePendingReferral = canActivatePendingReferral,
-    inviteRewardPoints = 100,
+    inviteRewardPoints = GemFormattedNumber(
+        value = 100.0,
+        unit = GemNumberUnit.Plain,
+        display = GemNumberDisplay.Number(GemPrecision.Fraction(0u, 0u)),
+        notation = GemNumberNotation.PLAIN,
+        tone = GemValueTone.PLAIN,
+        rounding = GemNumberRounding.TO_NEAREST,
+    ),
+    referralCode = referralCode,
+    referralLink = null,
     usedReferralCode = usedReferralCode,
-    verifyAfter = verifyAfter,
-    disableReason = disableReason,
+    infoRows = emptyList(),
+    redemptions = emptyList(),
 )

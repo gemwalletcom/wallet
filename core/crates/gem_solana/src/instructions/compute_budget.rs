@@ -42,11 +42,9 @@ pub fn parse_compute_unit_price_data(data: &[u8]) -> Option<u64> {
 }
 
 pub fn get_compute_unit_limit(instructions: &[Instruction]) -> Option<u32> {
-    instructions.iter().find_map(|instruction| {
-        (instruction.program_id == compute_budget_program())
-            .then(|| parse_compute_unit_limit_data(&instruction.data))
-            .flatten()
-    })
+    instructions
+        .iter()
+        .find_map(|instruction| (instruction.program_id == compute_budget_program()).then(|| parse_compute_unit_limit_data(&instruction.data)).flatten())
 }
 
 pub fn ensure_compute_unit_price(instructions: &mut Vec<Instruction>, micro_lamports: u64) -> bool {

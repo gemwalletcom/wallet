@@ -16,7 +16,7 @@ use sui_types::PersonalMessage;
 
 use super::{
     eip712::GemEIP712Message,
-    payload::MessagePayloadPreview,
+    payload::{MessagePayloadFields, MessagePayloadPreview},
     sign_type::{SignDigestType, SignMessage},
 };
 use crate::{GemstoneError, keystore::GemKeystore, siwe::SiweMessage};
@@ -56,32 +56,6 @@ impl MessageSigner {
         Self { message, timestamp }
     }
 
-    pub fn preview(&self) -> Result<MessagePreview, GemstoneError> {
-        match self.message.sign_type {
-            SignDigestType::Eip191 | SignDigestType::Siwe => Ok(siwe_or_text_preview(self.message.chain, &self.message.data)),
-            SignDigestType::SuiPersonal | SignDigestType::TronPersonal => Ok(MessagePreview::Text(self.data_as_utf8_or_hex())),
-            SignDigestType::TonPersonal => {
-                let string = self.data_as_utf8()?;
-                let Ok(ton_data) = TonSignMessageData::from_bytes(string.as_bytes()) else {
-                    return Ok(MessagePreview::Text(string));
-                };
-                Ok(MessagePreview::Text(ton_data.payload.data().to_string()))
-            }
-            SignDigestType::Eip712 => {
-                let string = self.data_as_utf8()?;
-                if string.is_empty() {
-                    return Err(GemstoneError::from("Empty EIP712 message string"));
-                }
-                let message = GemEIP712Message::from_json(&string).map_err(|e| GemstoneError::from(format!("Invalid EIP712 message: {e}")))?;
-                Ok(MessagePreview::EIP712(message))
-            }
-            SignDigestType::Base58 => {
-                let decoded = bs58::decode(&self.message.data).into_vec().unwrap_or_default();
-                Ok(MessagePreview::Text(String::from_utf8_lossy(&decoded).to_string()))
-            }
-        }
-    }
-
     pub fn payload_preview(&self, simulation_payload: Vec<SimulationPayloadField>) -> Result<Option<MessagePayloadPreview>, GemstoneError> {
         let payload_preview = match self.preview()? {
             MessagePreview::Text(_) => match self.message.sign_type {
@@ -90,10 +64,10 @@ impl MessageSigner {
                 _ => None,
             },
             MessagePreview::EIP712(message) => Some(message.payload_preview(simulation_payload)),
-            MessagePreview::Siwe(message) => Some(MessagePayloadPreview::from_siwe(&message, simulation_payload)),
+            MessagePreview::Siwe(message) => Some(MessagePayloadFields::from_siwe(&message, simulation_payload)),
         };
 
-        Ok(payload_preview)
+        Ok(payload_preview.map(|fields| fields.rows(self.message.chain)))
     }
 
     fn hash(&self) -> Result<Vec<u8>, GemstoneError> {
@@ -120,6 +94,32 @@ impl MessageSigner {
 }
 
 impl MessageSigner {
+    pub fn preview(&self) -> Result<MessagePreview, GemstoneError> {
+        match self.message.sign_type {
+            SignDigestType::Eip191 | SignDigestType::Siwe => Ok(siwe_or_text_preview(self.message.chain, &self.message.data)),
+            SignDigestType::SuiPersonal | SignDigestType::TronPersonal => Ok(MessagePreview::Text(self.data_as_utf8_or_hex())),
+            SignDigestType::TonPersonal => {
+                let string = self.data_as_utf8()?;
+                let Ok(ton_data) = TonSignMessageData::from_bytes(string.as_bytes()) else {
+                    return Ok(MessagePreview::Text(string));
+                };
+                Ok(MessagePreview::Text(ton_data.payload.data().to_string()))
+            }
+            SignDigestType::Eip712 => {
+                let string = self.data_as_utf8()?;
+                if string.is_empty() {
+                    return Err(GemstoneError::from("Empty EIP712 message string"));
+                }
+                let message = GemEIP712Message::from_json(&string).map_err(|e| GemstoneError::from(format!("Invalid EIP712 message: {e}")))?;
+                Ok(MessagePreview::EIP712(message))
+            }
+            SignDigestType::Base58 => {
+                let decoded = bs58::decode(&self.message.data).into_vec().unwrap_or_default();
+                Ok(MessagePreview::Text(String::from_utf8_lossy(&decoded).to_string()))
+            }
+        }
+    }
+
     pub fn sign_with_keystore(&self, keystore: Arc<GemKeystore>, keystore_id: String, password: Vec<u8>) -> Result<String, GemstoneError> {
         let private_key = keystore.signing_key(&keystore_id, self.message.chain, password)?;
         self.sign(private_key)
@@ -196,19 +196,17 @@ impl MessageSigner {
         String::from_utf8(self.message.data.clone()).unwrap_or_else(|_| encode_with_0x(&self.message.data))
     }
 
-    fn siwe_payload_preview(&self, simulation_payload: Vec<SimulationPayloadField>) -> Option<MessagePayloadPreview> {
+    fn siwe_payload_preview(&self, simulation_payload: Vec<SimulationPayloadField>) -> Option<MessagePayloadFields> {
         let string = String::from_utf8(self.message.data.clone()).ok()?;
         let message = SiweMessage::try_parse(&string)?;
-        Some(MessagePayloadPreview::from_siwe(&message, simulation_payload))
+        Some(MessagePayloadFields::from_siwe(&message, simulation_payload))
     }
 
-    fn siws_payload_preview(&self, simulation_payload: Vec<SimulationPayloadField>) -> Result<Option<MessagePayloadPreview>, GemstoneError> {
+    fn siws_payload_preview(&self, simulation_payload: Vec<SimulationPayloadField>) -> Result<Option<MessagePayloadFields>, GemstoneError> {
         let Ok(string) = String::from_utf8(self.hash()?) else {
             return Ok(None);
         };
-        Ok(SiwsMessage::parse(&string)
-            .map_err(GemstoneError::from)?
-            .map(|message| MessagePayloadPreview::from_siws(&message, simulation_payload)))
+        Ok(SiwsMessage::parse(&string).map_err(GemstoneError::from)?.map(|message| MessagePayloadFields::from_siws(&message, simulation_payload)))
     }
 
     fn get_ton_result(&self, result: &TonSignResult) -> Result<String, GemstoneError> {
@@ -235,6 +233,7 @@ mod tests {
         eip712::{GemEIP712Section, GemEIP712Value, GemEIP712ValueType},
         sign_type::{MessageType, SignDigestType},
     };
+    use crate::services::simulation::GemSimulationPayloadTitle;
     use crate::signer::ChainTransactionSigner;
     use gem_evm::EIP712Domain;
     use primitives::Address;
@@ -244,9 +243,7 @@ mod tests {
     #[test]
     fn test_eip712_chain_signer_matches_message_signer() {
         let json = include_str!("./test/eip712_seaport.json");
-        let via_chain_signer = ChainTransactionSigner::new(Chain::Ethereum)
-            .sign_message(json.as_bytes().to_vec(), TEST_PRIVATE_KEY.to_vec())
-            .unwrap();
+        let via_chain_signer = ChainTransactionSigner::new(Chain::Ethereum).sign_message(json.as_bytes().to_vec(), TEST_PRIVATE_KEY.to_vec()).unwrap();
         let via_message_signer = MessageSigner::new(SignMessage {
             chain: Chain::Ethereum,
             sign_type: SignDigestType::Eip712,
@@ -328,18 +325,14 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
 
     #[test]
     fn test_get_result_eip191() {
-        let data = hex::decode("d80c5ffe75fcbac0706c5c5d3b8884ae3588c30065a95075e07fa6ebc24e56433e5030992ef438b1d23437ec8d66d3197b1ad92f85222af1624d8f295907a65800")
-            .expect("Invalid hex string");
+        let data = hex::decode("d80c5ffe75fcbac0706c5c5d3b8884ae3588c30065a95075e07fa6ebc24e56433e5030992ef438b1d23437ec8d66d3197b1ad92f85222af1624d8f295907a65800").expect("Invalid hex string");
         let decoder = MessageSigner::new(SignMessage {
             chain: Chain::Ethereum,
             sign_type: SignDigestType::Eip191,
             data: data.clone(),
         });
         let result = decoder.get_result(data.as_slice());
-        assert_eq!(
-            result,
-            "0xd80c5ffe75fcbac0706c5c5d3b8884ae3588c30065a95075e07fa6ebc24e56433e5030992ef438b1d23437ec8d66d3197b1ad92f85222af1624d8f295907a6581b"
-        );
+        assert_eq!(result, "0xd80c5ffe75fcbac0706c5c5d3b8884ae3588c30065a95075e07fa6ebc24e56433e5030992ef438b1d23437ec8d66d3197b1ad92f85222af1624d8f295907a6581b");
     }
 
     #[test]
@@ -408,10 +401,7 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
         }
         let hash = decoder.hash().unwrap();
 
-        assert_eq!(
-            hex::encode(&hash),
-            "5468697320697320616e206578616d706c65206d65737361676520746f206265207369676e6564202d2031373437313235373539303630"
-        );
+        assert_eq!(hex::encode(&hash), "5468697320697320616e206578616d706c65206d65737361676520746f206265207369676e6564202d2031373437313235373539303630");
 
         assert_eq!(decoder.payload_preview(vec![]).unwrap(), None);
 
@@ -435,10 +425,7 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
         assert_eq!(decoder.plain_preview(), message);
         assert_eq!(decoder.hash().unwrap(), message.as_bytes());
         assert_eq!(decoder.payload_preview(vec![]).unwrap().unwrap().message_type, MessageType::Siws);
-        assert_eq!(
-            decoder.sign(Zeroizing::new(TEST_PRIVATE_KEY.to_vec())).unwrap(),
-            bs58::encode(key_pair.sign(message.as_bytes())).into_string(),
-        );
+        assert_eq!(decoder.sign(Zeroizing::new(TEST_PRIVATE_KEY.to_vec())).unwrap(), bs58::encode(key_pair.sign(message.as_bytes())).into_string(),);
     }
 
     #[test]
@@ -463,10 +450,7 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
             data: b"hello".to_vec(),
         });
 
-        assert_eq!(
-            decoder.sign(Zeroizing::new(TEST_PRIVATE_KEY.to_vec())).unwrap_err().to_string(),
-            "Base58 sign message is not supported for ethereum"
-        );
+        assert_eq!(decoder.sign(Zeroizing::new(TEST_PRIVATE_KEY.to_vec())).unwrap_err().to_string(), "Base58 sign message is not supported for ethereum");
     }
 
     #[test]
@@ -718,8 +702,8 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
         let payload_preview = decoder.payload_preview(vec![]).unwrap().expect("expected SIWE payload preview");
         assert_eq!(payload_preview.message_type, MessageType::Siwe);
         assert_eq!(payload_preview.primary.len(), 2);
-        assert_eq!(payload_preview.primary[0].label.as_deref(), Some("domain"));
-        assert_eq!(payload_preview.primary[1].label.as_deref(), Some("address"));
+        assert_eq!(payload_preview.primary[0].title, GemSimulationPayloadTitle::Custom { label: "domain".to_string() });
+        assert_eq!(payload_preview.primary[1].title, GemSimulationPayloadTitle::Custom { label: "address".to_string() });
     }
 
     #[test]
@@ -748,12 +732,7 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
     #[test]
     fn test_ton_hash_and_sign_share_timestamp() {
         let sender_address = TonSigner::new(&TEST_PRIVATE_KEY).unwrap().address().encode();
-        let ton_data = TonSignMessageData::from_value(
-            serde_json::json!({"type": "text", "text": "timestamp consistency"}),
-            "example.com".to_string(),
-            sender_address,
-        )
-        .unwrap();
+        let ton_data = TonSignMessageData::from_value(serde_json::json!({"type": "text", "text": "timestamp consistency"}), "example.com".to_string(), sender_address).unwrap();
         let data = ton_data.to_bytes();
         let signer = MessageSigner::new(SignMessage {
             chain: Chain::Ton,

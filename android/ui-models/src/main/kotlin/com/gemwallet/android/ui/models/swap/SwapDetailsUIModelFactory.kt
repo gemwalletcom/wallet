@@ -1,57 +1,23 @@
 package com.gemwallet.android.ui.models.swap
 
-import uniffi.gemstone.GemSwapDetailRow
-import uniffi.gemstone.GemPercentageStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.swap.AssetRateFormatter
 import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.model.ValueFormatter
+import uniffi.gemstone.GemPercentageStyle
+import uniffi.gemstone.GemSwapDetailRow
+import uniffi.gemstone.GemSwapProviderRow
+import uniffi.gemstone.GemSwapQuoteSummary
+import uniffi.gemstone.GemValueStyle
 import uniffi.gemstone.SwapPriceImpact
 import java.math.BigInteger
-import uniffi.gemstone.GemSwapQuoteSummary
-import uniffi.gemstone.SwapProvider
-import uniffi.gemstone.SwapperProviderType
-import uniffi.gemstone.GemValueStyle
-
-object SwapProviderUIModelFactory {
-    fun create(
-        provider: SwapperProviderType,
-        receiveAsset: AssetPriceValue,
-        toValue: BigInteger,
-    ): SwapProviderUIModel {
-        return create(
-            providerId = provider.id,
-            title = provider.protocol,
-            receiveAsset = receiveAsset,
-            toValue = toValue,
-        )
-    }
-
-    fun create(
-        providerId: SwapProvider,
-        title: String,
-        receiveAsset: AssetPriceValue,
-        toValue: BigInteger,
-    ): SwapProviderUIModel {
-        val fiatValue = receiveAsset.calculateFiat(toValue)
-
-        return SwapProviderUIModel(
-            id = providerId,
-            title = title,
-            icon = providerId,
-            amount = ValueFormatter(style = GemValueStyle.AUTO)
-                .string(toValue, receiveAsset.asset),
-            fiat = receiveAsset.formatFiat(fiatValue),
-        )
-    }
-}
 
 data class SwapDetailsUIModelInput(
     val payAsset: AssetPriceValue,
     val receiveAsset: AssetPriceValue,
     val summary: GemSwapQuoteSummary,
-    val provider: SwapProviderUIModel,
-    val providers: List<SwapProviderUIModel> = emptyList(),
+    val provider: GemSwapProviderRow,
+    val providers: List<GemSwapProviderRow> = emptyList(),
     val slippageBps: UInt,
     val selectedSlippage: UInt?,
     val isProviderSelectable: Boolean,
@@ -103,6 +69,4 @@ object SwapDetailsUIModelFactory {
             isProviderSelectable = input.isProviderSelectable,
         )
     }
-
 }
-

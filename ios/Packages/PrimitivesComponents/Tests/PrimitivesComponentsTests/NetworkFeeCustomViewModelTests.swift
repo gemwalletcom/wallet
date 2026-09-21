@@ -3,9 +3,9 @@
 import BigInt
 import Foundation
 import Primitives
-import PrimitivesTestKit
 @testable import PrimitivesComponents
 import PrimitivesComponentsTestKit
+import PrimitivesTestKit
 import Testing
 
 @MainActor

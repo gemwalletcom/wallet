@@ -11,7 +11,7 @@ use primitives::{AssetBasic, Wallet};
 pub use model::GemSearchScope;
 pub use store::GemSearchStore;
 
-use crate::services::assets::{GemAssetStore, GemAssetsService, rules as assets_rules};
+use crate::services::assets::{GemAssetsService, rules as assets_rules};
 use crate::services::error::GemServiceError;
 use crate::services::perpetual::{GemPerpetualStore, rules as perpetual_rules};
 use crate::services::price::GemPriceService;
@@ -19,7 +19,6 @@ use crate::services::price::GemPriceService;
 #[derive(uniffi::Object)]
 pub struct GemSearchService {
     assets: Arc<GemAssetsService>,
-    asset_store: Arc<dyn GemAssetStore>,
     price: Arc<GemPriceService>,
     perpetual_store: Arc<dyn GemPerpetualStore>,
     store: Arc<dyn GemSearchStore>,
@@ -28,22 +27,12 @@ pub struct GemSearchService {
 #[uniffi::export]
 impl GemSearchService {
     #[uniffi::constructor]
-    pub fn new(
-        assets: Arc<GemAssetsService>,
-        asset_store: Arc<dyn GemAssetStore>,
-        price: Arc<GemPriceService>,
-        perpetual_store: Arc<dyn GemPerpetualStore>,
-        store: Arc<dyn GemSearchStore>,
-    ) -> Self {
-        Self {
-            assets,
-            asset_store,
-            price,
-            perpetual_store,
-            store,
-        }
+    pub fn new(assets: Arc<GemAssetsService>, price: Arc<GemPriceService>, perpetual_store: Arc<dyn GemPerpetualStore>, store: Arc<dyn GemSearchStore>) -> Self {
+        Self { assets, price, perpetual_store, store }
     }
+}
 
+impl GemSearchService {
     pub async fn search(&self, wallet: Wallet, query: String, scope: GemSearchScope, currency: Currency) -> Result<bool, GemServiceError> {
         let query = query.trim().to_string();
         if scope.skips_search(&query) {
@@ -70,12 +59,10 @@ impl GemSearchService {
         self.save_assets(&wallet, &assets, currency, &GemSearchScope::All.search_key(&query)).await?;
         Ok(assets)
     }
-}
 
-impl GemSearchService {
     async fn save_assets(&self, wallet: &Wallet, assets: &[AssetBasic], currency: Currency, key: &str) -> Result<(), GemServiceError> {
         let asset_ids = rules::asset_ids(assets);
-        self.asset_store.save_assets(assets.to_vec()).await?;
+        self.assets.save_assets(assets.to_vec()).await?;
         self.price.update_prices(rules::prices(assets), currency).await?;
         self.assets.add_missing_balances(wallet.id.clone(), asset_ids.clone()).await?;
         self.store.set_assets(key.to_string(), asset_ids).await
@@ -83,7 +70,7 @@ impl GemSearchService {
 
     async fn save_perpetuals(&self, perpetuals: &[PerpetualSearchData], key: &str) -> Result<(), GemServiceError> {
         let data = rules::perpetual_data(perpetuals);
-        self.asset_store.save_assets(perpetual_rules::perpetual_asset_basics(&data)).await?;
+        self.assets.save_assets(perpetual_rules::perpetual_asset_basics(&data)).await?;
         self.perpetual_store.save_perpetuals(data).await?;
         self.store.set_perpetuals(key.to_string(), rules::perpetual_ids(perpetuals)).await
     }

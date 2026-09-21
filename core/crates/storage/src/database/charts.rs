@@ -101,14 +101,11 @@ impl ChartsStore for DatabaseClient {
     }
 
     fn get_charts_by_filter(&mut self, filters: Vec<ChartFilter>) -> Result<Vec<(String, f64)>, Error> {
-        let query = filters.into_iter().fold(
-            charts.distinct_on(raw_coin_id).order_by((raw_coin_id, raw_created_at.desc())).into_boxed(),
-            |q, filter| match filter {
-                ChartFilter::CreatedBefore(at) => q.filter(raw_created_at.le(at)),
-                ChartFilter::CreatedAfter(at) => q.filter(raw_created_at.ge(at)),
-                ChartFilter::PriceIds(ids) => q.filter(raw_coin_id.eq_any(ids)),
-            },
-        );
+        let query = filters.into_iter().fold(charts.distinct_on(raw_coin_id).order_by((raw_coin_id, raw_created_at.desc())).into_boxed(), |q, filter| match filter {
+            ChartFilter::CreatedBefore(at) => q.filter(raw_created_at.le(at)),
+            ChartFilter::CreatedAfter(at) => q.filter(raw_created_at.ge(at)),
+            ChartFilter::PriceIds(ids) => q.filter(raw_coin_id.eq_any(ids)),
+        });
         query.select((raw_coin_id, raw_price)).load(&mut self.connection)
     }
 

@@ -48,16 +48,8 @@ fn build_jetton_swap(params: SwapTransactionParams<'_>, swap_body: &CellArc) -> 
     let router = Address::parse(&params.simulation.router.address)?;
     let from_value = BigUint::from_str(params.from_value)?;
     let extra_forward_gas = next_swap_forward_gas(&params);
-    let body = build_jetton_transfer_body(
-        &from_value,
-        &router,
-        Some(&params.wallet_address),
-        &BigUint::from(V2_JETTON_SWAP_FORWARD_GAS + extra_forward_gas),
-        Some(swap_body),
-    )?;
-    let sender_jetton_wallet = params
-        .sender_jetton_wallet
-        .ok_or_else(|| SwapperError::ComputeQuoteError("missing sender jetton wallet".into()))?;
+    let body = build_jetton_transfer_body(&from_value, &router, Some(&params.wallet_address), &BigUint::from(V2_JETTON_SWAP_FORWARD_GAS + extra_forward_gas), Some(swap_body))?;
+    let sender_jetton_wallet = params.sender_jetton_wallet.ok_or_else(|| SwapperError::ComputeQuoteError("missing sender jetton wallet".into()))?;
 
     Ok(TxParams {
         to: sender_jetton_wallet.to_string(),
@@ -75,19 +67,10 @@ fn build_swap_body(params: &SwapTransactionParams<'_>) -> Result<Cell, SwapperEr
     };
     let min_ask_amount = BigUint::from_str(&params.simulation.min_ask_units)?;
     let referral_bps = if params.next_swap.is_some() { 0 } else { params.referral.bps };
-    let default_deadline_seconds = if params.from_native {
-        V2_TON_TO_JETTON_DEADLINE_SECONDS
-    } else {
-        V2_DEFAULT_DEADLINE_SECONDS
-    };
+    let default_deadline_seconds = if params.from_native { V2_TON_TO_JETTON_DEADLINE_SECONDS } else { V2_DEFAULT_DEADLINE_SECONDS };
     let deadline = params.deadline.unwrap_or_else(|| unix_timestamp() + default_deadline_seconds);
 
-    let next_payload = params
-        .next_swap
-        .as_ref()
-        .map(|next_swap| build_next_swap_body(params, next_swap))
-        .transpose()?
-        .map(Cell::into_arc);
+    let next_payload = params.next_swap.as_ref().map(|next_swap| build_next_swap_body(params, next_swap)).transpose()?.map(Cell::into_arc);
 
     build_swap_cell(SwapCellParams {
         opcode: V2_SWAP_OPCODE,
@@ -124,10 +107,7 @@ fn build_next_swap_body(params: &SwapTransactionParams<'_>, next_swap: &NextSwap
 
 fn build_swap_cell(params: SwapCellParams<'_>) -> Result<Cell, SwapperError> {
     let mut details = CellBuilder::new();
-    details
-        .store_coins(&params.min_ask_amount)?
-        .store_address(&params.receiver_address)?
-        .store_coins(&BigUint::from(params.forward_gas))?;
+    details.store_coins(&params.min_ask_amount)?.store_address(&params.receiver_address)?.store_coins(&BigUint::from(params.forward_gas))?;
     details.store_maybe_reference(params.next_payload)?;
     details.store_coins(&BigUint::from(0u64))?;
     details.store_maybe_reference(None)?;
@@ -160,11 +140,7 @@ fn is_same_router(params: &SwapTransactionParams<'_>, next_swap: &NextSwapParams
 
 fn build_pton_ton_transfer_body(amount: &BigUint, refund_address: &Address, forward_payload: Option<&CellArc>) -> Result<Cell, SwapperError> {
     let mut builder = CellBuilder::new();
-    builder
-        .store_u32(32, PTON_V2_TON_TRANSFER_OPCODE)?
-        .store_u64(64, 0)?
-        .store_coins(amount)?
-        .store_address(refund_address)?;
+    builder.store_u32(32, PTON_V2_TON_TRANSFER_OPCODE)?.store_u64(64, 0)?.store_coins(amount)?.store_address(refund_address)?;
     builder.store_maybe_reference(forward_payload)?;
     Ok(builder.build()?)
 }
@@ -218,18 +194,8 @@ mod tests {
 
     #[test]
     fn test_build_v2_2_hop_swap_transactions() {
-        let swap_to_intermediary = SwapSimulation::mock(
-            "EQCSIMGBps_qzRG3uPYhON8bucyCtu0mYdL1-u4gSz77IBa3",
-            "EQCSLWJ9fY7b0A5OI72wxUp27l4fRlc6GvRBeFf6PiPpH4p3",
-            "260238",
-            "257635",
-        );
-        let swap_from_intermediary = SwapSimulation::mock(
-            "EQCSLWJ9fY7b0A5OI72wxUp27l4fRlc6GvRBeFf6PiPpH4p3",
-            "EQCSIMGBps_qzRG3uPYhON8bucyCtu0mYdL1-u4gSz77IBa3",
-            "709",
-            "702",
-        );
+        let swap_to_intermediary = SwapSimulation::mock("EQCSIMGBps_qzRG3uPYhON8bucyCtu0mYdL1-u4gSz77IBa3", "EQCSLWJ9fY7b0A5OI72wxUp27l4fRlc6GvRBeFf6PiPpH4p3", "260238", "257635");
+        let swap_from_intermediary = SwapSimulation::mock("EQCSLWJ9fY7b0A5OI72wxUp27l4fRlc6GvRBeFf6PiPpH4p3", "EQCSIMGBps_qzRG3uPYhON8bucyCtu0mYdL1-u4gSz77IBa3", "709", "702");
         let cross_transaction = build_swap_transaction(SwapTransactionParams {
             next_swap: Some(NextSwapParams {
                 simulation: &swap_from_intermediary,

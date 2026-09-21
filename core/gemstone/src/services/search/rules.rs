@@ -118,10 +118,7 @@ mod tests {
         let prices = prices(&[priced, Asset::from_chain(Chain::Bitcoin).as_basic_primitive()]);
 
         assert_eq!(prices.len(), 1);
-        assert_eq!(
-            (prices[0].asset_id.chain, prices[0].price, prices[0].price_change_percentage_24h),
-            (Chain::Ethereum, 2.0, 1.5)
-        );
+        assert_eq!((prices[0].asset_id.chain, prices[0].price, prices[0].price_change_percentage_24h), (Chain::Ethereum, 2.0, 1.5));
     }
 
     #[test]

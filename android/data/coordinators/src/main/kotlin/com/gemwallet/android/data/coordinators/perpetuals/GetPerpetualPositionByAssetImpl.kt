@@ -12,14 +12,11 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class GetPerpetualPositionByAssetImpl(
-    private val perpetualStore: GemstonePerpetualStore,
-) : GetPerpetualPositionByAsset {
+class GetPerpetualPositionByAssetImpl(private val perpetualStore: GemstonePerpetualStore) : GetPerpetualPositionByAsset {
 
-    override fun invoke(walletId: WalletId, assetId: AssetId): Flow<PerpetualPositionData?> =
-        perpetualStore.observePerpetualByAssetId(assetId)
-            .distinctUntilChanged()
-            .flatMapLatest { data ->
-                data?.let { perpetualStore.observePositionByPerpetualId(walletId, it.perpetual.id) } ?: flowOf(null)
-            }
+    override fun invoke(walletId: WalletId, assetId: AssetId): Flow<PerpetualPositionData?> = perpetualStore.observePerpetualByAssetId(assetId)
+        .distinctUntilChanged()
+        .flatMapLatest { data ->
+            data?.let { perpetualStore.observePositionByPerpetualId(walletId, it.perpetual.id) } ?: flowOf(null)
+        }
 }

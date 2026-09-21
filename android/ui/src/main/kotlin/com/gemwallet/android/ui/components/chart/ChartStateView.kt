@@ -54,16 +54,19 @@ fun <T> ChartStateView(
                         modifier = Modifier.align(Alignment.Center),
                         color = MaterialTheme.colorScheme.primary,
                     )
+
                     StateViewType.NoData -> EmptyStateView(
                         modifier = Modifier.fillMaxSize(),
                         title = stringResource(R.string.common_not_available),
                         icon = painterResource(R.drawable.empty_activity),
                     )
+
                     StateViewType.Error -> EmptyStateView(
                         modifier = Modifier.fillMaxSize(),
                         title = stringResource(R.string.errors_no_data_available),
                         iconVector = AppIcons.Warning,
                     )
+
                     is StateViewType.Data -> chartBody(state.data)
                 }
             }

@@ -40,15 +40,14 @@ fun SwipeableItemWithActions(
     listPosition: ListPosition = ListPosition.Middle,
     onExpanded: () -> Unit = {},
     onCollapsed: () -> Unit = {},
-    content: @Composable (ListPosition) -> Unit
+    content: @Composable (ListPosition) -> Unit,
 ) {
-
     var contextMenuWidth by remember { mutableFloatStateOf(0f) }
     val offset = remember { Animatable(initialValue = 0f) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(key1 = isRevealed, contextMenuWidth) {
-        if(isRevealed) {
+        if (isRevealed) {
             offset.animateTo(contextMenuWidth)
         } else {
             offset.animateTo(0f)
@@ -95,7 +94,7 @@ fun SwipeableItemWithActions(
                                     }
                                 }
                             }
-                        }
+                        },
                     )
                 },
         ) {
@@ -105,19 +104,12 @@ fun SwipeableItemWithActions(
 }
 
 @Composable
-fun ActionIcon(
-    onClick: () -> Unit,
-    backgroundColor: Color,
-    icon: ImageVector,
-    modifier: Modifier = Modifier,
-    contentDescription: String? = null,
-    tint: Color = Color.White
-) {
+fun ActionIcon(onClick: () -> Unit, backgroundColor: Color, icon: ImageVector, modifier: Modifier = Modifier, contentDescription: String? = null, tint: Color = Color.White) {
     IconButton(
         onClick = onClick,
         modifier = modifier
             .fillMaxHeight()
-            .background(Color.Transparent)
+            .background(Color.Transparent),
     ) {
         Icon(
             imageVector = icon,

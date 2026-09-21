@@ -31,12 +31,7 @@ private const val ManageActionTag = "assetsManageAction"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun AssetsTopBar(
-    walletSummary: WalletSummaryAggregate?,
-    onShowWallets: () -> Unit,
-    onSearch: () -> Unit,
-    onScan: () -> Unit,
-) {
+internal fun AssetsTopBar(walletSummary: WalletSummaryAggregate?, onShowWallets: () -> Unit, onSearch: () -> Unit, onScan: () -> Unit) {
     val walletIcon = walletImageModel(LocalContext.current, walletSummary?.walletRow?.imageUrl)
         ?: walletSummary?.walletRow?.placeholder?.iconModel()
 
@@ -69,7 +64,7 @@ internal fun AssetsTopBar(
         navigationIcon = {
             IconButton(
                 onClick = onScan,
-                Modifier.testTag(ScanActionTag)
+                Modifier.testTag(ScanActionTag),
             ) {
                 Icon(
                     imageVector = AppIcons.QrCodeScanner,
@@ -81,7 +76,7 @@ internal fun AssetsTopBar(
         actions = {
             IconButton(
                 onClick = onSearch,
-                Modifier.testTag(ManageActionTag)
+                Modifier.testTag(ManageActionTag),
             ) {
                 Icon(
                     imageVector = AppIcons.Search,
@@ -89,6 +84,6 @@ internal fun AssetsTopBar(
                     contentDescription = "asset_select",
                 )
             }
-        }
+        },
     )
 }

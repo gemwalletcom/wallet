@@ -6,18 +6,14 @@ use primitives::AssetId as PrimitiveAssetId;
 use primitives::FiatRateProvider as PrimitiveFiatRateProvider;
 use primitives::currency::Currency as PrimitiveCurrency;
 use primitives::nft::NFTType as PrimitiveNFTType;
-use primitives::rewards::{
-    RedemptionStatus as PrimitiveRedemptionStatus, RewardEventType as PrimitiveRewardEventType, RewardRedemptionType as PrimitiveRewardRedemptionType,
-    RewardStatus as PrimitiveRewardStatus,
-};
+use primitives::rewards::{RedemptionStatus as PrimitiveRedemptionStatus, RewardEventType as PrimitiveRewardEventType, RewardRedemptionType as PrimitiveRewardRedemptionType, RewardStatus as PrimitiveRewardStatus};
 use primitives::scan::AddressType as PrimitiveAddressType;
 use primitives::{
-    AssetAssociationType as PrimitiveAssetAssociationType, AssetType as PrimitiveAssetType, Chain, DeviceLocale as PrimitiveDeviceLocale,
-    FiatProviderName as PrimitiveFiatProviderName, FiatQuoteType as PrimitiveFiatQuoteType, FiatTransactionStatus as PrimitiveFiatTransactionStatus,
-    IpUsageType as PrimitiveIpUsageType, LinkType as PrimitiveLinkType, ListId as PrimitiveListId, NotificationType as PrimitiveNotificationType,
-    PerpetualProvider as PrimitivePerpetualProvider, Platform as PrimitivePlatform, PlatformStore as PrimitivePlatformStore, PriceAlertDirection as PrimitivePriceAlertDirection,
-    PriceId as PrimitivePriceId, PriceProvider as PrimitivePriceProvider, TagVisibility as PrimitiveTagVisibility, TransactionState as PrimitiveTransactionState,
-    TransactionType as PrimitiveTransactionType, UsernameStatus as PrimitiveUsernameStatus, WalletSource as PrimitiveWalletSource, WalletType as PrimitiveWalletType,
+    AssetAssociationType as PrimitiveAssetAssociationType, AssetType as PrimitiveAssetType, Chain, DeviceLocale as PrimitiveDeviceLocale, FiatProviderName as PrimitiveFiatProviderName, FiatQuoteType as PrimitiveFiatQuoteType,
+    FiatTransactionStatus as PrimitiveFiatTransactionStatus, IpUsageType as PrimitiveIpUsageType, LinkType as PrimitiveLinkType, ListId as PrimitiveListId, NotificationType as PrimitiveNotificationType,
+    PerpetualProvider as PrimitivePerpetualProvider, Platform as PrimitivePlatform, PlatformStore as PrimitivePlatformStore, PriceAlertDirection as PrimitivePriceAlertDirection, PriceId as PrimitivePriceId,
+    PriceProvider as PrimitivePriceProvider, TagVisibility as PrimitiveTagVisibility, TransactionState as PrimitiveTransactionState, TransactionType as PrimitiveTransactionType, UsernameStatus as PrimitiveUsernameStatus,
+    WalletSource as PrimitiveWalletSource, WalletType as PrimitiveWalletType,
 };
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -26,12 +22,10 @@ use std::ops::Deref;
 use std::str::FromStr;
 
 use crate::schema::sql_types::{
-    AddressType as AddressTypeSql, AssetAssociationType as AssetAssociationTypeSql, AssetType as AssetTypeSql, Currency as CurrencySql, DeviceLocale as DeviceLocaleSql,
-    FiatRateProvider as FiatRateProviderSql, FiatTransactionStatus as FiatTransactionStatusSql, FiatTransactionType as FiatTransactionTypeSql, IpUsageType as IpUsageTypeSql,
-    LinkType as LinkTypeSql, NftType as NftTypeSql, NotificationType as NotificationTypeSql, Platform as PlatformSql, PlatformStore as PlatformStoreSql,
-    RedemptionStatus as RedemptionStatusSql, RewardEventType as RewardEventTypeSql, RewardRedemptionType as RewardRedemptionTypeSql, RewardStatus as RewardStatusSql,
-    TagVisibility as TagVisibilitySql, TransactionState as TransactionStateSql, TransactionType as TransactionTypeSql, UsernameStatus as UsernameStatusSql,
-    WalletSource as WalletSourceSql, WalletType as WalletTypeSql,
+    AddressType as AddressTypeSql, AssetAssociationType as AssetAssociationTypeSql, AssetType as AssetTypeSql, Currency as CurrencySql, DeviceLocale as DeviceLocaleSql, FiatRateProvider as FiatRateProviderSql,
+    FiatTransactionStatus as FiatTransactionStatusSql, FiatTransactionType as FiatTransactionTypeSql, IpUsageType as IpUsageTypeSql, LinkType as LinkTypeSql, NftType as NftTypeSql, NotificationType as NotificationTypeSql,
+    Platform as PlatformSql, PlatformStore as PlatformStoreSql, RedemptionStatus as RedemptionStatusSql, RewardEventType as RewardEventTypeSql, RewardRedemptionType as RewardRedemptionTypeSql, RewardStatus as RewardStatusSql,
+    TagVisibility as TagVisibilitySql, TransactionState as TransactionStateSql, TransactionType as TransactionTypeSql, UsernameStatus as UsernameStatusSql, WalletSource as WalletSourceSql, WalletType as WalletTypeSql,
 };
 
 macro_rules! diesel_enum {
@@ -78,12 +72,7 @@ macro_rules! diesel_enum {
     };
 }
 
-diesel_enum!(
-    RewardStatus,
-    PrimitiveRewardStatus,
-    RewardStatusSql,
-    [Unverified, Pending, Verified, Trusted, Attribution, Disabled]
-);
+diesel_enum!(RewardStatus, PrimitiveRewardStatus, RewardStatusSql, [Unverified, Pending, Verified, Trusted, Attribution, Disabled]);
 
 diesel_enum!(RewardRedemptionType, PrimitiveRewardRedemptionType, RewardRedemptionTypeSql, [Asset, GiftAsset]);
 
@@ -117,59 +106,24 @@ diesel_enum!(
     LinkType,
     PrimitiveLinkType,
     LinkTypeSql,
-    [
-        X,
-        Discord,
-        Reddit,
-        Telegram,
-        GitHub,
-        YouTube,
-        Facebook,
-        Website,
-        Coingecko,
-        OpenSea,
-        Instagram,
-        MagicEden,
-        CoinMarketCap,
-        TikTok
-    ]
+    [X, Discord, Reddit, Telegram, GitHub, YouTube, Facebook, Website, Coingecko, OpenSea, Instagram, MagicEden, CoinMarketCap, TikTok]
 );
 
 diesel_enum!(NftType, PrimitiveNFTType, NftTypeSql, [ERC721, ERC1155, SPL, JETTON]);
 
 diesel_enum!(FiatTransactionType, PrimitiveFiatQuoteType, FiatTransactionTypeSql, [Buy, Sell]);
 
-diesel_enum!(
-    FiatTransactionStatusRow,
-    PrimitiveFiatTransactionStatus,
-    FiatTransactionStatusSql,
-    [Complete, Pending, Failed, Unknown]
-);
+diesel_enum!(FiatTransactionStatusRow, PrimitiveFiatTransactionStatus, FiatTransactionStatusSql, [Complete, Pending, Failed, Unknown]);
 
-diesel_enum!(
-    AssetType,
-    PrimitiveAssetType,
-    AssetTypeSql,
-    [NATIVE, ERC20, BEP20, SPL, SPL2022, TRC20, TIP20, TOKEN, IBC, JETTON, SYNTH, ASA, PERPETUAL, SPOT]
-);
+diesel_enum!(AssetType, PrimitiveAssetType, AssetTypeSql, [NATIVE, ERC20, BEP20, SPL, SPL2022, TRC20, TIP20, TOKEN, IBC, JETTON, SYNTH, ASA, PERPETUAL, SPOT]);
 
 diesel_enum!(AssetAssociationType, PrimitiveAssetAssociationType, AssetAssociationTypeSql, [Official, Bridged, Wrapped]);
 
 diesel_enum!(AddressType, PrimitiveAddressType, AddressTypeSql, [Address, Contract, Validator, InternalWallet]);
 
-diesel_enum!(
-    RewardEventType,
-    PrimitiveRewardEventType,
-    RewardEventTypeSql,
-    [CreateUsername, InvitePending, InviteNew, Joined, Enabled, Disabled]
-);
+diesel_enum!(RewardEventType, PrimitiveRewardEventType, RewardEventTypeSql, [CreateUsername, InvitePending, InviteNew, Joined, Enabled, Disabled]);
 
-diesel_enum!(
-    TransactionState,
-    PrimitiveTransactionState,
-    TransactionStateSql,
-    [Pending, Confirmed, InTransit, Failed, Reverted, Refunded]
-);
+diesel_enum!(TransactionState, PrimitiveTransactionState, TransactionStateSql, [Pending, Confirmed, InTransit, Failed, Reverted, Refunded]);
 
 diesel_enum!(UsernameStatus, PrimitiveUsernameStatus, UsernameStatusSql, [Unverified, Verified]);
 
@@ -182,17 +136,10 @@ diesel_enum!(
     DeviceLocale,
     PrimitiveDeviceLocale,
     DeviceLocaleSql,
-    [
-        AR, BN, CS, DA, DE, EN, ES, FA, FIL, FR, HA, HE, HI, ID, IT, JA, KO, MS, NL, PL, PtBR, RO, RU, SW, TH, TR, UK, UR, VI, ZhHans, ZhHant
-    ]
+    [AR, BN, CS, DA, DE, EN, ES, FA, FIL, FR, HA, HE, HI, ID, IT, JA, KO, MS, NL, PL, PtBR, RO, RU, SW, TH, TR, UK, UR, VI, ZhHans, ZhHant]
 );
 
-diesel_enum!(
-    PlatformStore,
-    PrimitivePlatformStore,
-    PlatformStoreSql,
-    [AppStore, GooglePlay, Fdroid, Huawei, SolanaStore, SamsungStore, ApkUniversal, Local]
-);
+diesel_enum!(PlatformStore, PrimitivePlatformStore, PlatformStoreSql, [AppStore, GooglePlay, Fdroid, Huawei, SolanaStore, SamsungStore, ApkUniversal, Local]);
 
 diesel_enum!(WalletType, PrimitiveWalletType, WalletTypeSql, [Multicoin, Single, PrivateKey, View]);
 
@@ -205,12 +152,7 @@ diesel_enum!(
     [ReferralJoined, RewardsEnabled, RewardsCodeDisabled, RewardsRedeemed, RewardsCreateUsername, RewardsInvite]
 );
 
-diesel_enum!(
-    IpUsageType,
-    PrimitiveIpUsageType,
-    IpUsageTypeSql,
-    [DataCenter, Hosting, Isp, Mobile, Business, Education, Government, Unknown]
-);
+diesel_enum!(IpUsageType, PrimitiveIpUsageType, IpUsageTypeSql, [DataCenter, Hosting, Isp, Mobile, Business, Education, Government, Unknown]);
 
 diesel_enum!(TagVisibility, PrimitiveTagVisibility, TagVisibilitySql, [Public, Internal]);
 

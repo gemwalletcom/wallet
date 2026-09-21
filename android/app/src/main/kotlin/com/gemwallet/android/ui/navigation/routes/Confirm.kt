@@ -32,10 +32,7 @@ data class PaymentVerificationRoute(val url: String, val link: @Contextual Payme
 
 fun EntryProviderScope<NavKey>.confirm(
     navigator: WalletNavigator,
-    finishAction: FinishConfirmAction,
-    onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit,
-    cancelAction: CancelAction,
-) {
+    finishAction: FinishConfirmAction, onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit, cancelAction: CancelAction) {
     entry<ConfirmRoute>(
         metadata = { key -> routeArguments(paramsArgument(key.params)) },
     ) { key ->

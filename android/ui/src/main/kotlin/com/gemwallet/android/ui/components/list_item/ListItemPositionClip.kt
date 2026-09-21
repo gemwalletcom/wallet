@@ -11,10 +11,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.adaptivePadding
-import com.gemwallet.android.ui.theme.paddingSmall
-
-import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.padding16
+import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space1
 import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.space8
@@ -51,12 +50,7 @@ private fun ListPosition.shape() = when (this) {
 }
 
 @Composable
-fun Modifier.listItem(
-    position: ListPosition = ListPosition.Single,
-    background: Color = MaterialTheme.colorScheme.background,
-    paddingVertical: Dp? = null,
-    paddingHorizontal: Dp? = null,
-): Modifier {
+fun Modifier.listItem(position: ListPosition = ListPosition.Single, background: Color = MaterialTheme.colorScheme.background, paddingVertical: Dp? = null, paddingHorizontal: Dp? = null): Modifier {
     val positionedModifier = this
         .padding(top = position.topPadding(paddingVertical), bottom = position.bottomPadding(paddingVertical))
         .let { modifier -> position.shape()?.let(modifier::clip) ?: modifier }

@@ -88,10 +88,7 @@ impl TransactionsRepository for DatabaseClient {
     }
 
     fn get_asset_usage_counts(&mut self, since: NaiveDateTime) -> Result<Vec<(AssetId, i64)>, DatabaseError> {
-        Ok(TransactionsStore::get_asset_usage_counts(self, since)?
-            .into_iter()
-            .map(|(asset_id, count)| (asset_id.into(), count))
-            .collect())
+        Ok(TransactionsStore::get_asset_usage_counts(self, since)?.into_iter().map(|(asset_id, count)| (asset_id.into(), count)).collect())
     }
 
     fn get_transactions_by_filter(&mut self, filters: Vec<TransactionFilter>, limit: i64) -> Result<Vec<TransactionRow>, DatabaseError> {

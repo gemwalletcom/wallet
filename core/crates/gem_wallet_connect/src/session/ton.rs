@@ -35,10 +35,7 @@ mod tests {
 
     #[test]
     fn test_config_session_properties_ton() {
-        let properties = HashMap::from([
-            (GET_PUBLIC_KEY_PROPERTY.to_string(), "invalid".to_string()),
-            (GET_STATE_INIT_PROPERTY.to_string(), "invalid".to_string()),
-        ]);
+        let properties = HashMap::from([(GET_PUBLIC_KEY_PROPERTY.to_string(), "invalid".to_string()), (GET_STATE_INIT_PROPERTY.to_string(), "invalid".to_string())]);
         let result = config_session_properties(properties, &[Chain::Ton], &[mock_ton_account()]);
         assert_eq!(result.get(GET_PUBLIC_KEY_PROPERTY).unwrap(), TEST_TON_PUBLIC_KEY);
 

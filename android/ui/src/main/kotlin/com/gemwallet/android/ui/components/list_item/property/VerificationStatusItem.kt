@@ -27,10 +27,7 @@ import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.VerificationStatus
 
-fun LazyListScope.verificationStatusItem(
-    status: VerificationStatus,
-    listPosition: ListPosition = ListPosition.Single,
-) {
+fun LazyListScope.verificationStatusItem(status: VerificationStatus, listPosition: ListPosition = ListPosition.Single) {
     if (status == VerificationStatus.Verified) {
         return
     }
@@ -40,10 +37,7 @@ fun LazyListScope.verificationStatusItem(
 }
 
 @Composable
-private fun VerificationStatusItem(
-    status: VerificationStatus,
-    listPosition: ListPosition,
-) {
+private fun VerificationStatusItem(status: VerificationStatus, listPosition: ListPosition) {
     val display = status.display() ?: return
     var showInfoSheet by remember { mutableStateOf(false) }
 
@@ -84,19 +78,17 @@ private fun VerificationBadgeIcon(@DrawableRes icon: Int) {
     }
 }
 
-private class VerificationStatusDisplay(
-    @param:StringRes val labelRes: Int,
-    @param:DrawableRes val badgeIconRes: Int,
-    val infoSheetEntity: InfoSheetEntity,
-)
+private class VerificationStatusDisplay(@param:StringRes val labelRes: Int, @param:DrawableRes val badgeIconRes: Int, val infoSheetEntity: InfoSheetEntity)
 
 private fun VerificationStatus.display(): VerificationStatusDisplay? = when (this) {
     VerificationStatus.Verified -> null
+
     VerificationStatus.Unverified -> VerificationStatusDisplay(
         labelRes = R.string.asset_verification_unverified,
         badgeIconRes = R.drawable.unverified,
         infoSheetEntity = InfoSheetEntity.AssetStatusUnverifiedInfo,
     )
+
     VerificationStatus.Suspicious -> VerificationStatusDisplay(
         labelRes = R.string.asset_verification_suspicious,
         badgeIconRes = R.drawable.suspicious,

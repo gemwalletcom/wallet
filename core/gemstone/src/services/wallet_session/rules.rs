@@ -28,15 +28,9 @@ mod tests {
         };
         let wallets = rewards_wallets(vec![Wallet::mock_with_type(WalletType::Single, &[]), other.clone(), current.clone()]);
 
-        assert_eq!(
-            wallets.iter().map(|wallet| wallet.id.clone()).collect::<Vec<_>>(),
-            vec![other.id.clone(), current.id.clone()]
-        );
+        assert_eq!(wallets.iter().map(|wallet| wallet.id.clone()).collect::<Vec<_>>(), vec![other.id.clone(), current.id.clone()]);
         assert_eq!(rewards_wallet(Some(current.clone()), &wallets).map(|wallet| wallet.id), Some(current.id));
-        assert_eq!(
-            rewards_wallet(Some(Wallet::mock_with_type(WalletType::Single, &[])), &wallets).map(|wallet| wallet.id),
-            Some(other.id)
-        );
+        assert_eq!(rewards_wallet(Some(Wallet::mock_with_type(WalletType::Single, &[])), &wallets).map(|wallet| wallet.id), Some(other.id));
         assert!(rewards_wallet(None, &[]).is_none());
     }
 
@@ -44,9 +38,6 @@ mod tests {
     fn test_rewards_need_a_multicoin_wallet_but_stay_visible_before_wallets_load() {
         assert!(shows_rewards(&[]));
         assert!(!shows_rewards(&[Wallet::mock_with_type(WalletType::Single, &[])]));
-        assert!(shows_rewards(&[
-            Wallet::mock_with_type(WalletType::Single, &[]),
-            Wallet::mock_with_type(WalletType::Multicoin, &[])
-        ]));
+        assert!(shows_rewards(&[Wallet::mock_with_type(WalletType::Single, &[]), Wallet::mock_with_type(WalletType::Multicoin, &[])]));
     }
 }

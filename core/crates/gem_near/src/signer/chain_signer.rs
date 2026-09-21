@@ -57,12 +57,7 @@ mod tests {
     #[test]
     fn test_sign_near_token_transfer_with_registration() {
         let private_key = bs58::decode(PRIVATE_KEY).into_vec().unwrap();
-        let fee = TransactionFee::new_from_fee_with_option(
-            0.into(),
-            FeeOption::TokenAccountCreation,
-            1_250_000_000_000_000_000_000u128.into(),
-            AssetId::from_chain(Chain::Near),
-        );
+        let fee = TransactionFee::new_from_fee_with_option(0.into(), FeeOption::TokenAccountCreation, 1_250_000_000_000_000_000_000u128.into(), AssetId::from_chain(Chain::Near));
         let input = SignerInput::mock_near_token_transfer(None, fee);
 
         let signed = NearChainSigner.sign_token_transfer(&input, &private_key[..32]).unwrap();

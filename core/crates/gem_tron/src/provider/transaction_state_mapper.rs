@@ -51,17 +51,10 @@ mod tests {
         assert_eq!(result.state, TransactionState::Reverted);
         assert_eq!(result.changes, vec![TransactionChange::NetworkFee(BigInt::from(854700))]);
 
-        for (result, receipt_result) in [
-            (Some(RECEIPT_FAILED), None),
-            (None, Some(RECEIPT_REVERT)),
-            (None, Some(RECEIPT_OUT_OF_ENERGY)),
-            (None, Some(RECEIPT_FAILED)),
-        ] {
+        for (result, receipt_result) in [(Some(RECEIPT_FAILED), None), (None, Some(RECEIPT_REVERT)), (None, Some(RECEIPT_OUT_OF_ENERGY)), (None, Some(RECEIPT_FAILED))] {
             let receipt = TransactionReceiptData {
                 result: result.map(str::to_string),
-                receipt: TransactionReceipt {
-                    result: receipt_result.map(str::to_string),
-                },
+                receipt: TransactionReceipt { result: receipt_result.map(str::to_string) },
                 fee: Some(100),
                 block_number: 10,
                 ..TransactionReceiptData::mock_with_result("SUCCESS")

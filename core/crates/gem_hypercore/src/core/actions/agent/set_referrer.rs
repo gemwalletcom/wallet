@@ -11,9 +11,6 @@ pub struct SetReferrer {
 
 impl SetReferrer {
     pub fn new(code: String) -> Self {
-        Self {
-            r#type: "setReferrer".to_string(),
-            code,
-        }
+        Self { r#type: "setReferrer".to_string(), code }
     }
 }

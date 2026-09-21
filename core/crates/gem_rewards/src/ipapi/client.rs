@@ -30,13 +30,7 @@ impl IpCheckProvider for IpApiClient {
     }
 
     async fn check_ip(&self, ip_address: &str) -> Result<IpCheckResult, Box<dyn Error + Send + Sync>> {
-        let response: IpApiResponse = self
-            .client
-            .get(IpApiTarget::Check {
-                ip_address: ip_address.to_string(),
-            })
-            .query(&[("key", self.api_key.as_str())])
-            .await?;
+        let response: IpApiResponse = self.client.get(IpApiTarget::Check { ip_address: ip_address.to_string() }).query(&[("key", self.api_key.as_str())]).await?;
 
         Ok(response.as_ip_check_result())
     }

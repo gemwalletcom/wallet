@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = Ba a goyan bayan kadari.
 errors_connections_no_supported_wallets = Babu goyan bayan walat.
 errors_connections_unsupported_chain = Ba a tallafawa sarkar da aka bayar.
 errors_swap_amount_too_small = Adadin yayi ƙanƙanta
-errors_required = %@ ana bukata
 errors_scan_transaction_malicious_description = Ba za a iya kammala wannan ma'amala ba - adireshin walat ɗin da ake nufi yana da alaƙa da ayyuka masu ban tsoro ko cutarwa.
 errors_scan_transaction_memo_required = %@ Adireshin walat ɗin manufa yana buƙatar alamar manufa / memo
 errors_scan_transaction_malicious_title = Ayyukan tuhuma
@@ -315,7 +314,7 @@ asset_symbol = Alama
 asset_decimals = Decimals
 asset_token_id = ID na Alamar
 asset_contract = Kwangila
-asset_state_empty_title = Ma'amalolinku za su bayyana a nan️
+asset_state_empty_title = Ma'amalolinku za su bayyana a nan
 asset_state_empty_description = Karɓa, musanya ko siya %@
 asset_verification_unverified = Ba a tantance ba
 asset_verification_suspicious = Abin tuhuma
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = Lokacin da farashin ya ragu da
 price_alerts_set_alert_set_target_price = Saita farashin manufa
 price_alerts_set_alert_current_price = Farashin yanzu
 price_alerts_added_for = Saita faɗakarwar farashi %@
-price_alerts_state_empty_title = Faɗin farashin ku zai bayyana anan️
+price_alerts_state_empty_title = Faɗin farashin ku zai bayyana anan
 price_alerts_state_empty_description = Kunna su ta ƙara tsabar kudi don waƙa
 price_alerts_auto_footer = Faɗakarwa yana haifar da ƙaƙƙarfan motsin farashi.
 price_alerts_set_alert_title = Saita Faɗakarwar Farashi
@@ -536,7 +535,7 @@ verify_phrase_title = Tabbatar
 
 # Warnings
 
-warnings_multi_signature_blocked = Kar a tura kuɗi zuwa wannan %@ Wallet ɗin Sa hannu da yawa sai dai idan kun tabbata kuna sarrafa maɓallan sirri. Rashin yin hakan na iya fallasa ku ga zamba, kuma kuna iya rasa kadarorin ku na dindindin.
+warnings_externally_controlled_account = Wani na iya sarrafa wannan asusun %@. Kada ku tura kuɗi zuwa gare shi sai dai idan kun tabbata kuna sarrafa shi, in ba haka ba kuna iya rasa kadarorin ku na dindindin.
 
 # Sell
 
@@ -600,7 +599,7 @@ nft_collections = Tari
 nft_collection = Tarin
 nft_save_to_photos = Ajiye zuwa Hotuna
 nft_set_as_avatar = Saita azaman Avatar
-nft_state_empty_title = NFT naku zasu bayyana anan️
+nft_state_empty_title = NFT naku zasu bayyana anan
 nft_state_empty_description = Karɓi NFT na farko
 nft_report_reason_spam = Spam
 nft_report_reason_malicious = Mai mugunta

@@ -23,32 +23,25 @@ impl PoolDiscovery {
         pairs
             .iter()
             .flat_map(|(token_in, token_out)| {
-                self.cache
-                    .missing_probes((chain, *token_in), (chain, *token_out), fee_tiers)
-                    .into_iter()
-                    .map(|fee_tier| TokenPair {
-                        token_in: *token_in,
-                        token_out: *token_out,
-                        fee_tier,
-                    })
+                self.cache.missing_probes((chain, *token_in), (chain, *token_out), fee_tiers).into_iter().map(|fee_tier| TokenPair {
+                    token_in: *token_in,
+                    token_out: *token_out,
+                    fee_tier,
+                })
             })
             .collect()
     }
 
     pub(super) fn record_pools(&self, chain: Chain, discovered: &[(TokenPair, bool)]) {
         discovered.iter().for_each(|(pair, exists)| {
-            self.cache
-                .record_discovery((chain, pair.token_in), (chain, pair.token_out), [(pair.fee_tier, exists.then_some(pair.fee_tier))]);
+            self.cache.record_discovery((chain, pair.token_in), (chain, pair.token_out), [(pair.fee_tier, exists.then_some(pair.fee_tier))]);
         });
     }
 
     pub(super) fn path_may_exist(&self, chain: Chain, pairs: &[TokenPair]) -> bool {
         pairs.iter().all(|pair| {
             let probes = std::slice::from_ref(&pair.fee_tier);
-            let exists = self
-                .cache
-                .candidates_for_probes((chain, pair.token_in), (chain, pair.token_out), probes)
-                .contains(&pair.fee_tier);
+            let exists = self.cache.candidates_for_probes((chain, pair.token_in), (chain, pair.token_out), probes).contains(&pair.fee_tier);
             exists || !self.cache.missing_probes((chain, pair.token_in), (chain, pair.token_out), probes).is_empty()
         })
     }
@@ -163,10 +156,7 @@ mod tests {
         ];
         let slot = (U256::from(1), 0i32, 0u32, 0u32).abi_encode();
         let responses = vec![
-            JsonRpcResult::Value(JsonRpcResponse {
-                id: Some(1),
-                result: encode_with_0x(&slot),
-            }),
+            JsonRpcResult::Value(JsonRpcResponse { id: Some(1), result: encode_with_0x(&slot) }),
             JsonRpcResult::Error(JsonRpcErrorResponse {
                 id: Some(2),
                 error: JsonRpcError {
@@ -183,10 +173,7 @@ mod tests {
         discovery.record_pools(Chain::Ethereum, &discovered);
 
         assert_eq!(discovered, vec![(pools[0].0.clone(), true)]);
-        assert_eq!(
-            discovery.missing_pools(Chain::Ethereum, &[(pools[0].0.token_in, pools[0].0.token_out)], std::slice::from_ref(&pools[0].0.fee_tier)),
-            vec![]
-        );
+        assert_eq!(discovery.missing_pools(Chain::Ethereum, &[(pools[0].0.token_in, pools[0].0.token_out)], std::slice::from_ref(&pools[0].0.fee_tier)), vec![]);
         assert_eq!(
             discovery.missing_pools(Chain::Ethereum, &[(pools[1].0.token_in, pools[1].0.token_out)], std::slice::from_ref(&pools[1].0.fee_tier)),
             vec![pools[1].0.clone()]

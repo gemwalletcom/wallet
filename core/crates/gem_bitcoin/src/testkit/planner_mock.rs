@@ -54,7 +54,7 @@ pub(crate) fn op_return_script(bytes: usize) -> ScriptBuf {
 }
 
 pub(crate) fn sum_inputs(inputs: &[PlanInput]) -> Result<u64, SignerError> {
-    inputs.iter().try_fold(0u64, |sum, input| {
-        sum.checked_add(input.value.to_sat()).ok_or_else(|| SignerError::invalid_input("Bitcoin amount overflow"))
-    })
+    inputs
+        .iter()
+        .try_fold(0u64, |sum, input| sum.checked_add(input.value.to_sat()).ok_or_else(|| SignerError::invalid_input("Bitcoin amount overflow")))
 }

@@ -14,15 +14,7 @@ pub struct PrefetchedTransactionData {
 }
 
 impl PrefetchedTransactionData {
-    pub async fn prefetch(
-        client: &SuiClient,
-        sender: &str,
-        input_coin_type: &str,
-        output_coin_type: Option<&str>,
-        object_ids: Vec<String>,
-        pinned: &HashMap<String, u64>,
-        gas_budget: u64,
-    ) -> Result<Self, SuiError> {
+    pub async fn prefetch(client: &SuiClient, sender: &str, input_coin_type: &str, output_coin_type: Option<&str>, object_ids: Vec<String>, pinned: &HashMap<String, u64>, gas_budget: u64) -> Result<Self, SuiError> {
         let output_coins_fut = async {
             match output_coin_type {
                 Some(coin_type) => get_user_coins(client, sender, coin_type).await,

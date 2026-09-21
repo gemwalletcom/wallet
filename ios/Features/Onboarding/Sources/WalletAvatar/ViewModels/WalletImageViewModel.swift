@@ -1,8 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemWalletServiceProtocol
 import Components
 import Foundation
+import protocol Gemstone.GemWalletServiceProtocol
+import func Gemstone.nftRows
 import func Gemstone.walletAvatarEmojis
 import func Gemstone.walletRow
 import Localization
@@ -73,21 +74,19 @@ public final class WalletImageViewModel: Sendable {
         walletRow(wallet: wallet.toGem()).avatarImage
     }
 
-    func buildNftAssetsItems(from list: [NFTData]) -> [NFTAssetImageItem] {
-        list
-            .map(\.assets)
-            .reduce([], +)
-            .map {
-                NFTAssetImageItem(
-                    id: $0.id.identifier,
-                    assetImage: AssetImage(
-                        type: .text($0.name),
-                        imageURL: $0.images.preview.url.asURL,
-                        placeholder: nil,
-                        chainPlaceholder: nil,
-                    ),
-                )
-            }
+    var nftAssetItems: [NFTAssetImageItem] {
+        let items = service.avatarItems(data: nftDataList.map { $0.toGem() })
+        return zip(items, nftRows(items: items)).map { _, row in
+            NFTAssetImageItem(
+                id: row.id,
+                assetImage: AssetImage(
+                    type: .text(row.title),
+                    imageURL: row.imageUrl.asURL,
+                    placeholder: nil,
+                    chainPlaceholder: nil,
+                ),
+            )
+        }
     }
 
     var nftColumns: [GridItem] {

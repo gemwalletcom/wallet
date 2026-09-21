@@ -24,15 +24,10 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_head.AmountHeadAction
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.paddingDefault
+import uniffi.gemstone.GemCollectibleAction
 
 @Composable
-fun NftHeaderActions(
-    canSend: Boolean,
-    onSend: () -> Unit,
-    onRefresh: () -> Unit,
-    onSetAsAvatar: () -> Unit,
-    onReport: () -> Unit,
-) {
+fun NftHeaderActions(canSend: Boolean, actions: List<GemCollectibleAction>, onSend: () -> Unit, onRefresh: () -> Unit, onSetAsAvatar: () -> Unit, onReport: () -> Unit) {
     var actionFontSize by remember { mutableStateOf(16.sp) }
     var isMenuExpanded by remember { mutableStateOf(false) }
     val send = stringResource(R.string.wallet_send)
@@ -71,30 +66,38 @@ fun NftHeaderActions(
                 expanded = isMenuExpanded,
                 onDismissRequest = { isMenuExpanded = false },
             ) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.common_refresh)) },
-                    leadingIcon = { Icon(AppIcons.Refresh, contentDescription = null) },
-                    onClick = {
-                        isMenuExpanded = false
-                        onRefresh()
-                    },
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.nft_set_as_avatar)) },
-                    leadingIcon = { Icon(AppIcons.Wallet, contentDescription = null) },
-                    onClick = {
-                        isMenuExpanded = false
-                        onSetAsAvatar()
-                    },
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.nft_report_report_button_title), color = MaterialTheme.colorScheme.error) },
-                    leadingIcon = { Icon(AppIcons.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
-                    onClick = {
-                        isMenuExpanded = false
-                        onReport()
-                    },
-                )
+                actions.forEach { action ->
+                    when (action) {
+                        GemCollectibleAction.REFRESH -> DropdownMenuItem(
+                            text = { Text(stringResource(R.string.common_refresh)) },
+                            leadingIcon = { Icon(AppIcons.Refresh, contentDescription = null) },
+                            onClick = {
+                                isMenuExpanded = false
+                                onRefresh()
+                            },
+                        )
+
+                        GemCollectibleAction.SET_AVATAR -> DropdownMenuItem(
+                            text = { Text(stringResource(R.string.nft_set_as_avatar)) },
+                            leadingIcon = { Icon(AppIcons.Wallet, contentDescription = null) },
+                            onClick = {
+                                isMenuExpanded = false
+                                onSetAsAvatar()
+                            },
+                        )
+
+                        GemCollectibleAction.REPORT -> DropdownMenuItem(
+                            text = { Text(stringResource(R.string.nft_report_report_button_title), color = MaterialTheme.colorScheme.error) },
+                            leadingIcon = { Icon(AppIcons.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                            onClick = {
+                                isMenuExpanded = false
+                                onReport()
+                            },
+                        )
+
+                        GemCollectibleAction.SAVE_IMAGE -> Unit
+                    }
+                }
             }
         }
     }

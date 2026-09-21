@@ -111,14 +111,7 @@ impl GemStreamSubscriptionService {
         if !self.connection.is_connected().await {
             return Ok(());
         }
-        let alert_asset_ids = self
-            .alerts
-            .get_price_alerts(None)
-            .await?
-            .into_iter()
-            .map(|alert| alert.asset_id)
-            .chain(state.requested.iter().cloned())
-            .collect();
+        let alert_asset_ids = self.alerts.get_price_alerts(None).await?.into_iter().map(|alert| alert.asset_id).chain(state.requested.iter().cloned()).collect();
         let enabled_asset_ids = match &state.wallet_id {
             Some(wallet_id) => self.balances.get_enabled_asset_ids(wallet_id.clone()).await?,
             None => vec![],
@@ -162,15 +155,15 @@ mod tests {
         block_on(async {
             let kit = SubscriptionTestkit::new(&[Chain::Bitcoin], &[]);
             let second_wallet = WalletId::Multicoin("0x2".into());
-            kit.balances.set_assets_enabled(second_wallet.clone(), asset_ids(&[Chain::Ethereum]), true).await.unwrap();
+            kit.balances
+                .set_asset_configuration(second_wallet.clone(), asset_ids(&[Chain::Ethereum]), crate::services::balance::rules::enabled_configuration(true))
+                .await
+                .unwrap();
 
             kit.service.prepare_session(Some(kit.wallet_id.clone())).await.unwrap();
             kit.service.prepare_session(Some(second_wallet)).await.unwrap();
 
-            assert_eq!(
-                kit.connection.messages(),
-                vec![("subscribe", asset_ids(&[Chain::Bitcoin])), ("subscribe", asset_ids(&[Chain::Ethereum]))]
-            );
+            assert_eq!(kit.connection.messages(), vec![("subscribe", asset_ids(&[Chain::Bitcoin])), ("subscribe", asset_ids(&[Chain::Ethereum]))]);
         });
     }
 
@@ -228,11 +221,7 @@ mod tests {
 
             assert_eq!(
                 kit.connection.messages(),
-                vec![
-                    ("subscribe", asset_ids(&[Chain::Bitcoin])),
-                    ("add", asset_ids(&[Chain::Solana])),
-                    ("subscribe", asset_ids(&[Chain::Bitcoin, Chain::Solana])),
-                ]
+                vec![("subscribe", asset_ids(&[Chain::Bitcoin])), ("add", asset_ids(&[Chain::Solana])), ("subscribe", asset_ids(&[Chain::Bitcoin, Chain::Solana])),]
             );
         });
     }
@@ -257,11 +246,7 @@ mod tests {
             kit.service.resubscribe().await.unwrap();
             assert_eq!(
                 kit.connection.messages(),
-                vec![
-                    ("subscribe", asset_ids(&[Chain::Ethereum])),
-                    ("subscribe", asset_ids(&[Chain::Bitcoin, Chain::Ethereum])),
-                    ("add", asset_ids(&[Chain::Solana])),
-                ]
+                vec![("subscribe", asset_ids(&[Chain::Ethereum])), ("subscribe", asset_ids(&[Chain::Bitcoin, Chain::Ethereum])), ("add", asset_ids(&[Chain::Solana])),]
             );
         });
     }
@@ -273,7 +258,10 @@ mod tests {
             kit.connection.connected.store(false, Ordering::SeqCst);
             kit.service.add_prices(asset_ids(&[Chain::Solana])).await.unwrap();
             kit.service.setup_assets(kit.wallet_id.clone()).await.unwrap();
-            kit.balances.set_assets_enabled(kit.wallet_id, asset_ids(&[Chain::Ethereum]), true).await.unwrap();
+            kit.balances
+                .set_asset_configuration(kit.wallet_id, asset_ids(&[Chain::Ethereum]), crate::services::balance::rules::enabled_configuration(true))
+                .await
+                .unwrap();
             kit.service.add_prices(asset_ids(&[Chain::Ethereum])).await.unwrap();
             assert_eq!(kit.connection.messages(), vec![]);
 
@@ -282,10 +270,7 @@ mod tests {
             kit.service.resubscribe().await.unwrap();
             kit.service.reset().await;
             kit.service.add_prices(asset_ids(&[Chain::Solana])).await.unwrap();
-            assert_eq!(
-                kit.connection.messages(),
-                vec![("subscribe", asset_ids(&[Chain::Bitcoin, Chain::Ethereum, Chain::Solana])); 2]
-            );
+            assert_eq!(kit.connection.messages(), vec![("subscribe", asset_ids(&[Chain::Bitcoin, Chain::Ethereum, Chain::Solana])); 2]);
         });
     }
 
@@ -303,10 +288,7 @@ mod tests {
             kit.service.resubscribe().await.unwrap();
             assert_eq!(
                 kit.connection.messages(),
-                vec![
-                    ("subscribe", asset_ids(&[Chain::Bitcoin, Chain::Ethereum])),
-                    ("add", asset_ids(&[Chain::Solana, Chain::Tron])),
-                ]
+                vec![("subscribe", asset_ids(&[Chain::Bitcoin, Chain::Ethereum])), ("add", asset_ids(&[Chain::Solana, Chain::Tron])),]
             );
         });
     }
@@ -316,7 +298,10 @@ mod tests {
         block_on(async {
             let kit = SubscriptionTestkit::new(&[Chain::Bitcoin], &[Chain::Tron]);
             let second_wallet = WalletId::Multicoin("0x2".into());
-            kit.balances.set_assets_enabled(second_wallet.clone(), asset_ids(&[Chain::Ethereum]), true).await.unwrap();
+            kit.balances
+                .set_asset_configuration(second_wallet.clone(), asset_ids(&[Chain::Ethereum]), crate::services::balance::rules::enabled_configuration(true))
+                .await
+                .unwrap();
             kit.service.setup_assets(kit.wallet_id.clone()).await.unwrap();
             kit.service.add_prices(asset_ids(&[Chain::Solana])).await.unwrap();
             kit.service.setup_assets(kit.wallet_id.clone()).await.unwrap();
@@ -341,9 +326,15 @@ mod tests {
             kit.service.setup_assets(kit.wallet_id.clone()).await.unwrap();
             kit.service.add_prices(asset_ids(&[Chain::Solana])).await.unwrap();
 
-            kit.balances.set_assets_enabled(kit.wallet_id.clone(), asset_ids(&[Chain::Ethereum]), true).await.unwrap();
+            kit.balances
+                .set_asset_configuration(kit.wallet_id.clone(), asset_ids(&[Chain::Ethereum]), crate::services::balance::rules::enabled_configuration(true))
+                .await
+                .unwrap();
             kit.service.resubscribe().await.unwrap();
-            kit.balances.set_assets_enabled(kit.wallet_id, asset_ids(&[Chain::Ethereum]), false).await.unwrap();
+            kit.balances
+                .set_asset_configuration(kit.wallet_id, asset_ids(&[Chain::Ethereum]), crate::services::balance::rules::enabled_configuration(false))
+                .await
+                .unwrap();
             kit.service.resubscribe().await.unwrap();
 
             assert_eq!(
@@ -371,10 +362,7 @@ mod tests {
             setup.await.unwrap();
             add.await.unwrap();
             kit.service.resubscribe().await.unwrap();
-            assert_eq!(
-                kit.connection.messages(),
-                vec![("subscribe", asset_ids(&[Chain::Bitcoin])), ("add", asset_ids(&[Chain::Ethereum]))]
-            );
+            assert_eq!(kit.connection.messages(), vec![("subscribe", asset_ids(&[Chain::Bitcoin])), ("add", asset_ids(&[Chain::Ethereum]))]);
         });
     }
 
@@ -408,7 +396,10 @@ mod tests {
         block_on(async {
             let kit = SubscriptionTestkit::new(&[Chain::Bitcoin], &[]);
             let second_wallet = WalletId::Multicoin("0x2".into());
-            kit.balances.set_assets_enabled(second_wallet.clone(), asset_ids(&[Chain::Ethereum]), true).await.unwrap();
+            kit.balances
+                .set_asset_configuration(second_wallet.clone(), asset_ids(&[Chain::Ethereum]), crate::services::balance::rules::enabled_configuration(true))
+                .await
+                .unwrap();
             let release = kit.connection.pause_next_send();
             let mut first = pin!(kit.service.setup_assets(kit.wallet_id));
             assert!(poll!(first.as_mut()).is_pending());
@@ -418,10 +409,7 @@ mod tests {
             first.await.unwrap();
             second.await.unwrap();
             kit.service.resubscribe().await.unwrap();
-            assert_eq!(
-                kit.connection.messages(),
-                vec![("subscribe", asset_ids(&[Chain::Bitcoin])), ("subscribe", asset_ids(&[Chain::Ethereum]))]
-            );
+            assert_eq!(kit.connection.messages(), vec![("subscribe", asset_ids(&[Chain::Bitcoin])), ("subscribe", asset_ids(&[Chain::Ethereum]))]);
         });
     }
 }

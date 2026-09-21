@@ -19,13 +19,7 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.mainActionHeight
 
 @Composable
-internal fun PerpetualModifyBottomSheet(
-    isVisible: Boolean,
-    title: String,
-    buttons: List<PerpetualButtonUIModel>,
-    onDismiss: () -> Unit,
-    onSelect: (PerpetualButtonAction) -> Unit,
-) {
+internal fun PerpetualModifyBottomSheet(isVisible: Boolean, title: String, buttons: List<PerpetualButtonUIModel>, onDismiss: () -> Unit, onSelect: (PerpetualButtonAction) -> Unit) {
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismiss,
@@ -49,11 +43,7 @@ internal fun PerpetualModifyBottomSheet(
 }
 
 @Composable
-private fun ModifyOption(
-    label: String,
-    onClick: () -> Unit,
-    color: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface,
-) {
+private fun ModifyOption(label: String, onClick: () -> Unit, color: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface) {
     Box(
         modifier = Modifier
             .fillMaxWidth()

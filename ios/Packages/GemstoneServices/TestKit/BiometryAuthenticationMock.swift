@@ -52,13 +52,17 @@ public final class BiometryAuthenticationMock: BiometryAuthenticatable, @uncheck
         if holdAuthentication {
             await withCheckedContinuation { holdContinuations.append($0) }
         }
-        if let authenticateError { throw authenticateError }
+        if let authenticateError {
+            throw authenticateError
+        }
     }
 
     @MainActor
     public func enableAuthentication(_ enable: Bool, context _: LAContext, reason _: String) async throws {
         enableCalls.append(enable)
-        if let enableError { throw enableError }
+        if let enableError {
+            throw enableError
+        }
         requiresAuthentication = enable
         if !enable {
             isPrivacyLockEnabled = false
@@ -68,13 +72,17 @@ public final class BiometryAuthenticationMock: BiometryAuthenticatable, @uncheck
 
     public func update(period: LockPeriod) throws {
         lockPeriodCalls.append(period)
-        if let lockPeriodError { throw lockPeriodError }
+        if let lockPeriodError {
+            throw lockPeriodError
+        }
         lockPeriod = period
     }
 
     public func togglePrivacyLock(enabled: Bool) throws {
         privacyLockCalls.append(enabled)
-        if let privacyLockError { throw privacyLockError }
+        if let privacyLockError {
+            throw privacyLockError
+        }
         isPrivacyLockEnabled = enabled
     }
 

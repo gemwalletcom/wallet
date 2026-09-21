@@ -42,12 +42,7 @@ fn request_headers(url: &Url) -> Result<HeaderMap, String> {
     match &url.headers {
         Some(headers) => headers
             .iter()
-            .map(|(name, value)| {
-                Ok((
-                    HeaderName::from_str(name).map_err(|error| error.to_string())?,
-                    HeaderValue::from_str(value).map_err(|error| error.to_string())?,
-                ))
-            })
+            .map(|(name, value)| Ok((HeaderName::from_str(name).map_err(|error| error.to_string())?, HeaderValue::from_str(value).map_err(|error| error.to_string())?)))
             .collect(),
         None => Ok(HeaderMap::new()),
     }

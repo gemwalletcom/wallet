@@ -88,7 +88,9 @@ fun DbPerpetualPosition.toDto(): PerpetualPosition {
             order_type = takeProfitType,
             order_id = takeProfitOrderId,
         )
-    } else null
+    } else {
+        null
+    }
 
     val stopLossTrigger = if (stopLossType != null && stopLossPrice != null && stopLossOrderId != null) {
         PerpetualTriggerOrder(
@@ -96,7 +98,9 @@ fun DbPerpetualPosition.toDto(): PerpetualPosition {
             order_type = stopLossType,
             order_id = stopLossOrderId,
         )
-    } else null
+    } else {
+        null
+    }
 
     return PerpetualPosition(
         id = id,

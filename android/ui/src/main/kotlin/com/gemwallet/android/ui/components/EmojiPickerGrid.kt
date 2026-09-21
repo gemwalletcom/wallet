@@ -20,12 +20,7 @@ import com.gemwallet.android.ui.theme.paddingSmall
 private const val EMOJI_COLUMNS = 4
 
 @Composable
-fun EmojiPickerGrid(
-    emojis: List<String>,
-    onSelect: (String) -> Unit,
-    background: Color,
-    modifier: Modifier = Modifier,
-) {
+fun EmojiPickerGrid(emojis: List<String>, onSelect: (String) -> Unit, background: Color, modifier: Modifier = Modifier) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(EMOJI_COLUMNS),
         modifier = modifier.fillMaxSize(),

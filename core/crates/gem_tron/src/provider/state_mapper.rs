@@ -18,10 +18,7 @@ mod tests {
 
     #[test]
     fn test_map_chain_id_takes_the_last_four_bytes_of_the_genesis_block() {
-        assert_eq!(
-            map_chain_id("00000000000000001ebf88508a03865c71d452e25f4d51194196a1d22b6653dc").unwrap(),
-            Chain::Tron.network_id()
-        );
+        assert_eq!(map_chain_id("00000000000000001ebf88508a03865c71d452e25f4d51194196a1d22b6653dc").unwrap(), Chain::Tron.network_id());
         assert!(map_chain_id("6653dc").is_err());
         assert!(map_chain_id("not-hex").is_err());
     }

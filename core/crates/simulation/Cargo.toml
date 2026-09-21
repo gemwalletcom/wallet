@@ -22,6 +22,5 @@ alloy-primitives = { workspace = true }
 gem_evm = { path = "../gem_evm", features = ["testkit"] }
 primitives = { path = "../primitives", features = ["testkit"] }
 gem_client = { path = "../gem_client", features = ["testkit"] }
-gem_jsonrpc = { path = "../gem_jsonrpc", features = ["testkit"] }
 serde_json = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

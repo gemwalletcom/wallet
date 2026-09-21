@@ -21,18 +21,7 @@ pub struct FiatQuote {
 }
 
 impl FiatQuote {
-    pub fn new(
-        id: String,
-        asset: Asset,
-        provider: FiatProvider,
-        quote_type: FiatQuoteType,
-        fiat_amount: f64,
-        fiat_currency: String,
-        crypto_amount: f64,
-        value: BigUint,
-        latency: u64,
-        payment_methods: Vec<PaymentType>,
-    ) -> Self {
+    pub fn new(id: String, asset: Asset, provider: FiatProvider, quote_type: FiatQuoteType, fiat_amount: f64, fiat_currency: String, crypto_amount: f64, value: BigUint, latency: u64, payment_methods: Vec<PaymentType>) -> Self {
         Self {
             id,
             asset,

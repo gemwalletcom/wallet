@@ -18,11 +18,7 @@ import com.wallet.core.primitives.SupportMessageSender
 import com.wallet.core.primitives.SupportMessageStatus
 
 @Composable
-internal fun SupportMessageGroup(
-    group: SupportChatGroup,
-    onImageClick: (String) -> Unit,
-    onRetry: (SupportMessage) -> Unit,
-) {
+internal fun SupportMessageGroup(group: SupportChatGroup, onImageClick: (String) -> Unit, onRetry: (SupportMessage) -> Unit) {
     when (group.sender) {
         SupportMessageSender.User -> Column(
             modifier = Modifier.fillMaxWidth(),
@@ -45,6 +41,7 @@ internal fun SupportMessageGroup(
                 }
             }
         }
+
         is SupportMessageSender.Agent -> Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.Start,

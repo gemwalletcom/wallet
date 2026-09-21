@@ -139,10 +139,7 @@ impl ToJsonRpcRequest for EthereumRpc {
             Self::GetBalance { address, block } | Self::GetCode { address, block } | Self::GetTransactionCount { address, block } => {
                 json!([address, Value::from(block)])
             }
-            Self::GetBlockByNumber {
-                number: block_number,
-                include_transactions,
-            } => json!([format!("0x{block_number:x}"), include_transactions]),
+            Self::GetBlockByNumber { number: block_number, include_transactions } => json!([format!("0x{block_number:x}"), include_transactions]),
             Self::GetBlockReceipts { number } => json!([format!("0x{number:x}")]),
             Self::GetTransactionByHash { hash } | Self::GetTransactionReceipt { hash } | Self::SendRawTransaction { data: hash } => json!([hash]),
             Self::TraceCall { transaction, block } => json!([transaction, ["trace", "stateDiff"], Value::from(block)]),
@@ -166,10 +163,7 @@ mod tests {
         let request = TransactionObject::new_call_with_from("0x46340b20830761efd32832a74d7169b29feb9758", "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", vec![]);
         let encoded = serde_json::to_string(&request).unwrap();
 
-        assert_eq!(
-            encoded,
-            r#"{"from":"0x46340b20830761efd32832a74d7169b29feb9758","to":"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48","data":"0x"}"#
-        );
+        assert_eq!(encoded, r#"{"from":"0x46340b20830761efd32832a74d7169b29feb9758","to":"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48","data":"0x"}"#);
     }
 
     #[test]
@@ -179,10 +173,7 @@ mod tests {
             ..TransactionObject::new_call("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", vec![])
         };
 
-        assert_eq!(
-            serde_json::to_string(&transaction).unwrap(),
-            r#"{"to":"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48","data":"0x"}"#
-        );
+        assert_eq!(serde_json::to_string(&transaction).unwrap(), r#"{"to":"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48","data":"0x"}"#);
     }
 
     #[test]
@@ -199,22 +190,8 @@ mod tests {
 
     #[test]
     fn encodes_block_quantities_as_hex() {
-        assert_request(
-            EthereumRpc::GetBlockByNumber {
-                number: 26,
-                include_transactions: true,
-            },
-            method::ETH_GET_BLOCK_BY_NUMBER,
-            json!(["0x1a", true]),
-        );
-        assert_request(
-            EthereumRpc::GetBlockByNumber {
-                number: 26,
-                include_transactions: false,
-            },
-            method::ETH_GET_BLOCK_BY_NUMBER,
-            json!(["0x1a", false]),
-        );
+        assert_request(EthereumRpc::GetBlockByNumber { number: 26, include_transactions: true }, method::ETH_GET_BLOCK_BY_NUMBER, json!(["0x1a", true]));
+        assert_request(EthereumRpc::GetBlockByNumber { number: 26, include_transactions: false }, method::ETH_GET_BLOCK_BY_NUMBER, json!(["0x1a", false]));
     }
 
     #[test]
@@ -231,10 +208,6 @@ mod tests {
 
     #[test]
     fn builds_broadcast_request() {
-        assert_request(
-            EthereumRpc::SendRawTransaction { data: "0xsigned".into() },
-            method::ETH_SEND_RAW_TRANSACTION,
-            json!(["0xsigned"]),
-        );
+        assert_request(EthereumRpc::SendRawTransaction { data: "0xsigned".into() }, method::ETH_SEND_RAW_TRANSACTION, json!(["0xsigned"]));
     }
 }

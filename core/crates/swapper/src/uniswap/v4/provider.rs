@@ -6,8 +6,7 @@ use num_bigint::BigUint;
 use std::{collections::HashSet, fmt, iter, str::FromStr, sync::Arc, vec};
 
 use crate::{
-    FetchQuoteData, Permit2ApprovalData, ProviderData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider,
-    SwapperQuoteData,
+    FetchQuoteData, Permit2ApprovalData, ProviderData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     alien::{RpcClient, RpcProvider},
     approval::evm::{check_approval_erc20_with_client, check_approval_permit2_with_client},
     approval::get_swap_gas_limit_with_approval,
@@ -148,45 +147,25 @@ impl Swapper for UniswapV4 {
         let base_pair = base_pair(evm_chain, PROTOCOL).ok_or(SwapperError::ComputeQuoteError("base pair not found".into()))?;
         let fee_token_is_input = is_quote_input_fee_token(Some(&base_pair), request, token_in, token_out);
         let fee_bps = default_referral_fees().evm.bps;
-        let quote_amount_in = if fee_token_is_input && fee_bps > 0 {
-            apply_slippage_in_bp(&from_value, fee_bps)
-        } else {
-            from_value
-        };
+        let quote_amount_in = if fee_token_is_input && fee_bps > 0 { apply_slippage_in_bp(&from_value, fee_bps) } else { from_value };
 
         _ = self.preload_pool_candidates(from_chain, token_in, token_out).await;
         let pool_keys = build_pool_keys(&token_in, &token_out, &fee_tiers);
-        let pool_keys = pool_keys
-            .into_iter()
-            .filter(|(pairs, _)| self.pool_discovery.path_may_exist(from_chain, pairs))
-            .collect::<Vec<_>>();
+        let pool_keys = pool_keys.into_iter().filter(|(pairs, _)| self.pool_discovery.path_may_exist(from_chain, pairs)).collect::<Vec<_>>();
         let quote_exact_params = if !Self::is_base_pair(&token_in, &token_out, &evm_chain) {
             let intermediaries = get_intermediaries(&token_in, &token_out, &base_pair);
             build_quote_exact_params(quote_amount_in, &token_in, &token_out, &fee_tiers, &intermediaries)
                 .into_iter()
-                .map(|paths| {
-                    paths
-                        .into_iter()
-                        .filter(|(pairs, _)| self.pool_discovery.path_may_exist(from_chain, pairs))
-                        .collect::<Vec<_>>()
-                })
+                .map(|paths| paths.into_iter().filter(|(pairs, _)| self.pool_discovery.path_may_exist(from_chain, pairs)).collect::<Vec<_>>())
                 .collect()
         } else {
             Vec::new()
         };
-        let direct_calls = pool_keys
-            .iter()
-            .map(|pool_key| build_quote_exact_single_request(&token_in, deployment.quoter, quote_amount_in, &pool_key.1))
-            .collect();
+        let direct_calls = pool_keys.iter().map(|pool_key| build_quote_exact_single_request(&token_in, deployment.quoter, quote_amount_in, &pool_key.1)).collect();
         let quote_calls = iter::once(direct_calls)
             .chain(build_quote_exact_requests(deployment.quoter, &quote_exact_params))
             .enumerate()
-            .flat_map(|(route_idx, calls)| {
-                calls
-                    .into_iter()
-                    .enumerate()
-                    .map(move |(fee_tier_idx, call)| (QuotePosition { route_idx, fee_tier_idx }, call))
-            })
+            .flat_map(|(route_idx, calls)| calls.into_iter().enumerate().map(move |(fee_tier_idx, call)| (QuotePosition { route_idx, fee_tier_idx }, call)))
             .collect::<Vec<_>>();
         let (positions, calls): (Vec<_>, Vec<EthereumRpc>) = quote_calls.into_iter().unzip();
         let results = self.client_for(from_chain)?.batch_request(calls).await?;
@@ -195,11 +174,7 @@ impl Swapper for UniswapV4 {
         let fee_tier_idx = quote_result.fee_tier_idx;
         let route_idx = quote_result.route_idx;
 
-        let to_value = if fee_token_is_input {
-            quote_result.amount_out
-        } else {
-            apply_slippage_in_bp(&quote_result.amount_out, fee_bps)
-        };
+        let to_value = if fee_token_is_input { quote_result.amount_out } else { apply_slippage_in_bp(&quote_result.amount_out, fee_bps) };
         let to_min_value = apply_slippage_in_bp(&to_value, request.options.slippage.bps);
 
         let fee_tier = if route_idx == 0 {
@@ -271,15 +246,9 @@ impl Swapper for UniswapV4 {
         let permit = data.permit2_data().map(Permit2Permit::try_from).transpose()?;
 
         let approval: Option<ApprovalData> = if input.funding == Funding::Permit2 {
-            check_approval_erc20_with_client(
-                request.wallet_address.clone(),
-                input.address.to_string(),
-                deployment.permit2.to_string(),
-                U256::from(amount_in),
-                &client,
-            )
-            .await?
-            .approval_data()
+            check_approval_erc20_with_client(request.wallet_address.clone(), input.address.to_string(), deployment.permit2.to_string(), U256::from(amount_in), &client)
+                .await?
+                .approval_data()
         } else {
             None
         };
@@ -293,17 +262,7 @@ impl Swapper for UniswapV4 {
         let base_pair = base_pair(evm_chain, PROTOCOL);
         let fee_token_is_input = is_quote_input_fee_token(base_pair.as_ref(), request, input.address, output.address);
 
-        let commands = build_commands(
-            request,
-            &input,
-            &output,
-            amount_in,
-            to_amount,
-            &quote.data.routes,
-            permit,
-            fee_token_is_input,
-            deployment.universal_router_abi,
-        )?;
+        let commands = build_commands(request, &input, &output, amount_in, to_amount, &quote.data.routes, permit, fee_token_is_input, deployment.universal_router_abi)?;
         let encoded = encode_commands(&commands, U256::from(sig_deadline));
 
         let value = match input.funding {
@@ -311,13 +270,7 @@ impl Swapper for UniswapV4 {
             Funding::Permit2 => BigUint::ZERO,
         };
 
-        Ok(SwapperQuoteData::new_contract(
-            deployment.universal_router.into(),
-            value,
-            HexEncode(encoded),
-            approval,
-            gas_limit,
-        ))
+        Ok(SwapperQuoteData::new_contract(deployment.universal_router.into(), value, HexEncode(encoded), approval, gas_limit))
     }
 }
 
@@ -381,10 +334,7 @@ mod swap_integration_tests {
     async fn test_arc_native_usdc_eurc_quotes() -> Result<(), SwapperError> {
         let network_provider = Arc::new(NativeProvider::default());
         let swap_provider = uniswap::default::boxed_uniswap_v4(network_provider);
-        let options = Options {
-            slippage: 100.into(),
-            use_max_amount: false,
-        };
+        let options = Options { slippage: 100.into(), use_max_amount: false };
         let native = AssetId::from_chain(Chain::Arc);
         let wallet = "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7";
 
@@ -420,10 +370,7 @@ mod swap_integration_tests {
     async fn test_v4_quoter() -> Result<(), SwapperError> {
         let network_provider = Arc::new(NativeProvider::default());
         let swap_provider = uniswap::default::boxed_uniswap_v4(network_provider.clone());
-        let options = Options {
-            slippage: 100.into(),
-            use_max_amount: false,
-        };
+        let options = Options { slippage: 100.into(), use_max_amount: false };
 
         let request = QuoteRequest {
             from_asset: AssetId::from_chain(Chain::Unichain).into(),
@@ -447,10 +394,7 @@ mod swap_integration_tests {
     async fn test_robinhood_eth_to_usdg_quote() -> Result<(), SwapperError> {
         let network_provider = Arc::new(NativeProvider::default());
         let swap_provider = uniswap::default::boxed_uniswap_v4(network_provider.clone());
-        let options = Options {
-            slippage: 100.into(),
-            use_max_amount: false,
-        };
+        let options = Options { slippage: 100.into(), use_max_amount: false };
 
         let request = QuoteRequest {
             from_asset: AssetId::from_chain(Chain::Robinhood).into(),
@@ -466,13 +410,7 @@ mod swap_integration_tests {
 
         let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::EstimateGas).await?;
 
-        let estimate_value = format!(
-            "0x{:x}",
-            quote_data
-                .value
-                .to_u128()
-                .ok_or_else(|| SwapperError::ComputeQuoteError("quote value is too large".to_string()))?
-        );
+        let estimate_value = format!("0x{:x}", quote_data.value.to_u128().ok_or_else(|| SwapperError::ComputeQuoteError("quote value is too large".to_string()))?);
         let gas = create_eth_client(network_provider.clone(), Chain::Robinhood)?
             .estimate_gas(Some(&request.wallet_address), &quote_data.to, Some(&estimate_value), Some(&quote_data.data))
             .await
@@ -486,10 +424,7 @@ mod swap_integration_tests {
     async fn test_tempo_quotes() -> Result<(), SwapperError> {
         let network_provider = Arc::new(NativeProvider::default());
         let swap_provider = uniswap::default::boxed_uniswap_v4(network_provider);
-        let options = Options {
-            slippage: 100.into(),
-            use_max_amount: false,
-        };
+        let options = Options { slippage: 100.into(), use_max_amount: false };
         let pathusd = TEMPO_PATHUSD_ASSET_ID.clone();
 
         for (from_asset, to_asset) in [(TEMPO_BRIDGED_USDC_ASSET_ID.clone(), pathusd.clone()), (pathusd, TEMPO_BRIDGED_USDC_ASSET_ID.clone())] {

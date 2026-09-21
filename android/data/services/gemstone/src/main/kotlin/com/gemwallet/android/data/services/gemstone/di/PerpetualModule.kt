@@ -1,41 +1,41 @@
 package com.gemwallet.android.data.services.gemstone.di
 
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
-import uniffi.gemstone.GemNodeServiceInterface
+import com.gemwallet.android.data.service.store.database.AssetsDao
+import com.gemwallet.android.data.service.store.database.BalancesDao
+import com.gemwallet.android.data.service.store.database.PerpetualDao
+import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
+import com.gemwallet.android.data.service.store.database.SearchDao
+import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
+import com.gemwallet.android.data.services.gemstone.perpetual.GemstonePerpetualStreamConnection
 import com.gemwallet.android.data.services.gemstone.perpetual.HyperliquidObserverService
 import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketConnection
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketRequest
-import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.BalancesDao
-import com.gemwallet.android.data.service.store.database.PerpetualDao
-import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
-import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
-import com.gemwallet.android.data.service.store.database.SearchDao
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.GemBalanceService
-import uniffi.gemstone.GemConnectionService
-import uniffi.gemstone.GemGateway
-import uniffi.gemstone.GemAssetStore
-import uniffi.gemstone.GemPerpetualDetailsService
-import uniffi.gemstone.GemRecentActivityService
-import uniffi.gemstone.GemPerpetualDetailsServiceInterface
-import uniffi.gemstone.GemPerpetualService
-import uniffi.gemstone.GemWalletSessionService
-import uniffi.gemstone.GemPerpetualServiceInterface
-import uniffi.gemstone.GemPerpetualStreamService
-import uniffi.gemstone.GemPreferencesService
-import uniffi.gemstone.GemTransactionsService
-import uniffi.gemstone.GemWalletPreferencesService
-import uniffi.gemstone.GemPriceService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
+import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemBalanceService
+import uniffi.gemstone.GemConnectionService
+import uniffi.gemstone.GemGateway
+import uniffi.gemstone.GemNodeServiceInterface
+import uniffi.gemstone.GemPerpetualDetailsService
+import uniffi.gemstone.GemPerpetualDetailsServiceInterface
+import uniffi.gemstone.GemPerpetualService
+import uniffi.gemstone.GemPerpetualServiceInterface
+import uniffi.gemstone.GemPerpetualStreamService
+import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemPriceService
+import uniffi.gemstone.GemRecentActivityService
+import uniffi.gemstone.GemTransactionsService
+import uniffi.gemstone.GemWalletPreferencesService
+import uniffi.gemstone.GemWalletSessionService
 import javax.inject.Singleton
-import com.gemwallet.android.data.services.gemstone.perpetual.GemstonePerpetualStreamConnection
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -43,13 +43,8 @@ object PerpetualModule {
 
     @Provides
     @Singleton
-    fun provideGemstonePerpetualStore(
-        perpetualDao: PerpetualDao,
-        searchDao: SearchDao,
-        perpetualPositionDao: PerpetualPositionDao,
-        balancesDao: BalancesDao,
-        transactionRunner: StoreTransactionRunner,
-    ): GemstonePerpetualStore = GemstonePerpetualStore(perpetualDao, searchDao, perpetualPositionDao, balancesDao, transactionRunner)
+    fun provideGemstonePerpetualStore(perpetualDao: PerpetualDao, searchDao: SearchDao, perpetualPositionDao: PerpetualPositionDao, balancesDao: BalancesDao, transactionRunner: StoreTransactionRunner): GemstonePerpetualStore =
+        GemstonePerpetualStore(perpetualDao, searchDao, perpetualPositionDao, balancesDao, transactionRunner)
 
     @Provides
     @Singleton
@@ -57,24 +52,23 @@ object PerpetualModule {
         gateway: GemGateway,
         priceService: GemPriceService,
         perpetualStore: GemstonePerpetualStore,
-        assetStore: GemAssetStore,
+        assetsService: GemAssetsService,
         preferencesService: GemPreferencesService,
         balanceService: GemBalanceService,
         walletPreferencesService: GemWalletPreferencesService,
         walletSessionService: GemWalletSessionService,
         recentActivityService: GemRecentActivityService,
-    ): GemPerpetualService =
-        GemPerpetualService(
-            gateway,
-            priceService,
-            perpetualStore,
-            assetStore,
-            preferencesService,
-            balanceService,
-            walletPreferencesService,
-            walletSessionService,
-            recentActivityService,
-        )
+    ): GemPerpetualService = GemPerpetualService(
+        gateway,
+        priceService,
+        perpetualStore,
+        assetsService,
+        preferencesService,
+        balanceService,
+        walletPreferencesService,
+        walletSessionService,
+        recentActivityService,
+    )
 
     @Provides
     @Singleton

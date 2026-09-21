@@ -1,13 +1,11 @@
 package com.gemwallet.android.features.add_asset.viewmodels
 
-import uniffi.gemstone.GemChainServiceInterface
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
-import uniffi.gemstone.GemErrorText
-import uniffi.gemstone.GemAddAssetPhase
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockSession
@@ -21,22 +19,24 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.job
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.job
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemAddAssetPhase
 import uniffi.gemstone.GemAddAssetServiceInterface
-import uniffi.gemstone.GemServiceException
-import com.gemwallet.android.ext.toPrimitives
 import uniffi.gemstone.GemAddAssetSession
+import uniffi.gemstone.GemChainServiceInterface
+import uniffi.gemstone.GemErrorText
+import uniffi.gemstone.GemServiceException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AddAssetViewModelTest {
@@ -53,7 +53,7 @@ class AddAssetViewModelTest {
         }
         every { chains(any()) } returns listOf(Chain.Ethereum.string)
         every { defaultChain(any()) } returns Chain.Ethereum.string
-        every { tokenUrl(any(), any()) } returns null
+        every { sections(any()) } returns emptyList()
         coEvery { token(Chain.Ethereum.string, "0x1") } returns token.toGem()
         coEvery { add(any(), any()) } returns Unit
     }

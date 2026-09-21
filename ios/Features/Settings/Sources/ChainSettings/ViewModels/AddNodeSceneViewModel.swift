@@ -2,10 +2,10 @@
 
 import Components
 import enum Gemstone.GemAddNodeError
-import enum Gemstone.GemAddNodeFailure
 import enum Gemstone.GemAddNodePhase
 import struct Gemstone.GemAddNodeSession
 import protocol Gemstone.GemChainSettingsServiceProtocol
+import enum Gemstone.GemServiceError
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -35,12 +35,12 @@ final class AddNodeSceneViewModel {
         session = service.newAddNodeSession(chain: chain.rawValue)
     }
 
-    var state: StateViewType<AddNodeResultViewModel> {
+    var state: StateViewType<[ListItemField]> {
         switch session.viewState().phase {
         case .idle: .noData
         case .checking: .loading
-        case let .ready(check): .data(AddNodeResultViewModel(result: check))
-        case let .failed(failure): .error(failure.error)
+        case let .ready(check): .data(check.rows().map { ListItemField(title: $0.title, value: $0.text) })
+        case let .failed(error): .error(AnyError(error.text))
         }
     }
 
@@ -67,7 +67,6 @@ final class AddNodeSceneViewModel {
     var warningModel: ListItemModel {
         ListItemModel(
             title: Localized.Asset.Verification.warningTitle,
-            titleStyle: .headline,
             titleExtra: Localized.Nodes.ImportNode.warningMessage,
             titleStyleExtra: .bodySecondary,
             imageStyle: ListItemImageStyle(
@@ -102,22 +101,30 @@ extension AddNodeSceneViewModel {
         loadTrigger = AddNodeLoadTrigger(url: session.url, isImmediate: isImmediate)
     }
 
-    func importFoundNode() async throws {
-        guard let check = session.check else {
-            throw AnyError("Unknown result")
+    func importFoundNode() async -> Bool {
+        guard let check = session.check else { return false }
+        do {
+            try await service.addNode(chain: chain.rawValue, url: check.url)
+            session = session.onImported()
+            return true
+        } catch let error as GemServiceError {
+            session = session.onAddFailed(error: error)
+        } catch {
+            session = session.onAddFailed(error: nil)
         }
-        try await service.addNode(chain: chain.rawValue, url: check.url)
-        session = session.onImported()
+        return false
     }
 
     func load() async {
         session = session.onChecking()
+        let url = session.url
         do {
-            session = try await session.onChecked(check: service.checkNode(chain: chain.rawValue, url: session.url))
+            let check = try await service.checkNode(chain: chain.rawValue, url: url)
+            session = session.onChecked(url: url, check: check)
         } catch let error as GemAddNodeError {
-            session = session.onFailed(failure: error.failure)
+            session = session.onCheckFailed(url: url, error: error)
         } catch {
-            session = session.onFailed(failure: .unavailable)
+            session = session.onCheckFailed(url: url, error: nil)
         }
     }
 }

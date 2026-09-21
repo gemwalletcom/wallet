@@ -1,66 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Components
-import Formatters
+import Foundation
+import struct Gemstone.GemSwapProviderRow
 import struct Gemstone.SwapperQuote
-import enum Gemstone.SwapProvider
-import struct Gemstone.SwapQuote
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Style
-import SwiftUI
 
 public struct SwapProviderItem: Sendable {
-    public let asset: Asset
-    public let swapQuote: Gemstone.SwapQuote
-    public let selectedProvider: Gemstone.SwapProvider?
-    public let priceViewModel: PriceViewModel
-    public let valueFormatter: ValueFormatter
+    public let row: GemSwapProviderRow
     public let swapperQuote: SwapperQuote?
 
-    public init(
-        asset: Asset,
-        swapQuote: Gemstone.SwapQuote,
-        selectedProvider: Gemstone.SwapProvider?,
-        priceViewModel: PriceViewModel,
-        valueFormatter: ValueFormatter,
-    ) {
-        self.asset = asset
-        self.swapQuote = swapQuote
-        self.selectedProvider = selectedProvider
-        self.priceViewModel = priceViewModel
-        self.valueFormatter = valueFormatter
-        swapperQuote = nil
-    }
-
-    public init?(
-        asset: Asset,
-        swapperQuote: Gemstone.SwapperQuote?,
-        selectedProvider: Gemstone.SwapProvider?,
-        priceViewModel: PriceViewModel,
-        valueFormatter: ValueFormatter,
-    ) {
-        guard let swapQuote = swapperQuote?.swapQuote else { return nil }
-        self.asset = asset
-        self.swapQuote = swapQuote
+    public init(row: GemSwapProviderRow, swapperQuote: SwapperQuote? = nil) {
+        self.row = row
         self.swapperQuote = swapperQuote
-        self.selectedProvider = selectedProvider
-        self.priceViewModel = priceViewModel
-        self.valueFormatter = valueFormatter
-    }
-
-    private var amount: String {
-        valueFormatter.string(BigInt(swapQuote.toValue), decimals: asset.decimals.asInt)
-    }
-
-    private var isSelected: Bool {
-        selectedProvider == swapQuote.providerData.provider
-    }
-
-    private func fiatBalance() -> String {
-        priceViewModel.fiatValueText(value: BigInt(swapQuote.toValue) ?? .zero, decimals: asset.decimals.asInt) ?? .empty
     }
 }
 
@@ -68,7 +23,7 @@ public struct SwapProviderItem: Sendable {
 
 extension SwapProviderItem: SimpleListItemViewable {
     public var title: String {
-        swapQuote.providerData.protocolName
+        row.title
     }
 
     public var titleStyle: TextStyle {
@@ -76,18 +31,18 @@ extension SwapProviderItem: SimpleListItemViewable {
     }
 
     public var subtitle: String? {
-        [amount, asset.symbol].joined(separator: " ")
+        row.amount.text()
     }
 
     public var assetImage: AssetImage {
         AssetImage(
-            placeholder: swapQuote.providerData.provider.toPrimitives().image,
-            chainPlaceholder: isSelected ? Images.Wallets.selected : nil,
+            placeholder: row.provider.toPrimitives().image,
+            chainPlaceholder: row.isSelected ? Images.Wallets.selected : nil,
         )
     }
 
     public var subtitleExtra: String? {
-        fiatBalance()
+        row.fiat?.text()
     }
 
     public var subtitleStyle: TextStyle {
@@ -103,11 +58,7 @@ extension SwapProviderItem: SimpleListItemViewable {
 
 extension SwapProviderItem: Identifiable {
     public var id: String {
-        [
-            swapQuote.toValue.description,
-            swapQuote.fromValue.description,
-            swapQuote.providerData.provider.toPrimitives().rawValue,
-        ].joined(separator: "_")
+        [row.provider.toPrimitives().rawValue, row.title, row.amount.value.description].joined(separator: "_")
     }
 }
 

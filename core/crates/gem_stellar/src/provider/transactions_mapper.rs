@@ -28,10 +28,7 @@ pub fn map_transactions(chain: Chain, transactions: Vec<Payment>) -> Vec<Transac
 }
 
 pub fn map_transaction_by_hash(chain: Chain, transactions: Vec<Payment>, hash: &str) -> Option<Transaction> {
-    transactions
-        .into_iter()
-        .filter_map(|transaction| map_transaction(chain, transaction))
-        .find(|transaction| transaction.hash() == hash)
+    transactions.into_iter().filter_map(|transaction| map_transaction(chain, transaction)).find(|transaction| transaction.hash() == hash)
 }
 
 pub fn map_transaction(chain: Chain, transaction: Payment) -> Option<Transaction> {

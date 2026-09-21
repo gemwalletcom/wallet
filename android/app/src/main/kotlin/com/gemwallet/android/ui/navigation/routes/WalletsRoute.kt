@@ -9,14 +9,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object WalletsRoute : NavKey
 
-fun EntryProviderScope<NavKey>.walletsScreen(
-    onCancel: () -> Unit,
-    onCreateWallet: () -> Unit,
-    onImportWallet: () -> Unit,
-    onEditWallet: (WalletId) -> Unit,
-    onSelectWallet: () -> Unit,
-    onBoard: () -> Unit,
-) {
+fun EntryProviderScope<NavKey>.walletsScreen(onCancel: () -> Unit, onCreateWallet: () -> Unit, onImportWallet: () -> Unit, onEditWallet: (WalletId) -> Unit, onSelectWallet: () -> Unit, onBoard: () -> Unit) {
     entry<WalletsRoute> {
         WalletsScreen(
             onCreateWallet = onCreateWallet,
@@ -24,7 +17,7 @@ fun EntryProviderScope<NavKey>.walletsScreen(
             onEditWallet = onEditWallet,
             onSelectWallet = onSelectWallet,
             onBoard = onBoard,
-            onCancel = onCancel
+            onCancel = onCancel,
         )
     }
 }

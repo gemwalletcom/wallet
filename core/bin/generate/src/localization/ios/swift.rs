@@ -132,9 +132,7 @@ fn write_node(output: &mut String, node: &Node, enum_name: &str, level: usize) {
         let name = property_name(segment);
         let placeholders = placeholders(value);
         if placeholders.is_empty() {
-            output.push_str(&format!(
-                "{indent}public static let {name} = {enum_name}.tr(\"{TABLE_NAME}\", \"{key}\", fallback: \"{value}\")\n"
-            ));
+            output.push_str(&format!("{indent}public static let {name} = {enum_name}.tr(\"{TABLE_NAME}\", \"{key}\", fallback: \"{value}\")\n"));
         } else {
             let parameters = placeholders
                 .iter()
@@ -155,9 +153,7 @@ fn write_node(output: &mut String, node: &Node, enum_name: &str, level: usize) {
                 .collect::<Vec<_>>()
                 .join(", ");
             output.push_str(&format!("{indent}public static func {name}({parameters}) -> String {{\n"));
-            output.push_str(&format!(
-                "{indent}  return {enum_name}.tr(\"{TABLE_NAME}\", \"{key}\", {arguments}, fallback: \"{value}\")\n"
-            ));
+            output.push_str(&format!("{indent}  return {enum_name}.tr(\"{TABLE_NAME}\", \"{key}\", {arguments}, fallback: \"{value}\")\n"));
             output.push_str(&format!("{indent}}}\n"));
         }
     }
@@ -239,9 +235,7 @@ mod tests {
         assert!(source.contains("      return Localized.tr(\"Localizable\", \"common.maximum_value\", String(describing: p1), fallback: \"Maximum value is %@\")"));
         assert!(source.contains("      public static func latency(_ p1: Int) -> String {"));
         assert!(source.contains("        return Localized.tr(\"Localizable\", \"transfer.state.latency\", p1, fallback: \"%d ms\")"));
-        assert!(source.contains(
-            "    /// First line\n    /// Second line\n    public static let title = Localized.tr(\"Localizable\", \"welcome.title\", fallback: \"First line\\nSecond line\")"
-        ));
+        assert!(source.contains("    /// First line\n    /// Second line\n    public static let title = Localized.tr(\"Localizable\", \"welcome.title\", fallback: \"First line\\nSecond line\")"));
         assert!(source.contains("  public enum Transfer {\n    public enum State {"));
         let coexisting = super::source("Localized", &BTreeMap::from([("a.b".to_string(), "x".to_string()), ("a.b.c".to_string(), "y".to_string())])).unwrap();
         assert!(coexisting.contains("    public static let b = Localized.tr(\"Localizable\", \"a.b\", fallback: \"x\")"));

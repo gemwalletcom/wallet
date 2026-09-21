@@ -1,22 +1,18 @@
 package com.gemwallet.android.features.swap.viewmodels.models
 
 import android.content.Context
-import com.gemwallet.android.features.swap.viewmodels.localization.text
-import com.gemwallet.android.ui.components.InfoSheetEntity
-import com.gemwallet.android.features.swap.viewmodels.localization.stringRes
-import com.gemwallet.android.ui.models.ButtonState
-import uniffi.gemstone.GemSwapErrorDisplay
-import uniffi.gemstone.GemSwapButtonState
-import uniffi.gemstone.GemSwapViewState
-import uniffi.gemstone.GemSwapSessionAction
 import androidx.annotation.StringRes
+import com.gemwallet.android.features.swap.viewmodels.localization.stringRes
+import com.gemwallet.android.features.swap.viewmodels.localization.text
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.gemwallet.android.ui.models.ButtonState
+import uniffi.gemstone.GemSwapButtonState
+import uniffi.gemstone.GemSwapErrorDisplay
+import uniffi.gemstone.GemSwapSessionAction
+import uniffi.gemstone.GemSwapViewState
 
-data class SwapItemInteraction(
-    val isAmountEditable: Boolean,
-    val isAssetSelectable: Boolean,
-    val isBalanceActionEnabled: Boolean,
-) {
+data class SwapItemInteraction(val isAmountEditable: Boolean, val isAssetSelectable: Boolean, val isBalanceActionEnabled: Boolean) {
     companion object {
         fun pay(isEnabled: Boolean) = SwapItemInteraction(
             isAmountEditable = isEnabled,
@@ -70,7 +66,10 @@ internal fun createSwapUiState(state: GemSwapViewState, context: Context) = Swap
 
 private fun GemSwapErrorDisplay.infoSheet(): InfoSheetEntity? = when (this) {
     is GemSwapErrorDisplay.NoQuote -> InfoSheetEntity.NoQuoteInfo
+
     is GemSwapErrorDisplay.NotSupportedAsset,
+    is GemSwapErrorDisplay.Offline,
     is GemSwapErrorDisplay.MinimumAmount,
-    is GemSwapErrorDisplay.AmountTooSmall -> null
+    is GemSwapErrorDisplay.AmountTooSmall,
+    -> null
 }

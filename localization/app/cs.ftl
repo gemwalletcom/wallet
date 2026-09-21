@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = Nepodporované aktivum.
 errors_connections_no_supported_wallets = Nejsou k dispozici žádné podporované peněženky.
 errors_connections_unsupported_chain = Zadaný řetězec není podporován.
 errors_swap_amount_too_small = Příliš malé množství
-errors_required = %@ je vyžadováno
 errors_scan_transaction_malicious_description = Tuto transakci nelze dokončit – cílová adresa peněženky je spojena s podezřelou nebo škodlivou aktivitou.
 errors_scan_transaction_memo_required = Cílová adresa peněženky %@ vyžaduje cílovou značku / poznámku
 errors_scan_transaction_malicious_title = Podezřelá aktivita
@@ -315,7 +314,7 @@ asset_symbol = Symbol
 asset_decimals = Desetinná čísla
 asset_token_id = ID tokenu
 asset_contract = Smlouva
-asset_state_empty_title = Vaše transakce se zobrazí zde ️
+asset_state_empty_title = Vaše transakce se zobrazí zde 
 asset_state_empty_description = Získejte, vyměňte nebo kupte %@
 asset_verification_unverified = Neověřené
 asset_verification_suspicious = Podezřelý
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = Když cena klesne o
 price_alerts_set_alert_set_target_price = Stanovte cílovou cenu
 price_alerts_set_alert_current_price = Aktuální cena
 price_alerts_added_for = Nastavit cenové upozornění %@
-price_alerts_state_empty_title = Vaše upozornění se zobrazí zde ️
+price_alerts_state_empty_title = Vaše upozornění se zobrazí zde 
 price_alerts_state_empty_description = Povolte je přidáním mincí do sledování
 price_alerts_auto_footer = Upozornění se spouštějí při významných cenových pohybech.
 price_alerts_set_alert_title = Nastavit cenové upozornění
@@ -536,7 +535,7 @@ verify_phrase_title = Potvrdit
 
 # Warnings
 
-warnings_multi_signature_blocked = Nepřevádějte prostředky do této %@ peněženky s více podpisy, pokud si nejste jisti, že ovládáte soukromé klíče. Pokud tak neučiníte, můžete se vystavit podvodům a můžete trvale ztratit svá aktiva.
+warnings_externally_controlled_account = Tento účet %@ může ovládat někdo jiný. Neposílejte na něj prostředky, pokud si nejste jisti, že ho ovládáte vy, jinak můžete o svá aktiva trvale přijít.
 
 # Sell
 
@@ -600,7 +599,7 @@ nft_collections = Sbírky
 nft_collection = Sbírka
 nft_save_to_photos = Uložit do Fotek
 nft_set_as_avatar = Nastavit jako Avatar
-nft_state_empty_title = Vaše NFT se zobrazí zde ️
+nft_state_empty_title = Vaše NFT se zobrazí zde 
 nft_state_empty_description = Získejte svůj první NFT
 nft_report_reason_spam = Spam
 nft_report_reason_malicious = Zlomyslný

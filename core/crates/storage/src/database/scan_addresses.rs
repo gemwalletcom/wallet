@@ -10,11 +10,7 @@ pub(crate) trait ScanAddressesStore {
 impl ScanAddressesStore for DatabaseClient {
     fn get_scan_addresses_by_addresses(&mut self, addresses: Vec<String>) -> Result<Vec<ScanAddressRow>, diesel::result::Error> {
         use crate::schema::scan_addresses::dsl::*;
-        scan_addresses
-            .filter(address.eq_any(addresses))
-            .order((address.asc(), id.asc()))
-            .select(ScanAddressRow::as_select())
-            .load(&mut self.connection)
+        scan_addresses.filter(address.eq_any(addresses)).order((address.asc(), id.asc())).select(ScanAddressRow::as_select()).load(&mut self.connection)
     }
 
     fn add_scan_addresses(&mut self, values: Vec<NewScanAddressRow>) -> Result<usize, diesel::result::Error> {

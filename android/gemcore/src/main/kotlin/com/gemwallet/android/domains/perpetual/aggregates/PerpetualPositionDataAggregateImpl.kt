@@ -1,21 +1,19 @@
 package com.gemwallet.android.domains.perpetual.aggregates
 
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.domains.perpetual.formatPnlWithPercentage
-import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.domains.price.tone
-import com.gemwallet.android.model.text
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.CurrencyFormatter
+import com.gemwallet.android.model.text
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualPositionData
+import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.perpetualPositionRow
 
-class PerpetualPositionDataAggregateImpl(
-    private val data: PerpetualPositionData,
-) : PerpetualPositionDataAggregate {
+class PerpetualPositionDataAggregateImpl(private val data: PerpetualPositionData) : PerpetualPositionDataAggregate {
     private val marginFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)
 
     override val perpetualId: PerpetualId
@@ -29,6 +27,4 @@ class PerpetualPositionDataAggregateImpl(
     override val marginAmount: String = marginFormatter.string(data.position.marginAmount)
     override val pnlWithPercentage: String = formatPnlWithPercentage(data.position.pnl, data.position.marginAmount)
     override val pnlState: GemValueTone = data.position.pnl.tone()
-
-    val liquidationPrice: String? = row.liquidationPrice?.text()
 }

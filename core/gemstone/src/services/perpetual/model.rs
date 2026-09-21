@@ -1,14 +1,16 @@
 use super::rules;
-use crate::formatted_number::GemFormattedNumber;
+use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigInt;
-use crate::perpetual::GemPerpetual;
+use crate::models::list::{GemListRow, GemListSection};
+use crate::services::assets::model::GemHeaderActions;
 use crate::services::failures::StepFailure;
-use crate::services::transfer::model::GemRecipient;
+use crate::services::localization::GemLocalizedText;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
-use primitives::{Asset, Perpetual, PerpetualAccountMode, PerpetualConfirmData, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, PerpetualType};
+use primitives::perpetual::PerpetualBalance;
+use primitives::{Asset, Perpetual, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, PerpetualType, WalletType};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum GemPerpetualSocketUpdate {
     Applied,
     Candle { candle: ChartCandleUpdate },
@@ -17,14 +19,14 @@ pub enum GemPerpetualSocketUpdate {
     Unknown,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum GemPerpetualOrderAction {
     Open,
     Increase,
     Reduce { position_direction: PerpetualDirection },
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GemPerpetualOrderInput {
     pub action: GemPerpetualOrderAction,
     pub direction: PerpetualDirection,
@@ -41,7 +43,7 @@ pub struct GemPerpetualOrderInput {
     pub stop_loss: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GemPerpetualCloseInput {
     pub asset_index: i32,
     pub direction: PerpetualDirection,
@@ -64,31 +66,21 @@ pub struct GemPerpetualConnection {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemAutocloseSummary {
-    pub take_profit: Option<GemFormattedNumber>,
-    pub stop_loss: Option<GemFormattedNumber>,
-    pub take_profit_cleared: bool,
-    pub stop_loss_cleared: bool,
+pub struct GemPerpetualConfirmDetailsSummary {
+    pub text: Option<GemLocalizedText>,
+    pub tone: GemValueTone,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
-pub enum GemPerpetualDetailsAction {
-    Open,
-    Close,
-    Increase,
-    Reduce,
-}
-
-#[derive(Debug, Clone, uniffi::Record)]
-pub struct GemPerpetualDetails {
-    pub action: GemPerpetualDetailsAction,
-    pub direction: PerpetualDirection,
-    pub data: PerpetualConfirmData,
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemPerpetualConfirmDetails {
+    pub id: String,
+    pub summary: GemPerpetualConfirmDetailsSummary,
+    pub sections: Vec<GemListSection>,
 }
 
 #[uniffi::export]
-pub fn perpetual_details(perpetual_type: PerpetualType) -> Option<GemPerpetualDetails> {
-    rules::details(&perpetual_type)
+pub fn perpetual_confirm_details(perpetual_type: PerpetualType) -> Option<GemPerpetualConfirmDetails> {
+    rules::confirm_details(&perpetual_type)
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -96,7 +88,6 @@ pub struct GemPerpetualPositionRow {
     pub title: String,
     pub leverage: String,
     pub direction: PerpetualDirection,
-    pub liquidation_price: Option<GemFormattedNumber>,
 }
 
 #[uniffi::export]
@@ -110,11 +101,12 @@ pub struct GemPerpetualMarketRow {
     pub shows_price: bool,
     pub volume_24h: GemFormattedNumber,
     pub open_interest: GemFormattedNumber,
+    pub funding_apr: GemFormattedNumber,
 }
 
 #[uniffi::export]
-pub fn perpetual_market_row(perpetual: Perpetual) -> GemPerpetualMarketRow {
-    rules::market_row(&perpetual)
+pub fn perpetual_market_row(perpetual: Perpetual, asset: Asset) -> GemPerpetualMarketRow {
+    rules::market_row(&perpetual, &asset)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -200,10 +192,18 @@ impl StepFailure for GemPerpetualRefreshFailure {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemPerpetualSection {
-    Position,
-    Info,
+    Position { rows: Vec<GemPerpetualPositionDetail> },
+    Info { buttons: Vec<GemPerpetualButton>, rows: Vec<GemListRow> },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemPerpetualDetails {
+    pub title: String,
+    pub sections: Vec<GemPerpetualSection>,
+    pub modify_buttons: Vec<GemPerpetualButton>,
+    pub position: Option<PerpetualPosition>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -217,11 +217,10 @@ pub enum GemPerpetualPositionDetailRow {
     FundingPayments,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemPerpetualInfoRow {
-    DailyVolume,
-    OpenInterest,
-    FundingRate,
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemPerpetualPositionDetail {
+    pub kind: GemPerpetualPositionDetailRow,
+    pub row: GemListRow,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -267,10 +266,6 @@ impl GemPerpetualPositionAction {
         self.data().clone()
     }
 
-    pub fn recipient(&self) -> GemRecipient {
-        GemPerpetual::new(self.data().provider.clone()).recipient()
-    }
-
     pub fn shows_autoclose(&self) -> bool {
         matches!(self, Self::Open { .. })
     }
@@ -284,15 +279,6 @@ impl GemPerpetualPositionAction {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
-pub struct GemPerpetualMarketSections {
-    pub shows_positions: bool,
-    pub shows_recents: bool,
-    pub shows_pinned: bool,
-    pub shows_markets: bool,
-    pub shows_empty: bool,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemPerpetualMarketSection {
     Positions,
@@ -300,13 +286,6 @@ pub enum GemPerpetualMarketSection {
     Pinned,
     Markets,
     Empty,
-}
-
-#[uniffi::export]
-impl GemPerpetualMarketSections {
-    pub fn list(&self) -> Vec<GemPerpetualMarketSection> {
-        super::rules::market_section_list(self)
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
@@ -317,10 +296,28 @@ pub struct GemPerpetualMarketCounts {
     pub recents: u32,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Default, uniffi::Record)]
+pub struct GemPerpetualMarketSession {
+    pub query: String,
+    pub is_searching: bool,
+}
+
 #[uniffi::export]
-impl GemPerpetualMarketCounts {
-    pub fn sections(&self, is_searching: bool, is_query_empty: bool) -> GemPerpetualMarketSections {
-        super::rules::market_sections(self, is_searching, is_query_empty)
+impl GemPerpetualMarketSession {
+    pub fn on_query_changed(&self, query: String) -> Self {
+        Self { query, ..self.clone() }
+    }
+
+    pub fn on_searching_changed(&self, is_searching: bool) -> Self {
+        Self { is_searching, ..self.clone() }
+    }
+
+    pub fn search_query(&self) -> String {
+        self.query.trim().to_string()
+    }
+
+    pub fn sections(&self, counts: GemPerpetualMarketCounts) -> Vec<GemPerpetualMarketSection> {
+        super::rules::market_sections(&counts, self.is_searching, self.search_query().is_empty())
     }
 }
 
@@ -329,21 +326,27 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_position_action_recipient_names_the_provider_without_an_address() {
-        let data = GemPerpetualTransferData::mock();
-        let action = GemPerpetualPositionAction::Open { data };
-
-        let recipient = action.recipient();
-
-        assert_eq!(recipient.name.as_deref(), Some("Hyperliquid"));
-        assert!(recipient.address.is_empty());
-    }
-
-    #[test]
     fn test_only_opening_a_position_shows_autoclose() {
         let data = GemPerpetualTransferData::mock();
 
         assert!(GemPerpetualPositionAction::Open { data: data.clone() }.shows_autoclose());
         assert!(!GemPerpetualPositionAction::Increase { data }.shows_autoclose());
     }
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemPerpetualBalanceHeader {
+    pub total: GemFormattedNumber,
+    pub available: GemFormattedNumber,
+    pub actions: GemHeaderActions,
+}
+
+#[uniffi::export]
+pub fn perpetual_balance_total(balance: Option<PerpetualBalance>) -> GemFormattedNumber {
+    rules::balance_total(balance.as_ref())
+}
+
+#[uniffi::export]
+pub fn perpetual_balance_header(balance: Option<PerpetualBalance>, wallet_type: WalletType) -> GemPerpetualBalanceHeader {
+    rules::balance_header(balance, wallet_type)
 }

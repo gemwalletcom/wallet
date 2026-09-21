@@ -49,5 +49,4 @@ struct BalanceViewModelTests {
         #expect(model.balanceTextWithSymbol(BigInt(1_000_000_000_000_000_000)) == "1 ETH")
         #expect(model.balanceTextWithSymbol(.zero) == "0 ETH")
     }
-
 }

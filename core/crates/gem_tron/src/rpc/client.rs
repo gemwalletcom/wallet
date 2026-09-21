@@ -3,8 +3,8 @@ use primitives::{Asset, AssetId, asset_type::AssetType, chain::Chain};
 use std::{error::Error, str::FromStr};
 
 use crate::models::{
-    Block, BlockId, BlockTransactions, BlockTransactionsInfo, ChainParameter, ChainParametersResponse, NowBlockRequest, Transaction, TransactionReceiptData,
-    TriggerConstantContractRequest, TriggerConstantContractResponse, TriggerSmartContractRequest, TronTransactionBroadcast, WitnessesList,
+    Block, BlockId, BlockTransactions, BlockTransactionsInfo, ChainParameter, ChainParametersResponse, NowBlockRequest, Transaction, TransactionReceiptData, TriggerConstantContractRequest, TriggerConstantContractResponse,
+    TriggerSmartContractRequest, TronTransactionBroadcast, WitnessesList,
 };
 use crate::models::{TriggerSmartContractData, TronAccount, TronAccountRequest, TronAccountUsage, TronBlock, TronEmptyAccount, TronReward};
 use crate::rpc::constants::{DECIMALS_SELECTOR, DEFAULT_OWNER_ADDRESS, GENESIS_BLOCK_NUMBER, NAME_SELECTOR, SYMBOL_SELECTOR};
@@ -47,17 +47,10 @@ impl<C: Client> TronClient<C> {
     }
 
     pub async fn trigger_constant_contract(&self, contract_address: &str, function_selector: &str, parameter: &str) -> Result<String, Box<dyn Error + Send + Sync>> {
-        self.trigger_constant_contract_with_owner(DEFAULT_OWNER_ADDRESS, contract_address, function_selector, parameter)
-            .await
+        self.trigger_constant_contract_with_owner(DEFAULT_OWNER_ADDRESS, contract_address, function_selector, parameter).await
     }
 
-    pub async fn trigger_constant_contract_with_owner(
-        &self,
-        owner_address: &str,
-        contract_address: &str,
-        function_selector: &str,
-        parameter: &str,
-    ) -> Result<String, Box<dyn Error + Send + Sync>> {
+    pub async fn trigger_constant_contract_with_owner(&self, owner_address: &str, contract_address: &str, function_selector: &str, parameter: &str) -> Result<String, Box<dyn Error + Send + Sync>> {
         let request = TriggerConstantContractRequest {
             owner_address: owner_address.to_owned(),
             contract_address: contract_address.to_string(),
@@ -135,37 +128,25 @@ impl<C: Client> TronClient<C> {
     }
 
     pub async fn get_account(&self, address: &str) -> Result<TronAccount, Box<dyn Error + Send + Sync>> {
-        let request = TronAccountRequest {
-            address: address.to_string(),
-            visible: true,
-        };
+        let request = TronAccountRequest { address: address.to_string(), visible: true };
 
         Ok(self.client.post(TronTarget::GetAccount, &request).await?)
     }
 
     pub async fn get_account_usage(&self, address: &str) -> Result<TronAccountUsage, Box<dyn Error + Send + Sync>> {
-        let request = TronAccountRequest {
-            address: address.to_string(),
-            visible: true,
-        };
+        let request = TronAccountRequest { address: address.to_string(), visible: true };
 
         Ok(self.client.post(TronTarget::GetAccountResource, &request).await?)
     }
 
     pub async fn get_reward(&self, address: &str) -> Result<TronReward, Box<dyn Error + Send + Sync>> {
-        let request = TronAccountRequest {
-            address: address.to_string(),
-            visible: true,
-        };
+        let request = TronAccountRequest { address: address.to_string(), visible: true };
 
         Ok(self.client.post(TronTarget::GetReward, &request).await?)
     }
 
     pub async fn is_new_account(&self, address: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        let request = TronAccountRequest {
-            address: address.to_string(),
-            visible: true,
-        };
+        let request = TronAccountRequest { address: address.to_string(), visible: true };
 
         let account: TronEmptyAccount = self.client.post(TronTarget::GetAccount, &request).await?;
         Ok(account.address.is_none_or(|addr| addr.is_empty()))
@@ -180,13 +161,7 @@ impl<C: Client> TronClient<C> {
         Ok(self.client.post(TronTarget::GetNowBlock, &NowBlockRequest {}).await?)
     }
 
-    pub async fn estimate_trc20_transfer_gas(
-        &self,
-        sender_address: String,
-        contract_address: String,
-        recipient_address: String,
-        value: String,
-    ) -> Result<u64, Box<dyn Error + Send + Sync>> {
+    pub async fn estimate_trc20_transfer_gas(&self, sender_address: String, contract_address: String, recipient_address: String, value: String) -> Result<u64, Box<dyn Error + Send + Sync>> {
         let value_bigint = BigUint::from_str(&value).map_err(|e| format!("Failed to parse value as decimal: {}", e))?;
         let value_hex = format!("{:0>64}", hex::encode(value_bigint.to_bytes_be()));
         let parameter = format!("{}{}", recipient_address, value_hex);
@@ -214,10 +189,7 @@ mod tests {
     async fn test_estimate_trc20_transfer_gas_uses_total_energy_and_surfaces_errors() {
         let mock = MockClient::new().with_post(|_, _| Ok(include_str!("../../testdata/trigger_constant_contract_with_penalty.json").as_bytes().to_vec()));
         let client = TronClient::new(mock);
-        let energy = client
-            .estimate_trc20_transfer_gas("Tsender".to_string(), "Tusdt".to_string(), "0".repeat(64), "1000000".to_string())
-            .await
-            .unwrap();
+        let energy = client.estimate_trc20_transfer_gas("Tsender".to_string(), "Tusdt".to_string(), "0".repeat(64), "1000000".to_string()).await.unwrap();
         assert_eq!(energy, 64285);
 
         let mock = MockClient::new().with_post(|_, _| Ok(include_str!("../../testdata/trigger_constant_contract_failed.json").as_bytes().to_vec()));
@@ -241,10 +213,7 @@ mod tests {
 
         // For 1000000 (decimal), the hex should be f4240 padded to 64 chars
         assert_eq!(value_hex, "00000000000000000000000000000000000000000000000000000000000f4240");
-        assert_eq!(
-            parameter,
-            "0000000000000000000000003e1451cdb84d440345de6195b0384d1b77aa4eaa00000000000000000000000000000000000000000000000000000000000f4240"
-        );
+        assert_eq!(parameter, "0000000000000000000000003e1451cdb84d440345de6195b0384d1b77aa4eaa00000000000000000000000000000000000000000000000000000000000f4240");
     }
 
     #[test]

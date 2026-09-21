@@ -3,9 +3,7 @@ use num_bigint::BigUint;
 use primitives::{Address, DelegationValidator, SignerError, SignerInput, StakeType, chain_cosmos::CosmosChain};
 
 use crate::address::CosmosAddress;
-use crate::constants::{
-    MESSAGE_DELEGATE, MESSAGE_EXECUTE_CONTRACT, MESSAGE_IBC_TRANSFER, MESSAGE_REDELEGATE, MESSAGE_REWARD_BETA, MESSAGE_SEND, MESSAGE_SEND_BETA, MESSAGE_UNDELEGATE,
-};
+use crate::constants::{MESSAGE_DELEGATE, MESSAGE_EXECUTE_CONTRACT, MESSAGE_IBC_TRANSFER, MESSAGE_REDELEGATE, MESSAGE_REWARD_BETA, MESSAGE_SEND, MESSAGE_SEND_BETA, MESSAGE_UNDELEGATE};
 use crate::models::{Coin, CosmosMessage};
 
 pub const COSMOS_SECP256K1_PUBKEY_TYPE: &str = "/cosmos.crypto.secp256k1.PubKey";
@@ -66,9 +64,7 @@ fn encode_send(chain: CosmosChain, from_address: &str, to_address: &str, amount:
             let parse = |addr: &str| CosmosAddress::try_parse(addr).ok_or_else(|| SignerError::invalid_input(format!("invalid cosmos address: {addr}")));
             [encode_bytes_field(1, parse(from_address)?.as_bytes()), encode_bytes_field(2, parse(to_address)?.as_bytes())].concat()
         }
-        CosmosChain::Cosmos | CosmosChain::Osmosis | CosmosChain::Celestia | CosmosChain::Injective | CosmosChain::Sei | CosmosChain::Noble => {
-            [encode_string_field(1, from_address), encode_string_field(2, to_address)].concat()
-        }
+        CosmosChain::Cosmos | CosmosChain::Osmosis | CosmosChain::Celestia | CosmosChain::Injective | CosmosChain::Sei | CosmosChain::Noble => [encode_string_field(1, from_address), encode_string_field(2, to_address)].concat(),
     };
     Ok([address_fields, coin_fields].concat())
 }
@@ -216,10 +212,7 @@ impl CosmosMessage {
                 encode_message_field(4, &encode_coin(&amount.denom, &amount.amount)),
             ]
             .concat()),
-            Self::WithdrawDelegatorReward {
-                delegator_address,
-                validator_address,
-            } => Ok([encode_string_field(1, delegator_address), encode_string_field(2, validator_address)].concat()),
+            Self::WithdrawDelegatorReward { delegator_address, validator_address } => Ok([encode_string_field(1, delegator_address), encode_string_field(2, validator_address)].concat()),
         }
     }
 

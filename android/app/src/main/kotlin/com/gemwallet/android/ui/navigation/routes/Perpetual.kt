@@ -2,6 +2,7 @@ package com.gemwallet.android.ui.navigation.routes
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
+import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
 import com.gemwallet.android.features.perpetual.views.market.PerpetualMarketNavScreen
 import com.gemwallet.android.features.perpetual.views.position.PerpetualPositionNavScreen
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
@@ -12,7 +13,6 @@ import com.gemwallet.android.ui.navigation.routeArguments
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.TransactionId
 import kotlinx.serialization.Serializable
-import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
 
 @Serializable
 data object PerpetualRoute : NavKey

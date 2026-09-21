@@ -7,8 +7,8 @@ import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.RecentAsset
 import com.gemwallet.android.model.RecentAssetsRequest
-import com.wallet.core.primitives.RecentActivityType
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.RecentActivityType
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -19,27 +19,17 @@ import javax.inject.Singleton
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Singleton
-class RecentAssetsService @Inject constructor(
-    private val assetsDao: AssetsDao,
-    private val getCurrentWalletId: GetCurrentWalletId,
-) {
+class RecentAssetsService @Inject constructor(private val assetsDao: AssetsDao, private val getCurrentWalletId: GetCurrentWalletId) {
 
-    suspend fun addRecentActivity(
-        assetId: AssetId,
-        walletId: String,
-        type: RecentActivityType,
-        toAssetId: AssetId? = null,
-    ) {
-        return assetsDao.addRecentActivity(
-            DbRecentActivity(
-                assetId = assetId.toIdentifier(),
-                walletId = walletId,
-                toAssetId = toAssetId?.toIdentifier(),
-                type = type,
-                addedAt = System.currentTimeMillis(),
-            )
-        )
-    }
+    suspend fun addRecentActivity(assetId: AssetId, walletId: String, type: RecentActivityType, toAssetId: AssetId? = null) = assetsDao.addRecentActivity(
+        DbRecentActivity(
+            assetId = assetId.toIdentifier(),
+            walletId = walletId,
+            toAssetId = toAssetId?.toIdentifier(),
+            type = type,
+            addedAt = System.currentTimeMillis(),
+        ),
+    )
 
     fun getRecentAssets(request: RecentAssetsRequest): Flow<List<RecentAsset>> {
         return getCurrentWalletId()

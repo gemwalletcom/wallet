@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = Activo no admitido.
 errors_connections_no_supported_wallets = No hay billeteras compatibles disponibles.
 errors_connections_unsupported_chain = La cadena proporcionada no es compatible.
 errors_swap_amount_too_small = Cantidad demasiado pequeña
-errors_required = %@ es obligatorio
 errors_scan_transaction_malicious_description = Esta transacción no se puede completar: la dirección de la billetera de destino está vinculada a actividades sospechosas o dañinas.
 errors_scan_transaction_memo_required = %@ La dirección de la billetera de destino requiere una etiqueta/nota de destino.
 errors_scan_transaction_malicious_title = Actividad sospechosa
@@ -315,7 +314,7 @@ asset_symbol = Símbolo
 asset_decimals = Decimales
 asset_token_id = ID del token
 asset_contract = Contrato
-asset_state_empty_title = Tus transacciones aparecerán aquí️
+asset_state_empty_title = Tus transacciones aparecerán aquí
 asset_state_empty_description = Recibir, intercambiar o comprar %@
 asset_verification_unverified = No verificado
 asset_verification_suspicious = Sospechoso
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = Cuando el precio disminuye en
 price_alerts_set_alert_set_target_price = Establecer precio objetivo
 price_alerts_set_alert_current_price = Precio actual
 price_alerts_added_for = Establecer alerta de precio %@
-price_alerts_state_empty_title = Tus alertas aparecerán aquí️
+price_alerts_state_empty_title = Tus alertas aparecerán aquí
 price_alerts_state_empty_description = Habilítelos agregando monedas para realizar un seguimiento
 price_alerts_auto_footer = Las alertas se activan ante movimientos de precios significativos.
 price_alerts_set_alert_title = Establecer alerta de precio
@@ -536,7 +535,7 @@ verify_phrase_title = Confirmar
 
 # Warnings
 
-warnings_multi_signature_blocked = No transfiera fondos a esta billetera multifirma %@ a menos que esté seguro de que controla las claves privadas. Si no lo hace, podría exponerse a estafas y perder sus activos de forma permanente.
+warnings_externally_controlled_account = Esta cuenta de %@ puede estar controlada por otra persona. No envíe fondos a ella a menos que esté seguro de que la controla, o podría perder sus activos de forma permanente.
 
 # Sell
 
@@ -600,7 +599,7 @@ nft_collections = Colecciones
 nft_collection = Colección
 nft_save_to_photos = Guardar en Fotos
 nft_set_as_avatar = Establecer como avatar
-nft_state_empty_title = Tus NFT aparecerán aquí️
+nft_state_empty_title = Tus NFT aparecerán aquí
 nft_state_empty_description = Recibe tu primer NFT
 nft_report_reason_spam = Spam
 nft_report_reason_malicious = Malicioso

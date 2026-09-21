@@ -12,21 +12,15 @@ import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 
 @Composable
-fun StakeScreen(
-    amountAction: AmountTransactionAction,
-    onConfirm: ConfirmTransactionAction,
-    onDelegation: (String, String) -> Unit,
-    onCancel: () -> Unit,
-    viewModel: StakeViewModel = hiltViewModel()
-) {
+fun StakeScreen(amountAction: AmountTransactionAction, onConfirm: ConfirmTransactionAction, onDelegation: (String, String) -> Unit, onCancel: () -> Unit, viewModel: StakeViewModel = hiltViewModel()) {
     val inSync by viewModel.isSync.collectAsStateWithLifecycle()
     val assetInfo by viewModel.assetInfo.collectAsStateWithLifecycle()
     val delegations by viewModel.delegations.collectAsStateWithLifecycle()
     val actions by viewModel.actionRows.collectAsStateWithLifecycle()
-    val rewardsText by viewModel.rewardsText.collectAsStateWithLifecycle()
     val stakeInfoUrl by viewModel.stakeInfoUrl.collectAsStateWithLifecycle()
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val infoRows by viewModel.infoRows.collectAsStateWithLifecycle()
+    val loadError by viewModel.loadError.collectAsStateWithLifecycle()
 
     val stakeAssetInfo = assetInfo
     if (stakeAssetInfo == null) {
@@ -39,10 +33,10 @@ fun StakeScreen(
             inSync = inSync,
             assetInfo = stakeAssetInfo,
             actions = actions,
-            rewardsText = rewardsText,
             stakeInfoUrl = stakeInfoUrl,
             sections = sections,
             infoRows = infoRows,
+            loadError = loadError,
             amountAction = amountAction,
             onAction = { action ->
                 when (action) {

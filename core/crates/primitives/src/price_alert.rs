@@ -147,6 +147,7 @@ pub struct PriceAlertData {
     pub asset: Asset,
     pub price: Option<Price>,
     pub price_alert: PriceAlert,
+    pub rank_score: i32,
 }
 
 #[cfg(test)]
@@ -159,36 +160,22 @@ mod tests {
     fn test_generate_id() {
         let eth = AssetId::from_chain(Chain::Ethereum);
         assert_eq!(PriceAlert::generate_id(&eth, &Currency::USD, None, None, None), "ethereum");
-        assert_eq!(
-            PriceAlert::generate_id(&eth, &Currency::USD, Some(100.0), None, Some(&PriceAlertDirection::Up)),
-            "ethereum_USD_100_up"
-        );
-        assert_eq!(
-            PriceAlert::generate_id(&eth, &Currency::USD, Some(1.12344), None, Some(&PriceAlertDirection::Down)),
-            "ethereum_USD_1.12344_down"
-        );
-        assert_eq!(
-            PriceAlert::generate_id(&eth, &Currency::USD, None, Some(5.0), Some(&PriceAlertDirection::Up)),
-            "ethereum_USD_5_up"
-        );
-        assert_eq!(
-            PriceAlert::generate_id(&eth, &Currency::USD, None, Some(10_000.10), Some(&PriceAlertDirection::Down)),
-            "ethereum_USD_10000.1_down"
-        );
+        assert_eq!(PriceAlert::generate_id(&eth, &Currency::USD, Some(100.0), None, Some(&PriceAlertDirection::Up)), "ethereum_USD_100_up");
+        assert_eq!(PriceAlert::generate_id(&eth, &Currency::USD, Some(1.12344), None, Some(&PriceAlertDirection::Down)), "ethereum_USD_1.12344_down");
+        assert_eq!(PriceAlert::generate_id(&eth, &Currency::USD, None, Some(5.0), Some(&PriceAlertDirection::Up)), "ethereum_USD_5_up");
+        assert_eq!(PriceAlert::generate_id(&eth, &Currency::USD, None, Some(10_000.10), Some(&PriceAlertDirection::Down)), "ethereum_USD_10000.1_down");
+        assert_eq!(PriceAlert::generate_id(&eth, &Currency::USD, Some(1.0), None, Some(&PriceAlertDirection::Up)), "ethereum_USD_1_up");
+        assert_eq!(PriceAlert::generate_id(&eth, &Currency::USD, None, Some(0.23), None), "ethereum_USD_0.23");
+        assert_eq!(PriceAlert::generate_id(&eth, &Currency::USD, Some(50_000.01), None, None), "ethereum_USD_50000.01");
+        assert_eq!(PriceAlert::generate_id(&eth, &Currency::USD, Some(0.001234567), None, None), "ethereum_USD_0.001234567");
     }
 
     #[test]
     fn test_new_auto_price_percent() {
         let eth = AssetId::from_chain(Chain::Ethereum);
         assert_eq!(PriceAlert::new_auto(eth.clone(), Currency::USD).identifier, "ethereum");
-        assert_eq!(
-            PriceAlert::new_price(eth.clone(), Currency::USD, 100.0, PriceAlertDirection::Up).identifier,
-            "ethereum_USD_100_up"
-        );
-        assert_eq!(
-            PriceAlert::new_price_percent(eth, Currency::USD, 5.0, PriceAlertDirection::Down).identifier,
-            "ethereum_USD_5_down"
-        );
+        assert_eq!(PriceAlert::new_price(eth.clone(), Currency::USD, 100.0, PriceAlertDirection::Up).identifier, "ethereum_USD_100_up");
+        assert_eq!(PriceAlert::new_price_percent(eth, Currency::USD, 5.0, PriceAlertDirection::Down).identifier, "ethereum_USD_5_down");
     }
 
     #[test]

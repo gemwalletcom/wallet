@@ -80,7 +80,7 @@ class GenerateWalletIdTest {
             Chain.Arbitrum to "arbitrum",
             Chain.Optimism to "optimism",
             Chain.Base to "base",
-            Chain.Tron to "tron"
+            Chain.Tron to "tron",
         )
 
         chains.forEach { (chain, expectedChainString) ->
@@ -118,7 +118,7 @@ class GenerateWalletIdTest {
         val accounts = listOf(
             mockAccount(chain = Chain.Bitcoin, address = "btc123"),
             mockAccount(chain = Chain.Ethereum, address = "eth123"),
-            mockAccount(chain = Chain.Solana, address = "sol123")
+            mockAccount(chain = Chain.Solana, address = "sol123"),
         )
         val result = generator.getPriorityAccount(accounts)
         assertEquals(Chain.Ethereum, result?.chain)
@@ -130,7 +130,7 @@ class GenerateWalletIdTest {
         val accounts = listOf(
             mockAccount(chain = Chain.Bitcoin, address = "btc123"),
             mockAccount(chain = Chain.Ethereum, address = "eth_first"),
-            mockAccount(chain = Chain.Ethereum, address = "eth_second")
+            mockAccount(chain = Chain.Ethereum, address = "eth_second"),
         )
         val result = generator.getPriorityAccount(accounts)
         assertEquals("eth_first", result?.address)
@@ -141,7 +141,7 @@ class GenerateWalletIdTest {
         val accounts = listOf(
             mockAccount(chain = Chain.Bitcoin, address = "btc123"),
             mockAccount(chain = Chain.Solana, address = "sol123"),
-            mockAccount(chain = Chain.Polygon, address = "poly123")
+            mockAccount(chain = Chain.Polygon, address = "poly123"),
         )
         val result = generator.getPriorityAccount(accounts)
         assertEquals(Chain.Bitcoin, result?.chain)
@@ -153,7 +153,7 @@ class GenerateWalletIdTest {
         val accounts = listOf(
             mockAccount(chain = Chain.Ethereum, address = "eth123"),
             mockAccount(chain = Chain.Bitcoin, address = "btc123"),
-            mockAccount(chain = Chain.Solana, address = "sol123")
+            mockAccount(chain = Chain.Solana, address = "sol123"),
         )
         val result = generator.getPriorityAccount(accounts)
         assertEquals(Chain.Ethereum, result?.chain)
@@ -165,7 +165,7 @@ class GenerateWalletIdTest {
         val accounts = listOf(
             mockAccount(chain = Chain.Bitcoin, address = "btc123"),
             mockAccount(chain = Chain.Solana, address = "sol123"),
-            mockAccount(chain = Chain.Ethereum, address = "eth123")
+            mockAccount(chain = Chain.Ethereum, address = "eth123"),
         )
         val result = generator.getPriorityAccount(accounts)
         assertEquals(Chain.Ethereum, result?.chain)
@@ -175,7 +175,7 @@ class GenerateWalletIdTest {
     @Test
     fun `getPriorityAccount handles single Ethereum account`() {
         val accounts = listOf(
-            mockAccount(chain = Chain.Ethereum, address = "eth123")
+            mockAccount(chain = Chain.Ethereum, address = "eth123"),
         )
         val result = generator.getPriorityAccount(accounts)
         assertEquals(Chain.Ethereum, result?.chain)
@@ -185,7 +185,7 @@ class GenerateWalletIdTest {
     @Test
     fun `getPriorityAccount handles single non-Ethereum account`() {
         val accounts = listOf(
-            mockAccount(chain = Chain.Bitcoin, address = "btc123")
+            mockAccount(chain = Chain.Bitcoin, address = "btc123"),
         )
         val result = generator.getPriorityAccount(accounts)
         assertEquals(Chain.Bitcoin, result?.chain)

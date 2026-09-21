@@ -35,18 +35,10 @@ mod tests {
 
     #[test]
     fn test_only_chains_that_order_by_gas_price_offer_a_fast_rate() {
-        let priorities = |chain| {
-            calculate_fee_rates(chain, BigInt::from(1_000))
-                .into_iter()
-                .map(|rate| (rate.priority, rate.gas_price_type.gas_price()))
-                .collect::<Vec<_>>()
-        };
+        let priorities = |chain| calculate_fee_rates(chain, BigInt::from(1_000)).into_iter().map(|rate| (rate.priority, rate.gas_price_type.gas_price())).collect::<Vec<_>>();
 
         for chain in [CosmosChain::Cosmos, CosmosChain::Osmosis, CosmosChain::Celestia, CosmosChain::Sei, CosmosChain::Injective] {
-            assert_eq!(
-                priorities(chain),
-                vec![(FeePriority::Normal, BigInt::from(1_000)), (FeePriority::Fast, BigInt::from(2_000))]
-            );
+            assert_eq!(priorities(chain), vec![(FeePriority::Normal, BigInt::from(1_000)), (FeePriority::Fast, BigInt::from(2_000))]);
         }
 
         for chain in [CosmosChain::Noble, CosmosChain::Thorchain, CosmosChain::Mayachain] {

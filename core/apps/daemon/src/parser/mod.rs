@@ -36,14 +36,7 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn new(
-        provider: Box<dyn ChainTraits>,
-        stream_producer: StreamProducer,
-        database: Database,
-        parser_metrics: Arc<ParserMetrics>,
-        options: ParserOptions,
-        shutdown_rx: ShutdownReceiver,
-    ) -> Self {
+    pub fn new(provider: Box<dyn ChainTraits>, stream_producer: StreamProducer, database: Database, parser_metrics: Arc<ParserMetrics>, options: ParserOptions, shutdown_rx: ShutdownReceiver) -> Self {
         let chain = provider.get_chain();
         let state_service = ParserStateService::new(chain, database);
         let reporter = ParserReporter::new(chain, parser_metrics);
@@ -222,12 +215,7 @@ pub async fn run(settings: Settings, chain: Option<Chain>, health_state: Arc<Hea
     let chains: Vec<Chain> = if let Some(chain) = chain {
         vec![chain]
     } else {
-        database
-            .parser_state()?
-            .get_parser_states()?
-            .into_iter()
-            .flat_map(|x| Chain::from_str(x.chain.as_ref()))
-            .collect()
+        database.parser_state()?.get_parser_states()?.into_iter().flat_map(|x| Chain::from_str(x.chain.as_ref())).collect()
     };
 
     let chain_names = chains.iter().map(Chain::as_ref).collect::<Vec<_>>().join(",");
@@ -284,14 +272,7 @@ pub async fn run(settings: Settings, chain: Option<Chain>, health_state: Arc<Hea
     Ok(())
 }
 
-async fn run_parser(
-    database: Database,
-    parser_metrics: Arc<ParserMetrics>,
-    stream_producer: StreamProducer,
-    provider: Box<dyn ChainTraits>,
-    options: ParserOptions,
-    shutdown_rx: ShutdownReceiver,
-) {
+async fn run_parser(database: Database, parser_metrics: Arc<ParserMetrics>, stream_producer: StreamProducer, provider: Box<dyn ChainTraits>, options: ParserOptions, shutdown_rx: ShutdownReceiver) {
     let chain = provider.get_chain();
     let timeout = options.timeout;
 

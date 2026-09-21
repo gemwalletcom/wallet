@@ -16,24 +16,15 @@ import TransferTestKit
 struct ReceiveViewModelTests {
     private let bitcoin = Primitives.Asset.mock(id: .mock(.bitcoin))
     private let ethereum = Primitives.Asset.mock(id: .mock(.ethereum))
-
-    private func settle(until condition: () -> Bool = { false }) async {
-        for _ in 0 ..< 200 {
-            await Task.yield()
-            if condition() {
-                return
-            }
-            try? await Task.sleep(for: .milliseconds(5))
-        }
-    }
+    private let solana = Primitives.Asset.mock(id: .mock(.solana))
 
     @Test
     func theNetworksComeFromCore() {
         let service = GemReceiveServiceMock()
-        service.networkAssetIdsValue = [bitcoin.id.identifier, ethereum.id.identifier]
+        service.networksValue = GemReceiveNetworks(assetIds: [bitcoin.id.identifier, ethereum.id.identifier], showsSelector: true)
         let model = ReceiveViewModel.mock(service: service)
 
-        #expect(model.networkAssetIds == [bitcoin.id, ethereum.id])
+        #expect(model.networks.assetIds == [bitcoin.id.identifier, ethereum.id.identifier])
         #expect(model.showNetworkSelector)
     }
 
@@ -62,32 +53,13 @@ struct ReceiveViewModelTests {
     }
 
     @Test
-    func openingTheSceneEnablesTheAssetAndSyncsItsNetworks() async {
+    func showingTheSceneEnablesTheAssetItShows() async {
         let service = GemReceiveServiceMock()
-        service.syncedNetworkAssetIdsResult = .success([bitcoin.id.identifier, ethereum.id.identifier])
         let model = ReceiveViewModel.mock(service: service)
-        #expect(model.showNetworkSelector == false)
 
-        model.onTaskOnce()
-        await settle(until: { model.showNetworkSelector })
+        await model.onChangeAsset()
 
         #expect(service.enabledAssetIds == [bitcoin.id.identifier])
-        #expect(service.syncedAssetIds == [bitcoin.id.identifier])
-        #expect(model.networkAssetIds == [bitcoin.id, ethereum.id])
-    }
-
-    @Test
-    func aFailedNetworkSyncKeepsTheStoredNetworks() async {
-        let service = GemReceiveServiceMock()
-        service.networkAssetIdsValue = [bitcoin.id.identifier, ethereum.id.identifier]
-        service.syncedNetworkAssetIdsResult = .failure(AnyError("offline"))
-        let model = ReceiveViewModel.mock(service: service)
-
-        model.onTaskOnce()
-        await settle(until: { !service.syncedAssetIds.isEmpty })
-
-        #expect(model.networkAssetIds == [bitcoin.id, ethereum.id])
-        #expect(model.isPresentingAlertMessage == nil)
     }
 
     @Test
@@ -96,8 +68,7 @@ struct ReceiveViewModelTests {
         service.enableAssetError = AnyError("offline")
         let model = ReceiveViewModel.mock(service: service)
 
-        model.onTaskOnce()
-        await settle()
+        await model.onChangeAsset()
 
         #expect(model.isPresentingAlertMessage == nil)
     }
@@ -106,16 +77,16 @@ struct ReceiveViewModelTests {
     func pickingTheSameNetworkChangesNothing() async {
         let service = GemReceiveServiceMock()
         let model = ReceiveViewModel.mock(service: service)
-        let address = model.addressShort
+        let address = model.copyModel.content.display
 
         model.onSelectNetwork()
         #expect(model.presentation == .networkSelector)
 
         model.onFinishNetworkSelection([ReceiveNetworkItem(assetId: bitcoin.id)])
-        await settle()
+        await model.selectNetworkTask?.value
 
         #expect(model.presentation == nil)
-        #expect(model.addressShort == address)
+        #expect(model.copyModel.content.display == address)
         #expect(service.requestedAssetIds.isEmpty)
     }
 
@@ -126,12 +97,29 @@ struct ReceiveViewModelTests {
         let model = ReceiveViewModel.mock(service: service)
 
         model.onFinishNetworkSelection([ReceiveNetworkItem(assetId: ethereum.id)])
-        await settle(until: { !service.enabledAssetIds.isEmpty })
+        await model.selectNetworkTask?.value
+        await model.onChangeAsset()
 
         #expect(service.requestedAssetIds == [ethereum.id.identifier])
         #expect(model.assetModel.asset.chain == .ethereum)
         #expect(model.address == "0xabc")
         #expect(service.enabledAssetIds == [ethereum.id.identifier])
+    }
+
+    @Test
+    func aSlowerNetworkSwapDoesNotReplaceTheOneChosenAfterIt() async {
+        let service = GemReceiveServiceMock()
+        service.assetsById = [ethereum.id.identifier: ethereum.toGem(), solana.id.identifier: solana.toGem()]
+        let model = ReceiveViewModel.mock(service: service)
+
+        model.onFinishNetworkSelection([ReceiveNetworkItem(assetId: ethereum.id)])
+        model.onFinishNetworkSelection([ReceiveNetworkItem(assetId: solana.id)])
+        await model.selectNetworkTask?.value
+        await model.onChangeAsset()
+
+        #expect(model.assetModel.asset.chain == .solana)
+        #expect(model.address == "So1ana")
+        #expect(service.enabledAssetIds == [solana.id.identifier], "the network the user left is not enabled behind their back")
     }
 
     @Test
@@ -141,7 +129,7 @@ struct ReceiveViewModelTests {
         let model = ReceiveViewModel.mock(service: service)
 
         model.onFinishNetworkSelection([ReceiveNetworkItem(assetId: ethereum.id)])
-        await settle(until: { model.isPresentingAlertMessage != nil })
+        await model.selectNetworkTask?.value
 
         #expect(model.isPresentingAlertMessage?.message == "asset is gone")
         #expect(model.assetModel.asset.chain == .bitcoin)

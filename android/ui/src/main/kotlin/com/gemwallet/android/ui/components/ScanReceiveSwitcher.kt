@@ -1,12 +1,12 @@
 package com.gemwallet.android.ui.components
 
-import com.gemwallet.android.ui.localization.stringRes
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.ui.localization.stringRes
 import com.wallet.core.primitives.ScanReceiveMode
 
 @Composable

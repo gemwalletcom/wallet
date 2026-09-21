@@ -7,9 +7,7 @@ import com.wallet.core.primitives.NFTImages
 import com.wallet.core.primitives.NFTResource
 import com.wallet.core.primitives.VerificationStatus
 
-fun mockNftCollection(
-    id: NFTCollectionId = mockNftCollectionId(),
-) = NFTCollection(
+fun mockNftCollection(id: NFTCollectionId = mockNftCollectionId()) = NFTCollection(
     id = id,
     name = id.toIdentifier(),
     description = null,

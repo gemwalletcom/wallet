@@ -34,28 +34,34 @@ class TestAssetId {
         assertEquals(AssetId(Chain.Ethereum, "0xABSDEEF"), jsonEncoder.decodeFromString<AssetId>("ethereum_0xABSDEEF"))
         assertEquals(
             AssetId(Chain.Ethereum),
-            jsonEncoder.decodeFromString<AssetId>("""
+            jsonEncoder.decodeFromString<AssetId>(
+                """
                 {
                   "chain": "Ethereum"
                 }
-            """.trimIndent())
+                """.trimIndent(),
+            ),
         )
         assertEquals(
             AssetId(Chain.Ethereum, "0xABSDEEF"),
-            jsonEncoder.decodeFromString<AssetId>("""
+            jsonEncoder.decodeFromString<AssetId>(
+                """
                 {
                   "chain": "Ethereum",
                   "tokenId": "0xABSDEEF"
                 }
-            """.trimIndent())
+                """.trimIndent(),
+            ),
         )
         try {
-            jsonEncoder.decodeFromString<AssetId>("""
+            jsonEncoder.decodeFromString<AssetId>(
+                """
                 {
                   "chain": "FooChain",
                   "tokenId": "0xABSDEEF"
                 }
-            """.trimIndent())
+                """.trimIndent(),
+            )
             assertTrue(false)
         } catch (err: Throwable) {
             assertTrue(err is IOException)

@@ -1,10 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitivesTestKit
-import GemstoneServicesTestKit
 @testable import Contacts
+import GemstoneServicesTestKit
 import ContactsTestKit
+import class Gemstone.GemChainService
 import GemstonePrimitives
+import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesTestKit
 import Testing
@@ -49,7 +50,7 @@ struct ManageContactAddressViewModelTests {
         let model = ManageContactAddressViewModel.mock()
         model.addressInputModel.text = "john"
 
-        model.addressInputModel.nameRecordViewModel.state = .loading(name: "john")
+        model.addressInputModel.nameRecordViewModel.state = .loading(name: "john", chain: Chain.ethereum.toGem())
         #expect(model.buttonState == .disabled)
 
         model.addressInputModel.nameRecordViewModel.state = .error
@@ -60,5 +61,24 @@ struct ManageContactAddressViewModelTests {
 
         model.onSelectChain(.bitcoin)
         #expect(model.addressInputModel.nameRecordViewModel.state == .none)
+    }
+
+    @Test
+    func aPaymentUriFillsTheAddressAndMemo() {
+        let model = ManageContactAddressViewModel.mock()
+
+        model.onScan("ripple:rLpq5RcRzA5FLmVp8jZmdvfMiRZ2xtVvZK?dt=5")
+
+        #expect(model.addressInputModel.text == "rLpq5RcRzA5FLmVp8jZmdvfMiRZ2xtVvZK")
+        #expect(model.memo == "5")
+    }
+
+    @Test
+    func theNetworkPickerFollowsCoreChainOrder() {
+        let model = ManageContactAddressViewModel.mock()
+        let chains = GemChainService.shared.getChains(query: .empty).map { Chain(core: $0) }
+
+        #expect(model.networkSelectorModel.state.value?.items == chains)
+        #expect(chains != Chain.allCases)
     }
 }

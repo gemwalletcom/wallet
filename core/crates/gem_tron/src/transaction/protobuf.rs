@@ -217,11 +217,7 @@ fn contract_value(contract: &TronContract) -> Vec<u8> {
             },
         }
         .encode(),
-        TronContract::UnfreezeBalanceV2 {
-            owner,
-            unfreeze_balance,
-            resource,
-        } => UnfreezeBalanceV2Contract {
+        TronContract::UnfreezeBalanceV2 { owner, unfreeze_balance, resource } => UnfreezeBalanceV2Contract {
             owner_address: Some(owner.as_bytes().to_vec()),
             unfreeze_balance: (*unfreeze_balance > 0).then_some(*unfreeze_balance),
             resource: {
@@ -249,12 +245,7 @@ fn contract_value(contract: &TronContract) -> Vec<u8> {
             lock_period: (*lock_period > 0).then_some(*lock_period),
         }
         .encode(),
-        TronContract::UnDelegateResource {
-            owner,
-            receiver,
-            balance,
-            resource,
-        } => DelegateResourceContract {
+        TronContract::UnDelegateResource { owner, receiver, balance, resource } => DelegateResourceContract {
             owner_address: Some(owner.as_bytes().to_vec()),
             receiver_address: Some(receiver.as_bytes().to_vec()),
             balance: (*balance > 0).then_some(*balance),

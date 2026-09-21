@@ -1,7 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Formatters
-import GemstonePrimitives
 import Style
 import SwiftUI
 import WidgetKit

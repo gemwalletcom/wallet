@@ -68,9 +68,7 @@ pub struct TransactionCoin {
 
 impl TransactionCoin {
     pub fn native_value(&self, chain: Chain) -> Option<BigUint> {
-        let decimals = self
-            .decimals
-            .or_else(|| if self.is_native_asset() { Some(Asset::from_chain(chain).decimals) } else { None })?;
+        let decimals = self.decimals.or_else(|| if self.is_native_asset() { Some(Asset::from_chain(chain).decimals) } else { None })?;
         Some(value_to(&self.amount, decimals).magnitude().clone())
     }
 
@@ -155,11 +153,7 @@ impl TransactionStatus {
             return None;
         }
 
-        let real_out = self
-            .out_txs
-            .as_ref()
-            .and_then(|txs| txs.iter().find(|x| x.id != ZERO_HASH && !x.id.is_empty()))
-            .and_then(|tx| tx.coins.first());
+        let real_out = self.out_txs.as_ref().and_then(|txs| txs.iter().find(|x| x.id != ZERO_HASH && !x.id.is_empty())).and_then(|tx| tx.coins.first());
         if real_out.is_some() {
             return real_out;
         }
@@ -175,20 +169,13 @@ impl TransactionStatus {
             return None;
         }
 
-        let confirmation = self
-            .stages
-            .inbound_confirmation_counted
-            .as_ref()
-            .and_then(|stage| stage.remaining_confirmation_seconds)
-            .unwrap_or_default();
+        let confirmation = self.stages.inbound_confirmation_counted.as_ref().and_then(|stage| stage.remaining_confirmation_seconds).unwrap_or_default();
         let outbound = self.stages.outbound_delay.as_ref().and_then(|stage| stage.remaining_delay_seconds).unwrap_or_default();
         confirmation.checked_add(outbound).filter(|seconds| *seconds > 0)
     }
 
     fn is_refunded(&self) -> bool {
-        self.planned_out_txs
-            .as_ref()
-            .is_some_and(|transactions| !transactions.is_empty() && transactions.iter().all(|transaction| transaction.refund))
+        self.planned_out_txs.as_ref().is_some_and(|transactions| !transactions.is_empty() && transactions.iter().all(|transaction| transaction.refund))
     }
 }
 
@@ -236,10 +223,7 @@ impl InboundAddressesExt for [InboundAddress] {
             return Ok(None);
         }
 
-        self.iter()
-            .find(|address| address.chain == asset.chain.long_name())
-            .map(Some)
-            .ok_or(SwapperError::InvalidRoute)
+        self.iter().find(|address| address.chain == asset.chain.long_name()).map(Some).ok_or(SwapperError::InvalidRoute)
     }
 }
 
@@ -304,9 +288,7 @@ impl ErrorResponse {
 
 impl ProviderErrorResponse for ErrorResponse {
     fn into_swapper_error(self) -> Option<SwapperError> {
-        self.is_input_amount_error().then(|| SwapperError::InputAmountError {
-            min_amount: self.parse_min_amount(),
-        })
+        self.is_input_amount_error().then(|| SwapperError::InputAmountError { min_amount: self.parse_min_amount() })
     }
 }
 
@@ -323,12 +305,7 @@ mod tests {
             body: br#"{"code":3,"message":"amount less than min swap amount, recommended_min_amount_in: 100000","details":[]}"#.to_vec(),
         }
         .decode_body::<ErrorResponse>();
-        assert_eq!(
-            SwapperError::from(error),
-            SwapperError::InputAmountError {
-                min_amount: Some("100000".to_string())
-            }
-        );
+        assert_eq!(SwapperError::from(error), SwapperError::InputAmountError { min_amount: Some("100000".to_string()) });
     }
 
     #[test]
@@ -375,10 +352,7 @@ mod tests {
         assert_eq!(bitcoin_address.chain, "BTC");
         assert!(bitcoin_address.is_swap_available());
         assert!(inbound_addresses.inbound_address_for_asset(THORChainNetwork::Thorchain, &rune).unwrap().is_none());
-        assert_eq!(
-            inbound_addresses.inbound_address_for_asset(THORChainNetwork::Thorchain, &ethereum).unwrap_err(),
-            SwapperError::InvalidRoute
-        );
+        assert_eq!(inbound_addresses.inbound_address_for_asset(THORChainNetwork::Thorchain, &ethereum).unwrap_err(), SwapperError::InvalidRoute);
     }
 
     #[test]
@@ -465,9 +439,7 @@ mod tests {
         status.stages.outbound_delay = None;
         assert_eq!(status.eta_in_seconds(), None);
 
-        status.stages.inbound_confirmation_counted = Some(InboundConfirmationStage {
-            remaining_confirmation_seconds: Some(0),
-        });
+        status.stages.inbound_confirmation_counted = Some(InboundConfirmationStage { remaining_confirmation_seconds: Some(0) });
         status.stages.outbound_delay = Some(OutboundDelayStage { remaining_delay_seconds: Some(0) });
         assert_eq!(status.eta_in_seconds(), None);
 
@@ -505,19 +477,10 @@ mod tests {
         assert_eq!(coin("ZEC.ZEC").asset_id(THORChainNetwork::Mayachain), Some(Chain::Zcash.as_asset_id()));
         assert_eq!(coin("ARB.ETH").asset_id(THORChainNetwork::Mayachain), Some(Chain::Arbitrum.as_asset_id()));
         assert_eq!(coin("ARB.ETH").asset_id(THORChainNetwork::Thorchain), None);
-        assert_eq!(
-            coin("ETH.USDT-0XDAC17F958D2EE523A2206206994597C13D831EC7").asset_id(THORChainNetwork::Thorchain),
-            Some(ETHEREUM_USDT_ASSET_ID.clone())
-        );
-        assert_eq!(
-            coin(&format!("TRON.USDT-{TRON_USDT_TOKEN_ID}")).asset_id(THORChainNetwork::Thorchain),
-            Some(TRON_USDT_ASSET_ID.clone())
-        );
+        assert_eq!(coin("ETH.USDT-0XDAC17F958D2EE523A2206206994597C13D831EC7").asset_id(THORChainNetwork::Thorchain), Some(ETHEREUM_USDT_ASSET_ID.clone()));
+        assert_eq!(coin(&format!("TRON.USDT-{TRON_USDT_TOKEN_ID}")).asset_id(THORChainNetwork::Thorchain), Some(TRON_USDT_ASSET_ID.clone()));
         assert_eq!(coin("THOR.TCY").asset_id(THORChainNetwork::Thorchain), Some(THORCHAIN_TCY_ASSET_ID.clone()));
-        assert_eq!(
-            coin("ETH.UNKNOWN-0x1234567890abcdef1234567890abcdef12345678").asset_id(THORChainNetwork::Thorchain),
-            None
-        );
+        assert_eq!(coin("ETH.UNKNOWN-0x1234567890abcdef1234567890abcdef12345678").asset_id(THORChainNetwork::Thorchain), None);
         assert_eq!(coin("INVALID").asset_id(THORChainNetwork::Thorchain), None);
     }
 
@@ -552,9 +515,7 @@ mod tests {
 
     #[test]
     fn test_quote_swap_response() {
-        let response: QuoteSwapResponse =
-            serde_json::from_str(r#"{"expected_amount_out":"42","recommended_min_amount_in":"50570","inbound_address":null,"router":null,"fees":{},"total_swap_seconds":null}"#)
-                .unwrap();
+        let response: QuoteSwapResponse = serde_json::from_str(r#"{"expected_amount_out":"42","recommended_min_amount_in":"50570","inbound_address":null,"router":null,"fees":{},"total_swap_seconds":null}"#).unwrap();
 
         assert_eq!(response.recommended_min_amount_in, BigInt::from(50570));
     }

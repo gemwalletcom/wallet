@@ -61,13 +61,7 @@ impl MessageConsumer<AssetId, bool> for FetchAssetStatusConsumer {
                     (provider, Some(result.is_malicious))
                 }
                 Err(error) => {
-                    error_with_fields!(
-                        "asset status fetch failed",
-                        error.as_ref(),
-                        provider = provider,
-                        chain = target.chain.as_ref(),
-                        token_id = target.token_id.as_str()
-                    );
+                    error_with_fields!("asset status fetch failed", error.as_ref(), provider = provider, chain = target.chain.as_ref(), token_id = target.token_id.as_str());
                     (provider, None)
                 }
             })

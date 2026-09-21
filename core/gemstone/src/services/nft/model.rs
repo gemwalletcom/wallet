@@ -1,11 +1,15 @@
 use chrono::{DateTime, Utc};
-use primitives::{AssetLink, BlockExplorerLink, Chain, NFTAssetData, NFTData, VerificationStatus};
+use primitives::{NFTAssetData, NFTData, VerificationStatus};
+
+use crate::config::social::GemSocialLink;
+use crate::models::list::GemListRow;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemNftList {
     Collections,
     Unverified,
     Collection,
+    Avatar,
 }
 
 #[allow(clippy::large_enum_variant)]
@@ -16,11 +20,16 @@ pub enum GemNftItem {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemNftUnverifiedRow {
+    pub count_text: String,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemNftRow {
     pub id: String,
     pub title: String,
     pub image_url: String,
-    pub count: Option<u32>,
+    pub count_text: Option<String>,
     pub is_verified: bool,
 }
 
@@ -32,30 +41,24 @@ pub fn nft_rows(items: Vec<GemNftItem>) -> Vec<GemNftRow> {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemCollectibleDetails {
     pub can_send: bool,
+    pub actions: Vec<GemCollectibleAction>,
     pub sections: Vec<GemCollectibleSection>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemCollectibleAction {
+    SaveImage,
+    SetAvatar,
+    Refresh,
+    Report,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemCollectibleSection {
     Status { status: VerificationStatus },
-    Info { rows: Vec<GemCollectibleRow> },
+    Info { rows: Vec<GemListRow> },
     Attributes { attributes: Vec<GemCollectibleAttribute> },
-    Links { links: Vec<AssetLink> },
-}
-
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
-pub enum GemCollectibleRow {
-    Collection { name: String },
-    Network { chain: Chain },
-    Contract { identifier: GemCollectibleIdentifier },
-    TokenId { identifier: GemCollectibleIdentifier },
-}
-
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemCollectibleIdentifier {
-    pub value: String,
-    pub text: String,
-    pub explorer: Option<BlockExplorerLink>,
+    Links { links: Vec<GemSocialLink> },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

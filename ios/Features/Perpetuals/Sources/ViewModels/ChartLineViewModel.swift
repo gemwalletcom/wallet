@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitives
 import struct Gemstone.GemPerpetualChartLine
+import GemstonePrimitives
 import Style
 import SwiftUI
 

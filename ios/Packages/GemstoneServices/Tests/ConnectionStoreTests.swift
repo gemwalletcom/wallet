@@ -2,12 +2,12 @@
 
 import Foundation
 import GemstonePrimitives
+@testable import GemstoneServices
 import Primitives
 import PrimitivesTestKit
 import Store
 import StoreTestKit
 import Testing
-@testable import GemstoneServices
 
 struct ConnectionStoreTests {
     @Test

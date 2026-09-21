@@ -5,10 +5,7 @@ import uniffi.gemstone.GemConfirmSimulation
 import uniffi.gemstone.GemConfirmSimulationState
 import uniffi.gemstone.GemSimulationBalanceChange
 
-fun mockGemConfirmSimulationState(
-    chain: Chain = Chain.Ethereum,
-    balanceChanges: List<GemSimulationBalanceChange>? = null,
-) = GemConfirmSimulationState(
+fun mockGemConfirmSimulationState(chain: Chain = Chain.Ethereum, balanceChanges: List<GemSimulationBalanceChange>? = null) = GemConfirmSimulationState(
     chain = chain.string,
     result = null,
     warnings = emptyList(),
@@ -21,5 +18,4 @@ fun mockGemConfirmSimulationState(
             hasCriticalWarning = false,
         )
     },
-    addressNames = emptyList(),
 )

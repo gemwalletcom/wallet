@@ -16,13 +16,7 @@ import com.wallet.core.primitives.AssetId
 private const val AssetsGroupHeaderKeyPrefix = "assets_group_header"
 
 @OptIn(ExperimentalFoundationApi::class)
-internal fun LazyListScope.assets(
-    items: List<AssetInfoDataAggregate>,
-    longPressState: MutableState<AssetId?>,
-    group: AssetsGroupType,
-    onAssetClick: (AssetId) -> Unit,
-    actions: AssetContextActions,
-) {
+internal fun LazyListScope.assets(items: List<AssetInfoDataAggregate>, longPressState: MutableState<AssetId?>, group: AssetsGroupType, onAssetClick: (AssetId) -> Unit, actions: AssetContextActions) {
     if (items.isEmpty()) return
 
     item(key = "$AssetsGroupHeaderKeyPrefix-${group.name}") { PinnedAssetsHeaderItem(group) }

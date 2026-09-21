@@ -78,4 +78,3 @@ extension AssetsFilterScene {
         isPresentingChains.toggle()
     }
 }
-

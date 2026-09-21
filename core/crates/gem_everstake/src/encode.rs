@@ -38,10 +38,7 @@ mod tests {
 
     #[test]
     fn test_encode_stake() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let params = encode_stake(
-            &StakeType::Stake(mock_delegation(DelegationState::Active).validator),
-            &BigInt::from(1_000_000_000_000_000_000u64),
-        )?;
+        let params = encode_stake(&StakeType::Stake(mock_delegation(DelegationState::Active).validator), &BigInt::from(1_000_000_000_000_000_000u64))?;
         assert_eq!(params.to, EVERSTAKE_POOL_ADDRESS);
         assert_eq!(hex::encode(&params.data), "3a29dbae0000000000000000000000000000000000000000000000000000000000000017");
         assert_eq!(params.value, BigInt::from(1_000_000_000_000_000_000u64));

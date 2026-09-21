@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitives
-import struct Gemstone.GemConfirmMetadata
-import protocol Gemstone.GemConfirmationProtocol
-import enum Gemstone.TransactionInputType
-import struct Gemstone.GemSwapQuoteSummary
-import func Gemstone.perpetualDetails
-import func Gemstone.swapQuoteSummary
 import BigInt
 import Components
+import protocol Gemstone.GemConfirmationProtocol
+import struct Gemstone.GemConfirmMetadata
+import struct Gemstone.GemSwapQuoteSummary
+import func Gemstone.perpetualConfirmDetails
+import func Gemstone.swapQuoteSummary
+import enum Gemstone.TransactionInputType
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Swap
@@ -53,9 +53,9 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
             )
         case let .perpetual(_, perpetualType):
             if case let .modify(data) = perpetualType {
-                return .perpetualModifyPosition(PerpetualModifyViewModel(summary: confirmation.autocloseSummary(data: data)))
+                return .perpetualModifyPosition(confirmation.autocloseRow(data: data))
             }
-            guard let details = perpetualDetails(perpetualType: perpetualType) else { return .empty }
+            guard let details = perpetualConfirmDetails(perpetualType: perpetualType) else { return .empty }
             return .perpetualDetails(PerpetualDetailsViewModel(details: details))
         case .transfer,
              .deposit,

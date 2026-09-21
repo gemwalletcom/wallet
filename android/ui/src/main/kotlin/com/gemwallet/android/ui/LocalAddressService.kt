@@ -1,8 +1,8 @@
 package com.gemwallet.android.ui
 
 import androidx.compose.runtime.staticCompositionLocalOf
-import uniffi.gemstone.GemAddressService
+import uniffi.gemstone.GemAddressServiceInterface
 
-val LocalAddressService = staticCompositionLocalOf<GemAddressService> {
+val LocalAddressService = staticCompositionLocalOf<GemAddressServiceInterface> {
     error("LocalAddressService is not provided")
 }

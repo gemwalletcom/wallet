@@ -1,25 +1,25 @@
 package com.gemwallet.android.data.coordinators.update
 
-import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.update.cases.ObserveAppUpdateOffer
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.application.update.cases.SyncAppUpdate
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AppUpdateChannel
 import com.gemwallet.android.model.AppUpdateOffer
 import com.gemwallet.android.model.BuildInfo
 import com.wallet.core.primitives.PlatformStore
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAppUpdateService
 import uniffi.gemstone.GemAppUpdateServiceInterface
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
-class AppUpdateCoordinator(
-    private val appUpdateService: GemAppUpdateServiceInterface,
-    private val buildInfo: BuildInfo,
-) : SyncAppUpdate, ObserveAppUpdateOffer, SkipAppUpdate {
+class AppUpdateCoordinator(private val appUpdateService: GemAppUpdateServiceInterface, private val buildInfo: BuildInfo) :
+    SyncAppUpdate,
+    ObserveAppUpdateOffer,
+    SkipAppUpdate {
 
     private val offer = MutableStateFlow<AppUpdateOffer?>(null)
 

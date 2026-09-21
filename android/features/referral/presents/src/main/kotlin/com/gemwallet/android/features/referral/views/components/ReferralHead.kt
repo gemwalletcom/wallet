@@ -26,13 +26,7 @@ import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 
-internal fun LazyListScope.referralHead(
-    joinPointsCost: Int,
-    canInvite: Boolean,
-    hasCode: Boolean,
-    onGetStarted: () -> Unit,
-    onShare: () -> Unit,
-) {
+internal fun LazyListScope.referralHead(joinPointsCost: String, canInvite: Boolean, hasCode: Boolean, onGetStarted: () -> Unit, onShare: () -> Unit) {
     item {
         Column(
             modifier = Modifier
@@ -45,22 +39,22 @@ internal fun LazyListScope.referralHead(
             Text("\uD83C\uDF81", fontSize = 64.sp)
             Text(
                 text = parseMarkdownToAnnotatedString(
-                    markdown = stringResource(R.string.rewards_invite_friends_title)
+                    markdown = stringResource(R.string.rewards_invite_friends_title),
                 ),
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.headlineSmall
+                style = MaterialTheme.typography.headlineSmall,
             )
             Text(
                 text = parseMarkdownToAnnotatedString(
                     markdown = stringResource(
                         R.string.rewards_invite_friends_description,
-                        "**$joinPointsCost**"
-                    )
+                        "**$joinPointsCost**",
+                    ),
                 ),
                 color = MaterialTheme.colorScheme.secondary,
                 style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -70,23 +64,23 @@ internal fun LazyListScope.referralHead(
                 Column(
                     modifier = Modifier.weight(1f),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(paddingHalfSmall)
+                    verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),
                 ) {
                     Text(
                         text = "\uD83D\uDC65",
-                        fontSize = 26.sp
+                        fontSize = 26.sp,
                     )
                     Text(
                         text = stringResource(R.string.rewards_invite_friends_title),
                         color = MaterialTheme.colorScheme.secondary,
                         style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
                     )
                 }
                 Column(
                     modifier = Modifier.weight(1f),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(paddingHalfSmall)
+                    verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),
                 ) {
                     Text(
                         text = "\uD83D\uDC8E",
@@ -96,23 +90,23 @@ internal fun LazyListScope.referralHead(
                         text = stringResource(R.string.rewards_earn_points_title),
                         color = MaterialTheme.colorScheme.secondary,
                         style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
                     )
                 }
                 Column(
                     modifier = Modifier.weight(1f),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(paddingHalfSmall)
+                    verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),
                 ) {
                     Text(
                         text = "\uD83C\uDF89",
-                        fontSize = 26.sp
+                        fontSize = 26.sp,
                     )
                     Text(
                         text = stringResource(R.string.rewards_get_rewards_title),
                         color = MaterialTheme.colorScheme.secondary,
                         style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
                     )
                 }
             }
@@ -121,8 +115,9 @@ internal fun LazyListScope.referralHead(
                     title = stringResource(R.string.common_get_started),
                     onClick = onGetStarted,
                 )
+
                 canInvite -> MainActionButton(
-                    onClick = onShare
+                    onClick = onShare,
                 ) {
                     Icon(AppIcons.Share, contentDescription = "share")
                     Spacer8()

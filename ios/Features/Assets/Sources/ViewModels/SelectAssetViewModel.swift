@@ -2,7 +2,9 @@
 
 import Components
 import Foundation
+import func Gemstone.addressCopy
 import protocol Gemstone.GemAssetSelectionServiceProtocol
+import class Gemstone.GemPerpetual
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import struct Gemstone.GemSelectAssetFlow
 import enum Gemstone.GemSelectAssetState
@@ -15,7 +17,6 @@ import Recents
 import Store
 import Style
 import SwiftUI
-import class Gemstone.GemPerpetual
 
 @Observable
 @MainActor
@@ -84,7 +85,6 @@ public final class SelectAssetViewModel {
         AssetsSections.from(assets, showsPopular: flow.popularSection)
     }
 
-
     var showPopularSection: Bool {
         sections.popular.isNotEmpty
     }
@@ -142,7 +142,7 @@ public final class SelectAssetViewModel {
     }
 
     var assetItems: ListAssetItemsViewModel {
-        ListAssetItemsViewModel(currency: currency, row: flow.row)
+        ListAssetItemsViewModel(currency: currency, rowStyle: flow.rowStyle)
     }
 
     var currency: Currency {
@@ -165,13 +165,13 @@ extension SelectAssetViewModel {
         }
     }
 
-    func handleAction(assetId: AssetId, enabled: Bool) async {
+    func setAssetEnabled(assetId: AssetId, enabled: Bool) async {
         switch flow.rowAction {
         case .toggle:
             do {
                 try await service.setAssetsEnabled(assetIds: [assetId.identifier], enabled: enabled)
             } catch {
-                debugLog("SelectAssetViewModel handleAction error: \(error)")
+                debugLog("SelectAssetViewModel set asset enabled error: \(error)")
             }
         case .navigate, .select:
             break
@@ -196,17 +196,14 @@ extension SelectAssetViewModel {
         switch action {
         case let .switcher(enabled):
             Task {
-                await handleAction(assetId: asset.id, enabled: enabled)
+                await setAssetEnabled(assetId: asset.id, enabled: enabled)
             }
         case .copy:
             let address = assetData.account.address
-            copyTypeViewModel = CopyTypeViewModel(
-                type: .address(asset, address: address),
-                copyValue: address,
-            )
+            copyTypeViewModel = CopyTypeViewModel(content: addressCopy(chain: asset.chain.toGem(), address: address))
             isPresentingCopyToast = true
             Task {
-                await handleAction(assetId: asset.id, enabled: true)
+                await setAssetEnabled(assetId: asset.id, enabled: true)
             }
         }
     }
@@ -232,7 +229,7 @@ extension SelectAssetViewModel {
     public func onSelectRecent(_ asset: Asset) {
         switch flow.rowAction {
         case .navigate:
-            assetSelection = SelectAssetInput(type: selectType, assetData: assetData(for: asset))
+            assetSelection = assetData(for: asset).map { SelectAssetInput(type: selectType, assetData: $0) }
         case .select:
             onSelectAssetAction?(asset)
         case .toggle:
@@ -266,12 +263,12 @@ extension SelectAssetViewModel {
         }
     }
 
-    private func assetData(for asset: Asset) -> AssetData {
+    private func assetData(for asset: Asset) -> AssetData? {
         if let assetData = assets.first(where: { $0.asset.id == asset.id }) {
             return assetData
         }
         guard let account = try? wallet.account(for: asset.chain) else {
-            return .with(asset: asset)
+            return nil
         }
         return .with(asset: asset, account: account)
     }
@@ -279,9 +276,11 @@ extension SelectAssetViewModel {
     private func searchAssets(query: String) async {
         do {
             let assets = try await service.searchAssets(query: query).map { $0.toPrimitives() }
+            guard flow.searchStep(query: searchableQuery) == .search(query: query) else { return }
             state = .data(assets)
         } catch {
-            handle(error: error)
+            guard flow.searchStep(query: searchableQuery) == .search(query: query) else { return }
+            showError(error)
         }
     }
 
@@ -289,11 +288,11 @@ extension SelectAssetViewModel {
         do {
             try await service.setPriceAlert(assetId: assetId.identifier, enabled: enabled)
         } catch {
-            handle(error: error)
+            showError(error)
         }
     }
 
-    private func handle(error: any Error) {
+    private func showError(_ error: any Error) {
         state.setError(error)
         debugLog("SelectAssetScene scene error: \(error)")
     }

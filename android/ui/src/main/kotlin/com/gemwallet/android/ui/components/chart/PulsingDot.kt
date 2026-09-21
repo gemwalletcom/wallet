@@ -37,11 +37,7 @@ private object PulseAlpha {
 }
 
 @Composable
-fun PulsingDot(
-    color: Color,
-    modifier: Modifier = Modifier,
-    dotSize: Dp = space8,
-) {
+fun PulsingDot(color: Color, modifier: Modifier = Modifier, dotSize: Dp = space8) {
     val containerSize = dotSize * PulseMetrics.CONTAINER_SCALE
     val transition = rememberInfiniteTransition(label = "pulse")
 
@@ -77,14 +73,7 @@ fun PulsingDot(
     }
 }
 
-private fun DrawScope.drawPulseRing(
-    center: Offset,
-    dotRadius: Float,
-    strokeWidth: Float,
-    color: Color,
-    progress: Float,
-    maxScale: Float,
-) {
+private fun DrawScope.drawPulseRing(center: Offset, dotRadius: Float, strokeWidth: Float, color: Color, progress: Float, maxScale: Float) {
     val eased = easeOutQuad(progress)
     val scale = 1f + (maxScale - 1f) * eased
     val alpha = PulseAlpha.RING_STROKE * PulseAlpha.RING_OPACITY * (1f - eased)

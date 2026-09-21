@@ -7,12 +7,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.models.ListPosition
 
 @Composable
-fun SwitchProperty(
-    text: String,
-    checked: Boolean,
-    listPosition: ListPosition = ListPosition.Single,
-    onCheckedChange: (Boolean) -> Unit,
-) {
+fun SwitchProperty(text: String, checked: Boolean, listPosition: ListPosition = ListPosition.Single, onCheckedChange: (Boolean) -> Unit) {
     PropertyItem(
         title = { PropertyTitleText(text) },
         data = {

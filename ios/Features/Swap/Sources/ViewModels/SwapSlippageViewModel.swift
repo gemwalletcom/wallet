@@ -2,7 +2,6 @@
 
 import Formatters
 import Foundation
-import class Gemstone.Config
 import struct Gemstone.GemNumberFormat
 import enum Gemstone.GemSlippageCheck
 import enum Gemstone.GemSlippageSelection
@@ -18,7 +17,6 @@ import PrimitivesComponents
 @MainActor
 @Observable
 public final class SwapSlippageViewModel {
-
     private let service: any GemSwapQuoteServiceProtocol
     private let onSelect: (SwapSlippage) -> Void
 
@@ -30,7 +28,6 @@ public final class SwapSlippageViewModel {
     public init(service: any GemSwapQuoteServiceProtocol, chain: Chain, slippage: SwapSlippage, onSelect: @escaping (SwapSlippage) -> Void) {
         self.service = service
         self.onSelect = onSelect
-        let config = Config.shared.swapConfig()
         placeholder = Self.format(bps: service.defaultSlippage(chain: chain.rawValue).bps, service: service)
         let input: String
         switch slippage {
@@ -41,16 +38,7 @@ public final class SwapSlippageViewModel {
             isAuto = false
             input = Self.format(bps: value, service: service)
         }
-        inputModel = InputValidationViewModel(
-            mode: .onDemand,
-            validators: [
-                SwapSlippageValidator(
-                    service: service,
-                    minimumText: Self.format(bps: config.minSlippageBps, service: service),
-                    maximumText: Self.format(bps: config.maxSlippageBps, service: service),
-                ),
-            ],
-        )
+        inputModel = InputValidationViewModel(mode: .onDemand)
         inputModel.text = input
     }
 
@@ -71,7 +59,12 @@ public final class SwapSlippageViewModel {
     }
 
     var errorText: String? {
-        inputModel.error?.localizedDescription
+        guard Self.bps(from: inputModel.text, service: service) != nil else { return nil }
+        let state = viewState
+        return state.check.errorText(
+            minimumText: Self.format(bps: state.minimumBps, service: service),
+            maximumText: Self.format(bps: state.maximumBps, service: service),
+        )
     }
 
     private var viewState: GemSlippageViewState {
@@ -83,7 +76,7 @@ public final class SwapSlippageViewModel {
     }
 
     var warningText: String? {
-        guard inputModel.isValid, viewState.showsWarning else { return nil }
+        guard errorText == nil, viewState.showsWarning else { return nil }
         return Localized.Swap.slippageWarning
     }
 
@@ -118,31 +111,6 @@ public final class SwapSlippageViewModel {
     }
 
     private static func format(bps: UInt32, service: any GemSwapQuoteServiceProtocol) -> String {
-        service.slippagePercent(bps: bps).formatted(.number.precision(.fractionLength(0 ... 2)))
-    }
-}
-
-private struct SwapSlippageValidator: TextValidator {
-    private let service: any GemSwapQuoteServiceProtocol
-    private let minimumText: String
-    private let maximumText: String
-
-    init(service: any GemSwapQuoteServiceProtocol, minimumText: String, maximumText: String) {
-        self.service = service
-        self.minimumText = minimumText
-        self.maximumText = maximumText
-    }
-
-    func validate(_ text: String) throws {
-        guard let bps = SwapSlippageViewModel.bps(from: text, service: service) else { return }
-        switch service.slippageCheck(bps: bps) {
-        case .valid, .high: return
-        case .belowMinimum: throw AnyError(Localized.Common.minimumValue("\(minimumText)%"))
-        case .aboveMaximum: throw AnyError(Localized.Common.maximumValue("\(maximumText)%"))
-        }
-    }
-
-    var id: String {
-        "SwapSlippageValidator"
+        service.slippagePercentText(bps: bps, format: NumberInput.format())
     }
 }

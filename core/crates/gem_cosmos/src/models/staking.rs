@@ -1,11 +1,38 @@
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
-use serde_serializers::deserialize_f64_from_str;
+use serde_serializers::{deserialize_biguint_from_str, deserialize_f64_from_str};
 
-use super::account::Balance;
+use super::account::{Balance, Page, Pagination};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Delegations {
     pub delegation_responses: Vec<Delegation>,
+    #[serde(default)]
+    pub pagination: Option<Pagination>,
+}
+
+impl Page for Delegations {
+    type Item = Delegation;
+
+    fn into_items(self) -> Vec<Delegation> {
+        self.delegation_responses
+    }
+
+    fn next_page_key(&self) -> Option<String> {
+        Pagination::key(&self.pagination)
+    }
+}
+
+impl Page for UnbondingDelegations {
+    type Item = UnbondingDelegation;
+
+    fn into_items(self) -> Vec<UnbondingDelegation> {
+        self.unbonding_responses
+    }
+
+    fn next_page_key(&self) -> Option<String> {
+        Pagination::key(&self.pagination)
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -22,6 +49,8 @@ pub struct DelegationData {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UnbondingDelegations {
     pub unbonding_responses: Vec<UnbondingDelegation>,
+    #[serde(default)]
+    pub pagination: Option<Pagination>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -34,8 +63,8 @@ pub struct UnbondingDelegation {
 pub struct UnbondingDelegationEntry {
     pub completion_time: String,
     pub creation_height: String,
-    #[serde(deserialize_with = "deserialize_f64_from_str")]
-    pub balance: f64,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub balance: BigUint,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

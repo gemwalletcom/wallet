@@ -18,9 +18,7 @@ impl IpSecurityClient {
     }
 
     pub async fn check_ip(&self, ip_address: &str) -> Result<IpCheckResult, Box<dyn Error + Send + Sync>> {
-        self.cacher
-            .get_or_set_cached(CacheKey::ReferralIpCheck(ip_address), || async { self.check_ip_with_fallback(ip_address).await })
-            .await
+        self.cacher.get_or_set_cached(CacheKey::ReferralIpCheck(ip_address), || async { self.check_ip_with_fallback(ip_address).await }).await
     }
 
     async fn check_ip_with_fallback(&self, ip_address: &str) -> Result<IpCheckResult, Box<dyn Error + Send + Sync>> {

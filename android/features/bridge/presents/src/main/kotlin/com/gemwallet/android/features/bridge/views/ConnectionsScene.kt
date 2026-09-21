@@ -45,11 +45,7 @@ import uniffi.gemstone.DocsUrl
 import uniffi.gemstone.GemConnection
 
 @Composable
-fun ConnectionsScene(
-    onConnection: (String) -> Unit,
-    onCancel: () -> Unit,
-    viewModel: ConnectionsViewModel = hiltViewModel()
-) {
+fun ConnectionsScene(onConnection: (String) -> Unit, onCancel: () -> Unit, viewModel: ConnectionsViewModel = hiltViewModel()) {
     val clipboardManager = LocalContext.current.clipboardManager()
     var scannerShowed by remember { mutableStateOf(false) }
 
@@ -78,7 +74,7 @@ fun ConnectionsScene(
                         viewModel.addPairing(
                             clipboardManager.getPlainText() ?: return@clickable,
                             { scope.launch { snackbar.showSnackbar(connectionToastText, R.drawable.ic_check_circle) } },
-                            { pairError = it }
+                            { pairError = it },
                         )
                     },
                 )
@@ -118,11 +114,11 @@ fun ConnectionsScene(
 
     if (pairError.isNotEmpty()) {
         AlertDialog(
-            onDismissRequest = {  pairError = "" },
+            onDismissRequest = { pairError = "" },
             confirmButton = {
                 Button(onClick = { pairError = "" }) { Text(text = stringResource(id = R.string.common_done)) }
             },
-            text = { Text(text = pairError) }
+            text = { Text(text = pairError) },
         )
     }
 }

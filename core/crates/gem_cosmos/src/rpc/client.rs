@@ -1,12 +1,12 @@
 use std::error::Error;
 
 use crate::constants::get_base_fee;
-use crate::models::account::Balances;
-use crate::models::staking::{Delegations, Rewards, UnbondingDelegations};
+use crate::models::account::{Balance, Balances, Page};
+use crate::models::staking::{Delegation, Delegations, Rewards, UnbondingDelegation, UnbondingDelegations};
 use crate::models::{Account, AccountResponse, BroadcastRequest, BroadcastResponse, InjectiveAccount};
 use crate::models::{
-    AnnualProvisionsResponse, BaseFeeResponse, BlockResponse, FeemarketGasPriceResponse, InflationResponse, InjectiveBaseFeeResponse, OsmosisEpochProvisionsResponse,
-    OsmosisMintParamsResponse, SmartQueryResponse, StakingPoolResponse, SupplyResponse, TransactionResponse, TransactionsResponse, ValidatorsResponse,
+    AnnualProvisionsResponse, BaseFeeResponse, BlockResponse, FeemarketGasPriceResponse, InflationResponse, InjectiveBaseFeeResponse, OsmosisEpochProvisionsResponse, OsmosisMintParamsResponse, SmartQueryResponse, StakingPoolResponse,
+    SupplyResponse, TransactionResponse, TransactionsResponse, ValidatorsResponse,
 };
 use crate::provider::state_mapper::map_transfer_fee;
 use crate::rpc::target::CosmosTarget;
@@ -57,28 +57,14 @@ impl<C: Client> CosmosClient<C> {
 
         let inbound_query = format!("message.sender='{address}'");
         let outbound_query = format!("message.recipient='{address}'");
-        let (inbound, outbound) = futures::try_join!(
-            self.get_transactions_by_query(key, &inbound_query, limit),
-            self.get_transactions_by_query(key, &outbound_query, limit),
-        )?;
+        let (inbound, outbound) = futures::try_join!(self.get_transactions_by_query(key, &inbound_query, limit), self.get_transactions_by_query(key, &outbound_query, limit),)?;
         let responses = inbound.tx_responses.into_iter().chain(outbound.tx_responses).collect::<Vec<_>>();
         let txs = inbound.txs.into_iter().chain(outbound.txs).collect::<Vec<_>>();
-        Ok(responses
-            .into_iter()
-            .zip(txs)
-            .map(|(response, tx)| TransactionResponse { tx, tx_response: response })
-            .collect::<Vec<_>>())
+        Ok(responses.into_iter().zip(txs).map(|(response, tx)| TransactionResponse { tx, tx_response: response }).collect::<Vec<_>>())
     }
 
     pub async fn get_transactions_by_query(&self, key: &'static str, filter: &str, limit: usize) -> Result<TransactionsResponse, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .client
-            .get(CosmosTarget::GetTransactions {
-                key,
-                filter: filter.to_string(),
-                limit,
-            })
-            .await?)
+        Ok(self.client.get(CosmosTarget::GetTransactions { key, filter: filter.to_string(), limit }).await?)
     }
 
     pub async fn get_validators(&self) -> Result<ValidatorsResponse, Box<dyn Error + Send + Sync>> {
@@ -113,16 +99,30 @@ impl<C: Client> CosmosClient<C> {
         Ok(self.client.get(CosmosTarget::GetOsmosisEpochProvisions).await?)
     }
 
-    pub async fn get_balances(&self, address: &str) -> Result<Balances, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(CosmosTarget::GetBalances { address: address.to_string() }).await?)
+    pub async fn get_balances(&self, address: &str) -> Result<Vec<Balance>, Box<dyn Error + Send + Sync>> {
+        self.get_all_pages::<Balances>(|page_key| CosmosTarget::GetBalances { address: address.to_string(), page_key }).await
     }
 
-    pub async fn get_delegations(&self, address: &str) -> Result<Delegations, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(CosmosTarget::GetDelegations { address: address.to_string() }).await?)
+    async fn get_all_pages<P: Page + DeserializeOwned + Send>(&self, target: impl Fn(Option<String>) -> CosmosTarget) -> Result<Vec<P::Item>, Box<dyn Error + Send + Sync>> {
+        let mut items = Vec::new();
+        let mut page_key: Option<String> = None;
+        loop {
+            let requested = page_key.clone();
+            let page: P = self.client.get(target(page_key)).await?;
+            page_key = page.next_page_key();
+            items.extend(page.into_items());
+            if page_key.is_none() || page_key == requested {
+                return Ok(items);
+            }
+        }
     }
 
-    pub async fn get_unbonding_delegations(&self, address: &str) -> Result<UnbondingDelegations, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(CosmosTarget::GetUnbondingDelegations { address: address.to_string() }).await?)
+    pub async fn get_delegations(&self, address: &str) -> Result<Vec<Delegation>, Box<dyn Error + Send + Sync>> {
+        self.get_all_pages::<Delegations>(|page_key| CosmosTarget::GetDelegations { address: address.to_string(), page_key }).await
+    }
+
+    pub async fn get_unbonding_delegations(&self, address: &str) -> Result<Vec<UnbondingDelegation>, Box<dyn Error + Send + Sync>> {
+        self.get_all_pages::<UnbondingDelegations>(|page_key| CosmosTarget::GetUnbondingDelegations { address: address.to_string(), page_key }).await
     }
 
     pub async fn get_delegation_rewards(&self, address: &str) -> Result<Rewards, Box<dyn Error + Send + Sync>> {
@@ -215,5 +215,54 @@ mod tests {
 
         assert_eq!(transactions.len(), 0);
         assert_eq!(request_count.load(Ordering::SeqCst), 2);
+    }
+
+    #[tokio::test]
+    async fn test_balances_are_read_until_the_last_page() {
+        let requested = Arc::new(std::sync::Mutex::new(Vec::new()));
+        let requested_by_client = requested.clone();
+        let client = MockClient::new().with_get(move |path| {
+            requested_by_client.lock().unwrap().push(path.to_string());
+            let body = match path.contains("pagination.key") {
+                false => r#"{"balances":[{"denom":"uatom","amount":"1"}],"pagination":{"next_key":"cGFnZSB0d28="}}"#,
+                true => r#"{"balances":[{"denom":"uosmo","amount":"2"}],"pagination":{"next_key":null}}"#,
+            };
+            Ok(body.as_bytes().to_vec())
+        });
+
+        let balances = CosmosClient::new(CosmosChain::Cosmos, client).get_balances("cosmos1").await.unwrap();
+
+        assert_eq!(balances.iter().map(|balance| balance.denom.as_str()).collect::<Vec<_>>(), vec!["uatom", "uosmo"]);
+        assert_eq!(
+            *requested.lock().unwrap(),
+            vec!["/cosmos/bank/v1beta1/balances/cosmos1".to_string(), "/cosmos/bank/v1beta1/balances/cosmos1?pagination.key=cGFnZSB0d28%3D".to_string()]
+        );
+    }
+
+    #[tokio::test]
+    async fn test_a_page_that_cannot_be_read_fails_the_whole_read() {
+        let client = MockClient::new().with_get(move |path| match path.contains("pagination.key") {
+            false => Ok(r#"{"balances":[{"denom":"uatom","amount":"1"}],"pagination":{"next_key":"cGFnZSB0d28="}}"#.as_bytes().to_vec()),
+            true => Err(gem_client::ClientError::Network("page two is gone".to_string())),
+        });
+
+        let result = CosmosClient::new(CosmosChain::Cosmos, client).get_balances("cosmos1").await;
+
+        assert!(result.is_err(), "a partial read must not be published as the whole balance");
+    }
+
+    #[tokio::test]
+    async fn test_a_cursor_that_never_advances_stops_the_read() {
+        let request_count = Arc::new(AtomicUsize::new(0));
+        let request_count_for_client = request_count.clone();
+        let client = MockClient::new().with_get(move |_| {
+            request_count_for_client.fetch_add(1, Ordering::SeqCst);
+            Ok(r#"{"balances":[{"denom":"uatom","amount":"1"}],"pagination":{"next_key":"c3R1Y2s="}}"#.as_bytes().to_vec())
+        });
+
+        let balances = CosmosClient::new(CosmosChain::Cosmos, client).get_balances("cosmos1").await.unwrap();
+
+        assert_eq!(balances.len(), 2);
+        assert_eq!(request_count.load(Ordering::SeqCst), 2, "a repeated cursor ends the read instead of looping forever");
     }
 }

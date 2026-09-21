@@ -83,12 +83,7 @@ impl TransactionBuilder {
         })
     }
 
-    pub fn build_v0_transaction(
-        fee_payer: Pubkey,
-        recent_blockhash: [u8; 32],
-        instructions: &[Instruction],
-        address_lookup_tables: &[AddressLookupTableAccount],
-    ) -> Result<VersionedTransaction> {
+    pub fn build_v0_transaction(fee_payer: Pubkey, recent_blockhash: [u8; 32], instructions: &[Instruction], address_lookup_tables: &[AddressLookupTableAccount]) -> Result<VersionedTransaction> {
         let mut builder = Self::new(fee_payer, recent_blockhash);
         builder.add_instructions(instructions.iter().cloned());
         builder.build_v0(address_lookup_tables)
@@ -96,9 +91,7 @@ impl TransactionBuilder {
 }
 
 fn program_first_accounts(instructions: &[Instruction]) -> impl Iterator<Item = AccountMeta> + '_ {
-    instructions
-        .iter()
-        .flat_map(|instruction| once(AccountMeta::new_readonly(instruction.program_id)).chain(instruction.accounts.iter().cloned()))
+    instructions.iter().flat_map(|instruction| once(AccountMeta::new_readonly(instruction.program_id)).chain(instruction.accounts.iter().cloned()))
 }
 
 pub(crate) fn compile_legacy(fee_payer: Pubkey, recent_blockhash: [u8; 32], account_buckets: &AccountBuckets, instructions: &[Instruction]) -> Result<VersionedTransaction> {
@@ -126,8 +119,7 @@ mod tests {
 
     use super::TransactionBuilder;
     use crate::{
-        AccountMeta, AddressLookupTableAccount, CompiledInstruction, Instruction, Message, MessageAddressTableLookup, MessageHeader, Pubkey, SignatureBytes, SolanaError,
-        VersionedMessageV0, VersionedTransaction,
+        AccountMeta, AddressLookupTableAccount, CompiledInstruction, Instruction, Message, MessageAddressTableLookup, MessageHeader, Pubkey, SignatureBytes, SolanaError, VersionedMessageV0, VersionedTransaction,
         builder::InstructionBuilder,
         instructions::{
             program_ids::{system_program, token_program},
@@ -227,11 +219,7 @@ mod tests {
         let looked_up_account = Pubkey::mock(2);
         let program_id = Pubkey::mock(3);
 
-        let instruction = InstructionBuilder::new(program_id)
-            .account(fee_payer, true, true)
-            .account(looked_up_account, false, true)
-            .data(vec![1, 2, 3])
-            .build();
+        let instruction = InstructionBuilder::new(program_id).account(fee_payer, true, true).account(looked_up_account, false, true).data(vec![1, 2, 3]).build();
 
         let lookup_table = AddressLookupTableAccount::new(Pubkey::mock(4), vec![looked_up_account, Pubkey::mock(5)]);
 
@@ -358,24 +346,9 @@ mod tests {
             Instruction::mock(5, &hex!("001011130607"), "2", &combined_accounts),
             Instruction::mock(6, &[1, 2], "3Bxs4NNfTBw5NH5H", &combined_accounts),
             Instruction::mock(7, &[2], "J", &combined_accounts),
-            Instruction::mock(
-                8,
-                &hex!("07090102030410141308080a0815160d090e0f03041413070717"),
-                "7UR2vxkjV6WhbmWvkCZQvQJKVhT964yPqVRoTBAPv678iyHS8LF",
-                &combined_accounts,
-            ),
-            Instruction::mock(
-                11,
-                &hex!("00011118191310121a070506"),
-                "8pPpkivb1mTLA5APTUWQU2CsG1oYxcnh5C8fQsYux2BVVxSXuFvWtLx",
-                &combined_accounts,
-            ),
-            Instruction::mock(
-                12,
-                &[],
-                "KszMTKrqxdHWZULtjrD9cmodXEnC1UboEfkgMRLSGuuPLDYWo8BrqcbfRddG4w18gsf1sZR69vK1mKhXyvNCTZxwsq",
-                &combined_accounts,
-            ),
+            Instruction::mock(8, &hex!("07090102030410141308080a0815160d090e0f03041413070717"), "7UR2vxkjV6WhbmWvkCZQvQJKVhT964yPqVRoTBAPv678iyHS8LF", &combined_accounts),
+            Instruction::mock(11, &hex!("00011118191310121a070506"), "8pPpkivb1mTLA5APTUWQU2CsG1oYxcnh5C8fQsYux2BVVxSXuFvWtLx", &combined_accounts),
+            Instruction::mock(12, &[], "KszMTKrqxdHWZULtjrD9cmodXEnC1UboEfkgMRLSGuuPLDYWo8BrqcbfRddG4w18gsf1sZR69vK1mKhXyvNCTZxwsq", &combined_accounts),
         ];
 
         let mut builder = TransactionBuilder::new(fee_payer, recent_blockhash);
@@ -392,11 +365,7 @@ mod tests {
 
         let accounts: Vec<AccountMeta> = (3..=257).map(|index| AccountMeta::new_writable(Pubkey::mock(index))).collect();
 
-        let instruction = Instruction {
-            program_id,
-            accounts,
-            data: vec![],
-        };
+        let instruction = Instruction { program_id, accounts, data: vec![] };
 
         let mut builder = TransactionBuilder::new(fee_payer, TEST_BLOCKHASH);
         builder.add_instruction(instruction);
@@ -413,11 +382,7 @@ mod tests {
 
         let accounts: Vec<AccountMeta> = signer_pubkeys.iter().map(|pubkey| AccountMeta::new_signer_writable(*pubkey)).collect();
 
-        let instruction = Instruction {
-            program_id,
-            accounts,
-            data: vec![],
-        };
+        let instruction = Instruction { program_id, accounts, data: vec![] };
 
         let mut builder = TransactionBuilder::new(fee_payer, TEST_BLOCKHASH);
         builder.add_instruction(instruction);

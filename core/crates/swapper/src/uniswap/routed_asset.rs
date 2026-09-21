@@ -54,11 +54,7 @@ impl RoutedAsset {
     }
 
     fn unscaled(address: Address, funding: Funding) -> Self {
-        Self {
-            address,
-            scale: U256::from(1),
-            funding,
-        }
+        Self { address, scale: U256::from(1), funding }
     }
 }
 
@@ -67,11 +63,7 @@ pub fn routed_pair(from_asset: &AssetId, to_asset: &AssetId, protocol: Protocol)
         return Err(SwapperError::NotSupportedChain);
     }
     let evm_chain = EVMChain::from_chain(from_asset.chain).ok_or(SwapperError::NotSupportedChain)?;
-    Ok((
-        evm_chain,
-        RoutedAsset::from_asset(from_asset, evm_chain, protocol)?,
-        RoutedAsset::from_asset(to_asset, evm_chain, protocol)?,
-    ))
+    Ok((evm_chain, RoutedAsset::from_asset(from_asset, evm_chain, protocol)?, RoutedAsset::from_asset(to_asset, evm_chain, protocol)?))
 }
 
 pub fn base_pair(chain: EVMChain, protocol: Protocol) -> Option<BasePair> {

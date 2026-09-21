@@ -30,7 +30,7 @@ struct ConfirmButtonViewModel: StateButtonViewable {
     var icon: Image? {
         guard button.kind == .confirm, button.state == .enabled,
               let authentication,
-              let systemName = KeystoreAuthenticationViewModel(authentication: authentication).authenticationImage
+              let systemName = authentication.systemImage
         else { return nil }
         return Image(systemName: systemName)
     }
@@ -45,5 +45,15 @@ struct ConfirmButtonViewModel: StateButtonViewable {
 
     func action() {
         onAction()
+    }
+}
+
+private extension GemKeystoreAuthentication {
+    var systemImage: String? {
+        switch self {
+        case .biometrics: SystemImage.faceid
+        case .passcode: SystemImage.lock
+        case .none: .none
+        }
     }
 }

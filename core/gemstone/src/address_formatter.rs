@@ -31,20 +31,13 @@ impl GemAddressService {
         addresses.iter().map(|entry| format_address(&entry.address, Some(entry.chain), style)).collect()
     }
 
-    pub fn display(&self, name: Option<String>, address: String, has_image: bool) -> GemAddressDisplay {
-        match name.filter(|name| !name.is_empty() && *name != address) {
-            None => GemAddressDisplay::Address,
-            Some(name) if has_image || address.is_empty() => GemAddressDisplay::Name { name },
-            Some(name) => GemAddressDisplay::NameWithAddress { name },
-        }
+    pub fn name_text(&self, name: Option<String>, address: String, has_image: bool) -> Option<String> {
+        let name = name.filter(|name| !name.is_empty() && *name != address)?;
+        Some(match has_image || address.is_empty() {
+            true => name,
+            false => format!("{name} ({address})"),
+        })
     }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
-pub enum GemAddressDisplay {
-    Address,
-    Name { name: String },
-    NameWithAddress { name: String },
 }
 
 #[cfg(test)]
@@ -56,14 +49,12 @@ mod display_tests {
         let service = GemAddressService::new();
         let address = "0xabc".to_string();
 
-        assert_eq!(service.display(None, address.clone(), false), GemAddressDisplay::Address);
-        assert_eq!(service.display(Some(address.clone()), address.clone(), false), GemAddressDisplay::Address);
-        assert_eq!(service.display(Some(String::new()), address.clone(), false), GemAddressDisplay::Address);
-        assert_eq!(service.display(Some("Ada".into()), address.clone(), true), GemAddressDisplay::Name { name: "Ada".into() });
-        assert_eq!(
-            service.display(Some("Ada".into()), address, false),
-            GemAddressDisplay::NameWithAddress { name: "Ada".into() }
-        );
+        assert_eq!(service.name_text(None, address.clone(), false), None);
+        assert_eq!(service.name_text(Some(address.clone()), address.clone(), false), None);
+        assert_eq!(service.name_text(Some(String::new()), address.clone(), false), None);
+        assert_eq!(service.name_text(Some("Ada".into()), address.clone(), true).as_deref(), Some("Ada"));
+        assert_eq!(service.name_text(Some("Ada".into()), String::new(), false).as_deref(), Some("Ada"));
+        assert_eq!(service.name_text(Some("Ada".into()), address, false).as_deref(), Some("Ada (0xabc)"));
     }
 }
 
@@ -89,10 +80,7 @@ mod format_tests {
 
         assert_eq!(
             formatted,
-            addresses
-                .iter()
-                .map(|entry| service.format(entry.address.clone(), Some(entry.chain), GemAddressFormatStyle::Short))
-                .collect::<Vec<_>>()
+            addresses.iter().map(|entry| service.format(entry.address.clone(), Some(entry.chain), GemAddressFormatStyle::Short)).collect::<Vec<_>>()
         );
     }
 }

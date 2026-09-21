@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = Desteklenmeyen varlık.
 errors_connections_no_supported_wallets = Desteklenen cüzdan yok.
 errors_connections_unsupported_chain = Sağlanan zincir desteklenmiyor.
 errors_swap_amount_too_small = Miktar çok küçük
-errors_required = %@ gereklidir
 errors_scan_transaction_malicious_description = Bu işlem tamamlanamıyor; hedef cüzdan adresi şüpheli veya zararlı bir etkinlikle bağlantılı.
 errors_scan_transaction_memo_required = %@ hedef cüzdan adresi bir hedef etiketi / notu gerektiriyor
 errors_scan_transaction_malicious_title = Şüpheli Etkinlik
@@ -315,7 +314,7 @@ asset_symbol = Sembol
 asset_decimals = Ondalıklar
 asset_token_id = Jeton Kimliği
 asset_contract = Sözleşme
-asset_state_empty_title = İşlemleriniz burada görünecek️
+asset_state_empty_title = İşlemleriniz burada görünecek
 asset_state_empty_description = %@ alın, takas edin veya satın alın
 asset_verification_unverified = Doğrulanmamış
 asset_verification_suspicious = Şüpheli
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = Fiyat düştüğünde
 price_alerts_set_alert_set_target_price = Hedef fiyatı belirle
 price_alerts_set_alert_current_price = Güncel fiyat
 price_alerts_added_for = Fiyat uyarısı ayarla %@
-price_alerts_state_empty_title = Uyarılarınız burada görünecek️
+price_alerts_state_empty_title = Uyarılarınız burada görünecek
 price_alerts_state_empty_description = Paraları takip sistemine ekleyerek onları etkinleştirin
 price_alerts_auto_footer = Önemli fiyat hareketlerinde uyarılar tetiklenir.
 price_alerts_set_alert_title = Fiyat Uyarısı Ayarla
@@ -536,7 +535,7 @@ verify_phrase_title = Onaylamak
 
 # Warnings
 
-warnings_multi_signature_blocked = Özel anahtarları kontrol ettiğinizden emin olmadığınız sürece bu %@ Çoklu İmzalı cüzdana para transferi yapmayın. Bunu yapmamanız sizi dolandırıcılıklara maruz bırakabilir ve varlıklarınızı kalıcı olarak kaybedebilirsiniz.
+warnings_externally_controlled_account = Bu %@ hesabı başka biri tarafından kontrol ediliyor olabilir. Hesabı sizin kontrol ettiğinizden emin olmadıkça bu hesaba para göndermeyin, aksi takdirde varlıklarınızı kalıcı olarak kaybedebilirsiniz.
 
 # Sell
 
@@ -600,7 +599,7 @@ nft_collections = Koleksiyonlar
 nft_collection = Koleksiyon
 nft_save_to_photos = Fotoğraflara Kaydet
 nft_set_as_avatar = Avatar olarak ayarla
-nft_state_empty_title = NFT'leriniz burada görünecek️
+nft_state_empty_title = NFT'leriniz burada görünecek
 nft_state_empty_description = İlk NFT'nizi alın
 nft_report_reason_spam = Spam
 nft_report_reason_malicious = Kötü niyetli

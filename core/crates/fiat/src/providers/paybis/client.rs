@@ -24,17 +24,9 @@ impl PaybisClient {
         }
     }
 
-    async fn signed_post<B: Serialize + Send + Sync, T: serde::de::DeserializeOwned + Send>(
-        &self,
-        target: PaybisTarget,
-        body: &B,
-    ) -> Result<T, Box<dyn std::error::Error + Send + Sync>> {
+    async fn signed_post<B: Serialize + Send + Sync, T: serde::de::DeserializeOwned + Send>(&self, target: PaybisTarget, body: &B) -> Result<T, Box<dyn std::error::Error + Send + Sync>> {
         let signature = generate_rsa_pss_signature(&self.private_key, &serde_json::to_string(body)?)?;
-        self.client
-            .post::<_, PaybisResponse<T>>(target, body)
-            .headers(HashMap::from([("X-Request-Signature".to_string(), signature)]))
-            .await?
-            .into()
+        self.client.post::<_, PaybisResponse<T>>(target, body).headers(HashMap::from([("X-Request-Signature".to_string(), signature)])).await?.into()
     }
 
     pub async fn get_buy_quote(&self, crypto_currency: String, fiat_currency: String, fiat_amount: f64) -> Result<PaybisQuote, Box<dyn std::error::Error + Send + Sync>> {
@@ -62,10 +54,7 @@ impl PaybisClient {
     }
 
     async fn get_assets(&self, flow: &str) -> Result<Assets, Box<dyn std::error::Error + Send + Sync>> {
-        self.client
-            .get::<PaybisResponse<Assets>>(PaybisTarget::CurrencyPairs { flow: flow.to_string() })
-            .await?
-            .into()
+        self.client.get::<PaybisResponse<Assets>>(PaybisTarget::CurrencyPairs { flow: flow.to_string() }).await?.into()
     }
 
     pub async fn get_buy_assets(&self) -> Result<Assets, Box<dyn std::error::Error + Send + Sync>> {
@@ -80,16 +69,7 @@ impl PaybisClient {
         self.signed_post(PaybisTarget::Request, &request_body).await
     }
 
-    pub async fn get_redirect_url(
-        &self,
-        wallet_address: &str,
-        from_currency: &str,
-        to_currency: &str,
-        quote_id: &str,
-        is_buy: bool,
-        user_ip: &str,
-        locale: &str,
-    ) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn get_redirect_url(&self, wallet_address: &str, from_currency: &str, to_currency: &str, quote_id: &str, is_buy: bool, user_ip: &str, locale: &str) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
         let request_body = if is_buy {
             Request::new_buy(
                 wallet_address.to_owned(),

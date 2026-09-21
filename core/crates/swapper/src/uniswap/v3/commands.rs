@@ -60,14 +60,7 @@ pub fn build_commands(
                 Funding::Permit2 => UniversalRouterCommand::PERMIT2_TRANSFER_FROM(fee_transfer),
             });
 
-            commands.push(build_v3_swap_exact_in_command(
-                recipient,
-                amount_in - fee,
-                amount_out,
-                path.clone(),
-                payer_is_user,
-                universal_router_abi,
-            ));
+            commands.push(build_v3_swap_exact_in_command(recipient, amount_in - fee, amount_out, path.clone(), payer_is_user, universal_router_abi));
         } else {
             commands.push(build_v3_swap_exact_in_command(
                 eth_address::parse_str(ADDRESS_THIS)?,
@@ -93,14 +86,7 @@ pub fn build_commands(
             }
         }
     } else {
-        commands.push(build_v3_swap_exact_in_command(
-            recipient,
-            amount_in,
-            amount_out,
-            path.clone(),
-            payer_is_user,
-            universal_router_abi,
-        ));
+        commands.push(build_v3_swap_exact_in_command(recipient, amount_in, amount_out, path.clone(), payer_is_user, universal_router_abi));
     }
 
     if unwrap_output_weth {
@@ -112,14 +98,7 @@ pub fn build_commands(
     Ok(commands)
 }
 
-fn build_v3_swap_exact_in_command(
-    recipient: Address,
-    amount_in: U256,
-    amount_out_min: U256,
-    path: Bytes,
-    payer_is_user: bool,
-    universal_router_abi: UniversalRouterAbi,
-) -> UniversalRouterCommand {
+fn build_v3_swap_exact_in_command(recipient: Address, amount_in: U256, amount_out_min: U256, path: Bytes, payer_is_user: bool, universal_router_abi: UniversalRouterAbi) -> UniversalRouterCommand {
     match universal_router_abi {
         UniversalRouterAbi::V2 => UniversalRouterCommand::V3_SWAP_EXACT_IN(V3SwapExactIn {
             recipient,
@@ -170,18 +149,7 @@ mod tests {
         let (token_in, token_out) = (input.address, output.address);
         let path = build_direct_pair(&token_in, &token_out, FeeTier::FiveHundred);
 
-        let commands = super::build_commands(
-            &request,
-            &input,
-            &output,
-            U256::from(3_000_000u64),
-            U256::from(2_523_162u64),
-            &path,
-            None,
-            true,
-            UniversalRouterAbi::V2_1,
-        )
-        .unwrap();
+        let commands = super::build_commands(&request, &input, &output, U256::from(3_000_000u64), U256::from(2_523_162u64), &path, None, true, UniversalRouterAbi::V2_1).unwrap();
 
         assert_eq!(commands.len(), 2);
         let UniversalRouterCommand::TRANSFER(fee) = &commands[0] else {
@@ -235,18 +203,7 @@ mod tests {
         let input = RoutedAsset::mock_value(ETHEREUM_WETH_TOKEN_ID);
         let output = RoutedAsset::mock_permit2(ETHEREUM_USDC_TOKEN_ID);
         let path = build_direct_pair(&input.address, &output.address, FeeTier::FiveHundred);
-        let commands = super::build_commands(
-            &request,
-            &input,
-            &output,
-            U256::from(1000000000000000u64),
-            U256::from(0),
-            &path,
-            None,
-            false,
-            UniversalRouterAbi::V2_1,
-        )
-        .unwrap();
+        let commands = super::build_commands(&request, &input, &output, U256::from(1000000000000000u64), U256::from(0), &path, None, false, UniversalRouterAbi::V2_1).unwrap();
 
         assert!(matches!(commands[1], UniversalRouterCommand::V3_SWAP_EXACT_IN_V2_1(_)));
     }
@@ -339,18 +296,7 @@ mod tests {
         };
 
         let path = build_direct_pair(&token_in, &token_out, FeeTier::FiveHundred);
-        let commands = super::build_commands(
-            &request,
-            &input,
-            &output,
-            amount_in,
-            U256::from(6507936),
-            &path,
-            Some(permit2_data.try_into().unwrap()),
-            false,
-            UniversalRouterAbi::V2,
-        )
-        .unwrap();
+        let commands = super::build_commands(&request, &input, &output, amount_in, U256::from(6507936), &path, Some(permit2_data.try_into().unwrap()), false, UniversalRouterAbi::V2).unwrap();
 
         assert_eq!(commands.len(), 4);
         assert!(matches!(commands[0], UniversalRouterCommand::PERMIT2_PERMIT(_)));
@@ -372,10 +318,7 @@ mod tests {
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
             value: BigUint::from(5064985u64),
-            options: Options {
-                slippage: 100.into(),
-                use_max_amount: false,
-            },
+            options: Options { slippage: 100.into(), use_max_amount: false },
         };
 
         let input = RoutedAsset::mock_permit2(request.from_asset.asset_id().token_id.as_ref().unwrap());
@@ -385,18 +328,7 @@ mod tests {
 
         let path = build_direct_pair(&token_in, &token_out, FeeTier::FiveHundred);
         // fee token is output token
-        let commands = super::build_commands(
-            &request,
-            &input,
-            &output,
-            amount_in,
-            U256::from(33377662359182269u64),
-            &path,
-            None,
-            false,
-            UniversalRouterAbi::V2,
-        )
-        .unwrap();
+        let commands = super::build_commands(&request, &input, &output, amount_in, U256::from(33377662359182269u64), &path, None, false, UniversalRouterAbi::V2).unwrap();
 
         assert_eq!(commands.len(), 3);
 
@@ -405,18 +337,7 @@ mod tests {
         assert!(matches!(commands[2], UniversalRouterCommand::SWEEP(_)));
 
         // fee token is input token
-        let commands = super::build_commands(
-            &request,
-            &input,
-            &output,
-            amount_in,
-            U256::from(33377662359182269u64),
-            &path,
-            None,
-            true,
-            UniversalRouterAbi::V2,
-        )
-        .unwrap();
+        let commands = super::build_commands(&request, &input, &output, amount_in, U256::from(33377662359182269u64), &path, None, true, UniversalRouterAbi::V2).unwrap();
 
         assert_eq!(commands.len(), 2);
 
@@ -433,10 +354,7 @@ mod tests {
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
             value: BigUint::from(10000000u64),
-            options: Options {
-                slippage: 100.into(),
-                use_max_amount: false,
-            },
+            options: Options { slippage: 100.into(), use_max_amount: false },
         };
 
         let input = RoutedAsset::mock_permit2(request.from_asset.asset_id().token_id.as_ref().unwrap());
@@ -490,10 +408,7 @@ mod tests {
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
             value: BigUint::from(1000000000000000u64),
-            options: Options {
-                slippage: 100.into(),
-                use_max_amount: false,
-            },
+            options: Options { slippage: 100.into(), use_max_amount: false },
         };
 
         let input = RoutedAsset::mock_value(OPTIMISM_WETH_TOKEN_ID);
@@ -502,18 +417,7 @@ mod tests {
         let amount_in = U256::from_str(&request.value.to_string()).unwrap();
 
         let path = build_direct_pair(&token_in, &token_out, FeeTier::ThreeThousand);
-        let commands = super::build_commands(
-            &request,
-            &input,
-            &output,
-            amount_in,
-            U256::from(244440440678888410_u64),
-            &path,
-            None,
-            true,
-            UniversalRouterAbi::V2,
-        )
-        .unwrap();
+        let commands = super::build_commands(&request, &input, &output, amount_in, U256::from(244440440678888410_u64), &path, None, true, UniversalRouterAbi::V2).unwrap();
 
         assert_eq!(commands.len(), 3);
 
@@ -539,18 +443,7 @@ mod tests {
             options: Options::default(),
         };
         let path = build_direct_pair(&token_celo, &token_usdt, FeeTier::Hundred);
-        let commands = super::build_commands(
-            &request,
-            &celo,
-            &usdt,
-            U256::from_str(&request.value.to_string()).unwrap(),
-            U256::from(14804757u64),
-            &path,
-            None,
-            false,
-            UniversalRouterAbi::V2,
-        )
-        .unwrap();
+        let commands = super::build_commands(&request, &celo, &usdt, U256::from_str(&request.value.to_string()).unwrap(), U256::from(14804757u64), &path, None, false, UniversalRouterAbi::V2).unwrap();
 
         assert_eq!(commands.len(), 3);
         assert!(matches!(commands[0], UniversalRouterCommand::V3_SWAP_EXACT_IN(_)));
@@ -564,10 +457,7 @@ mod tests {
             wallet_address: wallet.into(),
             destination_address: wallet.into(),
             value: BigUint::from(900000u64),
-            options: Options {
-                slippage: 50.into(),
-                use_max_amount: false,
-            },
+            options: Options { slippage: 50.into(), use_max_amount: false },
         };
         let path = build_direct_pair(&token_usdt, &token_celo, FeeTier::Hundred);
         let commands = super::build_commands(

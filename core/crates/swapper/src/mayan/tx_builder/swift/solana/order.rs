@@ -37,10 +37,7 @@ pub(super) fn create_init_instruction(
     let amount_in_min = if route.from_token.contract.as_str() == swift_input_contract {
         route.effective_amount_in64.parse::<u64>()?
     } else {
-        fractional_amount::<u64>(
-            route.min_middle_amount.as_ref().ok_or(SwapperError::InvalidRoute)?,
-            route.swift_input_decimals.ok_or(SwapperError::InvalidRoute)?,
-        )?
+        fractional_amount::<u64>(route.min_middle_amount.as_ref().ok_or(SwapperError::InvalidRoute)?, route.swift_input_decimals.ok_or(SwapperError::InvalidRoute)?)?
     };
 
     let mut data = Vec::new();
@@ -84,14 +81,7 @@ pub(super) fn create_init_instruction(
     })
 }
 
-pub(super) fn create_order_hash(
-    route: &MayanSwiftQuote,
-    swapper_address: &str,
-    destination_address: &str,
-    random_key: &[u8; 32],
-    custom_payload: Option<&[u8]>,
-    fields: &SwiftOrderFields,
-) -> Result<[u8; 32], SwapperError> {
+pub(super) fn create_order_hash(route: &MayanSwiftQuote, swapper_address: &str, destination_address: &str, random_key: &[u8; 32], custom_payload: Option<&[u8]>, fields: &SwiftOrderFields) -> Result<[u8; 32], SwapperError> {
     let source_chain_id = wormhole_chain_id(&route.from_chain)?;
     let swift_input_contract = route_swift_input_contract(route)?;
     let token_in = token_address_to_bytes32(swift_input_contract, &route.from_chain)?;

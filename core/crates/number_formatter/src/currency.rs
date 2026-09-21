@@ -409,11 +409,7 @@ impl Formatter {
             formatted
         } else if formatted.contains('.') {
             let trimmed = formatted.trim_end_matches('0');
-            if trimmed.ends_with('.') {
-                trimmed.trim_end_matches('.').to_string()
-            } else {
-                trimmed.to_string()
-            }
+            if trimmed.ends_with('.') { trimmed.trim_end_matches('.').to_string() } else { trimmed.to_string() }
         } else {
             formatted
         }
@@ -423,11 +419,7 @@ impl Formatter {
 pub fn add_thousands_separator(amount_str: &str, thousands_sep: char, decimal_sep: char) -> String {
     let (integer_part, decimal_part) = amount_str.split_once('.').map_or((amount_str, None), |(int, dec)| (int, Some(dec)));
 
-    let (sign, integer_part) = if let Some(stripped) = integer_part.strip_prefix('-') {
-        ("-", stripped)
-    } else {
-        ("", integer_part)
-    };
+    let (sign, integer_part) = if let Some(stripped) = integer_part.strip_prefix('-') { ("-", stripped) } else { ("", integer_part) };
 
     let chars: Vec<char> = integer_part.chars().collect();
     let mut formatted_integer = String::new();

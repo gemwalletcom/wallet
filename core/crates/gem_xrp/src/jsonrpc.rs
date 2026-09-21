@@ -80,11 +80,7 @@ mod tests {
 
     #[test]
     fn builds_account_transactions_request() {
-        let request = XrpRpc::GetAccountTransactions {
-            address: "rAddress".into(),
-            limit: 25,
-        }
-        .to_jsonrpc_request(42);
+        let request = XrpRpc::GetAccountTransactions { address: "rAddress".into(), limit: 25 }.to_jsonrpc_request(42);
         let expected: Value = serde_json::from_str(include_str!("../testdata/account_transactions_request.json")).unwrap();
 
         assert_eq!(serde_json::to_value(request).unwrap(), expected);
@@ -92,13 +88,7 @@ mod tests {
 
     #[test]
     fn builds_broadcast_request_with_fail_hard() {
-        assert_request(
-            XrpRpc::SubmitTransaction {
-                data: "signed-transaction".into(),
-            },
-            method::SUBMIT,
-            json!([{"tx_blob": "signed-transaction", "fail_hard": true}]),
-        );
+        assert_request(XrpRpc::SubmitTransaction { data: "signed-transaction".into() }, method::SUBMIT, json!([{"tx_blob": "signed-transaction", "fail_hard": true}]));
     }
 
     #[test]

@@ -50,28 +50,8 @@ impl SwapProvider {
 
     pub fn is_cross_chain(&self) -> bool {
         match self {
-            Self::Thorchain
-            | Self::Mayachain
-            | Self::Across
-            | Self::Mayan
-            | Self::Chainflip
-            | Self::NearIntents
-            | Self::Relay
-            | Self::Hyperliquid
-            | Self::Squid
-            | Self::SwapsXyz => true,
-            Self::UniswapV3
-            | Self::UniswapV4
-            | Self::PancakeswapV3
-            | Self::Panora
-            | Self::Jupiter
-            | Self::Okx
-            | Self::Oku
-            | Self::Wagmi
-            | Self::CetusClmm
-            | Self::StonfiV2
-            | Self::Aerodrome
-            | Self::Orca => false,
+            Self::Thorchain | Self::Mayachain | Self::Across | Self::Mayan | Self::Chainflip | Self::NearIntents | Self::Relay | Self::Hyperliquid | Self::Squid | Self::SwapsXyz => true,
+            Self::UniswapV3 | Self::UniswapV4 | Self::PancakeswapV3 | Self::Panora | Self::Jupiter | Self::Okx | Self::Oku | Self::Wagmi | Self::CetusClmm | Self::StonfiV2 | Self::Aerodrome | Self::Orca => false,
         }
     }
 
@@ -90,19 +70,7 @@ impl SwapProvider {
             Self::Relay => Some(RelayScan::boxed()),
             Self::Squid => Some(SkipExplorer::boxed(chain)),
             Self::SwapsXyz => Some(SwapsXyzScan::boxed()),
-            Self::UniswapV3
-            | Self::UniswapV4
-            | Self::PancakeswapV3
-            | Self::Panora
-            | Self::Jupiter
-            | Self::Okx
-            | Self::Oku
-            | Self::Wagmi
-            | Self::CetusClmm
-            | Self::StonfiV2
-            | Self::Aerodrome
-            | Self::Hyperliquid
-            | Self::Orca => None,
+            Self::UniswapV3 | Self::UniswapV4 | Self::PancakeswapV3 | Self::Panora | Self::Jupiter | Self::Okx | Self::Oku | Self::Wagmi | Self::CetusClmm | Self::StonfiV2 | Self::Aerodrome | Self::Hyperliquid | Self::Orca => None,
         }
     }
 
@@ -142,20 +110,9 @@ impl SwapProvider {
             Self::Oku => "Oku",
             Self::StonfiV2 => "STON.fi v2",
             Self::CetusClmm => "Cetus",
-            Self::Thorchain
-            | Self::Mayachain
-            | Self::Jupiter
-            | Self::Okx
-            | Self::Wagmi
-            | Self::Mayan
-            | Self::Chainflip
-            | Self::NearIntents
-            | Self::Aerodrome
-            | Self::Relay
-            | Self::Hyperliquid
-            | Self::Orca
-            | Self::Squid
-            | Self::SwapsXyz => self.name(),
+            Self::Thorchain | Self::Mayachain | Self::Jupiter | Self::Okx | Self::Wagmi | Self::Mayan | Self::Chainflip | Self::NearIntents | Self::Aerodrome | Self::Relay | Self::Hyperliquid | Self::Orca | Self::Squid | Self::SwapsXyz => {
+                self.name()
+            }
         }
     }
 }
@@ -198,10 +155,7 @@ mod tests {
         for chain in [Chain::Ton, Chain::Algorand, Chain::Stellar] {
             let explorer = SwapProvider::SwapsXyz.swap_explorer(chain).unwrap();
             assert_eq!(explorer.name(), "Swaps.xyz");
-            assert_eq!(
-                explorer.get_swap_tx_url(&transaction_id.into()),
-                format!("https://scan.swaps.xyz/transactions?search={transaction_id}")
-            );
+            assert_eq!(explorer.get_swap_tx_url(&transaction_id.into()), format!("https://scan.swaps.xyz/transactions?search={transaction_id}"));
         }
     }
 }

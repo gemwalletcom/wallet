@@ -319,10 +319,7 @@ mod tests {
             read_mask: Some(read_mask),
         };
 
-        assert_eq!(
-            hex::encode(simulate.encode()),
-            "0a180a160a0f5472616e73616374696f6e44617461120301020312080a066469676573741801"
-        );
+        assert_eq!(hex::encode(simulate.encode()), "0a180a160a0f5472616e73616374696f6e44617461120301020312080a066469676573741801");
         assert_eq!(
             hex::encode(execute.encode()),
             "0a180a160a0f5472616e73616374696f6e446174611203010203121c0a180a12557365725369676e617475726542797465731202aabb10001a080a06646967657374"

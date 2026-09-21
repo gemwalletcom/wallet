@@ -1,14 +1,15 @@
 package com.gemwallet.android.features.transfer_amount.presents.localization
 
-import com.gemwallet.android.ext.toPrimitives
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.model.ValueFormatter
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.localization.stringRes
+import com.wallet.core.primitives.PerpetualDirection
 import uniffi.gemstone.GemAmountErrorDisplay
 import uniffi.gemstone.GemAmountTitle
 import uniffi.gemstone.GemValueStyle
-import com.gemwallet.android.model.ValueFormatter
-import com.gemwallet.android.ui.R
-import com.wallet.core.primitives.PerpetualDirection
 
 @Composable
 fun GemAmountTitle.asString(): String = when (this) {
@@ -26,18 +27,16 @@ fun GemAmountTitle.asString(): String = when (this) {
     is GemAmountTitle.PerpetualReduce -> stringResource(R.string.perpetual_reduce_direction, stringResource(direction.toPrimitives().stringRes()))
 }
 
-private fun PerpetualDirection.stringRes(): Int = when (this) {
-    PerpetualDirection.Short -> R.string.perpetual_short
-    PerpetualDirection.Long -> R.string.perpetual_long
-}
-
 @Composable
 fun GemAmountErrorDisplay.text(): String = when (this) {
     is GemAmountErrorDisplay.None -> ""
+
     is GemAmountErrorDisplay.InvalidAmount -> stringResource(R.string.errors_invalid_amount)
+
     is GemAmountErrorDisplay.BelowMinimum -> stringResource(
         R.string.transfer_minimum_amount,
         ValueFormatter(style = GemValueStyle.AUTO).string(minimum, asset.decimals, asset.symbol),
     )
+
     is GemAmountErrorDisplay.InsufficientBalance -> stringResource(R.string.transfer_insufficient_balance, title)
 }

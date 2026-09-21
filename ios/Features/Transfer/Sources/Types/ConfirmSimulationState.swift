@@ -2,18 +2,18 @@
 
 import struct Gemstone.GemConfirmSimulation
 import struct Gemstone.GemConfirmSimulationState
+import enum Gemstone.GemListRow
 import struct Gemstone.GemSimulationBalanceChange
 import struct Gemstone.GemSimulationValue
+import struct Gemstone.SimulationResult
+import func Gemstone.simulationWarningRows
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
-import struct Gemstone.GemSimulationWarningRow
-import struct Gemstone.SimulationResult
-import func Gemstone.simulationWarningRows
 
 struct ConfirmSimulationState {
     let result: SimulationResult?
-    let warnings: [GemSimulationWarningRow]
+    let warnings: [GemListRow]
     let hasCriticalWarning: Bool
     let payload: SimulationPayloadModel
     let headerData: GemSimulationValue?
@@ -21,7 +21,7 @@ struct ConfirmSimulationState {
 
     init(
         result: SimulationResult?,
-        warnings: [GemSimulationWarningRow],
+        warnings: [GemListRow],
         hasCriticalWarning: Bool,
         payload: SimulationPayloadModel,
         headerData: GemSimulationValue?,
@@ -35,26 +35,24 @@ struct ConfirmSimulationState {
         self.balanceChanges = balanceChanges
     }
 
-    init(result: SimulationResult?, chain: Primitives.Chain) {
+    init(result: SimulationResult?) {
         self.init(
             result: result,
             warnings: simulationWarningRows(warnings: result?.warnings ?? []),
             hasCriticalWarning: false,
-            payload: SimulationPayloadModel(chain: chain, primaryFields: [], secondaryFields: []),
+            payload: SimulationPayloadModel(primaryFields: [], secondaryFields: []),
             headerData: nil,
             balanceChanges: [],
         )
     }
 
-    init(_ state: GemConfirmSimulationState) throws {
+    init(_ state: GemConfirmSimulationState) {
         let details = state.simulation
         let simulation = state.result
-        var payload = SimulationPayloadModel(
-            chain: Primitives.Chain(core: state.chain),
+        let payload = SimulationPayloadModel(
             primaryFields: details?.primaryFields ?? [],
             secondaryFields: details?.secondaryFields ?? [],
         )
-        payload.addressNames = state.names
         self.init(
             result: simulation,
             warnings: state.warnings,

@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+@testable import AppLock
 import GemstoneServices
 import GemstoneServicesTestKit
-@testable import AppLock
 import SwiftUI
 
 @MainActor
@@ -29,7 +29,7 @@ public final class LockWindowMock: LockWindowPresentable {
             lockModel.resetLockState()
             return
         }
-        lockModel.handleSceneChange(to: phase)
+        lockModel.onScenePhase(phase)
     }
 
     public func setColorScheme(_ colorScheme: ColorScheme) {
@@ -46,7 +46,9 @@ public final class LockWindowMock: LockWindowPresentable {
 
     public func togglePrivacyLock(visible: Bool) {
         let alpha: CGFloat = visible ? 1 : 0
-        if overlayWindow?.alpha != alpha { overlayWindow?.alpha = alpha }
+        if overlayWindow?.alpha != alpha {
+            overlayWindow?.alpha = alpha
+        }
     }
 
     private func present() {

@@ -11,10 +11,7 @@ import java.io.File
 // Passwords and Gemstone secure preferences historically shared this file; their keys must stay disjoint.
 internal const val LEGACY_PREFERENCES_FILE_NAME = "pwd"
 
-internal class LegacyEncryptedPreferences(
-    context: Context,
-    private val preferencesFileName: String,
-) : SecureStringStore {
+internal class LegacyEncryptedPreferences(context: Context, private val preferencesFileName: String) : SecureStringStore {
 
     private val context = context.applicationContext
 

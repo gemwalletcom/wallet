@@ -38,10 +38,7 @@ impl GemApplicationMetadataService {
         let website = public_url(&metadata.url)?;
         let icon = public_url(&metadata.icon).filter(|icon| icon.fragment().is_none() && icon.as_str().len() <= ICON_URL_MAX_LENGTH);
         let source = icon.map_or_else(|| website.origin().ascii_serialization(), |icon| icon.to_string());
-        let query = form_urlencoded::Serializer::new(String::new())
-            .append_pair("url", &source)
-            .append_pair("size", APPLICATION_ICON_SIZE)
-            .finish();
+        let query = form_urlencoded::Serializer::new(String::new()).append_pair("url", &source).append_pair("size", APPLICATION_ICON_SIZE).finish();
         Some(format!("{ASSETS_URL}/proxy/icon?{query}"))
     }
 }
@@ -62,13 +59,7 @@ fn public_url(url: &str) -> Option<Url> {
         _ => return None,
     };
     let blocked = ["gemwallet.com", "workers.dev"];
-    (url.scheme() == "https"
-        && url.username().is_empty()
-        && url.password().is_none()
-        && url.port().is_none()
-        && host.contains('.')
-        && !blocked.iter().any(|domain| host == *domain || host.ends_with(&format!(".{domain}"))))
-    .then_some(url)
+    (url.scheme() == "https" && url.username().is_empty() && url.password().is_none() && url.port().is_none() && host.contains('.') && !blocked.iter().any(|domain| host == *domain || host.ends_with(&format!(".{domain}")))).then_some(url)
 }
 
 #[cfg(test)]
@@ -88,10 +79,7 @@ mod tests {
         assert_eq!(hosted.host.as_deref(), Some("app.uniswap.org"));
         assert_eq!(hosted.initial.as_deref(), Some("U"));
 
-        assert_eq!(
-            hosted.icon_url.as_deref(),
-            Some("https://assets.gemwallet.com/proxy/icon?url=https%3A%2F%2Fapp.uniswap.org&size=256")
-        );
+        assert_eq!(hosted.icon_url.as_deref(), Some("https://assets.gemwallet.com/proxy/icon?url=https%3A%2F%2Fapp.uniswap.org&size=256"));
 
         let unhosted = ApplicationMetadata {
             name: "Uniswap".to_string(),
@@ -99,15 +87,7 @@ mod tests {
             ..ApplicationMetadata::mock()
         };
         assert_eq!(service.connection_row(unhosted.clone()).host, None);
-        assert_eq!(
-            service
-                .connection_row(ApplicationMetadata {
-                    name: String::new(),
-                    ..unhosted.clone()
-                })
-                .initial,
-            None
-        );
+        assert_eq!(service.connection_row(ApplicationMetadata { name: String::new(), ..unhosted.clone() }).initial, None);
         assert_eq!(service.connection_row(unhosted).icon_url, None);
     }
 
@@ -201,15 +181,7 @@ mod tests {
 
     #[test]
     fn test_icon_url_omits_missing_or_unsafe_websites() {
-        for url in [
-            "",
-            " ",
-            "http://app.example.com",
-            "data:text/html,hello",
-            "https://user:password@app.example.com",
-            "https://app.example.com:8443",
-            "https://[",
-        ] {
+        for url in ["", " ", "http://app.example.com", "data:text/html,hello", "https://user:password@app.example.com", "https://app.example.com:8443", "https://["] {
             assert_eq!(
                 GemApplicationMetadataService::new().icon_url(ApplicationMetadata {
                     url: url.into(),

@@ -27,23 +27,19 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.paddingLarge
 import com.gemwallet.android.ui.theme.space10
-import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
 
 private val searchBarHeight = 42.dp
 private val inputStartPadding = 42.dp
 private val inputEndPadding = 40.dp
 
 @Composable
-fun SearchBar(
-    query: TextFieldState,
-    modifier: Modifier = Modifier.listItem(ListPosition.Single),
-    autoFocus: Boolean = false,
-) {
+fun SearchBar(query: TextFieldState, modifier: Modifier = Modifier.listItem(ListPosition.Single), autoFocus: Boolean = false) {
     val focusRequester = remember { FocusRequester() }
 
     if (autoFocus) {
@@ -58,8 +54,7 @@ fun SearchBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(focusRequester)
-                    .padding(start = inputStartPadding, top = space10, end = inputEndPadding, bottom = space10)
-                ,
+                    .padding(start = inputStartPadding, top = space10, end = inputEndPadding, bottom = space10),
                 textStyle = TextStyle.Default.copy(
                     fontSize = 18.sp,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -67,7 +62,7 @@ fun SearchBar(
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 state = query,
                 lineLimits = TextFieldLineLimits.SingleLine,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             )
             if (query.text.isEmpty()) {
                 Text(
@@ -88,7 +83,7 @@ fun SearchBar(
                     modifier = Modifier.align(Alignment.CenterEnd),
                     onClick = {
                         query.clearText()
-                    }
+                    },
                 ) {
                     Icon(imageVector = AppIcons.Close, contentDescription = "Clear")
                 }

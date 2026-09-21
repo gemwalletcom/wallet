@@ -15,17 +15,10 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object WalletRootRoute : NavKey
 
-data class SwapSelection(
-    val itemType: SwapItemType,
-    val payAssetId: AssetId?,
-    val receiveAssetId: AssetId?,
-)
+data class SwapSelection(val itemType: SwapItemType, val payAssetId: AssetId?, val receiveAssetId: AssetId?)
 
 @Composable
-fun rememberWalletNavigationState(
-    startDestination: NavKey,
-    currentTab: MutableState<String>,
-): WalletNavigator {
+fun rememberWalletNavigationState(startDestination: NavKey, currentTab: MutableState<String>): WalletNavigator {
     val assetsService = LocalAssetsService.current
     val deeplinkService = LocalDeeplinkService.current
     val scope = rememberCoroutineScope()

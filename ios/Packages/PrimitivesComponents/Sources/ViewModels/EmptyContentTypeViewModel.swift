@@ -2,11 +2,11 @@
 
 import Components
 import Foundation
+import func Gemstone.emptyState
 import struct Gemstone.GemEmptyState
 import enum Gemstone.GemEmptyStateAction
 import struct Gemstone.GemEmptyStateInput
 import enum Gemstone.GemEmptyStateKind
-import func Gemstone.emptyState
 import Localization
 import Primitives
 import Style

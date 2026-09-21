@@ -54,13 +54,7 @@ where
                 return Ok(Some(result));
             }
             Err(err) => {
-                info_with_fields!(
-                    "rabbitmq reconnect retry",
-                    connection = name,
-                    attempt = attempt,
-                    delay_secs = delay.as_secs(),
-                    error = err.to_string()
-                );
+                info_with_fields!("rabbitmq reconnect retry", connection = name, attempt = attempt, delay_secs = delay.as_secs(), error = err.to_string());
                 let mut rx = shutdown_rx.clone();
                 tokio::select! {
                     _ = tokio::time::sleep(delay) => {}

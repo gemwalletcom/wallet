@@ -39,9 +39,7 @@ impl OwnedCoins<Coin> {
 #[cfg(feature = "rpc")]
 impl Owner {
     pub fn mock(address: &str) -> Self {
-        Owner::OwnerObject(OwnerObject {
-            address_owner: Some(address.to_string()),
-        })
+        Owner::OwnerObject(OwnerObject { address_owner: Some(address.to_string()) })
     }
 }
 
@@ -79,12 +77,8 @@ impl Digest {
                     storage_rebate: BigUint::from(0u32),
                     non_refundable_storage_fee: BigUint::from(0u32),
                 },
-                status: Status {
-                    status: STATUS_SUCCESS.to_string(),
-                },
-                gas_object: GasObject {
-                    owner: Owner::mock(TEST_OWNER_ADDRESS),
-                },
+                status: Status { status: STATUS_SUCCESS.to_string() },
+                gas_object: GasObject { owner: Owner::mock(TEST_OWNER_ADDRESS) },
             },
             move_call_packages: Vec::new(),
             balance_changes: Some(balance_changes),

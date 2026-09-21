@@ -33,7 +33,7 @@ object Migration_73_74 : Migration(73, 74) {
                     PRIMARY KEY(`id`),
                     FOREIGN KEY(`assetId`) REFERENCES `asset`(`id`) ON UPDATE CASCADE ON DELETE CASCADE
                 )
-            """
+            """,
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `perpetuals_asset_id_idx` ON `perpetuals` (`assetId`)")
 
@@ -66,7 +66,7 @@ object Migration_73_74 : Migration(73, 74) {
                     FOREIGN KEY(`perpetualId`) REFERENCES `perpetuals`(`id`) ON UPDATE CASCADE ON DELETE CASCADE,
                     FOREIGN KEY(`assetId`) REFERENCES `asset`(`id`) ON UPDATE CASCADE ON DELETE CASCADE
                 )
-            """
+            """,
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `perpetuals_positions_wallet_id_idx` ON `perpetuals_positions` (`walletId`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `perpetuals_positions_perpetual_id_idx` ON `perpetuals_positions` (`perpetualId`)")

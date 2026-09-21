@@ -2,7 +2,7 @@
 
 import Style
 
-public struct ListItemField {
+public struct ListItemField: Sendable {
     public let title: TextValue
     public let value: TextValue
 

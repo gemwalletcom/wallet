@@ -103,9 +103,7 @@ impl MayanQuoteCommon {
     pub(in crate::mayan) fn expected_output_value(&self, output_decimals: u32) -> Result<BigUint, SwapperError> {
         let output_decimals = if output_decimals == 0 { self.to_token.decimals } else { output_decimals };
         if let Some(value) = &self.expected_amount_out_base_units {
-            return BigUint::from_str(value)
-                .map(|amount| rescale_base_units(amount, self.to_token.decimals, output_decimals))
-                .map_err(SwapperError::from);
+            return BigUint::from_str(value).map(|amount| rescale_base_units(amount, self.to_token.decimals, output_decimals)).map_err(SwapperError::from);
         }
 
         let amount = match &self.expected_amount_out {
@@ -285,10 +283,7 @@ impl GetSwapEvmParams {
         Self {
             forwarder_address: MAYAN_FORWARDER,
             slippage_bps: route.slippage_bps,
-            referrer_address: wormhole_chain::chain_for_name(&route.from_chain)
-                .ok()
-                .map(default_referral_address)
-                .filter(|address| !address.is_empty()),
+            referrer_address: wormhole_chain::chain_for_name(&route.from_chain).ok().map(default_referral_address).filter(|address| !address.is_empty()),
             from_token: route.from_token.contract.clone(),
             middle_token,
             chain_name: route.from_chain.clone(),
@@ -356,15 +351,7 @@ pub struct GetSwapSolanaParams {
 }
 
 impl GetSwapSolanaParams {
-    pub fn swift(
-        route: &MayanSwiftQuote,
-        min_middle_amount: String,
-        middle_token: String,
-        user_wallet: String,
-        amount_in64: String,
-        referrer_address: Option<String>,
-        user_ledger: String,
-    ) -> Self {
+    pub fn swift(route: &MayanSwiftQuote, min_middle_amount: String, middle_token: String, user_wallet: String, amount_in64: String, referrer_address: Option<String>, user_ledger: String) -> Self {
         Self {
             min_middle_amount,
             middle_token,
@@ -384,16 +371,7 @@ impl GetSwapSolanaParams {
         }
     }
 
-    pub fn mctp(
-        route: &MayanMctpQuote,
-        min_middle_amount: String,
-        middle_token: String,
-        user_wallet: String,
-        amount_in64: String,
-        deposit_mode: &'static str,
-        referrer_address: Option<String>,
-        user_ledger: String,
-    ) -> Self {
+    pub fn mctp(route: &MayanMctpQuote, min_middle_amount: String, middle_token: String, user_wallet: String, amount_in64: String, deposit_mode: &'static str, referrer_address: Option<String>, user_ledger: String) -> Self {
         Self {
             min_middle_amount,
             middle_token,
@@ -413,16 +391,7 @@ impl GetSwapSolanaParams {
         }
     }
 
-    pub fn fast_mctp(
-        route: &MayanFastMctpQuote,
-        min_middle_amount: String,
-        middle_token: String,
-        user_wallet: String,
-        amount_in64: String,
-        deposit_mode: &'static str,
-        referrer_address: Option<String>,
-        user_ledger: String,
-    ) -> Self {
+    pub fn fast_mctp(route: &MayanFastMctpQuote, min_middle_amount: String, middle_token: String, user_wallet: String, amount_in64: String, deposit_mode: &'static str, referrer_address: Option<String>, user_ledger: String) -> Self {
         Self {
             min_middle_amount,
             middle_token,
@@ -600,24 +569,14 @@ mod tests {
                 min_amount_in: Some(serde_json::json!(0.0004349)),
             }),
         };
-        assert_eq!(
-            response.into_swapper_error(),
-            Some(SwapperError::InputAmountError {
-                min_amount: Some("0.0004349".to_string())
-            })
-        );
+        assert_eq!(response.into_swapper_error(), Some(SwapperError::InputAmountError { min_amount: Some("0.0004349".to_string()) }));
 
         let response = ErrorResponse {
             msg: Some("Amount too small (min ~1,234.5 USDC)".to_string()),
             message: None,
             data: None,
         };
-        assert_eq!(
-            response.into_swapper_error(),
-            Some(SwapperError::InputAmountError {
-                min_amount: Some("1,234.5".to_string())
-            })
-        );
+        assert_eq!(response.into_swapper_error(), Some(SwapperError::InputAmountError { min_amount: Some("1,234.5".to_string()) }));
 
         let response = ErrorResponse {
             msg: Some("Amount too small".to_string()),
@@ -662,20 +621,14 @@ mod tests {
     fn test_expected_output_value() {
         let mut route = MayanQuoteCommon {
             expected_amount_out_base_units: Some("1237897283".to_string()),
-            to_token: MayanToken {
-                decimals: 9,
-                ..Default::default()
-            },
+            to_token: MayanToken { decimals: 9, ..Default::default() },
             ..Default::default()
         };
         assert_eq!(route.expected_output_value(9).unwrap(), BigUint::from(1237897283u64));
 
         route.expected_amount_out_base_units = None;
         route.expected_amount_out = serde_json::json!(1.237897283);
-        route.to_token = MayanToken {
-            decimals: 9,
-            ..Default::default()
-        };
+        route.to_token = MayanToken { decimals: 9, ..Default::default() };
         assert_eq!(route.expected_output_value(9).unwrap(), BigUint::from(1237897283u64));
     }
 
@@ -683,10 +636,7 @@ mod tests {
     fn test_expected_output_value_rescales_base_units_to_asset_decimals() {
         let route = MayanQuoteCommon {
             expected_amount_out_base_units: Some("6023337".to_string()),
-            to_token: MayanToken {
-                decimals: 6,
-                ..Default::default()
-            },
+            to_token: MayanToken { decimals: 6, ..Default::default() },
             ..Default::default()
         };
 

@@ -57,10 +57,7 @@ pub fn ensure_ethereum_signature_recovery_id_offset(signature: &mut [u8]) {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        ETHEREUM_RECOVERY_ID_OFFSET, RECOVERY_ID_INDEX, SecpSigningKey, ensure_ethereum_signature_recovery_id_offset, recover_ethereum_address, sign_digest, sign_ethereum_digest,
-        uncompressed_public_key_from_private,
-    };
+    use super::{ETHEREUM_RECOVERY_ID_OFFSET, RECOVERY_ID_INDEX, SecpSigningKey, ensure_ethereum_signature_recovery_id_offset, recover_ethereum_address, sign_digest, sign_ethereum_digest, uncompressed_public_key_from_private};
     use crate::testkit::{TEST_PRIVATE_KEY, TEST_PRIVATE_KEY_ETHEREUM_ADDRESS};
     use k256::ecdsa::{RecoveryId, Signature, VerifyingKey};
     const DIGEST: [u8; 32] = [7u8; 32];

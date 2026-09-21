@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
+import Foundation
 import enum Gemstone.GemAddressFormatStyle
 import class Gemstone.GemAddressService
 import struct Gemstone.GemRecipient
-import Components
-import Foundation
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -15,12 +15,14 @@ public struct AddressListItemViewModel {
         case auto(addressStyle: GemAddressFormatStyle)
         case address(addressStyle: GemAddressFormatStyle)
         case nameOrAddress
+        case text(String)
     }
 
     public let title: String
     public let account: SimpleAccount
     public let mode: Mode
     public let onAddContact: ((AddContactType) -> Void)?
+    public let onSelect: (@MainActor @Sendable () -> Void)?
     private let addressLink: BlockExplorerLink
 
     public init(
@@ -29,12 +31,14 @@ public struct AddressListItemViewModel {
         mode: Mode,
         addressLink: BlockExplorerLink,
         onAddContact: ((AddContactType) -> Void)? = nil,
+        onSelect: (@MainActor @Sendable () -> Void)? = nil,
     ) {
         self.title = title
         self.account = account
         self.mode = mode
         self.addressLink = addressLink
         self.onAddContact = onAddContact
+        self.onSelect = onSelect
     }
 
     public var subtitle: String {
@@ -42,6 +46,7 @@ public struct AddressListItemViewModel {
         case let .auto(style): auto(for: style)
         case let .address(style): address(for: style)
         case .nameOrAddress: account.name ?? account.address
+        case let .text(text): text
         }
     }
 
@@ -91,19 +96,7 @@ public struct AddressListItemViewModel {
     // MARK: - Private methods
 
     private func auto(for style: GemAddressFormatStyle) -> String {
-        let display = GemAddressService.shared.display(
-            name: account.name,
-            address: address(for: .short),
-            hasImage: account.assetImage != nil,
-        )
-        switch display {
-        case .address:
-            return address(for: style)
-        case let .name(name):
-            return name
-        case let .nameWithAddress(name):
-            return "\(name) (\(address(for: .short)))"
-        }
+        GemAddressService.shared.nameText(name: account.name, address: address(for: .short), hasImage: account.assetImage != nil) ?? address(for: style)
     }
 
     private func address(for style: GemAddressFormatStyle) -> String {

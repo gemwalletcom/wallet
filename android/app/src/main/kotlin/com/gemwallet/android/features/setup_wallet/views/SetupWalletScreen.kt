@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.setup_wallet.views
 
-import com.gemwallet.android.localization.stringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,26 +15,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.setup_wallet.viewmodels.SetupWalletViewModel
+import com.gemwallet.android.localization.stringRes
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.image.WalletAvatar
 import com.gemwallet.android.ui.components.list_item.iconModel
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingLarge
 import com.wallet.core.primitives.WalletSource
-import com.gemwallet.android.ui.components.screen.rememberSnackbarState
-import com.gemwallet.android.ui.localization.text
 
 @Composable
-fun SetupWalletScreen(
-    onComplete: () -> Unit,
-    onSelectImage: () -> Unit,
-    viewModel: SetupWalletViewModel,
-) {
+fun SetupWalletScreen(onComplete: () -> Unit, onSelectImage: () -> Unit, viewModel: SetupWalletViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = uiState.error?.text(), iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 

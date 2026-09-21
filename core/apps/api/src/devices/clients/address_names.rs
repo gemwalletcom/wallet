@@ -29,17 +29,8 @@ impl AddressNamesClient {
             .filter_map(|x| x.as_primitive())
             .map(|name| (ChainAddress::new(name.chain, name.address.clone()), name))
             .collect::<HashMap<_, _>>();
-        let asset_ids = requests
-            .iter()
-            .map(|request| AssetId::from(request.chain, Some(request.address.clone())))
-            .collect::<Vec<_>>();
-        let asset_names = self
-            .database
-            .assets()?
-            .get_assets(asset_ids)?
-            .into_iter()
-            .filter_map(asset_entry)
-            .collect::<HashMap<_, _>>();
+        let asset_ids = requests.iter().map(|request| AssetId::from(request.chain, Some(request.address.clone()))).collect::<Vec<_>>();
+        let asset_names = self.database.assets()?.get_assets(asset_ids)?.into_iter().filter_map(asset_entry).collect::<HashMap<_, _>>();
 
         Ok(map_requests(requests, &scan_names, &asset_names))
     }
@@ -49,9 +40,7 @@ fn map_requests(requests: Vec<ChainAddress>, scan_names: &HashMap<ChainAddress, 
     requests
         .into_iter()
         .filter_map(|request| asset_names.get(&request).or_else(|| scan_names.get(&request)).cloned())
-        .scan(HashSet::new(), |seen, name| {
-            seen.insert(ChainAddress::new(name.chain, name.address.clone())).then_some(name)
-        })
+        .scan(HashSet::new(), |seen, name| seen.insert(ChainAddress::new(name.chain, name.address.clone())).then_some(name))
         .collect()
 }
 

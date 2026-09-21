@@ -13,20 +13,18 @@ import java.time.format.DateTimeFormatter
 @Serializer(forClass = Long::class)
 object DateSerializer {
 
-    override fun deserialize(decoder: Decoder): Long {
-        return try {
-            ZonedDateTime.parse(decoder.decodeString(), DateTimeFormatter.ISO_ZONED_DATE_TIME)
-                .toInstant()
-                .toEpochMilli()
-        } catch (_: Throwable) {
-            0
-        }
+    override fun deserialize(decoder: Decoder): Long = try {
+        ZonedDateTime.parse(decoder.decodeString(), DateTimeFormatter.ISO_ZONED_DATE_TIME)
+            .toInstant()
+            .toEpochMilli()
+    } catch (_: Throwable) {
+        0
     }
 
     override fun serialize(encoder: Encoder, value: Long) {
         val isoTimestamp = ZonedDateTime.ofInstant(
             Instant.ofEpochMilli(value),
-            ZoneOffset.UTC
+            ZoneOffset.UTC,
         )
             .format(DateTimeFormatter.ISO_ZONED_DATE_TIME)
         encoder.encodeString(isoTimestamp)

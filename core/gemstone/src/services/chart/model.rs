@@ -1,27 +1,6 @@
 use super::rules;
 use crate::formatted_number::GemFormattedNumber;
-use primitives::{AssetLink, BlockExplorerLink, ChartDateValue, ChartValuePercentage, Currency};
-
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
-pub enum GemChartSection {
-    PriceAlerts { count: u32 },
-    SetPriceAlert,
-    Market { rows: Vec<GemAssetMarketRow> },
-    Links { links: Vec<AssetLink> },
-}
-
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
-pub enum GemAssetMarketRow {
-    MarketCap { value: f64, rank: Option<i32> },
-    FullyDilutedValuation { value: f64 },
-    TradingVolume { value: f64 },
-    Contract { token_id: String, explorer: Option<BlockExplorerLink> },
-    CirculatingSupply { value: f64 },
-    TotalSupply { value: f64 },
-    MaxSupply { value: f64 },
-    AllTimeHigh { value: ChartValuePercentage },
-    AllTimeLow { value: ChartValuePercentage },
-}
+use primitives::{ChartDateValue, Currency};
 
 #[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
 pub enum GemChartValueType {
@@ -46,9 +25,21 @@ pub struct GemChartData {
     pub header: Option<GemChartHeader>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, uniffi::Record)]
+pub struct GemChartBounds {
+    pub lower_index: u32,
+    pub upper_index: u32,
+    pub y_min: f64,
+    pub y_max: f64,
+}
+
 #[uniffi::export]
 impl GemChartData {
     pub fn header_at(&self, value: f64) -> GemChartHeader {
         rules::header(self, value, None)
+    }
+
+    pub fn bounds(&self) -> GemChartBounds {
+        rules::chart_bounds(&self.values)
     }
 }

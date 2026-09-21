@@ -40,11 +40,7 @@ impl<'a, C: Client + Clone> SimulationClient<'a, C> {
 
     async fn approval_warnings(&self, approval: &ApprovalRequest) -> Result<Vec<SimulationWarning>, Box<dyn Error + Send + Sync>> {
         if self.spender_is_externally_owned(&approval.spender_address).await? {
-            return Ok(vec![SimulationWarning::new(
-                SimulationSeverity::Warning,
-                SimulationWarningType::ExternallyOwnedSpender,
-                None,
-            )]);
+            return Ok(vec![SimulationWarning::new(SimulationSeverity::Warning, SimulationWarningType::ExternallyOwnedSpender, None)]);
         }
 
         Ok(vec![approval.primary_warning()])
@@ -78,10 +74,7 @@ mod tests {
         let result = SimulationClient::new(&client).simulate_eip712_message(Chain::Ethereum, &message).await?;
 
         assert_eq!(result.warnings.len(), 1);
-        assert_eq!(
-            result.warnings.first(),
-            Some(&SimulationWarning::new(SimulationSeverity::Warning, SimulationWarningType::ExternallyOwnedSpender, None,))
-        );
+        assert_eq!(result.warnings.first(), Some(&SimulationWarning::new(SimulationSeverity::Warning, SimulationWarningType::ExternallyOwnedSpender, None,)));
 
         Ok(())
     }
@@ -95,9 +88,7 @@ mod tests {
         .abi_encode();
 
         let client = EthereumClient::mock_with_code("0x1234");
-        let result = SimulationClient::new(&client)
-            .simulate_evm_calldata(Chain::Ethereum, &calldata, ETHEREUM_USDC_TOKEN_ID)
-            .await?;
+        let result = SimulationClient::new(&client).simulate_evm_calldata(Chain::Ethereum, &calldata, ETHEREUM_USDC_TOKEN_ID).await?;
 
         assert_eq!(result.warnings.len(), 1);
         assert_ne!(result.warnings[0].warning, SimulationWarningType::ExternallyOwnedSpender);
@@ -154,10 +145,7 @@ mod tests {
         let result = SimulationClient::new(&client).simulate_eip712_message(Chain::Ethereum, &message).await?;
 
         assert_eq!(result.warnings.len(), 1);
-        assert_eq!(
-            result.warnings.first(),
-            Some(&SimulationWarning::new(SimulationSeverity::Warning, SimulationWarningType::ExternallyOwnedSpender, None,))
-        );
+        assert_eq!(result.warnings.first(), Some(&SimulationWarning::new(SimulationSeverity::Warning, SimulationWarningType::ExternallyOwnedSpender, None,)));
 
         Ok(())
     }

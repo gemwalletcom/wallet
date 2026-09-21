@@ -17,13 +17,9 @@ import com.wallet.core.primitives.PerpetualTriggerOrder
 import com.wallet.core.primitives.TpslType
 import uniffi.gemstone.AutocloseValidation
 import uniffi.gemstone.GemAutocloseField
+import uniffi.gemstone.GemAutocloseViewState
 
-fun mockPerpetual(
-    price: Double = 0.0,
-    pricePercentChange24h: Double = 0.0,
-    volume24h: Double = 0.0,
-    funding: Double = 0.0,
-) = Perpetual(
+fun mockPerpetual(price: Double = 0.0, pricePercentChange24h: Double = 0.0, volume24h: Double = 0.0, funding: Double = 0.0) = Perpetual(
     id = PerpetualId(provider = PerpetualProvider.Hypercore, symbol = "TON"),
     name = "TON",
     provider = PerpetualProvider.Hypercore,
@@ -38,10 +34,7 @@ fun mockPerpetual(
     isIsolatedOnly = false,
 )
 
-fun mockPerpetualData(
-    perpetual: Perpetual = mockPerpetual(),
-    asset: Asset = mockAsset(),
-) = PerpetualData(
+fun mockPerpetualData(perpetual: Perpetual = mockPerpetual(), asset: Asset = mockAsset()) = PerpetualData(
     perpetual = perpetual,
     asset = asset,
     metadata = PerpetualMetadata(isPinned = false),
@@ -80,33 +73,30 @@ fun mockPerpetualPosition(
     funding = funding,
 )
 
-fun mockPerpetualPositionData(
-    perpetual: Perpetual = mockPerpetual(price = 100.0),
-    asset: Asset = mockAsset(),
-    position: PerpetualPosition = mockPerpetualPosition(assetId = asset.id, perpetualId = perpetual.id),
-) = PerpetualPositionData(
+fun mockPerpetualPositionData(perpetual: Perpetual = mockPerpetual(price = 100.0), asset: Asset = mockAsset(), position: PerpetualPosition = mockPerpetualPosition(assetId = asset.id, perpetualId = perpetual.id)) = PerpetualPositionData(
     perpetual = perpetual,
     asset = asset,
     position = position,
 )
 
-fun mockPerpetualTriggerOrder(
-    price: Double = 100.0,
-) = PerpetualTriggerOrder(
+fun mockPerpetualTriggerOrder(price: Double = 100.0) = PerpetualTriggerOrder(
     price = price,
     order_type = PerpetualOrderType.Limit,
     order_id = "order-$price",
 )
 
-fun mockAutocloseField(
-    type: TpslType = TpslType.TakeProfit,
-    price: Double? = null,
-    validation: AutocloseValidation = AutocloseValidation.VALID,
-) = GemAutocloseField(
+fun mockAutocloseField(type: TpslType = TpslType.TakeProfit, price: Double? = null, validation: AutocloseValidation = AutocloseValidation.VALID) = GemAutocloseField(
     tpslType = type.toGem(),
     price = price,
     originalPrice = null,
     formattedPrice = price?.toString(),
     validation = validation,
     orderId = null,
+)
+
+fun mockAutocloseViewState(confirmEnabled: Boolean = false, showsErrors: Boolean = false) = GemAutocloseViewState(
+    confirmEnabled = confirmEnabled,
+    showsErrors = showsErrors,
+    entryPrice = mockFormattedNumber(100.0),
+    marketPrice = mockFormattedNumber(110.0),
 )

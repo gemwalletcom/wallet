@@ -44,11 +44,7 @@ pub fn decode_hex(value: &str) -> Result<Vec<u8>, HexError> {
     if stripped.is_empty() {
         return Ok(vec![]);
     }
-    let normalized: Cow<str> = if stripped.len() % 2 == 1 {
-        Cow::Owned(format!("0{stripped}"))
-    } else {
-        Cow::Borrowed(stripped)
-    };
+    let normalized: Cow<str> = if stripped.len() % 2 == 1 { Cow::Owned(format!("0{stripped}")) } else { Cow::Borrowed(stripped) };
     Ok(hex::decode(&*normalized)?)
 }
 

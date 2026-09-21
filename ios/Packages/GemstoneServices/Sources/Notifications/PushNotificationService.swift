@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemPreferencesServiceProtocol
 import Foundation
+import protocol Gemstone.GemPreferencesServiceProtocol
 import UIKit
 
 public struct PushNotificationEnablerService: Sendable {
@@ -37,7 +37,7 @@ public struct PushNotificationEnablerService: Sendable {
     }
 
     public func requestPermissionsIfNotDetermined() async throws -> Bool {
-        switch preferencesService.notificationPrompt(isGranted: try await getNotificationSettingsStatus().isGranted) {
+        switch try await preferencesService.notificationPrompt(isGranted: getNotificationSettingsStatus().isGranted) {
         case .request: try await requestPermissions()
         case .enable, .openSettings: false
         }

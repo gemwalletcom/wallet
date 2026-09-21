@@ -44,9 +44,6 @@ impl Wallet {
         for account in &self.accounts {
             chains_by_address.entry(account.address.as_str()).or_default().insert(account.chain);
         }
-        chains_by_address
-            .into_iter()
-            .map(|(address, chains)| AddressChains::new(address.to_string(), chains.into_iter().collect()))
-            .collect()
+        chains_by_address.into_iter().map(|(address, chains)| AddressChains::new(address.to_string(), chains.into_iter().collect())).collect()
     }
 }

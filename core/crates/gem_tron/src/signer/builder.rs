@@ -42,12 +42,7 @@ impl TronRawData {
             tx_trie_root: Some(transaction_tree_root.to_vec()),
             parent_hash: Some(parent_hash.to_vec()),
             number: (*block_number > 0).then_some(*block_number),
-            witness_address: Some(
-                TronAddress::from_hex(witness_address)
-                    .ok_or_else(|| SignerError::invalid_input("invalid Tron witness address"))?
-                    .as_bytes()
-                    .to_vec(),
-            ),
+            witness_address: Some(TronAddress::from_hex(witness_address).ok_or_else(|| SignerError::invalid_input("invalid Tron witness address"))?.as_bytes().to_vec()),
             version: (*block_version > 0).then_some(*block_version),
         };
         let block_hash = sha256(&header.encode());
@@ -56,9 +51,7 @@ impl TronRawData {
         Ok(Self {
             ref_block_bytes: block_number_bytes[6..8].to_vec(),
             ref_block_hash: block_hash[8..16].to_vec(),
-            expiration: block_timestamp
-                .checked_add(EXPIRATION_DURATION_MS)
-                .ok_or_else(|| SignerError::invalid_input("Tron expiration overflow"))?,
+            expiration: block_timestamp.checked_add(EXPIRATION_DURATION_MS).ok_or_else(|| SignerError::invalid_input("Tron expiration overflow"))?,
             data: data.or_else(|| input.get_memo().map(|memo| memo.as_bytes().to_vec())),
             contract,
             timestamp: *block_timestamp,

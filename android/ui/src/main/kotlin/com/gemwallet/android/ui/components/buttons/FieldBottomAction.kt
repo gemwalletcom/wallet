@@ -15,12 +15,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.gemwallet.android.ui.theme.paddingSmall
 
 @Composable
-fun FieldBottomAction(
-    imageVector: ImageVector,
-    text: String,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-) {
+fun FieldBottomAction(imageVector: ImageVector, text: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     TextButton(
         modifier = modifier,
         colors = ButtonDefaults.textButtonColors(

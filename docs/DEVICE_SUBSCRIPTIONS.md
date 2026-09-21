@@ -50,7 +50,18 @@ The local record of what was published is written only after a successful sync, 
 
 [`GemDeviceService`](../core/gemstone/src/services/device/mod.rs) owns registration, divergence detection, serialization of concurrent syncs, and the published-state checkpoint on both platforms. [`GemSubscriptionService`](../core/gemstone/src/services/subscription/mod.rs) owns subscription reconciliation. Divergence is derived from the current device plus a deterministic wallet/account signature; mutation sites do not maintain a separate pending flag.
 
-Both apps construct these Core services once. Wallet/account observers call `synchronizeIfNeeded()` when local subscriptions change, and the general device API client runs the same check as a preflight before wallet-scoped requests. The registration client used by the sync services has no preflight, which prevents recursive synchronization.
+Both apps construct these Core services once. The registration client used by the sync services has no preflight, which prevents recursive synchronization.
+
+Nothing announces a change. A service that writes a value the record carries — currency, the price-alert flag — writes it and stops; divergence is derived from the current device, so the next check finds it. Those checks are occasions the app already has, not notifications:
+
+| Occasion | Check |
+|---|---|
+| App start | `synchronize()`, unconditional |
+| Any wallet-scoped device request | `DeviceSyncPreflight` before the request goes out |
+| Stream connection | `prepareConnection` |
+| Wallet or account change | each app's device observer |
+
+A new field on the device record therefore needs the field and the comparison, and no new call site. `GemDeviceService::set_push_enabled` is the one write that also syncs, because it is the record's own service and the push token is read from the platform at the same moment.
 
 | Platform | Wallet-change trigger | Platform adapter |
 |---|---|---|
@@ -66,6 +77,7 @@ Changes on either platform must keep these true:
 - Published state is recorded only after a successful sync.
 - Adding a wallet does not remove other wallets' subscriptions; deleting one removes its own.
 - Outside the app-start existence check, nothing changed since the last sync means no requests.
+- A command that changes a device-record value does not register the device; it writes the value and the next occasion finds the difference.
 
 Keep this document current in the same change when the sync triggers, the reconcile rules, or the platform mechanisms above change.
 

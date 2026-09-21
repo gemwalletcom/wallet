@@ -70,6 +70,7 @@ internal fun MainContent(
                 isEnrollmentRequired -> SystemAuthEnrollmentRequired(
                     onOpenSettings = onOpenSystemAuthSettings,
                 )
+
                 shouldShowLockedSplash -> LockedSplash()
             }
         }

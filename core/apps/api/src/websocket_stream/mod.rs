@@ -17,13 +17,7 @@ pub fn ws_health(_config: &State<AuthConfig>) -> rocket::http::Status {
 pub use client::StreamObserverConfig;
 
 #[rocket::get("/stream")]
-pub async fn ws_stream(
-    ws: WebSocket,
-    auth: AuthenticatedDevice,
-    version: VersionParam,
-    price_client: &State<PriceClient>,
-    config: &State<StreamObserverConfig>,
-) -> Channel<'static> {
+pub async fn ws_stream(ws: WebSocket, auth: AuthenticatedDevice, version: VersionParam, price_client: &State<PriceClient>, config: &State<StreamObserverConfig>) -> Channel<'static> {
     let price_client = price_client.inner().clone();
     let redis_url = config.redis_url.clone();
     let cacher_client = config.cacher_client.clone();

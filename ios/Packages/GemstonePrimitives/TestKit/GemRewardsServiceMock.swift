@@ -28,7 +28,9 @@ public final class GemRewardsServiceMock: GemRewardsServiceProtocol, @unchecked 
 
     public func redeem(wallet _: Wallet, redemptionId: String) async throws -> RedemptionResult {
         redeemedIds.append(redemptionId)
-        if let redeemError { throw redeemError }
+        if let redeemError {
+            throw redeemError
+        }
         return .mock()
     }
 
@@ -40,9 +42,12 @@ public final class GemRewardsServiceMock: GemRewardsServiceProtocol, @unchecked 
         stateForRewards(rewards)
     }
 
-    public func useReferralCode(wallet: Wallet, code: String) async throws {
+    public func useReferralCode(wallet: Wallet, code: String) async throws -> Rewards {
         usedReferralCodes.append((wallet.id, code))
-        if let useReferralCodeError { throw useReferralCodeError }
+        if let useReferralCodeError {
+            throw useReferralCodeError
+        }
+        return try rewardsResult.get()
     }
 
     public func wallets(wallets: [Wallet]) -> [Wallet] {

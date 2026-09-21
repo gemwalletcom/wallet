@@ -12,11 +12,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 
 @Composable
-fun ManageContactNavScreen(
-    onSaved: () -> Unit,
-    onCancel: () -> Unit,
-    viewModel: ManageContactViewModel = hiltViewModel(),
-) {
+fun ManageContactNavScreen(onSaved: () -> Unit, onCancel: () -> Unit, viewModel: ManageContactViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = uiState.errorText, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 

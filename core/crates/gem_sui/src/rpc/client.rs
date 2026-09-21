@@ -12,11 +12,10 @@ use sui_types::{Address, Digest as SuiDigest};
 
 use super::mapper::{map_checkpoint, map_executed_transaction, map_inspect_result, map_sui_effects};
 use super::proto::{
-    self as proto, BatchGetObjectsRequest, BatchGetObjectsResponse, BatchGetTransactionsRequest, BatchGetTransactionsResponse, ExecuteTransactionRequest,
-    ExecuteTransactionResponse, ExecutedTransaction, FieldMask, GetBalanceRequest, GetBalanceResponse, GetCheckpointRequest, GetCheckpointResponse, GetCoinInfoRequest,
-    GetCoinInfoResponse, GetEpochRequest, GetEpochResponse, GetFunctionRequest, GetFunctionResponse, GetObjectRequest, GetObjectResponse, GetServiceInfoRequest,
-    GetServiceInfoResponse, GetTransactionRequest, GetTransactionResponse, ListBalancesRequest, ListBalancesResponse, ListOwnedObjectsRequest, ListOwnedObjectsResponse,
-    SimulateTransactionRequest, SimulateTransactionResponse, Transaction as GrpcTransaction, TransactionChecks, UserSignature as GrpcUserSignature, WithMut,
+    self as proto, BatchGetObjectsRequest, BatchGetObjectsResponse, BatchGetTransactionsRequest, BatchGetTransactionsResponse, ExecuteTransactionRequest, ExecuteTransactionResponse, ExecutedTransaction, FieldMask, GetBalanceRequest,
+    GetBalanceResponse, GetCheckpointRequest, GetCheckpointResponse, GetCoinInfoRequest, GetCoinInfoResponse, GetEpochRequest, GetEpochResponse, GetFunctionRequest, GetFunctionResponse, GetObjectRequest, GetObjectResponse,
+    GetServiceInfoRequest, GetServiceInfoResponse, GetTransactionRequest, GetTransactionResponse, ListBalancesRequest, ListBalancesResponse, ListOwnedObjectsRequest, ListOwnedObjectsResponse, SimulateTransactionRequest,
+    SimulateTransactionResponse, Transaction as GrpcTransaction, TransactionChecks, UserSignature as GrpcUserSignature, WithMut,
 };
 use crate::models::transaction::{SuiBroadcastTransaction, SuiTransaction};
 use crate::models::{Balance, Checkpoint, Coin, Digest, InspectResult, Object, OwnedCoins, SuiCoinMetadata, SuiObject, TransactionBlocks};
@@ -81,11 +80,7 @@ impl SuiClient {
     pub async fn inspect_transaction_block(&self, sender: &str, tx_data: &[u8], _gas_price: Option<u64>) -> Result<InspectResult, Box<dyn Error + Send + Sync>> {
         let transaction = decode_inspect_transaction_bytes(sender, tx_data)?;
         let request = SimulateTransactionRequest::new(transaction).with(|request| {
-            request.read_mask = Some(FieldMask::from_paths([
-                "transaction.effects.gas_used",
-                "transaction.effects.status",
-                "command_outputs.return_values.value",
-            ]));
+            request.read_mask = Some(FieldMask::from_paths(["transaction.effects.gas_used", "transaction.effects.status", "command_outputs.return_values.value"]));
             request.checks = Some(TransactionChecks::Disabled);
         });
         Ok(map_inspect_result(self.grpc_unary(PATH_SIMULATE_TRANSACTION, request).await?))
@@ -201,12 +196,7 @@ impl SuiClient {
                 .objects
                 .into_iter()
                 .map(|object| {
-                    let coin_type = object
-                        .object_type
-                        .ok_or("missing Sui coin object type")?
-                        .trim_start_matches("0x2::coin::Coin<")
-                        .trim_end_matches('>')
-                        .to_string();
+                    let coin_type = object.object_type.ok_or("missing Sui coin object type")?.trim_start_matches("0x2::coin::Coin<").trim_end_matches('>').to_string();
                     let object_id_str = object.object_id.ok_or("missing Sui coin object id")?;
                     let digest_str = object.digest.ok_or("missing Sui coin digest")?;
                     Ok(Coin {
@@ -346,10 +336,7 @@ impl SuiClient {
         };
         let response: ExecuteTransactionResponse = self.grpc_unary(PATH_EXECUTE_TRANSACTION, request).await?;
         Ok(SuiBroadcastTransaction {
-            digest: response
-                .transaction
-                .and_then(|transaction| transaction.digest)
-                .ok_or("missing Sui broadcast transaction digest")?,
+            digest: response.transaction.and_then(|transaction| transaction.digest).ok_or("missing Sui broadcast transaction digest")?,
         })
     }
 

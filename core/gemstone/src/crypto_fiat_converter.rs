@@ -17,7 +17,7 @@ impl CryptoFiatConverter {
         Self {}
     }
 
-    pub fn to_fiat(&self, value: BigInt, decimals: u32, price: f64) -> String {
-        Converter::fiat_amount(&value.to_string(), decimals, price).normalized().to_string()
+    pub fn to_fiat(&self, value: BigInt, decimals: u32, price: f64) -> f64 {
+        Converter::fiat_f64(&value.to_string(), decimals, price)
     }
 }

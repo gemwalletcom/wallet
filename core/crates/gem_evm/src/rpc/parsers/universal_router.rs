@@ -10,9 +10,7 @@ use crate::{
     u256::u256_to_biguint,
     uniswap::{
         actions::{V4Action, decode_action_data},
-        command::{
-            MSG_SENDER, SWEEP_COMMAND, Sweep, UNWRAP_WETH_COMMAND, UnwrapWeth, V3_SWAP_EXACT_IN_COMMAND, V3SwapExactIn, V3SwapExactInV2_1, V4_SWAP_COMMAND, WRAP_ETH_COMMAND,
-        },
+        command::{MSG_SENDER, SWEEP_COMMAND, Sweep, UNWRAP_WETH_COMMAND, UnwrapWeth, V3_SWAP_EXACT_IN_COMMAND, V3SwapExactIn, V3SwapExactInV2_1, V4_SWAP_COMMAND, WRAP_ETH_COMMAND},
         contracts::{
             IUniversalRouter,
             v4::{IPoolManager, PoolKey},
@@ -51,11 +49,7 @@ impl RouterAbi {
 
 impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for UniversalRouterParser {
     fn matches(&self, context: &ParseContext<'_>) -> bool {
-        context
-            .transaction
-            .to
-            .as_ref()
-            .is_some_and(|to| get_provider_by_chain_contract(context.metadata.chain, to).is_some())
+        context.transaction.to.as_ref().is_some_and(|to| get_provider_by_chain_contract(context.metadata.chain, to).is_some())
     }
 
     fn parse(&self, context: &ParseContext<'_>) -> Option<PrimitivesTransaction> {
@@ -64,27 +58,13 @@ impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for UniversalRou
         let input_bytes = decode_hex(&context.transaction.input).ok()?;
         let execute_call = IUniversalRouter::executeCall::abi_decode(&input_bytes).ok()?;
         let router_abi = RouterAbi::from_chain_contract(context.metadata.chain, to);
-        let metadata = decode_execute_swap_call(
-            context.metadata.chain,
-            router_abi,
-            &provider,
-            &context.transaction.from,
-            &execute_call,
-            context.metadata.receipt,
-        )?;
+        let metadata = decode_execute_swap_call(context.metadata.chain, router_abi, &provider, &context.transaction.from, &execute_call, context.metadata.receipt)?;
 
         context.make_swap_transaction(&context.transaction.from, &context.transaction.from, &metadata)
     }
 }
 
-pub(crate) fn decode_execute_swap(
-    chain: &Chain,
-    universal_router_abi: UniversalRouterAbi,
-    provider: &str,
-    from: &str,
-    input_bytes: &[u8],
-    receipt: &TransactionReceipt,
-) -> Option<TransactionSwapMetadata> {
+pub(crate) fn decode_execute_swap(chain: &Chain, universal_router_abi: UniversalRouterAbi, provider: &str, from: &str, input_bytes: &[u8], receipt: &TransactionReceipt) -> Option<TransactionSwapMetadata> {
     let execute_call = IUniversalRouter::executeCall::abi_decode(input_bytes).ok()?;
     decode_execute_swap_call(
         chain,
@@ -100,14 +80,7 @@ pub(crate) fn decode_execute_swap(
     )
 }
 
-fn decode_execute_swap_call(
-    chain: &Chain,
-    router_abi: RouterAbi,
-    provider: &str,
-    from: &str,
-    execute_call: &IUniversalRouter::executeCall,
-    receipt: &TransactionReceipt,
-) -> Option<TransactionSwapMetadata> {
+fn decode_execute_swap_call(chain: &Chain, router_abi: RouterAbi, provider: &str, from: &str, execute_call: &IUniversalRouter::executeCall, receipt: &TransactionReceipt) -> Option<TransactionSwapMetadata> {
     let commands = &execute_call.commands;
     let inputs = &execute_call.inputs;
     let mut swap_input: Option<(AssetId, U256)> = None;
@@ -146,10 +119,7 @@ fn decode_execute_swap_call(
 
             let leg_from_asset = AssetId::from(*chain, (!has_wrap).then_some(from_token));
             let (leg_to_asset, leg_to_value) = if let Some(unwrap_minimum) = &unwrap_minimum {
-                (
-                    AssetId::from_chain(*chain),
-                    withdraw_value_from_receipt(&to_token, receipt).unwrap_or_else(|| unwrap_minimum.to_string()),
-                )
+                (AssetId::from_chain(*chain), withdraw_value_from_receipt(&to_token, receipt).unwrap_or_else(|| unwrap_minimum.to_string()))
             } else {
                 let to_value = if let Some(sweep_minimum) = &sweep_minimum {
                     transfer_value_from_receipt(from, &to_token, receipt).unwrap_or_else(|| sweep_minimum.to_string())
@@ -205,11 +175,13 @@ fn decode_execute_swap_call(
 
     let (from_asset, from_value) = swap_input?;
     let (to_asset, to_value) = swap_output?;
+    let (from_asset, from_value) = from_asset.mirror_to_native(u256_to_biguint(&from_value));
+    let (to_asset, to_value) = to_asset.mirror_to_native(u256_to_biguint(&U256::from_str(&to_value).ok()?));
     Some(TransactionSwapMetadata {
         from_asset,
         to_asset,
-        from_value: u256_to_biguint(&from_value),
-        to_value: u256_to_biguint(&U256::from_str(&to_value).ok()?),
+        from_value,
+        to_value,
         provider: Some(swap_provider.to_string()),
     })
 }
@@ -222,24 +194,15 @@ fn native_v4_value_from_receipt(router: Address, from: &str, actions: &[V4Action
         _ => return None,
     };
     let (last, preceding) = path.split_last()?;
-    if currency_in.is_zero()
-        || !last.intermediateCurrency.is_zero()
-        || path.iter().any(|hop| !hop.hooks.is_zero())
-        || preceding.iter().any(|hop| hop.intermediateCurrency.is_zero())
-    {
+    if currency_in.is_zero() || !last.intermediateCurrency.is_zero() || path.iter().any(|hop| !hop.hooks.is_zero()) || preceding.iter().any(|hop| hop.intermediateCurrency.is_zero()) {
         return None;
     }
     match settlement {
-        V4Action::SETTLE {
-            currency, payer_is_user: true, ..
-        }
-        | V4Action::SETTLE_ALL { currency, .. }
-            if *currency == currency_in => {}
+        V4Action::SETTLE { currency, payer_is_user: true, .. } | V4Action::SETTLE_ALL { currency, .. } if *currency == currency_in => {}
         _ => return None,
     }
     match take {
-        V4Action::TAKE { currency, recipient, amount }
-            if currency.is_zero() && amount.is_zero() && (*recipient == Address::from_str(from).ok()? || *recipient == Address::from_str(MSG_SENDER).ok()?) => {}
+        V4Action::TAKE { currency, recipient, amount } if currency.is_zero() && amount.is_zero() && (*recipient == Address::from_str(from).ok()? || *recipient == Address::from_str(MSG_SENDER).ok()?) => {}
         V4Action::TAKE_ALL { currency, .. } if currency.is_zero() => {}
         _ => return None,
     }
@@ -282,10 +245,7 @@ fn transfer_value_from_receipt(to: &str, token: &str, receipt: &TransactionRecei
         .logs
         .iter()
         .filter_map(|log| {
-            (ethereum_address_checksum(&log.address).ok()? == token
-                && log.topics.len() == 3
-                && log.topics.first().is_some_and(|topic| topic == TRANSFER_TOPIC)
-                && ethereum_address_from_topic(log.topics.get(2)?)? == to)
+            (ethereum_address_checksum(&log.address).ok()? == token && log.topics.len() == 3 && log.topics.first().is_some_and(|topic| topic == TRANSFER_TOPIC) && ethereum_address_from_topic(log.topics.get(2)?)? == to)
                 .then(|| ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE))
                 .flatten()
         })
@@ -312,6 +272,18 @@ mod tests {
 
     fn map_swap(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt) -> primitives::Transaction {
         ProtocolParsers::map_transaction(chain, transaction, receipt, DateTime::default()).unwrap()
+    }
+
+    #[test]
+    fn test_map_arc_swap_to_native_usdc() {
+        let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/arc_uniswap_token_usdc_transaction.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/arc_uniswap_token_usdc_transaction_receipt.json"));
+        let swap_transaction = map_swap(&Chain::Arc, &transaction, &receipt);
+        let metadata: TransactionSwapMetadata = serde_json::from_value(swap_transaction.metadata.unwrap()).unwrap();
+        assert_eq!(swap_transaction.transaction_type, TransactionType::Swap);
+        assert_eq!(metadata.from_asset, AssetId::from_token(Chain::Arc, "0x258bbb25fB1bc34C87212F8dAB34838854eF2D5D"));
+        assert_eq!(metadata.to_asset, AssetId::from_chain(Chain::Arc));
+        assert_eq!(metadata.to_value, BigUint::from(502_720_430_000_000_000_000u128));
     }
 
     #[test]
@@ -365,19 +337,13 @@ mod tests {
                 recipient,
                 amount: U256::ZERO,
             };
-            assert_eq!(
-                native_v4_value_from_receipt(router, &transaction.from, &actions, &receipt),
-                Some(U256::from(2_893_729_657_423_135u64))
-            );
+            assert_eq!(native_v4_value_from_receipt(router, &transaction.from, &actions, &receipt), Some(U256::from(2_893_729_657_423_135u64)));
         }
         actions[2] = V4Action::TAKE_ALL {
             currency: Address::ZERO,
             min_amount: U256::ZERO,
         };
-        assert_eq!(
-            native_v4_value_from_receipt(router, &transaction.from, &actions, &receipt),
-            Some(U256::from(2_893_729_657_423_135u64))
-        );
+        assert_eq!(native_v4_value_from_receipt(router, &transaction.from, &actions, &receipt), Some(U256::from(2_893_729_657_423_135u64)));
         for take in [
             V4Action::TAKE {
                 currency: Address::ZERO,
@@ -423,13 +389,7 @@ mod tests {
         assert_eq!(swap_tx.fee_asset_id, AssetId::from_chain(Chain::Unichain));
         assert_eq!(swap_tx.value, BigUint::from(1000000000000000u64));
 
-        assert_eq!(
-            metadata.from_asset,
-            AssetId {
-                chain: Chain::Unichain,
-                token_id: None
-            }
-        );
+        assert_eq!(metadata.from_asset, AssetId { chain: Chain::Unichain, token_id: None });
         assert_eq!(metadata.from_value, BigUint::from(995000000000000u64));
         assert_eq!(
             metadata.to_asset,
@@ -464,13 +424,7 @@ mod tests {
             }
         );
         assert_eq!(metadata.from_value, BigUint::from(2132953u64));
-        assert_eq!(
-            metadata.to_asset,
-            AssetId {
-                chain: Chain::Unichain,
-                token_id: None
-            }
-        );
+        assert_eq!(metadata.to_asset, AssetId { chain: Chain::Unichain, token_id: None });
         assert_eq!(metadata.to_value, BigUint::from(1155057703771482u64));
     }
 
@@ -505,13 +459,7 @@ mod tests {
         assert_eq!(swap_tx.fee_asset_id, AssetId::from_chain(Chain::Ethereum));
         assert_eq!(swap_tx.value, BigUint::from(18000000000000000u64));
 
-        assert_eq!(
-            metadata.from_asset,
-            AssetId {
-                chain: Chain::Ethereum,
-                token_id: None
-            }
-        );
+        assert_eq!(metadata.from_asset, AssetId { chain: Chain::Ethereum, token_id: None });
         assert_eq!(metadata.from_value, BigUint::from(17910000000000000u64));
         assert_eq!(
             metadata.to_asset,
@@ -546,13 +494,7 @@ mod tests {
             }
         );
         assert_eq!(metadata.from_value, BigUint::parse_bytes(b"1352497738700000000000", 10).unwrap());
-        assert_eq!(
-            metadata.to_asset,
-            AssetId {
-                chain: Chain::Base,
-                token_id: None
-            }
-        );
+        assert_eq!(metadata.to_asset, AssetId { chain: Chain::Base, token_id: None });
         assert_eq!(metadata.to_value, BigUint::from(29020434785385862u64));
     }
 
@@ -571,13 +513,7 @@ mod tests {
         assert_eq!(swap_tx.fee_asset_id, AssetId::from_chain(Chain::Polygon));
         assert_eq!(swap_tx.value, BigUint::parse_bytes(b"372000000000000000000", 10).unwrap());
 
-        assert_eq!(
-            metadata.from_asset,
-            AssetId {
-                chain: Chain::Polygon,
-                token_id: None
-            }
-        );
+        assert_eq!(metadata.from_asset, AssetId { chain: Chain::Polygon, token_id: None });
         assert_eq!(metadata.from_value, BigUint::parse_bytes(b"372000000000000000000", 10).unwrap());
         assert_eq!(
             metadata.to_asset,

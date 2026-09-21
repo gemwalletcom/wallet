@@ -210,7 +210,6 @@
   <string name="errors_connections_no_supported_wallets">Không có ví nào được hỗ trợ.</string>
   <string name="errors_connections_unsupported_chain">Chuỗi được cung cấp không được hỗ trợ.</string>
   <string name="errors_swap_amount_too_small">Số lượng quá nhỏ</string>
-  <string name="errors_required">%1$s là bắt buộc</string>
   <string name="errors_scan_transaction_malicious_description">Giao dịch này không thể hoàn tất — địa chỉ ví đích được liên kết với hoạt động đáng ngờ hoặc có hại.</string>
   <string name="errors_scan_transaction_memo_required">%1$s địa chỉ ví đích yêu cầu thẻ đích / ghi nhớ</string>
   <string name="errors_scan_transaction_malicious_title">Hoạt động đáng ngờ</string>
@@ -273,7 +272,7 @@
   <string name="asset_decimals">Số thập phân</string>
   <string name="asset_token_id">Mã định danh mã thông báo</string>
   <string name="asset_contract">Hợp đồng</string>
-  <string name="asset_state_empty_title">Giao dịch của bạn sẽ xuất hiện ở đây️</string>
+  <string name="asset_state_empty_title">Giao dịch của bạn sẽ xuất hiện ở đây</string>
   <string name="asset_state_empty_description">Nhận, trao đổi hoặc mua %1$s</string>
   <string name="asset_verification_unverified">Chưa được xác minh</string>
   <string name="asset_verification_suspicious">Khả nghi</string>
@@ -422,7 +421,7 @@
   <string name="price_alerts_set_alert_set_target_price">Đặt giá mục tiêu</string>
   <string name="price_alerts_set_alert_current_price">Giá hiện tại</string>
   <string name="price_alerts_added_for">Đặt cảnh báo giá %1$s</string>
-  <string name="price_alerts_state_empty_title">Cảnh báo giá của bạn sẽ xuất hiện ở đây️</string>
+  <string name="price_alerts_state_empty_title">Cảnh báo giá của bạn sẽ xuất hiện ở đây</string>
   <string name="price_alerts_state_empty_description">Cho phép chúng bằng cách thêm tiền xu để theo dõi</string>
   <string name="price_alerts_auto_footer">Cảnh báo sẽ được kích hoạt khi giá biến động đáng kể.</string>
   <string name="price_alerts_set_alert_title">Đặt cảnh báo giá</string>
@@ -437,7 +436,7 @@
   <string name="lock_privacy_lock">Khóa riêng tư</string>
   <string name="lock_footer">Bảo vệ quyền truy cập vào ứng dụng này trên thiết bị của bạn</string>
   <string name="verify_phrase_title">Xác nhận</string>
-  <string name="warnings_multi_signature_blocked">Không chuyển tiền vào ví Đa chữ ký %1$s này trừ khi bạn chắc chắn mình kiểm soát được khóa riêng. Nếu không làm như vậy, bạn có thể bị lừa đảo và có thể mất vĩnh viễn tài sản của mình.</string>
+  <string name="warnings_externally_controlled_account">Tài khoản %1$s này có thể do người khác kiểm soát. Không gửi tiền vào tài khoản này trừ khi bạn chắc chắn mình kiểm soát nó, nếu không bạn có thể mất vĩnh viễn tài sản của mình.</string>
   <string name="sell_title">Bán %1$s</string>
   <string name="info_network_fee_title">Phí mạng</string>
   <string name="info_watch_wallet_title">Ví đồng hồ</string>
@@ -489,7 +488,7 @@
   <string name="nft_collection">Bộ sưu tập</string>
   <string name="nft_save_to_photos">Lưu vào Ảnh</string>
   <string name="nft_set_as_avatar">Đặt làm Avatar</string>
-  <string name="nft_state_empty_title">NFT của bạn sẽ xuất hiện ở đây️</string>
+  <string name="nft_state_empty_title">NFT của bạn sẽ xuất hiện ở đây</string>
   <string name="nft_state_empty_description">Nhận NFT đầu tiên của bạn</string>
   <string name="nft_report_reason_spam">Thư rác</string>
   <string name="nft_report_reason_malicious">Độc hại</string>

@@ -34,7 +34,7 @@ struct AcceptTermsScene: View {
             StateButton(
                 text: Localized.Onboarding.AcceptTerms.continue,
                 type: .primary(model.state),
-                action: { model.onNext?() },
+                action: model.accept,
             )
         }
         .contentMargins([.top], .extraSmall, for: .scrollContent)

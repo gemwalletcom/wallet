@@ -46,10 +46,7 @@ mod tests {
             },
         ];
 
-        assert_eq!(
-            map_sui_get_accounts(&accounts),
-            vec![serde_json::json!({ "pubkey": TEST_SUI_PUBLIC_KEY_BASE64, "address": TEST_SUI_ADDRESS })]
-        );
+        assert_eq!(map_sui_get_accounts(&accounts), vec![serde_json::json!({ "pubkey": TEST_SUI_PUBLIC_KEY_BASE64, "address": TEST_SUI_ADDRESS })]);
         assert_eq!(map_sui_get_accounts(&[]), Vec::<Value>::new());
     }
 }

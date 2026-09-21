@@ -210,7 +210,6 @@
   <string name="errors_connections_no_supported_wallets">Немає підтримуваних гаманців.</string>
   <string name="errors_connections_unsupported_chain">Наданий ланцюжок не підтримується.</string>
   <string name="errors_swap_amount_too_small">Сума занадто мала</string>
-  <string name="errors_required">%1$s є обов\'язковим</string>
   <string name="errors_scan_transaction_malicious_description">Цю транзакцію неможливо завершити — адреса гаманця призначення пов\'язана з підозрілою або шкідливою активністю.</string>
   <string name="errors_scan_transaction_memo_required">%1$s адреса гаманця призначення вимагає тегу / мемо призначення</string>
   <string name="errors_scan_transaction_malicious_title">Підозріла активність</string>
@@ -273,7 +272,7 @@
   <string name="asset_decimals">Десяткові знаки</string>
   <string name="asset_token_id">Токен ID</string>
   <string name="asset_contract">Контракт</string>
-  <string name="asset_state_empty_title">Ваші транзакції з\'являться тут ️</string>
+  <string name="asset_state_empty_title">Ваші транзакції з\'являться тут</string>
   <string name="asset_state_empty_description">Отримати, обміняти або купити %1$s</string>
   <string name="asset_verification_unverified">Неперевірено</string>
   <string name="asset_verification_suspicious">Підозрілий</string>
@@ -422,7 +421,7 @@
   <string name="price_alerts_set_alert_set_target_price">Встановити цільову ціну</string>
   <string name="price_alerts_set_alert_current_price">Поточна ціна</string>
   <string name="price_alerts_added_for">Встановити сповіщення про ціну %1$s</string>
-  <string name="price_alerts_state_empty_title">Ваші сповіщення про ціни з\'являтимуться тут️</string>
+  <string name="price_alerts_state_empty_title">Ваші сповіщення про ціни з\'являтимуться тут</string>
   <string name="price_alerts_state_empty_description">Увімкніть їх, додавши монети до відстеження</string>
   <string name="price_alerts_auto_footer">Сповіщення спрацьовують у разі значних змін цін.</string>
   <string name="price_alerts_set_alert_title">Встановити сповіщення про ціну</string>
@@ -437,7 +436,7 @@
   <string name="lock_privacy_lock">Блокування конфіденційності</string>
   <string name="lock_footer">Захистіть доступ до цієї програми на своєму пристрої</string>
   <string name="verify_phrase_title">Підтвердити</string>
-  <string name="warnings_multi_signature_blocked">Не переказуйте кошти на цей %1$s гаманець Multi-Signature, якщо ви не впевнені, що контролюєте закриті ключі. Якщо цього не зробити, ви можете стати жертвою шахрайства та назавжди втратити свої активи.</string>
+  <string name="warnings_externally_controlled_account">Цей обліковий запис %1$s може контролювати хтось інший. Не надсилайте на нього кошти, якщо ви не впевнені, що контролюєте його, інакше ви можете назавжди втратити свої активи.</string>
   <string name="sell_title">Продати %1$s</string>
   <string name="info_network_fee_title">Мережева плата</string>
   <string name="info_watch_wallet_title">Watch Wallet</string>
@@ -489,7 +488,7 @@
   <string name="nft_collection">Колекція</string>
   <string name="nft_save_to_photos">Зберегти до фотографій</string>
   <string name="nft_set_as_avatar">Встановити як аватар</string>
-  <string name="nft_state_empty_title">Ваші NFT з\'являться тут ️</string>
+  <string name="nft_state_empty_title">Ваші NFT з\'являться тут</string>
   <string name="nft_state_empty_description">Отримайте свій перший NFT</string>
   <string name="nft_report_reason_spam">Спам</string>
   <string name="nft_report_reason_malicious">Шкідливий</string>

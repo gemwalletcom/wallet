@@ -15,7 +15,6 @@ internal fun SavedStateHandle.requireWalletId(): WalletId {
     return WalletId(value)
 }
 
-internal fun SavedStateHandle.requireSecretKind(): GemWalletSecretKind =
-    checkNotNull(get<GemWalletSecretKind>(RouteArgument.Type.key)) {
-        "Missing route argument: ${RouteArgument.Type.key}"
-    }
+internal fun SavedStateHandle.requireSecretKind(): GemWalletSecretKind = checkNotNull(get<GemWalletSecretKind>(RouteArgument.Type.key)) {
+    "Missing route argument: ${RouteArgument.Type.key}"
+}

@@ -23,12 +23,7 @@ impl<C: Client> ChainToken for StellarClient<C> {
         let assets = self.get_assets_by_issuer(issuer).await?;
 
         let asset = if let Some(sym) = symbol {
-            assets
-                ._embedded
-                .records
-                .iter()
-                .find(|a| a.asset_code == sym)
-                .ok_or_else(|| format!("Asset not found: {}", token_id))?
+            assets._embedded.records.iter().find(|a| a.asset_code == sym).ok_or_else(|| format!("Asset not found: {}", token_id))?
         } else {
             assets._embedded.records.first().ok_or_else(|| format!("No assets found for issuer: {}", issuer))?
         };

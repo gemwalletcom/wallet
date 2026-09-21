@@ -46,10 +46,7 @@ private val priceRowHeight = 72.dp
 
 class PricesWidget : GlanceAppWidget() {
 
-    override suspend fun provideGlance(
-        context: Context,
-        id: GlanceId
-    ) {
+    override suspend fun provideGlance(context: Context, id: GlanceId) {
         val entryPoint = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java)
         val noData = context.getString(R.string.errors_no_data_available)
         val items = try {
@@ -111,17 +108,17 @@ private fun AssetItem(item: WidgetCoinUIModel) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box() {
+        Box {
             item.icon?.let {
                 Image(
                     ImageProvider(it),
-                    contentDescription = ""
+                    contentDescription = "",
                 )
             }
         }
         Spacer(GlanceModifier.size(paddingDefault))
         Column(
-            modifier = GlanceModifier.defaultWeight()
+            modifier = GlanceModifier.defaultWeight(),
         ) {
             WidgetTitleText(item.name)
             Spacer(GlanceModifier.size(paddingHalfSmall))
@@ -140,12 +137,15 @@ private fun AssetItem(item: WidgetCoinUIModel) {
 
 private fun ListItemTextStyle.widgetColor(): Color = when (this) {
     ListItemTextStyle.Positive -> Color(0xFF06BE92)
+
     ListItemTextStyle.Negative -> Color(0xFFF84E4E)
+
     ListItemTextStyle.Body,
     ListItemTextStyle.Secondary,
     ListItemTextStyle.Warning,
     ListItemTextStyle.Primary,
-    ListItemTextStyle.Faded -> Color(0xFF808d99)
+    ListItemTextStyle.Faded,
+    -> Color(0xFF808d99)
 }
 
 @Composable

@@ -7,17 +7,7 @@ use primitives::{Currency, FiatRate, FiatRateProvider};
 
 use crate::FiatRatesProvider;
 
-const CURRENCIES: &[Currency] = &[
-    Currency::BYN,
-    Currency::KZT,
-    Currency::UZS,
-    Currency::EGP,
-    Currency::KES,
-    Currency::COP,
-    Currency::MAD,
-    Currency::GHS,
-    Currency::PEN,
-];
+const CURRENCIES: &[Currency] = &[Currency::BYN, Currency::KZT, Currency::UZS, Currency::EGP, Currency::KES, Currency::COP, Currency::MAD, Currency::GHS, Currency::PEN];
 
 pub struct CoinMarketCapRatesProvider<C: Client = ReqwestClient> {
     client: CoinMarketCapClient<C>,

@@ -2,14 +2,15 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemLoadState
 import protocol Gemstone.GemTransactionsServiceProtocol
+import func Gemstone.transactionsEmptyState
 import GemstonePrimitives
 import GemstoneServices
 import Localization
 import Primitives
 import PrimitivesComponents
 import Store
-import func Gemstone.transactionsEmptyState
 
 @Observable
 @MainActor
@@ -27,6 +28,8 @@ public final class TransactionsViewModel {
 
     public var isPresentingSheet: TransactionsSheetType?
     public var isPresentingToastMessage: ToastMessage?
+
+    private var transactionsState: GemLoadState = .loading
 
     public init(
         service: any GemTransactionsServiceProtocol,
@@ -51,13 +54,14 @@ public final class TransactionsViewModel {
         wallet.id
     }
 
-    public var currency: Currency {
-        service.getCurrency().toPrimitives()
+    public var loadError: Error? {
+        guard sections.isEmpty, case let .error(error) = transactionsState else { return nil }
+        return error
     }
 
     public var emptyContentModel: EmptyContentTypeViewModel {
         switch transactionsEmptyState(
-            chains: filterModel.chainsFilter.selectedChains.map { $0.rawValue },
+            chains: filterModel.chainsFilter.selectedChains.map(\.rawValue),
             filters: filterModel.transactionTypesFilter.selectedTypes,
         ) {
         case .noActivity:
@@ -76,11 +80,7 @@ public extension TransactionsViewModel {
     }
 
     func load() async {
-        do {
-            try await service.sync(assetId: nil)
-        } catch {
-            debugLog("load getTransactions error \(error)")
-        }
+        transactionsState = await service.refresh(assetId: nil, hasTransactions: sections.isNotEmpty)
     }
 }
 

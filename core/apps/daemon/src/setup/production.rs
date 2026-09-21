@@ -42,10 +42,7 @@ pub(super) fn setup_database(database: &Database) -> Result<(), Box<dyn std::err
     let _ = database.assets()?.add_assets(assets);
 
     info_with_fields!("setup", step = "fiat providers");
-    let providers = FiatProviderName::all()
-        .into_iter()
-        .map(storage::models::FiatProviderRow::from_primitive)
-        .collect::<Vec<_>>();
+    let providers = FiatProviderName::all().into_iter().map(storage::models::FiatProviderRow::from_primitive).collect::<Vec<_>>();
     let _ = database.fiat()?.add_fiat_providers(providers);
 
     info_with_fields!("setup", step = "api clients");
@@ -68,10 +65,7 @@ pub(super) fn setup_database(database: &Database) -> Result<(), Box<dyn std::err
     let _ = database.tag()?.add_tags(assets_tags);
 
     info_with_fields!("setup", step = "prices providers");
-    let providers = PriceProvider::all()
-        .into_iter()
-        .map(|provider| storage::models::PriceProviderConfigRow::new(provider, true))
-        .collect::<Vec<_>>();
+    let providers = PriceProvider::all().into_iter().map(|provider| storage::models::PriceProviderConfigRow::new(provider, true)).collect::<Vec<_>>();
     let _ = database.prices_providers()?.add_prices_providers(providers);
 
     info_with_fields!("setup", step = "config");
@@ -83,11 +77,7 @@ pub(super) fn setup_database(database: &Database) -> Result<(), Box<dyn std::err
     let _ = database.client()?.add_config(param_configs);
 
     info_with_fields!("setup", step = "cleanup stale config keys");
-    let valid: HashSet<String> = ConfigKey::all()
-        .into_iter()
-        .map(|k| k.as_ref().to_string())
-        .chain(ConfigParamKey::all().into_iter().map(|k| k.key()))
-        .collect();
+    let valid: HashSet<String> = ConfigKey::all().into_iter().map(|k| k.as_ref().to_string()).chain(ConfigParamKey::all().into_iter().map(|k| k.key())).collect();
     let stale: Vec<String> = database.client()?.get_config_keys()?.into_iter().filter(|k| !valid.contains(k)).collect();
     if !stale.is_empty() {
         info_with_fields!("setup", step = "delete stale config keys", count = stale.len(), keys = format!("{:?}", stale));
@@ -98,11 +88,7 @@ pub(super) fn setup_database(database: &Database) -> Result<(), Box<dyn std::err
 }
 
 async fn setup_search_index(settings: &Settings, database: &Database) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    info_with_fields!(
-        "setup",
-        step = "search index",
-        indexes = format!("{:?}", INDEX_CONFIGS.iter().map(|c| c.name).collect::<Vec<_>>())
-    );
+    info_with_fields!("setup", step = "search index", indexes = format!("{:?}", INDEX_CONFIGS.iter().map(|c| c.name).collect::<Vec<_>>()));
 
     let search_index_config = SearchIndexConfig {
         batch_size: ConfigCacher::new(database.clone()).get_usize(ConfigKey::SearchIndexBatchSize)?,

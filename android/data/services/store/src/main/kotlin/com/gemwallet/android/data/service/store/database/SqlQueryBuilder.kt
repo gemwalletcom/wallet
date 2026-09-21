@@ -13,11 +13,7 @@ data class SqlClause(val sql: String, val args: List<Any> = emptyList()) {
     companion object {
         val EMPTY = SqlClause("")
 
-        fun equalTo(column: String, value: Any): SqlClause =
-            SqlClause("$column = ?", listOf(value))
-
-        fun greaterThan(column: String, value: Any): SqlClause =
-            SqlClause("$column > ?", listOf(value))
+        fun greaterThan(column: String, value: Any): SqlClause = SqlClause("$column > ?", listOf(value))
 
         fun inList(column: String, values: Collection<Any>): SqlClause {
             if (values.isEmpty()) return EMPTY
@@ -25,15 +21,11 @@ data class SqlClause(val sql: String, val args: List<Any> = emptyList()) {
             return SqlClause("$column IN ($placeholders)", values.toList())
         }
 
-        fun raw(sql: String, vararg args: Any): SqlClause =
-            SqlClause(sql, args.toList())
+        fun raw(sql: String, vararg args: Any): SqlClause = SqlClause(sql, args.toList())
     }
 }
 
-class SqlQueryBuilder(
-    private val baseSql: String,
-    private val baseArgs: List<Any> = emptyList(),
-) {
+class SqlQueryBuilder(private val baseSql: String, private val baseArgs: List<Any> = emptyList()) {
     private val clauses = mutableListOf<SqlClause>()
     private var orderBy: String? = null
     private var limit: Int? = null

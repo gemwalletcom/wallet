@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemRecipientSection
+import enum Gemstone.GemRecipientSectionKind
 import Style
 import SwiftUI
 
-extension GemRecipientSection {
+extension GemRecipientSectionKind {
     var image: Image {
         switch self {
         case .pinned: Images.System.pin

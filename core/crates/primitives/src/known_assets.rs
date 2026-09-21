@@ -82,21 +82,10 @@ pub static MONAD_USDC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Mon
 pub static MONAD_USDT: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Monad, MONAD_USDT_TOKEN_ID, USDT_NAME, USDT_SYMBOL, 6, AssetType::ERC20));
 
 pub static HYPERCORE_HYPE: LazyLock<Asset> = LazyLock::new(|| Asset::from_chain(Chain::HyperCore));
-pub static HYPERCORE_SPOT_HYPE: LazyLock<Asset> =
-    LazyLock::new(|| Asset::new(HYPERCORE_SPOT_HYPE_ASSET_ID.clone(), "Hyperliquid".to_string(), "HYPE".to_string(), 8, AssetType::TOKEN));
-pub static HYPERCORE_SPOT_USDC: LazyLock<Asset> =
-    LazyLock::new(|| Asset::new(HYPERCORE_SPOT_USDC_ASSET_ID.clone(), USDC_NAME.to_string(), USDC_SYMBOL.to_string(), 8, AssetType::TOKEN));
-pub static HYPERCORE_PERPETUAL_USDC: LazyLock<Asset> = LazyLock::new(|| {
-    Asset::new(
-        HYPERCORE_PERPETUAL_USDC_ASSET_ID.clone(),
-        USDC_NAME.to_string(),
-        USDC_SYMBOL.to_string(),
-        6,
-        AssetType::PERPETUAL,
-    )
-});
-pub static HYPERCORE_SPOT_UBTC: LazyLock<Asset> =
-    LazyLock::new(|| Asset::new(HYPERCORE_SPOT_UBTC_ASSET_ID.clone(), "Bitcoin".to_string(), "UBTC".to_string(), 10, AssetType::TOKEN));
+pub static HYPERCORE_SPOT_HYPE: LazyLock<Asset> = LazyLock::new(|| Asset::new(HYPERCORE_SPOT_HYPE_ASSET_ID.clone(), "Hyperliquid".to_string(), "HYPE".to_string(), 8, AssetType::TOKEN));
+pub static HYPERCORE_SPOT_USDC: LazyLock<Asset> = LazyLock::new(|| Asset::new(HYPERCORE_SPOT_USDC_ASSET_ID.clone(), USDC_NAME.to_string(), USDC_SYMBOL.to_string(), 8, AssetType::TOKEN));
+pub static HYPERCORE_PERPETUAL_USDC: LazyLock<Asset> = LazyLock::new(|| Asset::new(HYPERCORE_PERPETUAL_USDC_ASSET_ID.clone(), USDC_NAME.to_string(), USDC_SYMBOL.to_string(), 6, AssetType::PERPETUAL));
+pub static HYPERCORE_SPOT_UBTC: LazyLock<Asset> = LazyLock::new(|| Asset::new(HYPERCORE_SPOT_UBTC_ASSET_ID.clone(), "Bitcoin".to_string(), "UBTC".to_string(), 10, AssetType::TOKEN));
 
 pub static HYPEREVM_HYPE: LazyLock<Asset> = LazyLock::new(|| Asset::from_chain(Chain::Hyperliquid));
 pub static HYPEREVM_USDC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Hyperliquid, HYPEREVM_USDC_TOKEN_ID, USDC_NAME, USDC_SYMBOL, 6, AssetType::ERC20));
@@ -140,16 +129,10 @@ pub static WALLET_DEFAULT_ASSETS: LazyLock<Vec<WalletDefaultAsset>> = LazyLock::
             asset: &HYPERCORE_PERPETUAL_USDC,
             rank: AssetScore::default().rank,
         },
-        WalletDefaultAsset {
-            asset: &HYPERCORE_SPOT_USDC,
-            rank: 32,
-        },
+        WalletDefaultAsset { asset: &HYPERCORE_SPOT_USDC, rank: 32 },
         WalletDefaultAsset { asset: &SOLANA_USDC, rank: 34 },
         WalletDefaultAsset { asset: &SOLANA_USDT, rank: 34 },
-        WalletDefaultAsset {
-            asset: &TEMPO_BRIDGED_USDC,
-            rank: 18,
-        },
+        WalletDefaultAsset { asset: &TEMPO_BRIDGED_USDC, rank: 18 },
         WalletDefaultAsset { asset: &TEMPO_PATHUSD, rank: 16 },
         WalletDefaultAsset { asset: &TEMPO_USDT0, rank: 26 },
         WalletDefaultAsset { asset: &TRON_USDT, rank: 33 },
@@ -197,17 +180,9 @@ pub static USDC_ASSETS: LazyLock<Vec<&'static Asset>> = LazyLock::new(|| {
 });
 
 pub fn wallet_default_assets(chain: Chain) -> Vec<Asset> {
-    WALLET_DEFAULT_ASSETS
-        .iter()
-        .filter(|default| default.asset.chain() == chain)
-        .map(|default| default.asset.clone())
-        .collect()
+    WALLET_DEFAULT_ASSETS.iter().filter(|default| default.asset.chain() == chain).map(|default| default.asset.clone()).collect()
 }
 
 pub fn default_token_rank(asset_id: &AssetId) -> i32 {
-    WALLET_DEFAULT_ASSETS
-        .iter()
-        .find(|default| default.asset.id == *asset_id)
-        .map(|default| default.rank)
-        .unwrap_or(AssetScore::default().rank)
+    WALLET_DEFAULT_ASSETS.iter().find(|default| default.asset.id == *asset_id).map(|default| default.rank).unwrap_or(AssetScore::default().rank)
 }

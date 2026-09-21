@@ -24,11 +24,7 @@ private val GEM_PREFERENCES_STORE_CONFIG = TinkStoreConfig(
     masterKeyAlias = GEM_PREFERENCES_MASTER_KEY_ALIAS,
 )
 
-class TinkGemPreferences private constructor(
-    private val encryptedStore: SecureStringStore,
-    private val legacyStore: SecureStringStore,
-    private val deviceKeyStore: SecurityStore<Any>,
-) : GemSecureStore {
+class TinkGemPreferences private constructor(private val encryptedStore: SecureStringStore, private val legacyStore: SecureStringStore, private val deviceKeyStore: SecurityStore<Any>) : GemSecureStore {
 
     constructor(context: Context) : this(
         encryptedStore = TinkEncryptedKeyValueStore.create(

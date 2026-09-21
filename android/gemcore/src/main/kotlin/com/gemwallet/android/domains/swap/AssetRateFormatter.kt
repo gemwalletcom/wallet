@@ -5,14 +5,9 @@ import uniffi.gemstone.GemAssetRate
 import uniffi.gemstone.GemSwapRate
 import java.util.Locale
 
-data class AssetRatePair(
-    val forward: String,
-    val reverse: String,
-)
+data class AssetRatePair(val forward: String, val reverse: String)
 
-class AssetRateFormatter(
-    private val locale: Locale = Locale.getDefault(),
-) {
+class AssetRateFormatter(private val locale: Locale = Locale.getDefault()) {
 
     fun format(rate: GemSwapRate): AssetRatePair = AssetRatePair(forward = format(rate.direct), reverse = format(rate.inverse))
 

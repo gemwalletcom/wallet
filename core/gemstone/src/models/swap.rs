@@ -17,7 +17,6 @@ pub enum GemSlippageCheck {
     AboveMaximum,
 }
 
-#[uniffi::export]
 impl GemSlippageCheck {
     pub fn allows_confirm(&self) -> bool {
         match self {
@@ -44,10 +43,12 @@ impl GemSwapValue {
     pub fn price_impact(&self, receive: Arc<GemSwapValue>) -> Option<SwapPriceImpact> {
         calculate_swap_price_impact(self.fiat_value()?, receive.fiat_value()?)
     }
+}
 
-    pub fn fiat_value(&self) -> Option<f64> {
+impl GemSwapValue {
+    fn fiat_value(&self) -> Option<f64> {
         let price = self.price?;
-        let amount = BigNumberFormatter::value_as_f64(&self.value.to_string(), self.decimals).ok()?;
+        let amount = BigNumberFormatter::f64_value(&self.value, self.decimals);
         Some(amount * price)
     }
 }
@@ -94,18 +95,10 @@ mod tests {
 
     #[test]
     fn test_swap_price_impact_needs_a_price_on_both_sides() {
-        assert_eq!(
-            Arc::new(GemSwapValue::new(100u32.into(), 2, None)).price_impact(Arc::new(GemSwapValue::new(100u32.into(), 2, Some(1.0)))),
-            None
-        );
-        assert_eq!(
-            Arc::new(GemSwapValue::new(100u32.into(), 2, Some(1.0))).price_impact(Arc::new(GemSwapValue::new(100u32.into(), 2, None))),
-            None
-        );
+        assert_eq!(Arc::new(GemSwapValue::new(100u32.into(), 2, None)).price_impact(Arc::new(GemSwapValue::new(100u32.into(), 2, Some(1.0)))), None);
+        assert_eq!(Arc::new(GemSwapValue::new(100u32.into(), 2, Some(1.0))).price_impact(Arc::new(GemSwapValue::new(100u32.into(), 2, None))), None);
 
-        let impact = Arc::new(GemSwapValue::new(200u32.into(), 2, Some(1.0)))
-            .price_impact(Arc::new(GemSwapValue::new(100u32.into(), 2, Some(1.0))))
-            .expect("impact");
+        let impact = Arc::new(GemSwapValue::new(200u32.into(), 2, Some(1.0))).price_impact(Arc::new(GemSwapValue::new(100u32.into(), 2, Some(1.0)))).expect("impact");
         assert_eq!(impact.percentage, -50.0);
     }
 

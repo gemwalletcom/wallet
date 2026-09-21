@@ -7,9 +7,6 @@ use crate::services::preferences::{GemPreferencesService, testkit::MemoryPrefere
 
 impl GemConfigService {
     pub fn mock(provider: Arc<dyn AlienProvider>) -> Self {
-        Self::new(
-            Arc::new(GemApiClient::new(provider)),
-            Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default()))),
-        )
+        Self::new(Arc::new(GemApiClient::new(provider)), Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default()))))
     }
 }

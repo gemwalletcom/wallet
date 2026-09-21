@@ -30,9 +30,6 @@ mod tests {
 
     #[test]
     fn test_blake2b_256_personal() {
-        assert_eq!(
-            hex::encode(blake2b_256_personal(&[], b"ZTxIdSaplingHash")),
-            "6f2fc8f98feafd94e74a0df4bed74391ee0b5a69945e4ced8ca8a095206f00ae"
-        );
+        assert_eq!(hex::encode(blake2b_256_personal(&[], b"ZTxIdSaplingHash")), "6f2fc8f98feafd94e74a0df4bed74391ee0b5a69945e4ced8ca8a095206f00ae");
     }
 }

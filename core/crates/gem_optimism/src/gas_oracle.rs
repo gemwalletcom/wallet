@@ -42,12 +42,7 @@ impl<C: Client + Clone> OptimismGasOracle<C> {
     async fn l1_fee(&self, data: &[u8]) -> Result<BigInt, Box<dyn Error + Sync + Send>> {
         let fee = self
             .client
-            .call_contract(
-                OPTIMISM_GAS_PRICE_ORACLE_CONTRACT.parse()?,
-                IGasPriceOracle::getL1FeeCall {
-                    data: Bytes::copy_from_slice(data),
-                },
-            )
+            .call_contract(OPTIMISM_GAS_PRICE_ORACLE_CONTRACT.parse()?, IGasPriceOracle::getL1FeeCall { data: Bytes::copy_from_slice(data) })
             .await?;
         Ok(BigInt::from(u256_to_biguint(&fee)))
     }
@@ -63,11 +58,9 @@ fn l1_fee_value(input: &TransactionLoadInput, params: &TransactionParams, gas_li
 
 fn spends_native_asset(input_type: &TransactionInputType) -> bool {
     match input_type {
-        TransactionInputType::Transfer { asset }
-        | TransactionInputType::Withdrawal { asset }
-        | TransactionInputType::Deposit { asset }
-        | TransactionInputType::TransferNft { asset, .. }
-        | TransactionInputType::Account { asset, .. } => asset.id.is_native(),
+        TransactionInputType::Transfer { asset } | TransactionInputType::Withdrawal { asset } | TransactionInputType::Deposit { asset } | TransactionInputType::TransferNft { asset, .. } | TransactionInputType::Account { asset, .. } => {
+            asset.id.is_native()
+        }
         _ => false,
     }
 }
@@ -105,29 +98,17 @@ mod tests {
         let params = TransactionParams::new("0x000000000000000000000000000000000000dead".to_string(), vec![], BigInt::from(1_000_000_000_000_000_000u64));
         let input = TransactionLoadInput {
             gas_price: GasPriceType::eip1559(BigInt::from(2_000_000_000u64), BigInt::from(1_000_000_000u64)),
-            ..TransactionLoadInput::mock_evm_with_metadata(
-                TransactionInputType::Transfer {
-                    asset: Asset::from_chain(Chain::Optimism),
-                },
-                "1000000000000000000",
-                TransactionLoadMetadata::mock_evm(5, 10),
-            )
+            ..TransactionLoadInput::mock_evm_with_metadata(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Optimism) }, "1000000000000000000", TransactionLoadMetadata::mock_evm(5, 10))
         };
         let encoded = encode_transaction_for_l1_fee(&input, &params, &BigInt::from(21_000u64)).unwrap();
-        assert_eq!(
-            encode(&encoded),
-            "020000000000000a00000000000000053b9aca00773594005208000000000000000000000000000000000000dead0de0b6b3a7640000c0"
-        );
+        assert_eq!(encode(&encoded), "020000000000000a00000000000000053b9aca00773594005208000000000000000000000000000000000000dead0de0b6b3a7640000c0");
 
         let token_input = TransactionLoadInput {
             input_type: TransactionInputType::Transfer { asset: Asset::mock_erc20() },
             ..input
         };
         let encoded_token = encode_transaction_for_l1_fee(&token_input, &params, &BigInt::from(21_000u64)).unwrap();
-        assert_eq!(
-            encode(&encoded_token),
-            "02000000000000000a00000000000000053b9aca00773594005208000000000000000000000000000000000000dead0de0b6b3a7640000c0"
-        );
+        assert_eq!(encode(&encoded_token), "02000000000000000a00000000000000053b9aca00773594005208000000000000000000000000000000000000dead0de0b6b3a7640000c0");
         assert_eq!(encoded_token.len(), encoded.len() + 1);
         assert_eq!(encoded_token[0], EIP1559_TRANSACTION_TYPE);
     }

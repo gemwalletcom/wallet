@@ -1,18 +1,44 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import AppService
-import GemstonePrimitivesTestKit
 import AppServiceTestKit
-import class Gemstone.GemWalletSessionService
 import Foundation
+import class Gemstone.GemWalletSessionService
+import GemstonePrimitivesTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
+import Store
+import StoreTestKit
 import Testing
 
 struct AppLifecycleServiceTests {
     private let wallet = Wallet.mock(accounts: [.mock(chain: .hyperliquid)])
+
+    @Test(.timeLimit(.minutes(1)))
+    func aFailedDeviceSyncDoesNotEndTheAccountObservation() async throws {
+        let db = try DB.mockWithWallets([.mock(id: .mock(address: "first"), accounts: [.mock(chain: .ethereum)])])
+        let synchronized = AsyncStream<Void>.makeStream()
+        let device = GemDeviceServiceMock(syncError: AnyError("offline"), onSynchronize: { synchronized.continuation.yield(()) })
+        let service = AppLifecycleService.mock(deviceService: device, subscriptionsObserver: SubscriptionsObserver(dbQueue: db.dbQueue))
+        let running = Task { await service.setup() }
+        let store = WalletStore(db: db)
+        let changes = Task {
+            for index in 0 ... .max where !Task.isCancelled {
+                try? store.addWallet(.mock(id: .mock(address: "wallet-\(index)"), accounts: [.mock(chain: .ethereum, address: "wallet-\(index)")]))
+                try? await Task.sleep(for: .milliseconds(20))
+            }
+        }
+
+        var synchronizations = synchronized.stream.makeAsyncIterator()
+        await synchronizations.next()
+        await synchronizations.next()
+        changes.cancel()
+        running.cancel()
+
+        #expect(await device.synchronizeIfNeededCalls >= 2)
+    }
 
     @Test
     func updateWalletConnectionsConnectsWhenCoreSaysSo() async throws {
@@ -91,7 +117,7 @@ struct AppLifecycleServiceTests {
     }
 
     @Test
-    func updatePerpetualConnectionUpdatesMarketsWhenEnabled() async throws {
+    func updatePerpetualConnectionUpdatesMarketsWhenEnabled() async {
         let perpetuals = GemPerpetualServiceMock()
         let service = AppLifecycleService.mock(perpetualService: perpetuals)
 

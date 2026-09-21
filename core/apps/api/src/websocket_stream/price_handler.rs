@@ -48,11 +48,7 @@ impl PriceHandler {
         Ok(())
     }
 
-    pub async fn handle_stream_message(
-        &mut self,
-        message: &StreamMessage,
-        redis_connection: &mut MultiplexedConnection,
-    ) -> Result<Option<StreamEvent>, Box<dyn Error + Send + Sync>> {
+    pub async fn handle_stream_message(&mut self, message: &StreamMessage, redis_connection: &mut MultiplexedConnection) -> Result<Option<StreamEvent>, Box<dyn Error + Send + Sync>> {
         match message {
             StreamMessage::GetPrices(msg) => Ok(Some(self.get_prices(msg).await?)),
             StreamMessage::SubscribePrices(msg) => Ok(Some(self.subscribe_prices(msg, redis_connection).await?)),
@@ -109,18 +105,8 @@ impl PriceHandler {
     }
 
     async fn price_event(&self, asset_ids: Vec<AssetId>, include_rates: bool) -> Result<StreamEvent, Box<dyn Error + Send + Sync>> {
-        let prices = self
-            .price_client
-            .get_cache_prices(asset_ids)
-            .await?
-            .into_iter()
-            .map(|x| x.as_asset_price_primitive())
-            .collect();
-        let rates = if include_rates {
-            filter_fiat_rates(self.price_client.get_cache_fiat_rates().await?, &self.version)
-        } else {
-            vec![]
-        };
+        let prices = self.price_client.get_cache_prices(asset_ids).await?.into_iter().map(|x| x.as_asset_price_primitive()).collect();
+        let rates = if include_rates { filter_fiat_rates(self.price_client.get_cache_fiat_rates().await?, &self.version) } else { vec![] };
         Ok(StreamEvent::Prices(WebSocketPricePayload { prices, rates }))
     }
 }

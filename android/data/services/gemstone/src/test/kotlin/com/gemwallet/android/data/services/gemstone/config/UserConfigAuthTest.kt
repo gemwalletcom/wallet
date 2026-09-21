@@ -5,14 +5,14 @@ import com.gemwallet.android.data.service.store.ConfigStore
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemSecureStore
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
 
 class UserConfigAuthTest {
 

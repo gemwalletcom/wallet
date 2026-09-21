@@ -59,17 +59,13 @@ impl Pubkey {
     }
 
     pub fn from_base58(s: &str) -> SolanaResult<Self> {
-        let bytes = bs58::decode(s)
-            .into_vec()
-            .map_err(|_| SolanaError::invalid_input(format!("Invalid public key: failed to decode base58: {s}")))?;
+        let bytes = bs58::decode(s).into_vec().map_err(|_| SolanaError::invalid_input(format!("Invalid public key: failed to decode base58: {s}")))?;
 
         if bytes.len() != 32 {
             return Err(SolanaError::invalid_input(format!("Invalid public key length: {}, expected: 32", bytes.len())));
         }
 
-        let bytes = bytes
-            .try_into()
-            .map_err(|bytes: Vec<u8>| SolanaError::invalid_input(format!("Invalid public key length: {}, expected: 32", bytes.len())))?;
+        let bytes = bytes.try_into().map_err(|bytes: Vec<u8>| SolanaError::invalid_input(format!("Invalid public key length: {}, expected: 32", bytes.len())))?;
         Ok(Self(bytes))
     }
 

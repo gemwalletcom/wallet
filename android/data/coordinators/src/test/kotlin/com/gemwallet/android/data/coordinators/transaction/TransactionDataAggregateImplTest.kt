@@ -1,6 +1,8 @@
 package com.gemwallet.android.data.coordinators.transaction
 
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.serializer.jsonEncoder
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetEthereumUSDT
@@ -8,25 +10,24 @@ import com.gemwallet.android.testkit.mockAssetSmartChain
 import com.gemwallet.android.testkit.mockTransaction
 import com.gemwallet.android.testkit.mockTransactionExtended
 import com.gemwallet.android.testkit.mockTransactionId
-import com.wallet.core.primitives.TransactionExtended
-import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionDirection
+import com.wallet.core.primitives.TransactionExtended
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
 import org.junit.After
-import org.junit.Assume.assumeTrue
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assume.assumeTrue
 import org.junit.Test
+import uniffi.gemstone.GemTransactionRowSubtitle
+import uniffi.gemstone.transactionRow
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import uniffi.gemstone.transactionRow
-import com.gemwallet.android.ext.toGem
 
 class TransactionDataAggregateImplTest {
     private val gemstoneLibraryOverrideProperty = "uniffi.component.gemstone.libraryOverride"
@@ -72,8 +73,7 @@ class TransactionDataAggregateImplTest {
 
     private val ethAsset = mockAssetEthereum()
 
-    private fun createAggregate(transaction: TransactionExtended): TransactionDataAggregate =
-        TransactionDataAggregateImpl(transactionRow(transaction.toGem()))
+    private fun createAggregate(transaction: TransactionExtended): TransactionDataAggregate = TransactionDataAggregateImpl(transactionRow(transaction.toGem()))
 
     @Test
     fun testBasicPropertyDelegation() {
@@ -107,7 +107,7 @@ class TransactionDataAggregateImplTest {
         val extended = mockTransactionExtended(transaction)
         val aggregate = createAggregate(extended)
 
-        assertEquals("bc1qx2...tpd9l", aggregate.address)
+        assertEquals(GemTransactionRowSubtitle.ToAddress("bc1qx2...tpd9l"), aggregate.subtitle)
     }
 
     @Test
@@ -122,7 +122,7 @@ class TransactionDataAggregateImplTest {
         val extended = mockTransactionExtended(transaction)
         val aggregate = createAggregate(extended)
 
-        assertEquals("bc1qsender", aggregate.address)
+        assertEquals(GemTransactionRowSubtitle.FromAddress("bc1qsender"), aggregate.subtitle)
     }
 
     @Test
@@ -137,7 +137,7 @@ class TransactionDataAggregateImplTest {
         val extended = mockTransactionExtended(transaction)
         val aggregate = createAggregate(extended)
 
-        assertEquals("bc1qsender", aggregate.address)
+        assertEquals(GemTransactionRowSubtitle.ToAddress("bc1qsender"), aggregate.subtitle)
     }
 
     @Test
@@ -149,7 +149,7 @@ class TransactionDataAggregateImplTest {
         val extended = mockTransactionExtended(transaction)
         val aggregate = createAggregate(extended)
 
-        assertEquals("", aggregate.address)
+        assertEquals(GemTransactionRowSubtitle.None, aggregate.subtitle)
     }
 
     @Test
@@ -162,7 +162,7 @@ class TransactionDataAggregateImplTest {
         val extended = mockTransactionExtended(transaction)
         val aggregate = createAggregate(extended)
 
-        assertEquals("bc1qre...eiver", aggregate.address)
+        assertEquals(GemTransactionRowSubtitle.ToAddress("bc1qre...eiver"), aggregate.subtitle)
     }
 
     @Test
@@ -311,7 +311,7 @@ class TransactionDataAggregateImplTest {
         )
         val aggregate = createAggregate(extended)
 
-        assertEquals(aggregate.value,"+19 TON")
+        assertEquals(aggregate.value, "+19 TON")
         assertEquals(aggregate.equivalentValue, "-0.09 BNB")
     }
 
@@ -366,5 +366,4 @@ class TransactionDataAggregateImplTest {
 
         assertEquals("-<0.0001 BTC", aggregate.value)
     }
-
 }

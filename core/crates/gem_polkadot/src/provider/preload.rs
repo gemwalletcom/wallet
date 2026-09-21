@@ -5,10 +5,7 @@ use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
 use num_bigint::BigInt;
 
 use gem_client::Client;
-use primitives::{
-    AssetId, Chain, FeePriority, FeeRate, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata,
-    TransactionPreloadInput,
-};
+use primitives::{AssetId, Chain, FeePriority, FeeRate, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 
 use crate::{constants::TRANSACTION_FEE_ESTIMATE, rpc::PolkadotProvider};
 

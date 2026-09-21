@@ -3,6 +3,7 @@ package com.gemwallet.android.features.bridge.views
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,24 +20,16 @@ import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.AssetValueListHead
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.CenteredListHeadSubtitleLayout
-import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
+import com.gemwallet.android.ui.components.list_item.GemListRowView
+import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsContent
-import com.gemwallet.android.ui.components.simulation.simulationWarningsContent
 import com.gemwallet.android.ui.models.ButtonState
-import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.paddingDefault
 
 @Composable
-internal fun WalletConnectReviewScene(
-    model: WalletConnectReviewModel,
-    buttonState: ButtonState,
-    walletRow: @Composable (ListPosition) -> Unit,
-    onApprove: () -> Unit,
-    onReject: () -> Unit,
-) {
+internal fun WalletConnectReviewScene(model: WalletConnectReviewModel, buttonState: ButtonState, details: LazyListScope.() -> Unit, onApprove: () -> Unit, onReject: () -> Unit) {
     val context = LocalContext.current
     var sheetType by remember { mutableStateOf<WalletConnectReviewSheetType?>(null) }
 
@@ -71,20 +64,14 @@ internal fun WalletConnectReviewScene(
                         subtitleLayout = CenteredListHeadSubtitleLayout.Vertical,
                     )
                 }
-                item { walletRow(ListPosition.First) }
             } else {
                 item { AssetValueListHead(header) }
-                item { ListItem(model = model.appListItem, listPosition = ListPosition.First) }
-                item { walletRow(ListPosition.Middle) }
             }
-            item {
-                PropertyNetworkItem(model.chain, listPosition = ListPosition.Last)
-            }
-            simulationWarningsContent(model.warnings)
+            details()
+            itemsPositioned(model.warnings) { position, row -> GemListRowView(row = row, listPosition = position) }
             if (model.hasPayload) {
                 simulationPayloadFieldsContent(
                     fields = model.primaryPayloadFields,
-                    addressNames = model.addressNames,
                     onDetailsClick = { sheetType = WalletConnectReviewSheetType.Details },
                 )
             } else {
@@ -97,7 +84,6 @@ internal fun WalletConnectReviewScene(
         isVisible = sheetType == WalletConnectReviewSheetType.Details,
         primaryFields = model.primaryPayloadFields,
         secondaryFields = model.secondaryPayloadFields,
-        addressNames = model.addressNames,
         onViewFullMessage = { sheetType = WalletConnectReviewSheetType.FullMessage },
         onDismissRequest = { sheetType = null },
         viewFullMessageListItem = model.viewFullMessageListItem,

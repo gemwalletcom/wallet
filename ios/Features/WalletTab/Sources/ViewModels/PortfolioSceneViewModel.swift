@@ -4,6 +4,7 @@ import Components
 import Formatters
 import Foundation
 import protocol Gemstone.GemPortfolioServiceProtocol
+import func Gemstone.leverageNumber
 import func Gemstone.portfolioChartData
 import struct Gemstone.PortfolioData
 import struct Gemstone.PortfolioMarginUsage
@@ -30,8 +31,7 @@ public final class PortfolioSceneViewModel: ChartListViewable {
     var state: PortfolioState
 
     private var selectedState: StateViewType<PortfolioData> {
-        get { state[state.selectedType] }
-        set { state[state.selectedType] = newValue }
+        state[state.selectedType]
     }
 
     public var selectedPeriod: ChartPeriod {
@@ -88,16 +88,20 @@ public final class PortfolioSceneViewModel: ChartListViewable {
 
 extension PortfolioSceneViewModel {
     public func load() async {
-        selectedState = .loading
+        let type = state.selectedType
+        let period = selectedPeriod
+        state[type] = .loading
         do {
-            let data = try await service.portfolioData(wallet: wallet.toGem(), portfolioType: state.selectedType.toGem(), period: selectedPeriod.toGem())
+            let data = try await service.portfolioData(wallet: wallet.toGem(), portfolioType: type.toGem(), period: period.toGem())
+            guard period == selectedPeriod else { return }
             let periods = data.availablePeriods.map { $0.toPrimitives() }
-            if periods.isNotEmpty, !periods.contains(selectedPeriod) {
-                selectedPeriod = periods.first ?? selectedPeriod
+            if periods.isNotEmpty, !periods.contains(period) {
+                selectedPeriod = periods.first ?? period
             }
-            selectedState = .data(data)
+            state[type] = .data(data)
         } catch {
-            selectedState.setError(error)
+            guard period == selectedPeriod else { return }
+            state[type].setError(error)
         }
     }
 
@@ -111,10 +115,7 @@ extension PortfolioSceneViewModel {
     }
 
     func chartTypeTitle(for type: PortfolioChartType) -> String {
-        switch type {
-        case .value: Localized.Perpetual.value
-        case .pnl: Localized.Perpetual.pnl
-        }
+        type.title
     }
 
     func statisticModel(_ statistic: PortfolioStatistic) -> ListItemModel {
@@ -125,7 +126,7 @@ extension PortfolioSceneViewModel {
         case let .unrealizedPnl(value), let .allTimePnl(value):
             return pnlModel(title: title, value: value)
         case let .accountLeverage(value):
-            return ListItemModel(title: title, subtitle: value.formatted(.number.precision(.fractionLength(2))) + "x")
+            return ListItemModel(title: title, subtitle: leverageNumber(value: value).text())
         case let .marginUsage(margin):
             return marginModel(title: title, margin)
         case let .volume(value):

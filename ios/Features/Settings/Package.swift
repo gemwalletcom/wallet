@@ -27,9 +27,7 @@ let package = Package(
         .package(name: "PrimitivesComponents", path: "../../Packages/PrimitivesComponents"),
         .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
-        .package(name: "Formatters", path: "../../Packages/Formatters"),
         .package(name: "QRScanner", path: "../QRScanner"),
-        .package(name: "BigInt", path: "../../Submodules/BigInt"),
         .package(name: "Store", path: "../../Packages/Store"),
     ],
     targets: [
@@ -44,9 +42,7 @@ let package = Package(
                 "PrimitivesComponents",
                 "GemstonePrimitives",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
-                "Formatters",
                 "QRScanner",
-                .product(name: "BigInt", package: "BigInt"),
                 "Store",
             ],
             path: "Sources",
@@ -102,7 +98,6 @@ let package = Package(
             name: "CurrencyTests",
             dependencies: [
                 "Settings",
-                "SettingsTestKit",
                 "Primitives",
                 "GemstonePrimitives",
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),

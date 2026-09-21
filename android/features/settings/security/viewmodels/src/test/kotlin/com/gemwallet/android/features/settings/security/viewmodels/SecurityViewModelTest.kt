@@ -2,7 +2,6 @@ package com.gemwallet.android.features.settings.security.viewmodels
 
 import android.content.Context
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
-import com.gemwallet.android.features.settings.security.viewmodels.models.SecurityRowUIModel
 import com.gemwallet.android.ui.R
 import io.mockk.coVerify
 import io.mockk.every
@@ -20,8 +19,14 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemSecurityRow
-import uniffi.gemstone.GemSecuritySection
+import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemListRowIcon
+import uniffi.gemstone.GemListRowTitle
+import uniffi.gemstone.GemListSection
+import uniffi.gemstone.GemListSectionFooter
+import uniffi.gemstone.GemListSectionTitle
+import uniffi.gemstone.GemLocalizedText
+import uniffi.gemstone.GemSecurityInput
 import uniffi.gemstone.GemSettingsServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -35,28 +40,35 @@ class SecurityViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
-    private fun userConfig(authRequired: Boolean = false, lockMinutes: Int = 0, hideBalances: Boolean = false) =
-        mockk<UserConfig>(relaxed = true) {
-            every { isHideBalances() } returns flowOf(hideBalances)
-            every { getLockInterval() } returns flowOf(lockMinutes)
-            every { this@mockk.authRequired() } returns authRequired
-        }
+    private fun userConfig(authRequired: Boolean = false, lockMinutes: Int = 0, hideBalances: Boolean = false) = mockk<UserConfig>(relaxed = true) {
+        every { isHideBalances() } returns flowOf(hideBalances)
+        every { getLockInterval() } returns flowOf(lockMinutes)
+        every { this@mockk.authRequired() } returns authRequired
+    }
 
     private fun settings() = mockk<GemSettingsServiceInterface>(relaxed = true) {
         every { securitySections(any()) } answers {
+            val input = firstArg<GemSecurityInput>()
             listOf(
-                GemSecuritySection(listOfNotNull(GemSecurityRow.AUTHENTICATION, GemSecurityRow.LOCK_PERIOD.takeIf { firstArg() })),
-                GemSecuritySection(listOf(GemSecurityRow.HIDE_BALANCE)),
+                section(
+                    listOfNotNull(
+                        GemListRow.Toggle(GemListRowTitle.AUTHENTICATION, null, GemListRowIcon.NONE, input.authenticationEnabled),
+                        GemListRow.Picker(GemListRowTitle.LOCK_PERIOD, GemLocalizedText.Text(input.lockPeriod), GemListRowIcon.NONE).takeIf { input.authenticationEnabled },
+                    ),
+                ),
+                section(listOf(GemListRow.Toggle(GemListRowTitle.HIDE_BALANCE, null, GemListRowIcon.NONE, input.hideBalanceEnabled))),
             )
         }
     }
+
+    private fun section(rows: List<GemListRow>) = GemListSection(GemListSectionTitle.NONE, GemListSectionFooter.NONE, rows)
 
     @Test
     fun `the rows come from core with the authentication flag`() {
         val settings = settings()
         SecurityViewModel(userConfig(authRequired = true), settings, dispatcher, context())
 
-        verify { settings.securitySections(true) }
+        verify { settings.securitySections(match { it.authenticationEnabled }) }
     }
 
     @Test
@@ -64,11 +76,11 @@ class SecurityViewModelTest {
         val model = SecurityViewModel(userConfig(authRequired = true, lockMinutes = 5, hideBalances = true), settings(), dispatcher, context())
         advanceUntilIdle()
 
-        val rows = model.rows.value.flatten()
-        assertEquals(true, (rows[0] as SecurityRowUIModel.Authentication).isEnabled)
-        assertEquals(R.string.lock_five_minutes.toString(), (rows[1] as SecurityRowUIModel.LockPeriod).model.subtitle)
-        assertEquals(listOf(5), (rows[1] as SecurityRowUIModel.LockPeriod).options.filter { it.isSelected }.map { it.minutes })
-        assertEquals(true, (rows[2] as SecurityRowUIModel.HideBalance).isEnabled)
+        val rows = model.sections.value.flatMap { it.rows }
+        assertEquals(true, (rows[0] as GemListRow.Toggle).isOn)
+        assertEquals(GemLocalizedText.Text(R.string.lock_five_minutes.toString()), (rows[1] as GemListRow.Picker).value)
+        assertEquals(true, (rows[2] as GemListRow.Toggle).isOn)
+        assertEquals(listOf(5), model.lockPeriods.filter { it.minutes == 5 }.map { it.minutes })
     }
 
     @Test
@@ -89,5 +101,4 @@ class SecurityViewModelTest {
     }
 
     private fun context(): Context = mockk { every { getString(any()) } answers { firstArg<Int>().toString() } }
-
 }

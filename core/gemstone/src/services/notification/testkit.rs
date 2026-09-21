@@ -16,10 +16,7 @@ impl GemNotificationService {
     pub fn mock(provider: Arc<dyn AlienProvider>, store: Arc<dyn GemNotificationStore>) -> Self {
         let api = Arc::new(GemDeviceApiClient::new(provider, Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)))));
         let preferences = Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default())));
-        let session = Arc::new(GemWalletSessionService::new(
-            Arc::new(MemoryWalletSessionStore::default()),
-            Arc::new(MemoryWalletStore::default()),
-        ));
+        let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), Arc::new(MemoryWalletStore::default())));
         session.set_current_wallet_id(Some(WalletId::Multicoin("wallet".to_string()))).unwrap();
         Self::new(api, store, preferences, session)
     }

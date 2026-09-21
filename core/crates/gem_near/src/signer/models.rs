@@ -27,15 +27,8 @@ pub(super) struct NearTransaction {
 }
 
 pub(super) enum NearAction {
-    Transfer {
-        deposit: u128,
-    },
-    FunctionCall {
-        method_name: &'static str,
-        args: Vec<u8>,
-        gas: u64,
-        deposit: u128,
-    },
+    Transfer { deposit: u128 },
+    FunctionCall { method_name: &'static str, args: Vec<u8>, gas: u64, deposit: u128 },
 }
 
 impl NearTransaction {

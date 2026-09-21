@@ -97,19 +97,11 @@ impl<C: Client> HyperCoreClient<C> {
     }
 
     pub async fn get_user_fills_by_time(&self, user: &str, start_time: i64) -> Result<Vec<UserFill>, Box<dyn Error + Send + Sync>> {
-        self.info(InfoRequest::UserFillsByTime {
-            user: user.to_string(),
-            start_time,
-        })
-        .await
+        self.info(InfoRequest::UserFillsByTime { user: user.to_string(), start_time }).await
     }
 
     pub async fn get_clearinghouse_state(&self, user: &str) -> Result<AssetPositions, Box<dyn Error + Send + Sync>> {
-        self.info(InfoRequest::ClearinghouseState {
-            user: user.to_string(),
-            dex: None,
-        })
-        .await
+        self.info(InfoRequest::ClearinghouseState { user: user.to_string(), dex: None }).await
     }
 
     pub async fn get_clearinghouse_state_with_dex(&self, user: &str, dex: &str) -> Result<AssetPositions, Box<dyn Error + Send + Sync>> {
@@ -177,11 +169,7 @@ impl<C: Client> HyperCoreClient<C> {
     }
 
     pub async fn get_ledger_updates(&self, user: &str, start_time: i64) -> Result<Vec<LedgerUpdate>, Box<dyn Error + Send + Sync>> {
-        self.info(InfoRequest::UserNonFundingLedgerUpdates {
-            user: user.to_string(),
-            start_time,
-        })
-        .await
+        self.info(InfoRequest::UserNonFundingLedgerUpdates { user: user.to_string(), start_time }).await
     }
 
     pub async fn get_delegator_history(&self, user: &str) -> Result<Vec<DelegatorHistoryUpdate>, Box<dyn Error + Send + Sync>> {
@@ -189,11 +177,7 @@ impl<C: Client> HyperCoreClient<C> {
     }
 
     pub async fn get_open_orders(&self, user: &str) -> Result<Vec<OpenOrder>, Box<dyn Error + Send + Sync>> {
-        self.info(InfoRequest::FrontendOpenOrders {
-            user: user.to_string(),
-            dex: None,
-        })
-        .await
+        self.info(InfoRequest::FrontendOpenOrders { user: user.to_string(), dex: None }).await
     }
 
     pub async fn get_open_orders_with_dex(&self, user: &str, dex: &str) -> Result<Vec<OpenOrder>, Box<dyn Error + Send + Sync>> {
@@ -205,11 +189,7 @@ impl<C: Client> HyperCoreClient<C> {
     }
 
     pub async fn get_perpetual_portfolio(&self, user: &str) -> Result<HypercorePortfolioResponse, Box<dyn Error + Send + Sync>> {
-        self.info(InfoRequest::Portfolio {
-            user: user.to_string(),
-            dex: None,
-        })
-        .await
+        self.info(InfoRequest::Portfolio { user: user.to_string(), dex: None }).await
     }
 
     pub async fn get_perpetual_portfolio_with_dex(&self, user: &str, dex: &str) -> Result<HypercorePortfolioResponse, Box<dyn Error + Send + Sync>> {

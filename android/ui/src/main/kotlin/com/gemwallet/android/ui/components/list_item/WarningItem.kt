@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
@@ -20,17 +21,11 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.defaultPadding
-import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.ui.theme.secondaryFaded
+import com.gemwallet.android.ui.theme.smallIconSize
 
 @Composable
-fun WarningItem(
-    title: String,
-    message: String? = null,
-    color: Color,
-    position: ListPosition,
-    onClick: (() -> Unit)? = null,
-) {
+fun WarningItem(title: String, message: String? = null, color: Color, position: ListPosition, icon: ImageVector = AppIcons.Warning, onClick: (() -> Unit)? = null) {
     Row(
         modifier = Modifier
             .listItem(position)
@@ -43,7 +38,7 @@ fun WarningItem(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     modifier = Modifier.size(smallIconSize),
-                    imageVector = AppIcons.Warning,
+                    imageVector = icon,
                     contentDescription = null,
                     tint = color,
                 )

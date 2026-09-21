@@ -457,8 +457,6 @@ errors_connections_no_supported_wallets = No supported wallets are available.
 errors_connections_unsupported_chain = The provided chain is not supported.
 # Used in error cards and validation UI for the swap amount too small label.
 errors_swap_amount_too_small = Amount too small
-# Used in error cards and validation UI for the required label. Contains 1 string placeholder.
-errors_required = %@ is required
 # Used in error cards and validation UI for the scan transaction malicious description.
 errors_scan_transaction_malicious_description = This transaction cannot be completed — the destination wallet address is linked to suspicious or harmful activity.
 # Used in error cards and validation UI for the scan transaction memo required label. Contains 1 string placeholder.
@@ -598,7 +596,7 @@ asset_token_id = Token ID
 # Used in asset detail and asset verification screens for the contract label.
 asset_contract = Contract
 # Used in asset detail and asset verification screens for the state empty title.
-asset_state_empty_title = Your transactions will appear here️
+asset_state_empty_title = Your transactions will appear here
 # Used in asset detail and asset verification screens for the state empty description. Contains 1 string placeholder.
 asset_state_empty_description = Receive, swap or buy %@
 # Used in asset detail and asset verification screens for the verification unverified label.
@@ -946,7 +944,7 @@ price_alerts_set_alert_current_price = Current price
 # Used in Price Alerts screens for the added for label. Contains 1 string placeholder.
 price_alerts_added_for = Set price alert %@
 # Used in Price Alerts screens for the state empty title.
-price_alerts_state_empty_title = Your price alerts will appear here️
+price_alerts_state_empty_title = Your price alerts will appear here
 # Used in Price Alerts screens for the state empty description.
 price_alerts_state_empty_description = Enable them by adding coins to track
 # Used in Price Alerts screens for the auto footer helper text.
@@ -984,8 +982,8 @@ verify_phrase_title = Confirm
 
 # Warnings
 
-# Used in warning cards and confirmations for the multi signature blocked label. Contains 1 string placeholder.
-warnings_multi_signature_blocked = Do not transfer funds to this %@ Multi-Signature wallet unless you are certain you control the private keys. Failure to do so could expose you to scams, and you may permanently lose your assets.
+# Banner on an account whose on-chain control belongs to another key or program, such as a TRON multi-signature account or a Solana account assigned to a program. Contains 1 string placeholder: the network name.
+warnings_externally_controlled_account = This %@ account can be controlled by someone else. Do not send funds to it unless you are certain you control it, or you may permanently lose your assets.
 
 # Sell
 
@@ -1103,7 +1101,7 @@ nft_save_to_photos = Save to Photos
 # Used in NFT detail and NFT collection screens for the set as avatar label.
 nft_set_as_avatar = Set as Avatar
 # Used in NFT detail and NFT collection screens for the state empty title.
-nft_state_empty_title = Your NFTs will appear here️
+nft_state_empty_title = Your NFTs will appear here
 # Used in NFT detail and NFT collection screens for the state empty description.
 nft_state_empty_description = Receive your first NFT
 # Used in NFT detail and NFT collection screens for the report reason spam label.

@@ -13,10 +13,7 @@ pub struct TonApiClient<C: Client> {
 
 impl<C: Client> TonApiClient<C> {
     pub fn new(client: C, api_key: &str) -> Self {
-        Self {
-            client,
-            api_key: api_key.to_string(),
-        }
+        Self { client, api_key: api_key.to_string() }
     }
 
     fn headers(&self) -> HashMap<String, String> {

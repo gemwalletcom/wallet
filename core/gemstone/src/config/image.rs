@@ -15,9 +15,7 @@ impl GemImage {
     pub fn url(&self) -> String {
         match self {
             Self::Asset { asset_id } => ImageFormatter::get_asset_url_for_asset_id(ASSETS_URL, asset_id.clone()),
-            Self::Validator { chain, validator_id } if DelegationValidator::is_system_id(validator_id) => {
-                ImageFormatter::get_asset_url_for_asset_id(ASSETS_URL, AssetId::from_chain(*chain))
-            }
+            Self::Validator { chain, validator_id } if DelegationValidator::is_system_id(validator_id) => ImageFormatter::get_asset_url_for_asset_id(ASSETS_URL, AssetId::from_chain(*chain)),
             Self::Validator { chain, validator_id } => ImageFormatter::get_validator_url(ASSETS_URL, chain.as_ref(), validator_id),
             Self::NftAsset { asset_id } => ImageFormatter::get_nft_asset_url(&format!("{ASSETS_URL}/nft"), asset_id),
             Self::AssetList { list_id } => ImageFormatter::get_asset_list_url(ASSETS_URL, list_id),
@@ -58,16 +56,7 @@ mod tests {
             .url(),
             "the system validator shows the chain's own logo"
         );
-        assert_eq!(
-            GemImage::NftAsset {
-                asset_id: "ethereum_0xabc::1".to_string()
-            }
-            .url(),
-            "https://assets.gemwallet.com/nft/assets/ethereum_0xabc::1/preview"
-        );
-        assert_eq!(
-            GemImage::AssetList { list_id: "trending".to_string() }.url(),
-            "https://assets.gemwallet.com/lists/trending.png"
-        );
+        assert_eq!(GemImage::NftAsset { asset_id: "ethereum_0xabc::1".to_string() }.url(), "https://assets.gemwallet.com/nft/assets/ethereum_0xabc::1/preview");
+        assert_eq!(GemImage::AssetList { list_id: "trending".to_string() }.url(), "https://assets.gemwallet.com/lists/trending.png");
     }
 }

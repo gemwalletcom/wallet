@@ -12,7 +12,6 @@ internal fun TransactionDetailsValue.Destination.stringRes(): Int = when (this) 
     is TransactionDetailsValue.Destination.Contract -> R.string.asset_contract
     is TransactionDetailsValue.Destination.Validator -> R.string.stake_validator
     is TransactionDetailsValue.Destination.ProviderAddress -> R.string.common_provider
-    is TransactionDetailsValue.Destination.Provider -> R.string.common_provider
 }
 
 @StringRes

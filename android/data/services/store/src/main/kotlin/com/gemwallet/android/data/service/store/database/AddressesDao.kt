@@ -5,8 +5,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import com.gemwallet.android.data.service.store.database.entities.AddressNameUpdate
 import com.gemwallet.android.data.service.store.database.entities.DbAddress
-import com.gemwallet.android.data.service.store.database.entities.isLocal
 import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.VerificationStatus
@@ -18,26 +18,19 @@ interface AddressesDao {
     suspend fun insert(addresses: List<DbAddress>)
 
     @Transaction
-    suspend fun updateNames(addresses: List<DbAddress>) {
-        addresses.forEach {
-            updateAddressName(it.chain, it.address, it.name, it.type, it.status, it.imageUrl)
+    suspend fun updateNames(updates: List<AddressNameUpdate>) {
+        updates.forEach {
+            val address = it.address
+            updateAddressName(address.chain, address.address, address.name, address.type, address.status, address.imageUrl, it.replacesTypes)
         }
-        insertIgnore(addresses)
+        insertIgnore(updates.map { it.address })
     }
 
     @Query(
         "UPDATE addresses SET name = :name, type = :type, status = :status, imageUrl = :imageUrl " +
-            "WHERE chain = :chain AND address = :address AND type NOT IN (:reservedTypes)"
+            "WHERE chain = :chain AND address = :address AND type IN (:replacesTypes)",
     )
-    suspend fun updateAddressName(
-        chain: Chain,
-        address: String,
-        name: String,
-        type: AddressType,
-        status: VerificationStatus,
-        imageUrl: String?,
-        reservedTypes: List<AddressType> = AddressType.entries.filter { it.isLocal && it != type },
-    )
+    suspend fun updateAddressName(chain: Chain, address: String, name: String, type: AddressType, status: VerificationStatus, imageUrl: String?, replacesTypes: List<AddressType>)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertIgnore(addresses: List<DbAddress>)

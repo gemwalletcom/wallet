@@ -1,7 +1,7 @@
 use crate::{
-    AssetList, FetchQuoteData, Permit2ApprovalData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapQuoteError, SwapQuotes, SwapResult, Swapper, SwapperChainAsset,
-    SwapperError, SwapperProvider, SwapperProviderMode, SwapperQuoteData, across, alien::RpcProvider, cetus_clmm, chainflip, cross_chain::VaultAddresses,
-    fees::max_quote_value_with_fee_reserve, hyperliquid, jupiter, mayan, near_intents, okx, panora, relay, squid, stonfi, swaps_xyz, thorchain, uniswap,
+    AssetList, FetchQuoteData, Permit2ApprovalData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapQuoteError, SwapQuotes, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperProviderMode,
+    SwapperQuoteData, across, alien::RpcProvider, cetus_clmm, chainflip, cross_chain::VaultAddresses, fees::max_quote_value_with_fee_reserve, hyperliquid, jupiter, mayan, near_intents, okx, panora, relay, squid, stonfi, swaps_xyz,
+    thorchain, uniswap,
 };
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
@@ -40,11 +40,7 @@ impl GemSwapper {
     }
 
     fn get_swapper_by_provider(&self, provider: &SwapperProvider) -> Result<&dyn Swapper, SwapperError> {
-        self.swappers
-            .iter()
-            .find(|x| x.provider().id == *provider)
-            .map(|v| &**v)
-            .ok_or(SwapperError::NoAvailableProvider)
+        self.swappers.iter().find(|x| x.provider().id == *provider).map(|v| &**v).ok_or(SwapperError::NoAvailableProvider)
     }
 
     fn apply_gas_limit_multiplier(chain: &Chain, gas_limit: String) -> String {
@@ -130,8 +126,12 @@ impl GemSwapper {
         self.swappers.iter().map(|x| x.provider().clone()).collect()
     }
 
+    fn is_native_mirror_pair(from_asset: &AssetId, to_asset: &AssetId) -> bool {
+        from_asset.chain == to_asset.chain && ((from_asset.is_native() && to_asset.is_native_mirror()) || (from_asset.is_native_mirror() && to_asset.is_native()))
+    }
+
     pub fn get_providers_for_request(&self, request: &QuoteRequest) -> Result<Vec<ProviderType>, SwapperError> {
-        if request.from_asset.id == request.to_asset.id {
+        if request.from_asset.id == request.to_asset.id || Self::is_native_mirror_pair(&request.from_asset.asset_id(), &request.to_asset.asset_id()) {
             return Err(SwapperError::NoQuoteAvailable);
         }
         let from_chain = request.from_asset.chain();
@@ -201,6 +201,9 @@ impl GemSwapper {
     }
 
     fn quote_error(errors: Vec<SwapQuoteError>) -> SwapperError {
+        if !errors.is_empty() && errors.iter().all(|error| error.error == SwapperError::Offline) {
+            return SwapperError::Offline;
+        }
         let min_amounts: Vec<Option<BigInt>> = errors
             .into_iter()
             .filter_map(|error| match error.error {
@@ -211,11 +214,7 @@ impl GemSwapper {
         if min_amounts.is_empty() {
             return SwapperError::NoQuoteAvailable;
         }
-        let min_amount = min_amounts
-            .into_iter()
-            .collect::<Option<Vec<BigInt>>>()
-            .and_then(|amounts| amounts.into_iter().min())
-            .map(|amount| amount.to_string());
+        let min_amount = min_amounts.into_iter().collect::<Option<Vec<BigInt>>>().and_then(|amounts| amounts.into_iter().min()).map(|amount| amount.to_string());
         SwapperError::InputAmountError { min_amount }
     }
 
@@ -260,7 +259,7 @@ mod tests {
 
     use primitives::{
         AssetId, Chain,
-        asset_constants::{ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID},
+        asset_constants::{ARC_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID},
     };
 
     use super::*;
@@ -290,10 +289,7 @@ mod tests {
         };
 
         // Cross-chain providers are eligible across different chains.
-        assert_eq!(
-            filter(Chain::Ethereum, Chain::Optimism),
-            vec![SwapperProvider::Thorchain, SwapperProvider::NearIntents, SwapperProvider::Chainflip]
-        );
+        assert_eq!(filter(Chain::Ethereum, Chain::Optimism), vec![SwapperProvider::Thorchain, SwapperProvider::NearIntents, SwapperProvider::Chainflip]);
 
         assert_eq!(
             filter(Chain::Tron, Chain::Tron),
@@ -307,10 +303,7 @@ mod tests {
             ]
         );
 
-        assert_eq!(
-            filter(Chain::Ethereum, Chain::Ethereum),
-            vec![SwapperProvider::UniswapV3, SwapperProvider::PancakeswapV3, SwapperProvider::Jupiter]
-        );
+        assert_eq!(filter(Chain::Ethereum, Chain::Ethereum), vec![SwapperProvider::UniswapV3, SwapperProvider::PancakeswapV3, SwapperProvider::Jupiter]);
 
         assert!(filter(Chain::Near, Chain::Near).contains(&SwapperProvider::NearIntents));
     }
@@ -347,10 +340,7 @@ mod tests {
             .collect::<Vec<_>>();
 
         assert_eq!(filtered.len(), 2);
-        assert_eq!(
-            filtered.iter().map(|x| x.provider().id).collect::<BTreeSet<_>>(),
-            BTreeSet::from([SwapperProvider::UniswapV3, SwapperProvider::PancakeswapV3])
-        );
+        assert_eq!(filtered.iter().map(|x| x.provider().id).collect::<BTreeSet<_>>(), BTreeSet::from([SwapperProvider::UniswapV3, SwapperProvider::PancakeswapV3]));
 
         let from_chain = Chain::Solana;
         let to_chain = Chain::Solana;
@@ -394,14 +384,8 @@ mod tests {
         let asset_id_usdt: AssetId = ETHEREUM_USDT_ASSET_ID.clone();
         let supported_assets_all = vec![SwapperChainAsset::All(Chain::Ethereum)];
         assert!(GemSwapper::supports_asset(&supported_assets_all, &asset_id));
-        assert!(GemSwapper::supports_asset(
-            &[SwapperChainAsset::Assets(Chain::Cardano, vec![])],
-            &AssetId::from_chain(Chain::Cardano)
-        ));
-        assert!(!GemSwapper::supports_asset(
-            &[SwapperChainAsset::Assets(Chain::Cardano, vec![])],
-            &AssetId::from_token(Chain::Cardano, "policy.asset")
-        ));
+        assert!(GemSwapper::supports_asset(&[SwapperChainAsset::Assets(Chain::Cardano, vec![])], &AssetId::from_chain(Chain::Cardano)));
+        assert!(!GemSwapper::supports_asset(&[SwapperChainAsset::Assets(Chain::Cardano, vec![])], &AssetId::from_token(Chain::Cardano, "policy.asset")));
 
         let supported_assets = vec![
             SwapperChainAsset::All(Chain::Ethereum),
@@ -412,20 +396,23 @@ mod tests {
         assert!(GemSwapper::supports_asset(&supported_assets, &asset_id));
     }
 
+    #[test]
+    fn test_is_native_mirror_pair() {
+        let arc = AssetId::from_chain(Chain::Arc);
+
+        assert!(GemSwapper::is_native_mirror_pair(&arc, &ARC_USDC_ASSET_ID));
+        assert!(GemSwapper::is_native_mirror_pair(&ARC_USDC_ASSET_ID, &arc));
+        assert!(!GemSwapper::is_native_mirror_pair(&ARC_USDC_ASSET_ID, &ETHEREUM_USDC_ASSET_ID));
+        assert!(!GemSwapper::is_native_mirror_pair(&ARC_USDC_ASSET_ID, &AssetId::from_chain(Chain::Ethereum)));
+    }
+
     #[tokio::test]
     async fn test_get_quotes_collects_per_provider_errors() {
-        let request = mock_quote(
-            SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)),
-            SwapperQuoteAsset::from(ETHEREUM_USDC_ASSET_ID.clone()),
-        );
+        let request = mock_quote(SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)), SwapperQuoteAsset::from(ETHEREUM_USDC_ASSET_ID.clone()));
 
         let gem_swapper = GemSwapper::mock(vec![
             Box::new(MockSwapper::new(SwapperProvider::UniswapV3, || Err(SwapperError::InputAmountError { min_amount: None }))),
-            Box::new(MockSwapper::new(SwapperProvider::PancakeswapV3, || {
-                Err(SwapperError::InputAmountError {
-                    min_amount: Some("1264000".into()),
-                })
-            })),
+            Box::new(MockSwapper::new(SwapperProvider::PancakeswapV3, || Err(SwapperError::InputAmountError { min_amount: Some("1264000".into()) }))),
             Box::new(MockSwapper::new(SwapperProvider::Jupiter, || Err(SwapperError::NoQuoteAvailable))),
         ]);
         let result = gem_swapper.get_quotes(&request).await.unwrap();
@@ -435,11 +422,7 @@ mod tests {
         let providers: BTreeSet<_> = result.errors.iter().map(|e| e.provider.clone().unwrap()).collect();
         assert_eq!(
             providers,
-            BTreeSet::from([
-                SwapperProvider::UniswapV3.id().to_string(),
-                SwapperProvider::PancakeswapV3.id().to_string(),
-                SwapperProvider::Jupiter.id().to_string(),
-            ])
+            BTreeSet::from([SwapperProvider::UniswapV3.id().to_string(), SwapperProvider::PancakeswapV3.id().to_string(), SwapperProvider::Jupiter.id().to_string(),])
         );
         let pancake_error = result.errors.iter().find(|e| e.provider.as_deref() == Some(SwapperProvider::PancakeswapV3.id())).unwrap();
         assert!(pancake_error.error.to_string().contains("1264000"));
@@ -447,47 +430,37 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_quote_aggregates_provider_errors() {
-        let request = mock_quote(
-            SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)),
-            SwapperQuoteAsset::from(ETHEREUM_USDC_ASSET_ID.clone()),
-        );
+        let request = mock_quote(SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)), SwapperQuoteAsset::from(ETHEREUM_USDC_ASSET_ID.clone()));
         let known_minimums = GemSwapper::mock(vec![
-            Box::new(MockSwapper::new(SwapperProvider::PancakeswapV3, || {
-                Err(SwapperError::InputAmountError {
-                    min_amount: Some("5000000".into()),
-                })
-            })),
-            Box::new(MockSwapper::new(SwapperProvider::UniswapV4, || {
-                Err(SwapperError::InputAmountError {
-                    min_amount: Some("1264000".into()),
-                })
-            })),
+            Box::new(MockSwapper::new(SwapperProvider::PancakeswapV3, || Err(SwapperError::InputAmountError { min_amount: Some("5000000".into()) }))),
+            Box::new(MockSwapper::new(SwapperProvider::UniswapV4, || Err(SwapperError::InputAmountError { min_amount: Some("1264000".into()) }))),
             Box::new(MockSwapper::new(SwapperProvider::Jupiter, || Err(SwapperError::NoQuoteAvailable))),
         ]);
-        assert_eq!(
-            known_minimums.get_quote(&request).await.unwrap_err(),
-            SwapperError::InputAmountError {
-                min_amount: Some("1264000".into())
-            }
-        );
+        assert_eq!(known_minimums.get_quote(&request).await.unwrap_err(), SwapperError::InputAmountError { min_amount: Some("1264000".into()) });
 
         let unknown_minimum = GemSwapper::mock(vec![
             Box::new(MockSwapper::new(SwapperProvider::UniswapV3, || Err(SwapperError::InputAmountError { min_amount: None }))),
-            Box::new(MockSwapper::new(SwapperProvider::UniswapV4, || {
-                Err(SwapperError::InputAmountError {
-                    min_amount: Some("1264000".into()),
-                })
-            })),
+            Box::new(MockSwapper::new(SwapperProvider::UniswapV4, || Err(SwapperError::InputAmountError { min_amount: Some("1264000".into()) }))),
         ]);
         assert_eq!(unknown_minimum.get_quote(&request).await.unwrap_err(), SwapperError::InputAmountError { min_amount: None });
 
         let route_errors = GemSwapper::mock(vec![
             Box::new(MockSwapper::new(SwapperProvider::UniswapV3, || Err(SwapperError::NoQuoteAvailable))),
-            Box::new(MockSwapper::new(SwapperProvider::Jupiter, || {
-                Err(SwapperError::ComputeQuoteError("HTTP error: status 500".into()))
-            })),
+            Box::new(MockSwapper::new(SwapperProvider::Jupiter, || Err(SwapperError::ComputeQuoteError("HTTP error: status 500".into())))),
         ]);
         assert_eq!(route_errors.get_quote(&request).await.unwrap_err(), SwapperError::NoQuoteAvailable);
+
+        let offline = GemSwapper::mock(vec![
+            Box::new(MockSwapper::new(SwapperProvider::UniswapV3, || Err(SwapperError::Offline))),
+            Box::new(MockSwapper::new(SwapperProvider::Jupiter, || Err(SwapperError::Offline))),
+        ]);
+        assert_eq!(offline.get_quote(&request).await.unwrap_err(), SwapperError::Offline);
+
+        let partly_offline = GemSwapper::mock(vec![
+            Box::new(MockSwapper::new(SwapperProvider::UniswapV3, || Err(SwapperError::Offline))),
+            Box::new(MockSwapper::new(SwapperProvider::Jupiter, || Err(SwapperError::NoQuoteAvailable))),
+        ]);
+        assert_eq!(partly_offline.get_quote(&request).await.unwrap_err(), SwapperError::NoQuoteAvailable);
     }
 
     #[test]
@@ -548,15 +521,11 @@ mod timing_tests {
         println!("{round} preload total: {}ms", started.elapsed().as_millis());
 
         let provider_ids: BTreeSet<_> = swapper.get_providers_for_request(request).unwrap().into_iter().map(|provider| provider.id).collect();
-        let timings = swapper
-            .swappers
-            .iter()
-            .filter(|swapper| provider_ids.contains(&swapper.provider().id))
-            .map(|provider| async move {
-                let started = Instant::now();
-                let outcome = provider.get_quote(request).await;
-                (provider.provider().id.id().to_string(), started.elapsed().as_millis(), outcome.is_ok())
-            });
+        let timings = swapper.swappers.iter().filter(|swapper| provider_ids.contains(&swapper.provider().id)).map(|provider| async move {
+            let started = Instant::now();
+            let outcome = provider.get_quote(request).await;
+            (provider.provider().id.id().to_string(), started.elapsed().as_millis(), outcome.is_ok())
+        });
 
         let started = Instant::now();
         let mut timings = futures::future::join_all(timings).await;

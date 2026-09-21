@@ -34,13 +34,7 @@ mod tests {
         let tx = "0x1d2a1cc47871b3779457dacd61db6e122ded1d5875e0c71650337386ef95d9b4";
 
         assert_eq!(relay_scan.name(), "Relay");
-        assert_eq!(
-            relay_scan.get_tx_url(tx),
-            "https://relay.link/transaction/0x1d2a1cc47871b3779457dacd61db6e122ded1d5875e0c71650337386ef95d9b4"
-        );
-        assert_eq!(
-            relay_scan.get_address_url(address),
-            "https://relay.link/transaction?address=0x4dece432bd65b664b9f92b983231dac48eccfa19"
-        );
+        assert_eq!(relay_scan.get_tx_url(tx), "https://relay.link/transaction/0x1d2a1cc47871b3779457dacd61db6e122ded1d5875e0c71650337386ef95d9b4");
+        assert_eq!(relay_scan.get_address_url(address), "https://relay.link/transaction?address=0x4dece432bd65b664b9f92b983231dac48eccfa19");
     }
 }

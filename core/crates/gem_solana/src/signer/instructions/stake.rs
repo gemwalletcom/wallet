@@ -44,10 +44,7 @@ mod tests {
     };
     use num_bigint::BigUint;
     use primitives::testkit::signer_mock::{TEST_PRIVATE_KEY, TEST_PRIVATE_KEY_SOLANA_ADDRESS};
-    use primitives::{
-        Asset, Chain, ChainSigner, Delegation, DelegationValidator, GasPriceType, SignerInput, StakeType, TransactionFee, TransactionInputType, TransactionLoadInput,
-        TransactionLoadMetadata,
-    };
+    use primitives::{Asset, Chain, ChainSigner, Delegation, DelegationValidator, GasPriceType, SignerInput, StakeType, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata};
 
     // https://github.com/trustwallet/wallet-core/blob/master/rust/tw_tests/tests/chains/solana/solana_sign.rs
     const REFERENCE_STAKE_PRIVATE_KEY: &str = "AevJ4EWcvQ6dptBDvF2Ri5pU6QSBjkzSGHMfbLFKa746";
@@ -158,10 +155,7 @@ mod tests {
             (StakeType::Withdraw(delegation), "42", REFERENCE_WITHDRAW_STAKE_TX),
         ] {
             let input = SignerInput::mock_with_input_type(
-                TransactionInputType::Stake {
-                    asset: Asset::mock_sol(),
-                    stake_type,
-                },
+                TransactionInputType::Stake { asset: Asset::mock_sol(), stake_type },
                 &sender_address_for_key(&private_key),
                 "",
                 value,

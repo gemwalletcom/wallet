@@ -73,9 +73,7 @@ impl VersionUpdater {
     }
 
     async fn get_app_store_version(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
-        let target = StoreTarget::AppStoreLookup {
-            bundle_id: GEM_IOS_BUNDLE_ID.to_string(),
-        };
+        let target = StoreTarget::AppStoreLookup { bundle_id: GEM_IOS_BUNDLE_ID.to_string() };
         let response: ITunesLookupResponse = self.store(&target).get(target).await?;
         response.results.first().map(|r| r.version.clone()).ok_or_else(|| "no results".into())
     }
@@ -91,9 +89,7 @@ impl VersionUpdater {
     }
 
     async fn get_fdroid_version(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
-        let target = StoreTarget::FdroidPackage {
-            package: GEM_ANDROID_PACKAGE_ID.to_string(),
-        };
+        let target = StoreTarget::FdroidPackage { package: GEM_ANDROID_PACKAGE_ID.to_string() };
         let response: FdroidPackageResponse = self.store(&target).get(target).await?;
         response.latest_version().ok_or_else(|| "f-droid version not found".into())
     }
@@ -108,9 +104,7 @@ impl VersionUpdater {
     }
 
     async fn get_samsung_version(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
-        let target = StoreTarget::SamsungDetail {
-            package: GEM_ANDROID_PACKAGE_ID.to_string(),
-        };
+        let target = StoreTarget::SamsungDetail { package: GEM_ANDROID_PACKAGE_ID.to_string() };
         let response: SamsungStoreDetail = self.store(&target).get(target).await?;
         match response.details {
             Some(details) => Ok(details.version),
@@ -119,9 +113,7 @@ impl VersionUpdater {
     }
 
     async fn get_solana_store_version(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
-        let target = StoreTarget::SolanaRelease {
-            package: GEM_ANDROID_PACKAGE_ID.to_string(),
-        };
+        let target = StoreTarget::SolanaRelease { package: GEM_ANDROID_PACKAGE_ID.to_string() };
         let response: SolanaStoreRelease = self.store(&target).get(target).await?;
         Ok(response.version_name)
     }

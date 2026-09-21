@@ -1,12 +1,12 @@
 package com.gemwallet.android.data.services.gemstone.perpetual
 
-import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.ext.toGem
 import android.util.Log
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketConnectable
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketEvent
 import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.ChartCandleUpdate
 import com.wallet.core.primitives.PerpetualAccountMode
 import com.wallet.core.primitives.Wallet
@@ -64,8 +64,7 @@ class HyperliquidObserverService(
             observePerpetualWallet()
                 .distinctUntilChangedBy { it?.id?.id }
                 .collectLatest { wallet ->
-                    if (wallet == null) return@collectLatest
-                    runCatchingCancellable { perpetualService.syncEnablement(wallet.toGem(), GemMarketsRefreshTrigger.SCHEDULED) }
+                    runCatchingCancellable { perpetualService.syncEnablement(wallet?.toGem(), GemMarketsRefreshTrigger.SCHEDULED) }
                         .onFailure { Log.e(TAG, "perpetual markets sync failed", it) }
                 }
         }
@@ -91,16 +90,16 @@ class HyperliquidObserverService(
         connection.connect().collect { event ->
             when (event) {
                 WebSocketEvent.Connected -> send { streamService.connected(address, mode.toGem()) }
-                is WebSocketEvent.Message -> handle(walletId, mode, event.text)
+                is WebSocketEvent.Message -> onMessage(walletId, mode, event.text)
                 WebSocketEvent.Disconnected -> streamService.disconnected()
             }
         }
     }
 
-    private suspend fun handle(walletId: WalletId, mode: PerpetualAccountMode, text: String) {
-        runCatchingCancellable { streamService.handle(walletId.id, mode.toGem(), text.encodeToByteArray()) }
+    private suspend fun onMessage(walletId: WalletId, mode: PerpetualAccountMode, text: String) {
+        runCatchingCancellable { streamService.candleUpdate(walletId.id, mode.toGem(), text.encodeToByteArray()) }
             .onSuccess { candle -> candle?.toPrimitives()?.let { chartFlow.emit(it) } }
-            .onFailure { Log.e(TAG, "Handle message error: ${text.take(MESSAGE_LOG_LIMIT)}", it) }
+            .onFailure { Log.e(TAG, "Socket message error: ${text.take(MESSAGE_LOG_LIMIT)}", it) }
     }
 
     private suspend fun send(request: suspend () -> Unit) {

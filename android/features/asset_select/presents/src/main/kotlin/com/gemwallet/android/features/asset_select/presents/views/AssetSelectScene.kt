@@ -39,19 +39,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
+import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
+import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
+import com.gemwallet.android.ui.components.empty.EmptyContentType
+import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.filters.AssetsFilter
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.components.list_item.AssetContextMenuRow
-import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.PinnedAssetsHeaderItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
-import com.gemwallet.android.ui.components.empty.EmptyContentType
-import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
@@ -62,7 +63,6 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallIconSize
-import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
@@ -101,7 +101,7 @@ fun AssetSelectScene(
                 modifier = Modifier,
                 text = title,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
         },
         popular = popular,
@@ -162,8 +162,16 @@ fun AssetSelectScene(
 ) {
     val onSelect: (Asset) -> Unit = { onAction(AssetSelectAction.Select(it)) }
     val onSelectRecent: (Asset) -> Unit = { onAction(AssetSelectAction.SelectRecent(it)) }
-    val onOpenRecentsSheet: (() -> Unit)? = if (recentsSheetEnabled) { { onAction(AssetSelectAction.OpenRecentsSheet) } } else null
-    val onAssetsHeaderClick: (() -> Unit)? = if (assetsHeaderClickable) { { onAction(AssetSelectAction.ShowAllAssets) } } else null
+    val onOpenRecentsSheet: (() -> Unit)? = if (recentsSheetEnabled) {
+        { onAction(AssetSelectAction.OpenRecentsSheet) }
+    } else {
+        null
+    }
+    val onAssetsHeaderClick: (() -> Unit)? = if (assetsHeaderClickable) {
+        { onAction(AssetSelectAction.ShowAllAssets) }
+    } else {
+        null
+    }
     val listState = rememberLazyListState()
     var isReturnToTop by remember { mutableStateOf(false) }
 
@@ -201,10 +209,11 @@ fun AssetSelectScene(
                 IconButton(onClick = { showSelectNetworks = !showSelectNetworks }) {
                     Icon(
                         imageVector = AppIcons.FilterAlt,
-                        tint = if (chainsFilter.isEmpty() && !balanceFilter)
+                        tint = if (chainsFilter.isEmpty() && !balanceFilter) {
                             LocalContentColor.current
-                        else
-                            MaterialTheme.colorScheme.primary,
+                        } else {
+                            MaterialTheme.colorScheme.primary
+                        },
                         contentDescription = null,
                     )
                 }
@@ -213,7 +222,7 @@ fun AssetSelectScene(
         },
         snackbar = snackbar,
         onClose = { onAction(AssetSelectAction.Cancel) },
-        closeIcon = closeIcon
+        closeIcon = closeIcon,
     ) {
         if (searchable) {
             SearchBar(query = query)
@@ -269,7 +278,7 @@ fun AssetSelectScene(
         onDismissRequest = { showSelectNetworks = false },
         onChainFilter = { onAction(AssetSelectAction.ChainFilter(it)) },
         onBalanceFilter = { onAction(AssetSelectAction.BalanceFilter(it)) },
-        onClearFilters = { onAction(AssetSelectAction.ClearFilters) }
+        onClearFilters = { onAction(AssetSelectAction.ClearFilters) },
     )
 }
 
@@ -346,12 +355,7 @@ fun AssetSelectRow(
     }
 }
 
-fun LazyListScope.searchState(
-    state: UIState,
-    isAddAvailable: Boolean = false,
-    topOffset: Int = 0,
-    onAddAsset: (() -> Unit)? = null,
-) {
+fun LazyListScope.searchState(state: UIState, isAddAvailable: Boolean = false, topOffset: Int = 0, onAddAsset: (() -> Unit)? = null) {
     when (state) {
         UIState.Loading -> item {
             Box(
@@ -380,11 +384,7 @@ fun LazyListScope.searchState(
     }
 }
 
-private fun LazyListScope.recent(
-    items: List<Asset>,
-    onSelect: ((Asset) -> Unit)?,
-    onOpenRecentsSheet: (() -> Unit)? = null,
-) {
+private fun LazyListScope.recent(items: List<Asset>, onSelect: ((Asset) -> Unit)?, onOpenRecentsSheet: (() -> Unit)? = null) {
     if (items.isEmpty()) {
         return
     }

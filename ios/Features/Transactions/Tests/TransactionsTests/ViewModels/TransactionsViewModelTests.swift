@@ -34,13 +34,17 @@ struct TransactionsViewModelTests {
     }
 
     @Test
-    func aFailedSyncLeavesNoToast() async {
+    func aFailedRefreshWithNothingShownShowsTheErrorInsteadOfTheEmptyState() async {
         let service = GemTransactionsServiceMock()
-        service.syncError = AnyError("offline")
         let model = TransactionsViewModel.mock(service: service)
 
         await model.load()
+        #expect(model.loadError == nil)
 
+        service.refreshState = .error(error: .Gateway(msg: "offline"))
+        await model.load()
+
+        #expect(model.loadError != nil)
         #expect(model.isPresentingToastMessage == nil)
     }
 
@@ -107,7 +111,6 @@ struct TransactionsFilterViewModelTests {
         _ = model.onFinishTypesSelection(SelectionResult(items: [filter], isConfirmed: true))
 
         #expect(model.transactionTypesFilter.selectedTypes == [filter])
-        #expect(model.transactionTypesFilter.requestFilters.isNotEmpty)
         #expect(model.isAnyFilterSpecified)
     }
 

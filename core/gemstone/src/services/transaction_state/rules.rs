@@ -6,9 +6,7 @@ use crate::payment::payment_record_hash;
 use crate::services::collections::unique;
 
 pub fn destination_chain(transaction: &Transaction) -> Option<Chain> {
-    (transaction.state == TransactionState::InTransit)
-        .then(|| transaction.swap_metadata().map(|metadata| metadata.to_asset.chain))
-        .flatten()
+    (transaction.state == TransactionState::InTransit).then(|| transaction.swap_metadata().map(|metadata| metadata.to_asset.chain)).flatten()
 }
 
 pub fn has_timed_out(transaction: &Transaction, now: DateTime<Utc>) -> bool {
@@ -27,15 +25,9 @@ pub fn post_processing(transaction: &Transaction, previous_state: TransactionSta
     }
     let balance_asset_ids = transaction.associated_asset_ids();
     if !state.is_completed() {
-        return Some(TransactionPostProcessing {
-            balance_asset_ids,
-            ..Default::default()
-        });
+        return Some(TransactionPostProcessing { balance_asset_ids, ..Default::default() });
     }
-    let mut processing = TransactionPostProcessing {
-        balance_asset_ids,
-        ..Default::default()
-    };
+    let mut processing = TransactionPostProcessing { balance_asset_ids, ..Default::default() };
     match transaction.transaction_type {
         TransactionType::StakeDelegate
         | TransactionType::StakeUndelegate
@@ -60,7 +52,7 @@ pub fn new_hash(changes: &[TransactionChange]) -> Option<String> {
     })
 }
 
-pub fn state_update(state: TransactionState, changes: &[TransactionChange]) -> Result<GemTransactionStateUpdate, serde_json::Error> {
+pub fn state_update(state: TransactionState, changes: &[TransactionChange], transaction: &Transaction) -> Result<GemTransactionStateUpdate, serde_json::Error> {
     let mut update = GemTransactionStateUpdate::new(state);
     for change in changes {
         match change {
@@ -70,6 +62,11 @@ pub fn state_update(state: TransactionState, changes: &[TransactionChange]) -> R
             TransactionChange::ConfirmationEtaSeconds(seconds) => update.confirmation_eta_seconds = Some(*seconds),
             TransactionChange::HashChange { .. } => {}
         }
+    }
+    if let Some(metadata) = &update.metadata {
+        let mut updated = transaction.clone();
+        updated.metadata = Some(serde_json::from_str(metadata)?);
+        update.asset_ids = Some(updated.asset_ids());
     }
     Ok(update)
 }
@@ -94,7 +91,7 @@ pub fn assets_to_enable(transactions: &[Transaction]) -> Vec<AssetId> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{PaymentMerchant, TransactionId, TransactionPaymentMetadata};
+    use primitives::{PaymentMerchant, TransactionId, TransactionPaymentMetadata, TransactionSwapMetadata};
 
     #[test]
     fn test_payment_link_only_while_the_record_carries_the_payment_id() {
@@ -119,22 +116,47 @@ mod tests {
     }
 
     #[test]
-    fn test_post_processing_stake_chains_are_unique() {
+    fn test_the_state_update_carries_the_asset_ids_the_new_metadata_moves() {
         let mut transaction = Transaction::mock();
-        transaction.transaction_type = TransactionType::StakeDelegate;
+        transaction.transaction_type = TransactionType::Swap;
         transaction.asset_id = AssetId::from_chain(Chain::Ethereum);
-        transaction.metadata = Some(serde_json::json!({
-            "assetTransfers": [
-                { "assetId": "solana", "from": "a", "to": "b", "value": "1" },
-                { "assetId": "ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7", "from": "a", "to": "b", "value": "1" }
-            ]
-        }));
+        let swap = TransactionSwapMetadata {
+            from_asset: AssetId::from_chain(Chain::Ethereum),
+            from_value: 100u32.into(),
+            to_asset: AssetId::from_chain(Chain::Solana),
+            to_value: 200u32.into(),
+            provider: None,
+        };
 
-        let processing = post_processing(&transaction, TransactionState::Pending, TransactionState::Confirmed).unwrap();
+        let update = state_update(TransactionState::Confirmed, &[TransactionChange::Metadata(TransactionMetadata::Swap(swap))], &transaction).unwrap();
 
-        let mut chains = processing.stake_chains.clone();
-        chains.sort();
-        assert_eq!(processing.stake_chains.len(), 2);
-        assert_eq!(chains, vec![Chain::Ethereum, Chain::Solana]);
+        let mut asset_ids = update.asset_ids.expect("the swap moved two assets");
+        asset_ids.sort_by_key(|asset_id| asset_id.to_string());
+        assert_eq!(asset_ids, vec![AssetId::from_chain(Chain::Ethereum), AssetId::from_chain(Chain::Solana)]);
+        assert_eq!(
+            state_update(TransactionState::Confirmed, &[TransactionChange::BlockNumber("1".to_string())], &transaction).unwrap().asset_ids,
+            None,
+            "an update that leaves the metadata alone moves no assets between rows"
+        );
     }
+
+    #[test]
+fn test_post_processing_stake_chains_are_unique() {
+    let mut transaction = Transaction::mock();
+    transaction.transaction_type = TransactionType::StakeDelegate;
+    transaction.asset_id = AssetId::from_chain(Chain::Ethereum);
+    transaction.metadata = Some(serde_json::json!({
+        "assetTransfers": [
+            { "assetId": "solana", "from": "a", "to": "b", "value": "1" },
+            { "assetId": "ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7", "from": "a", "to": "b", "value": "1" }
+        ]
+    }));
+
+    let processing = post_processing(&transaction, TransactionState::Pending, TransactionState::Confirmed).unwrap();
+
+    let mut chains = processing.stake_chains.clone();
+    chains.sort();
+    assert_eq!(processing.stake_chains.len(), 2);
+    assert_eq!(chains, vec![Chain::Ethereum, Chain::Solana]);
+}
 }

@@ -4597,85 +4597,85 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "আপনার লেনদেন এখানে প্রদর্শিত হবে️"
+            "value": "আপনার লেনদেন এখানে প্রদর্শিত হবে"
           }
         },
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vaše transakce se zobrazí zde ️"
+            "value": "Vaše transakce se zobrazí zde"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dine transaktioner vil blive vist her️"
+            "value": "Dine transaktioner vil blive vist her"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ihre Transaktionen werden hier angezeigt️"
+            "value": "Ihre Transaktionen werden hier angezeigt"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your transactions will appear here️"
+            "value": "Your transactions will appear here"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tus transacciones aparecerán aquí️"
+            "value": "Tus transacciones aparecerán aquí"
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "تراکنش‌های شما اینجا نمایش داده می‌شوند️"
+            "value": "تراکنش‌های شما اینجا نمایش داده می‌شوند"
           }
         },
         "fil": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ang iyong mga transaksyon ay lalabas dito️"
+            "value": "Ang iyong mga transaksyon ay lalabas dito"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vos transactions apparaîtront ici️"
+            "value": "Vos transactions apparaîtront ici"
           }
         },
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ma'amalolinku za su bayyana a nan️"
+            "value": "Ma'amalolinku za su bayyana a nan"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "העסקאות שלך יופיעו כאן️"
+            "value": "העסקאות שלך יופיעו כאן"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "आपके लेन-देन यहां दिखाई देंगे️"
+            "value": "आपके लेन-देन यहां दिखाई देंगे"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transaksi Anda akan muncul di sini️"
+            "value": "Transaksi Anda akan muncul di sini"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le tue transazioni appariranno qui️"
+            "value": "Le tue transazioni appariranno qui"
           }
         },
         "ja": {
@@ -4693,13 +4693,13 @@
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transaksi anda akan muncul di sini️"
+            "value": "Transaksi anda akan muncul di sini"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uw transacties verschijnen hier️"
+            "value": "Uw transacties verschijnen hier"
           }
         },
         "pl": {
@@ -4711,43 +4711,43 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Suas transações aparecerão aqui️"
+            "value": "Suas transações aparecerão aqui"
           }
         },
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tranzacțiile tale vor apărea aici️"
+            "value": "Tranzacțiile tale vor apărea aici"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ваши транзакции будут отображаться здесь️"
+            "value": "Ваши транзакции будут отображаться здесь"
           }
         },
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "Shughuli zako za malipo zitaonekana hapa️"
+            "value": "Shughuli zako za malipo zitaonekana hapa"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "ธุรกรรมของคุณจะปรากฏที่นี่️"
+            "value": "ธุรกรรมของคุณจะปรากฏที่นี่"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "İşlemleriniz burada görünecek️"
+            "value": "İşlemleriniz burada görünecek"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ваші транзакції з'являться тут ️"
+            "value": "Ваші транзакції з'являться тут"
           }
         },
         "ur": {
@@ -4759,7 +4759,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Giao dịch của bạn sẽ xuất hiện ở đây️"
+            "value": "Giao dịch của bạn sẽ xuất hiện ở đây"
           }
         },
         "zh-Hans": {
@@ -25339,7 +25339,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Salve seus endereços usados ​​com frequência."
+            "value": "Salve seus endereços usados com frequência."
           }
         },
         "ro": {
@@ -33617,197 +33617,6 @@
         }
       }
     },
-    "errors.required": {
-      "extractionState": "manual",
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ مطلوب"
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ প্রয়োজন"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ je vyžadováno"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ er påkrævet"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ ist erforderlich"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ is required"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ es obligatorio"
-          }
-        },
-        "fa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ الزامی است"
-          }
-        },
-        "fil": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ ay kinakailangan"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ est requis"
-          }
-        },
-        "ha": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ ana bukata"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "נדרש %@"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ आवश्यक है"
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ diperlukan"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ è obbligatorio"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@は必須です"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ 가 필요합니다"
-          }
-        },
-        "ms": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ diperlukan"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ is vereist"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ jest wymagane"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ é necessário"
-          }
-        },
-        "ro": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ este obligatoriu"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ требуется"
-          }
-        },
-        "sw": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ inahitajika"
-          }
-        },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ เป็นสิ่งจำเป็น"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ gereklidir"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ є обов'язковим"
-          }
-        },
-        "ur": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ درکار ہے۔"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ là bắt buộc"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@为必填项"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ 為必填欄位"
-          }
-        }
-      }
-    },
     "errors.scan_transaction.malicious.description": {
       "extractionState": "manual",
       "localizations": {
@@ -40947,7 +40756,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "אספקה ​​מקסימלית"
+            "value": "אספקה מקסימלית"
           }
         },
         "hi": {
@@ -42762,7 +42571,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "سالانہ شرح جس پر لانگ شارٹس ادا کرتا ہے (اگر منفی، شارٹس لانگ ادا کرتے ہیں)۔ فنڈنگ ​​سے وابستہ کوئی فیس نہیں ہے، جو کہ قیمتوں کو اسپاٹ پرائس کی طرف دھکیلنے کے لیے صارفین کے درمیان پیئر ٹو پیئر ٹرانسفر ہے۔"
+            "value": "سالانہ شرح جس پر لانگ شارٹس ادا کرتا ہے (اگر منفی، شارٹس لانگ ادا کرتے ہیں)۔ فنڈنگ سے وابستہ کوئی فیس نہیں ہے، جو کہ قیمتوں کو اسپاٹ پرائس کی طرف دھکیلنے کے لیے صارفین کے درمیان پیئر ٹو پیئر ٹرانسفر ہے۔"
           }
         },
         "vi": {
@@ -43096,7 +42905,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Płatności finansowe to okresowe płatności pomiędzy inwestorami, mające na celu utrzymanie ceny kontraktu wieczystego na poziomie zbliżonym do ceny spot instrumentu bazowego. Dodatnie finansowanie oznacza, że ​​długie pozycje opłacają krótkie pozycje, podczas gdy ujemne finansowanie oznacza, że ​​krótkie pozycje opłacają długie pozycje."
+            "value": "Płatności finansowe to okresowe płatności pomiędzy inwestorami, mające na celu utrzymanie ceny kontraktu wieczystego na poziomie zbliżonym do ceny spot instrumentu bazowego. Dodatnie finansowanie oznacza, że długie pozycje opłacają krótkie pozycje, podczas gdy ujemne finansowanie oznacza, że krótkie pozycje opłacają długie pozycje."
           }
         },
         "pt-BR": {
@@ -43144,7 +42953,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "فنڈنگ ​​کی ادائیگیاں تاجروں کے درمیان متواتر ادائیگیاں ہوتی ہیں تاکہ دائمی معاہدے کی قیمت کو بنیادی اثاثہ کی جگہ کی قیمت کے قریب رکھا جا سکے۔ مثبت فنڈنگ ​​کا مطلب ہے لانگ پوزیشنز شارٹ پوزیشنز ادا کرتی ہیں، جبکہ منفی فنڈنگ ​​کا مطلب ہے کہ شارٹ پوزیشنز لانگ پوزیشنز ادا کرتی ہیں۔"
+            "value": "فنڈنگ کی ادائیگیاں تاجروں کے درمیان متواتر ادائیگیاں ہوتی ہیں تاکہ دائمی معاہدے کی قیمت کو بنیادی اثاثہ کی جگہ کی قیمت کے قریب رکھا جا سکے۔ مثبت فنڈنگ کا مطلب ہے لانگ پوزیشنز شارٹ پوزیشنز ادا کرتی ہیں، جبکہ منفی فنڈنگ کا مطلب ہے کہ شارٹ پوزیشنز لانگ پوزیشنز ادا کرتی ہیں۔"
           }
         },
         "vi": {
@@ -52156,85 +51965,85 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "আপনার NFT গুলি এখানে প্রদর্শিত হবে️"
+            "value": "আপনার NFT গুলি এখানে প্রদর্শিত হবে"
           }
         },
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vaše NFT se zobrazí zde ️"
+            "value": "Vaše NFT se zobrazí zde"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dine NFT'er vil blive vist her️"
+            "value": "Dine NFT'er vil blive vist her"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ihre NFTs werden hier angezeigt️"
+            "value": "Ihre NFTs werden hier angezeigt"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your NFTs will appear here️"
+            "value": "Your NFTs will appear here"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tus NFT aparecerán aquí️"
+            "value": "Tus NFT aparecerán aquí"
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "NFT های شما اینجا ظاهر خواهند شد️"
+            "value": "NFT های شما اینجا ظاهر خواهند شد"
           }
         },
         "fil": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lalabas dito ang iyong mga NFT ️"
+            "value": "Lalabas dito ang iyong mga NFT"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vos NFT apparaîtront ici️"
+            "value": "Vos NFT apparaîtront ici"
           }
         },
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "NFT naku zasu bayyana anan️"
+            "value": "NFT naku zasu bayyana anan"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "ה-NFT שלך יופיע כאן️"
+            "value": "ה-NFT שלך יופיע כאן"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "आपके NFT यहां दिखाई देंगे️"
+            "value": "आपके NFT यहां दिखाई देंगे"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "NFT Anda akan muncul di sini️"
+            "value": "NFT Anda akan muncul di sini"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "I tuoi NFT appariranno qui️"
+            "value": "I tuoi NFT appariranno qui"
           }
         },
         "ja": {
@@ -52252,43 +52061,43 @@
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "NFT anda akan muncul di sini️"
+            "value": "NFT anda akan muncul di sini"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uw NFT's verschijnen hier️"
+            "value": "Uw NFT's verschijnen hier"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Twoje NFT pojawią się tutaj️"
+            "value": "Twoje NFT pojawią się tutaj"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Seus NFTs aparecerão aqui️"
+            "value": "Seus NFTs aparecerão aqui"
           }
         },
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "NFT-urile tale vor apărea aici️"
+            "value": "NFT-urile tale vor apărea aici"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ваши NFT будут здесь️"
+            "value": "Ваши NFT будут здесь"
           }
         },
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "NFT zako zitaonekana hapa️"
+            "value": "NFT zako zitaonekana hapa"
           }
         },
         "th": {
@@ -52300,13 +52109,13 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "NFT'leriniz burada görünecek️"
+            "value": "NFT'leriniz burada görünecek"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ваші NFT з'являться тут ️"
+            "value": "Ваші NFT з'являться тут"
           }
         },
         "ur": {
@@ -52318,19 +52127,19 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "NFT của bạn sẽ xuất hiện ở đây️"
+            "value": "NFT của bạn sẽ xuất hiện ở đây"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "NFT 将显示在这里️"
+            "value": "NFT 将显示在这里"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "NFT 將顯示在這裡️"
+            "value": "NFT 將顯示在這裡"
           }
         }
       }
@@ -67627,43 +67436,43 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "আপনার সতর্কতাগুলি এখানে প্রদর্শিত হবে️"
+            "value": "আপনার সতর্কতাগুলি এখানে প্রদর্শিত হবে"
           }
         },
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vaše upozornění se zobrazí zde ️"
+            "value": "Vaše upozornění se zobrazí zde"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dine alarmer vises her️"
+            "value": "Dine alarmer vises her"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ihre Benachrichtigungen werden hier angezeigt️"
+            "value": "Ihre Benachrichtigungen werden hier angezeigt"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your price alerts will appear here️"
+            "value": "Your price alerts will appear here"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tus alertas aparecerán aquí️"
+            "value": "Tus alertas aparecerán aquí"
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "هشدارهای شما اینجا نمایش داده می‌شوند️"
+            "value": "هشدارهای شما اینجا نمایش داده می‌شوند"
           }
         },
         "fil": {
@@ -67675,37 +67484,37 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vos alertes apparaîtront ici️"
+            "value": "Vos alertes apparaîtront ici"
           }
         },
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Faɗin farashin ku zai bayyana anan️"
+            "value": "Faɗin farashin ku zai bayyana anan"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "ההתראות שלך יופיעו כאן️"
+            "value": "ההתראות שלך יופיעו כאן"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "आपके अलर्ट यहां दिखाई देंगे️"
+            "value": "आपके अलर्ट यहां दिखाई देंगे"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Peringatan Anda akan muncul di sini️"
+            "value": "Peringatan Anda akan muncul di sini"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "I tuoi avvisi appariranno qui️"
+            "value": "I tuoi avvisi appariranno qui"
           }
         },
         "ja": {
@@ -67723,43 +67532,43 @@
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Makluman anda akan dipaparkan di sini️"
+            "value": "Makluman anda akan dipaparkan di sini"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uw meldingen verschijnen hier️"
+            "value": "Uw meldingen verschijnen hier"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Twoje alerty będą pojawiać się tutaj️"
+            "value": "Twoje alerty będą pojawiać się tutaj"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Seus alertas aparecerão aqui️"
+            "value": "Seus alertas aparecerão aqui"
           }
         },
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Alertele tale vor apărea aici️"
+            "value": "Alertele tale vor apărea aici"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ваши оповещения о ценах будут появляться здесь️"
+            "value": "Ваши оповещения о ценах будут появляться здесь"
           }
         },
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arifa zako zitaonekana hapa️"
+            "value": "Arifa zako zitaonekana hapa"
           }
         },
         "th": {
@@ -67771,13 +67580,13 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uyarılarınız burada görünecek️"
+            "value": "Uyarılarınız burada görünecek"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ваші сповіщення про ціни з'являтимуться тут️"
+            "value": "Ваші сповіщення про ціни з'являтимуться тут"
           }
         },
         "ur": {
@@ -67789,19 +67598,19 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cảnh báo giá của bạn sẽ xuất hiện ở đây️"
+            "value": "Cảnh báo giá của bạn sẽ xuất hiện ở đây"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "价格提醒将显示在这里️"
+            "value": "价格提醒将显示在这里"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "價格提醒將顯示在這裡️"
+            "value": "價格提醒將顯示在這裡"
           }
         }
       }
@@ -88996,7 +88805,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "质押将显示在这里️"
+            "value": "质押将显示在这里"
           }
         },
         "zh-Hant": {
@@ -113073,193 +112882,193 @@
         }
       }
     },
-    "warnings.multi_signature_blocked": {
+    "warnings.externally_controlled_account": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لا تقم بتحويل الأموال إلى محفظة التوقيعات المتعددة %@ هذه إلا إذا كنت متأكدًا من أنك تتحكم في المفاتيح الخاصة. قد يؤدي عدم القيام بذلك إلى تعريضك للاحتيال، وقد تفقد أصولك بشكل دائم."
+            "value": "قد يتحكم شخص آخر في حساب %@ هذا. لا ترسل أموالًا إليه إلا إذا كنت متأكدًا من أنك تتحكم فيه، وإلا فقد تفقد أصولك بشكل دائم."
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "এই %@ মাল্টি-সিগনেচার ওয়ালেটে তহবিল স্থানান্তর করবেন না যদি না আপনি নিশ্চিত হন যে আপনি ব্যক্তিগত কীগুলি নিয়ন্ত্রণ করছেন৷ এটি করতে ব্যর্থ হলে আপনি কেলেঙ্কারীতে প্রকাশ করতে পারেন এবং আপনি স্থায়ীভাবে আপনার সম্পদ হারাতে পারেন।"
+            "value": "এই %@ অ্যাকাউন্টটি অন্য কেউ নিয়ন্ত্রণ করতে পারে। এটি আপনার নিয়ন্ত্রণে আছে বলে নিশ্চিত না হলে এতে তহবিল পাঠাবেন না, নইলে আপনি স্থায়ীভাবে আপনার সম্পদ হারাতে পারেন।"
           }
         },
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nepřevádějte prostředky do této %@ peněženky s více podpisy, pokud si nejste jisti, že ovládáte soukromé klíče. Pokud tak neučiníte, můžete se vystavit podvodům a můžete trvale ztratit svá aktiva."
+            "value": "Tento účet %@ může ovládat někdo jiný. Neposílejte na něj prostředky, pokud si nejste jisti, že ho ovládáte vy, jinak můžete o svá aktiva trvale přijít."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Overfør ikke penge til denne %@ Multi-Signatur-tegnebog, medmindre du er sikker på, at du kontrollerer de private nøgler. Undladelse af at gøre det kan udsætte dig for svindel, og du kan permanent miste dine aktiver."
+            "value": "Denne %@-konto kan være kontrolleret af en anden. Overfør ikke penge til den, medmindre du er sikker på, at du kontrollerer den, ellers kan du permanent miste dine aktiver."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Überweisen Sie kein Geld auf dieses %@ Multi-Signature-Wallet, es sei denn, Sie sind sicher, dass Sie die privaten Schlüssel kontrollieren. Andernfalls könnten Sie Opfer von Betrug werden und Ihr Vermögen dauerhaft verlieren."
+            "value": "Dieses %@-Konto kann von jemand anderem kontrolliert werden. Senden Sie kein Geld darauf, es sei denn, Sie sind sicher, dass Sie es kontrollieren, sonst könnten Sie Ihr Vermögen dauerhaft verlieren."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Do not transfer funds to this %@ Multi-Signature wallet unless you are certain you control the private keys. Failure to do so could expose you to scams, and you may permanently lose your assets."
+            "value": "This %@ account can be controlled by someone else. Do not send funds to it unless you are certain you control it, or you may permanently lose your assets."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No transfiera fondos a esta billetera multifirma %@ a menos que esté seguro de que controla las claves privadas. Si no lo hace, podría exponerse a estafas y perder sus activos de forma permanente."
+            "value": "Esta cuenta de %@ puede estar controlada por otra persona. No envíe fondos a ella a menos que esté seguro de que la controla, o podría perder sus activos de forma permanente."
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "وجه را به این کیف پول چند امضایی %@ منتقل نکنید، مگر اینکه مطمئن باشید کلیدهای خصوصی را کنترل می کنید. عدم انجام این کار می تواند شما را در معرض کلاهبرداری قرار دهد و ممکن است برای همیشه دارایی های خود را از دست بدهید."
+            "value": "ممکن است شخص دیگری این حساب %@ را کنترل کند. تا زمانی که مطمئن نیستید کنترل آن در دست شماست، وجهی به آن ارسال نکنید، وگرنه ممکن است دارایی‌های خود را برای همیشه از دست بدهید."
           }
         },
         "fil": {
           "stringUnit": {
             "state": "translated",
-            "value": "Huwag maglipat ng mga pondo sa %@ Multi-Signature wallet na ito maliban kung sigurado kang kontrolado mo ang mga pribadong key. Ang pagkabigong gawin ito ay maaaring maglantad sa iyo sa mga scam, at maaari mong permanenteng mawala ang iyong mga asset."
+            "value": "Maaaring kontrolado ng ibang tao ang %@ account na ito. Huwag magpadala ng pondo rito maliban kung sigurado kang ikaw ang may kontrol dito, o maaari mong permanenteng mawala ang iyong mga asset."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ne transférez pas de fonds vers ce portefeuille multisignature %@ à moins d'être certain de contrôler les clés privées. Le non-respect de cette règle pourrait vous exposer à des escroqueries et vous pourriez perdre définitivement vos actifs."
+            "value": "Ce compte %@ peut être contrôlé par quelqu'un d'autre. N'y envoyez pas de fonds à moins d'être certain de le contrôler, sinon vous pourriez perdre définitivement vos actifs."
           }
         },
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kar a tura kuɗi zuwa wannan %@ Wallet ɗin Sa hannu da yawa sai dai idan kun tabbata kuna sarrafa maɓallan sirri. Rashin yin hakan na iya fallasa ku ga zamba, kuma kuna iya rasa kadarorin ku na dindindin."
+            "value": "Wani na iya sarrafa wannan asusun %@. Kada ku tura kuɗi zuwa gare shi sai dai idan kun tabbata kuna sarrafa shi, in ba haka ba kuna iya rasa kadarorin ku na dindindin."
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "אל תעביר כספים לארנק ריבוי חתימות %@ זה אלא אם אתה בטוח שאתה שולט במפתחות הפרטיים. אם לא תעשה זאת, אתה עלול להיחשף להונאות ולאבד לצמיתות את הנכסים שלך."
+            "value": "ייתכן שמישהו אחר שולט בחשבון %@ זה. אל תשלח אליו כספים אלא אם אתה בטוח שאתה שולט בו, אחרת אתה עלול לאבד את הנכסים שלך לצמיתות."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "जब तक आप सुनिश्चित न हों कि आप निजी कुंजियों को नियंत्रित करते हैं, तब तक इस %@ मल्टी-सिग्नेचर वॉलेट में धनराशि स्थानांतरित न करें। ऐसा न करने पर आप धोखाधड़ी के शिकार हो सकते हैं, और आप अपनी संपत्ति हमेशा के लिए खो सकते हैं।"
+            "value": "इस %@ खाते को कोई और नियंत्रित कर सकता है। जब तक आप सुनिश्चित न हों कि इसका नियंत्रण आपके पास है, इसमें धनराशि न भेजें, वरना आप अपनी संपत्ति हमेशा के लिए खो सकते हैं।"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Jangan mentransfer dana ke dompet Multi-Signature %@ ini kecuali Anda yakin bahwa Anda memegang kunci pribadi. Kegagalan untuk melakukannya dapat membuat Anda rentan terhadap penipuan, dan Anda dapat kehilangan aset Anda secara permanen."
+            "value": "Akun %@ ini dapat dikendalikan oleh orang lain. Jangan kirim dana ke akun ini kecuali Anda yakin bahwa Anda yang mengendalikannya, atau Anda dapat kehilangan aset Anda secara permanen."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Non trasferire fondi a questo portafoglio multi-firma %@ a meno che tu non sia certo di controllare le chiavi private. In caso contrario, potresti esporti a truffe e potresti perdere definitivamente i tuoi beni."
+            "value": "Questo account %@ può essere controllato da qualcun altro. Non inviarvi fondi a meno che tu non sia certo di controllarlo, altrimenti potresti perdere definitivamente i tuoi beni."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "秘密鍵を確実に管理していない限り、この%@マルチ署名ウォレットに資金を送金しないでください。そうしないと、詐欺に遭う可能性があり、資産を永久に失う可能性があります。"
+            "value": "この%@アカウントは他の人が管理している可能性があります。自分が管理していると確信できない限り、資金を送らないでください。資産を永久に失う可能性があります。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "개인 키를 제어하고 있다는 확신이 없다면 이 %@ 다중 서명 지갑으로 자금을 이체하지 마십시오. 그렇지 않으면 사기에 노출될 수 있으며 자산을 영구적으로 잃을 수 있습니다."
+            "value": "이 %@ 계정은 다른 사람이 제어할 수 있습니다. 본인이 제어하고 있다는 확신이 없다면 이 계정으로 자금을 보내지 마십시오. 그렇지 않으면 자산을 영구적으로 잃을 수 있습니다."
           }
         },
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Jangan pindahkan dana ke %@ dompet Berbilang Tandatangan ini melainkan anda pasti anda mengawal kunci peribadi. Kegagalan berbuat demikian boleh mendedahkan anda kepada penipuan dan anda mungkin kehilangan aset anda secara kekal."
+            "value": "Akaun %@ ini mungkin dikawal oleh orang lain. Jangan hantar dana ke akaun ini melainkan anda pasti anda yang mengawalnya, atau anda mungkin kehilangan aset anda secara kekal."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Maak geen geld over naar deze %@ Multi-Signature portemonnee, tenzij u zeker weet dat u de privésleutels beheert. Als u dit niet doet, kunt u worden blootgesteld aan oplichting en kunt u uw bezittingen permanent kwijtraken."
+            "value": "Dit %@-account kan door iemand anders worden beheerd. Stuur er geen geld naartoe, tenzij u zeker weet dat u het zelf beheert, anders kunt u uw bezittingen permanent kwijtraken."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nie przelewaj środków do tego portfela Multi-Signature %@ chyba że masz pewność, że kontrolujesz klucze prywatne. Niedopełnienie tego obowiązku może narazić Cię na oszustwa i możesz trwale utracić swoje aktywa."
+            "value": "To konto %@ może być kontrolowane przez kogoś innego. Nie wysyłaj na nie środków, chyba że masz pewność, że to Ty je kontrolujesz, w przeciwnym razie możesz trwale utracić swoje aktywa."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não transfira fundos para esta carteira %@ Multi-Signature a menos que tenha certeza de que controla as chaves privadas. Não fazer isso pode expô-lo a golpes e você pode perder seus ativos permanentemente."
+            "value": "Esta conta %@ pode ser controlada por outra pessoa. Não envie fundos para ela a menos que tenha certeza de que você a controla, ou poderá perder seus ativos permanentemente."
           }
         },
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nu transferați fonduri în acest portofel %@ cu semnături multiple decât dacă sunteți sigur că controlați cheile private. Nerespectarea acestui lucru vă poate expune la escrocherii și vă puteți pierde definitiv bunurile."
+            "value": "Acest cont %@ poate fi controlat de altcineva. Nu trimiteți fonduri în el decât dacă sunteți sigur că îl controlați, altfel vă puteți pierde definitiv bunurile."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Не переводите средства на этот %@ кошелек Multi-Signature, если вы не уверены, что контролируете закрытые ключи. Невыполнение этого требования может подвергнуть вас мошенничеству, и вы можете навсегда потерять свои активы."
+            "value": "Этот аккаунт %@ может контролировать кто-то другой. Не отправляйте на него средства, если вы не уверены, что контролируете его, иначе вы можете навсегда потерять свои активы."
           }
         },
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usihamishe pesa kwa %@ pochi hii ya Sahihi nyingi isipokuwa una uhakika kuwa unadhibiti funguo za faragha. Kukosa kufanya hivyo kunaweza kukuweka kwenye ulaghai, na unaweza kupoteza mali yako kabisa."
+            "value": "Akaunti hii ya %@ inaweza kudhibitiwa na mtu mwingine. Usitume pesa kwake isipokuwa una uhakika kuwa unaidhibiti, la sivyo unaweza kupoteza mali yako kabisa."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "อย่าโอนเงินไปยังกระเป๋าเงินหลายลายเซ็น %@ นี้ เว้นแต่คุณจะแน่ใจว่าคุณควบคุมคีย์ส่วนตัวได้ การไม่ทำเช่นนั้นอาจทำให้คุณตกเป็นเหยื่อของการหลอกลวง และคุณอาจสูญเสียทรัพย์สินของคุณไปอย่างถาวร"
+            "value": "บัญชี %@ นี้อาจถูกควบคุมโดยผู้อื่น อย่าส่งเงินไปยังบัญชีนี้ เว้นแต่คุณจะแน่ใจว่าคุณเป็นผู้ควบคุม มิฉะนั้นคุณอาจสูญเสียทรัพย์สินของคุณไปอย่างถาวร"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Özel anahtarları kontrol ettiğinizden emin olmadığınız sürece bu %@ Çoklu İmzalı cüzdana para transferi yapmayın. Bunu yapmamanız sizi dolandırıcılıklara maruz bırakabilir ve varlıklarınızı kalıcı olarak kaybedebilirsiniz."
+            "value": "Bu %@ hesabı başka biri tarafından kontrol ediliyor olabilir. Hesabı sizin kontrol ettiğinizden emin olmadıkça bu hesaba para göndermeyin, aksi takdirde varlıklarınızı kalıcı olarak kaybedebilirsiniz."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Не переказуйте кошти на цей %@ гаманець Multi-Signature, якщо ви не впевнені, що контролюєте закриті ключі. Якщо цього не зробити, ви можете стати жертвою шахрайства та назавжди втратити свої активи."
+            "value": "Цей обліковий запис %@ може контролювати хтось інший. Не надсилайте на нього кошти, якщо ви не впевнені, що контролюєте його, інакше ви можете назавжди втратити свої активи."
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "اس %@ کثیر دستخط والے والیٹ میں رقوم منتقل نہ کریں جب تک کہ آپ کو یقین نہ ہو کہ آپ نجی کلیدوں کو کنٹرول کرتے ہیں۔ ایسا کرنے میں ناکامی آپ کو گھوٹالوں کے سامنے آ سکتی ہے، اور آپ اپنے اثاثوں کو مستقل طور پر کھو سکتے ہیں۔"
+            "value": "اس %@ اکاؤنٹ کو کوئی اور کنٹرول کر سکتا ہے۔ جب تک آپ کو یقین نہ ہو کہ اس کا کنٹرول آپ کے پاس ہے، اس میں رقوم نہ بھیجیں، ورنہ آپ اپنے اثاثے مستقل طور پر کھو سکتے ہیں۔"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Không chuyển tiền vào ví Đa chữ ký %@ này trừ khi bạn chắc chắn mình kiểm soát được khóa riêng. Nếu không làm như vậy, bạn có thể bị lừa đảo và có thể mất vĩnh viễn tài sản của mình."
+            "value": "Tài khoản %@ này có thể do người khác kiểm soát. Không gửi tiền vào tài khoản này trừ khi bạn chắc chắn mình kiểm soát nó, nếu không bạn có thể mất vĩnh viễn tài sản của mình."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "除非确定自己掌握私钥，否则切勿将资金转入此 %@ 多重签名钱包。否则可能遭受诈骗并永久损失资产。"
+            "value": "此 %@ 账户可能由他人控制。除非确定该账户由您掌控，切勿向其转入资金，以免永久损失资产。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "除非確定自己持有對應的私鑰，否則請勿將資金轉入此 %@ 多重簽章錢包，以免遭到詐騙或永久失去資產。"
+            "value": "此 %@ 帳戶可能由他人控制。除非確定該帳戶由您掌控，請勿將資金轉入，以免永久失去資產。"
           }
         }
       }

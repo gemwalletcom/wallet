@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.stake.viewmodels
 
 import android.net.Uri
-import uniffi.gemstone.GemStakeServiceInterface
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
@@ -35,6 +34,9 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemLoadState
+import uniffi.gemstone.GemServiceException
+import uniffi.gemstone.GemStakeServiceInterface
 import java.math.BigInteger
 import kotlin.time.Duration.Companion.seconds
 
@@ -61,7 +63,7 @@ class StakeViewModelTest {
         every { this@mockk() } returns MutableStateFlow(mockSession())
     }
     private val stakeService = mockk<GemStakeServiceInterface>(relaxed = true) {
-        every { minStakeAmount(asset.id.chain.string) } returns BigInteger.ZERO
+        every { stakeInfoRows(any(), any()) } returns emptyList()
         every { claimRewards(asset.id.chain.string, any()) } returns mockClaimRewards()
     }
 
@@ -80,7 +82,8 @@ class StakeViewModelTest {
 
     @Test
     fun `a failed delegations sync stops the spinner instead of taking the screen down`() = runTest(testDispatcher, timeout = 10.seconds) {
-        coEvery { stakeService.sync(asset.id.chain.string) } throws IllegalStateException("Network offline")
+        val offline = GemServiceException.Gateway("Network offline")
+        coEvery { stakeService.refresh(asset.id.chain.string, any()) } returns GemLoadState.Error(offline)
 
         val viewModel = StakeViewModel(
             getAssetInfo = getAssetInfo,
@@ -98,6 +101,6 @@ class StakeViewModelTest {
 
         runCurrent()
         assertEquals(listOf(delegation), viewModel.delegations.value)
+        assertEquals(offline, viewModel.loadError.value)
     }
-
 }

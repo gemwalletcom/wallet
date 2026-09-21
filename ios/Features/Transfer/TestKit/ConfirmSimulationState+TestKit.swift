@@ -1,20 +1,20 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemListRow
 import struct Gemstone.GemSimulationValue
-import struct Gemstone.GemSimulationWarningRow
 import PrimitivesComponents
 @testable import Transfer
 
 extension ConfirmSimulationState {
     static func mock(
-        warnings: [GemSimulationWarningRow] = [],
+        warnings: [GemListRow] = [],
         headerData: GemSimulationValue? = nil,
     ) -> ConfirmSimulationState {
         ConfirmSimulationState(
             result: nil,
             warnings: warnings,
-            hasCriticalWarning: warnings.contains { $0.severity == .critical },
-            payload: SimulationPayloadModel(chain: .ethereum, primaryFields: [], secondaryFields: []),
+            hasCriticalWarning: false,
+            payload: SimulationPayloadModel(primaryFields: [], secondaryFields: []),
             headerData: headerData,
             balanceChanges: [],
         )

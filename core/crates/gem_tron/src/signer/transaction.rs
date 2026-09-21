@@ -19,9 +19,7 @@ struct ContractPayload {
 }
 
 pub(crate) fn sign_transfer(input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
-    sign_contract_payload(input, private_key, |owner| {
-        build_native_transfer(input, owner, &input.destination_address, input.value_as_u64()?)
-    })
+    sign_contract_payload(input, private_key, |owner| build_native_transfer(input, owner, &input.destination_address, input.value_as_u64()?))
 }
 
 pub(crate) fn sign_token_transfer(input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
@@ -99,10 +97,7 @@ fn build_contract_call_swap(input: &SignerInput, owner: TronAddress, swap_data: 
         return SignerError::invalid_input_err("Tron contract swap calldata is required");
     }
     let contract_address = TronAddress::parse_hex_or_base58(&swap_data.to)?;
-    let call_value = swap_data
-        .value
-        .to_u64()
-        .ok_or_else(|| SignerError::invalid_input("Tron contract call value is too large"))?;
+    let call_value = swap_data.value.to_u64().ok_or_else(|| SignerError::invalid_input("Tron contract call value is too large"))?;
     let contract = TronContract::TriggerSmart {
         owner,
         contract: contract_address,
@@ -217,10 +212,7 @@ where
     F: FnOnce(TronAddress) -> Result<Vec<ContractPayload>, SignerError>,
 {
     let owner = validate_sender(input, private_key)?;
-    build_payloads(owner)?
-        .into_iter()
-        .map(|payload| sign_built_contract_payload(input, payload, private_key))
-        .collect()
+    build_payloads(owner)?.into_iter().map(|payload| sign_built_contract_payload(input, payload, private_key)).collect()
 }
 
 fn sign_built_contract_payload(input: &SignerInput, payload: ContractPayload, private_key: &[u8]) -> Result<String, SignerError> {

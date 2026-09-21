@@ -2,13 +2,13 @@
 
 import Assets
 import Components
+import GemstonePrimitives
 import InfoSheet
 import Localization
 import MarketInsight
 import NFT
 import Perpetuals
 import PriceAlerts
-import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Store
@@ -18,7 +18,7 @@ import Transfer
 import WalletTab
 
 struct WalletNavigationView: View {
-    @Environment(\.navigationHandler) private var navigationHandler
+    @Environment(\.navigationRouter) private var navigationRouter
     @Environment(\.navigationState) private var navigationState
     @Environment(\.navigationPresenter) private var presenter
     @Environment(\.viewModelFactory) private var viewModelFactory
@@ -100,11 +100,11 @@ struct WalletNavigationView: View {
             TransactionNavigationView(
                 model: viewModelFactory.transactionScene(
                     transaction: $0.transaction,
-                    walletId: model.wallet.id,
+                    wallet: model.wallet,
                     onHeaderAction: { action in
                         Task {
                             do {
-                                try await presenter.handleTransactionHeaderAction(
+                                try await presenter.openTransactionHeaderAction(
                                     action,
                                     wallet: model.wallet,
                                     navigationState: navigationState,
@@ -116,6 +116,7 @@ struct WalletNavigationView: View {
                         }
                     },
                     onAddContact: { model.isPresentingSheet = .addContact($0) },
+                    onSelectAddress: { model.isPresentingSheet = .addressDetails($0) },
                 ),
             )
         }
@@ -218,6 +219,8 @@ struct WalletNavigationView: View {
                     PortfolioScene(model: viewModelFactory.portfolioScene(wallet: model.wallet, defaultType: defaultType))
                 case let .addContact(action):
                     AddContactNavigationView(action: action)
+                case let .addressDetails(chainAddress):
+                    AddressDetailsNavigationStack(model: viewModelFactory.addressDetailsScene(chainAddress: chainAddress))
                 case .swap:
                     SwapNavigationStack(wallet: model.wallet, onComplete: model.onTransferComplete)
                 }
@@ -233,6 +236,6 @@ struct WalletNavigationView: View {
 
 extension WalletNavigationView {
     private func onScan(_ code: String) {
-        Task { await navigationHandler.handle(code: code) }
+        Task { await navigationRouter.open(code: code) }
     }
 }

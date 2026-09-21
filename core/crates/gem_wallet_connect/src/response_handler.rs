@@ -52,9 +52,7 @@ impl WalletConnectResponseHandler {
             ChainType::Sui => map_sui_get_accounts(accounts),
             _ => vec![],
         };
-        WalletConnectResponseType::Object {
-            json: Value::Array(result).to_string(),
-        }
+        WalletConnectResponseType::Object { json: Value::Array(result).to_string() }
     }
 
     pub fn encode_sign_all_transactions(signed_transactions: Vec<String>) -> WalletConnectResponseType {

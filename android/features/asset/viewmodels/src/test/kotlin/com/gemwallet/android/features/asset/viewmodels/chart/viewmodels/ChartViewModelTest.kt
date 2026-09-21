@@ -1,11 +1,10 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 
-import com.gemwallet.android.ext.toGem
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.ext.toIdentifier
-import uniffi.gemstone.GemChartService
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
 import com.gemwallet.android.testkit.mockGemChart
 import com.gemwallet.android.ui.models.StateViewType
@@ -30,6 +29,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemChartService
 import uniffi.gemstone.GemChartSession
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -133,12 +133,11 @@ class ChartViewModelTest {
         verify(exactly = 1) { chartService.setChartPeriod(ChartPeriod.Month.toGem()) }
     }
 
-    private fun createViewModel(): ChartViewModel {
-        return ChartViewModel(
-            getCurrentCurrency = getCurrentCurrency,
-            chartService = chartService,
-            assetId = asset.id,
-            ioDispatcher = testDispatcher,
-        ).also(viewModels::add)
-    }
+    private fun createViewModel(): ChartViewModel = ChartViewModel(
+        getCurrentCurrency = getCurrentCurrency,
+        chartService = chartService,
+        assetId = asset.id,
+        connectionStatusObserver = mockk(relaxed = true),
+        ioDispatcher = testDispatcher,
+    ).also(viewModels::add)
 }

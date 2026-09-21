@@ -73,7 +73,7 @@ struct RecentActivityRequestTests {
         try store.add(assetId: btc, toAssetId: .none, walletId: walletId, type: .swap, createdAt: Date())
         try store.add(assetId: bnb, toAssetId: .none, walletId: walletId, type: .swap, createdAt: Date())
         try store.add(assetId: eth, toAssetId: .none, walletId: walletId, type: .swap, createdAt: Date())
-        try balanceStore.setIsEnabled(walletId: walletId, assetIds: [eth], value: false)
+        try balanceStore.setConfiguration(walletId: walletId, assetIds: [eth], configuration: .disabled)
 
         try db.dbQueue.read { db in
             let swapPay = try RecentActivityRequest(

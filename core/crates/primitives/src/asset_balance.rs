@@ -33,11 +33,7 @@ impl AssetBalance {
     }
 
     pub fn new_balance(asset_id: AssetId, balance: Balance) -> Self {
-        Self {
-            asset_id,
-            balance,
-            is_active: true,
-        }
+        Self { asset_id, balance, is_active: true }
     }
 
     pub fn new_with_active(asset_id: AssetId, balance: Balance, is_active: bool) -> Self {

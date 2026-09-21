@@ -5,7 +5,7 @@ import Foundation
 public actor ConnectivityService {
     private let monitor: any ConnectivityMonitoring
     private let offlineDebounce: Duration
-    
+
     private var state: ConnectivityState = .unknown
 
     private var subscribers: [UUID: AsyncStream<ConnectivityState>.Continuation] = [:]
@@ -22,7 +22,7 @@ public actor ConnectivityService {
         offlineTask?.cancel()
         subscribers.values.forEach { $0.finish() }
     }
-    
+
     public var status: ConnectivityState { state }
 
     public func start() {
@@ -30,7 +30,7 @@ public actor ConnectivityService {
         let states = monitor.stateStream()
         monitorTask = Task { [weak self] in
             for await state in states {
-                await self?.apply(state)
+                await self?.commitState(state)
             }
         }
     }
@@ -49,7 +49,7 @@ public actor ConnectivityService {
         return stream
     }
 
-    private func apply(_ state: ConnectivityState) {
+    private func commitState(_ state: ConnectivityState) {
         offlineTask?.cancel()
         offlineTask = nil
 

@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import func Gemstone.addressCopy
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -40,37 +41,37 @@ struct WalletAssetsList: View {
         ForEach(assets) { asset in
             NavigationLink(value: Scenes.Asset(asset: asset.asset)) {
                 ListAssetItemView(model: itemsModel.item(asset, showBalancePrivacy: $showBalancePrivacy))
-                .contextMenu(
-                    AssetContextMenu.items(
-                        for: asset,
-                        onCopy: { onCopyAddress?(CopyTypeViewModel(type: .address(asset.asset, address: $0), copyValue: $0).message) },
-                        onPin: { onPinAsset?(asset.asset, !asset.metadata.isPinned) },
-                        onHide: asset.metadata.isBalanceEnabled ? { onHideAsset?(asset.asset.id) } : nil,
-                        onAddToWallet: onAddToWallet.map { action in { action(asset.asset.id) } },
-                    ),
-                )
-                .swipeActions(edge: .trailing) {
-                    Button(role: .destructive) {
-                        onHideAsset?(asset.asset.id)
-                    } label: {
-                        Label(
-                            Localized.Common.hide,
-                            systemImage: SystemImage.hide,
-                        )
+                    .contextMenu(
+                        AssetContextMenu.items(
+                            for: asset,
+                            onCopy: { onCopyAddress?(CopyTypeViewModel(content: addressCopy(chain: asset.asset.chain.toGem(), address: $0)).message) },
+                            onPin: { onPinAsset?(asset.asset, !asset.metadata.isPinned) },
+                            onHide: asset.metadata.isBalanceEnabled ? { onHideAsset?(asset.asset.id) } : nil,
+                            onAddToWallet: onAddToWallet.map { action in { action(asset.asset.id) } },
+                        ),
+                    )
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) {
+                            onHideAsset?(asset.asset.id)
+                        } label: {
+                            Label(
+                                Localized.Common.hide,
+                                systemImage: SystemImage.hide,
+                            )
+                        }
+                        .tint(Colors.red)
                     }
-                    .tint(Colors.red)
-                }
-                .swipeActions(edge: .leading) {
-                    Button(role: .destructive) {
-                        onPinAsset?(asset.asset, !asset.metadata.isPinned)
-                    } label: {
-                        Label(
-                            asset.metadata.isPinned ? Localized.Common.unpin : Localized.Common.pin,
-                            systemImage: asset.metadata.isPinned ? SystemImage.unpin : SystemImage.pin,
-                        )
+                    .swipeActions(edge: .leading) {
+                        Button(role: .destructive) {
+                            onPinAsset?(asset.asset, !asset.metadata.isPinned)
+                        } label: {
+                            Label(
+                                asset.metadata.isPinned ? Localized.Common.unpin : Localized.Common.pin,
+                                systemImage: asset.metadata.isPinned ? SystemImage.unpin : SystemImage.pin,
+                            )
+                        }
+                        .tint(Colors.green)
                     }
-                    .tint(Colors.green)
-                }
             }
         }
     }

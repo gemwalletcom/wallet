@@ -4,36 +4,20 @@ use crate::{DatabaseClient, DatabaseError};
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
-type WalletIdsSubquery<'a> = diesel::dsl::Select<
-    diesel::dsl::Filter<diesel::dsl::InnerJoin<wallets_subscriptions::table, devices::table>, diesel::dsl::Eq<devices::device_id, &'a str>>,
-    wallets_subscriptions::wallet_id,
->;
+type WalletIdsSubquery<'a> = diesel::dsl::Select<diesel::dsl::Filter<diesel::dsl::InnerJoin<wallets_subscriptions::table, devices::table>, diesel::dsl::Eq<devices::device_id, &'a str>>, wallets_subscriptions::wallet_id>;
 
 fn wallet_ids_by_device_id(device_id: &str) -> WalletIdsSubquery<'_> {
-    wallets_subscriptions::table
-        .inner_join(devices::table)
-        .filter(devices::device_id.eq(device_id))
-        .select(wallets_subscriptions::wallet_id)
+    wallets_subscriptions::table.inner_join(devices::table).filter(devices::device_id.eq(device_id)).select(wallets_subscriptions::wallet_id)
 }
 
 pub trait NotificationsStore {
-    fn get_notifications_by_device_id(
-        &mut self,
-        device_id: &str,
-        from_datetime: Option<NaiveDateTime>,
-        limit: usize,
-    ) -> Result<Vec<(NotificationRow, String, Option<AssetRow>)>, DatabaseError>;
+    fn get_notifications_by_device_id(&mut self, device_id: &str, from_datetime: Option<NaiveDateTime>, limit: usize) -> Result<Vec<(NotificationRow, String, Option<AssetRow>)>, DatabaseError>;
     fn create_notifications(&mut self, notifications: Vec<NewNotificationRow>) -> Result<usize, DatabaseError>;
     fn mark_all_as_read(&mut self, device_id: &str) -> Result<usize, DatabaseError>;
 }
 
 impl NotificationsStore for DatabaseClient {
-    fn get_notifications_by_device_id(
-        &mut self,
-        device_id: &str,
-        from_datetime: Option<NaiveDateTime>,
-        limit: usize,
-    ) -> Result<Vec<(NotificationRow, String, Option<AssetRow>)>, DatabaseError> {
+    fn get_notifications_by_device_id(&mut self, device_id: &str, from_datetime: Option<NaiveDateTime>, limit: usize) -> Result<Vec<(NotificationRow, String, Option<AssetRow>)>, DatabaseError> {
         let mut query = notifications::table
             .inner_join(wallets::table)
             .left_join(assets::table)

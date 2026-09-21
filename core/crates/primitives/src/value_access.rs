@@ -33,9 +33,7 @@ impl ValueAccess for Value {
     }
 
     fn at(&self, index: usize) -> Result<&Value, String> {
-        self.as_array()
-            .and_then(|array| array.get(index))
-            .ok_or_else(|| format!("Missing parameter at index {}", index))
+        self.as_array().and_then(|array| array.get(index)).ok_or_else(|| format!("Missing parameter at index {}", index))
     }
 
     fn string(&self) -> Result<&str, String> {

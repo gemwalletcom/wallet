@@ -3,11 +3,13 @@ use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
 use futures::try_join;
 use num_bigint::BigInt;
 use std::error::Error;
+use std::sync::Arc;
 
 use gem_client::Client;
+use primitives::transaction_load_metadata::AgentPrivateKey;
 use primitives::{
-    FeePriority, FeeRate, GasPriceType, HyperliquidOrder, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata,
-    TransactionPreloadInput, asset_constants::HYPERCORE_SPOT_USDC_ASSET_ID, perpetual::PerpetualType,
+    FeePriority, FeeRate, GasPriceType, HyperliquidOrder, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, asset_constants::HYPERCORE_SPOT_USDC_ASSET_ID,
+    perpetual::PerpetualType,
 };
 
 use crate::constants::TRANSACTION_FEE_UNITS;
@@ -34,7 +36,7 @@ impl<C: Client> HyperCoreClient<C> {
                 builder_fee_bps: self.config.max_builder_fee_bps,
                 agent_name: agent.name,
                 agent_address: agent.address,
-                agent_private_key: agent.private_key,
+                agent_private_key: Arc::new(AgentPrivateKey::new(agent.private_key)),
             },
             fee_rates,
         ))
@@ -53,11 +55,7 @@ impl<C: Client> ChainTransactionLoad for HyperCoreClient<C> {
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
         match &input.input_type {
-            TransactionInputType::Transfer { .. }
-            | TransactionInputType::Withdrawal { .. }
-            | TransactionInputType::TransferNft { .. }
-            | TransactionInputType::Account { .. }
-            | TransactionInputType::Stake { .. } => {
+            TransactionInputType::Transfer { .. } | TransactionInputType::Withdrawal { .. } | TransactionInputType::TransferNft { .. } | TransactionInputType::Account { .. } | TransactionInputType::Stake { .. } => {
                 // Only signature is required
                 Ok(TransactionLoadData {
                     fee: TransactionFee::new_from_fee(BigInt::from(0), HYPERCORE_SPOT_USDC_ASSET_ID.clone()),
@@ -113,9 +111,7 @@ mod integration_tests {
     #[tokio::test]
     async fn test_get_transaction_load_transfer() {
         let client = create_hypercore_test_client();
-        let input = TransactionLoadInput::mock_with_input_type(TransactionInputType::Transfer {
-            asset: Asset::from_chain(Chain::HyperCore),
-        });
+        let input = TransactionLoadInput::mock_with_input_type(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::HyperCore) });
 
         let result = client.get_transaction_load(input).await.unwrap();
 

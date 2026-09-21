@@ -18,7 +18,7 @@ pub struct GemFeeRate {
     pub gas_price_type: GasPriceType,
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone)]
 pub struct GemTransactionPreloadInput {
     pub input_type: TransactionInputType,
     pub sender_address: String,

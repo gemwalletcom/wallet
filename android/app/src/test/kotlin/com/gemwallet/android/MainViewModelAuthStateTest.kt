@@ -103,6 +103,7 @@ class MainViewModelAuthStateTest {
             lockTimer = mockk<LockTimer>(relaxed = true),
             pendingNavigationCoordinator = mockk<PendingNavigationCoordinator>(relaxed = true),
             ioDispatcher = UnconfinedTestDispatcher(),
+            context = mockk(relaxed = true),
         )
     }
 }

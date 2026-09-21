@@ -4,15 +4,23 @@ import Components
 import Foundation
 import func Gemstone.acceptTermsItems
 import GemstonePrimitives
+import GemstoneServices
 import Localization
 import Primitives
 
 @Observable
 final class AcceptTermsViewModel {
+    private let preferences: ObservablePreferences
     let onNext: VoidAction
 
-    init(onNext: VoidAction) {
+    init(preferences: ObservablePreferences, onNext: VoidAction) {
+        self.preferences = preferences
         self.onNext = onNext
+    }
+
+    func accept() {
+        preferences.acceptTerms()
+        onNext?()
     }
 
     var termsAndServicesURL: URL {

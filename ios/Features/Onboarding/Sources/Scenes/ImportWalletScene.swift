@@ -34,11 +34,13 @@ struct ImportWalletScene: View {
                         .pickerStyle(.segmented)
                     }
                     HStack {
-                        TextField(
-                            model.importType.description,
-                            text: $model.input,
-                            axis: .vertical,
-                        )
+                        Group {
+                            if #available(iOS 18.0, *) {
+                                PhraseTextField(title: model.importType.description, text: $model.input, cursor: $model.inputCursor)
+                            } else {
+                                TextField(model.importType.description, text: $model.input, axis: .vertical)
+                            }
+                        }
                         .accessibilityIdentifier("importInputField")
                         .autocorrectionDisabled(true)
                         .textInputAutocapitalization(.never)
@@ -123,7 +125,6 @@ struct ImportWalletScene: View {
             ScanQRCodeNavigationStack(scanType: scanType, action: model.onHandleScan)
         }
         .onChange(of: model.input, model.onChangeInput)
-        .onChange(of: model.importType, model.onChangeImportType)
         .taskOnce {
             focusedField = .input
         }

@@ -27,12 +27,4 @@ struct DelegationViewModelTests {
         #expect(hidden.rewardsText == nil)
         #expect(hidden.rewardsFiatValueText == nil)
     }
-
-    @Test
-    func completionDate() {
-        let completionDate = Date.now.addingTimeInterval(86400)
-
-        #expect(DelegationViewModel.mock(state: .pending, completionDate: completionDate).completionDateText == "23 hours, 59 minutes")
-        #expect(DelegationViewModel.mock(state: .active, completionDate: completionDate).completionDateText == nil)
-    }
 }

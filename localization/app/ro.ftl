@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = Activ neacceptat.
 errors_connections_no_supported_wallets = Nu sunt disponibile portofele acceptate.
 errors_connections_unsupported_chain = Lanțul furnizat nu este acceptat.
 errors_swap_amount_too_small = Cantitate prea mică
-errors_required = %@ este obligatoriu
 errors_scan_transaction_malicious_description = Această tranzacție nu poate fi finalizată — adresa portofelului de destinație este legată de o activitate suspectă sau dăunătoare.
 errors_scan_transaction_memo_required = Adresa portofelului de destinație %@ necesită o etichetă/un memo de destinație
 errors_scan_transaction_malicious_title = Activitate suspectă
@@ -315,7 +314,7 @@ asset_symbol = Simbol
 asset_decimals = Zecimale
 asset_token_id = ID-ul tokenului
 asset_contract = Contract
-asset_state_empty_title = Tranzacțiile tale vor apărea aici️
+asset_state_empty_title = Tranzacțiile tale vor apărea aici
 asset_state_empty_description = Primește, schimbă sau cumpără %@
 asset_verification_unverified = Neverificat
 asset_verification_suspicious = Suspect
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = Când prețul scade cu
 price_alerts_set_alert_set_target_price = Stabiliți prețul țintă
 price_alerts_set_alert_current_price = Preț curent
 price_alerts_added_for = Setează alertă de preț %@
-price_alerts_state_empty_title = Alertele tale vor apărea aici️
+price_alerts_state_empty_title = Alertele tale vor apărea aici
 price_alerts_state_empty_description = Activează-le adăugând monede la urmărire
 price_alerts_auto_footer = Alertele se declanșează la mișcări semnificative ale prețurilor.
 price_alerts_set_alert_title = Setați alertă de preț
@@ -536,7 +535,7 @@ verify_phrase_title = Confirmați
 
 # Warnings
 
-warnings_multi_signature_blocked = Nu transferați fonduri în acest portofel %@ cu semnături multiple decât dacă sunteți sigur că controlați cheile private. Nerespectarea acestui lucru vă poate expune la escrocherii și vă puteți pierde definitiv bunurile.
+warnings_externally_controlled_account = Acest cont %@ poate fi controlat de altcineva. Nu trimiteți fonduri în el decât dacă sunteți sigur că îl controlați, altfel vă puteți pierde definitiv bunurile.
 
 # Sell
 
@@ -600,7 +599,7 @@ nft_collections = Colecții
 nft_collection = Colecție
 nft_save_to_photos = Salvați în Fotografii
 nft_set_as_avatar = Setați ca Avatar
-nft_state_empty_title = NFT-urile tale vor apărea aici️
+nft_state_empty_title = NFT-urile tale vor apărea aici
 nft_state_empty_description = Primește primul tău NFT
 nft_report_reason_spam = Spam
 nft_report_reason_malicious = Rău intenționat

@@ -98,10 +98,7 @@ mod chain_integration_tests {
         if let Some(balance) = balance {
             assert_eq!(balance.asset_id.chain, Chain::Aptos);
             assert_eq!(balance.asset_id.token_id, None);
-            println!(
-                "Staking balance: staked={}, pending={}, rewards={}",
-                balance.balance.staked, balance.balance.pending, balance.balance.rewards
-            );
+            println!("Staking balance: staked={}, pending={}, rewards={}", balance.balance.staked, balance.balance.pending, balance.balance.rewards);
 
             assert!(balance.balance.staked > BigUint::from(0u32));
         }

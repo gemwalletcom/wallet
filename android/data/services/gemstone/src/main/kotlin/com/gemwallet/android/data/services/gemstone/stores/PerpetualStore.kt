@@ -1,18 +1,17 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.PerpetualDao
-import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
 import com.gemwallet.android.data.service.store.database.SearchDao
+import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
 import com.gemwallet.android.data.service.store.database.entities.DbPerpetualData
-import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toDB
+import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toDto
 import com.gemwallet.android.data.service.store.database.entities.toRecord
-import com.gemwallet.android.ext.HypercoreUSDC
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.Crypto
@@ -42,19 +41,17 @@ class GemstonePerpetualStore(
     private val transactionRunner: StoreTransactionRunner,
 ) : GemPerpetualStore {
 
-    override suspend fun savePerpetuals(data: List<uniffi.gemstone.PerpetualData>) =
-        perpetualDao.upsert(data.map { it.perpetual.toPrimitives().toDB() })
+    override suspend fun savePerpetuals(data: List<uniffi.gemstone.PerpetualData>) = perpetualDao.upsert(data.map { it.perpetual.toPrimitives().toDB() })
 
     override suspend fun setPinned(perpetualIds: List<String>, pinned: Boolean) = perpetualDao.setPinned(perpetualIds, pinned)
 
-    override suspend fun deletePerpetuals() = transactionRunner.run {
+    override suspend fun clearPerpetuals(collateralAssetIds: List<String>) = transactionRunner.run {
         perpetualPositionDao.deleteAll()
         perpetualDao.deleteAll()
-        balancesDao.deleteByAssetId(HypercoreUSDC.id.toIdentifier())
+        collateralAssetIds.forEach { balancesDao.deleteByAssetId(it) }
     }
 
-    override suspend fun getPositions(walletId: String, provider: GemPerpetualProvider): List<uniffi.gemstone.PerpetualPosition> =
-        perpetualPositionDao.getPositionsByProvider(walletId, provider.toPrimitives()).map { it.toDto().toGem() }
+    override suspend fun getPositions(walletId: String, provider: GemPerpetualProvider): List<uniffi.gemstone.PerpetualPosition> = perpetualPositionDao.getPositionsByProvider(walletId, provider.toPrimitives()).map { it.toDto().toGem() }
 
     override suspend fun updateMarket(market: uniffi.gemstone.PerpetualMarketData) {
         perpetualDao.updateMarket(
@@ -69,17 +66,14 @@ class GemstonePerpetualStore(
 
     override suspend fun updatePrices(prices: Map<String, Double>) = perpetualDao.updatePrices(prices)
 
-    override suspend fun getPositionIds(walletId: String, provider: GemPerpetualProvider): List<String> =
-        perpetualPositionDao.getPositionsByProvider(walletId, provider.toPrimitives()).map { it.id }
+    override suspend fun getPositionIds(walletId: String, provider: GemPerpetualProvider): List<String> = perpetualPositionDao.getPositionsByProvider(walletId, provider.toPrimitives()).map { it.id }
 
-    override suspend fun updatePositions(walletId: String, positions: List<uniffi.gemstone.PerpetualPosition>, deleteIds: List<String>) =
-        putPositions(WalletId(walletId), positions.map { it.toPrimitives() }, deleteIds)
+    override suspend fun updatePositions(walletId: String, positions: List<uniffi.gemstone.PerpetualPosition>, deleteIds: List<String>) = putPositions(WalletId(walletId), positions.map { it.toPrimitives() }, deleteIds)
 
     private suspend fun putPositions(walletId: WalletId, positions: List<PerpetualPosition>, deleteIds: List<String>) {
         if (deleteIds.isEmpty() && positions.isEmpty()) return
         perpetualPositionDao.deleteAndUpsert(walletId.id, deleteIds, positions.map { it.toDB(walletId.id) })
     }
-
 
     fun observePerpetuals(query: String? = null): Flow<List<PerpetualData>> {
         val searchQuery = query?.trim().orEmpty()
@@ -98,24 +92,19 @@ class GemstonePerpetualStore(
             }
     }
 
-    private fun PerpetualData.matches(query: String): Boolean =
-        perpetual.name.contains(query, ignoreCase = true) || asset.symbol.contains(query, ignoreCase = true)
+    private fun PerpetualData.matches(query: String): Boolean = perpetual.name.contains(query, ignoreCase = true) || asset.symbol.contains(query, ignoreCase = true)
 
     fun observePerpetual(perpetualId: PerpetualId): Flow<PerpetualData?> = perpetualDao.getPerpetual(perpetualId.toIdentifier()).map { it?.toDTO() }
 
-    fun observePerpetualByAssetId(assetId: AssetId): Flow<PerpetualData?> =
-        perpetualDao.getPerpetualByAssetId(assetId.toIdentifier()).map { it?.toDTO() }
+    fun observePerpetualByAssetId(assetId: AssetId): Flow<PerpetualData?> = perpetualDao.getPerpetualByAssetId(assetId.toIdentifier()).map { it?.toDTO() }
 
-    fun observePositions(walletId: WalletId): Flow<List<PerpetualPositionData>> =
-        perpetualPositionDao.getPositionsData(walletId.id).map { items -> items.mapNotNull { it.toDTO() } }
+    fun observePositions(walletId: WalletId): Flow<List<PerpetualPositionData>> = perpetualPositionDao.getPositionsData(walletId.id).map { items -> items.mapNotNull { it.toDTO() } }
 
-    fun observePositionByPerpetualId(walletId: WalletId, perpetualId: PerpetualId): Flow<PerpetualPositionData?> =
-        perpetualPositionDao.getPositionDataByPerpetual(walletId.id, perpetualId.toIdentifier()).map { it?.toDTO() }
+    fun observePositionByPerpetualId(walletId: WalletId, perpetualId: PerpetualId): Flow<PerpetualPositionData?> = perpetualPositionDao.getPositionDataByPerpetual(walletId.id, perpetualId.toIdentifier()).map { it?.toDTO() }
 
-    fun observeBalance(walletId: WalletId, assetId: AssetId): Flow<PerpetualBalance?> =
-        balancesDao.perpetualBalance(walletId.id, assetId.toIdentifier()).map { balance ->
-            balance?.let { PerpetualBalance(available = it.available, reserved = it.reserved, withdrawable = it.withdrawable) }
-        }
+    fun observeBalance(walletId: WalletId, assetId: AssetId): Flow<PerpetualBalance?> = balancesDao.perpetualBalance(walletId.id, assetId.toIdentifier()).map { balance ->
+        balance?.let { PerpetualBalance(available = it.available, reserved = it.reserved, withdrawable = it.withdrawable) }
+    }
 
     private fun Flow<List<DbPerpetualData>>.toPerpetualData(): Flow<List<PerpetualData>> = map { items -> items.mapNotNull { it.toDTO() } }
 }

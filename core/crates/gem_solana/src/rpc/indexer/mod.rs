@@ -29,13 +29,7 @@ impl<C: Client + Clone> SolanaIndexer<C> {
     }
 
     pub(crate) async fn get_transaction_ids_by_address(&self, address: &str, limit: usize) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
-        let transactions: Transactions = self
-            .client
-            .request(SolanaIndexerRpc::GetTransactionsForAddress {
-                address: address.to_string(),
-                limit,
-            })
-            .await?;
+        let transactions: Transactions = self.client.request(SolanaIndexerRpc::GetTransactionsForAddress { address: address.to_string(), limit }).await?;
         Ok(transactions.data.into_iter().map(|transaction| transaction.signature).collect())
     }
 }

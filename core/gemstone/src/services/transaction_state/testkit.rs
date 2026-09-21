@@ -3,8 +3,19 @@ use std::sync::{Arc, Mutex};
 use primitives::{Transaction, TransactionId, TransactionState, WalletId};
 
 use super::tracker::GemTransactionUpdater;
-use super::{GemPendingTransaction, GemTransactionStateResult, GemTransactionStateStore, GemTransactionStateUpdate};
+use super::{GemPendingTransaction, GemTransactionStateResult, GemTransactionStateStore, GemTransactionStateUpdate, GemTransactionStatusService};
 use crate::services::error::GemServiceError;
+
+#[derive(Default)]
+pub struct RecordingTransactionStatus {
+    pub tracked: Mutex<Vec<Vec<Transaction>>>,
+}
+
+impl GemTransactionStatusService for RecordingTransactionStatus {
+    fn track(&self, _: WalletId, transactions: Vec<Transaction>) {
+        self.tracked.lock().unwrap().push(transactions);
+    }
+}
 
 #[derive(Default)]
 pub struct MemoryTransactionStateStore {
@@ -13,6 +24,7 @@ pub struct MemoryTransactionStateStore {
     pub updates: Mutex<Vec<(TransactionId, GemTransactionStateUpdate)>>,
     pub hash_updates: Mutex<Vec<(TransactionId, TransactionId)>>,
     pub deleted: Mutex<Vec<TransactionId>>,
+    pub added: Mutex<Vec<(WalletId, Vec<Transaction>)>>,
 }
 
 impl MemoryTransactionStateStore {
@@ -34,7 +46,8 @@ impl GemTransactionStateStore for MemoryTransactionStateStore {
         Ok(self.pending.lock().unwrap().iter().find(|pending| pending.transaction.id == transaction_id).cloned())
     }
 
-    async fn add_transactions(&self, _wallet_id: WalletId, _transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
+    async fn add_transactions(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
+        self.added.lock().unwrap().push((wallet_id, transactions));
         Ok(())
     }
 
@@ -93,10 +106,6 @@ impl GemTransactionUpdater for TestTransactionUpdater {
 
 impl GemTransactionStateResult {
     pub fn mock(transaction_id: TransactionId, state: TransactionState) -> Self {
-        Self {
-            transaction_id,
-            state,
-            failures: Vec::new(),
-        }
+        Self { transaction_id, state, failures: Vec::new() }
     }
 }

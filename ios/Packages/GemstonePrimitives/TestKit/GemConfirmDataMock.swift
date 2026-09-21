@@ -1,34 +1,33 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.ApprovalData
-public import struct Gemstone.AssetPrice
-public import struct Gemstone.SimulationResult
-public import struct Gemstone.GemSimulationWarningRow
-import struct Gemstone.GemConfirmInput
 public import BigInt
+public import struct Gemstone.AssetPrice
 public import enum Gemstone.FeePriority
+public import enum Gemstone.GasPriceType
+public import struct Gemstone.GemAssetBalance
 public import struct Gemstone.GemConfirmData
-public import struct Gemstone.GemConfirmPreload
 public import struct Gemstone.GemConfirmLoad
+public import struct Gemstone.GemConfirmMetadata
+public import struct Gemstone.GemConfirmPreload
 public import struct Gemstone.GemConfirmSimulation
 public import struct Gemstone.GemConfirmSimulationState
 public import struct Gemstone.GemFeeAsset
-public import struct Gemstone.GemConfirmMetadata
-public import struct Gemstone.GemAssetBalance
-public import enum Gemstone.GemTransferAmountResult
-public import struct Gemstone.GemTransferAmount
-public import struct Gemstone.GemConfirmInput
 public import struct Gemstone.GemFeeOptions
 public import struct Gemstone.GemFeeRate
-public import enum Gemstone.GasPriceType
-public import struct Gemstone.TransferDataExtra
-public import enum Gemstone.GemTransactionLoadMetadata
+public import enum Gemstone.GemListRow
 public import struct Gemstone.GemTransactionLoadFee
+public import enum Gemstone.GemTransactionLoadMetadata
+public import struct Gemstone.GemTransferAmount
+public import enum Gemstone.GemTransferAmountResult
+public import struct Gemstone.SimulationResult
+public import struct Gemstone.TransferDataExtra
 import Foundation
+import struct Gemstone.ApprovalData
+import struct Gemstone.GemConfirmInput
+import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
-import struct Gemstone.GemTransferData
 
 public extension GemConfirmData {
     static func mock(
@@ -153,7 +152,7 @@ public extension GemConfirmLoad {
         metadata: GemConfirmMetadata = .mock(),
         feeAssets: [GemFeeAsset] = [],
         simulation: GemConfirmSimulation? = nil,
-        warnings: [GemSimulationWarningRow] = [],
+        warnings: [GemListRow] = [],
         addressName: Primitives.AddressName? = nil,
         preload: GemConfirmPreload? = .mock(),
     ) -> GemConfirmLoad {
@@ -163,7 +162,7 @@ public extension GemConfirmLoad {
             feeAsset: feeAsset.toGem(),
             metadata: metadata,
             feeAssets: feeAssets,
-            simulation: GemConfirmSimulationState(chain: Primitives.Chain.ethereum.rawValue, result: nil, warnings: warnings, simulation: simulation, addressNames: []),
+            simulation: GemConfirmSimulationState(chain: Primitives.Chain.ethereum.rawValue, result: nil, warnings: warnings, simulation: simulation),
             addressName: addressName?.toGem(),
             preload: preload,
         )

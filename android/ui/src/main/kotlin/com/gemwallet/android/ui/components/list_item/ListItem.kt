@@ -63,7 +63,7 @@ fun ListItem(
                 modifier
                     .heightIn(min = resolvedMinHeight)
                     .fillMaxWidth()
-                    .padding(start = contentSpacing)
+                    .padding(start = contentSpacing),
             ),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(contentSpacing),
@@ -116,7 +116,7 @@ fun PreviewListItem() {
                     overflow = TextOverflow.MiddleEllipsis,
                     maxLines = 1,
                 )
-            }
+            },
         )
     }
 }

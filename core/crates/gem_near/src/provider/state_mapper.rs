@@ -37,10 +37,7 @@ mod tests {
         use crate::models::{Block, BlockHeader};
 
         let block = Block {
-            header: BlockHeader {
-                hash: String::new(),
-                height: 123456789,
-            },
+            header: BlockHeader { hash: String::new(), height: 123456789 },
         };
         let mapped = map_node_status(&block).unwrap();
 

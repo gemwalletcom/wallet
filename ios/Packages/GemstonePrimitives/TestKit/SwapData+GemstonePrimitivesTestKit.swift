@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
+import Foundation
 import struct Gemstone.ApprovalData
 import struct Gemstone.ContractCallData
-import enum Gemstone.SwapProvider
 import struct Gemstone.SwapData
+import enum Gemstone.SwapProvider
 import struct Gemstone.SwapProviderData
 import struct Gemstone.SwapQuote
 import struct Gemstone.SwapQuoteData
-import BigInt
-import Foundation
 
 public extension SwapQuote {
     static func mock(

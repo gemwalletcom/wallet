@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Assets
 import Components
 import GemstonePrimitives
 import Localization
@@ -38,11 +39,11 @@ struct TransactionsNavigationView: View {
                 TransactionNavigationView(
                     model: viewModelFactory.transactionScene(
                         transaction: $0.transaction,
-                        walletId: model.wallet.id,
+                        wallet: model.wallet,
                         onHeaderAction: { action in
                             Task {
                                 do {
-                                    try await presenter.handleTransactionHeaderAction(
+                                    try await presenter.openTransactionHeaderAction(
                                         action,
                                         wallet: model.wallet,
                                         navigationState: navigationState,
@@ -54,6 +55,7 @@ struct TransactionsNavigationView: View {
                             }
                         },
                         onAddContact: { model.isPresentingSheet = .addContact($0) },
+                        onSelectAddress: { model.isPresentingSheet = .addressDetails($0) },
                     ),
                 )
             }
@@ -77,8 +79,9 @@ struct TransactionsNavigationView: View {
                     )
                 case let .addContact(action):
                     AddContactNavigationView(action: action)
+                case let .addressDetails(chainAddress):
+                    AddressDetailsNavigationStack(model: viewModelFactory.addressDetailsScene(chainAddress: chainAddress))
                 }
             }
     }
 }
-

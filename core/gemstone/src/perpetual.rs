@@ -1,28 +1,19 @@
-use std::sync::{Mutex, MutexGuard};
-
-use gem_hypercore::{
-    models::websocket::{HyperliquidRequest, HyperliquidSubscription},
-    perpetual_formatter::PerpetualFormatter,
-    provider::{websocket_mapper::account_subscriptions, websocket_subscriptions::WebSocketSubscriptions},
-};
+use gem_hypercore::{models::websocket::HyperliquidSubscription, perpetual_formatter::PerpetualFormatter};
 use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
 use primitives::known_assets::ARBITRUM_USDC;
-use primitives::{
-    Asset, AutocloseEstimator as Estimator, AutocloseValidation, AutocloseValidator as Validator, PerpetualAccountMode, PerpetualConfirmData, PerpetualDirection,
-    PerpetualProvider, PerpetualType, TpslType,
-};
+use primitives::{Asset, AutocloseEstimator as Estimator, AutocloseValidation, AutocloseValidator as Validator, PerpetualConfirmData, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType};
 
-use crate::config::perpetual_config::{LEVERAGE_OPTIONS, STOP_LOSS_PERCENT_OPTIONS, TAKE_PROFIT_PERCENT_OPTIONS, leverage_options};
+use crate::config::perpetual_config::{LEVERAGE_OPTIONS, leverage_options};
 use crate::models::GemAsset;
 use crate::models::custom_types::GemBigInt;
 use crate::models::perpetual::GemPerpetualSubscription;
+use crate::models::placeholder::EMPTY_VALUE;
 use crate::services::perpetual::model::{GemPerpetualCloseInput, GemPerpetualOrderInput};
 use crate::services::perpetual::rules as perpetual_rules;
 use crate::services::transfer::model::{GemRecipient, GemTransferData};
 use primitives::TransactionInputType;
 
 const HYPERLIQUID_NAME: &str = "Hyperliquid";
-const EMPTY_VALUE: &str = "-";
 
 #[derive(Debug, uniffi::Object)]
 pub struct GemPerpetual {
@@ -60,10 +51,6 @@ impl GemPerpetual {
         }
     }
 
-    pub fn funding_apr(&self, funding: f64) -> f64 {
-        perpetual_rules::funding_apr(funding)
-    }
-
     pub fn deposit_asset(&self) -> Asset {
         match self.provider {
             PerpetualProvider::Hypercore => ARBITRUM_USDC.clone(),
@@ -74,25 +61,15 @@ impl GemPerpetual {
         leverage_text(value)
     }
 
-    pub fn autoclose_percent(&self, value: u8) -> Option<u8> {
-        (value != 0).then_some(value)
-    }
-
     pub fn leverage_options(&self, max_leverage: Option<u8>) -> Vec<u8> {
         match max_leverage {
             Some(max_leverage) => leverage_options(max_leverage),
             None => LEVERAGE_OPTIONS.to_vec(),
         }
     }
+}
 
-    pub fn take_profit_options(&self) -> Vec<u8> {
-        TAKE_PROFIT_PERCENT_OPTIONS.to_vec()
-    }
-
-    pub fn stop_loss_options(&self) -> Vec<u8> {
-        STOP_LOSS_PERCENT_OPTIONS.to_vec()
-    }
-
+impl GemPerpetual {
     pub fn recipient(&self) -> GemRecipient {
         GemRecipient {
             address: String::new(),
@@ -101,9 +78,7 @@ impl GemPerpetual {
             references: vec![],
         }
     }
-}
 
-impl GemPerpetual {
     pub fn deposit_recipient(&self) -> GemRecipient {
         let address = match self.provider {
             PerpetualProvider::Hypercore => HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS.to_string(),
@@ -207,65 +182,15 @@ impl GemAutocloseEstimator {
         self.inner.roe(price)
     }
 
+    pub fn is_profit(&self, price: Option<f64>, tpsl_type: TpslType) -> bool {
+        match price {
+            Some(price) => self.inner.pnl(price) >= 0.0,
+            None => tpsl_type == TpslType::TakeProfit,
+        }
+    }
+
     pub fn target_price_from_roe(&self, roe_percent: i32, trigger_type: TpslType) -> f64 {
         self.inner.target_price_from_roe(roe_percent, trigger_type)
-    }
-}
-
-#[derive(Debug, Default, uniffi::Object)]
-pub struct HyperliquidSubscriptions {
-    state: Mutex<WebSocketSubscriptions>,
-}
-
-#[uniffi::export]
-impl HyperliquidSubscriptions {
-    #[uniffi::constructor]
-    pub fn new() -> Self {
-        Self {
-            state: Mutex::new(WebSocketSubscriptions::new()),
-        }
-    }
-
-    pub fn subscribe(&self, subscription: GemPerpetualSubscription) -> Result<Vec<String>, crate::GemstoneError> {
-        encode(self.state().subscribe(subscription.map()))
-    }
-
-    pub fn unsubscribe(&self, subscription: GemPerpetualSubscription) -> Result<Vec<String>, crate::GemstoneError> {
-        encode(self.state().unsubscribe(&subscription.map()))
-    }
-
-    pub fn connected(&self, address: String, mode: PerpetualAccountMode) -> Result<Vec<String>, crate::GemstoneError> {
-        encode(self.state().connected(account_subscriptions(address, mode)))
-    }
-
-    pub fn disconnected(&self) {
-        self.state().disconnected();
-    }
-}
-
-impl HyperliquidSubscriptions {
-    fn state(&self) -> MutexGuard<'_, WebSocketSubscriptions> {
-        match self.state.lock() {
-            Ok(guard) => guard,
-            Err(poisoned) => poisoned.into_inner(),
-        }
-    }
-}
-
-fn encode(requests: Vec<HyperliquidRequest>) -> Result<Vec<String>, crate::GemstoneError> {
-    Ok(requests.iter().map(serde_json::to_string).collect::<Result<Vec<_>, _>>()?)
-}
-
-impl From<HyperliquidSubscription> for GemPerpetualSubscription {
-    fn from(value: HyperliquidSubscription) -> Self {
-        match value {
-            HyperliquidSubscription::AccountState { address } => Self::AccountState { address },
-            HyperliquidSubscription::SpotState { address } => Self::SpotState { address },
-            HyperliquidSubscription::OpenOrders { address } => Self::OpenOrders { address },
-            HyperliquidSubscription::Candle { symbol, interval } => Self::Candle { symbol, interval },
-            HyperliquidSubscription::MarketData { symbol } => Self::MarketData { symbol },
-            HyperliquidSubscription::MarketPrices => Self::MarketPrices,
-        }
     }
 }
 
@@ -284,9 +209,17 @@ impl GemPerpetualSubscription {
 
 #[cfg(test)]
 mod tests {
-    use serde_json::json;
-
     use super::*;
+
+    #[test]
+    fn test_a_target_price_reads_as_profit_from_its_pnl_and_falls_back_to_the_trigger_kind() {
+        let estimator = GemAutocloseEstimator::new(100.0, 1.0, PerpetualDirection::Long, 5);
+
+        assert!(estimator.is_profit(Some(110.0), TpslType::StopLoss));
+        assert!(!estimator.is_profit(Some(90.0), TpslType::TakeProfit));
+        assert!(estimator.is_profit(None, TpslType::TakeProfit));
+        assert!(!estimator.is_profit(None, TpslType::StopLoss));
+    }
 
     #[test]
     fn test_the_margin_and_trigger_templates_read_the_same_on_both_apps() {
@@ -304,41 +237,6 @@ mod tests {
         assert_eq!(validator.validate(None), AutocloseValidation::Valid);
         assert_eq!(validator.validate(Some(90.0)), AutocloseValidation::TriggerMustBeHigher);
     }
-
-    #[test]
-    fn test_connected_subscribes_account_subscriptions() {
-        let subscriptions = HyperliquidSubscriptions::new();
-
-        let requests = subscriptions.connected("0x123".to_string(), PerpetualAccountMode::Unified).unwrap();
-
-        assert_eq!(
-            requests,
-            vec![
-                r#"{"method":"subscribe","subscription":{"type":"clearinghouseState","user":"0x123"}}"#,
-                r#"{"method":"subscribe","subscription":{"type":"openOrders","user":"0x123"}}"#,
-                r#"{"method":"subscribe","subscription":{"type":"spotState","user":"0x123"}}"#,
-            ]
-        );
-    }
-
-    #[test]
-    fn test_subscriptions_encode_generic_subscription() {
-        let subscriptions = HyperliquidSubscriptions::new();
-        subscriptions.connected("0x456".to_string(), PerpetualAccountMode::Standard).unwrap();
-
-        let requests = subscriptions.subscribe(GemPerpetualSubscription::AccountState { address: "0x123".to_string() }).unwrap();
-
-        assert_eq!(
-            serde_json::from_str::<serde_json::Value>(&requests[0]).unwrap(),
-            json!({
-                "method": "subscribe",
-                "subscription": {
-                    "type": "clearinghouseState",
-                    "user": "0x123",
-                },
-            })
-        );
-    }
 }
 
 pub fn leverage_text(value: u8) -> String {
@@ -350,11 +248,8 @@ mod option_tests {
     use super::*;
 
     #[test]
-    fn test_no_autoclose_percent_stands_for_none_and_leverage_carries_its_suffix() {
-        let perpetual = GemPerpetual::new(PerpetualProvider::Hypercore);
-        assert_eq!(perpetual.autoclose_percent(0), None);
-        assert_eq!(perpetual.autoclose_percent(25), Some(25));
-        assert_eq!(perpetual.leverage_text(40), "40x");
+    fn test_leverage_carries_its_suffix() {
+        assert_eq!(GemPerpetual::new(PerpetualProvider::Hypercore).leverage_text(40), "40x");
     }
 
     #[test]

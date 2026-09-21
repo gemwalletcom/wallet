@@ -1,22 +1,8 @@
 package com.gemwallet.android.ui.components.list_item.property
 
-import android.content.Context
 import androidx.annotation.DrawableRes
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.ListItemImage
-import com.gemwallet.android.ui.components.list_item.ListItemModel
-import com.gemwallet.android.ui.localization.stringRes
-import uniffi.gemstone.GemSocialLink
 import uniffi.gemstone.LinkType
-
-data class LinkRowUIModel(val url: String, val model: ListItemModel)
-
-fun List<GemSocialLink>.linkRows(context: Context): List<LinkRowUIModel> = map { link ->
-    LinkRowUIModel(
-        url = link.url,
-        model = ListItemModel(title = context.getString(link.linkType.stringRes()), subtitle = link.host, image = ListItemImage.Drawable(link.linkType.icon)),
-    )
-}
 
 @get:DrawableRes
 val LinkType.icon: Int

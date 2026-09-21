@@ -2,65 +2,40 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemSimulationPayloadRow
 import Localization
 import Primitives
-import struct Gemstone.SimulationPayloadField
 
 public struct SimulationPayloadModel: Sendable {
-    public let chain: Chain
-    public let primaryFields: [SimulationPayloadField]
-    public let secondaryFields: [SimulationPayloadField]
-    public var addressNames: [ChainAddress: AddressName]
+    public let primaryFields: [GemSimulationPayloadRow]
+    public let secondaryFields: [GemSimulationPayloadRow]
 
     public init(
-        chain: Chain,
-        primaryFields: [SimulationPayloadField],
-        secondaryFields: [SimulationPayloadField],
-        addressNames: [ChainAddress: AddressName] = [:],
+        primaryFields: [GemSimulationPayloadRow],
+        secondaryFields: [GemSimulationPayloadRow],
     ) {
-        self.chain = chain
         self.primaryFields = primaryFields
         self.secondaryFields = secondaryFields
-        self.addressNames = addressNames
     }
 
     public var hasFields: Bool { primaryFields.isNotEmpty || secondaryFields.isNotEmpty }
     public var hasDetails: Bool { secondaryFields.isNotEmpty }
 
-    public var addressRequests: [ChainAddress] {
-        (primaryFields + secondaryFields).compactMap {
-            guard $0.fieldType == .address else {
-                return nil
-            }
-            return ChainAddress(chain: chain, address: $0.value)
-        }
-    }
-
-    public func fieldViewModel(for field: SimulationPayloadField) -> SimulationPayloadFieldViewModel {
-        SimulationPayloadFieldViewModel(
-            field: field,
-            chain: chain,
-            addressName: addressNames[ChainAddress(chain: chain, address: field.value)],
-        )
-    }
-
     public func fieldModels(
-        for fields: [SimulationPayloadField],
+        for rows: [GemSimulationPayloadRow],
         explorerLink: (String) -> BlockExplorerLink,
         onOpenURL: @escaping (URL) -> Void,
     ) -> [SimulationPayloadFieldViewModel] {
-        fields.map { field in
-            SimulationPayloadFieldViewModel(
-                field: field,
-                chain: chain,
-                addressName: addressNames[ChainAddress(chain: chain, address: field.value)],
-                explorerItem: field.fieldType == .address ? explorerMenuItem(for: field, link: explorerLink(field.value), onOpenURL: onOpenURL) : nil,
-            )
+        rows.map { row in
+            let explorerItem: ContextMenuItemType? = switch row.value {
+            case let .address(_, address): explorerMenuItem(link: explorerLink(address), onOpenURL: onOpenURL)
+            case .text, .timestamp: nil
+            }
+            return SimulationPayloadFieldViewModel(row: row, explorerItem: explorerItem)
         }
     }
 
     private func explorerMenuItem(
-        for field: SimulationPayloadField,
         link: BlockExplorerLink,
         onOpenURL: @escaping (URL) -> Void,
     ) -> ContextMenuItemType {

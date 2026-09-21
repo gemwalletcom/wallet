@@ -6,10 +6,7 @@ use argon2::{Algorithm, Argon2, Params, Version};
 use zeroize::Zeroizing;
 
 use super::{
-    constants::{
-        AES_GCM_NONCE_LEN, AES_GCM_TAG_LEN, DEFAULT_ARGON2_ITERATIONS, DEFAULT_ARGON2_MEMORY_KIB, DEFAULT_ARGON2_OUTPUT_LEN, DEFAULT_ARGON2_PARALLELISM, MAX_ARGON2_ITERATIONS,
-        MAX_ARGON2_MEMORY_KIB, MAX_ARGON2_PARALLELISM,
-    },
+    constants::{AES_GCM_NONCE_LEN, AES_GCM_TAG_LEN, DEFAULT_ARGON2_ITERATIONS, DEFAULT_ARGON2_MEMORY_KIB, DEFAULT_ARGON2_OUTPUT_LEN, DEFAULT_ARGON2_PARALLELISM, MAX_ARGON2_ITERATIONS, MAX_ARGON2_MEMORY_KIB, MAX_ARGON2_PARALLELISM},
     format::validate_v4_password,
     types::{CipherParams, KdfParams},
 };
@@ -114,18 +111,11 @@ pub(super) fn derive_key(password: &[u8], kdf: &KdfParams) -> Result<Zeroizing<[
             salt,
             output_len,
         } => {
-            let params = Params::new(
-                *memory_kib,
-                *iterations,
-                *parallelism,
-                Some(usize::try_from(*output_len).map_err(|_| KeystoreError::corrupt_file("invalid key length"))?),
-            )
-            .map_err(|error| KeystoreError::corrupt_file(error.to_string()))?;
+            let params =
+                Params::new(*memory_kib, *iterations, *parallelism, Some(usize::try_from(*output_len).map_err(|_| KeystoreError::corrupt_file("invalid key length"))?)).map_err(|error| KeystoreError::corrupt_file(error.to_string()))?;
             let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
             let mut key = Zeroizing::new([0u8; 32]);
-            argon2
-                .hash_password_into(password, salt, key.as_mut())
-                .map_err(|error| KeystoreError::corrupt_file(error.to_string()))?;
+            argon2.hash_password_into(password, salt, key.as_mut()).map_err(|error| KeystoreError::corrupt_file(error.to_string()))?;
             Ok(key)
         }
     }

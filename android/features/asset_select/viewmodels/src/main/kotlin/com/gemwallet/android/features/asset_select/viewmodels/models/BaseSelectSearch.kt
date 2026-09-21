@@ -9,18 +9,14 @@ import kotlinx.coroutines.flow.flatMapLatest
 import uniffi.gemstone.GemSelectAssetScope
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class BaseSelectSearch(
-    private val searchService: AssetsSearchService,
-) : SelectSearch {
+class BaseSelectSearch(private val searchService: AssetsSearchService) : SelectSearch {
 
-    override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> {
-        return filters.flatMapLatest { filters ->
-            searchService.search(
-                query = filters?.query.orEmpty(),
-                byAllWallets = filters?.scope == GemSelectAssetScope.ALL_ASSETS,
-                limit = filters?.limit ?: NO_QUERY_LIMIT,
-                filters = filters?.queryFilters().orEmpty(),
-            )
-        }
+    override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> = filters.flatMapLatest { filters ->
+        searchService.search(
+            query = filters?.query.orEmpty(),
+            byAllWallets = filters?.scope == GemSelectAssetScope.ALL_ASSETS,
+            limit = filters?.limit ?: NO_QUERY_LIMIT,
+            filters = filters?.queryFilters().orEmpty(),
+        )
     }
 }

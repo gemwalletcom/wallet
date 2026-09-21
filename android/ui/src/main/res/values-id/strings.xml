@@ -210,7 +210,6 @@
   <string name="errors_connections_no_supported_wallets">Tidak ada dompet yang didukung tersedia.</string>
   <string name="errors_connections_unsupported_chain">Rantai yang disediakan tidak didukung.</string>
   <string name="errors_swap_amount_too_small">Jumlahnya terlalu kecil</string>
-  <string name="errors_required">%1$s diperlukan</string>
   <string name="errors_scan_transaction_malicious_description">Transaksi ini tidak dapat diselesaikan — alamat dompet tujuan terkait dengan aktivitas yang mencurigakan atau berbahaya.</string>
   <string name="errors_scan_transaction_memo_required">%1$s alamat dompet tujuan memerlukan tag / memo tujuan</string>
   <string name="errors_scan_transaction_malicious_title">Aktivitas Mencurigakan</string>
@@ -273,7 +272,7 @@
   <string name="asset_decimals">Desimal</string>
   <string name="asset_token_id">ID Token</string>
   <string name="asset_contract">Kontrak</string>
-  <string name="asset_state_empty_title">Transaksi Anda akan muncul di sini️</string>
+  <string name="asset_state_empty_title">Transaksi Anda akan muncul di sini</string>
   <string name="asset_state_empty_description">Terima, tukar atau beli %1$s</string>
   <string name="asset_verification_unverified">Belum diverifikasi</string>
   <string name="asset_verification_suspicious">Mencurigakan</string>
@@ -422,7 +421,7 @@
   <string name="price_alerts_set_alert_set_target_price">Tetapkan target harga</string>
   <string name="price_alerts_set_alert_current_price">Harga saat ini</string>
   <string name="price_alerts_added_for">Tetapkan peringatan harga %1$s</string>
-  <string name="price_alerts_state_empty_title">Peringatan Anda akan muncul di sini️</string>
+  <string name="price_alerts_state_empty_title">Peringatan Anda akan muncul di sini</string>
   <string name="price_alerts_state_empty_description">Aktifkan mereka dengan menambahkan koin untuk dilacak</string>
   <string name="price_alerts_auto_footer">Peringatan dipicu pada pergerakan harga yang signifikan.</string>
   <string name="price_alerts_set_alert_title">Tetapkan Peringatan Harga</string>
@@ -437,7 +436,7 @@
   <string name="lock_privacy_lock">Kunci Privasi</string>
   <string name="lock_footer">Lindungi akses ke aplikasi ini di perangkat Anda</string>
   <string name="verify_phrase_title">Mengonfirmasi</string>
-  <string name="warnings_multi_signature_blocked">Jangan mentransfer dana ke dompet Multi-Signature %1$s ini kecuali Anda yakin bahwa Anda memegang kunci pribadi. Kegagalan untuk melakukannya dapat membuat Anda rentan terhadap penipuan, dan Anda dapat kehilangan aset Anda secara permanen.</string>
+  <string name="warnings_externally_controlled_account">Akun %1$s ini dapat dikendalikan oleh orang lain. Jangan kirim dana ke akun ini kecuali Anda yakin bahwa Anda yang mengendalikannya, atau Anda dapat kehilangan aset Anda secara permanen.</string>
   <string name="sell_title">Jual %1$s</string>
   <string name="info_network_fee_title">Biaya Jaringan</string>
   <string name="info_watch_wallet_title">Dompet Pantau</string>
@@ -489,7 +488,7 @@
   <string name="nft_collection">Koleksi</string>
   <string name="nft_save_to_photos">Simpan ke Foto</string>
   <string name="nft_set_as_avatar">Tetapkan sebagai Avatar</string>
-  <string name="nft_state_empty_title">NFT Anda akan muncul di sini️</string>
+  <string name="nft_state_empty_title">NFT Anda akan muncul di sini</string>
   <string name="nft_state_empty_description">Terima NFT pertama Anda</string>
   <string name="nft_report_reason_spam">Spam</string>
   <string name="nft_report_reason_malicious">Berbahaya</string>

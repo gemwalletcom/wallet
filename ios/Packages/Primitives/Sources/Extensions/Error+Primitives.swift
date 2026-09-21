@@ -5,6 +5,7 @@ import Security
 
 public extension Error {
     var isAuthenticationCancelled: Bool {
-        (self as NSError).code == Int(errSecUserCanceled)
+        let error = self as NSError
+        return error.domain == NSOSStatusErrorDomain && error.code == Int(errSecUserCanceled)
     }
 }

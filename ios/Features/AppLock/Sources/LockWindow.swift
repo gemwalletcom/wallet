@@ -27,7 +27,7 @@ public final class LockWindow: LockWindowPresentable {
             lockModel.resetLockState()
             return
         }
-        lockModel.handleSceneChange(to: phase)
+        lockModel.onScenePhase(phase)
     }
 
     public func setColorScheme(_ colorScheme: ColorScheme) {

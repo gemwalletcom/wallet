@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use strum::EnumIter;
 use typeshare::typeshare;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, Sendable")]
 pub struct AssetScore {
     pub rank: i32,

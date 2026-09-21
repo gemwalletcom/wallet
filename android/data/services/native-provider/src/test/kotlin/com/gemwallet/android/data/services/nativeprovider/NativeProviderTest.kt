@@ -36,7 +36,7 @@ class NativeProviderTest {
                         method = AlienHttpMethod.GET,
                         headers = null,
                         body = null,
-                    )
+                    ),
                 )
             }
         } catch (_: AlienException.Offline) {
@@ -63,7 +63,7 @@ class NativeProviderTest {
                         method = AlienHttpMethod.GET,
                         headers = null,
                         body = null,
-                    )
+                    ),
                 )
             }
         } catch (_: AlienException.Offline) {
@@ -90,7 +90,7 @@ class NativeProviderTest {
                         method = AlienHttpMethod.GET,
                         headers = null,
                         body = null,
-                    )
+                    ),
                 )
             }
         } catch (err: CancellationException) {
@@ -125,7 +125,7 @@ class NativeProviderTest {
                     method = AlienHttpMethod.POST,
                     headers = null,
                     body = null,
-                )
+                ),
             )
         }
 
@@ -133,10 +133,5 @@ class NativeProviderTest {
         assertEquals(0L, sent?.body?.contentLength())
     }
 
-
-    private fun nativeProvider(
-        httpClient: OkHttpClient = OkHttpClient(),
-    ): NativeProvider {
-        return NativeProvider(httpClient = httpClient)
-    }
+    private fun nativeProvider(httpClient: OkHttpClient = OkHttpClient()): NativeProvider = NativeProvider(httpClient = httpClient)
 }

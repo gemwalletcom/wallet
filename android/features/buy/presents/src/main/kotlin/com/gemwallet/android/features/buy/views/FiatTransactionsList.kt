@@ -9,10 +9,7 @@ import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.dateSectionedList
 import com.wallet.core.primitives.FiatTransactionAssetData
 
-fun LazyListScope.fiatTransactionsList(
-    sections: List<DateSection<FiatTransactionRowUIModel>>,
-    onTransactionClick: (FiatTransactionAssetData) -> Unit,
-) {
+fun LazyListScope.fiatTransactionsList(sections: List<DateSection<FiatTransactionRowUIModel>>, onTransactionClick: (FiatTransactionAssetData) -> Unit) {
     dateSectionedList(
         sections = sections,
         key = { _, item -> item.data.id },

@@ -1,6 +1,5 @@
 package com.gemwallet.android.ui.components.list_item.property
 
-import com.gemwallet.android.ui.components.list_item.ValidatorRowUIModel
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -14,15 +13,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
+import com.gemwallet.android.ui.components.list_item.ValidatorRowUIModel
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.paddingMiddle
 
 @Composable
-fun PropertyValidatorItem(
-    validator: ValidatorRowUIModel,
-    listPosition: ListPosition = ListPosition.Single,
-    onClick: (() -> Unit)? = null,
-) {
+fun PropertyValidatorItem(validator: ValidatorRowUIModel, listPosition: ListPosition = ListPosition.Single, onClick: (() -> Unit)? = null) {
     PropertyItem(
         modifier = Modifier.clickable(enabled = onClick != null) { onClick?.invoke() },
         title = {
@@ -47,7 +43,7 @@ fun PropertyValidatorItem(
         },
         data = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                ListItemSupportText(R.string.stake_apr, " ${validator.aprText}")
+                ListItemSupportText(R.string.stake_apr, validator.aprText)
                 if (onClick != null) {
                     DataBadgeChevron()
                 }

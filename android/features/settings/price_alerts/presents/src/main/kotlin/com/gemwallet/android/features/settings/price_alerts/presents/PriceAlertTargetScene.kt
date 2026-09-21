@@ -40,11 +40,8 @@ import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
-import com.gemwallet.android.ui.components.image.AssetIcon
-import com.gemwallet.android.ui.components.list_item.Badge
-import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
-import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.PriceInfo
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
 import com.gemwallet.android.ui.components.screen.Scene
@@ -75,7 +72,7 @@ fun PriceAlertTargetScene(
     currency: Currency,
     currentPriceFormatted: String,
     priceSuggestions: List<Pair<String, String>> = emptyList(),
-    percentageSuggestions: List<Int> = listOf(5, 10, 15),
+    percentageSuggestions: List<Pair<String, String>> = emptyList(),
     asset: Asset? = null,
     assetPriceFormatted: String = "",
     assetPriceChangeFormatted: String = "",
@@ -103,15 +100,15 @@ fun PriceAlertTargetScene(
                 onSelect = {
                     onType(it)
                     value.clearText()
-                }
+                },
             ) { item ->
                 Text(
                     stringResource(
                         when (item) {
-                            PriceAlertNotificationType.Price ->  R.string.asset_price
+                            PriceAlertNotificationType.Price -> R.string.asset_price
                             PriceAlertNotificationType.PricePercentChange -> R.string.common_percentage
                             PriceAlertNotificationType.Auto -> R.string.common_no
-                        }
+                        },
                     ),
                 )
             }
@@ -120,7 +117,7 @@ fun PriceAlertTargetScene(
             if (value.text.isEmpty()) {
                 val suggestions = when (type) {
                     PriceAlertNotificationType.Price -> priceSuggestions
-                    PriceAlertNotificationType.PricePercentChange -> percentageSuggestions.map { "$it%" to it.toString() }
+                    PriceAlertNotificationType.PricePercentChange -> percentageSuggestions
                     else -> emptyList()
                 }
                 if (suggestions.isNotEmpty()) {
@@ -171,6 +168,7 @@ fun PriceAlertTargetScene(
                                     style = MaterialTheme.typography.displaySmall,
                                 )
                             }
+
                             PriceAlertNotificationType.PricePercentChange -> {
                                 Icon(
                                     modifier = Modifier.align(Alignment.CenterEnd).clickable {
@@ -191,6 +189,7 @@ fun PriceAlertTargetScene(
                                     },
                                 )
                             }
+
                             else -> {}
                         }
                     }
@@ -200,7 +199,7 @@ fun PriceAlertTargetScene(
                         lineLimits = TextFieldLineLimits.SingleLine,
                         textStyle = MaterialTheme.typography.displaySmall.copy(
                             textAlign = TextAlign.Center,
-                            color = if (value.text.isEmpty()) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface
+                            color = if (value.text.isEmpty()) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface,
                         ),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
                         interactionSource = interactionSource,
@@ -209,7 +208,7 @@ fun PriceAlertTargetScene(
                             if (this.length == 0) {
                                 this.append("0")
                             }
-                        }
+                        },
                     )
                     Box(Modifier.weight(1f)) {
                         if (type == PriceAlertNotificationType.PricePercentChange) {
@@ -230,11 +229,11 @@ fun PriceAlertTargetScene(
             }
             if (asset != null) {
                 item {
-                    ListItem(
+                    AssetListItem(
+                        asset = asset,
                         listPosition = ListPosition.Single,
-                        leading = { AssetIcon(asset) },
-                        title = { ListItemTitleText(asset.name, titleBadge = { Badge(asset.symbol) }) },
-                        subtitle = {
+                        badge = asset.symbol,
+                        support = {
                             PriceInfo(
                                 price = assetPriceFormatted,
                                 changes = assetPriceChangeFormatted,
@@ -261,7 +260,7 @@ fun PriceAlertTargetScenePricePreview() {
             currentPriceFormatted = "$901.80",
             prompt = R.string.price_alerts_set_alert_price_over,
             priceSuggestions = listOf("$850" to "850", "$950" to "950"),
-            percentageSuggestions = listOf(3, 6, 9),
+            percentageSuggestions = listOf("3%" to "3", "6%" to "6", "9%" to "9"),
             buttonState = ButtonState.Enabled,
             onType = {},
             onDirection = {},
@@ -283,7 +282,7 @@ fun PriceAlertTargetScenePercentagePreview() {
             currentPriceFormatted = "$901.80",
             prompt = R.string.price_alerts_set_alert_price_over,
             priceSuggestions = listOf("$850" to "850", "$950" to "950"),
-            percentageSuggestions = listOf(3, 6, 9),
+            percentageSuggestions = listOf("3%" to "3", "6%" to "6", "9%" to "9"),
             buttonState = ButtonState.Enabled,
             onType = {},
             onDirection = {},

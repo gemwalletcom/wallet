@@ -59,11 +59,7 @@ interface ContactsDao {
     }
 
     @Transaction
-    suspend fun updateContact(
-        contact: DbContact,
-        deleteAddressIds: List<String>,
-        addresses: List<DbContactAddress>,
-    ) {
+    suspend fun updateContact(contact: DbContact, deleteAddressIds: List<String>, addresses: List<DbContactAddress>) {
         updateContactRow(contact)
         if (deleteAddressIds.isNotEmpty()) {
             deleteAddresses(deleteAddressIds)

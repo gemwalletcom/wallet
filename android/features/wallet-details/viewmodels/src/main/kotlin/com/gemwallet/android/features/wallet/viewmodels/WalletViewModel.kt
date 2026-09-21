@@ -1,29 +1,33 @@
 package com.gemwallet.android.features.wallet.viewmodels
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.wallet.cases.DeleteWallet
 import com.gemwallet.android.application.wallet.cases.GetWalletDetails
-import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.domains.wallet.WalletSecretInput
+import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.features.wallet.viewmodels.models.WalletSecretUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.stringRes
+import com.gemwallet.android.ui.localization.text
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemWalletServiceInterface
+import javax.inject.Inject
 
 @HiltViewModel
 class WalletViewModel @Inject constructor(
@@ -46,16 +50,22 @@ class WalletViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    private val errorState = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = errorState.asStateFlow()
+
     fun setWalletName(name: String) = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable { service.rename(walletId.id, name) }
-            .onFailure { Log.e(TAG, "renaming wallet ${walletId.id} failed", it) }
+            .onFailure(::showError)
     }
 
     fun delete(onBoard: () -> Unit, onComplete: () -> Unit) = viewModelScope.launch(ioDispatcher) {
-        deleteWallet.deleteWallet(walletId, onBoard, onComplete)
+        runCatchingCancellable { deleteWallet.deleteWallet(walletId, onBoard, onComplete) }
+            .onFailure(::showError)
     }
 
-    private companion object {
-        const val TAG = "Wallet"
+    fun clearError() = errorState.update { null }
+
+    private fun showError(error: Throwable) {
+        errorState.value = error.errorText().text(context)
     }
 }

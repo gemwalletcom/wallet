@@ -12,6 +12,7 @@ import com.wallet.core.primitives.Asset
 fun RecipientHead(asset: Asset, head: RecipientHeadUIModel) {
     when (head) {
         is RecipientHeadUIModel.Nft -> NftHead(head.nftAsset)
+
         RecipientHeadUIModel.Asset -> CenteredListHead(
             title = asset.name,
             subtitle = asset.subtitleSymbol,

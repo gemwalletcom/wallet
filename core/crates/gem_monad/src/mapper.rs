@@ -14,10 +14,7 @@ fn delegation_id(address: &str, validator_id: u64, state: DelegationState, withd
 }
 
 pub fn map_validator(validator: &LensValidator, validator_names: &HashMap<u64, &str>, network_apy: f64) -> DelegationValidator {
-    let validator_name = validator_names
-        .get(&validator.validator_id)
-        .map(|name| (*name).to_string())
-        .unwrap_or_else(|| validator.validator_id.to_string());
+    let validator_name = validator_names.get(&validator.validator_id).map(|name| (*name).to_string()).unwrap_or_else(|| validator.validator_id.to_string());
 
     DelegationValidator::stake(
         Chain::Monad,

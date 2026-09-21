@@ -4,9 +4,7 @@ use async_trait::async_trait;
 use primitives::testkit::signer_mock::TEST_PRIVATE_KEY_SOLANA_ADDRESS;
 use primitives::{Wallet, WalletConnection, WalletConnectionSession, WalletConnectionVerificationStatus};
 
-use super::{
-    GemConnectionStore, GemWalletConnectMessageRequest, GemWalletConnectService, GemWalletConnectSessionRequest, GemWalletConnectSigner, GemWalletConnectTransactionRequest,
-};
+use super::{GemConnectionStore, GemWalletConnectMessageRequest, GemWalletConnectService, GemWalletConnectSessionRequest, GemWalletConnectSigner, GemWalletConnectTransactionRequest};
 use crate::alien::AlienProvider;
 use crate::api::GemDeviceApiClient;
 use crate::keystore::GemKeystore;
@@ -117,10 +115,7 @@ impl GemWalletConnectService {
             .await
             .unwrap();
         let provider: Arc<dyn AlienProvider> = Arc::new(TestAlienProvider::with_status(200));
-        let wallet_session = Arc::new(GemWalletSessionService::new(
-            Arc::new(MemoryWalletSessionStore::default()),
-            Arc::new(MemoryWalletStore::default()),
-        ));
+        let wallet_session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), Arc::new(MemoryWalletStore::default())));
         let sign_message = Arc::new(GemSignMessageService::new(
             Arc::new(GemNameService::new(
                 Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences))))),

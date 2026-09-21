@@ -10,7 +10,7 @@ interface PasswordStore {
     enum class Keys(val key: String) {
         Password("password"),
         DevicePrivateKey("gem_api_pk"),
-        DevicePublicKey("gem_api_pb")
+        DevicePublicKey("gem_api_pb"),
     }
 }
 

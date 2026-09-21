@@ -28,10 +28,7 @@ pub(crate) fn sign_single_signer_instructions(input: &SignerInput, private_key: 
         return Err(SignerError::invalid_input("Solana transaction requires more than one signer"));
     }
     let signature = sign_message(private_key, &transaction.serialize_message()?)?;
-    let signature_slot = transaction
-        .signatures_mut()
-        .first_mut()
-        .ok_or_else(|| SignerError::signing_error("missing Solana signature slot"))?;
+    let signature_slot = transaction.signatures_mut().first_mut().ok_or_else(|| SignerError::signing_error("missing Solana signature slot"))?;
     *signature_slot = signature;
     Ok(encode_base64(&transaction.serialize()?))
 }

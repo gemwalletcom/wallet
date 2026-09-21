@@ -13,11 +13,6 @@ public struct SymbolViewModel: Sendable, AmountDisplayable {
         image = AssetViewModel(asset: asset).assetImage
     }
 
-    public init(assetId: AssetId) {
-        symbol = assetId.tokenId?.truncate(first: 8, last: 6) ?? assetId.chain.asset.symbol
-        image = AssetIdViewModel(assetId: assetId).assetImage
-    }
-
     public var amount: TextValue {
         TextValue(
             text: symbol,

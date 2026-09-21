@@ -48,10 +48,7 @@ impl ProviderFactory {
     }
 
     pub(crate) fn new_providers_with_user_agent(settings: &Settings, user_agent: &str) -> Vec<Box<dyn ChainTraits>> {
-        Chain::all()
-            .iter()
-            .map(|chain| Self::new_from_settings_with_user_agent(*chain, settings, user_agent))
-            .collect()
+        Chain::all().iter().map(|chain| Self::new_from_settings_with_user_agent(*chain, settings, user_agent)).collect()
     }
 
     fn new_provider(config: ProviderConfig, user_agent: &str) -> Box<dyn ChainTraits> {
@@ -77,9 +74,7 @@ impl ProviderFactory {
                 TempoProvider::new_or_else(client, |client| {
                     let everstake = EverstakeClient::new(gem_client.clone().with_base_url(config.everstake_url.clone()));
                     let indexer = EVMIndexer::for_chain(
-                        gem_client
-                            .clone()
-                            .with_base_url(alchemy_url(chain, &config.indexers.alchemy.url, AlchemyApi::JsonRpc, &config.indexers.alchemy.key)),
+                        gem_client.clone().with_base_url(alchemy_url(chain, &config.indexers.alchemy.url, AlchemyApi::JsonRpc, &config.indexers.alchemy.key)),
                         gem_client.clone().with_base_url(format!("{}/{}", config.indexers.ankr.url, config.indexers.ankr.key)),
                         config.indexers.blockscout.configure_client(gem_client),
                         config.indexers.blockscout.key,
@@ -90,9 +85,7 @@ impl ProviderFactory {
                         let transactions = Box::new(EVMTransactionsByAddressProvider::new(indexer.clone()));
                         let asset_balances = Box::new(EVMAssetBalanceProvider::new(indexer));
                         Box::new(match evm_chain {
-                            EVMChain::Ethereum => {
-                                EthereumProvider::new_with_provider(client.clone(), transactions, asset_balances, Box::new(EverstakeStakingClient::new(client, Some(everstake))))
-                            }
+                            EVMChain::Ethereum => EthereumProvider::new_with_provider(client.clone(), transactions, asset_balances, Box::new(EverstakeStakingClient::new(client, Some(everstake)))),
                             EVMChain::Monad => EthereumProvider::new_with_provider(client.clone(), transactions, asset_balances, Box::new(MonadStakingClient::new(client))),
                             EVMChain::SmartChain => EthereumProvider::new_with_provider(client.clone(), transactions, asset_balances, Box::new(BscStakingClient::new(client))),
                             _ => EthereumProvider::new(client, transactions, asset_balances),
@@ -221,11 +214,7 @@ impl ProviderFactory {
     }
 
     pub fn get_chain_endpoints(settings: &Settings) -> HashMap<Chain, String> {
-        Chain::all()
-            .into_iter()
-            .map(|chain| (chain, Self::get_chain_url(chain, settings)))
-            .filter(|(_, url)| !url.is_empty())
-            .collect()
+        Chain::all().into_iter().map(|chain| (chain, Self::get_chain_url(chain, settings))).filter(|(_, url)| !url.is_empty()).collect()
     }
 
     pub fn get_chain_url(chain: Chain, settings: &Settings) -> String {

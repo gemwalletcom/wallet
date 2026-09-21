@@ -16,20 +16,15 @@ sealed interface StakeSectionUIModel {
     data class Delegations(override val title: String, val rows: List<StakeDelegationRowUIModel>) : StakeSectionUIModel
 }
 
-data class StakeDelegationRowUIModel(
-    val delegation: Delegation,
-    val validator: ValidatorRowUIModel,
-)
+data class StakeDelegationRowUIModel(val delegation: Delegation, val validator: ValidatorRowUIModel)
 
-internal fun GemStakeSection.uiModel(
-    context: Context,
-    delegations: List<Delegation>,
-    validatorRows: Map<String, GemValidatorRow>,
-): StakeSectionUIModel {
+internal fun GemStakeSection.uiModel(context: Context, delegations: List<Delegation>, validatorRows: Map<String, GemValidatorRow>): StakeSectionUIModel {
     val title = context.getString(stringRes())
     return when (this) {
         GemStakeSection.MANAGE -> StakeSectionUIModel.Manage(title)
+
         GemStakeSection.RESOURCES -> StakeSectionUIModel.Resources(title)
+
         GemStakeSection.DELEGATIONS -> StakeSectionUIModel.Delegations(
             title = title,
             rows = delegations.mapNotNull { delegation ->

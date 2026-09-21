@@ -41,10 +41,7 @@ async fn authorize_api_client(req: &Request<'_>, scope: ApiClientScope) -> Outco
         return error_outcome(req, Status::InternalServerError, "Database not available");
     };
 
-    let client = match database
-        .api_clients()
-        .and_then(|mut client| Ok(client.get_enabled_api_client(secret, scope, ApiClientResource::Global)?))
-    {
+    let client = match database.api_clients().and_then(|mut client| Ok(client.get_enabled_api_client(secret, scope, ApiClientResource::Global)?)) {
         Ok(client) => client,
         Err(_) => return error_outcome(req, Status::InternalServerError, "Failed to load API client"),
     };
@@ -118,11 +115,7 @@ mod tests {
     async fn test_api_client_without_database_returns_internal_server_error() {
         let client = Client::tracked(rocket::build().mount("/", routes![protected_client])).await.unwrap();
 
-        let response = client
-            .get("/protected-client")
-            .header(Header::new(AUTHORIZATION_HEADER, format!("{BEARER_PREFIX}secret")))
-            .dispatch()
-            .await;
+        let response = client.get("/protected-client").header(Header::new(AUTHORIZATION_HEADER, format!("{BEARER_PREFIX}secret"))).dispatch().await;
 
         assert_eq!(response.status(), Status::InternalServerError);
     }

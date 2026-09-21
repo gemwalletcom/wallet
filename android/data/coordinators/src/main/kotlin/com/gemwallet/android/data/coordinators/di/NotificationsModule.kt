@@ -15,6 +15,5 @@ object NotificationsModule {
 
     @Provides
     @Singleton
-    fun provideGetInAppNotifications(notificationStore: GemstoneNotificationStore): GetInAppNotifications =
-        GetInAppNotificationsImpl(notificationStore)
+    fun provideGetInAppNotifications(notificationStore: GemstoneNotificationStore): GetInAppNotifications = GetInAppNotificationsImpl(notificationStore)
 }

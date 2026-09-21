@@ -36,10 +36,7 @@ impl StakingPoolResponse {
 
     pub fn mock_with_bonded_tokens(bonded_tokens: f64) -> Self {
         Self {
-            pool: StakingPool {
-                bonded_tokens,
-                not_bonded_tokens: 0.0,
-            },
+            pool: StakingPool { bonded_tokens, not_bonded_tokens: 0.0 },
         }
     }
 }

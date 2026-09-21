@@ -7,7 +7,9 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.modules.SerializersModule
+import uniffi.gemstone.Delegation
 import uniffi.gemstone.FfiConverter
+import uniffi.gemstone.FfiConverterTypeDelegation
 import uniffi.gemstone.FfiConverterTypeGemPaymentRecipient
 import uniffi.gemstone.FfiConverterTypeGemPerpetualPositionAction
 import uniffi.gemstone.FfiConverterTypeGemRecipient
@@ -21,10 +23,7 @@ import uniffi.gemstone.PaymentLink
 import java.nio.ByteBuffer
 import java.util.Base64
 
-class GemRecordSerializer<T : Any>(
-    private val converter: FfiConverter<T, *>,
-    name: String,
-) : KSerializer<T> {
+class GemRecordSerializer<T : Any>(private val converter: FfiConverter<T, *>, name: String) : KSerializer<T> {
 
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(name, PrimitiveKind.STRING)
 
@@ -42,13 +41,13 @@ class GemRecordSerializer<T : Any>(
     }
 }
 
-inline fun <reified T : Any> gemRecordSerializer(converter: FfiConverter<T, *>): GemRecordSerializer<T> =
-    GemRecordSerializer(converter, T::class.java.simpleName)
+inline fun <reified T : Any> gemRecordSerializer(converter: FfiConverter<T, *>): GemRecordSerializer<T> = GemRecordSerializer(converter, T::class.java.simpleName)
 
 val gemRecordSerializers = SerializersModule {
     contextual(GemRecipient::class, gemRecordSerializer(FfiConverterTypeGemRecipient))
     contextual(GemPaymentRecipient::class, gemRecordSerializer(FfiConverterTypeGemPaymentRecipient))
     contextual(GemPerpetualPositionAction::class, gemRecordSerializer(FfiConverterTypeGemPerpetualPositionAction))
     contextual(GemTransferData::class, gemRecordSerializer(FfiConverterTypeGemTransferData))
+    contextual(Delegation::class, gemRecordSerializer(FfiConverterTypeDelegation))
     contextual(PaymentLink::class, gemRecordSerializer(FfiConverterTypePaymentLink))
 }

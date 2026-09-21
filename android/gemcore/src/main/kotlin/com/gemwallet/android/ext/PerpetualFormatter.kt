@@ -8,13 +8,8 @@ import java.util.Locale
 
 object PerpetualFormatter {
 
-    fun formatPrice(provider: PerpetualProvider, price: Double, decimals: Int): String =
-        GemPerpetual(provider.toGem()).use { it.formatPrice(price, decimals) }
+    fun formatPrice(provider: PerpetualProvider, price: Double, decimals: Int): String = GemPerpetual(provider.toGem()).use { it.formatPrice(price, decimals) }
 
-    fun formatInputPrice(
-        provider: PerpetualProvider,
-        price: Double,
-        decimals: Int,
-        locale: Locale = Locale.getDefault(),
-    ): String = GemPerpetual(provider.toGem()).use { it.formatInputPrice(price, decimals, numberFormat(locale).decimalSeparator) }
+    fun formatInputPrice(provider: PerpetualProvider, price: Double, decimals: Int, locale: Locale = Locale.getDefault()): String =
+        GemPerpetual(provider.toGem()).use { it.formatInputPrice(price, decimals, numberFormat(locale).decimalSeparator) }
 }

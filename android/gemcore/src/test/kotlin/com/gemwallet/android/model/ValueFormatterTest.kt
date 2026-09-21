@@ -3,9 +3,9 @@ package com.gemwallet.android.model
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemValueStyle
 import java.math.BigInteger
 import java.util.Locale
-import uniffi.gemstone.GemValueStyle
 
 class ValueFormatterTest {
 

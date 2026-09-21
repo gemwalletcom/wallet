@@ -5,10 +5,7 @@ use number_formatter::BigNumberFormatter;
 use std::error::Error;
 
 use gem_client::Client;
-use primitives::{
-    BitcoinChain, FeePriority, FeeRate, FeeUnitType, GasPriceType, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata,
-    TransactionPreloadInput, UTXO,
-};
+use primitives::{BitcoinChain, FeePriority, FeeRate, FeeUnitType, GasPriceType, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, UTXO};
 
 use crate::constants::{LEGACY_TRANSACTION_VBYTES, SEGWIT_TRANSACTION_VBYTES};
 use crate::models::Address;
@@ -84,10 +81,7 @@ fn map_fee_rates(slow: BigInt, normal: BigInt, fast: BigInt, chain: BitcoinChain
     let normal = normal.max(&slow + &min_fee);
     let third: BigInt = &normal / 3;
     let fast = fast.max(&slow + &min_fee * 2).max(&normal + third);
-    vec![
-        FeeRate::new(FeePriority::Normal, GasPriceType::regular(normal * &scale)),
-        FeeRate::new(FeePriority::Fast, GasPriceType::regular(fast * &scale)),
-    ]
+    vec![FeeRate::new(FeePriority::Normal, GasPriceType::regular(normal * &scale)), FeeRate::new(FeePriority::Fast, GasPriceType::regular(fast * &scale))]
 }
 
 #[cfg(test)]
@@ -136,12 +130,7 @@ mod tests {
         let client = BitcoinClient::new(MockClient::new(), BitcoinChain::BitcoinCash);
         let mut input = mock_transfer_input(BitcoinChain::BitcoinCash).input;
         input.metadata = TransactionLoadMetadata::Bitcoin {
-            utxos: vec![mock_utxo_with(
-                "0000000000000000000000000000000000000000000000000000000000000001",
-                0,
-                "50000",
-                &input.sender_address,
-            )],
+            utxos: vec![mock_utxo_with("0000000000000000000000000000000000000000000000000000000000000001", 0, "50000", &input.sender_address)],
         };
 
         let load = client.get_transaction_load(input).await.unwrap();

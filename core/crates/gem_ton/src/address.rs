@@ -187,10 +187,7 @@ impl fmt::Display for Address {
 
 impl fmt::Debug for Address {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Address")
-            .field("workchain", &self.workchain())
-            .field("hash_part", &hex::encode(self.hash_part()))
-            .finish()
+        f.debug_struct("Address").field("workchain", &self.workchain()).field("hash_part", &hex::encode(self.hash_part())).finish()
     }
 }
 

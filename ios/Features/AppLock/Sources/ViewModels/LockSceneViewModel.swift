@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
+import class Gemstone.GemSecurityService
 import GemstoneServices
 import LocalAuthentication
 import Localization
 import Observation
+import Primitives
 import Style
 import SwiftUI
-import class Gemstone.GemSecurityService
 
 @MainActor
 @Observable
@@ -46,10 +46,6 @@ public class LockSceneViewModel {
 
     var isLocked: Bool {
         state != .unlocked && isAutoLockEnabled
-    }
-
-    var isUnlocking: Bool {
-        if case .unlocking = state { true } else { false }
     }
 
     var isUnlockButtonVisible: Bool {
@@ -91,7 +87,7 @@ public class LockSceneViewModel {
 // MARK: - Business Logic
 
 extension LockSceneViewModel {
-    func handleSceneChange(to phase: ScenePhase) {
+    func onScenePhase(_ phase: ScenePhase) {
         switch phase {
         case .background:
             if case let .unlocking(attempt) = state, !attempt.isInvalidated {

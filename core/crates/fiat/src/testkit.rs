@@ -27,9 +27,7 @@ impl FiatDeviceContext {
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 use crate::model::FiatMapping;
 #[cfg(all(test, feature = "fiat_integration_tests"))]
-use crate::providers::{
-    banxa::client::BanxaClient, mercuryo::client::MercuryoClient, moonpay::client::MoonPayClient, paybis::client::PaybisClient, transak::client::TransakClient,
-};
+use crate::providers::{banxa::client::BanxaClient, mercuryo::client::MercuryoClient, moonpay::client::MoonPayClient, paybis::client::PaybisClient, transak::client::TransakClient};
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 use cacher::{AccessTokenCacherClient, CacherClient};
 #[cfg(all(test, feature = "fiat_integration_tests"))]
@@ -70,11 +68,7 @@ pub fn create_moonpay_test_client() -> MoonPayClient {
 pub fn create_paybis_test_client() -> PaybisClient {
     let settings = get_test_settings();
     let client = crate::request_client(settings.fiat.timeout);
-    PaybisClient::new(
-        ReqwestClient::new(settings.fiat.paybis.url, client),
-        settings.fiat.paybis.key.public,
-        settings.fiat.paybis.key.secret,
-    )
+    PaybisClient::new(ReqwestClient::new(settings.fiat.paybis.url, client), settings.fiat.paybis.key.public, settings.fiat.paybis.key.secret)
 }
 
 #[cfg(all(test, feature = "fiat_integration_tests"))]

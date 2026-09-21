@@ -239,13 +239,7 @@ mod tests {
     #[test]
     fn builds_program_accounts_filter_request() {
         assert_request(
-            SolanaRpc::GetProgramAccounts(
-                "program".into(),
-                vec![SolanaProgramAccountsFilter::Memcmp {
-                    offset: 12,
-                    bytes: "owner".into(),
-                }],
-            ),
+            SolanaRpc::GetProgramAccounts("program".into(), vec![SolanaProgramAccountsFilter::Memcmp { offset: 12, bytes: "owner".into() }]),
             method::GET_PROGRAM_ACCOUNTS,
             json!(["program", {
                 "commitment": "confirmed",
@@ -267,11 +261,7 @@ mod tests {
 
     #[test]
     fn excludes_supply_account_list() {
-        assert_request(
-            SolanaRpc::GetSupply,
-            method::GET_SUPPLY,
-            json!([{"commitment": "confirmed", "excludeNonCirculatingAccountsList": true}]),
-        );
+        assert_request(SolanaRpc::GetSupply, method::GET_SUPPLY, json!([{"commitment": "confirmed", "excludeNonCirculatingAccountsList": true}]));
     }
 
     #[test]

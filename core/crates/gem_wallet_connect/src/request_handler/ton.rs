@@ -57,9 +57,7 @@ mod tests {
     fn test_parse_sign_message() {
         let params = serde_json::from_str(r#"[{"type":"text","text":"Hello TON","from":"UQBY1cVPu4SIr36q0M3HWcqPb_efyVVRBsEzmwN-wKQDR6zg"}]"#).unwrap();
         let action = TonRequestHandler::parse_sign_message(Chain::Ton, params, "https://react-app.walletconnect.com").unwrap();
-        let WalletConnectAction::SignMessage { chain, sign_type, data } = action else {
-            panic!("Expected SignMessage action")
-        };
+        let WalletConnectAction::SignMessage { chain, sign_type, data } = action else { panic!("Expected SignMessage action") };
         assert_eq!(chain, Chain::Ton);
         assert_eq!(sign_type, SignDigestType::TonPersonal);
 
@@ -73,9 +71,7 @@ mod tests {
     fn test_parse_sign_message_extracts_host() {
         let params = serde_json::from_str(r#"[{"type":"text","text":"Test","from":"UQBY1cVPu4SIr36q0M3HWcqPb_efyVVRBsEzmwN-wKQDR6zg"}]"#).unwrap();
         let action = TonRequestHandler::parse_sign_message(Chain::Ton, params, "https://example.com/path?query=1").unwrap();
-        let WalletConnectAction::SignMessage { data, .. } = action else {
-            panic!("Expected SignMessage action")
-        };
+        let WalletConnectAction::SignMessage { data, .. } = action else { panic!("Expected SignMessage action") };
 
         let parsed: TonSignMessageData = serde_json::from_str(&data).unwrap();
         assert_eq!(parsed.domain, "example.com");

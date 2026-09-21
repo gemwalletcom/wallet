@@ -16,7 +16,7 @@ mod tests {
 
     #[test]
     fn test_transaction_preload() {
-        let account = Account { sequence_number: 42 };
+        let account = Account { sequence_number: 42, ..Account::mock() };
 
         let result = map_transaction_preload(&account).unwrap();
         match result {

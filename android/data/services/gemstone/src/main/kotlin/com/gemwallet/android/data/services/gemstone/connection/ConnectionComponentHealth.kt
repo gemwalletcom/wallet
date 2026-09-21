@@ -5,9 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
-class ConnectionComponentHealth(
-    override val component: ConnectionComponent,
-) : ConnectionComponentMonitor {
+class ConnectionComponentHealth(override val component: ConnectionComponent) : ConnectionComponentMonitor {
     private val health = MutableSharedFlow<Boolean>(replay = 1, extraBufferCapacity = 1)
 
     fun report(isHealthy: Boolean) {

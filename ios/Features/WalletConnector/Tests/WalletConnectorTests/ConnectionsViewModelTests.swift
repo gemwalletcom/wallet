@@ -9,8 +9,8 @@ import PrimitivesTestKit
 import StoreTestKit
 import Testing
 @testable import WalletConnector
-import WalletConnectorTestKit
 import WalletConnectorServiceTestKit
+import WalletConnectorTestKit
 
 @MainActor
 struct ConnectionsViewModelTests {
@@ -39,12 +39,12 @@ struct ConnectionsViewModelTests {
     @Test
     func theDetailsSceneReadsCore() {
         let service = GemWalletConnectServiceMock()
-        service.connectionDetailRows = [.wallet, .date]
+        service.connectionDetailRows = [.text(title: .wallet, value: "Main Wallet")]
         let model = ConnectionsViewModel.mock(service: service)
 
         let details = model.connectionSceneModel(connection: .mock())
 
-        #expect(details.details.rows == [.wallet, .date])
+        #expect(details.details.rows == [.text(title: .wallet, value: "Main Wallet")])
     }
 
     @Test
@@ -60,8 +60,7 @@ struct ConnectionsViewModelTests {
     func aScannedUriPairsAndShowsTheConnectorBar() async {
         let model = ConnectionsViewModel.mock()
 
-        model.onHandleScan("wc:topic@2")
-        await settle { model.isPresentingConnectorBar }
+        await model.onHandleScan("wc:topic@2")
 
         #expect(model.isPresentingConnectorBar)
         #expect(model.isPresentingAlertMessage == nil)
@@ -71,8 +70,7 @@ struct ConnectionsViewModelTests {
     func aFailedPairHidesTheBarAndShowsTheError() async {
         let model = ConnectionsViewModel.mock(connector: WalletConnectorServiceMock(pairError: AnyError("bad uri")))
 
-        model.onHandleScan("nonsense")
-        await settle { model.isPresentingAlertMessage != nil }
+        await model.onHandleScan("nonsense")
 
         #expect(model.isPresentingConnectorBar == false)
         #expect(model.isPresentingAlertMessage?.message == "bad uri")
@@ -82,8 +80,7 @@ struct ConnectionsViewModelTests {
     func aFailedDisconnectShowsTheError() async {
         let model = ConnectionsViewModel.mock(connector: WalletConnectorServiceMock(disconnectError: AnyError("no session")))
 
-        model.onSelectDisconnect(.mock())
-        await settle { model.isPresentingAlertMessage != nil }
+        await model.onSelectDisconnect(.mock())
 
         #expect(model.isPresentingAlertMessage?.message == "no session")
     }
@@ -96,13 +93,5 @@ struct ConnectionsViewModelTests {
         model.hideConnectionBar()
 
         #expect(model.isPresentingConnectorBar == false)
-    }
-
-    private func settle(until condition: () -> Bool) async {
-        for _ in 0 ..< 200 {
-            await Task.yield()
-            if condition() { return }
-            try? await Task.sleep(for: .milliseconds(5))
-        }
     }
 }

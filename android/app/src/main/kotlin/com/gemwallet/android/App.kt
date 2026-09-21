@@ -11,43 +11,48 @@ import coil3.memory.MemoryCache
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.svg.SvgDecoder
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
+import com.gemwallet.android.application.transactions.cases.GetTransactions
 import dagger.hilt.android.HiltAndroidApp
 import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
 import javax.inject.Inject
 
 @HiltAndroidApp
-class App : Application(), SingletonImageLoader.Factory {
+class App :
+    Application(),
+    SingletonImageLoader.Factory {
 
     @Inject
     lateinit var appLifecycleCoordinator: AppLifecycleCoordinator
+
     @Inject
     lateinit var getActiveAssetsInfo: GetActiveAssetsInfo
+
+    @Inject
+    lateinit var getTransactions: GetTransactions
 
     override fun onCreate() {
         super.onCreate()
         ProcessLifecycleOwner.get().lifecycle.addObserver(appLifecycleCoordinator)
     }
 
-    override fun newImageLoader(context: PlatformContext): ImageLoader {
-        return ImageLoader.Builder(this)
-            .components {
-                add(OkHttpNetworkFetcherFactory(callFactory = ::imageHttpClient))
-                add(SvgDecoder.Factory())
-            }
-            .memoryCache {
-                MemoryCache.Builder()
-                    .maxSizePercent(this, 0.25)
-                    .build()
-            }
-            .diskCache {
-                DiskCache.Builder()
-                    .directory(cacheDir.resolve("image_cache"))
-                    .maxSizeBytes(512L * 1024 * 1024) // 512Mb
-                    .build()
-            }
-            .build()
-    }
+    override fun newImageLoader(context: PlatformContext): ImageLoader = ImageLoader.Builder(this)
+        .components {
+            add(OkHttpNetworkFetcherFactory(callFactory = ::imageHttpClient))
+            add(SvgDecoder.Factory())
+        }
+        .memoryCache {
+            MemoryCache.Builder()
+                .maxSizePercent(this, 0.25)
+                .build()
+        }
+        .diskCache {
+            DiskCache.Builder()
+                .directory(cacheDir.resolve("image_cache"))
+                .maxSizeBytes(512L * 1024 * 1024) // 512Mb
+                .build()
+        }
+        .build()
 
     private fun imageHttpClient() = OkHttpClient.Builder()
         .dispatcher(Dispatcher().apply { maxRequestsPerHost = IMAGE_REQUESTS_PER_HOST })

@@ -4,10 +4,7 @@ import com.gemwallet.android.serializer.TransactionIdSerializer
 import kotlinx.serialization.Serializable
 
 @Serializable(with = TransactionIdSerializer::class)
-data class TransactionId(
-    val chain: Chain,
-    val hash: String,
-) {
+data class TransactionId(val chain: Chain, val hash: String) {
     constructor(identifier: String) : this(
         chain = Chain.entries.firstOrNull { it.string == identifier.substringBefore("_") }
             ?: throw IllegalArgumentException("Invalid transaction id: $identifier"),

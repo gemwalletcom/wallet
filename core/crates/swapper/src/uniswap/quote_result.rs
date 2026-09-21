@@ -43,10 +43,7 @@ mod tests {
     #[test]
     fn test_get_best_quote_preserves_position() {
         let results = vec![
-            JsonRpcResult::Value(JsonRpcResponse {
-                id: Some(1),
-                result: "10".to_string(),
-            }),
+            JsonRpcResult::Value(JsonRpcResponse { id: Some(1), result: "10".to_string() }),
             JsonRpcResult::Error(JsonRpcErrorResponse {
                 id: Some(2),
                 error: JsonRpcError {
@@ -55,10 +52,7 @@ mod tests {
                     cause: None,
                 },
             }),
-            JsonRpcResult::Value(JsonRpcResponse {
-                id: Some(3),
-                result: "30".to_string(),
-            }),
+            JsonRpcResult::Value(JsonRpcResponse { id: Some(3), result: "30".to_string() }),
         ]
         .into();
         let positions = [

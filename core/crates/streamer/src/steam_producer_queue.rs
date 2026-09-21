@@ -3,9 +3,8 @@ use std::error::Error;
 use primitives::{AssetId, Chain, NFTAssetId, TransactionIdRequest};
 
 use crate::{
-    ChainAddressPayload, ExchangeName, FetchAssetAssociationsPayload, FetchAssetsPayload, FetchBlocksPayload, FetchListPayload, FetchNFTAssetPayload, FetchPricesPayload,
-    InAppNotificationPayload, NotificationsFailedPayload, NotificationsPayload, PricesPayload, QueueName, RewardsNotificationPayload, RewardsRedemptionPayload, StreamProducer,
-    TransactionsPayload, WalletStreamPayload,
+    ChainAddressPayload, ExchangeName, FetchAssetAssociationsPayload, FetchAssetsPayload, FetchBlocksPayload, FetchListPayload, FetchNFTAssetPayload, FetchPricesPayload, InAppNotificationPayload, NotificationsFailedPayload,
+    NotificationsPayload, PricesPayload, QueueName, RewardsNotificationPayload, RewardsRedemptionPayload, StreamProducer, TransactionsPayload, WalletStreamPayload,
 };
 
 #[async_trait::async_trait]
@@ -84,8 +83,7 @@ impl StreamProducerQueue for StreamProducer {
     async fn publish_fetch_transactions(&self, transactions: Vec<TransactionIdRequest>) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let count = transactions.len();
         for transaction in transactions {
-            self.publish_with_routing_key(QueueName::FetchTransactions, transaction.chain.as_ref(), &transaction)
-                .await?;
+            self.publish_with_routing_key(QueueName::FetchTransactions, transaction.chain.as_ref(), &transaction).await?;
         }
         Ok(count)
     }
@@ -177,8 +175,7 @@ impl StreamProducerQueue for StreamProducer {
 
     async fn publish_new_addresses(&self, payload: Vec<ChainAddressPayload>) -> Result<bool, Box<dyn Error + Send + Sync>> {
         for item in &payload {
-            self.publish_to_exchange_with_routing_key(ExchangeName::NewAddresses, item.value.chain.as_ref(), item)
-                .await?;
+            self.publish_to_exchange_with_routing_key(ExchangeName::NewAddresses, item.value.chain.as_ref(), item).await?;
         }
         Ok(true)
     }

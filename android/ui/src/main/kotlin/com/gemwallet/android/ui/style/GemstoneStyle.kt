@@ -1,24 +1,24 @@
 package com.gemwallet.android.ui.style
 
-import com.gemwallet.android.ext.requireChain
-import com.wallet.core.primitives.AssetId
-import com.gemwallet.android.ui.components.list_item.ListItemImage
-import com.gemwallet.android.ui.theme.Emoji
-import uniffi.gemstone.GemBannerIcon
 import androidx.annotation.DrawableRes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyStateImage
 import com.gemwallet.android.ui.components.fields.AmountSymbolPlacement
 import com.gemwallet.android.ui.components.fields.AmountSymbolUIModel
 import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
+import com.gemwallet.android.ui.components.list_item.ListItemImage
+import com.gemwallet.android.ui.components.list_item.ListItemImageStyle
 import com.gemwallet.android.ui.components.list_item.ListItemSymbol
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.theme.Emoji
 import com.gemwallet.android.ui.theme.pendingColor
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.VerificationStatus
@@ -26,11 +26,12 @@ import uniffi.gemstone.ChainAddress
 import uniffi.gemstone.GemAddressFormatStyle
 import uniffi.gemstone.GemAddressServiceInterface
 import uniffi.gemstone.GemAmountInputType
-import uniffi.gemstone.GemDelegationTone
+import uniffi.gemstone.GemBannerIcon
 import uniffi.gemstone.GemEmptyStateImage
 import uniffi.gemstone.GemFiatTransactionBadge
 import uniffi.gemstone.GemHeaderButtonKind
 import uniffi.gemstone.GemNameRecordState
+import uniffi.gemstone.GemNoticeKind
 import uniffi.gemstone.GemSwapProgressStep
 import uniffi.gemstone.GemTransactionStateTone
 import uniffi.gemstone.GemValueTone
@@ -53,16 +54,22 @@ fun GemHeaderButtonKind.iconRes(): Int = when (this) {
 @DrawableRes
 fun GemTransactionStateTone.badgeIconRes(): Int = when (this) {
     GemTransactionStateTone.PENDING -> R.drawable.transaction_state_pending
+
     GemTransactionStateTone.SUCCESS -> R.drawable.transaction_state_success
+
     GemTransactionStateTone.ERROR,
-    GemTransactionStateTone.REFUNDED -> R.drawable.transaction_state_error
+    GemTransactionStateTone.REFUNDED,
+    -> R.drawable.transaction_state_error
 }
 
 @Composable
 fun GemTransactionStateTone.color(): Color = when (this) {
     GemTransactionStateTone.PENDING,
-    GemTransactionStateTone.REFUNDED -> pendingColor
+    GemTransactionStateTone.REFUNDED,
+    -> pendingColor
+
     GemTransactionStateTone.SUCCESS -> MaterialTheme.colorScheme.tertiary
+
     GemTransactionStateTone.ERROR -> MaterialTheme.colorScheme.error
 }
 
@@ -70,7 +77,20 @@ fun GemValueTone.textStyle(): ListItemTextStyle = when (this) {
     GemValueTone.PLAIN -> ListItemTextStyle.Body
     GemValueTone.NEUTRAL -> ListItemTextStyle.Secondary
     GemValueTone.POSITIVE -> ListItemTextStyle.Positive
+    GemValueTone.WARNING -> ListItemTextStyle.Warning
     GemValueTone.NEGATIVE -> ListItemTextStyle.Negative
+}
+
+@Composable
+fun GemNoticeKind.color(): Color = when (this) {
+    GemNoticeKind.ERROR -> MaterialTheme.colorScheme.error
+    GemNoticeKind.WARNING, GemNoticeKind.INFO -> pendingColor
+}
+
+@Composable
+fun GemNoticeKind.icon(): ImageVector = when (this) {
+    GemNoticeKind.ERROR, GemNoticeKind.WARNING -> AppIcons.Warning
+    GemNoticeKind.INFO -> AppIcons.Info
 }
 
 @Composable
@@ -78,6 +98,7 @@ fun GemValueTone.color(): Color = when (this) {
     GemValueTone.PLAIN -> MaterialTheme.colorScheme.onSurface
     GemValueTone.NEUTRAL -> MaterialTheme.colorScheme.secondary
     GemValueTone.POSITIVE -> MaterialTheme.colorScheme.tertiary
+    GemValueTone.WARNING -> pendingColor
     GemValueTone.NEGATIVE -> MaterialTheme.colorScheme.error
 }
 
@@ -88,23 +109,32 @@ fun PerpetualDirection.textStyle(): ListItemTextStyle = when (this) {
 
 fun GemTransactionStateTone.textStyle(): ListItemTextStyle = when (this) {
     GemTransactionStateTone.PENDING,
-    GemTransactionStateTone.REFUNDED -> ListItemTextStyle.Warning
+    GemTransactionStateTone.REFUNDED,
+    -> ListItemTextStyle.Warning
+
     GemTransactionStateTone.SUCCESS -> ListItemTextStyle.Positive
+
     GemTransactionStateTone.ERROR -> ListItemTextStyle.Negative
 }
 
 fun SwapPriceImpactType?.textStyle(): ListItemTextStyle = when (this) {
     SwapPriceImpactType.POSITIVE -> ListItemTextStyle.Positive
+
     SwapPriceImpactType.MEDIUM -> ListItemTextStyle.Warning
+
     SwapPriceImpactType.HIGH -> ListItemTextStyle.Negative
+
     SwapPriceImpactType.LOW,
-    null -> ListItemTextStyle.Secondary
+    null,
+    -> ListItemTextStyle.Secondary
 }
 
 fun VerificationStatus.textStyle(): ListItemTextStyle = when (this) {
     VerificationStatus.Suspicious -> ListItemTextStyle.Negative
+
     VerificationStatus.Unverified,
-    VerificationStatus.Verified -> ListItemTextStyle.Warning
+    VerificationStatus.Verified,
+    -> ListItemTextStyle.Warning
 }
 
 fun GemFiatTransactionBadge.textStyle(): ListItemTextStyle = when (this) {
@@ -114,24 +144,16 @@ fun GemFiatTransactionBadge.textStyle(): ListItemTextStyle = when (this) {
 
 fun GemSwapProgressStep.textStyle(): ListItemTextStyle = when (this) {
     GemSwapProgressStep.COMPLETED -> ListItemTextStyle.Positive
+
     GemSwapProgressStep.PENDING -> ListItemTextStyle.Primary
+
     GemSwapProgressStep.WAITING -> ListItemTextStyle.Faded
+
     GemSwapProgressStep.FAILED,
-    GemSwapProgressStep.REVERTED -> ListItemTextStyle.Negative
+    GemSwapProgressStep.REVERTED,
+    -> ListItemTextStyle.Negative
+
     GemSwapProgressStep.REFUNDED -> ListItemTextStyle.Warning
-}
-
-fun GemDelegationTone.textStyle(): ListItemTextStyle = when (this) {
-    GemDelegationTone.POSITIVE -> ListItemTextStyle.Positive
-    GemDelegationTone.PENDING -> ListItemTextStyle.Warning
-    GemDelegationTone.NEGATIVE -> ListItemTextStyle.Negative
-}
-
-@Composable
-fun GemDelegationTone.color(): Color = when (this) {
-    GemDelegationTone.POSITIVE -> MaterialTheme.colorScheme.tertiary
-    GemDelegationTone.PENDING -> pendingColor
-    GemDelegationTone.NEGATIVE -> MaterialTheme.colorScheme.error
 }
 
 @Composable
@@ -184,8 +206,8 @@ fun GemAmountInputType.amountSymbol(assetSymbol: String, currency: Currency): Am
 fun GemBannerIcon.image(): ListItemImage = when (this) {
     GemBannerIcon.MoneyBag -> ListItemImage.Emoji(Emoji.moneyBag)
     is GemBannerIcon.Network -> ListItemImage.Asset(AssetId(chain.requireChain()))
-    GemBannerIcon.Warning -> ListItemImage.Symbol(ListItemSymbol.Warning)
-    GemBannerIcon.Suspicious -> ListItemImage.Drawable(R.drawable.suspicious)
-    GemBannerIcon.Bitcoin -> ListItemImage.Symbol(ListItemSymbol.CurrencyBitcoin)
-    GemBannerIcon.Perpetuals -> ListItemImage.Drawable(R.drawable.ic_perpetuals)
+    GemBannerIcon.Warning -> ListItemImage.Symbol(ListItemSymbol.Warning, tint = ListItemTextStyle.Secondary, style = ListItemImageStyle.Banner)
+    GemBannerIcon.Suspicious -> ListItemImage.Drawable(R.drawable.suspicious, style = ListItemImageStyle.Banner)
+    GemBannerIcon.Bitcoin -> ListItemImage.Symbol(ListItemSymbol.CurrencyBitcoin, tint = ListItemTextStyle.Secondary, style = ListItemImageStyle.Banner)
+    GemBannerIcon.Perpetuals -> ListItemImage.Drawable(R.drawable.ic_perpetuals, style = ListItemImageStyle.Banner)
 }

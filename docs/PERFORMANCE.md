@@ -4,7 +4,7 @@
 
 Wallet, asset, transaction, confirmation, and swap screens should feel immediate on iOS and Android: no freezes, smooth transitions and scrolling, responsive typing, and refreshes that keep content usable.
 
-Core owns domain logic and orchestration; apps own rendering, observation, and navigation. Fix the layer causing the delay. Follow [Architecture](ARCHITECTURE.md), the [screen-service map](SERVICES.md#screen-services), and [Security](../skills/security.md).
+Core owns domain logic and orchestration; apps own rendering, observation, and navigation. Fix the layer causing the delay. Follow [Architecture](ARCHITECTURE.md), the [screen-service map](ARCHITECTURE.md#screen-services), and [Security](../skills/security.md).
 
 ## Principles
 

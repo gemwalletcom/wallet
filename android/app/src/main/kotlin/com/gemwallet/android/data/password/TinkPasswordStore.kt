@@ -21,11 +21,7 @@ private val PASSWORD_STORE_CONFIG = TinkStoreConfig(
     masterKeyAlias = PASSWORD_STORE_MASTER_KEY_ALIAS,
 )
 
-class TinkPasswordStore internal constructor(
-    private val encryptedStore: SecureStringStore,
-    private val legacyStore: SecureStringStore,
-    private val random: SecureRandom,
-) : PasswordStore {
+class TinkPasswordStore internal constructor(private val encryptedStore: SecureStringStore, private val legacyStore: SecureStringStore, private val random: SecureRandom) : PasswordStore {
 
     constructor(context: Context) : this(
         encryptedStore = TinkEncryptedKeyValueStore.create(
@@ -54,13 +50,11 @@ class TinkPasswordStore internal constructor(
         }
     }
 
-    override fun removePassword(key: String): Boolean =
-        encryptedStore.removeString(key) and legacyStore.removeString(key)
+    override fun removePassword(key: String): Boolean = encryptedStore.removeString(key) and legacyStore.removeString(key)
 
     override fun hasPassword(key: String): Boolean = encryptedStore.getOrMigrate(legacyStore, key) != null
 
-    override fun getPassword(key: String): String =
-        encryptedStore.getOrMigrate(legacyStore, key) ?: throw PasswordNotFoundException()
+    override fun getPassword(key: String): String = encryptedStore.getOrMigrate(legacyStore, key) ?: throw PasswordNotFoundException()
 
     override fun putPassword(key: String, password: String) {
         encryptedStore.putString(key, password)

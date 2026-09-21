@@ -34,15 +34,10 @@ impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for YoParser {
             return None;
         };
 
-        let log = context.metadata.receipt.logs.iter().find(|log| {
-            log.topics.len() == 3
-                && log.topics.first().is_some_and(|topic| topic == TRANSFER_TOPIC)
-                && log
-                    .topics
-                    .get(topic_index)
-                    .and_then(|topic| ethereum_address_from_topic(topic))
-                    .is_some_and(|address| address == from)
-        })?;
+        let log =
+            context.metadata.receipt.logs.iter().find(|log| {
+                log.topics.len() == 3 && log.topics.first().is_some_and(|topic| topic == TRANSFER_TOPIC) && log.topics.get(topic_index).and_then(|topic| ethereum_address_from_topic(topic)).is_some_and(|address| address == from)
+            })?;
         let token_id = ethereum_address_checksum(&log.address).ok()?;
         let value = ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE)?;
 

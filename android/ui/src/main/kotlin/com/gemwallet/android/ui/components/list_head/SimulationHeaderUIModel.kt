@@ -8,10 +8,7 @@ import com.wallet.core.primitives.Asset
 import uniffi.gemstone.GemSimulationValue
 import uniffi.gemstone.GemValueStyle
 
-data class SimulationHeaderUIModel(
-    val asset: Asset,
-    val amount: String,
-)
+data class SimulationHeaderUIModel(val asset: Asset, val amount: String)
 
 fun GemSimulationValue.headerUIModel(context: Context): SimulationHeaderUIModel {
     val asset = this.asset.toPrimitives()

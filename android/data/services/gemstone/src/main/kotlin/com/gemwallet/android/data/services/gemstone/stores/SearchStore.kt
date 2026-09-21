@@ -7,15 +7,10 @@ import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.ext.toPrimitives
 import uniffi.gemstone.GemSearchStore
 
-class GemstoneSearchStore(
-    private val searchDao: SearchDao,
-    private val assetListDao: AssetListDao,
-) : GemSearchStore {
-    override suspend fun setAssets(key: String, assetIds: List<String>) =
-        searchDao.putAssets(key, assetIds.mapIndexed { index, id -> DbSearch(query = key, assetId = id, priority = index) })
+class GemstoneSearchStore(private val searchDao: SearchDao, private val assetListDao: AssetListDao) : GemSearchStore {
+    override suspend fun setAssets(key: String, assetIds: List<String>) = searchDao.putAssets(key, assetIds.mapIndexed { index, id -> DbSearch(query = key, assetId = id, priority = index) })
 
-    override suspend fun setPerpetuals(key: String, perpetualIds: List<String>) =
-        searchDao.putPerpetuals(key, perpetualIds.mapIndexed { index, id -> DbSearch(query = key, perpetualId = id, priority = index) })
+    override suspend fun setPerpetuals(key: String, perpetualIds: List<String>) = searchDao.putPerpetuals(key, perpetualIds.mapIndexed { index, id -> DbSearch(query = key, perpetualId = id, priority = index) })
 
     override suspend fun setLists(key: String, lists: List<uniffi.gemstone.AssetList>) {
         val items = lists.map { it.toPrimitives() }

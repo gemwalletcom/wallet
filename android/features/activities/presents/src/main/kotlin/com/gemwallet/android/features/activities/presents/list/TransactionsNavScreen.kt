@@ -12,13 +12,7 @@ import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.wallet.core.primitives.TransactionId
 
 @Composable
-fun TransactionsNavScreen(
-    onTransaction: (TransactionId) -> Unit,
-    onBuy: (() -> Unit)? = null,
-    onReceive: (() -> Unit)? = null,
-    listState: LazyListState = rememberLazyListState(),
-    viewModel: TransactionsViewModel = hiltViewModel()
-) {
+fun TransactionsNavScreen(onTransaction: (TransactionId) -> Unit, onBuy: (() -> Unit)? = null, onReceive: (() -> Unit)? = null, listState: LazyListState = rememberLazyListState(), viewModel: TransactionsViewModel = hiltViewModel()) {
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val chainFilter by viewModel.chainsFilter.collectAsStateWithLifecycle()
@@ -26,6 +20,7 @@ fun TransactionsNavScreen(
     val showsNoResults by viewModel.showsNoResults.collectAsStateWithLifecycle()
     val walletId by viewModel.walletId.collectAsStateWithLifecycle()
     val availableChains by viewModel.availableChains.collectAsStateWithLifecycle()
+    val errorRow by viewModel.errorRow.collectAsStateWithLifecycle()
 
     LaunchedEffect(walletId) {
         viewModel.syncIfNeeded()
@@ -37,6 +32,7 @@ fun TransactionsNavScreen(
     TransactionsScene(
         isRefreshing = isRefreshing,
         transactions = transactions,
+        errorRow = errorRow,
         availableChains = availableChains,
         chainsFilter = chainFilter,
         typeFilter = typeFilter,

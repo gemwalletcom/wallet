@@ -2,12 +2,7 @@ package com.gemwallet.android.testkit
 
 import com.wallet.core.primitives.AssetMetaData
 
-fun mockAssetMetaData(
-    isSellEnabled: Boolean = false,
-    isStakeEnabled: Boolean = false,
-    isPinned: Boolean = false,
-    stakingApr: Double? = null,
-) = AssetMetaData(
+fun mockAssetMetaData(isSellEnabled: Boolean = false, isStakeEnabled: Boolean = false, isPinned: Boolean = false, stakingApr: Double? = null) = AssetMetaData(
     isEnabled = true,
     isBalanceEnabled = true,
     isBuyEnabled = false,

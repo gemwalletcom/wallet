@@ -1,7 +1,7 @@
 use num_bigint::BigUint;
 use primitives::{AssetId, Chain};
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use super::UInt64;
 use crate::models::token::{BigInt, TokenBalance, TokenBalanceChange};
@@ -55,45 +55,24 @@ impl Meta {
     }
 
     pub fn get_token_balance_changes_by_owner(&self, owner: &str) -> Vec<TokenBalanceChange> {
-        let pre_balances: HashMap<_, _> = self
-            .pre_token_balances
-            .iter()
-            .filter(|b| b.owner == owner)
-            .map(|b| (b.mint.clone(), b.get_amount()))
-            .collect();
+        let mut deltas: HashMap<String, BigInt> = HashMap::new();
+        for balance in self.post_token_balances.iter().filter(|balance| balance.owner == owner) {
+            *deltas.entry(balance.mint.clone()).or_default() += BigInt::from(balance.get_amount());
+        }
+        for balance in self.pre_token_balances.iter().filter(|balance| balance.owner == owner) {
+            *deltas.entry(balance.mint.clone()).or_default() -= BigInt::from(balance.get_amount());
+        }
 
-        let post_balances: HashMap<_, _> = self
-            .post_token_balances
-            .iter()
-            .filter(|b| b.owner == owner)
-            .map(|b| (b.mint.clone(), b.get_amount()))
-            .collect();
-        let all_mints: HashSet<_> = pre_balances.keys().chain(post_balances.keys()).cloned().collect();
-
-        all_mints
+        let mut changes: Vec<TokenBalanceChange> = deltas
             .into_iter()
-            .filter_map(|mint| {
-                let asset_id = AssetId::from_token(Chain::Solana, &mint);
-                let pre_amount = pre_balances.get(&mint).cloned().unwrap_or_else(|| BigUint::from(0u64));
-                let post_amount = post_balances.get(&mint).cloned().unwrap_or_else(|| BigUint::from(0u64));
-
-                if post_amount > pre_amount {
-                    let diff = &post_amount - &pre_amount;
-                    Some(TokenBalanceChange {
-                        asset_id,
-                        amount: BigInt::from_biguint(num_bigint::Sign::Plus, diff),
-                    })
-                } else if pre_amount > post_amount {
-                    let diff = &pre_amount - &post_amount;
-                    Some(TokenBalanceChange {
-                        asset_id,
-                        amount: BigInt::from_biguint(num_bigint::Sign::Minus, diff),
-                    })
-                } else {
-                    None
-                }
+            .filter(|(_, amount)| *amount != BigInt::from(0))
+            .map(|(mint, amount)| TokenBalanceChange {
+                asset_id: AssetId::from_token(Chain::Solana, &mint),
+                amount,
             })
-            .collect()
+            .collect();
+        changes.sort_by_key(|change| change.asset_id.to_string());
+        changes
     }
 }
 
@@ -164,14 +143,7 @@ impl BlockTransaction {
 
     pub fn get_balance_changes_by_owner(&self, owner: &str) -> TokenBalanceChange {
         // Find all account indices that belong to the owner
-        let account_indices: Vec<usize> = self
-            .transaction
-            .message
-            .account_keys
-            .iter()
-            .enumerate()
-            .filter_map(|(i, k)| if k == owner { Some(i) } else { None })
-            .collect();
+        let account_indices: Vec<usize> = self.transaction.message.account_keys.iter().enumerate().filter_map(|(i, k)| if k == owner { Some(i) } else { None }).collect();
 
         let (total_pre, total_post) = account_indices.into_iter().fold((0u64, 0u64), |(pre_acc, post_acc), idx| {
             let pre = *self.meta.pre_balances.get(idx).unwrap_or(&0);
@@ -179,20 +151,20 @@ impl BlockTransaction {
             (pre_acc.wrapping_add(pre), post_acc.wrapping_add(post))
         });
 
-        let (sign, diff) = if total_post > total_pre {
-            let diff = total_post - total_pre;
-            (num_bigint::Sign::Plus, BigUint::from(diff))
-        } else {
-            let diff = total_pre - total_post;
-            (num_bigint::Sign::Minus, BigUint::from(diff))
+        let delta = BigInt::from(total_post) - BigInt::from(total_pre);
+        let amount = match self.is_fee_payer(owner) {
+            true => delta + BigInt::from(self.meta.fee),
+            false => delta,
         };
-        let fee = self.fee();
-        let data = if fee > diff { BigUint::from(0u64) } else { diff - fee };
 
         TokenBalanceChange {
             asset_id: Chain::Solana.as_asset_id(),
-            amount: BigInt::from_biguint(sign, data),
+            amount,
         }
+    }
+
+    fn is_fee_payer(&self, owner: &str) -> bool {
+        self.transaction.message.account_keys.first().is_some_and(|key| key == owner)
     }
 }
 
@@ -277,6 +249,57 @@ mod tests {
     fn test_balance_change_received() {
         let tx = BlockTransaction::mock(&["sender"], vec![100_000], vec![200_000]);
         assert_eq!(tx.get_balance_change("sender"), 0);
+    }
+
+    #[test]
+    fn test_token_accounts_sharing_a_mint_are_summed_into_one_change() {
+        let mint = "So11111111111111111111111111111111111111112";
+        let other = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB";
+        let mut transaction = BlockTransaction::mock(&["owner"], vec![0], vec![0]);
+        transaction.meta.pre_token_balances = vec![
+            TokenBalance::mock(mint, "owner", 300),
+            TokenBalance::mock(other, "owner", 50),
+            TokenBalance::mock(mint, "owner", 700),
+            TokenBalance::mock(mint, "someone-else", 9_000),
+        ];
+        transaction.meta.post_token_balances = vec![TokenBalance::mock(mint, "owner", 250)];
+
+        let changes = transaction.meta.get_token_balance_changes_by_owner("owner");
+
+        assert_eq!(
+            changes,
+            vec![
+                TokenBalanceChange {
+                    asset_id: AssetId::from_token(Chain::Solana, other),
+                    amount: BigInt::from(-50),
+                },
+                TokenBalanceChange {
+                    asset_id: AssetId::from_token(Chain::Solana, mint),
+                    amount: BigInt::from(-750),
+                },
+            ],
+            "every account of a mint counts, and a closed one counts as zero"
+        );
+
+        transaction.meta.pre_token_balances.reverse();
+        assert_eq!(
+            changes,
+            transaction.meta.get_token_balance_changes_by_owner("owner"),
+            "the order the node listed the accounts in does not change the net amount"
+        );
+    }
+
+    #[test]
+    fn test_the_owner_balance_change_restores_the_fee_only_for_the_account_that_paid_it() {
+        let sent = BlockTransaction::mock(&["sender", "recipient"], vec![100_000, 0], vec![85_000, 10_000]);
+        assert_eq!(sent.get_balance_changes_by_owner("sender").amount, BigInt::from(-10_000), "the payer sent the transfer, not the transfer plus its fee");
+
+        let received = BlockTransaction::mock(&["receiver"], vec![100_000], vec![200_000]);
+        assert_eq!(received.get_balance_changes_by_owner("receiver").amount, BigInt::from(105_000), "a payer who receives already paid the fee out of what arrived");
+
+        let sponsored = BlockTransaction::mock(&["payer", "owner"], vec![100_000, 0], vec![90_000, 5_000]);
+        assert_eq!(sponsored.get_balance_changes_by_owner("owner").amount, BigInt::from(5_000), "an account that paid no fee has none to restore");
+        assert_eq!(sponsored.get_balance_changes_by_owner("unknown").amount, BigInt::from(0));
     }
 
     #[test]

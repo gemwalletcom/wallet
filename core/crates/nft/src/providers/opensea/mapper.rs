@@ -35,27 +35,17 @@ impl Nft {
             name: self.name.clone(),
             description: Some(self.description.clone()),
             resource: NFTResource::from_url(resource_url),
-            images: NFTImages {
-                preview: NFTResource::from_url(preview_url),
-            },
+            images: NFTImages { preview: NFTResource::from_url(preview_url) },
             attributes: traits.iter().flat_map(|x| x.as_attribute()).collect(),
         })
     }
 
     fn resource_url(&self) -> &str {
-        self.image_url
-            .as_deref()
-            .or(self.original_image_url.as_deref())
-            .or(self.display_image_url.as_deref())
-            .unwrap_or_default()
+        self.image_url.as_deref().or(self.original_image_url.as_deref()).or(self.display_image_url.as_deref()).unwrap_or_default()
     }
 
     fn preview_url(&self) -> &str {
-        self.display_image_url
-            .as_deref()
-            .or(self.image_url.as_deref())
-            .or(self.original_image_url.as_deref())
-            .unwrap_or_default()
+        self.display_image_url.as_deref().or(self.image_url.as_deref()).or(self.original_image_url.as_deref()).unwrap_or_default()
     }
 
     fn as_type(&self) -> Option<NFTType> {
@@ -244,11 +234,7 @@ mod tests {
     #[test]
     fn test_map_asset_with_null_image_urls() {
         let response: NftResponse = serde_json::from_str(include_str!("../../../testdata/opensea/asset_null_images.json")).unwrap();
-        let asset_id = NFTAssetId::new(
-            Chain::Ethereum,
-            "0xd4416b13d2b3a9abae7acd5d6c2bbdbe25686401",
-            "66972740172774133895361774757009899712806299063970949277266423600598010529206",
-        );
+        let asset_id = NFTAssetId::new(Chain::Ethereum, "0xd4416b13d2b3a9abae7acd5d6c2bbdbe25686401", "66972740172774133895361774757009899712806299063970949277266423600598010529206");
 
         let nft_asset = map_asset(response, asset_id).unwrap();
 
@@ -271,11 +257,7 @@ mod tests {
     #[test]
     fn test_map_ens_date_attributes() {
         let response: NftResponse = serde_json::from_str(include_str!("../../../testdata/opensea/asset_ens_dates.json")).unwrap();
-        let asset_id = NFTAssetId::new(
-            Chain::Ethereum,
-            "0xd4416b13d2b3a9abae7acd5d6c2bbdbe25686401",
-            "91780768891665961085574300632320337237649359513314798633242628975887494917390",
-        );
+        let asset_id = NFTAssetId::new(Chain::Ethereum, "0xd4416b13d2b3a9abae7acd5d6c2bbdbe25686401", "91780768891665961085574300632320337237649359513314798633242628975887494917390");
 
         let nft_asset = map_asset(response, asset_id).unwrap();
 

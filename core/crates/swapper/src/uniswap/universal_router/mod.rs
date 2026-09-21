@@ -8,10 +8,7 @@ use crate::{
 };
 use gem_evm::uniswap::{
     FeeTier,
-    deployment::v3::{
-        V3Deployment, get_aerodrome_router_deployment_by_chain, get_oku_deployment_by_chain, get_pancakeswap_router_deployment_by_chain, get_uniswap_router_deployment_by_chain,
-        get_wagmi_router_deployment_by_chain,
-    },
+    deployment::v3::{V3Deployment, get_aerodrome_router_deployment_by_chain, get_oku_deployment_by_chain, get_pancakeswap_router_deployment_by_chain, get_uniswap_router_deployment_by_chain, get_wagmi_router_deployment_by_chain},
 };
 use primitives::Chain;
 use std::sync::Arc;
@@ -77,11 +74,7 @@ pub fn new_aerodrome(rpc_provider: Arc<dyn RpcProvider>) -> UniswapV3 {
 }
 
 pub fn new_oku(rpc_provider: Arc<dyn RpcProvider>) -> UniswapV3 {
-    let router = UniversalRouter::new(
-        SwapperProvider::Oku,
-        vec![FeeTier::Hundred, FeeTier::FiveHundred, FeeTier::ThreeThousand, FeeTier::TenThousand],
-        get_oku_deployment_by_chain,
-    );
+    let router = UniversalRouter::new(SwapperProvider::Oku, vec![FeeTier::Hundred, FeeTier::FiveHundred, FeeTier::ThreeThousand, FeeTier::TenThousand], get_oku_deployment_by_chain);
     UniswapV3::new(Box::new(router), rpc_provider)
 }
 

@@ -1,4 +1,4 @@
-use crate::{FUNGIBLE_ASSET_DEPOSIT_EVENT, FUNGIBLE_ASSET_WITHDRAW_EVENT, NO_ACCOUNT_SIGNATURE_TYPE, STAKE_DEPOSIT_EVENT, STAKE_WITHDRAW_EVENT};
+use crate::{FEE_PAYER_SIGNATURE_TYPE, FUNGIBLE_ASSET_DEPOSIT_EVENT, FUNGIBLE_ASSET_WITHDRAW_EVENT, NO_ACCOUNT_SIGNATURE_TYPE, SIMULATION_FEE_PAYER_ADDRESS, STAKE_DEPOSIT_EVENT, STAKE_WITHDRAW_EVENT};
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_biguint_from_str, deserialize_option_biguint_from_str, deserialize_option_u64_from_str, deserialize_u64_from_str};
@@ -8,6 +8,7 @@ pub struct Transaction {
     pub hash: Option<String>,
     pub sender: Option<String>,
     pub success: bool,
+    pub vm_status: Option<String>,
     #[serde(default, deserialize_with = "deserialize_option_u64_from_str")]
     pub gas_used: Option<u64>,
     #[serde(default, deserialize_with = "deserialize_option_u64_from_str")]
@@ -93,6 +94,30 @@ impl TransactionSignature {
     }
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub struct SponsoredSimulationSignature {
+    #[serde(rename = "type")]
+    pub signature_type: String,
+    pub sender: TransactionSignature,
+    pub secondary_signer_addresses: Vec<String>,
+    pub secondary_signers: Vec<TransactionSignature>,
+    pub fee_payer_address: String,
+    pub fee_payer_signer: TransactionSignature,
+}
+
+impl SponsoredSimulationSignature {
+    pub fn unsigned() -> Self {
+        Self {
+            signature_type: FEE_PAYER_SIGNATURE_TYPE.to_string(),
+            sender: TransactionSignature::no_account(),
+            secondary_signer_addresses: vec![],
+            secondary_signers: vec![],
+            fee_payer_address: SIMULATION_FEE_PAYER_ADDRESS.to_string(),
+            fee_payer_signer: TransactionSignature::no_account(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SimulateTransactionQuery {
     pub estimate_max_gas_amount: bool,
@@ -100,7 +125,7 @@ pub struct SimulateTransactionQuery {
     pub estimate_prioritized_gas_unit_price: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct TransactionSimulation {
     pub expiration_timestamp_secs: String,
     pub gas_unit_price: String,
@@ -108,7 +133,7 @@ pub struct TransactionSimulation {
     pub payload: TransactionPayload,
     pub sender: String,
     pub sequence_number: String,
-    pub signature: TransactionSignature,
+    pub signature: SponsoredSimulationSignature,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

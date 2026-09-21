@@ -8,9 +8,7 @@ use primitives::BroadcastOptions;
 use crate::{
     provider::{
         BroadcastProvider,
-        transaction_broadcast_mapper::{
-            map_transaction_broadcast_request, map_transaction_broadcast_response, map_transaction_broadcast_response_from_grpc, map_transaction_broadcast_response_from_str,
-        },
+        transaction_broadcast_mapper::{map_transaction_broadcast_request, map_transaction_broadcast_response, map_transaction_broadcast_response_from_grpc, map_transaction_broadcast_response_from_str},
     },
     rpc::SuiProvider,
 };

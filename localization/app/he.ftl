@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = נכס לא נתמך.
 errors_connections_no_supported_wallets = אין ארנקים נתמכים זמינים.
 errors_connections_unsupported_chain = השרשרת שסופקה אינה נתמכת.
 errors_swap_amount_too_small = סכום קטן מדי
-errors_required = נדרש %@
 errors_scan_transaction_malicious_description = לא ניתן להשלים עסקה זו - כתובת ארנק היעד מקושרת לפעילות חשודה או מזיקה.
 errors_scan_transaction_memo_required = כתובת ארנק היעד %@ דורשת תגית יעד / תזכיר
 errors_scan_transaction_malicious_title = פעילות חשודה
@@ -315,7 +314,7 @@ asset_symbol = סמל
 asset_decimals = עשרוניות
 asset_token_id = מזהה אסימון
 asset_contract = חוֹזֶה
-asset_state_empty_title = העסקאות שלך יופיעו כאן️
+asset_state_empty_title = העסקאות שלך יופיעו כאן
 asset_state_empty_description = קבל, החלף או קנה %@
 asset_verification_unverified = לא מאומת
 asset_verification_suspicious = חָשׁוּד
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = כאשר המחיר יורד ב-
 price_alerts_set_alert_set_target_price = קביעת מחיר יעד
 price_alerts_set_alert_current_price = מחיר נוכחי
 price_alerts_added_for = הגדר התראת מחיר %@
-price_alerts_state_empty_title = ההתראות שלך יופיעו כאן️
+price_alerts_state_empty_title = ההתראות שלך יופיעו כאן
 price_alerts_state_empty_description = אפשרו להם על ידי הוספת מטבעות למעקב
 price_alerts_auto_footer = התראות מופעלות על תנודות משמעותיות במחיר.
 price_alerts_set_alert_title = הגדר התראת מחיר
@@ -536,7 +535,7 @@ verify_phrase_title = לְאַשֵׁר
 
 # Warnings
 
-warnings_multi_signature_blocked = אל תעביר כספים לארנק ריבוי חתימות %@ זה אלא אם אתה בטוח שאתה שולט במפתחות הפרטיים. אם לא תעשה זאת, אתה עלול להיחשף להונאות ולאבד לצמיתות את הנכסים שלך.
+warnings_externally_controlled_account = ייתכן שמישהו אחר שולט בחשבון %@ זה. אל תשלח אליו כספים אלא אם אתה בטוח שאתה שולט בו, אחרת אתה עלול לאבד את הנכסים שלך לצמיתות.
 
 # Sell
 
@@ -581,7 +580,7 @@ info_fully_diluted_valuation_title = הערכה מדוללת לחלוטין
 info_fully_diluted_valuation_description = שווי השוק התיאורטי אם כל המטבעות היו במחזור. מחושב כמחיר כפול היצע מקסימלי.
 info_circulating_supply_description = מספר המטבעות הזמינים ונסחרים כעת בשוק.
 info_total_supply_description = המספר הכולל של מטבעות שקיימים, כולל מטבעות נעולים או שמורים.
-info_max_supply_title = אספקה ​​מקסימלית
+info_max_supply_title = אספקה מקסימלית
 info_max_supply_description = המספר המקסימלי של מטבעות שאי פעם יהיה קיים.
 info_perpetual_funding_apr_title = APR מימון
 info_perpetual_funding_apr_description = השיעור השנתי שבו לונג משלם שורט (אם שלילי, שורט משלם לונג). אין עמלות הקשורות למימון, שהוא העברה עמית לעמית בין משתמשים כדי לדחוף את המחירים לכיוון מחיר הספוט.
@@ -600,7 +599,7 @@ nft_collections = אוספים
 nft_collection = אוסף
 nft_save_to_photos = שמור בתמונות
 nft_set_as_avatar = הגדר כאווטר
-nft_state_empty_title = ה-NFT שלך יופיע כאן️
+nft_state_empty_title = ה-NFT שלך יופיע כאן
 nft_state_empty_description = קבל את ה-NFT הראשון שלך
 nft_report_reason_spam = ספאם
 nft_report_reason_malicious = זְדוֹנִי

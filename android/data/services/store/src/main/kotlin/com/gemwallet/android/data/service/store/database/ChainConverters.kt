@@ -12,15 +12,12 @@ class ChainConverters {
     fun fromChain(value: Chain): String = value.string
 
     @TypeConverter
-    fun toChain(value: String): Chain {
-        return Chain.entries.firstOrNull { it.string == value }
-            ?: throw IllegalArgumentException("Unknown chain: $value")
-    }
+    fun toChain(value: String): Chain = Chain.entries.firstOrNull { it.string == value }
+        ?: throw IllegalArgumentException("Unknown chain: $value")
 
     @TypeConverter
     fun fromChains(value: List<Chain>): String = jsonEncoder.encodeToString(chainsSerializer, value)
 
     @TypeConverter
-    fun toChains(value: String): List<Chain> =
-        runCatching { jsonEncoder.decodeFromString(chainsSerializer, value) }.getOrDefault(emptyList())
+    fun toChains(value: String): List<Chain> = runCatching { jsonEncoder.decodeFromString(chainsSerializer, value) }.getOrDefault(emptyList())
 }

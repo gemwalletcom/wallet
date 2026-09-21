@@ -106,24 +106,12 @@ pub fn node_check_request(chain: Chain, profile: NodeCheckProfile) -> NodeCheckR
 
 fn wallet_node_check_request(chain: Chain) -> NodeCheckRequest {
     let (address, transaction_id) = match chain {
-        Chain::Bitcoin => (
-            "bc1qk9cu0nj5czvalnvmlsyc8tmqh8d6f0v9plrrdr",
-            Some("654c6a28f7ff1915d2b9abc2e18e32a37e0196203d64aced6221651f003f5e94"),
-        ),
-        Chain::BitcoinCash => (
-            "qpcns7lget89x9km0t8ry5fk52e8lhl53q0a64gd65",
-            Some("8d8da67e2a629e30520f105d9f8bb49568e691b1da862d9c01e6c4037a934210"),
-        ),
-        Chain::Litecoin => (
-            "ltc1qanrz523v9cxw5ng6unlkwfn3yzqllmxzyrd4zs",
-            Some("a4098d7e973f72b611577717cd1a9e270bbcee1bcbf2f991205236811caa0b01"),
-        ),
+        Chain::Bitcoin => ("bc1qk9cu0nj5czvalnvmlsyc8tmqh8d6f0v9plrrdr", Some("654c6a28f7ff1915d2b9abc2e18e32a37e0196203d64aced6221651f003f5e94")),
+        Chain::BitcoinCash => ("qpcns7lget89x9km0t8ry5fk52e8lhl53q0a64gd65", Some("8d8da67e2a629e30520f105d9f8bb49568e691b1da862d9c01e6c4037a934210")),
+        Chain::Litecoin => ("ltc1qanrz523v9cxw5ng6unlkwfn3yzqllmxzyrd4zs", Some("a4098d7e973f72b611577717cd1a9e270bbcee1bcbf2f991205236811caa0b01")),
         Chain::Ethereum => (DEFAULT_EVM_ADDRESS, Some("0x98dd4d9a586620f84e8066f1b015d663f9c0c94c4e0e02377840c3e6d43e2ad3")),
         Chain::SmartChain => (DEFAULT_EVM_ADDRESS, Some("0xa9f6e1d1a02ba5bb5aa9b3c83773ef9ac6d8fe9abb1fa4512d422f0194d5d833")),
-        Chain::Solana => (
-            "8wytzyCBXco7yqgrLDiecpEt452MSuNWRe7xsLgAAX1H",
-            Some("4dHnggcXjvmMJY2J6iGqse12PeCYQzuTySgwJa36K8MuntmwNrCNztvYRX5ZGpQXzKjaf7g5vaZM7LTuXLNbi2Zx"),
-        ),
+        Chain::Solana => ("8wytzyCBXco7yqgrLDiecpEt452MSuNWRe7xsLgAAX1H", Some("4dHnggcXjvmMJY2J6iGqse12PeCYQzuTySgwJa36K8MuntmwNrCNztvYRX5ZGpQXzKjaf7g5vaZM7LTuXLNbi2Zx")),
         Chain::Polygon => (DEFAULT_EVM_ADDRESS, Some("0x3d4eb72380e6095d0667c6ec3420719dbec7d1d8b1628464a03ee6850ee716ed")),
         Chain::Thorchain => ("thor1gjkawwc7m9ena873fgckvm20f5wh556a3ug890", None),
         Chain::Mayachain => ("maya1cvh8mpz04az0x7vht6h6ekksg8wd650rh4cuda", None),
@@ -132,23 +120,14 @@ fn wallet_node_check_request(chain: Chain) -> NodeCheckRequest {
         Chain::Arbitrum => (DEFAULT_EVM_ADDRESS, Some("0x6a38409d346190d38a28be23db35dcda5dc88df0de99c23049c967c388359857")),
         Chain::Ton => ("UQAzoUpalAaXnVm5MoiYWRZguLFzY0KxFjLv3MkRq5BXz3VV", Some("gyjq/7IJ5KpSvZlnwixaS3RjI2xk1+5pup0k++S/yXY=")),
         Chain::Tron => ("TFdTEn9dJuqh351y8fyJ3eMmghFsZNwakb", None),
-        Chain::Doge => (
-            "DMKhUaRmnxJXfDxyFguMnMjVdgvnNipFzt",
-            Some("a3d087183ce022bb679682aa989589bb0456180f34ed5daa96f8e4988b26968b"),
-        ),
-        Chain::Zcash => (
-            "t1bGQcsCLuyYJyRHep6pKwtMYdi1XFrvjho",
-            Some("b1038ceffc1ce6eeab15d9254e7fe84e81808e1d40affba2b8792b21314c1f03"),
-        ),
+        Chain::Doge => ("DMKhUaRmnxJXfDxyFguMnMjVdgvnNipFzt", Some("a3d087183ce022bb679682aa989589bb0456180f34ed5daa96f8e4988b26968b")),
+        Chain::Zcash => ("t1bGQcsCLuyYJyRHep6pKwtMYdi1XFrvjho", Some("b1038ceffc1ce6eeab15d9254e7fe84e81808e1d40affba2b8792b21314c1f03")),
         Chain::Optimism => (DEFAULT_EVM_ADDRESS, Some("0xc4edd56597745ae8fc8486b2cdf003ea52d9b37b0f72361eff3b5d73d62ae731")),
         Chain::Aptos => ("0x6467997d9c3a5bc9f714e17a168984595ce9bec7350645713a1fe7983a7f5fcc", None),
         Chain::Base => (DEFAULT_EVM_ADDRESS, Some("0xb7f529ed53a7f716976cd53520677260b53edf011da7573374ccf8705b6b4a8e")),
         Chain::AvalancheC => (DEFAULT_EVM_ADDRESS, Some("0x64317b42490640403cb5a1c0c9c8672a7aa6f0216f372be8113d1ea84ad7ce0d")),
         Chain::Sui => ("0x93f65b8c16c263343bbf66cf9f8eef69cb1dbc92d13f0c331b0dcaeb76b4aab6", None),
-        Chain::Xrp => (
-            "rnZmVGX6f4pUYyS4oXYJzoLdRojQV8y297",
-            Some("474F58E6C78F1DE8542036AB3C16E2B5A4089241DEE3E58142154DC3CA0E8271"),
-        ),
+        Chain::Xrp => ("rnZmVGX6f4pUYyS4oXYJzoLdRojQV8y297", Some("474F58E6C78F1DE8542036AB3C16E2B5A4089241DEE3E58142154DC3CA0E8271")),
         Chain::OpBNB => (DEFAULT_EVM_ADDRESS, Some("0x8581e4d41399e899fcf0e828b3b986b45854375d617ce5abc565afbd54741955")),
         Chain::Fantom => (DEFAULT_EVM_ADDRESS, Some("0x2c2c6b8a00eab2a8d948ee5ecf95730642ce03230870fe4e24657bfdff170254")),
         Chain::Gnosis => (DEFAULT_EVM_ADDRESS, Some("0x3b6f77ef3007b5e54fe8de3b3bcda971528b35eda0669e4893a97b6a35a4c31c")),
@@ -170,10 +149,7 @@ fn wallet_node_check_request(chain: Chain) -> NodeCheckRequest {
         Chain::Algorand => ("RXIOUIR5IGFZMIZ7CR7FJXDYY4JI7NZG5UCWCZZNWXUPFJRLG6K6X5ITXM", None),
         Chain::Polkadot => ("125YLEK39toTQkLLHA6V4zqc7ixh9VuE4XFbcJfqAByB1pkM", None),
         Chain::Plasma => (DEFAULT_EVM_ADDRESS, Some("0x6d83a79e228ddaa04107afb03cfd1b1b74b24429d322d8e79d756e559895d3a8")),
-        Chain::Cardano => (
-            "addr1q84jz28nx62e2xp084xvgaqfmptca9ljem5yjvvm29n4d9kxp99pxjz0zfy52fep9mkyhcq995q8lpydka3lle58jghsy3zmph",
-            None,
-        ),
+        Chain::Cardano => ("addr1q84jz28nx62e2xp084xvgaqfmptca9ljem5yjvvm29n4d9kxp99pxjz0zfy52fep9mkyhcq995q8lpydka3lle58jghsy3zmph", None),
         Chain::Abstract => (DEFAULT_EVM_ADDRESS, Some("0xe064ad2d215da437b8496a95fc6d6b1124930599ca1eabb9bad515921e666105")),
         Chain::Berachain => (DEFAULT_EVM_ADDRESS, Some("0x6ce80fa54e067a9b36c7280eb93323b588636942805ef3643dd659c070b655bd")),
         Chain::Ink => (DEFAULT_EVM_ADDRESS, Some("0x1e455c14cf075a83e2fb5bbd165ff53cc0eb1699709bdb665f709f8560503527")),
@@ -203,11 +179,7 @@ mod tests {
     #[test]
     fn test_node_check_report() {
         let report = NodeCheckReport {
-            checks: vec![NodeCheckResult::new(
-                "method",
-                NodeCheckStatus::Passed { result: "22820942".to_string() },
-                Duration::from_millis(42),
-            )],
+            checks: vec![NodeCheckResult::new("method", NodeCheckStatus::Passed { result: "22820942".to_string() }, Duration::from_millis(42))],
         };
         assert!(report.is_healthy());
         assert_eq!(report.error(), None);
@@ -224,13 +196,7 @@ mod tests {
         );
 
         let report = NodeCheckReport {
-            checks: vec![NodeCheckResult::new(
-                "optional_method",
-                NodeCheckStatus::Warning {
-                    warning: "method not found".to_string(),
-                },
-                Duration::from_millis(7),
-            )],
+            checks: vec![NodeCheckResult::new("optional_method", NodeCheckStatus::Warning { warning: "method not found".to_string() }, Duration::from_millis(7))],
         };
         assert!(report.is_healthy());
         assert_eq!(report.error(), None);
@@ -247,13 +213,7 @@ mod tests {
         );
 
         let report = NodeCheckReport {
-            checks: vec![NodeCheckResult::new(
-                "method",
-                NodeCheckStatus::Failed {
-                    error: "returned null".to_string(),
-                },
-                Duration::from_millis(3),
-            )],
+            checks: vec![NodeCheckResult::new("method", NodeCheckStatus::Failed { error: "returned null".to_string() }, Duration::from_millis(3))],
         };
         assert!(!report.is_healthy());
         assert_eq!(report.error().as_deref(), Some("method: returned null"));

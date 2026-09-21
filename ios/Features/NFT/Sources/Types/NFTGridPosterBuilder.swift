@@ -43,7 +43,7 @@ public enum NFTGridPosterBuilder {
         GridPosterViewModel(
             assetImage: AssetImage(type: .text(row.title), imageURL: row.imageUrl.asURL),
             title: row.title,
-            count: row.count.map { Int($0) },
+            countText: row.countText,
             isVerified: row.isVerified,
         )
     }

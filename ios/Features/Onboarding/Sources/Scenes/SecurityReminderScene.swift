@@ -22,7 +22,7 @@ struct SecurityReminderScene: View {
             ForEach(model.items, id: \.self) { item in
                 Section {
                     ListItemView(model: model.listItem(for: item))
-                    .listRowInsets(.assetListRowInsets)
+                        .listRowInsets(.assetListRowInsets)
                 }
             }
         }

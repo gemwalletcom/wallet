@@ -14,19 +14,13 @@ pub fn map_market_chart(chart: MarketChart) -> Vec<ChartValue> {
             let ts_ms = *p.first()?;
             let value = *p.get(1)?;
             let ts = DateTime::<Utc>::from_timestamp_millis(ts_ms as i64)?.timestamp() as i32;
-            Some(ChartValue {
-                timestamp: ts,
-                value: value as f32,
-            })
+            Some(ChartValue { timestamp: ts, value: value as f32 })
         })
         .collect()
 }
 
 pub fn map_coin_mappings(id: &str, platforms: &HashMap<String, Option<String>>) -> Vec<AssetPriceMapping> {
-    get_asset_ids_for_coin(id, platforms)
-        .into_iter()
-        .map(|asset_id| AssetPriceMapping::new(asset_id, id.to_string()))
-        .collect()
+    get_asset_ids_for_coin(id, platforms).into_iter().map(|asset_id| AssetPriceMapping::new(asset_id, id.to_string())).collect()
 }
 
 pub fn map_coins_to_mappings(coins: Vec<Coin>) -> Vec<AssetPriceMapping> {
@@ -51,14 +45,7 @@ pub fn map_coins_to_assets(coins: Vec<Coin>, markets_by_id: HashMap<String, Coin
 pub fn map_coin_markets(markets: Vec<CoinMarket>, by_id: &HashMap<String, Vec<AssetPriceMapping>>) -> Vec<AssetPriceFull> {
     markets
         .into_iter()
-        .flat_map(|market| {
-            by_id
-                .get(&market.id)
-                .cloned()
-                .unwrap_or_default()
-                .into_iter()
-                .map(move |mapping| map_coin_market(market.clone(), mapping))
-        })
+        .flat_map(|market| by_id.get(&market.id).cloned().unwrap_or_default().into_iter().map(move |mapping| map_coin_market(market.clone(), mapping)))
         .collect()
 }
 
@@ -66,11 +53,7 @@ pub fn map_coin_market(market: CoinMarket, mapping: AssetPriceMapping) -> AssetP
     let updated_at = market.last_updated.unwrap_or_else(Utc::now);
     let price = market.current_price.unwrap_or_default();
     let market_data = coin_market_to_asset_market(&market);
-    AssetPriceFull::new(
-        mapping,
-        Price::new(price, market.price_change_percentage_24h.unwrap_or_default(), updated_at, PriceProvider::Coingecko),
-        Some(market_data),
-    )
+    AssetPriceFull::new(mapping, Price::new(price, market.price_change_percentage_24h.unwrap_or_default(), updated_at, PriceProvider::Coingecko), Some(market_data))
 }
 
 pub fn coin_market_to_asset_market(market: &CoinMarket) -> AssetMarket {
@@ -157,12 +140,7 @@ fn platform_diversity_score(platform_count: usize) -> i32 {
 }
 
 fn social_score(coin_info: &CoinInfo) -> i32 {
-    let twitter_score = coin_info
-        .community_data
-        .as_ref()
-        .filter(|d| d.twitter_followers.unwrap_or_default() > 128_000)
-        .map(|_| 1)
-        .unwrap_or_default();
+    let twitter_score = coin_info.community_data.as_ref().filter(|d| d.twitter_followers.unwrap_or_default() > 128_000).map(|_| 1).unwrap_or_default();
 
     let watchlist = coin_info.watchlist_portfolio_users.unwrap_or_default() as i32;
     let watchlist_score = if watchlist > 1_000_000 {
@@ -178,10 +156,7 @@ fn social_score(coin_info: &CoinInfo) -> i32 {
 
 fn map_coin_info_links(coin_info: &CoinInfo) -> Vec<AssetLink> {
     let links = &coin_info.links;
-    let mut results = vec![AssetLink::new(
-        &format!("https://www.coingecko.com/coins/{}", coin_info.id.to_lowercase()),
-        LinkType::Coingecko,
-    )];
+    let mut results = vec![AssetLink::new(&format!("https://www.coingecko.com/coins/{}", coin_info.id.to_lowercase()), LinkType::Coingecko)];
 
     if let Some(value) = links.twitter_screen_name.as_ref().filter(|v| !v.is_empty()) {
         results.push(AssetLink::new(&format!("https://x.com/{value}"), LinkType::X));
@@ -218,14 +193,8 @@ mod tests {
     #[test]
     fn test_map_coin_markets_preserves_platform_mappings() {
         let provider_price_id = "atua-ai".to_string();
-        let ethereum = AssetPriceMapping::new(
-            AssetId::from_token(Chain::Ethereum, "0x791A5c2261823dBF69b27B63E851B7745532Cfa2"),
-            provider_price_id.clone(),
-        );
-        let smartchain = AssetPriceMapping::new(
-            AssetId::from_token(Chain::SmartChain, "0x36b2269FD151208a4bfc3DEA503E0a6F2485fA78"),
-            provider_price_id.clone(),
-        );
+        let ethereum = AssetPriceMapping::new(AssetId::from_token(Chain::Ethereum, "0x791A5c2261823dBF69b27B63E851B7745532Cfa2"), provider_price_id.clone());
+        let smartchain = AssetPriceMapping::new(AssetId::from_token(Chain::SmartChain, "0x36b2269FD151208a4bfc3DEA503E0a6F2485fA78"), provider_price_id.clone());
         let by_id = HashMap::from([(provider_price_id.clone(), vec![ethereum.clone(), smartchain.clone()])]);
 
         let prices = map_coin_markets(vec![CoinMarket::mock_with_id(&provider_price_id)], &by_id);

@@ -6,10 +6,7 @@ use primitives::SignerError;
 use super::script::{AddressScript, LockingScript};
 
 pub(super) fn script(address: &str) -> Result<AddressScript, SignerError> {
-    let address = Address::from_str(address)
-        .map_err(SignerError::from_display)?
-        .require_network(Network::Bitcoin)
-        .map_err(SignerError::from_display)?;
+    let address = Address::from_str(address).map_err(SignerError::from_display)?.require_network(Network::Bitcoin).map_err(SignerError::from_display)?;
     let script_pubkey = address.script_pubkey();
 
     match address.to_address_data() {

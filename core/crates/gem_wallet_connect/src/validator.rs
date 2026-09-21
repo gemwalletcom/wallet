@@ -21,11 +21,7 @@ fn current_timestamp() -> i64 {
 pub fn validate_sign_message(input: &SignMessageValidation) -> Result<(), String> {
     match input.sign_type {
         SignDigestType::Eip712 => {
-            let expected_chain_id = input
-                .chain
-                .network_id()
-                .parse::<u64>()
-                .map_err(|_| format!("Chain {} does not have a numeric network ID", input.chain))?;
+            let expected_chain_id = input.chain.network_id().parse::<u64>().map_err(|_| format!("Chain {} does not have a numeric network ID", input.chain))?;
             gem_evm::eip712::validate_eip712_chain_id(input.data, expected_chain_id)
         }
         SignDigestType::TonPersonal => {
@@ -160,26 +156,10 @@ mod tests {
         use gem_ton::signer::{TonSignDataPayload, TonSignMessageData};
 
         // Invalid: raw JSON without proper encoding
-        assert!(
-            validate_sign_message(&SignMessageValidation::mock(
-                Chain::Ton,
-                &SignDigestType::TonPersonal,
-                r#"{"payload":{"text":"Hello"},"domain":"example.com"}"#,
-                ""
-            ))
-            .is_err()
-        );
+        assert!(validate_sign_message(&SignMessageValidation::mock(Chain::Ton, &SignDigestType::TonPersonal, r#"{"payload":{"text":"Hello"},"domain":"example.com"}"#, "")).is_err());
 
         // Invalid: unknown payload type
-        assert!(
-            validate_sign_message(&SignMessageValidation::mock(
-                Chain::Ton,
-                &SignDigestType::TonPersonal,
-                r#"{"payload":{"type":"unknown"},"domain":"example.com"}"#,
-                ""
-            ))
-            .is_err()
-        );
+        assert!(validate_sign_message(&SignMessageValidation::mock(Chain::Ton, &SignDigestType::TonPersonal, r#"{"payload":{"type":"unknown"},"domain":"example.com"}"#, "")).is_err());
 
         // Valid: text payload
         let ton_data = TonSignMessageData::new(
@@ -187,15 +167,7 @@ mod tests {
             "example.com".to_string(),
             "UQBY1cVPu4SIr36q0M3HWcqPb_efyVVRBsEzmwN-wKQDR6zg".to_string(),
         );
-        assert!(
-            validate_sign_message(&SignMessageValidation::mock(
-                Chain::Ton,
-                &SignDigestType::TonPersonal,
-                &String::from_utf8(ton_data.to_bytes()).unwrap(),
-                ""
-            ))
-            .is_ok()
-        );
+        assert!(validate_sign_message(&SignMessageValidation::mock(Chain::Ton, &SignDigestType::TonPersonal, &String::from_utf8(ton_data.to_bytes()).unwrap(), "")).is_ok());
 
         // Valid: binary payload
         let ton_data = TonSignMessageData::new(
@@ -203,15 +175,7 @@ mod tests {
             "example.com".to_string(),
             "UQBY1cVPu4SIr36q0M3HWcqPb_efyVVRBsEzmwN-wKQDR6zg".to_string(),
         );
-        assert!(
-            validate_sign_message(&SignMessageValidation::mock(
-                Chain::Ton,
-                &SignDigestType::TonPersonal,
-                &String::from_utf8(ton_data.to_bytes()).unwrap(),
-                ""
-            ))
-            .is_ok()
-        );
+        assert!(validate_sign_message(&SignMessageValidation::mock(Chain::Ton, &SignDigestType::TonPersonal, &String::from_utf8(ton_data.to_bytes()).unwrap(), "")).is_ok());
 
         // Valid: cell payload
         let ton_data = TonSignMessageData::new(
@@ -222,15 +186,7 @@ mod tests {
             "example.com".to_string(),
             "UQBY1cVPu4SIr36q0M3HWcqPb_efyVVRBsEzmwN-wKQDR6zg".to_string(),
         );
-        assert!(
-            validate_sign_message(&SignMessageValidation::mock(
-                Chain::Ton,
-                &SignDigestType::TonPersonal,
-                &String::from_utf8(ton_data.to_bytes()).unwrap(),
-                ""
-            ))
-            .is_ok()
-        );
+        assert!(validate_sign_message(&SignMessageValidation::mock(Chain::Ton, &SignDigestType::TonPersonal, &String::from_utf8(ton_data.to_bytes()).unwrap(), "")).is_ok());
     }
 
     #[test]
@@ -265,33 +221,15 @@ mod tests {
     #[test]
     fn test_validate_eip191_siwe() {
         assert!(
-            validate_sign_message(&SignMessageValidation::mock(
-                Chain::Ethereum,
-                &SignDigestType::Eip191,
-                &mock_siwe_message_hex("thepoc.xyz", 137),
-                "https://thepoc.xyz"
-            ))
-            .unwrap_err()
-            .contains("Chain ID mismatch")
+            validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip191, &mock_siwe_message_hex("thepoc.xyz", 137), "https://thepoc.xyz"))
+                .unwrap_err()
+                .contains("Chain ID mismatch")
         );
         assert!(
-            validate_sign_message(&SignMessageValidation::mock(
-                Chain::Ethereum,
-                &SignDigestType::Eip191,
-                &mock_siwe_message_hex("evil.com", 1),
-                "https://thepoc.xyz"
-            ))
-            .unwrap_err()
-            .contains("Domain mismatch")
+            validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip191, &mock_siwe_message_hex("evil.com", 1), "https://thepoc.xyz"))
+                .unwrap_err()
+                .contains("Domain mismatch")
         );
-        assert!(
-            validate_sign_message(&SignMessageValidation::mock(
-                Chain::Ethereum,
-                &SignDigestType::Eip191,
-                "0x48656c6c6f",
-                "https://example.com"
-            ))
-            .is_ok()
-        );
+        assert!(validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip191, "0x48656c6c6f", "https://example.com")).is_ok());
     }
 }

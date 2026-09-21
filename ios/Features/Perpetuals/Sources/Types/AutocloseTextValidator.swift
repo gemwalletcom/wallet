@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.AutocloseValidation
 import class Gemstone.AutocloseValidator
 import GemstonePrimitives
 import Primitives
@@ -17,18 +18,12 @@ struct AutocloseTextValidator: TextValidator {
         guard !text.isEmpty else { return }
 
         guard let price = NumberInput.double(text) else {
-            throw PerpetualError.invalidAmount
+            throw AutocloseValidation.invalidAmount
         }
 
-        switch validator.validate(price: price) {
-        case .valid:
-            break
-        case .invalidAmount:
-            throw PerpetualError.invalidAmount
-        case .triggerMustBeHigher:
-            throw PerpetualError.triggerPriceMustBeHigher
-        case .triggerMustBeLower:
-            throw PerpetualError.triggerPriceMustBeLower
+        let validation = validator.validate(price: price)
+        guard validation == .valid else {
+            throw validation
         }
     }
 

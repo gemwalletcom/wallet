@@ -2,13 +2,11 @@ use crate::{SwapperError, SwapperQuoteAsset, models::SwapperChainAsset};
 use primitives::{
     AssetId, Chain,
     asset_constants::{
-        APTOS_USDC_ASSET_ID, APTOS_USDT_ASSET_ID, ARBITRUM_ARB_ASSET_ID, ARBITRUM_USDC_ASSET_ID, ARBITRUM_USDT_ASSET_ID, ARBITRUM_WETH_ASSET_ID, AVALANCHE_USDC_ASSET_ID,
-        AVALANCHE_USDT_ASSET_ID, BASE_CBBTC_ASSET_ID, BASE_USDC_ASSET_ID, BASE_WETH_ASSET_ID, BERACHAIN_USDT_ASSET_ID, ETHEREUM_AAVE_ASSET_ID, ETHEREUM_CBBTC_ASSET_ID,
-        ETHEREUM_DAI_ASSET_ID, ETHEREUM_LINK_ASSET_ID, ETHEREUM_UNI_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, ETHEREUM_WBTC_ASSET_ID, ETHEREUM_WETH_ASSET_ID,
-        ETHEREUM_XAUT_ASSET_ID, GNOSIS_USDC_ASSET_ID, GNOSIS_USDT_ASSET_ID, GNOSIS_WETH_ASSET_ID, MONAD_USDC_ASSET_ID, MONAD_USDT_ASSET_ID, NEAR_USDC_ASSET_ID, NEAR_USDT_ASSET_ID,
-        OPTIMISM_OP_ASSET_ID, OPTIMISM_USDC_ASSET_ID, OPTIMISM_USDT_ASSET_ID, OPTIMISM_WETH_ASSET_ID, PLASMA_USDT_ASSET_ID, POLYGON_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID,
-        POLYGON_WETH_ASSET_ID, SMARTCHAIN_USDC_ASSET_ID, SMARTCHAIN_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDT_ASSET_ID, STELLAR_USDC_ASSET_ID, SUI_USDC_ASSET_ID,
-        TON_USDT_ASSET_ID, TRON_USDT_ASSET_ID, XLAYER_USDC_ASSET_ID, XLAYER_USDT_ASSET_ID,
+        APTOS_USDC_ASSET_ID, APTOS_USDT_ASSET_ID, ARBITRUM_ARB_ASSET_ID, ARBITRUM_USDC_ASSET_ID, ARBITRUM_USDT_ASSET_ID, ARBITRUM_WETH_ASSET_ID, AVALANCHE_USDC_ASSET_ID, AVALANCHE_USDT_ASSET_ID, BASE_CBBTC_ASSET_ID, BASE_USDC_ASSET_ID,
+        BASE_WETH_ASSET_ID, BERACHAIN_USDT_ASSET_ID, ETHEREUM_AAVE_ASSET_ID, ETHEREUM_CBBTC_ASSET_ID, ETHEREUM_DAI_ASSET_ID, ETHEREUM_LINK_ASSET_ID, ETHEREUM_UNI_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID,
+        ETHEREUM_WBTC_ASSET_ID, ETHEREUM_WETH_ASSET_ID, ETHEREUM_XAUT_ASSET_ID, GNOSIS_USDC_ASSET_ID, GNOSIS_USDT_ASSET_ID, GNOSIS_WETH_ASSET_ID, MONAD_USDC_ASSET_ID, MONAD_USDT_ASSET_ID, NEAR_USDC_ASSET_ID, NEAR_USDT_ASSET_ID,
+        OPTIMISM_OP_ASSET_ID, OPTIMISM_USDC_ASSET_ID, OPTIMISM_USDT_ASSET_ID, OPTIMISM_WETH_ASSET_ID, PLASMA_USDT_ASSET_ID, POLYGON_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID, POLYGON_WETH_ASSET_ID, SMARTCHAIN_USDC_ASSET_ID,
+        SMARTCHAIN_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDT_ASSET_ID, STELLAR_USDC_ASSET_ID, SUI_USDC_ASSET_ID, TON_USDT_ASSET_ID, TRON_USDT_ASSET_ID, XLAYER_USDC_ASSET_ID, XLAYER_USDT_ASSET_ID,
     },
 };
 use std::{collections::HashMap, sync::LazyLock};
@@ -131,10 +129,7 @@ pub static NEAR_INTENTS_ASSETS: LazyLock<HashMap<Chain, AssetsMap>> = LazyLock::
         ]),
     );
 
-    map.insert(
-        Chain::Sui,
-        HashMap::from([(Chain::Sui.as_asset_id(), NEAR_INTENTS_SUI_NATIVE), (SUI_USDC_ASSET_ID.clone(), NEAR_INTENTS_SUI_USDC)]),
-    );
+    map.insert(Chain::Sui, HashMap::from([(Chain::Sui.as_asset_id(), NEAR_INTENTS_SUI_NATIVE), (SUI_USDC_ASSET_ID.clone(), NEAR_INTENTS_SUI_USDC)]));
 
     map.insert(
         Chain::Arbitrum,
@@ -196,25 +191,16 @@ pub static NEAR_INTENTS_ASSETS: LazyLock<HashMap<Chain, AssetsMap>> = LazyLock::
         ]),
     );
 
-    map.insert(
-        Chain::Ton,
-        HashMap::from([(Chain::Ton.as_asset_id(), NEAR_INTENTS_TON_NATIVE), (TON_USDT_ASSET_ID.clone(), NEAR_INTENTS_TON_USDT)]),
-    );
+    map.insert(Chain::Ton, HashMap::from([(Chain::Ton.as_asset_id(), NEAR_INTENTS_TON_NATIVE), (TON_USDT_ASSET_ID.clone(), NEAR_INTENTS_TON_USDT)]));
 
-    map.insert(
-        Chain::Tron,
-        HashMap::from([(Chain::Tron.as_asset_id(), NEAR_INTENTS_TRON_NATIVE), (TRON_USDT_ASSET_ID.clone(), NEAR_INTENTS_TRON_USDT)]),
-    );
+    map.insert(Chain::Tron, HashMap::from([(Chain::Tron.as_asset_id(), NEAR_INTENTS_TRON_NATIVE), (TRON_USDT_ASSET_ID.clone(), NEAR_INTENTS_TRON_USDT)]));
 
     map.insert(Chain::Doge, HashMap::from([(Chain::Doge.as_asset_id(), NEAR_INTENTS_DOGE_NATIVE)]));
     map.insert(Chain::Xrp, HashMap::from([(Chain::Xrp.as_asset_id(), NEAR_INTENTS_XRP_NATIVE)]));
     map.insert(Chain::Cardano, HashMap::from([(Chain::Cardano.as_asset_id(), NEAR_INTENTS_CARDANO_NATIVE)]));
     map.insert(
         Chain::Berachain,
-        HashMap::from([
-            (Chain::Berachain.as_asset_id(), NEAR_INTENTS_BERA_NATIVE),
-            (BERACHAIN_USDT_ASSET_ID.clone(), NEAR_INTENTS_BERA_USDT),
-        ]),
+        HashMap::from([(Chain::Berachain.as_asset_id(), NEAR_INTENTS_BERA_NATIVE), (BERACHAIN_USDT_ASSET_ID.clone(), NEAR_INTENTS_BERA_USDT)]),
     );
     map.insert(
         Chain::Aptos,
@@ -238,10 +224,7 @@ pub static NEAR_INTENTS_ASSETS: LazyLock<HashMap<Chain, AssetsMap>> = LazyLock::
 
     map.insert(
         Chain::Stellar,
-        HashMap::from([
-            (Chain::Stellar.as_asset_id(), NEAR_INTENTS_STELLAR_NATIVE),
-            (STELLAR_USDC_ASSET_ID.clone(), NEAR_INTENTS_STELLAR_USDC),
-        ]),
+        HashMap::from([(Chain::Stellar.as_asset_id(), NEAR_INTENTS_STELLAR_NATIVE), (STELLAR_USDC_ASSET_ID.clone(), NEAR_INTENTS_STELLAR_USDC)]),
     );
 
     map.insert(Chain::Litecoin, HashMap::from([(Chain::Litecoin.as_asset_id(), NEAR_INTENTS_LTC_NATIVE)]));
@@ -267,10 +250,7 @@ pub static NEAR_INTENTS_ASSETS: LazyLock<HashMap<Chain, AssetsMap>> = LazyLock::
 
     map.insert(
         Chain::Plasma,
-        HashMap::from([
-            (Chain::Plasma.as_asset_id(), NEAR_INTENTS_PLASMA_NATIVE),
-            (PLASMA_USDT_ASSET_ID.clone(), NEAR_INTENTS_PLASMA_USDT),
-        ]),
+        HashMap::from([(Chain::Plasma.as_asset_id(), NEAR_INTENTS_PLASMA_NATIVE), (PLASMA_USDT_ASSET_ID.clone(), NEAR_INTENTS_PLASMA_USDT)]),
     );
 
     map.insert(Chain::Abstract, HashMap::from([(Chain::Abstract.as_asset_id(), NEAR_INTENTS_ABSTRACT_NATIVE)]));
@@ -286,28 +266,18 @@ pub fn get_near_asset_id(asset: &SwapperQuoteAsset) -> Result<String, SwapperErr
 }
 
 pub fn get_asset_id_from_near_asset(near_asset_id: &str) -> Option<AssetId> {
-    NEAR_INTENTS_ASSETS
-        .values()
-        .flat_map(|assets| assets.iter())
-        .find(|(_, v)| **v == near_asset_id)
-        .map(|(k, _)| k.clone())
+    NEAR_INTENTS_ASSETS.values().flat_map(|assets| assets.iter()).find(|(_, v)| **v == near_asset_id).map(|(k, _)| k.clone())
 }
 
 pub fn supported_assets() -> Vec<SwapperChainAsset> {
-    NEAR_INTENTS_ASSETS
-        .iter()
-        .map(|(chain, assets)| SwapperChainAsset::Assets(*chain, assets.keys().cloned().collect()))
-        .collect()
+    NEAR_INTENTS_ASSETS.iter().map(|(chain, assets)| SwapperChainAsset::Assets(*chain, assets.keys().cloned().collect())).collect()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use primitives::AssetType;
-    use primitives::asset_constants::{
-        APTOS_USDC_ASSET_ID, ARBITRUM_WETH_ASSET_ID, BASE_WETH_ASSET_ID, ETHEREUM_WETH_ASSET_ID, GNOSIS_WETH_ASSET_ID, OPTIMISM_WETH_ASSET_ID, POLYGON_WETH_ASSET_ID,
-        STELLAR_USDC_ASSET_ID,
-    };
+    use primitives::asset_constants::{APTOS_USDC_ASSET_ID, ARBITRUM_WETH_ASSET_ID, BASE_WETH_ASSET_ID, ETHEREUM_WETH_ASSET_ID, GNOSIS_WETH_ASSET_ID, OPTIMISM_WETH_ASSET_ID, POLYGON_WETH_ASSET_ID, STELLAR_USDC_ASSET_ID};
 
     #[test]
     fn test_get_asset_id() {

@@ -59,10 +59,7 @@ impl<C: Client> HyperCoreClient<C> {
             }
             HyperCoreActionId::Nonce(nonce) => {
                 let updates = self
-                    .get_ledger_updates(
-                        &request.sender_address,
-                        nonce.saturating_sub(transaction_state_mapper::ACTION_HISTORY_QUERY_LOOKBACK_MS) as i64,
-                    )
+                    .get_ledger_updates(&request.sender_address, nonce.saturating_sub(transaction_state_mapper::ACTION_HISTORY_QUERY_LOOKBACK_MS) as i64)
                     .await?;
                 Ok(transaction_state_mapper::map_transaction_state_action(updates, action_id, request.id.clone()))
             }

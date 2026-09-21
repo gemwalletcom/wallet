@@ -47,10 +47,7 @@ impl Routes {
                 return Err(ProxyError::new(Status::BadRequest, "Invalid chain"));
             }
         }
-        self.gateway
-            .as_ref()
-            .map(Target::Provider)
-            .ok_or_else(|| ProxyError::new(Status::NotFound, "route not found"))
+        self.gateway.as_ref().map(Target::Provider).ok_or_else(|| ProxyError::new(Status::NotFound, "route not found"))
     }
 }
 
@@ -80,10 +77,7 @@ impl Server {
                 cache,
                 settings.retry,
                 settings.headers,
-                settings
-                    .webhook
-                    .map(DynodeBroadcastWebhookClient::new)
-                    .unwrap_or_else(DynodeBroadcastWebhookClient::disabled),
+                settings.webhook.map(DynodeBroadcastWebhookClient::new).unwrap_or_else(DynodeBroadcastWebhookClient::disabled),
                 settings.monitoring,
             ))
         } else {
@@ -103,26 +97,13 @@ impl Server {
         Ok(Self {
             address,
             port,
-            routes: Routes {
-                nodes,
-                gateway,
-                node_limit,
-                route_limit,
-            },
+            routes: Routes { nodes, gateway, node_limit, route_limit },
             metrics,
         })
     }
 
     fn rocket(self) -> Rocket<Build> {
-        let mut methods = vec![
-            RocketMethod::Get,
-            RocketMethod::Post,
-            RocketMethod::Put,
-            RocketMethod::Patch,
-            RocketMethod::Delete,
-            RocketMethod::Options,
-            RocketMethod::Head,
-        ];
+        let mut methods = vec![RocketMethod::Get, RocketMethod::Post, RocketMethod::Put, RocketMethod::Patch, RocketMethod::Delete, RocketMethod::Options, RocketMethod::Head];
         let mut server = rocket::custom(RocketConfig::figment().merge(("address", self.address)).merge(("port", self.port))).manage(self.metrics);
         if self.routes.nodes.is_some() {
             server = server.mount("/", rocket::routes![root_endpoint]);
@@ -203,11 +184,7 @@ async fn forward_request(request: &Request<'_>, data: Data<'_>, target: Target<'
 }
 
 async fn read_request_body(data: Data<'_>, limit: usize) -> Result<Vec<u8>, ProxyError> {
-    let body = data
-        .open(limit.bytes())
-        .into_bytes()
-        .await
-        .map_err(|error| ProxyError::new(Status::BadRequest, error.to_string()))?;
+    let body = data.open(limit.bytes()).into_bytes().await.map_err(|error| ProxyError::new(Status::BadRequest, error.to_string()))?;
     if !body.is_complete() {
         return Err(ProxyError::new(Status::PayloadTooLarge, "request body is too large"));
     }

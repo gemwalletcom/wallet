@@ -18,10 +18,7 @@ impl TransactionInput {
 
 impl TransactionOutput {
     pub(crate) fn mock() -> Self {
-        Self::mock_with(
-            "addr1q8043m5heeaydnvtmmkyuhe6qv5havvhsf0d26q3jygsspxlyfpyk6yqkw0yhtyvtr0flekj84u64az82cufmqn65zdsylzk23",
-            2_000_000,
-        )
+        Self::mock_with("addr1q8043m5heeaydnvtmmkyuhe6qv5havvhsf0d26q3jygsspxlyfpyk6yqkw0yhtyvtr0flekj84u64az82cufmqn65zdsylzk23", 2_000_000)
     }
 
     pub(crate) fn mock_with(address: &str, amount: u64) -> Self {

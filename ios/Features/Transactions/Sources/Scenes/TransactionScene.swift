@@ -42,28 +42,15 @@ public struct TransactionScene: View {
         case let .swapProgress(model):
             TransactionSwapProgressView(model: model)
         case let .participant(model):
-            AddressListItemView(model: model.addressViewModel)
+            AddressListItemView(model: model)
         case let .rate(title, value):
             ListItemRotateView(
                 title: title,
                 subtitle: value,
                 action: model.switchRateDirection,
             )
-        case let .network(title, subtitle, image):
-            ListItemImageView(
-                title: title,
-                subtitle: subtitle,
-                assetImage: image,
-            )
-        case let .pnl(item):
-            ListItemView(model: item)
-        case let .price(item):
-            ListItemView(model: item)
-        case let .explorer(url, text):
-            SafariNavigationLink(url: url) {
-                Text(text)
-                    .tint(Colors.black)
-            }
+        case let .row(row):
+            GemListRowView(row: row, onInfo: model.onInfo)
         case let .swapAgain(text):
             let button = StateButton(
                 text: text,

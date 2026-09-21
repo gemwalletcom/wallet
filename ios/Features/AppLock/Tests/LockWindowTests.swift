@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstoneServices
-import GemstoneServicesTestKit
 @testable import AppLock
 import AppLockTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import SwiftUI
 import Testing
 

@@ -2,8 +2,8 @@ package com.gemwallet.android.services
 
 import android.content.Context
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.data.services.gemstone.keystore.MigrateKeystoreOperator
 import com.gemwallet.android.application.wallet.cases.GetWallets
+import com.gemwallet.android.data.services.gemstone.keystore.MigrateKeystoreOperator
 import com.gemwallet.android.math.fromHex
 import com.gemwallet.android.testkit.KEYSTORE_TEST_ETH_ADDRESS
 import com.gemwallet.android.testkit.KEYSTORE_TEST_PASSWORD
@@ -96,5 +96,4 @@ class MigrateV3KeystoreServiceTest {
         File(baseDir, walletId.id).writeText("{}")
         every { passwordStore.getPassword(walletId.id) } returns password
     }
-
 }

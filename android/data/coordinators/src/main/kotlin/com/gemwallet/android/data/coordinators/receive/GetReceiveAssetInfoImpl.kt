@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.receive
 
-import com.gemwallet.android.application.receive.cases.GetReceiveAssetInfo
 import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
+import com.gemwallet.android.application.receive.cases.GetReceiveAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.getAccount
@@ -14,22 +14,17 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class GetReceiveAssetInfoImpl(
-    private val getSession: GetSession,
-    private val getAssetTokenInfo: GetAssetTokenInfo,
-) : GetReceiveAssetInfo {
+class GetReceiveAssetInfoImpl(private val getSession: GetSession, private val getAssetTokenInfo: GetAssetTokenInfo) : GetReceiveAssetInfo {
 
-    override fun invoke(assetId: AssetId): Flow<AssetInfo?> {
-        return getSession()
-            .filterNotNull()
-            .flatMapLatest { session ->
-                getAssetTokenInfo(assetId).map { info ->
-                    if (info?.owner == null) {
-                        info?.copy(owner = session.wallet.getAccount(info.asset.chain))
-                    } else {
-                        info
-                    }
+    override fun invoke(assetId: AssetId): Flow<AssetInfo?> = getSession()
+        .filterNotNull()
+        .flatMapLatest { session ->
+            getAssetTokenInfo(assetId).map { info ->
+                if (info?.owner == null) {
+                    info?.copy(owner = session.wallet.getAccount(info.asset.chain))
+                } else {
+                    info
                 }
             }
-    }
+        }
 }

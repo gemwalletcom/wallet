@@ -14,10 +14,7 @@ crate::impl_string_serde!(PerpetualId);
 
 impl PerpetualId {
     pub fn new(provider: PerpetualProvider, symbol: &str) -> Self {
-        Self {
-            provider,
-            symbol: symbol.to_string(),
-        }
+        Self { provider, symbol: symbol.to_string() }
     }
 
     pub fn id(&self) -> String {
@@ -43,10 +40,7 @@ impl FromStr for PerpetualId {
             .split_once(CHAIN_SEPARATOR)
             .ok_or_else(|| format!("invalid perpetual identifier format: expected 2 parts separated by '{CHAIN_SEPARATOR}', got: {s}"))?;
         let provider: PerpetualProvider = provider_str.parse().map_err(|_| format!("invalid perpetual provider: {provider_str}"))?;
-        Ok(Self {
-            provider,
-            symbol: symbol.to_string(),
-        })
+        Ok(Self { provider, symbol: symbol.to_string() })
     }
 }
 

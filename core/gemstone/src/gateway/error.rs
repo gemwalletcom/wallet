@@ -53,18 +53,12 @@ pub(crate) fn map_network_error(error: Box<dyn Error + Send + Sync>) -> GatewayE
     if let Some(jsonrpc_error) = error.downcast_ref::<JsonRpcError>()
         && jsonrpc_error.code == ERROR_CLIENT_ERROR
     {
-        return GatewayError::NetworkError {
-            msg: jsonrpc_error.message.clone(),
-        };
+        return GatewayError::NetworkError { msg: jsonrpc_error.message.clone() };
     }
 
     let message = if let Some(status) = http_status_from_error(error.as_ref()) {
         let error_message = error.to_string();
-        if error_message.is_empty() {
-            format!("HTTP error: status {}", status)
-        } else {
-            error_message
-        }
+        if error_message.is_empty() { format!("HTTP error: status {}", status) } else { error_message }
     } else {
         error.to_string()
     };
@@ -136,10 +130,7 @@ mod tests {
             })),
             GatewayError::Offline
         ));
-        assert!(matches!(
-            map_network_error(Box::new(AlienError::ResponseError { msg: "timeout".into() })),
-            GatewayError::NetworkError { .. }
-        ));
+        assert!(matches!(map_network_error(Box::new(AlienError::ResponseError { msg: "timeout".into() })), GatewayError::NetworkError { .. }));
     }
 
     #[test]

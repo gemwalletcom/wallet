@@ -90,9 +90,6 @@ mod tests {
     fn test_only_a_reported_network_id_is_checked() {
         assert_eq!(mismatched_network_id(Chain::Ethereum, Some(Chain::Ethereum.network_id())), None);
         assert_eq!(mismatched_network_id(Chain::Ethereum, None), None);
-        assert_eq!(
-            mismatched_network_id(Chain::Ethereum, Some(Chain::SmartChain.network_id())),
-            Some(Chain::SmartChain.network_id().to_string())
-        );
+        assert_eq!(mismatched_network_id(Chain::Ethereum, Some(Chain::SmartChain.network_id())), Some(Chain::SmartChain.network_id().to_string()));
     }
 }

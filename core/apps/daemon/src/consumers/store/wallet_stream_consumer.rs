@@ -62,9 +62,7 @@ impl MessageConsumer<WalletStreamPayload, usize> for WalletStreamConsumer {
                 .map(|(event, _)| event)
                 .collect::<Vec<_>>();
             self.cacher_client.remove_from_sorted_set_cached(cache_key, &expired_events).await?;
-            self.cacher_client
-                .add_to_sorted_set_cached(CacheKey::DeviceStreamEvents(&device.device_id, self.retention.as_secs()), &missed_events)
-                .await?;
+            self.cacher_client.add_to_sorted_set_cached(CacheKey::DeviceStreamEvents(&device.device_id, self.retention.as_secs()), &missed_events).await?;
         }
         Ok(devices.len() * events.len())
     }

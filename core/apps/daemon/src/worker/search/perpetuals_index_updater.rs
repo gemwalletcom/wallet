@@ -39,25 +39,17 @@ impl PerpetualsIndexUpdater {
         let assets = self.database.assets()?.get_assets_rows(asset_ids)?;
 
         let assets_map: HashMap<String, AssetRow> = assets.into_iter().map(|a| (a.id.to_string(), a)).collect();
-        let perpetuals_tags_map: HashMap<String, Vec<String>> =
-            perpetuals_tags
-                .into_iter()
-                .filter(|tag| public_tag_ids.contains(&tag.tag_id))
-                .fold(HashMap::new(), |mut acc, tag| {
-                    acc.entry(tag.perpetual_id.to_string()).or_default().push(tag.tag_id);
-                    acc
-                });
+        let perpetuals_tags_map: HashMap<String, Vec<String>> = perpetuals_tags.into_iter().filter(|tag| public_tag_ids.contains(&tag.tag_id)).fold(HashMap::new(), |mut acc, tag| {
+            acc.entry(tag.perpetual_id.to_string()).or_default().push(tag.tag_id);
+            acc
+        });
 
         let documents = Self::build_documents(perpetuals.iter(), &assets_map, &perpetuals_tags_map);
 
         sync.write(PERPETUALS_INDEX_NAME, documents).await
     }
 
-    fn build_documents<'a>(
-        perpetuals: impl IntoIterator<Item = &'a PerpetualRow>,
-        assets_map: &HashMap<String, AssetRow>,
-        perpetuals_tags_map: &HashMap<String, Vec<String>>,
-    ) -> Vec<PerpetualDocument> {
+    fn build_documents<'a>(perpetuals: impl IntoIterator<Item = &'a PerpetualRow>, assets_map: &HashMap<String, AssetRow>, perpetuals_tags_map: &HashMap<String, Vec<String>>) -> Vec<PerpetualDocument> {
         perpetuals
             .into_iter()
             .filter_map(|p| {

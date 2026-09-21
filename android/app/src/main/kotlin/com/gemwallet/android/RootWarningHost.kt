@@ -13,10 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @Composable
-internal fun RootWarningHost(
-    darkTheme: Boolean,
-    onCancel: () -> Unit,
-) {
+internal fun RootWarningHost(darkTheme: Boolean, onCancel: () -> Unit) {
     WalletTheme(darkTheme = darkTheme) {
         var showRootWarningDialog by remember { mutableStateOf(false) }
 
@@ -29,7 +26,7 @@ internal fun RootWarningHost(
         if (showRootWarningDialog) {
             RootWarningDialog(
                 onCancel = onCancel,
-                onIgnore = { showRootWarningDialog = false }
+                onIgnore = { showRootWarningDialog = false },
             )
         }
     }

@@ -38,10 +38,7 @@ pub async fn main() {
         panic!("{e}\nUsage examples:\n daemon parser\n daemon parser ethereum\n daemon worker alerter\n daemon worker prices jupiter\n daemon consumer indexer transactions fetch_transactions");
     });
 
-    let settings = settings::Settings::new()
-        .unwrap()
-        .with_postgres_application_name(&service.name().replace(' ', "_"))
-        .unwrap();
+    let settings = settings::Settings::new().unwrap().with_postgres_application_name(&service.name().replace(' ', "_")).unwrap();
 
     info_with_fields!("daemon start", service = service.name());
 
@@ -159,11 +156,7 @@ fn collect_status_tracks(handles: &[(WorkerService, Vec<JobHandle>)]) -> Vec<Wor
 
 fn log_pending_workers(tracks: &[WorkerStatusTrack], message: &str) {
     for track in tracks {
-        let pending: Vec<_> = track
-            .jobs
-            .iter()
-            .filter_map(|(name, flag)| if flag.load(Ordering::Relaxed) { None } else { Some(name.clone()) })
-            .collect();
+        let pending: Vec<_> = track.jobs.iter().filter_map(|(name, flag)| if flag.load(Ordering::Relaxed) { None } else { Some(name.clone()) }).collect();
         if pending.is_empty() {
             continue;
         }
@@ -242,13 +235,7 @@ async fn run_consumer_services(settings: settings::Settings, services: &[Consume
     }
 }
 
-async fn run_consumer(
-    settings: settings::Settings,
-    service: ConsumerService,
-    shutdown_rx: ShutdownReceiver,
-    reporter: Arc<dyn ConsumerStatusReporter>,
-    options: ConsumerOptions,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+async fn run_consumer(settings: settings::Settings, service: ConsumerService, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>, options: ConsumerOptions) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     match service {
         ConsumerService::Store => consumers::run_consumer_store(settings, shutdown_rx, reporter).await,
         ConsumerService::Indexer(indexer) => consumers::run_consumer_indexer(settings, indexer, shutdown_rx, reporter, options.indexer).await,

@@ -1,9 +1,6 @@
 package com.wallet.core.primitives
 
-data class RedelegateData(
-    val delegation: Delegation,
-    val toValidator: DelegationValidator,
-)
+data class RedelegateData(val delegation: Delegation, val toValidator: DelegationValidator)
 
 sealed class StakeType {
     data class Stake(val content: DelegationValidator) : StakeType()

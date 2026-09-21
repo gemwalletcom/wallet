@@ -162,31 +162,14 @@ pub struct PositionsDiff {
 
 #[derive(Debug)]
 pub enum HyperliquidSocketMessage {
-    AccountState {
-        balance: Option<PerpetualBalance>,
-        positions: Vec<PerpetualPosition>,
-    },
-    SpotState {
-        balance: PerpetualBalance,
-    },
-    OpenOrders {
-        orders: Vec<OpenOrder>,
-    },
-    Candle {
-        candle: ChartCandleUpdate,
-    },
-    MarketData {
-        market: PerpetualMarketData,
-    },
-    MarketPrices {
-        prices: HashMap<String, f64>,
-    },
-    SubscriptionResponse {
-        subscription_type: String,
-    },
-    Error {
-        message: String,
-    },
+    AccountState { balance: Option<PerpetualBalance>, positions: Vec<PerpetualPosition> },
+    SpotState { balance: PerpetualBalance },
+    OpenOrders { orders: Vec<OpenOrder> },
+    Candle { candle: ChartCandleUpdate },
+    MarketData { market: PerpetualMarketData },
+    MarketPrices { prices: HashMap<String, f64> },
+    SubscriptionResponse { subscription_type: String },
+    Error { message: String },
     Unknown,
 }
 

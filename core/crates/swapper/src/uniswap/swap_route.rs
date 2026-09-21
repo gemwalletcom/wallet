@@ -16,11 +16,7 @@ pub fn get_intermediaries(token_in: &Address, token_out: &Address, base_pair: &B
 }
 
 pub fn get_intermediaries_by_array(token_in: &Address, token_out: &Address, array: &[Address]) -> Vec<Address> {
-    array
-        .iter()
-        .filter(|intermediary| *intermediary != token_in && *intermediary != token_out)
-        .cloned()
-        .collect()
+    array.iter().filter(|intermediary| *intermediary != token_in && *intermediary != token_out).cloned().collect()
 }
 
 pub fn build_swap_route(token_in: &AssetId, intermediary: Option<&AssetId>, token_out: &AssetId, route_data: &RouteData) -> Vec<Route> {

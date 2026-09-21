@@ -31,11 +31,13 @@ public struct PriceAlertData: Codable, Equatable, Hashable, Sendable {
 	public let asset: Asset
 	public let price: Price?
 	public let priceAlert: PriceAlert
+	public let rankScore: Int32
 
-	public init(asset: Asset, price: Price?, priceAlert: PriceAlert) {
+	public init(asset: Asset, price: Price?, priceAlert: PriceAlert, rankScore: Int32) {
 		self.asset = asset
 		self.price = price
 		self.priceAlert = priceAlert
+		self.rankScore = rankScore
 	}
 }
 

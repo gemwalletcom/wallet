@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import func Gemstone.formattedAmount
-import func Gemstone.formattedCurrency
 import BigInt
 import Foundation
 import struct Gemstone.FiatProvider
 import enum Gemstone.FiatProviderName
 import struct Gemstone.FiatQuote
 import enum Gemstone.FiatQuoteType
+import func Gemstone.formattedAmount
+import func Gemstone.formattedCurrency
 import struct Gemstone.GemAssetRate
 import struct Gemstone.GemFiatQuoteRequest
 import struct Gemstone.GemFiatQuoteRow
@@ -62,7 +62,6 @@ public extension GemFiatQuoteRow {
         quoteId: String = UUID().uuidString,
         provider: FiatProviderName = .moonPay,
         providerName: String = "",
-        providerImageUrl: String? = nil,
         cryptoAmount: Double = 0,
         fiatAmount: Double = 0,
         rate: Double? = nil,
@@ -71,10 +70,9 @@ public extension GemFiatQuoteRow {
             quoteId: quoteId,
             provider: provider,
             providerName: providerName,
-            providerImageUrl: providerImageUrl,
             cryptoAmount: formattedAmount(value: cryptoAmount, symbol: "BTC", style: .auto),
             fiatAmount: formattedCurrency(value: fiatAmount, code: "USD", style: .fiat),
-            rate: rate.map { GemAssetRate(baseSymbol: "BTC", quoteSymbol: "USD", value: formattedCurrency(value: $0, code: "USD", style: .currency)) },
+            rate: rate.map { GemAssetRate(baseSymbol: "BTC", value: formattedCurrency(value: $0, code: "USD", style: .currency)) },
         )
     }
 }

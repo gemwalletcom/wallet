@@ -19,13 +19,7 @@ impl MissingPricesPublisher {
     }
 
     pub async fn update(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let ranks: Vec<(AssetId, i32)> = self
-            .database
-            .assets_usage_ranks()?
-            .get_all_usage_ranks()?
-            .into_iter()
-            .map(|row| (row.asset_id.0, row.usage_rank))
-            .collect();
+        let ranks: Vec<(AssetId, i32)> = self.database.assets_usage_ranks()?.get_all_usage_ranks()?.into_iter().map(|row| (row.asset_id.0, row.usage_rank)).collect();
         let priced: HashSet<AssetId> = self.database.prices()?.get_prices_assets()?.into_iter().map(|row| row.asset_id.0).collect();
         let asset_ids: Vec<AssetId> = missing_assets(ranks, &priced).into_iter().take(MAX_ASSETS_PER_RUN).collect();
         let count = asset_ids.len();

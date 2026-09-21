@@ -15,7 +15,7 @@ pub struct TokenBalance {
     pub ui_token_amount: TokenAmount,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TokenBalanceChange {
     pub asset_id: AssetId,
     pub amount: BigInt,
@@ -77,10 +77,7 @@ pub struct TokenAmount {
 
 impl Default for TokenAmount {
     fn default() -> Self {
-        Self {
-            amount: BigUint::from(0u64),
-            decimals: 0,
-        }
+        Self { amount: BigUint::from(0u64), decimals: 0 }
     }
 }
 

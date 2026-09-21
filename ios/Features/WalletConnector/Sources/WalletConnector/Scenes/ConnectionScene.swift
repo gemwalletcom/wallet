@@ -3,6 +3,7 @@
 import Components
 import Localization
 import Primitives
+import PrimitivesComponents
 import SwiftUI
 
 struct ConnectionScene: View {
@@ -17,7 +18,7 @@ struct ConnectionScene: View {
             }
             Section {
                 ForEach(model.details.rows, id: \.self) { row in
-                    ListItemView(model: model.listItem(for: row))
+                    GemListRowView(row: row)
                 }
             }
             Section {

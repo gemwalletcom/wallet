@@ -3,13 +3,13 @@ package com.gemwallet.android.ui.components.list_item
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.size
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -33,7 +33,7 @@ fun LinkItem(
         supportingContent = supportingContent,
         trailingContent = trailingContent,
         onLongClick = onLongClick,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
@@ -67,13 +67,15 @@ fun LinkItem(
                     Image(
                         modifier = Modifier.size(iconSize),
                         painter = painter,
-                        contentDescription = "setting_item"
+                        contentDescription = "setting_item",
                     )
                 }
             }
+
             indented -> {
                 { Spacer(modifier = Modifier.size(iconSize)) }
             }
+
             else -> null
         },
         title = { Text(text = title) },

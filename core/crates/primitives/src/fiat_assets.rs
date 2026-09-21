@@ -26,11 +26,9 @@ impl FiatAssets {
         let mut ids: Vec<&String> = asset_ids.iter().collect();
         ids.sort();
         ids.dedup();
-        let hash = ids.iter().fold(0x811c_9dc5_u32, |hash, id| {
-            id.bytes()
-                .chain(std::iter::once(0))
-                .fold(hash, |hash, byte| (hash ^ u32::from(byte)).wrapping_mul(0x0100_0193))
-        });
+        let hash = ids
+            .iter()
+            .fold(0x811c_9dc5_u32, |hash, id| id.bytes().chain(std::iter::once(0)).fold(hash, |hash, byte| (hash ^ u32::from(byte)).wrapping_mul(0x0100_0193)));
         hash & 0x7fff_ffff
     }
 }

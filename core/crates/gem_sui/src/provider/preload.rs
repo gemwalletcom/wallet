@@ -5,10 +5,7 @@ use async_trait::async_trait;
 #[cfg(feature = "rpc")]
 use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
 use num_bigint::BigInt;
-use primitives::{
-    AssetId, Chain, FeeRate, GasPriceType, StakeType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata,
-    TransactionPreloadInput, TransferDataExtra,
-};
+use primitives::{AssetId, Chain, FeeRate, GasPriceType, StakeType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, TransferDataExtra};
 
 use crate::{
     constants::{ESTIMATION_GAS_BUDGET, SWAP_GAS_UNITS, TOKEN_TRANSFER_GAS_UNITS, TRANSFER_GAS_UNITS},
@@ -81,11 +78,7 @@ impl SuiClient {
         } = input;
 
         let input_type = match input_type {
-            TransactionInputType::Generic {
-                asset,
-                metadata: app_metadata,
-                extra,
-            } if extra.data.as_deref().is_some_and(is_transaction_json) => TransactionInputType::Generic {
+            TransactionInputType::Generic { asset, metadata: app_metadata, extra } if extra.data.as_deref().is_some_and(is_transaction_json) => TransactionInputType::Generic {
                 asset,
                 metadata: app_metadata,
                 extra: self.finish_transaction_json_extra(&sender_address, extra).await?,
@@ -134,11 +127,7 @@ impl SuiClient {
         })
     }
 
-    async fn get_coins_for_input_type(
-        &self,
-        address: &str,
-        input_type: TransactionInputType,
-    ) -> Result<(OwnedCoins<Coin>, Option<OwnedCoins<Coin>>, Vec<SuiObject>), Box<dyn Error + Send + Sync>> {
+    async fn get_coins_for_input_type(&self, address: &str, input_type: TransactionInputType) -> Result<(OwnedCoins<Coin>, Option<OwnedCoins<Coin>>, Vec<SuiObject>), Box<dyn Error + Send + Sync>> {
         match input_type {
             TransactionInputType::Transfer { asset } | TransactionInputType::Withdrawal { asset } => match asset.id.token_id {
                 None => Ok((self.get_gas_coins(address).await?, None, Vec::new())),
@@ -153,9 +142,7 @@ impl SuiClient {
                     let (gas_coins, staked_object) = futures::try_join!(self.get_gas_coins(address), self.get_object(delegation.base.delegation_id.clone()))?;
                     Ok((gas_coins, None, vec![staked_object]))
                 }
-                StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Withdraw(_) | StakeType::Freeze(_) | StakeType::Unfreeze(_) => {
-                    Err("Unsupported stake type for Sui".into())
-                }
+                StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Withdraw(_) | StakeType::Freeze(_) | StakeType::Unfreeze(_) => Err("Unsupported stake type for Sui".into()),
             },
             TransactionInputType::Swap { .. } => Ok((OwnedCoins::default(), None, Vec::new())),
             TransactionInputType::Generic { .. } | TransactionInputType::Payment { .. } => Ok((OwnedCoins::default(), None, Vec::new())),
@@ -178,11 +165,7 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_sui_get_transaction_fee_rates() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_sui_test_client();
-        let rates = client
-            .get_transaction_fee_rates(TransactionInputType::Transfer {
-                asset: Asset::from_chain(Chain::Sui),
-            })
-            .await?;
+        let rates = client.get_transaction_fee_rates(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Sui) }).await?;
 
         println!("Sui transaction fee rates: {:?}", rates);
 
@@ -199,9 +182,7 @@ mod chain_integration_tests {
         let input = TransactionPreloadInput {
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_ADDRESS.to_string(),
-            input_type: TransactionInputType::Transfer {
-                asset: Asset::from_chain(Chain::Sui),
-            },
+            input_type: TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Sui) },
             references: vec![],
         };
 

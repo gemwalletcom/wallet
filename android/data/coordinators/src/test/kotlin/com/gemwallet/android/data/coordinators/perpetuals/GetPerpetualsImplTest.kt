@@ -1,11 +1,10 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
-import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.model.CurrencyFormatter
-import com.wallet.core.primitives.Currency
 import com.gemwallet.android.testkit.mockPerpetual
 import com.gemwallet.android.testkit.mockPerpetualData
+import com.wallet.core.primitives.Currency
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.first
@@ -15,6 +14,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemValueTone
 import java.util.Locale
 
 class GetPerpetualsImplTest {

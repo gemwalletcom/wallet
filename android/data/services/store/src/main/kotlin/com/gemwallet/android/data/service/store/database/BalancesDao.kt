@@ -31,7 +31,8 @@ interface BalancesDao {
     @Query("SELECT asset_id FROM balances WHERE wallet_id = :walletId AND is_visible != 0")
     suspend fun getEnabledAssetIds(walletId: String): List<String>
 
-    @Query("""
+    @Query(
+        """
         UPDATE balances SET
             available = :available,
             available_amount = :availableAmount,
@@ -62,7 +63,8 @@ interface BalancesDao {
             updated_at = :updatedAt,
             is_active = :isActive
         WHERE wallet_id = :walletId AND asset_id = :assetId
-    """)
+    """,
+    )
     fun updateBalance(
         walletId: String,
         assetId: String,
@@ -99,8 +101,4 @@ interface BalancesDao {
     fun perpetualBalance(walletId: String, assetId: String): Flow<DbPerpetualBalanceProjection?>
 }
 
-data class DbPerpetualBalanceProjection(
-    val available: Double,
-    val reserved: Double,
-    val withdrawable: Double,
-)
+data class DbPerpetualBalanceProjection(val available: Double, val reserved: Double, val withdrawable: Double)

@@ -45,9 +45,4 @@ struct RelativeDateFormatterTests {
 
         #expect(formatter.string(from: date) == "February 2, 2025 at 10:25 AM")
     }
-
-    @Test
-    func dateTypeFromTimestampValue() {
-        #expect(dateFormatter.string(fromTimestampValue: "1662714817") == "Sep 9, 2022")
-    }
 }

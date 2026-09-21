@@ -76,10 +76,7 @@ mod tests {
 
     #[test]
     fn ignores_non_fungible_token_events() {
-        for event in [
-            r#"{"event":"donation","data":{"amount":"1"}}"#,
-            r#"{"standard":"potlock","event":"donation","data":{"amount":"1"}}"#,
-        ] {
+        for event in [r#"{"event":"donation","data":{"amount":"1"}}"#, r#"{"standard":"potlock","event":"donation","data":{"amount":"1"}}"#] {
             let log = format!("{EVENT_JSON_PREFIX}{event}");
             assert!(parse_fungible_token_transfer_event(&log).unwrap().is_none());
         }

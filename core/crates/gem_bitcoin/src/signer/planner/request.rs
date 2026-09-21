@@ -30,10 +30,7 @@ impl SpendRequest {
     }
 
     pub(crate) fn swap(chain: BitcoinChain, input: &SignerInput) -> Result<Self, SignerError> {
-        let swap = input
-            .input_type
-            .get_swap_data()
-            .map_err(|_| SignerError::invalid_input("unsupported Bitcoin transaction type"))?;
+        let swap = input.input_type.get_swap_data().map_err(|_| SignerError::invalid_input("unsupported Bitcoin transaction type"))?;
         validate_native_chain_asset(chain, input.input_type.get_asset(), "unsupported Bitcoin swap asset")?;
         let memo = match &swap.data.data_type {
             SwapQuoteDataType::Transfer => swap.data.memo.as_ref().map(|memo| memo.as_bytes().to_vec()),
@@ -44,11 +41,7 @@ impl SpendRequest {
             chain,
             sender_address: input.sender_address.clone(),
             destination_address: swap.data.to.clone(),
-            amount: swap
-                .data
-                .value
-                .to_u64()
-                .ok_or_else(|| SignerError::invalid_input(format!("{} swap amount is too large", chain.get_chain())))?,
+            amount: swap.data.value.to_u64().ok_or_else(|| SignerError::invalid_input(format!("{} swap amount is too large", chain.get_chain())))?,
             is_max: swap.quote.use_max_amount.unwrap_or(input.is_max_value),
             fee_rate: spend_fee_rate(chain, input)?,
             memo,
@@ -62,7 +55,5 @@ fn spend_fee_rate(chain: BitcoinChain, input: &SignerInput) -> Result<u64, Signe
 }
 
 fn validate_native_chain_asset(chain: BitcoinChain, asset: &Asset, message: &'static str) -> Result<(), SignerError> {
-    (asset.id.chain == chain.get_chain() && asset.id.is_native())
-        .then_some(())
-        .ok_or_else(|| SignerError::invalid_input(message))
+    (asset.id.chain == chain.get_chain() && asset.id.is_native()).then_some(()).ok_or_else(|| SignerError::invalid_input(message))
 }

@@ -1,9 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import func Gemstone.addressCopy
 import struct Gemstone.AddressName
+import enum Gemstone.GemAcquireAssetFlow
 import struct Gemstone.GemConfirmLoad
 import enum Gemstone.GemConfirmRowContent
-import enum Gemstone.GemExecuteResult
+import enum Gemstone.GemSubmitResult
 import struct Gemstone.GemTransferData
 import struct Gemstone.SimulationResult
 import func Gemstone.walletRow
@@ -20,15 +22,20 @@ public extension ConfirmTransferSceneViewModel {
         data: GemTransferData = .mock(),
         simulation: SimulationResult? = nil,
         load: Result<GemConfirmLoad, any Error>? = nil,
-        execute: Result<GemExecuteResult, any Error> = .success(.signed(data: [], warning: nil)),
+        execute: Result<GemSubmitResult, any Error> = .success(.signed(data: [], warning: nil)),
         rows: ((Gemstone.AddressName?) -> [GemConfirmRowContent])? = nil,
+        acquireFlow: GemAcquireAssetFlow = .fiat,
         confirmation: GemConfirmationMock? = nil,
-        onComplete: ((GemExecuteResult) -> Void)? = nil,
+        onComplete: ((GemSubmitResult) -> Void)? = nil,
     ) -> ConfirmTransferSceneViewModel {
         let wallet = Wallet.mock(accounts: [.mock(chain: data.chain)])
         let rows = rows ?? { addressName in
             [
-                .sender(wallet: walletRow(wallet: wallet.toGem())),
+                .row(row: .wallet(
+                    wallet: walletRow(wallet: wallet.toGem()),
+                    copy: addressCopy(chain: data.chain.rawValue, address: wallet.accounts[0].address),
+                    explorer: BlockExplorerLink.mock().toGem(),
+                )),
                 .recipient(
                     destination: .recipient(name: addressName?.name, address: data.recipient.address),
                     addressName: addressName,
@@ -36,8 +43,8 @@ public extension ConfirmTransferSceneViewModel {
                     chain: data.chain.rawValue,
                     link: BlockExplorerLink.mock().toGem(),
                 ),
-                .network(chain: data.chain.rawValue, name: data.chain.rawValue),
-                data.recipient.memo.map { GemConfirmRowContent.memo(memo: $0) },
+                .row(row: .network(title: .network, chain: data.chain.rawValue, name: data.chain.rawValue)),
+                data.recipient.memo.map { GemConfirmRowContent.row(row: .memo(value: $0, copy: $0)) },
                 .details,
             ].compactMap(\.self)
         }
@@ -49,6 +56,7 @@ public extension ConfirmTransferSceneViewModel {
                 load: load ?? .success(.mock(transfer: data)),
                 execute: execute,
                 rows: rows,
+                acquireFlow: acquireFlow,
             ),
             onComplete: onComplete,
         )

@@ -90,18 +90,8 @@ mod tests {
     #[test]
     fn calculate_spot_fee_amount_cases() {
         for (swap_data, from_asset, to_asset, expected) in [
-            (
-                SwapData::mock_with_values(SwapProvider::Hyperliquid, "30000000", "1181917897"),
-                &HYPERCORE_SPOT_HYPE,
-                &HYPERCORE_SPOT_USDC,
-                1_194_273_u64,
-            ),
-            (
-                SwapData::mock_with_values(SwapProvider::Hyperliquid, "1197900000", "29986500"),
-                &HYPERCORE_SPOT_USDC,
-                &HYPERCORE_SPOT_HYPE,
-                1_209_878_u64,
-            ),
+            (SwapData::mock_with_values(SwapProvider::Hyperliquid, "30000000", "1181917897"), &HYPERCORE_SPOT_HYPE, &HYPERCORE_SPOT_USDC, 1_194_273_u64),
+            (SwapData::mock_with_values(SwapProvider::Hyperliquid, "1197900000", "29986500"), &HYPERCORE_SPOT_USDC, &HYPERCORE_SPOT_HYPE, 1_209_878_u64),
         ] {
             let result = calculate_spot_fee_amount(&swap_data, from_asset, to_asset, 0.00056, 45).unwrap();
             assert_eq!(result, BigInt::from(expected));

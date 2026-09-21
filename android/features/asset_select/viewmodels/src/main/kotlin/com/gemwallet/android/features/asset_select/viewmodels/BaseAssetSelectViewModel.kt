@@ -11,7 +11,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
-import com.gemwallet.android.domains.asset.assetConfig
+import com.gemwallet.android.domains.asset.assetSections
 import com.gemwallet.android.domains.asset.toQueryFilters
 import com.gemwallet.android.domains.price.values.RowFormatters
 import com.gemwallet.android.ext.getAccount
@@ -60,9 +60,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetAction
-import uniffi.gemstone.GemAssetRowTitle
 import uniffi.gemstone.GemAssetSearchStep
 import uniffi.gemstone.GemAssetSelectionServiceInterface
+import uniffi.gemstone.GemAssetTitleStyle
 import uniffi.gemstone.GemSelectAssetState
 import uniffi.gemstone.GemSelectAssetType
 
@@ -75,7 +75,8 @@ open class BaseAssetSelectViewModel(
     selectType: GemSelectAssetType,
     protected val ioDispatcher: CoroutineDispatcher,
     protected val context: Context,
-) : ViewModel(), ToastEmitter by ToastEmitterImpl() {
+) : ViewModel(),
+    ToastEmitter by ToastEmitterImpl() {
 
     val flow = service.flow(selectType)
 
@@ -114,14 +115,12 @@ open class BaseAssetSelectViewModel(
         SelectAssetFilters(
             session = session,
             query = query,
-            chainFilter = chainFilter,
-            hasBalance = hasBalance,
             limit = assetsSearchLimit(query),
             scope = flow.scope,
-            filters = flow.filters,
+            filters = flow.appliedFilters(chainFilter.map { it.string }, hasBalance),
         )
     }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val assetsContent = combine(
         filters,
@@ -133,11 +132,11 @@ open class BaseAssetSelectViewModel(
             .map { item ->
                 val owner = item.owner ?: wallet?.getAccount(item.asset.id.chain)
                 val assetInfo = if (item.owner == owner) item else item.copy(owner = owner)
-                assetInfo.toAssetInfoDataAggregate(GemAssetRowTitle.CANONICAL_ASSET, formatters = formatters)
+                assetInfo.toAssetInfoDataAggregate(GemAssetTitleStyle.CANONICAL_ASSET, formatters = formatters)
             }
     }
-    .flowOn(ioDispatcher)
-    .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
+        .flowOn(ioDispatcher)
+        .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
 
     private data class AssetSections(
         val popular: ImmutableList<AssetInfoDataAggregate> = emptyList<AssetInfoDataAggregate>().toImmutableList(),
@@ -146,16 +145,15 @@ open class BaseAssetSelectViewModel(
     )
 
     private fun assetSections(items: List<AssetInfoDataAggregate>): AssetSections {
-        val sections = assetConfig.assetSections(
-            ids = items.map { it.asset.id.toIdentifier() },
-            pinnedIds = items.filter { it.pinned }.map { it.asset.id.toIdentifier() },
+        val sections = items.assetSections(
             showsPopular = flow.popularSection,
+            assetId = { it.asset.id },
+            isPinned = { it.pinned },
         )
-        val byId = items.associateBy { it.asset.id.toIdentifier() }
         return AssetSections(
-            popular = sections.popular.mapNotNull(byId::get).toImmutableList(),
-            pinned = sections.pinned.mapNotNull(byId::get).toImmutableList(),
-            unpinned = sections.assets.mapNotNull(byId::get).toImmutableList(),
+            popular = sections.popular.toImmutableList(),
+            pinned = sections.pinned.toImmutableList(),
+            unpinned = sections.unpinned.toImmutableList(),
         )
     }
 
@@ -186,9 +184,9 @@ open class BaseAssetSelectViewModel(
                 recentAssetsService.getRecentAssets(RecentAssetsRequest(types = recentTypes, filters = assetFilters()))
             }
         }
-    .map { items -> items.map { it.asset }.toImmutableList() }
-    .flowOn(ioDispatcher)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<Asset>().toImmutableList())
+        .map { items -> items.map { it.asset }.toImmutableList() }
+        .flowOn(ioDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<Asset>().toImmutableList())
 
     val showsRecents: StateFlow<Boolean> = combine(snapshotFlow { queryState.text.isNotEmpty() }, recent) { hasQuery, recents -> flow.showsRecents(hasQuery, recents.isNotEmpty()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
@@ -200,7 +198,7 @@ open class BaseAssetSelectViewModel(
             GemSelectAssetState.EMPTY -> UIState.Empty
         }
     }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, UIState.Idle)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, UIState.Idle)
 
     val isChainFilterAvailable = combine(getSession(), availableChains) { session, chains ->
         flow.showsChainFilter(session?.wallet?.type == WalletType.Multicoin, chains.isNotEmpty())
@@ -236,8 +234,8 @@ open class BaseAssetSelectViewModel(
         val item = assets.value.firstOrNull { it.asset.id == assetId }
         val willPin = item?.pinned != true
         runCatchingCancellable { service.setAssetPinned(assetId.toIdentifier(), willPin) }
+            .onSuccess { item?.let { emitToast(assetPinnedToast(context, it.asset.name, willPin)) } }
             .onFailure { Log.e(TAG, "pinning ${assetId.toIdentifier()} failed", it) }
-        item?.let { emitToast(assetPinnedToast(context, it.asset.name, willPin)) }
     }
 
     private suspend fun setVisibility(assetId: AssetId, visible: Boolean): Result<Unit> = withContext(ioDispatcher) {
@@ -290,11 +288,9 @@ open class BaseAssetSelectViewModel(
         service.searchAssets(query)
     }
 
-    protected suspend fun setPerpetualPinned(perpetualId: PerpetualId, pinned: Boolean) {
-        withContext(ioDispatcher) {
-            runCatchingCancellable { service.setPerpetualPinned(perpetualId.toIdentifier(), pinned) }
-                .onFailure { Log.e(TAG, "pinning perpetual ${perpetualId.toIdentifier()} failed", it) }
-        }
+    protected suspend fun setPerpetualPinned(perpetualId: PerpetualId, pinned: Boolean): Result<Unit> = withContext(ioDispatcher) {
+        runCatchingCancellable { service.setPerpetualPinned(perpetualId.toIdentifier(), pinned) }
+            .onFailure { Log.e(TAG, "pinning perpetual ${perpetualId.toIdentifier()} failed", it) }
     }
 
     fun openRecent(asset: Asset) = updateRecent(asset, GemAssetAction.OPEN)

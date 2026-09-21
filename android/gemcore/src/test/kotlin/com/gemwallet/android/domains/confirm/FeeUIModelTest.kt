@@ -6,10 +6,10 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.FeeOption
+import uniffi.gemstone.GemFeeOptionItem
 import java.math.BigInteger
 import java.util.Locale
-import uniffi.gemstone.GemFeeOptionItem
-import uniffi.gemstone.FeeOption
 
 class FeeUIModelTest {
 

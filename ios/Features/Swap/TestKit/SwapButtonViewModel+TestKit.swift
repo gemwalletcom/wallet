@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import struct Gemstone.GemSwapRequest
 import struct Gemstone.GemSwapSession
 import GemstonePrimitives
 import GemstoneServicesTestKit
@@ -11,12 +12,11 @@ import PrimitivesTestKit
 extension SwapButtonViewModel {
     static func mock(
         session: GemSwapSession = .mock(),
-        value: BigInt = 1,
-        availableBalance: BigInt = 2,
+        availableBalance: BigInt = BigInt(GemSwapRequest.mock.value),
         fromAsset: AssetData? = .mock(),
     ) -> SwapButtonViewModel {
         SwapButtonViewModel(
-            state: session.viewState(value: value, availableBalance: availableBalance, payAsset: nil),
+            state: session.viewState(availableBalance: availableBalance, payAsset: nil),
             fromAsset: fromAsset,
             onAction: {},
         )

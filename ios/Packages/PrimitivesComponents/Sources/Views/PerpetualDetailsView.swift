@@ -2,50 +2,21 @@
 
 import Components
 import Foundation
-import Localization
-import Primitives
 import SwiftUI
 
 public struct PerpetualDetailsView: View {
-    private var model: PerpetualDetailsViewModel
+    private let model: PerpetualDetailsViewModel
 
     public init(model: PerpetualDetailsViewModel) {
         self.model = model
     }
 
     public var body: some View {
-        List {
-            Section {
-                ListItemView(field: model.positionField)
-
-                if let pnlField = model.pnlField {
-                    ListItemView(field: pnlField)
-                }
-            }
-
-            Section {
-                ListItemView(field: model.marginField)
-                ListItemView(field: model.sizeField)
-            }
-
-            if model.showAutoclose {
-                Section {
-                    ListItemView(model: model.autocloseListItem)
-                }
-            }
-
-            Section {
-                ListItemView(field: model.marketPriceField)
-
-                if let entryPriceField = model.entryPriceField {
-                    ListItemView(field: entryPriceField)
-                }
-
-                ListItemView(field: model.slippageField)
-            }
+        ListSectionView(provider: model) { row in
+            GemListRowView(row: row)
         }
         .toolbarDismissItem(type: .close, placement: .topBarLeading)
-        .navigationTitle(Localized.Common.details)
+        .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
         .listSectionSpacing(.compact)
         .contentMargins([.top], .extraSmall, for: .scrollContent)

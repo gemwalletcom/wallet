@@ -22,11 +22,7 @@ trait ParseContextExt {
 
 impl ParseContextExt for ParseContext<'_> {
     fn make_swap_transaction(&self, from: String, program_id: &str, asset_id: AssetId, value: BigUint) -> Option<Transaction> {
-        let state = if self.transaction.meta.has_error() {
-            TransactionState::Reverted
-        } else {
-            TransactionState::Confirmed
-        };
+        let state = if self.transaction.meta.has_error() { TransactionState::Reverted } else { TransactionState::Confirmed };
 
         Some(Transaction::new(
             self.transaction.transaction.signatures.first()?.clone(),

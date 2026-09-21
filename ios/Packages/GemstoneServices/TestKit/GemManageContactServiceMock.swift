@@ -2,10 +2,12 @@
 
 import struct Gemstone.Chain
 import struct Gemstone.Contact
+import struct Gemstone.ContactAddress
 import enum Gemstone.GemAddressFormatStyle
 import class Gemstone.GemAddressService
 import struct Gemstone.GemContactInput
 import struct Gemstone.GemContactScannedAddress
+import struct Gemstone.GemContactSession
 import class Gemstone.GemManageContactService
 import protocol Gemstone.GemManageContactServiceProtocol
 import class Gemstone.GemPaymentService
@@ -22,10 +24,6 @@ public final class GemManageContactServiceMock: GemManageContactServiceProtocol,
         )
     }
 
-    public func canSave(name: String, isSaving: Bool) -> Bool {
-        !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isSaving
-    }
-
     public func scannedAddress(input: String) -> GemContactScannedAddress {
         service.scannedAddress(input: input)
     }
@@ -40,5 +38,9 @@ public final class GemManageContactServiceMock: GemManageContactServiceProtocol,
 
     public func formatAddress(address: String, chain: Gemstone.Chain, style: GemAddressFormatStyle) -> String {
         service.formatAddress(address: address, chain: chain, style: style)
+    }
+
+    public func newSession(contact: Gemstone.Contact?, addresses: [Gemstone.ContactAddress]) -> GemContactSession {
+        service.newSession(contact: contact, addresses: addresses)
     }
 }

@@ -100,10 +100,7 @@ mod tests {
         let transactions = SuiIndexer::new(client).get_transaction_digests_by_address("address", 51).await.unwrap();
         let requests = requests.lock().unwrap();
 
-        assert_eq!(
-            transactions.iter().map(|transaction| transaction.digest.as_str()).collect::<Vec<_>>(),
-            vec!["newest", "older", "oldest"]
-        );
+        assert_eq!(transactions.iter().map(|transaction| transaction.digest.as_str()).collect::<Vec<_>>(), vec!["newest", "older", "oldest"]);
         assert_eq!(requests.len(), 2);
         assert_eq!(requests[0]["operationName"], "GetTransactionsByAddress");
         assert_eq!(

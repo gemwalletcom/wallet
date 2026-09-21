@@ -5,32 +5,20 @@ use primitives::{Chain, NFTAsset, NFTAssetId, NFTAttribute, NFTAttributeType, NF
 use crate::providers::attribute::json_attribute_value;
 
 pub fn map_assets(assets: Vec<OwnedNft>, chain: Chain) -> Vec<NFTAssetId> {
-    assets
-        .into_iter()
-        .filter(|asset| !asset.is_spam.unwrap_or_default())
-        .filter_map(|asset| map_asset_id(asset, chain))
-        .collect()
+    assets.into_iter().filter(|asset| !asset.is_spam.unwrap_or_default()).filter_map(|asset| map_asset_id(asset, chain)).collect()
 }
 
 pub fn map_collection(metadata: ContractMetadata, collection_id: NFTCollectionId) -> NFTCollection {
     let open_sea_metadata = metadata.open_sea_metadata.as_ref();
     let is_spam = metadata.is_spam.unwrap_or_default();
     let is_verified = !is_spam && open_sea_metadata.and_then(|metadata| metadata.safelist_request_status.as_deref()) == Some("verified");
-    let status = if is_spam {
-        VerificationStatus::Suspicious
-    } else {
-        VerificationStatus::from_verified(is_verified)
-    };
+    let status = if is_spam { VerificationStatus::Suspicious } else { VerificationStatus::from_verified(is_verified) };
 
     NFTCollection {
         chain: collection_id.chain,
         contract_address: ethereum_address_checksum(&collection_id.contract_address).unwrap_or_else(|_| collection_id.contract_address.clone()),
         id: collection_id,
-        name: metadata
-            .name
-            .clone()
-            .or_else(|| open_sea_metadata.and_then(|metadata| metadata.collection_name.clone()))
-            .unwrap_or_default(),
+        name: metadata.name.clone().or_else(|| open_sea_metadata.and_then(|metadata| metadata.collection_name.clone())).unwrap_or_default(),
         symbol: metadata.symbol.clone(),
         description: open_sea_metadata.and_then(|metadata| metadata.description.clone()),
         images: NFTImages {
@@ -46,20 +34,9 @@ pub fn map_asset(metadata: NftMetadata, asset_id: NFTAssetId) -> Option<NFTAsset
         return None;
     }
     let raw_metadata = metadata.raw.as_ref().and_then(|raw| raw.metadata.as_ref());
-    let token_type = metadata
-        .token_type
-        .as_deref()
-        .or(metadata.contract.token_type.as_deref())?
-        .to_ascii_lowercase()
-        .parse()
-        .ok()?;
+    let token_type = metadata.token_type.as_deref().or(metadata.contract.token_type.as_deref())?.to_ascii_lowercase().parse().ok()?;
     let raw_image = raw_metadata.and_then(|metadata| metadata.image.as_deref());
-    let attributes = raw_metadata
-        .and_then(|metadata| metadata.attributes.as_ref())
-        .into_iter()
-        .flatten()
-        .filter_map(map_attribute)
-        .collect();
+    let attributes = raw_metadata.and_then(|metadata| metadata.attributes.as_ref()).into_iter().flatten().filter_map(map_attribute).collect();
 
     Some(NFTAsset {
         chain: asset_id.chain,
@@ -68,11 +45,7 @@ pub fn map_asset(metadata: NftMetadata, asset_id: NFTAssetId) -> Option<NFTAsset
         collection_id: asset_id.get_collection_id(),
         id: asset_id,
         token_type,
-        name: metadata
-            .name
-            .clone()
-            .or_else(|| raw_metadata.and_then(|metadata| metadata.name.clone()))
-            .unwrap_or_default(),
+        name: metadata.name.clone().or_else(|| raw_metadata.and_then(|metadata| metadata.name.clone())).unwrap_or_default(),
         description: metadata.description.clone().or_else(|| raw_metadata.and_then(|metadata| metadata.description.clone())),
         resource: NFTResource::from_url(resource_url(&metadata, raw_image)),
         images: NFTImages {
@@ -91,14 +64,7 @@ fn resource_url<'a>(metadata: &'a NftMetadata, raw_image: Option<&'a str>) -> &'
     metadata
         .image
         .as_ref()
-        .and_then(|image| {
-            image
-                .original_url
-                .as_deref()
-                .or(image.cached_url.as_deref())
-                .or(image.png_url.as_deref())
-                .or(image.thumbnail_url.as_deref())
-        })
+        .and_then(|image| image.original_url.as_deref().or(image.cached_url.as_deref()).or(image.png_url.as_deref()).or(image.thumbnail_url.as_deref()))
         .or(raw_image)
         .unwrap_or_default()
 }
@@ -107,14 +73,7 @@ fn preview_url<'a>(metadata: &'a NftMetadata, raw_image: Option<&'a str>) -> &'a
     metadata
         .image
         .as_ref()
-        .and_then(|image| {
-            image
-                .thumbnail_url
-                .as_deref()
-                .or(image.cached_url.as_deref())
-                .or(image.png_url.as_deref())
-                .or(image.original_url.as_deref())
-        })
+        .and_then(|image| image.thumbnail_url.as_deref().or(image.cached_url.as_deref()).or(image.png_url.as_deref()).or(image.original_url.as_deref()))
         .or(raw_image)
         .unwrap_or_default()
 }

@@ -80,19 +80,12 @@ impl NodeService {
         let mut remote_host = None;
         let result = self.handle_request_inner(request, &mut remote_host).await;
         if request.is_broadcast(&self.broadcast_providers) {
-            self.metrics
-                .record_transaction_broadcast(request, &result, &self.broadcast_providers, remote_host.as_deref().unwrap_or("unknown"));
+            self.metrics.record_transaction_broadcast(request, &result, &self.broadcast_providers, remote_host.as_deref().unwrap_or("unknown"));
         }
         let status = result.as_ref().map_or(StatusCode::INTERNAL_SERVER_ERROR.as_u16(), |response| response.status);
         self.metrics.record_node_response(chain, &request.path, status);
         if let Ok(response) = &result {
-            self.metrics.add_proxy_response(
-                chain.as_ref(),
-                request.method.as_str(),
-                request.path.as_str(),
-                response.status,
-                request.elapsed().as_millis(),
-            );
+            self.metrics.add_proxy_response(chain.as_ref(), request.method.as_str(), request.path.as_str(), response.status, request.elapsed().as_millis());
         }
         result
     }
@@ -160,14 +153,7 @@ impl NodeService {
                     let chain = request.chain.as_ref();
                     let latency = DurationMs(request.elapsed());
                     let retry_reason = FailureReason::from_error(e.as_ref()).to_string();
-                    info_with_fields!(
-                        "Upstream error",
-                        id = request_id,
-                        chain = chain,
-                        remote_host = remote_host.as_str(),
-                        error = retry_reason.as_str(),
-                        latency = latency,
-                    );
+                    info_with_fields!("Upstream error", id = request_id, chain = chain, remote_host = remote_host.as_str(), error = retry_reason.as_str(), latency = latency,);
                     if index + 1 < max_attempts {
                         self.metrics.add_proxy_retry(request.chain.as_ref(), remote_host.as_str(), &retry_reason);
                         self.metrics.record_node_failover(request.chain, remote_host.as_str(), &request.path, &retry_reason);
@@ -330,10 +316,7 @@ impl NodeService {
         let response = match request.request_type() {
             RequestType::JsonRpc(_) => serde_json::to_value(JsonRpcErrorResponse::new(&error_message))?,
             RequestType::Regular { .. } => serde_json::to_value(ResponseError {
-                error: ErrorDetail {
-                    message: error_message,
-                    data: upstream_data,
-                },
+                error: ErrorDetail { message: error_message, data: upstream_data },
             })?,
         };
 
@@ -364,10 +347,7 @@ mod tests {
         assert!(initial.iter().all(|line| line.ends_with(" 0")));
 
         service.handle_request(&ProxyRequest::mock_jsonrpc(Chain::Ethereum, "eth_chainId")).await.unwrap();
-        service
-            .handle_request(&ProxyRequest::mock_jsonrpc(Chain::Ethereum, "eth_sendRawTransaction"))
-            .await
-            .unwrap();
+        service.handle_request(&ProxyRequest::mock_jsonrpc(Chain::Ethereum, "eth_sendRawTransaction")).await.unwrap();
         let encoded = service.metrics.get_metrics();
         assert_eq!(
             encoded.lines().filter(|line| line.starts_with(prefix) && !line.ends_with(" 0")).collect::<Vec<_>>(),
@@ -446,11 +426,7 @@ mod tests {
         };
 
         let request = ProxyRequest::mock_jsonrpc(Chain::Ethereum, "eth_blockNumber");
-        let response = ProxyResponse::new(
-            200,
-            HeaderMap::new(),
-            br#"{"jsonrpc":"2.0","error":{"code":-32000,"message":"Exceeded the quota usage"},"id":1}"#.to_vec(),
-        );
+        let response = ProxyResponse::new(200, HeaderMap::new(), br#"{"jsonrpc":"2.0","error":{"code":-32000,"message":"Exceeded the quota usage"},"id":1}"#.to_vec());
 
         assert!(service.matches_response_error_signal(&request, &response, &service.retry_config.errors));
     }

@@ -2,6 +2,7 @@ package com.gemwallet.android.data.services.gemstone.stream
 
 import android.util.Log
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.gemstone.connection.ConnectionComponentHealth
 import com.gemwallet.android.ext.runCatchingCancellable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +17,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.gemwallet.android.data.services.gemstone.connection.ConnectionComponentHealth
 import uniffi.gemstone.GemStreamServiceInterface
 
 class StreamObserverService(
@@ -69,7 +69,15 @@ class StreamObserverService(
                             health.report(isHealthy = true)
                             service.connected()
                         }
-                        is WebSocketEvent.Message -> service.handle(event.text)
+
+                        is WebSocketEvent.Message -> {
+                            val handled = service.decodeEvent(event.text)
+                            scope.launch {
+                                runCatchingCancellable { service.sync(handled) }
+                                    .onFailure { Log.e(TAG, "Stream sync error", it) }
+                            }
+                        }
+
                         WebSocketEvent.Disconnected -> {
                             health.report(isHealthy = false)
                             service.disconnected()

@@ -33,19 +33,11 @@ pub fn map_transactions_by_address(account_ledger: crate::models::rpc::AccountLe
 }
 
 pub fn map_block_transactions(chain: Chain, ledger: Ledger) -> Vec<Transaction> {
-    ledger
-        .transactions
-        .into_iter()
-        .flat_map(|x| map_block_transaction(chain, x, ledger.close_time))
-        .collect::<Vec<Transaction>>()
+    ledger.transactions.into_iter().flat_map(|x| map_block_transaction(chain, x, ledger.close_time)).collect::<Vec<Transaction>>()
 }
 
 pub fn map_account_transactions(chain: Chain, ledger: AccountLedger) -> Vec<Transaction> {
-    ledger
-        .transactions
-        .into_iter()
-        .flat_map(|x| map_account_transaction(chain, x))
-        .collect::<Vec<Transaction>>()
+    ledger.transactions.into_iter().flat_map(|x| map_account_transaction(chain, x)).collect::<Vec<Transaction>>()
 }
 
 fn map_transaction_common(
@@ -63,11 +55,7 @@ fn map_transaction_common(
     timestamp: i64,
 ) -> Option<Transaction> {
     if transaction_type == TRANSACTION_TYPE_PAYMENT {
-        let memo = memos
-            .as_ref()
-            .and_then(|m| m.first())
-            .and_then(|m| m.decoded_data())
-            .or_else(|| destination_tag.map(|x| x.to_string()));
+        let memo = memos.as_ref().and_then(|m| m.first()).and_then(|m| m.decoded_data()).or_else(|| destination_tag.map(|x| x.to_string()));
         let (state, amount) = if meta_result == RESULT_SUCCESS {
             (TransactionState::Confirmed, delivered_amount?)
         } else {
@@ -181,10 +169,7 @@ mod tests {
 
     #[test]
     fn test_map_account_transactions() {
-        let ledger = serde_json::from_str::<JsonRpcResult<AccountLedger>>(include_str!("../testdata/account_transactions.json"))
-            .unwrap()
-            .take()
-            .unwrap();
+        let ledger = serde_json::from_str::<JsonRpcResult<AccountLedger>>(include_str!("../testdata/account_transactions.json")).unwrap().take().unwrap();
         let transactions = map_account_transactions(Chain::Xrp, ledger);
 
         let expected_tx = Transaction::new(
@@ -222,10 +207,7 @@ mod tests {
 
     #[test]
     fn test_map_transactions_by_block() {
-        let ledger = serde_json::from_str::<JsonRpcResult<LedgerData>>(include_str!("../testdata/transactions_by_block.json"))
-            .unwrap()
-            .take()
-            .unwrap();
+        let ledger = serde_json::from_str::<JsonRpcResult<LedgerData>>(include_str!("../testdata/transactions_by_block.json")).unwrap().take().unwrap();
         let transactions = map_transactions_by_block(ledger.ledger);
 
         assert!(!transactions.is_empty());
@@ -237,10 +219,7 @@ mod tests {
 
     #[test]
     fn test_map_transaction_by_hash() {
-        let transaction = serde_json::from_str::<JsonRpcResult<XrpTransaction>>(include_str!("../testdata/transaction_by_hash.json"))
-            .unwrap()
-            .take()
-            .unwrap();
+        let transaction = serde_json::from_str::<JsonRpcResult<XrpTransaction>>(include_str!("../testdata/transaction_by_hash.json")).unwrap().take().unwrap();
 
         let mapped = map_direct_transaction(Chain::Xrp, transaction).unwrap();
 

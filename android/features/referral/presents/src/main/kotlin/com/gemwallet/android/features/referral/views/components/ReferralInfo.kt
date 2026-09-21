@@ -22,11 +22,7 @@ import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.models.ListPosition
 
-internal fun LazyListScope.referralInfo(
-    rows: List<ListItemModel>,
-    redemptions: List<RewardRedemptionUIModel>,
-    onRedeem: (RewardRedemptionUIModel) -> Unit,
-) {
+internal fun LazyListScope.referralInfo(rows: List<ListItemModel>, redemptions: List<RewardRedemptionUIModel>, onRedeem: (RewardRedemptionUIModel) -> Unit) {
     item {
         SubheaderItem(R.string.common_info)
         rows.forEachIndexed { index, row ->
@@ -43,11 +39,7 @@ internal fun LazyListScope.referralInfo(
 }
 
 @Composable
-private fun RewardRedemptionOptionItem(
-    item: RewardRedemptionUIModel,
-    listPosition: ListPosition,
-    onClick: () -> Unit,
-) {
+private fun RewardRedemptionOptionItem(item: RewardRedemptionUIModel, listPosition: ListPosition, onClick: () -> Unit) {
     var showConfirm by remember { mutableStateOf(false) }
     ListItem(
         model = item.model,
@@ -72,15 +64,15 @@ private fun RewardRedemptionOptionItem(
                 {
                     onClick()
                     showConfirm = false
-                }
+                },
             ) { Text(stringResource(R.string.transfer_confirm)) }
         },
         dismissButton = {
             Button(
                 {
                     showConfirm = false
-                }
+                },
             ) { Text(stringResource(R.string.common_cancel)) }
-        }
+        },
     )
 }

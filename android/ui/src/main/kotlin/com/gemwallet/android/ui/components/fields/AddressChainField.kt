@@ -65,7 +65,7 @@ fun ColumnScope.AddressChainField(
                     onClean = { onValueChange("") },
                 )
             }
-        }
+        },
     )
     if (error.isNotEmpty()) {
         Text(

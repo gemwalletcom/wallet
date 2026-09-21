@@ -24,11 +24,11 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
+import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.HeaderIcon
 import com.gemwallet.android.ui.components.list_item.DelegationItem
-import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.energyItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
@@ -39,16 +39,18 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.paddingLarge
+import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemServiceException
 
 @Composable
 internal fun StakeScene(
     inSync: Boolean,
     assetInfo: AssetInfo,
     actions: List<StakeActionUIModel>,
-    rewardsText: String,
     stakeInfoUrl: String?,
     sections: List<StakeSectionUIModel>,
-    infoRows: List<ListItemModel>,
+    infoRows: List<GemListRow>,
+    loadError: GemServiceException?,
     amountAction: AmountTransactionAction,
     onAction: (StakeSceneAction) -> Unit,
 ) {
@@ -79,25 +81,27 @@ internal fun StakeScene(
                     )
                 }
 
-                stakeInfoSection(infoRows)
+                stakeInfoSection(infoRows, assetInfo.id().iconModel())
 
                 sections.forEach { section ->
                     item { SubheaderItem(section.title) }
                     when (section) {
                         is StakeSectionUIModel.Manage -> stakeActions(
-                        actions = actions,
-                        assetId = assetInfo.id(),
+                            actions = actions,
+                            assetId = assetInfo.id(),
                             amountAction = amountAction,
                             onRewards = { onAction(StakeSceneAction.ClaimRewards) },
                         )
+
                         is StakeSectionUIModel.Resources -> energyItem(assetInfo.balance.metadata)
+
                         is StakeSectionUIModel.Delegations -> itemsIndexed(section.rows) { index, item ->
                             DelegationItem(
                                 assetInfo = assetInfo,
                                 delegation = item.delegation,
                                 validator = item.validator,
                                 listPosition = ListPosition.getPosition(index, section.rows.size),
-                                onClick = { onAction(StakeSceneAction.OpenDelegation(item.delegation)) }
+                                onClick = { onAction(StakeSceneAction.OpenDelegation(item.delegation)) },
                             )
                         }
                     }
@@ -106,7 +110,10 @@ internal fun StakeScene(
                 if (sections.none { it is StakeSectionUIModel.Delegations }) {
                     item {
                         Spacer(modifier = Modifier.height(paddingLarge))
-                        EmptyContentView(type = EmptyContentType.Stake(symbol = assetInfo.asset.symbol))
+                        when (loadError) {
+                            null -> EmptyContentView(type = EmptyContentType.Stake(symbol = assetInfo.asset.symbol))
+                            else -> GemListRowView(row = GemListRow.Error(loadError), listPosition = ListPosition.Single)
+                        }
                     }
                 }
             }
@@ -114,6 +121,6 @@ internal fun StakeScene(
     }
 }
 
-private fun LazyListScope.stakeInfoSection(rows: List<ListItemModel>) {
-    itemsPositioned(rows) { position, row -> ListItem(model = row, listPosition = position) }
+private fun LazyListScope.stakeInfoSection(rows: List<GemListRow>, icon: Any?) {
+    itemsPositioned(rows) { position, row -> GemListRowView(row = row, listPosition = position, infoIcon = icon) }
 }

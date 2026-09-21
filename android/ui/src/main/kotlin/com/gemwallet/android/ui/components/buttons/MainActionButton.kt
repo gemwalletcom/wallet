@@ -19,16 +19,9 @@ import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.theme.alpha50
 import com.gemwallet.android.ui.theme.mainActionHeight
-
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 @Composable
-fun MainActionButton(
-    title: String,
-    modifier: Modifier = Modifier,
-    state: ButtonState = ButtonState.Enabled,
-    colors: ButtonColors = mainActionButtonColors(),
-    onClick: () -> Unit,
-) {
+fun MainActionButton(title: String, modifier: Modifier = Modifier, state: ButtonState = ButtonState.Enabled, colors: ButtonColors = mainActionButtonColors(), onClick: () -> Unit) {
     MainActionButton(modifier, state, colors, onClick) {
         if (state == ButtonState.Loading) {
             CircularProgressIndicator20(color = colors.contentColor)
@@ -44,13 +37,7 @@ fun MainActionButton(
 }
 
 @Composable
-fun MainActionButton(
-    modifier: Modifier = Modifier,
-    state: ButtonState = ButtonState.Enabled,
-    colors: ButtonColors = mainActionButtonColors(),
-    onClick: () -> Unit,
-    content: @Composable RowScope.() -> Unit
-) {
+fun MainActionButton(modifier: Modifier = Modifier, state: ButtonState = ButtonState.Enabled, colors: ButtonColors = mainActionButtonColors(), onClick: () -> Unit, content: @Composable RowScope.() -> Unit) {
     Button(
         modifier = modifier
             .fillMaxWidth()
@@ -69,14 +56,12 @@ private fun ButtonColors.forState(state: ButtonState): ButtonColors = when (stat
         disabledContainerColor = containerColor,
         disabledContentColor = contentColor,
     )
+
     else -> this
 }
 
 @Composable
-fun mainActionButtonColors(
-    containerColor: Color = MaterialTheme.colorScheme.primary,
-    contentColor: Color = MaterialTheme.colorScheme.onPrimary,
-): ButtonColors = ButtonDefaults.buttonColors(
+fun mainActionButtonColors(containerColor: Color = MaterialTheme.colorScheme.primary, contentColor: Color = MaterialTheme.colorScheme.onPrimary): ButtonColors = ButtonDefaults.buttonColors(
     containerColor = containerColor,
     contentColor = contentColor,
     disabledContainerColor = containerColor.copy(alpha = alpha50),

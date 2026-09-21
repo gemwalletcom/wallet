@@ -236,10 +236,7 @@ mod tests {
         let token1: Address = OPTIMISM_USDC_TOKEN_ID.parse().unwrap();
         let bytes = build_direct_pair(&token0, &token1, FeeTier::FiveHundred);
 
-        assert_eq!(
-            HexEncode(&bytes),
-            "0x42000000000000000000000000000000000000060001f40b2c639c533813f4aa9d7837caf62653d097ff85"
-        );
+        assert_eq!(HexEncode(&bytes), "0x42000000000000000000000000000000000000060001f40b2c639c533813f4aa9d7837caf62653d097ff85");
 
         let pair = decode_path(&bytes).unwrap();
         assert_eq!(

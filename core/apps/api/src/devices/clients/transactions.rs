@@ -30,10 +30,7 @@ impl TransactionsClient {
         let addresses = subscriptions.iter().map(|(_, addr)| addr.address.clone()).collect::<Vec<_>>();
         let chains = subscriptions.iter().map(|(sub, _)| sub.chain.0.as_ref().to_string()).collect::<Vec<_>>();
         let from_datetime = from_timestamp.and_then(|ts| DateTime::<Utc>::from_timestamp(ts as i64, 0).map(|dt| dt.naive_utc()));
-        let rows = self
-            .database
-            .transactions()?
-            .get_transactions_by_device_id(device_id, addresses.clone(), chains, asset_id, from_datetime, limit, offset)?;
+        let rows = self.database.transactions()?.get_transactions_by_device_id(device_id, addresses.clone(), chains, asset_id, from_datetime, limit, offset)?;
 
         self.transactions_response(rows, addresses)
     }
@@ -48,10 +45,7 @@ impl TransactionsClient {
             return Ok(TransactionsResponse::new(Vec::new(), Vec::new()));
         }
 
-        let rows = self
-            .database
-            .transactions()?
-            .get_transactions_by_device_id(device_id, addresses.clone(), chains, None, None, MAX_QUERY_LIMIT, 0)?;
+        let rows = self.database.transactions()?.get_transactions_by_device_id(device_id, addresses.clone(), chains, None, None, MAX_QUERY_LIMIT, 0)?;
 
         self.transactions_response(rows, addresses)
     }
@@ -85,21 +79,10 @@ impl TransactionsClient {
             .into_iter()
             .map(|(_, address)| address.address)
             .collect::<Vec<_>>();
-        Ok(self
-            .database
-            .transactions()?
-            .get_transaction_by_id(id)?
-            .as_primitive(addresses.clone())?
-            .finalize(addresses))
+        Ok(self.database.transactions()?.get_transaction_by_id(id)?.as_primitive(addresses.clone())?.finalize(addresses))
     }
 
     pub fn get_transactions_by_hash(&self, hash: &str) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .database
-            .transactions()?
-            .get_transactions_by_hash(hash)?
-            .into_iter()
-            .map(|row| row.as_primitive(vec![]))
-            .collect::<Result<Vec<_>, _>>()?)
+        Ok(self.database.transactions()?.get_transactions_by_hash(hash)?.into_iter().map(|row| row.as_primitive(vec![])).collect::<Result<Vec<_>, _>>()?)
     }
 }

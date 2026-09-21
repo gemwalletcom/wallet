@@ -7,10 +7,7 @@ use primitives::{Address as _, Asset, AssetId, Chain, DelegationBase, Delegation
 pub fn map_staking_delegations(account: TronAccount, reward: TronReward, validators: &[DelegationValidator], now: DateTime<Utc>) -> Vec<DelegationBase> {
     let asset_id = Chain::Tron.as_asset_id();
     let unfreezes = account.unfrozen_v2.map(|unfrozen| map_unfreeze_delegations(unfrozen, &asset_id, now)).unwrap_or_default();
-    let votes = account
-        .votes
-        .map(|votes| map_vote_delegations(votes, reward.reward, validators, &asset_id))
-        .unwrap_or_default();
+    let votes = account.votes.map(|votes| map_vote_delegations(votes, reward.reward, validators, &asset_id)).unwrap_or_default();
 
     unfreezes.into_iter().chain(votes).collect()
 }
@@ -23,11 +20,7 @@ fn map_vote_delegations(votes: Vec<TronVote>, reward: u64, validators: &[Delegat
         .into_iter()
         .filter(|vote| validators.iter().any(|validator| validator.id == vote.vote_address))
         .map(|vote| {
-            let proportional_reward = if total_votes > 0 {
-                (reward as f64 * vote.vote_count as f64 / total_votes as f64) as u64
-            } else {
-                0
-            };
+            let proportional_reward = if total_votes > 0 { (reward as f64 * vote.vote_count as f64 / total_votes as f64) as u64 } else { 0 };
             DelegationBase {
                 asset_id: asset_id.clone(),
                 state: DelegationState::Active,
@@ -51,14 +44,11 @@ pub fn map_unfreeze_delegations(unfrozen: Vec<TronUnfrozen>, asset_id: &AssetId,
         })
         .partition(|(completion_date, _)| *completion_date <= now);
 
-    let withdrawable = expired.iter().map(|(completion_date, _)| *completion_date).max().map(|completion_date| {
-        unfreeze_delegation(
-            asset_id,
-            DelegationState::AwaitingWithdrawal,
-            expired.iter().map(|(_, amount)| BigUint::from(*amount)).sum(),
-            completion_date,
-        )
-    });
+    let withdrawable = expired
+        .iter()
+        .map(|(completion_date, _)| *completion_date)
+        .max()
+        .map(|completion_date| unfreeze_delegation(asset_id, DelegationState::AwaitingWithdrawal, expired.iter().map(|(_, amount)| BigUint::from(*amount)).sum(), completion_date));
 
     pending
         .into_iter()

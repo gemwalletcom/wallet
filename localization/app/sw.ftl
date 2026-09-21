@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = Kipengee hakitumiki.
 errors_connections_no_supported_wallets = Hakuna pochi zinazotumika zinazopatikana.
 errors_connections_unsupported_chain = Msururu uliotolewa hautumiki.
 errors_swap_amount_too_small = Kiasi kidogo sana
-errors_required = %@ inahitajika
 errors_scan_transaction_malicious_description = Muamala huu hauwezi kukamilika - anwani ya pochi lengwa imeunganishwa na shughuli za kutiliwa shaka au hatari.
 errors_scan_transaction_memo_required = %@ anwani ya mkoba lengwa inahitaji lebo/memo lengwa
 errors_scan_transaction_malicious_title = Shughuli ya kutiliwa shaka
@@ -315,7 +314,7 @@ asset_symbol = Alama
 asset_decimals = Desimali
 asset_token_id = Kitambulisho cha Tokeni
 asset_contract = Mkataba
-asset_state_empty_title = Shughuli zako za malipo zitaonekana hapa️
+asset_state_empty_title = Shughuli zako za malipo zitaonekana hapa
 asset_state_empty_description = Pokea, badilisha au nunua %@
 asset_verification_unverified = Haijathibitishwa
 asset_verification_suspicious = Inatiliwa shaka
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = Wakati bei inapungua kwa
 price_alerts_set_alert_set_target_price = Weka bei inayolengwa
 price_alerts_set_alert_current_price = Bei ya sasa
 price_alerts_added_for = Weka arifa ya bei %@
-price_alerts_state_empty_title = Arifa zako zitaonekana hapa️
+price_alerts_state_empty_title = Arifa zako zitaonekana hapa
 price_alerts_state_empty_description = Wawezeshe kwa kuongeza sarafu ili kufuatilia
 price_alerts_auto_footer = Arifa hutumwa kunapokuwa na mabadiliko makubwa ya bei.
 price_alerts_set_alert_title = Weka Arifa ya Bei
@@ -536,7 +535,7 @@ verify_phrase_title = Thibitisha
 
 # Warnings
 
-warnings_multi_signature_blocked = Usihamishe pesa kwa %@ pochi hii ya Sahihi nyingi isipokuwa una uhakika kuwa unadhibiti funguo za faragha. Kukosa kufanya hivyo kunaweza kukuweka kwenye ulaghai, na unaweza kupoteza mali yako kabisa.
+warnings_externally_controlled_account = Akaunti hii ya %@ inaweza kudhibitiwa na mtu mwingine. Usitume pesa kwake isipokuwa una uhakika kuwa unaidhibiti, la sivyo unaweza kupoteza mali yako kabisa.
 
 # Sell
 
@@ -600,7 +599,7 @@ nft_collections = Mikusanyiko
 nft_collection = Mkusanyiko
 nft_save_to_photos = Hifadhi kwa Picha
 nft_set_as_avatar = Weka kama Avatar
-nft_state_empty_title = NFT zako zitaonekana hapa️
+nft_state_empty_title = NFT zako zitaonekana hapa
 nft_state_empty_description = Pokea NFT yako ya kwanza
 nft_report_reason_spam = Barua taka
 nft_report_reason_malicious = Hasidi

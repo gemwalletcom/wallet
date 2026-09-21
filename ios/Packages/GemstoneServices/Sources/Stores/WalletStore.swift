@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import protocol Gemstone.GemWalletStore
 import struct Gemstone.Wallet
 import typealias Gemstone.WalletId
-import protocol Gemstone.GemWalletStore
 import GemstonePrimitives
 import Primitives
 import Store

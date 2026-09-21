@@ -5,6 +5,7 @@ use super::rules;
 use crate::config::fiat_config::get_fiat_config;
 use crate::models::custom_types::GemBigUint;
 use crate::services::error::GemServiceError;
+use crate::services::error_text::GemErrorText;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemFiatQuoteRequest {
@@ -28,6 +29,13 @@ pub enum GemFiatQuotePhase {
     Ready,
     NoQuotes,
     Failed { error: GemServiceError },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemFiatQuotesMessage {
+    EnterAmount,
+    NoResults,
+    Failed { error: GemErrorText },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -100,6 +108,18 @@ impl GemFiatSession {
         match operation.quote_type {
             FiatQuoteType::Buy => Self { buy: operation, ..self.clone() },
             FiatQuoteType::Sell => Self { sell: operation, ..self.clone() },
+        }
+    }
+}
+
+#[uniffi::export]
+impl GemFiatViewState {
+    pub fn quotes_message(&self) -> Option<GemFiatQuotesMessage> {
+        match &self.phase {
+            GemFiatQuotePhase::NoInput | GemFiatQuotePhase::InvalidInput => Some(GemFiatQuotesMessage::EnterAmount),
+            GemFiatQuotePhase::Invalid { .. } | GemFiatQuotePhase::NoQuotes => Some(GemFiatQuotesMessage::NoResults),
+            GemFiatQuotePhase::Failed { error } => Some(GemFiatQuotesMessage::Failed { error: error.text() }),
+            GemFiatQuotePhase::Loading { .. } | GemFiatQuotePhase::Ready => None,
         }
     }
 }
@@ -183,14 +203,7 @@ impl GemFiatSession {
     fn amount_check(&self) -> GemFiatAmountCheck {
         let operation = self.current();
         match operation.parsed_amount() {
-            Some(amount) => rules::amount_check(
-                &get_fiat_config(),
-                operation.quote_type,
-                amount,
-                operation.selected_quote().as_ref(),
-                &self.available,
-                super::quote::CURRENCY,
-            ),
+            Some(amount) => rules::amount_check(&get_fiat_config(), operation.quote_type, amount, operation.selected_quote().as_ref(), &self.available, super::quote::CURRENCY),
             None => GemFiatAmountCheck::Valid,
         }
     }
@@ -555,5 +568,30 @@ mod tests {
         assert_eq!(state.button_action, GemFiatButtonAction::Continue);
         assert_eq!(state.button_state, GemFiatButtonState::Enabled);
         assert_eq!(session.view_state(None, true).button_state, GemFiatButtonState::Loading);
+    }
+
+    #[test]
+    fn test_the_quotes_message_follows_the_phase() {
+        let state = |phase| GemFiatViewState {
+            quote_type: FiatQuoteType::Buy,
+            amount: String::new(),
+            phase,
+            quote_rows: Vec::new(),
+            selected_quote_row: None,
+            can_select_provider: false,
+            amount_check: GemFiatAmountCheck::Valid,
+            button_action: GemFiatButtonAction::Continue,
+            button_state: GemFiatButtonState::Disabled,
+        };
+
+        assert_eq!(state(GemFiatQuotePhase::NoInput).quotes_message(), Some(GemFiatQuotesMessage::EnterAmount));
+        assert_eq!(state(GemFiatQuotePhase::InvalidInput).quotes_message(), Some(GemFiatQuotesMessage::EnterAmount));
+        assert_eq!(state(GemFiatQuotePhase::NoQuotes).quotes_message(), Some(GemFiatQuotesMessage::NoResults));
+        assert_eq!(state(GemFiatQuotePhase::Ready).quotes_message(), None);
+        assert_eq!(
+            state(GemFiatQuotePhase::Failed { error: GemServiceError::Offline }).quotes_message(),
+            Some(GemFiatQuotesMessage::Failed { error: GemErrorText::NetworkOffline }),
+            "a failed quote names its error on both apps instead of a generic one"
+        );
     }
 }

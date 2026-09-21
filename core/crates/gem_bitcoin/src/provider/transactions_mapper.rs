@@ -19,12 +19,7 @@ fn op_return_memo(transaction: &Transaction) -> Option<String> {
         .iter()
         .filter(|o| !o.is_address)
         .flat_map(|o| o.addresses.as_deref().unwrap_or_default())
-        .find_map(|addr| {
-            addr.strip_prefix(OP_RETURN_PREFIX)
-                .map(|s| s.strip_prefix('(').unwrap_or(s))
-                .map(|s| s.strip_suffix(')').unwrap_or(s))
-                .map(String::from)
-        })
+        .find_map(|addr| addr.strip_prefix(OP_RETURN_PREFIX).map(|s| s.strip_prefix('(').unwrap_or(s)).map(|s| s.strip_suffix(')').unwrap_or(s)).map(String::from))
 }
 
 pub fn map_transaction(chain: Chain, transaction: &Transaction) -> Option<primitives::Transaction> {
@@ -46,9 +41,7 @@ pub fn map_transaction(chain: Chain, transaction: &Transaction) -> Option<primit
         .filter(|o| o.is_address)
         .map(|output| {
             Some(TransactionUtxoInput {
-                address: Address::new(output.addresses.as_deref().and_then(|addresses| addresses.first())?, chain)
-                    .short()
-                    .to_string(),
+                address: Address::new(output.addresses.as_deref().and_then(|addresses| addresses.first())?, chain).short().to_string(),
                 value: output.value.clone(),
             })
         })
@@ -60,11 +53,7 @@ pub fn map_transaction(chain: Chain, transaction: &Transaction) -> Option<primit
     let created_at = Utc.timestamp_opt(transaction.block_time, 0).single()?;
     let memo = op_return_memo(transaction);
 
-    let state = if transaction.is_confirmed() {
-        TransactionState::Confirmed
-    } else {
-        TransactionState::Pending
-    };
+    let state = if transaction.is_confirmed() { TransactionState::Confirmed } else { TransactionState::Pending };
 
     let transaction = primitives::Transaction::new_with_utxo(
         transaction.txid.clone(),
@@ -130,10 +119,7 @@ mod tests {
     fn a_vout_with_an_empty_address_list_drops_the_transaction() {
         let transaction = Transaction {
             vin: vec![Input::mock()],
-            vout: vec![Output {
-                addresses: Some(vec![]),
-                ..Output::mock()
-            }],
+            vout: vec![Output { addresses: Some(vec![]), ..Output::mock() }],
             ..Transaction::mock()
         };
 

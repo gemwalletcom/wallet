@@ -2,7 +2,6 @@ package com.gemwallet.android.features.settings.price_alerts.viewmodels
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.pricealerts.cases.GetAssetPriceAlertState
 import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -28,6 +27,7 @@ import org.junit.Test
 import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemPriceAlertService
 import uniffi.gemstone.GemServiceException
+import uniffi.gemstone.PriceAlertFormatter
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PriceAlertViewModelTest {
@@ -76,6 +76,21 @@ class PriceAlertViewModelTest {
     }
 
     @Test
+    fun `a failed master toggle surfaces the Core message and keeps the stored state`() = runTest {
+        val service = service(enabled = false)
+        coEvery { service.setEnabled(any()) } throws GemServiceException.Api("offline")
+        val viewModel = viewModel(service)
+        try {
+            viewModel.togglePriceAlerts(true).join()
+
+            assertEquals(GemErrorText.Message("offline"), viewModel.error.value)
+            assertEquals(false, viewModel.priceAlertEnabled.first { it != null })
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
     fun `a failed auto alert write surfaces the Core message until it is shown`() = runTest {
         val service = service(enabled = false)
         coEvery { service.setAutoAlert(any(), any()) } throws GemServiceException.Api("offline")
@@ -94,11 +109,10 @@ class PriceAlertViewModelTest {
     private fun viewModel(service: GemPriceAlertService, assetId: AssetId? = null) = PriceAlertViewModel(
         getPriceAlerts = mockk<GetPriceAlerts> {
             every { this@mockk(any()) } returns flowOf(emptyList())
-            every { groupByTargetAndAsset(any()) } returns emptyMap()
         },
-        getAssetPriceAlertState = mockk<GetAssetPriceAlertState> { every { isAssetPriceAlertEnabled(any()) } returns flowOf(false) },
         getAssetTokenInfo = mockk(relaxed = true),
         service = service,
+        priceAlertFormatter = PriceAlertFormatter(),
         savedStateHandle = SavedStateHandle(assetId?.let { mapOf(RouteArgument.AssetId.key to it.toIdentifier()) } ?: emptyMap()),
         ioDispatcher = dispatcher,
         context = mockk(relaxed = true),
@@ -108,7 +122,10 @@ class PriceAlertViewModelTest {
         var state = enabled
         return mockk {
             every { isEnabled() } answers { state }
-            coEvery { setEnabled(any()) } answers { state = firstArg(); Unit }
+            coEvery { setEnabled(any()) } answers {
+                state = firstArg()
+                Unit
+            }
             coEvery { sync(any()) } returns Unit
         }
     }

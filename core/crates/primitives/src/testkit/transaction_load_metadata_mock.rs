@@ -18,11 +18,7 @@ impl TransactionLoadMetadata {
     }
 
     pub fn mock_evm(nonce: u64, chain_id: u64) -> Self {
-        TransactionLoadMetadata::Evm {
-            nonce,
-            chain_id,
-            contract_call: None,
-        }
+        TransactionLoadMetadata::Evm { nonce, chain_id, contract_call: None }
     }
 
     pub fn mock_tron() -> Self {
@@ -80,12 +76,7 @@ impl TransactionLoadMetadata {
         }
     }
 
-    pub fn mock_solana_transfer(
-        sender_token_address: Option<&str>,
-        recipient_token_address: Option<&str>,
-        token_program: Option<SolanaTokenProgramId>,
-        references: &[&str],
-    ) -> Self {
+    pub fn mock_solana_transfer(sender_token_address: Option<&str>, recipient_token_address: Option<&str>, token_program: Option<SolanaTokenProgramId>, references: &[&str]) -> Self {
         TransactionLoadMetadata::Solana {
             sender_token_address: sender_token_address.map(String::from),
             recipient_token_address: recipient_token_address.map(String::from),
@@ -112,9 +103,7 @@ impl TransactionLoadMetadata {
             sender_token_address: None,
             recipient_token_address: None,
             token_program: None,
-            nft: Some(SolanaNftStandard::Core {
-                collection: collection.map(String::from),
-            }),
+            nft: Some(SolanaNftStandard::Core { collection: collection.map(String::from) }),
             block_hash: "11111111111111111111111111111111".to_string(),
             references: vec![],
         }

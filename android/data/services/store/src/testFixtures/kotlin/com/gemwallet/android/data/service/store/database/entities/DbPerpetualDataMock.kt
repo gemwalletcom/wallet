@@ -5,10 +5,7 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
 
-fun mockDbPerpetualData(
-    asset: Asset = mockAsset(),
-    identifier: String = "BTC-PERP",
-) = DbPerpetualData(
+fun mockDbPerpetualData(asset: Asset = mockAsset(), identifier: String = "BTC-PERP") = DbPerpetualData(
     perpetual = DbPerpetual(
         id = PerpetualId(PerpetualProvider.Hypercore, identifier),
         name = "${asset.name} Perpetual",

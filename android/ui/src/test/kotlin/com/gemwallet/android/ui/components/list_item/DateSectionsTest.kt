@@ -14,8 +14,7 @@ class DateSectionsTest {
     private val clock = Clock.fixed(ZonedDateTime.of(2026, 3, 8, 12, 0, 0, 0, zone).toInstant(), zone)
     private val formatter = SectionDateFormatter(todayLabel = "Today", yesterdayLabel = "Yesterday", clock = clock)
 
-    private fun at(year: Int, month: Int, day: Int, hour: Int, minute: Int = 0): Long =
-        ZonedDateTime.of(year, month, day, hour, minute, 0, 0, zone).toInstant().toEpochMilli()
+    private fun at(year: Int, month: Int, day: Int, hour: Int, minute: Int = 0): Long = ZonedDateTime.of(year, month, day, hour, minute, 0, 0, zone).toInstant().toEpochMilli()
 
     private fun labels(timestamps: List<Long>) = dateSectionLabels(timestamps, zone, Locale.US, formatter)
 

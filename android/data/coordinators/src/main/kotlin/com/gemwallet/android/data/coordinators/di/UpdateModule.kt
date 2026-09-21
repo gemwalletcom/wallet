@@ -21,17 +21,11 @@ object UpdateModule {
 
     @Provides
     @Singleton
-    fun provideGemAppUpdateService(
-        configService: GemConfigService,
-        preferencesService: GemPreferencesService,
-    ): GemAppUpdateService = GemAppUpdateService(configService, preferencesService)
+    fun provideGemAppUpdateService(configService: GemConfigService, preferencesService: GemPreferencesService): GemAppUpdateService = GemAppUpdateService(configService, preferencesService)
 
     @Provides
     @Singleton
-    fun provideAppUpdateCoordinator(
-        appUpdateService: GemAppUpdateService,
-        buildInfo: BuildInfo,
-    ): AppUpdateCoordinator = AppUpdateCoordinator(appUpdateService, buildInfo)
+    fun provideAppUpdateCoordinator(appUpdateService: GemAppUpdateService, buildInfo: BuildInfo): AppUpdateCoordinator = AppUpdateCoordinator(appUpdateService, buildInfo)
 
     @Provides
     @Singleton

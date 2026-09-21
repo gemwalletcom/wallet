@@ -39,6 +39,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.subtitleSymbol
 import com.gemwallet.android.ext.networkName
+import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.receive.presents.components.rememberQRCodePainter
 import com.gemwallet.android.features.receive.viewmodels.ReceiveViewModel
@@ -47,7 +48,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.setPlainText
+import com.gemwallet.android.ui.components.clipboard.setCopy
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.HeaderIcon
 import com.gemwallet.android.ui.components.list_item.ChainItem
@@ -65,6 +66,7 @@ import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.AssetId
+import uniffi.gemstone.GemCopy
 
 private val qrCardElevation = 3.dp
 
@@ -73,16 +75,12 @@ private val qrSizeCompact = 220.dp
 private val qrMinSize = 100.dp
 
 @Composable
-fun ReceiveScreen(
-    assetId: AssetId,
-    closeIcon: Boolean = false,
-    onCancel: () -> Unit,
-) {
+fun ReceiveScreen(assetId: AssetId, closeIcon: Boolean = false, onCancel: () -> Unit) {
     val viewModel = hiltViewModel<ReceiveViewModel, ReceiveViewModel.Factory>(
         key = assetId.toIdentifier(),
     ) { it.create(assetId) }
     val assetInfo by viewModel.asset.collectAsStateWithLifecycle()
-    val networkAssetIds by viewModel.networkAssetIds.collectAsStateWithLifecycle()
+    val networks by viewModel.networks.collectAsStateWithLifecycle()
     var isShowingNetworkSelector by remember { mutableStateOf(false) }
     val info = assetInfo
 
@@ -94,7 +92,9 @@ fun ReceiveScreen(
             closeIcon = closeIcon,
             assetInfo = info,
             warning = remember(info.asset.id) { viewModel.warningText(info.asset) },
-            onSelectNetwork = if (networkAssetIds.size > 1) {
+            shareText = viewModel.shareAddress(),
+            copyText = viewModel.copyAddress(),
+            onSelectNetwork = if (networks.showsSelector) {
                 { isShowingNetworkSelector = true }
             } else {
                 null
@@ -103,7 +103,7 @@ fun ReceiveScreen(
         )
         ReceiveNetworkSelector(
             isVisible = isShowingNetworkSelector,
-            assetIds = networkAssetIds,
+            assetIds = networks.assetIds.map { it.toAssetId()!! },
             onSelect = viewModel::selectAsset,
             onDismiss = { isShowingNetworkSelector = false },
         )
@@ -113,13 +113,7 @@ fun ReceiveScreen(
 }
 
 @Composable
-private fun ReceiveScene(
-    closeIcon: Boolean,
-    assetInfo: AssetInfo,
-    warning: String,
-    onSelectNetwork: (() -> Unit)?,
-    onCancel: () -> Unit,
-) {
+private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetInfo, warning: String, shareText: String?, copyText: GemCopy?, onSelectNetwork: (() -> Unit)?, onCancel: () -> Unit) {
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
     val shareTitle = stringResource(R.string.common_share)
@@ -128,16 +122,15 @@ private fun ReceiveScene(
     val imagePadding = if (isCompactHeight) paddingSmall else paddingDefault
 
     val onShare = fun () {
-        val subject = "${assetInfo.owner?.chain}\n${assetInfo.asset.symbol}"
-        context.shareText(subject = subject, text = assetInfo.owner?.address, chooserTitle = shareTitle)
+        context.shareText(subject = null, text = shareText, chooserTitle = shareTitle)
     }
 
     val onCopyClick = fun () {
-        clipboardManager.setPlainText(context, assetInfo.owner?.address ?: "")
+        copyText?.let { clipboardManager.setCopy(context, it) }
     }
 
     Scene(
-        title = stringResource(R.string.receive_title, ""),
+        title = stringResource(R.string.wallet_receive),
         onClose = onCancel,
         closeIcon = closeIcon,
         actions = {
@@ -162,14 +155,14 @@ private fun ReceiveScene(
                 MainActionButton(onClick = onCopyClick) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(paddingHalfSmall)
+                        horizontalArrangement = Arrangement.spacedBy(paddingHalfSmall),
                     ) {
                         Icon(AppIcons.ContentCopy, "copy")
                         Text(stringResource(R.string.common_copy))
                     }
                 }
             }
-        }
+        },
     ) {
         if (assetInfo.owner?.address.isNullOrEmpty()) {
             return@Scene
@@ -178,7 +171,7 @@ private fun ReceiveScene(
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(imagePadding)
+            verticalArrangement = Arrangement.spacedBy(imagePadding),
         ) {
             CenteredListHead(
                 title = assetInfo.asset.name,
@@ -192,7 +185,7 @@ private fun ReceiveScene(
                 colors = CardDefaults.cardColors(
                     containerColor = Color.White,
                     contentColor = Color.White,
-                )
+                ),
             ) {
                 Box(
                     modifier = Modifier
@@ -209,7 +202,7 @@ private fun ReceiveScene(
                             modifier = Modifier.fillMaxSize(),
                             painter = painter,
                             contentDescription = null,
-                            contentScale = ContentScale.FillWidth
+                            contentScale = ContentScale.FillWidth,
                         )
                     }
                 }

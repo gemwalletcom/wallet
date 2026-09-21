@@ -210,7 +210,6 @@
   <string name="errors_connections_no_supported_wallets">No hay billeteras compatibles disponibles.</string>
   <string name="errors_connections_unsupported_chain">La cadena proporcionada no es compatible.</string>
   <string name="errors_swap_amount_too_small">Cantidad demasiado pequeña</string>
-  <string name="errors_required">%1$s es obligatorio</string>
   <string name="errors_scan_transaction_malicious_description">Esta transacción no se puede completar: la dirección de la billetera de destino está vinculada a actividades sospechosas o dañinas.</string>
   <string name="errors_scan_transaction_memo_required">%1$s La dirección de la billetera de destino requiere una etiqueta/nota de destino.</string>
   <string name="errors_scan_transaction_malicious_title">Actividad sospechosa</string>
@@ -273,7 +272,7 @@
   <string name="asset_decimals">Decimales</string>
   <string name="asset_token_id">ID del token</string>
   <string name="asset_contract">Contrato</string>
-  <string name="asset_state_empty_title">Tus transacciones aparecerán aquí️</string>
+  <string name="asset_state_empty_title">Tus transacciones aparecerán aquí</string>
   <string name="asset_state_empty_description">Recibir, intercambiar o comprar %1$s</string>
   <string name="asset_verification_unverified">No verificado</string>
   <string name="asset_verification_suspicious">Sospechoso</string>
@@ -422,7 +421,7 @@
   <string name="price_alerts_set_alert_set_target_price">Establecer precio objetivo</string>
   <string name="price_alerts_set_alert_current_price">Precio actual</string>
   <string name="price_alerts_added_for">Establecer alerta de precio %1$s</string>
-  <string name="price_alerts_state_empty_title">Tus alertas aparecerán aquí️</string>
+  <string name="price_alerts_state_empty_title">Tus alertas aparecerán aquí</string>
   <string name="price_alerts_state_empty_description">Habilítelos agregando monedas para realizar un seguimiento</string>
   <string name="price_alerts_auto_footer">Las alertas se activan ante movimientos de precios significativos.</string>
   <string name="price_alerts_set_alert_title">Establecer alerta de precio</string>
@@ -437,7 +436,7 @@
   <string name="lock_privacy_lock">Bloqueo de privacidad</string>
   <string name="lock_footer">Proteger el acceso a esta aplicación en su dispositivo</string>
   <string name="verify_phrase_title">Confirmar</string>
-  <string name="warnings_multi_signature_blocked">No transfiera fondos a esta billetera multifirma %1$s a menos que esté seguro de que controla las claves privadas. Si no lo hace, podría exponerse a estafas y perder sus activos de forma permanente.</string>
+  <string name="warnings_externally_controlled_account">Esta cuenta de %1$s puede estar controlada por otra persona. No envíe fondos a ella a menos que esté seguro de que la controla, o podría perder sus activos de forma permanente.</string>
   <string name="sell_title">Vender %1$s</string>
   <string name="info_network_fee_title">Tarifa de red</string>
   <string name="info_watch_wallet_title">Billetera de observación</string>
@@ -489,7 +488,7 @@
   <string name="nft_collection">Colección</string>
   <string name="nft_save_to_photos">Guardar en Fotos</string>
   <string name="nft_set_as_avatar">Establecer como avatar</string>
-  <string name="nft_state_empty_title">Tus NFT aparecerán aquí️</string>
+  <string name="nft_state_empty_title">Tus NFT aparecerán aquí</string>
   <string name="nft_state_empty_description">Recibe tu primer NFT</string>
   <string name="nft_report_reason_spam">Spam</string>
   <string name="nft_report_reason_malicious">Malicioso</string>

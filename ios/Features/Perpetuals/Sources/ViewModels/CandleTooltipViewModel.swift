@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitives
-import struct Gemstone.GemCandleTooltip
-import struct Gemstone.GemCandleTooltipCell
-import func Gemstone.candleTooltip
 import Components
 import Formatters
+import func Gemstone.candleTooltip
+import struct Gemstone.GemCandleTooltip
+import struct Gemstone.GemCandleTooltipCell
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Style

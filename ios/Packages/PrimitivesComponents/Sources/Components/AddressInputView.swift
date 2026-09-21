@@ -9,13 +9,16 @@ public struct AddressInputView: View {
     @Binding private var model: AddressInputViewModel
 
     private let onSelectScan: (@MainActor () -> Void)?
+    private let onSelectPaste: (@MainActor () -> Void)?
 
     public init(
         model: Binding<AddressInputViewModel>,
         onSelectScan: (@MainActor () -> Void)? = nil,
+        onSelectPaste: (@MainActor () -> Void)? = nil,
     ) {
         _model = model
         self.onSelectScan = onSelectScan
+        self.onSelectPaste = onSelectPaste
     }
 
     public var body: some View {
@@ -27,7 +30,7 @@ public struct AddressInputView: View {
                 HStack(spacing: Spacing.medium) {
                     NameRecordView(model: model.nameRecordViewModel)
                     if model.shouldShowInputActions {
-                        ListButton(image: Images.System.paste, action: model.onSelectPaste)
+                        ListButton(image: Images.System.paste, action: onSelectPaste ?? model.onSelectPaste)
                         if let onSelectScan {
                             ListButton(image: Images.System.qrCodeViewfinder, action: onSelectScan)
                         }

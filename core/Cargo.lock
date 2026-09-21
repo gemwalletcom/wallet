@@ -477,7 +477,7 @@ checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
 name = "api"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "api_connector",
  "cacher",
@@ -521,7 +521,7 @@ dependencies = [
 
 [[package]]
 name = "api_connector"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "gem_client",
  "primitives",
@@ -1555,7 +1555,7 @@ dependencies = [
 
 [[package]]
 name = "cacher"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "gem_tracing",
  "primitives",
@@ -1644,7 +1644,7 @@ dependencies = [
 
 [[package]]
 name = "chain_primitives"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "alloy-primitives",
  "num-bigint 0.5.1",
@@ -1653,7 +1653,7 @@ dependencies = [
 
 [[package]]
 name = "chain_traits"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "chrono",
@@ -1739,7 +1739,7 @@ checksum = "c8d4a3bb8b1e0c1050499d1815f5ab16d04f0959b233085fb31653fbfc9d98f9"
 
 [[package]]
 name = "cli"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "clap",
  "primitives",
@@ -1777,7 +1777,7 @@ dependencies = [
 
 [[package]]
 name = "coingecko"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "chain_primitives",
  "chrono",
@@ -1790,7 +1790,7 @@ dependencies = [
 
 [[package]]
 name = "coinmarketcap"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "futures",
  "gem_client",
@@ -2211,7 +2211,7 @@ dependencies = [
 
 [[package]]
 name = "daemon"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "api_connector",
  "async-trait",
@@ -2337,7 +2337,7 @@ checksum = "be1e0bca6c3637f992fc1cc7cbc52a78c1ef6db076dbf1059c4323d6a2048376"
 
 [[package]]
 name = "defi"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "base64 0.23.0",
@@ -2488,7 +2488,7 @@ dependencies = [
 
 [[package]]
 name = "dexscreener"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "gem_client",
  "primitives",
@@ -2660,7 +2660,7 @@ checksum = "d0881ea181b1df73ff77ffaaf9c7544ecc11e82fba9b5f27b262a3c73a332555"
 
 [[package]]
 name = "dynode"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "config",
  "gem_client",
@@ -2945,7 +2945,7 @@ dependencies = [
 
 [[package]]
 name = "fiat"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "cacher",
@@ -3295,7 +3295,7 @@ dependencies = [
 
 [[package]]
 name = "gas-bench"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "clap",
  "gem_client",
@@ -3313,7 +3313,7 @@ dependencies = [
 
 [[package]]
 name = "gem_alchemy"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "gem_client",
  "gem_jsonrpc",
@@ -3327,7 +3327,7 @@ dependencies = [
 
 [[package]]
 name = "gem_algorand"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "chain_traits",
@@ -3348,7 +3348,7 @@ dependencies = [
 
 [[package]]
 name = "gem_ankr"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "gem_client",
  "gem_jsonrpc",
@@ -3361,7 +3361,7 @@ dependencies = [
 
 [[package]]
 name = "gem_api"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "gem_auth",
@@ -3376,7 +3376,7 @@ dependencies = [
 
 [[package]]
 name = "gem_aptos"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "bcs 0.2.1",
@@ -3401,7 +3401,7 @@ dependencies = [
 
 [[package]]
 name = "gem_auth"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "alloy-primitives",
  "cacher",
@@ -3420,7 +3420,7 @@ dependencies = [
 
 [[package]]
 name = "gem_bitcoin"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "bech32 0.12.0",
@@ -3446,7 +3446,7 @@ dependencies = [
 
 [[package]]
 name = "gem_blockscout"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "gem_client",
  "num-bigint 0.5.1",
@@ -3457,7 +3457,7 @@ dependencies = [
 
 [[package]]
 name = "gem_bsc"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
@@ -3473,7 +3473,7 @@ dependencies = [
 
 [[package]]
 name = "gem_cardano"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "bech32 0.12.0",
@@ -3498,10 +3498,11 @@ dependencies = [
 
 [[package]]
 name = "gem_client"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "hex",
+ "primitives",
  "reqwest 0.13.4",
  "serde",
  "serde_json",
@@ -3511,7 +3512,7 @@ dependencies = [
 
 [[package]]
 name = "gem_cosmos"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "bech32 0.12.0",
@@ -3536,7 +3537,7 @@ dependencies = [
 
 [[package]]
 name = "gem_crypto"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "gem_hash",
  "getrandom 0.4.3",
@@ -3546,7 +3547,7 @@ dependencies = [
 
 [[package]]
 name = "gem_derivation"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "bitcoin",
  "bs58",
@@ -3575,7 +3576,7 @@ dependencies = [
 
 [[package]]
 name = "gem_encoding"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "base64 0.23.0",
  "data-encoding",
@@ -3583,7 +3584,7 @@ dependencies = [
 
 [[package]]
 name = "gem_everstake"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
@@ -3602,7 +3603,7 @@ dependencies = [
 
 [[package]]
 name = "gem_evm"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "alloy-consensus",
  "alloy-primitives",
@@ -3633,7 +3634,7 @@ dependencies = [
 
 [[package]]
 name = "gem_hash"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "blake2b_simd",
  "hex",
@@ -3646,7 +3647,7 @@ dependencies = [
 
 [[package]]
 name = "gem_hypercore"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "alloy-primitives",
  "async-trait",
@@ -3673,7 +3674,7 @@ dependencies = [
 
 [[package]]
 name = "gem_jsonrpc"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "gem_client",
@@ -3687,7 +3688,7 @@ dependencies = [
 
 [[package]]
 name = "gem_keystore"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "aes 0.9.1",
  "aes-gcm",
@@ -3710,7 +3711,7 @@ dependencies = [
 
 [[package]]
 name = "gem_monad"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
@@ -3729,7 +3730,7 @@ dependencies = [
 
 [[package]]
 name = "gem_near"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "bs58",
@@ -3754,7 +3755,7 @@ dependencies = [
 
 [[package]]
 name = "gem_optimism"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
@@ -3767,7 +3768,7 @@ dependencies = [
 
 [[package]]
 name = "gem_polkadot"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "bs58",
@@ -3791,7 +3792,7 @@ dependencies = [
 
 [[package]]
 name = "gem_rewards"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "alloy-primitives",
  "async-trait",
@@ -3814,7 +3815,7 @@ dependencies = [
 
 [[package]]
 name = "gem_solana"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "borsh",
@@ -3843,7 +3844,7 @@ dependencies = [
 
 [[package]]
 name = "gem_stellar"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "chain_traits",
@@ -3868,7 +3869,7 @@ dependencies = [
 
 [[package]]
 name = "gem_sui"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "bcs 0.2.1",
@@ -3895,7 +3896,7 @@ dependencies = [
 
 [[package]]
 name = "gem_tempo"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "alloy-primitives",
  "alloy-rlp",
@@ -3916,7 +3917,7 @@ dependencies = [
 
 [[package]]
 name = "gem_ton"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "chain_traits",
@@ -3939,7 +3940,7 @@ dependencies = [
 
 [[package]]
 name = "gem_tracing"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "tracing",
  "tracing-subscriber",
@@ -3947,7 +3948,7 @@ dependencies = [
 
 [[package]]
 name = "gem_tron"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "alloy-sol-types",
  "async-trait",
@@ -3976,7 +3977,7 @@ dependencies = [
 
 [[package]]
 name = "gem_wallet_connect"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "base64 0.23.0",
  "bs58",
@@ -3993,7 +3994,7 @@ dependencies = [
 
 [[package]]
 name = "gem_xrp"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "bigdecimal",
@@ -4018,7 +4019,7 @@ dependencies = [
 
 [[package]]
 name = "gemstone"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "base64 0.23.0",
@@ -4080,7 +4081,7 @@ dependencies = [
 
 [[package]]
 name = "generate"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "config",
  "fluent-syntax",
@@ -4819,7 +4820,7 @@ checksum = "65b27460c2c92b037f3f94c538ed9a3342f3fdf923606781629ccb35f82d042a"
 
 [[package]]
 name = "img-downloader"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "chain_primitives",
@@ -4865,7 +4866,7 @@ dependencies = [
 
 [[package]]
 name = "in_app_notifications"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "localizer",
  "number_formatter",
@@ -5091,7 +5092,7 @@ dependencies = [
 
 [[package]]
 name = "job_runner"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "gem_tracing",
@@ -5166,9 +5167,8 @@ dependencies = [
 
 [[package]]
 name = "jupiter"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
- "async-trait",
  "gem_client",
  "reqwest 0.13.4",
  "serde",
@@ -5342,7 +5342,7 @@ checksum = "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53"
 
 [[package]]
 name = "lists"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "coingecko",
@@ -5358,7 +5358,7 @@ checksum = "92daf443525c4cce67b150400bc2316076100ce0b3686209eb8cf3c31612e6f0"
 
 [[package]]
 name = "localizer"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "i18n-embed",
  "i18n-embed-fl",
@@ -5472,7 +5472,7 @@ checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 
 [[package]]
 name = "metrics"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "prometheus-client",
 ]
@@ -5590,7 +5590,7 @@ dependencies = [
 
 [[package]]
 name = "name_resolver"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "alloy-ens",
  "alloy-primitives",
@@ -5622,7 +5622,7 @@ checksum = "27b02d87554356db9e9a873add8782d4ea6e3e58ea071a9adb9a2e8ddb884a8b"
 
 [[package]]
 name = "nft"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "futures",
@@ -5641,7 +5641,7 @@ dependencies = [
 
 [[package]]
 name = "nodecheck"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "chain_traits",
  "clap",
@@ -5766,7 +5766,7 @@ dependencies = [
 
 [[package]]
 name = "number_formatter"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "bigdecimal",
  "num-bigint 0.5.1",
@@ -5945,7 +5945,7 @@ checksum = "df94ce210e5bc13cb6651479fa48d14f601d9858cfe0467f43ae157023b938d3"
 
 [[package]]
 name = "payment"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "futures",
@@ -6221,7 +6221,7 @@ checksum = "3d20d5497ef88037a52ff98267d066e7f11fcc5e99bbfbd58a42336193aacec3"
 
 [[package]]
 name = "portfolio"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "chrono",
  "number_formatter",
@@ -6291,7 +6291,7 @@ dependencies = [
 
 [[package]]
 name = "pricer"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "cacher",
  "chrono",
@@ -6306,7 +6306,7 @@ dependencies = [
 
 [[package]]
 name = "prices"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "chrono",
@@ -6364,7 +6364,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "chrono",
  "hex",
@@ -7485,7 +7485,7 @@ dependencies = [
 
 [[package]]
 name = "search_index"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "meilisearch-sdk",
  "primitives",
@@ -7595,7 +7595,7 @@ dependencies = [
 
 [[package]]
 name = "security_provider"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "gem_client",
@@ -7700,7 +7700,7 @@ dependencies = [
 
 [[package]]
 name = "serde_serializers"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "hex",
  "num-bigint 0.5.1",
@@ -7782,7 +7782,7 @@ dependencies = [
 
 [[package]]
 name = "settings"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "config",
  "gem_client",
@@ -7793,7 +7793,7 @@ dependencies = [
 
 [[package]]
 name = "settings_chain"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "chain_traits",
  "futures",
@@ -7954,7 +7954,7 @@ dependencies = [
 
 [[package]]
 name = "signer"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "alloy-primitives",
  "bs58",
@@ -8011,13 +8011,12 @@ dependencies = [
 
 [[package]]
 name = "simulation"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
  "gem_client",
  "gem_evm",
- "gem_jsonrpc",
  "num-bigint 0.5.1",
  "num-traits",
  "primitives",
@@ -8156,7 +8155,7 @@ checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 
 [[package]]
 name = "storage"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "chrono",
  "diesel",
@@ -8171,7 +8170,7 @@ dependencies = [
 
 [[package]]
 name = "streamer"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "async-trait",
  "futures",
@@ -8251,9 +8250,9 @@ checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 
 [[package]]
 name = "sui-sdk-types"
-version = "0.3.2"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a22266119e43d3da1a8bc9945c8b569a513e7682f561265d70ef8b6e198dd664"
+checksum = "24c4cf4b8ba51ccb8c8f77405e6b50025ccfe174e06e09b0a542ccbc3f224af5"
 dependencies = [
  "base64ct",
  "bcs 0.1.6",
@@ -8273,9 +8272,9 @@ dependencies = [
 
 [[package]]
 name = "sui-transaction-builder"
-version = "0.3.2"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "39697547ef9a6c03725dca449c33c3b47619b0a76ca5df827e4501944ebdaebb"
+checksum = "42f8aaa36f902d9db2ac5c1324333f04af3ba0ce101a0c8686864e6c7c2b8ccc"
 dependencies = [
  "bcs 0.1.6",
  "serde",
@@ -8285,7 +8284,7 @@ dependencies = [
 
 [[package]]
 name = "support"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "cacher",
  "chrono",
@@ -8314,7 +8313,7 @@ dependencies = [
 
 [[package]]
 name = "swapper"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
@@ -8475,7 +8474,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.3.4",
+ "getrandom 0.4.3",
  "once_cell",
  "rustix",
  "windows-sys 0.61.2",
@@ -9147,9 +9146,9 @@ checksum = "ebc1c04c71510c7f702b52b7c350734c9ff1295c464a03335b00bb84fc54f853"
 
 [[package]]
 name = "uniffi"
-version = "0.32.0"
+version = "0.32.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a782a48d72cfd7a2d65cfc7c691dbf5375c43104b3c195f7eccc716dcc3540c8"
+checksum = "edf78ecfb9bb8d7c4f8da11e8eb2ab6304e8ec0adb3ab32d8fc77c21a5bb0b86"
 dependencies = [
  "anyhow",
  "camino",
@@ -9164,16 +9163,16 @@ dependencies = [
 
 [[package]]
 name = "uniffi-bindgen"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "uniffi",
 ]
 
 [[package]]
 name = "uniffi_bindgen"
-version = "0.32.0"
+version = "0.32.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "533b0312c73e3b54eb78a4b257ceae390962dd4767995778309a74644643f9ac"
+checksum = "cdea7c4574723928bef87dfc04b203d96321d0bf34ab295a56379e633be579f3"
 dependencies = [
  "anyhow",
  "askama",
@@ -9197,9 +9196,9 @@ dependencies = [
 
 [[package]]
 name = "uniffi_build"
-version = "0.32.0"
+version = "0.32.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "763a19ad720fce8c9a98576e04c0ccc5d2d155aa6b953c864587073292c7ccfc"
+checksum = "dfe2d9769b6c0c15d7c7832d53eaa595c683bb80a30512614a67268ce16132f9"
 dependencies = [
  "anyhow",
  "camino",
@@ -9208,9 +9207,9 @@ dependencies = [
 
 [[package]]
 name = "uniffi_core"
-version = "0.32.0"
+version = "0.32.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e32e261c5b0dfaba6488f536e71957dddd6b1a498ac7eb791bee56b60a086be"
+checksum = "f8b1c62ee415b805f063c82e8ef6bbcaa1b87f8eed360cf217537b7724e05601"
 dependencies = [
  "anyhow",
  "bytes",
@@ -9220,9 +9219,9 @@ dependencies = [
 
 [[package]]
 name = "uniffi_internal_macros"
-version = "0.32.0"
+version = "0.32.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "84ae78069a5e6772ef694fd5bdb628532c88d2c2f0e7142bf6a384636eadb1af"
+checksum = "c79d4a3129d6c2c15e367d3954886a0533dd3e85d445ce4d93379f62c6949d7b"
 dependencies = [
  "anyhow",
  "indexmap 2.14.0",
@@ -9233,9 +9232,9 @@ dependencies = [
 
 [[package]]
 name = "uniffi_macros"
-version = "0.32.0"
+version = "0.32.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "330be6770532e86320df31f54c70bb0be67588594e8e77fa56e9083a3fed5d0d"
+checksum = "2f6a9826a83f1140b2ec67c7944f562e1ef616e6eaf40e76247adccbd5b8a091"
 dependencies = [
  "camino",
  "fs-err",
@@ -9250,9 +9249,9 @@ dependencies = [
 
 [[package]]
 name = "uniffi_meta"
-version = "0.32.0"
+version = "0.32.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "78de021f5547e56ab16c665a49d67d4fd3d31e77422f7739a2e9359d328cd9e7"
+checksum = "cf233eb014b595e8997c98df4ac6863b486a4ac6d54bd00230c7700753d7ef13"
 dependencies = [
  "anyhow",
  "siphasher",
@@ -9262,9 +9261,9 @@ dependencies = [
 
 [[package]]
 name = "uniffi_pipeline"
-version = "0.32.0"
+version = "0.32.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f8201bb1907ed8a42d80e11cbc25c8a033e7a31c3cff1d911f56eedb81d4948"
+checksum = "55179706fbb6e7a23e729780d2c6165e6afe1ce725fa63754bcf217b440afc04"
 dependencies = [
  "anyhow",
  "heck",
@@ -9275,9 +9274,9 @@ dependencies = [
 
 [[package]]
 name = "uniffi_udl"
-version = "0.32.0"
+version = "0.32.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a6e57996bc58009cc29bf04845d627ae313c2547b87171c1c349d6c51a1656c0"
+checksum = "421a9add7a19c5a264a2aba760514125ef3840a8b246ec88237fc91e3f2f79b1"
 dependencies = [
  "anyhow",
  "textwrap",
@@ -9997,7 +9996,7 @@ dependencies = [
 
 [[package]]
 name = "yielder"
-version = "2.114.33"
+version = "2.114.40"
 dependencies = [
  "alloy-primitives",
  "alloy-sol-types",

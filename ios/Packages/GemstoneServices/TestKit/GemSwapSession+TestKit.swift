@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemSwapQuoteInput
 import struct Gemstone.GemSwapQuotesResult
 import struct Gemstone.GemSwapRequest
 import struct Gemstone.GemSwapSession
@@ -24,7 +25,7 @@ public extension GemSwapSession {
     }
 
     static func mockLoading() -> GemSwapSession {
-        mock().onRequestChanged(request: .mock)
+        GemSwapSession(quotePhase: .loading(request: .mock), transferPhase: .idle, input: GemSwapQuoteInput(request: .mock, useMaxAmount: false))
     }
 
     static func mockReady(quotes: [SwapperQuote] = [.mock()]) -> GemSwapSession {

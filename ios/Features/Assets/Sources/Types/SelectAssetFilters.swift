@@ -27,6 +27,7 @@ extension AssetsRequestFilter {
         case .hasBalance: .hasBalance
         case .hasAvailableBalance: .hasAvailableBalance
         case let .chainsOrAssetIds(chains, assetIds): .chainsOrAssets(chains, assetIds)
+        case let .chains(chains): .chains(chains)
         }
     }
 }

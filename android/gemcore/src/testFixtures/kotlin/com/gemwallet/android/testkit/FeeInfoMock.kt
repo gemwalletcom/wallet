@@ -7,12 +7,7 @@ import com.wallet.core.primitives.FeePriority
 import uniffi.gemstone.GemFeeOptionItem
 import java.math.BigInteger
 
-fun mockFeeInfo(
-    amount: BigInteger = BigInteger("1000"),
-    feeAsset: Asset = mockAssetEthereum(),
-    price: Double? = null,
-    additionalFees: List<GemFeeOptionItem> = emptyList(),
-) = FeeUIModel.FeeInfo(
+fun mockFeeInfo(amount: BigInteger = BigInteger("1000"), feeAsset: Asset = mockAssetEthereum(), price: Double? = null, additionalFees: List<GemFeeOptionItem> = emptyList()) = FeeUIModel.FeeInfo(
     amount = amount,
     feeAsset = feeAsset,
     price = price,

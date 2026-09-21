@@ -58,11 +58,7 @@ mod tests {
 
     #[test]
     fn test_transaction_fee_estimate() {
-        let evm = TransactionFeeEstimate::new(
-            &FeeRate::new(FeePriority::Normal, GasPriceType::eip1559(51_000_000u64, 1_000_000u64)),
-            Some(21_000),
-            FeeUnitType::Gwei,
-        );
+        let evm = TransactionFeeEstimate::new(&FeeRate::new(FeePriority::Normal, GasPriceType::eip1559(51_000_000u64, 1_000_000u64)), Some(21_000), FeeUnitType::Gwei);
         assert_eq!(evm.fee.to_string(), "1092000000000");
 
         let bitcoin = TransactionFeeEstimate::new(&FeeRate::new(FeePriority::Fast, GasPriceType::regular(20u64)), Some(141), FeeUnitType::SatVb);
@@ -71,11 +67,7 @@ mod tests {
         let fixed = TransactionFeeEstimate::new(&FeeRate::new(FeePriority::Normal, GasPriceType::regular(10_000u64)), None, FeeUnitType::SatVb);
         assert_eq!(fixed.fee.to_string(), "10000");
 
-        let solana = TransactionFeeEstimate::new(
-            &FeeRate::new(FeePriority::Normal, GasPriceType::solana(5_000u64, 0u64, 100_000u64)),
-            Some(100_000),
-            FeeUnitType::Native,
-        );
+        let solana = TransactionFeeEstimate::new(&FeeRate::new(FeePriority::Normal, GasPriceType::solana(5_000u64, 0u64, 100_000u64)), Some(100_000), FeeUnitType::Native);
         assert_eq!(solana.gas_price_type.priority_fee().to_string(), "10000");
         assert_eq!(solana.fee.to_string(), "15000");
     }

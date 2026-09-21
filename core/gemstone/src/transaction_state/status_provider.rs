@@ -1,8 +1,5 @@
 use chrono::{DateTime, Utc};
-use primitives::{
-    Chain, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionStateRequest, TransactionSwapMetadata, TransactionType, TransactionUpdate,
-    chain_transaction_timeout, swap_transaction_timeout,
-};
+use primitives::{Chain, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionStateRequest, TransactionSwapMetadata, TransactionType, TransactionUpdate, chain_transaction_timeout, swap_transaction_timeout};
 use std::sync::Arc;
 use swapper::{SwapResult, SwapperProvider, swapper::GemSwapper};
 
@@ -94,18 +91,11 @@ impl StatusProvider {
 
     async fn chain_status(&self, chain: Chain, request: TransactionStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
         let provider = self.chain_factory.create(chain).await?;
-        provider
-            .get_transaction_status(request)
-            .await
-            .map_err(|e| TransactionStatusError::from(map_network_error(e)))
+        provider.get_transaction_status(request).await.map_err(|e| TransactionStatusError::from(map_network_error(e)))
     }
 
     async fn swap_provider_status(&self, chain: Chain, provider: SwapperProvider, transaction_hash: &str) -> Result<TransactionUpdate, TransactionStatusError> {
-        let result = self
-            .swapper
-            .get_swap_result(chain, provider, transaction_hash)
-            .await
-            .map_err(|e| TransactionStatusError::NetworkError(e.to_string()))?;
+        let result = self.swapper.get_swap_result(chain, provider, transaction_hash).await.map_err(|e| TransactionStatusError::NetworkError(e.to_string()))?;
         Ok(in_transit_swap_update(result))
     }
 }
@@ -145,12 +135,7 @@ fn transaction_timeout(chain: Chain, destination_chain: Option<Chain>, state: Tr
     }
 }
 
-fn get_transaction_update(
-    chain: Chain,
-    destination_chain: Option<Chain>,
-    created_at: DateTime<Utc>,
-    result: Result<TransactionUpdate, TransactionStatusError>,
-) -> Result<TransactionUpdate, TransactionStatusError> {
+fn get_transaction_update(chain: Chain, destination_chain: Option<Chain>, created_at: DateTime<Utc>, result: Result<TransactionUpdate, TransactionStatusError>) -> Result<TransactionUpdate, TransactionStatusError> {
     let elapsed = (Utc::now() - created_at).num_milliseconds();
     let pending_expired = elapsed > i64::from(chain_transaction_timeout(chain));
 
@@ -184,47 +169,27 @@ mod tests {
         let now = Utc::now;
 
         assert_eq!(
-            get_transaction_update(chain, None, now(), Ok(TransactionUpdate::new_state(TransactionState::Pending)))
-                .unwrap()
-                .state,
+            get_transaction_update(chain, None, now(), Ok(TransactionUpdate::new_state(TransactionState::Pending))).unwrap().state,
             TransactionState::Pending
         );
         assert_eq!(
-            get_transaction_update(chain, None, DateTime::<Utc>::UNIX_EPOCH, Ok(TransactionUpdate::new_state(TransactionState::Pending)))
-                .unwrap()
-                .state,
+            get_transaction_update(chain, None, DateTime::<Utc>::UNIX_EPOCH, Ok(TransactionUpdate::new_state(TransactionState::Pending))).unwrap().state,
             TransactionState::Failed
         );
         assert_eq!(
-            get_transaction_update(
-                chain,
-                Some(Chain::Solana),
-                now() - chrono::Duration::hours(3),
-                Ok(TransactionUpdate::new_state(TransactionState::InTransit))
-            )
-            .unwrap()
-            .state,
+            get_transaction_update(chain, Some(Chain::Solana), now() - chrono::Duration::hours(3), Ok(TransactionUpdate::new_state(TransactionState::InTransit)))
+                .unwrap()
+                .state,
             TransactionState::InTransit
         );
         assert_eq!(
-            get_transaction_update(
-                chain,
-                Some(chain),
-                now() - chrono::Duration::hours(3),
-                Ok(TransactionUpdate::new_state(TransactionState::InTransit))
-            )
-            .unwrap(),
+            get_transaction_update(chain, Some(chain), now() - chrono::Duration::hours(3), Ok(TransactionUpdate::new_state(TransactionState::InTransit))).unwrap(),
             TransactionUpdate::new(TransactionState::Failed, vec![TransactionChange::ConfirmationEtaSeconds(0)])
         );
         assert_eq!(
-            get_transaction_update(
-                chain,
-                Some(Chain::Solana),
-                DateTime::<Utc>::UNIX_EPOCH,
-                Ok(TransactionUpdate::new_state(TransactionState::Confirmed))
-            )
-            .unwrap()
-            .state,
+            get_transaction_update(chain, Some(Chain::Solana), DateTime::<Utc>::UNIX_EPOCH, Ok(TransactionUpdate::new_state(TransactionState::Confirmed)))
+                .unwrap()
+                .state,
             TransactionState::Confirmed
         );
     }
@@ -312,13 +277,7 @@ mod swap_route_tests {
 
     #[test]
     fn test_swap_route() {
-        assert!(
-            swap_route(&Transaction {
-                metadata: None,
-                ..Transaction::mock()
-            })
-            .is_none()
-        );
+        assert!(swap_route(&Transaction { metadata: None, ..Transaction::mock() }).is_none());
         assert!(
             swap_route(&Transaction {
                 metadata: Some(json!({"fromAsset":"ethereum","fromValue":"1","toAsset":"solana","toValue":"2"})),

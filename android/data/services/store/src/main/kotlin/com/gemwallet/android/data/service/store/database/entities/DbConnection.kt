@@ -5,9 +5,9 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.ApplicationMetadataSource
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletConnection
 import com.wallet.core.primitives.WalletConnectionSession
@@ -54,20 +54,18 @@ fun DbConnection.toSession(): WalletConnectionSession = WalletConnectionSession(
 
 fun DbConnection.toDTO(wallet: Wallet): WalletConnection = WalletConnection(wallet = wallet, session = toSession())
 
-fun WalletConnection.toRecord(): DbConnection {
-    return DbConnection(
-        id = session.id,
-        sessionId = session.sessionId,
-        state = session.state,
-        chains = session.chains,
-        createdAt = session.createdAt,
-        expireAt = session.expireAt,
-        appName = session.metadata.name,
-        appDescription = session.metadata.description,
-        appIcon = session.metadata.icon,
-        appUrl = session.metadata.url,
-        redirectNative = null,
-        redirectUniversal = null,
-        walletId = wallet.id.id,
-    )
-}
+fun WalletConnection.toRecord(): DbConnection = DbConnection(
+    id = session.id,
+    sessionId = session.sessionId,
+    state = session.state,
+    chains = session.chains,
+    createdAt = session.createdAt,
+    expireAt = session.expireAt,
+    appName = session.metadata.name,
+    appDescription = session.metadata.description,
+    appIcon = session.metadata.icon,
+    appUrl = session.metadata.url,
+    redirectNative = null,
+    redirectUniversal = null,
+    walletId = wallet.id.id,
+)

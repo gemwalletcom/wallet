@@ -63,9 +63,7 @@ impl<S: RedemptionService> MessageConsumer<RewardsRedemptionPayload, PrimitiveRe
     async fn process(&self, payload: RewardsRedemptionPayload) -> Result<PrimitiveRedemptionStatus, Box<dyn Error + Send + Sync>> {
         let redemption = self.database.rewards_redemptions()?.get_redemption(payload.redemption_id)?;
 
-        self.database
-            .rewards_redemptions()?
-            .update_redemption(payload.redemption_id, vec![RedemptionUpdate::Status(RedemptionStatus::Processing)])?;
+        self.database.rewards_redemptions()?.update_redemption(payload.redemption_id, vec![RedemptionUpdate::Status(RedemptionStatus::Processing)])?;
 
         let recipient_address = self.database.rewards()?.get_address_by_username(&redemption.username)?;
         let option = self.database.rewards_redemptions()?.get_redemption_option(&redemption.option_id)?;
@@ -75,29 +73,19 @@ impl<S: RedemptionService> MessageConsumer<RewardsRedemptionPayload, PrimitiveRe
         let value = option.value.clone();
         let points = option.points;
 
-        let asset = option.asset.map(|asset| RedemptionAsset {
-            asset,
-            value: option.value.clone(),
-        });
+        let asset = option.asset.map(|asset| RedemptionAsset { asset, value: option.value.clone() });
 
         let request = RedemptionRequest { recipient_address, asset };
 
         match self.process_with_retry(request).await {
             Ok(transaction_id) => {
-                let updates = vec![
-                    RedemptionUpdate::TransactionId(transaction_id.clone()),
-                    RedemptionUpdate::Status(RedemptionStatus::Completed),
-                ];
+                let updates = vec![RedemptionUpdate::TransactionId(transaction_id.clone()), RedemptionUpdate::Status(RedemptionStatus::Completed)];
                 self.database.rewards_redemptions()?.update_redemption(payload.redemption_id, updates)?;
 
                 if let Some(id) = &asset_id {
                     let pending_tx_id = TransactionId::new(id.chain, transaction_id.clone());
                     if let Err(e) = self.stream_producer.publish(QueueName::StorePendingTransactions, &pending_tx_id).await {
-                        info_with_fields!(
-                            "failed to publish redemption transaction to pending",
-                            transaction_id = pending_tx_id.to_string(),
-                            error = e.to_string()
-                        );
+                        info_with_fields!("failed to publish redemption transaction to pending", transaction_id = pending_tx_id.to_string(), error = e.to_string());
                     } else {
                         info_with_fields!("published redemption transaction to pending", transaction_id = pending_tx_id.to_string());
                     }
@@ -107,31 +95,18 @@ impl<S: RedemptionService> MessageConsumer<RewardsRedemptionPayload, PrimitiveRe
                         points,
                         value: value.clone(),
                     };
-                    let notification =
-                        InAppNotificationPayload::new_with_asset(redemption.wallet_id, id.clone(), NotificationType::RewardsRedeemed, serde_json::to_value(metadata).ok());
+                    let notification = InAppNotificationPayload::new_with_asset(redemption.wallet_id, id.clone(), NotificationType::RewardsRedeemed, serde_json::to_value(metadata).ok());
                     self.stream_producer.publish_in_app_notifications(vec![notification]).await?;
                 }
 
-                info_with_fields!(
-                    "redemption completed",
-                    id = payload.redemption_id,
-                    asset = asset_id_str.as_deref().unwrap_or("none"),
-                    value = value,
-                    tx_id = transaction_id
-                );
+                info_with_fields!("redemption completed", id = payload.redemption_id, asset = asset_id_str.as_deref().unwrap_or("none"), value = value, tx_id = transaction_id);
                 Ok(PrimitiveRedemptionStatus::Completed)
             }
             Err(e) => {
                 let error_msg = e.to_string();
                 let updates = vec![RedemptionUpdate::Status(RedemptionStatus::Failed), RedemptionUpdate::Error(error_msg.clone())];
                 self.database.rewards_redemptions()?.update_redemption(payload.redemption_id, updates)?;
-                info_with_fields!(
-                    "redemption failed",
-                    id = payload.redemption_id,
-                    asset = asset_id_str.as_deref().unwrap_or("none"),
-                    value = value,
-                    error = error_msg
-                );
+                info_with_fields!("redemption failed", id = payload.redemption_id, asset = asset_id_str.as_deref().unwrap_or("none"), value = value, error = error_msg);
                 Ok(PrimitiveRedemptionStatus::Failed)
             }
         }

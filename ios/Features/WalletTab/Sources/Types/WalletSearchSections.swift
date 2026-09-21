@@ -3,6 +3,7 @@
 import Foundation
 import enum Gemstone.GemNftItem
 import Primitives
+import PrimitivesComponents
 import Store
 
 struct WalletSearchSections: Equatable {
@@ -17,13 +18,7 @@ struct WalletSearchSections: Equatable {
     let lists: [AssetList]
 
     static func from(_ result: WalletSearchResult, nfts: [GemNftItem]) -> WalletSearchSections {
-        let (pinnedAssets, assets) = result.assets.reduce(into: ([AssetData](), [AssetData]())) {
-            if $1.metadata.isPinned {
-                $0.0.append($1)
-            } else {
-                $0.1.append($1)
-            }
-        }
+        let assets = AssetsSections.from(result.assets)
         let (pinnedPerpetuals, perpetuals) = result.perpetuals.reduce(into: ([PerpetualData](), [PerpetualData]())) {
             if $1.metadata.isPinned {
                 $0.0.append($1)
@@ -32,8 +27,8 @@ struct WalletSearchSections: Equatable {
             }
         }
         return WalletSearchSections(
-            pinnedAssets: pinnedAssets,
-            assets: assets,
+            pinnedAssets: assets.pinned,
+            assets: assets.assets,
             pinnedPerpetuals: pinnedPerpetuals,
             perpetuals: perpetuals,
             nfts: nfts,

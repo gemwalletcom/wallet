@@ -27,9 +27,7 @@ pub fn spot_token_id_for_asset_id(asset_id: &AssetId) -> Option<String> {
 pub fn is_spot_token_id(token_id: &str) -> bool {
     let parts = AssetId::decode_token_id(token_id);
     match parts.as_slice() {
-        [symbol, contract, index] => {
-            !symbol.is_empty() && contract.strip_prefix("0x").is_some_and(|hex| !hex.is_empty() && hex.chars().all(|c| c.is_ascii_hexdigit())) && index.parse::<u32>().is_ok()
-        }
+        [symbol, contract, index] => !symbol.is_empty() && contract.strip_prefix("0x").is_some_and(|hex| !hex.is_empty() && hex.chars().all(|c| c.is_ascii_hexdigit())) && index.parse::<u32>().is_ok(),
         _ => false,
     }
 }

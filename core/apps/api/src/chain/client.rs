@@ -64,13 +64,7 @@ impl ChainClient {
         Ok(self.filter_transactions(transactions, transaction_type))
     }
 
-    pub async fn get_block_transactions_finalize(
-        &self,
-        chain: Chain,
-        block_number: i64,
-        addresses: Vec<String>,
-        transaction_type: Option<&str>,
-    ) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
+    pub async fn get_block_transactions_finalize(&self, chain: Chain, block_number: i64, addresses: Vec<String>, transaction_type: Option<&str>) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
         let transactions = self
             .providers
             .get_block_transactions(chain, block_number as u64)
@@ -83,10 +77,7 @@ impl ChainClient {
 
     fn filter_transactions(&self, transactions: Vec<Transaction>, transaction_type: Option<&str>) -> Vec<Transaction> {
         if let Some(transaction_type) = transaction_type {
-            return transactions
-                .into_iter()
-                .filter(|x| x.transaction_type.as_ref() == transaction_type)
-                .collect::<Vec<Transaction>>();
+            return transactions.into_iter().filter(|x| x.transaction_type.as_ref() == transaction_type).collect::<Vec<Transaction>>();
         }
         transactions
     }

@@ -56,13 +56,7 @@ mod tests {
             is_max_value: false,
             metadata: TransactionLoadMetadata::mock_solana_transfer(None, None, None, &[]),
         };
-        let fee = TransactionFee::new_gas_price_type(
-            GasPriceType::solana(5_000u64, 0u64, 2u64),
-            5_000u64.into(),
-            2_000u64.into(),
-            Default::default(),
-            AssetId::from_chain(Chain::Solana),
-        );
+        let fee = TransactionFee::new_gas_price_type(GasPriceType::solana(5_000u64, 0u64, 2u64), 5_000u64.into(), 2_000u64.into(), Default::default(), AssetId::from_chain(Chain::Solana));
         let input = SignerInput::new(input, fee);
 
         let result = signer.sign_transfer(&input, &TEST_PRIVATE_KEY).unwrap();
@@ -72,12 +66,7 @@ mod tests {
         assert_ne!(transaction.signatures()[0].as_bytes(), &[0u8; 64]);
         assert_eq!(
             (0..transaction.instructions().len()).map(|index| program_id(&transaction, index)).collect::<Vec<_>>(),
-            vec![
-                SOLANA_COMPUTE_BUDGET_PROGRAM_ID,
-                SOLANA_COMPUTE_BUDGET_PROGRAM_ID,
-                SOLANA_MEMO_PROGRAM_ID,
-                SOLANA_SYSTEM_PROGRAM_ID
-            ]
+            vec![SOLANA_COMPUTE_BUDGET_PROGRAM_ID, SOLANA_COMPUTE_BUDGET_PROGRAM_ID, SOLANA_MEMO_PROGRAM_ID, SOLANA_SYSTEM_PROGRAM_ID]
         );
         assert_eq!(transaction.instructions()[0].data, {
             let mut data = vec![3];

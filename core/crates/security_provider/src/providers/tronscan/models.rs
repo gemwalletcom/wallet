@@ -62,26 +62,11 @@ mod tests {
     #[test]
     fn test_address_malicious_reason() {
         for (response, expected) in [
-            (
-                r#"{"send_ad_by_memo":false,"has_fraud_transaction":false,"fraud_token_creator":false,"is_black_list":false}"#,
-                None,
-            ),
-            (
-                r#"{"send_ad_by_memo":true,"has_fraud_transaction":false,"fraud_token_creator":false,"is_black_list":false}"#,
-                Some("send_ad_by_memo"),
-            ),
-            (
-                r#"{"send_ad_by_memo":false,"has_fraud_transaction":true,"fraud_token_creator":false,"is_black_list":false}"#,
-                Some("has_fraud_transaction"),
-            ),
-            (
-                r#"{"send_ad_by_memo":false,"has_fraud_transaction":false,"fraud_token_creator":true,"is_black_list":false}"#,
-                Some("fraud_token_creator"),
-            ),
-            (
-                r#"{"send_ad_by_memo":false,"has_fraud_transaction":false,"fraud_token_creator":false,"is_black_list":true}"#,
-                Some("is_black_list"),
-            ),
+            (r#"{"send_ad_by_memo":false,"has_fraud_transaction":false,"fraud_token_creator":false,"is_black_list":false}"#, None),
+            (r#"{"send_ad_by_memo":true,"has_fraud_transaction":false,"fraud_token_creator":false,"is_black_list":false}"#, Some("send_ad_by_memo")),
+            (r#"{"send_ad_by_memo":false,"has_fraud_transaction":true,"fraud_token_creator":false,"is_black_list":false}"#, Some("has_fraud_transaction")),
+            (r#"{"send_ad_by_memo":false,"has_fraud_transaction":false,"fraud_token_creator":true,"is_black_list":false}"#, Some("fraud_token_creator")),
+            (r#"{"send_ad_by_memo":false,"has_fraud_transaction":false,"fraud_token_creator":false,"is_black_list":true}"#, Some("is_black_list")),
             (
                 r#"{"send_ad_by_memo":true,"has_fraud_transaction":true,"fraud_token_creator":false,"is_black_list":false}"#,
                 Some("send_ad_by_memo,has_fraud_transaction"),

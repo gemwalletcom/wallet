@@ -8,12 +8,7 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 
 @Composable
-fun SelectSendScreen(
-    onCancel: () -> Unit,
-    onSelect: ((AssetId) -> Unit)?,
-    chains: List<Chain> = emptyList(),
-    viewModel: SendSelectViewModel = hiltViewModel()
-) {
+fun SelectSendScreen(onCancel: () -> Unit, onSelect: ((AssetId) -> Unit)?, chains: List<Chain> = emptyList(), viewModel: SendSelectViewModel = hiltViewModel()) {
     LaunchedEffect(chains) {
         viewModel.setChainFilter(chains)
     }

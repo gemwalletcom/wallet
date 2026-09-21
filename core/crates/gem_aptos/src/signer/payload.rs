@@ -35,12 +35,7 @@ impl EntryFunctionPayload {
             None => infer_type_tags(&self.arguments)?,
         };
 
-        let args = self
-            .arguments
-            .iter()
-            .zip(arg_types.iter())
-            .map(|(value, arg_type)| encode_argument(value, arg_type))
-            .collect::<Result<Vec<_>, _>>()?;
+        let args = self.arguments.iter().zip(arg_types.iter()).map(|(value, arg_type)| encode_argument(value, arg_type)).collect::<Result<Vec<_>, _>>()?;
 
         Ok(EntryFunction { module, function, ty_args, args })
     }

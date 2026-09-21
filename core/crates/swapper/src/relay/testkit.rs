@@ -1,15 +1,10 @@
 use num_bigint::BigInt;
 
-use super::model::{
-    CurrencyAmount, EvmStepData, QuoteDetails, RelayChainInfo, RelayProtocol, RelayProtocolV2, RelayQuoteResponse, RelayRequest, RelayStatus, Step, StepData, StepItem,
-};
+use super::model::{CurrencyAmount, EvmStepData, QuoteDetails, RelayChainInfo, RelayProtocol, RelayProtocolV2, RelayQuoteResponse, RelayRequest, RelayStatus, Step, StepData, StepItem};
 
 impl RelayQuoteResponse {
     pub fn mock_with_steps(steps: Vec<Step>) -> Self {
-        Self {
-            steps,
-            details: QuoteDetails::mock(),
-        }
+        Self { steps, details: QuoteDetails::mock() }
     }
 }
 
@@ -46,9 +41,7 @@ impl RelayChainInfo {
             id,
             solver_addresses: solver_addresses.iter().map(|address| address.to_string()).collect(),
             protocol: Some(RelayProtocol {
-                v2: Some(RelayProtocolV2 {
-                    depository: depository.map(str::to_string),
-                }),
+                v2: Some(RelayProtocolV2 { depository: depository.map(str::to_string) }),
             }),
         }
     }
@@ -63,6 +56,7 @@ impl Step {
         Self {
             id: id.to_string(),
             kind: "transaction".to_string(),
+            deposit_address: None,
             items: Some(vec![StepItem {
                 data: Some(StepData::Evm(EvmStepData {
                     to: to.to_string(),
@@ -79,6 +73,7 @@ impl Step {
             id: id.to_string(),
             kind: kind.to_string(),
             items: None,
+            deposit_address: None,
         }
     }
 }

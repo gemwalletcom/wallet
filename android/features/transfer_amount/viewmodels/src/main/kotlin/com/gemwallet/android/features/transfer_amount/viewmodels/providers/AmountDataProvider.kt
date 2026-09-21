@@ -10,15 +10,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.GemAssetBalance
 import uniffi.gemstone.GemAmountInput
 import uniffi.gemstone.GemAmountTitle
 import uniffi.gemstone.GemAmountType
+import uniffi.gemstone.GemAssetBalance
+import uniffi.gemstone.GemTransferData
 
-abstract class AmountDataProvider(
-    private val scope: CoroutineScope,
-) {
+abstract class AmountDataProvider(private val scope: CoroutineScope) {
     abstract val assetInfo: StateFlow<AssetInfo?>
     abstract val amountType: StateFlow<GemAmountType?>
 

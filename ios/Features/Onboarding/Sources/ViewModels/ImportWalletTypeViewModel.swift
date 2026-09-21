@@ -1,11 +1,11 @@
-import Foundation
-import PrimitivesComponents
-import Style
 import Components
+import Foundation
 import class Gemstone.GemChainService
 import GemstonePrimitives
 import Localization
 import Primitives
+import PrimitivesComponents
+import Style
 import SwiftUI
 
 public struct ImportWalletTypeViewModel {
@@ -34,11 +34,7 @@ public struct ImportWalletTypeViewModel {
 
 // MARK: - Equatable
 
-extension ImportWalletTypeViewModel: Equatable {
-    public static func == (lhs: ImportWalletTypeViewModel, rhs: ImportWalletTypeViewModel) -> Bool {
-        lhs.allChains == rhs.allChains
-    }
-}
+extension ImportWalletTypeViewModel: Equatable {}
 
 // MARK: - Hashable
 

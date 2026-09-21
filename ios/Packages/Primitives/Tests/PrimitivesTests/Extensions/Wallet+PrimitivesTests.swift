@@ -10,5 +10,4 @@ struct Wallet_PrimitivesTests {
         #expect(Wallet.mock(type: .multicoin).canSign == true)
         #expect(Wallet.mock(type: .view).canSign == false)
     }
-
 }

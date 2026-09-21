@@ -32,7 +32,7 @@ public enum InfoSheetModelFactory {
                 image: .assetImage(image),
                 button: button,
             )
-        case let .insufficientNetworkFee(asset, image, requirement, price, currency, button):
+        case let .insufficientNetworkFee(asset, title, image, requirement, price, currency, button):
             let description: String = if let requirement {
                 Localized.Info.InsufficientNetworkFeeBalance.description(
                     Self.amountWithFiat(requirement.required, asset: asset, price: price, currency: currency).boldMarkdown(),
@@ -41,7 +41,7 @@ public enum InfoSheetModelFactory {
                     Self.formatted(requirement.shortfall, asset: asset),
                 )
             } else {
-                Localized.Transfer.insufficientNetworkFeeBalance(asset.symbol.boldMarkdown())
+                Localized.Transfer.insufficientNetworkFeeBalance(title.boldMarkdown())
             }
             return InfoSheetModel(
                 title: Localized.Info.balanceRequiredTitle(asset.symbol),

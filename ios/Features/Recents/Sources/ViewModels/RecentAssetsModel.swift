@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Foundation
 import enum Gemstone.GemAssetAction
 import protocol Gemstone.GemRecentActivityServiceProtocol
-import GemstoneServices
-import Foundation
 import GemstonePrimitives
+import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import Store

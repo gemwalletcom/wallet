@@ -3,11 +3,9 @@ package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
-import com.gemwallet.android.application.stake.cases.GetDelegation
-import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.application.stake.cases.GetValidators
-import uniffi.gemstone.GemAmountServiceInterface
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.testkit.mockAmountParamsPerpetual
 import com.gemwallet.android.testkit.mockAmountParamsTransfer
@@ -22,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemAmountServiceInterface
 
 class AmountProviderFactoryTest {
 
@@ -33,9 +32,6 @@ class AmountProviderFactoryTest {
         },
         getDelegation = mockk<GetDelegation>(relaxed = true) {
             every { this@mockk.invoke(any(), any(), any()) } returns flowOf(null)
-        },
-        getDelegations = mockk<GetDelegations>(relaxed = true) {
-            every { this@mockk.invoke(any(), any(), any()) } returns flowOf(emptyList())
         },
         getStakeValidator = mockk(relaxed = true),
         getValidators = mockk<GetValidators>(relaxed = true) {

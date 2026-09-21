@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstoneServices
 import Primitives
 import Style
 import SwiftUI
-import GemstoneServices
 import Transfer
 import WalletConnector
 
@@ -38,7 +38,7 @@ struct WalletConnectorNavigationStack: View {
                 case let .signMessage(data):
                     SignMessageScene(
                         model: viewModelFactory.signMessageScene(
-                            payload: data.payload,
+                            request: data.payload,
                             confirmTransferDelegate: data.delegate,
                         ),
                         onComplete: { presenter.complete(type: type) },

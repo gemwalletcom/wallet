@@ -1,30 +1,32 @@
 package com.gemwallet.android.features.buy.views
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.features.buy.viewmodels.models.BuyFiatProviderUIModel
-import com.gemwallet.android.features.buy.viewmodels.models.listItem
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.image.AsyncImage
+import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemSupportText
+import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.theme.listItemIconSize
 import com.wallet.core.primitives.FiatProviderName
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProviderList(
-    isShow: MutableState<Boolean>,
-    providers: List<BuyFiatProviderUIModel>,
-    selectedProvider: BuyFiatProviderUIModel?,
-    onProviderSelect: (FiatProviderName) -> Unit,
-) {
+fun ProviderList(isShow: MutableState<Boolean>, providers: List<BuyFiatProviderUIModel>, selectedProvider: BuyFiatProviderUIModel?, onProviderSelect: (FiatProviderName) -> Unit) {
     ModalBottomSheet(
         isVisible = isShow.value,
         onDismissRequest = { isShow.value = false },
@@ -47,20 +49,30 @@ fun ProviderList(
 }
 
 @Composable
-private fun FiatProviderListItemView(
-    provider: BuyFiatProviderUIModel,
-    listPosition: ListPosition,
-    isSelected: Boolean,
-    onProviderSelect: () -> Unit,
-) {
+private fun FiatProviderListItemView(provider: BuyFiatProviderUIModel, listPosition: ListPosition, isSelected: Boolean, onProviderSelect: () -> Unit) {
     ListItem(
-        model = provider.listItem(),
-        listPosition = listPosition,
         modifier = Modifier.clickable(onClick = onProviderSelect),
-        accessory = if (isSelected) {
-            { SelectionCheckmark() }
-        } else {
-            null
+        listPosition = listPosition,
+        leading = {
+            if (isSelected) {
+                IconWithBadge(
+                    icon = provider.provider.iconModel(),
+                    size = listItemIconSize,
+                    badge = { SelectionCheckmark() },
+                )
+            } else {
+                AsyncImage(
+                    model = provider.provider.iconModel(),
+                    size = listItemIconSize,
+                )
+            }
+        },
+        title = { ListItemTitleText(provider.providerName) },
+        trailing = {
+            Column(horizontalAlignment = Alignment.End) {
+                ListItemTitleText(provider.cryptoText)
+                ListItemSupportText(provider.fiatFormatted)
+            }
         },
     )
 }

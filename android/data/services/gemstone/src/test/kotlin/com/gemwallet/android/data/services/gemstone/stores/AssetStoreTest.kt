@@ -42,6 +42,6 @@ class GemstoneAssetStoreTest {
 
         coVerify(exactly = 0) { assetsDao.insert(any<DbAsset>()) }
         coVerify { assetsDao.insertBalances(match { it.single().assetId == "bitcoin" && it.single().walletId == walletId.id && it.single().isVisible }) }
-        coVerify(exactly = 0) { assetsDao.setWalletAssetVisibility(any(), any(), any()) }
+        coVerify(exactly = 0) { assetsDao.setAssetConfiguration(any(), any(), any(), any()) }
     }
 }

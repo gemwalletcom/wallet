@@ -49,10 +49,7 @@ impl BagOfCells {
         }
 
         let cells = build_cell_tree(&raw_cells)?;
-        let roots = root_indexes
-            .iter()
-            .map(|index| cells.get(*index).cloned().ok_or_else(|| invalid("BoC root out of bounds")))
-            .collect::<Result<Vec<_>, _>>()?;
+        let roots = root_indexes.iter().map(|index| cells.get(*index).cloned().ok_or_else(|| invalid("BoC root out of bounds"))).collect::<Result<Vec<_>, _>>()?;
         Ok(Self { roots })
     }
 
@@ -75,20 +72,12 @@ impl BagOfCells {
         let indexed_cells = build_index(&self.roots);
         let ordered_cells = ordered_indexed_cells(&indexed_cells);
 
-        let raw_cells = ordered_cells
-            .iter()
-            .map(|indexed| RawCell::from_cell(&indexed.borrow().cell, &indexed_cells))
-            .collect::<Result<Vec<_>, _>>()?;
+        let raw_cells = ordered_cells.iter().map(|indexed| RawCell::from_cell(&indexed.borrow().cell, &indexed_cells)).collect::<Result<Vec<_>, _>>()?;
 
         let root_indexes = self
             .roots
             .iter()
-            .map(|root| {
-                indexed_cells
-                    .get(&root.hash)
-                    .map(|indexed| indexed.borrow().index)
-                    .ok_or_else(|| invalid("missing BoC root"))
-            })
+            .map(|root| indexed_cells.get(&root.hash).map(|indexed| indexed.borrow().index).ok_or_else(|| invalid("missing BoC root")))
             .collect::<Result<Vec<_>, _>>()?;
 
         let ref_bytes = bytes_needed(raw_cells.len());
@@ -138,10 +127,7 @@ fn build_cell_tree(raw_cells: &[RawCell]) -> Result<Vec<CellArc>, TvmError> {
                 if *reference <= index {
                     return Err(invalid("BoC references must point to later cells"));
                 }
-                cells
-                    .get(*reference)
-                    .and_then(|cell| cell.as_ref().cloned())
-                    .ok_or_else(|| invalid("BoC reference out of bounds"))
+                cells.get(*reference).and_then(|cell| cell.as_ref().cloned()).ok_or_else(|| invalid("BoC reference out of bounds"))
             })
             .collect::<Result<Vec<_>, _>>()?;
         cells[index] = Some(Cell::new(raw.data.clone(), raw.bit_len, references)?.into_arc());

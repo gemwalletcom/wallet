@@ -21,11 +21,7 @@ pub fn decode_abi_string(hex_data: &str) -> Result<String, Box<dyn std::error::E
         return Ok("".to_string());
     }
     // Try to decode as ABI string. If that fails, try to interpret as a direct UTF-8 string.
-    String::abi_decode(&bytes_data).or_else(|_| {
-        String::from_utf8(bytes_data)
-            .map(|s| s.trim_matches('\0').to_string())
-            .map_err(|utf8_error| utf8_error.to_string().into())
-    })
+    String::abi_decode(&bytes_data).or_else(|_| String::from_utf8(bytes_data).map(|s| s.trim_matches('\0').to_string()).map_err(|utf8_error| utf8_error.to_string().into()))
 }
 
 pub fn decode_abi_uint8(hex_data: &str) -> Result<u8, Box<dyn std::error::Error + Send + Sync>> {

@@ -20,6 +20,76 @@ pub struct GemContactInput {
     pub addresses: Vec<ContactAddress>,
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemContactAvatarChoice {
+    Empty,
+    Image { image_url: String },
+    Emoji { emoji: String },
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemContactSession {
+    pub id: String,
+    pub existing: Option<Contact>,
+    pub name: String,
+    pub description: String,
+    pub avatar: GemContactAvatarChoice,
+    pub addresses: Vec<ContactAddress>,
+    pub is_saving: bool,
+}
+
+#[uniffi::export]
+impl GemContactSession {
+    pub fn on_name_changed(&self, name: String) -> Self {
+        Self { name, ..self.clone() }
+    }
+
+    pub fn on_description_changed(&self, description: String) -> Self {
+        Self { description, ..self.clone() }
+    }
+
+    pub fn on_avatar_changed(&self, avatar: GemContactAvatarChoice) -> Self {
+        Self { avatar, ..self.clone() }
+    }
+
+    pub fn on_address_saved(&self, input: GemContactAddressInput) -> Self {
+        Self {
+            addresses: input.add_address(self.addresses.clone()),
+            ..self.clone()
+        }
+    }
+
+    pub fn on_address_deleted(&self, address_id: String) -> Self {
+        Self {
+            addresses: self.addresses.iter().filter(|address| address.id != address_id).cloned().collect(),
+            ..self.clone()
+        }
+    }
+
+    pub fn on_saving(&self, is_saving: bool) -> Self {
+        Self { is_saving, ..self.clone() }
+    }
+
+    pub fn can_save(&self) -> bool {
+        rules::can_save_contact(&self.name, self.is_saving)
+    }
+
+    pub fn initials(&self) -> String {
+        contact_initials(self.name.clone())
+    }
+
+    pub fn input(&self, avatar: GemContactAvatar) -> GemContactInput {
+        GemContactInput {
+            id: self.id.clone(),
+            existing: self.existing.clone(),
+            name: self.name.clone(),
+            description: self.description.clone(),
+            avatar,
+            addresses: self.addresses.clone(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemContactScannedAddress {
     pub address: String,
@@ -58,6 +128,57 @@ impl GemContactAddressInput {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn session() -> GemContactSession {
+        GemContactSession {
+            id: "contact".into(),
+            existing: None,
+            name: String::new(),
+            description: String::new(),
+            avatar: GemContactAvatarChoice::Empty,
+            addresses: vec![],
+            is_saving: false,
+        }
+    }
+
+    #[test]
+    fn test_a_session_saves_once_it_has_a_name_and_is_not_saving() {
+        assert!(!session().can_save());
+        assert!(!session().on_name_changed("  ".into()).can_save(), "spaces are not a name");
+        let named = session().on_name_changed("ada lovelace".into());
+        assert!(named.can_save());
+        assert_eq!(named.initials(), "AD");
+        assert!(!named.on_saving(true).can_save(), "a save already running blocks another");
+    }
+
+    #[test]
+    fn test_a_session_adds_replaces_and_deletes_addresses() {
+        let input = |address: &str, replacing_id: Option<String>| GemContactAddressInput {
+            contact_id: "contact".into(),
+            chain: Chain::Ethereum,
+            address: address.into(),
+            memo: None,
+            replacing_id,
+        };
+        let added = session().on_address_saved(input("0x1", None));
+        let replaced = added.on_address_saved(input("0x2", Some(added.addresses[0].id.clone())));
+
+        assert_eq!(replaced.addresses.len(), 1);
+        assert_eq!(replaced.addresses[0].address, "0x2");
+        assert!(replaced.on_address_deleted(replaced.addresses[0].id.clone()).addresses.is_empty());
+    }
+
+    #[test]
+    fn test_the_save_input_carries_the_form_and_the_rendered_avatar() {
+        let input = session()
+            .on_name_changed("Ada".into())
+            .on_description_changed("Friend".into())
+            .on_avatar_changed(GemContactAvatarChoice::Emoji { emoji: "🦊".into() })
+            .input(GemContactAvatar::Rendered { image: vec![1] });
+
+        assert_eq!((input.id.as_str(), input.name.as_str(), input.description.as_str()), ("contact", "Ada", "Friend"));
+        assert!(matches!(input.avatar, GemContactAvatar::Rendered { .. }));
+    }
 
     #[test]
     fn test_add_address_replaces_the_selected_address() {
@@ -124,14 +245,7 @@ mod row_tests {
             .subtitle,
             None
         );
-        assert_eq!(
-            contact_row(Contact {
-                name: "Ada".into(),
-                ..Contact::mock()
-            })
-            .subtitle,
-            None
-        );
+        assert_eq!(contact_row(Contact { name: "Ada".into(), ..Contact::mock() }).subtitle, None);
     }
 
     #[test]
@@ -144,21 +258,7 @@ mod row_tests {
             .initials,
             "AD"
         );
-        assert_eq!(
-            contact_row(Contact {
-                name: "Q".into(),
-                ..Contact::mock()
-            })
-            .initials,
-            "Q"
-        );
-        assert_eq!(
-            contact_row(Contact {
-                name: "".into(),
-                ..Contact::mock()
-            })
-            .initials,
-            ""
-        );
+        assert_eq!(contact_row(Contact { name: "Q".into(), ..Contact::mock() }).initials, "Q");
+        assert_eq!(contact_row(Contact { name: "".into(), ..Contact::mock() }).initials, "");
     }
 }

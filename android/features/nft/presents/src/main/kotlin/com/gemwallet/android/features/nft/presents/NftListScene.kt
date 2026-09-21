@@ -169,10 +169,7 @@ internal fun NftListScene(
     }
 }
 
-private fun nftEmptyContentType(
-    showReceiveAction: Boolean,
-    onAction: (NftListAction) -> Unit,
-): EmptyContentType.Nft {
+private fun nftEmptyContentType(showReceiveAction: Boolean, onAction: (NftListAction) -> Unit): EmptyContentType.Nft {
     val onReceive: (() -> Unit)? = if (showReceiveAction) {
         { onAction(NftListAction.Receive) }
     } else {

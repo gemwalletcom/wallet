@@ -19,12 +19,7 @@ impl ApiClientsStore for DatabaseClient {
             return Ok(0);
         }
 
-        let names = values
-            .iter()
-            .map(|value| value.client_name.clone())
-            .collect::<BTreeSet<_>>()
-            .into_iter()
-            .collect::<Vec<_>>();
+        let names = values.iter().map(|value| value.client_name.clone()).collect::<BTreeSet<_>>().into_iter().collect::<Vec<_>>();
 
         let existing_names = api_clients::table
             .filter(api_clients::name.eq_any(names.clone()))
@@ -33,25 +28,13 @@ impl ApiClientsStore for DatabaseClient {
             .into_iter()
             .collect::<BTreeSet<_>>();
 
-        let client_rows = names
-            .iter()
-            .filter(|name| !existing_names.contains(*name))
-            .cloned()
-            .map(|name| NewApiClientRow { name })
-            .collect::<Vec<_>>();
+        let client_rows = names.iter().filter(|name| !existing_names.contains(*name)).cloned().map(|name| NewApiClientRow { name }).collect::<Vec<_>>();
 
         if !client_rows.is_empty() {
-            diesel::insert_into(api_clients::table)
-                .values(client_rows)
-                .on_conflict(api_clients::name)
-                .do_nothing()
-                .execute(&mut self.connection)?;
+            diesel::insert_into(api_clients::table).values(client_rows).on_conflict(api_clients::name).do_nothing().execute(&mut self.connection)?;
         }
 
-        let clients = api_clients::table
-            .filter(api_clients::name.eq_any(names))
-            .select(ApiClientRow::as_select())
-            .load(&mut self.connection)?;
+        let clients = api_clients::table.filter(api_clients::name.eq_any(names)).select(ApiClientRow::as_select()).load(&mut self.connection)?;
 
         let scopes = values
             .into_iter()
@@ -72,17 +55,10 @@ impl ApiClientsStore for DatabaseClient {
     }
 
     fn set_api_client_secret(&mut self, name: &str, secret: &str) -> Result<usize, diesel::result::Error> {
-        diesel::update(api_clients::table.filter(api_clients::name.eq(name)))
-            .set(api_clients::secret.eq(secret))
-            .execute(&mut self.connection)
+        diesel::update(api_clients::table.filter(api_clients::name.eq(name))).set(api_clients::secret.eq(secret)).execute(&mut self.connection)
     }
 
-    fn get_enabled_api_client(
-        &mut self,
-        secret_value: &str,
-        scope_value: ApiClientScope,
-        resource_value: ApiClientResource,
-    ) -> Result<Option<ApiClientRow>, diesel::result::Error> {
+    fn get_enabled_api_client(&mut self, secret_value: &str, scope_value: ApiClientScope, resource_value: ApiClientResource) -> Result<Option<ApiClientRow>, diesel::result::Error> {
         api_clients::table
             .inner_join(api_client_scopes::table)
             .filter(api_clients::secret.eq(secret_value))

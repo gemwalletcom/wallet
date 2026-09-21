@@ -94,15 +94,7 @@ where
         let response: OkxApiResponse<SwapDataResult> = self.client.post(PROXY_SWAP_PATH, &params).await.map_err(SwapperError::from)?;
         let transaction_data = response.swap_transaction()?;
         let chain = request.from_asset.chain();
-        build_swap_quote_data(
-            &transaction_data,
-            &request.from_asset,
-            &request.value.to_string(),
-            chain,
-            &request.wallet_address,
-            self.rpc_provider.clone(),
-        )
-        .await
+        build_swap_quote_data(&transaction_data, &request.from_asset, &request.value.to_string(), chain, &request.wallet_address, self.rpc_provider.clone()).await
     }
 }
 
@@ -239,10 +231,7 @@ mod tests {
             other => panic!("unexpected path: {other}"),
         });
         let provider = OkxProvider::mock(client, EVM_ZERO_ALLOWANCE);
-        let mut request = mock_quote(
-            SwapperQuoteAsset::from(ETHEREUM_USDC_ASSET_ID.clone()),
-            SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)),
-        );
+        let mut request = mock_quote(SwapperQuoteAsset::from(ETHEREUM_USDC_ASSET_ID.clone()), SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)));
         request.wallet_address = TEST_EVM_SENDER.to_string();
 
         let quote = provider.get_quote(&request).await.unwrap();
@@ -268,10 +257,7 @@ mod tests {
             }
         });
         let provider = OkxProvider::mock(client, TRON_ZERO_ALLOWANCE);
-        let mut request = mock_quote(
-            SwapperQuoteAsset::from(AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID)),
-            SwapperQuoteAsset::from(AssetId::from_chain(Chain::Tron)),
-        );
+        let mut request = mock_quote(SwapperQuoteAsset::from(AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID)), SwapperQuoteAsset::from(AssetId::from_chain(Chain::Tron)));
         request.wallet_address = TEST_TRON_WALLET.to_string();
         request.value = BigUint::from(50000000u64);
 
@@ -304,28 +290,10 @@ mod swap_integration_tests {
         let provider = OkxProvider::mock_through_proxy();
         let cases = [
             (AssetId::from_chain(Chain::Solana), SOLANA_USDC_ASSET_ID.clone(), TEST_SOLANA_SENDER, "100000000", "0"),
-            (
-                AssetId::from_chain(Chain::Hyperliquid),
-                HYPEREVM_USDT_ASSET_ID.clone(),
-                TEST_EVM_WALLET,
-                "100000000000000000",
-                "100000000000000000",
-            ),
+            (AssetId::from_chain(Chain::Hyperliquid), HYPEREVM_USDT_ASSET_ID.clone(), TEST_EVM_WALLET, "100000000000000000", "100000000000000000"),
             (AssetId::from_chain(Chain::Tron), TRON_USDT_ASSET_ID.clone(), TEST_TRON_WALLET, "100000000", "100000000"),
-            (
-                AssetId::from_chain(Chain::Robinhood),
-                ROBINHOOD_USDG_ASSET_ID.clone(),
-                TEST_EVM_WALLET,
-                "100000000000000",
-                "100000000000000",
-            ),
-            (
-                AssetId::from_chain(Chain::Plasma),
-                PLASMA_USDT_ASSET_ID.clone(),
-                TEST_EVM_WALLET,
-                "100000000000000000",
-                "100000000000000000",
-            ),
+            (AssetId::from_chain(Chain::Robinhood), ROBINHOOD_USDG_ASSET_ID.clone(), TEST_EVM_WALLET, "100000000000000", "100000000000000"),
+            (AssetId::from_chain(Chain::Plasma), PLASMA_USDT_ASSET_ID.clone(), TEST_EVM_WALLET, "100000000000000000", "100000000000000000"),
         ];
 
         for (from_asset, to_asset, wallet_address, value, expected_value) in cases {
@@ -345,16 +313,10 @@ mod swap_integration_tests {
             assert!(quote_data.approval.is_none());
         }
 
-        let mut request = mock_quote(
-            SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana)),
-            SwapperQuoteAsset::from(SOLANA_USDC_ASSET_ID.clone()),
-        );
+        let mut request = mock_quote(SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana)), SwapperQuoteAsset::from(SOLANA_USDC_ASSET_ID.clone()));
         request.wallet_address = TEST_SOLANA_SENDER.to_string();
         request.value = BigUint::from(100000000u64);
-        request.options.slippage = SwapperSlippage {
-            bps: 300,
-            mode: SwapperSlippageMode::Exact,
-        };
+        request.options.slippage = SwapperSlippage { bps: 300, mode: SwapperSlippageMode::Exact };
 
         tokio::time::sleep(std::time::Duration::from_secs(1)).await;
         let quote = provider.get_quote(&request).await?;

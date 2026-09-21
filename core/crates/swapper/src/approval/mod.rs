@@ -23,10 +23,7 @@ mod tests {
     fn test_get_swap_gas_limit_with_approval() {
         let approval = Some(ApprovalData::make("0xtoken", "0xspender", BigUint::from(1000u64), true));
 
-        assert_eq!(
-            get_swap_gas_limit_with_approval(&approval, Some("250000".to_string()), DEFAULT_EVM_SWAP_GAS_LIMIT),
-            Some("250000".to_string())
-        );
+        assert_eq!(get_swap_gas_limit_with_approval(&approval, Some("250000".to_string()), DEFAULT_EVM_SWAP_GAS_LIMIT), Some("250000".to_string()));
         assert_eq!(get_swap_gas_limit_with_approval(&approval, None, DEFAULT_EVM_SWAP_GAS_LIMIT), Some("750000".to_string()));
         assert_eq!(get_swap_gas_limit_with_approval(&None, Some("250000".to_string()), DEFAULT_EVM_SWAP_GAS_LIMIT), None);
     }

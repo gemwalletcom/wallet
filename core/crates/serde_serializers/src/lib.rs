@@ -2,15 +2,13 @@
 pub mod bigint;
 mod visitors;
 #[cfg(feature = "bigint")]
-pub use bigint::{
-    bigint_from_hex_str, deserialize_bigint_from_str, deserialize_bigint_vec_from_hex_str, deserialize_option_bigint_from_str, serialize_bigint, serialize_option_bigint,
-};
+pub use bigint::{bigint_from_hex_str, deserialize_bigint_from_str, deserialize_bigint_vec_from_hex_str, deserialize_option_bigint_from_str, serialize_bigint, serialize_option_bigint};
 #[cfg(feature = "bigint")]
 pub mod biguint;
 #[cfg(feature = "bigint")]
 pub use biguint::{
-    biguint_from_hex_str, deserialize_biguint_from_hex_str, deserialize_biguint_from_option_hex_str, deserialize_biguint_from_str, deserialize_option_biguint_from_str,
-    serialize_biguint, serialize_biguint_to_hex_str, serialize_option_biguint,
+    biguint_from_hex_str, deserialize_biguint_from_hex_str, deserialize_biguint_from_option_hex_str, deserialize_biguint_from_str, deserialize_option_biguint_from_str, serialize_biguint, serialize_biguint_to_hex_str,
+    serialize_option_biguint,
 };
 pub mod display;
 pub use display::serialize_display;

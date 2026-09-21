@@ -3,9 +3,32 @@ use chrono::{DateTime, Utc};
 use primitives::contact::ContactAddress;
 use primitives::{AddressName, AddressType, Chain, Contact, PaymentRequest, VerificationStatus};
 
-use super::model::{GemContactAddressField, GemContactScannedAddress};
+use super::model::{GemContactAddressField, GemContactAvatarChoice, GemContactScannedAddress, GemContactSession};
 use crate::config::chain::is_memo_supported;
 use std::collections::HashSet;
+
+pub fn new_session(contact: Option<Contact>, addresses: Vec<ContactAddress>, new_id: String) -> GemContactSession {
+    let Some(contact) = contact else {
+        return GemContactSession {
+            id: new_id,
+            existing: None,
+            name: String::new(),
+            description: String::new(),
+            avatar: GemContactAvatarChoice::Empty,
+            addresses,
+            is_saving: false,
+        };
+    };
+    GemContactSession {
+        id: contact.id.clone(),
+        name: contact.name.clone(),
+        description: contact.description.clone().unwrap_or_default(),
+        avatar: contact.image_url.clone().map_or(GemContactAvatarChoice::Empty, |image_url| GemContactAvatarChoice::Image { image_url }),
+        existing: Some(contact),
+        addresses,
+        is_saving: false,
+    }
+}
 
 pub fn default_contact_chain() -> Chain {
     Chain::Bitcoin
@@ -87,6 +110,48 @@ pub fn contact_address_fields(chain: Chain) -> Vec<GemContactAddressField> {
 mod tests {
 
     #[test]
+    fn test_a_new_session_takes_the_contact_apart_and_an_empty_one_gets_the_given_id() {
+        let contact = Contact {
+            description: Some("a friend".to_string()),
+            image_url: Some("https://example.com/a.png".to_string()),
+            ..Contact::mock()
+        };
+        let addresses = vec![ContactAddress::mock("0xabc")];
+
+        let editing = new_session(Some(contact.clone()), addresses.clone(), "unused".to_string());
+        assert_eq!(editing.id, contact.id);
+        assert_eq!(editing.name, contact.name);
+        assert_eq!(editing.description, "a friend");
+        assert_eq!(
+            editing.avatar,
+            GemContactAvatarChoice::Image {
+                image_url: "https://example.com/a.png".to_string()
+            }
+        );
+        assert_eq!(editing.existing.as_ref().map(|existing| existing.id.as_str()), Some(contact.id.as_str()));
+        assert_eq!(editing.addresses.len(), 1);
+        assert!(!editing.is_saving);
+
+        let bare = new_session(
+            Some(Contact {
+                description: None,
+                image_url: None,
+                ..Contact::mock()
+            }),
+            vec![],
+            "unused".to_string(),
+        );
+        assert_eq!(bare.description, "", "an absent description edits as empty text");
+        assert_eq!(bare.avatar, GemContactAvatarChoice::Empty);
+
+        let adding = new_session(None, vec![], "generated-id".to_string());
+        assert_eq!(adding.id, "generated-id", "a new contact takes the id the service generated");
+        assert!(adding.existing.is_none());
+        assert_eq!(adding.name, "");
+        assert_eq!(adding.avatar, GemContactAvatarChoice::Empty);
+    }
+
+    #[test]
     fn test_a_contact_needs_a_name_and_cannot_be_saved_twice() {
         assert!(can_save_contact("Ada", false));
         assert!(!can_save_contact("   ", false), "spaces are not a name");
@@ -110,13 +175,10 @@ mod tests {
         assert_eq!(names[0].status, VerificationStatus::Verified);
         assert_eq!(names[0].image_url.as_deref(), Some("image"));
 
-        let stale: Vec<String> = stale_addresses(
-            vec![ContactAddress::mock("a"), ContactAddress::mock("b")],
-            &[ContactAddress::mock("a"), ContactAddress::mock("c")],
-        )
-        .into_iter()
-        .map(|address| address.id)
-        .collect();
+        let stale: Vec<String> = stale_addresses(vec![ContactAddress::mock("a"), ContactAddress::mock("b")], &[ContactAddress::mock("a"), ContactAddress::mock("c")])
+            .into_iter()
+            .map(|address| address.id)
+            .collect();
         assert_eq!(stale, vec!["b".to_string()]);
     }
 
@@ -127,10 +189,7 @@ mod tests {
         assert_eq!(address.id, "contact_ethereum_0xabc");
         assert_eq!(address.contact_id, "contact");
         assert_eq!(address.memo, None);
-        assert_eq!(
-            contact_address("contact".into(), Chain::Ethereum, "0xabc".into(), Some(" note ".into())).memo.as_deref(),
-            Some("note")
-        );
+        assert_eq!(contact_address("contact".into(), Chain::Ethereum, "0xabc".into(), Some(" note ".into())).memo.as_deref(), Some("note"));
     }
 
     #[test]
@@ -149,13 +208,7 @@ mod tests {
         );
         let blank = PaymentRequest { address: "  ".into(), ..payment };
         assert_eq!(scanned_address(" raw ", Some(&blank)).address, "raw");
-        assert_eq!(
-            scanned_address(" raw ", None),
-            GemContactScannedAddress {
-                address: "raw".into(),
-                memo: None
-            }
-        );
+        assert_eq!(scanned_address(" raw ", None), GemContactScannedAddress { address: "raw".into(), memo: None });
     }
 
     #[test]
@@ -201,13 +254,7 @@ mod tests {
 
     #[test]
     fn test_a_contact_address_offers_a_memo_only_where_the_chain_carries_one() {
-        assert_eq!(
-            contact_address_fields(Chain::Ethereum),
-            vec![GemContactAddressField::Network, GemContactAddressField::Address]
-        );
-        assert_eq!(
-            contact_address_fields(Chain::Cosmos),
-            vec![GemContactAddressField::Network, GemContactAddressField::Address, GemContactAddressField::Memo]
-        );
+        assert_eq!(contact_address_fields(Chain::Ethereum), vec![GemContactAddressField::Network, GemContactAddressField::Address]);
+        assert_eq!(contact_address_fields(Chain::Cosmos), vec![GemContactAddressField::Network, GemContactAddressField::Address, GemContactAddressField::Memo]);
     }
 }

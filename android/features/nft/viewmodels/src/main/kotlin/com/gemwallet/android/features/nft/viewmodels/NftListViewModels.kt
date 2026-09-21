@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.nft.cases.GetNftCollections
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -17,7 +18,7 @@ import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -29,6 +30,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemNftList
 import uniffi.gemstone.GemNftServiceInterface
+import javax.inject.Inject
 
 @HiltViewModel
 class NftListViewModels @Inject constructor(
@@ -37,6 +39,7 @@ class NftListViewModels @Inject constructor(
     getSession: GetSession,
     savedStateHandle: SavedStateHandle,
     @param:ApplicationContext private val context: Context,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     val list: GemNftList = savedStateHandle.nftList()
@@ -64,10 +67,9 @@ class NftListViewModels @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val unverifiedListItem: StateFlow<ListItemModel?> = nftData
-        .map { data -> nftService.unverifiedCollections(data.map { it.toGem() }).size }
-        .map { count ->
-            count.takeIf { list == GemNftList.COLLECTIONS && it > 0 }
-                ?.let { ListItemModel(title = context.getString(R.string.asset_verification_unverified), subtitle = it.toString()) }
+        .map { data ->
+            nftService.unverifiedRow(data.map { it.toGem() }, list)
+                ?.let { ListItemModel(title = context.getString(R.string.asset_verification_unverified), subtitle = it.countText) }
         }
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -77,13 +79,13 @@ class NftListViewModels @Inject constructor(
         val current = walletId.value ?: return
         if (current == lastSyncedWalletId) return
         lastSyncedWalletId = current
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             sync()
         }
     }
 
     fun refresh() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             _isRefreshing.update { true }
             try {
                 sync()

@@ -2,8 +2,7 @@ use async_trait::async_trait;
 use gem_client::Client;
 use gem_jsonrpc::client::JsonRpcClient;
 use gem_solana::{
-    JUPITER_PROGRAM_ID, MAX_COMPUTE_UNIT_LIMIT, SolanaAccountEncoding, SolanaRpc, TOKEN_PROGRAM, USDC_TOKEN_MINT, USDS_TOKEN_MINT, USDT_TOKEN_MINT, WSOL_TOKEN_ADDRESS,
-    get_pubkey_by_str, get_token_program_by_id,
+    JUPITER_PROGRAM_ID, MAX_COMPUTE_UNIT_LIMIT, SolanaAccountEncoding, SolanaRpc, TOKEN_PROGRAM, USDC_TOKEN_MINT, USDS_TOKEN_MINT, USDT_TOKEN_MINT, WSOL_TOKEN_ADDRESS, get_pubkey_by_str, get_token_program_by_id,
     models::{AccountData, ValueResult},
     token_account::get_token_account,
 };
@@ -12,8 +11,7 @@ use primitives::{AssetId, Chain, SolanaTokenProgramId};
 
 use super::{client::JupiterClient, model::BuildRequest};
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset,
-    SwapperQuoteData, error::INVALID_ADDRESS, fees::default_referral_fees,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData, error::INVALID_ADDRESS, fees::default_referral_fees,
 };
 
 const MAX_ACCOUNTS: u8 = 64;
@@ -57,10 +55,7 @@ where
         let request = SolanaRpc::GetAccountInfo(Self::asset_mint(&asset.id)?, SolanaAccountEncoding::Base64);
         let value: ValueResult<Option<AccountData>> = self.rpc_client.request(request).await?;
 
-        value
-            .value
-            .map(|account| account.owner)
-            .ok_or_else(|| SwapperError::compute_quote_error("Unable to fetch the fee token program"))
+        value.value.map(|account| account.owner).ok_or_else(|| SwapperError::compute_quote_error("Unable to fetch the fee token program"))
     }
 
     async fn get_referral_account(&self, from_asset: &SwapperQuoteAsset, to_asset: &SwapperQuoteAsset, referral_address: &str) -> Result<String, SwapperError> {
@@ -68,11 +63,7 @@ where
         let fee_asset = if PREFERRED_FEE_MINTS.contains(&output_mint.as_str()) { to_asset } else { from_asset };
         let fee_mint = Self::asset_mint(&fee_asset.id)?;
         let is_preferred_fee_mint = PREFERRED_FEE_MINTS.contains(&fee_mint.as_str());
-        let token_program = if is_preferred_fee_mint {
-            TOKEN_PROGRAM.to_string()
-        } else {
-            self.get_token_program(fee_asset).await?
-        };
+        let token_program = if is_preferred_fee_mint { TOKEN_PROGRAM.to_string() } else { self.get_token_program(fee_asset).await? };
         let fee_account = get_token_account(referral_address, &fee_mint, &token_program)?;
         if is_preferred_fee_mint {
             return Ok(fee_account);
@@ -80,10 +71,7 @@ where
 
         let request = SolanaRpc::GetAccountInfo(fee_account.clone(), SolanaAccountEncoding::Base64);
         let value: ValueResult<Option<AccountData>> = self.rpc_client.request(request).await?;
-        value
-            .value
-            .map(|_| fee_account)
-            .ok_or_else(|| SwapperError::compute_quote_error("Jupiter referral fee account is unavailable"))
+        value.value.map(|_| fee_account).ok_or_else(|| SwapperError::compute_quote_error("Jupiter referral fee account is unavailable"))
     }
 }
 

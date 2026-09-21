@@ -50,9 +50,7 @@ impl Swapper for CetusClmm {
         let referral_fee = CetusClmm::referral_fee();
         let input_fee_amount = tx_builder::referral_fee_amount(amount, referral_fee.bps)?;
         let swap_amount = match fee_side {
-            FeeSide::Input => amount
-                .checked_sub(input_fee_amount)
-                .ok_or_else(|| SwapperError::ComputeQuoteError("Cetus CLMM referral fee exceeds input amount".into()))?,
+            FeeSide::Input => amount.checked_sub(input_fee_amount).ok_or_else(|| SwapperError::ComputeQuoteError("Cetus CLMM referral fee exceeds input amount".into()))?,
             FeeSide::Output => amount,
         };
 
@@ -121,26 +119,13 @@ mod swap_integration_tests {
             route.fee_amount
         );
         for (index, hop) in route.hops.iter().enumerate() {
-            println!(
-                "{label} hop {}: amount_in={}, amount_out={}, a2b={}, pool_id={}",
-                index + 1,
-                hop.amount_in,
-                hop.amount_out,
-                hop.a2b,
-                hop.pool_id
-            );
+            println!("{label} hop {}: amount_in={}, amount_out={}, a2b={}, pool_id={}", index + 1, hop.amount_in, hop.amount_out, hop.a2b, hop.pool_id);
         }
         Ok(route)
     }
 
     fn print_quote_data(label: &str, quote_data: &SwapperQuoteData) {
-        println!(
-            "{label} quote_data: to={}, value={}, data_len={}, gas_limit={:?}",
-            quote_data.to,
-            quote_data.value,
-            quote_data.data.len(),
-            quote_data.gas_limit
-        );
+        println!("{label} quote_data: to={}, value={}, data_len={}, gas_limit={:?}", quote_data.to, quote_data.value, quote_data.data.len(), quote_data.gas_limit);
     }
 
     #[tokio::test]

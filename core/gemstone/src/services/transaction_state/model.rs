@@ -9,6 +9,7 @@ pub struct GemTransactionStateUpdate {
     pub block_number: Option<String>,
     pub metadata: Option<String>,
     pub confirmation_eta_seconds: Option<u32>,
+    pub asset_ids: Option<Vec<AssetId>>,
 }
 
 impl GemTransactionStateUpdate {
@@ -19,6 +20,7 @@ impl GemTransactionStateUpdate {
             block_number: None,
             metadata: None,
             confirmation_eta_seconds: None,
+            asset_ids: None,
         }
     }
 
@@ -27,7 +29,7 @@ impl GemTransactionStateUpdate {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GemTransactionStateResult {
     pub transaction_id: TransactionId,
     pub state: TransactionState,
@@ -42,7 +44,7 @@ pub enum GemPostProcessingStep {
     Nfts,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GemPostProcessingFailure {
     pub step: GemPostProcessingStep,
     pub message: String,

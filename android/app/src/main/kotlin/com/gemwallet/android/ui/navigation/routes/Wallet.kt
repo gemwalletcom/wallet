@@ -18,15 +18,11 @@ import com.gemwallet.android.ui.requestAuth
 import com.wallet.core.primitives.WalletId
 import kotlinx.serialization.Serializable
 
-
 @Serializable
 data class WalletDetailsRoute(val walletId: WalletId) : NavKey
 
 @Serializable
-data class WalletImageRoute(
-    val walletId: WalletId,
-    val source: WalletImageSource = WalletImageSource.Wallet,
-) : NavKey
+data class WalletImageRoute(val walletId: WalletId, val source: WalletImageSource = WalletImageSource.Wallet) : NavKey
 
 @Serializable
 data class WalletSecurityReminderRoute(val input: WalletSecretInput) : NavKey
@@ -34,13 +30,7 @@ data class WalletSecurityReminderRoute(val input: WalletSecretInput) : NavKey
 @Serializable
 data class WalletPhraseRoute(val input: WalletSecretInput) : NavKey
 
-fun EntryProviderScope<NavKey>.walletScreen(
-    onBoard: () -> Unit,
-    onCancel: () -> Unit,
-    onSelectImage: (WalletId) -> Unit,
-    onSecurityReminder: (WalletSecretInput) -> Unit,
-    onSecurityReminderAccepted: (WalletSecretInput) -> Unit,
-) {
+fun EntryProviderScope<NavKey>.walletScreen(onBoard: () -> Unit, onCancel: () -> Unit, onSelectImage: (WalletId) -> Unit, onSecurityReminder: (WalletSecretInput) -> Unit, onSecurityReminderAccepted: (WalletSecretInput) -> Unit) {
     entry<WalletDetailsRoute>(
         metadata = { key -> routeArguments(RouteArgument.WalletId to key.walletId.id) },
     ) {

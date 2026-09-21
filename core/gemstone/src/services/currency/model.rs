@@ -3,19 +3,18 @@ use primitives::Currency;
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemCurrencyRow {
     pub currency: Currency,
-    pub flag: String,
+    pub title: String,
+    pub is_selected: bool,
 }
 
-#[uniffi::export]
-impl GemCurrencyRow {
-    pub fn text(&self) -> String {
-        format!("{} {}", self.flag, self.currency.as_ref())
-    }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemCurrencySectionKind {
+    Recommended,
+    All,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemCurrencies {
-    pub selected: GemCurrencyRow,
-    pub recommended: Vec<GemCurrencyRow>,
-    pub other: Vec<GemCurrencyRow>,
+pub struct GemCurrencySection {
+    pub kind: GemCurrencySectionKind,
+    pub rows: Vec<GemCurrencyRow>,
 }

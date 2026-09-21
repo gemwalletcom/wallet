@@ -4,11 +4,10 @@ use crate::models::*;
 use primitives::contract_call_data::ContractCallData;
 use primitives::solana_nft::SolanaNftStandard;
 use primitives::solana_token_program::SolanaTokenProgramId;
-use primitives::{
-    AssetId, EarnType, FeeOption, GasPriceType, HyperliquidOrder, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata,
-    TransactionType, TronStakeData,
-};
+use primitives::transaction_load_metadata::AgentPrivateKey;
+use primitives::{AssetId, EarnType, FeeOption, GasPriceType, HyperliquidOrder, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransactionType, TronStakeData};
 use std::collections::HashMap;
+use std::sync::Arc;
 
 pub type GemFeeOption = FeeOption;
 pub type GemTronStakeData = TronStakeData;
@@ -17,6 +16,11 @@ pub type GemTronStakeData = TronStakeData;
 pub enum FeeOption {
     TokenAccountCreation,
 }
+
+pub type GemAgentPrivateKey = AgentPrivateKey;
+
+#[uniffi::remote(Object)]
+pub struct GemAgentPrivateKey;
 
 pub type GemHyperliquidOrder = HyperliquidOrder;
 
@@ -28,7 +32,7 @@ pub struct GemHyperliquidOrder {
     pub builder_fee_bps: u32,
     pub agent_name: String,
     pub agent_address: String,
-    pub agent_private_key: String,
+    pub agent_private_key: Arc<GemAgentPrivateKey>,
 }
 
 pub type GemContractCallData = ContractCallData;
@@ -79,7 +83,7 @@ pub struct GemTransactionLoadFee {
     pub fee_asset: AssetId,
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone)]
 pub struct GemTransactionData {
     pub fee: GemTransactionLoadFee,
     pub metadata: GemTransactionLoadMetadata,
@@ -218,17 +222,16 @@ impl From<SignerInput> for GemSignerInput {
     }
 }
 
-pub fn transaction_metadata_block_number(metadata: &GemTransactionLoadMetadata) -> String {
+pub fn transaction_metadata_block_number(metadata: &GemTransactionLoadMetadata) -> Option<String> {
     match metadata {
-        GemTransactionLoadMetadata::Polkadot { block_number, .. }
-        | GemTransactionLoadMetadata::Tron { block_number, .. }
-        | GemTransactionLoadMetadata::Xrp { block_number, .. }
-        | GemTransactionLoadMetadata::Cardano { block_number, .. } => block_number.to_string(),
-        _ => "0".to_string(),
+        GemTransactionLoadMetadata::Polkadot { block_number, .. } | GemTransactionLoadMetadata::Tron { block_number, .. } | GemTransactionLoadMetadata::Xrp { block_number, .. } | GemTransactionLoadMetadata::Cardano { block_number, .. } => {
+            Some(block_number.to_string())
+        }
+        _ => None,
     }
 }
 
-pub fn transaction_metadata_sequence(metadata: &GemTransactionLoadMetadata) -> String {
+pub fn transaction_metadata_sequence(metadata: &GemTransactionLoadMetadata) -> Option<String> {
     match metadata {
         GemTransactionLoadMetadata::Ton { sequence, .. }
         | GemTransactionLoadMetadata::Cosmos { sequence, .. }
@@ -237,9 +240,9 @@ pub fn transaction_metadata_sequence(metadata: &GemTransactionLoadMetadata) -> S
         | GemTransactionLoadMetadata::Xrp { sequence, .. }
         | GemTransactionLoadMetadata::Algorand { sequence, .. }
         | GemTransactionLoadMetadata::Aptos { sequence, .. }
-        | GemTransactionLoadMetadata::Polkadot { sequence, .. } => sequence.to_string(),
-        GemTransactionLoadMetadata::Evm { nonce, .. } => nonce.to_string(),
-        _ => "0".to_string(),
+        | GemTransactionLoadMetadata::Polkadot { sequence, .. } => Some(sequence.to_string()),
+        GemTransactionLoadMetadata::Evm { nonce, .. } => Some(nonce.to_string()),
+        _ => None,
     }
 }
 
@@ -326,5 +329,16 @@ mod tests {
             ..fee
         };
         assert_eq!(fee.options.items(), vec![]);
+    }
+
+    #[test]
+    fn test_metadata_without_a_block_or_sequence_stores_none() {
+        let bitcoin = GemTransactionLoadMetadata::Bitcoin { utxos: vec![] };
+        assert_eq!(transaction_metadata_block_number(&bitcoin), None);
+        assert_eq!(transaction_metadata_sequence(&bitcoin), None);
+
+        let xrp = GemTransactionLoadMetadata::Xrp { sequence: 7, block_number: 91 };
+        assert_eq!(transaction_metadata_block_number(&xrp), Some("91".to_string()));
+        assert_eq!(transaction_metadata_sequence(&xrp), Some("7".to_string()));
     }
 }

@@ -1,13 +1,14 @@
 import Components
 import Formatters
 import Foundation
+import func Gemstone.secretPhraseCopy
 import Localization
 import Primitives
 import PrimitivesComponents
 import SwiftUI
 
 struct NewSecretPhraseViewModel: SecretPhraseViewableModel {
-    private let onCreateWallet: ([String]) -> Void
+    private let onContinue: VoidAction
     let words: [String]
 
     var calloutViewStyle: CalloutViewStyle? {
@@ -15,15 +16,15 @@ struct NewSecretPhraseViewModel: SecretPhraseViewableModel {
     }
 
     var continueAction: VoidAction {
-        { onCreateWallet(words) }
+        onContinue
     }
 
     init(
         words: [String],
-        onCreateWallet: @escaping (([String]) -> Void),
+        onContinue: VoidAction,
     ) {
         self.words = words
-        self.onCreateWallet = onCreateWallet
+        self.onContinue = onContinue
     }
 
     var title: String {
@@ -35,9 +36,6 @@ struct NewSecretPhraseViewModel: SecretPhraseViewableModel {
     }
 
     var copyModel: CopyTypeViewModel {
-        CopyTypeViewModel(
-            type: .secretPhrase,
-            copyValue: MnemonicFormatter.fromArray(words: words),
-        )
+        CopyTypeViewModel(content: secretPhraseCopy(words: words))
     }
 }

@@ -1,11 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemConfirmFeeSelection
-import struct Gemstone.GemFeeOptionItem
 import BigInt
 import Components
+import enum Gemstone.GemConfirmFeeSelection
+import struct Gemstone.GemFeeOptionItem
 import struct Gemstone.GemFeeRateRow
 import struct Gemstone.GemFeeRateRows
+import func Gemstone.showsFeeAssets
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -58,7 +59,7 @@ public struct NetworkFeeSceneViewModel {
     public var infoIcon: String { Localized.FeeRates.info }
     public var value: String? { feeAmount.map { display(for: $0).amount.text } }
     public var fiatValue: String? { feeAmount.flatMap { display(for: $0).fiat?.text } }
-    public var showFeeRates: Bool { rows.count > 1 }
+    public var showFeeRates: Bool { feeRates?.showsOptions ?? false }
     public var showFeeDetails: Bool { showFeeAssets || feeRates != nil }
     public var feeAssetSymbol: String? { showFeeAssets && fiatValue != nil ? feeAsset.symbol : nil }
 
@@ -70,7 +71,7 @@ public struct NetworkFeeSceneViewModel {
     }
 
     var showFeeAssets: Bool {
-        onSelectFeeAsset != nil && feeAssets.contains { $0.asset.id != feeAsset.id }
+        onSelectFeeAsset != nil && showsFeeAssets(feeAssetIds: feeAssets.map(\.asset.id.identifier), selected: feeAsset.id.identifier)
     }
 
     var selectedFeeAssetItem: FeeAssetItem {
@@ -87,12 +88,7 @@ public struct NetworkFeeSceneViewModel {
     // MARK: - Fee Rates
 
     public var feeRatesViewModels: [FeeRateViewModel] {
-        rows.map { feeRateViewModel(priority: $0.priority.toPrimitives(), displayValue: $0.displayValue, fee: $0.fee) }
-    }
-
-    public var selectedFeeRateViewModel: FeeRateViewModel? {
-        guard let priority = selection.selectedPriority()?.toPrimitives() else { return nil }
-        return feeRatesViewModels.first(where: { $0.priority == priority })
+        rows.map { FeeRateViewModel(priority: $0.priority.toPrimitives(), value: $0.value, fee: $0.fee) }
     }
 
     public func isSelected(_ rate: FeeRateViewModel) -> Bool {
@@ -114,19 +110,18 @@ public struct NetworkFeeSceneViewModel {
     public var customRowItem: ListItemModel { rowItem(title: Localized.FeeRate.custom, rate: customFeeRateViewModel) }
 
     @MainActor
-    public func customFeeModel() -> NetworkFeeCustomViewModel {
-        NetworkFeeCustomViewModel(
-            chain: feeAsset.chain,
-            feeAsset: feeAsset,
-            unitType: unitType,
-            decimals: unitDecimals,
-            baseFee: feeAmount,
-            baseTotal: feeRates?.selectedTotal,
-            normalTotal: feeRates?.normalTotal ?? feeRates?.selectedTotal,
-            initialRate: selection.customGasPrice(),
-            onSelect: { onSelect?(.custom(gasPrice: $0)) },
-            display: display(for:),
-        )
+    public func customFeeModel() -> NetworkFeeCustomViewModel? {
+        feeRates.map { rows in
+            NetworkFeeCustomViewModel(
+                chain: feeAsset.chain,
+                feeAsset: feeAsset,
+                rows: rows,
+                baseFee: feeAmount,
+                initialRate: selection.customGasPrice(),
+                onSelect: { onSelect?(.custom(gasPrice: $0)) },
+                display: display(for:),
+            )
+        }
     }
 
     @MainActor
@@ -144,22 +139,9 @@ public struct NetworkFeeSceneViewModel {
 
 private extension NetworkFeeSceneViewModel {
     var rows: [GemFeeRateRow] { feeRates?.rows ?? [] }
-    var unitType: FeeUnitType { feeRates?.unitType.toPrimitives() ?? .native }
-    var unitDecimals: Int { feeRates.map { Int($0.unitDecimals) } ?? feeAsset.decimals.asInt }
-
-    func feeRateViewModel(priority: FeePriority, displayValue: BigInt, fee: BigInt?) -> FeeRateViewModel {
-        FeeRateViewModel(
-            priority: priority,
-            displayValue: displayValue,
-            fee: fee,
-            unitType: unitType,
-            decimals: unitDecimals,
-            symbol: feeAsset.symbol,
-        )
-    }
 
     var customFeeRateViewModel: FeeRateViewModel? {
-        selection.customGasPrice().map { feeRateViewModel(priority: .normal, displayValue: $0, fee: feeAmount) }
+        feeRates?.customRate.map { FeeRateViewModel(priority: .normal, value: $0, fee: feeAmount) }
     }
 
     func rowItem(title: String, rate: FeeRateViewModel?) -> ListItemModel {
@@ -181,5 +163,4 @@ private extension NetworkFeeSceneViewModel {
             formatter: .auto,
         )
     }
-
 }

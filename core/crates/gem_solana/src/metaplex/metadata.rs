@@ -50,24 +50,14 @@ impl Metadata {
 
     pub fn find_master_edition_pda(mint: Pubkey) -> Option<(Pubkey, u8)> {
         let mpl_id = Pubkey::from_str(METAPLEX_PROGRAM).ok()?;
-        find_program_address(
-            &mpl_id,
-            &["metadata".as_bytes(), mpl_id.as_bytes().as_ref(), mint.as_bytes().as_ref(), "edition".as_bytes()],
-        )
-        .ok()
+        find_program_address(&mpl_id, &["metadata".as_bytes(), mpl_id.as_bytes().as_ref(), mint.as_bytes().as_ref(), "edition".as_bytes()]).ok()
     }
 
     pub fn find_token_record_pda(mint: Pubkey, token_account: Pubkey) -> Option<(Pubkey, u8)> {
         let mpl_id = Pubkey::from_str(METAPLEX_PROGRAM).ok()?;
         find_program_address(
             &mpl_id,
-            &[
-                "metadata".as_bytes(),
-                mpl_id.as_bytes().as_ref(),
-                mint.as_bytes().as_ref(),
-                "token_record".as_bytes(),
-                token_account.as_bytes().as_ref(),
-            ],
+            &["metadata".as_bytes(), mpl_id.as_bytes().as_ref(), mint.as_bytes().as_ref(), "token_record".as_bytes(), token_account.as_bytes().as_ref()],
         )
         .ok()
     }

@@ -10,13 +10,7 @@ pub(crate) fn sign(input: &SignerInput, private_key: &[u8]) -> Result<Vec<String
     let transaction_base64 = &swap_data.data.data;
 
     let unit_price = input.fee.unit_price_u64()?;
-    let quote_gas_limit = swap_data
-        .data
-        .gas_limit
-        .as_ref()
-        .map(|_| swap_data.data.gas_limit_as_u32())
-        .transpose()
-        .map_err(SignerError::invalid_input)?;
+    let quote_gas_limit = swap_data.data.gas_limit.as_ref().map(|_| swap_data.data.gas_limit_as_u32()).transpose().map_err(SignerError::invalid_input)?;
 
     Ok(vec![sign_transaction(transaction_base64, private_key, unit_price, quote_gas_limit, &input.fee)?])
 }
@@ -71,13 +65,7 @@ mod tests {
             swap_data,
         };
         let input = TransactionLoadInput::mock_with_input_type(input_type);
-        let fee = TransactionFee::new_gas_price_type(
-            GasPriceType::solana(5_000u64, 0u64, 0u64),
-            5_000u64.into(),
-            1u64.into(),
-            Default::default(),
-            AssetId::from_chain(Chain::Solana),
-        );
+        let fee = TransactionFee::new_gas_price_type(GasPriceType::solana(5_000u64, 0u64, 0u64), 5_000u64.into(), 1u64.into(), Default::default(), AssetId::from_chain(Chain::Solana));
         let input = SignerInput::new(input, fee);
 
         let result = signer.sign_swap(&input, &TEST_PRIVATE_KEY).unwrap();
@@ -98,13 +86,7 @@ mod tests {
             swap_data,
         };
         let input = TransactionLoadInput::mock_with_input_type(input_type);
-        let fee = TransactionFee::new_gas_price_type(
-            GasPriceType::solana(5_000u64, 0u64, 0u64),
-            5_000u64.into(),
-            1u64.into(),
-            Default::default(),
-            AssetId::from_chain(Chain::Solana),
-        );
+        let fee = TransactionFee::new_gas_price_type(GasPriceType::solana(5_000u64, 0u64, 0u64), 5_000u64.into(), 1u64.into(), Default::default(), AssetId::from_chain(Chain::Solana));
         let input = SignerInput::new(input, fee);
 
         let result = signer.sign_swap(&input, &TEST_PRIVATE_KEY).unwrap();

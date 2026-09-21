@@ -48,9 +48,7 @@ impl Metrics {
             }
         }
         let mut registry = MetricsRegistry::with_prefix("api");
-        registry
-            .registry_mut()
-            .register("security_scan_latency_milliseconds", "Security provider request latency", scan_latency.clone());
+        registry.registry_mut().register("security_scan_latency_milliseconds", "Security provider request latency", scan_latency.clone());
         Self { registry, scan_latency }
     }
 

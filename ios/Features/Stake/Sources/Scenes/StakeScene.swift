@@ -69,8 +69,8 @@ extension StakeScene {
         if let infoAction = item.infoAction {
             NavigationCustomLink(with: ListItemView(model: item.model), action: infoAction)
         } else {
-            NavigationLink(value: item.destination) {
-                ListItemView(model: item.model)
+            NavigationCustomLink(with: ListItemView(model: item.model)) {
+                model.onSelect(action: item.action)
             }
             .enabled(item.isEnabled)
         }
@@ -87,8 +87,8 @@ extension StakeScene {
                 .id(UUID())
         case let .data(delegations):
             ForEach(delegations) { delegation in
-                NavigationLink(value: model.navigationDestination(for: delegation)) {
-                    DelegationView(delegation: delegation)
+                NavigationCustomLink(with: DelegationView(delegation: delegation)) {
+                    model.onSelect(delegation: delegation)
                 }
             }
             .listRowInsets(.assetListRowInsets)
@@ -100,10 +100,7 @@ extension StakeScene {
     private var stakeInfoSection: some View {
         Section {
             ForEach(model.infoRows, id: \.self) { row in
-                ListItemView(
-                    field: model.infoField(for: row),
-                    infoAction: model.infoAction(for: row),
-                )
+                GemListRowView(row: row, onInfo: model.onInfo)
             }
         }
     }

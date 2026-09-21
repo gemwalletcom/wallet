@@ -40,10 +40,7 @@ impl Input {
     }
 
     pub fn pure(value: Vec<u8>) -> Self {
-        Self {
-            pure: Some(value),
-            ..Default::default()
-        }
+        Self { pure: Some(value), ..Default::default() }
     }
 
     pub(super) fn from_sdk(value: sdk::Input) -> MessageResult<Self> {

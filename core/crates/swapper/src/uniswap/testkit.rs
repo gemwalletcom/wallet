@@ -5,11 +5,7 @@ use crate::eth_address;
 
 impl RoutedAsset {
     pub fn mock(address: Address, funding: Funding, scale: u64) -> Self {
-        Self {
-            address,
-            scale: U256::from(scale),
-            funding,
-        }
+        Self { address, scale: U256::from(scale), funding }
     }
 
     pub fn mock_permit2(token_id: &str) -> Self {

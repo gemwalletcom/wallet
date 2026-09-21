@@ -11,21 +11,17 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.createBitmap
+import com.gemwallet.android.ui.theme.space0
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import com.gemwallet.android.ui.theme.space0
 
 private val defaultQrCodeSize = 150.dp
 
 @Composable
-fun rememberQRCodePainter(
-    content: String,
-    size: Dp = defaultQrCodeSize,
-    padding: Dp = space0,
-): BitmapPainter? {
+fun rememberQRCodePainter(content: String, size: Dp = defaultQrCodeSize, padding: Dp = space0): BitmapPainter? {
     val density = LocalDensity.current
     val sizePx = with(density) { size.roundToPx() }
     val paddingPx = with(density) { padding.roundToPx() }

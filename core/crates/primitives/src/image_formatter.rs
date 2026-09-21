@@ -44,10 +44,7 @@ mod tests {
 
     #[test]
     fn test_get_asset_url() {
-        assert_eq!(
-            ImageFormatter::get_asset_url_for_asset_id(URL, AssetId::from_chain(Chain::Ethereum)),
-            "https://example.com/blockchains/ethereum/logo.png"
-        );
+        assert_eq!(ImageFormatter::get_asset_url_for_asset_id(URL, AssetId::from_chain(Chain::Ethereum)), "https://example.com/blockchains/ethereum/logo.png");
 
         assert_eq!(
             ImageFormatter::get_asset_url_for_asset_id(URL, AssetId::from(Chain::Ethereum, Some(String::from("1")))),
@@ -57,10 +54,7 @@ mod tests {
 
     #[test]
     fn test_get_validator_url() {
-        assert_eq!(
-            ImageFormatter::get_validator_url(URL, Chain::Ethereum.as_ref(), "1"),
-            "https://example.com/blockchains/ethereum/validators/1/logo.png"
-        );
+        assert_eq!(ImageFormatter::get_validator_url(URL, Chain::Ethereum.as_ref(), "1"), "https://example.com/blockchains/ethereum/validators/1/logo.png");
     }
 
     #[test]
@@ -73,9 +67,6 @@ mod tests {
         let id = "ethereum_0xabc::1";
         assert_eq!(ImageFormatter::get_nft_asset_url(URL, id), "https://example.com/assets/ethereum_0xabc::1/preview");
         assert_eq!(ImageFormatter::get_nft_asset_resource_url(URL, id), "https://example.com/assets/ethereum_0xabc::1/resource");
-        assert_eq!(
-            ImageFormatter::get_nft_collection_url(URL, "ethereum_0xabc"),
-            "https://example.com/collections/ethereum_0xabc/preview"
-        );
+        assert_eq!(ImageFormatter::get_nft_collection_url(URL, "ethereum_0xabc"), "https://example.com/collections/ethereum_0xabc/preview");
     }
 }

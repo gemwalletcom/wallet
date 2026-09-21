@@ -9,11 +9,13 @@ use crate::services::error::GemServiceError;
 pub struct MemoryNftStore {
     pub cached: Option<NFTAssetData>,
     pub added: Mutex<Vec<NFTAssetData>>,
+    pub saved: Mutex<Vec<(WalletId, Vec<NFTData>)>>,
 }
 
 #[async_trait::async_trait]
 impl GemNftStore for MemoryNftStore {
-    async fn save_nfts(&self, _wallet_id: WalletId, _data: Vec<NFTData>) -> Result<(), GemServiceError> {
+    async fn save_nfts(&self, wallet_id: WalletId, data: Vec<NFTData>) -> Result<(), GemServiceError> {
+        self.saved.lock().unwrap().push((wallet_id, data));
         Ok(())
     }
     async fn get_asset_data(&self, _asset_id: NFTAssetId) -> Result<Option<NFTAssetData>, GemServiceError> {

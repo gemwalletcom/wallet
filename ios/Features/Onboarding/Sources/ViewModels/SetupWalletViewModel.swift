@@ -2,14 +2,14 @@
 
 import Components
 import Foundation
+import protocol Gemstone.GemWalletServiceProtocol
+import func Gemstone.walletRow
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
 import Store
 import Style
-import protocol Gemstone.GemWalletServiceProtocol
-import func Gemstone.walletRow
-import GemstonePrimitives
 
 @MainActor
 @Observable

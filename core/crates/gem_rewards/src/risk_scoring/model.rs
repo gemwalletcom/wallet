@@ -93,13 +93,7 @@ impl Default for RiskScoreConfig {
             high_risk_locale_penalty: 10,
             high_risk_device_models: vec!["sdk_gphone".to_string(), "(?i)emulator".to_string(), "(?i)simulator".to_string()],
             high_risk_device_model_penalty: 50,
-            high_risk_user_agents: vec![
-                "(?i)python".to_string(),
-                "(?i)curl".to_string(),
-                "(?i)httpie".to_string(),
-                "(?i)postman".to_string(),
-                "(?i)insomnia".to_string(),
-            ],
+            high_risk_user_agents: vec!["(?i)python".to_string(), "(?i)curl".to_string(), "(?i)httpie".to_string(), "(?i)postman".to_string(), "(?i)insomnia".to_string()],
             high_risk_user_agent_penalty: 100,
             velocity_window: MINUTE * 5,
             velocity_divisor: 2,
@@ -142,13 +136,7 @@ pub struct RiskSignalInput {
 
 impl RiskSignalInput {
     pub fn generate_fingerprint(&self) -> String {
-        let data = [
-            self.device_model.as_bytes(),
-            self.device_locale.as_bytes(),
-            self.ip_isp.as_bytes(),
-            self.ip_country_code.as_bytes(),
-        ]
-        .concat();
+        let data = [self.device_model.as_bytes(), self.device_locale.as_bytes(), self.ip_isp.as_bytes(), self.ip_country_code.as_bytes()].concat();
         hex::encode(sha256(&data))
     }
 

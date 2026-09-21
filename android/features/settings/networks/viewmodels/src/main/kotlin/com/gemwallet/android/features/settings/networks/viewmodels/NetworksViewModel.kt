@@ -1,49 +1,43 @@
 package com.gemwallet.android.features.settings.networks.viewmodels
 
-import com.gemwallet.android.features.settings.networks.viewmodels.models.NetworkSectionUIModel
-import com.gemwallet.android.features.settings.networks.viewmodels.models.uiModel
 import android.content.Context
-import dagger.hilt.android.qualifiers.ApplicationContext
-import com.gemwallet.android.ui.localization.text
-import com.gemwallet.android.ext.requireChain
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
-import uniffi.gemstone.GemChainSettingsServiceInterface
-import uniffi.gemstone.GemChainSettingsSection
-import uniffi.gemstone.GemExplorerRow
-import uniffi.gemstone.GemNodeListSession
-import uniffi.gemstone.GemNodeStatusState
+import com.gemwallet.android.application.IoDispatcher
+import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.ext.requireChain
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.features.settings.networks.viewmodels.models.NetworkSectionUIModel
 import com.gemwallet.android.features.settings.networks.viewmodels.models.NetworksUIState
+import com.gemwallet.android.features.settings.networks.viewmodels.models.uiModel
+import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemChainSettingsServiceInterface
+import uniffi.gemstone.GemExplorerRow
+import uniffi.gemstone.GemNodeListSession
+import uniffi.gemstone.GemNodeStatusState
 import javax.inject.Inject
-import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.ext.errorText
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class NetworksViewModel @Inject constructor(
-    private val service: GemChainSettingsServiceInterface,
-    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    @param:ApplicationContext private val context: Context,
-) : ViewModel() {
+class NetworksViewModel @Inject constructor(private val service: GemChainSettingsServiceInterface, @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher, @param:ApplicationContext private val context: Context) : ViewModel() {
 
-    private val sections = service.sections()
     private val state = MutableStateFlow(State())
     val uiState = state
         .map { it.toUIState() }
@@ -77,7 +71,7 @@ class NetworksViewModel @Inject constructor(
 
     fun refresh() {
         val chain = state.value.chain ?: return
-        refreshNodeStatuses(chain)
+        observeNodes(chain)
     }
 
     fun onSelectNode(url: String) {
@@ -120,9 +114,9 @@ class NetworksViewModel @Inject constructor(
     }
 
     private suspend fun loadNodes(chain: Chain) {
-        val nodes = service.nodes(chain.string)
-
-        updateState { it.copy(session = it.session?.onNodes(nodes)) }
+        runCatchingCancellable { service.nodes(chain.string) }
+            .onSuccess { nodes -> updateState { it.copy(session = it.session?.onNodes(nodes)) } }
+            .onFailure { error -> updateState { it.copy(errorText = error.errorText().text(context)) } }
     }
 
     private fun refreshNodeStatuses(chain: Chain) {
@@ -165,12 +159,10 @@ class NetworksViewModel @Inject constructor(
         chain = chain,
         chains = availableChains,
         selectChain = selectChain,
-        sections = sections.map { section ->
-            when (section) {
-                GemChainSettingsSection.NODES -> NetworkSectionUIModel.Nodes(session?.let { service.nodeRows(it.chain, it.nodes, it.statuses) }.orEmpty().map { it.uiModel(context) })
-                GemChainSettingsSection.EXPLORER -> NetworkSectionUIModel.Explorers(explorers.map { it.uiModel() })
-            }
-        },
+        sections = listOf(
+            NetworkSectionUIModel.Nodes(session?.rows().orEmpty().map { it.uiModel(context) }),
+            NetworkSectionUIModel.Explorers(explorers.map { it.uiModel() }),
+        ),
         availableAddNode = availableAddNode,
         errorText = errorText,
     )

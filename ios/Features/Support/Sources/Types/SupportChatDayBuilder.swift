@@ -2,10 +2,10 @@
 
 import Foundation
 import struct Gemstone.GemDayBoundaries
-import GemstonePrimitives
-import PrimitivesComponents
-import Primitives
 import func Gemstone.supportChatGroups
+import GemstonePrimitives
+import Primitives
+import PrimitivesComponents
 
 struct SupportChatDayBuilder {
     let messages: [SupportMessage]

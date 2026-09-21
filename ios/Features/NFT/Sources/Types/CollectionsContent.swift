@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Localization
 import Components
 import Foundation
+import Localization
 
 public struct CollectionsContent: Sendable {
     public let items: [GridPosterViewItem]

@@ -256,15 +256,9 @@ mod tests {
 
         let ethereum = config.cache_rules(Chain::Ethereum).unwrap();
         assert_eq!(ethereum.contracts.methods.len(), 1);
+        assert_eq!(ethereum.call_ttl(&ChainType::Ethereum, &JsonRpcCall::mock_eth_call(CONTRACT, "0x1698ee82")), Some(MINUTE * 5));
         assert_eq!(
-            ethereum.call_ttl(&ChainType::Ethereum, &JsonRpcCall::mock_eth_call(CONTRACT, "0x1698ee82")),
-            Some(MINUTE * 5)
-        );
-        assert_eq!(
-            config
-                .cache_rules(Chain::Optimism)
-                .unwrap()
-                .call_ttl(&ChainType::Ethereum, &JsonRpcCall::mock_eth_call(CONTRACT, "0x1698ee82")),
+            config.cache_rules(Chain::Optimism).unwrap().call_ttl(&ChainType::Ethereum, &JsonRpcCall::mock_eth_call(CONTRACT, "0x1698ee82")),
             Some(MINUTE * 5)
         );
         assert!(config.cache_rules(Chain::Solana).is_none());

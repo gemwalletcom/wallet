@@ -12,11 +12,7 @@ pub(super) fn create_payload_writer_create_instruction(payer: &Pubkey, payload_a
     let system_program = SolanaAddress::parse(SYSTEM_PROGRAM_ID).map_err(solana_error)?.into();
     Ok(Instruction {
         program_id: payload_writer,
-        accounts: vec![
-            AccountMeta::new_signer_writable(*payer),
-            AccountMeta::new_writable(*payload_account),
-            AccountMeta::new_readonly(system_program),
-        ],
+        accounts: vec![AccountMeta::new_signer_writable(*payer), AccountMeta::new_writable(*payload_account), AccountMeta::new_readonly(system_program)],
         data,
     })
 }

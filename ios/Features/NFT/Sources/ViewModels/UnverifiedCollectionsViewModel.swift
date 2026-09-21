@@ -19,7 +19,7 @@ public final class UnverifiedCollectionsViewModel: CollectionsViewable, Sendable
 
     public init(service: any GemNftServiceProtocol, wallet: Wallet) {
         self.service = service
-        query = ObservableQuery(NFTRequest(walletId: wallet.id, filter: .unverified), initialValue: [])
+        query = ObservableQuery(NFTRequest(walletId: wallet.id, filter: .all), initialValue: [])
     }
 
     public var title: String {

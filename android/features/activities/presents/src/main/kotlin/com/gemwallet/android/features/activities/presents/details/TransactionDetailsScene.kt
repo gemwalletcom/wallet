@@ -22,12 +22,12 @@ import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.AmountListHead
 import com.gemwallet.android.ui.components.list_head.NftHead
 import com.gemwallet.android.ui.components.list_head.SwapListHead
+import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.listSections
 import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
 import com.gemwallet.android.ui.components.list_item.property.AssetRatePropertyItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
-import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.format.rememberFormattedAddress
 import com.gemwallet.android.ui.icons.AppIcons
@@ -36,14 +36,10 @@ import com.gemwallet.android.ui.models.ListSection
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.padding16
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.wallet.core.primitives.ChainAddress
 
 @Composable
-internal fun TransactionDetailsScene(
-    data: TransactionDetailsAggregate,
-    sections: List<ListSection<TransactionDetailsRowUIModel>>,
-    headerTarget: TransactionHeaderTarget?,
-    onAction: (TransactionDetailsAction) -> Unit,
-) {
+internal fun TransactionDetailsScene(data: TransactionDetailsAggregate, sections: List<ListSection<TransactionDetailsRowUIModel>>, headerTarget: TransactionHeaderTarget?, onAction: (TransactionDetailsAction) -> Unit) {
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
     Scene(
@@ -64,31 +60,40 @@ internal fun TransactionDetailsScene(
                         modifier = row.url?.let { url -> Modifier.clickable { uriHandler.open(context, url) } } ?: Modifier,
                         accessory = row.url?.let { { DataBadgeChevron() } },
                     )
+
                     is TransactionDetailsRowUIModel.Address -> AddressPropertyItem(
                         title = row.title,
-                        displayText = row.name ?: rememberFormattedAddress(row.address, row.chain),
+                        displayText = row.text,
                         copyValue = row.address,
                         explorerLink = row.explorerLink,
                         listPosition = position,
+                        onClick = row.chain?.let { chain -> { onAction(TransactionDetailsAction.OpenAddress(ChainAddress(chain, row.address))) } },
                     )
+
                     is TransactionDetailsRowUIModel.Fee -> ListItem(
                         model = row.model,
                         listPosition = position,
                         modifier = Modifier.clickable { onAction(TransactionDetailsAction.ShowFeeDetails) },
                         accessory = { DataBadgeChevron() },
                     )
+
                     is TransactionDetailsRowUIModel.SwapProgress -> SwapProgressItem(row.model)
+
+                    is TransactionDetailsRowUIModel.Row -> GemListRowView(row = row.row, listPosition = position, infoIcon = row.infoIcon)
+
                     is TransactionDetailsRowUIModel.Value -> when (val item = row.value) {
                         is TransactionDetailsValue.Amount.NFT -> NftHead(
                             metadata = item.metadata,
                             onClick = headerTarget?.let { target -> { onAction(target.navigation()) } },
                         )
+
                         is TransactionDetailsValue.Amount.Plain -> AmountListHead(
                             icon = item.asset,
                             amount = item.value,
                             equivalent = item.equivalent,
                             onClick = headerTarget?.let { target -> { onAction(target.navigation()) } },
                         )
+
                         is TransactionDetailsValue.Amount.Swap -> SwapListHead(
                             fromAsset = item.fromAsset,
                             fromValueText = item.fromValueText,
@@ -99,19 +104,16 @@ internal fun TransactionDetailsScene(
                             onSwapClick = headerTarget?.let { target -> { onAction(target.navigation()) } },
                             onAssetClick = { onAction(TransactionDetailsAction.OpenAsset(it)) },
                         )
-                        is TransactionDetailsValue.Network -> PropertyNetworkItem(item.data.chain, listPosition = position)
+
                         is TransactionDetailsValue.Destination,
                         is TransactionDetailsValue.SwapProgress,
                         is TransactionDetailsValue.Fee,
-                        is TransactionDetailsValue.Status,
-                        is TransactionDetailsValue.Date,
-                        is TransactionDetailsValue.Explorer,
-                        is TransactionDetailsValue.Memo,
-                        is TransactionDetailsValue.ResourceType,
-                        is TransactionDetailsValue.Pnl,
-                        is TransactionDetailsValue.Price,
-                        is TransactionDetailsValue.EstimatedConfirmation -> Unit
+                        is TransactionDetailsValue.Row,
+                        is TransactionDetailsValue.EstimatedConfirmation,
+                        -> Unit
+
                         is TransactionDetailsValue.Rate -> AssetRatePropertyItem(item.rate, position)
+
                         is TransactionDetailsValue.SwapAgain -> MainActionButton(
                             title = stringResource(R.string.transaction_swap_again),
                             modifier = Modifier.padding(horizontal = padding16, vertical = paddingSmall),
@@ -120,7 +122,7 @@ internal fun TransactionDetailsScene(
                                     TransactionDetailsAction.OpenSwap(
                                         fromAssetId = item.fromAssetId,
                                         toAssetId = item.toAssetId,
-                                    )
+                                    ),
                                 )
                             },
                         )

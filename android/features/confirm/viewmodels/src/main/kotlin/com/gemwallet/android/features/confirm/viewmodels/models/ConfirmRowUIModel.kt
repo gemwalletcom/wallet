@@ -1,94 +1,97 @@
 package com.gemwallet.android.features.confirm.viewmodels.models
 
 import android.content.Context
-import com.gemwallet.android.domains.confirm.ConfirmProperty
 import com.gemwallet.android.domains.confirm.FeeUIModel
-import com.gemwallet.android.features.confirm.viewmodels.localization.titleRes
+import com.gemwallet.android.ext.networkName
+import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.features.confirm.viewmodels.localization.title
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
-import uniffi.gemstone.contactInitials
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemTagType
-import com.gemwallet.android.ui.components.list_item.listItemImage
 import com.gemwallet.android.ui.localization.stringRes
-import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
+import uniffi.gemstone.AddressName
+import uniffi.gemstone.AddressType
+import uniffi.gemstone.GemConfirmDestination
+import uniffi.gemstone.GemConfirmRowContent
+import uniffi.gemstone.GemListRow
+import uniffi.gemstone.contactInitials
 
 sealed interface ConfirmRowUIModel {
+    data class Row(val row: GemListRow) : ConfirmRowUIModel
     data class Item(val model: ListItemModel) : ConfirmRowUIModel
-    data class Address(
-        val title: String,
-        val name: String?,
-        val address: String,
-        val chain: Chain,
-        val explorerLink: BlockExplorerLink?,
-        val avatar: ListItemImage?,
-    ) : ConfirmRowUIModel
-    data class Validator(
-        val title: String,
-        val name: String,
-        val address: String,
-        val explorerLink: BlockExplorerLink,
-    ) : ConfirmRowUIModel
-    data class Network(val chain: Chain, val name: String) : ConfirmRowUIModel
-    data class Sender(val title: String, val name: String, val image: ListItemImage) : ConfirmRowUIModel
+    data class Address(val title: String, val name: String?, val address: String, val chain: Chain, val explorerLink: BlockExplorerLink, val avatar: ListItemImage?) : ConfirmRowUIModel
+    data class Validator(val title: String, val name: String, val address: String, val chain: Chain, val explorerLink: BlockExplorerLink) : ConfirmRowUIModel
     data class PaymentAsset(val model: ListItemModel, val selectable: Boolean) : ConfirmRowUIModel
 }
 
-internal fun ConfirmProperty.uiModel(context: Context): ConfirmRowUIModel = when (this) {
-    is ConfirmProperty.Memo -> ConfirmRowUIModel.Item(ListItemModel(title = context.getString(R.string.transfer_memo), subtitle = data))
-    is ConfirmProperty.Destination.Provider -> ConfirmRowUIModel.Item(ListItemModel(title = context.getString(titleRes()), subtitle = data))
-    is ConfirmProperty.Destination.Generic -> ConfirmRowUIModel.Item(ListItemModel(title = context.getString(titleRes()), subtitle = appName))
-    is ConfirmProperty.Destination.Resource -> ConfirmRowUIModel.Item(ListItemModel(title = context.getString(titleRes()), subtitle = context.getString(resource.stringRes())))
-    is ConfirmProperty.Destination.Stake -> {
-        val address = address
-        val explorerLink = explorerLink
-        if (address != null && explorerLink != null) {
-            ConfirmRowUIModel.Validator(title = context.getString(titleRes()), name = data, address = address, explorerLink = explorerLink)
-        } else {
-            ConfirmRowUIModel.Item(ListItemModel(title = context.getString(titleRes()), subtitle = data))
-        }
-    }
-    is ConfirmProperty.Destination.Transfer -> ConfirmRowUIModel.Address(
-        title = context.getString(titleRes()),
-        name = domain,
-        address = address,
-        chain = chain,
-        explorerLink = explorerLink,
-        avatar = avatar(),
-    )
-    is ConfirmProperty.Destination.Contract -> ConfirmRowUIModel.Address(
-        title = context.getString(titleRes()),
-        name = null,
-        address = address,
-        chain = chain,
-        explorerLink = explorerLink,
-        avatar = null,
-    )
-    is ConfirmProperty.Source -> ConfirmRowUIModel.Sender(title = context.getString(R.string.common_wallet), name = walletRow.name, image = walletRow.listItemImage())
-    is ConfirmProperty.Network -> ConfirmRowUIModel.Network(chain = chain, name = name)
-    is ConfirmProperty.PaymentAsset -> ConfirmRowUIModel.PaymentAsset(
-        model = ListItemModel(title = context.getString(R.string.transfer_pay_with), subtitle = symbol),
-        selectable = selectable,
-    )
+internal fun GemConfirmRowContent.uiModel(context: Context): ConfirmRowUIModel? = when (this) {
+    is GemConfirmRowContent.Row -> ConfirmRowUIModel.Row(row)
+    is GemConfirmRowContent.Recipient -> uiModel(context)
+    is GemConfirmRowContent.PaymentAsset -> ConfirmRowUIModel.PaymentAsset(model = ListItemModel(title = context.getString(R.string.transfer_pay_with), subtitle = symbol), selectable = selectable)
+    is GemConfirmRowContent.Details -> null
 }
 
-private fun ConfirmProperty.Destination.Transfer.avatar(): ListItemImage? {
-    if (addressType != AddressType.Contact) return null
-    val initials = domain?.let { contactInitials(it) }
+private fun GemConfirmRowContent.Recipient.uiModel(context: Context): ConfirmRowUIModel {
+    val title = context.getString(destination.title())
+    return when (val destination = destination) {
+        is GemConfirmDestination.Recipient -> ConfirmRowUIModel.Address(
+            title = title,
+            name = destination.name,
+            address = destination.address,
+            chain = chain.toChain(),
+            explorerLink = link.toPrimitives(),
+            avatar = addressName?.avatar(destination.name),
+        )
+
+        is GemConfirmDestination.Contract -> ConfirmRowUIModel.Address(
+            title = title,
+            name = null,
+            address = destination.address,
+            chain = chain.toChain(),
+            explorerLink = link.toPrimitives(),
+            avatar = null,
+        )
+
+        is GemConfirmDestination.Validator -> ConfirmRowUIModel.Validator(
+            title = title,
+            name = destination.name,
+            address = destination.address,
+            chain = chain.toChain(),
+            explorerLink = link.toPrimitives(),
+        )
+
+        is GemConfirmDestination.Resource -> ConfirmRowUIModel.Item(ListItemModel(title = title, subtitle = context.getString(destination.resource.toPrimitives().stringRes())))
+
+        is GemConfirmDestination.Provider -> ConfirmRowUIModel.Item(ListItemModel(title = title, subtitle = destination.name))
+    }
+}
+
+private fun AddressName.avatar(name: String?): ListItemImage? {
+    if (addressType != AddressType.CONTACT) return null
+    val initials = name?.let { contactInitials(it) }
     return imageUrl?.takeIf { it.isNotEmpty() }?.let { ListItemImage.Stored(it, initials) } ?: initials?.let { ListItemImage.Initials(it) }
 }
 
-fun FeeUIModel.listItem(context: Context, feeAsset: Asset?): ListItemModel {
+fun FeeUIModel.listItem(context: Context, feeAsset: Asset?, showsFeeAssetSymbol: Boolean = false): ListItemModel {
     val title = context.getString(R.string.transfer_network_fee)
-    val info = InfoSheetEntity.NetworkFeeInfo(feeAsset?.name.orEmpty(), feeAsset?.symbol.orEmpty())
+    val info = InfoSheetEntity.NetworkFeeInfo(feeAsset?.id?.chain?.networkName().orEmpty(), feeAsset?.symbol.orEmpty())
     return when (this) {
         FeeUIModel.Calculating -> ListItemModel(title = title, subtitleTagType = ListItemTagType.Progress, info = info)
-        FeeUIModel.Error -> ListItemModel(title = title, subtitle = "~", info = info)
-        is FeeUIModel.FeeInfo -> ListItemModel(title = title, subtitle = cryptoAmount, subtitleExtra = fiatAmount.takeIf { it.isNotEmpty() }, info = info)
+
+        is FeeUIModel.Unavailable -> ListItemModel(title = title, subtitle = text, info = info)
+
+        is FeeUIModel.FeeInfo -> ListItemModel(
+            title = title,
+            subtitle = fiatAmount.ifEmpty { cryptoAmount },
+            subtitleExtra = feeAsset?.symbol?.takeIf { showsFeeAssetSymbol && fiatAmount.isNotEmpty() },
+            info = info,
+        )
     }
 }
 

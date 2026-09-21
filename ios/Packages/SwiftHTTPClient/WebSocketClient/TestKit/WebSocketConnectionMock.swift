@@ -31,6 +31,11 @@ public actor WebSocketConnectionMock: WebSocketConnectable {
         continuation = nil
     }
 
+    public func ping() async throws -> TimeInterval {
+        guard state == .connected else { throw WebSocketError.notConnected }
+        return 0.1
+    }
+
     public func send(_ data: Data) async throws {
         guard state == .connected else {
             throw WebSocketError.notConnected

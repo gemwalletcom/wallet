@@ -9,11 +9,7 @@ import uniffi.gemstone.PortfolioData
 import uniffi.gemstone.PortfolioStatistic
 import java.util.concurrent.TimeUnit
 
-fun mockPortfolioData(
-    values: List<Float> = listOf(1f, 2f),
-    statistics: List<PortfolioStatistic> = emptyList(),
-    availablePeriods: List<ChartPeriod> = emptyList(),
-) = PortfolioData(
+fun mockPortfolioData(values: List<Float> = listOf(1f, 2f), statistics: List<PortfolioStatistic> = emptyList(), availablePeriods: List<ChartPeriod> = emptyList()) = PortfolioData(
     charts = listOf(
         PortfolioChartData(
             chartType = PortfolioChartType.VALUE,

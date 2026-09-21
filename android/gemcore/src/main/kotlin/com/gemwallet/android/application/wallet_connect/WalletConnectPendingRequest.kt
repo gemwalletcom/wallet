@@ -1,8 +1,8 @@
 package com.gemwallet.android.application.wallet_connect
 
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.requireChain
+import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Chain
@@ -21,13 +21,7 @@ import uniffi.gemstone.GemWalletConnectTransactionRequest
 import uniffi.gemstone.SimulationResult
 import uniffi.gemstone.SignMessage as GemSignMessage
 
-sealed class WalletConnectPendingRequest(
-    val sessionId: String,
-    chainId: String,
-    val wallet: Wallet,
-    session: uniffi.gemstone.WalletConnectionSession,
-    val simulation: SimulationResult,
-) {
+sealed class WalletConnectPendingRequest(val sessionId: String, chainId: String, val wallet: Wallet, session: uniffi.gemstone.WalletConnectionSession, val simulation: SimulationResult) {
     internal val result = CompletableDeferred<String>()
 
     val chain: Chain by lazy { chainId.requireChain() }
@@ -42,16 +36,12 @@ sealed class WalletConnectPendingRequest(
         result.completeExceptionally(GemServiceException.Cancelled())
     }
 
-    class SignMessage(
-        private val request: GemWalletConnectMessageRequest,
-    ) : WalletConnectPendingRequest(request.sessionId, request.chain, request.wallet.toPrimitives(), request.session, request.simulation) {
+    class SignMessage(val request: GemWalletConnectMessageRequest) : WalletConnectPendingRequest(request.sessionId, request.chain, request.wallet.toPrimitives(), request.session, request.simulation) {
         val message: GemSignMessage get() = request.message
         val assets: List<Asset> get() = request.assets
     }
 
-    class Transaction(
-        private val request: GemWalletConnectTransactionRequest,
-    ) : WalletConnectPendingRequest(request.sessionId, request.chain, request.wallet.toPrimitives(), request.session, request.simulation) {
+    class Transaction(private val request: GemWalletConnectTransactionRequest) : WalletConnectPendingRequest(request.sessionId, request.chain, request.wallet.toPrimitives(), request.session, request.simulation) {
         val transfer: GemTransferData get() = request.transfer
         val isSendable: Boolean get() = request.action == GemWalletConnectTransactionAction.SEND
     }

@@ -11,16 +11,14 @@ import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
 import com.gemwallet.android.ui.style.textStyle
-import uniffi.gemstone.GemAmountSign
 import uniffi.gemstone.GemConfirmSimulationState
 import uniffi.gemstone.GemConfirmationInterface
+import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemSimulationBalanceChange
-import uniffi.gemstone.GemSimulationWarningRow
 import uniffi.gemstone.GemValueStyle
-import uniffi.gemstone.GemValueTone
 
 data class Simulation(
-    val warnings: List<GemSimulationWarningRow> = emptyList(),
+    val warnings: List<GemListRow> = emptyList(),
     val hasCriticalWarning: Boolean = false,
     val primaryPayloadFields: List<PayloadField> = emptyList(),
     val secondaryPayloadFields: List<PayloadField> = emptyList(),
@@ -28,10 +26,7 @@ data class Simulation(
     val balanceChanges: List<GemSimulationBalanceChange> = emptyList(),
 )
 
-fun GemConfirmSimulationState.toSimulation(
-    session: GemConfirmationInterface,
-    context: Context,
-): Simulation {
+fun GemConfirmSimulationState.toSimulation(session: GemConfirmationInterface, context: Context): Simulation {
     val simulationWarnings = warnings
     val details = simulation ?: return Simulation(warnings = simulationWarnings)
     val chain = this.chain.requireChain()
@@ -48,18 +43,11 @@ fun GemConfirmSimulationState.toSimulation(
     )
 }
 
-fun GemSimulationBalanceChange.formattedValue(): String =
-    sign.format(ValueFormatter(style = GemValueStyle.FULL).string(value.abs(), asset.decimals, asset.symbol))
-
-fun GemSimulationBalanceChange.tone(): GemValueTone = when (sign) {
-    GemAmountSign.INCOMING -> GemValueTone.POSITIVE
-    GemAmountSign.OUTGOING -> GemValueTone.NEGATIVE
-    GemAmountSign.NONE -> GemValueTone.NEUTRAL
-}
+fun GemSimulationBalanceChange.formattedValue(): String = sign.format(ValueFormatter(style = GemValueStyle.FULL).string(value.abs(), asset.decimals, asset.symbol))
 
 fun GemSimulationBalanceChange.listItem(): ListItemModel = ListItemModel(
     title = asset.name,
     subtitle = formattedValue(),
-    subtitleStyle = tone().textStyle(),
+    subtitleStyle = tone.textStyle(),
     image = ListItemImage.Asset(asset.toPrimitives().id),
 )

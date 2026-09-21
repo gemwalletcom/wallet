@@ -28,12 +28,8 @@ mod tests {
                     storage_rebate: BigUint::from(100u32),
                     non_refundable_storage_fee: BigUint::from(0u32),
                 },
-                status: Status {
-                    status: STATUS_SUCCESS.to_string(),
-                },
-                gas_object: GasObject {
-                    owner: Owner::String("0x123".to_string()),
-                },
+                status: Status { status: STATUS_SUCCESS.to_string() },
+                gas_object: GasObject { owner: Owner::String("0x123".to_string()) },
             },
             move_call_packages: Vec::new(),
             balance_changes: None,

@@ -4,7 +4,16 @@ use crate::services::collections::{missing, unique};
 
 use primitives::{Account, Asset, AssetBalance, AssetFiatValue, AssetId, BalanceCalculator, BalanceMetadata, Chain, TotalFiatValue};
 
-use super::model::{GemAssetBalance, GemBalanceRecord, GemBalanceResource, GemBalanceResourceRow, GemBalanceUpdate, GemBalanceUpdateType};
+use super::model::{GemAssetBalance, GemAssetConfiguration, GemBalanceRecord, GemBalanceResource, GemBalanceResourceRow, GemBalanceUpdate, GemBalanceUpdateType};
+use crate::formatted_number::GemFormattedNumber;
+use crate::precision::GemValueStyle;
+use num_bigint::BigUint;
+use number_formatter::BigNumberFormatter;
+
+pub fn balance_amount(value: &BigUint, asset: &Asset) -> GemFormattedNumber {
+    let value = BigNumberFormatter::f64_value(value, asset.decimals.unsigned_abs());
+    GemFormattedNumber::amount(value, Some(asset.symbol.clone()), GemValueStyle::Auto)
+}
 
 #[uniffi::export]
 pub fn balance_resource_rows(metadata: Option<BalanceMetadata>) -> Vec<GemBalanceResourceRow> {
@@ -48,15 +57,10 @@ pub fn request_token_ids(token_ids: &[AssetId]) -> Vec<String> {
 }
 
 pub fn chain_balances(coin: Vec<AssetBalance>, stake: Vec<AssetBalance>, tokens: Vec<AssetBalance>, earn: Vec<AssetBalance>) -> Vec<(BalanceKind, AssetBalance)> {
-    [
-        (BalanceKind::Coin, coin),
-        (BalanceKind::Stake, stake),
-        (BalanceKind::Token, tokens),
-        (BalanceKind::Earn, earn),
-    ]
-    .into_iter()
-    .flat_map(|(kind, balances)| balances.into_iter().map(move |balance| (kind, balance)))
-    .collect()
+    [(BalanceKind::Coin, coin), (BalanceKind::Stake, stake), (BalanceKind::Token, tokens), (BalanceKind::Earn, earn)]
+        .into_iter()
+        .flat_map(|(kind, balances)| balances.into_iter().map(move |balance| (kind, balance)))
+        .collect()
 }
 
 pub fn balance_requests(accounts: &[Account], asset_ids: &[AssetId]) -> Vec<BalanceRequest> {
@@ -101,9 +105,7 @@ pub fn balance_updates(balances: Vec<(BalanceKind, AssetBalance)>) -> Vec<GemBal
                     reserved: balance.balance.reserved,
                     pending_unconfirmed: balance.balance.pending_unconfirmed,
                 },
-                BalanceKind::Token => GemBalanceUpdateType::Token {
-                    available: balance.balance.available,
-                },
+                BalanceKind::Token => GemBalanceUpdateType::Token { available: balance.balance.available },
                 BalanceKind::Stake => GemBalanceUpdateType::Stake {
                     staked: balance.balance.staked,
                     pending: balance.balance.pending,
@@ -134,19 +136,23 @@ pub fn changed_balances(stored: Vec<GemAssetBalance>, updates: Vec<GemBalanceUpd
         });
         *balance = balance.applying(&update);
     }
-    order
-        .into_iter()
-        .filter_map(|asset_id| applied.remove(&asset_id))
-        .filter(|balance| stored.get(&balance.asset_id) != Some(balance))
-        .collect()
+    order.into_iter().filter_map(|asset_id| applied.remove(&asset_id)).filter(|balance| stored.get(&balance.asset_id) != Some(balance)).collect()
 }
 
 pub fn balance_records(balances: Vec<GemAssetBalance>, assets: &[Asset]) -> Vec<GemBalanceRecord> {
     let decimals: HashMap<AssetId, u32> = assets.iter().map(|asset| (asset.id.clone(), asset.decimals.max(0) as u32)).collect();
-    balances
-        .into_iter()
-        .filter_map(|balance| Some(GemBalanceRecord::new(balance.clone(), *decimals.get(&balance.asset_id)?)))
-        .collect()
+    balances.into_iter().filter_map(|balance| Some(GemBalanceRecord::new(balance.clone(), *decimals.get(&balance.asset_id)?))).collect()
+}
+
+pub fn enabled_configuration(enabled: bool) -> GemAssetConfiguration {
+    GemAssetConfiguration {
+        is_enabled: Some(enabled),
+        is_pinned: (!enabled).then_some(false),
+    }
+}
+
+pub fn pinned_configuration(pinned: bool) -> GemAssetConfiguration {
+    GemAssetConfiguration { is_enabled: None, is_pinned: Some(pinned) }
 }
 
 pub fn missing_asset_ids(requested: &[AssetId], stored: &[AssetId]) -> Vec<AssetId> {
@@ -155,6 +161,10 @@ pub fn missing_asset_ids(requested: &[AssetId], stored: &[AssetId]) -> Vec<Asset
 
 pub fn unique_asset_ids(asset_ids: Vec<AssetId>) -> Vec<AssetId> {
     unique(asset_ids)
+}
+
+pub fn exclude_native_mirrors(asset_ids: Vec<AssetId>) -> Vec<AssetId> {
+    asset_ids.into_iter().filter(|asset_id| !asset_id.is_native_mirror()).collect()
 }
 
 #[cfg(test)]
@@ -192,19 +202,11 @@ mod tests {
         let stored = GemAssetBalance::mock_with_available(10);
 
         assert!(
-            changed_balances(
-                vec![stored.clone()],
-                vec![GemBalanceUpdate::mock(GemBalanceUpdateType::Token { available: BigUint::from(10u32) })]
-            )
-            .is_empty(),
+            changed_balances(vec![stored.clone()], vec![GemBalanceUpdate::mock(GemBalanceUpdateType::Token { available: BigUint::from(10u32) })]).is_empty(),
             "same value and state is not a change"
         );
         assert_eq!(
-            changed_balances(
-                vec![stored.clone()],
-                vec![GemBalanceUpdate::mock(GemBalanceUpdateType::Token { available: BigUint::from(11u32) })]
-            )
-            .len(),
+            changed_balances(vec![stored.clone()], vec![GemBalanceUpdate::mock(GemBalanceUpdateType::Token { available: BigUint::from(11u32) })]).len(),
             1,
             "a new value is"
         );
@@ -239,14 +241,11 @@ mod tests {
             "a stake update leaves the coin's available alone and compares its own fields"
         );
 
-        let folded = changed_balances(
-            vec![stored],
-            vec![GemBalanceUpdate::mock(GemBalanceUpdateType::Token { available: BigUint::from(11u32) }), stake],
-        );
+        let folded = changed_balances(vec![stored], vec![GemBalanceUpdate::mock(GemBalanceUpdateType::Token { available: BigUint::from(11u32) }), stake]);
         assert_eq!(folded.len(), 1, "two updates for one asset fold into one row");
         assert_eq!(folded[0].available, BigUint::from(11u32));
     }
-    use primitives::{AssetType, Balance};
+    use primitives::{AssetType, Balance, asset_constants::ARC_USDC_ASSET_ID};
 
     #[test]
     fn test_pnl_shows_only_for_a_funded_wallet_that_moved() {
@@ -273,10 +272,7 @@ mod tests {
         let sei_evm_token = AssetId::from_token(Chain::SeiEvm, "0xtoken");
         let ethereum_token = AssetId::from_token(Chain::Ethereum, "0xusdc");
 
-        let requests = balance_requests(
-            &[Account::mock(Chain::Sei, "sei-address"), Account::mock(Chain::Ethereum, "0xaddress")],
-            &[sei.clone(), sei_evm_token, ethereum_token.clone()],
-        );
+        let requests = balance_requests(&[Account::mock(Chain::Sei, "sei-address"), Account::mock(Chain::Ethereum, "0xaddress")], &[sei.clone(), sei_evm_token, ethereum_token.clone()]);
 
         assert_eq!(
             requests,
@@ -303,10 +299,7 @@ mod tests {
         let unknown = AssetId::from_token(Chain::Ethereum, "0xunknown");
         let asset = Asset::new(ethereum.clone(), "Ethereum".into(), "ETH".into(), 18, AssetType::NATIVE);
         let updates = balance_updates(vec![
-            (
-                BalanceKind::Coin,
-                AssetBalance::new_balance(ethereum.clone(), Balance::coin_balance(BigUint::from(1_500_000_000_000_000_000u64))),
-            ),
+            (BalanceKind::Coin, AssetBalance::new_balance(ethereum.clone(), Balance::coin_balance(BigUint::from(1_500_000_000_000_000_000u64)))),
             (BalanceKind::Token, AssetBalance::new(unknown, BigUint::from(1u64))),
         ]);
 
@@ -324,11 +317,15 @@ mod tests {
         let bitcoin = AssetId::from_chain(Chain::Bitcoin);
         let ethereum = AssetId::from_chain(Chain::Ethereum);
 
-        assert_eq!(
-            unique_asset_ids(vec![bitcoin.clone(), ethereum.clone(), bitcoin.clone()]),
-            vec![bitcoin.clone(), ethereum.clone()]
-        );
+        assert_eq!(unique_asset_ids(vec![bitcoin.clone(), ethereum.clone(), bitcoin.clone()]), vec![bitcoin.clone(), ethereum.clone()]);
         assert_eq!(missing_asset_ids(&[bitcoin.clone(), ethereum.clone()], &[bitcoin]), vec![ethereum]);
+    }
+
+    #[test]
+    fn test_exclude_native_mirrors() {
+        let arc = AssetId::from_chain(Chain::Arc);
+
+        assert_eq!(exclude_native_mirrors(vec![arc.clone(), ARC_USDC_ASSET_ID.clone()]), vec![arc]);
     }
 
     #[test]
@@ -357,10 +354,7 @@ mod tests {
         );
         assert_eq!(failure, Some("ethereum is offline"), "the caller hears about the first failure in request order");
 
-        let (balances, failure) = published_balances::<&str>(vec![Ok(vec![(
-            BalanceKind::Coin,
-            AssetBalance::new(AssetId::from_chain(Chain::Bitcoin), BigUint::from(1u32)),
-        )])]);
+        let (balances, failure) = published_balances::<&str>(vec![Ok(vec![(BalanceKind::Coin, AssetBalance::new(AssetId::from_chain(Chain::Bitcoin), BigUint::from(1u32)))])]);
         assert_eq!(balances.len(), 1);
         assert_eq!(failure, None);
     }

@@ -35,9 +35,7 @@ impl PusherClient {
             });
         }
 
-        let payload = GorushNotifications {
-            notifications: notifications.clone(),
-        };
+        let payload = GorushNotifications { notifications: notifications.clone() };
         let response: Response = self.client.post(PusherTarget::Push, &payload).await?;
         Ok(PushResult { response, notifications })
     }

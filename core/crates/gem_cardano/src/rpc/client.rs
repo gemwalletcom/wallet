@@ -45,10 +45,7 @@ impl<C: Client> CardanoClient<C> {
     }
 
     pub async fn get_address_transactions(&self, address: &str, limit: usize) -> Result<Vec<AddressTransaction>, Box<dyn Error + Send + Sync>> {
-        let target = CardanoTarget::AddressTransactions {
-            address: address.to_string(),
-            limit,
-        };
+        let target = CardanoTarget::AddressTransactions { address: address.to_string(), limit };
         Ok(self.query::<Data<AddressTransactions>>(target).await?.data.transactions)
     }
 
@@ -69,22 +66,11 @@ impl<C: Client> CardanoClient<C> {
     }
 
     pub async fn get_utxos(&self, address: &str) -> Result<Vec<UTXO>, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .query::<Data<UTXOS<Vec<UTXO>>>>(CardanoTarget::Utxos { address: address.to_string() })
-            .await?
-            .data
-            .utxos)
+        Ok(self.query::<Data<UTXOS<Vec<UTXO>>>>(CardanoTarget::Utxos { address: address.to_string() }).await?.data.utxos)
     }
 
     pub async fn get_network_magic(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .query::<Data<GenesisData>>(CardanoTarget::NetworkMagic)
-            .await?
-            .data
-            .genesis
-            .shelley
-            .network_magic
-            .to_string())
+        Ok(self.query::<Data<GenesisData>>(CardanoTarget::NetworkMagic).await?.data.genesis.shelley.network_magic.to_string())
     }
 
     pub async fn broadcast_transaction(&self, data: String) -> Result<String, Box<dyn Error + Send + Sync>> {
@@ -155,14 +141,7 @@ mod tests {
             let request: serde_json::Value = serde_json::from_slice(body).unwrap();
             assert_eq!(request["operationName"], "GetTransactionsByAddress");
             assert_eq!(request["variables"], serde_json::json!({ "address": address, "limit": 25 }));
-            assert_eq!(
-                request["query"],
-                CardanoTarget::AddressTransactions {
-                    address: address.to_string(),
-                    limit: 25
-                }
-                .query()
-            );
+            assert_eq!(request["query"], CardanoTarget::AddressTransactions { address: address.to_string(), limit: 25 }.query());
             Ok(br#"{"data":{"transactions":[{"hash":"tx_hash","includedAt":"2023-01-01T00:00:00Z","inputs":[{"address":"addr1","value":"1000"}],"outputs":[{"address":"addr2","value":"900"}],"fee":"100"}]}}"#.to_vec())
         });
 

@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = دارایی پشتیبانی نمی شود.
 errors_connections_no_supported_wallets = هیچ کیف پول پشتیبانی شده ای در دسترس نیست.
 errors_connections_unsupported_chain = زنجیره ارائه شده پشتیبانی نمی‌شود.
 errors_swap_amount_too_small = مقدار خیلی کم
-errors_required = %@ الزامی است
 errors_scan_transaction_malicious_description = این تراکنش قابل انجام نیست — آدرس کیف پول مقصد به فعالیت مشکوک یا مضر مرتبط است.
 errors_scan_transaction_memo_required = %@ آدرس کیف پول مقصد به یک برچسب / یادداشت مقصد نیاز دارد.
 errors_scan_transaction_malicious_title = فعالیت مشکوک
@@ -315,7 +314,7 @@ asset_symbol = نماد
 asset_decimals = اعشار ها
 asset_token_id = شناسه توکن
 asset_contract = قرارداد
-asset_state_empty_title = تراکنش‌های شما اینجا نمایش داده می‌شوند️
+asset_state_empty_title = تراکنش‌های شما اینجا نمایش داده می‌شوند
 asset_state_empty_description = دریافت، مبادله یا خرید %@
 asset_verification_unverified = تایید نشده
 asset_verification_suspicious = مشکوک
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = وقتی قیمت به میزان ک
 price_alerts_set_alert_set_target_price = تعیین قیمت هدف
 price_alerts_set_alert_current_price = قیمت فعلی
 price_alerts_added_for = تنظیم هشدار قیمت %@
-price_alerts_state_empty_title = هشدارهای شما اینجا نمایش داده می‌شوند️
+price_alerts_state_empty_title = هشدارهای شما اینجا نمایش داده می‌شوند
 price_alerts_state_empty_description = با اضافه کردن سکه‌ها برای ردیابی، آنها را فعال کنید
 price_alerts_auto_footer = هشدارها در صورت حرکت قابل توجه قیمت فعال می‌شوند.
 price_alerts_set_alert_title = تنظیم هشدار قیمت
@@ -536,7 +535,7 @@ verify_phrase_title = تایید کنید
 
 # Warnings
 
-warnings_multi_signature_blocked = وجه را به این کیف پول چند امضایی %@ منتقل نکنید، مگر اینکه مطمئن باشید کلیدهای خصوصی را کنترل می کنید. عدم انجام این کار می تواند شما را در معرض کلاهبرداری قرار دهد و ممکن است برای همیشه دارایی های خود را از دست بدهید.
+warnings_externally_controlled_account = ممکن است شخص دیگری این حساب %@ را کنترل کند. تا زمانی که مطمئن نیستید کنترل آن در دست شماست، وجهی به آن ارسال نکنید، وگرنه ممکن است دارایی‌های خود را برای همیشه از دست بدهید.
 
 # Sell
 
@@ -600,7 +599,7 @@ nft_collections = مجموعه ها
 nft_collection = مجموعه
 nft_save_to_photos = ذخیره در عکس ها
 nft_set_as_avatar = به عنوان آواتار تنظیم کنید
-nft_state_empty_title = NFT های شما اینجا ظاهر خواهند شد️
+nft_state_empty_title = NFT های شما اینجا ظاهر خواهند شد
 nft_state_empty_description = اولین NFT خود را دریافت کنید
 nft_report_reason_spam = هرزنامه
 nft_report_reason_malicious = مخرب

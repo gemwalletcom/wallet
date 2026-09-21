@@ -13,8 +13,8 @@ public extension GemSupportServiceProtocol {
         switch content {
         case let .text(text):
             try await sendText(content: text)
-        case let .image(attachment):
-            try await sendImage(image: attachment.data, fileName: attachment.fileName, mimeType: attachment.mimeType)
+        case let .image(data):
+            try await sendImage(image: data)
         }
     }
 

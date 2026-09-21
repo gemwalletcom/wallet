@@ -112,10 +112,7 @@ impl PricesStore for DatabaseClient {
 
     fn get_prices_assets_by_provider(&mut self, price_provider: PriceProvider) -> Result<Vec<PriceAssetRow>, diesel::result::Error> {
         use crate::schema::prices_assets::dsl::*;
-        prices_assets
-            .filter(provider.eq(PriceProviderRow::from(price_provider)))
-            .select(PriceAssetRow::as_select())
-            .load(&mut self.connection)
+        prices_assets.filter(provider.eq(PriceProviderRow::from(price_provider))).select(PriceAssetRow::as_select()).load(&mut self.connection)
     }
 
     fn get_prices_for_asset_ids(&mut self, asset_ids: &[String]) -> Result<Vec<(String, PriceRow)>, diesel::result::Error> {

@@ -80,6 +80,7 @@ class PaymentNavigationTest {
         value = BigInteger("19000000"),
     )
 
+
     private companion object {
         const val PAYMENT_URL = "https://example.com/pay"
         const val SOLANA_ADDRESS = "2kT9W3q7oXg6aPvFTN6DdK3FDZEqUigw6fmNc16YwL5n"

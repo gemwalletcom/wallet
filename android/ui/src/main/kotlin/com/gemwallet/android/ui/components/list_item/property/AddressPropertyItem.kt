@@ -18,10 +18,10 @@ import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
 import com.gemwallet.android.ui.components.list_item.ListItemImage
+import com.gemwallet.android.ui.components.list_item.ListItemImageStyle
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
-import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.BlockExplorerLink
 
 @Composable
@@ -32,6 +32,7 @@ fun AddressPropertyItem(
     image: ListItemImage? = null,
     explorerLink: BlockExplorerLink? = null,
     listPosition: ListPosition = ListPosition.Middle,
+    onClick: (() -> Unit)? = null,
 ) {
     AddressPropertyItem(
         title = stringResource(title),
@@ -40,18 +41,12 @@ fun AddressPropertyItem(
         image = image,
         explorerLink = explorerLink,
         listPosition = listPosition,
+        onClick = onClick,
     )
 }
 
 @Composable
-fun AddressPropertyItem(
-    title: String,
-    displayText: String,
-    copyValue: String,
-    image: ListItemImage? = null,
-    explorerLink: BlockExplorerLink? = null,
-    listPosition: ListPosition = ListPosition.Middle,
-) {
+fun AddressPropertyItem(title: String, displayText: String, copyValue: String, image: ListItemImage? = null, explorerLink: BlockExplorerLink? = null, listPosition: ListPosition = ListPosition.Middle, onClick: (() -> Unit)? = null) {
     var isExpanded by remember { mutableStateOf(false) }
     val clipboardManager = LocalContext.current.clipboardManager()
     val context = LocalContext.current
@@ -61,7 +56,7 @@ fun AddressPropertyItem(
         isExpanded = isExpanded,
         onDismiss = { isExpanded = false },
         onLongClick = { isExpanded = true },
-        onClick = { explorerLink?.let { uriHandler.open(context, it.link) } },
+        onClick = onClick ?: { explorerLink?.let { link -> uriHandler.open(context, link.link) } ?: Unit },
         content = { modifier ->
             PropertyItem(
                 modifier = modifier,
@@ -71,11 +66,13 @@ fun AddressPropertyItem(
                         text = displayText,
                         badge = when {
                             image != null -> {
-                                { DataBadgeChevron(explorerLink != null) { ListItemImageView(image = image, size = smallIconSize) } }
+                                { DataBadgeChevron(onClick != null || explorerLink != null) { ListItemImageView(image = image, style = ListItemImageStyle.Glyph) } }
                             }
-                            explorerLink != null -> {
+
+                            onClick != null || explorerLink != null -> {
                                 { DataBadgeChevron() }
                             }
+
                             else -> null
                         },
                     )

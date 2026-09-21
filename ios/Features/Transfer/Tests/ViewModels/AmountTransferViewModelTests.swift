@@ -2,11 +2,11 @@
 
 import BigInt
 import struct Gemstone.GemPaymentRecipient
+import class Gemstone.GemPerpetual
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
 import Testing
-import class Gemstone.GemPerpetual
 @testable import Transfer
 import TransferTestKit
 

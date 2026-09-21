@@ -38,11 +38,7 @@ impl From<ExchangeRequest> for HyperCoreActionId {
             ExchangeAction::Order => Self::Order(request.nonce),
             ExchangeAction::CDeposit { wei } => Self::CDeposit { wei, nonce: request.nonce },
             ExchangeAction::CWithdraw { wei } => Self::CWithdraw { wei, nonce: request.nonce },
-            ExchangeAction::TokenDelegate { wei, is_undelegate } => Self::TokenDelegate {
-                wei,
-                is_undelegate,
-                nonce: request.nonce,
-            },
+            ExchangeAction::TokenDelegate { wei, is_undelegate } => Self::TokenDelegate { wei, is_undelegate, nonce: request.nonce },
             ExchangeAction::Other => Self::Nonce(request.nonce),
         }
     }
@@ -117,20 +113,11 @@ mod tests {
     fn test_hypercore_transaction_id() {
         assert_eq!(HyperCoreTransactionId::parse("order:413978262893"), Some(HyperCoreTransactionId::Order(413978262893)));
         assert_eq!(HyperCoreTransactionId::parse("413978262893"), Some(HyperCoreTransactionId::Order(413978262893)));
-        assert_eq!(
-            HyperCoreTransactionId::parse("action:1778110454168"),
-            Some(HyperCoreTransactionId::Action(HyperCoreActionId::Nonce(1778110454168)))
-        );
-        assert_eq!(
-            HyperCoreTransactionId::parse("action:order:1778110454168"),
-            Some(HyperCoreTransactionId::Action(HyperCoreActionId::Order(1778110454168)))
-        );
+        assert_eq!(HyperCoreTransactionId::parse("action:1778110454168"), Some(HyperCoreTransactionId::Action(HyperCoreActionId::Nonce(1778110454168))));
+        assert_eq!(HyperCoreTransactionId::parse("action:order:1778110454168"), Some(HyperCoreTransactionId::Action(HyperCoreActionId::Order(1778110454168))));
         assert_eq!(
             HyperCoreTransactionId::parse("action:cDeposit:1000000:1778110454168"),
-            Some(HyperCoreTransactionId::Action(HyperCoreActionId::CDeposit {
-                wei: 1000000,
-                nonce: 1778110454168
-            }))
+            Some(HyperCoreTransactionId::Action(HyperCoreActionId::CDeposit { wei: 1000000, nonce: 1778110454168 }))
         );
         assert_eq!(
             HyperCoreTransactionId::parse("action:tokenDelegate:1000000:unstake:1778110454168"),

@@ -26,39 +26,15 @@ pub fn map_transaction(transaction: Digest) -> Option<Transaction> {
     let hash = transaction.digest.clone();
     let fee = get_fee(effects.gas_used.clone());
     let created_at = Utc.timestamp_millis_opt(transaction.timestamp_ms as i64).single()?;
-    let state = if effects.status.status == STATUS_SUCCESS {
-        TransactionState::Confirmed
-    } else {
-        TransactionState::Failed
-    };
+    let state = if effects.status.status == STATUS_SUCCESS { TransactionState::Confirmed } else { TransactionState::Failed };
     let owner = effects.gas_object.owner.get_address_owner();
 
     let (asset_id, from, to, transaction_type, value, metadata) = map_transaction_type(&transaction.events, &transaction.move_call_packages, &balance_changes, &owner, &fee)?;
 
-    Some(Transaction::new(
-        hash,
-        asset_id,
-        from,
-        to,
-        None,
-        transaction_type,
-        state,
-        fee.clone(),
-        chain.as_asset_id(),
-        value,
-        None,
-        metadata,
-        created_at,
-    ))
+    Some(Transaction::new(hash, asset_id, from, to, None, transaction_type, state, fee.clone(), chain.as_asset_id(), value, None, metadata, created_at))
 }
 
-fn map_transaction_type(
-    events: &[Event],
-    move_call_packages: &[String],
-    balance_changes: &[BalanceChange],
-    owner: &Option<String>,
-    fee: &BigUint,
-) -> Option<(AssetId, String, String, TransactionType, BigUint, Option<serde_json::Value>)> {
+fn map_transaction_type(events: &[Event], move_call_packages: &[String], balance_changes: &[BalanceChange], owner: &Option<String>, fee: &BigUint) -> Option<(AssetId, String, String, TransactionType, BigUint, Option<serde_json::Value>)> {
     let chain = CHAIN;
 
     // system & token transfer
@@ -84,14 +60,7 @@ fn map_transaction_type(
     if let Some(event) = single_event(events, SUI_STAKE_EVENT) {
         let event_json = event.parsed_json.clone()?;
         let stake = serde_json::from_value::<EventStake>(event_json).ok()?;
-        return Some((
-            chain.as_asset_id(),
-            stake.staker_address,
-            stake.validator_address,
-            TransactionType::StakeDelegate,
-            stake.amount,
-            None,
-        ));
+        return Some((chain.as_asset_id(), stake.staker_address, stake.validator_address, TransactionType::StakeDelegate, stake.amount, None));
     }
 
     // swap
@@ -107,28 +76,14 @@ fn map_transaction_type(
         };
         let owner = owner.clone()?;
         let asset_id = swap.from_asset.clone();
-        return Some((
-            asset_id,
-            owner.clone(),
-            owner,
-            TransactionType::Swap,
-            swap.from_value.clone(),
-            serde_json::to_value(&swap).ok(),
-        ));
+        return Some((asset_id, owner.clone(), owner, TransactionType::Swap, swap.from_value.clone(), serde_json::to_value(&swap).ok()));
     }
 
     // unstake
     if let Some(event) = single_event(events, SUI_UNSTAKE_EVENT) {
         let event_json = event.parsed_json.clone()?;
         let stake = serde_json::from_value::<EventUnstake>(event_json).ok()?;
-        return Some((
-            chain.as_asset_id(),
-            stake.staker_address,
-            stake.validator_address,
-            TransactionType::StakeUndelegate,
-            stake.principal_amount,
-            None,
-        ));
+        return Some((chain.as_asset_id(), stake.staker_address, stake.validator_address, TransactionType::StakeUndelegate, stake.principal_amount, None));
     }
 
     // smart contract call
@@ -182,9 +137,7 @@ fn single<T>(mut values: impl Iterator<Item = T>) -> Option<T> {
 }
 
 fn outgoing_changes<'a>(balance_changes: &'a [BalanceChange], coin_type: &'a str) -> impl Iterator<Item = &'a BalanceChange> + 'a {
-    balance_changes
-        .iter()
-        .filter(move |change| change.amount.sign() == Sign::Minus && type_tag_matches(&change.coin_type, coin_type))
+    balance_changes.iter().filter(move |change| change.amount.sign() == Sign::Minus && type_tag_matches(&change.coin_type, coin_type))
 }
 
 fn select_native_transfer_source<'a>(balance_changes: &'a [BalanceChange], to_change: &'a BalanceChange, fee: &BigUint) -> Option<&'a BalanceChange> {
@@ -216,11 +169,7 @@ pub fn map_swap_from_balance_changes(balance_changes: Vec<BalanceChange>, fee: &
 }
 
 pub fn map_asset_id(coin_type: &str) -> AssetId {
-    if is_native_sui(coin_type) {
-        Chain::Sui.as_asset_id()
-    } else {
-        AssetId::from_token(Chain::Sui, coin_type)
-    }
+    if is_native_sui(coin_type) { Chain::Sui.as_asset_id() } else { AssetId::from_token(Chain::Sui, coin_type) }
 }
 
 fn is_native_sui(coin_type: &str) -> bool {
@@ -312,10 +261,7 @@ mod tests {
 
         let native_transfer = map_transaction(Digest::mock(
             vec![],
-            vec![
-                BalanceChange::mock(TEST_OWNER_ADDRESS, SUI_COIN_TYPE_FULL, -101744880),
-                BalanceChange::mock(RECIPIENT_ADDRESS, SUI_COIN_TYPE_FULL, 100000000),
-            ],
+            vec![BalanceChange::mock(TEST_OWNER_ADDRESS, SUI_COIN_TYPE_FULL, -101744880), BalanceChange::mock(RECIPIENT_ADDRESS, SUI_COIN_TYPE_FULL, 100000000)],
         ))
         .unwrap();
 
@@ -347,10 +293,7 @@ mod tests {
         assert_eq!(token_transfer.value, BigUint::from(100u64));
 
         let swap = map_transaction(Digest::mock(
-            vec![Event::mock(
-                "0x00000000000000000000000000000000000000000000000000000000000000cc::pool::SwapEvent",
-                json!({}),
-            )],
+            vec![Event::mock("0x00000000000000000000000000000000000000000000000000000000000000cc::pool::SwapEvent", json!({}))],
             vec![
                 BalanceChange::mock(TEST_OWNER_ADDRESS, SUI_COIN_TYPE_FULL, -1000),
                 BalanceChange::mock(TEST_OWNER_ADDRESS, TOKEN_A, -200),

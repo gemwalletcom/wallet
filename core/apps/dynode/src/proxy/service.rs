@@ -37,14 +37,7 @@ pub struct ProxyRequestService {
 }
 
 impl ProxyRequestService {
-    pub fn new(
-        metrics: Metrics,
-        cache: RequestCache,
-        client: Client,
-        headers_config: HeadersConfig,
-        broadcast_webhook: DynodeBroadcastWebhookClient,
-        broadcast_providers: Arc<BroadcastProviders>,
-    ) -> Self {
+    pub fn new(metrics: Metrics, cache: RequestCache, client: Client, headers_config: HeadersConfig, broadcast_webhook: DynodeBroadcastWebhookClient, broadcast_providers: Arc<BroadcastProviders>) -> Self {
         let forward_headers = headers_config.forward.iter().filter_map(|name| HeaderName::from_str(name).ok()).collect();
 
         Self {
@@ -60,24 +53,14 @@ impl ProxyRequestService {
     fn build_headers(&self, original: &HeaderMap) -> HeaderMap {
         let mut headers = transport::filter_headers(original, &self.forward_headers);
 
-        if original
-            .get(CONTENT_TYPE)
-            .and_then(|value| value.to_str().ok())
-            .is_some_and(|value| value.starts_with(GRPC_CONTENT_TYPE))
-        {
+        if original.get(CONTENT_TYPE).and_then(|value| value.to_str().ok()).is_some_and(|value| value.starts_with(GRPC_CONTENT_TYPE)) {
             headers.insert(GRPC_ACCEPT_ENCODING, HeaderValue::from_static("identity"));
         }
 
         headers
     }
 
-    pub async fn handle_request(
-        &self,
-        request: &ProxyRequest,
-        active_url: &Url,
-        chain_config: &ChainConfig,
-        broadcast_host: &mut Option<String>,
-    ) -> Result<ProxyResponse, BoxError> {
+    pub async fn handle_request(&self, request: &ProxyRequest, active_url: &Url, chain_config: &ChainConfig, broadcast_host: &mut Option<String>) -> Result<ProxyResponse, BoxError> {
         let chain = request.chain;
         let request_type = request.request_type();
 
@@ -97,18 +80,7 @@ impl ProxyRequestService {
         self.metrics.add_proxy_request(request.chain.as_ref(), &methods_for_metrics);
 
         if let RequestType::JsonRpc(rpc_request) = request_type {
-            return JsonRpcHandler::handle_request(
-                rpc_request,
-                request,
-                &self.cache,
-                &self.metrics,
-                &url,
-                &self.client,
-                &headers,
-                &self.broadcast_webhook,
-                &self.broadcast_providers,
-            )
-            .await;
+            return JsonRpcHandler::handle_request(rpc_request, request, &self.cache, &self.metrics, &url, &self.client, &headers, &self.broadcast_webhook, &self.broadcast_providers).await;
         }
 
         let cache_ttl = self.cache.should_cache_request(&chain, request_type);
@@ -139,8 +111,7 @@ impl ProxyRequestService {
 
         let remote_host = url.url.host_str().unwrap_or_default();
         for method in &methods_for_metrics {
-            self.metrics
-                .add_proxy_upstream_response(request.chain.as_ref(), method, remote_host, status, request.elapsed().as_millis());
+            self.metrics.add_proxy_upstream_response(request.chain.as_ref(), method, remote_host, status, request.elapsed().as_millis());
         }
 
         self.broadcast_webhook.notify_broadcast(request, status, &body, &self.broadcast_providers);
@@ -193,13 +164,7 @@ impl ProxyRequestService {
                 self.metrics.add_cache_hit(request.chain.as_ref(), method_name);
             }
 
-            info_with_fields!(
-                "Cache HIT",
-                id = request.id.as_str(),
-                chain = request.chain.as_ref(),
-                host = &request.host,
-                method = &methods_for_metrics.join(",")
-            );
+            info_with_fields!("Cache HIT", id = request.id.as_str(), chain = request.chain.as_ref(), host = &request.host, method = &methods_for_metrics.join(","));
 
             Some(cached.with_proxy_headers(request.id.as_str(), request.elapsed(), CacheStatus::Hit))
         } else {
@@ -217,8 +182,7 @@ fn cacheable_response(chain: Chain, path: &str, status: u16, body: &[u8]) -> boo
     }
     // TODO(2027-01-01): Remove v2 cache validation with Dynode legacy wallet routes.
     if chain == Chain::Ton && path == "/api/v2/runGetMethod" {
-        return serde_json::from_slice::<Value>(body)
-            .is_ok_and(|response| response.get("ok") == Some(&Value::Bool(true)) && response.get_value("result").and_then(|result| result.get_i64("exit_code")) == Ok(0));
+        return serde_json::from_slice::<Value>(body).is_ok_and(|response| response.get("ok") == Some(&Value::Bool(true)) && response.get_value("result").and_then(|result| result.get_i64("exit_code")) == Ok(0));
     }
     if chain == Chain::Ton && path == "/api/v3/runGetMethod" {
         return serde_json::from_slice::<Value>(body).is_ok_and(|response| response.get_i64("exit_code") == Ok(0));

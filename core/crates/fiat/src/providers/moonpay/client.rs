@@ -34,12 +34,7 @@ impl MoonPayClient {
     }
 
     pub async fn get_ip_address(&self, ip_address: &str) -> Result<MoonPayIpAddress, ClientError> {
-        self.client
-            .get(MoonPayTarget::IpAddress {
-                ip_address: ip_address.to_string(),
-            })
-            .query(&self.api_key_query())
-            .await
+        self.client.get(MoonPayTarget::IpAddress { ip_address: ip_address.to_string() }).query(&self.api_key_query()).await
     }
 
     pub async fn get_buy_quote(&self, symbol: String, fiat_currency: String, fiat_amount: f64) -> Result<MoonPayBuyQuote, Box<dyn std::error::Error + Send + Sync>> {
@@ -77,10 +72,7 @@ impl MoonPayClient {
     pub fn map_asset(asset: Asset) -> Option<FiatProviderAsset> {
         let chain = map_asset_chain(asset.clone())?;
         let contract_address = match asset.metadata.as_ref().map(|m| m.network_code.as_str()) {
-            Some("ripple") => asset
-                .metadata
-                .as_ref()
-                .and_then(|m| m.contract_address.as_deref().and_then(|s| s.split('.').next_back().map(String::from))),
+            Some("ripple") => asset.metadata.as_ref().and_then(|m| m.contract_address.as_deref().and_then(|s| s.split('.').next_back().map(String::from))),
             _ => asset.clone().metadata?.contract_address,
         };
 
@@ -141,15 +133,7 @@ impl MoonPayClient {
         })
     }
 
-    pub fn quote_redirect_url(
-        &self,
-        quote_type: FiatQuoteType,
-        amount: f64,
-        symbol: &str,
-        wallet_address: &str,
-        external_transaction_id: &str,
-        ip_address: &str,
-    ) -> Result<String, url::ParseError> {
+    pub fn quote_redirect_url(&self, quote_type: FiatQuoteType, amount: f64, symbol: &str, wallet_address: &str, external_transaction_id: &str, ip_address: &str) -> Result<String, url::ParseError> {
         MoonPayWidget::new(self.api_key.clone(), self.secret_key.clone()).redirect_url(quote_type, amount, symbol, wallet_address, external_transaction_id, ip_address)
     }
 }

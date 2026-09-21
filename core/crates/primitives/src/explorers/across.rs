@@ -33,9 +33,6 @@ mod tests {
         let transaction_hash = "0xec0e05178bb2e7a13131c86ef5e4891e116cfe8757d63d7337998f848c63d9af";
 
         assert_eq!(explorer.name(), "Across");
-        assert_eq!(
-            explorer.get_tx_url(transaction_hash),
-            "https://across.to/transfer/0xec0e05178bb2e7a13131c86ef5e4891e116cfe8757d63d7337998f848c63d9af"
-        );
+        assert_eq!(explorer.get_tx_url(transaction_hash), "https://across.to/transfer/0xec0e05178bb2e7a13131c86ef5e4891e116cfe8757d63d7337998f848c63d9af");
     }
 }

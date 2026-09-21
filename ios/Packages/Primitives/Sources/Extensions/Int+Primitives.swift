@@ -31,7 +31,6 @@ public extension Int {
     var asString: String {
         String(self)
     }
-
 }
 
 public extension Int32 {
@@ -50,5 +49,4 @@ public extension UInt64 {
         }
         self = value
     }
-
 }

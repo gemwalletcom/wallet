@@ -6,6 +6,19 @@ pub struct Account {
     #[serde(deserialize_with = "deserialize_u64_from_str")]
     pub sequence: u64,
     pub balances: Vec<Balance>,
+    pub thresholds: Thresholds,
+    pub signers: Vec<Signer>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Thresholds {
+    pub med_threshold: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Signer {
+    pub key: String,
+    pub weight: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

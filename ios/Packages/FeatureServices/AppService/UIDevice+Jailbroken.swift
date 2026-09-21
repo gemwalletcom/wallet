@@ -14,15 +14,25 @@ public extension UIDevice {
     }
 
     var isJailBroken: Bool {
-        if JailbreakChecks.hasCydiaInstalled() { return true }
-        if JailbreakChecks.isContainsSuspiciousApps() { return true }
-        if JailbreakChecks.isSuspiciousSystemPathsExists() { return true }
+        if JailbreakChecks.hasCydiaInstalled() {
+            return true
+        }
+        if JailbreakChecks.isContainsSuspiciousApps() {
+            return true
+        }
+        if JailbreakChecks.isSuspiciousSystemPathsExists() {
+            return true
+        }
         return JailbreakChecks.canEditSystemFiles()
     }
 
     var isFridaDetected: Bool {
-        if JailbreakChecks.checkDYLD() { return true }
-        if JailbreakChecks.isFridaRunning() { return true }
+        if JailbreakChecks.checkDYLD() {
+            return true
+        }
+        if JailbreakChecks.isFridaRunning() {
+            return true
+        }
         return false
     }
 }

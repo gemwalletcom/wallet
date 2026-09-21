@@ -145,11 +145,7 @@ impl TronContract {
                 owner_address: *owner,
                 resource: *resource,
             }),
-            Self::UnfreezeBalanceV2 {
-                owner,
-                unfreeze_balance,
-                resource,
-            } => TronContractValueJson::UnfreezeBalanceV2(UnfreezeBalanceV2ContractValue {
+            Self::UnfreezeBalanceV2 { owner, unfreeze_balance, resource } => TronContractValueJson::UnfreezeBalanceV2(UnfreezeBalanceV2ContractValue {
                 owner_address: *owner,
                 resource: *resource,
                 unfreeze_balance: *unfreeze_balance,
@@ -169,12 +165,7 @@ impl TronContract {
                 lock: *lock,
                 lock_period: *lock_period,
             }),
-            Self::UnDelegateResource {
-                owner,
-                receiver,
-                balance,
-                resource,
-            } => TronContractValueJson::UnDelegateResource(UnDelegateResourceContractValue {
+            Self::UnDelegateResource { owner, receiver, balance, resource } => TronContractValueJson::UnDelegateResource(UnDelegateResourceContractValue {
                 owner_address: *owner,
                 receiver_address: *receiver,
                 balance: *balance,

@@ -53,14 +53,14 @@ public struct TransactionStore: Sendable {
         }
     }
 
-    public func addTransactions(walletId: WalletId, transactions: [Transaction]) throws {
+    public func addTransactions(walletId: WalletId, transactions: [TransactionAssets]) throws {
         if transactions.isEmpty {
             return
         }
         try db.write { db in
-            for transaction in transactions {
-                let record = try transaction.record(walletId: walletId.id).upsertAndFetch(db, as: TransactionRecord.self)
-                try updateAssetAssociations(db, record: record)
+            for moved in transactions {
+                let record = try moved.transaction.record(walletId: walletId.id).upsertAndFetch(db, as: TransactionRecord.self)
+                try updateAssetAssociations(db, recordId: record.id, assetIds: moved.assetIds)
             }
         }
     }
@@ -87,10 +87,12 @@ public struct TransactionStore: Sendable {
             }
             let target = transactions.filter(TransactionRecord.Columns.transactionId == newTransactionId.identifier)
             if let targetId = try target.select(TransactionRecord.Columns.id, as: Int.self).fetchOne(db) {
+                let associations = TransactionAssetAssociationRecord.filter(TransactionAssetAssociationRecord.Columns.transactionId == targetId)
+                let assetIds = try associations.fetchAll(db).map(\.assetId)
                 try source.deleteAll(db)
-                try TransactionAssetAssociationRecord.filter(TransactionAssetAssociationRecord.Columns.transactionId == targetId).deleteAll(db)
-                try target.updateAndFetchAll(db, [TransactionRecord.Columns.id.set(to: sourceId)])
-                    .forEach { try updateAssetAssociations(db, record: $0) }
+                try associations.deleteAll(db)
+                try target.updateAll(db, [TransactionRecord.Columns.id.set(to: sourceId)])
+                try updateAssetAssociations(db, recordId: sourceId, assetIds: assetIds)
             } else {
                 try source.updateAll(db, [
                     TransactionRecord.Columns.transactionId.set(to: newTransactionId.identifier),
@@ -117,6 +119,7 @@ public struct TransactionStore: Sendable {
         blockNumber: Int?,
         metadata: String?,
         confirmationEtaSeconds: UInt32?,
+        assetIds: [AssetId]?,
     ) throws -> Int {
         let values: [ColumnAssignment?] = [
             TransactionRecord.Columns.state.set(to: state.rawValue),
@@ -129,19 +132,19 @@ public struct TransactionStore: Sendable {
             let request = TransactionRecord
                 .filter(TransactionRecord.Columns.walletId == walletId.id)
                 .filter(TransactionRecord.Columns.transactionId == transactionId.identifier)
-            let updated = try request.updateAll(db, values.compactMap { $0 })
-            if updated > 0, metadata != nil, let record = try request.fetchOne(db) {
-                try updateAssetAssociations(db, record: record)
+            let updated = try request.updateAll(db, values.compactMap(\.self))
+            if updated > 0, let assetIds {
+                let recordId = try request.select(TransactionRecord.Columns.id, as: Int.self).fetchOne(db)
+                try updateAssetAssociations(db, recordId: recordId, assetIds: assetIds)
             }
             return updated
         }
     }
 
-    private func updateAssetAssociations(_ db: Database, record: TransactionRecord) throws {
-        guard let id = record.id else {
+    private func updateAssetAssociations(_ db: Database, recordId: Int?, assetIds: [AssetId]) throws {
+        guard let id = recordId else {
             return
         }
-        let assetIds = record.mapToTransaction().assetIds
         let storedIds = try AssetRecord
             .select(AssetRecord.Columns.id, as: String.self)
             .filter(assetIds.map(\.identifier).contains(AssetRecord.Columns.id))

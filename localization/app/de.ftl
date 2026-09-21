@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = Nicht unterstütztes Asset.
 errors_connections_no_supported_wallets = Es sind keine unterstützten Wallets verfügbar.
 errors_connections_unsupported_chain = Die bereitgestellte Kette wird nicht unterstützt.
 errors_swap_amount_too_small = Menge zu gering
-errors_required = %@ ist erforderlich
 errors_scan_transaction_malicious_description = Diese Transaktion kann nicht abgeschlossen werden – die Ziel-Wallet-Adresse ist mit verdächtigen oder schädlichen Aktivitäten verknüpft.
 errors_scan_transaction_memo_required = %@ Für die Ziel-Wallet-Adresse wird ein Ziel-Tag/Memo benötigt.
 errors_scan_transaction_malicious_title = Verdächtige Aktivitäten
@@ -315,7 +314,7 @@ asset_symbol = Symbol
 asset_decimals = Dezimalstellen
 asset_token_id = Token-ID
 asset_contract = Vertrag
-asset_state_empty_title = Ihre Transaktionen werden hier angezeigt️
+asset_state_empty_title = Ihre Transaktionen werden hier angezeigt
 asset_state_empty_description = Erhalten, tauschen oder kaufen %@
 asset_verification_unverified = Unbestätigt
 asset_verification_suspicious = Verdächtig
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = Wenn der Preis sinkt um
 price_alerts_set_alert_set_target_price = Zielpreis festlegen
 price_alerts_set_alert_current_price = Aktueller Preis
 price_alerts_added_for = Preisalarm einstellen %@
-price_alerts_state_empty_title = Ihre Benachrichtigungen werden hier angezeigt️
+price_alerts_state_empty_title = Ihre Benachrichtigungen werden hier angezeigt
 price_alerts_state_empty_description = Aktivieren Sie sie, indem Sie Münzen zur Verfolgung hinzufügen
 price_alerts_auto_footer = Bei erheblichen Preisbewegungen werden Warnungen ausgelöst.
 price_alerts_set_alert_title = Preisalarm einstellen
@@ -536,7 +535,7 @@ verify_phrase_title = Bestätigen
 
 # Warnings
 
-warnings_multi_signature_blocked = Überweisen Sie kein Geld auf dieses %@ Multi-Signature-Wallet, es sei denn, Sie sind sicher, dass Sie die privaten Schlüssel kontrollieren. Andernfalls könnten Sie Opfer von Betrug werden und Ihr Vermögen dauerhaft verlieren.
+warnings_externally_controlled_account = Dieses %@-Konto kann von jemand anderem kontrolliert werden. Senden Sie kein Geld darauf, es sei denn, Sie sind sicher, dass Sie es kontrollieren, sonst könnten Sie Ihr Vermögen dauerhaft verlieren.
 
 # Sell
 
@@ -600,7 +599,7 @@ nft_collections = Sammlungen
 nft_collection = Sammlung
 nft_save_to_photos = In „Fotos“ speichern
 nft_set_as_avatar = Als Avatar festlegen
-nft_state_empty_title = Ihre NFTs werden hier angezeigt️
+nft_state_empty_title = Ihre NFTs werden hier angezeigt
 nft_state_empty_description = Erhalten Sie Ihr erstes NFT
 nft_report_reason_spam = Spam
 nft_report_reason_malicious = Böswillig

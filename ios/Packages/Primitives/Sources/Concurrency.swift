@@ -15,6 +15,10 @@ public final class Locked<Value>: @unchecked Sendable {
         get { lock.withLock { value } }
         set { lock.withLock { value = newValue } }
     }
+
+    public func withLock<T>(_ body: (inout Value) throws -> T) rethrows -> T {
+        try lock.withLock { try body(&value) }
+    }
 }
 
 public struct UncheckedSendable<Value>: @unchecked Sendable {

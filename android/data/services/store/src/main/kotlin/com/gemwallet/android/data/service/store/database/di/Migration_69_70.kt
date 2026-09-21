@@ -28,7 +28,7 @@ object Migration_69_70 : Migration(69, 70) {
                 `links` TEXT,
                 PRIMARY KEY(`id`),
                 FOREIGN KEY(`chain`) REFERENCES `asset`(`id`) ON UPDATE CASCADE ON DELETE CASCADE
-            )"""
+            )""",
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_nft_collections_chain` ON `nft_collections` (`chain`)")
         db.execSQL(
@@ -48,7 +48,7 @@ object Migration_69_70 : Migration(69, 70) {
                 PRIMARY KEY(`id`),
                 FOREIGN KEY(`collection_id`) REFERENCES `nft_collections`(`id`) ON UPDATE CASCADE ON DELETE CASCADE,
                 FOREIGN KEY(`chain`) REFERENCES `asset`(`id`) ON UPDATE CASCADE ON DELETE CASCADE
-            )"""
+            )""",
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_nft_assets_collection_id` ON `nft_assets` (`collection_id`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_nft_assets_chain` ON `nft_assets` (`chain`)")
@@ -59,7 +59,7 @@ object Migration_69_70 : Migration(69, 70) {
                 PRIMARY KEY(`wallet_id`, `asset_id`),
                 FOREIGN KEY(`asset_id`) REFERENCES `nft_assets`(`id`) ON UPDATE CASCADE ON DELETE CASCADE,
                 FOREIGN KEY(`wallet_id`) REFERENCES `wallets`(`id`) ON UPDATE CASCADE ON DELETE CASCADE
-            )"""
+            )""",
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_nft_assets_associations_asset_id` ON `nft_assets_associations` (`asset_id`)")
     }

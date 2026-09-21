@@ -2,11 +2,11 @@ package com.gemwallet.android.di
 
 import android.content.Context
 import com.gemwallet.android.application.device.cases.RequestPushToken
+import com.gemwallet.android.application.notifications.cases.ShowSystemNotification
 import com.gemwallet.android.flavors.StoreRequestPushToken
 import com.gemwallet.android.flavors.isNotificationsAvailable
 import com.gemwallet.android.model.BuildInfo
 import com.gemwallet.android.model.NotificationsAvailable
-import com.gemwallet.android.application.notifications.cases.ShowSystemNotification
 import com.gemwallet.android.services.ShowSystemNotificationImpl
 import com.wallet.core.primitives.PlatformStore
 import dagger.Module
@@ -22,35 +22,24 @@ object BuildInfoModule {
 
     @Provides
     @Singleton
-    fun provideBuildInfo(
-        platformStore: PlatformStore,
-        requestPushToken: RequestPushToken,
-    ): BuildInfo {
-        return BuildInfo(
-            platformStore = platformStore,
-            versionName = com.gemwallet.android.BuildConfig.VERSION_NAME,
-            versionCode = com.gemwallet.android.BuildConfig.VERSION_CODE,
-            requestPushToken = requestPushToken,
-        )
-    }
+    fun provideBuildInfo(platformStore: PlatformStore, requestPushToken: RequestPushToken): BuildInfo = BuildInfo(
+        platformStore = platformStore,
+        versionName = com.gemwallet.android.BuildConfig.VERSION_NAME,
+        versionCode = com.gemwallet.android.BuildConfig.VERSION_CODE,
+        requestPushToken = requestPushToken,
+    )
 
     @Provides
     @Singleton
-    fun provideRequestPushToken(): RequestPushToken {
-        return StoreRequestPushToken()
-    }
+    fun provideRequestPushToken(): RequestPushToken = StoreRequestPushToken()
 
     @Provides
     @Singleton
-    fun provideShowSystemNotification(@ApplicationContext context: Context): ShowSystemNotification {
-        return ShowSystemNotificationImpl(context)
-    }
+    fun provideShowSystemNotification(@ApplicationContext context: Context): ShowSystemNotification = ShowSystemNotificationImpl(context)
 
     @Provides
     @Singleton
-    fun provideNotificationEnabled(): NotificationsAvailable {
-        return isNotificationsAvailable()
-    }
+    fun provideNotificationEnabled(): NotificationsAvailable = isNotificationsAvailable()
 
     @Provides
     @Singleton

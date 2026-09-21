@@ -3,8 +3,8 @@ use std::error::Error;
 use localizer::LanguageLocalizer;
 use number_formatter::{ValueFormatter, ValueStyle};
 use primitives::{
-    AddressFormatStyle, AddressFormatter, Asset, AssetVecExt, Chain, DeviceSubscription, FiatQuoteType, GorushNotification, PushNotification, PushNotificationTransaction,
-    PushNotificationTypes, Transaction, TransactionNFTTransferMetadata, TransactionPerpetualMetadata, TransactionSwapMetadata, TransactionType,
+    AddressFormatStyle, AddressFormatter, Asset, AssetVecExt, Chain, DeviceSubscription, FiatQuoteType, GorushNotification, PushNotification, PushNotificationTransaction, PushNotificationTypes, Transaction, TransactionNFTTransferMetadata,
+    TransactionPerpetualMetadata, TransactionSwapMetadata, TransactionType,
 };
 use storage::{Database, ScanAddressesRepository};
 
@@ -31,13 +31,7 @@ impl Pusher {
         }
     }
 
-    pub fn fiat_transaction_message(
-        localizer: &LanguageLocalizer,
-        quote_type: &FiatQuoteType,
-        provider_name: &str,
-        asset: &Asset,
-        crypto_value: &str,
-    ) -> Result<Message, Box<dyn Error + Send + Sync>> {
+    pub fn fiat_transaction_message(localizer: &LanguageLocalizer, quote_type: &FiatQuoteType, provider_name: &str, asset: &Asset, crypto_value: &str) -> Result<Message, Box<dyn Error + Send + Sync>> {
         let crypto_amount = ValueFormatter::format_with_symbol(ValueStyle::Auto, crypto_value, asset.decimals, &asset.symbol)?;
         let title = match quote_type {
             FiatQuoteType::Buy => localizer.notification_fiat_purchase_title(&crypto_amount),
@@ -135,10 +129,7 @@ impl Pusher {
                         localizer.notification_perpetual_close_negative_description(&pnl)
                     }
                 };
-                Ok(Message {
-                    title,
-                    message: Some(description),
-                })
+                Ok(Message { title, message: Some(description) })
             }
             TransactionType::AssetActivation | TransactionType::PerpetualModifyPosition => Err(format!("no notification copy for {:?}", transaction.transaction_type).into()),
             TransactionType::StakeFreeze => Ok(Message {
@@ -152,12 +143,7 @@ impl Pusher {
         }
     }
 
-    pub async fn get_messages(
-        &self,
-        subscription: &DeviceSubscription,
-        transaction: Transaction,
-        assets: Vec<Asset>,
-    ) -> Result<Vec<GorushNotification>, Box<dyn Error + Send + Sync>> {
+    pub async fn get_messages(&self, subscription: &DeviceSubscription, transaction: Transaction, assets: Vec<Asset>) -> Result<Vec<GorushNotification>, Box<dyn Error + Send + Sync>> {
         let transaction = transaction.finalize(vec![subscription.address.clone()]).without_utxo();
 
         let localizer = LanguageLocalizer::new_with_language(subscription.device.locale.as_ref());
@@ -174,11 +160,7 @@ impl Pusher {
             data: serde_json::to_value(&notification_transaction).ok(),
         };
 
-        Ok(
-            GorushNotification::from_device(subscription.device.clone(), message.title, message.message.unwrap_or_default(), data)
-                .into_iter()
-                .collect(),
-        )
+        Ok(GorushNotification::from_device(subscription.device.clone(), message.title, message.message.unwrap_or_default(), data).into_iter().collect())
     }
 }
 

@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemBalanceResource
-import func Gemstone.balanceResourceRows
 import BigInt
 import Formatters
 import Foundation
+import func Gemstone.balanceResourceRows
+import enum Gemstone.GemBalanceResource
 import GemstonePrimitives
 import Primitives
 import Style

@@ -5,8 +5,6 @@ import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggre
 import com.gemwallet.android.ui.localization.statusLabelRes
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.text
-import com.wallet.core.primitives.TransactionType
-import uniffi.gemstone.GemAmountSign
 import uniffi.gemstone.GemTransactionStateTone
 import uniffi.gemstone.GemValueTone
 
@@ -28,16 +26,6 @@ fun TransactionDataAggregate.uiModel(context: Context) = TransactionRowUIModel(
     showsProgress = status.showsProgress,
     subtitle = subtitle.text(context),
     value = value,
-    valueTone = valueTone(),
+    valueTone = valueTone,
     equivalentValue = equivalentValue,
 )
-
-private fun TransactionDataAggregate.valueTone(): GemValueTone = when {
-    type == TransactionType.PerpetualClosePosition -> when {
-        (pnl ?: 0.0) > 0 -> GemValueTone.POSITIVE
-        (pnl ?: 0.0) < 0 -> GemValueTone.NEGATIVE
-        else -> GemValueTone.PLAIN
-    }
-    valueSign == GemAmountSign.INCOMING -> GemValueTone.POSITIVE
-    else -> GemValueTone.PLAIN
-}

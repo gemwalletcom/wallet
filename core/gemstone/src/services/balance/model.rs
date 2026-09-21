@@ -1,4 +1,6 @@
+use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
+use crate::models::list::GemListRowTitle;
 use number_formatter::BigNumberFormatter;
 use primitives::{AssetId, asset_balance::BalanceMetadata};
 
@@ -22,7 +24,7 @@ pub struct GemBalanceValue {
     pub amount: f64,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum GemBalanceUpdateType {
     Coin {
         available: GemBigUint,
@@ -51,7 +53,7 @@ pub enum GemBalanceUpdateType {
     },
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GemBalanceUpdate {
     pub asset_id: AssetId,
     pub update_type: GemBalanceUpdateType,
@@ -94,6 +96,10 @@ impl GemAssetBalance {
         }
     }
 
+    pub fn total(&self) -> GemBigUint {
+        &self.available + &self.frozen + &self.locked + &self.staked + &self.pending + &self.rewards + &self.earn
+    }
+
     pub fn votes(&self) -> u32 {
         self.metadata.as_ref().map(|metadata| metadata.votes).unwrap_or_default()
     }
@@ -132,11 +138,7 @@ impl GemAssetBalance {
                 }
             }
             GemBalanceUpdateType::Earn { balance: earn } => balance.earn = earn.clone(),
-            GemBalanceUpdateType::Perpetual {
-                available,
-                reserved,
-                withdrawable,
-            } => {
+            GemBalanceUpdateType::Perpetual { available, reserved, withdrawable } => {
                 balance.available = available.clone();
                 balance.reserved = reserved.clone();
                 balance.withdrawable = withdrawable.clone();
@@ -147,12 +149,43 @@ impl GemAssetBalance {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemBalanceRowValue {
+    Amount { amount: GemFormattedNumber },
+    Apr { apr: Option<GemFormattedNumber> },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAssetBalanceRow {
+    pub row: GemBalanceRow,
+    pub value: GemBalanceRowValue,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemBalanceRow {
     Available { value: GemBigUint },
     Staked { value: GemBigUint },
     Earn { value: GemBigUint },
     PendingUnconfirmed { value: GemBigUint },
     Reserved { value: GemBigUint, url: Option<String> },
+}
+
+#[uniffi::export]
+impl GemBalanceRow {
+    pub fn title(&self) -> GemListRowTitle {
+        match self {
+            Self::Available { .. } => GemListRowTitle::Available,
+            Self::Staked { .. } => GemListRowTitle::Stake,
+            Self::Earn { .. } => GemListRowTitle::Earn,
+            Self::PendingUnconfirmed { .. } => GemListRowTitle::PendingUnconfirmed,
+            Self::Reserved { .. } => GemListRowTitle::Reserved,
+        }
+    }
+
+    pub fn value(&self) -> GemBigUint {
+        match self {
+            Self::Available { value } | Self::Staked { value } | Self::Earn { value } | Self::PendingUnconfirmed { value } | Self::Reserved { value, .. } => value.clone(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -172,10 +205,30 @@ pub struct GemBalanceRecord {
     pub is_active: bool,
 }
 
+impl From<GemBalanceRecord> for GemAssetBalance {
+    fn from(record: GemBalanceRecord) -> Self {
+        Self {
+            asset_id: record.asset_id,
+            available: record.available.value,
+            frozen: record.frozen.value,
+            locked: record.locked.value,
+            staked: record.staked.value,
+            pending: record.pending.value,
+            pending_unconfirmed: record.pending_unconfirmed.value,
+            rewards: record.rewards.value,
+            reserved: record.reserved.value,
+            withdrawable: record.withdrawable.value,
+            earn: record.earn.value,
+            metadata: record.metadata,
+            is_active: record.is_active,
+        }
+    }
+}
+
 impl GemBalanceRecord {
     pub fn new(balance: GemAssetBalance, decimals: u32) -> Self {
         let value = |amount: GemBigUint| GemBalanceValue {
-            amount: BigNumberFormatter::value_as_f64(&amount.to_string(), decimals).unwrap_or_default(),
+            amount: BigNumberFormatter::f64_value(&amount, decimals),
             value: amount,
         };
         Self {
@@ -217,10 +270,7 @@ mod tests {
             rewards: GemBigUint::from(3u32),
             locked: GemBigUint::from(2u32),
             frozen: GemBigUint::from(1u32),
-            metadata: Some(BalanceMetadata {
-                votes: 9,
-                ..BalanceMetadata::default()
-            }),
+            metadata: Some(BalanceMetadata { votes: 9, ..BalanceMetadata::default() }),
         }));
 
         let after_coin = staked.applying(&GemBalanceUpdate::mock(GemBalanceUpdateType::Coin {
@@ -245,10 +295,7 @@ mod tests {
             rewards: GemBigUint::ZERO,
             locked: GemBigUint::ZERO,
             frozen: GemBigUint::ZERO,
-            metadata: Some(BalanceMetadata {
-                votes: 9,
-                ..BalanceMetadata::default()
-            }),
+            metadata: Some(BalanceMetadata { votes: 9, ..BalanceMetadata::default() }),
         }));
 
         let without = with_metadata.applying(&GemBalanceUpdate::mock(GemBalanceUpdateType::Stake {
@@ -271,9 +318,7 @@ mod tests {
             reserved: GemBigUint::from(6u32),
             withdrawable: GemBigUint::from(7u32),
         }));
-        let token = perpetual.applying(&GemBalanceUpdate::mock(GemBalanceUpdateType::Token {
-            available: GemBigUint::from(9u32),
-        }));
+        let token = perpetual.applying(&GemBalanceUpdate::mock(GemBalanceUpdateType::Token { available: GemBigUint::from(9u32) }));
 
         assert_eq!(token.available, GemBigUint::from(9u32));
         assert_eq!(token.reserved, GemBigUint::from(6u32));
@@ -284,9 +329,7 @@ mod tests {
     fn test_an_inactive_update_deactivates_the_balance() {
         let inactive = GemBalanceUpdate {
             is_active: false,
-            ..GemBalanceUpdate::mock(GemBalanceUpdateType::Token {
-                available: GemBigUint::from(1u32),
-            })
+            ..GemBalanceUpdate::mock(GemBalanceUpdateType::Token { available: GemBigUint::from(1u32) })
         };
 
         assert!(!GemAssetBalance::mock().applying(&inactive).is_active);
@@ -294,9 +337,7 @@ mod tests {
 
     #[test]
     fn test_a_record_reads_each_value_at_the_asset_decimals() {
-        let earned = GemAssetBalance::mock().applying(&GemBalanceUpdate::mock(GemBalanceUpdateType::Earn {
-            balance: GemBigUint::from(2_500_000u32),
-        }));
+        let earned = GemAssetBalance::mock().applying(&GemBalanceUpdate::mock(GemBalanceUpdateType::Earn { balance: GemBigUint::from(2_500_000u32) }));
 
         let record = GemBalanceRecord::new(earned, 6);
 
@@ -316,4 +357,10 @@ pub enum GemBalanceResource {
 pub struct GemBalanceResourceRow {
     pub resource: GemBalanceResource,
     pub text: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, uniffi::Record)]
+pub struct GemAssetConfiguration {
+    pub is_enabled: Option<bool>,
+    pub is_pinned: Option<bool>,
 }

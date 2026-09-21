@@ -10,7 +10,7 @@ pub struct RedelegateData {
     pub to_validator: DelegationValidator,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, AsRefStr, EnumString)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, AsRefStr, EnumString)]
 #[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase", ascii_case_insensitive)]

@@ -9,11 +9,11 @@ import enum Gemstone.GemAmountError
 import enum Gemstone.GemAmountTitle
 import enum Gemstone.GemConfirmButtonKind
 import enum Gemstone.GemConfirmDestination
-import enum Gemstone.GemRecipientSection
 import enum Gemstone.GemConfirmError
 import enum Gemstone.GemConfirmErrorDisplay
 import enum Gemstone.GemConfirmTitle
 import enum Gemstone.GemReceiveWarning
+import enum Gemstone.GemRecipientSectionKind
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -43,6 +43,7 @@ extension GemConfirmButtonKind {
         switch self {
         case .confirm: Localized.Transfer.confirm
         case .retry: Localized.Common.tryAgain
+        case .accountMissing: Localized.Errors.walletAccountMissing
         }
     }
 }
@@ -106,15 +107,15 @@ extension GemConfirmErrorDisplay: @retroactive LocalizedError {
                 Self.amount(requirement.available, asset: asset).boldMarkdown(),
                 Self.amount(requirement.shortfall, asset: asset).boldMarkdown(),
             )
-        case let .networkFeeRequired(asset, requirement):
+        case let .networkFeeRequired(asset, _, requirement):
             Localized.Info.InsufficientNetworkFeeBalance.description(
                 Self.amount(requirement.required, asset: asset).boldMarkdown(),
                 asset.toPrimitives().chain.networkName.boldMarkdown(),
                 Self.amount(requirement.available, asset: asset).boldMarkdown(),
                 Self.amount(requirement.shortfall, asset: asset).boldMarkdown(),
             )
-        case let .networkFeeMissing(asset):
-            Localized.Transfer.insufficientNetworkFeeBalance(Self.title(asset: asset))
+        case let .networkFeeMissing(_, title):
+            Localized.Transfer.insufficientNetworkFeeBalance(title.boldMarkdown())
         case let .minimumAccountBalance(asset, required):
             Localized.Transfer.minimumAccountBalance(Self.amount(required, asset: asset).boldMarkdown())
         case let .swapMinimum(asset, _, providerName, requirement):
@@ -133,11 +134,6 @@ extension GemConfirmErrorDisplay: @retroactive LocalizedError {
 
     private static func amount(_ value: BigInt, asset: Gemstone.Asset) -> String {
         ValueFormatter(style: .auto).string(value, asset: asset.toPrimitives())
-    }
-
-    private static func title(asset: Gemstone.Asset) -> String {
-        let title = asset.name == asset.symbol ? asset.name : String(format: "%@ (%@)", asset.name, asset.symbol)
-        return title.boldMarkdown()
     }
 }
 
@@ -163,7 +159,7 @@ extension GemConfirmDestination {
     }
 }
 
-extension GemRecipientSection {
+extension GemRecipientSectionKind {
     var title: String {
         switch self {
         case .pinned: Localized.Common.pinned

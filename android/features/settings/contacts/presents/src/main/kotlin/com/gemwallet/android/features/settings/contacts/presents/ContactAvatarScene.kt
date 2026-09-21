@@ -11,10 +11,7 @@ import com.gemwallet.android.ui.theme.AvatarEmoji
 import com.gemwallet.android.ui.theme.secondaryFaded
 
 @Composable
-internal fun ContactAvatarScene(
-    onSelect: (String, Int) -> Unit,
-    onCancel: () -> Unit,
-) {
+internal fun ContactAvatarScene(onSelect: (String, Int) -> Unit, onCancel: () -> Unit) {
     val background = MaterialTheme.colorScheme.secondaryFaded
     Scene(
         title = stringResource(R.string.common_emoji),

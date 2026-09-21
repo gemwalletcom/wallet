@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemTransferData
 import Primitives
 import Style
 import SwiftUI
 import Transfer
-import struct Gemstone.GemTransferData
 
 struct ConfirmTransferNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory

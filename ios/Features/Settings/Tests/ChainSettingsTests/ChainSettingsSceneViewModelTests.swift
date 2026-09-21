@@ -3,8 +3,8 @@
 import Gemstone
 import GemstonePrimitivesTestKit
 @testable import Primitives
-import Testing
 @testable import Settings
+import Testing
 
 @MainActor
 struct ChainSettingsSceneViewModelTests {
@@ -19,7 +19,7 @@ struct ChainSettingsSceneViewModelTests {
 
         #expect(model.nodesModels.count == 2)
         #expect(service.statusCalls.sorted() == ["a", "b"])
-        #expect(model.nodesModels[0].row.subtitle == GemNodeSubtitle.latestBlock(value: "10"))
+        #expect(model.nodesModels[0].row.subtitle == GemNodeSubtitle.latestBlock(value: .mock(value: 10, unit: .plain, display: .number(precision: .fraction(min: 0, max: 0)), notation: .plain)))
     }
 
     @Test
@@ -31,8 +31,7 @@ struct ChainSettingsSceneViewModelTests {
         await model.load()
 
         model.onSelectNodeForDeletion(.mock(url: "b"))
-        model.onDeleteNode()
-        try? await Task.sleep(for: .milliseconds(50))
+        await model.onDeleteNode()
 
         #expect(service.deletedNodes == ["b"])
         #expect(model.nodesModels.map(\.node.url) == ["a"])

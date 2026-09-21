@@ -55,12 +55,7 @@ impl StreamObserverClient {
         &self.device_id
     }
 
-    pub async fn handle_ws_message(
-        &mut self,
-        message: Message,
-        redis_connection: &mut MultiplexedConnection,
-        stream: &mut DuplexStream,
-    ) -> Result<(), Box<dyn Error + Send + Sync>> {
+    pub async fn handle_ws_message(&mut self, message: Message, redis_connection: &mut MultiplexedConnection, stream: &mut DuplexStream) -> Result<(), Box<dyn Error + Send + Sync>> {
         match message {
             Message::Binary(data) => self.handle_message_payload(data, redis_connection, stream).await,
             Message::Text(text) => self.handle_message_payload(text.into_bytes(), redis_connection, stream).await,

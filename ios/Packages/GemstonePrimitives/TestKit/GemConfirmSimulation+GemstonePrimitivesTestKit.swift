@@ -2,12 +2,12 @@
 
 import struct Gemstone.GemConfirmSimulation
 import struct Gemstone.GemSimulationBalanceChange
+import struct Gemstone.GemSimulationPayloadRow
 import struct Gemstone.GemSimulationValue
-import struct Gemstone.SimulationPayloadField
 
 public extension GemConfirmSimulation {
     static func mock(
-        primaryFields: [SimulationPayloadField] = [],
+        primaryFields: [GemSimulationPayloadRow] = [],
         header: GemSimulationValue? = nil,
         balanceChanges: [GemSimulationBalanceChange] = [],
         hasCriticalWarning: Bool = false,

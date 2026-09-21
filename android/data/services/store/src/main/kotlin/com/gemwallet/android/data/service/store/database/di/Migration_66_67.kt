@@ -8,12 +8,12 @@ object Migration_66_67 : Migration(66, 67) {
         db.execSQL(
             """
                 DROP TABLE IF EXISTS 'stake_delegation_validator'
-            """.trimIndent()
+            """.trimIndent(),
         )
         db.execSQL(
             """
                 DROP TABLE IF EXISTS 'nft_collection'
-            """.trimIndent()
+            """.trimIndent(),
         )
         db.execSQL(
             """
@@ -27,7 +27,7 @@ object Migration_66_67 : Migration(66, 67) {
                     providerType TEXT,
                     PRIMARY KEY(id)
                 )
-            """.trimIndent()
+            """.trimIndent(),
         )
         db.execSQL(
             """
@@ -43,7 +43,7 @@ object Migration_66_67 : Migration(66, 67) {
                     status TEXT,
                     PRIMARY KEY(id)
                 )
-            """.trimIndent()
+            """.trimIndent(),
         )
     }
 }

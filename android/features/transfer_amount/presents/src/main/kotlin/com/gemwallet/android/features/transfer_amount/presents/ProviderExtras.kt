@@ -13,6 +13,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.transfer_amount.presents.dialogs.AmountAutocloseSheet
 import com.gemwallet.android.features.transfer_amount.presents.dialogs.SelectLeverageDialog
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountDataProvider
+import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountEarnProvider
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountPerpetualProvider
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountStakeProvider
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountTransferProvider
@@ -28,22 +29,23 @@ import com.gemwallet.android.ui.components.list_item.uiModel
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Resource
+import uniffi.gemstone.GemAmountType
 
 @Composable
-fun ProviderExtras(
-    provider: AmountDataProvider,
-    amount: String,
-    onPickValidator: () -> Unit,
-) {
+fun ProviderExtras(provider: AmountDataProvider, amount: String, onPickValidator: () -> Unit) {
     Column {
         when (provider) {
             is AmountStakeProvider -> StakeProviderSection(provider, onPickValidator)
+
             is AmountPerpetualProvider -> {
                 PerpetualLeverageSection(provider)
                 if (provider.showsAutoclose) {
                     PerpetualAutocloseSection(provider, amount)
                 }
             }
+
+            is AmountEarnProvider -> EarnProviderSection(provider)
+
             is AmountTransferProvider -> Unit
         }
     }
@@ -53,11 +55,25 @@ fun ProviderExtras(
 private fun StakeProviderSection(provider: AmountStakeProvider, onPickValidator: () -> Unit) {
     when (provider.params) {
         is AmountParams.Stake.Freeze, is AmountParams.Stake.Unfreeze -> StakeResourceSection(provider)
+
         is AmountParams.Stake.Delegate,
         is AmountParams.Stake.Undelegate,
         is AmountParams.Stake.Redelegate,
         is AmountParams.Stake.Withdraw,
-        is AmountParams.Stake.Rewards -> StakeValidatorSection(provider, onPickValidator)
+        is AmountParams.Stake.Rewards,
+        -> StakeValidatorSection(provider, onPickValidator)
+    }
+}
+
+@Composable
+private fun EarnProviderSection(provider: AmountEarnProvider) {
+    val amountType by provider.amountType.collectAsStateWithLifecycle()
+    (amountType as? GemAmountType.Earn)?.let { earn ->
+        SubheaderItem(R.string.common_provider)
+        PropertyValidatorItem(
+            validator = earn.provider.uiModel(),
+            listPosition = ListPosition.Single,
+        )
     }
 }
 
@@ -112,12 +128,14 @@ private fun PerpetualAutocloseSection(provider: AmountPerpetualProvider, amount:
     val model by provider.autocloseListItem.collectAsStateWithLifecycle()
     var sheetVisible by remember { mutableStateOf(false) }
 
-    ListItem(
-        model = model,
-        listPosition = ListPosition.Single,
-        modifier = Modifier.clickable { sheetVisible = true },
-        accessory = { DataBadgeChevron() },
-    )
+    model?.let {
+        ListItem(
+            model = it,
+            listPosition = ListPosition.Single,
+            modifier = Modifier.clickable { sheetVisible = true },
+            accessory = { DataBadgeChevron() },
+        )
+    }
 
     AmountAutocloseSheet(
         isVisible = sheetVisible,
@@ -126,4 +144,3 @@ private fun PerpetualAutocloseSection(provider: AmountPerpetualProvider, amount:
         onDismiss = { sheetVisible = false },
     )
 }
-

@@ -94,10 +94,7 @@ pub(super) fn from_blockhash(sender: &Pubkey, input: &SignerInput) -> Result<Pub
 
 pub(super) fn seed_from_blockhash(input: &SignerInput) -> Result<String, SignerError> {
     let block_hash = input.metadata.get_block_hash()?;
-    block_hash
-        .get(..block_hash.len().min(32))
-        .map(String::from)
-        .ok_or_else(|| SignerError::invalid_input("invalid Solana block hash"))
+    block_hash.get(..block_hash.len().min(32)).map(String::from).ok_or_else(|| SignerError::invalid_input("invalid Solana block hash"))
 }
 
 fn create_with_seed_instruction(sender: Pubkey, stake_account: Pubkey, seed: String, lamports: u64) -> Result<Instruction, SignerError> {
@@ -216,9 +213,6 @@ mod tests {
         assert_eq!(seed_from_blockhash(&SignerInput::mock_solana(&valid_block_hash)).unwrap(), "1".repeat(32));
 
         let invalid_block_hash = format!("{}é", "1".repeat(31));
-        assert_eq!(
-            seed_from_blockhash(&SignerInput::mock_solana(&invalid_block_hash)).unwrap_err().to_string(),
-            "Invalid input: invalid Solana block hash"
-        );
+        assert_eq!(seed_from_blockhash(&SignerInput::mock_solana(&invalid_block_hash)).unwrap_err().to_string(), "Invalid input: invalid Solana block hash");
     }
 }

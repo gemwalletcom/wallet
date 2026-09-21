@@ -9,13 +9,7 @@ import com.wallet.core.primitives.WalletType
 
 fun mockWalletId(id: String = "wallet-1") = WalletId(id)
 
-fun mockWallet(
-    id: String = "wallet-1",
-    name: String = "Wallet",
-    type: WalletType = WalletType.Multicoin,
-    accounts: List<Account> = emptyList(),
-    source: WalletSource = WalletSource.Create,
-) = Wallet(
+fun mockWallet(id: String = "wallet-1", name: String = "Wallet", type: WalletType = WalletType.Multicoin, accounts: List<Account> = emptyList(), source: WalletSource = WalletSource.Create) = Wallet(
     id = WalletId(id),
     name = name,
     index = 0,
@@ -25,10 +19,7 @@ fun mockWallet(
     source = source,
 )
 
-fun mockWalletMulticoin(
-    address: String = "0xabc",
-    name: String = "Main Wallet",
-) = mockWallet(
+fun mockWalletMulticoin(address: String = "0xabc", name: String = "Main Wallet") = mockWallet(
     id = "multicoin_$address",
     name = name,
     accounts = listOf(mockAccount(chain = Chain.Ethereum, address = address)),

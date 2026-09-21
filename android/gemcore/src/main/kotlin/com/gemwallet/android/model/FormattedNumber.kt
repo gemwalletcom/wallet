@@ -1,16 +1,17 @@
 package com.gemwallet.android.model
 
-import uniffi.gemstone.GemPrecision
 import android.icu.text.CompactDecimalFormat
+import uniffi.gemstone.GemFormattedNumber
+import uniffi.gemstone.GemNumberDisplay
+import uniffi.gemstone.GemNumberNotation
+import uniffi.gemstone.GemNumberRounding
+import uniffi.gemstone.GemNumberUnit
+import uniffi.gemstone.GemPrecision
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.util.Locale
-import uniffi.gemstone.GemFormattedNumber
-import uniffi.gemstone.GemNumberDisplay
-import uniffi.gemstone.GemNumberNotation
-import uniffi.gemstone.GemNumberUnit
 
 fun GemFormattedNumber.text(locale: Locale = Locale.getDefault()): String = when (notation) {
     GemNumberNotation.PARENTHESISED -> "(${body(locale)})"
@@ -20,16 +21,31 @@ fun GemFormattedNumber.text(locale: Locale = Locale.getDefault()): String = when
 private val GemFormattedNumber.showsSign: Boolean
     get() = notation == GemNumberNotation.SIGNED
 
+private val GemFormattedNumber.numberRounding: RoundingMode
+    get() = when (rounding) {
+        GemNumberRounding.TO_NEAREST -> RoundingMode.HALF_EVEN
+        GemNumberRounding.TOWARD_ZERO -> RoundingMode.DOWN
+    }
+
 private fun GemFormattedNumber.body(locale: Locale): String = when (val display = display) {
     is GemNumberDisplay.Number -> when (unit) {
-        is GemNumberUnit.Percent -> percentText(BigDecimal.valueOf(value), display.precision, showsSign, locale)
+        is GemNumberUnit.Percent -> percentText(BigDecimal.valueOf(value), display.precision, showsSign, numberRounding, locale)
         else -> appendSymbol(numberText(BigDecimal.valueOf(value), display.precision, locale))
     }
+
     is GemNumberDisplay.Abbreviated -> appendSymbol(abbreviatedText(BigDecimal.valueOf(value), locale))
+
     is GemNumberDisplay.BelowThreshold -> appendSymbol(
-        "<${numberText(BigDecimal.valueOf(display.threshold), GemPrecision.Fraction(display.places, display.places), locale)}"
+        "$signText<${numberText(BigDecimal.valueOf(display.threshold), GemPrecision.Fraction(display.places, display.places), locale, withSign = false)}",
     )
 }
+
+private val GemFormattedNumber.signText: String
+    get() = when {
+        !showsSign -> ""
+        value < 0 -> "-"
+        else -> "+"
+    }
 
 private val GemFormattedNumber.currencyCode: String?
     get() = (unit as? GemNumberUnit.Currency)?.code
@@ -37,12 +53,20 @@ private val GemFormattedNumber.currencyCode: String?
 private val GemFormattedNumber.symbol: String?
     get() = (unit as? GemNumberUnit.Symbol)?.symbol
 
-private fun percentText(value: BigDecimal, precision: GemPrecision, showsSign: Boolean, locale: Locale): String {
-    val fraction = precision as GemPrecision.Fraction
+private fun percentText(value: BigDecimal, precision: GemPrecision, showsSign: Boolean, rounding: RoundingMode, locale: Locale): String {
     val formatter = (NumberFormat.getPercentInstance(locale) as DecimalFormat).apply {
-        minimumFractionDigits = fraction.min.toInt()
-        maximumFractionDigits = fraction.max.toInt()
-        roundingMode = RoundingMode.HALF_EVEN
+        when (precision) {
+            is GemPrecision.Fraction -> {
+                minimumFractionDigits = precision.min.toInt()
+                maximumFractionDigits = precision.max.toInt()
+            }
+
+            is GemPrecision.Significant -> {
+                minimumFractionDigits = 0
+                maximumFractionDigits = Int.MAX_VALUE
+            }
+        }
+        roundingMode = rounding
         if (showsSign) {
             positivePrefix = "+"
         } else {
@@ -50,16 +74,26 @@ private fun percentText(value: BigDecimal, precision: GemPrecision, showsSign: B
             negativePrefix = ""
         }
     }
-    return formatter.format(value.movePointLeft(2))
+    val amount = value.movePointLeft(2)
+    return formatter.format(
+        when (precision) {
+            is GemPrecision.Fraction -> amount
+            is GemPrecision.Significant -> amount.rounded(precision, rounding)
+        },
+    )
 }
 
-private fun GemFormattedNumber.appendSymbol(text: String): String =
-    symbol?.let { "$text $it" } ?: text
+private fun GemFormattedNumber.appendSymbol(text: String): String = when (val unit = unit) {
+    is GemNumberUnit.Symbol -> "$text ${unit.symbol}"
+    GemNumberUnit.Multiplier -> "${text}x"
+    is GemNumberUnit.Currency, GemNumberUnit.Percent, GemNumberUnit.Plain -> text
+}
 
-private fun GemFormattedNumber.numberText(value: BigDecimal, precision: GemPrecision, locale: Locale): String {
+private fun GemFormattedNumber.numberText(value: BigDecimal, precision: GemPrecision, locale: Locale, withSign: Boolean = showsSign): String {
+    val rounding = numberRounding
     val formatter = (numberFormat(locale) as DecimalFormat).apply {
-        roundingMode = RoundingMode.HALF_EVEN
-        if (showsSign) {
+        roundingMode = rounding
+        if (withSign) {
             positivePrefix = "+" + positivePrefix
         }
     }
@@ -71,13 +105,15 @@ private fun GemFormattedNumber.abbreviatedText(value: BigDecimal, locale: Locale
         setSignificantDigitsUsed(false)
         minimumFractionDigits = 0
         maximumFractionDigits = 2
-        roundingMode = android.icu.math.BigDecimal.ROUND_HALF_EVEN
+        roundingMode = when (rounding) {
+            GemNumberRounding.TO_NEAREST -> android.icu.math.BigDecimal.ROUND_HALF_EVEN
+            GemNumberRounding.TOWARD_ZERO -> android.icu.math.BigDecimal.ROUND_DOWN
+        }
         currencyCode?.let { currency = android.icu.util.Currency.getInstance(it) }
     }
     return formatter.format(value)
 }
 
-private fun GemFormattedNumber.numberFormat(locale: Locale): NumberFormat =
-    currencyCode?.let { code ->
-        NumberFormat.getCurrencyInstance(locale).apply { currency = java.util.Currency.getInstance(code) }
-    } ?: NumberFormat.getInstance(locale)
+private fun GemFormattedNumber.numberFormat(locale: Locale): NumberFormat = currencyCode?.let { code ->
+    NumberFormat.getCurrencyInstance(locale).apply { currency = java.util.Currency.getInstance(code) }
+} ?: NumberFormat.getInstance(locale)

@@ -58,9 +58,7 @@ impl GemWalletSessionService {
 
 impl GemWalletSessionService {
     pub fn current_wallet_id(&self) -> Result<WalletId, GemServiceError> {
-        self.store.get_current_wallet_id()?.ok_or_else(|| GemServiceError::NotFound {
-            msg: "no current wallet".to_string(),
-        })
+        self.store.get_current_wallet_id()?.ok_or_else(|| GemServiceError::NotFound { msg: "no current wallet".to_string() })
     }
 
     pub async fn current_wallet(&self) -> Result<Wallet, GemServiceError> {

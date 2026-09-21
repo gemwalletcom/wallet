@@ -22,7 +22,7 @@ object Migration_74_75 : Migration(74, 75) {
                     PRIMARY KEY(`id`),
                     FOREIGN KEY(`assetId`) REFERENCES `asset`(`id`) ON UPDATE CASCADE ON DELETE CASCADE
                 )
-            """
+            """,
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_stake_validators_assetId` ON `stake_validators` (`assetId`)")
 
@@ -44,7 +44,7 @@ object Migration_74_75 : Migration(74, 75) {
                     FOREIGN KEY(`assetId`) REFERENCES `asset`(`id`) ON UPDATE CASCADE ON DELETE CASCADE,
                     FOREIGN KEY(`validatorId`) REFERENCES `stake_validators`(`id`) ON UPDATE CASCADE ON DELETE CASCADE
                 )
-            """
+            """,
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_stake_delegations_assetId` ON `stake_delegations` (`assetId`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_stake_delegations_validatorId` ON `stake_delegations` (`validatorId`)")

@@ -11,9 +11,6 @@ interface PerpetualDetailsDataAggregate {
     val provider: PerpetualProvider
     val asset: Asset
     val name: String
-    val dayVolume: String
-    val openInterest: String
-    val funding: String
     val maxLeverage: Int
     val price: Double
     val identifier: String

@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemWalletService
 import protocol Gemstone.GemNameServiceProtocol
+import class Gemstone.GemWalletService
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 @testable import Onboarding

@@ -91,7 +91,6 @@ public enum WalletId: Equatable, Hashable, Sendable {
         case .view: .view(chain: chain, address: address)
         }
     }
-
 }
 
 extension WalletId: Codable {

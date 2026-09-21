@@ -26,7 +26,7 @@ just spm-resolve
 
 From the repo root, `just install` installs shared tools once and then both platforms' dependencies. `just ios install` installs only iOS-specific dependencies and assumes shared tools are already installed.
 
-After checkout, the default repo-root workflow is `just generate-stone`, then `just run-ios`. The optional `GemStone` Xcode scheme combines cached Gemstone generation with the normal app build for people who prefer staying in Xcode.
+After checkout, the default repo-root workflow is `just generate-stone`, then `just run-ios`. The optional `GemStone` Xcode scheme runs the same generation before the normal app build for people who prefer staying in Xcode.
 
 ## Useful Setup Commands
 

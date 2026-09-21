@@ -17,9 +17,7 @@ pub struct HyperliquidProvider {
 
 impl HyperliquidProvider {
     pub fn new(client: ReqwestClient) -> Self {
-        Self {
-            client: HyperliquidClient::new(client),
-        }
+        Self { client: HyperliquidClient::new(client) }
     }
 
     fn is_valid_name(name: &str) -> bool {
@@ -87,18 +85,9 @@ mod tests {
 
     #[test]
     fn test_map_address() {
-        assert_eq!(
-            HyperliquidProvider::map_address(Record::mock(), Chain::Hyperliquid).unwrap().as_deref(),
-            Some("0xF26F5551E96aE5162509B25925fFfa7F07B2D652")
-        );
-        assert_eq!(
-            HyperliquidProvider::map_address(Record::mock(), Chain::Ethereum).unwrap().as_deref(),
-            Some("0xb43f5153B1c867BF78ACB3C35aa9b8ae366415c5")
-        );
-        assert_eq!(
-            HyperliquidProvider::map_address(Record::mock(), Chain::Solana).unwrap().as_deref(),
-            Some("CKAvaYmwqCbg8nZCUCNj6Cvr11HauALtNoGT7WirPoAp")
-        );
+        assert_eq!(HyperliquidProvider::map_address(Record::mock(), Chain::Hyperliquid).unwrap().as_deref(), Some("0xF26F5551E96aE5162509B25925fFfa7F07B2D652"));
+        assert_eq!(HyperliquidProvider::map_address(Record::mock(), Chain::Ethereum).unwrap().as_deref(), Some("0xb43f5153B1c867BF78ACB3C35aa9b8ae366415c5"));
+        assert_eq!(HyperliquidProvider::map_address(Record::mock(), Chain::Solana).unwrap().as_deref(), Some("CKAvaYmwqCbg8nZCUCNj6Cvr11HauALtNoGT7WirPoAp"));
         assert_eq!(HyperliquidProvider::map_address(Record::mock(), Chain::Bitcoin).unwrap(), None);
     }
 }

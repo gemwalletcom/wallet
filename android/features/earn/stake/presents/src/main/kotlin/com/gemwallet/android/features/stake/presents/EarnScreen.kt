@@ -25,6 +25,7 @@ import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.HeaderIcon
 import com.gemwallet.android.ui.components.list_item.DelegationItem
+import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -35,20 +36,17 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.theme.paddingLarge
+import uniffi.gemstone.GemListRow
 
 @Composable
-fun EarnScreen(
-    amountAction: AmountTransactionAction,
-    onDelegation: (String, String) -> Unit,
-    onCancel: () -> Unit,
-    viewModel: EarnViewModel = hiltViewModel(),
-) {
+fun EarnScreen(amountAction: AmountTransactionAction, onDelegation: (String, String) -> Unit, onCancel: () -> Unit, viewModel: EarnViewModel = hiltViewModel()) {
     val assetInfo by viewModel.assetInfo.collectAsStateWithLifecycle()
     val positions by viewModel.positions.collectAsStateWithLifecycle()
     val validatorRows by viewModel.validatorRows.collectAsStateWithLifecycle()
-    val aprListItem by viewModel.aprListItem.collectAsStateWithLifecycle()
+    val aprRow by viewModel.aprRow.collectAsStateWithLifecycle()
     val depositParams by viewModel.depositParams.collectAsStateWithLifecycle()
     val inSync by viewModel.isSync.collectAsStateWithLifecycle()
+    val loadError by viewModel.loadError.collectAsStateWithLifecycle()
 
     val earnAssetInfo = assetInfo
     if (earnAssetInfo == null) {
@@ -73,7 +71,7 @@ fun EarnScreen(
                     )
                 }
 
-                item { ListItem(model = aprListItem, listPosition = ListPosition.Single) }
+                item { GemListRowView(row = aprRow, listPosition = ListPosition.Single) }
 
                 depositParams?.let { params ->
                     item {
@@ -87,9 +85,14 @@ fun EarnScreen(
                 }
 
                 if (positions.isEmpty()) {
-                    item {
-                        Spacer(modifier = Modifier.height(paddingLarge))
-                        EmptyContentView(type = EmptyContentType.Earn(symbol = earnAssetInfo.asset.symbol))
+                    if (!inSync) {
+                        item {
+                            Spacer(modifier = Modifier.height(paddingLarge))
+                            when (val error = loadError) {
+                                null -> EmptyContentView(type = EmptyContentType.Earn(symbol = earnAssetInfo.asset.symbol))
+                                else -> GemListRowView(row = GemListRow.Error(error), listPosition = ListPosition.Single)
+                            }
+                        }
                     }
                 } else {
                     item { SubheaderItem(R.string.perpetual_positions) }

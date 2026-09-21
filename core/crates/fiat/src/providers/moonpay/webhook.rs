@@ -51,10 +51,7 @@ mod tests {
 
     #[test]
     fn test_verify_webhook_rejects_invalid_signature() {
-        let request = FiatWebhookRequest::mock_moonpay_with_signature(
-            r#"{"data":{"id":"tx_1"}}"#,
-            "t=1492774577,s=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        );
+        let request = FiatWebhookRequest::mock_moonpay_with_signature(r#"{"data":{"id":"tx_1"}}"#, "t=1492774577,s=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 
         assert!(MoonPayClient::mock().verify_webhook(&request).is_err());
     }

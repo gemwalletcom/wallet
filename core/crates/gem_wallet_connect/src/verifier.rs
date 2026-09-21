@@ -45,21 +45,13 @@ mod tests {
 
     #[test]
     fn test_malicious_validation() {
-        let result = WalletConnectVerifier::validate_origin(
-            "https://app.uniswap.org".to_string(),
-            Some("https://malicious.com".to_string()),
-            WalletConnectionVerificationStatus::Malicious,
-        );
+        let result = WalletConnectVerifier::validate_origin("https://app.uniswap.org".to_string(), Some("https://malicious.com".to_string()), WalletConnectionVerificationStatus::Malicious);
         assert!(matches!(result, WalletConnectionVerificationStatus::Malicious));
     }
 
     #[test]
     fn test_verified_matching_origin() {
-        let result = WalletConnectVerifier::validate_origin(
-            "https://app.uniswap.org".to_string(),
-            Some("https://app.uniswap.org".to_string()),
-            WalletConnectionVerificationStatus::Verified,
-        );
+        let result = WalletConnectVerifier::validate_origin("https://app.uniswap.org".to_string(), Some("https://app.uniswap.org".to_string()), WalletConnectionVerificationStatus::Verified);
         assert!(matches!(result, WalletConnectionVerificationStatus::Verified));
     }
 
@@ -67,30 +59,19 @@ mod tests {
     fn test_an_empty_domain_never_verifies_itself() {
         for (metadata_url, origin) in [("", ""), ("", "https://app.uniswap.org"), ("https://app.uniswap.org", "")] {
             let result = WalletConnectVerifier::validate_origin(metadata_url.to_string(), Some(origin.to_string()), WalletConnectionVerificationStatus::Verified);
-            assert!(
-                matches!(result, WalletConnectionVerificationStatus::Invalid),
-                "empty domain verified: metadata={metadata_url:?} origin={origin:?}"
-            );
+            assert!(matches!(result, WalletConnectionVerificationStatus::Invalid), "empty domain verified: metadata={metadata_url:?} origin={origin:?}");
         }
     }
 
     #[test]
     fn test_verified_mismatched_origin() {
-        let result = WalletConnectVerifier::validate_origin(
-            "https://app.uniswap.org".to_string(),
-            Some("https://different.com".to_string()),
-            WalletConnectionVerificationStatus::Verified,
-        );
+        let result = WalletConnectVerifier::validate_origin("https://app.uniswap.org".to_string(), Some("https://different.com".to_string()), WalletConnectionVerificationStatus::Verified);
         assert!(matches!(result, WalletConnectionVerificationStatus::Invalid));
     }
 
     #[test]
     fn test_invalid_validation() {
-        let result = WalletConnectVerifier::validate_origin(
-            "https://app.uniswap.org".to_string(),
-            Some("https://app.uniswap.org".to_string()),
-            WalletConnectionVerificationStatus::Invalid,
-        );
+        let result = WalletConnectVerifier::validate_origin("https://app.uniswap.org".to_string(), Some("https://app.uniswap.org".to_string()), WalletConnectionVerificationStatus::Invalid);
         assert!(matches!(result, WalletConnectionVerificationStatus::Invalid));
     }
 }

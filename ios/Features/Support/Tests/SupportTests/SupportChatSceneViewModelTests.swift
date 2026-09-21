@@ -72,8 +72,7 @@ struct SupportChatSceneViewModelTests {
         let service = GemSupportServiceMock()
         let model = SupportChatSceneViewModel.mock(service: service)
 
-        model.sendText("hello")
-        await settle { !service.sentTexts.isEmpty }
+        await model.sendText("hello")
 
         #expect(service.sentTexts == ["hello"])
         #expect(model.isPresentingAlertMessage == nil)
@@ -85,8 +84,7 @@ struct SupportChatSceneViewModelTests {
         service.sendError = AnyError("message rejected")
         let model = SupportChatSceneViewModel.mock(service: service)
 
-        model.sendText("hello")
-        await settle { model.isPresentingAlertMessage != nil }
+        await model.sendText("hello")
 
         #expect(model.isPresentingAlertMessage?.message == "message rejected")
     }
@@ -96,8 +94,7 @@ struct SupportChatSceneViewModelTests {
         let service = GemSupportServiceMock()
         let model = SupportChatSceneViewModel.mock(service: service)
 
-        model.retry(.mock(id: "failed", status: .failed))
-        await settle { !service.retriedMessageIds.isEmpty }
+        await model.retry(.mock(id: "failed", status: .failed))
 
         #expect(service.retriedMessageIds == ["failed"])
     }
@@ -108,8 +105,7 @@ struct SupportChatSceneViewModelTests {
         let model = SupportChatSceneViewModel.mock(service: service)
         let image = SupportMessageImage.mock(url: "https://gemwallet.com/a.png")
 
-        model.openPreview(image)
-        await settle { model.previewURL != nil }
+        await model.openPreview(image)
 
         #expect(service.requestedImageUrls == ["https://gemwallet.com/a.png"])
         #expect(model.previewURL?.path == "/tmp/support.png")
@@ -121,8 +117,7 @@ struct SupportChatSceneViewModelTests {
         let model = SupportChatSceneViewModel.mock(service: service)
         let image = SupportMessageImage.mock(url: "")
 
-        model.openPreview(image)
-        await settle { false }
+        await model.openPreview(image)
 
         #expect(service.requestedImageUrls.isEmpty)
         #expect(model.previewURL == nil)
@@ -139,13 +134,5 @@ struct SupportChatSceneViewModelTests {
         model.onDisappear()
 
         #expect(model.typingAgentName == nil)
-    }
-
-    private func settle(until condition: () -> Bool) async {
-        for _ in 0 ..< 60 {
-            await Task.yield()
-            if condition() { return }
-            try? await Task.sleep(for: .milliseconds(5))
-        }
     }
 }

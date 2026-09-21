@@ -66,7 +66,7 @@ object Migration_59_60 : Migration(59, 60) {
             |                AND UPPER(tx.feeAssetId) IN (SELECT UPPER(accounts.chain) FROM accounts, session
             |    WHERE accounts.wallet_id = session.wallet_id AND session.id = 1)
             |            GROUP BY tx.id
-            """.trimMargin()
+            """.trimMargin(),
         )
     }
 }

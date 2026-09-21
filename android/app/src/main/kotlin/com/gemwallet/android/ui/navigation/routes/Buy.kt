@@ -15,11 +15,7 @@ import com.wallet.core.primitives.FiatQuoteType
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class FiatInputRoute(
-    val assetId: AssetId,
-    val amount: Int? = null,
-    val type: FiatQuoteType = FiatQuoteType.Buy,
-) : NavKey
+data class FiatInputRoute(val assetId: AssetId, val amount: Int? = null, val type: FiatQuoteType = FiatQuoteType.Buy) : NavKey
 
 @Serializable
 data object FiatSelectRoute : NavKey
@@ -27,11 +23,7 @@ data object FiatSelectRoute : NavKey
 @Serializable
 data object FiatTransactionsRoute : NavKey
 
-fun EntryProviderScope<NavKey>.fiatScreen(
-    cancelAction: CancelAction,
-    onBuy: (AssetId) -> Unit,
-    onFiatTransactions: () -> Unit,
-) {
+fun EntryProviderScope<NavKey>.fiatScreen(cancelAction: CancelAction, onBuy: (AssetId) -> Unit, onFiatTransactions: () -> Unit) {
     entry<FiatInputRoute>(
         metadata = { key ->
             routeArguments(

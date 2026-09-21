@@ -2,24 +2,19 @@ package com.gemwallet.android.data.services.gemstone.transactions
 
 import com.gemwallet.android.data.service.store.database.TransactionsDao
 import com.gemwallet.android.data.service.store.database.entities.DbTransactionSwapMetadata
-import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.serializer.jsonEncoder
+import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Transaction
-import com.wallet.core.primitives.TransactionSwapMetadata
-import com.wallet.core.primitives.TransactionType
+import uniffi.gemstone.transactionSwapPair
 
 internal fun TransactionsDao.addSwapMetadata(transactions: List<Transaction>) {
     val swapMetadataRecords = transactions.mapNotNull { transaction ->
-        if (transaction.type != TransactionType.Swap) {
-            return@mapNotNull null
+        transactionSwapPair(transaction.toGem())?.let { pair ->
+            DbTransactionSwapMetadata(
+                transactionId = transaction.id.identifier,
+                fromAssetId = pair.fromAssetId,
+                toAssetId = pair.toAssetId,
+            )
         }
-        val metadata = transaction.metadata ?: return@mapNotNull null
-        val swapMetadata = jsonEncoder.decodeFromString<TransactionSwapMetadata>(metadata)
-        DbTransactionSwapMetadata(
-            transactionId = transaction.id.identifier,
-            fromAssetId = swapMetadata.fromAsset.toIdentifier(),
-            toAssetId = swapMetadata.toAsset.toIdentifier(),
-        )
     }
     addSwapMetadata(swapMetadataRecords)
 }

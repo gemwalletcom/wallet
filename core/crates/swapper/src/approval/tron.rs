@@ -13,12 +13,7 @@ pub async fn check_approval_trc20(owner: String, token: String, spender: String,
     let owner_address = TronAddress::parse_hex_or_base58(&owner)?;
     let spender_address = TronAddress::parse_hex_or_base58(&spender)?;
     let allowance = create_tron_client(provider)?
-        .trigger_constant_contract_with_owner(
-            &owner,
-            &token,
-            "allowance(address,address)",
-            &format!("{}{}", owner_address.abi_address_parameter(), spender_address.abi_address_parameter()),
-        )
+        .trigger_constant_contract_with_owner(&owner, &token, "allowance(address,address)", &format!("{}{}", owner_address.abi_address_parameter(), spender_address.abi_address_parameter()))
         .await
         .map_err(SwapperError::transaction_error)
         .and_then(|value| biguint_from_hex_str(&value).map_err(SwapperError::transaction_error))?;

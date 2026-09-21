@@ -46,24 +46,14 @@ pub struct ChartsHistoryUpdater {
 
 impl ChartsHistoryUpdater {
     pub fn new(provider: Arc<dyn PriceAssetsProvider>, database: Database, cacher: CacherClient, config: ChartsHistoryConfig) -> Self {
-        Self {
-            provider,
-            database,
-            cacher,
-            config,
-        }
+        Self { provider, database, cacher, config }
     }
 
     pub async fn update(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let provider = self.provider.provider();
         let provider_id = provider.id();
 
-        let synced: HashSet<String> = self
-            .cacher
-            .get_set_members_cached(vec![CacheKey::ChartsHistory(provider_id).key()])
-            .await?
-            .into_iter()
-            .collect();
+        let synced: HashSet<String> = self.cacher.get_set_members_cached(vec![CacheKey::ChartsHistory(provider_id).key()]).await?.into_iter().collect();
         let prices: Vec<PriceRow> = self
             .database
             .prices()?
@@ -76,15 +66,7 @@ impl ChartsHistoryUpdater {
             let provider_price_id = price.provider_price_id();
             let price_id = price.id.to_string();
             info_with_fields!("charts history sync started", price_id = price_id.clone());
-            let daily = self
-                .sync(
-                    price,
-                    "daily",
-                    ChartTimeframe::Daily,
-                    SECONDS_PER_DAY as i64,
-                    self.provider.get_charts_daily(provider_price_id),
-                )
-                .await?;
+            let daily = self.sync(price, "daily", ChartTimeframe::Daily, SECONDS_PER_DAY as i64, self.provider.get_charts_daily(provider_price_id)).await?;
             let hourly = self
                 .sync(
                     price,
@@ -95,11 +77,7 @@ impl ChartsHistoryUpdater {
                 )
                 .await?;
             let has_history = daily.received + hourly.received > 0;
-            let extremes_updates = if has_history {
-                self.database.prices()?.update_extremes_for_price(&price_id)?
-            } else {
-                0
-            };
+            let extremes_updates = if has_history { self.database.prices()?.update_extremes_for_price(&price_id)? } else { 0 };
             if has_history {
                 self.cacher.add_to_set_cached(CacheKey::ChartsHistory(provider_id), std::slice::from_ref(&price_id)).await?;
             }
@@ -164,10 +142,7 @@ mod tests {
 
     #[test]
     fn test_chart_rows_are_bucketed() {
-        let value = ChartValue {
-            timestamp: 1_713_774_896,
-            value: 123.45,
-        };
+        let value = ChartValue { timestamp: 1_713_774_896, value: 123.45 };
         let hourly = bucketed_chart_rows("bitcoin", slice::from_ref(&value), SECONDS_PER_HOUR as i64).remove(0);
         let daily = bucketed_chart_rows("bitcoin", &[value], SECONDS_PER_DAY as i64).remove(0);
 

@@ -1,16 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import class Gemstone.GemDeviceApiClient
-import class Gemstone.GemDeviceKeyService
 import class Gemstone.GemAvatarService
 import class Gemstone.GemCollectibleService
+import class Gemstone.GemDeviceApiClient
+import class Gemstone.GemDeviceKeyService
 import class Gemstone.GemExplorerService
 import class Gemstone.GemNftService
 import protocol Gemstone.GemNftServiceProtocol
-import NativeProviderService
 import GemstonePrimitivesTestKit
 import GemstoneServices
+import NativeProviderService
 import Primitives
 import PrimitivesTestKit
 import Store

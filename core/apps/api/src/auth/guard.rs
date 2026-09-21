@@ -54,10 +54,7 @@ async fn verify_wallet_signature<'r, T: DeserializeOwned + Send, O>(req: &'r Req
         return Err(error_outcome(req, Status::Unauthorized, "Invalid signature"));
     }
 
-    Ok(VerifiedBody {
-        address: body.auth.address,
-        data: body.data,
-    })
+    Ok(VerifiedBody { address: body.auth.address, data: body.data })
 }
 
 // Auth layering principles:

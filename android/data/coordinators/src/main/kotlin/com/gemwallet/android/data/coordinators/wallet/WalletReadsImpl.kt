@@ -7,14 +7,10 @@ import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.Flow
 
-class GetWalletsImpl(
-    private val walletStore: GemstoneWalletStore,
-) : GetWallets {
+class GetWalletsImpl(private val walletStore: GemstoneWalletStore) : GetWallets {
     override fun invoke(): Flow<List<Wallet>> = walletStore.observeWallets()
 }
 
-class GetWalletImpl(
-    private val walletStore: GemstoneWalletStore,
-) : GetWallet {
+class GetWalletImpl(private val walletStore: GemstoneWalletStore) : GetWallet {
     override fun invoke(walletId: WalletId): Flow<Wallet?> = walletStore.observeWallet(walletId)
 }

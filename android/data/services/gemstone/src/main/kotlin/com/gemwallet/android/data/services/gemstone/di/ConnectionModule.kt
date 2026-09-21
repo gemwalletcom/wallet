@@ -4,12 +4,12 @@ import android.content.Context
 import com.gemwallet.android.data.services.gemstone.connection.ConnectionComponentHealth
 import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
 import com.gemwallet.android.data.services.gemstone.connection.InternetConnectionMonitor
+import com.wallet.core.primitives.ConnectionComponent
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import com.wallet.core.primitives.ConnectionComponent
 import uniffi.gemstone.GemConnectionService
 import javax.inject.Singleton
 
@@ -23,11 +23,7 @@ object ConnectionModule {
 
     @Provides
     @Singleton
-    fun provideConnectionStatusObserver(
-        @ApplicationContext context: Context,
-        connectionService: GemConnectionService,
-        streamHealth: ConnectionComponentHealth,
-    ): ConnectionStatusObserver = ConnectionStatusObserver(
+    fun provideConnectionStatusObserver(@ApplicationContext context: Context, connectionService: GemConnectionService, streamHealth: ConnectionComponentHealth): ConnectionStatusObserver = ConnectionStatusObserver(
         monitors = listOf(
             InternetConnectionMonitor(context, connectionService),
             streamHealth,

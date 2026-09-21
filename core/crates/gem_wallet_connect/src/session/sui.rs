@@ -25,10 +25,7 @@ mod tests {
     #[test]
     fn test_config_session_properties_sui() {
         let result = config_session_properties(HashMap::new(), &[Chain::Sui], &[mock_sui_account()]);
-        assert_eq!(
-            result.get(SUI_GET_ACCOUNTS_PROPERTY).unwrap(),
-            &format!(r#"[{{"pubkey":"{TEST_SUI_PUBLIC_KEY_BASE64}","address":"{TEST_SUI_ADDRESS}"}}]"#)
-        );
+        assert_eq!(result.get(SUI_GET_ACCOUNTS_PROPERTY).unwrap(), &format!(r#"[{{"pubkey":"{TEST_SUI_PUBLIC_KEY_BASE64}","address":"{TEST_SUI_ADDRESS}"}}]"#));
 
         let account = Account {
             extended_public_key: None,

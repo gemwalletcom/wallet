@@ -34,11 +34,7 @@ impl SwapsXyzChain {
             id: 999_000_322,
             key: "zec",
         },
-        Self {
-            chain: Chain::Near,
-            id: 397,
-            key: "near",
-        },
+        Self { chain: Chain::Near, id: 397, key: "near" },
         Self {
             chain: Chain::Cosmos,
             id: 999_000_433,

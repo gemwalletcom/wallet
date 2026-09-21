@@ -72,14 +72,7 @@ impl UniversalRouterCommand {
 }
 
 type V3SwapExactType = (sol_data::Address, sol_data::Uint<256>, sol_data::Uint<256>, sol_data::Bytes, sol_data::Bool);
-type V3SwapExactV2_1Type = (
-    sol_data::Address,
-    sol_data::Uint<256>,
-    sol_data::Uint<256>,
-    sol_data::Bytes,
-    sol_data::Bool,
-    sol_data::Array<sol_data::Uint<256>>,
-);
+type V3SwapExactV2_1Type = (sol_data::Address, sol_data::Uint<256>, sol_data::Uint<256>, sol_data::Bytes, sol_data::Bool, sol_data::Array<sol_data::Uint<256>>);
 type SweepType = (sol_data::Address, sol_data::Address, sol_data::Uint<256>);
 type PayPortionType = (sol_data::Address, sol_data::Address, sol_data::Uint<256>);
 type TransferType = PayPortionType;
@@ -126,14 +119,7 @@ pub struct V3SwapExactInV2_1 {
 
 impl V3SwapExactInV2_1 {
     pub fn abi_encode(&self) -> Vec<u8> {
-        let data = (
-            self.recipient,
-            self.amount_in,
-            self.amount_out_min,
-            self.path.clone(),
-            self.payer_is_user,
-            self.min_hop_price_x36.clone(),
-        );
+        let data = (self.recipient, self.amount_in, self.amount_out_min, self.path.clone(), self.payer_is_user, self.min_hop_price_x36.clone());
         V3SwapExactV2_1Type::abi_encode_sequence(&data)
     }
 
@@ -385,9 +371,7 @@ mod tests {
                     spender: router,
                     sigDeadline: U256::from(1730077393),
                 },
-                signature: Bytes::from(
-                    hex::decode("8f32d2e66506a4f424b1b23309ed75d338534d0912129a8aa3381fab4eb8032f160e0988f10f512b19a58c2a689416366c61cc0c483c3b5322dc91f8b60107671b").unwrap(),
-                ),
+                signature: Bytes::from(hex::decode("8f32d2e66506a4f424b1b23309ed75d338534d0912129a8aa3381fab4eb8032f160e0988f10f512b19a58c2a689416366c61cc0c483c3b5322dc91f8b60107671b").unwrap()),
             }),
             UniversalRouterCommand::V3_SWAP_EXACT_IN(V3SwapExactIn {
                 recipient: Address::from_str("0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7").unwrap(),
@@ -455,9 +439,7 @@ mod tests {
                     spender: op_router,
                     sigDeadline: U256::from(1730077302),
                 },
-                signature: Bytes::from(
-                    hex::decode("00e96ed0f5bf5cca62dc9d9753960d83c8be83224456559a1e93a66d972a019f6f328a470f8257d3950b4cb7cd0024d789b4fcd9e80c4eb43d82a38d9e5332f31b").unwrap(),
-                ),
+                signature: Bytes::from(hex::decode("00e96ed0f5bf5cca62dc9d9753960d83c8be83224456559a1e93a66d972a019f6f328a470f8257d3950b4cb7cd0024d789b4fcd9e80c4eb43d82a38d9e5332f31b").unwrap()),
             }),
             UniversalRouterCommand::V3_SWAP_EXACT_IN(V3SwapExactIn {
                 recipient: Address::from_str(ADDRESS_THIS).unwrap(),

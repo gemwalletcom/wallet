@@ -5,28 +5,23 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.perpetual.cases.BuildPerpetualParams
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPosition
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
-import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
-import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDetailsDataAggregate
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.perpetual.viewmodels.localization.stringRes
-import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualDetailsSectionUIModel
-import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualPositionRowUIModel
-import com.gemwallet.android.features.perpetual.viewmodels.model.infoListItem
-import com.gemwallet.android.features.perpetual.viewmodels.model.positionRow
+import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualDetailsUIModel
 import com.gemwallet.android.features.perpetual.viewmodels.model.uiModel
 import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualChartUIModel
+import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.components.chart.CandlestickTooltipUIModel
 import com.gemwallet.android.ui.components.chart.uiModel
 import com.gemwallet.android.ui.components.list_item.ListItemModel
@@ -39,10 +34,8 @@ import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PerpetualDirection
-import com.wallet.core.primitives.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
@@ -66,12 +59,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemErrorText
-import uniffi.gemstone.GemPerpetual
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualPositionKind
-import uniffi.gemstone.GemPerpetualSection
-import uniffi.gemstone.PerpetualProvider
 import uniffi.gemstone.candleTooltip
+import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -79,7 +70,6 @@ class PerpetualDetailsViewModel @Inject constructor(
     private val getPerpetual: GetPerpetual,
     private val getPerpetualPosition: GetPerpetualPosition,
     private val getTransactions: GetTransactions,
-    private val buildPerpetualParams: BuildPerpetualParams,
     private val perpetualObserver: PerpetualObserver,
     private val service: GemPerpetualDetailsServiceInterface,
     private val getSession: GetSession,
@@ -97,12 +87,7 @@ class PerpetualDetailsViewModel @Inject constructor(
 
     private val transactionFilters = listOf(
         TransactionsRequestFilter.Asset(assetId),
-        TransactionsRequestFilter.Types(
-            listOf(
-                TransactionType.PerpetualOpenPosition,
-                TransactionType.PerpetualClosePosition,
-            )
-        )
+        TransactionsRequestFilter.Types(service.activityTypes().map { it.toPrimitives() }),
     )
 
     private val transactionSync = flow {
@@ -129,34 +114,18 @@ class PerpetualDetailsViewModel @Inject constructor(
     val positionListItem: StateFlow<ListItemModel?> = position.map { it?.listItem(context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val sections: StateFlow<List<PerpetualDetailsSectionUIModel>> = combine(perpetual, position) { perpetual, position ->
-        service.sections(position != null).map { section ->
-            when (section) {
-                GemPerpetualSection.POSITION -> PerpetualDetailsSectionUIModel.Position(context.getString(section.stringRes()), positionRows(position))
-                GemPerpetualSection.INFO -> PerpetualDetailsSectionUIModel.Info(
-                    title = context.getString(section.stringRes()),
-                    buttons = if (perpetual == null) emptyList() else service.buttons(position != null).map { it.uiModel(context) },
-                    rows = perpetual?.let { details -> service.infoRows().map { details.infoListItem(context, it) } }.orEmpty(),
-                )
-            }
-        }
+    val details: StateFlow<PerpetualDetailsUIModel?> = combine(perpetual, position) { perpetual, position ->
+        perpetual?.let { service.details(it.perpetual.toGem(), it.asset.toGem(), listOfNotNull(position?.position?.toGem())).uiModel(context) }
     }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    val modifyButtons = service.modifyButtons().map { it.uiModel(context) }
-
-    private fun positionRows(position: PerpetualPositionDetailsDataAggregate?): List<PerpetualPositionRowUIModel> = position?.let { details ->
-        GemPerpetual(PerpetualProvider.HYPERCORE).use { perpetual ->
-            service.positionDetailRows(details.position.toGem()).map { details.positionRow(context, it, perpetual) }
-        }
-    }.orEmpty()
+        .flowOn(ioDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val transactions = combine(
         getTransactions.getTransactions(transactionFilters),
         transactionSync,
     ) { transactions, _ -> transactions }
         .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionFilters))
 
     val period = MutableStateFlow(service.chartPeriod().toPrimitives())
 
@@ -256,33 +225,24 @@ class PerpetualDetailsViewModel @Inject constructor(
         fetch()
     }
 
-    fun openPosition(direction: PerpetualDirection, amountAction: AmountTransactionAction) =
-        position(GemPerpetualPositionKind.Open(direction.toGem()), amountAction)
+    fun openPosition(direction: PerpetualDirection, amountAction: AmountTransactionAction) = position(GemPerpetualPositionKind.Open(direction.toGem()), amountAction)
 
     fun increasePosition(amountAction: AmountTransactionAction) = position(GemPerpetualPositionKind.Increase, amountAction)
 
     fun reducePosition(amountAction: AmountTransactionAction) = position(GemPerpetualPositionKind.Reduce, amountAction)
 
     private fun position(kind: GemPerpetualPositionKind, amountAction: AmountTransactionAction) {
-        val perpetualId = perpetual.value?.id ?: return
-        viewModelScope.launch {
-            runCatchingCancellable { buildPerpetualParams.position(perpetualId, kind) }
-                .onSuccess { params -> params?.let(amountAction::invoke) }
-                .onFailure { errorState.value = it.errorText() }
-        }
+        val data = perpetual.value ?: return
+        val action = service.positionAction(data.perpetual.toGem(), data.asset.toGem(), details.value?.position, kind)
+        amountAction(AmountParams.Perpetual(assetId = data.asset.id, perpetualId = data.perpetual.id, positionAction = action))
     }
 
     fun closePosition(confirmAction: ConfirmTransactionAction) {
-        val perpetualId = perpetual.value?.id ?: return
-        viewModelScope.launch {
-            runCatchingCancellable { buildPerpetualParams.close(perpetualId) }
-                .onSuccess { transfer -> transfer?.let { confirmAction(ConfirmTransferInput(it)) } }
-                .onFailure { errorState.value = it.errorText() }
-        }
+        val data = perpetual.value ?: return
+        confirmAction(ConfirmTransferInput(service.closeTransfer(data.perpetual.toGem(), data.asset.toGem(), details.value?.position)))
     }
 
     fun clearError() = errorState.update { null }
 }
 
-private fun List<ChartCandleStick>.toChartState(): StateViewType<List<ChartCandleStick>> =
-    if (isEmpty()) StateViewType.NoData else StateViewType.Data(this)
+private fun List<ChartCandleStick>.toChartState(): StateViewType<List<ChartCandleStick>> = if (isEmpty()) StateViewType.NoData else StateViewType.Data(this)

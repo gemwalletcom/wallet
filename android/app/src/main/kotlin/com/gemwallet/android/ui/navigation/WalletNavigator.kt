@@ -87,6 +87,7 @@ import com.gemwallet.android.ui.navigation.routes.assetsRoute
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.FiatQuoteType
+import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.PortfolioType
 import com.wallet.core.primitives.TransactionId
@@ -167,9 +168,7 @@ class WalletNavigator(
         backStack.add(route)
     }
 
-    fun toastMessage(route: NavKey): String? {
-        return toastMessages[route]
-    }
+    fun toastMessage(route: NavKey): String? = toastMessages[route]
 
     fun clearToastMessage(route: NavKey) {
         toastMessages.remove(route)
@@ -177,13 +176,9 @@ class WalletNavigator(
 
     fun popWithToast(message: String) = popWithResult(toastMessages, message)
 
-    fun swapSelection(route: NavKey): SwapSelection? {
-        return swapSelections[route]
-    }
+    fun swapSelection(route: NavKey): SwapSelection? = swapSelections[route]
 
-    fun paymentSelection(route: NavKey): AssetId? {
-        return paymentSelections[route]
-    }
+    fun paymentSelection(route: NavKey): AssetId? = paymentSelections[route]
 
     fun clearPaymentSelection(route: NavKey) {
         paymentSelections.remove(route)
@@ -231,8 +226,13 @@ class WalletNavigator(
     fun openDeveloperPayments() = push(DevelopPaymentsRoute)
     fun openInAppNotifications() = push(InAppNotificationsRoute)
     fun openNotificationUrl(url: String): Boolean {
-        val action = runCatching { deeplinkService.urlAction(url) }.getOrNull() as? UrlAction.Deeplink ?: return false
-        when (val route = action.deeplink.toRoute() ?: return false) {
+        val action = runCatching { deeplinkService.urlAction(url) }.getOrNull() ?: return false
+        return openUrlAction(action)
+    }
+
+    fun openUrlAction(action: UrlAction): Boolean {
+        val deeplink = (action as? UrlAction.Deeplink)?.deeplink ?: return false
+        when (val route = deeplink.toRoute() ?: return false) {
             is AssetRoute -> openAssetRoute(route)
             else -> push(route)
         }
@@ -257,8 +257,8 @@ class WalletNavigator(
     fun openReceive(assetId: AssetId) = push(ReceiveRoute(assetId))
     fun openReceiveCollection() = push(ReceiveCollectionRoute)
     fun openRecipient(payment: GemPaymentRecipient? = null, chains: List<Chain> = emptyList()) = push(SendSelectRoute(payment, chains))
-    fun openRecipient(assetId: AssetId, payment: GemPaymentRecipient? = null) = push(RecipientInputRoute(assetId, nftAssetId = null, payment = payment))
-    fun openNftRecipient(assetId: AssetId, nftAssetId: NFTAssetId) = push(RecipientInputRoute(assetId, nftAssetId.toIdentifier()))
+    fun openRecipient(assetId: AssetId, payment: GemPaymentRecipient? = null) = push(RecipientInputRoute(assetId, payment = payment))
+    fun openNftRecipient(nft: NFTAsset) = push(RecipientInputRoute(AssetId(nft.chain), nft = nft))
     fun openAmount(params: AmountParams) {
         val pack = params.pack() ?: return
         push(AmountRoute(pack))
@@ -294,7 +294,7 @@ class WalletNavigator(
     fun openAcquireAsset(action: AcquireAssetAction, assetId: AssetId) {
         when (action) {
             is AcquireAssetAction.Buy -> openBuy(assetId, amount = action.amount)
-            AcquireAssetAction.Swap -> openSwapTo(assetId)
+            is AcquireAssetAction.Swap -> action.payAssetId?.let { openSwap(from = it, to = assetId) } ?: openSwapTo(assetId)
             AcquireAssetAction.Receive -> openReceive(assetId)
         }
     }
@@ -317,7 +317,7 @@ class WalletNavigator(
             when (destination) {
                 AcceptTermsDestination.Create -> CreateWalletAlertRoute
                 AcceptTermsDestination.Import -> ImportSelectTypeRoute
-            }
+            },
         )
     }
 
@@ -348,27 +348,25 @@ class WalletNavigator(
     }
 }
 
-internal fun NavKey.isConfirmFlowSegmentRoute(): Boolean {
-    return when (this) {
-        SwapRoute -> true
-        is SendSelectRoute,
-        is AmountRoute,
-        is ConfirmRoute,
-        is DelegationRoute,
-        is RecipientInputRoute,
-        is EarnRoute,
-        is StakeRoute,
-        is SwapPairRoute,
+internal fun NavKey.isConfirmFlowSegmentRoute(): Boolean = when (this) {
+    SwapRoute -> true
+
+    is SendSelectRoute,
+    is AmountRoute,
+    is ConfirmRoute,
+    is DelegationRoute,
+    is RecipientInputRoute,
+    is EarnRoute,
+    is StakeRoute,
+    is SwapPairRoute,
         is SwapSelectRoute,
         is PaymentSelectRoute,
         is PaymentVerificationRoute -> true
-        else -> false
-    }
+
+    else -> false
 }
 
-private fun ImportType.toImportRoute(): NavKey {
-    return when (val chain = chain) {
-        null -> ImportMulticoinWalletRoute
-        else -> ImportChainWalletRoute(kind, chain)
-    }
+private fun ImportType.toImportRoute(): NavKey = when (val chain = chain) {
+    null -> ImportMulticoinWalletRoute
+    else -> ImportChainWalletRoute(kind, chain)
 }

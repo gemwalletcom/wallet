@@ -4,8 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.capitalize
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.ui.components.image.IconWithBadge
@@ -14,16 +12,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Chain
 
 @Composable
-fun ChainItem(
-    title: String,
-    modifier: Modifier = Modifier,
-    listPosition: ListPosition,
-    icon: Any? = null,
-    subtitle: String? = null,
-    paddingHorizontal: Dp? = null,
-    trailing: @Composable (() -> Unit)? = null,
-    onClick: (() -> Unit)? = {},
-) {
+fun ChainItem(title: String, modifier: Modifier = Modifier, listPosition: ListPosition, icon: Any? = null, subtitle: String? = null, paddingHorizontal: Dp? = null, trailing: @Composable (() -> Unit)? = null, onClick: (() -> Unit)? = {}) {
     val modifier = onClick?.let { modifier.clickable(onClick = it) } ?: modifier
     ListItem(
         modifier = modifier,
@@ -37,7 +26,7 @@ fun ChainItem(
         },
         title = @Composable {
             ListItemTitleText(
-                text = title.capitalize(Locale.current),
+                text = title,
                 style = if (subtitle == null) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.titleMedium,
             )
         },

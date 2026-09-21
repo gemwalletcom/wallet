@@ -19,17 +19,10 @@ plugins {
     alias(libs.plugins.compose.compiler) apply false
 }
 
+val gemstoneHostLibrary by extra(File(rootDir, "../core/target/debug/${System.mapLibraryName("gemstone")}"))
+
 allprojects {
     repositories {
-        val propFile = File(rootDir.absolutePath, "local.properties")
-        var properties = java.util.Properties()
-        if (propFile.exists()) {
-            properties = properties.apply {
-                propFile.inputStream().use { fis ->
-                    load(fis)
-                }
-            }
-        }
         google()
         mavenCentral()
         maven { url = uri("https://jitpack.io") }
@@ -41,27 +34,20 @@ allprojects {
 }
 
 subprojects {
-    dependencyLocking {
-        lockAllConfigurations()
-    }
     configurations.configureEach {
         resolutionStrategy.activateDependencyLocking()
     }
-    plugins.withId("com.android.library") {
-        extensions.configure(com.android.build.api.dsl.LibraryExtension::class.java) {
-            testOptions.unitTests.all {
-                it.systemProperty("jna.library.path", File(rootDir, "../core/target/debug").absolutePath)
-            }
-        }
-        dependencies.add("testImplementation", "net.java.dev.jna:jna:5.18.1")
+    tasks.withType<Test>().configureEach {
+        dependsOn(":gemstone:buildGemstoneHost")
+        inputs.file(gemstoneHostLibrary)
+            .withPropertyName("gemstoneHostLibrary")
+            .withPathSensitivity(PathSensitivity.NONE)
+        systemProperty("jna.library.path", gemstoneHostLibrary.parentFile.absolutePath)
     }
-    plugins.withId("com.android.application") {
-        extensions.configure(com.android.build.api.dsl.ApplicationExtension::class.java) {
-            testOptions.unitTests.all {
-                it.systemProperty("jna.library.path", File(rootDir, "../core/target/debug").absolutePath)
-            }
+    listOf("com.android.library", "com.android.application").forEach { pluginId ->
+        plugins.withId(pluginId) {
+            dependencies.add("testImplementation", "net.java.dev.jna:jna:5.18.1")
         }
-        dependencies.add("testImplementation", "net.java.dev.jna:jna:5.18.1")
     }
 }
 

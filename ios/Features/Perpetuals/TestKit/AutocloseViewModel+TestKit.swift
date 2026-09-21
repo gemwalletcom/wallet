@@ -2,10 +2,10 @@
 
 import Formatters
 import Foundation
-import Perpetuals
-import Primitives
 import class Gemstone.GemAutocloseEstimator
 import GemstonePrimitives
+import Perpetuals
+import Primitives
 import PrimitivesComponents
 
 public extension AutocloseViewModel {
@@ -24,8 +24,6 @@ public extension AutocloseViewModel {
                 direction: Primitives.PerpetualDirection.long.toGem(),
                 leverage: leverage,
             ),
-            currencyFormatter: CurrencyFormatter(currencyCode: "USD"),
-            percentFormatter: .signed,
         )
     }
 }

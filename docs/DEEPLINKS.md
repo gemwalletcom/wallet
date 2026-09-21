@@ -38,13 +38,20 @@ Support chat messages are parsed in Core, and a link whose URL is a deep link is
 [Buy Bitcoin](gem://tokens/bitcoin/buy?amount=100)
 ```
 
+A destination wrapped in angle brackets is the same link. Chat backends auto-link http(s) URLs into that form, and both of these resolve to the deep link rather than falling through to the browser:
+
+```markdown
+[Bitcoin](<https://gemwallet.com/tokens/bitcoin>)
+Bitcoin: <https://gemwallet.com/tokens/bitcoin>
+```
+
 ## Implementation
 
 - [Deep link parsing and building](../core/crates/primitives/src/deeplink.rs)
 - [URL action routing](../core/crates/primitives/src/url_action.rs) — WalletConnect and deep links are routed before payments
 - [UniFFI bridge](../core/gemstone/src/deeplink.rs)
 - [Support message links](../core/crates/support/src/text.rs)
-- iOS: [`NavigationHandler`](../ios/Gem/Navigation/NavigationHandler.swift), schemes and associated domains in `ios/Gem/Resources/Info.plist` and `ios/Gem/Resources/Gem.entitlements`
+- iOS: [`NavigationRouter`](../ios/Gem/Navigation/NavigationRouter.swift), schemes and associated domains in `ios/Gem/Resources/Info.plist` and `ios/Gem/Resources/Gem.entitlements`
 - Android: [`toRoute`](../android/app/src/main/kotlin/com/gemwallet/android/WebDeepLinks.kt), intent filters in `android/app/src/main/AndroidManifest.xml`
 
 ## Web requirements

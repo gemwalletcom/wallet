@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.features.asset_select.presents.views.assetRows
 import com.gemwallet.android.features.asset_select.presents.views.getAssetBadge
 import com.gemwallet.android.features.assets.viewmodels.NetworkAssetsViewModel
@@ -20,7 +21,6 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
-import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ui.components.list_item.PinnedAssetsHeaderItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.assetPriceSupport
@@ -31,12 +31,7 @@ import com.gemwallet.android.ui.models.AssetsGroupType
 import com.wallet.core.primitives.AssetId
 
 @Composable
-fun NetworkAssetsScreen(
-    onSelectAsset: (AssetId) -> Unit,
-    onManageAssets: () -> Unit,
-    onCancel: () -> Unit,
-    viewModel: NetworkAssetsViewModel = hiltViewModel(),
-) {
+fun NetworkAssetsScreen(onSelectAsset: (AssetId) -> Unit, onManageAssets: () -> Unit, onCancel: () -> Unit, viewModel: NetworkAssetsViewModel = hiltViewModel()) {
     val pinned by viewModel.pinned.collectAsStateWithLifecycle()
     val unpinned by viewModel.unpinned.collectAsStateWithLifecycle()
     val hidden by viewModel.hidden.collectAsStateWithLifecycle()
@@ -61,12 +56,12 @@ fun NetworkAssetsScreen(
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             if (pinned.isNotEmpty()) {
                 item { PinnedAssetsHeaderItem(AssetsGroupType.Pinned) }
-                networkAssetRows(pinned, viewModel.row.showsSymbol, onSelectAsset, longPressedAsset, activeActions)
+                networkAssetRows(pinned, viewModel.rowStyle.showsSymbol, onSelectAsset, longPressedAsset, activeActions)
             }
-            networkAssetRows(unpinned, viewModel.row.showsSymbol, onSelectAsset, longPressedAsset, activeActions)
+            networkAssetRows(unpinned, viewModel.rowStyle.showsSymbol, onSelectAsset, longPressedAsset, activeActions)
             if (hidden.isNotEmpty()) {
                 item { SubheaderItem(R.string.common_hidden) }
-                networkAssetRows(hidden, viewModel.row.showsSymbol, onSelectAsset, longPressedAsset, hiddenActions)
+                networkAssetRows(hidden, viewModel.rowStyle.showsSymbol, onSelectAsset, longPressedAsset, hiddenActions)
             }
             if (sections.showsEmpty) {
                 item {
@@ -80,13 +75,7 @@ fun NetworkAssetsScreen(
     }
 }
 
-private fun LazyListScope.networkAssetRows(
-    items: List<AssetInfoDataAggregate>,
-    showsSymbol: Boolean,
-    onSelect: (AssetId) -> Unit,
-    longPressedAsset: MutableState<AssetId?>,
-    contextActions: AssetContextActions,
-) {
+private fun LazyListScope.networkAssetRows(items: List<AssetInfoDataAggregate>, showsSymbol: Boolean, onSelect: (AssetId) -> Unit, longPressedAsset: MutableState<AssetId?>, contextActions: AssetContextActions) {
     assetRows(
         items = items,
         onSelect = { onSelect(it.id) },

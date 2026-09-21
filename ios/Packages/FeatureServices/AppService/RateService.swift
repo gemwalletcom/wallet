@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import protocol Gemstone.GemPreferencesServiceProtocol
+import Primitives
 import StoreKit
 
 public struct RateService: Sendable {
@@ -12,7 +12,7 @@ public struct RateService: Sendable {
         self.preferencesService = preferencesService
     }
 
-    public func perform() {
+    public func requestReviewIfDue() {
         #if targetEnvironment(simulator)
         #else
             guard preferencesService.shouldRequestReview() else { return }

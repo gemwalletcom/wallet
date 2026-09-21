@@ -21,8 +21,5 @@ pub const TEST_TRANSACTION_ID: &str = "CJ16PEqq49KFp758iEVwxEkd3CwP7zDfqGYLuLuu9
 #[cfg(all(test, feature = "chain_integration_tests"))]
 pub fn create_sui_test_client() -> SuiProvider {
     let settings = get_test_settings();
-    SuiProvider::new(
-        SuiClient::new(settings.chains.sui.url),
-        Box::new(SuiIndexer::new(ReqwestClient::new(settings.indexer.sui.url, gem_client::reqwest_client()))),
-    )
+    SuiProvider::new(SuiClient::new(settings.chains.sui.url), Box::new(SuiIndexer::new(ReqwestClient::new(settings.indexer.sui.url, gem_client::reqwest_client()))))
 }

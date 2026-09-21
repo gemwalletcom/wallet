@@ -29,7 +29,6 @@ import com.gemwallet.android.ext.updateUrl
 import com.gemwallet.android.features.onboarding.AcceptTermsDestination
 import com.gemwallet.android.features.onboarding.OnboardScreen
 import com.gemwallet.android.flavors.ReviewManager
-import com.gemwallet.android.ui.components.PushRequest
 import com.gemwallet.android.ui.navigation.WalletNavGraph
 import com.gemwallet.android.ui.navigation.WalletRootRoute
 import com.gemwallet.android.ui.navigation.rememberWalletNavigationState
@@ -121,7 +120,7 @@ fun WalletApp(
             version = update.version,
             isRequired = update.isRequired,
             onSkip = viewModel::onSkip,
-            onCancel = viewModel::onCancelUpdate
+            onCancel = viewModel::onCancelUpdate,
         )
     }
 
@@ -133,21 +132,15 @@ fun WalletApp(
         }
     }
 
-    if (askNotifications) {
-        PushRequest(
-            onNotificationEnable = viewModel::onNotificationsEnable,
-            onDismiss = viewModel::laterAskNotifications,
-        )
+    LaunchedEffect(askNotifications) {
+        if (askNotifications) {
+            viewModel.onNotificationsEnable()
+        }
     }
 }
 
 @Composable
-private fun ShowUpdateDialog(
-    version: String,
-    isRequired: Boolean,
-    onSkip: () -> Unit,
-    onCancel: () -> Unit,
-) {
+private fun ShowUpdateDialog(version: String, isRequired: Boolean, onSkip: () -> Unit, onCancel: () -> Unit) {
     val context = LocalContext.current
     val isPlayStoreInstall = fromGooglePlay(context)
 
@@ -195,15 +188,11 @@ private fun ShowUpdateDialog(
         },
         text = {
             Text(text = stringResource(id = R.string.update_app_description, version))
-        }
+        },
     )
 }
 
-private fun openUpdateDestination(
-    context: Context,
-    version: String,
-    isPlayStoreInstall: Boolean,
-) {
+private fun openUpdateDestination(context: Context, version: String, isPlayStoreInstall: Boolean) {
     val urls = if (isPlayStoreInstall) {
         listOf(
             "market://details?id=${context.packageName}",
@@ -215,7 +204,7 @@ private fun openUpdateDestination(
                 flavor = BuildConfig.FLAVOR,
                 version = version,
                 fallbackUrl = BuildConfig.UPDATE_URL,
-            )
+            ),
         )
     }
 
@@ -224,7 +213,7 @@ private fun openUpdateDestination(
             context.startActivity(
                 Intent(Intent.ACTION_VIEW, uri.toUri()).apply {
                     addFlags(FLAG_ACTIVITY_NEW_TASK)
-                }
+                },
             )
         }.isSuccess
         if (launched) return
@@ -236,9 +225,9 @@ private fun fromGooglePlay(context: Context): Boolean {
     // A list with valid installers package name
     val validInstallers = listOf("com.android.vending", "com.google.android.feedback")
 
-    val installer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
+    val installer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
         context.packageManager.getInstallSourceInfo(context.packageName).installingPackageName
-    } else{
+    } else {
         context.packageManager.getInstallerPackageName(context.packageName)
     }
     return installer != null && validInstallers.contains(installer)

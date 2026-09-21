@@ -7,10 +7,6 @@ interface StoreTransactionRunner {
     suspend fun <T> run(block: suspend () -> T): T
 }
 
-class RoomStoreTransactionRunner @Inject constructor(
-    private val database: GemDatabase,
-) : StoreTransactionRunner {
-    override suspend fun <T> run(block: suspend () -> T): T {
-        return database.withTransaction(block)
-    }
+class RoomStoreTransactionRunner @Inject constructor(private val database: GemDatabase) : StoreTransactionRunner {
+    override suspend fun <T> run(block: suspend () -> T): T = database.withTransaction(block)
 }

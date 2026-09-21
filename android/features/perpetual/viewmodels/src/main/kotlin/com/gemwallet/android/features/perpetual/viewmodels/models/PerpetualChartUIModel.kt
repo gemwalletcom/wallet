@@ -8,10 +8,7 @@ import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.PerpetualPosition
 import uniffi.gemstone.perpetualChartLayout
 
-data class PerpetualChartUIModel(
-    val candles: List<ChartCandleStick>,
-    val chart: CandlestickChartUIModel,
-) {
+data class PerpetualChartUIModel(val candles: List<ChartCandleStick>, val chart: CandlestickChartUIModel) {
     companion object {
         fun from(candles: List<ChartCandleStick>, position: PerpetualPosition?, context: Context): PerpetualChartUIModel = PerpetualChartUIModel(
             candles = candles,

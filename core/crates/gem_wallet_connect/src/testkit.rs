@@ -30,11 +30,6 @@ pub fn mock_ton_account() -> Account {
 
 impl<'a> SignMessageValidation<'a> {
     pub fn mock(chain: Chain, sign_type: &'a SignDigestType, data: &'a str, session_domain: &'a str) -> Self {
-        Self {
-            chain,
-            sign_type,
-            data,
-            session_domain,
-        }
+        Self { chain, sign_type, data, session_domain }
     }
 }

@@ -4,9 +4,9 @@ import android.content.Context
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.wallet_import.values.WalletImportResult
-import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
-import com.gemwallet.android.ext.networkName
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.words
@@ -20,16 +20,17 @@ import com.gemwallet.android.ui.style.indicator
 import com.wallet.core.primitives.WalletSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemMnemonicInterface
@@ -37,7 +38,9 @@ import uniffi.gemstone.GemNameRecordState
 import uniffi.gemstone.GemNameServiceInterface
 import uniffi.gemstone.GemWalletImportKind
 import uniffi.gemstone.GemWalletImportResult
+import uniffi.gemstone.GemWalletImportSession
 import uniffi.gemstone.GemWalletServiceInterface
+import javax.inject.Inject
 
 @HiltViewModel
 class ImportViewModel @Inject constructor(
@@ -50,11 +53,12 @@ class ImportViewModel @Inject constructor(
 
     fun invalidPhraseWords(text: String): Set<String> = mnemonic.findInvalidWords(text.words()).toSet()
 
-    fun phraseSuggestions(word: String): List<String> = mnemonic.suggestWords(word, null)
-
     private val state = MutableStateFlow(ImportViewModelState())
-    val uiState = state.map { it.toUIState() }
+    private val session = MutableStateFlow(GemWalletImportSession(GemWalletImportKind.PHRASE, "", null, false))
+    val uiState = combine(state, session) { state, session -> state.toUIState(session.isImporting) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ImportUIState())
+    val suggestions: StateFlow<List<String>> = session.map { it.suggestions() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val nameRecordController = NameRecordController(nameService, viewModelScope)
     val nameResolveState: StateFlow<GemNameRecordState> = nameRecordController.state
@@ -63,15 +67,17 @@ class ImportViewModel @Inject constructor(
 
     fun importKind(type: ImportType) {
         nameRecordController.reset()
+        session.update { it.onKindChanged(type.kind) }
         state.update {
             it.copy(
                 importType = type,
-                dataError = null
+                dataError = null,
             )
         }
     }
 
-    fun onInput(value: String) {
+    fun onInput(value: String, cursor: Int) {
+        session.update { it.onInputChanged(value, cursor.toUInt()) }
         val importType = state.value.importType
         if (importType.kind.resolvesNames()) {
             nameRecordController.getNameRecord(value, importType.chain)
@@ -80,32 +86,37 @@ class ImportViewModel @Inject constructor(
         }
     }
 
+    fun selectSuggestion(word: String): ImportTextUIModel {
+        val next = session.updateAndGet { it.onSuggestionSelected(word) }
+        return ImportTextUIModel(next.text, next.cursor?.toInt() ?: next.text.length)
+    }
+
+    fun clearInput() = session.update { it.onInputChanged("", null) }
+
     fun importSelect(importType: ImportType) = viewModelScope.launch {
-        val defaultName = withContext(ioDispatcher) {
-            service.defaultWalletName(importType.chain?.string)
+        session.update { it.onKindChanged(importType.kind) }
+        val defaultName = runCatchingCancellable {
+            withContext(ioDispatcher) { service.defaultWalletName(importType.chain?.string) }
         }
-        val chainName = importType.chain?.networkName().orEmpty()
-        val tabs = service.importKinds(importType.chain?.string)
+        val screen = service.importScreen(importType.chain?.string)
         state.update {
             it.copy(
                 importType = importType,
-                defaultWalletName = defaultName.text.string(context),
-                chainName = chainName,
-                tabs = tabs,
+                defaultWalletName = defaultName.getOrNull()?.text?.string(context) ?: it.defaultWalletName,
+                dataError = defaultName.exceptionOrNull() ?: it.dataError,
+                title = screen.title.string(context),
+                tabs = screen.kinds,
+                showsTabs = screen.showsKinds,
             )
         }
     }
 
-    fun import(
-        generatedName: String,
-        data: String,
-        onImported: (WalletImportResult) -> Unit
-    ) {
-        if (state.value.loading) {
+    fun import(generatedName: String, onImported: (WalletImportResult) -> Unit) {
+        if (session.value.isImporting) {
             return
         }
         val nameRecord = nameRecordController.state.value.record()
-        state.update { it.copy(loading = true) }
+        val data = session.updateAndGet { it.onImporting(true) }.text
 
         viewModelScope.launch(ioDispatcher) {
             try {
@@ -117,17 +128,19 @@ class ImportViewModel @Inject constructor(
                     is GemWalletImportResult.New -> WalletImportResult.New(imported.wallet.toPrimitives())
                 }
                 service.setCurrentWalletId(result.wallet.id.id)
-                state.update { it.copy(dataError = null, loading = false) }
+                state.update { it.copy(dataError = null) }
+                session.update { it.onImporting(false) }
                 withContext(Dispatchers.Main) {
                     when (result) {
                         is WalletImportResult.New -> onImported(result)
-                        is WalletImportResult.Existing -> state.update { it.copy(existingWalletResult = result, loading = false) }
+                        is WalletImportResult.Existing -> state.update { it.copy(existingWalletResult = result) }
                     }
                 }
             } catch (err: CancellationException) {
                 throw err
             } catch (err: Throwable) {
-                state.update { it.copy(dataError = err, loading = false) }
+                state.update { it.copy(dataError = err) }
+                session.update { it.onImporting(false) }
             }
         }
     }
@@ -138,29 +151,27 @@ class ImportViewModel @Inject constructor(
 }
 
 data class ImportViewModelState(
-    val loading: Boolean = false,
     val error: String = "",
     val importType: ImportType = ImportType(GemWalletImportKind.PHRASE),
     val defaultWalletName: String? = null,
-    val chainName: String = "",
+    val title: String = "",
     val tabs: List<GemWalletImportKind> = emptyList(),
-    val data: String = "",
+    val showsTabs: Boolean = false,
     val dataError: Throwable? = null,
     val existingWalletResult: WalletImportResult.Existing? = null,
 ) {
-    fun toUIState(): ImportUIState {
-        return ImportUIState(
-            loading = loading,
-            error = error,
-            defaultWalletName = defaultWalletName,
-            chainName = chainName,
-            tabs = tabs.map { kind -> ImportTabUIModel(type = importType.copy(kind = kind), title = kind.tabStringRes(), isSelected = kind == importType.kind) },
-            input = importType.kind.inputUiModel(),
-            importType = importType,
-            dataError = dataError,
-            existingWalletResult = existingWalletResult,
-        )
-    }
+    fun toUIState(loading: Boolean): ImportUIState = ImportUIState(
+        loading = loading,
+        error = error,
+        defaultWalletName = defaultWalletName,
+        title = title,
+        showsTabs = showsTabs,
+        tabs = tabs.map { kind -> ImportTabUIModel(type = importType.copy(kind = kind), title = kind.tabStringRes(), isSelected = kind == importType.kind) },
+        input = importType.kind.inputUiModel(),
+        importType = importType,
+        dataError = dataError,
+        existingWalletResult = existingWalletResult,
+    )
 }
 
 data class ImportUIState(
@@ -168,26 +179,19 @@ data class ImportUIState(
     val error: String = "",
     val importType: ImportType = ImportType(GemWalletImportKind.PHRASE),
     val defaultWalletName: String? = null,
-    val chainName: String = "",
+    val title: String = "",
     val tabs: List<ImportTabUIModel> = emptyList(),
+    val showsTabs: Boolean = false,
     val input: ImportInputUIModel = GemWalletImportKind.PHRASE.inputUiModel(),
     val dataError: Throwable? = null,
     val existingWalletResult: WalletImportResult.Existing? = null,
 )
 
-data class ImportTabUIModel(
-    val type: ImportType,
-    @StringRes val title: Int,
-    val isSelected: Boolean,
-)
+data class ImportTextUIModel(val text: String, val cursor: Int)
 
-data class ImportInputUIModel(
-    @StringRes val placeholder: Int,
-    val isPhrase: Boolean,
-    val protectsInput: Boolean,
-    val supportsPhraseSuggestions: Boolean,
-    val showsViewOnlyWarning: Boolean,
-)
+data class ImportTabUIModel(val type: ImportType, @StringRes val title: Int, val isSelected: Boolean)
+
+data class ImportInputUIModel(@StringRes val placeholder: Int, val isPhrase: Boolean, val protectsInput: Boolean, val supportsPhraseSuggestions: Boolean, val showsViewOnlyWarning: Boolean)
 
 internal fun GemWalletImportKind.inputUiModel() = ImportInputUIModel(
     placeholder = fieldStringRes(),
@@ -199,4 +203,3 @@ internal fun GemWalletImportKind.inputUiModel() = ImportInputUIModel(
     supportsPhraseSuggestions = supportsPhraseSuggestions(),
     showsViewOnlyWarning = showsViewOnlyWarning(),
 )
-

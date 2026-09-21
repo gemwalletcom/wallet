@@ -1,7 +1,6 @@
 use gem_wallet_connect::{
-    SignDigestType as WcSignDigestType, SignMessageValidation, WCEthereumTransactionData as WcEthereumTransactionData, WalletConnectRequestHandler,
-    WalletConnectTransaction as WcWalletConnectTransaction, WalletConnectTransactionType as WcWalletConnectTransactionType, decode_sign_message, validate_send_transaction,
-    validate_sign_message,
+    SignDigestType as WcSignDigestType, SignMessageValidation, WCEthereumTransactionData as WcEthereumTransactionData, WalletConnectRequestHandler, WalletConnectTransaction as WcWalletConnectTransaction,
+    WalletConnectTransactionType as WcWalletConnectTransactionType, decode_sign_message, validate_send_transaction, validate_sign_message,
 };
 use primitives::{Chain, SimulationWarning, hex};
 
@@ -23,22 +22,13 @@ pub(crate) fn parse_eip712_message(data: &str) -> Option<gem_evm::eip712::EIP712
 }
 
 pub(crate) fn sign_message_validation_warnings(chain: Chain, sign_type: &WcSignDigestType, data: &str, session_domain: &str) -> Vec<SimulationWarning> {
-    let input = SignMessageValidation {
-        chain,
-        sign_type,
-        data,
-        session_domain,
-    };
+    let input = SignMessageValidation { chain, sign_type, data, session_domain };
 
     validate_sign_message(&input).err().into_iter().map(SimulationWarning::validation_error).collect()
 }
 
 pub(crate) fn send_transaction_validation_warnings(transaction_type: &WcWalletConnectTransactionType, data: &str) -> Vec<SimulationWarning> {
-    validate_send_transaction(transaction_type, data)
-        .err()
-        .into_iter()
-        .map(SimulationWarning::validation_error)
-        .collect()
+    validate_send_transaction(transaction_type, data).err().into_iter().map(SimulationWarning::validation_error).collect()
 }
 
 pub(crate) fn decode_ethereum_transaction(data: &str) -> Result<WcEthereumTransactionData, String> {
@@ -59,10 +49,7 @@ mod tests {
     #[test]
     fn test_siws_origin_mismatch_is_a_critical_warning() {
         let data = bs58::encode(include_str!("../../../crates/gem_solana/testdata/siws_sign_in.txt")).into_string();
-        assert_eq!(
-            sign_message_validation_warnings(Chain::Solana, &WcSignDigestType::Base58, &data, "https://example.com"),
-            vec![]
-        );
+        assert_eq!(sign_message_validation_warnings(Chain::Solana, &WcSignDigestType::Base58, &data, "https://example.com"), vec![]);
         assert_eq!(
             sign_message_validation_warnings(Chain::Solana, &WcSignDigestType::Base58, &data, "https://other.xyz"),
             vec![SimulationWarning::validation_error("SIWS domain does not match session origin")]

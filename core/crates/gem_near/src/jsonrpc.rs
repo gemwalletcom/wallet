@@ -31,11 +31,7 @@ impl ToJsonRpcRequest for NearRpc {
 
     fn params(&self) -> serde_json::Value {
         match self {
-            Self::CallFunction {
-                contract_id,
-                method_name,
-                args_base64,
-            } => json!({
+            Self::CallFunction { contract_id, method_name, args_base64 } => json!({
                 "request_type": "call_function",
                 "finality": "final",
                 "account_id": contract_id,
@@ -57,10 +53,7 @@ impl ToJsonRpcRequest for NearRpc {
             Self::GetLatestBlock => json!({"finality": "final"}),
             Self::GetProtocolConfig => json!({"finality": "final"}),
             Self::GetStatus => json!([]),
-            Self::GetTransactionStatus {
-                transaction_hash,
-                sender_account_id,
-            } => json!({
+            Self::GetTransactionStatus { transaction_hash, sender_account_id } => json!({
                 "tx_hash": transaction_hash,
                 "sender_account_id": sender_account_id,
                 "wait_until": "EXECUTED"

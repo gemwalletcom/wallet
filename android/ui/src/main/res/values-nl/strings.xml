@@ -210,7 +210,6 @@
   <string name="errors_connections_no_supported_wallets">Er zijn geen ondersteunde wallets beschikbaar.</string>
   <string name="errors_connections_unsupported_chain">De meegeleverde keten wordt niet ondersteund.</string>
   <string name="errors_swap_amount_too_small">Bedrag te klein</string>
-  <string name="errors_required">%1$s is vereist</string>
   <string name="errors_scan_transaction_malicious_description">Deze transactie kan niet worden voltooid: het adres van de bestemmingswallet is gekoppeld aan verdachte of schadelijke activiteiten.</string>
   <string name="errors_scan_transaction_memo_required">%1$s bestemmingswalletadres vereist een bestemmingstag / memo</string>
   <string name="errors_scan_transaction_malicious_title">Verdachte activiteit</string>
@@ -273,7 +272,7 @@
   <string name="asset_decimals">Decimalen</string>
   <string name="asset_token_id">Token-ID</string>
   <string name="asset_contract">Contract</string>
-  <string name="asset_state_empty_title">Uw transacties verschijnen hier️</string>
+  <string name="asset_state_empty_title">Uw transacties verschijnen hier</string>
   <string name="asset_state_empty_description">Ontvangen, ruilen of kopen %1$s</string>
   <string name="asset_verification_unverified">Ongeverifieerd</string>
   <string name="asset_verification_suspicious">Verdacht</string>
@@ -422,7 +421,7 @@
   <string name="price_alerts_set_alert_set_target_price">Stel een doelprijs in</string>
   <string name="price_alerts_set_alert_current_price">Huidige prijs</string>
   <string name="price_alerts_added_for">Prijswaarschuwing instellen %1$s</string>
-  <string name="price_alerts_state_empty_title">Uw meldingen verschijnen hier️</string>
+  <string name="price_alerts_state_empty_title">Uw meldingen verschijnen hier</string>
   <string name="price_alerts_state_empty_description">Schakel ze in door munten toe te voegen aan de track</string>
   <string name="price_alerts_auto_footer">Waarschuwingen worden geactiveerd bij aanzienlijke prijsbewegingen.</string>
   <string name="price_alerts_set_alert_title">Prijswaarschuwing instellen</string>
@@ -437,7 +436,7 @@
   <string name="lock_privacy_lock">Privacyslot</string>
   <string name="lock_footer">Beveilig de toegang tot deze app op uw apparaat</string>
   <string name="verify_phrase_title">Bevestig</string>
-  <string name="warnings_multi_signature_blocked">Maak geen geld over naar deze %1$s Multi-Signature portemonnee, tenzij u zeker weet dat u de privésleutels beheert. Als u dit niet doet, kunt u worden blootgesteld aan oplichting en kunt u uw bezittingen permanent kwijtraken.</string>
+  <string name="warnings_externally_controlled_account">Dit %1$s-account kan door iemand anders worden beheerd. Stuur er geen geld naartoe, tenzij u zeker weet dat u het zelf beheert, anders kunt u uw bezittingen permanent kwijtraken.</string>
   <string name="sell_title">Verkoop %1$s</string>
   <string name="info_network_fee_title">Netwerkkosten</string>
   <string name="info_watch_wallet_title">Kijk-portemonnee</string>
@@ -489,7 +488,7 @@
   <string name="nft_collection">Collectie</string>
   <string name="nft_save_to_photos">Opslaan in Foto\'s</string>
   <string name="nft_set_as_avatar">Instellen als Avatar</string>
-  <string name="nft_state_empty_title">Uw NFT\'s verschijnen hier️</string>
+  <string name="nft_state_empty_title">Uw NFT\'s verschijnen hier</string>
   <string name="nft_state_empty_description">Ontvang uw eerste NFT</string>
   <string name="nft_report_reason_spam">Spam</string>
   <string name="nft_report_reason_malicious">Kwaadwillend</string>

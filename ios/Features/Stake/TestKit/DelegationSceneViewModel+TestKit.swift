@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import GemstonePrimitivesTestKit
 import protocol Gemstone.GemStakeServiceProtocol
+import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Stake
@@ -16,6 +16,7 @@ public extension DelegationSceneViewModel {
         providerType: StakeProviderType = .stake,
         validators: [DelegationValidator] = [],
         stakeService: any GemStakeServiceProtocol = GemStakeServiceMock(),
+        onNavigate: StakeRouteAction = nil,
     ) -> DelegationSceneViewModel {
         let validator = DelegationValidator.mock(chain, providerType: providerType)
         let base = DelegationBase.mock(state: state, assetId: .mock(chain), rewards: rewards)
@@ -26,8 +27,7 @@ public extension DelegationSceneViewModel {
             asset: chain.asset,
             service: stakeService,
             validators: validators,
-            onAmountInputAction: nil,
-            onTransferAction: nil,
+            onNavigate: onNavigate,
         )
     }
 }

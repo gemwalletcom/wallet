@@ -10,7 +10,7 @@ use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{AssetId, FiatQuote, FiatQuoteType, FiatQuoteUrl, WalletId};
+use primitives::{Asset, AssetId, FiatQuote, FiatQuoteType, FiatQuoteUrl, WalletId};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::assets::GemAssetsService;
@@ -62,6 +62,10 @@ impl GemFiatService {
             .await
             .map_err(GemApiError::from)?
             .quotes)
+    }
+
+    pub async fn asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {
+        self.assets.ensure_asset(asset_id).await
     }
 
     pub async fn get_quote_url(&self, wallet_id: WalletId, quote_id: String) -> Result<FiatQuoteUrl, GemServiceError> {

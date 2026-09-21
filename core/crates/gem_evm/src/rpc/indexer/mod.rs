@@ -152,12 +152,7 @@ impl<C: Client + Clone> EVMTransactionsByAddressProvider<C> {
 impl<C: Client + Clone> ChainTransactions for EVMTransactionsByAddressProvider<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let limit = request.limit.min(MAX_PAGE_SIZE);
-        let operations = self
-            .indexer
-            .providers
-            .iter()
-            .map(|provider| provider.get_transactions_by_address(&request.address, limit))
-            .collect::<Vec<_>>();
+        let operations = self.indexer.providers.iter().map(|provider| provider.get_transactions_by_address(&request.address, limit)).collect::<Vec<_>>();
         let transactions = try_in_order(operations).await?.unwrap_or_default();
         Ok(TransactionsResult::TransactionRequests(
             transactions
@@ -211,10 +206,7 @@ mod tests {
         let blockscout_client = MockClient::new().with_get(|_| Err(ClientError::Http { status: 503, body: Vec::new() }));
         let indexer = EVMIndexer::for_chain(alchemy_client, ankr_client, blockscout_client, "key".to_string(), EVMChain::Ethereum).unwrap();
         let transactions_by_address = EVMTransactionsByAddressProvider::new(Arc::new(indexer));
-        let result = transactions_by_address
-            .get_transactions_by_address(TransactionsRequest::new("0x123".to_string(), 2))
-            .await
-            .unwrap();
+        let result = transactions_by_address.get_transactions_by_address(TransactionsRequest::new("0x123".to_string(), 2)).await.unwrap();
         let transaction_ids = result.transaction_requests().unwrap();
 
         assert_eq!(
@@ -241,10 +233,7 @@ mod tests {
         let indexer = EVMIndexer::for_chain(client.clone(), client.clone(), client, String::new(), EVMChain::SmartChain).unwrap();
         let provider = EVMTransactionsByAddressProvider::new(Arc::new(indexer));
 
-        provider
-            .get_transactions_by_address(TransactionsRequest::new("0x123".to_string(), MAX_PAGE_SIZE + 1))
-            .await
-            .unwrap();
+        provider.get_transactions_by_address(TransactionsRequest::new("0x123".to_string(), MAX_PAGE_SIZE + 1)).await.unwrap();
     }
 
     #[tokio::test]

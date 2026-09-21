@@ -25,7 +25,6 @@ import uniffi.gemstone.GemTransactionStateServiceInterface
 import uniffi.gemstone.GemTransactionsService
 import uniffi.gemstone.GemTransactionsServiceInterface
 import javax.inject.Singleton
-import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemWalletPreferencesService
 import uniffi.gemstone.GemWalletSessionService
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
@@ -42,7 +41,6 @@ object TransactionsModule {
         transactionStore: GemstoneTransactionStore,
         addressStore: GemstoneAddressStore,
         walletPreferencesService: GemWalletPreferencesService,
-        preferencesService: GemPreferencesService,
         walletSessionService: GemWalletSessionService,
         tracker: TransactionStatusService,
     ): GemTransactionsService = GemTransactionsService(
@@ -51,25 +49,18 @@ object TransactionsModule {
         transactionStore,
         addressStore,
         walletPreferencesService,
-        preferencesService,
         walletSessionService,
         tracker,
     )
 
     @Singleton
     @Provides
-    fun provideGemstoneTransactionStore(
-        transactionsDao: TransactionsDao,
-        transactionRunner: StoreTransactionRunner,
-    ): GemstoneTransactionStore = GemstoneTransactionStore(transactionsDao, transactionRunner)
+    fun provideGemstoneTransactionStore(transactionsDao: TransactionsDao, transactionRunner: StoreTransactionRunner): GemstoneTransactionStore = GemstoneTransactionStore(transactionsDao, transactionRunner)
 
     @Singleton
     @Provides
-    fun provideTransactionStateStore(
-        transactionsDao: TransactionsDao,
-        walletStore: GemstoneWalletStore,
-        transactionRunner: StoreTransactionRunner,
-    ): GemstoneTransactionStateStore = GemstoneTransactionStateStore(transactionsDao, walletStore, transactionRunner)
+    fun provideTransactionStateStore(transactionsDao: TransactionsDao, walletStore: GemstoneWalletStore, transactionRunner: StoreTransactionRunner): GemstoneTransactionStateStore =
+        GemstoneTransactionStateStore(transactionsDao, walletStore, transactionRunner)
 
     @Singleton
     @Provides
@@ -85,9 +76,7 @@ object TransactionsModule {
 
     @Singleton
     @Provides
-    fun provideTransactionStatusService(
-        stateService: GemTransactionStateService,
-    ): TransactionStatusService = TransactionStatusService(stateService = stateService)
+    fun provideTransactionStatusService(stateService: GemTransactionStateService): TransactionStatusService = TransactionStatusService(stateService = stateService).also { stateService.setStatus(it) }
 
     @Singleton
     @Provides

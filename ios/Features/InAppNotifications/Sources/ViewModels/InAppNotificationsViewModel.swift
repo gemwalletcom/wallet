@@ -2,7 +2,9 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemNotificationDestination
 import protocol Gemstone.GemNotificationServiceProtocol
+import enum Gemstone.UrlAction
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -14,6 +16,7 @@ import UIKit
 public final class InAppNotificationsViewModel {
     private let service: any GemNotificationServiceProtocol
     private let wallet: Wallet
+    private let onOpenAction: ((UrlAction) -> Void)?
 
     public let query: ObservableQuery<InAppNotificationsRequest>
     public var notifications: [Primitives.InAppNotification] {
@@ -23,9 +26,11 @@ public final class InAppNotificationsViewModel {
     public init(
         wallet: Wallet,
         service: any GemNotificationServiceProtocol,
+        onOpenAction: ((UrlAction) -> Void)? = nil,
     ) {
         self.wallet = wallet
         self.service = service
+        self.onOpenAction = onOpenAction
         query = ObservableQuery(InAppNotificationsRequest(walletId: wallet.id.id), initialValue: [])
     }
 
@@ -44,7 +49,6 @@ public final class InAppNotificationsViewModel {
             transform: { InAppNotificationListItemViewModel(notification: $0) },
         ).build()
     }
-
 }
 
 // MARK: - Actions
@@ -58,7 +62,10 @@ public extension InAppNotificationsViewModel {
         }
     }
 
-    func open(url: URL) {
-        UIApplication.shared.open(url)
+    func open(destination: GemNotificationDestination) {
+        switch destination {
+        case let .inApp(action): onOpenAction?(action)
+        case let .web(url): url.asURL.map { UIApplication.shared.open($0) }
+        }
     }
 }

@@ -2,13 +2,13 @@
 
 import class Gemstone.GemWalletSessionService
 import GemstonePrimitives
+@testable import GemstoneServices
+import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 import Store
 import StoreTestKit
 import Testing
-@testable import GemstoneServices
-import GemstoneServicesTestKit
 
 struct WalletSessionServiceTests {
     @Test

@@ -29,7 +29,7 @@ class Migration_63_64Test {
         InstrumentationRegistry.getInstrumentation(),
         GemDatabase::class.java,
         emptyList(),
-        FrameworkSQLiteOpenHelperFactory()
+        FrameworkSQLiteOpenHelperFactory(),
     )
 
     private lateinit var passwordStore: PasswordStoreMock
@@ -331,7 +331,8 @@ class Migration_63_64Test {
         helper.createDatabase(TEST_DB, 63).apply {
             execSQL("INSERT INTO wallets (id, name, type, position, pinned, `index`, source) VALUES ('$oldWalletId', 'Transaction Test', 'Multicoin', 0, 0, 0, 'Import')")
             execSQL("INSERT INTO accounts (wallet_id, address, chain, derivation_path) VALUES ('$oldWalletId', '$ethAddress', 'Ethereum', 'm/44''/60''/0''/0/0')")
-            execSQL("""
+            execSQL(
+                """
                 INSERT INTO transactions (
                     id, walletId, hash, assetId, feeAssetId, owner, recipient,
                     state, type, blockNumber, sequence, fee, value, direction,
@@ -341,7 +342,8 @@ class Migration_63_64Test {
                     'confirmed', 'transfer', '12345', '1', '0.001', '1.5', 'self_transfer',
                     1234567890, 1234567890
                 )
-            """.trimIndent())
+                """.trimIndent(),
+            )
             execSQL("INSERT INTO session (id, wallet_id, currency) VALUES (1, '$oldWalletId', 'USD')")
             close()
         }

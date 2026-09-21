@@ -4,8 +4,8 @@ import BigInt
 import Components
 import Formatters
 import Foundation
-import GemstonePrimitives
 import enum Gemstone.GemAmountSign
+import GemstonePrimitives
 import Primitives
 import Style
 
@@ -88,21 +88,21 @@ extension AmountDisplay: AmountDisplayable {
 
 // MARK: - FACTORY
 
-extension AmountDisplay {
-    static func symbol(
+public extension AmountDisplay {
+    internal static func symbol(
         asset: Asset,
     ) -> AmountDisplay {
         .symbol(SymbolViewModel(asset: asset))
     }
 
-    public static func numeric(
+    static func numeric(
         data: AssetValuePrice,
         style: AmountDisplayStyle,
     ) -> AmountDisplay {
         .numeric(NumericViewModel(data: data, style: style))
     }
 
-    public static func numeric(
+    static func numeric(
         asset: Asset,
         price: Price? = nil,
         value: BigInt,
@@ -119,37 +119,6 @@ extension AmountDisplay {
                 currencyCode: currency,
                 textStyle: textStyle,
             ),
-        )
-    }
-
-    static func currency(
-        value: Double,
-        currencyCode: String,
-        textStyle: TextStyle? = nil,
-        showSign: Bool = true,
-    ) -> TextValue {
-        let prefix = if showSign, value > 0 {
-            "+"
-        } else if value < 0 {
-            ""
-        } else {
-            ""
-        }
-
-        let color = if value > 0 {
-            Colors.green
-        } else if value < 0 {
-            Colors.red
-        } else {
-            Colors.black
-        }
-
-        let formatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
-        let viewStyle = textStyle ?? TextStyle(font: .body, color: color, fontWeight: .medium)
-
-        return TextValue(
-            text: prefix + formatter.string(value),
-            style: viewStyle,
         )
     }
 }

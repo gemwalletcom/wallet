@@ -1,14 +1,12 @@
 package com.gemwallet.android.features.confirm.presents.localization
 
-import com.wallet.core.primitives.FeeUnitType
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.domains.asset.title
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.perpetual.title
+import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.GemConfirmTitle
-
 
 @Composable
 internal fun GemConfirmTitle.string(): String = when (this) {
@@ -33,12 +31,9 @@ internal fun GemConfirmTitle.string(): String = when (this) {
     GemConfirmTitle.PerpetualModify -> stringResource(R.string.perpetual_modify_position)
 }
 
-
-
 @Composable
 internal fun FeeUnitType.suffix(assetSymbol: String): String = when (this) {
     FeeUnitType.SatVb -> stringResource(R.string.fee_rate_satvB)
     FeeUnitType.Gwei -> stringResource(R.string.fee_rate_gwei)
     FeeUnitType.Native -> assetSymbol
 }
-

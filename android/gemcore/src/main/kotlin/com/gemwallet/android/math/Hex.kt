@@ -15,9 +15,9 @@ fun String.has0xPrefix() = startsWith("0x")
 fun String.remove0x() = if (has0xPrefix()) substring(2) else this
 
 fun Char.hexToBin(): Int = when (this) {
-    in '0' .. '9' -> this - '0'
-    in 'A' .. 'F' -> this - 'A' + 10
-    in 'a' .. 'f' -> this - 'a' + 10
+    in '0'..'9' -> this - '0'
+    in 'A'..'F' -> this - 'A' + 10
+    in 'a'..'f' -> this - 'a' + 10
     else -> throw IllegalArgumentException("$this is not valid hex char")
 }
 

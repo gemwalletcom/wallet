@@ -15,10 +15,7 @@ enum class AcceptTermsDestination {
 @Serializable
 data class AcceptTermsRoute(val destination: AcceptTermsDestination) : NavKey
 
-fun EntryProviderScope<NavKey>.acceptTermsScreen(
-    onCancel: () -> Unit,
-    onAccept: (AcceptTermsDestination) -> Unit,
-) {
+fun EntryProviderScope<NavKey>.acceptTermsScreen(onCancel: () -> Unit, onAccept: (AcceptTermsDestination) -> Unit) {
     entry<AcceptTermsRoute> { route ->
         AcceptTermsScreen(
             onCancel = onCancel,

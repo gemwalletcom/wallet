@@ -93,13 +93,7 @@ pub async fn new_stream(redis_url: &str, cacher_client: &CacherClient, retention
     info_with_fields!("websocket device stream disconnected", status = "ok");
 }
 
-async fn flush_device_stream_events(
-    observer: &StreamObserverClient,
-    cacher_client: &CacherClient,
-    retention: Duration,
-    history_limit: usize,
-    stream: &mut DuplexStream,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn flush_device_stream_events(observer: &StreamObserverClient, cacher_client: &CacherClient, retention: Duration, history_limit: usize, stream: &mut DuplexStream) -> Result<(), Box<dyn Error + Send + Sync>> {
     let now = unix_timestamp() as f64;
     let cache_key = CacheKey::DeviceStreamEvents(observer.device_id(), retention.as_secs());
     let cached_events = cacher_client.take_sorted_set_with_scores(&cache_key.key()).await?;
@@ -119,22 +113,13 @@ async fn flush_device_stream_events(
         let priority = |event: &StreamEvent| match event {
             StreamEvent::Transactions(_) => 0,
             StreamEvent::Balances(_) => 1,
-            StreamEvent::Prices(_)
-            | StreamEvent::PriceAlerts(_)
-            | StreamEvent::Nft(_)
-            | StreamEvent::Perpetual(_)
-            | StreamEvent::InAppNotification(_)
-            | StreamEvent::FiatTransaction(_)
-            | StreamEvent::Support(_) => 0,
+            StreamEvent::Prices(_) | StreamEvent::PriceAlerts(_) | StreamEvent::Nft(_) | StreamEvent::Perpetual(_) | StreamEvent::InAppNotification(_) | StreamEvent::FiatTransaction(_) | StreamEvent::Support(_) => 0,
         };
         left_expiration.total_cmp(right_expiration).then_with(|| priority(left_event).cmp(&priority(right_event)))
     });
     for (index, (_, _, event)) in pending_events.iter().enumerate() {
         if let Err(error) = observer.send_event(stream, event.clone()).await {
-            let remaining_events = pending_events[index..]
-                .iter()
-                .map(|(value, expires_at, _)| (value.clone(), *expires_at))
-                .collect::<Vec<_>>();
+            let remaining_events = pending_events[index..].iter().map(|(value, expires_at, _)| (value.clone(), *expires_at)).collect::<Vec<_>>();
             cacher_client.add_to_sorted_set_cached(cache_key, &remaining_events).await?;
             return Err(error);
         }

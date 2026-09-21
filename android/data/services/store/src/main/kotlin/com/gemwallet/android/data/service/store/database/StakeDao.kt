@@ -24,11 +24,7 @@ interface StakeDao {
     suspend fun upsertDelegations(delegations: List<DbDelegationBase>)
 
     @Transaction
-    suspend fun updateAndDeleteDelegations(
-        walletId: WalletId,
-        delegations: List<DbDelegationBase>,
-        deleteIds: List<String>,
-    ) {
+    suspend fun updateAndDeleteDelegations(walletId: WalletId, delegations: List<DbDelegationBase>, deleteIds: List<String>) {
         if (delegations.isNotEmpty()) {
             upsertDelegations(delegations)
         }
@@ -43,13 +39,13 @@ interface StakeDao {
     @Query(
         "SELECT base.id FROM stake_delegations as base " +
             "INNER JOIN stake_validators as validator ON base.validatorId=validator.id " +
-            "WHERE base.walletId=:walletId AND base.assetId=:assetId AND validator.providerType=:providerType"
+            "WHERE base.walletId=:walletId AND base.assetId=:assetId AND validator.providerType=:providerType",
     )
     suspend fun getDelegationIds(walletId: WalletId, assetId: AssetId, providerType: StakeProviderType): List<String>
 
     @Query(
         "SELECT * FROM stake_validators WHERE assetId=:assetId AND providerType=:providerType " +
-            "ORDER BY apr DESC"
+            "ORDER BY apr DESC",
     )
     fun getValidators(assetId: AssetId, providerType: StakeProviderType): Flow<List<DbDelegationValidator>>
 
@@ -60,7 +56,7 @@ interface StakeDao {
     @Query(
         "SELECT base.* FROM stake_delegations as base " +
             "INNER JOIN stake_validators as validator ON base.validatorId=validator.id " +
-            "WHERE base.walletId=:walletId AND base.assetId=:assetId AND validator.providerType=:providerType"
+            "WHERE base.walletId=:walletId AND base.assetId=:assetId AND validator.providerType=:providerType",
     )
     fun getDelegations(walletId: WalletId, assetId: AssetId, providerType: StakeProviderType): Flow<List<DbDelegationData>>
 
@@ -68,7 +64,7 @@ interface StakeDao {
     @Query(
         "SELECT base.* FROM stake_delegations as base " +
             "INNER JOIN stake_validators as validator ON base.validatorId=validator.id " +
-            "WHERE base.walletId=:walletId AND base.delegationId=:delegationId AND validator.validatorId=:validatorId LIMIT 1"
+            "WHERE base.walletId=:walletId AND base.delegationId=:delegationId AND validator.validatorId=:validatorId LIMIT 1",
     )
     fun getDelegation(walletId: WalletId, validatorId: String, delegationId: String): Flow<DbDelegationData?>
 

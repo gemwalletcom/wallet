@@ -19,17 +19,12 @@ pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<V
     let lists_client = Arc::new(ListsClient::new(database.clone(), vec![Arc::new(CoinGeckoListProvider::new(database, coin_gecko_client))]));
 
     ctx.plan_builder(WorkerService::Lists, &config, shutdown_rx)
-        .jobs_with_config(
-            WorkerJob::UpdateLists,
-            ListProviderName::all(),
-            ConfigParamKey::ListProviderUpdateDuration,
-            |provider, _| {
+        .jobs_with_config(WorkerJob::UpdateLists, ListProviderName::all(), ConfigParamKey::ListProviderUpdateDuration, |provider, _| {
+            let lists_client = lists_client.clone();
+            move |_| {
                 let lists_client = lists_client.clone();
-                move |_| {
-                    let lists_client = lists_client.clone();
-                    async move { lists_client.update_lists(provider).await }
-                }
-            },
-        )
+                async move { lists_client.update_lists(provider).await }
+            }
+        })
         .finish()
 }

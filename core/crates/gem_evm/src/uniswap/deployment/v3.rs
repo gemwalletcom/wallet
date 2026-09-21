@@ -1,10 +1,7 @@
 use super::{UniversalRouterAbi, get_uniswap_permit2_by_chain};
 use primitives::{
     Chain,
-    contract_constants::{
-        BASE_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT, ETHEREUM_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT, OPTIMISM_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT,
-        UNICHAIN_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT, UNISWAP_PERMIT2_CONTRACT,
-    },
+    contract_constants::{BASE_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT, ETHEREUM_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT, OPTIMISM_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT, UNICHAIN_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT, UNISWAP_PERMIT2_CONTRACT},
 };
 
 pub struct V3Deployment {
@@ -163,10 +160,7 @@ pub fn get_universal_router_abi_by_chain_contract(chain: &Chain, contract: &str)
         return Some(deployment.universal_router_abi);
     }
 
-    legacy_uniswap_router_contracts_by_chain(chain)
-        .iter()
-        .any(|router| router.eq_ignore_ascii_case(contract))
-        .then_some(UniversalRouterAbi::V2)
+    legacy_uniswap_router_contracts_by_chain(chain).iter().any(|router| router.eq_ignore_ascii_case(contract)).then_some(UniversalRouterAbi::V2)
 }
 
 fn legacy_uniswap_router_contracts_by_chain(chain: &Chain) -> &'static [&'static str] {
@@ -377,25 +371,13 @@ mod tests {
     #[test]
     fn test_universal_router_abi_recognition() {
         // Current 2.1 router resolves to the V2_1 ABI.
-        assert_eq!(
-            get_universal_router_abi_by_chain_contract(&Chain::Ethereum, "0x4C82D1fBFe28C977cBB58D8C7FF8FCF9F70a2cCA"),
-            Some(UniversalRouterAbi::V2_1)
-        );
+        assert_eq!(get_universal_router_abi_by_chain_contract(&Chain::Ethereum, "0x4C82D1fBFe28C977cBB58D8C7FF8FCF9F70a2cCA"), Some(UniversalRouterAbi::V2_1));
         // Legacy routers must still be recognized (V2) so historical swaps keep parsing.
-        assert_eq!(
-            get_universal_router_abi_by_chain_contract(&Chain::Ethereum, ETHEREUM_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT),
-            Some(UniversalRouterAbi::V2)
-        );
+        assert_eq!(get_universal_router_abi_by_chain_contract(&Chain::Ethereum, ETHEREUM_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT), Some(UniversalRouterAbi::V2));
         assert!(is_uniswap_router_contract_by_chain(&Chain::Ethereum, ETHEREUM_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT));
         // Case-insensitive matching.
-        assert!(is_uniswap_router_contract_by_chain(
-            &Chain::Ethereum,
-            &ETHEREUM_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT.to_lowercase()
-        ));
+        assert!(is_uniswap_router_contract_by_chain(&Chain::Ethereum, &ETHEREUM_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT.to_lowercase()));
         // Unknown contract is not recognized.
-        assert_eq!(
-            get_universal_router_abi_by_chain_contract(&Chain::Ethereum, "0x0000000000000000000000000000000000000000"),
-            None
-        );
+        assert_eq!(get_universal_router_abi_by_chain_contract(&Chain::Ethereum, "0x0000000000000000000000000000000000000000"), None);
     }
 }

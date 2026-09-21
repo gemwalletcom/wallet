@@ -85,16 +85,15 @@ class TinkEncryptedKeyValueStoreInstrumentedTest {
         }
     }
 
-    private fun legacyPreferences() =
-        EncryptedSharedPreferences.create(
-            context,
-            LEGACY_PREFERENCES_FILE_NAME,
-            MasterKey.Builder(context)
-                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-                .build(),
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
-        )
+    private fun legacyPreferences() = EncryptedSharedPreferences.create(
+        context,
+        LEGACY_PREFERENCES_FILE_NAME,
+        MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build(),
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+    )
 
     private fun cleanup() {
         listOf(

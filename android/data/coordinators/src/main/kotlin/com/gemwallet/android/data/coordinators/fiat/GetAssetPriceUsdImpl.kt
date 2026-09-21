@@ -5,9 +5,7 @@ import com.gemwallet.android.data.services.gemstone.stores.GemstonePriceStore
 import com.wallet.core.primitives.AssetId
 import kotlinx.coroutines.flow.Flow
 
-class GetAssetPriceUsdImpl(
-    private val priceStore: GemstonePriceStore,
-) : GetAssetPriceUsd {
+class GetAssetPriceUsdImpl(private val priceStore: GemstonePriceStore) : GetAssetPriceUsd {
 
     override fun invoke(assetId: AssetId): Flow<Double?> = priceStore.observeUsdPrice(assetId)
 }

@@ -8,16 +8,9 @@ import com.gemwallet.android.ui.style.textStyle
 import uniffi.gemstone.GemCandleTooltip
 import uniffi.gemstone.GemCandleTooltipCell
 
-data class CandlestickTooltipCellUIModel(
-    val label: String,
-    val value: String,
-    val style: ListItemTextStyle,
-)
+data class CandlestickTooltipCellUIModel(val label: String, val value: String, val style: ListItemTextStyle)
 
-data class CandlestickTooltipUIModel(
-    val prices: List<CandlestickTooltipCellUIModel>,
-    val summary: List<CandlestickTooltipCellUIModel>,
-)
+data class CandlestickTooltipUIModel(val prices: List<CandlestickTooltipCellUIModel>, val summary: List<CandlestickTooltipCellUIModel>)
 
 fun GemCandleTooltip.uiModel(context: Context): CandlestickTooltipUIModel = CandlestickTooltipUIModel(
     prices = prices.map { it.uiModel(context) },

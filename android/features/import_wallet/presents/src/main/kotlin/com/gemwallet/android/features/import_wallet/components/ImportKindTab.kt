@@ -13,21 +13,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.gemwallet.android.features.import_wallet.viewmodels.ImportTabUIModel
+import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space2
-import com.gemwallet.android.features.import_wallet.viewmodels.ImportTabUIModel
-import com.gemwallet.android.model.ImportType
 
 private val tabHeight = 32.dp
 
 @Composable
-internal fun ImportKindTab(
-    tab: ImportTabUIModel,
-    onSelect: (ImportType) -> Unit,
-) {
+internal fun ImportKindTab(tab: ImportTabUIModel, onSelect: (ImportType) -> Unit) {
     val isSelected = tab.isSelected
     Tab(
         modifier = Modifier
@@ -39,7 +36,7 @@ internal fun ImportKindTab(
                     MaterialTheme.colorScheme.secondary.copy(alpha = alpha10)
                 } else {
                     Color.Transparent
-                }
+                },
             ),
         selected = isSelected,
         onClick = { onSelect(tab.type) },

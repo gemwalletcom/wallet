@@ -49,10 +49,7 @@ import com.gemwallet.android.ui.theme.sceneContentPadding
 import uniffi.gemstone.PublicUrl
 
 @Composable
-fun AcceptTermsScreen(
-    onCancel: CancelAction,
-    onAccept: () -> Unit,
-) {
+fun AcceptTermsScreen(onCancel: CancelAction, onAccept: () -> Unit) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val items = remember { acceptTermRows() }
@@ -64,14 +61,14 @@ fun AcceptTermsScreen(
             MainActionButton(
                 title = stringResource(R.string.onboarding_accept_terms_continue),
                 state = buttonState(enabled = items.indices.all { accepted[it] == true }),
-                onClick = { onAccept() }
+                onClick = { onAccept() },
             )
         },
         actions = {
             IconButton(
                 {
                     uriHandler.open(context, AppUrl.page(PublicUrl.TERMS_OF_SERVICE))
-                }
+                },
             ) {
                 Icon(AppIcons.InfoOutlined, "")
             }
@@ -106,12 +103,7 @@ fun AcceptTermsScreen(
     }
 }
 
-private fun LazyListScope.termItem(
-    isUnderstand: Boolean,
-    @StringRes description: Int,
-    testTag: String,
-    onClick: () -> Unit,
-) {
+private fun LazyListScope.termItem(isUnderstand: Boolean, @StringRes description: Int, testTag: String, onClick: () -> Unit) {
     item {
         Card(
             modifier = Modifier

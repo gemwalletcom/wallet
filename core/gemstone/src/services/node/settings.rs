@@ -1,9 +1,8 @@
-use std::collections::HashMap;
 use std::sync::Arc;
 
 use primitives::Chain;
 
-use super::model::{GemAddNodeError, GemChainSettingsSection, GemExplorerRow, GemNodeCheck, GemNodeRow, GemNodeSelection, GemNodeStatusState};
+use super::model::{GemAddNodeError, GemExplorerRow, GemNodeCheck, GemNodeSelection, GemNodeStatusState};
 use super::rules;
 use super::session::{GemAddNodeSession, GemNodeListSession};
 use crate::gateway::GemGateway;
@@ -30,36 +29,9 @@ impl GemChainSettingsService {
         chain_rules::matching_chains(chain_rules::chains_by_rank(), &query)
     }
 
-    pub fn sections(&self) -> Vec<GemChainSettingsSection> {
-        vec![GemChainSettingsSection::Nodes, GemChainSettingsSection::Explorer]
-    }
-
     pub fn explorer_rows(&self, chain: Chain) -> Vec<GemExplorerRow> {
         let selected = self.explorer.get_explorer_name(chain);
-        self.explorer
-            .get_explorers(chain)
-            .into_iter()
-            .map(|name| GemExplorerRow {
-                is_selected: name == selected,
-                name,
-            })
-            .collect()
-    }
-
-    pub fn node_rows(&self, chain: Chain, nodes: Vec<GemNodeSelection>, statuses: HashMap<String, GemNodeStatusState>) -> Vec<GemNodeRow> {
-        nodes
-            .into_iter()
-            .map(|node| {
-                let status = statuses.get(&node.url).cloned().unwrap_or(GemNodeStatusState::Loading);
-                GemNodeRow {
-                    title: node.title(),
-                    subtitle: status.subtitle(),
-                    latency_status: status.latency_status(),
-                    can_delete: rules::can_delete_node(chain, &node.url),
-                    node,
-                }
-            })
-            .collect()
+        self.explorer.get_explorers(chain).into_iter().map(|name| GemExplorerRow { is_selected: name == selected, name }).collect()
     }
 
     pub fn set_explorer_name(&self, chain: Chain, name: String) -> Result<(), GemServiceError> {
@@ -109,11 +81,7 @@ impl GemChainSettingsService {
 
 #[cfg(test)]
 mod tests {
-    use primitives::node_config::NodeRegion;
-
-    use super::super::model::GemNodeSubtitle;
     use super::*;
-    use crate::services::node::rules;
 
     #[test]
     fn test_exactly_one_explorer_row_is_selected_and_it_follows_the_stored_name() {
@@ -126,38 +94,8 @@ mod tests {
 
         let other = names.last().unwrap().clone();
         service.set_explorer_name(Chain::Ethereum, other.clone()).unwrap();
-        let selected: Vec<String> = service
-            .explorer_rows(Chain::Ethereum)
-            .into_iter()
-            .filter(|row| row.is_selected)
-            .map(|row| row.name)
-            .collect();
+        let selected: Vec<String> = service.explorer_rows(Chain::Ethereum).into_iter().filter(|row| row.is_selected).map(|row| row.name).collect();
 
         assert_eq!(selected, vec![other]);
-    }
-
-    #[test]
-    fn test_node_rows_pair_each_node_with_its_own_status_and_defaults_the_rest_to_loading() {
-        let service = GemChainSettingsService::mock();
-        let default_url = rules::region_node(Chain::Ethereum, NodeRegion::Us).url;
-        let selections = rules::node_selections(vec![rules::region_node(Chain::Ethereum, NodeRegion::Us)], &default_url);
-        let added = GemNodeSelection {
-            host: "node.example.com".to_string(),
-            ..GemNodeSelection::mock("https://node.example.com")
-        };
-        let nodes = vec![selections[0].clone(), added.clone()];
-        let statuses = HashMap::from([(added.url.clone(), GemNodeStatusState::mock_result(21_000_000))]);
-
-        let rows = service.node_rows(Chain::Ethereum, nodes, statuses);
-
-        assert_eq!(rows.len(), 2);
-        assert_eq!(
-            rows[0].subtitle,
-            GemNodeSubtitle::LatestBlock { value: "-".to_string() },
-            "a node with no status yet is still loading"
-        );
-        assert_eq!(rows[1].subtitle, GemNodeSubtitle::LatestBlock { value: "21,000,000".to_string() });
-        assert!(!rows[0].can_delete);
-        assert!(rows[1].can_delete);
     }
 }

@@ -21,22 +21,18 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.filters.FormDialog
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.gemwallet.android.ext.errorText
-import com.gemwallet.android.ui.localization.text
 
 @Composable
-internal fun GetStartedDialog(
-    isVisible: Boolean,
-    onUsername: (String, (Exception?) -> Unit) -> Unit,
-    onDismiss: () -> Unit,
-) {
+internal fun GetStartedDialog(isVisible: Boolean, onUsername: (String, (Exception?) -> Unit) -> Unit, onDismiss: () -> Unit) {
     var username by remember { mutableStateOf("") }
     var showError by remember { mutableStateOf<Exception?>(null) }
     var showProgress by remember { mutableStateOf(false) }
@@ -61,7 +57,7 @@ internal fun GetStartedDialog(
     val done: @Composable () -> Unit = {
         TextButton(
             onClick = doneAction,
-            enabled = !showProgress
+            enabled = !showProgress,
         ) {
             if (showProgress) {
                 CircularProgressIndicator16()
@@ -99,7 +95,7 @@ internal fun GetStartedDialog(
             text = stringResource(R.string.rewards_create_referral_code_info),
             color = MaterialTheme.colorScheme.secondary,
             style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Companion.Center
+            textAlign = TextAlign.Companion.Center,
         )
         Spacer16()
     }
@@ -115,7 +111,7 @@ internal fun GetStartedDialog(
             },
             text = {
                 Text(showError?.errorText()?.text() ?: return@AlertDialog)
-            }
+            },
         )
     }
 }

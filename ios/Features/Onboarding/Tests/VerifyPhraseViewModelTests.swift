@@ -1,17 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import enum Gemstone.GemServiceError
+import struct Gemstone.GemVerifyPhraseSession
 @testable import Onboarding
 import Primitives
 import Testing
 
 @MainActor
 struct VerifyPhraseViewModelTests {
-    private let words = ["alpha", "beta", "gamma", "delta"]
+    private let session = GemVerifyPhraseSession(words: ["alpha", "beta", "gamma", "delta"], choices: ["alpha", "beta", "gamma", "delta"], picked: [])
 
     @Test
     func failedCreationReEnablesTheButtonAndShowsTheError() async {
-        let model = VerifyPhraseViewModel(words: words, shuffledWords: words) { _ in throw AnyError("keystore write failed") }
+        let model = VerifyPhraseViewModel(session: session) { _ in throw AnyError("keystore write failed") }
         model.onContinue()
 
         await model.complete()
@@ -22,7 +23,7 @@ struct VerifyPhraseViewModelTests {
 
     @Test
     func cancelledPromptReEnablesTheButtonWithoutAnError() async {
-        let model = VerifyPhraseViewModel(words: words, shuffledWords: words) { _ in throw GemServiceError.Cancelled }
+        let model = VerifyPhraseViewModel(session: session) { _ in throw GemServiceError.Cancelled }
         model.onContinue()
 
         await model.complete()
@@ -33,12 +34,34 @@ struct VerifyPhraseViewModelTests {
 
     @Test
     func successfulCreationKeepsTheButtonBusyWhileTheFlowMovesOn() async {
-        let model = VerifyPhraseViewModel(words: words, shuffledWords: words) { _ in }
+        let model = VerifyPhraseViewModel(session: session) { _ in }
         model.onContinue()
 
         await model.complete()
 
         #expect(model.buttonState == .loading(showProgress: true))
         #expect(model.isPresentingAlertMessage == nil)
+    }
+
+    @Test
+    func pickingEveryWordInOrderEnablesTheButton() {
+        let model = VerifyPhraseViewModel(session: session) { _ in }
+
+        model.selectRows.forEach(model.pickWord)
+
+        #expect(model.buttonState == .normal)
+        #expect(model.selectRows.allSatisfy(model.isVerified))
+        #expect(model.wordsIndex == nil)
+    }
+
+    @Test
+    func aWrongWordLeavesTheButtonDisabled() {
+        let model = VerifyPhraseViewModel(session: session) { _ in }
+
+        model.pickWord(index: model.selectRows[1])
+
+        #expect(model.buttonState == .disabled)
+        #expect(model.isVerified(index: model.selectRows[1]) == false)
+        #expect(model.wordsIndex == 0)
     }
 }

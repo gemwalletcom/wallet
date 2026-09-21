@@ -48,11 +48,7 @@ pub fn format_token_id(chain: Chain, token_id: String) -> Option<String> {
         }
         Chain::Algorand => token_id.parse::<i32>().ok().map(|token_id| token_id.to_string()),
         Chain::Sui => {
-            if token_id.len() >= 64
-                && token_id.starts_with("0x")
-                && token_id.matches("::").count() == 2
-                && !token_id.starts_with("0x0000000000000000000000000000000000000000000000000000000000000002")
-            {
+            if token_id.len() >= 64 && token_id.starts_with("0x") && token_id.matches("::").count() == 2 && !token_id.starts_with("0x0000000000000000000000000000000000000000000000000000000000000002") {
                 Some(token_id)
             } else {
                 None
@@ -104,16 +100,10 @@ mod tests {
     #[test]
     fn test_format_token_id_sui() {
         let chain = Chain::Sui;
-        assert_eq!(
-            format_token_id(chain, "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef".to_string()),
-            None
-        );
+        assert_eq!(format_token_id(chain, "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef".to_string()), None);
         assert_eq!(format_token_id(chain, "0x2::sui::SUI".to_string()), None);
         assert_eq!(format_token_id(chain, SUI_WAL_TOKEN_ID.to_string()), Some(SUI_WAL_TOKEN_ID.to_string()));
-        assert_eq!(
-            format_token_id(chain, "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI".to_string()),
-            None
-        );
+        assert_eq!(format_token_id(chain, "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI".to_string()), None);
     }
 
     #[test]
@@ -136,10 +126,7 @@ mod tests {
             format_token_id(chain, "534F4C4F00000000000000000000000000000000.rsoLo2S1kiGeCcn6hCUXVrCpGMWLrRrLZz".to_string()),
             Some("rsoLo2S1kiGeCcn6hCUXVrCpGMWLrRrLZz".to_string())
         );
-        assert_eq!(
-            format_token_id(chain, "rsoLo2S1kiGeCcn6hCUXVrCpGMWLrRrLZz".to_string()),
-            Some("rsoLo2S1kiGeCcn6hCUXVrCpGMWLrRrLZz".to_string())
-        );
+        assert_eq!(format_token_id(chain, "rsoLo2S1kiGeCcn6hCUXVrCpGMWLrRrLZz".to_string()), Some("rsoLo2S1kiGeCcn6hCUXVrCpGMWLrRrLZz".to_string()));
     }
 
     #[test]

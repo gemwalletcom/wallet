@@ -17,55 +17,18 @@ use std::ops::Deref;
 #[derive(Debug, Clone)]
 #[allow(clippy::large_enum_variant)]
 pub enum TransactionInputType {
-    Transfer {
-        asset: Asset,
-    },
-    Deposit {
-        asset: Asset,
-    },
-    Withdrawal {
-        asset: Asset,
-    },
-    Swap {
-        from_asset: Asset,
-        to_asset: Asset,
-        swap_data: SwapData,
-    },
-    Stake {
-        asset: Asset,
-        stake_type: StakeType,
-    },
-    TokenApprove {
-        asset: Asset,
-        approval_data: ApprovalData,
-    },
-    Generic {
-        asset: Asset,
-        metadata: ApplicationMetadata,
-        extra: TransferDataExtra,
-    },
-    Payment {
-        asset: Asset,
-        invoice: PaymentInvoice,
-        extra: TransferDataExtra,
-    },
-    TransferNft {
-        asset: Asset,
-        nft_asset: NFTAsset,
-    },
-    Account {
-        asset: Asset,
-        account_type: AccountDataType,
-    },
-    Perpetual {
-        asset: Asset,
-        perpetual_type: PerpetualType,
-    },
-    Earn {
-        asset: Asset,
-        earn_type: EarnType,
-        data: ContractCallData,
-    },
+    Transfer { asset: Asset },
+    Deposit { asset: Asset },
+    Withdrawal { asset: Asset },
+    Swap { from_asset: Asset, to_asset: Asset, swap_data: SwapData },
+    Stake { asset: Asset, stake_type: StakeType },
+    TokenApprove { asset: Asset, approval_data: ApprovalData },
+    Generic { asset: Asset, metadata: ApplicationMetadata, extra: TransferDataExtra },
+    Payment { asset: Asset, invoice: PaymentInvoice, extra: TransferDataExtra },
+    TransferNft { asset: Asset, nft_asset: NFTAsset },
+    Account { asset: Asset, account_type: AccountDataType },
+    Perpetual { asset: Asset, perpetual_type: PerpetualType },
+    Earn { asset: Asset, earn_type: EarnType, data: ContractCallData },
 }
 
 impl TransactionInputType {
@@ -248,11 +211,7 @@ impl SignerInput {
     pub fn swap_gas_limit(&self) -> Result<u64, SignerError> {
         let swap_data = &self.input_type.get_swap_data()?.data;
         match &swap_data.approval {
-            Some(_) => swap_data
-                .gas_limit
-                .as_ref()
-                .and_then(|gas_limit| gas_limit.parse().ok())
-                .ok_or_else(|| SignerError::invalid_input("missing swap gas limit")),
+            Some(_) => swap_data.gas_limit.as_ref().and_then(|gas_limit| gas_limit.parse().ok()).ok_or_else(|| SignerError::invalid_input("missing swap gas limit")),
             None => self.fee.gas_limit(),
         }
     }
@@ -413,23 +372,14 @@ mod tests {
         let perpetual_type = PerpetualType::Open {
             data: PerpetualConfirmData::mock(PerpetualDirection::Long, 11, None, None),
         };
-        let perpetual_input = TransactionInputType::Perpetual {
-            asset: Asset::mock(),
-            perpetual_type,
-        };
+        let perpetual_input = TransactionInputType::Perpetual { asset: Asset::mock(), perpetual_type };
         match perpetual_input.get_perpetual_type().unwrap() {
             PerpetualType::Open { data } => assert_eq!(data.asset_index, 11),
             PerpetualType::Close { .. } | PerpetualType::Modify { .. } | PerpetualType::Increase { .. } | PerpetualType::Reduce { .. } => panic!("expected open perpetual type"),
         }
 
-        assert_eq!(
-            TransactionInputType::Transfer { asset: Asset::mock() }.get_stake_type().unwrap_err(),
-            "expected stake transaction"
-        );
-        assert_eq!(
-            TransactionInputType::Transfer { asset: Asset::mock() }.get_perpetual_type().unwrap_err(),
-            "expected perpetual transaction"
-        );
+        assert_eq!(TransactionInputType::Transfer { asset: Asset::mock() }.get_stake_type().unwrap_err(), "expected stake transaction");
+        assert_eq!(TransactionInputType::Transfer { asset: Asset::mock() }.get_perpetual_type().unwrap_err(), "expected perpetual transaction");
     }
 
     #[test]

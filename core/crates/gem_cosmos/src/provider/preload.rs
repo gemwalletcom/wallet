@@ -51,9 +51,7 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_get_transaction_fee_rates() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         for chain in [CosmosChain::Cosmos, CosmosChain::Osmosis, CosmosChain::Injective] {
-            let input_type = TransactionInputType::Transfer {
-                asset: Asset::from_chain(chain.as_chain()),
-            };
+            let input_type = TransactionInputType::Transfer { asset: Asset::from_chain(chain.as_chain()) };
             let rates = create_test_client(chain).get_transaction_fee_rates(input_type).await?;
 
             assert!(rates.iter().all(|rate| rate.gas_price_type.gas_price() > BigInt::ZERO));

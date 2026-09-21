@@ -119,10 +119,7 @@ mod tests {
             gas_limit: 300_000,
             nonce: 0,
             fee_token: TEMPO_BRIDGED_USDC_TOKEN_ID.parse().unwrap(),
-            calls: vec![TransactionCall::new(
-                crate::testkit::TEMPO_TEST_ROUTER_ADDRESS.parse().unwrap(),
-                Bytes::from(vec![0xab, 0xcd]),
-            )],
+            calls: vec![TransactionCall::new(crate::testkit::TEMPO_TEST_ROUTER_ADDRESS.parse().unwrap(), Bytes::from(vec![0xab, 0xcd]))],
         };
         let signed = transaction.sign(&TEST_PRIVATE_KEY).unwrap();
 

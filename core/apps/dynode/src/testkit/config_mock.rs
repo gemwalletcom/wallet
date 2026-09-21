@@ -4,35 +4,13 @@ use serde_json::json;
 
 use crate::config::path::PathAllowlist;
 use crate::config::routes::{EndpointConfig, RouteConfig, Selection};
-use crate::config::{
-    AllowlistConfig, CacheConfig, ChainConfig, ChainTypesConfig, Config, ErrorMatcherConfig, FailureTriggerConfig, MemoryConfig, MetricsConfig, MonitoringConfig, RetryConfig,
-    RoutesConfig, Url,
-};
+use crate::config::{AllowlistConfig, CacheConfig, ChainConfig, ChainTypesConfig, Config, ErrorMatcherConfig, FailureTriggerConfig, MemoryConfig, MetricsConfig, MonitoringConfig, RetryConfig, RoutesConfig, Url};
 
 impl Config {
     pub fn mock() -> Self {
-        let mut config: Config = FileConfig::builder()
-            .add_source(File::from_str(include_str!("../../config.yml"), FileFormat::Yaml))
-            .build()
-            .unwrap()
-            .try_deserialize()
-            .unwrap();
-        config.chains = Some(
-            FileConfig::builder()
-                .add_source(File::from_str(include_str!("../../chains.yml"), FileFormat::Yaml))
-                .build()
-                .unwrap()
-                .try_deserialize()
-                .unwrap(),
-        );
-        config.routes = Some(
-            FileConfig::builder()
-                .add_source(File::from_str(include_str!("../../routes.yml"), FileFormat::Yaml))
-                .build()
-                .unwrap()
-                .try_deserialize()
-                .unwrap(),
-        );
+        let mut config: Config = FileConfig::builder().add_source(File::from_str(include_str!("../../config.yml"), FileFormat::Yaml)).build().unwrap().try_deserialize().unwrap();
+        config.chains = Some(FileConfig::builder().add_source(File::from_str(include_str!("../../chains.yml"), FileFormat::Yaml)).build().unwrap().try_deserialize().unwrap());
+        config.routes = Some(FileConfig::builder().add_source(File::from_str(include_str!("../../routes.yml"), FileFormat::Yaml)).build().unwrap().try_deserialize().unwrap());
         config
     }
 }
@@ -77,10 +55,7 @@ impl EndpointConfig {
 
 impl Url {
     pub fn mock(url: &str) -> Self {
-        Self {
-            url: url.to_string(),
-            headers: None,
-        }
+        Self { url: url.to_string(), headers: None }
     }
 }
 
@@ -139,9 +114,7 @@ impl PathAllowlist {
 
 impl CacheConfig {
     pub fn mock() -> Self {
-        Self {
-            memory: MemoryConfig { max: 64_000_000 },
-        }
+        Self { memory: MemoryConfig { max: 64_000_000 } }
     }
 }
 

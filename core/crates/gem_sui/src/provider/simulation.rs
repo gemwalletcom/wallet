@@ -68,11 +68,7 @@ mod chain_integration_tests {
         let result = client.simulate_transaction(SimulationInput::new(encoded_transaction)).await?;
 
         assert!(result.warnings.is_empty());
-        let change = result
-            .balance_changes
-            .iter()
-            .find(|change| change.asset_id == AssetId::from_chain(Chain::Sui))
-            .ok_or("missing sender SUI balance change")?;
+        let change = result.balance_changes.iter().find(|change| change.asset_id == AssetId::from_chain(Chain::Sui)).ok_or("missing sender SUI balance change")?;
         assert!(change.value < BigInt::ZERO);
         assert_eq!(change.symbol.as_deref(), Some("SUI"));
         Ok(())

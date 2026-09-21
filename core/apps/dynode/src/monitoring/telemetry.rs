@@ -81,15 +81,8 @@ fn log_observation(message: &'static str, chain: &str, observation: &NodeStatusO
     }
 }
 
-fn emit_event<I>(
-    message: &'static str,
-    chain: &str,
-    fields: I,
-    latency: &DurationMs,
-    latest: Option<u64>,
-    current: Option<u64>,
-    sink: impl Fn(&'static str, &[(&str, &dyn Display)]),
-) where
+fn emit_event<I>(message: &'static str, chain: &str, fields: I, latency: &DurationMs, latest: Option<u64>, current: Option<u64>, sink: impl Fn(&'static str, &[(&str, &dyn Display)]))
+where
     I: IntoIterator<Item = (&'static str, String)>,
 {
     let mut values = Vec::new();

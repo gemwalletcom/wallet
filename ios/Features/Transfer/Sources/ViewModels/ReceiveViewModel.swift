@@ -1,6 +1,7 @@
 import Components
 import Foundation
-import class Gemstone.GemAddressService
+import func Gemstone.addressCopy
+import struct Gemstone.GemReceiveNetworks
 import protocol Gemstone.GemReceiveServiceProtocol
 import GemstonePrimitives
 import Localization
@@ -25,7 +26,8 @@ public final class ReceiveViewModel: Sendable {
     private let wallet: Wallet
     private let service: any GemReceiveServiceProtocol
     private let generator = QRCodeGenerator()
-    private(set) var networkAssetIds: [AssetId]
+    let networks: GemReceiveNetworks
+    private(set) var selectNetworkTask: Task<Void, Never>?
 
     private init(
         asset: Asset,
@@ -38,11 +40,11 @@ public final class ReceiveViewModel: Sendable {
         self.wallet = wallet
         self.address = address
         self.service = service
-        networkAssetIds = service.networkAssetIds(
+        networks = service.networks(
             assetId: asset.id.identifier,
             associations: associations.map(\.assetId.identifier),
             wallet: wallet.toGem(),
-        ).map { AssetId(core: $0) }
+        )
     }
 
     public convenience init(assetData: AssetData, wallet: Wallet, service: any GemReceiveServiceProtocol) {
@@ -66,11 +68,7 @@ public final class ReceiveViewModel: Sendable {
     }
 
     var title: String {
-        Localized.Receive.title("")
-    }
-
-    var addressShort: String {
-        GemAddressService.shared.format(address: address, chain: assetModel.asset.chain)
+        Localized.Wallet.receive
     }
 
     var copyTitle: String {
@@ -84,19 +82,16 @@ public final class ReceiveViewModel: Sendable {
     }
 
     var copyModel: CopyTypeViewModel {
-        CopyTypeViewModel(
-            type: .address(assetModel.asset, address: addressShort),
-            copyValue: address,
-        )
+        CopyTypeViewModel(content: addressCopy(chain: assetModel.asset.chain.toGem(), address: address))
     }
 
     var showNetworkSelector: Bool {
-        networkAssetIds.count > 1
+        networks.showsSelector
     }
 
     var networkSelectorModel: ReceiveNetworkSelectorViewModel {
         ReceiveNetworkSelectorViewModel(
-            assetIds: networkAssetIds,
+            assetIds: networks.assetIds.map { AssetId(core: $0) },
         )
     }
 
@@ -131,22 +126,16 @@ public final class ReceiveViewModel: Sendable {
         return [address]
     }
 
-    private func enableAsset() async {
+    private func selectNetwork(assetId: AssetId) async {
         do {
-            try await service.enableAsset(walletId: wallet.id.id, assetId: assetModel.asset.id.identifier)
+            let asset = try await service.asset(assetId: assetId.identifier).toPrimitives()
+            let account = try wallet.account(for: asset.chain)
+            try Task.checkCancellation()
+            assetModel = AssetViewModel(asset: asset)
+            address = account.address
         } catch {
-            debugLog("ReceiveViewModel enableAsset error: \(error)")
-        }
-    }
-
-    private func syncNetworkAssetIds() async {
-        do {
-            networkAssetIds = try await service.syncNetworkAssetIds(
-                assetId: assetModel.asset.id.identifier,
-                wallet: wallet.toGem(),
-            ).map { AssetId(core: $0) }
-        } catch {
-            debugLog("ReceiveViewModel syncNetworkAssetIds error: \(error)")
+            guard !error.isCancelled else { return }
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
 
@@ -165,11 +154,11 @@ public final class ReceiveViewModel: Sendable {
 // MARK: - Actions
 
 extension ReceiveViewModel {
-    func onTaskOnce() {
-        Task {
-            async let enabled: Void = enableAsset()
-            async let synced: Void = syncNetworkAssetIds()
-            _ = await (enabled, synced)
+    func onChangeAsset() async {
+        do {
+            try await service.enableAsset(walletId: wallet.id.id, assetId: assetModel.asset.id.identifier)
+        } catch {
+            debugLog("ReceiveViewModel enableAsset error: \(error)")
         }
     }
 
@@ -181,17 +170,8 @@ extension ReceiveViewModel {
         presentation = nil
         guard let assetId = items.first?.assetId, assetId != assetModel.asset.id else { return }
 
-        Task {
-            do {
-                let asset = try await service.asset(assetId: assetId.identifier).toPrimitives()
-                let account = try wallet.account(for: asset.chain)
-                assetModel = AssetViewModel(asset: asset)
-                address = account.address
-                await enableAsset()
-            } catch {
-                isPresentingAlertMessage = AlertMessage(error: error)
-            }
-        }
+        selectNetworkTask?.cancel()
+        selectNetworkTask = Task { await selectNetwork(assetId: assetId) }
     }
 
     func onShareSheet() {

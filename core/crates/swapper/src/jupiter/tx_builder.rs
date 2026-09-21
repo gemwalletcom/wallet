@@ -44,18 +44,13 @@ impl BuildResponse {
             .map(|(key, addresses)| AddressLookupTableAccount::new(key, addresses))
             .collect::<Vec<_>>();
 
-        let transaction =
-            TransactionBuilder::build_v0_transaction(payer, self.blockhash_with_metadata.blockhash, &instructions, &lookup_tables).map_err(SwapperError::transaction_error)?;
+        let transaction = TransactionBuilder::build_v0_transaction(payer, self.blockhash_with_metadata.blockhash, &instructions, &lookup_tables).map_err(SwapperError::transaction_error)?;
         if transaction.num_required_signatures() != 1 {
             return Err(SwapperError::transaction_error("Jupiter transaction requires more than one signer"));
         }
         let transaction = transaction.serialize().map_err(SwapperError::transaction_error)?;
         if transaction.len() > MAX_TRANSACTION_SIZE {
-            return Err(SwapperError::transaction_error(format!(
-                "Jupiter transaction size {} exceeds maximum of {} bytes",
-                transaction.len(),
-                MAX_TRANSACTION_SIZE
-            )));
+            return Err(SwapperError::transaction_error(format!("Jupiter transaction size {} exceeds maximum of {} bytes", transaction.len(), MAX_TRANSACTION_SIZE)));
         }
         Ok(encode_base64(&transaction))
     }

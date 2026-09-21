@@ -37,12 +37,7 @@ impl PriceAssetsProvider for JupiterProvider {
     }
 
     async fn get_mappings_for_asset_id(&self, asset_id: &AssetId) -> Result<Vec<AssetPriceMapping>, Box<dyn Error + Send + Sync>> {
-        Ok(asset_id
-            .token_id
-            .clone()
-            .map(|token_id| AssetPriceMapping::new(asset_id.clone(), token_id))
-            .into_iter()
-            .collect())
+        Ok(asset_id.token_id.clone().map(|token_id| AssetPriceMapping::new(asset_id.clone(), token_id)).into_iter().collect())
     }
 
     async fn get_mappings_for_price_id(&self, provider_price_id: &str) -> Result<Vec<AssetPriceMapping>, Box<dyn Error + Send + Sync>> {

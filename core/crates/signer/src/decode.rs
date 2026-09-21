@@ -34,9 +34,7 @@ pub fn supports_private_key_import(chain: &Chain) -> bool {
 
 fn scheme_for_chain(chain: &Chain) -> SignatureScheme {
     match chain.chain_type() {
-        ChainType::Solana | ChainType::Ton | ChainType::Aptos | ChainType::Sui | ChainType::Near | ChainType::Stellar | ChainType::Algorand | ChainType::Polkadot => {
-            SignatureScheme::Ed25519
-        }
+        ChainType::Solana | ChainType::Ton | ChainType::Aptos | ChainType::Sui | ChainType::Near | ChainType::Stellar | ChainType::Algorand | ChainType::Polkadot => SignatureScheme::Ed25519,
         ChainType::Cardano => SignatureScheme::Ed25519CardanoExtended,
         _ => SignatureScheme::Secp256k1,
     }
@@ -198,20 +196,14 @@ mod tests {
     fn test_decode_stellar_strkey() {
         let bytes = decode_private_key(&Chain::Stellar, "SA6XNHUKMW4QAKSHB2NOZ4SYP34ERYVAWSBTEDREYSJ2LEJ5LFHLTIRJ").unwrap();
         assert_eq!(hex::encode(bytes.as_slice()), "3d769e8a65b9002a470e9aecf2587ef848e2a0b483320e24c493a5913d594eb9");
-        assert_eq!(
-            encode_private_key(&Chain::Stellar, &bytes).unwrap(),
-            "0x3d769e8a65b9002a470e9aecf2587ef848e2a0b483320e24c493a5913d594eb9"
-        );
+        assert_eq!(encode_private_key(&Chain::Stellar, &bytes).unwrap(), "0x3d769e8a65b9002a470e9aecf2587ef848e2a0b483320e24c493a5913d594eb9");
     }
 
     #[test]
     fn test_decode_near_prefixed_base58() {
         let private_key = [7u8; 32];
         let keypair = ed25519_dalek::SigningKey::from_bytes(&private_key).to_keypair_bytes();
-        let values = [
-            format!("ed25519:{}", bs58::encode(private_key).into_string()),
-            format!("ed25519:{}", bs58::encode(keypair).into_string()),
-        ];
+        let values = [format!("ed25519:{}", bs58::encode(private_key).into_string()), format!("ed25519:{}", bs58::encode(keypair).into_string())];
 
         for value in values {
             assert_eq!(decode_private_key(&Chain::Near, &value).unwrap().as_slice(), private_key);

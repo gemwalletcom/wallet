@@ -9,12 +9,12 @@ import Testing
 
 struct SupportChatDayBuilderTests {
     @Test
-    func groupsMessagesByDaySortedAscending() {
+    func groupsMessagesByDaySortedAscending() throws {
         let calendar = Calendar.current
-        let days = SupportChatDayBuilder.mock(messages: [
-            .mock(id: "a", createdAt: calendar.date(from: DateComponents(year: 2026, month: 1, day: 2, hour: 12))!),
-            .mock(id: "b", createdAt: calendar.date(from: DateComponents(year: 2026, month: 1, day: 1, hour: 12))!),
-            .mock(id: "c", createdAt: calendar.date(from: DateComponents(year: 2026, month: 1, day: 3, hour: 12))!),
+        let days = try SupportChatDayBuilder.mock(messages: [
+            .mock(id: "a", createdAt: #require(calendar.date(from: DateComponents(year: 2026, month: 1, day: 2, hour: 12)))),
+            .mock(id: "b", createdAt: #require(calendar.date(from: DateComponents(year: 2026, month: 1, day: 1, hour: 12)))),
+            .mock(id: "c", createdAt: #require(calendar.date(from: DateComponents(year: 2026, month: 1, day: 3, hour: 12)))),
         ]).build()
 
         #expect(days.count == 3)
@@ -24,11 +24,11 @@ struct SupportChatDayBuilderTests {
     }
 
     @Test
-    func keepsSameDayDifferentHoursTogether() {
+    func keepsSameDayDifferentHoursTogether() throws {
         let calendar = Calendar.current
-        let days = SupportChatDayBuilder.mock(messages: [
-            .mock(id: "a", createdAt: calendar.date(from: DateComponents(year: 2026, month: 1, day: 1, hour: 8))!),
-            .mock(id: "b", createdAt: calendar.date(from: DateComponents(year: 2026, month: 1, day: 1, hour: 20))!),
+        let days = try SupportChatDayBuilder.mock(messages: [
+            .mock(id: "a", createdAt: #require(calendar.date(from: DateComponents(year: 2026, month: 1, day: 1, hour: 8)))),
+            .mock(id: "b", createdAt: #require(calendar.date(from: DateComponents(year: 2026, month: 1, day: 1, hour: 20)))),
         ]).build()
 
         #expect(days.count == 1)
@@ -37,8 +37,8 @@ struct SupportChatDayBuilderTests {
     }
 
     @Test
-    func groupsCarryTheSenderAndTheBubbles() {
-        let date = Calendar.current.date(from: DateComponents(year: 2026, month: 1, day: 1, hour: 12))!
+    func groupsCarryTheSenderAndTheBubbles() throws {
+        let date = try #require(Calendar.current.date(from: DateComponents(year: 2026, month: 1, day: 1, hour: 12)))
         let groups = SupportChatDayBuilder.mock(messages: [
             .mock(id: "a", sender: .user, createdAt: date),
             .mock(id: "b", sender: .agent(.mock(name: "Gemma")), createdAt: date),

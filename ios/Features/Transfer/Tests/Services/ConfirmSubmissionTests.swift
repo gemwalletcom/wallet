@@ -1,11 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 import enum Gemstone.GemConfirmError
-import enum Gemstone.GemExecuteResult
 import struct Gemstone.GemSimulationBalanceChange
+import struct Gemstone.GemSimulationPayloadRow
 import struct Gemstone.GemSimulationValue
+import enum Gemstone.GemSubmitResult
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServices
@@ -16,7 +17,6 @@ import PrimitivesTestKit
 import Store
 import StoreTestKit
 import Testing
-import struct Gemstone.SimulationPayloadField
 @testable import Transfer
 import TransferTestKit
 
@@ -24,13 +24,12 @@ import TransferTestKit
 struct ConfirmSubmissionTests {
     @Test
     func confirmReportsEveryHashAndTracksSentTransactions() async throws {
-        let tracked = Primitives.Transaction.mock()
         let reported = ReportedValues()
 
         let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
         try await ConfirmTransferSceneViewModel.mock(
             request: request,
-            execute: .success(.sent(hashes: ["hash-1", "hash-2"], transactions: [tracked.toGem()], warning: nil)),
+            execute: .success(.sent(hashes: ["hash-1", "hash-2"], warning: nil)),
         ).submit(request: request)
 
         #expect(reported.values == ["hash-1", "hash-2"])
@@ -89,7 +88,7 @@ struct ConfirmSubmissionTests {
 
     @Test
     func simulationStateKeepsPrimaryAndSecondaryFieldsApart() async {
-        let primary = SimulationPayloadField.standard(kind: .contract, value: "0x1", fieldType: .text, display: .primary)
+        let primary = GemSimulationPayloadRow(title: .contract, value: .text(text: "0x1"))
         let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
             simulation: .mock(primaryFields: [primary]),
         )))
@@ -98,7 +97,7 @@ struct ConfirmSubmissionTests {
         let state = model.state.simulation
 
         #expect(state.payload.primaryFields.count == 1)
-        #expect(state.payload.primaryFields.first?.kind == .contract)
+        #expect(state.payload.primaryFields.first?.title == .contract)
         #expect(state.payload.secondaryFields.isEmpty)
     }
 
@@ -106,13 +105,12 @@ struct ConfirmSubmissionTests {
     func simulationStateMapsBalanceChanges() async {
         let usdt = Asset.mockEthereumUSDT()
         let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
-            simulation: .mock(balanceChanges: [GemSimulationBalanceChange(asset: usdt.toGem(), value: "-25", sign: .outgoing)]),
+            simulation: .mock(balanceChanges: [GemSimulationBalanceChange(asset: usdt.toGem(), value: "-25", sign: .outgoing, tone: .negative)]),
         )))
         await model.load()
 
-        #expect(model.state.simulation.balanceChanges == [GemSimulationBalanceChange(asset: usdt.toGem(), value: "-25", sign: .outgoing)])
+        #expect(model.state.simulation.balanceChanges == [GemSimulationBalanceChange(asset: usdt.toGem(), value: "-25", sign: .outgoing, tone: .negative)])
     }
-
 }
 
 private final class ReportedValues: @unchecked Sendable {

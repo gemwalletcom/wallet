@@ -6,21 +6,25 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 object Migration_61_62 : Migration(61, 62) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.setForeignKeyConstraintsEnabled(false)
-        db.execSQL("""
+        db.execSQL(
+            """
                 UPDATE wallets SET type='View' WHERE type='view'
-            """.trimIndent()
+            """.trimIndent(),
         )
-        db.execSQL("""
+        db.execSQL(
+            """
                 UPDATE wallets SET type='Single' WHERE type='single'
-            """.trimIndent()
+            """.trimIndent(),
         )
-        db.execSQL("""
+        db.execSQL(
+            """
                 UPDATE wallets SET type='PrivateKey' WHERE type='private_key'
-            """.trimIndent()
+            """.trimIndent(),
         )
-        db.execSQL("""
+        db.execSQL(
+            """
                 UPDATE wallets SET type='Multicoin' WHERE type='multicoin'
-            """.trimIndent()
+            """.trimIndent(),
         )
     }
 }

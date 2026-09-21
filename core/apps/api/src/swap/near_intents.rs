@@ -34,10 +34,7 @@ impl NearIntentsProxyClient {
         if let Some(address) = response.pointer("/quote/depositAddress").and_then(|v| v.as_str())
             && !address.is_empty()
         {
-            let _ = self
-                .cacher
-                .add_to_set_cached(CacheKey::SwapDepositAddresses(SwapProvider::NearIntents.as_ref()), &[address.to_string()])
-                .await;
+            let _ = self.cacher.add_to_set_cached(CacheKey::SwapDepositAddresses(SwapProvider::NearIntents.as_ref()), &[address.to_string()]).await;
         }
 
         Ok(response)

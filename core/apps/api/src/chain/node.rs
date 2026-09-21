@@ -27,9 +27,7 @@ pub struct NodesStatusClient {
 
 impl Default for NodesStatusClient {
     fn default() -> Self {
-        Self {
-            client: gem_client::reqwest_client(),
-        }
+        Self { client: gem_client::reqwest_client() }
     }
 }
 
@@ -41,11 +39,7 @@ impl NodesStatusClient {
                 let provider = ProviderFactory::new_provider_with_client(ProviderConfig::new(chain, &region.url(chain)), client);
                 let result = timeout(DEFAULT_REQUEST_TIMEOUT, provider.get_nodes_status()).await;
                 match result {
-                    Ok(Ok(status)) => NodeStatusResult {
-                        region,
-                        status: Some(status),
-                        error: None,
-                    },
+                    Ok(Ok(status)) => NodeStatusResult { region, status: Some(status), error: None },
                     Ok(Err(error)) => {
                         error_with_fields!("node status check failed", error.as_ref(), chain = chain.as_ref(), region = region.as_ref());
                         NodeStatusResult {
@@ -59,12 +53,7 @@ impl NodesStatusClient {
                         NodeStatusResult {
                             region,
                             status: None,
-                            error: Some(format!(
-                                "{} {} node timed out after {} seconds",
-                                chain.as_ref(),
-                                region.as_ref(),
-                                DEFAULT_REQUEST_TIMEOUT.as_secs()
-                            )),
+                            error: Some(format!("{} {} node timed out after {} seconds", chain.as_ref(), region.as_ref(), DEFAULT_REQUEST_TIMEOUT.as_secs())),
                         }
                     }
                 }
@@ -89,10 +78,7 @@ mod tests {
         let output = serde_json::to_value([
             NodeStatusResult {
                 region: NodeRegion::Us,
-                status: Some(NodeStatus {
-                    latest_block_number: 100,
-                    latency_ms: 20,
-                }),
+                status: Some(NodeStatus { latest_block_number: 100, latency_ms: 20 }),
                 error: None,
             },
             NodeStatusResult {

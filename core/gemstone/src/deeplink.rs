@@ -44,9 +44,7 @@ mod tests {
     #[test]
     fn test_deeplink() {
         let service = GemDeeplinkService::new();
-        let rewards = Deeplink::Rewards {
-            code: Some("gemcoder".to_string()),
-        };
+        let rewards = Deeplink::Rewards { code: Some("gemcoder".to_string()) };
         assert_eq!(service.build_url(rewards), "https://gemwallet.com/rewards?code=gemcoder");
         assert_eq!(service.build_gem_url(Deeplink::Perpetuals), "gem://perpetuals");
         assert_eq!(

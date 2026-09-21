@@ -41,10 +41,7 @@ class MainScreenViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun viewModel(
-        pending: Int?,
-        coordinator: PendingNavigationCoordinator = mockk(relaxed = true),
-    ): MainScreenViewModel {
+    private fun viewModel(pending: Int?, coordinator: PendingNavigationCoordinator = mockk(relaxed = true)): MainScreenViewModel {
         val session: GetSession = mockk { every { this@mockk.invoke() } returns MutableStateFlow(mockSession()) }
         val connect: IsWalletConnectEnabled = mockk { every { isWalletConnectEnabled() } returns true }
         val counts: GetPendingTransactionsCount = mockk { every { getPendingTransactionsCount() } returns flowOf(pending) }
@@ -72,6 +69,6 @@ class MainScreenViewModelTest {
 
         model.onScan("bitcoin:bc1q")
 
-        verify { coordinator.handleScan("bitcoin:bc1q") }
+        verify { coordinator.pendScan("bitcoin:bc1q") }
     }
 }

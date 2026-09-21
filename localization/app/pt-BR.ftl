@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = Ativo não suportado.
 errors_connections_no_supported_wallets = Não há carteiras suportadas disponíveis.
 errors_connections_unsupported_chain = A cadeia fornecida não é suportada.
 errors_swap_amount_too_small = Quantidade muito pequena
-errors_required = %@ é necessário
 errors_scan_transaction_malicious_description = Esta transação não pode ser concluída — o endereço da carteira de destino está vinculado a atividades suspeitas ou prejudiciais.
 errors_scan_transaction_memo_required = %@ O endereço da carteira de destino requer uma etiqueta/memorando de destino
 errors_scan_transaction_malicious_title = Atividade suspeita
@@ -315,7 +314,7 @@ asset_symbol = Símbolo
 asset_decimals = Decimais
 asset_token_id = ID do token
 asset_contract = Contrato
-asset_state_empty_title = Suas transações aparecerão aqui️
+asset_state_empty_title = Suas transações aparecerão aqui
 asset_state_empty_description = Receber, trocar ou comprar %@
 asset_verification_unverified = Não verificado
 asset_verification_suspicious = Suspeito
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = Quando o preço diminui em
 price_alerts_set_alert_set_target_price = Definir preço-alvo
 price_alerts_set_alert_current_price = Preço atual
 price_alerts_added_for = Definir alerta de preço %@
-price_alerts_state_empty_title = Seus alertas aparecerão aqui️
+price_alerts_state_empty_title = Seus alertas aparecerão aqui
 price_alerts_state_empty_description = Habilite-os adicionando moedas para rastrear
 price_alerts_auto_footer = Alertas são acionados em movimentos significativos de preços.
 price_alerts_set_alert_title = Definir alerta de preço
@@ -536,7 +535,7 @@ verify_phrase_title = Confirmar
 
 # Warnings
 
-warnings_multi_signature_blocked = Não transfira fundos para esta carteira %@ Multi-Signature a menos que tenha certeza de que controla as chaves privadas. Não fazer isso pode expô-lo a golpes e você pode perder seus ativos permanentemente.
+warnings_externally_controlled_account = Esta conta %@ pode ser controlada por outra pessoa. Não envie fundos para ela a menos que tenha certeza de que você a controla, ou poderá perder seus ativos permanentemente.
 
 # Sell
 
@@ -600,7 +599,7 @@ nft_collections = Coleções
 nft_collection = Coleção
 nft_save_to_photos = Salvar em fotos
 nft_set_as_avatar = Definir como Avatar
-nft_state_empty_title = Seus NFTs aparecerão aqui️
+nft_state_empty_title = Seus NFTs aparecerão aqui
 nft_state_empty_description = Receba seu primeiro NFT
 nft_report_reason_spam = Spam
 nft_report_reason_malicious = Malicioso
@@ -744,7 +743,7 @@ contacts_title = Contatos
 contacts_contact = Contato
 contacts_addresses = Endereços
 contacts_state_empty_title = Sem contatos
-contacts_state_empty_description = Salve seus endereços usados ​​com frequência.
+contacts_state_empty_description = Salve seus endereços usados com frequência.
 contacts_create_new_contact = Criar novo contato
 contacts_add_to_existing_contact = Adicionar a contato
 

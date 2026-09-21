@@ -46,11 +46,11 @@ struct AutocloseViewModelTests {
 
     @Test
     func percentages() {
-        #expect(AutocloseViewModel.mock(leverage: 1).percents == [5, 10, 15])
-        #expect(AutocloseViewModel.mock(leverage: 3).percents == [5, 10, 15])
-        #expect(AutocloseViewModel.mock(leverage: 4).percents == [10, 15, 25])
-        #expect(AutocloseViewModel.mock(leverage: 10).percents == [15, 25, 50])
-        #expect(AutocloseViewModel.mock(leverage: 11).percents == [25, 50, 100])
-        #expect(AutocloseViewModel.mock(leverage: 50).percents == [25, 50, 100])
+        #expect(AutocloseViewModel.mock(leverage: 1).percentSuggestions.map(\.value) == [5, 10, 15])
+        #expect(AutocloseViewModel.mock(leverage: 3).percentSuggestions.map(\.value) == [5, 10, 15])
+        #expect(AutocloseViewModel.mock(leverage: 4).percentSuggestions.map(\.value) == [10, 15, 25])
+        #expect(AutocloseViewModel.mock(leverage: 10).percentSuggestions.map(\.value) == [15, 25, 50])
+        #expect(AutocloseViewModel.mock(leverage: 11).percentSuggestions.map(\.value) == [25, 50, 100])
+        #expect(AutocloseViewModel.mock(leverage: 50).percentSuggestions.map(\.value) == [25, 50, 100])
     }
 }

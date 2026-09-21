@@ -12,10 +12,7 @@ pub struct Bcs {
 
 impl Bcs {
     pub fn new(name: impl Into<String>, value: Vec<u8>) -> Self {
-        Self {
-            name: Some(name.into()),
-            value: Some(value),
-        }
+        Self { name: Some(name.into()), value: Some(value) }
     }
 
     pub fn deserialize<'de, T: Deserialize<'de>>(&'de self) -> Result<T, ::bcs::Error> {

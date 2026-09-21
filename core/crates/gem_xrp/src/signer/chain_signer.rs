@@ -43,9 +43,7 @@ fn sign_payment(input: &SignerInput, private_key: &[u8], amount: XrpAmount, dest
 fn params(input: &SignerInput, private_key: &[u8]) -> Result<XrpTransactionParams, SignerError> {
     let block_number = input.metadata.get_block_number()?;
     let sequence = input.metadata.get_sequence()?;
-    let last_ledger_sequence = block_number
-        .checked_add(LEDGER_SEQUENCE_OFFSET)
-        .ok_or_else(|| SignerError::invalid_input("XRP last ledger sequence overflow"))?;
+    let last_ledger_sequence = block_number.checked_add(LEDGER_SEQUENCE_OFFSET).ok_or_else(|| SignerError::invalid_input("XRP last ledger sequence overflow"))?;
 
     Ok(XrpTransactionParams {
         account: XrpAddress::parse(&input.sender_address)?,
@@ -118,9 +116,7 @@ mod tests {
         let input = SignerInput {
             fee: TransactionFee::new_from_fee(10.into(), AssetId::from_chain(Chain::Xrp)),
             ..SignerInput::mock_with_input_type(
-                TransactionInputType::Transfer {
-                    asset: Asset::from_chain(Chain::Xrp),
-                },
+                TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Xrp) },
                 "rfxdLwsZnoespnTDDb1Xhvbc8EFNdztaoq",
                 "rU893viamSnsfP3zjzM2KPxjqZjXSXK6VF",
                 "10",

@@ -28,9 +28,6 @@ pub fn tld_house_key(tld: &str) -> Result<Pubkey, Box<dyn Error + Send + Sync>> 
 pub fn nft_record_key(name_account: &Pubkey, tld_house: &Pubkey) -> Result<Pubkey, Box<dyn Error + Send + Sync>> {
     let program_id = Pubkey::from_str(SOLANA_ALLDOMAINS_NAME_HOUSE_PROGRAM_ID)?;
     let (name_house, _) = find_program_address(&program_id, &[NAME_HOUSE_PREFIX.as_bytes(), tld_house.as_bytes().as_ref()])?;
-    let (key, _) = find_program_address(
-        &program_id,
-        &[NFT_RECORD_PREFIX.as_bytes(), name_house.as_bytes().as_ref(), name_account.as_bytes().as_ref()],
-    )?;
+    let (key, _) = find_program_address(&program_id, &[NFT_RECORD_PREFIX.as_bytes(), name_house.as_bytes().as_ref(), name_account.as_bytes().as_ref()])?;
     Ok(key)
 }

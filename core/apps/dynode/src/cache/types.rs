@@ -21,14 +21,7 @@ impl CacheEntry {
     }
 
     pub fn size(&self) -> usize {
-        self.response.body.len()
-            + self
-                .response
-                .headers
-                .iter()
-                .map(|(name, value)| name.as_str().len() + value.as_bytes().len())
-                .sum::<usize>()
-            + 64
+        self.response.body.len() + self.response.headers.iter().map(|(name, value)| name.as_str().len() + value.as_bytes().len()).sum::<usize>() + 64
     }
 }
 

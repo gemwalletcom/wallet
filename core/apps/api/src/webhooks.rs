@@ -31,9 +31,7 @@ impl WebhooksClient {
     }
 
     pub async fn process_support_webhook(&self, raw_body: &str, headers: &HashMap<String, String>) -> Result<(), ApiError> {
-        self.chatwoot_webhook_verifier
-            .verify(headers, raw_body)
-            .map_err(|error| ApiError::BadRequest(error.to_string()))?;
+        self.chatwoot_webhook_verifier.verify(headers, raw_body).map_err(|error| ApiError::BadRequest(error.to_string()))?;
         let webhook_data = serde_json::from_str(raw_body).map_err(|_| ApiError::BadRequest("Invalid webhook JSON".to_string()))?;
         let payload = SupportWebhookPayload::new(webhook_data);
         self.stream_producer.publish(QueueName::SupportWebhooks, &payload).await?;
@@ -86,11 +84,7 @@ impl<'r> FromRequest<'r> for WebhookRequest {
     type Error = String;
 
     async fn from_request(req: &'r Request<'_>) -> Outcome<Self, String> {
-        let headers = req
-            .headers()
-            .iter()
-            .map(|header| (header.name().as_str().to_ascii_lowercase(), header.value().to_string()))
-            .collect();
+        let headers = req.headers().iter().map(|header| (header.name().as_str().to_ascii_lowercase(), header.value().to_string())).collect();
         Success(Self {
             headers,
             path: req.uri().path().as_str().to_string(),

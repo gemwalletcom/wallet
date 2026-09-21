@@ -19,14 +19,7 @@ use primitives::{
 };
 use std::{str::FromStr, sync::Arc};
 
-pub(super) async fn build_swap_quote_data(
-    transaction_data: &TransactionData,
-    from_asset: &QuoteAsset,
-    from_value: &str,
-    chain: Chain,
-    owner: &str,
-    rpc_provider: Arc<dyn RpcProvider>,
-) -> Result<SwapQuoteData, SwapperError> {
+pub(super) async fn build_swap_quote_data(transaction_data: &TransactionData, from_asset: &QuoteAsset, from_value: &str, chain: Chain, owner: &str, rpc_provider: Arc<dyn RpcProvider>) -> Result<SwapQuoteData, SwapperError> {
     match chain.chain_type() {
         ChainType::Ethereum => build_evm_quote_data(transaction_data, from_asset, from_value, chain, owner, rpc_provider).await,
         ChainType::Solana => build_solana_quote_data(transaction_data),
@@ -35,45 +28,25 @@ pub(super) async fn build_swap_quote_data(
     }
 }
 
-pub(super) async fn build_evm_quote_data(
-    transaction_data: &TransactionData,
-    from_asset: &QuoteAsset,
-    from_value: &str,
-    chain: Chain,
-    owner: &str,
-    rpc_provider: Arc<dyn RpcProvider>,
-) -> Result<SwapQuoteData, SwapperError> {
+pub(super) async fn build_evm_quote_data(transaction_data: &TransactionData, from_asset: &QuoteAsset, from_value: &str, chain: Chain, owner: &str, rpc_provider: Arc<dyn RpcProvider>) -> Result<SwapQuoteData, SwapperError> {
     let approval = build_evm_approval(from_asset, transaction_data, from_value, chain, owner, rpc_provider).await?;
     let gas_limit = get_swap_gas_limit_with_approval(&approval, buffered_gas_limit(&transaction_data.gas), evm_gas_limit(chain));
     Ok(SwapQuoteData::new_contract(
         transaction_data.to.clone(),
-        transaction_data
-            .get_value()
-            .ok_or_else(|| SwapperError::ComputeQuoteError("invalid OKX transaction value".to_string()))?,
+        transaction_data.get_value().ok_or_else(|| SwapperError::ComputeQuoteError("invalid OKX transaction value".to_string()))?,
         transaction_data.data.clone(),
         approval,
         gas_limit,
     ))
 }
 
-pub(super) async fn build_tron_quote_data(
-    transaction_data: &TransactionData,
-    from_asset: &QuoteAsset,
-    from_value: &str,
-    owner: &str,
-    rpc_provider: Arc<dyn RpcProvider>,
-) -> Result<SwapQuoteData, SwapperError> {
+pub(super) async fn build_tron_quote_data(transaction_data: &TransactionData, from_asset: &QuoteAsset, from_value: &str, owner: &str, rpc_provider: Arc<dyn RpcProvider>) -> Result<SwapQuoteData, SwapperError> {
     let approval = build_tron_approval(from_asset, from_value, owner, rpc_provider).await?;
-    let gas_limit = approval
-        .is_some()
-        .then(|| transaction_data.gas.clone())
-        .filter(|gas| gas.parse::<u64>().is_ok_and(|energy| energy > 0));
+    let gas_limit = approval.is_some().then(|| transaction_data.gas.clone()).filter(|gas| gas.parse::<u64>().is_ok_and(|energy| energy > 0));
     let call_data = transaction_data.data.strip_prefix("0x").unwrap_or(&transaction_data.data).to_string();
     Ok(SwapQuoteData::new_contract(
         transaction_data.to.clone(),
-        transaction_data
-            .get_value()
-            .ok_or_else(|| SwapperError::ComputeQuoteError("invalid OKX transaction value".to_string()))?,
+        transaction_data.get_value().ok_or_else(|| SwapperError::ComputeQuoteError("invalid OKX transaction value".to_string()))?,
         call_data,
         approval,
         gas_limit,
@@ -81,23 +54,12 @@ pub(super) async fn build_tron_quote_data(
 }
 
 pub(super) fn build_solana_quote_data(transaction_data: &TransactionData) -> Result<SwapQuoteData, SwapperError> {
-    let bytes = bs58::decode(&transaction_data.data)
-        .into_vec()
-        .map_err(|err| SwapperError::TransactionError(format!("invalid swap transaction data: {err}")))?;
-    Ok(SwapQuoteData::new_contract(
-        transaction_data.to.clone(),
-        BigUint::from(0u64),
-        encode_base64(&bytes),
-        None,
-        None,
-    ))
+    let bytes = bs58::decode(&transaction_data.data).into_vec().map_err(|err| SwapperError::TransactionError(format!("invalid swap transaction data: {err}")))?;
+    Ok(SwapQuoteData::new_contract(transaction_data.to.clone(), BigUint::from(0u64), encode_base64(&bytes), None, None))
 }
 
 fn buffered_gas_limit(gas: &str) -> Option<String> {
-    gas.parse::<BigInt>()
-        .ok()
-        .filter(|value| *value > BigInt::from(0))
-        .map(|value| calculate_gas_limit_with_increase(value).to_string())
+    gas.parse::<BigInt>().ok().filter(|value| *value > BigInt::from(0)).map(|value| calculate_gas_limit_with_increase(value).to_string())
 }
 
 async fn build_tron_approval(from_asset: &QuoteAsset, from_value: &str, owner: &str, rpc_provider: Arc<dyn RpcProvider>) -> Result<Option<ApprovalData>, SwapperError> {
@@ -111,14 +73,7 @@ async fn build_tron_approval(from_asset: &QuoteAsset, from_value: &str, owner: &
     }
 }
 
-async fn build_evm_approval(
-    from_asset: &QuoteAsset,
-    transaction_data: &TransactionData,
-    from_value: &str,
-    chain: Chain,
-    owner: &str,
-    rpc_provider: Arc<dyn RpcProvider>,
-) -> Result<Option<ApprovalData>, SwapperError> {
+async fn build_evm_approval(from_asset: &QuoteAsset, transaction_data: &TransactionData, from_value: &str, chain: Chain, owner: &str, rpc_provider: Arc<dyn RpcProvider>) -> Result<Option<ApprovalData>, SwapperError> {
     let Some(token) = from_asset.asset_id().token_id else {
         return Ok(None);
     };

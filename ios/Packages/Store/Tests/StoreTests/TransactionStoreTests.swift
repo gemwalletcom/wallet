@@ -19,7 +19,7 @@ struct TransactionStoreTests {
         let store = TransactionStore(db: db)
         let transactionId = TransactionId(chain: .robinhood, hash: "hash")
         try store.addTransactions(walletId: walletId, transactions: [
-            .mock(id: transactionId, state: .pending, assetId: Chain.robinhood.assetId),
+            .mock(.mock(id: transactionId, state: .pending, assetId: Chain.robinhood.assetId)),
         ])
 
         let transactions = try store.getTransactions(states: [.pending])
@@ -49,23 +49,29 @@ struct TransactionStoreTests {
         let transactionId = TransactionId(chain: .ethereum, hash: "1")
         try store.addTransactions(walletId: walletId, transactions: [
             .mock(
-                id: transactionId,
-                type: .swap,
-                assetId: btc,
-                metadata: .encode(TransactionSwapMetadata.mock(
-                    fromAsset: btc, fromValue: "100", toAsset: eth, toValue: "200",
-                )),
+                .mock(
+                    id: transactionId,
+                    type: .swap,
+                    assetId: btc,
+                    metadata: .encode(TransactionSwapMetadata.mock(
+                        fromAsset: btc, fromValue: "100", toAsset: eth, toValue: "200",
+                    )),
+                ),
+                assetIds: [btc, eth],
             ),
         ])
 
         try store.addTransactions(walletId: walletId, transactions: [
             .mock(
-                id: transactionId,
-                type: .swap,
-                assetId: btc,
-                metadata: .encode(TransactionSwapMetadata.mock(
-                    fromAsset: btc, fromValue: "100", toAsset: sol, toValue: "300",
-                )),
+                .mock(
+                    id: transactionId,
+                    type: .swap,
+                    assetId: btc,
+                    metadata: .encode(TransactionSwapMetadata.mock(
+                        fromAsset: btc, fromValue: "100", toAsset: sol, toValue: "300",
+                    )),
+                ),
+                assetIds: [btc, sol],
             ),
         ])
 
@@ -100,8 +106,12 @@ struct TransactionStoreTests {
             fee: "42",
             metadata: .encode(TransactionSwapMetadata.mock(fromAsset: ethereum, fromValue: "100", toAsset: solana, toValue: "300")),
         )
-        try store.addTransactions(walletId: walletId, transactions: [source, target])
-        try store.addTransactions(walletId: otherWalletId, transactions: [source, target])
+        let moved = [
+            TransactionAssets.mock(source, assetIds: [ethereum, bitcoin]),
+            TransactionAssets.mock(target, assetIds: [ethereum, solana]),
+        ]
+        try store.addTransactions(walletId: walletId, transactions: moved)
+        try store.addTransactions(walletId: otherWalletId, transactions: moved)
         let storedSource = try store.getTransaction(walletId: walletId, transactionId: sourceId)
         let storedTarget = try store.getTransaction(walletId: walletId, transactionId: targetId)
         let sourceRecord = try #require(try db.dbQueue.read {

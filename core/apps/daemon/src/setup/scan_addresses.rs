@@ -2,10 +2,7 @@ use gem_evm::{
     across::deployment::AcrossDeployment,
     uniswap::deployment::{
         get_uniswap_permit2_by_chain,
-        v3::{
-            get_aerodrome_router_deployment_by_chain, get_oku_deployment_by_chain, get_pancakeswap_router_deployment_by_chain, get_uniswap_router_deployment_by_chain,
-            get_wagmi_router_deployment_by_chain,
-        },
+        v3::{get_aerodrome_router_deployment_by_chain, get_oku_deployment_by_chain, get_pancakeswap_router_deployment_by_chain, get_uniswap_router_deployment_by_chain, get_wagmi_router_deployment_by_chain},
         v4::get_uniswap_deployment_by_chain,
     },
 };
@@ -28,9 +25,7 @@ pub fn setup_scan_addresses(database: &Database) -> Result<(), Box<dyn Error + S
         let aerodrome = get_aerodrome_router_deployment_by_chain(&chain);
 
         if let Some(address) = uniswap_permit2 {
-            values
-                .entry((chain, address.to_string()))
-                .or_insert_with(|| ScanAddress::contract(chain, address, SwapProvider::UniswapV3.name()));
+            values.entry((chain, address.to_string())).or_insert_with(|| ScanAddress::contract(chain, address, SwapProvider::UniswapV3.name()));
         }
 
         for (provider, address) in [
@@ -42,9 +37,7 @@ pub fn setup_scan_addresses(database: &Database) -> Result<(), Box<dyn Error + S
             (SwapProvider::Aerodrome, aerodrome.as_ref().map(|deployment| deployment.universal_router)),
         ] {
             if let Some(address) = address {
-                values
-                    .entry((chain, address.to_string()))
-                    .or_insert_with(|| ScanAddress::contract(chain, address, provider.name()));
+                values.entry((chain, address.to_string())).or_insert_with(|| ScanAddress::contract(chain, address, provider.name()));
             }
         }
 
@@ -54,9 +47,7 @@ pub fn setup_scan_addresses(database: &Database) -> Result<(), Box<dyn Error + S
             (SwapProvider::Wagmi, wagmi.as_ref().map(|deployment| deployment.permit2)),
         ] {
             if let Some(address) = address {
-                values
-                    .entry((chain, address.to_string()))
-                    .or_insert_with(|| ScanAddress::contract(chain, address, provider.name()));
+                values.entry((chain, address.to_string())).or_insert_with(|| ScanAddress::contract(chain, address, provider.name()));
             }
         }
 
@@ -69,16 +60,8 @@ pub fn setup_scan_addresses(database: &Database) -> Result<(), Box<dyn Error + S
 
     let count = values.len();
     let addresses = values.keys().map(|(_, address)| address.clone()).collect();
-    let existing = database
-        .scan_addresses()?
-        .get_scan_addresses_by_addresses(addresses)?
-        .into_iter()
-        .map(|row| (row.chain.0, row.address))
-        .collect::<HashSet<_>>();
-    let values = values
-        .into_iter()
-        .filter_map(|(key, value)| (!existing.contains(&key)).then_some(value))
-        .collect::<Vec<_>>();
+    let existing = database.scan_addresses()?.get_scan_addresses_by_addresses(addresses)?.into_iter().map(|row| (row.chain.0, row.address)).collect::<HashSet<_>>();
+    let values = values.into_iter().filter_map(|(key, value)| (!existing.contains(&key)).then_some(value)).collect::<Vec<_>>();
     let inserted = if values.is_empty() { 0 } else { database.scan_addresses()?.add_scan_addresses(values)? };
 
     info_with_fields!("setup", step = "scan addresses", count = count, inserted = inserted);

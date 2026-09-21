@@ -3,9 +3,9 @@
 import BigInt
 import Components
 import Formatters
+import Foundation
 import struct Gemstone.GemSimulationValue
 import GemstonePrimitives
-import Foundation
 import Localization
 import Primitives
 import Style

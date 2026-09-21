@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitives
-import class Gemstone.GemPerpetualService
-import protocol Gemstone.GemPerpetualServiceProtocol
-import protocol Gemstone.GemPerpetualStreamServiceProtocol
 import Foundation
 import struct Gemstone.GemPerpetualConnection
+import protocol Gemstone.GemPerpetualServiceProtocol
+import protocol Gemstone.GemPerpetualStreamServiceProtocol
 import enum Gemstone.GemPerpetualSubscription
+import GemstonePrimitives
 import Primitives
 import WebSocketClient
 
@@ -91,16 +90,16 @@ public actor HyperliquidObserverService: PerpetualObservable {
 
             switch event {
             case .connected:
-                await handleConnected(address: address, mode: mode)
+                await onConnected(address: address, mode: mode)
             case let .message(data):
-                await handle(data, walletId: walletId, mode: mode)
+                await onMessage(data, walletId: walletId, mode: mode)
             case .disconnected:
                 await streamService.disconnected()
             }
         }
     }
 
-    private func handleConnected(address: String, mode: PerpetualAccountMode) async {
+    private func onConnected(address: String, mode: PerpetualAccountMode) async {
         do {
             try await streamService.connected(address: address, mode: mode.toGem())
         } catch {
@@ -108,13 +107,12 @@ public actor HyperliquidObserverService: PerpetualObservable {
         }
     }
 
-    private func handle(_ data: Data, walletId: WalletId, mode: PerpetualAccountMode) async {
+    private func onMessage(_ data: Data, walletId: WalletId, mode: PerpetualAccountMode) async {
         do {
-            guard let candle = try await streamService.handle(walletId: walletId.id, mode: mode.toGem(), data: data) else { return }
+            guard let candle = try await streamService.candleUpdate(walletId: walletId.id, mode: mode.toGem(), data: data) else { return }
             await chartService.yield(candle.toPrimitives())
         } catch {
             debugLog("HyperliquidObserver: handle message failed: \(error)")
         }
     }
-
 }

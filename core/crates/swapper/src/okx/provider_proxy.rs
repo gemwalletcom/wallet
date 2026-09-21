@@ -29,9 +29,7 @@ where
     C: Client + Clone + Send + Sync + Debug + 'static,
 {
     pub fn new_with_client(client: C, config: OkxClientConfig) -> Self {
-        Self {
-            client: OkxDexClient::new(client, config),
-        }
+        Self { client: OkxDexClient::new(client, config) }
     }
 
     pub async fn get_quote(&self, params: QuoteParams) -> Result<serde_json::Value, SwapperError> {

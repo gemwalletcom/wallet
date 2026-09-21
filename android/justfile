@@ -1,7 +1,7 @@
 list:
     just --list
 
-install: install-java install-toolchains install-ndk
+install: install-java install-toolchains install-ndk install-ktlint
 
 install-java:
     @echo "==> Install Temurin JDK 17"
@@ -14,6 +14,23 @@ install-toolchains:
 
 install-ndk:
     @cd ../core && just gemstone install-ndk
+
+install-ktlint:
+    @echo "==> Install ktlint"
+    @brew install ktlint
+
+# Formats the Kotlin you changed; ktlint spends ~2s walking the whole tree.
+format:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    files=$( { git diff --name-only --diff-filter=ACMR HEAD -- '*.kt'; git ls-files --others --exclude-standard -- '*.kt'; } | sed 's|^android/||' | sort -u )
+    [ -z "$files" ] && exit 0
+    echo "==> Running ktlint"
+    echo "$files" | xargs ktlint --format --relative >/dev/null
+
+format-all:
+    @echo "==> Running ktlint on every file"
+    @ktlint --format --relative "**/*.kt" "!**/build/**" >/dev/null
 
 clean:
     #!/usr/bin/env bash
@@ -77,11 +94,8 @@ _run-adb TARGET:
 build-test:
     @./gradlew assembleGoogleDebugAndroidTest
 
-test: build-gemstone-host
-    @./gradlew testGoogleDebugUnitTest testDebugUnitTest
-
-build-gemstone-host:
-    @cd ../core && cargo build --package gemstone
+test:
+    @./gradlew --continue testGoogleDebugUnitTest testDebugUnitTest
 
 test-integration:
     @./gradlew connectedGoogleDebugAndroidTest connectedDebugAndroidTest

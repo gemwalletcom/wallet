@@ -26,9 +26,7 @@ pub struct ConsumerMetrics {
 
 impl ConsumerMetrics {
     pub fn new() -> Self {
-        Self {
-            consumers: Mutex::new(HashMap::new()),
-        }
+        Self { consumers: Mutex::new(HashMap::new()) }
     }
 
     pub fn record_success(&self, name: &str, duration: u64, _result: &str) {

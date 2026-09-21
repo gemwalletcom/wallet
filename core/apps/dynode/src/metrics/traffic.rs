@@ -189,11 +189,7 @@ impl Metrics {
     }
 
     pub(crate) fn set_cooldown(&self, group: &str, service: &str, endpoint: &str, path: &str, duration: Duration) {
-        let until = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_secs()
-            .saturating_add(duration.as_secs());
+        let until = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs().saturating_add(duration.as_secs());
         self.cooldowns
             .get_or_create(&CooldownLabels {
                 group: group.to_string(),
@@ -268,15 +264,7 @@ mod tests {
     #[test]
     fn test_node_groups_follow_chain_families() {
         let metrics = Metrics::mock();
-        for chain in [
-            Chain::Ethereum,
-            Chain::Base,
-            Chain::Arbitrum,
-            Chain::Bitcoin,
-            Chain::Litecoin,
-            Chain::Cosmos,
-            Chain::Osmosis,
-        ] {
+        for chain in [Chain::Ethereum, Chain::Base, Chain::Arbitrum, Chain::Bitcoin, Chain::Litecoin, Chain::Cosmos, Chain::Osmosis] {
             metrics.record_node_response(chain, "/", 200);
             metrics.add_cache_hit(chain.as_ref(), "eth_chainId");
         }
@@ -306,10 +294,7 @@ mod tests {
         metrics.record_failover("worker", "prices", "jupiter", "key_1", "/tokens/v2/tag?apikey=secret", "429");
 
         let encoded = metrics.get_metrics();
-        assert_eq!(
-            metric_lines(&encoded, "dynode_inflight{"),
-            vec!["dynode_inflight{source=\"worker\",group=\"prices\",service=\"jupiter\"} 1"]
-        );
+        assert_eq!(metric_lines(&encoded, "dynode_inflight{"), vec!["dynode_inflight{source=\"worker\",group=\"prices\",service=\"jupiter\"} 1"]);
         assert_eq!(
             metric_lines(&encoded, "dynode_upstream_latency_milliseconds_sum{"),
             vec!["dynode_upstream_latency_milliseconds_sum{source=\"worker\",group=\"prices\",service=\"jupiter\",endpoint=\"key_1\",status=\"200\"} 125.0",]
@@ -325,16 +310,10 @@ mod tests {
         );
         let cooldown = metric_lines(&encoded, "dynode_cooldown_until_seconds{");
         let (labels, expiry) = cooldown[0].split_once("} ").unwrap();
-        assert_eq!(
-            labels,
-            "dynode_cooldown_until_seconds{group=\"prices\",service=\"jupiter\",endpoint=\"key_1\",path=\"/tokens/v2/tag\""
-        );
+        assert_eq!(labels, "dynode_cooldown_until_seconds{group=\"prices\",service=\"jupiter\",endpoint=\"key_1\",path=\"/tokens/v2/tag\"");
         assert_ne!(expiry.parse::<u64>().unwrap(), 0);
         assert_eq!(encoded.find("secret"), None);
         drop(inflight);
-        assert_eq!(
-            metric_lines(&metrics.get_metrics(), "dynode_inflight{"),
-            vec!["dynode_inflight{source=\"worker\",group=\"prices\",service=\"jupiter\"} 0"]
-        );
+        assert_eq!(metric_lines(&metrics.get_metrics(), "dynode_inflight{"), vec!["dynode_inflight{source=\"worker\",group=\"prices\",service=\"jupiter\"} 0"]);
     }
 }

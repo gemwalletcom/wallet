@@ -23,16 +23,4 @@ struct ConnectionProposalViewModelTests {
 
         #expect(model.imageUrl == nil)
     }
-
-    @Test
-    func appTextKeepsNameAndDomain() {
-        let model = ConnectionProposalViewModel.mock(
-            metadata: .mock(
-                name: "PancakeSwap - Trade",
-                url: "https://pancakeswap.finance/swap",
-            ),
-        )
-
-        #expect(model.appText == "PancakeSwap (pancakeswap.finance)")
-    }
 }

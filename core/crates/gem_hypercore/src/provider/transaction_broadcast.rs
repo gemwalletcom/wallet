@@ -46,19 +46,10 @@ mod tests {
             assert_eq!(provider.decode_transaction_broadcast(request.as_bytes(), response).unwrap(), "action:123");
         }
         for (request, expected) in [
-            (
-                include_bytes!("../../testdata/hl_action_spot_to_stake.json").as_slice(),
-                "action:cDeposit:10000000:1755231476741",
-            ),
-            (
-                include_bytes!("../../testdata/hl_action_stake_to_validator.json").as_slice(),
-                "action:tokenDelegate:10000000:stake:1755231522831",
-            ),
+            (include_bytes!("../../testdata/hl_action_spot_to_stake.json").as_slice(), "action:cDeposit:10000000:1755231476741"),
+            (include_bytes!("../../testdata/hl_action_stake_to_validator.json").as_slice(), "action:tokenDelegate:10000000:stake:1755231522831"),
             (br#"{"action":{"type":"cWithdraw","wei":100},"nonce":123}"#.as_slice(), "action:cWithdraw:100:123"),
-            (
-                br#"{"action":{"type":"tokenDelegate","wei":100,"isUndelegate":true},"nonce":123}"#.as_slice(),
-                "action:tokenDelegate:100:unstake:123",
-            ),
+            (br#"{"action":{"type":"tokenDelegate","wei":100,"isUndelegate":true},"nonce":123}"#.as_slice(), "action:tokenDelegate:100:unstake:123"),
         ] {
             assert_eq!(provider.decode_transaction_broadcast_bytes(request, response.as_bytes()).unwrap(), expected);
         }

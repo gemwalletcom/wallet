@@ -32,11 +32,7 @@ impl SiwsMessage {
             }
         }
 
-        if self
-            .nonce
-            .as_ref()
-            .is_some_and(|value| value.len() < MIN_NONCE_LENGTH || !value.bytes().all(|byte| byte.is_ascii_alphanumeric()))
-        {
+        if self.nonce.as_ref().is_some_and(|value| value.len() < MIN_NONCE_LENGTH || !value.bytes().all(|byte| byte.is_ascii_alphanumeric())) {
             return Err("Invalid SIWS nonce".to_string());
         }
 
@@ -48,8 +44,7 @@ impl SiwsMessage {
 
         self.validate_request_id()?;
 
-        let [issued_at, expiration_time, not_before] = [&self.issued_at, &self.expiration_time, &self.not_before]
-            .map(|value| value.as_deref().map(DateTime::parse_from_rfc3339).transpose().map_err(|_| "Invalid SIWS timestamp"));
+        let [issued_at, expiration_time, not_before] = [&self.issued_at, &self.expiration_time, &self.not_before].map(|value| value.as_deref().map(DateTime::parse_from_rfc3339).transpose().map_err(|_| "Invalid SIWS timestamp"));
         let (issued_at, expiration_time, not_before) = (issued_at?, expiration_time?, not_before?);
 
         if expiration_time.is_some_and(|expiration| expiration <= now || issued_at.is_some_and(|issued| issued >= expiration)) {

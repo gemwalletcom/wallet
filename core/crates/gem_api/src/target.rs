@@ -25,9 +25,7 @@ impl Target for GemApiTarget {
                 None => "/v1/assets".to_string(),
             },
             Self::GetSearchAssets { query, chains } => build_path_with_query("/v1/assets/search", &[("query", query.as_str()), ("chains", &join_chains(chains))]),
-            Self::GetSearch { query, chains, tags } => {
-                build_path_with_query("/v1/search", &[("query", query.as_str()), ("chains", &join_chains(chains)), ("tags", &tags.join(","))])
-            }
+            Self::GetSearch { query, chains, tags } => build_path_with_query("/v1/search", &[("query", query.as_str()), ("chains", &join_chains(chains)), ("tags", &tags.join(","))]),
             Self::GetMarkets => "/v1/markets".to_string(),
             Self::GetFiatAssets { quote_type } => format!("/v1/fiat/assets/{}", quote_type.as_ref()),
             Self::GetSwapAssets => "/v1/swap/assets".to_string(),

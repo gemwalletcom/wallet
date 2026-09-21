@@ -16,23 +16,20 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticationRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
-import com.gemwallet.android.features.bridge.localization.walletConnectMessage
 import com.gemwallet.android.features.bridge.viewmodels.AuthSceneState
 import com.gemwallet.android.features.bridge.viewmodels.WCAuthViewModel
-import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
+import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
 import com.gemwallet.android.ui.components.screen.FatalStateScene
 import com.gemwallet.android.ui.components.screen.LoadingScene
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.ListPosition
 
 @Composable
-fun AuthRequestScene(
-    request: WalletConnectAuthenticationRequest,
-    verifyContext: WalletConnectVerifyContext,
-) {
+fun AuthRequestScene(request: WalletConnectAuthenticationRequest, verifyContext: WalletConnectVerifyContext) {
     val context = LocalContext.current
     val viewModel: WCAuthViewModel = hiltViewModel()
     BackHandler(onBack = viewModel::onReject)
@@ -40,35 +37,24 @@ fun AuthRequestScene(
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
 
     LaunchedEffect(request.id) {
-        viewModel.onRequest(request, verifyContext) { error ->
-            when (error) {
-                BridgeRequestError.MaliciousSession -> Toast.makeText(
-                    context,
-                    R.string.errors_connections_malicious_origin,
-                    Toast.LENGTH_LONG
-                ).show()
-                BridgeRequestError.Expired -> Toast.makeText(
-                    context,
-                    R.string.wallet_connect_request_expired,
-                    Toast.LENGTH_LONG
-                ).show()
-            }
+        viewModel.onRequest(request, verifyContext) { message ->
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
         }
     }
 
     when (val currentState = state) {
         is AuthSceneState.Error -> FatalStateScene(
             title = stringResource(id = R.string.wallet_connect_connect_title),
-            message = currentState.cause?.walletConnectMessage()
-                ?: currentState.message
-                ?: stringResource(id = R.string.errors_unknown_try_again),
+            message = currentState.text.text(),
             onCancel = viewModel::onReject,
         )
+
         AuthSceneState.Loading -> LoadingScene(
             title = stringResource(id = R.string.transfer_review_request),
             onCancel = viewModel::onReject,
             closeIcon = true,
         )
+
         is AuthSceneState.Content -> AuthRequestContent(
             state = currentState,
             buttonState = buttonState,
@@ -80,34 +66,35 @@ fun AuthRequestScene(
 }
 
 @Composable
-private fun AuthRequestContent(
-    state: AuthSceneState.Content,
-    buttonState: ButtonState,
-    onApprove: () -> Unit,
-    onReject: () -> Unit,
-    onWalletSelected: (com.wallet.core.primitives.WalletId) -> Unit,
-) {
+private fun AuthRequestContent(state: AuthSceneState.Content, buttonState: ButtonState, onApprove: () -> Unit, onReject: () -> Unit, onWalletSelected: (com.wallet.core.primitives.WalletId) -> Unit) {
     var isShowSelectWallets by remember { mutableStateOf(false) }
     val canSelectWallet = state.availableWallets.size > 1
 
     WalletConnectReviewScene(
         model = state,
         buttonState = buttonState,
-        walletRow = { position ->
-            ListItem(
-                model = state.walletListItem,
-                listPosition = position,
-                modifier = if (canSelectWallet && state !is AuthSceneState.Approving) {
-                    Modifier.clickable { isShowSelectWallets = true }
-                } else {
-                    Modifier
-                },
-                accessory = if (canSelectWallet) {
-                    { DataBadgeChevron() }
-                } else {
-                    null
-                },
-            )
+        details = {
+            val hasHeader = state.header != null
+            if (hasHeader) {
+                item { ListItem(model = state.appListItem, listPosition = ListPosition.First) }
+            }
+            item {
+                ListItem(
+                    model = state.walletListItem,
+                    listPosition = if (hasHeader) ListPosition.Middle else ListPosition.First,
+                    modifier = if (canSelectWallet && state !is AuthSceneState.Approving) {
+                        Modifier.clickable { isShowSelectWallets = true }
+                    } else {
+                        Modifier
+                    },
+                    accessory = if (canSelectWallet) {
+                        { DataBadgeChevron() }
+                    } else {
+                        null
+                    },
+                )
+            }
+            item { PropertyNetworkItem(state.chain, listPosition = ListPosition.Last) }
         },
         onApprove = onApprove,
         onReject = onReject,

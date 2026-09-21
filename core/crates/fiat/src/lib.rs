@@ -64,11 +64,7 @@ impl FiatProviderFactory {
             settings.fiat.banxa.key.secret,
             settings.fiat.banxa.webhook.key.secret,
         );
-        let paybis = PaybisClient::new(
-            ReqwestClient::new(settings.fiat.paybis.url, request_client.clone()),
-            settings.fiat.paybis.key.public,
-            settings.fiat.paybis.key.secret,
-        );
+        let paybis = PaybisClient::new(ReqwestClient::new(settings.fiat.paybis.url, request_client.clone()), settings.fiat.paybis.key.public, settings.fiat.paybis.key.secret);
         let flashnet = FlashnetClient::new(
             ReqwestClient::new(settings.fiat.flashnet.url, request_client.clone()),
             settings.fiat.flashnet.key.secret,
@@ -76,14 +72,7 @@ impl FiatProviderFactory {
             settings.fiat.flashnet.webhook.key.secret,
         );
 
-        vec![
-            Box::new(moonpay),
-            Box::new(mercuryo),
-            Box::new(transak),
-            Box::new(banxa),
-            Box::new(paybis),
-            Box::new(flashnet),
-        ]
+        vec![Box::new(moonpay), Box::new(mercuryo), Box::new(transak), Box::new(banxa), Box::new(paybis), Box::new(flashnet)]
     }
 
     pub fn new_ip_check_client(settings: Settings) -> IPCheckClient {

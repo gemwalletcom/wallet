@@ -9,7 +9,7 @@ import Testing
 struct KeystoreBenchmarkTests {
     private static let iterations = 3
 
-    @Test
+    @Test(.enabled(if: ProcessInfo.processInfo.environment["BENCHMARKS"] == "1"))
     func benchmarkEncryptAndDecryptWithDefaultKdf() async throws {
         let keystore = LocalKeystore.mock(keystorePassword: MockKeystorePassword(memoryPassword: LocalKeystore.password))
         let clock = ContinuousClock()

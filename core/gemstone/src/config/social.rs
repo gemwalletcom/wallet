@@ -9,7 +9,6 @@ pub struct GemSocialLink {
     pub host: Option<String>,
 }
 
-#[uniffi::export]
 pub fn community_links() -> Vec<GemSocialLink> {
     let links = [
         (LinkType::X, "https://x.com/GemWallet"),
@@ -24,7 +23,6 @@ pub fn community_links() -> Vec<GemSocialLink> {
     social_links(links)
 }
 
-#[uniffi::export]
 pub fn social_links(links: Vec<AssetLink>) -> Vec<GemSocialLink> {
     let mut rows: Vec<GemSocialLink> = links.iter().filter_map(social_link).collect();
     rows.sort_by_key(|row| std::cmp::Reverse(link_type_order(row.link_type)));
@@ -34,11 +32,7 @@ pub fn social_links(links: Vec<AssetLink>) -> Vec<GemSocialLink> {
 fn social_link(link: &AssetLink) -> Option<GemSocialLink> {
     let link_type = link_type(&link.name)?;
     let host = (link_type == LinkType::Website).then(|| host(&link.url)).flatten();
-    Some(GemSocialLink {
-        link_type,
-        url: link.url.clone(),
-        host,
-    })
+    Some(GemSocialLink { link_type, url: link.url.clone(), host })
 }
 
 fn link_type(name: &str) -> Option<LinkType> {

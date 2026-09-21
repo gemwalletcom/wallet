@@ -17,11 +17,7 @@ impl<C: Client + Clone> ChainBalances for SolanaProvider<C> {
 
     async fn get_balance_tokens(&self, address: String, token_ids: Vec<String>) -> Result<Vec<AssetBalance>, Box<dyn Error + Sync + Send>> {
         let results = self.get_token_accounts(&address, &token_ids).await?;
-        let balances: Vec<AssetBalance> = results
-            .iter()
-            .zip(&token_ids)
-            .flat_map(|(token_accounts, token_id)| map_token_accounts(token_accounts, token_id))
-            .collect();
+        let balances: Vec<AssetBalance> = results.iter().zip(&token_ids).flat_map(|(token_accounts, token_id)| map_token_accounts(token_accounts, token_id)).collect();
 
         Ok(balances)
     }

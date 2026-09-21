@@ -8,16 +8,13 @@ use chrono::{DateTime, Utc};
 use gem_tron::decode_wallet_connect_approval;
 use primitives::ChainType;
 use primitives::WalletConnectionVerificationStatus;
-use primitives::{
-    Account, ApplicationMetadata, ApplicationMetadataSource, Chain, Wallet, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession,
-    WalletConnectionState, WalletId, WalletType,
-};
+use primitives::{Account, ApplicationMetadata, ApplicationMetadataSource, Chain, Wallet, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession, WalletConnectionState, WalletId, WalletType};
 
+use crate::models::list::{GemListRow, GemListRowTitle};
 use crate::services::error::GemServiceError;
+use crate::services::error_text::GemErrorText;
 use crate::services::transfer::{GemRecipient, GemTransferData};
-use crate::services::wallet_connect::model::{
-    GemWalletConnectAuthAccount, GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectRpcError, GemWalletConnectTransactionAction,
-};
+use crate::services::wallet_connect::model::{GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectRpcError, GemWalletConnectTransactionAction};
 use crate::wallet_connect::{EvmTransactionKind, WalletConnect, WalletConnectTransaction, wallet_connect_chain, wallet_connect_namespace};
 use num_bigint::BigInt;
 use primitives::GasPriceType;
@@ -47,17 +44,24 @@ pub fn connection_groups(connections: Vec<WalletConnection>) -> Vec<(Wallet, Vec
     groups
 }
 
+pub fn connection_detail_rows(connection: &WalletConnection) -> Vec<GemListRow> {
+    vec![
+        GemListRow::Text {
+            title: GemListRowTitle::Wallet,
+            value: connection.wallet.name.clone(),
+        },
+        GemListRow::Date {
+            title: GemListRowTitle::Date,
+            date: connection.session.created_at,
+        },
+    ]
+}
+
 pub fn session_account(connection: &WalletConnection, chain: Chain) -> Result<Account, GemServiceError> {
     validate_session_chain(&connection.session, chain)?;
-    connection
-        .wallet
-        .accounts
-        .iter()
-        .find(|account| account.chain == chain)
-        .cloned()
-        .ok_or_else(|| GemServiceError::NotFound {
-            msg: format!("wallet has no {chain} account"),
-        })
+    connection.wallet.accounts.iter().find(|account| account.chain == chain).cloned().ok_or_else(|| GemServiceError::NotFound {
+        msg: format!("wallet has no {chain} account"),
+    })
 }
 
 pub fn validate_session_chain(session: &WalletConnectionSession, chain: Chain) -> Result<(), GemServiceError> {
@@ -71,19 +75,13 @@ pub fn validate_session_chain(session: &WalletConnectionSession, chain: Chain) -
 
 pub fn sessions_to_delete(local: &[WalletConnectionSession], remote: &[WalletConnectionSession]) -> Vec<String> {
     stale(
-        local
-            .iter()
-            .filter(|session| session.state == WalletConnectionState::Active)
-            .map(|session| session.id.clone()),
+        local.iter().filter(|session| session.state == WalletConnectionState::Active).map(|session| session.id.clone()),
         remote.iter().map(|session| session.id.clone()),
     )
 }
 
 pub fn sessions_to_update(local: &[WalletConnectionSession], remote: Vec<WalletConnectionSession>) -> Vec<WalletConnectionSession> {
-    remote
-        .into_iter()
-        .filter(|session| local.iter().any(|existing| existing.id == session.id && session_changed(existing, session)))
-        .collect()
+    remote.into_iter().filter(|session| local.iter().any(|existing| existing.id == session.id && session_changed(existing, session))).collect()
 }
 
 fn session_changed(existing: &WalletConnectionSession, session: &WalletConnectionSession) -> bool {
@@ -91,28 +89,17 @@ fn session_changed(existing: &WalletConnectionSession, session: &WalletConnectio
 }
 
 pub fn session_wallets(wallets: Vec<Wallet>, required: &[Chain], optional: &[Chain]) -> Vec<Wallet> {
-    let mut supported: Vec<Wallet> = wallets
-        .into_iter()
-        .filter(|wallet| wallet.wallet_type != WalletType::View && supports(wallet, required, optional))
-        .collect();
+    let mut supported: Vec<Wallet> = wallets.into_iter().filter(|wallet| wallet.wallet_type != WalletType::View && supports(wallet, required, optional)).collect();
     supported.sort_by_key(|wallet| wallet.wallet_type.rank());
     supported
 }
 
 pub fn default_wallet(wallets: &[Wallet], current_wallet_id: Option<WalletId>) -> Option<Wallet> {
-    wallets
-        .iter()
-        .find(|wallet| Some(&wallet.id) == current_wallet_id.as_ref())
-        .or_else(|| wallets.first())
-        .cloned()
+    wallets.iter().find(|wallet| Some(&wallet.id) == current_wallet_id.as_ref()).or_else(|| wallets.first()).cloned()
 }
 
 pub fn supported_chains() -> Vec<Chain> {
-    crate::config::wallet_connect::get_wallet_connect_config()
-        .chains
-        .iter()
-        .filter_map(|chain| Chain::from_str(chain).ok())
-        .collect()
+    crate::config::wallet_connect::get_wallet_connect_config().chains.iter().filter_map(|chain| Chain::from_str(chain).ok()).collect()
 }
 
 pub fn session_chains(wallet: &Wallet, supported: &[Chain]) -> Vec<Chain> {
@@ -130,12 +117,7 @@ pub fn parse_known_chains(chain_ids: &[String]) -> Vec<Chain> {
 }
 
 pub fn authentication_chain_ids(chain_ids: &[String]) -> Vec<String> {
-    unique(
-        chain_ids
-            .iter()
-            .filter(|chain_id| parse_chain(chain_id).is_some_and(|chain| chain.chain_type() == ChainType::Ethereum))
-            .cloned(),
-    )
+    unique(chain_ids.iter().filter(|chain_id| parse_chain(chain_id).is_some_and(|chain| chain.chain_type() == ChainType::Ethereum)).cloned())
 }
 
 pub fn authentication_accounts(chain_ids: &[String], wallet: &Wallet) -> Vec<GemWalletConnectAuthAccount> {
@@ -155,12 +137,7 @@ pub fn authentication_accounts(chain_ids: &[String], wallet: &Wallet) -> Vec<Gem
 
 pub fn account_chains(accounts: &[String]) -> Vec<Chain> {
     let wallet_connect = WalletConnect::new();
-    unique(
-        accounts
-            .iter()
-            .filter_map(|account| wallet_connect.parse_account(account.clone()))
-            .map(|address| address.chain),
-    )
+    unique(accounts.iter().filter_map(|account| wallet_connect.parse_account(account.clone())).map(|address| address.chain))
 }
 
 pub fn application_metadata(name: String, description: String, url: String, icons: Vec<String>) -> ApplicationMetadata {
@@ -208,6 +185,13 @@ pub fn session_rejection(reason: GemWalletConnectRejectionReason) -> GemWalletCo
     }
 }
 
+pub fn signer_failure(error: GemErrorText) -> GemSignerFailure {
+    match error {
+        GemErrorText::Cancelled => GemSignerFailure::Reject,
+        error => GemSignerFailure::Retry { error },
+    }
+}
+
 pub fn user_rejected_error() -> GemWalletConnectRpcError {
     GemWalletConnectRpcError {
         code: USER_REJECTED_ERROR_CODE,
@@ -242,11 +226,7 @@ pub fn session_methods() -> Vec<String> {
 }
 
 pub fn authentication_methods() -> Vec<String> {
-    WalletConnectionMethods::all()
-        .iter()
-        .filter(|method| method.chain_type() == ChainType::Ethereum)
-        .filter_map(serde_name)
-        .collect()
+    WalletConnectionMethods::all().iter().filter(|method| method.chain_type() == ChainType::Ethereum).filter_map(serde_name).collect()
 }
 
 pub fn session_events() -> Vec<String> {
@@ -262,12 +242,7 @@ fn parse_chain(chain_id: &str) -> Option<Chain> {
 }
 
 fn supports(wallet: &Wallet, required: &[Chain], optional: &[Chain]) -> bool {
-    let chains: HashSet<Chain> = wallet
-        .accounts
-        .iter()
-        .map(|account| account.chain)
-        .filter(|chain| wallet_connect_namespace(*chain).is_some())
-        .collect();
+    let chains: HashSet<Chain> = wallet.accounts.iter().map(|account| account.chain).filter(|chain| wallet_connect_namespace(*chain).is_some()).collect();
     if chains.is_empty() {
         return false;
     }
@@ -286,12 +261,7 @@ pub fn validate_transaction_sender(transaction: &WalletConnectTransaction, accou
     }
 }
 
-pub fn transfer_data(
-    chain: Chain,
-    metadata: ApplicationMetadata,
-    transaction: WalletConnectTransaction,
-    action: GemWalletConnectTransactionAction,
-) -> Result<GemTransferData, GemServiceError> {
+pub fn transfer_data(chain: Chain, metadata: ApplicationMetadata, transaction: WalletConnectTransaction, action: GemWalletConnectTransactionAction) -> Result<GemTransferData, GemServiceError> {
     let output_action = match action {
         GemWalletConnectTransactionAction::Sign => TransferDataOutputAction::Sign,
         GemWalletConnectTransactionAction::Send => TransferDataOutputAction::Send,
@@ -324,22 +294,11 @@ pub fn transfer_data(
             };
             (extra, value)
         }
-        WalletConnectTransaction::Solana {
-            data,
-            output_type,
-            transaction_type,
-        } => (encoded_extra(data.transaction, output_type, output_action, transaction_type), BigInt::ZERO),
-        WalletConnectTransaction::Sui { data, output_type } => (
-            encoded_extra(data.transaction, output_type, output_action, TransactionType::SmartContractCall),
-            BigInt::ZERO,
-        ),
+        WalletConnectTransaction::Solana { data, output_type, transaction_type } => (encoded_extra(data.transaction, output_type, output_action, transaction_type), BigInt::ZERO),
+        WalletConnectTransaction::Sui { data, output_type } => (encoded_extra(data.transaction, output_type, output_action, TransactionType::SmartContractCall), BigInt::ZERO),
         WalletConnectTransaction::Tron { data, output_type } => {
             let approval = decode_wallet_connect_approval(&data).map_err(|error| GemServiceError::InvalidInput { msg: error.to_string() })?;
-            let transaction_type = if approval.is_some() {
-                TransactionType::TokenApproval
-            } else {
-                TransactionType::SmartContractCall
-            };
+            let transaction_type = if approval.is_some() { TransactionType::TokenApproval } else { TransactionType::SmartContractCall };
             let to = approval.as_ref().map(|decoded| decoded.contract.clone()).unwrap_or_default();
             let extra = TransferDataExtra {
                 to,
@@ -385,16 +344,12 @@ fn hex_value(value: &str) -> Result<BigInt, GemServiceError> {
     if digits.is_empty() {
         return Ok(BigInt::ZERO);
     }
-    BigInt::parse_bytes(digits.as_bytes(), 16).ok_or_else(|| GemServiceError::InvalidInput {
-        msg: format!("invalid hex number {value}"),
-    })
+    BigInt::parse_bytes(digits.as_bytes(), 16).ok_or_else(|| GemServiceError::InvalidInput { msg: format!("invalid hex number {value}") })
 }
 
 fn hex_to_bytes(value: &str) -> Result<Vec<u8>, GemServiceError> {
     let digits = value.trim().trim_start_matches("0x").trim_start_matches("0X");
-    hex::decode(digits).map_err(|_| GemServiceError::InvalidInput {
-        msg: format!("invalid hex data {value}"),
-    })
+    hex::decode(digits).map_err(|_| GemServiceError::InvalidInput { msg: format!("invalid hex data {value}") })
 }
 
 #[cfg(test)]
@@ -448,30 +403,15 @@ mod tests {
 
         let titles: Vec<&str> = groups.iter().map(|(wallet, _)| wallet.name.as_str()).collect();
         assert_eq!(titles, vec!["first", "second"], "sections follow the order the wallets are listed in");
-        let ids: Vec<Vec<&str>> = groups
-            .iter()
-            .map(|(_, connections)| connections.iter().map(|connection| connection.session.id.as_str()).collect())
-            .collect();
-        assert_eq!(
-            ids,
-            vec![vec!["new-first", "old-first"], vec!["new-second", "old-second"]],
-            "the newest connection leads each section"
-        );
+        let ids: Vec<Vec<&str>> = groups.iter().map(|(_, connections)| connections.iter().map(|connection| connection.session.id.as_str()).collect()).collect();
+        assert_eq!(ids, vec![vec!["new-first", "old-first"], vec!["new-second", "old-second"]], "the newest connection leads each section");
     }
 
     #[test]
     fn test_authentication_offers_one_account_per_requested_chain_the_wallet_holds() {
         let wallet = Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Solana]);
 
-        let accounts = authentication_accounts(
-            &[
-                "eip155:1".to_string(),
-                "eip155:137".to_string(),
-                "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp".to_string(),
-                "eip155:1".to_string(),
-            ],
-            &wallet,
-        );
+        let accounts = authentication_accounts(&["eip155:1".to_string(), "eip155:137".to_string(), "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp".to_string(), "eip155:1".to_string()], &wallet);
 
         assert_eq!(
             accounts.iter().map(|account| account.chain_id.as_str()).collect::<Vec<_>>(),
@@ -489,6 +429,19 @@ mod tests {
             wallet: Wallet::mock_with_chains(&[Chain::Ethereum]),
         };
 
+        assert_eq!(
+            connection_detail_rows(&connection),
+            vec![
+                GemListRow::Text {
+                    title: GemListRowTitle::Wallet,
+                    value: connection.wallet.name.clone(),
+                },
+                GemListRow::Date {
+                    title: GemListRowTitle::Date,
+                    date: connection.session.created_at,
+                },
+            ]
+        );
         assert_eq!(session_account(&connection, Chain::Ethereum).unwrap().chain, Chain::Ethereum);
         assert!(session_account(&connection, Chain::Solana).is_err());
         assert!(session_account(&connection, Chain::Bitcoin).is_err());
@@ -505,10 +458,7 @@ mod tests {
                 ..WalletConnectionSession::mock("started-gone", &[Chain::Ethereum])
             },
         ];
-        let remote = vec![
-            WalletConnectionSession::mock("active-kept", &[Chain::Ethereum, Chain::Solana]),
-            WalletConnectionSession::mock("unknown", &[Chain::Ethereum]),
-        ];
+        let remote = vec![WalletConnectionSession::mock("active-kept", &[Chain::Ethereum, Chain::Solana]), WalletConnectionSession::mock("unknown", &[Chain::Ethereum])];
 
         assert_eq!(sessions_to_delete(&local, &remote), vec!["active-gone".to_string()]);
         let updates = sessions_to_update(&local, remote);
@@ -554,20 +504,14 @@ mod tests {
         };
         let wallets = vec![first.clone(), second.clone()];
         assert_eq!(default_wallet(&wallets, Some(second.id.clone())).map(|wallet| wallet.name), Some("second".to_string()));
-        assert_eq!(
-            default_wallet(&wallets, Some(WalletId::Multicoin("other".to_string()))).map(|wallet| wallet.name),
-            Some("first".to_string())
-        );
+        assert_eq!(default_wallet(&wallets, Some(WalletId::Multicoin("other".to_string()))).map(|wallet| wallet.name), Some("first".to_string()));
         assert!(default_wallet(&[], None).is_none());
     }
 
     #[test]
     fn test_session_chains_keeps_supported_order() {
         let wallet = Wallet::mock_with_chains(&[Chain::Solana, Chain::Ethereum, Chain::Bitcoin]);
-        assert_eq!(
-            session_chains(&wallet, &[Chain::Ethereum, Chain::Solana, Chain::Tron]),
-            vec![Chain::Ethereum, Chain::Solana]
-        );
+        assert_eq!(session_chains(&wallet, &[Chain::Ethereum, Chain::Solana, Chain::Tron]), vec![Chain::Ethereum, Chain::Solana]);
     }
 
     #[test]
@@ -580,12 +524,7 @@ mod tests {
             vec![Chain::Ethereum, Chain::Polygon]
         );
         assert_eq!(
-            authentication_chain_ids(&[
-                "eip155:1".to_string(),
-                "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp".to_string(),
-                "eip155:1".to_string(),
-                "eip155:137".to_string()
-            ]),
+            authentication_chain_ids(&["eip155:1".to_string(), "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp".to_string(), "eip155:1".to_string(), "eip155:137".to_string()]),
             vec!["eip155:1".to_string(), "eip155:137".to_string()]
         );
 
@@ -636,10 +575,7 @@ mod tests {
         };
 
         assert!(validate_transaction_sender(&matching, &account).is_ok(), "EVM addresses compare without case");
-        assert!(
-            validate_transaction_sender(&other, &account).is_err(),
-            "a dapp cannot simulate for one account and sign with another"
-        );
+        assert!(validate_transaction_sender(&other, &account).is_err(), "a dapp cannot simulate for one account and sign with another");
     }
 
     #[test]
@@ -749,6 +685,16 @@ pub fn record_seen_message(seen: &mut Vec<String>, message_id: String, limit: us
 #[cfg(test)]
 mod message_tests {
     use super::*;
+
+    #[test]
+    fn test_only_a_cancelled_signature_answers_the_dapp() {
+        assert_eq!(signer_failure(GemErrorText::Cancelled), GemSignerFailure::Reject);
+        assert_eq!(
+            signer_failure(GemErrorText::NetworkOffline),
+            GemSignerFailure::Retry { error: GemErrorText::NetworkOffline },
+            "a signature that failed on its own leaves the request open to try again"
+        );
+    }
 
     #[test]
     fn test_a_repeated_message_is_only_processed_once() {

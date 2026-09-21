@@ -1,10 +1,7 @@
 use std::time::Duration;
 
 use number_formatter::BigNumberFormatter;
-use primitives::{
-    PerpetualDirection, PerpetualProvider, TransactionChange, TransactionMetadata, TransactionPerpetualMetadata, TransactionState, TransactionType, TransactionUpdate,
-    known_assets::HYPERCORE_HYPE,
-};
+use primitives::{PerpetualDirection, PerpetualProvider, TransactionChange, TransactionMetadata, TransactionPerpetualMetadata, TransactionState, TransactionType, TransactionUpdate, known_assets::HYPERCORE_HYPE};
 
 use crate::models::{
     order::{FillDirection, UserFill},
@@ -169,12 +166,8 @@ fn ledger_match_delta(update: &LedgerUpdate, action_id: &HyperCoreActionId, nonc
 fn delegator_history_match_delta(update: &DelegatorHistoryUpdate, action_id: &HyperCoreActionId, nonce: u64) -> Option<u64> {
     let matches_action = match (&update.delta, action_id) {
         (DelegatorHistoryDelta { c_deposit: Some(delta), .. }, HyperCoreActionId::CDeposit { wei, .. }) => amount_matches_wei(&delta.amount, *wei),
-        (DelegatorHistoryDelta { delegate: Some(delta), .. }, HyperCoreActionId::TokenDelegate { wei, is_undelegate, .. }) => {
-            delta.is_undelegate == *is_undelegate && amount_matches_wei(&delta.amount, *wei)
-        }
-        (DelegatorHistoryDelta { withdrawal: Some(delta), .. }, HyperCoreActionId::CWithdraw { wei, .. }) => {
-            delta.phase == DELEGATOR_WITHDRAWAL_INITIATED && amount_matches_wei(&delta.amount, *wei)
-        }
+        (DelegatorHistoryDelta { delegate: Some(delta), .. }, HyperCoreActionId::TokenDelegate { wei, is_undelegate, .. }) => delta.is_undelegate == *is_undelegate && amount_matches_wei(&delta.amount, *wei),
+        (DelegatorHistoryDelta { withdrawal: Some(delta), .. }, HyperCoreActionId::CWithdraw { wei, .. }) => delta.phase == DELEGATOR_WITHDRAWAL_INITIATED && amount_matches_wei(&delta.amount, *wei),
         _ => false,
     };
 
@@ -204,10 +197,7 @@ fn perpetual_fill_changes(matching_fills: &[&UserFill], last_fill: &UserFill) ->
     let (_, metadata) = prepare_perpetual_fill(matching_fills, last_fill)?;
     let fee: f64 = matching_fills.iter().map(|fill| fill.fee).sum();
 
-    Some(vec![
-        TransactionChange::Metadata(TransactionMetadata::Perpetual(metadata)),
-        TransactionChange::NetworkFee(usdc_value(fee).into()),
-    ])
+    Some(vec![TransactionChange::Metadata(TransactionMetadata::Perpetual(metadata)), TransactionChange::NetworkFee(usdc_value(fee).into())])
 }
 
 #[cfg(test)]
@@ -227,13 +217,10 @@ mod tests {
         assert_eq!(update.state, TransactionState::Confirmed);
         assert_eq!(update.changes.len(), 3);
 
-        let metadata_change = update.changes.iter().find_map(|change| {
-            if let TransactionChange::Metadata(TransactionMetadata::Perpetual(metadata)) = change {
-                Some(metadata)
-            } else {
-                None
-            }
-        });
+        let metadata_change = update
+            .changes
+            .iter()
+            .find_map(|change| if let TransactionChange::Metadata(TransactionMetadata::Perpetual(metadata)) = change { Some(metadata) } else { None });
         let metadata = metadata_change.unwrap();
         assert_eq!(metadata.pnl, 36.5);
         assert_eq!(metadata.price, 47.904);
@@ -241,19 +228,10 @@ mod tests {
         assert_eq!(metadata.is_liquidation, Some(false));
         assert_eq!(metadata.provider, Some(PerpetualProvider::Hypercore));
 
-        let network_fee_change = update
-            .changes
-            .iter()
-            .find_map(|change| if let TransactionChange::NetworkFee(fee) = change { Some(fee) } else { None });
+        let network_fee_change = update.changes.iter().find_map(|change| if let TransactionChange::NetworkFee(fee) = change { Some(fee) } else { None });
         assert_eq!(network_fee_change, Some(&BigInt::from(441520)));
 
-        let hash_change = update.changes.iter().find_map(|change| {
-            if let TransactionChange::HashChange { old, new } = change {
-                Some((old, new))
-            } else {
-                None
-            }
-        });
+        let hash_change = update.changes.iter().find_map(|change| if let TransactionChange::HashChange { old, new } = change { Some((old, new)) } else { None });
         let (old, new) = hash_change.unwrap();
         assert_eq!(old, &request_id);
         assert_eq!(new, "0x9b4d63110c57f2e19cc7042ce90e300202f500f6a75b11b33f160e63cb5bcccc");
@@ -322,10 +300,7 @@ mod tests {
                 new: "0x9b4d63110c57f2e19cc7042ce90e300202f500f6a75b11b33f160e63cb5bcccc".to_string(),
             }
         );
-        let network_fee_change = update
-            .changes
-            .iter()
-            .find_map(|change| if let TransactionChange::NetworkFee(fee) = change { Some(fee) } else { None });
+        let network_fee_change = update.changes.iter().find_map(|change| if let TransactionChange::NetworkFee(fee) = change { Some(fee) } else { None });
         assert_eq!(network_fee_change, Some(&BigInt::from(441520)));
     }
 
@@ -354,10 +329,7 @@ mod tests {
         let update = map_transaction_state_hash(fills, hash, hash.to_string());
 
         assert_eq!(update.state, TransactionState::Confirmed);
-        let network_fee = update
-            .changes
-            .iter()
-            .find_map(|change| if let TransactionChange::NetworkFee(fee) = change { Some(fee) } else { None });
+        let network_fee = update.changes.iter().find_map(|change| if let TransactionChange::NetworkFee(fee) = change { Some(fee) } else { None });
         assert_eq!(network_fee, Some(&BigInt::from(884_607)));
     }
 
@@ -432,10 +404,7 @@ mod tests {
             TransactionUpdate::new_state(TransactionState::Pending)
         );
 
-        let staking_action = HyperCoreActionId::CDeposit {
-            wei: 9_000_000,
-            nonce: 1777960893092,
-        };
+        let staking_action = HyperCoreActionId::CDeposit { wei: 9_000_000, nonce: 1777960893092 };
         assert_eq!(
             map_transaction_state_action(updates, staking_action, "action:cDeposit:9000000:1777960893092".to_string()),
             TransactionUpdate::new_state(TransactionState::Pending)
@@ -446,10 +415,7 @@ mod tests {
     fn test_map_transaction_state_action_confirms_staking_transfer_with_typed_action() {
         let updates = serde_json::from_str(include_str!("../../testdata/user_non_funding_ledger_updates_c_staking_transfer.json")).unwrap();
         let request_id = "action:cDeposit:1000000:1779376553779".to_string();
-        let action_id = HyperCoreActionId::CDeposit {
-            wei: 1_000_000,
-            nonce: 1779376553779,
-        };
+        let action_id = HyperCoreActionId::CDeposit { wei: 1_000_000, nonce: 1779376553779 };
         let update = map_transaction_state_action(updates, action_id, request_id.clone());
 
         assert_eq!(
@@ -494,10 +460,7 @@ mod tests {
         for (request_id, action_id, expected_hash) in [
             (
                 "action:cDeposit:1000000:1780081714468",
-                HyperCoreActionId::CDeposit {
-                    wei: 1_000_000,
-                    nonce: 1780081714468,
-                },
+                HyperCoreActionId::CDeposit { wei: 1_000_000, nonce: 1780081714468 },
                 "0x945b910697cd885a95d5043c857c0d0201b300ec32c0a72c38243c5956c16245",
             ),
             (
@@ -511,10 +474,7 @@ mod tests {
             ),
             (
                 "action:cWithdraw:3001423:1780078264489",
-                HyperCoreActionId::CWithdraw {
-                    wei: 3_001_423,
-                    nonce: 1780078264489,
-                },
+                HyperCoreActionId::CWithdraw { wei: 3_001_423, nonce: 1780078264489 },
                 "0x7b435a1210afafef7cbd043c84b8d402064e00f7aba2cec11f0c0564cfa389da",
             ),
             (

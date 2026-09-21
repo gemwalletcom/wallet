@@ -37,14 +37,7 @@ import com.wallet.core.primitives.PerpetualProvider
 private val trailingMinWidth = 40.dp
 
 @Composable
-fun PerpetualItem(
-    item: PerpetualDataAggregate,
-    modifier: Modifier = Modifier,
-    listPosition: ListPosition = ListPosition.Single,
-    longPressState: MutableState<PerpetualId?>,
-    onTogglePin: (PerpetualId) -> Unit,
-    onClick: (AssetId) -> Unit,
-) {
+fun PerpetualItem(item: PerpetualDataAggregate, modifier: Modifier = Modifier, listPosition: ListPosition = ListPosition.Single, longPressState: MutableState<PerpetualId?>, onTogglePin: (PerpetualId) -> Unit, onClick: (AssetId) -> Unit) {
     DropDownContextItem(
         modifier = modifier,
         isExpanded = longPressState.value == item.id,
@@ -53,16 +46,18 @@ fun PerpetualItem(
             PerpetualItem(
                 modifier = it,
                 item = item,
-                listPosition = listPosition
+                listPosition = listPosition,
             )
         },
         menuItems = {
             DropdownMenuItem(
                 text = { Text(text = stringResource(id = if (item.isPinned) R.string.common_unpin else R.string.common_pin)) },
                 trailingIcon = {
-                    if (item.isPinned) Icon(painterResource(R.drawable.keep_off), "unpin")
-                    else Icon(AppIcons.PushPin, "pin")
-
+                    if (item.isPinned) {
+                        Icon(painterResource(R.drawable.keep_off), "unpin")
+                    } else {
+                        Icon(AppIcons.PushPin, "pin")
+                    }
                 },
                 onClick = {
                     onTogglePin(item.id)
@@ -75,11 +70,7 @@ fun PerpetualItem(
 }
 
 @Composable
-fun PerpetualItem(
-    item: PerpetualDataAggregate,
-    modifier: Modifier = Modifier,
-    listPosition: ListPosition = ListPosition.Single
-) {
+fun PerpetualItem(item: PerpetualDataAggregate, modifier: Modifier = Modifier, listPosition: ListPosition = ListPosition.Single) {
     AssetListItem(
         asset = item.asset,
         title = item.title,
@@ -94,14 +85,14 @@ fun PerpetualItem(
                     changes = item.price.changePercentageFormatted,
                     changeStyle = item.price.state.textStyle(),
                     style = MaterialTheme.typography.bodyMedium,
-                    internalPadding = paddingHalfSmall
+                    internalPadding = paddingHalfSmall,
                 )
             }
         },
         trailing = {
             Column(
                 modifier = Modifier.defaultMinSize(trailingMinWidth),
-                horizontalAlignment = Alignment.End
+                horizontalAlignment = Alignment.End,
             ) {
                 ListItemTitleText(item.volume, color = MaterialTheme.colorScheme.onSurface)
             }
@@ -121,7 +112,7 @@ private fun PerpetualItemPreview() {
             name = "Bitcoin",
             symbol = "BTC",
             decimals = 8,
-            type = AssetType.NATIVE
+            type = AssetType.NATIVE,
         )
         override val isPinned: Boolean = true
         override val price = object : EquivalentValue {

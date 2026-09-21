@@ -1,16 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemHeaderButtonKind
-import struct Gemstone.GemPerpetualMarketCounts
-import enum Gemstone.GemPerpetualMarketSection
-import struct Gemstone.GemPerpetualMarketSections
-import protocol Gemstone.GemRecentActivityServiceProtocol
-import GemstonePrimitives
-import enum Gemstone.GemMarketsRefreshTrigger
-import protocol Gemstone.GemPerpetualServiceProtocol
-import GemstoneServices
 import Components
 import Foundation
+import enum Gemstone.GemHeaderButtonKind
+import enum Gemstone.GemMarketsRefreshTrigger
+import struct Gemstone.GemPerpetualBalanceHeader
+import struct Gemstone.GemPerpetualMarketCounts
+import enum Gemstone.GemPerpetualMarketSection
+import struct Gemstone.GemPerpetualMarketSession
+import protocol Gemstone.GemPerpetualServiceProtocol
+import protocol Gemstone.GemRecentActivityServiceProtocol
+import func Gemstone.perpetualBalanceHeader
+import GemstonePrimitives
+import GemstoneServices
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -22,7 +24,6 @@ import SwiftUI
 @Observable
 @MainActor
 public final class PerpetualsSceneViewModel {
-
     private let observerService: any PerpetualObservable
     private let service: any GemPerpetualServiceProtocol
 
@@ -41,13 +42,22 @@ public final class PerpetualsSceneViewModel {
         perpetualsQuery.value
     }
 
-    var walletBalance: WalletBalance {
-        walletBalanceQuery.value.map { WalletBalance.perpetual(available: $0.available, reserved: $0.reserved) } ?? .zero
+    var balanceHeader: GemPerpetualBalanceHeader {
+        perpetualBalanceHeader(balance: walletBalanceQuery.value?.balance.toGem(), walletType: wallet.type.toGem())
     }
 
     var isSearchPresented: Bool = false
-    var searchQuery: String = .empty
-    var isSearching: Bool = false
+    private var session = GemPerpetualMarketSession(query: .empty, isSearching: false)
+
+    var searchQuery: String {
+        get { session.query }
+        set { session = session.onQueryChanged(query: newValue) }
+    }
+
+    var isSearching: Bool {
+        get { session.isSearching }
+        set { session = session.onSearchingChanged(isSearching: newValue) }
+    }
 
     let onSelectAssetType: ((SelectAssetType) -> Void)?
     let onSelectAsset: ((Asset) -> Void)?
@@ -93,17 +103,13 @@ public final class PerpetualsSceneViewModel {
         Images.System.search
     }
 
-    var marketSections: GemPerpetualMarketSections {
-        GemPerpetualMarketCounts(
+    var marketSectionList: [GemPerpetualMarketSection] {
+        session.sections(counts: GemPerpetualMarketCounts(
             positions: UInt32(positions.count),
             pinned: UInt32(sections.pinned.count),
             markets: UInt32(sections.markets.count),
             recents: recentModel.hasAssets ? 1 : 0,
-        ).sections(isSearching: isSearching, isQueryEmpty: searchQuery.isEmpty)
-    }
-
-    var marketSectionList: [GemPerpetualMarketSection] {
-        marketSections.list()
+        ))
     }
 
     var marketSectionModels: [PerpetualMarketSectionViewModel] {
@@ -119,10 +125,7 @@ public final class PerpetualsSceneViewModel {
     }
 
     var headerViewModel: PerpetualsHeaderViewModel {
-        PerpetualsHeaderViewModel(
-            walletType: wallet.type,
-            balance: walletBalance,
-        )
+        PerpetualsHeaderViewModel(header: balanceHeader)
     }
 }
 
@@ -172,10 +175,10 @@ extension PerpetualsSceneViewModel {
         }
     }
 
-    func onSearchQueryChange(_ _: String, _ newValue: String) {
-        let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        perpetualsQuery.request = PerpetualsRequest(searchQuery: trimmed)
-        positionsQuery.request = PerpetualPositionsRequest(walletId: wallet.id, searchQuery: trimmed)
+    func onSearchQueryChange(_ _: String, _: String) {
+        let query = session.searchQuery()
+        perpetualsQuery.request = PerpetualsRequest(searchQuery: query)
+        positionsQuery.request = PerpetualPositionsRequest(walletId: wallet.id, searchQuery: query)
     }
 
     func onSearchPresentedChange(_ _: Bool, _ isPresented: Bool) {

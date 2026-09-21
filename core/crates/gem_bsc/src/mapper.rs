@@ -82,10 +82,7 @@ mod tests {
             shares: BigUint::from(1_900_000_000_000_000_000u64),
         };
 
-        let result = map_delegations(
-            vec![active],
-            vec![mock_undelegation(Some(4_102_444_800)), mock_undelegation(Some(1_716_417_585)), mock_undelegation(None)],
-        );
+        let result = map_delegations(vec![active], vec![mock_undelegation(Some(4_102_444_800)), mock_undelegation(Some(1_716_417_585)), mock_undelegation(None)]);
 
         assert_eq!(result.len(), 4);
         assert_eq!(result[0].state, DelegationState::Active);
@@ -101,13 +98,6 @@ mod tests {
         assert_eq!(result[3].state, DelegationState::Deactivating);
         assert_eq!(result[3].completion_date, None);
         assert_eq!(result[3].delegation_id, "");
-        assert_eq!(
-            result
-                .iter()
-                .map(|delegation| (&delegation.validator_id, &delegation.delegation_id))
-                .collect::<HashSet<_>>()
-                .len(),
-            4
-        );
+        assert_eq!(result.iter().map(|delegation| (&delegation.validator_id, &delegation.delegation_id)).collect::<HashSet<_>>().len(), 4);
     }
 }

@@ -52,10 +52,7 @@ impl RewardsRedemptionsStore for DatabaseClient {
                     .get_result::<String>(conn)?;
             }
 
-            diesel::insert_into(rewards_redemptions::table)
-                .values(&redemption)
-                .returning(rewards_redemptions::id)
-                .get_result(conn)
+            diesel::insert_into(rewards_redemptions::table).values(&redemption).returning(rewards_redemptions::id).get_result(conn)
         })
     }
 
@@ -80,10 +77,7 @@ impl RewardsRedemptionsStore for DatabaseClient {
 
     fn get_redemption(&mut self, redemption_id: i32) -> Result<RewardRedemptionRow, DieselError> {
         use crate::schema::rewards_redemptions::dsl;
-        dsl::rewards_redemptions
-            .filter(dsl::id.eq(redemption_id))
-            .select(RewardRedemptionRow::as_select())
-            .first(&mut self.connection)
+        dsl::rewards_redemptions.filter(dsl::id.eq(redemption_id)).select(RewardRedemptionRow::as_select()).first(&mut self.connection)
     }
 
     fn get_redemption_options(&mut self, types: &[RewardRedemptionType]) -> Result<Vec<RedemptionOptionFull>, DieselError> {
@@ -108,10 +102,6 @@ impl RewardsRedemptionsStore for DatabaseClient {
 
     fn count_redemptions_since(&mut self, username: &str, since: NaiveDateTime) -> Result<i64, DieselError> {
         use crate::schema::rewards_redemptions::dsl;
-        dsl::rewards_redemptions
-            .filter(dsl::username.eq(username))
-            .filter(dsl::created_at.ge(since))
-            .count()
-            .get_result(&mut self.connection)
+        dsl::rewards_redemptions.filter(dsl::username.eq(username)).filter(dsl::created_at.ge(since)).count().get_result(&mut self.connection)
     }
 }

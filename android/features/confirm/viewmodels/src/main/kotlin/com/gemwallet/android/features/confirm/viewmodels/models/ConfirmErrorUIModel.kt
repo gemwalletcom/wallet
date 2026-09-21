@@ -15,22 +15,16 @@ import com.gemwallet.android.ui.components.InfoSheetEntity.NetworkBalanceRequire
 import com.gemwallet.android.ui.components.InfoSheetEntity.NetworkFeeRequiredInfo
 import com.gemwallet.android.ui.components.InfoSheetEntity.SwapMinimumAmountInfo
 import com.wallet.core.primitives.Asset
-import java.math.BigInteger
+import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemAcquireAssetFlow
 import uniffi.gemstone.GemBalanceRequirement
 import uniffi.gemstone.GemConfirmErrorDisplay
 import uniffi.gemstone.GemValueStyle
+import java.math.BigInteger
 
-data class ConfirmErrorUIModel(
-    val text: String,
-    val info: InfoSheetEntity?,
-)
+data class ConfirmErrorUIModel(val text: String, val info: InfoSheetEntity?)
 
-data class AcquireAssetRequest(
-    val asset: Asset,
-    val buyAmount: Int?,
-    val offersOptions: Boolean,
-)
+data class AcquireAssetRequest(val asset: Asset, val buyAmount: Int?, val offersOptions: Boolean, val swapPayAssetId: AssetId? = null)
 
 internal fun GemConfirmErrorDisplay.uiModel(
     context: Context,
@@ -64,6 +58,7 @@ private fun GemConfirmErrorDisplay.infoSheet(
             action = { onAcquire(asset, null) },
         )
     }
+
     is GemConfirmErrorDisplay.NetworkFeeRequired -> {
         val asset = asset.toPrimitives()
         val formatted = requirement.formatted(asset)
@@ -76,14 +71,18 @@ private fun GemConfirmErrorDisplay.infoSheet(
             action = { onAcquire(asset, networkFeeBuyAmount) },
         )
     }
+
     is GemConfirmErrorDisplay.NetworkFeeMissing -> {
+        val feeTitle = title
         val asset = asset.toPrimitives()
         NetworkFeeRequiredInfo(
             chain = asset.chain,
+            title = feeTitle,
             actionLabel = acquireFlow(asset).actionLabel(context, asset.symbol),
             action = { onAcquire(asset, networkFeeBuyAmount) },
         )
     }
+
     is GemConfirmErrorDisplay.SwapMinimum -> {
         val asset = asset.toPrimitives()
         val formatted = requirement.formatted(asset)
@@ -97,6 +96,7 @@ private fun GemConfirmErrorDisplay.infoSheet(
             action = { onAcquire(asset, null) },
         )
     }
+
     is GemConfirmErrorDisplay.MinimumAccountBalance -> {
         val asset = asset.toPrimitives()
         InfoSheetEntity.MinimumAccountBalanceInfo(
@@ -104,9 +104,13 @@ private fun GemConfirmErrorDisplay.infoSheet(
             value = ValueFormatter(style = GemValueStyle.AUTO).string(required, asset),
         )
     }
+
     is GemConfirmErrorDisplay.DustThreshold -> InfoSheetEntity.DustThresholdInfo(chain = chain.requireChain())
+
     is GemConfirmErrorDisplay.Malicious -> InfoSheetEntity.MaliciousTransactionInfo
+
     is GemConfirmErrorDisplay.MemoRequired -> InfoSheetEntity.MemoRequiredInfo(symbol)
+
     is GemConfirmErrorDisplay.Offline,
     is GemConfirmErrorDisplay.FeeRatesMissing,
     is GemConfirmErrorDisplay.Cancelled,
@@ -114,7 +118,8 @@ private fun GemConfirmErrorDisplay.infoSheet(
     is GemConfirmErrorDisplay.Unknown,
     is GemConfirmErrorDisplay.InsufficientFunds,
     is GemConfirmErrorDisplay.Payment,
-    is GemConfirmErrorDisplay.Message -> null
+    is GemConfirmErrorDisplay.Message,
+    -> null
 }
 
 private fun AssetPriceValue?.amountWithFiat(value: BigInteger, asset: Asset): String {
@@ -132,8 +137,4 @@ private fun GemBalanceRequirement.formatted(asset: Asset): FormattedBalanceRequi
     )
 }
 
-private data class FormattedBalanceRequirement(
-    val required: String,
-    val available: String,
-    val shortfall: String,
-)
+private data class FormattedBalanceRequirement(val required: String, val available: String, val shortfall: String)

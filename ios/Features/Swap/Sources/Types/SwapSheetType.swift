@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import InfoSheet
 import GemstonePrimitives
+import InfoSheet
 import Primitives
 
 public enum SwapSheetType: Identifiable, Equatable, Sendable {

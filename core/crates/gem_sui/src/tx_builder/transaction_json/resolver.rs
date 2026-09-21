@@ -102,15 +102,8 @@ fn is_mutable_parameter(parameter: &OpenSignature) -> bool {
     parameter.reference.and_then(|reference| Reference::try_from(reference).ok()) == Some(Reference::Mutable)
 }
 
-fn object_input_from_fetched(
-    index: usize,
-    object_id: &str,
-    fetched: &HashMap<String, ResolvedObjectInput>,
-    input_mutability: &HashMap<usize, bool>,
-) -> Result<(usize, ObjectInput), SuiError> {
-    let object = fetched
-        .get(object_id)
-        .ok_or_else(|| SuiError::invalid_input(format!("Sui object was not returned by RPC: {object_id}")))?;
+fn object_input_from_fetched(index: usize, object_id: &str, fetched: &HashMap<String, ResolvedObjectInput>, input_mutability: &HashMap<usize, bool>) -> Result<(usize, ObjectInput), SuiError> {
+    let object = fetched.get(object_id).ok_or_else(|| SuiError::invalid_input(format!("Sui object was not returned by RPC: {object_id}")))?;
     Ok((index, object.input(input_mutability.get(&index).copied().unwrap_or(false))))
 }
 
@@ -120,9 +113,7 @@ mod tests {
 
     #[test]
     fn test_is_mutable_parameter() {
-        let mut parameter = OpenSignature {
-            reference: Some(Reference::Mutable as i32),
-        };
+        let mut parameter = OpenSignature { reference: Some(Reference::Mutable as i32) };
         assert!(is_mutable_parameter(&parameter));
 
         parameter.reference = Some(Reference::Immutable as i32);

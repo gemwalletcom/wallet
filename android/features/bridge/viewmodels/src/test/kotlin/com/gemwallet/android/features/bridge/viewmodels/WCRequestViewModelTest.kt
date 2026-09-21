@@ -1,18 +1,17 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
-import uniffi.gemstone.GemApplicationMetadataServiceInterface
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectJsonRpcResponse
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequests
 import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConnectRequest
-import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.testkit.mockGemConnectionRow
 import com.gemwallet.android.testkit.mockGemSignMessagePreview
 import com.gemwallet.android.testkit.mockGemWalletConnectMessageRequest
 import com.gemwallet.android.testkit.mockWalletConnectSessionRequest
 import com.gemwallet.android.testkit.mockWalletConnectVerifyContext
 import com.gemwallet.android.testkit.mockWalletConnectionSession
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ButtonState
 import io.mockk.coEvery
 import io.mockk.every
@@ -28,15 +27,19 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemApplicationMetadataServiceInterface
+import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.GemWalletConnectFailure
 import uniffi.gemstone.GemWalletConnectOutcome
@@ -75,16 +78,14 @@ class WCRequestViewModelTest {
         every { connectionRow(any()) } returns mockGemConnectionRow()
     }
 
-    private fun service(
-        onProcess: suspend (GemWalletConnectSessionRequest) -> GemWalletConnectOutcome = { idle },
-    ): GemWalletConnectServiceInterface = mockk(relaxed = true) {
+    private fun service(onProcess: suspend (GemWalletConnectSessionRequest) -> GemWalletConnectOutcome = { idle }): GemWalletConnectServiceInterface = mockk(relaxed = true) {
         every { userRejectedError() } returns GemWalletConnectRpcError(code = 4001, message = "User rejected")
-        coEvery { processRequest(any()) } coAnswers { onProcess(firstArg()) }
+        coEvery { requestOutcome(any()) } coAnswers { onProcess(firstArg()) }
     }
 
     private fun signMessageService(hasCriticalWarning: Boolean = false): GemSignMessageServiceInterface = mockk(relaxed = true) {
-        every { preview(any(), any(), any()) } returns mockGemSignMessagePreview(hasCriticalWarning)
-        coEvery { addressNames(any(), any()) } returns emptyList()
+        every { preview(any()) } returns mockGemSignMessagePreview(hasCriticalWarning)
+        coEvery { withAddressNames(any(), any()) } answers { secondArg() }
     }
 
     private fun viewModel(
@@ -100,18 +101,20 @@ class WCRequestViewModelTest {
         pendingRequests = requests,
         activeRequest = ActiveWalletConnectRequest(events = emptyFlow()),
         ioDispatcher = dispatcher,
-        context = mockk(relaxed = true),
+        context = mockk(relaxed = true) {
+            every { getString(R.string.errors_connections_malicious_origin) } returns "Malicious origin"
+            every { getString(R.string.wallet_connect_request_expired) } returns "Request expired"
+        },
     ).also { models.add(it) }
 
     private fun TestScope.pending(requests: WalletConnectPendingRequests, signature: CompletableDeferred<String>? = null): Job =
         launch { runCatching { requests.signMessage(mockGemWalletConnectMessageRequest(session = mockWalletConnectionSession(sessionId = topic))) }.onSuccess { signature?.complete(it) } }
 
-    private suspend fun WCRequestViewModel.awaitContent(): RequestSceneState.Content =
-        sceneState.first { it !is RequestSceneState.Loading } as RequestSceneState.Content
+    private suspend fun WCRequestViewModel.awaitContent(): RequestSceneState.Content = sceneState.first { it !is RequestSceneState.Loading } as RequestSceneState.Content
 
     @Test
     fun `a malicious origin notifies without responding`() = runTest(dispatcher) {
-        val notified = CompletableDeferred<BridgeRequestError>()
+        val notified = CompletableDeferred<String>()
         val respond = mockk<RespondWalletConnectRequest>(relaxed = true)
         val model = viewModel(
             service = service { GemWalletConnectOutcome(response = null, failure = GemWalletConnectFailure.MaliciousOrigin) },
@@ -120,20 +123,34 @@ class WCRequestViewModelTest {
 
         model.onRequest(sessionRequest, verifyContext, onNotify = { notified.complete(it) }, onError = {})
 
-        assertEquals(BridgeRequestError.MaliciousSession, notified.await())
+        assertEquals("Malicious origin", notified.await())
         verify(exactly = 0) { respond.respond(any(), any(), any(), any(), any()) }
     }
 
     @Test
     fun `an expired request notifies as expired`() = runTest(dispatcher) {
-        val notified = CompletableDeferred<BridgeRequestError>()
+        val notified = CompletableDeferred<String>()
         val model = viewModel(
             service = service { GemWalletConnectOutcome(response = null, failure = GemWalletConnectFailure.Expired) },
         )
 
         model.onRequest(sessionRequest, verifyContext, onNotify = { notified.complete(it) }, onError = {})
 
-        assertEquals(BridgeRequestError.Expired, notified.await())
+        assertEquals("Request expired", notified.await())
+    }
+
+    @Test
+    fun `a failed request reports an error without a notification`() = runTest(dispatcher) {
+        val error = CompletableDeferred<String>()
+        val notified = mutableListOf<String>()
+        val model = viewModel(
+            service = service { GemWalletConnectOutcome(response = null, failure = GemWalletConnectFailure.Failed("Request failed")) },
+        )
+
+        model.onRequest(sessionRequest, verifyContext, onNotify = { notified.add(it) }, onError = { error.complete(it) })
+
+        assertEquals("Request failed", error.await())
+        assertTrue(notified.isEmpty())
     }
 
     @Test
@@ -230,6 +247,33 @@ class WCRequestViewModelTest {
 
         assertNull(requests.current.value)
         verify(exactly = 0) { respond.respond(any(), any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `a failed signature leaves the request open and only a cancelled one answers the dapp`() = runTest(dispatcher) {
+        val requests = WalletConnectPendingRequests()
+        val service = service()
+        val signMessageService = signMessageService()
+        coEvery { service.signMessage(any(), any()) } throws GemServiceException.Api("offline")
+        val model = viewModel(service = service, signMessageService = signMessageService, requests = requests)
+
+        model.onRequest(sessionRequest, verifyContext, onNotify = {}, onError = {})
+        val job = pending(requests)
+        model.awaitContent()
+
+        val errors = mutableListOf<String>()
+        model.onSign(onError = errors::add)
+        advanceUntilIdle()
+
+        assertEquals(1, errors.size)
+        assertNotNull(requests.current.value)
+
+        coEvery { service.signMessage(any(), any()) } throws GemServiceException.Cancelled()
+        model.onSign(onError = errors::add)
+        job.join()
+
+        assertEquals(1, errors.size)
+        assertNull(requests.current.value)
     }
 
     @Test

@@ -14,10 +14,7 @@ mod tests {
 
     #[test]
     fn test_map_node_status() {
-        let ledger_info = LedgerInfo {
-            ledger_index: 80123456,
-            validated: true,
-        };
+        let ledger_info = LedgerInfo { ledger_index: 80123456, validated: true };
         let mapped = map_node_status(&ledger_info).unwrap();
 
         assert!(mapped.in_sync);

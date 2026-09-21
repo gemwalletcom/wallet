@@ -1,7 +1,5 @@
 package com.gemwallet.android.ui.components
 
-import android.util.Log
-import com.gemwallet.android.ui.localization.stringRes
 import android.Manifest
 import android.content.ContentResolver
 import android.content.Context
@@ -9,6 +7,7 @@ import android.content.Intent
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.provider.Settings
+import android.util.Log
 import android.util.Size
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -43,7 +42,6 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -51,6 +49,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
@@ -69,17 +68,18 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.SceneTitle
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.theme.alpha50
 import com.gemwallet.android.ui.theme.padding16
+import com.gemwallet.android.ui.theme.paddingLarge
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space24
-import com.gemwallet.android.ui.theme.paddingLarge
 import com.gemwallet.android.ui.theme.space4
-import com.wallet.core.primitives.QRScanType
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
+import com.wallet.core.primitives.QRScanType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -100,12 +100,7 @@ private const val FINDER_DIM_ALPHA = 0.33f
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun QrCodeRequest(
-    scanType: QRScanType,
-    onCancel: () -> Unit,
-    titleContent: @Composable () -> Unit = { ScanQrCodeTitle() },
-    onResult: (String) -> Unit,
-) {
+fun QrCodeRequest(scanType: QRScanType, onCancel: () -> Unit, titleContent: @Composable () -> Unit = { ScanQrCodeTitle() }, onResult: (String) -> Unit) {
     val context = LocalContext.current
     var isPermissionRequested by remember { mutableStateOf(false) }
     val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA) { isPermissionRequested = true }
@@ -134,14 +129,7 @@ fun QrCodeRequest(
 
 @androidx.annotation.OptIn(ExperimentalGetImage::class)
 @Composable
-fun QRScannerScene(
-    scanType: QRScanType,
-    isCameraGranted: Boolean,
-    permissionAction: EmptyAction,
-    onCancel: () -> Unit,
-    titleContent: @Composable () -> Unit = { ScanQrCodeTitle() },
-    onResult: (String) -> Unit,
-) {
+fun QRScannerScene(scanType: QRScanType, isCameraGranted: Boolean, permissionAction: EmptyAction, onCancel: () -> Unit, titleContent: @Composable () -> Unit = { ScanQrCodeTitle() }, onResult: (String) -> Unit) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
@@ -176,7 +164,9 @@ fun QRScannerScene(
             }
         },
         onClose = onCancel,
-        mainAction = if (isCameraGranted) null else {
+        mainAction = if (isCameraGranted) {
+            null
+        } else {
             {
                 Column(verticalArrangement = Arrangement.spacedBy(paddingSmall)) {
                     MainActionButton(title = permissionAction.title, onClick = permissionAction.onClick)
@@ -259,9 +249,9 @@ fun QRScanner(listener: (String) -> Unit) {
                             androidx.camera.core.resolutionselector.ResolutionStrategy(
                                 QR_ANALYSIS_RESOLUTION,
                                 androidx.camera.core.resolutionselector.ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER,
-                            )
+                            ),
                         )
-                        .build()
+                        .build(),
                 )
                 .build()
                 .also { imageAnalysis ->
@@ -270,7 +260,7 @@ fun QRScanner(listener: (String) -> Unit) {
                         QRCodeAnalyzer { text ->
                             imageAnalysis.clearAnalyzer()
                             mainExecutor.execute { listener(text) }
-                        }
+                        },
                     )
                 }
             val selector = androidx.camera.core.CameraSelector.Builder()
@@ -289,17 +279,16 @@ fun QRScanner(listener: (String) -> Unit) {
     }
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView({ previewView }, modifier = Modifier.fillMaxSize())
-        Box(modifier = Modifier
-            .fillMaxSize()
+        Box(
+            modifier = Modifier
+                .fillMaxSize(),
         ) {
             FinderView()
         }
     }
 }
 
-private class QRCodeAnalyzer(
-    val callback: (String) -> Unit
-) : androidx.camera.core.ImageAnalysis.Analyzer {
+private class QRCodeAnalyzer(val callback: (String) -> Unit) : androidx.camera.core.ImageAnalysis.Analyzer {
 
     override fun analyze(imageProxy: androidx.camera.core.ImageProxy) {
         imageProxy.use {
@@ -315,7 +304,6 @@ private fun ScanQrCodeTitle() {
 }
 
 @StringRes
-
 @Composable
 private fun ScannerHint(hint: String) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {

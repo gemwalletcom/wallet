@@ -38,12 +38,7 @@ pub struct ValidatedSupportImage {
     pub content_type: String,
 }
 
-pub fn validate_support_image_upload(
-    config: &SupportImageUploadConfig,
-    file_name: Option<String>,
-    content_type: &ContentType,
-    data: Vec<u8>,
-) -> Result<ValidatedSupportImage, ApiError> {
+pub fn validate_support_image_upload(config: &SupportImageUploadConfig, file_name: Option<String>, content_type: &ContentType, data: Vec<u8>) -> Result<ValidatedSupportImage, ApiError> {
     let content_image_type = if content_type.top() == "image" {
         ImageType::from_label(content_type.sub().as_str()).filter(|image_type| {
             let mime_type = image_type.mime_type();
@@ -127,13 +122,7 @@ mod tests {
 
     #[test]
     fn rejects_tiny_image_upload() {
-        let error = validate_support_image_upload(
-            &SupportImageUploadConfig::mock(),
-            Some("proof.png".to_string()),
-            &ContentType::PNG,
-            b"\x89PNG\r\n\x1A\n".to_vec(),
-        )
-        .unwrap_err();
+        let error = validate_support_image_upload(&SupportImageUploadConfig::mock(), Some("proof.png".to_string()), &ContentType::PNG, b"\x89PNG\r\n\x1A\n".to_vec()).unwrap_err();
 
         assert_eq!(error, ApiError::BadRequest("Image upload is too small".to_string()));
     }

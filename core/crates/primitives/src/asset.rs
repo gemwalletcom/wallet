@@ -113,13 +113,7 @@ impl Chain {
 
 impl Asset {
     pub fn new(id: AssetId, name: String, symbol: String, decimals: i32, asset_type: AssetType) -> Asset {
-        Asset {
-            id,
-            name,
-            symbol,
-            decimals,
-            asset_type,
-        }
+        Asset { id, name, symbol, decimals, asset_type }
     }
 
     pub fn token_id(&self) -> Option<&str> {
@@ -246,8 +240,7 @@ mod asset_deserialize_tests {
 
     #[test]
     fn test_deserialize_derives_skipped_fields_from_id() {
-        let token: Asset =
-            serde_json::from_str(r#"{"id":"ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7","name":"Tether","symbol":"USDT","decimals":6,"type":"ERC20"}"#).unwrap();
+        let token: Asset = serde_json::from_str(r#"{"id":"ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7","name":"Tether","symbol":"USDT","decimals":6,"type":"ERC20"}"#).unwrap();
         assert_eq!(token.chain(), Chain::Ethereum);
         assert_eq!(token.token_id(), Some("0xdAC17F958D2ee523a2206206994597C13D831ec7"));
 

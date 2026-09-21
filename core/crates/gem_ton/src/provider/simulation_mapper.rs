@@ -25,9 +25,7 @@ fn map_balance_changes(signer: &Address, response: &TonEmulationResponse) -> Vec
         .transactions
         .values()
         .filter(|transaction| transaction.account == *signer)
-        .fold(BigInt::ZERO, |total, transaction| {
-            total + &transaction.account_state_after.balance - &transaction.account_state_before.balance
-        });
+        .fold(BigInt::ZERO, |total, transaction| total + &transaction.account_state_after.balance - &transaction.account_state_before.balance);
     add_balance_change(&mut deltas, AssetId::from_chain(Chain::Ton), native_change);
 
     for action in &response.actions {
@@ -41,11 +39,7 @@ fn map_balance_changes(signer: &Address, response: &TonEmulationResponse) -> Vec
         }
     }
 
-    let mut balance_changes: Vec<SimulationBalanceChange> = deltas
-        .into_iter()
-        .filter(|(_, value)| value != &BigInt::ZERO)
-        .map(|(asset_id, value)| SimulationBalanceChange::new(asset_id, value))
-        .collect();
+    let mut balance_changes: Vec<SimulationBalanceChange> = deltas.into_iter().filter(|(_, value)| value != &BigInt::ZERO).map(|(asset_id, value)| SimulationBalanceChange::new(asset_id, value)).collect();
     balance_changes.sort_by_key(|change| change.asset_id.to_string());
     balance_changes
 }

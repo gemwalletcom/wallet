@@ -16,10 +16,7 @@ impl GemImportType {
     }
 
     pub fn mock_multicoin_phrase(chains: Vec<Chain>) -> Self {
-        Self::MulticoinPhrase {
-            words: mock_phrase_words(),
-            chains,
-        }
+        Self::MulticoinPhrase { words: mock_phrase_words(), chains }
     }
 
     pub fn mock_single_phrase() -> Self {

@@ -6,16 +6,16 @@ import androidx.compose.runtime.saveable.rememberSerializable
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.serialization.NavKeySerializer
+import com.gemwallet.android.features.create_wallet.navigation.CreateWalletRoute
+import com.gemwallet.android.features.onboarding.OnboardingRoute
+import com.gemwallet.android.ui.navigation.routes.WalletConnectRequestRoute
+import com.gemwallet.android.ui.navigation.routes.WalletPhraseRoute
+import com.gemwallet.android.ui.navigation.routes.WalletSecurityReminderRoute
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import com.gemwallet.android.features.onboarding.OnboardingRoute
-import com.gemwallet.android.features.create_wallet.navigation.CreateWalletRoute
-import com.gemwallet.android.ui.navigation.routes.WalletConnectRequestRoute
-import com.gemwallet.android.ui.navigation.routes.WalletPhraseRoute
-import com.gemwallet.android.ui.navigation.routes.WalletSecurityReminderRoute
 
 @Composable
 internal fun rememberWalletNavBackStack(startDestination: NavKey): NavBackStack<NavKey> {
@@ -27,9 +27,7 @@ internal fun rememberWalletNavBackStack(startDestination: NavKey): NavBackStack<
     }
 }
 
-private class WalletNavBackStackSerializer(
-    private val startDestination: NavKey,
-) : KSerializer<NavBackStack<NavKey>> {
+private class WalletNavBackStackSerializer(private val startDestination: NavKey) : KSerializer<NavBackStack<NavKey>> {
 
     private val delegate = ListSerializer(NavKeySerializer<NavKey>())
 
@@ -59,14 +57,10 @@ internal fun List<NavKey>.dropNonRestorableRoutes(startDestination: NavKey): Lis
     return listOf(root) + restoredRoutes.filterNot { it.isNonRestorableRoute() }
 }
 
-private fun NavKey.isNonRestorableRoute(): Boolean {
-    return isConfirmFlowSegmentRoute() ||
-        this is WalletSecurityReminderRoute ||
-        this is WalletPhraseRoute ||
-        this is CreateWalletRoute ||
-        this is WalletConnectRequestRoute
-}
+private fun NavKey.isNonRestorableRoute(): Boolean = isConfirmFlowSegmentRoute() ||
+    this is WalletSecurityReminderRoute ||
+    this is WalletPhraseRoute ||
+    this is CreateWalletRoute ||
+    this is WalletConnectRequestRoute
 
-private fun NavKey.isRootRoute(): Boolean {
-    return this is WalletRootRoute || this is OnboardingRoute
-}
+private fun NavKey.isRootRoute(): Boolean = this is WalletRootRoute || this is OnboardingRoute

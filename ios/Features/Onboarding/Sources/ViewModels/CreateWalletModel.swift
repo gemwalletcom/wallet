@@ -1,30 +1,31 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemWalletServiceProtocol
-import GemstoneServices
-import Foundation
-import GemstonePrimitives
-import Primitives
-import SwiftUI
 import Components
+import Foundation
+import protocol Gemstone.GemWalletServiceProtocol
+import GemstonePrimitives
+import GemstoneServices
 import Localization
+import Primitives
 import PrimitivesComponents
+import SwiftUI
 
 @Observable
 @MainActor
 public final class CreateWalletModel {
     private let service: any GemWalletServiceProtocol
 
-    func verifyPhraseModel(words: [String], onComplete: @escaping ([String]) async throws -> Void) -> VerifyPhraseViewModel {
+    func verifyPhraseModel(onComplete: @escaping ([String]) async throws -> Void) -> VerifyPhraseViewModel {
         VerifyPhraseViewModel(
-            words: words,
-            shuffledWords: service.phraseVerificationWords(words: words),
+            session: service.verifyPhraseSession(words: words),
             onComplete: onComplete,
         )
     }
-    private let preferences: ObservablePreferences
+
+    let preferences: ObservablePreferences
     let onComplete: VoidAction
 
+    private(set) var words: [String] = []
     var isPresentingSelectImageWallet: Wallet?
     var isPresentingAlertMessage: AlertMessage?
 
@@ -67,22 +68,17 @@ extension CreateWalletModel {
         isPresentingSelectImageWallet = wallet
     }
 
-    func generateSecretPhrase() -> [String] {
-        do {
-            return try service.createWallet()
-        } catch {
-            fatalError("Unable to create wallet")
-        }
+    func generateSecretPhrase() throws {
+        words = try service.createWallet()
     }
 
     func createWallet(words: [String]) async throws -> CreatedWallet {
         let name = try await service.defaultWalletName(chain: .none)
         let result = try await service.importWallet(
             name: name.text.text,
-            type: try service.importRequest(kind: .phrase, chain: nil, input: words.joined(separator: " "), nameRecord: nil),
+            type: service.importRequest(kind: .phrase, chain: nil, input: words.joined(separator: " "), nameRecord: nil),
             source: .create,
         )
-        preferences.acceptTerms()
         return CreatedWallet(wallet: result.wallet, hasExistingWallets: name.hasExistingWallets)
     }
 

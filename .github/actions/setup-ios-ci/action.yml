@@ -7,6 +7,6 @@ runs:
     - name: Setup Rust
       uses: ./.github/actions/setup-rust-ci
 
-    - name: Select Xcode 26
+    - name: Select Xcode
       shell: bash
       run: sudo xcode-select -s /Applications/Xcode.app

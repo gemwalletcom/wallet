@@ -29,10 +29,7 @@ import com.gemwallet.android.ui.theme.space6
 import com.gemwallet.android.ui.theme.space8
 
 @Composable
-fun NFTItem(
-    model: NftItemUIModel,
-    onClick: () -> Unit,
-) {
+fun NFTItem(model: NftItemUIModel, onClick: () -> Unit) {
     Card(
         onClick = onClick,
         modifier = Modifier
@@ -54,10 +51,10 @@ fun NFTItem(
                         .aspectRatio(1f)
                         .clip(RoundedCornerShape(paddingDefault)),
                 )
-                val count = model.collectionSize
-                if (count != null) {
+                val countText = model.countText
+                if (countText != null) {
                     CountBadge(
-                        count = count,
+                        text = countText,
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(space8),
@@ -74,7 +71,7 @@ fun NFTItem(
 }
 
 @Composable
-private fun CountBadge(count: Int, modifier: Modifier = Modifier) {
+private fun CountBadge(text: String, modifier: Modifier = Modifier) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
@@ -83,7 +80,7 @@ private fun CountBadge(count: Int, modifier: Modifier = Modifier) {
             .padding(horizontal = space6),
     ) {
         Text(
-            text = count.toString(),
+            text = text,
             color = Color.White,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.SemiBold,

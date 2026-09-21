@@ -27,20 +27,19 @@ interface PerpetualDao {
         update(items.map(DbPerpetual::toUpdate))
     }
 
-    @Query("SELECT * FROM perpetuals")
-    fun getPerpetuals(): Flow<List<DbPerpetual>>
-
     @Transaction
     @Query("SELECT * FROM perpetuals WHERE volume24h > 0 ORDER BY volume24h DESC")
     fun getPerpetualsData(): Flow<List<DbPerpetualData>>
 
     @Transaction
-    @Query("""
+    @Query(
+        """
         SELECT perpetuals.* FROM perpetuals
         JOIN search ON perpetuals.id = search.perpetualId
         WHERE search.`query` = :query
         ORDER BY search.priority ASC, perpetuals.volume24h DESC
-    """)
+    """,
+    )
     fun searchWithPriority(query: String): Flow<List<DbPerpetualData>>
 
     @Transaction
@@ -59,16 +58,9 @@ interface PerpetualDao {
 
     @Query(
         "UPDATE perpetuals SET price = :price, pricePercentChange24h = :pricePercentChange24h, " +
-            "openInterest = :openInterest, volume24h = :volume24h, funding = :funding WHERE name = :coin"
+            "openInterest = :openInterest, volume24h = :volume24h, funding = :funding WHERE name = :coin",
     )
-    suspend fun updateMarket(
-        coin: String,
-        price: Double,
-        pricePercentChange24h: Double,
-        openInterest: Double,
-        volume24h: Double,
-        funding: Double,
-    )
+    suspend fun updateMarket(coin: String, price: Double, pricePercentChange24h: Double, openInterest: Double, volume24h: Double, funding: Double)
 
     @Query("UPDATE perpetuals SET price = :price WHERE name = :name")
     suspend fun updatePrice(name: String, price: Double)

@@ -5,16 +5,16 @@ public import struct Gemstone.BlockExplorerLink
 public import typealias Gemstone.Chain
 public import typealias Gemstone.Currency
 public import enum Gemstone.GemAcquireAssetFlow
-public import class Gemstone.GemAssetConfigService
-public import struct Gemstone.GemAutocloseSummary
+public import protocol Gemstone.GemConfirmationProtocol
 public import struct Gemstone.GemConfirmLoad
 public import struct Gemstone.GemConfirmLoadOptions
 public import enum Gemstone.GemConfirmRowContent
 public import struct Gemstone.GemConfirmScreen
 public import struct Gemstone.GemTransferData
-public import protocol Gemstone.GemConfirmationProtocol
-public import enum Gemstone.GemExecuteResult
 public import enum Gemstone.GemKeystoreAuthentication
+public import enum Gemstone.GemListRow
+public import enum Gemstone.GemSubmitResult
+public import struct Gemstone.GemSwapPairSelection
 public import typealias Gemstone.PerpetualModifyConfirmData
 import GemstonePrimitivesTestKit
 import Primitives
@@ -22,10 +22,10 @@ import Primitives
 public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Sendable {
     private let initialState: GemConfirmLoad
     private let loadResult: Result<GemConfirmLoad, any Error>
-    private let executeResult: Result<GemExecuteResult, any Error>
+    private let executeResult: Result<GemSubmitResult, any Error>
     private let authenticationValue: GemKeystoreAuthentication
     private let rows: (Gemstone.AddressName?) -> [GemConfirmRowContent]
-    private let assetConfig = GemAssetConfigService()
+    private let acquireFlow: GemAcquireAssetFlow
     private var loaded: GemConfirmLoad?
     public private(set) var loadOptions: [GemConfirmLoadOptions] = []
     public var onLoad: (@MainActor () -> Void)?
@@ -33,15 +33,17 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     public init(
         state: GemConfirmLoad = .mock(),
         load: Result<GemConfirmLoad, any Error> = .success(.mock()),
-        execute: Result<GemExecuteResult, any Error> = .success(.signed(data: [], warning: nil)),
+        execute: Result<GemSubmitResult, any Error> = .success(.signed(data: [], warning: nil)),
         authentication: GemKeystoreAuthentication = .none,
         rows: @escaping (Gemstone.AddressName?) -> [GemConfirmRowContent] = { _ in [] },
+        acquireFlow: GemAcquireAssetFlow = .fiat,
     ) {
         initialState = state
         loadResult = load
         executeResult = execute
         authenticationValue = authentication
         self.rows = rows
+        self.acquireFlow = acquireFlow
     }
 
     public func screen() -> GemConfirmScreen {
@@ -63,7 +65,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         return try loadResult.get()
     }
 
-    public func execute() async throws -> GemExecuteResult {
+    public func submit() async throws -> GemSubmitResult {
         try executeResult.get()
     }
 
@@ -83,15 +85,19 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         rows(addressName)
     }
 
-    public func acquireAssetFlow(chain: Chain) -> GemAcquireAssetFlow {
-        assetConfig.acquireFlow(chain: chain)
+    public func acquireAssetFlow(chain _: Chain) -> GemAcquireAssetFlow {
+        acquireFlow
+    }
+
+    public func acquireSwapPair(feeAssetId: String?, assetId: String) -> GemSwapPairSelection {
+        GemSwapPairSelection(payAssetId: feeAssetId, receiveAssetId: assetId)
     }
 
     public func insufficientNetworkFeeBuyAmount() -> Int32 {
         Self.networkFeeBuyAmount
     }
 
-    public func autocloseSummary(data _: PerpetualModifyConfirmData) -> GemAutocloseSummary? {
+    public func autocloseRow(data _: PerpetualModifyConfirmData) -> GemListRow? {
         nil
     }
 

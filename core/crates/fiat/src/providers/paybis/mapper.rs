@@ -2,9 +2,8 @@ use std::collections::HashSet;
 
 use crate::model::FiatProviderAsset;
 use primitives::asset_constants::{
-    ARBITRUM_ARB_ASSET_ID, BASE_USDC_ASSET_ID, ETHEREUM_AAVE_ASSET_ID, ETHEREUM_DAI_ASSET_ID, ETHEREUM_LINK_ASSET_ID, ETHEREUM_UNI_ASSET_ID, ETHEREUM_USDC_ASSET_ID,
-    ETHEREUM_USDT_ASSET_ID, OPTIMISM_OP_ASSET_ID, POLYGON_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDT_ASSET_ID, STELLAR_USDC_ASSET_ID,
-    TRON_USDT_ASSET_ID,
+    ARBITRUM_ARB_ASSET_ID, BASE_USDC_ASSET_ID, ETHEREUM_AAVE_ASSET_ID, ETHEREUM_DAI_ASSET_ID, ETHEREUM_LINK_ASSET_ID, ETHEREUM_UNI_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, OPTIMISM_OP_ASSET_ID, POLYGON_USDC_ASSET_ID,
+    POLYGON_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDT_ASSET_ID, STELLAR_USDC_ASSET_ID, TRON_USDT_ASSET_ID,
 };
 use primitives::currency::Currency;
 use primitives::fiat_assets::FiatAssetLimits;
@@ -138,9 +137,7 @@ pub fn map_process_webhook(data: serde_json::Value) -> Result<FiatWebhook, serde
 
 pub fn map_webhook_data(webhook_data: PaybisWebhookData) -> FiatWebhook {
     let transaction_id = webhook_data.partner_transaction_id.clone().unwrap_or_else(|| webhook_data.quote.quote_id.clone());
-    let (fiat_amount, fiat_currency) = fiat_side(&webhook_data)
-        .map(|amount| (amount.amount.parse().ok(), Some(amount.currency.to_ascii_uppercase())))
-        .unwrap_or((None, None));
+    let (fiat_amount, fiat_currency) = fiat_side(&webhook_data).map(|amount| (amount.amount.parse().ok(), Some(amount.currency.to_ascii_uppercase()))).unwrap_or((None, None));
 
     FiatWebhook::Transaction(FiatTransactionUpdate {
         transaction_id,
@@ -207,8 +204,7 @@ mod tests {
     use super::*;
     use crate::providers::paybis::models::{PaybisAmount, PaybisTransaction, PaybisWebhookData, PaybisWebhookQuote};
     use primitives::asset_constants::{
-        ARBITRUM_ARB_ASSET_ID, BASE_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, OPTIMISM_OP_ASSET_ID, POLYGON_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID,
-        SOLANA_USDC_ASSET_ID, SOLANA_USDT_ASSET_ID, TRON_USDT_ASSET_ID,
+        ARBITRUM_ARB_ASSET_ID, BASE_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, OPTIMISM_OP_ASSET_ID, POLYGON_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDT_ASSET_ID, TRON_USDT_ASSET_ID,
     };
     use primitives::{Chain, FiatTransactionStatus, FiatTransactionUpdate};
 
@@ -344,9 +340,7 @@ mod tests {
     fn test_map_webhook_data_sell_uses_amount_to_currency() {
         let result = map_webhook_data(PaybisWebhookData {
             partner_transaction_id: Some("partner_tx_123".to_string()),
-            quote: PaybisWebhookQuote {
-                quote_id: "quote_456".to_string(),
-            },
+            quote: PaybisWebhookQuote { quote_id: "quote_456".to_string() },
             transaction: PaybisTransaction {
                 invoice: "invoice_123".to_string(),
                 status: "completed".to_string(),

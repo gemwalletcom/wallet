@@ -23,11 +23,7 @@ impl Cell {
             return None;
         }
 
-        let depth = if references.is_empty() {
-            0
-        } else {
-            references.iter().map(|reference| reference.depth).max()?.checked_add(1)?
-        };
+        let depth = if references.is_empty() { 0 } else { references.iter().map(|reference| reference.depth).max()?.checked_add(1)? };
 
         let mut repr = Vec::with_capacity(2 + data.len() + references.len() * 34);
         repr.push(references.len() as u8);

@@ -1,24 +1,32 @@
-use primitives::{AssetFiatValue, Banner, BannerEvent, Chain, PerpetualBalance, WalletType};
+use primitives::{AssetFiatValue, BannerEvent, Chain, PerpetualBalance, WalletType};
+
+use crate::services::banner::GemBannerRow;
 
 use crate::services::assets::model::{GemHeaderActions, GemHeaderButton, GemHeaderButtonKind};
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemPerpetualCollateral {
+    pub balance: PerpetualBalance,
+    pub price: f64,
+}
 
 pub fn shows_initial_loading(initial_load_completed: bool, assets_timestamp: u64) -> bool {
     !initial_load_completed && assets_timestamp == 0
 }
 
-pub fn wallet_balances(balances: Vec<AssetFiatValue>, perpetual: Option<PerpetualBalance>) -> Vec<AssetFiatValue> {
+pub fn wallet_balances(balances: Vec<AssetFiatValue>, collateral: Option<GemPerpetualCollateral>) -> Vec<AssetFiatValue> {
     balances
         .into_iter()
-        .chain(perpetual.map(|balance| AssetFiatValue {
-            amount: balance.available + balance.reserved,
-            price: 1.0,
+        .chain(collateral.map(|collateral| AssetFiatValue {
+            amount: collateral.balance.available + collateral.balance.reserved,
+            price: collateral.price,
             price_change_percentage_24h: 0.0,
         }))
         .collect()
 }
 
-pub fn header_buttons_enabled(banners: &[Banner]) -> bool {
-    !banners.iter().any(|banner| banner.event == BannerEvent::AccountBlockedMultiSignature)
+pub fn header_buttons_enabled(banners: &[GemBannerRow]) -> bool {
+    !banners.iter().any(|row| row.banner.event == BannerEvent::AccountBlockedMultiSignature)
 }
 
 pub fn header_actions(wallet_type: WalletType, chains: &[Chain], is_enabled: bool) -> GemHeaderActions {
@@ -80,7 +88,7 @@ mod tests {
         };
         assert_eq!(wallet_balances(vec![eth], None), vec![eth]);
         assert_eq!(
-            wallet_balances(vec![eth], Some(collateral)),
+            wallet_balances(vec![eth], Some(GemPerpetualCollateral { balance: collateral.clone(), price: 1.0 })),
             vec![
                 eth,
                 AssetFiatValue {
@@ -90,6 +98,15 @@ mod tests {
                 }
             ],
             "collateral is what is available plus what positions hold, not what can be withdrawn"
+        );
+        assert_eq!(
+            wallet_balances(Vec::new(), Some(GemPerpetualCollateral { balance: collateral, price: 0.92 })),
+            vec![AssetFiatValue {
+                amount: 50.0,
+                price: 0.92,
+                price_change_percentage_24h: 0.0
+            }],
+            "collateral is priced like every other entry"
         );
     }
 
@@ -103,13 +120,19 @@ mod tests {
 
     #[test]
     fn test_a_blocked_multi_signature_account_disables_the_header_buttons() {
-        use primitives::BannerState;
+        use crate::services::banner::rules::banner_content;
+        use primitives::{Banner, BannerState};
+        let row = |event| {
+            let banner = Banner::mock(event, BannerState::Active);
+            GemBannerRow {
+                content: banner_content(banner.event, banner.asset.as_ref()),
+                banner,
+            }
+        };
+
         assert!(header_buttons_enabled(&[]));
-        assert!(header_buttons_enabled(&[Banner::mock(BannerEvent::Onboarding, BannerState::Active)]));
-        assert!(!header_buttons_enabled(&[
-            Banner::mock(BannerEvent::Onboarding, BannerState::Active),
-            Banner::mock(BannerEvent::AccountBlockedMultiSignature, BannerState::Active)
-        ]));
+        assert!(header_buttons_enabled(&[row(BannerEvent::Onboarding)]));
+        assert!(!header_buttons_enabled(&[row(BannerEvent::Onboarding), row(BannerEvent::AccountBlockedMultiSignature)]));
     }
 
     #[test]

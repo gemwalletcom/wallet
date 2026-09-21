@@ -12,10 +12,7 @@ use crate::proxy::constants::JSON_CONTENT_TYPE;
 use crate::proxy::proxy_request::ProxyRequest;
 
 pub(super) async fn get(call: &JsonRpcCall, request: &ProxyRequest, cache: &RequestCache) -> Option<JsonRpcResult> {
-    cache
-        .get(&request.chain, &call.cache_key(&request.host, &request.path_with_query))
-        .await
-        .and_then(|response| result(call, &response))
+    cache.get(&request.chain, &call.cache_key(&request.host, &request.path_with_query)).await.and_then(|response| result(call, &response))
 }
 
 pub(super) async fn get_many(calls: &[JsonRpcCall], ttls: &[Option<Duration>], request: &ProxyRequest, cache: &RequestCache) -> Vec<Option<JsonRpcResult>> {
@@ -49,11 +46,7 @@ pub(super) async fn set_many(calls: &[JsonRpcCall], ttls: &[Option<Duration>], r
     if calls.len() != ttls.len() || calls.len() != responses.len() {
         return Ok(());
     }
-    if calls
-        .iter()
-        .zip(responses)
-        .any(|(call, response)| response.get("id").and_then(Value::as_u64) != Some(call.id))
-    {
+    if calls.iter().zip(responses).any(|(call, response)| response.get("id").and_then(Value::as_u64) != Some(call.id)) {
         return Ok(());
     }
 
@@ -90,14 +83,7 @@ mod tests {
         }))
         .unwrap();
         let cache = RequestCache::for_chains(&CacheConfig::mock(), &policies, [ChainConfig::mock(Chain::Ethereum)].iter());
-        let request = ProxyRequest::from_http(
-            Method::POST,
-            HeaderMap::from_iter([(HOST, HeaderValue::from_static("example.com"))]),
-            Vec::new(),
-            "/ethereum",
-            Chain::Ethereum,
-        )
-        .unwrap();
+        let request = ProxyRequest::from_http(Method::POST, HeaderMap::from_iter([(HOST, HeaderValue::from_static("example.com"))]), Vec::new(), "/ethereum", Chain::Ethereum).unwrap();
         let call = JsonRpcCall::mock(1, "eth_chainId");
         set_result(&call, &json!("0x1"), MINUTE, &request, &cache).await.unwrap();
         let stored = cache.get(&Chain::Ethereum, &call.cache_key(&request.host, &request.path_with_query)).await.unwrap();
@@ -117,10 +103,7 @@ mod tests {
         let cached = ProxyResponse::with_content_type(200, br#""0x1""#.to_vec(), JSON_CONTENT_TYPE);
         let invalid = ProxyResponse::with_content_type(200, b"invalid".to_vec(), JSON_CONTENT_TYPE);
 
-        assert_eq!(
-            serde_json::to_value(result(&call, &cached).unwrap()).unwrap(),
-            json!({ "jsonrpc": "2.0", "result": "0x1", "id": 42 })
-        );
+        assert_eq!(serde_json::to_value(result(&call, &cached).unwrap()).unwrap(), json!({ "jsonrpc": "2.0", "result": "0x1", "id": 42 }));
         assert!(result(&call, &invalid).is_none());
     }
 }

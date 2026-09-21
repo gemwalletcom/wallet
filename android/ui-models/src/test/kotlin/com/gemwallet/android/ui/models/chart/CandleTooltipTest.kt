@@ -2,14 +2,14 @@ package com.gemwallet.android.ui.models.chart
 
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.text
-import uniffi.gemstone.GemCandleTooltip
-import uniffi.gemstone.GemCandleTooltipRow
-import uniffi.gemstone.GemValueTone
-import uniffi.gemstone.candleTooltip
 import com.wallet.core.primitives.ChartCandleStick
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemCandleTooltip
+import uniffi.gemstone.GemCandleTooltipRow
+import uniffi.gemstone.GemValueTone
+import uniffi.gemstone.candleTooltip
 import java.util.Locale
 
 class CandleTooltipTest {
@@ -22,7 +22,12 @@ class CandleTooltipTest {
     @Test
     fun formatsOhlcAndUsesIosCompatibleSignedPercentForUpwardCandle() {
         val candle = ChartCandleStick(
-            date = 0L, open = 100.0, high = 110.0, low = 95.0, close = 105.0, volume = 10.0,
+            date = 0L,
+            open = 100.0,
+            high = 110.0,
+            low = 95.0,
+            close = 105.0,
+            volume = 10.0,
         )
         val model = candleTooltip(candle.toGem())
         assertEquals("100.00", model.text(GemCandleTooltipRow.OPEN))
@@ -36,7 +41,12 @@ class CandleTooltipTest {
     @Test
     fun downwardCandleProducesNegativePercentAndDownDirection() {
         val candle = ChartCandleStick(
-            date = 0L, open = 100.0, high = 100.0, low = 80.0, close = 90.0, volume = 0.0,
+            date = 0L,
+            open = 100.0,
+            high = 100.0,
+            low = 80.0,
+            close = 90.0,
+            volume = 0.0,
         )
         val model = candleTooltip(candle.toGem())
         assertEquals("-10.00%", model.text(GemCandleTooltipRow.CHANGE))
@@ -46,7 +56,12 @@ class CandleTooltipTest {
     @Test
     fun volumeUsesUsdValueNotRawUnits() {
         val candle = ChartCandleStick(
-            date = 0L, open = 50.0, high = 55.0, low = 49.0, close = 52.0, volume = 1_000.0,
+            date = 0L,
+            open = 50.0,
+            high = 55.0,
+            low = 49.0,
+            close = 52.0,
+            volume = 1_000.0,
         )
         val model = candleTooltip(candle.toGem())
         assertEquals("$52,000.00", model.text(GemCandleTooltipRow.VOLUME))
@@ -55,7 +70,12 @@ class CandleTooltipTest {
     @Test
     fun zeroOpenSkipsPercentMathAndUsesNeutralDirection() {
         val candle = ChartCandleStick(
-            date = 0L, open = 0.0, high = 5.0, low = 0.0, close = 5.0, volume = 1.0,
+            date = 0L,
+            open = 0.0,
+            high = 5.0,
+            low = 0.0,
+            close = 5.0,
+            volume = 1.0,
         )
         val model = candleTooltip(candle.toGem())
         assertEquals(GemValueTone.NEUTRAL, model.tone(GemCandleTooltipRow.CHANGE))

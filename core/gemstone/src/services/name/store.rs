@@ -2,10 +2,25 @@ use crate::services::error::GemServiceError;
 use async_trait::async_trait;
 use primitives::{AddressName, Chain};
 
+use super::model::GemAddressNameUpdate;
+use super::rules::address_name_update;
+
 #[uniffi::export(rust, foreign)]
 #[async_trait]
 pub trait GemAddressStore: Send + Sync {
     async fn get_address_name(&self, chain: Chain, address: String) -> Result<Option<AddressName>, GemServiceError>;
-    async fn save_address_names(&self, names: Vec<AddressName>) -> Result<(), GemServiceError>;
+    async fn save_address_names(&self, updates: Vec<GemAddressNameUpdate>) -> Result<(), GemServiceError>;
     async fn delete_address_names(&self, names: Vec<AddressName>) -> Result<(), GemServiceError>;
+}
+
+#[async_trait]
+pub trait GemAddressNameWriter {
+    async fn save_names(&self, names: Vec<AddressName>) -> Result<(), GemServiceError>;
+}
+
+#[async_trait]
+impl GemAddressNameWriter for dyn GemAddressStore {
+    async fn save_names(&self, names: Vec<AddressName>) -> Result<(), GemServiceError> {
+        self.save_address_names(names.into_iter().map(address_name_update).collect()).await
+    }
 }

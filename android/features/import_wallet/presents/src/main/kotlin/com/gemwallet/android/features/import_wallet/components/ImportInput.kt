@@ -43,19 +43,13 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.space8
 
 @Composable
-internal fun ImportInput(
-    inputState: TextFieldValue,
-    input: ImportInputUIModel,
-    indicator: NameResolveIndicatorUIModel?,
-    onValueChange: (TextFieldValue) -> Unit,
-    invalidWords: (String) -> Set<String>,
-) {
+internal fun ImportInput(inputState: TextFieldValue, input: ImportInputUIModel, indicator: NameResolveIndicatorUIModel?, onValueChange: (TextFieldValue) -> Unit, invalidWords: (String) -> Set<String>) {
     val errorColor = MaterialTheme.colorScheme.error
     val clipboardManager = LocalContext.current.clipboardManager()
     val interactionSource = remember { MutableInteractionSource() }
 
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             BasicTextField(
@@ -63,7 +57,7 @@ internal fun ImportInput(
                 onValueChange = onValueChange,
                 value = inputState,
                 textStyle = MaterialTheme.typography.bodyLarge.copy(
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 ),
                 minLines = 2,
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
@@ -118,7 +112,7 @@ internal fun ImportInput(
                     TextFieldValue(
                         text = pastedText,
                         selection = TextRange(pastedText.length),
-                    )
+                    ),
                 )
                 if (input.protectsInput) {
                     clipboardManager.clear()
@@ -128,11 +122,7 @@ internal fun ImportInput(
     }
 }
 
-internal fun highlightInvalidPhraseWords(
-    text: String,
-    errorColor: Color,
-    invalidWords: Set<String>,
-): AnnotatedString {
+internal fun highlightInvalidPhraseWords(text: String, errorColor: Color, invalidWords: Set<String>): AnnotatedString {
     return buildAnnotatedString {
         append(text)
         if (invalidWords.isEmpty()) {

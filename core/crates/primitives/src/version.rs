@@ -40,18 +40,7 @@ mod tests {
     #[test]
     fn test_version_parsing() {
         assert_eq!("2.114.32".parse(), Ok(Version::new(2, 114, 32)));
-        for value in [
-            "",
-            "invalid",
-            "2..32",
-            ".2.114",
-            "2.114.",
-            "2.114.32-beta",
-            "3.invalid.0",
-            "+3.0.0",
-            " 3.0.0",
-            "4294967296.0.0",
-        ] {
+        for value in ["", "invalid", "2..32", ".2.114", "2.114.", "2.114.32-beta", "3.invalid.0", "+3.0.0", " 3.0.0", "4294967296.0.0"] {
             assert!(value.parse::<Version>().is_err(), "{value}");
         }
     }

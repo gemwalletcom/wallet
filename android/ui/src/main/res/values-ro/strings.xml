@@ -210,7 +210,6 @@
   <string name="errors_connections_no_supported_wallets">Nu sunt disponibile portofele acceptate.</string>
   <string name="errors_connections_unsupported_chain">Lanțul furnizat nu este acceptat.</string>
   <string name="errors_swap_amount_too_small">Cantitate prea mică</string>
-  <string name="errors_required">%1$s este obligatoriu</string>
   <string name="errors_scan_transaction_malicious_description">Această tranzacție nu poate fi finalizată — adresa portofelului de destinație este legată de o activitate suspectă sau dăunătoare.</string>
   <string name="errors_scan_transaction_memo_required">Adresa portofelului de destinație %1$s necesită o etichetă/un memo de destinație</string>
   <string name="errors_scan_transaction_malicious_title">Activitate suspectă</string>
@@ -273,7 +272,7 @@
   <string name="asset_decimals">Zecimale</string>
   <string name="asset_token_id">ID-ul tokenului</string>
   <string name="asset_contract">Contract</string>
-  <string name="asset_state_empty_title">Tranzacțiile tale vor apărea aici️</string>
+  <string name="asset_state_empty_title">Tranzacțiile tale vor apărea aici</string>
   <string name="asset_state_empty_description">Primește, schimbă sau cumpără %1$s</string>
   <string name="asset_verification_unverified">Neverificat</string>
   <string name="asset_verification_suspicious">Suspect</string>
@@ -422,7 +421,7 @@
   <string name="price_alerts_set_alert_set_target_price">Stabiliți prețul țintă</string>
   <string name="price_alerts_set_alert_current_price">Preț curent</string>
   <string name="price_alerts_added_for">Setează alertă de preț %1$s</string>
-  <string name="price_alerts_state_empty_title">Alertele tale vor apărea aici️</string>
+  <string name="price_alerts_state_empty_title">Alertele tale vor apărea aici</string>
   <string name="price_alerts_state_empty_description">Activează-le adăugând monede la urmărire</string>
   <string name="price_alerts_auto_footer">Alertele se declanșează la mișcări semnificative ale prețurilor.</string>
   <string name="price_alerts_set_alert_title">Setați alertă de preț</string>
@@ -437,7 +436,7 @@
   <string name="lock_privacy_lock">Blocare confidențialitate</string>
   <string name="lock_footer">Protejați accesul la această aplicație pe dispozitivul dvs.</string>
   <string name="verify_phrase_title">Confirmați</string>
-  <string name="warnings_multi_signature_blocked">Nu transferați fonduri în acest portofel %1$s cu semnături multiple decât dacă sunteți sigur că controlați cheile private. Nerespectarea acestui lucru vă poate expune la escrocherii și vă puteți pierde definitiv bunurile.</string>
+  <string name="warnings_externally_controlled_account">Acest cont %1$s poate fi controlat de altcineva. Nu trimiteți fonduri în el decât dacă sunteți sigur că îl controlați, altfel vă puteți pierde definitiv bunurile.</string>
   <string name="sell_title">Vânzare %1$s</string>
   <string name="info_network_fee_title">Taxa de retea</string>
   <string name="info_watch_wallet_title">Portofel de monitorizare</string>
@@ -489,7 +488,7 @@
   <string name="nft_collection">Colecție</string>
   <string name="nft_save_to_photos">Salvați în Fotografii</string>
   <string name="nft_set_as_avatar">Setați ca Avatar</string>
-  <string name="nft_state_empty_title">NFT-urile tale vor apărea aici️</string>
+  <string name="nft_state_empty_title">NFT-urile tale vor apărea aici</string>
   <string name="nft_state_empty_description">Primește primul tău NFT</string>
   <string name="nft_report_reason_spam">Spam</string>
   <string name="nft_report_reason_malicious">Rău intenționat</string>

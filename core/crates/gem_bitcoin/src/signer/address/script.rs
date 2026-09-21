@@ -97,13 +97,7 @@ pub(crate) fn script_for_public_key_hash(unlocking_script: UnlockingScript, hash
 }
 
 pub(super) fn p2pkh_script(hash: [u8; HASH160_LEN]) -> ScriptBuf {
-    Builder::new()
-        .push_opcode(OP_DUP)
-        .push_opcode(OP_HASH160)
-        .push_slice(hash)
-        .push_opcode(OP_EQUALVERIFY)
-        .push_opcode(OP_CHECKSIG)
-        .into_script()
+    Builder::new().push_opcode(OP_DUP).push_opcode(OP_HASH160).push_slice(hash).push_opcode(OP_EQUALVERIFY).push_opcode(OP_CHECKSIG).into_script()
 }
 
 pub(super) fn p2sh_script(hash: [u8; HASH160_LEN]) -> ScriptBuf {

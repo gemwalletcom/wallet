@@ -70,12 +70,8 @@ pub(super) fn parse_v4(bytes: &[u8]) -> Result<ParsedFile, KeystoreError> {
     if file.crypto.cipher.algorithm != CIPHER_AES_256_GCM {
         return Err(KeystoreError::corrupt_file("unknown cipher algorithm"));
     }
-    let salt: [u8; ARGON2_SALT_LEN] = decode_hex(&file.crypto.kdf.salt)?
-        .try_into()
-        .map_err(|_| KeystoreError::corrupt_file("invalid Argon2 salt length"))?;
-    let nonce: [u8; AES_GCM_NONCE_LEN] = decode_hex(&file.crypto.cipher.nonce)?
-        .try_into()
-        .map_err(|_| KeystoreError::corrupt_file("invalid AES-GCM nonce length"))?;
+    let salt: [u8; ARGON2_SALT_LEN] = decode_hex(&file.crypto.kdf.salt)?.try_into().map_err(|_| KeystoreError::corrupt_file("invalid Argon2 salt length"))?;
+    let nonce: [u8; AES_GCM_NONCE_LEN] = decode_hex(&file.crypto.cipher.nonce)?.try_into().map_err(|_| KeystoreError::corrupt_file("invalid AES-GCM nonce length"))?;
     let ciphertext = decode_hex(&file.crypto.ciphertext)?;
     let header = Header {
         keystore_id: file.id,
@@ -87,10 +83,7 @@ pub(super) fn parse_v4(bytes: &[u8]) -> Result<ParsedFile, KeystoreError> {
             salt,
             output_len: file.crypto.kdf.output_len,
         },
-        cipher: CipherParams::Aes256Gcm {
-            nonce,
-            tag_len: file.crypto.cipher.tag_len,
-        },
+        cipher: CipherParams::Aes256Gcm { nonce, tag_len: file.crypto.cipher.tag_len },
     };
     validate_header(&header)?;
     if ciphertext.len() < usize::from(header.cipher.tag_len()) {

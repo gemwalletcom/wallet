@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.SignMessage
-import enum Gemstone.SignDigestType
 import Foundation
+import enum Gemstone.SignDigestType
+import struct Gemstone.SignMessage
 
 public extension SignMessage {
     static func mock(

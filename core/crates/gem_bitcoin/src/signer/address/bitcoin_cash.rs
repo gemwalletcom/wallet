@@ -1,8 +1,6 @@
 use std::fmt;
 
-use bitcoincash_addr::{
-    Address as CashAddress, HashType as CashHashType, Network as CashNetwork, base58::DecodingError as Base58DecodingError, cashaddr::DecodingError as CashaddrDecodingError,
-};
+use bitcoincash_addr::{Address as CashAddress, HashType as CashHashType, Network as CashNetwork, base58::DecodingError as Base58DecodingError, cashaddr::DecodingError as CashaddrDecodingError};
 use primitives::{BITCOINCASH_PREFIX, SignerError};
 
 use super::script::{AddressScript, LockingScript, p2pkh_script, p2sh_script};

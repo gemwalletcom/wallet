@@ -20,13 +20,21 @@ public actor WalletConnectorServiceMock: WalletConnectorServiceable {
     }
 
     public func pair(uri _: String) async throws {
-        if let pairError { throw pairError }
+        if let pairError {
+            throw pairError
+        }
     }
 
     public func disconnect(sessionId _: String) async throws {
-        if let disconnectError { throw disconnectError }
+        if let disconnectError {
+            throw disconnectError
+        }
     }
-    public func hasSessions() async throws -> Bool { storedSessions }
+
+    public func hasSessions() async throws -> Bool {
+        storedSessions
+    }
+
     public nonisolated func configure() throws {}
     public nonisolated func updateSessions() {}
 }

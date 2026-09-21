@@ -7,13 +7,7 @@ import com.gemwallet.android.ui.style.iconRes
 import uniffi.gemstone.GemHeaderActions
 import uniffi.gemstone.GemHeaderButtonKind
 
-data class HeadActionUIModel(
-    @StringRes val title: Int,
-    @DrawableRes val icon: Int,
-    val enabled: Boolean,
-    val onClick: () -> Unit,
-    val testTag: String? = null,
-)
+data class HeadActionUIModel(@StringRes val title: Int, @DrawableRes val icon: Int, val enabled: Boolean, val onClick: () -> Unit, val testTag: String? = null)
 
 sealed interface HeadActionsUIModel {
     data object WatchOnly : HeadActionsUIModel
@@ -30,6 +24,7 @@ fun GemHeaderActions.uiModel(
     onMore: (() -> Unit)? = null,
 ): HeadActionsUIModel = when (this) {
     GemHeaderActions.WatchOnly -> HeadActionsUIModel.WatchOnly
+
     is GemHeaderActions.Buttons -> HeadActionsUIModel.Buttons(
         buttons.mapNotNull { button ->
             val onClick = when (button.kind) {
@@ -48,8 +43,10 @@ fun GemHeaderActions.uiModel(
                 onClick = onClick,
                 testTag = when (button.kind) {
                     GemHeaderButtonKind.BUY -> "assetBuy"
+
                     GemHeaderButtonKind.SEND, GemHeaderButtonKind.RECEIVE, GemHeaderButtonKind.SWAP,
-                    GemHeaderButtonKind.DEPOSIT, GemHeaderButtonKind.WITHDRAW, GemHeaderButtonKind.MORE -> null
+                    GemHeaderButtonKind.DEPOSIT, GemHeaderButtonKind.WITHDRAW, GemHeaderButtonKind.MORE,
+                    -> null
                 },
             )
         },

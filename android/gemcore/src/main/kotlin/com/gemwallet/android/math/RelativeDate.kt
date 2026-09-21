@@ -14,10 +14,10 @@ fun getRelativeDate(timestamp: Long): String {
         DateUtils.getRelativeTimeSpanString(
             timestamp,
             System.currentTimeMillis(),
-            DateUtils.DAY_IN_MILLIS
+            DateUtils.DAY_IN_MILLIS,
         ).toString() +
-                " " + DateFormat.getTimeInstance(DateFormat.SHORT)
-            .format(Date(timestamp))
+            " " + DateFormat.getTimeInstance(DateFormat.SHORT)
+                .format(Date(timestamp))
     } else {
         val createdAt = Calendar.getInstance()
         createdAt.timeInMillis = timestamp

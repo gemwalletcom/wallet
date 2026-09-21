@@ -27,14 +27,7 @@ import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.wallet.core.primitives.TpslType
 
 @Composable
-internal fun AutocloseScene(
-    model: AutocloseUIModel,
-    priceRows: List<ListItemModel>,
-    positionListItem: ListItemModel?,
-    takeProfitText: String,
-    stopLossText: String,
-    onAction: (AutocloseAction) -> Unit,
-) {
+internal fun AutocloseScene(model: AutocloseUIModel, priceRows: List<ListItemModel>, positionListItem: ListItemModel?, takeProfitText: String, stopLossText: String, onAction: (AutocloseAction) -> Unit) {
     var focusedField: TpslType? by remember { mutableStateOf(null) }
 
     val activeField = focusedField?.let { type ->
@@ -91,8 +84,11 @@ internal fun AutocloseScene(
                     text = takeProfitText,
                     onTextChanged = { onAction(AutocloseAction.TakeProfitChanged(it)) },
                     onFocusChanged = { focused ->
-                        if (focused) focusedField = TpslType.TakeProfit
-                        else if (focusedField == TpslType.TakeProfit) focusedField = null
+                        if (focused) {
+                            focusedField = TpslType.TakeProfit
+                        } else if (focusedField == TpslType.TakeProfit) {
+                            focusedField = null
+                        }
                     },
                 )
                 Spacer16()
@@ -103,8 +99,11 @@ internal fun AutocloseScene(
                     text = stopLossText,
                     onTextChanged = { onAction(AutocloseAction.StopLossChanged(it)) },
                     onFocusChanged = { focused ->
-                        if (focused) focusedField = TpslType.StopLoss
-                        else if (focusedField == TpslType.StopLoss) focusedField = null
+                        if (focused) {
+                            focusedField = TpslType.StopLoss
+                        } else if (focusedField == TpslType.StopLoss) {
+                            focusedField = null
+                        }
                     },
                 )
             }

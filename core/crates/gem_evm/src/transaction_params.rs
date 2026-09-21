@@ -13,10 +13,6 @@ impl TransactionParams {
     }
 
     pub fn new_approval(to: impl Into<String>, data: Vec<u8>) -> Self {
-        Self {
-            to: to.into(),
-            data,
-            value: BigInt::from(0),
-        }
+        Self { to: to.into(), data, value: BigInt::from(0) }
     }
 }

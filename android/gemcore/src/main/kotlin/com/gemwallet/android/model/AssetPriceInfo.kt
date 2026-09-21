@@ -3,7 +3,4 @@ package com.gemwallet.android.model
 import com.wallet.core.primitives.AssetPrice
 import com.wallet.core.primitives.Currency
 
-data class AssetPriceInfo(
-    val currency: Currency,
-    val price: AssetPrice,
-)
+data class AssetPriceInfo(val currency: Currency, val price: AssetPrice)

@@ -6,9 +6,6 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import kotlinx.coroutines.flow.Flow
 
-class GetAssetByIdImpl(
-    private val assetStore: GemstoneAssetStore,
-) : GetAssetById {
-    override fun invoke(assetId: AssetId): Flow<Asset?> =
-        assetStore.observeAsset(assetId)
+class GetAssetByIdImpl(private val assetStore: GemstoneAssetStore) : GetAssetById {
+    override fun invoke(assetId: AssetId): Flow<Asset?> = assetStore.observeAsset(assetId)
 }

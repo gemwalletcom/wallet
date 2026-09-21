@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
 import Foundation
 import LocalAuthentication
+import Primitives
 
 public protocol BiometryAuthenticatable: Sendable {
     var requiresAuthentication: Bool { get }

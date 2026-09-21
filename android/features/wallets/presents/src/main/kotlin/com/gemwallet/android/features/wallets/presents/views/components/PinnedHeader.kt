@@ -16,9 +16,8 @@ import com.gemwallet.android.ui.components.list_item.sectionHeaderHorizontalPadd
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.gemwallet.android.ui.theme.tinyIconSize
-
 import com.gemwallet.android.ui.theme.space24
+import com.gemwallet.android.ui.theme.tinyIconSize
 internal fun LazyListScope.pinnedHeader() {
     item {
         Row(
@@ -26,7 +25,7 @@ internal fun LazyListScope.pinnedHeader() {
                 start = sectionHeaderHorizontalPadding,
                 end = sectionHeaderHorizontalPadding,
                 top = space24,
-                bottom = paddingSmall
+                bottom = paddingSmall,
             ),
             verticalAlignment = Alignment.CenterVertically,
         ) {

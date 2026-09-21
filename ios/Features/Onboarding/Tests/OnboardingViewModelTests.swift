@@ -18,7 +18,7 @@ import Testing
 struct AcceptTermsViewModelTests {
     @Test
     func theTermsComeFromCoreAndStartUnconfirmed() {
-        let model = AcceptTermsViewModel(onNext: nil)
+        let model = AcceptTermsViewModel(preferences: .mock(), onNext: nil)
 
         #expect(model.items.isNotEmpty)
         #expect(model.isConfirmed == false)
@@ -26,8 +26,20 @@ struct AcceptTermsViewModelTests {
     }
 
     @Test
+    func continuingRecordsTheAcceptance() {
+        let preferences = ObservablePreferences.mock()
+        let model = AcceptTermsViewModel(preferences: preferences, onNext: nil)
+
+        #expect(preferences.isAcceptTermsCompleted == false)
+
+        model.accept()
+
+        #expect(preferences.isAcceptTermsCompleted)
+    }
+
+    @Test
     func everyTermMustBeTickedBeforeContinuing() {
-        let model = AcceptTermsViewModel(onNext: nil)
+        let model = AcceptTermsViewModel(preferences: .mock(), onNext: nil)
 
         for item in model.items.dropLast() {
             item.isConfirmed = true
@@ -61,18 +73,6 @@ struct SecurityReminderViewModelTests {
         #expect(model.title == "Before you start")
         #expect(model.items.isNotEmpty)
         #expect(model.message.isNotEmpty)
-    }
-}
-
-struct NewSecretPhraseViewModelTests {
-    @Test
-    func continuingHandsBackTheSameWords() {
-        let recorder = WordsRecorder()
-        let model = NewSecretPhraseViewModel(words: ["alpha", "bravo"], onCreateWallet: { recorder.record($0) })
-
-        model.continueAction?()
-
-        #expect(recorder.words == [["alpha", "bravo"]])
     }
 }
 
@@ -150,14 +150,6 @@ struct ImportWalletViewModelTests {
         model.presentSelectImage(wallet: .mock(name: "Imported"))
 
         #expect(model.isPresentingSelectImageWallet?.name == "Imported")
-    }
-}
-
-private final class WordsRecorder: @unchecked Sendable {
-    private(set) var words: [[String]] = []
-
-    func record(_ value: [String]) {
-        words.append(value)
     }
 }
 

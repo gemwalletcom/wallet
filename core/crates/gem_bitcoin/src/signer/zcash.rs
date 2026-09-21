@@ -204,19 +204,9 @@ mod tests {
         let branch_id = input.metadata.get_zcash_branch_id().unwrap();
         let transaction = ZcashTransparentTransaction::unsigned(&plan, branch_id);
         let digests = ZcashSignatureDigests::new(&transaction, &plan).unwrap();
-        assert_eq!(
-            hex::encode(signature_digest(branch_id, &digests, &plan, 0).unwrap()),
-            "0e9508ded3c1bbbf0a153622e1b5dee4303c33d45bcaa7fa1218cab57feeb065"
-        );
+        assert_eq!(hex::encode(signature_digest(branch_id, &digests, &plan, 0).unwrap()), "0e9508ded3c1bbbf0a153622e1b5dee4303c33d45bcaa7fa1218cab57feeb065");
 
-        let raw = sign_transparent(
-            &plan,
-            branch_id,
-            &SecretKey::from_slice(&TEST_PRIVATE_KEY).unwrap(),
-            &public_key,
-            &Secp256k1::signing_only(),
-        )
-        .unwrap();
+        let raw = sign_transparent(&plan, branch_id, &SecretKey::from_slice(&TEST_PRIVATE_KEY).unwrap(), &public_key, &Secp256k1::signing_only()).unwrap();
         let bytes = hex::decode(raw).unwrap();
         assert_eq!(&bytes[..20], hex::decode("050000800a27a726f04dec4d0000000000000000").unwrap().as_slice());
         assert_eq!(plan.fee, 10_000);

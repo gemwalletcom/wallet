@@ -38,7 +38,6 @@ import com.gemwallet.android.ui.components.LocalConnectionBannerState
 import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.ConnectionComponent
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -48,19 +47,28 @@ import uniffi.gemstone.GemAddressService
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemDeeplinkService
+import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : FragmentActivity(), AuthRequester {
+class MainActivity :
+    FragmentActivity(),
+    AuthRequester {
     private val viewModel: MainViewModel by viewModels()
     private val appViewModel: AppViewModel by viewModels()
     private lateinit var systemAuthenticator: SystemAuthenticator
 
     @Inject lateinit var connectionStatusObserver: ConnectionStatusObserver
+
     @Inject lateinit var notificationPermissionRequests: NotificationPermissionRequests
+
     @Inject lateinit var activeWalletConnectRequest: ActiveWalletConnectRequest
+
     @Inject lateinit var addressService: GemAddressService
+
     @Inject lateinit var deeplinkService: GemDeeplinkService
+
     @Inject lateinit var assetsService: GemAssetsService
+
     @Inject lateinit var chainService: GemChainService
 
     private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -80,7 +88,7 @@ class MainActivity : FragmentActivity(), AuthRequester {
         systemAuthenticator.prepare()
         systemAuthenticator.refreshEnrollment()
 
-        viewModel.handleIntent(intent)
+        viewModel.pendIntent(intent)
         viewModel.maintain()
 
         lifecycleScope.launch {
@@ -172,11 +180,10 @@ class MainActivity : FragmentActivity(), AuthRequester {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        viewModel.handleIntent(intent)
+        viewModel.pendIntent(intent)
     }
 
     override fun requestAuth(auth: AuthRequest, onSuccess: () -> Unit) {
         systemAuthenticator.requestAuth(auth, onSuccess)
     }
 }
-

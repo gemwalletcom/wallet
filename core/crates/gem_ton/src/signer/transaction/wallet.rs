@@ -35,11 +35,7 @@ impl WalletV4R2 {
 
     pub(super) fn build_external_body(&self, expire_at: u32, sequence: u32, messages: &[InternalMessage]) -> Result<Cell, SignerError> {
         let mut builder = CellBuilder::new();
-        builder
-            .store_i32(32, DEFAULT_WALLET_ID)?
-            .store_u32(32, expire_at)?
-            .store_u32(32, sequence)?
-            .store_u8(8, 0)?;
+        builder.store_i32(32, DEFAULT_WALLET_ID)?.store_u32(32, expire_at)?.store_u32(32, sequence)?.store_u8(8, 0)?;
         for message in messages {
             builder.store_u8(8, message.mode)?.store_child(message.message.clone())?;
         }
@@ -48,11 +44,7 @@ impl WalletV4R2 {
 
     pub(super) fn build_transaction(&self, include_state_init: bool, signed_body: Cell) -> Result<Cell, SignerError> {
         let mut builder = CellBuilder::new();
-        builder
-            .store_u8(2, 0b10)?
-            .store_null_address()?
-            .store_address(&self.address)?
-            .store_coins(&BigUint::from(0u8))?;
+        builder.store_u8(2, 0b10)?.store_null_address()?.store_address(&self.address)?.store_coins(&BigUint::from(0u8))?;
 
         if include_state_init {
             builder.store_bit(true)?.store_bit(true)?.store_child(Self::build_state_init(&self.public_key)?)?;

@@ -2,15 +2,17 @@
 
 import BigInt
 import Components
-import protocol Gemstone.GemTransactionDetailsServiceProtocol
-import enum Gemstone.GemTransactionDetailRow
-import enum Gemstone.GemTransactionHeaderAction
-import struct Gemstone.GemTransactionDetailRows
-import func Gemstone.transactionDetailSections
-import GemstonePrimitives
 import Formatters
 import Foundation
+import enum Gemstone.GemInfoTopic
+import enum Gemstone.GemTransactionDetailRow
+import struct Gemstone.GemTransactionDetailRows
+import protocol Gemstone.GemTransactionDetailsServiceProtocol
+import enum Gemstone.GemTransactionHeaderAction
+import func Gemstone.transactionDetailSections
+import GemstonePrimitives
 import InfoSheet
+import Localization
 import Primitives
 import PrimitivesComponents
 import Store
@@ -19,9 +21,11 @@ import SwiftUI
 @Observable
 @MainActor
 public final class TransactionSceneViewModel {
+    private let wallet: Wallet
     private let service: any GemTransactionDetailsServiceProtocol
     private let onHeaderAction: ((GemTransactionHeaderAction) -> Void)?
     private let onAddContact: ((AddContactType) -> Void)?
+    private let onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)?
 
     public let query: ObservableQuery<TransactionRequest>
     var transactionExtended: TransactionExtended {
@@ -33,15 +37,18 @@ public final class TransactionSceneViewModel {
 
     public init(
         transaction: TransactionExtended,
-        walletId: WalletId,
+        wallet: Wallet,
         service: any GemTransactionDetailsServiceProtocol,
         onHeaderAction: ((GemTransactionHeaderAction) -> Void)? = nil,
         onAddContact: ((AddContactType) -> Void)? = nil,
+        onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)? = nil,
     ) {
+        self.wallet = wallet
         self.service = service
         self.onHeaderAction = onHeaderAction
         self.onAddContact = onAddContact
-        query = ObservableQuery(TransactionRequest(walletId: walletId, recordId: transaction.recordId), initialValue: transaction)
+        self.onSelectAddress = onSelectAddress
+        query = ObservableQuery(TransactionRequest(walletId: wallet.id, recordId: transaction.recordId), initialValue: transaction)
     }
 
     var title: String {
@@ -49,12 +56,12 @@ public final class TransactionSceneViewModel {
     }
 
     var explorerURL: URL {
-        explorerViewModel.url
+        rows.explorer.toPrimitives().url
     }
 
     var onTransactionHeaderTap: TransactionHeaderActionHandler? {
         guard onHeaderAction != nil, rows.headerAction != nil else { return nil }
-        return { [weak self] tap in self?.handleHeaderTap(tap) }
+        return { [weak self] tap in self?.onHeaderTap(tap) }
     }
 }
 
@@ -67,35 +74,67 @@ extension TransactionSceneViewModel: ListSectionProvideable {
 
     public func itemModel(for row: GemTransactionDetailRow) -> any ItemModelProvidable<TransactionItemModel> {
         switch row {
-        case .header: TransactionHeaderViewModel(header: rows.header, currency: service.getCurrency().toPrimitives())
-        case .swapProgress: TransactionSwapProgressViewModel(progress: rows.swapProgress)
-        case .swapAgain: TransactionSwapButtonViewModel(swapAgain: rows.swapAgain)
-        case .date: TransactionDateViewModel(date: transactionExtended.transaction.createdAt)
-        case .status: TransactionStatusViewModel(status: rows.status, state: transactionExtended.transaction.state, onInfoAction: onSelectStatusInfo)
-        case .estimatedConfirmation: TransactionEstimatedConfirmationViewModel(seconds: rows.estimatedConfirmationSeconds, onInfoAction: onSelectEstimatedConfirmationInfo)
+        case .header: headerItem
+        case .swapProgress: swapProgressItem
+        case .swapAgain: rows.swapAgain == nil ? TransactionItemModel.empty : .swapAgain(text: Localized.Transaction.swapAgain)
+        case .estimatedConfirmation: estimatedConfirmationItem
         case .participant: TransactionParticipantViewModel(
                 participant: rows.participant,
                 chain: transactionExtended.transaction.assetId.chain,
                 memo: transactionExtended.transaction.memo,
                 onAddContact: onAddContact,
+                onSelectAddress: onSelectAddress,
             )
-        case .memo: TransactionMemoViewModel(transaction: transactionExtended.transaction)
-        case .resource: TransactionResourceViewModel(resource: rows.resource)
-        case .rate: TransactionRateViewModel(rate: rows.rate, isInverse: isRateInverse)
-        case .network: TransactionNetworkViewModel(chain: transactionExtended.asset.chain)
-        case .pnl: TransactionPnlViewModel(pnl: rows.pnl)
-        case .price: TransactionPriceViewModel(price: rows.price)
-        case .provider: TransactionProviderViewModel(name: rows.providerName)
-        case .fee: TransactionNetworkFeeViewModel(feeDisplay: rows.fee.display(currency: service.getCurrency().toPrimitives(), formatter: .auto), onInfoAction: onSelectFee)
-        case .explorer: explorerViewModel
+        case .rate: rows.rate.map { TransactionItemModel.rate(title: Localized.Buy.rate, value: AssetRateViewModel(rate: $0).text(isInverse: isRateInverse)) } ?? .empty
+        case .fee: feeItem
+        case let .row(row): TransactionItemModel.row(row)
         }
+    }
+
+    private var headerItem: TransactionItemModel {
+        let headerType = rows.header.headerType(currency: service.getCurrency().toPrimitives())
+        let showClearHeader = switch headerType {
+        case .amount, .payment, .nft, .asset, .assetValue: true
+        case .swap: false
+        }
+        return .header(TransactionHeaderItemModel(headerType: headerType, showClearHeader: showClearHeader))
+    }
+
+    private var swapProgressItem: TransactionItemModel {
+        guard let progress = rows.swapProgress else { return .empty }
+        let fromAsset = progress.fromAsset.toPrimitives()
+        let amount = ValueFormatter.auto.string(BigInt(progress.fromValue), asset: fromAsset)
+        return .swapProgress(TransactionSwapProgressItemModel(
+            transfer: .init(title: Localized.Transfer.title, subtitle: progress.transferText(formattedValue: amount), state: progress.transfer),
+            swap: .init(title: Localized.Wallet.swap, subtitle: progress.providerName, state: progress.swap),
+            estimatedTime: progress.etaSeconds.map { EstimatedConfirmationFormatter().string(seconds: $0) },
+        ))
+    }
+
+    private var estimatedConfirmationItem: TransactionItemModel {
+        guard let seconds = rows.estimatedConfirmationSeconds else { return .empty }
+        return .listItem(ListItemModel(
+            title: Localized.Transaction.estimatedConfirmation,
+            subtitle: EstimatedConfirmationFormatter().string(seconds: seconds),
+            infoAction: onSelectEstimatedConfirmationInfo,
+        ))
+    }
+
+    private var feeItem: TransactionItemModel {
+        let fee = rows.feeRow
+        return .fee(ListItemModel(
+            title: fee.title.text,
+            subtitle: fee.amount.text(),
+            subtitleExtra: fee.fiat?.text(),
+            infoAction: { [weak self] in self?.onInfo(fee.info) },
+        ))
     }
 }
 
 // MARK: - Actions
 
 extension TransactionSceneViewModel {
-    private func handleHeaderTap(_ tap: TransactionHeaderTap) {
+    private func onHeaderTap(_ tap: TransactionHeaderTap) {
         guard let onHeaderAction, let headerAction = rows.headerAction else { return }
         switch tap {
         case .header:
@@ -124,17 +163,8 @@ extension TransactionSceneViewModel {
         isPresentingTransactionSheet = .feeDetails
     }
 
-    private func onSelectFee() {
-        isPresentingTransactionSheet = .info(.networkFee(transactionExtended.feeAsset))
-    }
-
-    private func onSelectStatusInfo() {
-        let assetImage = TransactionViewModel(transaction: transactionExtended).assetImage
-        isPresentingTransactionSheet = .info(.transactionState(
-            imageURL: assetImage.imageURL,
-            placeholder: assetImage.placeholder,
-            model: TransactionStateViewModel(state: transactionExtended.transaction.state, tone: rows.status.tone),
-        ))
+    func onInfo(_ topic: GemInfoTopic) {
+        isPresentingTransactionSheet = .info(InfoSheetType(topic: topic, assetImage: TransactionViewModel(transaction: transactionExtended).assetImage))
     }
 
     private func onSelectEstimatedConfirmationInfo() {
@@ -146,11 +176,7 @@ extension TransactionSceneViewModel {
 
 extension TransactionSceneViewModel {
     private var rows: GemTransactionDetailRows {
-        service.detailRows(transaction: transactionExtended.toGem())
-    }
-
-    private var explorerViewModel: TransactionExplorerViewModel {
-        TransactionExplorerViewModel(transactionLink: rows.explorer.toPrimitives())
+        service.detailRows(transaction: transactionExtended.toGem(), walletType: wallet.type.toGem())
     }
 
     var feeDetailsViewModel: NetworkFeeSceneViewModel {

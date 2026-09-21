@@ -11,13 +11,7 @@ import com.wallet.core.primitives.Banner
 import uniffi.gemstone.GemTransferData
 
 @Composable
-internal fun BannerItem(
-    banners: List<BannerRowUIModel>,
-    onStake: () -> Unit,
-    onActivate: (GemTransferData) -> Unit,
-    onOpenPerpetuals: () -> Unit,
-    onClose: (Banner) -> Unit,
-) {
+internal fun BannerItem(banners: List<BannerRowUIModel>, onStake: () -> Unit, onActivate: (GemTransferData) -> Unit, onOpenPerpetuals: () -> Unit, onClose: (Banner) -> Unit) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 

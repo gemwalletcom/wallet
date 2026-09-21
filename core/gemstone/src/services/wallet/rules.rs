@@ -2,8 +2,9 @@ use gem_keystore::Mnemonic;
 use primitives::{Account, AddressName, AddressType, Chain, ChainAddress, NameRecord, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
 
 use super::error::GemWalletImportError;
-use super::model::{GemSecretPhraseRow, GemWalletDetails, GemWalletImportKind, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSecretKind, GemWalletSubtitle};
+use super::model::{GemSecretPhraseRow, GemWalletDetails, GemWalletImportKind, GemWalletImportScreen, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSecretKind, GemWalletSubtitle};
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
+use crate::services::localization::GemLocalizedText;
 
 const WALLET_ADDRESS_STYLE: GemAddressFormatStyle = GemAddressFormatStyle::Extra { extra: 1 };
 const SECRET_PHRASE_COLUMNS: u32 = 2;
@@ -14,14 +15,8 @@ use crate::signer::decode_private_key;
 impl GemWalletImportType {
     pub fn validated(self) -> Result<Self, GemWalletImportError> {
         match self {
-            Self::MulticoinPhrase { words, chains } => Ok(Self::MulticoinPhrase {
-                words: validated_words(words)?,
-                chains,
-            }),
-            Self::SinglePhrase { words, chain } => Ok(Self::SinglePhrase {
-                words: validated_words(words)?,
-                chain,
-            }),
+            Self::MulticoinPhrase { words, chains } => Ok(Self::MulticoinPhrase { words: validated_words(words)?, chains }),
+            Self::SinglePhrase { words, chain } => Ok(Self::SinglePhrase { words: validated_words(words)?, chain }),
             Self::PrivateKey { value, chain } => {
                 let value = value.trim().to_string();
                 decode_private_key(chain, value.clone()).map_err(|_| GemWalletImportError::InvalidPrivateKey)?;
@@ -53,7 +48,18 @@ pub fn phrase_verification_words(words: Vec<String>) -> Vec<String> {
         .collect()
 }
 
-pub fn import_kinds(chain: Option<Chain>) -> Vec<GemWalletImportKind> {
+pub fn import_screen(chain: Option<Chain>) -> GemWalletImportScreen {
+    GemWalletImportScreen {
+        title: match chain {
+            Some(chain) => GemLocalizedText::ChainNetworkName { chain },
+            None => GemLocalizedText::WalletMulticoin,
+        },
+        shows_kinds: import_kinds(chain).len() > 1,
+        kinds: import_kinds(chain),
+    }
+}
+
+fn import_kinds(chain: Option<Chain>) -> Vec<GemWalletImportKind> {
     match chain {
         None => vec![GemWalletImportKind::Phrase],
         Some(chain) => [
@@ -70,21 +76,11 @@ pub fn import_kinds(chain: Option<Chain>) -> Vec<GemWalletImportKind> {
 pub fn import_request(kind: GemWalletImportKind, chain: Option<Chain>, input: &str, name_record: Option<&NameRecord>) -> Result<GemWalletImportType, GemWalletImportError> {
     let words = || input.split_whitespace().map(str::to_string).collect();
     match (kind, chain) {
-        (GemWalletImportKind::Phrase, None) => Ok(GemWalletImportType::MulticoinPhrase {
-            words: words(),
-            chains: Chain::all(),
-        }),
+        (GemWalletImportKind::Phrase, None) => Ok(GemWalletImportType::MulticoinPhrase { words: words(), chains: Chain::all() }),
         (GemWalletImportKind::Phrase, Some(chain)) => Ok(GemWalletImportType::SinglePhrase { words: words(), chain }),
-        (GemWalletImportKind::PrivateKey, Some(chain)) => Ok(GemWalletImportType::PrivateKey {
-            value: input.trim().to_string(),
-            chain,
-        }),
+        (GemWalletImportKind::PrivateKey, Some(chain)) => Ok(GemWalletImportType::PrivateKey { value: input.trim().to_string(), chain }),
         (GemWalletImportKind::Address, Some(chain)) => Ok(GemWalletImportType::Address {
-            address: name_record
-                .map(|record| record.address.trim())
-                .filter(|address| !address.is_empty())
-                .unwrap_or(input.trim())
-                .to_string(),
+            address: name_record.map(|record| record.address.trim()).filter(|address| !address.is_empty()).unwrap_or(input.trim()).to_string(),
             chain,
         }),
         (GemWalletImportKind::PrivateKey | GemWalletImportKind::Address, None) => Err(GemWalletImportError::MissingChain),
@@ -92,11 +88,7 @@ pub fn import_request(kind: GemWalletImportKind, chain: Option<Chain>, input: &s
 }
 
 pub fn import_name(name_record: Option<&NameRecord>, default_name: String) -> String {
-    name_record
-        .map(|record| record.name.trim())
-        .filter(|name| !name.is_empty())
-        .map(str::to_string)
-        .unwrap_or(default_name)
+    name_record.map(|record| record.name.trim()).filter(|name| !name.is_empty()).map(str::to_string).unwrap_or(default_name)
 }
 
 fn validated_words(words: Vec<String>) -> Result<Vec<String>, GemWalletImportError> {
@@ -137,10 +129,7 @@ fn secret_kind(wallet: &Wallet) -> Option<GemWalletSecretKind> {
 
 pub fn secret_phrase_rows(word_count: u32) -> Vec<GemSecretPhraseRow> {
     let per_column = word_count / SECRET_PHRASE_COLUMNS;
-    let pairs = (0..per_column).map(|row| GemSecretPhraseRow::Pair {
-        left: row,
-        right: row + per_column,
-    });
+    let pairs = (0..per_column).map(|row| GemSecretPhraseRow::Pair { left: row, right: row + per_column });
     let odd_last = (word_count % SECRET_PHRASE_COLUMNS == 1).then(|| GemSecretPhraseRow::Single { index: word_count - 1 });
     pairs.chain(odd_last).collect()
 }
@@ -180,6 +169,7 @@ pub fn details(wallet: &Wallet) -> GemWalletDetails {
             [account] => Some(ChainAddress::new(account.chain, account.address.clone())),
             _ => None,
         },
+        address_explorer: None,
     }
 }
 
@@ -194,7 +184,7 @@ pub fn view_wallet(name: String, chain: Chain, address: String) -> Wallet {
             chain,
             address,
             derivation_path: String::new(),
-            extended_public_key: Some(String::new()),
+            extended_public_key: None,
         }],
         is_pinned: false,
         image_url: None,
@@ -207,7 +197,7 @@ pub fn account(account: GemKeystoreAccount) -> Account {
         chain: account.chain,
         address: account.address,
         derivation_path: account.derivation_path,
-        extended_public_key: Some(account.public_key.unwrap_or_default()),
+        extended_public_key: account.public_key,
     }
 }
 
@@ -259,10 +249,7 @@ pub fn wallet_address_names(wallet: &Wallet) -> Vec<AddressName> {
 }
 
 pub fn next_current_wallet(wallets: &[Wallet]) -> Option<WalletId> {
-    wallets
-        .iter()
-        .min_by_key(|wallet| (wallet.wallet_type.rank(), wallet.index))
-        .map(|wallet| wallet.id.clone())
+    wallets.iter().min_by_key(|wallet| (wallet.wallet_type.rank(), wallet.index)).map(|wallet| wallet.id.clone())
 }
 
 pub fn legacy_keystore_id(wallet: &Wallet) -> String {
@@ -275,6 +262,21 @@ pub fn existing_wallet(wallets: &[Wallet], wallet_id: &WalletId, wallet_type: Wa
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    #[test]
+    fn test_the_import_screen_names_the_network_and_offers_one_kind_for_multicoin() {
+        let multicoin = import_screen(None);
+        let ethereum = import_screen(Some(Chain::Ethereum));
+
+        assert_eq!(multicoin.title, GemLocalizedText::WalletMulticoin);
+        assert_eq!(multicoin.kinds, vec![GemWalletImportKind::Phrase]);
+        assert!(!multicoin.shows_kinds);
+        assert_eq!(ethereum.title, GemLocalizedText::ChainNetworkName { chain: Chain::Ethereum });
+        assert_eq!(ethereum.kinds, vec![GemWalletImportKind::Phrase, GemWalletImportKind::PrivateKey, GemWalletImportKind::Address]);
+        assert!(ethereum.shows_kinds);
+    }
+
     #[test]
     fn test_phrase_verification_shuffles_inside_a_group_and_never_across_one() {
         let words: Vec<String> = (1..=12).map(|n| n.to_string()).collect();
@@ -299,15 +301,10 @@ mod tests {
         assert_eq!(shuffled[4..].iter().collect::<std::collections::HashSet<_>>(), words[4..].iter().collect());
     }
 
-    use super::*;
-
     #[test]
     fn test_import_kinds_offer_a_private_key_only_where_the_chain_supports_it() {
         assert_eq!(import_kinds(None), vec![GemWalletImportKind::Phrase]);
-        assert_eq!(
-            import_kinds(Some(Chain::Ethereum)),
-            vec![GemWalletImportKind::Phrase, GemWalletImportKind::PrivateKey, GemWalletImportKind::Address]
-        );
+        assert_eq!(import_kinds(Some(Chain::Ethereum)), vec![GemWalletImportKind::Phrase, GemWalletImportKind::PrivateKey, GemWalletImportKind::Address]);
         assert_eq!(import_kinds(Some(Chain::Bitcoin)), vec![GemWalletImportKind::Phrase, GemWalletImportKind::Address]);
         assert!(GemWalletImportKind::Phrase.protects_input() && GemWalletImportKind::PrivateKey.protects_input());
         assert!(!GemWalletImportKind::Address.protects_input());
@@ -342,14 +339,8 @@ mod tests {
             import_request(GemWalletImportKind::Address, Some(Chain::Ethereum), " 0x123 ", Some(&NameRecord::mock("", ""))),
             Ok(GemWalletImportType::Address { address, .. }) if address == "0x123"
         ));
-        assert!(matches!(
-            import_request(GemWalletImportKind::Address, None, "0x123", None),
-            Err(GemWalletImportError::MissingChain)
-        ));
-        assert!(matches!(
-            import_request(GemWalletImportKind::PrivateKey, None, "0x123", None),
-            Err(GemWalletImportError::MissingChain)
-        ));
+        assert!(matches!(import_request(GemWalletImportKind::Address, None, "0x123", None), Err(GemWalletImportError::MissingChain)));
+        assert!(matches!(import_request(GemWalletImportKind::PrivateKey, None, "0x123", None), Err(GemWalletImportError::MissingChain)));
     }
 
     #[test]
@@ -411,15 +402,7 @@ mod tests {
             .unwrap_err(),
             GemWalletImportError::InvalidAddress
         );
-        assert_eq!(
-            GemWalletImportType::PrivateKey {
-                value: "zz".into(),
-                chain: Chain::Ethereum,
-            }
-            .validated()
-            .unwrap_err(),
-            GemWalletImportError::InvalidPrivateKey
-        );
+        assert_eq!(GemWalletImportType::PrivateKey { value: "zz".into(), chain: Chain::Ethereum }.validated().unwrap_err(), GemWalletImportError::InvalidPrivateKey);
         assert!(
             GemWalletImportType::PrivateKey {
                 value: "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318".into(),
@@ -443,17 +426,10 @@ mod tests {
 
     #[test]
     fn test_secret_phrase_rows() {
-        assert_eq!(
-            secret_phrase_rows(4),
-            vec![GemSecretPhraseRow::Pair { left: 0, right: 2 }, GemSecretPhraseRow::Pair { left: 1, right: 3 }]
-        );
+        assert_eq!(secret_phrase_rows(4), vec![GemSecretPhraseRow::Pair { left: 0, right: 2 }, GemSecretPhraseRow::Pair { left: 1, right: 3 }]);
         assert_eq!(
             secret_phrase_rows(5),
-            vec![
-                GemSecretPhraseRow::Pair { left: 0, right: 2 },
-                GemSecretPhraseRow::Pair { left: 1, right: 3 },
-                GemSecretPhraseRow::Single { index: 4 },
-            ]
+            vec![GemSecretPhraseRow::Pair { left: 0, right: 2 }, GemSecretPhraseRow::Pair { left: 1, right: 3 }, GemSecretPhraseRow::Single { index: 4 },]
         );
         assert_eq!(secret_phrase_rows(0), vec![]);
     }

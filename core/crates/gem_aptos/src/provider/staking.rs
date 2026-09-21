@@ -27,10 +27,7 @@ impl<C: Client> ChainStaking for AptosClient<C> {
     }
 
     async fn get_staking_delegations(&self, address: String) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
-        let (delegation, lockup_secs) = try_join!(
-            self.get_delegation_for_pool(&address, KNOWN_VALIDATOR_POOL),
-            self.get_stake_lockup_secs(KNOWN_VALIDATOR_POOL)
-        )?;
+        let (delegation, lockup_secs) = try_join!(self.get_delegation_for_pool(&address, KNOWN_VALIDATOR_POOL), self.get_stake_lockup_secs(KNOWN_VALIDATOR_POOL))?;
         Ok(staking_mapper::map_delegations(vec![delegation], lockup_secs))
     }
 }

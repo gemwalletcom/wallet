@@ -34,7 +34,7 @@ class Migration_71_72Test {
         InstrumentationRegistry.getInstrumentation(),
         GemDatabase::class.java,
         emptyList(),
-        FrameworkSQLiteOpenHelperFactory()
+        FrameworkSQLiteOpenHelperFactory(),
     )
 
     private lateinit var context: Context
@@ -133,12 +133,12 @@ class Migration_71_72Test {
         assertEquals(listOf(null), allWalletAssets.map { it.visible })
         assertEquals(listOf(Chain.Ethereum), accountsAfterMigration.map { it.chain })
 
-        roomDb.assetsDao().setBalanceConfig("wallet-1", "ethereum", isPinned = true, isVisible = true, listPosition = 0)
+        roomDb.assetsDao().setAssetConfiguration("wallet-1", listOf("ethereum"), isVisible = true, isPinned = true)
         assertTrue(roomDb.assetsDao().getBalance("wallet-1", "ethereum")?.isPinned == true)
-        roomDb.assetsDao().setWalletAssetVisibility("wallet-1", "ethereum", false)
+        roomDb.assetsDao().setAssetConfiguration("wallet-1", listOf("ethereum"), isVisible = false, isPinned = false)
         assertFalse(roomDb.assetsDao().getBalance("wallet-1", "ethereum")?.isVisible == true)
         assertFalse(roomDb.assetsDao().getBalance("wallet-1", "ethereum")?.isPinned == true)
-        roomDb.assetsDao().setBalanceConfig("wallet-1", "ethereum", isPinned = true, isVisible = true, listPosition = 0)
+        roomDb.assetsDao().setAssetConfiguration("wallet-1", listOf("ethereum"), isVisible = true, isPinned = true)
         assertTrue(roomDb.assetsDao().getBalance("wallet-1", "ethereum")?.isVisible == true)
         assertTrue(roomDb.assetsDao().getBalance("wallet-1", "ethereum")?.isPinned == true)
         roomDb.close()
@@ -150,14 +150,30 @@ class Migration_71_72Test {
         execSQL("INSERT INTO wallets (id, name, type, position, pinned, `index`, source) VALUES ('wallet-3', 'Missing Native Asset Wallet', 'Multicoin', 2, 0, 0, 'Import')")
         execSQL("INSERT INTO wallets (id, name, type, position, pinned, `index`, source) VALUES ('wallet-4', 'Unsupported Chain Wallet', 'Multicoin', 3, 0, 0, 'Import')")
         execSQL("INSERT INTO session (id, wallet_id, currency) VALUES (1, 'wallet-1', 'USD')")
-        execSQL("INSERT INTO asset (id, name, symbol, decimals, type, chain, is_enabled, is_buy_enabled, is_sell_enabled, is_swap_enabled, is_stake_enabled, rank, updated_at) VALUES ('ethereum', 'Ethereum', 'ETH', 18, 'NATIVE', 'Ethereum', 1, 1, 1, 1, 1, 100, 0)")
-        execSQL("INSERT INTO asset (id, name, symbol, decimals, type, chain, is_enabled, is_buy_enabled, is_sell_enabled, is_swap_enabled, is_stake_enabled, rank, updated_at) VALUES ('Ethereum', 'Legacy Ethereum', 'ETH', 18, 'NATIVE', 'Ethereum', 1, 0, 0, 0, 0, 0, 0)")
-        execSQL("INSERT INTO asset (id, name, symbol, decimals, type, chain, is_enabled, is_buy_enabled, is_sell_enabled, is_swap_enabled, is_stake_enabled, rank, updated_at) VALUES ('ethereum_0xtoken', 'Token', 'TOK', 18, 'ERC20', 'Ethereum', 1, 1, 1, 1, 0, 99, 0)")
-        execSQL("INSERT INTO asset (id, name, symbol, decimals, type, chain, is_enabled, is_buy_enabled, is_sell_enabled, is_swap_enabled, is_stake_enabled, rank, updated_at) VALUES ('ethereum_0xother', 'Other Token', 'OTK', 18, 'ERC20', 'Ethereum', 1, 1, 1, 1, 0, 98, 0)")
-        execSQL("INSERT INTO asset (id, name, symbol, decimals, type, chain, is_enabled, is_buy_enabled, is_sell_enabled, is_swap_enabled, is_stake_enabled, rank, updated_at) VALUES ('ethereum_0xhidden', 'Hidden Token', 'HID', 18, 'ERC20', 'Ethereum', 1, 1, 1, 1, 0, 98, 0)")
-        execSQL("INSERT INTO asset (id, name, symbol, decimals, type, chain, is_enabled, is_buy_enabled, is_sell_enabled, is_swap_enabled, is_stake_enabled, rank, updated_at) VALUES ('ethereum_0xconfig', 'Config Token', 'CFG', 18, 'ERC20', 'Ethereum', 1, 1, 1, 1, 0, 96, 0)")
-        execSQL("INSERT INTO asset (id, name, symbol, decimals, type, chain, is_enabled, is_buy_enabled, is_sell_enabled, is_swap_enabled, is_stake_enabled, rank, updated_at) VALUES ('ethereum_0xnoaccount', 'No Account Token', 'NAT', 18, 'ERC20', 'Ethereum', 1, 1, 1, 1, 0, 95, 0)")
-        execSQL("INSERT INTO asset (id, name, symbol, decimals, type, chain, is_enabled, is_buy_enabled, is_sell_enabled, is_swap_enabled, is_stake_enabled, rank, updated_at) VALUES ('removed_0xtoken', 'Removed Token', 'OLD', 18, 'ERC20', 'RemovedChain', 1, 1, 1, 1, 0, 97, 0)")
+        execSQL(
+            "INSERT INTO asset (id, name, symbol, decimals, type, chain, is_enabled, is_buy_enabled, is_sell_enabled, is_swap_enabled, is_stake_enabled, rank, updated_at) VALUES ('ethereum', 'Ethereum', 'ETH', 18, 'NATIVE', 'Ethereum', 1, 1, 1, 1, 1, 100, 0)",
+        )
+        execSQL(
+            "INSERT INTO asset (id, name, symbol, decimals, type, chain, is_enabled, is_buy_enabled, is_sell_enabled, is_swap_enabled, is_stake_enabled, rank, updated_at) VALUES ('Ethereum', 'Legacy Ethereum', 'ETH', 18, 'NATIVE', 'Ethereum', 1, 0, 0, 0, 0, 0, 0)",
+        )
+        execSQL(
+            "INSERT INTO asset (id, name, symbol, decimals, type, chain, is_enabled, is_buy_enabled, is_sell_enabled, is_swap_enabled, is_stake_enabled, rank, updated_at) VALUES ('ethereum_0xtoken', 'Token', 'TOK', 18, 'ERC20', 'Ethereum', 1, 1, 1, 1, 0, 99, 0)",
+        )
+        execSQL(
+            "INSERT INTO asset (id, name, symbol, decimals, type, chain, is_enabled, is_buy_enabled, is_sell_enabled, is_swap_enabled, is_stake_enabled, rank, updated_at) VALUES ('ethereum_0xother', 'Other Token', 'OTK', 18, 'ERC20', 'Ethereum', 1, 1, 1, 1, 0, 98, 0)",
+        )
+        execSQL(
+            "INSERT INTO asset (id, name, symbol, decimals, type, chain, is_enabled, is_buy_enabled, is_sell_enabled, is_swap_enabled, is_stake_enabled, rank, updated_at) VALUES ('ethereum_0xhidden', 'Hidden Token', 'HID', 18, 'ERC20', 'Ethereum', 1, 1, 1, 1, 0, 98, 0)",
+        )
+        execSQL(
+            "INSERT INTO asset (id, name, symbol, decimals, type, chain, is_enabled, is_buy_enabled, is_sell_enabled, is_swap_enabled, is_stake_enabled, rank, updated_at) VALUES ('ethereum_0xconfig', 'Config Token', 'CFG', 18, 'ERC20', 'Ethereum', 1, 1, 1, 1, 0, 96, 0)",
+        )
+        execSQL(
+            "INSERT INTO asset (id, name, symbol, decimals, type, chain, is_enabled, is_buy_enabled, is_sell_enabled, is_swap_enabled, is_stake_enabled, rank, updated_at) VALUES ('ethereum_0xnoaccount', 'No Account Token', 'NAT', 18, 'ERC20', 'Ethereum', 1, 1, 1, 1, 0, 95, 0)",
+        )
+        execSQL(
+            "INSERT INTO asset (id, name, symbol, decimals, type, chain, is_enabled, is_buy_enabled, is_sell_enabled, is_swap_enabled, is_stake_enabled, rank, updated_at) VALUES ('removed_0xtoken', 'Removed Token', 'OLD', 18, 'ERC20', 'RemovedChain', 1, 1, 1, 1, 0, 97, 0)",
+        )
 
         execSQL("INSERT INTO accounts (wallet_id, address, chain, derivation_path, extendedPublicKey) VALUES ('wallet-1', '0xlegacy', 'Ethereum', 'm/44''/60''/0''/0/0', NULL)")
         execSQL("INSERT INTO accounts (wallet_id, address, chain, derivation_path, extendedPublicKey) VALUES ('wallet-1', '0xcurrent', 'Ethereum', 'm/44''/60''/1''/0/0', NULL)")
@@ -189,12 +205,19 @@ class Migration_71_72Test {
         execSQL("INSERT INTO nodes (url, status, priority, chain) VALUES ('https://ethereum.example', 'Active', 0, 'Ethereum')")
         execSQL("INSERT INTO nodes (url, status, priority, chain) VALUES ('https://unknown.example', 'Active', 0, 'UnknownChain')")
         execSQL("INSERT INTO stake_delegation_validator (id, chain, name, isActive, commission, apr, providerType) VALUES ('validator-1', 'Ethereum', 'Validator', 1, 0.0, 1.0, 'Stake')")
-        execSQL("INSERT INTO stake_delegation_base (id, address, delegation_id, validator_id, asset_id, state, balance, rewards, shares) VALUES ('delegation-row-1', '0xcurrent', 'delegation-1', 'validator-1', 'ethereum', 'Active', '1', '0', '')")
-        execSQL("INSERT INTO nft_collections (id, name, description, chain, contractAddress, imageUrl, previewImageUrl, originalSourceUrl, status, links) VALUES ('collection-1', 'Collection', NULL, 'ethereum', '0xnft', '', '', '', NULL, NULL)")
-        execSQL("INSERT INTO nft_assets (id, collection_id, token_id, token_type, name, description, chain, contract_address, image_url, preview_image_url, original_image_url, attributes) VALUES ('nft-1', 'collection-1', '1', 'ERC721', 'NFT', NULL, 'ethereum', '0xnft', '', '', '', NULL)")
+        execSQL(
+            "INSERT INTO stake_delegation_base (id, address, delegation_id, validator_id, asset_id, state, balance, rewards, shares) VALUES ('delegation-row-1', '0xcurrent', 'delegation-1', 'validator-1', 'ethereum', 'Active', '1', '0', '')",
+        )
+        execSQL(
+            "INSERT INTO nft_collections (id, name, description, chain, contractAddress, imageUrl, previewImageUrl, originalSourceUrl, status, links) VALUES ('collection-1', 'Collection', NULL, 'ethereum', '0xnft', '', '', '', NULL, NULL)",
+        )
+        execSQL(
+            "INSERT INTO nft_assets (id, collection_id, token_id, token_type, name, description, chain, contract_address, image_url, preview_image_url, original_image_url, attributes) VALUES ('nft-1', 'collection-1', '1', 'ERC721', 'NFT', NULL, 'ethereum', '0xnft', '', '', '', NULL)",
+        )
         execSQL("INSERT INTO nft_assets_associations (wallet_id, asset_id) VALUES ('wallet-1', 'nft-1')")
 
-        execSQL("""
+        execSQL(
+            """
             INSERT INTO balances (
                 asset_id,
                 wallet_id,
@@ -238,8 +261,10 @@ class Migration_71_72Test {
                 1,
                 1
             )
-        """)
-        execSQL("""
+        """,
+        )
+        execSQL(
+            """
             INSERT INTO balances (
                 asset_id,
                 wallet_id,
@@ -283,7 +308,8 @@ class Migration_71_72Test {
                 1,
                 2
             )
-        """)
+        """,
+        )
     }
 
     private fun SupportSQLiteDatabase.longForQuery(query: String): Long {
@@ -350,12 +376,7 @@ class Migration_71_72Test {
         }
     }
 
-    private fun SupportSQLiteDatabase.hasForeignKey(
-        table: String,
-        from: String,
-        toTable: String,
-        to: String,
-    ): Boolean {
+    private fun SupportSQLiteDatabase.hasForeignKey(table: String, from: String, toTable: String, to: String): Boolean {
         val cursor = query("PRAGMA foreign_key_list($table)")
         return cursor.use {
             while (it.moveToNext()) {

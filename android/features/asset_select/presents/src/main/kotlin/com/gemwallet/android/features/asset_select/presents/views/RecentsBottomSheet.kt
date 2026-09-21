@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.asset_select.presents.views
 
-import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,29 +21,23 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsEmptyState
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsSheetUIModel
-import com.gemwallet.android.ui.components.empty.EmptyContentType
-import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
+import com.gemwallet.android.ui.components.empty.EmptyContentType
+import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.dateSectionedList
 import com.gemwallet.android.ui.components.list_item.rememberDateSections
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.SheetSizing
+import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 
 @Composable
-fun RecentsBottomSheet(
-    isVisible: Boolean,
-    uiModel: RecentsSheetUIModel,
-    query: TextFieldState,
-    onDismissRequest: () -> Unit,
-    onClear: () -> Unit,
-    onSelect: (Asset) -> Unit,
-) {
+fun RecentsBottomSheet(isVisible: Boolean, uiModel: RecentsSheetUIModel, query: TextFieldState, onDismissRequest: () -> Unit, onClear: () -> Unit, onSelect: (Asset) -> Unit) {
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismissRequest,

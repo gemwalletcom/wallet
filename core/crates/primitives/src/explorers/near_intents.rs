@@ -46,9 +46,6 @@ mod tests {
         let base = format!("{}/transactions/{recipient}", NearIntents::BASE_URL);
 
         assert_eq!(NearIntents.get_swap_tx_url(&ExplorerInput::new_recipient(recipient)), base);
-        assert_eq!(
-            NearIntents.get_swap_tx_url(&ExplorerInput::new_memo(recipient, "48694126")),
-            format!("{base}?depositMemo=48694126")
-        );
+        assert_eq!(NearIntents.get_swap_tx_url(&ExplorerInput::new_memo(recipient, "48694126")), format!("{base}?depositMemo=48694126"));
     }
 }

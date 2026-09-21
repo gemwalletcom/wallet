@@ -33,7 +33,7 @@ public extension GemLockPeriod {
 
 public extension LockPeriod {
     static var offered: [LockPeriod] {
-        lockPeriods().map { $0.lockPeriod }
+        lockPeriods().map(\.lockPeriod)
     }
 
     static var `default`: LockPeriod {

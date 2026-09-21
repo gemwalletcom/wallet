@@ -88,18 +88,9 @@ impl Downloader {
         let http_client = Self::build_http_client(img_config.image.request.timeout)?;
         let request = match args.source {
             ImageSource::Coingecko => ImageRequest::with_lists(CoingeckoProvider::new(CoinGeckoClient::new(coingecko), img_config.coingecko), &args),
-            ImageSource::Coinmarketcap => ImageRequest::with_lists(
-                CoinMarketCapProvider::new(CoinMarketCapClient::new_with_reqwest_client(http_client.clone(), coinmarketcap), img_config.coinmarketcap),
-                &args,
-            ),
-            ImageSource::Jupiter => ImageRequest::with_lists(
-                JupiterProvider::new(JupiterClient::new_with_reqwest_client_and_api_key(http_client.clone(), jupiter_api_key), img_config.jupiter),
-                &args,
-            ),
-            ImageSource::Dexscreener => ImageRequest::with_lists(
-                DexScreenerProvider::new(DexScreenerClient::new_with_reqwest_client(http_client.clone()), img_config.dexscreener),
-                &args,
-            ),
+            ImageSource::Coinmarketcap => ImageRequest::with_lists(CoinMarketCapProvider::new(CoinMarketCapClient::new_with_reqwest_client(http_client.clone(), coinmarketcap), img_config.coinmarketcap), &args),
+            ImageSource::Jupiter => ImageRequest::with_lists(JupiterProvider::new(JupiterClient::new_with_reqwest_client_and_api_key(http_client.clone(), jupiter_api_key), img_config.jupiter), &args),
+            ImageSource::Dexscreener => ImageRequest::with_lists(DexScreenerProvider::new(DexScreenerClient::new_with_reqwest_client(http_client.clone()), img_config.dexscreener), &args),
         };
         Ok(Self {
             folder,
@@ -152,13 +143,7 @@ impl Downloader {
             }
         }
 
-        info_with_fields!(
-            "image downloader summary",
-            available = total,
-            existing = existing,
-            pending = pending.len(),
-            unsupported = unsupported
-        );
+        info_with_fields!("image downloader summary", available = total, existing = existing, pending = pending.len(), unsupported = unsupported);
 
         let pending_count = pending.len();
         let mut images_by_url: HashMap<String, Vec<u8>> = HashMap::new();
@@ -203,14 +188,7 @@ impl Downloader {
 
     async fn download_asset_image(&self, pending_image: &PendingAssetImage, images_by_url: &mut HashMap<String, Vec<u8>>) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let image_downloaded = if !images_by_url.contains_key(&pending_image.image.image_url) {
-            let bytes = download_image(
-                &self.http_client,
-                &pending_image.image.image_url,
-                self.image_size,
-                self.image_request_retries,
-                &self.supported_image_types,
-            )
-            .await?;
+            let bytes = download_image(&self.http_client, &pending_image.image.image_url, self.image_size, self.image_request_retries, &self.supported_image_types).await?;
             images_by_url.insert(pending_image.image.image_url.clone(), bytes);
             true
         } else {

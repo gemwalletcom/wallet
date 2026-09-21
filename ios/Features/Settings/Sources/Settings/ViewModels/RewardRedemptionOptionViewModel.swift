@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitives
-import struct Gemstone.GemRewardsRedemption
-import struct Gemstone.RewardRedemptionOption
 import Components
 import Foundation
+import struct Gemstone.GemRewardsRedemption
+import struct Gemstone.RewardRedemptionOption
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -43,7 +43,7 @@ struct RewardRedemptionOptionViewModel: Identifiable {
     }
 
     var pointsText: String {
-        redemption.pointsText
+        redemption.points.text()
     }
 
     var canRedeem: Bool {

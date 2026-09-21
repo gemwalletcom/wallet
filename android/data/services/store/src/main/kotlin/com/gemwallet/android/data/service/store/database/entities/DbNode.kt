@@ -14,9 +14,4 @@ import com.wallet.core.primitives.NodeState
         ForeignKey(DbAsset::class, ["id"], ["chain"], onDelete = ForeignKey.CASCADE, onUpdate = ForeignKey.CASCADE),
     ],
 )
-data class DbNode(
-    @PrimaryKey val url: String,
-    val status: NodeState,
-    val priority: Int,
-    val chain: Chain,
-)
+data class DbNode(@PrimaryKey val url: String, val status: NodeState, val priority: Int, val chain: Chain)

@@ -1,16 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemContactAvatar
+import Components
+import Foundation
 import struct Gemstone.GemContactAddressInput
+import enum Gemstone.GemContactAvatar
+import enum Gemstone.GemContactAvatarChoice
+import struct Gemstone.GemContactSession
 import protocol Gemstone.GemManageContactServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
-import Components
 import struct Gemstone.GemRecipient
-import GemstoneServices
-import Foundation
 import func Gemstone.walletAvatarEmojis
-import func Gemstone.contactInitials
 import GemstonePrimitives
+import GemstoneServices
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -24,36 +25,14 @@ public final class ManageContactViewModel {
     public enum Mode {
         case add(recipient: GemRecipient? = nil, chain: Chain? = nil)
         case edit(ContactData)
-
-        var contact: Contact? {
-            switch self {
-            case .add: nil
-            case let .edit(contactData): contactData.contact
-            }
-        }
-    }
-
-    enum Avatar {
-        case empty
-        case image(imageUrl: String)
-        case emoji(EmojiValue)
-
-        init(imageUrl: String?) {
-            self = imageUrl.map { .image(imageUrl: $0) } ?? .empty
-        }
     }
 
     private let service: any GemManageContactServiceProtocol
     private let nameService: any GemNameServiceProtocol
     private let mode: Mode
 
-    let contactId: String
-
+    private(set) var session: GemContactSession
     var nameInputModel: InputValidationViewModel
-    private var isSaving = false
-    var description: String = ""
-    var avatar: Avatar = .empty
-    var addresses: [ContactAddress] = []
     var isPresentingAddress: ManageContactAddressViewModel.Mode?
     var isPresentingAvatar: Bool = false
     var isPresentingAlertMessage: AlertMessage?
@@ -69,29 +48,24 @@ public final class ManageContactViewModel {
         self.nameService = nameService
         self.mode = mode
 
-        nameInputModel = InputValidationViewModel(
-            mode: .onDemand,
-            validators: [.required(requireName: Localized.Wallet.name)],
-        )
+        nameInputModel = InputValidationViewModel(mode: .onDemand, validators: [])
 
         switch mode {
         case let .add(recipient, chain):
-            contactId = UUID().uuidString
-            if let recipient, let chain {
-                addresses = GemContactAddressInput(
-                    contactId: contactId,
-                    chain: chain,
-                    address: recipient.address,
-                    memo: recipient.memo,
-                    replacingId: nil,
-                ).addAddress([])
-            }
+            let session = service.newSession(contact: nil, addresses: [])
+            self.session = recipient.flatMap { recipient in
+                chain.map {
+                    session.onAddressSaved(
+                        input: GemContactAddressInput(contactId: session.id, chain: $0, address: recipient.address, memo: recipient.memo, replacingId: nil),
+                    )
+                }
+            } ?? session
         case let .edit(contactData):
-            contactId = contactData.contact.id
+            session = service.newSession(
+                contact: contactData.contact.toGem(),
+                addresses: contactData.addresses.map { $0.toGem() },
+            )
             nameInputModel.text = contactData.contact.name
-            description = contactData.contact.description ?? ""
-            avatar = Avatar(imageUrl: contactData.contact.imageUrl)
-            addresses = contactData.addresses
         }
     }
 
@@ -126,56 +100,70 @@ public final class ManageContactViewModel {
         Localized.Contacts.addresses
     }
 
+    var description: String {
+        get { session.description }
+        set { session = session.onDescriptionChanged(description: newValue) }
+    }
+
+    var addresses: [ContactAddress] {
+        session.addresses.map { $0.toPrimitives() }
+    }
+
     var buttonState: ButtonState {
-        guard service.canSave(name: nameInputModel.text, isSaving: isSaving) else {
+        guard session.canSave() else {
             return .disabled
         }
-        return isSaving ? .loading(showProgress: true) : .normal
+        return session.isSaving ? .loading(showProgress: true) : .normal
     }
 
     var avatarImage: AssetImage {
-        switch avatar {
+        let initials = session.initials()
+        return switch session.avatar {
         case .empty: initials.isEmpty ? .image(Images.System.personCircleFill) : AssetImage(type: .text(initials))
         case let .image(imageUrl): AssetImage(type: .text(initials), imageURL: ImageSource(imageUrl).url)
-        case let .emoji(value): AssetImage(type: .emoji(value.emoji))
+        case let .emoji(emoji): AssetImage(type: .emoji(emoji))
         }
     }
 
     var avatarStyle: AssetImageView.Style? {
-        switch avatar {
-        case .empty: initials.isEmpty ? AssetImageView.Style(foregroundColor: Colors.grayLightFaded) : nil
+        switch session.avatar {
+        case .empty: session.initials().isEmpty ? AssetImageView.Style(foregroundColor: Colors.grayLightFaded) : nil
         case .image, .emoji: nil
         }
     }
 
     var onClearAvatar: VoidAction {
-        switch avatar {
+        switch session.avatar {
         case .empty: nil
-        case .image, .emoji: { [weak self] in self?.avatar = .empty }
+        case .image, .emoji: { [weak self] in self?.onChangeAvatar(.empty) }
         }
     }
 
+    func onChangeName(_ name: String) {
+        session = session.onNameChanged(name: name)
+    }
+
     func onSelectAvatar(_ value: EmojiValue) {
-        avatar = .emoji(value)
+        onChangeAvatar(.emoji(emoji: value.emoji))
         isPresentingAvatar = false
     }
 
+    private func onChangeAvatar(_ avatar: GemContactAvatarChoice) {
+        session = session.onAvatarChanged(avatar: avatar)
+    }
+
     private func avatarInput() throws -> GemContactAvatar {
-        switch avatar {
+        switch session.avatar {
         case .empty:
             return .empty
         case let .image(imageUrl):
             return .image(imageUrl: imageUrl)
-        case let .emoji(value):
-            guard let data = EmojiAvatarRenderer.image(emoji: value.emoji, size: .image.extraLarge, color: value.color.uiColor).pngData() else {
+        case let .emoji(emoji):
+            guard let data = EmojiAvatarRenderer.image(emoji: emoji, size: .image.extraLarge, color: Colors.grayVeryLight.uiColor).pngData() else {
                 throw AnyError("Render avatar image failed")
             }
             return .rendered(image: data)
         }
-    }
-
-    private var initials: String {
-        contactInitials(name: nameInputModel.text)
     }
 
     func listItemModel(for address: ContactAddress) -> ListItemModel {
@@ -190,40 +178,29 @@ public final class ManageContactViewModel {
         ManageContactAddressViewModel(
             service: service,
             nameService: nameService,
+            contactId: session.id,
             mode: mode,
             onComplete: { [weak self] in self?.onAddressComplete($0) },
         )
     }
 
-    func onAddressComplete(_ input: ManageContactAddressViewModel.Input) {
-        addresses = GemContactAddressInput(
-            contactId: contactId,
-            chain: input.chain,
-            address: input.address,
-            memo: input.memo,
-            replacingId: input.replacingId,
-        ).addAddress(addresses)
+    func onAddressComplete(_ input: GemContactAddressInput) {
+        session = session.onAddressSaved(input: input)
         isPresentingAddress = nil
     }
 
     func deleteAddress(at offsets: IndexSet) {
-        addresses.remove(atOffsets: offsets)
+        for id in offsets.map({ session.addresses[$0].id }) {
+            session = session.onAddressDeleted(addressId: id)
+        }
     }
 
     func onSave(dismiss: DismissAction) {
-        isSaving = true
+        session = session.onSaving(isSaving: true)
         Task {
-            defer { isSaving = false }
+            defer { session = session.onSaving(isSaving: false) }
             do {
-                let contact = try await service.saveContact(
-                    id: contactId,
-                    existing: mode.contact,
-                    name: nameInputModel.text,
-                    description: description,
-                    avatar: try avatarInput(),
-                    addresses: addresses,
-                )
-                avatar = Avatar(imageUrl: contact.imageUrl)
+                _ = try await service.saveContact(input: session.input(avatar: avatarInput()))
                 dismiss()
             } catch {
                 isPresentingAlertMessage = AlertMessage(error: error)

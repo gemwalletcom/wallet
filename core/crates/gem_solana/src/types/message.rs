@@ -22,11 +22,7 @@ pub struct Message {
 
 impl Message {
     pub fn serialize_for_signing(&self) -> Result<Vec<u8>> {
-        let mut bytes = vec![
-            self.header.num_required_signatures,
-            self.header.num_readonly_signed_accounts,
-            self.header.num_readonly_unsigned_accounts,
-        ];
+        let mut bytes = vec![self.header.num_required_signatures, self.header.num_readonly_signed_accounts, self.header.num_readonly_unsigned_accounts];
 
         bytes.extend(encode_length_to_compact_u16_bytes(self.account_keys.len())?);
         for pubkey in &self.account_keys {

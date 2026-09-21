@@ -14,9 +14,7 @@ pub struct BasenamesProvider {
 
 impl BasenamesProvider {
     pub fn new(client: ReqwestClient) -> Self {
-        Self {
-            client: BasenamesClient::new(client),
-        }
+        Self { client: BasenamesClient::new(client) }
     }
 }
 

@@ -22,13 +22,7 @@ enum ResolvedObjectOwner {
 
 impl ResolvedObjectInput {
     pub async fn get_multiple(client: &SuiClient, object_ids: Vec<String>) -> Result<Vec<Self>, SuiError> {
-        client
-            .get_multiple_objects(object_ids)
-            .await
-            .map_err(SuiError::from_display)?
-            .into_iter()
-            .map(Self::from_rpc_object)
-            .collect()
+        client.get_multiple_objects(object_ids).await.map_err(SuiError::from_display)?.into_iter().map(Self::from_rpc_object).collect()
     }
 
     pub(crate) fn from_rpc_object(object: Object) -> Result<Self, SuiError> {
@@ -39,20 +33,14 @@ impl ResolvedObjectInput {
 
         let owner = match owner_kind {
             OwnerKind::Shared => ResolvedObjectOwner::Shared {
-                initial_shared_version: owner
-                    .version
-                    .ok_or_else(|| SuiError::invalid_input(format!("Sui shared object version is missing: {object_id}")))?,
+                initial_shared_version: owner.version.ok_or_else(|| SuiError::invalid_input(format!("Sui shared object version is missing: {object_id}")))?,
             },
             OwnerKind::Address | OwnerKind::Object => ResolvedObjectOwner::Owned {
-                version: object
-                    .version
-                    .ok_or_else(|| SuiError::invalid_input(format!("Sui object version is missing: {object_id}")))?,
+                version: object.version.ok_or_else(|| SuiError::invalid_input(format!("Sui object version is missing: {object_id}")))?,
                 digest: digest(object.digest, object_id)?,
             },
             OwnerKind::Immutable => ResolvedObjectOwner::Immutable {
-                version: object
-                    .version
-                    .ok_or_else(|| SuiError::invalid_input(format!("Sui object version is missing: {object_id}")))?,
+                version: object.version.ok_or_else(|| SuiError::invalid_input(format!("Sui object version is missing: {object_id}")))?,
                 digest: digest(object.digest, object_id)?,
             },
             OwnerKind::Unknown | OwnerKind::ConsensusAddress => {

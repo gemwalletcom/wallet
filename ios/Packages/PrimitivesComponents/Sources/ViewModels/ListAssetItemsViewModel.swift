@@ -2,17 +2,17 @@
 
 import Components
 import Formatters
-import struct Gemstone.GemAssetRow
+import struct Gemstone.GemAssetRowStyle
 import Primitives
 import SwiftUI
 
 public struct ListAssetItemsViewModel {
     private let currency: Currency
-    private let row: GemAssetRow
+    private let rowStyle: GemAssetRowStyle
 
-    public init(currency: Currency, row: GemAssetRow) {
+    public init(currency: Currency, rowStyle: GemAssetRowStyle) {
         self.currency = currency
-        self.row = row
+        self.rowStyle = rowStyle
     }
 
     public func item(
@@ -23,7 +23,7 @@ public struct ListAssetItemsViewModel {
         ListAssetItemViewModel(
             showBalancePrivacy: showBalancePrivacy,
             assetDataModel: AssetDataViewModel(assetData: assetData, formatter: .short, currency: currency),
-            row: row,
+            rowStyle: rowStyle,
             action: action,
         )
     }

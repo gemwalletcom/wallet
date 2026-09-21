@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.features.settings.networks.viewmodels.AddNodeViewModel
 import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeCheckRowUIModel
 import com.gemwallet.android.ui.R
@@ -63,8 +64,7 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
                 title = stringResource(id = R.string.wallet_import_action),
                 state = uiModel.buttonState,
             ) {
-                viewModel.addUrl()
-                onCancel()
+                viewModel.addUrl(onAdded = onCancel)
             }
         },
         onClose = onCancel,
@@ -73,6 +73,7 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
         AssetListItem(
             asset = asset,
             listPosition = ListPosition.Single,
+            title = chain.networkName(),
         )
         UrlField(
             value = viewModel.url,
@@ -80,7 +81,7 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
             onValueChange = viewModel::onUrlChange,
             onQRScan = {
                 isShowQRScan = true
-            }
+            },
         )
         Spacer16()
         uiModel.checks.forEach { NodeCheckRow(it) }
@@ -100,12 +101,7 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
 }
 
 @Composable
-private fun UrlField(
-    value: MutableState<String> = mutableStateOf(""),
-    error: String = "",
-    onValueChange: () -> Unit,
-    onQRScan: () -> Unit,
-) {
+private fun UrlField(value: MutableState<String> = mutableStateOf(""), error: String = "", onValueChange: () -> Unit, onQRScan: () -> Unit) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val clipboardManager = LocalContext.current.clipboardManager()
     GemTextField(
@@ -133,9 +129,9 @@ private fun UrlField(
                     value.value = ""
                     onValueChange()
                 },
-                qrScanner = onQRScan
+                qrScanner = onQRScan,
             )
-        }
+        },
     )
 }
 

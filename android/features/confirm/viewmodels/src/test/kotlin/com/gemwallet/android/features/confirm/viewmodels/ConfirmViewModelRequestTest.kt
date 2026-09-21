@@ -16,6 +16,7 @@ import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.FeePriority
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -37,6 +38,7 @@ import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemConfirmButtonState
+import uniffi.gemstone.GemConfirmFeeSelection
 import uniffi.gemstone.GemConfirmPhase
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmation
@@ -97,6 +99,35 @@ class ConfirmViewModelRequestTest {
         verify { confirmService.confirmation(any(), second, any()) }
     }
 
+    @Test
+    fun aRequestForAnotherWalletIsConfirmedForThatWallet() = runTest(testDispatcher) {
+        val current = mockWallet(accounts = listOf(account))
+        val connected = mockWallet(id = "wallet-2", name = "Connected", accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xconnected")))
+        val transfer = mockGemTransferData(asset = asset, recipient = GemRecipient(address = account.address, memo = "connected"))
+        val viewModel = viewModel(SavedStateHandle()).also { model = it }
+
+        viewModel.init(transfer, wallet = connected)
+        advanceUntilIdle()
+
+        verify(exactly = 1) { confirmService.confirmation(connected.toGem(), transfer, any()) }
+        verify(exactly = 0) { confirmService.confirmation(current.toGem(), any(), any()) }
+    }
+
+    @Test
+    fun initForTheSameTransferKeepsTheChosenFee() = runTest(testDispatcher) {
+        val transfer = mockGemTransferData(asset = asset, recipient = GemRecipient(address = account.address, memo = "fee"))
+        val viewModel = viewModel(SavedStateHandle()).also { model = it }
+        viewModel.init(transfer)
+        advanceUntilIdle()
+        val fast = GemConfirmFeeSelection.Priority(FeePriority.Fast.toGem())
+        viewModel.feeSelection.value = fast
+
+        viewModel.init(transfer)
+        advanceUntilIdle()
+
+        assertEquals(fast, viewModel.feeSelection.value)
+    }
+
     private fun viewModel(handle: SavedStateHandle): ConfirmViewModel {
         every { confirmService.confirmation(any(), any(), any()) } returns confirmation
         every { confirmation.screen() } returns mockGemConfirmScreen()
@@ -110,10 +141,13 @@ class ConfirmViewModelRequestTest {
         getSession = mockk<GetSession> {
             every { this@mockk() } returns MutableStateFlow(mockSession(wallet = mockWallet(accounts = listOf(account))))
         },
-        buildConfirmProperties = mockk(relaxed = true),
         confirmService = confirmService,
         savedStateHandle = handle,
+        connectionStatusObserver = mockk(relaxed = true),
         ioDispatcher = testDispatcher,
-        context = mockk<Context> { every { getString(any()) } returns "Error"; every { getString(any(), *anyVararg()) } returns "Error" },
+        context = mockk<Context> {
+            every { getString(any()) } returns "Error"
+            every { getString(any(), *anyVararg()) } returns "Error"
+        },
     )
 }

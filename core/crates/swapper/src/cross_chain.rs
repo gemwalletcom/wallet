@@ -171,10 +171,7 @@ mod tests {
         let deposit_addresses = DepositAddressMap::from([(vault.clone(), SwapperProvider::NearIntents)]);
         let transaction = Transaction::mock_utxo(
             vec![TransactionUtxoInput::new("sender".into(), 50000u32.into())],
-            vec![
-                TransactionUtxoInput::new(vault, 40000u32.into()),
-                TransactionUtxoInput::new("change".into(), 9000u32.into()),
-            ],
+            vec![TransactionUtxoInput::new(vault, 40000u32.into()), TransactionUtxoInput::new("change".into(), 9000u32.into())],
         );
         assert_eq!(swap_provider_with_vault_addresses(&transaction, &deposit_addresses), Some(SwapperProvider::NearIntents));
     }
@@ -182,10 +179,7 @@ mod tests {
     #[test]
     fn test_utxo_no_vault_address_in_outputs() {
         let deposit_addresses = DepositAddressMap::from([("vault_address".to_string(), SwapperProvider::NearIntents)]);
-        let transaction = Transaction::mock_utxo(
-            vec![TransactionUtxoInput::new("sender".into(), 50000u32.into())],
-            vec![TransactionUtxoInput::new("recipient".into(), 40000u32.into())],
-        );
+        let transaction = Transaction::mock_utxo(vec![TransactionUtxoInput::new("sender".into(), 50000u32.into())], vec![TransactionUtxoInput::new("recipient".into(), 40000u32.into())]);
         assert!(!is_cross_chain_swap(&transaction, &deposit_addresses));
     }
 
@@ -193,10 +187,7 @@ mod tests {
     fn test_is_from_vault_address() {
         let vault = "vault_address".to_string();
         let send_addresses = SendAddressMap::from([(vault.clone(), SwapperProvider::NearIntents)]);
-        let transaction = Transaction {
-            from: vault,
-            ..Transaction::mock()
-        };
+        let transaction = Transaction { from: vault, ..Transaction::mock() };
         assert!(is_from_vault_address(&transaction, &send_addresses));
     }
 
@@ -204,10 +195,7 @@ mod tests {
     fn test_is_from_vault_address_utxo() {
         let vault = "vault_address".to_string();
         let send_addresses = SendAddressMap::from([(vault.clone(), SwapperProvider::NearIntents)]);
-        let transaction = Transaction::mock_utxo(
-            vec![TransactionUtxoInput::new(vault, 50000u32.into())],
-            vec![TransactionUtxoInput::new("recipient".into(), 40000u32.into())],
-        );
+        let transaction = Transaction::mock_utxo(vec![TransactionUtxoInput::new(vault, 50000u32.into())], vec![TransactionUtxoInput::new("recipient".into(), 40000u32.into())]);
         assert!(is_from_vault_address(&transaction, &send_addresses));
     }
 

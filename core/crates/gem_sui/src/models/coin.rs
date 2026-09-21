@@ -44,11 +44,7 @@ impl<T> Default for OwnedCoins<T> {
 
 impl<T> OwnedCoins<T> {
     pub fn new(coin_type: String, coins: Vec<T>, address_balance: u64) -> Self {
-        Self {
-            coin_type,
-            coins,
-            address_balance,
-        }
+        Self { coin_type, coins, address_balance }
     }
 }
 

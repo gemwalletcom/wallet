@@ -210,7 +210,6 @@
   <string name="errors_connections_no_supported_wallets">Desteklenen cüzdan yok.</string>
   <string name="errors_connections_unsupported_chain">Sağlanan zincir desteklenmiyor.</string>
   <string name="errors_swap_amount_too_small">Miktar çok küçük</string>
-  <string name="errors_required">%1$s gereklidir</string>
   <string name="errors_scan_transaction_malicious_description">Bu işlem tamamlanamıyor; hedef cüzdan adresi şüpheli veya zararlı bir etkinlikle bağlantılı.</string>
   <string name="errors_scan_transaction_memo_required">%1$s hedef cüzdan adresi bir hedef etiketi / notu gerektiriyor</string>
   <string name="errors_scan_transaction_malicious_title">Şüpheli Etkinlik</string>
@@ -273,7 +272,7 @@
   <string name="asset_decimals">Ondalıklar</string>
   <string name="asset_token_id">Jeton Kimliği</string>
   <string name="asset_contract">Sözleşme</string>
-  <string name="asset_state_empty_title">İşlemleriniz burada görünecek️</string>
+  <string name="asset_state_empty_title">İşlemleriniz burada görünecek</string>
   <string name="asset_state_empty_description">%1$s alın, takas edin veya satın alın</string>
   <string name="asset_verification_unverified">Doğrulanmamış</string>
   <string name="asset_verification_suspicious">Şüpheli</string>
@@ -422,7 +421,7 @@
   <string name="price_alerts_set_alert_set_target_price">Hedef fiyatı belirle</string>
   <string name="price_alerts_set_alert_current_price">Güncel fiyat</string>
   <string name="price_alerts_added_for">Fiyat uyarısı ayarla %1$s</string>
-  <string name="price_alerts_state_empty_title">Uyarılarınız burada görünecek️</string>
+  <string name="price_alerts_state_empty_title">Uyarılarınız burada görünecek</string>
   <string name="price_alerts_state_empty_description">Paraları takip sistemine ekleyerek onları etkinleştirin</string>
   <string name="price_alerts_auto_footer">Önemli fiyat hareketlerinde uyarılar tetiklenir.</string>
   <string name="price_alerts_set_alert_title">Fiyat Uyarısı Ayarla</string>
@@ -437,7 +436,7 @@
   <string name="lock_privacy_lock">Gizlilik Kilidi</string>
   <string name="lock_footer">Cihazınızda bu uygulamaya erişimi koruyun</string>
   <string name="verify_phrase_title">Onaylamak</string>
-  <string name="warnings_multi_signature_blocked">Özel anahtarları kontrol ettiğinizden emin olmadığınız sürece bu %1$s Çoklu İmzalı cüzdana para transferi yapmayın. Bunu yapmamanız sizi dolandırıcılıklara maruz bırakabilir ve varlıklarınızı kalıcı olarak kaybedebilirsiniz.</string>
+  <string name="warnings_externally_controlled_account">Bu %1$s hesabı başka biri tarafından kontrol ediliyor olabilir. Hesabı sizin kontrol ettiğinizden emin olmadıkça bu hesaba para göndermeyin, aksi takdirde varlıklarınızı kalıcı olarak kaybedebilirsiniz.</string>
   <string name="sell_title">%1$s sat</string>
   <string name="info_network_fee_title">Ağ Ücreti</string>
   <string name="info_watch_wallet_title">Cüzdanı İzle</string>
@@ -489,7 +488,7 @@
   <string name="nft_collection">Koleksiyon</string>
   <string name="nft_save_to_photos">Fotoğraflara Kaydet</string>
   <string name="nft_set_as_avatar">Avatar olarak ayarla</string>
-  <string name="nft_state_empty_title">NFT\'leriniz burada görünecek️</string>
+  <string name="nft_state_empty_title">NFT\'leriniz burada görünecek</string>
   <string name="nft_state_empty_description">İlk NFT\'nizi alın</string>
   <string name="nft_report_reason_spam">Spam</string>
   <string name="nft_report_reason_malicious">Kötü niyetli</string>

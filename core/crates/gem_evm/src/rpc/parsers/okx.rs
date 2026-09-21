@@ -139,10 +139,7 @@ impl ReceiptTransfer {
 impl OkxSwapEvent {
     fn decode(data: &str) -> Option<Self> {
         let data = data.trim_start_matches("0x");
-        let words = (0..data.len())
-            .step_by(EVENT_WORD_SIZE)
-            .map(|start| data.get(start..start + EVENT_WORD_SIZE))
-            .collect::<Option<Vec<_>>>()?;
+        let words = (0..data.len()).step_by(EVENT_WORD_SIZE).map(|start| data.get(start..start + EVENT_WORD_SIZE)).collect::<Option<Vec<_>>>()?;
         let [from_token, to_token, user, from_amount, to_amount] = words.as_slice() else {
             return None;
         };
@@ -216,18 +213,8 @@ mod tests {
             gas_used: BigUint::from(318420u32),
             effective_gas_price: BigUint::from(10_000_000u64),
             logs: vec![
-                Log::mock_erc20_transfer(
-                    BASE_USDC_TOKEN_ID,
-                    "0x8d7460E51bCf4eD26877cb77E56f3ce7E9f5EB8F",
-                    "0x4409921ae43a39a11d90f7b7f96cfd0b8093d9fc",
-                    995000,
-                ),
-                Log::mock_erc20_transfer(
-                    "0x0000000f2eB9f69274678c76222B35eEc7588a65",
-                    "0x4409921ae43a39a11d90f7b7f96cfd0b8093d9fc",
-                    "0x8d7460E51bCf4eD26877cb77E56f3ce7E9f5EB8F",
-                    928345,
-                ),
+                Log::mock_erc20_transfer(BASE_USDC_TOKEN_ID, "0x8d7460E51bCf4eD26877cb77E56f3ce7E9f5EB8F", "0x4409921ae43a39a11d90f7b7f96cfd0b8093d9fc", 995000),
+                Log::mock_erc20_transfer("0x0000000f2eB9f69274678c76222B35eEc7588a65", "0x4409921ae43a39a11d90f7b7f96cfd0b8093d9fc", "0x8d7460E51bCf4eD26877cb77E56f3ce7E9f5EB8F", 928345),
             ],
             block_number: 1,
             ..TransactionReceipt::mock()
@@ -282,13 +269,7 @@ mod tests {
             uniswap_v3_swap_to_metadata.from_asset,
             AssetId::from_token(Chain::Ethereum, &ethereum_address_checksum("0x52498f8d9791736f1d6398fe95ba3bd868114d10").unwrap())
         );
-        assert_eq!(
-            uniswap_v3_swap_to_metadata.to_asset,
-            AssetId {
-                chain: Chain::Ethereum,
-                token_id: None,
-            }
-        );
+        assert_eq!(uniswap_v3_swap_to_metadata.to_asset, AssetId { chain: Chain::Ethereum, token_id: None });
         assert_eq!(uniswap_v3_swap_to_metadata.from_value, BigUint::parse_bytes(b"20000000000000000000000", 10).unwrap());
         assert_eq!(uniswap_v3_swap_to_metadata.to_value, BigUint::from(15649254694065405u64));
 
@@ -321,13 +302,7 @@ mod tests {
             unxswap_by_order_id_metadata.from_asset,
             AssetId::from_token(Chain::Ethereum, &ethereum_address_checksum("0x249e38ea4102d0cf8264d3701f1a0e39c4f2dc3b").unwrap())
         );
-        assert_eq!(
-            unxswap_by_order_id_metadata.to_asset,
-            AssetId {
-                chain: Chain::Ethereum,
-                token_id: None,
-            }
-        );
+        assert_eq!(unxswap_by_order_id_metadata.to_asset, AssetId { chain: Chain::Ethereum, token_id: None });
         assert_eq!(unxswap_by_order_id_metadata.from_value, BigUint::parse_bytes(b"547031207820868594841299458", 10).unwrap());
         assert_eq!(unxswap_by_order_id_metadata.to_value, BigUint::from(9105467203253212u64));
 

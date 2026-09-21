@@ -48,16 +48,10 @@ fn create_program_address(program_id: &Pubkey, seeds: &[&[u8]]) -> Result<Pubkey
 fn validate_seeds(seeds: &[&[u8]], reserve_bump: bool) -> Result<()> {
     let maximum_seed_count = if reserve_bump { MAX_SEEDS.saturating_sub(1) } else { MAX_SEEDS };
     if seeds.len() > maximum_seed_count {
-        return Err(SolanaError::invalid_input(format!(
-            "Too many Solana program address seeds: {}, maximum: {maximum_seed_count}",
-            seeds.len()
-        )));
+        return Err(SolanaError::invalid_input(format!("Too many Solana program address seeds: {}, maximum: {maximum_seed_count}", seeds.len())));
     }
     if let Some(seed) = seeds.iter().find(|seed| seed.len() > MAX_SEED_LENGTH) {
-        return Err(SolanaError::invalid_input(format!(
-            "Solana program address seed is too long: {}, maximum: {MAX_SEED_LENGTH}",
-            seed.len()
-        )));
+        return Err(SolanaError::invalid_input(format!("Solana program address seed is too long: {}, maximum: {MAX_SEED_LENGTH}", seed.len())));
     }
 
     Ok(())

@@ -83,11 +83,7 @@ impl WalletsRepository for DatabaseClient {
         let existing_rows = WalletsStore::get_addresses(self, all_addresses.clone())?;
         let existing_set: HashSet<String> = existing_rows.iter().map(|row| row.address.clone()).collect();
 
-        let missing_addresses: Vec<NewWalletAddressRow> = all_addresses
-            .iter()
-            .filter(|addr| !existing_set.contains(*addr))
-            .map(|address| NewWalletAddressRow { address: address.clone() })
-            .collect();
+        let missing_addresses: Vec<NewWalletAddressRow> = all_addresses.iter().filter(|addr| !existing_set.contains(*addr)).map(|address| NewWalletAddressRow { address: address.clone() }).collect();
 
         let new_rows = if missing_addresses.is_empty() {
             vec![]

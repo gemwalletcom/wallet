@@ -31,7 +31,7 @@ fun parseMarkdownToAnnotatedString(markdown: String, linkColor: Color = Color.Bl
                 type = type,
                 start = result.range.first,
                 end = result.range.last + 1,
-                groups = matchedGroups
+                groups = matchedGroups,
             )
         }
     }
@@ -85,12 +85,13 @@ fun parseMarkdownToAnnotatedString(markdown: String, linkColor: Color = Color.Bl
                         background = Color(0xFFEFEFEF),
                         color = Color(0xFF333333),
                         fontSize = 16.sp,
-                        fontFamily = FontFamily.Monospace
+                        fontFamily = FontFamily.Monospace,
                     ),
                     styleStart,
-                    builder.length
+                    builder.length,
                 )
             }
+
             TokenType.INLINE_CODE -> {
                 val codeContent = token.groups[0]
                 val styleStart = builder.length
@@ -99,30 +100,34 @@ fun parseMarkdownToAnnotatedString(markdown: String, linkColor: Color = Color.Bl
                     SpanStyle(
                         background = Color.LightGray,
                         fontSize = 14.sp,
-                        fontFamily = FontFamily.Monospace
+                        fontFamily = FontFamily.Monospace,
                     ),
                     styleStart,
-                    builder.length
+                    builder.length,
                 )
             }
+
             TokenType.LINK -> {
                 val (linkText, linkUrl) = token.groups
                 val styleStart = builder.length
                 builder.append(linkText)
                 builder.addLink(LinkAnnotation.Url(linkUrl, TextLinkStyles(linkStyle)), styleStart, builder.length)
             }
+
             TokenType.AUTOLINK -> {
                 val url = token.groups[0]
                 val styleStart = builder.length
                 builder.append(url)
                 builder.addLink(LinkAnnotation.Url(url, TextLinkStyles(linkStyle)), styleStart, builder.length)
             }
+
             TokenType.BARE_LINK -> {
                 val url = token.groups[0]
                 val styleStart = builder.length
                 builder.append(url)
                 builder.addLink(LinkAnnotation.Url(url, TextLinkStyles(linkStyle)), styleStart, builder.length)
             }
+
             TokenType.BOLD -> {
                 val boldContent = token.groups[0]
                 val styleStart = builder.length
@@ -130,9 +135,10 @@ fun parseMarkdownToAnnotatedString(markdown: String, linkColor: Color = Color.Bl
                 builder.addStyle(
                     SpanStyle(fontWeight = FontWeight.Bold),
                     styleStart,
-                    builder.length
+                    builder.length,
                 )
             }
+
             TokenType.ITALIC -> {
                 val italicContent = token.groups[0]
                 val styleStart = builder.length
@@ -140,9 +146,10 @@ fun parseMarkdownToAnnotatedString(markdown: String, linkColor: Color = Color.Bl
                 builder.addStyle(
                     SpanStyle(fontStyle = FontStyle.Italic),
                     styleStart,
-                    builder.length
+                    builder.length,
                 )
             }
+
             TokenType.HEADING -> {
                 val headingLevel = token.groups[0].length
                 val headingText = token.groups[1]
@@ -152,16 +159,18 @@ fun parseMarkdownToAnnotatedString(markdown: String, linkColor: Color = Color.Bl
                     SpanStyle(
                         fontSize = if (headingLevel == 1) 26.sp else 22.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (headingLevel == 1) Color(0xFFA75CF2) else Color(0xFF48D883)
+                        color = if (headingLevel == 1) Color(0xFFA75CF2) else Color(0xFF48D883),
                     ),
                     styleStart,
-                    builder.length
+                    builder.length,
                 )
             }
+
             TokenType.LIST -> {
                 val listItem = token.groups[0]
                 builder.append("• $listItem\n")
             }
+
             TokenType.BLOCKQUOTE -> {
                 val quoteText = token.groups[0]
                 val styleStart = builder.length
@@ -169,10 +178,10 @@ fun parseMarkdownToAnnotatedString(markdown: String, linkColor: Color = Color.Bl
                 builder.addStyle(
                     SpanStyle(
                         background = Color(0xFFE0E0E0),
-                        fontStyle = FontStyle.Italic
+                        fontStyle = FontStyle.Italic,
                     ),
                     styleStart,
-                    builder.length
+                    builder.length,
                 )
                 builder.append("\n")
             }
@@ -185,13 +194,7 @@ fun parseMarkdownToAnnotatedString(markdown: String, linkColor: Color = Color.Bl
     return builder.toAnnotatedString()
 }
 
-private data class MarkdownToken(
-    val type: TokenType,
-    val start: Int,
-    val end: Int,
-    val groups: List<String>
-)
-
+private data class MarkdownToken(val type: TokenType, val start: Int, val end: Int, val groups: List<String>)
 
 private enum class TokenType {
     CODE_BLOCK,
@@ -203,5 +206,5 @@ private enum class TokenType {
     ITALIC,
     HEADING,
     LIST,
-    BLOCKQUOTE
+    BLOCKQUOTE,
 }

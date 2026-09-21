@@ -1,17 +1,10 @@
 use super::rules;
-use crate::models::custom_types::GemBigInt;
+use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::services::amount::model::GemAmountType;
 use crate::services::amount::rules as amount_rules;
 use crate::services::error::GemServiceError;
 use crate::services::transfer::GemTransferData;
 use primitives::{Asset, Delegation, DelegationState, DelegationValidator, EarnType, Resource, StakeType, YieldProvider};
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemDelegationTone {
-    Positive,
-    Pending,
-    Negative,
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemStakeSection {
@@ -20,33 +13,10 @@ pub enum GemStakeSection {
     Delegations,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemStakeInfoRow {
-    Apr,
-    LockTime,
-    MinimumAmount,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemDelegationRow {
-    Provider,
-    Apr,
-    Status,
-    CompletionDate,
-    Rewards,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemDelegationCompletion {
-    ActiveIn,
-    AvailableIn,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, uniffi::Record)]
 pub struct GemDelegationStatus {
     pub state: DelegationState,
-    pub tone: GemDelegationTone,
-    pub completion: Option<GemDelegationCompletion>,
+    pub tone: GemValueTone,
 }
 
 #[uniffi::export]
@@ -71,11 +41,12 @@ pub enum GemStakeAction {
     ClaimRewards,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemStakeActionItem {
     pub action: GemStakeAction,
     pub is_enabled: bool,
     pub requires_frozen_balance: bool,
+    pub value: Option<GemFormattedNumber>,
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]
@@ -95,7 +66,6 @@ pub enum GemDelegationAmountInput {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemClaimRewards {
-    pub value: GemBigInt,
     pub destination: GemClaimRewardsDestination,
 }
 
@@ -153,6 +123,13 @@ impl GemStakeAmountInput {
     pub fn with_resource(&self, resource: Resource) -> GemStakeAmountInput {
         rules::with_resource(self, resource)
     }
+
+    pub fn resource(&self) -> Option<Resource> {
+        match self {
+            Self::Freeze { resource } | Self::Unfreeze { resource } => Some(*resource),
+            Self::Stake { .. } | Self::Redelegate { .. } | Self::Unstake { .. } | Self::Withdraw { .. } | Self::Rewards { .. } => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -164,10 +141,16 @@ pub struct GemStakeValidatorSelection {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemEarnActions {
+    pub deposit_provider: Option<DelegationValidator>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemValidatorRow {
     pub validator: DelegationValidator,
     pub name: String,
     pub image_url: String,
     pub placeholder: String,
     pub provider: Option<YieldProvider>,
+    pub apr: Option<GemFormattedNumber>,
 }

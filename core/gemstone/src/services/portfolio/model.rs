@@ -1,6 +1,6 @@
 use primitives::{ChartDateValue, ChartValuePercentage};
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GemPortfolioValues {
     pub values: Vec<ChartDateValue>,
     pub all_time_high: Option<ChartValuePercentage>,

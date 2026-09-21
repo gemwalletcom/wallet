@@ -18,20 +18,14 @@ import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SelectLeverageDialog(
-    isVisible: Boolean,
-    leverages: List<Int>,
-    selected: Int,
-    onDismiss: () -> Unit,
-    onSelect: (Int) -> Unit,
-) {
+fun SelectLeverageDialog(isVisible: Boolean, leverages: List<Int>, selected: Int, onDismiss: () -> Unit, onSelect: (Int) -> Unit) {
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismiss,
         title = stringResource(R.string.perpetual_leverage),
     ) {
         LazyColumn(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             itemsPositioned(leverages) { position, item ->
                 ListItem(

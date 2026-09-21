@@ -44,10 +44,7 @@ pub(crate) fn sign_plan<C: Signing>(plan: &SpendPlan, secret_key: &SecretKey, pu
 }
 
 fn signature_hash(transaction: &Transaction, plan: &SpendPlan, components: &SighashComponents, input_index: usize) -> Result<[u8; 32], SignerError> {
-    let input = plan
-        .inputs
-        .get(input_index)
-        .ok_or_else(|| SignerError::signing_error("Bitcoin Cash input index out of bounds"))?;
+    let input = plan.inputs.get(input_index).ok_or_else(|| SignerError::signing_error("Bitcoin Cash input index out of bounds"))?;
 
     let mut preimage = Vec::new();
     preimage.extend_from_slice(&transaction.version.0.to_le_bytes());

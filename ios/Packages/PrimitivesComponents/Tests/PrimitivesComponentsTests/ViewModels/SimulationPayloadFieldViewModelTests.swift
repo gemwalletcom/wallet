@@ -2,124 +2,64 @@
 
 import Formatters
 import Foundation
-import class Gemstone.GemAddressService
-import GemstonePrimitives
+import struct Gemstone.GemSimulationPayloadRow
+import enum Gemstone.GemSimulationPayloadTitle
 import Localization
-import Primitives
 import PrimitivesComponents
-import PrimitivesTestKit
 import Testing
-import struct Gemstone.SimulationPayloadField
 
 struct SimulationPayloadFieldViewModelTests {
+    private let address = "0x2Df1c51E09aECF9cacB7bc98cB1742757f163dF7"
+
     @Test
-    func addressSubtitleWithName() {
-        let field = SimulationPayloadField.standard(
-            kind: .contract,
-            value: "0x2Df1c51E09aECF9cacB7bc98cB1742757f163dF7",
-            fieldType: .address,
-            display: .primary,
-        )
+    func addressRowShowsItsDisplayAndOffersCopyAndExplorer() {
         let viewModel = SimulationPayloadFieldViewModel(
-            field: field,
-            chain: .ethereum,
-            addressName: .mock(address: field.value, name: "Hyperliquid"),
+            row: GemSimulationPayloadRow(title: .spender, value: .address(display: "Hyperliquid (0x2Df1...3dF7)", address: address)),
+            explorerItem: .url(title: "Etherscan", onOpen: {}),
         )
 
-        #expect(viewModel.subtitle == "Hyperliquid (\(GemAddressService.shared.format(address: field.value, chain: .ethereum)))")
-    }
-
-    @Test
-    func timestampSubtitle() throws {
-        let formatter = try RelativeDateFormatter(
-            locale: Locale(identifier: "en_US_POSIX"),
-            timeZone: #require(TimeZone(secondsFromGMT: 0)),
-        )
-        let field = SimulationPayloadField.custom(
-            label: "issuedAt",
-            value: "2026-03-09T19:36:00Z",
-            fieldType: .timestamp,
-            display: .secondary,
-        )
-        let viewModel = SimulationPayloadFieldViewModel(
-            field: field,
-            chain: .ethereum,
-            relativeDateFormatter: formatter,
-        )
-
-        #expect(viewModel.subtitle == formatter.string(fromTimestampValue: field.value))
-    }
-
-    @Test
-    func addressContextMenuItems() {
-        let field = SimulationPayloadField.standard(
-            kind: .spender,
-            value: "0x2Df1c51E09aECF9cacB7bc98cB1742757f163dF7",
-            fieldType: .address,
-            display: .primary,
-        )
-        let viewModel = SimulationPayloadFieldViewModel(field: field, chain: .ethereum)
-
-        #expect(viewModel.contextMenuItems.count == 1)
+        #expect(viewModel.title == Localized.Transfer.to)
+        #expect(viewModel.subtitle == "Hyperliquid (0x2Df1...3dF7)")
+        #expect(viewModel.contextMenuItems.count == 2)
 
         guard case let .copy(_, value, _, _) = viewModel.contextMenuItems[0] else {
             Issue.record("Expected copy context menu item")
             return
         }
 
-        #expect(value == field.value)
+        #expect(value == address)
     }
 
     @Test
-    func methodSubtitleUsesPayloadValue() {
-        let field = SimulationPayloadField.standard(
-            kind: .method,
-            value: "Set Approval For All",
-            fieldType: .text,
-            display: .primary,
+    func timestampRowFormatsTheRelativeDate() {
+        let formatter = RelativeDateFormatter()
+        let viewModel = SimulationPayloadFieldViewModel(
+            row: GemSimulationPayloadRow(title: .expiration, value: .timestamp(unixMs: 1_662_714_817_000)),
+            relativeDateFormatter: formatter,
         )
-        let viewModel = SimulationPayloadFieldViewModel(field: field, chain: .ethereum)
 
+        #expect(viewModel.title == Localized.Common.expiration)
+        #expect(viewModel.subtitle == formatter.string(from: Date(timeIntervalSince1970: 1_662_714_817)))
+        #expect(viewModel.contextMenuItems.isEmpty)
+    }
+
+    @Test
+    func textRowShowsItsTextUnderTheCustomLabel() {
+        let viewModel = SimulationPayloadFieldViewModel(
+            row: GemSimulationPayloadRow(title: .custom(label: "issuedAt"), value: .text(text: "Set Approval For All")),
+        )
+
+        #expect(viewModel.title == "issuedAt")
         #expect(viewModel.subtitle == "Set Approval For All")
+        #expect(viewModel.contextMenuItems.isEmpty)
     }
 
     @Test
-    func standardTitlesUseLocalizedValues() {
-        #expect(SimulationPayloadFieldViewModel(
-            field: .standard(kind: .contract, value: "0x1", fieldType: .address, display: .primary),
-            chain: .ethereum,
-        ).title == Localized.Asset.contract)
+    func titlesFollowTheKind() {
+        let titles = [GemSimulationPayloadTitle.contract, .method, .token, .value].map {
+            SimulationPayloadFieldViewModel(row: GemSimulationPayloadRow(title: $0, value: .text(text: ""))).title
+        }
 
-        #expect(SimulationPayloadFieldViewModel(
-            field: .standard(kind: .method, value: "approve", fieldType: .text, display: .primary),
-            chain: .ethereum,
-        ).title == Localized.Common.method)
-
-        #expect(SimulationPayloadFieldViewModel(
-            field: .standard(kind: .token, value: "0x1", fieldType: .address, display: .primary),
-            chain: .ethereum,
-        ).title == Localized.Common.token)
-
-        #expect(SimulationPayloadFieldViewModel(
-            field: .standard(kind: .spender, value: "0x1", fieldType: .address, display: .primary),
-            chain: .ethereum,
-        ).title == Localized.Transfer.to)
-
-        #expect(SimulationPayloadFieldViewModel(
-            field: .standard(kind: .expiration, value: "1712600000", fieldType: .timestamp, display: .primary),
-            chain: .ethereum,
-        ).title == Localized.Common.expiration)
-    }
-
-    @Test
-    func customTitleUsesRawLabel() {
-        let field = SimulationPayloadField.custom(
-            label: "issuedAt",
-            value: "2026-03-09T19:36:00Z",
-            fieldType: .timestamp,
-            display: .secondary,
-        )
-
-        #expect(SimulationPayloadFieldViewModel(field: field, chain: .ethereum).title == "issuedAt")
+        #expect(titles == [Localized.Asset.contract, Localized.Common.method, Localized.Common.token, Localized.Perpetual.value])
     }
 }

@@ -7,7 +7,7 @@ import com.gemwallet.android.ui.format.rememberFormattedAddress
 import com.gemwallet.android.ui.models.ListPosition
 
 @Composable
-internal fun AddressRow(row: ConfirmRowUIModel.Address, listPosition: ListPosition) {
+internal fun AddressRow(row: ConfirmRowUIModel.Address, listPosition: ListPosition, onClick: () -> Unit) {
     AddressPropertyItem(
         title = row.title,
         displayText = row.name ?: rememberFormattedAddress(row.address, row.chain),
@@ -15,5 +15,6 @@ internal fun AddressRow(row: ConfirmRowUIModel.Address, listPosition: ListPositi
         image = row.avatar,
         explorerLink = row.explorerLink,
         listPosition = listPosition,
+        onClick = onClick,
     )
 }

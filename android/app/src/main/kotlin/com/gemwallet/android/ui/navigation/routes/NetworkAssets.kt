@@ -12,11 +12,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class NetworkAssetsRoute(val chain: Chain) : NavKey
 
-fun EntryProviderScope<NavKey>.networkAssetsScreen(
-    onSelectAsset: (AssetId) -> Unit,
-    onManageAssets: (Chain) -> Unit,
-    onCancel: () -> Unit,
-) {
+fun EntryProviderScope<NavKey>.networkAssetsScreen(onSelectAsset: (AssetId) -> Unit, onManageAssets: (Chain) -> Unit, onCancel: () -> Unit) {
     entry<NetworkAssetsRoute>(
         metadata = { key -> routeArguments(RouteArgument.Chain to key.chain.string) },
     ) { key ->

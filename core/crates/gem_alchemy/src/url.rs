@@ -54,17 +54,8 @@ mod tests {
 
     #[test]
     fn test_alchemy_url() {
-        assert_eq!(
-            alchemy_url(Chain::Solana, "https://alchemy.example/{chain}", AlchemyApi::JsonRpc, "key"),
-            "https://alchemy.example/solana/v2/key"
-        );
-        assert_eq!(
-            alchemy_url(Chain::Solana, "https://{network}.g.alchemy.com", AlchemyApi::JsonRpc, "key"),
-            "https://solana-mainnet.g.alchemy.com/v2/key"
-        );
-        assert_eq!(
-            alchemy_url(Chain::SmartChain, "https://{network}.g.alchemy.com", AlchemyApi::Nft, "key"),
-            "https://bnb-mainnet.g.alchemy.com/nft/v3/key"
-        );
+        assert_eq!(alchemy_url(Chain::Solana, "https://alchemy.example/{chain}", AlchemyApi::JsonRpc, "key"), "https://alchemy.example/solana/v2/key");
+        assert_eq!(alchemy_url(Chain::Solana, "https://{network}.g.alchemy.com", AlchemyApi::JsonRpc, "key"), "https://solana-mainnet.g.alchemy.com/v2/key");
+        assert_eq!(alchemy_url(Chain::SmartChain, "https://{network}.g.alchemy.com", AlchemyApi::Nft, "key"), "https://bnb-mainnet.g.alchemy.com/nft/v3/key");
     }
 }

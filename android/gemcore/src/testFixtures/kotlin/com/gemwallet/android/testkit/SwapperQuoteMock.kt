@@ -15,9 +15,7 @@ import uniffi.gemstone.SwapperSlippage
 import uniffi.gemstone.SwapperSlippageMode
 import java.math.BigInteger
 
-fun mockSwapperQuote(
-    toValue: BigInteger = BigInteger("2500000"),
-): SwapperQuote {
+fun mockSwapperQuote(toValue: BigInteger = BigInteger("2500000")): SwapperQuote {
     val fromValue = BigInteger("1000000000")
     val fromAsset = mockAssetSolana()
     val toAsset = mockAssetSolanaUSDC()

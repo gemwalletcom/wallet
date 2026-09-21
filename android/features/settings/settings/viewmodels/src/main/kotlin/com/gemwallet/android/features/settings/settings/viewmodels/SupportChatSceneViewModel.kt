@@ -4,30 +4,31 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.support.cases.ClearSupportTyping
 import com.gemwallet.android.application.support.cases.FailPendingSupportMessages
 import com.gemwallet.android.application.support.cases.GetSupportMessages
 import com.gemwallet.android.application.support.cases.GetSupportTyping
+import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.millisToSeconds
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.SupportMessage
 import com.wallet.core.primitives.SupportMessageSender
-import uniffi.gemstone.GemErrorText
-import uniffi.gemstone.GemSupportServiceInterface
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import com.gemwallet.android.ext.errorText
+import kotlinx.coroutines.launch
+import uniffi.gemstone.GemErrorText
+import uniffi.gemstone.GemSupportServiceInterface
+import javax.inject.Inject
 
 @HiltViewModel
 class SupportChatSceneViewModel @Inject constructor(
@@ -37,6 +38,7 @@ class SupportChatSceneViewModel @Inject constructor(
     private val getSupportTyping: GetSupportTyping,
     private val clearSupportTyping: ClearSupportTyping,
     private val imageAttachmentFactory: SupportImageAttachmentFactory,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val messages = getSupportMessages()
@@ -57,7 +59,7 @@ class SupportChatSceneViewModel @Inject constructor(
     private val errorState = MutableStateFlow<GemErrorText?>(null)
     val error: StateFlow<GemErrorText?> = errorState.asStateFlow()
 
-    fun fetch() = viewModelScope.launch(Dispatchers.IO) {
+    fun fetch() = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable {
             failPendingSupportMessages()
             val fromTimestamp = supportService.syncFromTimestamp(messages.first().map { it.toGem() })
@@ -65,19 +67,25 @@ class SupportChatSceneViewModel @Inject constructor(
         }.onFailure { Log.e(TAG, "fetch error", it) }
     }
 
-    fun sendText(content: String) = viewModelScope.launch(Dispatchers.IO) {
-        perform { supportService.sendText(content) }
+    fun sendText(content: String) = viewModelScope.launch(ioDispatcher) {
+        alertOnFailure { supportService.sendText(content) }
     }
 
-    fun sendImage(uri: Uri) = viewModelScope.launch(Dispatchers.IO) {
-        val attachment = imageAttachmentFactory.fromUri(uri) ?: return@launch
-        perform { supportService.sendImage(attachment.data, attachment.fileName, attachment.mimeType) }
+    fun sendImage(uri: Uri) = viewModelScope.launch(ioDispatcher) {
+        alertOnFailure {
+            val image = imageAttachmentFactory.fromUri(uri)
+            if (image == null) {
+                errorState.value = GemErrorText.NotSupported
+                return@alertOnFailure
+            }
+            supportService.sendImage(image)
+        }
     }
 
     fun retry(message: SupportMessage) {
         if (message.images.isNotEmpty()) return
-        viewModelScope.launch(Dispatchers.IO) {
-            perform { supportService.retryMessage(message.toGem()) }
+        viewModelScope.launch(ioDispatcher) {
+            alertOnFailure { supportService.retryMessage(message.toGem()) }
         }
     }
 
@@ -86,7 +94,7 @@ class SupportChatSceneViewModel @Inject constructor(
         clearSupportTyping.clearTyping()
     }
 
-    private suspend fun perform(block: suspend () -> Unit) {
+    private suspend fun alertOnFailure(block: suspend () -> Unit) {
         runCatchingCancellable(block).onFailure { errorState.value = it.errorText() }
     }
 

@@ -135,7 +135,9 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         }
         for url in contents {
             let isDirectory = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
-            if isDirectory { continue }
+            if isDirectory {
+                continue
+            }
             let name = url.lastPathComponent.lowercased()
             if name == target || name.hasSuffix(target) {
                 return url

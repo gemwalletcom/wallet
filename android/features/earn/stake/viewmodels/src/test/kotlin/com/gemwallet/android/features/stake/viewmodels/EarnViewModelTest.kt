@@ -5,6 +5,7 @@ import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetValidators
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.testkit.mockAssetCosmos
@@ -20,9 +21,9 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -32,6 +33,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemEarnActions
+import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemListRowTitle
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -43,8 +47,12 @@ class EarnViewModelTest {
     private val funded = mockDelegation(assetId = asset.id, balance = BigInteger("500"), validator = provider)
     private val empty = mockDelegation(assetId = asset.id, balance = BigInteger.ZERO, delegationId = "empty", validator = provider)
 
+    private val aprRow = GemListRow.Text(GemListRowTitle.STAKE_APR, "4.00%")
     private val stakeService = mockk<uniffi.gemstone.GemStakeServiceInterface>(relaxed = true) {
-        every { earnApr(any(), any()) } returns 4.0
+        every { earnAprRow(any(), any()) } returns aprRow
+        every { earnActions(any(), any()) } answers {
+            GemEarnActions(depositProvider = secondArg<List<uniffi.gemstone.DelegationValidator>>().firstOrNull().takeIf { firstArg<uniffi.gemstone.WalletType>() != uniffi.gemstone.WalletType.VIEW })
+        }
     }
     private val getAssetInfo = mockk<GetAssetInfo> {
         every { this@mockk(asset.id) } returns flowOf(mockAssetInfo(asset = asset))
@@ -60,10 +68,7 @@ class EarnViewModelTest {
     @After
     fun tearDown() = kotlinx.coroutines.Dispatchers.resetMain()
 
-    private fun viewModel(
-        providers: List<com.wallet.core.primitives.DelegationValidator> = listOf(provider),
-        positions: List<com.wallet.core.primitives.Delegation> = listOf(funded, empty),
-    ) = EarnViewModel(
+    private fun viewModel(providers: List<com.wallet.core.primitives.DelegationValidator> = listOf(provider), positions: List<com.wallet.core.primitives.Delegation> = listOf(funded, empty)) = EarnViewModel(
         getAssetInfo = getAssetInfo,
         getDelegations = mockk<GetDelegations> {
             every { this@mockk(any(), asset.id, StakeProviderType.Earn) } returns flowOf(positions)
@@ -79,7 +84,8 @@ class EarnViewModelTest {
     )
 
     @Test
-    fun `positions leave out the ones with nothing in them`() = runTest(testDispatcher) {
+    fun `positions are the ones core keeps`() = runTest(testDispatcher) {
+        every { stakeService.positions(any()) } returns listOf(funded.toGem())
         val model = viewModel()
 
         val shown = model.positions.first { it.isNotEmpty() }
@@ -88,10 +94,10 @@ class EarnViewModelTest {
     }
 
     @Test
-    fun `the rate is the one core answers for the providers`() = runTest(testDispatcher) {
+    fun `the rate row is the one core answers for the providers`() = runTest(testDispatcher) {
         val model = viewModel()
 
-        assertEquals(4.0, model.apr.first { it > 0.0 }, 0.0)
+        assertEquals(aprRow, model.aprRow.first { it == aprRow })
     }
 
     @Test

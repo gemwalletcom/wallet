@@ -49,11 +49,7 @@ impl SwapMapper {
     /// For native tokens, we need to subtract the fee from the amount since the balance change includes both the swap amount and the fee payment.
     fn calculate_actual_value(amount: &BigInt, asset_id: &AssetId, fee: &BigUint, native_asset_id: &AssetId) -> BigUint {
         let magnitude = amount.magnitude();
-        if asset_id == native_asset_id && magnitude >= fee {
-            magnitude - fee
-        } else {
-            magnitude.clone()
-        }
+        if asset_id == native_asset_id && magnitude >= fee { magnitude - fee } else { magnitude.clone() }
     }
 }
 

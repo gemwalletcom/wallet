@@ -32,7 +32,7 @@ use request::BodyMethod;
 pub use request::{GetRequest, PostRequest};
 pub use target::Target;
 use target::body_headers;
-pub use types::{ClientError, Response, decode_json_byte_array, deserialize_response, encode_request_body};
+pub use types::{ClientError, Response, decode_json_byte_array, deserialize_response, encode_request_body, validate_response};
 
 #[cfg(feature = "reqwest")]
 pub use reqwest_client::{ReqwestClient, json_response};

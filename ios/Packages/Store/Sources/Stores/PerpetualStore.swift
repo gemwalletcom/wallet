@@ -120,10 +120,13 @@ public struct PerpetualStore: Sendable {
         }
     }
 
-    public func clear() throws {
+    public func clear(collateralAssetIds: [AssetId]) throws {
         try db.write { db in
             try PerpetualPositionRecord.deleteAll(db)
             try PerpetualRecord.deleteAll(db)
+            try BalanceRecord
+                .filter(collateralAssetIds.map(\.identifier).contains(BalanceRecord.Columns.assetId))
+                .deleteAll(db)
         }
     }
 }

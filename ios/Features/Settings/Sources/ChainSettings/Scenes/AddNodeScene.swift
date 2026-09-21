@@ -96,7 +96,7 @@ extension AddNodeScene {
             EmptyView()
         case let .data(result):
             Section {
-                ForEach(Array(result.fields.enumerated()), id: \.offset) {
+                ForEach(Array(result.enumerated()), id: \.offset) {
                     ListItemView(field: $0.element)
                 }
             }
@@ -133,11 +133,8 @@ extension AddNodeScene {
 
     private func onSelectImport() {
         Task {
-            do {
-                try await model.importFoundNode()
+            if await model.importFoundNode() {
                 onDismiss?()
-            } catch {
-                model.isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
             }
         }
     }

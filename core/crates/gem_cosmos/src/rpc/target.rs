@@ -1,4 +1,4 @@
-use gem_client::Target;
+use gem_client::{Target, build_path_with_query};
 use primitives::chain_cosmos::CosmosChain;
 
 use crate::constants::BOND_STATUS_BONDED;
@@ -18,9 +18,9 @@ pub enum CosmosTarget {
     GetSupply { denom: String },
     GetOsmosisMintParams,
     GetOsmosisEpochProvisions,
-    GetBalances { address: String },
-    GetDelegations { address: String },
-    GetUnbondingDelegations { address: String },
+    GetBalances { address: String, page_key: Option<String> },
+    GetDelegations { address: String, page_key: Option<String> },
+    GetUnbondingDelegations { address: String, page_key: Option<String> },
     GetDelegationRewards { address: String },
     GetAccount { address: String },
     GetNodeInfo,
@@ -28,6 +28,13 @@ pub enum CosmosTarget {
     GetFeemarketGasPrice { denom: String },
     GetBaseFee { chain: CosmosChain },
     BroadcastTransaction,
+}
+
+fn page_path(path: &str, page_key: &Option<String>) -> String {
+    match page_key {
+        Some(key) => build_path_with_query(path, &[("pagination.key", key)]),
+        None => path.to_string(),
+    }
 }
 
 impl Target for CosmosTarget {
@@ -44,9 +51,9 @@ impl Target for CosmosTarget {
             Self::GetSupply { denom } => format!("/cosmos/bank/v1beta1/supply/by_denom?denom={denom}"),
             Self::GetOsmosisMintParams => "/osmosis/mint/v1beta1/params".to_string(),
             Self::GetOsmosisEpochProvisions => "/osmosis/mint/v1beta1/epoch_provisions".to_string(),
-            Self::GetBalances { address } => format!("/cosmos/bank/v1beta1/balances/{address}"),
-            Self::GetDelegations { address } => format!("/cosmos/staking/v1beta1/delegations/{address}"),
-            Self::GetUnbondingDelegations { address } => format!("/cosmos/staking/v1beta1/delegators/{address}/unbonding_delegations"),
+            Self::GetBalances { address, page_key } => page_path(&format!("/cosmos/bank/v1beta1/balances/{address}"), page_key),
+            Self::GetDelegations { address, page_key } => page_path(&format!("/cosmos/staking/v1beta1/delegations/{address}"), page_key),
+            Self::GetUnbondingDelegations { address, page_key } => page_path(&format!("/cosmos/staking/v1beta1/delegators/{address}/unbonding_delegations"), page_key),
             Self::GetDelegationRewards { address } => format!("/cosmos/distribution/v1beta1/delegators/{address}/rewards"),
             Self::GetAccount { address } => format!("/cosmos/auth/v1beta1/accounts/{address}"),
             Self::GetNodeInfo => "/cosmos/base/tendermint/v1beta1/node_info".to_string(),

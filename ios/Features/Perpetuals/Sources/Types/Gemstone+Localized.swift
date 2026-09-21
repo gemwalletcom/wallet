@@ -1,14 +1,25 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Foundation
+import enum Gemstone.AutocloseValidation
 import enum Gemstone.GemCandleTooltipRow
 import enum Gemstone.GemPerpetualButton
 import enum Gemstone.GemPerpetualChartLineKind
-import enum Gemstone.GemPerpetualInfoRow
 import enum Gemstone.GemPerpetualMarketSection
-import enum Gemstone.GemPerpetualPositionDetailRow
 import enum Gemstone.GemPerpetualSection
 import Localization
 import Primitives
+
+extension AutocloseValidation: @retroactive LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .valid: nil
+        case .invalidAmount: Localized.Errors.invalidAmount
+        case .triggerMustBeHigher: Localized.Errors.Perpetual.triggerPriceHigher
+        case .triggerMustBeLower: Localized.Errors.Perpetual.triggerPriceLower
+        }
+    }
+}
 
 extension TpslType {
     var autocloseTitle: String {
@@ -24,30 +35,6 @@ extension GemPerpetualSection {
         switch self {
         case .position: Localized.Perpetual.position
         case .info: Localized.Common.info
-        }
-    }
-}
-
-extension GemPerpetualPositionDetailRow {
-    var title: String {
-        switch self {
-        case .pnl: Localized.Perpetual.pnl
-        case .autoclose: Localized.Perpetual.autoClose
-        case .size: Localized.Perpetual.size
-        case .entryPrice: Localized.Perpetual.entryPrice
-        case .liquidationPrice: Localized.Info.Perpetual.LiquidationPrice.title
-        case .margin: Localized.Perpetual.margin
-        case .fundingPayments: Localized.Info.Perpetual.FundingPayments.title
-        }
-    }
-}
-
-extension GemPerpetualInfoRow {
-    var title: String {
-        switch self {
-        case .dailyVolume: Localized.Markets.dailyVolume
-        case .openInterest: Localized.Info.Perpetual.OpenInterest.title
-        case .fundingRate: Localized.Info.Perpetual.FundingApr.title
         }
     }
 }

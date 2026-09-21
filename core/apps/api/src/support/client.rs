@@ -26,14 +26,12 @@ impl SupportApiClient {
 
     pub async fn send_message(&self, device: &DeviceRow, input: SupportMessageInput) -> Result<SupportMessage, Box<dyn Error + Send + Sync>> {
         let chatwoot = self.chatwoot(device.platform.0);
-        self.with_session(device, |session| async move { chatwoot.send_message(&session, input.content).await })
-            .await
+        self.with_session(device, |session| async move { chatwoot.send_message(&session, input.content).await }).await
     }
 
     pub async fn send_image(&self, device: &DeviceRow, data: Vec<u8>, file_name: String, content_type: String) -> Result<SupportMessage, Box<dyn Error + Send + Sync>> {
         let chatwoot = self.chatwoot(device.platform.0);
-        self.with_session(device, |session| async move { chatwoot.send_image(&session, data, file_name, content_type).await })
-            .await
+        self.with_session(device, |session| async move { chatwoot.send_image(&session, data, file_name, content_type).await }).await
     }
 
     pub async fn run_action(&self, device: &DeviceRow, action: SupportAction) -> Result<bool, Box<dyn Error + Send + Sync>> {
@@ -81,11 +79,7 @@ impl SupportApiClient {
     }
 
     fn get_session(&self, device_id: i32) -> Result<Option<ChatwootSession>, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .database
-            .support_sessions()?
-            .get_support_session(device_id)?
-            .map(|session| ChatwootSession { auth_token: session.auth_token }))
+        Ok(self.database.support_sessions()?.get_support_session(device_id)?.map(|session| ChatwootSession { auth_token: session.auth_token }))
     }
 
     async fn create_session(&self, chatwoot: &ChatwootClient, device: &DeviceRow) -> Result<ChatwootSession, Box<dyn Error + Send + Sync>> {
@@ -95,9 +89,7 @@ impl SupportApiClient {
     }
 
     fn set_session(&self, device_id: i32, session: &ChatwootSession) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.database
-            .support_sessions()?
-            .set_support_session(NewSupportSessionRow::new(device_id, &session.auth_token))?;
+        self.database.support_sessions()?.set_support_session(NewSupportSessionRow::new(device_id, &session.auth_token))?;
         Ok(())
     }
 }

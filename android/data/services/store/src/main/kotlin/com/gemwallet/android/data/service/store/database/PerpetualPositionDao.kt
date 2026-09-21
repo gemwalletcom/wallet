@@ -35,7 +35,7 @@ interface PerpetualPositionDao {
     @Query(
         "SELECT perpetuals_positions.* FROM perpetuals_positions " +
             "INNER JOIN perpetuals ON perpetuals.id = perpetuals_positions.perpetualId " +
-            "WHERE perpetuals_positions.walletId = :walletId AND perpetuals.provider = :provider"
+            "WHERE perpetuals_positions.walletId = :walletId AND perpetuals.provider = :provider",
     )
     suspend fun getPositionsByProvider(walletId: String, provider: PerpetualProvider): List<DbPerpetualPosition>
 
@@ -44,7 +44,7 @@ interface PerpetualPositionDao {
         "SELECT perpetuals_positions.* FROM perpetuals_positions " +
             "INNER JOIN perpetuals ON perpetuals.id = perpetuals_positions.perpetualId " +
             "WHERE perpetuals_positions.walletId = :walletId " +
-            "ORDER BY ABS(perpetuals_positions.size) * perpetuals.price DESC"
+            "ORDER BY ABS(perpetuals_positions.size) * perpetuals.price DESC",
     )
     fun getPositionsData(walletId: String): Flow<List<DbPerpetualPositionData>>
 

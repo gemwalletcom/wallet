@@ -1,16 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemCurrencyStyle
 import BigInt
 import Components
 import Formatters
 import Foundation
+import class Gemstone.CryptoFiatConverter
+import enum Gemstone.GemCurrencyStyle
 import GemstonePrimitives
 import Localization
 import Primitives
 import Style
 import SwiftUI
-import class Gemstone.CryptoFiatConverter
 
 public struct AssetDataViewModel: Sendable {
     private let assetData: AssetData
@@ -105,14 +105,6 @@ public struct AssetDataViewModel: Sendable {
         balanceViewModel.balanceTextColor
     }
 
-    public var energyText: String {
-        balanceViewModel.energyText
-    }
-
-    public var bandwidthText: String {
-        balanceViewModel.bandwidthText
-    }
-
     public var fiatBalanceText: String {
         guard balanceViewModel.balanceAmount > 0 else { return .empty }
         return priceViewModel.fiatValueText(value: balanceViewModel.total, decimals: asset.decimals.asInt) ?? .empty
@@ -142,15 +134,7 @@ public struct AssetDataViewModel: Sendable {
         assetData.account.address
     }
 
-    public func apr(for type: StakeProviderType) -> Double? {
-        switch type {
-        case .stake: assetData.metadata.stakingApr
-        case .earn: assetData.metadata.earnApr
-        }
-    }
-
     public var assetAddress: AssetAddress {
         assetData.assetAddress
     }
-
 }

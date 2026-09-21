@@ -1,10 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import Foundation
+import func Gemstone.addressCopy
 import protocol Gemstone.GemAssetSelectionServiceProtocol
+import struct Gemstone.GemWalletSearchCounts
+import func Gemstone.walletSearchPhase
 import GemstonePrimitives
 import GemstoneServices
-import Foundation
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -74,13 +77,20 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
         searchQuery.request.scope.isList && sections.perpetuals.isNotEmpty && service.showPerpetuals(walletType: wallet.type.toGem(), chains: wallet.chains.map(\.rawValue))
     }
 
-    var showEmpty: Bool {
-        !showPinned && !showAssets && !showPerpetuals
-    }
-
     var searchState: SearchContentState {
-        guard showEmpty else { return .results }
-        return state.isLoading ? .loading : .empty(.search(type: .assets))
+        let counts = GemWalletSearchCounts(
+            recents: 0,
+            pinned: UInt32(sections.pinnedAssets.count),
+            assets: UInt32(sections.assets.count),
+            perpetuals: showPerpetuals ? UInt32(perpetuals.count) : 0,
+            lists: 0,
+            nfts: 0,
+        )
+        return switch walletSearchPhase(counts: counts, isLoading: state.isLoading) {
+        case .results: .results
+        case .loading: .loading
+        case .empty: .empty(.search(type: .assets))
+        }
     }
 
     func contextMenuItems(for assetData: AssetData) -> [ContextMenuItemType] {
@@ -88,7 +98,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
             for: assetData,
             onCopy: { [weak self] in
                 self?.isPresentingToastMessage = .copy(
-                    CopyTypeViewModel(type: .address(assetData.asset, address: $0), copyValue: $0).message,
+                    CopyTypeViewModel(content: addressCopy(chain: assetData.asset.chain.toGem(), address: $0)).message,
                 )
             },
             onPin: { [weak self] in
@@ -142,8 +152,8 @@ extension AssetsResultsSceneViewModel {
     func setPerpetualPinned(_ perpetualId: PerpetualId, pinned: Bool) async throws {
         try await service.setPerpetualPinned(perpetualId: perpetualId.identifier, pinned: pinned)
     }
-    var assetItems: ListAssetItemsViewModel {
-        ListAssetItemsViewModel(currency: currency, row: service.flow(selectType: .walletSearchResults).row)
-    }
 
+    var assetItems: ListAssetItemsViewModel {
+        ListAssetItemsViewModel(currency: currency, rowStyle: service.flow(selectType: .walletSearchResults).rowStyle)
+    }
 }

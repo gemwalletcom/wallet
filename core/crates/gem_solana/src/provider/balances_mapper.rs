@@ -15,30 +15,14 @@ pub fn map_token_balances(accounts: &ValueResult<Vec<TokenAccountInfo>>, token_i
         .iter()
         .zip(token_ids.iter())
         .map(|(account, token_id)| {
-            let balance_amount = account
-                .account
-                .data
-                .parsed
-                .info
-                .token_amount
-                .as_ref()
-                .map(|ta| ta.amount.clone())
-                .unwrap_or_else(|| BigUint::from(0u32));
+            let balance_amount = account.account.data.parsed.info.token_amount.as_ref().map(|ta| ta.amount.clone()).unwrap_or_else(|| BigUint::from(0u32));
             AssetBalance::new(AssetId::from_token(Chain::Solana, token_id), balance_amount)
         })
         .collect()
 }
 
 pub fn map_single_token_balance(account: &TokenAccountInfo, token_id: &str) -> AssetBalance {
-    let balance_amount = account
-        .account
-        .data
-        .parsed
-        .info
-        .token_amount
-        .as_ref()
-        .map(|ta| ta.amount.clone())
-        .unwrap_or_else(|| BigUint::from(0u32));
+    let balance_amount = account.account.data.parsed.info.token_amount.as_ref().map(|ta| ta.amount.clone()).unwrap_or_else(|| BigUint::from(0u32));
     AssetBalance::new(AssetId::from_token(Chain::Solana, token_id), balance_amount)
 }
 
@@ -53,12 +37,7 @@ pub fn map_token_accounts(accounts: &ValueResult<Vec<TokenAccountInfo>>, token_i
 pub fn map_balance_staking(stake_accounts: Vec<TokenAccountInfo>) -> Option<AssetBalance> {
     let total_staked: u64 = stake_accounts.iter().map(|x| x.account.lamports).sum();
 
-    Some(AssetBalance::new_staking(
-        AssetId::from_chain(Chain::Solana),
-        BigUint::from(total_staked),
-        BigUint::from(0u32),
-        BigUint::from(0u32),
-    ))
+    Some(AssetBalance::new_staking(AssetId::from_chain(Chain::Solana), BigUint::from(total_staked), BigUint::from(0u32), BigUint::from(0u32)))
 }
 
 #[cfg(test)]

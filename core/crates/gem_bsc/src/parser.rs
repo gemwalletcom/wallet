@@ -39,12 +39,7 @@ impl BscParser {
         }
 
         let operator_address = ethereum_address_from_topic(&log.topics[1])?;
-        make_staking_transaction(
-            context,
-            &operator_address,
-            TransactionType::StakeDelegate,
-            ethereum_value_from_log_data(&log.data, EVENT_WORD_SIZE, EVENT_WORD_SIZE * 2)?,
-        )
+        make_staking_transaction(context, &operator_address, TransactionType::StakeDelegate, ethereum_value_from_log_data(&log.data, EVENT_WORD_SIZE, EVENT_WORD_SIZE * 2)?)
     }
 
     fn parse_undelegated_event(context: &ParseContext<'_>, log: &Log) -> Option<PrimitivesTransaction> {
@@ -53,12 +48,7 @@ impl BscParser {
         }
 
         let operator_address = ethereum_address_from_topic(&log.topics[1])?;
-        make_staking_transaction(
-            context,
-            &operator_address,
-            TransactionType::StakeUndelegate,
-            ethereum_value_from_log_data(&log.data, EVENT_WORD_SIZE, EVENT_WORD_SIZE * 2)?,
-        )
+        make_staking_transaction(context, &operator_address, TransactionType::StakeUndelegate, ethereum_value_from_log_data(&log.data, EVENT_WORD_SIZE, EVENT_WORD_SIZE * 2)?)
     }
 
     fn parse_redelegated_event(context: &ParseContext<'_>, log: &Log) -> Option<PrimitivesTransaction> {
@@ -67,12 +57,7 @@ impl BscParser {
         }
 
         let dst_validator = ethereum_address_from_topic(&log.topics[2])?;
-        make_staking_transaction(
-            context,
-            &dst_validator,
-            TransactionType::StakeRedelegate,
-            ethereum_value_from_log_data(&log.data, EVENT_WORD_SIZE * 2, EVENT_WORD_SIZE * 3)?,
-        )
+        make_staking_transaction(context, &dst_validator, TransactionType::StakeRedelegate, ethereum_value_from_log_data(&log.data, EVENT_WORD_SIZE * 2, EVENT_WORD_SIZE * 3)?)
     }
 
     fn parse_claimed_event(context: &ParseContext<'_>, log: &Log) -> Option<PrimitivesTransaction> {
@@ -81,12 +66,7 @@ impl BscParser {
         }
 
         let operator_address = ethereum_address_from_topic(&log.topics[1])?;
-        make_staking_transaction(
-            context,
-            &operator_address,
-            TransactionType::StakeRewards,
-            ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE)?,
-        )
+        make_staking_transaction(context, &operator_address, TransactionType::StakeRewards, ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE)?)
     }
 }
 
@@ -138,14 +118,7 @@ mod tests {
         ];
 
         for (transaction, receipt, transaction_type, from, to, value) in cases {
-            let staking_transaction = ProtocolParsers::map_transaction_with_parsers(
-                &Chain::SmartChain,
-                &load_json_rpc_result(transaction),
-                &load_json_rpc_result(receipt),
-                DateTime::default(),
-                &[&BscParser],
-            )
-            .unwrap();
+            let staking_transaction = ProtocolParsers::map_transaction_with_parsers(&Chain::SmartChain, &load_json_rpc_result(transaction), &load_json_rpc_result(receipt), DateTime::default(), &[&BscParser]).unwrap();
             assert_eq!(staking_transaction.transaction_type, transaction_type);
             assert_eq!(staking_transaction.state, TransactionState::Confirmed);
             assert_eq!(staking_transaction.asset_id, AssetId::from_chain(Chain::SmartChain));

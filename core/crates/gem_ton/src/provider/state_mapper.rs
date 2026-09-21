@@ -13,14 +13,8 @@ mod tests {
 
     #[test]
     fn test_map_node_status() {
-        let block_info = BlockInfo {
-            seqno: 12345,
-            root_hash: String::new(),
-        };
-        let chainhead = Chainhead {
-            first: block_info.clone(),
-            last: block_info,
-        };
+        let block_info = BlockInfo { seqno: 12345, root_hash: String::new() };
+        let chainhead = Chainhead { first: block_info.clone(), last: block_info };
         let mapped = map_node_status(&chainhead).unwrap();
 
         assert!(mapped.in_sync);

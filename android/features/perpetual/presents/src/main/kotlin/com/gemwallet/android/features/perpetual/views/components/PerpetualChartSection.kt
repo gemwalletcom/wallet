@@ -30,13 +30,7 @@ import uniffi.gemstone.candlestickHeader
 private val TooltipRightSafeArea = 96.dp
 
 @Composable
-internal fun PerpetualChartSection(
-    state: StateViewType<PerpetualChartUIModel>,
-    period: ChartPeriod,
-    tooltip: (ChartCandleStick) -> CandlestickTooltipUIModel,
-    onPeriodSelect: (ChartPeriod) -> Unit,
-    modifier: Modifier = Modifier,
-) {
+internal fun PerpetualChartSection(state: StateViewType<PerpetualChartUIModel>, period: ChartPeriod, tooltip: (ChartCandleStick) -> CandlestickTooltipUIModel, onPeriodSelect: (ChartPeriod) -> Unit, modifier: Modifier = Modifier) {
     val model = state.dataOrNull
     val data = model?.candles.orEmpty()
     var selectedIndex by remember(period) { mutableStateOf<Int?>(null) }
@@ -81,11 +75,7 @@ internal fun PerpetualChartSection(
 }
 
 @Composable
-private fun BoxScope.TooltipOverlay(
-    visible: Boolean,
-    tooltip: CandlestickTooltipUIModel?,
-    alignToStart: Boolean,
-) {
+private fun BoxScope.TooltipOverlay(visible: Boolean, tooltip: CandlestickTooltipUIModel?, alignToStart: Boolean) {
     AnimatedVisibility(
         visible = visible,
         enter = fadeIn(),

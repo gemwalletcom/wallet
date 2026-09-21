@@ -12,12 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 
 @Composable
-fun EmojiView(
-    emoji: String,
-    modifier: Modifier = Modifier,
-    background: Color,
-    scale: Float,
-) {
+fun EmojiView(emoji: String, modifier: Modifier = Modifier, background: Color, scale: Float) {
     BoxWithConstraints(
         modifier = modifier
             .clip(CircleShape)

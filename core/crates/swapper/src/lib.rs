@@ -41,11 +41,7 @@ pub fn amount_to_value(token: &str, decimals: u32) -> Option<String> {
     if cleaned.is_empty() {
         return None;
     }
-    if cleaned.contains('.') {
-        BigNumberFormatter::value_from_amount(&cleaned, decimals).ok()
-    } else {
-        Some(cleaned)
-    }
+    if cleaned.contains('.') { BigNumberFormatter::value_from_amount(&cleaned, decimals).ok() } else { Some(cleaned) }
 }
 
 #[cfg(feature = "reqwest_provider")]

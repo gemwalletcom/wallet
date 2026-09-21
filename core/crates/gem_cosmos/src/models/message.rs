@@ -6,9 +6,7 @@ use serde_serializers::{deserialize_biguint_from_str, serialize_biguint};
 use super::{ExecuteContractValue, IbcTransferValue};
 use crate::constants;
 #[cfg(feature = "signer")]
-use crate::constants::{
-    MESSAGE_DELEGATE, MESSAGE_EXECUTE_CONTRACT, MESSAGE_IBC_TRANSFER, MESSAGE_REDELEGATE, MESSAGE_REWARD_BETA, MESSAGE_SEND, MESSAGE_SEND_BETA, MESSAGE_UNDELEGATE,
-};
+use crate::constants::{MESSAGE_DELEGATE, MESSAGE_EXECUTE_CONTRACT, MESSAGE_IBC_TRANSFER, MESSAGE_REDELEGATE, MESSAGE_REWARD_BETA, MESSAGE_SEND, MESSAGE_SEND_BETA, MESSAGE_UNDELEGATE};
 #[cfg(feature = "signer")]
 use primitives::SignerError;
 

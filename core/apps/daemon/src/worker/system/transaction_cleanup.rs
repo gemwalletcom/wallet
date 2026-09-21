@@ -27,10 +27,7 @@ impl TransactionCleanup {
     pub async fn cleanup(&self) -> Result<HashMap<String, usize>, Box<dyn Error + Send + Sync>> {
         let since = (Utc::now() - self.config.lookback).naive_utc();
 
-        let heavy_addresses = self
-            .database
-            .transactions()?
-            .get_transactions_addresses(self.config.address_max_count, self.config.address_limit as i64, since)?;
+        let heavy_addresses = self.database.transactions()?.get_transactions_addresses(self.config.address_max_count, self.config.address_limit as i64, since)?;
 
         if heavy_addresses.is_empty() {
             return Ok(HashMap::new());

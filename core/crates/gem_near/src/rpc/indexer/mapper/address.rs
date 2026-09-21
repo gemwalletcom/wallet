@@ -8,12 +8,7 @@ use crate::constants::{NATIVE_ASSET_ID, NEP_141_STANDARD};
 
 use super::super::model::FastNearTransfer;
 
-pub(in crate::rpc::indexer) fn map_address_transfer(
-    transfer: FastNearTransfer,
-    asset_id: AssetId,
-    fees: &HashMap<String, BigUint>,
-    address: &str,
-) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
+pub(in crate::rpc::indexer) fn map_address_transfer(transfer: FastNearTransfer, asset_id: AssetId, fees: &HashMap<String, BigUint>, address: &str) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
     let created_at = DateTime::<Utc>::from_timestamp_nanos(i64::try_from(transfer.block_timestamp)?);
     let fee = if transfer.signer_id == address && transfer.predecessor_id == address {
         let transaction_id = transfer.transaction_id.as_ref().ok_or("missing FastNear sender transaction id")?;
@@ -71,13 +66,7 @@ mod tests {
         assert_eq!(map_asset_id(NATIVE_ASSET_ID), Some(Chain::Near.as_asset_id()));
         assert_eq!(map_asset_id("nep141:usdt.tether-token.near"), Some(NEAR_USDT_ASSET_ID.clone()));
 
-        for invalid_asset_id in [
-            "native:near",
-            "native:ethereum",
-            "nep141:",
-            "nep245:contract.near:nep141:token.near",
-            "nep245:v2_1.omni.hot.tg:56_11111111111111111111",
-        ] {
+        for invalid_asset_id in ["native:near", "native:ethereum", "nep141:", "nep245:contract.near:nep141:token.near", "nep245:v2_1.omni.hot.tg:56_11111111111111111111"] {
             assert_eq!(map_asset_id(invalid_asset_id), None);
         }
     }

@@ -16,4 +16,3 @@ internal fun PortfolioType.stringRes(): Int = when (this) {
     PortfolioType.Wallet -> R.string.wallet_portfolio_title
     PortfolioType.Perpetuals -> R.string.perpetuals_title
 }
-

@@ -13,7 +13,7 @@ class UpdateUrlTest {
                 flavor = "universal",
                 version = "2.29",
                 fallbackUrl = "https://apk.gemwallet.com/gem_wallet_latest.apk",
-            )
+            ),
         )
     }
 
@@ -25,7 +25,7 @@ class UpdateUrlTest {
                 flavor = "google",
                 version = "2.29",
                 fallbackUrl = "https://play.google.com/store/apps/details?id=com.gemwallet.android",
-            )
+            ),
         )
     }
 }

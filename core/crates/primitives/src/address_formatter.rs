@@ -52,42 +52,17 @@ mod tests {
 
     #[test]
     fn test_address_formatter() {
+        assert_eq!(AddressFormatter::format("0x12312321321312", Some(Chain::Ethereum), AddressFormatStyle::Short), "0x12312...21312");
+        assert_eq!(AddressFormatter::format("0x12312321321312", Some(Chain::Aptos), AddressFormatStyle::Short), "0x1231...21312");
+        assert_eq!(AddressFormatter::format("GLNvG5Ly4cK512oQeJqnwLftwfoPZ4skyDwZWzxorYQ9", Some(Chain::Solana), AddressFormatStyle::Short), "GLNvG...orYQ9");
         assert_eq!(
-            AddressFormatter::format("0x12312321321312", Some(Chain::Ethereum), AddressFormatStyle::Short),
-            "0x12312...21312"
-        );
-        assert_eq!(
-            AddressFormatter::format("0x12312321321312", Some(Chain::Aptos), AddressFormatStyle::Short),
-            "0x1231...21312"
-        );
-        assert_eq!(
-            AddressFormatter::format("GLNvG5Ly4cK512oQeJqnwLftwfoPZ4skyDwZWzxorYQ9", Some(Chain::Solana), AddressFormatStyle::Short),
-            "GLNvG...orYQ9"
-        );
-        assert_eq!(
-            AddressFormatter::format(
-                "bc1qx2x5cqhymfcnjtg902ky6u5t5htmt7fvqztdsm028hkrvxcl4t2sjtpd9l",
-                Some(Chain::Bitcoin),
-                AddressFormatStyle::Short
-            ),
+            AddressFormatter::format("bc1qx2x5cqhymfcnjtg902ky6u5t5htmt7fvqztdsm028hkrvxcl4t2sjtpd9l", Some(Chain::Bitcoin), AddressFormatStyle::Short),
             "bc1qx2...tpd9l"
         );
-        assert_eq!(
-            AddressFormatter::format("0x1231232221321312", Some(Chain::Ethereum), AddressFormatStyle::Extra { extra: 2 }),
-            "0x1231232...1321312"
-        );
-        assert_eq!(
-            AddressFormatter::format("0x12313332321321312", Some(Chain::Aptos), AddressFormatStyle::Extra { extra: 2 }),
-            "0x123133...1321312"
-        );
-        assert_eq!(
-            AddressFormatter::format("0x1231232221321312", Some(Chain::Ethereum), AddressFormatStyle::Full),
-            "0x1231232221321312"
-        );
+        assert_eq!(AddressFormatter::format("0x1231232221321312", Some(Chain::Ethereum), AddressFormatStyle::Extra { extra: 2 }), "0x1231232...1321312");
+        assert_eq!(AddressFormatter::format("0x12313332321321312", Some(Chain::Aptos), AddressFormatStyle::Extra { extra: 2 }), "0x123133...1321312");
+        assert_eq!(AddressFormatter::format("0x1231232221321312", Some(Chain::Ethereum), AddressFormatStyle::Full), "0x1231232221321312");
         assert_eq!(AddressFormatter::format("bc1short", Some(Chain::Bitcoin), AddressFormatStyle::Short), "bc1short");
-        assert_eq!(
-            AddressFormatter::format("abcXXmiddleXXcba", Some(Chain::Solana), AddressFormatStyle::Short),
-            "abcXX...XXcba"
-        );
+        assert_eq!(AddressFormatter::format("abcXXmiddleXXcba", Some(Chain::Solana), AddressFormatStyle::Short), "abcXX...XXcba");
     }
 }

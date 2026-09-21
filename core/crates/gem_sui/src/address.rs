@@ -14,15 +14,11 @@ impl From<SuiAddress> for Address {
 
 impl SuiAddress {
     pub fn parse(address: &str) -> Result<Self, SuiError> {
-        Address::from_str(address)
-            .map(Self)
-            .map_err(|err| SuiError::invalid_input(format!("Invalid Sui address {address}: {err}")))
+        Address::from_str(address).map(Self).map_err(|err| SuiError::invalid_input(format!("Invalid Sui address {address}: {err}")))
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, SuiError> {
-        Address::from_bytes(bytes)
-            .map(Self)
-            .map_err(|err| SuiError::invalid_input(format!("Invalid Sui address bytes: {err}")))
+        Address::from_bytes(bytes).map(Self).map_err(|err| SuiError::invalid_input(format!("Invalid Sui address bytes: {err}")))
     }
 }
 

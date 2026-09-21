@@ -1,13 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.Deeplink
-import protocol Gemstone.GemDeveloperServiceProtocol
 import Components
 import Foundation
+import enum Gemstone.Deeplink
+import protocol Gemstone.GemDeveloperServiceProtocol
+import enum Gemstone.GemServiceError
 import GemstonePrimitives
 import class GemstoneServices.GemstoneDevicePlatform
 import Localization
 import Primitives
+import PrimitivesComponents
 import SwiftUI
 
 @Observable
@@ -36,8 +38,20 @@ public final class DeveloperViewModel {
     }
 
     func load() async {
-        deviceId = (try? await service.deviceId()) ?? .empty
-        deviceToken = (try? await service.pushToken()) ?? .empty
+        do {
+            deviceId = try await service.deviceId()
+        } catch let error as GemServiceError {
+            deviceId = error.text().text
+        } catch {
+            debugLog("developer device id error: \(error)")
+        }
+        do {
+            deviceToken = try await service.pushToken()
+        } catch let error as GemServiceError {
+            deviceToken = error.text().text
+        } catch {
+            debugLog("developer push token error: \(error)")
+        }
     }
 
     func reset() {
@@ -52,61 +66,61 @@ public final class DeveloperViewModel {
     }
 
     func clearCache() {
-        performAction {
+        toastResult {
             URLCache.shared.removeAllCachedResponses()
         }
     }
 
     func clearTransactions() {
-        performTask { try await self.service.clearTransactions() }
+        toastTaskResult { try await self.service.clearTransactions() }
     }
 
     func clearPendingTransactions() {
-        performTask { try await self.service.clearPendingTransactions() }
+        toastTaskResult { try await self.service.clearPendingTransactions() }
     }
 
     func clearTransactionsTimestamp() {
-        performAction {
+        toastResult {
             try service.resetTransactionsTimestamp(walletId: walletId.id)
         }
     }
 
     func clearWalletPreferences() {
-        performAction {
+        toastResult {
             try service.deleteWalletPreferences(walletId: walletId.id)
         }
     }
 
     func clearAssets() {
-        performTask { try await self.service.clearAssets() }
+        toastTaskResult { try await self.service.clearAssets() }
     }
 
     func clearDelegations() {
-        performTask { try await self.service.clearDelegations() }
+        toastTaskResult { try await self.service.clearDelegations() }
     }
 
     func clearValidators() {
-        performTask { try await self.service.clearValidators() }
+        toastTaskResult { try await self.service.clearValidators() }
     }
 
     func clearBanners() {
-        performTask { try await self.service.clearBanners() }
+        toastTaskResult { try await self.service.clearBanners() }
     }
 
     func activateAllCancelledBanners() {
-        performTask { try await self.service.activateCancelledBanners() }
+        toastTaskResult { try await self.service.activateCancelledBanners() }
     }
 
     func clearPrices() {
-        performTask { try await self.service.clearPrices() }
+        toastTaskResult { try await self.service.clearPrices() }
     }
 
     func clearPerpetuals() {
-        performTask { try await self.service.clearPerpetualMarkets() }
+        toastTaskResult { try await self.service.clearPerpetualMarkets() }
     }
 
     func addTransactions() {
-        performTask { try await self.service.addSampleTransactions(walletId: self.walletId.id) }
+        toastTaskResult { try await self.service.addSampleTransactions(walletId: self.walletId.id) }
     }
 
     func deeplink(deeplink: Deeplink) {
@@ -123,7 +137,7 @@ extension DeveloperViewModel {
         isPresentingToastMessage = .success(Localized.Transaction.Status.confirmed)
     }
 
-    private func performAction(_ action: () throws -> Void) {
+    private func toastResult(_ action: () throws -> Void) {
         do {
             try action()
             showSuccess()
@@ -132,7 +146,7 @@ extension DeveloperViewModel {
         }
     }
 
-    private func performTask(_ action: @escaping () async throws -> Void) {
+    private func toastTaskResult(_ action: @escaping () async throws -> Void) {
         Task {
             do {
                 try await action()

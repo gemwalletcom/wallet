@@ -1,41 +1,41 @@
 package com.gemwallet.android.features.assets.viewmodels
 
-import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
-import com.gemwallet.android.domains.asset.assetConfig
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import android.util.Log
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
+import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
+import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
+import com.gemwallet.android.domains.asset.assetSections
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.ui.R
-import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.model.AssetInfo
-import kotlinx.coroutines.CoroutineDispatcher
-import uniffi.gemstone.GemAssetRow
-import uniffi.gemstone.GemNetworkAssetCounts
-import uniffi.gemstone.GemNetworkAssetSections
-import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.navigation.requireChain
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemAssetRowStyle
+import uniffi.gemstone.GemNetworkAssetCounts
+import uniffi.gemstone.GemNetworkAssetSections
 import uniffi.gemstone.GemWalletHomeServiceInterface
+import uniffi.gemstone.showsOnNetworkAssets
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -53,7 +53,7 @@ class NetworkAssetsViewModel @Inject constructor(
 
     val title: String = context.getString(R.string.assets_title)
 
-    val row: GemAssetRow = service.assetRow()
+    val rowStyle: GemAssetRowStyle = service.assetRowStyle()
 
     private val assetGroups: StateFlow<NetworkAssetGroups> = getCurrentWalletId()
         .flatMapLatest { walletId ->
@@ -90,22 +90,16 @@ class NetworkAssetsViewModel @Inject constructor(
     }
 
     private fun groups(active: List<AssetInfo>, hidden: List<AssetInfo>): NetworkAssetGroups {
-        val tokens = active.tokens()
-        val sections = assetConfig.assetSections(
-            ids = tokens.map { it.asset.id.toIdentifier() },
-            pinnedIds = tokens.filter { it.metadata.isPinned }.map { it.asset.id.toIdentifier() },
-            showsPopular = false,
-        )
-        val byId = tokens.associateBy { it.asset.id.toIdentifier() }
+        val sections = active.tokens().assetSections(assetId = { it.asset.id }, isPinned = { it.metadata.isPinned })
         return NetworkAssetGroups(
-            pinned = sections.pinned.mapNotNull(byId::get).toAssetInfoDataAggregates(row.title),
-            unpinned = sections.assets.mapNotNull(byId::get).toAssetInfoDataAggregates(row.title),
-            hidden = hidden.tokens().toAssetInfoDataAggregates(row.title),
+            pinned = sections.pinned.toAssetInfoDataAggregates(rowStyle.title),
+            unpinned = sections.unpinned.toAssetInfoDataAggregates(rowStyle.title),
+            hidden = hidden.tokens().toAssetInfoDataAggregates(rowStyle.title),
             isLoaded = true,
         )
     }
 
-    private fun List<AssetInfo>.tokens(): List<AssetInfo> = filter { it.asset.type != AssetType.NATIVE }
+    private fun List<AssetInfo>.tokens(): List<AssetInfo> = filter { showsOnNetworkAssets(it.asset.id.toIdentifier()) }
 
     fun hideAsset(assetId: AssetId) = setEnabled(assetId, false)
 

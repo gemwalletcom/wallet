@@ -7,7 +7,7 @@ use primitives::{AddressStatus, Chain, ChainAddress, WalletConfiguration, Wallet
 use settings_chain::ChainProviders;
 use storage::{Database, WalletsRepository};
 
-const ADDRESS_STATUS_CHAINS: [Chain; 1] = [Chain::Tron];
+const ADDRESS_STATUS_CHAINS: [Chain; 6] = [Chain::Tron, Chain::Solana, Chain::Xrp, Chain::Stellar, Chain::Algorand, Chain::Aptos];
 
 pub struct WalletConfigurationClient {
     database: Database,
@@ -21,19 +21,21 @@ impl WalletConfigurationClient {
     }
 
     pub async fn get_configuration(&self, device_id: i32, wallet_id: i32, wallet_identifier: WalletId) -> Result<WalletConfigurationResult, Box<dyn Error + Send + Sync>> {
+        let externally_controlled_accounts = self.externally_controlled_accounts(device_id, wallet_id).await?;
         Ok(WalletConfigurationResult {
             wallet_id: wallet_identifier,
             configuration: WalletConfiguration {
-                multi_signature_accounts: self.multi_signature_accounts(device_id, wallet_id).await?,
+                multi_signature_accounts: externally_controlled_accounts.clone(),
+                externally_controlled_accounts,
             },
         })
     }
 
-    async fn multi_signature_accounts(&self, device_id: i32, wallet_id: i32) -> Result<Vec<ChainAddress>, Box<dyn Error + Send + Sync>> {
+    async fn externally_controlled_accounts(&self, device_id: i32, wallet_id: i32) -> Result<Vec<ChainAddress>, Box<dyn Error + Send + Sync>> {
         Ok(join_all(
             self.subscribed_addresses(device_id, wallet_id)?
                 .into_iter()
-                .map(|address| async move { self.has_multi_signature_status(&address).await.then_some(address) }),
+                .map(|address| async move { self.is_externally_controlled(&address).await.then_some(address) }),
         )
         .await
         .into_iter()
@@ -41,8 +43,8 @@ impl WalletConfigurationClient {
         .collect())
     }
 
-    async fn has_multi_signature_status(&self, address: &ChainAddress) -> bool {
-        self.get_statuses(address).await.is_some_and(|statuses| statuses.contains(&AddressStatus::MultiSignature))
+    async fn is_externally_controlled(&self, address: &ChainAddress) -> bool {
+        self.get_statuses(address).await.is_some_and(|statuses| statuses.contains(&AddressStatus::ExternallyControlled))
     }
 
     fn subscribed_addresses(&self, device_id: i32, wallet_id: i32) -> Result<HashSet<ChainAddress>, Box<dyn Error + Send + Sync>> {
@@ -51,23 +53,12 @@ impl WalletConfigurationClient {
             .wallets()?
             .get_subscriptions_by_wallet_id(device_id, wallet_id)?
             .into_iter()
-            .filter_map(|(subscription, address)| {
-                ADDRESS_STATUS_CHAINS
-                    .contains(&subscription.chain.0)
-                    .then_some(ChainAddress::new(subscription.chain.0, address.address))
-            })
+            .filter_map(|(subscription, address)| ADDRESS_STATUS_CHAINS.contains(&subscription.chain.0).then_some(ChainAddress::new(subscription.chain.0, address.address)))
             .collect())
     }
 
     async fn get_statuses(&self, address: &ChainAddress) -> Option<Vec<AddressStatus>> {
-        if let Some(statuses) = self
-            .cacher
-            .get_cached_optional::<Vec<AddressStatus>>(cache_key(address))
-            .await
-            .ok()
-            .flatten()
-            .filter(|statuses| !statuses.is_empty())
-        {
+        if let Some(statuses) = self.cacher.get_cached_optional::<Vec<AddressStatus>>(cache_key(address)).await.ok().flatten().filter(|statuses| !statuses.is_empty()) {
             return Some(statuses);
         }
 

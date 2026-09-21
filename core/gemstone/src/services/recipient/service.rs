@@ -3,17 +3,15 @@ use std::sync::Arc;
 use primitives::{Chain, Wallet};
 
 use super::model::{GemRecipientError, GemRecipientNext, GemRecipientScan, GemRecipientSection, GemRecipientType};
-use super::rules::{next_step, recipient_sections, scan_route};
+use super::rules::{recipient_sections, scan_route, select_step};
 use crate::GemstoneError;
 use crate::models::payment::GemPayment;
-use crate::payment::{GemPaymentDestination, GemPaymentRecipient, GemPaymentService, GemPaymentWalletAsset};
-use crate::services::name::{GemNameRecordState, GemNameService};
+use crate::payment::{GemPaymentDestination, GemPaymentService, GemPaymentWalletAsset};
 use crate::services::transfer::model::GemRecipient;
 use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
 pub struct GemRecipientService {
-    names: Arc<GemNameService>,
     payments: Arc<GemPaymentService>,
     session: Arc<GemWalletSessionService>,
 }
@@ -21,18 +19,14 @@ pub struct GemRecipientService {
 #[uniffi::export]
 impl GemRecipientService {
     #[uniffi::constructor]
-    pub fn new(names: Arc<GemNameService>, payments: Arc<GemPaymentService>, session: Arc<GemWalletSessionService>) -> Self {
-        Self { names, payments, session }
+    pub fn new(payments: Arc<GemPaymentService>, session: Arc<GemWalletSessionService>) -> Self {
+        Self { payments, session }
     }
 
-    pub fn recipient(&self, chain: Chain, input: String, state: GemNameRecordState, memo: Option<String>, references: Vec<String>) -> Result<GemRecipient, GemRecipientError> {
-        self.names.recipient(chain, input, state, memo, references)
-    }
-
-    pub fn recipient_sections(&self, wallets: Vec<Wallet>, chain: Chain, has_contacts: bool) -> Vec<GemRecipientSection> {
+    pub fn recipient_sections(&self, wallets: Vec<Wallet>, chain: Chain, contacts: Vec<GemRecipient>) -> Vec<GemRecipientSection> {
         let current = self.session.get_current_wallet_id().unwrap_or_default();
         let others = wallets.into_iter().filter(|wallet| Some(&wallet.id) != current.as_ref()).collect();
-        recipient_sections(others, chain, has_contacts)
+        recipient_sections(others, chain, contacts)
     }
 
     pub fn scan(&self, url: String, recipient_type: GemRecipientType) -> Result<GemRecipientScan, GemRecipientError> {
@@ -45,12 +39,12 @@ impl GemRecipientService {
                     decimals: asset.decimals,
                 },
             )
-            .map_err(|_| GemRecipientError::InvalidAddress)?;
+            .map_err(|_| GemRecipientError::InvalidAddress { chain: asset.chain() })?;
         scan_route(destination, &recipient_type, |transfer| self.payments.transfer_data(transfer, asset))
     }
 
-    pub fn next(&self, recipient_type: GemRecipientType, payment: GemPaymentRecipient) -> GemRecipientNext {
-        next_step(recipient_type, payment)
+    pub fn select(&self, recipient_type: GemRecipientType, recipient: GemRecipient) -> Result<GemRecipientNext, GemRecipientError> {
+        select_step(recipient_type, recipient)
     }
 }
 

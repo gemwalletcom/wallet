@@ -37,12 +37,19 @@ class Migration_91_92Test {
     fun migrationPreservesTransactionsAndAssignsUniqueStableIds() {
         val columns = "id, walletId, hash, assetId, feeAssetId, owner, recipient, contract, metadata, state, type, blockNumber, sequence, fee, value, payload, direction, createdAt, updatedAt, estimatedConfirmationInSeconds"
         val original = helper.createDatabase(testDb, 91).use { database ->
-            database.execSQL("INSERT INTO asset (id, name, symbol, decimals, type, chain, is_enabled, is_buy_enabled, is_sell_enabled, is_swap_enabled, is_stake_enabled, rank, updated_at) VALUES ('bitcoin', 'Bitcoin', 'BTC', 8, 'NATIVE', 'bitcoin', 1, 0, 0, 0, 0, 0, 0)")
+            database.execSQL(
+                "INSERT INTO asset (id, name, symbol, decimals, type, chain, is_enabled, is_buy_enabled, is_sell_enabled, is_swap_enabled, is_stake_enabled, rank, updated_at) VALUES ('bitcoin', 'Bitcoin', 'BTC', 8, 'NATIVE', 'bitcoin', 1, 0, 0, 0, 0, 0, 0)",
+            )
             listOf("wallet-1", "wallet-2").forEach { walletId ->
                 database.execSQL("INSERT INTO wallets (id, name, type, position, pinned, `index`, source) VALUES (?, 'Wallet', 'multicoin', 0, 0, 0, 'Import')", arrayOf(walletId))
-                database.execSQL("INSERT INTO transactions ($columns) VALUES ('bitcoin_shared', ?, 'shared', 'bitcoin', 'bitcoin', 'sender', 'recipient', 'contract', 'metadata', 'pending', 'swap', '123', '7', '25', '1000', 'memo', 'outgoing', 1234, 5678, 30)", arrayOf(walletId))
+                database.execSQL(
+                    "INSERT INTO transactions ($columns) VALUES ('bitcoin_shared', ?, 'shared', 'bitcoin', 'bitcoin', 'sender', 'recipient', 'contract', 'metadata', 'pending', 'swap', '123', '7', '25', '1000', 'memo', 'outgoing', 1234, 5678, 30)",
+                    arrayOf(walletId),
+                )
             }
-            database.execSQL("INSERT INTO addresses (chain, address, walletId, name, type, status) VALUES ('bitcoin', 'sender', 'wallet-1', 'Sender', 'InternalWallet', 'Verified'), ('bitcoin', 'recipient', NULL, 'Recipient', 'Contact', 'Verified')")
+            database.execSQL(
+                "INSERT INTO addresses (chain, address, walletId, name, type, status) VALUES ('bitcoin', 'sender', 'wallet-1', 'Sender', 'InternalWallet', 'Verified'), ('bitcoin', 'recipient', NULL, 'Recipient', 'Contact', 'Verified')",
+            )
             database.execSQL("INSERT INTO tx_swap_metadata (tx_id, from_asset_id, to_asset_id, from_amount, to_amount) VALUES ('bitcoin_shared', 'bitcoin', 'ethereum', '1000', '500')")
             database.rows("SELECT $columns FROM transactions ORDER BY walletId")
         }
@@ -55,7 +62,9 @@ class Migration_91_92Test {
             )
             assertEquals(
                 listOf(listOf("wallet-1", "Sender", "Recipient"), listOf("wallet-2", "Sender", "Recipient")),
-                database.rows("SELECT tx.walletId, sender.name, recipient.name FROM transactions AS tx JOIN asset ON tx.assetId = asset.id LEFT JOIN addresses AS sender ON sender.chain = asset.chain AND sender.address = tx.owner LEFT JOIN addresses AS recipient ON recipient.chain = asset.chain AND recipient.address = tx.recipient ORDER BY tx.walletId"),
+                database.rows(
+                    "SELECT tx.walletId, sender.name, recipient.name FROM transactions AS tx JOIN asset ON tx.assetId = asset.id LEFT JOIN addresses AS sender ON sender.chain = asset.chain AND sender.address = tx.owner LEFT JOIN addresses AS recipient ON recipient.chain = asset.chain AND recipient.address = tx.recipient ORDER BY tx.walletId",
+                ),
             )
             assertEquals(emptyList<List<String?>>(), database.rows("PRAGMA foreign_key_check"))
             val ids = database.rows("SELECT recordId FROM transactions").map { it.single()!!.toLong() }

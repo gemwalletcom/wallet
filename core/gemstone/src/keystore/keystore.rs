@@ -1,10 +1,7 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use gem_derivation::{
-    derive_account_from_private_key, derive_account_from_private_key_value, derive_accounts_from_mnemonic, derive_private_key_from_mnemonic, derive_wallet_id_from_account,
-    import_account_from_private_key,
-};
+use gem_derivation::{derive_account_from_private_key, derive_account_from_private_key_value, derive_accounts_from_mnemonic, derive_private_key_from_mnemonic, derive_wallet_id_from_account, import_account_from_private_key};
 use gem_keystore::{FileKeystore, Keystore, KeystoreError, KeystoreId, SecretKind};
 use primitives::{Account, Chain, WalletId, WalletType};
 use signer::encode_private_key;
@@ -59,9 +56,7 @@ impl GemKeystore {
                 let value = Zeroizing::new(value);
                 let imported = import_account_from_private_key(&value, chain)?;
                 let wallet_id = derive_wallet_id_from_account(&imported.account, WalletType::PrivateKey)?;
-                let meta = self
-                    .inner
-                    .import_private_key(&imported.private_key, &password, Some(keystore_id_for_wallet(wallet_id.to_string())))?;
+                let meta = self.inner.import_private_key(&imported.private_key, &password, Some(keystore_id_for_wallet(wallet_id.to_string())))?;
                 Ok(GemStoredWallet::new(wallet_id, WalletType::PrivateKey, meta.keystore_id, vec![imported.account]))
             }
             GemImportType::MulticoinPhrase { words, chains } => {
@@ -79,12 +74,7 @@ impl GemKeystore {
 
     pub fn export_recovery_phrase(&self, keystore_id: String, password: Vec<u8>) -> Result<Vec<String>, GemstoneError> {
         let password = Zeroizing::new(password);
-        Ok(self
-            .inner
-            .decrypt_mnemonic(&keystore_id, &password)?
-            .split_whitespace()
-            .map(|word| word.to_string())
-            .collect())
+        Ok(self.inner.decrypt_mnemonic(&keystore_id, &password)?.split_whitespace().map(|word| word.to_string()).collect())
     }
 
     pub fn export_private_key(&self, keystore_id: String, chain: Chain, password: Vec<u8>) -> Result<String, GemstoneError> {
@@ -237,12 +227,7 @@ impl GemKeystore {
     }
 }
 
-fn derive_mnemonic_wallet(
-    words: Vec<String>,
-    requested_chains: Vec<Chain>,
-    wallet_type: WalletType,
-    wallet_id_chain: Chain,
-) -> Result<(WalletId, Vec<Account>, Zeroizing<String>), GemstoneError> {
+fn derive_mnemonic_wallet(words: Vec<String>, requested_chains: Vec<Chain>, wallet_type: WalletType, wallet_id_chain: Chain) -> Result<(WalletId, Vec<Account>, Zeroizing<String>), GemstoneError> {
     if requested_chains.is_empty() {
         return Err(gem_derivation::AccountDerivationError::invalid_input("mnemonic derivation requires at least one chain").into());
     }
@@ -279,8 +264,7 @@ mod migration_tests {
     const V3_EMPTY_SALT_MNEMONIC: &str = include_str!("../../../crates/gem_keystore/testdata/v3_empty_salt_mnemonic.json");
     const V3_PASSWORD: &[u8] = b"000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f";
     const NEW_PASSWORD: &[u8] = b"raw-v4-password-bytes";
-    const EXPECTED_PHRASE: &str =
-        "dignity possible oppose wolf early kingdom essay arctic ten fence prepare mango source federal chief south dynamic rebuild wear envelope bulb picnic own scorpion";
+    const EXPECTED_PHRASE: &str = "dignity possible oppose wolf early kingdom essay arctic ten fence prepare mango source federal chief south dynamic rebuild wear envelope bulb picnic own scorpion";
     const EXPECTED_PRIVATE_KEY: &str = "ae8794f84919b14ff9d1f0f7cf490a4c04e608de16864f53fe8b40af127b9da3";
     const EXPECTED_ETHEREUM_ADDRESS: &str = "0x5a8f70b44aFa00Cb70615D9c9CCb9A24933ED2D3";
     const EXPECTED_SOLANA_ADDRESS: &str = "5T1JAioMm5vd9S5RE2JHBu3GVfG5FpUoV1BT5CNhZR2W";
@@ -308,16 +292,11 @@ mod migration_tests {
         let wallet_id = MNEMONIC_WALLET_ID.to_string();
         let keystore_id = keystore_id_for_wallet(wallet_id.clone());
 
-        let migration = keystore
-            .migrate_v3(v3_path.clone(), V3_PASSWORD.to_vec(), NEW_PASSWORD.to_vec(), wallet_id.clone())
-            .unwrap();
+        let migration = keystore.migrate_v3(v3_path.clone(), V3_PASSWORD.to_vec(), NEW_PASSWORD.to_vec(), wallet_id.clone()).unwrap();
         assert_eq!(migration.keystore_id, keystore_id);
         assert!(!Path::new(&v3_path).exists(), "v3 file must be removed after a verified migration");
 
-        assert_eq!(
-            keystore.export_recovery_phrase(keystore_id.clone(), NEW_PASSWORD.to_vec()).unwrap().join(" "),
-            EXPECTED_PHRASE
-        );
+        assert_eq!(keystore.export_recovery_phrase(keystore_id.clone(), NEW_PASSWORD.to_vec()).unwrap().join(" "), EXPECTED_PHRASE);
         let accounts = keystore.add_accounts(keystore_id.clone(), NEW_PASSWORD.to_vec(), vec![Chain::Ethereum]).unwrap();
         assert_eq!(accounts[0].address, EXPECTED_ETHEREUM_ADDRESS);
 
@@ -336,15 +315,10 @@ mod migration_tests {
         let wallet_id = MNEMONIC_WALLET_ID.to_string();
         let keystore_id = keystore_id_for_wallet(wallet_id.clone());
 
-        let migration = keystore
-            .migrate_v3(v3_path.clone(), V3_PASSWORD.to_vec(), NEW_PASSWORD.to_vec(), wallet_id.clone())
-            .unwrap();
+        let migration = keystore.migrate_v3(v3_path.clone(), V3_PASSWORD.to_vec(), NEW_PASSWORD.to_vec(), wallet_id.clone()).unwrap();
         assert_eq!(migration.keystore_id, keystore_id);
         assert!(!Path::new(&v3_path).exists(), "v3 file must be removed after a verified migration");
-        assert_eq!(
-            keystore.export_recovery_phrase(keystore_id.clone(), NEW_PASSWORD.to_vec()).unwrap().join(" "),
-            EXPECTED_PHRASE
-        );
+        assert_eq!(keystore.export_recovery_phrase(keystore_id.clone(), NEW_PASSWORD.to_vec()).unwrap().join(" "), EXPECTED_PHRASE);
         let accounts = keystore.add_accounts(keystore_id, NEW_PASSWORD.to_vec(), vec![Chain::Ethereum]).unwrap();
         assert_eq!(accounts[0].address, EXPECTED_ETHEREUM_ADDRESS);
 
@@ -358,15 +332,10 @@ mod migration_tests {
         let wallet_id = PRIVATE_KEY_WALLET_ID.to_string();
         let keystore_id = keystore_id_for_wallet(wallet_id.clone());
 
-        let migration = keystore
-            .migrate_v3(v3_path.clone(), V3_PASSWORD.to_vec(), NEW_PASSWORD.to_vec(), wallet_id.clone())
-            .unwrap();
+        let migration = keystore.migrate_v3(v3_path.clone(), V3_PASSWORD.to_vec(), NEW_PASSWORD.to_vec(), wallet_id.clone()).unwrap();
         assert_eq!(migration.keystore_id, keystore_id);
         assert!(!Path::new(&v3_path).exists(), "v3 file must be removed after a verified migration");
-        assert_eq!(
-            hex::encode(keystore.private_key(keystore_id.clone(), Chain::Ethereum, NEW_PASSWORD.to_vec()).unwrap()),
-            EXPECTED_PRIVATE_KEY
-        );
+        assert_eq!(hex::encode(keystore.private_key(keystore_id.clone(), Chain::Ethereum, NEW_PASSWORD.to_vec()).unwrap()), EXPECTED_PRIVATE_KEY);
         let account = keystore
             .preview_import(super::GemImportType::PrivateKey {
                 value: EXPECTED_PRIVATE_KEY.to_string(),
@@ -377,10 +346,7 @@ mod migration_tests {
 
         let again = keystore.migrate_v3(v3_path, V3_PASSWORD.to_vec(), NEW_PASSWORD.to_vec(), wallet_id).unwrap();
         assert_eq!(again.keystore_id, keystore_id);
-        assert_eq!(
-            hex::encode(keystore.private_key(keystore_id, Chain::Ethereum, NEW_PASSWORD.to_vec()).unwrap()),
-            EXPECTED_PRIVATE_KEY
-        );
+        assert_eq!(hex::encode(keystore.private_key(keystore_id, Chain::Ethereum, NEW_PASSWORD.to_vec()).unwrap()), EXPECTED_PRIVATE_KEY);
 
         let _ = std::fs::remove_dir_all(&base);
     }
@@ -392,22 +358,16 @@ mod migration_tests {
         let wrong_wallet_id = "multicoin_0x0000000000000000000000000000000000000000".to_string();
         let keystore_id = keystore_id_for_wallet(wrong_wallet_id.clone());
 
-        let error = keystore
-            .migrate_v3(v3_path.clone(), V3_PASSWORD.to_vec(), NEW_PASSWORD.to_vec(), wrong_wallet_id.clone())
-            .unwrap_err();
+        let error = keystore.migrate_v3(v3_path.clone(), V3_PASSWORD.to_vec(), NEW_PASSWORD.to_vec(), wrong_wallet_id.clone()).unwrap_err();
         assert_eq!(
             error.to_string(),
-            format!(
-                "migrated secret does not derive the wallet id: expected_wallet_id={wrong_wallet_id}, derived_wallet_id={MNEMONIC_WALLET_ID}, derived_chain=ethereum, derived_address={EXPECTED_ETHEREUM_ADDRESS}"
-            )
+            format!("migrated secret does not derive the wallet id: expected_wallet_id={wrong_wallet_id}, derived_wallet_id={MNEMONIC_WALLET_ID}, derived_chain=ethereum, derived_address={EXPECTED_ETHEREUM_ADDRESS}")
         );
         assert!(!v4_path(&base, &keystore_id).exists(), "mismatched v4 file must not be left behind");
         assert!(Path::new(&v3_path).exists(), "v3 file must be preserved when the migration is rejected");
 
         // wrong wallet type for the secret kind is also rejected
-        let error = keystore
-            .migrate_v3(v3_path.clone(), V3_PASSWORD.to_vec(), NEW_PASSWORD.to_vec(), PRIVATE_KEY_WALLET_ID.to_string())
-            .unwrap_err();
+        let error = keystore.migrate_v3(v3_path.clone(), V3_PASSWORD.to_vec(), NEW_PASSWORD.to_vec(), PRIVATE_KEY_WALLET_ID.to_string()).unwrap_err();
         assert!(error.to_string().contains("does not match wallet type"), "{error}");
         assert!(Path::new(&v3_path).exists());
 
@@ -425,10 +385,7 @@ mod migration_tests {
 
         assert_eq!(migration.keystore_id, keystore_id);
         assert!(!Path::new(&v3_path).exists(), "legacy Solana v3 file must be removed after import");
-        assert_eq!(
-            keystore.export_recovery_phrase(keystore_id.clone(), NEW_PASSWORD.to_vec()).unwrap().join(" "),
-            EXPECTED_PHRASE
-        );
+        assert_eq!(keystore.export_recovery_phrase(keystore_id.clone(), NEW_PASSWORD.to_vec()).unwrap().join(" "), EXPECTED_PHRASE);
         let accounts = keystore.add_accounts(keystore_id, NEW_PASSWORD.to_vec(), vec![Chain::Solana]).unwrap();
         assert_eq!(accounts[0].address, EXPECTED_SOLANA_ADDRESS);
 

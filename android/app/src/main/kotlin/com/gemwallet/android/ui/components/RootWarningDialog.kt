@@ -12,13 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.AppUrl
 import com.gemwallet.android.BuildConfig
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.Spacer8
-import com.gemwallet.android.AppUrl
-import java.io.File
 import uniffi.gemstone.DocsUrl
+import java.io.File
 
 @Composable
 fun RootWarningDialog(onCancel: () -> Unit, onIgnore: () -> Unit) {
@@ -37,7 +37,7 @@ fun RootWarningDialog(onCancel: () -> Unit, onIgnore: () -> Unit) {
                         uriHandler.open(context, AppUrl.docs(DocsUrl.RootedDevice))
                     },
                     text = stringResource(R.string.common_learn_more),
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
         },
@@ -50,7 +50,7 @@ fun RootWarningDialog(onCancel: () -> Unit, onIgnore: () -> Unit) {
             Button(onClick = onIgnore) {
                 Text(text = stringResource(R.string.rootcheck_ignore))
             }
-        }
+        },
     )
 }
 
@@ -58,34 +58,26 @@ fun isDeviceRooted() = !BuildConfig.DEBUG && RootChecker().isDeviceRooted()
 
 private class RootChecker {
 
-    fun isDeviceRooted(): Boolean {
-        return hasRootedFiles() || hasRootedProcesses() || hasTestKeys()
+    fun isDeviceRooted(): Boolean = hasRootedFiles() || hasRootedProcesses() || hasTestKeys()
+
+    private fun hasRootedFiles(): Boolean = arrayOf(
+        "/system/app/Superuser.apk",
+        "/sbin/su",
+        "/system/bin/su",
+        "/system/xbin/su",
+        "/data/local/xbin/su",
+        "/data/local/bin/su",
+        "/system/sd/xbin/su",
+        "/system/bin/failsafe/su",
+        "/data/local/su",
+    ).any { path -> File(path).exists() }
+
+    private fun hasRootedProcesses(): Boolean = try {
+        val process = Runtime.getRuntime().exec(arrayOf("/system/xbin/which", "su"))
+        process.inputStream.bufferedReader().use { it.readLine() != null }
+    } catch (_: Exception) {
+        false
     }
 
-    private fun hasRootedFiles(): Boolean {
-        return arrayOf(
-            "/system/app/Superuser.apk",
-            "/sbin/su",
-            "/system/bin/su",
-            "/system/xbin/su",
-            "/data/local/xbin/su",
-            "/data/local/bin/su",
-            "/system/sd/xbin/su",
-            "/system/bin/failsafe/su",
-            "/data/local/su"
-        ).any { path -> File(path).exists() }
-    }
-
-    private fun hasRootedProcesses(): Boolean {
-        return try {
-            val process = Runtime.getRuntime().exec(arrayOf("/system/xbin/which", "su"))
-            process.inputStream.bufferedReader().use { it.readLine() != null }
-        } catch (_: Exception) {
-            false
-        }
-    }
-
-    private fun hasTestKeys(): Boolean {
-        return Build.TAGS?.contains("test-keys") == true
-    }
+    private fun hasTestKeys(): Boolean = Build.TAGS?.contains("test-keys") == true
 }

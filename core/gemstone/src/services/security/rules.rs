@@ -55,9 +55,7 @@ pub fn lock_periods() -> Vec<GemLockPeriod> {
 
 #[uniffi::export]
 pub fn lock_period_from_minutes(minutes: Option<u32>) -> GemLockPeriod {
-    minutes
-        .and_then(|minutes| lock_periods().into_iter().find(|period| period.minutes() == minutes))
-        .unwrap_or(GemLockPeriod::OneMinute)
+    minutes.and_then(|minutes| lock_periods().into_iter().find(|period| period.minutes() == minutes)).unwrap_or(GemLockPeriod::OneMinute)
 }
 
 pub(super) fn should_relock(elapsed_milliseconds: i64, lock_interval_minutes: u32, auth_required: bool, has_pending_request: bool) -> bool {
@@ -74,11 +72,7 @@ mod tests {
         assert_eq!(GemAuthPromptOutcome::CancelledByUser.retry_delay_milliseconds(), Some(500));
         assert_eq!(GemAuthPromptOutcome::Transient.retry_delay_milliseconds(), Some(1_000));
         assert_eq!(GemAuthPromptOutcome::LockedOut.retry_delay_milliseconds(), Some(30_000));
-        assert_eq!(
-            GemAuthPromptOutcome::Unavailable.retry_delay_milliseconds(),
-            None,
-            "no enrolled biometry cannot be retried into working"
-        );
+        assert_eq!(GemAuthPromptOutcome::Unavailable.retry_delay_milliseconds(), None, "no enrolled biometry cannot be retried into working");
         assert_eq!(GemAuthPromptOutcome::Failed.retry_delay_milliseconds(), None);
     }
 
@@ -96,11 +90,7 @@ mod tests {
         assert_eq!(minutes, vec![0, 1, 5, 15, 60, 360]);
         assert_eq!(GemLockPeriod::SixHours.milliseconds(), 21_600_000);
         assert_eq!(lock_period_from_minutes(Some(15)), GemLockPeriod::FifteenMinutes);
-        assert_eq!(
-            lock_period_from_minutes(Some(7)),
-            GemLockPeriod::OneMinute,
-            "an unknown stored value falls back to the default"
-        );
+        assert_eq!(lock_period_from_minutes(Some(7)), GemLockPeriod::OneMinute, "an unknown stored value falls back to the default");
         assert_eq!(lock_period_from_minutes(None), GemLockPeriod::OneMinute, "a missing stored value is the default");
     }
 

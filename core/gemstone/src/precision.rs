@@ -16,11 +16,6 @@ impl From<Precision> for GemPrecision {
 }
 
 #[uniffi::export]
-pub fn abbreviation_threshold() -> f64 {
-    number_formatter::ABBREVIATION_THRESHOLD
-}
-
-#[uniffi::export]
 pub fn adaptive_precision(magnitude: f64) -> GemPrecision {
     number_formatter::precision::adaptive(magnitude).into()
 }

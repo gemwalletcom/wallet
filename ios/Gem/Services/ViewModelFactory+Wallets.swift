@@ -11,9 +11,9 @@ import PrimitivesComponents
 import Store
 import SwiftUI
 
-extension ViewModelFactory {
+public extension ViewModelFactory {
     @MainActor
-    public func walletsScene(
+    func walletsScene(
         navigationPath: Binding<NavigationPath>,
         isPresentingCreateWalletSheet: Binding<Bool>,
         isPresentingImportWalletSheet: Binding<Bool>,
@@ -28,7 +28,7 @@ extension ViewModelFactory {
     }
 
     @MainActor
-    public func walletDetailScene(navigationPath: Binding<NavigationPath>, wallet: Wallet) -> WalletDetailViewModel {
+    func walletDetailScene(navigationPath: Binding<NavigationPath>, wallet: Wallet) -> WalletDetailViewModel {
         WalletDetailViewModel(
             navigationPath: navigationPath,
             wallet: wallet,
@@ -38,17 +38,17 @@ extension ViewModelFactory {
     }
 
     @MainActor
-    public func walletImageScene(wallet: Wallet) -> WalletImageViewModel {
+    func walletImageScene(wallet: Wallet) -> WalletImageViewModel {
         WalletImageViewModel(wallet: wallet, service: walletService)
     }
 
     @MainActor
-    public func createWalletScene(onComplete: VoidAction) -> CreateWalletModel {
+    func createWalletScene(onComplete: VoidAction) -> CreateWalletModel {
         CreateWalletModel(service: walletService, preferences: observablePreferences, onComplete: onComplete)
     }
 
     @MainActor
-    public func importWalletScene(onComplete: VoidAction) -> ImportWalletViewModel {
+    func importWalletScene(onComplete: VoidAction) -> ImportWalletViewModel {
         ImportWalletViewModel(
             service: walletService,
             preferences: observablePreferences,
@@ -58,12 +58,12 @@ extension ViewModelFactory {
     }
 
     @MainActor
-    public func contactsScene(mode: ContactsViewModel.Mode = .list) -> ContactsViewModel {
+    func contactsScene(mode: ContactsViewModel.Mode = .list) -> ContactsViewModel {
         ContactsViewModel(service: contactService, manageContact: manageContactScene, mode: mode)
     }
 
     @MainActor
-    public func manageContactScene(mode: ManageContactViewModel.Mode) -> ManageContactViewModel {
+    func manageContactScene(mode: ManageContactViewModel.Mode) -> ManageContactViewModel {
         ManageContactViewModel(service: manageContactService, nameService: nameService, mode: mode)
     }
 }

@@ -3,12 +3,12 @@
 import Foundation
 import typealias Gemstone.ChainConfig
 import class Gemstone.Config
+import enum Gemstone.DocsUrl
 import class Gemstone.GemAddressService
 import class Gemstone.GemApplicationMetadataService
 import class Gemstone.GemAssetConfigService
 import class Gemstone.GemChainService
 import class Gemstone.GemConnectionService
-import enum Gemstone.DocsUrl
 import enum Gemstone.NodeRegion
 import class Gemstone.PriceAlertFormatter
 import enum Gemstone.PublicUrl

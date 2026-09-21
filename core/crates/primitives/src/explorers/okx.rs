@@ -42,10 +42,7 @@ mod tests {
         let explorer = OkxExplorer::new_ink();
         let tx_id = "0x37a2d85b95d881be32fb806a5c50bfac320565019e408cc6e3aa2072a8929cf5";
 
-        assert_eq!(
-            explorer.get_tx_url(tx_id),
-            "https://www.okx.com/web3/explorer/inkchain/tx/0x37a2d85b95d881be32fb806a5c50bfac320565019e408cc6e3aa2072a8929cf5"
-        )
+        assert_eq!(explorer.get_tx_url(tx_id), "https://www.okx.com/web3/explorer/inkchain/tx/0x37a2d85b95d881be32fb806a5c50bfac320565019e408cc6e3aa2072a8929cf5")
     }
 
     #[test]
@@ -53,9 +50,6 @@ mod tests {
         let explorer = OkxExplorer::new_xlayer();
         let tx_id = "0x37a2d85b95d881be32fb806a5c50bfac320565019e408cc6e3aa2072a8929cf5";
 
-        assert_eq!(
-            explorer.get_tx_url(tx_id),
-            "https://www.okx.com/web3/explorer/xlayer/tx/0x37a2d85b95d881be32fb806a5c50bfac320565019e408cc6e3aa2072a8929cf5"
-        )
+        assert_eq!(explorer.get_tx_url(tx_id), "https://www.okx.com/web3/explorer/xlayer/tx/0x37a2d85b95d881be32fb806a5c50bfac320565019e408cc6e3aa2072a8929cf5")
     }
 }

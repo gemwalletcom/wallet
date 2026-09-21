@@ -43,16 +43,8 @@ public struct ConfirmBalanceChangeViewModel {
                 sign: balanceChange.sign,
                 formatter: .full,
                 currencyCode: "",
-                textStyle: TextStyle(font: .body, color: amountColor, fontWeight: .medium),
+                textStyle: TextStyle(font: .body, color: balanceChange.tone.color, fontWeight: .medium),
             ),
         ).amount
-    }
-
-    private var amountColor: Color {
-        switch balanceChange.sign {
-        case .incoming: Colors.green
-        case .outgoing: Colors.red
-        case .none: Colors.gray
-        }
     }
 }

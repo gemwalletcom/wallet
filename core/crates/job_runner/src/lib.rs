@@ -28,14 +28,8 @@ pub async fn sleep_or_shutdown(duration: Duration, shutdown_rx: &ShutdownReceive
     }
 }
 
-pub async fn run_job<Name, F, Fut, R>(
-    name: Name,
-    interval_duration: Duration,
-    reporter: Arc<dyn JobStatusReporter>,
-    shutdown_rx: ShutdownReceiver,
-    schedule: Arc<dyn JobSchedule>,
-    job_fn: F,
-) where
+pub async fn run_job<Name, F, Fut, R>(name: Name, interval_duration: Duration, reporter: Arc<dyn JobStatusReporter>, shutdown_rx: ShutdownReceiver, schedule: Arc<dyn JobSchedule>, job_fn: F)
+where
     Name: Into<String> + Send + 'static,
     F: Fn(JobContext) -> Fut + Send + Sync + 'static,
     Fut: Future<Output = Result<R, JobError>> + Send + 'static,
@@ -74,12 +68,7 @@ pub async fn run_job<Name, F, Fut, R>(
 
         match result {
             Ok(value) => {
-                info_with_fields!(
-                    "job complete",
-                    job = job_name.as_str(),
-                    duration = duration_display.as_str(),
-                    result = format!("{:?}", value)
-                );
+                info_with_fields!("job complete", job = job_name.as_str(), duration = duration_display.as_str(), result = format!("{:?}", value));
                 if let Err(err) = schedule.mark_success(job_name.as_str(), SystemTime::now()).await {
                     error_with_fields!("job schedule update failed", &*err, job = job_name.as_str());
                 }

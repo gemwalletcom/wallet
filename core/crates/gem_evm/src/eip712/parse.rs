@@ -13,9 +13,7 @@ pub fn parse_array_type(type_name: &str) -> Result<Option<(String, Option<usize>
         return Ok(None);
     }
 
-    let start = type_name
-        .rfind('[')
-        .ok_or_else(|| SignerError::invalid_input(format!("Malformed array type '{type_name}'")))?;
+    let start = type_name.rfind('[').ok_or_else(|| SignerError::invalid_input(format!("Malformed array type '{type_name}'")))?;
     let length_str = &type_name[start + 1..type_name.len() - 1];
     let element_type = type_name[..start].to_string();
     if element_type.is_empty() {
@@ -25,11 +23,7 @@ pub fn parse_array_type(type_name: &str) -> Result<Option<(String, Option<usize>
     let length = if length_str.is_empty() {
         None
     } else {
-        Some(
-            length_str
-                .parse()
-                .map_err(|_| SignerError::invalid_input(format!("Invalid array length for type '{type_name}'")))?,
-        )
+        Some(length_str.parse().map_err(|_| SignerError::invalid_input(format!("Invalid array length for type '{type_name}'")))?)
     };
 
     Ok(Some((element_type, length)))
@@ -45,9 +39,7 @@ pub fn parse_numeric_bits(type_name: &str, prefix: &str) -> Result<usize, Signer
         return Ok(256);
     }
 
-    let bits = bits_part
-        .parse::<usize>()
-        .map_err(|_| SignerError::invalid_input(format!("Invalid bit size for type '{type_name}'")))?;
+    let bits = bits_part.parse::<usize>().map_err(|_| SignerError::invalid_input(format!("Invalid bit size for type '{type_name}'")))?;
     if bits == 0 || bits > MAX_WORD_BYTES * 8 || bits % 8 != 0 {
         return SignerError::invalid_input_err(format!("Unsupported bit size for type '{type_name}'"));
     }
@@ -60,9 +52,7 @@ pub fn parse_fixed_bytes_size(type_name: &str) -> Result<usize, SignerError> {
         return SignerError::invalid_input_err(format!("Invalid fixed bytes type '{type_name}'"));
     }
 
-    let size = size_part
-        .parse::<usize>()
-        .map_err(|_| SignerError::invalid_input(format!("Invalid length for {type_name}")))?;
+    let size = size_part.parse::<usize>().map_err(|_| SignerError::invalid_input(format!("Invalid length for {type_name}")))?;
     if size == 0 || size > MAX_WORD_BYTES {
         return SignerError::invalid_input_err(format!("Unsupported length for {type_name}"));
     }

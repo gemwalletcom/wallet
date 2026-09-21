@@ -11,9 +11,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class PortfolioChartRoute(val type: PortfolioType = PortfolioType.Wallet) : NavKey
 
-fun EntryProviderScope<NavKey>.portfolioChartScreen(
-    onCancel: () -> Unit,
-) {
+fun EntryProviderScope<NavKey>.portfolioChartScreen(onCancel: () -> Unit) {
     entry<PortfolioChartRoute>(
         metadata = { key -> routeArguments(RouteArgument.Type to key.type) },
     ) {

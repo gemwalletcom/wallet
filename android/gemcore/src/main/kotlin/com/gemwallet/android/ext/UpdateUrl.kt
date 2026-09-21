@@ -7,11 +7,7 @@ fun isApkFlavor(flavor: String): Boolean = flavor == UniversalFlavor
 
 fun universalApkDownloadUrl(version: String): String = "$UniversalApkBaseUrl/gem_wallet_universal_$version.apk"
 
-fun updateUrl(
-    flavor: String,
-    version: String,
-    fallbackUrl: String,
-): String = if (isApkFlavor(flavor)) {
+fun updateUrl(flavor: String, version: String, fallbackUrl: String): String = if (isApkFlavor(flavor)) {
     universalApkDownloadUrl(version)
 } else {
     fallbackUrl

@@ -11,13 +11,7 @@ import com.gemwallet.android.ui.models.swap.SwapPriceImpactUIModel
 import com.wallet.core.primitives.Asset
 
 @Composable
-internal fun PriceImpactWarningDialog(
-    isVisible: Boolean,
-    priceImpact: SwapPriceImpactUIModel?,
-    asset: Asset?,
-    onDismiss: () -> Unit,
-    onContinue: () -> Unit,
-) {
+internal fun PriceImpactWarningDialog(isVisible: Boolean, priceImpact: SwapPriceImpactUIModel?, asset: Asset?, onDismiss: () -> Unit, onContinue: () -> Unit) {
     if (!isVisible || priceImpact == null || asset == null) {
         return
     }
@@ -29,7 +23,7 @@ internal fun PriceImpactWarningDialog(
                 {
                     onContinue()
                     onDismiss()
-                }
+                },
             ) {
                 Text(stringResource(R.string.common_continue))
             }

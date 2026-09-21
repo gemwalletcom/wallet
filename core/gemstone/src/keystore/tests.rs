@@ -21,10 +21,7 @@ fn test_gem_keystore_private_key_create_export_delete() {
         "0x30df0ffc2b43717f4653c2a1e827e9dfb3d9364e019cc60092496cd4997d5d6e"
     );
     assert_eq!(
-        keystore
-            .add_accounts(stored.keystore_id.clone(), b"password".to_vec(), vec![Chain::Polygon])
-            .unwrap_err()
-            .to_string(),
+        keystore.add_accounts(stored.keystore_id.clone(), b"password".to_vec(), vec![Chain::Polygon]).unwrap_err().to_string(),
         "add_accounts does not support private-key wallets"
     );
     assert!(keystore.delete(stored.keystore_id.clone()).unwrap());
@@ -66,9 +63,7 @@ fn test_gem_keystore_mnemonic_import_create_export_add_accounts() {
     let dir = TempDir::new().unwrap();
     let keystore = GemKeystore::new(dir.path().to_string_lossy().to_string()).unwrap();
 
-    let import = keystore
-        .preview_import(GemImportType::mock_multicoin_phrase(vec![Chain::Ethereum, Chain::Solana, Chain::Bitcoin]))
-        .unwrap();
+    let import = keystore.preview_import(GemImportType::mock_multicoin_phrase(vec![Chain::Ethereum, Chain::Solana, Chain::Bitcoin])).unwrap();
     assert_eq!(import.wallet_id, "multicoin_0x9858EfFD232B4033E47d90003D41EC34EcaEda94");
     assert_eq!(import.wallet_type, WalletType::Multicoin);
     assert_eq!(import.accounts[0].address, "0x9858EfFD232B4033E47d90003D41EC34EcaEda94");
@@ -76,16 +71,11 @@ fn test_gem_keystore_mnemonic_import_create_export_add_accounts() {
     assert_eq!(import.accounts[1].derivation_path, "m/44'/501'/0'/0'");
     assert!(import.accounts[2].public_key.as_deref().is_some_and(|public_key| public_key.starts_with("zpub")));
 
-    let stored = keystore
-        .create_store(GemImportType::mock_multicoin_phrase(vec![Chain::Ethereum]), b"password".to_vec())
-        .unwrap();
+    let stored = keystore.create_store(GemImportType::mock_multicoin_phrase(vec![Chain::Ethereum]), b"password".to_vec()).unwrap();
     assert_eq!(stored.wallet_id, "multicoin_0x9858EfFD232B4033E47d90003D41EC34EcaEda94");
     assert_eq!(stored.wallet_type, WalletType::Multicoin);
     assert_eq!(stored.accounts.len(), 1);
-    assert_eq!(
-        keystore.export_recovery_phrase(stored.keystore_id.clone(), b"password".to_vec()).unwrap(),
-        mock_phrase_words()
-    );
+    assert_eq!(keystore.export_recovery_phrase(stored.keystore_id.clone(), b"password".to_vec()).unwrap(), mock_phrase_words());
     assert_eq!(
         keystore.export_private_key(stored.keystore_id.clone(), Chain::Ethereum, b"password".to_vec()).unwrap(),
         "0x1ab42cc412b618bdea3a599e3c9bae199ebf030895b039e9db1e30dafb12b727"
@@ -95,9 +85,7 @@ fn test_gem_keystore_mnemonic_import_create_export_add_accounts() {
         "1ab42cc412b618bdea3a599e3c9bae199ebf030895b039e9db1e30dafb12b727"
     );
 
-    let added = keystore
-        .add_accounts(stored.keystore_id.clone(), b"password".to_vec(), vec![Chain::Polygon, Chain::Tron])
-        .unwrap();
+    let added = keystore.add_accounts(stored.keystore_id.clone(), b"password".to_vec(), vec![Chain::Polygon, Chain::Tron]).unwrap();
     assert_eq!(added[0].chain, Chain::Polygon);
     assert_eq!(added[0].address, "0x9858EfFD232B4033E47d90003D41EC34EcaEda94");
     assert_eq!(added[1].chain, Chain::Tron);
@@ -109,9 +97,7 @@ fn test_gem_keystore_v4_password_is_opaque_bytes() {
     let dir = TempDir::new().unwrap();
     let keystore = GemKeystore::new(dir.path().to_string_lossy().to_string()).unwrap();
     let password = vec![0xde, 0xad, 0xbe, 0xef, 0x00, 0xff];
-    let stored = keystore
-        .create_store(GemImportType::mock_multicoin_phrase(vec![Chain::Ethereum]), password.clone())
-        .unwrap();
+    let stored = keystore.create_store(GemImportType::mock_multicoin_phrase(vec![Chain::Ethereum]), password.clone()).unwrap();
 
     assert_eq!(keystore.export_recovery_phrase(stored.keystore_id.clone(), password).unwrap(), mock_phrase_words());
     assert!(keystore.export_recovery_phrase(stored.keystore_id, b"deadbeef00ff".to_vec()).is_err());
@@ -123,9 +109,7 @@ fn test_gem_keystore_has_stored_wallets() {
     let keystore = GemKeystore::new(dir.path().to_string_lossy().to_string()).unwrap();
     assert!(!keystore.has_stored_wallets().unwrap());
 
-    let stored = keystore
-        .create_store(GemImportType::mock_multicoin_phrase(vec![Chain::Ethereum]), b"password".to_vec())
-        .unwrap();
+    let stored = keystore.create_store(GemImportType::mock_multicoin_phrase(vec![Chain::Ethereum]), b"password".to_vec()).unwrap();
     assert!(keystore.has_stored_wallets().unwrap());
 
     keystore.delete(stored.keystore_id).unwrap();

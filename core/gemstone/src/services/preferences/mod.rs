@@ -72,27 +72,12 @@ impl GemPreferencesService {
         Ok(currency)
     }
 
-    pub fn get_chart_period(&self) -> ChartPeriod {
-        self.store
-            .get(CHART_PERIOD.to_string())
-            .and_then(|value| ChartPeriod::from_str(&value).ok())
-            .unwrap_or(ChartPeriod::Day)
-    }
-
-    pub fn set_chart_period(&self, period: ChartPeriod) -> Result<(), GemServiceError> {
-        self.store.set(CHART_PERIOD.to_string(), period.as_ref().to_string())
-    }
-
     pub fn is_push_notifications_enabled(&self) -> bool {
         self.store.get(PUSH_NOTIFICATIONS_ENABLED.to_string()).as_deref() == Some("true")
     }
 
     pub fn set_push_notifications_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
         self.store.set(PUSH_NOTIFICATIONS_ENABLED.to_string(), enabled.to_string())
-    }
-
-    pub fn clear(&self) -> Result<(), GemServiceError> {
-        self.store.clear()
     }
 
     pub fn is_perpetual_enabled(&self) -> bool {
@@ -105,10 +90,6 @@ impl GemPreferencesService {
 
     pub fn show_perpetuals(&self, wallet_type: WalletType, chains: Vec<Chain>) -> bool {
         crate::services::perpetual::rules::show_perpetuals(self.is_perpetual_enabled(), wallet_type, &chains)
-    }
-
-    pub fn show_collections(&self, wallet_type: WalletType, chains: Vec<Chain>) -> bool {
-        crate::services::wallet::rules::show_collections(wallet_type, &chains)
     }
 
     pub fn is_hide_balance_enabled(&self) -> bool {
@@ -183,6 +164,22 @@ impl GemPreferencesService {
 }
 
 impl GemPreferencesService {
+    pub fn get_chart_period(&self) -> ChartPeriod {
+        self.store.get(CHART_PERIOD.to_string()).and_then(|value| ChartPeriod::from_str(&value).ok()).unwrap_or(ChartPeriod::Day)
+    }
+
+    pub fn set_chart_period(&self, period: ChartPeriod) -> Result<(), GemServiceError> {
+        self.store.set(CHART_PERIOD.to_string(), period.as_ref().to_string())
+    }
+
+    pub fn clear(&self) -> Result<(), GemServiceError> {
+        self.store.clear()
+    }
+
+    pub fn show_collections(&self, wallet_type: WalletType, chains: Vec<Chain>) -> bool {
+        crate::services::wallet::rules::show_collections(wallet_type, &chains)
+    }
+
     pub fn get_perpetual_leverage(&self) -> u8 {
         rules::percent_or_default(self.store.get(PERPETUAL_LEVERAGE.to_string()), perpetual_config::DEFAULT_LEVERAGE)
     }
@@ -219,10 +216,7 @@ impl GemPreferencesService {
     }
 
     pub fn get_perpetual_chart_period(&self) -> ChartPeriod {
-        self.store
-            .get(PERPETUAL_CHART_PERIOD.to_string())
-            .and_then(|value| ChartPeriod::from_str(&value).ok())
-            .unwrap_or(ChartPeriod::Day)
+        self.store.get(PERPETUAL_CHART_PERIOD.to_string()).and_then(|value| ChartPeriod::from_str(&value).ok()).unwrap_or(ChartPeriod::Day)
     }
     pub fn set_perpetual_chart_period(&self, period: ChartPeriod) -> Result<(), GemServiceError> {
         self.store.set(PERPETUAL_CHART_PERIOD.to_string(), period.as_ref().to_string())

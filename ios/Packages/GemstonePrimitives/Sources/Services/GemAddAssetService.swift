@@ -12,10 +12,6 @@ public extension GemAddAssetServiceProtocol {
         defaultChain(chains: chains.map(\.rawValue)).map { Chain(core: $0) }
     }
 
-    func tokenUrl(chain: Chain, tokenId: String) -> BlockExplorerLink? {
-        tokenUrl(chain: chain.rawValue, tokenId: tokenId).map { $0.toPrimitives() }
-    }
-
     func token(chain: Chain, address: String) async throws -> Asset {
         try await token(chain: chain.rawValue, address: address).toPrimitives()
     }

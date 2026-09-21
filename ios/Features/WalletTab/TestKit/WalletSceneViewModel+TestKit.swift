@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstoneServicesTestKit
 import Foundation
-import Primitives
-import PrimitivesTestKit
 import GemstonePrimitivesTestKit
+import GemstoneServicesTestKit
 import NFT
 import NFTTestKit
+import Primitives
+import PrimitivesTestKit
 import Store
 import WalletTab
 

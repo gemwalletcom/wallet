@@ -29,6 +29,6 @@ struct AddAssetSceneViewModelTests {
         model.input.address = nil
         model.onChangeAddress()
         #expect(model.loadTrigger == nil)
-        #expect(model.state.isNoData)
+        #expect(model.buttonState == .disabled)
     }
 }

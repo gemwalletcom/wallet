@@ -30,10 +30,7 @@ import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.icons.AppIcons
 
 @Composable
-fun ContactsNavScreen(
-    onAction: (ContactsAction) -> Unit,
-    viewModel: ContactsViewModel = hiltViewModel(),
-) {
+fun ContactsNavScreen(onAction: (ContactsAction) -> Unit, viewModel: ContactsViewModel = hiltViewModel()) {
     val contacts by viewModel.contacts.collectAsStateWithLifecycle()
     val errorText by viewModel.errorText.collectAsStateWithLifecycle()
     val revealed = remember { mutableStateOf<String?>(null) }

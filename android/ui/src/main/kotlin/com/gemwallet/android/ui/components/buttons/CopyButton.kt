@@ -18,10 +18,7 @@ private val iconSize = 18.dp
 private val iconTextSpacing = space6
 
 @Composable
-fun CopyButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun CopyButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     TextButton(onClick = onClick, modifier = modifier) {
         Icon(
             imageVector = AppIcons.ContentCopyOutlined,

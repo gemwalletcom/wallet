@@ -1,16 +1,14 @@
 package com.gemwallet.android.data.coordinators.wallet_connect
 
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
 import com.gemwallet.android.application.wallet_connect.values.WalletConnectPairingProposal
-import uniffi.gemstone.GemWalletConnectServiceInterface
-import uniffi.gemstone.WalletConnectionVerificationStatus
+import com.gemwallet.android.ext.toPrimitives
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemWalletConnectServiceInterface
+import uniffi.gemstone.WalletConnectionVerificationStatus
 
-class PrepareSessionProposalImpl(
-    private val walletConnectService: GemWalletConnectServiceInterface,
-) : PrepareSessionProposal {
+class PrepareSessionProposalImpl(private val walletConnectService: GemWalletConnectServiceInterface) : PrepareSessionProposal {
 
     override suspend fun invoke(
         name: String,

@@ -120,7 +120,6 @@ public struct WalletScene: View {
 // MARK: - UI
 
 extension WalletScene {
-    @ViewBuilder
     private var manageTokensButton: some View {
         ListButton(
             title: model.manageTokenTitle,

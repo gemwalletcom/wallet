@@ -13,8 +13,8 @@ struct ConfirmBalanceChangeViewModelTests {
     @Test
     func balanceChange() {
         let solana = Asset.mockSolana()
-        let negative = ConfirmBalanceChangeViewModel(balanceChange: GemSimulationBalanceChange(asset: solana.toGem(), value: BigInt(-1_500_000_000), sign: .outgoing))
-        let positive = ConfirmBalanceChangeViewModel(balanceChange: GemSimulationBalanceChange(asset: solana.toGem(), value: BigInt(1_500_000_000), sign: .incoming))
+        let negative = ConfirmBalanceChangeViewModel(balanceChange: GemSimulationBalanceChange(asset: solana.toGem(), value: BigInt(-1_500_000_000), sign: .outgoing, tone: .negative))
+        let positive = ConfirmBalanceChangeViewModel(balanceChange: GemSimulationBalanceChange(asset: solana.toGem(), value: BigInt(1_500_000_000), sign: .incoming, tone: .positive))
 
         #expect(negative.assetTitle == "Solana")
         #expect(negative.amount.text == "-1.5 SOL")

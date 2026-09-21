@@ -15,19 +15,9 @@ impl MoonPayWidget {
         Self { api_key, secret_key }
     }
 
-    pub fn redirect_url(
-        &self,
-        quote_type: FiatQuoteType,
-        amount: f64,
-        symbol: &str,
-        wallet_address: &str,
-        external_transaction_id: &str,
-        ip_address: &str,
-    ) -> Result<String, url::ParseError> {
+    pub fn redirect_url(&self, quote_type: FiatQuoteType, amount: f64, symbol: &str, wallet_address: &str, external_transaction_id: &str, ip_address: &str) -> Result<String, url::ParseError> {
         let mut url = Url::parse(Self::base_url(&quote_type))?;
-        url.query_pairs_mut()
-            .append_pair("apiKey", &self.api_key)
-            .append_pair("externalTransactionId", external_transaction_id);
+        url.query_pairs_mut().append_pair("apiKey", &self.api_key).append_pair("externalTransactionId", external_transaction_id);
 
         match quote_type {
             FiatQuoteType::Buy => {
@@ -86,10 +76,7 @@ mod tests {
         let allowed_ip_address = generate_hmac_signature(secret_key, ip_address);
         let signature = generate_hmac_signature(secret_key, &signed_query);
 
-        assert_eq!(
-            pairs.iter().find(|(key, _)| key == "allowedIpAddress").map(|(_, value)| value.to_string()),
-            Some(allowed_ip_address)
-        );
+        assert_eq!(pairs.iter().find(|(key, _)| key == "allowedIpAddress").map(|(_, value)| value.to_string()), Some(allowed_ip_address));
         assert_eq!(pairs.iter().find(|(key, _)| key == "signature").map(|(_, value)| value.to_string()), Some(signature));
         assert_eq!(pairs.last().map(|(key, _)| key.as_ref()), Some("signature"));
     }

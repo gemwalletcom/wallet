@@ -20,11 +20,7 @@ pub struct NFTClient {
 
 impl NFTClient {
     pub fn new(database: Database, provider_client: NFTProviderClient, assets_url: String) -> Self {
-        Self {
-            database,
-            provider_client,
-            assets_url,
-        }
+        Self { database, provider_client, assets_url }
     }
 
     pub fn from_config(database: Database, config: NFTProviderConfig, assets_url: String) -> Self {
@@ -105,12 +101,7 @@ impl NFTClient {
 
     fn upsert_collection(&self, collection: NFTCollection) -> Result<NftCollectionRow, Box<dyn Error + Send + Sync>> {
         let row = self.database.nft()?.upsert_nft_collection(NewNftCollectionRow::from_primitive(collection.clone()))?;
-        let links: Vec<NftLinkRow> = collection
-            .links
-            .into_iter()
-            .filter(|link| !link.url.is_empty())
-            .filter_map(|link| NftLinkRow::from_primitive(row.id, link))
-            .collect();
+        let links: Vec<NftLinkRow> = collection.links.into_iter().filter(|link| !link.url.is_empty()).filter_map(|link| NftLinkRow::from_primitive(row.id, link)).collect();
         self.database.nft()?.set_nft_collection_links(row.id, links)?;
         Ok(row)
     }
@@ -146,11 +137,7 @@ impl NFTClient {
             .into_iter()
             .flat_map(|collection| {
                 let pk = map.get(&collection.id.to_string()).copied();
-                collection
-                    .links
-                    .into_iter()
-                    .filter(|link| !link.url.is_empty())
-                    .filter_map(move |link| pk.and_then(|pk| NftLinkRow::from_primitive(pk, link)))
+                collection.links.into_iter().filter(|link| !link.url.is_empty()).filter_map(move |link| pk.and_then(|pk| NftLinkRow::from_primitive(pk, link)))
             })
             .collect();
         self.database.nft()?.add_nft_collections_links(links)?;
@@ -237,10 +224,7 @@ impl NFTClient {
     }
 
     pub fn load_nft_asset(&self, asset_id: &str) -> Result<NFTAsset, Box<dyn Error + Send + Sync>> {
-        self.load_nft_assets(vec![asset_id.to_string()])?
-            .into_iter()
-            .next()
-            .ok_or_else(|| DatabaseError::not_found("NftAsset", asset_id).into())
+        self.load_nft_assets(vec![asset_id.to_string()])?.into_iter().next().ok_or_else(|| DatabaseError::not_found("NftAsset", asset_id).into())
     }
 
     pub fn load_nft_collection(&self, collection_id: &str) -> Result<NFTCollection, Box<dyn Error + Send + Sync>> {
@@ -250,13 +234,7 @@ impl NFTClient {
     }
 
     pub async fn update_assets_for_addresses(&self, addresses: HashMap<Chain, String>) -> Result<Vec<NFTData>, Box<dyn Error + Send + Sync>> {
-        let address_id_map: HashMap<String, i32> = self
-            .database
-            .wallets()?
-            .get_addresses(addresses.values().cloned().collect())?
-            .into_iter()
-            .map(|row| (row.address, row.id))
-            .collect();
+        let address_id_map: HashMap<String, i32> = self.database.wallets()?.get_addresses(addresses.values().cloned().collect())?.into_iter().map(|row| (row.address, row.id)).collect();
 
         let mut all_asset_ids: HashSet<NFTAssetId> = HashSet::new();
         let mut owned_by_address: HashMap<i32, HashSet<NFTAssetId>> = HashMap::new();

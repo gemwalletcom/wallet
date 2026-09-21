@@ -9,20 +9,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import com.gemwallet.android.domains.duration.formatAvailableIn
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
-import com.wallet.core.primitives.Delegation
 
 @Composable
-fun ValidatorItem(
-    data: ValidatorRowUIModel,
-    listPosition: ListPosition,
-    isSelected: Boolean = false,
-    onClick: ((String) -> Unit)?
-) {
+fun ValidatorItem(data: ValidatorRowUIModel, listPosition: ListPosition, isSelected: Boolean = false, onClick: ((String) -> Unit)?) {
     ListItem(
         modifier = Modifier.clickable(enabled = onClick != null) { onClick?.invoke(data.id) },
         leading = {
@@ -40,17 +33,14 @@ fun ValidatorItem(
         listPosition = listPosition,
         trailing = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                ListItemSupportText(R.string.stake_apr, " ${data.aprText}")
+                ListItemSupportText(R.string.stake_apr, data.aprText)
             }
         },
     )
 }
 
 @Composable
-private fun ValidatorIcon(
-    data: ValidatorRowUIModel,
-    isSelected: Boolean,
-) {
+private fun ValidatorIcon(data: ValidatorRowUIModel, isSelected: Boolean) {
     if (isSelected) {
         IconWithBadge(
             icon = data.imageUrl,
@@ -64,17 +54,6 @@ private fun ValidatorIcon(
         )
     }
 }
-
-
-fun availableIn(delegation: Delegation?): String {
-    val remaining = availableInDurationMillis(delegation) ?: return ""
-    return formatAvailableIn(remaining)
-}
-
-internal fun availableInDurationMillis(
-    delegation: Delegation?,
-    currentTimeMillis: Long = System.currentTimeMillis(),
-): Long? = delegation?.base?.completionDate?.minus(currentTimeMillis)
 
 @Composable
 @Preview

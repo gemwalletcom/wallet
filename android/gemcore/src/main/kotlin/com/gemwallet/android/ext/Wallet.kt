@@ -9,9 +9,7 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
 
-fun Wallet.getAccount(chain: Chain): Account? {
-    return accounts.firstOrNull { it.chain == chain }
-}
+fun Wallet.getAccount(chain: Chain): Account? = accounts.firstOrNull { it.chain == chain }
 
 fun Wallet.getAccount(assetId: AssetId): Account? = getAccount(assetId.chain)
 

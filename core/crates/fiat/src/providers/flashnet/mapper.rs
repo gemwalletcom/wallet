@@ -94,18 +94,9 @@ pub fn map_redirect_url(response: &FlashnetOnrampResponse) -> String {
 
 pub fn map_webhook(payload: FlashnetWebhookPayload) -> Result<FiatWebhook, io::Error> {
     match payload.event.as_str() {
-        "order.processing"
-        | "order.confirming"
-        | "order.bridging"
-        | "order.swapping"
-        | "order.awaiting_approval"
-        | "order.refunding"
-        | "order.delivering"
-        | "order.completed"
-        | "order.failed"
-        | "order.refunded" => Ok(FiatWebhook::Transaction(map_order(
-            payload.data.into_order().ok_or_else(|| io::Error::other("Missing Flashnet order fields in webhook"))?,
-        ))),
+        "order.processing" | "order.confirming" | "order.bridging" | "order.swapping" | "order.awaiting_approval" | "order.refunding" | "order.delivering" | "order.completed" | "order.failed" | "order.refunded" => {
+            Ok(FiatWebhook::Transaction(map_order(payload.data.into_order().ok_or_else(|| io::Error::other("Missing Flashnet order fields in webhook"))?)))
+        }
         _ => Ok(FiatWebhook::None),
     }
 }
@@ -203,10 +194,7 @@ mod tests {
 
         assert_eq!(ids, vec!["sol_solana", "usdc_solana"]);
         assert_eq!(solana.asset_id(), Some(primitives::AssetId::from_chain(Chain::Solana)));
-        assert_eq!(
-            usdc.asset_id(),
-            Some(primitives::AssetId::from_token(Chain::Solana, "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"))
-        );
+        assert_eq!(usdc.asset_id(), Some(primitives::AssetId::from_token(Chain::Solana, "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")));
     }
 
     #[test]

@@ -1,9 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
+import GemstoneServices
 import Localization
 import Primitives
+import PrimitivesComponents
 import SwiftUI
-import GemstoneServices
 
 public struct CreateWalletNavigationStack: View {
     @State private var model: CreateWalletModel
@@ -18,21 +20,21 @@ public struct CreateWalletNavigationStack: View {
             rootScene
                 .toolbarDismissItem(type: .close, placement: .topBarLeading)
                 .navigationBarTitleDisplayMode(.inline)
-                .navigationDestination(for: Scenes.VerifyPhrase.self) { scene in
+                .navigationDestination(for: Scenes.VerifyPhrase.self) { _ in
                     VerifyPhraseWalletScene(
-                        model: model.verifyPhraseModel(words: scene.words, onComplete: onVerifyPhraseComplete),
+                        model: model.verifyPhraseModel(onComplete: onVerifyPhraseComplete),
                     )
                 }
                 .navigationDestination(for: Scenes.WalletProfile.self) { scene in
                     SetupWalletScene(model: model.setupWalletModel(wallet: scene.wallet, onComplete: onSetupWalletComplete))
-                    .navigationBarBackButtonHidden()
-                    .interactiveDismissDisabled()
+                        .navigationBarBackButtonHidden()
+                        .interactiveDismissDisabled()
                 }
-                .navigationDestination(for: Scenes.CreateWallet.self) {
+                .navigationDestination(for: Scenes.CreateWallet.self) { _ in
                     ShowSecretDataScene(
                         model: NewSecretPhraseViewModel(
-                            words: $0.words,
-                            onCreateWallet: { navigate(to: .verifyPhrase(words: $0)) },
+                            words: model.words,
+                            onContinue: { navigate(to: .verifyPhrase) },
                         ),
                     )
                 }
@@ -42,7 +44,7 @@ public struct CreateWalletNavigationStack: View {
                 .sheet(item: $model.isPresentingSelectImageWallet) { wallet in
                     NavigationStack {
                         WalletImageScene(model: model.walletImageModel(wallet: wallet))
-                        .toolbarDismissItem(type: .close, placement: .topBarLeading)
+                            .toolbarDismissItem(type: .close, placement: .topBarLeading)
                     }
                 }
                 .alertSheet($model.isPresentingAlertMessage)
@@ -54,7 +56,7 @@ public struct CreateWalletNavigationStack: View {
         if model.isAcceptTermsCompleted {
             securityReminderScene
         } else {
-            AcceptTermsScene(model: AcceptTermsViewModel(onNext: { navigate(to: .securityReminder) }))
+            AcceptTermsScene(model: AcceptTermsViewModel(preferences: model.preferences, onNext: { navigate(to: .securityReminder) }))
         }
     }
 
@@ -75,8 +77,13 @@ extension CreateWalletNavigationStack {
         switch route {
         case .securityReminder: navigationPath.append(Scenes.SecurityReminder())
         case .createWallet:
-            navigationPath.append(Scenes.CreateWallet(words: model.generateSecretPhrase()))
-        case let .verifyPhrase(words): navigationPath.append(Scenes.VerifyPhrase(words: words))
+            do {
+                try model.generateSecretPhrase()
+                navigationPath.append(Scenes.CreateWallet())
+            } catch {
+                model.isPresentingAlertMessage = AlertMessage(title: Localized.Errors.errorOccurred, error: error)
+            }
+        case .verifyPhrase: navigationPath.append(Scenes.VerifyPhrase())
         case let .walletProfile(wallet): navigationPath.append(Scenes.WalletProfile(wallet: wallet))
         }
     }

@@ -43,21 +43,12 @@ impl IpApiResponse {
             is_tor: self.is_tor.unwrap_or(false),
             is_vpn: self.is_vpn.unwrap_or(false),
             usage_type: self.determine_usage_type(),
-            isp: self
-                .company
-                .as_ref()
-                .and_then(|c| c.name.clone())
-                .or_else(|| self.asn.as_ref().and_then(|a| a.org.clone()))
-                .unwrap_or_default(),
+            isp: self.company.as_ref().and_then(|c| c.name.clone()).or_else(|| self.asn.as_ref().and_then(|a| a.org.clone())).unwrap_or_default(),
         }
     }
 
     fn determine_usage_type(&self) -> IpUsageType {
-        self.company
-            .as_ref()
-            .and_then(|c| c.company_type.as_deref())
-            .and_then(|s| s.parse().ok())
-            .unwrap_or_default()
+        self.company.as_ref().and_then(|c| c.company_type.as_deref()).and_then(|s| s.parse().ok()).unwrap_or_default()
     }
 
     fn calculate_confidence_score(&self) -> i64 {
@@ -80,11 +71,7 @@ impl IpApiResponse {
     }
 
     fn parse_abuser_score(&self) -> f64 {
-        let score_str = self
-            .company
-            .as_ref()
-            .and_then(|c| c.abuser_score.clone())
-            .or_else(|| self.asn.as_ref().and_then(|a| a.abuser_score.clone()));
+        let score_str = self.company.as_ref().and_then(|c| c.abuser_score.clone()).or_else(|| self.asn.as_ref().and_then(|a| a.abuser_score.clone()));
 
         if let Some(s) = score_str {
             if let Some(num_str) = s.split_whitespace().next() {

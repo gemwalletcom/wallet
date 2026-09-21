@@ -10,12 +10,7 @@ struct SolanaExplorer {
 
 impl SolanaExplorer {
     fn boxed(name: &'static str, base_url: &'static str, address_path: &'static str, token_path: &'static str) -> Box<dyn BlockExplorer> {
-        Box::new(Self {
-            name,
-            base_url,
-            address_path,
-            token_path,
-        })
+        Box::new(Self { name, base_url, address_path, token_path })
     }
 }
 
@@ -58,10 +53,7 @@ mod tests {
         let explorer = new_solscan();
 
         assert_eq!(explorer.name(), "Solscan");
-        assert_eq!(
-            explorer.get_tx_url("ArS7DzeHUA54ccRG12SqEZwt7snQePcanZ77Mkm2KRos"),
-            "https://solscan.io/tx/ArS7DzeHUA54ccRG12SqEZwt7snQePcanZ77Mkm2KRos"
-        );
+        assert_eq!(explorer.get_tx_url("ArS7DzeHUA54ccRG12SqEZwt7snQePcanZ77Mkm2KRos"), "https://solscan.io/tx/ArS7DzeHUA54ccRG12SqEZwt7snQePcanZ77Mkm2KRos");
         assert_eq!(
             explorer.get_address_url("GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2"),
             "https://solscan.io/account/GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2"
@@ -81,10 +73,7 @@ mod tests {
         let explorer = new_solana_fm();
 
         assert_eq!(explorer.name(), "SolanaFM");
-        assert_eq!(
-            explorer.get_tx_url("ArS7DzeHUA54ccRG12SqEZwt7snQePcanZ77Mkm2KRos"),
-            "https://solana.fm/tx/ArS7DzeHUA54ccRG12SqEZwt7snQePcanZ77Mkm2KRos"
-        );
+        assert_eq!(explorer.get_tx_url("ArS7DzeHUA54ccRG12SqEZwt7snQePcanZ77Mkm2KRos"), "https://solana.fm/tx/ArS7DzeHUA54ccRG12SqEZwt7snQePcanZ77Mkm2KRos");
         assert_eq!(
             explorer.get_address_url("GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2"),
             "https://solana.fm/address/GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2"

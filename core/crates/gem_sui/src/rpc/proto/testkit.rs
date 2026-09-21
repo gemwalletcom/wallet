@@ -23,9 +23,7 @@ impl TransactionEffects {
         Self {
             status: Some(ExecutionStatus {
                 success: Some(success),
-                error: error.map(|description| ExecutionError {
-                    description: Some(description.to_string()),
-                }),
+                error: error.map(|description| ExecutionError { description: Some(description.to_string()) }),
             }),
             ..Default::default()
         }

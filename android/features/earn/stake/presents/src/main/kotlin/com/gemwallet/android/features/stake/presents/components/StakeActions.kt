@@ -18,23 +18,21 @@ import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Resource
 
-internal fun LazyListScope.stakeActions(
-    actions: List<StakeActionUIModel>,
-    assetId: AssetId,
-    amountAction: AmountTransactionAction,
-    onRewards: () -> Unit
-) {
+internal fun LazyListScope.stakeActions(actions: List<StakeActionUIModel>, assetId: AssetId, amountAction: AmountTransactionAction, onRewards: () -> Unit) {
     itemsPositioned(actions) { position, item ->
         val onClick = when (item.action) {
             StakeAction.Stake -> {
                 { amountAction(AmountParams.Stake.Delegate(assetId)) }
             }
+
             StakeAction.Freeze -> {
                 { amountAction(AmountParams.Stake.Freeze(assetId, Resource.Bandwidth)) }
             }
+
             StakeAction.Unfreeze -> {
                 { amountAction(AmountParams.Stake.Unfreeze(assetId, Resource.Bandwidth)) }
             }
+
             StakeAction.ClaimRewards -> onRewards
         }
         var showInfo by remember { mutableStateOf(false) }

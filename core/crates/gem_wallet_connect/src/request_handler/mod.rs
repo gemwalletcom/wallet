@@ -17,9 +17,7 @@ pub struct WalletConnectRequestHandler;
 
 impl WalletConnectRequestHandler {
     pub fn parse_request(request: WalletConnectRequest) -> Result<WalletConnectAction, String> {
-        let WalletConnectRequest {
-            method, params, chain_id, domain, ..
-        } = request;
+        let WalletConnectRequest { method, params, chain_id, domain, .. } = request;
         let method_name = method;
         let method = match serde_json::from_value::<WalletConnectionMethods>(serde_json::Value::String(method_name.clone())) {
             Ok(m) => m,
@@ -36,9 +34,7 @@ impl WalletConnectRequestHandler {
             | WalletConnectionMethods::EthSignTypedData
             | WalletConnectionMethods::EthSignTypedDataV4
             | WalletConnectionMethods::EthSignTransaction
-            | WalletConnectionMethods::EthSendTransaction) => {
-                EthereumRequestHandler::parse_request(method, Self::parse_required_chain(chain_id, ChainType::Ethereum)?, params, &domain)
-            }
+            | WalletConnectionMethods::EthSendTransaction) => EthereumRequestHandler::parse_request(method, Self::parse_required_chain(chain_id, ChainType::Ethereum)?, params, &domain),
             WalletConnectionMethods::EthChainId => Ok(WalletConnectAction::ChainOperation {
                 operation: WalletConnectChainOperation::GetChainId,
             }),
@@ -51,21 +47,13 @@ impl WalletConnectRequestHandler {
                     operation: WalletConnectChainOperation::SwitchChain { chain },
                 })
             }
-            method @ (WalletConnectionMethods::SolanaSignMessage
-            | WalletConnectionMethods::SolanaSignTransaction
-            | WalletConnectionMethods::SolanaSignAndSendTransaction
-            | WalletConnectionMethods::SolanaSignAllTransactions) => {
+            method @ (WalletConnectionMethods::SolanaSignMessage | WalletConnectionMethods::SolanaSignTransaction | WalletConnectionMethods::SolanaSignAndSendTransaction | WalletConnectionMethods::SolanaSignAllTransactions) => {
                 SolanaRequestHandler::parse_request(method, Self::parse_required_chain(chain_id, ChainType::Solana)?, params, &domain)
             }
-            method @ (WalletConnectionMethods::SuiGetAccounts
-            | WalletConnectionMethods::SuiSignPersonalMessage
-            | WalletConnectionMethods::SuiSignTransaction
-            | WalletConnectionMethods::SuiSignAndExecuteTransaction) => {
+            method @ (WalletConnectionMethods::SuiGetAccounts | WalletConnectionMethods::SuiSignPersonalMessage | WalletConnectionMethods::SuiSignTransaction | WalletConnectionMethods::SuiSignAndExecuteTransaction) => {
                 SuiRequestHandler::parse_request(method, Self::parse_required_chain(chain_id, ChainType::Sui)?, params, &domain)
             }
-            method @ (WalletConnectionMethods::TonSignData | WalletConnectionMethods::TonSendMessage) => {
-                TonRequestHandler::parse_request(method, Self::parse_required_chain(chain_id, ChainType::Ton)?, params, &domain)
-            }
+            method @ (WalletConnectionMethods::TonSignData | WalletConnectionMethods::TonSendMessage) => TonRequestHandler::parse_request(method, Self::parse_required_chain(chain_id, ChainType::Ton)?, params, &domain),
             method @ (WalletConnectionMethods::TronSignMessage | WalletConnectionMethods::TronSignTransaction | WalletConnectionMethods::TronSendTransaction) => {
                 TronRequestHandler::parse_request(method, Self::parse_required_chain(chain_id, ChainType::Tron)?, params, &domain)
             }
@@ -121,56 +109,34 @@ mod tests {
     #[test]
     fn test_bitcoin_methods_are_unsupported() {
         let request = WalletConnectRequest::mock("signMessage", "{}", Some("bip122:000000000019d6689c085ae165831e93"));
-        assert_eq!(
-            WalletConnectRequestHandler::parse_request(request).unwrap(),
-            WalletConnectAction::Unsupported {
-                method: "signMessage".to_string()
-            }
-        );
+        assert_eq!(WalletConnectRequestHandler::parse_request(request).unwrap(), WalletConnectAction::Unsupported { method: "signMessage".to_string() });
 
         let request = WalletConnectRequest::mock("sendTransfer", "{}", Some("bip122:000000000019d6689c085ae165831e93"));
-        assert_eq!(
-            WalletConnectRequestHandler::parse_request(request).unwrap(),
-            WalletConnectAction::Unsupported {
-                method: "sendTransfer".to_string()
-            }
-        );
+        assert_eq!(WalletConnectRequestHandler::parse_request(request).unwrap(), WalletConnectAction::Unsupported { method: "sendTransfer".to_string() });
     }
 
     #[test]
     fn test_sui_get_accounts() {
         let request = WalletConnectRequest::mock("sui_getAccounts", "{}", Some("sui:mainnet"));
-        assert_eq!(
-            WalletConnectRequestHandler::parse_request(request).unwrap(),
-            WalletConnectAction::GetAccounts { chain: Chain::Sui }
-        );
+        assert_eq!(WalletConnectRequestHandler::parse_request(request).unwrap(), WalletConnectAction::GetAccounts { chain: Chain::Sui });
     }
 
     #[test]
     fn test_sui_get_accounts_rejects_wrong_namespace() {
         let request = WalletConnectRequest::mock("sui_getAccounts", "{}", Some("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"));
-        assert_eq!(
-            WalletConnectRequestHandler::parse_request(request).unwrap_err(),
-            "WalletConnect method requires sui, got solana"
-        );
+        assert_eq!(WalletConnectRequestHandler::parse_request(request).unwrap_err(), "WalletConnect method requires sui, got solana");
     }
 
     #[test]
     fn test_solana_method_rejects_wrong_namespace() {
         let request = WalletConnectRequest::mock("solana_signMessage", r#"["hello"]"#, Some("sui:mainnet"));
-        assert_eq!(
-            WalletConnectRequestHandler::parse_request(request).unwrap_err(),
-            "WalletConnect method requires solana, got sui"
-        );
+        assert_eq!(WalletConnectRequestHandler::parse_request(request).unwrap_err(), "WalletConnect method requires solana, got sui");
     }
 
     #[test]
     fn test_evm_method_rejects_non_evm_namespace() {
         let request = WalletConnectRequest::mock("personal_sign", r#"["0x48656c6c6f"]"#, Some("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"));
-        assert_eq!(
-            WalletConnectRequestHandler::parse_request(request).unwrap_err(),
-            "WalletConnect method requires an EVM chain, got solana"
-        );
+        assert_eq!(WalletConnectRequestHandler::parse_request(request).unwrap_err(), "WalletConnect method requires an EVM chain, got solana");
     }
 
     #[test]
@@ -248,20 +214,12 @@ mod tests {
         let request = WalletConnectRequest::mock("solana_signAllTransactions", params, Some("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"));
         let action = WalletConnectRequestHandler::parse_request(request).unwrap();
         match &action {
-            WalletConnectAction::SignAllTransactions {
-                chain,
-                transaction_type,
-                transactions,
-            } => {
+            WalletConnectAction::SignAllTransactions { chain, transaction_type, transactions } => {
                 assert_eq!(*chain, Chain::Solana);
                 assert_eq!(transactions.len(), 1);
                 let decoded = WalletConnectRequestHandler::decode_send_transaction(transaction_type.clone(), transactions[0].clone()).unwrap();
                 match decoded {
-                    WalletConnectTransaction::Solana {
-                        data,
-                        output_type,
-                        transaction_type,
-                    } => {
+                    WalletConnectTransaction::Solana { data, output_type, transaction_type } => {
                         assert!(data.transaction.starts_with("AQAAAAAAAAA"));
                         assert_eq!(output_type, TransferDataOutputType::EncodedTransaction);
                         assert_eq!(transaction_type, TransactionType::SmartContractCall);
@@ -276,11 +234,7 @@ mod tests {
     #[test]
     fn test_decode_ethereum_transaction_accepts_numeric_and_hex_string_chain_id() {
         for (chain_id, expected) in [(r#"4663"#, 4663), (r#""0x1237""#, 4663)] {
-            let decoded = WalletConnectRequestHandler::decode_send_transaction(
-                WalletConnectTransactionType::Ethereum,
-                format!(r#"{{"chainId":{chain_id},"from":"0xsender","to":"0xrouter","data":"0x1234","value":"0x0"}}"#),
-            )
-            .unwrap();
+            let decoded = WalletConnectRequestHandler::decode_send_transaction(WalletConnectTransactionType::Ethereum, format!(r#"{{"chainId":{chain_id},"from":"0xsender","to":"0xrouter","data":"0x1234","value":"0x0"}}"#)).unwrap();
 
             match decoded {
                 WalletConnectTransaction::Ethereum { data, kind } => {
@@ -295,17 +249,9 @@ mod tests {
 
     #[test]
     fn test_decode_ethereum_transaction_kind_from_payload() {
-        let cases = [
-            (r#""0x""#, EvmTransactionKind::Transfer),
-            (r#"null"#, EvmTransactionKind::Transfer),
-            (r#""0xdeadbeef""#, EvmTransactionKind::ContractCall),
-        ];
+        let cases = [(r#""0x""#, EvmTransactionKind::Transfer), (r#"null"#, EvmTransactionKind::Transfer), (r#""0xdeadbeef""#, EvmTransactionKind::ContractCall)];
         for (data, expected) in cases {
-            let decoded = WalletConnectRequestHandler::decode_send_transaction(
-                WalletConnectTransactionType::Ethereum,
-                format!(r#"{{"from":"0xsender","to":"0xrouter","data":{data},"value":"0x0"}}"#),
-            )
-            .unwrap();
+            let decoded = WalletConnectRequestHandler::decode_send_transaction(WalletConnectTransactionType::Ethereum, format!(r#"{{"from":"0xsender","to":"0xrouter","data":{data},"value":"0x0"}}"#)).unwrap();
 
             match decoded {
                 WalletConnectTransaction::Ethereum { kind, .. } => assert_eq!(kind, expected),
@@ -316,9 +262,7 @@ mod tests {
 
     #[test]
     fn test_decode_ethereum_approval_data() {
-        let decoded =
-            WalletConnectRequestHandler::decode_send_transaction(WalletConnectTransactionType::Ethereum, include_str!("../../testdata/ethereum_approval.json").to_string())
-                .unwrap();
+        let decoded = WalletConnectRequestHandler::decode_send_transaction(WalletConnectTransactionType::Ethereum, include_str!("../../testdata/ethereum_approval.json").to_string()).unwrap();
 
         match decoded {
             WalletConnectTransaction::Ethereum {

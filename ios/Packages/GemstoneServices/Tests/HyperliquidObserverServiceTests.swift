@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-@testable import GemstoneServices
-import GemstonePrimitivesTestKit
-import enum Gemstone.GemPerpetualSubscription
-import protocol Gemstone.GemPerpetualStreamServiceProtocol
-import typealias Gemstone.WalletId
-import typealias Gemstone.PerpetualAccountMode
 import typealias Gemstone.ChartCandleUpdate
+import protocol Gemstone.GemPerpetualStreamServiceProtocol
+import enum Gemstone.GemPerpetualSubscription
+import typealias Gemstone.PerpetualAccountMode
+import typealias Gemstone.WalletId
+import GemstonePrimitivesTestKit
+@testable import GemstoneServices
 import Primitives
 import PrimitivesTestKit
 import Testing
@@ -25,7 +25,7 @@ private final class PerpetualStreamServiceStub: GemPerpetualStreamServiceProtoco
 
     func disconnected() async {}
 
-    func handle(walletId _: WalletId, mode _: PerpetualAccountMode, data _: Data) async throws -> ChartCandleUpdate? {
+    func candleUpdate(walletId _: WalletId, mode _: PerpetualAccountMode, data _: Data) async throws -> ChartCandleUpdate? {
         nil
     }
 

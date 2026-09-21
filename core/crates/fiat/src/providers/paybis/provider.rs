@@ -53,24 +53,16 @@ impl FiatProvider for PaybisClient {
     async fn get_quote_buy(&self, request: FiatQuoteRequest, request_map: FiatMapping) -> Result<FiatQuoteResponse, Box<dyn Error + Send + Sync>> {
         let quote = self.get_buy_quote(request_map.asset_symbol.symbol, request.currency.to_uppercase(), request.amount).await?;
 
-        let payment_method = quote
-            .payment_methods
-            .first()
-            .ok_or_else(|| FiatQuoteError::UnsupportedState("No payment methods available".to_string()))?;
+        let payment_method = quote.payment_methods.first().ok_or_else(|| FiatQuoteError::UnsupportedState("No payment methods available".to_string()))?;
         let crypto_amount: f64 = payment_method.amount_to.amount.parse()?;
 
         Ok(FiatQuoteResponse::new(quote.id, request.amount, crypto_amount))
     }
 
     async fn get_quote_sell(&self, request: FiatQuoteRequest, request_map: FiatMapping) -> Result<FiatQuoteResponse, Box<dyn Error + Send + Sync>> {
-        let quote = self
-            .get_sell_quote(request_map.asset_symbol.symbol, request.currency.to_uppercase(), request.amount)
-            .await?;
+        let quote = self.get_sell_quote(request_map.asset_symbol.symbol, request.currency.to_uppercase(), request.amount).await?;
 
-        let payout_method = quote
-            .payout_methods
-            .first()
-            .ok_or_else(|| FiatQuoteError::UnsupportedState("No payout methods available".to_string()))?;
+        let payout_method = quote.payout_methods.first().ok_or_else(|| FiatQuoteError::UnsupportedState("No payout methods available".to_string()))?;
         let crypto_amount: f64 = payout_method.amount_from.amount.parse()?;
 
         Ok(FiatQuoteResponse::new(quote.id, request.amount, crypto_amount))
@@ -82,21 +74,10 @@ impl FiatProvider for PaybisClient {
             primitives::FiatQuoteType::Sell => false,
         };
         let redirect_url = self
-            .get_redirect_url(
-                &data.wallet_address,
-                &data.quote.fiat_currency,
-                &data.asset_symbol.symbol,
-                &data.quote.id,
-                is_buy,
-                &data.ip_address,
-                &data.locale,
-            )
+            .get_redirect_url(&data.wallet_address, &data.quote.fiat_currency, &data.asset_symbol.symbol, &data.quote.id, is_buy, &data.ip_address, &data.locale)
             .await?;
 
-        Ok(FiatQuoteUrl {
-            redirect_url,
-            provider_transaction_id: None,
-        })
+        Ok(FiatQuoteUrl { redirect_url, provider_transaction_id: None })
     }
 }
 
@@ -104,10 +85,7 @@ impl FiatProvider for PaybisClient {
 mod fiat_integration_tests {
     use crate::testkit::*;
     use crate::{FiatProvider, model::FiatMapping};
-    use primitives::asset_constants::{
-        BASE_USDC_TOKEN_ID, ETHEREUM_USDC_TOKEN_ID, ETHEREUM_USDT_TOKEN_ID, POLYGON_USDC_TOKEN_ID, POLYGON_USDT_TOKEN_ID, SOLANA_USDC_TOKEN_ID, SOLANA_USDT_TOKEN_ID,
-        TRON_USDT_TOKEN_ID,
-    };
+    use primitives::asset_constants::{BASE_USDC_TOKEN_ID, ETHEREUM_USDC_TOKEN_ID, ETHEREUM_USDT_TOKEN_ID, POLYGON_USDC_TOKEN_ID, POLYGON_USDT_TOKEN_ID, SOLANA_USDC_TOKEN_ID, SOLANA_USDT_TOKEN_ID, TRON_USDT_TOKEN_ID};
     use primitives::currency::Currency;
     use primitives::{Chain, FiatProviderName, FiatQuoteRequest};
 

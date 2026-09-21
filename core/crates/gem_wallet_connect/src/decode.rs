@@ -21,11 +21,7 @@ pub fn decode_sign_message(chain: Chain, sign_type: SignDigestType, data: String
         return siwe_message;
     }
 
-    SignMessage {
-        chain,
-        sign_type,
-        data: message_data,
-    }
+    SignMessage { chain, sign_type, data: message_data }
 }
 
 fn decode_siwe_message(chain: Chain, raw_text: &str, message_data: &[u8]) -> Option<SignMessage> {

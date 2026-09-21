@@ -20,8 +20,13 @@ public struct TransactionsScene: View {
     public var body: some View {
         VStack {
             List {
-                TransactionsList(sections: model.sections, currency: model.currency)
-                .listRowInsets(.assetListRowInsets)
+                if let error = model.loadError {
+                    Section {
+                        ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
+                    }
+                }
+                TransactionsList(sections: model.sections)
+                    .listRowInsets(.assetListRowInsets)
             }
             .listSectionSpacing(.compact)
             .scrollContentBackground(.hidden)
@@ -31,7 +36,7 @@ public struct TransactionsScene: View {
         }
         .background { Colors.insetGroupedListStyle.ignoresSafeArea() }
         .overlay {
-            if model.sections.isEmpty {
+            if model.sections.isEmpty, model.loadError == nil {
                 EmptyContentView(model: model.emptyContentModel)
                     .padding(.horizontal, .medium)
             }

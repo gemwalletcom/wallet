@@ -9,14 +9,8 @@ use crate::devices::auth_config::AuthConfig;
 use crate::devices::error::DeviceError;
 
 fn verify_request_signature(req: &Request<'_>, components: &DeviceAuthPayload, tolerance_ms: u64) -> Result<(), (Status, String)> {
-    let timestamp_ms: u64 = components
-        .timestamp
-        .parse()
-        .map_err(|_| (Status::Unauthorized, DeviceError::InvalidTimestamp.to_string()))?;
-    let now_ms = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map_err(|_| (Status::Unauthorized, DeviceError::InvalidTimestamp.to_string()))?
-        .as_millis() as u64;
+    let timestamp_ms: u64 = components.timestamp.parse().map_err(|_| (Status::Unauthorized, DeviceError::InvalidTimestamp.to_string()))?;
+    let now_ms = SystemTime::now().duration_since(UNIX_EPOCH).map_err(|_| (Status::Unauthorized, DeviceError::InvalidTimestamp.to_string()))?.as_millis() as u64;
 
     if now_ms.abs_diff(timestamp_ms) > tolerance_ms {
         return Err((Status::Unauthorized, DeviceError::TimestampExpired.to_string()));

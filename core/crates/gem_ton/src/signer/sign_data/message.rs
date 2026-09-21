@@ -140,11 +140,7 @@ mod tests {
     #[test]
     fn test_build_sign_data_hash_accepts_raw_address() {
         let payload = TonSignDataPayload::Text { text: "Hello TON".to_string() };
-        let data = TonSignMessageData::new(
-            payload,
-            "example.com".to_string(),
-            "0:58d5c54fbb8488af7eaad0cdc759ca8f6ff79fc9555106c1339b037ec0a40347".to_string(),
-        );
+        let data = TonSignMessageData::new(payload, "example.com".to_string(), "0:58d5c54fbb8488af7eaad0cdc759ca8f6ff79fc9555106c1339b037ec0a40347".to_string());
 
         let hash = data.hash(1234567890).unwrap();
 

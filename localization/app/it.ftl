@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = Attività non supportata.
 errors_connections_no_supported_wallets = Non sono disponibili portafogli supportati.
 errors_connections_unsupported_chain = La catena fornita non è supportata.
 errors_swap_amount_too_small = Importo troppo piccolo
-errors_required = %@ è obbligatorio
 errors_scan_transaction_malicious_description = Questa transazione non può essere completata: l'indirizzo del portafoglio di destinazione è collegato ad attività sospette o dannose.
 errors_scan_transaction_memo_required = %@ l'indirizzo del portafoglio di destinazione richiede un tag/memo di destinazione
 errors_scan_transaction_malicious_title = Attività sospetta
@@ -315,7 +314,7 @@ asset_symbol = Simbolo
 asset_decimals = Decimali
 asset_token_id = ID token
 asset_contract = Contratto
-asset_state_empty_title = Le tue transazioni appariranno qui️
+asset_state_empty_title = Le tue transazioni appariranno qui
 asset_state_empty_description = Ricevi, scambia o acquista %@
 asset_verification_unverified = Non verificato
 asset_verification_suspicious = Sospettoso
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = Quando il prezzo diminuisce di
 price_alerts_set_alert_set_target_price = Imposta il prezzo obiettivo
 price_alerts_set_alert_current_price = Prezzo attuale
 price_alerts_added_for = Imposta avviso prezzo %@
-price_alerts_state_empty_title = I tuoi avvisi appariranno qui️
+price_alerts_state_empty_title = I tuoi avvisi appariranno qui
 price_alerts_state_empty_description = Abilitali aggiungendo monete per tracciarli
 price_alerts_auto_footer = Gli avvisi vengono attivati in caso di movimenti significativi dei prezzi.
 price_alerts_set_alert_title = Imposta avviso prezzo
@@ -536,7 +535,7 @@ verify_phrase_title = Confermare
 
 # Warnings
 
-warnings_multi_signature_blocked = Non trasferire fondi a questo portafoglio multi-firma %@ a meno che tu non sia certo di controllare le chiavi private. In caso contrario, potresti esporti a truffe e potresti perdere definitivamente i tuoi beni.
+warnings_externally_controlled_account = Questo account %@ può essere controllato da qualcun altro. Non inviarvi fondi a meno che tu non sia certo di controllarlo, altrimenti potresti perdere definitivamente i tuoi beni.
 
 # Sell
 
@@ -600,7 +599,7 @@ nft_collections = Collezioni
 nft_collection = Collezione
 nft_save_to_photos = Salva in Foto
 nft_set_as_avatar = Imposta come avatar
-nft_state_empty_title = I tuoi NFT appariranno qui️
+nft_state_empty_title = I tuoi NFT appariranno qui
 nft_state_empty_description = Ricevi il tuo primo NFT
 nft_report_reason_spam = Spam
 nft_report_reason_malicious = Dannoso

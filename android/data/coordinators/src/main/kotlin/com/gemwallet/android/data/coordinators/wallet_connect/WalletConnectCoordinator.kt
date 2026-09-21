@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.coordinators.wallet_connect
 
-import com.gemwallet.android.ext.toGem
 import android.util.Log
 import androidx.core.net.toUri
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthObject
@@ -21,6 +20,7 @@ import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConne
 import com.gemwallet.android.application.wallet_connect.toConnectionSession
 import com.gemwallet.android.application.wallet_connect.toSupportedNamespaces
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneConnectionStore
+import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletConnection
 import kotlinx.coroutines.CoroutineScope
@@ -73,7 +73,7 @@ class WalletConnectCoordinator(
                 initWalletConnect()
                 sync()
                 pingActiveSessions()
-                handlePendingRequests()
+                emitPendingRequests()
             }
         }
         scope.launch(Dispatchers.IO) {
@@ -119,12 +119,7 @@ class WalletConnectCoordinator(
         )
     }
 
-    override fun approveConnection(
-        wallet: Wallet,
-        proposal: WalletConnectSessionProposal,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit,
-    ) {
+    override fun approveConnection(wallet: Wallet, proposal: WalletConnectSessionProposal, onSuccess: () -> Unit, onError: (String) -> Unit) {
         val approval = walletConnectService.sessionApproval(wallet = wallet.toGem())
         val sessionNamespaces = walletConnectClient.generateApprovedNamespaces(
             proposal = proposal,
@@ -146,12 +141,7 @@ class WalletConnectCoordinator(
         }
     }
 
-    override fun rejectConnection(
-        proposal: WalletConnectSessionProposal,
-        reason: GemWalletConnectRejectionReason,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit,
-    ) {
+    override fun rejectConnection(proposal: WalletConnectSessionProposal, reason: GemWalletConnectRejectionReason, onSuccess: () -> Unit, onError: (String) -> Unit) {
         val rejection = walletConnectService.sessionRejection(reason)
         walletConnectClient.rejectSession(
             proposal = proposal,
@@ -169,13 +159,7 @@ class WalletConnectCoordinator(
         )
     }
 
-    override fun approveAuthentication(
-        request: WalletConnectAuthenticationRequest,
-        auths: List<WalletConnectAuthObject>,
-        wallet: Wallet,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit,
-    ) {
+    override fun approveAuthentication(request: WalletConnectAuthenticationRequest, auths: List<WalletConnectAuthObject>, wallet: Wallet, onSuccess: () -> Unit, onError: (String) -> Unit) {
         approveAndStoreSession(wallet, "Authentication failed", onSuccess, onError) { onApproved, onFailure ->
             walletConnectClient.approveAuthentication(
                 request = request,
@@ -186,43 +170,20 @@ class WalletConnectCoordinator(
         }
     }
 
-    override fun rejectAuthentication(
-        request: WalletConnectAuthenticationRequest,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit,
-    ) {
+    override fun rejectAuthentication(request: WalletConnectAuthenticationRequest, onSuccess: () -> Unit, onError: (String) -> Unit) {
         walletConnectClient.rejectAuthentication(request, onSuccess, onError)
     }
 
-    override fun respond(
-        topic: String,
-        id: Long,
-        response: WalletConnectJsonRpcResponse,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit,
-    ) {
+    override fun respond(topic: String, id: Long, response: WalletConnectJsonRpcResponse, onSuccess: () -> Unit, onError: (String) -> Unit) {
         walletConnectClient.respondSessionRequest(topic, id, response, onSuccess, onError)
     }
 
-    override fun authPayloadParams(
-        payloadParams: WalletConnectAuthPayloadParams,
-        supportedChains: List<String>,
-        supportedMethods: List<String>,
-    ): WalletConnectAuthPayloadParams {
-        return walletConnectClient.generateAuthPayloadParams(payloadParams, supportedChains, supportedMethods)
-    }
+    override fun authPayloadParams(payloadParams: WalletConnectAuthPayloadParams, supportedChains: List<String>, supportedMethods: List<String>): WalletConnectAuthPayloadParams =
+        walletConnectClient.generateAuthPayloadParams(payloadParams, supportedChains, supportedMethods)
 
-    override fun authMessage(payloadParams: WalletConnectAuthPayloadParams, issuer: String): String {
-        return walletConnectClient.formatAuthMessage(payloadParams, issuer)
-    }
+    override fun authMessage(payloadParams: WalletConnectAuthPayloadParams, issuer: String): String = walletConnectClient.formatAuthMessage(payloadParams, issuer)
 
-    override fun authObject(
-        payloadParams: WalletConnectAuthPayloadParams,
-        issuer: String,
-        signature: String,
-    ): WalletConnectAuthObject {
-        return walletConnectClient.generateAuthObject(payloadParams, issuer, signature)
-    }
+    override fun authObject(payloadParams: WalletConnectAuthPayloadParams, issuer: String, signature: String): WalletConnectAuthObject = walletConnectClient.generateAuthObject(payloadParams, issuer, signature)
 
     private fun initWalletConnect(onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
         if (isWalletConnectInit.value) {
@@ -243,7 +204,7 @@ class WalletConnectCoordinator(
         walletConnectService.updateSessions(sessions.mapNotNull { it.toConnectionSession(walletConnectService)?.toGem() })
     }
 
-    private fun handlePendingRequests() {
+    private fun emitPendingRequests() {
         for (session in activeSessions().orEmpty()) {
             val request = walletConnectClient.pendingSessionRequests(session.topic).firstOrNull() ?: continue
             val verifyContext = walletConnectClient.verifyContext(request.request.id) ?: continue
@@ -257,18 +218,11 @@ class WalletConnectCoordinator(
         }
     }
 
-    private fun activeSessions(): List<WalletConnectSession>? =
-        runCatching { walletConnectClient.activeSessions().filter { it.metadata != null } }
-            .onFailure { Log.e("WalletConnectCoordinator", "Failed to get active sessions", it) }
-            .getOrNull()
+    private fun activeSessions(): List<WalletConnectSession>? = runCatching { walletConnectClient.activeSessions().filter { it.metadata != null } }
+        .onFailure { Log.e("WalletConnectCoordinator", "Failed to get active sessions", it) }
+        .getOrNull()
 
-    private fun approveAndStoreSession(
-        wallet: Wallet,
-        failureMessage: String,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit,
-        approve: (onSuccess: () -> Unit, onError: (String) -> Unit) -> Unit,
-    ) {
+    private fun approveAndStoreSession(wallet: Wallet, failureMessage: String, onSuccess: () -> Unit, onError: (String) -> Unit, approve: (onSuccess: () -> Unit, onError: (String) -> Unit) -> Unit) {
         approvingWallet.value = wallet
         val activeBefore = activeSessions().orEmpty().map { it.topic }.toSet()
         approve(
@@ -277,13 +231,7 @@ class WalletConnectCoordinator(
         )
     }
 
-    private fun persistNewSessions(
-        wallet: Wallet,
-        activeBefore: Set<String>,
-        failureMessage: String,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit,
-    ) {
+    private fun persistNewSessions(wallet: Wallet, activeBefore: Set<String>, failureMessage: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
         scope.launch(Dispatchers.IO) {
             runCatching {
                 addNewSessions(wallet, activeBefore)

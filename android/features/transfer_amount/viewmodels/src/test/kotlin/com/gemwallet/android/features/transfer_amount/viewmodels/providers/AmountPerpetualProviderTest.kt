@@ -1,12 +1,10 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
-import uniffi.gemstone.GemPerpetualPositionAction
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
-import uniffi.gemstone.GemAmountTitle
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAmountParamsPerpetual
 import com.gemwallet.android.testkit.mockGemPerpetualTransferData
 import com.gemwallet.android.testkit.mockPerpetualPosition
@@ -27,8 +25,12 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemAmountPerpetualPosition
 import uniffi.gemstone.GemAmountServiceInterface
+import uniffi.gemstone.GemAmountTitle
 import uniffi.gemstone.GemAmountType
+import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemPerpetualAutoclose
+import uniffi.gemstone.GemPerpetualPositionAction
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AmountPerpetualProviderTest {
@@ -73,6 +75,7 @@ class AmountPerpetualProviderTest {
             }
             every { perpetualLeverage(any()) } returns 5u
             every { perpetualAutoclose(any(), any(), any()) } returns GemPerpetualAutoclose(takeProfit = null, stopLoss = null)
+            every { perpetualAutocloseRow(any(), any()) } returns GemListRow.Lines(GemListRowTitle.AUTO_CLOSE, emptyList(), null)
         }
         val perpetualAggregate = mockk<PerpetualDetailsDataAggregate>(relaxed = true)
         val getPerpetual = mockk<GetPerpetual>(relaxed = true) {

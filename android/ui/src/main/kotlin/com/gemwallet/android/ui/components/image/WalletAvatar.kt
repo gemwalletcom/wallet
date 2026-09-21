@@ -28,15 +28,7 @@ import com.gemwallet.android.ui.theme.tinyIconSize
 private val removeBadgeSize = 28.dp
 
 @Composable
-fun WalletAvatar(
-    imageUrl: String?,
-    placeholder: Any?,
-    size: Dp,
-    modifier: Modifier = Modifier,
-    supportIcon: Any? = null,
-    onClick: (() -> Unit)? = null,
-    onRemove: (() -> Unit)? = null,
-) {
+fun WalletAvatar(imageUrl: String?, placeholder: Any?, size: Dp, modifier: Modifier = Modifier, supportIcon: Any? = null, onClick: (() -> Unit)? = null, onRemove: (() -> Unit)? = null) {
     val clickModifier = if (onClick != null) {
         Modifier.clickable(
             interactionSource = remember { MutableInteractionSource() },

@@ -18,11 +18,7 @@ pub fn build_assets_filters(request: &SearchRequest) -> Vec<String> {
 }
 
 pub fn build_perpetuals_filters(request: &SearchRequest) -> Vec<String> {
-    if request.has_tag_filter() {
-        vec![filter_array("tags", request.tags.clone())]
-    } else {
-        vec![]
-    }
+    if request.has_tag_filter() { vec![filter_array("tags", request.tags.clone())] } else { vec![] }
 }
 
 pub fn build_filter(filters: Vec<String>) -> String {
@@ -76,10 +72,7 @@ mod tests {
 
         let request = SearchRequest::new("", Some("smartchain"), Some("bstocks"), MAX_QUERY_LIMIT, None);
 
-        assert_eq!(
-            build_assets_filters(&request),
-            vec!["properties.isEnabled = true", "score.rank > 15", "tags IN [\"bstocks\"]", "chain IN [\"smartchain\"]"]
-        );
+        assert_eq!(build_assets_filters(&request), vec!["properties.isEnabled = true", "score.rank > 15", "tags IN [\"bstocks\"]", "chain IN [\"smartchain\"]"]);
     }
 
     #[test]

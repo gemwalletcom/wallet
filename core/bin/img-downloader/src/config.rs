@@ -68,19 +68,11 @@ pub struct TrendingConfig {
 impl ImgDownloaderConfig {
     pub fn load() -> Result<Self, ConfigError> {
         let current_dir = env::current_dir().map_err(|error| ConfigError::Message(error.to_string()))?;
-        let base_dir = if current_dir.join("config.yml").exists() {
-            current_dir
-        } else {
-            current_dir.join("bin/img-downloader")
-        };
+        let base_dir = if current_dir.join("config.yml").exists() { current_dir } else { current_dir.join("bin/img-downloader") };
         Self::load_from_path(base_dir.join("config.yml"))
     }
 
     fn load_from_path(path: PathBuf) -> Result<Self, ConfigError> {
-        Config::builder()
-            .add_source(File::from(path))
-            .add_source(Environment::default().separator("_").ignore_empty(true))
-            .build()?
-            .try_deserialize()
+        Config::builder().add_source(File::from(path)).add_source(Environment::default().separator("_").ignore_empty(true)).build()?.try_deserialize()
     }
 }

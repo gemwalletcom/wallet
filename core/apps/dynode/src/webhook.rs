@@ -75,20 +75,10 @@ impl DynodeBroadcastWebhookClient {
                 info_with_fields!("broadcast webhook delivered", transaction_id = transaction_id.as_str(), request_id = request_id.as_str(),);
             }
             Err(ClientError::Http { status, .. }) => {
-                info_with_fields!(
-                    "broadcast webhook delivery failed",
-                    transaction_id = transaction_id.as_str(),
-                    request_id = request_id.as_str(),
-                    status = status,
-                );
+                info_with_fields!("broadcast webhook delivery failed", transaction_id = transaction_id.as_str(), request_id = request_id.as_str(), status = status,);
             }
             Err(err) => {
-                error_with_fields!(
-                    "broadcast webhook request failed",
-                    &err,
-                    transaction_id = transaction_id.as_str(),
-                    request_id = request_id.as_str(),
-                );
+                error_with_fields!("broadcast webhook request failed", &err, transaction_id = transaction_id.as_str(), request_id = request_id.as_str(),);
             }
         }
     }
@@ -124,9 +114,6 @@ mod tests {
         let providers = BroadcastProviders::from_chains([Chain::HyperCore]);
         let request = ProxyRequest::mock(Chain::HyperCore, Method::POST, "/exchange", br#"{"action":{"type":"updateLeverage"},"nonce":123}"#);
         let response = br#"{"status":"ok","response":{"type":"default"}}"#;
-        assert_eq!(
-            client.extract_payload(&request, response, &providers),
-            Some(TransactionId::new(Chain::HyperCore, "action:123".into()))
-        );
+        assert_eq!(client.extract_payload(&request, response, &providers), Some(TransactionId::new(Chain::HyperCore, "action:123".into())));
     }
 }

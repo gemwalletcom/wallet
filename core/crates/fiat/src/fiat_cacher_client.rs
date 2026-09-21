@@ -34,21 +34,11 @@ impl FiatCacherClient {
             .collect();
         self.cacher.set_values_cached(&entries).await?;
 
-        Ok(scoped_quotes
-            .into_iter()
-            .map(|(quote_id, cached_quote)| FiatQuote {
-                id: quote_id,
-                ..cached_quote.quote
-            })
-            .collect())
+        Ok(scoped_quotes.into_iter().map(|(quote_id, cached_quote)| FiatQuote { id: quote_id, ..cached_quote.quote }).collect())
     }
 
     pub(crate) async fn get_quote(&self, context: &FiatDeviceContext, quote_id: &str) -> Result<CachedFiatQuote, Box<dyn Error + Send + Sync>> {
-        match self
-            .cacher
-            .get_cached_optional(CacheKey::FiatQuote(context.device_id, context.wallet_id, &context.ip_address, quote_id))
-            .await?
-        {
+        match self.cacher.get_cached_optional(CacheKey::FiatQuote(context.device_id, context.wallet_id, &context.ip_address, quote_id)).await? {
             Some(quote) => Ok(quote),
             None => Err(RequestError::Forbidden.into()),
         }
@@ -60,8 +50,6 @@ impl FiatCacherClient {
             return Err(RequestError::Forbidden.into());
         };
         let quote = CachedFiatQuote { url: Some(url.clone()), ..quote };
-        self.cacher
-            .set_cached(CacheKey::FiatQuote(context.device_id, context.wallet_id, &context.ip_address, quote_id), &quote)
-            .await
+        self.cacher.set_cached(CacheKey::FiatQuote(context.device_id, context.wallet_id, &context.ip_address, quote_id), &quote).await
     }
 }

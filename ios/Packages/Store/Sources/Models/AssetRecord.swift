@@ -130,6 +130,29 @@ extension Asset {
 }
 
 extension AssetRecord {
+    var properties: AssetProperties {
+        AssetProperties(
+            isEnabled: isEnabled,
+            isBuyable: isBuyable,
+            isSellable: isSellable,
+            isSwapable: isSwappable,
+            isStakeable: isStakeable,
+            stakingApr: stakingApr,
+            isEarnable: isEarnable,
+            earnApr: earnApr,
+            hasImage: hasImage,
+        )
+    }
+
+    func mapToAssetBasic() -> AssetBasic {
+        AssetBasic(
+            asset: mapToAsset(),
+            properties: properties,
+            score: AssetScore(rank: rank.asInt32),
+            price: nil,
+        )
+    }
+
     func mapToAsset() -> Asset {
         let tokenId = tokenId.isEmpty ? nil : tokenId
         return Asset(
@@ -140,7 +163,6 @@ extension AssetRecord {
             type: type,
         )
     }
-
 }
 
 extension PriceRecordInfo {
@@ -169,18 +191,19 @@ extension AssetRecordInfo {
     }
 
     var metadata: AssetMetaData {
-        AssetMetaData(
-            isEnabled: asset.isEnabled,
+        let properties = asset.properties
+        return AssetMetaData(
+            isEnabled: properties.isEnabled,
             isBalanceEnabled: balance?.isEnabled ?? false,
-            isBuyEnabled: asset.isBuyable,
-            isSellEnabled: asset.isSellable,
-            isSwapEnabled: asset.isSwappable,
-            isStakeEnabled: asset.isStakeable,
-            isEarnEnabled: asset.isEarnable,
+            isBuyEnabled: properties.isBuyable,
+            isSellEnabled: properties.isSellable,
+            isSwapEnabled: properties.isSwapable,
+            isStakeEnabled: properties.isStakeable,
+            isEarnEnabled: properties.isEarnable,
             isPinned: balance?.isPinned ?? false,
             isActive: balance?.isActive ?? true,
-            stakingApr: asset.stakingApr,
-            earnApr: asset.earnApr,
+            stakingApr: properties.stakingApr,
+            earnApr: properties.earnApr,
             rankScore: asset.rank.asInt32,
         )
     }

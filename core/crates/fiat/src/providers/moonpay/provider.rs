@@ -56,17 +56,13 @@ impl FiatProvider for MoonPayClient {
     }
 
     async fn get_quote_buy(&self, request: FiatQuoteRequest, request_map: FiatMapping) -> Result<FiatQuoteResponse, Box<dyn Error + Send + Sync>> {
-        let quote = self
-            .get_buy_quote(request_map.asset_symbol.symbol.to_lowercase(), request.currency.to_lowercase(), request.amount)
-            .await?;
+        let quote = self.get_buy_quote(request_map.asset_symbol.symbol.to_lowercase(), request.currency.to_lowercase(), request.amount).await?;
 
         Ok(Self::map_buy_quote_response(request.amount, quote)?)
     }
 
     async fn get_quote_sell(&self, request: FiatQuoteRequest, request_map: FiatMapping) -> Result<FiatQuoteResponse, Box<dyn Error + Send + Sync>> {
-        let quote = self
-            .get_sell_quote(request_map.asset_symbol.symbol.to_lowercase(), request.currency.to_lowercase(), request.amount)
-            .await?;
+        let quote = self.get_sell_quote(request_map.asset_symbol.symbol.to_lowercase(), request.currency.to_lowercase(), request.amount).await?;
 
         Ok(FiatQuoteResponse::new(generate_quote_id(), quote.quote_currency_amount, quote.base_currency_amount))
     }
@@ -77,19 +73,9 @@ impl FiatProvider for MoonPayClient {
             FiatQuoteType::Sell => data.quote.crypto_amount,
         };
 
-        let redirect_url = self.quote_redirect_url(
-            data.quote.quote_type,
-            amount,
-            &data.asset_symbol.symbol,
-            &data.wallet_address,
-            &data.quote.id,
-            &data.ip_address,
-        )?;
+        let redirect_url = self.quote_redirect_url(data.quote.quote_type, amount, &data.asset_symbol.symbol, &data.wallet_address, &data.quote.id, &data.ip_address)?;
 
-        Ok(FiatQuoteUrl {
-            redirect_url,
-            provider_transaction_id: None,
-        })
+        Ok(FiatQuoteUrl { redirect_url, provider_transaction_id: None })
     }
 }
 

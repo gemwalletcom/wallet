@@ -18,10 +18,7 @@ impl<C: Client> TronscanProvider<C> {
     pub const NAME: &'static str = "Tronscan";
 
     pub fn new(client: C, api_key: &str) -> Self {
-        Self {
-            client,
-            api_key: api_key.to_string(),
-        }
+        Self { client, api_key: api_key.to_string() }
     }
 
     fn headers(&self) -> HashMap<String, String> {
@@ -40,11 +37,7 @@ impl<C: Client> AddressScanProvider for TronscanProvider<C> {
     }
 
     async fn scan_address(&self, target: &AddressTarget) -> Result<ScanResult<AddressTarget>, Box<dyn Error + Send + Sync>> {
-        let security: AddressSecurity = self
-            .client
-            .get(TronscanTarget::AddressSecurity { address: target.address.clone() })
-            .headers(self.headers())
-            .await?;
+        let security: AddressSecurity = self.client.get(TronscanTarget::AddressSecurity { address: target.address.clone() }).headers(self.headers()).await?;
         let reason = security.malicious_reason();
 
         Ok(ScanResult {
@@ -67,11 +60,7 @@ impl<C: Client> TokenScanProvider for TronscanProvider<C> {
     }
 
     async fn scan_token(&self, target: &TokenTarget) -> Result<ScanResult<TokenTarget>, Box<dyn Error + Send + Sync>> {
-        let security: TokenSecurity = self
-            .client
-            .get(TronscanTarget::TokenSecurity { address: target.token_id.clone() })
-            .headers(self.headers())
-            .await?;
+        let security: TokenSecurity = self.client.get(TronscanTarget::TokenSecurity { address: target.token_id.clone() }).headers(self.headers()).await?;
         let reason = security.malicious_reason()?;
 
         Ok(ScanResult {

@@ -28,6 +28,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.asset.availableBalanceAmount
+import com.gemwallet.android.features.swap.viewmodels.models.SwapItemInteraction
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clickable
@@ -41,21 +42,12 @@ import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.smallPadding
-import com.gemwallet.android.features.swap.viewmodels.models.SwapItemInteraction
+import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.Asset
 
 @Composable
-internal fun SwapItem(
-    item: AssetInfo?,
-    equivalent: String,
-    calculating: Boolean = false,
-    interaction: SwapItemInteraction,
-    state: TextFieldState = rememberTextFieldState(),
-    onBalanceClick: () -> Unit,
-    onAssetSelect: () -> Unit,
-) {
+internal fun SwapItem(item: AssetInfo?, equivalent: String, calculating: Boolean = false, interaction: SwapItemInteraction, state: TextFieldState = rememberTextFieldState(), onBalanceClick: () -> Unit, onAssetSelect: () -> Unit) {
     Row(
         modifier = Modifier
             .listItem(ListPosition.Single)
@@ -96,11 +88,7 @@ internal fun SwapItem(
 }
 
 @Composable
-private fun SwapItemLotInfo(
-    asset: Asset?,
-    enabled: Boolean,
-    onClick: () -> Unit
-) {
+private fun SwapItemLotInfo(asset: Asset?, enabled: Boolean, onClick: () -> Unit) {
     if (asset == null) {
         SelectAssetInfo(enabled, onClick)
     } else {
@@ -127,11 +115,7 @@ private fun SelectAssetInfo(enabled: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun AssetInfo(
-    asset: Asset,
-    enabled: Boolean,
-    onClick: () -> Unit
-) {
+private fun AssetInfo(asset: Asset, enabled: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .clickable(enabled = enabled, onClick = onClick)
@@ -170,11 +154,7 @@ private fun SwapEquivalent(calculating: Boolean, equivalent: String) {
 }
 
 @Composable
-private fun SwapBalance(
-    balance: String?,
-    interaction: SwapItemInteraction,
-    onBalanceClick: () -> Unit,
-) {
+private fun SwapBalance(balance: String?, interaction: SwapItemInteraction, onBalanceClick: () -> Unit) {
     Text(
         modifier = Modifier
             .clickable(
@@ -193,16 +173,11 @@ private fun SwapBalance(
 }
 
 @Composable
-private fun SwapItemInput(
-    calculating: Boolean,
-    interaction: SwapItemInteraction,
-    assetSelected: Boolean,
-    state: TextFieldState = rememberTextFieldState(),
-) {
+private fun SwapItemInput(calculating: Boolean, interaction: SwapItemInteraction, assetSelected: Boolean, state: TextFieldState = rememberTextFieldState()) {
     val focusRequester = remember { FocusRequester() }
     val amountTextStyle = MaterialTheme.typography.headlineSmall
     val inputTextStyle = amountTextStyle.copy(
-        color = MaterialTheme.colorScheme.onSurface
+        color = MaterialTheme.colorScheme.onSurface,
     )
 
     LaunchedEffect(assetSelected) {
@@ -229,7 +204,7 @@ private fun SwapItemInput(
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 keyboardOptions = KeyboardOptions.Default.copy(
                     autoCorrectEnabled = false,
-                    keyboardType = KeyboardType.Decimal
+                    keyboardType = KeyboardType.Decimal,
                 ),
                 decorator = { innerTextField ->
                     if (assetSelected && state.text.isEmpty()) {
@@ -241,7 +216,7 @@ private fun SwapItemInput(
                     }
                     innerTextField()
                 },
-                readOnly = !interaction.isAmountEditable
+                readOnly = !interaction.isAmountEditable,
             )
         }
     }

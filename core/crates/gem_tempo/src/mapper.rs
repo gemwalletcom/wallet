@@ -72,10 +72,7 @@ mod tests {
         let token_transfer = map_tempo_transaction(&token_transaction, &token_receipt);
         assert_eq!(token_transfer.transaction_type, TransactionType::Transfer);
         assert_eq!(token_transfer.asset_id, TEMPO_BRIDGED_USDC_ASSET_ID.clone());
-        assert_eq!(
-            ethereum_address_checksum(&token_transfer.asset_id.token_id.clone().unwrap()).unwrap(),
-            TEMPO_BRIDGED_USDC_TOKEN_ID
-        );
+        assert_eq!(ethereum_address_checksum(&token_transfer.asset_id.token_id.clone().unwrap()).unwrap(), TEMPO_BRIDGED_USDC_TOKEN_ID);
 
         token_receipt.fee_token = None;
         let transaction = EthereumMapper::map_transaction(Chain::Tempo, &token_transaction, &token_receipt, &BigUint::from(1735671600u64)).unwrap();

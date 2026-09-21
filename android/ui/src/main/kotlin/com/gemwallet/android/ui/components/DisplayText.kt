@@ -26,21 +26,14 @@ private const val BALANCE_MASK = "✱✱✱✱✱"
 private val balanceTextLineHeight = 44.sp
 private val balanceTextHeight = 52.dp
 
-data class HideToggle(
-    val hidden: Boolean,
-    val onToggle: () -> Unit,
-)
+data class HideToggle(val hidden: Boolean, val onToggle: () -> Unit)
 
 internal val HideToggle?.isHidden: Boolean get() = this?.hidden == true
 
 internal fun HideToggle?.mask(text: String): String = if (isHidden) BALANCE_MASK else text
 
 @Composable
-fun DisplayText(
-    text: String,
-    modifier: Modifier = Modifier,
-    hideToggle: HideToggle? = null,
-) {
+fun DisplayText(text: String, modifier: Modifier = Modifier, hideToggle: HideToggle? = null) {
     val hidden = hideToggle.isHidden
     val balanceTextStyle = if (hidden) {
         MaterialTheme.typography.headlineSmall.copy(lineHeight = balanceTextLineHeight)

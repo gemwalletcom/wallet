@@ -14,10 +14,7 @@ pub trait AssetsAddressesRepository {
 
 impl AssetsAddressesRepository for DatabaseClient {
     fn add_assets_addresses(&mut self, values: Vec<PrimitiveAssetAddress>) -> Result<usize, DatabaseError> {
-        Ok(AssetsAddressesStore::add_assets_addresses(
-            self,
-            values.into_iter().map(AssetAddressRow::from_primitive).collect(),
-        )?)
+        Ok(AssetsAddressesStore::add_assets_addresses(self, values.into_iter().map(AssetAddressRow::from_primitive).collect())?)
     }
 
     fn get_assets_by_addresses(&mut self, values: Vec<ChainAddress>, from_datetime: Option<NaiveDateTime>) -> Result<Vec<AssetId>, DatabaseError> {
@@ -33,9 +30,6 @@ impl AssetsAddressesRepository for DatabaseClient {
     }
 
     fn delete_assets_addresses(&mut self, values: Vec<PrimitiveAssetAddress>) -> Result<usize, DatabaseError> {
-        Ok(AssetsAddressesStore::delete_assets_addresses(
-            self,
-            values.into_iter().map(AssetAddressRow::from_primitive).collect(),
-        )?)
+        Ok(AssetsAddressesStore::delete_assets_addresses(self, values.into_iter().map(AssetAddressRow::from_primitive).collect())?)
     }
 }

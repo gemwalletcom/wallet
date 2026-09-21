@@ -17,12 +17,7 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.open
 
 @Composable
-fun FiatTransactionsScene(
-    transactions: List<FiatTransactionRowUIModel>,
-    isRefreshing: Boolean,
-    onClose: () -> Unit,
-    onRefresh: () -> Unit,
-) {
+fun FiatTransactionsScene(transactions: List<FiatTransactionRowUIModel>, isRefreshing: Boolean, onClose: () -> Unit, onRefresh: () -> Unit) {
     Scene(
         title = stringResource(id = R.string.activity_title),
         onClose = onClose,

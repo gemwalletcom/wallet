@@ -13,21 +13,16 @@ impl TronGridMapper {
             .trc20
             .into_iter()
             .flat_map(|trc20_map| {
-                trc20_map.into_iter().map(|(contract_address, balance)| {
-                    AssetBalance::new(AssetId::from(Chain::Tron, Some(contract_address)), BigUint::from_str(balance.as_str()).unwrap_or_default())
-                })
+                trc20_map
+                    .into_iter()
+                    .map(|(contract_address, balance)| AssetBalance::new(AssetId::from(Chain::Tron, Some(contract_address)), BigUint::from_str(balance.as_str()).unwrap_or_default()))
             })
             .collect()
     }
 
     pub fn map_transaction_requests(transactions: Vec<TronGridTransaction>, trc20_transactions: Vec<TronGridTransaction>, limit: usize) -> Vec<TransactionIdRequest> {
         let mut transactions = transactions.into_iter().chain(trc20_transactions).collect::<Vec<_>>();
-        transactions.sort_unstable_by(|left, right| {
-            right
-                .block_timestamp
-                .cmp(&left.block_timestamp)
-                .then_with(|| left.transaction_id.cmp(&right.transaction_id))
-        });
+        transactions.sort_unstable_by(|left, right| right.block_timestamp.cmp(&left.block_timestamp).then_with(|| left.transaction_id.cmp(&right.transaction_id)));
 
         let mut transaction_ids = HashSet::new();
         transactions
@@ -45,22 +40,11 @@ mod tests {
 
     #[test]
     fn test_map_transaction_requests() {
-        let transactions = vec![
-            TronGridTransaction::mock("native", 30),
-            TronGridTransaction::mock("duplicate", 20),
-            TronGridTransaction::mock("oldest-native", 5),
-        ];
-        let trc20_transactions = vec![
-            TronGridTransaction::mock("incoming-token", 40),
-            TronGridTransaction::mock("duplicate", 20),
-            TronGridTransaction::mock("older-token", 10),
-        ];
+        let transactions = vec![TronGridTransaction::mock("native", 30), TronGridTransaction::mock("duplicate", 20), TronGridTransaction::mock("oldest-native", 5)];
+        let trc20_transactions = vec![TronGridTransaction::mock("incoming-token", 40), TronGridTransaction::mock("duplicate", 20), TronGridTransaction::mock("older-token", 10)];
 
         let requests = TronGridMapper::map_transaction_requests(transactions, trc20_transactions, 4);
 
-        assert_eq!(
-            requests.iter().map(|request| request.hash.as_str()).collect::<Vec<_>>(),
-            vec!["incoming-token", "native", "duplicate", "older-token"]
-        );
+        assert_eq!(requests.iter().map(|request| request.hash.as_str()).collect::<Vec<_>>(), vec!["incoming-token", "native", "duplicate", "older-token"]);
     }
 }

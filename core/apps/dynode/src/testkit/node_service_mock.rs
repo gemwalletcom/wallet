@@ -21,10 +21,7 @@ impl NodeService {
                 forward: vec![header::CONTENT_TYPE.to_string()],
             },
             DynodeBroadcastWebhookClient::disabled(),
-            MonitoringConfig {
-                enabled: false,
-                ..MonitoringConfig::mock()
-            },
+            MonitoringConfig { enabled: false, ..MonitoringConfig::mock() },
         )
     }
 }

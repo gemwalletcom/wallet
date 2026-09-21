@@ -418,10 +418,7 @@ impl Settings {
     }
 
     pub fn new_setting_path(path: PathBuf) -> Result<Self, ConfigError> {
-        let s = Config::builder()
-            .add_source(File::from(path))
-            .add_source(Environment::with_prefix("").prefix_separator("").separator("_"))
-            .build()?;
+        let s = Config::builder().add_source(File::from(path)).add_source(Environment::with_prefix("").prefix_separator("").separator("_")).build()?;
         s.try_deserialize()
     }
 

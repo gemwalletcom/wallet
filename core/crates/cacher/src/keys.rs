@@ -128,7 +128,7 @@ impl CacheKey<'_> {
             Self::FiatIpCheck(_) => SECONDS_PER_DAY,
             Self::RateLimit(_, _, window) => window.duration().as_secs(),
             Self::AuthNonce(_, _) => 5 * SECONDS_PER_MINUTE,
-            Self::AddressStatus(_, _) => 31 * SECONDS_PER_DAY,
+            Self::AddressStatus(_, _) => SECONDS_PER_YEAR,
             Self::JobStatus(_) => 7 * SECONDS_PER_DAY,
             Self::ConsumerStatus(_) => 7 * SECONDS_PER_DAY,
             Self::ParserStatus(_) => 7 * SECONDS_PER_DAY,

@@ -11,14 +11,14 @@ use primitives::currency::Currency;
 use primitives::{Asset, AssetId, AssetLink, AssetMarket, ChartDateValue, ChartPeriod, PriceAlert};
 
 use crate::api::{GemApiClient, GemApiError};
+use crate::models::list::GemListSection;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
-use crate::services::price_alert::GemPriceAlertService;
 use session::GemChartSession;
 
-pub use model::{GemAssetMarketRow, GemChartData, GemChartHeader, GemChartSection, GemChartValueType};
+pub use model::{GemChartBounds, GemChartData, GemChartHeader, GemChartValueType};
 
 #[uniffi::export]
 pub fn candlestick_header(base: f64, value: f64) -> GemChartHeader {
@@ -52,32 +52,19 @@ pub struct GemChartService {
     api: Arc<GemApiClient>,
     price: Arc<GemPriceService>,
     preferences: Arc<GemPreferencesService>,
-    price_alerts: Arc<GemPriceAlertService>,
     explorer: Arc<GemExplorerService>,
 }
 
 #[uniffi::export]
 impl GemChartService {
     #[uniffi::constructor]
-    pub fn new(
-        api: Arc<GemApiClient>,
-        price: Arc<GemPriceService>,
-        preferences: Arc<GemPreferencesService>,
-        price_alerts: Arc<GemPriceAlertService>,
-        explorer: Arc<GemExplorerService>,
-    ) -> Self {
-        Self {
-            api,
-            price,
-            preferences,
-            price_alerts,
-            explorer,
-        }
+    pub fn new(api: Arc<GemApiClient>, price: Arc<GemPriceService>, preferences: Arc<GemPreferencesService>, explorer: Arc<GemExplorerService>) -> Self {
+        Self { api, price, preferences, explorer }
     }
 
-    pub fn sections(&self, asset: Asset, price: Option<f64>, market: Option<AssetMarket>, price_alerts: Vec<PriceAlert>, links: Vec<AssetLink>) -> Vec<GemChartSection> {
+    pub fn sections(&self, asset: Asset, price: Option<f64>, market: Option<AssetMarket>, price_alerts: Vec<PriceAlert>, links: Vec<AssetLink>) -> Vec<GemListSection> {
         let contract_explorer = asset.id.token_id.clone().and_then(|token_id| self.explorer.get_token_url(asset.id.chain, token_id));
-        rules::chart_sections(&asset, price, market.as_ref(), price_alerts, links, contract_explorer)
+        rules::chart_sections(&asset, self.preferences.get_currency(), price, market.as_ref(), price_alerts, links, contract_explorer)
     }
 
     pub fn new_session(&self) -> GemChartSession {
@@ -110,9 +97,5 @@ impl GemChartService {
         let base_value = rules::base_value(&values);
         let current = rules::current_value(&values, latest, Utc::now(), period, base_value);
         Ok(GemChart { values, base_value, current })
-    }
-
-    pub async fn sync_price_alerts(&self, asset_id: AssetId) -> Result<(), GemServiceError> {
-        self.price_alerts.sync(Some(asset_id)).await
     }
 }

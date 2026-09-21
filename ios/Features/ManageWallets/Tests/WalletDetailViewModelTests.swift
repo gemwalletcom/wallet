@@ -93,18 +93,9 @@ struct WalletDetailViewModelTests {
     func exportingASecretAWatchWalletDoesNotHaveShowsTheError() async {
         let model = WalletDetailViewModel.mock(wallet: .mock(id: .multicoin(address: "0xmissing")))
 
-        model.onShowSecret()
-        await settle { model.isPresentingAlertMessage != nil }
+        await model.onShowSecret()
 
         #expect(model.isPresentingExportWallet == nil)
         #expect(model.isPresentingAlertMessage != nil)
-    }
-
-    private func settle(until condition: () -> Bool) async {
-        for _ in 0 ..< 200 {
-            await Task.yield()
-            if condition() { return }
-            try? await Task.sleep(for: .milliseconds(5))
-        }
     }
 }

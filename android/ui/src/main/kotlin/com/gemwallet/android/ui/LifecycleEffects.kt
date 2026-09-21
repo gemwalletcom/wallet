@@ -9,9 +9,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 
 @Composable
-fun ObserveStartedState(
-    onChanged: (Boolean) -> Unit,
-) {
+fun ObserveStartedState(onChanged: (Boolean) -> Unit) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val currentOnChanged by rememberUpdatedState(onChanged)
 

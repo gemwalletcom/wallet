@@ -3,6 +3,7 @@ package com.gemwallet.android.features.create_wallet.viewmodels
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
@@ -15,8 +16,8 @@ import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -28,16 +29,16 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemErrorText
+import uniffi.gemstone.GemVerifyPhraseSession
+import uniffi.gemstone.GemVerifyPhraseViewState
 import uniffi.gemstone.GemWalletDefaultName
 import uniffi.gemstone.GemWalletImportKind
 import uniffi.gemstone.GemWalletImportResult
 import uniffi.gemstone.GemWalletServiceInterface
+import javax.inject.Inject
 
 @HiltViewModel
-class CreateWalletViewModel @Inject constructor(
-    private val service: GemWalletServiceInterface,
-    @param:ApplicationContext private val context: Context,
-) : ViewModel() {
+class CreateWalletViewModel @Inject constructor(private val service: GemWalletServiceInterface, @param:ApplicationContext private val context: Context, @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher) : ViewModel() {
 
     private val state = MutableStateFlow(CreateWalletViewModelState())
     val uiState = state.asStateFlow()
@@ -48,24 +49,34 @@ class CreateWalletViewModel @Inject constructor(
     val errorText: StateFlow<String?> = state.map { it.dataError?.text(context)?.ifBlank { context.getString(R.string.errors_unknown_try_again) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    fun phraseVerificationWords(words: List<String>): List<String> = service.phraseVerificationWords(words)
+    private val verification = MutableStateFlow<GemVerifyPhraseSession?>(null)
+
+    val verificationState: StateFlow<GemVerifyPhraseViewState?> = verification.map { it?.viewState() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    fun onPickWord(choice: Int): Boolean {
+        val current = verification.value ?: return false
+        val next = current.onPick(choice.toUInt())
+        verification.value = next
+        return next != current
+    }
 
     init {
-        viewModelScope.launch(Dispatchers.IO) {
-            state.update { it.copy(defaultName = service.defaultWalletName(null)) }
-            runCatchingCancellable { service.createWallet() }
-                .onSuccess { words -> state.update { it.copy(data = words) } }
+        viewModelScope.launch(ioDispatcher) {
+            runCatchingCancellable { service.defaultWalletName(null) to service.createWallet() }
+                .onSuccess { (defaultName, words) -> state.update { it.copy(defaultName = defaultName, data = words) } }
                 .onFailure { err -> state.update { it.copy(dataError = err.errorText()) } }
         }
     }
 
-    fun handleCreateDismiss() {
+    fun dismissSafeMessage() {
         state.update {
             it.copy(isShowSafeMessage = false)
         }
     }
 
-    fun handleReadyToCreate(walletName: String) {
+    fun confirmPhrase(walletName: String) {
+        verification.value = service.verifyPhraseSession(state.value.data)
         state.update {
             it.copy(
                 name = walletName.ifEmpty { it.name },
@@ -74,12 +85,12 @@ class CreateWalletViewModel @Inject constructor(
         }
     }
 
-    fun handleCreate(onCreated: (walletId: WalletId?) -> Unit) {
+    fun createWallet(onCreated: (walletId: WalletId?) -> Unit) {
         if (state.value.loading) {
             return
         }
         state.update { it.copy(isShowSafeMessage = true, loading = true) }
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             val newState = try {
                 val wallet = createWallet(state.value.name, state.value.data.joinToString(" "))
                 withContext(Dispatchers.Main) {
@@ -114,5 +125,6 @@ data class CreateWalletViewModelState(
     val isShowSafeMessage: Boolean = false,
 ) {
     fun isExistingWallets() = defaultName?.hasExistingWallets == true
-}
 
+    override fun toString() = "CreateWalletViewModelState(loading=$loading, wordCount=${data.size}, isShowSafeMessage=$isShowSafeMessage)"
+}

@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import enum Gemstone.GemSearchScope
 import protocol Gemstone.GemAssetSelectionServiceProtocol
+import enum Gemstone.GemSearchScope
 import Primitives
 
 public extension GemAssetSelectionServiceProtocol {

@@ -3,10 +3,7 @@ package com.gemwallet.android.data.service.store.database.entities
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletConnectionState
 
-fun mockDbConnection(
-    id: String = "connection-1",
-    walletId: String = "wallet-1",
-) = DbConnection(
+fun mockDbConnection(id: String = "connection-1", walletId: String = "wallet-1") = DbConnection(
     id = id,
     walletId = walletId,
     sessionId = id,

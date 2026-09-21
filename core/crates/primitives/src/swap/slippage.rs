@@ -16,9 +16,6 @@ pub enum SlippageMode {
 
 impl From<u32> for Slippage {
     fn from(value: u32) -> Self {
-        Slippage {
-            bps: value,
-            mode: SlippageMode::Exact,
-        }
+        Slippage { bps: value, mode: SlippageMode::Exact }
     }
 }

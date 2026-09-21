@@ -4,69 +4,44 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockAssetPriceValue
-import com.gemwallet.android.testkit.mockAssetSolana
+import com.gemwallet.android.testkit.mockFormattedNumber
 import com.wallet.core.primitives.FeePriority
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.FeeUnitType
 import uniffi.gemstone.GemFeeRateRow
+import uniffi.gemstone.GemLocalizedText
+import uniffi.gemstone.GemNumberUnit
 import java.math.BigInteger
 
 class FeeRateUIModelTest {
 
     @Test
-    fun gweiRateShowsTheUnitValueAndTheScaledFeeInFiat() {
-        val assetInfo = mockAssetPriceValue(mockAssetEthereum(), mockAssetPriceInfo(price = 1.0))
+    fun aRateShowsTheScaledFeeInFiat() {
         val model = FeeRateUIModel(
             row = GemFeeRateRow(
                 priority = FeePriority.Fast.toGem(),
-                unitValue = BigInteger.ONE,
                 fee = BigInteger("500000000000000000"),
-                displayValue = BigInteger.ONE,
+                value = GemLocalizedText.FeeRate(mockFormattedNumber(value = 2.5, unit = GemNumberUnit.Plain), FeeUnitType.GWEI),
             ),
-            feeAsset = assetInfo,
-            feeRateDecimals = 9,
-            unitSymbol = "gwei",
+            feeAsset = mockAssetPriceValue(mockAssetEthereum(), mockAssetPriceInfo(price = 1.0)),
         )
 
         assertEquals(FeePriority.Fast, model.priority)
-        assertEquals("0.000000001 gwei", model.price)
         assertEquals("$0.5", model.fiatValue)
     }
 
     @Test
-    fun nativeRateShowsTheScaledFeeInTheFeeAsset() {
-        val assetInfo = mockAssetPriceValue(mockAssetSolana())
-        fun model(priority: FeePriority, fee: String) = FeeRateUIModel(
-            row = GemFeeRateRow(
-                priority = priority.toGem(),
-                unitValue = BigInteger.ONE,
-                fee = BigInteger(fee),
-                displayValue = BigInteger(fee),
-            ),
-            feeAsset = assetInfo,
-            feeRateDecimals = assetInfo.asset.decimals,
-            unitSymbol = "SOL",
-        )
-
-        assertEquals("0.00011 SOL", model(FeePriority.Normal, "110000").price)
-        assertEquals("0.0002 SOL", model(FeePriority.Fast, "200000").price)
-    }
-
-    @Test
-    fun nativeRateFallsBackToTheUnitValueWithoutAFee() {
+    fun aRateWithoutAFeeHasNoFiatValue() {
         val model = FeeRateUIModel(
             row = GemFeeRateRow(
                 priority = FeePriority.Normal.toGem(),
-                unitValue = BigInteger.ONE,
                 fee = null,
-                displayValue = BigInteger.ONE,
+                value = GemLocalizedText.FeeRate(mockFormattedNumber(value = 1.0, unit = GemNumberUnit.Plain), FeeUnitType.NATIVE),
             ),
             feeAsset = mockAssetPriceValue(mockAssetEthereum()),
-            feeRateDecimals = mockAssetEthereum().decimals,
-            unitSymbol = "ETH",
         )
 
-        assertEquals("0.000000000000000001 ETH", model.price)
         assertEquals("", model.fiatValue)
     }
 }

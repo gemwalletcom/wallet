@@ -10,11 +10,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class AssetsManageRoute(val chain: Chain? = null) : NavKey
 
-fun EntryProviderScope<NavKey>.assetsManageScreen(
-    onAddAsset: () -> Unit,
-    onAssetClick: (AssetId) -> Unit,
-    onCancel: () -> Unit,
-) {
+fun EntryProviderScope<NavKey>.assetsManageScreen(onAddAsset: () -> Unit, onAssetClick: (AssetId) -> Unit, onCancel: () -> Unit) {
     entry<AssetsManageRoute> { key ->
         AssetsManageScreen(
             chain = key.chain,

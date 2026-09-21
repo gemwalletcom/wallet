@@ -1,27 +1,29 @@
 package com.gemwallet.android.ui.models.swap
 
-import uniffi.gemstone.swapQuoteSummary
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.model.AssetPriceValue
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetEthereum
-import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockAssetPriceValue
 import com.gemwallet.android.testkit.mockSwapQuote
-import com.gemwallet.android.model.ValueFormatter
+import com.wallet.core.primitives.Currency
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemSwapProviderRow
+import uniffi.gemstone.GemValueStyle
 import uniffi.gemstone.SwapPriceImpact
 import uniffi.gemstone.SwapPriceImpactType
 import uniffi.gemstone.SwapProvider
+import uniffi.gemstone.swapProviderRow
+import uniffi.gemstone.swapQuoteSummary
 import java.math.BigInteger
-import uniffi.gemstone.GemValueStyle
 
 class SwapDetailsUIModelFactoryTest {
-
 
     private val payAsset = mockAssetPriceValue(asset = mockAsset(symbol = "AAA", name = "AAA", decimals = 18), price = mockAssetPriceInfo(price = 1.0))
     private val receiveAsset = mockAssetPriceValue(asset = mockAsset(symbol = "BBB", name = "BBB", decimals = 18), price = mockAssetPriceInfo(price = 1.0))
@@ -122,7 +124,7 @@ class SwapDetailsUIModelFactoryTest {
             swapDetails(
                 fromValue = "0",
                 toValue = "950000000000000000",
-            )
+            ),
         )
     }
 
@@ -164,8 +166,8 @@ class SwapDetailsUIModelFactoryTest {
     private fun swapDetails(
         fromValue: String = DEFAULT_FROM_VALUE,
         toValue: String,
-        provider: SwapProviderUIModel = provider(toValue),
-        providers: List<SwapProviderUIModel> = emptyList(),
+        provider: GemSwapProviderRow = provider(toValue),
+        providers: List<GemSwapProviderRow> = emptyList(),
         slippageBps: UInt = DEFAULT_SLIPPAGE_BPS,
         etaInSeconds: UInt? = null,
         isProviderSelectable: Boolean = false,
@@ -187,32 +189,24 @@ class SwapDetailsUIModelFactoryTest {
         )
     }
 
-    private fun summary(
-        fromValue: String,
-        toValue: String,
-        slippageBps: UInt,
-        etaInSeconds: UInt?,
-        payAsset: AssetPriceValue,
-        receiveAsset: AssetPriceValue,
-    ) = swapQuoteSummary(
+    private fun summary(fromValue: String, toValue: String, slippageBps: UInt, etaInSeconds: UInt?, payAsset: AssetPriceValue, receiveAsset: AssetPriceValue) = swapQuoteSummary(
         mockSwapQuote(fromAmount = fromValue.toBigInteger(), toAmount = toValue.toBigInteger(), slippageBps = slippageBps, etaInSeconds = etaInSeconds),
         payAsset.asset.toGem(),
         receiveAsset.asset.toGem(),
     )
 
-    private fun provider(
-        toValue: String,
-        receiveAsset: AssetPriceValue = this.receiveAsset,
-    ) = SwapProviderUIModelFactory.create(
-        providerId = SwapProvider.OKX,
+    private fun provider(toValue: String, receiveAsset: AssetPriceValue = this.receiveAsset) = swapProviderRow(
+        provider = SwapProvider.OKX,
         title = "OKX (DEX)",
-        receiveAsset = receiveAsset,
         toValue = BigInteger(toValue),
+        receiveAsset = receiveAsset.asset.toGem(),
+        receivePrice = receiveAsset.price?.price?.price,
+        currency = Currency.USD.toGem(),
+        isSelected = true,
     )
 
-    private fun formattedReceiveAmount(atomicValue: String) =
-        ValueFormatter(style = GemValueStyle.AUTO)
-            .string(java.math.BigInteger(atomicValue), receiveAsset.asset)
+    private fun formattedReceiveAmount(atomicValue: String) = ValueFormatter(style = GemValueStyle.AUTO)
+        .string(java.math.BigInteger(atomicValue), receiveAsset.asset)
 
     private companion object {
         const val DEFAULT_FROM_VALUE = "1000000000000000000"

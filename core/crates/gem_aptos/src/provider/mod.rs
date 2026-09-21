@@ -4,6 +4,8 @@ use primitives::Chain;
 
 use crate::rpc::client::AptosClient;
 
+pub mod address;
+pub mod address_mapper;
 pub mod balances;
 pub mod balances_mapper;
 pub mod payload_builder;

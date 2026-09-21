@@ -8,9 +8,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 
-class GetCurrentWalletIdImpl(
-    private val getSession: GetSession,
-) : GetCurrentWalletId {
+class GetCurrentWalletIdImpl(private val getSession: GetSession) : GetCurrentWalletId {
 
     override fun invoke(): Flow<WalletId> = getSession()
         .filterNotNull()

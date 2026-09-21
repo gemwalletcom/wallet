@@ -16,10 +16,7 @@ private val paymentOptions = listOf(
 )
 
 @Composable
-fun PaymentsScene(
-    onSelect: (String) -> Unit,
-    onCancel: () -> Unit,
-) {
+fun PaymentsScene(onSelect: (String) -> Unit, onCancel: () -> Unit) {
     Scene(
         title = "Payments",
         onClose = onCancel,

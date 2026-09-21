@@ -35,10 +35,7 @@ mod tests {
     fn test_map_transaction_status_failed() {
         let blocks = vec![Block {
             number: 100,
-            extrinsics: vec![Extrinsic {
-                success: false,
-                ..Extrinsic::mock()
-            }],
+            extrinsics: vec![Extrinsic { success: false, ..Extrinsic::mock() }],
         }];
 
         let result = map_transaction_status(blocks, "hash123", 100);

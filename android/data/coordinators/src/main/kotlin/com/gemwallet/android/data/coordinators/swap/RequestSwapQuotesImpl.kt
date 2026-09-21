@@ -1,10 +1,9 @@
 package com.gemwallet.android.data.coordinators.swap
 
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
-import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.ext.toGem
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -20,12 +19,10 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.isActive
 import uniffi.gemstone.GemSwapQuoteServiceInterface
-import java.math.BigInteger
 import uniffi.gemstone.GemSwapRequest
+import java.math.BigInteger
 
-class RequestSwapQuotesImpl(
-    private val swapService: GemSwapQuoteServiceInterface,
-) : RequestSwapQuotes {
+class RequestSwapQuotesImpl(private val swapService: GemSwapQuoteServiceInterface) : RequestSwapQuotes {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun invoke(
@@ -61,17 +58,16 @@ class RequestSwapQuotesImpl(
                     }
             }
         }
-        .flowOn(Dispatchers.IO)
+            .flowOn(Dispatchers.IO)
     }
 
     private suspend fun requestQuotes(params: SwapQuoteRequestParams): SwapQuotesResult = try {
-        val amount = Crypto(params.value, params.pay.asset.decimals).atomicValue
         val quotes = swapService.getQuotes(
             fromAsset = params.pay.asset.toGem(),
             toAsset = params.receive.asset.toGem(),
-            value = amount,
-            useMaxAmount = params.pay.balance.balance.available == amount,
-            slippageBps = params.slippageBps,
+            value = params.input.request.value,
+            useMaxAmount = params.input.useMaxAmount,
+            slippageBps = params.input.request.slippageBps,
         )
         currentCoroutineContext().ensureActive()
         SwapQuotesResult(quotes, params.key, params.pay, params.receive)

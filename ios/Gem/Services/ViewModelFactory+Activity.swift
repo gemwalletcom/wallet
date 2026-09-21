@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import class Gemstone.GemTransactionDetailsService
+import enum Gemstone.GemTransactionHeaderAction
 import GemstonePrimitives
 import GemstoneServices
 import Primitives
@@ -8,28 +10,28 @@ import PrimitivesComponents
 import Store
 import SwiftUI
 import Transactions
-import class Gemstone.GemTransactionDetailsService
-import enum Gemstone.GemTransactionHeaderAction
 
-extension ViewModelFactory {
+public extension ViewModelFactory {
     @MainActor
-    public func transactionScene(
+    func transactionScene(
         transaction: TransactionExtended,
-        walletId: WalletId,
+        wallet: Wallet,
         onHeaderAction: @escaping (GemTransactionHeaderAction) -> Void,
         onAddContact: @escaping (AddContactType) -> Void,
+        onSelectAddress: @escaping @MainActor @Sendable (ChainAddress) -> Void,
     ) -> TransactionSceneViewModel {
         TransactionSceneViewModel(
             transaction: transaction,
-            walletId: walletId,
+            wallet: wallet,
             service: Gemstone.GemTransactionDetailsService(explorer: explorerService, preferences: preferencesService),
             onHeaderAction: onHeaderAction,
             onAddContact: onAddContact,
+            onSelectAddress: onSelectAddress,
         )
     }
 
     @MainActor
-    public func transactionsScene(wallet: Wallet, type: TransactionsRequestType) -> TransactionsViewModel {
+    func transactionsScene(wallet: Wallet, type: TransactionsRequestType) -> TransactionsViewModel {
         TransactionsViewModel(service: transactionsService, wallet: wallet, type: type)
     }
 }

@@ -1,7 +1,4 @@
-use support::{
-    SupportMessageDisplayContent as CoreSupportMessageDisplayContent, SupportMessageLink as CoreSupportMessageLink,
-    parse_support_message_display_content as parse_core_support_message_display_content,
-};
+use support::{SupportMessageDisplayContent as CoreSupportMessageDisplayContent, SupportMessageLink as CoreSupportMessageLink, parse_support_message_display_content as parse_core_support_message_display_content};
 
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
 pub struct SupportMessageDisplayContent {

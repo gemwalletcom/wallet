@@ -23,13 +23,7 @@ pub struct ChainConsumerRunner {
 }
 
 impl ChainConsumerRunner {
-    pub async fn new(
-        settings: Settings,
-        database: Database,
-        queue: streamer::QueueName,
-        shutdown_rx: ShutdownReceiver,
-        reporter: Arc<dyn ConsumerStatusReporter>,
-    ) -> Result<Self, Box<dyn Error + Send + Sync>> {
+    pub async fn new(settings: Settings, database: Database, queue: streamer::QueueName, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<Self, Box<dyn Error + Send + Sync>> {
         let connection = StreamConnection::new(&settings.rabbitmq.url, queue.to_string()).await?;
         let cacher = CacherClient::new(&settings.redis.url).await?;
         let config = consumer_config(&settings.consumer);

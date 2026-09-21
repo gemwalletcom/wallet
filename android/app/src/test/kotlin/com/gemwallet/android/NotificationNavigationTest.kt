@@ -1,11 +1,11 @@
 package com.gemwallet.android
 
 import android.util.Log
-import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.application.transactions.cases.CreateTransaction
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
+import com.gemwallet.android.application.transactions.cases.CreateTransaction
 import com.gemwallet.android.application.wallet.cases.GetWallet
+import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockAccount
@@ -26,6 +26,7 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.Wallet
+import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -35,16 +36,15 @@ import io.mockk.unmockkStatic
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemPushNotification
 import uniffi.gemstone.GemPushNotificationService
 import uniffi.gemstone.GemServiceException
-import com.wallet.core.primitives.WalletId
 
 class NotificationNavigationTest {
     private val currentWallet = mockWallet(id = "current-wallet")
@@ -99,7 +99,7 @@ class NotificationNavigationTest {
                 walletId = walletId.id,
                 assetId = assetId.toIdentifier(),
                 transaction = transaction.toGem(),
-            )
+            ),
         )
 
         assertEquals(listOf(AssetRoute(asset.id), TransactionDetailsRoute(transaction.id)), route)
@@ -120,7 +120,7 @@ class NotificationNavigationTest {
                 walletId = walletId.id,
                 assetId = assetId.toIdentifier(),
                 transaction = transaction.toGem(),
-            )
+            ),
         )
 
         assertEquals(emptyList<Any>(), route)
@@ -154,7 +154,7 @@ class NotificationNavigationTest {
                 walletId = walletId.id,
                 assetId = assetId.toIdentifier(),
                 transaction = transaction.toGem(),
-            )
+            ),
         )
 
         assertEquals(
@@ -180,7 +180,7 @@ class NotificationNavigationTest {
         coEvery { assetsService.openWalletAsset(wallet.toGem(), assetId.toIdentifier()) } returns asset.toGem()
 
         val route = subject.prepareNavigation(
-            GemPushNotification.Stake(walletId = walletId.id, assetId = assetId.toIdentifier())
+            GemPushNotification.Stake(walletId = walletId.id, assetId = assetId.toIdentifier()),
         )
 
         assertEquals(listOf(AssetRoute(asset.id)), route)
@@ -194,7 +194,7 @@ class NotificationNavigationTest {
         every { getWallet(walletId) } returns flowOf(null)
 
         val route = subject.prepareNavigation(
-            GemPushNotification.Stake(walletId = walletId.id, assetId = assetId.toIdentifier())
+            GemPushNotification.Stake(walletId = walletId.id, assetId = assetId.toIdentifier()),
         )
 
         assertEquals(emptyList<Any>(), route)
@@ -243,13 +243,13 @@ class NotificationNavigationTest {
     }
 
     @Test
-    fun buyAssetNotification_isRejectedWhenCoreFails() = runBlocking {
+    fun buyAssetNotification_reportsWhenCoreFails() = runBlocking {
         val assetId = mockAssetId(Chain.Bitcoin)
         coEvery { assetsService.openAsset(assetId.toIdentifier()) } throws GemServiceException.Api("offline")
 
-        val route = subject.prepareNavigation(GemPushNotification.BuyAsset(assetId.toIdentifier()))
+        val result = runCatching { subject.prepareNavigation(GemPushNotification.BuyAsset(assetId.toIdentifier())) }
 
-        assertEquals(emptyList<Any>(), route)
+        assertTrue(result.exceptionOrNull() is GemServiceException.Api)
     }
 
     @Test

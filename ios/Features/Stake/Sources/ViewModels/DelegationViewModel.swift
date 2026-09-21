@@ -1,12 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import Formatters
+import Foundation
 import func Gemstone.delegationStatus
 import struct Gemstone.GemDelegationStatus
 import protocol Gemstone.GemStakeServiceProtocol
+import func Gemstone.validatorRow
 import GemstonePrimitives
-import Formatters
-import Foundation
 import Primitives
 import PrimitivesComponents
 import Style
@@ -34,7 +35,7 @@ public struct DelegationViewModel: Sendable {
         self.formatter = formatter
         self.service = service
         priceViewModel = PriceViewModel(price: delegation.price, currencyCode: currency.rawValue)
-        validatorModel = ValidatorViewModel(row: service.validatorRow(validator: delegation.validator.toGem()))
+        validatorModel = ValidatorViewModel(row: validatorRow(validator: delegation.validator.toGem()))
     }
 
     public var status: GemDelegationStatus {
@@ -45,18 +46,14 @@ public struct DelegationViewModel: Sendable {
         ListItemModel(
             title: validatorText,
             titleStyle: titleStyle,
-            titleExtra: stateModel.title,
-            titleStyleExtra: stateModel.textStyle,
+            titleExtra: status.state.title,
+            titleStyleExtra: TextStyle(font: .callout, color: status.tone.color),
             subtitle: balanceText,
             subtitleStyle: subtitleStyle,
             subtitleExtra: fiatValueText,
             subtitleStyleExtra: subtitleExtraStyle,
             imageStyle: .asset(assetImage: validatorImage),
         )
-    }
-
-    public var stateModel: DelegationStateViewModel {
-        DelegationStateViewModel(status: status)
     }
 
     public var titleStyle: TextStyle {
@@ -99,20 +96,6 @@ public struct DelegationViewModel: Sendable {
 
     public var validatorImage: AssetImage {
         validatorModel.validatorImage
-    }
-
-    public var validatorUrl: URL? {
-        service.validatorUrl(validator: delegation.validator.toGem()).map { $0.toPrimitives() }?.url
-    }
-
-    public var completionDateText: String? {
-        guard
-            status.completion != nil,
-            let completionDate = delegation.base.completionDate,
-            case let remaining = Date.now.distance(to: completionDate),
-            remaining > 0
-        else { return nil }
-        return CountdownFormatter().string(seconds: Int64(remaining))
     }
 }
 

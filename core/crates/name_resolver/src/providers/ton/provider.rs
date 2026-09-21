@@ -56,9 +56,6 @@ mod tests {
     fn test_map_address() {
         let response: DnsRecordsResponse = serde_json::from_str(include_str!("../../../testdata/ton_dns_records_response.json")).unwrap();
 
-        assert_eq!(
-            TonProvider::map_address(response).unwrap().as_deref(),
-            Some("EQAzoUpalAaXnVm5MoiYWRZguLFzY0KxFjLv3MkRq5BXzyiQ")
-        );
+        assert_eq!(TonProvider::map_address(response).unwrap().as_deref(), Some("EQAzoUpalAaXnVm5MoiYWRZguLFzY0KxFjLv3MkRq5BXzyiQ"));
     }
 }

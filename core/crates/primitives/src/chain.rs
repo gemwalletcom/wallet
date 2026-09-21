@@ -101,10 +101,7 @@ impl Chain {
 
     pub fn network_id_value(&self) -> Option<u64> {
         let network_id = self.network_id();
-        network_id
-            .parse()
-            .ok()
-            .or_else(|| network_id.strip_prefix("0x").and_then(|hex| u64::from_str_radix(hex, 16).ok()))
+        network_id.parse().ok().or_else(|| network_id.strip_prefix("0x").and_then(|hex| u64::from_str_radix(hex, 16).ok()))
     }
 
     pub fn from_chain_id(chain_id: u64) -> Option<Self> {

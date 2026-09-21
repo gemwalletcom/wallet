@@ -6,9 +6,7 @@ import java.io.File
 import java.util.UUID
 import javax.inject.Inject
 
-class LocalStore @Inject constructor(
-    @param:ApplicationContext private val context: Context,
-) {
+class LocalStore @Inject constructor(@param:ApplicationContext private val context: Context) {
     fun save(data: ByteArray, extension: String): String {
         val fileName = "${UUID.randomUUID()}.$extension"
         file(fileName).writeBytes(data)

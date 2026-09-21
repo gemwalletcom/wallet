@@ -1,5 +1,5 @@
-import struct Gemstone.GemHeaderButton
 import enum Gemstone.GemHeaderActions
+import struct Gemstone.GemHeaderButton
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesTestKit

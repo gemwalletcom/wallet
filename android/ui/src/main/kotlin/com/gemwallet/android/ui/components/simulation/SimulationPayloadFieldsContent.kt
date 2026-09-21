@@ -3,10 +3,9 @@ package com.gemwallet.android.ui.components.simulation
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.ext.secondsToMillis
 import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -14,39 +13,35 @@ import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
-import com.gemwallet.android.ui.format.rememberFormattedAddress
-import com.gemwallet.android.ui.localization.stringRes
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.PayloadField
-import java.time.Instant
-import uniffi.gemstone.SimulationPayloadFieldType
+import uniffi.gemstone.GemSimulationPayloadValue
 
-fun LazyListScope.simulationPayloadFieldsContent(
-    fields: List<PayloadField>,
-    addressNames: Map<String, String> = emptyMap(),
-    onDetailsClick: (() -> Unit)? = null,
-) {
+fun LazyListScope.simulationPayloadFieldsContent(fields: List<PayloadField>, onDetailsClick: (() -> Unit)? = null) {
     if (fields.isEmpty() && onDetailsClick == null) {
         return
     }
     val totalItems = fields.size + if (onDetailsClick != null) 1 else 0
     itemsIndexed(fields) { index, payload ->
         val listPosition = ListPosition.getPosition(index, totalItems)
-        val field = payload.field
-        val titleRes = field.kind.stringRes()
-        when {
-            titleRes != null && field.fieldType == SimulationPayloadFieldType.ADDRESS -> AddressPropertyItem(
-                title = titleRes,
-                displayText = addressDisplay(payload, addressNames),
-                copyValue = field.value,
+        val title = payload.row.title.text(LocalContext.current)
+        when (val value = payload.row.value) {
+            is GemSimulationPayloadValue.Address -> AddressPropertyItem(
+                title = title,
+                displayText = value.display,
+                copyValue = value.address,
                 explorerLink = payload.explorerLink,
                 listPosition = listPosition,
             )
-            else -> ListItem(
-                model = ListItemModel(
-                    title = titleRes?.let { stringResource(it) } ?: field.label.orEmpty(),
-                    subtitle = fieldValue(payload, addressNames),
-                ),
+
+            is GemSimulationPayloadValue.Text -> ListItem(
+                model = ListItemModel(title = title, subtitle = value.text),
+                listPosition = listPosition,
+            )
+
+            is GemSimulationPayloadValue.Timestamp -> ListItem(
+                model = ListItemModel(title = title, subtitle = getRelativeDate(value.unixMs)),
                 listPosition = listPosition,
             )
         }
@@ -63,37 +58,10 @@ fun LazyListScope.simulationPayloadFieldsContent(
     }
 }
 
-fun LazyListScope.simulationPayloadDetailsContent(
-    primaryFields: List<PayloadField>,
-    secondaryFields: List<PayloadField>,
-    addressNames: Map<String, String> = emptyMap(),
-) {
-    simulationPayloadFieldsContent(primaryFields, addressNames)
+fun LazyListScope.simulationPayloadDetailsContent(primaryFields: List<PayloadField>, secondaryFields: List<PayloadField>) {
+    simulationPayloadFieldsContent(primaryFields)
     if (secondaryFields.isNotEmpty()) {
         item { SubheaderItem(R.string.common_details) }
-        simulationPayloadFieldsContent(secondaryFields, addressNames)
-    }
-}
-
-@Composable
-private fun fieldValue(payload: PayloadField, addressNames: Map<String, String>): String = when (payload.field.fieldType) {
-    SimulationPayloadFieldType.ADDRESS -> addressDisplay(payload, addressNames)
-    SimulationPayloadFieldType.TIMESTAMP -> payload.field.value.toTimestampText()
-    SimulationPayloadFieldType.TEXT -> payload.field.value
-}
-
-@Composable
-private fun addressDisplay(payload: PayloadField, addressNames: Map<String, String>): String {
-    val address = rememberFormattedAddress(payload.field.value, payload.chain)
-    val name = addressNames[payload.field.value.lowercase()]
-    return if (name.isNullOrEmpty()) address else "$name ($address)"
-}
-
-private fun String.toTimestampText(): String {
-    toLongOrNull()?.let { return getRelativeDate(it.secondsToMillis()) }
-    return runCatching {
-        getRelativeDate(Instant.parse(this).toEpochMilli())
-    }.getOrElse {
-        this
+        simulationPayloadFieldsContent(secondaryFields)
     }
 }

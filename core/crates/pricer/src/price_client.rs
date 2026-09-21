@@ -39,13 +39,7 @@ impl PriceClient {
     pub async fn get_asset_price(&self, asset_id: &AssetId, currency: &Currency) -> Result<AssetMarketPrice, Box<dyn Error + Send + Sync>> {
         let rate = self.get_fiat_rate(currency)?.rate;
         let price = self.get_cache_price(asset_id).await?;
-        let prices = self
-            .database
-            .prices()?
-            .get_prices_for_asset(asset_id)?
-            .into_iter()
-            .map(|row| row.as_primitive().with_rate(rate))
-            .collect();
+        let prices = self.database.prices()?.get_prices_for_asset(asset_id)?.into_iter().map(|row| row.as_primitive().with_rate(rate)).collect();
         Ok(AssetMarketPrice {
             price: Some(price.as_price_primitive_with_rate(rate)),
             market: Some(price.as_market_with_rate(rate)),
@@ -65,10 +59,7 @@ impl PriceClient {
     }
 
     pub async fn set_cache_prices(&self, prices: Vec<AssetPriceInfo>, ttl_seconds: i64) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let values: Vec<(String, String)> = prices
-            .iter()
-            .filter_map(|x| serde_json::to_string(&x).ok().map(|value| (CacheKey::Price(&x.asset_id.to_string()).key(), value)))
-            .collect();
+        let values: Vec<(String, String)> = prices.iter().filter_map(|x| serde_json::to_string(&x).ok().map(|value| (CacheKey::Price(&x.asset_id.to_string()).key(), value))).collect();
 
         self.cacher_client.set_values_with_publish(values, ttl_seconds).await
     }
@@ -88,12 +79,7 @@ impl PriceClient {
 
     pub async fn get_asset_prices(&self, currency: Currency, asset_ids: Vec<AssetId>) -> Result<AssetPrices, Box<dyn Error + Send + Sync>> {
         let rate = self.get_fiat_rate(&currency)?.rate;
-        let prices = self
-            .get_cache_prices(asset_ids)
-            .await?
-            .into_iter()
-            .map(|x| x.as_asset_price_primitive_with_rate(rate))
-            .collect();
+        let prices = self.get_cache_prices(asset_ids).await?.into_iter().map(|x| x.as_asset_price_primitive_with_rate(rate)).collect();
 
         Ok(AssetPrices { currency, prices })
     }
@@ -144,10 +130,7 @@ impl PriceClient {
         let Some(provider) = providers.get(&price_id.provider) else {
             return Ok(0);
         };
-        match self
-            .add_prices_with_mappings(provider.as_ref(), provider.get_mappings_for_price_id(&price_id.provider_price_id).await)
-            .await
-        {
+        match self.add_prices_with_mappings(provider.as_ref(), provider.get_mappings_for_price_id(&price_id.provider_price_id).await).await {
             Ok(added) => Ok(added),
             Err(err) => {
                 let kind = provider.provider();
@@ -158,11 +141,7 @@ impl PriceClient {
         }
     }
 
-    async fn add_prices_with_mappings(
-        &self,
-        provider: &dyn PriceAssetsProvider,
-        mappings: Result<Vec<AssetPriceMapping>, Box<dyn Error + Send + Sync>>,
-    ) -> Result<usize, Box<dyn Error + Send + Sync>> {
+    async fn add_prices_with_mappings(&self, provider: &dyn PriceAssetsProvider, mappings: Result<Vec<AssetPriceMapping>, Box<dyn Error + Send + Sync>>) -> Result<usize, Box<dyn Error + Send + Sync>> {
         Ok(self.add_prices(provider, mappings?).await?.len())
     }
 
@@ -178,20 +157,9 @@ impl PriceClient {
     pub fn save_prices(&self, provider: PriceProvider, prices: &[AssetPriceFull]) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let new_prices: Vec<NewPriceRow> = prices
             .iter()
-            .map(|p| {
-                NewPriceRow::with_market_data(
-                    provider,
-                    p.mapping.provider_price_id.clone(),
-                    p.market.as_ref(),
-                    Some(p.price.price),
-                    Some(p.price.price_change_percentage_24h),
-                )
-            })
+            .map(|p| NewPriceRow::with_market_data(provider, p.mapping.provider_price_id.clone(), p.market.as_ref(), Some(p.price.price), Some(p.price.price_change_percentage_24h)))
             .collect();
-        let asset_rows: Vec<PriceAssetRow> = prices
-            .iter()
-            .map(|p| PriceAssetRow::new(p.mapping.asset_id.clone(), provider, &p.mapping.provider_price_id))
-            .collect();
+        let asset_rows: Vec<PriceAssetRow> = prices.iter().map(|p| PriceAssetRow::new(p.mapping.asset_id.clone(), provider, &p.mapping.provider_price_id)).collect();
         self.database.prices()?.add_prices(new_prices)?;
         self.database.prices()?.set_prices_assets(asset_rows)?;
         Ok(prices.len())

@@ -41,14 +41,7 @@ impl TransferRequest {
         })
     }
 
-    pub(crate) fn new_with_payload(
-        destination: &str,
-        amount: &str,
-        comment: Option<String>,
-        payload: Option<CellArc>,
-        bounceable: bool,
-        state_init: Option<CellArc>,
-    ) -> Result<Self, SignerError> {
+    pub(crate) fn new_with_payload(destination: &str, amount: &str, comment: Option<String>, payload: Option<CellArc>, bounceable: bool, state_init: Option<CellArc>) -> Result<Self, SignerError> {
         Ok(Self {
             destination: Address::parse(destination)?,
             value: BigUint::from_str(amount)?,

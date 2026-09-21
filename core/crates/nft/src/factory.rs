@@ -14,10 +14,7 @@ impl NFTProviderFactory {
     pub fn new_providers(config: NFTProviderConfig) -> Vec<Arc<dyn NFTProvider>> {
         let client = ReqwestClient::new(String::new(), gem_client::reqwest_client());
         let alchemy_client = config.alchemy.configure_client(client.clone());
-        let opensea_client = config
-            .opensea
-            .configure_client(client.clone())
-            .with_default_headers(HashMap::from([("x-api-key".to_string(), config.opensea.key)]));
+        let opensea_client = config.opensea.configure_client(client.clone()).with_default_headers(HashMap::from([("x-api-key".to_string(), config.opensea.key)]));
         let magiceden_client = config
             .magiceden
             .configure_client(client.clone())

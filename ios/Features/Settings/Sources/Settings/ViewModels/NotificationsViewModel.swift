@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemNotificationsServiceProtocol
 import Components
 import Foundation
+import protocol Gemstone.GemNotificationsServiceProtocol
 import Localization
 import Primitives
 import Style

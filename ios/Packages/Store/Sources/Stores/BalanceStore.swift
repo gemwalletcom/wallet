@@ -65,7 +65,7 @@ public struct BalanceStore: Sendable {
                     BalanceRecord.Columns.isActive.set(to: balance.isActive),
                 ]
                 if let metadata = balance.metadata {
-                    assignments.append(BalanceRecord.Columns.metadata.set(to: try JSONEncoder().encode(metadata).encodeString()))
+                    try assignments.append(BalanceRecord.Columns.metadata.set(to: JSONEncoder().encode(metadata).encodeString()))
                 }
                 try BalanceRecord
                     .filter(BalanceRecord.Columns.walletId == walletId.id)
@@ -108,32 +108,26 @@ public struct BalanceStore: Sendable {
     }
 
     @discardableResult
-    public func setIsEnabled(walletId: WalletId, assetIds: [AssetId], value: Bool) throws -> Int {
-        try db.write { db in
-            let assignments = switch value {
-            case true: [
-                    BalanceRecord.Columns.isEnabled.set(to: true),
-                ]
-            case false: [
-                    BalanceRecord.Columns.isEnabled.set(to: false),
-                    BalanceRecord.Columns.isPinned.set(to: false),
-                ]
-            }
-
-            return try BalanceRecord
-                .filter(BalanceRecord.Columns.walletId == walletId.id)
-                .filter(assetIds.map(\.identifier).contains(BalanceRecord.Columns.assetId))
-                .updateAll(db, assignments)
+    public func setConfiguration(walletId: WalletId, assetIds: [AssetId], configuration: AssetConfiguration) throws -> Int {
+        var assignments: [ColumnAssignment] = []
+        var changed: [SQLExpression] = []
+        if let isEnabled = configuration.isEnabled {
+            assignments.append(BalanceRecord.Columns.isEnabled.set(to: isEnabled))
+            changed.append(BalanceRecord.Columns.isEnabled != isEnabled)
         }
-    }
-
-    @discardableResult
-    public func pinAsset(walletId: WalletId, assetId: AssetId, value: Bool) throws -> Int {
-        try db.write { db in
+        if let isPinned = configuration.isPinned {
+            assignments.append(BalanceRecord.Columns.isPinned.set(to: isPinned))
+            changed.append(BalanceRecord.Columns.isPinned != isPinned)
+        }
+        if assignments.isEmpty {
+            return 0
+        }
+        return try db.write { db in
             try BalanceRecord
                 .filter(BalanceRecord.Columns.walletId == walletId.id)
-                .filter(BalanceRecord.Columns.assetId == assetId.identifier)
-                .updateAll(db, BalanceRecord.Columns.isPinned.set(to: value))
+                .filter(assetIds.map(\.identifier).contains(BalanceRecord.Columns.assetId))
+                .filter(changed.joined(operator: .or))
+                .updateAll(db, assignments)
         }
     }
 

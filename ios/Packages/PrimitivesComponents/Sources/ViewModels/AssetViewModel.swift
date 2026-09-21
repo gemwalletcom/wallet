@@ -1,7 +1,7 @@
 import Components
 import Foundation
-import struct Gemstone.GemAssetText
 import func Gemstone.assetText
+import struct Gemstone.GemAssetText
 import GemstonePrimitives
 import Primitives
 

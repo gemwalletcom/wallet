@@ -7,22 +7,14 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetPrice
 import com.wallet.core.primitives.Currency
 
-fun mockAssetPrice(
-    assetId: AssetId = mockAssetId(),
-    price: Double = 50000.0,
-    priceChangePercentage24h: Double = 0.0,
-) = AssetPrice(
+fun mockAssetPrice(assetId: AssetId = mockAssetId(), price: Double = 50000.0, priceChangePercentage24h: Double = 0.0) = AssetPrice(
     assetId = assetId,
     price = price,
     priceChangePercentage24h = priceChangePercentage24h,
     updatedAt = 0L,
 )
 
-fun mockAssetPriceInfo(
-    price: Double = 50000.0,
-    priceChangePercentage24h: Double = 0.0,
-    currency: Currency = Currency.USD,
-) = AssetPriceInfo(
+fun mockAssetPriceInfo(price: Double = 50000.0, priceChangePercentage24h: Double = 0.0, currency: Currency = Currency.USD) = AssetPriceInfo(
     currency = currency,
     price = mockAssetPrice(
         price = price,
@@ -30,10 +22,7 @@ fun mockAssetPriceInfo(
     ),
 )
 
-fun mockAssetPriceValue(
-    asset: Asset = mockAsset(),
-    price: AssetPriceInfo? = null,
-) = AssetPriceValue(
+fun mockAssetPriceValue(asset: Asset = mockAsset(), price: AssetPriceInfo? = null) = AssetPriceValue(
     asset = asset,
     price = price,
 )

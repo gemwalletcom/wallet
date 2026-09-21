@@ -18,10 +18,7 @@ impl PriceAlertsStore for DatabaseClient {
         use crate::schema::price_alerts::dsl::*;
 
         price_alerts
-            .filter(
-                (price_direction.is_not_null().and(last_notified_at.is_null()))
-                    .or(price_direction.is_null().and(last_notified_at.lt(after_notified_at).or(last_notified_at.is_null()))),
-            )
+            .filter((price_direction.is_not_null().and(last_notified_at.is_null())).or(price_direction.is_null().and(last_notified_at.lt(after_notified_at).or(last_notified_at.is_null()))))
             .inner_join(devices::table.on(device_id.eq(devices::id)))
             .select((PriceAlertRow::as_select(), crate::models::DeviceRow::as_select()))
             .load(&mut self.connection)
@@ -31,10 +28,7 @@ impl PriceAlertsStore for DatabaseClient {
         use crate::schema::devices;
         use crate::schema::price_alerts::dsl::*;
 
-        let mut query = price_alerts
-            .inner_join(devices::table.on(device_id.eq(devices::id)))
-            .filter(devices::device_id.eq(_device_id))
-            .into_boxed();
+        let mut query = price_alerts.inner_join(devices::table.on(device_id.eq(devices::id))).filter(devices::device_id.eq(_device_id)).into_boxed();
 
         if let Some(_asset_id) = _asset_id {
             query = query.filter(asset_id.eq(_asset_id));
@@ -66,9 +60,6 @@ impl PriceAlertsStore for DatabaseClient {
 
     fn update_price_alerts_set_notified_at(&mut self, ids: Vec<String>, _last_notified_at: NaiveDateTime) -> Result<usize, diesel::result::Error> {
         use crate::schema::price_alerts::dsl::*;
-        diesel::update(price_alerts)
-            .filter(identifier.eq_any(&ids))
-            .set(last_notified_at.eq(_last_notified_at))
-            .execute(&mut self.connection)
+        diesel::update(price_alerts).filter(identifier.eq_any(&ids)).set(last_notified_at.eq(_last_notified_at)).execute(&mut self.connection)
     }
 }

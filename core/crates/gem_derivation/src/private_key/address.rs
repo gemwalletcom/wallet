@@ -48,15 +48,10 @@ pub(super) fn public_key_from_private_key(private_key: &[u8], chain: Chain) -> R
         ChainType::Xrp => compressed_secp256k1_public_key(private_key)?,
         ChainType::Cosmos => match CosmosChain::from_chain(chain).ok_or_else(|| AccountDerivationError::unsupported_chain(chain))? {
             CosmosChain::Injective => uncompressed_secp256k1_public_key(private_key)?,
-            CosmosChain::Cosmos | CosmosChain::Osmosis | CosmosChain::Celestia | CosmosChain::Thorchain | CosmosChain::Mayachain | CosmosChain::Sei | CosmosChain::Noble => {
-                compressed_secp256k1_public_key(private_key)?
-            }
+            CosmosChain::Cosmos | CosmosChain::Osmosis | CosmosChain::Celestia | CosmosChain::Thorchain | CosmosChain::Mayachain | CosmosChain::Sei | CosmosChain::Noble => compressed_secp256k1_public_key(private_key)?,
         },
         ChainType::Solana | ChainType::Aptos | ChainType::Sui | ChainType::Near | ChainType::Stellar | ChainType::Algorand | ChainType::Ton | ChainType::Polkadot => {
-            Ed25519KeyPair::from_private_key(private_key)
-                .map_err(|_| AccountDerivationError::InvalidPrivateKey)?
-                .public_key_bytes
-                .to_vec()
+            Ed25519KeyPair::from_private_key(private_key).map_err(|_| AccountDerivationError::InvalidPrivateKey)?.public_key_bytes.to_vec()
         }
         // Bitcoin (account stores an xpub) and Cardano (extended key with separate payment/stake keys) have no single reusable public key.
         ChainType::Bitcoin | ChainType::Cardano => return Ok(None),
@@ -86,13 +81,9 @@ fn cosmos_address_from_public_key(public_key: &[u8], chain: Chain) -> Result<Str
     let cosmos_chain = CosmosChain::from_chain(chain).ok_or_else(|| AccountDerivationError::unsupported_chain(chain))?;
     let public_key_hash = match cosmos_chain {
         CosmosChain::Injective => secp256k1_keccak_address_hash(public_key)?,
-        CosmosChain::Cosmos | CosmosChain::Osmosis | CosmosChain::Celestia | CosmosChain::Thorchain | CosmosChain::Mayachain | CosmosChain::Sei | CosmosChain::Noble => {
-            hash160(compressed_public_key(public_key)?)
-        }
+        CosmosChain::Cosmos | CosmosChain::Osmosis | CosmosChain::Celestia | CosmosChain::Thorchain | CosmosChain::Mayachain | CosmosChain::Sei | CosmosChain::Noble => hash160(compressed_public_key(public_key)?),
     };
-    Ok(CosmosAddress::from_public_key_hash(chain, public_key_hash)
-        .ok_or_else(|| AccountDerivationError::unsupported_chain(chain))?
-        .encode())
+    Ok(CosmosAddress::from_public_key_hash(chain, public_key_hash).ok_or_else(|| AccountDerivationError::unsupported_chain(chain))?.encode())
 }
 
 fn bitcoin_address_from_private_key(private_key: &[u8], chain: Chain) -> Result<String, AccountDerivationError> {
@@ -134,7 +125,5 @@ fn ed25519_public_key(public_key: &[u8]) -> Result<[u8; ED25519_PUBLIC_KEY_LEN],
 fn secp256k1_keccak_address_hash(public_key: &[u8]) -> Result<[u8; EVM_ADDRESS_LEN], AccountDerivationError> {
     let public_key = uncompressed_public_key(public_key)?;
     let hash = keccak256(&public_key[1..]);
-    hash[hash.len() - EVM_ADDRESS_LEN..]
-        .try_into()
-        .map_err(|_| AccountDerivationError::invalid_input("invalid public key hash length"))
+    hash[hash.len() - EVM_ADDRESS_LEN..].try_into().map_err(|_| AccountDerivationError::invalid_input("invalid public key hash length"))
 }

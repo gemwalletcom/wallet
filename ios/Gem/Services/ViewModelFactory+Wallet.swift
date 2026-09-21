@@ -2,6 +2,11 @@
 
 import Assets
 import Foundation
+import class Gemstone.GemAddAssetService
+import class Gemstone.GemAssetDetailsService
+import class Gemstone.GemAssetSelectionService
+import class Gemstone.GemChartService
+import class Gemstone.GemWalletHomeService
 import GemstonePrimitives
 import GemstoneServices
 import MarketInsight
@@ -12,15 +17,10 @@ import Recents
 import Store
 import SwiftUI
 import WalletTab
-import class Gemstone.GemAddAssetService
-import class Gemstone.GemAssetDetailsService
-import class Gemstone.GemAssetSelectionService
-import class Gemstone.GemChartService
-import class Gemstone.GemWalletHomeService
 
-extension ViewModelFactory {
+public extension ViewModelFactory {
     @MainActor
-    public func assetScene(
+    func assetScene(
         wallet: Wallet,
         asset: Asset,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
@@ -45,12 +45,20 @@ extension ViewModelFactory {
     }
 
     @MainActor
-    public func portfolioScene(wallet: Wallet, defaultType: PortfolioType) -> PortfolioSceneViewModel {
+    func addressDetailsScene(chainAddress: ChainAddress) -> AddressDetailsSceneViewModel {
+        AddressDetailsSceneViewModel(
+            chainAddress: chainAddress,
+            service: gatewayService.addressDetailsService(explorer: explorerService, names: nameService),
+        )
+    }
+
+    @MainActor
+    func portfolioScene(wallet: Wallet, defaultType: PortfolioType) -> PortfolioSceneViewModel {
         PortfolioSceneViewModel(wallet: wallet, service: portfolioService, preferences: observablePreferences, defaultType: defaultType)
     }
 
     @MainActor
-    public func walletScene(
+    func walletScene(
         wallet: Wallet,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
         isPresentingWallets: Binding<Bool>,
@@ -66,7 +74,7 @@ extension ViewModelFactory {
     }
 
     @MainActor
-    public func walletSearchScene(
+    func walletSearchScene(
         wallet: Wallet,
         onDismissSearch: VoidAction,
         onSelectAssetAction: AssetAction,
@@ -83,7 +91,7 @@ extension ViewModelFactory {
     }
 
     @MainActor
-    public func networkAssetsScene(wallet: Wallet, chain: Chain, onManageAssets: @escaping () -> Void) -> NetworkAssetsSceneViewModel {
+    func networkAssetsScene(wallet: Wallet, chain: Chain, onManageAssets: @escaping () -> Void) -> NetworkAssetsSceneViewModel {
         NetworkAssetsSceneViewModel(wallet: wallet, chain: chain, service: walletHomeService(), onManageAssets: onManageAssets)
     }
 
@@ -112,7 +120,7 @@ extension ViewModelFactory {
     }
 
     @MainActor
-    public func chartScene(
+    func chartScene(
         asset: Asset,
         walletId: WalletId,
         onSetPriceAlert: @escaping (Asset) -> Void,
@@ -122,7 +130,6 @@ extension ViewModelFactory {
                 api: apiClient,
                 price: priceService,
                 preferences: preferencesService,
-                priceAlerts: priceAlertService,
                 explorer: explorerService,
             ),
             assetModel: AssetViewModel(asset: asset),
@@ -132,7 +139,7 @@ extension ViewModelFactory {
     }
 
     @MainActor
-    public func addAssetScene(wallet: Wallet) -> AddAssetSceneViewModel {
+    func addAssetScene(wallet: Wallet) -> AddAssetSceneViewModel {
         AddAssetSceneViewModel(
             wallet: wallet,
             service: Gemstone.GemAddAssetService(assets: assetsService, balances: balanceService, explorer: explorerService),
@@ -140,12 +147,12 @@ extension ViewModelFactory {
     }
 
     @MainActor
-    public func selectAssetScene(selectType: SelectAssetType, selectAssetAction: AssetAction = .none) -> SelectAssetViewModel? {
+    func selectAssetScene(selectType: SelectAssetType, selectAssetAction: AssetAction = .none) -> SelectAssetViewModel? {
         currentWallet(in: currentWallets()).map { selectAssetScene(wallet: $0, selectType: selectType, selectAssetAction: selectAssetAction) }
     }
 
     @MainActor
-    public func selectAssetScene(
+    func selectAssetScene(
         wallet: Wallet,
         selectType: SelectAssetType,
         selectAssetAction: AssetAction = .none,
@@ -162,7 +169,7 @@ extension ViewModelFactory {
     }
 
     @MainActor
-    public func assetsResultsScene(
+    func assetsResultsScene(
         wallet: Wallet,
         request: WalletSearchRequest,
         title: String,

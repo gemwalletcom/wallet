@@ -21,24 +21,29 @@ internal object SystemAuthPolicy {
         BIOMETRIC_WEAK or DEVICE_CREDENTIAL
     }
 
-    fun initialRetryDelay(errorCode: Int): Duration? =
-        promptOutcome(errorCode).retryDelayMilliseconds()?.toLong()?.milliseconds
+    fun initialRetryDelay(errorCode: Int): Duration? = promptOutcome(errorCode).retryDelayMilliseconds()?.toLong()?.milliseconds
 
     private fun promptOutcome(errorCode: Int): GemAuthPromptOutcome = when (errorCode) {
         BiometricPrompt.ERROR_CANCELED -> GemAuthPromptOutcome.CANCELLED_BY_SYSTEM
+
         BiometricPrompt.ERROR_NEGATIVE_BUTTON,
         BiometricPrompt.ERROR_TIMEOUT,
-        BiometricPrompt.ERROR_USER_CANCELED -> GemAuthPromptOutcome.CANCELLED_BY_USER
+        BiometricPrompt.ERROR_USER_CANCELED,
+        -> GemAuthPromptOutcome.CANCELLED_BY_USER
+
         BiometricPrompt.ERROR_HW_UNAVAILABLE,
         BiometricPrompt.ERROR_UNABLE_TO_PROCESS,
-        BiometricPrompt.ERROR_VENDOR -> GemAuthPromptOutcome.TRANSIENT
+        BiometricPrompt.ERROR_VENDOR,
+        -> GemAuthPromptOutcome.TRANSIENT
+
         BiometricPrompt.ERROR_LOCKOUT -> GemAuthPromptOutcome.LOCKED_OUT
+
         BiometricPrompt.ERROR_NO_BIOMETRICS,
-        BiometricPrompt.ERROR_HW_NOT_PRESENT -> GemAuthPromptOutcome.UNAVAILABLE
+        BiometricPrompt.ERROR_HW_NOT_PRESENT,
+        -> GemAuthPromptOutcome.UNAVAILABLE
+
         else -> GemAuthPromptOutcome.FAILED
     }
 
-    fun isEnrollmentMissing(canAuthenticateResult: Int): Boolean {
-        return canAuthenticateResult == BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED
-    }
+    fun isEnrollmentMissing(canAuthenticateResult: Int): Boolean = canAuthenticateResult == BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED
 }

@@ -37,12 +37,7 @@ impl<C: Client + Clone> EthereumProvider<C> {
         Self::new_with_provider(client.clone(), transactions_by_address_provider, asset_balance_provider, Box::new(client))
     }
 
-    pub fn new_with_provider(
-        client: EthereumClient<C>,
-        transactions_by_address_provider: Box<dyn ChainTransactions>,
-        asset_balance_provider: Box<dyn AssetBalanceProvider>,
-        provider: Box<dyn EvmChainProvider>,
-    ) -> Self
+    pub fn new_with_provider(client: EthereumClient<C>, transactions_by_address_provider: Box<dyn ChainTransactions>, asset_balance_provider: Box<dyn AssetBalanceProvider>, provider: Box<dyn EvmChainProvider>) -> Self
     where
         C: 'static,
     {

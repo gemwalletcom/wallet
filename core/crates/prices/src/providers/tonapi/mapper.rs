@@ -6,15 +6,7 @@ use crate::{AssetPriceFull, AssetPriceMapping};
 use super::model::RatesResponse;
 use super::stonfi_model::{StonfiAsset, StonfiAssetKind};
 
-const EXCLUDED_ASSET_TAGS: &[&str] = &[
-    "asset:blacklisted",
-    "asset:deprecated",
-    "asset:dmca_complaint",
-    "asset:fake",
-    "asset:honeypot",
-    "asset:non_searchable",
-    "asset:suspicious",
-];
+const EXCLUDED_ASSET_TAGS: &[&str] = &["asset:blacklisted", "asset:deprecated", "asset:dmca_complaint", "asset:fake", "asset:honeypot", "asset:non_searchable", "asset:suspicious"];
 
 pub fn mapping_for_asset_id(asset_id: &AssetId) -> Option<AssetPriceMapping> {
     if asset_id.chain != Chain::Ton {
@@ -57,11 +49,7 @@ pub fn map_price(mapping: AssetPriceMapping, response: &RatesResponse) -> Option
     if !price.is_finite() || price <= 0.0 {
         return None;
     }
-    let price_change_percentage_24h = rates
-        .diff_24h
-        .get("USD")
-        .and_then(|value| value.trim_end_matches('%').replace('−', "-").parse::<f64>().ok())
-        .unwrap_or_default();
+    let price_change_percentage_24h = rates.diff_24h.get("USD").and_then(|value| value.trim_end_matches('%').replace('−', "-").parse::<f64>().ok()).unwrap_or_default();
     Some(AssetPriceFull::simple(mapping, price, price_change_percentage_24h, PriceProvider::TonApi))
 }
 
@@ -92,10 +80,7 @@ mod tests {
         let assets: StonfiAssetsResponse = serde_json::from_str(include_str!("../../../testdata/tonapi/stonfi_assets.json")).unwrap();
         let mut assets = assets.asset_list.into_iter();
         assert_eq!(mapping_for_stonfi_asset(assets.next().unwrap()).unwrap().asset_id, native);
-        assert_eq!(
-            mapping_for_stonfi_asset(assets.next().unwrap()).unwrap().asset_id,
-            AssetId::from_token(Chain::Ton, TON_USDT_TOKEN_ID)
-        );
+        assert_eq!(mapping_for_stonfi_asset(assets.next().unwrap()).unwrap().asset_id, AssetId::from_token(Chain::Ton, TON_USDT_TOKEN_ID));
         let excluded = StonfiAsset {
             contract_address: TON_DUST_TOKEN_ID.to_string(),
             kind: StonfiAssetKind::Jetton,

@@ -114,10 +114,7 @@ mod observable_tests {
         let ethereum = AssetId::from_chain(Chain::Ethereum);
         assert_eq!(observable_asset_ids(vec![bitcoin.clone()], vec![], vec![ethereum.clone()]), vec![bitcoin.clone()]);
         assert_eq!(observable_asset_ids(vec![], vec![], vec![ethereum.clone()]), vec![ethereum.clone()]);
-        assert_eq!(
-            observable_asset_ids(vec![bitcoin.clone()], vec![bitcoin.clone(), ethereum.clone()], vec![]),
-            vec![bitcoin, ethereum]
-        );
+        assert_eq!(observable_asset_ids(vec![bitcoin.clone()], vec![bitcoin.clone(), ethereum.clone()], vec![]), vec![bitcoin, ethereum]);
     }
 
     #[test]
@@ -136,22 +133,9 @@ mod observable_tests {
         assert_eq!(
             changed_rates(
                 stored,
-                vec![
-                    FiatRate { symbol: Currency::EUR, rate: 0.9 },
-                    FiatRate { symbol: Currency::GBP, rate: 0.7 },
-                    FiatRate {
-                        symbol: Currency::JPY,
-                        rate: 150.0
-                    }
-                ]
+                vec![FiatRate { symbol: Currency::EUR, rate: 0.9 }, FiatRate { symbol: Currency::GBP, rate: 0.7 }, FiatRate { symbol: Currency::JPY, rate: 150.0 }]
             ),
-            vec![
-                FiatRate { symbol: Currency::GBP, rate: 0.7 },
-                FiatRate {
-                    symbol: Currency::JPY,
-                    rate: 150.0
-                }
-            ]
+            vec![FiatRate { symbol: Currency::GBP, rate: 0.7 }, FiatRate { symbol: Currency::JPY, rate: 150.0 }]
         );
     }
 
@@ -162,16 +146,10 @@ mod observable_tests {
         let ethereum = AssetId::from_chain(primitives::Chain::Ethereum);
         let stored = vec![AssetPrice::new(bitcoin.clone(), 100.0, 2.0, now), AssetPrice::new(ethereum.clone(), 50.0, 1.0, now)];
 
-        let changed = changed_prices(
-            stored.clone(),
-            vec![GemPriceUpdate::mock(bitcoin.clone(), 100.0, 2.0), GemPriceUpdate::mock(ethereum.clone(), 50.0, 1.0)],
-        );
+        let changed = changed_prices(stored.clone(), vec![GemPriceUpdate::mock(bitcoin.clone(), 100.0, 2.0), GemPriceUpdate::mock(ethereum.clone(), 50.0, 1.0)]);
         assert!(changed.is_empty());
 
-        let changed = changed_prices(
-            stored.clone(),
-            vec![GemPriceUpdate::mock(bitcoin.clone(), 100.0, 2.5), GemPriceUpdate::mock(ethereum.clone(), 51.0, 1.0)],
-        );
+        let changed = changed_prices(stored.clone(), vec![GemPriceUpdate::mock(bitcoin.clone(), 100.0, 2.5), GemPriceUpdate::mock(ethereum.clone(), 51.0, 1.0)]);
         assert_eq!(changed.iter().map(|update| update.asset_id.clone()).collect::<Vec<_>>(), vec![bitcoin, ethereum]);
 
         let solana = AssetId::from_chain(primitives::Chain::Solana);

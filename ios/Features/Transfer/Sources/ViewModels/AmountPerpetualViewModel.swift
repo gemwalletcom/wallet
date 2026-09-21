@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import BigInt
+import Components
 import Formatters
 import Foundation
 import protocol Gemstone.GemAmountServiceProtocol
@@ -43,12 +43,11 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         leverageSelection.map { ListItemModel(title: $0.title, subtitle: $0.selected.displayText, subtitleStyle: leverageTextStyle) }
     }
 
-    var autocloseListItem: ListItemModel {
-        ListItemModel(title: autocloseTitle, subtitle: autocloseText.subtitle, subtitleExtra: autocloseText.subtitleExtra)
-    }
-
-    var autocloseTitle: String {
-        Localized.Perpetual.autoClose
+    var autocloseListItem: ListItemModel? {
+        service.perpetualAutocloseRow(
+            takeProfit: takeProfit.flatMap { NumberInput.double($0) },
+            stopLoss: stopLoss.flatMap { NumberInput.double($0) },
+        ).listItemModel()
     }
 
     private var transferData: GemPerpetualTransferData {
@@ -65,16 +64,6 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
 
     private var direction: PerpetualDirection {
         transferData.direction.toPrimitives()
-    }
-
-    var autocloseText: (subtitle: String, subtitleExtra: String?) {
-        AutocloseFormatter(
-            takeProfitLabel: Localized.Perpetual.takeProfit,
-            stopLossLabel: Localized.Perpetual.stopLoss,
-        ).format(
-            takeProfit: takeProfit.flatMap { NumberInput.double($0) },
-            stopLoss: stopLoss.flatMap { NumberInput.double($0) },
-        )
     }
 
     var title: String {

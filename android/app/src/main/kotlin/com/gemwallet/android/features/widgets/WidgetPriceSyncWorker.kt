@@ -1,8 +1,8 @@
 package com.gemwallet.android.features.widgets
 
 import android.content.Context
-import androidx.work.Constraints
 import androidx.glance.appwidget.updateAll
+import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
@@ -13,18 +13,13 @@ import com.gemwallet.android.data.services.gemstone.di.WidgetEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import java.util.concurrent.TimeUnit
 
-class WidgetPriceSyncWorker(
-    context: Context,
-    params: WorkerParameters,
-) : CoroutineWorker(context, params) {
+class WidgetPriceSyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
-    override suspend fun doWork(): Result {
-        return try {
-            PricesWidget().updateAll(applicationContext)
-            Result.success()
-        } catch (_: Throwable) {
-            Result.retry()
-        }
+    override suspend fun doWork(): Result = try {
+        PricesWidget().updateAll(applicationContext)
+        Result.success()
+    } catch (_: Throwable) {
+        Result.retry()
     }
 
     companion object {
@@ -33,12 +28,13 @@ class WidgetPriceSyncWorker(
         fun schedule(context: Context) {
             val widgetService = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java).widgetService()
             val request = PeriodicWorkRequestBuilder<WidgetPriceSyncWorker>(
-                widgetService.refreshIntervalSeconds().toLong(), TimeUnit.SECONDS
+                widgetService.refreshIntervalSeconds().toLong(),
+                TimeUnit.SECONDS,
             )
                 .setConstraints(
                     Constraints.Builder()
                         .setRequiredNetworkType(NetworkType.CONNECTED)
-                        .build()
+                        .build(),
                 )
                 .build()
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(

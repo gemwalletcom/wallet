@@ -47,10 +47,7 @@ mod tests {
 
     #[test]
     fn test_swap_transaction_timeout() {
-        assert_eq!(
-            swap_transaction_timeout(Chain::Ethereum, Chain::Ethereum),
-            u64::from(chain_transaction_timeout(Chain::Ethereum))
-        );
+        assert_eq!(swap_transaction_timeout(Chain::Ethereum, Chain::Ethereum), u64::from(chain_transaction_timeout(Chain::Ethereum)));
         assert_eq!(swap_transaction_timeout(Chain::Ethereum, Chain::Solana), DAY.as_millis() as u64);
         assert_eq!(
             swap_transaction_timeout(Chain::Bitcoin, Chain::Ethereum),

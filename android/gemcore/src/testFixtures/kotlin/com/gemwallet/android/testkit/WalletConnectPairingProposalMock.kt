@@ -4,9 +4,7 @@ import com.gemwallet.android.application.wallet_connect.values.WalletConnectPair
 import com.wallet.core.primitives.WalletConnectionSessionProposal
 import uniffi.gemstone.WalletConnectionVerificationStatus
 
-fun mockWalletConnectPairingProposal(
-    proposal: WalletConnectionSessionProposal = mockWalletConnectionSessionProposal(),
-) = WalletConnectPairingProposal(
+fun mockWalletConnectPairingProposal(proposal: WalletConnectionSessionProposal = mockWalletConnectionSessionProposal()) = WalletConnectPairingProposal(
     proposal = proposal,
     verificationStatus = WalletConnectionVerificationStatus.VERIFIED,
 )

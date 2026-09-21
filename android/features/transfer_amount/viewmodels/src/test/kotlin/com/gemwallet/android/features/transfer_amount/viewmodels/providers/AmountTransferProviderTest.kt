@@ -1,12 +1,8 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
-import uniffi.gemstone.GemAmountServiceInterface
-import uniffi.gemstone.GemAmountTransfer
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
-import uniffi.gemstone.GemAmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetBalance
-import uniffi.gemstone.TransactionInputType
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.testkit.mockAmountParamsTransfer
 import com.gemwallet.android.testkit.mockAssetCosmos
@@ -25,6 +21,10 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemAmountServiceInterface
+import uniffi.gemstone.GemAmountTitle
+import uniffi.gemstone.GemAmountTransfer
+import uniffi.gemstone.TransactionInputType
 import java.math.BigInteger
 
 class AmountTransferProviderTest {

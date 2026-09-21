@@ -6,9 +6,8 @@ use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainStakin
 use gem_client::{Client, ClientExt};
 
 use crate::models::{
-    AddressInformation, BroadcastTransaction, Chainhead, DnsRecordsResponse, JettonMastersResponse, JettonWalletsResponse, NftCollectionsResponse, NftItemsResponse,
-    RunGetMethodRequest, RunGetMethodResult, SendBocRequest, StackArg, TraceByAddressQuery, TraceByBlockQuery, TraceByMessageQuery, TraceByTransactionQuery, TraceResponse,
-    WalletInfo,
+    AddressInformation, BroadcastTransaction, Chainhead, DnsRecordsResponse, JettonMastersResponse, JettonWalletsResponse, NftCollectionsResponse, NftItemsResponse, RunGetMethodRequest, RunGetMethodResult, SendBocRequest, StackArg,
+    TraceByAddressQuery, TraceByBlockQuery, TraceByMessageQuery, TraceByTransactionQuery, TraceResponse, WalletInfo,
     simulation::{TonEmulationRequest, TonEmulationResponse},
 };
 use crate::rpc::target::TonCenterTarget;
@@ -65,28 +64,18 @@ impl<C: Client> TonClient<C> {
     }
 
     pub async fn get_traces_by_message(&self, hash: String) -> Result<TraceResponse, Box<dyn Error + Send + Sync>> {
-        let query = TraceByMessageQuery {
-            msg_hash: hash,
-            include_actions: true,
-        };
+        let query = TraceByMessageQuery { msg_hash: hash, include_actions: true };
         Ok(self.client.get(TonCenterTarget::GetTracesByMessage { query }).await?)
     }
 
     pub async fn get_traces_by_transaction(&self, hash: String) -> Result<TraceResponse, Box<dyn Error + Send + Sync>> {
-        let query = TraceByTransactionQuery {
-            tx_hash: hash,
-            include_actions: true,
-        };
+        let query = TraceByTransactionQuery { tx_hash: hash, include_actions: true };
         Ok(self.client.get(TonCenterTarget::GetTracesByTransaction { query }).await?)
     }
 
     pub async fn get_traces_by_hash(&self, hash: String) -> Result<TraceResponse, Box<dyn Error + Send + Sync>> {
         let traces = self.get_traces_by_message(hash.clone()).await?;
-        if traces.traces.is_empty() {
-            self.get_traces_by_transaction(hash).await
-        } else {
-            Ok(traces)
-        }
+        if traces.traces.is_empty() { self.get_traces_by_transaction(hash).await } else { Ok(traces) }
     }
 
     pub async fn get_traces_by_masterchain_block(&self, block: u64) -> Result<TraceResponse, Box<dyn Error + Send + Sync>> {
@@ -124,38 +113,20 @@ impl<C: Client> TonClient<C> {
     }
 
     pub async fn get_nft_collection(&self, collection_address: &str) -> Result<NftCollectionsResponse, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .client
-            .get(TonCenterTarget::GetNftCollection {
-                address: collection_address.to_string(),
-            })
-            .await?)
+        Ok(self.client.get(TonCenterTarget::GetNftCollection { address: collection_address.to_string() }).await?)
     }
 
     pub async fn get_token_data(&self, token_id: String) -> Result<Asset, Box<dyn Error + Send + Sync>> {
         let response = self.get_token_info(&token_id).await?;
         let master = response.jetton_masters.first().ok_or("missing jetton master")?;
-        let indexed_info = response
-            .metadata
-            .get(&master.address)
-            .and_then(|metadata| metadata.token_info.iter().find(|info| info.valid));
+        let indexed_info = response.metadata.get(&master.address).and_then(|metadata| metadata.token_info.iter().find(|info| info.valid));
         let inline_metadata = master.jetton_content.name.as_ref().zip(master.jetton_content.symbol.as_ref());
         let indexed_metadata = indexed_info.and_then(|info| info.name.as_ref().zip(info.symbol.as_ref()));
         let (name, symbol) = inline_metadata.or(indexed_metadata).ok_or("invalid jetton metadata")?;
-        let decimals = master
-            .jetton_content
-            .decimals
-            .or_else(|| indexed_info.and_then(|info| info.extra.as_ref()?.decimals))
-            .unwrap_or(9);
+        let decimals = master.jetton_content.decimals.or_else(|| indexed_info.and_then(|info| info.extra.as_ref()?.decimals)).unwrap_or(9);
         let decimals = i32::from(u8::try_from(decimals).map_err(|_| "invalid jetton decimals")?);
 
-        Ok(Asset::new(
-            AssetId::from_token(Chain::Ton, &token_id),
-            name.clone(),
-            symbol.clone(),
-            decimals,
-            AssetType::JETTON,
-        ))
+        Ok(Asset::new(AssetId::from_token(Chain::Ton, &token_id), name.clone(), symbol.clone(), decimals, AssetType::JETTON))
     }
 }
 
@@ -231,10 +202,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_token_data_v3() {
-        let client = TonClient::mock_with_get(
-            "/api/v3/jetton/masters?address=EQBlqsm144Dq6SjbPI4jjZvA1hqTIP3CvHovbIfW_t-SCALE",
-            include_bytes!("../../testdata/jetton_master_dedust.json"),
-        );
+        let client = TonClient::mock_with_get("/api/v3/jetton/masters?address=EQBlqsm144Dq6SjbPI4jjZvA1hqTIP3CvHovbIfW_t-SCALE", include_bytes!("../../testdata/jetton_master_dedust.json"));
         let dedust = client.get_token_data(TON_DUST_TOKEN_ID.to_string()).await.unwrap();
         assert_eq!(dedust.name, "DeDust");
         assert_eq!(dedust.symbol, "DUST");
@@ -246,10 +214,7 @@ mod tests {
         assert_eq!(inline.symbol, "INL");
         assert_eq!(inline.decimals, 8);
 
-        let client = TonClient::mock_with_get(
-            "/api/v3/jetton/masters?address=indexed_decimals",
-            include_bytes!("../../testdata/jetton_master_indexed_decimals.json"),
-        );
+        let client = TonClient::mock_with_get("/api/v3/jetton/masters?address=indexed_decimals", include_bytes!("../../testdata/jetton_master_indexed_decimals.json"));
         let indexed_decimals = client.get_token_data("indexed_decimals".to_string()).await.unwrap();
         assert_eq!(indexed_decimals.name, "Indexed Token");
         assert_eq!(indexed_decimals.symbol, "IDX");
@@ -259,24 +224,15 @@ mod tests {
         let missing_master = client.get_token_data("missing".to_string()).await.unwrap_err();
         assert_eq!(missing_master.to_string(), "missing jetton master");
 
-        let client = TonClient::mock_with_get(
-            "/api/v3/jetton/masters?address=invalid_token_info",
-            include_bytes!("../../testdata/jetton_master_invalid_token_info.json"),
-        );
+        let client = TonClient::mock_with_get("/api/v3/jetton/masters?address=invalid_token_info", include_bytes!("../../testdata/jetton_master_invalid_token_info.json"));
         let invalid_token_info = client.get_token_data("invalid_token_info".to_string()).await.unwrap_err();
         assert_eq!(invalid_token_info.to_string(), "invalid jetton metadata");
 
-        let client = TonClient::mock_with_get(
-            "/api/v3/jetton/masters?address=missing_fields",
-            include_bytes!("../../testdata/jetton_master_missing_fields.json"),
-        );
+        let client = TonClient::mock_with_get("/api/v3/jetton/masters?address=missing_fields", include_bytes!("../../testdata/jetton_master_missing_fields.json"));
         let missing_fields = client.get_token_data("missing_fields".to_string()).await.unwrap_err();
         assert_eq!(missing_fields.to_string(), "invalid jetton metadata");
 
-        let client = TonClient::mock_with_get(
-            "/api/v3/jetton/masters?address=invalid_decimals",
-            include_bytes!("../../testdata/jetton_master_invalid_decimals.json"),
-        );
+        let client = TonClient::mock_with_get("/api/v3/jetton/masters?address=invalid_decimals", include_bytes!("../../testdata/jetton_master_invalid_decimals.json"));
         let invalid_decimals = client.get_token_data("invalid_decimals".to_string()).await.unwrap_err();
         assert_eq!(invalid_decimals.to_string(), "invalid jetton decimals");
     }
@@ -302,13 +258,7 @@ mod chain_integration_tests {
         let result = client.run_get_method(TEST_ADDRESS, "seqno", vec![]).await?;
         assert_eq!(result.exit_code, 0);
         assert!(result.stack[0].as_num().is_some());
-        let result = client
-            .run_get_method(
-                TON_USDT_TOKEN_ID,
-                "get_wallet_address",
-                vec![StackArg::slice(Address::parse(TEST_ADDRESS)?.to_boc_base64()?)],
-            )
-            .await?;
+        let result = client.run_get_method(TON_USDT_TOKEN_ID, "get_wallet_address", vec![StackArg::slice(Address::parse(TEST_ADDRESS)?.to_boc_base64()?)]).await?;
         assert_eq!(result.exit_code, 0);
         Address::from_boc_base64(result.stack[0].as_cell_bytes().ok_or("missing jetton wallet address")?)?;
         Ok(())

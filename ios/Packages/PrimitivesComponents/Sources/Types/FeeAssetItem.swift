@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitives
-import struct Gemstone.GemFeeAsset
 import Components
 import Formatters
+import struct Gemstone.GemFeeAsset
+import GemstonePrimitives
 import Primitives
 import Style
 
@@ -75,8 +75,8 @@ extension FeeAssetItem: Hashable {
     }
 }
 
-extension FeeAssetItem {
-    public func selected(_ isSelected: Bool) -> FeeAssetItem {
+public extension FeeAssetItem {
+    func selected(_ isSelected: Bool) -> FeeAssetItem {
         FeeAssetItem(asset: asset, balance: balance, price: price, currency: currency, isSelected: isSelected)
     }
 }

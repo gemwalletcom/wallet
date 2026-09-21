@@ -43,10 +43,7 @@ impl FiatProvider for MercuryoClient {
         }))
         .await;
 
-        Ok(assets_with_limits
-            .into_iter()
-            .filter_map(|(asset, limits)| map_asset_with_limits(asset, limits.clone(), limits))
-            .collect())
+        Ok(assets_with_limits.into_iter().filter_map(|(asset, limits)| map_asset_with_limits(asset, limits.clone(), limits)).collect())
     }
 
     async fn get_countries(&self) -> Result<Vec<FiatProviderCountry>, Box<dyn std::error::Error + Send + Sync>> {
@@ -73,9 +70,7 @@ impl FiatProvider for MercuryoClient {
     async fn get_quote_buy(&self, request: FiatQuoteRequest, request_map: FiatMapping) -> Result<FiatQuoteResponse, Box<dyn Error + Send + Sync>> {
         let network = request_map.asset_symbol.network.clone().unwrap_or_default();
         let merchant_transaction_id = generate_quote_id();
-        let quote = self
-            .get_quote_buy(request.currency.clone(), request_map.asset_symbol.symbol, request.amount, network)
-            .await?;
+        let quote = self.get_quote_buy(request.currency.clone(), request_map.asset_symbol.symbol, request.amount, network).await?;
 
         Ok(FiatQuoteResponse::new(merchant_transaction_id, request.amount, quote.amount))
     }
@@ -83,9 +78,7 @@ impl FiatProvider for MercuryoClient {
     async fn get_quote_sell(&self, request: FiatQuoteRequest, request_map: FiatMapping) -> Result<FiatQuoteResponse, Box<dyn Error + Send + Sync>> {
         let network = request_map.asset_symbol.network.clone().unwrap_or_default();
         let merchant_transaction_id = generate_quote_id();
-        let quote = self
-            .get_quote_sell(request.currency.clone(), request_map.asset_symbol.symbol, request.amount, network)
-            .await?;
+        let quote = self.get_quote_sell(request.currency.clone(), request_map.asset_symbol.symbol, request.amount, network).await?;
 
         Ok(FiatQuoteResponse::new(merchant_transaction_id, request.amount, quote.amount))
     }

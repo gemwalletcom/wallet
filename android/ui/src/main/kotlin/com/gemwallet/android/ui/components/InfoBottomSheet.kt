@@ -23,7 +23,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.AppUrl
-import com.gemwallet.android.domains.asset.title
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ui.R
@@ -61,133 +60,119 @@ sealed class InfoSheetEntity(
     val action: (() -> Unit)? = null,
     val infoUrl: (() -> String)? = null,
 ) {
-    class NetworkFeeInfo(networkTitle: String, networkSymbol: String) : InfoSheetEntity(
-        icon = R.drawable.ic_network_fee,
-        title = R.string.transfer_network_fee,
-        description = R.string.info_network_fee_description,
-        infoUrl = { AppUrl.networkFees },
-        descriptionArgs = listOf("**$networkTitle**", "**$networkSymbol**"),
-    )
+    class NetworkFeeInfo(networkTitle: String, networkSymbol: String) :
+        InfoSheetEntity(
+            icon = R.drawable.ic_network_fee,
+            title = R.string.transfer_network_fee,
+            description = R.string.info_network_fee_description,
+            infoUrl = { AppUrl.networkFees },
+            descriptionArgs = listOf("**$networkTitle**", "**$networkSymbol**"),
+        )
 
-    class NetworkBalanceRequiredInfo(
-        chain: Chain,
-        required: String,
-        available: String,
-        shortfall: String,
-        actionLabel: String,
-        action: () -> Unit,
-    ) : InfoSheetEntity(
-        icon = chain.asset().iconModel(),
-        title = R.string.info_balance_required_title,
-        description = R.string.info_insufficient_network_fee_balance_description,
-        infoUrl = { AppUrl.networkFees },
-        action = action,
-        actionLabel = actionLabel,
-        titleArgs = listOf(chain.asset().symbol),
-        descriptionArgs = listOf("**$required**", "**${chain.networkName()}**", "**$available**", "**$shortfall**"),
-    )
+    class NetworkBalanceRequiredInfo(chain: Chain, required: String, available: String, shortfall: String, actionLabel: String, action: () -> Unit) :
+        InfoSheetEntity(
+            icon = chain.asset().iconModel(),
+            title = R.string.info_balance_required_title,
+            description = R.string.info_insufficient_network_fee_balance_description,
+            infoUrl = { AppUrl.networkFees },
+            action = action,
+            actionLabel = actionLabel,
+            titleArgs = listOf(chain.asset().symbol),
+            descriptionArgs = listOf("**$required**", "**${chain.networkName()}**", "**$available**", "**$shortfall**"),
+        )
 
-    class NetworkFeeRequiredInfo(
-        chain: Chain,
-        actionLabel: String,
-        action: () -> Unit,
-    ) : InfoSheetEntity(
-        icon = chain.asset().iconModel(),
-        title = R.string.info_balance_required_title,
-        description = R.string.transfer_insufficient_network_fee_balance,
-        infoUrl = { AppUrl.networkFees },
-        action = action,
-        actionLabel = actionLabel,
-        titleArgs = listOf(chain.asset().symbol),
-        descriptionArgs = listOf("**${chain.asset().title}**"),
-    )
+    class NetworkFeeRequiredInfo(chain: Chain, title: String, actionLabel: String, action: () -> Unit) :
+        InfoSheetEntity(
+            icon = chain.asset().iconModel(),
+            title = R.string.info_balance_required_title,
+            description = R.string.transfer_insufficient_network_fee_balance,
+            infoUrl = { AppUrl.networkFees },
+            action = action,
+            actionLabel = actionLabel,
+            titleArgs = listOf(chain.asset().symbol),
+            descriptionArgs = listOf("**$title**"),
+        )
 
-    class BalanceRequiredInfo(
-        asset: Asset,
-        required: String,
-        available: String,
-        shortfall: String,
-        actionLabel: String,
-        action: () -> Unit,
-    ) : InfoSheetEntity(
-        icon = asset.iconModel(),
-        title = R.string.info_balance_required_title,
-        description = R.string.info_balance_required_description,
-        action = action,
-        actionLabel = actionLabel,
-        titleArgs = listOf(asset.symbol),
-        descriptionArgs = listOf("**$required**", "**$available**", "**$shortfall**"),
-    )
+    class BalanceRequiredInfo(asset: Asset, required: String, available: String, shortfall: String, actionLabel: String, action: () -> Unit) :
+        InfoSheetEntity(
+            icon = asset.iconModel(),
+            title = R.string.info_balance_required_title,
+            description = R.string.info_balance_required_description,
+            action = action,
+            actionLabel = actionLabel,
+            titleArgs = listOf(asset.symbol),
+            descriptionArgs = listOf("**$required**", "**$available**", "**$shortfall**"),
+        )
 
-    class MinimumAccountBalanceInfo(asset: Asset, value: String) : InfoSheetEntity(
-        icon = asset.iconModel(),
-        title = R.string.info_account_minimum_balance_title,
-        description = R.string.transfer_minimum_account_balance,
-        infoUrl = { AppUrl.docs(DocsUrl.AccountMinimalBalance) },
-        titleArgs = listOf(asset.symbol),
-        descriptionArgs = listOf("**$value**"),
-    )
+    class MinimumAccountBalanceInfo(asset: Asset, value: String) :
+        InfoSheetEntity(
+            icon = asset.iconModel(),
+            title = R.string.info_account_minimum_balance_title,
+            description = R.string.transfer_minimum_account_balance,
+            infoUrl = { AppUrl.docs(DocsUrl.AccountMinimalBalance) },
+            titleArgs = listOf(asset.symbol),
+            descriptionArgs = listOf("**$value**"),
+        )
 
-    class SwapMinimumAmountInfo(
-        provider: SwapProvider,
-        providerName: String,
-        required: String,
-        available: String,
-        shortfall: String,
-        actionLabel: String,
-        action: () -> Unit,
-    ) : InfoSheetEntity(
-        icon = provider.iconModel(),
-        title = R.string.info_minimum_amount_title,
-        description = R.string.info_swap_minimum_amount_description,
-        action = action,
-        actionLabel = actionLabel,
-        descriptionArgs = listOf("**$providerName**", "**$required**", available, shortfall),
-    )
+    class SwapMinimumAmountInfo(provider: SwapProvider, providerName: String, required: String, available: String, shortfall: String, actionLabel: String, action: () -> Unit) :
+        InfoSheetEntity(
+            icon = provider.iconModel(),
+            title = R.string.info_minimum_amount_title,
+            description = R.string.info_swap_minimum_amount_description,
+            action = action,
+            actionLabel = actionLabel,
+            descriptionArgs = listOf("**$providerName**", "**$required**", available, shortfall),
+        )
 
-    class DustThresholdInfo(chain: Chain) : InfoSheetEntity(
-        icon = chain.asset().iconModel(),
-        title = R.string.errors_transfer_error,
-        description = R.string.errors_dust_threshold,
-        infoUrl = { AppUrl.docs(DocsUrl.Dust) },
-        descriptionArgs = listOf("**${chain.networkName()}**"),
-    )
+    class DustThresholdInfo(chain: Chain) :
+        InfoSheetEntity(
+            icon = chain.asset().iconModel(),
+            title = R.string.errors_transfer_error,
+            description = R.string.errors_dust_threshold,
+            infoUrl = { AppUrl.docs(DocsUrl.Dust) },
+            descriptionArgs = listOf("**${chain.networkName()}**"),
+        )
 
-    class ReserveForFee(icon: Any?) : InfoSheetEntity(
-        icon = icon,
-        title = R.string.info_stake_reserved_title,
-        description = R.string.info_stake_reserved_description,
-    )
+    class ReserveForFee(icon: Any?) :
+        InfoSheetEntity(
+            icon = icon,
+            title = R.string.info_stake_reserved_title,
+            description = R.string.info_stake_reserved_description,
+        )
 
-    class StakeLockTimeInfo(icon: Any?) : InfoSheetEntity(
-        icon = icon,
-        title = R.string.stake_lock_time,
-        description = R.string.info_lock_time_description,
-        infoUrl = { AppUrl.docs(DocsUrl.StakingLockTime) },
-    )
+    class StakeLockTimeInfo(icon: Any?) :
+        InfoSheetEntity(
+            icon = icon,
+            title = R.string.stake_lock_time,
+            description = R.string.info_lock_time_description,
+            infoUrl = { AppUrl.docs(DocsUrl.StakingLockTime) },
+        )
 
-    class StakeAprInfo(icon: Any?) : InfoSheetEntity(
-        icon = icon,
-        title = R.string.stake_apr,
-        titleArgs = listOf(""),
-        description = R.string.info_stake_apr_description,
-        infoUrl = { AppUrl.docs(DocsUrl.StakingApr) },
-    )
+    class StakeAprInfo(icon: Any?) :
+        InfoSheetEntity(
+            icon = icon,
+            title = R.string.stake_apr,
+            titleArgs = listOf(""),
+            description = R.string.info_stake_apr_description,
+            infoUrl = { AppUrl.docs(DocsUrl.StakingApr) },
+        )
 
-    class StakeFrozenRequired(icon: Any?) : InfoSheetEntity(
-        icon = icon,
-        title = R.string.info_stake_frozen_required_title,
-        description = R.string.info_stake_frozen_required_description,
-        infoUrl = { AppUrl.staking(StakeChain.Tron.string) },
-    )
+    class StakeFrozenRequired(icon: Any?) :
+        InfoSheetEntity(
+            icon = icon,
+            title = R.string.info_stake_frozen_required_title,
+            description = R.string.info_stake_frozen_required_description,
+            infoUrl = { AppUrl.staking(StakeChain.Tron.string) },
+        )
 
-    class TransactionInfo(icon: Any?, state: TransactionState, @DrawableRes badgeIcon: Int, @StringRes description: Int) : InfoSheetEntity(
-        icon = icon,
-        badgeIcon = badgeIcon,
-        title = state.statusLabelRes(),
-        description = description,
-        infoUrl = { AppUrl.docs(DocsUrl.TransactionStatus) },
-    )
+    class TransactionInfo(icon: Any?, state: TransactionState, @DrawableRes badgeIcon: Int, @StringRes description: Int) :
+        InfoSheetEntity(
+            icon = icon,
+            badgeIcon = badgeIcon,
+            title = state.statusLabelRes(),
+            description = description,
+            infoUrl = { AppUrl.docs(DocsUrl.TransactionStatus) },
+        )
 
     object PendingUnconfirmedBalanceInfo : InfoSheetEntity(
         icon = R.drawable.ic_splash,
@@ -195,12 +180,13 @@ sealed class InfoSheetEntity(
         description = R.string.info_transaction_pending_description,
     )
 
-    class EstimatedConfirmationInfo(chain: Chain) : InfoSheetEntity(
-        icon = R.drawable.ic_network_fee,
-        title = R.string.transaction_estimated_confirmation,
-        description = R.string.info_estimated_confirmation_description,
-        descriptionArgs = listOf("**${chain.networkName()}**"),
-    )
+    class EstimatedConfirmationInfo(chain: Chain) :
+        InfoSheetEntity(
+            icon = R.drawable.ic_network_fee,
+            title = R.string.transaction_estimated_confirmation,
+            description = R.string.info_estimated_confirmation_description,
+            descriptionArgs = listOf("**${chain.networkName()}**"),
+        )
 
     object WatchWalletInfo : InfoSheetEntity(
         icon = R.drawable.watch_badge,
@@ -242,12 +228,13 @@ sealed class InfoSheetEntity(
         description = R.string.errors_scan_transaction_malicious_description,
     )
 
-    class MemoRequiredInfo(symbol: String) : InfoSheetEntity(
-        icon = R.drawable.ic_splash,
-        title = R.string.common_warning,
-        description = R.string.errors_scan_transaction_memo_required,
-        descriptionArgs = listOf("**$symbol**"),
-    )
+    class MemoRequiredInfo(symbol: String) :
+        InfoSheetEntity(
+            icon = R.drawable.ic_splash,
+            title = R.string.common_warning,
+            description = R.string.errors_scan_transaction_memo_required,
+            descriptionArgs = listOf("**$symbol**"),
+        )
 
     object AssetStatusSuspiciousInfo : InfoSheetEntity(
         icon = R.drawable.suspicious,
@@ -326,21 +313,19 @@ sealed class InfoSheetEntity(
         infoUrl = null,
     )
 
-    class ExistingWalletImported(walletName: String, actionLabel: String, action: () -> Unit) : InfoSheetEntity(
-        icon = R.drawable.ic_splash,
-        titleText = walletName,
-        description = R.string.wallet_import_already_imported_message,
-        actionLabel = actionLabel,
-        action = action,
-    )
+    class ExistingWalletImported(walletName: String, actionLabel: String, action: () -> Unit) :
+        InfoSheetEntity(
+            icon = R.drawable.ic_splash,
+            titleText = walletName,
+            description = R.string.wallet_import_already_imported_message,
+            actionLabel = actionLabel,
+            action = action,
+        )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InfoBottomSheet(
-    item: InfoSheetEntity?,
-    onClose: () -> Unit,
-) {
+fun InfoBottomSheet(item: InfoSheetEntity?, onClose: () -> Unit) {
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
     ModalBottomSheet(
@@ -411,13 +396,9 @@ private fun InfoSheetIcon(item: InfoSheetEntity) {
 }
 
 @Composable
-private fun formattedStringResource(@StringRes resId: Int, args: List<Any>?): String {
-    return args?.takeIf { it.isNotEmpty() }
-        ?.let { stringResource(resId, *it.toTypedArray()) }
-        ?: stringResource(resId)
-}
+private fun formattedStringResource(@StringRes resId: Int, args: List<Any>?): String = args?.takeIf { it.isNotEmpty() }
+    ?.let { stringResource(resId, *it.toTypedArray()) }
+    ?: stringResource(resId)
 
 @Composable
-private fun infoText(@StringRes resId: Int?, text: String?, args: List<Any>?): String {
-    return text ?: formattedStringResource(requireNotNull(resId), args)
-}
+private fun infoText(@StringRes resId: Int?, text: String?, args: List<Any>?): String = text ?: formattedStringResource(requireNotNull(resId), args)

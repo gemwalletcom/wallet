@@ -5,7 +5,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 object Migration_57_58 : Migration(57, 58) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("""
+        db.execSQL(
+            """
             CREATE TABLE perpetual (
                 id TEXT NOT NULL,
                 name TEXT NOT NULL,
@@ -20,16 +21,20 @@ object Migration_57_58 : Migration(57, 58) {
                 maxLeverage INTEGER NOT NULL,
                 PRIMARY KEY (id)
             )
-        """.trimIndent())
+            """.trimIndent(),
+        )
         db.execSQL("""CREATE INDEX IF NOT EXISTS `perpetual_asset_id_idx` ON `perpetual` (`assetId`)""")
-        db.execSQL("""
+        db.execSQL(
+            """
             CREATE TABLE perpetual_metadata (
                 perpetualId TEXT NOT NULL,
                 isPinned INTEGER NOT NULL,
                 PRIMARY KEY(perpetualId)
             )
-        """.trimIndent())
-        db.execSQL("""        
+            """.trimIndent(),
+        )
+        db.execSQL(
+            """        
             CREATE TABLE perpetual_balance (
                 accountAddress TEXT NOT NULL,
                 available REAL NOT NULL,
@@ -37,8 +42,10 @@ object Migration_57_58 : Migration(57, 58) {
                 withdrawable REAL NOT NULL,
                 PRIMARY KEY(accountAddress)
             );
-        """.trimIndent())
-        db.execSQL("""
+            """.trimIndent(),
+        )
+        db.execSQL(
+            """
             CREATE TABLE perpetual_position(
                 id TEXT NOT NULL,
                 perpetualId TEXT NOT NULL,
@@ -62,7 +69,8 @@ object Migration_57_58 : Migration(57, 58) {
                 funding REAL,
                 PRIMARY KEY(id, perpetualId, accountAddress)
             )
-        """.trimIndent())
+            """.trimIndent(),
+        )
         db.execSQL("""CREATE INDEX IF NOT EXISTS `perpetual_position_asset_id_idx` ON `perpetual_position` (`assetId`)""")
         db.execSQL("""CREATE INDEX IF NOT EXISTS `perpetual_position_perpetual_id_idx` ON `perpetual_position` (`perpetualId`)""")
         db.execSQL("""CREATE INDEX IF NOT EXISTS `perpetual_position_account_address_idx` ON `perpetual_position` (`accountAddress`)""")

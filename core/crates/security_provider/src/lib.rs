@@ -73,20 +73,12 @@ mod tests {
     fn test_filter_enabled() {
         let hashdit = Arc::new(HashDitProvider::new(MockClient::new(), ""));
         let providers = TransactionScanProviders {
-            addresses: vec![
-                Arc::new(GoPlusProvider::mock(MockClient::new())),
-                hashdit.clone(),
-                Arc::new(TronscanProvider::new(MockClient::new(), "")),
-            ],
+            addresses: vec![Arc::new(GoPlusProvider::mock(MockClient::new())), hashdit.clone(), Arc::new(TronscanProvider::new(MockClient::new(), ""))],
             poisoning: vec![hashdit.clone()],
             websites: vec![hashdit],
         };
         for (enabled, addresses, hashdit_enabled) in [
-            (
-                vec![ScanProvider::GoPlus, ScanProvider::Tronscan],
-                vec![ScanProvider::GoPlus, ScanProvider::Tronscan],
-                false,
-            ),
+            (vec![ScanProvider::GoPlus, ScanProvider::Tronscan], vec![ScanProvider::GoPlus, ScanProvider::Tronscan], false),
             (vec![ScanProvider::HashDit], vec![ScanProvider::HashDit], true),
             (vec![], vec![], false),
             (ScanProvider::all(), ScanProvider::all(), true),

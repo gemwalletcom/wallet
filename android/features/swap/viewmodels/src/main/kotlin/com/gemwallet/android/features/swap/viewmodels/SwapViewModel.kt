@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.swap.viewmodels
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
@@ -8,14 +9,12 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
-import com.gemwallet.android.application.swap.cases.create
-import com.gemwallet.android.application.swap.cases.matches
 import com.gemwallet.android.application.swap.cases.toGem
-import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.domains.asset.calculateFiat
 import com.gemwallet.android.domains.asset.formatFiat
 import com.gemwallet.android.domains.asset.swapValue
@@ -34,7 +33,6 @@ import com.gemwallet.android.features.swap.viewmodels.models.formattedToAmount
 import com.gemwallet.android.features.swap.viewmodels.models.receiveEquivalent
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.math.parseInputNumberOrNull
-import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.toAssetPriceValue
 import com.gemwallet.android.ui.components.swap.SlippageStateUIModel
 import com.gemwallet.android.ui.components.swap.uiModel
@@ -42,14 +40,11 @@ import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelInput
-import com.gemwallet.android.ui.models.swap.SwapProviderUIModelFactory
+import com.gemwallet.android.ui.models.swap.SwapSlippage
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Currency
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.math.BigDecimal
-import java.math.BigInteger
-import javax.inject.Inject
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -72,14 +67,20 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemPercentageStyle
 import uniffi.gemstone.GemSlippageSelection
 import uniffi.gemstone.GemSwapButtonAction
 import uniffi.gemstone.GemSwapPairSelection
+import uniffi.gemstone.GemSwapQuoteInput
 import uniffi.gemstone.GemSwapQuoteServiceInterface
 import uniffi.gemstone.GemSwapRequest
 import uniffi.gemstone.SwapProvider
 import uniffi.gemstone.SwapperException
+import uniffi.gemstone.formattedPercentage
 import uniffi.gemstone.swapperQuoteSummary
+import java.math.BigDecimal
+import java.math.BigInteger
+import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -99,20 +100,18 @@ class SwapViewModel @Inject constructor(
 
     private val payValueFlow = snapshotFlow { payValue.text }
         .map { it.toString() }
-        .map { it.parseInputNumberOrNull() ?: BigDecimal.ZERO }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, BigDecimal.ZERO)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     private val selectedSlippageBps = MutableStateFlow<UInt?>(null)
     val selectedSlippage: StateFlow<UInt?> = selectedSlippageBps.asStateFlow()
 
-    fun slippageState(bps: UInt?, isAuto: Boolean): SlippageStateUIModel =
-        swapQuoteService.newSlippageSession(if (isAuto) GemSlippageSelection.Auto else GemSlippageSelection.Manual(bps ?: 0u))
-            .viewState()
-            .uiModel(context, ::slippagePercent)
+    fun slippageState(bps: UInt?, isAuto: Boolean): SlippageStateUIModel = swapQuoteService.newSlippageSession(if (isAuto) GemSlippageSelection.Auto else GemSlippageSelection.Manual(bps ?: 0u))
+        .viewState()
+        .uiModel(context, ::slippageText)
 
     fun slippageBps(percent: Double): UInt? = swapQuoteService.slippageBpsFromPercent(percent)
 
-    fun slippagePercent(bps: UInt): Double = swapQuoteService.slippagePercent(bps)
+    fun slippageText(bps: UInt): String = swapQuoteService.slippagePercentText(bps, SwapSlippage.numberFormat())
 
     private val refreshRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     private val refreshEnabled = MutableStateFlow(false)
@@ -137,102 +136,86 @@ class SwapViewModel @Inject constructor(
         .flatMapLatest { assetId -> assetId?.let { getAssetInfo(it) } ?: flow { emit(null) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val payEquivalentFormatted = combine(payValueFlow, payAsset) { input, fromAsset ->
-            fromAsset?.let {
-                val equivalentValue = it.calculateFiat(input)
-                it.formatFiat(equivalentValue)
-            } ?: ""
-        }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, "")
-
-    private val quoteRequestParams = combine(payValueFlow, payAsset, receiveAsset, selectedSlippageBps) { value, fromAsset, toAsset, slippageBps ->
-            SwapQuoteRequestParams.create(value, fromAsset, toAsset, slippageBps)
-        }
-        .distinctUntilChangedBy { it?.key }
-        .onEach(::onQuoteRequestParamsChanged)
+    private val quoteInput: StateFlow<GemSwapQuoteInput?> = session.map { it.input }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val matchedQuoteResults = combine(
-        quoteRequestParams,
-        requestSwapQuotes(
-            requestParams = quoteRequestParams,
-            refreshRequests = refreshRequests,
-            refreshEnabled = quoteRefreshEnabled,
-            onFetchStarted = ::onQuoteFetchStarted,
-            refreshIntervalMillis = swapQuoteService.refreshIntervalMilliseconds().toLong(),
-            debounceMillis = swapQuoteService.quoteDebounceMilliseconds().toLong(),
-        ),
-    ) { params, results ->
-        results?.takeIf { it.matches(params) }
+    val payEquivalentFormatted = combine(payValueFlow, payAsset) { text, pay ->
+        pay?.formatFiat(pay.calculateFiat(text.parseInputNumberOrNull() ?: BigDecimal.ZERO)) ?: ""
     }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, "")
+
+    private val quoteRequestParams = combine(quoteInput, payAsset, receiveAsset) { input, pay, receive ->
+        if (input == null || pay == null || receive == null) {
+            null
+        } else {
+            SwapQuoteRequestParams(input, pay, receive)
+        }
+    }
+        .distinctUntilChangedBy { it?.key }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val quoteResults = requestSwapQuotes(
+        requestParams = quoteRequestParams,
+        refreshRequests = refreshRequests,
+        refreshEnabled = quoteRefreshEnabled,
+        onFetchStarted = ::onQuoteFetchStarted,
+        refreshIntervalMillis = swapQuoteService.refreshIntervalMilliseconds().toLong(),
+        debounceMillis = swapQuoteService.quoteDebounceMilliseconds().toLong(),
+    )
 
     val quote = combine(session, payAsset, receiveAsset) { quoteSession, pay, receive ->
-            val request = quoteSession.quotes?.request
-            val selected = quoteSession.quote()
-            if (request == null || selected == null || pay?.id()?.toIdentifier() != request.payAssetId || receive?.id()?.toIdentifier() != request.receiveAssetId) {
-                null
-            } else {
-                QuoteState(selected, pay, receive)
-            }
+        val request = quoteSession.quotes?.request
+        val selected = quoteSession.quote()
+        if (request == null || selected == null || pay?.id()?.toIdentifier() != request.payAssetId || receive?.id()?.toIdentifier() != request.receiveAssetId) {
+            null
+        } else {
+            QuoteState(selected, pay, receive)
         }
+    }
         .distinctUntilChanged()
         .onEach { state -> setReceive(state?.formattedToAmount ?: "") }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val providers = combine(session, quote) { quoteSession, current ->
-            val receive = current?.receive ?: return@combine emptyList()
-            quoteSession.quotes?.quotes.orEmpty().map { item ->
-                SwapProviderUIModelFactory.create(
-                    provider = item.data.provider,
-                    receiveAsset = receive.toAssetPriceValue(),
-                    toValue = item.toValue,
-                )
-            }
-        }
+        val receive = current?.receive ?: return@combine emptyList()
+        quoteSession.providerRows(receive.asset.toGem(), receive.price?.price?.price, (receive.price?.currency ?: Currency.USD).toGem())
+    }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val toEquivalentFormatted = quote.mapLatest { quote ->
-            quote?.receive?.formatFiat(quote.receiveEquivalent) ?: ""
-        }
+        quote?.receive?.formatFiat(quote.receiveEquivalent) ?: ""
+    }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
-    val swapDetails = combine(quote, providers) { quote, providers ->
-            if (quote == null) {
-                return@combine null
-            }
-            val summary = swapperQuoteSummary(quote.quote, quote.pay.asset.toGem(), quote.receive.asset.toGem())
-
-            val provider = providers.firstOrNull { item ->
-                item.id == quote.quote.data.provider.id &&
-                    item.title == quote.quote.data.provider.protocol
-            } ?: SwapProviderUIModelFactory.create(
-                provider = quote.quote.data.provider,
-                receiveAsset = quote.receive.toAssetPriceValue(),
-                toValue = quote.quote.toValue,
-            )
-
-            SwapDetailsUIModelFactory.create(
-                SwapDetailsUIModelInput(
-                    payAsset = quote.pay.toAssetPriceValue(),
-                    receiveAsset = quote.receive.toAssetPriceValue(),
-                    summary = summary,
-                    provider = provider,
-                    providers = providers,
-                    slippageBps = quote.quote.data.slippageBps,
-                    selectedSlippage = selectedSlippageBps.value,
-                    isProviderSelectable = providers.size > 1,
-                    priceImpact = quote.pay.swapValue(quote.quote.fromValue)
-                        .priceImpact(quote.receive.swapValue(quote.quote.toValue)),
-                ),
-            )
-        }
+    private val viewState = combine(session, payAsset) { quoteSession, pay ->
+        quoteSession.viewState(pay?.balance?.balance?.available ?: BigInteger.ZERO, pay?.asset?.toGem())
+    }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val viewState = combine(session, payValueFlow, payAsset) { quoteSession, value, pay ->
-            val available = pay?.balance?.balance?.available ?: BigInteger.ZERO
-            val atomic = pay?.let { Crypto(value, it.asset.decimals).atomicValue } ?: BigInteger.ZERO
-            quoteSession.viewState(atomic, available, pay?.asset?.toGem())
+    val swapDetails = combine(quote, providers, viewState) { quote, providers, state ->
+        if (quote == null) {
+            return@combine null
         }
+        val summary = swapperQuoteSummary(quote.quote, quote.pay.asset.toGem(), quote.receive.asset.toGem())
+
+        val provider = providers.firstOrNull { it.isSelected } ?: return@combine null
+
+        SwapDetailsUIModelFactory.create(
+            SwapDetailsUIModelInput(
+                payAsset = quote.pay.toAssetPriceValue(),
+                receiveAsset = quote.receive.toAssetPriceValue(),
+                summary = summary,
+                provider = provider,
+                providers = providers,
+                slippageBps = quote.quote.data.slippageBps,
+                selectedSlippage = selectedSlippageBps.value,
+                isProviderSelectable = state?.allowsProviderSelection ?: false,
+                priceImpact = quote.pay.swapValue(quote.quote.fromValue)
+                    .priceImpact(quote.receive.swapValue(quote.quote.toValue)),
+            ),
+        )
+    }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val uiState = viewState.map { state -> state?.let { createSwapUiState(it, context) } ?: SwapUiState() }
@@ -242,7 +225,10 @@ class SwapViewModel @Inject constructor(
         viewModelScope.launch {
             selectedSlippageBps.value = swapQuoteService.slippageBps()
         }
-        matchedQuoteResults
+        combine(payValueFlow, payAsset, receiveAsset, selectedSlippageBps) { text, pay, receive, slippageBps ->
+            session.update { it.onInputChanged(text, pay?.asset?.toGem(), receive?.asset?.toGem(), pay?.balance?.balance?.available ?: BigInteger.ZERO, slippageBps, numberFormat()) }
+        }.launchIn(viewModelScope)
+        quoteResults
             .onEach(::onQuoteResults)
             .launchIn(viewModelScope)
         viewModelScope.launch { suggestPair() }
@@ -253,7 +239,7 @@ class SwapViewModel @Inject constructor(
             return
         }
         val payAssetId = savedStateHandle.get<String?>(RouteArgument.FromAssetId.key)
-        val suggestion = runCatchingCancellable { swapQuoteService.suggestPair(payAssetId) }.getOrNull() ?: return
+        val suggestion = swapQuoteService.suggestPair(payAssetId) ?: return
         savedStateHandle[RouteArgument.FromAssetId.key] = suggestion.payAssetId
         savedStateHandle[RouteArgument.ToAssetId.key] = suggestion.receiveAssetId
     }
@@ -293,7 +279,8 @@ class SwapViewModel @Inject constructor(
         }
         selectedSlippageBps.update { slippageBps }
         viewModelScope.launch(ioDispatcher) {
-            swapQuoteService.setSlippageBps(slippageBps)
+            runCatchingCancellable { swapQuoteService.setSlippageBps(slippageBps) }
+                .onFailure { Log.e(TAG, "saving the slippage failed", it) }
         }
     }
 
@@ -311,11 +298,7 @@ class SwapViewModel @Inject constructor(
         refreshRequests.tryEmit(Unit)
     }
 
-    fun onPrimaryAction(
-        onConfirm: (ConfirmTransferInput) -> Unit,
-        onShowPriceImpactWarning: () -> Unit,
-        authorize: (() -> Unit) -> Unit,
-    ) {
+    fun onPrimaryAction(onConfirm: (ConfirmTransferInput) -> Unit, onShowPriceImpactWarning: () -> Unit, authorize: (() -> Unit) -> Unit) {
         val state = uiState.value
         if (state.buttonState != ButtonState.Enabled) {
             return
@@ -328,9 +311,13 @@ class SwapViewModel @Inject constructor(
                     authorize { swap(onConfirm) }
                 }
             }
+
             GemSwapButtonAction.RetryTransfer -> authorize { swap(onConfirm) }
+
             GemSwapButtonAction.RetryQuote -> refresh()
+
             is GemSwapButtonAction.UseMinimumAmount -> setPayValue(action.value)
+
             GemSwapButtonAction.InsufficientBalance -> Unit
         }
     }
@@ -358,19 +345,13 @@ class SwapViewModel @Inject constructor(
                 onConfirm(ConfirmTransferInput(params))
             }
             session.update { it.onTransferHandedOff(transfer) }
-        } catch (err: CancellationException) {
-            throw err
-        } catch (err: Throwable) {
-            session.update { it.onTransferFailed(transfer, err as? SwapperException ?: SwapperException.ComputeQuoteException(err.message.orEmpty())) }
+        } catch (err: SwapperException) {
+            session.update { it.onTransferFailed(transfer, err) }
         }
     }
 
     private fun subscribePrice(id: AssetId) = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable { swapQuoteService.addPrices(listOf(id.toIdentifier())) }
-    }
-
-    private fun onQuoteRequestParamsChanged(params: SwapQuoteRequestParams?) {
-        session.update { it.onRequestChanged(params?.key) }
     }
 
     private fun onQuoteFetchStarted(requestKey: GemSwapRequest) {
@@ -395,6 +376,8 @@ class SwapViewModel @Inject constructor(
     }
 
     companion object {
-        val percentSuggestions = gemConfig.getSwapConfig().amountPercentPresets.map { it.toInt() }
+        val percentSuggestions = gemConfig.getSwapConfig().amountPercentPresets.map { formattedPercentage(it.toDouble(), GemPercentageStyle.UNSIGNED_COMPACT) }
     }
 }
+
+private const val TAG = "Swap"

@@ -24,11 +24,7 @@ impl JsonRpcCall {
 
 impl RequestType {
     pub fn mock_jsonrpc(method: &str) -> Self {
-        Self::from_request(
-            "POST",
-            "/".to_string(),
-            serde_json::to_vec(&json!({ "jsonrpc": "2.0", "method": method, "params": [], "id": 1 })).unwrap(),
-        )
+        Self::from_request("POST", "/".to_string(), serde_json::to_vec(&json!({ "jsonrpc": "2.0", "method": method, "params": [], "id": 1 })).unwrap())
     }
 
     pub fn mock_regular(path: &str, method: &str, body: &[u8]) -> Self {

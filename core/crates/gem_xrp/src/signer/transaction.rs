@@ -47,14 +47,8 @@ pub(crate) struct XrpTransaction {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum XrpOperation {
-    Payment {
-        amount: XrpAmount,
-        destination: XrpAddress,
-        memo: XrpPaymentMemo,
-    },
-    TrustSet {
-        limit_amount: XrpAmount,
-    },
+    Payment { amount: XrpAmount, destination: XrpAddress, memo: XrpPaymentMemo },
+    TrustSet { limit_amount: XrpAmount },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

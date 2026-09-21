@@ -2,19 +2,15 @@ package com.gemwallet.android.model
 
 import android.icu.text.CompactDecimalFormat
 import com.wallet.core.primitives.Currency
+import uniffi.gemstone.GemCurrencyStyle
+import uniffi.gemstone.GemPrecision
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.util.Locale
-import uniffi.gemstone.GemCurrencyStyle
-import uniffi.gemstone.GemPrecision
 
-class CurrencyFormatter(
-    private val type: Type = Type.Currency,
-    private val currencyCode: String,
-    private val locale: Locale = Locale.getDefault(),
-) {
+class CurrencyFormatter(private val type: Type = Type.Currency, private val currencyCode: String, private val locale: Locale = Locale.getDefault()) {
     constructor(
         type: Type = Type.Currency,
         currency: Currency,
@@ -42,12 +38,11 @@ class CurrencyFormatter(
 
     fun string(value: Double): String = string(BigDecimal.valueOf(value))
 
-    fun string(value: BigDecimal): String =
-        if (style.abbreviates(value.abs().toDouble())) {
-            abbreviatedFormatter.format(value)
-        } else {
-            currencyFormatter.format(value, precision(value.abs()))
-        }
+    fun string(value: BigDecimal): String = if (style.abbreviates(value.abs().toDouble())) {
+        abbreviatedFormatter.format(value)
+    } else {
+        currencyFormatter.format(value, precision(value.abs()))
+    }
 
     private val style: GemCurrencyStyle
         get() = when (type) {

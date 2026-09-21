@@ -1,20 +1,19 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
-import uniffi.gemstone.GemApplicationMetadataServiceInterface
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProposal
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnection
 import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
-import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
+import com.gemwallet.android.features.bridge.viewmodels.localization.text
 import com.gemwallet.android.features.bridge.viewmodels.model.ConnectionHeadUIModel
 import com.gemwallet.android.features.bridge.viewmodels.model.headUIModel
 import com.gemwallet.android.features.bridge.viewmodels.model.map
@@ -31,7 +30,6 @@ import com.wallet.core.primitives.WalletConnectionSessionProposal
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -42,11 +40,15 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemApplicationMetadataServiceInterface
 import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemWalletConnectException
+import uniffi.gemstone.GemWalletConnectFailure
+import uniffi.gemstone.GemWalletConnectRejectionReason
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnectionVerificationStatus
 import uniffi.gemstone.walletRows
+import javax.inject.Inject
 
 @HiltViewModel
 class ProposalSceneViewModel @Inject constructor(
@@ -81,7 +83,7 @@ class ProposalSceneViewModel @Inject constructor(
     val selectedWallet = combine(_selectedWallet, _sessionProposal) { wallet, proposal ->
         wallet ?: proposal?.defaultWallet
     }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val walletListItem = selectedWallet.map { ListItemModel(title = context.getString(R.string.common_wallet), subtitle = it?.name.orEmpty()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ListItemModel(title = context.getString(R.string.common_wallet), subtitle = ""))
@@ -104,11 +106,7 @@ class ProposalSceneViewModel @Inject constructor(
         buttonState(enabled = wallet != null, loading = sceneState is ProposalSceneState.Approving)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Disabled)
 
-    fun onProposal(
-        proposal: WalletConnectSessionProposal,
-        verifyContext: WalletConnectVerifyContext,
-        onNotify: (BridgeRequestError) -> Unit,
-    ) {
+    fun onProposal(proposal: WalletConnectSessionProposal, verifyContext: WalletConnectVerifyContext, onNotify: (String) -> Unit) {
         if (!walletConnectService.shouldProcessMessage("proposal_${proposal.proposerPublicKey}")) {
             return
         }
@@ -128,8 +126,8 @@ class ProposalSceneViewModel @Inject constructor(
                 }
             }.getOrElse { error ->
                 Log.e(TAG, "session proposal rejected: ${error.message}")
-                if (error is GemWalletConnectException.InvalidOrigin) onNotify(BridgeRequestError.MaliciousSession)
-                reject(proposal)
+                if (error is GemWalletConnectException.InvalidOrigin) onNotify(GemWalletConnectFailure.MaliciousOrigin.text(context))
+                reject(proposal, (error as? GemWalletConnectException)?.rejectionReason() ?: GemWalletConnectRejectionReason.USER_REJECTED)
                 return@launch
             }
             state.update { ProposalSceneState.Init(prepared.verificationStatus) }
@@ -156,7 +154,7 @@ class ProposalSceneViewModel @Inject constructor(
                     wallet = wallet,
                     proposal = proposal,
                     onSuccess = { finish(proposal) },
-                    onError = { message -> fail(proposal, GemErrorText.Message(message), onError) }
+                    onError = { message -> fail(proposal, GemErrorText.Message(message), onError) },
                 )
             }
             result.onFailure { err -> fail(proposal, err.errorText(), onError) }
@@ -182,12 +180,13 @@ class ProposalSceneViewModel @Inject constructor(
         _selectedWallet.update { availableWallets.value.firstOrNull { it.id == walletId } }
     }
 
-    private fun reject(proposal: WalletConnectSessionProposal) {
+    private fun reject(proposal: WalletConnectSessionProposal, reason: GemWalletConnectRejectionReason = GemWalletConnectRejectionReason.USER_REJECTED) {
         viewModelScope.launch(ioDispatcher) {
             approveWalletConnection.rejectConnection(
                 proposal = proposal,
+                reason = reason,
                 onSuccess = { finish(proposal) },
-                onError = { finish(proposal) }
+                onError = { finish(proposal) },
             )
         }
     }
@@ -217,7 +216,6 @@ class ProposalSceneViewModel @Inject constructor(
         state.update { ProposalSceneState.Init(WalletConnectionVerificationStatus.UNKNOWN) }
     }
 
-
     private companion object {
         const val TAG = "ProposalSceneViewModel"
     }
@@ -226,12 +224,7 @@ class ProposalSceneViewModel @Inject constructor(
 sealed interface ProposalSceneState {
     val verificationStatus: WalletConnectionVerificationStatus
 
-    data class Init(
-        override val verificationStatus: WalletConnectionVerificationStatus,
-    ) : ProposalSceneState
+    data class Init(override val verificationStatus: WalletConnectionVerificationStatus) : ProposalSceneState
 
-    data class Approving(
-        override val verificationStatus: WalletConnectionVerificationStatus,
-    ) : ProposalSceneState
-
+    data class Approving(override val verificationStatus: WalletConnectionVerificationStatus) : ProposalSceneState
 }

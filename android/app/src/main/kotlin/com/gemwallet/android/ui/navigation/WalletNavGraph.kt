@@ -257,7 +257,7 @@ fun WalletNavGraph(
                         SettingsAction.InAppNotifications -> navigator.openInAppNotifications()
                         SettingsAction.DeveloperPayments -> navigator.openDeveloperPayments()
                         is SettingsAction.Payment -> currentOnPayment(action.payload)
-                        is SettingsAction.OpenNotificationUrl -> navigator.openNotificationUrl(action.url)
+                        is SettingsAction.OpenNotification -> navigator.openUrlAction(action.action)
                         SettingsAction.Cancel -> onCancel()
                     }
                 },
@@ -347,10 +347,7 @@ fun WalletNavGraph(
 }
 
 @Composable
-private fun rememberWalletNavEntries(
-    backStack: List<NavKey>,
-    entryProvider: (NavKey) -> NavEntry<NavKey>,
-): List<NavEntry<NavKey>> {
+private fun rememberWalletNavEntries(backStack: List<NavKey>, entryProvider: (NavKey) -> NavEntry<NavKey>): List<NavEntry<NavKey>> {
     val keys = backStack.toList()
     return remember(keys, entryProvider) {
         val occurrences = mutableMapOf<Any, Int>()

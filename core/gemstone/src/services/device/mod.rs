@@ -36,13 +36,7 @@ pub struct GemDeviceService {
 #[uniffi::export]
 impl GemDeviceService {
     #[uniffi::constructor]
-    pub fn new(
-        api: Arc<GemDeviceApiClient>,
-        subscriptions: Arc<GemSubscriptionService>,
-        wallet_store: Arc<dyn GemWalletStore>,
-        platform: Arc<dyn GemDevicePlatform>,
-        preferences: Arc<GemPreferencesService>,
-    ) -> Self {
+    pub fn new(api: Arc<GemDeviceApiClient>, subscriptions: Arc<GemSubscriptionService>, wallet_store: Arc<dyn GemWalletStore>, platform: Arc<dyn GemDevicePlatform>, preferences: Arc<GemPreferencesService>) -> Self {
         Self {
             api,
             subscriptions,
@@ -135,10 +129,7 @@ impl GemDeviceService {
             }
         }
 
-        let local = Device {
-            subscriptions_version: version,
-            ..device
-        };
+        let local = Device { subscriptions_version: version, ..device };
         let synced = if rules::device_changed(&remote, &local) {
             self.api.client.update_device(local.clone()).await.map_err(GemApiError::from)?
         } else {
@@ -162,15 +153,7 @@ impl GemDeviceService {
                 None => self.preferences.set_device_registered(false)?,
             }
         }
-        let added = self
-            .api
-            .client
-            .add_device(Device {
-                subscriptions_version: 0,
-                ..device.clone()
-            })
-            .await
-            .map_err(GemApiError::from)?;
+        let added = self.api.client.add_device(Device { subscriptions_version: 0, ..device.clone() }).await.map_err(GemApiError::from)?;
         self.preferences.set_device_registered(true)?;
         Ok(added)
     }

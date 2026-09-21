@@ -18,8 +18,7 @@ use primitives::{
 };
 
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset,
-    SwapperQuoteData,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
     alien::{RpcClient, RpcProvider},
     error::INVALID_AMOUNT,
     route_cache::Cache,
@@ -71,13 +70,7 @@ impl HyperCoreSpot {
 
     fn spot_token<'a>(&self, meta: &'a SpotMeta, asset: &'a SwapperQuoteAsset) -> Result<&'a SpotToken, SwapperError> {
         let asset_id = asset.asset_id();
-        let components = asset_id.token_components().or_else(|| {
-            if asset_id == HYPERCORE_HYPE.id {
-                HYPERCORE_SPOT_HYPE.id.token_components()
-            } else {
-                None
-            }
-        });
+        let components = asset_id.token_components().or_else(|| if asset_id == HYPERCORE_HYPE.id { HYPERCORE_SPOT_HYPE.id.token_components() } else { None });
 
         let (symbol, contract, index) = components.ok_or(SwapperError::NotSupportedAsset)?;
         let token = meta.tokens.iter().find(|token| token.name == symbol).ok_or(SwapperError::NotSupportedAsset)?;
@@ -96,12 +89,7 @@ impl HyperCoreSpot {
         Ok(token)
     }
 
-    fn find_direct_market<'a>(
-        &self,
-        meta: &'a SpotMeta,
-        from_token: &'a SpotToken,
-        to_token: &'a SpotToken,
-    ) -> Result<(&'a SpotMarket, &'a SpotToken, &'a SpotToken, SpotSide), SwapperError> {
+    fn find_direct_market<'a>(&self, meta: &'a SpotMeta, from_token: &'a SpotToken, to_token: &'a SpotToken) -> Result<(&'a SpotMarket, &'a SpotToken, &'a SpotToken, SpotSide), SwapperError> {
         for market in meta.universe.iter().filter(|m| m.tokens.len() == 2) {
             if market.tokens[0] == from_token.index && market.tokens[1] == to_token.index {
                 return Ok((market, from_token, to_token, SpotSide::Sell));
@@ -166,11 +154,7 @@ impl Swapper for HyperCoreSpot {
                 if rounded_output <= BigDecimal::zero() {
                     return Err(SwapperError::ComputeQuoteError("output too small after rounding".into()));
                 }
-                let actual_from = compute_actual_from(
-                    request.options.use_max_amount,
-                    &format_decimal(&(&rounded_output * &result.limit_price)),
-                    request.from_asset.decimals,
-                )?;
+                let actual_from = compute_actual_from(request.options.use_max_amount, &format_decimal(&(&rounded_output * &result.limit_price)), request.from_asset.decimals)?;
                 (rounded_output.clone(), result.limit_price, rounded_output, actual_from)
             }
         };
@@ -193,8 +177,7 @@ impl Swapper for HyperCoreSpot {
             .try_into()
             .map_err(|_| SwapperError::ComputeQuoteError(format!("{} precision: {}", INVALID_AMOUNT, to_token.wei_decimals)))?;
 
-        let token_units = BigNumberFormatter::value_from_amount_biguint(&format_decimal(&output_amount), token_decimals)
-            .map_err(|err| SwapperError::ComputeQuoteError(format!("{}: {err}", INVALID_AMOUNT)))?;
+        let token_units = BigNumberFormatter::value_from_amount_biguint(&format_decimal(&output_amount), token_decimals).map_err(|err| SwapperError::ComputeQuoteError(format!("{}: {err}", INVALID_AMOUNT)))?;
         let scaled_units = scale_units(token_units, token_decimals, request.to_asset.decimals)?;
         let to_value = scaled_units;
 

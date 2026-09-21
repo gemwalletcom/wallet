@@ -52,12 +52,12 @@ struct BannersRequestTests {
     }
 
     @Test
-    func tokenExcludesCancelledWarning() throws {
+    func cancelledWarningKeepsItsStateForCore() throws {
         try BannerStore(db: db).updateState("tron-warning", state: .cancelled)
         let banners = try db.dbQueue.read {
             try BannersRequest(walletId: wallet.id, assetId: Asset.mockTronUSDT().id, events: BannerEvent.allCases).fetch($0)
         }
 
-        #expect(banners.isEmpty)
+        #expect(banners.map(\.state) == [.cancelled])
     }
 }

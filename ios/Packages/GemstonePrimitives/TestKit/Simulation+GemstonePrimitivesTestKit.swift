@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Foundation
 import struct Gemstone.SimulationBalanceChange
 import struct Gemstone.SimulationHeader
 import struct Gemstone.SimulationPayloadField
@@ -8,7 +9,6 @@ import enum Gemstone.SimulationPayloadFieldKind
 import enum Gemstone.SimulationPayloadFieldType
 import struct Gemstone.SimulationResult
 import struct Gemstone.SimulationWarning
-import Foundation
 
 public extension SimulationResult {
     static func mock(

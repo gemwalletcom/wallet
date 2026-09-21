@@ -11,10 +11,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class AmountRoute(val params: String) : NavKey
 
-fun EntryProviderScope<NavKey>.amount(
-    onCancel: () -> Unit,
-    onConfirm: (ConfirmTransferInput) -> Unit,
-) {
+fun EntryProviderScope<NavKey>.amount(onCancel: () -> Unit, onConfirm: (ConfirmTransferInput) -> Unit) {
     entry<AmountRoute>(
         metadata = { key -> routeArguments(paramsArgument(key.params)) },
     ) {

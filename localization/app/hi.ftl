@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = समर्थित परिसंपत्
 errors_connections_no_supported_wallets = कोई समर्थित वॉलेट उपलब्ध नहीं है.
 errors_connections_unsupported_chain = प्रदान की गई श्रृंखला समर्थित नहीं है.
 errors_swap_amount_too_small = राशि बहुत छोटी है
-errors_required = %@ आवश्यक है
 errors_scan_transaction_malicious_description = यह लेनदेन पूरा नहीं किया जा सकता - गंतव्य वॉलेट पता संदिग्ध या हानिकारक गतिविधि से जुड़ा हुआ है।
 errors_scan_transaction_memo_required = %@ गंतव्य वॉलेट पते के लिए गंतव्य टैग / मेमो की आवश्यकता है
 errors_scan_transaction_malicious_title = संदिग्ध गतिविधि
@@ -315,7 +314,7 @@ asset_symbol = प्रतीक
 asset_decimals = दशमलव
 asset_token_id = टोकन आईडी
 asset_contract = अनुबंध
-asset_state_empty_title = आपके लेन-देन यहां दिखाई देंगे️
+asset_state_empty_title = आपके लेन-देन यहां दिखाई देंगे
 asset_state_empty_description = %@ प्राप्त करें, अदला-बदली करें या खरीदें
 asset_verification_unverified = असत्यापित
 asset_verification_suspicious = संदिग्ध
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = जब कीमत कम हो �
 price_alerts_set_alert_set_target_price = लक्ष्य मूल्य निर्धारित करें
 price_alerts_set_alert_current_price = वर्तमान मूल्य
 price_alerts_added_for = मूल्य अलर्ट सेट करें %@
-price_alerts_state_empty_title = आपके अलर्ट यहां दिखाई देंगे️
+price_alerts_state_empty_title = आपके अलर्ट यहां दिखाई देंगे
 price_alerts_state_empty_description = ट्रैक करने के लिए सिक्के जोड़कर उन्हें सक्षम करें
 price_alerts_auto_footer = महत्वपूर्ण मूल्य परिवर्तन पर अलर्ट सक्रिय हो जाते हैं।
 price_alerts_set_alert_title = मूल्य अलर्ट सेट करें
@@ -536,7 +535,7 @@ verify_phrase_title = पुष्टि करना
 
 # Warnings
 
-warnings_multi_signature_blocked = जब तक आप सुनिश्चित न हों कि आप निजी कुंजियों को नियंत्रित करते हैं, तब तक इस %@ मल्टी-सिग्नेचर वॉलेट में धनराशि स्थानांतरित न करें। ऐसा न करने पर आप धोखाधड़ी के शिकार हो सकते हैं, और आप अपनी संपत्ति हमेशा के लिए खो सकते हैं।
+warnings_externally_controlled_account = इस %@ खाते को कोई और नियंत्रित कर सकता है। जब तक आप सुनिश्चित न हों कि इसका नियंत्रण आपके पास है, इसमें धनराशि न भेजें, वरना आप अपनी संपत्ति हमेशा के लिए खो सकते हैं।
 
 # Sell
 
@@ -600,7 +599,7 @@ nft_collections = संग्रह
 nft_collection = संग्रह
 nft_save_to_photos = फ़ोटो में सहेजें
 nft_set_as_avatar = अवतार के रूप में सेट करें
-nft_state_empty_title = आपके NFT यहां दिखाई देंगे️
+nft_state_empty_title = आपके NFT यहां दिखाई देंगे
 nft_state_empty_description = अपना पहला NFT प्राप्त करें
 nft_report_reason_spam = स्पैम
 nft_report_reason_malicious = दुर्भावनापूर्ण

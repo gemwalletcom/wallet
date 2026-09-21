@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import struct Gemstone.GemPaymentRecipient
 import enum Gemstone.EarnType
+import struct Gemstone.GemPaymentRecipient
 import enum Gemstone.GemPerpetualPositionAction
 import enum Gemstone.GemStakeAmountInput
 import Primitives

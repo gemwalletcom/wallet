@@ -17,9 +17,7 @@ pub struct PythProvider {
 
 impl PythProvider {
     pub fn new(client: ReqwestClient) -> Self {
-        Self {
-            pyth_client: PythClient::new(client),
-        }
+        Self { pyth_client: PythClient::new(client) }
     }
 }
 
@@ -33,37 +31,22 @@ impl PriceAssetsProvider for PythProvider {
         let feeds = self.pyth_client.get_price_feeds().await?;
         Ok(feeds
             .into_iter()
-            .flat_map(|feed| {
-                asset_ids_for_feed_id(&feed.id)
-                    .into_iter()
-                    .map(move |asset_id| AssetPriceMapping::new(asset_id, feed.id.clone()))
-            })
+            .flat_map(|feed| asset_ids_for_feed_id(&feed.id).into_iter().map(move |asset_id| AssetPriceMapping::new(asset_id, feed.id.clone())))
             .map(|m| PriceProviderAsset::new(m, None))
             .take(limit)
             .collect())
     }
 
     async fn get_mappings_for_asset_id(&self, asset_id: &AssetId) -> Result<Vec<AssetPriceMapping>, Box<dyn Error + Send + Sync>> {
-        Ok(price_feed_id_for_asset_id(asset_id)
-            .map(|feed_id| AssetPriceMapping::new(asset_id.clone(), feed_id.to_string()))
-            .into_iter()
-            .collect())
+        Ok(price_feed_id_for_asset_id(asset_id).map(|feed_id| AssetPriceMapping::new(asset_id.clone(), feed_id.to_string())).into_iter().collect())
     }
 
     async fn get_mappings_for_price_id(&self, provider_price_id: &str) -> Result<Vec<AssetPriceMapping>, Box<dyn Error + Send + Sync>> {
-        Ok(asset_ids_for_feed_id(provider_price_id)
-            .into_iter()
-            .map(|asset_id| AssetPriceMapping::new(asset_id, provider_price_id.to_string()))
-            .collect())
+        Ok(asset_ids_for_feed_id(provider_price_id).into_iter().map(|asset_id| AssetPriceMapping::new(asset_id, provider_price_id.to_string())).collect())
     }
 
     async fn get_prices(&self, mappings: Vec<AssetPriceMapping>) -> Result<Vec<AssetPriceFull>, Box<dyn Error + Send + Sync>> {
-        let feed_ids: Vec<String> = mappings
-            .iter()
-            .map(|mapping| mapping.provider_price_id.clone())
-            .collect::<HashSet<_>>()
-            .into_iter()
-            .collect();
+        let feed_ids: Vec<String> = mappings.iter().map(|mapping| mapping.provider_price_id.clone()).collect::<HashSet<_>>().into_iter().collect();
         if feed_ids.is_empty() {
             return Ok(vec![]);
         }
@@ -73,11 +56,7 @@ impl PriceAssetsProvider for PythProvider {
 
         Ok(mappings
             .into_iter()
-            .filter_map(|mapping| {
-                prices_by_feed_id
-                    .get(&mapping.provider_price_id)
-                    .map(|price| AssetPriceFull::simple(mapping, *price, 0.0, PriceProvider::Pyth))
-            })
+            .filter_map(|mapping| prices_by_feed_id.get(&mapping.provider_price_id).map(|price| AssetPriceFull::simple(mapping, *price, 0.0, PriceProvider::Pyth)))
             .collect())
     }
 }

@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstoneServices
 import Foundation
 import GemstonePrimitivesTestKit
+import GemstoneServices
 import NativeProviderService
 import Primitives
 import PrimitivesTestKit
@@ -27,8 +27,13 @@ private extension URLSession {
 }
 
 private final class OfflineURLProtocol: URLProtocol {
-    override class func canInit(with _: URLRequest) -> Bool { true }
-    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+    override class func canInit(with _: URLRequest) -> Bool {
+        true
+    }
+
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+        request
+    }
 
     override func startLoading() {
         client?.urlProtocol(self, didFailWithError: URLError(.notConnectedToInternet))

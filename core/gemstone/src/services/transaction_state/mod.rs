@@ -7,7 +7,7 @@ pub mod tracker;
 
 use crate::services::error::GemServiceError;
 use crate::services::failures::record;
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
@@ -39,6 +39,7 @@ pub struct GemTransactionStateService {
     nft: Arc<GemNftService>,
     payments: Arc<GemPaymentService>,
     tracking: Tracking,
+    status: OnceLock<Arc<dyn GemTransactionStatusService>>,
 }
 
 #[uniffi::export]
@@ -62,7 +63,12 @@ impl GemTransactionStateService {
             nft,
             payments,
             tracking: Tracking::default(),
+            status: OnceLock::new(),
         }
+    }
+
+    pub fn set_status(&self, status: Arc<dyn GemTransactionStatusService>) {
+        let _ = self.status.set(status);
     }
 
     pub async fn track_pending(&self) -> Result<(), GemServiceError> {
@@ -87,7 +93,10 @@ impl GemTransactionStateService {
         let Some(asset) = self.assets.open_wallet_asset(wallet.clone(), asset_id).await? else {
             return Ok(None);
         };
-        self.add_transactions(wallet.id, vec![transaction]).await?;
+        self.add_transactions(wallet.id.clone(), vec![transaction.clone()]).await?;
+        if let Some(status) = self.status.get() {
+            status.track(wallet.id, vec![transaction]);
+        }
         Ok(Some(asset))
     }
 }
@@ -111,7 +120,7 @@ impl GemTransactionStateService {
             None => self.gateway.get_transaction_update(transaction.clone()).await.map_err(|error| error.to_string()),
         };
         let previous_state = transaction.state;
-        let result = apply(self.store.as_ref(), wallet_id.clone(), transaction.clone(), update, Utc::now()).await?;
+        let result = merge_update(self.store.as_ref(), wallet_id.clone(), transaction.clone(), update, Utc::now()).await?;
         let Some(mut result) = result else {
             return Ok(None);
         };
@@ -129,27 +138,12 @@ impl GemTransactionStateService {
             return Vec::new();
         };
         let mut failures = Vec::new();
-        record(
-            &mut failures,
-            GemPostProcessingStep::Balances,
-            self.balance.update(wallet_id.clone(), processing.balance_asset_ids),
-        )
-        .await;
+        record(&mut failures, GemPostProcessingStep::Balances, self.balance.update(wallet_id.clone(), processing.balance_asset_ids)).await;
         for chain in processing.stake_chains {
-            record(
-                &mut failures,
-                GemPostProcessingStep::Stake,
-                self.stake.sync_wallet(wallet_id.clone(), chain, transaction.from.clone()),
-            )
-            .await;
+            record(&mut failures, GemPostProcessingStep::Stake, self.stake.sync_wallet(wallet_id.clone(), chain, transaction.from.clone())).await;
         }
         for asset_id in processing.earn_asset_ids {
-            record(
-                &mut failures,
-                GemPostProcessingStep::Earn,
-                self.stake.sync_earn_wallet(wallet_id.clone(), asset_id, transaction.from.clone()),
-            )
-            .await;
+            record(&mut failures, GemPostProcessingStep::Earn, self.stake.sync_earn_wallet(wallet_id.clone(), asset_id, transaction.from.clone())).await;
         }
         if processing.sync_nfts {
             record(&mut failures, GemPostProcessingStep::Nfts, async { self.nft.sync_wallet(wallet_id).await.map(|_| ()) }).await;
@@ -158,40 +152,33 @@ impl GemTransactionStateService {
     }
 }
 
-async fn apply(
-    store: &dyn GemTransactionStateStore,
-    wallet_id: WalletId,
-    transaction: Transaction,
-    update: Result<TransactionUpdate, String>,
-    now: DateTime<Utc>,
-) -> Result<Option<GemTransactionStateResult>, GemServiceError> {
+async fn merge_update(store: &dyn GemTransactionStateStore, wallet_id: WalletId, transaction: Transaction, update: Result<TransactionUpdate, String>, now: DateTime<Utc>) -> Result<Option<GemTransactionStateResult>, GemServiceError> {
     let timed_out = rules::has_timed_out(&transaction, now);
     let update = match update {
         Ok(update) => update,
         Err(_) if timed_out => TransactionUpdate::new_state(TransactionState::Failed),
         Err(msg) => return Err(GemServiceError::Gateway { msg }),
     };
-    let (transaction_id, current_state) = match rules::new_hash(&update.changes) {
+    let transaction_id = match rules::new_hash(&update.changes) {
         Some(hash) => {
             let new_transaction_id = TransactionId::new(transaction.id.chain, hash.clone());
             store.update_transaction_hash(wallet_id.clone(), transaction.id.clone(), hash).await?;
-            let Some(state) = store.get_state(wallet_id.clone(), new_transaction_id.clone()).await? else {
-                return Ok(None);
-            };
-            (new_transaction_id, state)
+            new_transaction_id
         }
-        None => (transaction.id.clone(), transaction.state),
+        None => transaction.id.clone(),
+    };
+    let Some(current_state) = store.get_state(wallet_id.clone(), transaction_id.clone()).await? else {
+        return Ok(None);
     };
     let next_state = match current_state.merged_with(update.state) {
         state if timed_out && !state.is_completed() => TransactionState::Failed,
         state => state,
     };
-    let fields = rules::state_update(next_state, &update.changes).map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
+    let fields = rules::state_update(next_state, &update.changes, &transaction).map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
     if next_state == current_state && !fields.has_field_changes() {
-        let state = store.get_state(wallet_id, transaction_id.clone()).await?;
-        return Ok(state.map(|state| GemTransactionStateResult {
+        return Ok(Some(GemTransactionStateResult {
             transaction_id,
-            state,
+            state: current_state,
             failures: Vec::new(),
         }));
     }
@@ -216,16 +203,34 @@ impl GemTransactionUpdater for GemTransactionStateService {
 mod tests {
     use super::testkit::MemoryTransactionStateStore;
     use super::*;
-    use num_bigint::BigUint;
+    use crate::services::asset_discovery::testkit::DiscoveryTestkit;
+    use crate::services::assets::GemAssetStore;
+    use crate::services::assets::rules::default_asset_basic;
+    use futures::executor::block_on;
+    use num_bigint::{BigInt, BigUint};
     use primitives::{AssetId, Chain, TransactionChange, TransactionMetadata, TransactionSwapMetadata, TransactionType};
 
-    fn apply_update(
-        store: &MemoryTransactionStateStore,
-        transaction: Transaction,
-        update: Result<TransactionUpdate, String>,
-        now: DateTime<Utc>,
-    ) -> Result<Option<GemTransactionStateResult>, GemServiceError> {
-        futures::executor::block_on(apply(store, WalletId::Multicoin("wallet".into()), transaction, update, now))
+    #[test]
+    fn test_a_transaction_that_arrived_by_push_is_tracked_without_the_app_asking() {
+        block_on(async {
+            let testkit = DiscoveryTestkit::with_status(200);
+            let wallet = Wallet::mock();
+            let asset = Asset::from_chain(Chain::Ethereum);
+            testkit.asset_store.save_assets(vec![default_asset_basic(asset.clone())]).await.unwrap();
+            let transaction = Transaction {
+                asset_id: asset.id.clone(),
+                ..Transaction::mock()
+            };
+
+            let opened = testkit.state.add_notification_transaction(wallet, asset.id.clone(), transaction.clone()).await.unwrap();
+
+            assert_eq!(opened, Some(asset));
+            assert_eq!(*testkit.status.tracked.lock().unwrap(), vec![vec![transaction]]);
+        });
+    }
+
+    fn merge_polled_update(store: &MemoryTransactionStateStore, transaction: Transaction, update: Result<TransactionUpdate, String>, now: DateTime<Utc>) -> Result<Option<GemTransactionStateResult>, GemServiceError> {
+        futures::executor::block_on(merge_update(store, WalletId::Multicoin("wallet".into()), transaction, update, now))
     }
 
     #[test]
@@ -233,12 +238,9 @@ mod tests {
         let now = Utc::now();
         let store = MemoryTransactionStateStore::with(vec![(TransactionId::mock("hash"), TransactionState::Pending)]);
 
-        let result = apply_update(
+        let result = merge_polled_update(
             &store,
-            Transaction {
-                created_at: now,
-                ..Transaction::mock_swap()
-            },
+            Transaction { created_at: now, ..Transaction::mock_swap() },
             Ok(TransactionUpdate::new(
                 TransactionState::InTransit,
                 vec![TransactionChange::Metadata(TransactionMetadata::Swap(TransactionSwapMetadata {
@@ -262,53 +264,29 @@ mod tests {
         let now = Utc::now();
         let store = MemoryTransactionStateStore::with(vec![(TransactionId::mock("hash"), TransactionState::Pending)]);
 
-        let result = apply_update(
+        let result = merge_polled_update(
             &store,
-            Transaction {
-                created_at: now,
-                ..Transaction::mock_swap()
-            },
-            Ok(TransactionUpdate::new(
-                TransactionState::InTransit,
-                vec![TransactionChange::HashChange {
-                    old: "hash".into(),
-                    new: "new-hash".into(),
-                }],
-            )),
+            Transaction { created_at: now, ..Transaction::mock_swap() },
+            Ok(TransactionUpdate::new(TransactionState::InTransit, vec![TransactionChange::HashChange { old: "hash".into(), new: "new-hash".into() }])),
             now,
         )
         .unwrap()
         .unwrap();
 
         assert_eq!(result.transaction_id, TransactionId::mock("new-hash"));
-        assert_eq!(
-            store.hash_updates.lock().unwrap().as_slice(),
-            &[(TransactionId::mock("hash"), TransactionId::mock("new-hash"))]
-        );
+        assert_eq!(store.hash_updates.lock().unwrap().as_slice(), &[(TransactionId::mock("hash"), TransactionId::mock("new-hash"))]);
         assert_eq!(store.updates.lock().unwrap()[0].0, TransactionId::mock("new-hash"));
     }
 
     #[test]
     fn test_hash_change_merges_into_existing_row_without_downgrade() {
         let now = Utc::now();
-        let store = MemoryTransactionStateStore::with(vec![
-            (TransactionId::mock("hash"), TransactionState::Pending),
-            (TransactionId::mock("new-hash"), TransactionState::Confirmed),
-        ]);
+        let store = MemoryTransactionStateStore::with(vec![(TransactionId::mock("hash"), TransactionState::Pending), (TransactionId::mock("new-hash"), TransactionState::Confirmed)]);
 
-        let result = apply_update(
+        let result = merge_polled_update(
             &store,
-            Transaction {
-                created_at: now,
-                ..Transaction::mock_swap()
-            },
-            Ok(TransactionUpdate::new(
-                TransactionState::InTransit,
-                vec![TransactionChange::HashChange {
-                    old: "hash".into(),
-                    new: "new-hash".into(),
-                }],
-            )),
+            Transaction { created_at: now, ..Transaction::mock_swap() },
+            Ok(TransactionUpdate::new(TransactionState::InTransit, vec![TransactionChange::HashChange { old: "hash".into(), new: "new-hash".into() }])),
             now,
         )
         .unwrap()
@@ -316,10 +294,7 @@ mod tests {
 
         assert_eq!(result, GemTransactionStateResult::mock(TransactionId::mock("new-hash"), TransactionState::Confirmed));
         assert_eq!(store.deleted.lock().unwrap().as_slice(), &[]);
-        assert_eq!(
-            store.hash_updates.lock().unwrap().as_slice(),
-            &[(TransactionId::mock("hash"), TransactionId::mock("new-hash"))]
-        );
+        assert_eq!(store.hash_updates.lock().unwrap().as_slice(), &[(TransactionId::mock("hash"), TransactionId::mock("new-hash"))]);
         assert_eq!(store.states.lock().unwrap().as_slice(), &[(TransactionId::mock("new-hash"), TransactionState::Confirmed)]);
         assert!(store.updates.lock().unwrap().is_empty());
     }
@@ -329,19 +304,10 @@ mod tests {
         let now = Utc::now();
         let store = MemoryTransactionStateStore::with(vec![(TransactionId::mock("hash"), TransactionState::Pending)]);
         for hash in ["hash", "new-hash", "new-hash"] {
-            let result = apply_update(
+            let result = merge_polled_update(
                 &store,
-                Transaction {
-                    created_at: now,
-                    ..Transaction::mock_swap()
-                },
-                Ok(TransactionUpdate::new(
-                    TransactionState::Confirmed,
-                    vec![TransactionChange::HashChange {
-                        old: "hash".into(),
-                        new: hash.into(),
-                    }],
-                )),
+                Transaction { created_at: now, ..Transaction::mock_swap() },
+                Ok(TransactionUpdate::new(TransactionState::Confirmed, vec![TransactionChange::HashChange { old: "hash".into(), new: hash.into() }])),
                 now,
             )
             .unwrap()
@@ -359,7 +325,7 @@ mod tests {
         let now = Utc::now();
         let store = MemoryTransactionStateStore::with(vec![(TransactionId::mock("hash"), TransactionState::InTransit)]);
 
-        let result = apply_update(
+        let result = merge_polled_update(
             &store,
             Transaction {
                 state: TransactionState::InTransit,
@@ -377,27 +343,36 @@ mod tests {
     }
 
     #[test]
+    fn test_a_delayed_poll_merges_against_the_stored_state_not_its_own_snapshot() {
+        let now = Utc::now();
+        let store = MemoryTransactionStateStore::with(vec![(TransactionId::mock("hash"), TransactionState::Confirmed)]);
+        let polled = Transaction {
+            state: TransactionState::Pending,
+            created_at: now,
+            ..Transaction::mock_swap()
+        };
+
+        let unchanged = merge_polled_update(&store, polled.clone(), Ok(TransactionUpdate::new(TransactionState::Pending, vec![])), now).unwrap().unwrap();
+
+        assert_eq!(unchanged.state, TransactionState::Confirmed);
+        assert!(store.updates.lock().unwrap().is_empty(), "a confirmed row is not written back to pending");
+
+        let with_fee = merge_polled_update(&store, polled, Ok(TransactionUpdate::new(TransactionState::Pending, vec![TransactionChange::NetworkFee(BigInt::from(21000))])), now)
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(with_fee.state, TransactionState::Confirmed);
+        let (_, saved) = store.updates.lock().unwrap()[0].clone();
+        assert_eq!(saved.state, TransactionState::Confirmed, "late fields land on the stored state, not the snapshot's");
+    }
+
+    #[test]
     fn test_removed_row_stops_polling() {
         let now = Utc::now();
         let store = MemoryTransactionStateStore::with(vec![]);
 
-        for changes in [
-            vec![],
-            vec![TransactionChange::HashChange {
-                old: "hash".into(),
-                new: "new-hash".into(),
-            }],
-        ] {
-            let result = apply_update(
-                &store,
-                Transaction {
-                    created_at: now,
-                    ..Transaction::mock_swap()
-                },
-                Ok(TransactionUpdate::new(TransactionState::Confirmed, changes)),
-                now,
-            )
-            .unwrap();
+        for changes in [vec![], vec![TransactionChange::HashChange { old: "hash".into(), new: "new-hash".into() }]] {
+            let result = merge_polled_update(&store, Transaction { created_at: now, ..Transaction::mock_swap() }, Ok(TransactionUpdate::new(TransactionState::Confirmed, changes)), now).unwrap();
 
             assert_eq!(result, None);
         }
@@ -408,18 +383,10 @@ mod tests {
         let now = Utc::now();
         let store = MemoryTransactionStateStore::with(vec![(TransactionId::mock("hash"), TransactionState::Pending)]);
 
-        let fresh = apply_update(
-            &store,
-            Transaction {
-                created_at: now,
-                ..Transaction::mock_swap()
-            },
-            Err("offline".into()),
-            now,
-        );
+        let fresh = merge_polled_update(&store, Transaction { created_at: now, ..Transaction::mock_swap() }, Err("offline".into()), now);
         assert!(matches!(fresh, Err(GemServiceError::Gateway { .. })));
 
-        let stale = apply_update(
+        let stale = merge_polled_update(
             &store,
             Transaction {
                 created_at: now - chrono::Duration::hours(2),
@@ -436,10 +403,7 @@ mod tests {
     #[test]
     fn test_post_processing_by_state_transition() {
         let now = Utc::now();
-        let swap = Transaction {
-            created_at: now,
-            ..Transaction::mock_swap()
-        };
+        let swap = Transaction { created_at: now, ..Transaction::mock_swap() };
 
         assert_eq!(rules::post_processing(&swap, TransactionState::Pending, TransactionState::Pending), None);
         assert_eq!(rules::post_processing(&swap, TransactionState::InTransit, TransactionState::InTransit), None);
@@ -448,10 +412,7 @@ mod tests {
         assert_eq!(in_transit.balance_asset_ids.len(), 2);
         assert!(in_transit.stake_chains.is_empty() && in_transit.earn_asset_ids.is_empty() && !in_transit.sync_nfts);
 
-        let mut stake = Transaction {
-            created_at: now,
-            ..Transaction::mock_swap()
-        };
+        let mut stake = Transaction { created_at: now, ..Transaction::mock_swap() };
         stake.transaction_type = TransactionType::StakeFreeze;
         stake.metadata = None;
         let completed = rules::post_processing(&stake, TransactionState::Pending, TransactionState::Confirmed).unwrap();
@@ -481,13 +442,7 @@ mod tests {
 
         assert_eq!(rules::destination_chain(&in_transit), Some(Chain::Bitcoin));
         assert!(!rules::has_timed_out(&in_transit, now));
-        assert!(rules::has_timed_out(
-            &Transaction {
-                created_at,
-                ..Transaction::mock_swap()
-            },
-            now
-        ));
+        assert!(rules::has_timed_out(&Transaction { created_at, ..Transaction::mock_swap() }, now));
         assert!(!rules::has_timed_out(
             &Transaction {
                 state: TransactionState::Confirmed,

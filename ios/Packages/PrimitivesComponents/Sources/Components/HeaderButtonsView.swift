@@ -63,7 +63,15 @@ public struct HeaderButtonsView: View {
 // MARK: - Previews
 
 #Preview {
-    let buttons = [HeaderButton(type: .send, isEnabled: true), HeaderButton(type: .receive, isEnabled: true), HeaderButton(type: .buy, isEnabled: true), HeaderButton(type: .swap, isEnabled: true), HeaderButton(type: .deposit, isEnabled: true), HeaderButton(type: .withdraw, isEnabled: true), HeaderButton(type: .more, isEnabled: true)]
+    let buttons = [
+        HeaderButton(type: .send, isEnabled: true),
+        HeaderButton(type: .receive, isEnabled: true),
+        HeaderButton(type: .buy, isEnabled: true),
+        HeaderButton(type: .swap, isEnabled: true),
+        HeaderButton(type: .deposit, isEnabled: true),
+        HeaderButton(type: .withdraw, isEnabled: true),
+        HeaderButton(type: .more, isEnabled: true),
+    ]
     VStack {
         Spacer()
         HeaderButtonsView(buttons: buttons, action: nil)

@@ -67,10 +67,12 @@ fun InAppUpdateBanner() {
             DownloadState.Success,
             DownloadState.Canceled,
             DownloadState.PermissionRequired,
-            DownloadState.Idle -> viewModel.update()
+            DownloadState.Idle,
+            -> viewModel.update()
 
             DownloadState.Preparing,
-            is DownloadState.Progress -> {
+            is DownloadState.Progress,
+            -> {
                 if (canDismiss) viewModel.cancel()
             }
         }
@@ -94,7 +96,8 @@ fun InAppUpdateBanner() {
                 DownloadState.Error,
                 DownloadState.Canceled,
                 DownloadState.PermissionRequired,
-                DownloadState.Success -> {
+                DownloadState.Success,
+                -> {
                     DropdownMenuItem(
                         text = { Text(text = stringResource(id = R.string.update_app_action)) },
                         onClick = {
@@ -112,8 +115,10 @@ fun InAppUpdateBanner() {
                         )
                     }
                 }
+
                 DownloadState.Preparing,
-                is DownloadState.Progress -> {
+                is DownloadState.Progress,
+                -> {
                     if (canDismiss) {
                         DropdownMenuItem(
                             text = { Text(text = stringResource(id = R.string.common_cancel)) },
@@ -136,12 +141,7 @@ fun InAppUpdateBanner() {
 }
 
 @Composable
-private fun UpdateInfo(
-    modifier: Modifier = Modifier,
-    state: DownloadState,
-    updateAvailable: AppUpdateOffer,
-    onAction: () -> Unit,
-) {
+private fun UpdateInfo(modifier: Modifier = Modifier, state: DownloadState, updateAvailable: AppUpdateOffer, onAction: () -> Unit) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -173,7 +173,8 @@ private fun UpdateInfo(
                 DownloadState.Success,
                 DownloadState.Canceled,
                 DownloadState.PermissionRequired,
-                DownloadState.Idle -> TextButton(
+                DownloadState.Idle,
+                -> TextButton(
                     onClick = onAction,
                     contentPadding = PaddingValues(space0),
                 ) {
@@ -183,10 +184,12 @@ private fun UpdateInfo(
                         Icon(AppIcons.ArrowCircleDown, "Update application", tint = MaterialTheme.colorScheme.primary)
                     }
                 }
+
                 DownloadState.Preparing -> CircularProgressIndicator(
                     modifier = Modifier.size(iconSize),
                     strokeWidth = space2,
                 )
+
                 is DownloadState.Progress -> Box {
                     val fraction = state.fraction
                     if (fraction == null) {
@@ -214,10 +217,7 @@ private fun UpdateInfo(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RequestInstallPermissions(
-    isVisible: Boolean,
-    onDismiss: () -> Unit,
-) {
+private fun RequestInstallPermissions(isVisible: Boolean, onDismiss: () -> Unit) {
     if (!isVisible) {
         return
     }
@@ -234,7 +234,7 @@ private fun RequestInstallPermissions(
                         addFlags(FLAG_ACTIVITY_NEW_TASK)
                     }
                     context.startActivity(intent)
-                }
+                },
             ) {
                 Text(stringResource(R.string.update_app_permission_open_settings))
             }
@@ -249,6 +249,6 @@ private fun RequestInstallPermissions(
         },
         text = {
             Text(text = stringResource(R.string.update_app_permission_description))
-        }
+        },
     )
 }

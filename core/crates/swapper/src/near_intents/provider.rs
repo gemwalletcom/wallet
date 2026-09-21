@@ -1,12 +1,12 @@
 use super::{
-    AppFee, DepositMode, NearIntentsClient, NearIntentsExplorer, QuoteRequest as NearQuoteRequest, QuoteResponse, QuoteResponseError, QuoteResponseResult, SwapType,
-    auto_quote_time_chains, deposit_memo_chains, get_asset_id_from_near_asset, get_near_asset_id,
+    AppFee, DepositMode, NearIntentsClient, NearIntentsExplorer, QuoteRequest as NearQuoteRequest, QuoteResponse, QuoteResponseError, QuoteResponseResult, SwapType, auto_quote_time_chains, deposit_memo_chains, get_asset_id_from_near_asset,
+    get_near_asset_id,
     model::{DEFAULT_WAIT_TIME_MS, DEPOSIT_TYPE_ORIGIN, ExplorerTransaction, RECIPIENT_TYPE_DESTINATION},
     supported_assets,
 };
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError,
-    SwapperProvider, SwapperQuoteAsset, SwapperQuoteData, amount_to_value,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
+    amount_to_value,
     client_factory::create_sui_client,
     cross_chain::VaultAddresses,
     fees::DEFAULT_REFERRER,
@@ -109,10 +109,7 @@ where
         if fee.address.is_empty() || fee.bps == 0 {
             return None;
         }
-        Some(vec![AppFee {
-            recipient: fee.address,
-            fee: fee.bps,
-        }])
+        Some(vec![AppFee { recipient: fee.address, fee: fee.bps }])
     }
 
     fn build_quote_request(request: &QuoteRequest, mode: SwapType, dry: bool) -> Result<NearQuoteRequest, SwapperError> {
@@ -168,11 +165,7 @@ where
     }
 
     fn deposit_mode(asset: &SwapperQuoteAsset) -> DepositMode {
-        if deposit_memo_chains().contains(&asset.asset_id().chain) {
-            DepositMode::Memo
-        } else {
-            DepositMode::Simple
-        }
+        if deposit_memo_chains().contains(&asset.asset_id().chain) { DepositMode::Memo } else { DepositMode::Simple }
     }
 
     fn quote_waiting_time(from_chain: Chain, to_chain: Chain) -> u32 {
@@ -187,14 +180,7 @@ where
         if chain == Chain::Bitcoin { BITCOIN_DEADLINE_MINUTES } else { DEFAULT_DEADLINE_MINUTES }
     }
 
-    async fn build_deposit_data(
-        &self,
-        deposit_memo: Option<String>,
-        from_asset: &SwapperQuoteAsset,
-        wallet_address: &str,
-        deposit_address: &str,
-        amount_in: &str,
-    ) -> Result<DepositData, SwapperError> {
+    async fn build_deposit_data(&self, deposit_memo: Option<String>, from_asset: &SwapperQuoteAsset, wallet_address: &str, deposit_address: &str, amount_in: &str) -> Result<DepositData, SwapperError> {
         if from_asset.asset_id().chain == Chain::Sui {
             return self.build_sui_deposit_data(from_asset, wallet_address, deposit_address, amount_in).await;
         }
@@ -208,9 +194,7 @@ where
     }
 
     async fn build_sui_deposit_data(&self, from_asset: &SwapperQuoteAsset, wallet_address: &str, deposit_address: &str, amount_in: &str) -> Result<DepositData, SwapperError> {
-        let amount = amount_in
-            .parse::<u64>()
-            .map_err(|_| SwapperError::ComputeQuoteError("Invalid Sui amount provided for deposit".into()))?;
+        let amount = amount_in.parse::<u64>().map_err(|_| SwapperError::ComputeQuoteError("Invalid Sui amount provided for deposit".into()))?;
 
         let message_bytes = build_transfer_message_bytes(&self.sui_client, wallet_address, deposit_address, amount, from_asset.asset_id().token_id.as_deref())
             .await
@@ -229,12 +213,7 @@ where
             QuoteResponseResult::Ok(response) => *response,
             QuoteResponseResult::Err(error) => return Err(map_quote_error(&error, from_decimals)),
         };
-        validate_minimum_amount(
-            &quote_response.quote.amount_in,
-            &quote_response.quote.amount_out,
-            &quote_response.quote.min_amount_out,
-            &quote_response.quote.withdraw_fee,
-        )?;
+        validate_minimum_amount(&quote_response.quote.amount_in, &quote_response.quote.amount_out, &quote_response.quote.min_amount_out, &quote_response.quote.withdraw_fee)?;
         Ok(quote_response)
     }
 }
@@ -344,14 +323,9 @@ where
         quote_request.dry = false;
 
         let response: QuoteResponse = Self::extract_quote(self.client.get_quote(&quote_request).await?, quote.request.from_asset.decimals)?;
-        let QuoteResponse {
-            quote_request: _,
-            quote: near_quote,
-        } = response;
+        let QuoteResponse { quote_request: _, quote: near_quote } = response;
 
-        let deposit_address = near_quote
-            .deposit_address
-            .ok_or_else(|| SwapperError::ComputeQuoteError("Missing depositAddress in Near Intents response".into()))?;
+        let deposit_address = near_quote.deposit_address.ok_or_else(|| SwapperError::ComputeQuoteError("Missing depositAddress in Near Intents response".into()))?;
         let amount_in = near_quote.amount_in.to_string();
         let deposit_mode = near_quote
             .deposit_mode
@@ -369,9 +343,7 @@ where
             return Err(SwapperError::ComputeQuoteError("Near Intents Stellar deposit missing memo".into()));
         }
 
-        let data = self
-            .build_deposit_data(deposit_memo, from_asset, &quote.request.wallet_address, &deposit_address, &amount_in)
-            .await?;
+        let data = self.build_deposit_data(deposit_memo, from_asset, &quote.request.wallet_address, &deposit_address, &amount_in).await?;
 
         let DepositData { to, value, data: payload, memo } = data;
 
@@ -389,11 +361,7 @@ where
         let status = Self::map_transaction_status(&tx.status);
         let metadata = Self::build_swap_metadata(&tx);
 
-        Ok(SwapResult {
-            status,
-            metadata,
-            eta_in_seconds: None,
-        })
+        Ok(SwapResult { status, metadata, eta_in_seconds: None })
     }
 
     async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
@@ -416,11 +384,7 @@ mod tests {
         let tx = &transactions[0];
         let status = NearIntents::<RpcClient>::map_transaction_status(&tx.status);
         let metadata = NearIntents::<RpcClient>::build_swap_metadata(tx);
-        SwapResult {
-            status,
-            metadata,
-            eta_in_seconds: None,
-        }
+        SwapResult { status, metadata, eta_in_seconds: None }
     }
 
     #[test]
@@ -545,12 +509,7 @@ mod tests {
             panic!("expected error variant");
         };
         assert_eq!(err.message, "Amount is too low for bridge, try at least 8516130");
-        assert_eq!(
-            map_quote_error(&err, 6),
-            SwapperError::InputAmountError {
-                min_amount: Some("8516130".into())
-            }
-        );
+        assert_eq!(map_quote_error(&err, 6), SwapperError::InputAmountError { min_amount: Some("8516130".into()) });
     }
 
     #[test]
@@ -639,10 +598,7 @@ mod swap_integration_tests {
         assert_eq!(quote_request.origin_asset, NEAR_INTENTS_BTC_NATIVE);
         assert!(quote.to_value > BigUint::ZERO);
 
-        println!(
-            "Near Intents BTC quote: from_value={}, to_value={}, eta={:?}",
-            quote.from_value, quote.to_value, quote.eta_in_seconds
-        );
+        println!("Near Intents BTC quote: from_value={}, to_value={}, eta={:?}", quote.from_value, quote.to_value, quote.eta_in_seconds);
         println!("Near Intents BTC quote request: {}", route.route_data);
 
         let to_bitcoin_request = QuoteRequest {
@@ -661,10 +617,7 @@ mod swap_integration_tests {
         assert_eq!(quote_request.destination_asset, NEAR_INTENTS_BTC_NATIVE);
         assert!(quote.to_value > BigUint::ZERO);
 
-        println!(
-            "Near Intents to BTC quote: from_value={}, to_value={}, eta={:?}",
-            quote.from_value, quote.to_value, quote.eta_in_seconds
-        );
+        println!("Near Intents to BTC quote: from_value={}, to_value={}, eta={:?}", quote.from_value, quote.to_value, quote.eta_in_seconds);
         println!("Near Intents to BTC quote request: {}", route.route_data);
 
         Ok(())

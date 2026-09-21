@@ -8,10 +8,10 @@ use std::sync::Arc;
 use primitives::{AddressName, Chain, ChainAddress};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
-use crate::services::recipient::{GemRecipientError, GemRecipientValidation, rules as recipient_rules};
-use crate::services::transfer::GemRecipient;
+use crate::services::name::store::GemAddressNameWriter;
+use crate::services::recipient::{GemRecipientValidation, rules as recipient_rules};
 
-pub use model::{GemNameInputStep, GemNameRecordState};
+pub use model::{GemAddressNameUpdate, GemNameInputStep, GemNameRecordState};
 pub use store::GemAddressStore;
 
 #[derive(uniffi::Object)]
@@ -31,20 +31,16 @@ impl GemNameService {
         recipient_rules::validation(chain, &input, &state)
     }
 
-    pub fn recipient(&self, chain: Chain, input: String, state: GemNameRecordState, memo: Option<String>, references: Vec<String>) -> Result<GemRecipient, GemRecipientError> {
-        recipient_rules::recipient(chain, &input, &state, memo, references)
-    }
-
     pub fn is_name_supported(&self, name: String) -> bool {
         rules::is_name_supported(&name)
     }
 
-    pub fn name_input_step(&self, state: GemNameRecordState, name: String, has_chain: bool) -> GemNameInputStep {
-        rules::name_input_step(&state, &name, has_chain)
+    pub fn name_input_step(&self, state: GemNameRecordState, name: String, chain: Option<Chain>) -> GemNameInputStep {
+        rules::name_input_step(&state, &name, chain)
     }
 
-    pub fn resolved_state(&self, state: GemNameRecordState, name: String, resolved: GemNameRecordState) -> GemNameRecordState {
-        rules::resolved_state(&state, &name, resolved)
+    pub fn resolved_state(&self, state: GemNameRecordState, name: String, chain: Chain, resolved: GemNameRecordState) -> GemNameRecordState {
+        rules::resolved_state(&state, &name, chain, resolved)
     }
 
     pub async fn get_name_record(&self, name: String, chain: Chain) -> Result<GemNameRecordState, GemServiceError> {
@@ -80,7 +76,7 @@ impl GemNameService {
             Ok(names) => names,
             Err(_) => return Ok(cached),
         };
-        self.store.save_address_names(remote.clone()).await?;
+        self.store.save_names(remote.clone()).await?;
         cached.extend(remote);
         Ok(cached)
     }

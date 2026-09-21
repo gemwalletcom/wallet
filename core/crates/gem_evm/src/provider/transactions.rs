@@ -18,12 +18,7 @@ use crate::rpc::{
 #[async_trait]
 impl<C: Client + Clone> ChainBlockTransactions for EthereumProvider<C> {
     async fn get_transactions_by_block(&self, block_number: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
-        Ok(self
-            .get_transactions_by_block_with_receipts(block_number)
-            .await?
-            .into_iter()
-            .map(|(transaction, _)| transaction)
-            .collect())
+        Ok(self.get_transactions_by_block_with_receipts(block_number).await?.into_iter().map(|(transaction, _)| transaction).collect())
     }
 }
 
@@ -42,10 +37,7 @@ impl<C: Client + Clone> EthereumProvider<C> {
             .transactions
             .into_iter()
             .zip(receipts)
-            .filter_map(|(transaction, receipt)| {
-                EthereumMapper::map_transaction_with_parser(self.get_chain(), &transaction, &receipt, &block.timestamp, self.provider.protocol_parser())
-                    .map(|transaction| (transaction, receipt))
-            })
+            .filter_map(|(transaction, receipt)| EthereumMapper::map_transaction_with_parser(self.get_chain(), &transaction, &receipt, &block.timestamp, self.provider.protocol_parser()).map(|transaction| (transaction, receipt)))
             .collect())
     }
 
@@ -90,10 +82,7 @@ impl<C: Client + Clone> EthereumProvider<C> {
             Some(timestamp) => timestamp,
             None => self.get_block_timestamp(receipt.block_number).await?,
         };
-        Ok(
-            EthereumMapper::map_transaction_with_parser(self.get_chain(), &transaction, &receipt, &timestamp, self.provider.protocol_parser())
-                .map(|transaction| (transaction, receipt)),
-        )
+        Ok(EthereumMapper::map_transaction_with_parser(self.get_chain(), &transaction, &receipt, &timestamp, self.provider.protocol_parser()).map(|transaction| (transaction, receipt)))
     }
 }
 
@@ -141,23 +130,12 @@ mod tests {
             let transaction: Value = load_json_rpc_result(include_str!("../../testdata/transfer_erc20.json"));
             let receipt: Value = load_json_rpc_result(include_str!("../../testdata/transfer_erc20_receipt.json"));
             let results = [transaction, receipt, json!({ "timestamp": "0x65a1f600" })];
-            serde_json::to_vec(
-                &requests
-                    .iter()
-                    .zip(results)
-                    .map(|(request, result)| json!({ "jsonrpc": "2.0", "id": request["id"], "result": result }))
-                    .collect::<Vec<_>>(),
-            )
-            .map_err(|error| ClientError::Serialization(error.to_string()))
+            serde_json::to_vec(&requests.iter().zip(results).map(|(request, result)| json!({ "jsonrpc": "2.0", "id": request["id"], "result": result })).collect::<Vec<_>>()).map_err(|error| ClientError::Serialization(error.to_string()))
         });
         let client = EthereumProvider::new_rpc_only(EthereumClient::new(JsonRpcClient::new(transport), EVMChain::Arbitrum));
 
         let transaction = client
-            .get_transaction_by_hash(TransactionIdRequest::new(
-                Chain::Arbitrum,
-                "0xd6878ac03656ac15c9bc24cc4daf3ff276de637ec2d9708c420186f6cba9dc06".to_string(),
-                Some(0x150db7d1),
-            ))
+            .get_transaction_by_hash(TransactionIdRequest::new(Chain::Arbitrum, "0xd6878ac03656ac15c9bc24cc4daf3ff276de637ec2d9708c420186f6cba9dc06".to_string(), Some(0x150db7d1)))
             .await
             .unwrap()
             .unwrap();
@@ -168,9 +146,7 @@ mod tests {
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
-    use crate::provider::testkit::{
-        TEST_ADDRESS, TEST_TRANSACTION_ID, create_ethereum_test_asset_balance_provider, create_ethereum_test_client, create_ethereum_test_transactions_by_address_provider,
-    };
+    use crate::provider::testkit::{TEST_ADDRESS, TEST_TRANSACTION_ID, create_ethereum_test_asset_balance_provider, create_ethereum_test_client, create_ethereum_test_transactions_by_address_provider};
     use chain_traits::{ChainTransaction, ChainTransactionBroadcast, ChainTransactions, TransactionIdRequest, TransactionsRequest};
     use num_bigint::BigUint;
     use primitives::{BroadcastOptions, Chain};
@@ -198,9 +174,7 @@ mod chain_integration_tests {
 
         assert!(!balances.is_empty());
 
-        let has_assets = balances
-            .iter()
-            .any(|balance| balance.asset_id.token_id.is_some() && balance.balance.available > BigUint::from(0u32));
+        let has_assets = balances.iter().any(|balance| balance.asset_id.token_id.is_some() && balance.balance.available > BigUint::from(0u32));
         assert!(has_assets);
 
         Ok(())

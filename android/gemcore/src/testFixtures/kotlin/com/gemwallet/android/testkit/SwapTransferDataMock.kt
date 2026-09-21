@@ -1,8 +1,8 @@
 package com.gemwallet.android.testkit
 
+import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.SwapProvider
-import com.gemwallet.android.ext.toGem
 import uniffi.gemstone.GemSwapTransfer
 import uniffi.gemstone.SwapProviderData
 import uniffi.gemstone.SwapQuote
@@ -30,13 +30,7 @@ fun mockSwapQuote(
     useMaxAmount = useMaxAmount,
 )
 
-fun mockGemSwapTransfer(
-    from: Account = mockAccount(),
-    fromAmount: BigInteger = BigInteger.ZERO,
-    toAmount: BigInteger = BigInteger.ONE,
-    toAddress: String = from.address,
-    useMaxAmount: Boolean = false,
-) = GemSwapTransfer(
+fun mockGemSwapTransfer(from: Account = mockAccount(), fromAmount: BigInteger = BigInteger.ZERO, toAmount: BigInteger = BigInteger.ONE, toAddress: String = from.address, useMaxAmount: Boolean = false) = GemSwapTransfer(
     quote = mockSwapQuote(from = from, fromAmount = fromAmount, toAmount = toAmount, toAddress = toAddress, useMaxAmount = useMaxAmount),
     data = SwapQuoteData(
         to = toAddress,

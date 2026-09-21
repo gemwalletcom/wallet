@@ -178,12 +178,7 @@ impl Harness {
             let container = format!("dynode-integration-{}", Uuid::new_v4());
             let mut command = Command::new("docker");
             command.args(["run", "--detach", "--name", &container, "-p", &format!("127.0.0.1:{port}:3000")]);
-            command.args([
-                "-v",
-                &format!("{}:/integration:ro", harness.directory.display()),
-                "-e",
-                "DYNODE_CONFIG=/integration/config.yml",
-            ]);
+            command.args(["-v", &format!("{}:/integration:ro", harness.directory.display()), "-e", "DYNODE_CONFIG=/integration/config.yml"]);
             if !cfg!(target_os = "macos") {
                 command.args(["--add-host", "host.docker.internal:host-gateway"]);
             }
@@ -232,10 +227,7 @@ impl Harness {
         ] {
             fs::write(
                 self.directory.join(name),
-                content
-                    .replace("__PORT__", &port.to_string())
-                    .replace("__UPSTREAM__", &upstream)
-                    .replace("__UPSTREAM_BASIC__", &basic),
+                content.replace("__PORT__", &port.to_string()).replace("__UPSTREAM__", &upstream).replace("__UPSTREAM_BASIC__", &basic),
             )?;
         }
         Ok(())
@@ -302,24 +294,16 @@ async fn test_proxy_routing() -> Result<(), BoxError> {
     for id in [7, 19] {
         let body = format!(r#"{{"jsonrpc":"2.0","id":{id},"method":"eth_chainId","params":[]}}"#);
         let response = harness.call("/ethereum", 200, Some(body.as_bytes()), &[]).await?;
-        assert_eq!(
-            serde_json::from_slice::<Value>(&response.body)?,
-            serde_json::from_str::<Value>(&format!(r#"{{"jsonrpc":"2.0","id":{id},"result":"0x1"}}"#))?
-        );
+        assert_eq!(serde_json::from_slice::<Value>(&response.body)?, serde_json::from_str::<Value>(&format!(r#"{{"jsonrpc":"2.0","id":{id},"result":"0x1"}}"#))?);
     }
     assert_eq!((harness.upstream.count("/node/base"), harness.upstream.count("/node/region")), (0, 1));
-    harness
-        .call("/ethereum", 403, Some(br#"{"jsonrpc":"2.0","id":1,"method":"notAllowed","params":[]}"#), &[])
-        .await?;
+    harness.call("/ethereum", 403, Some(br#"{"jsonrpc":"2.0","id":1,"method":"notAllowed","params":[]}"#), &[]).await?;
     for path in ["/worker/missing/inspect", "/worker/providers/echo/inspect"] {
         harness.call(path, 404, None, &[]).await?;
     }
     let denied = harness.call(&provider("allow", "/denied"), 403, None, &[]).await?;
     assert_eq!(denied.headers.get(CONTENT_TYPE).unwrap(), "application/json");
-    assert_eq!(
-        serde_json::from_slice::<Value>(&denied.body)?,
-        serde_json::from_str::<Value>(r#"{"error":{"message":"request not allowed"}}"#)?
-    );
+    assert_eq!(serde_json::from_slice::<Value>(&denied.body)?, serde_json::from_str::<Value>(r#"{"error":{"message":"request not allowed"}}"#)?);
     harness.call(&provider("allow", "/allowed"), 403, Some(b"{}"), &[]).await?;
     for (path, limit) in [("/ethereum/denied".to_string(), 1024), (provider("allow", "/denied"), 2048)] {
         harness.call(&path, 403, Some(&vec![b'x'; limit]), &[]).await?;
@@ -334,10 +318,7 @@ async fn test_proxy_routing() -> Result<(), BoxError> {
         )
         .await?;
     let echo: Echo = serde_json::from_slice(&response.body)?;
-    assert_eq!(
-        (echo.authorization.as_deref(), echo.body.as_str(), echo.dropped),
-        (Some("Bearer endpoint-key"), r#"{"hello":"world"}"#, None)
-    );
+    assert_eq!((echo.authorization.as_deref(), echo.body.as_str(), echo.dropped), (Some("Bearer endpoint-key"), r#"{"hello":"world"}"#, None));
     assert_eq!(echo.query, BTreeMap::from([("apikey".into(), "configured-key".into()), ("query".into(), "kept".into())]));
     assert_eq!(response.headers.get("x-provider").unwrap(), "fixture");
     assert_eq!(response.headers.get("x-do-not-forward"), None);
@@ -355,15 +336,7 @@ async fn test_proxy_routing() -> Result<(), BoxError> {
     for _ in 0..3 {
         harness.call(&provider("paced", "/data"), 200, None, &[]).await?;
     }
-    let times = harness
-        .upstream
-        .0
-        .lock()
-        .unwrap()
-        .iter()
-        .filter(|record| record.echo.path == "/paced/data")
-        .map(|record| record.received)
-        .collect::<Vec<_>>();
+    let times = harness.upstream.0.lock().unwrap().iter().filter(|record| record.echo.path == "/paced/data").map(|record| record.received).collect::<Vec<_>>();
     assert_eq!(times.len(), 3);
     assert!(times.windows(2).all(|pair| pair[1].duration_since(pair[0]) >= Duration::from_millis(200)));
     verify_cache(&harness).await?;

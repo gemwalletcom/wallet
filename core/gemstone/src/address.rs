@@ -48,31 +48,16 @@ mod tests {
         assert!(!validate_address("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", Chain::Litecoin));
         assert!(validate_address("qpzl3jxkzgvfd9flnd26leud5duv795fnv7vuaha70", Chain::BitcoinCash));
         assert!(validate_address("bitcoincash:qpzl3jxkzgvfd9flnd26leud5duv795fnv7vuaha70", Chain::BitcoinCash));
-        assert!(validate_address(
-            "addr1q8043m5heeaydnvtmmkyuhe6qv5havvhsf0d26q3jygsspxlyfpyk6yqkw0yhtyvtr0flekj84u64az82cufmqn65zdsylzk23",
-            Chain::Cardano
-        ));
-        assert!(!validate_address(
-            "addr_test1qr4p6f6mm0q9kfyyd9u30umk9cc6gk0nxu25k5rsc4fp7ls7k0qqxslcwwj4gvn4yfmdyrfgwjt3ztuz4zpy4242u0m95r0n",
-            Chain::Cardano
-        ));
+        assert!(validate_address("addr1q8043m5heeaydnvtmmkyuhe6qv5havvhsf0d26q3jygsspxlyfpyk6yqkw0yhtyvtr0flekj84u64az82cufmqn65zdsylzk23", Chain::Cardano));
+        assert!(!validate_address("addr_test1qr4p6f6mm0q9kfyyd9u30umk9cc6gk0nxu25k5rsc4fp7ls7k0qqxslcwwj4gvn4yfmdyrfgwjt3ztuz4zpy4242u0m95r0n", Chain::Cardano));
     }
 
     #[test]
     fn test_checksum_address() {
-        assert_eq!(
-            checksum_address("0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a", Chain::Ethereum),
-            "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a"
-        );
-        assert_eq!(
-            checksum_address(" \n0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a\r ", Chain::Ethereum),
-            "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a"
-        );
+        assert_eq!(checksum_address("0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a", Chain::Ethereum), "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a");
+        assert_eq!(checksum_address(" \n0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a\r ", Chain::Ethereum), "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a");
         assert_eq!(checksum_address(" \ngemcoder.eth\r ", Chain::Ethereum), "gemcoder.eth");
         assert_eq!(checksum_address("invalid", Chain::Ethereum), "invalid");
-        assert_eq!(
-            checksum_address(" \nGvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2\r ", Chain::Solana),
-            "GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2"
-        );
+        assert_eq!(checksum_address(" \nGvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2\r ", Chain::Solana), "GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2");
     }
 }

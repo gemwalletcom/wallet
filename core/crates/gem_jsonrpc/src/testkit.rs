@@ -16,10 +16,7 @@ where
 {
     MockClient::new().with_post(move |_, body| {
         let request: Value = serde_json::from_slice(body).map_err(|error| ClientError::Serialization(error.to_string()))?;
-        let method = request
-            .get("method")
-            .and_then(Value::as_str)
-            .ok_or_else(|| ClientError::Serialization("missing method".to_string()))?;
+        let method = request.get("method").and_then(Value::as_str).ok_or_else(|| ClientError::Serialization("missing method".to_string()))?;
         let params = request.get("params").cloned().unwrap_or(Value::Null);
         let id = request.get("id").cloned().unwrap_or(Value::Null);
         let result = handler(method, &params)?;

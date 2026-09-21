@@ -32,13 +32,7 @@ import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 
 @Composable
-fun ManageContactScene(
-    state: ManageContactUIState,
-    snackbar: SnackbarHostState? = null,
-    onNameChange: (String) -> Unit,
-    onDescriptionChange: (String) -> Unit,
-    onAction: (ManageContactAction) -> Unit,
-) {
+fun ManageContactScene(state: ManageContactUIState, snackbar: SnackbarHostState? = null, onNameChange: (String) -> Unit, onDescriptionChange: (String) -> Unit, onAction: (ManageContactAction) -> Unit) {
     val revealed = remember { mutableStateOf<String?>(null) }
 
     Scene(

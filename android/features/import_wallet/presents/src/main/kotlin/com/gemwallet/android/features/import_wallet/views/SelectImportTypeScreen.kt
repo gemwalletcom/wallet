@@ -28,10 +28,7 @@ import com.wallet.core.primitives.Chain
 import uniffi.gemstone.DocsUrl
 
 @Composable
-fun SelectImportTypeScreen(
-    onClose: () -> Unit,
-    onSelect: (ImportType) -> Unit,
-) {
+fun SelectImportTypeScreen(onClose: () -> Unit, onSelect: (ImportType) -> Unit) {
     val viewModel: SelectImportTypeViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -44,13 +41,7 @@ fun SelectImportTypeScreen(
 }
 
 @Composable
-private fun SelectImportTypeScene(
-    chains: List<ChainUIState>,
-    chainFilter: TextFieldState,
-    onSelect: (ImportType) -> Unit,
-    onClose: () -> Unit,
-) {
-
+private fun SelectImportTypeScene(chains: List<ChainUIState>, chainFilter: TextFieldState, onSelect: (ImportType) -> Unit, onClose: () -> Unit) {
     Scene(
         title = stringResource(id = R.string.wallet_import_title),
         actions = {
@@ -101,7 +92,7 @@ fun PreviewChainSelectScreen() {
                 ),
                 chainFilter = rememberTextFieldState(),
                 onClose = {},
-                onSelect = {}
+                onSelect = {},
             )
         }
     }

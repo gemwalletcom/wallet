@@ -8,8 +8,8 @@ use std::error::Error;
 use std::io;
 
 use crate::{
-    ChatwootConfigResponse, ChatwootContactResponse, ChatwootContactUpdate, ChatwootMessageInput, ChatwootMessagesResponse, ChatwootSession, ChatwootTypingInput, Message,
-    chatwoot_target::ChatwootTarget, constants::QUERY_WIDGET_PUBLIC_TOKEN, support_public_messages,
+    ChatwootConfigResponse, ChatwootContactResponse, ChatwootContactUpdate, ChatwootMessageInput, ChatwootMessagesResponse, ChatwootSession, ChatwootTypingInput, Message, chatwoot_target::ChatwootTarget,
+    constants::QUERY_WIDGET_PUBLIC_TOKEN, support_public_messages,
 };
 
 const AUTH_TOKEN_HEADER: &str = "x-auth-token";
@@ -48,13 +48,7 @@ impl ChatwootClient {
 
     async fn set_contact(&self, device: &Device, auth_token: &str) -> Result<Option<ChatwootSession>, Box<dyn Error + Send + Sync>> {
         let update = ChatwootContactUpdate::new(device);
-        let contact: ChatwootContactResponse = match self
-            .client
-            .patch(ChatwootTarget::SetContact, &update)
-            .query(&self.token_query())
-            .headers(Self::auth_headers(auth_token))
-            .await
-        {
+        let contact: ChatwootContactResponse = match self.client.patch(ChatwootTarget::SetContact, &update).query(&self.token_query()).headers(Self::auth_headers(auth_token)).await {
             Ok(contact) => contact,
             Err(ClientError::Http { status: 404, .. }) => return Ok(None),
             Err(error) => return Err(Box::new(error)),
@@ -66,12 +60,7 @@ impl ChatwootClient {
     }
 
     pub async fn messages(&self, session: &ChatwootSession, from_timestamp: Option<u64>) -> Result<Vec<SupportMessage>, Box<dyn Error + Send + Sync>> {
-        let response: ChatwootMessagesResponse = self
-            .client
-            .get(ChatwootTarget::Messages)
-            .query(&self.token_query())
-            .headers(Self::auth_headers(&session.auth_token))
-            .await?;
+        let response: ChatwootMessagesResponse = self.client.get(ChatwootTarget::Messages).query(&self.token_query()).headers(Self::auth_headers(&session.auth_token)).await?;
 
         Ok(messages_from_timestamp(support_public_messages(&response.payload), from_timestamp))
     }
@@ -84,9 +73,7 @@ impl ChatwootClient {
             .headers(Self::auth_headers(&session.auth_token))
             .await?;
 
-        message
-            .support_message()
-            .ok_or_else(|| io::Error::other("message response is not a public text or image message").into())
+        message.support_message().ok_or_else(|| io::Error::other("message response is not a public text or image message").into())
     }
 
     pub async fn send_image(&self, session: &ChatwootSession, data: Vec<u8>, file_name: String, content_type: String) -> Result<SupportMessage, Box<dyn Error + Send + Sync>> {
@@ -97,16 +84,9 @@ impl ChatwootClient {
         let mut headers = Self::auth_headers(&session.auth_token);
         headers.insert(CONTENT_TYPE.to_string(), form.content_type());
 
-        let message: Message = self
-            .client
-            .post(ChatwootTarget::Messages, &form.into_body())
-            .query(&self.token_query())
-            .headers(headers)
-            .await?;
+        let message: Message = self.client.post(ChatwootTarget::Messages, &form.into_body()).query(&self.token_query()).headers(headers).await?;
 
-        message
-            .support_message()
-            .ok_or_else(|| io::Error::other("image message response is not a public image message").into())
+        message.support_message().ok_or_else(|| io::Error::other("image message response is not a public image message").into())
     }
 
     pub async fn set_typing(&self, session: &ChatwootSession, status: SupportTypingStatus) -> Result<bool, Box<dyn Error + Send + Sync>> {

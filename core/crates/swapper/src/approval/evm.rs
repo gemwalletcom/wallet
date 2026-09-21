@@ -28,14 +28,8 @@ pub async fn check_approval_erc20_with_client<C>(owner: String, token: String, s
 where
     C: Client + Clone + std::fmt::Debug + Send + Sync + 'static,
 {
-    let owner: Address = owner
-        .as_str()
-        .parse()
-        .map_err(|_| SwapperError::TransactionError(format!("{}: {owner}", INVALID_ADDRESS)))?;
-    let spender: Address = spender
-        .as_str()
-        .parse()
-        .map_err(|_| SwapperError::TransactionError(format!("{}: {spender}", INVALID_ADDRESS)))?;
+    let owner: Address = owner.as_str().parse().map_err(|_| SwapperError::TransactionError(format!("{}: {owner}", INVALID_ADDRESS)))?;
+    let spender: Address = spender.as_str().parse().map_err(|_| SwapperError::TransactionError(format!("{}: {spender}", INVALID_ADDRESS)))?;
     let allowance_data = IERC20::allowanceCall { owner, spender }.abi_encode();
     let allowance_call = EthereumRpc::Call {
         transaction: TransactionObject::new_call(&token, allowance_data),
@@ -59,26 +53,12 @@ where
     Ok(ApprovalType::None)
 }
 
-pub async fn check_approval_erc20(
-    owner: String,
-    token: String,
-    spender: String,
-    amount: U256,
-    provider: Arc<dyn RpcProvider>,
-    chain: &Chain,
-) -> Result<ApprovalType, SwapperError> {
+pub async fn check_approval_erc20(owner: String, token: String, spender: String, amount: U256, provider: Arc<dyn RpcProvider>, chain: &Chain) -> Result<ApprovalType, SwapperError> {
     let client = create_client_with_chain(provider.clone(), *chain)?;
     check_approval_erc20_with_client(owner, token, spender, amount, &client).await
 }
 
-pub async fn check_approval_permit2_with_client<C>(
-    permit2_contract: &str,
-    owner: String,
-    token: String,
-    spender: String,
-    amount: U256,
-    client: &JsonRpcClient<C>,
-) -> Result<ApprovalType, SwapperError>
+pub async fn check_approval_permit2_with_client<C>(permit2_contract: &str, owner: String, token: String, spender: String, amount: U256, client: &JsonRpcClient<C>) -> Result<ApprovalType, SwapperError>
 where
     C: Client + Clone + std::fmt::Debug + Send + Sync + 'static,
 {
@@ -100,10 +80,7 @@ where
     let allowance_return = IAllowanceTransfer::allowanceCall::abi_decode_returns(&decoded).map_err(SwapperError::from)?;
 
     let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
-    let expiration: u64 = allowance_return
-        ._1
-        .try_into()
-        .map_err(|_| SwapperError::TransactionError("failed to convert expiration to u64".into()))?;
+    let expiration: u64 = allowance_return._1.try_into().map_err(|_| SwapperError::TransactionError("failed to convert expiration to u64".into()))?;
 
     if U256::from(allowance_return._0) < amount || expiration < timestamp {
         return Ok(ApprovalType::Permit2(Permit2ApprovalData {
@@ -111,10 +88,7 @@ where
             spender,
             value: u256_to_biguint(&amount),
             permit2_contract: permit2_contract.into(),
-            permit2_nonce: allowance_return
-                ._2
-                .try_into()
-                .map_err(|_| SwapperError::TransactionError("failed to convert nonce to u64".into()))?,
+            permit2_nonce: allowance_return._2.try_into().map_err(|_| SwapperError::TransactionError("failed to convert nonce to u64".into()))?,
         }));
     }
 

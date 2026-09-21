@@ -9,7 +9,6 @@ import GemstonePrimitives
 import Primitives
 import SwiftUI
 
-
 private final class AssetIconCache: @unchecked Sendable {
     static let shared = AssetIconCache()
 
@@ -52,7 +51,7 @@ public struct AssetIdViewModel: Sendable {
         case let .remote(url): (URL(string: url), .none)
         }
         return AssetImage(
-            type: .text(assetId.assetType?.rawValue ?? .empty),
+            type: .text(icon.placeholder ?? .empty),
             imageURL: imageURL,
             placeholder: placeholder,
             chainPlaceholder: icon.badge.map { ChainImage(chain: Chain(core: $0)).image },

@@ -13,7 +13,7 @@ object Migration_48_49 : Migration(48, 49) {
                     priority INT NOT NULL,
                     PRIMARY KEY(query, asset_id)
                 )
-            """.trimIndent()
+            """.trimIndent(),
         )
     }
 }

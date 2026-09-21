@@ -34,9 +34,7 @@ pub struct ParserMetrics {
 
 impl ParserMetrics {
     pub fn new() -> Self {
-        Self {
-            chains: Mutex::new(HashMap::new()),
-        }
+        Self { chains: Mutex::new(HashMap::new()) }
     }
 
     pub fn update_state(&self, chain: &str, current_block: i64, latest_block: i64, is_enabled: bool) {

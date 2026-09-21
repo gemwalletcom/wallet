@@ -117,9 +117,6 @@ mod tests {
     #[test]
     fn test_fetch_transactions_queue() {
         assert_eq!(QueueName::FetchTransactions.to_string(), "fetch_transactions");
-        assert_eq!(
-            QueueName::chain_queues().into_iter().find(|queue| queue == &QueueName::FetchTransactions),
-            Some(QueueName::FetchTransactions)
-        );
+        assert_eq!(QueueName::chain_queues().into_iter().find(|queue| queue == &QueueName::FetchTransactions), Some(QueueName::FetchTransactions));
     }
 }

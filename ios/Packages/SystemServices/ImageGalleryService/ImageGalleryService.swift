@@ -17,7 +17,7 @@ public struct ImageGalleryService: Sendable {
         try await checkPermissionToPhotos()
         let data = try await loadData(from: url)
         let image = try imageFromData(data)
-        await saveImageToPhotos(image: image)
+        try await saveImageToPhotos(image: image)
     }
 
     // MARK: - Private methods
@@ -61,10 +61,13 @@ public struct ImageGalleryService: Sendable {
         return image
     }
 
-    private func saveImageToPhotos(image: UIImage) async {
-        await withCheckedContinuation { continuation in
-            UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
-            continuation.resume()
+    private func saveImageToPhotos(image: UIImage) async throws(ImageGalleryServiceError) {
+        do {
+            try await PHPhotoLibrary.shared().performChanges {
+                PHAssetChangeRequest.creationRequestForAsset(from: image)
+            }
+        } catch {
+            throw ImageGalleryServiceError.saveFailed(error)
         }
     }
 }

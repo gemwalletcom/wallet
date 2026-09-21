@@ -29,7 +29,8 @@ data class PriceAlert (
 data class PriceAlertData (
 	val asset: Asset,
 	val price: Price? = null,
-	val priceAlert: PriceAlert
+	val priceAlert: PriceAlert,
+	val rankScore: Int
 )
 
 @Serializable

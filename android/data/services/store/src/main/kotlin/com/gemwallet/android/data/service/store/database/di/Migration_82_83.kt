@@ -27,7 +27,7 @@ object Migration_82_83 : Migration(82, 83) {
                 "`createdAt` INTEGER NOT NULL, " +
                 "`updatedAt` INTEGER NOT NULL, " +
                 "PRIMARY KEY(`id`, `walletId`), " +
-                "FOREIGN KEY(`walletId`) REFERENCES `wallets`(`id`) ON UPDATE CASCADE ON DELETE CASCADE)"
+                "FOREIGN KEY(`walletId`) REFERENCES `wallets`(`id`) ON UPDATE CASCADE ON DELETE CASCADE)",
         )
         db.execSQL(
             "INSERT INTO `transactions_new` (" +
@@ -37,7 +37,7 @@ object Migration_82_83 : Migration(82, 83) {
                 "SELECT `id`, `walletId`, `hash`, `assetId`, `feeAssetId`, `owner`, `recipient`, `contract`, " +
                 "`metadata`, `state`, `type`, `blockNumber`, `sequence`, `fee`, `value`, `payload`, " +
                 "`direction`, `createdAt`, `updatedAt` FROM `transactions` " +
-                "WHERE `walletId` IN (SELECT `id` FROM `wallets`)"
+                "WHERE `walletId` IN (SELECT `id` FROM `wallets`)",
         )
         db.execSQL("DROP TABLE `transactions`")
         db.execSQL("ALTER TABLE `transactions_new` RENAME TO `transactions`")

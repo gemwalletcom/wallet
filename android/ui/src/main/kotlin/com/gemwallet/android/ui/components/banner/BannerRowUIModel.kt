@@ -2,7 +2,7 @@ package com.gemwallet.android.ui.components.banner
 
 import android.content.Context
 import com.gemwallet.android.AppUrl
-import com.gemwallet.android.domains.banner.BannerRow
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.localization.bannerDescription
 import com.gemwallet.android.ui.localization.bannerTitle
@@ -11,15 +11,10 @@ import com.wallet.core.primitives.Banner
 import com.wallet.core.primitives.BannerState
 import uniffi.gemstone.GemBannerDestination
 import uniffi.gemstone.GemBannerLink
+import uniffi.gemstone.GemBannerRow
 import uniffi.gemstone.GemTransferData
 
-data class BannerItemUIModel(
-    val title: String?,
-    val subtitle: String?,
-    val icon: ListItemImage?,
-    val canClose: Boolean,
-    val destination: BannerDestination?,
-)
+data class BannerItemUIModel(val title: String?, val subtitle: String?, val icon: ListItemImage?, val canClose: Boolean, val destination: BannerDestination?)
 
 sealed interface BannerDestination {
     data object Stake : BannerDestination
@@ -28,18 +23,15 @@ sealed interface BannerDestination {
     data class OpenUrl(val url: String) : BannerDestination
 }
 
-data class BannerRowUIModel(
-    val banner: Banner,
-    val model: BannerItemUIModel,
-)
+data class BannerRowUIModel(val banner: Banner, val model: BannerItemUIModel)
 
-fun BannerRow.uiModel(context: Context): BannerRowUIModel = BannerRowUIModel(
-    banner = banner,
+fun GemBannerRow.uiModel(context: Context): BannerRowUIModel = BannerRowUIModel(
+    banner = banner.toPrimitives(),
     model = BannerItemUIModel(
         title = content.title?.let { bannerTitle(context, it) },
         subtitle = content.description?.let { bannerDescription(context, it) },
         icon = content.icon?.image(),
-        canClose = banner.state != BannerState.AlwaysActive,
+        canClose = banner.state.toPrimitives() != BannerState.AlwaysActive,
         destination = content.destination?.destination(),
     ),
 )

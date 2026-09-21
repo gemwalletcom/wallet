@@ -1,24 +1,22 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemStakeServiceProtocol
 import Components
 import Foundation
 import enum Gemstone.GemDelegationAction
-import enum Gemstone.GemDelegationCompletion
-import enum Gemstone.GemDelegationRow
+import enum Gemstone.GemListRow
+import protocol Gemstone.GemStakeServiceProtocol
+import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
-import struct Gemstone.GemTransferData
 
 public struct DelegationSceneViewModel {
     public let model: DelegationViewModel
     public let validators: [DelegationValidator]
-    public let onAmountInputAction: AmountInputAction
-    public let onTransferAction: TransferDataAction
+    public let onNavigate: StakeRouteAction
 
     private let wallet: Wallet
     private let asset: Asset
@@ -30,66 +28,35 @@ public struct DelegationSceneViewModel {
         asset: Asset,
         service: any GemStakeServiceProtocol,
         validators: [DelegationValidator],
-        onAmountInputAction: AmountInputAction,
-        onTransferAction: TransferDataAction,
+        onNavigate: StakeRouteAction,
     ) {
         self.wallet = wallet
         self.model = model
         self.asset = asset
         self.service = service
         self.validators = validators
-        self.onAmountInputAction = onAmountInputAction
-        self.onTransferAction = onTransferAction
+        self.onNavigate = onNavigate
     }
 
     public var title: String {
         providerType.title
     }
 
-    public var rows: [GemDelegationRow] {
+    public var rows: [GemListRow] {
         service.delegationRows(delegation: model.delegation.toGem())
     }
 
-    public var detailRows: [GemDelegationRow] {
-        rows.filter { $0 != .rewards }
-    }
-
-    public var rewardsRow: GemDelegationRow? {
-        rows.first { $0 == .rewards }
-    }
-
-    public var detailRowModels: [DelegationRowViewModel] {
-        detailRows.map(rowViewModel)
-    }
-
-    public var rewardsRowModel: DelegationRowViewModel? {
-        rewardsRow.map(rowViewModel)
-    }
-
-    private func rowViewModel(_ row: GemDelegationRow) -> DelegationRowViewModel {
-        let action: DelegationRowViewModel.Action = switch row {
-        case .provider: providerUrl.map { .url($0) } ?? .plain
-        case .apr, .status, .completionDate: .plain
-        case .rewards: canClaimRewards ? .claimRewards : .plain
-        }
-        return DelegationRowViewModel(id: String(describing: row), action: action, model: listItem(for: row))
-    }
-
-    public func listItem(for row: GemDelegationRow) -> ListItemModel {
-        switch row {
-        case .provider: ListItemModel(title: title(for: row), subtitle: model.validatorText)
-        case .apr: ListItemModel(title: aprModel.title.text, titleStyle: aprModel.title.style, subtitle: aprModel.subtitle.text, subtitleStyle: aprModel.subtitle.style)
-        case .status: ListItemModel(title: title(for: row), subtitle: stateModel.title, subtitleStyle: stateModel.textStyle)
-        case .completionDate: ListItemModel(title: title(for: row), subtitle: model.completionDateText)
-        case .rewards: ListItemModel(
-            title: title(for: row),
-            titleStyle: model.titleStyle,
-            subtitle: model.rewardsText,
-            subtitleStyle: model.subtitleStyle,
-            subtitleExtra: model.rewardsFiatValueText,
-            subtitleStyleExtra: model.subtitleExtraStyle,
-            imageStyle: assetImageStyle,
-        )
+    public var rewardsItem: ListItemModel? {
+        model.rewardsText.map { rewardsText in
+            ListItemModel(
+                title: Localized.Stake.rewards,
+                titleStyle: model.titleStyle,
+                subtitle: rewardsText,
+                subtitleStyle: model.subtitleStyle,
+                subtitleExtra: model.rewardsFiatValueText,
+                subtitleStyleExtra: model.subtitleExtraStyle,
+                imageStyle: assetImageStyle,
+            )
         }
     }
 
@@ -97,27 +64,8 @@ public struct DelegationSceneViewModel {
         ListItemModel(title: action.title)
     }
 
-    public func title(for row: GemDelegationRow) -> String {
-        delegationRowTitle(row, providerType: providerType, completion: model.status.completion)
-    }
-
-    public var aprModel: AprViewModel {
-        AprViewModel(apr: model.delegation.validator.apr)
-    }
-
     public var manageTitle: String {
         Localized.Common.manage
-    }
-
-    public var stateModel: DelegationStateViewModel {
-        model.stateModel
-    }
-
-    public var providerUrl: URL? {
-        switch providerType {
-        case .stake: model.validatorUrl
-        case .earn: nil
-        }
     }
 
     public var assetImageStyle: ListItemImageStyle? {
@@ -135,22 +83,22 @@ public struct DelegationSceneViewModel {
     public var canClaimRewards: Bool {
         service.canClaimDelegationRewards(walletType: wallet.type.toGem(), delegation: model.delegation.toGem())
     }
-
 }
 
 // MARK: - Actions
 
 public extension DelegationSceneViewModel {
     func onSelectAction(_ action: GemDelegationAction) {
-        switch service.delegationActionDestination(asset: asset.toGem(), delegation: model.delegation.toGem(), action: action, validators: validators.map { $0.toGem() }) {
-        case .details: break
-        case let .confirm(transfer): onTransferAction?(transfer)
-        case let .amount(asset, input): onAmountInputAction?(AmountInput(type: input.map(), asset: asset.toPrimitives()))
+        let route = service.delegationActionDestination(asset: asset.toGem(), delegation: model.delegation.toGem(), action: action, validators: validators.map { $0.toGem() })
+            .route(delegation: model.delegation, validators: validators)
+        switch route {
+        case .delegation: break
+        case .transfer: onNavigate?(route)
         }
     }
 
     func onClaimRewards() {
-        onTransferAction?(claimRewardsTransferData())
+        onNavigate?(.transfer(.confirm(claimRewardsTransferData())))
     }
 }
 
@@ -169,7 +117,6 @@ extension DelegationSceneViewModel {
     private var providerType: StakeProviderType {
         model.delegation.validator.providerType
     }
-
 }
 
 extension GemDelegationAction: @retroactive Identifiable {

@@ -1,6 +1,7 @@
 package com.gemwallet.android.ui.models.name
 
 import com.gemwallet.android.ext.getNameRecord
+import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -15,25 +16,22 @@ import uniffi.gemstone.GemNameInputStep
 import uniffi.gemstone.GemNameRecordState
 import uniffi.gemstone.GemNameServiceInterface
 
-class NameRecordController(
-    private val nameService: GemNameServiceInterface,
-    private val scope: CoroutineScope,
-) {
+class NameRecordController(private val nameService: GemNameServiceInterface, private val scope: CoroutineScope) {
     private var job: Job? = null
     private val _state = MutableStateFlow<GemNameRecordState>(GemNameRecordState.None)
     val state: StateFlow<GemNameRecordState> = _state.asStateFlow()
 
     fun getNameRecord(value: String, chain: Chain?) {
-        when (val step = nameService.nameInputStep(_state.value, value, chain != null)) {
+        when (val step = nameService.nameInputStep(_state.value, value, chain?.toGem())) {
             GemNameInputStep.Unchanged -> return
             GemNameInputStep.Reset -> reset()
-            is GemNameInputStep.Resolve -> resolve(step, requireNotNull(chain))
+            is GemNameInputStep.Resolve -> loadNameRecord(step, requireNotNull(chain))
         }
     }
 
-    private fun resolve(step: GemNameInputStep.Resolve, chain: Chain) {
+    private fun loadNameRecord(step: GemNameInputStep.Resolve, chain: Chain) {
         job?.cancel()
-        _state.value = GemNameRecordState.Loading(step.name)
+        _state.value = GemNameRecordState.Loading(step.name, chain.toGem())
         job = scope.launch {
             delay(step.debounceMilliseconds.toLong())
             val resolved = try {
@@ -44,7 +42,7 @@ class NameRecordController(
                 GemNameRecordState.Error
             }
             ensureActive()
-            _state.value = nameService.resolvedState(_state.value, step.name, resolved)
+            _state.value = nameService.resolvedState(_state.value, step.name, chain.toGem(), resolved)
         }
     }
 

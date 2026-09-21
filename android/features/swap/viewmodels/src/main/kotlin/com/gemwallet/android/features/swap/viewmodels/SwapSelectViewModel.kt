@@ -3,10 +3,10 @@ package com.gemwallet.android.features.swap.viewmodels
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
-import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
@@ -14,7 +14,6 @@ import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectS
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +22,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemSelectAssetType
+import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -56,7 +56,6 @@ class SwapSelectViewModel @Inject constructor(
     val select = MutableStateFlow(savedStateHandle.requireSwapItemType())
 }
 
-private fun SavedStateHandle.requireSwapItemType(): SwapItemType =
-    checkNotNull(get<SwapItemType>(RouteArgument.SwapItemType.key)) {
-        "Missing route argument: ${RouteArgument.SwapItemType.key}"
-    }
+private fun SavedStateHandle.requireSwapItemType(): SwapItemType = checkNotNull(get<SwapItemType>(RouteArgument.SwapItemType.key)) {
+    "Missing route argument: ${RouteArgument.SwapItemType.key}"
+}

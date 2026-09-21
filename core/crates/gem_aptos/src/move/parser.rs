@@ -96,10 +96,7 @@ fn parse_struct_tag_at_depth(value: &str, depth: usize) -> Result<StructTag, Sig
     let module = parts[1].to_string();
     let name = parts[2].to_string();
     let type_args = if let Some(args) = args {
-        split_type_args(args)?
-            .into_iter()
-            .map(|arg| parse_type_tag_at_depth(&arg, depth + 1))
-            .collect::<Result<Vec<_>, _>>()?
+        split_type_args(args)?.into_iter().map(|arg| parse_type_tag_at_depth(&arg, depth + 1)).collect::<Result<Vec<_>, _>>()?
     } else {
         Vec::new()
     };
@@ -221,10 +218,7 @@ fn parse_move_value(value: &Value, arg_type: &TypeTag) -> Result<MoveValue, Sign
 
 fn parse_struct(value: &Value, tag: &StructTag) -> Result<MoveValue, SignerError> {
     if is_option_struct(tag) {
-        let inner = tag
-            .type_args
-            .first()
-            .ok_or_else(|| SignerError::InvalidInput("Option type missing inner type".to_string()))?;
+        let inner = tag.type_args.first().ok_or_else(|| SignerError::InvalidInput("Option type missing inner type".to_string()))?;
         if value.is_null() {
             return Ok(MoveValue::Vector(Vec::new()));
         }
@@ -338,9 +332,7 @@ fn parse_unsigned_from_str<T>(text: &str, label: &str) -> Result<T, SignerError>
 where
     T: TryFrom<u128>,
 {
-    let value = parse_big_uint_from_str(text, label)?
-        .to_u128()
-        .ok_or_else(|| SignerError::InvalidInput(format!("Invalid Aptos {label} argument")))?;
+    let value = parse_big_uint_from_str(text, label)?.to_u128().ok_or_else(|| SignerError::InvalidInput(format!("Invalid Aptos {label} argument")))?;
     T::try_from(value).map_err(|_| SignerError::InvalidInput(format!("Invalid Aptos {label} argument")))
 }
 

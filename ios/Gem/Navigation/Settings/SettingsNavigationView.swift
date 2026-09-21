@@ -15,7 +15,7 @@ import WalletConnector
 import WalletConnectorService
 
 struct SettingsNavigationView: View {
-    @Environment(\.navigationHandler) private var navigationHandler
+    @Environment(\.navigationRouter) private var navigationRouter
     @Environment(\.walletConnector) private var walletConnector
     @Environment(\.walletConnectorPresenter) private var walletConnectorPresenter
     @Environment(\.viewModelFactory) private var viewModelFactory
@@ -94,7 +94,7 @@ struct SettingsNavigationView: View {
         }
         .navigationDestination(for: Scenes.DeveloperPayments.self) { _ in
             DeveloperPaymentsScene { payload in
-                Task { await navigationHandler.handle(code: payload) }
+                Task { await navigationRouter.open(code: payload) }
             }
         }
         .navigationDestination(for: Scenes.InAppNotifications.self) { _ in
@@ -128,12 +128,10 @@ struct SettingsNavigationView: View {
                     .toolbarDismissItem(type: .close, placement: .topBarLeading)
             }
             .environment(\.openURL, OpenURLAction { url in
-                guard navigationHandler.open(url: url) else { return .systemAction }
+                guard navigationRouter.openInApp(url: url) else { return .systemAction }
                 isPresentingSupport = false
                 return .handled
             })
         }
     }
 }
-
-extension ObservablePreferences: @retroactive CurrencyStorable {}

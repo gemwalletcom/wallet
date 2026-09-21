@@ -19,26 +19,6 @@ struct WalletListItemView: View {
     let onPin: (Wallet) -> Void
     let onDelete: (Wallet) -> Void
 
-    init(
-        wallet: Wallet,
-        listItem: ListItemModel,
-        isPinned: Bool,
-        currentWalletId: WalletId?,
-        onSelect: @escaping (Wallet) -> Void,
-        onEdit: @escaping (Wallet) -> Void,
-        onPin: @escaping (Wallet) -> Void,
-        onDelete: @escaping (Wallet) -> Void,
-    ) {
-        self.wallet = wallet
-        self.listItem = listItem
-        self.isPinned = isPinned
-        self.currentWalletId = currentWalletId
-        self.onSelect = onSelect
-        self.onEdit = onEdit
-        self.onPin = onPin
-        self.onDelete = onDelete
-    }
-
     var body: some View {
         // https://www.jessesquires.com/blog/2023/07/18/navigation-link-accessory-view-swiftui
         // Hack to hide chevron

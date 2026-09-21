@@ -77,12 +77,7 @@ impl CetusClmm {
             Some((hops, impact)) if impact <= DIRECT_PRICE_IMPACT_THRESHOLD_BPS => Ok(hops),
             best_route => {
                 let expanded = self.try_route_with_ticks(from, to, swap_amount, CETUS_ALL_TICK_SPACINGS).await;
-                expanded
-                    .acceptable_direct
-                    .or(expanded.best_route)
-                    .or(best_route)
-                    .map(|(hops, _)| hops)
-                    .ok_or(SwapperError::NoQuoteAvailable)
+                expanded.acceptable_direct.or(expanded.best_route).or(best_route).map(|(hops, _)| hops).ok_or(SwapperError::NoQuoteAvailable)
             }
         }
     }
@@ -104,10 +99,7 @@ impl CetusClmm {
             .max_by_key(|(hops, _)| hops.last().map(|h| h.amount_out).unwrap_or_default())
             .cloned();
         if acceptable_direct.is_some() {
-            return PhaseResult {
-                acceptable_direct,
-                best_route: None,
-            };
+            return PhaseResult { acceptable_direct, best_route: None };
         }
 
         let multi_hop_discoveries = INTERMEDIATE_COIN_TYPES.iter().filter_map(|raw_intermediate| {
@@ -121,22 +113,11 @@ impl CetusClmm {
         let multi_hop_candidates = futures::future::join_all(multi_hop_discoveries)
             .await
             .into_iter()
-            .flat_map(|(firsts, seconds)| {
-                firsts
-                    .into_iter()
-                    .flat_map(move |first| seconds.clone().into_iter().map(move |second| vec![first.clone(), second]))
-            })
+            .flat_map(|(firsts, seconds)| firsts.into_iter().flat_map(move |first| seconds.clone().into_iter().map(move |second| vec![first.clone(), second])))
             .collect();
         let multi_hop_quotes = self.quote_candidates_batched(multi_hop_candidates, from, swap_amount).await;
-        let best_route = direct_quotes
-            .into_iter()
-            .chain(multi_hop_quotes)
-            .flatten()
-            .max_by_key(|(hops, _)| hops.last().map(|h| h.amount_out).unwrap_or_default());
-        PhaseResult {
-            acceptable_direct: None,
-            best_route,
-        }
+        let best_route = direct_quotes.into_iter().chain(multi_hop_quotes).flatten().max_by_key(|(hops, _)| hops.last().map(|h| h.amount_out).unwrap_or_default());
+        PhaseResult { acceptable_direct: None, best_route }
     }
 
     fn route_discovery_complete(&self, from: &str, to: &str) -> bool {
@@ -148,9 +129,7 @@ impl CetusClmm {
     fn known_pools(from: &str, to: &str) -> Vec<DiscoveredPool> {
         KNOWN_POOLS
             .iter()
-            .filter(|known| {
-                (coin_type_matches(from, known.coin_a) && coin_type_matches(to, known.coin_b)) || (coin_type_matches(from, known.coin_b) && coin_type_matches(to, known.coin_a))
-            })
+            .filter(|known| (coin_type_matches(from, known.coin_a) && coin_type_matches(to, known.coin_b)) || (coin_type_matches(from, known.coin_b) && coin_type_matches(to, known.coin_a)))
             .map(|known| DiscoveredPool {
                 pool_id: known.pool_id.to_string(),
                 pool_init_version: known.pool_init_version,
@@ -186,9 +165,7 @@ impl CetusClmm {
 
     async fn query_direct_pools(&self, from: &str, to: &str, ticks: &[u32]) -> Vec<(u32, Option<DiscoveredPool>)> {
         let (coin_a, coin_b) = canonical_pair_order(from, to);
-        let inspects = ticks
-            .iter()
-            .map(|tick| async move { self.inspect_pool_id(coin_a, coin_b, *tick).await.map(|pool_id| (*tick, pool_id)) });
+        let inspects = ticks.iter().map(|tick| async move { self.inspect_pool_id(coin_a, coin_b, *tick).await.map(|pool_id| (*tick, pool_id)) });
         let results = futures::future::join_all(inspects).await.into_iter().filter_map(Result::ok).collect::<Vec<_>>();
         let pool_ids = results.iter().filter_map(|(_, pool_id)| pool_id.clone()).collect::<Vec<_>>();
         let pool_ids = pool_ids
@@ -300,11 +277,7 @@ impl CetusClmm {
 
     async fn inspect_pool_id(&self, coin_a: &str, coin_b: &str, tick_spacing: u32) -> Result<Option<String>, SwapperError> {
         let transaction = tx_builder::build_pool_id_inspect(coin_a, coin_b, tick_spacing)?;
-        let result = self
-            .sui_client
-            .inspect_transaction_block(EMPTY_ADDRESS, &transaction, None)
-            .await
-            .map_err(SwapperError::compute_quote_error)?;
+        let result = self.sui_client.inspect_transaction_block(EMPTY_ADDRESS, &transaction, None).await.map_err(SwapperError::compute_quote_error)?;
         if let Some(error) = result.error.as_deref() {
             return if is_missing_pool_error(error) {
                 Ok(None)
@@ -341,11 +314,7 @@ impl CetusClmm {
     }
 
     async fn inspect_quote(&self, transaction: Vec<u8>) -> Result<InspectResult, SwapperError> {
-        let result = self
-            .sui_client
-            .inspect_transaction_block(EMPTY_ADDRESS, &transaction, None)
-            .await
-            .map_err(SwapperError::compute_quote_error)?;
+        let result = self.sui_client.inspect_transaction_block(EMPTY_ADDRESS, &transaction, None).await.map_err(SwapperError::compute_quote_error)?;
         if let Some(error) = result.error.as_deref() {
             return Err(SwapperError::ComputeQuoteError(format!("Cetus CLMM quote simulation failed: {error}")));
         }
@@ -371,32 +340,17 @@ fn canonical_pair_order<'a>(a: &'a str, b: &'a str) -> (&'a str, &'a str) {
 
 fn is_missing_pool_error(error: &str) -> bool {
     let error = error.to_ascii_lowercase();
-    error.contains("moveabort")
-        && error.contains("factory")
-        && error.contains("pool_simple_info")
-        && (error.contains(", 10)") || error.contains("abort code 10") || error.contains("abort_code: 10"))
+    error.contains("moveabort") && error.contains("factory") && error.contains("pool_simple_info") && (error.contains(", 10)") || error.contains("abort code 10") || error.contains("abort_code: 10"))
 }
 
 fn decode_quote_result_bytes(bytes: &[u8]) -> Result<QuoteResult, SwapperError> {
     if bytes.len() < 66 {
         return Err(SwapperError::ComputeQuoteError("Cetus CLMM quote inspect returned truncated CalculatedSwapResult".into()));
     }
-    let amount_out = u64::from_le_bytes(
-        bytes[8..16]
-            .try_into()
-            .map_err(|_| SwapperError::ComputeQuoteError("Cetus CLMM amount_out decode failed".into()))?,
-    );
-    let after_sqrt_price = u128::from_le_bytes(
-        bytes[32..48]
-            .try_into()
-            .map_err(|_| SwapperError::ComputeQuoteError("Cetus CLMM after_sqrt_price decode failed".into()))?,
-    );
+    let amount_out = u64::from_le_bytes(bytes[8..16].try_into().map_err(|_| SwapperError::ComputeQuoteError("Cetus CLMM amount_out decode failed".into()))?);
+    let after_sqrt_price = u128::from_le_bytes(bytes[32..48].try_into().map_err(|_| SwapperError::ComputeQuoteError("Cetus CLMM after_sqrt_price decode failed".into()))?);
     let is_exceed = bytes[48] != 0;
-    let current_sqrt_price = u128::from_le_bytes(
-        bytes[50..66]
-            .try_into()
-            .map_err(|_| SwapperError::ComputeQuoteError("Cetus CLMM current_sqrt_price decode failed".into()))?,
-    );
+    let current_sqrt_price = u128::from_le_bytes(bytes[50..66].try_into().map_err(|_| SwapperError::ComputeQuoteError("Cetus CLMM current_sqrt_price decode failed".into()))?);
     Ok(QuoteResult {
         amount_out,
         current_sqrt_price,

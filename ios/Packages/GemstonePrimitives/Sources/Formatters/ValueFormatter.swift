@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import Foundation
 import Formatters
+import Foundation
 import func Gemstone.dustThreshold
 import func Gemstone.dustThresholdPlaces
 import enum Gemstone.GemValueStyle

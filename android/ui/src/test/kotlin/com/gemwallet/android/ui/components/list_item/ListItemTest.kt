@@ -1,9 +1,9 @@
 package com.gemwallet.android.ui.components.list_item
 
-import org.junit.Assert.assertEquals
-import org.junit.Test
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingMiddle
+import org.junit.Assert.assertEquals
+import org.junit.Test
 
 class ListItemTest {
     @Test

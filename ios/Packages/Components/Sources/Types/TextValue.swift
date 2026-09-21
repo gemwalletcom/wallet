@@ -3,7 +3,7 @@
 import Style
 import SwiftUI
 
-public struct TextValue {
+public struct TextValue: Sendable {
     public let text: String
     public let style: TextStyle
     public let lineLimit: Int?

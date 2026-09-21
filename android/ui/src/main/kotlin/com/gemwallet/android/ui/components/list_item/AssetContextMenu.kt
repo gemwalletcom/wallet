@@ -16,11 +16,7 @@ import androidx.compose.ui.res.stringResource
 import com.wallet.core.primitives.AssetId
 
 @Immutable
-data class AssetContextActions(
-    val onTogglePin: ((AssetId) -> Unit)? = null,
-    val onHide: ((AssetId) -> Unit)? = null,
-    val onAddToWallet: ((AssetId) -> Unit)? = null,
-) {
+data class AssetContextActions(val onTogglePin: ((AssetId) -> Unit)? = null, val onHide: ((AssetId) -> Unit)? = null, val onAddToWallet: ((AssetId) -> Unit)? = null) {
     val isEmpty: Boolean
         get() = onTogglePin == null && onHide == null && onAddToWallet == null
 
@@ -30,13 +26,7 @@ data class AssetContextActions(
 }
 
 @Composable
-fun rememberAssetContextMenuItems(
-    assetId: AssetId,
-    address: String?,
-    isPinned: Boolean,
-    isBalanceEnabled: Boolean,
-    actions: AssetContextActions,
-): List<AssetContextMenuItem> {
+fun rememberAssetContextMenuItems(assetId: AssetId, address: String?, isPinned: Boolean, isBalanceEnabled: Boolean, actions: AssetContextActions): List<AssetContextMenuItem> {
     val context = LocalContext.current
     return remember(assetId, address, isPinned, isBalanceEnabled, actions) {
         assetContextMenuItems(context, assetId, address, isPinned, isBalanceEnabled, actions)
@@ -44,10 +34,7 @@ fun rememberAssetContextMenuItems(
 }
 
 @Composable
-private fun ColumnScope.AssetContextMenuItems(
-    items: List<AssetContextMenuItem>,
-    onDismiss: () -> Unit,
-) {
+private fun ColumnScope.AssetContextMenuItems(items: List<AssetContextMenuItem>, onDismiss: () -> Unit) {
     items.forEach { item ->
         DropdownMenuItem(
             text = { Text(stringResource(item.titleRes)) },
@@ -61,15 +48,7 @@ private fun ColumnScope.AssetContextMenuItems(
 }
 
 @Composable
-private fun AssetMenuRow(
-    items: List<AssetContextMenuItem>,
-    isExpanded: Boolean,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit,
-    onDismiss: () -> Unit,
-    modifier: Modifier = Modifier,
-    content: @Composable (Modifier) -> Unit,
-) {
+private fun AssetMenuRow(items: List<AssetContextMenuItem>, isExpanded: Boolean, onClick: () -> Unit, onLongClick: () -> Unit, onDismiss: () -> Unit, modifier: Modifier = Modifier, content: @Composable (Modifier) -> Unit) {
     if (items.isEmpty()) {
         content(modifier.clickable(onClick = onClick))
         return

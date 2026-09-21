@@ -2,11 +2,12 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemNotificationDestination
 import enum Gemstone.GemNotificationIcon
 import struct Gemstone.GemNotificationRow
 import func Gemstone.notificationRow
-import Localization
 import GemstonePrimitives
+import Localization
 import Primitives
 import PrimitivesComponents
 import Style
@@ -21,8 +22,8 @@ public struct InAppNotificationListItemViewModel: Identifiable, Sendable {
         row = notificationRow(notification: notification.toGem())
     }
 
-    public var url: URL? {
-        row.url?.asURL
+    public var destination: GemNotificationDestination? {
+        row.destination
     }
 
     var listItemModel: ListItemModel {
@@ -32,7 +33,7 @@ public struct InAppNotificationListItemViewModel: Identifiable, Sendable {
             titleTagStyle: TextStyle(font: .footnote.weight(.medium), color: .blue, background: Colors.blue.opacity(.light)),
             titleExtra: row.subtitle,
             subtitle: row.value,
-            subtitleStyle: TextStyle(font: .callout, color: Colors.black, fontWeight: .semibold),
+            subtitleStyle: .callout,
             subtitleExtra: row.subvalue,
             imageStyle: imageStyle,
         )

@@ -26,31 +26,23 @@ import javax.inject.Singleton
 object WalletConnectModule {
     @Provides
     @Singleton
-    fun providePrepareSessionProposal(
-        walletConnectService: GemWalletConnectService,
-    ): PrepareSessionProposal = PrepareSessionProposalImpl(
+    fun providePrepareSessionProposal(walletConnectService: GemWalletConnectService): PrepareSessionProposal = PrepareSessionProposalImpl(
         walletConnectService = walletConnectService,
     )
 
     @Singleton
     @Provides
-    fun provideWalletConnectCoordinator(
-        connectionStore: GemstoneConnectionStore,
-        walletConnectClient: WalletConnectClient,
-        walletConnectService: GemWalletConnectService,
-        chainService: GemChainService,
-    ): WalletConnectCoordinator = WalletConnectCoordinator(
-        connectionStore = connectionStore,
-        walletConnectClient = walletConnectClient,
-        walletConnectService = walletConnectService,
-        chainService = chainService,
-    )
+    fun provideWalletConnectCoordinator(connectionStore: GemstoneConnectionStore, walletConnectClient: WalletConnectClient, walletConnectService: GemWalletConnectService, chainService: GemChainService): WalletConnectCoordinator =
+        WalletConnectCoordinator(
+            connectionStore = connectionStore,
+            walletConnectClient = walletConnectClient,
+            walletConnectService = walletConnectService,
+            chainService = chainService,
+        )
 
     @Singleton
     @Provides
-    fun provideActiveWalletConnectRequest(
-        coordinator: WalletConnectCoordinator,
-    ): ActiveWalletConnectRequest = ActiveWalletConnectRequest(events = coordinator.bridgeEvents)
+    fun provideActiveWalletConnectRequest(coordinator: WalletConnectCoordinator): ActiveWalletConnectRequest = ActiveWalletConnectRequest(events = coordinator.bridgeEvents)
 
     @Provides
     fun provideIsWalletConnectEnabled(coordinator: WalletConnectCoordinator): IsWalletConnectEnabled = coordinator
@@ -68,9 +60,7 @@ object WalletConnectModule {
     fun provideApproveWalletConnection(coordinator: WalletConnectCoordinator): ApproveWalletConnection = coordinator
 
     @Provides
-    fun provideApproveWalletConnectAuthentication(
-        coordinator: WalletConnectCoordinator,
-    ): ApproveWalletConnectAuthentication = coordinator
+    fun provideApproveWalletConnectAuthentication(coordinator: WalletConnectCoordinator): ApproveWalletConnectAuthentication = coordinator
 
     @Provides
     fun provideRespondWalletConnectRequest(coordinator: WalletConnectCoordinator): RespondWalletConnectRequest = coordinator

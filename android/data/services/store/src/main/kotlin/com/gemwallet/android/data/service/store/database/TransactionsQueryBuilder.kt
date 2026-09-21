@@ -7,19 +7,20 @@ import uniffi.gemstone.transactionsListLimit
 
 private fun TransactionsRequestFilter.toSqlClause(): SqlClause = when (this) {
     is TransactionsRequestFilter.Chains -> SqlClause.inList("asset.chain", chains.map { it.string })
+
     is TransactionsRequestFilter.Types -> SqlClause.inList("tx.type", types.map { it.name })
+
     is TransactionsRequestFilter.AssetRankGreaterThan -> SqlClause.greaterThan("asset.rank", rank)
+
     is TransactionsRequestFilter.Asset -> {
         val id = assetId.toIdentifier()
         SqlClause.raw("(tx.assetId = ? OR swap.from_asset_id = ? OR swap.to_asset_id = ?)", id, id, id)
     }
+
     is TransactionsRequestFilter.States -> SqlClause.inList("tx.state", states.map { it.name })
 }
 
-fun buildExtendedTransactionsSql(
-    walletId: WalletId,
-    filters: List<TransactionsRequestFilter>,
-): SqlQuery {
+fun buildExtendedTransactionsSql(walletId: WalletId, filters: List<TransactionsRequestFilter>): SqlQuery {
     val source = EXTENDED_SOURCE.replace(":walletId", "?")
     return SqlQueryBuilder(baseSql = "SELECT $EXTENDED_COLUMNS $source", baseArgs = listOf(walletId.id))
         .whereAll(filters.map { it.toSqlClause() })
@@ -28,10 +29,7 @@ fun buildExtendedTransactionsSql(
         .build()
 }
 
-fun buildTransactionsCountSql(
-    walletId: WalletId,
-    filters: List<TransactionsRequestFilter>,
-): SqlQuery {
+fun buildTransactionsCountSql(walletId: WalletId, filters: List<TransactionsRequestFilter>): SqlQuery {
     val source = EXTENDED_SOURCE.replace(":walletId", "?")
     return SqlQueryBuilder(baseSql = "SELECT COUNT(DISTINCT tx.id) $source", baseArgs = listOf(walletId.id))
         .whereAll(filters.map { it.toSqlClause() })

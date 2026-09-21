@@ -10,21 +10,15 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
+import com.gemwallet.android.ui.localization.stateText
 import com.gemwallet.android.ui.models.DelegationBalanceInfoUIModel
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.style.color
 import com.wallet.core.primitives.Delegation
 import uniffi.gemstone.delegationStatus
-import com.gemwallet.android.ui.localization.stateText
-import com.gemwallet.android.ui.style.color
 
 @Composable
-fun DelegationItem(
-    assetInfo: AssetInfo,
-    delegation: Delegation,
-    validator: ValidatorRowUIModel,
-    listPosition: ListPosition,
-    onClick: () -> Unit
-) {
+fun DelegationItem(assetInfo: AssetInfo, delegation: Delegation, validator: ValidatorRowUIModel, listPosition: ListPosition, onClick: () -> Unit) {
     val status = remember(delegation) { delegationStatus(delegation.toGem()) }
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
@@ -53,6 +47,6 @@ fun DelegationItem(
                 getBalanceInfo(balance, balance).invoke()
                 DataBadgeChevron()
             }
-        }
+        },
     )
 }

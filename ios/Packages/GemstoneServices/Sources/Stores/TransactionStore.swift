@@ -2,8 +2,8 @@
 
 import Foundation
 import typealias Gemstone.AssetId
-import typealias Gemstone.Transaction
 import protocol Gemstone.GemTransactionStore
+import typealias Gemstone.Transaction
 import GemstonePrimitives
 import Primitives
 import Store
@@ -16,6 +16,6 @@ public final class GemstoneTransactionStore: GemTransactionStore, @unchecked Sen
     }
 
     public func saveTransactions(walletId: String, transactions: [Gemstone.Transaction]) async throws {
-        try store.addTransactions(walletId: WalletId.from(id: walletId), transactions: transactions.map { $0.toPrimitives() })
+        try store.addTransactions(walletId: WalletId.from(id: walletId), transactions: transactions.map(\.transactionAssets))
     }
 }

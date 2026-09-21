@@ -1,13 +1,11 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
-import uniffi.gemstone.GemApplicationMetadataServiceInterface
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthPayloadParams
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticationRequest
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
 import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
-import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.testkit.mockApplicationMetadata
 import com.gemwallet.android.testkit.mockGemConnectionRow
 import com.gemwallet.android.testkit.mockGemWalletConnectAuthAccount
@@ -15,6 +13,7 @@ import com.gemwallet.android.testkit.mockWalletConnectPairingProposal
 import com.gemwallet.android.testkit.mockWalletConnectVerifyContext
 import com.gemwallet.android.testkit.mockWalletConnectionSessionProposal
 import com.gemwallet.android.testkit.mockWalletMulticoin
+import com.gemwallet.android.ui.R
 import com.wallet.core.primitives.Wallet
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -36,6 +35,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemApplicationMetadataServiceInterface
 import uniffi.gemstone.GemWalletConnectAuthAccount
 import uniffi.gemstone.GemWalletConnectServiceInterface
 
@@ -86,14 +86,13 @@ class WCAuthViewModelTest {
         every { connectionRow(any()) } returns mockGemConnectionRow()
     }
 
-    private fun service(accounts: (String) -> List<GemWalletConnectAuthAccount>): GemWalletConnectServiceInterface =
-        mockk(relaxed = true) {
-            every { isOriginRejected(any(), any(), any()) } returns false
-            every { authenticationChainIds(any()) } returns listOf("eip155:1")
-            every { authenticationMethods() } returns listOf("personal_sign")
-            every { authenticationAccounts(any(), any()) } answers { accounts(secondArg<uniffi.gemstone.Wallet>().id) }
-            coEvery { signMessage(any(), any()) } returns "0xsignature"
-        }
+    private fun service(accounts: (String) -> List<GemWalletConnectAuthAccount>): GemWalletConnectServiceInterface = mockk(relaxed = true) {
+        every { isOriginRejected(any(), any(), any()) } returns false
+        every { authenticationChainIds(any()) } returns listOf("eip155:1")
+        every { authenticationMethods() } returns listOf("personal_sign")
+        every { authenticationAccounts(any(), any()) } answers { accounts(secondArg<uniffi.gemstone.Wallet>().id) }
+        coEvery { signMessage(any(), any()) } returns "0xsignature"
+    }
 
     private fun approval(): ApproveWalletConnectAuthentication = mockk(relaxed = true) {
         every { authPayloadParams(any(), any(), any()) } answers { firstArg() }
@@ -106,31 +105,29 @@ class WCAuthViewModelTest {
         )
     }
 
-    private fun viewModel(
-        service: GemWalletConnectServiceInterface,
-        approve: ApproveWalletConnectAuthentication = approval(),
-        prepare: PrepareSessionProposal = proposals(),
-    ) = WCAuthViewModel(
+    private fun viewModel(service: GemWalletConnectServiceInterface, approve: ApproveWalletConnectAuthentication = approval(), prepare: PrepareSessionProposal = proposals()) = WCAuthViewModel(
         approveWalletConnectAuthentication = approve,
         prepareSessionProposal = prepare,
         activeRequest = ActiveWalletConnectRequest(events = emptyFlow()),
         walletConnectService = service,
         metadataService = metadataService(),
         ioDispatcher = dispatcher,
-        context = mockk(relaxed = true),
+        context = mockk(relaxed = true) {
+            every { getString(R.string.errors_connections_malicious_origin) } returns "Malicious origin"
+        },
     ).also { models.add(it) }
 
     private suspend fun WCAuthViewModel.awaitSettled(): AuthSceneState = state.first { it !is AuthSceneState.Loading }
 
     private suspend fun WCAuthViewModel.awaitContent(): AuthSceneState.Content = when (val settled = awaitSettled()) {
         is AuthSceneState.Content -> settled
-        is AuthSceneState.Error -> throw AssertionError(settled.message, settled.cause)
+        is AuthSceneState.Error -> throw AssertionError(settled.text.toString())
         else -> throw AssertionError("unexpected state $settled")
     }
 
     @Test
     fun `a malicious origin rejects before preparing a proposal`() = runTest(dispatcher) {
-        val notified = mutableListOf<BridgeRequestError>()
+        val notified = mutableListOf<String>()
         val approve = approval()
         val prepare = proposals()
         val service = service { listOf(mockGemWalletConnectAuthAccount()) }
@@ -138,7 +135,7 @@ class WCAuthViewModelTest {
 
         viewModel(service, approve, prepare).onRequest(request, verifyContext) { notified.add(it) }
 
-        assertEquals(listOf(BridgeRequestError.MaliciousSession), notified)
+        assertEquals(listOf("Malicious origin"), notified)
         verify { approve.rejectAuthentication(request, any(), any()) }
         coVerify(exactly = 0) { prepare(any(), any(), any(), any(), any(), any(), any(), any()) }
     }

@@ -30,23 +30,14 @@ impl<C: Client> TronGridClient<C> {
     }
 
     fn headers(&self) -> HashMap<String, String> {
-        self.api_key
-            .as_ref()
-            .map(|api_key| HashMap::from([(API_KEY_HEADER.to_string(), api_key.clone())]))
-            .unwrap_or_default()
+        self.api_key.as_ref().map(|api_key| HashMap::from([(API_KEY_HEADER.to_string(), api_key.clone())])).unwrap_or_default()
     }
 
     async fn send<R: DeserializeOwned + Send>(&self, target: TronGridTarget) -> Result<R, ClientError> {
         self.client.get(target).headers(self.headers()).await
     }
 
-    async fn get_transaction_pages(
-        &self,
-        address: &str,
-        limit: usize,
-        page_size: usize,
-        target: impl Fn(String, TransactionsQuery) -> TronGridTarget,
-    ) -> Result<Vec<TronGridTransaction>, Box<dyn Error + Send + Sync>> {
+    async fn get_transaction_pages(&self, address: &str, limit: usize, page_size: usize, target: impl Fn(String, TransactionsQuery) -> TronGridTarget) -> Result<Vec<TronGridTransaction>, Box<dyn Error + Send + Sync>> {
         if limit == 0 {
             return Ok(Vec::new());
         }
@@ -80,16 +71,12 @@ impl<C: Client> TronGridClient<C> {
     }
 
     pub async fn get_transactions(&self, address: &str, limit: usize) -> Result<Vec<TronGridTransaction>, Box<dyn Error + Send + Sync>> {
-        self.get_transaction_pages(address, limit, TRANSACTIONS_PAGE_SIZE, |address, query| TronGridTarget::GetTransactions { address, query })
-            .await
+        self.get_transaction_pages(address, limit, TRANSACTIONS_PAGE_SIZE, |address, query| TronGridTarget::GetTransactions { address, query }).await
     }
 
     pub async fn get_trc20_transactions(&self, address: &str, limit: usize) -> Result<Vec<TronGridTransaction>, Box<dyn Error + Send + Sync>> {
-        self.get_transaction_pages(address, limit, TRANSACTIONS_PAGE_SIZE, |address, query| TronGridTarget::GetTrc20Transactions {
-            address,
-            query,
-        })
-        .await
+        self.get_transaction_pages(address, limit, TRANSACTIONS_PAGE_SIZE, |address, query| TronGridTarget::GetTrc20Transactions { address, query })
+            .await
     }
 
     pub async fn get_accounts(&self, address: &str) -> Result<Data<Vec<TronGridAccount>>, Box<dyn Error + Send + Sync>> {
@@ -102,11 +89,7 @@ impl<C: Client> ChainTransactions for TronGridClient<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, limit, .. } = request;
         let (transactions, trc20_transactions) = futures::try_join!(self.get_transactions(&address, limit), self.get_trc20_transactions(&address, limit))?;
-        Ok(TransactionsResult::TransactionRequests(TronGridMapper::map_transaction_requests(
-            transactions,
-            trc20_transactions,
-            limit,
-        )))
+        Ok(TransactionsResult::TransactionRequests(TronGridMapper::map_transaction_requests(transactions, trc20_transactions, limit)))
     }
 }
 
@@ -144,10 +127,7 @@ mod tests {
             String::new(),
         );
 
-        let transactions = client
-            .get_transaction_pages("address", 6, 4, |address, query| TronGridTarget::GetTransactions { address, query })
-            .await
-            .unwrap();
+        let transactions = client.get_transaction_pages("address", 6, 4, |address, query| TronGridTarget::GetTransactions { address, query }).await.unwrap();
 
         assert_eq!(transactions.len(), 6);
         assert_eq!(transactions.last().unwrap().transaction_id, "page-two-transaction-2");

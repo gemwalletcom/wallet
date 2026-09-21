@@ -6,7 +6,7 @@ import SwiftUI
 import Transfer
 
 struct PaymentNavigationStack: View {
-    @Environment(\.navigationHandler) private var navigationHandler
+    @Environment(\.navigationRouter) private var navigationRouter
     @Environment(\.navigationPresenter) private var presenter
     @Environment(\.viewModelFactory) private var viewModelFactory
 
@@ -40,6 +40,6 @@ extension PaymentNavigationStack {
     }
 
     private func onVerified(_ link: PaymentLink) {
-        Task { await navigationHandler.handle(.payment(payment: .link(link: link))) }
+        Task { await navigationRouter.open(action: .payment(payment: .link(link: link))) }
     }
 }

@@ -48,12 +48,7 @@ impl UtxoPlanner {
         mut spendable_inputs: Vec<PlanInput>,
     ) -> Result<SpendPlan, SignerError> {
         // Smallest-first so Exact selects the fewest inputs; Max spends all, so sorting just keeps it deterministic.
-        spendable_inputs.sort_by(|left, right| {
-            left.value
-                .to_sat()
-                .cmp(&right.value.to_sat())
-                .then_with(|| left.previous_output.cmp(&right.previous_output))
-        });
+        spendable_inputs.sort_by(|left, right| left.value.to_sat().cmp(&right.value.to_sat()).then_with(|| left.previous_output.cmp(&right.previous_output)));
 
         let input_count = spendable_inputs.len();
         let total: u128 = spendable_inputs.iter().map(|input| input.value.to_sat() as u128).sum();
@@ -80,14 +75,7 @@ impl UtxoPlanner {
         Err(SignerError::InsufficientFunds)
     }
 
-    fn build_max_plan(
-        chain: BitcoinChain,
-        fee_rate: u64,
-        payment_script: &ScriptBuf,
-        memo_output: &Option<PlanOutput>,
-        selected: &[PlanInput],
-        selected_amount: u64,
-    ) -> Result<SpendPlan, SignerError> {
+    fn build_max_plan(chain: BitcoinChain, fee_rate: u64, payment_script: &ScriptBuf, memo_output: &Option<PlanOutput>, selected: &[PlanInput], selected_amount: u64) -> Result<SpendPlan, SignerError> {
         // Output value doesn't affect fee size; size the fee from the output shape, then spend the rest.
         let mut outputs = spend_outputs(0, payment_script.clone(), memo_output.clone());
         let fee = estimate_fee(chain, selected, &outputs, fee_rate);
@@ -96,11 +84,7 @@ impl UtxoPlanner {
             return Err(SignerError::InsufficientFunds);
         }
         outputs[0].value = bitcoin::Amount::from_sat(value);
-        Ok(SpendPlan {
-            inputs: selected.to_vec(),
-            outputs,
-            fee,
-        })
+        Ok(SpendPlan { inputs: selected.to_vec(), outputs, fee })
     }
 
     fn build_exact_plan(
@@ -180,10 +164,7 @@ mod tests {
         assert_eq!(plan.outputs[0].value.to_sat(), 12_000);
         assert_eq!(plan.outputs[1].value.to_sat(), 0);
         assert!(plan.outputs[1].script_pubkey.is_op_return());
-        assert_eq!(
-            sum_inputs(&plan.inputs).unwrap(),
-            plan.outputs.iter().map(|output| output.value.to_sat()).sum::<u64>() + plan.fee
-        );
+        assert_eq!(sum_inputs(&plan.inputs).unwrap(), plan.outputs.iter().map(|output| output.value.to_sat()).sum::<u64>() + plan.fee);
         assert_eq!(plan.fee, 454);
 
         // Leftover is below P2WPKH change dust (~294), so it is absorbed into the fee.
@@ -214,10 +195,7 @@ mod tests {
         assert_eq!(plan.inputs.len(), 2);
         assert_eq!(plan.outputs.len(), 2);
         assert!(plan.outputs[1].script_pubkey.is_op_return());
-        assert_eq!(
-            sum_inputs(&plan.inputs).unwrap(),
-            plan.outputs.iter().map(|output| output.value.to_sat()).sum::<u64>() + plan.fee
-        );
+        assert_eq!(sum_inputs(&plan.inputs).unwrap(), plan.outputs.iter().map(|output| output.value.to_sat()).sum::<u64>() + plan.fee);
     }
 
     #[test]
@@ -248,23 +226,14 @@ mod tests {
     fn test_doge_plan_absorbs_change_below_doge_dust() {
         let sender_address = mock_sender_address(BitcoinChain::Doge);
         let destination_address = mock_destination_address(BitcoinChain::Doge);
-        let input = mock_transfer_input_with_utxos(
-            BitcoinChain::Doge,
-            &sender_address,
-            &destination_address,
-            "1500000",
-            vec![mock_utxo_with(TEST_UTXO_TXID, 0, "2000000", &sender_address)],
-        );
+        let input = mock_transfer_input_with_utxos(BitcoinChain::Doge, &sender_address, &destination_address, "1500000", vec![mock_utxo_with(TEST_UTXO_TXID, 0, "2000000", &sender_address)]);
         let request = SpendRequest::transfer(BitcoinChain::Doge, &input).unwrap();
         let plan = UtxoPlanner::plan(request).unwrap();
 
         assert_eq!(plan.inputs.len(), 1);
         assert_eq!(plan.outputs.len(), 1);
         assert_eq!(plan.outputs[0].value.to_sat(), 1_500_000);
-        assert_eq!(
-            sum_inputs(&plan.inputs).unwrap(),
-            plan.outputs.iter().map(|output| output.value.to_sat()).sum::<u64>() + plan.fee
-        );
+        assert_eq!(sum_inputs(&plan.inputs).unwrap(), plan.outputs.iter().map(|output| output.value.to_sat()).sum::<u64>() + plan.fee);
     }
 
     #[test]

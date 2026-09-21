@@ -1,15 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.GemRewardsRedemption
-import struct Gemstone.RewardRedemptionOption
-import protocol Gemstone.GemRewardsServiceProtocol
-import struct Gemstone.GemWalletRow
-import func Gemstone.walletRow
-import func Gemstone.walletRows
-import struct Gemstone.GemRewardsState
-import GemstonePrimitives
 import Components
 import Foundation
+import enum Gemstone.GemIncomingCode
+import enum Gemstone.GemListRow
+import struct Gemstone.GemRewardsRedemption
+import protocol Gemstone.GemRewardsServiceProtocol
+import struct Gemstone.GemRewardsState
+import enum Gemstone.GemServiceError
+import struct Gemstone.GemWalletRow
+import func Gemstone.incomingReferralCode
+import struct Gemstone.RewardRedemptionOption
+import func Gemstone.walletRow
+import func Gemstone.walletRows
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -18,14 +22,6 @@ import Style
 @Observable
 @MainActor
 public final class RewardsViewModel: Sendable {
-    private static let dateFormatter: DateComponentsFormatter = {
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.day, .hour, .minute]
-        formatter.zeroFormattingBehavior = .dropLeading
-        formatter.unitsStyle = .full
-        return formatter
-    }()
-
     private let service: any GemRewardsServiceProtocol
     private let activateCode: String?
     private let emptyState: GemRewardsState
@@ -88,7 +84,7 @@ public final class RewardsViewModel: Sendable {
     }
 
     var createCodeDescription: String {
-        Localized.Rewards.InviteFriends.description(String(rewardsState.inviteRewardPoints).boldMarkdown())
+        Localized.Rewards.InviteFriends.description(rewardsState.inviteRewardPoints.text().boldMarkdown())
     }
 
     var activateCodeFooterTitle: String {
@@ -137,61 +133,12 @@ public final class RewardsViewModel: Sendable {
         rewardsState.referralCode
     }
 
-    var referralCodeListItem: ListItemModel? {
-        referralCode.map { ListItemModel(title: myReferralCodeTitle, subtitle: $0) }
-    }
-
-    var referralCountListItem: ListItemModel {
-        ListItemModel(title: referralCountTitle, subtitle: referralCountText)
-    }
-
-    var pointsListItem: ListItemModel {
-        ListItemModel(title: pointsTitle, subtitle: pointsText)
-    }
-
-    var invitedByListItem: ListItemModel? {
-        invitedBy.map { ListItemModel(title: invitedByTitle, subtitle: $0) }
-    }
-
-    var referralCountText: String {
-        rewardsState.referralCountText
-    }
-
-    var pointsText: String {
-        rewardsState.pointsText
+    var infoRows: [GemListRow] {
+        rewardsState.infoRows
     }
 
     var invitedBy: String? {
         rewardsState.usedReferralCode
-    }
-
-    var unverifiedTitle: String {
-        Localized.Rewards.Unverified.title
-    }
-
-    var unverifiedDescription: String {
-        Localized.Rewards.Unverified.description
-    }
-
-    var disableReason: String? {
-        rewardsState.disableReason
-    }
-
-    var pendingVerificationAfter: Date? {
-        rewardsState.verifyAfter
-    }
-
-    var pendingReferralTitle: String {
-        Localized.Rewards.Pending.title
-    }
-
-    var pendingReferralDescription: String? {
-        guard let pendingDate = pendingVerificationAfter else { return nil }
-        if rewardsState.canActivatePendingReferral {
-            return Localized.Rewards.Pending.descriptionReady
-        }
-        guard let timeString = Self.dateFormatter.string(from: .now, to: pendingDate) else { return nil }
-        return Localized.Rewards.Pending.description(timeString)
     }
 
     var pendingReferralButtonTitle: String {
@@ -251,32 +198,27 @@ public final class RewardsViewModel: Sendable {
     func onTaskOnce() async {
         await load()
 
-        if wallets.count == 1, activateCode != nil {
-            await useReferralCode()
-        } else if let code = activateCode {
-            isPresentingSheet = .activateCode(code: code)
-        }
-    }
-
-    private func useReferralCode() async {
-        guard let code = activateCode else { return }
-        do {
-            try await service.useReferralCode(wallet: selectedWallet, code: code)
-            showActivatedToast()
-            await load()
-        } catch {
-            showError(error.localizedDescription)
+        switch incomingReferralCode(code: activateCode, wallets: wallets.map { $0.toGem() }) {
+        case let .activate(code): await useReferralCode(code)
+        case let .confirm(code): isPresentingSheet = .activateCode(code: code)
+        case .none: break
         }
     }
 
     func activatePendingReferral() async {
         guard let code = rewardsState.usedReferralCode else { return }
+        await useReferralCode(code)
+    }
+
+    private func useReferralCode(_ code: String) async {
         do {
-            try await service.useReferralCode(wallet: selectedWallet, code: code)
+            let rewards = try await service.useReferralCode(wallet: selectedWallet, code: code)
+            state = .data(service.state(rewards: rewards))
             showActivatedToast()
-            await load()
+        } catch let error as GemServiceError {
+            showError(error.text().text)
         } catch {
-            showError(error.localizedDescription)
+            debugLog("rewards error: \(error)")
         }
     }
 
@@ -310,8 +252,10 @@ public final class RewardsViewModel: Sendable {
         do {
             _ = try await service.redeem(wallet: selectedWallet, redemptionId: option.id)
             toastMessage = ToastMessage.success(Localized.Common.done)
+        } catch let error as GemServiceError {
+            showError(error.text().text)
         } catch {
-            showError(error.localizedDescription)
+            debugLog("rewards error: \(error)")
         }
     }
 

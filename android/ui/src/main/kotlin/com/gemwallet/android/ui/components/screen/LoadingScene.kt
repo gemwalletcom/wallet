@@ -9,11 +9,7 @@ import androidx.compose.ui.Modifier
 import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 
 @Composable
-fun LoadingScene(
-    title: String,
-    onCancel: () -> Unit,
-    closeIcon: Boolean = false,
-) {
+fun LoadingScene(title: String, onCancel: () -> Unit, closeIcon: Boolean = false) {
     Scene(
         title = title,
         padding = sceneContentPaddingValues(),

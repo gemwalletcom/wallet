@@ -35,12 +35,7 @@ pub(super) fn map_indexed_asset(response: &NftItemsResponse, item: &NftItem, ass
         .as_deref()
         .and_then(|address| valid_named_token_info(response.metadata.get(address)))
         .and_then(|info| info.image.as_deref());
-    Some(build_asset(
-        asset_id,
-        token_info_name(info)?,
-        info.description.clone(),
-        info.image.as_deref().or(collection_image),
-    ))
+    Some(build_asset(asset_id, token_info_name(info)?, info.description.clone(), info.image.as_deref().or(collection_image)))
 }
 
 pub(super) fn asset_id_from_item(item: &NftItem) -> Option<NFTAssetId> {
@@ -62,9 +57,7 @@ fn build_asset(asset_id: NFTAssetId, name: &str, description: Option<String>, im
         name: name.to_string(),
         description,
         resource: NFTResource::from_url(image),
-        images: NFTImages {
-            preview: NFTResource::from_url(image),
-        },
+        images: NFTImages { preview: NFTResource::from_url(image) },
         attributes: vec![],
     }
 }
@@ -79,9 +72,7 @@ fn build_collection(collection_id: &NFTCollectionId, address: &Address, info: &T
         description: info.description.clone(),
         chain: collection_id.chain,
         contract_address: collection_id.contract_address.clone(),
-        images: NFTImages {
-            preview: NFTResource::from_url(&image),
-        },
+        images: NFTImages { preview: NFTResource::from_url(&image) },
         status: VerificationStatus::from_verified(is_verified),
         links: vec![],
     }
@@ -92,10 +83,7 @@ fn valid_named_token_info(metadata: Option<&TokenMetadata>) -> Option<&TokenInfo
 }
 
 fn token_info_name(info: &TokenInfo) -> Option<&str> {
-    info.name
-        .as_deref()
-        .or_else(|| info.extra.as_ref().and_then(|e| e.domain.as_deref()))
-        .filter(|s| !s.is_empty())
+    info.name.as_deref().or_else(|| info.extra.as_ref().and_then(|e| e.domain.as_deref())).filter(|s| !s.is_empty())
 }
 
 #[cfg(test)]
@@ -166,11 +154,7 @@ mod tests {
 
         assert_eq!(
             map_assets(&response),
-            vec![NFTAssetId::new(
-                Chain::Ton,
-                "EQCgaTxb2wA_3Bi8Ec4FFNu8CauoHo0VPpnwxdrhAgOrOXvA",
-                "EQCrhnIgB3ITBJbu4hm0ie8Hm76pdPEsl-1_1wLaRmMQOUTN"
-            )]
+            vec![NFTAssetId::new(Chain::Ton, "EQCgaTxb2wA_3Bi8Ec4FFNu8CauoHo0VPpnwxdrhAgOrOXvA", "EQCrhnIgB3ITBJbu4hm0ie8Hm76pdPEsl-1_1wLaRmMQOUTN")]
         );
     }
 

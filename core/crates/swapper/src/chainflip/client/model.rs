@@ -143,13 +143,7 @@ pub fn map_swap_result(response: &SwapTxResponse) -> SwapResult {
             let from_asset = chainflip_asset_to_asset_id(fc, &response.src_asset)?;
             let to_asset = chainflip_asset_to_asset_id(tc, &response.dest_asset)?;
             let from_value = response.deposit.as_ref()?.amount.clone();
-            let to_value = response
-                .swap
-                .as_ref()
-                .map(|swap| BigUint::from_str(&swap.swapped_output_amount))
-                .transpose()
-                .ok()?
-                .unwrap_or_default();
+            let to_value = response.swap.as_ref().map(|swap| BigUint::from_str(&swap.swapped_output_amount)).transpose().ok()?.unwrap_or_default();
             Some(TransactionSwapMetadata {
                 from_asset,
                 from_value,

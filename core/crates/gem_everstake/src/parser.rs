@@ -33,9 +33,7 @@ impl EverstakeParser {
         match log.topics.first()?.as_str() {
             EVENT_STAKED if log.address.eq_ignore_ascii_case(EVERSTAKE_POOL_ADDRESS) => make_staking_transaction(context, &pool_address, TransactionType::StakeDelegate, value),
             EVENT_UNSTAKED if log.address.eq_ignore_ascii_case(EVERSTAKE_POOL_ADDRESS) => make_staking_transaction(context, &pool_address, TransactionType::StakeUndelegate, value),
-            EVENT_WITHDRAWN if log.address.eq_ignore_ascii_case(EVERSTAKE_ACCOUNTING_ADDRESS) => {
-                make_staking_transaction(context, &pool_address, TransactionType::StakeWithdraw, value)
-            }
+            EVENT_WITHDRAWN if log.address.eq_ignore_ascii_case(EVERSTAKE_ACCOUNTING_ADDRESS) => make_staking_transaction(context, &pool_address, TransactionType::StakeWithdraw, value),
             _ => None,
         }
     }
@@ -83,14 +81,7 @@ mod tests {
         ];
 
         for (transaction, receipt, transaction_type, from, to, contract, value) in cases {
-            let staking_transaction = ProtocolParsers::map_transaction_with_parsers(
-                &Chain::Ethereum,
-                &load_json_rpc_result(transaction),
-                &load_json_rpc_result(receipt),
-                DateTime::default(),
-                &[&EverstakeParser],
-            )
-            .unwrap();
+            let staking_transaction = ProtocolParsers::map_transaction_with_parsers(&Chain::Ethereum, &load_json_rpc_result(transaction), &load_json_rpc_result(receipt), DateTime::default(), &[&EverstakeParser]).unwrap();
             assert_eq!(staking_transaction.transaction_type, transaction_type);
             assert_eq!(staking_transaction.from, from);
             assert_eq!(staking_transaction.to, to);

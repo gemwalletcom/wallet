@@ -1,6 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemAssetBalanceRow
+import enum Gemstone.GemAssetDetailRow
+import enum Gemstone.GemAssetNetworkDestination
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -49,101 +52,25 @@ public struct AssetScene: View {
                 }
             }
 
-            if details.state.showsManage {
-                Section(Localized.Common.manage) {
-                    NavigationCustomLink(with: ListItemView(model: model.pinListItem)) {
-                        model.onSelectPin()
-                    }
-                    NavigationCustomLink(with: ListItemView(model: model.enableListItem)) {
-                        model.onSelectEnable()
-                    }
-                }
-            }
-
-            Section {
-                NavigationLink(
-                    value: Scenes.Price(asset: model.assetModel.asset),
-                    label: { PriceListItemView(model: model.priceItemViewModel) },
-                )
-                .accessibilityIdentifier("price")
-
-                if details.state.showsPriceAlerts {
-                    NavigationLink(
-                        value: Scenes.AssetPriceAlert(asset: model.assetData.asset),
-                        label: { ListItemView(model: model.priceAlertsListItem(details)) },
-                    )
-                }
-
-                switch details.networkDestination {
-                case let .asset(asset):
-                    NavigationLink(
-                        value: Scenes.Asset(asset: asset.toPrimitives()),
-                        label: { networkView },
-                    )
-                case let .assets(chain):
-                    NavigationLink(
-                        value: Scenes.NetworkAssets(chain: Chain(core: chain)),
-                        label: { networkView },
-                    )
-                case nil:
-                    networkView
-                }
-            }
-
-            if model.balanceRows.isNotEmpty {
-                Section(model.balancesTitle) {
-                    ForEach(model.balanceRows, id: \.self) { row in
-                        switch row {
-                        case .available, .pendingUnconfirmed:
-                            ListItemView(model: model.balanceListItem(for: row))
-                        case .staked:
-                            NavigationCustomLink(
-                                with: ListItemView(model: model.balanceListItem(for: row)),
-                                action: { model.onSelectStake() },
-                            )
-                            .accessibilityIdentifier("stake")
-                        case .earn:
-                            NavigationCustomLink(
-                                with: ListItemView(model: model.balanceListItem(for: row)),
-                                action: { model.onSelectEarn() },
-                            )
-                            .accessibilityIdentifier("earn")
-                        case let .reserved(_, url):
-                            if let url = url.flatMap(URL.init) {
-                                SafariNavigationLink(url: url) {
-                                    ListItemView(model: model.balanceListItem(for: row))
-                                }
-                            } else {
-                                ListItemView(model: model.balanceListItem(for: row))
-                            }
-                        }
-                    }
-                }
-            }
-
-            if details.state.showsEarn {
+            ForEach(details.sections, id: \.self) { section in
                 Section {
-                    NavigationCustomLink(
-                        with: HStack(spacing: Spacing.medium) {
-                            EmojiView(color: Colors.grayVeryLight, emoji: Emoji.WalletAvatar.moneyBag.rawValue)
-                                .frame(size: .image.asset)
-                            ListItemView(model: model.earnListItem)
-                        },
-                        action: { model.onSelectEarn() },
-                    )
-                }
-            }
-
-            if details.state.showsResources {
-                Section(model.resourcesTitle) {
-                    ListItemView(field: model.energyField)
-                    ListItemView(field: model.bandwidthField)
+                    ForEach(section.rows, id: \.self) { row in
+                        detailRow(row, networkDestination: details.networkDestination)
+                    }
+                } header: {
+                    if let title = section.title.text {
+                        Text(title)
+                    }
                 }
             }
 
             if model.showTransactions {
-                TransactionsList(sections: model.transactionSections, currency: model.assetDataModel.currency)
-                .listRowInsets(.assetListRowInsets)
+                TransactionsList(sections: model.transactionSections)
+                    .listRowInsets(.assetListRowInsets)
+            } else if let error = model.transactionsError {
+                Section {
+                    ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
+                }
             } else {
                 Section {
                     Spacer()
@@ -154,7 +81,7 @@ public struct AssetScene: View {
             }
         }
         .refreshableTimer(every: connectionStatus.refreshInterval(for: .wallet)) { _ in
-            await model.load()
+            await model.refresh()
         }
         .taskOnce(model.loadOnce)
         .listSectionSpacing(.compact)
@@ -166,10 +93,90 @@ public struct AssetScene: View {
 // MARK: - UI Components
 
 extension AssetScene {
-    private var networkView: some View {
+    @ViewBuilder
+    private func detailRow(_ row: GemAssetDetailRow, networkDestination: GemAssetNetworkDestination?) -> some View {
+        switch row {
+        case .price:
+            NavigationLink(
+                value: Scenes.Price(asset: model.assetModel.asset),
+                label: { PriceListItemView(model: model.priceItemViewModel) },
+            )
+            .accessibilityIdentifier("price")
+        case let .network(name):
+            switch networkDestination {
+            case let .asset(asset):
+                NavigationLink(
+                    value: Scenes.Asset(asset: asset.toPrimitives()),
+                    label: { networkView(name: name) },
+                )
+            case let .assets(chain):
+                NavigationLink(
+                    value: Scenes.NetworkAssets(chain: Chain(core: chain)),
+                    label: { networkView(name: name) },
+                )
+            case nil:
+                networkView(name: name)
+            }
+        case let .balance(item):
+            balanceRow(item)
+        case let .earn(apr):
+            NavigationCustomLink(
+                with: HStack(spacing: Spacing.medium) {
+                    EmojiView(color: Colors.grayVeryLight, emoji: Emoji.WalletAvatar.moneyBag.rawValue)
+                        .frame(size: .image.asset)
+                    ListItemView(model: model.earnListItem(apr: apr))
+                },
+                action: { model.onSelectEarn() },
+            )
+        case let .row(row):
+            switch row {
+            case .link(.priceAlerts, _, _):
+                NavigationLink(
+                    value: Scenes.AssetPriceAlert(asset: model.assetData.asset),
+                    label: { GemListRowView(row: row) },
+                )
+            case let .link(title, _, _):
+                NavigationCustomLink(with: GemListRowView(row: row)) {
+                    model.onSelect(title)
+                }
+            default:
+                GemListRowView(row: row)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func balanceRow(_ item: GemAssetBalanceRow) -> some View {
+        switch item.row {
+        case .available, .pendingUnconfirmed:
+            ListItemView(model: model.balanceListItem(for: item))
+        case .staked:
+            NavigationCustomLink(
+                with: ListItemView(model: model.balanceListItem(for: item)),
+                action: { model.onSelectStake() },
+            )
+            .accessibilityIdentifier("stake")
+        case .earn:
+            NavigationCustomLink(
+                with: ListItemView(model: model.balanceListItem(for: item)),
+                action: { model.onSelectEarn() },
+            )
+            .accessibilityIdentifier("earn")
+        case let .reserved(_, url):
+            if let url = url.flatMap(URL.init) {
+                SafariNavigationLink(url: url) {
+                    ListItemView(model: model.balanceListItem(for: item))
+                }
+            } else {
+                ListItemView(model: model.balanceListItem(for: item))
+            }
+        }
+    }
+
+    private func networkView(name: String) -> some View {
         ListItemImageView(
-            title: model.networkField.title.text,
-            subtitle: model.networkField.value.text,
+            title: Localized.Transfer.network,
+            subtitle: name,
             assetImage: model.networkAssetImage,
             imageSize: .list.image,
         )

@@ -38,9 +38,7 @@ fn map_fill_group(address: &str, fills: Vec<UserFill>, spot_meta: Option<&SpotMe
 
     match &last_fill.dir {
         FillDirection::Buy | FillDirection::Sell => map_spot_fill_group(address, fills, &last_fill, spot_meta),
-        FillDirection::OpenLong | FillDirection::OpenShort | FillDirection::CloseLong | FillDirection::CloseShort | FillDirection::Other(_) => {
-            map_perpetual_fill_group(address, fills, &last_fill)
-        }
+        FillDirection::OpenLong | FillDirection::OpenShort | FillDirection::CloseLong | FillDirection::CloseShort | FillDirection::Other(_) => map_perpetual_fill_group(address, fills, &last_fill),
     }
 }
 
@@ -114,16 +112,7 @@ fn amount_to_value(amount: f64, decimals: i32) -> Option<BigUint> {
     BigNumberFormatter::value_from_amount_biguint(&format!("{:.precision$}", amount.max(0.0)), precision as u32).ok()
 }
 
-fn build_fill_transaction(
-    address: &str,
-    last_fill: &UserFill,
-    asset_id: AssetId,
-    transaction_type: TransactionType,
-    fee: BigUint,
-    fee_asset_id: AssetId,
-    value: BigUint,
-    metadata: serde_json::Value,
-) -> Option<Transaction> {
+fn build_fill_transaction(address: &str, last_fill: &UserFill, asset_id: AssetId, transaction_type: TransactionType, fee: BigUint, fee_asset_id: AssetId, value: BigUint, metadata: serde_json::Value) -> Option<Transaction> {
     if last_fill.hash.is_empty() {
         return None;
     }
@@ -194,10 +183,7 @@ mod tests {
         ] {
             let response = serde_json::from_str(response).unwrap();
             let data = include_str!("../../testdata/hl_action_open_long_order.json");
-            assert_eq!(
-                map_transaction_broadcast(data.as_bytes(), response).map_err(|error| error.to_string()),
-                Err("Order rejected".to_string())
-            );
+            assert_eq!(map_transaction_broadcast(data.as_bytes(), response).map_err(|error| error.to_string()), Err("Order rejected".to_string()));
         }
     }
 

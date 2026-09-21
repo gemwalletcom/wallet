@@ -202,7 +202,6 @@ class ScreenshotsCapture {
         }
     }
 
-    private fun waitForObject(resourceName: String, timeout: Long = LAUNCH_TIMEOUT) =
-        device.wait(Until.findObject(By.res(resourceName)), timeout)
-            ?: throw AssertionError("Expected UI object '$resourceName' to appear")
+    private fun waitForObject(resourceName: String, timeout: Long = LAUNCH_TIMEOUT) = device.wait(Until.findObject(By.res(resourceName)), timeout)
+        ?: throw AssertionError("Expected UI object '$resourceName' to appear")
 }

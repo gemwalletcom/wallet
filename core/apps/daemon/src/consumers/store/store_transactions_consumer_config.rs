@@ -112,11 +112,7 @@ mod tests {
             BigUint::from(100_000u64),
         );
 
-        let transaction_swap = Transaction::mock_with_params(
-            AssetId::from(Chain::Ethereum, Some("0xA0b86a33E6441066d64bb38954e41F6b4b925c59".to_string())),
-            TransactionType::Swap,
-            BigUint::from(100_000u64),
-        );
+        let transaction_swap = Transaction::mock_with_params(AssetId::from(Chain::Ethereum, Some("0xA0b86a33E6441066d64bb38954e41F6b4b925c59".to_string())), TransactionType::Swap, BigUint::from(100_000u64));
 
         let test_cases = vec![
             (transaction_transfer.clone(), &token_asset, price_high, 0.01, false),

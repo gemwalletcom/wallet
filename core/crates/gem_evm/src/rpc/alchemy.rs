@@ -9,21 +9,14 @@ use super::{EVMIndexerClient, TransactionReference};
 
 impl<C: Client + Clone> EVMIndexerClient for AlchemyClient<C> {
     async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<TransactionReference>, Box<dyn Error + Send + Sync>> {
-        let (outgoing, incoming) = futures::try_join!(
-            self.get_asset_transfers(TransferDirection::From, address, limit),
-            self.get_asset_transfers(TransferDirection::To, address, limit),
-        )?;
+        let (outgoing, incoming) = futures::try_join!(self.get_asset_transfers(TransferDirection::From, address, limit), self.get_asset_transfers(TransferDirection::To, address, limit),)?;
         let mut transfers = outgoing.into_iter().chain(incoming).collect::<Vec<_>>();
         transfers.sort_by_key(|transfer| std::cmp::Reverse(transfer.block_num));
 
         let mut transaction_ids = HashSet::new();
         Ok(transfers
             .into_iter()
-            .filter_map(|transfer| {
-                transaction_ids
-                    .insert(transfer.hash.clone())
-                    .then_some(TransactionReference::new(transfer.hash, Some(transfer.block_num)))
-            })
+            .filter_map(|transfer| transaction_ids.insert(transfer.hash.clone()).then_some(TransactionReference::new(transfer.hash, Some(transfer.block_num))))
             .take(limit)
             .collect())
     }
@@ -60,12 +53,6 @@ mod tests {
 
         let transaction_ids = client.get_transactions_by_address("0x123", 2).await.unwrap();
 
-        assert_eq!(
-            transaction_ids,
-            vec![
-                TransactionReference::new("0xin".to_string(), Some(3)),
-                TransactionReference::new("0xout".to_string(), Some(2))
-            ]
-        );
+        assert_eq!(transaction_ids, vec![TransactionReference::new("0xin".to_string(), Some(3)), TransactionReference::new("0xout".to_string(), Some(2))]);
     }
 }

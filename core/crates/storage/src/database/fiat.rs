@@ -102,19 +102,12 @@ impl FiatStore for DatabaseClient {
                 if let Some(row) = self.update_by_quote_id(&provider, &update.transaction_id, provider_transaction_id_value, &changeset)? {
                     return Ok(row);
                 }
-                let existing = self
-                    .get_fiat_transaction_for_quote(&provider, &update.transaction_id)?
-                    .ok_or(diesel::result::Error::NotFound)?;
+                let existing = self.get_fiat_transaction_for_quote(&provider, &update.transaction_id)?.ok_or(diesel::result::Error::NotFound)?;
                 let new_row = NewFiatTransactionRow::from_existing(&existing, &update, provider_transaction_id_value.to_string());
-                diesel::insert_into(fiat_transactions)
-                    .values(&new_row)
-                    .returning(FiatTransactionRow::as_returning())
-                    .get_result(&mut self.connection)
+                diesel::insert_into(fiat_transactions).values(&new_row).returning(FiatTransactionRow::as_returning()).get_result(&mut self.connection)
             }
             None => {
-                let existing = self
-                    .get_fiat_transaction_for_quote(&provider, &update.transaction_id)?
-                    .ok_or(diesel::result::Error::NotFound)?;
+                let existing = self.get_fiat_transaction_for_quote(&provider, &update.transaction_id)?.ok_or(diesel::result::Error::NotFound)?;
                 self.update_fiat_transaction_by_id(existing.id, changeset)
             }
         }
@@ -182,11 +175,7 @@ impl FiatStore for DatabaseClient {
             };
         }
 
-        query
-            .select(FiatAssetRow::as_select())
-            .distinct()
-            .order(fiat_assets::asset_id.asc())
-            .load(&mut self.connection)
+        query.select(FiatAssetRow::as_select()).distinct().order(fiat_assets::asset_id.asc()).load(&mut self.connection)
     }
 
     fn get_fiat_assets_popular(&mut self, from: NaiveDateTime, limit: i64) -> Result<Vec<AssetId>, diesel::result::Error> {
@@ -225,11 +214,7 @@ impl FiatStore for DatabaseClient {
 
     fn get_fiat_rate(&mut self, currency: &PrimitiveCurrency) -> Result<FiatRateRow, diesel::result::Error> {
         use crate::schema::fiat_rates::dsl::*;
-        fiat_rates
-            .find(Currency(currency.clone()))
-            .filter(is_enabled.eq(true))
-            .select(FiatRateRow::as_select())
-            .first(&mut self.connection)
+        fiat_rates.find(Currency(currency.clone())).filter(is_enabled.eq(true)).select(FiatRateRow::as_select()).first(&mut self.connection)
     }
 
     fn get_fiat_providers(&mut self) -> Result<Vec<FiatProviderRow>, diesel::result::Error> {
@@ -240,10 +225,7 @@ impl FiatStore for DatabaseClient {
     fn add_fiat_transaction(&mut self, transaction: NewFiatTransactionRow) -> Result<usize, diesel::result::Error> {
         use crate::schema::fiat_transactions::dsl::*;
 
-        diesel::insert_into(fiat_transactions)
-            .values(&transaction)
-            .on_conflict_do_nothing()
-            .execute(&mut self.connection)
+        diesel::insert_into(fiat_transactions).values(&transaction).on_conflict_do_nothing().execute(&mut self.connection)
     }
 
     fn update_fiat_provider_payment_methods(&mut self, provider_id_value: FiatProviderName, values: serde_json::Value) -> Result<usize, diesel::result::Error> {
@@ -255,44 +237,24 @@ impl FiatStore for DatabaseClient {
 }
 
 impl DatabaseClient {
-    fn update_by_provider_transaction_id(
-        &mut self,
-        provider: &FiatProviderNameRow,
-        provider_transaction_id_value: &str,
-        changeset: &UpdateFiatTransactionRow,
-    ) -> Result<Option<FiatTransactionRow>, diesel::result::Error> {
+    fn update_by_provider_transaction_id(&mut self, provider: &FiatProviderNameRow, provider_transaction_id_value: &str, changeset: &UpdateFiatTransactionRow) -> Result<Option<FiatTransactionRow>, diesel::result::Error> {
         use crate::schema::fiat_transactions::dsl::*;
 
-        diesel::update(
-            fiat_transactions
-                .filter(provider_id.eq(provider))
-                .filter(provider_transaction_id.eq(provider_transaction_id_value)),
-        )
-        .set(changeset)
-        .returning(FiatTransactionRow::as_returning())
-        .get_result(&mut self.connection)
-        .optional()
+        diesel::update(fiat_transactions.filter(provider_id.eq(provider)).filter(provider_transaction_id.eq(provider_transaction_id_value)))
+            .set(changeset)
+            .returning(FiatTransactionRow::as_returning())
+            .get_result(&mut self.connection)
+            .optional()
     }
 
-    fn update_by_quote_id(
-        &mut self,
-        provider: &FiatProviderNameRow,
-        target_quote_id: &str,
-        provider_transaction_id_value: &str,
-        changeset: &UpdateFiatTransactionRow,
-    ) -> Result<Option<FiatTransactionRow>, diesel::result::Error> {
+    fn update_by_quote_id(&mut self, provider: &FiatProviderNameRow, target_quote_id: &str, provider_transaction_id_value: &str, changeset: &UpdateFiatTransactionRow) -> Result<Option<FiatTransactionRow>, diesel::result::Error> {
         use crate::schema::fiat_transactions::dsl::*;
 
-        diesel::update(
-            fiat_transactions
-                .filter(provider_id.eq(provider))
-                .filter(quote_id.eq(target_quote_id))
-                .filter(provider_transaction_id.is_null()),
-        )
-        .set((provider_transaction_id.eq(provider_transaction_id_value), changeset))
-        .returning(FiatTransactionRow::as_returning())
-        .get_result(&mut self.connection)
-        .optional()
+        diesel::update(fiat_transactions.filter(provider_id.eq(provider)).filter(quote_id.eq(target_quote_id)).filter(provider_transaction_id.is_null()))
+            .set((provider_transaction_id.eq(provider_transaction_id_value), changeset))
+            .returning(FiatTransactionRow::as_returning())
+            .get_result(&mut self.connection)
+            .optional()
     }
 
     fn get_fiat_transaction_for_quote(&mut self, provider: &FiatProviderNameRow, target_quote_id: &str) -> Result<Option<FiatTransactionRow>, diesel::result::Error> {

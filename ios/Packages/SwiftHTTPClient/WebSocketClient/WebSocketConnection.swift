@@ -27,6 +27,7 @@ public actor WebSocketConnection: WebSocketConnectable {
 
     deinit {
         task?.cancel(with: .goingAway, reason: nil)
+        session?.invalidateAndCancel()
         reconnectTask?.cancel()
         keepaliveTask?.cancel()
         continuation?.finish()
@@ -52,6 +53,27 @@ public actor WebSocketConnection: WebSocketConnectable {
         continuation?.yield(.disconnected(nil))
         continuation?.finish()
         continuation = nil
+    }
+
+    public func ping() async throws -> TimeInterval {
+        guard state == .connected, let task, let connectionId else { throw WebSocketError.notConnected }
+        let start = DispatchTime.now().uptimeNanoseconds
+        do {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, any Error>) in
+                task.sendPing { error in
+                    if let error {
+                        continuation.resume(throwing: error)
+                    } else {
+                        continuation.resume()
+                    }
+                }
+            }
+            guard self.connectionId == connectionId else { throw WebSocketError.notConnected }
+            return Double(DispatchTime.now().uptimeNanoseconds - start) / 1_000_000_000
+        } catch {
+            onReceiveFailure(error, connectionId: connectionId)
+            throw error
+        }
     }
 
     public func send(_ data: Data) async throws {
@@ -116,16 +138,8 @@ public actor WebSocketConnection: WebSocketConnectable {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds(interval))
                 guard !Task.isCancelled else { return }
-                await self?.sendPing()
+                _ = try? await self?.ping()
             }
-        }
-    }
-
-    private func sendPing() {
-        guard state == .connected, let task, let connectionId else { return }
-        task.sendPing { [weak self] error in
-            guard let error else { return }
-            Task { await self?.handleError(error, connectionId: connectionId) }
         }
     }
 
@@ -146,7 +160,7 @@ public actor WebSocketConnection: WebSocketConnectable {
 
         continuation.onTermination = { [weak self] _ in
             Task {
-                await self?.handleStreamTermination(streamId: streamId)
+                await self?.endStream(streamId: streamId)
             }
         }
 
@@ -154,7 +168,7 @@ public actor WebSocketConnection: WebSocketConnectable {
         startConnection()
     }
 
-    private func handleStreamTermination(streamId: UUID) {
+    private func endStream(streamId: UUID) {
         guard self.streamId == streamId, state != .disconnected else { return }
         self.streamId = nil
 
@@ -188,6 +202,7 @@ public actor WebSocketConnection: WebSocketConnectable {
             },
         )
 
+        invalidateSession()
         session = URLSession(
             configuration: configuration.sessionConfiguration,
             delegate: delegate,
@@ -221,24 +236,24 @@ public actor WebSocketConnection: WebSocketConnectable {
     private func listen(connectionId: UUID) {
         task?.receive { [weak self] result in
             Task {
-                await self?.handleReceive(result, connectionId: connectionId)
+                await self?.onReceive(result, connectionId: connectionId)
             }
         }
     }
 
-    private func handleReceive(_ result: Result<URLSessionWebSocketTask.Message, Error>, connectionId: UUID) {
+    private func onReceive(_ result: Result<URLSessionWebSocketTask.Message, Error>, connectionId: UUID) {
         guard self.connectionId == connectionId else { return }
         switch result {
         case let .success(message):
-            handleMessage(message)
+            yieldMessage(message)
             listen(connectionId: connectionId)
 
         case let .failure(error):
-            handleError(error, connectionId: connectionId)
+            onReceiveFailure(error, connectionId: connectionId)
         }
     }
 
-    private func handleMessage(_ message: URLSessionWebSocketTask.Message) {
+    private func yieldMessage(_ message: URLSessionWebSocketTask.Message) {
         switch message {
         case let .data(data):
             continuation?.yield(.message(data))
@@ -251,7 +266,7 @@ public actor WebSocketConnection: WebSocketConnectable {
         }
     }
 
-    private func handleError(_ error: Error, connectionId: UUID) {
+    private func onReceiveFailure(_ error: Error, connectionId: UUID) {
         guard self.connectionId == connectionId, state != .disconnected else { return }
 
         if let urlError = error as? URLError, urlError.code == .cancelled {

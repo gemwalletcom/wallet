@@ -1,9 +1,9 @@
 package com.gemwallet.android.domains.perpetual.aggregates
 
-import uniffi.gemstone.GemValueTone
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
+import uniffi.gemstone.GemValueTone
 
 interface PerpetualPositionDataAggregate {
     val perpetualId: PerpetualId

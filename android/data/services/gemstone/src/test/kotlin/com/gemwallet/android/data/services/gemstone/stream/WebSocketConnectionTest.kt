@@ -12,9 +12,12 @@ import okhttp3.OkHttpClient
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemConnectionService
+import java.time.Duration
 import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -39,7 +42,15 @@ class WebSocketConnectionTest {
             client = client,
             connectionService = GemConnectionService(),
         )
-        val response = mockk<Response>()
+        val response = mockk<Response> {
+            every { sentRequestAtMillis } returns 1000L
+            every { receivedResponseAtMillis } returns 1125L
+        }
+        val staleResponse = mockk<Response> {
+            every { sentRequestAtMillis } returns 1000L
+            every { receivedResponseAtMillis } returns 1900L
+        }
+        assertNull(connection.connectionLatency)
         val first = backgroundScope.launch { connection.connect().collect() }
         runCurrent()
         first.cancel()
@@ -49,11 +60,15 @@ class WebSocketConnectionTest {
         runCurrent()
         listeners[1].onOpen(secondSocket, response)
         runCurrent()
-        listeners[0].onOpen(firstSocket, response)
+        listeners[0].onOpen(firstSocket, staleResponse)
         runCurrent()
 
+        assertEquals(Duration.ofMillis(125), connection.connectionLatency)
         assertTrue(connection.send("subscribe"))
         verify(exactly = 1) { secondSocket.send("subscribe") }
         verify(exactly = 0) { firstSocket.send(any<String>()) }
+
+        listeners[1].onClosed(secondSocket, 1000, "Closed")
+        assertNull(connection.connectionLatency)
     }
 }

@@ -9,8 +9,6 @@ import android.content.pm.Signature
 import android.os.Build
 import android.os.Environment
 import androidx.core.content.FileProvider
-import uniffi.gemstone.GemAppUpdateService
-import uniffi.gemstone.GemAppUpdateServiceInterface
 import com.gemwallet.android.ext.universalApkDownloadUrl
 import com.gemwallet.android.model.BuildInfo
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -26,16 +24,14 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okio.buffer
 import okio.sink
+import uniffi.gemstone.GemAppUpdateService
+import uniffi.gemstone.GemAppUpdateServiceInterface
 import java.io.File
 import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-class InAppUpdateServiceImpl @Inject constructor(
-    @param:ApplicationContext private val context: Context,
-    private val buildInfo: BuildInfo,
-    private val appUpdateService: GemAppUpdateServiceInterface,
-) : InAppUpdateService {
+class InAppUpdateServiceImpl @Inject constructor(@param:ApplicationContext private val context: Context, private val buildInfo: BuildInfo, private val appUpdateService: GemAppUpdateServiceInterface) : InAppUpdateService {
 
     private val appFileProvider = "${context.packageName}.provider"
     private val intentDataType = "application/vnd.android.package-archive"
@@ -47,8 +43,7 @@ class InAppUpdateServiceImpl @Inject constructor(
     @Volatile
     private var currentCall: Call? = null
 
-    override fun canRequestPackageInstalls(): Boolean =
-        context.packageManager.canRequestPackageInstalls()
+    override fun canRequestPackageInstalls(): Boolean = context.packageManager.canRequestPackageInstalls()
 
     override suspend fun clearDownloadedUpdate() {
         withContext(Dispatchers.IO) {
@@ -129,12 +124,7 @@ class InAppUpdateServiceImpl @Inject constructor(
         }
     }
 
-    private fun writeDownloadedApk(
-        destinationFile: File,
-        responseBody: okhttp3.ResponseBody,
-        onProgress: (Float?) -> Unit,
-        coroutineContext: kotlin.coroutines.CoroutineContext,
-    ) {
+    private fun writeDownloadedApk(destinationFile: File, responseBody: okhttp3.ResponseBody, onProgress: (Float?) -> Unit, coroutineContext: kotlin.coroutines.CoroutineContext) {
         val contentLength = responseBody.contentLength()
 
         responseBody.source().use { source ->
@@ -155,7 +145,7 @@ class InAppUpdateServiceImpl @Inject constructor(
                             totalBytesRead.toFloat() / contentLength.toFloat()
                         } else {
                             null
-                        }
+                        },
                     )
                 }
             }
@@ -186,42 +176,37 @@ class InAppUpdateServiceImpl @Inject constructor(
         }
     }
 
-    private fun PackageManager.getInstalledPackageInfo(packageName: String): PackageInfo =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(PackageManager.GET_SIGNING_CERTIFICATES.toLong()))
-        } else {
-            @Suppress("DEPRECATION")
-            getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES)
-        }
+    private fun PackageManager.getInstalledPackageInfo(packageName: String): PackageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(PackageManager.GET_SIGNING_CERTIFICATES.toLong()))
+    } else {
+        @Suppress("DEPRECATION")
+        getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES)
+    }
 
-    private fun PackageManager.getArchivePackageInfo(apkFile: File): PackageInfo? =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            getPackageArchiveInfo(apkFile.path, PackageManager.PackageInfoFlags.of(PackageManager.GET_SIGNING_CERTIFICATES.toLong()))
-        } else {
-            @Suppress("DEPRECATION")
-            getPackageArchiveInfo(apkFile.path, PackageManager.GET_SIGNING_CERTIFICATES)
-        }
+    private fun PackageManager.getArchivePackageInfo(apkFile: File): PackageInfo? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        getPackageArchiveInfo(apkFile.path, PackageManager.PackageInfoFlags.of(PackageManager.GET_SIGNING_CERTIFICATES.toLong()))
+    } else {
+        @Suppress("DEPRECATION")
+        getPackageArchiveInfo(apkFile.path, PackageManager.GET_SIGNING_CERTIFICATES)
+    }
 
-    private fun PackageInfo.signerDigests(): Set<String> =
-        signingInfo?.apkContentsSigners
-            .orEmpty()
-            .map { signature -> signature.sha256Digest() }
-            .toSet()
+    private fun PackageInfo.signerDigests(): Set<String> = signingInfo?.apkContentsSigners
+        .orEmpty()
+        .map { signature -> signature.sha256Digest() }
+        .toSet()
 
-    private fun Signature.sha256Digest(): String =
-        MessageDigest.getInstance("SHA-256")
-            .digest(toByteArray())
-            .joinToString(separator = "") { byte -> "%02x".format(byte) }
+    private fun Signature.sha256Digest(): String = MessageDigest.getInstance("SHA-256")
+        .digest(toByteArray())
+        .joinToString(separator = "") { byte -> "%02x".format(byte) }
 
     private fun deleteDownloadedApk() {
         runCatching { getApkFile().delete() }
     }
 
-    private fun getApkFile(): File =
-        File(
-            context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: context.filesDir,
-            APK_FILE_NAME,
-        )
+    private fun getApkFile(): File = File(
+        context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: context.filesDir,
+        APK_FILE_NAME,
+    )
 
     companion object {
         private const val APK_FILE_NAME = "gem.apk"

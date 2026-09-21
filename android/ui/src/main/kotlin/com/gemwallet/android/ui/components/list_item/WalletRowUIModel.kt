@@ -10,13 +10,7 @@ import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemWalletPlaceholder
 import uniffi.gemstone.GemWalletRow
 
-data class WalletRowUIModel(
-    val id: String,
-    val name: String,
-    val subtitle: String,
-    val icon: Any?,
-    val supportIcon: String?,
-)
+data class WalletRowUIModel(val id: String, val name: String, val subtitle: String, val icon: Any?, val supportIcon: String?)
 
 fun GemWalletRow.uiModel(context: Context) = WalletRowUIModel(
     id = id,
@@ -27,7 +21,7 @@ fun GemWalletRow.uiModel(context: Context) = WalletRowUIModel(
 )
 
 fun GemWalletRow.listItemImage(): ListItemImage = imageUrl?.takeIf { it.isNotEmpty() }?.let { ListItemImage.Stored(it) } ?: when (val placeholder = placeholder) {
-    GemWalletPlaceholder.Multicoin -> ListItemImage.Drawable(R.drawable.multicoin_wallet, isRounded = true)
+    GemWalletPlaceholder.Multicoin -> ListItemImage.Drawable(R.drawable.multicoin_wallet, style = ListItemImageStyle.Avatar)
     is GemWalletPlaceholder.Chain -> ListItemImage.Asset(AssetId(placeholder.chain.toChain()))
 }
 

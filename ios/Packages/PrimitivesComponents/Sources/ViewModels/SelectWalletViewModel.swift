@@ -2,8 +2,8 @@
 
 import Components
 import Foundation
-import Localization
 import struct Gemstone.GemWalletRow
+import Localization
 import Primitives
 import Style
 

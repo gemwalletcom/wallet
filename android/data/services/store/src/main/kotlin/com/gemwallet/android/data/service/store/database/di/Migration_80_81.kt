@@ -14,7 +14,7 @@ object Migration_80_81 : Migration(80, 81) {
                 "`perpetualId` TEXT, " +
                 "`priority` INTEGER NOT NULL, " +
                 "FOREIGN KEY(`assetId`) REFERENCES `asset`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , " +
-                "FOREIGN KEY(`perpetualId`) REFERENCES `perpetuals`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )"
+                "FOREIGN KEY(`perpetualId`) REFERENCES `perpetuals`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_search_query` ON `search` (`query`)")
         db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_search_assetId_query` ON `search` (`assetId`, `query`)")

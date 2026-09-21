@@ -3,9 +3,7 @@ package com.gemwallet.android.data.services.gemstone.stores
 import kotlinx.coroutines.flow.Flow
 import uniffi.gemstone.GemWalletSessionStore
 
-class GemstoneWalletSessionStore(
-    private val preferences: GemstonePreferencesStore,
-) : GemWalletSessionStore {
+class GemstoneWalletSessionStore(private val preferences: GemstonePreferencesStore) : GemWalletSessionStore {
 
     override fun getCurrentWalletId(): String? = preferences.get(CURRENT_WALLET_ID)
 

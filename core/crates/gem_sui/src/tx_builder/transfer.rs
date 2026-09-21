@@ -32,11 +32,7 @@ fn build_transfer_ptb(input: &TransferInput) -> Result<TransactionBuilder, Box<d
     }
 
     let send_coin = if input.coins.address_balance >= input.amount {
-        let coin_type: TypeTag = input
-            .coins
-            .coin_type
-            .parse()
-            .map_err(|err| format!("invalid Sui native coin type {}: {err}", input.coins.coin_type))?;
+        let coin_type: TypeTag = input.coins.coin_type.parse().map_err(|err| format!("invalid Sui native coin type {}: {err}", input.coins.coin_type))?;
         ptb.funds_withdrawal_coin(coin_type, input.amount)
     } else {
         let amount = ptb.pure(&input.amount);
@@ -54,8 +50,7 @@ fn build_transfer_ptb(input: &TransferInput) -> Result<TransactionBuilder, Box<d
 pub fn encode_transfer(input: &TransferInput) -> Result<TxOutput, Box<dyn Error + Send + Sync>> {
     let ptb = build_transfer_ptb(input)?;
     let gas_objects = input.coins.coins.iter().map(|x| x.object.to_input()).collect::<Vec<_>>();
-    finish_transaction(ptb, TransactionBuilderInput::new(input.sender.as_str(), input.gas.price, input.gas.budget, gas_objects))
-        .map_err(|err| Box::new(err) as Box<dyn Error + Send + Sync>)
+    finish_transaction(ptb, TransactionBuilderInput::new(input.sender.as_str(), input.gas.price, input.gas.budget, gas_objects)).map_err(|err| Box::new(err) as Box<dyn Error + Send + Sync>)
 }
 
 fn build_token_transfer_ptb(input: &TokenTransferInput) -> Result<TransactionBuilder, Box<dyn Error + Send + Sync>> {
@@ -77,8 +72,7 @@ fn build_token_transfer_ptb(input: &TokenTransferInput) -> Result<TransactionBui
 pub fn encode_token_transfer(input: &TokenTransferInput) -> Result<TxOutput, Box<dyn Error + Send + Sync>> {
     let ptb = build_token_transfer_ptb(input)?;
     let gas_coin = ObjectInput::immutable(input.gas_coin.object.object_id, input.gas_coin.object.version, input.gas_coin.object.digest);
-    finish_transaction(ptb, TransactionBuilderInput::new(input.sender.as_str(), input.gas.price, input.gas.budget, vec![gas_coin]))
-        .map_err(|err| Box::new(err) as Box<dyn Error + Send + Sync>)
+    finish_transaction(ptb, TransactionBuilderInput::new(input.sender.as_str(), input.gas.price, input.gas.budget, vec![gas_coin])).map_err(|err| Box::new(err) as Box<dyn Error + Send + Sync>)
 }
 
 #[cfg(test)]

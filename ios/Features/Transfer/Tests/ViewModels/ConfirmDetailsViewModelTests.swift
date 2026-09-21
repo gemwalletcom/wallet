@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Localization
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
+import Localization
 import Primitives
 import PrimitivesTestKit
 import Testing

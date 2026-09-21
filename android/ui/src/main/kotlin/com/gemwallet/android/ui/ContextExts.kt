@@ -45,7 +45,7 @@ fun DisableScreenShooting() {
         )
 
         onDispose {
-            context.findActivity()?.window?.clearFlags(WindowManager.LayoutParams.FLAG_SECURE,)
+            context.findActivity()?.window?.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
     }
 }

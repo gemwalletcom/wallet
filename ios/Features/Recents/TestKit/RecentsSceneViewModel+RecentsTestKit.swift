@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Foundation
 import class Gemstone.GemRecentActivityService
 import GemstoneServicesTestKit
-import Foundation
 import Primitives
 import Recents
 import StoreTestKit

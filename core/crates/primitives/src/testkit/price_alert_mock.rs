@@ -22,6 +22,7 @@ impl PriceAlertData {
             asset: Asset::from_chain(Chain::Bitcoin),
             price: price.map(|price| Price::new(price, price_change_percentage_24h.unwrap_or_default(), Utc::now(), PriceProvider::default())),
             price_alert,
+            rank_score: 20,
         }
     }
 }

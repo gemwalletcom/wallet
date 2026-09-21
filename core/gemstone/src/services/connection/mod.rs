@@ -10,6 +10,8 @@ use crate::models::GemConnectionComponent;
 pub enum GemRefreshKind {
     Market,
     Wallet,
+    Chart,
+    Confirm,
 }
 
 #[derive(Default, uniffi::Object)]

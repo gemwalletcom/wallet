@@ -13,10 +13,6 @@ public struct TransactionTypesFilterViewModel: Equatable {
         selectedTypes = []
     }
 
-    public var requestFilters: [TransactionType] {
-        selectedTypes.flatMap { $0.transactionTypes().map { $0.toPrimitives() } }
-    }
-
     public var typeModel: TransactionsFilterTypeViewModel {
         TransactionsFilterTypeViewModel(
             type: TransactionsFilterType(selectedTypes: selectedTypes),
@@ -25,9 +21,5 @@ public struct TransactionTypesFilterViewModel: Equatable {
 
     public var isAnySelected: Bool {
         !selectedTypes.isEmpty
-    }
-
-    public var isEmpty: Bool {
-        allTransactionsTypes.isEmpty
     }
 }

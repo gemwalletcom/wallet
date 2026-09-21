@@ -6,13 +6,11 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
@@ -26,42 +24,25 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.shareText
 import com.wallet.core.primitives.AssetId
-import kotlinx.coroutines.launch
 
 @Composable
-fun RowScope.AssetDetailsMenu(
-    uiState: AssetInfoUIModel,
-    priceAlert: PriceAlertMenuUIModel,
-    snackBar: SnackbarHostState,
-    requestNotificationPermission: (() -> Unit) -> Unit,
-    onPriceAlert: (AssetId) -> Unit,
-) {
+fun RowScope.AssetDetailsMenu(uiState: AssetInfoUIModel, priceAlert: PriceAlertMenuUIModel, onPriceAlert: (AssetId) -> Unit) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
 
-    val priceAlertToastMessage = stringResource(priceAlert.toastRes, uiState.asset.name)
     var menuExpanded by remember { mutableStateOf(false) }
     val uriHandler = LocalUriHandler.current
     val shareTitle = stringResource(id = R.string.common_share)
 
     val onShare = fun () {
-        val subject = "${uiState.assetInfo.owner?.chain}\n${uiState.assetInfo.asset.symbol}"
-        context.shareText(subject = subject, text = uiState.shareUrl, chooserTitle = shareTitle)
+        context.shareText(subject = null, text = uiState.shareUrl, chooserTitle = shareTitle)
     }
 
     val enablePriceAlert = fun () {
         onPriceAlert(uiState.asset.id)
-        scope.launch { snackBar.showSnackbar(priceAlertToastMessage, R.drawable.ic_notifications) }
     }
 
     IconButton(
-        onClick = {
-            if (priceAlert.needsPermission) {
-                requestNotificationPermission(enablePriceAlert)
-            } else {
-                enablePriceAlert()
-            }
-        }
+        onClick = enablePriceAlert,
     ) {
         Icon(priceAlert.symbol.vector(), "")
     }

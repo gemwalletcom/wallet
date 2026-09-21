@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = Ikke understøttet aktiv.
 errors_connections_no_supported_wallets = Ingen understøttede tegnebøger er tilgængelige.
 errors_connections_unsupported_chain = Den angivne kæde understøttes ikke.
 errors_swap_amount_too_small = Beløbet er for lille
-errors_required = %@ er påkrævet
 errors_scan_transaction_malicious_description = Denne transaktion kan ikke gennemføres — destinationsadressen på tegnebogen er knyttet til mistænkelig eller skadelig aktivitet.
 errors_scan_transaction_memo_required = %@ destinations-wallet-adresse kræver et destinationstag / en destinations-memo
 errors_scan_transaction_malicious_title = Mistænkelig aktivitet
@@ -315,7 +314,7 @@ asset_symbol = Symbol
 asset_decimals = Decimaler
 asset_token_id = Token-ID
 asset_contract = Kontrakt
-asset_state_empty_title = Dine transaktioner vil blive vist her️
+asset_state_empty_title = Dine transaktioner vil blive vist her
 asset_state_empty_description = Modtag, byt eller køb %@
 asset_verification_unverified = Ubekræftet
 asset_verification_suspicious = Mistænksom
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = Når prisen falder med
 price_alerts_set_alert_set_target_price = Sæt målpris
 price_alerts_set_alert_current_price = Nuværende pris
 price_alerts_added_for = Indstil prisalarm %@
-price_alerts_state_empty_title = Dine alarmer vises her️
+price_alerts_state_empty_title = Dine alarmer vises her
 price_alerts_state_empty_description = Aktivér dem ved at tilføje mønter til sporet
 price_alerts_auto_footer = Advarsler udløses ved betydelige prisbevægelser.
 price_alerts_set_alert_title = Indstil prisalarm
@@ -536,7 +535,7 @@ verify_phrase_title = Bekræft
 
 # Warnings
 
-warnings_multi_signature_blocked = Overfør ikke penge til denne %@ Multi-Signatur-tegnebog, medmindre du er sikker på, at du kontrollerer de private nøgler. Undladelse af at gøre det kan udsætte dig for svindel, og du kan permanent miste dine aktiver.
+warnings_externally_controlled_account = Denne %@-konto kan være kontrolleret af en anden. Overfør ikke penge til den, medmindre du er sikker på, at du kontrollerer den, ellers kan du permanent miste dine aktiver.
 
 # Sell
 
@@ -600,7 +599,7 @@ nft_collections = Samlinger
 nft_collection = Samling
 nft_save_to_photos = Gem til Fotos
 nft_set_as_avatar = Indstil som Avatar
-nft_state_empty_title = Dine NFT'er vil blive vist her️
+nft_state_empty_title = Dine NFT'er vil blive vist her
 nft_state_empty_description = Modtag din første NFT
 nft_report_reason_spam = Spam
 nft_report_reason_malicious = Ondsindet

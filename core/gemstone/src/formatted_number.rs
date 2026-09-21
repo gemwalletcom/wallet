@@ -8,6 +8,7 @@ pub enum GemNumberUnit {
     Symbol { symbol: String },
     Percent,
     Plain,
+    Multiplier,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -15,6 +16,7 @@ pub enum GemValueTone {
     Plain,
     Neutral,
     Positive,
+    Warning,
     Negative,
 }
 
@@ -42,6 +44,12 @@ pub enum GemNumberDisplay {
     BelowThreshold { threshold: f64, places: u32 },
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemNumberRounding {
+    ToNearest,
+    TowardZero,
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemFormattedNumber {
     pub value: f64,
@@ -49,6 +57,7 @@ pub struct GemFormattedNumber {
     pub display: GemNumberDisplay,
     pub notation: GemNumberNotation,
     pub tone: GemValueTone,
+    pub rounding: GemNumberRounding,
 }
 
 impl GemFormattedNumber {
@@ -61,12 +70,11 @@ impl GemFormattedNumber {
             value,
             notation: GemNumberNotation::Plain,
             tone: GemValueTone::Plain,
+            rounding: GemNumberRounding::ToNearest,
             unit: GemNumberUnit::Currency { code },
             display: match style.abbreviates(value) {
                 true => GemNumberDisplay::Abbreviated,
-                false => GemNumberDisplay::Number {
-                    precision: style.precision(value),
-                },
+                false => GemNumberDisplay::Number { precision: style.precision(value) },
             },
         }
     }
@@ -91,10 +99,7 @@ impl GemFormattedNumber {
     }
 
     pub fn toned(self) -> Self {
-        Self {
-            tone: GemValueTone::of(self.value),
-            ..self
-        }
+        Self { tone: GemValueTone::of(self.value), ..self }
     }
 
     pub fn signed_currency(value: f64, currency: Currency, style: GemCurrencyStyle) -> Self {
@@ -113,6 +118,7 @@ impl GemFormattedNumber {
             value,
             notation: GemNumberNotation::Plain,
             tone: GemValueTone::Plain,
+            rounding: GemNumberRounding::ToNearest,
             unit: unit(symbol),
             display: GemNumberDisplay::Number {
                 precision: crate::precision::adaptive_precision(value),
@@ -126,6 +132,7 @@ impl GemFormattedNumber {
             value,
             notation: GemNumberNotation::Plain,
             tone: GemValueTone::Plain,
+            rounding: GemNumberRounding::ToNearest,
             unit: GemNumberUnit::Percent,
             display: GemNumberDisplay::Number { precision: format.precision },
         };
@@ -140,8 +147,44 @@ impl GemFormattedNumber {
             value,
             notation: GemNumberNotation::Plain,
             tone: GemValueTone::Plain,
+            rounding: GemNumberRounding::TowardZero,
             unit: unit(symbol),
             display: value_display(value, style),
+        }
+    }
+
+    pub fn leverage(value: f64) -> Self {
+        Self {
+            value,
+            notation: GemNumberNotation::Plain,
+            tone: GemValueTone::Plain,
+            rounding: GemNumberRounding::ToNearest,
+            unit: GemNumberUnit::Multiplier,
+            display: GemNumberDisplay::Number {
+                precision: number_formatter::Precision::TWO_PLACES.into(),
+            },
+        }
+    }
+
+    pub fn whole_currency(value: f64, currency: Currency) -> Self {
+        Self {
+            display: GemNumberDisplay::Number {
+                precision: GemPrecision::Fraction { min: 0, max: 0 },
+            },
+            ..Self::currency(value, currency, GemCurrencyStyle::Currency)
+        }
+    }
+
+    pub fn count(value: u64) -> Self {
+        Self {
+            value: value as f64,
+            notation: GemNumberNotation::Plain,
+            tone: GemValueTone::Plain,
+            rounding: GemNumberRounding::ToNearest,
+            unit: GemNumberUnit::Plain,
+            display: GemNumberDisplay::Number {
+                precision: GemPrecision::Fraction { min: 0, max: 0 },
+            },
         }
     }
 }
@@ -173,6 +216,16 @@ pub fn formatted_amount(value: f64, symbol: Option<String>, style: GemValueStyle
     GemFormattedNumber::amount(value, symbol, style)
 }
 
+#[uniffi::export]
+pub fn formatted_percentage(value: f64, style: GemPercentageStyle) -> GemFormattedNumber {
+    GemFormattedNumber::percentage(value, style)
+}
+
+#[uniffi::export]
+pub fn leverage_number(value: f64) -> GemFormattedNumber {
+    GemFormattedNumber::leverage(value)
+}
+
 fn value_display(value: f64, style: GemValueStyle) -> GemNumberDisplay {
     if style.abbreviates(value) {
         return GemNumberDisplay::Abbreviated;
@@ -183,14 +236,19 @@ fn value_display(value: f64, style: GemValueStyle) -> GemNumberDisplay {
             places: number_formatter::VALUE_DUST_PLACES,
         };
     }
-    GemNumberDisplay::Number {
-        precision: style.precision(value),
-    }
+    GemNumberDisplay::Number { precision: style.precision(value) }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_an_amount_never_rounds_above_what_is_held() {
+        assert_eq!(GemFormattedNumber::amount(5.205516, Some("ATOM".to_string()), GemValueStyle::Auto).rounding, GemNumberRounding::TowardZero);
+        assert_eq!(GemFormattedNumber::usd(5.205516).rounding, GemNumberRounding::ToNearest);
+        assert_eq!(GemFormattedNumber::percentage(5.205516, GemPercentageStyle::Unsigned).rounding, GemNumberRounding::ToNearest);
+    }
 
     #[test]
     fn test_a_currency_number_carries_its_code_and_its_precision() {
@@ -207,10 +265,7 @@ mod tests {
 
     #[test]
     fn test_only_an_abbreviating_style_reads_as_abbreviated() {
-        assert_eq!(
-            GemFormattedNumber::currency(1_000_000.0, Currency::USD, GemCurrencyStyle::Abbreviated).display,
-            GemNumberDisplay::Abbreviated
-        );
+        assert_eq!(GemFormattedNumber::currency(1_000_000.0, Currency::USD, GemCurrencyStyle::Abbreviated).display, GemNumberDisplay::Abbreviated);
         assert_eq!(
             GemFormattedNumber::currency(1_000_000.0, Currency::USD, GemCurrencyStyle::Currency).display,
             GemNumberDisplay::Number {
@@ -233,6 +288,34 @@ mod tests {
         );
 
         assert_eq!(GemFormattedNumber::percentage(5.0, GemPercentageStyle::Unsigned).notation, GemNumberNotation::Plain);
+    }
+
+    #[test]
+    fn test_a_count_reads_as_a_plain_integer() {
+        let count = GemFormattedNumber::count(21_000_000);
+        assert_eq!(count.value, 21_000_000.0);
+        assert_eq!(count.unit, GemNumberUnit::Plain);
+        assert_eq!(
+            count.display,
+            GemNumberDisplay::Number {
+                precision: GemPrecision::Fraction { min: 0, max: 0 }
+            }
+        );
+        assert_eq!(count.notation, GemNumberNotation::Plain);
+    }
+
+    #[test]
+    fn test_a_leverage_number_keeps_two_places_behind_the_multiplier() {
+        let leverage = GemFormattedNumber::leverage(2.5);
+
+        assert_eq!(leverage.unit, GemNumberUnit::Multiplier);
+        assert_eq!(
+            leverage.display,
+            GemNumberDisplay::Number {
+                precision: number_formatter::Precision::TWO_PLACES.into()
+            }
+        );
+        assert_eq!(leverage.notation, GemNumberNotation::Plain);
     }
 
     #[test]

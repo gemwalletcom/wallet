@@ -9,13 +9,9 @@ use crate::rpc::EthereumProvider;
 const SEARCH_WINDOW_MS: u64 = 60_000;
 
 pub(super) async fn record_receipt_checks<C: Client + Clone>(provider: &EthereumProvider<C>, recorder: NodeCheckRecorder, latest_block: u64) -> NodeCheckRecorder {
-    let recorder = recorder
-        .record_timed("eth_getReceipt(history)", get_receipt_at_age(provider, latest_block, DAY, "1 day"))
-        .await;
+    let recorder = recorder.record_timed("eth_getReceipt(history)", get_receipt_at_age(provider, latest_block, DAY, "1 day")).await;
 
-    recorder
-        .record_optional_timed("eth_getReceipt(archive)", get_receipt_at_age(provider, latest_block, MONTH * 3, "3 months"))
-        .await
+    recorder.record_optional_timed("eth_getReceipt(archive)", get_receipt_at_age(provider, latest_block, MONTH * 3, "3 months")).await
 }
 
 async fn find_transaction_hash<C: Client + Clone>(provider: &EthereumProvider<C>, latest_block: u64, block_depth: u64) -> Result<String, String> {
@@ -25,11 +21,7 @@ async fn find_transaction_hash<C: Client + Clone>(provider: &EthereumProvider<C>
 
     for offset in 0..search_blocks {
         let block_number = target_block.saturating_sub(offset);
-        let block = provider
-            .get_block(block_number)
-            .await
-            .map_err(|error| error.to_string())?
-            .ok_or_else(|| format!("block {block_number} not available"))?;
+        let block = provider.get_block(block_number).await.map_err(|error| error.to_string())?.ok_or_else(|| format!("block {block_number} not available"))?;
         if let Some(transaction) = block.transactions.first() {
             return Ok(transaction.hash.clone());
         }

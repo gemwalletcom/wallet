@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.TransactionInputType
-import struct Gemstone.GemTransferData
-import GemstonePrimitives
-import struct Gemstone.GemConfirmMetadata
 import BigInt
 import Foundation
+import struct Gemstone.GemConfirmMetadata
+import struct Gemstone.GemTransferData
+import enum Gemstone.TransactionInputType
+import GemstonePrimitives
 import Primitives
 
 public enum TransactionHeaderTypeBuilder {

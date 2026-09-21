@@ -15,8 +15,8 @@ use super::{
     quote_data_mapper, quote_mapper, swap_mapper,
 };
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError,
-    SwapperQuoteData, approval::check_approval_erc20, cross_chain::VaultAddresses, fees::default_referral_fees, route_cache::Cache, thorchain::client::ThorChainSwapClient,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData, approval::check_approval_erc20,
+    cross_chain::VaultAddresses, fees::default_referral_fees, route_cache::Cache, thorchain::client::ThorChainSwapClient,
 };
 
 const INBOUND_ADDRESS_CACHE_TTL: Duration = MINUTE.saturating_mul(5);
@@ -146,15 +146,7 @@ where
         let fee = default_referral_fees().thorchain;
         let quote = self
             .client
-            .get_quote(
-                from_asset.clone(),
-                to_asset.clone(),
-                value.to_string(),
-                QUOTE_INTERVAL,
-                QUOTE_QUANTITY,
-                fee.address,
-                fee.bps.into(),
-            )
+            .get_quote(from_asset.clone(), to_asset.clone(), value.to_string(), QUOTE_INTERVAL, QUOTE_QUANTITY, fee.address, fee.bps.into())
             .await
             .map_err(|e| self.map_quote_error(e, from_asset.decimals as i32))?;
 
@@ -195,21 +187,9 @@ where
         let fee = default_referral_fees().thorchain;
         let from_asset = THORChainAsset::from_asset_id(self.network, &quote.request.from_asset.id).ok_or(SwapperError::NotSupportedAsset)?;
         let to_asset = THORChainAsset::from_asset_id(self.network, &quote.request.to_asset.id).ok_or(SwapperError::NotSupportedAsset)?;
-        let memo_asset_name = if to_asset.is_token() {
-            to_asset.quote_asset_name()
-        } else {
-            to_asset.chain.short_name().to_string()
-        };
+        let memo_asset_name = if to_asset.is_token() { to_asset.quote_asset_name() } else { to_asset.chain.short_name().to_string() };
 
-        let memo = to_asset.swap_memo(
-            &memo_asset_name,
-            quote.request.destination_address.clone(),
-            QUOTE_MINIMUM,
-            QUOTE_INTERVAL,
-            QUOTE_QUANTITY,
-            fee.address,
-            fee.bps,
-        );
+        let memo = to_asset.swap_memo(&memo_asset_name, quote.request.destination_address.clone(), QUOTE_MINIMUM, QUOTE_INTERVAL, QUOTE_QUANTITY, fee.address, fee.bps);
 
         let route = quote.data.routes.first().ok_or(SwapperError::InvalidRoute)?;
         let route_data: RouteData = serde_json::from_str(&route.route_data).map_err(|_| SwapperError::InvalidRoute)?;
@@ -220,16 +200,9 @@ where
                 let router_address = route_data.router_address.clone().ok_or(SwapperError::InvalidRoute)?;
                 let from_amount: U256 = value.to_string().parse().map_err(SwapperError::from)?;
                 let token_id = from_asset.token_id.clone().ok_or(SwapperError::NotSupportedAsset)?;
-                check_approval_erc20(
-                    quote.request.wallet_address.clone(),
-                    token_id,
-                    router_address,
-                    from_amount,
-                    self.rpc_provider.clone(),
-                    &from_asset.chain.chain(),
-                )
-                .await?
-                .approval_data()
+                check_approval_erc20(quote.request.wallet_address.clone(), token_id, router_address, from_amount, self.rpc_provider.clone(), &from_asset.chain.chain())
+                    .await?
+                    .approval_data()
             } else {
                 None
             }
@@ -268,21 +241,11 @@ mod tests {
         let cases = [(18, "6614750000000000"), (8, "661475"), (6, "6614")];
 
         for (decimals, expected) in cases {
-            let error = SwapperError::InputAmountError {
-                min_amount: Some("661475".to_string()),
-            };
-            assert_eq!(
-                thorchain.map_quote_error(error, decimals),
-                SwapperError::InputAmountError {
-                    min_amount: Some(expected.to_string())
-                }
-            );
+            let error = SwapperError::InputAmountError { min_amount: Some("661475".to_string()) };
+            assert_eq!(thorchain.map_quote_error(error, decimals), SwapperError::InputAmountError { min_amount: Some(expected.to_string()) });
         }
 
-        assert_eq!(
-            thorchain.map_quote_error(SwapperError::InputAmountError { min_amount: None }, 18),
-            SwapperError::InputAmountError { min_amount: None }
-        );
+        assert_eq!(thorchain.map_quote_error(SwapperError::InputAmountError { min_amount: None }, 18), SwapperError::InputAmountError { min_amount: None });
         assert_eq!(thorchain.map_quote_error(SwapperError::NotSupportedAsset, 18), SwapperError::NotSupportedAsset);
     }
 

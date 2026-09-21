@@ -141,13 +141,7 @@ impl Generator {
                 .strip_prefix(primitives)
                 .ok()
                 .and_then(Path::parent)
-                .map(|parent| {
-                    parent
-                        .components()
-                        .map(|component| component.as_os_str().to_string_lossy().into_owned())
-                        .collect::<Vec<_>>()
-                        .join(".")
-                })
+                .map(|parent| parent.components().map(|component| component.as_os_str().to_string_lossy().into_owned()).collect::<Vec<_>>().join("."))
                 .unwrap_or_default();
             let mut lines = source.lines();
             let mut typeshare = false;
@@ -310,24 +304,14 @@ impl Generator {
                                 (false, _) => language.enum_arm.to_string(),
                                 (true, []) => language.sealed_arm.to_string(),
                                 (true, [field]) if field.rust.is_empty() => {
-                                    let content = content
-                                        .as_deref()
-                                        .unwrap_or_else(|| panic!("{name}::{} carries a payload but {name} has no serde content name", variant.name));
+                                    let content = content.as_deref().unwrap_or_else(|| panic!("{name}::{} carries a payload but {name} has no serde content name", variant.name));
                                     let payload = language.payloads[index].replace("{content}", content);
                                     let value = language.convert(&self.config, &field.type_name, &payload, index);
                                     language.sealed_arm_data.replace("{payload}", &payload).replace("{value}", &value)
                                 }
-                                (true, _) => panic!(
-                                    "{name}::{} carries named or multiple fields; a TypeShare twin renders those as a type of their own",
-                                    variant.name
-                                ),
+                                (true, _) => panic!("{name}::{} carries named or multiple fields; a TypeShare twin renders those as a type of their own", variant.name),
                             };
-                            out.push_str(
-                                &arm.replace("{from_type}", from)
-                                    .replace("{from_case}", &from_case)
-                                    .replace("{to_type}", to)
-                                    .replace("{to_case}", &to_case),
-                            );
+                            out.push_str(&arm.replace("{from_type}", from).replace("{from_case}", &from_case).replace("{to_type}", to).replace("{to_case}", &to_case));
                         }
                         out.push_str(language.enum_close);
                     }
@@ -431,16 +415,9 @@ fn variants(name: &str, body: &[&str]) -> Vec<Variant> {
         };
         let fields = match rest.split_once('}') {
             Some((inline, _)) => inline.split(',').filter_map(variant_field).collect(),
-            None => lines
-                .by_ref()
-                .take_while(|line| !line.trim().starts_with('}'))
-                .filter_map(|line| variant_field(line))
-                .collect(),
+            None => lines.by_ref().take_while(|line| !line.trim().starts_with('}')).filter_map(|line| variant_field(line)).collect(),
         };
-        variants.push(Variant {
-            name: variant.trim().to_string(),
-            fields,
-        });
+        variants.push(Variant { name: variant.trim().to_string(), fields });
     }
     variants
 }
@@ -762,8 +739,7 @@ fn uniffi_swift_case(variant: &str) -> String {
     let characters: Vec<char> = variant.chars().collect();
     let mut word = String::new();
     for (index, character) in characters.iter().enumerate() {
-        let starts_word =
-            character.is_ascii_uppercase() && !word.is_empty() && (characters[index - 1].is_ascii_lowercase() || characters.get(index + 1).is_some_and(char::is_ascii_lowercase));
+        let starts_word = character.is_ascii_uppercase() && !word.is_empty() && (characters[index - 1].is_ascii_lowercase() || characters.get(index + 1).is_some_and(char::is_ascii_lowercase));
         if starts_word {
             words.push(std::mem::take(&mut word));
         }
@@ -805,10 +781,7 @@ mod tests {
             return;
         }
         let expected = fs::read_to_string(&path).unwrap_or_else(|_| panic!("{} is missing; run the tests once with UPDATE_GOLDEN=1", path.display()));
-        assert_eq!(
-            actual, expected,
-            "{name} no longer matches testdata/expected/{name}; rerun with UPDATE_GOLDEN=1 once the diff is intended"
-        );
+        assert_eq!(actual, expected, "{name} no longer matches testdata/expected/{name}; rerun with UPDATE_GOLDEN=1 once the diff is intended");
     }
 
     #[test]
@@ -846,15 +819,7 @@ mod tests {
 
     #[test]
     fn test_body_stops_at_the_closing_brace_of_the_declaration_not_of_a_variant() {
-        let mut lines = [
-            "    Regular { gas_price: BigInt },",
-            "    Eip1559 {",
-            "        gas_price: BigInt,",
-            "    },",
-            "}",
-            "impl GasPriceType {",
-        ]
-        .into_iter();
+        let mut lines = ["    Regular { gas_price: BigInt },", "    Eip1559 {", "        gas_price: BigInt,", "    },", "}", "impl GasPriceType {"].into_iter();
         let body = body(&mut lines);
         assert_eq!(body.len(), 4);
         assert_eq!(lines.next(), Some("impl GasPriceType {"));

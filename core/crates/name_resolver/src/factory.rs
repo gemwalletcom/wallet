@@ -2,8 +2,8 @@ use gem_client::{ReqwestClient, reqwest_client};
 use settings::Name;
 
 use crate::providers::{
-    alldomains::AllDomainsProvider, aptos::AptosProvider, basenames::BasenamesProvider, did::DidProvider, ens::EnsProvider, hyperliquid::HyperliquidProvider, icns::IcnsProvider,
-    injective::InjectiveProvider, lens::LensProvider, near::NearProvider, sns::SnsProvider, spaceid::SpaceIdProvider, suins::SuinsProvider, ton::TonProvider, ud::UdProvider,
+    alldomains::AllDomainsProvider, aptos::AptosProvider, basenames::BasenamesProvider, did::DidProvider, ens::EnsProvider, hyperliquid::HyperliquidProvider, icns::IcnsProvider, injective::InjectiveProvider, lens::LensProvider,
+    near::NearProvider, sns::SnsProvider, spaceid::SpaceIdProvider, suins::SuinsProvider, ton::TonProvider, ud::UdProvider,
 };
 use crate::resolver::NameResolver;
 

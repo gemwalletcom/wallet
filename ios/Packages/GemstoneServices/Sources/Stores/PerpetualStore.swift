@@ -1,22 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import enum Gemstone.PerpetualProvider
+import typealias Gemstone.AssetId
+import protocol Gemstone.GemPerpetualStore
 import struct Gemstone.PerpetualData
 import struct Gemstone.PerpetualMarketData
 import struct Gemstone.PerpetualPosition
-import protocol Gemstone.GemPerpetualStore
+import enum Gemstone.PerpetualProvider
 import GemstonePrimitives
 import Primitives
 import Store
 
 public final class GemstonePerpetualStore: GemPerpetualStore, @unchecked Sendable {
     private let store: PerpetualStore
-    private let balanceStore: BalanceStore
 
-    public init(store: PerpetualStore, balanceStore: BalanceStore) {
+    public init(store: PerpetualStore) {
         self.store = store
-        self.balanceStore = balanceStore
     }
 
     public func savePerpetuals(data: [Gemstone.PerpetualData]) async throws {
@@ -27,9 +26,8 @@ public final class GemstonePerpetualStore: GemPerpetualStore, @unchecked Sendabl
         try store.setPinned(for: perpetualIds, value: pinned)
     }
 
-    public func deletePerpetuals() async throws {
-        try store.clear()
-        try balanceStore.deleteBalance(assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id)
+    public func clearPerpetuals(collateralAssetIds: [Gemstone.AssetId]) async throws {
+        try store.clear(collateralAssetIds: collateralAssetIds.map { try Primitives.AssetId(id: $0) })
     }
 
     public func getPositions(walletId: String, provider: Gemstone.PerpetualProvider) async throws -> [Gemstone.PerpetualPosition] {

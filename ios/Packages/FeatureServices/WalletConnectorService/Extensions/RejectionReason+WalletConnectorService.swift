@@ -21,11 +21,7 @@ extension GemWalletConnectRejectionReason {
             self = .userRejected
             return
         }
-        self = switch walletConnectError {
-        case .UnsupportedChains: .unsupportedChains
-        case .UnsupportedWallets: .unsupportedAccounts
-        case .InvalidOrigin, .Service: .userRejected
-        }
+        self = walletConnectError.rejectionReason()
     }
 }
 

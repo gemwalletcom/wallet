@@ -210,7 +210,6 @@
   <string name="errors_connections_no_supported_wallets">Nejsou k dispozici žádné podporované peněženky.</string>
   <string name="errors_connections_unsupported_chain">Zadaný řetězec není podporován.</string>
   <string name="errors_swap_amount_too_small">Příliš malé množství</string>
-  <string name="errors_required">%1$s je vyžadováno</string>
   <string name="errors_scan_transaction_malicious_description">Tuto transakci nelze dokončit – cílová adresa peněženky je spojena s podezřelou nebo škodlivou aktivitou.</string>
   <string name="errors_scan_transaction_memo_required">Cílová adresa peněženky %1$s vyžaduje cílovou značku / poznámku</string>
   <string name="errors_scan_transaction_malicious_title">Podezřelá aktivita</string>
@@ -273,7 +272,7 @@
   <string name="asset_decimals">Desetinná čísla</string>
   <string name="asset_token_id">ID tokenu</string>
   <string name="asset_contract">Smlouva</string>
-  <string name="asset_state_empty_title">Vaše transakce se zobrazí zde ️</string>
+  <string name="asset_state_empty_title">Vaše transakce se zobrazí zde</string>
   <string name="asset_state_empty_description">Získejte, vyměňte nebo kupte %1$s</string>
   <string name="asset_verification_unverified">Neověřené</string>
   <string name="asset_verification_suspicious">Podezřelý</string>
@@ -422,7 +421,7 @@
   <string name="price_alerts_set_alert_set_target_price">Stanovte cílovou cenu</string>
   <string name="price_alerts_set_alert_current_price">Aktuální cena</string>
   <string name="price_alerts_added_for">Nastavit cenové upozornění %1$s</string>
-  <string name="price_alerts_state_empty_title">Vaše upozornění se zobrazí zde ️</string>
+  <string name="price_alerts_state_empty_title">Vaše upozornění se zobrazí zde</string>
   <string name="price_alerts_state_empty_description">Povolte je přidáním mincí do sledování</string>
   <string name="price_alerts_auto_footer">Upozornění se spouštějí při významných cenových pohybech.</string>
   <string name="price_alerts_set_alert_title">Nastavit cenové upozornění</string>
@@ -437,7 +436,7 @@
   <string name="lock_privacy_lock">Zámek soukromí</string>
   <string name="lock_footer">Chraňte přístup k této aplikaci na svém zařízení</string>
   <string name="verify_phrase_title">Potvrdit</string>
-  <string name="warnings_multi_signature_blocked">Nepřevádějte prostředky do této %1$s peněženky s více podpisy, pokud si nejste jisti, že ovládáte soukromé klíče. Pokud tak neučiníte, můžete se vystavit podvodům a můžete trvale ztratit svá aktiva.</string>
+  <string name="warnings_externally_controlled_account">Tento účet %1$s může ovládat někdo jiný. Neposílejte na něj prostředky, pokud si nejste jisti, že ho ovládáte vy, jinak můžete o svá aktiva trvale přijít.</string>
   <string name="sell_title">Prodat %1$s</string>
   <string name="info_network_fee_title">Síťový poplatek</string>
   <string name="info_watch_wallet_title">Sledovaná peněženka</string>
@@ -489,7 +488,7 @@
   <string name="nft_collection">Sbírka</string>
   <string name="nft_save_to_photos">Uložit do Fotek</string>
   <string name="nft_set_as_avatar">Nastavit jako Avatar</string>
-  <string name="nft_state_empty_title">Vaše NFT se zobrazí zde ️</string>
+  <string name="nft_state_empty_title">Vaše NFT se zobrazí zde</string>
   <string name="nft_state_empty_description">Získejte svůj první NFT</string>
   <string name="nft_report_reason_spam">Spam</string>
   <string name="nft_report_reason_malicious">Zlomyslný</string>

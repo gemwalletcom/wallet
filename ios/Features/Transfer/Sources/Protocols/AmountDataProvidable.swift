@@ -8,6 +8,7 @@ import enum Gemstone.GemAmountInputType
 import enum Gemstone.GemAmountType
 import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemTransferData
+import GemstonePrimitives
 import Primitives
 
 protocol AmountDataProvidable {
@@ -27,13 +28,14 @@ extension AmountDataProvidable {
         gemAmountType.input(asset: asset.toGem(), balance: GemAssetBalance(assetData.balance, assetId: asset.id, isActive: assetData.metadata.isActive))
     }
 
-    func entry(from assetData: AssetData, inputType: GemAmountInputType, text: String) -> GemAmountEntry {
+    func entry(from assetData: AssetData, inputType: GemAmountInputType, text: String, currency: Currency) -> GemAmountEntry {
         gemAmountType.entry(
             asset: asset.toGem(),
             input: input(from: assetData),
             price: assetData.price?.price,
             inputType: inputType,
             text: text,
+            currency: currency.toGem(),
         )
     }
 }

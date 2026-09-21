@@ -24,11 +24,7 @@ mod tests {
 
     #[test]
     fn test_u128_deserialization() {
-        let cases = [
-            (r#"{"amount": "123456789012345678901"}"#, Some(123456789012345678901u128)),
-            (r#"{"amount": null}"#, None),
-            (r#"{}"#, None),
-        ];
+        let cases = [(r#"{"amount": "123456789012345678901"}"#, Some(123456789012345678901u128)), (r#"{"amount": null}"#, None), (r#"{}"#, None)];
         for (json, expected) in cases {
             let result: TestStruct = serde_json::from_str(json).unwrap();
             assert_eq!(result.amount, expected);

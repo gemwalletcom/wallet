@@ -21,19 +21,8 @@ impl SwapsXyzProxyClient {
     }
 
     pub async fn action(&self, request: &ActionRequest) -> Result<ActionResponse, Box<dyn Error + Send + Sync>> {
-        let response = self
-            .client
-            .get(build_request_url(&self.url, "/getAction"))
-            .query(request)
-            .send()
-            .await?
-            .error_for_status()?
-            .json::<ActionResponse>()
-            .await?;
-        let _ = self
-            .cacher
-            .add_to_set_cached(CacheKey::SwapDepositAddresses(SwapProvider::SwapsXyz.as_ref()), slice::from_ref(&response.tx.to))
-            .await;
+        let response = self.client.get(build_request_url(&self.url, "/getAction")).query(request).send().await?.error_for_status()?.json::<ActionResponse>().await?;
+        let _ = self.cacher.add_to_set_cached(CacheKey::SwapDepositAddresses(SwapProvider::SwapsXyz.as_ref()), slice::from_ref(&response.tx.to)).await;
         Ok(response)
     }
 }

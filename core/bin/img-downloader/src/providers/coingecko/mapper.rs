@@ -7,12 +7,7 @@ use crate::providers::{mapper::is_native_token, model::AssetImage};
 pub(super) fn map_market_images(markets: Vec<CoinMarket>, mut coins_by_id: HashMap<String, Coin>) -> Vec<AssetImage> {
     markets
         .into_iter()
-        .flat_map(|market| {
-            coins_by_id
-                .remove(&market.id)
-                .map(|coin| map_platform_images(coin.platforms, market.image))
-                .unwrap_or_default()
-        })
+        .flat_map(|market| coins_by_id.remove(&market.id).map(|coin| map_platform_images(coin.platforms, market.image)).unwrap_or_default())
         .collect()
 }
 
@@ -22,10 +17,7 @@ pub(super) fn map_trending_images(trending: SearchTrending, mut coins_by_id: Has
         .into_iter()
         .flat_map(|trending_item| {
             let image_url = trending_item.item.large.unwrap_or_default();
-            coins_by_id
-                .remove(&trending_item.item.id)
-                .map(|coin| map_platform_images(coin.platforms, image_url))
-                .unwrap_or_default()
+            coins_by_id.remove(&trending_item.item.id).map(|coin| map_platform_images(coin.platforms, image_url)).unwrap_or_default()
         })
         .collect()
 }

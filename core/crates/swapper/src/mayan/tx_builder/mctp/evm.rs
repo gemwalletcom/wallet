@@ -55,11 +55,7 @@ sol! {
 }
 
 fn mctp_protocol_call(quote: &Quote, route: &MayanMctpQuote) -> Result<EvmForwarderProtocolCall, SwapperError> {
-    if route.has_auction == Some(true) {
-        mctp_create_order_call(quote, route)
-    } else {
-        mctp_bridge_call(quote, route)
-    }
+    if route.has_auction == Some(true) { mctp_create_order_call(quote, route) } else { mctp_bridge_call(quote, route) }
 }
 
 fn mctp_create_order_call(quote: &Quote, route: &MayanMctpQuote) -> Result<EvmForwarderProtocolCall, SwapperError> {
@@ -150,45 +146,23 @@ fn build_direct_forward_transaction(route: &MayanMctpQuote, protocol_call: &EvmF
         return Err(SwapperError::transaction_error("Mayan MCTP does not support direct native order creation"));
     }
 
-    Ok(evm_builder::build_forward_erc20_transaction(
-        Address::from_str(&route.from_token.contract)?,
-        protocol_call,
-        bridge_fee.to_string(),
-    ))
+    Ok(evm_builder::build_forward_erc20_transaction(Address::from_str(&route.from_token.contract)?, protocol_call, bridge_fee.to_string()))
 }
 
-async fn build_swap_forward_transaction<C>(
-    client: &MayanClient<C>,
-    route: &MayanMctpQuote,
-    protocol_call: &EvmForwarderProtocolCall,
-    bridge_fee: U256,
-) -> Result<EvmTransaction, SwapperError>
+async fn build_swap_forward_transaction<C>(client: &MayanClient<C>, route: &MayanMctpQuote, protocol_call: &EvmForwarderProtocolCall, bridge_fee: U256) -> Result<EvmTransaction, SwapperError>
 where
     C: Client + Clone + Send + Sync + Debug + 'static,
 {
     let mctp_input_contract = mctp_input_contract(route)?;
     let min_middle_amount = fractional_amount::<U256>(route.min_middle_amount.as_ref().ok_or(SwapperError::InvalidRoute)?, CCTP_TOKEN_DECIMALS)?;
     let swap: GetSwapEvmResponse = client
-        .get_swap_evm(GetSwapEvmParams::mctp(
-            route,
-            route.effective_amount_in64.clone(),
-            mctp_input_contract.to_string(),
-            destination_referrer_address(route)?,
-        ))
+        .get_swap_evm(GetSwapEvmParams::mctp(route, route.effective_amount_in64.clone(), mctp_input_contract.to_string(), destination_referrer_address(route)?))
         .await?;
     let swap = EvmSwapForwardData::new(&swap.swap_router_address, &swap.swap_router_calldata, mctp_input_contract, min_middle_amount)?;
 
     if route.from_token.contract.eq_ignore_ascii_case(EVM_ZERO_ADDRESS) {
-        let amount_in = protocol_call
-            .amount_in
-            .checked_sub(bridge_fee)
-            .ok_or_else(|| SwapperError::transaction_error("Amount in is less than bridge fee"))?;
-        return Ok(evm_builder::build_swap_and_forward_eth_transaction(
-            protocol_call,
-            swap,
-            amount_in,
-            protocol_call.amount_in.to_string(),
-        ));
+        let amount_in = protocol_call.amount_in.checked_sub(bridge_fee).ok_or_else(|| SwapperError::transaction_error("Amount in is less than bridge fee"))?;
+        return Ok(evm_builder::build_swap_and_forward_eth_transaction(protocol_call, swap, amount_in, protocol_call.amount_in.to_string()));
     }
 
     Ok(evm_builder::build_swap_and_forward_erc20_transaction(

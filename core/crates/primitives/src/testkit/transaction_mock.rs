@@ -1,8 +1,5 @@
 use crate::transaction_metadata_types::{TransactionAssetTransfer, TransactionAssetTransfersMetadata};
-use crate::{
-    AssetId, Chain, PerpetualDirection, Transaction, TransactionDirection, TransactionId, TransactionPerpetualMetadata, TransactionState, TransactionSwapMetadata, TransactionType,
-    TransactionUtxoInput,
-};
+use crate::{AssetId, Chain, PerpetualDirection, Transaction, TransactionDirection, TransactionId, TransactionPerpetualMetadata, TransactionState, TransactionSwapMetadata, TransactionType, TransactionUtxoInput};
 use chrono::Utc;
 use num_bigint::BigUint;
 

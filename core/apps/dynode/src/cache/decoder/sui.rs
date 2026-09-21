@@ -146,14 +146,6 @@ mod tests {
                 })
                 .is_none()
         );
-        assert!(
-            SuiContractCallDecoder
-                .decode_contract_calls(ContractRequest::Http {
-                    path: "/other",
-                    method: "POST",
-                    body: &body,
-                })
-                .is_none()
-        );
+        assert!(SuiContractCallDecoder.decode_contract_calls(ContractRequest::Http { path: "/other", method: "POST", body: &body }).is_none());
     }
 }

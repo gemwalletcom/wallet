@@ -20,19 +20,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.gemwallet.android.ui.theme.space6
 import com.gemwallet.android.ui.theme.space0
-import com.gemwallet.android.ui.localization.stringRes
+import com.gemwallet.android.ui.theme.space6
 import com.wallet.core.primitives.ChartPeriod
 
 @Composable
-fun PeriodsPanel(
-    period: ChartPeriod,
-    onSelect: (ChartPeriod) -> Unit,
-    periods: List<ChartPeriod> = ChartPeriod.entries,
-) {
+fun PeriodsPanel(period: ChartPeriod, onSelect: (ChartPeriod) -> Unit, periods: List<ChartPeriod> = ChartPeriod.entries) {
     Row(
         modifier = Modifier.padding(start = paddingDefault, end = paddingDefault, bottom = paddingDefault),
         horizontalArrangement = Arrangement.spacedBy(space0),
@@ -70,4 +66,3 @@ private fun RowScope.PeriodButton(title: String, isSelected: Boolean, onClick: (
         )
     }
 }
-

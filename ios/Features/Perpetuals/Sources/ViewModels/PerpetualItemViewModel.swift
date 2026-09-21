@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Style
@@ -47,7 +48,7 @@ struct PerpetualItemViewModel: ListAssetItemViewable {
     var rightView: ListAssetItemRightView {
         .balance(
             balance: TextValue(
-                text: model.infoField(for: .dailyVolume).value.text,
+                text: model.row.volume24h.text(),
                 style: TextStyle(font: .body, color: .primary, fontWeight: .semibold),
             ),
             totalFiat: TextValue(

@@ -54,11 +54,7 @@ impl GemExplorerService {
         let explorer = Explorer { chain };
         provider
             .and_then(|provider| {
-                let input = GemExplorerInput {
-                    hash: hash.clone(),
-                    recipient,
-                    memo,
-                };
+                let input = GemExplorerInput { hash: hash.clone(), recipient, memo };
                 explorer.get_transaction_swap_url(&name, input, &provider)
             })
             .map(|url| link(&url.name, url.url))
@@ -75,10 +71,7 @@ impl GemExplorerService {
 }
 
 fn link(name: &str, url: String) -> BlockExplorerLink {
-    BlockExplorerLink {
-        name: name.to_string(),
-        link: url,
-    }
+    BlockExplorerLink { name: name.to_string(), link: url }
 }
 
 #[cfg(test)]

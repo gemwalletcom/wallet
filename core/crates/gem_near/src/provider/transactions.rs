@@ -33,9 +33,7 @@ impl<C: Client> ChainTransaction for NearIndexer<C> {
 #[async_trait]
 impl<C: Client> ChainTransactions for NearIndexer<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
-        let TransactionsRequest {
-            address, limit, from_timestamp, ..
-        } = request;
+        let TransactionsRequest { address, limit, from_timestamp, .. } = request;
         let transactions = self.get_transactions_by_address(&address, limit, from_timestamp).await?;
         Ok(TransactionsResult::Transactions(transactions))
     }
@@ -53,9 +51,7 @@ mod chain_integration_tests {
 
     #[tokio::test]
     async fn test_near_get_transactions_by_address() -> Result<(), Box<dyn Error + Send + Sync>> {
-        let result = create_near_test_client()
-            .get_transactions_by_address(TransactionsRequest::new(TEST_HISTORY_ADDRESS.to_string(), 3))
-            .await?;
+        let result = create_near_test_client().get_transactions_by_address(TransactionsRequest::new(TEST_HISTORY_ADDRESS.to_string(), 3)).await?;
         let transactions = result.transactions().ok_or("expected full NEAR transactions")?;
 
         assert_eq!(transactions.len(), 3);
@@ -85,11 +81,7 @@ mod chain_integration_tests {
         let expected_block_number = block_number.to_string();
 
         assert_eq!(transactions.len(), 7);
-        assert!(
-            transactions
-                .iter()
-                .all(|transaction| transaction.block_number.as_deref() == Some(expected_block_number.as_str()))
-        );
+        assert!(transactions.iter().all(|transaction| transaction.block_number.as_deref() == Some(expected_block_number.as_str())));
         Ok(())
     }
 
@@ -99,13 +91,11 @@ mod chain_integration_tests {
         let transactions = create_near_test_client().get_transactions_in_blocks(blocks.clone()).await?;
 
         assert!(!transactions.is_empty());
-        assert!(transactions.iter().all(|transaction| {
-            transaction
-                .block_number
-                .as_ref()
-                .and_then(|block| block.parse().ok())
-                .is_some_and(|block| blocks.contains(&block))
-        }));
+        assert!(
+            transactions
+                .iter()
+                .all(|transaction| { transaction.block_number.as_ref().and_then(|block| block.parse().ok()).is_some_and(|block| blocks.contains(&block)) })
+        );
         Ok(())
     }
 

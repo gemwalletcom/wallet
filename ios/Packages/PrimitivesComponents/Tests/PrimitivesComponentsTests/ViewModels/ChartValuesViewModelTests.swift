@@ -17,6 +17,17 @@ struct ChartValuesViewModelTests {
     }
 
     @Test
+    func theScaleAndTheLabelsFollowCoreBounds() {
+        let model = ChartValuesViewModel.mock(chartData: .mock(values: [100, 150, 80, 120]))
+
+        #expect(model.yScale == [76.5, 153.5])
+        #expect(model.lowerBoundValueText == "$80.00")
+        #expect(model.upperBoundValueText == "$150.00")
+        #expect(model.lowerBoundDate == model.charts[2].date)
+        #expect(model.upperBoundDate == model.charts[1].date)
+    }
+
+    @Test
     func headerComesFromCore() {
         let model = ChartValuesViewModel.mock(chartData: .mock(values: [100, 200], header: .mock(value: 150)))
 

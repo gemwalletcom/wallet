@@ -2,10 +2,11 @@
 
 import BigInt
 import Foundation
+import struct Gemstone.GemSwapQuoteInput
 import protocol Gemstone.GemSwapQuoteServiceProtocol
+import struct Gemstone.GemTransferData
 import struct Gemstone.SwapperQuote
 import Primitives
-import struct Gemstone.GemTransferData
 
 public extension GemSwapQuoteServiceProtocol {
     var currency: Primitives.Currency {
@@ -23,19 +24,13 @@ public extension GemSwapQuoteServiceProtocol {
         try setSlippageBps(bps: slippage.exactBps)
     }
 
-    func getQuotes(
-        fromAsset: Asset,
-        toAsset: Asset,
-        amount: BigInt,
-        useMaxAmount: Bool,
-        slippage: SwapSlippage,
-    ) async throws -> [SwapperQuote] {
+    func getQuotes(fromAsset: Asset, toAsset: Asset, input: GemSwapQuoteInput) async throws -> [SwapperQuote] {
         let quotes = try await getQuotes(
             fromAsset: fromAsset.toGem(),
             toAsset: toAsset.toGem(),
-            value: BigUInt(amount),
-            useMaxAmount: useMaxAmount,
-            slippageBps: slippage.exactBps,
+            value: input.request.value,
+            useMaxAmount: input.useMaxAmount,
+            slippageBps: input.request.slippageBps,
         )
         try Task.checkCancellation()
         return quotes

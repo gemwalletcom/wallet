@@ -17,9 +17,7 @@ pub struct DefiLlamaProvider {
 
 impl DefiLlamaProvider {
     pub fn new(client: ReqwestClient) -> Self {
-        Self {
-            client: DefiLlamaClient::new(client),
-        }
+        Self { client: DefiLlamaClient::new(client) }
     }
 }
 
@@ -34,10 +32,7 @@ impl PriceAssetsProvider for DefiLlamaProvider {
     }
 
     async fn get_mappings_for_asset_id(&self, asset_id: &AssetId) -> Result<Vec<AssetPriceMapping>, Box<dyn Error + Send + Sync>> {
-        Ok(defillama_id_for_asset_id(asset_id)
-            .map(|provider_price_id| AssetPriceMapping::new(asset_id.clone(), provider_price_id))
-            .into_iter()
-            .collect())
+        Ok(defillama_id_for_asset_id(asset_id).map(|provider_price_id| AssetPriceMapping::new(asset_id.clone(), provider_price_id)).into_iter().collect())
     }
 
     async fn get_mappings_for_price_id(&self, provider_price_id: &str) -> Result<Vec<AssetPriceMapping>, Box<dyn Error + Send + Sync>> {

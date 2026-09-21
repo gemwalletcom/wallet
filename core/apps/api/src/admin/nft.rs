@@ -13,12 +13,7 @@ pub async fn update_nft_collection(_permission: PermissionAdminWrite, collection
 }
 
 #[put("/nft/assets/update/<asset_id>")]
-pub async fn update_nft_asset(
-    _permission: PermissionAdminWrite,
-    asset_id: NftAssetIdParam,
-    cacher: &State<CacherClient>,
-    stream_producer: &State<StreamProducer>,
-) -> Result<ApiResponse<bool>, ApiError> {
+pub async fn update_nft_asset(_permission: PermissionAdminWrite, asset_id: NftAssetIdParam, cacher: &State<CacherClient>, stream_producer: &State<StreamProducer>) -> Result<ApiResponse<bool>, ApiError> {
     let asset_id = asset_id.0;
     cacher.delete(&CacheKey::FetchNftAsset(&asset_id.to_string()).key()).await?;
     Ok(stream_producer.publish_fetch_nft_asset(asset_id).await?.into())

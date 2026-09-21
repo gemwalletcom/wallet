@@ -7,9 +7,9 @@ import GemstonePrimitivesTestKit
 import Localization
 import Primitives
 import PrimitivesTestKit
-import Testing
 @testable import Settings
 import SettingsTestKit
+import Testing
 
 @MainActor
 struct RewardsViewModelTests {
@@ -70,7 +70,7 @@ struct RewardsViewModelTests {
 
         await model.onTaskOnce()
 
-        #expect(service.usedReferralCodes.map { $0.code } == ["friend"])
+        #expect(service.usedReferralCodes.map(\.code) == ["friend"])
         #expect(model.isPresentingSheet == nil)
     }
 
@@ -112,7 +112,7 @@ struct RewardsViewModelTests {
 
         await model.activatePendingReferral()
 
-        #expect(service.usedReferralCodes.map { $0.code } == ["pending"])
+        #expect(service.usedReferralCodes.map(\.code) == ["pending"])
         #expect(model.toastMessage != nil)
         #expect(model.isPresentingAlert == nil)
     }
@@ -121,7 +121,7 @@ struct RewardsViewModelTests {
     func aFailedActivationShowsTheError() async throws {
         let service = GemRewardsServiceMock()
         service.stateForRewards = { _ in .mock(canActivatePendingReferral: true, usedReferralCode: "pending") }
-        service.useReferralCodeError = AnyError("code already used")
+        service.useReferralCodeError = GemServiceError.Api(msg: "code already used")
         let model = try #require(RewardsViewModel.mock(service: service, wallets: [first, second]))
         await model.load()
 
@@ -145,7 +145,7 @@ struct RewardsViewModelTests {
     @Test
     func aFailedRedemptionShowsTheError() async throws {
         let service = GemRewardsServiceMock()
-        service.redeemError = AnyError("out of stock")
+        service.redeemError = GemServiceError.Api(msg: "out of stock")
         let model = try #require(RewardsViewModel.mock(service: service, wallets: [first, second]))
 
         await model.redeem(option: .mock(id: "option-7"))
@@ -155,24 +155,29 @@ struct RewardsViewModelTests {
     }
 
     @Test
-    func aReadyPendingReferralReadsAsReady() async throws {
+    func aReadyPendingReferralCanBeActivated() async throws {
         let service = GemRewardsServiceMock()
-        service.stateForRewards = { _ in .mock(canActivatePendingReferral: true, usedReferralCode: "pending", verifyAfter: Date(timeIntervalSince1970: 0)) }
+        service.stateForRewards = { _ in .mock(showsPendingActivation: true, canActivatePendingReferral: true, usedReferralCode: "pending") }
         let model = try #require(RewardsViewModel.mock(service: service, wallets: [first, second]))
         await model.load()
 
-        #expect(model.pendingReferralDescription == Localized.Rewards.Pending.descriptionReady)
         #expect(model.activatePendingButtonType == .primary())
     }
 
     @Test
-    func aPendingReferralWithNoDateHasNoDescription() async throws {
+    func aWaitingPendingReferralCannotBeActivated() async throws {
         let service = GemRewardsServiceMock()
-        service.stateForRewards = { _ in .mock(usedReferralCode: "pending", verifyAfter: nil) }
+        service.stateForRewards = { _ in .mock(showsPendingActivation: true, usedReferralCode: "pending") }
         let model = try #require(RewardsViewModel.mock(service: service, wallets: [first, second]))
         await model.load()
 
-        #expect(model.pendingReferralDescription == nil)
         #expect(model.activatePendingButtonType == .primary(.disabled))
+    }
+
+    @Test
+    func pendingNoticeTextsReadTheLocalizedCopy() {
+        #expect(GemLocalizedText.rewardsPendingReady.text == Localized.Rewards.Pending.descriptionReady)
+        #expect(GemLocalizedText.rewardsUnverified.text == Localized.Rewards.Unverified.description)
+        #expect(GemLocalizedText.text(text: "verification required").text == "verification required")
     }
 }

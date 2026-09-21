@@ -14,17 +14,14 @@ import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.model.requiresConfirmation
 import com.gemwallet.android.ui.R
-import kotlin.time.Duration
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlin.time.Duration
 
-internal class SystemAuthenticator(
-    private val activity: FragmentActivity,
-    private val viewModel: MainViewModel,
-) {
+internal class SystemAuthenticator(private val activity: FragmentActivity, private val viewModel: MainViewModel) {
     private val _enrollmentMissing = MutableStateFlow(false)
     private val authRequests = AuthRequestQueue()
     private lateinit var biometricPrompt: BiometricPrompt
@@ -36,24 +33,28 @@ internal class SystemAuthenticator(
 
     fun prepare() {
         val executor = ContextCompat.getMainExecutor(activity)
-        biometricPrompt = BiometricPrompt(activity, executor, object : BiometricPrompt.AuthenticationCallback() {
-            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                if (viewModel.uiState.value.initialAuth != AuthState.Success) {
-                    handleInitialAuthError(errorCode)
-                } else if (authRequests.hasActive()) {
-                    cancelActiveAuthRequest()
+        biometricPrompt = BiometricPrompt(
+            activity,
+            executor,
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    if (viewModel.uiState.value.initialAuth != AuthState.Success) {
+                        retryOrCloseAfterAuthError(errorCode)
+                    } else if (authRequests.hasActive()) {
+                        cancelActiveAuthRequest()
+                    }
                 }
-            }
 
-            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                initialAuthRetry?.cancel()
-                if (viewModel.uiState.value.initialAuth != AuthState.Success) {
-                    viewModel.onInitialAuth(AuthState.Success)
-                } else if (authRequests.hasActive()) {
-                    completeActiveAuthRequest()
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    initialAuthRetry?.cancel()
+                    if (viewModel.uiState.value.initialAuth != AuthState.Success) {
+                        viewModel.onInitialAuth(AuthState.Success)
+                    } else if (authRequests.hasActive()) {
+                        completeActiveAuthRequest()
+                    }
                 }
-            }
-        })
+            },
+        )
     }
 
     fun authenticate() {
@@ -68,12 +69,11 @@ internal class SystemAuthenticator(
         }
     }
 
-    private fun buildPrompt(requiresConfirmation: Boolean): BiometricPrompt.PromptInfo =
-        BiometricPrompt.PromptInfo.Builder()
-            .setTitle(activity.getString(R.string.settings_security_authentication))
-            .setAllowedAuthenticators(SystemAuthPolicy.allowedAuthenticators)
-            .setConfirmationRequired(requiresConfirmation)
-            .build()
+    private fun buildPrompt(requiresConfirmation: Boolean): BiometricPrompt.PromptInfo = BiometricPrompt.PromptInfo.Builder()
+        .setTitle(activity.getString(R.string.settings_security_authentication))
+        .setAllowedAuthenticators(SystemAuthPolicy.allowedAuthenticators)
+        .setConfirmationRequired(requiresConfirmation)
+        .build()
 
     fun refreshEnrollment(): Boolean {
         val canAuth = BiometricManager.from(activity).canAuthenticate(SystemAuthPolicy.allowedAuthenticators)
@@ -116,7 +116,7 @@ internal class SystemAuthenticator(
         runCatching { biometricPrompt.cancelAuthentication() }
     }
 
-    private fun handleInitialAuthError(errorCode: Int) {
+    private fun retryOrCloseAfterAuthError(errorCode: Int) {
         val retryDelay = SystemAuthPolicy.initialRetryDelay(errorCode)
         if (retryDelay == null) {
             activity.finishAffinity()

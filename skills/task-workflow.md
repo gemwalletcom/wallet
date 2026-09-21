@@ -39,6 +39,7 @@ Do not hard-wrap prose at 80 columns in docs, skills, commit messages, PR bodies
 - **Cleanup round two**, after verification: read each hunk as a reviewer. Remove remaining redundancy, unused API, comments prohibited by the style guide, and debugging leftovers. Rerun affected checks if source changes.
 - Inspect final diff and status. Report what changed, exact commands and results, skipped/blocked checks, and remaining risks. Do not describe inspection, compilation, or an unexecuted test as runtime verification.
 - Leave changes uncommitted and external systems unchanged unless the user authorized those actions.
+- Local checks are the gate, not CI. Push only after every applicable local check passes, then let CI run in the background and start the next task instead of waiting on it. Name the checks that only CI can run in the handoff, and treat a CI failure as a finding for the next commit.
 
 ## 6. Maintain Agent Guidance
 

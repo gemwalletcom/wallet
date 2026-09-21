@@ -2,11 +2,11 @@
 
 import Foundation
 import enum Gemstone.GemPerpetualPositionAction
-import InfoSheet
+import struct Gemstone.GemTransferData
 import GemstonePrimitives
+import InfoSheet
 import Primitives
 import PrimitivesComponents
-import struct Gemstone.GemTransferData
 
 public enum WalletSheetType: Identifiable, Equatable, Sendable {
     case selectAsset(SelectAssetType, chains: [Chain])
@@ -16,6 +16,7 @@ public enum WalletSheetType: Identifiable, Equatable, Sendable {
     case addAsset
     case portfolio(PortfolioType)
     case addContact(AddContactType)
+    case addressDetails(ChainAddress)
     case swap
 
     public var id: String {
@@ -27,6 +28,7 @@ public enum WalletSheetType: Identifiable, Equatable, Sendable {
         case .addAsset: "addAsset"
         case let .portfolio(type): "portfolio-\(type.id)"
         case let .addContact(type): "addContact-\(type.id)"
+        case let .addressDetails(chainAddress): "addressDetails-\(chainAddress.chain.rawValue)-\(chainAddress.address)"
         case .swap: "swap"
         }
     }

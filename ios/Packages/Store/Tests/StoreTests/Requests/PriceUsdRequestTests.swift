@@ -10,10 +10,9 @@ struct PriceUsdRequestTests {
     @Test
     func returnsUsdPriceIgnoringSelectedCurrency() throws {
         let db = DB.mockAssets()
-        let fiatRateStore = FiatRateStore(db: db)
         let priceStore = PriceStore(db: db)
 
-        try fiatRateStore.add([FiatRate(symbol: .jpy, rate: 150)])
+        try priceStore.saveRates([FiatRate(symbol: .jpy, rate: 150)])
 
         let ethId = AssetId(chain: .ethereum)
         try priceStore.updatePrices([.mock(assetId: ethId, price: 1100, rate: 150)])

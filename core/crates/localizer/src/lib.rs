@@ -10,8 +10,7 @@ use rust_embed::RustEmbed;
 #[folder = "i18n/"]
 pub struct LocalizationsEmbed;
 
-pub static LOCALIZATIONS: LazyLock<RustEmbedNotifyAssets<LocalizationsEmbed>> =
-    LazyLock::new(|| RustEmbedNotifyAssets::new(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("i18n/")));
+pub static LOCALIZATIONS: LazyLock<RustEmbedNotifyAssets<LocalizationsEmbed>> = LazyLock::new(|| RustEmbedNotifyAssets::new(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("i18n/")));
 
 macro_rules! fl {
     ($loader:expr, $message_id:literal) => {{
@@ -73,12 +72,7 @@ impl LanguageLocalizer {
     pub fn price_alert_down(&self, symbol: &str, price: &str, price_change: &str) -> LanguageNotification {
         LanguageNotification {
             title: fl!(self.loader.as_ref(), "notification_price_alert_down_title", symbol = symbol),
-            description: fl!(
-                self.loader.as_ref(),
-                "notification_price_alert_down_description",
-                price = price,
-                price_change = price_change
-            ),
+            description: fl!(self.loader.as_ref(), "notification_price_alert_down_description", price = price, price_change = price_change),
         }
     }
 
@@ -222,12 +216,7 @@ impl LanguageLocalizer {
     pub fn notification_reward_redeemed_description(&self, points: i32, value: Option<&str>) -> String {
         match value {
             Some(value) => {
-                fl!(
-                    self.loader.as_ref(),
-                    "notification_rewards_redeem_points_for_description",
-                    points = points.abs(),
-                    value = value
-                )
+                fl!(self.loader.as_ref(), "notification_rewards_redeem_points_for_description", points = points.abs(), value = value)
             }
             None => fl!(self.loader.as_ref(), "notification_rewards_redeem_points_description", value = points.abs()),
         }

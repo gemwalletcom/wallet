@@ -18,11 +18,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class WalletAssetsCoordinator(
-    private val assetStore: GemstoneAssetStore,
-    private val getCurrentWalletId: GetCurrentWalletId,
-    scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
-) : GetWalletAssets {
+class WalletAssetsCoordinator(private val assetStore: GemstoneAssetStore, private val getCurrentWalletId: GetCurrentWalletId, scope: CoroutineScope = CoroutineScope(Dispatchers.IO)) : GetWalletAssets {
 
     private val walletAssets: StateFlow<List<AssetInfo>> = getCurrentWalletId()
         .flatMapLatest { walletId -> assetStore.observeAssetsInfo(walletId.id) }

@@ -7,10 +7,7 @@ import com.gemwallet.android.ui.models.ToastMessage
 import kotlinx.coroutines.flow.Flow
 
 @Composable
-fun ToastEffect(
-    events: Flow<ToastMessage>,
-    snackbar: SnackbarHostState,
-) {
+fun ToastEffect(events: Flow<ToastMessage>, snackbar: SnackbarHostState) {
     LaunchedEffect(events, snackbar) {
         events.collect { event -> snackbar.showSnackbar(event.title, event.image) }
     }

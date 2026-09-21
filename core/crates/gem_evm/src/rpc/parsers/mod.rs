@@ -41,10 +41,7 @@ impl ParseContextExt for ParseContext<'_> {
     }
 
     fn is_to_any(&self, addresses: &[&str]) -> bool {
-        self.transaction
-            .to
-            .as_ref()
-            .is_some_and(|to| addresses.iter().any(|address| to.eq_ignore_ascii_case(address)))
+        self.transaction.to.as_ref().is_some_and(|to| addresses.iter().any(|address| to.eq_ignore_ascii_case(address)))
     }
 
     fn make_swap_transaction(&self, from: &str, to: &str, metadata: &TransactionSwapMetadata) -> Option<PrimitivesTransaction> {
@@ -85,13 +82,7 @@ impl ProtocolParsers {
         Self::map_transaction_with_parsers(chain, transaction, receipt, created_at, &[])
     }
 
-    pub fn map_transaction_with_parsers(
-        chain: &Chain,
-        transaction: &Transaction,
-        receipt: &TransactionReceipt,
-        created_at: DateTime<Utc>,
-        parsers: &[&'static ProtocolParser],
-    ) -> Option<PrimitivesTransaction> {
+    pub fn map_transaction_with_parsers(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt, created_at: DateTime<Utc>, parsers: &[&'static ProtocolParser]) -> Option<PrimitivesTransaction> {
         let context = ParseContext::new(transaction, created_at, ParseMetadata { chain, receipt });
 
         parse_transaction(&context, parsers.iter().copied().chain(Self::default_parsers()))

@@ -28,10 +28,7 @@ impl Latency {
             value if value < NORMAL_LATENCY_MILLISECONDS => LatencyType::Normal,
             _ => LatencyType::Slow,
         };
-        Self {
-            latency_type,
-            value: milliseconds as f64,
-        }
+        Self { latency_type, value: milliseconds as f64 }
     }
 }
 

@@ -32,23 +32,21 @@ public struct InputValidationField<TrailingView: View>: View {
     }
 
     public var body: some View {
-        Group {
-            FloatTextField(
-                placeholder,
-                text: $model.text,
-                style: style,
-                allowClean: allowClean,
-                onClean: onClean,
-                trailingView: {
-                    trailingView
-                },
-            )
+        FloatTextField(
+            placeholder,
+            text: $model.text,
+            style: style,
+            allowClean: allowClean,
+            onClean: onClean,
+            trailingView: {
+                trailingView
+            },
+        )
 
-            if let message = model.error?.localizedDescription {
-                Text(.init(message))
-                    .textStyle(TextStyle(font: .footnote, color: Colors.red))
-                    .transition(.opacity)
-            }
+        if let message = model.error?.localizedDescription {
+            Text(.init(message))
+                .textStyle(TextStyle(font: .footnote, color: Colors.red))
+                .transition(.opacity)
         }
     }
 }

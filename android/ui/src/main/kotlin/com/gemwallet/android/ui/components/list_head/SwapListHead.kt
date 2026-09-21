@@ -61,7 +61,7 @@ fun SwapListHead(
                         .align(Alignment.Center)
                         .size(compactIconSize),
                     imageVector = AppIcons.ArrowDownward,
-                    contentDescription = null
+                    contentDescription = null,
                 )
             }
             Spacer16()
@@ -77,13 +77,7 @@ fun SwapListHead(
 }
 
 @Composable
-private fun SwapItem(
-    assetInfo: AssetPriceValue,
-    valueText: String,
-    equivalentText: String?,
-    onSwapClick: (() -> Unit)?,
-    onAssetClick: ((AssetId) -> Unit)?,
-) {
+private fun SwapItem(assetInfo: AssetPriceValue, valueText: String, equivalentText: String?, onSwapClick: (() -> Unit)?, onAssetClick: ((AssetId) -> Unit)?) {
     val asset = assetInfo.asset
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -97,7 +91,7 @@ private fun SwapItem(
                         Modifier.clickable { onSwapClick() }
                     } else {
                         Modifier
-                    }
+                    },
                 ),
         ) {
             Text(
@@ -107,14 +101,14 @@ private fun SwapItem(
                     lineHeight = 32.sp,
                 ),
                 color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Start
+                textAlign = TextAlign.Start,
             )
             if (equivalentText != null) {
                 Text(
                     text = equivalentText,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary,
-                    textAlign = TextAlign.Start
+                    textAlign = TextAlign.Start,
                 )
             }
         }

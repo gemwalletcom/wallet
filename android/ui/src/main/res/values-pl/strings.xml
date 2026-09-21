@@ -210,7 +210,6 @@
   <string name="errors_connections_no_supported_wallets">Brak obsługiwanych portfeli.</string>
   <string name="errors_connections_unsupported_chain">Podany łańcuch nie jest obsługiwany.</string>
   <string name="errors_swap_amount_too_small">Kwota jest za mała</string>
-  <string name="errors_required">%1$s jest wymagane</string>
   <string name="errors_scan_transaction_malicious_description">Nie można ukończyć tej transakcji — adres portfela docelowego jest powiązany z podejrzaną lub szkodliwą aktywnością.</string>
   <string name="errors_scan_transaction_memo_required">%1$s adres portfela docelowego wymaga znacznika/notatki docelowej</string>
   <string name="errors_scan_transaction_malicious_title">Podejrzana aktywność</string>
@@ -422,7 +421,7 @@
   <string name="price_alerts_set_alert_set_target_price">Ustaw cenę docelową</string>
   <string name="price_alerts_set_alert_current_price">Aktualna cena</string>
   <string name="price_alerts_added_for">Ustaw alert cenowy %1$s</string>
-  <string name="price_alerts_state_empty_title">Twoje alerty będą pojawiać się tutaj️</string>
+  <string name="price_alerts_state_empty_title">Twoje alerty będą pojawiać się tutaj</string>
   <string name="price_alerts_state_empty_description">Włącz je, dodając monety do śledzenia</string>
   <string name="price_alerts_auto_footer">Alerty uruchamiają się w przypadku znacznych wahań cen.</string>
   <string name="price_alerts_set_alert_title">Ustaw alert cenowy</string>
@@ -437,7 +436,7 @@
   <string name="lock_privacy_lock">Blokada prywatności</string>
   <string name="lock_footer">Chroń dostęp do tej aplikacji na swoim urządzeniu</string>
   <string name="verify_phrase_title">Potwierdź</string>
-  <string name="warnings_multi_signature_blocked">Nie przelewaj środków do tego portfela Multi-Signature %1$s chyba że masz pewność, że kontrolujesz klucze prywatne. Niedopełnienie tego obowiązku może narazić Cię na oszustwa i możesz trwale utracić swoje aktywa.</string>
+  <string name="warnings_externally_controlled_account">To konto %1$s może być kontrolowane przez kogoś innego. Nie wysyłaj na nie środków, chyba że masz pewność, że to Ty je kontrolujesz, w przeciwnym razie możesz trwale utracić swoje aktywa.</string>
   <string name="sell_title">Sprzedaj %1$s</string>
   <string name="info_network_fee_title">Opłata sieciowa</string>
   <string name="info_watch_wallet_title">Portfel obserwowany</string>
@@ -460,7 +459,7 @@
   <string name="info_balance_required_description">Ta transakcja wymaga %1$s, ale dostępne jest tylko %2$s. Aby kontynuować, potrzebujesz jeszcze %3$s.</string>
   <string name="info_account_minimum_balance_title">Minimalne saldo</string>
   <string name="info_perpetual_funding_payments_title">Płatności finansowe</string>
-  <string name="info_perpetual_funding_payments_description">Płatności finansowe to okresowe płatności pomiędzy inwestorami, mające na celu utrzymanie ceny kontraktu wieczystego na poziomie zbliżonym do ceny spot instrumentu bazowego. Dodatnie finansowanie oznacza, że ​​długie pozycje opłacają krótkie pozycje, podczas gdy ujemne finansowanie oznacza, że ​​krótkie pozycje opłacają długie pozycje.</string>
+  <string name="info_perpetual_funding_payments_description">Płatności finansowe to okresowe płatności pomiędzy inwestorami, mające na celu utrzymanie ceny kontraktu wieczystego na poziomie zbliżonym do ceny spot instrumentu bazowego. Dodatnie finansowanie oznacza, że długie pozycje opłacają krótkie pozycje, podczas gdy ujemne finansowanie oznacza, że krótkie pozycje opłacają długie pozycje.</string>
   <string name="info_perpetual_liquidation_price_title">Cena likwidacyjna</string>
   <string name="info_perpetual_liquidation_price_description">Cena likwidacji to poziom ceny, przy którym Twoja pozycja zostanie automatycznie zamknięta, aby zapobiec dalszym stratom. Kiedy cena rynkowa osiągnie ten poziom, Twoja pozycja zostanie zlikwidowana, a Ty stracisz marżę.</string>
   <string name="info_perpetual_open_interest_title">Otwarte zainteresowanie</string>
@@ -489,7 +488,7 @@
   <string name="nft_collection">Kolekcja</string>
   <string name="nft_save_to_photos">Zapisz w Zdjęciach</string>
   <string name="nft_set_as_avatar">Ustaw jako awatar</string>
-  <string name="nft_state_empty_title">Twoje NFT pojawią się tutaj️</string>
+  <string name="nft_state_empty_title">Twoje NFT pojawią się tutaj</string>
   <string name="nft_state_empty_description">Otrzymaj swój pierwszy NFT</string>
   <string name="nft_report_reason_spam">Spam</string>
   <string name="nft_report_reason_malicious">Złośliwy</string>

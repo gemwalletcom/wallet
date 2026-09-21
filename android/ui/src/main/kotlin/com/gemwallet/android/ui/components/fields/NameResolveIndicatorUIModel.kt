@@ -6,9 +6,5 @@ import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 
 sealed interface NameResolveIndicatorUIModel {
     data object Loading : NameResolveIndicatorUIModel
-    data class Icon(
-        val symbol: ListItemSymbol,
-        val style: ListItemTextStyle,
-        @param:StringRes val contentDescription: Int?,
-    ) : NameResolveIndicatorUIModel
+    data class Icon(val symbol: ListItemSymbol, val style: ListItemTextStyle, @param:StringRes val contentDescription: Int?) : NameResolveIndicatorUIModel
 }

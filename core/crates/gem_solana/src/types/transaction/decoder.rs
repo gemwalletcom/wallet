@@ -50,11 +50,7 @@ impl<'a> Decoder<'a> {
     }
 
     fn read_bytes(&mut self, len: usize, missing: &'static str) -> Result<&'a [u8]> {
-        let end = self
-            .offset
-            .checked_add(len)
-            .filter(|end| *end <= self.bytes.len())
-            .ok_or_else(|| invalid_transaction(missing))?;
+        let end = self.offset.checked_add(len).filter(|end| *end <= self.bytes.len()).ok_or_else(|| invalid_transaction(missing))?;
         let bytes = &self.bytes[self.offset..end];
         self.offset = end;
         Ok(bytes)

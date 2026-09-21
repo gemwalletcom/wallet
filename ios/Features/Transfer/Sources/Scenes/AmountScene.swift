@@ -100,10 +100,10 @@ public struct AmountScene: View {
                     }
                 }
 
-                if perpetual.isAutocloseEnabled {
+                if perpetual.isAutocloseEnabled, let autocloseListItem = perpetual.autocloseListItem {
                     Section {
                         NavigationCustomLink(
-                            with: ListItemView(model: perpetual.autocloseListItem),
+                            with: ListItemView(model: autocloseListItem),
                             action: model.onSelectAutoclose,
                         )
                     }
@@ -111,7 +111,9 @@ public struct AmountScene: View {
 
             case let .earn(earn):
                 Section(earn.providerTitle) {
-                    ValidatorView(model: ValidatorViewModel(row: earn.providerRow))
+                    if let row = earn.providerRow {
+                        ValidatorView(model: ValidatorViewModel(row: row))
+                    }
                 }
 
             case .transfer:
@@ -141,8 +143,8 @@ public struct AmountScene: View {
         .frame(maxWidth: .infinity)
         .navigationTitle(model.title)
         .onChange(of: model.amountInputModel.text, model.onChangeAmountText)
-        .onAppear {
-            model.onAppear()
+        .onAppear(perform: model.onAppear)
+        .taskOnce {
             if model.shouldFocusOnAppear {
                 focusedField = true
             }

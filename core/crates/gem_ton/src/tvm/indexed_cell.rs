@@ -23,13 +23,7 @@ pub fn build_index(roots: &[CellArc]) -> IndexedCells {
             if indexed_cells.contains_key(&cell.hash) {
                 continue;
             }
-            indexed_cells.insert(
-                cell.hash,
-                RefCell::new(IndexedCell {
-                    index: next_index,
-                    cell: cell.clone(),
-                }),
-            );
+            indexed_cells.insert(cell.hash, RefCell::new(IndexedCell { index: next_index, cell: cell.clone() }));
             next_index += 1;
             next_frontier.extend(cell.references.iter().cloned());
         }

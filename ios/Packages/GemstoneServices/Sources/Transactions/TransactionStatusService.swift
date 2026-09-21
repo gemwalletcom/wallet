@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import protocol Gemstone.GemTransactionStatusService
 import struct Gemstone.Transaction
+import Primitives
 
 public final class GemstoneTransactionStatusService: GemTransactionStatusService, Sendable {
     private let service: any GemTransactionStateServiceProtocol

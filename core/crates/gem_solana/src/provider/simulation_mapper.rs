@@ -54,14 +54,7 @@ fn simulation_error_warning(error: Value) -> SimulationWarning {
     SimulationWarning::execution_error(message)
 }
 
-fn map_balance_changes(
-    account_keys: &[String],
-    signer_addresses: &HashSet<String>,
-    pre_balances: &[u64],
-    post_balances: &[u64],
-    pre_token_balances: &[TokenBalance],
-    post_token_balances: &[TokenBalance],
-) -> Vec<SimulationBalanceChange> {
+fn map_balance_changes(account_keys: &[String], signer_addresses: &HashSet<String>, pre_balances: &[u64], post_balances: &[u64], pre_token_balances: &[TokenBalance], post_token_balances: &[TokenBalance]) -> Vec<SimulationBalanceChange> {
     let mut deltas: HashMap<AssetId, BigInt> = HashMap::new();
     let mut decimals: HashMap<AssetId, i32> = HashMap::new();
     for (asset_id, value, asset_decimals) in signer_asset_values(account_keys, signer_addresses, post_balances, post_token_balances) {
@@ -92,13 +85,7 @@ fn signer_asset_values(account_keys: &[String], signer_addresses: &HashSet<Strin
     let mut values: Vec<(AssetId, BigInt, i32)> = token_balances
         .iter()
         .filter(|token_balance| signer_addresses.contains(&token_balance.owner))
-        .map(|token_balance| {
-            (
-                AssetId::from_token(Chain::Solana, &token_balance.mint),
-                BigInt::from(token_balance.get_amount()),
-                token_balance.ui_token_amount.decimals as i32,
-            )
-        })
+        .map(|token_balance| (AssetId::from_token(Chain::Solana, &token_balance.mint), BigInt::from(token_balance.get_amount()), token_balance.ui_token_amount.decimals as i32))
         .collect();
 
     let native_decimals = Asset::from_chain(Chain::Solana).decimals;
@@ -128,14 +115,7 @@ mod tests {
         let pre_tokens = vec![TokenBalance::mock(SOLANA_USDC_TOKEN_ID, "wallet", 1_000_000)];
         let post_tokens = vec![TokenBalance::mock(SOLANA_USDC_TOKEN_ID, "wallet", 250_000)];
 
-        let changes = map_balance_changes(
-            &account_keys,
-            &HashSet::from(["wallet".to_string()]),
-            &pre_balances,
-            &post_balances,
-            &pre_tokens,
-            &post_tokens,
-        );
+        let changes = map_balance_changes(&account_keys, &HashSet::from(["wallet".to_string()]), &pre_balances, &post_balances, &pre_tokens, &post_tokens);
 
         assert_eq!(
             changes,
@@ -189,14 +169,7 @@ mod tests {
         let pre_tokens = vec![TokenBalance::mock(SOLANA_USDC_TOKEN_ID, "recipient", 1_000_000)];
         let post_tokens = vec![TokenBalance::mock(SOLANA_USDC_TOKEN_ID, "recipient", 2_000_000)];
 
-        let changes = map_balance_changes(
-            &account_keys,
-            &HashSet::from(["wallet".to_string()]),
-            &pre_balances,
-            &post_balances,
-            &pre_tokens,
-            &post_tokens,
-        );
+        let changes = map_balance_changes(&account_keys, &HashSet::from(["wallet".to_string()]), &pre_balances, &post_balances, &pre_tokens, &post_tokens);
 
         assert_eq!(changes, vec![SimulationBalanceChange::mock(AssetId::from_chain(Chain::Solana), BigInt::from(-5000i64), 9)]);
     }
@@ -218,14 +191,7 @@ mod tests {
         let pre_tokens = vec![TokenBalance::mock(SOLANA_USDC_TOKEN_ID, "wallet", 1_000_000)];
         let post_tokens = vec![TokenBalance::mock(SOLANA_USDC_TOKEN_ID, "wallet", 0), TokenBalance::mock(other_mint, "wallet", 2_000_000)];
 
-        let changes = map_balance_changes(
-            &account_keys,
-            &HashSet::from(["wallet".to_string()]),
-            &[1_000_000_000],
-            &[997_960_720],
-            &pre_tokens,
-            &post_tokens,
-        );
+        let changes = map_balance_changes(&account_keys, &HashSet::from(["wallet".to_string()]), &[1_000_000_000], &[997_960_720], &pre_tokens, &post_tokens);
 
         assert_eq!(changes.len(), 3);
         assert!(changes.iter().any(|change| change.asset_id.token_id.is_none() && change.value == BigInt::from(-2039280i64)));
@@ -237,14 +203,7 @@ mod tests {
     fn test_map_balance_changes_nets_multiple_signers() {
         let account_keys = vec!["wallet".to_string(), "cosigner".to_string()];
 
-        let changes = map_balance_changes(
-            &account_keys,
-            &HashSet::from(["wallet".to_string(), "cosigner".to_string()]),
-            &[1_000_000_000, 50_000],
-            &[999_995_000, 65_000],
-            &[],
-            &[],
-        );
+        let changes = map_balance_changes(&account_keys, &HashSet::from(["wallet".to_string(), "cosigner".to_string()]), &[1_000_000_000, 50_000], &[999_995_000, 65_000], &[], &[]);
 
         assert_eq!(changes, vec![SimulationBalanceChange::mock(AssetId::from_chain(Chain::Solana), BigInt::from(10000i64), 9)]);
     }
@@ -264,14 +223,7 @@ mod tests {
             TokenBalance::mock(wrapped_sol_mint, "cosigner", 0),
         ];
 
-        let changes = map_balance_changes(
-            &account_keys,
-            &HashSet::from(["wallet".to_string()]),
-            &[500_000, 10_000_000],
-            &[500_000, 22_500_000],
-            &pre_tokens,
-            &post_tokens,
-        );
+        let changes = map_balance_changes(&account_keys, &HashSet::from(["wallet".to_string()]), &[500_000, 10_000_000], &[500_000, 22_500_000], &pre_tokens, &post_tokens);
 
         assert_eq!(
             changes,
@@ -286,14 +238,7 @@ mod tests {
     fn test_map_balance_changes_ignores_loaded_account_balances_without_keys() {
         let account_keys = vec!["wallet".to_string()];
 
-        let changes = map_balance_changes(
-            &account_keys,
-            &HashSet::from(["wallet".to_string()]),
-            &[1_000_000_000, 10, 20],
-            &[999_995_000, 1_000, 2_000],
-            &[],
-            &[],
-        );
+        let changes = map_balance_changes(&account_keys, &HashSet::from(["wallet".to_string()]), &[1_000_000_000, 10, 20], &[999_995_000, 1_000, 2_000], &[], &[]);
 
         assert_eq!(changes, vec![SimulationBalanceChange::mock(AssetId::from_chain(Chain::Solana), BigInt::from(-5000i64), 9)]);
     }

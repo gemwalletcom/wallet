@@ -48,14 +48,7 @@ fn map_protocol(position: &ZerionPosition) -> DefiProtocol {
     let name = metadata
         .map(|metadata| metadata.name.clone())
         .or_else(|| position.attributes.protocol.clone())
-        .or_else(|| {
-            position
-                .relationships
-                .dapp
-                .as_ref()
-                .and_then(|relationship| relationship.data.as_ref())
-                .map(|data| data.id.clone())
-        })
+        .or_else(|| position.relationships.dapp.as_ref().and_then(|relationship| relationship.data.as_ref()).map(|data| data.id.clone()))
         .unwrap_or_default();
     let url = metadata.and_then(|metadata| metadata.url.clone()).filter(|url| !url.is_empty());
 
@@ -124,10 +117,7 @@ mod tests {
         assert_eq!(positions[0].name, "Asset");
         assert_eq!(positions[0].position_type, DefiPositionType::Lending);
         assert_eq!(positions[0].assets.len(), 1);
-        assert_eq!(
-            positions[0].assets[0].asset_id,
-            AssetId::from_token(Chain::Polygon, "0x0391d2021f89dc339f60fff84546ea23e337750f")
-        );
+        assert_eq!(positions[0].assets[0].asset_id, AssetId::from_token(Chain::Polygon, "0x0391d2021f89dc339f60fff84546ea23e337750f"));
         assert_eq!(positions[0].assets[0].value, BigUint::parse_bytes(b"123456780000000000000", 10).unwrap());
     }
 
@@ -149,13 +139,7 @@ mod tests {
         assert_eq!(positions[0].id, "binance-smart-chain-uniswap-v3-usdt/wbnb-pool-(#2419399)-deposit");
         assert_eq!(positions[0].position_type, DefiPositionType::LiquidityPool);
         assert_eq!(positions[0].assets.len(), 2);
-        assert_eq!(
-            positions[0].assets[0].asset_id,
-            AssetId::from_token(Chain::SmartChain, "0x55d398326f99059ff775485246999027b3197955")
-        );
-        assert_eq!(
-            positions[0].assets[1].asset_id,
-            AssetId::from_token(Chain::SmartChain, "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c")
-        );
+        assert_eq!(positions[0].assets[0].asset_id, AssetId::from_token(Chain::SmartChain, "0x55d398326f99059ff775485246999027b3197955"));
+        assert_eq!(positions[0].assets[1].asset_id, AssetId::from_token(Chain::SmartChain, "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"));
     }
 }

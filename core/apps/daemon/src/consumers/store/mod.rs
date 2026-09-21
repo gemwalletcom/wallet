@@ -39,12 +39,7 @@ pub async fn run_consumer_store(settings: Settings, shutdown_rx: ShutdownReceive
     Ok(())
 }
 
-async fn run_store_transactions(
-    settings: Arc<Settings>,
-    database: Database,
-    shutdown_rx: ShutdownReceiver,
-    reporter: Arc<dyn ConsumerStatusReporter>,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn run_store_transactions(settings: Arc<Settings>, database: Database, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     let queue = QueueName::StoreTransactions;
     let (name, stream_reader) = reader_for_queue(&settings, &queue, &shutdown_rx).await?;
     let stream_producer = producer_for_queue(&settings, &name, shutdown_rx.clone()).await?;
@@ -65,16 +60,10 @@ async fn run_store_transactions(
         config,
         vault_client: SwapVaultAddressClient::new(cacher),
     };
-    run_consumer::<TransactionsPayload, StoreTransactionsConsumer, usize>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter)
-        .await
+    run_consumer::<TransactionsPayload, StoreTransactionsConsumer, usize>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter).await
 }
 
-async fn run_store_prices(
-    settings: Arc<Settings>,
-    database: Database,
-    shutdown_rx: ShutdownReceiver,
-    reporter: Arc<dyn ConsumerStatusReporter>,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn run_store_prices(settings: Arc<Settings>, database: Database, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     let queue = QueueName::StorePrices;
     let (name, stream_reader) = reader_for_queue(&settings, &queue, &shutdown_rx).await?;
     let cacher_client = CacherClient::new(&settings.redis.url).await?;
@@ -92,33 +81,19 @@ async fn run_store_prices(
     run_consumer::<PricesPayload, StorePricesConsumer, usize>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter).await
 }
 
-async fn run_wallet_stream(
-    settings: Arc<Settings>,
-    database: Database,
-    shutdown_rx: ShutdownReceiver,
-    reporter: Arc<dyn ConsumerStatusReporter>,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn run_wallet_stream(settings: Arc<Settings>, database: Database, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     let queue = QueueName::WalletStreamEvents;
     let (name, stream_reader) = reader_for_queue(&settings, &queue, &shutdown_rx).await?;
     let cacher_client = CacherClient::new(&settings.redis.url).await?;
     let retention = ConfigCacher::new(database.clone()).get_duration(ConfigKey::DeviceStreamRetention)?;
-    let consumer = WalletStreamConsumer {
-        database,
-        cacher_client,
-        retention,
-    };
+    let consumer = WalletStreamConsumer { database, cacher_client, retention };
     run_consumer::<WalletStreamPayload, WalletStreamConsumer, usize>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter).await
 }
 
-async fn run_store_pending_transactions(
-    settings: Arc<Settings>,
-    shutdown_rx: ShutdownReceiver,
-    reporter: Arc<dyn ConsumerStatusReporter>,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn run_store_pending_transactions(settings: Arc<Settings>, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     let queue = QueueName::StorePendingTransactions;
     let (name, stream_reader) = reader_for_queue(&settings, &queue, &shutdown_rx).await?;
     let cacher = CacherClient::new(&settings.redis.url).await?;
     let consumer = StorePendingTransactionsConsumer::new(cacher);
-    run_consumer::<TransactionId, StorePendingTransactionsConsumer, usize>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter)
-        .await
+    run_consumer::<TransactionId, StorePendingTransactionsConsumer, usize>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter).await
 }

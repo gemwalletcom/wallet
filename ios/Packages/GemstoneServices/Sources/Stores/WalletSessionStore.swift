@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Observation
 import protocol Gemstone.GemPreferencesStore
 import protocol Gemstone.GemWalletSessionStore
 import typealias Gemstone.WalletId
+import Observation
 
 @Observable
 public final class GemstoneWalletSessionStore: GemWalletSessionStore, @unchecked Sendable {

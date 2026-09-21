@@ -33,10 +33,7 @@ impl AssetsRepository for DatabaseClient {
     }
 
     fn add_assets(&mut self, values: Vec<AssetBasic>) -> Result<usize, DatabaseError> {
-        Ok(AssetsStore::add_assets(
-            self,
-            values.into_iter().map(|x| NewAssetRow::from_primitive(x.asset, x.score, x.properties)).collect(),
-        )?)
+        Ok(AssetsStore::add_assets(self, values.into_iter().map(|x| NewAssetRow::from_primitive(x.asset, x.score, x.properties)).collect())?)
     }
 
     fn update_assets(&mut self, asset_ids: Vec<AssetId>, updates: Vec<AssetUpdate>) -> Result<usize, DatabaseError> {
@@ -52,10 +49,7 @@ impl AssetsRepository for DatabaseClient {
     }
 
     fn get_asset_ids_by_filter(&mut self, filters: Vec<AssetFilter>) -> Result<Vec<AssetId>, DatabaseError> {
-        Ok(AssetsStore::get_asset_ids_by_filter(self, filters)?
-            .into_iter()
-            .filter_map(|id| AssetId::new(&id))
-            .collect())
+        Ok(AssetsStore::get_asset_ids_by_filter(self, filters)?.into_iter().filter_map(|id| AssetId::new(&id)).collect())
     }
 
     fn get_asset(&mut self, asset_id: &AssetId) -> Result<Asset, DatabaseError> {
@@ -124,10 +118,7 @@ impl AssetsRepository for DatabaseClient {
             .into_iter()
             .map(|asset| {
                 let price = prices.get(&asset.as_asset_id()).cloned();
-                AssetPriceMetadata {
-                    asset: asset.as_basic_primitive(),
-                    price,
-                }
+                AssetPriceMetadata { asset: asset.as_basic_primitive(), price }
             })
             .collect())
     }

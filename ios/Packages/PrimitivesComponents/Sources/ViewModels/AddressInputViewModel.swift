@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemNameRecordState
-import struct Gemstone.GemRecipient
-import struct Gemstone.GemRecipientValidation
 import Components
 import Foundation
+import enum Gemstone.GemNameRecordState
 import protocol Gemstone.GemNameServiceProtocol
+import struct Gemstone.GemRecipient
+import struct Gemstone.GemRecipientValidation
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -57,16 +57,6 @@ public final class AddressInputViewModel {
         validation.address
     }
 
-    public func recipient(memo: String?, references: [String] = []) throws -> GemRecipient {
-        try nameService.recipient(
-            chain: chain.rawValue,
-            input: text,
-            state: nameResolveState,
-            memo: memo,
-            references: references,
-        )
-    }
-
     private var validation: GemRecipientValidation {
         nameService.validateRecipient(chain: chain.rawValue, input: text, state: nameResolveState)
     }
@@ -93,7 +83,6 @@ public final class AddressInputViewModel {
         update(error: validation.error)
         return validation.isValid
     }
-
 }
 
 extension AddressInputViewModel {
@@ -137,7 +126,7 @@ extension AddressInputViewModel {
         }
     }
 
-    private static func validators(placeholder: String) -> [any TextValidator] {
-        [.required(requireName: placeholder)]
+    private static func validators(placeholder _: String) -> [any TextValidator] {
+        []
     }
 }

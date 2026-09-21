@@ -187,10 +187,7 @@ pub use self::wallet_configuration::{WalletConfiguration, WalletConfigurationRes
 pub mod utxo;
 pub use self::utxo::UTXO;
 pub mod push_notification;
-pub use self::push_notification::{
-    PushNotification, PushNotificationAsset, PushNotificationReward, PushNotificationSupport, PushNotificationSwapAsset, PushNotificationTransaction, PushNotificationTypes,
-    PushNotificationWalletAsset,
-};
+pub use self::push_notification::{PushNotification, PushNotificationAsset, PushNotificationReward, PushNotificationSupport, PushNotificationSwapAsset, PushNotificationTransaction, PushNotificationTypes, PushNotificationWalletAsset};
 pub mod gorush;
 pub use self::gorush::{FailedNotification, GorushNotification, GorushNotifications, PushErrorLog};
 pub mod admin;
@@ -223,18 +220,15 @@ pub use self::image_type::{ImageType, MIME_TYPE_PNG};
 pub mod wallet_id;
 pub use self::wallet_id::WalletId;
 pub mod wallet_connector;
-pub use self::wallet_connector::{
-    WCPairingProposal, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState,
-    WalletConnectionVerificationStatus,
-};
+pub use self::wallet_connector::{WCPairingProposal, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus};
 pub mod nft;
-pub use self::nft::{NFTAsset, NFTAssetData, NFTAssetId, NFTAttribute, NFTAttributeType, NFTCollection, NFTCollectionId, NFTData, NFTImages, NFTResource, NFTType, ReportNft};
+pub use self::nft::{NFTAsset, NFTAssetData, NFTAssetId, NFTAttribute, NFTAttributeType, NFTCollection, NFTCollectionId, NFTData, NFTImages, NFTResource, NFTType, ReportNft, ReportReason};
 pub mod price_alert;
 pub use self::price_alert::{DevicePriceAlert, PriceAlert, PriceAlertData, PriceAlertDirection, PriceAlertNotificationType, PriceAlertType, PriceAlerts};
 pub mod rewards;
 pub use self::rewards::{
-    RedemptionResult, RedemptionStatus, ReferralAllowance, ReferralCode, ReferralLeader, ReferralLeaderboard, ReferralQuota, RewardEvent, RewardEventType, RewardLevel,
-    RewardRedemption, RewardRedemptionOption, RewardRedemptionType, RewardStatus, Rewards,
+    RedemptionResult, RedemptionStatus, ReferralAllowance, ReferralCode, ReferralLeader, ReferralLeaderboard, ReferralQuota, RewardEvent, RewardEventType, RewardLevel, RewardRedemption, RewardRedemptionOption, RewardRedemptionType,
+    RewardStatus, Rewards,
 };
 pub mod tag;
 pub use self::tag::AssetTag;
@@ -284,10 +278,7 @@ pub use self::websocket::WebSocketPricePayload;
 pub mod stream;
 pub use self::stream::{StreamBalanceUpdate, StreamEvent, StreamMessage, StreamMessagePrices, StreamTransactionsUpdate, StreamWalletUpdate, device_stream_channel};
 pub mod support;
-pub use self::support::{
-    SupportAction, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageInput, SupportMessageSender, SupportMessageStatus, SupportStreamEvent, SupportTyping,
-    SupportTypingStatus,
-};
+pub use self::support::{SupportAction, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageInput, SupportMessageSender, SupportMessageStatus, SupportStreamEvent, SupportTyping, SupportTypingStatus};
 pub mod asset_balance;
 pub use self::asset_balance::{AddressBalances, AssetBalance, Balance, BalanceMetadata};
 pub mod chain_address;
@@ -304,9 +295,8 @@ pub use self::asset_address::AssetAddress;
 pub mod graphql;
 pub mod perpetual;
 pub use self::perpetual::{
-    AccountDataType, CancelOrderData, Perpetual, PerpetualAccountMode, PerpetualBalance, PerpetualBasic, PerpetualConfirmData, PerpetualData, PerpetualDirection,
-    PerpetualMarketData, PerpetualMetadata, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualPositionData, PerpetualPositionsSummary, PerpetualReduceData,
-    PerpetualSearchData, PerpetualType, TPSLOrderData,
+    AccountDataType, CancelOrderData, Perpetual, PerpetualAccountMode, PerpetualBalance, PerpetualBasic, PerpetualConfirmData, PerpetualData, PerpetualDirection, PerpetualMarketData, PerpetualMetadata, PerpetualModifyConfirmData,
+    PerpetualModifyPositionType, PerpetualPositionData, PerpetualPositionsSummary, PerpetualReduceData, PerpetualSearchData, PerpetualType, TPSLOrderData,
 };
 pub mod search;
 pub use self::search::{AssetList, SearchResponse};
@@ -318,8 +308,8 @@ pub mod perpetual_position;
 pub use self::perpetual_position::{PerpetualMarginType, PerpetualOrderType, PerpetualPosition, PerpetualTriggerOrder};
 pub mod portfolio;
 pub use self::portfolio::{
-    ChartValuePercentage, PerpetualAccountSummary, PerpetualPortfolio, PerpetualPortfolioTimeframeData, PortfolioAllocation, PortfolioAsset, PortfolioAssets,
-    PortfolioAssetsRequest, PortfolioChartData, PortfolioChartType, PortfolioData, PortfolioMarginUsage, PortfolioStatistic, PortfolioType,
+    ChartValuePercentage, PerpetualAccountSummary, PerpetualPortfolio, PerpetualPortfolioTimeframeData, PortfolioAllocation, PortfolioAsset, PortfolioAssets, PortfolioAssetsRequest, PortfolioChartData, PortfolioChartType, PortfolioData,
+    PortfolioMarginUsage, PortfolioStatistic, PortfolioType,
 };
 pub use chrono;
 pub mod tpsl_type;
@@ -391,8 +381,8 @@ pub mod notification;
 pub use self::notification::InAppNotification;
 pub mod simulation;
 pub use self::simulation::{
-    SimulationBalanceChange, SimulationHeader, SimulationInput, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType,
-    SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningApproval, SimulationWarningType, promote_single_secondary_payload_field,
+    SimulationBalanceChange, SimulationHeader, SimulationInput, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity, SimulationWarning,
+    SimulationWarningApproval, SimulationWarningType, promote_single_secondary_payload_field,
 };
 pub mod ip_usage_type;
 pub use self::ip_usage_type::IpUsageType;

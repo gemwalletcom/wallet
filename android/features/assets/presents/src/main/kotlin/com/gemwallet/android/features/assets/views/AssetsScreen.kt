@@ -48,11 +48,11 @@ import com.gemwallet.android.features.nft.presents.CollectionsPreviewSection
 import com.gemwallet.android.features.perpetual.views.PerpetualsPreviewSection
 import com.gemwallet.android.features.update_app.presents.InAppUpdateBanner
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.banner.BannerDestination
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.SnackbarHost
 import com.gemwallet.android.ui.components.screen.ToastEffect
-import com.gemwallet.android.ui.components.banner.BannerDestination
 import com.gemwallet.android.ui.models.AssetsGroupType
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -71,12 +71,7 @@ private const val AssetsListTag = "assets_list"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AssetsScreen(
-    onAction: (AssetsAction) -> Unit,
-    onContentReady: () -> Unit = {},
-    listState: LazyListState = rememberLazyListState(),
-    viewModel: AssetsViewModel = hiltViewModel(),
-) {
+fun AssetsScreen(onAction: (AssetsAction) -> Unit, onContentReady: () -> Unit = {}, listState: LazyListState = rememberLazyListState(), viewModel: AssetsViewModel = hiltViewModel()) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val importing by viewModel.isLoadingAssets.collectAsStateWithLifecycle()
@@ -135,7 +130,7 @@ fun AssetsScreen(
                 modifier = Modifier
                     .fillMaxHeight()
                     .testTag(AssetsListTag),
-                state = listState
+                state = listState,
             ) {
                 item(key = AssetsHeadItemKey) {
                     AssetsHead(
@@ -145,7 +140,7 @@ fun AssetsScreen(
                         onBuyClick = { onAction(AssetsAction.Buy) },
                         onSwapClick = { onAction(AssetsAction.Swap) },
                         onPortfolio = { onAction(AssetsAction.Portfolio) },
-                        onHideBalances = viewModel::hideBalances
+                        onHideBalances = viewModel::hideBalances,
                     )
                 }
                 item(key = InAppUpdateBannerItemKey) {
@@ -157,9 +152,11 @@ fun AssetsScreen(
                         onSelect = { destination ->
                             when (destination) {
                                 is BannerDestination.OpenUrl -> uriHandler.open(context, destination.url)
+
                                 BannerDestination.Stake,
                                 BannerDestination.Perpetuals,
-                                is BannerDestination.Activate -> Unit
+                                is BannerDestination.Activate,
+                                -> Unit
                             }
                         },
                         onClose = viewModel::closeBanner,
@@ -172,10 +169,10 @@ fun AssetsScreen(
                         Row(
                             modifier = Modifier.padding(paddingDefault),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(paddingSmall)
+                            horizontalArrangement = Arrangement.spacedBy(paddingSmall),
                         ) {
                             Text(
-                                text = "${stringResource(R.string.common_loading)}…"
+                                text = "${stringResource(R.string.common_loading)}…",
                             )
                             CircularWavyProgressIndicator(
                                 modifier = Modifier.size(paddingDefault),
@@ -186,7 +183,7 @@ fun AssetsScreen(
                                 trackStroke = Stroke(
                                     width = with(LocalDensity.current) { space2.toPx() },
                                     cap = StrokeCap.Round,
-                                )
+                                ),
                             )
                         }
                     }

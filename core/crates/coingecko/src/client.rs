@@ -1,7 +1,4 @@
-use crate::model::{
-    Coin, CoinCategory, CoinGeckoResponse, CoinIds, CoinInfo, CoinMarket, CoinMarketsQuery, CoinQuery, CointListQuery, Data, ExchangeRates, Global, MarketChart, MarketChartQuery,
-    SearchTrending, TopGainersLosers,
-};
+use crate::model::{Coin, CoinCategory, CoinGeckoResponse, CoinIds, CoinInfo, CoinMarket, CoinMarketsQuery, CoinQuery, CointListQuery, Data, ExchangeRates, Global, MarketChart, MarketChartQuery, SearchTrending, TopGainersLosers};
 use crate::target::CoinGeckoTarget;
 use gem_client::{Client, ClientExt, RemoteProviderConfig, ReqwestClient, retry};
 use primitives::{FiatRate, currency::Currency};
@@ -91,13 +88,7 @@ impl<C: Client> CoinGeckoClient<C> {
         self.get_coin_markets_query(None, per_page, Some(ids.join(",")), None).await
     }
 
-    async fn get_coin_markets_query(
-        &self,
-        page: Option<usize>,
-        per_page: usize,
-        ids: Option<String>,
-        category: Option<String>,
-    ) -> Result<Vec<CoinMarket>, Box<dyn Error + Send + Sync>> {
+    async fn get_coin_markets_query(&self, page: Option<usize>, per_page: usize, ids: Option<String>, category: Option<String>) -> Result<Vec<CoinMarket>, Box<dyn Error + Send + Sync>> {
         self.get_json(CoinGeckoTarget::CoinMarkets {
             query: CoinMarketsQuery {
                 vs_currency: "usd",
@@ -207,14 +198,9 @@ mod tests {
                 "/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false&locale=en&category=xstocks-ecosystem&include_rehypothecated=true" => {
                     r#"[{"id":"tesla-xstock","symbol":"tslax","name":"Tesla xStock","image":"https://example.com/tesla.png"}]"#
                 }
-                "/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=2&sparkline=false&locale=en&category=xstocks-ecosystem&include_rehypothecated=true" => {
-                    "[]"
-                }
+                "/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=2&sparkline=false&locale=en&category=xstocks-ecosystem&include_rehypothecated=true" => "[]",
                 _ => {
-                    return Err(gem_client::ClientError::Http {
-                        status: 404,
-                        body: path.as_bytes().to_vec(),
-                    });
+                    return Err(gem_client::ClientError::Http { status: 404, body: path.as_bytes().to_vec() });
                 }
             };
             Ok(body.as_bytes().to_vec())
@@ -233,10 +219,7 @@ mod tests {
             let body = match path {
                 "/api/v3/coins/categories/list" => r#"[{"category_id":"xstocks-ecosystem","name":"xStocks Ecosystem"}]"#,
                 _ => {
-                    return Err(gem_client::ClientError::Http {
-                        status: 404,
-                        body: path.as_bytes().to_vec(),
-                    });
+                    return Err(gem_client::ClientError::Http { status: 404, body: path.as_bytes().to_vec() });
                 }
             };
             Ok(body.as_bytes().to_vec())
@@ -251,12 +234,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_coin_markets_ids_skips_empty_ids() {
-        let client = MockClient::new().with_get(|path| {
-            Err(gem_client::ClientError::Http {
-                status: 500,
-                body: path.as_bytes().to_vec(),
-            })
-        });
+        let client = MockClient::new().with_get(|path| Err(gem_client::ClientError::Http { status: 500, body: path.as_bytes().to_vec() }));
         let client = CoinGeckoClient::new_with_client(client);
 
         let markets = client.get_coin_markets_ids(vec![], MAX_MARKETS_PER_PAGE).await.unwrap();

@@ -6,7 +6,6 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.domains.perpetual.LeverageState
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
-import com.gemwallet.android.domains.perpetual.data
 import com.gemwallet.android.domains.perpetual.formatLeverage
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.PerpetualFormatter
@@ -17,18 +16,16 @@ import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CurrencyFormatter
-import com.gemwallet.android.model.NumericFormatter
 import com.gemwallet.android.model.toGem
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
+import com.gemwallet.android.ui.components.list_item.listItemModel
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModel
 import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModelFactory
 import com.gemwallet.android.ui.style.textStyle
-import com.gemwallet.android.ui.theme.Placeholder
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TpslType
@@ -68,8 +65,6 @@ class AmountPerpetualProvider(
     private val isOpenAction: Boolean =
         params.positionAction is GemPerpetualPositionAction.Open
 
-    private val numericFormatter = NumericFormatter()
-
     val perpetual: StateFlow<PerpetualDetailsDataAggregate?> =
         getPerpetual.getPerpetual(params.perpetualId)
             .stateIn(scope, SharingStarted.Eagerly, null)
@@ -107,7 +102,9 @@ class AmountPerpetualProvider(
         MutableStateFlow(null)
     }
 
-    fun setLeverage(value: Int) { userSelectedLeverage.value = value }
+    fun setLeverage(value: Int) {
+        userSelectedLeverage.value = value
+    }
 
     fun autocloseField(type: TpslType, amount: String, price: Double?, showErrors: Boolean): AutocloseUIModel.Field {
         val marketPrice = perpetual.value?.price ?: 0.0
@@ -159,7 +156,7 @@ class AmountPerpetualProvider(
         }
     }.stateIn(scope, SharingStarted.Eagerly, null)
 
-    val autocloseListItem: StateFlow<ListItemModel> = combine(takeProfit, stopLoss, ::autocloseListItem)
+    val autocloseListItem: StateFlow<ListItemModel?> = combine(takeProfit, stopLoss, ::autocloseListItem)
         .stateIn(scope, SharingStarted.Eagerly, autocloseListItem(takeProfit.value, stopLoss.value))
 
     val marketPriceListItem: StateFlow<ListItemModel?> = perpetual.map { market ->
@@ -180,22 +177,11 @@ class AmountPerpetualProvider(
         )
     }
 
-    private fun autocloseListItem(takeProfit: String?, stopLoss: String?): ListItemModel {
-        val takeProfitText = takeProfit?.toDoubleOrNull()?.let { context.getString(R.string.perpetual_take_profit) + ": " + usdFormatter.string(it) }
-        val stopLossText = stopLoss?.toDoubleOrNull()?.let { context.getString(R.string.perpetual_stop_loss) + ": " + usdFormatter.string(it) }
-        return ListItemModel(
-            title = context.getString(R.string.perpetual_auto_close),
-            subtitle = takeProfitText ?: stopLossText ?: Placeholder.empty,
-            subtitleExtra = stopLossText.takeIf { takeProfitText != null },
-            info = InfoSheetEntity.AutoCloseInfo,
-        )
-    }
+    private fun autocloseListItem(takeProfit: String?, stopLoss: String?): ListItemModel? = service
+        .perpetualAutocloseRow(takeProfit?.parseInputNumberOrNull()?.toDouble(), stopLoss?.parseInputNumberOrNull()?.toDouble())
+        .listItemModel(context)
 
-    private fun autocloseTrigger(
-        input: StateFlow<String?>,
-        edited: StateFlow<Boolean>,
-        default: (GemPerpetualAutoclose) -> Double?,
-    ): StateFlow<String?> {
+    private fun autocloseTrigger(input: StateFlow<String?>, edited: StateFlow<Boolean>, default: (GemPerpetualAutoclose) -> Double?): StateFlow<String?> {
         if (!isOpenAction) return input
         return combine(input, edited, defaultAutoclose.filterNotNull(), perpetual.filterNotNull()) { value, isEdited, autoclose, market ->
             if (isEdited) {
@@ -210,7 +196,7 @@ class AmountPerpetualProvider(
         perpetual.filterNotNull(),
         leverageState,
     ) { _, state ->
-        service.perpetualAmountType(params.positionAction, (state?.current ?: params.positionAction.data.leverage.toInt()).toUByte())
+        service.perpetualAmountType(params.positionAction, (state?.current ?: params.positionAction.transferData().leverage.toInt()).toUByte())
     }.stateIn(scope, SharingStarted.Eagerly, null)
 
     override val assetInfo: StateFlow<AssetInfo?> = perpetual.filterNotNull()
@@ -224,16 +210,14 @@ class AmountPerpetualProvider(
         }
         .stateIn(scope, SharingStarted.Eagerly, null)
 
-    override suspend fun buildTransfer(amount: Crypto, isMax: Boolean): GemTransferData {
-        return service.perpetualTransferData(
-            action = params.positionAction,
-            value = amount.atomicValue,
-            useMaxAmount = isMax,
-            leverage = leverageState.value?.current?.toUByte() ?: params.positionAction.data.leverage,
-            takeProfit = trigger(takeProfit.value),
-            stopLoss = trigger(stopLoss.value),
-        )
-    }
+    override suspend fun buildTransfer(amount: Crypto, isMax: Boolean): GemTransferData = service.perpetualTransferData(
+        action = params.positionAction,
+        value = amount.atomicValue,
+        useMaxAmount = isMax,
+        leverage = leverageState.value?.current?.toUByte() ?: params.positionAction.transferData().leverage,
+        takeProfit = trigger(takeProfit.value),
+        stopLoss = trigger(stopLoss.value),
+    )
 
-    private fun trigger(text: String?): Double? = if (showsAutoclose) text?.let { numericFormatter.double(it) } else null
+    private fun trigger(text: String?): Double? = if (showsAutoclose) text?.let { it.parseInputNumberOrNull()?.toDouble() } else null
 }

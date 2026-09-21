@@ -1,11 +1,16 @@
+use std::collections::HashSet;
+
 use primitives::{AssetId, BannerEvent, WalletConfiguration, WalletId};
 
 use crate::services::banner::GemBannerKey;
 
-pub fn multi_signature_banners(wallet_id: &WalletId, configuration: &WalletConfiguration) -> Vec<GemBannerKey> {
+pub fn externally_controlled_banners(wallet_id: &WalletId, configuration: &WalletConfiguration) -> Vec<GemBannerKey> {
+    let mut seen = HashSet::new();
     configuration
         .multi_signature_accounts
         .iter()
+        .chain(&configuration.externally_controlled_accounts)
+        .filter(|account| seen.insert(*account))
         .map(|account| GemBannerKey {
             wallet_id: Some(wallet_id.clone()),
             asset_id: Some(AssetId::from_chain(account.chain)),
@@ -20,24 +25,40 @@ mod tests {
     use primitives::{Chain, ChainAddress};
 
     #[test]
-    fn test_multi_signature_banners_one_per_account() {
+    fn test_externally_controlled_banners_one_per_account_from_either_field() {
         let wallet_id = WalletId::Multicoin("0x1".into());
-        let configuration = WalletConfiguration {
-            multi_signature_accounts: vec![ChainAddress::new(Chain::Tron, "t1".into()), ChainAddress::new(Chain::Ethereum, "0x2".into())],
+        let accounts = vec![ChainAddress::new(Chain::Tron, "t1".into()), ChainAddress::new(Chain::Solana, "s1".into())];
+        let current_api = WalletConfiguration {
+            multi_signature_accounts: accounts.clone(),
+            externally_controlled_accounts: accounts.clone(),
+        };
+        let previous_api = WalletConfiguration {
+            multi_signature_accounts: accounts,
+            externally_controlled_accounts: vec![],
+        };
+        let empty = WalletConfiguration {
+            multi_signature_accounts: vec![],
+            externally_controlled_accounts: vec![],
         };
 
-        let banners = multi_signature_banners(&wallet_id, &configuration);
+        let banners = externally_controlled_banners(&wallet_id, &current_api);
 
-        assert_eq!(banners.len(), 2);
-        assert!(
-            banners
-                .iter()
-                .all(|key| key.wallet_id == Some(wallet_id.clone()) && key.event == BannerEvent::AccountBlockedMultiSignature)
-        );
         assert_eq!(
-            banners.iter().map(|key| key.asset_id.clone()).collect::<Vec<_>>(),
-            vec![Some(AssetId::from_chain(Chain::Tron)), Some(AssetId::from_chain(Chain::Ethereum))]
+            banners,
+            vec![
+                GemBannerKey {
+                    wallet_id: Some(wallet_id.clone()),
+                    asset_id: Some(AssetId::from_chain(Chain::Tron)),
+                    event: BannerEvent::AccountBlockedMultiSignature,
+                },
+                GemBannerKey {
+                    wallet_id: Some(wallet_id.clone()),
+                    asset_id: Some(AssetId::from_chain(Chain::Solana)),
+                    event: BannerEvent::AccountBlockedMultiSignature,
+                },
+            ]
         );
-        assert!(multi_signature_banners(&wallet_id, &WalletConfiguration { multi_signature_accounts: vec![] }).is_empty());
+        assert_eq!(externally_controlled_banners(&wallet_id, &previous_api), banners);
+        assert!(externally_controlled_banners(&wallet_id, &empty).is_empty());
     }
 }

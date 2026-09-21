@@ -2,12 +2,12 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemTransactionFilter
 import func Gemstone.transactionsListLimit
 import Localization
 import Primitives
 import PrimitivesComponents
 import Store
-import enum Gemstone.GemTransactionFilter
 
 @Observable
 @MainActor

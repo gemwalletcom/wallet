@@ -40,8 +40,7 @@ pub type PgPooledConnection = PooledConnection<ConnectionManager<PgConnection>>;
 use crate::{
     DatabaseError,
     repositories::{
-        config_repository::ConfigRepository, devices_repository::DevicesRepository, fiat_repository::FiatRepository, nft_repository::NftRepository,
-        perpetuals_repository::PerpetualsRepository, rewards_repository::RewardsRepository,
+        config_repository::ConfigRepository, devices_repository::DevicesRepository, fiat_repository::FiatRepository, nft_repository::NftRepository, perpetuals_repository::PerpetualsRepository, rewards_repository::RewardsRepository,
     },
 };
 

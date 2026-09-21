@@ -210,7 +210,6 @@
   <string name="errors_connections_no_supported_wallets">Walang available na suportadong wallet.</string>
   <string name="errors_connections_unsupported_chain">Ang ibinigay na chain ay hindi suportado.</string>
   <string name="errors_swap_amount_too_small">Masyadong maliit ang halaga</string>
-  <string name="errors_required">%1$s ay kinakailangan</string>
   <string name="errors_scan_transaction_malicious_description">Ang transaksyong ito ay hindi makukumpleto — ang patutunguhang wallet address ay naka-link sa kahina-hinala o nakakapinsalang aktibidad.</string>
   <string name="errors_scan_transaction_memo_required">Nangangailangan ang %1$s destination wallet address ng destination tag / memo</string>
   <string name="errors_scan_transaction_malicious_title">Kahina-hinalang Aktibidad</string>
@@ -273,7 +272,7 @@
   <string name="asset_decimals">Mga desimal</string>
   <string name="asset_token_id">ID ng Token</string>
   <string name="asset_contract">Kontrata</string>
-  <string name="asset_state_empty_title">Ang iyong mga transaksyon ay lalabas dito️</string>
+  <string name="asset_state_empty_title">Ang iyong mga transaksyon ay lalabas dito</string>
   <string name="asset_state_empty_description">Tumanggap, magpalit o bumili ng %1$s</string>
   <string name="asset_verification_unverified">Hindi na-verify</string>
   <string name="asset_verification_suspicious">Kahina-hinala</string>
@@ -437,7 +436,7 @@
   <string name="lock_privacy_lock">Privacy Lock</string>
   <string name="lock_footer">Protektahan ang access sa app na ito sa iyong device</string>
   <string name="verify_phrase_title">Kumpirmahin</string>
-  <string name="warnings_multi_signature_blocked">Huwag maglipat ng mga pondo sa %1$s Multi-Signature wallet na ito maliban kung sigurado kang kontrolado mo ang mga pribadong key. Ang pagkabigong gawin ito ay maaaring maglantad sa iyo sa mga scam, at maaari mong permanenteng mawala ang iyong mga asset.</string>
+  <string name="warnings_externally_controlled_account">Maaaring kontrolado ng ibang tao ang %1$s account na ito. Huwag magpadala ng pondo rito maliban kung sigurado kang ikaw ang may kontrol dito, o maaari mong permanenteng mawala ang iyong mga asset.</string>
   <string name="sell_title">Ibenta %1$s</string>
   <string name="info_network_fee_title">Bayad sa Network</string>
   <string name="info_watch_wallet_title">Wallet na Binabantayan</string>
@@ -489,7 +488,7 @@
   <string name="nft_collection">Koleksyon</string>
   <string name="nft_save_to_photos">I-save sa Mga Larawan</string>
   <string name="nft_set_as_avatar">Itakda bilang Avatar</string>
-  <string name="nft_state_empty_title">Lalabas dito ang iyong mga NFT ️</string>
+  <string name="nft_state_empty_title">Lalabas dito ang iyong mga NFT</string>
   <string name="nft_state_empty_description">Tanggapin ang iyong unang NFT</string>
   <string name="nft_report_reason_spam">Spam</string>
   <string name="nft_report_reason_malicious">Malisyoso</string>

@@ -63,13 +63,7 @@ mod tests {
 
     #[test]
     fn test_fiat_rates_version() {
-        let rates = vec![
-            FiatRate { symbol: Currency::USD, rate: 1.0 },
-            FiatRate {
-                symbol: Currency::BYN,
-                rate: 3.03,
-            },
-        ];
+        let rates = vec![FiatRate { symbol: Currency::USD, rate: 1.0 }, FiatRate { symbol: Currency::BYN, rate: 3.03 }];
         assert_eq!(filter_fiat_rates_v1(rates.clone()), rates[..1]);
         for version in ["1.0.0", "2.114.31"] {
             assert_eq!(filter_fiat_rates(rates.clone(), &version.parse().unwrap()), rates[..1]);

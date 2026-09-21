@@ -2,12 +2,14 @@
 
 import Components
 import Foundation
+import class Gemstone.GemApplicationMetadataService
+import struct Gemstone.GemConnectionRow
 import enum Gemstone.GemVerificationLevel
 import func Gemstone.verificationLevel
-import GemstonePrimitives
-import Localization
 import func Gemstone.walletRow
 import func Gemstone.walletRows
+import GemstonePrimitives
+import Localization
 import Primitives
 import PrimitivesComponents
 import Style
@@ -64,20 +66,15 @@ public struct ConnectionProposalViewModel {
     }
 
     var appName: String {
-        payload.metadata.shortName
+        row.title
     }
 
     var websiteText: String? {
-        let host = payload.metadata.host
-        return host.isEmpty ? nil : host
-    }
-
-    var appText: String {
-        AppDisplayFormatter.format(name: appName, host: websiteText)
+        row.host
     }
 
     var imageUrl: URL? {
-        payload.metadata.iconURL
+        row.iconUrl.flatMap(URL.init(string:))
     }
 
     private var verification: GemVerificationLevel {
@@ -127,6 +124,10 @@ public struct ConnectionProposalViewModel {
 
     private var payload: WalletConnectionSessionProposal {
         pairingProposal.proposal
+    }
+
+    private var row: GemConnectionRow {
+        GemApplicationMetadataService.shared.connectionRow(metadata: payload.metadata.toGem())
     }
 }
 

@@ -10,9 +10,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ReferralRoute(val code: String? = null) : NavKey
 
-fun EntryProviderScope<NavKey>.referral(
-    onClose: () -> Unit,
-) {
+fun EntryProviderScope<NavKey>.referral(onClose: () -> Unit) {
     entry<ReferralRoute>(
         metadata = { key -> routeArguments(RouteArgument.Code to key.code) },
     ) {

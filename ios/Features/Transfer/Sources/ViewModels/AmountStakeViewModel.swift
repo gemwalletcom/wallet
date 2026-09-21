@@ -3,15 +3,16 @@
 import BigInt
 import Foundation
 import enum Gemstone.GemAmountType
-import protocol Gemstone.GemAmountServiceProtocol
 import enum Gemstone.GemStakeAmountInput
+import protocol Gemstone.GemStakeServiceProtocol
+import struct Gemstone.GemTransferData
 import struct Gemstone.GemValidatorRow
+import func Gemstone.validatorRow
 import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
 import Stake
-import struct Gemstone.GemTransferData
 
 public enum AmountStakeSelection {
     case validator(SelectionState<GemValidatorRow>)
@@ -28,18 +29,17 @@ public final class AmountStakeViewModel: AmountDataProvidable {
     let asset: Asset
     public let selection: AmountStakeSelection
     public let recommendedValidators: [DelegationValidator]
-    private let service: any GemAmountServiceProtocol
+    private let service: any GemStakeServiceProtocol
     private var action: GemStakeAmountInput
 
-    init(asset: Asset, type: GemStakeAmountInput, service: any GemAmountServiceProtocol) {
+    init(asset: Asset, type: GemStakeAmountInput, service: any GemStakeServiceProtocol) {
         self.asset = asset
         self.service = service
-        switch type {
-        case let .freeze(resource), let .unfreeze(resource):
+        if let resource = type.resource() {
             selection = .resource(SelectionState(options: [.bandwidth, .energy], selected: resource.toPrimitives(), isEnabled: true, title: Localized.Stake.resource))
             recommendedValidators = []
             action = type
-        case .stake, .unstake, .redelegate, .withdraw, .rewards:
+        } else {
             let validators = service.stakeValidatorSelection(chain: asset.chain.rawValue, input: type)
             guard let selected = validators.validator else {
                 preconditionFailure("Stake action \(type) requires at least one validator")
@@ -59,12 +59,12 @@ public final class AmountStakeViewModel: AmountDataProvidable {
     }
 
     func makeTransferData(value: BigInt, useMaxAmount: Bool) throws -> GemTransferData {
-        service.stakeTransferData(asset: asset.toGem(), stakeType: try action.stakeType(), value: value, useMaxAmount: useMaxAmount)
+        try service.stakeTransferData(asset: asset.toGem(), stakeType: action.stakeType(), value: value, useMaxAmount: useMaxAmount)
     }
 
     func select(_ validator: DelegationValidator) {
         guard case let .validator(state) = selection else { return }
-        state.selected = service.validatorRow(validator: validator.toGem())
+        state.selected = validatorRow(validator: validator.toGem())
         action = action.withValidator(validator: validator.toGem())
     }
 

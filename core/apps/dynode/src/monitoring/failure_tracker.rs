@@ -50,11 +50,7 @@ impl FailureTracker {
     fn record_sample(&mut self, failed: bool, now: Instant, window: Duration) {
         let bucket_width = (window / MAX_BUCKETS).max(Duration::from_nanos(1));
         if self.buckets.back().is_none_or(|bucket| now.duration_since(bucket.started_at) >= bucket_width) {
-            self.buckets.push_back(FailureBucket {
-                started_at: now,
-                requests: 0,
-                failures: 0,
-            });
+            self.buckets.push_back(FailureBucket { started_at: now, requests: 0, failures: 0 });
         }
         if let Some(bucket) = self.buckets.back_mut() {
             bucket.requests += 1;
@@ -105,10 +101,7 @@ mod tests {
         assert!(tracker.record(true, now, &config));
 
         let mut tracker = FailureTracker::default();
-        let config = FailureTriggerConfig {
-            failures: 3,
-            ..FailureTriggerConfig::mock()
-        };
+        let config = FailureTriggerConfig { failures: 3, ..FailureTriggerConfig::mock() };
         for failed in [true, false, true, false] {
             assert!(!tracker.record(failed, now, &config));
         }

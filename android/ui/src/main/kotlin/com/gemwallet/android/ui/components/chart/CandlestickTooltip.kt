@@ -38,17 +38,10 @@ private object CandlestickTooltipMetrics {
     const val DividerLayoutId = "tooltip-divider"
 }
 
-private data class TooltipCellData(
-    val label: String,
-    val value: String,
-    val valueColor: Color,
-)
+private data class TooltipCellData(val label: String, val value: String, val valueColor: Color)
 
 @Composable
-fun CandlestickTooltip(
-    model: CandlestickTooltipUIModel,
-    modifier: Modifier = Modifier,
-) {
+fun CandlestickTooltip(model: CandlestickTooltipUIModel, modifier: Modifier = Modifier) {
     val shape = RoundedCornerShape(CandlestickTooltipMetrics.ChipCornerRadius)
     val labelStyle = MaterialTheme.typography.labelSmall.copy(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -147,6 +140,7 @@ private fun TooltipGrid(
                         divider.place(0, y)
                         y += divider.height + dividerSpacingPx
                     }
+
                     index < rows.lastIndex -> y += rowSpacingPx
                 }
             }

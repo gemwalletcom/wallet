@@ -118,6 +118,8 @@ extension LAContext {
     func canEvaluatePolicyThrowing(policy: LAPolicy) throws {
         var error: NSError?
         canEvaluatePolicy(policy, error: &error)
-        if let error { throw error }
+        if let error {
+            throw error
+        }
     }
 }

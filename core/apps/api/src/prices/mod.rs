@@ -28,13 +28,7 @@ pub async fn get_fiat_rates(price_client: &State<PriceClient>) -> Result<ApiResp
 }
 
 #[get("/charts/<asset_id>?<period>&<currency>")]
-pub async fn get_charts(
-    asset_id: AssetIdParam,
-    period: Option<ChartPeriodParam>,
-    currency: CurrencyParam,
-    charts_client: &State<ChartClient>,
-    price_client: &State<PriceClient>,
-) -> Result<ApiResponse<Charts>, ApiError> {
+pub async fn get_charts(asset_id: AssetIdParam, period: Option<ChartPeriodParam>, currency: CurrencyParam, charts_client: &State<ChartClient>, price_client: &State<PriceClient>) -> Result<ApiResponse<Charts>, ApiError> {
     let period = period.map(|p| p.0).unwrap_or(ChartPeriod::Day);
 
     let asset_id = asset_id.0;

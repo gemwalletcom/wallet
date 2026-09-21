@@ -55,10 +55,7 @@ mod tests {
         let solana = AssetId::from_chain(Chain::Solana);
         let wallet_id = WalletId::Multicoin("0x123".to_string());
 
-        assert_eq!(
-            parse(&PushNotification::new_buy_asset(bitcoin.clone())),
-            Some(GemPushNotification::BuyAsset { asset_id: bitcoin.clone() })
-        );
+        assert_eq!(parse(&PushNotification::new_buy_asset(bitcoin.clone())), Some(GemPushNotification::BuyAsset { asset_id: bitcoin.clone() }));
         assert_eq!(
             parse(&PushNotification::new_fiat_transaction(wallet_id.clone(), bitcoin.clone())),
             Some(GemPushNotification::FiatTransaction {
@@ -75,10 +72,7 @@ mod tests {
         );
 
         let asset_payload = serde_json::to_string(&PushNotificationAsset { asset_id: bitcoin.clone() }).unwrap();
-        assert_eq!(
-            notification(PushNotificationTypes::Asset.as_ref(), Some(&asset_payload)),
-            Some(GemPushNotification::Asset { asset_id: bitcoin.clone() })
-        );
+        assert_eq!(notification(PushNotificationTypes::Asset.as_ref(), Some(&asset_payload)), Some(GemPushNotification::Asset { asset_id: bitcoin.clone() }));
         assert_eq!(
             notification(PushNotificationTypes::PriceAlert.as_ref(), Some(&asset_payload)),
             Some(GemPushNotification::PriceAlert { asset_id: bitcoin.clone() })

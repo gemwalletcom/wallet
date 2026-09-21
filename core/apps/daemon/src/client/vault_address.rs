@@ -33,10 +33,6 @@ impl SwapVaultAddressClient {
         let providers = SwapProvider::cross_chain_providers();
         let keys: Vec<String> = providers.iter().map(|p| key_fn(p.as_ref()).key()).collect();
         let results = self.cacher.get_set_members_grouped(keys).await?;
-        Ok(providers
-            .into_iter()
-            .zip(results)
-            .flat_map(|(provider, members)| members.into_iter().map(move |addr| (addr, provider)))
-            .collect())
+        Ok(providers.into_iter().zip(results).flat_map(|(provider, members)| members.into_iter().map(move |addr| (addr, provider))).collect())
     }
 }

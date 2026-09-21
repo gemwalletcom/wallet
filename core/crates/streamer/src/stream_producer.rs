@@ -78,11 +78,9 @@ impl StreamProducer {
             return Ok(channel.clone());
         }
 
-        *channel = with_retry(&self.retry, &self.connection_name, &self.shutdown_rx, || {
-            Self::try_connect(&self.url, &self.connection_name)
-        })
-        .await?
-        .ok_or("shutdown during reconnect")?;
+        *channel = with_retry(&self.retry, &self.connection_name, &self.shutdown_rx, || Self::try_connect(&self.url, &self.connection_name))
+            .await?
+            .ok_or("shutdown during reconnect")?;
         Ok(channel.clone())
     }
 
@@ -135,16 +133,7 @@ impl StreamProducer {
 
     pub async fn declare_queue(&self, name: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
         self.run(|channel| async move {
-            channel
-                .queue_declare(
-                    name.into(),
-                    QueueDeclareOptions {
-                        durable: true,
-                        ..Default::default()
-                    },
-                    queue_args(),
-                )
-                .await?;
+            channel.queue_declare(name.into(), QueueDeclareOptions { durable: true, ..Default::default() }, queue_args()).await?;
             Ok(())
         })
         .await
@@ -163,9 +152,7 @@ impl StreamProducer {
         self.run(|channel| {
             let kind = kind.clone();
             async move {
-                channel
-                    .exchange_declare(name.into(), kind, ExchangeDeclareOptions::default(), FieldTable::default())
-                    .await?;
+                channel.exchange_declare(name.into(), kind, ExchangeDeclareOptions::default(), FieldTable::default()).await?;
                 Ok(())
             }
         })
@@ -183,9 +170,7 @@ impl StreamProducer {
 
     pub async fn bind_queue(&self, queue: &str, exchange: &str, routing_key: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
         self.run(|channel| async move {
-            channel
-                .queue_bind(queue.into(), exchange.into(), routing_key.into(), QueueBindOptions::default(), FieldTable::default())
-                .await?;
+            channel.queue_bind(queue.into(), exchange.into(), routing_key.into(), QueueBindOptions::default(), FieldTable::default()).await?;
             Ok(())
         })
         .await

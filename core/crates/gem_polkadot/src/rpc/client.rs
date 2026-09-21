@@ -40,13 +40,7 @@ impl<C: Client> PolkadotClient<C> {
     }
 
     pub async fn get_blocks(&self, from: &str, to: &str) -> Result<Vec<Block>, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .client
-            .get(PolkadotTarget::GetBlocks {
-                from: from.to_string(),
-                to: to.to_string(),
-            })
-            .await?)
+        Ok(self.client.get(PolkadotTarget::GetBlocks { from: from.to_string(), to: to.to_string() }).await?)
     }
 
     pub async fn broadcast_transaction(&self, transaction: String) -> Result<PolkadotTransactionBroadcastResponse, Box<dyn Error + Send + Sync>> {

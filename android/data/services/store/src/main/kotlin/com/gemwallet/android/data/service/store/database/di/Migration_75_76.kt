@@ -16,7 +16,7 @@ object Migration_75_76 : Migration(75, 76) {
                     PRIMARY KEY(`id`),
                     FOREIGN KEY(`wallet_id`) REFERENCES `wallets`(`id`) ON UPDATE CASCADE ON DELETE CASCADE
                 )
-            """
+            """,
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_in_app_notifications_wallet_id` ON `in_app_notifications` (`wallet_id`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_in_app_notifications_created_at` ON `in_app_notifications` (`created_at`)")

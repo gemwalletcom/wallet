@@ -5,27 +5,16 @@ use num_bigint::BigUint;
 use primitives::{AssetBalance, AssetId, Balance, Chain};
 
 pub fn map_balance_coin(balance: SuiBalance) -> AssetBalance {
-    AssetBalance::new_balance(
-        Chain::Sui.as_asset_id(),
-        Balance::coin_balance(BigUint::try_from(balance.total_balance).unwrap_or_default()),
-    )
+    AssetBalance::new_balance(Chain::Sui.as_asset_id(), Balance::coin_balance(BigUint::try_from(balance.total_balance).unwrap_or_default()))
 }
 
 pub fn map_balance_tokens(balances: Vec<SuiBalance>, token_ids: Vec<String>) -> Vec<AssetBalance> {
     token_ids
         .into_iter()
         .map(|token_id| {
-            let balance = balances
-                .iter()
-                .find(|b| coin_type_matches(&b.coin_type, &token_id))
-                .map(|b| &b.total_balance)
-                .cloned()
-                .unwrap_or_default();
+            let balance = balances.iter().find(|b| coin_type_matches(&b.coin_type, &token_id)).map(|b| &b.total_balance).cloned().unwrap_or_default();
 
-            AssetBalance::new_balance(
-                AssetId::from_token(Chain::Sui, &token_id),
-                Balance::coin_balance(BigUint::try_from(balance).unwrap_or_default()),
-            )
+            AssetBalance::new_balance(AssetId::from_token(Chain::Sui, &token_id), Balance::coin_balance(BigUint::try_from(balance).unwrap_or_default()))
         })
         .collect()
 }
@@ -73,10 +62,7 @@ mod tests {
     fn test_map_token_balances() {
         let balances: Vec<SuiBalance> = serde_json::from_str(include_str!("../../testdata/balance_tokens.json")).unwrap();
 
-        let token_ids = vec![
-            SUI_USDC_TOKEN_ID.to_string(),
-            "0xda1644f58a955833a15abae24f8cc65b5bd8152ce013fde8be0a6a3dcf51fe36::token::TOKEN".to_string(),
-        ];
+        let token_ids = vec![SUI_USDC_TOKEN_ID.to_string(), "0xda1644f58a955833a15abae24f8cc65b5bd8152ce013fde8be0a6a3dcf51fe36::token::TOKEN".to_string()];
 
         let result = map_balance_tokens(balances, token_ids);
         assert_eq!(result.len(), 2);
@@ -121,16 +107,10 @@ mod tests {
         let result = map_assets_balances(balances);
 
         assert_eq!(result.len(), 7);
-        assert_eq!(
-            result[0].asset_id,
-            AssetId::from_token(Chain::Sui, "0xce7ff77a83ea0cb6fd39bd8748e2ec89a3f41e8efdc3f4eb123e0ca37b184db2::buck::BUCK")
-        );
+        assert_eq!(result[0].asset_id, AssetId::from_token(Chain::Sui, "0xce7ff77a83ea0cb6fd39bd8748e2ec89a3f41e8efdc3f4eb123e0ca37b184db2::buck::BUCK"));
         assert_eq!(result[1].asset_id, AssetId::from_token(Chain::Sui, SUI_USDC_TOKEN_ID));
         assert_eq!(result[1].balance.available, BigUint::from(3685298_u64));
-        assert_eq!(
-            result[3].asset_id,
-            AssetId::from_token(Chain::Sui, "0xda1644f58a955833a15abae24f8cc65b5bd8152ce013fde8be0a6a3dcf51fe36::token::TOKEN")
-        );
+        assert_eq!(result[3].asset_id, AssetId::from_token(Chain::Sui, "0xda1644f58a955833a15abae24f8cc65b5bd8152ce013fde8be0a6a3dcf51fe36::token::TOKEN"));
         assert_eq!(result[3].balance.available, BigUint::from(1000_u64));
         assert_eq!(result.iter().filter(|balance| balance.asset_id == Chain::Sui.as_asset_id()).count(), 0);
     }

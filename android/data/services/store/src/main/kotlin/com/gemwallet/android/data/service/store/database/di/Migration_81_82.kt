@@ -10,7 +10,7 @@ object Migration_81_82 : Migration(81, 82) {
                 "`id` TEXT NOT NULL, " +
                 "`name` TEXT NOT NULL, " +
                 "`count` INTEGER NOT NULL, " +
-                "PRIMARY KEY(`id`))"
+                "PRIMARY KEY(`id`))",
         )
         db.execSQL("DROP TABLE IF EXISTS `search`")
         db.execSQL(
@@ -23,7 +23,7 @@ object Migration_81_82 : Migration(81, 82) {
                 "`priority` INTEGER NOT NULL, " +
                 "FOREIGN KEY(`assetId`) REFERENCES `asset`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , " +
                 "FOREIGN KEY(`perpetualId`) REFERENCES `perpetuals`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , " +
-                "FOREIGN KEY(`listId`) REFERENCES `asset_lists`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )"
+                "FOREIGN KEY(`listId`) REFERENCES `asset_lists`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_search_query` ON `search` (`query`)")
         db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_search_assetId_query` ON `search` (`assetId`, `query`)")

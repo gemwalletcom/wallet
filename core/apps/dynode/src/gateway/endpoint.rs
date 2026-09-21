@@ -79,14 +79,7 @@ impl Endpoint {
         headers
     }
 
-    pub(super) async fn send(
-        &self,
-        method: &Method,
-        url: Url,
-        inbound_headers: &HeaderMap,
-        forward_headers: &HashSet<HeaderName>,
-        body: Vec<u8>,
-    ) -> Result<(ProxyResponse, Option<Duration>), &'static str> {
+    pub(super) async fn send(&self, method: &Method, url: Url, inbound_headers: &HeaderMap, forward_headers: &HashSet<HeaderName>, body: Vec<u8>) -> Result<(ProxyResponse, Option<Duration>), &'static str> {
         let request = self
             .client
             .request(method.clone(), url)
@@ -149,10 +142,7 @@ mod tests {
         let result = endpoint.request_headers(&inbound, &HashSet::from([ACCEPT, AUTHORIZATION]));
         assert_eq!(
             result,
-            HeaderMap::from_iter([
-                (AUTHORIZATION, HeaderValue::from_static("Bearer upstream")),
-                (ACCEPT, HeaderValue::from_static("application/json")),
-            ])
+            HeaderMap::from_iter([(AUTHORIZATION, HeaderValue::from_static("Bearer upstream")), (ACCEPT, HeaderValue::from_static("application/json")),])
         );
     }
 

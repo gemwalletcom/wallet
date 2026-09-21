@@ -11,20 +11,15 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ObserveFiatTransactionsImpl(
-    private val getSession: GetSession,
-    private val fiatStore: GemstoneFiatStore,
-) : ObserveFiatTransactions {
+class ObserveFiatTransactionsImpl(private val getSession: GetSession, private val fiatStore: GemstoneFiatStore) : ObserveFiatTransactions {
 
-    override fun invoke(): Flow<List<FiatTransactionAssetData>> {
-        return getSession()
-            .map { it?.wallet?.id?.id }
-            .flatMapLatest { id ->
-                if (id != null) {
-                    fiatStore.observeTransactions(id)
-                } else {
-                    flowOf(emptyList())
-                }
+    override fun invoke(): Flow<List<FiatTransactionAssetData>> = getSession()
+        .map { it?.wallet?.id?.id }
+        .flatMapLatest { id ->
+            if (id != null) {
+                fiatStore.observeTransactions(id)
+            } else {
+                flowOf(emptyList())
             }
-    }
+        }
 }

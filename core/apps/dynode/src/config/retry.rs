@@ -98,10 +98,7 @@ mod tests {
         assert_eq!(config_zero.effective_max_attempts(5), 5);
         assert_eq!(config_zero.effective_max_attempts(10), 10);
 
-        let config_limited = RetryConfig {
-            max_attempts: 3,
-            ..RetryConfig::mock()
-        };
+        let config_limited = RetryConfig { max_attempts: 3, ..RetryConfig::mock() };
         assert_eq!(config_limited.effective_max_attempts(5), 3);
         assert_eq!(config_limited.effective_max_attempts(2), 2);
     }

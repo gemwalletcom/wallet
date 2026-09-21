@@ -22,9 +22,7 @@ impl<C: Client> ChainTransaction for PolkadotProvider<C> {}
 #[async_trait]
 impl<C: Client> ChainTransactions for PolkadotIndexer<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
-        let TransactionsRequest {
-            address, limit, from_timestamp, ..
-        } = request;
+        let TransactionsRequest { address, limit, from_timestamp, .. } = request;
         let transactions = self.get_transactions_by_address(&address, limit, from_timestamp).await?;
         Ok(TransactionsResult::Transactions(transactions))
     }
@@ -53,9 +51,7 @@ mod chain_integration_tests {
 
     #[tokio::test]
     async fn test_polkadot_get_transactions_by_address() -> Result<(), Box<dyn Error + Send + Sync>> {
-        let result = create_polkadot_test_client()
-            .get_transactions_by_address(TransactionsRequest::new(TEST_ADDRESS.to_string(), 3))
-            .await?;
+        let result = create_polkadot_test_client().get_transactions_by_address(TransactionsRequest::new(TEST_ADDRESS.to_string(), 3)).await?;
         let transactions = result.transactions().ok_or("expected full Polkadot transactions")?;
 
         assert_eq!(transactions.len(), 3);

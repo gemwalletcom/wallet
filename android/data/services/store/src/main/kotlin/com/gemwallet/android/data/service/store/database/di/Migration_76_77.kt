@@ -22,7 +22,7 @@ object Migration_76_77 : Migration(76, 77) {
                 "`redirect_native` TEXT, " +
                 "`redirect_universal` TEXT, " +
                 "PRIMARY KEY(`id`), " +
-                "FOREIGN KEY(`wallet_id`) REFERENCES `wallets`(`id`) ON UPDATE CASCADE ON DELETE CASCADE)"
+                "FOREIGN KEY(`wallet_id`) REFERENCES `wallets`(`id`) ON UPDATE CASCADE ON DELETE CASCADE)",
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_wallets_connections_wallet_id` ON `wallets_connections` (`wallet_id`)")
     }

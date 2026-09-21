@@ -11,15 +11,7 @@ use crate::AccountAddress;
 const RAW_TRANSACTION_SALT: &[u8] = b"APTOS::RawTransaction";
 const MESSAGE_SALT: &[u8] = b"APTOS::Message";
 
-pub fn build_raw_transaction(
-    sender: AccountAddress,
-    sequence_number: u64,
-    payload: EntryFunction,
-    max_gas_amount: u64,
-    gas_unit_price: u64,
-    expiration_timestamp_secs: u64,
-    chain_id: u8,
-) -> RawTransaction {
+pub fn build_raw_transaction(sender: AccountAddress, sequence_number: u64, payload: EntryFunction, max_gas_amount: u64, gas_unit_price: u64, expiration_timestamp_secs: u64, chain_id: u8) -> RawTransaction {
     RawTransaction {
         sender,
         sequence_number,
@@ -73,9 +65,7 @@ pub fn build_submit_transaction_bcs(raw_tx: RawTransaction, signature: Vec<u8>, 
 }
 
 pub fn expiration_timestamp_secs() -> Result<u64, SignerError> {
-    let now = SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map_err(|_| SignerError::InvalidInput("Invalid system time".to_string()))?;
+    let now = SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_err(|_| SignerError::InvalidInput("Invalid system time".to_string()))?;
     Ok(now.as_secs() + 3_600)
 }
 

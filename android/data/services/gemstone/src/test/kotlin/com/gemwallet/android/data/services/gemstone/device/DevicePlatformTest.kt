@@ -2,8 +2,8 @@ package com.gemwallet.android.data.services.gemstone.device
 
 import android.content.Context
 import androidx.core.app.NotificationManagerCompat
-import com.gemwallet.android.application.device.cases.RequestPushToken
 import com.gemwallet.android.application.device.cases.GetPushToken
+import com.gemwallet.android.application.device.cases.RequestPushToken
 import com.gemwallet.android.application.device.cases.SetPushToken
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.wallet.core.primitives.PlatformStore
@@ -16,12 +16,12 @@ import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemDeviceKeyService
 import uniffi.gemstone.GemDeviceService

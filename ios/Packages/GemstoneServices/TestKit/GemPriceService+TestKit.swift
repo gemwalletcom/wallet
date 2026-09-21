@@ -11,7 +11,7 @@ import StoreTestKit
 public extension GemPriceService {
     static func mock(db: DB = .mock()) -> GemPriceService {
         GemPriceService(
-            store: GemstonePriceStore(priceStore: .mock(db: db), fiatRateStore: .mock(db: db)),
+            store: GemstonePriceStore(priceStore: .mock(db: db)),
         )
     }
 }

@@ -17,10 +17,6 @@ impl THORChainAsset {
 
 impl ThorChain<MockClient> {
     pub fn mock(client: MockClient) -> Self {
-        Self::with_client(
-            ThorChainSwapClient::new(client, THORChainNetwork::Thorchain),
-            Arc::new(ProviderMock::new(String::new())),
-            THORChainNetwork::Thorchain,
-        )
+        Self::with_client(ThorChainSwapClient::new(client, THORChainNetwork::Thorchain), Arc::new(ProviderMock::new(String::new())), THORChainNetwork::Thorchain)
     }
 }

@@ -3,8 +3,7 @@ use support::ChatwootWebhookPayload;
 
 #[test]
 fn test_parse_device_id() {
-    let payload: ChatwootWebhookPayload =
-        serde_json::from_str(r#"{"event": "conversation_updated", "meta": {"sender": {"custom_attributes": {"device_id": "test-device"}}}}"#).unwrap();
+    let payload: ChatwootWebhookPayload = serde_json::from_str(r#"{"event": "conversation_updated", "meta": {"sender": {"custom_attributes": {"device_id": "test-device"}}}}"#).unwrap();
     assert_eq!(payload.get_device_id(), Some("test-device".to_string()));
 }
 

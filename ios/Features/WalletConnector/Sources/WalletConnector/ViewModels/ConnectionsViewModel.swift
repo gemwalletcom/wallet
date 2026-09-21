@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import WalletConnectorService
 import Foundation
 import struct Gemstone.GemConnection
 import struct Gemstone.GemConnectionSection
@@ -12,6 +11,7 @@ import Primitives
 import PrimitivesComponents
 import Store
 import UIKit
+import WalletConnectorService
 
 @Observable
 @MainActor
@@ -96,30 +96,23 @@ extension ConnectionsViewModel {
         isPresentingScanner = true
     }
 
-    func onPaste() {
+    func onPaste() async {
         guard let content = UIPasteboard.general.string else {
             return
         }
-
-        Task {
-            await connectURI(uri: content)
-        }
+        await connectURI(uri: content)
     }
 
-    func onHandleScan(_ result: String) {
-        Task {
-            await connectURI(uri: result)
-        }
+    func onHandleScan(_ result: String) async {
+        await connectURI(uri: result)
     }
 
-    func onSelectDisconnect(_ connection: WalletConnection) {
-        Task {
-            do {
-                try await disconnect(connection: connection)
-            } catch {
-                isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
-                debugLog("disconnect error: \(error)")
-            }
+    func onSelectDisconnect(_ connection: WalletConnection) async {
+        do {
+            try await disconnect(connection: connection)
+        } catch {
+            isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
+            debugLog("disconnect error: \(error)")
         }
     }
 

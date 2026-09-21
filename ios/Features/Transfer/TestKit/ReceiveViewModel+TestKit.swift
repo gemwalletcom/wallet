@@ -12,7 +12,7 @@ public extension ReceiveViewModel {
     ) -> ReceiveViewModel {
         ReceiveViewModel(
             assetAddress: AssetAddress(asset: .mock(id: .mock(.bitcoin)), address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"),
-            wallet: .mock(accounts: [.mock(chain: .bitcoin, address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"), .mock(chain: .ethereum, address: "0xabc")]),
+            wallet: .mock(accounts: [.mock(chain: .bitcoin, address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"), .mock(chain: .ethereum, address: "0xabc"), .mock(chain: .solana, address: "So1ana")]),
             service: service,
         )
     }

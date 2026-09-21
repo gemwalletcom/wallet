@@ -168,10 +168,7 @@ mod tests {
     #[test]
     fn test_currency_bytes() {
         assert_eq!(hex::encode(currency_code_bytes("USD").unwrap()), "0000000000000000000000005553440000000000");
-        assert_eq!(
-            hex::encode(currency_code_bytes("524C555344000000000000000000000000000000").unwrap()),
-            "524c555344000000000000000000000000000000"
-        );
+        assert_eq!(hex::encode(currency_code_bytes("524C555344000000000000000000000000000000").unwrap()), "524c555344000000000000000000000000000000");
         assert_eq!(hex::encode(currency_code_bytes("RLUSD").unwrap()), "524c555344000000000000000000000000000000");
     }
 

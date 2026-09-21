@@ -51,11 +51,9 @@ class PaymentTransferTest {
     private val usdc = mockAssetInfo(asset = mockAssetSolanaUSDC())
     private val paymentService = GemPaymentService(mockk<AlienProvider>(), mockk<GemAssetsService>())
 
-    private fun decode(url: String): PaymentRequest =
-        requireNotNull((paymentService.decodeUrl(url) as? Payment.Request)?.request) { "not a payment request: $url" }
+    private fun decode(url: String): PaymentRequest = requireNotNull((paymentService.decodeUrl(url) as? Payment.Request)?.request) { "not a payment request: $url" }
 
-    private fun destination(assetInfo: AssetInfo, url: String): GemPaymentDestination =
-        paymentService.transferDestination(decode(url), assetInfo.toPaymentWalletAsset())
+    private fun destination(assetInfo: AssetInfo, url: String): GemPaymentDestination = paymentService.transferDestination(decode(url), assetInfo.toPaymentWalletAsset())
 
     @Test
     fun destination_confirm() {

@@ -21,12 +21,19 @@ First-time machine setup, including the kache build cache, is in [Setup](setup.m
 ```sh
 just test                       # Run workspace unit tests
 just test <CRATE>               # Run unit tests for a specific crate
+just test <CRATE> <FILTER>      # Run matching unit tests in one crate
+just test "" <FILTER>           # Run matching workspace unit tests
+just build-integration-tests   # Compile all integration suites without running them
 just test-integration           # Run integration tests only
 just gemstone test-ios          # Run iOS integration tests (run in gemstone/)
 cargo test --test integration_test --package <CRATE> --features <FEATURE>  # Manual integration test
 ```
 
 `just test <CRATE>` includes `--lib` and requires a library target. For binary-only packages such as `img-downloader`, run `cargo test --locked -p img-downloader --bins --all-features` instead.
+
+The optional filter matches test names (for example, `just test gemstone services::assets`). Omitting it keeps the full unit suite. Crate runs retain `--all-features` and skip `integration_tests`; workspace runs retain `--features unit_tests`. Check the test count so an unmatched filter is not mistaken for coverage.
+
+`just build-integration-tests` compiles workspace library tests once with the union of the chain, swapper, fiat, NFT, and price integration features. Swap integration tests belong to the `swapper` crate. It does not run live tests; `just test-integration` runs each suite separately with serial test execution.
 
 Cargo accepts one positional test filter. Run multiple filters as separate commands. Confirm the active worktree and run commands from the directory assumed by the path arguments. If parallel Cargo commands contend on workspace locks or do not return a clear final status, rerun the closing checks individually.
 
@@ -70,6 +77,8 @@ Note: Mobile builds require UniFFI bindings generation and platform-specific com
 ## Generating Bindings (When Core Changes Affect Mobile APIs)
 
 > **IMPORTANT**: Regenerate platform bindings when a change affects the mobile API or generated models. Internal implementation changes in `gemstone/`, `swapper/`, `signer/`, or other Core crates do not require regeneration when the exposed interfaces and generated outputs are unchanged.
+
+For the apps, `just generate-stone` from the repo root builds the iOS library and bindings, and the Android Gradle build regenerates its own. The recipes below serve the standalone Gemstone example projects.
 
 ### Swift Bindings (iOS)
 ```sh

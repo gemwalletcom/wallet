@@ -6,8 +6,6 @@ remote:
   - Transaction
   - PriceProvider
   - Price
-  - AuthNonce
-  - AuthPayload
   - Account
   - AccountDataType
   - AddressName
@@ -35,7 +33,6 @@ remote:
   - Contact
   - ContactAddress
   - DelegationValidator
-  - Device
   - DeviceLocale
   - Asset
   - AssetLink
@@ -77,13 +74,10 @@ remote:
   - PerpetualMarginType
   - PerpetualAccountSummary
   - PerpetualPortfolioTimeframeData
-  - PerpetualPortfolio
-  - TransactionPerpetualMetadata
   - UTXO
   - MarketsAssets
   - MarketDominance
   - Markets
-  - FiatAssets
   - PortfolioAsset
   - Perpetual
   - PerpetualBalance
@@ -92,7 +86,6 @@ remote:
   - PerpetualMetadata
   - PerpetualOrderType
   - PerpetualPosition
-  - PerpetualPositionsSummary
   - PerpetualProvider
   - PerpetualTriggerOrder
   - PerpetualConfirmData
@@ -170,6 +163,7 @@ remote:
   - PriceAlertData
   - PriceAlertDirection
   - PriceAlertNotificationType
+  - ReportReason
   - ReportNft
   - TotalFiatValue
   - TransactionState
@@ -194,9 +188,6 @@ remote:
   - TronUnfreeze
   - TronStakeData
   - PerpetualSearchData
-  - SearchResponse
-  - TransactionsResponse
-  - FiatQuoteRequest
   - FiatTransactionStatus
   - CoreEmoji
   - CoreListItemBadge
@@ -212,6 +203,7 @@ remote:
   - SupportTyping
   - FiatTransaction
   - FiatTransactionData
+  - FiatTransactionAssetData
 codes:
   - Chain
 identifiers:

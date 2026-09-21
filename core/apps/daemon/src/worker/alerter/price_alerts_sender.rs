@@ -13,11 +13,7 @@ pub struct PriceAlertSender {
 impl PriceAlertSender {
     pub fn new(database: Database, price_alert_client: PriceAlertClient, stream_producer: StreamProducer) -> Self {
         let config = ConfigCacher::new(database);
-        Self {
-            config,
-            price_alert_client,
-            stream_producer,
-        }
+        Self { config, price_alert_client, stream_producer }
     }
 
     pub async fn run_observer(&self) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
@@ -36,9 +32,7 @@ impl PriceAlertSender {
 
         let price_alert_notifications = self.price_alert_client.get_devices_to_alert(rules, primary_price_max_age).await?;
         let notifications = self.price_alert_client.get_notifications_for_price_alerts(price_alert_notifications);
-        self.stream_producer
-            .publish_notifications_price_alerts(NotificationsPayload::new(notifications.clone()))
-            .await?;
+        self.stream_producer.publish_notifications_price_alerts(NotificationsPayload::new(notifications.clone())).await?;
         Ok(notifications.len())
     }
 }

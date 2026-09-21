@@ -1,20 +1,20 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.data.services.gemstone.nft.toAssetModel
-import com.gemwallet.android.data.services.gemstone.nft.toAssetModels
-import com.gemwallet.android.data.services.gemstone.nft.toCollectionModel
-import com.gemwallet.android.data.services.gemstone.nft.toCollectionModels
 import com.gemwallet.android.data.service.store.database.NftDao
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAsset
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAssociation
 import com.gemwallet.android.data.service.store.database.entities.DbNFTCollection
+import com.gemwallet.android.data.services.gemstone.nft.toAssetModel
+import com.gemwallet.android.data.services.gemstone.nft.toAssetModels
+import com.gemwallet.android.data.services.gemstone.nft.toCollectionModel
+import com.gemwallet.android.data.services.gemstone.nft.toCollectionModels
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toNftAssetId
+import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.NFTAssetData
-import com.wallet.core.primitives.NFTCollection
 import com.wallet.core.primitives.NFTAssetId
+import com.wallet.core.primitives.NFTCollection
 import com.wallet.core.primitives.NFTCollectionId
 import com.wallet.core.primitives.NFTData
 import kotlinx.coroutines.flow.Flow
@@ -22,9 +22,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import uniffi.gemstone.GemNftStore
 
-class GemstoneNftStore(
-    private val nftDao: NftDao,
-) : GemNftStore {
+class GemstoneNftStore(private val nftDao: NftDao) : GemNftStore {
 
     override suspend fun saveNfts(walletId: String, data: List<uniffi.gemstone.NftData>) {
         val nftData = data.map { it.toPrimitives() }

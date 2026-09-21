@@ -128,12 +128,7 @@ impl HyperCoreCache {
         })
     }
 
-    pub(crate) async fn manage_agent<F>(
-        &self,
-        sender_address: &str,
-        secure_preferences: Arc<dyn primitives::Preferences>,
-        get_agents: F,
-    ) -> Result<AgentApproval, Box<dyn Error + Send + Sync>>
+    pub(crate) async fn manage_agent<F>(&self, sender_address: &str, secure_preferences: Arc<dyn primitives::Preferences>, get_agents: F) -> Result<AgentApproval, Box<dyn Error + Send + Sync>>
     where
         F: Future<Output = Result<Vec<AgentSession>, Box<dyn Error + Send + Sync>>>,
     {

@@ -31,14 +31,8 @@ mod tests {
 
     #[test]
     fn test_full_coin_type() {
-        assert_eq!(
-            full_coin_type("0x2::sui::SUI"),
-            "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI"
-        );
-        assert_eq!(
-            full_coin_type("2::sui::SUI"),
-            "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI"
-        );
+        assert_eq!(full_coin_type("0x2::sui::SUI"), "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI");
+        assert_eq!(full_coin_type("2::sui::SUI"), "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI");
         assert_eq!(
             full_coin_type("0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI"),
             "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI"
@@ -52,10 +46,7 @@ mod tests {
         assert!(coin_type_matches("0x2::sui::SUI", "0x2::sui::SUI"));
         assert!(coin_type_matches("0x2::sui::SUI", "2::sui::SUI"));
         assert!(coin_type_matches("2::sui::SUI", "0x2::sui::SUI"));
-        assert!(coin_type_matches(
-            "0x2::sui::SUI",
-            "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI"
-        ));
+        assert!(coin_type_matches("0x2::sui::SUI", "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI"));
         assert!(!coin_type_matches("0x2::sui::SUI", "0x3::token::TOKEN"));
     }
 

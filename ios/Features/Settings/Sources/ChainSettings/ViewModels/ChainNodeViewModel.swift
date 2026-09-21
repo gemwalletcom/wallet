@@ -1,18 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import GemstonePrimitives
 import struct Gemstone.GemNodeRow
 import struct Gemstone.GemNodeSelection
 import Localization
-import Style
+import PrimitivesComponents
 
 struct ChainNodeViewModel {
     let row: GemNodeRow
-
-    init(row: GemNodeRow) {
-        self.row = row
-    }
 
     var node: GemNodeSelection {
         row.node
@@ -30,33 +25,11 @@ struct ChainNodeViewModel {
         row.node.isSelected ? row.node.url : .none
     }
 
-    var title: String {
-        switch row.title {
-        case let .host(host): host
-        case let .gemNode(flag): Localized.Nodes.gemWalletNode + " " + flag
-        }
-    }
-
-    var titleExtra: String? {
-        switch row.subtitle {
-        case let .latestBlock(value): "\(row.subtitle.title): \(value)"
-        }
-    }
-
-    var titleTag: String? {
-        statusTag.text
-    }
-
-    var titleTagType: TitleTagType {
-        statusTag.type
-    }
-
-    var titleTagStyle: TextStyle {
-        statusTag.style
-    }
-
-    private var statusTag: LatencyStatusViewModel {
-        LatencyStatusViewModel(status: row.latencyStatus)
+    var listItem: ListItemModel {
+        row.latencyStatus.listItem(
+            title: row.title.text(gemNodeLabel: Localized.Nodes.gemWalletNode),
+            titleExtra: row.subtitle.text,
+        )
     }
 }
 

@@ -30,9 +30,7 @@ impl BroadcastResult {
     }
 
     pub fn fee(&self) -> BigUint {
-        self.receipts_outcome
-            .iter()
-            .fold(self.transaction_outcome.outcome.tokens_burnt.clone(), |fee, receipt| fee + &receipt.outcome.tokens_burnt)
+        self.receipts_outcome.iter().fold(self.transaction_outcome.outcome.tokens_burnt.clone(), |fee, receipt| fee + &receipt.outcome.tokens_burnt)
     }
 }
 

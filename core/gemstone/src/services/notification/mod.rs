@@ -62,27 +62,12 @@ mod tests {
     fn test_open_marks_read_only_when_unread() {
         futures::executor::block_on(async {
             let read = Arc::new(TestAlienProvider::with_json(200, "[]"));
-            GemNotificationService::mock(read.clone(), Arc::new(MemoryNotificationStore::default()))
-                .open()
-                .await
-                .unwrap();
+            GemNotificationService::mock(read.clone(), Arc::new(MemoryNotificationStore::default())).open().await.unwrap();
             assert_eq!(read.requested_paths(), vec!["/v2/devices/notifications?from_timestamp=0"]);
 
             let unread = Arc::new(TestAlienProvider::with_json(200, "[]"));
-            GemNotificationService::mock(
-                unread.clone(),
-                Arc::new(MemoryNotificationStore {
-                    unread: true,
-                    ..Default::default()
-                }),
-            )
-            .open()
-            .await
-            .unwrap();
-            assert_eq!(
-                unread.requested_paths(),
-                vec!["/v2/devices/notifications?from_timestamp=0", "/v2/devices/notifications/read"]
-            );
+            GemNotificationService::mock(unread.clone(), Arc::new(MemoryNotificationStore { unread: true, ..Default::default() })).open().await.unwrap();
+            assert_eq!(unread.requested_paths(), vec!["/v2/devices/notifications?from_timestamp=0", "/v2/devices/notifications/read"]);
         });
     }
 }

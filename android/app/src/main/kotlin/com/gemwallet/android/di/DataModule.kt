@@ -1,45 +1,45 @@
 package com.gemwallet.android.di
 
+import com.gemwallet.android.application.PasswordStore
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneRecentActivityStore
+import com.gemwallet.android.data.services.gemstone.transactions.TransactionStatusService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemAssetSelectionService
 import uniffi.gemstone.GemAssetSelectionServiceInterface
-import com.gemwallet.android.data.services.gemstone.transactions.TransactionStatusService
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemBalanceService
-import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneRecentActivityStore
-import uniffi.gemstone.GemRecentActivityService
-import uniffi.gemstone.GemRecentActivityServiceInterface
-import uniffi.gemstone.GemWalletSessionService
+import uniffi.gemstone.GemChainSettingsService
+import uniffi.gemstone.GemChainSettingsServiceInterface
+import uniffi.gemstone.GemConfirmService
+import uniffi.gemstone.GemConfirmServiceInterface
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemConfirmTransferServiceInterface
+import uniffi.gemstone.GemDeviceService
 import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemNameService
 import uniffi.gemstone.GemNodeService
-import uniffi.gemstone.GemPreferencesService
-import uniffi.gemstone.GemAssetConfigService
-import uniffi.gemstone.GemTransactionSigner
-import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
-import uniffi.gemstone.GemConfirmService
-import uniffi.gemstone.GemConfirmServiceInterface
-import uniffi.gemstone.GemGateway
-import uniffi.gemstone.GemChainSettingsService
-import uniffi.gemstone.GemChainSettingsServiceInterface
 import uniffi.gemstone.GemPerpetualService
+import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPriceAlertService
 import uniffi.gemstone.GemPriceService
-import uniffi.gemstone.GemSearchService
-import uniffi.gemstone.GemSwapService
+import uniffi.gemstone.GemRecentActivityService
+import uniffi.gemstone.GemRecentActivityServiceInterface
 import uniffi.gemstone.GemScanService
-import uniffi.gemstone.GemTransactionStateService
+import uniffi.gemstone.GemSearchService
 import uniffi.gemstone.GemSimulationService
+import uniffi.gemstone.GemSwapService
+import uniffi.gemstone.GemTransactionSigner
+import uniffi.gemstone.GemTransactionStateService
+import uniffi.gemstone.GemWalletSessionService
 import javax.inject.Singleton
-import uniffi.gemstone.GemDeviceService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -60,10 +60,8 @@ object DataModule {
 
     @Provides
     @Singleton
-    fun provideGemRecentActivityService(
-        recentAssetsService: RecentAssetsService,
-        walletSessionService: GemWalletSessionService,
-    ): GemRecentActivityService = GemRecentActivityService(GemstoneRecentActivityStore(recentAssetsService), walletSessionService)
+    fun provideGemRecentActivityService(recentAssetsService: RecentAssetsService, walletSessionService: GemWalletSessionService): GemRecentActivityService =
+        GemRecentActivityService(GemstoneRecentActivityStore(recentAssetsService), walletSessionService)
 
     @Provides
     fun provideGemAssetSelectionService(
@@ -110,11 +108,7 @@ object DataModule {
     )
 
     @Provides
-    fun provideGemChainSettingsService(
-        nodeService: GemNodeService,
-        explorerService: GemExplorerService,
-        gateway: GemGateway,
-    ): GemChainSettingsServiceInterface = GemChainSettingsService(nodeService, explorerService, gateway)
+    fun provideGemChainSettingsService(nodeService: GemNodeService, explorerService: GemExplorerService, gateway: GemGateway): GemChainSettingsServiceInterface = GemChainSettingsService(nodeService, explorerService, gateway)
 
     @Provides
     fun provideGemRecentActivityServiceInterface(service: GemRecentActivityService): GemRecentActivityServiceInterface = service

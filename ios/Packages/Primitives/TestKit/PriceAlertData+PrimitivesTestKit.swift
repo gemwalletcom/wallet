@@ -7,11 +7,13 @@ public extension PriceAlertData {
         asset: Asset = .mock(),
         price: Price? = .mock(),
         priceAlert: PriceAlert = .mock(),
+        rankScore: Int32 = 20,
     ) -> Self {
         PriceAlertData(
             asset: asset,
             price: price,
             priceAlert: priceAlert,
+            rankScore: rankScore,
         )
     }
 }

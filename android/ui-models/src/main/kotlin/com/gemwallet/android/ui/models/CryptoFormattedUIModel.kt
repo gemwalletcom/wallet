@@ -2,8 +2,8 @@ package com.gemwallet.android.ui.models
 
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.Asset
-import java.math.BigDecimal
 import uniffi.gemstone.GemValueStyle
+import java.math.BigDecimal
 
 interface CryptoFormattedUIModel {
     val asset: Asset

@@ -66,12 +66,7 @@ fn validate_expiration(transaction: &TransactionBuilderJson) -> Result<(), SuiEr
 async fn gas_price(client: &SuiClient, gas_data: &GasData) -> Result<u64, SuiError> {
     match gas_data.price {
         Some(price) => Ok(price),
-        None => client
-            .get_gas_price()
-            .await
-            .map_err(SuiError::from_display)?
-            .to_u64()
-            .ok_or_else(|| SuiError::invalid_input("Sui gas price overflow")),
+        None => client.get_gas_price().await.map_err(SuiError::from_display)?.to_u64().ok_or_else(|| SuiError::invalid_input("Sui gas price overflow")),
     }
 }
 
@@ -84,12 +79,7 @@ async fn gas_objects(client: &SuiClient, replay: &TransactionJsonReplay, gas_dat
 
     let coins = client.get_gas_coins(sender).await.map_err(SuiError::from_display)?;
     let input_objects = input_object_ids(&replay.transaction.inputs)?;
-    let gas_objects = coins
-        .coins
-        .iter()
-        .filter(|coin| !input_objects.contains(&coin.object.object_id))
-        .map(Coin::to_input)
-        .collect::<Vec<_>>();
+    let gas_objects = coins.coins.iter().filter(|coin| !input_objects.contains(&coin.object.object_id)).map(Coin::to_input).collect::<Vec<_>>();
     if gas_objects.is_empty() {
         return Err(SuiError::NoGasCoins);
     }
@@ -115,10 +105,7 @@ fn input_object_ids(inputs: &[TransactionInput]) -> Result<HashSet<Address>, Sui
 
 async fn estimate_gas_budget(client: &SuiClient, replay: &TransactionJsonReplay, builder_input: &TransactionBuilderInput) -> Result<u64, SuiError> {
     let estimate = finish_transaction(replay.replay()?.txb, builder_input.clone())?;
-    let dry_run = client
-        .dry_run(estimate.base64_encoded())
-        .await
-        .map_err(|err| SuiError::invalid_input(format!("Sui gas estimation failed: {err}")))?;
+    let dry_run = client.dry_run(estimate.base64_encoded()).await.map_err(|err| SuiError::invalid_input(format!("Sui gas estimation failed: {err}")))?;
     let fee = dry_run.effects.gas_used.calculate_gas_budget().map_err(SuiError::from_display)?;
     Ok(fee * GAS_BUDGET_MULTIPLIER / 100)
 }

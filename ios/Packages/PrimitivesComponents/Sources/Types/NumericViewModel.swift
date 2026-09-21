@@ -1,8 +1,8 @@
 import BigInt
 import Components
 import Formatters
-import GemstonePrimitives
 import enum Gemstone.GemAmountSign
+import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI

@@ -1,11 +1,22 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
+@testable import AppLock
 import Foundation
 import GemstoneServices
 import GemstoneServicesTestKit
 import LocalAuthentication
-@testable import AppLock
+import Primitives
+
+extension LockSceneViewModel {
+    var isUnlocking: Bool {
+        if case .unlocking = state {
+            true
+        } else {
+            false
+        }
+    }
+}
+
 import Testing
 
 @MainActor
@@ -134,8 +145,8 @@ struct LockSceneViewModelTests {
         let viewModel = LockSceneViewModel(service: mockService)
 
         let first = viewModel.startUnlock()
-        viewModel.handleSceneChange(to: .inactive)
-        viewModel.handleSceneChange(to: .background)
+        viewModel.onScenePhase(.inactive)
+        viewModel.onScenePhase(.background)
 
         mockService.authenticateError = BiometryAuthenticationError.cancelledBySystem
         mockService.releaseAuthentication()
@@ -143,7 +154,7 @@ struct LockSceneViewModelTests {
         #expect(viewModel.state == .locked)
 
         mockService.authenticateError = nil
-        viewModel.handleSceneChange(to: .active)
+        viewModel.onScenePhase(.active)
         #expect(viewModel.isUnlocking)
 
         await viewModel.startUnlock()?.value
@@ -159,9 +170,9 @@ struct LockSceneViewModelTests {
 
         let first = viewModel.startUnlock()
         await Task.yield()
-        viewModel.handleSceneChange(to: .inactive)
-        viewModel.handleSceneChange(to: .background)
-        viewModel.handleSceneChange(to: .active)
+        viewModel.onScenePhase(.inactive)
+        viewModel.onScenePhase(.background)
+        viewModel.onScenePhase(.active)
 
         #expect(viewModel.isUnlocking)
         let second = viewModel.startUnlock()
@@ -184,8 +195,8 @@ struct LockSceneViewModelTests {
         let viewModel = LockSceneViewModel(service: mockService)
 
         let task = viewModel.startUnlock()
-        viewModel.handleSceneChange(to: .inactive)
-        viewModel.handleSceneChange(to: .active)
+        viewModel.onScenePhase(.inactive)
+        viewModel.onScenePhase(.active)
         #expect(viewModel.isUnlocking)
 
         mockService.releaseAuthentication()
@@ -200,7 +211,7 @@ struct LockSceneViewModelTests {
         let mockService = BiometryAuthenticationMock()
         let viewModel = LockSceneViewModel(service: mockService)
 
-        viewModel.handleSceneChange(to: .active)
+        viewModel.onScenePhase(.active)
         #expect(viewModel.isUnlocking)
 
         await viewModel.startUnlock()?.value
@@ -215,7 +226,7 @@ struct LockSceneViewModelTests {
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .lockedCanceled
 
-        viewModel.handleSceneChange(to: .active)
+        viewModel.onScenePhase(.active)
 
         #expect(viewModel.state == .lockedCanceled)
         #expect(mockService.authenticateCallsCount == 0)
@@ -228,9 +239,9 @@ struct LockSceneViewModelTests {
         viewModel.state = .unlocked
         viewModel.backgroundedAt = ContinuousClock.now - .seconds(3600)
 
-        viewModel.handleSceneChange(to: .inactive)
-        viewModel.handleSceneChange(to: .background)
-        viewModel.handleSceneChange(to: .active)
+        viewModel.onScenePhase(.inactive)
+        viewModel.onScenePhase(.background)
+        viewModel.onScenePhase(.active)
 
         #expect(viewModel.isUnlocking)
         #expect(viewModel.shouldShowLockScreen)
@@ -246,8 +257,8 @@ struct LockSceneViewModelTests {
         viewModel.state = .unlocked
         viewModel.backgroundedAt = ContinuousClock.now
 
-        viewModel.handleSceneChange(to: .background)
-        viewModel.handleSceneChange(to: .active)
+        viewModel.onScenePhase(.background)
+        viewModel.onScenePhase(.active)
 
         #expect(viewModel.state == .unlocked)
         #expect(mockService.authenticateCallsCount == 0)
@@ -260,7 +271,7 @@ struct LockSceneViewModelTests {
         viewModel.state = .unlocked
         viewModel.backgroundedAt = ContinuousClock.now
 
-        viewModel.handleSceneChange(to: .background)
+        viewModel.onScenePhase(.background)
 
         let elapsed = viewModel.backgroundedAt.map { (ContinuousClock.now - $0).milliseconds } ?? .max
         #expect(elapsed < 1000, "backgrounding inside the grace period restarts the countdown")
@@ -271,7 +282,7 @@ struct LockSceneViewModelTests {
     func togglingAuthOffResetsViewModel() async throws {
         let mockService = BiometryAuthenticationMock()
         let viewModel = LockSceneViewModel(service: mockService)
-        viewModel.handleSceneChange(to: .inactive) // showPlaceholderPreview true
+        viewModel.onScenePhase(.inactive) // showPlaceholderPreview true
 
         try await mockService.enableAuthentication(false, reason: "unit")
         viewModel.resetLockState()
@@ -332,21 +343,21 @@ struct LockSceneViewModelTests {
         #expect(viewModel.shouldShowLockScreen)
 
         viewModel.state = .unlocked
-        viewModel.handleSceneChange(to: .inactive)
+        viewModel.onScenePhase(.inactive)
         #expect(viewModel.shouldShowLockScreen)
     }
 
     @Test
-    func handleSceneChangeWhenAutoLockDisabled() {
+    func onScenePhaseWhenAutoLockDisabled() {
         let mockService = BiometryAuthenticationMock(requiresAuthentication: false, availableAuthentication: .none)
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
 
-        viewModel.handleSceneChange(to: .background)
+        viewModel.onScenePhase(.background)
         #expect(viewModel.state == .unlocked)
         #expect(!viewModel.shouldShowLockScreen)
 
-        viewModel.handleSceneChange(to: .active)
+        viewModel.onScenePhase(.active)
         #expect(viewModel.state == .unlocked)
         #expect(!viewModel.shouldShowLockScreen)
     }
@@ -395,9 +406,9 @@ struct LockSceneViewModelTests {
         viewModel.state = .unlocked
         viewModel.backgroundedAt = ContinuousClock.now
 
-        viewModel.handleSceneChange(to: .background)
-        viewModel.handleSceneChange(to: .active)
-        viewModel.handleSceneChange(to: .background)
+        viewModel.onScenePhase(.background)
+        viewModel.onScenePhase(.active)
+        viewModel.onScenePhase(.background)
 
         #expect(viewModel.state == .unlocked)
         #expect(!viewModel.shouldLock)

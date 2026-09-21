@@ -3,9 +3,7 @@ use crate::address::TronAddress;
 #[cfg(test)]
 use crate::models::account::{TronAccount, TronAccountOwnerPermission, TronAccountPermission, TronAccountPermissionKey, TronAccountUsage, TronFrozen, TronUnfrozen, TronVote};
 #[cfg(test)]
-use crate::models::{
-    ChainParameter, InternalTransaction, InternalTransactionCallValue, Transaction, TransactionReceipt, TransactionReceiptData, TronLog, WitnessAccount, WitnessesList,
-};
+use crate::models::{ChainParameter, InternalTransaction, InternalTransactionCallValue, Transaction, TransactionReceipt, TransactionReceiptData, TronLog, WitnessAccount, WitnessesList};
 #[cfg(test)]
 use crate::rpc::constants::ERC20_TRANSFER_EVENT_SIGNATURE;
 #[cfg(test)]
@@ -67,10 +65,7 @@ impl TronUnfrozen {
 #[cfg(test)]
 impl ChainParameter {
     pub fn mock(key: &str, value: i64) -> Self {
-        Self {
-            key: key.to_string(),
-            value: Some(value),
-        }
+        Self { key: key.to_string(), value: Some(value) }
     }
 }
 
@@ -107,6 +102,13 @@ impl TronGridTransaction {
 }
 
 #[cfg(test)]
+impl TronAccountPermissionKey {
+    pub fn mock(address: &str, weight: u64) -> Self {
+        Self { address: address.to_string(), weight }
+    }
+}
+
+#[cfg(test)]
 impl TronAccount {
     pub fn mock(address: &str) -> Self {
         Self {
@@ -115,18 +117,12 @@ impl TronAccount {
             owner_permission: Some(TronAccountOwnerPermission {
                 permission_name: "owner".to_string(),
                 threshold: Some(1),
-                keys: Some(vec![TronAccountPermissionKey {
-                    address: address.to_string(),
-                    weight: 1,
-                }]),
+                keys: Some(vec![TronAccountPermissionKey { address: address.to_string(), weight: 1 }]),
             }),
             active_permission: Some(vec![TronAccountPermission {
                 id: None,
                 threshold: 1,
-                keys: Some(vec![TronAccountPermissionKey {
-                    address: address.to_string(),
-                    weight: 1,
-                }]),
+                keys: Some(vec![TronAccountPermissionKey { address: address.to_string(), weight: 1 }]),
             }]),
             votes: None,
             frozen_v2: None,

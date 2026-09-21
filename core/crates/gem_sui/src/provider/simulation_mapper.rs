@@ -11,10 +11,7 @@ pub fn map_simulation_result(sender: &str, transaction: &ExecutedTransaction) ->
     }
 
     match map_balance_changes(sender, &transaction.balance_changes) {
-        Ok(balance_changes) => SimulationResult {
-            balance_changes,
-            ..Default::default()
-        },
+        Ok(balance_changes) => SimulationResult { balance_changes, ..Default::default() },
         Err(message) => SimulationResult::new(vec![SimulationWarning::execution_error(message)], vec![]),
     }
 }
@@ -124,10 +121,7 @@ mod tests {
         let result = map_simulation_result(TEST_ADDRESS, &transaction);
 
         assert!(result.warnings.is_empty());
-        assert_eq!(
-            result.balance_changes,
-            vec![SimulationBalanceChange::new(AssetId::from_chain(Chain::Sui), BigInt::from(-100))]
-        );
+        assert_eq!(result.balance_changes, vec![SimulationBalanceChange::new(AssetId::from_chain(Chain::Sui), BigInt::from(-100))]);
     }
 
     #[test]
@@ -145,9 +139,6 @@ mod tests {
         assert!(result.balance_changes.is_empty());
 
         let missing_status = ExecutedTransaction::default();
-        assert_eq!(
-            map_simulation_result(TEST_ADDRESS, &missing_status).warnings,
-            vec![SimulationWarning::execution_error("execution failed")]
-        );
+        assert_eq!(map_simulation_result(TEST_ADDRESS, &missing_status).warnings, vec![SimulationWarning::execution_error("execution failed")]);
     }
 }

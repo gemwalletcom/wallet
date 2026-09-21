@@ -1,13 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemAboutRow
-import protocol Gemstone.GemAppUpdateServiceProtocol
 import Components
 import func Gemstone.aboutSections
-import func Gemstone.communityLinks
+import protocol Gemstone.GemAppUpdateServiceProtocol
+import enum Gemstone.GemListRow
 import GemstonePrimitives
-import Localization
 import GemstoneServices
+import Localization
 import Primitives
 import PrimitivesComponents
 import Style
@@ -18,6 +17,9 @@ import SwiftUI
 public final class AboutUsViewModel: Sendable {
     private let preferences: ObservablePreferences
     private let service: any GemAppUpdateServiceProtocol
+
+    private var release: Release?
+
     public init(
         preferences: ObservablePreferences,
         service: any GemAppUpdateServiceProtocol,
@@ -26,57 +28,23 @@ public final class AboutUsViewModel: Sendable {
         self.service = service
     }
 
-    var sections: [ListSection<AboutRowViewModel>] {
-        aboutSections().enumerated().map { index, section in
-            ListSection(id: "\(index)", title: nil, image: nil, values: section.rows.map(rowViewModel))
-        }
-    }
-
     var title: String {
         Localized.Settings.aboutus
     }
 
-    private func rowViewModel(_ row: GemAboutRow) -> AboutRowViewModel {
+    func contextMenuItems(for row: GemListRow) -> [ContextMenuItemType] {
         switch row {
-        case .termsOfService: AboutRowViewModel(id: String(describing: row), kind: .link(termsOfServiceURL), model: listItem(for: row))
-        case .privacyPolicy: AboutRowViewModel(id: String(describing: row), kind: .link(privacyPolicyURL), model: listItem(for: row))
-        case .website: AboutRowViewModel(id: String(describing: row), kind: .link(websiteURL), model: listItem(for: row))
-        case .community: AboutRowViewModel(id: String(describing: row), kind: .community, model: listItem(for: row))
-        case .version: AboutRowViewModel(id: String(describing: row), kind: .version, model: listItem(for: row))
+        case let .text(.version, value):
+            [
+                .copy(value: value),
+                .custom(
+                    title: contextDevTitle,
+                    systemImage: SystemImage.info,
+                    action: toggleDeveloperMode,
+                ),
+            ]
+        default: []
         }
-    }
-
-    private func listItem(for row: GemAboutRow) -> ListItemModel {
-        switch row {
-        case .termsOfService, .privacyPolicy, .website, .community: ListItemModel(title: row.title)
-        case .version: ListItemModel(title: row.title, subtitle: versionTextValue)
-        }
-    }
-
-    var updateListItem: ListItemModel? {
-        releaseVersion.map { ListItemModel(title: Localized.UpdateApp.title, subtitle: $0, imageStyle: .settings(assetImage: releaseImage)) }
-    }
-
-
-    var termsOfServiceURL: URL {
-        AppUrl.page(.termsOfService)
-    }
-
-
-    var privacyPolicyURL: URL {
-        AppUrl.page(.privacyPolicy)
-    }
-
-
-    var websiteURL: URL {
-        AppUrl.page(.website)
-    }
-
-
-    var versionTextValue: String {
-        let version = Bundle.main.releaseVersionNumber
-        let number = Bundle.main.buildVersionNumber
-        return "\(version) (\(number))"
     }
 
     var contextDevTitle: String {
@@ -86,35 +54,16 @@ public final class AboutUsViewModel: Sendable {
             Localized.Settings.enableValue(Localized.Settings.developer)
         }
     }
+}
 
-    var contextDeveloperImage: String {
-        SystemImage.info
+extension AboutUsViewModel: ListSectionProvideable {
+    public var sections: [ListSection<GemListSectionRow>] {
+        aboutSections(
+            version: Bundle.main.releaseVersionNumber,
+            build: String(Bundle.main.buildVersionNumber),
+            update: release?.toGem(),
+        ).listSections
     }
-
-    var contextMenuItems: [ContextMenuItemType] {
-        [
-            .copy(value: versionTextValue),
-            .custom(
-                title: contextDevTitle,
-                systemImage: contextDeveloperImage,
-                action: toggleDeveloperMode,
-            ),
-        ]
-    }
-
-    var release: Release?
-    var releaseVersion: String? {
-        release?.version
-    }
-
-    var releaseImage: AssetImage {
-        AssetImage.image(Images.Settings.gem)
-    }
-
-    var linksViewModel: SocialLinksViewModel {
-        SocialLinksViewModel(links: communityLinks())
-    }
-
 }
 
 extension AboutUsViewModel {
@@ -124,9 +73,5 @@ extension AboutUsViewModel {
 
     func load() async {
         release = await service.newestRelease()
-    }
-
-    func onUpdate() {
-        UIApplication.shared.open(AppUrl.page(.appStore))
     }
 }

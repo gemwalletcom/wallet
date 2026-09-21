@@ -5,12 +5,12 @@ import typealias Gemstone.Asset
 import typealias Gemstone.AssetId
 import typealias Gemstone.Chain
 import protocol Gemstone.GemAddAssetServiceProtocol
-import struct Gemstone.BlockExplorerLink
+import struct Gemstone.GemAddAssetSession
+import struct Gemstone.GemListSection
 import struct Gemstone.Wallet
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
-import struct Gemstone.GemAddAssetSession
 
 public final class GemAddAssetServiceMock: GemAddAssetServiceProtocol, @unchecked Sendable {
     private let chains: [Primitives.Chain]
@@ -25,9 +25,21 @@ public final class GemAddAssetServiceMock: GemAddAssetServiceProtocol, @unchecke
         GemAddAssetSession(chain: chain, address: "", asset: nil, isLoading: false, failed: false)
     }
 
-    public func chains(wallet _: Wallet) -> [Chain] { chains.map(\.rawValue) }
-    public func defaultChain(chains: [Chain]) -> Chain? { chains.first }
-    public func tokenUrl(chain: Chain, tokenId: String) -> Gemstone.BlockExplorerLink? { nil }
-    public func token(chain: Chain, address: String) async throws -> Asset { asset.toGem() }
-    public func add(wallet: Wallet, assetId: AssetId) async throws {}
+    public func chains(wallet _: Wallet) -> [Chain] {
+        chains.map(\.rawValue)
+    }
+
+    public func defaultChain(chains: [Chain]) -> Chain? {
+        chains.first
+    }
+
+    public func sections(session _: GemAddAssetSession) -> [GemListSection] {
+        []
+    }
+
+    public func token(chain _: Chain, address _: String) async throws -> Asset {
+        asset.toGem()
+    }
+
+    public func add(wallet _: Wallet, assetId _: AssetId) async throws {}
 }

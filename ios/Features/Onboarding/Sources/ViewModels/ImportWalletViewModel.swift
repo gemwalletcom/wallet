@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Foundation
 import protocol Gemstone.GemNameServiceProtocol
 import protocol Gemstone.GemWalletServiceProtocol
-import Foundation
 import GemstonePrimitives
 import GemstoneServices
 import Primitives
@@ -13,7 +13,7 @@ import SwiftUI
 @MainActor
 public final class ImportWalletViewModel {
     private let service: any GemWalletServiceProtocol
-    private let preferences: ObservablePreferences
+    let preferences: ObservablePreferences
     private let nameService: any GemNameServiceProtocol
     let onComplete: VoidAction
 

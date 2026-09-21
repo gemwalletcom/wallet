@@ -3,8 +3,8 @@ package com.gemwallet.android.services
 import android.content.Context
 import android.util.Log
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.data.services.gemstone.keystore.MigrateKeystoreOperator
 import com.gemwallet.android.application.wallet.cases.GetWallets
+import com.gemwallet.android.data.services.gemstone.keystore.MigrateKeystoreOperator
 import com.gemwallet.android.math.fromHex
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
@@ -51,8 +51,7 @@ class MigrateV3KeystoreService @Inject constructor(
         }
     }
 
-    private fun needsMigration(wallet: Wallet): Boolean =
-        wallet.type != WalletType.View && File(baseDir, wallet.id.id).exists()
+    private fun needsMigration(wallet: Wallet): Boolean = wallet.type != WalletType.View && File(baseDir, wallet.id.id).exists()
 
     private companion object {
         const val TAG = "MigrateV3Keystore"

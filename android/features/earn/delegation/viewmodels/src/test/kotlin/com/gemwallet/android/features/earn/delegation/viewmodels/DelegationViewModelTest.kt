@@ -1,10 +1,10 @@
 package com.gemwallet.android.features.earn.delegation.viewmodels
 
-import uniffi.gemstone.GemStakeServiceInterface
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegation
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockDelegation
@@ -12,7 +12,6 @@ import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Currency
 import io.mockk.every
 import io.mockk.mockk
@@ -29,6 +28,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemStakeServiceInterface
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -74,7 +74,7 @@ class DelegationViewModelTest {
                 mapOf(
                     RouteArgument.ValidatorId.key to "v1",
                     RouteArgument.DelegationId.key to "d1",
-                )
+                ),
             ),
             context = mockk(relaxed = true),
         )

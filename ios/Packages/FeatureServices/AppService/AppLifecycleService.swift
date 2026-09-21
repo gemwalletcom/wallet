@@ -71,7 +71,7 @@ public actor AppLifecycleService: Sendable {
         }
     }
 
-    public func handleScenePhase(_ phase: ScenePhase) async {
+    public func onScenePhase(_ phase: ScenePhase) async {
         switch phase {
         case .active:
             debugLog("AppLifecycleService: App active — connecting observers")
@@ -104,7 +104,11 @@ extension AppLifecycleService {
     private func setupDeviceObserver() async {
         do {
             for try await _ in subscriptionsObserver.observe().dropFirst() {
-                try await deviceService.synchronizeIfNeeded()
+                do {
+                    try await deviceService.synchronizeIfNeeded()
+                } catch {
+                    debugLog("AppLifecycleService device sync error: \(error)")
+                }
             }
         } catch {
             debugLog("AppLifecycleService setupDeviceObserver error: \(error)")

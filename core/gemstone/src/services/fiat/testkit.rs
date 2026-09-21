@@ -16,6 +16,8 @@ use crate::services::node::GemNodeService;
 use crate::services::preferences::{GemPreferencesService, testkit::MemoryPreferencesStore};
 use crate::services::price::{GemPriceService, testkit::MemoryPriceStore};
 use crate::services::stream::testkit::SubscriptionTestkit;
+use crate::services::transfer::GemRecentActivityService;
+use crate::services::transfer::testkit::MemoryRecentActivityStore;
 use crate::services::wallet::testkit::MemoryWalletStore;
 use crate::services::wallet_session::{GemWalletSessionService, testkit::MemoryWalletSessionStore};
 use crate::testkit::{EmptyPreferences, TestAlienProvider};
@@ -33,11 +35,15 @@ impl GemFiatQuotesResult {
     }
 }
 
-pub struct MemoryFiatStore;
+#[derive(Default)]
+pub struct MemoryFiatStore {
+    pub transaction_writes: Mutex<Vec<(WalletId, Vec<FiatTransactionData>)>>,
+}
 
 #[async_trait]
 impl GemFiatStore for MemoryFiatStore {
-    async fn set_transactions(&self, _: WalletId, _: Vec<FiatTransactionData>) -> Result<(), GemServiceError> {
+    async fn set_transactions(&self, wallet_id: WalletId, transactions: Vec<FiatTransactionData>) -> Result<(), GemServiceError> {
+        self.transaction_writes.lock().unwrap().push((wallet_id, transactions));
         Ok(())
     }
 }
@@ -45,6 +51,7 @@ impl GemFiatStore for MemoryFiatStore {
 pub struct FiatQuoteTestkit {
     pub service: GemFiatQuoteService,
     pub balances: Arc<MemoryBalanceStore>,
+    pub recents: Arc<MemoryRecentActivityStore>,
 }
 
 impl FiatQuoteTestkit {
@@ -56,19 +63,9 @@ impl FiatQuoteTestkit {
             wallets: Mutex::new(vec![wallet.clone()]),
             ..Default::default()
         });
-        let session = Arc::new(GemWalletSessionService::new(
-            Arc::new(MemoryWalletSessionStore {
-                current: Mutex::new(Some(wallet.id)),
-            }),
-            wallets.clone(),
-        ));
+        let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore { current: Mutex::new(Some(wallet.id)) }), wallets.clone()));
         let provider = Arc::new(TestAlienProvider::with_json(200, r#"{"redirectUrl":"https://provider.example/checkout"}"#));
-        let gateway = Arc::new(GemGateway::new(
-            provider.clone(),
-            Arc::new(GemNodeService::mock()),
-            preferences_store,
-            Arc::new(EmptyPreferences),
-        ));
+        let gateway = Arc::new(GemGateway::new(provider.clone(), Arc::new(GemNodeService::mock()), preferences_store, Arc::new(EmptyPreferences)));
         let asset_store = Arc::new(MemoryAssetStore {
             assets: Mutex::new(vec![AssetBasic::new(asset.clone(), AssetProperties::default(asset.id.clone()), AssetScore::default())]),
             ..Default::default()
@@ -82,22 +79,17 @@ impl FiatQuoteTestkit {
             session.clone(),
         ));
         let balances = Arc::new(MemoryBalanceStore::default());
-        let balance = Arc::new(GemBalanceService::new(
-            gateway,
-            wallets,
-            asset_store,
-            balances.clone(),
-            assets.clone(),
-            Arc::new(SubscriptionTestkit::new(&[], &[]).service),
-        ));
+        let recents = Arc::new(MemoryRecentActivityStore::default());
+        let balance = Arc::new(GemBalanceService::new(gateway, wallets, asset_store, balances.clone(), assets.clone(), Arc::new(SubscriptionTestkit::new(&[], &[]).service)));
         let fiat = Arc::new(GemFiatService::new(
             Arc::new(GemDeviceApiClient::new(provider, Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences))))),
             assets,
-            Arc::new(MemoryFiatStore),
+            Arc::new(MemoryFiatStore::default()),
         ));
         Self {
-            service: GemFiatQuoteService::new(fiat, balance, session),
+            service: GemFiatQuoteService::new(fiat, balance, session.clone(), Arc::new(GemRecentActivityService::new(recents.clone(), session))),
             balances,
+            recents,
         }
     }
 }

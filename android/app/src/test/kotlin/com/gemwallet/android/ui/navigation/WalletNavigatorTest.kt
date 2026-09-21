@@ -19,6 +19,7 @@ import com.gemwallet.android.features.setup_wallet.navigation.SetupWalletRoute
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
+import com.gemwallet.android.testkit.mockNftAsset
 import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.navigation.routes.AddPriceAlertTargetRoute
 import com.gemwallet.android.ui.navigation.routes.AmountRoute
@@ -239,7 +240,7 @@ class WalletNavigatorTest {
             WalletSecurityReminderRoute(WalletSecretInput(walletId, GemWalletSecretKind.PHRASE)),
             WalletPhraseRoute(WalletSecretInput(walletId, GemWalletSecretKind.PHRASE)),
             CreateWalletRoute,
-            RecipientInputRoute(assetId, nftAssetId = null),
+            RecipientInputRoute(assetId),
             AmountRoute("amount"),
             AmountRoute("perpetual"),
             ConfirmRoute("confirm"),
@@ -274,14 +275,15 @@ class WalletNavigatorTest {
 
         navigator.openRecipient()
         navigator.openRecipient(assetId)
-        navigator.openNftRecipient(assetId, NFTAssetId(Chain.Ethereum, "0xcollection", "1"))
+        val nft = mockNftAsset()
+        navigator.openNftRecipient(nft)
 
         assertEquals(
             listOf(
                 WalletRootRoute,
                 SendSelectRoute(),
-                RecipientInputRoute(assetId, nftAssetId = null),
-                RecipientInputRoute(assetId, nftAssetId = "ethereum_0xcollection::1"),
+                RecipientInputRoute(assetId),
+                RecipientInputRoute(assetId, nft = nft),
             ),
             navigator.backStack.toList(),
         )
@@ -423,7 +425,7 @@ class WalletNavigatorTest {
             WalletRootRoute,
             WalletsRoute,
             AssetRoute(assetId),
-            RecipientInputRoute(assetId, nftAssetId = null),
+            RecipientInputRoute(assetId),
             AmountRoute("amount"),
             ConfirmRoute("confirm"),
         )
@@ -545,7 +547,6 @@ class WalletNavigatorTest {
         assertNull(navigator.toastMessage(target))
     }
 
-
     @Test
     fun showWalletConnectRequest_pushesOneRouteAndReplacesItForTheNextRequest() {
         val navigator = navigatorWith(WalletRootRoute)
@@ -567,17 +568,11 @@ class WalletNavigatorTest {
         assertEquals(listOf(WalletRootRoute, ReceiveRoute(mockAssetId(Chain.Tron))), navigator.backStack.toList())
     }
 
-    private fun navigatorWith(
-        vararg routes: NavKey,
-        assetsService: GemAssetsServiceInterface = mockk(),
-        scope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined),
-    ): WalletNavigator {
-        return WalletNavigator(
-            backStack = NavBackStack(*routes),
-            currentTab = mutableStateOf(assetsRoute),
-            deeplinkService = GemDeeplinkService(),
-            assetsService = assetsService,
-            scope = scope,
-        )
-    }
+    private fun navigatorWith(vararg routes: NavKey, assetsService: GemAssetsServiceInterface = mockk(), scope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined)): WalletNavigator = WalletNavigator(
+        backStack = NavBackStack(*routes),
+        currentTab = mutableStateOf(assetsRoute),
+        deeplinkService = GemDeeplinkService(),
+        assetsService = assetsService,
+        scope = scope,
+    )
 }

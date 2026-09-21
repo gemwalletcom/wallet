@@ -3,9 +3,7 @@ package com.gemwallet.android.data.services.gemstone
 import com.gemwallet.android.data.service.store.LocalStore
 import uniffi.gemstone.GemFileStore
 
-class GemstoneFileStore(
-    private val localStore: LocalStore,
-) : GemFileStore {
+class GemstoneFileStore(private val localStore: LocalStore) : GemFileStore {
     override fun saveFile(data: ByteArray, extension: String): String = localStore.save(data, extension)
 
     override fun saveNamedFile(data: ByteArray, fileName: String): String = localStore.saveNamed(data, fileName)

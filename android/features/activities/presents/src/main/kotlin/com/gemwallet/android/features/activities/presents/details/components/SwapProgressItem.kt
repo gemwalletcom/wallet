@@ -47,7 +47,6 @@ private val connectorWidth = 1.5.dp
 
 @Composable
 internal fun SwapProgressItem(progress: SwapProgressUIModel) {
-
     Row(
         modifier = Modifier
             .listItem(ListPosition.Single)
@@ -68,10 +67,7 @@ internal fun SwapProgressItem(progress: SwapProgressUIModel) {
 }
 
 @Composable
-private fun ProgressStep(
-    step: SwapProgressStepUIModel,
-    estimatedTime: String?,
-) {
+private fun ProgressStep(step: SwapProgressStepUIModel, estimatedTime: String?) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(space6),
@@ -149,9 +145,11 @@ private fun ProgressMarker(step: SwapProgressStepUIModel) {
         .then(
             when (step.marker) {
                 is SwapProgressMarkerUIModel.Icon -> Modifier.background(color.copy(alpha = alpha10), CircleShape)
+
                 SwapProgressMarkerUIModel.Spinner,
-                SwapProgressMarkerUIModel.Dots -> Modifier
-            }
+                SwapProgressMarkerUIModel.Dots,
+                -> Modifier
+            },
         )
         .border(DividerDefaults.Thickness, color, CircleShape)
 
@@ -161,6 +159,7 @@ private fun ProgressMarker(step: SwapProgressStepUIModel) {
     ) {
         when (val marker = step.marker) {
             SwapProgressMarkerUIModel.Spinner -> CircularProgressIndicator16(color = color)
+
             SwapProgressMarkerUIModel.Dots -> Row(
                 horizontalArrangement = Arrangement.spacedBy(space2),
                 verticalAlignment = Alignment.CenterVertically,
@@ -173,6 +172,7 @@ private fun ProgressMarker(step: SwapProgressStepUIModel) {
                     )
                 }
             }
+
             is SwapProgressMarkerUIModel.Icon -> Icon(
                 modifier = Modifier.size(compactIconSize),
                 imageVector = marker.symbol.vector(),

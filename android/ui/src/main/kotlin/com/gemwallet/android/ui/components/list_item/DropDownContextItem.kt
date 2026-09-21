@@ -13,7 +13,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpOffset
 import com.gemwallet.android.ui.theme.paddingDefault
-
 import com.gemwallet.android.ui.theme.space0
 @Composable
 fun DropDownContextItem(
@@ -37,7 +36,7 @@ fun DropDownContextItem(
                     indication = LocalIndication.current,
                     onClick = onClick,
                     onLongClick = onLongClick,
-                )
+                ),
         )
         DropdownMenu(
             modifier = Modifier.align(menuAlignment),

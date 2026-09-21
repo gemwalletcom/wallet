@@ -17,7 +17,7 @@ object Migration_56_57 : Migration(56, 57) {
                     FOREIGN KEY (asset_id) REFERENCES asset(id) ON DELETE CASCADE,
                     FOREIGN KEY (wallet_id) REFERENCES wallets(id) ON DELETE CASCADE
                 );
-            """.trimIndent()
+            """.trimIndent(),
         )
     }
 }

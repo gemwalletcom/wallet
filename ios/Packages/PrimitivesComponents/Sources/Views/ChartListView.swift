@@ -4,6 +4,8 @@ import Components
 import SwiftUI
 
 public struct ChartListView<Model: ChartListViewable, Content: View>: View {
+    @Environment(\.connectionStatus) private var connectionStatus
+
     @Bindable var model: Model
     @ViewBuilder let content: () -> Content
 
@@ -28,7 +30,7 @@ public struct ChartListView<Model: ChartListViewable, Content: View>: View {
         .task(id: model.selectedPeriod) {
             await model.load()
         }
-        .refreshableTimer(every: .minutes(1)) { @MainActor _ in
+        .refreshableTimer(every: connectionStatus.refreshInterval(for: .chart)) { @MainActor _ in
             await model.load()
         }
     }

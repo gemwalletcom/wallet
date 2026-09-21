@@ -19,12 +19,7 @@ impl<C: Client + Clone> ChainSimulation for EthereumProvider<C> {
         let signer = transaction.from.as_deref().filter(|from| !from.is_empty()).ok_or("missing sender address")?;
 
         let trace = self.trace_call(&transaction).await?;
-        let SimulationResult {
-            warnings,
-            balance_changes,
-            payload,
-            header,
-        } = map_simulation_result(self.get_chain(), signer, &trace);
+        let SimulationResult { warnings, balance_changes, payload, header } = map_simulation_result(self.get_chain(), signer, &trace);
 
         let assets = self.get_balance_change_assets(&balance_changes).await;
         let balance_changes = balance_changes
@@ -36,12 +31,7 @@ impl<C: Client + Clone> ChainSimulation for EthereumProvider<C> {
             })
             .collect();
 
-        Ok(SimulationResult {
-            warnings,
-            balance_changes,
-            payload,
-            header,
-        })
+        Ok(SimulationResult { warnings, balance_changes, payload, header })
     }
 }
 
@@ -79,9 +69,7 @@ mod tests {
         let ethereum_client = EthereumProvider::new_rpc_only(EthereumClient::new(ethereum_client, EVMChain::Ethereum));
 
         let encoded_transaction = serde_json::to_string(&TransactionObject::mock(TEST_EVM_RECIPIENT, Some("0x2386f26fc10000"))).unwrap();
-        let result = ChainSimulation::simulate_transaction(&ethereum_client, SimulationInput::new(encoded_transaction))
-            .await
-            .unwrap();
+        let result = ChainSimulation::simulate_transaction(&ethereum_client, SimulationInput::new(encoded_transaction)).await.unwrap();
 
         assert!(result.warnings.is_empty());
         assert_eq!(
@@ -106,9 +94,7 @@ mod tests {
         let ethereum_client = EthereumProvider::new_rpc_only(EthereumClient::new(ethereum_client, EVMChain::Ethereum));
 
         let encoded_transaction = serde_json::to_string(&TransactionObject::mock(TEST_EVM_RECIPIENT, None)).unwrap();
-        let result = ChainSimulation::simulate_transaction(&ethereum_client, SimulationInput::new(encoded_transaction))
-            .await
-            .unwrap();
+        let result = ChainSimulation::simulate_transaction(&ethereum_client, SimulationInput::new(encoded_transaction)).await.unwrap();
 
         assert_eq!(result.warnings.len(), 1);
         assert!(result.balance_changes.is_empty());
@@ -123,9 +109,7 @@ mod tests {
         let ethereum_client = EthereumProvider::new_rpc_only(EthereumClient::new(ethereum_client, EVMChain::Ethereum));
 
         let encoded_transaction = serde_json::to_string(&TransactionObject::mock(ETHEREUM_USDC_TOKEN_ID, None)).unwrap();
-        let result = ChainSimulation::simulate_transaction(&ethereum_client, SimulationInput::new(encoded_transaction))
-            .await
-            .unwrap();
+        let result = ChainSimulation::simulate_transaction(&ethereum_client, SimulationInput::new(encoded_transaction)).await.unwrap();
 
         assert_eq!(
             result.balance_changes,

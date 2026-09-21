@@ -16,7 +16,7 @@ struct SetupStateTests {
         let state = SetupState()
 
         await withTaskGroup(of: Void.self) { group in
-            for _ in 0..<callerCount {
+            for _ in 0 ..< callerCount {
                 group.addTask {
                     await state.start {
                         observations.withLock {

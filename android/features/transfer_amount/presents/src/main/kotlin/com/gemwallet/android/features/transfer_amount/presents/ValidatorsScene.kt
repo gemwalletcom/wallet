@@ -16,13 +16,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
 
 @Composable
-fun ValidatorsScene(
-    recommended: List<ValidatorRowUIModel>,
-    validators: List<ValidatorRowUIModel>,
-    selectedValidatorId: String,
-    onSelect: (String) -> Unit,
-    onCancel: () -> Unit,
-) {
+fun ValidatorsScene(recommended: List<ValidatorRowUIModel>, validators: List<ValidatorRowUIModel>, selectedValidatorId: String, onSelect: (String) -> Unit, onCancel: () -> Unit) {
     Scene(
         title = stringResource(id = R.string.stake_validators),
         onClose = onCancel,
@@ -37,10 +31,9 @@ fun ValidatorsScene(
                         data = item,
                         listPosition = position,
                         isSelected = selectedValidatorId == item.id,
-                        onClick = onSelect
+                        onClick = onSelect,
                     )
                 }
-
             }
             item {
                 SubheaderItem(R.string.stake_active)
@@ -51,7 +44,7 @@ fun ValidatorsScene(
                     data = item,
                     listPosition = ListPosition.getPosition(index, validatorsSize),
                     isSelected = selectedValidatorId == item.id,
-                    onClick = onSelect
+                    onClick = onSelect,
                 )
             }
         }

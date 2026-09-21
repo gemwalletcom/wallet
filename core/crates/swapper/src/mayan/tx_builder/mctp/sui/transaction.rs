@@ -54,12 +54,7 @@ pub(super) fn build_mctp_transaction(
     finish_transaction(txb, prefetched.transaction.with_gas_budget(gas_budget)).map_err(sui_error)
 }
 
-fn input_coin(
-    route: &MayanMctpQuote,
-    prefetched: &PrefetchedSuiData,
-    swap: Option<&SuiClientSwap>,
-    swap_replay: Option<&TransactionJsonReplay>,
-) -> Result<(TransactionBuilder, Argument, Option<Argument>), SwapperError> {
+fn input_coin(route: &MayanMctpQuote, prefetched: &PrefetchedSuiData, swap: Option<&SuiClientSwap>, swap_replay: Option<&TransactionJsonReplay>) -> Result<(TransactionBuilder, Argument, Option<Argument>), SwapperError> {
     if let Some(swap) = swap {
         let replayed = swap_replay.ok_or(SwapperError::InvalidRoute)?.replay().map_err(sui_error)?;
         let input_coin = replayed.argument(&swap.out_coin).map_err(sui_error)?;
@@ -68,24 +63,11 @@ fn input_coin(
     }
 
     let mut txb = TransactionBuilder::new();
-    let input_coin = build_input_coin(
-        &mut txb,
-        &prefetched.mctp_input_contract,
-        route.effective_amount_in64.parse::<u64>()?,
-        &prefetched.input_coins,
-    )
-    .map_err(sui_error)?;
+    let input_coin = build_input_coin(&mut txb, &prefetched.mctp_input_contract, route.effective_amount_in64.parse::<u64>()?, &prefetched.input_coins).map_err(sui_error)?;
     Ok((txb, input_coin, None))
 }
 
-fn deposit_for_burn_with_auth(
-    txb: &mut TransactionBuilder,
-    prefetched: &PrefetchedSuiData,
-    mctp_input_contract: &str,
-    auth_module: &str,
-    deposit_ticket: Argument,
-    treasury: &str,
-) -> Result<Argument, SwapperError> {
+fn deposit_for_burn_with_auth(txb: &mut TransactionBuilder, prefetched: &PrefetchedSuiData, mctp_input_contract: &str, auth_module: &str, deposit_ticket: Argument, treasury: &str) -> Result<Argument, SwapperError> {
     let cctp_token_state = txb.object(prefetched.objects[SUI_CCTP_TOKEN_STATE].input(true));
     let cctp_core_state = txb.object(prefetched.objects[SUI_CCTP_CORE_STATE].input(true));
     let deny_list = txb.object(prefetched.objects[SUI_CCTP_DENY_LIST].input(false));
@@ -103,13 +85,7 @@ fn deposit_for_burn_with_auth(
     .map_err(sui_error)
 }
 
-fn add_publish_wormhole_message(
-    txb: &mut TransactionBuilder,
-    prefetched: &PrefetchedSuiData,
-    wormhole_message: Argument,
-    bridge_fee: u64,
-    wh_fee_coin: Option<Argument>,
-) -> Result<(), SwapperError> {
+fn add_publish_wormhole_message(txb: &mut TransactionBuilder, prefetched: &PrefetchedSuiData, wormhole_message: Argument, bridge_fee: u64, wh_fee_coin: Option<Argument>) -> Result<(), SwapperError> {
     let fee_coin = match wh_fee_coin {
         Some(coin) => coin,
         None => build_input_coin(txb, SUI_COIN_TYPE, bridge_fee, &OwnedCoins::default()).map_err(sui_error)?,
@@ -117,15 +93,7 @@ fn add_publish_wormhole_message(
     let clock = txb.object(sui_clock_object_input());
     let wormhole_state = txb.object(prefetched.objects[SUI_WORMHOLE_STATE].input(true));
     let package = SuiAddress::parse(SUI_WORMHOLE_PACKAGE_ID).map_err(sui_error)?.into();
-    move_call(
-        txb,
-        package,
-        "publish_message",
-        "publish_message",
-        &[],
-        vec![wormhole_state, fee_coin, wormhole_message, clock],
-    )
-    .map_err(sui_error)?;
+    move_call(txb, package, "publish_message", "publish_message", &[], vec![wormhole_state, fee_coin, wormhole_message, clock]).map_err(sui_error)?;
     Ok(())
 }
 
@@ -135,15 +103,7 @@ fn log_initialize_mctp(txb: &mut TransactionBuilder, route: &MayanMctpQuote, pre
     let amount = txb.pure(&amount);
     let payload = txb.pure(&Vec::<u8>::new());
     let package = SuiAddress::parse(&prefetched.mctp_package_id).map_err(sui_error)?.into();
-    move_call(
-        txb,
-        package,
-        "init_order",
-        "log_initialize_mctp",
-        &[&route.from_token.contract],
-        vec![amount, verified_input, payload],
-    )
-    .map_err(sui_error)?;
+    move_call(txb, package, "init_order", "log_initialize_mctp", &[&route.from_token.contract], vec![amount, verified_input, payload]).map_err(sui_error)?;
     Ok(())
 }
 

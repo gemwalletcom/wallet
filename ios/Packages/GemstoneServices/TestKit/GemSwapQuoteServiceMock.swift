@@ -6,70 +6,60 @@ import typealias Gemstone.Asset
 import typealias Gemstone.AssetId
 import typealias Gemstone.Chain
 import typealias Gemstone.Currency
-import enum Gemstone.GemSlippageCheck
+import struct Gemstone.GemNumberFormat
+import enum Gemstone.GemSlippageSelection
+import struct Gemstone.GemSlippageSession
 import struct Gemstone.GemSwapPairSelection
-import enum Gemstone.GemSwapSide
-import struct Gemstone.GemSwapQuoteSummary
-import func Gemstone.swapQuote
-import protocol Gemstone.GemSwapQuoteServiceProtocol
 import struct Gemstone.GemSwapPairSuggestion
+import protocol Gemstone.GemSwapQuoteServiceProtocol
+import struct Gemstone.GemSwapQuoteSummary
 import struct Gemstone.GemSwapSession
+import enum Gemstone.GemSwapSide
 import struct Gemstone.GemSwapTransfer
 import struct Gemstone.SwapperQuote
 import struct Gemstone.SwapperSlippage
+import func Gemstone.swapQuote
 import struct Gemstone.SwapQuoteData
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesTestKit
-import enum Gemstone.GemSlippageSelection
-import struct Gemstone.GemSlippageSession
 
 public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchecked Sendable {
     private let quotes: @Sendable (BigInt) -> [SwapperQuote]
     private let quoteData: Gemstone.SwapQuoteData
-    private let quotesDelay: Duration?
     private let quotesError: Error?
     private let pairSuggestion: GemSwapPairSuggestion?
-    private let slippageCheckResult: GemSlippageCheck
     public private(set) var storedSlippageBps: UInt32?
     public private(set) var priceSubscriptions: [[AssetId]] = []
 
     public init(
         quotes: @escaping @Sendable (BigInt) -> [SwapperQuote],
         quoteData: Gemstone.SwapQuoteData = .mock(),
-        quotesDelay: Duration? = nil,
         quotesError: Error? = nil,
         pairSuggestion: GemSwapPairSuggestion? = nil,
         slippageBps: UInt32? = nil,
-        slippageCheck: GemSlippageCheck = .valid,
     ) {
         self.quotes = quotes
         self.quoteData = quoteData
-        self.quotesDelay = quotesDelay
         self.quotesError = quotesError
         self.pairSuggestion = pairSuggestion
         storedSlippageBps = slippageBps
-        slippageCheckResult = slippageCheck
     }
 
     public convenience init(
         quotes: [SwapperQuote] = [.mock()],
         quoteData: Gemstone.SwapQuoteData = .mock(),
-        quotesDelay: Duration? = nil,
         quotesError: Error? = nil,
         pairSuggestion: GemSwapPairSuggestion? = nil,
         slippageBps: UInt32? = nil,
-        slippageCheck: GemSlippageCheck = .valid,
     ) {
         self.init(
             quotes: { _ in quotes },
             quoteData: quoteData,
-            quotesDelay: quotesDelay,
             quotesError: quotesError,
             pairSuggestion: pairSuggestion,
             slippageBps: slippageBps,
-            slippageCheck: slippageCheck,
         )
     }
 
@@ -87,10 +77,6 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
 
     public func setSlippageBps(bps: UInt32?) throws {
         storedSlippageBps = bps
-    }
-
-    public func slippageCheck(bps _: UInt32) -> GemSlippageCheck {
-        slippageCheckResult
     }
 
     public func newSlippageSession(selection: GemSlippageSelection) -> GemSlippageSession {
@@ -112,6 +98,10 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         Double(bps) / 100
     }
 
+    public func slippagePercentText(bps: UInt32, format: GemNumberFormat) -> String {
+        (Decimal(bps) / 100).description.replacingOccurrences(of: ".", with: format.decimalSeparator)
+    }
+
     public func selectPairAsset(selection: GemSwapPairSelection, side: GemSwapSide, assetId: String) -> GemSwapPairSelection {
         switch side {
         case .pay: GemSwapPairSelection(payAssetId: assetId, receiveAssetId: selection.receiveAssetId)
@@ -124,7 +114,7 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
     }
 
     public func refreshIntervalMilliseconds() -> UInt64 {
-        30_000
+        30000
     }
 
     public func quoteDebounceMilliseconds() -> UInt64 {
@@ -138,9 +128,6 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
     }
 
     public func getQuotes(fromAsset _: Asset, toAsset _: Asset, value: BigUInt, useMaxAmount _: Bool, slippageBps _: UInt32?) async throws -> [SwapperQuote] {
-        if let quotesDelay {
-            try await Task.sleep(for: quotesDelay)
-        }
         if let quotesError {
             throw quotesError
         }
@@ -157,7 +144,7 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         )
     }
 
-    public func suggestPair(payAssetId _: AssetId?) async throws -> GemSwapPairSuggestion? {
+    public func suggestPair(payAssetId _: AssetId?) async -> GemSwapPairSuggestion? {
         pairSuggestion
     }
 }

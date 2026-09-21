@@ -1,8 +1,13 @@
 pub mod model;
 pub mod rules;
 pub mod store;
+#[cfg(test)]
+pub(crate) mod testkit;
 
-use crate::services::error::GemServiceError;
+use crate::models::list::GemListRow;
+use crate::models::state::GemLoadState;
+use crate::services::error::{GemServiceError, required_account};
+use chrono::Utc;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -14,14 +19,15 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::{GemContractCallData, GemEarnType};
 
 pub use model::{
-    GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationAmountInput, GemDelegationCompletion, GemDelegationDestination, GemDelegationRow,
-    GemDelegationStatus, GemDelegationTone, GemStakeAction, GemStakeActionItem, GemStakeAmountInput, GemStakeInfoRow, GemStakeSection, GemStakeValidatorSelection, GemValidatorRow,
+    GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationAmountInput, GemDelegationDestination, GemDelegationStatus, GemEarnActions, GemStakeAction, GemStakeActionItem, GemStakeAmountInput, GemStakeSection,
+    GemStakeValidatorSelection, GemValidatorRow,
 };
 pub use store::GemStakeStore;
 
 use crate::services::balance::GemAssetBalance;
 use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemAddressStore;
+use crate::services::name::store::GemAddressNameWriter;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::transfer::GemTransferData;
 use crate::services::transfer::rules as transfer_rules;
@@ -70,12 +76,12 @@ impl GemStakeService {
         transfer_rules::stake_transfer_data(asset, stake_type, value, use_max_amount)
     }
 
-    pub fn earn_apr(&self, providers: Vec<DelegationValidator>, asset_apr: Option<f64>) -> f64 {
-        rules::earn_apr(&providers, asset_apr)
+    pub fn stake_validator_selection(&self, chain: Chain, input: GemStakeAmountInput) -> GemStakeValidatorSelection {
+        rules::validator_selection(chain, &input)
     }
 
-    pub fn validator_row(&self, validator: DelegationValidator) -> GemValidatorRow {
-        rules::validator_row(&validator)
+    pub fn earn_apr_row(&self, providers: Vec<DelegationValidator>, asset_apr: Option<f64>) -> GemListRow {
+        rules::earn_apr_row(&providers, asset_apr)
     }
 
     pub fn validator_rows(&self, validators: Vec<DelegationValidator>) -> Vec<GemValidatorRow> {
@@ -87,9 +93,16 @@ impl GemStakeService {
         self.explorer.get_validator_url(validator.chain, address)
     }
 
-    pub async fn sync(&self, chain: Chain) -> Result<(), GemServiceError> {
-        let (wallet_id, address) = self.current_account(chain).await?;
-        self.sync_wallet(wallet_id, chain, address).await
+    pub async fn refresh(&self, chain: Chain, delegations: Vec<Delegation>) -> GemLoadState {
+        GemLoadState::refreshed(self.sync(chain).await, !delegations.is_empty())
+    }
+
+    pub async fn refresh_earn(&self, asset_id: AssetId, has_rows: bool) -> GemLoadState {
+        GemLoadState::refreshed(self.sync_earn(asset_id).await, has_rows)
+    }
+
+    pub fn earn_actions(&self, wallet_type: WalletType, providers: Vec<DelegationValidator>) -> GemEarnActions {
+        rules::earn_actions(wallet_type, providers)
     }
 
     pub async fn sync_earn(&self, asset_id: AssetId) -> Result<(), GemServiceError> {
@@ -105,13 +118,7 @@ impl GemStakeService {
         rules::delegation_destination(wallet_type, asset, delegation)
     }
 
-    pub fn delegation_action_destination(
-        &self,
-        asset: Asset,
-        delegation: Delegation,
-        action: GemDelegationAction,
-        validators: Vec<DelegationValidator>,
-    ) -> GemDelegationDestination {
+    pub fn delegation_action_destination(&self, asset: Asset, delegation: Delegation, action: GemDelegationAction, validators: Vec<DelegationValidator>) -> GemDelegationDestination {
         rules::delegation_action_destination(asset, delegation, action, validators)
     }
 
@@ -127,12 +134,8 @@ impl GemStakeService {
         rules::sorted_delegations(delegations)
     }
 
-    pub fn lock_time_seconds(&self, chain: Chain) -> u64 {
-        rules::lock_time_seconds(chain)
-    }
-
-    pub fn min_stake_amount(&self, chain: Chain) -> GemBigInt {
-        rules::min_stake_amount(chain)
+    pub fn positions(&self, delegations: Vec<Delegation>) -> Vec<Delegation> {
+        rules::positions(delegations)
     }
 
     pub fn stake_actions(&self, wallet_type: WalletType, chain: Chain, has_validators: bool, balance: GemAssetBalance, delegations: Vec<Delegation>) -> Vec<GemStakeActionItem> {
@@ -143,12 +146,13 @@ impl GemStakeService {
         rules::stake_sections(rules::uses_freeze(chain), has_actions, has_delegations)
     }
 
-    pub fn stake_info_rows(&self, chain: Chain, staking_apr: Option<f64>) -> Vec<GemStakeInfoRow> {
-        rules::stake_info_rows(chain, staking_apr)
+    pub fn stake_info_rows(&self, asset: Asset, staking_apr: Option<f64>) -> Vec<GemListRow> {
+        rules::stake_info_rows(&asset, staking_apr)
     }
 
-    pub fn delegation_rows(&self, delegation: Delegation) -> Vec<GemDelegationRow> {
-        rules::delegation_rows(&delegation)
+    pub fn delegation_rows(&self, delegation: Delegation) -> Vec<GemListRow> {
+        let validator_url = self.validator_url(delegation.validator.clone());
+        rules::delegation_rows(&delegation, validator_url, Utc::now())
     }
 
     pub fn claim_rewards(&self, chain: Chain, delegations: Vec<Delegation>) -> GemClaimRewards {
@@ -160,7 +164,17 @@ impl GemStakeService {
     }
 }
 
+#[uniffi::export]
+pub fn validator_row(validator: DelegationValidator) -> GemValidatorRow {
+    rules::validator_row(&validator)
+}
+
 impl GemStakeService {
+    pub async fn sync(&self, chain: Chain) -> Result<(), GemServiceError> {
+        let (wallet_id, address) = self.current_account(chain).await?;
+        self.sync_wallet(wallet_id, chain, address).await
+    }
+
     pub async fn get_earn_data(&self, asset_id: AssetId, address: String, value: String, earn_type: GemEarnType) -> Result<GemContractCallData, GemServiceError> {
         Ok(self.gateway.get_earn_data(asset_id, address, value, earn_type).await?)
     }
@@ -173,9 +187,7 @@ impl GemStakeService {
             self.gateway.get_staking_delegation_validators(chain, address.clone()),
             self.gateway.get_staking_delegations(chain, address),
         );
-        let names: HashMap<String, String> = names
-            .map(|validators| validators.into_iter().map(|validator| (validator.id, validator.name)).collect())
-            .unwrap_or_default();
+        let names: HashMap<String, String> = names.map(|validators| validators.into_iter().map(|validator| (validator.id, validator.name)).collect()).unwrap_or_default();
         self.save_validators(chain, rules::merge_validators(validators?, delegation_validators?, &names)).await?;
         self.save_delegations(wallet_id, chain, delegations?, &names).await
     }
@@ -192,9 +204,7 @@ impl GemStakeService {
 
     async fn current_account(&self, chain: Chain) -> Result<(WalletId, String), GemServiceError> {
         let wallet = self.session.current_wallet().await?;
-        let account = wallet.account(chain).ok_or_else(|| GemServiceError::NotFound {
-            msg: format!("wallet {} has no {chain} account", wallet.id.id()),
-        })?;
+        let account = required_account(&wallet, chain)?;
         Ok((wallet.id.clone(), account.address.clone()))
     }
     async fn save_validators(&self, chain: Chain, validators: Vec<DelegationValidator>) -> Result<(), GemServiceError> {
@@ -205,7 +215,7 @@ impl GemStakeService {
             if !stale_ids.is_empty() {
                 self.store.deactivate_validators(asset_id, stale_ids).await?;
             }
-            self.address_store.save_address_names(rules::validator_address_names(&validators)).await?;
+            self.address_store.save_names(rules::validator_address_names(&validators)).await?;
         }
         Ok(())
     }
@@ -242,11 +252,7 @@ mod tests {
     #[test]
     fn test_missing_validators_only_for_unknown_ids() {
         let existing: HashMap<_, _> = [("known".to_string(), DelegationValidator::mock_cosmos("known"))].into();
-        let delegations = vec![
-            DelegationBase::mock_with_validator("known"),
-            DelegationBase::mock_with_validator("gone"),
-            DelegationBase::mock_with_validator("gone"),
-        ];
+        let delegations = vec![DelegationBase::mock_with_validator("known"), DelegationBase::mock_with_validator("gone"), DelegationBase::mock_with_validator("gone")];
         let names: HashMap<_, _> = [("gone".to_string(), "Gone".to_string())].into();
 
         let missing = missing_validators(Chain::Cosmos, &delegations, &existing, &names);

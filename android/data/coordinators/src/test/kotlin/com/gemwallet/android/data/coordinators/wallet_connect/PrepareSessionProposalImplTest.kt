@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.wallet_connect
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockApplicationMetadata
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletConnectionSessionProposal
@@ -14,7 +15,6 @@ import uniffi.gemstone.GemSessionProposal
 import uniffi.gemstone.GemWalletConnectException
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnectionVerificationStatus
-import com.gemwallet.android.ext.toGem
 
 class PrepareSessionProposalImplTest {
 

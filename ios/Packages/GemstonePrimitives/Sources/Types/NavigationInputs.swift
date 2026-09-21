@@ -5,7 +5,12 @@ import struct Gemstone.GemPaymentRecipient
 import struct Gemstone.GemTransferData
 import Primitives
 
-public typealias AmountInputAction = ((AmountInput) -> Void)?
+public enum TransferRoute: Hashable {
+    case amount(AmountInput)
+    case confirm(GemTransferData)
+}
+
+public typealias TransferRouteAction = ((TransferRoute) -> Void)?
 
 public struct SelectedAssetInput: Sendable, Hashable, Identifiable {
     public let type: SelectedAssetType

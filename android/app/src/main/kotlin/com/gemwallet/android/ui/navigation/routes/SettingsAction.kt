@@ -1,6 +1,7 @@
 package com.gemwallet.android.ui.navigation.routes
 
 import com.wallet.core.primitives.AssetId
+import uniffi.gemstone.UrlAction
 
 sealed interface SettingsAction {
     data object Currencies : SettingsAction
@@ -13,6 +14,6 @@ sealed interface SettingsAction {
     data object InAppNotifications : SettingsAction
     data object DeveloperPayments : SettingsAction
     data class Payment(val payload: String) : SettingsAction
-    data class OpenNotificationUrl(val url: String) : SettingsAction
+    data class OpenNotification(val action: UrlAction) : SettingsAction
     data object Cancel : SettingsAction
 }

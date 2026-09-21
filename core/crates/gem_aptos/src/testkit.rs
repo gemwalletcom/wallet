@@ -2,8 +2,17 @@ use num_bigint::BigUint;
 use serde_json::Value;
 
 use crate::AccountAddress;
-use crate::models::{DelegationPoolStake, RawTransaction};
+use crate::models::{Account, DelegationPoolStake, RawTransaction};
 use crate::signer::{EntryFunctionPayload, build_raw_transaction};
+
+impl Account {
+    pub fn mock() -> Self {
+        Self {
+            sequence_number: 0,
+            authentication_key: "0x6467997d9c3a5bc9f714e17a168984595ce9bec7350645713a1fe7983a7f5fcc".to_string(),
+        }
+    }
+}
 
 impl RawTransaction {
     pub fn mock() -> Self {

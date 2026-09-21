@@ -4,11 +4,7 @@ import uniffi.gemstone.GemWalletPlaceholder
 import uniffi.gemstone.GemWalletRow
 import uniffi.gemstone.GemWalletSubtitle
 
-fun mockGemWalletRow(
-    id: String = "wallet-1",
-    showsWatchBadge: Boolean = false,
-    isPinned: Boolean = false,
-) = GemWalletRow(
+fun mockGemWalletRow(id: String = "wallet-1", showsWatchBadge: Boolean = false, isPinned: Boolean = false) = GemWalletRow(
     id = id,
     name = "Wallet",
     subtitle = GemWalletSubtitle.Multicoin,

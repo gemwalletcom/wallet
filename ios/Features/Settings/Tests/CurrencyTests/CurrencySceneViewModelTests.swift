@@ -1,35 +1,58 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemCurrencyRow
+import struct Gemstone.GemCurrencySection
+import class Gemstone.GemPreferencesService
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
-import Foundation
 import GemstoneServices
 import Primitives
 @testable import Settings
-import SettingsTestKit
 import Testing
 
 @MainActor
 struct CurrencySceneViewModelTests {
     @Test
-    func setNewCurrency() async throws {
-        let usdCurrencyStorage = CurrencyStorageMock()
-        let service = GemCurrencyServiceMock()
-        let viewModel = CurrencySceneViewModel(currencyStorage: usdCurrencyStorage, service: service)
+    func searchUsesGemstoneSections() {
+        let preferences = GemPreferencesService(store: GemPreferencesStoreMock())
+        let service = GemCurrencyServiceMock(preferencesService: preferences)
+        let viewModel = CurrencySceneViewModel(preferences: ObservablePreferences(preferencesService: preferences), service: service)
+        service.sectionsValue = [
+            GemCurrencySection(kind: .all, rows: [GemCurrencyRow(currency: Currency.ars.toGem(), title: "ARS", isSelected: false)]),
+        ]
 
-        try await viewModel.setCurrency(.ars)
+        viewModel.searchQuery = " arS "
+        #expect(viewModel.sections == service.sectionsValue)
+        viewModel.searchQuery = ""
+        #expect(viewModel.sections == service.sectionsValue)
+        #expect(service.queries == [" arS ", ""])
+    }
+
+    @Test
+    func setNewCurrency() async throws {
+        let preferences = GemPreferencesService(store: GemPreferencesStoreMock())
+        let observablePreferences = ObservablePreferences(preferencesService: preferences)
+        let service = GemCurrencyServiceMock(preferencesService: preferences)
+        let viewModel = CurrencySceneViewModel(preferences: observablePreferences, service: service)
+
+        try await viewModel.setCurrency(Currency.ars.toGem())
 
         #expect(service.setCurrencies == [Currency.ars.toGem()])
-        #expect(usdCurrencyStorage.currency == .ars)
-        #expect(usdCurrencyStorage.currency == viewModel.currency)
+        #expect(observablePreferences.currency == .ars)
     }
 
     @Test
     func aFailedChangeLeavesTheStoredCurrency() async {
-        let usdCurrencyStorage = CurrencyStorageMock()
-        let viewModel = CurrencySceneViewModel(currencyStorage: usdCurrencyStorage, service: GemCurrencyServiceMock(error: AnyError("offline")))
+        let preferences = GemPreferencesService(store: GemPreferencesStoreMock())
+        let observablePreferences = ObservablePreferences(preferencesService: preferences)
+        let viewModel = CurrencySceneViewModel(
+            preferences: observablePreferences,
+            service: GemCurrencyServiceMock(preferencesService: preferences, error: AnyError("offline")),
+        )
 
-        await #expect(throws: (any Error).self) { try await viewModel.setCurrency(.ars) }
-        #expect(usdCurrencyStorage.currency == .usd)
+        await #expect(throws: (any Error).self) {
+            try await viewModel.setCurrency(Currency.ars.toGem())
+        }
+        #expect(observablePreferences.currency == .usd)
     }
 }

@@ -26,11 +26,7 @@ private enum class WordState {
 }
 
 @Composable
-internal fun WordChip(
-    word: String,
-    isEnable: Boolean,
-    onClick: (String) -> Boolean,
-) {
+internal fun WordChip(word: String, isEnable: Boolean, onClick: (String) -> Boolean) {
     val shakeController = rememberShakeController()
     var wordState by remember { mutableStateOf(WordState.Idle) }
     val shape = RoundedCornerShape(space12)
@@ -39,7 +35,8 @@ internal fun WordChip(
             wordState == WordState.Error -> MaterialTheme.colorScheme.error
             !isEnable -> MaterialTheme.colorScheme.surfaceVariant
             else -> MaterialTheme.colorScheme.primary
-        }, label = "Button color"
+        },
+        label = "Button color",
     )
     val textColor = if (isEnable) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
     Surface(
@@ -57,7 +54,7 @@ internal fun WordChip(
                             intensity = 1_000f,
                             rotateY = 10f,
                             translateX = 10f,
-                        )
+                        ),
                     )
                     wordState = WordState.Error
                 }

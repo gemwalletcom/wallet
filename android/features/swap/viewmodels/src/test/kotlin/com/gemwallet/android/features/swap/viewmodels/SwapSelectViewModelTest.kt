@@ -3,9 +3,9 @@ package com.gemwallet.android.features.swap.viewmodels
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
-import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import io.mockk.coEvery
@@ -74,7 +74,7 @@ class SwapSelectViewModelTest {
         ioDispatcher = testDispatcher,
         context = mockk(relaxed = true),
         savedStateHandle = SavedStateHandle(
-            mapOf(RouteArgument.SwapItemType.key to type)
+            mapOf(RouteArgument.SwapItemType.key to type),
         ),
     )
 }

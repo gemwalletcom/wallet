@@ -14,9 +14,7 @@ pub struct InjectiveProvider {
 
 impl InjectiveProvider {
     pub fn new(client: ReqwestClient) -> Self {
-        Self {
-            client: InjectiveClient::new(client),
-        }
+        Self { client: InjectiveClient::new(client) }
     }
 }
 

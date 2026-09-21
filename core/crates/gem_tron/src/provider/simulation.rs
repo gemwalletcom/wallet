@@ -34,12 +34,7 @@ impl<C: Client> ChainSimulation for TronProvider<C> {
         let call_value = contract_data.call_value.filter(|value| *value > 0);
 
         let response = self.trigger_smart_contract_call(&contract_data).await?;
-        let SimulationResult {
-            warnings,
-            balance_changes,
-            payload,
-            ..
-        } = map_simulation_result(&owner, &response, call_value);
+        let SimulationResult { warnings, balance_changes, payload, .. } = map_simulation_result(&owner, &response, call_value);
 
         let assets = join_all(balance_changes.iter().map(|change| async move {
             match &change.asset_id.token_id {

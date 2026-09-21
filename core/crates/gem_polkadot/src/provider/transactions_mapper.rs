@@ -21,28 +21,12 @@ pub fn map_transactions(chain: Chain, block: Block) -> Vec<Transaction> {
 pub fn map_transaction(chain: Chain, transaction: Extrinsic, created_at: DateTime<Utc>) -> Vec<Option<Transaction>> {
     match &transaction.args.clone() {
         ExtrinsicArguments::Transfer(transfer) => {
-            vec![map_transfer(
-                chain,
-                transaction.clone(),
-                transaction.method.method.clone(),
-                transfer.dest.id.clone(),
-                transfer.value.clone(),
-                created_at,
-            )]
+            vec![map_transfer(chain, transaction.clone(), transaction.method.method.clone(), transfer.dest.id.clone(), transfer.value.clone(), created_at)]
         }
         ExtrinsicArguments::Transfers(transfers) => transfers
             .calls
             .iter()
-            .map(|x| {
-                map_transfer(
-                    chain,
-                    transaction.clone(),
-                    x.method.method.clone(),
-                    x.args.dest.id.clone(),
-                    x.args.value.clone(),
-                    created_at,
-                )
-            })
+            .map(|x| map_transfer(chain, transaction.clone(), x.method.method.clone(), x.args.dest.id.clone(), x.args.value.clone(), created_at))
             .collect(),
         _ => vec![],
     }

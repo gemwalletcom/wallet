@@ -20,7 +20,7 @@ public struct PriceAlertsScene: View {
             toggleView
 
             ListItemValueSectionList(
-                list: model.sections(for: model.priceAlerts).list,
+                list: model.sections,
                 content: { alert in
                     NavigationLink(value: Scenes.Price(asset: alert.asset)) {
                         PriceAlertItemView(alert: alert, currency: model.currency, onDelete: { onDelete(alert: $0) })
@@ -75,7 +75,7 @@ extension PriceAlertsScene {
 
     func onAlertsEnable(_ _: Bool, newValue: Bool) {
         Task {
-            await model.handleAlertsEnabled(enabled: newValue)
+            await model.setAlertsEnabled(newValue)
         }
     }
 }

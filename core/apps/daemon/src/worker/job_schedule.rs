@@ -10,10 +10,7 @@ pub struct CacherJobTracker {
 
 impl CacherJobTracker {
     pub fn new(cacher: CacherClient, service: &str) -> Self {
-        Self {
-            cacher,
-            service: service.to_string(),
-        }
+        Self { cacher, service: service.to_string() }
     }
 
     fn job_key(&self, job_name: &str) -> String {

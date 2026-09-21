@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemBannerRow
 import Primitives
 import PrimitivesComponents
 
@@ -9,5 +10,5 @@ struct WalletHomeState {
     let currency: Currency
     let showPerpetuals: Bool
     let showCollections: Bool
-    let visibleBanners: [Banner]
+    let visibleBanners: [GemBannerRow]
 }

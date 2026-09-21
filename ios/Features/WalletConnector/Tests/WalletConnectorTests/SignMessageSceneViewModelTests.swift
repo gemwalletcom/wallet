@@ -1,45 +1,49 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Foundation
 import struct Gemstone.GemSimulationValue
+import struct Gemstone.GemWalletConnectMessageRequest
+import struct Gemstone.SimulationHeader
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
-import Foundation
-import struct Gemstone.SimulationHeader
-import func Gemstone.walletRow
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
 import Testing
 @testable import WalletConnector
-import WalletConnectorTestKit
 import WalletConnectorService
 import WalletConnectorServiceTestKit
+import WalletConnectorTestKit
 
 struct SignMessageSceneViewModelTests {
     @Test
     @MainActor
     func walletTextDisplaysPayloadWallet() {
         let wallet = Wallet.mock(name: "My Secure Wallet")
-        let payload = SignMessagePayload.mock(wallet: wallet)
+        let payload = GemWalletConnectMessageRequest.mock(wallet: wallet)
 
-        let viewModel = SignMessageSceneViewModel.mock(payload: payload)
+        let viewModel = SignMessageSceneViewModel.mock(request: payload)
 
-        #expect(viewModel.walletText == "My Secure Wallet")
+        guard case let .wallet(row, _, _) = viewModel.rows.first else {
+            Issue.record("expected the wallet row first without a header")
+            return
+        }
+        #expect(row.name == "My Secure Wallet")
     }
 
     @Test
     @MainActor
     func appTextUsesShortNameWithoutDomain() {
-        let payload = SignMessagePayload.mock(
+        let payload = GemWalletConnectMessageRequest.mock(
             session: .mock(metadata: .mock(
                 name: "PancakeSwap - Trade",
                 url: "https://pancakeswap.finance/swap",
             )),
         )
 
-        let viewModel = SignMessageSceneViewModel.mock(payload: payload)
+        let viewModel = SignMessageSceneViewModel.mock(request: payload)
 
-        #expect(viewModel.appText == "PancakeSwap")
+        #expect(viewModel.appName == "PancakeSwap")
     }
 
     @Test
@@ -53,31 +57,25 @@ struct SignMessageSceneViewModelTests {
     @Test
     @MainActor
     func payloadStoresValidatedChainNotMessageChain() {
-        let payload = SignMessagePayload.mock(message: .mock(chain: "bitcoin"))
+        let payload = GemWalletConnectMessageRequest.mock(message: .mock(chain: "bitcoin"))
 
-        #expect(payload.chain == .ethereum)
+        #expect(payload.chain == Chain.ethereum.rawValue)
         #expect(payload.message.chain == "bitcoin")
     }
 
     @Test
     @MainActor
     func networkTextUsesPayloadChain() {
-        let payload = SignMessagePayload.mock(message: .mock(chain: "bitcoin"))
+        let payload = GemWalletConnectMessageRequest.mock(message: .mock(chain: "bitcoin"))
 
-        let viewModel = SignMessageSceneViewModel.mock(payload: payload)
+        let viewModel = SignMessageSceneViewModel.mock(request: payload)
 
-        #expect(viewModel.networkText == "Ethereum")
-    }
-
-    @Test
-    @MainActor
-    func contextRowsProvideWalletAndNetworkImages() {
-        let payload = SignMessagePayload.mock()
-
-        let viewModel = SignMessageSceneViewModel.mock(payload: payload)
-
-        #expect(viewModel.walletAssetImage == walletRow(wallet: payload.wallet.toGem()).avatarImage)
-        #expect(viewModel.networkAssetImage == AssetIdViewModel(assetId: payload.chain.asset.id).networkAssetImage)
+        guard case let .network(_, chain, name) = viewModel.rows.last else {
+            Issue.record("expected the network row last")
+            return
+        }
+        #expect(chain == Chain.ethereum.rawValue)
+        #expect(name == "Ethereum")
     }
 
     @Test
@@ -91,11 +89,11 @@ struct SignMessageSceneViewModelTests {
     @Test
     @MainActor
     func buttonEnabledWithNonCriticalWarnings() {
-        let payload = SignMessagePayload.mock(
+        let payload = GemWalletConnectMessageRequest.mock(
             simulation: .mock(warnings: [.mock()]),
         )
 
-        let viewModel = SignMessageSceneViewModel.mock(payload: payload)
+        let viewModel = SignMessageSceneViewModel.mock(request: payload)
 
         #expect(!viewModel.isButtonDisabled)
     }
@@ -103,26 +101,26 @@ struct SignMessageSceneViewModelTests {
     @Test
     @MainActor
     func simulationWarningsHideBoundedApprovals() {
-        let payload = SignMessagePayload.mock(
+        let payload = GemWalletConnectMessageRequest.mock(
             simulation: .mock(warnings: [
                 .mock(warning: .tokenApproval(.mock(value: 1000))),
                 .mock(),
             ]),
         )
 
-        let viewModel = SignMessageSceneViewModel.mock(payload: payload)
+        let viewModel = SignMessageSceneViewModel.mock(request: payload)
 
-        #expect(viewModel.simulationWarnings.map(\.kind) == [.unlimitedApproval])
+        #expect(viewModel.simulationWarnings == [.notice(title: .unlimitedApproval, message: .unlimitedApprovalWarning, kind: .warning)])
     }
 
     @Test
     @MainActor
     func buttonDisabledWithCriticalWarnings() {
-        let payload = SignMessagePayload.mock(
+        let payload = GemWalletConnectMessageRequest.mock(
             simulation: .mock(warnings: [.mock(severity: .critical, warning: .suspiciousSpender)]),
         )
 
-        let viewModel = SignMessageSceneViewModel.mock(payload: payload)
+        let viewModel = SignMessageSceneViewModel.mock(request: payload)
 
         #expect(viewModel.isButtonDisabled)
     }
@@ -130,49 +128,51 @@ struct SignMessageSceneViewModelTests {
     @Test
     @MainActor
     func simulationWarningsHideBoundedApprovalsAndKeepExternallyOwnedSpenderWarnings() {
-        let payload = SignMessagePayload.mock(
+        let payload = GemWalletConnectMessageRequest.mock(
             simulation: .mock(warnings: [
                 .mock(warning: .permitApproval(.mock(value: 1000))),
                 .mock(warning: .externallyOwnedSpender),
             ]),
         )
 
-        let viewModel = SignMessageSceneViewModel.mock(payload: payload)
+        let viewModel = SignMessageSceneViewModel.mock(request: payload)
 
-        #expect(viewModel.simulationWarnings.map(\.kind) == [.externallyOwnedSpender])
+        #expect(viewModel.simulationWarnings == [.notice(title: .warning, message: .externallyOwnedSpenderWarning, kind: .warning)])
         #expect(!viewModel.isButtonDisabled)
     }
 
     @Test
     @MainActor
     func permitBatchExternallyOwnedSpenderKeepsWarningAndPayload() {
-        let payload = SignMessagePayload.mock(
+        let payload = GemWalletConnectMessageRequest.mock(
             message: .mockPermitBatch(),
             simulation: .mockPermitBatch(warnings: [.mock(warning: .externallyOwnedSpender)]),
         )
 
-        let viewModel = SignMessageSceneViewModel.mock(payload: payload)
+        let viewModel = SignMessageSceneViewModel.mock(request: payload)
 
-        #expect(viewModel.simulationWarnings.count == 1)
-        #expect(viewModel.simulationWarnings.first?.kind == .externallyOwnedSpender)
+        #expect(viewModel.simulationWarnings == [.notice(title: .warning, message: .externallyOwnedSpenderWarning, kind: .warning)])
         #expect(!viewModel.isButtonDisabled)
         #expect(viewModel.payloadModel.hasFields)
-        #expect(viewModel.payloadModel.primaryFields.contains(where: { $0.kind == .spender && $0.value == "0x3333333333333333333333333333333333333333" }))
+        #expect(viewModel.payloadModel.primaryFields.contains { row in
+            guard case let .address(_, address) = row.value else { return false }
+            return row.title == .spender && address == "0x3333333333333333333333333333333333333333"
+        })
     }
 
     @Test
     @MainActor
     func simulationWarningsPassThroughValidationWarnings() {
-        let payload = SignMessagePayload.mock(
+        let payload = GemWalletConnectMessageRequest.mock(
             simulation: .mock(warnings: [
                 .mock(warning: .permitApproval(.mock(value: 1000))),
                 .mock(severity: .critical, warning: .validationError, message: "Unable to verify spender is a contract"),
             ]),
         )
 
-        let viewModel = SignMessageSceneViewModel.mock(payload: payload)
+        let viewModel = SignMessageSceneViewModel.mock(request: payload)
 
-        #expect(viewModel.simulationWarnings.map(\.kind) == [.validationError])
+        #expect(viewModel.simulationWarnings == [.notice(title: .error, message: .text(text: "Unable to verify spender is a contract"), kind: .error)])
     }
 
     @Test
@@ -192,14 +192,14 @@ struct SignMessageSceneViewModelTests {
         ]
         .joined(separator: "\n")
 
-        let payload = SignMessagePayload.mock(
+        let payload = GemWalletConnectMessageRequest.mock(
             message: .mock(data: Data(message.utf8)),
             simulation: .mock(warnings: [
                 .mock(severity: .critical, warning: .validationError, message: "Chain ID mismatch"),
             ]),
         )
 
-        let viewModel = SignMessageSceneViewModel.mock(payload: payload)
+        let viewModel = SignMessageSceneViewModel.mock(request: payload)
 
         #expect(viewModel.title == "Sign In with Ethereum")
         #expect(viewModel.isButtonDisabled)
@@ -211,29 +211,29 @@ struct SignMessageSceneViewModelTests {
     @MainActor
     func permitHeaderReplacesValueField() {
         let asset = Asset.mockEthereumUSDT()
-        let payload = SignMessagePayload.mock(
+        let payload = GemWalletConnectMessageRequest.mock(
             message: .mockPermitBatch(),
             simulation: .mockPermitBatch(header: SimulationHeader(assetId: asset.id.identifier, value: nil, isUnlimited: true)),
             assets: [asset],
         )
 
-        let viewModel = SignMessageSceneViewModel.mock(payload: payload)
+        let viewModel = SignMessageSceneViewModel.mock(request: payload)
 
         #expect(viewModel.headerData == GemSimulationValue(asset: asset.toGem(), value: .unlimited))
-        #expect(!(viewModel.payloadModel.primaryFields + viewModel.payloadModel.secondaryFields).contains { $0.kind == .value })
+        #expect(!(viewModel.payloadModel.primaryFields + viewModel.payloadModel.secondaryFields).contains { $0.title == .value })
     }
 
     @Test
     @MainActor
     func permitWithoutHeaderKeepsValueField() {
-        let payload = SignMessagePayload.mock(
+        let payload = GemWalletConnectMessageRequest.mock(
             message: .mockPermitBatch(),
             simulation: .mockPermitBatch(),
         )
 
-        let viewModel = SignMessageSceneViewModel.mock(payload: payload)
+        let viewModel = SignMessageSceneViewModel.mock(request: payload)
 
         #expect(viewModel.headerData == nil)
-        #expect((viewModel.payloadModel.primaryFields + viewModel.payloadModel.secondaryFields).contains { $0.kind == .value })
+        #expect((viewModel.payloadModel.primaryFields + viewModel.payloadModel.secondaryFields).contains { $0.title == .value })
     }
 }

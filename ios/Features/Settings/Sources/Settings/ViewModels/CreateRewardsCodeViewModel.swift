@@ -1,12 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import protocol Gemstone.GemRewardsServiceProtocol
+import enum Gemstone.GemServiceError
+import struct Gemstone.Rewards
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
-import struct Gemstone.Rewards
-import protocol Gemstone.GemRewardsServiceProtocol
-import GemstonePrimitives
 
 @Observable
 @MainActor
@@ -52,8 +53,10 @@ final class CreateRewardsCodeViewModel: TextInputViewModelProtocol {
         do {
             let rewards = try await service.createReferral(wallet: wallet, code: code)
             onSuccess(rewards)
+        } catch let error as GemServiceError {
+            errorMessage = error.text().text
         } catch {
-            errorMessage = error.localizedDescription
+            debugLog("rewards code error: \(error)")
         }
         isLoading = false
     }

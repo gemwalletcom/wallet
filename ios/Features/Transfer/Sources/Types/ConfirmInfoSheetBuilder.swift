@@ -41,14 +41,14 @@ enum ConfirmInfoSheetBuilder {
         case let .balanceRequired(asset, requirement):
             let asset = asset.toPrimitives()
             return .balanceRequired(asset, image: image(for: asset), requirement: requirement.toPrimitives(), button: acquireButton(asset, flow: acquireFlow(asset)) { onGetAsset(asset, nil) })
-        case let .networkFeeRequired(asset, requirement):
+        case let .networkFeeRequired(asset, title, requirement):
             let asset = asset.toPrimitives()
-            return .insufficientNetworkFee(asset, image: image(for: asset), requirement: requirement.toPrimitives(), price: feePrice, currency: currency, button: acquireButton(asset, flow: acquireFlow(asset)) {
+            return .insufficientNetworkFee(asset, title: title, image: image(for: asset), requirement: requirement.toPrimitives(), price: feePrice, currency: currency, button: acquireButton(asset, flow: acquireFlow(asset)) {
                 onGetAsset(asset, networkFeeBuyAmount)
             })
-        case let .networkFeeMissing(asset):
+        case let .networkFeeMissing(asset, title):
             let asset = asset.toPrimitives()
-            return .insufficientNetworkFee(asset, image: image(for: asset), requirement: nil, price: feePrice, currency: currency, button: acquireButton(asset, flow: acquireFlow(asset)) {
+            return .insufficientNetworkFee(asset, title: title, image: image(for: asset), requirement: nil, price: feePrice, currency: currency, button: acquireButton(asset, flow: acquireFlow(asset)) {
                 onGetAsset(asset, networkFeeBuyAmount)
             })
         case let .minimumAccountBalance(asset, required):

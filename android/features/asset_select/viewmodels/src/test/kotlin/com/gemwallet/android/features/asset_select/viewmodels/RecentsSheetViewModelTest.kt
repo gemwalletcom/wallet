@@ -1,14 +1,14 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsEmptyState
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsSheetUIModel
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.RecentAsset
-import com.wallet.core.primitives.RecentActivityType
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetSolana
+import com.wallet.core.primitives.RecentActivityType
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -19,12 +19,12 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -32,9 +32,9 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemRecentsViewState
 import uniffi.gemstone.GemRecentActivityService
 import uniffi.gemstone.GemRecentsCounts
+import uniffi.gemstone.GemRecentsViewState
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RecentsSheetViewModelTest {

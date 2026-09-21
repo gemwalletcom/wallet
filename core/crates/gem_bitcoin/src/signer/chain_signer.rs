@@ -26,10 +26,6 @@ impl ChainSigner for BitcoinChainSigner {
     }
 
     fn sign_swap(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
-        Ok(vec![self.sign_request(
-            SpendRequest::swap(self.chain, input)?,
-            private_key,
-            input.metadata.get_zcash_branch_id(),
-        )?])
+        Ok(vec![self.sign_request(SpendRequest::swap(self.chain, input)?, private_key, input.metadata.get_zcash_branch_id())?])
     }
 }

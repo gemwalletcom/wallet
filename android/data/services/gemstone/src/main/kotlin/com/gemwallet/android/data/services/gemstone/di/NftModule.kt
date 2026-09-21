@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.di
 
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneNftStore
 import com.gemwallet.android.data.service.store.database.NftDao
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneNftStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -26,12 +26,10 @@ class NftModule {
 
     @Provides
     @Singleton
-    fun provideGemNftService(apiClient: GemDeviceApiClient, nftStore: GemstoneNftStore, walletSessionService: GemWalletSessionService): GemNftService =
-        GemNftService(apiClient, nftStore, walletSessionService)
+    fun provideGemNftService(apiClient: GemDeviceApiClient, nftStore: GemstoneNftStore, walletSessionService: GemWalletSessionService): GemNftService = GemNftService(apiClient, nftStore, walletSessionService)
 
     @Provides
-    fun provideGemCollectibleService(nfts: GemNftService, avatars: GemAvatarService, explorer: GemExplorerService): GemCollectibleServiceInterface =
-        GemCollectibleService(nfts, avatars, explorer)
+    fun provideGemCollectibleService(nfts: GemNftService, avatars: GemAvatarService, explorer: GemExplorerService): GemCollectibleServiceInterface = GemCollectibleService(nfts, avatars, explorer)
 
     @Provides
     fun provideGemNftServiceInterface(service: GemNftService): GemNftServiceInterface = service

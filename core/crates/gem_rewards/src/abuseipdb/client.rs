@@ -35,13 +35,7 @@ impl IpCheckProvider for AbuseIPDBClient {
     }
 
     async fn check_ip(&self, ip_address: &str) -> Result<IpCheckResult, Box<dyn Error + Send + Sync>> {
-        let response: AbuseIPDBResponse = self
-            .client
-            .get(AbuseIpDbTarget::Check {
-                ip_address: ip_address.to_string(),
-            })
-            .headers(self.headers())
-            .await?;
+        let response: AbuseIPDBResponse = self.client.get(AbuseIpDbTarget::Check { ip_address: ip_address.to_string() }).headers(self.headers()).await?;
 
         Ok(response.data.as_ip_check_result())
     }

@@ -210,7 +210,6 @@
   <string name="errors_connections_no_supported_wallets">Es sind keine unterstützten Wallets verfügbar.</string>
   <string name="errors_connections_unsupported_chain">Die bereitgestellte Kette wird nicht unterstützt.</string>
   <string name="errors_swap_amount_too_small">Menge zu gering</string>
-  <string name="errors_required">%1$s ist erforderlich</string>
   <string name="errors_scan_transaction_malicious_description">Diese Transaktion kann nicht abgeschlossen werden – die Ziel-Wallet-Adresse ist mit verdächtigen oder schädlichen Aktivitäten verknüpft.</string>
   <string name="errors_scan_transaction_memo_required">%1$s Für die Ziel-Wallet-Adresse wird ein Ziel-Tag/Memo benötigt.</string>
   <string name="errors_scan_transaction_malicious_title">Verdächtige Aktivitäten</string>
@@ -273,7 +272,7 @@
   <string name="asset_decimals">Dezimalstellen</string>
   <string name="asset_token_id">Token-ID</string>
   <string name="asset_contract">Vertrag</string>
-  <string name="asset_state_empty_title">Ihre Transaktionen werden hier angezeigt️</string>
+  <string name="asset_state_empty_title">Ihre Transaktionen werden hier angezeigt</string>
   <string name="asset_state_empty_description">Erhalten, tauschen oder kaufen %1$s</string>
   <string name="asset_verification_unverified">Unbestätigt</string>
   <string name="asset_verification_suspicious">Verdächtig</string>
@@ -422,7 +421,7 @@
   <string name="price_alerts_set_alert_set_target_price">Zielpreis festlegen</string>
   <string name="price_alerts_set_alert_current_price">Aktueller Preis</string>
   <string name="price_alerts_added_for">Preisalarm einstellen %1$s</string>
-  <string name="price_alerts_state_empty_title">Ihre Benachrichtigungen werden hier angezeigt️</string>
+  <string name="price_alerts_state_empty_title">Ihre Benachrichtigungen werden hier angezeigt</string>
   <string name="price_alerts_state_empty_description">Aktivieren Sie sie, indem Sie Münzen zur Verfolgung hinzufügen</string>
   <string name="price_alerts_auto_footer">Bei erheblichen Preisbewegungen werden Warnungen ausgelöst.</string>
   <string name="price_alerts_set_alert_title">Preisalarm einstellen</string>
@@ -437,7 +436,7 @@
   <string name="lock_privacy_lock">Datenschutzsperre</string>
   <string name="lock_footer">Schützen Sie den Zugriff auf diese App auf Ihrem Gerät</string>
   <string name="verify_phrase_title">Bestätigen</string>
-  <string name="warnings_multi_signature_blocked">Überweisen Sie kein Geld auf dieses %1$s Multi-Signature-Wallet, es sei denn, Sie sind sicher, dass Sie die privaten Schlüssel kontrollieren. Andernfalls könnten Sie Opfer von Betrug werden und Ihr Vermögen dauerhaft verlieren.</string>
+  <string name="warnings_externally_controlled_account">Dieses %1$s-Konto kann von jemand anderem kontrolliert werden. Senden Sie kein Geld darauf, es sei denn, Sie sind sicher, dass Sie es kontrollieren, sonst könnten Sie Ihr Vermögen dauerhaft verlieren.</string>
   <string name="sell_title">Verkaufen %1$s</string>
   <string name="info_network_fee_title">Netzwerk-Gebühr</string>
   <string name="info_watch_wallet_title">Beobachtungs-Wallet</string>
@@ -489,7 +488,7 @@
   <string name="nft_collection">Sammlung</string>
   <string name="nft_save_to_photos">In „Fotos“ speichern</string>
   <string name="nft_set_as_avatar">Als Avatar festlegen</string>
-  <string name="nft_state_empty_title">Ihre NFTs werden hier angezeigt️</string>
+  <string name="nft_state_empty_title">Ihre NFTs werden hier angezeigt</string>
   <string name="nft_state_empty_description">Erhalten Sie Ihr erstes NFT</string>
   <string name="nft_report_reason_spam">Spam</string>
   <string name="nft_report_reason_malicious">Böswillig</string>

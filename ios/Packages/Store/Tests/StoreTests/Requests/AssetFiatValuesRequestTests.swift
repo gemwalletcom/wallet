@@ -48,8 +48,9 @@ struct AssetFiatValuesRequestTests {
         try db.dbQueue.read { db in
             let result = try PerpetualWalletBalanceRequest(walletId: .mock(), assetId: Asset.mockHypercoreUSDC().id).fetch(db)
 
-            #expect(result?.available == 50)
-            #expect(result?.reserved == 25)
+            #expect(result?.balance.available == 50)
+            #expect(result?.balance.reserved == 25)
+            #expect(result?.price == 0.92, "the collateral carries the stored price, converted like every other asset")
         }
     }
 }

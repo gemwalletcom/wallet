@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.components.InfoSheetEntity
@@ -27,10 +28,12 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer6
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.alpha10
+import com.gemwallet.android.ui.theme.iconSize
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.secondaryFaded
+import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.space6
 import com.wallet.core.primitives.AssetId
@@ -38,11 +41,13 @@ import com.wallet.core.primitives.AssetId
 data class ListItemModel(
     val title: String,
     val titleStyle: ListItemTextStyle = ListItemTextStyle.Body,
+    val titleLineLimit: Int? = 1,
     val titleTag: String? = null,
     val titleTagStyle: ListItemTextStyle = ListItemTextStyle.Secondary,
     val titleTagType: ListItemTagType = ListItemTagType.None,
     val titleExtra: String? = null,
     val titleExtraStyle: ListItemTextStyle = ListItemTextStyle.Secondary,
+    val titleExtraLineLimit: Int? = null,
     val subtitle: String? = null,
     val subtitleStyle: ListItemTextStyle = ListItemTextStyle.Secondary,
     val subtitleExtra: String? = null,
@@ -69,6 +74,7 @@ enum class ListItemSymbol {
     Paste,
     QrScanner,
     Pin,
+    Unpin,
     AddCircle,
     Buy,
     Swap,
@@ -91,13 +97,46 @@ enum class ListItemTagType {
 }
 
 sealed interface ListItemImage {
-    data class Asset(val assetId: AssetId) : ListItemImage
-    data class Url(val url: String, val placeholder: String? = null) : ListItemImage
-    data class Stored(val name: String, val placeholder: String? = null) : ListItemImage
-    data class Emoji(val glyph: String, val backgroundColor: Int? = null) : ListItemImage
-    data class Initials(val text: String) : ListItemImage
-    data class Symbol(val symbol: ListItemSymbol, val isFilled: Boolean = false) : ListItemImage
-    data class Drawable(@DrawableRes val id: Int, val isRounded: Boolean = false) : ListItemImage
+    val style: ListItemImageStyle
+
+    data class Asset(val assetId: AssetId) : ListItemImage {
+        override val style: ListItemImageStyle = ListItemImageStyle.Avatar
+    }
+
+    data class Url(val url: String, val placeholder: String? = null) : ListItemImage {
+        override val style: ListItemImageStyle = ListItemImageStyle.Avatar
+    }
+
+    data class Stored(val name: String, val placeholder: String? = null) : ListItemImage {
+        override val style: ListItemImageStyle = ListItemImageStyle.Avatar
+    }
+
+    data class Emoji(val glyph: String, val backgroundColor: Int? = null) : ListItemImage {
+        override val style: ListItemImageStyle = ListItemImageStyle.Avatar
+    }
+
+    data class Initials(val text: String) : ListItemImage {
+        override val style: ListItemImageStyle = ListItemImageStyle.Avatar
+    }
+
+    data class Symbol(
+        val symbol: ListItemSymbol,
+        val tint: ListItemTextStyle = ListItemTextStyle.Body,
+        override val style: ListItemImageStyle = ListItemImageStyle.Glyph,
+    ) : ListItemImage
+
+    data class Drawable(
+        @DrawableRes val id: Int,
+        override val style: ListItemImageStyle = ListItemImageStyle.Settings,
+    ) : ListItemImage
+}
+
+enum class ListItemImageStyle(val size: Dp, val isRounded: Boolean = false) {
+    Avatar(listItemIconSize, isRounded = true),
+    Banner(listItemIconSize),
+    Action(listItemIconSize),
+    Settings(iconSize),
+    Glyph(smallIconSize),
 }
 
 @Composable
@@ -112,13 +151,7 @@ fun ListItemTextStyle.color(): Color = when (this) {
 }
 
 @Composable
-fun ListItem(
-    model: ListItemModel,
-    listPosition: ListPosition,
-    modifier: Modifier = Modifier,
-    minHeight: Dp = Dp.Unspecified,
-    accessory: (@Composable () -> Unit)? = null,
-) {
+fun ListItem(model: ListItemModel, listPosition: ListPosition, modifier: Modifier = Modifier, minHeight: Dp = Dp.Unspecified, accessory: (@Composable () -> Unit)? = null) {
     if (model.image == null && model.titleExtra == null && model.titleTag == null && model.subtitleExtra == null) {
         PropertyItem(
             modifier = modifier,
@@ -136,9 +169,19 @@ fun ListItem(
         modifier = modifier,
         listPosition = listPosition,
         minHeight = minHeight,
-        leading = model.image?.let { image -> { ListItemImageView(image = image, size = listItemIconSize) } },
-        title = { ListItemTitleText(text = model.title, color = model.titleStyle.color(), titleBadge = model.titleTag?.let { { TitleTag(it, model.titleTagStyle, model.titleTagType) } }) },
-        subtitle = model.titleExtra?.let { { ListItemSupportText(text = it, color = model.titleExtraStyle.color()) } },
+        leading = model.image?.let { image -> { ListItemImageView(image = image) } },
+        title = {
+            ListItemTitleText(
+                text = model.title,
+                color = model.titleStyle.color(),
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = model.titleLineLimit ?: Int.MAX_VALUE,
+                titleBadge = model.titleTag?.let { { TitleTag(it, model.titleTagStyle, model.titleTagType) } },
+            )
+        },
+        subtitle = model.titleExtra?.let {
+            { ListItemSupportText(text = it, color = model.titleExtraStyle.color(), maxLines = model.titleExtraLineLimit ?: Int.MAX_VALUE) }
+        },
         trailing = if (model.subtitle == null && model.subtitleExtra == null && accessory == null) {
             null
         } else {
@@ -165,6 +208,7 @@ fun ListItem(
 
 private fun subtitleBadge(model: ListItemModel, accessory: (@Composable () -> Unit)?): (@Composable () -> Unit)? = when (model.subtitleTagType) {
     ListItemTagType.None -> accessory
+
     ListItemTagType.Progress, ListItemTagType.Pending -> {
         {
             SubtitleTag(model)
@@ -201,13 +245,11 @@ private fun TitleTag(text: String, style: ListItemTextStyle, type: ListItemTagTy
             CircularProgressIndicator14()
             return
         }
+
         ListItemTagType.None, ListItemTagType.Pending -> Unit
     }
     when (style) {
-        ListItemTextStyle.Primary,
-        ListItemTextStyle.Positive,
-        ListItemTextStyle.Negative,
-        ListItemTextStyle.Warning -> Text(
+        ListItemTextStyle.Primary -> Text(
             modifier = Modifier
                 .padding(start = paddingHalfSmall)
                 .background(
@@ -219,8 +261,28 @@ private fun TitleTag(text: String, style: ListItemTextStyle, type: ListItemTagTy
             color = style.color(),
             style = MaterialTheme.typography.bodyMedium,
         )
+
+        ListItemTextStyle.Positive,
+        ListItemTextStyle.Negative,
+        ListItemTextStyle.Warning,
+        -> Text(
+            modifier = Modifier
+                .padding(start = paddingHalfSmall)
+                .background(
+                    color = style.color().copy(alpha = alpha10),
+                    shape = RoundedCornerShape(space6),
+                )
+                .padding(horizontal = paddingHalfSmall, vertical = space2),
+            text = text,
+            color = style.color(),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.labelMedium,
+        )
+
         ListItemTextStyle.Body,
         ListItemTextStyle.Secondary,
-        ListItemTextStyle.Faded -> Badge(text)
+        ListItemTextStyle.Faded,
+        -> Badge(text)
     }
 }

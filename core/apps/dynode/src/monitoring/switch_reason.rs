@@ -69,14 +69,7 @@ mod tests {
         ];
 
         for (error, expected) in cases {
-            assert_eq!(
-                NodeSwitchReason::CurrentNodeError {
-                    error,
-                    message: "error detail".to_string()
-                }
-                .metric_reason(),
-                expected
-            );
+            assert_eq!(NodeSwitchReason::CurrentNodeError { error, message: "error detail".to_string() }.metric_reason(), expected);
         }
         assert_eq!(NodeSwitchReason::PreferredNode.metric_reason(), "preferred_node");
         assert_eq!(NodeSwitchReason::Latency.metric_reason(), "latency");

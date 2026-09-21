@@ -210,7 +210,6 @@
   <string name="errors_connections_no_supported_wallets">لا تتوفر محافظ مدعومة.</string>
   <string name="errors_connections_unsupported_chain">السلسلة المقدمة غير مدعومة.</string>
   <string name="errors_swap_amount_too_small">المبلغ صغير جدًا</string>
-  <string name="errors_required">%1$s مطلوب</string>
   <string name="errors_scan_transaction_malicious_description">لا يمكن إكمال هذه المعاملة - عنوان المحفظة الوجهة مرتبط بنشاط مشبوه أو ضار.</string>
   <string name="errors_scan_transaction_memo_required">يتطلب عنوان محفظة الوجهة %1$s علامة وجهة/مذكرة</string>
   <string name="errors_scan_transaction_malicious_title">نشاط مشبوه</string>
@@ -437,7 +436,7 @@
   <string name="lock_privacy_lock">قفل الخصوصية</string>
   <string name="lock_footer">حماية الوصول إلى هذا التطبيق على جهازك</string>
   <string name="verify_phrase_title">يتأكد</string>
-  <string name="warnings_multi_signature_blocked">لا تقم بتحويل الأموال إلى محفظة التوقيعات المتعددة %1$s هذه إلا إذا كنت متأكدًا من أنك تتحكم في المفاتيح الخاصة. قد يؤدي عدم القيام بذلك إلى تعريضك للاحتيال، وقد تفقد أصولك بشكل دائم.</string>
+  <string name="warnings_externally_controlled_account">قد يتحكم شخص آخر في حساب %1$s هذا. لا ترسل أموالًا إليه إلا إذا كنت متأكدًا من أنك تتحكم فيه، وإلا فقد تفقد أصولك بشكل دائم.</string>
   <string name="sell_title">بيع %1$s</string>
   <string name="info_network_fee_title">رسوم الشبكة</string>
   <string name="info_watch_wallet_title">شاهد المحفظة</string>

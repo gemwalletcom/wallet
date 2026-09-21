@@ -1,8 +1,7 @@
 use gem_client::{ClientError, build_path_with_query};
 use primitives::rewards::RedemptionRequest;
 use primitives::{
-    AuthenticatedRequest, ChainAddress, ChartPeriod, Device, FiatQuoteType, NFTAssetId, PortfolioAssetsRequest, PriceAlert, ReferralCode, ReportNft, ScanTransactionPayload,
-    SupportMessageInput, WalletSubscription, WalletSubscriptionChains,
+    AuthenticatedRequest, ChainAddress, ChartPeriod, Device, FiatQuoteType, NFTAssetId, PortfolioAssetsRequest, PriceAlert, ReferralCode, ReportNft, ScanTransactionPayload, SupportMessageInput, WalletSubscription, WalletSubscriptionChains,
 };
 use serde::Serialize;
 
@@ -164,13 +163,7 @@ impl GemDeviceApiTarget {
             Self::GetSubscriptions | Self::AddSubscriptions(_) | Self::DeleteSubscriptions(_) => "/v2/devices/subscriptions".to_string(),
             Self::GetPriceAlerts { asset_id } => build_path_with_query("/v2/devices/price_alerts", &PriceAlertsQuery { asset_id: asset_id.clone() }),
             Self::AddPriceAlerts(_) | Self::DeletePriceAlerts(_) => "/v2/devices/price_alerts".to_string(),
-            Self::GetTransactions {
-                asset_id,
-                from_timestamp,
-                limit,
-                offset,
-                ..
-            } => build_path_with_query(
+            Self::GetTransactions { asset_id, from_timestamp, limit, offset, .. } => build_path_with_query(
                 "/v2/devices/transactions",
                 &TransactionsQuery {
                     from_timestamp: *from_timestamp,
@@ -188,23 +181,14 @@ impl GemDeviceApiTarget {
             Self::ReportNft(_) => "/v2/devices/nft/report".to_string(),
             Self::GetSupportMessages { from_timestamp } => format!("/v2/devices/support/messages?from_timestamp={from_timestamp}"),
             Self::SendSupportMessage(_) => "/v2/devices/support/messages".to_string(),
-            Self::SendSupportImage { file_name, .. } => format!(
-                "/v2/devices/support/messages/images?file_name={}",
-                percent_encoding::utf8_percent_encode(file_name, percent_encoding::NON_ALPHANUMERIC)
-            ),
+            Self::SendSupportImage { file_name, .. } => format!("/v2/devices/support/messages/images?file_name={}", percent_encoding::utf8_percent_encode(file_name, percent_encoding::NON_ALPHANUMERIC)),
             Self::GetRewards { .. } => "/v2/devices/rewards".to_string(),
             Self::CreateReferral { .. } => "/v2/devices/rewards/referrals/create".to_string(),
             Self::UseReferralCode { .. } => "/v2/devices/rewards/referrals/use".to_string(),
             Self::RedeemRewards { .. } => "/v2/devices/rewards/redeem".to_string(),
             Self::GetNotifications { from_timestamp } => format!("/v2/devices/notifications?from_timestamp={from_timestamp}"),
             Self::MarkNotificationsRead => "/v2/devices/notifications/read".to_string(),
-            Self::GetFiatQuotes {
-                quote_type,
-                asset_id,
-                amount,
-                currency,
-                ..
-            } => format!("/v2/devices/fiat/quotes/{}/{asset_id}?amount={amount}&currency={currency}", quote_type.as_ref()),
+            Self::GetFiatQuotes { quote_type, asset_id, amount, currency, .. } => format!("/v2/devices/fiat/quotes/{}/{asset_id}?amount={amount}&currency={currency}", quote_type.as_ref()),
             Self::GetFiatQuoteUrl { quote_id, .. } => format!("/v2/devices/fiat/quotes/{quote_id}/url"),
             Self::GetFiatTransactions { .. } => "/v2/devices/fiat/transactions".to_string(),
             Self::GetNameRecord { name, chain } => format!("/v2/devices/name/resolve/{name}?chain={chain}"),

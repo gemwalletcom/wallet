@@ -21,14 +21,7 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemWidgetCoin
 import uniffi.gemstone.GemWidgetSize
 
-data class WidgetCoinUIModel(
-    val name: String,
-    val symbol: String,
-    val priceText: String,
-    val changeText: String,
-    val changeStyle: ListItemTextStyle,
-    val icon: Bitmap?,
-)
+data class WidgetCoinUIModel(val name: String, val symbol: String, val priceText: String, val changeText: String, val changeStyle: ListItemTextStyle, val icon: Bitmap?)
 
 suspend fun WidgetEntryPoint.mediumWidgetCoins(context: Context): List<WidgetCoinUIModel> {
     val currency = preferencesService().getCurrency().toPrimitives().string

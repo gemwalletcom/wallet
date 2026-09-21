@@ -9,27 +9,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.theme.paddingSmall
+import uniffi.gemstone.GemFormattedNumber
 
 @Composable
-fun PercentSuggestionsBar(
-    suggestions: List<Int>,
-    modifier: Modifier = Modifier,
-    onPercentSelected: (Int) -> Unit,
-) {
+fun PercentSuggestionsBar(suggestions: List<GemFormattedNumber>, modifier: Modifier = Modifier, onPercentSelected: (Int) -> Unit) {
     SuggestionsBar(
-        labels = suggestions.map { "$it%" },
+        labels = suggestions.map { it.text() },
         modifier = modifier,
-        onSelected = { index -> onPercentSelected(suggestions[index]) },
+        onSelected = { index -> onPercentSelected(suggestions[index].value.toInt()) },
     )
 }
 
 @Composable
-fun SuggestionsBar(
-    labels: List<String>,
-    modifier: Modifier = Modifier,
-    onSelected: (Int) -> Unit,
-) {
+fun SuggestionsBar(labels: List<String>, modifier: Modifier = Modifier, onSelected: (Int) -> Unit) {
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(paddingSmall),

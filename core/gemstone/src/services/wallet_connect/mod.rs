@@ -11,24 +11,22 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use chrono::{DateTime, Utc};
-use gem_wallet_connect::validate_sign_message_account;
-use primitives::{
-    Account, ApplicationMetadata, Chain, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus, WalletId,
-};
+use gem_wallet_connect::{WalletConnectVerifier, validate_sign_message_account};
+use primitives::{Account, ApplicationMetadata, Chain, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus, WalletId};
 
 use crate::application::GemApplicationMetadataService;
 use crate::message::sign_type::SignMessage;
 use crate::services::assets::GemAssetsService;
 use crate::services::error::GemServiceError;
+use crate::services::error_text::GemErrorText;
 use crate::services::simulation::GemSimulationService;
 use crate::services::wallet_session::GemWalletSessionService;
 use crate::wallet_connect::{WalletConnect, WalletConnectAction, WalletConnectChainOperation, WalletConnectTransactionType};
 
 pub use error::GemWalletConnectError;
 pub use model::{
-    GemConnection, GemConnectionDetailRow, GemConnectionDetails, GemConnectionSection, GemSessionApproval, GemSessionProposal, GemWalletConnectAuthAccount,
-    GemWalletConnectFailure, GemWalletConnectMessageRequest, GemWalletConnectOutcome, GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectResponse,
-    GemWalletConnectRpcError, GemWalletConnectSessionRequest, GemWalletConnectTransactionAction, GemWalletConnectTransactionRequest,
+    GemConnection, GemConnectionDetails, GemConnectionSection, GemSessionApproval, GemSessionProposal, GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectFailure, GemWalletConnectMessageRequest, GemWalletConnectOutcome,
+    GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectResponse, GemWalletConnectRpcError, GemWalletConnectSessionRequest, GemWalletConnectTransactionAction, GemWalletConnectTransactionRequest,
 };
 pub use sign_message::{GemSignMessagePreview, GemSignMessageService};
 pub use signer::GemWalletConnectSigner;
@@ -48,6 +46,11 @@ pub struct GemWalletConnectService {
 }
 
 const SEEN_MESSAGES_LIMIT: usize = 512;
+
+#[uniffi::export]
+pub fn signer_failure(error: GemErrorText) -> GemSignerFailure {
+    rules::signer_failure(error)
+}
 
 #[uniffi::export]
 impl GemWalletConnectService {
@@ -83,7 +86,7 @@ impl GemWalletConnectService {
     }
 
     pub fn is_origin_rejected(&self, metadata_url: String, origin: Option<String>, validation: WalletConnectionVerificationStatus) -> bool {
-        rules::is_origin_rejected(&self.wallet_connect.validate_origin(metadata_url, origin, validation))
+        rules::is_origin_rejected(&WalletConnectVerifier::validate_origin(metadata_url, origin, validation))
     }
 
     pub async fn add_connection(&self, connection: WalletConnection) -> Result<(), GemServiceError> {
@@ -138,18 +141,14 @@ impl GemWalletConnectService {
         let current_wallet_id = self.session.get_current_wallet_id()?;
         let required = rules::parse_chains(&required_chain_ids).ok_or(GemWalletConnectError::UnsupportedChains)?;
         let optional = rules::parse_known_chains(&optional_chain_ids);
-        let verification_status = self.wallet_connect.validate_origin(metadata.url.clone(), origin, validation);
+        let verification_status = WalletConnectVerifier::validate_origin(metadata.url.clone(), origin, validation);
         if rules::is_origin_rejected(&verification_status) {
             return Err(GemWalletConnectError::InvalidOrigin);
         }
         let wallets = rules::session_wallets(wallets, &required, &optional);
         let default_wallet = rules::default_wallet(&wallets, current_wallet_id).ok_or(GemWalletConnectError::UnsupportedWallets)?;
         Ok(GemSessionProposal {
-            proposal: WalletConnectionSessionProposal {
-                default_wallet,
-                wallets,
-                metadata,
-            },
+            proposal: WalletConnectionSessionProposal { default_wallet, wallets, metadata },
             verification_status,
         })
     }
@@ -166,9 +165,7 @@ impl GemWalletConnectService {
 
     pub fn connection_details(&self, connection: WalletConnection) -> GemConnectionDetails {
         GemConnectionDetails {
-            rows: vec![GemConnectionDetailRow::Wallet, GemConnectionDetailRow::Date],
-            wallet: connection.wallet.name.clone(),
-            date: connection.session.created_at,
+            rows: rules::connection_detail_rows(&connection),
             connection: self.gem_connection(connection),
         }
     }
@@ -204,7 +201,7 @@ impl GemWalletConnectService {
         rules::user_rejected_error()
     }
 
-    pub async fn process_request(&self, request: GemWalletConnectSessionRequest) -> GemWalletConnectOutcome {
+    pub async fn request_outcome(&self, request: GemWalletConnectSessionRequest) -> GemWalletConnectOutcome {
         if !self.should_process_message(rules::request_message_id(&request.topic, &request.request_id)) {
             return GemWalletConnectOutcome::ignored();
         }
@@ -222,11 +219,8 @@ impl GemWalletConnectService {
         let Some(chain_id) = request.chain_id else {
             return GemWalletConnectOutcome::rejected(None);
         };
-        match self.handle_request(request.topic, request.method, request.params, chain_id, domain, expiry).await {
-            Ok(response) => GemWalletConnectOutcome {
-                response: Some(response),
-                failure: None,
-            },
+        match self.request_response(request.topic, request.method, request.params, chain_id, domain, expiry).await {
+            Ok(response) => GemWalletConnectOutcome { response: Some(response), failure: None },
             Err(_) if rules::is_expired(expiry, Utc::now()) => GemWalletConnectOutcome::expired(),
             Err(GemServiceError::Cancelled) => GemWalletConnectOutcome::rejected(None),
             Err(error) => GemWalletConnectOutcome::rejected(Some(GemWalletConnectFailure::Failed { message: error.to_string() })),
@@ -235,21 +229,7 @@ impl GemWalletConnectService {
 }
 
 impl GemWalletConnectService {
-    pub fn validate_origin(&self, metadata_url: String, origin: Option<String>, validation: WalletConnectionVerificationStatus) -> WalletConnectionVerificationStatus {
-        self.wallet_connect.validate_origin(metadata_url, origin, validation)
-    }
-}
-
-impl GemWalletConnectService {
-    async fn handle_request(
-        &self,
-        topic: String,
-        method: String,
-        params: String,
-        chain_id: String,
-        domain: String,
-        expiry: Option<u64>,
-    ) -> Result<GemWalletConnectResponse, GemServiceError> {
+    async fn request_response(&self, topic: String, method: String, params: String, chain_id: String, domain: String, expiry: Option<u64>) -> Result<GemWalletConnectResponse, GemServiceError> {
         let action = self.wallet_connect.parse_request(topic.clone(), method, params, chain_id, domain.clone())?;
         let session_id = topic;
         let response = match action {
@@ -276,30 +256,20 @@ impl GemWalletConnectService {
                 self.wallet_connect.encode_sign_message(chain, signature)
             }
             WalletConnectAction::SignTransaction { chain, transaction_type, data } => {
-                let transaction_id = self
-                    .sign_transaction(session_id, chain, transaction_type, data, GemWalletConnectTransactionAction::Sign, expiry)
-                    .await?;
+                let transaction_id = self.sign_transaction(session_id, chain, transaction_type, data, GemWalletConnectTransactionAction::Sign, expiry).await?;
                 self.wallet_connect.encode_sign_transaction(chain, transaction_id)
             }
-            WalletConnectAction::SignAllTransactions {
-                chain,
-                transaction_type,
-                transactions,
-            } => {
+            WalletConnectAction::SignAllTransactions { chain, transaction_type, transactions } => {
                 let [data] = transactions.as_slice() else {
                     return Err(GemServiceError::Unsupported {
                         msg: "signAllTransactions with multiple transactions is not yet supported".to_string(),
                     });
                 };
-                let signed = self
-                    .sign_transaction(session_id, chain, transaction_type, data.clone(), GemWalletConnectTransactionAction::Sign, expiry)
-                    .await?;
+                let signed = self.sign_transaction(session_id, chain, transaction_type, data.clone(), GemWalletConnectTransactionAction::Sign, expiry).await?;
                 self.wallet_connect.encode_sign_all_transactions(vec![signed])
             }
             WalletConnectAction::SendTransaction { chain, transaction_type, data } => {
-                let transaction_id = self
-                    .sign_transaction(session_id, chain, transaction_type, data, GemWalletConnectTransactionAction::Send, expiry)
-                    .await?;
+                let transaction_id = self.sign_transaction(session_id, chain, transaction_type, data, GemWalletConnectTransactionAction::Send, expiry).await?;
                 self.wallet_connect.encode_send_transaction(chain, transaction_id)
             }
             WalletConnectAction::GetAccounts { chain } => {
@@ -309,29 +279,17 @@ impl GemWalletConnectService {
             WalletConnectAction::ChainOperation { operation } => {
                 return Ok(match operation {
                     WalletConnectChainOperation::AddChain | WalletConnectChainOperation::SwitchChain { .. } => GemWalletConnectResponse::Null,
-                    WalletConnectChainOperation::GetChainId => GemWalletConnectResponse::Error {
-                        error: rules::method_not_found_error(),
-                    },
+                    WalletConnectChainOperation::GetChainId => GemWalletConnectResponse::Error { error: rules::method_not_found_error() },
                 });
             }
             WalletConnectAction::Unsupported { .. } => {
-                return Ok(GemWalletConnectResponse::Error {
-                    error: rules::method_not_found_error(),
-                });
+                return Ok(GemWalletConnectResponse::Error { error: rules::method_not_found_error() });
             }
         };
         Ok(GemWalletConnectResponse::Response { value: response })
     }
 
-    async fn sign_transaction(
-        &self,
-        session_id: String,
-        chain: Chain,
-        transaction_type: WalletConnectTransactionType,
-        data: String,
-        action: GemWalletConnectTransactionAction,
-        expiry: Option<u64>,
-    ) -> Result<String, GemServiceError> {
+    async fn sign_transaction(&self, session_id: String, chain: Chain, transaction_type: WalletConnectTransactionType, data: String, action: GemWalletConnectTransactionAction, expiry: Option<u64>) -> Result<String, GemServiceError> {
         let (connection, account) = self.connection_account(&session_id, chain).await?;
         let transaction = self.wallet_connect.decode_send_transaction(transaction_type.clone(), data.clone())?;
         rules::validate_transaction_sender(&transaction, &account)?;
@@ -416,16 +374,13 @@ mod tests {
                     true,
                 ),
             ] {
-                for (method, action) in [
-                    ("tron_signTransaction", GemWalletConnectTransactionAction::Sign),
-                    ("tron_sendTransaction", GemWalletConnectTransactionAction::Send),
-                ] {
+                for (method, action) in [("tron_signTransaction", GemWalletConnectTransactionAction::Sign), ("tron_sendTransaction", GemWalletConnectTransactionAction::Send)] {
                     let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Tron, owner)]);
                     let mut service = GemWalletConnectService::mock(Ok("{}".to_string()), wallet).await;
                     let signer = Arc::new(TestWalletConnectSigner::new(Ok("{}".to_string())));
                     service.signer = signer.clone();
                     let outcome = service
-                        .process_request(GemWalletConnectSessionRequest {
+                        .request_outcome(GemWalletConnectSessionRequest {
                             method: method.to_string(),
                             params: params.to_string(),
                             chain_id: Some("tron:0x2b6653dc".to_string()),
@@ -462,7 +417,7 @@ mod tests {
         let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Solana, TEST_PRIVATE_KEY_SOLANA_ADDRESS)]);
         let service = block_on(GemWalletConnectService::mock(Ok("signature".to_string()), wallet));
         assert_eq!(
-            block_on(service.process_request(GemWalletConnectSessionRequest::mock_siws())),
+            block_on(service.request_outcome(GemWalletConnectSessionRequest::mock_siws())),
             GemWalletConnectOutcome {
                 response: Some(GemWalletConnectResponse::Response {
                     value: WalletConnectResponseType::Object {
@@ -477,14 +432,9 @@ mod tests {
     #[test]
     fn test_process_siws_request_account_mismatch() {
         let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Solana, "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")]);
-        let service = block_on(GemWalletConnectService::mock(
-            Err(GemServiceError::Platform {
-                msg: "signer callback reached".to_string(),
-            }),
-            wallet,
-        ));
+        let service = block_on(GemWalletConnectService::mock(Err(GemServiceError::Platform { msg: "signer callback reached".to_string() }), wallet));
         assert_eq!(
-            block_on(service.process_request(GemWalletConnectSessionRequest::mock_siws())),
+            block_on(service.request_outcome(GemWalletConnectSessionRequest::mock_siws())),
             GemWalletConnectOutcome::rejected(Some(GemWalletConnectFailure::Failed {
                 message: "SIWS address does not match signing account".to_string()
             }))
@@ -492,11 +442,11 @@ mod tests {
     }
 
     #[test]
-    fn test_process_request_outcomes() {
+    fn test_request_outcomes() {
         block_on(async {
             let service = GemWalletConnectService::mock(Ok("0xsignature".to_string()), Wallet::mock()).await;
 
-            let signed = service.process_request(GemWalletConnectSessionRequest::mock("1")).await;
+            let signed = service.request_outcome(GemWalletConnectSessionRequest::mock("1")).await;
             assert_eq!(
                 signed,
                 GemWalletConnectOutcome {
@@ -507,7 +457,7 @@ mod tests {
                 }
             );
 
-            let duplicate = service.process_request(GemWalletConnectSessionRequest::mock("1")).await;
+            let duplicate = service.request_outcome(GemWalletConnectSessionRequest::mock("1")).await;
             assert_eq!(
                 duplicate,
                 GemWalletConnectOutcome { response: None, failure: None },
@@ -515,7 +465,7 @@ mod tests {
             );
 
             let expired = service
-                .process_request(GemWalletConnectSessionRequest {
+                .request_outcome(GemWalletConnectSessionRequest {
                     expiry: Some((Utc::now() - chrono::TimeDelta::seconds(1)).timestamp() as u64),
                     ..GemWalletConnectSessionRequest::mock("expired")
                 })
@@ -523,16 +473,14 @@ mod tests {
             assert_eq!(
                 expired,
                 GemWalletConnectOutcome {
-                    response: Some(GemWalletConnectResponse::Error {
-                        error: rules::request_expired_error(),
-                    }),
+                    response: Some(GemWalletConnectResponse::Error { error: rules::request_expired_error() }),
                     failure: Some(GemWalletConnectFailure::Expired),
                 },
                 "a request the dapp stopped waiting for is answered as expired and never reaches the signer"
             );
 
             let live = service
-                .process_request(GemWalletConnectSessionRequest {
+                .request_outcome(GemWalletConnectSessionRequest {
                     expiry: Some((Utc::now() + chrono::TimeDelta::seconds(300)).timestamp() as u64),
                     ..GemWalletConnectSessionRequest::mock("live")
                 })
@@ -540,7 +488,7 @@ mod tests {
             assert_eq!(live.failure, None, "a request still inside its expiry is answered normally");
 
             let malicious = service
-                .process_request(GemWalletConnectSessionRequest {
+                .request_outcome(GemWalletConnectSessionRequest {
                     validation: WalletConnectionVerificationStatus::Malicious,
                     ..GemWalletConnectSessionRequest::mock("2")
                 })
@@ -548,7 +496,7 @@ mod tests {
             assert_eq!(malicious, GemWalletConnectOutcome::rejected(Some(GemWalletConnectFailure::MaliciousOrigin)));
 
             let unknown_session = service
-                .process_request(GemWalletConnectSessionRequest {
+                .request_outcome(GemWalletConnectSessionRequest {
                     topic: "other".to_string(),
                     ..GemWalletConnectSessionRequest::mock("4")
                 })
@@ -556,7 +504,7 @@ mod tests {
             assert_eq!(unknown_session, GemWalletConnectOutcome::rejected(None));
 
             let no_chain = service
-                .process_request(GemWalletConnectSessionRequest {
+                .request_outcome(GemWalletConnectSessionRequest {
                     chain_id: None,
                     ..GemWalletConnectSessionRequest::mock("5")
                 })
@@ -564,33 +512,25 @@ mod tests {
             assert_eq!(no_chain, GemWalletConnectOutcome::rejected(None));
 
             let unsupported = service
-                .process_request(GemWalletConnectSessionRequest {
+                .request_outcome(GemWalletConnectSessionRequest {
                     method: "eth_chainId".to_string(),
                     ..GemWalletConnectSessionRequest::mock("6")
                 })
                 .await;
-            assert_eq!(
-                unsupported.response,
-                Some(GemWalletConnectResponse::Error {
-                    error: rules::method_not_found_error()
-                })
-            );
+            assert_eq!(unsupported.response, Some(GemWalletConnectResponse::Error { error: rules::method_not_found_error() }));
             assert_eq!(unsupported.failure, None);
 
             let cancelled = GemWalletConnectService::mock(Err(GemServiceError::Cancelled), Wallet::mock())
                 .await
-                .process_request(GemWalletConnectSessionRequest::mock("7"))
+                .request_outcome(GemWalletConnectSessionRequest::mock("7"))
                 .await;
             assert_eq!(cancelled, GemWalletConnectOutcome::rejected(None), "the user's own cancel is not an error");
 
             let failed = GemWalletConnectService::mock(Err(GemServiceError::Platform { msg: "keystore".to_string() }), Wallet::mock())
                 .await
-                .process_request(GemWalletConnectSessionRequest::mock("8"))
+                .request_outcome(GemWalletConnectSessionRequest::mock("8"))
                 .await;
-            assert_eq!(
-                failed,
-                GemWalletConnectOutcome::rejected(Some(GemWalletConnectFailure::Failed { message: "keystore".to_string() }))
-            );
+            assert_eq!(failed, GemWalletConnectOutcome::rejected(Some(GemWalletConnectFailure::Failed { message: "keystore".to_string() })));
         });
     }
 }

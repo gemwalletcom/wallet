@@ -9,10 +9,7 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 
 @Composable
-internal fun ErrorDialog(
-    error: String?,
-    onDismiss: () -> Unit,
-) {
+internal fun ErrorDialog(error: String?, onDismiss: () -> Unit) {
     if (error.isNullOrEmpty()) return
 
     AlertDialog(

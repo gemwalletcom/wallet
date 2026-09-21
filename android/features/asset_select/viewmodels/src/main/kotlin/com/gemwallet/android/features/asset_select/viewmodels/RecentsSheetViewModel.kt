@@ -1,26 +1,27 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
+import android.util.Log
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsSheetUIModel
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.RecentAsset
 import com.gemwallet.android.model.RecentAssetsRequest
-import com.wallet.core.primitives.RecentActivityType
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.RecentActivityType
 import dagger.hilt.android.lifecycle.HiltViewModel
-import uniffi.gemstone.GemRecentActivityServiceInterface
 import kotlinx.collections.immutable.toImmutableList
-import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +34,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemRecentActivityServiceInterface
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -74,7 +76,10 @@ class RecentsSheetViewModel @Inject constructor(
 
     fun onClear() {
         val types = config.value?.types ?: RecentActivityType.entries
-        viewModelScope.launch(ioDispatcher) { recentActivityService.clear(types.map { it.toGem() }) }
+        viewModelScope.launch(ioDispatcher) {
+            runCatchingCancellable { recentActivityService.clear(types.map { it.toGem() }) }
+                .onFailure { Log.e(TAG, "clearing recents failed", it) }
+        }
     }
 
     private fun buildUIModel(items: List<RecentAsset>, searchText: String): RecentsSheetUIModel {
@@ -86,8 +91,7 @@ class RecentsSheetViewModel @Inject constructor(
         )
     }
 
-    private data class Config(
-        val filters: Set<AssetFilter>,
-        val types: List<RecentActivityType>,
-    )
+    private data class Config(val filters: Set<AssetFilter>, val types: List<RecentActivityType>)
 }
+
+private const val TAG = "RecentsSheet"

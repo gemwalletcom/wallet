@@ -31,10 +31,7 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualId
 
 @Composable
-fun AssetsResultsScreen(
-    onAction: (WalletSearchAction) -> Unit,
-    viewModel: AssetsResultsViewModel = hiltViewModel(),
-) {
+fun AssetsResultsScreen(onAction: (WalletSearchAction) -> Unit, viewModel: AssetsResultsViewModel = hiltViewModel()) {
     val pinned by viewModel.pinned.collectAsStateWithLifecycle()
     val unpinned by viewModel.unpinned.collectAsStateWithLifecycle()
     val previewPerpetuals by viewModel.previewPerpetuals.collectAsStateWithLifecycle()
@@ -76,7 +73,7 @@ fun AssetsResultsScreen(
                         items = pinned,
                         onSelect = onAssetClick,
                         support = { assetPriceSupport(it.price) },
-                        titleBadge = { item -> getAssetBadge(item, viewModel.flow.row.showsSymbol) },
+                        titleBadge = { item -> getAssetBadge(item, viewModel.flow.rowStyle.showsSymbol) },
                         itemTrailing = { getBalanceInfo(it)() },
                         longPressedAsset = longPressedAsset,
                         contextActions = contextActions,
@@ -86,7 +83,7 @@ fun AssetsResultsScreen(
                     items = unpinned,
                     onSelect = onAssetClick,
                     support = { assetPriceSupport(it.price) },
-                    titleBadge = { item -> getAssetBadge(item, viewModel.flow.row.showsSymbol) },
+                    titleBadge = { item -> getAssetBadge(item, viewModel.flow.rowStyle.showsSymbol) },
                     itemTrailing = { getBalanceInfo(it)() },
                     longPressedAsset = longPressedAsset,
                     contextActions = contextActions,

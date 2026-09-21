@@ -22,10 +22,6 @@ impl DurationFormatter {
         Self {}
     }
 
-    pub fn countdown_parts(&self, seconds: i64) -> Vec<GemDurationPart> {
-        countdown_parts(seconds)
-    }
-
     pub fn estimate_parts(&self, seconds: i64) -> Vec<GemDurationPart> {
         estimate_parts(seconds)
     }
@@ -35,20 +31,21 @@ const MINUTE_SECONDS: i64 = 60;
 const HOUR_SECONDS: i64 = 60 * MINUTE_SECONDS;
 const DAY_SECONDS: i64 = 24 * HOUR_SECONDS;
 
-fn countdown_parts(seconds: i64) -> Vec<GemDurationPart> {
+pub(crate) fn day_parts(seconds: i64) -> Vec<GemDurationPart> {
+    match seconds / DAY_SECONDS {
+        0 => vec![],
+        days => vec![part(days, GemDurationUnit::Day)],
+    }
+}
+
+pub(crate) fn countdown_parts(seconds: i64) -> Vec<GemDurationPart> {
     if seconds < 0 {
         return vec![];
     }
     let parts = if seconds < DAY_SECONDS {
-        [
-            part(seconds / HOUR_SECONDS, GemDurationUnit::Hour),
-            part(seconds % HOUR_SECONDS / MINUTE_SECONDS, GemDurationUnit::Minute),
-        ]
+        [part(seconds / HOUR_SECONDS, GemDurationUnit::Hour), part(seconds % HOUR_SECONDS / MINUTE_SECONDS, GemDurationUnit::Minute)]
     } else {
-        [
-            part(seconds / DAY_SECONDS, GemDurationUnit::Day),
-            part(seconds % DAY_SECONDS / HOUR_SECONDS, GemDurationUnit::Hour),
-        ]
+        [part(seconds / DAY_SECONDS, GemDurationUnit::Day), part(seconds % DAY_SECONDS / HOUR_SECONDS, GemDurationUnit::Hour)]
     };
     let kept: Vec<GemDurationPart> = parts.iter().skip_while(|part| part.value == 0).cloned().collect();
     match kept.is_empty() {
@@ -61,13 +58,10 @@ fn estimate_parts(seconds: i64) -> Vec<GemDurationPart> {
     if seconds <= 0 {
         return vec![];
     }
-    [
-        part(seconds / MINUTE_SECONDS, GemDurationUnit::Minute),
-        part(seconds % MINUTE_SECONDS, GemDurationUnit::Second),
-    ]
-    .into_iter()
-    .filter(|part| part.value > 0)
-    .collect()
+    [part(seconds / MINUTE_SECONDS, GemDurationUnit::Minute), part(seconds % MINUTE_SECONDS, GemDurationUnit::Second)]
+        .into_iter()
+        .filter(|part| part.value > 0)
+        .collect()
 }
 
 fn part(value: i64, unit: GemDurationUnit) -> GemDurationPart {
@@ -80,14 +74,8 @@ mod tests {
 
     #[test]
     fn test_a_countdown_drops_to_hours_and_minutes_inside_a_day() {
-        assert_eq!(
-            countdown_parts(2 * DAY_SECONDS + 3 * HOUR_SECONDS),
-            vec![part(2, GemDurationUnit::Day), part(3, GemDurationUnit::Hour)]
-        );
-        assert_eq!(
-            countdown_parts(3 * HOUR_SECONDS + 4 * MINUTE_SECONDS),
-            vec![part(3, GemDurationUnit::Hour), part(4, GemDurationUnit::Minute)]
-        );
+        assert_eq!(countdown_parts(2 * DAY_SECONDS + 3 * HOUR_SECONDS), vec![part(2, GemDurationUnit::Day), part(3, GemDurationUnit::Hour)]);
+        assert_eq!(countdown_parts(3 * HOUR_SECONDS + 4 * MINUTE_SECONDS), vec![part(3, GemDurationUnit::Hour), part(4, GemDurationUnit::Minute)]);
         assert_eq!(countdown_parts(4 * MINUTE_SECONDS), vec![part(4, GemDurationUnit::Minute)], "a leading zero is dropped");
         assert_eq!(countdown_parts(0), vec![part(0, GemDurationUnit::Minute)], "nothing left still reads as zero minutes");
         assert_eq!(countdown_parts(-1), vec![]);

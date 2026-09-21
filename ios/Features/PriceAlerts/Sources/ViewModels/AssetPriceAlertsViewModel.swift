@@ -1,8 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.PriceAlertFormatter
 import Components
 import protocol Gemstone.GemPriceAlertServiceProtocol
+import enum Gemstone.GemServiceError
+import class Gemstone.PriceAlertFormatter
 import GemstoneServices
 import Localization
 import Primitives
@@ -49,6 +50,7 @@ public final class AssetPriceAlertsViewModel: Sendable {
                 asset: asset,
                 price: priceQuery.value?.price,
                 priceAlert: .default(for: asset.id, currency: .default),
+                rankScore: 0,
             ),
             currency: currency,
         )
@@ -88,16 +90,20 @@ extension AssetPriceAlertsViewModel {
     func toggleAutoAlert(enabled: Bool) async {
         do {
             try await service.setAutoAlert(assetId: asset.id.identifier, enabled: enabled)
+        } catch let error as GemServiceError {
+            isPresentingToastMessage = .error(error.text().text)
         } catch {
-            isPresentingToastMessage = .error(error.localizedDescription)
+            debugLog("price alerts error: \(error)")
         }
     }
 
     func deletePriceAlert(priceAlert: PriceAlert) async {
         do {
             try await service.delete(priceAlerts: [priceAlert])
+        } catch let error as GemServiceError {
+            isPresentingToastMessage = .error(error.text().text)
         } catch {
-            isPresentingToastMessage = .error(error.localizedDescription)
+            debugLog("price alerts error: \(error)")
         }
     }
 

@@ -59,15 +59,8 @@ impl PricesRepository for DatabaseClient {
 
     fn get_primary_price_key(&mut self, asset_id: &AssetId, max_age: Duration) -> Result<PriceId, DatabaseError> {
         let providers = PricesProvidersStore::get_prices_providers(self)?;
-        let rows = PricesStore::get_prices_for_asset_ids(self, &[asset_id.to_string()])?
-            .into_iter()
-            .map(|(_, row)| row)
-            .collect::<Vec<_>>();
-        Ok(primary_price(&providers, &rows, max_age)
-            .ok_or_else(|| DatabaseError::not_found(PriceRow::RESOURCE_NAME, asset_id.to_string()))?
-            .id
-            .0
-            .clone())
+        let rows = PricesStore::get_prices_for_asset_ids(self, &[asset_id.to_string()])?.into_iter().map(|(_, row)| row).collect::<Vec<_>>();
+        Ok(primary_price(&providers, &rows, max_age).ok_or_else(|| DatabaseError::not_found(PriceRow::RESOURCE_NAME, asset_id.to_string()))?.id.0.clone())
     }
 
     fn get_primary_prices(&mut self, asset_ids: &[AssetId], max_age: Duration) -> Result<Vec<(AssetId, PriceRow)>, DatabaseError> {
@@ -76,12 +69,10 @@ impl PricesRepository for DatabaseClient {
         }
         let providers = PricesProvidersStore::get_prices_providers(self)?;
         let string_ids: Vec<String> = asset_ids.iter().map(|id| id.to_string()).collect();
-        let mut rows_by_asset: HashMap<String, Vec<PriceRow>> = PricesStore::get_prices_for_asset_ids(self, &string_ids)?
-            .into_iter()
-            .fold(HashMap::new(), |mut acc, (id, row)| {
-                acc.entry(id).or_default().push(row);
-                acc
-            });
+        let mut rows_by_asset: HashMap<String, Vec<PriceRow>> = PricesStore::get_prices_for_asset_ids(self, &string_ids)?.into_iter().fold(HashMap::new(), |mut acc, (id, row)| {
+            acc.entry(id).or_default().push(row);
+            acc
+        });
         Ok(asset_ids
             .iter()
             .filter_map(|asset_id| {
@@ -97,10 +88,7 @@ impl PricesRepository for DatabaseClient {
     }
 
     fn get_prices_for_asset(&mut self, asset_id: &AssetId) -> Result<Vec<PriceRow>, DatabaseError> {
-        Ok(PricesStore::get_prices_for_asset_ids(self, &[asset_id.to_string()])?
-            .into_iter()
-            .map(|(_, row)| row)
-            .collect())
+        Ok(PricesStore::get_prices_for_asset_ids(self, &[asset_id.to_string()])?.into_iter().map(|(_, row)| row).collect())
     }
 
     fn get_prices_assets_for_price_ids(&mut self, ids: Vec<String>) -> Result<Vec<PriceAssetRow>, DatabaseError> {
@@ -123,10 +111,7 @@ impl PricesRepository for DatabaseClient {
         use primitives::ChartTimeframe;
         let row = PricesStore::get_price_by_id(self, price_id).or_not_found(price_id.to_string())?;
         let timeframes = [ChartTimeframe::Raw, ChartTimeframe::Hourly, ChartTimeframe::Daily];
-        let extremes: Vec<MinMax<f64>> = timeframes
-            .into_iter()
-            .map(|tf| ChartsStore::get_chart_extremes(self, price_id, tf))
-            .collect::<Result<_, _>>()?;
+        let extremes: Vec<MinMax<f64>> = timeframes.into_iter().map(|tf| ChartsStore::get_chart_extremes(self, price_id, tf)).collect::<Result<_, _>>()?;
         let combined = MinMax {
             max: extremes.iter().filter_map(|e| e.max).max_by(|a, b| a.value.total_cmp(&b.value)),
             min: extremes.iter().filter_map(|e| e.min).min_by(|a, b| a.value.total_cmp(&b.value)),

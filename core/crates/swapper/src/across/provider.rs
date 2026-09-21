@@ -75,9 +75,7 @@ impl Across {
             return false;
         };
 
-        AcrossDeployment::asset_mappings()
-            .into_iter()
-            .any(|x| x.set.contains(&from.asset_id) && x.set.contains(&to.asset_id))
+        AcrossDeployment::asset_mappings().into_iter().any(|x| x.set.contains(&from.asset_id) && x.set.contains(&to.asset_id))
     }
 
     fn multicall_request(chain: Chain, calls: Vec<IMulticall3::Call3>) -> Result<EthereumRpc, SwapperError> {
@@ -101,15 +99,7 @@ impl Across {
     }
 
     /// Return (message, referral_fee)
-    fn message_for_multicall_handler(
-        &self,
-        amount: &U256,
-        output_funding: Funding,
-        output_token: &Address,
-        user_address: &Address,
-        output_chain: Chain,
-        referral_fee: &ReferralFee,
-    ) -> Result<(Vec<u8>, U256), SwapperError> {
+    fn message_for_multicall_handler(&self, amount: &U256, output_funding: Funding, output_token: &Address, user_address: &Address, output_chain: Chain, referral_fee: &ReferralFee) -> Result<(Vec<u8>, U256), SwapperError> {
         if referral_fee.bps == 0 {
             return Ok((vec![], U256::from(0)));
         }
@@ -121,22 +111,12 @@ impl Across {
             Funding::Value => Self::unwrap_weth_calls(output_token, amount, user_address, &user_amount, &fee_address, &fee_amount),
             Funding::Token => Self::erc20_transfer_calls(output_token, user_address, &user_amount, &fee_address, &fee_amount),
         };
-        let instructions = multicall_handler::Instructions {
-            calls,
-            fallbackRecipient: *user_address,
-        };
+        let instructions = multicall_handler::Instructions { calls, fallbackRecipient: *user_address };
         let message = instructions.abi_encode();
         Ok((message, fee_amount))
     }
 
-    fn unwrap_weth_calls(
-        weth_contract: &Address,
-        output_amount: &U256,
-        user_address: &Address,
-        user_amount: &U256,
-        fee_address: &Address,
-        fee_amount: &U256,
-    ) -> Vec<multicall_handler::Call> {
+    fn unwrap_weth_calls(weth_contract: &Address, output_amount: &U256, user_address: &Address, user_amount: &U256, fee_address: &Address, fee_amount: &U256) -> Vec<multicall_handler::Call> {
         assert!(fee_amount + user_amount == *output_amount);
         let withdraw_call = WETH9::withdrawCall { wad: *output_amount };
         vec![
@@ -160,14 +140,8 @@ impl Across {
 
     fn erc20_transfer_calls(token: &Address, user_address: &Address, user_amount: &U256, fee_address: &Address, fee_amount: &U256) -> Vec<multicall_handler::Call> {
         let target = *token;
-        let user_transfer = IERC20::transferCall {
-            to: *user_address,
-            value: *user_amount,
-        };
-        let fee_transfer = IERC20::transferCall {
-            to: *fee_address,
-            value: *fee_amount,
-        };
+        let user_transfer = IERC20::transferCall { to: *user_address, value: *user_amount };
+        let fee_transfer = IERC20::transferCall { to: *fee_address, value: *fee_amount };
         vec![
             multicall_handler::Call {
                 target,
@@ -195,11 +169,7 @@ impl Across {
     ) -> Result<(EthereumRpc, V3RelayData), SwapperError> {
         let chain_id = deployment.chain_id;
 
-        let recipient = if message.is_empty() {
-            *recipient
-        } else {
-            parse_address(chain, deployment.multicall_handler())?
-        };
+        let recipient = if message.is_empty() { *recipient } else { parse_address(chain, deployment.multicall_handler())? };
 
         let v3_relay_data = V3RelayData {
             depositor: *depositor,
@@ -238,21 +208,12 @@ impl Across {
             None
         };
         let requests = vec![limit_request, EthereumRpc::GasPrice].into_iter().chain(gas_token_price_request).collect();
-        let mut results = create_client_with_chain(self.rpc_provider.clone(), chain)?
-            .batch_request::<String, _>(requests)
-            .await?
-            .into_iter();
+        let mut results = create_client_with_chain(self.rpc_provider.clone(), chain)?.batch_request::<String, _>(requests).await?.into_iter();
         let default_limit = U256::from(match chain {
             Chain::Monad => DEFAULT_FILL_GAS_LIMIT * 3,
             _ => DEFAULT_FILL_GAS_LIMIT,
         });
-        let limit = results
-            .next()
-            .ok_or(SwapperError::NoQuoteAvailable)?
-            .take()
-            .ok()
-            .and_then(|value| Self::gas_value(&value).ok())
-            .unwrap_or(default_limit);
+        let limit = results.next().ok_or(SwapperError::NoQuoteAvailable)?.take().ok().and_then(|value| Self::gas_value(&value).ok()).unwrap_or(default_limit);
         let price = Self::gas_value(&results.next().ok_or(SwapperError::NoQuoteAvailable)?.take()?)?;
         let gas_token_usd_price = if include_gas_token_price {
             let response = results.next().ok_or(SwapperError::NoQuoteAvailable)?.take()?;
@@ -261,11 +222,7 @@ impl Across {
         } else {
             None
         };
-        Ok(DestinationGas {
-            limit,
-            price,
-            gas_token_usd_price,
-        })
+        Ok(DestinationGas { limit, price, gas_token_usd_price })
     }
 
     fn calculate_fee_in_token(fee_in_wei: &U256, token_price: &BigInt, token_decimals: u32) -> U256 {
@@ -406,14 +363,7 @@ impl Swapper for Across {
 
         // Calculate gas limit / price for relayer
         let remain_amount = from_amount - lpfee - relayer_fee;
-        let (message, referral_fee) = self.message_for_multicall_handler(
-            &remain_amount,
-            output.funding,
-            &output_token,
-            &recipient_address,
-            request.to_asset.chain(),
-            &referral_config,
-        )?;
+        let (message, referral_fee) = self.message_for_multicall_handler(&remain_amount, output.funding, &output_token, &recipient_address, request.to_asset.chain(), &referral_config)?;
 
         let destination_chain = request.to_asset.chain();
         let (gas_limit_request, v3_relay_data) = Self::fill_relay_gas_request(
@@ -438,9 +388,7 @@ impl Swapper for Across {
         } else if destination_chain == Chain::Monad {
             Some(destination_gas_token_usd_price.ok_or(SwapperError::NoQuoteAvailable)?)
         } else {
-            Some(ChainlinkPriceFeed::decoded_answer(
-                mainnet_gas_token_price_results.first().ok_or(SwapperError::NoQuoteAvailable)?,
-            )?)
+            Some(ChainlinkPriceFeed::decoded_answer(mainnet_gas_token_price_results.first().ok_or(SwapperError::NoQuoteAvailable)?)?)
         };
         let native_gas_fee = gas_limit * gas_price;
         let gas_fee = match gas_token_usd_price {
@@ -457,14 +405,7 @@ impl Swapper for Across {
         let to_value = (output_amount - referral_fee) * output.scale;
 
         // Update v3 relay data (was used to estimate gas limit) with final output amount, quote timestamp and referral fee.
-        let (message, _) = self.message_for_multicall_handler(
-            &output_amount,
-            output.funding,
-            &output_token,
-            &recipient_address,
-            request.to_asset.chain(),
-            &referral_config,
-        )?;
+        let (message, _) = self.message_for_multicall_handler(&output_amount, output.funding, &output_token, &recipient_address, request.to_asset.chain(), &referral_config)?;
         let v3_relay_data = V3RelayData {
             outputAmount: output_amount,
             fillDeadline: timestamp + DEFAULT_FILL_TIMEOUT,
@@ -551,11 +492,7 @@ impl Swapper for Across {
 
         let is_tron = from_chain == Chain::Tron;
         let to: String = deployment.spoke_pool.into();
-        let mut gas_limit = if is_tron {
-            None
-        } else {
-            get_swap_gas_limit_with_approval(&approval, None, DEFAULT_DEPOSIT_GAS_LIMIT)
-        };
+        let mut gas_limit = if is_tron { None } else { get_swap_gas_limit_with_approval(&approval, None, DEFAULT_DEPOSIT_GAS_LIMIT) };
 
         let should_estimate_gas = matches!(data, FetchQuoteData::EstimateGas) && !is_tron;
         if should_estimate_gas {
@@ -564,13 +501,7 @@ impl Swapper for Across {
             gas_limit = Some(self.estimate_gas_transaction(from_chain, tx).await?.to_string());
         }
 
-        Ok(SwapperQuoteData::new_contract(
-            deployment.spoke_pool.into(),
-            value,
-            HexEncode(deposit_v3_call.clone()),
-            approval,
-            gas_limit,
-        ))
+        Ok(SwapperQuoteData::new_contract(deployment.spoke_pool.into(), value, HexEncode(deposit_v3_call.clone()), approval, gas_limit))
     }
     async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
         Ok(VaultAddresses {
@@ -719,10 +650,7 @@ mod tests {
     #[test]
     fn test_fee_in_token() {
         let data = HexDecode("0x00000000000000000000000000000000000000000000000700000000000013430000000000000000000000000000000000000000000000000000004e17511aea00000000000000000000000000000000000000000000000000000000677e57a600000000000000000000000000000000000000000000000000000000677e57bb0000000000000000000000000000000000000000000000070000000000001343").unwrap();
-        let result = IMulticall3::Result {
-            success: true,
-            returnData: data.into(),
-        };
+        let result = IMulticall3::Result { success: true, returnData: data.into() };
         let price = ChainlinkPriceFeed::decoded_answer(&result).unwrap();
 
         assert_eq!(price, BigInt::from(335398640362_u64));
@@ -744,10 +672,7 @@ mod tests {
         async fn test_across_quote() -> Result<(), SwapperError> {
             let network_provider = Arc::new(NativeProvider::default());
             let swap_provider = Across::boxed(network_provider.clone());
-            let options = Options {
-                slippage: 100.into(),
-                use_max_amount: false,
-            };
+            let options = Options { slippage: 100.into(), use_max_amount: false };
 
             let request = QuoteRequest {
                 from_asset: AssetId::from_chain(Chain::Optimism).into(),
@@ -776,10 +701,7 @@ mod tests {
         async fn test_across_quote_eth_usdc_to_monad_usdc() -> Result<(), SwapperError> {
             let network_provider = Arc::new(NativeProvider::default());
             let swap_provider = Across::boxed(network_provider.clone());
-            let options = Options {
-                slippage: 100.into(),
-                use_max_amount: false,
-            };
+            let options = Options { slippage: 100.into(), use_max_amount: false };
 
             let wallet = "0x9b1fe00135e0ff09389bfaeff0c8f299ec818d4a";
             let from_asset: AssetId = ETHEREUM_USDC_ASSET_ID.clone();
@@ -818,10 +740,7 @@ mod tests {
                 wallet_address: wallet.into(),
                 destination_address: wallet.into(),
                 value: BigUint::from(50000000u64),
-                options: Options {
-                    slippage: 100.into(),
-                    use_max_amount: false,
-                },
+                options: Options { slippage: 100.into(), use_max_amount: false },
             };
 
             let quote = swap_provider.get_quote(&request).await?;
@@ -845,10 +764,7 @@ mod tests {
                 wallet_address: wallet.into(),
                 destination_address: wallet.into(),
                 value: BigUint::from(20000000000000000u64),
-                options: Options {
-                    slippage: 100.into(),
-                    use_max_amount: false,
-                },
+                options: Options { slippage: 100.into(), use_max_amount: false },
             };
 
             let quote = swap_provider.get_quote(&request).await?;

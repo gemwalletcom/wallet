@@ -57,11 +57,6 @@ impl<C: Client> OpenSeaClient<C> {
     }
 
     pub async fn get_collection_by_slug(&self, collection_slug: &str) -> Result<Collection, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .client
-            .get(OpenSeaTarget::Collection {
-                slug: collection_slug.to_string(),
-            })
-            .await?)
+        Ok(self.client.get(OpenSeaTarget::Collection { slug: collection_slug.to_string() }).await?)
     }
 }

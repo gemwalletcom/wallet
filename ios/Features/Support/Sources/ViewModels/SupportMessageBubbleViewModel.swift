@@ -20,7 +20,7 @@ struct SupportMessageBubbleViewModel: Identifiable {
         imageAction: @escaping (SupportMessageImage) -> Void,
     ) {
         self.message = message
-        self.displayContent = parseSupportMessageDisplayContent(markdown: message.content)
+        displayContent = parseSupportMessageDisplayContent(markdown: message.content)
         self.retryAction = retryAction
         self.imageAction = imageAction
     }

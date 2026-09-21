@@ -5,13 +5,11 @@ use gem_sui::SUI_COIN_TYPE;
 use primitives::{
     AssetId, Chain, ChainType,
     asset_constants::{
-        ARBITRUM_USDC_ASSET_ID, ARBITRUM_USDT_ASSET_ID, AVALANCHE_USDC_ASSET_ID, AVALANCHE_USDT_ASSET_ID, BASE_CBBTC_ASSET_ID, BASE_USDC_ASSET_ID, BASE_USDS_ASSET_ID,
-        BASE_WBTC_ASSET_ID, ETHEREUM_CBBTC_ASSET_ID, ETHEREUM_DAI_ASSET_ID, ETHEREUM_STETH_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDS_ASSET_ID, ETHEREUM_USDT_ASSET_ID,
-        ETHEREUM_WBTC_ASSET_ID, ETHEREUM_WETH_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID, HYPERCORE_SPOT_USDC_TOKEN_ID, HYPEREVM_USDC_ASSET_ID, HYPEREVM_USDT_ASSET_ID,
-        LINEA_USDC_E_ASSET_ID, LINEA_USDT_ASSET_ID, MONAD_USDC_ASSET_ID, MONAD_USDT_ASSET_ID, OPTIMISM_USDC_ASSET_ID, OPTIMISM_USDT_ASSET_ID, POLYGON_USDC_ASSET_ID,
-        POLYGON_USDT_ASSET_ID, SMARTCHAIN_USDC_ASSET_ID, SMARTCHAIN_USDT_ASSET_ID, SMARTCHAIN_WBTC_ASSET_ID, SOLANA_CBBTC_ASSET_ID, SOLANA_JITO_SOL_ASSET_ID, SOLANA_USDC_ASSET_ID,
-        SOLANA_USDS_ASSET_ID, SOLANA_USDT_ASSET_ID, SOLANA_WBTC_ASSET_ID, SUI_NAVX_ASSET_ID, SUI_SBUSDT_ASSET_ID, SUI_USDC_ASSET_ID, SUI_WAL_ASSET_ID, SUI_XBTC_ASSET_ID,
-        UNICHAIN_DAI_ASSET_ID, UNICHAIN_USDC_ASSET_ID,
+        ARBITRUM_USDC_ASSET_ID, ARBITRUM_USDT_ASSET_ID, AVALANCHE_USDC_ASSET_ID, AVALANCHE_USDT_ASSET_ID, BASE_CBBTC_ASSET_ID, BASE_USDC_ASSET_ID, BASE_USDS_ASSET_ID, BASE_WBTC_ASSET_ID, ETHEREUM_CBBTC_ASSET_ID, ETHEREUM_DAI_ASSET_ID,
+        ETHEREUM_STETH_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDS_ASSET_ID, ETHEREUM_USDT_ASSET_ID, ETHEREUM_WBTC_ASSET_ID, ETHEREUM_WETH_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID, HYPERCORE_SPOT_USDC_TOKEN_ID, HYPEREVM_USDC_ASSET_ID,
+        HYPEREVM_USDT_ASSET_ID, LINEA_USDC_E_ASSET_ID, LINEA_USDT_ASSET_ID, MONAD_USDC_ASSET_ID, MONAD_USDT_ASSET_ID, OPTIMISM_USDC_ASSET_ID, OPTIMISM_USDT_ASSET_ID, POLYGON_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID, SMARTCHAIN_USDC_ASSET_ID,
+        SMARTCHAIN_USDT_ASSET_ID, SMARTCHAIN_WBTC_ASSET_ID, SOLANA_CBBTC_ASSET_ID, SOLANA_JITO_SOL_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDS_ASSET_ID, SOLANA_USDT_ASSET_ID, SOLANA_WBTC_ASSET_ID, SUI_NAVX_ASSET_ID, SUI_SBUSDT_ASSET_ID,
+        SUI_USDC_ASSET_ID, SUI_WAL_ASSET_ID, SUI_XBTC_ASSET_ID, UNICHAIN_DAI_ASSET_ID, UNICHAIN_USDC_ASSET_ID,
     },
 };
 
@@ -45,27 +43,10 @@ pub fn supported_assets() -> Vec<SwapperChainAsset> {
         ),
         SwapperChainAsset::assets(
             Chain::Sui,
-            [
-                SUI_USDC_ASSET_ID.clone(),
-                SUI_SBUSDT_ASSET_ID.clone(),
-                SUI_WAL_ASSET_ID.clone(),
-                SUI_NAVX_ASSET_ID.clone(),
-                SUI_XBTC_ASSET_ID.clone(),
-            ],
+            [SUI_USDC_ASSET_ID.clone(), SUI_SBUSDT_ASSET_ID.clone(), SUI_WAL_ASSET_ID.clone(), SUI_NAVX_ASSET_ID.clone(), SUI_XBTC_ASSET_ID.clone()],
         ),
-        SwapperChainAsset::assets(
-            Chain::SmartChain,
-            [SMARTCHAIN_USDT_ASSET_ID.clone(), SMARTCHAIN_USDC_ASSET_ID.clone(), SMARTCHAIN_WBTC_ASSET_ID.clone()],
-        ),
-        SwapperChainAsset::assets(
-            Chain::Base,
-            [
-                BASE_USDC_ASSET_ID.clone(),
-                BASE_CBBTC_ASSET_ID.clone(),
-                BASE_WBTC_ASSET_ID.clone(),
-                BASE_USDS_ASSET_ID.clone(),
-            ],
-        ),
+        SwapperChainAsset::assets(Chain::SmartChain, [SMARTCHAIN_USDT_ASSET_ID.clone(), SMARTCHAIN_USDC_ASSET_ID.clone(), SMARTCHAIN_WBTC_ASSET_ID.clone()]),
+        SwapperChainAsset::assets(Chain::Base, [BASE_USDC_ASSET_ID.clone(), BASE_CBBTC_ASSET_ID.clone(), BASE_WBTC_ASSET_ID.clone(), BASE_USDS_ASSET_ID.clone()]),
         SwapperChainAsset::assets(Chain::Polygon, [POLYGON_USDC_ASSET_ID.clone(), POLYGON_USDT_ASSET_ID.clone()]),
         SwapperChainAsset::assets(Chain::AvalancheC, [AVALANCHE_USDT_ASSET_ID.clone(), AVALANCHE_USDC_ASSET_ID.clone()]),
         SwapperChainAsset::assets(Chain::Arbitrum, [ARBITRUM_USDC_ASSET_ID.clone(), ARBITRUM_USDT_ASSET_ID.clone()]),
@@ -127,14 +108,8 @@ mod tests {
         assert_eq!(asset_id_for_token(Chain::Sui, SUI_COIN_TYPE), Some(AssetId::from_chain(Chain::Sui)));
         assert_eq!(asset_id_for_token(Chain::Solana, EVM_ZERO_ADDRESS), Some(AssetId::from_chain(Chain::Solana)));
         assert_eq!(asset_id_for_token(Chain::Solana, WSOL_TOKEN_ADDRESS), Some(AssetId::from_chain(Chain::Solana)));
-        assert_eq!(
-            asset_id_for_token(Chain::Ethereum, "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"),
-            Some(ETHEREUM_USDC_ASSET_ID.clone())
-        );
-        assert_eq!(
-            asset_id_for_token(Chain::HyperCore, HYPERCORE_SPOT_USDC_CONTRACT),
-            Some(HYPERCORE_SPOT_USDC_ASSET_ID.clone())
-        );
+        assert_eq!(asset_id_for_token(Chain::Ethereum, "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"), Some(ETHEREUM_USDC_ASSET_ID.clone()));
+        assert_eq!(asset_id_for_token(Chain::HyperCore, HYPERCORE_SPOT_USDC_CONTRACT), Some(HYPERCORE_SPOT_USDC_ASSET_ID.clone()));
     }
 
     #[test]

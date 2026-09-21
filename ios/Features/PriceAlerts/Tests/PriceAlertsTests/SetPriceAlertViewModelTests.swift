@@ -59,6 +59,7 @@ struct SetPriceAlertViewModelTests {
         #expect(percentages.isNotEmpty)
         #expect(prices.isNotEmpty)
         #expect(prices.allSatisfy { $0.title.contains("$") })
+        #expect(percentages.allSatisfy { $0.title.contains("%") })
         #expect(viewModel.priceSuggestions(for: nil).isEmpty)
     }
 

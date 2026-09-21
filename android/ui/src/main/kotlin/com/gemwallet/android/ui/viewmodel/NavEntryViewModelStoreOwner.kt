@@ -15,12 +15,8 @@ import androidx.savedstate.SavedState
 import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryOwner
 
-class NavEntryViewModelStoreOwner(
-    private val parent: ViewModelStoreOwner,
-    private val store: ViewModelStore,
-    private val savedStateRegistryOwner: SavedStateRegistryOwner,
-    private val defaultArgs: SavedState,
-) : ViewModelStoreOwner,
+class NavEntryViewModelStoreOwner(private val parent: ViewModelStoreOwner, private val store: ViewModelStore, private val savedStateRegistryOwner: SavedStateRegistryOwner, private val defaultArgs: SavedState) :
+    ViewModelStoreOwner,
     SavedStateRegistryOwner,
     HasDefaultViewModelProviderFactory {
 
@@ -44,7 +40,7 @@ class NavEntryViewModelStoreOwner(
     override val defaultViewModelCreationExtras: CreationExtras
         get() = MutableCreationExtras(
             (parent as? HasDefaultViewModelProviderFactory)?.defaultViewModelCreationExtras
-                ?: CreationExtras.Empty
+                ?: CreationExtras.Empty,
         ).apply {
             this[SAVED_STATE_REGISTRY_OWNER_KEY] = this@NavEntryViewModelStoreOwner
             this[VIEW_MODEL_STORE_OWNER_KEY] = this@NavEntryViewModelStoreOwner

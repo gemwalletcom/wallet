@@ -1,12 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import protocol Gemstone.GemRewardsServiceProtocol
+import enum Gemstone.GemServiceError
+import struct Gemstone.Rewards
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
-import struct Gemstone.Rewards
-import protocol Gemstone.GemRewardsServiceProtocol
-import GemstonePrimitives
 
 @Observable
 @MainActor
@@ -48,10 +49,12 @@ final class RedeemRewardsCodeViewModel: TextInputViewModelProtocol {
 
         isLoading = true
         do {
-            try await service.useReferralCode(wallet: wallet, code: text)
+            _ = try await service.useReferralCode(wallet: wallet, code: text)
             onSuccess(text)
+        } catch let error as GemServiceError {
+            errorMessage = error.text().text
         } catch {
-            errorMessage = error.localizedDescription
+            debugLog("rewards code error: \(error)")
         }
         isLoading = false
     }

@@ -1,6 +1,6 @@
 use super::{
-    Field, MessageDecode, MessageEncode, MessageResult, encode_bytes_field, encode_message_field, encode_optional_bool_field, encode_optional_bytes_field,
-    encode_optional_message_field, encode_optional_string_field, encode_optional_u64_field, encode_string_field,
+    Field, MessageDecode, MessageEncode, MessageResult, encode_bytes_field, encode_message_field, encode_optional_bool_field, encode_optional_bytes_field, encode_optional_message_field, encode_optional_string_field,
+    encode_optional_u64_field, encode_string_field,
 };
 
 pub mod optional_string {

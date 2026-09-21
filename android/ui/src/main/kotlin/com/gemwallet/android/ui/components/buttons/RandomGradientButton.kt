@@ -21,22 +21,16 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun RandomGradientButton(
-    modifier: Modifier = Modifier,
-    size: Dp,
-    cornerRadius: Float = 12f,
-    borderWidth: Float = 3f,
-    onClick: () -> Unit,
-) {
+fun RandomGradientButton(modifier: Modifier = Modifier, size: Dp, cornerRadius: Float = 12f, borderWidth: Float = 3f, onClick: () -> Unit) {
     val gradientBrush = Brush.linearGradient(
         colors = listOf(
             Color(0xFF2A32FF),
             Color(0xFF6CB8FF),
             Color(0xFFF213F6),
-            Color(0xFFFFF963)
+            Color(0xFFFFF963),
         ),
         start = Offset(0f, 0f),
-        end = Offset(100f, 100f)
+        end = Offset(100f, 100f),
     )
 
     Box(
@@ -47,15 +41,15 @@ fun RandomGradientButton(
             .border(
                 width = borderWidth.dp,
                 brush = gradientBrush,
-                shape = RoundedCornerShape(cornerRadius.dp)
+                shape = RoundedCornerShape(cornerRadius.dp),
             )
             .clickable { onClick() },
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = "🎲",
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W400)
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W400),
         )
     }
 }

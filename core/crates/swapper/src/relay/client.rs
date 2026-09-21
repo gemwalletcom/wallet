@@ -23,10 +23,7 @@ where
     }
 
     pub async fn get_quote(&self, request: RelayQuoteRequest) -> Result<RelayQuoteResponse, SwapperError> {
-        self.client
-            .post_or_error::<_, _, RelayErrorResponse>(RelayTarget::Quote, &request)
-            .await
-            .map_err(SwapperError::from)
+        self.client.post_or_error::<_, _, RelayErrorResponse>(RelayTarget::Quote, &request).await.map_err(SwapperError::from)
     }
 
     pub async fn get_request(&self, identifier: &str) -> Result<RelayRequestsResponse, SwapperError> {
@@ -34,10 +31,7 @@ where
     }
 
     pub async fn get_requests(&self, user: &str, origin_chain_id: u64) -> Result<RelayRequestsResponse, SwapperError> {
-        let target = RelayTarget::Requests {
-            user: user.to_string(),
-            origin_chain_id,
-        };
+        let target = RelayTarget::Requests { user: user.to_string(), origin_chain_id };
         self.client.get(target).await.map_err(SwapperError::from)
     }
 

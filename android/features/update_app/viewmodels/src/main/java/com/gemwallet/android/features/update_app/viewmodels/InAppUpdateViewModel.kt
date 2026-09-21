@@ -1,9 +1,11 @@
 package com.gemwallet.android.features.update_app.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.update.cases.ObserveAppUpdateOffer
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.model.AppUpdateChannel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
@@ -17,11 +19,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class InAppUpdateViewModel @Inject constructor(
-    observeAppUpdateOffer: ObserveAppUpdateOffer,
-    private val skipAppUpdate: SkipAppUpdate,
-    private val updateService: InAppUpdateService,
-) : ViewModel() {
+class InAppUpdateViewModel @Inject constructor(observeAppUpdateOffer: ObserveAppUpdateOffer, private val skipAppUpdate: SkipAppUpdate, private val updateService: InAppUpdateService) : ViewModel() {
 
     val updateAvailable = observeAppUpdateOffer.observeAppUpdateOffer()
         .map { offer -> offer?.takeIf { it.channel == AppUpdateChannel.InAppApk } }
@@ -89,7 +87,8 @@ class InAppUpdateViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            skipAppUpdate.skipAppUpdate(update.version)
+            runCatchingCancellable { skipAppUpdate.skipAppUpdate(update.version) }
+                .onFailure { Log.e(TAG, "skipping update ${update.version} failed", it) }
         }
     }
 
@@ -108,3 +107,5 @@ sealed interface DownloadState {
     object Error : DownloadState
     object Canceled : DownloadState
 }
+
+private const val TAG = "InAppUpdate"

@@ -1,17 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Formatters
 import Foundation
-import Localization
+import func Gemstone.perpetualBalanceTotal
 import GemstonePrimitives
+import Localization
 import Primitives
 import Store
 
 @Observable
 @MainActor
 final class PerpetualsPreviewViewModel {
-    private let currencyFormatter: CurrencyFormatter
-
     let positionsQuery: ObservableQuery<PerpetualPositionsRequest>
     let walletBalanceQuery: ObservableQuery<PerpetualWalletBalanceRequest>
 
@@ -19,12 +17,7 @@ final class PerpetualsPreviewViewModel {
         positionsQuery.value
     }
 
-    var walletBalance: WalletBalance {
-        walletBalanceQuery.value.map { WalletBalance.perpetual(available: $0.available, reserved: $0.reserved) } ?? .zero
-    }
-
-    init(walletId: WalletId, currencyFormatter: CurrencyFormatter = .usd) {
-        self.currencyFormatter = currencyFormatter
+    init(walletId: WalletId) {
         positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: walletId), initialValue: [])
         walletBalanceQuery = ObservableQuery(
             PerpetualWalletBalanceRequest(walletId: walletId, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
@@ -37,7 +30,7 @@ final class PerpetualsPreviewViewModel {
     }
 
     var tradePerpetualsSubtitle: String {
-        currencyFormatter.string(walletBalance.total)
+        perpetualBalanceTotal(balance: walletBalanceQuery.value?.balance.toGem()).text()
     }
 
     var hasNoPositions: Bool {

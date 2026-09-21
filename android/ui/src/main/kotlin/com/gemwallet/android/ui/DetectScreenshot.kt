@@ -7,11 +7,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -59,7 +59,7 @@ private fun ScreenshotDetectedDialog(docsUrl: String, onDismiss: () -> Unit) {
                 onClick = {
                     uriHandler.open(context, docsUrl)
                     onDismiss()
-                }
+                },
             ) {
                 Text(text = stringResource(R.string.common_learn_more))
             }

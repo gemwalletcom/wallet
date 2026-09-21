@@ -16,9 +16,7 @@ import uniffi.gemstone.GemChainServiceInterface
 import javax.inject.Inject
 
 @HiltViewModel
-class ContactChainSelectViewModel @Inject constructor(
-    private val chainService: GemChainServiceInterface,
-) : ViewModel() {
+class ContactChainSelectViewModel @Inject constructor(private val chainService: GemChainServiceInterface) : ViewModel() {
     private val state = MutableStateFlow<List<Chain>>(emptyList())
     val chains = state.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val chainFilter = TextFieldState()

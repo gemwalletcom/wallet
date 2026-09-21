@@ -120,23 +120,13 @@ mod tests {
 
     #[test]
     fn test_u64_deserialization() {
-        let option_cases = [
-            (r#"{"gas_used": "123"}"#, Some(123u64)),
-            (r#"{"gas_used": "0x2a"}"#, Some(42)),
-            (r#"{"gas_used": null}"#, None),
-            (r#"{}"#, None),
-        ];
+        let option_cases = [(r#"{"gas_used": "123"}"#, Some(123u64)), (r#"{"gas_used": "0x2a"}"#, Some(42)), (r#"{"gas_used": null}"#, None), (r#"{}"#, None)];
         for (json, expected) in option_cases {
             let result: TestStruct = serde_json::from_str(json).unwrap();
             assert_eq!(result.gas_used, expected);
         }
 
-        let str_cases = [
-            (r#"{"value": "0x1a2b"}"#, 6699u64),
-            (r#"{"value": "0x0"}"#, 0),
-            (r#"{"value": "12345"}"#, 12345),
-            (r#"{"value": "0"}"#, 0),
-        ];
+        let str_cases = [(r#"{"value": "0x1a2b"}"#, 6699u64), (r#"{"value": "0x0"}"#, 0), (r#"{"value": "12345"}"#, 12345), (r#"{"value": "0"}"#, 0)];
         for (json, expected) in str_cases {
             let result: TestMixedStruct = serde_json::from_str(json).unwrap();
             assert_eq!(result.value, expected);

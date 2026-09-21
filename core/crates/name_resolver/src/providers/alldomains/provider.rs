@@ -19,9 +19,7 @@ pub struct AllDomainsProvider {
 
 impl AllDomainsProvider {
     pub fn new(client: ReqwestClient) -> Self {
-        Self {
-            client: AllDomainsClient::new(client),
-        }
+        Self { client: AllDomainsClient::new(client) }
     }
 }
 

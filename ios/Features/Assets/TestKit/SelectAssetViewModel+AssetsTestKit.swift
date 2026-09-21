@@ -1,15 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemAssetSelectionServiceProtocol
-import class Gemstone.GemRecentActivityService
-import protocol Gemstone.GemBalanceServiceProtocol
-import GemstoneServicesTestKit
 @testable import Assets
-import GemstoneServices
 import Components
 import Foundation
-import GemstonePrimitivesTestKit
+import protocol Gemstone.GemAssetSelectionServiceProtocol
+import protocol Gemstone.GemBalanceServiceProtocol
+import class Gemstone.GemRecentActivityService
 import GemstonePrimitives
+import GemstonePrimitivesTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store

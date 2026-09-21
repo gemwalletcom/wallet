@@ -29,25 +29,16 @@ pub fn parse_websocket_data(data: &[u8], mode: PerpetualAccountMode) -> Result<H
                 PerpetualAccountMode::Unified => None,
                 PerpetualAccountMode::Standard => Some(summary.balance),
             };
-            Ok(HyperliquidSocketMessage::AccountState {
-                balance,
-                positions: summary.positions,
-            })
+            Ok(HyperliquidSocketMessage::AccountState { balance, positions: summary.positions })
         }
         RawSocketMessage::SpotState(data) => Ok(HyperliquidSocketMessage::SpotState {
             balance: map_perpetual_balance_from_spot(&data.spot_state),
         }),
         RawSocketMessage::OpenOrders(data) => Ok(HyperliquidSocketMessage::OpenOrders { orders: data.orders }),
         RawSocketMessage::Candle(candlestick) => Ok(HyperliquidSocketMessage::Candle { candle: candlestick.into() }),
-        RawSocketMessage::MarketData(data) => Ok(HyperliquidSocketMessage::MarketData {
-            market: map_active_asset_ctx(data)?,
-        }),
+        RawSocketMessage::MarketData(data) => Ok(HyperliquidSocketMessage::MarketData { market: map_active_asset_ctx(data)? }),
         RawSocketMessage::MarketPrices(data) => Ok(HyperliquidSocketMessage::MarketPrices {
-            prices: data
-                .mids
-                .into_iter()
-                .filter_map(|(coin, price)| price.parse::<f64>().ok().map(|price| (coin, price)))
-                .collect(),
+            prices: data.mids.into_iter().filter_map(|(coin, price)| price.parse::<f64>().ok().map(|price| (coin, price))).collect(),
         }),
         RawSocketMessage::SubscriptionResponse(data) => Ok(HyperliquidSocketMessage::SubscriptionResponse {
             subscription_type: data.subscription.subscription_type,
@@ -113,10 +104,7 @@ pub fn diff_open_orders_positions(orders: &[OpenOrder], existing_positions: Vec<
         })
         .collect();
 
-    PositionsDiff {
-        delete_position_ids: vec![],
-        positions,
-    }
+    PositionsDiff { delete_position_ids: vec![], positions }
 }
 
 #[cfg(test)]
@@ -276,10 +264,7 @@ mod tests {
 
         assert_eq!(
             account_subscriptions(address.clone(), PerpetualAccountMode::Standard),
-            vec![
-                HyperliquidSubscription::AccountState { address: address.clone() },
-                HyperliquidSubscription::OpenOrders { address: address.clone() },
-            ]
+            vec![HyperliquidSubscription::AccountState { address: address.clone() }, HyperliquidSubscription::OpenOrders { address: address.clone() },]
         );
         assert_eq!(
             account_subscriptions(address.clone(), PerpetualAccountMode::Unified),

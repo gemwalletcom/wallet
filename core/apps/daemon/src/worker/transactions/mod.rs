@@ -53,13 +53,7 @@ pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<V
         stream_producer.clone(),
         SwapVaultAddressClient::new(cacher.clone()),
     ));
-    let pending_updater = Arc::new(PendingTransactionsUpdater::new(
-        providers.clone(),
-        cacher.clone(),
-        stream_producer.clone(),
-        database.clone(),
-        pending_config,
-    ));
+    let pending_updater = Arc::new(PendingTransactionsUpdater::new(providers.clone(), cacher.clone(), stream_producer.clone(), database.clone(), pending_config));
 
     ctx.plan_builder(WorkerService::Transactions, &config, shutdown_rx)
         .job(WorkerJob::UpdateInTransitTransactions, {
@@ -76,17 +70,12 @@ pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<V
                 async move { updater.update().await }
             }
         })
-        .jobs_with_config(
-            WorkerJob::UpdateSwapVaultAddresses,
-            SwapProvider::cross_chain_providers(),
-            ConfigParamKey::SwapperVaultAddresses,
-            |provider, _| {
-                let updater = Arc::new(VaultAddressesUpdater::new(swapper.clone(), cacher.clone()));
-                move |ctx| {
-                    let updater = updater.clone();
-                    async move { updater.update(provider, ctx.last_success_at).await }
-                }
-            },
-        )
+        .jobs_with_config(WorkerJob::UpdateSwapVaultAddresses, SwapProvider::cross_chain_providers(), ConfigParamKey::SwapperVaultAddresses, |provider, _| {
+            let updater = Arc::new(VaultAddressesUpdater::new(swapper.clone(), cacher.clone()));
+            move |ctx| {
+                let updater = updater.clone();
+                async move { updater.update(provider, ctx.last_success_at).await }
+            }
+        })
         .finish()
 }

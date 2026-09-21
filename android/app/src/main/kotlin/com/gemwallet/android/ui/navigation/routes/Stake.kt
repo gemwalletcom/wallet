@@ -22,12 +22,7 @@ data class EarnRoute(val assetId: AssetId) : NavKey
 @Serializable
 data class DelegationRoute(val validatorId: String, val delegationId: String) : NavKey
 
-fun EntryProviderScope<NavKey>.stake(
-    onAmount: AmountTransactionAction,
-    onConfirm: (ConfirmTransferInput) -> Unit,
-    onDelegation: (String, String) -> Unit,
-    onCancel: () -> Unit,
-) {
+fun EntryProviderScope<NavKey>.stake(onAmount: AmountTransactionAction, onConfirm: (ConfirmTransferInput) -> Unit, onDelegation: (String, String) -> Unit, onCancel: () -> Unit) {
     entry<StakeRoute>(
         metadata = { key -> routeArguments(assetIdArgument(key.assetId)) },
     ) {

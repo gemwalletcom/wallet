@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import InfoSheet
-import GemstonePrimitives
-import Primitives
 import struct Gemstone.GemTransferData
+import GemstonePrimitives
+import InfoSheet
+import Primitives
 
 public enum AssetSheetType: Identifiable, Sendable {
     case info(InfoSheetType)

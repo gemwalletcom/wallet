@@ -5,14 +5,14 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAssetEthereum
 import io.mockk.every
 import io.mockk.mockk
-import java.math.BigInteger
-import java.util.Locale
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAcquireAssetFlow
 import uniffi.gemstone.GemBalanceRequirement
 import uniffi.gemstone.GemConfirmErrorDisplay
+import java.math.BigInteger
+import java.util.Locale
 
 class ConfirmErrorUIModelTest {
     private val asset = mockAssetEthereum()
@@ -60,6 +60,7 @@ class ConfirmErrorUIModelTest {
     fun aGasSizedNetworkFeeKeepsEveryDigitThatMatters() {
         val display = GemConfirmErrorDisplay.NetworkFeeRequired(
             asset.toGem(),
+            "Ethereum (ETH)",
             requirement(
                 required = "630000000000000",
                 available = "500000000000000",

@@ -28,9 +28,7 @@ pub fn mock_transfer_input_with_utxos(chain: BitcoinChain, sender_address: &str,
 
     SignerInput::new(
         TransactionLoadInput {
-            input_type: TransactionInputType::Transfer {
-                asset: Asset::from_chain(chain.get_chain()),
-            },
+            input_type: TransactionInputType::Transfer { asset: Asset::from_chain(chain.get_chain()) },
             sender_address: sender_address.to_string(),
             destination_address: destination_address.to_string(),
             value: value.parse().unwrap(),
@@ -45,13 +43,7 @@ pub fn mock_transfer_input_with_utxos(chain: BitcoinChain, sender_address: &str,
 
 pub fn mock_p2wpkh_transfer_input() -> SignerInput {
     let address = mock_p2wpkh_address();
-    mock_transfer_input_with_utxos(
-        BitcoinChain::Bitcoin,
-        &address,
-        &address,
-        "10000",
-        vec![mock_utxo_with(TEST_UTXO_TXID, 0, "50000", &address)],
-    )
+    mock_transfer_input_with_utxos(BitcoinChain::Bitcoin, &address, &address, "10000", vec![mock_utxo_with(TEST_UTXO_TXID, 0, "50000", &address)])
 }
 
 pub fn mock_funded_transfer_input(chain: BitcoinChain) -> SignerInput {

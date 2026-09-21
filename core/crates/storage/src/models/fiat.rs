@@ -6,10 +6,7 @@ use crate::DatabaseError;
 use crate::sql_types::{AssetId, Currency, FiatProviderNameRow, FiatRateProviderRow, FiatTransactionStatusRow, FiatTransactionType};
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
-use primitives::{
-    AssetId as PrimitiveAssetId, FiatAsset, FiatProvider, FiatProviderCountry, FiatProviderName, FiatRate, FiatRateProvider, FiatTransaction, FiatTransactionUpdate, PaymentType,
-    fiat_assets::FiatAssetLimits,
-};
+use primitives::{AssetId as PrimitiveAssetId, FiatAsset, FiatProvider, FiatProviderCountry, FiatProviderName, FiatRate, FiatRateProvider, FiatTransaction, FiatTransactionUpdate, PaymentType, fiat_assets::FiatAssetLimits};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Queryable, Selectable, Insertable, AsChangeset, Serialize, Deserialize, Clone)]
@@ -25,10 +22,7 @@ pub struct FiatRateRow {
 
 impl FiatRateRow {
     pub fn as_primitive(&self) -> FiatRate {
-        FiatRate {
-            symbol: self.id.0.clone(),
-            rate: self.rate,
-        }
+        FiatRate { symbol: self.id.0.clone(), rate: self.rate }
     }
 
     pub fn from_primitive(rate: FiatRate, provider: FiatRateProvider) -> Self {
@@ -119,11 +113,7 @@ pub trait FiatAssetRowsExt {
 
 impl FiatAssetRowsExt for Vec<FiatAssetRow> {
     fn asset_ids(self) -> Vec<PrimitiveAssetId> {
-        self.into_iter()
-            .filter_map(|x| x.asset_id.map(|asset_id| asset_id.0))
-            .collect::<HashSet<_>>()
-            .into_iter()
-            .collect()
+        self.into_iter().filter_map(|x| x.asset_id.map(|asset_id| asset_id.0)).collect::<HashSet<_>>().into_iter().collect()
     }
 }
 
@@ -198,10 +188,7 @@ pub struct FiatTransactionRow {
 
 impl FiatTransactionRow {
     pub fn as_primitive(&self) -> Result<FiatTransaction, DatabaseError> {
-        let value = self
-            .value
-            .as_deref()
-            .ok_or_else(|| DatabaseError::Error(format!("Fiat transaction {} is missing value", self.quote_id)))?;
+        let value = self.value.as_deref().ok_or_else(|| DatabaseError::Error(format!("Fiat transaction {} is missing value", self.quote_id)))?;
         let value = BigUint::from_str(value).map_err(|error| DatabaseError::Error(format!("Fiat transaction {} has an invalid value: {error}", self.quote_id)))?;
 
         Ok(FiatTransaction {

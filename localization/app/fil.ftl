@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = Hindi sinusuportahang asset.
 errors_connections_no_supported_wallets = Walang available na suportadong wallet.
 errors_connections_unsupported_chain = Ang ibinigay na chain ay hindi suportado.
 errors_swap_amount_too_small = Masyadong maliit ang halaga
-errors_required = %@ ay kinakailangan
 errors_scan_transaction_malicious_description = Ang transaksyong ito ay hindi makukumpleto — ang patutunguhang wallet address ay naka-link sa kahina-hinala o nakakapinsalang aktibidad.
 errors_scan_transaction_memo_required = Nangangailangan ang %@ destination wallet address ng destination tag / memo
 errors_scan_transaction_malicious_title = Kahina-hinalang Aktibidad
@@ -315,7 +314,7 @@ asset_symbol = Simbolo
 asset_decimals = Mga desimal
 asset_token_id = ID ng Token
 asset_contract = Kontrata
-asset_state_empty_title = Ang iyong mga transaksyon ay lalabas dito️
+asset_state_empty_title = Ang iyong mga transaksyon ay lalabas dito
 asset_state_empty_description = Tumanggap, magpalit o bumili ng %@
 asset_verification_unverified = Hindi na-verify
 asset_verification_suspicious = Kahina-hinala
@@ -536,7 +535,7 @@ verify_phrase_title = Kumpirmahin
 
 # Warnings
 
-warnings_multi_signature_blocked = Huwag maglipat ng mga pondo sa %@ Multi-Signature wallet na ito maliban kung sigurado kang kontrolado mo ang mga pribadong key. Ang pagkabigong gawin ito ay maaaring maglantad sa iyo sa mga scam, at maaari mong permanenteng mawala ang iyong mga asset.
+warnings_externally_controlled_account = Maaaring kontrolado ng ibang tao ang %@ account na ito. Huwag magpadala ng pondo rito maliban kung sigurado kang ikaw ang may kontrol dito, o maaari mong permanenteng mawala ang iyong mga asset.
 
 # Sell
 
@@ -600,7 +599,7 @@ nft_collections = Mga koleksyon
 nft_collection = Koleksyon
 nft_save_to_photos = I-save sa Mga Larawan
 nft_set_as_avatar = Itakda bilang Avatar
-nft_state_empty_title = Lalabas dito ang iyong mga NFT ️
+nft_state_empty_title = Lalabas dito ang iyong mga NFT 
 nft_state_empty_description = Tanggapin ang iyong unang NFT
 nft_report_reason_spam = Spam
 nft_report_reason_malicious = Malisyoso

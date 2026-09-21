@@ -11,7 +11,7 @@ public struct SupportMessagesRequest: DatabaseQueryable {
         try SupportMessageRecord
             .order(SupportMessageRecord.Columns.createdAt.asc)
             .fetchAll(db)
-            .map { $0.message }
+            .map(\.message)
     }
 }
 

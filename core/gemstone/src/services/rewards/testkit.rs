@@ -23,11 +23,7 @@ pub struct RewardsTestkit {
 
 impl RewardsTestkit {
     pub async fn with_redemption(result: &RedemptionResult) -> Self {
-        Self::with_provider(Arc::new(TestAlienProvider::with_json_by_path(
-            200,
-            &[("auth/nonce", TEST_NONCE), ("rewards/redeem", &serde_json::to_string(result).unwrap())],
-        )))
-        .await
+        Self::with_provider(Arc::new(TestAlienProvider::with_json_by_path(200, &[("auth/nonce", TEST_NONCE), ("rewards/redeem", &serde_json::to_string(result).unwrap())]))).await
     }
 
     pub async fn with_provider(provider: Arc<TestAlienProvider>) -> Self {

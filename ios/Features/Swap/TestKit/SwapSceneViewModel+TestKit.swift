@@ -22,6 +22,7 @@ public extension SwapSceneViewModel {
         model.fromAssetQuery.value = .mock(asset: .mockEthereum(), balance: .mock())
         model.toAssetQuery.value = .mock(asset: .mockEthereumUSDT())
         model.amountInputModel.text = "1"
+        model.onChangeFromValue("", "1")
         return model
     }
 }

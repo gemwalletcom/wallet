@@ -6,7 +6,7 @@ use primitives::{AddressName, Chain, Wallet, WalletId};
 use super::GemWalletStore;
 use super::password::{GemKeystoreAuthentication, GemKeystorePassword};
 use crate::services::error::GemServiceError;
-use crate::services::name::GemAddressStore;
+use crate::services::name::{GemAddressNameUpdate, GemAddressStore};
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -33,6 +33,7 @@ pub const TEST_PASSWORD: &str = "000102030405060708090a0b0c0d0e0f101112131415161
 pub struct MemoryWalletStore {
     pub wallets: Mutex<Vec<Wallet>>,
     pub add_wallet_error: Mutex<Option<GemServiceError>>,
+    pub set_image_url_error: Mutex<Option<GemServiceError>>,
 }
 
 #[async_trait::async_trait]
@@ -58,13 +59,25 @@ impl GemWalletStore for MemoryWalletStore {
         wallets.retain(|wallet| wallet.id != wallet_id);
         Ok(before != wallets.len())
     }
-    async fn set_pinned(&self, _wallet_id: WalletId, _pinned: bool) -> Result<(), GemServiceError> {
+    async fn set_pinned(&self, wallet_id: WalletId, pinned: bool) -> Result<(), GemServiceError> {
+        if let Some(wallet) = self.wallets.lock().unwrap().iter_mut().find(|wallet| wallet.id == wallet_id) {
+            wallet.is_pinned = pinned;
+        }
         Ok(())
     }
-    async fn set_name(&self, _wallet_id: WalletId, _name: String) -> Result<(), GemServiceError> {
+    async fn set_name(&self, wallet_id: WalletId, name: String) -> Result<(), GemServiceError> {
+        if let Some(wallet) = self.wallets.lock().unwrap().iter_mut().find(|wallet| wallet.id == wallet_id) {
+            wallet.name = name;
+        }
         Ok(())
     }
-    async fn set_image_url(&self, _wallet_id: WalletId, _image_url: Option<String>) -> Result<(), GemServiceError> {
+    async fn set_image_url(&self, wallet_id: WalletId, image_url: Option<String>) -> Result<(), GemServiceError> {
+        if let Some(error) = self.set_image_url_error.lock().unwrap().clone() {
+            return Err(error);
+        }
+        if let Some(wallet) = self.wallets.lock().unwrap().iter_mut().find(|wallet| wallet.id == wallet_id) {
+            wallet.image_url = image_url;
+        }
         Ok(())
     }
 }
@@ -102,10 +115,14 @@ impl GemAddressStore for MemoryAddressStore {
     async fn get_address_name(&self, chain: Chain, address: String) -> Result<Option<AddressName>, GemServiceError> {
         Ok(self.names.lock().unwrap().get(&(chain, address)).cloned())
     }
-    async fn save_address_names(&self, names: Vec<AddressName>) -> Result<(), GemServiceError> {
+    async fn save_address_names(&self, updates: Vec<GemAddressNameUpdate>) -> Result<(), GemServiceError> {
         let mut stored = self.names.lock().unwrap();
-        for name in names {
-            stored.insert((name.chain, name.address.clone()), name);
+        for update in updates {
+            let key = (update.name.chain, update.name.address.clone());
+            if stored.get(&key).is_some_and(|existing| !update.replaces_types.contains(&existing.address_type)) {
+                continue;
+            }
+            stored.insert(key, update.name);
         }
         Ok(())
     }
@@ -118,12 +135,8 @@ impl GemAddressStore for MemoryAddressStore {
     }
 }
 
-pub const PHRASE: [&str; 12] = [
-    "shoot", "island", "position", "soft", "burden", "budget", "tooth", "cruel", "issue", "economy", "destroy", "above",
-];
-pub const OTHER_PHRASE: [&str; 12] = [
-    "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "about",
-];
+pub const PHRASE: [&str; 12] = ["shoot", "island", "position", "soft", "burden", "budget", "tooth", "cruel", "issue", "economy", "destroy", "above"];
+pub const OTHER_PHRASE: [&str; 12] = ["abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "abandon", "about"];
 
 pub struct WalletTestkit {
     pub service: Arc<GemWalletService>,
@@ -187,9 +200,6 @@ impl WalletTestkit {
 
     pub fn lock_out(&self, wallet: &Wallet) {
         let password = decode_password(&self.service.password.get_password(false).unwrap());
-        self.service
-            .keystore
-            .change_password(keystore_id_for_wallet(wallet.id.id()), password, b"other".to_vec())
-            .unwrap();
+        self.service.keystore.change_password(keystore_id_for_wallet(wallet.id.id()), password, b"other".to_vec()).unwrap();
     }
 }

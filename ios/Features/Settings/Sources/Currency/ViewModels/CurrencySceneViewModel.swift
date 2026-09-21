@@ -1,30 +1,26 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitives
-import struct Gemstone.GemCurrencies
-import protocol Gemstone.GemCurrencyServiceProtocol
 import Components
-import GemstoneServices
 import Foundation
+import enum Gemstone.Currency
+import struct Gemstone.GemCurrencySection
+import protocol Gemstone.GemCurrencyServiceProtocol
+import GemstonePrimitives
+import GemstoneServices
 import Localization
 import Primitives
 
 @Observable
 @MainActor
 public final class CurrencySceneViewModel {
-    private var currencyStorage: CurrencyStorable
+    private let preferences: ObservablePreferences
     private let service: any GemCurrencyServiceProtocol
 
-    private(set) var currency: Currency {
-        get { currencyStorage.currency }
-        set { currencyStorage.currency = newValue }
-    }
+    var isPresentingAlertMessage: AlertMessage?
+    var searchQuery = ""
 
-    public init(
-        currencyStorage: CurrencyStorable,
-        service: any GemCurrencyServiceProtocol,
-    ) {
-        self.currencyStorage = currencyStorage
+    public init(preferences: ObservablePreferences, service: any GemCurrencyServiceProtocol) {
+        self.preferences = preferences
         self.service = service
     }
 
@@ -32,37 +28,21 @@ public final class CurrencySceneViewModel {
         Localized.Settings.currency
     }
 
-    var list: [ListItemValueSection<CurrencyViewModel>] {
-        let currencies = currencies
-        let recommendedValues = currencies.recommended.map(CurrencyViewModel.init).map { ListItemValue(title: $0.title, value: $0) }
-        let allValues = currencies.other.map(CurrencyViewModel.init).map { ListItemValue(title: $0.title, value: $0) }
-
-        return [
-            ListItemValueSection(
-                section: Localized.Common.recommended,
-                values: recommendedValues,
-            ),
-            ListItemValueSection(
-                section: Localized.Common.all,
-                values: allValues,
-            ),
-        ]
-    }
-
-    func setCurrency(_ currency: Currency) async throws {
-        try await service.setCurrency(currency: currency.toGem())
-        self.currency = currency
+    var sections: [GemCurrencySection] {
+        service.sections(
+            currency: preferences.currency.toGem(),
+            locale: Locale.current.currency.flatMap { Primitives.Currency(rawValue: $0.identifier) }?.toGem(),
+            query: searchQuery,
+            localizedNames: Dictionary(uniqueKeysWithValues: Primitives.Currency.allCases.map {
+                ($0.rawValue, Locale.current.localizedString(forCurrencyCode: $0.rawValue) ?? .empty)
+            }),
+        )
     }
 }
 
-// MARK: - Private
-
 extension CurrencySceneViewModel {
-    private var localeCurrency: Currency? {
-        Locale.current.currency.flatMap { Currency(rawValue: $0.identifier) }
-    }
-
-    private var currencies: GemCurrencies {
-        service.currencies(locale: localeCurrency?.toGem())
+    func setCurrency(_ currency: Gemstone.Currency) async throws {
+        try await service.setCurrency(currency: currency)
+        preferences.reload()
     }
 }

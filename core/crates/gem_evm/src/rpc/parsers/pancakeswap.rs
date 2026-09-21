@@ -36,14 +36,7 @@ impl PancakeSwapParser {
 
     fn try_map_command_swap(context: &ParseContext<'_>) -> Option<TransactionSwapMetadata> {
         let input_bytes = decode_hex(&context.transaction.input).ok()?;
-        decode_execute_swap(
-            context.metadata.chain,
-            UniversalRouterAbi::V2,
-            &Self::provider(),
-            &context.transaction.from,
-            &input_bytes,
-            context.metadata.receipt,
-        )
+        decode_execute_swap(context.metadata.chain, UniversalRouterAbi::V2, &Self::provider(), &context.transaction.from, &input_bytes, context.metadata.receipt)
     }
 
     fn try_map_transfer_swap(context: &ParseContext<'_>) -> Option<TransactionSwapMetadata> {
@@ -83,10 +76,7 @@ impl PancakeSwapParser {
             let Some(token) = ethereum_address_checksum(&log.address).ok() else {
                 continue;
             };
-            let (Some(log_from), Some(log_to)) = (
-                log.topics.get(1).and_then(|t| ethereum_address_from_topic(t)),
-                log.topics.get(2).and_then(|t| ethereum_address_from_topic(t)),
-            ) else {
+            let (Some(log_from), Some(log_to)) = (log.topics.get(1).and_then(|t| ethereum_address_from_topic(t)), log.topics.get(2).and_then(|t| ethereum_address_from_topic(t))) else {
                 continue;
             };
             let Some(value) = ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE) else {

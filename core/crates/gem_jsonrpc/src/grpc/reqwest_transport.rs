@@ -61,10 +61,7 @@ mod tests {
 
     #[test]
     fn test_decode_grpc_status_message() {
-        assert_eq!(
-            decode_grpc_status_message("Available%20amount%3A%200%20%3C%2014999840000"),
-            "Available amount: 0 < 14999840000"
-        );
+        assert_eq!(decode_grpc_status_message("Available%20amount%3A%200%20%3C%2014999840000"), "Available amount: 0 < 14999840000");
         assert_eq!(decode_grpc_status_message("plain message"), "plain message");
         assert_eq!(decode_grpc_status_message("trailing%2"), "trailing%2");
     }

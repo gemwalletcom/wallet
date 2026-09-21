@@ -54,13 +54,7 @@ impl<C: Client> ChainBalances for TronProvider<C> {
     }
 
     async fn get_balance_assets(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .get_indexer_accounts(&address)
-            .await?
-            .into_iter()
-            .next()
-            .map(TronGridMapper::map_asset_balances)
-            .unwrap_or_default())
+        Ok(self.get_indexer_accounts(&address).await?.into_iter().next().map(TronGridMapper::map_asset_balances).unwrap_or_default())
     }
 }
 

@@ -37,9 +37,7 @@ impl SiwsMessage {
         });
         let resources = match lines.next() {
             None => vec![],
-            Some("Resources:") => lines
-                .map(|line| line.strip_prefix("- ").map(str::to_string).ok_or("Invalid SIWS resource".to_string()))
-                .collect::<Result<_, _>>()?,
+            Some("Resources:") => lines.map(|line| line.strip_prefix("- ").map(str::to_string).ok_or("Invalid SIWS resource".to_string())).collect::<Result<_, _>>()?,
             Some(_) => return Err("Invalid SIWS field order or trailing content".to_string()),
         };
         Ok(Some(Self {
@@ -119,10 +117,7 @@ mod tests {
         ] {
             assert_eq!(SiwsMessage::parse(text), Ok(None));
         }
-        assert_eq!(
-            SiwsMessage::parse("example.com wants you to sign in with your Solana account:"),
-            Err("Invalid SIWS header".to_string())
-        );
+        assert_eq!(SiwsMessage::parse("example.com wants you to sign in with your Solana account:"), Err("Invalid SIWS header".to_string()));
     }
 
     #[test]

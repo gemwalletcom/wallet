@@ -43,9 +43,7 @@ impl CardanoTarget {
     pub fn query(&self) -> &'static str {
         match self {
             Self::Tip => "{ cardano { tip { number slotNo } } }",
-            Self::Block { .. } => {
-                "query GetBlockByNumber($blockNumber: Int!) { blocks(where: { number: { _eq: $blockNumber } }) { number hash forgedAt transactions { hash inputs { address value } outputs { address value } fee } } }"
-            }
+            Self::Block { .. } => "query GetBlockByNumber($blockNumber: Int!) { blocks(where: { number: { _eq: $blockNumber } }) { number hash forgedAt transactions { hash inputs { address value } outputs { address value } fee } } }",
             Self::AddressTransactions { .. } => {
                 "query GetTransactionsByAddress($address: String!, $limit: Int!) { transactions(limit: $limit, order_by: { includedAt: desc }, where: { outputs: { address: { _eq: $address } } }) { hash includedAt inputs { address value } outputs { address value } fee } }"
             }

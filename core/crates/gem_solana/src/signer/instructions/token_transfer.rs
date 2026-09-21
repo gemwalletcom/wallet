@@ -20,18 +20,8 @@ pub(in crate::signer) fn token_transfer(input: &SignerInput, sender: Pubkey) -> 
     spl_transfer_checked(input, sender, mint, amount, decimals, token_program_id)
 }
 
-pub(in crate::signer::instructions) fn spl_transfer_checked(
-    input: &SignerInput,
-    sender: Pubkey,
-    mint: Pubkey,
-    amount: u64,
-    decimals: u8,
-    token_program_id: Pubkey,
-) -> Result<Vec<Instruction>, SignerError> {
-    let sender_token_address = input
-        .metadata
-        .get_sender_token_address()?
-        .ok_or_else(|| SignerError::invalid_input("missing sender token address"))?;
+pub(in crate::signer::instructions) fn spl_transfer_checked(input: &SignerInput, sender: Pubkey, mint: Pubkey, amount: u64, decimals: u8, token_program_id: Pubkey) -> Result<Vec<Instruction>, SignerError> {
+    let sender_token_address = input.metadata.get_sender_token_address()?.ok_or_else(|| SignerError::invalid_input("missing sender token address"))?;
     let sender_token_address = Pubkey::from_base58(&sender_token_address).map_err(SignerError::from_display)?;
 
     let mut instructions = transaction::compute_budget_instructions(&input.fee)?;
@@ -58,8 +48,7 @@ pub(in crate::signer::instructions) fn spl_transfer_checked(
 
 fn token_program_id(input: &SignerInput) -> Result<Pubkey, SignerError> {
     let asset = input.input_type.get_asset();
-    let asset_program =
-        SolanaTokenProgramId::from_asset_type(&asset.asset_type).ok_or_else(|| SignerError::invalid_input(format!("unsupported Solana token type: {:?}", asset.asset_type)))?;
+    let asset_program = SolanaTokenProgramId::from_asset_type(&asset.asset_type).ok_or_else(|| SignerError::invalid_input(format!("unsupported Solana token type: {:?}", asset.asset_type)))?;
     if let Some(metadata_program) = input.metadata.get_solana_token_program_id().map_err(SignerError::from_display)?
         && metadata_program != asset_program
     {
@@ -84,10 +73,7 @@ mod tests {
     };
     use num_bigint::BigUint;
     use primitives::testkit::signer_mock::{TEST_PRIVATE_KEY, TEST_PRIVATE_KEY_SOLANA_ADDRESS};
-    use primitives::{
-        Asset, AssetId, AssetType, Chain, ChainSigner, GasPriceType, SignerInput, SolanaTokenProgramId, TransactionFee, TransactionInputType, TransactionLoadInput,
-        TransactionLoadMetadata,
-    };
+    use primitives::{Asset, AssetId, AssetType, Chain, ChainSigner, GasPriceType, SignerInput, SolanaTokenProgramId, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata};
 
     fn transfer_checked_data(amount: u64, decimals: u8) -> Vec<u8> {
         let mut data = vec![12];
@@ -181,12 +167,7 @@ mod tests {
     #[test]
     fn test_sign_payment_references() {
         let references = ["82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny", "7GUcQZQwHHa9GBPhVq7v2LArSsp5VmGXV5zXnQ8Q7N3a"];
-        let metadata = TransactionLoadMetadata::mock_solana_transfer(
-            Some(TEST_SENDER_TOKEN_ADDRESS),
-            Some(TEST_SENDER_TOKEN_ADDRESS),
-            Some(SolanaTokenProgramId::Token),
-            &references,
-        );
+        let metadata = TransactionLoadMetadata::mock_solana_transfer(Some(TEST_SENDER_TOKEN_ADDRESS), Some(TEST_SENDER_TOKEN_ADDRESS), Some(SolanaTokenProgramId::Token), &references);
         let input = TransactionLoadInput {
             input_type: TransactionInputType::Transfer { asset: Asset::mock_spl_token() },
             sender_address: TEST_PRIVATE_KEY_SOLANA_ADDRESS.to_string(),
@@ -198,9 +179,7 @@ mod tests {
             metadata,
         };
 
-        let result = SolanaChainSigner
-            .sign_token_transfer(&SignerInput::new(input, TransactionFee::mock()), &TEST_PRIVATE_KEY)
-            .unwrap();
+        let result = SolanaChainSigner.sign_token_transfer(&SignerInput::new(input, TransactionFee::mock()), &TEST_PRIVATE_KEY).unwrap();
         let transaction = crate::decode_transaction(&result).unwrap();
 
         assert_eq!(program_id(&transaction, 0), SOLANA_MEMO_PROGRAM_ID);

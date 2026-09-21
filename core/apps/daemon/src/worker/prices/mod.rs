@@ -41,13 +41,7 @@ pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<V
     let config = Arc::new(ConfigCacher::new(database.clone()));
     let producer_assets = stream_producer(&settings, "prices_provider_assets").await?;
     let producer_prices = stream_producer(&settings, "prices_provider_prices").await?;
-    let enabled_providers: Vec<PriceProvider> = database
-        .prices_providers()?
-        .get_prices_providers()?
-        .into_iter()
-        .filter(|p| p.enabled)
-        .map(|p| p.id.0)
-        .collect();
+    let enabled_providers: Vec<PriceProvider> = database.prices_providers()?.get_prices_providers()?.into_iter().filter(|p| p.enabled).map(|p| p.id.0).collect();
     let assets_providers: AssetsProviders = Arc::new(price_providers(&settings, enabled_providers.iter().copied()));
     let price_client = PriceClient::new(database.clone(), cacher_client.clone());
 
@@ -83,22 +77,10 @@ fn add_platform_jobs<'a>(
     producer: StreamProducer,
 ) -> Result<JobPlanBuilder<'a>, Box<dyn Error + Send + Sync>> {
     Ok(builder
-        .job(
-            WorkerJob::AggregateHourlyCharts,
-            charts_job(database, cacher_client, config, ChartsAction::Aggregate(ChartTimeframe::Hourly)),
-        )
-        .job(
-            WorkerJob::AggregateDailyCharts,
-            charts_job(database, cacher_client, config, ChartsAction::Aggregate(ChartTimeframe::Daily)),
-        )
-        .job(
-            WorkerJob::CleanupChartsRaw,
-            charts_job(database, cacher_client, config, ChartsAction::Delete(ChartTimeframe::Raw)),
-        )
-        .job(
-            WorkerJob::CleanupChartsHourly,
-            charts_job(database, cacher_client, config, ChartsAction::Delete(ChartTimeframe::Hourly)),
-        )
+        .job(WorkerJob::AggregateHourlyCharts, charts_job(database, cacher_client, config, ChartsAction::Aggregate(ChartTimeframe::Hourly)))
+        .job(WorkerJob::AggregateDailyCharts, charts_job(database, cacher_client, config, ChartsAction::Aggregate(ChartTimeframe::Daily)))
+        .job(WorkerJob::CleanupChartsRaw, charts_job(database, cacher_client, config, ChartsAction::Delete(ChartTimeframe::Raw)))
+        .job(WorkerJob::CleanupChartsHourly, charts_job(database, cacher_client, config, ChartsAction::Delete(ChartTimeframe::Hourly)))
         .job(WorkerJob::UpdateObservedPrices, {
             let cacher_client = cacher_client.clone();
             let database = database.clone();
@@ -119,9 +101,7 @@ fn add_platform_jobs<'a>(
                         min_observers: config.get_usize(ConfigKey::PriceObservedMinObservers)?,
                         primary_price_max_age: config.get_duration(ConfigKey::PricePrimaryMaxAge)?,
                     };
-                    ObservedPricesUpdater::new(cacher_client, database, price_client, providers, producer, observed_config)
-                        .update()
-                        .await
+                    ObservedPricesUpdater::new(cacher_client, database, price_client, providers, producer, observed_config).update().await
                 }
             }
         })
@@ -224,21 +204,15 @@ fn add_provider_jobs<'a>(
         PriceProvider::Coingecko => builder
             .job(
                 JobVariant::labeled(WorkerJob::UpdatePricesTop, kind),
-                provider_job(database, price_client, provider.clone(), producer_prices.clone(), |u| async move {
-                    u.update_prices_window(0, 500).await
-                }),
+                provider_job(database, price_client, provider.clone(), producer_prices.clone(), |u| async move { u.update_prices_window(0, 500).await }),
             )
             .job(
                 JobVariant::labeled(WorkerJob::UpdatePricesHigh, kind),
-                provider_job(database, price_client, provider.clone(), producer_prices.clone(), |u| async move {
-                    u.update_prices_window(500, 2500).await
-                }),
+                provider_job(database, price_client, provider.clone(), producer_prices.clone(), |u| async move { u.update_prices_window(500, 2500).await }),
             )
             .job(
                 JobVariant::labeled(WorkerJob::UpdatePricesLow, kind),
-                provider_job(database, price_client, provider.clone(), producer_prices.clone(), |u| async move {
-                    u.update_prices_window(3000, usize::MAX).await
-                }),
+                provider_job(database, price_client, provider.clone(), producer_prices.clone(), |u| async move { u.update_prices_window(3000, usize::MAX).await }),
             )
             .job(WorkerJob::UpdateMarkets, {
                 let coingecko = CoinGeckoClient::new(settings.prices.coingecko.remote_provider_config());

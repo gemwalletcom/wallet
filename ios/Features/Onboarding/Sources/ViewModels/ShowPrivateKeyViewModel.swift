@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import func Gemstone.privateKeyCopy
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -19,10 +20,7 @@ struct ShowPrivateKeyViewModel: SecretPhraseViewableModel {
     }
 
     var copyModel: CopyTypeViewModel {
-        CopyTypeViewModel(
-            type: .privateKey,
-            copyValue: text,
-        )
+        CopyTypeViewModel(content: privateKeyCopy(key: text))
     }
 
     var type: SecretPhraseDataType {

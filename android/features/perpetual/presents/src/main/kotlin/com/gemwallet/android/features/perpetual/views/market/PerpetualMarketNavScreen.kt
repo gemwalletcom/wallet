@@ -31,7 +31,7 @@ fun PerpetualMarketNavScreen(
     val unpinnedPerpetuals by viewModel.unpinnedPerpetuals.collectAsStateWithLifecycle()
     val pinnedPerpetuals by viewModel.pinnedPerpetuals.collectAsStateWithLifecycle()
     val positions by viewModel.positionRows.collectAsStateWithLifecycle()
-    val balance by viewModel.balance.collectAsStateWithLifecycle()
+    val balanceHeader by viewModel.balanceHeader.collectAsStateWithLifecycle()
     val recent by viewModel.recent.collectAsStateWithLifecycle()
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val isSearching by viewModel.isSearching.collectAsStateWithLifecycle()
@@ -55,7 +55,7 @@ fun PerpetualMarketNavScreen(
 
     PerpetualMarketScene(
         sceneState = sceneState,
-        balance = balance,
+        balanceHeader = balanceHeader,
         unpinnedPerpetuals = unpinnedPerpetuals,
         pinnedPerpetuals = pinnedPerpetuals,
         positions = positions,
@@ -66,17 +66,26 @@ fun PerpetualMarketNavScreen(
         onAction = { action ->
             when (action) {
                 PerpetualMarketAction.Refresh -> viewModel.onRefresh()
+
                 is PerpetualMarketAction.SetSearching -> viewModel.setSearching(action.isSearching)
+
                 PerpetualMarketAction.Close -> onCancel()
+
                 PerpetualMarketAction.Withdraw -> amountAction(AmountParams.Withdraw(HypercoreUSDC.id))
+
                 PerpetualMarketAction.Deposit -> amountAction(AmountParams.Deposit(viewModel.depositAssetId))
+
                 PerpetualMarketAction.OpenPortfolio -> onOpenPortfolio()
+
                 is PerpetualMarketAction.TogglePin -> viewModel.onTogglePin(action.perpetualId)
+
                 is PerpetualMarketAction.OpenPerpetual -> {
                     onOpenPerpetualDetails(action.asset.id)
                     viewModel.onOpenPerpetual(action.asset)
                 }
+
                 is PerpetualMarketAction.OpenRecent -> onOpenPerpetualDetails(action.asset.id)
+
                 PerpetualMarketAction.OpenRecentsSheet -> recentsViewModel.show(types = listOf(RecentActivityType.Perpetual))
             }
         },
@@ -87,4 +96,3 @@ fun PerpetualMarketNavScreen(
         onSelect = { onOpenPerpetualDetails(it.id) },
     )
 }
-

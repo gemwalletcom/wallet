@@ -21,7 +21,7 @@ class WalletsScreenTest {
         assertEquals(listOf(unpinnedWallet), sections.unpinnedWallets)
         assertEquals(
             listOf("pinned", "second-pinned", "unpinned"),
-            sections.allWallets.map { it.row.id }
+            sections.allWallets.map { it.row.id },
         )
     }
 

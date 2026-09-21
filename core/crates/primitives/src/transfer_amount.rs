@@ -10,27 +10,10 @@ pub struct TransferAmount {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TransferAmountError {
-    InsufficientBalance {
-        asset_id: AssetId,
-        required: BigInt,
-        available: BigInt,
-    },
-    InsufficientNetworkFee {
-        asset_id: AssetId,
-        required: BigInt,
-        available: BigInt,
-    },
-    MinimumAccountBalanceTooLow {
-        asset_id: AssetId,
-        required: BigInt,
-        available: BigInt,
-    },
-    BelowSwapMinimum {
-        asset_id: AssetId,
-        provider: SwapProvider,
-        minimum: BigInt,
-        value: BigInt,
-    },
+    InsufficientBalance { asset_id: AssetId, required: BigInt, available: BigInt },
+    InsufficientNetworkFee { asset_id: AssetId, required: BigInt, available: BigInt },
+    MinimumAccountBalanceTooLow { asset_id: AssetId, required: BigInt, available: BigInt },
+    BelowSwapMinimum { asset_id: AssetId, provider: SwapProvider, minimum: BigInt, value: BigInt },
 }
 
 impl std::fmt::Display for TransferAmountError {
@@ -45,12 +28,7 @@ impl std::fmt::Display for TransferAmountError {
             Self::MinimumAccountBalanceTooLow { asset_id, required, available } => {
                 write!(f, "{} account balance below minimum: required {}, remaining {}", asset_id, required, available)
             }
-            Self::BelowSwapMinimum {
-                asset_id,
-                provider,
-                minimum,
-                value,
-            } => {
+            Self::BelowSwapMinimum { asset_id, provider, minimum, value } => {
                 write!(f, "{} amount {} is below the {} minimum {}", asset_id, value, provider.name(), minimum)
             }
         }
@@ -145,11 +123,7 @@ impl TransferAmountInput {
         }
 
         if self.fee_asset_balance < self.fee && !should_skip_fee_check {
-            return Err(TransferAmountError::insufficient_network_fee(
-                &self.fee_asset,
-                self.fee.clone(),
-                self.fee_asset_balance.clone(),
-            ));
+            return Err(TransferAmountError::insufficient_network_fee(&self.fee_asset, self.fee.clone(), self.fee_asset_balance.clone()));
         }
 
         if let Some(minimum) = &minimum_account_balance
@@ -360,12 +334,7 @@ mod tests {
 
     #[test]
     fn test_calculate_zero_value_still_spends() {
-        let below_minimum = TransferAmountInput::mock(
-            TransactionInputType::Transfer { asset: Asset::mock_sol() },
-            0,
-            SOLANA_MINIMUM_ACCOUNT_BALANCE,
-            SOLANA_MINIMUM_ACCOUNT_BALANCE,
-        );
+        let below_minimum = TransferAmountInput::mock(TransactionInputType::Transfer { asset: Asset::mock_sol() }, 0, SOLANA_MINIMUM_ACCOUNT_BALANCE, SOLANA_MINIMUM_ACCOUNT_BALANCE);
         assert_eq!(
             below_minimum.calculate().unwrap_err(),
             TransferAmountError::MinimumAccountBalanceTooLow {
@@ -404,9 +373,7 @@ mod tests {
         );
 
         assert_eq!(
-            TransferAmountInput::mock(TransactionInputType::Transfer { asset: Asset::mock() }, 999_000, 1_000_000, 1_000_000)
-                .calculate()
-                .unwrap_err(),
+            TransferAmountInput::mock(TransactionInputType::Transfer { asset: Asset::mock() }, 999_000, 1_000_000, 1_000_000).calculate().unwrap_err(),
             TransferAmountError::InsufficientBalance {
                 asset_id: Asset::mock().id,
                 required: BigInt::from(1_004_000u64),
@@ -417,16 +384,12 @@ mod tests {
 
         let exactly_minimum = 10_000_000 + FEE + SOLANA_MINIMUM_ACCOUNT_BALANCE;
         assert!(
-            TransferAmountInput::mock(transfer.clone(), 10_000_000, exactly_minimum, exactly_minimum)
-                .calculate()
-                .is_ok(),
+            TransferAmountInput::mock(transfer.clone(), 10_000_000, exactly_minimum, exactly_minimum).calculate().is_ok(),
             "leaving exactly the rent-exempt minimum keeps the account, so it is allowed"
         );
 
         assert_eq!(
-            TransferAmountInput::mock(transfer.clone(), 10_000_000, exactly_minimum - 1, exactly_minimum - 1)
-                .calculate()
-                .unwrap_err(),
+            TransferAmountInput::mock(transfer.clone(), 10_000_000, exactly_minimum - 1, exactly_minimum - 1).calculate().unwrap_err(),
             TransferAmountError::MinimumAccountBalanceTooLow {
                 asset_id: Asset::mock_sol().id,
                 required: BigInt::from(SOLANA_MINIMUM_ACCOUNT_BALANCE),
@@ -557,10 +520,7 @@ mod tests {
             100,
             5_000_000,
         );
-        assert!(
-            below_reserve_unstake.calculate().is_ok(),
-            "unstaking never spends the balance, so a delegation below the reserve is still allowed"
-        );
+        assert!(below_reserve_unstake.calculate().is_ok(), "unstaking never spends the balance, so a delegation below the reserve is still allowed");
 
         let approve = TransferAmountInput::mock(
             TransactionInputType::TokenApprove {
@@ -600,10 +560,7 @@ mod tests {
             0,
             0,
         );
-        assert!(
-            open.calculate().is_ok(),
-            "a perpetual is margined from the perpetual account, so an empty wallet must not gate opening it"
-        );
+        assert!(open.calculate().is_ok(), "a perpetual is margined from the perpetual account, so an empty wallet must not gate opening it");
 
         let close = TransferAmountInput::mock(
             TransactionInputType::Perpetual {

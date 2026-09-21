@@ -114,27 +114,21 @@ interface TransactionsDao {
             DbPrice::class,
             DbTransactionSwapMetadata::class,
             DbAddress::class,
-        ]
+        ],
     )
     fun getExtendedTransactions(query: SupportSQLiteQuery): Flow<List<DbTransactionExtended>>
 
-    fun getExtendedTransactions(
-        walletId: WalletId,
-        filters: List<TransactionsRequestFilter> = emptyList(),
-    ): Flow<List<DbTransactionExtended>> = getExtendedTransactions(buildExtendedTransactionsSql(walletId, filters).toSupportSQLiteQuery())
+    fun getExtendedTransactions(walletId: WalletId, filters: List<TransactionsRequestFilter> = emptyList()): Flow<List<DbTransactionExtended>> = getExtendedTransactions(buildExtendedTransactionsSql(walletId, filters).toSupportSQLiteQuery())
 
     @RawQuery(
         observedEntities = [
             DbTransaction::class,
             DbAsset::class,
-        ]
+        ],
     )
     fun getTransactionsCount(query: SupportSQLiteQuery): Flow<Int?>
 
-    fun getTransactionsCount(
-        walletId: WalletId,
-        filters: List<TransactionsRequestFilter>,
-    ): Flow<Int?> = getTransactionsCount(buildTransactionsCountSql(walletId, filters).toSupportSQLiteQuery())
+    fun getTransactionsCount(walletId: WalletId, filters: List<TransactionsRequestFilter>): Flow<Int?> = getTransactionsCount(buildTransactionsCountSql(walletId, filters).toSupportSQLiteQuery())
 
     fun getExtendedTransaction(walletId: WalletId, id: TransactionId): Flow<DbTransactionExtended?> = flow {
         val recordId = getTransactionRecordId(walletId, id).onEach { if (it == null) emit(null) }.filterNotNull().first()
@@ -157,12 +151,7 @@ interface TransactionsDao {
     fun getTransaction(id: TransactionId, walletId: WalletId): DbTransaction?
 
     @Transaction
-    fun updateTransactionHash(
-        oldId: TransactionId,
-        walletId: WalletId,
-        hash: String,
-        updatedAt: Long = System.currentTimeMillis(),
-    ) {
+    fun updateTransactionHash(oldId: TransactionId, walletId: WalletId, hash: String, updatedAt: Long = System.currentTimeMillis()) {
         val newId = TransactionId(oldId.chain, hash)
         if (oldId == newId) return
         val source = getTransaction(oldId, walletId) ?: return
@@ -176,18 +165,9 @@ interface TransactionsDao {
     @Query(
         "UPDATE transactions SET state = :state, fee = COALESCE(:fee, fee), blockNumber = COALESCE(:blockNumber, blockNumber), " +
             "metadata = COALESCE(:metadata, metadata), estimatedConfirmationInSeconds = COALESCE(:confirmationEtaSeconds, estimatedConfirmationInSeconds), " +
-            "updatedAt = :updatedAt WHERE id = :id AND walletId = :walletId"
+            "updatedAt = :updatedAt WHERE id = :id AND walletId = :walletId",
     )
-    fun updateTransactionState(
-        id: TransactionId,
-        walletId: WalletId,
-        state: TransactionState,
-        fee: String?,
-        blockNumber: String?,
-        metadata: String?,
-        confirmationEtaSeconds: Long?,
-        updatedAt: Long = System.currentTimeMillis(),
-    ): Int
+    fun updateTransactionState(id: TransactionId, walletId: WalletId, state: TransactionState, fee: String?, blockNumber: String?, metadata: String?, confirmationEtaSeconds: Long?, updatedAt: Long = System.currentTimeMillis()): Int
 
     @Insert(entity = DbTransactionSwapMetadata::class, onConflict = OnConflictStrategy.REPLACE)
     fun addSwapMetadata(metadata: List<DbTransactionSwapMetadata>)
@@ -198,12 +178,14 @@ interface TransactionsDao {
     @Query("DELETE FROM tx_swap_metadata WHERE tx_id = :transactionId AND NOT EXISTS (SELECT 1 FROM transactions WHERE transactions.id = :transactionId)")
     fun deleteUnreferencedSwapMetadata(transactionId: String)
 
-    @Query("""
+    @Query(
+        """
         SELECT swap.from_asset_id AS fromAssetId, swap.to_asset_id AS toAssetId
         FROM tx_swap_metadata AS swap
         JOIN transactions AS tx ON tx.id = swap.tx_id
         WHERE tx.walletId = :walletId
-        """)
+        """,
+    )
     suspend fun getSwapPairs(walletId: String): List<DbSwapPair>
 
     @Query("DELETE FROM transactions WHERE state = :state")

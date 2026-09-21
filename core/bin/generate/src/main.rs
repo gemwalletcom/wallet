@@ -94,10 +94,7 @@ fn generate_remote_mappers(generator_type: &GeneratorType, platform_directory_pa
     write_generated(remote_mappers::REMOTE_TYPES_PATH, generator.remote_types());
 
     let (contents, path) = match generator_type {
-        GeneratorType::Swift => (
-            generator.swift(),
-            format!("{platform_directory_path}/GemstonePrimitives/Sources/Generated/RemoteTypeMappers.swift"),
-        ),
+        GeneratorType::Swift => (generator.swift(), format!("{platform_directory_path}/GemstonePrimitives/Sources/Generated/RemoteTypeMappers.swift")),
         GeneratorType::Kotlin => (generator.kotlin(), format!("{platform_directory_path}/../../gemwallet/android/ext/RemoteTypeMappers.kt")),
         GeneratorType::TypeScript => return,
     };
@@ -110,6 +107,14 @@ fn write_generated(path: &str, contents: String) {
         fs::create_dir_all(parent).expect("failed to create generated directory");
     }
     fs::write(path, contents).expect("failed to write generated file");
+    if path.extension().is_some_and(|extension| extension == "rs") {
+        format_rust(path);
+    }
+}
+
+fn format_rust(path: &Path) {
+    let status = Command::new("rustfmt").arg(path).status().expect("failed to run rustfmt");
+    assert!(status.success(), "rustfmt failed on {}", path.display());
 }
 
 fn process_paths(paths: Vec<String>, _folder: &str, generator_type: &GeneratorType, platform_directory_path: &str, ignored_files: &[&str]) {
@@ -157,12 +162,7 @@ fn process_paths(paths: Vec<String>, _folder: &str, generator_type: &GeneratorTy
                 let kt_new_path = format!("{}/{}", directory_paths_lowercased.join("/"), kt_new_file_name);
                 let android_output_path = output_path(Platform::Android, platform_directory_path, module_name, kt_new_path.clone());
                 let directory_package = directory_paths_lowercased.join(".");
-                let android_package_name = format!(
-                    "{}.{}{}",
-                    ANDROID_PACKAGE_PREFIX,
-                    module_name,
-                    if directory_package.is_empty() { String::new() } else { format!(".{directory_package}") }
-                );
+                let android_package_name = format!("{}.{}{}", ANDROID_PACKAGE_PREFIX, module_name, if directory_package.is_empty() { String::new() } else { format!(".{directory_package}") });
                 generate_files(LANGUAGE_KOTLIN, input_path.as_str(), android_output_path.as_str(), Some(android_package_name.as_str()));
             }
             GeneratorType::TypeScript => {

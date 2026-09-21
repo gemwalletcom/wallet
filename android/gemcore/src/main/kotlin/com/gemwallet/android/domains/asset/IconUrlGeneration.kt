@@ -1,16 +1,16 @@
 package com.gemwallet.android.domains.asset
 
+import com.gemwallet.android.ext.chainConfig
 import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
-import com.gemwallet.android.ext.chainConfig
+import com.wallet.core.primitives.TransactionNFTTransferMetadata
 import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemAssetIconImage
 import uniffi.gemstone.GemImage
 import java.util.concurrent.ConcurrentHashMap
-import com.wallet.core.primitives.TransactionNFTTransferMetadata
 
 private val assetIcons = ConcurrentHashMap<String, GemAssetIcon>()
 private val nftImages = ConcurrentHashMap<String, String>()
@@ -21,17 +21,13 @@ fun Chain.iconChain(): Chain = chainConfig().iconChain.toChain()
 
 fun AssetId.iconChain(): Chain? = when (val image = icon().image) {
     is GemAssetIconImage.Local -> image.chain.toChain()
+
     is GemAssetIconImage.LocalToken,
-    is GemAssetIconImage.Remote -> null
+    is GemAssetIconImage.Remote,
+    -> null
 }
 
 fun AssetId.supportIconChain(): Chain? = icon().badge?.toChain()
-
-fun AssetId.remoteIconUrl(): String? = when (val image = icon().image) {
-    is GemAssetIconImage.Local,
-    is GemAssetIconImage.LocalToken -> null
-    is GemAssetIconImage.Remote -> image.url
-}
 
 fun getListIconUrl(listId: String): String = GemImage.AssetList(listId).url()
 

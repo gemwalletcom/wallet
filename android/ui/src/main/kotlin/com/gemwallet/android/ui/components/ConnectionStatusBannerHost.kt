@@ -42,9 +42,7 @@ val LocalConnectionBannerState = compositionLocalOf { ConnectionBannerState() }
 val LocalConnectionBannerHandled = compositionLocalOf { false }
 
 @Composable
-fun ConnectionStatusBannerHost(
-    modifier: Modifier = Modifier,
-) {
+fun ConnectionStatusBannerHost(modifier: Modifier = Modifier) {
     if (LocalConnectionBannerHandled.current) return
     val state = LocalConnectionBannerState.current
     var displayTitle by remember { mutableStateOf(state.title ?: "") }

@@ -214,10 +214,7 @@ mod tests {
             body: b"NoMethodError (undefined method '[]' for nil)".to_vec(),
         });
 
-        assert_eq!(
-            ApiError::from(error),
-            ApiError::InternalServerError("upstream status 500: NoMethodError (undefined method '[]' for nil)".to_string())
-        );
+        assert_eq!(ApiError::from(error), ApiError::InternalServerError("upstream status 500: NoMethodError (undefined method '[]' for nil)".to_string()));
     }
 
     #[test]

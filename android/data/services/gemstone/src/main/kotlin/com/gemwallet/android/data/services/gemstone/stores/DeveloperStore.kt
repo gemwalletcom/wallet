@@ -9,13 +9,7 @@ import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.AssetType
 import uniffi.gemstone.GemDeveloperStore
 
-class GemstoneDeveloperStore(
-    private val transactionsDao: TransactionsDao,
-    private val assetsDao: AssetsDao,
-    private val stakeDao: StakeDao,
-    private val bannersDao: BannersDao,
-    private val pricesDao: PricesDao,
-) : GemDeveloperStore {
+class GemstoneDeveloperStore(private val transactionsDao: TransactionsDao, private val assetsDao: AssetsDao, private val stakeDao: StakeDao, private val bannersDao: BannersDao, private val pricesDao: PricesDao) : GemDeveloperStore {
 
     override suspend fun clearTransactions() = transactionsDao.deleteAll()
 
@@ -29,6 +23,5 @@ class GemstoneDeveloperStore(
 
     override suspend fun clearBanners() = bannersDao.deleteAll()
 
-    override suspend fun updateBannerStates(from: uniffi.gemstone.BannerState, to: uniffi.gemstone.BannerState) =
-        bannersDao.updateStates(from.toPrimitives(), to.toPrimitives())
+    override suspend fun updateBannerStates(from: uniffi.gemstone.BannerState, to: uniffi.gemstone.BannerState) = bannersDao.updateStates(from.toPrimitives(), to.toPrimitives())
 }

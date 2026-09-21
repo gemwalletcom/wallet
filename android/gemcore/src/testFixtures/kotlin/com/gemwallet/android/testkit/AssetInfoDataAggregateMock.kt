@@ -3,10 +3,7 @@ package com.gemwallet.android.testkit
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.wallet.core.primitives.Asset
 
-fun mockAssetInfoDataAggregate(
-    asset: Asset = mockAsset(),
-    pinned: Boolean = false,
-) = AssetInfoDataAggregate(
+fun mockAssetInfoDataAggregate(asset: Asset = mockAsset(), pinned: Boolean = false) = AssetInfoDataAggregate(
     id = asset.id,
     asset = asset,
     title = asset.name,

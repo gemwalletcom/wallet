@@ -1,12 +1,12 @@
 package com.gemwallet.android.data.services.gemstone.di
 
-import uniffi.gemstone.GemApplicationMetadataServiceInterface
-import uniffi.gemstone.GemApplicationMetadataService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemAddressService
+import uniffi.gemstone.GemApplicationMetadataService
+import uniffi.gemstone.GemApplicationMetadataServiceInterface
 import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemAssetConfigServiceInterface
 import uniffi.gemstone.GemConnectionService
@@ -32,7 +32,6 @@ object RulesModule {
     @Provides
     @Singleton
     fun provideGemConnectionService(): GemConnectionService = GemConnectionService()
-
 
     @Provides
     @Singleton

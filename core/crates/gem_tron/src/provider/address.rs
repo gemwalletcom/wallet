@@ -42,10 +42,7 @@ mod chain_integration_tests {
 
         let status = client.get_address_status("TDTcR8wBLadFYRekvobSSswHaj351EDNRT".to_string()).await?;
 
-        assert!(
-            status.contains(&AddressStatus::MultiSignature),
-            "Expected multi-signature status for known multi-sig wallet"
-        );
+        assert!(status.contains(&AddressStatus::ExternallyControlled), "Expected multi-signature status for known multi-sig wallet");
 
         Ok(())
     }
@@ -56,10 +53,7 @@ mod chain_integration_tests {
 
         let status = client.get_address_status("THzbnFasHU6AsHfbKahznBNC3Ss591zwPS".to_string()).await?;
 
-        assert!(
-            status.contains(&AddressStatus::MultiSignature),
-            "Expected multi-signature status for known multi-sig wallet"
-        );
+        assert!(status.contains(&AddressStatus::ExternallyControlled), "Expected multi-signature status for known multi-sig wallet");
 
         Ok(())
     }

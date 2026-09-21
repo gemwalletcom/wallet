@@ -9,14 +9,7 @@ pub const MESSAGE_SEND: &str = "/types.MsgSend"; // thorchain
 pub const MESSAGE_EXECUTE_CONTRACT: &str = "/cosmwasm.wasm.v1.MsgExecuteContract";
 pub const MESSAGE_IBC_TRANSFER: &str = "/ibc.applications.transfer.v1.MsgTransfer";
 
-pub const SUPPORTED_MESSAGES: &[&str] = &[
-    MESSAGE_SEND,
-    MESSAGE_SEND_BETA,
-    MESSAGE_DELEGATE,
-    MESSAGE_UNDELEGATE,
-    MESSAGE_REDELEGATE,
-    MESSAGE_REWARD_BETA,
-];
+pub const SUPPORTED_MESSAGES: &[&str] = &[MESSAGE_SEND, MESSAGE_SEND_BETA, MESSAGE_DELEGATE, MESSAGE_UNDELEGATE, MESSAGE_REDELEGATE, MESSAGE_REWARD_BETA];
 
 pub const EVENTS_WITHDRAW_REWARDS_TYPE: &str = "withdraw_rewards";
 pub const EVENTS_ATTRIBUTE_AMOUNT: &str = "amount";

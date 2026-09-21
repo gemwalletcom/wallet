@@ -30,12 +30,7 @@ impl EtherscanResult {
         let propose_fee: f64 = self.propose_gas_price.parse().unwrap();
         let fast_fee: f64 = self.fast_gas_price.parse().unwrap();
 
-        let gas_used_ratio_str = self
-            .gas_used_ratio
-            .split(',')
-            .next()
-            .and_then(|s| s.trim().parse::<f64>().ok())
-            .map(|val| format!("{:.1}%", val * 100.0));
+        let gas_used_ratio_str = self.gas_used_ratio.split(',').next().and_then(|s| s.trim().parse::<f64>().ok()).map(|val| format!("{:.1}%", val * 100.0));
 
         GemstoneFeeData {
             latest_block: self.last_block,

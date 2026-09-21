@@ -18,13 +18,7 @@ pub fn leverage_options(max_leverage: u8) -> Vec<u8> {
 }
 
 pub fn select_leverage(desired: u8, options: &[u8]) -> u8 {
-    options
-        .iter()
-        .copied()
-        .filter(|&value| value <= desired)
-        .max()
-        .or_else(|| options.iter().copied().min())
-        .unwrap_or(DEFAULT_LEVERAGE)
+    options.iter().copied().filter(|&value| value <= desired).max().or_else(|| options.iter().copied().min()).unwrap_or(DEFAULT_LEVERAGE)
 }
 
 pub fn get_autoclose_suggestions(leverage: u8) -> Vec<u8> {

@@ -8,10 +8,10 @@ import java.util.Locale
 class PriceChangeFormatterTest {
 
     private val fiatUS = PriceChangeFormatter(
-        CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD, locale = Locale.US)
+        CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD, locale = Locale.US),
     )
     private val adaptiveUS = PriceChangeFormatter(
-        CurrencyFormatter(currency = Currency.USD, locale = Locale.US)
+        CurrencyFormatter(currency = Currency.USD, locale = Locale.US),
     )
 
     @Test

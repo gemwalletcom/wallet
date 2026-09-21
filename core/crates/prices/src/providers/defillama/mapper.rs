@@ -49,9 +49,7 @@ pub fn asset_ids_for_defillama_id(provider_price_id: &str) -> Vec<AssetId> {
     let Some((slug, token_id)) = provider_price_id.split_once(':') else {
         return vec![];
     };
-    chain_from_defillama_slug(slug)
-        .map(|chain| vec![AssetId::from(chain, Some(token_id.to_string()))])
-        .unwrap_or_default()
+    chain_from_defillama_slug(slug).map(|chain| vec![AssetId::from(chain, Some(token_id.to_string()))]).unwrap_or_default()
 }
 
 pub fn map_price(mapping: AssetPriceMapping, coin: &CoinPrice) -> AssetPriceFull {

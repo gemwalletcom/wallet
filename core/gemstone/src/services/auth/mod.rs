@@ -9,7 +9,7 @@ use crate::auth::create_auth_message;
 use crate::keystore::decode_password;
 use crate::keystore::{GemKeystore, keystore_id_for_wallet};
 use crate::services::device::GemDeviceKeyService;
-use crate::services::error::GemServiceError;
+use crate::services::error::{GemServiceError, required_account};
 use crate::services::wallet::GemKeystorePassword;
 
 #[derive(uniffi::Object)]
@@ -24,12 +24,7 @@ pub struct GemAuthService {
 impl GemAuthService {
     #[uniffi::constructor]
     pub fn new(api: Arc<GemDeviceApiClient>, keystore: Arc<GemKeystore>, password: Arc<dyn GemKeystorePassword>, device_key: Arc<GemDeviceKeyService>) -> Self {
-        Self {
-            api,
-            keystore,
-            password,
-            device_key,
-        }
+        Self { api, keystore, password, device_key }
     }
 }
 
@@ -39,9 +34,7 @@ impl GemAuthService {
     }
 
     pub async fn get_auth_payload(&self, wallet: Wallet) -> Result<AuthPayload, GemServiceError> {
-        let account = rules::auth_account(&wallet).ok_or_else(|| GemServiceError::NotFound {
-            msg: format!("wallet {} has no {} account", wallet.id.id(), rules::AUTH_CHAIN),
-        })?;
+        let account = required_account(&wallet, rules::AUTH_CHAIN)?;
         let nonce = self.get_nonce().await?;
         let message = create_auth_message(&account.address, nonce.clone());
         let password = decode_password(&self.password.get_password(false)?);

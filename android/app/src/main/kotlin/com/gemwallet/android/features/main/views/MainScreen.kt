@@ -45,12 +45,12 @@ import com.gemwallet.android.features.assets.views.AssetsScreen
 import com.gemwallet.android.features.main.models.BottomNavItem
 import com.gemwallet.android.features.main.viewmodels.MainScreenViewModel
 import com.gemwallet.android.features.settings.settings.presents.views.SettingsScene
-import com.gemwallet.android.ui.models.actions.SettingsSceneAction
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.ConnectionStatusBannerHost
 import com.gemwallet.android.ui.components.LocalConnectionBannerHandled
 import com.gemwallet.android.ui.components.animation.NavigationAnimation
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.models.actions.SettingsSceneAction
 import com.gemwallet.android.ui.navigation.WalletNavigator
 import com.gemwallet.android.MessageToast
 import com.gemwallet.android.ui.navigation.WalletRootRoute
@@ -58,19 +58,14 @@ import com.gemwallet.android.ui.navigation.routes.assetsRoute
 import com.gemwallet.android.ui.navigation.routes.settingsRoute
 import com.gemwallet.android.ui.navigation.routes.transactionsRoute
 import com.gemwallet.android.ui.theme.alpha10
+import com.gemwallet.android.ui.theme.hairlineThickness
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space6
 import kotlinx.coroutines.launch
-import com.gemwallet.android.ui.theme.hairlineThickness
 
 @Composable
-fun MainScreen(
-    navigator: WalletNavigator,
-    currentTab: MutableState<String>,
-    onWalletContentReady: () -> Unit = {},
-    viewModel: MainScreenViewModel = hiltViewModel()
-) {
+fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onWalletContentReady: () -> Unit = {}, viewModel: MainScreenViewModel = hiltViewModel()) {
     val pendingCount by viewModel.pendingTxCount.collectAsStateWithLifecycle()
     val assetsViewModel: AssetsViewModel = hiltViewModel()
     val isRootRouteActive = navigator.backStack.lastOrNull() == WalletRootRoute
@@ -163,19 +158,18 @@ fun MainScreen(
                                         badge = {
                                             if (!item.badge.isNullOrEmpty()) {
                                                 Badge(
-                                                    modifier = Modifier.offset(x = space6, y = space0)
+                                                    modifier = Modifier.offset(x = space6, y = space0),
                                                 ) {
                                                     Text(text = item.badge)
                                                 }
                                             }
-                                        }
+                                        },
                                     ) {
                                         Icon(
                                             modifier = modifier,
                                             imageVector = item.icon,
                                             contentDescription = item.label,
                                         )
-
                                     }
                                 }
                             },
@@ -186,77 +180,79 @@ fun MainScreen(
                                 unselectedIconColor = MaterialTheme.colorScheme.secondary,
                                 unselectedTextColor = MaterialTheme.colorScheme.onSurface,
                                 selectedIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = alpha10),
-                            )
+                            ),
                         )
                     }
                 }
             }
-        }
+        },
     ) {
         val bottomPadding = it.calculateBottomPadding()
         Box(
             modifier = Modifier
                 .padding(bottom = bottomPadding)
-                .consumeWindowInsets(PaddingValues(bottom = bottomPadding))
+                .consumeWindowInsets(PaddingValues(bottom = bottomPadding)),
         ) {
             CompositionLocalProvider(LocalConnectionBannerHandled provides true) {
-            AnimatedContent(
-                targetState = currentTab.value,
-                transitionSpec = { NavigationAnimation.tabContentTransition() },
-                label = "MainTabContent",
-            ) { tab ->
-                tabStateHolder.SaveableStateProvider(tab) {
-                    when (tab) {
-                        assetsRoute -> AssetsScreen(
-                            onAction = { action ->
-                                when (action) {
-                                    AssetsAction.ShowWallets -> navigator.openWallets()
-                                    AssetsAction.Manage -> navigator.openAssetsManage()
-                                    AssetsAction.Scan -> isPresentingScanner = true
-                                    AssetsAction.Search -> navigator.openAssetsSearch()
-                                    AssetsAction.Send -> navigator.openRecipient()
-                                    AssetsAction.Receive -> navigator.openReceive()
-                                    AssetsAction.Buy -> navigator.openBuy()
-                                    AssetsAction.Swap -> navigator.openSwap()
-                                    AssetsAction.Portfolio -> navigator.openPortfolioChart()
-                                    AssetsAction.Perpetuals -> navigator.openPerpetuals()
-                                    is AssetsAction.OpenPerpetualDetails -> navigator.openPerpetualDetails(action.assetId)
-                                    is AssetsAction.OpenAsset -> navigator.openAsset(action.assetId)
-                                    AssetsAction.OpenCollections -> navigator.openNftList()
-                                    is AssetsAction.OpenNftCollection -> navigator.openNftCollection(action.collectionId)
-                                    is AssetsAction.OpenNftAsset -> navigator.openNftAsset(action.assetId)
-                                }
-                            },
-                            onContentReady = onWalletContentReady,
-                            listState = assetsListState,
-                            viewModel = assetsViewModel,
-                        )
-                        transactionsRoute -> TransactionsNavScreen(
-                            listState = activitiesListState,
-                            onTransaction = navigator::openTransaction,
-                            onBuy = navigator::openBuy,
-                            onReceive = navigator::openReceive,
-                        )
-                        else -> SettingsScene(
-                            scrollState = settingsScrollState,
-                            walletConnectEnabled = viewModel.isWalletConnectEnabled,
-                            onAction = { action ->
-                                when (action) {
-                                    SettingsSceneAction.Wallets -> navigator.openWallets()
-                                    SettingsSceneAction.Security -> navigator.openSecurity()
-                                    SettingsSceneAction.Notifications -> navigator.openNotifications()
-                                    SettingsSceneAction.Preferences -> navigator.openPreferences()
-                                    SettingsSceneAction.Bridges -> navigator.openBridgeConnections()
-                                    SettingsSceneAction.Support -> navigator.openSupport()
-                                    SettingsSceneAction.Referral -> navigator.openReferral()
-                                    SettingsSceneAction.AboutUs -> navigator.openAboutUs()
-                                    SettingsSceneAction.Develop -> navigator.openDevelop()
-                                }
-                            },
-                        )
+                AnimatedContent(
+                    targetState = currentTab.value,
+                    transitionSpec = { NavigationAnimation.tabContentTransition() },
+                    label = "MainTabContent",
+                ) { tab ->
+                    tabStateHolder.SaveableStateProvider(tab) {
+                        when (tab) {
+                            assetsRoute -> AssetsScreen(
+                                onAction = { action ->
+                                    when (action) {
+                                        AssetsAction.ShowWallets -> navigator.openWallets()
+                                        AssetsAction.Manage -> navigator.openAssetsManage()
+                                        AssetsAction.Scan -> isPresentingScanner = true
+                                        AssetsAction.Search -> navigator.openAssetsSearch()
+                                        AssetsAction.Send -> navigator.openRecipient()
+                                        AssetsAction.Receive -> navigator.openReceive()
+                                        AssetsAction.Buy -> navigator.openBuy()
+                                        AssetsAction.Swap -> navigator.openSwap()
+                                        AssetsAction.Portfolio -> navigator.openPortfolioChart()
+                                        AssetsAction.Perpetuals -> navigator.openPerpetuals()
+                                        is AssetsAction.OpenPerpetualDetails -> navigator.openPerpetualDetails(action.assetId)
+                                        is AssetsAction.OpenAsset -> navigator.openAsset(action.assetId)
+                                        AssetsAction.OpenCollections -> navigator.openNftList()
+                                        is AssetsAction.OpenNftCollection -> navigator.openNftCollection(action.collectionId)
+                                        is AssetsAction.OpenNftAsset -> navigator.openNftAsset(action.assetId)
+                                    }
+                                },
+                                onContentReady = onWalletContentReady,
+                                listState = assetsListState,
+                                viewModel = assetsViewModel,
+                            )
+
+                            transactionsRoute -> TransactionsNavScreen(
+                                listState = activitiesListState,
+                                onTransaction = navigator::openTransaction,
+                                onBuy = navigator::openBuy,
+                                onReceive = navigator::openReceive,
+                            )
+
+                            else -> SettingsScene(
+                                scrollState = settingsScrollState,
+                                walletConnectEnabled = viewModel.isWalletConnectEnabled,
+                                onAction = { action ->
+                                    when (action) {
+                                        SettingsSceneAction.Wallets -> navigator.openWallets()
+                                        SettingsSceneAction.Security -> navigator.openSecurity()
+                                        SettingsSceneAction.Notifications -> navigator.openNotifications()
+                                        SettingsSceneAction.Preferences -> navigator.openPreferences()
+                                        SettingsSceneAction.Bridges -> navigator.openBridgeConnections()
+                                        SettingsSceneAction.Support -> navigator.openSupport()
+                                        SettingsSceneAction.Referral -> navigator.openReferral()
+                                        SettingsSceneAction.AboutUs -> navigator.openAboutUs()
+                                        SettingsSceneAction.Develop -> navigator.openDevelop()
+                                    }
+                                },
+                            )
+                        }
                     }
                 }
-            }
             }
         }
     }

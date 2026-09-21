@@ -2,8 +2,8 @@
 
 import Components
 import Gemstone
-import GemstonePrimitivesTestKit
 import GemstonePrimitives
+import GemstonePrimitivesTestKit
 import InfoSheet
 @testable import Perpetuals
 import PerpetualsTestKit
@@ -15,38 +15,30 @@ import Testing
 @MainActor
 struct PerpetualSceneViewModelTests {
     @Test
-    func theTitleFallsBackToTheAssetSymbol() {
-        let model = PerpetualSceneViewModel.mock(asset: .mock(symbol: "HYPE"))
-
-        #expect(model.navigationTitle == "HYPE")
-    }
-
-    @Test
-    func theSceneReadsItsRowsFromCore() {
+    func theSceneReadsItsScreenFromCore() {
         let service = GemPerpetualDetailsServiceMock()
-        service.sectionsValue = [.position]
-        service.buttonsValue = [.long, .short]
-        service.modifyButtonsValue = [.increase, .reduce]
-        service.infoRowsValue = [.openInterest]
+        service.detailsValue = .mock(
+            title: "HYPE",
+            sections: [.info(buttons: [.long, .short], rows: [.loading])],
+            modifyButtons: [.increase, .reduce],
+        )
         let model = PerpetualSceneViewModel.mock(service: service)
 
-        #expect(model.sections == [.position])
-        #expect(model.buttons == [.long, .short])
-        #expect(model.modifyButtons == [.increase, .reduce])
-        #expect(model.infoRows == [.openInterest])
+        #expect(model.details == service.detailsValue)
+        #expect(model.positionModel(model.details) == nil)
     }
 
     @Test
-    func onlyTheRowsWithAnExplanationOfferOne() {
-        let model = PerpetualSceneViewModel.mock()
+    func thePositionCoreNamesIsTheOneTheSceneShowsAndActsOn() {
+        let service = GemPerpetualDetailsServiceMock()
+        let position = Primitives.PerpetualPosition.mock()
+        service.detailsValue = .mock(sections: [.position(rows: [])], position: position.toGem())
+        let model = PerpetualSceneViewModel.mock(service: service)
 
-        #expect(model.infoAction(for: GemPerpetualInfoRow.dailyVolume) == nil)
-        #expect(model.infoAction(for: GemPerpetualInfoRow.openInterest) != nil)
-        #expect(model.infoAction(for: GemPerpetualInfoRow.fundingRate) != nil)
-        #expect(model.infoAction(for: GemPerpetualPositionDetailRow.pnl) == nil)
-        #expect(model.infoAction(for: GemPerpetualPositionDetailRow.autoclose) != nil)
-        #expect(model.infoAction(for: GemPerpetualPositionDetailRow.liquidationPrice) != nil)
-        #expect(model.infoAction(for: GemPerpetualPositionDetailRow.fundingPayments) != nil)
+        #expect(model.positionModel(model.details)?.data.position == position)
+
+        model.onSelectAutoclose()
+        #expect(model.isPresentingAutoclose?.position == position)
     }
 
     @Test
@@ -131,19 +123,19 @@ struct PerpetualSceneViewModelTests {
     func theInfoSheetsMatchTheRowThatOpenedThem() {
         let model = PerpetualSceneViewModel.mock()
 
-        model.onSelectFundingRateInfo()
+        model.onInfo(.fundingApr)
         #expect(model.isPresentingInfoSheet == .fundingApr)
 
-        model.onSelectFundingPaymentsInfo()
+        model.onInfo(.fundingPayments)
         #expect(model.isPresentingInfoSheet == .fundingPayments)
 
-        model.onSelectLiquidationPriceInfo()
+        model.onInfo(.liquidationPrice)
         #expect(model.isPresentingInfoSheet == .liquidationPrice)
 
-        model.onSelectOpenInterestInfo()
+        model.onInfo(.openInterest)
         #expect(model.isPresentingInfoSheet == .openInterest)
 
-        model.onSelectAutocloseInfo()
+        model.onInfo(.autoClose)
         #expect(model.isPresentingInfoSheet == .autoclose)
     }
 

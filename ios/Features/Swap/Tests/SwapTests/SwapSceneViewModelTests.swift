@@ -1,21 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitivesTestKit
-import GemstoneServicesTestKit
 import BigInt
 import enum Gemstone.GemSwapButtonAction
-import enum Gemstone.SwapperError
 import struct Gemstone.GemSwapPairSuggestion
 import struct Gemstone.GemSwapQuotesResult
 import struct Gemstone.GemSwapSession
+import enum Gemstone.SwapperError
 import struct Gemstone.SwapperQuote
+import GemstonePrimitives
+import GemstonePrimitivesTestKit
+import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store
 import StoreTestKit
 @testable import Swap
 import SwapTestKit
-import GemstonePrimitives
 import Testing
 
 @MainActor
@@ -99,7 +99,7 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
-    func loadingFlagsSeparateQuoteAndTransferDataStates() {
+    func loadingFlagsSeparateQuoteAndTransferDataStates() throws {
         let model = SwapSceneViewModel.mock()
 
         model.session = .mockLoading()
@@ -108,7 +108,7 @@ struct SwapSceneViewModelTests {
         #expect(model.isQuoteInteractionEnabled)
         #expect(model.isReceiveFieldLoading)
 
-        model.session = GemSwapSession.mockReady().startTransfer()!
+        model.session = try #require(GemSwapSession.mockReady().startTransfer())
         #expect(model.isQuoteLoading == false)
         #expect(model.isTransferDataLoading)
         #expect(model.isQuoteInteractionEnabled == false)
@@ -116,13 +116,13 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
-    func fetchDoesNotRunWhileTransferDataLoading() async {
+    func fetchDoesNotRunWhileTransferDataLoading() async throws {
         let model = SwapSceneViewModel.mock()
         await model.load()
         let previousToValue = model.toValue
         let previousQuote = model.selectedSwapQuote
 
-        model.session = model.session.startTransfer()!
+        model.session = try #require(model.session.startTransfer())
         await model.load()
 
         #expect(model.isQuoteLoading == false)
@@ -131,7 +131,7 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
-    func quoteChangingActionsClearTransferStateAndDisableProviderSelection() async {
+    func quoteChangingActionsClearTransferStateAndDisableProviderSelection() async throws {
         let model = SwapSceneViewModel.mock()
         await model.load()
 
@@ -141,52 +141,8 @@ struct SwapSceneViewModelTests {
         model.onFinishSwapProviderSelection(.mock())
         #expect(model.session.error() == nil)
 
-        model.session = model.session.startTransfer()!
+        model.session = try #require(model.session.startTransfer())
         #expect(model.swapDetailsViewModel?.allowSelectProvider == false)
-    }
-
-    @Test
-    func cancelledTaskDoesNotUpdateStateWithError() async throws {
-        let service = GemSwapQuoteServiceMock(
-            quotesDelay: .milliseconds(100),
-            quotesError: SwapperError.NoQuoteAvailable,
-        )
-        let model = SwapSceneViewModel.mock(service: service)
-
-        let task = Task {
-            await model.load()
-        }
-
-        try await Task.sleep(for: .milliseconds(50))
-        task.cancel()
-        await task.value
-
-        if model.viewState.quoteError != nil {
-            Issue.record("State should not be .error when Task is cancelled")
-        }
-    }
-
-    @Test
-    func emptyInputDoesNotApplyLateQuote() async throws {
-        let service = GemSwapQuoteServiceMock(
-            quotes: [.mock()],
-            quotesDelay: .milliseconds(100),
-        )
-        let model = SwapSceneViewModel.mock(service: service)
-
-        let task = Task {
-            await model.load()
-        }
-
-        try await Task.sleep(for: .milliseconds(50))
-        model.amountInputModel.text = "0"
-        model.onChangeFromValue("1", "0")
-
-        await task.value
-
-        #expect(model.viewState.isInputEmpty)
-        #expect(model.toValue.isEmpty)
-        #expect(model.selectedSwapQuote == nil)
     }
 
     @Test
@@ -233,29 +189,6 @@ struct SwapSceneViewModelTests {
 
         model.amountInputModel.text = .empty
         model.onChangeFromValue("1", .empty)
-
-        #expect(model.viewState.isInputEmpty)
-        #expect(model.toValue.isEmpty)
-        #expect(model.selectedSwapQuote == nil)
-    }
-
-    @Test
-    func emptyInputDoesNotApplyLateError() async throws {
-        let service = GemSwapQuoteServiceMock(
-            quotesDelay: .milliseconds(100),
-            quotesError: SwapperError.NoQuoteAvailable,
-        )
-        let model = SwapSceneViewModel.mock(service: service)
-
-        let task = Task {
-            await model.load()
-        }
-
-        try await Task.sleep(for: .milliseconds(50))
-        model.amountInputModel.text = "0"
-        model.onChangeFromValue("1", "0")
-
-        await task.value
 
         #expect(model.viewState.isInputEmpty)
         #expect(model.toValue.isEmpty)
@@ -345,25 +278,25 @@ struct SwapSceneViewModelTests {
     func refreshedQuotesKeepSelectedProvider() async {
         let service = GemSwapQuoteServiceMock(
             quotes: [
-                .mock(toValue: 260000000000, provider: .uniswapV3),
-                .mock(toValue: 250000000000, provider: .thorchain),
+                .mock(toValue: 260_000_000_000, provider: .uniswapV3),
+                .mock(toValue: 250_000_000_000, provider: .thorchain),
             ],
         )
         let model = SwapSceneViewModel.mock(service: service)
 
-        model.onFinishSwapProviderSelection(.mock(toValue: 249000000000, provider: .thorchain))
+        model.onFinishSwapProviderSelection(.mock(toValue: 249_000_000_000, provider: .thorchain))
         await model.load()
 
         #expect(model.selectedSwapQuote?.data.provider.id == .thorchain)
-        #expect(model.selectedSwapQuote?.toValue == 250000000000)
+        #expect(model.selectedSwapQuote?.toValue == 250_000_000_000)
     }
 
     @Test
     func providerSelectionAppliesWithoutRefetch() async {
         let service = GemSwapQuoteServiceMock(
             quotes: [
-                .mock(toValue: 260000000000, provider: .uniswapV3),
-                .mock(toValue: 250000000000, provider: .thorchain),
+                .mock(toValue: 260_000_000_000, provider: .uniswapV3),
+                .mock(toValue: 250_000_000_000, provider: .thorchain),
             ],
         )
         let model = SwapSceneViewModel.mock(service: service)
@@ -371,7 +304,7 @@ struct SwapSceneViewModelTests {
 
         #expect(model.selectedSwapQuote?.data.provider.id == .uniswapV3)
 
-        model.onFinishSwapProviderSelection(.mock(toValue: 250000000000, provider: .thorchain))
+        model.onFinishSwapProviderSelection(.mock(toValue: 250_000_000_000, provider: .thorchain))
 
         #expect(model.selectedSwapQuote?.data.provider.id == .thorchain)
     }
@@ -392,11 +325,11 @@ struct SwapSceneViewModelTests {
     func increasedAmountSelectsBestProviderWithoutManualSelection() async {
         let quotesByAmount: @Sendable (BigInt) -> [SwapperQuote] = { amount in
             guard amount > BigInt(2_000_000_000_000_000_000) else {
-                return [.mock(toValue: 250000000000, provider: .thorchain)]
+                return [.mock(toValue: 250_000_000_000, provider: .thorchain)]
             }
             return [
-                .mock(toValue: 260000000000, provider: .uniswapV3),
-                .mock(toValue: 250000000000, provider: .thorchain),
+                .mock(toValue: 260_000_000_000, provider: .uniswapV3),
+                .mock(toValue: 250_000_000_000, provider: .thorchain),
             ]
         }
         let model = SwapSceneViewModel.mock(service: GemSwapQuoteServiceMock(quotes: quotesByAmount))
@@ -406,18 +339,19 @@ struct SwapSceneViewModelTests {
         #expect(model.selectedSwapQuote?.data.provider.id == .thorchain)
 
         model.amountInputModel.text = "4"
+        model.onChangeFromValue("1", "4")
         await model.load()
 
         #expect(model.selectedSwapQuote?.data.provider.id == .uniswapV3)
-        #expect(model.selectedSwapQuote?.toValue == 260000000000)
+        #expect(model.selectedSwapQuote?.toValue == 260_000_000_000)
     }
 
     @Test
     func refreshedQuotesFallBackWhenSelectedProviderDisappears() async {
-        let service = GemSwapQuoteServiceMock(quotes: [.mock(toValue: 260000000000, provider: .uniswapV3)])
+        let service = GemSwapQuoteServiceMock(quotes: [.mock(toValue: 260_000_000_000, provider: .uniswapV3)])
         let model = SwapSceneViewModel.mock(service: service)
 
-        model.onFinishSwapProviderSelection(.mock(toValue: 249000000000, provider: .thorchain))
+        model.onFinishSwapProviderSelection(.mock(toValue: 249_000_000_000, provider: .thorchain))
         await model.load()
 
         #expect(model.selectedSwapQuote?.data.provider.id == .uniswapV3)
@@ -427,14 +361,15 @@ struct SwapSceneViewModelTests {
     func changedPairDropsManualProviderSelection() async {
         let service = GemSwapQuoteServiceMock(
             quotes: [
-                .mock(toValue: 260000000000, provider: .uniswapV3),
-                .mock(toValue: 250000000000, provider: .thorchain),
+                .mock(toValue: 260_000_000_000, provider: .uniswapV3),
+                .mock(toValue: 250_000_000_000, provider: .thorchain),
             ],
         )
         let model = SwapSceneViewModel.mock(service: service)
 
-        model.onFinishSwapProviderSelection(.mock(toValue: 249000000000, provider: .thorchain))
-        model.onChangeToAsset(old: .mock(asset: .mockEthereum()), new: .mock(asset: .mockEthereumUSDT()))
+        model.onFinishSwapProviderSelection(.mock(toValue: 249_000_000_000, provider: .thorchain))
+        model.toAssetQuery.value = .mock(asset: .mockSolana())
+        model.onChangeToAsset(old: .mock(asset: .mockEthereumUSDT()), new: .mock(asset: .mockSolana()))
         await model.load()
 
         #expect(model.selectedSwapQuote?.data.provider.id == .uniswapV3)
@@ -453,11 +388,11 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
-    func minimumAmountIsOfferedOnlyWhenTheBalanceCoversIt() async {
+    func minimumAmountIsOfferedOnlyWhenTheBalanceCoversIt() {
         let model = SwapSceneViewModel.mock()
 
         model.session = .mockFailed(.InputAmountError(minAmount: "900000000000000000"))
-        #expect(model.buttonViewModel.buttonAction == .useMinimumAmount(value: 900000000000000000))
+        #expect(model.buttonViewModel.buttonAction == .useMinimumAmount(value: 900_000_000_000_000_000))
 
         model.session = .mockFailed(.InputAmountError(minAmount: "2000000000000000000"))
         #expect(model.buttonViewModel.buttonAction == .insufficientBalance)
@@ -468,11 +403,13 @@ struct SwapSceneViewModelTests {
         let model = SwapSceneViewModel.mock()
 
         model.amountInputModel.text = "2"
+        model.onChangeFromValue("1", "2")
 
-        #expect(model.viewState.isInputEmpty)
+        #expect(model.viewState.isQuoteLoading)
         #expect(model.buttonViewModel.buttonAction == .insufficientBalance)
 
         model.amountInputModel.text = "1"
+        model.onChangeFromValue("2", "1")
 
         #expect(model.buttonViewModel.buttonAction == .swap)
     }

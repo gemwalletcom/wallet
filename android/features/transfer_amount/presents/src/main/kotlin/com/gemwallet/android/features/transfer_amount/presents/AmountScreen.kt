@@ -18,11 +18,7 @@ import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.components.screen.LoadingScene
 
 @Composable
-fun AmountScreen(
-    onCancel: () -> Unit,
-    onConfirm: (ConfirmTransferInput) -> Unit,
-    viewModel: AmountViewModel = hiltViewModel(),
-) {
+fun AmountScreen(onCancel: () -> Unit, onConfirm: (ConfirmTransferInput) -> Unit, viewModel: AmountViewModel = hiltViewModel()) {
     val provider = viewModel.provider
     val title = provider.title.collectAsStateWithLifecycle().value?.asString().orEmpty()
     val assetInfo = provider.assetInfo.collectAsStateWithLifecycle().value ?: run {

@@ -7,10 +7,11 @@ import Foundation
 import enum Gemstone.FiatProviderName
 import enum Gemstone.GemFiatAmountCheck
 import struct Gemstone.GemFiatQuoteRow
+import protocol Gemstone.GemFiatQuoteServiceProtocol
 import struct Gemstone.GemFiatQuotesResult
 import struct Gemstone.GemFiatSession
+import struct Gemstone.GemFiatSuggestedAmount
 import struct Gemstone.GemFiatViewState
-import protocol Gemstone.GemFiatQuoteServiceProtocol
 import enum Gemstone.GemServiceError
 import GemstonePrimitives
 import GemstoneServices
@@ -163,13 +164,7 @@ public final class FiatSceneViewModel {
     }
 
     func emptyTitle(_ viewState: GemFiatViewState) -> String {
-        switch viewState.phase {
-        case .noInput, .invalidInput:
-            switch type {
-            case .buy, .sell: Localized.Input.enterAmountTo(type.action)
-            }
-        case .invalid, .loading, .ready, .noQuotes, .failed: Localized.Buy.noResults
-        }
+        viewState.quotesMessage()?.title(action: type.action) ?? .empty
     }
 
     var assetTitle: String {
@@ -188,8 +183,8 @@ public final class FiatSceneViewModel {
         AssetIdViewModel(assetId: asset.id).assetImage
     }
 
-    var suggestedAmounts: [Int] {
-        service.suggestedAmounts().map(Int.init)
+    var suggestedAmounts: [GemFiatSuggestedAmount] {
+        service.suggestedAmounts()
     }
 
     var showFiatTypePicker: Bool {
@@ -220,15 +215,11 @@ public final class FiatSceneViewModel {
 
     var cryptoAmountValue: String {
         guard let selectedQuoteViewModel else { return " " }
-        return "≈ \(selectedQuoteViewModel.amountText)"
+        return selectedQuoteViewModel.row.cryptoEstimateText(formattedValue: selectedQuoteViewModel.amountText)
     }
 
     var rateValue: String {
         selectedQuoteViewModel?.rateText ?? ""
-    }
-
-    func buttonTitle(amount: Int) -> String {
-        "\(currencyFormatter.symbol)\(amount)"
     }
 
     func providerAssetImage(_ provider: Gemstone.FiatProviderName) -> AssetImage? {
@@ -246,10 +237,13 @@ extension FiatSceneViewModel {
         do {
             let quotes = try await service.quotes(quoteType: request.quoteType, assetId: asset.id.identifier, amount: request.amount)
             results = GemFiatQuotesResult(request: request, quotes: quotes, error: nil)
-        } catch {
+        } catch let error as GemServiceError {
             guard !error.isCancelled, !Task.isCancelled else { return }
-            results = GemFiatQuotesResult(request: request, quotes: [], error: error as? GemServiceError ?? .Core(msg: error.localizedDescription))
+            results = GemFiatQuotesResult(request: request, quotes: [], error: error)
             debugLog("FiatSceneViewModel get quotes error: \(error)")
+        } catch {
+            debugLog("FiatSceneViewModel get quotes error: \(error)")
+            return
         }
         session = session.onQuoteResults(results: results)
     }
@@ -330,15 +324,17 @@ extension FiatSceneViewModel {
 
                 urlState = .data(())
                 await UIApplication.shared.open(url, options: [:])
-            } catch {
+            } catch let error as GemServiceError {
                 urlState = .error(error)
                 isPresentingAlertMessage = AlertMessage(
                     title: Localized.Errors.errorOccurred,
-                    message: error.localizedDescription,
+                    message: error.text().text,
                 )
+                debugLog("FiatSceneViewModel get quote URL error: \(error)")
+            } catch {
+                urlState = .error(error)
                 debugLog("FiatSceneViewModel get quote URL error: \(error)")
             }
         }
     }
 }
-

@@ -3,10 +3,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 #[get("/")]
 pub fn get_status(ip: std::net::IpAddr) -> Json<Status> {
-    Json(Status {
-        time: get_epoch_ms(),
-        ipv4: ip.to_string(),
-    })
+    Json(Status { time: get_epoch_ms(), ipv4: ip.to_string() })
 }
 
 #[get("/health")]

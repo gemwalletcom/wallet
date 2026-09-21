@@ -34,10 +34,7 @@ struct NamespaceCache {
 
 impl NamespaceCache {
     fn new(rules: CacheRules) -> Self {
-        Self {
-            entries: RwLock::new(HashMap::new()),
-            rules,
-        }
+        Self { entries: RwLock::new(HashMap::new()), rules }
     }
 }
 
@@ -49,9 +46,7 @@ pub struct RequestCache {
 
 impl RequestCache {
     pub(crate) fn for_chains<'a>(config: &CacheConfig, chain_types: &ChainTypesConfig, chains: impl IntoIterator<Item = &'a ChainConfig>) -> Self {
-        let rules = chains
-            .into_iter()
-            .filter_map(|chain| chain_types.cache_rules(chain.chain).map(|rules| (CacheScope::Chain(chain.chain), rules)));
+        let rules = chains.into_iter().filter_map(|chain| chain_types.cache_rules(chain.chain).map(|rules| (CacheScope::Chain(chain.chain), rules)));
         Self::new(config.memory.max, rules)
     }
 
@@ -176,11 +171,7 @@ mod tests {
         let cached = cache.get(&chain, "test_key").await.unwrap();
         assert_eq!(cached, response.clone().into_cached());
         for (request_id, latency, expected_latency) in [("first", 5, "5ms"), ("second", 10, "10ms")] {
-            let annotated = cache
-                .get(&chain, "test_key")
-                .await
-                .unwrap()
-                .with_proxy_headers(request_id, Duration::from_millis(latency), CacheStatus::Hit);
+            let annotated = cache.get(&chain, "test_key").await.unwrap().with_proxy_headers(request_id, Duration::from_millis(latency), CacheStatus::Hit);
             assert_eq!(
                 annotated.headers,
                 HeaderMap::from_iter([
@@ -316,10 +307,7 @@ mod tests {
 
         assert_eq!(nodes.get(&Chain::Ethereum, "same").await, Some(node.into_cached()));
         let cached = cache.get_provider("evm", "ethereum", "same").await.unwrap();
-        assert_eq!(
-            (cached.status, &cached.headers, cached.body.as_slice(), cached.is_from_cache()),
-            (200, &headers, b"provider".as_slice(), true)
-        );
+        assert_eq!((cached.status, &cached.headers, cached.body.as_slice(), cached.is_from_cache()), (200, &headers, b"provider".as_slice(), true));
         assert_eq!(cache.get_provider("other", "ethereum", "same").await, None);
         assert_eq!(cache.get_provider("evm", "disabled", "same").await, None);
         let mut isolated = cache.get_provider("evm", "ethereum", "same").await.unwrap();
@@ -346,12 +334,8 @@ mod tests {
     async fn test_chain_and_provider_caches_have_independent_budgets() {
         let response = ProxyResponse::with_content_type(200, b"response".to_vec(), JSON_CONTENT_TYPE);
         let size = CacheEntry::new(response.clone(), MINUTE).size();
-        let node_config = CacheConfig {
-            memory: MemoryConfig { max: 2 * size },
-        };
-        let provider_config = CacheConfig {
-            memory: MemoryConfig { max: 3 * size },
-        };
+        let node_config = CacheConfig { memory: MemoryConfig { max: 2 * size } };
+        let provider_config = CacheConfig { memory: MemoryConfig { max: 3 * size } };
         let chains = [ChainConfig::mock(Chain::Ethereum), ChainConfig::mock(Chain::Optimism)];
         let nodes = RequestCache::for_chains(&node_config, &ChainTypesConfig::mock(), chains.iter());
         let providers = RequestCache::mock_providers(&provider_config);
@@ -424,13 +408,7 @@ mod tests {
         .unwrap();
         let cache = RequestCache::for_chains(&CacheConfig::mock(), &config, [ChainConfig::mock(Chain::Ethereum)].iter());
 
-        assert_eq!(
-            cache.should_cache_call(&Chain::Ethereum, &JsonRpcCall::mock(1, "eth_blockNumber")),
-            Some(Duration::from_secs(60))
-        );
-        assert_eq!(
-            cache.should_cache_call(&Chain::Ethereum, &JsonRpcCall::mock_eth_call(CONTRACT, SELECTOR)),
-            Some(Duration::from_secs(30))
-        );
+        assert_eq!(cache.should_cache_call(&Chain::Ethereum, &JsonRpcCall::mock(1, "eth_blockNumber")), Some(Duration::from_secs(60)));
+        assert_eq!(cache.should_cache_call(&Chain::Ethereum, &JsonRpcCall::mock_eth_call(CONTRACT, SELECTOR)), Some(Duration::from_secs(30)));
     }
 }

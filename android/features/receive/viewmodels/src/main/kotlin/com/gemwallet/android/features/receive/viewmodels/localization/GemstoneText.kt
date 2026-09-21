@@ -13,6 +13,8 @@ internal fun GemReceiveWarning.text(context: Context, asset: Asset): String = wh
         asset.symbol.boldMarkdown(),
         asset.networkFullName.boldMarkdown(),
     )
+
     GemReceiveWarning.NO_DESTINATION_TAG_REQUIRED -> context.getString(R.string.wallet_receive_no_destination_tag_required)
+
     GemReceiveWarning.NO_MEMO_REQUIRED -> context.getString(R.string.wallet_receive_no_memo_required)
 }

@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import GemstonePrimitives
 import struct Gemstone.GemSimulationValue
+import GemstonePrimitives
 import Localization
 import Primitives
 @testable import PrimitivesComponents

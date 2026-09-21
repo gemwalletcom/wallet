@@ -76,11 +76,7 @@ private val statusIconSize = 14.dp
 internal val imageLoaderSize = 40.dp
 
 @Composable
-internal fun SupportMessageBubble(
-    item: SupportChatMessage,
-    onImageClick: (String) -> Unit,
-    onRetry: (SupportMessage) -> Unit,
-) {
+internal fun SupportMessageBubble(item: SupportChatMessage, onImageClick: (String) -> Unit, onRetry: (SupportMessage) -> Unit) {
     val message = item.message
     val isUser = message.sender is SupportMessageSender.User
     val bubbleColor = if (isUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest
@@ -178,15 +174,7 @@ internal fun SupportMessageBubble(
 }
 
 @Composable
-private fun MessageText(
-    text: String,
-    textColor: Color,
-    linkColor: Color,
-    metaColor: Color,
-    message: SupportMessage,
-    time: String,
-    onRetry: (SupportMessage) -> Unit,
-) {
+private fun MessageText(text: String, textColor: Color, linkColor: Color, metaColor: Color, message: SupportMessage, time: String, onRetry: (SupportMessage) -> Unit) {
     val markdown = parseMarkdownToAnnotatedString(text, linkColor = linkColor)
     val textWithTime = buildAnnotatedString {
         append(markdown)
@@ -213,13 +201,7 @@ private fun MessageText(
 }
 
 @Composable
-private fun SupportMessageLinks(
-    links: List<SupportChatLink>,
-    linkColor: Color,
-    metaColor: Color,
-    showTopDivider: Boolean,
-    onClick: (String) -> Unit,
-) {
+private fun SupportMessageLinks(links: List<SupportChatLink>, linkColor: Color, metaColor: Color, showTopDivider: Boolean, onClick: (String) -> Unit) {
     Column {
         val dividerColor = metaColor.copy(alpha = 0.3f)
         if (showTopDivider) {
@@ -240,12 +222,7 @@ private fun SupportMessageLinks(
 }
 
 @Composable
-private fun SupportMessageLinkRow(
-    link: SupportChatLink,
-    linkColor: Color,
-    metaColor: Color,
-    onClick: (String) -> Unit,
-) {
+private fun SupportMessageLinkRow(link: SupportChatLink, linkColor: Color, metaColor: Color, onClick: (String) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -290,13 +267,7 @@ private fun SupportMessageLinkRow(
 }
 
 @Composable
-private fun MessageMeta(
-    message: SupportMessage,
-    time: String,
-    color: Color,
-    onRetry: (SupportMessage) -> Unit,
-    modifier: Modifier = Modifier,
-) {
+private fun MessageMeta(message: SupportMessage, time: String, color: Color, onRetry: (SupportMessage) -> Unit, modifier: Modifier = Modifier) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Text(
             text = time,
@@ -310,6 +281,7 @@ private fun MessageMeta(
                 strokeWidth = progressStrokeWidth,
                 color = color,
             )
+
             SupportMessageStatus.Failed -> if (message.sender is SupportMessageSender.User && message.images.isEmpty()) {
                 Icon(
                     imageVector = AppIcons.Refresh,
@@ -325,6 +297,7 @@ private fun MessageMeta(
                     modifier = Modifier.size(statusIconSize),
                 )
             }
+
             SupportMessageStatus.Sent -> Unit
         }
     }

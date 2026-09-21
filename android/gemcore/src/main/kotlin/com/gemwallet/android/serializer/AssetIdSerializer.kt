@@ -44,6 +44,7 @@ object AssetIdSerializer : KSerializer<AssetId> {
                 } ?: throw IOException("AssetId is incorrect")
             }
         }
+
         else -> decoder.decodeString().toAssetId() ?: throw IOException("AssetId is null")
     }
 }

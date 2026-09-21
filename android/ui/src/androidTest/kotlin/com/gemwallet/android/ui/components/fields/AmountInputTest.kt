@@ -17,11 +17,10 @@ import androidx.compose.ui.test.performTextInputSelection
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.text.TextRange
 import com.gemwallet.android.ui.theme.WalletTheme
-import com.wallet.core.primitives.Currency
-import java.text.DecimalFormatSymbols
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import java.text.DecimalFormatSymbols
 
 class AmountInputTest {
     @get:Rule
@@ -37,7 +36,7 @@ class AmountInputTest {
     fun acceptsDecimalInput() {
         setContent()
         listOf(
-            "0${separator}",
+            "0$separator",
             "${separator}5",
             "12${separator}5",
             "1234${separator}56",
@@ -53,7 +52,7 @@ class AmountInputTest {
     fun typedSeparatorTakesTheOneTheDeviceUses() {
         setContent("12")
         fields.forEach { composeRule.onNodeWithTag(it).performTextInput("$other") }
-        assertAmounts("12${separator}")
+        assertAmounts("12$separator")
         fields.forEach { composeRule.onNodeWithTag(it).performTextInput("5") }
         assertAmounts("12${separator}5")
     }
@@ -122,8 +121,7 @@ class AmountInputTest {
                     AmountField(
                         modifier = Modifier.testTag("amount"),
                         amount = amount,
-                        assetSymbol = "ETH",
-                        currency = Currency.USD,
+                        symbol = AmountSymbolUIModel("ETH", AmountSymbolPlacement.Trailing),
                         equivalent = "",
                         error = "",
                         onValueChange = { amount = it },

@@ -215,10 +215,7 @@ impl MortalEra {
             return SignerError::invalid_input_err("Polkadot mortal era period must be at least 4");
         }
 
-        let period = period
-            .checked_next_power_of_two()
-            .unwrap_or(MORTAL_ERA_MAX_PERIOD)
-            .clamp(MORTAL_ERA_MIN_PERIOD, MORTAL_ERA_MAX_PERIOD);
+        let period = period.checked_next_power_of_two().unwrap_or(MORTAL_ERA_MAX_PERIOD).clamp(MORTAL_ERA_MIN_PERIOD, MORTAL_ERA_MAX_PERIOD);
         let quantize_factor = (period >> 12).max(1);
         let phase = block_number % period / quantize_factor * quantize_factor;
         Ok(Self { period, phase })

@@ -14,14 +14,11 @@ data object BridgeConnectionsRoute : NavKey
 @Serializable
 data class BridgeConnectionDetailsRoute(val connectionId: String) : NavKey
 
-fun EntryProviderScope<NavKey>.bridgesScreen(
-    onConnection: (String) -> Unit,
-    onCancel: () -> Unit,
-) {
+fun EntryProviderScope<NavKey>.bridgesScreen(onConnection: (String) -> Unit, onCancel: () -> Unit) {
     entry<BridgeConnectionsRoute> {
         ConnectionsScene(
             onConnection = onConnection,
-            onCancel = onCancel
+            onCancel = onCancel,
         )
     }
 

@@ -9,18 +9,10 @@ use num_traits::ToPrimitive;
 use std::error::Error;
 
 #[allow(clippy::too_many_arguments)]
-pub async fn build_transfer_message_bytes(
-    client: &SuiClient,
-    sender: &str,
-    recipient: &str,
-    amount: u64,
-    token_type: Option<&str>,
-) -> Result<String, Box<dyn Error + Send + Sync>> {
+pub async fn build_transfer_message_bytes(client: &SuiClient, sender: &str, recipient: &str, amount: u64, token_type: Option<&str>) -> Result<String, Box<dyn Error + Send + Sync>> {
     let (gas_price_bigint, sui_coins) = try_join!(client.get_gas_price(), client.get_gas_coins(sender))?;
 
-    let gas_price = gas_price_bigint
-        .to_u64()
-        .ok_or_else(|| format!("Failed to convert Sui gas price to u64: {gas_price_bigint}"))?;
+    let gas_price = gas_price_bigint.to_u64().ok_or_else(|| format!("Failed to convert Sui gas price to u64: {gas_price_bigint}"))?;
 
     if sui_coins.coins.is_empty() {
         return Err("No SUI coins available for gas budget".into());
@@ -48,19 +40,8 @@ async fn get_token_coins(client: &SuiClient, sender: &str, token_type: &str) -> 
     Ok(owned)
 }
 
-fn build_tx_output(
-    sender: &str,
-    recipient: &str,
-    amount: u64,
-    sui_coins: &OwnedCoins<Coin>,
-    token_coins: Option<&OwnedCoins<Coin>>,
-    gas_budget: u64,
-    gas_price: u64,
-) -> Result<crate::models::TxOutput, Box<dyn Error + Send + Sync>> {
-    let gas = Gas {
-        budget: gas_budget,
-        price: gas_price,
-    };
+fn build_tx_output(sender: &str, recipient: &str, amount: u64, sui_coins: &OwnedCoins<Coin>, token_coins: Option<&OwnedCoins<Coin>>, gas_budget: u64, gas_price: u64) -> Result<crate::models::TxOutput, Box<dyn Error + Send + Sync>> {
+    let gas = Gas { budget: gas_budget, price: gas_price };
 
     match token_coins {
         Some(tokens) => {

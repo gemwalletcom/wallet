@@ -5,10 +5,7 @@ use async_trait::async_trait;
 use futures::{StreamExt, stream};
 use primitives::{AssetIdVecExt, Chain, DeviceSubscription, NFTAssetId, NFTChain, Transaction, TransactionId, TransactionState, TransactionType};
 use storage::{AssetFilter, AssetsAddressesRepository, AssetsRepository, Database, NftAssetFilter, NftRepository, TransactionsRepository, WalletsRepository};
-use streamer::{
-    AssetId, NotificationsPayload, StreamProducer, StreamProducerQueue, TransactionNotificationType, TransactionsPayload, WalletStreamEvent, WalletStreamPayload,
-    consumer::MessageConsumer,
-};
+use streamer::{AssetId, NotificationsPayload, StreamProducer, StreamProducerQueue, TransactionNotificationType, TransactionsPayload, WalletStreamEvent, WalletStreamPayload, consumer::MessageConsumer};
 use swapper::cross_chain::{self, DepositAddressMap, SendAddressMap};
 
 use crate::client::SwapVaultAddressClient;
@@ -45,12 +42,7 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
 
         let min_amount = self.config.min_amount_usd;
 
-        let addresses: Vec<_> = transactions
-            .iter()
-            .flat_map(|transaction| transaction.addresses())
-            .collect::<HashSet<_>>()
-            .into_iter()
-            .collect();
+        let addresses: Vec<_> = transactions.iter().flat_map(|transaction| transaction.addresses()).collect::<HashSet<_>>().into_iter().collect();
         let subscriptions = self.database.wallets()?.get_subscriptions_by_chain_addresses(chain, addresses)?;
         let notification_subscriptions = Self::unique_subscriptions_per_device(subscriptions.clone());
 
@@ -87,17 +79,12 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
             .filter(|(_, transaction)| transaction.asset_ids().iter().all(|id| existing_assets_map.contains_key(id)))
             .filter(|(subscription, transaction)| {
                 let transaction = transaction.finalize(vec![subscription.address.clone()]);
-                existing_assets_map.get(&transaction.asset_id).is_some_and(|asset_price| {
-                    !self
-                        .config
-                        .is_transaction_insufficient_amount(&transaction, &asset_price.asset.asset, asset_price.price, min_amount)
-                })
+                existing_assets_map
+                    .get(&transaction.asset_id)
+                    .is_some_and(|asset_price| !self.config.is_transaction_insufficient_amount(&transaction, &asset_price.asset.asset, asset_price.price, min_amount))
             })
             .collect::<Vec<_>>();
-        let transactions_map = subscribed_transactions
-            .iter()
-            .map(|(_, transaction)| (transaction.id.clone(), (*transaction).clone()))
-            .collect::<HashMap<_, _>>();
+        let transactions_map = subscribed_transactions.iter().map(|(_, transaction)| (transaction.id.clone(), (*transaction).clone())).collect::<HashMap<_, _>>();
         let assets_addresses = subscribed_transactions
             .iter()
             .filter(|(_, transaction)| Self::should_store_asset_addresses(transaction))
@@ -125,12 +112,7 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
                         return None;
                     }
 
-                    let assets = transaction
-                        .asset_ids()
-                        .iter()
-                        .filter_map(|id| existing_assets_map.get(id))
-                        .map(|asset_price| asset_price.asset.asset.clone())
-                        .collect();
+                    let assets = transaction.asset_ids().iter().filter_map(|id| existing_assets_map.get(id)).map(|asset_price| asset_price.asset.asset.clone()).collect();
                     Some((subscription.clone(), (**transaction).clone(), assets))
                 })
             })
@@ -150,25 +132,25 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
             .map(|subscription| subscription.wallet_row_id)
             .collect::<HashSet<_>>()
             .into_iter()
-            .filter_map(|wallet_id| {
+            .flat_map(|wallet_id| {
                 let wallet_transactions = subscribed_transactions
                     .iter()
                     .filter(|(subscription, _)| subscription.wallet_row_id == wallet_id)
                     .filter(|(_, transaction)| publishable_transactions.iter().any(|candidate| candidate.id == transaction.id))
                     .map(|(_, transaction)| (transaction.id.clone(), *transaction))
                     .collect::<HashMap<_, _>>();
-                (!wallet_transactions.is_empty()).then(|| WalletStreamPayload {
+                let transactions = (!wallet_transactions.is_empty()).then(|| WalletStreamPayload {
                     wallet_id,
                     event: WalletStreamEvent::Transactions {
                         transaction_ids: wallet_transactions.keys().cloned().collect(),
-                        asset_ids: wallet_transactions
-                            .values()
-                            .flat_map(|transaction| transaction.asset_ids())
-                            .collect::<HashSet<_>>()
-                            .into_iter()
-                            .collect(),
+                        asset_ids: wallet_transactions.values().flat_map(|transaction| transaction.asset_ids()).collect::<HashSet<_>>().into_iter().collect(),
                     },
-                })
+                });
+                let nfts = wallet_transactions
+                    .values()
+                    .any(|transaction| transaction.transaction_type == TransactionType::TransferNFT)
+                    .then_some(WalletStreamPayload { wallet_id, event: WalletStreamEvent::Nft });
+                transactions.into_iter().chain(nfts)
             })
             .collect();
 
@@ -236,10 +218,7 @@ impl StoreTransactionsConsumer {
     }
 
     fn get_existing_and_missing_assets(&self, assets_ids: Vec<AssetId>) -> Result<(Vec<primitives::AssetPriceMetadata>, Vec<AssetId>), Box<dyn Error + Send + Sync>> {
-        let assets_with_prices = self
-            .database
-            .assets()?
-            .get_assets_with_prices(vec![AssetFilter::Ids(assets_ids.clone().ids())], self.config.primary_price_max_age)?;
+        let assets_with_prices = self.database.assets()?.get_assets_with_prices(vec![AssetFilter::Ids(assets_ids.clone().ids())], self.config.primary_price_max_age)?;
         let existing_ids = assets_with_prices.iter().map(|asset| asset.asset.asset.id.clone()).collect::<HashSet<_>>();
         let missing_assets = assets_ids.into_iter().filter(|asset_id| !existing_ids.contains(asset_id)).collect();
         let enabled_assets = assets_with_prices.into_iter().filter(|asset| asset.asset.properties.is_enabled).collect();
@@ -281,15 +260,11 @@ mod tests {
         provider::transaction_mapper::map_transaction,
     };
     use num_bigint::BigUint;
-    use primitives::{
-        AssetId, Device, JsonRpcResult, SwapProvider, TransactionSwapMetadata, WalletId, asset_constants::SOLANA_USDC_ASSET_ID,
-        contract_constants::SOLANA_RELAY_DEPOSITORY_PROGRAM_ID,
-    };
+    use primitives::{AssetId, Device, JsonRpcResult, SwapProvider, TransactionSwapMetadata, WalletId, asset_constants::SOLANA_USDC_ASSET_ID, contract_constants::SOLANA_RELAY_DEPOSITORY_PROGRAM_ID};
 
     #[test]
     fn test_relay_lookup_table_deposit_enters_cross_chain_processing() {
-        let response: JsonRpcResult<SingleTransaction> =
-            serde_json::from_str(include_str!("../../../../../crates/gem_solana/testdata/relay_deposit_token_lookup_table.json")).unwrap();
+        let response: JsonRpcResult<SingleTransaction> = serde_json::from_str(include_str!("../../../../../crates/gem_solana/testdata/relay_deposit_token_lookup_table.json")).unwrap();
         let source = BlockTransaction {
             meta: response.result.meta,
             transaction: response.result.transaction,

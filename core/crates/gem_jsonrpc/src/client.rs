@@ -1,6 +1,7 @@
 use crate::types::{ERROR_CLIENT_ERROR, ERROR_INTERNAL_ERROR, JsonRpcError, JsonRpcRequest, JsonRpcResult, JsonRpcResults, ToJsonRpcRequest};
 use gem_client::{Client, ClientError, ClientExt};
 use serde::de::DeserializeOwned;
+use serde_json::Value;
 use std::time::SystemTime;
 
 #[derive(Clone, Debug)]
@@ -10,6 +11,20 @@ pub struct JsonRpcClient<C: Client + Clone> {
 
 impl From<ClientError> for JsonRpcError {
     fn from(value: ClientError) -> Self {
+        match &value {
+            ClientError::Http { body, .. } | ClientError::Response { body, .. } => {
+                if let Ok(JsonRpcResult::Error(response)) = serde_json::from_slice::<JsonRpcResult<Value>>(body) {
+                    return response.error;
+                }
+                if let Ok(mut responses) = serde_json::from_slice::<Vec<JsonRpcResult<Value>>>(body) {
+                    responses.sort_by_key(JsonRpcResult::id);
+                    if let Err(error) = JsonRpcResults(responses).take_all() {
+                        return error;
+                    }
+                }
+            }
+            ClientError::Network(_) | ClientError::Timeout | ClientError::Serialization(_) => {}
+        }
         JsonRpcError {
             code: ERROR_CLIENT_ERROR,
             message: value.to_string(),
@@ -61,5 +76,80 @@ impl JsonRpcClient<gem_client::ReqwestClient> {
         let reqwest_client = gem_client::builder().build().expect("Failed to build reqwest client");
         let client = ReqwestClient::new(url, reqwest_client);
         Self { client }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use gem_client::{Response, deserialize_response};
+
+    use super::*;
+
+    #[test]
+    fn test_http_status_preserves_jsonrpc_error() {
+        for status in [None, Some(200), Some(400), Some(404), Some(500)] {
+            for id in [serde_json::json!(1), serde_json::json!("1"), Value::Null] {
+                let response = Response {
+                    status,
+                    data: serde_json::to_vec(&serde_json::json!({"jsonrpc":"2.0","id":id,"error":{"code":-32000,"message":"Account not found","cause":{"name":"UNKNOWN_ACCOUNT"}}})).unwrap(),
+                };
+                let error = deserialize_response::<JsonRpcResult<Value>>(&response).map_err(JsonRpcError::from).and_then(JsonRpcResult::take).unwrap_err();
+
+                assert_eq!(
+                    serde_json::to_value(error).unwrap(),
+                    serde_json::from_str::<Value>(r#"{"code":-32000,"message":"Account not found","cause":{"name":"UNKNOWN_ACCOUNT"}}"#).unwrap()
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_http_error_preserves_jsonrpc_batch_error() {
+        for status in [400, 404, 500] {
+            let response = Response {
+                status: Some(status),
+                data: br#"[{"id":2,"error":{"code":-32000,"message":"Provider detail","cause":{"name":"X"}}},{"id":1,"result":7}]"#.to_vec(),
+            };
+            let error = deserialize_response::<Vec<JsonRpcResult<Value>>>(&response).map_err(JsonRpcError::from).unwrap_err();
+
+            assert_eq!(serde_json::to_value(error).unwrap(), serde_json::json!({"code":-32000,"message":"batch request [1]: Provider detail","cause":{"name":"X"}}));
+        }
+    }
+
+    #[test]
+    fn test_http_error_rejects_jsonrpc_batch_success() {
+        for status in [400, 404, 500] {
+            let response = Response {
+                status: Some(status),
+                data: br#"[{"id":1,"result":7}]"#.to_vec(),
+            };
+            let error = deserialize_response::<Vec<JsonRpcResult<u64>>>(&response).map_err(JsonRpcError::from).unwrap_err();
+
+            assert_eq!((error.code, error.message, error.cause), (ERROR_CLIENT_ERROR, format!("HTTP error: status {status}"), None));
+        }
+    }
+
+    #[test]
+    fn test_http_error_rejects_jsonrpc_success() {
+        for status in [400, 404, 500] {
+            let response = Response {
+                status: Some(status),
+                data: br#"{"jsonrpc":"2.0","id":1,"result":7}"#.to_vec(),
+            };
+            let error = deserialize_response::<JsonRpcResult<u64>>(&response).map_err(JsonRpcError::from).and_then(JsonRpcResult::take).unwrap_err();
+
+            assert_eq!((error.code, error.message, error.cause), (ERROR_CLIENT_ERROR, format!("HTTP error: status {status}"), None));
+        }
+    }
+
+    #[test]
+    fn test_http_error_preserves_api_message() {
+        let response = Response {
+            status: Some(400),
+            data: br#"{"error":{"message":"Invalid request"}}"#.to_vec(),
+        };
+        let error = deserialize_response::<JsonRpcResult<Value>>(&response).map_err(JsonRpcError::from).unwrap_err();
+
+        assert_eq!((error.code, error.message, error.cause), (ERROR_CLIENT_ERROR, "Invalid request".to_string(), None));
     }
 }

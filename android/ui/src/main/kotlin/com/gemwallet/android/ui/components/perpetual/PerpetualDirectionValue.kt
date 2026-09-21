@@ -11,9 +11,6 @@ import com.wallet.core.primitives.PerpetualDirection
 fun PerpetualDirection.title(): String = stringResource(stringRes())
 
 @Composable
-fun PerpetualDirection.titleAndLeverage(leverage: Int): String = "${title()} ${leverage}x"
-
-@Composable
 fun PerpetualDirection.color(): Color = when (this) {
     PerpetualDirection.Short -> MaterialTheme.colorScheme.error
     PerpetualDirection.Long -> MaterialTheme.colorScheme.tertiary

@@ -4,7 +4,7 @@ import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggre
 import kotlinx.coroutines.flow.Flow
 
 interface GetTransactions {
-    fun getTransactions(
-        filters: List<TransactionsRequestFilter> = emptyList(),
-    ): Flow<List<TransactionDataAggregate>>
+    fun getTransactions(filters: List<TransactionsRequestFilter> = emptyList()): Flow<List<TransactionDataAggregate>>
+
+    fun stored(filters: List<TransactionsRequestFilter> = emptyList()): List<TransactionDataAggregate>
 }

@@ -5,16 +5,18 @@ enum class ListPosition {
     First,
     Middle,
     Single,
-    Last;
+    Last,
+    ;
 
     companion object {
-        fun getPosition(index: Int, size: Int): ListPosition = if (size == 1)
+        fun getPosition(index: Int, size: Int): ListPosition = if (size == 1) {
             Single
-        else
+        } else {
             when (index) {
-            0 -> First
-            size - 1 -> Last
-            else -> Middle
+                0 -> First
+                size - 1 -> Last
+                else -> Middle
+            }
         }
     }
 }

@@ -16,7 +16,5 @@ object WalletIdSerializer : KSerializer<WalletId> {
         encoder.encodeString(value.id)
     }
 
-    override fun deserialize(decoder: Decoder): WalletId {
-        return WalletId(id = decoder.decodeString())
-    }
+    override fun deserialize(decoder: Decoder): WalletId = WalletId(id = decoder.decodeString())
 }

@@ -37,10 +37,7 @@ mod tests {
     #[test]
     fn test_sign_transfer_matches_mobile_vector() {
         let private_key = hex::decode("f4c1daf4543e155b0e5e97351726d8891eae98014ed3f9a9ee1d842753c070ff").unwrap();
-        let input = SignerInput::new(
-            TransactionLoadInput::mock_polkadot(),
-            TransactionFee::new_from_fee(10.into(), AssetId::from_chain(Chain::Polkadot)),
-        );
+        let input = SignerInput::new(TransactionLoadInput::mock_polkadot(), TransactionFee::new_from_fee(10.into(), AssetId::from_chain(Chain::Polkadot)));
 
         assert_eq!(
             PolkadotChainSigner.sign_transfer(&input, &private_key).unwrap(),
@@ -55,10 +52,7 @@ mod tests {
     #[test]
     fn test_sign_transfer_rejects_sender_private_key_mismatch() {
         let private_key = hex::decode("f4c1daf4543e155b0e5e97351726d8891eae98014ed3f9a9ee1d842753c070ff").unwrap();
-        let mut input = SignerInput::new(
-            TransactionLoadInput::mock_polkadot(),
-            TransactionFee::new_from_fee(10.into(), AssetId::from_chain(Chain::Polkadot)),
-        );
+        let mut input = SignerInput::new(TransactionLoadInput::mock_polkadot(), TransactionFee::new_from_fee(10.into(), AssetId::from_chain(Chain::Polkadot)));
         input.input.sender_address = "15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5".to_string();
 
         assert_eq!(

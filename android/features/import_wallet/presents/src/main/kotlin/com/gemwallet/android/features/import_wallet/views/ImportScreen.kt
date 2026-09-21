@@ -23,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -46,9 +45,9 @@ import com.gemwallet.android.application.wallet_import.values.WalletImportResult
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.features.import_wallet.components.ImportInput
 import com.gemwallet.android.features.import_wallet.components.ImportKindTab
-import com.gemwallet.android.features.import_wallet.localization.string
 import com.gemwallet.android.features.import_wallet.viewmodels.ImportInputUIModel
 import com.gemwallet.android.features.import_wallet.viewmodels.ImportTabUIModel
+import com.gemwallet.android.features.import_wallet.viewmodels.ImportTextUIModel
 import com.gemwallet.android.features.import_wallet.viewmodels.ImportViewModel
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.DetectScreenshot
@@ -73,30 +72,13 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.GemWalletImportException
 import uniffi.gemstone.GemWalletImportKind
 
 private val loadingDialogSize = 100.dp
 
-internal sealed interface ImportSceneTitle {
-    data class Resource(val resId: Int) : ImportSceneTitle
-    data class Text(val value: String) : ImportSceneTitle
-}
-
-internal fun importSceneTitle(importType: ImportType, chainName: String): ImportSceneTitle {
-    return when (importType.chain) {
-        null -> ImportSceneTitle.Resource(R.string.wallet_multicoin)
-        else -> ImportSceneTitle.Text(chainName)
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ImportScreen(
-    importType: ImportType,
-    onImported: (WalletImportResult) -> Unit,
-    onCancel: () -> Unit
-) {
+fun ImportScreen(importType: ImportType, onImported: (WalletImportResult) -> Unit, onCancel: () -> Unit) {
     DisableScreenShooting()
     DetectScreenshot(AppUrl.howToSecureSecretPhrase)
 
@@ -109,6 +91,7 @@ fun ImportScreen(
     }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val nameResolveIndicator by viewModel.nameResolveIndicator.collectAsStateWithLifecycle()
+    val suggestions by viewModel.suggestions.collectAsStateWithLifecycle()
     val inputState = remember { mutableStateOf(TextFieldValue()) }
 
     ImportScene(
@@ -117,23 +100,25 @@ fun ImportScreen(
         tabs = uiState.tabs,
         input = uiState.input,
         defaultWalletName = uiState.defaultWalletName,
-        chainName = uiState.chainName,
+        title = uiState.title,
+        showsTabs = uiState.showsTabs,
         nameResolveIndicator = nameResolveIndicator,
         dataError = uiState.dataError,
         buttonState = buttonState(loading = uiState.loading),
-        onImport = { generatedName, value ->
-            viewModel.import(generatedName, value, onImported)
+        onImport = { generatedName ->
+            viewModel.import(generatedName, onImported)
         },
         onInput = viewModel::onInput,
         onTypeChange = viewModel::importKind,
         invalidWords = viewModel::invalidPhraseWords,
-        phraseSuggestions = viewModel::phraseSuggestions,
+        suggestions = suggestions,
+        onSelectSuggestion = viewModel::selectSuggestion,
         onCancel = onCancel,
     )
     if (uiState.loading) {
         Dialog(
             onDismissRequest = {},
-            DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
+            DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
         ) {
             Box(
                 contentAlignment = Alignment.Center,
@@ -141,8 +126,8 @@ fun ImportScreen(
                     .size(loadingDialogSize)
                     .background(
                         MaterialTheme.colorScheme.background,
-                        shape = RoundedCornerShape(paddingSmall)
-                    )
+                        shape = RoundedCornerShape(paddingSmall),
+                    ),
             ) {
                 CircularProgressIndicator()
             }
@@ -160,11 +145,11 @@ fun ImportScreen(
             ),
             onClose = {
                 viewModel.dismissExistingWallet()
+                viewModel.clearInput()
                 inputState.value = TextFieldValue()
             },
         )
     }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -175,21 +160,19 @@ private fun ImportScene(
     tabs: List<ImportTabUIModel>,
     input: ImportInputUIModel,
     defaultWalletName: String?,
-    chainName: String,
+    title: String,
+    showsTabs: Boolean,
     nameResolveIndicator: NameResolveIndicatorUIModel?,
     dataError: Throwable?,
     buttonState: ButtonState,
-    onImport: (generatedName: String, value: String) -> Unit,
-    onInput: (String) -> Unit,
+    onImport: (generatedName: String) -> Unit,
+    onInput: (String, Int) -> Unit,
     onTypeChange: (ImportType) -> Unit,
     invalidWords: (String) -> Set<String>,
-    phraseSuggestions: (String) -> List<String>,
-    onCancel: () -> Unit
+    suggestions: List<String>,
+    onSelectSuggestion: (String) -> ImportTextUIModel,
+    onCancel: () -> Unit,
 ) {
-    val title = when (val sceneTitle = importSceneTitle(importType, chainName)) {
-        is ImportSceneTitle.Resource -> stringResource(sceneTitle.resId)
-        is ImportSceneTitle.Text -> sceneTitle.value
-    }
     val generatedName = defaultWalletName.orEmpty()
     var dataErrorState by remember(dataError) { mutableStateOf(dataError) }
 
@@ -201,7 +184,7 @@ private fun ImportScene(
                 title = stringResource(id = R.string.wallet_import_action),
                 state = buttonState,
                 onClick = {
-                    onImport(generatedName, inputState.value.text)
+                    onImport(generatedName)
                 },
             )
         },
@@ -210,19 +193,19 @@ private fun ImportScene(
             modifier = Modifier.fillMaxSize(),
         ) {
             item {
-                Column (
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .listItem(ListPosition.Single)
                         .padding(sceneContentPadding())
                         .padding(bottom = space0),
-                    verticalArrangement = Arrangement.spacedBy(paddingHalfSmall)
+                    verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),
                 ) {
-                    TypeSelection(tabs) { type ->
+                    TypeSelection(tabs, showsTabs) { type ->
                         onTypeChange(type)
                         inputState.value = TextFieldValue()
                     }
-                    DataInput(input, inputState, nameResolveIndicator, invalidWords, phraseSuggestions, onInput) {
+                    DataInput(input, inputState, nameResolveIndicator, invalidWords, suggestions, onSelectSuggestion, onInput) {
                         dataErrorState = null
                     }
                     ErrorMessage(dataErrorState)
@@ -233,7 +216,7 @@ private fun ImportScene(
                     Text(
                         modifier = Modifier.sectionHeaderItem(),
                         text = parseMarkdownToAnnotatedString(
-                            stringResource(R.string.wallet_import_address_warning)
+                            stringResource(R.string.wallet_import_address_warning),
                         ),
                         color = MaterialTheme.colorScheme.secondary,
                         style = MaterialTheme.typography.bodySmall,
@@ -251,12 +234,11 @@ private fun DataInput(
     inputState: MutableState<TextFieldValue>,
     nameResolveIndicator: NameResolveIndicatorUIModel?,
     invalidWords: (String) -> Set<String>,
-    phraseSuggestions: (String) -> List<String>,
-    onInput: (String) -> Unit,
+    suggestions: List<String>,
+    onSelectSuggestion: (String) -> ImportTextUIModel,
+    onInput: (String, Int) -> Unit,
     onChange: () -> Unit,
 ) {
-    val suggestions = remember(input) { mutableStateListOf<String>() }
-
     ImportInput(
         invalidWords = invalidWords,
         inputState = inputState.value,
@@ -264,42 +246,23 @@ private fun DataInput(
         indicator = nameResolveIndicator,
         onValueChange = { query ->
             inputState.value = query
-            suggestions.clear()
-
             onChange()
-            onInput(query.text)
-
-            if (!input.supportsPhraseSuggestions) {
-                return@ImportInput
-            }
-
-            val cursorPosition = query.selection.start
-            if (query.text.isEmpty()) {
-                return@ImportInput
-            }
-            val word = query.text.substring(0..<cursorPosition).split(" ")
-                .lastOrNull()
-            if (word.isNullOrEmpty()) {
-                return@ImportInput
-            }
-            val result = phraseSuggestions(word)
-            suggestions.addAll(result)
+            onInput(query.text, query.selection.start)
         },
     )
 
     if (suggestions.isNotEmpty() && input.supportsPhraseSuggestions) {
         LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(paddingSmall)
+            horizontalArrangement = Arrangement.spacedBy(paddingSmall),
         ) {
             items(suggestions) { word ->
                 SuggestionChip(
                     onClick = {
-                        val processed = setSuggestion(inputState.value, word)
-                        inputState.value = processed
-                        suggestions.clear()
+                        val edit = onSelectSuggestion(word)
+                        inputState.value = TextFieldValue(text = edit.text, selection = TextRange(edit.cursor))
                         onChange()
                     },
-                    label = { Text(text = word) }
+                    label = { Text(text = word) },
                 )
             }
         }
@@ -308,11 +271,8 @@ private fun DataInput(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TypeSelection(
-    tabs: List<ImportTabUIModel>,
-    onTypeChange: (ImportType) -> Unit,
-) {
-    if (tabs.size < 2) {
+private fun TypeSelection(tabs: List<ImportTabUIModel>, showsTabs: Boolean, onTypeChange: (ImportType) -> Unit) {
+    if (!showsTabs) {
         return
     }
     PrimaryTabRow(
@@ -320,7 +280,7 @@ private fun TypeSelection(
         selectedTabIndex = tabs.indexOfFirst { it.isSelected }.coerceAtLeast(0),
         indicator = { Box {} },
         containerColor = Color.Transparent,
-        divider = {}
+        divider = {},
     ) {
         tabs.forEach { tab ->
             ImportKindTab(tab, onTypeChange)
@@ -331,29 +291,9 @@ private fun TypeSelection(
 
 @Composable
 private fun ErrorMessage(error: Throwable?) {
-    val text = when (error) {
-        is GemWalletImportException -> error.string()
-        null -> return
-        else -> stringResource(
-            R.string.errors_create_wallet,
-            error.errorText().text().takeIf { it.isNotBlank() } ?: stringResource(R.string.errors_unknown_try_again),
-        )
-    }
+    error ?: return
+    val text = error.errorText().text().takeIf { it.isNotBlank() } ?: stringResource(R.string.errors_unknown_try_again)
     Text(text = text, color = MaterialTheme.colorScheme.error)
-}
-
-private fun setSuggestion(inputState: TextFieldValue, word: String): TextFieldValue {
-    val cursorPosition = inputState.selection.start
-    val inputFull = inputState.text
-    val rightInput =
-        inputState.text.substring(0..<cursorPosition)
-    val leftInput = inputState.text.substring(cursorPosition)
-    val lastInput = rightInput.split(" ").lastOrNull() ?: ""
-    val phrase = rightInput.removeSuffix(lastInput)
-    return TextFieldValue(
-        text = inputFull.replaceRange(0, inputFull.length, "$phrase$word $leftInput"),
-        selection = TextRange("$phrase$word ".length)
-    )
 }
 
 @Composable
@@ -380,15 +320,17 @@ fun PreviewImportAddress() {
                     showsViewOnlyWarning = true,
                 ),
                 defaultWalletName = "Wallet 1",
-                chainName = "Ethereum",
+                title = "Ethereum",
+                showsTabs = true,
                 nameResolveIndicator = null,
                 dataError = null,
                 buttonState = ButtonState.Enabled,
-                onImport = {_, _ -> },
-                onInput = {},
+                onImport = {},
+                onInput = { _, _ -> },
                 onTypeChange = {},
                 invalidWords = { emptySet() },
-                phraseSuggestions = { emptyList() },
+                suggestions = emptyList(),
+                onSelectSuggestion = { ImportTextUIModel("", 0) },
                 onCancel = {},
             )
         }

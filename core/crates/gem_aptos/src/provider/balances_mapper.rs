@@ -72,10 +72,7 @@ mod tests {
         assert_eq!(result.len(), 2);
         assert_eq!(result[0].balance.available, BigUint::from(25379808_u64));
         assert_eq!(result[0].asset_id.chain, Chain::Aptos);
-        assert_eq!(
-            result[0].asset_id.token_id,
-            Some("0x159df6b7689437016108a019fd5bef736bac692b6d4a1f10c941f6fbb9a74ca6::oft::CakeOFT".to_string())
-        );
+        assert_eq!(result[0].asset_id.token_id, Some("0x159df6b7689437016108a019fd5bef736bac692b6d4a1f10c941f6fbb9a74ca6::oft::CakeOFT".to_string()));
 
         assert_eq!(result[1].balance.available, BigUint::from(1000000_u64));
         assert_eq!(result[1].asset_id.chain, Chain::Aptos);
@@ -84,9 +81,7 @@ mod tests {
 
     #[test]
     fn test_map_token_balances() {
-        let coin_data = CoinData {
-            value: BigUint::from(1000000_u64),
-        };
+        let coin_data = CoinData { value: BigUint::from(1000000_u64) };
 
         let resource = Resource {
             type_field: "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>".to_string(),

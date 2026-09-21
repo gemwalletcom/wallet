@@ -5,23 +5,22 @@ pub mod rules;
 
 use std::sync::Arc;
 
-use primitives::{Asset, Chain, Currency, DelegationValidator, PerpetualDirection, StakeType};
+use primitives::{Asset, Currency, PerpetualDirection};
 
 pub use model::{
-    GemAmountEarnType, GemAmountEntry, GemAmountEquivalent, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType,
-    GemAmountTransfer, GemAmountType, GemPerpetualAutoclose,
+    GemAmountEarnType, GemAmountEntry, GemAmountEquivalent, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType, GemAmountTransfer, GemAmountType, GemPerpetualAutoclose,
 };
 
 use crate::config::perpetual_config::{leverage_options, select_leverage};
 
 use crate::models::GemEarnType;
 use crate::models::custom_types::GemBigInt;
-use crate::services::error::GemServiceError;
+use crate::models::list::GemListRow;
+use crate::services::error::{GemServiceError, required_account};
 use crate::services::perpetual::GemPerpetualPositionAction;
 use crate::services::perpetual::rules as perpetual_rules;
 use crate::services::preferences::GemPreferencesService;
-use crate::services::stake::rules as stake_rules;
-use crate::services::stake::{GemStakeAmountInput, GemStakeService, GemStakeValidatorSelection, GemValidatorRow};
+use crate::services::stake::GemStakeService;
 use crate::services::transfer::rules as transfer_rules;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use crate::services::wallet_session::GemWalletSessionService;
@@ -49,37 +48,19 @@ impl GemAmountService {
     }
 
     pub fn perpetual_autoclose(&self, price: f64, direction: PerpetualDirection, leverage: u8) -> GemPerpetualAutoclose {
-        rules::perpetual_autoclose(
-            price,
-            direction,
-            leverage,
-            self.preferences.get_perpetual_take_profit_percent(),
-            self.preferences.get_perpetual_stop_loss_percent(),
-        )
+        rules::perpetual_autoclose(price, direction, leverage, self.preferences.get_perpetual_take_profit_percent(), self.preferences.get_perpetual_stop_loss_percent())
     }
 
-    pub fn perpetual_transfer_data(
-        &self,
-        action: GemPerpetualPositionAction,
-        value: GemBigInt,
-        use_max_amount: bool,
-        leverage: u8,
-        take_profit: Option<f64>,
-        stop_loss: Option<f64>,
-    ) -> GemTransferData {
+    pub fn perpetual_autoclose_row(&self, take_profit: Option<f64>, stop_loss: Option<f64>) -> GemListRow {
+        perpetual_rules::amount_autoclose_row(take_profit, stop_loss)
+    }
+
+    pub fn perpetual_transfer_data(&self, action: GemPerpetualPositionAction, value: GemBigInt, use_max_amount: bool, leverage: u8, take_profit: Option<f64>, stop_loss: Option<f64>) -> GemTransferData {
         perpetual_rules::order_transfer(action, value, use_max_amount, leverage, take_profit, stop_loss)
     }
 
     pub fn perpetual_amount_type(&self, action: GemPerpetualPositionAction, leverage: u8) -> GemAmountType {
         rules::perpetual_amount_type(&action, leverage)
-    }
-
-    pub fn stake_validator_selection(&self, chain: Chain, input: GemStakeAmountInput) -> GemStakeValidatorSelection {
-        stake_rules::validator_selection(chain, &input)
-    }
-
-    pub fn validator_row(&self, validator: DelegationValidator) -> GemValidatorRow {
-        stake_rules::validator_row(&validator)
     }
 
     pub fn earn_amount_type(&self, earn_type: GemEarnType) -> GemAmountType {
@@ -90,9 +71,7 @@ impl GemAmountService {
         let owner = match transfer {
             GemAmountTransfer::Withdraw => {
                 let wallet = self.session.current_wallet().await?;
-                let account = wallet.account(asset.chain()).ok_or_else(|| GemServiceError::NotFound {
-                    msg: format!("wallet {} has no {} account", wallet.id.id(), asset.chain()),
-                })?;
+                let account = required_account(&wallet, asset.chain())?;
                 Some(GemRecipient::named(account.address.clone(), wallet.name.clone()))
             }
             GemAmountTransfer::Send { .. } | GemAmountTransfer::Deposit => None,
@@ -100,19 +79,10 @@ impl GemAmountService {
         rules::transfer_data(asset, transfer, owner, value, use_max_amount)
     }
 
-    pub fn stake_transfer_data(&self, asset: Asset, stake_type: StakeType, value: GemBigInt, use_max_amount: bool) -> GemTransferData {
-        transfer_rules::stake_transfer_data(asset, stake_type, value, use_max_amount)
-    }
-
     pub async fn earn_transfer_data(&self, asset: Asset, earn_type: GemEarnType, value: GemBigInt, use_max_amount: bool) -> Result<GemTransferData, GemServiceError> {
         let wallet = self.session.current_wallet().await?;
-        let account = wallet.account(asset.chain()).ok_or_else(|| GemServiceError::NotFound {
-            msg: format!("wallet {} has no {} account", wallet.id.id(), asset.chain()),
-        })?;
-        let data = self
-            .stake
-            .get_earn_data(asset.id.clone(), account.address.clone(), value.to_string(), earn_type.clone())
-            .await?;
+        let account = required_account(&wallet, asset.chain())?;
+        let data = self.stake.get_earn_data(asset.id.clone(), account.address.clone(), value.to_string(), earn_type.clone()).await?;
         Ok(transfer_rules::earn_transfer_data(asset, earn_type, data, value, use_max_amount))
     }
 }

@@ -21,21 +21,12 @@ impl MessageConsumer<NotificationsFailedPayload, usize> for NotificationsFailedC
     }
 
     async fn process(&self, payload: NotificationsFailedPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let device_ids: Vec<String> = payload
-            .failures
-            .iter()
-            .filter(|f| f.error.is_device_invalid())
-            .map(|f| f.notification.device_id.clone())
-            .collect();
+        let device_ids: Vec<String> = payload.failures.iter().filter(|f| f.error.is_device_invalid()).map(|f| f.notification.device_id.clone()).collect();
 
         if device_ids.is_empty() {
             return Ok(0);
         }
 
-        Ok(self
-            .database
-            .client()?
-            .devices()
-            .update_device_fields(device_ids, vec![DeviceFieldUpdate::IsPushEnabled(false)])?)
+        Ok(self.database.client()?.devices().update_device_fields(device_ids, vec![DeviceFieldUpdate::IsPushEnabled(false)])?)
     }
 }

@@ -1,11 +1,15 @@
 pub mod asset;
 pub mod connection;
+pub mod copy;
 pub(crate) mod custom_types;
 pub mod gateway;
+pub mod list;
 pub mod payment;
 pub mod perpetual;
+pub mod placeholder;
 pub mod remote_types;
 pub mod stake;
+pub mod state;
 pub mod swap;
 pub mod transaction;
 

@@ -14,10 +14,7 @@ pub(crate) trait ParserStateStore {
 impl ParserStateStore for DatabaseClient {
     fn get_parser_state(&mut self, chain_value: Chain) -> Result<ParserStateRow, diesel::result::Error> {
         use crate::schema::parser_state::dsl::*;
-        parser_state
-            .filter(chain.eq(ChainRow::from(chain_value)))
-            .select(ParserStateRow::as_select())
-            .first(&mut self.connection)
+        parser_state.filter(chain.eq(ChainRow::from(chain_value))).select(ParserStateRow::as_select()).first(&mut self.connection)
     }
 
     fn add_parser_state(&mut self, chain_value: Chain, block_time_ms: i32) -> Result<usize, diesel::result::Error> {
@@ -35,16 +32,12 @@ impl ParserStateStore for DatabaseClient {
 
     fn set_parser_state_latest_block(&mut self, chain_value: Chain, block: i64) -> Result<usize, diesel::result::Error> {
         use crate::schema::parser_state::dsl::*;
-        diesel::update(parser_state.find(ChainRow::from(chain_value)))
-            .set(latest_block.eq(block))
-            .execute(&mut self.connection)
+        diesel::update(parser_state.find(ChainRow::from(chain_value))).set(latest_block.eq(block)).execute(&mut self.connection)
     }
 
     fn set_parser_state_current_block(&mut self, chain_value: Chain, block: i64) -> Result<usize, diesel::result::Error> {
         use crate::schema::parser_state::dsl::*;
-        diesel::update(parser_state.find(ChainRow::from(chain_value)))
-            .set(current_block.eq(block))
-            .execute(&mut self.connection)
+        diesel::update(parser_state.find(ChainRow::from(chain_value))).set(current_block.eq(block)).execute(&mut self.connection)
     }
 }
 

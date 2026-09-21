@@ -46,8 +46,9 @@ class DeleteWalletImplTest {
         var completed = false
         coEvery { walletService.deleteWallet(walletId.id) } throws IllegalStateException("keystore delete failed")
 
-        delete.deleteWallet(walletId, onBoard = { onBoarded = true }, onComplete = { completed = true })
+        val result = runCatching { delete.deleteWallet(walletId, onBoard = { onBoarded = true }, onComplete = { completed = true }) }
 
+        assertTrue(result.isFailure)
         assertFalse(onBoarded)
         assertFalse(completed)
         verify(exactly = 0) { userConfig.reload() }

@@ -9,7 +9,7 @@ import Testing
 
 struct SelectWalletViewModelTests {
     @Test
-    func pinnedWalletsGetTheirOwnSection() throws {
+    func pinnedWalletsGetTheirOwnSection() {
         let pinned = GemWalletRow.mock(id: "a", isPinned: true)
         let model = SelectWalletViewModel(rows: [pinned, .mock(id: "b"), .mock(id: "c")], selectedRow: pinned)
 

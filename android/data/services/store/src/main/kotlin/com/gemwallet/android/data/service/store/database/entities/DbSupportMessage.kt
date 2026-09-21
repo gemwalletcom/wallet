@@ -12,14 +12,7 @@ import com.wallet.core.primitives.SupportMessageStatus
     primaryKeys = ["id"],
     indices = [Index("createdAt")],
 )
-data class DbSupportMessage(
-    val id: String,
-    val content: String,
-    val sender: SupportMessageSender,
-    val status: SupportMessageStatus,
-    val createdAt: Long,
-    val images: List<SupportMessageImage>,
-)
+data class DbSupportMessage(val id: String, val content: String, val sender: SupportMessageSender, val status: SupportMessageStatus, val createdAt: Long, val images: List<SupportMessageImage>)
 
 fun DbSupportMessage.toModel(): SupportMessage = SupportMessage(
     id = id,

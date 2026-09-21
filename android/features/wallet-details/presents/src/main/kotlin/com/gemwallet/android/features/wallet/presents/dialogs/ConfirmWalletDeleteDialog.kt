@@ -10,11 +10,7 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 
 @Composable
-fun ConfirmWalletDeleteDialog(
-    walletName: String,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-) {
+fun ConfirmWalletDeleteDialog(walletName: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.background,
@@ -36,9 +32,9 @@ fun ConfirmWalletDeleteDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss)  {
+            TextButton(onClick = onDismiss) {
                 Text(stringResource(R.string.common_cancel))
             }
-        }
+        },
     )
 }

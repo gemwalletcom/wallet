@@ -3,8 +3,7 @@ use chain_traits::ChainTransactionLoad;
 use gem_client::Client;
 use num_bigint::{BigInt, BigUint};
 use primitives::{
-    Asset, AssetId, AssetSubtype, Chain, FeeOption, FeePriority, FeeRate, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput,
-    TransactionLoadMetadata, TransactionPreloadInput,
+    Asset, AssetId, AssetSubtype, Chain, FeeOption, FeePriority, FeeRate, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput,
     swap::{SwapData, SwapQuoteDataType},
 };
 use std::collections::HashMap;
@@ -36,13 +35,7 @@ pub fn calculate_transaction_fee(input: &TransactionLoadInput, recipient_token_a
                 options.insert(FeeOption::TokenAccountCreation, BigInt::from(swap_attachment(from_asset, swap_data)?));
                 base_fee
             }
-            SwapQuoteDataType::Transfer => transfer_fee(
-                from_asset.id.token_subtype(),
-                input.memo.as_deref(),
-                recipient_token_address.as_deref(),
-                &base_fee,
-                &mut options,
-            ),
+            SwapQuoteDataType::Transfer => transfer_fee(from_asset.id.token_subtype(), input.memo.as_deref(), recipient_token_address.as_deref(), &base_fee, &mut options),
         },
         TransactionInputType::TokenApprove { .. } => base_fee.clone(),
         TransactionInputType::Generic { .. } | TransactionInputType::Payment { .. } => base_fee.clone(),
@@ -50,13 +43,7 @@ pub fn calculate_transaction_fee(input: &TransactionLoadInput, recipient_token_a
         _ => base_fee.clone(),
     };
 
-    Ok(TransactionFee::new_gas_price_type(
-        GasPriceType::regular(fee.clone()),
-        fee.clone(),
-        BigInt::from(1),
-        options,
-        AssetId::from_chain(Chain::Ton),
-    ))
+    Ok(TransactionFee::new_gas_price_type(GasPriceType::regular(fee.clone()), fee.clone(), BigInt::from(1), options, AssetId::from_chain(Chain::Ton)))
 }
 
 fn swap_attachment(from_asset: &Asset, swap_data: &SwapData) -> Result<BigUint, Box<dyn Error + Send + Sync>> {
@@ -110,9 +97,7 @@ impl<C: Client> ChainTransactionLoad for TonClient<C> {
                 let (sender_jetton_wallets, recipient_jetton_wallets) = futures::future::try_join(sender_wallets, recipient_wallets).await?;
 
                 let sender_jetton_wallet_address = sender_jetton_wallets.jetton_wallets.iter().find(|wallet| wallet.jetton == jetton_token_id);
-                let recipient_jetton_wallet_address = recipient_jetton_wallets
-                    .as_ref()
-                    .and_then(|wallets| wallets.jetton_wallets.iter().find(|wallet| wallet.jetton == jetton_token_id));
+                let recipient_jetton_wallet_address = recipient_jetton_wallets.as_ref().and_then(|wallets| wallets.jetton_wallets.iter().find(|wallet| wallet.jetton == jetton_token_id));
 
                 Ok(TransactionLoadMetadata::Ton {
                     sender_token_address: sender_jetton_wallet_address.map(|x| x.address.clone()),
@@ -157,13 +142,7 @@ mod tests {
 
     #[test]
     fn test_native_ton() {
-        let fee = calculate_transaction_fee(
-            &TransactionLoadInput::mock_with_input_type(TransactionInputType::Transfer {
-                asset: Asset::from_chain(Chain::Ton),
-            }),
-            None,
-        )
-        .unwrap();
+        let fee = calculate_transaction_fee(&TransactionLoadInput::mock_with_input_type(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Ton) }), None).unwrap();
         assert_eq!(fee.fee, BigInt::from(TON_BASE_FEE));
         assert_eq!(fee.options.len(), 0);
     }
@@ -173,9 +152,7 @@ mod tests {
         let fee = calculate_transaction_fee(
             &TransactionLoadInput {
                 memo: Some("memo".to_string()),
-                ..TransactionLoadInput::mock_with_input_type(TransactionInputType::Transfer {
-                    asset: Asset::from_chain(Chain::Ton),
-                })
+                ..TransactionLoadInput::mock_with_input_type(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Ton) })
             },
             None,
         )
@@ -219,19 +196,12 @@ mod tests {
         )
         .unwrap();
         assert_eq!(fee.fee, BigInt::from(TON_BASE_FEE + JETTON_ACCOUNT_FEE_EXISTING_WITH_MEMO));
-        assert_eq!(
-            fee.options.get(&FeeOption::TokenAccountCreation),
-            Some(&BigInt::from(JETTON_ACCOUNT_FEE_EXISTING_WITH_MEMO))
-        );
+        assert_eq!(fee.options.get(&FeeOption::TokenAccountCreation), Some(&BigInt::from(JETTON_ACCOUNT_FEE_EXISTING_WITH_MEMO)));
     }
 
     #[test]
     fn test_jetton_new_account() {
-        let fee = calculate_transaction_fee(
-            &TransactionLoadInput::mock_with_input_type(TransactionInputType::Transfer { asset: Asset::mock_ton_usdt() }),
-            None,
-        )
-        .unwrap();
+        let fee = calculate_transaction_fee(&TransactionLoadInput::mock_with_input_type(TransactionInputType::Transfer { asset: Asset::mock_ton_usdt() }), None).unwrap();
         assert_eq!(fee.fee, BigInt::from(TON_BASE_FEE + JETTON_ACCOUNT_CREATION));
         assert_eq!(fee.options.get(&FeeOption::TokenAccountCreation), Some(&BigInt::from(JETTON_ACCOUNT_CREATION)));
     }

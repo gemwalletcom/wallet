@@ -4,36 +4,21 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.SupportMessage
 import com.wallet.core.primitives.SupportMessageSender
+import uniffi.gemstone.parseSupportMessageDisplayContent
+import uniffi.gemstone.supportChatGroups
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-import uniffi.gemstone.parseSupportMessageDisplayContent
-import uniffi.gemstone.supportChatGroups
 
-data class SupportChatDay(
-    val id: String,
-    val date: LocalDate,
-    val groups: List<SupportChatGroup>,
-)
+data class SupportChatDay(val id: String, val date: LocalDate, val groups: List<SupportChatGroup>)
 
-data class SupportChatGroup(
-    val sender: SupportMessageSender,
-    val messages: List<SupportChatMessage>,
-)
+data class SupportChatGroup(val sender: SupportMessageSender, val messages: List<SupportChatMessage>)
 
-data class SupportChatMessage(
-    val message: SupportMessage,
-    val text: String,
-    val links: List<SupportChatLink>,
-) {
+data class SupportChatMessage(val message: SupportMessage, val text: String, val links: List<SupportChatLink>) {
     val id: String get() = message.id
 }
 
-data class SupportChatLink(
-    val title: String,
-    val url: String,
-    val subtitle: String?,
-)
+data class SupportChatLink(val title: String, val url: String, val subtitle: String?)
 
 private fun SupportMessage.chatMessage(): SupportChatMessage {
     val content = parseSupportMessageDisplayContent(content)

@@ -1,13 +1,13 @@
 package com.gemwallet.android.data.services.gemstone.di
 
 import com.gemwallet.android.data.service.store.database.SupportMessagesDao
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneSupportStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemSupportService
 import uniffi.gemstone.GemSupportStore
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneSupportStore
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -21,5 +21,4 @@ object SupportChatModule {
     @Provides
     @Singleton
     fun provideGemSupportStore(supportStore: GemstoneSupportStore): GemSupportStore = supportStore
-
 }

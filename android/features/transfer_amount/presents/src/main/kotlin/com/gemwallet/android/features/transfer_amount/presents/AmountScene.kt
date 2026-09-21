@@ -105,7 +105,9 @@ internal fun AmountScene(
                     symbol = amountSymbol,
                     onInputTypeClick = if (canSwitchInputType) {
                         { onAction(AmountAction.SwitchInputType) }
-                    } else null,
+                    } else {
+                        null
+                    },
                     equivalent = equivalent,
                     readOnly = readOnly,
                     keyboardType = if (usesWholeAmounts) KeyboardType.Number else KeyboardType.Decimal,

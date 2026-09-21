@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = 未対応のアセットです。
 errors_connections_no_supported_wallets = サポートされているウォレットは利用できません。
 errors_connections_unsupported_chain = 選択されたチェーンはサポートされていません
 errors_swap_amount_too_small = 金額が小さすぎます
-errors_required = %@は必須です
 errors_scan_transaction_malicious_description = この取引は完了できません。送信先アドレスが不審または悪意のある活動に関連しています。
 errors_scan_transaction_memo_required = %@ の送信先アドレスには、宛先タグまたはメモが必要です
 errors_scan_transaction_malicious_title = 不審な活動
@@ -536,7 +535,7 @@ verify_phrase_title = 確認する
 
 # Warnings
 
-warnings_multi_signature_blocked = 秘密鍵を確実に管理していない限り、この%@マルチ署名ウォレットに資金を送金しないでください。そうしないと、詐欺に遭う可能性があり、資産を永久に失う可能性があります。
+warnings_externally_controlled_account = この%@アカウントは他の人が管理している可能性があります。自分が管理していると確信できない限り、資金を送らないでください。資産を永久に失う可能性があります。
 
 # Sell
 

@@ -7,20 +7,7 @@ use super::{PHRASE, TEST_PHRASE, bitcoin_family_v3_vectors, expected_derivation}
 
 #[test]
 fn test_derive_accounts_from_mnemonic_selected_chains() {
-    let accounts = derive_accounts_from_mnemonic(
-        PHRASE,
-        vec![
-            Chain::Ethereum,
-            Chain::Tron,
-            Chain::Solana,
-            Chain::Aptos,
-            Chain::Sui,
-            Chain::Near,
-            Chain::Stellar,
-            Chain::Algorand,
-        ],
-    )
-    .unwrap();
+    let accounts = derive_accounts_from_mnemonic(PHRASE, vec![Chain::Ethereum, Chain::Tron, Chain::Solana, Chain::Aptos, Chain::Sui, Chain::Near, Chain::Stellar, Chain::Algorand]).unwrap();
 
     assert_eq!(accounts[0].chain, Chain::Ethereum);
     assert_eq!(accounts[0].address, "0x9858EfFD232B4033E47d90003D41EC34EcaEda94");
@@ -71,14 +58,8 @@ fn test_derive_accounts_public_key() {
         accounts[0].extended_public_key.as_deref(),
         Some("045515e0ac635b35f12639f7df11f4488ba2f3dfa3ba4e11e286cfb59c45af60d8455161a6f2294f567ac4d8bc70fb26abd78338cbb5f9f238bdb5a875b390eaa2")
     );
-    assert_eq!(
-        accounts[1].extended_public_key.as_deref(),
-        Some("34bee4f639dc054e05c01a0d196aed6db69d56e4ea920b3c022d2f0d5bce73a9")
-    );
-    assert_eq!(
-        accounts[2].extended_public_key.as_deref(),
-        Some("032c95c627ec384f7b96fff253371673d7846063e52742d79f97235859d6061b04")
-    );
+    assert_eq!(accounts[1].extended_public_key.as_deref(), Some("34bee4f639dc054e05c01a0d196aed6db69d56e4ea920b3c022d2f0d5bce73a9"));
+    assert_eq!(accounts[2].extended_public_key.as_deref(), Some("032c95c627ec384f7b96fff253371673d7846063e52742d79f97235859d6061b04"));
     assert_eq!(
         accounts[3].extended_public_key.as_deref(),
         Some("zpub6qQxTLc1Xa8mbCLj7CUrdLogszRJeCcVx8cKYs5HuH9UURf5nB7kmBBJbL5nvxZcYF7EXNU9zP8pWbqYxCLdW26bqq6tDuxxWVkjmn8Fks9")
@@ -103,14 +84,8 @@ fn test_mnemonic_wallet_id() {
     let ethereum = derive_accounts_from_mnemonic(PHRASE, vec![Chain::Ethereum]).unwrap().remove(0);
     let solana = derive_accounts_from_mnemonic(PHRASE, vec![Chain::Solana]).unwrap().remove(0);
 
-    assert_eq!(
-        derive_wallet_id_from_account(&ethereum, WalletType::Multicoin).unwrap().to_string(),
-        "multicoin_0x9858EfFD232B4033E47d90003D41EC34EcaEda94"
-    );
-    assert_eq!(
-        derive_wallet_id_from_account(&solana, WalletType::Single).unwrap().to_string(),
-        "single_solana_HAgk14JpMQLgt6rVgv7cBQFJWFto5Dqxi472uT3DKpqk"
-    );
+    assert_eq!(derive_wallet_id_from_account(&ethereum, WalletType::Multicoin).unwrap().to_string(), "multicoin_0x9858EfFD232B4033E47d90003D41EC34EcaEda94");
+    assert_eq!(derive_wallet_id_from_account(&solana, WalletType::Single).unwrap().to_string(), "single_solana_HAgk14JpMQLgt6rVgv7cBQFJWFto5Dqxi472uT3DKpqk");
 }
 
 #[test]

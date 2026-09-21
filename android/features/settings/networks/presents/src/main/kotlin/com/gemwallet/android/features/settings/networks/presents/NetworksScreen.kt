@@ -11,15 +11,12 @@ import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.settings.networks.viewmodels.NetworksViewModel
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
-import com.gemwallet.android.ui.R
 
 @Composable
-fun NetworksScreen(
-    onCancel: () -> Unit,
-    viewModel: NetworksViewModel = hiltViewModel()
-) {
+fun NetworksScreen(onCancel: () -> Unit, viewModel: NetworksViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = state.errorText, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 
@@ -44,7 +41,7 @@ fun NetworksScreen(
         transitionSpec = {
             navigationSlideTransition(forward = targetState != NetworksScreenState.Chains)
         },
-        label = "networks"
+        label = "networks",
     ) { target ->
         when (target) {
             NetworksScreenState.Chains -> NetworksListScene(
@@ -59,6 +56,7 @@ fun NetworksScreen(
                     }
                 },
             )
+
             NetworksScreenState.Network -> NetworkScene(
                 state = state,
                 snackbar = snackbar,
@@ -72,6 +70,7 @@ fun NetworksScreen(
                     }
                 },
             )
+
             NetworksScreenState.Status -> ServiceStatusScene(
                 onCancel = { showStatus = false },
             )

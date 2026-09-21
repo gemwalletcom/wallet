@@ -42,10 +42,7 @@ impl AssetAddressChanges {
             .filter(|address| !added_ids.contains(&address.asset_id))
             .collect();
 
-        Self {
-            addresses_to_add,
-            addresses_to_delete,
-        }
+        Self { addresses_to_add, addresses_to_delete }
     }
 }
 
@@ -70,10 +67,7 @@ mod tests {
         let zero_changes = AssetAddressChanges::from_coin_balance(&chain_address, zero_balance);
 
         assert_eq!(zero_changes.addresses_to_add, vec![]);
-        assert_eq!(
-            zero_changes.addresses_to_delete,
-            vec![AssetAddress::new(Asset::mock_eth().id, chain_address.address, Some(BigUint::from(0u64)))]
-        );
+        assert_eq!(zero_changes.addresses_to_delete, vec![AssetAddress::new(Asset::mock_eth().id, chain_address.address, Some(BigUint::from(0u64)))]);
     }
 
     #[test]
@@ -85,27 +79,17 @@ mod tests {
             AssetAddress::new(Asset::mock_erc20().id.clone(), chain_address.address.clone(), Some(BigUint::from(7u64))),
         ];
 
-        let omitted_zero_changes = AssetAddressChanges::from_token_balances(
-            &chain_address,
-            existing_addresses.clone(),
-            vec![AssetBalance::new(Asset::mock_erc20().id.clone(), BigUint::from(9u32))],
-        );
+        let omitted_zero_changes = AssetAddressChanges::from_token_balances(&chain_address, existing_addresses.clone(), vec![AssetBalance::new(Asset::mock_erc20().id.clone(), BigUint::from(9u32))]);
         assert_eq!(
             omitted_zero_changes.addresses_to_delete,
             vec![AssetAddress::new(Asset::mock_ethereum_usdc().id, chain_address.address.clone(), Some(BigUint::from(5u64)))]
         );
-        assert_eq!(
-            omitted_zero_changes.addresses_to_add,
-            vec![AssetAddress::new(Asset::mock_erc20().id, chain_address.address.clone(), Some(BigUint::from(9u64)))]
-        );
+        assert_eq!(omitted_zero_changes.addresses_to_add, vec![AssetAddress::new(Asset::mock_erc20().id, chain_address.address.clone(), Some(BigUint::from(9u64)))]);
 
         let explicit_zero_changes = AssetAddressChanges::from_token_balances(
             &chain_address,
             existing_addresses,
-            vec![
-                AssetBalance::new(Asset::mock_ethereum_usdc().id.clone(), BigUint::ZERO),
-                AssetBalance::new(Asset::mock_erc20().id.clone(), BigUint::from(9u32)),
-            ],
+            vec![AssetBalance::new(Asset::mock_ethereum_usdc().id.clone(), BigUint::ZERO), AssetBalance::new(Asset::mock_erc20().id.clone(), BigUint::from(9u32))],
         );
         assert_eq!(
             explicit_zero_changes.addresses_to_delete,

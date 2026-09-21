@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = Niet-ondersteunde asset.
 errors_connections_no_supported_wallets = Er zijn geen ondersteunde wallets beschikbaar.
 errors_connections_unsupported_chain = De meegeleverde keten wordt niet ondersteund.
 errors_swap_amount_too_small = Bedrag te klein
-errors_required = %@ is vereist
 errors_scan_transaction_malicious_description = Deze transactie kan niet worden voltooid: het adres van de bestemmingswallet is gekoppeld aan verdachte of schadelijke activiteiten.
 errors_scan_transaction_memo_required = %@ bestemmingswalletadres vereist een bestemmingstag / memo
 errors_scan_transaction_malicious_title = Verdachte activiteit
@@ -315,7 +314,7 @@ asset_symbol = Symbool
 asset_decimals = Decimalen
 asset_token_id = Token-ID
 asset_contract = Contract
-asset_state_empty_title = Uw transacties verschijnen hier️
+asset_state_empty_title = Uw transacties verschijnen hier
 asset_state_empty_description = Ontvangen, ruilen of kopen %@
 asset_verification_unverified = Ongeverifieerd
 asset_verification_suspicious = Verdacht
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = Als de prijs daalt met
 price_alerts_set_alert_set_target_price = Stel een doelprijs in
 price_alerts_set_alert_current_price = Huidige prijs
 price_alerts_added_for = Prijswaarschuwing instellen %@
-price_alerts_state_empty_title = Uw meldingen verschijnen hier️
+price_alerts_state_empty_title = Uw meldingen verschijnen hier
 price_alerts_state_empty_description = Schakel ze in door munten toe te voegen aan de track
 price_alerts_auto_footer = Waarschuwingen worden geactiveerd bij aanzienlijke prijsbewegingen.
 price_alerts_set_alert_title = Prijswaarschuwing instellen
@@ -536,7 +535,7 @@ verify_phrase_title = Bevestig
 
 # Warnings
 
-warnings_multi_signature_blocked = Maak geen geld over naar deze %@ Multi-Signature portemonnee, tenzij u zeker weet dat u de privésleutels beheert. Als u dit niet doet, kunt u worden blootgesteld aan oplichting en kunt u uw bezittingen permanent kwijtraken.
+warnings_externally_controlled_account = Dit %@-account kan door iemand anders worden beheerd. Stuur er geen geld naartoe, tenzij u zeker weet dat u het zelf beheert, anders kunt u uw bezittingen permanent kwijtraken.
 
 # Sell
 
@@ -600,7 +599,7 @@ nft_collections = Collecties
 nft_collection = Collectie
 nft_save_to_photos = Opslaan in Foto's
 nft_set_as_avatar = Instellen als Avatar
-nft_state_empty_title = Uw NFT's verschijnen hier️
+nft_state_empty_title = Uw NFT's verschijnen hier
 nft_state_empty_description = Ontvang uw eerste NFT
 nft_report_reason_spam = Spam
 nft_report_reason_malicious = Kwaadwillend

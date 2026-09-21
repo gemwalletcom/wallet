@@ -36,11 +36,7 @@ impl AssetClassificationRules {
         if self.spam_markers.iter().any(|marker| metadata.iter().any(|value| value.contains(marker))) {
             return Some(AssetRank::Spam);
         }
-        if self
-            .fraudulent_assets
-            .iter()
-            .any(|rule| rule.name == name && rule.symbols.iter().any(|candidate| candidate == symbol))
-        {
+        if self.fraudulent_assets.iter().any(|rule| rule.name == name && rule.symbols.iter().any(|candidate| candidate == symbol)) {
             return Some(AssetRank::Fraudulent);
         }
         None

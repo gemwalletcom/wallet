@@ -1,6 +1,8 @@
-use primitives::{Asset, AssetId, AssetMetaData, AssetType, BannerEvent, BlockExplorerLink, Chain, PriceAlert, RecentActivityType, VerificationStatus, WalletType};
+use primitives::{Asset, AssetId, AssetMetaData, AssetType, BalanceMetadata, BannerEvent, BlockExplorerLink, Chain, Currency, PriceAlert, RecentActivityType, VerificationStatus, WalletType};
 
-use crate::services::balance::GemAssetBalance;
+use crate::formatted_number::GemFormattedNumber;
+use crate::models::list::{GemListRow, GemListSectionTitle};
+use crate::services::balance::{GemAssetBalance, GemAssetBalanceRow};
 use crate::services::price_alert::rules::GemPriceAlertToggle;
 use crate::services::swap::GemSwapPairSuggestion;
 use strum::IntoEnumIterator;
@@ -61,20 +63,20 @@ pub enum GemSelectAssetScope {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemAssetRowTitle {
+pub enum GemAssetTitleStyle {
     Asset,
     CanonicalAsset,
     Network,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemAssetRowSubtitle {
+pub enum GemAssetSubtitleStyle {
     Network,
     Price,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemAssetRowTrailing {
+pub enum GemAssetTrailingStyle {
     Balance,
     Toggle,
     Copy,
@@ -95,11 +97,11 @@ pub fn asset_text(asset: Asset) -> GemAssetText {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
-pub struct GemAssetRow {
-    pub title: GemAssetRowTitle,
+pub struct GemAssetRowStyle {
+    pub title: GemAssetTitleStyle,
     pub shows_symbol: bool,
-    pub subtitle: GemAssetRowSubtitle,
-    pub trailing: GemAssetRowTrailing,
+    pub subtitle: GemAssetSubtitleStyle,
+    pub trailing: GemAssetTrailingStyle,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -128,7 +130,7 @@ pub enum GemSelectAssetSection {
 pub struct GemSelectAssetFlow {
     pub title: GemSelectAssetTitle,
     pub assets_section: GemSelectAssetSection,
-    pub row: GemAssetRow,
+    pub row_style: GemAssetRowStyle,
     pub row_action: GemSelectRowAction,
     pub action: Option<GemAssetAction>,
     pub scope: GemSelectAssetScope,
@@ -185,6 +187,10 @@ impl GemSelectAssetFlow {
     pub fn shows_chain_filter(&self, is_multicoin: bool, has_chains: bool) -> bool {
         self.chain_filter && is_multicoin && has_chains
     }
+
+    pub fn applied_filters(&self, chains: Vec<Chain>, has_balance: bool) -> Vec<GemAssetFilter> {
+        super::rules::applied_filters(self, chains, has_balance)
+    }
 }
 
 #[uniffi::export]
@@ -203,6 +209,7 @@ pub enum GemAssetFilter {
     HasBalance,
     HasAvailableBalance,
     ChainsOrAssetIds { chains: Vec<Chain>, asset_ids: Vec<AssetId> },
+    Chains { chains: Vec<Chain> },
 }
 
 impl GemAssetFilter {
@@ -317,10 +324,7 @@ mod tests {
     #[test]
     fn test_action_filters_gate_on_the_balance_each_action_can_spend() {
         assert_eq!(GemAssetAction::Send.filters(), vec![GemAssetFilter::Enabled, GemAssetFilter::HasBalance]);
-        assert_eq!(
-            GemAssetAction::SwapPay.filters(),
-            vec![GemAssetFilter::Enabled, GemAssetFilter::Swappable, GemAssetFilter::HasAvailableBalance]
-        );
+        assert_eq!(GemAssetAction::SwapPay.filters(), vec![GemAssetFilter::Enabled, GemAssetFilter::Swappable, GemAssetFilter::HasAvailableBalance]);
         assert_eq!(GemAssetAction::SwapReceive.filters(), vec![GemAssetFilter::Enabled, GemAssetFilter::Swappable]);
         assert_eq!(GemAssetAction::Buy.filters(), vec![GemAssetFilter::Enabled, GemAssetFilter::Buyable]);
         assert_eq!(GemAssetAction::Sell.filters(), vec![GemAssetFilter::Enabled, GemAssetFilter::Sellable]);
@@ -371,6 +375,11 @@ pub struct GemNetworkAssetSections {
     pub shows_unpinned: bool,
     pub shows_hidden: bool,
     pub shows_empty: bool,
+}
+
+#[uniffi::export]
+pub fn shows_on_network_assets(asset_id: AssetId) -> bool {
+    asset_id.is_token()
 }
 
 #[uniffi::export]
@@ -463,13 +472,23 @@ pub struct GemAssetDetailsState {
     pub is_view_only: bool,
     pub header_actions: GemHeaderActions,
     pub shows_banners: bool,
-    pub shows_manage: bool,
-    pub shows_resources: bool,
-    pub shows_price_alerts: bool,
-    pub price_alerts_count: u32,
     pub price_alert: GemPriceAlertToggle,
-    pub shows_earn: bool,
     pub empty_transactions_action: Option<GemAssetEmptyAction>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemAssetDetailRow {
+    Price,
+    Network { name: String },
+    Balance { row: GemAssetBalanceRow },
+    Earn { apr: Option<GemFormattedNumber> },
+    Row { row: GemListRow },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAssetDetailSection {
+    pub title: GemListSectionTitle,
+    pub rows: Vec<GemAssetDetailRow>,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -480,14 +499,18 @@ pub struct GemAssetDetailsInput {
     pub metadata: AssetMetaData,
     pub balance: GemAssetBalance,
     pub price: Option<f64>,
+    pub currency: Currency,
     pub banner_events: Vec<BannerEvent>,
     pub price_alerts: Vec<PriceAlert>,
+    pub fee_balance_metadata: Option<BalanceMetadata>,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemAssetDetails {
     pub state: GemAssetDetailsState,
+    pub sections: Vec<GemAssetDetailSection>,
     pub title: String,
+    pub fiat_value: Option<GemFormattedNumber>,
     pub explorer_name: String,
     pub address_link: Option<BlockExplorerLink>,
     pub token_link: Option<BlockExplorerLink>,

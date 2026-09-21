@@ -2,25 +2,20 @@ package com.gemwallet.android.data.coordinators.perpetuals
 
 import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
-import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
-import com.gemwallet.android.model.text
 import com.gemwallet.android.ext.toGem
-import uniffi.gemstone.GemPerpetual
-import uniffi.gemstone.perpetualMarketRow
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.Perpetual
+import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import uniffi.gemstone.perpetualMarketRow
 import javax.inject.Inject
 
-class GetPerpetualImpl @Inject constructor(
-    private val perpetualStore: GemstonePerpetualStore
-) : GetPerpetual {
+class GetPerpetualImpl @Inject constructor(private val perpetualStore: GemstonePerpetualStore) : GetPerpetual {
 
     override fun getPerpetual(perpetualId: PerpetualId): Flow<PerpetualDetailsDataAggregate?> {
         return perpetualStore.observePerpetual(perpetualId).map {
@@ -35,10 +30,8 @@ class GetPerpetualImpl @Inject constructor(
     }
 }
 
-class PerpetualDetailsDataAggregateImpl(
-    private val data: PerpetualData,
-) : PerpetualDetailsDataAggregate {
-    private val row = perpetualMarketRow(data.perpetual.toGem())
+class PerpetualDetailsDataAggregateImpl(private val data: PerpetualData) : PerpetualDetailsDataAggregate {
+    private val row = perpetualMarketRow(data.perpetual.toGem(), data.asset.toGem())
 
     override val perpetual: Perpetual = data.perpetual
 
@@ -49,12 +42,6 @@ class PerpetualDetailsDataAggregateImpl(
     override val asset: Asset = data.asset
 
     override val name: String = row.title
-
-    override val dayVolume: String = row.volume24h.text()
-
-    override val openInterest: String = row.openInterest.text()
-
-    override val funding: String = GemPerpetual(data.perpetual.provider.toGem()).use { it.fundingApr(data.perpetual.funding) }.formatAsPercentage()
 
     override val maxLeverage: Int = data.perpetual.maxLeverage.toInt()
 

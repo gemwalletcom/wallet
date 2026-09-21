@@ -33,10 +33,7 @@ impl FiatWebhookRequest {
     pub fn mock_flashnet_with_signature(raw_body: &str, timestamp: &str, signature: &str) -> Self {
         Self::new(
             raw_body.to_string(),
-            HashMap::from([
-                ("x-flashnet-signature".to_string(), signature.to_string()),
-                ("x-flashnet-timestamp".to_string(), timestamp.to_string()),
-            ]),
+            HashMap::from([("x-flashnet-signature".to_string(), signature.to_string()), ("x-flashnet-timestamp".to_string(), timestamp.to_string())]),
             String::new(),
         )
         .unwrap()

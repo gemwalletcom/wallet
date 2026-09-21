@@ -11,7 +11,5 @@ import javax.inject.Singleton
 abstract class InAppUpdateModule {
     @Singleton
     @Binds
-    abstract fun bindInAppUpdateService(
-        service: InAppUpdateServiceImpl,
-    ): InAppUpdateService
+    abstract fun bindInAppUpdateService(service: InAppUpdateServiceImpl): InAppUpdateService
 }

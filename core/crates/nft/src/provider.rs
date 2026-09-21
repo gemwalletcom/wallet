@@ -48,40 +48,26 @@ impl NFTProviders {
     }
 
     fn providers_for_chain(&self, chain: Chain) -> impl Iterator<Item = &Arc<dyn NFTProvider>> {
-        self.providers
-            .iter()
-            .filter(move |provider| provider.chains().iter().any(|nft_chain| Chain::from(*nft_chain) == chain))
+        self.providers.iter().filter(move |provider| provider.chains().iter().any(|nft_chain| Chain::from(*nft_chain) == chain))
     }
 
     pub async fn get_collection(&self, collection_id: NFTCollectionId) -> Option<NFTCollection> {
-        let operations = self
-            .providers_for_chain(collection_id.chain)
-            .map(|provider| provider.get_collection(collection_id.clone()))
-            .collect::<Vec<_>>();
+        let operations = self.providers_for_chain(collection_id.chain).map(|provider| provider.get_collection(collection_id.clone())).collect::<Vec<_>>();
         try_in_order(operations).await.ok().flatten()
     }
 
     pub async fn get_asset(&self, asset_id: NFTAssetId) -> Option<NFTAsset> {
-        let operations = self
-            .providers_for_chain(asset_id.chain)
-            .map(|provider| provider.get_asset(asset_id.clone()))
-            .collect::<Vec<_>>();
+        let operations = self.providers_for_chain(asset_id.chain).map(|provider| provider.get_asset(asset_id.clone())).collect::<Vec<_>>();
         try_in_order(operations).await.ok().flatten()
     }
 
     pub async fn get_asset_ids(&self, chain: Chain, address: &str) -> Result<Vec<NFTAssetId>, Box<dyn Error + Send + Sync>> {
-        let provider = self
-            .providers_for_chain(chain)
-            .next()
-            .ok_or_else(|| format!("no NFT provider for chain {}", chain.as_ref()))?;
+        let provider = self.providers_for_chain(chain).next().ok_or_else(|| format!("no NFT provider for chain {}", chain.as_ref()))?;
         provider.get_assets(chain, address.to_string()).await
     }
 
     pub async fn get_nft_data(&self, chain: Chain, address: &str) -> Result<Vec<NFTData>, Box<dyn Error + Send + Sync>> {
-        let provider = self
-            .providers_for_chain(chain)
-            .next()
-            .ok_or_else(|| format!("no NFT provider for chain {}", chain.as_ref()))?;
+        let provider = self.providers_for_chain(chain).next().ok_or_else(|| format!("no NFT provider for chain {}", chain.as_ref()))?;
         provider.get_nft_data(chain, address.to_string()).await
     }
 }

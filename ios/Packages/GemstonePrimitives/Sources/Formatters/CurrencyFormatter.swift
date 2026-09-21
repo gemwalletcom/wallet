@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import Formatters
+import Foundation
 import enum Gemstone.GemCurrencyStyle
 import Primitives
 

@@ -15,10 +15,7 @@ fn public_keys_from_extended_private_key(private_key: &[u8]) -> Result<([u8; KEY
         return Err(AccountDerivationError::invalid_input("invalid Cardano private key length"));
     }
 
-    Ok((
-        public_key_from_extended_secret(read_array(private_key, 0)),
-        public_key_from_extended_secret(read_array(private_key, STAKE_SECRET_OFFSET)),
-    ))
+    Ok((public_key_from_extended_secret(read_array(private_key, 0)), public_key_from_extended_secret(read_array(private_key, STAKE_SECRET_OFFSET))))
 }
 
 #[cfg(test)]
@@ -48,9 +45,6 @@ mod tests {
     fn test_cardano_public_key_from_extended_secret() {
         let secret = decode_hex("e8c8c5b2df13f3abed4e6b1609c808e08ff959d7e6fc3d849e3f2880550b5744").unwrap().try_into().unwrap();
 
-        assert_eq!(
-            hex::encode(public_key_from_extended_secret(secret)),
-            "fafa7eb4146220db67156a03a5f7a79c666df83eb31abbfbe77c85e06d40da31"
-        );
+        assert_eq!(hex::encode(public_key_from_extended_secret(secret)), "fafa7eb4146220db67156a03a5f7a79c666df83eb31abbfbe77c85e06d40da31");
     }
 }

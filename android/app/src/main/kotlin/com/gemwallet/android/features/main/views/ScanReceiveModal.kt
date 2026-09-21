@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.main.views
 
-import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,16 +21,13 @@ import com.gemwallet.android.ui.components.PortraitOrientationLock
 import com.gemwallet.android.ui.components.QrCodeRequest
 import com.gemwallet.android.ui.components.ScanReceiveSwitcher
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.theme.SheetSizing
 import com.wallet.core.primitives.QRScanType
 import com.wallet.core.primitives.ScanReceiveMode
 
 @Composable
-fun ScanReceiveModal(
-    isVisible: Boolean,
-    onDismissRequest: () -> Unit,
-    onScan: (String) -> Unit,
-) {
+fun ScanReceiveModal(isVisible: Boolean, onDismissRequest: () -> Unit, onScan: (String) -> Unit) {
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismissRequest,
@@ -58,6 +54,7 @@ fun ScanReceiveModal(
                     titleContent = { ScanReceiveSwitcher(mode = mode, onModeChange = { mode = it }) },
                     onResult = onScan,
                 )
+
                 ScanReceiveMode.Receive -> SelectReceiveScreen(
                     viewModel = assetSelectViewModel,
                     onCancel = onDismissRequest,

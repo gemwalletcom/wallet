@@ -20,22 +20,14 @@ impl EvmSigner for TempoSigner {
         let swap_data = &input.input_type.get_swap_data()?.data;
         let value = U256::from_str(&swap_data.value.to_string()).map_err(SignerError::from_display)?;
         if value != U256::ZERO {
-            return Err(SignerError::invalid_input(
-                "Tempo's CALLVALUE is always 0; swap value must route through the ERC-20 call, not msg.value",
-            ));
+            return Err(SignerError::invalid_input("Tempo's CALLVALUE is always 0; swap value must route through the ERC-20 call, not msg.value"));
         }
         let params = TransactionParams::from_input(input)?;
         let swap_gas_limit = input.swap_gas_limit()?;
-        let swap_call = TransactionCall::new(
-            Address::from_str(&swap_data.to).map_err(SignerError::from_display)?,
-            Bytes::from(decode_hex(&swap_data.data)?),
-        );
+        let swap_call = TransactionCall::new(Address::from_str(&swap_data.to).map_err(SignerError::from_display)?, Bytes::from(decode_hex(&swap_data.data)?));
         let (calls, gas_limit) = match &swap_data.approval {
             Some(approval) => {
-                let approve_call = TransactionCall::new(
-                    Address::from_str(&approval.token).map_err(SignerError::from_display)?,
-                    Bytes::from(encode_erc20_approve_max_value(&approval.spender)?),
-                );
+                let approve_call = TransactionCall::new(Address::from_str(&approval.token).map_err(SignerError::from_display)?, Bytes::from(encode_erc20_approve_max_value(&approval.spender)?));
                 (vec![approve_call, swap_call], params.gas_limit + swap_gas_limit)
             }
             None => (vec![swap_call], swap_gas_limit),
@@ -79,18 +71,8 @@ mod tests {
     fn test_rejects_native_transfer() {
         let signer = EvmChainSigner::new(TempoSigner);
         let metadata = TransactionLoadMetadata::mock_evm(0, Chain::Tempo.network_id().parse().unwrap());
-        let input = SignerInput::mock_evm_with_metadata(
-            TransactionInputType::Transfer {
-                asset: Asset::mock_with_chain(Chain::Tempo),
-            },
-            "1000000",
-            TOKEN_TRANSFER_GAS_LIMIT,
-            metadata,
-        );
-        assert_eq!(
-            signer.sign_transfer(&input, &TEST_PRIVATE_KEY).unwrap_err(),
-            SignerError::invalid_input("Tempo does not support native transfers")
-        );
+        let input = SignerInput::mock_evm_with_metadata(TransactionInputType::Transfer { asset: Asset::mock_with_chain(Chain::Tempo) }, "1000000", TOKEN_TRANSFER_GAS_LIMIT, metadata);
+        assert_eq!(signer.sign_transfer(&input, &TEST_PRIVATE_KEY).unwrap_err(), SignerError::invalid_input("Tempo does not support native transfers"));
     }
 
     #[test]

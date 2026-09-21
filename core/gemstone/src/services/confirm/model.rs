@@ -1,21 +1,21 @@
 use super::error::GemConfirmError;
 use super::rules::approval_value_from;
+use crate::formatted_number::GemValueTone;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
+use crate::models::list::GemListRow;
 use crate::models::transaction::{GemFeeOptionItem, GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::services::balance::GemAssetBalance;
 use crate::services::error_text::GemErrorText;
-use crate::services::simulation::GemSimulationWarningRow;
+use crate::services::localization::GemLocalizedText;
+use crate::services::simulation::{GemSimulationPayloadRow, address_requests, named_payload_rows};
 use crate::services::transactions::GemAmountSign;
 use crate::services::transfer::GemTransferData;
 use crate::services::transfer::model::GemConfirmDestination;
-use crate::services::wallet::model::GemWalletRow;
 use crate::transfer_amount::GemTransferAmount;
 use primitives::AssetPrice;
 use primitives::BlockExplorerLink;
-use primitives::{
-    Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationPayloadField, SimulationPayloadFieldType, SimulationResult, Transaction, Wallet,
-};
+use primitives::{Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationResult, Wallet};
 
 pub type GemAccount = Account;
 
@@ -67,14 +67,9 @@ pub struct GemConfirmData {
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]
-pub enum GemExecuteResult {
+pub enum GemSubmitResult {
     Signed { data: Vec<String>, warning: Option<GemErrorText> },
-    Sent { hashes: Vec<String>, transactions: Vec<Transaction>, warning: Option<GemErrorText> },
-}
-
-pub(super) struct GemSendResult {
-    pub(super) hashes: Vec<String>,
-    pub(super) transactions: Vec<Transaction>,
+    Sent { hashes: Vec<String>, warning: Option<GemErrorText> },
 }
 
 #[derive(Debug, Clone)]
@@ -117,19 +112,20 @@ impl GemConfirmMetadata {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemFeeRateRow {
     pub priority: FeePriority,
-    pub unit_value: GemBigInt,
     pub fee: Option<GemBigInt>,
-    pub display_value: GemBigInt,
+    pub value: GemLocalizedText,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemFeeRateRows {
     pub rows: Vec<GemFeeRateRow>,
+    pub shows_options: bool,
     pub unit_type: FeeUnitType,
     pub unit_decimals: u32,
     pub supports_custom_fee: bool,
     pub selected_total: Option<GemBigInt>,
     pub normal_total: Option<GemBigInt>,
+    pub custom_rate: Option<GemLocalizedText>,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -141,12 +137,15 @@ pub struct GemFeeAsset {
 
 impl GemConfirmSimulation {
     pub(super) fn address_requests(&self, chain: Chain) -> Vec<ChainAddress> {
-        self.primary_fields
-            .iter()
-            .chain(self.secondary_fields.iter())
-            .filter(|field| field.field_type == SimulationPayloadFieldType::Address)
-            .map(|field| ChainAddress::new(chain, field.value.clone()))
-            .collect()
+        [address_requests(&self.primary_fields, chain), address_requests(&self.secondary_fields, chain)].concat()
+    }
+
+    pub(super) fn with_address_names(self, chain: Chain, names: &[AddressName]) -> Self {
+        Self {
+            primary_fields: named_payload_rows(self.primary_fields, Some(chain), names),
+            secondary_fields: named_payload_rows(self.secondary_fields, Some(chain), names),
+            ..self
+        }
     }
 }
 
@@ -166,9 +165,8 @@ pub struct GemConfirmLoad {
 pub struct GemConfirmSimulationState {
     pub chain: Chain,
     pub result: Option<SimulationResult>,
-    pub warnings: Vec<GemSimulationWarningRow>,
+    pub warnings: Vec<GemListRow>,
     pub simulation: Option<GemConfirmSimulation>,
-    pub address_names: Vec<AddressName>,
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]
@@ -218,12 +216,13 @@ pub struct GemSimulationBalanceChange {
     pub asset: Asset,
     pub value: GemBigInt,
     pub sign: GemAmountSign,
+    pub tone: GemValueTone,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmSimulation {
-    pub primary_fields: Vec<SimulationPayloadField>,
-    pub secondary_fields: Vec<SimulationPayloadField>,
+    pub primary_fields: Vec<GemSimulationPayloadRow>,
+    pub secondary_fields: Vec<GemSimulationPayloadRow>,
     pub header: Option<GemSimulationValue>,
     pub balance_changes: Vec<GemSimulationBalanceChange>,
     pub has_critical_warning: bool,
@@ -268,6 +267,7 @@ pub enum GemConfirmAction {
 pub enum GemConfirmButtonKind {
     Confirm,
     Retry,
+    AccountMissing,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
@@ -283,11 +283,16 @@ pub struct GemConfirmButton {
     pub state: GemConfirmButtonState,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
+#[uniffi::export]
+pub fn shows_fee_assets(fee_asset_ids: Vec<AssetId>, selected: Option<AssetId>) -> bool {
+    super::rules::shows_fee_assets(&fee_asset_ids, selected.as_ref())
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemConfirmFeeRow {
     Loading,
     Ready,
-    Unavailable,
+    Unavailable { text: String },
 }
 
 #[cfg(test)]
@@ -325,12 +330,8 @@ mod tests {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemConfirmRowContent {
-    App {
-        name: String,
-        icon_url: Option<String>,
-    },
-    Sender {
-        wallet: GemWalletRow,
+    Row {
+        row: GemListRow,
     },
     Recipient {
         destination: GemConfirmDestination,
@@ -338,13 +339,6 @@ pub enum GemConfirmRowContent {
         memo: Option<String>,
         chain: Chain,
         link: BlockExplorerLink,
-    },
-    Network {
-        chain: Chain,
-        name: String,
-    },
-    Memo {
-        memo: Option<String>,
     },
     Details,
     PaymentAsset {

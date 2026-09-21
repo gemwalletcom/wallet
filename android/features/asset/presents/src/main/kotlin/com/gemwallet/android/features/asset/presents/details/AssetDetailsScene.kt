@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.asset.presents.details
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,31 +8,21 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
-import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.type
+import com.gemwallet.android.features.asset.presents.details.components.AssetDetailRowItem
 import com.gemwallet.android.features.asset.presents.details.components.AssetDetailsMenu
 import com.gemwallet.android.features.asset.presents.details.components.AssetHeadItem
 import com.gemwallet.android.features.asset.presents.details.components.BannerItem
 import com.gemwallet.android.features.asset.presents.details.components.EmptyTransactionsItem
-import com.gemwallet.android.features.asset.presents.details.components.balancesHeader
-import com.gemwallet.android.features.asset.presents.details.components.manageAssetItem
-import com.gemwallet.android.features.asset.presents.details.components.network
-import com.gemwallet.android.features.asset.presents.details.components.price
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.energyItem
-import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
+import com.gemwallet.android.ui.components.list_item.GemListRowView
+import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.list_item.property.verificationStatusItem
 import com.gemwallet.android.ui.components.list_item.rememberDateSections
@@ -41,35 +30,35 @@ import com.gemwallet.android.ui.components.list_item.transaction.transactionsLis
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.showSnackbar
-import com.gemwallet.android.ui.open
-import kotlinx.coroutines.launch
+import com.gemwallet.android.ui.models.ListPosition
+import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemListRowTitle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun AssetDetailsScene(
     uiState: AssetInfoUIModel,
     transactions: List<TransactionDataAggregate>,
-    requestNotificationPermission: (() -> Unit) -> Unit,
+    transactionsErrorRow: GemListRow?,
     isRefreshing: Boolean,
     snackBar: SnackbarHostState = remember { SnackbarHostState() },
     onAction: (AssetDetailsAction) -> Unit,
 ) {
-    val context = LocalContext.current
-    val uriHandler = LocalUriHandler.current
-    val scope = rememberCoroutineScope()
-    val isPinned = uiState.assetInfo.metadata.isPinned
-    val pinToastMessage = stringResource(
-        if (isPinned) R.string.common_unpinned_asset else R.string.common_pinned_asset,
-        uiState.asset.name,
-    )
-    val addToastMessage = stringResource(R.string.asset_added_to_wallet)
     val detailsState = uiState.detailsState
+    val onSelect: (GemListRowTitle) -> Unit = { title ->
+        when (title) {
+            GemListRowTitle.PIN, GemListRowTitle.UNPIN -> onAction(AssetDetailsAction.Pin)
+            GemListRowTitle.ADD_TO_WALLET -> onAction(AssetDetailsAction.Add)
+            GemListRowTitle.PRICE_ALERTS -> onAction(AssetDetailsAction.OpenPriceAlerts(uiState.asset.id))
+            else -> Unit
+        }
+    }
     val swapAction = {
         onAction(
             AssetDetailsAction.Swap(
                 fromAssetId = uiState.swapPayAssetId ?: uiState.asset.id,
                 toAssetId = uiState.swapReceiveAssetId,
-            )
+            ),
         )
     }
 
@@ -79,7 +68,7 @@ internal fun AssetDetailsScene(
                 Text(
                     text = uiState.name,
                     maxLines = 1,
-                    overflow = TextOverflow.MiddleEllipsis
+                    overflow = TextOverflow.MiddleEllipsis,
                 )
             }
         },
@@ -88,8 +77,6 @@ internal fun AssetDetailsScene(
             AssetDetailsMenu(
                 uiState = uiState,
                 priceAlert = uiState.priceAlertMenu,
-                snackBar = snackBar,
-                requestNotificationPermission = requestNotificationPermission,
                 onPriceAlert = { onAction(AssetDetailsAction.TogglePriceAlert(it)) },
             )
         },
@@ -103,7 +90,7 @@ internal fun AssetDetailsScene(
             onRefresh = { onAction(AssetDetailsAction.Refresh) },
         ) {
             LazyColumn(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
             ) {
                 item {
                     AssetHeadItem(
@@ -125,58 +112,23 @@ internal fun AssetDetailsScene(
                         )
                     }
                 }
-                manageAssetItem(
-                    uiState = uiState,
-                    onPin = {
-                        onAction(AssetDetailsAction.Pin)
-                        scope.launch {
-                            snackBar.showSnackbar(
-                                pinToastMessage,
-                                if (isPinned) R.drawable.keep_off else R.drawable.ic_push_pin,
-                            )
-                        }
-                    },
-                    onAdd = {
-                        onAction(AssetDetailsAction.Add)
-                        scope.launch { snackBar.showSnackbar(addToastMessage, R.drawable.ic_add_circle_outlined) }
-                    },
-                )
                 uiState.verificationStatus?.let { verificationStatusItem(it) }
-                price(uiState, onChart = { onAction(AssetDetailsAction.OpenChart(it)) }, onPriceAlerts = { onAction(AssetDetailsAction.OpenPriceAlerts(it)) })
-                network(uiState, onAction)
-                balancesHeader(uiState.accountInfoUIModel)
-                itemsPositioned(uiState.accountInfoUIModel.balances) { position, item ->
-                    val onBalance: (() -> Unit)? = when (item.type) {
-                        AssetInfoUIModel.BalanceViewType.Available,
-                        AssetInfoUIModel.BalanceViewType.PendingUnconfirmed -> null
-                        AssetInfoUIModel.BalanceViewType.Stake -> {
-                            { onAction(AssetDetailsAction.Stake(uiState.asset.id)) }
-                        }
-
-                        AssetInfoUIModel.BalanceViewType.Earn -> {
-                            { onAction(AssetDetailsAction.Earn(uiState.asset.id)) }
-                        }
-
-                        AssetInfoUIModel.BalanceViewType.Reserved -> item.url?.let { url ->
-                            { uriHandler.open(context, url) }
-                        }
+                uiState.sections.forEach { section ->
+                    section.title?.let { title -> item { SubheaderItem(title) } }
+                    itemsPositioned(section.rows) { position, row ->
+                        AssetDetailRowItem(uiState = uiState, row = row, listPosition = position, onSelect = onSelect, onAction = onAction)
                     }
-                    ListItem(
-                        model = item.model,
-                        listPosition = position,
-                        modifier = onBalance?.let { Modifier.clickable(onClick = it).testTag("assetStake") } ?: Modifier,
-                        accessory = onBalance?.let { { DataBadgeChevron() } },
-                    )
-                }
-                if (detailsState.showsResources) {
-                    energyItem(uiState.accountInfoUIModel.balanceMetadata)
                 }
                 item {
-                    EmptyTransactionsItem(
+                    transactionsErrorRow?.let { GemListRowView(row = it, listPosition = ListPosition.Single) } ?: EmptyTransactionsItem(
                         size = transactions.size,
                         symbol = uiState.asset.symbol,
                         isViewOnly = detailsState.isViewOnly,
-                        onBuy = if (uiState.emptyTransactions.showsBuy) { { onAction(AssetDetailsAction.Buy(uiState.asset.id)) } } else null,
+                        onBuy = if (uiState.emptyTransactions.showsBuy) {
+                            { onAction(AssetDetailsAction.Buy(uiState.asset.id)) }
+                        } else {
+                            null
+                        },
                         onSwap = if (uiState.emptyTransactions.showsSwap) swapAction else null,
                     )
                 }

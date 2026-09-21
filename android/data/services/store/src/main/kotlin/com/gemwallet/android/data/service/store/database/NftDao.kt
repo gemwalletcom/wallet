@@ -37,12 +37,7 @@ interface NftDao {
     suspend fun deleteAssociations(walletId: String, assetIds: List<NFTAssetId>)
 
     @Transaction
-    suspend fun updateNft(
-        walletId: String,
-        collections: List<DbNFTCollection>,
-        assets: List<DbNFTAsset>,
-        associations: List<DbNFTAssociation>,
-    ) {
+    suspend fun updateNft(walletId: String, collections: List<DbNFTCollection>, assets: List<DbNFTAsset>, associations: List<DbNFTAssociation>) {
         val newAssetIds = associations.map(DbNFTAssociation::assetId).toSet()
         val assetIdsToDelete = getWalletAssetIds(walletId).filterNot(newAssetIds::contains)
 
@@ -55,22 +50,26 @@ interface NftDao {
         }
     }
 
-    @Query("""
+    @Query(
+        """
         SELECT DISTINCT nft_collections.* FROM nft_collections
         JOIN nft_assets ON nft_collections.id = nft_assets.collection_id
         JOIN nft_assets_associations ON nft_assets.id = nft_assets_associations.asset_id
             AND nft_assets_associations.wallet_id = :walletId
-    """)
+    """,
+    )
     fun getCollections(walletId: String): Flow<List<DbNFTCollection>>
 
     @Query("SELECT * FROM nft_collections WHERE id = :id")
     fun getCollection(id: NFTCollectionId): Flow<DbNFTCollection?>
 
-    @Query("""
+    @Query(
+        """
         SELECT DISTINCT nft_assets.* FROM nft_assets
         JOIN nft_assets_associations ON nft_assets.id = nft_assets_associations.asset_id
             AND nft_assets_associations.wallet_id = :walletId
-    """)
+    """,
+    )
     fun getAssets(walletId: String): Flow<List<DbNFTAsset>>
 
     @Query("SELECT * FROM nft_assets WHERE id = :id")

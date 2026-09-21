@@ -1,10 +1,7 @@
 use std::{fmt::Debug, sync::Arc};
 
 use gem_client::Client;
-use gem_solana::{
-    AccountMeta, Instruction, Pubkey, SolanaAddress, anchor::global_discriminator, associated_token::get_associated_token_address_with_program_id, find_program_address,
-    instructions::program_ids,
-};
+use gem_solana::{AccountMeta, Instruction, Pubkey, SolanaAddress, anchor::global_discriminator, associated_token::get_associated_token_address_with_program_id, find_program_address, instructions::program_ids};
 use rand::Rng;
 
 use super::{circle_max_fee64, destination_referrer_address, fast_mctp_input_contract, fast_mctp_min_finality, referrer_bytes, refund_relayer_fee64, token_out};
@@ -19,10 +16,7 @@ use crate::{
             address::native_address_to_bytes32,
             amount::{fractional_amount, gas_drop_amount, min_amount_out, optional_bps_u8, value_to_query},
             route::quote_destination_address,
-            solana::{
-                self as solana_builder, SolanaLedgerDeposit, SolanaTransaction, append_client_swap_instructions, append_ledger_deposit_instructions, solana_error,
-                wrap_instruction_in_cpi_proxy,
-            },
+            solana::{self as solana_builder, SolanaLedgerDeposit, SolanaTransaction, append_client_swap_instructions, append_ledger_deposit_instructions, solana_error, wrap_instruction_in_cpi_proxy},
         },
         wormhole_chain::{WormholeChain, id_for_name as wormhole_chain_id},
     },
@@ -129,13 +123,7 @@ fn add_direct_fast_mctp_instructions(route: &MayanFastMctpQuote, context: &FastM
     add_ledger_instruction(route, context, amount, solana_relayer_fee(route)?, instructions)
 }
 
-async fn add_swap_instructions<C>(
-    client: &MayanClient<C>,
-    quote: &Quote,
-    route: &MayanFastMctpQuote,
-    context: &FastMctpBuildContext,
-    instructions: &mut Vec<Instruction>,
-) -> Result<Vec<String>, SwapperError>
+async fn add_swap_instructions<C>(client: &MayanClient<C>, quote: &Quote, route: &MayanFastMctpQuote, context: &FastMctpBuildContext, instructions: &mut Vec<Instruction>) -> Result<Vec<String>, SwapperError>
 where
     C: Client + Clone + Send + Sync + Debug + 'static,
 {
@@ -154,57 +142,23 @@ where
         ))
         .await?;
 
-    let lookup_table_addresses = append_client_swap_instructions(
-        instructions,
-        swap,
-        &context.user,
-        &context.relayer,
-        &route.from_token.contract,
-        &route.effective_amount_in64,
-    )?;
+    let lookup_table_addresses = append_client_swap_instructions(instructions, swap, &context.user, &context.relayer, &route.from_token.contract, &route.effective_amount_in64)?;
 
-    add_ledger_instruction(
-        route,
-        context,
-        fractional_amount(min_middle_amount, CCTP_TOKEN_DECIMALS)?,
-        solana_relayer_fee(route)?,
-        instructions,
-    )?;
+    add_ledger_instruction(route, context, fractional_amount(min_middle_amount, CCTP_TOKEN_DECIMALS)?, solana_relayer_fee(route)?, instructions)?;
 
     Ok(lookup_table_addresses)
 }
 
-fn add_ledger_instruction(
-    route: &MayanFastMctpQuote,
-    context: &FastMctpBuildContext,
-    amount_in_min64: u64,
-    fee_solana: u64,
-    instructions: &mut Vec<Instruction>,
-) -> Result<(), SwapperError> {
+fn add_ledger_instruction(route: &MayanFastMctpQuote, context: &FastMctpBuildContext, amount_in_min64: u64, fee_solana: u64, instructions: &mut Vec<Instruction>) -> Result<(), SwapperError> {
     if route.has_auction == Some(true) {
-        instructions.push(wrap_instruction_in_cpi_proxy(create_fast_mctp_order_ledger_instruction(
-            route,
-            context,
-            amount_in_min64,
-            fee_solana,
-        )?)?);
+        instructions.push(wrap_instruction_in_cpi_proxy(create_fast_mctp_order_ledger_instruction(route, context, amount_in_min64, fee_solana)?)?);
     } else {
-        instructions.push(wrap_instruction_in_cpi_proxy(create_fast_mctp_bridge_ledger_instruction(
-            route,
-            context,
-            amount_in_min64,
-            fee_solana,
-        )?)?);
+        instructions.push(wrap_instruction_in_cpi_proxy(create_fast_mctp_bridge_ledger_instruction(route, context, amount_in_min64, fee_solana)?)?);
     }
     Ok(())
 }
 
-fn create_fast_mctp_bridge_ledger_instruction(
-    route: &MayanFastMctpQuote,
-    context: &FastMctpBuildContext,
-    amount_in_min64: u64,
-    fee_solana: u64,
-) -> Result<Instruction, SwapperError> {
+fn create_fast_mctp_bridge_ledger_instruction(route: &MayanFastMctpQuote, context: &FastMctpBuildContext, amount_in_min64: u64, fee_solana: u64) -> Result<Instruction, SwapperError> {
     let fast_mctp_program = SolanaAddress::parse(MAYAN_FAST_MCTP_PROGRAM_ID).map_err(solana_error)?.into();
     let data = bridge_ledger_data(route, context, amount_in_min64, fee_solana)?;
     Ok(Instruction {
@@ -222,12 +176,7 @@ fn create_fast_mctp_bridge_ledger_instruction(
     })
 }
 
-fn create_fast_mctp_order_ledger_instruction(
-    route: &MayanFastMctpQuote,
-    context: &FastMctpBuildContext,
-    amount_in_min64: u64,
-    fee_solana: u64,
-) -> Result<Instruction, SwapperError> {
+fn create_fast_mctp_order_ledger_instruction(route: &MayanFastMctpQuote, context: &FastMctpBuildContext, amount_in_min64: u64, fee_solana: u64) -> Result<Instruction, SwapperError> {
     let fast_mctp_program = SolanaAddress::parse(MAYAN_FAST_MCTP_PROGRAM_ID).map_err(solana_error)?.into();
     let mut data = Vec::with_capacity(159);
     data.extend_from_slice(&global_discriminator("init_order_ledger"));
@@ -285,21 +234,11 @@ fn destination_address(route: &MayanFastMctpQuote, context: &FastMctpBuildContex
 }
 
 fn redeem_relayer_fee64(route: &MayanFastMctpQuote) -> Result<u64, SwapperError> {
-    route
-        .redeem_relayer_fee64
-        .as_deref()
-        .ok_or(SwapperError::InvalidRoute)?
-        .parse::<u64>()
-        .map_err(SwapperError::from)
+    route.redeem_relayer_fee64.as_deref().ok_or(SwapperError::InvalidRoute)?.parse::<u64>().map_err(SwapperError::from)
 }
 
 fn solana_relayer_fee(route: &MayanFastMctpQuote) -> Result<u64, SwapperError> {
-    route
-        .solana_relayer_fee64
-        .as_deref()
-        .ok_or(SwapperError::InvalidRoute)?
-        .parse::<u64>()
-        .map_err(SwapperError::from)
+    route.solana_relayer_fee64.as_deref().ok_or(SwapperError::InvalidRoute)?.parse::<u64>().map_err(SwapperError::from)
 }
 
 fn random_u16() -> u16 {

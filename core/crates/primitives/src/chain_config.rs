@@ -1398,10 +1398,7 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
                 min_priority_fee: 1_000_000,
                 chain_stack: ChainStack::Native,
                 is_ethereum_layer2: false,
-                native_currency: EvmNativeCurrency::Mirrored {
-                    token: ARC_USDC_TOKEN_ID,
-                    decimals: 6,
-                },
+                native_currency: EvmNativeCurrency::Mirrored { token: ARC_USDC_TOKEN_ID, decimals: 6 },
             }),
             stake: None,
         },
@@ -1409,8 +1406,5 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
 });
 
 pub fn get_chain_config(chain: Chain) -> &'static ChainConfig {
-    CHAIN_CONFIGS
-        .iter()
-        .find(|config| config.chain == chain)
-        .unwrap_or_else(|| panic!("Missing chain config for {chain}"))
+    CHAIN_CONFIGS.iter().find(|config| config.chain == chain).unwrap_or_else(|| panic!("Missing chain config for {chain}"))
 }

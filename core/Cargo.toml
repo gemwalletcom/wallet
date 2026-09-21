@@ -1,5 +1,5 @@
 [workspace.package]
-version = "2.114.33"
+version = "2.114.40"
 edition = "2024"
 license = "MIT"
 homepage = "https://gemwallet.com/"
@@ -128,14 +128,14 @@ ed25519-dalek = { version = "3.0.0" }
 borsh = { version = "1.8.0", features = ["derive"] }
 bcs = { version = "0.2.1" }
 pem-rfc7468 = { version = "1.0.0", features = ["std"] }
-sui-types = { package = "sui-sdk-types", version = "0.3.2", features = [
+sui-types = { package = "sui-sdk-types", version = "0.4", features = [
     "hash",
     "serde",
 ] }
 k256 = { version = "0.14.0", features = ["ecdsa", "sha256"] }
 bip39 = { version = "2.2.2", default-features = false }
 
-uniffi = { version = "0.32.0" }
+uniffi = { version = "0.32.1" }
 regex = { version = "1.13.1" }
 
 alloy-primitives = { version = "1.6.1" }
@@ -147,7 +147,7 @@ alloy-rlp = { version = "0.3.16" }
 jsonwebtoken = { version = "11.0.0", features = ["aws_lc_rs"] }
 
 [profile.dev]
-debug = 0
+debug = "line-tables-only"
 
 [profile.dev.package.argon2]
 opt-level = 3

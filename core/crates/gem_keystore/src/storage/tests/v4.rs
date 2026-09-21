@@ -54,18 +54,9 @@ fn test_v4_private_key_roundtrip_and_meta() {
 fn test_v4_rejects_invalid_ids_before_path_construction() {
     let (_dir, keystore) = FileKeystore::mock();
     let password = b"password";
-    let invalid_ids = [
-        "",
-        "../secret",
-        "550e8400-e29b-11d4-a716-446655440000",
-        "550E8400-E29B-41D4-A716-446655440000",
-        "550e8400-e29b-41d4-a716-446655440000.json",
-    ];
+    let invalid_ids = ["", "../secret", "550e8400-e29b-11d4-a716-446655440000", "550E8400-E29B-41D4-A716-446655440000", "550e8400-e29b-41d4-a716-446655440000.json"];
     for id in invalid_ids {
-        assert_eq!(
-            keystore.import_mnemonic(PHRASE, password, Some(id.to_string())).unwrap_err(),
-            KeystoreError::invalid_input("keystore id")
-        );
+        assert_eq!(keystore.import_mnemonic(PHRASE, password, Some(id.to_string())).unwrap_err(), KeystoreError::invalid_input("keystore id"));
         assert_eq!(keystore.get_meta(id).unwrap_err(), KeystoreError::invalid_input("keystore id"));
     }
 }
@@ -78,17 +69,11 @@ fn test_v4_header_filename_mismatch_fails_after_authentication() {
     let id_b = KeystoreId::new();
     let meta = keystore.import_mnemonic(PHRASE, password, Some(id_a.to_string())).unwrap();
     fs::copy(v4_path(&dir, &meta.keystore_id), dir.path().join(format!("{}.json", id_b.as_str()))).unwrap();
-    assert_eq!(
-        keystore.get_meta(id_b.as_str()).unwrap_err(),
-        KeystoreError::corrupt_file("keystore id does not match filename")
-    );
+    assert_eq!(keystore.get_meta(id_b.as_str()).unwrap_err(), KeystoreError::corrupt_file("keystore id does not match filename"));
     let listed = keystore.list().unwrap();
     let listed_error = listed.iter().find_map(|result| result.as_ref().err()).unwrap();
     assert_eq!(listed_error.error, "Corrupt keystore file: keystore id does not match filename");
-    assert_eq!(
-        keystore.verify(id_b.as_str(), password).unwrap_err(),
-        KeystoreError::corrupt_file("authenticated keystore id does not match the requested id")
-    );
+    assert_eq!(keystore.verify(id_b.as_str(), password).unwrap_err(), KeystoreError::corrupt_file("authenticated keystore id does not match the requested id"));
 }
 
 #[test]
@@ -120,10 +105,7 @@ fn test_v4_change_password_and_list_inspect() {
 fn test_v4_password_bounds() {
     let (_dir, keystore) = FileKeystore::mock();
     assert_eq!(keystore.import_mnemonic(PHRASE, b"", None).unwrap_err(), KeystoreError::invalid_input("password input"));
-    assert_eq!(
-        keystore.import_private_key(&[], b"password", None).unwrap_err(),
-        KeystoreError::invalid_input("private key")
-    );
+    assert_eq!(keystore.import_private_key(&[], b"password", None).unwrap_err(), KeystoreError::invalid_input("private key"));
 }
 
 #[test]
@@ -218,10 +200,7 @@ fn test_v4_rejects_malformed_files() {
 fn test_v4_rejects_payload_that_would_exceed_the_read_cap() {
     let (_dir, keystore) = FileKeystore::mock();
     let oversized = vec![7u8; 65_500];
-    assert_eq!(
-        keystore.import_private_key(&oversized, b"password", None).unwrap_err(),
-        KeystoreError::corrupt_file("payload too large")
-    );
+    assert_eq!(keystore.import_private_key(&oversized, b"password", None).unwrap_err(), KeystoreError::corrupt_file("payload too large"));
     assert!(keystore.list().unwrap().is_empty());
 }
 
@@ -262,9 +241,6 @@ fn test_v4_concurrent_import_same_wallet_is_idempotent() {
     assert_eq!(keystore.decrypt_mnemonic(&id, &password).unwrap().as_str(), PHRASE);
 
     // Re-importing under the same id with a different password must not clobber the existing keystore.
-    assert_eq!(
-        keystore.import_mnemonic(PHRASE, b"other-password", Some(id.clone())).unwrap_err(),
-        KeystoreError::AuthenticationFailed
-    );
+    assert_eq!(keystore.import_mnemonic(PHRASE, b"other-password", Some(id.clone())).unwrap_err(), KeystoreError::AuthenticationFailed);
     assert_eq!(keystore.decrypt_mnemonic(&id, &password).unwrap().as_str(), PHRASE);
 }

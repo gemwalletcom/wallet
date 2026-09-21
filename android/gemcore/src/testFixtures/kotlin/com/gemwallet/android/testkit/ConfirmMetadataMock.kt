@@ -6,10 +6,7 @@ import uniffi.gemstone.GemAssetBalance
 import uniffi.gemstone.GemConfirmMetadata
 import java.math.BigInteger
 
-fun mockGemAssetBalance(
-    asset: Asset = mockAssetEthereum(),
-    available: BigInteger = BigInteger.ZERO,
-) = GemAssetBalance(
+fun mockGemAssetBalance(asset: Asset = mockAssetEthereum(), available: BigInteger = BigInteger.ZERO) = GemAssetBalance(
     assetId = asset.id.toIdentifier(),
     available = available,
     frozen = BigInteger.ZERO,
@@ -25,9 +22,7 @@ fun mockGemAssetBalance(
     isActive = true,
 )
 
-fun mockGemConfirmMetadata(
-    asset: Asset = mockAssetEthereum(),
-) = GemConfirmMetadata(
+fun mockGemConfirmMetadata(asset: Asset = mockAssetEthereum()) = GemConfirmMetadata(
     assetBalance = mockGemAssetBalance(asset),
     feeAssetBalance = mockGemAssetBalance(asset),
     prices = emptyList(),

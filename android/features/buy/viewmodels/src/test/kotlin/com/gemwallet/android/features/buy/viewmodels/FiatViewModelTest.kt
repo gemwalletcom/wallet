@@ -13,11 +13,12 @@ import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetData
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.testkit.mockAsset
-import com.gemwallet.android.testkit.mockGemFiatSession
 import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetMetaData
 import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockFiatQuote
+import com.gemwallet.android.testkit.mockFormattedNumber
+import com.gemwallet.android.testkit.mockGemFiatSession
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -30,6 +31,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -50,6 +52,7 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.FiatQuoteUrl
 import uniffi.gemstone.GemFiatQuoteServiceInterface
+import uniffi.gemstone.GemFiatSuggestedAmount
 import uniffi.gemstone.GemServiceException
 import java.math.BigInteger
 
@@ -74,7 +77,7 @@ class FiatViewModelTest {
     }
     private val service = mockk<GemFiatQuoteServiceInterface> {
         every { getCurrency() } returns Currency.USD.toGem()
-        every { suggestedAmounts() } returns listOf(100, 250)
+        every { suggestedAmounts() } returns listOf(GemFiatSuggestedAmount(100u, mockFormattedNumber(100.0)), GemFiatSuggestedAmount(250u, mockFormattedNumber(250.0)))
         every { newSession(any(), any()) } answers { mockGemFiatSession(firstArg(), secondArg()) }
         every { randomAmount() } returns 500u
         every { quoteDebounceMilliseconds() } returns 250uL
@@ -211,7 +214,7 @@ class FiatViewModelTest {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
-            assertEquals("string:${R.string.errors_unknown_try_again}", viewModel.uiState.value.errorText)
+            assertEquals("offline", viewModel.uiState.value.quotesMessage)
             assertTrue(viewModel.uiState.value.retries)
             assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
 
@@ -219,12 +222,27 @@ class FiatViewModelTest {
             viewModel.retry()
             runCurrent()
 
-            assertNull(viewModel.uiState.value.errorText)
+            assertNull(viewModel.uiState.value.quotesMessage)
             assertFalse(viewModel.uiState.value.retries)
             assertTrue(viewModel.providers.value.isNotEmpty())
             coVerify(exactly = 2) {
                 service.quotes(FiatQuoteType.Buy.toGem(), asset.id.toIdentifier(), 50.0)
             }
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `an empty amount asks to enter an amount to buy`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        try {
+            viewModel.updateAmount("")
+            runCurrent()
+
+            assertEquals("string:${R.string.input_enter_amount_to}", viewModel.uiState.value.quotesMessage)
+            verify { context.getString(R.string.input_enter_amount_to, "string:${R.string.wallet_buy}") }
         } finally {
             viewModel.viewModelScope.cancel()
         }
@@ -239,7 +257,26 @@ class FiatViewModelTest {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
-            assertEquals("string:${R.string.buy_no_results}", viewModel.uiState.value.errorText)
+            assertEquals("string:${R.string.buy_no_results}", viewModel.uiState.value.quotesMessage)
+            assertEquals(ButtonState.Disabled, viewModel.uiState.value.buttonState)
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `a sell quote above the balance keeps the providers and moves the error onto the amount`() = runTest(testDispatcher) {
+        assetDataFlow.value = mockAssetData(price = mockAssetPriceInfo(price = 100.0), metadata = mockAssetMetaData(isSellEnabled = true))
+        coEvery { service.quotes(any(), any(), any()) } returns listOf(mockFiatQuote(quoteType = FiatQuoteType.Sell))
+        val viewModel = createViewModel(initialType = FiatQuoteType.Sell)
+
+        try {
+            advanceTimeBy(DebounceSettleMs)
+            runCurrent()
+
+            assertTrue(viewModel.providers.value.isNotEmpty())
+            assertNull(viewModel.uiState.value.quotesMessage)
+            assertEquals("string:${R.string.transfer_insufficient_balance}", viewModel.uiState.value.amountError)
             assertEquals(ButtonState.Disabled, viewModel.uiState.value.buttonState)
         } finally {
             viewModel.viewModelScope.cancel()

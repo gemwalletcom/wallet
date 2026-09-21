@@ -1,14 +1,12 @@
 package com.gemwallet.android.features.add_asset.viewmodels
 
-import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
-import kotlinx.coroutines.CoroutineDispatcher
-import uniffi.gemstone.GemChainServiceInterface
 import android.content.Context
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.requireChain
@@ -16,17 +14,15 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.add_asset.viewmodels.localization.stringRes
 import com.gemwallet.android.features.add_asset.viewmodels.models.AddAssetUIState
-import com.gemwallet.android.ui.R
+import com.gemwallet.android.features.add_asset.viewmodels.models.verificationWarningListItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
-import com.gemwallet.android.ui.components.list_item.property.LinkRowUIModel
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -44,7 +40,10 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAddAssetPhase
 import uniffi.gemstone.GemAddAssetServiceInterface
 import uniffi.gemstone.GemAddAssetSession
+import uniffi.gemstone.GemChainServiceInterface
 import uniffi.gemstone.GemErrorText
+import uniffi.gemstone.GemListSection
+import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -68,20 +67,20 @@ class AddAssetViewModel @Inject constructor(
     val availableChains = wallet.map { wallet ->
         wallet?.let { service.chains(it.toGem()).map { chain -> chain.requireChain() } }
     }
-    .flowOn(ioDispatcher)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        .flowOn(ioDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val chains = snapshotFlow { chainFilter.text }.combine(availableChains) { query, availableChains ->
         availableChains?.let { chainService.getMatchingChains(it.map { chain -> chain.string }, query.toString()).map { chain -> chain.requireChain() } } ?: emptyList()
     }
-    .flowOn(ioDispatcher)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+        .flowOn(ioDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val chain = MutableStateFlow<Chain?>(null)
     val selectedChain = availableChains.combine(chain) { availableChains, chain ->
         chain ?: service.defaultChain(availableChains.orEmpty().map { it.string })?.requireChain()
     }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val addressState = mutableStateOf("")
 
@@ -106,26 +105,19 @@ class AddAssetViewModel @Inject constructor(
     val isSearching: StateFlow<Boolean> = searchState.map { it is GemAddAssetPhase.Loading }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val searchFailed: StateFlow<Boolean> = searchState.map { it is GemAddAssetPhase.Failed }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
     val token = session.map { it.asset?.toPrimitives() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val assetRows: StateFlow<List<ListItemModel>> = session.map { session -> session.assetRows().map { ListItemModel(title = context.getString(it.kind.stringRes()), subtitle = it.value) } }
+    val verificationWarningRow: StateFlow<ListItemModel?> = token.map { if (it == null) null else verificationWarningListItem(context) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val sections: StateFlow<List<GemListSection>> = session.map { service.sections(it) }
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val buttonState = combine(session, uiState) { session, uiState ->
         buttonState(enabled = session.viewState().canAdd, loading = uiState.isLoading)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Disabled)
-
-    val explorerLink: StateFlow<LinkRowUIModel?> = token.map { token ->
-        val tokenId = token?.id?.tokenId ?: return@map null
-        val link = service.tokenUrl(token.id.chain.string, tokenId)?.toPrimitives() ?: return@map null
-        LinkRowUIModel(url = link.link, model = ListItemModel(title = context.getString(R.string.transaction_view_on, link.name)))
-    }
-    .flowOn(ioDispatcher)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun onQrScan() {
         state.update { it.copy(isQrScan = true) }
@@ -174,27 +166,18 @@ class AddAssetViewModel @Inject constructor(
 
     fun clearError() = state.update { it.copy(error = null) }
 
-    private suspend fun searchToken(session: GemAddAssetSession, chain: Chain, address: String): GemAddAssetSession =
-        runCatchingCancellable { session.onFound(service.token(chain.string, address)) }
-            .getOrDefault(session.onFailed())
+    private suspend fun searchToken(session: GemAddAssetSession, chain: Chain, address: String): GemAddAssetSession = runCatchingCancellable { session.onFound(chain.string, address, service.token(chain.string, address)) }
+        .getOrDefault(session.onFailed(chain.string, address))
 
-
-    private data class State(
-        val isQrScan: Boolean = false,
-        val isSelectChain: Boolean = false,
-        val isImporting: Boolean = false,
-        val error: GemErrorText? = null,
-    ) {
-        fun toUIState(): AddAssetUIState {
-            return AddAssetUIState(
-                scene = when {
-                    isQrScan -> AddAssetUIState.Scene.QrScanner
-                    isSelectChain -> AddAssetUIState.Scene.SelectChain
-                    else -> AddAssetUIState.Scene.Form
-                },
-                isLoading = isImporting,
-                error = error,
-            )
-        }
+    private data class State(val isQrScan: Boolean = false, val isSelectChain: Boolean = false, val isImporting: Boolean = false, val error: GemErrorText? = null) {
+        fun toUIState(): AddAssetUIState = AddAssetUIState(
+            scene = when {
+                isQrScan -> AddAssetUIState.Scene.QrScanner
+                isSelectChain -> AddAssetUIState.Scene.SelectChain
+                else -> AddAssetUIState.Scene.Form
+            },
+            isLoading = isImporting,
+            error = error,
+        )
     }
 }

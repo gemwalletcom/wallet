@@ -33,21 +33,10 @@ import com.gemwallet.android.ui.theme.space8
 
 enum class EmptyActionStyle { Primary, Secondary }
 
-data class EmptyAction(
-    val title: String,
-    val onClick: () -> Unit,
-    val style: EmptyActionStyle = EmptyActionStyle.Primary,
-)
+data class EmptyAction(val title: String, val onClick: () -> Unit, val style: EmptyActionStyle = EmptyActionStyle.Primary)
 
 @Composable
-fun EmptyStateView(
-    title: String,
-    modifier: Modifier = Modifier,
-    description: String? = null,
-    icon: Painter? = null,
-    iconVector: ImageVector? = null,
-    buttons: List<EmptyAction> = emptyList(),
-) {
+fun EmptyStateView(title: String, modifier: Modifier = Modifier, description: String? = null, icon: Painter? = null, iconVector: ImageVector? = null, buttons: List<EmptyAction> = emptyList()) {
     Box(
         modifier = modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center,
@@ -112,6 +101,7 @@ fun EmptyStateView(
                             EmptyActionStyle.Primary -> Button(onClick = action.onClick) {
                                 Text(action.title)
                             }
+
                             EmptyActionStyle.Secondary -> Button(
                                 onClick = action.onClick,
                                 colors = ButtonDefaults.buttonColors().copy(

@@ -14,10 +14,7 @@ pub struct SuinsClient {
 
 impl SuinsClient {
     pub fn new(url: String) -> Self {
-        Self {
-            url,
-            transport: ReqwestGrpcTransport::new(),
-        }
+        Self { url, transport: ReqwestGrpcTransport::new() }
     }
 
     pub async fn lookup_name(&self, name: &str) -> Result<LookupNameResponse, Box<dyn Error + Send + Sync>> {

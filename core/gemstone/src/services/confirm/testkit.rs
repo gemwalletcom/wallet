@@ -1,11 +1,9 @@
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
-use primitives::{Asset, AssetBasic, AssetFull, AssetId, Chain, DelegationBase, DelegationValidator, StakeProviderType, Transaction, Wallet, WalletId};
+use primitives::{Asset, AssetBasic, AssetFull, AssetId, Chain, Transaction, Wallet, WalletId};
 
-use super::{
-    GemConfirmData, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata, GemConfirmService, GemConfirmSimulationState, GemConfirmTransferService, GemTransactionSigner, SendInput,
-};
+use super::{GemConfirmData, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata, GemConfirmService, GemConfirmSimulationState, GemConfirmTransferService, GemTransactionSigner, SendInput};
 use crate::GemstoneError;
 use crate::api::{GemApiClient, GemDeviceApiClient, GemStaticApiClient};
 use crate::gateway::GemGateway;
@@ -22,7 +20,8 @@ use crate::services::nft::{GemNftService, testkit::MemoryNftStore};
 use crate::services::node::GemNodeService;
 use crate::services::preferences::{GemPreferencesService, testkit::MemoryPreferencesStore};
 use crate::services::price::{GemPriceService, testkit::MemoryPriceStore};
-use crate::services::stake::{GemStakeService, GemStakeStore};
+use crate::services::stake::GemStakeService;
+use crate::services::stake::testkit::UnusedStakeStore;
 use crate::services::stream::testkit::SubscriptionTestkit;
 use crate::services::transaction_state::{GemTransactionStateService, GemTransactionStatusService, testkit::MemoryTransactionStateStore};
 use crate::services::transfer::GemTransferData;
@@ -56,24 +55,12 @@ impl ConfirmTestkit {
             ..Default::default()
         });
         let session = Arc::new(GemWalletSessionService::new(selected.clone(), wallets.clone()));
-        let gateway = Arc::new(GemGateway::new(
-            provider.clone(),
-            Arc::new(GemNodeService::mock()),
-            preferences_store,
-            Arc::new(EmptyPreferences),
-        ));
+        let gateway = Arc::new(GemGateway::new(provider.clone(), Arc::new(GemNodeService::mock()), preferences_store, Arc::new(EmptyPreferences)));
         let api = Arc::new(GemApiClient::new(provider.clone()));
         let device_api = Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)))));
         let price = Arc::new(GemPriceService::new(Arc::new(MemoryPriceStore::default())));
         let asset_store = Arc::new(MemoryAssetStore);
-        let assets = Arc::new(GemAssetsService::new(
-            api,
-            gateway.clone(),
-            asset_store.clone(),
-            price.clone(),
-            preferences.clone(),
-            session.clone(),
-        ));
+        let assets = Arc::new(GemAssetsService::new(api, gateway.clone(), asset_store.clone(), price.clone(), preferences.clone(), session.clone()));
         let balances = Arc::new(MemoryBalanceStore::with_balances(
             wallet.id.clone(),
             wallet
@@ -147,6 +134,9 @@ impl GemAssetStore for MemoryAssetStore {
     async fn get_asset_ids(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
         Ok(asset_ids)
     }
+    async fn get_asset_basics(&self, _asset_ids: Vec<AssetId>) -> Result<Vec<AssetBasic>, GemServiceError> {
+        Ok(vec![])
+    }
     async fn get_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, GemServiceError> {
         Ok(asset_ids.into_iter().map(|id| Asset::from_chain(id.chain)).collect())
     }
@@ -173,30 +163,6 @@ impl GemAssetStore for MemoryAssetStore {
     }
     async fn set_stakeable_assets(&self, _: Vec<AssetId>) -> Result<(), GemServiceError> {
         panic!("unexpected asset write")
-    }
-}
-
-struct UnusedStakeStore;
-
-#[async_trait]
-impl GemStakeStore for UnusedStakeStore {
-    async fn get_apr(&self, _: AssetId, _: StakeProviderType) -> Result<Option<f64>, GemServiceError> {
-        panic!("unexpected stake read")
-    }
-    async fn get_validators(&self, _: AssetId, _: StakeProviderType) -> Result<Vec<DelegationValidator>, GemServiceError> {
-        panic!("unexpected stake read")
-    }
-    async fn save_validators(&self, _: Vec<DelegationValidator>) -> Result<(), GemServiceError> {
-        panic!("unexpected stake write")
-    }
-    async fn deactivate_validators(&self, _: AssetId, _: Vec<String>) -> Result<(), GemServiceError> {
-        panic!("unexpected stake write")
-    }
-    async fn get_delegation_ids(&self, _: WalletId, _: AssetId, _: StakeProviderType) -> Result<Vec<String>, GemServiceError> {
-        panic!("unexpected stake read")
-    }
-    async fn update_delegations(&self, _: WalletId, _: Vec<DelegationBase>, _: Vec<String>) -> Result<(), GemServiceError> {
-        panic!("unexpected stake write")
     }
 }
 
@@ -277,7 +243,6 @@ impl GemConfirmSimulationState {
             result: None,
             warnings: vec![],
             simulation: None,
-            address_names: vec![],
         }
     }
 }

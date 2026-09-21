@@ -3,6 +3,7 @@ package com.gemwallet.android.model
 import com.wallet.core.primitives.Chain
 
 sealed interface AssetFilter {
+    data object Enabled : AssetFilter
     data object Buyable : AssetFilter
     data object Sellable : AssetFilter
     data object Swappable : AssetFilter

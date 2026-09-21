@@ -24,8 +24,9 @@ struct ImageLoaderTests {
     }
 
     @Test
-    func decodeAppliesTheStoredOrientation() {
-        let sideways = UIImage(cgImage: UIImage(data: png(side: 200, height: 100))!.cgImage!, scale: 1, orientation: .right).jpegData(compressionQuality: 1)!
+    func decodeAppliesTheStoredOrientation() throws {
+        let cgImage = try #require(UIImage(data: png(side: 200, height: 100))?.cgImage)
+        let sideways = try #require(UIImage(cgImage: cgImage, scale: 1, orientation: .right).jpegData(compressionQuality: 1))
 
         let full = ImageLoader.decode(sideways, request: ImageRequest(url: url, maxPixelSize: nil, scale: 1))
         let small = ImageLoader.decode(sideways, request: ImageRequest(url: url, maxPixelSize: 50, scale: 1))
@@ -42,18 +43,35 @@ struct ImageLoaderTests {
     }
 
     @Test
-    func theStoredResponseIsDecodedByTheLoadAndNotByTheLookup() async throws {
+    func aCachedResponseIsNotServedWithoutAskingTheSession() async throws {
+        let stubbed = StubbedResponses.url()
+        StubbedResponses.shared.stub(stubbed, data: png(side: 100))
         let cache = URLCache(memoryCapacity: 1024 * 1024, diskCapacity: 0)
-        let loader = ImageLoader(cache: cache)
-        let request = ImageRequest(url: url, maxPixelSize: 44, scale: 2)
-        let response = try #require(HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil))
-        cache.storeCachedResponse(CachedURLResponse(response: response, data: png(side: 200)), for: URLRequest(url: url))
-
-        #expect(loader.cached(request) == nil, "the lookup reads decoded images only")
+        let seeded = try #require(HTTPURLResponse(url: stubbed, statusCode: 200, httpVersion: nil, headerFields: nil))
+        cache.storeCachedResponse(CachedURLResponse(response: seeded, data: png(side: 200)), for: URLRequest(url: stubbed))
+        let loader = stubLoader(cache: cache)
+        let request = ImageRequest(url: stubbed, maxPixelSize: nil, scale: 1)
 
         let image = try await loader.image(for: request)
-        #expect(image.cgImage?.width == 44)
+
+        #expect(image.cgImage?.width == 100, "the load asks the session instead of reading cached bytes itself")
+        #expect(StubbedResponses.shared.requests(for: stubbed) == 1)
         #expect(loader.cached(request) === image, "the load leaves the decoded image for the next lookup")
+    }
+
+    @Test
+    func whatTheSessionDeclinedToCacheIsNotStoredByTheLoader() async throws {
+        let stubbed = StubbedResponses.url()
+        StubbedResponses.shared.stub(stubbed, data: png(side: 100), storagePolicy: .notAllowed)
+        let cache = URLCache(memoryCapacity: 1024 * 1024, diskCapacity: 0)
+
+        _ = try await stubLoader(cache: cache).image(for: ImageRequest(url: stubbed, maxPixelSize: nil, scale: 1))
+
+        #expect(cache.cachedResponse(for: URLRequest(url: stubbed)) == nil, "what to cache is the session's decision, not the loader's")
+    }
+
+    private func stubLoader(cache: URLCache) -> ImageLoader {
+        ImageLoader(cache: cache, protocolClasses: [StubURLProtocol.self])
     }
 
     @Test
@@ -129,6 +147,62 @@ struct ImageLoaderTests {
             context.fill(CGRect(origin: .zero, size: size))
         }
     }
+}
+
+private final class StubbedResponses: @unchecked Sendable {
+    static let shared = StubbedResponses()
+
+    private let lock = NSLock()
+    private var stubs: [URL: (data: Data, storagePolicy: URLCache.StoragePolicy)] = [:]
+    private var counts: [URL: Int] = [:]
+
+    static func url() -> URL {
+        URL(string: "https://example.com/\(UUID().uuidString).png")!
+    }
+
+    func stub(_ url: URL, data: Data, storagePolicy: URLCache.StoragePolicy = .allowed) {
+        lock.withLock { stubs[url] = (data, storagePolicy) }
+    }
+
+    func isStubbed(_ url: URL) -> Bool {
+        lock.withLock { stubs[url] != nil }
+    }
+
+    func take(_ url: URL) -> (data: Data, storagePolicy: URLCache.StoragePolicy)? {
+        lock.withLock {
+            counts[url, default: 0] += 1
+            return stubs[url]
+        }
+    }
+
+    func requests(for url: URL) -> Int {
+        lock.withLock { counts[url] ?? 0 }
+    }
+}
+
+final class StubURLProtocol: URLProtocol {
+    override class func canInit(with request: URLRequest) -> Bool {
+        request.url.map { StubbedResponses.shared.isStubbed($0) } ?? false
+    }
+
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+        request
+    }
+
+    override func startLoading() {
+        guard let url = request.url,
+              let stub = StubbedResponses.shared.take(url),
+              let response = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: nil)
+        else {
+            client?.urlProtocol(self, didFailWithError: URLError(.badServerResponse))
+            return
+        }
+        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: stub.storagePolicy)
+        client?.urlProtocol(self, didLoad: stub.data)
+        client?.urlProtocolDidFinishLoading(self)
+    }
+
+    override func stopLoading() {}
 }
 
 private final class LoadCount: @unchecked Sendable {

@@ -57,11 +57,7 @@ impl TriggerSmartContractData {
         let Some(data) = value.data else {
             return Ok(None);
         };
-        let owner_address = payload
-            .address
-            .filter(|address| !address.is_empty())
-            .or(value.owner_address)
-            .unwrap_or_else(|| sender_address.to_string());
+        let owner_address = payload.address.filter(|address| !address.is_empty()).or(value.owner_address).unwrap_or_else(|| sender_address.to_string());
 
         Ok(Some(Self {
             contract_address,

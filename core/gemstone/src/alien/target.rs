@@ -21,9 +21,7 @@ pub struct AlienResponse {
 impl AlienResponse {
     #[uniffi::constructor]
     pub fn new(status: Option<u16>, data: Vec<u8>) -> Self {
-        Self {
-            response: RpcResponse { status, data },
-        }
+        Self { response: RpcResponse { status, data } }
     }
 }
 

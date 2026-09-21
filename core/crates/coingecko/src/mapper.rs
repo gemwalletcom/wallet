@@ -57,9 +57,7 @@ pub fn get_chain_for_coingecko_platform_id(id: &str) -> Option<Chain> {
 }
 
 pub fn get_coingecko_platform_id_for_chain(chain: Chain) -> Option<&'static str> {
-    COINGECKO_CHAIN_PLATFORMS
-        .iter()
-        .find_map(|(candidate, platform_id)| (*candidate == chain).then_some(*platform_id))
+    COINGECKO_CHAIN_PLATFORMS.iter().find_map(|(candidate, platform_id)| (*candidate == chain).then_some(*platform_id))
 }
 
 pub fn get_asset_ids_for_coin(id: &str, platforms: &HashMap<String, Option<String>>) -> Vec<AssetId> {
@@ -79,19 +77,7 @@ pub fn get_coingecko_market_id_for_chain(chain: Chain) -> Option<&'static str> {
         Chain::Bitcoin => "bitcoin",
         Chain::BitcoinCash => "bitcoin-cash",
         Chain::Litecoin => "litecoin",
-        Chain::Ethereum
-        | Chain::Base
-        | Chain::Arbitrum
-        | Chain::Optimism
-        | Chain::ZkSync
-        | Chain::Blast
-        | Chain::Linea
-        | Chain::Manta
-        | Chain::World
-        | Chain::Abstract
-        | Chain::Ink
-        | Chain::Unichain
-        | Chain::Robinhood => "ethereum",
+        Chain::Ethereum | Chain::Base | Chain::Arbitrum | Chain::Optimism | Chain::ZkSync | Chain::Blast | Chain::Linea | Chain::Manta | Chain::World | Chain::Abstract | Chain::Ink | Chain::Unichain | Chain::Robinhood => "ethereum",
         Chain::SmartChain | Chain::OpBNB => "binancecoin",
         Chain::Solana => "solana",
         Chain::Polygon => "polygon-ecosystem-token",

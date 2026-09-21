@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.services.gemstone.device
 
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import android.content.Context
 import android.util.Log
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -11,6 +10,7 @@ import com.gemwallet.android.application.device.cases.GetPushToken
 import com.gemwallet.android.application.device.cases.SetPushToken
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.data.service.store.ConfigStore
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.model.NotificationsAvailable
 import dagger.Lazy
@@ -19,13 +19,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemDeviceService
 import uniffi.gemstone.GemNotificationsService
 import uniffi.gemstone.GemPreferencesService
@@ -41,7 +41,10 @@ class DevicePushSettings(
     private val userConfig: UserConfig,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + ioDispatcher),
-) : SwitchPushEnabled, GetPushEnabled, GetPushToken, SetPushToken {
+) : SwitchPushEnabled,
+    GetPushEnabled,
+    GetPushToken,
+    SetPushToken {
 
     private val Context.dataStore by preferencesDataStore(name = "device_config")
 

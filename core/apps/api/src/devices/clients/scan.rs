@@ -10,9 +10,7 @@ use primitives::{AssetId, ChainAddress, ConfigKey, ConfigParamKey, ScanProvider,
 use reqwest::Url;
 use rocket::futures::future;
 use security_provider::providers::goplus::GoPlusProvider;
-use security_provider::{
-    AddressPoisoningTarget, AddressScanProviderConfig, AddressTarget, ScanProviderFactory, ScanProviderRemoteConfig, ScanResult, TransactionScanProviders, WebsiteTarget,
-};
+use security_provider::{AddressPoisoningTarget, AddressScanProviderConfig, AddressTarget, ScanProviderFactory, ScanProviderRemoteConfig, ScanResult, TransactionScanProviders, WebsiteTarget};
 use serde::Serialize;
 use serde_json::json;
 use settings::Settings;
@@ -111,18 +109,10 @@ impl ScanClient {
         .await;
 
         let is_malicious_address = address_scans.iter().chain(&poisoning_scans).any(|(_, scan)| scan.malicious == Some(true));
-        let malicious_addresses = is_malicious_address
-            .then_some(ChainAddress::new(address_target.chain, address_target.address))
-            .into_iter()
-            .collect::<Vec<_>>();
+        let malicious_addresses = is_malicious_address.then_some(ChainAddress::new(address_target.chain, address_target.address)).into_iter().collect::<Vec<_>>();
         let is_malicious_website = website_scans.iter().any(|(_, scan)| scan.malicious == Some(true));
         let malicious_website = website_target.filter(|_| is_malicious_website).map(|target| target.website);
-        let completed_scans = address_scans
-            .iter()
-            .chain(&poisoning_scans)
-            .chain(&website_scans)
-            .map(|(_, scan)| scan.malicious.is_some())
-            .collect::<Vec<_>>();
+        let completed_scans = address_scans.iter().chain(&poisoning_scans).chain(&website_scans).map(|(_, scan)| scan.malicious.is_some()).collect::<Vec<_>>();
         let is_scan_complete = Self::is_scan_complete(self.config.required_successes, &completed_scans);
 
         let scan = ScanTransaction {
@@ -147,13 +137,7 @@ impl ScanClient {
         Ok(Self::scan_transaction_response(&payload, scan, source, dry_run, &providers))
     }
 
-    fn scan_transaction_response(
-        payload: &ScanTransactionPayload,
-        scan: ScanTransaction,
-        source: ScanSource,
-        dry_run: bool,
-        providers: &BTreeMap<&str, BTreeMap<&str, &ScanCheck>>,
-    ) -> ScanTransaction {
+    fn scan_transaction_response(payload: &ScanTransactionPayload, scan: ScanTransaction, source: ScanSource, dry_run: bool, providers: &BTreeMap<&str, BTreeMap<&str, &ScanCheck>>) -> ScanTransaction {
         let response = if dry_run { ScanTransaction::disabled() } else { scan.clone() };
         let scan = ScanTransaction {
             malicious_website: scan.malicious_website.as_deref().and_then(Self::website_host),
@@ -189,10 +173,7 @@ impl ScanClient {
     }
 
     fn get_scan_transaction_local(&self, payload: &ScanTransactionPayload) -> Result<(ScanTransaction, bool), Box<dyn Error + Send + Sync>> {
-        let queries = [
-            (payload.origin.asset_id.chain, payload.origin.address.as_str()),
-            (payload.target.asset_id.chain, payload.target.address.as_str()),
-        ];
+        let queries = [(payload.origin.asset_id.chain, payload.origin.address.as_str()), (payload.target.asset_id.chain, payload.target.address.as_str())];
         let addresses = self.database.scan_addresses()?.get_scan_addresses(&queries)?;
         let token_asset_ids = Self::token_asset_ids(payload);
         let token_assets = self.database.assets()?.get_assets_basic(token_asset_ids)?;
@@ -202,14 +183,8 @@ impl ScanClient {
             .map(|address| ChainAddress::new(address.chain.0, address.address.clone()))
             .collect::<Vec<_>>();
         let is_memo_required = addresses.iter().any(|address| address.is_memo_required);
-        let is_target_verified = addresses
-            .iter()
-            .any(|address| address.is_verified_for(payload.target.asset_id.chain, &payload.target.address));
-        let malicious_assets = token_assets
-            .into_iter()
-            .filter(|asset| Self::is_malicious_asset_rank(asset.score.rank))
-            .map(|asset| asset.asset.id)
-            .collect::<Vec<_>>();
+        let is_target_verified = addresses.iter().any(|address| address.is_verified_for(payload.target.asset_id.chain, &payload.target.address));
+        let malicious_assets = token_assets.into_iter().filter(|asset| Self::is_malicious_asset_rank(asset.score.rank)).map(|asset| asset.asset.id).collect::<Vec<_>>();
 
         Ok((
             ScanTransaction {
@@ -281,8 +256,7 @@ impl ScanClient {
             let start = Instant::now();
             let result = provider.scan_address(&target).await;
             let latency = start.elapsed();
-            self.metrics
-                .record_scan(provider.provider(), "address", result.as_ref().ok().map(|scan| scan.is_malicious), latency);
+            self.metrics.record_scan(provider.provider(), "address", result.as_ref().ok().map(|scan| scan.is_malicious), latency);
             (provider.provider(), ScanCheck::new(result, latency))
         }))
         .await
@@ -292,20 +266,13 @@ impl ScanClient {
         let Some(target) = target else {
             return Vec::new();
         };
-        future::join_all(
-            providers
-                .poisoning
-                .iter()
-                .filter(|provider| provider.supports_chain(target.target.chain))
-                .map(|provider| async {
-                    let start = Instant::now();
-                    let result = provider.scan_address_poisoning(&target).await;
-                    let latency = start.elapsed();
-                    self.metrics
-                        .record_scan(provider.provider(), "address_poisoning", result.as_ref().ok().map(|scan| scan.is_malicious), latency);
-                    (provider.provider(), ScanCheck::new(result, latency))
-                }),
-        )
+        future::join_all(providers.poisoning.iter().filter(|provider| provider.supports_chain(target.target.chain)).map(|provider| async {
+            let start = Instant::now();
+            let result = provider.scan_address_poisoning(&target).await;
+            let latency = start.elapsed();
+            self.metrics.record_scan(provider.provider(), "address_poisoning", result.as_ref().ok().map(|scan| scan.is_malicious), latency);
+            (provider.provider(), ScanCheck::new(result, latency))
+        }))
         .await
     }
 
@@ -317,8 +284,7 @@ impl ScanClient {
             let start = Instant::now();
             let result = provider.scan_website(&target).await;
             let latency = start.elapsed();
-            self.metrics
-                .record_scan(provider.provider(), "website", result.as_ref().ok().map(|scan| scan.is_malicious), latency);
+            self.metrics.record_scan(provider.provider(), "website", result.as_ref().ok().map(|scan| scan.is_malicious), latency);
             (provider.provider(), ScanCheck::new(result, latency))
         }))
         .await
@@ -332,10 +298,7 @@ mod tests {
 
     #[test]
     fn test_website_host_excludes_credentials_and_query_values() {
-        assert_eq!(
-            ScanClient::website_host("https://user:password@example.com/path?token=secret#fragment"),
-            Some("example.com".into())
-        );
+        assert_eq!(ScanClient::website_host("https://user:password@example.com/path?token=secret#fragment"), Some("example.com".into()));
         assert_eq!(ScanClient::website_host("invalid website"), None);
     }
 
@@ -385,10 +348,7 @@ mod tests {
             ..ScanTransactionPayload::mock_with_assets(AssetId::from_token(Chain::Ethereum, "0x123"), AssetId::from_token(Chain::SmartChain, "0x456"))
         };
 
-        assert_eq!(
-            ScanClient::token_asset_ids(&payload),
-            vec![AssetId::from_token(Chain::Ethereum, "0x123"), AssetId::from_token(Chain::SmartChain, "0x456"),]
-        );
+        assert_eq!(ScanClient::token_asset_ids(&payload), vec![AssetId::from_token(Chain::Ethereum, "0x123"), AssetId::from_token(Chain::SmartChain, "0x456"),]);
     }
 
     #[test]
@@ -412,9 +372,7 @@ mod tests {
                     },
                     user_address: "origin".to_string(),
                 }),
-                Some(WebsiteTarget {
-                    website: "https://example.com".to_string(),
-                }),
+                Some(WebsiteTarget { website: "https://example.com".to_string() }),
             )
         );
     }

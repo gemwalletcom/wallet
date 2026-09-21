@@ -46,10 +46,7 @@ impl GemRecipient {
     }
 
     pub fn named(address: String, name: String) -> Self {
-        Self {
-            name: Some(name),
-            ..Self::address(address)
-        }
+        Self { name: Some(name), ..Self::address(address) }
     }
 }
 
@@ -140,14 +137,7 @@ mod tests {
         };
 
         assert_eq!(transfer.identifier(), "bitcoin-bc1q-10");
-        assert_ne!(
-            transfer.identifier(),
-            GemTransferData {
-                value: 11.into(),
-                ..transfer.clone()
-            }
-            .identifier()
-        );
+        assert_ne!(transfer.identifier(), GemTransferData { value: 11.into(), ..transfer.clone() }.identifier());
         assert_ne!(
             transfer.identifier(),
             GemTransferData {

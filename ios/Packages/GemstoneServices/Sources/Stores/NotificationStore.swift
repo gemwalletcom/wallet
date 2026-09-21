@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import struct Gemstone.InAppNotification
 import protocol Gemstone.GemNotificationStore
+import struct Gemstone.InAppNotification
 import GemstonePrimitives
 import Primitives
 import Store

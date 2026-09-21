@@ -21,7 +21,5 @@ class MarkdownTest {
         assertEquals(listOf("https://docs.gemwallet.com"), text.linkUrls())
     }
 
-    private fun androidx.compose.ui.text.AnnotatedString.linkUrls(): List<String> {
-        return getLinkAnnotations(0, length).map { (it.item as LinkAnnotation.Url).url }
-    }
+    private fun androidx.compose.ui.text.AnnotatedString.linkUrls(): List<String> = getLinkAnnotations(0, length).map { (it.item as LinkAnnotation.Url).url }
 }

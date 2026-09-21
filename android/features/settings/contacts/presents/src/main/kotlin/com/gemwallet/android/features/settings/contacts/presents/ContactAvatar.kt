@@ -11,13 +11,7 @@ import com.gemwallet.android.ui.components.image.RemoveBadge
 import com.gemwallet.android.ui.theme.listItemIconSize
 
 @Composable
-internal fun ContactAvatar(
-    initials: String,
-    avatar: ContactAvatarState,
-    modifier: Modifier = Modifier,
-    size: Dp = listItemIconSize,
-    onRemove: (() -> Unit)? = null,
-) {
+internal fun ContactAvatar(initials: String, avatar: ContactAvatarState, modifier: Modifier = Modifier, size: Dp = listItemIconSize, onRemove: (() -> Unit)? = null) {
     Box(modifier = modifier) {
         ListItemImageView(image = avatar.image(initials), size = size)
         if (onRemove != null) {

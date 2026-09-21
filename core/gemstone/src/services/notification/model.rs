@@ -1,4 +1,4 @@
-use primitives::{AssetId, CoreListItemIcon, InAppNotification};
+use primitives::{AssetId, CoreListItemIcon, InAppNotification, UrlAction};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemNotificationIcon {
@@ -13,9 +13,23 @@ pub struct GemNotificationRow {
     pub subtitle: Option<String>,
     pub value: Option<String>,
     pub subvalue: Option<String>,
-    pub url: Option<String>,
+    pub destination: Option<GemNotificationDestination>,
     pub is_unread: bool,
     pub icon: Option<GemNotificationIcon>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemNotificationDestination {
+    InApp { action: UrlAction },
+    Web { url: String },
+}
+
+fn destination(url: Option<&str>) -> Option<GemNotificationDestination> {
+    let url = url.filter(|url| !url.is_empty())?;
+    Some(match UrlAction::from_url(url) {
+        Some(action) => GemNotificationDestination::InApp { action },
+        None => GemNotificationDestination::Web { url: url.to_string() },
+    })
 }
 
 #[uniffi::export]
@@ -25,7 +39,7 @@ pub fn notification_row(notification: InAppNotification) -> GemNotificationRow {
         subtitle: notification.item.subtitle.clone(),
         value: notification.item.value.clone(),
         subvalue: notification.item.subvalue.clone(),
-        url: notification.item.url.clone(),
+        destination: destination(notification.item.url.as_deref()),
         is_unread: notification.read_at.is_none(),
         icon: notification.item.icon.map(|icon| match icon {
             CoreListItemIcon::Emoji(emoji) => GemNotificationIcon::Emoji { glyph: emoji.glyph().to_string() },
@@ -68,5 +82,19 @@ mod tests {
         let row = notification_row(unread);
         assert_eq!(row.icon, Some(GemNotificationIcon::Emoji { glyph: "\u{1f381}".into() }));
         assert_eq!(row.title, "Reward", "the row carries the text the screen shows");
+    }
+
+    #[test]
+    fn test_a_notification_opens_in_the_app_when_the_url_is_one_the_app_knows() {
+        assert_eq!(destination(None), None);
+        assert_eq!(destination(Some("")), None);
+        assert_eq!(
+            destination(Some("https://gemwallet.com/blog")),
+            Some(GemNotificationDestination::Web {
+                url: "https://gemwallet.com/blog".to_string()
+            }),
+            "a web page the app cannot route opens outside it on both apps"
+        );
+        assert!(matches!(destination(Some("gem://tokens/bitcoin")), Some(GemNotificationDestination::InApp { .. })));
     }
 }

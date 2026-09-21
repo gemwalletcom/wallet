@@ -22,9 +22,6 @@ pub struct NewSupportSessionRow {
 
 impl NewSupportSessionRow {
     pub fn new(device_id: i32, auth_token: impl Into<String>) -> Self {
-        Self {
-            device_id,
-            auth_token: auth_token.into(),
-        }
+        Self { device_id, auth_token: auth_token.into() }
     }
 }

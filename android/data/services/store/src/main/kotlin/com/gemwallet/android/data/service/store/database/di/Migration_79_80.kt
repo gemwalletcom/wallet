@@ -13,7 +13,7 @@ object Migration_79_80 : Migration(79, 80) {
                 "`status` TEXT NOT NULL, " +
                 "`createdAt` INTEGER NOT NULL, " +
                 "`images` TEXT NOT NULL, " +
-                "PRIMARY KEY(`id`))"
+                "PRIMARY KEY(`id`))",
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_support_messages_createdAt` ON `support_messages` (`createdAt`)")
     }

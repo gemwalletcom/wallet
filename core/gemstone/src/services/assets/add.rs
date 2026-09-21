@@ -1,13 +1,16 @@
+use std::iter::once;
 use std::sync::Arc;
 
 use primitives::{Asset, AssetId, Chain, Wallet};
 
 use super::rules;
 use crate::address::checksum_address;
+use crate::models::list::{GemListRow, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle, GemNoticeKind};
 use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
-use crate::services::error::GemServiceError;
+use crate::services::error::{GemServiceError, required_account};
 use crate::services::explorer::GemExplorerService;
+use crate::services::localization::GemLocalizedText;
 use primitives::BlockExplorerLink;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -16,20 +19,6 @@ pub enum GemAddAssetPhase {
     Loading,
     Found { asset: Asset },
     Failed,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemAssetInfoKind {
-    Name,
-    Symbol,
-    Decimals,
-    Kind,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
-pub struct GemAssetInfoRow {
-    pub kind: GemAssetInfoKind,
-    pub value: String,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -55,6 +44,31 @@ impl GemAddAssetSession {
             asset: None,
             is_loading: false,
             failed: false,
+        }
+    }
+
+    fn sections(&self, explorer: Option<BlockExplorerLink>) -> Vec<GemListSection> {
+        let section = |rows: Vec<GemListRow>| GemListSection {
+            title: GemListSectionTitle::None,
+            footer: GemListSectionFooter::None,
+            rows,
+        };
+        let text = |title: GemListRowTitle, value: String| GemListRow::Text { title, value };
+        match &self.asset {
+            Some(asset) => once(section(vec![
+                text(GemListRowTitle::Name, asset.name.clone()),
+                text(GemListRowTitle::Symbol, asset.symbol.clone()),
+                text(GemListRowTitle::Decimals, asset.decimals.to_string()),
+                text(GemListRowTitle::Type, asset.asset_type.as_ref().to_string()),
+            ]))
+            .chain(explorer.map(|link| section(vec![GemListRow::Explorer { name: link.name, url: link.link }])))
+            .collect(),
+            None if self.failed => vec![section(vec![GemListRow::Notice {
+                title: GemListRowTitle::Error,
+                message: Some(GemLocalizedText::InvalidTokenId),
+                kind: GemNoticeKind::Error,
+            }])],
+            None => Vec::new(),
         }
     }
 
@@ -86,7 +100,10 @@ impl GemAddAssetSession {
         }
     }
 
-    pub fn on_found(&self, asset: Asset) -> Self {
+    pub fn on_found(&self, chain: Chain, address: String, asset: Asset) -> Self {
+        if self.chain != Some(chain) || address.trim() != self.address {
+            return self.clone();
+        }
         Self {
             asset: Some(asset),
             is_loading: false,
@@ -95,7 +112,10 @@ impl GemAddAssetSession {
         }
     }
 
-    pub fn on_failed(&self) -> Self {
+    pub fn on_failed(&self, chain: Chain, address: String) -> Self {
+        if self.chain != Some(chain) || address.trim() != self.address {
+            return self.clone();
+        }
         Self {
             asset: None,
             is_loading: false,
@@ -106,19 +126,6 @@ impl GemAddAssetSession {
 
     pub fn searches_token(&self) -> bool {
         self.chain.is_some() && !self.address.is_empty()
-    }
-
-    pub fn asset_rows(&self) -> Vec<GemAssetInfoRow> {
-        let Some(asset) = &self.asset else {
-            return Vec::new();
-        };
-        let row = |kind: GemAssetInfoKind, value: String| GemAssetInfoRow { kind, value };
-        vec![
-            row(GemAssetInfoKind::Name, asset.name.clone()),
-            row(GemAssetInfoKind::Symbol, asset.symbol.clone()),
-            row(GemAssetInfoKind::Decimals, asset.decimals.to_string()),
-            row(GemAssetInfoKind::Kind, asset.asset_type.as_ref().to_string()),
-        ]
     }
 
     pub fn view_state(&self) -> GemAddAssetViewState {
@@ -164,8 +171,9 @@ impl GemAddAssetService {
         rules::default_token_chain(&chains)
     }
 
-    pub fn token_url(&self, chain: Chain, token_id: String) -> Option<BlockExplorerLink> {
-        self.explorer.get_token_url(chain, token_id)
+    pub fn sections(&self, session: GemAddAssetSession) -> Vec<GemListSection> {
+        let explorer = session.asset.as_ref().and_then(|asset| self.explorer.get_token_url(asset.id.chain, asset.id.token_id.clone()?));
+        session.sections(explorer)
     }
 
     pub async fn token(&self, chain: Chain, address: String) -> Result<Asset, GemServiceError> {
@@ -173,11 +181,7 @@ impl GemAddAssetService {
     }
 
     pub async fn add(&self, wallet: Wallet, asset_id: AssetId) -> Result<(), GemServiceError> {
-        if wallet.account(asset_id.chain).is_none() {
-            return Err(GemServiceError::NotFound {
-                msg: format!("wallet has no account for {}", asset_id.chain),
-            });
-        }
+        required_account(&wallet, asset_id.chain)?;
         let asset = self.assets.ensure_token_asset(asset_id).await?;
         self.balances.set_assets_enabled(wallet.id, vec![asset.id], true).await
     }
@@ -199,7 +203,7 @@ mod session_tests {
 
     #[test]
     fn test_a_new_address_drops_the_token_found_for_the_previous_one() {
-        let found = GemAddAssetSession::new(Some(Chain::Ethereum)).on_address("0xabc".to_string()).on_found(Asset::mock());
+        let found = GemAddAssetSession::new(Some(Chain::Ethereum)).on_address("0xabc".to_string()).on_found(Chain::Ethereum, "0xabc".to_string(), Asset::mock());
         assert!(found.view_state().can_add);
 
         let retyped = found.on_address("0xdef".to_string());
@@ -209,14 +213,33 @@ mod session_tests {
 
     #[test]
     fn test_switching_chain_starts_over() {
-        let found = GemAddAssetSession::new(Some(Chain::Ethereum)).on_address("0xabc".to_string()).on_found(Asset::mock());
+        let found = GemAddAssetSession::new(Some(Chain::Ethereum)).on_address("0xabc".to_string()).on_found(Chain::Ethereum, "0xabc".to_string(), Asset::mock());
 
         assert_eq!(found.on_chain(Some(Chain::SmartChain)).view_state().phase, GemAddAssetPhase::Idle);
     }
 
     #[test]
+    fn test_a_lookup_for_an_earlier_address_is_ignored() {
+        let session = GemAddAssetSession::new(Some(Chain::Ethereum)).on_address("0xdef".to_string()).on_loading();
+
+        assert_eq!(session.on_found(Chain::Ethereum, "0xabc".to_string(), Asset::mock()), session);
+        assert_eq!(session.on_failed(Chain::Ethereum, "0xabc".to_string()), session);
+        assert!(session.on_found(Chain::Ethereum, " 0xdef ".to_string(), Asset::mock()).view_state().can_add);
+    }
+
+    #[test]
+    fn test_a_lookup_for_the_chain_the_user_left_is_ignored() {
+        let address = "0xabc".to_string();
+        let session = GemAddAssetSession::new(Some(Chain::SmartChain)).on_address(address.clone()).on_loading();
+
+        assert_eq!(session.on_found(Chain::Ethereum, address.clone(), Asset::mock()), session, "the same contract text on another network is another token");
+        assert_eq!(session.on_failed(Chain::Ethereum, address.clone()), session);
+        assert!(session.on_found(Chain::SmartChain, address, Asset::mock()).view_state().can_add);
+    }
+
+    #[test]
     fn test_a_failed_lookup_is_not_an_empty_screen() {
-        let failed = GemAddAssetSession::new(Some(Chain::Ethereum)).on_address("0xabc".to_string()).on_failed();
+        let failed = GemAddAssetSession::new(Some(Chain::Ethereum)).on_address("0xabc".to_string()).on_failed(Chain::Ethereum, "0xabc".to_string());
 
         assert_eq!(failed.view_state().phase, GemAddAssetPhase::Failed);
         assert!(!failed.view_state().can_add);
@@ -227,17 +250,53 @@ mod session_tests {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_asset_rows_describe_a_found_asset_and_nothing_before_it() {
-        let session = GemAddAssetSession::new(Some(Chain::Ethereum));
-        assert!(session.asset_rows().is_empty(), "there is nothing to describe until a token is found");
+    fn section(rows: Vec<GemListRow>) -> GemListSection {
+        GemListSection {
+            title: GemListSectionTitle::None,
+            footer: GemListSectionFooter::None,
+            rows,
+        }
+    }
 
-        let rows = session.on_found(Asset::from_chain(Chain::Ethereum)).asset_rows();
+    #[test]
+    fn test_sections_describe_a_found_asset_and_nothing_before_it() {
+        let session = GemAddAssetSession::new(Some(Chain::Ethereum));
+        assert!(session.sections(None).is_empty(), "there is nothing to describe until a token is found");
+
+        let text = |title: GemListRowTitle, value: &str| GemListRow::Text { title, value: value.to_string() };
+        let link = BlockExplorerLink {
+            name: "Etherscan".to_string(),
+            link: "https://etherscan.io/token/0xabc".to_string(),
+        };
         assert_eq!(
-            rows.iter().map(|row| row.kind).collect::<Vec<_>>(),
-            vec![GemAssetInfoKind::Name, GemAssetInfoKind::Symbol, GemAssetInfoKind::Decimals, GemAssetInfoKind::Kind]
+            session.on_found(Chain::Ethereum, String::new(), Asset::from_chain(Chain::Ethereum)).sections(Some(link)),
+            vec![
+                section(vec![
+                    text(GemListRowTitle::Name, "Ethereum"),
+                    text(GemListRowTitle::Symbol, "ETH"),
+                    text(GemListRowTitle::Decimals, "18"),
+                    text(GemListRowTitle::Type, "NATIVE"),
+                ]),
+                section(vec![GemListRow::Explorer {
+                    name: "Etherscan".to_string(),
+                    url: "https://etherscan.io/token/0xabc".to_string(),
+                }]),
+            ]
         );
-        assert_eq!(rows[0].value, "Ethereum");
-        assert_eq!(rows[2].value, "18");
+    }
+
+    #[test]
+    fn test_a_failed_lookup_reads_as_an_invalid_token_id() {
+        let failed = GemAddAssetSession::new(Some(Chain::Ethereum)).on_address("0xabc".to_string()).on_failed(Chain::Ethereum, "0xabc".to_string());
+
+        assert_eq!(
+            failed.sections(None),
+            vec![section(vec![GemListRow::Notice {
+                title: GemListRowTitle::Error,
+                message: Some(GemLocalizedText::InvalidTokenId),
+                kind: GemNoticeKind::Error,
+            }])]
+        );
+        assert!(failed.on_address("0xdef".to_string()).sections(None).is_empty(), "retyping clears the failure");
     }
 }

@@ -90,8 +90,6 @@ class ConnectionsViewModelTest {
         val details = GemConnectionDetails(
             connection = GemConnection(connection = connection.toGem(), row = mockGemConnectionRow(iconUrl = null)),
             rows = emptyList(),
-            wallet = "Main Wallet",
-            date = 0,
         )
         val service: GemWalletConnectServiceInterface = mockk(relaxed = true) {
             every { connectionDetails(any()) } returns details
@@ -105,7 +103,6 @@ class ConnectionsViewModelTest {
             service,
             SavedStateHandle(mapOf(RouteArgument.ConnectionId.key to "connection-1")),
             dispatcher,
-            mockk(relaxed = true),
         ).also { scopes.add(it) }
 
         assertEquals("Uniswap", model.details.first { it != null }?.connection?.row?.title)
@@ -123,7 +120,6 @@ class ConnectionsViewModelTest {
             mockk(relaxed = true),
             SavedStateHandle(mapOf(RouteArgument.ConnectionId.key to "gone")),
             dispatcher,
-            mockk(relaxed = true),
         ).also { scopes.add(it) }
 
         var finished = false

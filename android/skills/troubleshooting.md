@@ -52,6 +52,8 @@ Host unit tests load the Rust `gemstone` library through JNA from `core/target/d
 ```bash
 cd ../core && cargo build --package gemstone
 ```
+JNA reports a library that exists but cannot be loaded as `NoClassDefFoundError` in every affected test, which reads as a code failure. `[profile.dev] debug` in `core/Cargo.toml` is `line-tables-only` for that reason: with no debug info at all the linker emits a `libgemstone.dylib` whose LINKEDIT string pool is 4-byte aligned, and dyld on macOS 27 refuses to load it.
+
 If a test still fails on a clean tree with the library present, treat it as environmental: report it with the command and judge only the classes you touched.
 
 ### Connected Tests Crash Before Any Test Runs

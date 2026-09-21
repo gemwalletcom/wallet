@@ -41,14 +41,7 @@ impl<'a> AccessLog<'a> {
     }
 
     pub(super) fn request(&self) {
-        info_with_fields!(
-            "Egress request",
-            source = self.source,
-            group = self.group,
-            service = self.service,
-            method = self.method.as_str(),
-            uri = self.uri,
-        );
+        info_with_fields!("Egress request", source = self.source, group = self.group, service = self.service, method = self.method.as_str(), uri = self.uri,);
     }
 
     pub(super) fn failover(&self, endpoint: &str, host: &str, status: u16) {

@@ -2,6 +2,7 @@ use crate::services::failures::StepFailure;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemAppStartStep {
     UpdateConfig,
+    SetupAssets,
     SetupBanners,
     SyncAssets,
     SyncDevice,

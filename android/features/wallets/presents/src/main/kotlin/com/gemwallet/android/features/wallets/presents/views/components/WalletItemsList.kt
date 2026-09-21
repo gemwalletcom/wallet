@@ -1,7 +1,5 @@
 package com.gemwallet.android.features.wallets.presents.views.components
 
-import com.gemwallet.android.ui.components.list_item.uiModel
-import androidx.compose.ui.platform.LocalContext
 import androidx.annotation.StringRes
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -13,12 +11,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.wallet.aggregates.WalletDataAggregate
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
 import com.gemwallet.android.ui.components.list_item.WalletItem
+import com.gemwallet.android.ui.components.list_item.uiModel
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.WalletId
@@ -47,7 +47,7 @@ internal fun LazyListScope.wallets(
                     isCurrent = item.isCurrent,
                     listPosition = ListPosition.getPosition(index, wallets.size),
                     onEdit = { onEdit(walletId) },
-                    modifier = it
+                    modifier = it,
                 )
             },
             menuItems = {
@@ -67,18 +67,13 @@ internal fun LazyListScope.wallets(
                     longPressedWallet.value = ""
                 }
             },
-            onLongClick = { longPressedWallet.value = item.row.id }
+            onLongClick = { longPressedWallet.value = item.row.id },
         ) { onSelectWallet(walletId) }
     }
 }
 
 @Composable
-private fun WalletDropDownItem(
-    @StringRes text: Int,
-    icon: Any,
-    color: Color = Color.Unspecified,
-    onClick: () -> Unit,
-) {
+private fun WalletDropDownItem(@StringRes text: Int, icon: Any, color: Color = Color.Unspecified, onClick: () -> Unit) {
     val text = stringResource(text)
     DropdownMenuItem(
         text = {
@@ -89,11 +84,11 @@ private fun WalletDropDownItem(
                 is ImageVector -> Icon(
                     imageVector = icon,
                     tint = color,
-                    contentDescription = text
+                    contentDescription = text,
                 )
+
                 is Int -> Icon(painterResource(icon), text)
             }
-
         },
         onClick = onClick,
     )

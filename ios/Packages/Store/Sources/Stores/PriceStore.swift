@@ -23,6 +23,17 @@ public struct PriceStore: Sendable {
         }
     }
 
+    public func saveRates(_ rates: [FiatRate], conversion: FiatRate? = nil) throws {
+        try db.write { db in
+            for rate in rates {
+                try rate.record.upsert(db)
+            }
+            if let conversion {
+                _ = try convertPrices(db, rate: conversion.rate)
+            }
+        }
+    }
+
     public func updatePrices(_ updates: [PriceUpdate]) throws {
         try db.write { db in
             for update in updates {
@@ -89,11 +100,14 @@ public struct PriceStore: Sendable {
     @discardableResult
     public func convertPrices(rate: Double) throws -> Int {
         try db.write { db in
-            try PriceRecord.updateAll(db, [
-                PriceRecord.Columns.price
-                    .set(to: PriceRecord.Columns.priceUsd * rate),
-            ])
+            try convertPrices(db, rate: rate)
         }
+    }
+
+    private func convertPrices(_ db: Database, rate: Double) throws -> Int {
+        try PriceRecord.updateAll(db, [
+            PriceRecord.Columns.price.set(to: PriceRecord.Columns.priceUsd * rate),
+        ])
     }
 
     public func clear() throws -> Int {

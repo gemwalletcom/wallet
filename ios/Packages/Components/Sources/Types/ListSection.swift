@@ -6,6 +6,7 @@ import SwiftUI
 public struct ListSection<T: Identifiable>: Identifiable {
     public let id: String
     public let title: String?
+    public let footer: String?
     public let image: Image?
     public let values: [T]
 
@@ -28,9 +29,11 @@ public struct ListSection<T: Identifiable>: Identifiable {
         title: String?,
         image: Image?,
         values: [T],
+        footer: String? = nil,
     ) {
         self.id = id
         self.title = title
+        self.footer = footer
         self.image = image
         self.values = values
     }

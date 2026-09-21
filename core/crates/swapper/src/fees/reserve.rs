@@ -39,9 +39,7 @@ fn quote_value_after_reserve(request: &QuoteRequest, reserved: &str) -> Result<B
     let reserved_fee = U256::from_str(reserved).map_err(|_| SwapperError::ComputeQuoteError(format!("invalid reserved fee: {reserved}")))?;
     let amount = U256::from_str(&request.value.to_string()).map_err(|_| SwapperError::ComputeQuoteError(format!("invalid amount: {}", request.value)))?;
     if amount <= reserved_fee {
-        return Err(SwapperError::InputAmountError {
-            min_amount: Some(reserved_fee.to_string()),
-        });
+        return Err(SwapperError::InputAmountError { min_amount: Some(reserved_fee.to_string()) });
     }
     Ok(u256_to_biguint(&(amount - reserved_fee)))
 }
@@ -83,10 +81,7 @@ mod tests {
             wallet_address: "address".to_string(),
             destination_address: "address".to_string(),
             value: BigUint::from(105814789u64),
-            options: Options {
-                use_max_amount: true,
-                ..Default::default()
-            },
+            options: Options { use_max_amount: true, ..Default::default() },
         };
 
         assert_eq!(max_quote_value_with_fee_reserve(&request).unwrap(), BigUint::from(100814789u64));

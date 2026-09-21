@@ -5,17 +5,18 @@ pub mod store;
 #[cfg(test)]
 pub(crate) mod testkit;
 
+use crate::models::state::GemLoadState;
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use chrono::Utc;
-use primitives::{AssetId, Chain, Currency, Wallet, WalletId};
+use primitives::{AssetId, Chain, Transaction, Wallet, WalletId};
 
 pub use details::GemTransactionDetailsService;
 pub use model::{
-    GemAmountSign, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemTransactionAmount, GemTransactionDetailRow, GemTransactionDetailRows, GemTransactionDetailSection,
-    GemTransactionFilter, GemTransactionHeader, GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipant, GemTransactionParticipantRole, GemTransactionRow,
-    GemTransactionRowSubtitle, GemTransactionRowValue, GemTransactionStateTone, GemTransactionStatus, GemTransactionTitle,
+    GemAmountSign, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemTransactionAmount, GemTransactionDetailRow, GemTransactionDetailRows, GemTransactionDetailSection, GemTransactionFilter, GemTransactionHeader,
+    GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipant, GemTransactionParticipantRole, GemTransactionRow, GemTransactionRowSubtitle, GemTransactionRowValue, GemTransactionStateTone, GemTransactionStatus,
+    GemTransactionTitle,
 };
 pub use store::GemTransactionStore;
 
@@ -23,7 +24,8 @@ use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::assets::GemAssetsService;
 use crate::services::chain::rules as chain_rules;
 use crate::services::name::GemAddressStore;
-use crate::services::preferences::GemPreferencesService;
+use crate::services::name::store::GemAddressNameWriter;
+use crate::services::swap::GemSwapPair;
 use crate::services::transaction_state::GemTransactionStatusService;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
@@ -35,9 +37,16 @@ pub struct GemTransactionsService {
     store: Arc<dyn GemTransactionStore>,
     address_store: Arc<dyn GemAddressStore>,
     wallet_preferences: Arc<GemWalletPreferencesService>,
-    preferences: Arc<GemPreferencesService>,
     session: Arc<GemWalletSessionService>,
     transaction_status: Arc<dyn GemTransactionStatusService>,
+}
+
+#[uniffi::export]
+pub fn transaction_swap_pair(transaction: Transaction) -> Option<GemSwapPair> {
+    transaction.swap_metadata().map(|metadata| GemSwapPair {
+        from_asset_id: metadata.from_asset,
+        to_asset_id: metadata.to_asset,
+    })
 }
 
 #[uniffi::export]
@@ -49,7 +58,6 @@ impl GemTransactionsService {
         store: Arc<dyn GemTransactionStore>,
         address_store: Arc<dyn GemAddressStore>,
         wallet_preferences: Arc<GemWalletPreferencesService>,
-        preferences: Arc<GemPreferencesService>,
         session: Arc<GemWalletSessionService>,
         transaction_status: Arc<dyn GemTransactionStatusService>,
     ) -> Self {
@@ -59,7 +67,6 @@ impl GemTransactionsService {
             store,
             address_store,
             wallet_preferences,
-            preferences,
             session,
             transaction_status,
         }
@@ -69,16 +76,16 @@ impl GemTransactionsService {
         chain_rules::wallet_chains_by_rank(&wallet)
     }
 
-    pub fn get_currency(&self) -> Currency {
-        self.preferences.get_currency()
-    }
-
-    pub async fn sync(&self, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
-        self.sync_wallet(self.session.current_wallet_id()?, asset_id).await
+    pub async fn refresh(&self, asset_id: Option<AssetId>, has_transactions: bool) -> GemLoadState {
+        GemLoadState::refreshed(self.sync(asset_id).await, has_transactions)
     }
 }
 
 impl GemTransactionsService {
+    async fn sync(&self, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
+        self.sync_wallet(self.session.current_wallet_id()?, asset_id).await
+    }
+
     pub async fn sync_wallet(&self, wallet_id: WalletId, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
         let from_timestamp = self.wallet_preferences.get_transactions_timestamp(wallet_id.clone(), asset_id.clone());
         let timestamp = Utc::now().timestamp() as u64;
@@ -95,11 +102,34 @@ impl GemTransactionsService {
         }
         let pending = rules::pending_transactions(&response.transactions);
         self.store.save_transactions(wallet_id.clone(), response.transactions).await?;
-        self.address_store.save_address_names(response.address_names).await?;
+        self.address_store.save_names(response.address_names).await?;
         self.wallet_preferences.set_transactions_timestamp(wallet_id.clone(), asset_id, timestamp)?;
         if !pending.is_empty() {
             self.transaction_status.track(wallet_id, pending);
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use primitives::{Chain, TransactionSwapMetadata};
+
+    #[test]
+    fn test_a_swap_leg_the_build_cannot_read_leaves_the_transaction_without_a_pair() {
+        let swap = Transaction::mock_swap();
+        assert_eq!(
+            transaction_swap_pair(swap.clone()),
+            Some(GemSwapPair {
+                from_asset_id: TransactionSwapMetadata::mock().from_asset,
+                to_asset_id: TransactionSwapMetadata::mock().to_asset,
+            })
+        );
+        let unreadable = Transaction {
+            metadata: Some(serde_json::json!({ "fromAsset": "gemchain", "toAsset": Chain::Ethereum.as_ref() })),
+            ..swap
+        };
+        assert_eq!(transaction_swap_pair(unreadable), None);
     }
 }

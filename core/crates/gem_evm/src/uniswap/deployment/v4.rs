@@ -233,9 +233,6 @@ mod tests {
 
         assert_eq!(ink.universal_router, "0x28bD21bB4Ea4fDa370D8d7544992038375D8d456");
         assert_eq!(ink.universal_router_abi, UniversalRouterAbi::V2_1);
-        assert_eq!(
-            get_universal_router_abi_by_chain_contract(&Chain::Ink, "0x112908daC86e20e7241B0927479Ea3Bf935d1fa0"),
-            Some(UniversalRouterAbi::V2)
-        );
+        assert_eq!(get_universal_router_abi_by_chain_contract(&Chain::Ink, "0x112908daC86e20e7241B0927479Ea3Bf935d1fa0"), Some(UniversalRouterAbi::V2));
     }
 }

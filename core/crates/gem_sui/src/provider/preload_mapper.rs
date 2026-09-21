@@ -14,13 +14,7 @@ pub fn map_transaction_rate_rates(base_gas_price: BigInt) -> Vec<FeeRate> {
     ]
 }
 
-pub fn map_transaction_data(
-    input: TransactionLoadInput,
-    sui_coins: OwnedCoins<Coin>,
-    token_coins: Option<OwnedCoins<Coin>>,
-    objects: Vec<SuiObject>,
-    gas_budget: u64,
-) -> Result<String, Box<dyn Error + Send + Sync>> {
+pub fn map_transaction_data(input: TransactionLoadInput, sui_coins: OwnedCoins<Coin>, token_coins: Option<OwnedCoins<Coin>>, objects: Vec<SuiObject>, gas_budget: u64) -> Result<String, Box<dyn Error + Send + Sync>> {
     let gas_price = input.gas_price.gas_price().to_string().parse().unwrap_or(0);
 
     match input.input_type {
@@ -32,10 +26,7 @@ pub fn map_transaction_data(
                     amount: input.value.to_u64().ok_or("Sui amount is too large")?,
                     coins: sui_coins,
                     send_max: input.is_max_value,
-                    gas: Gas {
-                        budget: gas_budget,
-                        price: gas_price,
-                    },
+                    gas: Gas { budget: gas_budget, price: gas_price },
                 };
                 let tx_output = encode_transfer(&transfer_input)?;
                 let data = encode_base64(&tx_output.tx_data);
@@ -50,10 +41,7 @@ pub fn map_transaction_data(
                     recipient: input.destination_address,
                     amount: input.value.to_u64().ok_or("Sui amount is too large")?,
                     tokens,
-                    gas: Gas {
-                        budget: gas_budget,
-                        price: gas_price,
-                    },
+                    gas: Gas { budget: gas_budget, price: gas_price },
                     gas_coin,
                 };
                 let tx_output = encode_token_transfer(&token_transfer_input)?;
@@ -68,10 +56,7 @@ pub fn map_transaction_data(
                     sender: input.sender_address,
                     validator: validator.id.clone(),
                     stake_amount: input.value.to_u64().ok_or("Sui amount is too large")?,
-                    gas: Gas {
-                        budget: gas_budget,
-                        price: gas_price,
-                    },
+                    gas: Gas { budget: gas_budget, price: gas_price },
                     coins: sui_coins,
                 };
                 let tx_output = encode_split_and_stake(&stake_input)?;
@@ -81,10 +66,7 @@ pub fn map_transaction_data(
             }
             StakeType::Unstake(delegation) => {
                 let gas_coin = sui_coins.coins.first().ok_or("No gas coins available for unstake")?.clone();
-                let staked_object = objects
-                    .iter()
-                    .find(|obj| obj.object_id == delegation.base.delegation_id)
-                    .ok_or("Staked SUI object not found in provided objects")?;
+                let staked_object = objects.iter().find(|obj| obj.object_id == delegation.base.delegation_id).ok_or("Staked SUI object not found in provided objects")?;
 
                 let staked_sui = crate::models::Object {
                     object_id: staked_object.object_id.parse().map_err(|err| format!("invalid staked Sui object id: {err}"))?,
@@ -95,10 +77,7 @@ pub fn map_transaction_data(
                 let unstake_input = UnstakeInput {
                     sender: input.sender_address,
                     staked_sui,
-                    gas: Gas {
-                        budget: gas_budget,
-                        price: gas_price,
-                    },
+                    gas: Gas { budget: gas_budget, price: gas_price },
                     gas_coin,
                 };
                 let tx_output = encode_unstake(&unstake_input)?;
@@ -106,9 +85,7 @@ pub fn map_transaction_data(
                 let digest = hex::encode(&tx_output.hash);
                 Ok(format!("{}_{}", data, digest))
             }
-            StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Withdraw(_) | StakeType::Freeze(_) | StakeType::Unfreeze(_) => {
-                Err("Unsupported stake type for Sui".into())
-            }
+            StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Withdraw(_) | StakeType::Freeze(_) | StakeType::Unfreeze(_) => Err("Unsupported stake type for Sui".into()),
         },
         TransactionInputType::Swap { swap_data: data, .. } => {
             let tx_output = validate_and_hash(&data.data.data)?;

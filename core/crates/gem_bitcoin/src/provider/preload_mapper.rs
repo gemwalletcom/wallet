@@ -21,11 +21,7 @@ pub fn map_utxos(utxos: Vec<BitcoinUTXO>, address: String) -> Vec<UTXO> {
         .collect()
 }
 
-pub fn map_transaction_preload_zcash(
-    node_info: BitcoinNodeInfo,
-    utxos: Vec<BitcoinUTXO>,
-    input: TransactionPreloadInput,
-) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
+pub fn map_transaction_preload_zcash(node_info: BitcoinNodeInfo, utxos: Vec<BitcoinUTXO>, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
     let utxos = map_utxos(utxos, input.sender_address.clone());
     let branch_id = node_info.backend.consensus.ok_or("Branch ID not found")?.chaintip;
     Ok(TransactionLoadMetadata::Zcash { utxos, branch_id })

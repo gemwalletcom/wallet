@@ -14,9 +14,7 @@ use primitives::{
 use crate::{
     config::HypercoreConfig,
     models::{order::OpenOrder, perp_dex::PerpDex, position::AssetPositions},
-    provider::perpetual_mapper::{
-        map_account_summary_aggregate, map_candlesticks, map_perpetual_balance_from_spot, map_perpetual_portfolio, map_perpetuals_data, map_positions, merge_perpetual_portfolios,
-    },
+    provider::perpetual_mapper::{map_account_summary_aggregate, map_candlesticks, map_perpetual_balance_from_spot, map_perpetual_portfolio, map_perpetuals_data, map_positions, merge_perpetual_portfolios},
     rpc::client::HyperCoreClient,
 };
 
@@ -63,10 +61,7 @@ impl<C: Client> HyperCoreClient<C> {
             return vec![(0, None)];
         }
 
-        self.get_perp_dexs()
-            .await
-            .map(|dexs| filter_active_dex(&dexs, &self.config.enabled_hip3_markets))
-            .unwrap_or_else(|_| vec![(0, None)])
+        self.get_perp_dexs().await.map(|dexs| filter_active_dex(&dexs, &self.config.enabled_hip3_markets)).unwrap_or_else(|_| vec![(0, None)])
     }
 
     async fn get_positions_for_dex(&self, address: String, dex: Option<String>) -> Result<AssetPositions, Box<dyn Error + Sync + Send>> {
@@ -229,10 +224,7 @@ mod tests {
                 name: "dex2".to_string(),
                 is_active: Some(false),
             }),
-            Some(PerpDex {
-                name: "dex3".to_string(),
-                is_active: None,
-            }),
+            Some(PerpDex { name: "dex3".to_string(), is_active: None }),
         ];
 
         let enabled_hip3_markets = vec!["dex1".to_string(), "dex3".to_string()];
@@ -245,13 +237,7 @@ mod tests {
 
     #[test]
     fn test_filter_active_dex_skips_empty_names() {
-        let dexs = vec![
-            None,
-            Some(PerpDex {
-                name: "".to_string(),
-                is_active: Some(true),
-            }),
-        ];
+        let dexs = vec![None, Some(PerpDex { name: "".to_string(), is_active: Some(true) })];
 
         let enabled_hip3_markets = vec!["dex1".to_string()];
         let entries = filter_active_dex(&dexs, &enabled_hip3_markets);
@@ -309,26 +295,11 @@ mod tests {
                 include_bytes!("../../testdata/perpetual_positions_response_user_abstraction_default.json").to_vec(),
             ),
             (perp_dexs_request, include_bytes!("../../testdata/perpetual_positions_response_perp_dexs.json").to_vec()),
-            (
-                clearinghouse_state_request,
-                include_bytes!("../../testdata/perpetual_positions_response_clearinghouse_state.json").to_vec(),
-            ),
-            (
-                clearinghouse_state_dex1_request,
-                include_bytes!("../../testdata/perpetual_positions_response_clearinghouse_state_dex1.json").to_vec(),
-            ),
-            (
-                clearinghouse_state_dex2_request,
-                include_bytes!("../../testdata/perpetual_positions_response_clearinghouse_state_dex2.json").to_vec(),
-            ),
-            (
-                open_orders_request.clone(),
-                include_bytes!("../../testdata/perpetual_positions_response_open_orders.json").to_vec(),
-            ),
-            (
-                open_orders_dex1_request.clone(),
-                include_bytes!("../../testdata/perpetual_positions_response_open_orders_dex1.json").to_vec(),
-            ),
+            (clearinghouse_state_request, include_bytes!("../../testdata/perpetual_positions_response_clearinghouse_state.json").to_vec()),
+            (clearinghouse_state_dex1_request, include_bytes!("../../testdata/perpetual_positions_response_clearinghouse_state_dex1.json").to_vec()),
+            (clearinghouse_state_dex2_request, include_bytes!("../../testdata/perpetual_positions_response_clearinghouse_state_dex2.json").to_vec()),
+            (open_orders_request.clone(), include_bytes!("../../testdata/perpetual_positions_response_open_orders.json").to_vec()),
+            (open_orders_dex1_request.clone(), include_bytes!("../../testdata/perpetual_positions_response_open_orders_dex1.json").to_vec()),
         ]);
         let seen_requests = Arc::new(Mutex::new(Vec::new()));
         let responses_clone = Arc::clone(&responses);
@@ -354,16 +325,8 @@ mod tests {
         let summary = client.get_positions("0x123".to_string()).await.unwrap();
         let seen_requests = seen_requests.lock().unwrap().clone();
 
-        let btc = summary
-            .positions
-            .iter()
-            .find(|position| position.perpetual_id == PerpetualId::new(PerpetualProvider::Hypercore, "BTC"))
-            .unwrap();
-        let eth = summary
-            .positions
-            .iter()
-            .find(|position| position.perpetual_id == PerpetualId::new(PerpetualProvider::Hypercore, "ETH"))
-            .unwrap();
+        let btc = summary.positions.iter().find(|position| position.perpetual_id == PerpetualId::new(PerpetualProvider::Hypercore, "BTC")).unwrap();
+        let eth = summary.positions.iter().find(|position| position.perpetual_id == PerpetualId::new(PerpetualProvider::Hypercore, "ETH")).unwrap();
 
         assert!(seen_requests.contains(&open_orders_request));
         assert!(seen_requests.contains(&open_orders_dex1_request));
@@ -375,14 +338,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_perpetual_account_mode() {
-        let unified = HyperCoreClient::mock_with_responses_by_request_type(vec![(
-            "userAbstraction",
-            include_bytes!("../../testdata/perpetual_balance_response_user_abstraction_unified.json").to_vec(),
-        )]);
-        let default = HyperCoreClient::mock_with_responses_by_request_type(vec![(
-            "userAbstraction",
-            include_bytes!("../../testdata/perpetual_positions_response_user_abstraction_default.json").to_vec(),
-        )]);
+        let unified = HyperCoreClient::mock_with_responses_by_request_type(vec![("userAbstraction", include_bytes!("../../testdata/perpetual_balance_response_user_abstraction_unified.json").to_vec())]);
+        let default = HyperCoreClient::mock_with_responses_by_request_type(vec![("userAbstraction", include_bytes!("../../testdata/perpetual_positions_response_user_abstraction_default.json").to_vec())]);
 
         assert_eq!(unified.get_perpetual_account_mode("0x123".to_string()).await.unwrap(), PerpetualAccountMode::Unified);
         assert_eq!(default.get_perpetual_account_mode("0x123".to_string()).await.unwrap(), PerpetualAccountMode::Standard);
@@ -391,22 +348,10 @@ mod tests {
     #[tokio::test]
     async fn test_get_positions_takes_balance_from_spot_for_unified_account() {
         let client = HyperCoreClient::mock_with_responses_by_request_type(vec![
-            (
-                "userAbstraction",
-                include_bytes!("../../testdata/perpetual_balance_response_user_abstraction_unified.json").to_vec(),
-            ),
-            (
-                "clearinghouseState",
-                include_bytes!("../../testdata/perpetual_positions_response_clearinghouse_state.json").to_vec(),
-            ),
-            (
-                "frontendOpenOrders",
-                include_bytes!("../../testdata/perpetual_positions_response_open_orders.json").to_vec(),
-            ),
-            (
-                "spotClearinghouseState",
-                include_bytes!("../../testdata/perpetual_balance_response_spot_clearinghouse_state.json").to_vec(),
-            ),
+            ("userAbstraction", include_bytes!("../../testdata/perpetual_balance_response_user_abstraction_unified.json").to_vec()),
+            ("clearinghouseState", include_bytes!("../../testdata/perpetual_positions_response_clearinghouse_state.json").to_vec()),
+            ("frontendOpenOrders", include_bytes!("../../testdata/perpetual_positions_response_open_orders.json").to_vec()),
+            ("spotClearinghouseState", include_bytes!("../../testdata/perpetual_balance_response_spot_clearinghouse_state.json").to_vec()),
         ]);
 
         let summary = client.get_positions("0x123".to_string()).await.unwrap();
@@ -456,14 +401,8 @@ mod tests {
                 serde_json::json!({"type": "userAbstraction", "user": "0x123"}),
                 include_bytes!("../../testdata/perpetual_positions_response_user_abstraction_default.json").to_vec(),
             ),
-            (
-                clearinghouse_state_request.clone(),
-                include_bytes!("../../testdata/perpetual_positions_response_clearinghouse_state.json").to_vec(),
-            ),
-            (
-                open_orders_request.clone(),
-                include_bytes!("../../testdata/perpetual_positions_response_open_orders.json").to_vec(),
-            ),
+            (clearinghouse_state_request.clone(), include_bytes!("../../testdata/perpetual_positions_response_clearinghouse_state.json").to_vec()),
+            (open_orders_request.clone(), include_bytes!("../../testdata/perpetual_positions_response_open_orders.json").to_vec()),
         ]);
         let seen_requests = Arc::new(Mutex::new(Vec::new()));
         let responses_clone = Arc::clone(&responses);
@@ -525,10 +464,7 @@ mod integration_tests {
         let summary = client.get_positions(TEST_ADDRESS.to_string()).await?;
 
         println!("Positions count: {}", summary.positions.len());
-        println!(
-            "Balance: available={}, reserved={}, withdrawable={}",
-            summary.balance.available, summary.balance.reserved, summary.balance.withdrawable
-        );
+        println!("Balance: available={}, reserved={}, withdrawable={}", summary.balance.available, summary.balance.reserved, summary.balance.withdrawable);
 
         for pos in &summary.positions {
             println!("  {} {:?} size={} leverage={}", pos.perpetual_id, pos.direction, pos.size, pos.leverage);
@@ -545,10 +481,7 @@ mod integration_tests {
 
         println!("Perpetuals count: {}", data.len());
         for d in data.iter().take(5) {
-            println!(
-                "  {} identifier={} price={} leverage={}",
-                d.perpetual.name, d.perpetual.identifier, d.perpetual.price, d.perpetual.max_leverage
-            );
+            println!("  {} identifier={} price={} leverage={}", d.perpetual.name, d.perpetual.identifier, d.perpetual.price, d.perpetual.max_leverage);
         }
 
         let btc = data.iter().find(|d| d.perpetual.name == "BTC");

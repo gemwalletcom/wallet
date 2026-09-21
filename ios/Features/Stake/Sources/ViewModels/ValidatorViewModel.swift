@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import Formatters
 import Foundation
 import struct Gemstone.GemValidatorRow
 import enum Gemstone.YieldProvider
@@ -23,15 +24,15 @@ public struct ValidatorViewModel: Sendable {
     }
 
     public var listItem: ListItemModel {
-        ListItemModel(title: name, subtitle: aprModel.text)
+        ListItemModel(title: name, subtitle: aprText)
     }
 
     public var name: String {
         row.name
     }
 
-    public var aprModel: AprViewModel {
-        AprViewModel(apr: row.validator.apr)
+    public var aprText: String {
+        Localized.Stake.apr(row.apr?.text() ?? .empty)
     }
 
     public var providerImage: Image? {

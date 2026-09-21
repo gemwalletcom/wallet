@@ -6,6 +6,7 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
+import uniffi.gemstone.BlockExplorerLink
 import uniffi.gemstone.GemTransactionDetailRow
 import uniffi.gemstone.GemTransactionDetailSection
 import uniffi.gemstone.GemTransactionHeaderAction
@@ -24,7 +25,7 @@ interface TransactionDetailsAggregate {
 
     val headerAction: GemTransactionHeaderAction?
     val fee: TransactionDetailsValue.Fee
-    val explorer: TransactionDetailsValue.Explorer
+    val explorer: BlockExplorerLink
 
     val sections: List<GemTransactionDetailSection>
 

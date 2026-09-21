@@ -60,9 +60,7 @@ impl StreamReader {
 
     async fn try_consume(config: &StreamReaderConfig, queue: &str, tag: &str) -> Result<(Channel, lapin::Consumer), Box<dyn Error + Send + Sync>> {
         let channel = Self::try_connect(config).await?;
-        let consumer = channel
-            .basic_consume(queue.into(), tag.into(), BasicConsumeOptions::default(), FieldTable::default())
-            .await?;
+        let consumer = channel.basic_consume(queue.into(), tag.into(), BasicConsumeOptions::default(), FieldTable::default()).await?;
         Ok((channel, consumer))
     }
 
@@ -82,10 +80,7 @@ impl StreamReader {
                 break;
             }
 
-            let attached = with_retry(&self.config.retry, &self.config.name, &shutdown_rx, || {
-                Self::try_consume(&self.config, queue_name.as_str(), consumer_tag.as_str())
-            })
-            .await?;
+            let attached = with_retry(&self.config.retry, &self.config.name, &shutdown_rx, || Self::try_consume(&self.config, queue_name.as_str(), consumer_tag.as_str())).await?;
 
             let Some((channel, mut consumer)) = attached else {
                 break;
@@ -97,11 +92,7 @@ impl StreamReader {
                 break;
             }
             let error = result.err().map(|e| e.to_string());
-            info_with_fields!(
-                "consumer reconnecting",
-                connection = self.config.name.as_str(),
-                error = error.as_deref().unwrap_or("stream ended")
-            );
+            info_with_fields!("consumer reconnecting", connection = self.config.name.as_str(), error = error.as_deref().unwrap_or("stream ended"));
         }
 
         Ok(())
@@ -141,10 +132,7 @@ impl StreamReader {
     }
 
     async fn ack(&self, delivery_tag: u64) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.channel
-            .basic_ack(delivery_tag, BasicAckOptions { multiple: false })
-            .await
-            .map_err(|e| Box::new(e) as Box<dyn Error + Send + Sync>)
+        self.channel.basic_ack(delivery_tag, BasicAckOptions { multiple: false }).await.map_err(|e| Box::new(e) as Box<dyn Error + Send + Sync>)
     }
 
     async fn nack(&self, delivery_tag: u64, requeue: bool) -> Result<(), Box<dyn Error + Send + Sync>> {

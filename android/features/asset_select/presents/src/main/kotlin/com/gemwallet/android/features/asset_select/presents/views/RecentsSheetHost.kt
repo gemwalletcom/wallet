@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.asset_select.presents.views
 
 import androidx.compose.runtime.Composable
-import com.wallet.core.primitives.Asset
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -9,12 +8,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
+import com.wallet.core.primitives.Asset
 
 @Composable
-fun RecentsSheetHost(
-    viewModel: RecentsSheetViewModel,
-    onSelect: (Asset) -> Unit,
-) {
+fun RecentsSheetHost(viewModel: RecentsSheetViewModel, onSelect: (Asset) -> Unit) {
     val isVisible by viewModel.visible.collectAsStateWithLifecycle()
     val uiModel by viewModel.uiModel.collectAsStateWithLifecycle()
     var pendingAsset by remember { mutableStateOf<Asset?>(null) }

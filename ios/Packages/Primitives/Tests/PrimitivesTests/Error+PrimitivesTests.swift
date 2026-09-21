@@ -12,5 +12,7 @@ struct ErrorPrimitivesTests {
 
         #expect(!NSError(domain: NSOSStatusErrorDomain, code: Int(errSecAuthFailed)).isAuthenticationCancelled)
         #expect(!NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled).isAuthenticationCancelled)
+        #expect(!NSError(domain: NSURLErrorDomain, code: Int(errSecUserCanceled)).isAuthenticationCancelled)
+        #expect(!NSError(domain: "GemWalletTests", code: Int(errSecUserCanceled)).isAuthenticationCancelled)
     }
 }

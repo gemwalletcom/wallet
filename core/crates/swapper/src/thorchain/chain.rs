@@ -12,12 +12,7 @@ pub struct ChainName {
 
 impl ChainName {
     const fn new(chain: Chain, long_name: &'static str, short_name: &'static str, token_assets: ChainTokenAssets) -> Self {
-        Self {
-            chain,
-            long_name,
-            short_name,
-            token_assets,
-        }
+        Self { chain, long_name, short_name, token_assets }
     }
 
     pub fn supported(network: THORChainNetwork) -> &'static [ChainName] {

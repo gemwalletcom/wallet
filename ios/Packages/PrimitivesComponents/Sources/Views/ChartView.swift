@@ -122,19 +122,19 @@ extension ChartView {
         .padding(.vertical, Spacing.large)
         .chartXAxis(.hidden)
         .chartYAxis(.hidden)
-        .chartYScale(domain: model.values.yScale)
-        .chartXScale(domain: model.values.xScale)
+        .chartYScale(domain: model.yScale)
+        .chartXScale(domain: model.xScale)
         .chartBackground { proxy in
             GeometryReader { geometry in
                 if let plotFrame = proxy.plotFrame {
                     let chartBounds = geometry[plotFrame]
 
-                    if let lowerBoundX = proxy.position(forX: model.values.lowerBoundDate) {
+                    if let lowerBoundX = proxy.position(forX: model.lowerBoundDate) {
                         boundLabel(model.lowerBoundValueText)
                             .offset(x: labelX(lowerBoundX, geoWidth: geometry.size.width), y: chartBounds.maxY + Spacing.small)
                     }
 
-                    if let upperBoundX = proxy.position(forX: model.values.upperBoundDate) {
+                    if let upperBoundX = proxy.position(forX: model.upperBoundDate) {
                         boundLabel(model.upperBoundValueText)
                             .offset(x: labelX(upperBoundX, geoWidth: geometry.size.width), y: chartBounds.minY - Spacing.large)
                     }

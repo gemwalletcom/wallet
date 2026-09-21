@@ -39,33 +39,13 @@ mod tests {
     #[test]
     fn details_url_returns_expected_values() {
         let cases = [
-            (
-                FiatProviderName::MoonPay,
-                FiatQuoteType::Buy,
-                Some("tx_123"),
-                Some("https://buy.moonpay.com/v2/transaction-tracker?transactionId=tx_123"),
-            ),
-            (
-                FiatProviderName::MoonPay,
-                FiatQuoteType::Sell,
-                Some("tx_123"),
-                Some("https://sell.moonpay.com/v2/transaction-tracker?transactionId=tx_123"),
-            ),
+            (FiatProviderName::MoonPay, FiatQuoteType::Buy, Some("tx_123"), Some("https://buy.moonpay.com/v2/transaction-tracker?transactionId=tx_123")),
+            (FiatProviderName::MoonPay, FiatQuoteType::Sell, Some("tx_123"), Some("https://sell.moonpay.com/v2/transaction-tracker?transactionId=tx_123")),
             (FiatProviderName::MoonPay, FiatQuoteType::Buy, None, None),
-            (
-                FiatProviderName::Flashnet,
-                FiatQuoteType::Buy,
-                Some("ord_123"),
-                Some("https://orchestra.flashnet.xyz/explorer/ord_123"),
-            ),
+            (FiatProviderName::Flashnet, FiatQuoteType::Buy, Some("ord_123"), Some("https://orchestra.flashnet.xyz/explorer/ord_123")),
             (FiatProviderName::Mercuryo, FiatQuoteType::Buy, Some("tx_123"), None),
             (FiatProviderName::Transak, FiatQuoteType::Buy, Some("tx_123"), None),
-            (
-                FiatProviderName::Banxa,
-                FiatQuoteType::Buy,
-                Some("tx_123"),
-                Some("https://gemwallet.banxa.com/status/tx_123"),
-            ),
+            (FiatProviderName::Banxa, FiatQuoteType::Buy, Some("tx_123"), Some("https://gemwallet.banxa.com/status/tx_123")),
             (FiatProviderName::Paybis, FiatQuoteType::Sell, Some("PB123"), None),
         ];
 
@@ -85,10 +65,7 @@ mod tests {
 
         let rendered = fiat_transaction_info(transaction);
 
-        assert_eq!(
-            rendered.details_url,
-            Some("https://buy.moonpay.com/v2/transaction-tracker?transactionId=tx_123".to_string())
-        );
+        assert_eq!(rendered.details_url, Some("https://buy.moonpay.com/v2/transaction-tracker?transactionId=tx_123".to_string()));
     }
 
     #[test]

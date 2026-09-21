@@ -47,12 +47,7 @@ mod tests {
             assert_eq!(script.locking_script, self.locking_script, "locking_script for {}", self.address);
             assert_eq!(script.unlocking_script(), self.unlocking_script, "unlocking_script for {}", self.address);
             assert_eq!(hex::encode(script.script_pubkey.as_bytes()), self.script_pubkey, "script_pubkey for {}", self.address);
-            assert_eq!(
-                script.public_key_hash().map(hex::encode).as_deref(),
-                self.public_key_hash,
-                "public_key_hash for {}",
-                self.address
-            );
+            assert_eq!(script.public_key_hash().map(hex::encode).as_deref(), self.public_key_hash, "public_key_hash for {}", self.address);
         }
     }
 

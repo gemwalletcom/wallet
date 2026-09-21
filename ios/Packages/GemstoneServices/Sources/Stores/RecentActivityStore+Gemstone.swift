@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import GemstonePrimitives
-import Primitives
-import Store
 import struct Gemstone.GemRecentActivity
 import protocol Gemstone.GemRecentActivityStore
 import enum Gemstone.RecentActivityType
 import typealias Gemstone.WalletId
+import GemstonePrimitives
+import Primitives
+import Store
 
 public final class GemstoneRecentActivityStore: GemRecentActivityStore, @unchecked Sendable {
     private let store: RecentActivityStore

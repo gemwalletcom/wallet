@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = أصل غير مدعوم.
 errors_connections_no_supported_wallets = لا تتوفر محافظ مدعومة.
 errors_connections_unsupported_chain = السلسلة المقدمة غير مدعومة.
 errors_swap_amount_too_small = المبلغ صغير جدًا
-errors_required = %@ مطلوب
 errors_scan_transaction_malicious_description = لا يمكن إكمال هذه المعاملة - عنوان المحفظة الوجهة مرتبط بنشاط مشبوه أو ضار.
 errors_scan_transaction_memo_required = يتطلب عنوان محفظة الوجهة %@ علامة وجهة/مذكرة
 errors_scan_transaction_malicious_title = نشاط مشبوه
@@ -536,7 +535,7 @@ verify_phrase_title = يتأكد
 
 # Warnings
 
-warnings_multi_signature_blocked = لا تقم بتحويل الأموال إلى محفظة التوقيعات المتعددة %@ هذه إلا إذا كنت متأكدًا من أنك تتحكم في المفاتيح الخاصة. قد يؤدي عدم القيام بذلك إلى تعريضك للاحتيال، وقد تفقد أصولك بشكل دائم.
+warnings_externally_controlled_account = قد يتحكم شخص آخر في حساب %@ هذا. لا ترسل أموالًا إليه إلا إذا كنت متأكدًا من أنك تتحكم فيه، وإلا فقد تفقد أصولك بشكل دائم.
 
 # Sell
 

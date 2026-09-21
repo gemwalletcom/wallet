@@ -40,14 +40,7 @@ pub(super) enum MatchError {
 }
 
 impl Route {
-    pub(super) fn new(
-        service: String,
-        config: RouteConfig,
-        default_statuses: &[u16],
-        default_headers: &[String],
-        direct_client: &Client,
-        proxies: &HashMap<String, OutboundProxy>,
-    ) -> Result<Self, BoxError> {
+    pub(super) fn new(service: String, config: RouteConfig, default_statuses: &[u16], default_headers: &[String], direct_client: &Client, proxies: &HashMap<String, OutboundProxy>) -> Result<Self, BoxError> {
         let forward_headers = default_headers
             .iter()
             .chain(config.headers.iter().flat_map(|headers| &headers.forward))
@@ -55,11 +48,7 @@ impl Route {
             .collect::<Result<HashSet<_>, _>>()?;
         let statuses = config.retry.map_or_else(|| default_statuses.to_vec(), |retry| retry.statuses);
         let rate = config.rate;
-        let endpoints = config
-            .endpoints
-            .into_iter()
-            .map(|endpoint| Endpoint::new(endpoint, rate, direct_client, proxies))
-            .collect::<Result<Vec<_>, BoxError>>()?;
+        let endpoints = config.endpoints.into_iter().map(|endpoint| Endpoint::new(endpoint, rate, direct_client, proxies)).collect::<Result<Vec<_>, BoxError>>()?;
         Ok(Self {
             group: config.group,
             service,
@@ -102,13 +91,7 @@ impl RouteMatch<'_> {
     }
 
     pub(super) fn cache_key(&self, method: &Method, headers: &HeaderMap, body: &[u8]) -> String {
-        let mut values = vec![
-            self.source.as_bytes(),
-            method.as_str().as_bytes(),
-            self.remainder.as_bytes(),
-            self.query.unwrap_or("").as_bytes(),
-            body,
-        ];
+        let mut values = vec![self.source.as_bytes(), method.as_str().as_bytes(), self.remainder.as_bytes(), self.query.unwrap_or("").as_bytes(), body];
         let mut headers = headers.iter().filter(|(name, _)| self.route.forward_headers.contains(*name)).collect::<Vec<_>>();
         headers.sort_by_key(|(name, _)| name.as_str());
         for (name, value) in headers {
@@ -180,27 +163,15 @@ mod tests {
         assert_ne!(key, request.cache_key(&Method::GET, &headers, b"first"));
         assert_ne!(key, request.cache_key(&Method::POST, &headers, b"second"));
         assert_ne!(key, request.cache_key(&Method::POST, &HeaderMap::new(), b"first"));
-        for (source, remainder, query) in [
-            ("parser", "/quote", Some("asset=one")),
-            ("api", "/other", Some("asset=one")),
-            ("api", "/quote", Some("asset=two")),
-        ] {
-            let other = RouteMatch {
-                source,
-                route: &route,
-                remainder,
-                query,
-            };
+        for (source, remainder, query) in [("parser", "/quote", Some("asset=one")), ("api", "/other", Some("asset=one")), ("api", "/quote", Some("asset=two"))] {
+            let other = RouteMatch { source, route: &route, remainder, query };
             assert_ne!(key, other.cache_key(&Method::POST, &headers, b"first"));
         }
     }
 
     #[test]
     fn test_match_route() {
-        let routes = HashMap::from([
-            ("tonapi".to_string(), Route::mock("prices", "tonapi")),
-            ("tonapi_rates".to_string(), Route::mock("prices", "tonapi_rates")),
-        ]);
+        let routes = HashMap::from([("tonapi".to_string(), Route::mock("prices", "tonapi")), ("tonapi_rates".to_string(), Route::mock("prices", "tonapi_rates"))]);
         for source in ["api", "consumer", "parser"] {
             let uri = format!("/{source}/tonapi_rates/v2");
             let matched = match_route(&routes, &Method::GET, &uri).unwrap();
@@ -236,20 +207,14 @@ mod tests {
     fn test_target_url() {
         let routes = HashMap::from([("tonapi".to_string(), Route::mock("prices", "tonapi"))]);
         let matched = match_route(&routes, &Method::GET, "/worker/tonapi/v2/rates/TON%2FUSD?currency=usd").unwrap();
-        assert_eq!(
-            matched.target_url(&Endpoint::mock("https://tonapi.io/api/")).unwrap().as_str(),
-            "https://tonapi.io/api/v2/rates/TON%2FUSD?currency=usd"
-        );
+        assert_eq!(matched.target_url(&Endpoint::mock("https://tonapi.io/api/")).unwrap().as_str(), "https://tonapi.io/api/v2/rates/TON%2FUSD?currency=usd");
     }
 
     #[test]
     fn test_target_url_without_suffix() {
         let routes = HashMap::from([("sui".to_string(), Route::mock("indexer", "sui"))]);
         let matched = match_route(&routes, &Method::POST, "/parser/sui").unwrap();
-        assert_eq!(
-            matched.target_url(&Endpoint::mock("https://graphql.mainnet.sui.io/graphql")).unwrap().as_str(),
-            "https://graphql.mainnet.sui.io/graphql"
-        );
+        assert_eq!(matched.target_url(&Endpoint::mock("https://graphql.mainnet.sui.io/graphql")).unwrap().as_str(), "https://graphql.mainnet.sui.io/graphql");
         assert_eq!(
             matched.target_url(&Endpoint::mock("https://sui.blockpi.network/v1/graphql/key")).unwrap().as_str(),
             "https://sui.blockpi.network/v1/graphql/key"

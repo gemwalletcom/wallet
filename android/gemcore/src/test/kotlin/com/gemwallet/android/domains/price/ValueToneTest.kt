@@ -1,8 +1,8 @@
 package com.gemwallet.android.domains.price
 
-import uniffi.gemstone.GemValueTone
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.GemValueTone
 
 class ValueToneTest {
 

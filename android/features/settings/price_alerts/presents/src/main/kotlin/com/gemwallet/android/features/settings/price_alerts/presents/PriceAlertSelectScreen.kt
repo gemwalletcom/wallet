@@ -7,11 +7,7 @@ import com.gemwallet.android.features.settings.price_alerts.viewmodels.PriceAler
 import com.wallet.core.primitives.AssetId
 
 @Composable
-fun PriceAlertSelectScreen(
-    onCancel: () -> Unit,
-    onSelect: ((AssetId) -> Unit)? = null,
-    viewModel: PriceAlertsSelectViewModel = hiltViewModel()
-) {
+fun PriceAlertSelectScreen(onCancel: () -> Unit, onSelect: ((AssetId) -> Unit)? = null, viewModel: PriceAlertsSelectViewModel = hiltViewModel()) {
     AssetSelectScreen(
         onCancel = onCancel,
         onSelect = onSelect,

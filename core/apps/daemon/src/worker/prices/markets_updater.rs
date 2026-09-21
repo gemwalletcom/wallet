@@ -11,10 +11,7 @@ pub struct MarketsUpdater {
 
 impl MarketsUpdater {
     pub fn new(markets_client: MarketsClient, coin_gecko_client: CoinGeckoClient) -> Self {
-        Self {
-            markets_client,
-            coin_gecko_client,
-        }
+        Self { markets_client, coin_gecko_client }
     }
 
     pub async fn update_markets(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
@@ -24,14 +21,8 @@ impl MarketsUpdater {
 
         let provider = PriceProvider::Coingecko;
         let trending = self.markets_client.get_asset_ids_for_provider_price_ids(provider, trending.get_coins_ids()).await?;
-        let gainers = self
-            .markets_client
-            .get_asset_ids_for_provider_price_ids(provider, top_gainers_losers.get_gainers_ids())
-            .await?;
-        let losers = self
-            .markets_client
-            .get_asset_ids_for_provider_price_ids(provider, top_gainers_losers.get_losers_ids())
-            .await?;
+        let gainers = self.markets_client.get_asset_ids_for_provider_price_ids(provider, top_gainers_losers.get_gainers_ids()).await?;
+        let losers = self.markets_client.get_asset_ids_for_provider_price_ids(provider, top_gainers_losers.get_losers_ids()).await?;
         let dominance = self.dominance(global.clone());
 
         let _ = self.markets_client.set_asset_ids_for_tag(AssetTag::Trending, trending);

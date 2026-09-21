@@ -1,16 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import class Gemstone.GemDeviceKeyService
+import protocol Gemstone.GemDeviceKeyServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
 import Primitives
 import WebSocketClient
 
 public struct AuthenticatedRequestProvider: WebSocketRequestProvider {
-    private let deviceKeyService: GemDeviceKeyService
+    private let deviceKeyService: any GemDeviceKeyServiceProtocol
 
-    public init(deviceKeyService: GemDeviceKeyService) {
+    public init(deviceKeyService: any GemDeviceKeyServiceProtocol) {
         self.deviceKeyService = deviceKeyService
     }
 

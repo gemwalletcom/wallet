@@ -52,6 +52,20 @@ struct SelectAssetViewModelTests {
     }
 
     @Test
+    func selectRecentWithoutAccountDoesNotSelectAsset() {
+        let model = SelectAssetViewModel.mock(
+            wallet: Wallet.mock(accounts: [.mock(chain: .ethereum)]),
+            selectType: .send(.none),
+        )
+
+        model.onSelectRecent(.mockSolana())
+        #expect(model.assetSelection == nil)
+
+        model.onSelectRecent(.mockEthereum())
+        #expect(model.assetSelection != nil)
+    }
+
+    @Test
     func toggleFlowEnablesAssets() async {
         await confirmation { enabledAssets in
             let enabler = GemAssetSelectionServiceMock(onSetAssetsEnabled: { assetIds, enabled in
@@ -60,7 +74,7 @@ struct SelectAssetViewModelTests {
                 enabledAssets()
             })
             await SelectAssetViewModel.mock(selectType: .manage, service: enabler)
-                .handleAction(assetId: .mock(), enabled: true)
+                .setAssetEnabled(assetId: .mock(), enabled: true)
         }
     }
 
@@ -69,7 +83,7 @@ struct SelectAssetViewModelTests {
         await confirmation(expectedCount: 0) { enabledAssets in
             let enabler = GemAssetSelectionServiceMock(onSetAssetsEnabled: { _, _ in enabledAssets() })
             await SelectAssetViewModel.mock(selectType: .receive(.asset), service: enabler)
-                .handleAction(assetId: .mock(), enabled: true)
+                .setAssetEnabled(assetId: .mock(), enabled: true)
         }
     }
 }

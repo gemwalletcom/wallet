@@ -20,10 +20,10 @@ public struct LiquidGlassModifier: ViewModifier {
 
 public extension View {
     @ViewBuilder
-    func liquidGlass<GlassShape: Shape>(
+    func liquidGlass(
         tint: Color? = nil,
         interactive: Bool = true,
-        in shape: GlassShape = Capsule(),
+        in shape: some Shape = Capsule(),
         fallback: (Self) -> some View,
     ) -> some View {
         if #available(iOS 26.0, *) {
@@ -33,10 +33,10 @@ public extension View {
         }
     }
 
-    func liquidGlass<GlassShape: Shape>(
+    func liquidGlass(
         tint: Color? = nil,
         interactive: Bool = true,
-        in shape: GlassShape = Capsule(),
+        in shape: some Shape = Capsule(),
     ) -> some View {
         liquidGlass(
             tint: tint,

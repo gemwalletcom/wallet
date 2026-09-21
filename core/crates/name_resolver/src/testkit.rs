@@ -15,12 +15,7 @@ pub struct MockNameResolver {
 
 impl MockNameResolver {
     pub fn new(provider: NameProvider, domains: Vec<&'static str>, chains: Vec<Chain>, response: Result<&'static str, &'static str>) -> Self {
-        Self {
-            provider,
-            domains,
-            chains,
-            response,
-        }
+        Self { provider, domains, chains, response }
     }
 }
 

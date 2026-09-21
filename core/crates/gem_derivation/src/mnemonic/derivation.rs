@@ -56,9 +56,7 @@ fn derive_private_key_by_chain(seed: &[u8], entropy: &[u8], chain: Chain) -> Res
     let (private_key, extended_public_key) = match derivation_scheme(chain)? {
         DerivationScheme::Bip44 | DerivationScheme::Bip84 => {
             let private_key = bip32::derive_secp256k1_private_key(seed, default_derivation_path(chain))?;
-            let extended_public_key = BitcoinChain::from_chain(chain)
-                .map(|bitcoin_chain| bitcoin::derive_extended_public_key(seed, bitcoin_chain))
-                .transpose()?;
+            let extended_public_key = BitcoinChain::from_chain(chain).map(|bitcoin_chain| bitcoin::derive_extended_public_key(seed, bitcoin_chain)).transpose()?;
             (private_key, extended_public_key)
         }
         DerivationScheme::Slip10 => (slip10::derive_ed25519_private_key(seed, default_derivation_path(chain))?, None),

@@ -18,8 +18,8 @@ use super::{
     model::{ActionRequest, ActionResponse, AmountLimits, AppFee},
 };
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError,
-    SwapperProvider, SwapperQuoteData, client_factory::create_sui_client, config::API_BASE_URL, fees::default_referral_fees,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, client_factory::create_sui_client,
+    config::API_BASE_URL, fees::default_referral_fees,
 };
 
 pub struct SwapsXyz<C>
@@ -36,12 +36,7 @@ where
     C: Client + Clone + Send + Sync + Debug + 'static,
 {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        formatter
-            .debug_struct("SwapsXyz")
-            .field("provider", &self.provider)
-            .field("client", &self.client)
-            .field("sui_client", &"SuiClient")
-            .finish()
+        formatter.debug_struct("SwapsXyz").field("provider", &self.provider).field("client", &self.client).field("sui_client", &"SuiClient").finish()
     }
 }
 
@@ -75,10 +70,7 @@ where
             return Err(SwapperError::NotSupportedAsset);
         }
         let fee = default_referral_fees().evm;
-        let app_fees = serde_json::to_string(&[AppFee {
-            bps: fee.bps,
-            receiver_address: fee.address,
-        }])?;
+        let app_fees = serde_json::to_string(&[AppFee { bps: fee.bps, receiver_address: fee.address }])?;
         Ok(ActionRequest {
             action_type: "swap-action".into(),
             sender: request.wallet_address.clone(),
@@ -100,9 +92,7 @@ where
         let value = value.parse::<BigUint>().map_err(SwapperError::compute_quote_error)?;
         let minimum = BigNumberFormatter::value_from_amount_biguint(&limits.min_amount, decimals).map_err(|_| SwapperError::ComputeQuoteError("Invalid minimum amount".into()))?;
         if value < minimum {
-            return Err(SwapperError::InputAmountError {
-                min_amount: Some(minimum.to_string()),
-            });
+            return Err(SwapperError::InputAmountError { min_amount: Some(minimum.to_string()) });
         }
         if let Some(maximum) = limits.max_amount.as_deref() {
             let maximum = BigNumberFormatter::value_from_amount_biguint(maximum, decimals).map_err(|_| SwapperError::ComputeQuoteError("Invalid maximum amount".into()))?;
@@ -204,10 +194,7 @@ where
         if source.chain != Chain::Sui {
             return Ok(data);
         }
-        let amount = data
-            .value
-            .to_u64()
-            .ok_or_else(|| SwapperError::ComputeQuoteError("Sui deposit amount is too large".into()))?;
+        let amount = data.value.to_u64().ok_or_else(|| SwapperError::ComputeQuoteError("Sui deposit amount is too large".into()))?;
         let payload = build_transfer_message_bytes(&self.sui_client, &quote.request.wallet_address, &data.to, amount, None)
             .await
             .map_err(|error| SwapperError::TransactionError(format!("Failed to build Sui deposit data: {error}")))?;
@@ -244,12 +231,7 @@ mod tests {
     #[test]
     fn test_build_action_request_includes_referral_fee() {
         let request = QuoteRequest::mock_cosmos_to_stellar();
-        let action = SwapsXyz::<MockClient>::build_action_request(
-            &request,
-            SwapsXyzChain::from_chain(request.from_asset.chain()).unwrap(),
-            SwapsXyzChain::from_chain(request.to_asset.chain()).unwrap(),
-        )
-        .unwrap();
+        let action = SwapsXyz::<MockClient>::build_action_request(&request, SwapsXyzChain::from_chain(request.from_asset.chain()).unwrap(), SwapsXyzChain::from_chain(request.to_asset.chain()).unwrap()).unwrap();
         let fees: Vec<AppFee> = serde_json::from_str(&action.app_fees).unwrap();
         let referral_fee = default_referral_fees().evm;
         assert_eq!(
@@ -264,37 +246,21 @@ mod tests {
 
     #[test]
     fn test_validate_amount() {
-        let limits = AmountLimits {
-            min_amount: "10.5".into(),
-            max_amount: None,
-        };
-        assert_eq!(
-            SwapsXyz::<MockClient>::validate_amount(&limits, "100000000", 7),
-            Err(SwapperError::InputAmountError {
-                min_amount: Some("105000000".into())
-            })
-        );
+        let limits = AmountLimits { min_amount: "10.5".into(), max_amount: None };
+        assert_eq!(SwapsXyz::<MockClient>::validate_amount(&limits, "100000000", 7), Err(SwapperError::InputAmountError { min_amount: Some("105000000".into()) }));
         assert_eq!(SwapsXyz::<MockClient>::validate_amount(&limits, "105000000", 7), Ok(()));
 
-        let whole_token_limit = AmountLimits {
-            min_amount: "1".into(),
-            max_amount: None,
-        };
+        let whole_token_limit = AmountLimits { min_amount: "1".into(), max_amount: None };
         assert_eq!(
             SwapsXyz::<MockClient>::validate_amount(&whole_token_limit, "9999999", 7),
-            Err(SwapperError::InputAmountError {
-                min_amount: Some("10000000".into())
-            })
+            Err(SwapperError::InputAmountError { min_amount: Some("10000000".into()) })
         );
 
         let invalid_maximum = AmountLimits {
             min_amount: "1".into(),
             max_amount: Some("invalid".into()),
         };
-        assert_eq!(
-            SwapsXyz::<MockClient>::validate_amount(&invalid_maximum, "105000000", 7),
-            Err(SwapperError::ComputeQuoteError("Invalid maximum amount".into()))
-        );
+        assert_eq!(SwapsXyz::<MockClient>::validate_amount(&invalid_maximum, "105000000", 7), Err(SwapperError::ComputeQuoteError("Invalid maximum amount".into())));
     }
 
     #[test]
@@ -307,10 +273,7 @@ mod tests {
 
         let mut wrong_fee = response;
         wrong_fee.application_fee.amount = BigUint::from(0_u8);
-        assert_eq!(
-            SwapsXyz::<MockClient>::validate_response(&wrong_fee, &request, source, destination),
-            Err(SwapperError::InvalidRoute)
-        );
+        assert_eq!(SwapsXyz::<MockClient>::validate_response(&wrong_fee, &request, source, destination), Err(SwapperError::InvalidRoute));
     }
 
     #[tokio::test]

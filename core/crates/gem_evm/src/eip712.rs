@@ -136,10 +136,7 @@ pub fn parse_eip712_json(value: &Value) -> Result<EIP712Message, String> {
     };
     let domain = EIP712Domain { verifying_contract, ..domain };
 
-    let types_value = value
-        .get("types")
-        .and_then(Value::as_object)
-        .ok_or_else(|| "Invalid EIP712 JSON: missing or invalid types".to_string())?;
+    let types_value = value.get("types").and_then(Value::as_object).ok_or_else(|| "Invalid EIP712 JSON: missing or invalid types".to_string())?;
     let all_types: HashMap<String, Vec<EIP712Type>> = types_value
         .iter()
         .map(|(name, fields_json)| {
@@ -149,10 +146,7 @@ pub fn parse_eip712_json(value: &Value) -> Result<EIP712Message, String> {
         })
         .collect::<Result<_, _>>()?;
 
-    let primary_type_name = value
-        .get("primaryType")
-        .and_then(Value::as_str)
-        .ok_or_else(|| "Invalid EIP712 JSON: missing or invalid primaryType".to_string())?;
+    let primary_type_name = value.get("primaryType").and_then(Value::as_str).ok_or_else(|| "Invalid EIP712 JSON: missing or invalid primaryType".to_string())?;
 
     let message_json_value = value.get("message").ok_or_else(|| "Invalid EIP712 JSON: missing message".to_string())?;
 
@@ -223,25 +217,18 @@ pub fn parse_value(type_name: &str, json_value: &Value, all_types: &HashMap<Stri
                     Ok(EIP712TypedValue::Int256 { value: value_str })
                 } else if other_type_name.starts_with("bytes") {
                     // Fixed-size bytes<N>
-                    let s = json_value
-                        .as_str()
-                        .ok_or_else(|| format!("Expected hex string for bytes type '{other_type_name}', got: {json_value:?}"))?;
-                    let bytes_vec =
-                        hex::decode(s.strip_prefix("0x").unwrap_or(s)).map_err(|e| format!("Invalid hex string for bytes type '{other_type_name}': {s}, error: {e}"))?;
+                    let s = json_value.as_str().ok_or_else(|| format!("Expected hex string for bytes type '{other_type_name}', got: {json_value:?}"))?;
+                    let bytes_vec = hex::decode(s.strip_prefix("0x").unwrap_or(s)).map_err(|e| format!("Invalid hex string for bytes type '{other_type_name}': {s}, error: {e}"))?;
                     Ok(EIP712TypedValue::Bytes { value: bytes_vec })
                 } else {
                     // Assume it's a struct type defined in 'all_types'
                     let defined_fields = all_types.get(other_type_name).ok_or_else(|| format!("Unknown or unsupported type '{other_type_name}'"))?;
 
-                    let message_obj = json_value
-                        .as_object()
-                        .ok_or_else(|| format!("Expected object for struct type '{other_type_name}', got: {json_value:?}"))?;
+                    let message_obj = json_value.as_object().ok_or_else(|| format!("Expected object for struct type '{other_type_name}', got: {json_value:?}"))?;
 
                     let mut struct_fields = Vec::with_capacity(defined_fields.len());
                     for field_def in defined_fields {
-                        let field_json_value = message_obj
-                            .get(&field_def.name)
-                            .ok_or_else(|| format!("Missing field '{}' for struct type '{}'", field_def.name, other_type_name))?;
+                        let field_json_value = message_obj.get(&field_def.name).ok_or_else(|| format!("Missing field '{}' for struct type '{}'", field_def.name, other_type_name))?;
 
                         // Recursive call for the struct field's type
                         let field_typed_value = parse_value(&field_def.r#type, field_json_value, all_types)?;

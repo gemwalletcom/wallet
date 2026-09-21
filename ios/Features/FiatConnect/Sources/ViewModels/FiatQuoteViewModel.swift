@@ -2,8 +2,8 @@
 
 import Components
 import Foundation
-import GemstonePrimitives
 import struct Gemstone.GemFiatQuoteRow
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Style

@@ -15,10 +15,7 @@ pub fn map_token_data(chain: Chain, token_id: String, name_hex: String, symbol_h
     }
     let name = if name.is_empty() { symbol.clone() } else { name };
 
-    let asset_id = AssetId {
-        chain,
-        token_id: Some(token_id.clone()),
-    };
+    let asset_id = AssetId { chain, token_id: Some(token_id.clone()) };
 
     let asset_type = asset_id.chain.default_asset_type().ok_or("Invalid token metadata: chain has no token asset type")?;
 

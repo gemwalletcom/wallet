@@ -25,23 +25,13 @@ impl FiatWebhookConsumer {
     pub fn new(database: Database, settings: Settings, stream_producer: StreamProducer, access_token_cacher: Arc<dyn AccessTokenCacher>) -> Self {
         let providers = FiatProviderFactory::new_providers(settings, access_token_cacher);
 
-        Self {
-            database,
-            providers,
-            stream_producer,
-        }
+        Self { database, providers, stream_producer }
     }
 
     async fn send_fiat_notification(&self, updated: &FiatTransactionRow) -> Result<(), Box<dyn Error + Send + Sync>> {
         let asset = self.database.assets()?.get_asset(&updated.asset_id.0)?;
         let wallet_id = self.database.wallets()?.get_wallet_by_id(updated.wallet_id)?.wallet_id.0;
-        let devices: Vec<Device> = self
-            .database
-            .wallets()?
-            .get_devices_by_wallet_id(updated.wallet_id)?
-            .into_iter()
-            .map(|d| d.as_primitive())
-            .collect();
+        let devices: Vec<Device> = self.database.wallets()?.get_devices_by_wallet_id(updated.wallet_id)?.into_iter().map(|d| d.as_primitive()).collect();
 
         let Some(crypto_value) = updated.value.as_deref() else {
             return Ok(());

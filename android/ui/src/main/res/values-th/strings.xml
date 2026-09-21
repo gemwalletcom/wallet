@@ -210,7 +210,6 @@
   <string name="errors_connections_no_supported_wallets">ไม่มีกระเป๋าเงินที่รองรับ</string>
   <string name="errors_connections_unsupported_chain">ไม่รองรับโซ่ที่ให้มา</string>
   <string name="errors_swap_amount_too_small">จำนวนเงินน้อยเกินไป</string>
-  <string name="errors_required">%1$s เป็นสิ่งจำเป็น</string>
   <string name="errors_scan_transaction_malicious_description">ไม่สามารถทำธุรกรรมนี้ให้เสร็จสมบูรณ์ได้ — ที่อยู่กระเป๋าเงินปลายทางเชื่อมโยงกับกิจกรรมที่น่าสงสัยหรือเป็นอันตราย</string>
   <string name="errors_scan_transaction_memo_required">ที่อยู่กระเป๋าเงินปลายทาง %1$s ต้องมีแท็กปลายทาง / บันทึกช่วยจำ</string>
   <string name="errors_scan_transaction_malicious_title">กิจกรรมที่น่าสงสัย</string>
@@ -273,7 +272,7 @@
   <string name="asset_decimals">ทศนิยม</string>
   <string name="asset_token_id">รหัสโทเค็น</string>
   <string name="asset_contract">สัญญา</string>
-  <string name="asset_state_empty_title">ธุรกรรมของคุณจะปรากฏที่นี่️</string>
+  <string name="asset_state_empty_title">ธุรกรรมของคุณจะปรากฏที่นี่</string>
   <string name="asset_state_empty_description">รับ แลกเปลี่ยน หรือ ซื้อ %1$s</string>
   <string name="asset_verification_unverified">ไม่ได้รับการยืนยัน</string>
   <string name="asset_verification_suspicious">สงสัย</string>
@@ -437,7 +436,7 @@
   <string name="lock_privacy_lock">ล็อคความเป็นส่วนตัว</string>
   <string name="lock_footer">ป้องกันการเข้าถึงแอปนี้บนอุปกรณ์ของคุณ</string>
   <string name="verify_phrase_title">ยืนยัน</string>
-  <string name="warnings_multi_signature_blocked">อย่าโอนเงินไปยังกระเป๋าเงินหลายลายเซ็น %1$s นี้ เว้นแต่คุณจะแน่ใจว่าคุณควบคุมคีย์ส่วนตัวได้ การไม่ทำเช่นนั้นอาจทำให้คุณตกเป็นเหยื่อของการหลอกลวง และคุณอาจสูญเสียทรัพย์สินของคุณไปอย่างถาวร</string>
+  <string name="warnings_externally_controlled_account">บัญชี %1$s นี้อาจถูกควบคุมโดยผู้อื่น อย่าส่งเงินไปยังบัญชีนี้ เว้นแต่คุณจะแน่ใจว่าคุณเป็นผู้ควบคุม มิฉะนั้นคุณอาจสูญเสียทรัพย์สินของคุณไปอย่างถาวร</string>
   <string name="sell_title">ขาย %1$s</string>
   <string name="info_network_fee_title">ค่าธรรมเนียมเครือข่าย</string>
   <string name="info_watch_wallet_title">ดูกระเป๋าเงิน</string>

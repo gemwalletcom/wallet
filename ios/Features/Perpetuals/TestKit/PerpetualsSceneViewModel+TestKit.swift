@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemRecentActivityService
 import protocol Gemstone.GemPerpetualServiceProtocol
+import class Gemstone.GemRecentActivityService
 import GemstonePrimitivesTestKit
 import GemstoneServices
 import GemstoneServicesTestKit

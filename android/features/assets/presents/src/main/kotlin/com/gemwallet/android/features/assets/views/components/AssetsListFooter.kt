@@ -21,20 +21,18 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 
 @Composable
-internal fun AssetsListFooter(
-    onShowAssetManage: () -> Unit,
-) {
+internal fun AssetsListFooter(onShowAssetManage: () -> Unit) {
     Box(
         modifier = Modifier
             .padding(bottom = paddingSmall, start = paddingDefault, end = paddingDefault)
             .clickable(onClick = onShowAssetManage)
-            .fillMaxWidth()
+            .fillMaxWidth(),
 
     ) {
         Row(
             modifier = Modifier
                 .align(Alignment.Center)
-                .padding(paddingDefault)
+                .padding(paddingDefault),
         ) {
             Icon(
                 imageVector = AppIcons.Tune,

@@ -12,14 +12,11 @@ public extension TransactionsRequest {
         )
     }
 
-    static func perpetualScene(walletId: WalletId, assetId: AssetId, limit: Int) -> TransactionsRequest {
+    static func perpetualScene(walletId: WalletId, assetId: AssetId, types: [TransactionType], limit: Int) -> TransactionsRequest {
         TransactionsRequest(
             walletId: walletId,
             type: .asset(assetId: assetId),
-            filters: [.types([
-                TransactionType.perpetualOpenPosition.rawValue,
-                TransactionType.perpetualClosePosition.rawValue,
-            ])],
+            filters: [.types(types.map(\.rawValue))],
             limit: limit,
         )
     }

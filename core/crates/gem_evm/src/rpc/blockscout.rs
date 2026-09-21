@@ -67,9 +67,6 @@ mod tests {
                 TransactionReference::new("0xshared".to_string(), Some(8))
             ]
         );
-        assert_eq!(
-            balances,
-            vec![("0xtoken".to_string(), BigUint::from(42u8)), ("0xunpriced".to_string(), BigUint::from(10u8))]
-        );
+        assert_eq!(balances, vec![("0xtoken".to_string(), BigUint::from(42u8)), ("0xunpriced".to_string(), BigUint::from(10u8))]);
     }
 }

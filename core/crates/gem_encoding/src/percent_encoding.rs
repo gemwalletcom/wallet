@@ -1,8 +1,5 @@
 pub fn is_valid_percent_encoding(value: &str) -> bool {
-    value
-        .split('%')
-        .skip(1)
-        .all(|part| part.as_bytes().get(..2).is_some_and(|digits| digits.iter().all(u8::is_ascii_hexdigit)))
+    value.split('%').skip(1).all(|part| part.as_bytes().get(..2).is_some_and(|digits| digits.iter().all(u8::is_ascii_hexdigit)))
 }
 
 #[cfg(test)]

@@ -2,13 +2,15 @@
 
 @testable import Assets
 import AssetsTestKit
-import BigInt
+import struct Gemstone.GemAssetBalanceRow
 import class Gemstone.GemDeeplinkService
+import struct Gemstone.GemFormattedNumber
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import struct Gemstone.GemSwapPairSuggestion
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
+import Localization
 import Primitives
 import PrimitivesTestKit
 import Testing
@@ -40,21 +42,12 @@ struct AssetSceneViewModelTests {
     }
 
     @Test
-    func balanceRows() {
-        let ethereum = AssetSceneViewModel.mock(
-            .mock(
-                asset: .mockEthereum(),
-                balance: .mock(staked: BigInt(6_000_000_000_000_000_000), earn: BigInt(4_000_000_000_000_000_000)),
-            ),
-        )
-        let rows = ethereum.balanceRows
-        #expect(rows.count == 2)
-        guard case let .staked(staked) = rows[1] else {
-            Issue.record("Expected available and staked rows")
-            return
-        }
-        #expect(ethereum.stakeBalanceText(staked) == "6 ETH")
-        #expect(ethereum.balanceText(BigUInt(4_000_000_000_000_000_000)) == "4 ETH")
-        #expect(AssetSceneViewModel.mock(.mock(asset: .mockEthereum(), metadata: .mock(isStakeEnabled: false))).balanceRows.isEmpty)
+    func balanceRowsShowCoreValues() {
+        let model = AssetSceneViewModel.mock(.mock(asset: .mockEthereum()))
+        let apr = GemFormattedNumber.mock(value: 3.24, unit: .percent, notation: .plain)
+
+        #expect(model.balanceListItem(for: GemAssetBalanceRow(row: .staked(value: 0), value: .apr(apr: apr))).subtitle == Localized.Stake.apr("3.24%"))
+        #expect(model.balanceListItem(for: GemAssetBalanceRow(row: .staked(value: 0), value: .apr(apr: nil))).subtitle == Localized.Stake.apr(""))
+        #expect(model.balanceListItem(for: GemAssetBalanceRow(row: .pendingUnconfirmed(value: 1), value: .amount(amount: .mock()))).infoAction != nil)
     }
 }

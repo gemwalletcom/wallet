@@ -47,12 +47,7 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.QRScanType
 
 @Composable
-fun RecipientScreen(
-    cancelAction: CancelAction,
-    amountAction: AmountTransactionAction,
-    confirmAction: ConfirmTransactionAction,
-    viewModel: RecipientViewModel = hiltViewModel()
-) {
+fun RecipientScreen(cancelAction: CancelAction, amountAction: AmountTransactionAction, confirmAction: ConfirmTransactionAction, viewModel: RecipientViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val hasMemo by viewModel.hasMemo.collectAsStateWithLifecycle()
     val sections by viewModel.sections.collectAsStateWithLifecycle()
@@ -66,6 +61,7 @@ fun RecipientScreen(
 
     when (val currentState = state) {
         RecipientState.Loading -> Unit
+
         is RecipientState.Ready -> {
             RecipientScreen(
                 asset = currentState.asset,
@@ -138,18 +134,19 @@ internal fun RecipientScreen(
             }
         },
         actions = {
-            TextButton(onClick = { onAction(RecipientAction.Next) },
+            TextButton(
+                onClick = { onAction(RecipientAction.Next) },
                 enabled = buttonState == ButtonState.Enabled,
                 colors = ButtonDefaults.textButtonColors()
-                    .copy(contentColor = MaterialTheme.colorScheme.primary)
+                    .copy(contentColor = MaterialTheme.colorScheme.primary),
             ) {
                 Text(stringResource(R.string.common_continue).uppercase())
             }
-        }
+        },
     ) {
         LazyColumn(
             contentPadding = PaddingValues(bottom = paddingDefault),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             item { RecipientHead(asset, head) }
             destinationView(

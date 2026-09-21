@@ -1,7 +1,7 @@
 use num_bigint::BigInt;
 use primitives::{
-    AssetId, Chain, MONTH, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity,
-    SimulationWarning, SimulationWarningApproval, SimulationWarningType,
+    AssetId, Chain, MONTH, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningApproval,
+    SimulationWarningType,
 };
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -55,15 +55,7 @@ impl ApprovalRequest {
         )
     }
 
-    pub(crate) fn permit(
-        chain: Chain,
-        contract_address: String,
-        spender_address: String,
-        approval_value: String,
-        expiration: Option<String>,
-        token_address: Option<String>,
-        method: ApprovalMethod,
-    ) -> Option<Self> {
+    pub(crate) fn permit(chain: Chain, contract_address: String, spender_address: String, approval_value: String, expiration: Option<String>, token_address: Option<String>, method: ApprovalMethod) -> Option<Self> {
         Self::new(
             chain,
             ApprovalContext {
@@ -79,14 +71,7 @@ impl ApprovalRequest {
         )
     }
 
-    pub(crate) fn permit_batch(
-        chain: Chain,
-        contract_address: String,
-        spender_address: String,
-        approval_value: ApprovalValue,
-        token_address: Option<String>,
-        warning_expiration: Option<u64>,
-    ) -> Option<Self> {
+    pub(crate) fn permit_batch(chain: Chain, contract_address: String, spender_address: String, approval_value: ApprovalValue, token_address: Option<String>, warning_expiration: Option<u64>) -> Option<Self> {
         Self::new(
             chain,
             ApprovalContext {
@@ -188,11 +173,7 @@ impl ApprovalRequest {
             return None;
         }
 
-        Some(SimulationWarning::new(
-            SimulationSeverity::Warning,
-            SimulationWarningType::ValidationError,
-            Some("Excessive expiration".to_string()),
-        ))
+        Some(SimulationWarning::new(SimulationSeverity::Warning, SimulationWarningType::ValidationError, Some("Excessive expiration".to_string())))
     }
 
     fn payload(&self) -> Vec<SimulationPayloadField> {

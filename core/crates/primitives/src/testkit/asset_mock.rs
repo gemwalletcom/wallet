@@ -29,13 +29,7 @@ impl Asset {
     }
 
     pub fn mock_xrp_rlusd() -> Self {
-        Asset::new(
-            AssetId::from_token(Chain::Xrp, XRP_RLUSD_TOKEN_ID),
-            "RLUSD".to_string(),
-            "RLUSD".to_string(),
-            15,
-            AssetType::TOKEN,
-        )
+        Asset::new(AssetId::from_token(Chain::Xrp, XRP_RLUSD_TOKEN_ID), "RLUSD".to_string(), "RLUSD".to_string(), 15, AssetType::TOKEN)
     }
 
     pub fn mock_eth() -> Self {

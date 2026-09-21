@@ -31,13 +31,13 @@ public extension LocalKeystore {
     func importWallet(name: String, type: GemWalletImportType) throws -> Primitives.Wallet {
         switch type {
         case let .address(address, chain):
-            return viewWallet(name: name, chain: Primitives.Chain(core: chain), address: address)
+            viewWallet(name: name, chain: Primitives.Chain(core: chain), address: address)
         case let .multicoinPhrase(words, chains):
-            return try importWallet(name: name, import: .multicoinPhrase(words: words, chains: chains))
+            try importWallet(name: name, import: .multicoinPhrase(words: words, chains: chains))
         case let .singlePhrase(words, chain):
-            return try importWallet(name: name, import: .singlePhrase(words: words, chain: chain))
+            try importWallet(name: name, import: .singlePhrase(words: words, chain: chain))
         case let .privateKey(value, chain):
-            return try importWallet(name: name, import: .privateKey(value: value, chain: chain))
+            try importWallet(name: name, import: .privateKey(value: value, chain: chain))
         }
     }
 

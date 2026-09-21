@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Assets
 import Components
 import FiatConnect
 import GemstonePrimitives
@@ -77,6 +78,8 @@ struct ConfirmTransferNavigationView: View {
                         PerpetualDetailsView(model: model)
                     }
                     .sheetPresentation(.forCurrentDeviceSize(expandable: true))
+                case let .addressDetails(chainAddress):
+                    AddressDetailsNavigationStack(model: viewModelFactory.addressDetailsScene(chainAddress: chainAddress))
                 }
             }
     }
@@ -140,10 +143,7 @@ private struct GetAssetNavigationStack: View {
                 model: viewModelFactory.swapScene(
                     input: SwapInput(
                         wallet: model.assetAcquisitionWallet,
-                        pairSelector: SwapPairSelectorViewModel(
-                            fromAssetId: model.swapFromAsset(to: asset).id,
-                            toAssetId: asset.id,
-                        ),
+                        pairSelector: model.acquireSwapPair(to: asset).map(),
                     ),
                     onSwap: { actionNavigationPath.append(ConfirmTransferInput(data: $0)) },
                 ),

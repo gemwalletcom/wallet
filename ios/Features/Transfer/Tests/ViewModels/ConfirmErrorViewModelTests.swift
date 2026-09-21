@@ -30,7 +30,7 @@ struct ConfirmErrorViewModelTests {
     }
 
     @Test
-    func executeFailureStaysOutOfTheList() {
+    func submitFailureStaysOutOfTheList() {
         let failure = GemConfirmFailure(stage: .execute, error: .Broadcast(hashes: [], msg: "rejected"))
         let state = ConfirmTransferState.mock(load: .mock(preload: .mock()), screen: .mock(phase: .failed, failure: failure))
         let model = ConfirmErrorViewModel(error: state.transactionError, onSelectListError: { _ in })

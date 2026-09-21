@@ -93,10 +93,7 @@ impl<C: Client> CoinMarketCapClient<C> {
     }
 
     fn headers(&self) -> HashMap<String, String> {
-        self.api_key
-            .as_ref()
-            .map(|api_key| HashMap::from([(API_KEY_HEADER.to_string(), api_key.clone())]))
-            .unwrap_or_default()
+        self.api_key.as_ref().map(|api_key| HashMap::from([(API_KEY_HEADER.to_string(), api_key.clone())])).unwrap_or_default()
     }
 }
 
@@ -120,18 +117,9 @@ mod tests {
         assert_eq!(
             client.get_fiat_rates(&[Currency::EUR, Currency::GBP, Currency::BYN]).await.unwrap(),
             vec![
-                FiatRate {
-                    symbol: Currency::EUR,
-                    rate: 0.85
-                },
-                FiatRate {
-                    symbol: Currency::GBP,
-                    rate: 0.75
-                },
-                FiatRate {
-                    symbol: Currency::BYN,
-                    rate: 3.034959
-                }
+                FiatRate { symbol: Currency::EUR, rate: 0.85 },
+                FiatRate { symbol: Currency::GBP, rate: 0.75 },
+                FiatRate { symbol: Currency::BYN, rate: 3.034959 }
             ]
         );
         assert_eq!(
@@ -146,12 +134,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_fiat_rates_propagates_provider_errors() {
-        let client = CoinMarketCapClient::new_with_client(MockClient::new().with_get(|_| {
-            Err(ClientError::Http {
-                status: 429,
-                body: b"rate limited".to_vec(),
-            })
-        }));
+        let client = CoinMarketCapClient::new_with_client(MockClient::new().with_get(|_| Err(ClientError::Http { status: 429, body: b"rate limited".to_vec() })));
         assert!(client.get_fiat_rates(&[Currency::BYN]).await.is_err());
     }
 
@@ -161,10 +144,7 @@ mod tests {
             let body = match path {
                 "/v1/cryptocurrency/listings/latest?limit=2" | "/v1/cryptocurrency/trending/latest?limit=2" => include_str!("../testdata/listings_latest.json"),
                 _ => {
-                    return Err(gem_client::ClientError::Http {
-                        status: 404,
-                        body: path.as_bytes().to_vec(),
-                    });
+                    return Err(gem_client::ClientError::Http { status: 404, body: path.as_bytes().to_vec() });
                 }
             };
             Ok(body.as_bytes().to_vec())
@@ -184,10 +164,7 @@ mod tests {
             let body = match path {
                 "/v2/cryptocurrency/info?symbol=ETH" => include_str!("../testdata/cryptocurrency_info.json"),
                 _ => {
-                    return Err(gem_client::ClientError::Http {
-                        status: 404,
-                        body: path.as_bytes().to_vec(),
-                    });
+                    return Err(gem_client::ClientError::Http { status: 404, body: path.as_bytes().to_vec() });
                 }
             };
             Ok(body.as_bytes().to_vec())

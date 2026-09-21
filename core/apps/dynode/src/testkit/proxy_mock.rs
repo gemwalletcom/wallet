@@ -13,25 +13,11 @@ use crate::webhook::DynodeBroadcastWebhookClient;
 
 impl ProxyRequest {
     pub fn mock(chain: Chain, method: Method, path: &str, body: &[u8]) -> Self {
-        Self::new(
-            method,
-            HeaderMap::new(),
-            body.to_vec(),
-            path.to_string(),
-            path.to_string(),
-            "example.com".to_string(),
-            "test-agent".to_string(),
-            chain,
-        )
+        Self::new(method, HeaderMap::new(), body.to_vec(), path.to_string(), path.to_string(), "example.com".to_string(), "test-agent".to_string(), chain)
     }
 
     pub fn mock_jsonrpc(chain: Chain, method: &str) -> Self {
-        Self::mock(
-            chain,
-            Method::POST,
-            "/",
-            format!(r#"{{"jsonrpc":"2.0","method":"{method}","params":[],"id":1}}"#).as_bytes(),
-        )
+        Self::mock(chain, Method::POST, "/", format!(r#"{{"jsonrpc":"2.0","method":"{method}","params":[],"id":1}}"#).as_bytes())
     }
 }
 

@@ -31,11 +31,6 @@ impl FiatWebhookRequest {
     }
 
     pub fn mock_banxa_with_authorization(raw_body: &str, authorization: &str) -> Self {
-        Self::new(
-            raw_body.to_string(),
-            HashMap::from([("authorization".to_string(), authorization.to_string())]),
-            TEST_WEBHOOK_PATH.to_string(),
-        )
-        .unwrap()
+        Self::new(raw_body.to_string(), HashMap::from([("authorization".to_string(), authorization.to_string())]), TEST_WEBHOOK_PATH.to_string()).unwrap()
     }
 }

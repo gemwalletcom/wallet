@@ -6,14 +6,11 @@ import java.text.DecimalFormatSymbols
 
 object SwapSlippage {
 
-    fun percentLabel(bps: UInt, slippagePercent: (UInt) -> Double): String = "${format(bps, slippagePercent)}%"
+    fun percentLabel(bps: UInt, slippageText: (UInt) -> String): String = "${slippageText(bps)}%"
 
-    fun format(bps: UInt, slippagePercent: (UInt) -> Double): String =
-        slippagePercent(bps).toBigDecimal().stripTrailingZeros().toPlainString()
+    fun numberFormat(): GemNumberFormat = GemNumberFormat(DecimalFormatSymbols.getInstance().decimalSeparator.toString())
 
-    fun sanitize(input: String, maximumFractionDigits: UInt, maximumIntegerDigits: UInt): String =
-        GemNumberFormat(DecimalFormatSymbols.getInstance().decimalSeparator.toString())
-            .sanitize(input, maximumFractionDigits, maximumIntegerDigits)
+    fun sanitize(input: String, maximumFractionDigits: UInt, maximumIntegerDigits: UInt): String = numberFormat().sanitize(input, maximumFractionDigits, maximumIntegerDigits)
 
     fun parseBps(input: String, slippageBps: (Double) -> UInt?): UInt? {
         val percent = input.parseInputNumberOrNull() ?: return null

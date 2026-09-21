@@ -4,8 +4,8 @@ import Foundation
 import typealias Gemstone.AssetId
 import struct Gemstone.DelegationBase
 import struct Gemstone.DelegationValidator
-import typealias Gemstone.StakeProviderType
 import protocol Gemstone.GemStakeStore
+import typealias Gemstone.StakeProviderType
 import GemstonePrimitives
 import Primitives
 import Store
@@ -48,5 +48,4 @@ public final class GemstoneStakeStore: GemStakeStore, @unchecked Sendable {
             deleteIds: deleteIds,
         )
     }
-
 }

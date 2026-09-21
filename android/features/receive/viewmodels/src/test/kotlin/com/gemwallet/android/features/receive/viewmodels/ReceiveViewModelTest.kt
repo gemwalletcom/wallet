@@ -4,7 +4,6 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.receive.cases.GetReceiveAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.testkit.mockAccount
@@ -31,6 +30,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemReceiveNetworks
 import uniffi.gemstone.GemReceiveServiceInterface
 import uniffi.gemstone.GemReceiveWarning
 
@@ -57,10 +57,7 @@ class ReceiveViewModelTest {
         accounts = listOf(mockAccount(chain = Chain.Bitcoin, address = "bc1q"), mockAccount(chain = Chain.Ethereum, address = "0xabc")),
     )
 
-    private fun receiveModel(
-        service: GemReceiveServiceInterface,
-        assets: Map<com.wallet.core.primitives.AssetId, AssetInfo> = mapOf(bitcoin.id to mockAssetInfo(asset = bitcoin)),
-    ): ReceiveViewModel {
+    private fun receiveModel(service: GemReceiveServiceInterface, assets: Map<com.wallet.core.primitives.AssetId, AssetInfo> = mapOf(bitcoin.id to mockAssetInfo(asset = bitcoin))): ReceiveViewModel {
         val info: GetReceiveAssetInfo = mockk {
             every { this@mockk.invoke(any()) } answers { flowOf(assets[firstArg()]) }
         }
@@ -74,14 +71,13 @@ class ReceiveViewModelTest {
     @Test
     fun `the networks and the warnings both come from Core`() = runTest(dispatcher) {
         val service: GemReceiveServiceInterface = mockk(relaxed = true) {
-            every { networkAssetIds(any(), any(), any()) } returns listOf(bitcoin.id.toIdentifier(), ethereum.id.toIdentifier())
+            every { networks(any(), any(), any()) } returns GemReceiveNetworks(listOf(bitcoin.id.toIdentifier(), ethereum.id.toIdentifier()), showsSelector = true)
             every { warnings(Chain.Bitcoin.string) } returns listOf(GemReceiveWarning.NO_MEMO_REQUIRED)
             every { warnings(Chain.Ethereum.string) } returns emptyList()
         }
         val model = receiveModel(service)
 
-        assertEquals(listOf(bitcoin.id, ethereum.id), model.networkAssetIds.first { it.size == 2 })
-        coVerify { service.syncNetworkAssetIds(bitcoin.id.toIdentifier(), wallet.toGem()) }
+        assertEquals(listOf(bitcoin.id.toIdentifier(), ethereum.id.toIdentifier()), model.networks.first { it.showsSelector }.assetIds)
         assertEquals(listOf(GemReceiveWarning.NO_MEMO_REQUIRED), model.warnings(Chain.Bitcoin))
         assertEquals(emptyList<GemReceiveWarning>(), model.warnings(Chain.Ethereum))
     }
@@ -89,7 +85,7 @@ class ReceiveViewModelTest {
     @Test
     fun `picking another network swaps the asset the screen shows`() = runTest(dispatcher) {
         val service: GemReceiveServiceInterface = mockk(relaxed = true) {
-            every { networkAssetIds(any(), any(), any()) } returns listOf(bitcoin.id.toIdentifier())
+            every { networks(any(), any(), any()) } returns GemReceiveNetworks(listOf(bitcoin.id.toIdentifier()), showsSelector = false)
         }
         val model = receiveModel(
             service,
@@ -105,7 +101,7 @@ class ReceiveViewModelTest {
     @Test
     fun `showing the screen enables the asset for the wallet`() = runTest(dispatcher) {
         val service: GemReceiveServiceInterface = mockk(relaxed = true) {
-            every { networkAssetIds(any(), any(), any()) } returns listOf(bitcoin.id.toIdentifier())
+            every { networks(any(), any(), any()) } returns GemReceiveNetworks(listOf(bitcoin.id.toIdentifier()), showsSelector = false)
         }
         val model = receiveModel(service)
         model.asset.first { it != null }

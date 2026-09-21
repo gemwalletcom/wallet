@@ -44,9 +44,7 @@ mod tests {
     use primitives::{BitcoinChain, ChainSigner};
 
     use super::BitcoinChainSigner;
-    use crate::testkit::signer_mock::{
-        TEST_PRIVATE_KEY, mock_contract_swap_input, mock_funded_transfer_input, mock_p2wpkh_transfer_input, mock_transfer_input, mock_transfer_swap_input,
-    };
+    use crate::testkit::signer_mock::{TEST_PRIVATE_KEY, mock_contract_swap_input, mock_funded_transfer_input, mock_p2wpkh_transfer_input, mock_transfer_input, mock_transfer_swap_input};
 
     fn sign_transfer(chain: BitcoinChain) -> String {
         BitcoinChainSigner::new(chain).sign_transfer(&mock_transfer_input(chain), &TEST_PRIVATE_KEY).unwrap()
@@ -95,9 +93,7 @@ mod tests {
 
     #[test]
     fn test_signed_tx_is_rbf_signaled() {
-        let raw = BitcoinChainSigner::new(BitcoinChain::Bitcoin)
-            .sign_transfer(&mock_transfer_input(BitcoinChain::Bitcoin), &TEST_PRIVATE_KEY)
-            .unwrap();
+        let raw = BitcoinChainSigner::new(BitcoinChain::Bitcoin).sign_transfer(&mock_transfer_input(BitcoinChain::Bitcoin), &TEST_PRIVATE_KEY).unwrap();
         let transaction: bitcoin::Transaction = deserialize(&hex::decode(&raw).unwrap()).unwrap();
 
         assert_eq!(

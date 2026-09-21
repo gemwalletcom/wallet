@@ -82,10 +82,12 @@ public struct NetworkFeeScene: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbarDismissItem(type: .confirm, placement: .topBarTrailing)
         .navigationDestination(isPresented: $isPresentingCustomFee) {
-            NetworkFeeCustomScene(
-                model: model.customFeeModel(),
-                onConfirm: { dismiss() },
-            )
+            if let customFeeModel = model.customFeeModel() {
+                NetworkFeeCustomScene(
+                    model: customFeeModel,
+                    onConfirm: { dismiss() },
+                )
+            }
         }
         .sheet(isPresented: $isPresentingFeeAssetSelection) {
             SelectableListNavigationStack(

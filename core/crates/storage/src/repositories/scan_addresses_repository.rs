@@ -46,10 +46,7 @@ fn select_scan_addresses(queries: &[(Chain, &str)], rows: Vec<ScanAddressRow>) -
         rows_by_address.entry(row.address.clone()).or_default().push(row);
     }
 
-    queries
-        .iter()
-        .filter_map(|(chain, address)| rows_by_address.get(*address).and_then(|rows| select_scan_address_row(*chain, rows)))
-        .collect()
+    queries.iter().filter_map(|(chain, address)| rows_by_address.get(*address).and_then(|rows| select_scan_address_row(*chain, rows))).collect()
 }
 
 fn select_scan_address_row(chain: Chain, rows: &[ScanAddressRow]) -> Option<ScanAddressRow> {

@@ -74,11 +74,7 @@ pub(super) struct TransactionData {
 
 impl TransactionData {
     pub fn get_value(&self) -> Option<BigUint> {
-        if self.value.is_empty() {
-            Some(BigUint::ZERO)
-        } else {
-            BigUint::from_str(&self.value).ok()
-        }
+        if self.value.is_empty() { Some(BigUint::ZERO) } else { BigUint::from_str(&self.value).ok() }
     }
 }
 

@@ -2,9 +2,10 @@
 
 import Components
 import Formatters
-import GemstonePrimitives
-import class Gemstone.PriceChangeCalculator
 import Foundation
+import class Gemstone.PriceChangeCalculator
+import func Gemstone.valueTone
+import GemstonePrimitives
 import Style
 import SwiftUI
 
@@ -25,7 +26,7 @@ public struct PriceChangeViewModel {
 
     public var color: Color {
         guard let value else { return .secondary }
-        return PriceChangeColor.color(for: value)
+        return valueTone(value: value).color
     }
 
     public var textStyle: TextStyle {

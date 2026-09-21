@@ -20,10 +20,7 @@ impl TonSigner {
         if extra.output_type != TransferDataOutputType::EncodedTransaction {
             return SignerError::invalid_input_err("TON WalletConnect requires encoded transaction output");
         }
-        let data = extra
-            .data
-            .as_ref()
-            .ok_or_else(|| SignerError::invalid_input("missing TON WalletConnect transaction data"))?;
+        let data = extra.data.as_ref().ok_or_else(|| SignerError::invalid_input("missing TON WalletConnect transaction data"))?;
         let request: TonConnectRequest = serde_json::from_slice(data).map_err(|error| SignerError::invalid_input(format!("invalid TON WalletConnect request: {error}")))?;
 
         if Address::parse(&input.sender_address)? != *self.address() {
@@ -38,14 +35,8 @@ impl TonSigner {
         }
 
         let expire_at = request.valid_until.map(parse_expire_at).transpose()?;
-        let [message]: [TonConnectMessage; 1] = request
-            .messages
-            .try_into()
-            .map_err(|_| SignerError::invalid_input("TON WalletConnect requires exactly one message"))?;
-        let sequence = input
-            .metadata
-            .get_sequence()
-            .map_err(|error| SignerError::invalid_input(format!("invalid TON transaction metadata: {error}")))?;
+        let [message]: [TonConnectMessage; 1] = request.messages.try_into().map_err(|_| SignerError::invalid_input("TON WalletConnect requires exactly one message"))?;
+        let sequence = input.metadata.get_sequence().map_err(|error| SignerError::invalid_input(format!("invalid TON transaction metadata: {error}")))?;
         self.sign_requests(vec![message.into_request()?], sequence, expire_at)
     }
 }
@@ -55,8 +46,7 @@ impl TonConnectMessage {
         if self.extra_currency.as_ref().is_some_and(|currencies| !currencies.is_empty()) {
             return SignerError::invalid_input_err("TON extra currencies are not supported");
         }
-        let (destination, bounceable) =
-            Address::parse_user_friendly(&self.address).ok_or_else(|| SignerError::invalid_input("TON WalletConnect destination must be user-friendly"))?;
+        let (destination, bounceable) = Address::parse_user_friendly(&self.address).ok_or_else(|| SignerError::invalid_input("TON WalletConnect destination must be user-friendly"))?;
         Ok(TransferRequest {
             destination,
             value: BigUint::from_str(&self.amount)?,
@@ -116,17 +106,11 @@ mod tests {
         assert_eq!(sign(&wrong_from).unwrap_err().to_string(), "Invalid input: TON from does not match signer address");
 
         let raw_destination = request.replace("EQDa4VOnTYlLvDJ0gZjNYm5PXfSmmtL6Vs6A_CZEtXCNICq_", &from);
-        assert_eq!(
-            sign(&raw_destination).unwrap_err().to_string(),
-            "Invalid input: TON WalletConnect destination must be user-friendly"
-        );
+        assert_eq!(sign(&raw_destination).unwrap_err().to_string(), "Invalid input: TON WalletConnect destination must be user-friendly");
 
         let mut multiple: Value = serde_json::from_str(request).unwrap();
         let message = multiple["messages"][0].clone();
         multiple["messages"].as_array_mut().unwrap().push(message);
-        assert_eq!(
-            sign(&multiple.to_string()).unwrap_err().to_string(),
-            "Invalid input: TON WalletConnect requires exactly one message"
-        );
+        assert_eq!(sign(&multiple.to_string()).unwrap_err().to_string(), "Invalid input: TON WalletConnect requires exactly one message");
     }
 }

@@ -23,10 +23,7 @@ pub fn parse_url(domain: &str) -> Option<Url> {
 }
 
 pub fn host(url_string: &str) -> String {
-    Url::parse(url_string)
-        .ok()
-        .and_then(|url| url.host_str().map(|h| h.to_lowercase()))
-        .unwrap_or_else(|| url_string.to_lowercase())
+    Url::parse(url_string).ok().and_then(|url| url.host_str().map(|h| h.to_lowercase())).unwrap_or_else(|| url_string.to_lowercase())
 }
 
 pub fn host_only(domain_or_url: &str) -> Option<String> {

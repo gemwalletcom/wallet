@@ -5,6 +5,7 @@ import Formatters
 import Foundation
 import struct Gemstone.GemBannerAmount
 import struct Gemstone.GemBannerContent
+import struct Gemstone.GemBannerRow
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -20,9 +21,9 @@ public struct BannerViewModel {
     private let banner: Banner
     private let content: GemBannerContent
 
-    public init(banner: Banner, content: GemBannerContent) {
-        self.banner = banner
-        self.content = content
+    public init(row: GemBannerRow) {
+        banner = row.banner.toPrimitives()
+        content = row.content
     }
 
     var image: AssetImage? {

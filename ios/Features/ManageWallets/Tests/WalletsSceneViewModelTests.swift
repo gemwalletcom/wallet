@@ -1,5 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemWalletService
+import class Gemstone.GemWalletSessionService
+import GemstoneServices
+import GemstoneServicesTestKit
 @testable import ManageWallets
 import ManageWalletsTestKit
 import Primitives
@@ -7,10 +11,6 @@ import PrimitivesTestKit
 @testable import Store
 import StoreTestKit
 import Testing
-import GemstoneServices
-import GemstoneServicesTestKit
-import class Gemstone.GemWalletService
-import class Gemstone.GemWalletSessionService
 
 @MainActor
 struct WalletsSceneViewModelTests {

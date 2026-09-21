@@ -8,7 +8,7 @@ use crate::models::transaction::{Payment, PaymentsQuery, StellarTransactionBroad
 use crate::models::{AccountEmpty, AccountResult};
 use crate::rpc::target::HorizonTarget;
 
-use chain_traits::{ChainAddressStatus, ChainPerpetual, ChainProvider, ChainSimulation, ChainStaking, ChainTraits};
+use chain_traits::{ChainPerpetual, ChainProvider, ChainSimulation, ChainStaking, ChainTraits};
 use gem_client::{Client, ClientError, ClientExt};
 use primitives::Chain;
 use serde::de::DeserializeOwned;
@@ -126,8 +126,6 @@ impl<C: Client> StellarClient<C> {
 impl<C: Client> ChainStaking for StellarClient<C> {}
 
 impl<C: Client> ChainPerpetual for StellarClient<C> {}
-
-impl<C: Client> ChainAddressStatus for StellarClient<C> {}
 
 impl<C: Client> chain_traits::ChainAccount for StellarClient<C> {}
 

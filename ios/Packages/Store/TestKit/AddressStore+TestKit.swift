@@ -10,3 +10,9 @@ public extension AddressStore {
         AddressStore(db: db)
     }
 }
+
+public extension AddressNameUpdate {
+    static func mock(_ name: AddressName, replaces: [AddressType] = [.address, .contract, .validator]) -> AddressNameUpdate {
+        AddressNameUpdate(name: name, replacesTypes: replaces.contains(name.type) ? replaces : replaces + [name.type])
+    }
+}

@@ -38,17 +38,9 @@ mod tests {
         let token = TEMPO_USDT0_TOKEN_ID.parse::<Address>().unwrap();
 
         assert_eq!(decode_set_user_fee_token(&mock_tempo_generic_input(FEE_MANAGER_ADDRESS, calldata.clone())), Some(token));
-        assert_eq!(
-            decode_set_user_fee_token(&mock_tempo_generic_input("0x0000000000000000000000000000000000000001", calldata)),
-            None
-        );
+        assert_eq!(decode_set_user_fee_token(&mock_tempo_generic_input("0x0000000000000000000000000000000000000001", calldata)), None);
         assert_eq!(decode_set_user_fee_token(&mock_tempo_generic_input(FEE_MANAGER_ADDRESS, vec![0xab, 0xcd])), None);
-        assert_eq!(
-            decode_set_user_fee_token(&TransactionInputType::Transfer {
-                asset: Asset::mock_with_chain(Chain::Tempo)
-            }),
-            None
-        );
+        assert_eq!(decode_set_user_fee_token(&TransactionInputType::Transfer { asset: Asset::mock_with_chain(Chain::Tempo) }), None);
     }
 
     #[test]

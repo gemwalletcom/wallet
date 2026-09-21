@@ -1,6 +1,4 @@
-use super::model::{
-    FundsWithdrawalInput, TransactionArgument, TransactionCommand, TransactionInput, TransactionObject, WithdrawalReservation, WithdrawalSource, WithdrawalTypeArg,
-};
+use super::model::{FundsWithdrawalInput, TransactionArgument, TransactionCommand, TransactionInput, TransactionObject, WithdrawalReservation, WithdrawalSource, WithdrawalTypeArg};
 use crate::{SuiError, address::SuiAddress, tx_builder::move_call as sui_move_call};
 use gem_encoding::decode_base64;
 use std::{collections::HashMap, str::FromStr};
@@ -15,16 +13,9 @@ pub(super) enum CommandOutput {
 
 pub(super) fn replay_input(txb: &mut TransactionBuilder, index: usize, input: &TransactionInput, object_inputs: &HashMap<usize, ObjectInput>) -> Result<Argument, SuiError> {
     match input {
-        TransactionInput::Pure { pure } => {
-            Ok(txb.pure_bytes_unique(decode_base64(&pure.bytes).map_err(|err| SuiError::invalid_input(format!("Invalid Sui transaction encoding: {err}")))?))
-        }
+        TransactionInput::Pure { pure } => Ok(txb.pure_bytes_unique(decode_base64(&pure.bytes).map_err(|err| SuiError::invalid_input(format!("Invalid Sui transaction encoding: {err}")))?)),
         TransactionInput::Object { object } => Ok(txb.object(object_input(object)?)),
-        TransactionInput::UnresolvedObject { .. } => Ok(txb.object(
-            object_inputs
-                .get(&index)
-                .cloned()
-                .ok_or_else(|| SuiError::invalid_input("Missing resolved Sui object input"))?,
-        )),
+        TransactionInput::UnresolvedObject { .. } => Ok(txb.object(object_inputs.get(&index).cloned().ok_or_else(|| SuiError::invalid_input("Missing resolved Sui object input"))?)),
         TransactionInput::FundsWithdrawal { funds_withdrawal } => funds_withdrawal_input(txb, funds_withdrawal),
         TransactionInput::UnresolvedPure { pure } => Err(SuiError::invalid_input(format!("Sui transaction contains unresolved pure input: {pure}"))),
     }
@@ -36,57 +27,32 @@ fn funds_withdrawal_input(txb: &mut TransactionBuilder, funds_withdrawal: &Funds
     };
     let WithdrawalReservation::MaxAmountU64 { max_amount } = funds_withdrawal.reservation;
     let WithdrawalTypeArg::Balance { balance } = &funds_withdrawal.type_arg;
-    let coin_type: TypeTag = balance
-        .parse()
-        .map_err(|err| SuiError::invalid_input(format!("Invalid Sui withdrawal balance type {balance}: {err}")))?;
+    let coin_type: TypeTag = balance.parse().map_err(|err| SuiError::invalid_input(format!("Invalid Sui withdrawal balance type {balance}: {err}")))?;
     Ok(txb.funds_withdrawal(coin_type, max_amount))
 }
 
 pub(super) fn replay_command(txb: &mut TransactionBuilder, command: TransactionCommand, inputs: &[Argument], outputs: &[CommandOutput]) -> Result<CommandOutput, SuiError> {
     match command {
         TransactionCommand::MoveCall { move_call } => {
-            let arguments = move_call
-                .arguments
-                .iter()
-                .map(|argument| input_or_output_argument(txb, argument, inputs, outputs))
-                .collect::<Result<Vec<_>, _>>()?;
+            let arguments = move_call.arguments.iter().map(|argument| input_or_output_argument(txb, argument, inputs, outputs)).collect::<Result<Vec<_>, _>>()?;
             let type_arguments = move_call.type_arguments.iter().map(String::as_str).collect::<Vec<_>>();
-            let output = sui_move_call(
-                txb,
-                SuiAddress::parse(&move_call.package)?.into(),
-                &move_call.module,
-                &move_call.function,
-                &type_arguments,
-                arguments,
-            )?;
+            let output = sui_move_call(txb, SuiAddress::parse(&move_call.package)?.into(), &move_call.module, &move_call.function, &type_arguments, arguments)?;
             Ok(CommandOutput::Single(output))
         }
         TransactionCommand::TransferObjects { transfer_objects } => {
-            let objects = transfer_objects
-                .objects
-                .iter()
-                .map(|argument| input_or_output_argument(txb, argument, inputs, outputs))
-                .collect::<Result<Vec<_>, _>>()?;
+            let objects = transfer_objects.objects.iter().map(|argument| input_or_output_argument(txb, argument, inputs, outputs)).collect::<Result<Vec<_>, _>>()?;
             let address = input_or_output_argument(txb, &transfer_objects.address, inputs, outputs)?;
             txb.transfer_objects(objects, address);
             Ok(CommandOutput::Empty)
         }
         TransactionCommand::SplitCoins { split_coins } => {
             let coin = input_or_output_argument(txb, &split_coins.coin, inputs, outputs)?;
-            let amounts = split_coins
-                .amounts
-                .iter()
-                .map(|argument| input_or_output_argument(txb, argument, inputs, outputs))
-                .collect::<Result<Vec<_>, _>>()?;
+            let amounts = split_coins.amounts.iter().map(|argument| input_or_output_argument(txb, argument, inputs, outputs)).collect::<Result<Vec<_>, _>>()?;
             Ok(CommandOutput::Nested(txb.split_coins(coin, amounts)))
         }
         TransactionCommand::MergeCoins { merge_coins } => {
             let destination = input_or_output_argument(txb, &merge_coins.destination, inputs, outputs)?;
-            let sources = merge_coins
-                .sources
-                .iter()
-                .map(|argument| input_or_output_argument(txb, argument, inputs, outputs))
-                .collect::<Result<Vec<_>, _>>()?;
+            let sources = merge_coins.sources.iter().map(|argument| input_or_output_argument(txb, argument, inputs, outputs)).collect::<Result<Vec<_>, _>>()?;
             txb.merge_coins(destination, sources);
             Ok(CommandOutput::Empty)
         }
@@ -97,11 +63,7 @@ pub(super) fn replay_command(txb: &mut TransactionBuilder, command: TransactionC
                 .map(TypeTag::from_str)
                 .transpose()
                 .map_err(|err| SuiError::invalid_input(format!("Invalid Sui MakeMoveVec type: {err}")))?;
-            let elements = make_move_vec
-                .elements
-                .iter()
-                .map(|argument| input_or_output_argument(txb, argument, inputs, outputs))
-                .collect::<Result<Vec<_>, _>>()?;
+            let elements = make_move_vec.elements.iter().map(|argument| input_or_output_argument(txb, argument, inputs, outputs)).collect::<Result<Vec<_>, _>>()?;
             Ok(CommandOutput::Single(txb.make_move_vec(type_, elements)))
         }
         TransactionCommand::Publish { publish } => Err(SuiError::invalid_input(format!("Unsupported Sui Publish command: {publish}"))),
@@ -123,10 +85,7 @@ pub(super) fn output_argument(argument: &TransactionArgument, outputs: &[Command
                     .get(nested_result[1])
                     .copied()
                     .ok_or_else(|| SuiError::invalid_input("Invalid Sui nested result argument")),
-                CommandOutput::Nested(arguments) => arguments
-                    .get(nested_result[1])
-                    .copied()
-                    .ok_or_else(|| SuiError::invalid_input("Invalid Sui nested result argument")),
+                CommandOutput::Nested(arguments) => arguments.get(nested_result[1]).copied().ok_or_else(|| SuiError::invalid_input("Invalid Sui nested result argument")),
                 CommandOutput::Empty => Err(SuiError::invalid_input("Invalid Sui nested result argument")),
             }
         }
@@ -137,16 +96,8 @@ pub(super) fn output_argument(argument: &TransactionArgument, outputs: &[Command
 fn object_input(object: &TransactionObject) -> Result<ObjectInput, SuiError> {
     match object {
         TransactionObject::ImmOrOwnedObject { object } => Ok(ObjectInput::owned(SuiAddress::parse(&object.object_id)?.into(), object.version, digest(&object.digest)?)),
-        TransactionObject::SharedObject { object } => Ok(ObjectInput::shared(
-            SuiAddress::parse(&object.object_id)?.into(),
-            object.initial_shared_version,
-            object.mutable,
-        )),
-        TransactionObject::Receiving { object } => Ok(ObjectInput::receiving(
-            SuiAddress::parse(&object.object_id)?.into(),
-            object.version,
-            digest(&object.digest)?,
-        )),
+        TransactionObject::SharedObject { object } => Ok(ObjectInput::shared(SuiAddress::parse(&object.object_id)?.into(), object.initial_shared_version, object.mutable)),
+        TransactionObject::Receiving { object } => Ok(ObjectInput::receiving(SuiAddress::parse(&object.object_id)?.into(), object.version, digest(&object.digest)?)),
     }
 }
 

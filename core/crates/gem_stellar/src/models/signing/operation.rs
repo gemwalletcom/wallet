@@ -11,18 +11,9 @@ pub enum Memo {
 
 #[derive(Clone)]
 pub enum Operation {
-    CreateAccount {
-        destination: StellarAddress,
-        amount: u64,
-    },
-    Payment {
-        destination: StellarAddress,
-        asset: Option<StellarAssetData>,
-        amount: u64,
-    },
-    ChangeTrust {
-        asset: StellarAssetData,
-    },
+    CreateAccount { destination: StellarAddress, amount: u64 },
+    Payment { destination: StellarAddress, asset: Option<StellarAssetData>, amount: u64 },
+    ChangeTrust { asset: StellarAssetData },
 }
 
 impl Operation {

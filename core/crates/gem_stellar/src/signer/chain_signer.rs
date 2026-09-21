@@ -42,9 +42,7 @@ mod tests {
         let mut input = SignerInput {
             fee: TransactionFee::new_from_fee(1000.into(), AssetId::from_chain(Chain::Stellar)),
             ..SignerInput::mock_with_input_type(
-                TransactionInputType::Transfer {
-                    asset: Asset::from_chain(Chain::Stellar),
-                },
+                TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Stellar) },
                 SENDER,
                 DESTINATION,
                 "10000000",
@@ -65,9 +63,7 @@ mod tests {
         let input = SignerInput {
             fee: TransactionFee::new_from_fee(1000.into(), AssetId::from_chain(Chain::Stellar)),
             ..SignerInput::mock_with_input_type(
-                TransactionInputType::Transfer {
-                    asset: Asset::from_chain(Chain::Stellar),
-                },
+                TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Stellar) },
                 SENDER,
                 DESTINATION,
                 "10000000",
@@ -84,14 +80,7 @@ mod tests {
         );
 
         // Token transfer
-        let mobi = Asset::mock_with_params(
-            Chain::Stellar,
-            Some("GA6HCMBLTZS5VYYBCATRBRZ3BZJMAFUDKYYF6AH6MVCMGWMRDNSWJPIH::MOBI".into()),
-            "MOBI".into(),
-            "MOBI".into(),
-            7,
-            AssetType::TOKEN,
-        );
+        let mobi = Asset::mock_with_params(Chain::Stellar, Some("GA6HCMBLTZS5VYYBCATRBRZ3BZJMAFUDKYYF6AH6MVCMGWMRDNSWJPIH::MOBI".into()), "MOBI".into(), "MOBI".into(), 7, AssetType::TOKEN);
         let input = SignerInput {
             fee: TransactionFee::new_from_fee(1000.into(), AssetId::from_chain(Chain::Stellar)),
             ..SignerInput::mock_with_input_type(
@@ -143,9 +132,7 @@ mod tests {
                 &SignerInput {
                     fee: TransactionFee::new_from_fee(1000.into(), AssetId::from_chain(Chain::Stellar)),
                     ..SignerInput::mock_with_input_type(
-                        TransactionInputType::Transfer {
-                            asset: Asset::from_chain(Chain::Stellar),
-                        },
+                        TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Stellar) },
                         SENDER,
                         DESTINATION,
                         "10000000",

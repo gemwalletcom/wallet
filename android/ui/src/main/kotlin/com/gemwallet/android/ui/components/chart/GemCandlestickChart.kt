@@ -73,12 +73,7 @@ private object CandlestickMetrics {
 }
 
 @Composable
-fun GemCandlestickChart(
-    model: CandlestickChartUIModel,
-    selectedIndex: Int? = null,
-    onSelectionChanged: (Int?) -> Unit = {},
-    modifier: Modifier = Modifier,
-) {
+fun GemCandlestickChart(model: CandlestickChartUIModel, selectedIndex: Int? = null, onSelectionChanged: (Int?) -> Unit = {}, modifier: Modifier = Modifier) {
     if (model.candles.isEmpty()) return
 
     val density = LocalDensity.current
@@ -264,15 +259,7 @@ private fun DrawScope.drawYAxis(
     }
 }
 
-private fun DrawScope.drawXAxisGridlines(
-    fractions: List<Float>,
-    plotLeft: Float,
-    plotRight: Float,
-    plotTop: Float,
-    plotBottom: Float,
-    color: Color,
-    dash: PathEffect,
-) {
+private fun DrawScope.drawXAxisGridlines(fractions: List<Float>, plotLeft: Float, plotRight: Float, plotTop: Float, plotBottom: Float, color: Color, dash: PathEffect) {
     val plotWidth = plotRight - plotLeft
     fractions.forEach { fraction ->
         val x = plotLeft + plotWidth * fraction
@@ -286,16 +273,7 @@ private fun DrawScope.drawXAxisGridlines(
     }
 }
 
-private fun DrawScope.drawCandles(
-    candles: List<CandleUIModel>,
-    slotCenter: (Int) -> Float,
-    valueToY: (Double) -> Float,
-    bodyWidth: Float,
-    wickWidthPx: Float,
-    upColor: Color,
-    downColor: Color,
-    flatColor: Color,
-) {
+private fun DrawScope.drawCandles(candles: List<CandleUIModel>, slotCenter: (Int) -> Float, valueToY: (Double) -> Float, bodyWidth: Float, wickWidthPx: Float, upColor: Color, downColor: Color, flatColor: Color) {
     candles.forEachIndexed { index, candle ->
         val color = candleColor(candle, upColor, downColor, flatColor)
         val centerX = slotCenter(index)
@@ -353,8 +331,11 @@ private fun DrawScope.drawReferenceLines(
     visible.forEach { (line, y) ->
         val measured = textMeasurer.measure(line.label, labelStyle)
         val badgeWidth = measured.size.width + 2f * badgeHorizontalPaddingPx
-        val anchorX = if (line.overlapLevel == 0) plotLeft + labelPaddingPx
-                      else lastBadgeEndX + labelHorizontalGapPx
+        val anchorX = if (line.overlapLevel == 0) {
+            plotLeft + labelPaddingPx
+        } else {
+            lastBadgeEndX + labelHorizontalGapPx
+        }
         drawBadgeLabel(
             textMeasurer = textMeasurer,
             text = line.label,
@@ -440,17 +421,7 @@ private fun DrawScope.drawSelection(
     )
 }
 
-private fun DrawScope.drawBadgeLabel(
-    textMeasurer: TextMeasurer,
-    text: String,
-    textStyle: TextStyle,
-    backgroundColor: Color,
-    anchorX: Float,
-    anchorY: Float,
-    horizontalPaddingPx: Float,
-    verticalPaddingPx: Float,
-    cornerRadiusPx: Float,
-) {
+private fun DrawScope.drawBadgeLabel(textMeasurer: TextMeasurer, text: String, textStyle: TextStyle, backgroundColor: Color, anchorX: Float, anchorY: Float, horizontalPaddingPx: Float, verticalPaddingPx: Float, cornerRadiusPx: Float) {
     val measured = textMeasurer.measure(text, textStyle)
     val badgeWidth = measured.size.width + horizontalPaddingPx * 2f
     val badgeHeight = measured.size.height + verticalPaddingPx * 2f

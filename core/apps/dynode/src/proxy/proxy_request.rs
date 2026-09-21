@@ -91,20 +91,13 @@ impl ProxyRequest {
 
     fn parse_hostname(host_header: &str) -> String {
         let candidate = format!("http://{}", host_header);
-        Url::parse(&candidate)
-            .ok()
-            .and_then(|url| url.host_str().map(str::to_string))
-            .unwrap_or_else(|| host_header.to_string())
+        Url::parse(&candidate).ok().and_then(|url| url.host_str().map(str::to_string)).unwrap_or_else(|| host_header.to_string())
     }
 
     fn remove_chain_from_path(uri: &str) -> String {
         let (path_part, query_part) = uri.split_once('?').unwrap_or((uri, ""));
 
-        let remaining = path_part
-            .trim_start_matches('/')
-            .split_once('/')
-            .map(|(_, rest)| format!("/{}", rest))
-            .unwrap_or_else(|| "/".to_string());
+        let remaining = path_part.trim_start_matches('/').split_once('/').map(|(_, rest)| format!("/{}", rest)).unwrap_or_else(|| "/".to_string());
 
         if query_part.is_empty() { remaining } else { format!("{}?{}", remaining, query_part) }
     }
@@ -119,12 +112,7 @@ mod tests {
 
     #[test]
     fn test_detect_broadcast_jsonrpc_single() {
-        let request = ProxyRequest::mock(
-            Chain::Ethereum,
-            Method::POST,
-            "/rpc",
-            br#"{"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0xdeadbeef"],"id":1}"#,
-        );
+        let request = ProxyRequest::mock(Chain::Ethereum, Method::POST, "/rpc", br#"{"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0xdeadbeef"],"id":1}"#);
 
         assert!(request.is_broadcast(&BroadcastProviders::from_chains([Chain::Ethereum, Chain::Tron])));
     }
@@ -203,14 +191,8 @@ mod tests {
 
     #[test]
     fn test_prepare_paths() {
-        assert_eq!(
-            ProxyRequest::prepare_paths("/bitcoin/api/v2/address/../block/900000"),
-            ("/api/v2/block/900000".to_string(), "/api/v2/block/900000".to_string())
-        );
-        assert_eq!(
-            ProxyRequest::prepare_paths("/bitcoin/api/v2/address/%2e%2e/block"),
-            ("/api/v2/block".to_string(), "/api/v2/block".to_string())
-        );
+        assert_eq!(ProxyRequest::prepare_paths("/bitcoin/api/v2/address/../block/900000"), ("/api/v2/block/900000".to_string(), "/api/v2/block/900000".to_string()));
+        assert_eq!(ProxyRequest::prepare_paths("/bitcoin/api/v2/address/%2e%2e/block"), ("/api/v2/block".to_string(), "/api/v2/block".to_string()));
         assert_eq!(ProxyRequest::prepare_paths("/ethereum/../secret"), ("/secret".to_string(), "/secret".to_string()));
         assert_eq!(
             ProxyRequest::prepare_paths("/bitcoin/api/v2/address/bc1qtest?page=1"),

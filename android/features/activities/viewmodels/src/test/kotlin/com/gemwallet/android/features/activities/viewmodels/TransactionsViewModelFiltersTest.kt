@@ -57,6 +57,7 @@ class TransactionsViewModelFiltersTest {
         }
         val transactions: GetTransactions = mockk {
             every { getTransactions(any()) } returns flowOf(emptyList<TransactionDataAggregate>())
+            every { stored(any()) } returns emptyList()
         }
         val getSession: GetSession = mockk { every { this@mockk.invoke() } returns session }
         return TransactionsViewModel(getSession, transactions, service, mockk(relaxed = true), dispatcher, mockk(relaxed = true)).also { models.add(it) }

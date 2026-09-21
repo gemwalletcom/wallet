@@ -33,18 +33,15 @@ import com.gemwallet.android.features.settings.settings.viewmodels.SupportChatSc
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyStateView
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.gemwallet.android.ui.components.screen.rememberSnackbarState
-import com.gemwallet.android.ui.localization.text
 
 @Composable
-fun SupportChatNavScreen(
-    onCancel: () -> Unit,
-    viewModel: SupportChatSceneViewModel = hiltViewModel(),
-) {
+fun SupportChatNavScreen(onCancel: () -> Unit, viewModel: SupportChatSceneViewModel = hiltViewModel()) {
     val days by viewModel.days.collectAsStateWithLifecycle()
     val isEmpty by viewModel.isEmpty.collectAsStateWithLifecycle()
     val typingAgentName by viewModel.typingAgentName.collectAsStateWithLifecycle()

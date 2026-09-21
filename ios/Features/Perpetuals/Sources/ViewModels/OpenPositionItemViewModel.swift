@@ -2,8 +2,8 @@
 
 import Components
 import Formatters
-import class Gemstone.GemPerpetual
 import Foundation
+import class Gemstone.GemPerpetual
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents

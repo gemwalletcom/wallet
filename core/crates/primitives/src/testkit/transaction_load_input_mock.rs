@@ -1,7 +1,7 @@
 use super::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER, TEST_OSMOSIS_SENDER};
 use crate::{
-    ApplicationMetadata, Asset, AssetId, AssetType, Chain, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata,
-    TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, UTXO, asset_constants::NEAR_USDT_ASSET_ID,
+    ApplicationMetadata, Asset, AssetId, AssetType, Chain, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType,
+    UTXO, asset_constants::NEAR_USDT_ASSET_ID,
 };
 use num_bigint::BigInt;
 use num_bigint::BigUint;
@@ -10,9 +10,7 @@ use std::collections::HashMap;
 impl TransactionLoadInput {
     pub fn mock() -> Self {
         TransactionLoadInput {
-            input_type: TransactionInputType::Transfer {
-                asset: Asset::from_chain(Chain::Sui),
-            },
+            input_type: TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Sui) },
             sender_address: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
             destination_address: "0xabcdef1234567890abcdef1234567890abcdef12".to_string(),
             value: BigUint::from(1000000000u64),
@@ -75,10 +73,7 @@ impl SignerInput {
     }
 
     pub fn mock_evm_with_metadata(input_type: TransactionInputType, value: &str, gas_limit: u64, metadata: TransactionLoadMetadata) -> Self {
-        SignerInput::new(
-            TransactionLoadInput::mock_evm_with_metadata(input_type, value, metadata),
-            TransactionFee::mock_eip1559(gas_limit),
-        )
+        SignerInput::new(TransactionLoadInput::mock_evm_with_metadata(input_type, value, metadata), TransactionFee::mock_eip1559(gas_limit))
     }
 
     pub fn mock_with_input_type(input_type: TransactionInputType, sender: &str, destination: &str, value: &str, metadata: TransactionLoadMetadata) -> Self {
@@ -114,13 +109,7 @@ impl SignerInput {
                 is_max_value: false,
                 metadata: TransactionLoadMetadata::mock_osmosis(),
             },
-            TransactionFee::new_gas_price_type(
-                GasPriceType::regular(fee_amount.clone()),
-                fee_amount,
-                BigInt::from(gas_limit),
-                HashMap::new(),
-                AssetId::from_chain(Chain::Osmosis),
-            ),
+            TransactionFee::new_gas_price_type(GasPriceType::regular(fee_amount.clone()), fee_amount, BigInt::from(gas_limit), HashMap::new(), AssetId::from_chain(Chain::Osmosis)),
         )
     }
 
@@ -151,10 +140,7 @@ impl SignerInput {
     }
 
     pub fn mock_solana(block_hash: &str) -> Self {
-        SignerInput::new(
-            TransactionLoadInput::mock_solana(block_hash),
-            TransactionFee::new_from_fee(BigInt::ZERO, AssetId::from_chain(Chain::Solana)),
-        )
+        SignerInput::new(TransactionLoadInput::mock_solana(block_hash), TransactionFee::new_from_fee(BigInt::ZERO, AssetId::from_chain(Chain::Solana)))
     }
 
     pub fn mock_near_token_transfer(memo: Option<&str>, fee: TransactionFee) -> Self {
@@ -174,19 +160,14 @@ impl SignerInput {
 impl TransactionLoadInput {
     pub fn mock_near(sender: &str, destination: &str, value: &str, sequence: u64, block_hash: &str) -> Self {
         TransactionLoadInput {
-            input_type: TransactionInputType::Transfer {
-                asset: Asset::from_chain(Chain::Near),
-            },
+            input_type: TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Near) },
             sender_address: sender.into(),
             destination_address: destination.into(),
             value: value.parse().unwrap(),
             gas_price: GasPriceType::regular(0),
             memo: None,
             is_max_value: false,
-            metadata: TransactionLoadMetadata::Near {
-                sequence,
-                block_hash: block_hash.into(),
-            },
+            metadata: TransactionLoadMetadata::Near { sequence, block_hash: block_hash.into() },
         }
     }
 
@@ -205,9 +186,7 @@ impl TransactionLoadInput {
 
     pub fn mock_polkadot() -> Self {
         TransactionLoadInput {
-            input_type: TransactionInputType::Transfer {
-                asset: Asset::from_chain(Chain::Polkadot),
-            },
+            input_type: TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Polkadot) },
             sender_address: "15e6w4u9nH4Tb9HdJco2Zua4y5DpHb1hHXBKBGkUrLMTpuXo".to_string(),
             destination_address: "15e6w4u9nH4Tb9HdJco2Zua4y5DpHb1hHXBKBGkUrLMTpuXo".to_string(),
             value: BigUint::from(10000u64),
@@ -228,9 +207,7 @@ impl TransactionLoadInput {
 
     pub fn mock_cardano(sender: &str, value: &str) -> Self {
         TransactionLoadInput {
-            input_type: TransactionInputType::Transfer {
-                asset: Asset::from_chain(Chain::Cardano),
-            },
+            input_type: TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Cardano) },
             sender_address: sender.to_string(),
             destination_address: "addr1q92cmkgzv9h4e5q7mnrzsuxtgayvg4qr7y3gyx97ukmz3dfx7r9fu73vqn25377ke6r0xk97zw07dqr9y5myxlgadl2s0dgke5".to_string(),
             value: value.parse().unwrap(),

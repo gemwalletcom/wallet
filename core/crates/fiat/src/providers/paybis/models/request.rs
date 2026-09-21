@@ -28,17 +28,7 @@ pub struct RequestResponse {
 }
 
 impl Request {
-    fn new(
-        partner_user_id: String,
-        wallet_address: String,
-        wallet_currency_code: String,
-        currency_code_from: String,
-        currency_code_to: String,
-        quote_id: String,
-        user_ip: String,
-        locale: String,
-        flow: String,
-    ) -> Self {
+    fn new(partner_user_id: String, wallet_address: String, wallet_currency_code: String, currency_code_from: String, currency_code_to: String, quote_id: String, user_ip: String, locale: String, flow: String) -> Self {
         Self {
             partner_user_id,
             partner_transaction_id: Some(quote_id.clone()),
@@ -56,31 +46,11 @@ impl Request {
     }
 
     pub fn new_sell(partner_user_id: String, wallet_address: String, crypto_currency: String, fiat_currency: String, quote_id: String, user_ip: String, locale: String) -> Self {
-        Self::new(
-            partner_user_id,
-            wallet_address,
-            crypto_currency.clone(),
-            crypto_currency,
-            fiat_currency,
-            quote_id,
-            user_ip,
-            locale,
-            "sellCrypto".to_string(),
-        )
+        Self::new(partner_user_id, wallet_address, crypto_currency.clone(), crypto_currency, fiat_currency, quote_id, user_ip, locale, "sellCrypto".to_string())
     }
 
     pub fn new_buy(partner_user_id: String, wallet_address: String, crypto_currency: String, fiat_currency: String, quote_id: String, user_ip: String, locale: String) -> Self {
-        Self::new(
-            partner_user_id,
-            wallet_address,
-            crypto_currency.clone(),
-            fiat_currency,
-            crypto_currency,
-            quote_id,
-            user_ip,
-            locale,
-            "buyCrypto".to_string(),
-        )
+        Self::new(partner_user_id, wallet_address, crypto_currency.clone(), fiat_currency, crypto_currency, quote_id, user_ip, locale, "buyCrypto".to_string())
     }
 }
 

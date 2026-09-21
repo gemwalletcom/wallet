@@ -26,7 +26,7 @@ val ColorScheme.secondaryFaded: Color
 
 private val DarkColorScheme = darkColorScheme(
     primary = Color(0xFF2D5BE6),
-    secondary = Color(0xFF808d99), //Color(0xFF818181),
+    secondary = Color(0xFF808d99), // Color(0xFF818181),
     tertiary = Color(0xFF1B9A6C),
     background = Color(0xFF24262A),
     surface = Color(0xFF1A191A),
@@ -43,7 +43,7 @@ private val DarkColorScheme = darkColorScheme(
 
 private val LightColorScheme = lightColorScheme(
     primary = Color(0xFF2D5BE6),
-    secondary = Color(0xFF999999), //Color(0xFF818181),
+    secondary = Color(0xFF999999), // Color(0xFF818181),
     tertiary = Color(0xFF1B9A6C),
     background = Color(0xFFFFFFFF),
     surface = Color(0xFFF0F0F5),
@@ -56,7 +56,7 @@ private val LightColorScheme = lightColorScheme(
     error = Color(0xFFF84E4E),
     outline = Color(0xFF767A81),
     outlineVariant = Color(0xFFD1D1D6),
-    scrim = Color(0xffededed),//from #f2f2f2
+    scrim = Color(0xffededed), // from #f2f2f2
 )
 
 enum class WindowDimension {
@@ -84,20 +84,22 @@ fun WalletTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
+
         darkTheme -> DarkColorScheme
+
         else -> LightColorScheme
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
-        content = content
+        content = content,
     )
 }

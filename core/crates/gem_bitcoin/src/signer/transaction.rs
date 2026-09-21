@@ -142,15 +142,9 @@ fn validate_plan_amounts(chain: BitcoinChain, plan: &SpendPlan) -> Result<(), Si
     let input_total: u128 = plan.inputs.iter().map(|input| input.value.to_sat() as u128).sum();
     let output_total: u128 = plan.outputs.iter().map(|output| output.value.to_sat() as u128).sum();
     let spent_total = output_total + plan.fee as u128;
-    (input_total == spent_total).then_some(()).ok_or_else(|| {
-        SignerError::invalid_input(format!(
-            "{} plan amount mismatch: inputs {}, outputs {}, fee {}",
-            chain.get_chain(),
-            input_total,
-            output_total,
-            plan.fee
-        ))
-    })?;
+    (input_total == spent_total)
+        .then_some(())
+        .ok_or_else(|| SignerError::invalid_input(format!("{} plan amount mismatch: inputs {}, outputs {}, fee {}", chain.get_chain(), input_total, output_total, plan.fee)))?;
     Ok(())
 }
 

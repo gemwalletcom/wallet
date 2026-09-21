@@ -50,7 +50,7 @@ fun SwapSlippageBottomSheet(
     defaultBps: UInt?,
     slippageState: (UInt?, Boolean) -> SlippageStateUIModel,
     slippageBps: (Double) -> UInt?,
-    slippagePercent: (UInt) -> Double,
+    slippageText: (UInt) -> String,
     onConfirm: (UInt?) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -62,7 +62,7 @@ fun SwapSlippageBottomSheet(
     ) {
         var isAuto by remember(currentBps) { mutableStateOf(currentBps == null) }
         var input by remember(currentBps) {
-            mutableStateOf(currentBps?.let { SwapSlippage.format(it, slippagePercent) }.orEmpty())
+            mutableStateOf(currentBps?.let(slippageText).orEmpty())
         }
         val focusRequester = remember { FocusRequester() }
 
@@ -109,7 +109,7 @@ fun SwapSlippageBottomSheet(
                             .weight(1f)
                             .padding(start = paddingSmall),
                         value = input,
-                        placeholder = defaultBps?.let { SwapSlippage.format(it, slippagePercent) }.orEmpty(),
+                        placeholder = defaultBps?.let(slippageText).orEmpty(),
                         onValueChange = { input = SwapSlippage.sanitize(it, state.maximumFractionDigits, state.maximumIntegerDigits) },
                         suffix = "%",
                         focusRequester = focusRequester,
@@ -121,7 +121,7 @@ fun SwapSlippageBottomSheet(
                 SuggestionsBar(
                     labels = state.suggestions.map { it.label },
                     modifier = Modifier.padding(horizontal = paddingDefault, vertical = paddingSmall),
-                    onSelected = { index -> input = SwapSlippage.format(state.suggestions[index].bps, slippagePercent) },
+                    onSelected = { index -> input = slippageText(state.suggestions[index].bps) },
                 )
             }
         }

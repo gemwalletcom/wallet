@@ -7,17 +7,12 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.FatalStateScene
 
 @Composable
-fun ValidatorsScreen(
-    selection: ValidatorsUIModel,
-    selectedValidatorId: String,
-    onCancel: () -> Unit,
-    onSelect: (String) -> Unit
-) {
+fun ValidatorsScreen(selection: ValidatorsUIModel, selectedValidatorId: String, onCancel: () -> Unit, onSelect: (String) -> Unit) {
     if (selection.options.isEmpty()) {
         FatalStateScene(
             title = stringResource(id = R.string.stake_validators),
             message = "Validators not found",
-            onCancel = onCancel
+            onCancel = onCancel,
         )
         return
     }

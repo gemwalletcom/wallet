@@ -1,11 +1,11 @@
 package com.gemwallet.android.domains.price.values
 
-import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.testkit.mockEquivalentValue
 import com.wallet.core.primitives.Currency
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemValueTone
 
 class EquivalentValueTest {
 
@@ -122,7 +122,7 @@ class EquivalentValueTest {
         val price = mockEquivalentValue(
             value = 50000.0,
             changePercentage = 3.5,
-            currency = Currency.USD
+            currency = Currency.USD,
         )
 
         assertEquals(50000.0, price.value!!, 0.01)

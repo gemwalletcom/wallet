@@ -49,9 +49,7 @@ impl TraceResponse {
     pub fn mock_block_trace(index: usize) -> Self {
         let traces = Self::mock_block_traces();
 
-        TraceResponse {
-            traces: vec![traces.traces[index].clone()],
-        }
+        TraceResponse { traces: vec![traces.traces[index].clone()] }
     }
 
     pub fn mock_jetton_swap() -> Self {

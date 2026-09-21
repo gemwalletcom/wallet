@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import func Gemstone.assetMenuActions
 import enum Gemstone.GemAssetMenuAction
 import struct Gemstone.GemAssetMenuInput
-import func Gemstone.assetMenuActions
 import Localization
 import Primitives
 import Style

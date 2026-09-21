@@ -22,11 +22,7 @@ pub fn map_to_delegation(asset_id: AssetId, data: &PositionData, provider_id: &s
 }
 
 pub fn map_to_asset_balance(asset: &YoAsset, data: &PositionData) -> AssetBalance {
-    let balance = if data.share_balance != U256::ZERO {
-        u256_to_biguint(&data.asset_balance)
-    } else {
-        BigUint::ZERO
-    };
+    let balance = if data.share_balance != U256::ZERO { u256_to_biguint(&data.asset_balance) } else { BigUint::ZERO };
     AssetBalance::new_earn(asset.asset_id(), balance)
 }
 

@@ -14,21 +14,17 @@ import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.TransactionId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
 @HiltViewModel
-class TransactionDetailsViewModel @Inject constructor(
-    private val getTransactionDetails: GetTransactionDetails,
-    savedStateHandle: SavedStateHandle,
-    @param:ApplicationContext private val context: Context,
-) : ViewModel() {
+class TransactionDetailsViewModel @Inject constructor(private val getTransactionDetails: GetTransactionDetails, savedStateHandle: SavedStateHandle, @param:ApplicationContext private val context: Context) : ViewModel() {
 
     private val transactionId = requireNotNull(
-        TransactionId.from(savedStateHandle.requireString(RouteArgument.TransactionId))
+        TransactionId.from(savedStateHandle.requireString(RouteArgument.TransactionId)),
     ) { "Invalid TransactionId route argument" }
 
     val data = getTransactionDetails.getTransactionDetails(transactionId)

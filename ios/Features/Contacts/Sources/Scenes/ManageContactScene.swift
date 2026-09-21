@@ -40,6 +40,9 @@ public struct ManageContactScene: View {
                     .disabled(model.buttonState == .disabled)
             }
         }
+        .onChange(of: model.nameInputModel.text) { _, name in
+            model.onChangeName(name)
+        }
         .onAppear {
             if model.isAddMode {
                 focusedField = .name

@@ -11,13 +11,7 @@ use crate::{
 };
 use alloy_primitives::FixedBytes;
 
-pub(super) fn swift_order(
-    quote: &Quote,
-    route: &MayanSwiftQuote,
-    source_chain_id: u16,
-    destination_address: &str,
-    custom_payload: Option<&[u8]>,
-) -> Result<MayanSwiftV2::OrderParams, SwapperError> {
+pub(super) fn swift_order(quote: &Quote, route: &MayanSwiftQuote, source_chain_id: u16, destination_address: &str, custom_payload: Option<&[u8]>) -> Result<MayanSwiftV2::OrderParams, SwapperError> {
     let fields = SwiftOrderFields::new(route)?;
 
     Ok(MayanSwiftV2::OrderParams {

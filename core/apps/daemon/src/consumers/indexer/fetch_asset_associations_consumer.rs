@@ -21,19 +21,10 @@ impl MessageConsumer<FetchAssetAssociationsPayload, usize> for FetchAssetAssocia
 
     async fn process(&self, payload: FetchAssetAssociationsPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let price_id = &payload.price_id;
-        let provider = self
-            .providers
-            .get(&price_id.provider)
-            .ok_or_else(|| format!("Unsupported asset association price provider: {}", price_id.provider))?;
+        let provider = self.providers.get(&price_id.provider).ok_or_else(|| format!("Unsupported asset association price provider: {}", price_id.provider))?;
         let mappings = provider.get_mappings_for_price_id(&price_id.provider_price_id).await?;
         let discovered_asset_ids = mappings.iter().map(|mapping| mapping.asset_id.clone()).collect();
-        let existing_asset_ids = self
-            .database
-            .assets()?
-            .get_assets(discovered_asset_ids)?
-            .into_iter()
-            .map(|asset| asset.id)
-            .collect::<HashSet<_>>();
+        let existing_asset_ids = self.database.assets()?.get_assets(discovered_asset_ids)?.into_iter().map(|asset| asset.id).collect::<HashSet<_>>();
         let associations = map_asset_associations(mappings, &existing_asset_ids);
 
         if associations.len() < 2 {

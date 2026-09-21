@@ -1,5 +1,6 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 use async_trait::async_trait;
 use futures::channel::oneshot;
@@ -25,17 +26,10 @@ impl SubscriptionTestkit {
         connection.connected.store(true, Ordering::SeqCst);
         let service = GemStreamSubscriptionService::new(
             balances.clone(),
-            Arc::new(MemoryPriceAlertStore {
-                alerts: alerted.iter().map(|chain| PriceAlert::mock(*chain, None)).collect(),
-            }),
+            Arc::new(MemoryPriceAlertStore::with_alerts(alerted.iter().map(|chain| PriceAlert::mock(*chain, None)).collect())),
             connection.clone(),
         );
-        Self {
-            service,
-            balances,
-            connection,
-            wallet_id,
-        }
+        Self { service, balances, connection, wallet_id }
     }
 }
 
@@ -46,6 +40,7 @@ pub fn asset_ids(chains: &[Chain]) -> Vec<AssetId> {
 #[derive(Default)]
 pub struct MemoryStreamConnection {
     pub connected: AtomicBool,
+    pub latency: Mutex<Option<Duration>>,
     pub fail_next_send: AtomicBool,
     pause: Mutex<Option<oneshot::Receiver<()>>>,
     sent: Mutex<Vec<String>>,
@@ -78,6 +73,10 @@ impl MemoryStreamConnection {
 
 #[async_trait]
 impl GemStreamConnection for MemoryStreamConnection {
+    async fn latency(&self) -> Option<Duration> {
+        *self.latency.lock().unwrap()
+    }
+
     async fn is_connected(&self) -> bool {
         self.connected.load(Ordering::SeqCst)
     }

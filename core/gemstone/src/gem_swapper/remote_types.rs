@@ -2,25 +2,11 @@ use crate::models::custom_types::GemBigUint;
 
 use primitives::{AssetId, AssetType, Chain};
 pub use swapper::{
-    AssetList as SwapperAssetList, FetchQuoteData, Options as SwapperOptions, ProviderData as SwapperProviderData, ProviderType as SwapperProviderType, Quote as SwapperQuote,
-    QuoteRequest as SwapperQuoteRequest, Route as SwapperRoute, SwapperProvider, SwapperProviderMode, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode,
-    permit2_data::Permit2Data,
+    AssetList as SwapperAssetList, FetchQuoteData, Options as SwapperOptions, ProviderData as SwapperProviderData, ProviderType as SwapperProviderType, Quote as SwapperQuote, QuoteRequest as SwapperQuoteRequest, Route as SwapperRoute,
+    SwapperProvider, SwapperProviderMode, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode,
 };
 
 pub use crate::models::swap::GemSwapQuoteData;
-
-#[uniffi::remote(Enum)]
-pub enum FetchQuoteData {
-    Permit2(Permit2Data),
-    EstimateGas,
-    None,
-}
-
-#[uniffi::remote(Record)]
-pub struct SwapperAssetList {
-    pub chains: Vec<Chain>,
-    pub asset_ids: Vec<AssetId>,
-}
 
 #[uniffi::remote(Record)]
 pub struct SwapperProviderType {

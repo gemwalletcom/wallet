@@ -11,26 +11,32 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WalletsDao {
-    @Query("""
+    @Query(
+        """
         SELECT * FROM wallets
         LEFT JOIN accounts ON wallets.id = accounts.wallet_id
-    """)
+    """,
+    )
     fun getAll(): Flow<Map<DbWallet, List<DbAccount>>>
 
-    @Query("""
+    @Query(
+        """
         SELECT * FROM wallets
         LEFT JOIN accounts ON wallets.id = accounts.wallet_id
-    """)
+    """,
+    )
     suspend fun getAllNow(): Map<DbWallet, List<DbAccount>>
 
     @Query("SELECT * FROM wallets WHERE id = :id")
     fun getById(id: String): Flow<DbWallet?>
 
-    @Query("""
+    @Query(
+        """
         SELECT * FROM wallets
         LEFT JOIN accounts ON wallets.id = accounts.wallet_id
         WHERE wallets.id = :id
-    """)
+    """,
+    )
     suspend fun getByIdNow(id: String): Map<DbWallet, List<DbAccount>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)

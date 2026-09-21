@@ -16,9 +16,7 @@ pub struct SpaceIdProvider {
 
 impl SpaceIdProvider {
     pub fn new(client: ReqwestClient) -> Self {
-        Self {
-            client: SpaceIdClient::new(client),
-        }
+        Self { client: SpaceIdClient::new(client) }
     }
 }
 

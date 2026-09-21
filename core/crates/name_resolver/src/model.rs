@@ -10,11 +10,7 @@ impl NameQuery {
     pub fn new(domain: &str) -> Self {
         let name = domain.split('.').next().unwrap_or(domain).to_string();
         let suffix = domain.get(name.len() + 1..).unwrap_or_default().to_string();
-        Self {
-            name,
-            domain: domain.to_string(),
-            suffix,
-        }
+        Self { name, domain: domain.to_string(), suffix }
     }
 
     pub fn ascii_domain(&self) -> Result<String, idna::Errors> {

@@ -18,26 +18,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.nft.presents.components.NftHeaderActions
 import com.gemwallet.android.features.nft.presents.components.NftTitle
 import com.gemwallet.android.features.nft.viewmodels.NftDetailsViewModel
-import com.gemwallet.android.features.nft.viewmodels.models.NftInfoRowUIModel
 import com.gemwallet.android.features.nft.viewmodels.models.NftSectionUIModel
 import com.gemwallet.android.features.nft.viewmodels.models.ReportReasonUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.NftImage
 import com.gemwallet.android.ui.components.image.toImageSource
+import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
-import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
-import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.list_item.property.verificationStatusItem
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
@@ -49,20 +45,15 @@ import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
-import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.NFTAssetId
+import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.ReportReason
 import kotlinx.coroutines.launch
 
 @Composable
-fun NFTDetailsScene(
-    cancelAction: CancelAction,
-    onRecipient: (AssetId, NFTAssetId) -> Unit,
-) {
+fun NFTDetailsScene(cancelAction: CancelAction, onRecipient: (NFTAsset) -> Unit) {
     val viewModel: NftDetailsViewModel = hiltViewModel()
     val assetData by viewModel.nftAsset.collectAsStateWithLifecycle()
 
-    val uriHandler = LocalUriHandler.current
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val refresh = stringResource(R.string.common_refresh)
@@ -103,7 +94,8 @@ fun NFTDetailsScene(
                 ) {
                     NftHeaderActions(
                         canSend = model.canSend,
-                        onSend = { onRecipient(AssetId(model.asset.chain), model.asset.id) },
+                        actions = model.actions,
+                        onSend = { onRecipient(model.asset) },
                         onRefresh = {
                             scope.launch {
                                 if (viewModel.refresh()) {
@@ -129,21 +121,17 @@ fun NFTDetailsScene(
             model.sections.forEach { section ->
                 when (section) {
                     is NftSectionUIModel.Status -> verificationStatusItem(section.status)
-                    is NftSectionUIModel.Info -> itemsPositioned(section.rows) { position, row -> InfoRow(row, position) }
+
+                    is NftSectionUIModel.Info -> itemsPositioned(section.rows) { position, row -> GemListRowView(row = row, listPosition = position) }
+
                     is NftSectionUIModel.Attributes -> {
                         item { SubheaderItem(section.title) }
                         itemsPositioned(section.rows) { position, row -> ListItem(model = row, listPosition = position) }
                     }
+
                     is NftSectionUIModel.Links -> {
                         item { SubheaderItem(section.title) }
-                        itemsPositioned(section.links) { position, link ->
-                            ListItem(
-                                model = link.model,
-                                listPosition = position,
-                                modifier = Modifier.clickable { uriHandler.openUri(link.url) },
-                                accessory = { DataBadgeChevron() },
-                            )
-                        }
+                        item { GemListRowView(row = section.row, listPosition = ListPosition.Single) }
                     }
                 }
             }
@@ -166,12 +154,7 @@ fun NFTDetailsScene(
 }
 
 @Composable
-private fun ReportReasonSheet(
-    isVisible: Boolean,
-    reasons: List<ReportReasonUIModel>,
-    onDismiss: () -> Unit,
-    onSelect: (ReportReason) -> Unit,
-) {
+private fun ReportReasonSheet(isVisible: Boolean, reasons: List<ReportReasonUIModel>, onDismiss: () -> Unit, onSelect: (ReportReason) -> Unit) {
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismiss,
@@ -190,20 +173,5 @@ private fun ReportReasonSheet(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun InfoRow(row: NftInfoRowUIModel, position: ListPosition) {
-    when (row) {
-        is NftInfoRowUIModel.Item -> ListItem(model = row.model, listPosition = position)
-        is NftInfoRowUIModel.Network -> PropertyNetworkItem(row.chain, listPosition = position)
-        is NftInfoRowUIModel.Identifier -> AddressPropertyItem(
-            title = row.title,
-            displayText = row.identifier.text,
-            copyValue = row.identifier.value,
-            explorerLink = row.identifier.explorer?.toPrimitives(),
-            listPosition = position,
-        )
     }
 }

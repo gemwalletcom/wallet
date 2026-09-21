@@ -3,18 +3,23 @@ package com.gemwallet.android.features.assets.viewmodels
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.session.cases.GetSession
-import uniffi.gemstone.GemWalletHomeServiceInterface
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetInfoDataAggregate
 import com.gemwallet.android.testkit.mockAssetSolana
+import com.gemwallet.android.testkit.mockSession
+import com.gemwallet.android.testkit.mockWallet
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -23,16 +28,11 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import com.gemwallet.android.testkit.mockSession
-import com.gemwallet.android.testkit.mockWallet
-import io.mockk.coEvery
-import io.mockk.coVerify
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.flow.first
-import org.junit.Assert.assertFalse
 import org.junit.Test
+import uniffi.gemstone.GemWalletHomeServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AssetsViewModelTest {
@@ -42,7 +42,7 @@ class AssetsViewModelTest {
         listOf(
             mockAssetInfoDataAggregate(asset = mockAssetSolana(), pinned = true),
             mockAssetInfoDataAggregate(asset = mockAssetEthereum()),
-        )
+        ),
     )
 
     private val service = mockk<GemWalletHomeServiceInterface>(relaxed = true)

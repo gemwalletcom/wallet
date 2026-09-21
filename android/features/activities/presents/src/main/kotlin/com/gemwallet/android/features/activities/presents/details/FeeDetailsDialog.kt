@@ -11,11 +11,7 @@ import com.gemwallet.android.ui.models.ListPosition
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun FeeDetailsDialog(
-    isVisible: Boolean,
-    model: ListItemModel?,
-    onCancel: () -> Unit,
-) {
+internal fun FeeDetailsDialog(isVisible: Boolean, model: ListItemModel?, onCancel: () -> Unit) {
     model ?: return
     ModalBottomSheet(
         isVisible = isVisible,

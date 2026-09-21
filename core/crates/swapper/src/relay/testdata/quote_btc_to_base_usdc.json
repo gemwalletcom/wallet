@@ -1,0 +1,124 @@
+{
+  "requestId": "0x1789640713c2c76a335dc51c0732d3437bc97b1353368a029e7f185b0c9ea12f",
+  "steps": [
+    {
+      "id": "deposit",
+      "action": "Confirm transaction in your wallet",
+      "description": "Depositing funds to the relayer to execute the swap for USDC",
+      "kind": "transaction",
+      "items": [
+        {
+          "status": "incomplete",
+          "data": {
+            "amount": "2000000",
+            "tokenSymbol": "BTC"
+          },
+          "check": {
+            "endpoint": "/intents/status/v3?requestId=0x1789640713c2c76a335dc51c0732d3437bc97b1353368a029e7f185b0c9ea12f",
+            "method": "GET"
+          }
+        }
+      ],
+      "requestId": "0x1789640713c2c76a335dc51c0732d3437bc97b1353368a029e7f185b0c9ea12f",
+      "depositAddress": "bc1qa0z550eacdsxytnxf9yk7xvvhqzqvlx2tl44z2"
+    }
+  ],
+  "details": {
+    "operation": "swap",
+    "sender": "bc1qq2mvrp4g3ugd424dw4xv53rgsf8szkrv853jrc",
+    "recipient": "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7",
+    "currencyIn": {
+      "currency": {
+        "chainId": 8253038,
+        "address": "bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqmql8k8",
+        "symbol": "BTC",
+        "name": "Bitcoin",
+        "decimals": 8,
+        "metadata": {
+          "logoURI": "https://assets.relay.link/icons/currencies/btc.png",
+          "verified": true
+        }
+      },
+      "amount": "2000000",
+      "amountFormatted": "0.02",
+      "amountUsd": "1525.210540",
+      "minimumAmount": "2000000"
+    },
+    "currencyOut": {
+      "currency": {
+        "chainId": 8453,
+        "address": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+        "symbol": "USDC",
+        "name": "USD Coin",
+        "decimals": 6,
+        "metadata": {
+          "logoURI": "https://coin-images.coingecko.com/coins/images/6319/large/usdc.png?1696506694",
+          "verified": true
+        }
+      },
+      "amount": "1512085317",
+      "amountFormatted": "1512.085317",
+      "amountUsd": "1511.906891",
+      "minimumAmount": "1481843611"
+    },
+    "refundCurrency": {
+      "currency": {
+        "chainId": 8253038,
+        "address": "bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqmql8k8",
+        "symbol": "BTC",
+        "name": "Bitcoin",
+        "decimals": 8,
+        "metadata": {
+          "logoURI": "https://assets.relay.link/icons/currencies/btc.png",
+          "verified": true
+        }
+      },
+      "amount": "2000000",
+      "amountFormatted": "0.02",
+      "amountUsd": "1525.210540",
+      "minimumAmount": "2000000"
+    },
+    "totalImpact": {
+      "usd": "-13.303649",
+      "percent": "-0.87"
+    },
+    "swapImpact": {
+      "usd": "-3.477480",
+      "percent": "-0.23"
+    },
+    "expandedPriceImpact": {
+      "swap": {
+        "usd": "-11.085230"
+      },
+      "execution": {
+        "usd": "-1.304055"
+      },
+      "relay": {
+        "usd": "-0.914364"
+      },
+      "app": {
+        "usd": "0"
+      },
+      "sponsored": {
+        "usd": "0"
+      }
+    },
+    "rate": "75604.26585",
+    "slippageTolerance": {
+      "total": "200",
+      "origin": {
+        "usd": "0.000000",
+        "value": "0",
+        "percent": "0.00"
+      },
+      "destination": {
+        "usd": "30.086947",
+        "value": "30241706",
+        "percent": "1.99"
+      }
+    },
+    "timeEstimate": 2,
+    "userBalance": "0",
+    "isFixedRate": false
+  }
+}

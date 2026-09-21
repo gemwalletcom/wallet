@@ -91,8 +91,8 @@ public enum Localized {
         public static func description(_ p1: Any) -> String {
           return Localized.tr("Localizable", "asset.state.empty.description", String(describing: p1), fallback: "Receive, swap or buy %@")
         }
-        /// Your transactions will appear here️
-        public static let title = Localized.tr("Localizable", "asset.state.empty.title", fallback: "Your transactions will appear here️")
+        /// Your transactions will appear here
+        public static let title = Localized.tr("Localizable", "asset.state.empty.title", fallback: "Your transactions will appear here")
       }
     }
     public enum Verification {
@@ -455,10 +455,6 @@ public enum Localized {
     public static let paymentPaid = Localized.tr("Localizable", "errors.payment_paid", fallback: "Payment is already paid")
     /// Permissions Not Granted
     public static let permissionsNotGranted = Localized.tr("Localizable", "errors.permissions_not_granted", fallback: "Permissions Not Granted")
-    /// %@ is required
-    public static func `required`(_ p1: Any) -> String {
-      return Localized.tr("Localizable", "errors.required", String(describing: p1), fallback: "%@ is required")
-    }
     /// Transfer Error
     public static let transferError = Localized.tr("Localizable", "errors.transfer_error", fallback: "Transfer Error")
     /// We are currently unable to calculate the network fee.
@@ -803,8 +799,8 @@ public enum Localized {
       public enum Empty {
         /// Receive your first NFT
         public static let description = Localized.tr("Localizable", "nft.state.empty.description", fallback: "Receive your first NFT")
-        /// Your NFTs will appear here️
-        public static let title = Localized.tr("Localizable", "nft.state.empty.title", fallback: "Your NFTs will appear here️")
+        /// Your NFTs will appear here
+        public static let title = Localized.tr("Localizable", "nft.state.empty.title", fallback: "Your NFTs will appear here")
       }
     }
   }
@@ -1041,8 +1037,8 @@ public enum Localized {
       public enum Empty {
         /// Enable them by adding coins to track
         public static let description = Localized.tr("Localizable", "price_alerts.state.empty.description", fallback: "Enable them by adding coins to track")
-        /// Your price alerts will appear here️
-        public static let title = Localized.tr("Localizable", "price_alerts.state.empty.title", fallback: "Your price alerts will appear here️")
+        /// Your price alerts will appear here
+        public static let title = Localized.tr("Localizable", "price_alerts.state.empty.title", fallback: "Your price alerts will appear here")
       }
     }
   }
@@ -1736,9 +1732,9 @@ public enum Localized {
     public static let watch = Localized.tr("Localizable", "wallets.watch", fallback: "Watch")
   }
   public enum Warnings {
-    /// Do not transfer funds to this %@ Multi-Signature wallet unless you are certain you control the private keys. Failure to do so could expose you to scams, and you may permanently lose your assets.
-    public static func multiSignatureBlocked(_ p1: Any) -> String {
-      return Localized.tr("Localizable", "warnings.multi_signature_blocked", String(describing: p1), fallback: "Do not transfer funds to this %@ Multi-Signature wallet unless you are certain you control the private keys. Failure to do so could expose you to scams, and you may permanently lose your assets.")
+    /// This %@ account can be controlled by someone else. Do not send funds to it unless you are certain you control it, or you may permanently lose your assets.
+    public static func externallyControlledAccount(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "warnings.externally_controlled_account", String(describing: p1), fallback: "This %@ account can be controlled by someone else. Do not send funds to it unless you are certain you control it, or you may permanently lose your assets.")
     }
   }
   public enum Welcome {

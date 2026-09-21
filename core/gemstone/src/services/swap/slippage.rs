@@ -68,9 +68,7 @@ mod tests {
 
     #[test]
     fn test_auto_confirms_whatever_the_input_says() {
-        let above_maximum = GemSlippageSession::new(GemSlippageSelection::Manual {
-            bps: get_swap_config().max_slippage_bps + 1,
-        });
+        let above_maximum = GemSlippageSession::new(GemSlippageSelection::Manual { bps: get_swap_config().max_slippage_bps + 1 });
 
         assert!(!above_maximum.view_state().allows_confirm);
         let auto = GemSlippageSession::new(GemSlippageSelection::Auto);

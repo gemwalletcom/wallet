@@ -169,13 +169,7 @@ mod tests {
     #[test]
     fn test_from_primitive_default_rank() {
         let native = NewAssetRow::from_primitive_default(Asset::from_chain(Chain::Robinhood));
-        let token = NewAssetRow::from_primitive_default(Asset::new(
-            AssetId::from_token(Chain::Robinhood, "0x123"),
-            "Token".to_string(),
-            "TKN".to_string(),
-            18,
-            PrimitiveAssetType::ERC20,
-        ));
+        let token = NewAssetRow::from_primitive_default(Asset::new(AssetId::from_token(Chain::Robinhood, "0x123"), "Token".to_string(), "TKN".to_string(), 18, PrimitiveAssetType::ERC20));
 
         assert_eq!(native.rank, Chain::Robinhood.rank());
         assert_eq!(token.rank, AssetScore::default().rank);

@@ -57,14 +57,7 @@ impl SwiftBuildContext {
         let referrer_address = Some(default_referral_address(Chain::Solana));
         let random_key = swift_random_key(route)?;
         let order_fields = SwiftOrderFields::new(route)?;
-        let order_hash = create_order_hash(
-            route,
-            &quote.request.wallet_address,
-            &destination_address,
-            &random_key,
-            custom_payload.as_deref(),
-            &order_fields,
-        )?;
+        let order_hash = create_order_hash(route, &quote.request.wallet_address, &destination_address, &random_key, custom_payload.as_deref(), &order_fields)?;
         let destination_chain_bytes = order_fields.destination_chain_id.to_le_bytes();
         let swift_program = SolanaAddress::parse(MAYAN_SWIFT_V2_PROGRAM_ID).map_err(solana_error)?.into();
         let (state, _) = find_program_address(&swift_program, &[b"STATE_SOURCE", &order_hash, &destination_chain_bytes]).map_err(solana_error)?;
@@ -128,11 +121,7 @@ where
     )?)?);
 
     if let Some((payload_account, nonce)) = custom_payload_account {
-        instructions.push(wrap_instruction_in_cpi_proxy(create_payload_writer_close_instruction(
-            &context.relayer,
-            &payload_account,
-            nonce,
-        )?)?);
+        instructions.push(wrap_instruction_in_cpi_proxy(create_payload_writer_close_instruction(&context.relayer, &payload_account, nonce)?)?);
     }
 
     Ok(SolanaTransaction::new(instructions, lookup_table_addresses))
@@ -164,13 +153,7 @@ fn add_direct_swift_instructions(route: &MayanSwiftQuote, context: &SwiftBuildCo
     Ok(())
 }
 
-async fn add_swap_instructions<C>(
-    client: &MayanClient<C>,
-    quote: &Quote,
-    route: &MayanSwiftQuote,
-    context: &SwiftBuildContext,
-    instructions: &mut Vec<Instruction>,
-) -> Result<Vec<String>, SwapperError>
+async fn add_swap_instructions<C>(client: &MayanClient<C>, quote: &Quote, route: &MayanSwiftQuote, context: &SwiftBuildContext, instructions: &mut Vec<Instruction>) -> Result<Vec<String>, SwapperError>
 where
     C: Client + Clone + Send + Sync + Debug + 'static,
 {
@@ -187,14 +170,7 @@ where
         ))
         .await?;
 
-    append_client_swap_instructions(
-        instructions,
-        swap,
-        &context.trader,
-        &context.relayer,
-        &route.from_token.contract,
-        &route.effective_amount_in64,
-    )
+    append_client_swap_instructions(instructions, swap, &context.trader, &context.relayer, &route.from_token.contract, &route.effective_amount_in64)
 }
 
 fn create_custom_payload_account(instructions: &mut Vec<Instruction>, relayer: &Pubkey, custom_payload: Option<&[u8]>) -> Result<Option<(Pubkey, u16)>, SwapperError> {
@@ -206,12 +182,7 @@ fn create_custom_payload_account(instructions: &mut Vec<Instruction>, relayer: &
     let payload_writer = SolanaAddress::parse(MAYAN_PAYLOAD_WRITER_PROGRAM_ID).map_err(solana_error)?.into();
     let seeds: [&[u8]; 3] = [b"PAYLOAD", relayer.as_bytes(), &nonce_bytes];
     let (payload_account, _) = find_program_address(&payload_writer, &seeds).map_err(solana_error)?;
-    instructions.push(wrap_instruction_in_cpi_proxy(create_payload_writer_create_instruction(
-        relayer,
-        &payload_account,
-        custom_payload,
-        nonce,
-    )?)?);
+    instructions.push(wrap_instruction_in_cpi_proxy(create_payload_writer_create_instruction(relayer, &payload_account, custom_payload, nonce)?)?);
     Ok(Some((payload_account, nonce)))
 }
 

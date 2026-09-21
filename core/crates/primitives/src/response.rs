@@ -28,9 +28,7 @@ impl<T> ResponseResult<T> {
     }
 
     pub fn error(message: String) -> Self {
-        ResponseResult::Error(ResponseError {
-            error: ErrorDetail { message, data: None },
-        })
+        ResponseResult::Error(ResponseError { error: ErrorDetail { message, data: None } })
     }
 }
 

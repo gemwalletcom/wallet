@@ -53,7 +53,6 @@ public struct AssetsRequest: DatabaseQueryable {
                  .buyable,
                  .sellable,
                  .swappable,
-                 .stakeable,
                  .chains,
                  .chainsOrAssets,
                  .search,
@@ -127,11 +126,6 @@ extension AssetsRequest {
                 .filter(
                     TableAlias(name: AssetRecord.databaseTableName)[AssetRecord.Columns.isSwappable] == true,
                 )
-        case .stakeable:
-            return request
-                .filter(
-                    TableAlias(name: AssetRecord.databaseTableName)[AssetRecord.Columns.isStakeable] == true,
-                )
         case .enabledBalance:
             return request
                 .filter(
@@ -150,7 +144,6 @@ extension AssetsRequest {
         case let .chainsOrAssets(chains, assetIds):
             return request
                 .filter(chains.contains(AssetRecord.Columns.chain) || assetIds.contains(AssetRecord.Columns.id))
-                .filter(AssetRecord.Columns.isEnabled == true || AssetRecord.Columns.isEnabled == false)
         }
     }
 
@@ -221,7 +214,6 @@ extension AssetsRequestFilter {
              .buyable,
              .sellable,
              .swappable,
-             .stakeable,
              .chains,
              .chainsOrAssets:
             false

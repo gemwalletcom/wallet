@@ -27,6 +27,8 @@ pub struct MemoryPriceStore {
     pub prices: Mutex<Vec<AssetPrice>>,
     pub saved: Mutex<Vec<(Currency, Vec<GemPriceUpdate>)>>,
     pub converted: Mutex<Vec<(Currency, f64)>>,
+    pub rate_error: Mutex<Option<GemServiceError>>,
+    pub markets: Mutex<Vec<(AssetId, AssetMarket)>>,
 }
 
 impl MemoryPriceStore {
@@ -42,10 +44,7 @@ impl MemoryPriceStore {
 impl GemPriceStore for MemoryPriceStore {
     async fn get_prices(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetPrice>, GemServiceError> {
         let stored = self.prices.lock().unwrap();
-        Ok(asset_ids
-            .iter()
-            .filter_map(|asset_id| stored.iter().rev().find(|price| &price.asset_id == asset_id).cloned())
-            .collect())
+        Ok(asset_ids.iter().filter_map(|asset_id| stored.iter().rev().find(|price| &price.asset_id == asset_id).cloned()).collect())
     }
     async fn get_rate(&self, currency: Currency) -> Result<Option<FiatRate>, GemServiceError> {
         Ok(self.rates.lock().unwrap().iter().find(|rate| rate.symbol == currency).cloned())
@@ -54,19 +53,24 @@ impl GemPriceStore for MemoryPriceStore {
         *self.rate_reads.lock().unwrap() += 1;
         Ok(self.rates.lock().unwrap().clone())
     }
-    async fn save_rates(&self, rates: Vec<FiatRate>) -> Result<(), GemServiceError> {
+    async fn save_rates(&self, rates: Vec<FiatRate>, conversion: Option<FiatRate>) -> Result<(), GemServiceError> {
+        if let Some(error) = self.rate_error.lock().unwrap().clone() {
+            return Err(error);
+        }
         let mut stored = self.rates.lock().unwrap();
         stored.retain(|stored| rates.iter().all(|rate| rate.symbol != stored.symbol));
         stored.extend(rates.clone());
         self.rate_writes.lock().unwrap().push(rates);
+        if let Some(rate) = conversion {
+            self.converted.lock().unwrap().push((rate.symbol, rate.rate));
+        }
         Ok(())
     }
     async fn save_prices(&self, currency: Currency, prices: Vec<GemPriceUpdate>) -> Result<(), GemServiceError> {
-        self.prices.lock().unwrap().extend(
-            prices
-                .iter()
-                .map(|price| AssetPrice::new(price.asset_id.clone(), price.price, price.price_change_percentage_24h, price.updated_at)),
-        );
+        self.prices
+            .lock()
+            .unwrap()
+            .extend(prices.iter().map(|price| AssetPrice::new(price.asset_id.clone(), price.price, price.price_change_percentage_24h, price.updated_at)));
         self.saved.lock().unwrap().push((currency, prices));
         Ok(())
     }
@@ -74,7 +78,8 @@ impl GemPriceStore for MemoryPriceStore {
         self.converted.lock().unwrap().push((currency, rate));
         Ok(())
     }
-    async fn save_market(&self, _asset_id: AssetId, _market: AssetMarket) -> Result<(), GemServiceError> {
+    async fn save_market(&self, asset_id: AssetId, market: AssetMarket) -> Result<(), GemServiceError> {
+        self.markets.lock().unwrap().push((asset_id, market));
         Ok(())
     }
 }

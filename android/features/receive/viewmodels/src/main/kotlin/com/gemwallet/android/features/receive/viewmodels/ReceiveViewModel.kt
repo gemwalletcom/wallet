@@ -1,14 +1,14 @@
 package com.gemwallet.android.features.receive.viewmodels
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.receive.cases.GetReceiveAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.receive.viewmodels.localization.text
@@ -32,8 +32,11 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemCopy
+import uniffi.gemstone.GemReceiveNetworks
 import uniffi.gemstone.GemReceiveServiceInterface
 import uniffi.gemstone.GemReceiveWarning
+import uniffi.gemstone.addressCopy
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel(assistedFactory = ReceiveViewModel.Factory::class)
@@ -57,24 +60,17 @@ class ReceiveViewModel @AssistedInject constructor(
 
     private fun storedAsset(assetId: AssetId) = getWalletAssets().value.firstOrNull { it.asset.id == assetId }
 
-    val networkAssetIds = combine(
+    val networks = combine(
         asset.filterNotNull().filter { it.asset.id == sourceAssetId },
         session.filterNotNull(),
     ) { assetInfo, session ->
-        service.networkAssetIds(
+        service.networks(
             assetInfo.asset.id.toIdentifier(),
             assetInfo.associations.map { it.assetId.toIdentifier() },
             session.wallet.toGem(),
-        ).map { it.toAssetId()!! }
+        )
     }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, listOf(sourceAssetId))
-
-    init {
-        viewModelScope.launch(ioDispatcher) {
-            val wallet = session.filterNotNull().first().wallet
-            runCatchingCancellable { service.syncNetworkAssetIds(sourceAssetId.toIdentifier(), wallet.toGem()) }
-        }
-    }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, GemReceiveNetworks(assetIds = listOf(sourceAssetId.toIdentifier()), showsSelector = false))
 
     fun warnings(chain: Chain): List<GemReceiveWarning> = service.warnings(chain.string)
 
@@ -82,6 +78,12 @@ class ReceiveViewModel @AssistedInject constructor(
 
     fun selectAsset(assetId: AssetId) {
         selectedAssetId.value = assetId
+    }
+
+    fun shareAddress(): String? = asset.value?.owner?.address
+
+    fun copyAddress(): GemCopy? = asset.value?.let { assetInfo ->
+        assetInfo.owner?.address?.let { addressCopy(assetInfo.asset.id.chain.string, it) }
     }
 
     @AssistedFactory
@@ -92,6 +94,9 @@ class ReceiveViewModel @AssistedInject constructor(
     fun setVisible() = viewModelScope.launch(ioDispatcher) {
         val assetId = asset.value?.asset?.id ?: return@launch
         val wallet = session.filterNotNull().first().wallet
-        service.enableAsset(wallet.id.id, assetId.toIdentifier())
+        runCatchingCancellable { service.enableAsset(wallet.id.id, assetId.toIdentifier()) }
+            .onFailure { Log.e(TAG, "enabling ${assetId.toIdentifier()} failed", it) }
     }
 }
+
+private const val TAG = "Receive"

@@ -13,21 +13,9 @@ use crate::rpc::client::CosmosClient;
 impl<C: Client> ChainBlockTransactions for CosmosClient<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
         let response = self.get_block(block.to_string().as_str()).await?;
-        let transaction_ids = response
-            .block
-            .data
-            .txs
-            .clone()
-            .into_iter()
-            .filter(|x| x.len() < 1024)
-            .flat_map(|x| map_transaction_decode(&x))
-            .collect::<Vec<_>>();
+        let transaction_ids = response.block.data.txs.clone().into_iter().filter(|x| x.len() < 1024).flat_map(|x| map_transaction_decode(&x)).collect::<Vec<_>>();
 
-        let receipts = stream::iter(transaction_ids)
-            .map(|txid| async move { self.get_transaction(txid.clone()).await })
-            .buffer_unordered(5)
-            .try_collect()
-            .await?;
+        let receipts = stream::iter(transaction_ids).map(|txid| async move { self.get_transaction(txid.clone()).await }).buffer_unordered(5).try_collect().await?;
 
         Ok(map_transactions(self.chain, receipts))
     }
@@ -66,10 +54,7 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_cosmos_get_transaction_by_hash() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_cosmos_test_client();
-        let transaction = client
-            .get_transaction_by_hash(TransactionIdRequest::new(primitives::Chain::Cosmos, TEST_TRANSACTION_ID.to_string(), None))
-            .await?
-            .unwrap();
+        let transaction = client.get_transaction_by_hash(TransactionIdRequest::new(primitives::Chain::Cosmos, TEST_TRANSACTION_ID.to_string(), None)).await?.unwrap();
 
         assert_eq!(transaction.hash(), TEST_TRANSACTION_ID);
         Ok(())

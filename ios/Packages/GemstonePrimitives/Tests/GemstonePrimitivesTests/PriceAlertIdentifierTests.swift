@@ -18,5 +18,4 @@ struct PriceAlertIdentifierTests {
         #expect(PriceAlert.mock(price: 50000.01).id == "bitcoin_USD_50000.01")
         #expect(PriceAlert.mock(price: 0.001234567).id == "bitcoin_USD_0.001234567")
     }
-
 }

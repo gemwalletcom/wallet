@@ -14,12 +14,7 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 
 @Composable
-fun FatalStateScene(
-    title: String,
-    message: String,
-    onCancel: (() -> Unit)?,
-    onTryAgain: (() -> Unit)? = null,
-) {
+fun FatalStateScene(title: String, message: String, onCancel: (() -> Unit)?, onTryAgain: (() -> Unit)? = null) {
     Scene(
         title = title,
         padding = sceneContentPaddingValues(),
@@ -38,7 +33,7 @@ fun FatalStateScene(
                     Spacer16()
                     Button(
                         modifier = Modifier,
-                        onClick = onTryAgain
+                        onClick = onTryAgain,
                     ) {
                         Text(text = stringResource(id = R.string.common_try_again))
                     }

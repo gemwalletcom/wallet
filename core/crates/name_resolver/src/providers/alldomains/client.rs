@@ -14,16 +14,11 @@ pub struct AllDomainsClient {
 
 impl AllDomainsClient {
     pub fn new(client: ReqwestClient) -> Self {
-        Self {
-            client: JsonRpcClient::new(client),
-        }
+        Self { client: JsonRpcClient::new(client) }
     }
 
     pub async fn get_name_record(&self, name_account: &Pubkey) -> Result<Option<NameRecord>, Box<dyn Error + Send + Sync>> {
-        let response: ValueResult<Option<AccountData>> = self
-            .client
-            .request(SolanaRpc::GetAccountInfo(name_account.to_string(), SolanaAccountEncoding::Base64))
-            .await?;
+        let response: ValueResult<Option<AccountData>> = self.client.request(SolanaRpc::GetAccountInfo(name_account.to_string(), SolanaAccountEncoding::Base64)).await?;
         let Some(account) = response.value else {
             return Ok(None);
         };

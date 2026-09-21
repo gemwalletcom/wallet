@@ -3,9 +3,9 @@
 import Foundation
 import typealias Gemstone.AssetId
 import struct Gemstone.AssetMarket
+import struct Gemstone.AssetPrice
 import enum Gemstone.Currency
 import struct Gemstone.FiatRate
-import struct Gemstone.AssetPrice
 import protocol Gemstone.GemPriceStore
 import struct Gemstone.GemPriceUpdate
 import GemstonePrimitives
@@ -14,11 +14,9 @@ import Store
 
 public final class GemstonePriceStore: GemPriceStore, @unchecked Sendable {
     private let priceStore: PriceStore
-    private let fiatRateStore: FiatRateStore
 
-    public init(priceStore: PriceStore, fiatRateStore: FiatRateStore) {
+    public init(priceStore: PriceStore) {
         self.priceStore = priceStore
-        self.fiatRateStore = fiatRateStore
     }
 
     public func getPrices(assetIds: [Gemstone.AssetId]) throws -> [Gemstone.AssetPrice] {
@@ -34,8 +32,8 @@ public final class GemstonePriceStore: GemPriceStore, @unchecked Sendable {
         try priceStore.getRates().map { Primitives.FiatRate(symbol: $0.symbol, rate: $0.rate).toGem() }
     }
 
-    public func saveRates(rates: [Gemstone.FiatRate]) async throws {
-        try fiatRateStore.add(rates.map { $0.toPrimitives() })
+    public func saveRates(rates: [Gemstone.FiatRate], conversion: Gemstone.FiatRate?) async throws {
+        try priceStore.saveRates(rates.map { $0.toPrimitives() }, conversion: conversion?.toPrimitives())
     }
 
     public func savePrices(currency _: Gemstone.Currency, prices: [GemPriceUpdate]) async throws {

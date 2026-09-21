@@ -46,12 +46,7 @@ fn get_swap_gas_limit(swap_data: &SwapData) -> Result<u64, Box<dyn Error + Send 
     match swap_data.data.data_type {
         SwapQuoteDataType::Transfer => Ok(TRANSFER_GAS_LIMIT),
         SwapQuoteDataType::Contract => {
-            let provider_gas_limit = swap_data
-                .data
-                .gas_limit
-                .as_deref()
-                .and_then(|gas_limit| gas_limit.parse::<u64>().ok())
-                .filter(|gas_limit| *gas_limit > 0);
+            let provider_gas_limit = swap_data.data.gas_limit.as_deref().and_then(|gas_limit| gas_limit.parse::<u64>().ok()).filter(|gas_limit| *gas_limit > 0);
             match provider_gas_limit {
                 Some(gas_limit) => Ok(gas_limit.checked_mul(PROVIDER_GAS_LIMIT_BUFFER_NUMERATOR).ok_or("gas limit overflow")? / PROVIDER_GAS_LIMIT_BUFFER_DENOMINATOR),
                 None => {
@@ -154,13 +149,7 @@ mod tests {
             (BigInt::from(5_250_000), BigInt::from(26_250))
         );
         assert_eq!(
-            transaction_fee(
-                CosmosChain::Thorchain,
-                TransactionInputType::Transfer {
-                    asset: Asset::from_chain(Chain::Thorchain),
-                },
-                2_000_000,
-            ),
+            transaction_fee(CosmosChain::Thorchain, TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Thorchain) }, 2_000_000,),
             (BigInt::from(200_000), BigInt::from(2_000_000))
         );
     }
@@ -173,9 +162,7 @@ mod tests {
         };
 
         assert_eq!(
-            calculate_transaction_fee(&input_type, CosmosChain::Cosmos, &GasPriceType::regular(1u64))
-                .unwrap_err()
-                .to_string(),
+            calculate_transaction_fee(&input_type, CosmosChain::Cosmos, &GasPriceType::regular(1u64)).unwrap_err().to_string(),
             "Cosmos freeze operations are not supported"
         );
     }

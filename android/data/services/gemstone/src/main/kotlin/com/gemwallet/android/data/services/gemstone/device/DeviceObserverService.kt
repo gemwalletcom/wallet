@@ -10,11 +10,7 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.GemDeviceService
 import uniffi.gemstone.GemDeviceServiceInterface
 
-class DeviceObserverService(
-    private val getWallets: GetWallets,
-    private val deviceService: GemDeviceServiceInterface,
-    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
-) {
+class DeviceObserverService(private val getWallets: GetWallets, private val deviceService: GemDeviceServiceInterface, private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)) {
     private var observeJob: Job? = null
 
     fun start() {

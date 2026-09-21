@@ -35,9 +35,7 @@ mod tests {
 
     #[test]
     fn test_lookup_name_request_encode() {
-        let request = LookupNameRequest {
-            name: Some("alpha.sui".to_string()),
-        };
+        let request = LookupNameRequest { name: Some("alpha.sui".to_string()) };
 
         assert_eq!(request.encode(), encode_string_field(1, "alpha.sui"));
     }

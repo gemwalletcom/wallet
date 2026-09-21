@@ -8,11 +8,7 @@ pub struct ParseContext<'a, Transaction, Metadata> {
 
 impl<'a, Transaction, Metadata> ParseContext<'a, Transaction, Metadata> {
     pub fn new(transaction: &'a Transaction, created_at: DateTime<Utc>, metadata: Metadata) -> Self {
-        Self {
-            transaction,
-            created_at,
-            metadata,
-        }
+        Self { transaction, created_at, metadata }
     }
 }
 

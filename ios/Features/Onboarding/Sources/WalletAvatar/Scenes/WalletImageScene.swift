@@ -80,14 +80,14 @@ public struct WalletImageScene: View {
             .padding(.horizontal, .medium)
         }
         .overlay {
-            if model.nftDataList.isEmpty {
+            if model.nftAssetItems.isEmpty {
                 EmptyContentView(model: model.emptyContentModel)
             }
         }
     }
 
     private var nftAssetListView: some View {
-        ForEach(model.buildNftAssetsItems(from: model.nftDataList)) { item in
+        ForEach(model.nftAssetItems) { item in
             let view = GridPosterView(model: GridPosterViewModel(assetImage: item.assetImage, title: nil))
             NavigationCustomLink(with: view) {
                 onSelectNftAsset(item)

@@ -22,12 +22,7 @@ pub fn map_transaction_preload(access_key: &AccountAccessKey, block: &Block) -> 
     }
 }
 
-pub(super) fn map_transaction_fee(
-    input: &TransactionLoadInput,
-    destination_address: &str,
-    config: &ProtocolConfig,
-    token_account_creation_deposit: Option<BigInt>,
-) -> TransactionFee {
+pub(super) fn map_transaction_fee(input: &TransactionLoadInput, destination_address: &str, config: &ProtocolConfig, token_account_creation_deposit: Option<BigInt>) -> TransactionFee {
     let costs = &config.runtime_config.transaction_costs;
     let action_costs = &costs.action_creation_config;
 
@@ -35,14 +30,9 @@ pub(super) fn map_transaction_fee(
     let (send_gas, execution_gas, options) = if asset_id.is_token() {
         let sender_is_receiver = asset_id.token_id.as_deref() == Some(input.sender_address.as_str());
         let function_call_count = if token_account_creation_deposit.is_some() { 2u32 } else { 1u32 };
-        let send_gas = BigInt::from(costs.action_receipt_creation_config.send_gas(sender_is_receiver))
-            + BigInt::from(action_costs.function_call_cost.send_gas(sender_is_receiver)) * function_call_count;
-        let execution_gas = BigInt::from(costs.action_receipt_creation_config.execution)
-            + BigInt::from(action_costs.function_call_cost.execution) * function_call_count
-            + BigInt::from(FUNGIBLE_TOKEN_FUNCTION_CALL_GAS) * function_call_count;
-        let options = token_account_creation_deposit
-            .map(|value| HashMap::from([(FeeOption::TokenAccountCreation, value)]))
-            .unwrap_or_default();
+        let send_gas = BigInt::from(costs.action_receipt_creation_config.send_gas(sender_is_receiver)) + BigInt::from(action_costs.function_call_cost.send_gas(sender_is_receiver)) * function_call_count;
+        let execution_gas = BigInt::from(costs.action_receipt_creation_config.execution) + BigInt::from(action_costs.function_call_cost.execution) * function_call_count + BigInt::from(FUNGIBLE_TOKEN_FUNCTION_CALL_GAS) * function_call_count;
+        let options = token_account_creation_deposit.map(|value| HashMap::from([(FeeOption::TokenAccountCreation, value)])).unwrap_or_default();
         (send_gas, execution_gas, options)
     } else {
         let sender_is_receiver = input.sender_address == destination_address;
@@ -105,13 +95,7 @@ mod tests {
     #[test]
     fn test_map_transaction_fee() {
         let config: ProtocolConfig = serde_json::from_str(include_str!("../../testdata/protocol_config.json")).unwrap();
-        let mut input = TransactionLoadInput::mock_near(
-            "sender.near",
-            "051d30e6c78c4cf858389d62af5f703275450d318b85ff52a4ac963948cfdf95",
-            "1",
-            1,
-            "244ZQ9cgj3CQ6bWBdytfrJMuMQ1jdXLFGnr4HhvtCTnM",
-        );
+        let mut input = TransactionLoadInput::mock_near("sender.near", "051d30e6c78c4cf858389d62af5f703275450d318b85ff52a4ac963948cfdf95", "1", 1, "244ZQ9cgj3CQ6bWBdytfrJMuMQ1jdXLFGnr4HhvtCTnM");
         input.gas_price = GasPriceType::regular(BigInt::from(100000000u64));
 
         let implicit_fee = map_transaction_fee(&input, &input.destination_address, &config, None);
@@ -128,21 +112,13 @@ mod tests {
         assert_eq!(swap_fee.fee, implicit_fee.fee);
         assert_eq!(swap_fee.gas_limit, implicit_fee.gas_limit);
 
-        input.input_type = TransactionInputType::Transfer {
-            asset: Asset::from_chain(Chain::Near),
-        };
+        input.input_type = TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Near) };
         input.destination_address = "receiver.near".to_string();
         let named_fee = map_transaction_fee(&input, &input.destination_address, &config, None);
         assert_eq!(named_fee.fee, BigInt::from(245500818750000000000u128));
 
         input.input_type = primitives::TransactionInputType::Transfer {
-            asset: primitives::Asset::new(
-                primitives::AssetId::from_token(primitives::Chain::Near, "token.near"),
-                "Token".to_string(),
-                "TKN".to_string(),
-                6,
-                primitives::AssetType::TOKEN,
-            ),
+            asset: primitives::Asset::new(primitives::AssetId::from_token(primitives::Chain::Near, "token.near"), "Token".to_string(), "TKN".to_string(), 6, primitives::AssetType::TOKEN),
         };
         let token_fee = map_transaction_fee(&input, &input.destination_address, &config, None);
         assert_eq!(token_fee.gas_limit, BigInt::from(31_196_119_000_000u64));

@@ -1,10 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import Formatters
+import Foundation
 import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemNumberDisplay
 import enum Gemstone.GemNumberNotation
+import enum Gemstone.GemNumberRounding
 import enum Gemstone.GemNumberUnit
 import enum Gemstone.GemPrecision
 
@@ -27,35 +28,47 @@ private extension GemFormattedNumber {
         case .abbreviated:
             abbreviatedText(locale: locale)
         case let .belowThreshold(threshold, places):
-            appendingSymbol("<\(thresholdText(threshold, places: places, locale: locale))")
+            appendingSymbol("\(signText)<\(thresholdText(threshold, places: places, locale: locale))")
         }
     }
 
     var currencyCode: String? {
         switch unit {
         case let .currency(code): code
-        case .percent, .symbol, .plain: nil
+        case .percent, .symbol, .plain, .multiplier: nil
         }
     }
 
     var symbol: String? {
         switch unit {
         case let .symbol(symbol): symbol
-        case .currency, .percent, .plain: nil
+        case .currency, .percent, .plain, .multiplier: nil
         }
     }
 
     var isPercent: Bool {
         switch unit {
         case .percent: true
-        case .currency, .symbol, .plain: false
+        case .currency, .symbol, .plain, .multiplier: false
         }
+    }
+
+    var signText: String {
+        guard showsSign else { return "" }
+        return value < 0 ? "-" : "+"
     }
 
     var showsSign: Bool {
         switch notation {
         case .signed: true
         case .plain, .parenthesised: false
+        }
+    }
+
+    var roundingRule: FloatingPointRoundingRule {
+        switch rounding {
+        case .toNearest: .toNearestOrEven
+        case .towardZero: .towardZero
         }
     }
 
@@ -73,21 +86,22 @@ private extension GemFormattedNumber {
                 .percent.locale(locale)
                     .precision(precision.formatStyle)
                     .sign(strategy: showsSign ? .always(includingZero: true) : .never)
-                    .scale(1),
+                    .scale(1)
+                    .rounded(rule: roundingRule),
             )
         }
         guard let currencyCode else {
-            return value.formatted(.number.locale(locale).precision(precision.formatStyle).sign(strategy: numberSign))
+            return value.formatted(.number.locale(locale).precision(precision.formatStyle).sign(strategy: numberSign).rounded(rule: roundingRule))
         }
-        return value.formatted(.currency(code: currencyCode).locale(locale).precision(precision.formatStyle).sign(strategy: currencySign))
+        return value.formatted(.currency(code: currencyCode).locale(locale).precision(precision.formatStyle).sign(strategy: currencySign).rounded(rule: roundingRule))
     }
 
     func abbreviatedText(locale: Locale) -> String {
         let formatter = AbbreviatedFormatter(locale: locale)
         if let currencyCode {
-            return formatter.string(from: value, currency: currencyCode) ?? numberText(precision: .fraction(min: 2, max: 2), locale: locale)
+            return formatter.string(from: value, currency: currencyCode, rule: roundingRule) ?? numberText(precision: .fraction(min: 2, max: 2), locale: locale)
         }
-        return appendingSymbol(formatter.string(from: value) ?? numberText(precision: .fraction(min: 2, max: 2), locale: locale))
+        return appendingSymbol(formatter.string(from: value, rule: roundingRule) ?? numberText(precision: .fraction(min: 2, max: 2), locale: locale))
     }
 
     func thresholdText(_ threshold: Double, places: UInt32, locale: Locale) -> String {
@@ -98,6 +112,9 @@ private extension GemFormattedNumber {
     }
 
     func appendingSymbol(_ text: String) -> String {
+        if case .multiplier = unit {
+            return "\(text)x"
+        }
         guard let symbol else { return text }
         return "\(text) \(symbol)"
     }

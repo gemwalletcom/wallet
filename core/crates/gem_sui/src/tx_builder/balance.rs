@@ -26,13 +26,6 @@ pub fn balance_value(txb: &mut TransactionBuilder, coin_type: &str, balance: Arg
 }
 
 pub fn destroy_zero_balance(txb: &mut TransactionBuilder, coin_type: &str, balance: Argument) -> Result<(), SuiError> {
-    move_call(
-        txb,
-        sui_framework_package_address(),
-        MODULE_BALANCE,
-        FUNCTION_BALANCE_DESTROY_ZERO,
-        &[coin_type],
-        vec![balance],
-    )?;
+    move_call(txb, sui_framework_package_address(), MODULE_BALANCE, FUNCTION_BALANCE_DESTROY_ZERO, &[coin_type], vec![balance])?;
     Ok(())
 }

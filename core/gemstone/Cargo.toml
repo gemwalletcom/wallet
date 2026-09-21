@@ -15,7 +15,6 @@ name = "gemstone"
 [features]
 default = []
 reqwest_provider = ["swapper/reqwest_provider"]
-swap_integration_tests = ["reqwest_provider"]
 
 [dependencies]
 rand = { workspace = true }

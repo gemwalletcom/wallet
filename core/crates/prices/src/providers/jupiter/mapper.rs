@@ -20,31 +20,18 @@ pub fn to_jupiter_token_id(provider_price_id: &str) -> String {
 }
 
 pub fn map_token_asset(token: Token) -> PriceProviderAsset {
-    PriceProviderAsset::with_price(
-        to_asset_price_mapping(&token.id),
-        Some(map_token_market(&token)),
-        Some(token.usd_price),
-        Some(token.stats24h.price_change),
-    )
+    PriceProviderAsset::with_price(to_asset_price_mapping(&token.id), Some(map_token_market(&token)), Some(token.usd_price), Some(token.stats24h.price_change))
 }
 
 pub fn map_token_price(mapping: AssetPriceMapping, token: &Token) -> AssetPriceFull {
-    AssetPriceFull::new(
-        mapping,
-        Price::new(token.usd_price, token.stats24h.price_change, chrono::Utc::now(), PriceProvider::Jupiter),
-        Some(map_token_market(token)),
-    )
+    AssetPriceFull::new(mapping, Price::new(token.usd_price, token.stats24h.price_change, chrono::Utc::now(), PriceProvider::Jupiter), Some(map_token_market(token)))
 }
 
 fn map_token_market(token: &Token) -> AssetMarket {
     AssetMarket {
         market_cap: token.mcap,
         market_cap_fdv: token.fdv,
-        total_volume: token
-            .stats24h
-            .buy_volume
-            .zip(token.stats24h.sell_volume)
-            .map(|(buy_volume, sell_volume)| buy_volume + sell_volume),
+        total_volume: token.stats24h.buy_volume.zip(token.stats24h.sell_volume).map(|(buy_volume, sell_volume)| buy_volume + sell_volume),
         circulating_supply: token.circ_supply,
         total_supply: token.total_supply,
         ..AssetMarket::default()

@@ -11,10 +11,7 @@ pub struct Cancel {
 
 impl Cancel {
     pub fn new(cancels: Vec<CancelOrder>) -> Self {
-        Self {
-            r#type: "cancel".to_string(),
-            cancels,
-        }
+        Self { r#type: "cancel".to_string(), cancels }
     }
 }
 

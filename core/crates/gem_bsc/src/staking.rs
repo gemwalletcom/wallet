@@ -71,10 +71,7 @@ impl<C: Client + Clone> EvmStakingClient for BscStakingClient<C> {
 
     async fn get_staking_balance(&self, address: &str) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {
         let (delegations, undelegations) = self.get_staking_state(address).await?;
-        Ok(Some(AssetBalance::new_balance(
-            AssetId::from_chain(Chain::SmartChain),
-            map_staking_balance(&delegations, &undelegations),
-        )))
+        Ok(Some(AssetBalance::new_balance(AssetId::from_chain(Chain::SmartChain), map_staking_balance(&delegations, &undelegations))))
     }
 
     fn encode_stake(&self, stake_type: &StakeType, value: &BigInt) -> Result<TransactionParams, Box<dyn Error + Sync + Send>> {
@@ -124,10 +121,7 @@ mod chain_integration_tests {
         assert!(!delegations.is_empty());
 
         for delegation in &delegations {
-            println!(
-                "Delegation - Validator: {}, Balance: {}, State: {:?}",
-                delegation.validator_id, delegation.balance, delegation.state
-            );
+            println!("Delegation - Validator: {}, Balance: {}, State: {:?}", delegation.validator_id, delegation.balance, delegation.state);
             assert_eq!(delegation.asset_id.chain, Chain::SmartChain);
         }
 

@@ -35,7 +35,7 @@ import com.gemwallet.android.data.service.store.database.entities.DbTransactionS
 import com.gemwallet.android.data.service.store.database.entities.DbWallet
 
 @Database(
-    version = 94,
+    version = 95,
     entities = [
         DbWallet::class,
         DbAccount::class,
@@ -67,7 +67,7 @@ import com.gemwallet.android.data.service.store.database.entities.DbWallet
         DbPerpetualPosition::class,
         DbInAppNotification::class,
         DbSupportMessage::class,
-    ]
+    ],
 )
 @TypeConverters(StoreConverters::class, ChainConverters::class)
 abstract class GemDatabase : RoomDatabase() {

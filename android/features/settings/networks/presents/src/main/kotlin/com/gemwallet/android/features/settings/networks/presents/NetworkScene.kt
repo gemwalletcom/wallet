@@ -44,11 +44,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.paddingSmall
 
 @Composable
-internal fun NetworkScene(
-    state: NetworksUIState,
-    snackbar: SnackbarHostState? = null,
-    onAction: (NetworkAction) -> Unit,
-) {
+internal fun NetworkScene(state: NetworksUIState, snackbar: SnackbarHostState? = null, onAction: (NetworkAction) -> Unit) {
     val chain = state.chain ?: return
     var isShowAddSource by remember { mutableStateOf(false) }
     var revealedNodeId by remember { mutableStateOf<String?>(null) }
@@ -96,6 +92,7 @@ internal fun NetworkScene(
                                 },
                             )
                         }
+
                         is NetworkSectionUIModel.Explorers -> itemsPositioned(section.rows) { position, item ->
                             BlockExplorerItem(item, position) { onAction(NetworkAction.SelectBlockExplorer(it)) }
                         }
@@ -133,11 +130,7 @@ internal fun NetworkScene(
 }
 
 @Composable
-private fun BlockExplorerItem(
-    explorer: ExplorerRowUIModel,
-    listPosition: ListPosition,
-    onSelect: (String) -> Unit,
-) {
+private fun BlockExplorerItem(explorer: ExplorerRowUIModel, listPosition: ListPosition, onSelect: (String) -> Unit) {
     ListItem(
         model = explorer.model,
         listPosition = listPosition,
@@ -151,11 +144,7 @@ private fun BlockExplorerItem(
 }
 
 @Composable
-private fun ConfirmNodeDeleteDialog(
-    nodeName: String,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-) {
+private fun ConfirmNodeDeleteDialog(nodeName: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.background,
@@ -180,6 +169,6 @@ private fun ConfirmNodeDeleteDialog(
             TextButton(onClick = onDismiss) {
                 Text(stringResource(R.string.common_cancel))
             }
-        }
+        },
     )
 }

@@ -14,14 +14,3 @@ public extension GemConfirmationProtocol {
         addressUrl(chain: chain.rawValue, address: address).toPrimitives()
     }
 }
-
-public extension GemConfirmSimulationState {
-    var names: [Primitives.ChainAddress: Primitives.AddressName] {
-        Dictionary(
-            addressNames
-                .map { $0.toPrimitives() }
-                .map { (Primitives.ChainAddress(chain: $0.chain, address: $0.address), $0) },
-            uniquingKeysWith: { first, _ in first },
-        )
-    }
-}

@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.Resource
 import Components
 import Formatters
 import Foundation
 import struct Gemstone.GemTransactionRow
+import enum Gemstone.Resource
 import func Gemstone.transactionRow
 import func Gemstone.transactionRows
 import GemstonePrimitives
@@ -79,12 +79,12 @@ public struct TransactionViewModel: Sendable, Identifiable, Equatable {
         }
     }
 
-    public func listItem(currency: Currency) -> ListItemModel {
+    public var listItem: ListItemModel {
         let title = titleTextValue
         let titleExtra = titleExtraTextValue
         let titleTag = titleTagTextValue
-        let subtitle = subtitleTextValue(currency: currency)
-        let subtitleExtra = subtitleExtraTextValue(currency: currency)
+        let subtitle = subtitleTextValue
+        let subtitleExtra = subtitleExtraTextValue
         return ListItemModel(
             title: title.text,
             titleStyle: title.style,
@@ -137,8 +137,8 @@ public struct TransactionViewModel: Sendable, Identifiable, Equatable {
         let title: String? = switch row.subtitle {
         case let .toAddress(participant), let .fromAddress(participant): participantTitle(prefix: prefix, participant: participant)
         case let .toResource(resource), let .fromResource(resource): resourceTitle(prefix: prefix, resource: resource)
-        case let .price(value):
-            String(format: "%@: %@", prefix, AmountDisplay.currency(value: value, currencyCode: Currency.usd.rawValue, showSign: false).text)
+        case let .price(price):
+            String(format: "%@: %@", prefix, price.text())
         case .none: .none
         }
 
@@ -150,12 +150,12 @@ public struct TransactionViewModel: Sendable, Identifiable, Equatable {
         }
     }
 
-    public func subtitleTextValue(currency: Currency) -> TextValue? {
-        row.value.textValue(currency: currency, formatter: .short)
+    public var subtitleTextValue: TextValue? {
+        row.value.textValue(textStyle: TextStyle(font: .body, color: row.valueTone.color, fontWeight: .medium))
     }
 
-    public func subtitleExtraTextValue(currency: Currency) -> TextValue? {
-        row.equivalentValue.textValue(currency: currency, formatter: .short, textStyle: .footnote)
+    public var subtitleExtraTextValue: TextValue? {
+        row.equivalentValue.textValue(textStyle: .footnote)
     }
 
     private var assetId: AssetId {

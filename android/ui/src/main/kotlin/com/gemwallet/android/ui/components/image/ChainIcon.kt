@@ -2,9 +2,9 @@ package com.gemwallet.android.ui.components.image
 
 import androidx.annotation.DrawableRes
 import com.gemwallet.android.domains.asset.icon
-import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.domains.asset.iconChain
 import com.gemwallet.android.domains.asset.supportIconChain
+import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ui.R
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId

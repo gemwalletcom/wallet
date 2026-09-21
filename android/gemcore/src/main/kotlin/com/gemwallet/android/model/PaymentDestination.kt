@@ -7,14 +7,14 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.PaymentRequest
-import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.GemPaymentConfirmTransfer
 import uniffi.gemstone.GemPaymentDestination
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemPaymentServiceInterface
 import uniffi.gemstone.GemPaymentWalletAsset
+import uniffi.gemstone.GemTransferData
+import uniffi.gemstone.PaymentRequest
 
 sealed interface PaymentDestination {
 
@@ -29,16 +29,18 @@ sealed interface PaymentDestination {
     data class SelectAsset(val payment: GemPaymentRecipient, val chains: List<Chain>) : PaymentDestination
 
     companion object {
-        fun from(request: PaymentRequest, assets: List<AssetInfo>, paymentService: GemPaymentServiceInterface): PaymentDestination =
-            when (val destination = paymentService.destination(request, assets.map { it.toPaymentWalletAsset() })) {
-                is GemPaymentDestination.Confirm -> destination.transfer.toTransferData(assets, paymentService)?.let(::Confirm) ?: Unsupported
-                is GemPaymentDestination.Recipient -> Recipient(destination.assetId.toAssetId()!!, destination.payment)
-                is GemPaymentDestination.SelectAsset -> SelectAsset(
-                    destination.payment,
-                    destination.chains.map { chain -> chain.requireChain() },
-                )
-                is GemPaymentDestination.Unsupported -> Unsupported
-            }
+        fun from(request: PaymentRequest, assets: List<AssetInfo>, paymentService: GemPaymentServiceInterface): PaymentDestination = when (val destination = paymentService.destination(request, assets.map { it.toPaymentWalletAsset() })) {
+            is GemPaymentDestination.Confirm -> destination.transfer.toTransferData(assets, paymentService)?.let(::Confirm) ?: Unsupported
+
+            is GemPaymentDestination.Recipient -> Recipient(destination.assetId.toAssetId()!!, destination.payment)
+
+            is GemPaymentDestination.SelectAsset -> SelectAsset(
+                destination.payment,
+                destination.chains.map { chain -> chain.requireChain() },
+            )
+
+            is GemPaymentDestination.Unsupported -> Unsupported
+        }
     }
 }
 

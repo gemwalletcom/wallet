@@ -13,14 +13,7 @@ import com.wallet.core.primitives.ContactAddress
 import com.wallet.core.primitives.ContactData
 
 @Entity(tableName = "contacts")
-data class DbContact(
-    @PrimaryKey val id: String,
-    val name: String,
-    val description: String? = null,
-    val imageUrl: String? = null,
-    val createdAt: Long,
-    val updatedAt: Long,
-)
+data class DbContact(@PrimaryKey val id: String, val name: String, val description: String? = null, val imageUrl: String? = null, val createdAt: Long, val updatedAt: Long)
 
 @Entity(
     tableName = "contacts_addresses",
@@ -35,13 +28,7 @@ data class DbContact(
     ],
     indices = [Index("contactId")],
 )
-data class DbContactAddress(
-    @PrimaryKey val id: String,
-    val contactId: String,
-    val address: String,
-    val chain: Chain,
-    val memo: String? = null,
-)
+data class DbContactAddress(@PrimaryKey val id: String, val contactId: String, val address: String, val chain: Chain, val memo: String? = null)
 
 data class DbContactWithAddresses(
     @Embedded val contact: DbContact,
@@ -49,12 +36,7 @@ data class DbContactWithAddresses(
     val addresses: List<DbContactAddress>,
 )
 
-data class DbRecipientContact(
-    val name: String,
-    val address: String,
-    val chain: Chain,
-    val memo: String?,
-)
+data class DbRecipientContact(val name: String, val address: String, val chain: Chain, val memo: String?)
 
 fun Contact.toRecord(): DbContact = DbContact(
     id = id,

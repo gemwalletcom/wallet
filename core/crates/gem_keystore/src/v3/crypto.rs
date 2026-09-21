@@ -17,8 +17,7 @@ pub(super) fn decrypt_v3_json(json: &KeystoreV3, password: &[u8]) -> Result<Zero
     let derived_key = derive_scrypt_key(password, &json.crypto.kdfparams)?;
     verify_v3_mac(&derived_key, &json.crypto.ciphertext, &json.crypto.mac)?;
     let mut plaintext = Zeroizing::new(json.crypto.ciphertext.clone());
-    let mut cipher =
-        Aes128Ctr::new_from_slices(&derived_key[..AES_128_KEY_LEN], &json.crypto.cipherparams.iv).map_err(|_| KeystoreError::corrupt_file("invalid AES-128-CTR parameters"))?;
+    let mut cipher = Aes128Ctr::new_from_slices(&derived_key[..AES_128_KEY_LEN], &json.crypto.cipherparams.iv).map_err(|_| KeystoreError::corrupt_file("invalid AES-128-CTR parameters"))?;
     cipher.apply_keystream(&mut plaintext);
     Ok(plaintext)
 }
@@ -37,9 +36,5 @@ fn verify_v3_mac(derived_key: &[u8], ciphertext: &[u8], mac: &[u8]) -> Result<()
     hasher.update(&derived_key[AES_128_KEY_LEN..DERIVED_KEY_LEN]);
     hasher.update(ciphertext);
     let expected = hasher.finalize();
-    if constant_time_eq(expected.as_slice(), mac) {
-        Ok(())
-    } else {
-        Err(KeystoreError::AuthenticationFailed)
-    }
+    if constant_time_eq(expected.as_slice(), mac) { Ok(()) } else { Err(KeystoreError::AuthenticationFailed) }
 }

@@ -54,14 +54,18 @@ Use `./gradlew assembleGoogleDebug` when the change touches app composition, nav
 ## Test Commands
 
 ```bash
-just test
-just test-integration
-./gradlew test
-./gradlew :app:testGoogleDebugUnitTest
-./gradlew assembleGoogleDebugAndroidTest
-./gradlew connectedGoogleDebugAndroidTest
-./gradlew check
+./gradlew :features:asset:viewmodels:testDebugUnitTest # one library module while iterating
+./gradlew :app:testGoogleDebugUnitTest                 # the app module
+just test                                              # every module, before a commit
+./gradlew assembleGoogleDebugAndroidTest               # compile instrumented tests
+just test-integration                                  # instrumented tests on a running emulator
 ```
+
+`just test` runs every module's unit tests with `--continue`, so one run reports every failing module. Every Gradle JVM test task depends on `:gemstone:buildGemstoneHost` and fingerprints the host library loaded through JNA, including module-scoped tests. Cargo checks its own incremental state on each invocation; the host library is a Gradle test input, so native-only changes invalidate previous test results. Unchanged native output keeps bindings and tests reusable. Android JNI packaging likewise lets Cargo check its own toolchain and compiler flags rather than duplicating its fingerprint rules in Gradle.
+
+## Core Changes
+
+The Gradle build regenerates the Kotlin bindings and the native libraries on its own whenever Core sources change, so there is no separate generation step for app builds. A local debug build compiles Core for `arm64-v8a` only, which covers the Apple Silicon emulator and current devices; release builds compile `arm64-v8a` and `armeabi-v7a`. Set `GEMSTONE_ANDROID_ABIS` (for example `GEMSTONE_ANDROID_ABIS=arm64-v8a,armeabi-v7a`) to install a debug build on a 32-bit device.
 
 ## Command Rules
 

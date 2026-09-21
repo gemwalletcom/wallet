@@ -96,10 +96,7 @@ async fn run_ethereum(args: Cli) -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let mut last_printed_block_opt: Option<u64> = None;
     let mut block_data: HashMap<u64, Vec<SourceFeeDetail>> = HashMap::new();
-    println!(
-        "gas-bench [Ethereum]: with history blocks: {}, reward percentiles: {:?}",
-        args.blocks, args.reward_percentiles
-    );
+    println!("gas-bench [Ethereum]: with history blocks: {}, reward percentiles: {:?}", args.blocks, args.reward_percentiles);
 
     loop {
         ticker.tick().await;
@@ -201,10 +198,7 @@ async fn run_ethereum(args: Cli) -> Result<(), Box<dyn Error + Send + Sync>> {
             Some(last_printed) => sorted_blocks_in_map
                 .into_iter()
                 .find(|&block_num| block_num > last_printed && block_data.get(&block_num).is_some_and(|details| details.len() >= 2)),
-            None => sorted_blocks_in_map
-                .iter()
-                .find(|&&b_num| block_data.get(&b_num).is_some_and(|details| details.len() >= 2))
-                .cloned(),
+            None => sorted_blocks_in_map.iter().find(|&&b_num| block_data.get(&b_num).is_some_and(|details| details.len() >= 2)).cloned(),
         };
 
         if args.debug {
@@ -302,24 +296,11 @@ async fn run_solana(args: Cli) -> Result<(), Box<dyn Error + Send + Sync>> {
     }
 }
 
-fn print_solana_fee_data(
-    fee_data: &SolanaFeeData,
-    jito_res: &Option<Result<JitoTipFloor, Box<dyn Error + Send + Sync>>>,
-    helius_res: &Option<Result<HeliusPriorityFees, Box<dyn Error + Send + Sync>>>,
-    compute_units: u64,
-) {
+fn print_solana_fee_data(fee_data: &SolanaFeeData, jito_res: &Option<Result<JitoTipFloor, Box<dyn Error + Send + Sync>>>, helius_res: &Option<Result<HeliusPriorityFees, Box<dyn Error + Send + Sync>>>, compute_units: u64) {
     println!("\n--- Slot: {} ---", fee_data.slot);
 
-    let accounts = [
-        ("Jupiter", &fee_data.account_fees.jupiter),
-        ("Orca", &fee_data.account_fees.orca),
-        ("USDC", &fee_data.account_fees.usdc),
-    ];
-    let active_accounts: Vec<&str> = accounts
-        .iter()
-        .filter(|(_, data)| data.as_ref().is_some_and(|d| d.count > 0))
-        .map(|(name, _)| *name)
-        .collect();
+    let accounts = [("Jupiter", &fee_data.account_fees.jupiter), ("Orca", &fee_data.account_fees.orca), ("USDC", &fee_data.account_fees.usdc)];
+    let active_accounts: Vec<&str> = accounts.iter().filter(|(_, data)| data.as_ref().is_some_and(|d| d.count > 0)).map(|(name, _)| *name).collect();
 
     let jito_available = jito_res.as_ref().is_some_and(|r| r.is_ok());
     let helius_data = helius_res.as_ref().and_then(|r| r.as_ref().ok());
@@ -341,10 +322,7 @@ fn print_solana_fee_data(
     }
     table.add_row(Row::new(header));
 
-    let levels = [
-        ("Normal", fee_data.priority_fees.normal, fee_data.jito_tips.normal),
-        ("Fast", fee_data.priority_fees.fast, fee_data.jito_tips.fast),
-    ];
+    let levels = [("Normal", fee_data.priority_fees.normal, fee_data.jito_tips.normal), ("Fast", fee_data.priority_fees.fast, fee_data.jito_tips.fast)];
 
     let jito_data = jito_res.as_ref().and_then(|r| r.as_ref().ok());
 

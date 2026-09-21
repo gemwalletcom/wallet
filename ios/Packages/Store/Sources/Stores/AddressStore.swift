@@ -11,27 +11,17 @@ public struct AddressStore: Sendable {
         self.db = db.dbQueue
     }
 
-    public func addAddressNames(_ addressNames: [AddressName]) throws {
-        try db.write { db in
-            for addressName in addressNames {
-                try addressName.record.insert(db, onConflict: .replace)
-            }
-        }
-    }
-
-    public func updateAddressNames(_ addressNames: [AddressName]) throws {
-        if addressNames.isEmpty {
+    public func updateAddressNames(_ updates: [AddressNameUpdate]) throws {
+        if updates.isEmpty {
             return
         }
         try db.write { db in
-            for addressName in addressNames {
-                let reservedTypes = AddressType.allCases
-                    .filter { $0.isLocal && $0 != addressName.type }
-                    .map(\.rawValue)
+            for update in updates {
+                let addressName = update.name
                 try AddressRecord
                     .filter(AddressRecord.Columns.chain == addressName.chain.rawValue)
                     .filter(AddressRecord.Columns.address == addressName.address)
-                    .filter(!reservedTypes.contains(AddressRecord.Columns.type))
+                    .filter(update.replacesTypes.map(\.rawValue).contains(AddressRecord.Columns.type))
                     .updateAll(db, [
                         AddressRecord.Columns.name.set(to: addressName.name),
                         AddressRecord.Columns.type.set(to: addressName.type.rawValue),

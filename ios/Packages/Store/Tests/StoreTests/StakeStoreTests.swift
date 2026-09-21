@@ -16,11 +16,10 @@ struct StakeStoreTests {
 
         try store.deactivateValidators(assetId: Chain.cosmos.assetId, validatorIds: [dropped.id])
 
-        let active = try store.getValidatorsActive(assetId: Chain.cosmos.assetId, providerType: .stake)
-        #expect(active.map(\.id) == [elected.id])
-
         let stored = try store.getValidators(assetId: Chain.cosmos.assetId, providerType: .stake)
         #expect(stored.count == 2)
+        #expect(stored.first { $0.id == dropped.id }?.isActive == false)
+        #expect(stored.first { $0.id == elected.id }?.isActive == true)
         #expect(stored.first { $0.id == dropped.id }?.apr == 0)
         #expect(stored.first { $0.id == elected.id }?.apr == elected.apr)
     }
@@ -36,10 +35,11 @@ struct StakeStoreTests {
 
         try store.deactivateValidators(assetId: Chain.cosmos.assetId, validatorIds: [sharedId])
 
-        let cosmos = try store.getValidatorsActive(assetId: Chain.cosmos.assetId, providerType: .stake)
-        #expect(cosmos.isEmpty)
+        let cosmos = try store.getValidators(assetId: Chain.cosmos.assetId, providerType: .stake)
+        #expect(cosmos.map(\.isActive) == [false])
 
-        let celestia = try store.getValidatorsActive(assetId: Chain.celestia.assetId, providerType: .stake)
+        let celestia = try store.getValidators(assetId: Chain.celestia.assetId, providerType: .stake)
         #expect(celestia.map(\.id) == [sharedId])
+        #expect(celestia.map(\.isActive) == [true])
     }
 }

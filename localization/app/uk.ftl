@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = Не підтримуваний актив.
 errors_connections_no_supported_wallets = Немає підтримуваних гаманців.
 errors_connections_unsupported_chain = Наданий ланцюжок не підтримується.
 errors_swap_amount_too_small = Сума занадто мала
-errors_required = %@ є обов'язковим
 errors_scan_transaction_malicious_description = Цю транзакцію неможливо завершити — адреса гаманця призначення пов'язана з підозрілою або шкідливою активністю.
 errors_scan_transaction_memo_required = %@ адреса гаманця призначення вимагає тегу / мемо призначення
 errors_scan_transaction_malicious_title = Підозріла активність
@@ -315,7 +314,7 @@ asset_symbol = Символ
 asset_decimals = Десяткові знаки
 asset_token_id = Токен ID
 asset_contract = Контракт
-asset_state_empty_title = Ваші транзакції з'являться тут ️
+asset_state_empty_title = Ваші транзакції з'являться тут 
 asset_state_empty_description = Отримати, обміняти або купити %@
 asset_verification_unverified = Неперевірено
 asset_verification_suspicious = Підозрілий
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = Коли ціна знизиться
 price_alerts_set_alert_set_target_price = Встановити цільову ціну
 price_alerts_set_alert_current_price = Поточна ціна
 price_alerts_added_for = Встановити сповіщення про ціну %@
-price_alerts_state_empty_title = Ваші сповіщення про ціни з'являтимуться тут️
+price_alerts_state_empty_title = Ваші сповіщення про ціни з'являтимуться тут
 price_alerts_state_empty_description = Увімкніть їх, додавши монети до відстеження
 price_alerts_auto_footer = Сповіщення спрацьовують у разі значних змін цін.
 price_alerts_set_alert_title = Встановити сповіщення про ціну
@@ -536,7 +535,7 @@ verify_phrase_title = Підтвердити
 
 # Warnings
 
-warnings_multi_signature_blocked = Не переказуйте кошти на цей %@ гаманець Multi-Signature, якщо ви не впевнені, що контролюєте закриті ключі. Якщо цього не зробити, ви можете стати жертвою шахрайства та назавжди втратити свої активи.
+warnings_externally_controlled_account = Цей обліковий запис %@ може контролювати хтось інший. Не надсилайте на нього кошти, якщо ви не впевнені, що контролюєте його, інакше ви можете назавжди втратити свої активи.
 
 # Sell
 
@@ -600,7 +599,7 @@ nft_collections = Колекції
 nft_collection = Колекція
 nft_save_to_photos = Зберегти до фотографій
 nft_set_as_avatar = Встановити як аватар
-nft_state_empty_title = Ваші NFT з'являться тут ️
+nft_state_empty_title = Ваші NFT з'являться тут 
 nft_state_empty_description = Отримайте свій перший NFT
 nft_report_reason_spam = Спам
 nft_report_reason_malicious = Шкідливий

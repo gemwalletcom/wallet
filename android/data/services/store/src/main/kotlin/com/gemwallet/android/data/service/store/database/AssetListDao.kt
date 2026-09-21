@@ -12,11 +12,13 @@ interface AssetListDao {
     @Upsert
     suspend fun upsert(items: List<DbAssetList>)
 
-    @Query("""
+    @Query(
+        """
         SELECT asset_lists.* FROM asset_lists
         JOIN search ON asset_lists.id = search.listId
         WHERE search.`query` = :query
         ORDER BY search.priority ASC
-    """)
+    """,
+    )
     fun searchWithPriority(query: String): Flow<List<DbAssetList>>
 }

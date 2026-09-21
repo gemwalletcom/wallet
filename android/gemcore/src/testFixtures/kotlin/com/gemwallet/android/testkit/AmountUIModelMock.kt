@@ -7,10 +7,7 @@ import uniffi.gemstone.GemTransactionHeaderKind
 import uniffi.gemstone.PaymentPrice
 import java.math.BigInteger
 
-fun mockAmountUIModel(
-    fromAsset: AssetPriceValue = mockAssetPriceValue(asset = mockAssetSolana()),
-    paymentPrice: PaymentPrice? = null,
-) = AmountUIModel(
+fun mockAmountUIModel(fromAsset: AssetPriceValue = mockAssetPriceValue(asset = mockAssetSolana()), paymentPrice: PaymentPrice? = null) = AmountUIModel(
     headerKind = GemTransactionHeaderKind.Amount(showsFiat = true),
     amount = BigInteger("1000000000"),
     fromAsset = fromAsset,

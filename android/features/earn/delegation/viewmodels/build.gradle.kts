@@ -49,7 +49,6 @@ android {
 
 dependencies {
     api(project(":ui-models"))
-    implementation(project(":data:services:gemstone"))
     implementation(project(":ui"))
 
     implementation(libs.hilt.android)

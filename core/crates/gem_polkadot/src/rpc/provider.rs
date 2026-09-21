@@ -1,10 +1,7 @@
 use std::{error::Error, ops::Deref};
 
 use async_trait::async_trait;
-use chain_traits::{
-    ChainAccount, ChainAddressStatus, ChainPerpetual, ChainProvider, ChainSimulation, ChainTraits, ChainTransactions, EmptyTransactionsProvider, TransactionsRequest,
-    TransactionsResult,
-};
+use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainProvider, ChainSimulation, ChainTraits, ChainTransactions, EmptyTransactionsProvider, TransactionsRequest, TransactionsResult};
 use gem_client::Client;
 use primitives::Chain;
 
@@ -17,10 +14,7 @@ pub struct PolkadotProvider<C: Client> {
 
 impl<C: Client> PolkadotProvider<C> {
     pub fn new(client: PolkadotClient<C>, transactions_by_address_provider: Box<dyn ChainTransactions>) -> Self {
-        Self {
-            client,
-            transactions_by_address_provider,
-        }
+        Self { client, transactions_by_address_provider }
     }
 
     pub fn new_rpc_only(client: PolkadotClient<C>) -> Self {

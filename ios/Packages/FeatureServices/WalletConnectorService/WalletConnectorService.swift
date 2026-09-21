@@ -1,16 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemChainService
 import Foundation
+import class Gemstone.GemChainService
+import enum Gemstone.GemWalletConnectError
 import enum Gemstone.GemWalletConnectFailure
 import enum Gemstone.GemWalletConnectRejectionReason
 import enum Gemstone.GemWalletConnectResponse
-import struct Gemstone.GemWalletConnectSessionRequest
-import enum Gemstone.GemWalletConnectError
 import protocol Gemstone.GemWalletConnectServiceProtocol
-import GemstonePrimitives
-import Localization
+import struct Gemstone.GemWalletConnectSessionRequest
 import protocol Gemstone.GemWalletSessionServiceProtocol
+import GemstonePrimitives
 import Primitives
 @preconcurrency import ReownWalletKit
 @preconcurrency import WalletConnectPairing
@@ -71,16 +70,16 @@ extension WalletConnectorService: WalletConnectorServiceable {
             let sessionDeleteStream = UncheckedSendable(value: self.interactor.sessionDeleteStream)
 
             _ = Task {
-                await self.handleSessions(sessionsStream.value)
+                await self.observeSessions(sessionsStream.value)
             }
             _ = Task {
-                await self.handleSessionProposals(sessionProposalStream.value)
+                await self.observeSessionProposals(sessionProposalStream.value)
             }
             _ = Task {
-                await self.handleSessionRequests(sessionRequestStream.value)
+                await self.observeSessionRequests(sessionRequestStream.value)
             }
             _ = Task {
-                await self.handleSessionDeletes(sessionDeleteStream.value)
+                await self.observeSessionDeletes(sessionDeleteStream.value)
             }
         }
     }
@@ -110,28 +109,28 @@ extension WalletConnectorService: WalletConnectorServiceable {
 // MARK: - Private
 
 extension WalletConnectorService {
-    private func handleSessions(_ stream: AsyncStream<[Session]>) async {
+    private func observeSessions(_ stream: AsyncStream<[Session]>) async {
         for await sessions in stream {
             await updateSessions(sessions)
         }
     }
 
-    private func handleSessionProposals(_ stream: AsyncStream<(proposal: Session.Proposal, context: VerifyContext?)>) async {
+    private func observeSessionProposals(_ stream: AsyncStream<(proposal: Session.Proposal, context: VerifyContext?)>) async {
         for await (proposal, verifyContext) in stream {
             debugLog("Session proposal received: \(proposal)")
             debugLog("Verify context: \(String(describing: verifyContext))")
 
             do {
-                try await processSession(proposal: proposal, verifyContext: verifyContext)
+                try await approveSession(proposal: proposal, verifyContext: verifyContext)
             } catch {
                 debugLog("Error accepting proposal: \(error)")
 
-                await handleRejectSession(proposal: proposal, error: error)
+                await rejectSession(proposal: proposal, error: error)
             }
         }
     }
 
-    private func handleRejectSession(proposal: Session.Proposal, error: Error) async {
+    private func rejectSession(proposal: Session.Proposal, error: Error) async {
         let rejection = service.sessionRejection(reason: GemWalletConnectRejectionReason(from: error))
         do {
             try await WalletKit.instance.rejectSession(
@@ -151,7 +150,7 @@ extension WalletConnectorService {
         await walletConnectorInteractor.sessionReject(error: error)
     }
 
-    private func handleSessionRequests(_ stream: AsyncStream<(request: Request, context: VerifyContext?)>) async {
+    private func observeSessionRequests(_ stream: AsyncStream<(request: Request, context: VerifyContext?)>) async {
         for await (request, verifyContext) in stream {
             debugLog("Session request received: \(request.method)")
             debugLog("Verify context: \(String(describing: verifyContext))")
@@ -165,7 +164,7 @@ extension WalletConnectorService {
                 continue
             }
 
-            let outcome = await service.processRequest(request: GemWalletConnectSessionRequest(
+            let outcome = await service.requestOutcome(request: GemWalletConnectSessionRequest(
                 topic: request.topic,
                 requestId: request.id.string,
                 method: request.method,
@@ -197,7 +196,7 @@ extension WalletConnectorService {
         await walletConnectorInteractor.sessionReject(error: error)
     }
 
-    private func handleSessionDeletes(_ stream: AsyncStream<(topic: String, code: Int, message: String)>) async {
+    private func observeSessionDeletes(_ stream: AsyncStream<(topic: String, code: Int, message: String)>) async {
         for await deletion in stream {
             debugLog("Session deleted by peer: topic: \(deletion.topic), reason: \(deletion.message) (code: \(deletion.code))")
         }
@@ -225,7 +224,7 @@ extension WalletConnectorService {
         service.metadata(name: metadata.name, description: metadata.description, url: metadata.url, icons: metadata.icons)
     }
 
-    private func processSession(proposal: Session.Proposal, verifyContext: VerifyContext?) async throws {
+    private func approveSession(proposal: Session.Proposal, verifyContext: VerifyContext?) async throws {
         let messageId = proposal.messageId
 
         guard service.shouldProcessMessage(messageId: messageId) else {
@@ -254,34 +253,24 @@ extension WalletConnectorService {
     }
 
     private func acceptProposal(proposal: Session.Proposal, wallet: Primitives.Wallet) async throws -> Session {
-        let approval = try service.sessionApproval(wallet: wallet)
+        let approval = service.sessionApproval(wallet: wallet.toGem())
         let sessionNamespaces = try AutoNamespaces.build(
             sessionProposal: proposal,
-            chains: approval.chains.compactMap { $0.blockchain(chainService: chainService) },
+            chains: approval.chains.compactMap { Primitives.Chain(core: $0).blockchain(chainService: chainService) },
             methods: approval.methods,
             events: approval.events,
-            accounts: approval.accounts.compactMap { $0.blockchain(chainService: chainService) },
+            accounts: approval.accounts.compactMap { $0.toPrimitives().blockchain(chainService: chainService) },
         )
         let caip2Chains = sessionNamespaces.values.flatMap { $0.chains ?? [] }.map(\.absoluteString)
         let sessionProperties = service.configSessionProperties(
             properties: proposal.sessionProperties ?? [:],
             caip2Chains: caip2Chains,
-            accounts: approval.accounts.map { $0.mapToGem() },
+            accounts: approval.accounts,
         )
         return try await WalletKit.instance.approve(
             proposalId: proposal.id,
             namespaces: sessionNamespaces,
             sessionProperties: sessionProperties,
         )
-    }
-}
-
-private extension GemWalletConnectFailure {
-    var error: any Error {
-        switch self {
-        case .maliciousOrigin: GemWalletConnectError.InvalidOrigin
-        case .expired: AnyError(Localized.WalletConnect.requestExpired)
-        case let .failed(message): AnyError(message)
-        }
     }
 }

@@ -8,9 +8,7 @@ fun mockAssetLink() = AssetLink(
     url = "https://bitcoin.org",
 )
 
-fun mockAssetMarket(
-    marketCap: Double? = null,
-) = AssetMarket(
+fun mockAssetMarket(marketCap: Double? = null) = AssetMarket(
     marketCap = marketCap,
     marketCapFdv = null,
     marketCapRank = null,

@@ -110,18 +110,9 @@ mod tests {
 
         let transactions = PolkadotIndexer::new(client).get_transactions_by_address("address", 100, None).await.unwrap();
 
-        assert_eq!(
-            transactions.iter().map(|transaction| transaction.hash()).collect::<Vec<_>>(),
-            vec!["asset-hub-newest", "asset-hub-older"]
-        );
-        assert_eq!(
-            transactions.iter().map(|transaction| transaction.value.to_string()).collect::<Vec<_>>(),
-            vec!["2500000000", "20000000000"]
-        );
-        assert_eq!(
-            transactions.iter().map(|transaction| transaction.fee.to_string()).collect::<Vec<_>>(),
-            vec!["100000000", "50000000"]
-        );
+        assert_eq!(transactions.iter().map(|transaction| transaction.hash()).collect::<Vec<_>>(), vec!["asset-hub-newest", "asset-hub-older"]);
+        assert_eq!(transactions.iter().map(|transaction| transaction.value.to_string()).collect::<Vec<_>>(), vec!["2500000000", "20000000000"]);
+        assert_eq!(transactions.iter().map(|transaction| transaction.fee.to_string()).collect::<Vec<_>>(), vec!["100000000", "50000000"]);
 
         let empty_client = MockClient::new().with_post(|path, _| {
             assert_eq!(path, "/api/v2/scan/transfers");

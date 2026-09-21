@@ -13,10 +13,8 @@ fun includeGemstoneLibs() {
     System.loadLibrary("gemstone")
 }
 
-fun gemstoneTestAddressForPrivateKey(context: Context, chain: Chain, value: String): String {
-    return GemKeystore(gemstoneTestBaseDir(context)).use { keystore ->
-        keystore.previewImport(GemImportType.PrivateKey(value = value, chain = chain.string)).accounts.first().address
-    }
+fun gemstoneTestAddressForPrivateKey(context: Context, chain: Chain, value: String): String = GemKeystore(gemstoneTestBaseDir(context)).use { keystore ->
+    keystore.previewImport(GemImportType.PrivateKey(value = value, chain = chain.string)).accounts.first().address
 }
 
 private fun gemstoneTestBaseDir(context: Context): String {

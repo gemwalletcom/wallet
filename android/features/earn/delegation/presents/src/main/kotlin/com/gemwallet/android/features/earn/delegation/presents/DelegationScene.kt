@@ -5,8 +5,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -14,6 +12,7 @@ import com.gemwallet.android.features.earn.delegation.models.DelegationRowUIMode
 import com.gemwallet.android.features.earn.delegation.viewmodels.DelegationViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_head.AmountListHead
+import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -23,21 +22,13 @@ import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
-import com.gemwallet.android.ui.open
 
 @Composable
-fun DelegationScene(
-    onAmount: AmountTransactionAction,
-    onConfirm: ConfirmTransactionAction,
-    onCancel: () -> Unit,
-    viewModel: DelegationViewModel = hiltViewModel(),
-) {
+fun DelegationScene(onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction, onCancel: () -> Unit, viewModel: DelegationViewModel = hiltViewModel()) {
     val delegationInfo by viewModel.delegationInfo.collectAsStateWithLifecycle()
     val properties by viewModel.properties.collectAsStateWithLifecycle()
     val actions by viewModel.actions.collectAsStateWithLifecycle()
     val canClaimRewards by viewModel.canClaimRewards.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-    val uriHandler = LocalUriHandler.current
 
     if (delegationInfo == null) {
         LoadingScene(title = stringResource(id = R.string.transfer_stake_title), onCancel = onCancel)
@@ -61,12 +52,8 @@ fun DelegationScene(
             properties?.let { properties ->
                 itemsPositioned(properties.rows) { position, row ->
                     when (row) {
-                        is DelegationRowUIModel.Item -> ListItem(
-                            model = row.model,
-                            listPosition = position,
-                            modifier = row.url?.let { url -> Modifier.clickable { uriHandler.open(context, url) } } ?: Modifier,
-                            accessory = row.url?.let { { DataBadgeChevron() } },
-                        )
+                        is DelegationRowUIModel.Row -> GemListRowView(row = row.row, listPosition = position)
+
                         DelegationRowUIModel.Rewards -> PropertyAssetBalanceItem(
                             model = properties.rewards,
                             title = stringResource(R.string.stake_rewards),

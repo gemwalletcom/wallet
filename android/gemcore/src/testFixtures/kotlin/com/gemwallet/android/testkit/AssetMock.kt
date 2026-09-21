@@ -4,14 +4,7 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 
-fun mockAsset(
-    chain: Chain = Chain.Bitcoin,
-    tokenId: String? = null,
-    name: String = "Bitcoin",
-    symbol: String = "BTC",
-    decimals: Int = 8,
-    type: AssetType = AssetType.NATIVE,
-) = Asset(
+fun mockAsset(chain: Chain = Chain.Bitcoin, tokenId: String? = null, name: String = "Bitcoin", symbol: String = "BTC", decimals: Int = 8, type: AssetType = AssetType.NATIVE) = Asset(
     id = mockAssetId(chain, tokenId),
     name = name,
     symbol = symbol,

@@ -36,30 +36,9 @@ public struct RelativeDateFormatter: Sendable {
             return formatter(dateStyle: .medium, timeStyle: .none).string(from: date)
         }
     }
-
-    public func string(fromTimestampValue value: String) -> String {
-        guard let date = date(fromTimestampValue: value) else {
-            return value
-        }
-        return string(from: date)
-    }
 }
 
 private extension RelativeDateFormatter {
-    static let iso8601StrategyWithFractionalSeconds = Date.ISO8601FormatStyle(includingFractionalSeconds: true)
-        .year()
-        .month()
-        .day()
-        .time(includingFractionalSeconds: true)
-        .timeZone(separator: .omitted)
-
-    static let iso8601Strategy = Date.ISO8601FormatStyle()
-        .year()
-        .month()
-        .day()
-        .time(includingFractionalSeconds: false)
-        .timeZone(separator: .omitted)
-
     func formatter(dateStyle: DateFormatter.Style, timeStyle: DateFormatter.Style, relative: Bool = false) -> DateFormatter {
         let formatter = DateFormatter()
         formatter.locale = calendar.locale
@@ -68,17 +47,5 @@ private extension RelativeDateFormatter {
         formatter.timeStyle = timeStyle
         formatter.doesRelativeDateFormatting = relative
         return formatter
-    }
-
-    func date(fromTimestampValue value: String) -> Date? {
-        if let timestamp = TimeInterval(value) {
-            return Date(timeIntervalSince1970: timestamp)
-        }
-
-        if let date = try? Self.iso8601StrategyWithFractionalSeconds.parse(value) {
-            return date
-        }
-
-        return try? Self.iso8601Strategy.parse(value)
     }
 }

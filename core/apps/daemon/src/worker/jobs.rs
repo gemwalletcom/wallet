@@ -239,11 +239,7 @@ pub struct JobVariant {
 
 impl JobVariant {
     pub fn new(job: WorkerJob) -> Self {
-        Self {
-            job,
-            label: None,
-            override_interval: None,
-        }
+        Self { job, label: None, override_interval: None }
     }
 
     pub fn labeled(job: WorkerJob, label: impl JobLabel) -> Self {
@@ -272,11 +268,7 @@ impl JobVariant {
     }
 
     pub fn resolve_interval(&self, config: Option<&ConfigCacher>) -> Result<Duration, Box<dyn Error + Send + Sync>> {
-        if let Some(duration) = self.override_interval {
-            Ok(duration)
-        } else {
-            self.job.interval().resolve(config)
-        }
+        if let Some(duration) = self.override_interval { Ok(duration) } else { self.job.interval().resolve(config) }
     }
 }
 

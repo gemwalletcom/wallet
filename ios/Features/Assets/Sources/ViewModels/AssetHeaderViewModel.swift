@@ -2,7 +2,8 @@
 
 import Components
 import Foundation
-import struct Gemstone.GemAssetDetailsState
+import struct Gemstone.GemAssetDetails
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Style
@@ -10,12 +11,12 @@ import SwiftUI
 
 struct AssetHeaderViewModel {
     let assetDataModel: AssetDataViewModel
-    let state: GemAssetDetailsState
+    let details: GemAssetDetails
 }
 
 extension AssetHeaderViewModel: ValueHeaderViewModel {
     var isWatchWallet: Bool {
-        state.headerActions == .watchOnly
+        details.state.headerActions == .watchOnly
     }
 
     var assetImage: AssetImage? {
@@ -27,10 +28,7 @@ extension AssetHeaderViewModel: ValueHeaderViewModel {
     }
 
     var subtitle: String? {
-        if assetDataModel.fiatBalanceText.isEmpty {
-            return .none
-        }
-        return assetDataModel.fiatBalanceText
+        details.fiatValue?.text()
     }
 
     var subtitleColor: Color {
@@ -38,7 +36,7 @@ extension AssetHeaderViewModel: ValueHeaderViewModel {
     }
 
     var buttons: [HeaderButton] {
-        switch state.headerActions {
+        switch details.state.headerActions {
         case .watchOnly: []
         case let .buttons(buttons): buttons.map { HeaderButton(type: $0.kind, isEnabled: $0.isEnabled) }
         }

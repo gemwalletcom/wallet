@@ -87,12 +87,8 @@ async fn update_rates(store: &dyn GemPriceStore, rates: Vec<FiatRate>, currency:
     if changed.is_empty() {
         return Ok(());
     }
-    let current = changed.iter().find(|rate| rate.symbol == currency).map(|rate| rate.rate);
-    store.save_rates(changed).await?;
-    if let Some(rate) = current {
-        store.convert_prices(currency, rate).await?;
-    }
-    Ok(())
+    let conversion = changed.iter().find(|rate| rate.symbol == currency).cloned();
+    store.save_rates(changed, conversion).await
 }
 
 #[cfg(test)]
@@ -167,6 +163,24 @@ mod tests {
     }
 
     #[test]
+    fn test_failed_rate_update_can_retry_identical_rates() {
+        let store = MemoryPriceStore::with_rate(Currency::EUR, 0.8);
+        let rates = vec![FiatRate { symbol: Currency::EUR, rate: 0.9 }];
+        let error = GemServiceError::Store { msg: "repricing failed".into() };
+        *store.rate_error.lock().unwrap() = Some(error.clone());
+
+        assert_eq!(futures::executor::block_on(update_rates(&store, rates.clone(), Currency::EUR)), Err(error));
+        assert_eq!(*store.rates.lock().unwrap(), vec![FiatRate { symbol: Currency::EUR, rate: 0.8 }]);
+        assert_eq!(*store.converted.lock().unwrap(), vec![]);
+
+        *store.rate_error.lock().unwrap() = None;
+        futures::executor::block_on(update_rates(&store, rates.clone(), Currency::EUR)).unwrap();
+
+        assert_eq!(*store.rates.lock().unwrap(), rates);
+        assert_eq!(*store.converted.lock().unwrap(), vec![(Currency::EUR, 0.9)]);
+    }
+
+    #[test]
     fn test_a_price_event_without_rates_leaves_the_rate_table_unread() {
         let store = MemoryPriceStore::default();
 
@@ -192,24 +206,9 @@ mod tests {
     fn test_only_moved_rates_are_saved() {
         let store = MemoryPriceStore::default();
 
-        futures::executor::block_on(update_rates(
-            &store,
-            vec![FiatRate { symbol: Currency::EUR, rate: 0.9 }, FiatRate { symbol: Currency::GBP, rate: 0.8 }],
-            Currency::EUR,
-        ))
-        .unwrap();
-        futures::executor::block_on(update_rates(
-            &store,
-            vec![FiatRate { symbol: Currency::EUR, rate: 0.9 }, FiatRate { symbol: Currency::GBP, rate: 0.8 }],
-            Currency::EUR,
-        ))
-        .unwrap();
-        futures::executor::block_on(update_rates(
-            &store,
-            vec![FiatRate { symbol: Currency::EUR, rate: 0.9 }, FiatRate { symbol: Currency::GBP, rate: 0.7 }],
-            Currency::EUR,
-        ))
-        .unwrap();
+        futures::executor::block_on(update_rates(&store, vec![FiatRate { symbol: Currency::EUR, rate: 0.9 }, FiatRate { symbol: Currency::GBP, rate: 0.8 }], Currency::EUR)).unwrap();
+        futures::executor::block_on(update_rates(&store, vec![FiatRate { symbol: Currency::EUR, rate: 0.9 }, FiatRate { symbol: Currency::GBP, rate: 0.8 }], Currency::EUR)).unwrap();
+        futures::executor::block_on(update_rates(&store, vec![FiatRate { symbol: Currency::EUR, rate: 0.9 }, FiatRate { symbol: Currency::GBP, rate: 0.7 }], Currency::EUR)).unwrap();
 
         assert_eq!(
             *store.rate_writes.lock().unwrap(),

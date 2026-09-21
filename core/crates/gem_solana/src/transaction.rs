@@ -4,10 +4,7 @@ use primitives::{AssetId, Chain, SolanaInstruction, TransactionType};
 
 use crate::{
     AccountMeta, AddressLookupTableAccount, CompiledInstruction, Instruction, Pubkey, TransactionBuilder, VersionedTransaction,
-    instructions::program_ids::{
-        SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID, SOLANA_COMPUTE_BUDGET_PROGRAM_ID, SOLANA_MEMO_PROGRAM_ID, SOLANA_SYSTEM_PROGRAM_ID, SOLANA_TOKEN_2022_PROGRAM_ID,
-        SOLANA_TOKEN_PROGRAM_ID,
-    },
+    instructions::program_ids::{SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID, SOLANA_COMPUTE_BUDGET_PROGRAM_ID, SOLANA_MEMO_PROGRAM_ID, SOLANA_SYSTEM_PROGRAM_ID, SOLANA_TOKEN_2022_PROGRAM_ID, SOLANA_TOKEN_PROGRAM_ID},
 };
 
 pub trait VersionedTransactionExt {
@@ -236,14 +233,7 @@ mod tests {
         let source = Pubkey::new([2; 32]);
         let mint = Pubkey::new([3; 32]);
         let destination = Pubkey::new([4; 32]);
-        let account_keys = vec![
-            payer,
-            source,
-            mint,
-            destination,
-            Pubkey::from_base58(SOLANA_TOKEN_PROGRAM_ID).unwrap(),
-            Pubkey::from_base58(SOLANA_MEMO_PROGRAM_ID).unwrap(),
-        ];
+        let account_keys = vec![payer, source, mint, destination, Pubkey::from_base58(SOLANA_TOKEN_PROGRAM_ID).unwrap(), Pubkey::from_base58(SOLANA_MEMO_PROGRAM_ID).unwrap()];
         let mut transfer_data = vec![12];
         transfer_data.extend_from_slice(&19_000_000u64.to_le_bytes());
         transfer_data.push(6);

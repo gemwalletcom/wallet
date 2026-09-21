@@ -72,8 +72,7 @@ mod tests {
     #[tokio::test]
     async fn test_simulate_transaction_rejects_sender_mismatch() {
         let client = TonClient::new(MockClient::new());
-        let input = SimulationInput::new(include_str!("../../testdata/wallet_connect_dedust_emulation_request.json"))
-            .with_signer_address("0:44a14a5a9406979d59b9328898591660b8b1736342b11632efdcc911ab9057cf");
+        let input = SimulationInput::new(include_str!("../../testdata/wallet_connect_dedust_emulation_request.json")).with_signer_address("0:44a14a5a9406979d59b9328898591660b8b1736342b11632efdcc911ab9057cf");
 
         let error = client.simulate_transaction(input).await.unwrap_err();
 

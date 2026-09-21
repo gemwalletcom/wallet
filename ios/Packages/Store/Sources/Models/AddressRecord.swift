@@ -45,15 +45,6 @@ extension AddressRecord: CreateTable {
     }
 }
 
-extension AddressType {
-    var isLocal: Bool {
-        switch self {
-        case .contact, .internalWallet: true
-        case .address, .contract, .validator: false
-        }
-    }
-}
-
 extension AddressRecord {
     func mapToAddressName() -> AddressName {
         AddressName(

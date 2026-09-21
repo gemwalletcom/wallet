@@ -11,12 +11,7 @@ import uniffi.gemstone.GemClaimRewards
 import uniffi.gemstone.GemClaimRewardsDestination
 import java.math.BigInteger
 
-fun mockDelegationValidator(
-    chain: Chain = Chain.Bitcoin,
-    id: String = "validator-id",
-    apr: Double = 10.0,
-    providerType: StakeProviderType = StakeProviderType.Stake,
-) = DelegationValidator(
+fun mockDelegationValidator(chain: Chain = Chain.Bitcoin, id: String = "validator-id", apr: Double = 10.0, providerType: StakeProviderType = StakeProviderType.Stake) = DelegationValidator(
     chain = chain,
     id = id,
     name = "Validator",
@@ -65,6 +60,5 @@ fun mockDelegation(
 )
 
 fun mockClaimRewards() = GemClaimRewards(
-    value = BigInteger.ZERO,
     destination = GemClaimRewardsDestination.Amount(emptyList()),
 )

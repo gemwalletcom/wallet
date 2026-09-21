@@ -29,8 +29,8 @@ use security_provider::{ScanProviderFactory, ScanProviderRemoteConfig, TokenScan
 use settings::Settings;
 use storage::{ConfigCacher, Database};
 use streamer::{
-    ChainAddressPayload, ConsumerStatusReporter, FetchAssetAssociationsPayload, FetchAssetsPayload, FetchBlocksPayload, FetchListPayload, FetchNFTAssetPayload, FetchPricesPayload,
-    QueueName, ShutdownReceiver, StreamConnection, StreamProducer, StreamReader, run_consumer,
+    ChainAddressPayload, ConsumerStatusReporter, FetchAssetAssociationsPayload, FetchAssetsPayload, FetchBlocksPayload, FetchListPayload, FetchNFTAssetPayload, FetchPricesPayload, QueueName, ShutdownReceiver, StreamConnection,
+    StreamProducer, StreamReader, run_consumer,
 };
 
 use crate::asset_spam::AssetClassificationRules;
@@ -51,13 +51,7 @@ use fetch_prices_consumer::FetchPricesConsumer;
 use fetch_token_addresses_consumer::FetchTokenAddressesConsumer;
 use fetch_transaction_consumer::FetchTransactionConsumer;
 
-pub async fn run_consumer_indexer(
-    settings: Settings,
-    service: IndexerService,
-    shutdown_rx: ShutdownReceiver,
-    reporter: Arc<dyn ConsumerStatusReporter>,
-    only: Option<IndexerConsumer>,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+pub async fn run_consumer_indexer(settings: Settings, service: IndexerService, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>, only: Option<IndexerConsumer>) -> Result<(), Box<dyn Error + Send + Sync>> {
     use IndexerConsumer::*;
 
     let database = Database::new(&settings.postgres.url, settings.postgres.pool)?;
@@ -101,12 +95,7 @@ pub async fn run_consumer_indexer(
     Ok(())
 }
 
-async fn run_fetch_asset_associations(
-    settings: Arc<Settings>,
-    database: Database,
-    shutdown_rx: ShutdownReceiver,
-    reporter: Arc<dyn ConsumerStatusReporter>,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn run_fetch_asset_associations(settings: Arc<Settings>, database: Database, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     let queue = QueueName::FetchAssetAssociations;
     let name = queue.to_string();
     let connection = StreamConnection::new(&settings.rabbitmq.url, name.clone()).await?;
@@ -119,12 +108,7 @@ async fn run_fetch_asset_associations(
     run_consumer::<FetchAssetAssociationsPayload, _, usize>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter).await
 }
 
-async fn run_fetch_blocks(
-    settings: Arc<Settings>,
-    database: Database,
-    shutdown_rx: ShutdownReceiver,
-    reporter: Arc<dyn ConsumerStatusReporter>,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn run_fetch_blocks(settings: Arc<Settings>, database: Database, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     ChainConsumerRunner::new((*settings).clone(), database, QueueName::FetchBlocks, shutdown_rx, reporter)
         .await?
         .run(|runner, chain| async move {
@@ -133,27 +117,12 @@ async fn run_fetch_blocks(
             let stream_reader = runner.stream_reader().await?;
             let stream_producer = runner.stream_producer().await?;
             let consumer = FetchBlocksConsumer::new(chain_providers_for(chain, &runner.settings, &name), stream_producer);
-            run_consumer::<FetchBlocksPayload, FetchBlocksConsumer, usize>(
-                &name,
-                stream_reader,
-                queue,
-                Some(chain.as_ref()),
-                consumer,
-                runner.config,
-                runner.shutdown_rx,
-                runner.reporter,
-            )
-            .await
+            run_consumer::<FetchBlocksPayload, FetchBlocksConsumer, usize>(&name, stream_reader, queue, Some(chain.as_ref()), consumer, runner.config, runner.shutdown_rx, runner.reporter).await
         })
         .await
 }
 
-async fn run_fetch_assets(
-    settings: Arc<Settings>,
-    database: Database,
-    shutdown_rx: ShutdownReceiver,
-    reporter: Arc<dyn ConsumerStatusReporter>,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn run_fetch_assets(settings: Arc<Settings>, database: Database, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     let queue = QueueName::FetchAssets;
     let name = queue.to_string();
     let connection = StreamConnection::new(&settings.rabbitmq.url, name.clone()).await?;
@@ -172,12 +141,7 @@ async fn run_fetch_assets(
     run_consumer::<FetchAssetsPayload, FetchAssetsConsumer, usize>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter).await
 }
 
-async fn run_fetch_asset_status(
-    settings: Arc<Settings>,
-    database: Database,
-    shutdown_rx: ShutdownReceiver,
-    reporter: Arc<dyn ConsumerStatusReporter>,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn run_fetch_asset_status(settings: Arc<Settings>, database: Database, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     let queue = QueueName::FetchAssetStatus;
     let name = queue.to_string();
     let connection = StreamConnection::new(&settings.rabbitmq.url, name.clone()).await?;
@@ -204,12 +168,7 @@ fn scan_providers(settings: &Settings, cacher: CacherClient, timeout: Duration) 
     ScanProviderFactory::new_token_providers(config, Arc::new(AccessTokenCacherClient::new(cacher, GoPlusProvider::<ReqwestClient>::NAME)))
 }
 
-async fn run_fetch_lists(
-    settings: Arc<Settings>,
-    database: Database,
-    shutdown_rx: ShutdownReceiver,
-    reporter: Arc<dyn ConsumerStatusReporter>,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn run_fetch_lists(settings: Arc<Settings>, database: Database, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     let queue = QueueName::FetchLists;
     let name = queue.to_string();
     let connection = StreamConnection::new(&settings.rabbitmq.url, name.clone()).await?;
@@ -221,12 +180,7 @@ async fn run_fetch_lists(
     run_consumer::<FetchListPayload, FetchListConsumer, u32>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter).await
 }
 
-async fn run_fetch_prices(
-    settings: Arc<Settings>,
-    database: Database,
-    shutdown_rx: ShutdownReceiver,
-    reporter: Arc<dyn ConsumerStatusReporter>,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn run_fetch_prices(settings: Arc<Settings>, database: Database, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     let queue = QueueName::FetchPrices;
     let name = queue.to_string();
     let connection = StreamConnection::new(&settings.rabbitmq.url, name.clone()).await?;
@@ -239,12 +193,7 @@ async fn run_fetch_prices(
     run_consumer::<FetchPricesPayload, FetchPricesConsumer, usize>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter).await
 }
 
-async fn run_fetch_token_associations(
-    settings: Arc<Settings>,
-    database: Database,
-    shutdown_rx: ShutdownReceiver,
-    reporter: Arc<dyn ConsumerStatusReporter>,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn run_fetch_token_associations(settings: Arc<Settings>, database: Database, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     ChainConsumerRunner::new((*settings).clone(), database, QueueName::FetchTokenAssociations, shutdown_rx, reporter)
         .await?
         .run(|runner, chain| async move {
@@ -253,27 +202,12 @@ async fn run_fetch_token_associations(
             let stream_reader = runner.stream_reader().await?;
             let stream_producer = runner.stream_producer().await?;
             let consumer = FetchTokenAddressesConsumer::new(chain_providers_for(chain, &runner.settings, &name), runner.database, stream_producer, runner.cacher);
-            run_consumer::<ChainAddressPayload, FetchTokenAddressesConsumer, usize>(
-                &name,
-                stream_reader,
-                queue,
-                Some(chain.as_ref()),
-                consumer,
-                runner.config,
-                runner.shutdown_rx,
-                runner.reporter,
-            )
-            .await
+            run_consumer::<ChainAddressPayload, FetchTokenAddressesConsumer, usize>(&name, stream_reader, queue, Some(chain.as_ref()), consumer, runner.config, runner.shutdown_rx, runner.reporter).await
         })
         .await
 }
 
-async fn run_fetch_coin_associations(
-    settings: Arc<Settings>,
-    database: Database,
-    shutdown_rx: ShutdownReceiver,
-    reporter: Arc<dyn ConsumerStatusReporter>,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn run_fetch_coin_associations(settings: Arc<Settings>, database: Database, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     ChainConsumerRunner::new((*settings).clone(), database, QueueName::FetchCoinAssociations, shutdown_rx, reporter)
         .await?
         .run(|runner, chain| async move {
@@ -281,52 +215,22 @@ async fn run_fetch_coin_associations(
             let name = format!("{}.{}", queue, chain.as_ref());
             let stream_reader = runner.stream_reader().await?;
             let consumer = FetchCoinAddressesConsumer::new(chain_providers_for(chain, &runner.settings, &name), runner.database, runner.cacher);
-            run_consumer::<ChainAddressPayload, FetchCoinAddressesConsumer, String>(
-                &name,
-                stream_reader,
-                queue,
-                Some(chain.as_ref()),
-                consumer,
-                runner.config,
-                runner.shutdown_rx,
-                runner.reporter,
-            )
-            .await
+            run_consumer::<ChainAddressPayload, FetchCoinAddressesConsumer, String>(&name, stream_reader, queue, Some(chain.as_ref()), consumer, runner.config, runner.shutdown_rx, runner.reporter).await
         })
         .await
 }
 
-async fn run_fetch_nft_associations(
-    settings: Arc<Settings>,
-    database: Database,
-    shutdown_rx: ShutdownReceiver,
-    reporter: Arc<dyn ConsumerStatusReporter>,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn run_fetch_nft_associations(settings: Arc<Settings>, database: Database, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     let chains: Vec<Chain> = NFTChain::all().into_iter().map(Into::into).collect();
     ChainConsumerRunner::new((*settings).clone(), database, QueueName::FetchNftAssociations, shutdown_rx, reporter)
         .await?
         .run_for_chains(chains, |runner, chain| async move {
-            FetchNftAssetsAddressesConsumer::run(
-                runner.settings,
-                runner.database,
-                chain,
-                &runner.connection,
-                runner.cacher,
-                runner.config,
-                runner.shutdown_rx,
-                runner.reporter,
-            )
-            .await
+            FetchNftAssetsAddressesConsumer::run(runner.settings, runner.database, chain, &runner.connection, runner.cacher, runner.config, runner.shutdown_rx, runner.reporter).await
         })
         .await
 }
 
-async fn run_fetch_nft_assets(
-    settings: Arc<Settings>,
-    database: Database,
-    shutdown_rx: ShutdownReceiver,
-    reporter: Arc<dyn ConsumerStatusReporter>,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn run_fetch_nft_assets(settings: Arc<Settings>, database: Database, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     let queue = QueueName::FetchNFTCollectionAssets;
     let name = queue.to_string();
     let connection = StreamConnection::new(&settings.rabbitmq.url, name.clone()).await?;
@@ -336,16 +240,10 @@ async fn run_fetch_nft_assets(
     let nft_config = NFTProviderConfig::from_settings(&settings);
     let nft_client = NFTClient::from_config(database, nft_config, settings.nft.url.clone());
     let consumer = FetchNftAssetConsumer { nft_client, cacher };
-    run_consumer::<FetchNFTAssetPayload, FetchNftAssetConsumer, usize>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter)
-        .await
+    run_consumer::<FetchNFTAssetPayload, FetchNftAssetConsumer, usize>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter).await
 }
 
-async fn run_fetch_transaction_associations(
-    settings: Arc<Settings>,
-    database: Database,
-    shutdown_rx: ShutdownReceiver,
-    reporter: Arc<dyn ConsumerStatusReporter>,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn run_fetch_transaction_associations(settings: Arc<Settings>, database: Database, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     ChainConsumerRunner::new((*settings).clone(), database, QueueName::FetchAddressTransactions, shutdown_rx, reporter)
         .await?
         .run(|runner, chain| async move {
@@ -353,33 +251,13 @@ async fn run_fetch_transaction_associations(
             let name = format!("{}.{}", queue, chain.as_ref());
             let stream_reader = runner.stream_reader().await?;
             let stream_producer = runner.stream_producer().await?;
-            let consumer = FetchAddressTransactionsConsumer::new(
-                chain_providers_for(chain, &runner.settings, &name),
-                stream_producer,
-                runner.cacher,
-                ConfigCacher::new(runner.database.clone()),
-            );
-            run_consumer::<ChainAddressPayload, FetchAddressTransactionsConsumer, usize>(
-                &name,
-                stream_reader,
-                queue,
-                Some(chain.as_ref()),
-                consumer,
-                runner.config,
-                runner.shutdown_rx,
-                runner.reporter,
-            )
-            .await
+            let consumer = FetchAddressTransactionsConsumer::new(chain_providers_for(chain, &runner.settings, &name), stream_producer, runner.cacher, ConfigCacher::new(runner.database.clone()));
+            run_consumer::<ChainAddressPayload, FetchAddressTransactionsConsumer, usize>(&name, stream_reader, queue, Some(chain.as_ref()), consumer, runner.config, runner.shutdown_rx, runner.reporter).await
         })
         .await
 }
 
-async fn run_fetch_transactions(
-    settings: Arc<Settings>,
-    database: Database,
-    shutdown_rx: ShutdownReceiver,
-    reporter: Arc<dyn ConsumerStatusReporter>,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn run_fetch_transactions(settings: Arc<Settings>, database: Database, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     ChainConsumerRunner::new((*settings).clone(), database, QueueName::FetchTransactions, shutdown_rx, reporter)
         .await?
         .run(|runner, chain| async move {
@@ -388,17 +266,7 @@ async fn run_fetch_transactions(
             let stream_reader = runner.stream_reader().await?;
             let stream_producer = runner.stream_producer().await?;
             let consumer = FetchTransactionConsumer::new(chain_providers_for(chain, &runner.settings, &name), stream_producer, runner.cacher);
-            run_consumer::<TransactionIdRequest, FetchTransactionConsumer, usize>(
-                &name,
-                stream_reader,
-                queue,
-                Some(chain.as_ref()),
-                consumer,
-                runner.config,
-                runner.shutdown_rx,
-                runner.reporter,
-            )
-            .await
+            run_consumer::<TransactionIdRequest, FetchTransactionConsumer, usize>(&name, stream_reader, queue, Some(chain.as_ref()), consumer, runner.config, runner.shutdown_rx, runner.reporter).await
         })
         .await
 }

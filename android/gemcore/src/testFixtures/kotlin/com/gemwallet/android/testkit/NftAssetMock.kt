@@ -8,10 +8,7 @@ import com.wallet.core.primitives.NFTImages
 import com.wallet.core.primitives.NFTResource
 import com.wallet.core.primitives.NFTType
 
-fun mockNftAsset(
-    id: NFTAssetId = mockNftAssetId(),
-    collectionId: NFTCollectionId = mockNftCollectionId(),
-) = NFTAsset(
+fun mockNftAsset(id: NFTAssetId = mockNftAssetId(), collectionId: NFTCollectionId = mockNftCollectionId()) = NFTAsset(
     id = id,
     collectionId = collectionId,
     chain = id.chain,

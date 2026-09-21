@@ -2,9 +2,13 @@
 
 import Components
 import Foundation
+import func Gemstone.addressCopy
 import protocol Gemstone.GemAssetSelectionServiceProtocol
+import enum Gemstone.GemImage
 import enum Gemstone.GemNftItem
+import struct Gemstone.GemWalletSearchCounts
 import struct Gemstone.GemWalletSearchLimits
+import func Gemstone.walletSearchPhase
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -15,8 +19,6 @@ import Recents
 import Store
 import Style
 import SwiftUI
-import struct Gemstone.GemWalletSearchCounts
-import func Gemstone.walletSearchPhase
 
 @Observable
 @MainActor
@@ -29,7 +31,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
 
     private var state: StateViewType<Bool> = .noData
 
-    var searchModel: WalletSearchModel
+    var searchableQuery: String = .empty
 
     public let searchQuery: ObservableQuery<WalletSearchRequest>
     public let recentModel: RecentAssetsModel
@@ -59,13 +61,12 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         self.onDismissSearch = onDismissSearch
         self.onSelectAssetAction = onSelectAssetAction
         self.onAddToken = onAddToken
-        searchModel = WalletSearchModel()
 
         searchQuery = ObservableQuery(
             WalletSearchRequest(
                 walletId: wallet.id,
                 limit: Int(service.walletSearchLimits(query: .empty).fetch),
-                types: WalletSearchModel.searchItemTypes,
+                types: [.asset, .perpetual, .list, .nft],
             ),
             initialValue: .empty,
         )
@@ -108,7 +109,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var showRecents: Bool {
-        searchModel.searchableQuery.isEmpty && recentModel.hasAssets
+        service.flow(selectType: .walletSearch).showsRecents(isSearching: searchableQuery.isNotEmpty, hasRecents: recentModel.hasAssets)
     }
 
     var showPerpetuals: Bool {
@@ -118,11 +119,11 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     var searchState: SearchContentState {
         switch walletSearchPhase(counts: searchCounts, isLoading: state.isLoading) {
         case .results:
-            return .results
+            .results
         case .loading:
-            return .loading
+            .loading
         case .empty:
-            return .empty(.search(
+            .empty(.search(
                 type: .assets,
                 action: showAddToken ? { [weak self] in self?.onSelectAddCustomToken() } : nil,
             ))
@@ -165,7 +166,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     private var limits: GemWalletSearchLimits {
-        service.walletSearchLimits(query: searchModel.searchableQuery)
+        service.walletSearchLimits(query: searchableQuery)
     }
 
     var previewAssets: [AssetData] {
@@ -199,6 +200,14 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         )
     }
 
+    func listItem(for list: AssetList) -> ListItemModel {
+        ListItemModel(
+            title: list.name,
+            subtitle: String(list.count),
+            imageStyle: .settings(assetImage: AssetImage(type: .text(list.name), imageURL: GemImage.assetList(listId: list.id).imageURL)),
+        )
+    }
+
     func listDestination(for list: AssetList) -> Scenes.AssetsResults {
         Scenes.AssetsResults(
             searchQuery: .empty,
@@ -211,7 +220,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         AssetContextMenu.items(
             for: assetData,
             onCopy: { [weak self] in
-                self?.onSelectCopyAddress(CopyTypeViewModel(type: .address(assetData.asset, address: $0), copyValue: $0).message)
+                self?.onSelectCopyAddress(CopyTypeViewModel(content: addressCopy(chain: assetData.asset.chain.toGem(), address: $0)).message)
             },
             onPin: { [weak self] in
                 self?.onPinAsset(assetData.asset, value: !assetData.metadata.isPinned)
@@ -288,18 +297,20 @@ extension WalletSearchSceneViewModel {
     }
 
     private func updateRequest() {
-        searchQuery.request.searchBy = searchModel.searchableQuery
-        searchQuery.request.searchKey = service.searchKey(query: searchModel.searchableQuery, scope: searchQuery.request.scope.gemScope)
+        searchQuery.request.searchBy = searchableQuery
+        searchQuery.request.searchKey = service.searchKey(query: searchableQuery, scope: searchQuery.request.scope.gemScope)
         searchQuery.request.limit = Int(limits.fetch)
-        state = searchModel.searchableQuery.isNotEmpty ? .loading : .noData
+        state = searchableQuery.isNotEmpty ? .loading : .noData
     }
 
     private func search(query: String) async {
         state = .loading
         do {
-            let _ = try await service.search(query: query, scope: .all)
+            _ = try await service.search(query: query, scope: .all)
+            guard query == searchableQuery.trim() else { return }
             state = .data(true)
         } catch {
+            guard query == searchableQuery.trim() else { return }
             state.setError(error)
             debugLog("Search error: \(error)")
         }
@@ -318,15 +329,8 @@ extension WalletSearchSceneViewModel {
     func setPerpetualPinned(_ perpetualId: PerpetualId, pinned: Bool) async throws {
         try await service.setPerpetualPinned(perpetualId: perpetualId.identifier, pinned: pinned)
     }
+
     var assetItems: ListAssetItemsViewModel {
-        ListAssetItemsViewModel(currency: currency, row: service.flow(selectType: .walletSearch).row)
-    }
-
-}
-
-extension SearchContentState {
-    var isResults: Bool {
-        if case .results = self { return true }
-        return false
+        ListAssetItemsViewModel(currency: currency, rowStyle: service.flow(selectType: .walletSearch).rowStyle)
     }
 }

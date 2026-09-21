@@ -44,14 +44,7 @@ impl BridgeParams {
     }
 }
 
-pub(super) fn add_bridge_with_fee_move_calls(
-    txb: &mut TransactionBuilder,
-    route: &MayanMctpQuote,
-    prefetched: &PrefetchedSuiData,
-    input_coin: Argument,
-    wh_fee_coin: Option<Argument>,
-    destination_address: &str,
-) -> Result<(), SwapperError> {
+pub(super) fn add_bridge_with_fee_move_calls(txb: &mut TransactionBuilder, route: &MayanMctpQuote, prefetched: &PrefetchedSuiData, input_coin: Argument, wh_fee_coin: Option<Argument>, destination_address: &str) -> Result<(), SwapperError> {
     let mctp_input_contract = prefetched.mctp_input_contract.as_str();
     let bridge = BridgeParams::new(route, mctp_input_contract, destination_address)?;
     let payload = Vec::<u8>::new();
@@ -66,37 +59,15 @@ pub(super) fn add_bridge_with_fee_move_calls(
         txb.pure(&bridge.redeem_fee),
         txb.pure(&payload),
     ];
-    let bridge_ticket = move_call(
-        txb,
-        mctp_package,
-        BRIDGE_WITH_FEE_MODULE,
-        "prepare_bridge_with_fee",
-        &[mctp_input_contract],
-        bridge_arguments,
-    )
-    .map_err(sui_error)?;
+    let bridge_ticket = move_call(txb, mctp_package, BRIDGE_WITH_FEE_MODULE, "prepare_bridge_with_fee", &[mctp_input_contract], bridge_arguments).map_err(sui_error)?;
     let (burn_request, cctp_message) = complete_bridge(txb, prefetched, mctp_input_contract, BRIDGE_WITH_FEE_MODULE, bridge_ticket)?;
     let mctp_state = txb.object(prefetched.objects[SUI_MCTP_STATE].input(true));
-    let wormhole_message = move_call(
-        txb,
-        mctp_package,
-        BRIDGE_WITH_FEE_MODULE,
-        "publish_bridge_with_fee",
-        &[],
-        vec![mctp_state, burn_request, cctp_message],
-    )
-    .map_err(sui_error)?;
+    let wormhole_message = move_call(txb, mctp_package, BRIDGE_WITH_FEE_MODULE, "publish_bridge_with_fee", &[], vec![mctp_state, burn_request, cctp_message]).map_err(sui_error)?;
     add_publish_wormhole_message(txb, prefetched, wormhole_message, bridge_fee(route)?, wh_fee_coin)?;
     Ok(())
 }
 
-pub(super) fn add_bridge_locked_fee_move_calls(
-    txb: &mut TransactionBuilder,
-    route: &MayanMctpQuote,
-    prefetched: &PrefetchedSuiData,
-    input_coin: Argument,
-    destination_address: &str,
-) -> Result<(), SwapperError> {
+pub(super) fn add_bridge_locked_fee_move_calls(txb: &mut TransactionBuilder, route: &MayanMctpQuote, prefetched: &PrefetchedSuiData, input_coin: Argument, destination_address: &str) -> Result<(), SwapperError> {
     let mctp_input_contract = prefetched.mctp_input_contract.as_str();
     let bridge = BridgeParams::new(route, mctp_input_contract, destination_address)?;
     let mctp_package = mctp_package_address(prefetched)?;
@@ -108,15 +79,7 @@ pub(super) fn add_bridge_locked_fee_move_calls(
         txb.pure(&bridge.gas_drop),
         txb.pure(&bridge.redeem_fee),
     ];
-    let bridge_ticket = move_call(
-        txb,
-        mctp_package,
-        BRIDGE_LOCKED_FEE_MODULE,
-        "prepare_bridge_locked_fee",
-        &[mctp_input_contract],
-        bridge_arguments,
-    )
-    .map_err(sui_error)?;
+    let bridge_ticket = move_call(txb, mctp_package, BRIDGE_LOCKED_FEE_MODULE, "prepare_bridge_locked_fee", &[mctp_input_contract], bridge_arguments).map_err(sui_error)?;
     let (burn_request, cctp_message) = complete_bridge(txb, prefetched, mctp_input_contract, BRIDGE_LOCKED_FEE_MODULE, bridge_ticket)?;
     let mctp_state = txb.object(prefetched.objects[SUI_MCTP_STATE].input(true));
     let verified_input = txb.object(prefetched.objects[&prefetched.mctp_verified_input_address].input(false));
@@ -132,26 +95,12 @@ pub(super) fn add_bridge_locked_fee_move_calls(
     Ok(())
 }
 
-fn complete_bridge(
-    txb: &mut TransactionBuilder,
-    prefetched: &PrefetchedSuiData,
-    mctp_input_contract: &str,
-    module: &str,
-    bridge_ticket: Argument,
-) -> Result<(Argument, Argument), SwapperError> {
+fn complete_bridge(txb: &mut TransactionBuilder, prefetched: &PrefetchedSuiData, mctp_input_contract: &str, module: &str, bridge_ticket: Argument) -> Result<(Argument, Argument), SwapperError> {
     let mctp_package = mctp_package_address(prefetched)?;
     let mctp_state = txb.object(prefetched.objects[SUI_MCTP_STATE].input(true));
     let cctp_core_state = txb.object(prefetched.objects[SUI_CCTP_CORE_STATE].input(true));
     let verified_input = txb.object(prefetched.objects[&prefetched.mctp_verified_input_address].input(false));
-    let bridge_result = move_call(
-        txb,
-        mctp_package,
-        module,
-        module,
-        &[mctp_input_contract],
-        vec![mctp_state, cctp_core_state, verified_input, bridge_ticket],
-    )
-    .map_err(sui_error)?;
+    let bridge_result = move_call(txb, mctp_package, module, module, &[mctp_input_contract], vec![mctp_state, cctp_core_state, verified_input, bridge_ticket]).map_err(sui_error)?;
     let bridge_result = bridge_result.to_nested(2);
     let burn_request = bridge_result[0];
     let deposit_ticket = bridge_result[1];

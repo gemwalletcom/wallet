@@ -27,7 +27,7 @@ object Migration_41_42 : Migration(41, 42) {
                    	PRIMARY KEY (id)
                 )
                 ;
-            """.trimIndent()
+            """.trimIndent(),
         )
         db.execSQL(
             """
@@ -40,7 +40,7 @@ object Migration_41_42 : Migration(41, 42) {
                 	FOREIGN KEY (wallet_id) REFERENCES wallets(id) ON DELETE CASCADE
                 )
                 ;
-            """.trimIndent()
+            """.trimIndent(),
         )
         db.execSQL(
             """
@@ -52,7 +52,7 @@ object Migration_41_42 : Migration(41, 42) {
                     FOREIGN KEY (asset_id) REFERENCES asset(id) ON DELETE CASCADE
                 )
                 ;
-            """.trimIndent()
+            """.trimIndent(),
         )
         db.execSQL(
             """
@@ -69,7 +69,7 @@ object Migration_41_42 : Migration(41, 42) {
                     FOREIGN KEY (asset_id) REFERENCES asset(id) ON DELETE CASCADE
                 )
                 ;
-            """.trimIndent()
+            """.trimIndent(),
         )
 //        db.execSQL(
 //            """
@@ -101,7 +101,8 @@ object Migration_41_42 : Migration(41, 42) {
 //                ;
 //            """.trimIndent()
 //        )
-        val assetsCursor = db.query("""
+        val assetsCursor = db.query(
+            """
             SELECT
              id AS id,
              name AS name,
@@ -115,10 +116,11 @@ object Migration_41_42 : Migration(41, 42) {
              staking_apr AS staking_apr,
              "rank" AS "rank"
             FROM assets GROUP BY id
-        """.trimIndent())
+            """.trimIndent(),
+        )
         while (assetsCursor.moveToNext()) {
             val values = ContentValues()
-            for (colIndex in 0 ..< assetsCursor.columnCount) {
+            for (colIndex in 0..<assetsCursor.columnCount) {
                 val colName = assetsCursor.getColumnName(colIndex)
                 val type = assetsCursor.getType(colIndex)
                 when (type) {
@@ -129,7 +131,6 @@ object Migration_41_42 : Migration(41, 42) {
                     Cursor.FIELD_TYPE_INTEGER -> values.put(colName, assetsCursor.getString(colIndex))
                     else -> break
                 }
-
             }
             values.put("is_enabled", 1)
             values.put("updated_at", System.currentTimeMillis())
@@ -151,10 +152,11 @@ object Migration_41_42 : Migration(41, 42) {
                 JOIN accounts  ON assets.owner_address = accounts.address
                 JOIN wallets ON accounts.wallet_id = wallets.id
                 ;
-            """.trimIndent()
+            """.trimIndent(),
         )
         db.execSQL("DROP TABLE IF EXISTS balances;")
-        db.execSQL("""
+        db.execSQL(
+            """
             CREATE TABLE balances (
                 asset_id TEXT NOT NULL,
                 wallet_id TEXT NOT NULL,
@@ -180,14 +182,16 @@ object Migration_41_42 : Migration(41, 42) {
                 FOREIGN KEY (asset_id) REFERENCES asset(id) ON DELETE CASCADE,
                 FOREIGN KEY (wallet_id) REFERENCES wallets(id) ON DELETE CASCADE
             );
-        """.trimIndent())
+            """.trimIndent(),
+        )
 
         db.execSQL("DROP VIEW IF EXISTS `extended_txs`")
         db.execSQL("DROP VIEW IF EXISTS `asset_info`")
         db.execSQL("DROP TABLE IF EXISTS assets")
         db.execSQL("DROP TABLE IF EXISTS `tokens`")
 
-        db.execSQL("""
+        db.execSQL(
+            """
             |CREATE VIEW `asset_info` AS SELECT
             |            asset.id as id,
             |            asset.name as name,
@@ -238,7 +242,8 @@ object Migration_41_42 : Migration(41, 42) {
             |        LEFT JOIN balances ON asset_wallet.account_address = balances.account_address AND asset_wallet.asset_id = balances.asset_id AND asset_wallet.asset_id = balances.wallet_id
             |        LEFT JOIN prices ON asset.id = prices.asset_id AND prices.currency = (SELECT currency FROM session WHERE id = 1)
             |        LEFT JOIN asset_config ON asset_wallet.asset_id = asset_config.asset_id AND asset_wallet.wallet_id = asset_config.wallet_id
-            """.trimMargin())
+            """.trimMargin(),
+        )
         db.execSQL(
             """
             |CREATE VIEW `extended_txs` AS SELECT
@@ -283,7 +288,7 @@ object Migration_41_42 : Migration(41, 42) {
             |    WHERE accounts.wallet_id = session.wallet_id AND session.id = 1)
             |                AND tx.walletId in (SELECT wallet_id FROM session WHERE session.id = 1)
             |            GROUP BY tx.id
-            """.trimMargin()
+            """.trimMargin(),
         )
     }
 }

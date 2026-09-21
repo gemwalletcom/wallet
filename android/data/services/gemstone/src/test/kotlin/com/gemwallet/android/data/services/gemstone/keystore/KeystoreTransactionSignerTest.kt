@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.services.gemstone.keystore
 
-import com.gemwallet.android.ext.toGem
 import android.util.Log
 import com.gemwallet.android.application.PasswordStore
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockWallet
 import io.mockk.every
 import io.mockk.mockk

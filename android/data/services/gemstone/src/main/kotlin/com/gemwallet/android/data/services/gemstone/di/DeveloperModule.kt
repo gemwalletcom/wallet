@@ -24,13 +24,8 @@ import uniffi.gemstone.GemWalletPreferencesService
 object DeveloperModule {
 
     @Provides
-    fun provideGemstoneDeveloperStore(
-        transactionsDao: TransactionsDao,
-        assetsDao: AssetsDao,
-        stakeDao: StakeDao,
-        bannersDao: BannersDao,
-        pricesDao: PricesDao,
-    ): GemstoneDeveloperStore = GemstoneDeveloperStore(transactionsDao, assetsDao, stakeDao, bannersDao, pricesDao)
+    fun provideGemstoneDeveloperStore(transactionsDao: TransactionsDao, assetsDao: AssetsDao, stakeDao: StakeDao, bannersDao: BannersDao, pricesDao: PricesDao): GemstoneDeveloperStore =
+        GemstoneDeveloperStore(transactionsDao, assetsDao, stakeDao, bannersDao, pricesDao)
 
     @Provides
     fun provideGemDeveloperService(

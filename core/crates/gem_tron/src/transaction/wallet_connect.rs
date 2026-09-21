@@ -143,17 +143,13 @@ mod tests {
             let mut data = hex::decode(data).unwrap();
             let word_start = IAllowanceTransfer::approveCall::SELECTOR.len() + argument_index * ABI_WORD_BYTES;
             data[word_start] = 1;
-            assert!(
-                decode_wallet_connect_approval(&payload_with_calldata(PERMIT2_PAYLOAD, &hex::encode(data))).is_err(),
-                "{argument}"
-            );
+            assert!(decode_wallet_connect_approval(&payload_with_calldata(PERMIT2_PAYLOAD, &hex::encode(data))).is_err(), "{argument}");
         }
         for data in malformed {
             assert!(decode_wallet_connect_approval(&payload_with_calldata(PERMIT2_PAYLOAD, &data)).is_err());
         }
         let mut unknown_contract = payload.clone();
-        unknown_contract["transaction"]["raw_data"]["contract"][0]["parameter"]["value"]["contract_address"] =
-            Value::String("41a614f803b6fd780986a42c78ec9c7f77e6ded13c".to_string());
+        unknown_contract["transaction"]["raw_data"]["contract"][0]["parameter"]["value"]["contract_address"] = Value::String("41a614f803b6fd780986a42c78ec9c7f77e6ded13c".to_string());
         assert_eq!(decode_wallet_connect_approval(&encode_payload(unknown_contract)).unwrap(), None);
         for field in ["call_value", "call_token_value"] {
             let mut payload = payload.clone();

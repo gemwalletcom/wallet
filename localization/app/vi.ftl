@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = Tài sản không được hỗ trợ.
 errors_connections_no_supported_wallets = Không có ví nào được hỗ trợ.
 errors_connections_unsupported_chain = Chuỗi được cung cấp không được hỗ trợ.
 errors_swap_amount_too_small = Số lượng quá nhỏ
-errors_required = %@ là bắt buộc
 errors_scan_transaction_malicious_description = Giao dịch này không thể hoàn tất — địa chỉ ví đích được liên kết với hoạt động đáng ngờ hoặc có hại.
 errors_scan_transaction_memo_required = %@ địa chỉ ví đích yêu cầu thẻ đích / ghi nhớ
 errors_scan_transaction_malicious_title = Hoạt động đáng ngờ
@@ -315,7 +314,7 @@ asset_symbol = Biểu tượng
 asset_decimals = Số thập phân
 asset_token_id = Mã định danh mã thông báo
 asset_contract = Hợp đồng
-asset_state_empty_title = Giao dịch của bạn sẽ xuất hiện ở đây️
+asset_state_empty_title = Giao dịch của bạn sẽ xuất hiện ở đây
 asset_state_empty_description = Nhận, trao đổi hoặc mua %@
 asset_verification_unverified = Chưa được xác minh
 asset_verification_suspicious = Khả nghi
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = Khi giá giảm xuống
 price_alerts_set_alert_set_target_price = Đặt giá mục tiêu
 price_alerts_set_alert_current_price = Giá hiện tại
 price_alerts_added_for = Đặt cảnh báo giá %@
-price_alerts_state_empty_title = Cảnh báo giá của bạn sẽ xuất hiện ở đây️
+price_alerts_state_empty_title = Cảnh báo giá của bạn sẽ xuất hiện ở đây
 price_alerts_state_empty_description = Cho phép chúng bằng cách thêm tiền xu để theo dõi
 price_alerts_auto_footer = Cảnh báo sẽ được kích hoạt khi giá biến động đáng kể.
 price_alerts_set_alert_title = Đặt cảnh báo giá
@@ -536,7 +535,7 @@ verify_phrase_title = Xác nhận
 
 # Warnings
 
-warnings_multi_signature_blocked = Không chuyển tiền vào ví Đa chữ ký %@ này trừ khi bạn chắc chắn mình kiểm soát được khóa riêng. Nếu không làm như vậy, bạn có thể bị lừa đảo và có thể mất vĩnh viễn tài sản của mình.
+warnings_externally_controlled_account = Tài khoản %@ này có thể do người khác kiểm soát. Không gửi tiền vào tài khoản này trừ khi bạn chắc chắn mình kiểm soát nó, nếu không bạn có thể mất vĩnh viễn tài sản của mình.
 
 # Sell
 
@@ -600,7 +599,7 @@ nft_collections = Bộ sưu tập
 nft_collection = Bộ sưu tập
 nft_save_to_photos = Lưu vào Ảnh
 nft_set_as_avatar = Đặt làm Avatar
-nft_state_empty_title = NFT của bạn sẽ xuất hiện ở đây️
+nft_state_empty_title = NFT của bạn sẽ xuất hiện ở đây
 nft_state_empty_description = Nhận NFT đầu tiên của bạn
 nft_report_reason_spam = Thư rác
 nft_report_reason_malicious = Độc hại

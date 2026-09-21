@@ -3,14 +3,16 @@
 import BigInt
 import Components
 import Formatters
-import GemstonePrimitives
 import Foundation
 import enum Gemstone.GemSwapDetailRow
 import struct Gemstone.GemSwapQuoteSummary
 import struct Gemstone.GemSwapRate
 import struct Gemstone.SwapperQuote
 import struct Gemstone.SwapPriceImpact
+import struct Gemstone.SwapProviderData
+import func Gemstone.swapProviderRow
 import struct Gemstone.SwapQuote
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -23,14 +25,15 @@ public final class SwapDetailsViewModel {
     let state: StateViewType<[SwapProviderItem]>
     private let fromAssetPrice: AssetPriceValue
     private let toAssetPrice: AssetPriceValue
-    private let providerViewModel: SwapProviderViewModel
+    private let providerData: SwapProviderData
     private let summary: GemSwapQuoteSummary
     private let selectedQuote: Gemstone.SwapQuote
     private let slippagePercent: Double?
     private let rate: GemSwapRate?
     private var isRateInverse = false
     private let priceViewModel: PriceViewModel
-    private let isProviderSelectionEnabled: Bool
+    private let currency: String
+    let allowSelectProvider: Bool
     private let swapPriceImpact: SwapPriceImpact?
     private let minReceiveValue: BigInt
     private let etaSeconds: UInt32?
@@ -43,20 +46,21 @@ public final class SwapDetailsViewModel {
         summary: GemSwapQuoteSummary,
         slippagePercent: Double?,
         currency: String,
-        isProviderSelectionEnabled: Bool = true,
+        allowSelectProvider: Bool = true,
         swapPriceImpact: SwapPriceImpact?,
         swapProviderSelectAction: ((SwapperQuote) -> Void)? = nil,
     ) {
         self.state = state
         self.fromAssetPrice = fromAssetPrice
         self.toAssetPrice = toAssetPrice
-        providerViewModel = SwapProviderViewModel(providerData: summary.quote.providerData)
+        providerData = summary.quote.providerData
         self.summary = summary
         selectedQuote = summary.quote
         self.slippagePercent = slippagePercent
         rate = summary.rate
         priceViewModel = PriceViewModel(price: toAssetPrice.price, currencyCode: currency)
-        self.isProviderSelectionEnabled = isProviderSelectionEnabled
+        self.currency = currency
+        self.allowSelectProvider = allowSelectProvider
         self.swapPriceImpact = swapPriceImpact
         minReceiveValue = BigInt(summary.minReceiveValue)
         etaSeconds = summary.quote.etaInSeconds
@@ -91,25 +95,25 @@ public final class SwapDetailsViewModel {
     // MARK: - Provider
 
     var providerText: String {
-        providerViewModel.providerText
+        providerData.name
     }
 
     var providerImage: AssetImage {
-        providerViewModel.providerImage
+        AssetImage(imageURL: .none, placeholder: providerData.provider.toPrimitives().image, chainPlaceholder: .none)
     }
 
     var selectedProviderItem: SwapProviderItem {
         SwapProviderItem(
-            asset: toAssetPrice.asset,
-            swapQuote: selectedQuote,
-            selectedProvider: nil,
-            priceViewModel: priceViewModel,
-            valueFormatter: valueFormatter,
+            row: swapProviderRow(
+                provider: selectedQuote.providerData.provider,
+                title: selectedQuote.providerData.protocolName,
+                toValue: selectedQuote.toValue,
+                receiveAsset: toAssetPrice.asset.toGem(),
+                receivePrice: toAssetPrice.price?.price,
+                currency: Primitives.Currency(rawValue: currency)?.toGem() ?? Primitives.Currency.usd.toGem(),
+                isSelected: false,
+            ),
         )
-    }
-
-    var allowSelectProvider: Bool {
-        isProviderSelectionEnabled && state.value.or([]).count > 1
     }
 
     var swapProvidersViewModel: SwapProvidersViewModel {

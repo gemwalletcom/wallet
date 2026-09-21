@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitivesTestKit
-import struct Gemstone.FiatQuote
-import struct Gemstone.GemFiatQuoteRequest
-import GemstoneServicesTestKit
 import BigInt
 @testable import FiatConnect
 import FiatConnectTestKit
 import Formatters
 import Foundation
+import struct Gemstone.FiatQuote
+import struct Gemstone.GemFiatQuoteRequest
+import GemstonePrimitivesTestKit
+import GemstoneServicesTestKit
 import Localization
 import Primitives
 import PrimitivesTestKit
@@ -64,14 +64,14 @@ final class FiatSceneViewModelTests {
     }
 
     @Test
-    func buttonsTitle() {
+    func suggestedAmountsCarryTheCurrencySymbol() {
         let model = FiatSceneViewModel.mock()
 
-        #expect(model.buttonTitle(amount: 10) == "$10")
+        #expect(model.suggestedAmounts.map { $0.value.text() } == ["$100", "$250"])
 
         model.type = .sell
 
-        #expect(model.buttonTitle(amount: 100) == "$100")
+        #expect(model.suggestedAmounts.map(\.amount) == [100, 250])
     }
 
     @Test

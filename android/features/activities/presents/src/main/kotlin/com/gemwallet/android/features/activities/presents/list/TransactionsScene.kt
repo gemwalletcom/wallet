@@ -23,19 +23,23 @@ import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.filters.TransactionFilterUIModel
 import com.gemwallet.android.ui.components.filters.TransactionsFilter
+import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.rememberDateSections
 import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.Chain
+import uniffi.gemstone.GemListRow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun TransactionsScene(
     isRefreshing: Boolean,
     transactions: List<TransactionDataAggregate>?,
+    errorRow: GemListRow?,
     availableChains: List<Chain>,
     chainsFilter: List<Chain>,
     typeFilter: List<TransactionFilterUIModel>,
@@ -55,10 +59,11 @@ internal fun TransactionsScene(
             IconButton(onClick = { showFilters = !showFilters }) {
                 Icon(
                     imageVector = AppIcons.FilterAlt,
-                    tint = if (chainsFilter.isEmpty() && typeFilter.isEmpty())
+                    tint = if (chainsFilter.isEmpty() && typeFilter.isEmpty()) {
                         LocalContentColor.current
-                    else
-                        MaterialTheme.colorScheme.primary,
+                    } else {
+                        MaterialTheme.colorScheme.primary
+                    },
                     contentDescription = "Filter by networks",
                 )
             }
@@ -71,6 +76,11 @@ internal fun TransactionsScene(
         ) {
             when {
                 transactions == null -> Unit
+
+                errorRow != null -> LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    item { GemListRowView(row = errorRow, listPosition = ListPosition.Single) }
+                }
+
                 transactions.isEmpty() -> LazyColumn(modifier = Modifier.fillMaxSize()) {
                     item {
                         EmptyContentView(
@@ -84,6 +94,7 @@ internal fun TransactionsScene(
                         )
                     }
                 }
+
                 else -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     state = listState,
@@ -110,12 +121,7 @@ internal fun TransactionsScene(
     )
 }
 
-private fun transactionsEmptyContentType(
-    hasFilters: Boolean,
-    showBuyAction: Boolean,
-    showReceiveAction: Boolean,
-    onAction: (TransactionsListAction) -> Unit,
-): EmptyContentType {
+private fun transactionsEmptyContentType(hasFilters: Boolean, showBuyAction: Boolean, showReceiveAction: Boolean, onAction: (TransactionsListAction) -> Unit): EmptyContentType {
     if (hasFilters) {
         return EmptyContentType.SearchActivity {
             onAction(TransactionsListAction.ClearChainsFilter)

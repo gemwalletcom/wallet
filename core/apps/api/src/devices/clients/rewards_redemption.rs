@@ -13,11 +13,7 @@ pub struct RewardsRedemptionClient {
 impl RewardsRedemptionClient {
     pub fn new(database: Database, stream_producer: StreamProducer) -> Self {
         let config = ConfigCacher::new(database.clone());
-        Self {
-            database,
-            config,
-            stream_producer,
-        }
+        Self { database, config, stream_producer }
     }
 
     pub async fn redeem_by_wallet_id(&self, wallet_id: i32, id: &str, device_id: i32) -> Result<RedemptionResult, Box<dyn std::error::Error + Send + Sync>> {
@@ -32,9 +28,7 @@ impl RewardsRedemptionClient {
         self.check_redemption_limits(&username, &rewards)?;
 
         let response = redeem_points(&mut self.database.client()?, &username, id, device_id, wallet_id)?;
-        self.stream_producer
-            .publish_rewards_redemption(streamer::RewardsRedemptionPayload::new(response.redemption_id))
-            .await?;
+        self.stream_producer.publish_rewards_redemption(streamer::RewardsRedemptionPayload::new(response.redemption_id)).await?;
 
         Ok(response.result)
     }

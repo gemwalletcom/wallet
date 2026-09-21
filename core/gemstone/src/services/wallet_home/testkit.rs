@@ -7,6 +7,7 @@ use crate::services::asset_discovery::testkit::DiscoveryTestkit;
 use crate::services::balance::testkit::MemoryBalanceStore;
 use crate::services::banner::GemBannerService;
 use crate::services::banner::testkit::MemoryBannerStore;
+use crate::services::preferences::GemPreferencesService;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::testkit::TestAlienProvider;
 
@@ -15,6 +16,7 @@ pub struct WalletHomeTestkit {
     pub provider: Arc<TestAlienProvider>,
     pub balances: Arc<MemoryBalanceStore>,
     pub wallet_preferences: Arc<GemWalletPreferencesService>,
+    pub preferences: Arc<GemPreferencesService>,
     pub wallet_id: WalletId,
 }
 
@@ -34,6 +36,7 @@ impl WalletHomeTestkit {
             provider: discovery.provider,
             balances: discovery.balances,
             wallet_preferences: discovery.wallet_preferences,
+            preferences: discovery.preferences,
             wallet_id: discovery.wallet_id,
         }
     }

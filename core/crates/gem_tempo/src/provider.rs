@@ -2,17 +2,16 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use chain_traits::{
-    ChainAccount, ChainAddressStatus, ChainBalances, ChainBlockTransactions, ChainPerpetual, ChainProvider, ChainSimulation, ChainStaking, ChainState, ChainToken, ChainTraits,
-    ChainTransaction, ChainTransactionBroadcast, ChainTransactionLoad, ChainTransactionState, ChainTransactions, TransactionFeeEstimate, TransactionFeeEstimates,
-    TransactionIdRequest, TransactionsRequest, TransactionsResult,
+    ChainAccount, ChainAddressStatus, ChainBalances, ChainBlockTransactions, ChainPerpetual, ChainProvider, ChainSimulation, ChainStaking, ChainState, ChainToken, ChainTraits, ChainTransaction, ChainTransactionBroadcast,
+    ChainTransactionLoad, ChainTransactionState, ChainTransactions, TransactionFeeEstimate, TransactionFeeEstimates, TransactionIdRequest, TransactionsRequest, TransactionsResult,
 };
 use gem_client::Client;
 use gem_evm::constants::TOKEN_TRANSFER_GAS_LIMIT;
 use gem_evm::provider::transaction_state_mapper::map_transaction_status_with_fee;
 use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use primitives::{
-    Asset, AssetBalance, BroadcastOptions, Chain, FeeRate, SimulationInput, SimulationResult, Transaction, TransactionInputType, TransactionLoadData, TransactionLoadInput,
-    TransactionLoadMetadata, TransactionPreloadInput, TransactionState, TransactionStateRequest, TransactionUpdate, asset_constants::TEMPO_PATHUSD_ASSET_ID, fee::FeePriority,
+    Asset, AssetBalance, BroadcastOptions, Chain, FeeRate, SimulationInput, SimulationResult, Transaction, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, TransactionState,
+    TransactionStateRequest, TransactionUpdate, asset_constants::TEMPO_PATHUSD_ASSET_ID, fee::FeePriority,
 };
 
 use crate::{fee::scale_fee_to_token_units, fee_calculator::TempoFeeCalculator, mapper};
@@ -29,11 +28,7 @@ impl<C: Client + Clone + 'static> TempoProvider<C> {
     }
 
     pub fn new_or_else(client: EthereumClient<C>, fallback: impl FnOnce(EthereumClient<C>) -> Box<dyn ChainTraits>) -> Box<dyn ChainTraits> {
-        if client.get_chain() == Chain::Tempo {
-            Box::new(Self::new(client))
-        } else {
-            fallback(client)
-        }
+        if client.get_chain() == Chain::Tempo { Box::new(Self::new(client)) } else { fallback(client) }
     }
 }
 
@@ -69,13 +64,7 @@ impl<C: Client + Clone> ChainTransactionLoad for TempoProvider<C> {
     }
 
     async fn get_transaction_fee_rates(&self, input_type: TransactionInputType) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
-        Ok(self
-            .provider
-            .get_transaction_fee_rates(input_type)
-            .await?
-            .into_iter()
-            .filter(|rate| rate.priority == FeePriority::Normal)
-            .collect())
+        Ok(self.provider.get_transaction_fee_rates(input_type).await?.into_iter().filter(|rate| rate.priority == FeePriority::Normal).collect())
     }
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
@@ -226,10 +215,7 @@ mod tests {
 
         let result = map_transaction_status_with_fee(&receipt, scale_fee_to_token_units(receipt.get_fee().into()));
         assert_eq!(result.state, TransactionState::Confirmed);
-        assert_eq!(
-            result.changes,
-            vec![TransactionChange::BlockNumber("291".to_string()), TransactionChange::NetworkFee(BigInt::from(595u64))]
-        );
+        assert_eq!(result.changes, vec![TransactionChange::BlockNumber("291".to_string()), TransactionChange::NetworkFee(BigInt::from(595u64))]);
     }
 
     #[tokio::test]

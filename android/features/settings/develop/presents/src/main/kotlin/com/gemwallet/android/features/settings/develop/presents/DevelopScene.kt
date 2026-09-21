@@ -7,22 +7,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.gemwallet.android.features.settings.develop.viewmodels.DevelopViewModel
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.components.list_item.LinkItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.features.settings.develop.viewmodels.DevelopViewModel
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.theme.Placeholder
 
 @Composable
-fun DevelopScene(
-    onInAppNotifications: () -> Unit,
-    onPayments: () -> Unit,
-    onCancel: () -> Unit,
-    viewModel: DevelopViewModel = hiltViewModel(),
-) {
+fun DevelopScene(onInAppNotifications: () -> Unit, onPayments: () -> Unit, onCancel: () -> Unit, viewModel: DevelopViewModel = hiltViewModel()) {
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
     val deviceId by viewModel.deviceId.collectAsState()

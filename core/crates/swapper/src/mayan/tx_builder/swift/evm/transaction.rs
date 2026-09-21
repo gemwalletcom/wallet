@@ -32,11 +32,7 @@ impl EvmSwiftContext {
         let amount_in = U256::from_str(&route.effective_amount_in64)?;
         let swift_input_contract = route_swift_input_contract(route)?.to_string();
         let swift_contract_address = Address::from_str(route.swift_mayan_contract.as_deref().ok_or(SwapperError::InvalidRoute)?)?;
-        let swift_token_in = if route.swift_wrap_and_lock == Some(true) {
-            Address::ZERO
-        } else {
-            Address::from_str(&swift_input_contract)?
-        };
+        let swift_token_in = if route.swift_wrap_and_lock == Some(true) { Address::ZERO } else { Address::from_str(&swift_input_contract)? };
         let destination_address = swift_destination_address(quote, route);
         let custom_payload = hypercore_custom_payload(route, quote_destination_address(quote))?;
         let order = swift_order(quote, route, source_chain_id, destination_address.as_ref(), custom_payload.as_deref())?;
@@ -80,13 +76,8 @@ async fn build_swap_forward_transaction<C>(client: &MayanClient<C>, route: &Maya
 where
     C: Client + Clone + Send + Sync + Debug + 'static,
 {
-    let min_middle_amount = fractional_amount::<U256>(
-        route.min_middle_amount.as_ref().ok_or(SwapperError::InvalidRoute)?,
-        route.swift_input_decimals.ok_or(SwapperError::InvalidRoute)?,
-    )?;
-    let swap: GetSwapEvmResponse = client
-        .get_swap_evm(GetSwapEvmParams::swift(route, route.effective_amount_in64.clone(), context.swift_input_contract.clone()))
-        .await?;
+    let min_middle_amount = fractional_amount::<U256>(route.min_middle_amount.as_ref().ok_or(SwapperError::InvalidRoute)?, route.swift_input_decimals.ok_or(SwapperError::InvalidRoute)?)?;
+    let swap: GetSwapEvmResponse = client.get_swap_evm(GetSwapEvmParams::swift(route, route.effective_amount_in64.clone(), context.swift_input_contract.clone())).await?;
     let swap = EvmSwapForwardData::new(&swap.swap_router_address, &swap.swap_router_calldata, &context.swift_input_contract, min_middle_amount)?;
 
     if route.from_token.contract.eq_ignore_ascii_case(EVM_ZERO_ADDRESS) {
@@ -98,10 +89,5 @@ where
         ));
     }
 
-    Ok(evm_builder::build_swap_and_forward_erc20_transaction(
-        Address::from_str(&route.from_token.contract)?,
-        &context.protocol_call,
-        swap,
-        "0",
-    ))
+    Ok(evm_builder::build_swap_and_forward_erc20_transaction(Address::from_str(&route.from_token.contract)?, &context.protocol_call, swap, "0"))
 }

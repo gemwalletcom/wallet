@@ -204,17 +204,11 @@ mod tests {
 
         assert_eq!(buy_limits.len(), 4);
 
-        let eur_card_limit = buy_limits
-            .iter()
-            .find(|limit| limit.currency == Currency::EUR && limit.payment_type == PaymentType::Card)
-            .unwrap();
+        let eur_card_limit = buy_limits.iter().find(|limit| limit.currency == Currency::EUR && limit.payment_type == PaymentType::Card).unwrap();
         assert_eq!(eur_card_limit.min_amount, Some(20.0));
         assert_eq!(eur_card_limit.max_amount, Some(15000.0));
 
-        let usd_google_pay_limit = buy_limits
-            .iter()
-            .find(|limit| limit.currency == Currency::USD && limit.payment_type == PaymentType::GooglePay)
-            .unwrap();
+        let usd_google_pay_limit = buy_limits.iter().find(|limit| limit.currency == Currency::USD && limit.payment_type == PaymentType::GooglePay).unwrap();
         assert_eq!(usd_google_pay_limit.min_amount, Some(20.0));
         assert_eq!(usd_google_pay_limit.max_amount, Some(15000.0));
     }

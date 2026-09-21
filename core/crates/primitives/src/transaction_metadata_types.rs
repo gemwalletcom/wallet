@@ -98,10 +98,7 @@ mod tests {
     fn test_nft_transfer_metadata_serialization() {
         let asset_id = NFTAssetId::mock();
         let serialized = asset_id.to_string();
-        assert_eq!(
-            serde_json::to_value(TransactionNFTTransferMetadata::new(asset_id.clone(), None)).unwrap(),
-            serde_json::json!({ "assetId": serialized })
-        );
+        assert_eq!(serde_json::to_value(TransactionNFTTransferMetadata::new(asset_id.clone(), None)).unwrap(), serde_json::json!({ "assetId": serialized }));
         assert_eq!(
             serde_json::to_value(TransactionNFTTransferMetadata::new(asset_id, Some("NFT".to_string()))).unwrap(),
             serde_json::json!({ "assetId": serialized, "name": "NFT" })

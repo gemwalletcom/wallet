@@ -10,11 +10,7 @@ import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.localization.text
 
 @Composable
-fun WalletImageNavScreen(
-    onCancel: () -> Unit,
-    source: WalletImageSource = WalletImageSource.Wallet,
-    viewModel: WalletImageViewModel = hiltViewModel(),
-) {
+fun WalletImageNavScreen(onCancel: () -> Unit, source: WalletImageSource = WalletImageSource.Wallet, viewModel: WalletImageViewModel = hiltViewModel()) {
     val wallet by viewModel.wallet.collectAsStateWithLifecycle()
     val nftImages by viewModel.nftImages.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
@@ -33,11 +29,14 @@ fun WalletImageNavScreen(
                     viewModel.setEmoji(action.emoji, action.backgroundColor)
                     dismissOnSelect()
                 }
+
                 is WalletImageAction.SetNftImage -> viewModel.setNftImage(action.url)
+
                 WalletImageAction.ResetToDefault -> {
                     viewModel.resetToDefault()
                     dismissOnSelect()
                 }
+
                 WalletImageAction.Close -> onCancel()
             }
         },

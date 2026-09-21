@@ -164,20 +164,14 @@ mod tests {
 
     #[test]
     fn test_parse_sign_typed_data_object_params_chain_mismatch() {
-        let result = EthereumRequestHandler::parse_sign_typed_data(
-            Chain::Ethereum,
-            serde_json::json!(["0x123", serde_json::from_str::<Value>(&mock_eip712_json(137)).unwrap()]),
-        );
+        let result = EthereumRequestHandler::parse_sign_typed_data(Chain::Ethereum, serde_json::json!(["0x123", serde_json::from_str::<Value>(&mock_eip712_json(137)).unwrap()]));
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("Chain ID mismatch"));
     }
 
     #[test]
     fn test_parse_sign_typed_data_without_domain_chain_id() {
-        let result = EthereumRequestHandler::parse_sign_typed_data(
-            Chain::Ethereum,
-            serde_json::json!(["0x123", include_str!("../../../gem_evm/testdata/ens_upload_avatar.json")]),
-        );
+        let result = EthereumRequestHandler::parse_sign_typed_data(Chain::Ethereum, serde_json::json!(["0x123", include_str!("../../../gem_evm/testdata/ens_upload_avatar.json")]));
         assert!(result.is_ok());
     }
 

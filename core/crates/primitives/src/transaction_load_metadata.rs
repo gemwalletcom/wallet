@@ -1,8 +1,27 @@
-use serde::{Deserialize, Serialize};
+use std::fmt::{self, Debug, Formatter};
+use std::sync::Arc;
 
 use crate::{UTXO, contract_call_data::ContractCallData, solana_nft::SolanaNftStandard, solana_token_program::SolanaTokenProgramId, stake_type::TronStakeData};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentPrivateKey(String);
+
+impl AgentPrivateKey {
+    pub fn new(value: String) -> Self {
+        Self(value)
+    }
+
+    pub fn key(&self) -> &str {
+        &self.0
+    }
+}
+
+impl Debug for AgentPrivateKey {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        formatter.write_str("AgentPrivateKey([REDACTED])")
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct HyperliquidOrder {
     pub approve_agent_required: bool,
     pub approve_referral_required: bool,
@@ -10,7 +29,7 @@ pub struct HyperliquidOrder {
     pub builder_fee_bps: u32,
     pub agent_name: String,
     pub agent_address: String,
-    pub agent_private_key: String,
+    pub agent_private_key: Arc<AgentPrivateKey>,
 }
 
 #[derive(Debug, Clone)]
@@ -244,18 +263,18 @@ mod tests {
                 builder_fee_bps: 10,
                 agent_name: "gemwallet_agent".into(),
                 agent_address: "0xagent".into(),
-                agent_private_key: "0xkey".into(),
+                agent_private_key: Arc::new(AgentPrivateKey::new("0xkey".into())),
             }),
         };
 
+        assert_eq!(format!("{metadata:?}").matches("0xkey").count(), 0);
         let order = metadata.get_hyperliquid_order().unwrap();
         assert_eq!(order.builder_fee_bps, 10);
         assert_eq!(order.agent_address, "0xagent");
+        assert_eq!(format!("{:?}", order.agent_private_key), "AgentPrivateKey([REDACTED])");
+        assert_eq!(order.agent_private_key.key(), "0xkey");
 
-        assert_eq!(
-            TransactionLoadMetadata::None.get_hyperliquid_order().unwrap_err().to_string(),
-            "Hyperliquid order not available for this metadata type"
-        );
+        assert_eq!(TransactionLoadMetadata::None.get_hyperliquid_order().unwrap_err().to_string(), "Hyperliquid order not available for this metadata type");
 
         let metadata = TransactionLoadMetadata::Solana {
             sender_token_address: None,

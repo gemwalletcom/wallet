@@ -288,9 +288,7 @@ pub(crate) struct ChatwootMessageInput {
 
 impl ChatwootMessageInput {
     pub(crate) fn new(content: String) -> Self {
-        Self {
-            message: ChatwootMessageData { content },
-        }
+        Self { message: ChatwootMessageData { content } }
     }
 }
 
@@ -310,9 +308,7 @@ impl ChatwootTypingInput {
             SupportTypingStatus::On => "on",
             SupportTypingStatus::Off => "off",
         };
-        Self {
-            typing_status: typing_status.to_string(),
-        }
+        Self { typing_status: typing_status.to_string() }
     }
 }
 
@@ -433,15 +429,13 @@ mod tests {
         assert_eq!(typing.agent, SupportAgent { name: "Test Agent".to_string() });
         assert_eq!(agent_on.get_device_id(), Some("test-device-id".to_string()));
 
-        let agent_bot: ChatwootWebhookPayload =
-            serde_json::from_str(r#"{"event":"conversation_typing_on","is_private":false,"user":{"name":"Gemmy","type":"agent_bot"}}"#).unwrap();
+        let agent_bot: ChatwootWebhookPayload = serde_json::from_str(r#"{"event":"conversation_typing_on","is_private":false,"user":{"name":"Gemmy","type":"agent_bot"}}"#).unwrap();
         assert_eq!(agent_bot.support_typing(SupportTypingStatus::On).unwrap().agent, SupportAgent { name: "Gemmy".to_string() });
 
         let private: ChatwootWebhookPayload = serde_json::from_str(r#"{"event":"conversation_typing_on","is_private":true,"user":{"name":"Test Agent","type":"user"}}"#).unwrap();
         assert_eq!(private.support_typing(SupportTypingStatus::On), None);
 
-        let contact: ChatwootWebhookPayload =
-            serde_json::from_str(r#"{"event":"conversation_typing_on","is_private":false,"user":{"name":"test-user","type":"contact"}}"#).unwrap();
+        let contact: ChatwootWebhookPayload = serde_json::from_str(r#"{"event":"conversation_typing_on","is_private":false,"user":{"name":"test-user","type":"contact"}}"#).unwrap();
         assert_eq!(contact.support_typing(SupportTypingStatus::On), None);
     }
 

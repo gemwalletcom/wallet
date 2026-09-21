@@ -27,10 +27,7 @@ pub use self::database::{
     transactions::{TransactionFilter, TransactionUpdate},
 };
 pub use self::error::{DatabaseError, DieselResultExt, ReferralValidationError, UsernameValidationError};
-pub use self::models::{
-    ApiClientGrant, ApiClientResource, ApiClientRow, ApiClientScope, AssetUsageRankRow, FiatAssetRowsExt, NewNotificationRow, NewSupportSessionRow, NewWalletRow,
-    RewardRedemptionOptionRow,
-};
+pub use self::models::{ApiClientGrant, ApiClientResource, ApiClientRow, ApiClientScope, AssetUsageRankRow, FiatAssetRowsExt, NewNotificationRow, NewSupportSessionRow, NewWalletRow, RewardRedemptionOptionRow};
 pub use self::repositories::{
     api_clients_repository::ApiClientsRepository,
     assets_addresses_repository::AssetsAddressesRepository,

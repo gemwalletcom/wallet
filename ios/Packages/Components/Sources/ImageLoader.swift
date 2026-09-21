@@ -27,9 +27,12 @@ final class ImageLoader: @unchecked Sendable {
     private let images = NSCache<NSString, UIImage>()
     private let loads = InFlightLoads()
 
-    init(cache: URLCache = .shared) {
+    init(cache: URLCache = .shared, protocolClasses: [AnyClass]? = nil) {
         let configuration = URLSessionConfiguration.default
         configuration.urlCache = cache
+        if let protocolClasses {
+            configuration.protocolClasses = protocolClasses
+        }
         session = URLSession(configuration: configuration)
         images.totalCostLimit = Self.decodedImagesLimit
     }
@@ -49,40 +52,22 @@ final class ImageLoader: @unchecked Sendable {
         if let image = cached(request) {
             return image
         }
-        if let image = await storedImage(for: request) {
-            return store(image, for: request)
-        }
-        let urlRequest = URLRequest(url: request.url)
-        let cache = session.configuration.urlCache
-        let (data, response) = try await session.data(for: urlRequest)
+        let data = try await imageData(for: request)
         guard let image = await decoded(data, request: request) else {
             throw ImageLoadingError.undecodable
-        }
-        if cache?.cachedResponse(for: urlRequest) == nil {
-            cache?.storeCachedResponse(CachedURLResponse(response: response, data: data), for: urlRequest)
         }
         return store(image, for: request)
     }
 
-    private func storedImage(for request: ImageRequest) async -> UIImage? {
-        let cache = session.configuration.urlCache
-        return await Task.detached(priority: .utility) {
-            guard let data = Self.localData(for: request.url, cache: cache) else {
-                return nil
-            }
-            return Self.decode(data, request: request)
-        }.value
+    private func imageData(for request: ImageRequest) async throws -> Data {
+        if request.url.isFileURL {
+            return try await Task.detached(priority: .utility) { try Data(contentsOf: request.url) }.value
+        }
+        return try await session.data(for: URLRequest(url: request.url)).0
     }
 
     private func decoded(_ data: Data, request: ImageRequest) async -> UIImage? {
         await Task.detached(priority: .utility) { Self.decode(data, request: request) }.value
-    }
-
-    private static func localData(for url: URL, cache: URLCache?) -> Data? {
-        if url.isFileURL {
-            return try? Data(contentsOf: url)
-        }
-        return cache?.cachedResponse(for: URLRequest(url: url))?.data
     }
 
     private func store(_ image: UIImage, for request: ImageRequest) -> UIImage {

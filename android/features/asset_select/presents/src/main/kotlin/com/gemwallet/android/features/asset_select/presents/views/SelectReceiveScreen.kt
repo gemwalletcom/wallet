@@ -6,14 +6,7 @@ import com.gemwallet.android.features.asset_select.viewmodels.ReceiveSelectViewM
 import com.wallet.core.primitives.AssetId
 
 @Composable
-fun SelectReceiveScreen(
-    onCancel: () -> Unit,
-    onSelect: ((AssetId) -> Unit)?,
-    titleContent: (@Composable () -> Unit)? = null,
-    closeIcon: Boolean = false,
-    showFilter: Boolean? = null,
-    viewModel: ReceiveSelectViewModel = hiltViewModel(),
-) {
+fun SelectReceiveScreen(onCancel: () -> Unit, onSelect: ((AssetId) -> Unit)?, titleContent: (@Composable () -> Unit)? = null, closeIcon: Boolean = false, showFilter: Boolean? = null, viewModel: ReceiveSelectViewModel = hiltViewModel()) {
     AssetSelectScreen(
         titleContent = titleContent,
         closeIcon = closeIcon,

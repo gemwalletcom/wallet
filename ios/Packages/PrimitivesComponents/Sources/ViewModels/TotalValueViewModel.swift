@@ -2,6 +2,7 @@
 
 import Components
 import Formatters
+import func Gemstone.valueTone
 import GemstonePrimitives
 import Primitives
 import Style
@@ -33,6 +34,6 @@ public struct TotalValueViewModel {
     }
 
     public var pnlColor: Color {
-        PriceChangeColor.color(for: totalValue.pnlAmount)
+        valueTone(value: totalValue.pnlAmount).color
     }
 }

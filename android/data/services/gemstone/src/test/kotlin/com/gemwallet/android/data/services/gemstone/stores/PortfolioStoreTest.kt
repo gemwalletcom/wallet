@@ -5,12 +5,12 @@ import com.gemwallet.android.data.service.store.database.entities.mockDbAssetInf
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockWalletId
-import uniffi.gemstone.PortfolioAsset
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.PortfolioAsset
 import java.math.BigInteger
 
 class GemstonePortfolioStoreTest {
@@ -25,7 +25,7 @@ class GemstonePortfolioStoreTest {
                     chain = bitcoin.id.chain,
                     walletId = walletId.id,
                     balanceAvailable = "1000",
-                )
+                ),
             )
         }
         val subject = GemstonePortfolioStore(assetsDao)

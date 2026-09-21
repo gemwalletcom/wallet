@@ -26,18 +26,11 @@ pub struct YoEarnProvider {
 
 impl YoEarnProvider {
     pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Self {
-        Self {
-            assets: supported_assets(),
-            rpc_provider,
-        }
+        Self { assets: supported_assets(), rpc_provider }
     }
 
     fn get_assets(&self, chain: Chain, token_ids: &[String]) -> Vec<YoAsset> {
-        self.assets
-            .iter()
-            .filter(|a| a.chain == chain && token_ids.contains(&a.asset_token.to_string()))
-            .copied()
-            .collect()
+        self.assets.iter().filter(|a| a.chain == chain && token_ids.contains(&a.asset_token.to_string())).copied().collect()
     }
 
     fn get_asset(&self, asset_id: &AssetId) -> Result<YoAsset, YielderError> {
@@ -65,10 +58,7 @@ impl EarnProvider for YoEarnProvider {
     async fn get_position(&self, address: &str, asset_id: &AssetId) -> Result<Option<DelegationBase>, YielderError> {
         let asset = self.get_asset(asset_id)?;
         let positions = self.get_positions(asset.chain, address, from_ref(&asset)).await?;
-        let delegation = positions
-            .into_iter()
-            .find(|d| d.share_balance != U256::ZERO)
-            .map(|data| map_to_delegation(asset.asset_id(), &data, YieldProvider::Yo.as_ref()));
+        let delegation = positions.into_iter().find(|d| d.share_balance != U256::ZERO).map(|data| map_to_delegation(asset.asset_id(), &data, YieldProvider::Yo.as_ref()));
         Ok(delegation)
     }
 

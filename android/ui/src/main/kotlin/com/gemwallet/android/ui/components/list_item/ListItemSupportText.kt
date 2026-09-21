@@ -15,11 +15,11 @@ fun ListItemSupportText(@StringRes stringId: Int, vararg formatArgs: Any) {
 }
 
 @Composable
-fun ListItemSupportText(text: String, color: Color = MaterialTheme.colorScheme.secondary) {
+fun ListItemSupportText(text: String, color: Color = MaterialTheme.colorScheme.secondary, maxLines: Int = 1) {
     Text(
         modifier = Modifier,
         text = text,
-        maxLines = 1,
+        maxLines = maxLines,
         overflow = TextOverflow.Ellipsis,
         color = color,
         style = MaterialTheme.typography.bodyMedium,

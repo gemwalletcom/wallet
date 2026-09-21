@@ -13,7 +13,7 @@ object Migration_62_63 : Migration(62, 63) {
                 `url` TEXT NOT NULL,
                 PRIMARY KEY(`collection_id`, `name`),
                 FOREIGN KEY(`collection_id`) REFERENCES `nft_collection`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
-            )"""
+            )""",
         )
     }
 }

@@ -47,8 +47,7 @@ class WalletViewModelTest {
 
     private val walletId = "multicoin_0xabc"
 
-    private fun route(vararg extra: Pair<String, Any?>) =
-        SavedStateHandle(mapOf(RouteArgument.WalletId.key to walletId) + extra)
+    private fun route(vararg extra: Pair<String, Any?>) = SavedStateHandle(mapOf(RouteArgument.WalletId.key to walletId) + extra)
 
     @Test
     fun `renaming a wallet goes to Core`() = runTest(dispatcher) {
@@ -62,7 +61,7 @@ class WalletViewModelTest {
     }
 
     @Test
-    fun `a rename Core refuses is swallowed by the screen`() = runTest(dispatcher) {
+    fun `a rename Core refuses shows its error`() = runTest(dispatcher) {
         val service: GemWalletServiceInterface = mockk(relaxed = true) {
             coEvery { rename(any(), any()) } throws IllegalStateException("taken")
         }
@@ -71,7 +70,9 @@ class WalletViewModelTest {
 
         model.setWalletName("Savings").join()
 
-        coVerify { service.rename(walletId, "Savings") }
+        assertEquals("taken", model.error.value)
+        model.clearError()
+        assertNull(model.error.value)
     }
 
     @Test
@@ -104,12 +105,13 @@ class WalletViewModelTest {
 
     @Test
     fun `an avatar Core refuses shows an error until it is cleared`() = runTest(dispatcher) {
-        val avatars: WalletAvatarService = mockk {
-            coEvery { setNftImage(any(), any()) } throws IllegalStateException("no image")
+        val service: GemWalletServiceInterface = mockk {
+            coEvery { setAvatarImageUrl(any(), any()) } throws IllegalStateException("no image")
+            every { avatarItems(any()) } returns emptyList()
         }
         val details: GetWalletDetails = mockk { every { getWallet(any()) } returns flowOf(null) }
         val nfts: GetListNft = mockk { every { getListNft(any()) } returns flowOf(emptyList()) }
-        val model = WalletImageViewModel(details, nfts, avatars, route(), dispatcher).also { models.add(it) }
+        val model = WalletImageViewModel(details, nfts, service, route(), dispatcher, mockk(relaxed = true)).also { models.add(it) }
 
         model.setNftImage("https://example.com/a.png").join()
 

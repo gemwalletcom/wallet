@@ -10,4 +10,5 @@ pub enum SwapperError {
     ComputeQuoteError(String),
     TransactionError(String),
     NoQuoteAvailable,
+    Offline,
 }

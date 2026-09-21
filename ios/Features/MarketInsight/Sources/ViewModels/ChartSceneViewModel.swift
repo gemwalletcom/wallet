@@ -3,14 +3,12 @@
 import Components
 import Formatters
 import Foundation
-import enum Gemstone.GemAssetMarketRow
 import struct Gemstone.GemChart
 import enum Gemstone.GemChartPhase
-import enum Gemstone.GemChartSection
-import func Gemstone.socialLinks
-import typealias Gemstone.AssetLink
-import struct Gemstone.GemChartSession
 import protocol Gemstone.GemChartServiceProtocol
+import struct Gemstone.GemChartSession
+import enum Gemstone.GemInfoTopic
+import struct Gemstone.GemListSection
 import enum Gemstone.GemServiceError
 import GemstonePrimitives
 import GemstoneServices
@@ -62,14 +60,13 @@ public final class ChartSceneViewModel: ChartListViewable {
         switch session.viewState().phase {
         case .loading: .loading
         case let .data(data):
-            ChartValuesViewModel(period: selectedPeriod, chartData: data)
-                .map { .data($0) } ?? .noData
+            .data(ChartValuesViewModel(period: selectedPeriod, chartData: data))
         case .noData: .noData
         case let .failed(error): .error(error)
         }
     }
 
-    var sections: [GemChartSection] {
+    var sections: [GemListSection] {
         guard let priceData else { return [] }
         return service.sections(
             asset: priceData.asset.toGem(),
@@ -93,42 +90,21 @@ public final class ChartSceneViewModel: ChartListViewable {
         priceQuery = ObservableQuery(PriceRequest(assetId: assetModel.asset.id), initialValue: .with(asset: assetModel.asset))
         self.onSetPriceAlert = onSetPriceAlert
     }
-
-    func socialLinksModel(_ links: [Gemstone.AssetLink]) -> SocialLinksViewModel {
-        SocialLinksViewModel(links: socialLinks(links: links))
-    }
-
-    func listItem(for section: GemChartSection) -> ListItemModel {
-        switch section {
-        case let .priceAlerts(count): ListItemModel(title: section.title ?? "", subtitle: "\(count)")
-        case .setPriceAlert, .market, .links: ListItemModel(title: section.title ?? "")
-        }
-    }
-
-    func marketValues(_ rows: [GemAssetMarketRow]) -> [MarketValueViewModel] {
-        AssetDetailsInfoViewModel(asset: asset, currency: service.currency).marketValues(rows)
-    }
-
 }
 
 // MARK: - Business Logic
 
 public extension ChartSceneViewModel {
     func load() async {
+        let period = selectedPeriod.toGem()
         session = session.onRefresh()
         do {
-            session = try await session.onLoaded(chart: service.syncCharts(assetId: assetModel.asset.id.identifier, period: selectedPeriod.toGem()))
-            if priceData?.priceAlerts.isNotEmpty == true {
-                Task {
-                    do {
-                        try await service.syncPriceAlerts(assetId: assetModel.asset.id.identifier)
-                    } catch {
-                        debugLog("chart scene: price alerts update error \(error)")
-                    }
-                }
-            }
+            let chart = try await service.syncCharts(assetId: assetModel.asset.id.identifier, period: period)
+            session = session.onLoaded(chart: chart, period: period)
+        } catch let error as GemServiceError {
+            session = session.onFailed(error: error, period: period)
         } catch {
-            session = session.onFailed(error: .Core(msg: error.localizedDescription))
+            debugLog("chart scene: load error \(error)")
         }
     }
 
@@ -136,7 +112,7 @@ public extension ChartSceneViewModel {
         onSetPriceAlert(assetModel.asset)
     }
 
-    internal func onSelectInfoSheet(_ type: InfoSheetType) {
-        isPresentingInfoSheet = type
+    internal func onInfo(_ topic: GemInfoTopic) {
+        isPresentingInfoSheet = InfoSheetType(topic: topic, assetImage: nil)
     }
 }

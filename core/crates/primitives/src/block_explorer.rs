@@ -1,9 +1,8 @@
 use crate::chain::Chain;
 use crate::chain_evm::EVMChain;
 use crate::explorers::{
-    AlgorandAllo, AlgorandPera, BlockScout, BlockVision, Blocksec, Cardanocan, EtherScan, Explorer, FlowScan, HyperliquidExplorer, HypurrScan, MantleExplorer, MayaScan, Metadata,
-    NearBlocks, OkxExplorer, RouteScan, RuneScan, SubScan, TempoExplorer, TonScan, TronScan, Viewblock, XrpScan, ZkSync, aptos, blockchair, mempool, mintscan, solana,
-    stellar_expert, sui, threexpl, ton,
+    AlgorandAllo, AlgorandPera, BlockScout, BlockVision, Blocksec, Cardanocan, EtherScan, Explorer, FlowScan, HyperliquidExplorer, HypurrScan, MantleExplorer, MayaScan, Metadata, NearBlocks, OkxExplorer, RouteScan, RuneScan, SubScan,
+    TempoExplorer, TonScan, TronScan, Viewblock, XrpScan, ZkSync, aptos, blockchair, mempool, mintscan, solana, stellar_expert, sui, threexpl, ton,
 };
 use std::str::FromStr;
 use typeshare::typeshare;

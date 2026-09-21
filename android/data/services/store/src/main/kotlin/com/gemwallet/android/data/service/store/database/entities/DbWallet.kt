@@ -23,32 +23,28 @@ data class DbWallet(
     val imageUrl: String? = null,
 )
 
-fun DbWallet.toDTO(accounts: List<DbAccount>): Wallet {
-    return Wallet(
-        id = WalletId(id),
-        name = name,
-        type = type,
-        accounts = accounts.toDTO(),
-        index = index,
-        isPinned = pinned,
-        imageUrl = imageUrl,
-        source = source,
-    )
-}
+fun DbWallet.toDTO(accounts: List<DbAccount>): Wallet = Wallet(
+    id = WalletId(id),
+    name = name,
+    type = type,
+    accounts = accounts.toDTO(),
+    index = index,
+    isPinned = pinned,
+    imageUrl = imageUrl,
+    source = source,
+)
 
-fun Wallet.toRecord(): DbWallet {
-    return DbWallet(
-        id = id.id,
-        name = name,
-        type = type,
-        domainName = null,
-        position = 0,
-        pinned = isPinned,
-        index = index,
-        source = source,
-        imageUrl = imageUrl,
-    )
-}
+fun Wallet.toRecord(): DbWallet = DbWallet(
+    id = id.id,
+    name = name,
+    type = type,
+    domainName = null,
+    position = 0,
+    pinned = isPinned,
+    index = index,
+    source = source,
+    imageUrl = imageUrl,
+)
 
 fun Map<DbWallet, List<DbAccount>>.toDTO() = map { entry -> entry.key.toDTO(entry.value) }
 

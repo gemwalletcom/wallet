@@ -14,12 +14,14 @@ import com.gemwallet.android.ui.theme.smallIconSize
 fun NameResolveIndicator(model: NameResolveIndicatorUIModel?) {
     when (model) {
         NameResolveIndicatorUIModel.Loading -> CircularProgressIndicator16()
+
         is NameResolveIndicatorUIModel.Icon -> Icon(
             modifier = Modifier.size(smallIconSize),
             imageVector = model.symbol.vector(),
             contentDescription = model.contentDescription?.let { stringResource(it) },
             tint = model.style.color(),
         )
+
         null -> Unit
     }
 }

@@ -10,17 +10,8 @@ use settings_chain::TransactionIdRequest;
 use super::ChainClient;
 
 #[get("/chain/transactions/<chain>/<hash>?<block_number>")]
-pub async fn get_transaction(
-    _permission: PermissionChainRead,
-    chain: ChainParam,
-    hash: &str,
-    block_number: Option<u64>,
-    client: &State<ChainClient>,
-) -> Result<ApiResponse<Option<Transaction>>, ApiError> {
-    Ok(client
-        .get_transaction_by_hash(TransactionIdRequest::new(chain.0, hash.to_string(), block_number))
-        .await?
-        .into())
+pub async fn get_transaction(_permission: PermissionChainRead, chain: ChainParam, hash: &str, block_number: Option<u64>, client: &State<ChainClient>) -> Result<ApiResponse<Option<Transaction>>, ApiError> {
+    Ok(client.get_transaction_by_hash(TransactionIdRequest::new(chain.0, hash.to_string(), block_number)).await?.into())
 }
 
 #[get("/chain/transactions/<chain>/<hash>/status?<sender_address>&<created_at>&<from_timestamp>&<block_number>")]
@@ -34,10 +25,7 @@ pub async fn get_transaction_status(
     block_number: Option<u64>,
     client: &State<ChainClient>,
 ) -> Result<ApiResponse<TransactionUpdate>, ApiError> {
-    let created_at = created_at
-        .or(from_timestamp)
-        .and_then(|timestamp| DateTime::<Utc>::from_timestamp(timestamp as i64, 0))
-        .unwrap_or(DateTime::<Utc>::UNIX_EPOCH);
+    let created_at = created_at.or(from_timestamp).and_then(|timestamp| DateTime::<Utc>::from_timestamp(timestamp as i64, 0)).unwrap_or(DateTime::<Utc>::UNIX_EPOCH);
     let request = TransactionStateRequest {
         id: hash.to_string(),
         sender_address: sender_address.unwrap_or_default(),

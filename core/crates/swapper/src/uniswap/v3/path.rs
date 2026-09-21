@@ -28,10 +28,7 @@ pub fn build_paths(token_in: &Address, token_out: &Address, fee_tiers: &[FeeTier
 
     let intermediaries = get_intermediaries(token_in, token_out, base_pair);
     intermediaries.iter().for_each(|intermediary| {
-        let token_pairs: Vec<Vec<TokenPair>> = fee_tiers
-            .iter()
-            .map(|fee_tier| TokenPair::new_two_hop(token_in, intermediary, token_out, *fee_tier))
-            .collect();
+        let token_pairs: Vec<Vec<TokenPair>> = fee_tiers.iter().map(|fee_tier| TokenPair::new_two_hop(token_in, intermediary, token_out, *fee_tier)).collect();
         let pair_paths: Vec<_> = token_pairs.iter().map(|token_pairs| (token_pairs.to_vec(), build_pairs(token_pairs))).collect();
         paths.push(pair_paths);
     });

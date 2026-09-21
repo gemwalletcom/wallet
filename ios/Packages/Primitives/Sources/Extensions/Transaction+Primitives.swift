@@ -10,34 +10,6 @@ public extension Transaction {
     var chain: Chain {
         assetId.chain
     }
-
-    var assetIds: [AssetId] {
-        switch type {
-        case .transfer,
-             .tokenApproval,
-             .stakeDelegate,
-             .stakeUndelegate,
-             .stakeRedelegate,
-             .stakeRewards,
-             .stakeWithdraw,
-             .assetActivation,
-             .transferNFT,
-             .smartContractCall,
-             .perpetualOpenPosition,
-             .perpetualClosePosition,
-             .perpetualModifyPosition,
-             .stakeFreeze,
-             .stakeUnfreeze,
-             .earnDeposit,
-             .earnWithdraw:
-            return [assetId]
-        case .swap:
-            guard let swapMetadata = metadata?.decode(TransactionSwapMetadata.self) else {
-                return []
-            }
-            return [swapMetadata.fromAsset, swapMetadata.toAsset]
-        }
-    }
 }
 
 extension Transaction: Identifiable {}

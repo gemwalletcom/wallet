@@ -2,6 +2,8 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemVerifyPhraseSession
+import struct Gemstone.GemVerifyPhraseViewState
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -12,25 +14,26 @@ import SwiftUI
 @Observable
 @MainActor
 final class VerifyPhraseViewModel {
-    private let words: [String]
-    private let shuffledWords: [String]
     private let onComplete: ([String]) async throws -> Void
 
-    var wordsVerified: [String]
-    var wordsIndex: Int = 0
+    private var session: GemVerifyPhraseSession
     var buttonState = ButtonState.disabled
     var isPresentingAlertMessage: AlertMessage?
-    private var selectedIndexes = Set<WordIndex>()
 
     init(
-        words: [String],
-        shuffledWords: [String],
+        session: GemVerifyPhraseSession,
         onComplete: @escaping ([String]) async throws -> Void,
     ) {
-        self.words = words
-        self.shuffledWords = shuffledWords
-        wordsVerified = Array(repeating: "", count: words.count)
+        self.session = session
         self.onComplete = onComplete
+    }
+
+    private var viewState: GemVerifyPhraseViewState {
+        session.viewState()
+    }
+
+    var wordsIndex: Int? {
+        viewState.nextIndex.map(Int.init)
     }
 
     var title: String {
@@ -42,7 +45,7 @@ final class VerifyPhraseViewModel {
     }
 
     var rows: [SecretPhraseRow] {
-        SecretPhraseRow.rows(for: wordsVerified)
+        SecretPhraseRow.rows(for: viewState.verified)
     }
 
     var rowsSections: [[WordIndex]] {
@@ -50,27 +53,22 @@ final class VerifyPhraseViewModel {
     }
 
     var selectRows: [WordIndex] {
-        shuffledWords
+        viewState.choices
             .enumerated()
             .map {
-                WordIndex(index: $0.offset, word: $0.element)
+                WordIndex(index: $0.offset, word: $0.element.word)
             }
     }
 
     func pickWord(index: WordIndex) {
-        if words[wordsIndex] == index.word {
-            wordsVerified[wordsIndex] = index.word
-            selectedIndexes.insert(index)
-            wordsIndex += 1
-        }
-        // last word
-        if wordsIndex == words.count {
+        session = session.onPick(choice: UInt32(index.index))
+        if viewState.isComplete {
             buttonState = .normal
         }
     }
 
     func isVerified(index: WordIndex) -> Bool {
-        selectedIndexes.contains(index)
+        viewState.choices[index.index].isPicked
     }
 }
 
@@ -86,7 +84,7 @@ extension VerifyPhraseViewModel {
 
     func complete() async {
         do {
-            try await onComplete(words)
+            try await onComplete(session.words)
         } catch {
             buttonState = .normal
             isPresentingAlertMessage = AlertMessage(title: Localized.Errors.createWallet(""), error: error)

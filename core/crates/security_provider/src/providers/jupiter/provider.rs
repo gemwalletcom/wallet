@@ -36,11 +36,7 @@ impl<C: Client> TokenScanProvider for JupiterProvider<C> {
             return Err(format!("Unsupported Jupiter token chain: {}", target.chain).into());
         }
 
-        let token = self
-            .client
-            .get_token(&target.token_id)
-            .await?
-            .ok_or_else(|| format!("Jupiter token not found: {}", target.token_id))?;
+        let token = self.client.get_token(&target.token_id).await?.ok_or_else(|| format!("Jupiter token not found: {}", target.token_id))?;
         let is_malicious = token.is_suspicious();
 
         Ok(ScanResult {

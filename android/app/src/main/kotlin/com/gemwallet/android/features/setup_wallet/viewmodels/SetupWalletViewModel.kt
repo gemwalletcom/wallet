@@ -1,29 +1,29 @@
 package com.gemwallet.android.features.setup_wallet.viewmodels
 
-import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
-import com.gemwallet.android.ext.toGem
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.wallet.cases.GetWallet
+import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
-import kotlinx.coroutines.CoroutineDispatcher
-import uniffi.gemstone.GemErrorText
-import uniffi.gemstone.GemWalletRow
-import uniffi.gemstone.walletRow
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import com.gemwallet.android.ext.runCatchingCancellable
-import uniffi.gemstone.GemWalletServiceInterface
 import kotlinx.coroutines.launch
-import com.gemwallet.android.ext.errorText
+import uniffi.gemstone.GemErrorText
+import uniffi.gemstone.GemWalletRow
+import uniffi.gemstone.GemWalletServiceInterface
+import uniffi.gemstone.walletRow
 
 @HiltViewModel(assistedFactory = SetupWalletViewModel.Factory::class)
 class SetupWalletViewModel @AssistedInject constructor(
@@ -67,12 +67,6 @@ class SetupWalletViewModel @AssistedInject constructor(
     interface Factory {
         fun create(walletId: WalletId): SetupWalletViewModel
     }
-
 }
 
-data class SetupWalletViewModelState(
-    val walletName: String = "",
-    val walletSource: WalletSource = WalletSource.Create,
-    val row: GemWalletRow? = null,
-    val error: GemErrorText? = null,
-)
+data class SetupWalletViewModelState(val walletName: String = "", val walletSource: WalletSource = WalletSource.Create, val row: GemWalletRow? = null, val error: GemErrorText? = null)

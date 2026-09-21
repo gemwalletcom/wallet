@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitives
-import class Gemstone.PriceChangeCalculator
 import Components
 import Formatters
 import Foundation
+import class Gemstone.PriceChangeCalculator
+import GemstonePrimitives
 import Localization
 import Primitives
 import Style

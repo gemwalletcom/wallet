@@ -88,11 +88,7 @@ mod tests {
     #[test]
     fn test_sign_ton_personal_rejects_mismatched_address() {
         let payload = TonSignDataPayload::Text { text: "Hello TON".to_string() };
-        let message_data = TonSignMessageData::new(
-            payload,
-            "example.com".to_string(),
-            "0:0000000000000000000000000000000000000000000000000000000000000000".to_string(),
-        );
+        let message_data = TonSignMessageData::new(payload, "example.com".to_string(), "0:0000000000000000000000000000000000000000000000000000000000000000".to_string());
         let data = message_data.to_bytes();
 
         let result = mock_signer().sign_personal(&data, 1234567890);

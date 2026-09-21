@@ -22,11 +22,7 @@ impl FiatProvider for TransakClient {
 
     async fn get_assets(&self) -> Result<Vec<FiatProviderAsset>, Box<dyn std::error::Error + Send + Sync>> {
         let (assets, fiat_currencies) = tokio::try_join!(self.get_supported_assets(), self.get_fiat_currencies())?;
-        Ok(assets
-            .response
-            .into_iter()
-            .flat_map(|asset| map_asset_with_limits(asset, &fiat_currencies.response))
-            .collect::<Vec<FiatProviderAsset>>())
+        Ok(assets.response.into_iter().flat_map(|asset| map_asset_with_limits(asset, &fiat_currencies.response)).collect::<Vec<FiatProviderAsset>>())
     }
 
     async fn get_countries(&self) -> Result<Vec<FiatProviderCountry>, Box<dyn std::error::Error + Send + Sync>> {
@@ -54,18 +50,14 @@ impl FiatProvider for TransakClient {
 
     async fn get_quote_buy(&self, request: FiatQuoteRequest, request_map: FiatMapping) -> Result<FiatQuoteResponse, Box<dyn Error + Send + Sync>> {
         let network = request_map.asset_symbol.network.unwrap_or_default();
-        let quote = self
-            .get_buy_quote(request_map.asset_symbol.symbol, request.currency.clone(), request.amount, network)
-            .await?;
+        let quote = self.get_buy_quote(request_map.asset_symbol.symbol, request.currency.clone(), request.amount, network).await?;
 
         Ok(FiatQuoteResponse::new(quote.quote_id, request.amount, quote.crypto_amount))
     }
 
     async fn get_quote_sell(&self, request: FiatQuoteRequest, request_map: FiatMapping) -> Result<FiatQuoteResponse, Box<dyn Error + Send + Sync>> {
         let network = request_map.asset_symbol.network.unwrap_or_default();
-        let quote = self
-            .get_sell_quote(request_map.asset_symbol.symbol, request.currency.clone(), request.amount, network)
-            .await?;
+        let quote = self.get_sell_quote(request_map.asset_symbol.symbol, request.currency.clone(), request.amount, network).await?;
 
         Ok(FiatQuoteResponse::new(quote.quote_id, request.amount, quote.crypto_amount))
     }
@@ -84,18 +76,12 @@ impl FiatProvider for TransakClient {
                 conversion_price: 0.0,
                 total_fee: 0.0,
             },
-            FiatQuoteType::Sell => {
-                self.get_sell_quote(data.asset_symbol.symbol.clone(), data.quote.fiat_currency.clone(), data.quote.fiat_amount, network)
-                    .await?
-            }
+            FiatQuoteType::Sell => self.get_sell_quote(data.asset_symbol.symbol.clone(), data.quote.fiat_currency.clone(), data.quote.fiat_amount, network).await?,
         };
 
         let redirect_url = self.redirect_url(transak_quote, &data).await?;
 
-        Ok(FiatQuoteUrl {
-            redirect_url,
-            provider_transaction_id: None,
-        })
+        Ok(FiatQuoteUrl { redirect_url, provider_transaction_id: None })
     }
 }
 

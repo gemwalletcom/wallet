@@ -31,14 +31,6 @@ public extension String {
         index(startIndex, offsetBy: from)
     }
 
-    func truncate(
-        first: Int = 6,
-        last: Int = 4,
-        connector: String = "...",
-    ) -> String {
-        replacingOccurrences(of: dropFirst(first).dropLast(last), with: connector)
-    }
-
     func trim() -> String {
         trimmingCharacters(in: .whitespacesAndNewlines)
     }

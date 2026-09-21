@@ -1,7 +1,5 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.data.service.store.database.AccountsDao
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
@@ -10,6 +8,8 @@ import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.domains.asset.defaultBasic
 import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
@@ -21,12 +21,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemWalletStore
 
-class GemstoneWalletStore(
-    private val walletsDao: WalletsDao,
-    private val accountsDao: AccountsDao,
-    private val assetsDao: AssetsDao,
-    private val transactionRunner: StoreTransactionRunner,
-) : GemWalletStore {
+class GemstoneWalletStore(private val walletsDao: WalletsDao, private val accountsDao: AccountsDao, private val assetsDao: AssetsDao, private val transactionRunner: StoreTransactionRunner) : GemWalletStore {
 
     override suspend fun getWallets(): List<uniffi.gemstone.Wallet> = getAllNow().map { it.toGem() }
 

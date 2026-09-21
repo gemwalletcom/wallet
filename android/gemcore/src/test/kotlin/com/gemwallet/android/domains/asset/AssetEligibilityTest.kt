@@ -9,12 +9,12 @@ import uniffi.gemstone.GemAssetFilter
 class AssetEligibilityTest {
 
     @Test
-    fun `query filters keep the balance distinction and the universe and leave enabled to the query`() {
+    fun `query filters keep the enabled flag, the balance distinction and the universe`() {
         assertEquals(
-            setOf(AssetFilter.Swappable, AssetFilter.HasAvailableBalance),
+            setOf(AssetFilter.Enabled, AssetFilter.Swappable, AssetFilter.HasAvailableBalance),
             listOf(GemAssetFilter.Enabled, GemAssetFilter.Swappable, GemAssetFilter.HasAvailableBalance).toQueryFilters(),
         )
-        assertEquals(setOf(AssetFilter.HasBalance), listOf(GemAssetFilter.Enabled, GemAssetFilter.HasBalance).toQueryFilters())
+        assertEquals(setOf(AssetFilter.Enabled, AssetFilter.HasBalance), listOf(GemAssetFilter.Enabled, GemAssetFilter.HasBalance).toQueryFilters())
         assertEquals(
             setOf(AssetFilter.ChainsOrAssetIds(listOf(Chain.Solana), listOf("ethereum"))),
             listOf(GemAssetFilter.ChainsOrAssetIds(listOf("solana"), listOf("ethereum"))).toQueryFilters(),

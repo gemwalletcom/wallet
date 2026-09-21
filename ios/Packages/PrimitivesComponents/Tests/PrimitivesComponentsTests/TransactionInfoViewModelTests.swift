@@ -41,24 +41,6 @@ struct TransactionInfoModelTests {
     }
 
     @Test
-    func feeDisplay() throws {
-        let model = TransactionInfoViewModel.mock(sign: .incoming)
-
-        let feeDisplay = try #require(model.feeDisplay)
-        #expect(feeDisplay.amount.text.contains(feeAsset.symbol))
-        #expect(feeDisplay.amount.text == "0.1 BTC")
-    }
-
-    @Test
-    func feeDisplayFiat() throws {
-        let model = TransactionInfoViewModel.mock()
-
-        #expect(model.feeDisplay != nil)
-        #expect(try #require(model.feeDisplay?.fiat) != nil)
-        #expect(model.feeDisplay?.fiat?.text == "$0.05")
-    }
-
-    @Test
     func headerTypeAmount() {
         let model = TransactionInfoViewModel.mock(sign: .incoming)
         let header = model.headerType(input: .amount(showFiat: true))
@@ -114,20 +96,6 @@ struct TransactionInfoModelTests {
 
         let display = model.amountDisplay()
         #expect(display.fiat == nil)
-    }
-
-    @Test
-    func feeDisplayNilWhenFeeValueIsNil() {
-        let model = TransactionInfoViewModel.mock(feeValue: nil)
-
-        #expect(model.feeDisplay == nil)
-    }
-
-    @Test
-    func feeDisplayFiatNilWhenFeeAssetPriceIsNil() {
-        let model = TransactionInfoViewModel.mock(feeAssetPrice: nil)
-
-        #expect(model.feeDisplay?.fiat == nil)
     }
 
     @Test

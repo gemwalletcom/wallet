@@ -22,15 +22,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
-import com.gemwallet.android.ui.components.banner.BannerItemUIModel
 import com.gemwallet.android.ui.components.banner.BannerDestination
+import com.gemwallet.android.ui.components.banner.BannerItemUIModel
 import com.gemwallet.android.ui.components.banner.BannerRowUIModel
 import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer16
-import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.smallIconSize
@@ -41,13 +40,7 @@ import com.wallet.core.primitives.BannerEvent
 private val bannerEmojiFontSize = 32.sp
 
 @Composable
-fun BannersScene(
-    banners: List<BannerRowUIModel>,
-    onSelect: (BannerDestination) -> Unit,
-    onClose: (Banner) -> Unit,
-    onBuy: () -> Unit = {},
-    onReceive: () -> Unit = {},
-) {
+fun BannersScene(banners: List<BannerRowUIModel>, onSelect: (BannerDestination) -> Unit, onClose: (Banner) -> Unit, onBuy: () -> Unit = {}, onReceive: () -> Unit = {}) {
     val pageState = rememberPagerState { banners.size }
 
     if (banners.isEmpty()) {
@@ -63,7 +56,7 @@ fun BannersScene(
         Box(
             modifier = Modifier.listItem(ListPosition.Single).clickable {
                 model.destination?.let(onSelect)
-            }
+            },
         ) {
             BannerText(
                 model = model,
@@ -74,17 +67,14 @@ fun BannersScene(
 }
 
 @Composable
-private fun BannerText(
-    model: BannerItemUIModel,
-    onCancel: () -> Unit,
-) {
+private fun BannerText(model: BannerItemUIModel, onCancel: () -> Unit) {
     Box(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Spacer16()
-            model.icon?.let { ListItemImageView(image = it, size = listItemIconSize) }
+            model.icon?.let { ListItemImageView(image = it) }
             Spacer16()
             Column(
                 modifier = Modifier

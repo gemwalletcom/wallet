@@ -3,9 +3,7 @@ use std::error::Error;
 use async_trait::async_trait;
 use localizer::LanguageLocalizer;
 use number_formatter::{ValueFormatter, ValueStyle};
-use primitives::{
-    Device, GorushNotification, JsonDecode, NotificationRewardsRedeemMetadata, NotificationType, PushNotification, PushNotificationReward, PushNotificationTypes, RewardEventType,
-};
+use primitives::{Device, GorushNotification, JsonDecode, NotificationRewardsRedeemMetadata, NotificationType, PushNotification, PushNotificationReward, PushNotificationTypes, RewardEventType};
 use storage::{AssetsRepository, Database, NewNotificationRow, NotificationType as StorageNotificationType, NotificationsRepository, WalletsRepository};
 use streamer::{InAppNotificationPayload, NotificationsPayload, StreamProducer, StreamProducerQueue, consumer::MessageConsumer};
 
@@ -19,14 +17,7 @@ impl InAppNotificationsConsumer {
         Self { database, stream_producer }
     }
 
-    fn create_push_notification(
-        &self,
-        device: &Device,
-        notification_type: NotificationType,
-        wallet_id: i32,
-        points: i32,
-        reward_value: Option<&str>,
-    ) -> Option<GorushNotification> {
+    fn create_push_notification(&self, device: &Device, notification_type: NotificationType, wallet_id: i32, points: i32, reward_value: Option<&str>) -> Option<GorushNotification> {
         let localizer = LanguageLocalizer::new_with_language(device.locale.as_ref());
         let (title, message) = notification_content(&localizer, notification_type, points, reward_value);
         let data = PushNotification {
@@ -60,13 +51,7 @@ impl MessageConsumer<InAppNotificationPayload, usize> for InAppNotificationsCons
         };
         self.database.notifications()?.create_notifications(vec![notification])?;
 
-        let devices: Vec<Device> = self
-            .database
-            .wallets()?
-            .get_devices_by_wallet_id(payload.wallet_id)?
-            .into_iter()
-            .map(|d| d.as_primitive())
-            .collect();
+        let devices: Vec<Device> = self.database.wallets()?.get_devices_by_wallet_id(payload.wallet_id)?.into_iter().map(|d| d.as_primitive()).collect();
 
         let notifications: Vec<GorushNotification> = devices
             .iter()
@@ -82,23 +67,11 @@ impl MessageConsumer<InAppNotificationPayload, usize> for InAppNotificationsCons
 
 fn notification_content(localizer: &LanguageLocalizer, notification_type: NotificationType, points: i32, reward_value: Option<&str>) -> (String, String) {
     match notification_type {
-        NotificationType::RewardsCreateUsername => (
-            localizer.notification_reward_title(RewardEventType::CreateUsername.points()),
-            localizer.notification_reward_create_username_description(),
-        ),
-        NotificationType::RewardsInvite => (
-            localizer.notification_reward_title(RewardEventType::InviteNew.points()),
-            localizer.notification_reward_invite_description(),
-        ),
-        NotificationType::ReferralJoined => (
-            localizer.notification_reward_title(RewardEventType::Joined.points()),
-            localizer.notification_reward_joined_description(),
-        ),
+        NotificationType::RewardsCreateUsername => (localizer.notification_reward_title(RewardEventType::CreateUsername.points()), localizer.notification_reward_create_username_description()),
+        NotificationType::RewardsInvite => (localizer.notification_reward_title(RewardEventType::InviteNew.points()), localizer.notification_reward_invite_description()),
+        NotificationType::ReferralJoined => (localizer.notification_reward_title(RewardEventType::Joined.points()), localizer.notification_reward_joined_description()),
         NotificationType::RewardsEnabled => (localizer.notification_rewards_enabled_title(), localizer.notification_rewards_enabled_description()),
         NotificationType::RewardsCodeDisabled => (localizer.notification_rewards_disabled_title(), localizer.notification_rewards_disabled_description()),
-        NotificationType::RewardsRedeemed => (
-            localizer.notification_reward_redeemed_title(),
-            localizer.notification_reward_redeemed_description(points, reward_value),
-        ),
+        NotificationType::RewardsRedeemed => (localizer.notification_reward_redeemed_title(), localizer.notification_reward_redeemed_description(points, reward_value)),
     }
 }

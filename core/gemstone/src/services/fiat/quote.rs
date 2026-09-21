@@ -1,3 +1,4 @@
+use super::model::GemFiatSuggestedAmount;
 use std::sync::Arc;
 
 use primitives::currency::Currency;
@@ -6,8 +7,10 @@ use primitives::{AssetId, FiatQuote, FiatQuoteType, FiatQuoteUrl};
 use super::session::GemFiatSession;
 use super::{GemFiatService, rules};
 use crate::config::fiat_config::get_fiat_config;
+use crate::formatted_number::GemFormattedNumber;
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
+use crate::services::transfer::GemRecentActivityService;
 use crate::services::wallet_session::GemWalletSessionService;
 
 pub(super) const CURRENCY: Currency = Currency::USD;
@@ -17,21 +20,29 @@ pub struct GemFiatQuoteService {
     fiat: Arc<GemFiatService>,
     balances: Arc<GemBalanceService>,
     session: Arc<GemWalletSessionService>,
+    recent_activity: Arc<GemRecentActivityService>,
 }
 
 #[uniffi::export]
 impl GemFiatQuoteService {
     #[uniffi::constructor]
-    pub fn new(fiat: Arc<GemFiatService>, balances: Arc<GemBalanceService>, session: Arc<GemWalletSessionService>) -> Self {
-        Self { fiat, balances, session }
+    pub fn new(fiat: Arc<GemFiatService>, balances: Arc<GemBalanceService>, session: Arc<GemWalletSessionService>, recent_activity: Arc<GemRecentActivityService>) -> Self {
+        Self { fiat, balances, session, recent_activity }
     }
 
     pub fn get_currency(&self) -> Currency {
         CURRENCY
     }
 
-    pub fn suggested_amounts(&self) -> Vec<i32> {
-        get_fiat_config().suggested_amounts
+    pub fn suggested_amounts(&self) -> Vec<GemFiatSuggestedAmount> {
+        get_fiat_config()
+            .suggested_amounts
+            .into_iter()
+            .map(|amount| GemFiatSuggestedAmount {
+                amount: amount.unsigned_abs(),
+                value: GemFormattedNumber::whole_currency(f64::from(amount), CURRENCY),
+            })
+            .collect()
     }
 
     pub fn new_session(&self, quote_type: FiatQuoteType, amount: Option<u32>) -> GemFiatSession {
@@ -55,7 +66,11 @@ impl GemFiatQuoteService {
     }
 
     pub async fn quotes(&self, quote_type: FiatQuoteType, asset_id: AssetId, amount: f64) -> Result<Vec<FiatQuote>, GemServiceError> {
-        self.fiat.get_quotes(self.session.current_wallet_id()?, quote_type, asset_id, amount, CURRENCY).await
+        let wallet_id = self.session.current_wallet_id()?;
+        if let Ok(asset) = self.fiat.asset(asset_id.clone()).await {
+            let _ = self.recent_activity.add_recent(rules::quote_action(&quote_type), asset).await;
+        }
+        self.fiat.get_quotes(wallet_id, quote_type, asset_id, amount, CURRENCY).await
     }
 
     pub async fn quote_url(&self, asset_id: AssetId, quote_id: String) -> Result<FiatQuoteUrl, GemServiceError> {
@@ -72,6 +87,22 @@ mod tests {
     use primitives::{Asset, Chain};
 
     use super::super::testkit::FiatQuoteTestkit;
+
+    #[test]
+    fn test_asking_for_quotes_records_what_the_user_is_buying_or_selling() {
+        let asset = Asset::from_chain(Chain::Ethereum);
+        let testkit = FiatQuoteTestkit::new(&asset);
+
+        let _ = block_on(testkit.service.quotes(primitives::FiatQuoteType::Sell, asset.id.clone(), 50.0));
+        let _ = block_on(testkit.service.quotes(primitives::FiatQuoteType::Buy, asset.id.clone(), 50.0));
+
+        let recorded: Vec<primitives::RecentActivityType> = testkit.recents.added.lock().unwrap().iter().map(|(activity, _)| activity.activity_type.clone()).collect();
+        assert_eq!(
+            recorded,
+            vec![primitives::RecentActivityType::FiatSell, primitives::RecentActivityType::FiatBuy],
+            "each quote request records the side the user asked for"
+        );
+    }
 
     #[test]
     fn test_opening_a_quote_enables_the_asset_the_user_is_buying() {

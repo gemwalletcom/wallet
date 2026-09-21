@@ -18,8 +18,10 @@ import javax.inject.Inject
 class FCM : FirebaseMessagingService() {
     @Inject
     lateinit var getPushEnabled: GetPushEnabled
+
     @Inject
     lateinit var setPushToken: SetPushToken
+
     @Inject
     lateinit var showSystemNotification: ShowSystemNotification
 

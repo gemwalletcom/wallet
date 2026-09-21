@@ -210,7 +210,6 @@
   <string name="errors_connections_no_supported_wallets">কোনও সমর্থিত ওয়ালেট উপলব্ধ নেই।</string>
   <string name="errors_connections_unsupported_chain">প্রদত্ত চেইনটি সমর্থিত নয়।</string>
   <string name="errors_swap_amount_too_small">পরিমাণ খুব কম</string>
-  <string name="errors_required">%1$s প্রয়োজন</string>
   <string name="errors_scan_transaction_malicious_description">এই লেনদেনটি সম্পন্ন করা যাবে না — গন্তব্যস্থলের ওয়ালেট ঠিকানাটি সন্দেহজনক বা ক্ষতিকারক কার্যকলাপের সাথে যুক্ত।</string>
   <string name="errors_scan_transaction_memo_required">%1$s গন্তব্য ওয়ালেট ঠিকানার জন্য একটি গন্তব্য ট্যাগ / মেমো প্রয়োজন।</string>
   <string name="errors_scan_transaction_malicious_title">সন্দেহজনক কার্যকলাপ</string>
@@ -273,7 +272,7 @@
   <string name="asset_decimals">দশমিক</string>
   <string name="asset_token_id">টোকেন আইডি</string>
   <string name="asset_contract">চুক্তি</string>
-  <string name="asset_state_empty_title">আপনার লেনদেন এখানে প্রদর্শিত হবে️</string>
+  <string name="asset_state_empty_title">আপনার লেনদেন এখানে প্রদর্শিত হবে</string>
   <string name="asset_state_empty_description">%1$s গ্রহণ, বিনিময় বা কিনুন</string>
   <string name="asset_verification_unverified">যাচাই করা হয়নি</string>
   <string name="asset_verification_suspicious">সন্দেহজনক</string>
@@ -422,7 +421,7 @@
   <string name="price_alerts_set_alert_set_target_price">লক্ষ্য মূল্য নির্ধারণ করুন</string>
   <string name="price_alerts_set_alert_current_price">বর্তমান মূল্য</string>
   <string name="price_alerts_added_for">মূল্য সতর্কতা সেট করুন %1$s</string>
-  <string name="price_alerts_state_empty_title">আপনার সতর্কতাগুলি এখানে প্রদর্শিত হবে️</string>
+  <string name="price_alerts_state_empty_title">আপনার সতর্কতাগুলি এখানে প্রদর্শিত হবে</string>
   <string name="price_alerts_state_empty_description">ট্র্যাকে কয়েন যোগ করে এগুলি সক্ষম করুন</string>
   <string name="price_alerts_auto_footer">উল্লেখযোগ্য মূল্য পরিবর্তনের সময় সতর্কতাগুলি ট্রিগার করে।</string>
   <string name="price_alerts_set_alert_title">মূল্য সতর্কতা সেট করুন</string>
@@ -437,7 +436,7 @@
   <string name="lock_privacy_lock">গোপনীয়তা লক</string>
   <string name="lock_footer">আপনার ডিভাইসে এই অ্যাপের অ্যাক্সেস সুরক্ষিত করুন</string>
   <string name="verify_phrase_title">নিশ্চিত করুন</string>
-  <string name="warnings_multi_signature_blocked">এই %1$s মাল্টি-সিগনেচার ওয়ালেটে তহবিল স্থানান্তর করবেন না যদি না আপনি নিশ্চিত হন যে আপনি ব্যক্তিগত কীগুলি নিয়ন্ত্রণ করছেন৷ এটি করতে ব্যর্থ হলে আপনি কেলেঙ্কারীতে প্রকাশ করতে পারেন এবং আপনি স্থায়ীভাবে আপনার সম্পদ হারাতে পারেন।</string>
+  <string name="warnings_externally_controlled_account">এই %1$s অ্যাকাউন্টটি অন্য কেউ নিয়ন্ত্রণ করতে পারে। এটি আপনার নিয়ন্ত্রণে আছে বলে নিশ্চিত না হলে এতে তহবিল পাঠাবেন না, নইলে আপনি স্থায়ীভাবে আপনার সম্পদ হারাতে পারেন।</string>
   <string name="sell_title">%1$s বিক্রি করুন</string>
   <string name="info_network_fee_title">নেটওয়ার্ক ফি</string>
   <string name="info_watch_wallet_title">ওয়ালেট দেখুন</string>
@@ -489,7 +488,7 @@
   <string name="nft_collection">সংগ্রহ</string>
   <string name="nft_save_to_photos">ফটোতে সেভ করুন</string>
   <string name="nft_set_as_avatar">অবতার হিসাবে সেট করুন</string>
-  <string name="nft_state_empty_title">আপনার NFT গুলি এখানে প্রদর্শিত হবে️</string>
+  <string name="nft_state_empty_title">আপনার NFT গুলি এখানে প্রদর্শিত হবে</string>
   <string name="nft_state_empty_description">আপনার প্রথম NFT গ্রহণ করুন</string>
   <string name="nft_report_reason_spam">স্প্যাম</string>
   <string name="nft_report_reason_malicious">দূষিত</string>

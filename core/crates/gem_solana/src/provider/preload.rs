@@ -5,9 +5,7 @@ use std::error::Error;
 use crate::constants::{DEFAULT_GAS_LIMIT, DEFAULT_SWAP_GAS_LIMIT};
 use crate::provider::preload_mapper::{calculate_fee_rates, calculate_transaction_fee};
 use gem_client::Client;
-use primitives::{
-    Chain, FeeRate, SolanaNftStandard, SolanaTokenProgramId, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput,
-};
+use primitives::{Chain, FeeRate, SolanaNftStandard, SolanaTokenProgramId, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 
 use crate::{
     METAPLEX_CORE_PROGRAM, get_token_program_id_by_address, metaplex_core,

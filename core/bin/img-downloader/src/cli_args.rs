@@ -28,10 +28,6 @@ pub struct Args {
     #[arg(short, long)]
     pub folder: Option<String>,
 
-    #[arg(
-        long,
-        default_value = "",
-        help = "Provider ID: CoinGecko coin ID, CoinMarketCap ID/symbol, Jupiter mint, DexScreener chain_token-address"
-    )]
+    #[arg(long, default_value = "", help = "Provider ID: CoinGecko coin ID, CoinMarketCap ID/symbol, Jupiter mint, DexScreener chain_token-address")]
     pub id: String,
 }

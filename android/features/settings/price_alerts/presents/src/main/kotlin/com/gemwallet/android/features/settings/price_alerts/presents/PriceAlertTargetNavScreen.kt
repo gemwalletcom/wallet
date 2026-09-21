@@ -8,7 +8,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.PriceAlertTargetViewModel
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertConfirmResult
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.rememberNotificationPermissionGate
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.style.textStyle
@@ -16,11 +15,7 @@ import com.wallet.core.primitives.PriceAlertDirection
 import com.wallet.core.primitives.PriceAlertNotificationType
 
 @Composable
-fun PriceAlertTargetNavScreen(
-    onCancel: () -> Unit,
-    onComplete: (String) -> Unit = { onCancel() },
-    viewModel: PriceAlertTargetViewModel = hiltViewModel(),
-) {
+fun PriceAlertTargetNavScreen(onCancel: () -> Unit, onComplete: (String) -> Unit = { onCancel() }, viewModel: PriceAlertTargetViewModel = hiltViewModel()) {
     val resources = LocalResources.current
     val currency = viewModel.currency
     val currentPriceFormatted by viewModel.currentPrice.collectAsStateWithLifecycle()
@@ -35,8 +30,6 @@ fun PriceAlertTargetNavScreen(
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error?.text(), iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
-
-    val requestNotificationPermission = rememberNotificationPermissionGate()
 
     PriceAlertTargetScene(
         value = viewModel.value,
@@ -56,9 +49,7 @@ fun PriceAlertTargetNavScreen(
         onType = viewModel::onType,
         onDirection = viewModel::onDirection,
         onConfirm = {
-            viewModel.onConfirm { result ->
-                requestNotificationPermission { onComplete(result.toMessage(resources)) }
-            }
+            viewModel.onConfirm { result -> onComplete(result.toMessage(resources)) }
         },
         onCancel = onCancel,
     )
@@ -70,10 +61,12 @@ private fun PriceAlertConfirmResult.toMessage(resources: android.content.res.Res
             PriceAlertDirection.Up -> R.string.price_alerts_set_alert_price_over
             PriceAlertDirection.Down -> R.string.price_alerts_set_alert_price_under
         }
+
         PriceAlertNotificationType.PricePercentChange -> when (direction) {
             PriceAlertDirection.Up -> R.string.price_alerts_set_alert_price_increases_by
             PriceAlertDirection.Down -> R.string.price_alerts_set_alert_price_decreases_by
         }
+
         PriceAlertNotificationType.Auto -> return ""
     }
     val message = "${resources.getString(directionTitle).lowercase()} $amount"

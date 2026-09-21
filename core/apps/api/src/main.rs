@@ -38,8 +38,7 @@ use cacher::{AccessTokenCacherClient, CacherClient};
 use config::ConfigClient;
 use devices::DevicesClient;
 use devices::{
-    AddressNamesClient, FiatQuotesClient, NotificationsClient, PortfolioClient, RewardsClient, RewardsRedemptionClient, ScanClient, TransactionScanConfig, TransactionsClient,
-    WalletConfigurationClient, WalletsClient, scan_providers,
+    AddressNamesClient, FiatQuotesClient, NotificationsClient, PortfolioClient, RewardsClient, RewardsRedemptionClient, ScanClient, TransactionScanConfig, TransactionsClient, WalletConfigurationClient, WalletsClient, scan_providers,
 };
 use gem_auth::AuthClient;
 use gem_rewards::{AbuseIPDBClient, IpApiClient, IpCheckProvider, IpSecurityClient};
@@ -244,18 +243,9 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let search_index_client = SearchIndexClient::new(&settings_clone.meilisearch.url, &settings_clone.meilisearch.key, search_index_config);
     let search_client = SearchClient::new(&search_index_client, price_client.clone());
     let swap_client = SwapClient::new(database.clone());
-    let fiat_providers = FiatProviderFactory::new_providers(
-        settings_clone.clone(),
-        Arc::new(AccessTokenCacherClient::new(cacher_client.clone(), FiatProviderName::Transak.id())),
-    );
+    let fiat_providers = FiatProviderFactory::new_providers(settings_clone.clone(), Arc::new(AccessTokenCacherClient::new(cacher_client.clone(), FiatProviderName::Transak.id())));
     let fiat_ip_check_client = FiatProviderFactory::new_ip_check_client(settings_clone.clone());
-    let fiat_client = FiatClient::new(
-        database.clone(),
-        cacher_client.clone(),
-        fiat_providers,
-        fiat_ip_check_client.clone(),
-        stream_producer.clone(),
-    );
+    let fiat_client = FiatClient::new(database.clone(), cacher_client.clone(), fiat_providers, fiat_ip_check_client.clone(), stream_producer.clone());
     let fiat_quotes_client = FiatQuotesClient::new(database.clone(), fiat_client);
     let nft_config = NFTProviderConfig::from_settings(&settings);
     let nft_client = NFTClient::from_config(database.clone(), nft_config.clone(), settings.nft.url.clone());
@@ -267,22 +257,14 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let markets_client = MarketsClient::new(database.clone(), cacher_client.clone());
     let webhooks_client = WebhooksClient::new(stream_producer.clone(), settings.support.webhook.key.secret.clone());
     let ip_check_providers: Vec<Arc<dyn IpCheckProvider>> = vec![
-        Arc::new(AbuseIPDBClient::new(
-            settings.security.abuseipdb.url.clone(),
-            settings.security.abuseipdb.key.secret.clone(),
-        )),
+        Arc::new(AbuseIPDBClient::new(settings.security.abuseipdb.url.clone(), settings.security.abuseipdb.key.secret.clone())),
         Arc::new(IpApiClient::new(settings.security.ipapi.url.clone(), settings.security.ipapi.key.secret.clone())),
     ];
     let ip_security_client = IpSecurityClient::new(ip_check_providers, cacher_client.clone());
     let rewards_client = RewardsClient::new(database.clone(), cacher_client.clone(), stream_producer.clone(), ip_security_client, pusher_client.clone());
     let redemption_client = RewardsRedemptionClient::new(database.clone(), stream_producer.clone());
     let notifications_client = NotificationsClient::new(database.clone());
-    let support_client = SupportApiClient::new(
-        settings.support.url.clone(),
-        settings.support.widget.ios.clone(),
-        settings.support.widget.android.clone(),
-        database.clone(),
-    );
+    let support_client = SupportApiClient::new(settings.support.url.clone(), settings.support.widget.ios.clone(), settings.support.widget.android.clone(), database.clone());
     let support_image_upload_config = SupportImageUploadConfig::new(&settings.support.types.images)?;
     let near_intents_client = swap::NearIntentsProxyClient::new(settings.swap.nearintents.url.clone(), cacher_client.clone());
     let swaps_xyz_client = swap::SwapsXyzProxyClient::new(settings.swap.swapsxyz.url.clone(), cacher_client.clone());

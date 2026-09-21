@@ -61,11 +61,7 @@ impl PerpetualFormatter {
 fn format_and_trim(value: f64, decimals: usize) -> String {
     let formatted = format!("{:.decimals$}", value, decimals = decimals);
 
-    if formatted.contains('.') {
-        formatted.trim_end_matches('0').trim_end_matches('.').to_string()
-    } else {
-        formatted
-    }
+    if formatted.contains('.') { formatted.trim_end_matches('0').trim_end_matches('.').to_string() } else { formatted }
 }
 
 #[cfg(test)]

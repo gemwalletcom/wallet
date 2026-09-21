@@ -10,11 +10,11 @@ import SwiftUI
 struct TextMessageScene: View {
     @State private var isPresentingShareSheet = false
 
-    let model: TextMessageViewModel
+    let text: String
 
     var body: some View {
         ScrollView {
-            Text(model.text)
+            Text(text)
                 .font(.caption)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
@@ -32,7 +32,7 @@ struct TextMessageScene: View {
         .navigationTitle(Localized.SignMessage.message)
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $isPresentingShareSheet) {
-            ShareSheet(activityItems: [model.text])
+            ShareSheet(activityItems: [text])
         }
     }
 }

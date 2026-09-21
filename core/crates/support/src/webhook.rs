@@ -36,12 +36,8 @@ impl ChatwootWebhookVerifier {
     }
 
     fn verify_at(&self, headers: &HashMap<String, String>, data: &str, now: i64) -> Result<(), ChatwootWebhookError> {
-        let timestamp = headers
-            .get(TIMESTAMP_HEADER)
-            .ok_or_else(|| ChatwootWebhookError::InvalidRequest("Missing Chatwoot webhook timestamp".to_string()))?;
-        let signed_at = timestamp
-            .parse::<i64>()
-            .map_err(|_| ChatwootWebhookError::InvalidRequest("Invalid Chatwoot webhook timestamp".to_string()))?;
+        let timestamp = headers.get(TIMESTAMP_HEADER).ok_or_else(|| ChatwootWebhookError::InvalidRequest("Missing Chatwoot webhook timestamp".to_string()))?;
+        let signed_at = timestamp.parse::<i64>().map_err(|_| ChatwootWebhookError::InvalidRequest("Invalid Chatwoot webhook timestamp".to_string()))?;
         if now.abs_diff(signed_at) > MAX_SIGNATURE_AGE_SECONDS as u64 {
             return Err(ChatwootWebhookError::InvalidRequest("Expired Chatwoot webhook timestamp".to_string()));
         }
@@ -51,11 +47,9 @@ impl ChatwootWebhookVerifier {
             .and_then(|signature| hex::decode(signature).ok())
             .ok_or_else(|| ChatwootWebhookError::InvalidRequest("Invalid Chatwoot webhook signature".to_string()))?;
 
-        let mut mac =
-            Hmac::<Sha256>::new_from_slice(self.secret.as_bytes()).map_err(|_| ChatwootWebhookError::InvalidRequest("Invalid Chatwoot webhook signing key".to_string()))?;
+        let mut mac = Hmac::<Sha256>::new_from_slice(self.secret.as_bytes()).map_err(|_| ChatwootWebhookError::InvalidRequest("Invalid Chatwoot webhook signing key".to_string()))?;
         mac.update(format!("{timestamp}.{data}").as_bytes());
-        mac.verify_slice(&signature)
-            .map_err(|_| ChatwootWebhookError::InvalidRequest("Invalid Chatwoot webhook signature".to_string()))
+        mac.verify_slice(&signature).map_err(|_| ChatwootWebhookError::InvalidRequest("Invalid Chatwoot webhook signature".to_string()))
     }
 }
 

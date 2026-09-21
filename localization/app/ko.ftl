@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = 지원되지 않는 자산입니다.
 errors_connections_no_supported_wallets = 지원되는 지갑이 없습니다.
 errors_connections_unsupported_chain = 제공된 체인은 지원되지 않습니다.
 errors_swap_amount_too_small = 금액이 너무 적습니다
-errors_required = %@ 가 필요합니다
 errors_scan_transaction_malicious_description = 이 거래를 완료할 수 없습니다. 대상 지갑 주소가 의심스럽거나 유해한 활동과 연결되어 있습니다.
 errors_scan_transaction_memo_required = %@ 대상 지갑 주소에는 대상 태그/메모가 필요합니다.
 errors_scan_transaction_malicious_title = 의심스러운 활동
@@ -536,7 +535,7 @@ verify_phrase_title = 확인하다
 
 # Warnings
 
-warnings_multi_signature_blocked = 개인 키를 제어하고 있다는 확신이 없다면 이 %@ 다중 서명 지갑으로 자금을 이체하지 마십시오. 그렇지 않으면 사기에 노출될 수 있으며 자산을 영구적으로 잃을 수 있습니다.
+warnings_externally_controlled_account = 이 %@ 계정은 다른 사람이 제어할 수 있습니다. 본인이 제어하고 있다는 확신이 없다면 이 계정으로 자금을 보내지 마십시오. 그렇지 않으면 자산을 영구적으로 잃을 수 있습니다.
 
 # Sell
 

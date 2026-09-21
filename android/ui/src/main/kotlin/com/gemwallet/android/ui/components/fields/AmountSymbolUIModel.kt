@@ -5,7 +5,4 @@ enum class AmountSymbolPlacement {
     Trailing,
 }
 
-data class AmountSymbolUIModel(
-    val symbol: String,
-    val placement: AmountSymbolPlacement,
-)
+data class AmountSymbolUIModel(val symbol: String, val placement: AmountSymbolPlacement)

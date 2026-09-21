@@ -6,9 +6,9 @@ The iOS app consumes the shared Rust core through generated Swift bindings.
 ## Rules
 
 - Read [`../core/AGENTS.md`](../../core/AGENTS.md) before changing Rust code or generated interfaces
-- Run `just generate-stone` from the repo root when Rust-to-Swift bindings or iOS Rust static libraries need to be regenerated
+- Run `just generate-stone` after any Core change the app should see; it rebuilds the iOS static library and rewrites the bindings only when they changed
 - Run `just run-ios` from the repo root to build and run the iOS app
-- The optional `GemStone` Xcode scheme combines cached Gemstone generation with the normal app build
+- The optional `GemStone` Xcode scheme runs the same generation before the normal app build
 - Run `just generate` when model generation or broader shared codegen is required
 - Apply [Cross-Platform Awareness](../../skills/cross-platform-awareness.md) for generation and app verification; internal Core implementation changes that preserve mobile contracts need Core checks only
 

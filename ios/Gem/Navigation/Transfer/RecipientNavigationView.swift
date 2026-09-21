@@ -8,7 +8,6 @@ import SwiftUI
 import Transfer
 
 struct RecipientNavigationView: View {
-    @Environment(\.viewModelFactory) private var viewModelFactory
     @State private var model: RecipientSceneViewModel
 
     init(model: RecipientSceneViewModel) {
@@ -23,15 +22,6 @@ struct RecipientNavigationView: View {
             ScanQRCodeNavigationStack(scanType: model.scanType(for: value)) {
                 model.onHandleScan($0, for: value)
             }
-        }
-        .navigationDestination(for: AmountInput.self) { input in
-            AmountNavigationView(
-                model: viewModelFactory.amountScene(
-                    input: input,
-                    wallet: model.wallet,
-                    onTransferAction: model.onTransferAction,
-                ),
-            )
         }
     }
 }

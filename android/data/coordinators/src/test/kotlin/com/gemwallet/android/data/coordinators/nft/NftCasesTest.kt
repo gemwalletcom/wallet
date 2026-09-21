@@ -1,10 +1,10 @@
 package com.gemwallet.android.data.coordinators.nft
 
-import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneNftStore
 import com.gemwallet.android.data.service.store.database.NftDao
 import com.gemwallet.android.data.service.store.database.entities.mockDbNftAsset
 import com.gemwallet.android.data.service.store.database.entities.mockDbNftCollection
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneNftStore
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockNftAsset
 import com.gemwallet.android.testkit.mockNftAssetData

@@ -3,12 +3,7 @@ use chrono::{DateTime, Utc};
 use primitives::{SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus};
 
 pub fn sync_from_timestamp(messages: Vec<SupportMessage>) -> u64 {
-    messages
-        .iter()
-        .rev()
-        .find(|message| !message.sender.is_user())
-        .map(|message| message.created_at.timestamp().max(0) as u64)
-        .unwrap_or_default()
+    messages.iter().rev().find(|message| !message.sender.is_user()).map(|message| message.created_at.timestamp().max(0) as u64).unwrap_or_default()
 }
 
 pub fn pending_message(id: String, content: String, images: Vec<SupportMessageImage>, now: DateTime<Utc>) -> SupportMessage {
@@ -70,11 +65,7 @@ mod tests {
     #[test]
     fn test_the_sync_cursor_is_the_last_agent_message() {
         assert_eq!(sync_from_timestamp(vec![]), 0, "nothing to sync from yet");
-        assert_eq!(
-            sync_from_timestamp(vec![SupportMessage::mock("10", 10), SupportMessage::mock("20", 20)]),
-            0,
-            "only the user has written"
-        );
+        assert_eq!(sync_from_timestamp(vec![SupportMessage::mock("10", 10), SupportMessage::mock("20", 20)]), 0, "only the user has written");
         assert_eq!(
             sync_from_timestamp(vec![
                 SupportMessage {

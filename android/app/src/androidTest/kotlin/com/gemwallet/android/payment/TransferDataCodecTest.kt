@@ -1,12 +1,13 @@
 package com.gemwallet.android.payment
 
-import com.gemwallet.android.ext.toPrimitives
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.domains.confirm.asset
 import com.gemwallet.android.domains.confirm.pack
+import com.gemwallet.android.domains.confirm.unpackTransferData
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.math.fromHex
 import com.gemwallet.android.math.has0xPrefix
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.includeGemstoneLibs
 import com.gemwallet.android.testkit.mockApplicationMetadata
 import com.gemwallet.android.testkit.mockAssetEthereum
@@ -25,10 +26,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import uniffi.gemstone.ApprovalData
 import uniffi.gemstone.GemRecipient
-import uniffi.gemstone.TransactionInputType
 import uniffi.gemstone.GemTransferData
+import uniffi.gemstone.TransactionInputType
 import java.math.BigInteger
-import com.gemwallet.android.domains.confirm.unpackTransferData
 
 @RunWith(AndroidJUnit4::class)
 class TransferDataCodecTest {
@@ -39,8 +39,7 @@ class TransferDataCodecTest {
         }
     }
 
-    private fun roundTrip(transfer: GemTransferData): GemTransferData =
-        requireNotNull(unpackTransferData(requireNotNull(transfer.pack())))
+    private fun roundTrip(transfer: GemTransferData): GemTransferData = requireNotNull(unpackTransferData(requireNotNull(transfer.pack())))
 
     @Test
     fun transferPackRoundTripsThroughCoreCodec() {
@@ -141,5 +140,4 @@ class TransferDataCodecTest {
     }
 }
 
-private fun String.toTransactionData(): ByteArray =
-    if (has0xPrefix()) runCatching { fromHex() }.getOrElse { toByteArray() } else toByteArray()
+private fun String.toTransactionData(): ByteArray = if (has0xPrefix()) runCatching { fromHex() }.getOrElse { toByteArray() } else toByteArray()

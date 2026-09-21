@@ -59,11 +59,7 @@ pub trait PreferencesExt {
 
 impl<T: Preferences + ?Sized> PreferencesExt for T {
     fn get_i64(&self, key: &str) -> Result<Option<i64>, Box<dyn Error + Send + Sync>> {
-        if let Some(value) = self.get(key.to_string())? {
-            Ok(Some(value.parse()?))
-        } else {
-            Ok(None)
-        }
+        if let Some(value) = self.get(key.to_string())? { Ok(Some(value.parse()?)) } else { Ok(None) }
     }
 
     fn set_i64(&self, key: &str, value: i64) -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -71,11 +67,7 @@ impl<T: Preferences + ?Sized> PreferencesExt for T {
     }
 
     fn get_bool(&self, key: &str) -> Result<Option<bool>, Box<dyn Error + Send + Sync>> {
-        if let Some(value) = self.get(key.to_string())? {
-            Ok(Some(value.parse()?))
-        } else {
-            Ok(None)
-        }
+        if let Some(value) = self.get(key.to_string())? { Ok(Some(value.parse()?)) } else { Ok(None) }
     }
 
     fn set_bool(&self, key: &str, value: bool) -> Result<(), Box<dyn Error + Send + Sync>> {

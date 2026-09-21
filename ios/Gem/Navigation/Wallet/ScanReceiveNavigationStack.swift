@@ -55,4 +55,3 @@ struct ScanReceiveNavigationStack: View {
         .recentAssetsSheet(model: model.selectAssetModel.recentModel, onSelect: model.selectAssetModel.onSelectRecent)
     }
 }
-

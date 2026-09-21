@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = 不支援此資產。
 errors_connections_no_supported_wallets = 目前沒有支援的錢包可用。
 errors_connections_unsupported_chain = 不支援指定的區塊鏈。
 errors_swap_amount_too_small = 金額太小，請輸入更大的金額試試
-errors_required = %@ 為必填欄位
 errors_scan_transaction_malicious_description = 無法完成此交易：收款錢包位址與可疑或惡意行為有關。
 errors_scan_transaction_memo_required = %@目標錢包位址需要目標標籤/備註
 errors_scan_transaction_malicious_title = 可疑行為
@@ -512,7 +511,7 @@ price_alerts_set_alert_price_decreases_by = 當價格下跌
 price_alerts_set_alert_set_target_price = 設定目標價格
 price_alerts_set_alert_current_price = 目前價格
 price_alerts_added_for = 價格提醒已設定：%@
-price_alerts_state_empty_title = 價格提醒將顯示在這裡️
+price_alerts_state_empty_title = 價格提醒將顯示在這裡
 price_alerts_state_empty_description = 請添加幣種，即可開始追蹤資產
 price_alerts_auto_footer = 價格大幅變動時會觸發提醒。
 price_alerts_set_alert_title = 設定價格提醒
@@ -536,7 +535,7 @@ verify_phrase_title = 確認
 
 # Warnings
 
-warnings_multi_signature_blocked = 除非確定自己持有對應的私鑰，否則請勿將資金轉入此 %@ 多重簽章錢包，以免遭到詐騙或永久失去資產。
+warnings_externally_controlled_account = 此 %@ 帳戶可能由他人控制。除非確定該帳戶由您掌控，請勿將資金轉入，以免永久失去資產。
 
 # Sell
 
@@ -600,7 +599,7 @@ nft_collections = NFT 系列
 nft_collection = 系列
 nft_save_to_photos = 儲存到照片
 nft_set_as_avatar = 設為頭像
-nft_state_empty_title = NFT 將顯示在這裡️
+nft_state_empty_title = NFT 將顯示在這裡
 nft_state_empty_description = 接收第一個 NFT
 nft_report_reason_spam = 垃圾內容
 nft_report_reason_malicious = 惡意

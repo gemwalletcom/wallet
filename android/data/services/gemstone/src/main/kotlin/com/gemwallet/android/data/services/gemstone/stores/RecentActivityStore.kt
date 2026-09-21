@@ -3,14 +3,12 @@ package com.gemwallet.android.data.services.gemstone.stores
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toPrimitives
+import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemRecentActivity
 import uniffi.gemstone.GemRecentActivityStore
-import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.RecentActivityType
 
-class GemstoneRecentActivityStore(
-    private val recentAssetsService: RecentAssetsService,
-) : GemRecentActivityStore {
+class GemstoneRecentActivityStore(private val recentAssetsService: RecentAssetsService) : GemRecentActivityStore {
 
     override suspend fun add(activity: GemRecentActivity, walletId: String) {
         recentAssetsService.addRecentActivity(

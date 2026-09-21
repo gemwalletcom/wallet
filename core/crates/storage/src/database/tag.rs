@@ -25,10 +25,7 @@ impl TagStore for DatabaseClient {
 
     fn add_list_tag(&mut self, _tag_id: &str, _name: &str, _list_id: ListId) -> Result<usize, diesel::result::Error> {
         use crate::schema::tags::dsl::*;
-        diesel::insert_into(tags)
-            .values(NewListTagRow::new(_tag_id, _name, _list_id))
-            .on_conflict_do_nothing()
-            .execute(&mut self.connection)
+        diesel::insert_into(tags).values(NewListTagRow::new(_tag_id, _name, _list_id)).on_conflict_do_nothing().execute(&mut self.connection)
     }
 
     fn get_tag(&mut self, _tag_id: &str) -> Result<Option<TagRow>, diesel::result::Error> {
@@ -48,22 +45,12 @@ impl TagStore for DatabaseClient {
 
     fn get_asset_list_tags(&mut self) -> Result<Vec<TagRow>, diesel::result::Error> {
         use crate::schema::{assets_tags, tags};
-        tags::table
-            .inner_join(assets_tags::table)
-            .select(TagRow::as_select())
-            .distinct()
-            .order(tags::id.asc())
-            .load(&mut self.connection)
+        tags::table.inner_join(assets_tags::table).select(TagRow::as_select()).distinct().order(tags::id.asc()).load(&mut self.connection)
     }
 
     fn get_perpetual_list_tags(&mut self) -> Result<Vec<TagRow>, diesel::result::Error> {
         use crate::schema::{perpetuals_tags, tags};
-        tags::table
-            .inner_join(perpetuals_tags::table)
-            .select(TagRow::as_select())
-            .distinct()
-            .order(tags::id.asc())
-            .load(&mut self.connection)
+        tags::table.inner_join(perpetuals_tags::table).select(TagRow::as_select()).distinct().order(tags::id.asc()).load(&mut self.connection)
     }
 
     fn get_assets_tags(&mut self) -> Result<Vec<AssetTagRow>, diesel::result::Error> {
@@ -78,11 +65,7 @@ impl TagStore for DatabaseClient {
 
     fn get_assets_tags_for_tag(&mut self, _tag_id: &str) -> Result<Vec<AssetTagRow>, diesel::result::Error> {
         use crate::schema::assets_tags::dsl::*;
-        assets_tags
-            .filter(tag_id.eq(_tag_id))
-            .order(order.asc())
-            .select(AssetTagRow::as_select())
-            .load(&mut self.connection)
+        assets_tags.filter(tag_id.eq(_tag_id)).order(order.asc()).select(AssetTagRow::as_select()).load(&mut self.connection)
     }
 
     fn set_assets_tags_for_tag(&mut self, _tag_id: &str, asset_ids: Vec<AssetId>) -> Result<usize, diesel::result::Error> {
@@ -99,11 +82,7 @@ impl TagStore for DatabaseClient {
 
         self.connection.transaction::<_, diesel::result::Error, _>(|conn| {
             let deleted_count = diesel::delete(assets_tags.filter(tag_id.eq(_tag_id))).execute(conn)?;
-            if values.is_empty() {
-                Ok(deleted_count)
-            } else {
-                diesel::insert_into(assets_tags).values(values).execute(conn)
-            }
+            if values.is_empty() { Ok(deleted_count) } else { diesel::insert_into(assets_tags).values(values).execute(conn) }
         })
     }
 

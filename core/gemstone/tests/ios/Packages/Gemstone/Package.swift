@@ -14,11 +14,15 @@ let package = Package(
         )
     ],
     dependencies: [
+        .package(name: "BigInt", path: "../../../../../../ios/Submodules/BigInt"),
     ],
     targets: [
         .target(
             name: "Gemstone",
-            dependencies: ["GemstoneFFI"],
+            dependencies: [
+                "GemstoneFFI",
+                .product(name: "BigInt", package: "BigInt"),
+            ],
             swiftSettings: [
                 .swiftLanguageMode(.v5)
             ]

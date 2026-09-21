@@ -62,25 +62,15 @@ impl Deeplink {
             Some((action, asset_segments)) if !asset_segments.is_empty() => Self::from_asset_action(url, asset_segments, action),
             _ => None,
         }
-        .or_else(|| {
-            Some(Deeplink::Asset {
-                asset_id: asset_id_from_segments(segments)?,
-            })
-        })
+        .or_else(|| Some(Deeplink::Asset { asset_id: asset_id_from_segments(segments)? }))
     }
 
     fn from_asset_action(url: &Url, segments: &[String], action: &str) -> Option<Self> {
         let asset_id = asset_id_from_segments(segments)?;
         let deeplink = match action {
             ACTION_RECEIVE => Deeplink::Receive { asset_id },
-            ACTION_BUY => Deeplink::Buy {
-                asset_id,
-                amount: amount_from_query(url),
-            },
-            ACTION_SELL => Deeplink::Sell {
-                asset_id,
-                amount: amount_from_query(url),
-            },
+            ACTION_BUY => Deeplink::Buy { asset_id, amount: amount_from_query(url) },
+            ACTION_SELL => Deeplink::Sell { asset_id, amount: amount_from_query(url) },
             ACTION_SWAP => Deeplink::Swap { asset_id },
             _ => return None,
         };
@@ -131,10 +121,7 @@ fn path_with_query(component: &str, query_key: &str, query_value: Option<String>
 }
 
 fn url_segments(url: &Url) -> Option<Vec<String>> {
-    let mut segments: Vec<String> = url
-        .path_segments()
-        .map(|parts| parts.filter(|part| !part.is_empty()).map(String::from).collect())
-        .unwrap_or_default();
+    let mut segments: Vec<String> = url.path_segments().map(|parts| parts.filter(|part| !part.is_empty()).map(String::from).collect()).unwrap_or_default();
 
     match url.scheme() {
         HTTPS_URL_SCHEME => {
@@ -175,13 +162,7 @@ mod tests {
         );
         assert_eq!(Deeplink::Perpetuals.to_url(), "https://gemwallet.com/perpetuals");
         assert_eq!(Deeplink::Rewards { code: None }.to_url(), "https://gemwallet.com/rewards");
-        assert_eq!(
-            Deeplink::Rewards {
-                code: Some("gemcoder".to_string()),
-            }
-            .to_url(),
-            "https://gemwallet.com/rewards?code=gemcoder"
-        );
+        assert_eq!(Deeplink::Rewards { code: Some("gemcoder".to_string()) }.to_url(), "https://gemwallet.com/rewards?code=gemcoder");
         assert_eq!(
             Deeplink::Receive {
                 asset_id: AssetId::from_chain(Chain::Bitcoin),
@@ -261,22 +242,9 @@ mod tests {
         );
         assert_eq!(Deeplink::from_url("https://gemwallet.com/perpetuals"), Some(Deeplink::Perpetuals));
         assert_eq!(Deeplink::from_url("gem://perpetuals"), Some(Deeplink::Perpetuals));
-        assert_eq!(
-            Deeplink::from_url("https://gemwallet.com/rewards?code=gemcoder"),
-            Some(Deeplink::Rewards {
-                code: Some("gemcoder".to_string()),
-            })
-        );
-        assert_eq!(
-            Deeplink::from_url("https://gemwallet.com/join/gemcoder"),
-            Some(Deeplink::Rewards {
-                code: Some("gemcoder".to_string()),
-            })
-        );
-        assert_eq!(
-            Deeplink::from_url("https://gemwallet.com/en/join?code=test"),
-            Some(Deeplink::Rewards { code: Some("test".to_string()) })
-        );
+        assert_eq!(Deeplink::from_url("https://gemwallet.com/rewards?code=gemcoder"), Some(Deeplink::Rewards { code: Some("gemcoder".to_string()) }));
+        assert_eq!(Deeplink::from_url("https://gemwallet.com/join/gemcoder"), Some(Deeplink::Rewards { code: Some("gemcoder".to_string()) }));
+        assert_eq!(Deeplink::from_url("https://gemwallet.com/en/join?code=test"), Some(Deeplink::Rewards { code: Some("test".to_string()) }));
         assert_eq!(Deeplink::from_url("https://gemwallet.com/join"), Some(Deeplink::Rewards { code: None }));
         assert_eq!(Deeplink::from_url("https://gemwallet.com/tokens"), None);
         assert_eq!(Deeplink::from_url("https://gemwallet.com/tokens/notachain"), None);

@@ -8,10 +8,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object AddAssetRoute : NavKey
 
-fun EntryProviderScope<NavKey>.addAssetScreen(
-    onCancel: () -> Unit,
-    onFinish: () -> Unit,
-) {
+fun EntryProviderScope<NavKey>.addAssetScreen(onCancel: () -> Unit, onFinish: () -> Unit) {
     entry<AddAssetRoute> {
         AddAssetScreen(onCancel = onCancel, onFinish = onFinish)
     }

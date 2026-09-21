@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import func Gemstone.valueTone
 import Components
 import Formatters
 import Foundation
@@ -8,6 +7,7 @@ import func Gemstone.candlestickHeader
 import struct Gemstone.GemPerpetualChartLayout
 import func Gemstone.perpetualChartLayout
 import class Gemstone.PriceChangeCalculator
+import func Gemstone.valueTone
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents

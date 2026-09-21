@@ -33,10 +33,7 @@ pub fn encode_delegations(delegator: &str) -> Result<Vec<u8>, Box<dyn Error + Se
 }
 
 pub fn encode_apys(validator_ids: &[u64]) -> Vec<u8> {
-    IMonadStakingLens::getAPYsCall {
-        validatorIds: validator_ids.to_vec(),
-    }
-    .abi_encode()
+    IMonadStakingLens::getAPYsCall { validatorIds: validator_ids.to_vec() }.abi_encode()
 }
 
 pub fn decode_apys(data: &[u8]) -> Result<Vec<u64>, Box<dyn Error + Send + Sync>> {
@@ -60,10 +57,7 @@ pub fn decode_delegations(data: &[u8]) -> Result<Vec<LensDelegation>, Box<dyn Er
 }
 
 pub fn encode_validators(validator_ids: &[u64]) -> Vec<u8> {
-    IMonadStakingLens::getValidatorsCall {
-        validatorIds: validator_ids.to_vec(),
-    }
-    .abi_encode()
+    IMonadStakingLens::getValidatorsCall { validatorIds: validator_ids.to_vec() }.abi_encode()
 }
 
 pub fn decode_validators(data: &[u8]) -> Result<(Vec<LensValidator>, u64), Box<dyn Error + Send + Sync>> {

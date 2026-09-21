@@ -19,12 +19,7 @@ import kotlinx.coroutines.flow.map
 import uniffi.gemstone.GemCollectibleServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class GetNftAssetDetailsImpl(
-    private val getSession: GetSession,
-    private val getAssetNft: GetAssetNft,
-    private val nftStore: GemstoneNftStore,
-    private val collectibleService: GemCollectibleServiceInterface,
-) : GetNftAssetDetails {
+class GetNftAssetDetailsImpl(private val getSession: GetSession, private val getAssetNft: GetAssetNft, private val nftStore: GemstoneNftStore, private val collectibleService: GemCollectibleServiceInterface) : GetNftAssetDetails {
     override fun invoke(assetId: NFTAssetId): Flow<NftAssetDetailsData?> {
         return getSession().filterNotNull()
             .flatMapLatest { session ->
@@ -36,7 +31,7 @@ class GetNftAssetDetailsImpl(
                         NftAssetDetailsData(
                             collection = nftData.collection,
                             asset = asset,
-                            details = collectibleService.details(session.wallet.type.toGem(), assetData.toGem(), isOwned),
+                            details = collectibleService.details(session.wallet.type.toGem(), assetData.toGem(), isOwned, canSaveImage = false),
                         )
                     }
             }

@@ -64,18 +64,14 @@ pub fn parse_support_message_display_content(markdown: &str) -> SupportMessageDi
     append_text_and_labeled_links(&markdown[current_index..], &mut text, &mut links);
 
     SupportMessageDisplayContent {
-        text: if links.is_empty() {
-            markdown.to_string()
-        } else {
-            collapse_whitespace(&text, " ").trim().to_string()
-        },
+        text: if links.is_empty() { markdown.to_string() } else { collapse_whitespace(&text, " ").trim().to_string() },
         links,
     }
 }
 
 impl SupportMessageLink {
     fn new(title: Option<&str>, url: &str) -> Option<Self> {
-        let url = url.trim();
+        let url = link_destination(url.trim());
         let parsed_url = Url::parse(url).ok()?;
         let title = title.map(str::trim).filter(|title| !title.is_empty()).unwrap_or(url);
 
@@ -89,11 +85,7 @@ impl SupportMessageLink {
             GEM_URL_SCHEME => Some(url.to_string()),
             HTTP_URL_SCHEME | HTTPS_URL_SCHEME => {
                 let host = parsed_url.host_str().filter(|host| !host.is_empty())?;
-                if is_app_link {
-                    None
-                } else {
-                    Some(host.strip_prefix("www.").unwrap_or(host).to_string())
-                }
+                if is_app_link { None } else { Some(host.strip_prefix("www.").unwrap_or(host).to_string()) }
             }
             _ => return None,
         };
@@ -113,7 +105,7 @@ fn append_text_and_labeled_links(markdown: &str, text: &mut String, links: &mut 
         let token_end = bare_url_token_end(&markdown[url_start..]) + url_start;
         let url_end = bare_url_end(&markdown[url_start..token_end]) + url_start;
         let text_before_url = &markdown[current_index..url_start];
-        let url = &markdown[url_start..url_end];
+        let url = link_destination(&markdown[url_start..url_end]);
         let Some((label_start, title)) = link_label_prefix(text_before_url, url) else {
             text.push_str(&markdown[current_index..token_end]);
             current_index = token_end;
@@ -142,9 +134,8 @@ fn next_bare_url_start(text: &str, from: usize) -> Option<usize> {
 }
 
 fn starts_with_supported_url_scheme(text: &str) -> bool {
-    [HTTP_URL_SCHEME, HTTPS_URL_SCHEME, GEM_URL_SCHEME]
-        .into_iter()
-        .any(|scheme| starts_with_url_scheme(text, scheme))
+    let text = text.strip_prefix('<').unwrap_or(text);
+    [HTTP_URL_SCHEME, HTTPS_URL_SCHEME, GEM_URL_SCHEME].into_iter().any(|scheme| starts_with_url_scheme(text, scheme))
 }
 
 fn starts_with_url_scheme(text: &str, scheme: &str) -> bool {
@@ -165,6 +156,10 @@ fn bare_url_token_end(text: &str) -> usize {
 
 fn bare_url_end(text: &str) -> usize {
     text.trim_end_matches(['.', ',', ';', '!', '?', ')', ']', '}', '"', '\'']).len()
+}
+
+fn link_destination(url: &str) -> &str {
+    url.strip_prefix('<').and_then(|url| url.strip_suffix('>')).unwrap_or(url)
 }
 
 fn collapse_whitespace(text: &str, separator: &str) -> String {
@@ -342,5 +337,39 @@ mod tests {
                 links: vec![],
             }
         );
+    }
+
+    #[test]
+    fn test_parse_support_message_display_content_angle_bracket_urls() {
+        assert_eq!(
+            parse_support_message_display_content("Open [Bitcoin](<https://gemwallet.com/tokens/bitcoin>)"),
+            SupportMessageDisplayContent {
+                text: "Open".to_string(),
+                links: vec![SupportMessageLink::mock("Bitcoin", "https://gemwallet.com/tokens/bitcoin", None)],
+            }
+        );
+        assert_eq!(
+            parse_support_message_display_content("You can top up here: [Buy Bitcoin](<gem://tokens/bitcoin/buy?amount=100>)"),
+            SupportMessageDisplayContent {
+                text: "You can top up here:".to_string(),
+                links: vec![SupportMessageLink::mock("Buy Bitcoin", "gem://tokens/bitcoin/buy?amount=100", None)],
+            }
+        );
+        assert_eq!(
+            parse_support_message_display_content("Docs: [Gem Wallet docs](<https://docs.gemwallet.com>)"),
+            SupportMessageDisplayContent {
+                text: "Docs:".to_string(),
+                links: vec![SupportMessageLink::mock("Gem Wallet docs", "https://docs.gemwallet.com", Some("docs.gemwallet.com"))],
+            }
+        );
+        assert_eq!(
+            parse_support_message_display_content("Bitcoin: <https://gemwallet.com/tokens/bitcoin>"),
+            SupportMessageDisplayContent {
+                text: String::new(),
+                links: vec![SupportMessageLink::mock("Bitcoin", "https://gemwallet.com/tokens/bitcoin", None)],
+            }
+        );
+        let unclosed = "Open [Bitcoin](<https://gemwallet.com/tokens/bitcoin)";
+        assert_eq!(parse_support_message_display_content(unclosed), SupportMessageDisplayContent { text: unclosed.to_string(), links: vec![] });
     }
 }

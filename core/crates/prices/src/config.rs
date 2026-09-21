@@ -12,10 +12,7 @@ pub struct FiatRatesProviderConfig {
 }
 
 pub fn build_fiat_rates_providers(config: &FiatRatesProviderConfig) -> HashMap<FiatRateProvider, Arc<dyn FiatRatesProvider>> {
-    let providers: Vec<Arc<dyn FiatRatesProvider>> = vec![
-        Arc::new(CoinGeckoPricesProvider::new(config.coingecko.clone())),
-        Arc::new(CoinMarketCapRatesProvider::new(config.coinmarketcap.clone())),
-    ];
+    let providers: Vec<Arc<dyn FiatRatesProvider>> = vec![Arc::new(CoinGeckoPricesProvider::new(config.coingecko.clone())), Arc::new(CoinMarketCapRatesProvider::new(config.coinmarketcap.clone()))];
     providers.into_iter().map(|provider| (provider.provider(), provider)).collect()
 }
 
@@ -40,11 +37,7 @@ pub fn build_price_providers(config: &PriceProviderConfig, providers: impl IntoI
                 PriceProvider::Pyth => Arc::new(PythProvider::new(config.pyth.configure_client(client.clone()))),
                 PriceProvider::Jupiter => Arc::new(JupiterProvider::new(config.jupiter.configure_client(client.clone()))),
                 PriceProvider::DefiLlama => Arc::new(DefiLlamaProvider::new(config.defillama.configure_client(client.clone()))),
-                PriceProvider::TonApi => Arc::new(TonApiProvider::new(
-                    config.tonapi.configure_client(client.clone()),
-                    config.stonfi.configure_client(client.clone()),
-                    &config.tonapi.key,
-                )),
+                PriceProvider::TonApi => Arc::new(TonApiProvider::new(config.tonapi.configure_client(client.clone()), config.stonfi.configure_client(client.clone()), &config.tonapi.key)),
             };
             (provider, price_provider)
         })

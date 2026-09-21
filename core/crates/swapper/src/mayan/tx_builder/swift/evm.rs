@@ -65,9 +65,7 @@ mod tests {
         route.common.to_token.contract = HYPERCORE_SPOT_USDC_CONTRACT.to_string();
         route.common.to_token.w_chain_id = 65000;
         route.common.to_token.decimals = 6;
-        route.hc_swift_deposit = Some(HcSwiftDeposit {
-            relayer_fee64: "500000".to_string(),
-        });
+        route.hc_swift_deposit = Some(HcSwiftDeposit { relayer_fee64: "500000".to_string() });
 
         let destination = "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7";
         let payload = hypercore_custom_payload(&route, destination).unwrap().unwrap();

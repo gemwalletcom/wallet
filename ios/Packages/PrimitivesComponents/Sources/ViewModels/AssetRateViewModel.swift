@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import GemstonePrimitives
 import struct Gemstone.GemSwapRate
+import GemstonePrimitives
 
 public struct AssetRateViewModel {
     private let rate: GemSwapRate

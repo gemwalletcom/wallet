@@ -1,14 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.GemCollectibleAttribute
-import enum Gemstone.GemHeaderButtonKind
 import Components
 import Formatters
 import Foundation
+import enum Gemstone.GemCollectibleAction
+import struct Gemstone.GemCollectibleAttribute
 import enum Gemstone.GemCollectibleAttributeValue
 import struct Gemstone.GemCollectibleDetails
 import enum Gemstone.GemCollectibleSection
 import protocol Gemstone.GemCollectibleServiceProtocol
+import enum Gemstone.GemHeaderButtonKind
 import GemstonePrimitives
 import GemstoneServices
 import ImageGalleryService
@@ -19,9 +20,6 @@ import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
-import func Gemstone.socialLinks
-import typealias Gemstone.AssetLink
-import enum Gemstone.GemCollectibleRow
 
 @Observable
 @MainActor
@@ -83,7 +81,7 @@ public final class CollectibleViewModel {
     }
 
     var details: GemCollectibleDetails {
-        service.details(walletType: wallet.type.toGem(), assetData: assetData.toGem(), isOwned: query.value.isOwned)
+        service.details(walletType: wallet.type.toGem(), assetData: assetData.toGem(), isOwned: query.value.isOwned, canSaveImage: true)
     }
 
     var sections: [GemCollectibleSection] {
@@ -91,7 +89,7 @@ public final class CollectibleViewModel {
     }
 
     var assetImage: AssetImage {
-        NFTAssetViewModel(asset: assetData.asset).assetImage
+        AssetImage(type: .text(assetData.asset.name), imageURL: assetData.asset.images.preview.url.asURL, placeholder: .none, chainPlaceholder: .none)
     }
 
     var headerButtons: [HeaderButton] {
@@ -104,56 +102,20 @@ public final class CollectibleViewModel {
                 type: .more,
                 viewType: .menuButton(
                     title: title,
-                    items: [
-                        .button(title: Localized.Nft.saveToPhotos, systemImage: SystemImage.gallery, action: onSelectSaveToGallery),
-                        .button(title: Localized.Nft.setAsAvatar, systemImage: SystemImage.emoji, action: onSelectSetAsAvatar),
-                        .button(title: Localized.Common.refresh, systemImage: SystemImage.refresh, action: onSelectRefresh),
-                        .button(title: Localized.Nft.Report.reportButtonTitle, role: .destructive, action: onSelectReport),
-                    ],
+                    items: details.actions.map(menuItem),
                 ),
                 isEnabled: true,
             ),
         ]
     }
 
-    func networkImage(chain: Chain) -> AssetImage {
-        AssetImage(
-            imageURL: .none,
-            placeholder: ChainImage(chain: chain).image,
-            chainPlaceholder: .none,
-        )
-    }
-
-    func infoRows(_ rows: [GemCollectibleRow]) -> [CollectibleInfoRowModel] {
-        rows.map(infoRow)
-    }
-
-    private func infoRow(_ row: GemCollectibleRow) -> CollectibleInfoRowModel {
-        switch row {
-        case let .collection(name):
-            return CollectibleInfoRowModel(title: row.title, subtitle: name)
-        case let .network(chain):
-            let chain = Primitives.Chain(core: chain)
-            return CollectibleInfoRowModel(title: row.title, subtitle: chain.networkName, assetImage: networkImage(chain: chain))
-        case let .contract(identifier):
-            return CollectibleInfoRowModel(
-                title: row.title,
-                subtitle: identifier.text,
-                copyValue: .address(value: identifier.value, chain: assetData.asset.chain),
-                explorer: identifier.explorer.map { $0.toPrimitives() },
-            )
-        case let .tokenId(identifier):
-            return CollectibleInfoRowModel(
-                title: row.title,
-                subtitle: identifier.text,
-                copyValue: .plain(identifier.value),
-                explorer: identifier.explorer.map { $0.toPrimitives() },
-            )
+    private func menuItem(_ action: GemCollectibleAction) -> ActionMenuItemType {
+        switch action {
+        case .saveImage: .button(title: Localized.Nft.saveToPhotos, systemImage: SystemImage.gallery, action: onSelectSaveToGallery)
+        case .setAvatar: .button(title: Localized.Nft.setAsAvatar, systemImage: SystemImage.emoji, action: onSelectSetAsAvatar)
+        case .refresh: .button(title: Localized.Common.refresh, systemImage: SystemImage.refresh, action: onSelectRefresh)
+        case .report: .button(title: Localized.Nft.Report.reportButtonTitle, role: .destructive, action: onSelectReport)
         }
-    }
-
-    func socialLinksModel(_ links: [Gemstone.AssetLink]) -> SocialLinksViewModel {
-        SocialLinksViewModel(links: socialLinks(links: links))
     }
 
     func attributeListItem(_ attribute: GemCollectibleAttribute) -> ListItemModel {
@@ -171,10 +133,6 @@ public final class CollectibleViewModel {
 // MARK: - Business Logic
 
 extension CollectibleViewModel {
-    func onSelectCopyValue(_ value: String) {
-        isPresentingToast = .copied(value)
-    }
-
     func onSelectHeaderButton(type: GemHeaderButtonKind) {
         guard let account = try? wallet.account(for: assetData.asset.chain) else {
             return
@@ -186,7 +144,7 @@ extension CollectibleViewModel {
                 assetData: .with(asset: account.chain.asset, account: account),
             )
         case .buy, .receive, .swap, .more, .deposit, .withdraw:
-            fatalError()
+            break
         }
     }
 
@@ -197,7 +155,7 @@ extension CollectibleViewModel {
                 isPresentingToast = .success(Localized.Nft.saveToPhotos)
             } catch {
                 switch error {
-                case .wrongURL, .invalidData, .invalidResponse, .unexpectedStatusCode, .urlSessionError:
+                case .wrongURL, .invalidData, .invalidResponse, .unexpectedStatusCode, .urlSessionError, .saveFailed:
                     isPresentingAlertMessage = AlertMessage(message: Localized.Errors.errorOccurred)
                 case .permissionDenied:
                     isPresentingAlertMessage = AlertMessage(
@@ -282,26 +240,4 @@ extension CollectibleViewModel {
         let saver = ImageGalleryService()
         try await saver.saveImageFromURL(url)
     }
-}
-
-public struct CollectibleInfoRowModel: Identifiable {
-    public let title: String
-    public let subtitle: String
-
-    public var listItem: ListItemModel {
-        ListItemModel(title: title, subtitle: subtitle)
-    }
-    public let assetImage: AssetImage?
-    public let copyValue: CopyValue?
-    public let explorer: BlockExplorerLink?
-
-    init(title: String, subtitle: String, assetImage: AssetImage? = nil, copyValue: CopyValue? = nil, explorer: BlockExplorerLink? = nil) {
-        self.title = title
-        self.subtitle = subtitle
-        self.assetImage = assetImage
-        self.copyValue = copyValue
-        self.explorer = explorer
-    }
-
-    public var id: String { "\(title)-\(subtitle)" }
 }

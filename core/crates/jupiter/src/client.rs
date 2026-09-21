@@ -39,10 +39,7 @@ impl<C: Client> JupiterClient<C> {
     }
 
     pub async fn get_top_trending_tokens(&self, interval: &str, limit: usize) -> Result<Vec<Token>, Box<dyn Error + Send + Sync>> {
-        let target = JupiterTarget::TopTrending {
-            interval: interval.to_string(),
-            limit,
-        };
+        let target = JupiterTarget::TopTrending { interval: interval.to_string(), limit };
         Ok(self.client.get(target).headers(self.headers()).await?)
     }
 
@@ -56,10 +53,7 @@ impl<C: Client> JupiterClient<C> {
     }
 
     fn headers(&self) -> HashMap<String, String> {
-        self.api_key
-            .as_ref()
-            .map(|api_key| HashMap::from([(JUPITER_API_HEADER_KEY.to_string(), api_key.clone())]))
-            .unwrap_or_default()
+        self.api_key.as_ref().map(|api_key| HashMap::from([(JUPITER_API_HEADER_KEY.to_string(), api_key.clone())])).unwrap_or_default()
     }
 }
 

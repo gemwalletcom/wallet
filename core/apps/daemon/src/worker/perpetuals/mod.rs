@@ -28,10 +28,7 @@ pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<V
     let stream_producer = StreamProducer::new(&rabbitmq_config, "perpetuals_worker", shutdown_rx.clone()).await?;
     let cacher = CacherClient::new(&settings.redis.url).await?;
 
-    let providers = Arc::new(ChainProviders::from_settings(
-        &settings,
-        &settings::service_user_agent("daemon", Some("perpetual_observer")),
-    ));
+    let providers = Arc::new(ChainProviders::from_settings(&settings, &settings::service_user_agent("daemon", Some("perpetual_observer"))));
     let classifier_config = PerpetualPositionClassifierConfig {
         trigger_bps: config.get_i64(ConfigKey::PerpetualPriorityTriggerBps)?,
         liquidation_bps: config.get_i64(ConfigKey::PerpetualPriorityLiquidationBps)?,
@@ -48,26 +45,14 @@ pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<V
             }
         })
         .jobs(WorkerJob::ObservePerpetualActiveAddresses, Chain::perpetual_chains(), |chain, _| {
-            let observer = Arc::new(PerpetualPositionObserver::new(
-                chain,
-                providers.clone(),
-                cacher.clone(),
-                ConfigCacher::new(database.clone()),
-                stream_producer.clone(),
-            ));
+            let observer = Arc::new(PerpetualPositionObserver::new(chain, providers.clone(), cacher.clone(), ConfigCacher::new(database.clone()), stream_producer.clone()));
             move |_| {
                 let observer = observer.clone();
                 async move { observer.observe_active().await }
             }
         })
         .jobs(WorkerJob::ObservePerpetualPriorityAddresses, Chain::perpetual_chains(), |chain, _| {
-            let observer = Arc::new(PerpetualPositionObserver::new(
-                chain,
-                providers.clone(),
-                cacher.clone(),
-                ConfigCacher::new(database.clone()),
-                stream_producer.clone(),
-            ));
+            let observer = Arc::new(PerpetualPositionObserver::new(chain, providers.clone(), cacher.clone(), ConfigCacher::new(database.clone()), stream_producer.clone()));
             move |_| {
                 let observer = observer.clone();
                 async move { observer.observe_priority().await }

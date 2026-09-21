@@ -34,10 +34,7 @@ impl<Key, Value> Default for Cache<Key, Value> {
 
 impl<Key, Value> Cache<Key, Value> {
     pub(crate) fn new(ttl: Duration) -> Self {
-        Self {
-            values: Mutex::new(HashMap::new()),
-            ttl,
-        }
+        Self { values: Mutex::new(HashMap::new()), ttl }
     }
 }
 
@@ -74,11 +71,7 @@ where
 
     pub fn missing_probes(&self, from: impl Into<Key>, to: impl Into<Key>, probes: &[Probe]) -> Vec<Probe> {
         let discovery = self.discoveries.get(&Self::pair_key(from, to));
-        probes
-            .iter()
-            .filter(|probe| discovery.as_ref().is_none_or(|discovery| !discovery.contains_key(*probe)))
-            .cloned()
-            .collect()
+        probes.iter().filter(|probe| discovery.as_ref().is_none_or(|discovery| !discovery.contains_key(*probe))).cloned().collect()
     }
 
     pub fn record_discovery(&self, from: impl Into<Key>, to: impl Into<Key>, facts: impl IntoIterator<Item = (Probe, Option<Candidate>)>) {

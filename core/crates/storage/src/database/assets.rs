@@ -15,11 +15,7 @@ pub enum AssetUpdate {
     StakingApr(Option<f64>),
     HasImage(bool),
     HasPrice(bool),
-    Supply {
-        circulating_supply: Option<f64>,
-        total_supply: Option<f64>,
-        max_supply: Option<f64>,
-    },
+    Supply { circulating_supply: Option<f64>, total_supply: Option<f64>, max_supply: Option<f64> },
 }
 
 impl AssetUpdate {
@@ -132,21 +128,14 @@ impl AssetsStore for DatabaseClient {
                     circulating_supply: c,
                     total_supply: t,
                     max_supply: m,
-                } => diesel::update(target)
-                    .set((circulating_supply.eq(c), total_supply.eq(t), max_supply.eq(m)))
-                    .execute(&mut self.connection)?,
+                } => diesel::update(target).set((circulating_supply.eq(c), total_supply.eq(t), max_supply.eq(m))).execute(&mut self.connection)?,
             };
             Ok(total + updated)
         })
     }
 
     fn upsert_assets(&mut self, values: Vec<NewAssetRow>) -> Result<usize, diesel::result::Error> {
-        diesel::insert_into(assets)
-            .values(values)
-            .on_conflict(id)
-            .do_update()
-            .set((rank.eq(excluded(rank)),))
-            .execute(&mut self.connection)
+        diesel::insert_into(assets).values(values).on_conflict(id).do_update().set((rank.eq(excluded(rank)),)).execute(&mut self.connection)
     }
 
     fn get_assets_by_filter(&mut self, filters: Vec<AssetFilter>) -> Result<Vec<AssetRow>, diesel::result::Error> {
@@ -174,11 +163,6 @@ impl AssetsStore for DatabaseClient {
     }
 
     fn get_swap_assets(&mut self) -> Result<Vec<String>, diesel::result::Error> {
-        assets
-            .filter(rank.gt(21))
-            .filter(is_swappable.eq(true))
-            .select(id)
-            .order(rank.desc())
-            .load(&mut self.connection)
+        assets.filter(rank.gt(21)).filter(is_swappable.eq(true)).select(id).order(rank.desc()).load(&mut self.connection)
     }
 }

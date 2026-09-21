@@ -56,18 +56,6 @@ public struct TransactionInfoViewModel: Sendable {
         )
     }
 
-    public var feeDisplay: AmountDisplay? {
-        feeValue.map {
-            .numeric(
-                asset: feeAsset,
-                price: feeAssetPrice,
-                value: $0,
-                currency: currency,
-                formatter: .auto,
-            )
-        }
-    }
-
     public func headerType(input: TransactionHeaderInputType) -> TransactionHeaderType {
         switch input {
         case let .amount(showFiat): .amount(

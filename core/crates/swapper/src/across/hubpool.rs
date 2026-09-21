@@ -44,13 +44,7 @@ impl HubPoolClient {
         if amount.is_zero() {
             create_call3(&self.contract, HubPoolInterface::liquidityUtilizationCurrentCall { l1Token: *l1_token })
         } else {
-            create_call3(
-                &self.contract,
-                HubPoolInterface::liquidityUtilizationPostRelayCall {
-                    l1Token: *l1_token,
-                    relayedAmount: amount,
-                },
-            )
+            create_call3(&self.contract, HubPoolInterface::liquidityUtilizationPostRelayCall { l1Token: *l1_token, relayedAmount: amount })
         }
     }
 

@@ -40,11 +40,7 @@ impl AssetsIndexUpdater {
         sync.write(ASSETS_INDEX_NAME, documents).await
     }
 
-    fn build_documents<'a>(
-        prices: impl IntoIterator<Item = &'a PriceAssetDataRow>,
-        assets_tags_map: &HashMap<String, Vec<String>>,
-        usage_ranks_map: &HashMap<String, i32>,
-    ) -> Vec<AssetDocument> {
+    fn build_documents<'a>(prices: impl IntoIterator<Item = &'a PriceAssetDataRow>, assets_tags_map: &HashMap<String, Vec<String>>, usage_ranks_map: &HashMap<String, i32>) -> Vec<AssetDocument> {
         prices
             .into_iter()
             .map(|x| {
@@ -110,10 +106,7 @@ mod tests {
     #[test]
     fn asset_tags_by_asset_includes_internal_tags() {
         let asset_id = AssetId::from_chain(Chain::Bitcoin);
-        let tags = vec![
-            AssetTagRow::mock_with_tag(asset_id.clone(), "trending"),
-            AssetTagRow::mock_with_tag(asset_id.clone(), "stablecoins"),
-        ];
+        let tags = vec![AssetTagRow::mock_with_tag(asset_id.clone(), "trending"), AssetTagRow::mock_with_tag(asset_id.clone(), "stablecoins")];
 
         let tags_by_asset = AssetsIndexUpdater::asset_tags_by_asset(tags);
 

@@ -91,12 +91,7 @@ fn map_fee_estimates(asset: Asset, estimates: TransactionFeeEstimates, price_usd
     })
 }
 
-fn map_estimates_by_priority(
-    estimates: Vec<TransactionFeeEstimate>,
-    rate_decimals: i32,
-    asset_decimals: i32,
-    price_usd: f64,
-) -> Result<EstimatesByPriority, Box<dyn Error + Send + Sync>> {
+fn map_estimates_by_priority(estimates: Vec<TransactionFeeEstimate>, rate_decimals: i32, asset_decimals: i32, price_usd: f64) -> Result<EstimatesByPriority, Box<dyn Error + Send + Sync>> {
     estimates
         .into_iter()
         .map(|estimate| {

@@ -42,11 +42,7 @@ impl ApprovalValue {
                 value: Some(value.clone()),
                 is_unlimited: false,
             },
-            Self::Unlimited => SimulationHeader {
-                asset_id,
-                value: None,
-                is_unlimited: true,
-            },
+            Self::Unlimited => SimulationHeader { asset_id, value: None, is_unlimited: true },
         }
     }
 }

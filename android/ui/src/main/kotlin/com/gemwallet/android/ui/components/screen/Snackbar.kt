@@ -24,26 +24,16 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallIconSize
 
 @Immutable
-class IconSnackbarVisuals(
-    override val message: String,
-    @param:DrawableRes val iconRes: Int,
-) : SnackbarVisuals {
+class IconSnackbarVisuals(override val message: String, @param:DrawableRes val iconRes: Int) : SnackbarVisuals {
     override val actionLabel: String? = null
     override val withDismissAction: Boolean = false
     override val duration: SnackbarDuration = SnackbarDuration.Short
 }
 
-suspend fun SnackbarHostState.showSnackbar(
-    message: String,
-    @DrawableRes iconRes: Int,
-): SnackbarResult = showSnackbar(IconSnackbarVisuals(message, iconRes))
+suspend fun SnackbarHostState.showSnackbar(message: String, @DrawableRes iconRes: Int): SnackbarResult = showSnackbar(IconSnackbarVisuals(message, iconRes))
 
 @Composable
-fun rememberSnackbarState(
-    message: String?,
-    @DrawableRes iconRes: Int,
-    onShown: () -> Unit = {},
-): SnackbarHostState {
+fun rememberSnackbarState(message: String?, @DrawableRes iconRes: Int, onShown: () -> Unit = {}): SnackbarHostState {
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(message) {
         if (!message.isNullOrEmpty()) {

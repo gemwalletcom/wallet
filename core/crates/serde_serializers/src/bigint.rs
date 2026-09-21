@@ -92,11 +92,7 @@ mod tests {
         let deserialized: TestStruct = serde_json::from_str(&serialized).unwrap();
         assert_eq!(deserialized.value, BigInt::parse_bytes(b"12345678901234567890", 10).unwrap());
 
-        let hex_cases = [
-            (r#"{"value":"0xff"}"#, BigInt::from(255)),
-            (r#"{"value":"0x0"}"#, BigInt::from(0)),
-            (r#"{"value":"0x"}"#, BigInt::from(0)),
-        ];
+        let hex_cases = [(r#"{"value":"0xff"}"#, BigInt::from(255)), (r#"{"value":"0x0"}"#, BigInt::from(0)), (r#"{"value":"0x"}"#, BigInt::from(0))];
         for (json, expected) in hex_cases {
             let deserialized: TestStruct = serde_json::from_str(json).unwrap();
             assert_eq!(deserialized.value, expected);

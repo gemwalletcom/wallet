@@ -21,15 +21,7 @@ import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingSmall
 
 @Composable
-internal fun NodeItem(
-    model: NodeRowUIModel,
-    listPosition: ListPosition,
-    isDeleteRevealed: Boolean,
-    onDeleteReveal: () -> Unit,
-    onDeleteCollapse: () -> Unit,
-    onSelect: (String) -> Unit,
-    onDelete: (() -> Unit)?,
-) {
+internal fun NodeItem(model: NodeRowUIModel, listPosition: ListPosition, isDeleteRevealed: Boolean, onDeleteReveal: () -> Unit, onDeleteCollapse: () -> Unit, onSelect: (String) -> Unit, onDelete: (() -> Unit)?) {
     val content: @Composable (ListPosition) -> Unit = { position ->
         ListItem(
             model = model.model,

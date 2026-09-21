@@ -19,10 +19,7 @@ import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingDefault
 
 @Composable
-internal fun PerpetualActions(
-    buttons: List<PerpetualButtonUIModel>,
-    onSelect: (PerpetualButtonAction) -> Unit,
-) {
+internal fun PerpetualActions(buttons: List<PerpetualButtonUIModel>, onSelect: (PerpetualButtonAction) -> Unit) {
     Row(
         modifier = Modifier.listItem().padding(paddingDefault),
         horizontalArrangement = Arrangement.spacedBy(paddingDefault),

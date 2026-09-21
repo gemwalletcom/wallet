@@ -71,10 +71,7 @@ pub(super) fn simulate_buy(amount: &BigDecimal, asks: &[OrderbookLevel]) -> Resu
         return Err(SwapperError::NoQuoteAvailable);
     }
 
-    Ok(SimulationResult {
-        amount_out: base_total,
-        limit_price,
-    })
+    Ok(SimulationResult { amount_out: base_total, limit_price })
 }
 
 fn parse_decimal(value: &str) -> Result<BigDecimal, SwapperError> {

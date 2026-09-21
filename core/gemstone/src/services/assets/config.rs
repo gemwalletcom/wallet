@@ -28,16 +28,18 @@ impl GemAssetConfigService {
         chain_asset_wrapper(chain)
     }
 
-    pub fn acquire_flow(&self, chain: Chain) -> GemAcquireAssetFlow {
-        acquire_asset_flow(chain)
-    }
-
     pub fn asset_icon(&self, asset_id: AssetId) -> GemAssetIcon {
         asset_icon(&asset_id)
     }
 
     pub fn asset_sections(&self, ids: Vec<AssetId>, pinned_ids: Vec<AssetId>, shows_popular: bool) -> GemAssetSectionIds {
         asset_sections(ids, pinned_ids, shows_popular, popular_asset_ids())
+    }
+}
+
+impl GemAssetConfigService {
+    pub fn acquire_flow(&self, chain: Chain) -> GemAcquireAssetFlow {
+        acquire_asset_flow(chain)
     }
 }
 

@@ -1,8 +1,7 @@
 use crate::address::{Address, hex_to_base64_address};
 use crate::constants::{FAILED_OPERATION_OPCODES, STONFI_PTON_ADDRESSES};
 use crate::models::{
-    BroadcastTransaction, JettonSwapDetails, JettonTransferDetails, NftTransferDetails, OutMessage, TRACE_ACTION_JETTON_SWAP, TRACE_ACTION_JETTON_TRANSFER,
-    TRACE_ACTION_NFT_TRANSFER, Trace, TraceAction, TransactionMessage,
+    BroadcastTransaction, JettonSwapDetails, JettonTransferDetails, NftTransferDetails, OutMessage, TRACE_ACTION_JETTON_SWAP, TRACE_ACTION_JETTON_TRANSFER, TRACE_ACTION_NFT_TRANSFER, Trace, TraceAction, TransactionMessage,
 };
 use chrono::DateTime;
 use gem_encoding::decode_base64;
@@ -106,9 +105,7 @@ fn build_transaction(message: &TransactionMessage, state: Option<TransactionStat
 }
 
 fn find_action<'a>(actions: &'a [TraceAction], action_type: &str) -> Option<&'a TraceAction> {
-    actions
-        .iter()
-        .find(|action| action.action_type.as_deref() == Some(action_type) && action.success == Some(true))
+    actions.iter().find(|action| action.action_type.as_deref() == Some(action_type) && action.success == Some(true))
 }
 
 fn jetton_transfer_details(actions: &[TraceAction]) -> Option<TransferDetails> {
@@ -324,10 +321,7 @@ mod tests {
 
     #[test]
     fn test_map_trace_transactions_proxy_ton_v2() {
-        for (mut traces, field) in [
-            (TraceResponse::mock_jetton_swap(), "asset_in"),
-            (TraceResponse::mock_jetton_swap_from_jetton_transfer(), "asset_out"),
-        ] {
+        for (mut traces, field) in [(TraceResponse::mock_jetton_swap(), "asset_in"), (TraceResponse::mock_jetton_swap_from_jetton_transfer(), "asset_out")] {
             let expected = map_trace_transactions(traces.traces.clone());
             traces.traces[0].actions[0].details.as_mut().unwrap()[field] = json!("0:671963027F7F85659AB55B821671688601CDCF1EE674FC7FBBB1A776A18D34A3");
 

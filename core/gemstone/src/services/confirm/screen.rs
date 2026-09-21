@@ -1,10 +1,7 @@
 use primitives::SimulationResult;
 
 use super::error::GemConfirmError;
-use super::model::{
-    GemConfirmAction, GemConfirmButton, GemConfirmButtonKind, GemConfirmButtonState, GemConfirmFailure, GemConfirmFeeRow, GemConfirmLoad, GemConfirmPhase, GemConfirmScreen,
-    GemConfirmStage, GemTransferAmountResult,
-};
+use super::model::{GemConfirmAction, GemConfirmButton, GemConfirmButtonKind, GemConfirmButtonState, GemConfirmFailure, GemConfirmFeeRow, GemConfirmLoad, GemConfirmPhase, GemConfirmScreen, GemConfirmStage, GemTransferAmountResult};
 
 impl GemConfirmScreen {
     pub fn initial(simulation: Option<&SimulationResult>) -> Self {
@@ -14,6 +11,10 @@ impl GemConfirmScreen {
             failure: None,
             has_preload: true,
         }
+    }
+
+    fn is_account_missing(&self) -> bool {
+        self.failure.as_ref().is_some_and(|failure| failure.error.is_account_missing())
     }
 
     fn failed(&self, stage: GemConfirmStage, error: GemConfirmError) -> Self {
@@ -31,6 +32,7 @@ impl GemConfirmScreen {
         let button = |kind, state| GemConfirmButton { kind, state };
         match self.phase {
             GemConfirmPhase::Loading | GemConfirmPhase::Confirming => button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Loading),
+            GemConfirmPhase::Failed if self.is_account_missing() => button(GemConfirmButtonKind::AccountMissing, GemConfirmButtonState::Disabled),
             GemConfirmPhase::Failed => button(GemConfirmButtonKind::Retry, GemConfirmButtonState::Enabled),
             GemConfirmPhase::Ready if !self.has_preload || self.failure.is_some() || self.has_critical_warning => {
                 button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Disabled)
@@ -42,8 +44,12 @@ impl GemConfirmScreen {
     pub fn fee_row(&self) -> GemConfirmFeeRow {
         match self.phase {
             GemConfirmPhase::Loading => GemConfirmFeeRow::Loading,
-            GemConfirmPhase::Failed => GemConfirmFeeRow::Unavailable,
-            GemConfirmPhase::Ready | GemConfirmPhase::Confirming if !self.has_preload => GemConfirmFeeRow::Unavailable,
+            GemConfirmPhase::Failed => GemConfirmFeeRow::Unavailable {
+                text: crate::models::placeholder::EMPTY_VALUE.to_string(),
+            },
+            GemConfirmPhase::Ready | GemConfirmPhase::Confirming if !self.has_preload => GemConfirmFeeRow::Unavailable {
+                text: crate::models::placeholder::EMPTY_VALUE.to_string(),
+            },
             GemConfirmPhase::Ready | GemConfirmPhase::Confirming => GemConfirmFeeRow::Ready,
         }
     }
@@ -51,6 +57,7 @@ impl GemConfirmScreen {
     pub fn action(&self) -> Option<GemConfirmAction> {
         match self.phase {
             GemConfirmPhase::Loading | GemConfirmPhase::Confirming => None,
+            GemConfirmPhase::Failed if self.is_account_missing() => None,
             GemConfirmPhase::Failed => Some(GemConfirmAction::Load),
             GemConfirmPhase::Ready if !self.has_preload || self.failure.is_some() => None,
             GemConfirmPhase::Ready => Some(GemConfirmAction::Execute),
@@ -74,10 +81,7 @@ impl GemConfirmScreen {
         Self {
             phase: GemConfirmPhase::Ready,
             has_critical_warning: load.simulation.simulation.as_ref().is_some_and(|simulation| simulation.has_critical_warning),
-            failure: amount_error.map(|error| GemConfirmFailure {
-                stage: GemConfirmStage::Load,
-                error,
-            }),
+            failure: amount_error.map(|error| GemConfirmFailure { stage: GemConfirmStage::Load, error }),
             has_preload: load.preload.is_some(),
         }
     }
@@ -115,77 +119,89 @@ mod tests {
     use super::*;
     use crate::models::custom_types::GemBigInt;
     use crate::transfer_amount::GemTransferAmount;
+    use crate::models::placeholder::EMPTY_VALUE;
 
     #[test]
-    fn test_confirm_button_follows_the_phase_and_the_ready_checks() {
-        let ready = GemConfirmScreen {
-            phase: GemConfirmPhase::Ready,
-            ..GemConfirmScreen::initial(None)
-        };
+    fn test_a_missing_account_offers_no_retry() {
+        let missing = GemConfirmScreen::initial(None).on_load_failed(GemConfirmError::AccountMissing { chain: Chain::Tron });
 
         assert_eq!(
-            GemConfirmScreen::initial(None).button(),
+            missing.button(),
             GemConfirmButton {
-                kind: GemConfirmButtonKind::Confirm,
-                state: GemConfirmButtonState::Loading
-            }
-        );
-        assert_eq!(
-            GemConfirmScreen {
-                phase: GemConfirmPhase::Confirming,
-                ..ready.clone()
-            }
-            .button(),
-            GemConfirmButton {
-                kind: GemConfirmButtonKind::Confirm,
-                state: GemConfirmButtonState::Loading
-            }
-        );
-        assert_eq!(
-            GemConfirmScreen {
-                phase: GemConfirmPhase::Failed,
-                has_critical_warning: true,
-                ..ready.clone()
-            }
-            .button(),
-            GemConfirmButton {
-                kind: GemConfirmButtonKind::Retry,
-                state: GemConfirmButtonState::Enabled
-            }
-        );
-        assert_eq!(
-            GemConfirmScreen {
-                failure: Some(GemConfirmFailure {
-                    stage: GemConfirmStage::Load,
-                    error: GemConfirmError::Load { msg: "down".to_string() },
-                }),
-                ..ready.clone()
-            }
-            .button(),
-            GemConfirmButton {
-                kind: GemConfirmButtonKind::Confirm,
+                kind: GemConfirmButtonKind::AccountMissing,
                 state: GemConfirmButtonState::Disabled
             }
         );
-        assert_eq!(
-            GemConfirmScreen {
-                has_critical_warning: true,
-                ..ready.clone()
-            }
-            .button(),
-            GemConfirmButton {
-                kind: GemConfirmButtonKind::Confirm,
-                state: GemConfirmButtonState::Disabled
-            }
-        );
-        assert_eq!(
-            ready.button(),
-            GemConfirmButton {
-                kind: GemConfirmButtonKind::Confirm,
-                state: GemConfirmButtonState::Enabled
-            }
-        );
+        assert_eq!(missing.action(), None);
+        assert_eq!(GemConfirmScreen::initial(None).on_load_failed(GemConfirmError::Offline).action(), Some(GemConfirmAction::Load));
     }
+
+    #[test]
+fn test_confirm_button_follows_the_phase_and_the_ready_checks() {
+    let ready = GemConfirmScreen {
+        phase: GemConfirmPhase::Ready,
+        ..GemConfirmScreen::initial(None)
+    };
+
+    assert_eq!(
+        GemConfirmScreen::initial(None).button(),
+        GemConfirmButton {
+            kind: GemConfirmButtonKind::Confirm,
+            state: GemConfirmButtonState::Loading
+        }
+    );
+    assert_eq!(
+        GemConfirmScreen {
+            phase: GemConfirmPhase::Confirming,
+            ..ready.clone()
+        }
+        .button(),
+        GemConfirmButton {
+            kind: GemConfirmButtonKind::Confirm,
+            state: GemConfirmButtonState::Loading
+        }
+    );
+    assert_eq!(
+        GemConfirmScreen {
+            phase: GemConfirmPhase::Failed,
+            has_critical_warning: true,
+            ..ready.clone()
+        }
+        .button(),
+        GemConfirmButton {
+            kind: GemConfirmButtonKind::Retry,
+            state: GemConfirmButtonState::Enabled
+        }
+    );
+    assert_eq!(
+        GemConfirmScreen {
+            failure: Some(GemConfirmFailure {
+                stage: GemConfirmStage::Load,
+                error: GemConfirmError::Load { msg: "down".to_string() },
+            }),
+            ..ready.clone()
+        }
+        .button(),
+        GemConfirmButton {
+            kind: GemConfirmButtonKind::Confirm,
+            state: GemConfirmButtonState::Disabled
+        }
+    );
+    assert_eq!(
+        GemConfirmScreen { has_critical_warning: true, ..ready.clone() }.button(),
+        GemConfirmButton {
+            kind: GemConfirmButtonKind::Confirm,
+            state: GemConfirmButtonState::Disabled
+        }
+    );
+    assert_eq!(
+        ready.button(),
+        GemConfirmButton {
+            kind: GemConfirmButtonKind::Confirm,
+            state: GemConfirmButtonState::Enabled
+        }
+    );
+}
 
     #[test]
     fn test_a_screen_without_a_preload_cannot_be_confirmed() {
@@ -195,7 +211,7 @@ mod tests {
             ..GemConfirmScreen::initial(None)
         };
 
-        assert_eq!(waiting.fee_row(), GemConfirmFeeRow::Unavailable);
+        assert_eq!(waiting.fee_row(), GemConfirmFeeRow::Unavailable { text: EMPTY_VALUE.to_string() });
         assert_eq!(
             waiting.button(),
             GemConfirmButton {
@@ -232,12 +248,11 @@ mod tests {
             GemConfirmFeeRow::Ready
         );
         assert_eq!(
-            GemConfirmScreen {
-                phase: GemConfirmPhase::Failed,
-                ..loading
-            }
-            .fee_row(),
-            GemConfirmFeeRow::Unavailable
+            GemConfirmScreen { phase: GemConfirmPhase::Failed, ..loading }.fee_row(),
+            GemConfirmFeeRow::Unavailable {
+                text: crate::models::placeholder::EMPTY_VALUE.to_string()
+            },
+            "a fee the screen could not load reads as the placeholder both apps use"
         );
     }
 
@@ -293,10 +308,7 @@ mod tests {
         assert_eq!(confirming.action(), None);
         assert_eq!(confirming.on_execute_cancelled().phase, GemConfirmPhase::Ready);
 
-        let execute_failed = confirming.on_execute_failed(GemConfirmError::Broadcast {
-            hashes: vec![],
-            msg: "rejected".to_string(),
-        });
+        let execute_failed = confirming.on_execute_failed(GemConfirmError::Broadcast { hashes: vec![], msg: "rejected".to_string() });
         assert_eq!(execute_failed.phase, GemConfirmPhase::Failed);
         assert_eq!(execute_failed.failure.as_ref().map(|failure| failure.stage), Some(GemConfirmStage::Execute));
         assert_eq!(execute_failed.action(), Some(GemConfirmAction::Load));
@@ -359,20 +371,13 @@ mod tests {
     fn test_every_execution_failure_reloads_before_retry() {
         let errors = [
             GemConfirmError::Offline,
-            GemConfirmError::Network {
-                msg: "request timed out".to_string(),
-            },
-            GemConfirmError::Broadcast {
-                hashes: vec![],
-                msg: "rejected".to_string(),
-            },
+            GemConfirmError::Network { msg: "request timed out".to_string() },
+            GemConfirmError::Broadcast { hashes: vec![], msg: "rejected".to_string() },
             GemConfirmError::Broadcast {
                 hashes: vec!["accepted-transaction".to_string()],
                 msg: "rejected".to_string(),
             },
-            GemConfirmError::Record {
-                msg: "store unavailable".to_string(),
-            },
+            GemConfirmError::Record { msg: "store unavailable".to_string() },
         ];
         for error in errors {
             assert_eq!(GemConfirmScreen::initial(None).on_execute_failed(error).action(), Some(GemConfirmAction::Load));

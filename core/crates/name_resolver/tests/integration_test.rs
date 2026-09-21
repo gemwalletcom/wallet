@@ -2,8 +2,8 @@
 mod tests {
     use gem_client::{ReqwestClient, reqwest_client};
     use name_resolver::providers::{
-        alldomains::AllDomainsProvider, aptos::AptosProvider, basenames::BasenamesProvider, ens::EnsProvider, hyperliquid::HyperliquidProvider, icns::IcnsProvider,
-        injective::InjectiveProvider, lens::LensProvider, near::NearProvider, sns::SnsProvider, suins::SuinsProvider,
+        alldomains::AllDomainsProvider, aptos::AptosProvider, basenames::BasenamesProvider, ens::EnsProvider, hyperliquid::HyperliquidProvider, icns::IcnsProvider, injective::InjectiveProvider, lens::LensProvider, near::NearProvider,
+        sns::SnsProvider, suins::SuinsProvider,
     };
     use name_resolver::{NameClient, NameConfig, NameQuery, NameResolver};
     use primitives::{Chain, NameProvider, node_config::get_nodes_for_chain};
@@ -19,10 +19,7 @@ mod tests {
     #[tokio::test]
     async fn test_resolve_ens_imported_name() {
         let client = NameClient::new(
-            vec![Box::new(EnsProvider::new(ReqwestClient::new(
-                get_nodes_for_chain(Chain::Ethereum)[0].url.clone(),
-                reqwest_client(),
-            )))],
+            vec![Box::new(EnsProvider::new(ReqwestClient::new(get_nodes_for_chain(Chain::Ethereum)[0].url.clone(), reqwest_client())))],
             NameConfig { max_name_length: 20 },
         );
         let record = client.resolve("farcaster.xyz", Chain::Ethereum).await.unwrap().unwrap();
@@ -38,10 +35,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_resolve_sns() {
-        let client = NameClient::new(
-            vec![Box::new(SnsProvider::new(ReqwestClient::new(get_test_settings().name.sns.url, reqwest_client())))],
-            NameConfig { max_name_length: 20 },
-        );
+        let client = NameClient::new(vec![Box::new(SnsProvider::new(ReqwestClient::new(get_test_settings().name.sns.url, reqwest_client())))], NameConfig { max_name_length: 20 });
         for name in ["bonfida.sol", "bonfida.sns"] {
             let record = client.resolve(name, Chain::Solana).await.unwrap().unwrap();
             assert_eq!(record.name, name);
@@ -60,10 +54,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_resolve_icns() {
-        let client = NameClient::new(
-            vec![Box::new(IcnsProvider::new(ReqwestClient::new(get_test_settings().name.icns.url, reqwest_client())))],
-            NameConfig { max_name_length: 20 },
-        );
+        let client = NameClient::new(vec![Box::new(IcnsProvider::new(ReqwestClient::new(get_test_settings().name.icns.url, reqwest_client())))], NameConfig { max_name_length: 20 });
         let record = client.resolve("dogemos.osmo", Chain::Osmosis).await.unwrap().unwrap();
         assert_eq!(record.address, "osmo1z98eg2ztdp2glyla62629nrlvczg8s7f8sgpm5");
     }
@@ -94,18 +85,9 @@ mod tests {
         let provider = HyperliquidProvider::new(ReqwestClient::new(get_test_settings().name.hyperliquid.url, reqwest_client()));
         let query = NameQuery::new("TESTOOOR.HL");
 
-        assert_eq!(
-            provider.resolve(&query, Chain::Ethereum).await.unwrap().unwrap(),
-            "0xb43f5153B1c867BF78ACB3C35aa9b8ae366415c5"
-        );
-        assert_eq!(
-            provider.resolve(&query, Chain::Hyperliquid).await.unwrap().unwrap(),
-            "0xF26F5551E96aE5162509B25925fFfa7F07B2D652"
-        );
-        assert_eq!(
-            provider.resolve(&query, Chain::Solana).await.unwrap().unwrap(),
-            "CKAvaYmwqCbg8nZCUCNj6Cvr11HauALtNoGT7WirPoAp"
-        );
+        assert_eq!(provider.resolve(&query, Chain::Ethereum).await.unwrap().unwrap(), "0xb43f5153B1c867BF78ACB3C35aa9b8ae366415c5");
+        assert_eq!(provider.resolve(&query, Chain::Hyperliquid).await.unwrap().unwrap(), "0xF26F5551E96aE5162509B25925fFfa7F07B2D652");
+        assert_eq!(provider.resolve(&query, Chain::Solana).await.unwrap().unwrap(), "CKAvaYmwqCbg8nZCUCNj6Cvr11HauALtNoGT7WirPoAp");
     }
 
     #[tokio::test]

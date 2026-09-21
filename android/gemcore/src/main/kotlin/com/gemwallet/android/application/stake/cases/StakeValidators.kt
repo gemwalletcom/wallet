@@ -8,4 +8,3 @@ import kotlinx.coroutines.flow.Flow
 interface GetValidators {
     operator fun invoke(assetId: AssetId, providerType: StakeProviderType = StakeProviderType.Stake): Flow<List<DelegationValidator>>
 }
-

@@ -57,7 +57,7 @@ impl GemPerpetualStreamService {
         self.send(requests).await
     }
 
-    pub async fn handle(&self, wallet_id: WalletId, mode: PerpetualAccountMode, data: Vec<u8>) -> Result<Option<ChartCandleUpdate>, GemServiceError> {
+    pub async fn candle_update(&self, wallet_id: WalletId, mode: PerpetualAccountMode, data: Vec<u8>) -> Result<Option<ChartCandleUpdate>, GemServiceError> {
         match self.perpetual.on_socket_message(wallet_id, mode, data).await? {
             GemPerpetualSocketUpdate::Candle { candle } => Ok(Some(candle)),
             GemPerpetualSocketUpdate::Applied | GemPerpetualSocketUpdate::SubscriptionResponse { .. } | GemPerpetualSocketUpdate::Unknown => Ok(None),

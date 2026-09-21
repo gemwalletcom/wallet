@@ -21,14 +21,15 @@ import com.gemwallet.android.features.settings.price_alerts.presents.PriceAlertT
 import com.gemwallet.android.features.settings.price_alerts.presents.PriceAlertsNavScreen
 import com.gemwallet.android.features.settings.security.presents.SecurityScene
 import com.gemwallet.android.features.settings.settings.presents.views.NotificationsScene
-import com.gemwallet.android.ui.models.actions.PreferencesAction
 import com.gemwallet.android.features.settings.settings.presents.views.PreferencesScene
 import com.gemwallet.android.features.settings.settings.presents.views.SupportChatNavScreen
+import com.gemwallet.android.ui.models.actions.PreferencesAction
 import com.gemwallet.android.ui.navigation.assetIdArgument
 import com.gemwallet.android.ui.navigation.routeArguments
 import com.gemwallet.android.ui.open
 import com.wallet.core.primitives.AssetId
 import kotlinx.serialization.Serializable
+import uniffi.gemstone.GemNotificationDestination
 
 const val settingsRoute = "settings"
 
@@ -71,12 +72,7 @@ data object PreferencesRoute : NavKey
 @Serializable
 data object NotificationsRoute : NavKey
 
-fun EntryProviderScope<NavKey>.settingsScreen(
-    onAction: (SettingsAction) -> Unit,
-    onOpenUrl: (String) -> Boolean,
-    toastMessage: (NavKey) -> String?,
-    onToastShown: (NavKey) -> Unit,
-) {
+fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit, onOpenUrl: (String) -> Boolean, toastMessage: (NavKey) -> String?, onToastShown: (NavKey) -> Unit) {
     val onCancel = { onAction(SettingsAction.Cancel) }
 
     entry<CurrenciesRoute> {
@@ -103,12 +99,17 @@ fun EntryProviderScope<NavKey>.settingsScreen(
     }
 
     entry<InAppNotificationsRoute> {
+        val context = LocalContext.current
+        val uriHandler = LocalUriHandler.current
         InAppNotificationsScene(
             onAction = { action ->
                 when (action) {
                     InAppNotificationsAction.Cancel -> onAction(SettingsAction.Cancel)
-                    is InAppNotificationsAction.OpenUrl ->
-                        onAction(SettingsAction.OpenNotificationUrl(action.url))
+
+                    is InAppNotificationsAction.Open -> when (val destination = action.destination) {
+                        is GemNotificationDestination.InApp -> onAction(SettingsAction.OpenNotification(destination.action))
+                        is GemNotificationDestination.Web -> uriHandler.open(context, destination.url)
+                    }
                 }
             },
         )
@@ -189,11 +190,7 @@ fun EntryProviderScope<NavKey>.settingsScreen(
 }
 
 @Composable
-private fun priceAlertsScreenContent(
-    toastMessage: String?,
-    onToastShown: () -> Unit,
-    onAction: (SettingsAction) -> Unit,
-) {
+private fun priceAlertsScreenContent(toastMessage: String?, onToastShown: () -> Unit, onAction: (SettingsAction) -> Unit) {
     PriceAlertsNavScreen(
         toastMessage = toastMessage,
         onToastShown = onToastShown,

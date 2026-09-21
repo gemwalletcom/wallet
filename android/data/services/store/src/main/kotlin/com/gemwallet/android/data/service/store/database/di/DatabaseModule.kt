@@ -14,17 +14,17 @@ import com.gemwallet.android.data.service.store.database.ContactsDao
 import com.gemwallet.android.data.service.store.database.FiatTransactionsDao
 import com.gemwallet.android.data.service.store.database.GemDatabase
 import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
-import com.gemwallet.android.data.service.store.database.SupportMessagesDao
 import com.gemwallet.android.data.service.store.database.NftDao
 import com.gemwallet.android.data.service.store.database.NodesDao
 import com.gemwallet.android.data.service.store.database.PerpetualDao
 import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
 import com.gemwallet.android.data.service.store.database.PriceAlertsDao
-import com.gemwallet.android.data.service.store.database.SearchDao
 import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.service.store.database.RoomStoreTransactionRunner
+import com.gemwallet.android.data.service.store.database.SearchDao
 import com.gemwallet.android.data.service.store.database.StakeDao
 import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
+import com.gemwallet.android.data.service.store.database.SupportMessagesDao
 import com.gemwallet.android.data.service.store.database.TransactionsDao
 import com.gemwallet.android.data.service.store.database.WalletsDao
 import dagger.Module
@@ -40,10 +40,10 @@ object DatabaseModule {
     @Singleton
     @Provides
     fun provideRoom(@ApplicationContext context: Context, passwordStore: PasswordStore): GemDatabase = Room.databaseBuilder(
-            context = context,
-            klass = GemDatabase::class.java,
-            name = "gem.db",
-        )
+        context = context,
+        klass = GemDatabase::class.java,
+        name = "gem.db",
+    )
         .addMigrations(Migration_41_42)
         .addMigrations(Migration_42_43)
         .addMigrations(Migration_43_44)

@@ -25,9 +25,7 @@ pub(in crate::signer) fn nft_transfer(input: &SignerInput, sender: Pubkey) -> Re
     match standard {
         SolanaNftStandard::Core { collection } => metaplex_core_transfer(input, sender, nft_asset, collection.as_deref()),
         SolanaNftStandard::NonFungible => spl_nft_transfer(input, sender, nft_asset, spl_program(token_program.as_ref())?),
-        SolanaNftStandard::ProgrammableNonFungible { rule_set } => {
-            metaplex_token_metadata_transfer(input, sender, nft_asset, spl_program(token_program.as_ref())?, rule_set.as_deref())
-        }
+        SolanaNftStandard::ProgrammableNonFungible { rule_set } => metaplex_token_metadata_transfer(input, sender, nft_asset, spl_program(token_program.as_ref())?, rule_set.as_deref()),
     }
 }
 
@@ -41,13 +39,7 @@ fn spl_nft_transfer(input: &SignerInput, sender: Pubkey, nft_asset: &NFTAsset, t
     spl_transfer_checked(input, sender, mint, 1, 0, token_program_id)
 }
 
-fn metaplex_token_metadata_transfer(
-    input: &SignerInput,
-    sender: Pubkey,
-    nft_asset: &NFTAsset,
-    spl_token_program: &SolanaTokenProgramId,
-    rule_set: Option<&str>,
-) -> Result<Vec<Instruction>, SignerError> {
+fn metaplex_token_metadata_transfer(input: &SignerInput, sender: Pubkey, nft_asset: &NFTAsset, spl_token_program: &SolanaTokenProgramId, rule_set: Option<&str>) -> Result<Vec<Instruction>, SignerError> {
     let mpl_program = Pubkey::from_base58(METAPLEX_PROGRAM).map_err(SignerError::from_display)?;
     let token_program = Pubkey::from_base58(get_token_program_by_id(spl_token_program.clone())).map_err(SignerError::from_display)?;
     let ata_program = Pubkey::from_base58(SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID).map_err(SignerError::from_display)?;
@@ -67,9 +59,7 @@ fn metaplex_token_metadata_transfer(
     };
 
     let metadata_pda = Metadata::find_pda(mint).ok_or_else(|| SignerError::invalid_input("failed to derive metadata PDA"))?.0;
-    let master_edition = Metadata::find_master_edition_pda(mint)
-        .ok_or_else(|| SignerError::invalid_input("failed to derive master edition PDA"))?
-        .0;
+    let master_edition = Metadata::find_master_edition_pda(mint).ok_or_else(|| SignerError::invalid_input("failed to derive master edition PDA"))?.0;
     let source_token_record = Metadata::find_token_record_pda(mint, sender_token_address)
         .ok_or_else(|| SignerError::invalid_input("failed to derive source token record PDA"))?
         .0;
@@ -224,13 +214,7 @@ mod tests {
             TEST_PRIVATE_KEY_SOLANA_ADDRESS,
             TEST_RECIPIENT,
             "1",
-            TransactionLoadMetadata::mock_solana_nft(
-                TEST_SENDER_TOKEN_ADDRESS,
-                SolanaTokenProgramId::Token,
-                SolanaNftStandard::ProgrammableNonFungible {
-                    rule_set: Some(PNFT_RULE_SET.to_string()),
-                },
-            ),
+            TransactionLoadMetadata::mock_solana_nft(TEST_SENDER_TOKEN_ADDRESS, SolanaTokenProgramId::Token, SolanaNftStandard::ProgrammableNonFungible { rule_set: Some(PNFT_RULE_SET.to_string()) }),
         );
 
         let result = signer.sign_nft_transfer(&input, &TEST_PRIVATE_KEY).unwrap();

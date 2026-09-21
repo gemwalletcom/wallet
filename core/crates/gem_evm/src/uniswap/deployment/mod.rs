@@ -44,19 +44,10 @@ pub fn get_provider_by_chain_contract(chain: &Chain, contract: &str) -> Option<S
         return Some(SwapProvider::UniswapV4.id().to_string());
     }
     [
-        (
-            v3::get_pancakeswap_router_deployment_by_chain(chain).map(|deployment| deployment.universal_router),
-            SwapProvider::PancakeswapV3,
-        ),
+        (v3::get_pancakeswap_router_deployment_by_chain(chain).map(|deployment| deployment.universal_router), SwapProvider::PancakeswapV3),
         (v3::get_oku_deployment_by_chain(chain).map(|deployment| deployment.universal_router), SwapProvider::Oku),
-        (
-            v3::get_wagmi_router_deployment_by_chain(chain).map(|deployment| deployment.universal_router),
-            SwapProvider::Wagmi,
-        ),
-        (
-            v3::get_aerodrome_router_deployment_by_chain(chain).map(|deployment| deployment.universal_router),
-            SwapProvider::Aerodrome,
-        ),
+        (v3::get_wagmi_router_deployment_by_chain(chain).map(|deployment| deployment.universal_router), SwapProvider::Wagmi),
+        (v3::get_aerodrome_router_deployment_by_chain(chain).map(|deployment| deployment.universal_router), SwapProvider::Aerodrome),
     ]
     .into_iter()
     .find_map(|(router, provider)| router.filter(|router| router.eq_ignore_ascii_case(contract)).map(|_| provider.id().to_string()))

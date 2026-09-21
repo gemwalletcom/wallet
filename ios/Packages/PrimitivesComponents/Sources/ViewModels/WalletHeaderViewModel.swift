@@ -2,9 +2,9 @@
 
 import Components
 import Formatters
-import GemstonePrimitives
 import enum Gemstone.GemHeaderActions
 import class Gemstone.PriceChangeCalculator
+import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI

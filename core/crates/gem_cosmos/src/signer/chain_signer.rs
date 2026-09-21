@@ -59,9 +59,7 @@ impl CosmosChainSigner {
         let public_key = signer::secp256k1_public_key(private_key)?;
         match chain {
             CosmosChain::Injective => Self::uncompress_public_key(&public_key),
-            CosmosChain::Cosmos | CosmosChain::Osmosis | CosmosChain::Celestia | CosmosChain::Thorchain | CosmosChain::Mayachain | CosmosChain::Sei | CosmosChain::Noble => {
-                Ok(public_key)
-            }
+            CosmosChain::Cosmos | CosmosChain::Osmosis | CosmosChain::Celestia | CosmosChain::Thorchain | CosmosChain::Mayachain | CosmosChain::Sei | CosmosChain::Noble => Ok(public_key),
         }
     }
 
@@ -142,10 +140,7 @@ mod tests {
     use std::collections::HashMap;
 
     use num_bigint::BigInt;
-    use primitives::{
-        Asset, AssetId, Chain, Delegation, DelegationValidator, GasPriceType, RedelegateData, StakeType, SwapProvider, TransactionFee, TransactionInputType, TransactionLoadInput,
-        TransactionLoadMetadata, swap::SwapData,
-    };
+    use primitives::{Asset, AssetId, Chain, Delegation, DelegationValidator, GasPriceType, RedelegateData, StakeType, SwapProvider, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, swap::SwapData};
     use serde_json::Value;
 
     use super::*;
@@ -168,9 +163,7 @@ mod tests {
         let fee_amount = BigInt::from(200u64);
         let input = SignerInput::new(
             TransactionLoadInput {
-                input_type: TransactionInputType::Transfer {
-                    asset: Asset::from_chain(Chain::Thorchain),
-                },
+                input_type: TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Thorchain) },
                 sender_address: "thor1z53wwe7md6cewz9sqwqzn0aavpaun0gw0exn2r".to_string(),
                 destination_address: "thor1e2ryt8asq4gu0h6z2sx9u7rfrykgxwkmr9upxn".to_string(),
                 value: BigUint::from(38000000u64),
@@ -183,13 +176,7 @@ mod tests {
                     chain_id: "thorchain-mainnet-v1".to_string(),
                 },
             },
-            TransactionFee::new_gas_price_type(
-                GasPriceType::regular(fee_amount.clone()),
-                fee_amount,
-                BigInt::from(2_500_000u64),
-                HashMap::new(),
-                AssetId::from_chain(Chain::Cosmos),
-            ),
+            TransactionFee::new_gas_price_type(GasPriceType::regular(fee_amount.clone()), fee_amount, BigInt::from(2_500_000u64), HashMap::new(), AssetId::from_chain(Chain::Cosmos)),
         );
 
         let signed = CosmosChainSigner.sign_transfer(&input, &private_key).unwrap();
@@ -206,9 +193,7 @@ mod tests {
         let fee_amount = BigInt::from(100_000_000_000_000u64);
         let input = SignerInput::new(
             TransactionLoadInput {
-                input_type: TransactionInputType::Transfer {
-                    asset: Asset::from_chain(Chain::Injective),
-                },
+                input_type: TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Injective) },
                 sender_address: "inj13u6g7vqgw074mgmf2ze2cadzvkz9snlwcrtq8a".to_string(),
                 destination_address: "inj1xmpkmxr4as00em23tc2zgmuyy2gr4h3wgcl6vd".to_string(),
                 value: BigUint::from(10000000000u64),
@@ -221,13 +206,7 @@ mod tests {
                     chain_id: "injective-1".to_string(),
                 },
             },
-            TransactionFee::new_gas_price_type(
-                GasPriceType::regular(fee_amount.clone()),
-                fee_amount,
-                BigInt::from(110_000u64),
-                HashMap::new(),
-                AssetId::from_chain(Chain::Cosmos),
-            ),
+            TransactionFee::new_gas_price_type(GasPriceType::regular(fee_amount.clone()), fee_amount, BigInt::from(110_000u64), HashMap::new(), AssetId::from_chain(Chain::Cosmos)),
         );
 
         let signed = CosmosChainSigner.sign_transfer(&input, &private_key).unwrap();
@@ -242,12 +221,7 @@ mod tests {
         let private_key = hex::decode(OSMO_PRIVATE_KEY_HEX).unwrap();
         let signer = CosmosChainSigner;
 
-        let transfer = SignerInput::mock_osmosis(
-            TransactionInputType::Transfer {
-                asset: Asset::from_chain(Chain::Osmosis),
-            },
-            "osmo1rcjvzz8wzktqfz8qjf0l9q45kzxvd0z0n7l5cf",
-        );
+        let transfer = SignerInput::mock_osmosis(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Osmosis) }, "osmo1rcjvzz8wzktqfz8qjf0l9q45kzxvd0z0n7l5cf");
         assert_eq!(
             signed_tx_bytes(&signer.sign_transfer(&transfer, &private_key).unwrap()),
             "CooBCocBChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEmcKK29zbW8xa2dsZW11bXU4bW42NThqNmc0ejlqem4zemVmMnFkeXl2a2x3YTMSK29zbW8xcmNqdnp6OHd6a3RxZno4cWpmMGw5cTQ1a3p4dmQwejBuN2w1Y2YaCwoFdW9zbW8SAjEwEmgKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQMslcYn7DhPe5b/8lM3FnPXhGBj5SdC15+XI1hZ1gYbBBIECgIIARgKEhQKDgoFdW9zbW8SBTEwMDAwEMCaDBpAVJkDxaS5ZaghmJ6ZtpC9yim7JA8duO8MwOODdJeHEHssH3PQN+4Yl+SVyLtNEW6+IDUKfkG1dfIYOvpRiFlOyg=="
@@ -316,7 +290,8 @@ mod tests {
     #[test]
     fn test_sign_swap() {
         let private_key = hex::decode(OSMO_PRIVATE_KEY_HEX).unwrap();
-        let msg_send = r#"[{"typeUrl":"/cosmos.bank.v1beta1.MsgSend","value":{"from_address":"osmo1kglemumu8mn658j6g4z9jzn3zef2qdyyvklwa3","to_address":"osmo1rcjvzz8wzktqfz8qjf0l9q45kzxvd0z0n7l5cf","amount":[{"denom":"uosmo","amount":"10"}]}}]"#;
+        let msg_send =
+            r#"[{"typeUrl":"/cosmos.bank.v1beta1.MsgSend","value":{"from_address":"osmo1kglemumu8mn658j6g4z9jzn3zef2qdyyvklwa3","to_address":"osmo1rcjvzz8wzktqfz8qjf0l9q45kzxvd0z0n7l5cf","amount":[{"denom":"uosmo","amount":"10"}]}}]"#;
         let input = SignerInput::mock_osmosis(
             TransactionInputType::Swap {
                 from_asset: Asset::from_chain(Chain::Osmosis),

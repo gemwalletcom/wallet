@@ -8,8 +8,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemPreferencesService
-import uniffi.gemstone.GemSettingsServiceInterface
 import uniffi.gemstone.GemSettingsService
+import uniffi.gemstone.GemSettingsServiceInterface
 import uniffi.gemstone.GemWalletSessionService
 import uniffi.gemstone.GemWalletSessionServiceInterface
 import javax.inject.Singleton
@@ -19,16 +19,11 @@ import javax.inject.Singleton
 object SessionModule {
     @Singleton
     @Provides
-    fun provideGemstoneWalletSessionStore(
-        preferences: GemstonePreferencesStore,
-    ): GemstoneWalletSessionStore = GemstoneWalletSessionStore(preferences)
+    fun provideGemstoneWalletSessionStore(preferences: GemstonePreferencesStore): GemstoneWalletSessionStore = GemstoneWalletSessionStore(preferences)
 
     @Singleton
     @Provides
-    fun provideGemWalletSessionService(
-        sessionStore: GemstoneWalletSessionStore,
-        walletStore: GemstoneWalletStore,
-    ): GemWalletSessionService = GemWalletSessionService(sessionStore, walletStore)
+    fun provideGemWalletSessionService(sessionStore: GemstoneWalletSessionStore, walletStore: GemstoneWalletStore): GemWalletSessionService = GemWalletSessionService(sessionStore, walletStore)
 
     @Singleton
     @Provides

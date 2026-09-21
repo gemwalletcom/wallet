@@ -56,22 +56,11 @@ where
         info_with_fields!("running consumer", consumer = queue_name.to_string());
     }
     stream_reader
-        .read::<P, _, _>(
-            queue_name,
-            routing_key,
-            |payload| process_message(name, &consumer, &config, &reporter, payload),
-            shutdown_rx,
-        )
+        .read::<P, _, _>(queue_name, routing_key, |payload| process_message(name, &consumer, &config, &reporter, payload), shutdown_rx)
         .await
 }
 
-async fn process_message<P, C, R>(
-    name: &str,
-    consumer: &C,
-    config: &ConsumerConfig,
-    reporter: &Arc<dyn ConsumerStatusReporter>,
-    payload: P,
-) -> Result<(), Box<dyn Error + Send + Sync>>
+async fn process_message<P, C, R>(name: &str, consumer: &C, config: &ConsumerConfig, reporter: &Arc<dyn ConsumerStatusReporter>, payload: P) -> Result<(), Box<dyn Error + Send + Sync>>
 where
     P: Send + Display + 'static,
     C: MessageConsumer<P, R> + Send + 'static,
@@ -94,13 +83,7 @@ where
         ProcessResult::Processed(value) => {
             let duration = start.elapsed().as_millis() as u64;
             let result_str = format!("{:?}", value);
-            info_with_fields!(
-                "processed",
-                consumer = name,
-                payload = payload_display.as_str(),
-                result = result_str,
-                elapsed = DurationMs(start.elapsed())
-            );
+            info_with_fields!("processed", consumer = name, payload = payload_display.as_str(), result = result_str, elapsed = DurationMs(start.elapsed()));
             reporter.report_success(name, duration, &result_str).await;
             if !config.delay.is_zero() {
                 tokio::time::sleep(config.delay).await;

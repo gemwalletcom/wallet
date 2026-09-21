@@ -32,7 +32,7 @@ public struct ChainSettingsScene: View {
                 Button(
                     model.deleteButtonTitle,
                     role: .destructive,
-                    action: model.onDeleteNode,
+                    action: onDeleteNode,
                 )
             },
         )
@@ -62,18 +62,9 @@ public struct ChainSettingsScene: View {
         switch section.kind {
         case .nodes:
             ForEach(model.nodesModels) { nodeModel in
-                ListItemSelectionView(
-                    title: nodeModel.title,
-                    titleExtra: nodeModel.titleExtra,
-                    titleTag: nodeModel.titleTag,
-                    titleTagType: nodeModel.titleTagType,
-                    titleTagStyle: nodeModel.titleTagStyle,
-                    subtitle: .none,
-                    subtitleExtra: .none,
-                    value: nodeModel.url,
-                    selection: nodeModel.selection,
-                    action: model.onSelectNode,
-                )
+                SelectionView(value: nodeModel.url, selection: nodeModel.selection, action: model.onSelectNode) {
+                    ListItemView(model: nodeModel.listItem)
+                }
                 .contextMenu(
                     .copy(value: nodeModel.url),
                 )
@@ -101,5 +92,13 @@ public struct ChainSettingsScene: View {
                 )
             }
         }
+    }
+}
+
+// MARK: - Actions
+
+extension ChainSettingsScene {
+    private func onDeleteNode() {
+        Task { await model.onDeleteNode() }
     }
 }

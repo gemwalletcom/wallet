@@ -38,9 +38,7 @@ impl<'r> FromParam<'r> for ChainParam {
 
 impl<'r> FromFormField<'r> for ChainParam {
     fn from_value(field: ValueField<'r>) -> form::Result<'r, Self> {
-        Chain::from_str(field.value)
-            .map(ChainParam)
-            .map_err(|_| form::Error::validation(format!("Invalid chain: {}", field.value)).into())
+        Chain::from_str(field.value).map(ChainParam).map_err(|_| form::Error::validation(format!("Invalid chain: {}", field.value)).into())
     }
 }
 
@@ -72,9 +70,7 @@ impl<'r> FromFormField<'r> for CurrencyParam {
     }
 
     fn from_value(field: ValueField<'r>) -> form::Result<'r, Self> {
-        Currency::from_str(field.value)
-            .map(CurrencyParam)
-            .map_err(|_| form::Error::validation(format!("Invalid currency: {}", field.value)).into())
+        Currency::from_str(field.value).map(CurrencyParam).map_err(|_| form::Error::validation(format!("Invalid currency: {}", field.value)).into())
     }
 }
 
@@ -144,9 +140,7 @@ impl<'r> FromFormField<'r> for AssetIdParam {
         if field.value.is_empty() || field.value.len() > MAX_ASSET_ID_LENGTH {
             return Err(form::Error::validation(format!("Invalid asset_id: {}", field.value)).into());
         }
-        AssetId::new(field.value)
-            .map(AssetIdParam)
-            .ok_or_else(|| form::Error::validation(format!("Invalid asset_id: {}", field.value)).into())
+        AssetId::new(field.value).map(AssetIdParam).ok_or_else(|| form::Error::validation(format!("Invalid asset_id: {}", field.value)).into())
     }
 }
 

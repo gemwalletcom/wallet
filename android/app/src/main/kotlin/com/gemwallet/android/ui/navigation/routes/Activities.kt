@@ -12,13 +12,9 @@ import kotlinx.serialization.Serializable
 const val transactionsRoute = "transactions"
 
 @Serializable
-data class TransactionDetailsRoute(
-    val transactionId: TransactionId
-) : NavKey
+data class TransactionDetailsRoute(val transactionId: TransactionId) : NavKey
 
-fun EntryProviderScope<NavKey>.transactionDetailsScreen(
-    onAction: (TransactionDetailsAction.Navigation) -> Unit,
-) {
+fun EntryProviderScope<NavKey>.transactionDetailsScreen(onAction: (TransactionDetailsAction.Navigation) -> Unit) {
     entry<TransactionDetailsRoute>(
         metadata = { key ->
             routeArguments(RouteArgument.TransactionId to key.transactionId.identifier)

@@ -172,21 +172,9 @@ impl Metrics {
         registry.register("cooldown_until_seconds", "Endpoint path cooldown expiry time", cooldowns.clone());
         registry.register("proxy_available", "Whether an outbound proxy passed its last check", proxy_available.clone());
         registry.register("proxy_requests", "Proxy requests by host", proxy_requests.clone());
-        registry.register(
-            "proxy_requests_by_method",
-            "Proxy requests by host and method (HTTP path or RPC method)",
-            proxy_requests_by_method.clone(),
-        );
-        registry.register(
-            "proxy_response_latency",
-            "Proxy responses by chain, method, path, and status",
-            proxy_response_latency.clone(),
-        );
-        registry.register(
-            "proxy_upstream_response_latency",
-            "Upstream proxy responses by host, path, method, and status",
-            proxy_upstream_response_latency.clone(),
-        );
+        registry.register("proxy_requests_by_method", "Proxy requests by host and method (HTTP path or RPC method)", proxy_requests_by_method.clone());
+        registry.register("proxy_response_latency", "Proxy responses by chain, method, path, and status", proxy_response_latency.clone());
+        registry.register("proxy_upstream_response_latency", "Upstream proxy responses by host, path, method, and status", proxy_upstream_response_latency.clone());
         registry.register("proxy_retries", "Proxy retries by chain, upstream host, and reason", proxy_retries.clone());
         registry.register("node_host_current", "Node current host url", node_host_current.clone());
         let node_monitor = NodeMonitorMetrics::register(registry, config.source.clone());
@@ -420,24 +408,12 @@ impl NodeMonitorMetrics {
     fn register(registry: &mut Registry, source: String) -> Self {
         let metrics = Self { source, ..Self::default() };
 
-        registry.register(
-            "node_monitor_check_success",
-            "Whether the last node monitor check completed successfully",
-            metrics.check_success.clone(),
-        );
+        registry.register("node_monitor_check_success", "Whether the last node monitor check completed successfully", metrics.check_success.clone());
         registry.register("node_monitor_in_sync", "Whether the node was in sync at the last monitor check", metrics.in_sync.clone());
         registry.register("node_monitor_latest_block", "Latest block reported by the node monitor", metrics.latest_block.clone());
         registry.register("node_monitor_current_block", "Current block reported by the node monitor", metrics.current_block.clone());
-        registry.register(
-            "node_monitor_latency_milliseconds",
-            "Duration of the last node monitor check in milliseconds",
-            metrics.latency_milliseconds.clone(),
-        );
-        registry.register(
-            "node_monitor_last_check_timestamp_seconds",
-            "Unix timestamp of the last node monitor check",
-            metrics.last_check_timestamp_seconds.clone(),
-        );
+        registry.register("node_monitor_latency_milliseconds", "Duration of the last node monitor check in milliseconds", metrics.latency_milliseconds.clone());
+        registry.register("node_monitor_last_check_timestamp_seconds", "Unix timestamp of the last node monitor check", metrics.last_check_timestamp_seconds.clone());
         registry.register("node_monitor_cycles", "Node monitor cycles by trigger", metrics.cycles.clone());
 
         metrics
@@ -475,9 +451,7 @@ mod tests {
         let encoded = metrics.get_metrics();
         assert_eq!(
             encoded.lines().filter(|line| line.starts_with("test_proxy_response_latency_count{")).collect::<Vec<_>>(),
-            vec![
-                "test_proxy_response_latency_count{source=\"public\",group=\"tron\",service=\"tron\",chain=\"tron\",method=\"POST\",path=\"/wallet/getaccount\",status=\"200\"} 1"
-            ]
+            vec!["test_proxy_response_latency_count{source=\"public\",group=\"tron\",service=\"tron\",chain=\"tron\",method=\"POST\",path=\"/wallet/getaccount\",status=\"200\"} 1"]
         );
         assert_eq!(
             encoded.lines().filter(|line| line.starts_with("test_proxy_retries_total{")).collect::<Vec<_>>(),

@@ -4,9 +4,10 @@ import GemstonePrimitivesTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
 import Primitives
-import Testing
+import PrimitivesComponents
 @testable import Settings
 import SettingsTestKit
+import Testing
 
 @MainActor
 struct SecurityViewModelTests {
@@ -27,7 +28,7 @@ struct SecurityViewModelTests {
 
         _ = model.sections
 
-        #expect(settings.securitySectionsCalls == [true])
+        #expect(settings.securitySectionsCalls.map(\.authenticationEnabled) == [true])
     }
 
     @Test
@@ -79,6 +80,17 @@ struct SecurityViewModelTests {
     }
 
     @Test
+    func theHideBalanceToggleWritesThroughToPreferences() {
+        let preferences = ObservablePreferences.mock()
+        preferences.isHideBalanceEnabled = false
+        let model = SecurityViewModel.mock(preferences: preferences)
+
+        model.onToggle(.hideBalance, true)
+
+        #expect(preferences.isHideBalanceEnabled)
+    }
+
+    @Test
     func aFailedPrivacyLockRevertsTheToggle() {
         let service = BiometryAuthenticationMock(isPrivacyLockEnabled: false)
         service.privacyLockError = AnyError("not available")
@@ -97,7 +109,7 @@ struct SecurityViewModelTests {
         service.lockPeriodError = AnyError("write failed")
         let model = SecurityViewModel.mock(service: service)
 
-        model.lockPeriod = .fiveMinutes
+        model.updateLockPeriod(to: .fiveMinutes)
 
         #expect(model.lockPeriod == .oneMinute)
         #expect(model.isPresentingAlertMessage?.message == "write failed")
@@ -108,7 +120,7 @@ struct SecurityViewModelTests {
         let service = BiometryAuthenticationMock(lockPeriod: .default)
         let model = SecurityViewModel.mock(service: service)
 
-        model.lockPeriod = .fiveMinutes
+        model.updateLockPeriod(to: .fiveMinutes)
 
         #expect(service.lockPeriodCalls == [.fiveMinutes])
         #expect(model.isPresentingAlertMessage == nil)

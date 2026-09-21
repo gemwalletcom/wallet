@@ -1,46 +1,49 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.GemSignMessagePreview
-import struct Gemstone.GemWalletRow
-import func Gemstone.walletRow
-import protocol Gemstone.GemSignMessageServiceProtocol
 import Components
 import Foundation
+import enum Gemstone.GemListRow
+import enum Gemstone.GemServiceError
+import struct Gemstone.GemSignMessagePreview
+import protocol Gemstone.GemSignMessageServiceProtocol
+import struct Gemstone.GemSimulationPayloadRow
 import struct Gemstone.GemSimulationValue
+import struct Gemstone.GemWalletConnectMessageRequest
+import func Gemstone.signerFailure
+import func Gemstone.simulationWarningRows
 import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
 import Style
 import WalletConnectorService
-import struct Gemstone.SimulationPayloadField
-import struct Gemstone.GemSimulationWarningRow
-import func Gemstone.simulationWarningRows
 
 @Observable
 @MainActor
 public final class SignMessageSceneViewModel {
     private let service: any GemSignMessageServiceProtocol
-    private let payload: SignMessagePayload
+    private let request: GemWalletConnectMessageRequest
     private let confirmTransferDelegate: TransferDataCallback.ConfirmTransferDelegate
-    private let preview: GemSignMessagePreview
-    private let row: GemWalletRow
+    private var preview: GemSignMessagePreview
 
     public var isPresentingUrl: URL?
     public var isPresentingPayloadDetails: Bool = false
     public var isPresentingAlertMessage: AlertMessage?
-    private var payloadAddressNames: [ChainAddress: AddressName] = [:]
+    private var hasLoadedAddressNames = false
 
     public init(
         service: any GemSignMessageServiceProtocol,
-        payload: SignMessagePayload,
+        request: GemWalletConnectMessageRequest,
         confirmTransferDelegate: @escaping TransferDataCallback.ConfirmTransferDelegate,
     ) {
         self.service = service
-        self.payload = payload
+        self.request = request
         self.confirmTransferDelegate = confirmTransferDelegate
-        row = walletRow(wallet: payload.wallet.toGem())
-        preview = service.preview(message: payload.message, simulation: payload.simulation, assets: payload.assets.map { $0.toGem() })
+        preview = service.preview(request: request)
+    }
+
+    private var metadata: ApplicationMetadata {
+        request.session.metadata.toPrimitives()
     }
 
     var viewFullMessageListItem: ListItemModel {
@@ -51,16 +54,8 @@ public final class SignMessageSceneViewModel {
         ListItemModel(title: Localized.Common.details)
     }
 
-    public var networkText: String {
-        payload.chain.networkName
-    }
-
     public var title: String {
         preview.messageType.title
-    }
-
-    public var walletText: String {
-        payload.wallet.name
     }
 
     public var buttonTitle: String {
@@ -68,30 +63,22 @@ public final class SignMessageSceneViewModel {
     }
 
     public var appName: String {
-        payload.session.metadata.shortName
+        metadata.shortName
     }
 
     public var appAssetImage: AssetImage {
-        AssetImage(imageURL: payload.session.metadata.iconURL)
+        AssetImage(imageURL: metadata.iconURL)
     }
 
-    public var walletAssetImage: AssetImage {
-        row.avatarImage
-    }
-
-    public var networkAssetImage: AssetImage {
-        AssetIdViewModel(assetId: payload.chain.asset.id).networkAssetImage
-    }
-
-    public var appText: String {
-        appName
+    var rows: [GemListRow] {
+        preview.rows
     }
 
     public var appPreview: AppPreviewModel {
         AppPreviewModel(
             assetImage: appAssetImage,
             name: appName,
-            subtitleSymbol: payload.session.metadata.host,
+            subtitleSymbol: metadata.host,
         )
     }
 
@@ -107,24 +94,14 @@ public final class SignMessageSceneViewModel {
         preview.text
     }
 
-    var textMessageViewModel: TextMessageViewModel {
-        TextMessageViewModel(message: preview.text)
-    }
-
-    public var simulationWarningModels: [SimulationWarningViewModel] {
-        simulationWarnings.map(SimulationWarningViewModel.init)
-    }
-
-    public var simulationWarnings: [GemSimulationWarningRow] {
-        simulationWarningRows(warnings: payload.simulation.warnings)
+    public var simulationWarnings: [GemListRow] {
+        simulationWarningRows(warnings: request.simulation.warnings)
     }
 
     public var payloadModel: SimulationPayloadModel {
         SimulationPayloadModel(
-            chain: payload.chain,
             primaryFields: preview.primaryFields,
             secondaryFields: preview.secondaryFields,
-            addressNames: payloadAddressNames,
         )
     }
 
@@ -141,7 +118,7 @@ public final class SignMessageSceneViewModel {
     }
 
     public func signMessage() async throws {
-        let signature = try await service.sign(walletId: payload.wallet.id.id, message: payload.message)
+        let signature = try await service.sign(walletId: request.wallet.id, message: request.message)
         confirmTransferDelegate(.success(signature))
     }
 
@@ -150,6 +127,14 @@ public final class SignMessageSceneViewModel {
             do {
                 try await signMessage()
                 onComplete()
+            } catch let error as GemServiceError {
+                switch signerFailure(error: error.text()) {
+                case let .retry(text):
+                    isPresentingAlertMessage = AlertMessage(title: Localized.Errors.errorOccurred, message: text.text)
+                case .reject:
+                    confirmTransferDelegate(.failure(error))
+                    onComplete()
+                }
             } catch {
                 isPresentingAlertMessage = AlertMessage(error: error)
             }
@@ -166,10 +151,10 @@ public extension SignMessageSceneViewModel {
         }
     }
 
-    func fieldModels(for fields: [SimulationPayloadField]) -> [SimulationPayloadFieldViewModel] {
+    func fieldModels(for fields: [GemSimulationPayloadRow]) -> [SimulationPayloadFieldViewModel] {
         payloadModel.fieldModels(
             for: fields,
-            explorerLink: { service.addressUrl(chain: payload.chain.rawValue, address: $0).toPrimitives() },
+            explorerLink: { service.addressUrl(chain: request.chain, address: $0).toPrimitives() },
             onOpenURL: { [weak self] in self?.isPresentingUrl = $0 },
         )
     }
@@ -181,8 +166,9 @@ public extension SignMessageSceneViewModel {
 
 private extension SignMessageSceneViewModel {
     func loadPayloadAddressNamesIfNeeded() async {
-        guard payloadAddressNames.isEmpty, payloadModel.hasFields else { return }
+        guard !hasLoadedAddressNames, payloadModel.hasFields else { return }
 
-        payloadAddressNames = await service.addressNames(chain: payload.chain, preview: preview)
+        hasLoadedAddressNames = true
+        preview = await service.withAddressNames(chain: request.chain, preview: preview)
     }
 }

@@ -26,8 +26,7 @@ fn decode_webhook_order(jwt: &str, access_token: &str) -> Result<Option<TransakO
     validation.validate_exp = false;
     validation.required_spec_claims.clear();
 
-    let token = decode::<TransakWebhookClaims>(jwt, &DecodingKey::from_secret(access_token.as_bytes()), &validation)
-        .map_err(|_| FiatQuoteError::InvalidRequest("Invalid Transak webhook signature".to_string()))?;
+    let token = decode::<TransakWebhookClaims>(jwt, &DecodingKey::from_secret(access_token.as_bytes()), &validation).map_err(|_| FiatQuoteError::InvalidRequest("Invalid Transak webhook signature".to_string()))?;
 
     if token.claims.event_id.as_deref().is_some_and(|event_id| event_id.starts_with("KYC_")) {
         return Ok(None);

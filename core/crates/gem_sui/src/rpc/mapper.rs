@@ -4,10 +4,7 @@ use num_bigint::BigUint;
 
 use super::proto::{self, Command, OwnerKind, Timestamp};
 use crate::models::transaction::{STATUS_FAILURE, STATUS_SUCCESS, SuiStatus};
-use crate::models::{
-    BalanceChange, Checkpoint, Digest, Effect, Event, GasObject, GasUsed, InspectCommandResult, InspectEffects, InspectGasUsed, InspectResult, Owner, OwnerObject, Status,
-    SuiEffects,
-};
+use crate::models::{BalanceChange, Checkpoint, Digest, Effect, Event, GasObject, GasUsed, InspectCommandResult, InspectEffects, InspectGasUsed, InspectResult, Owner, OwnerObject, Status, SuiEffects};
 
 pub(super) fn timestamp_millis(timestamp: &Timestamp) -> i64 {
     timestamp.millis()
@@ -54,13 +51,7 @@ fn map_move_call_packages(transaction: Option<&proto::Transaction>) -> Vec<Strin
                 .iter()
                 .filter_map(|command| match command {
                     Command::MoveCall(call) => call.package.clone(),
-                    Command::TransferObjects(_)
-                    | Command::SplitCoins(_)
-                    | Command::MergeCoins(_)
-                    | Command::Publish(_)
-                    | Command::MakeMoveVector(_)
-                    | Command::Upgrade(_)
-                    | Command::Unknown => None,
+                    Command::TransferObjects(_) | Command::SplitCoins(_) | Command::MergeCoins(_) | Command::Publish(_) | Command::MakeMoveVector(_) | Command::Upgrade(_) | Command::Unknown => None,
                 })
                 .collect()
         })
@@ -92,12 +83,7 @@ pub(super) fn map_sui_effects(effects: Option<&proto::TransactionEffects>) -> Su
 }
 
 fn map_status(effects: Option<&proto::TransactionEffects>) -> String {
-    if effects.is_some_and(proto::TransactionEffects::execution_success) {
-        STATUS_SUCCESS
-    } else {
-        STATUS_FAILURE
-    }
-    .to_string()
+    if effects.is_some_and(proto::TransactionEffects::execution_success) { STATUS_SUCCESS } else { STATUS_FAILURE }.to_string()
 }
 
 fn map_gas_used(gas: Option<&proto::GasCostSummary>) -> GasUsed {
@@ -131,9 +117,7 @@ fn map_events(events: proto::TransactionEvents) -> Vec<Event> {
 
 fn map_owner(owner: &proto::Owner) -> Owner {
     match owner.kind() {
-        OwnerKind::Address => Owner::OwnerObject(OwnerObject {
-            address_owner: owner.address.clone(),
-        }),
+        OwnerKind::Address => Owner::OwnerObject(OwnerObject { address_owner: owner.address.clone() }),
         _ => Owner::String(owner.address.clone().unwrap_or_default()),
     }
 }

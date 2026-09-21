@@ -6,21 +6,11 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticat
 import com.wallet.core.primitives.Wallet
 
 interface ApproveWalletConnectAuthentication {
-    fun approveAuthentication(
-        request: WalletConnectAuthenticationRequest,
-        auths: List<WalletConnectAuthObject>,
-        wallet: Wallet,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit,
-    )
+    fun approveAuthentication(request: WalletConnectAuthenticationRequest, auths: List<WalletConnectAuthObject>, wallet: Wallet, onSuccess: () -> Unit, onError: (String) -> Unit)
 
     fun rejectAuthentication(request: WalletConnectAuthenticationRequest, onSuccess: () -> Unit = {}, onError: (String) -> Unit = {})
 
-    fun authPayloadParams(
-        payloadParams: WalletConnectAuthPayloadParams,
-        supportedChains: List<String>,
-        supportedMethods: List<String>,
-    ): WalletConnectAuthPayloadParams
+    fun authPayloadParams(payloadParams: WalletConnectAuthPayloadParams, supportedChains: List<String>, supportedMethods: List<String>): WalletConnectAuthPayloadParams
 
     fun authMessage(payloadParams: WalletConnectAuthPayloadParams, issuer: String): String
 

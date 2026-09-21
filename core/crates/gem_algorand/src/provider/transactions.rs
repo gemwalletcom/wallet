@@ -65,10 +65,7 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_algorand_get_transaction_by_hash() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_algorand_test_client();
-        let transaction = client
-            .get_transaction_by_hash(TransactionIdRequest::new(primitives::Chain::Algorand, TEST_TRANSACTION_ID.to_string(), None))
-            .await?
-            .unwrap();
+        let transaction = client.get_transaction_by_hash(TransactionIdRequest::new(primitives::Chain::Algorand, TEST_TRANSACTION_ID.to_string(), None)).await?.unwrap();
 
         assert_eq!(transaction.hash(), TEST_TRANSACTION_ID);
         Ok(())

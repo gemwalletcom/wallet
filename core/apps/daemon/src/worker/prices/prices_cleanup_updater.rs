@@ -16,12 +16,7 @@ pub struct PricesCleanupUpdater {
 
 impl PricesCleanupUpdater {
     pub fn new(database: Database, cacher: CacherClient, config: Arc<ConfigCacher>, provider: PriceProvider) -> Self {
-        Self {
-            database,
-            cacher,
-            config,
-            provider,
-        }
+        Self { database, cacher, config, provider }
     }
 
     pub async fn update(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {

@@ -85,10 +85,7 @@ mod tests {
         );
         assert_eq!(WalletConnectLink::from_url("wc:abc@2?requestId"), Some(WalletConnectLink::Request));
         assert_eq!(WalletConnectLink::from_url("wc:abc@2?requestId=123"), Some(WalletConnectLink::Request));
-        assert_eq!(
-            WalletConnectLink::from_url("gem://wc?uri=wc:topic@2"),
-            Some(WalletConnectLink::Connect { uri: "wc:topic@2".to_string() })
-        );
+        assert_eq!(WalletConnectLink::from_url("gem://wc?uri=wc:topic@2"), Some(WalletConnectLink::Connect { uri: "wc:topic@2".to_string() }));
         assert_eq!(
             WalletConnectLink::from_url("gem://wc?uri=wc%3Atopic%402%3Frelay-protocol%3Dirn%26symKey%3Dabc"),
             Some(WalletConnectLink::Connect {
@@ -96,10 +93,7 @@ mod tests {
             })
         );
         assert_eq!(WalletConnectLink::from_url("gem://wc?requestId=1"), Some(WalletConnectLink::Request));
-        assert_eq!(
-            WalletConnectLink::from_url("gem://wc?sessionTopic=abc123"),
-            Some(WalletConnectLink::Session { topic: "abc123".to_string() })
-        );
+        assert_eq!(WalletConnectLink::from_url("gem://wc?sessionTopic=abc123"), Some(WalletConnectLink::Session { topic: "abc123".to_string() }));
         assert_eq!(WalletConnectLink::from_url("gem://wc?sessionTopic="), None);
         assert_eq!(WalletConnectLink::from_url("gem://asset/solana"), None);
         for url in [

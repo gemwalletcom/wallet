@@ -2,9 +2,9 @@ package com.gemwallet.android.data.services.gemstone.stores
 
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
 import com.gemwallet.android.data.service.store.database.entities.DbPrice
+import uniffi.gemstone.AssetPrice
 import uniffi.gemstone.BalanceMetadata
 import uniffi.gemstone.GemAssetBalance
-import uniffi.gemstone.AssetPrice
 import java.math.BigInteger
 
 fun DbBalance.toGemAssetBalance(): GemAssetBalance = GemAssetBalance(

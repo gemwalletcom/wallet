@@ -11,16 +11,24 @@ lint:
 test:
     cargo test --lib
 
-export ANDROID_HOME := env("ANDROID_HOME", "~/Library/Android/sdk")
+export ANDROID_HOME := env("ANDROID_HOME", env("HOME") / "Library/Android/sdk")
 export CARGO_NDK_VERSION := env("CARGO_NDK_VERSION", "4.1.2")
 
 install-ndk:
     #!/usr/bin/env bash
-    SDK_MANAGER=${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager
+    set -eu
+    SDK_MANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
     NDK="ndk;28.1.13356709"
 
+    if [ ! -x "$SDK_MANAGER" ]; then
+        command -v sdkmanager >/dev/null || brew install --cask android-commandlinetools
+        echo "Installing the SDK command-line tools into $ANDROID_HOME"
+        yes | sdkmanager --sdk_root="$ANDROID_HOME" --licenses >/dev/null
+        sdkmanager --sdk_root="$ANDROID_HOME" --install "cmdline-tools;latest"
+    fi
+
     echo "Installing ndk: $NDK"
-    $SDK_MANAGER --install $NDK
+    "$SDK_MANAGER" --install "$NDK"
 
 install-ios-targets:
     #!/usr/bin/env bash
@@ -134,7 +142,7 @@ bindgen-swift:
         echo "Failed to locate ${DY_LIB_NAME} at ${LIB_OUTPUT_PATH} (mode ${BUILD_MODE})"; \
         exit 1; \
     fi; \
-    cargo run {{CARGO_BUILD_FLAG}} -p uniffi-bindgen -- generate --language swift --crate ${LIB_NAME} -o ${GEN_SWIFT_FOLDER} "${LIB_OUTPUT_PATH}"
+    cargo run {{CARGO_BUILD_FLAG}} -p uniffi-bindgen -- generate --language swift --crate ${LIB_NAME} --no-format -o ${GEN_SWIFT_FOLDER} "${LIB_OUTPUT_PATH}"
 
 prepare-ios-package: bindgen-swift
     #!/usr/bin/env bash
@@ -146,7 +154,7 @@ bindgen-kotlin:
     #!/usr/bin/env bash
     set -euo pipefail
     echo "Bindgen kotlin BUILD_MODE: ${BUILD_MODE}"
-    rm -rf ${GEN_KOTLIN_FOLDER} ${ANDROID_MODULE_FOLDER}/uniffi
+    rm -rf ${GEN_KOTLIN_FOLDER}
     mkdir -p ${GEN_KOTLIN_FOLDER} ${ANDROID_MODULE_FOLDER}
     if [ "${BUILD_MODE}" == "release" ]; then \
         export RUSTFLAGS="${RUSTFLAGS:-} -C strip=none"; \
@@ -157,7 +165,10 @@ bindgen-kotlin:
         exit 1; \
     fi; \
     cargo run {{CARGO_BUILD_FLAG}} -p uniffi-bindgen -- generate --language kotlin --crate ${LIB_NAME} --no-format -o ${GEN_KOTLIN_FOLDER} "${LIB_OUTPUT_PATH}"
-    cp -Rf ${GEN_KOTLIN_FOLDER}/uniffi ${ANDROID_MODULE_FOLDER}
+    if ! diff -qr "${GEN_KOTLIN_FOLDER}/uniffi" "${ANDROID_MODULE_FOLDER}/uniffi" >/dev/null 2>&1; then
+        rm -rf "${ANDROID_MODULE_FOLDER}/uniffi"
+        cp -R "${GEN_KOTLIN_FOLDER}/uniffi" "${ANDROID_MODULE_FOLDER}/uniffi"
+    fi
 
 build-android: bindgen-kotlin
     #!/usr/bin/env bash

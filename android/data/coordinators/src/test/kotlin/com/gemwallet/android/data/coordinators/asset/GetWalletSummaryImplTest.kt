@@ -1,9 +1,9 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import uniffi.gemstone.GemValueTone
 import com.wallet.core.primitives.Currency
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.TotalFiatValue as GemTotalFiatValue
 
 class GetWalletSummaryImplTest {

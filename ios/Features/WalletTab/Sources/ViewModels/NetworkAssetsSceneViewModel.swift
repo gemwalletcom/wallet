@@ -1,12 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemWalletHomeServiceProtocol
-import GemstoneServices
 import Components
 import Foundation
-import Localization
 import struct Gemstone.GemNetworkAssetCounts
 import struct Gemstone.GemNetworkAssetSections
+import protocol Gemstone.GemWalletHomeServiceProtocol
+import func Gemstone.showsOnNetworkAssets
+import GemstoneServices
+import Localization
 import Primitives
 import PrimitivesComponents
 import Store
@@ -61,7 +62,7 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
     }
 
     var active: [AssetData] {
-        activeQuery.value.filter { $0.asset.type != .native }
+        activeQuery.value.filter { showsOnNetworkAssets(assetId: $0.asset.id.identifier) }
     }
 
     var pinned: [AssetData] {
@@ -77,7 +78,7 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
     }
 
     var hidden: [AssetData] {
-        hiddenQuery.value.filter { $0.asset.type != .native }
+        hiddenQuery.value.filter { showsOnNetworkAssets(assetId: $0.asset.id.identifier) }
     }
 
     var showPinned: Bool {
@@ -137,8 +138,8 @@ extension NetworkAssetsSceneViewModel {
     func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
         try await service.setAssetsEnabled(assetIds: assetIds, enabled: enabled)
     }
-    var assetItems: ListAssetItemsViewModel {
-        ListAssetItemsViewModel(currency: currency, row: service.assetRow())
-    }
 
+    var assetItems: ListAssetItemsViewModel {
+        ListAssetItemsViewModel(currency: currency, rowStyle: service.assetRowStyle())
+    }
 }

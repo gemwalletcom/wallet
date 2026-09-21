@@ -29,9 +29,7 @@ impl EvmTransferProvider {
     }
 
     fn get_wallet(&self, chain_type: ChainType) -> Result<&WalletConfig, Box<dyn Error + Send + Sync>> {
-        self.wallets
-            .get(&chain_type)
-            .ok_or_else(|| format!("No wallet configured for chain type {:?}", chain_type).into())
+        self.wallets.get(&chain_type).ok_or_else(|| format!("No wallet configured for chain type {:?}", chain_type).into())
     }
 
     fn get_private_key(&self, wallet: &WalletConfig) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
@@ -89,16 +87,7 @@ impl EvmTransferProvider {
         let max_priority_fee_per_gas = priority_fee;
         let max_fee_per_gas = base_fee + priority_fee;
 
-        let tx = create_transfer_tx(
-            &asset.id,
-            &request.recipient_address,
-            &value.to_string(),
-            nonce,
-            chain_id,
-            max_fee_per_gas,
-            max_priority_fee_per_gas,
-            gas_limit,
-        )?;
+        let tx = create_transfer_tx(&asset.id, &request.recipient_address, &value.to_string(), nonce, chain_id, max_fee_per_gas, max_priority_fee_per_gas, gas_limit)?;
 
         let signed_tx = sign_eip1559_tx(&tx, &private_key)?;
         let signed_tx_hex = format!("0x{}", hex::encode(&signed_tx));

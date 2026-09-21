@@ -68,9 +68,7 @@ impl ReferralsStore for DatabaseClient {
         use crate::schema::rewards_referrals::dsl;
         match update {
             ReferralUpdate::VerifiedAt(timestamp) => {
-                diesel::update(dsl::rewards_referrals.find(referral_id))
-                    .set(dsl::verified_at.eq(timestamp))
-                    .execute(&mut self.connection)?;
+                diesel::update(dsl::rewards_referrals.find(referral_id)).set(dsl::verified_at.eq(timestamp)).execute(&mut self.connection)?;
             }
         }
         Ok(())
@@ -95,15 +93,7 @@ impl ReferralsStore for DatabaseClient {
 pub(crate) trait RiskSignalsStore {
     fn add_risk_signal(&mut self, signal: NewRiskSignalRow) -> Result<i32, DieselError>;
     fn has_fingerprint_for_referrer(&mut self, fingerprint: &str, referrer_username: &str, since: NaiveDateTime) -> Result<bool, DieselError>;
-    fn get_matching_risk_signals(
-        &mut self,
-        fingerprint: &str,
-        ip_address: &str,
-        ip_isp: &str,
-        device_model: &str,
-        device_id: i32,
-        since: NaiveDateTime,
-    ) -> Result<Vec<RiskSignalRow>, DieselError>;
+    fn get_matching_risk_signals(&mut self, fingerprint: &str, ip_address: &str, ip_isp: &str, device_model: &str, device_id: i32, since: NaiveDateTime) -> Result<Vec<RiskSignalRow>, DieselError>;
     fn sum_risk_scores_for_referrer(&mut self, referrer_username: &str, since: NaiveDateTime) -> Result<i64, DieselError>;
     fn count_attempts_for_referrer(&mut self, referrer_username: &str, since: NaiveDateTime) -> Result<i64, DieselError>;
     fn get_referrer_usernames_with_referrals(&mut self, since: NaiveDateTime, min_referrals: i64) -> Result<Vec<String>, DieselError>;
@@ -111,13 +101,7 @@ pub(crate) trait RiskSignalsStore {
     fn count_unique_referrers_for_device(&mut self, device_id: i32, since: NaiveDateTime) -> Result<i64, DieselError>;
     fn count_unique_referrers_for_fingerprint(&mut self, fingerprint: &str, since: NaiveDateTime) -> Result<i64, DieselError>;
     fn count_unique_devices_for_ip(&mut self, ip_address: &str, since: NaiveDateTime) -> Result<i64, DieselError>;
-    fn count_unique_referrers_for_device_model_pattern(
-        &mut self,
-        device_model: &str,
-        device_platform: PrimitivePlatform,
-        device_locale: &str,
-        since: NaiveDateTime,
-    ) -> Result<i64, DieselError>;
+    fn count_unique_referrers_for_device_model_pattern(&mut self, device_model: &str, device_platform: PrimitivePlatform, device_locale: &str, since: NaiveDateTime) -> Result<i64, DieselError>;
     fn get_abuse_patterns_for_referrer(&mut self, referrer_username: &str, since: NaiveDateTime, velocity_window_secs: i64) -> Result<AbusePatterns, DieselError>;
     fn count_disabled_users_by_ip(&mut self, ip_address: &str, since: NaiveDateTime) -> Result<i64, DieselError>;
     fn count_disabled_users_by_device(&mut self, device_id: i32, since: NaiveDateTime) -> Result<i64, DieselError>;
@@ -128,10 +112,7 @@ pub(crate) trait RiskSignalsStore {
 impl RiskSignalsStore for DatabaseClient {
     fn add_risk_signal(&mut self, signal: NewRiskSignalRow) -> Result<i32, DieselError> {
         use crate::schema::rewards_risk_signals::dsl;
-        diesel::insert_into(dsl::rewards_risk_signals)
-            .values(&signal)
-            .returning(dsl::id)
-            .get_result(&mut self.connection)
+        diesel::insert_into(dsl::rewards_risk_signals).values(&signal).returning(dsl::id).get_result(&mut self.connection)
     }
 
     fn has_fingerprint_for_referrer(&mut self, fingerprint: &str, referrer_username: &str, since: NaiveDateTime) -> Result<bool, DieselError> {
@@ -147,15 +128,7 @@ impl RiskSignalsStore for DatabaseClient {
         .get_result(&mut self.connection)
     }
 
-    fn get_matching_risk_signals(
-        &mut self,
-        fingerprint: &str,
-        ip_address: &str,
-        ip_isp: &str,
-        device_model: &str,
-        device_id: i32,
-        since: NaiveDateTime,
-    ) -> Result<Vec<RiskSignalRow>, DieselError> {
+    fn get_matching_risk_signals(&mut self, fingerprint: &str, ip_address: &str, ip_isp: &str, device_model: &str, device_id: i32, since: NaiveDateTime) -> Result<Vec<RiskSignalRow>, DieselError> {
         use crate::schema::rewards_risk_signals::dsl;
 
         dsl::rewards_risk_signals
@@ -259,13 +232,7 @@ impl RiskSignalsStore for DatabaseClient {
             .first(&mut self.connection)
     }
 
-    fn count_unique_referrers_for_device_model_pattern(
-        &mut self,
-        device_model: &str,
-        device_platform: PrimitivePlatform,
-        device_locale: &str,
-        since: NaiveDateTime,
-    ) -> Result<i64, DieselError> {
+    fn count_unique_referrers_for_device_model_pattern(&mut self, device_model: &str, device_platform: PrimitivePlatform, device_locale: &str, since: NaiveDateTime) -> Result<i64, DieselError> {
         use crate::schema::rewards_risk_signals::dsl;
         use diesel::dsl::count;
         use diesel::expression_methods::AggregateExpressionMethods;

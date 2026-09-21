@@ -62,7 +62,7 @@ object Migration_47_48 : Migration(47, 48) {
             |        LEFT JOIN balances ON asset_wallet.account_address = balances.account_address AND asset_wallet.asset_id = balances.asset_id AND wallets.id = balances.wallet_id
             |        LEFT JOIN prices ON asset.id = prices.asset_id AND prices.currency = (SELECT currency FROM session WHERE id = 1)
             |        LEFT JOIN asset_config ON asset_wallet.asset_id = asset_config.asset_id AND wallets.id = asset_config.wallet_id
-            """.trimMargin()
+            """.trimMargin(),
         )
     }
 }

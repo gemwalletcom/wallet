@@ -44,32 +44,26 @@ internal fun routeArguments(vararg arguments: Pair<RouteArgument, Any?>): Map<St
     }
 }
 
-internal fun assetIdArgument(assetId: AssetId): Pair<RouteArgument, String> =
-    RouteArgument.AssetId to assetId.toIdentifier()
+internal fun assetIdArgument(assetId: AssetId): Pair<RouteArgument, String> = RouteArgument.AssetId to assetId.toIdentifier()
 
 internal fun assetIdsArgument(assetIds: List<AssetId>): Pair<RouteArgument, String?> =
     RouteArgument.AssetIds to assetIds.map { it.toIdentifier() }.packRoutePayload()
 
-internal fun fiatAmountArgument(amount: Int?): Pair<RouteArgument, Int?> =
-    RouteArgument.FiatAmount to amount
+internal fun fiatAmountArgument(amount: Int?): Pair<RouteArgument, Int?> = RouteArgument.FiatAmount to amount
 
-internal fun contactIdArgument(contactId: String): Pair<RouteArgument, String> =
-    RouteArgument.ContactId to contactId
+internal fun contactIdArgument(contactId: String): Pair<RouteArgument, String> = RouteArgument.ContactId to contactId
 
-internal fun fromAssetIdArgument(assetId: AssetId?): Pair<RouteArgument, String?> =
-    RouteArgument.FromAssetId to assetId?.toIdentifier()
+internal fun fromAssetIdArgument(assetId: AssetId?): Pair<RouteArgument, String?> = RouteArgument.FromAssetId to assetId?.toIdentifier()
 
-internal fun toAssetIdArgument(assetId: AssetId?): Pair<RouteArgument, String?> =
-    RouteArgument.ToAssetId to assetId?.toIdentifier()
+internal fun toAssetIdArgument(assetId: AssetId?): Pair<RouteArgument, String?> = RouteArgument.ToAssetId to assetId?.toIdentifier()
 
-internal fun paramsArgument(params: String): Pair<RouteArgument, String> =
-    RouteArgument.Params to params
+internal fun paramsArgument(params: String): Pair<RouteArgument, String> = RouteArgument.Params to params
 
 @Composable
 internal fun <T : Any> rememberRouteArgumentsViewModelStoreNavEntryDecorator(
     viewModelStoreOwner: ViewModelStoreOwner = checkNotNull(LocalViewModelStoreOwner.current) {
         "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
-    }
+    },
 ): NavEntryDecorator<T> {
     val entryViewModelStores = rememberEntryViewModelStores(viewModelStoreOwner)
     return remember(viewModelStoreOwner, entryViewModelStores) {
@@ -80,26 +74,24 @@ internal fun <T : Any> rememberRouteArgumentsViewModelStoreNavEntryDecorator(
     }
 }
 
-private class RouteArgumentsViewModelStoreNavEntryDecorator<T : Any>(
-    private val parent: ViewModelStoreOwner,
-    private val entryViewModelStores: EntryViewModelStores,
-) : NavEntryDecorator<T>(
-    onPop = { contentKey -> entryViewModelStores.clear(contentKey) },
-    decorate = { entry ->
-        val routeArguments = entry.metadata[RouteArgumentsKey].orEmpty()
-        val defaultArgs = remember(routeArguments) { savedState(routeArguments) }
-        val owner = rememberEntryViewModelStoreOwner(
-            contentKey = entry.contentKey,
-            parent = parent,
-            entryViewModelStores = entryViewModelStores,
-            defaultArgs = defaultArgs,
-        )
+private class RouteArgumentsViewModelStoreNavEntryDecorator<T : Any>(private val parent: ViewModelStoreOwner, private val entryViewModelStores: EntryViewModelStores) :
+    NavEntryDecorator<T>(
+        onPop = { contentKey -> entryViewModelStores.clear(contentKey) },
+        decorate = { entry ->
+            val routeArguments = entry.metadata[RouteArgumentsKey].orEmpty()
+            val defaultArgs = remember(routeArguments) { savedState(routeArguments) }
+            val owner = rememberEntryViewModelStoreOwner(
+                contentKey = entry.contentKey,
+                parent = parent,
+                entryViewModelStores = entryViewModelStores,
+                defaultArgs = defaultArgs,
+            )
 
-        CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
-            entry.Content()
-        }
-    },
-)
+            CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
+                entry.Content()
+            }
+        },
+    )
 
 @Composable
 private fun rememberEntryViewModelStoreOwner(
@@ -125,21 +117,17 @@ private fun rememberEntryViewModelStoreOwner(
 }
 
 @Composable
-private fun rememberEntryViewModelStores(parent: ViewModelStoreOwner): EntryViewModelStores {
-    return remember(parent) {
-        ViewModelProvider.create(
-            store = parent.viewModelStore,
-            factory = EntryViewModelStoresFactory,
-        )[EntryViewModelStores::class]
-    }
+private fun rememberEntryViewModelStores(parent: ViewModelStoreOwner): EntryViewModelStores = remember(parent) {
+    ViewModelProvider.create(
+        store = parent.viewModelStore,
+        factory = EntryViewModelStoresFactory,
+    )[EntryViewModelStores::class]
 }
 
 private class EntryViewModelStores : ViewModel() {
     private val stores = mutableMapOf<Any, ViewModelStore>()
 
-    fun store(contentKey: Any): ViewModelStore {
-        return stores.getOrPut(contentKey) { ViewModelStore() }
-    }
+    fun store(contentKey: Any): ViewModelStore = stores.getOrPut(contentKey) { ViewModelStore() }
 
     fun clear(contentKey: Any) {
         stores.remove(contentKey)?.clear()
@@ -161,10 +149,7 @@ private object EntryViewModelStoresFactory : ViewModelProvider.Factory {
     }
 }
 
-internal fun NavEntry<NavKey>.withOccurrenceContentKey(
-    key: NavKey,
-    occurrence: Int,
-): NavEntry<NavKey> {
+internal fun NavEntry<NavKey>.withOccurrenceContentKey(key: NavKey, occurrence: Int): NavEntry<NavKey> {
     val uniqueContentKey = if (occurrence == 0) contentKey else "$contentKey#$occurrence"
     val entry = this
     return NavEntry(

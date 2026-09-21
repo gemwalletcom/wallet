@@ -210,7 +210,6 @@
   <string name="errors_connections_no_supported_wallets">Ingen understøttede tegnebøger er tilgængelige.</string>
   <string name="errors_connections_unsupported_chain">Den angivne kæde understøttes ikke.</string>
   <string name="errors_swap_amount_too_small">Beløbet er for lille</string>
-  <string name="errors_required">%1$s er påkrævet</string>
   <string name="errors_scan_transaction_malicious_description">Denne transaktion kan ikke gennemføres — destinationsadressen på tegnebogen er knyttet til mistænkelig eller skadelig aktivitet.</string>
   <string name="errors_scan_transaction_memo_required">%1$s destinations-wallet-adresse kræver et destinationstag / en destinations-memo</string>
   <string name="errors_scan_transaction_malicious_title">Mistænkelig aktivitet</string>
@@ -273,7 +272,7 @@
   <string name="asset_decimals">Decimaler</string>
   <string name="asset_token_id">Token-ID</string>
   <string name="asset_contract">Kontrakt</string>
-  <string name="asset_state_empty_title">Dine transaktioner vil blive vist her️</string>
+  <string name="asset_state_empty_title">Dine transaktioner vil blive vist her</string>
   <string name="asset_state_empty_description">Modtag, byt eller køb %1$s</string>
   <string name="asset_verification_unverified">Ubekræftet</string>
   <string name="asset_verification_suspicious">Mistænksom</string>
@@ -422,7 +421,7 @@
   <string name="price_alerts_set_alert_set_target_price">Sæt målpris</string>
   <string name="price_alerts_set_alert_current_price">Nuværende pris</string>
   <string name="price_alerts_added_for">Indstil prisalarm %1$s</string>
-  <string name="price_alerts_state_empty_title">Dine alarmer vises her️</string>
+  <string name="price_alerts_state_empty_title">Dine alarmer vises her</string>
   <string name="price_alerts_state_empty_description">Aktivér dem ved at tilføje mønter til sporet</string>
   <string name="price_alerts_auto_footer">Advarsler udløses ved betydelige prisbevægelser.</string>
   <string name="price_alerts_set_alert_title">Indstil prisalarm</string>
@@ -437,7 +436,7 @@
   <string name="lock_privacy_lock">Privatlivslås</string>
   <string name="lock_footer">Beskyt adgangen til denne app på din enhed</string>
   <string name="verify_phrase_title">Bekræft</string>
-  <string name="warnings_multi_signature_blocked">Overfør ikke penge til denne %1$s Multi-Signatur-tegnebog, medmindre du er sikker på, at du kontrollerer de private nøgler. Undladelse af at gøre det kan udsætte dig for svindel, og du kan permanent miste dine aktiver.</string>
+  <string name="warnings_externally_controlled_account">Denne %1$s-konto kan være kontrolleret af en anden. Overfør ikke penge til den, medmindre du er sikker på, at du kontrollerer den, ellers kan du permanent miste dine aktiver.</string>
   <string name="sell_title">Sælg %1$s</string>
   <string name="info_network_fee_title">Netværksgebyr</string>
   <string name="info_watch_wallet_title">Overvågningstegnebog</string>
@@ -489,7 +488,7 @@
   <string name="nft_collection">Samling</string>
   <string name="nft_save_to_photos">Gem til Fotos</string>
   <string name="nft_set_as_avatar">Indstil som Avatar</string>
-  <string name="nft_state_empty_title">Dine NFT\'er vil blive vist her️</string>
+  <string name="nft_state_empty_title">Dine NFT\'er vil blive vist her</string>
   <string name="nft_state_empty_description">Modtag din første NFT</string>
   <string name="nft_report_reason_spam">Spam</string>
   <string name="nft_report_reason_malicious">Ondsindet</string>

@@ -17,12 +17,20 @@ struct ReportSelectReasonScene: View {
                 ForEach(model.reasons, id: \.self) { reason in
                     NavigationCustomLink(
                         with: ListItemView(model: model.listItem(for: reason)),
-                        action: { model.submitReport(reason: reason.rawValue) },
+                        action: { onSelectReason(reason) },
                     )
                 }
             }
         }
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// MARK: - Actions
+
+extension ReportSelectReasonScene {
+    private func onSelectReason(_ reason: ReportReason) {
+        Task { await model.submitReport(reason: reason) }
     }
 }

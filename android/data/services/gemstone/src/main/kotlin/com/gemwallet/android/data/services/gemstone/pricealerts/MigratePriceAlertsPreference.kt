@@ -11,10 +11,7 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPreferencesServiceInterface
 
-class MigratePriceAlertsPreference(
-    private val context: Context,
-    private val preferencesService: GemPreferencesServiceInterface,
-) {
+class MigratePriceAlertsPreference(private val context: Context, private val preferencesService: GemPreferencesServiceInterface) {
     private val Context.dataStore by preferencesDataStore(name = "price_alerts")
     private val enabledKey = booleanPreferencesKey("price_alerts_enabled")
 

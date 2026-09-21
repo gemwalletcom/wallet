@@ -69,25 +69,13 @@ mod tests {
         for (response, expected) in [
             (include_str!("../../testdata/order_broadcast_filled.json"), Ok(Some(134896397196))),
             (include_str!("../../testdata/order_broadcast_resting.json"), Ok(Some(789012))),
-            (
-                include_str!("../../testdata/order_broadcast_error.json"),
-                Err("Reduce only order would increase position. asset=159"),
-            ),
+            (include_str!("../../testdata/order_broadcast_error.json"), Err("Reduce only order would increase position. asset=159")),
             (include_str!("../../testdata/order_broadcast_simple_error.json"), Err("Request failed")),
-            (
-                include_str!("../../testdata/transaction_broadcast_error_extra_agent.json"),
-                Err("Extra agent already used."),
-            ),
+            (include_str!("../../testdata/transaction_broadcast_error_extra_agent.json"), Err("Extra agent already used.")),
             (r#"{"status":"ok","response":{"type":"default"}}"#, Ok(None)),
             (r#"{"status":"ok","response":{"type":"cancel","data":{"statuses":["success"]}}}"#, Ok(None)),
-            (
-                r#"{"status":"ok","response":{"type":"order","data":{"statuses":["waitingForTrigger","waitingForFill"]}}}"#,
-                Ok(None),
-            ),
-            (
-                r#"{"status":"ok","response":{"type":"order","data":{"statuses":[]}}}"#,
-                Err("Missing HyperCore action status"),
-            ),
+            (r#"{"status":"ok","response":{"type":"order","data":{"statuses":["waitingForTrigger","waitingForFill"]}}}"#, Ok(None)),
+            (r#"{"status":"ok","response":{"type":"order","data":{"statuses":[]}}}"#, Err("Missing HyperCore action status")),
         ] {
             let result = serde_json::from_str::<TransactionBroadcastResponse>(response).unwrap().into_result();
             assert_eq!(result.map_err(|error| error.to_string()), expected.map_err(str::to_string));

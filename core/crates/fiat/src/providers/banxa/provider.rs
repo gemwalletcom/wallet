@@ -62,14 +62,7 @@ impl FiatProvider for BanxaClient {
             FiatQuoteType::Buy => {
                 let network = FiatMapping::get_network(data.asset_symbol.network)?;
                 let order = self
-                    .create_buy_order(
-                        data.quote.id,
-                        data.quote.fiat_amount,
-                        data.quote.fiat_currency,
-                        data.asset_symbol.symbol,
-                        network,
-                        data.wallet_address,
-                    )
+                    .create_buy_order(data.quote.id, data.quote.fiat_amount, data.quote.fiat_currency, data.asset_symbol.symbol, network, data.wallet_address)
                     .await?;
 
                 Ok(FiatQuoteUrl {

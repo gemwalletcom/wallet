@@ -19,7 +19,7 @@ public final class GemstoneSecurePreferencesStore: GemSecureStore, @unchecked Se
         keychain: Keychain = KeychainDefault(),
     ) {
         self.namespace = namespace
-        self.keychain = keychain
+        self.keychain = keychain.accessibility(.whenUnlockedThisDeviceOnly, authenticationPolicy: [])
     }
 
     public func get(key: String) throws -> String? {
@@ -27,13 +27,6 @@ public final class GemstoneSecurePreferencesStore: GemSecureStore, @unchecked Se
             return value
         }
         return try deviceKey(key)
-    }
-
-    private func storage(for key: String) -> Keychain {
-        guard Self.deviceKeys[key] != nil else {
-            return keychain
-        }
-        return keychain.accessibility(.whenUnlockedThisDeviceOnly, authenticationPolicy: [])
     }
 
     private func deviceKey(_ key: String) throws -> String? {
@@ -46,7 +39,7 @@ public final class GemstoneSecurePreferencesStore: GemSecureStore, @unchecked Se
     }
 
     public func set(key: String, value: String) throws {
-        try storage(for: key).set(value, key: namespace + key)
+        try keychain.set(value, key: namespace + key)
     }
 
     public func remove(key: String) throws {

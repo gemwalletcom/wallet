@@ -6,16 +6,7 @@ use primitives::AssetId;
 use std::error::Error;
 use std::str::FromStr;
 
-pub fn create_transfer_tx(
-    asset_id: &AssetId,
-    recipient: &str,
-    amount: &str,
-    nonce: u64,
-    chain_id: u64,
-    max_fee_per_gas: u128,
-    max_priority_fee_per_gas: u128,
-    gas_limit: u64,
-) -> Result<TxEip1559, Box<dyn Error + Send + Sync>> {
+pub fn create_transfer_tx(asset_id: &AssetId, recipient: &str, amount: &str, nonce: u64, chain_id: u64, max_fee_per_gas: u128, max_priority_fee_per_gas: u128, gas_limit: u64) -> Result<TxEip1559, Box<dyn Error + Send + Sync>> {
     let amount_u256 = U256::from_str(amount)?;
     let recipient_address = Address::from_str(recipient)?;
 
@@ -54,17 +45,7 @@ mod tests {
     #[test]
     fn test_create_native_transfer() {
         let asset_id = AssetId::from_chain(Chain::SmartChain);
-        let tx = create_transfer_tx(
-            &asset_id,
-            "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4",
-            "1000000000000000000",
-            0,
-            56,
-            5_000_000_000,
-            1_000_000_000,
-            21000,
-        )
-        .unwrap();
+        let tx = create_transfer_tx(&asset_id, "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4", "1000000000000000000", 0, 56, 5_000_000_000, 1_000_000_000, 21000).unwrap();
 
         assert_eq!(tx.value, U256::from(1_000_000_000_000_000_000u128));
         assert!(tx.input.is_empty());
@@ -73,17 +54,7 @@ mod tests {
     #[test]
     fn test_create_token_transfer() {
         let asset_id = AssetId::from_token(Chain::SmartChain, SMARTCHAIN_USDT_TOKEN_ID);
-        let tx = create_transfer_tx(
-            &asset_id,
-            "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4",
-            "1000000",
-            0,
-            56,
-            5_000_000_000,
-            1_000_000_000,
-            65000,
-        )
-        .unwrap();
+        let tx = create_transfer_tx(&asset_id, "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4", "1000000", 0, 56, 5_000_000_000, 1_000_000_000, 65000).unwrap();
 
         assert_eq!(tx.value, U256::ZERO);
         assert!(!tx.input.is_empty());

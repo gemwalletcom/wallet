@@ -81,10 +81,10 @@ import com.gemwallet.android.ui.theme.space10
 import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.tinyIconSize
 import com.wallet.core.primitives.Asset
-import kotlin.math.floor
 import uniffi.gemstone.GemHeaderActions
 import uniffi.gemstone.GemHeaderButton
 import uniffi.gemstone.GemHeaderButtonKind
+import kotlin.math.floor
 
 private val headerChangeTextHeight = 24.dp
 
@@ -161,7 +161,7 @@ fun AmountListHead(
                                         .padding(horizontal = paddingSmall)
                                 } else {
                                     Modifier
-                                }
+                                },
                             )
                             .height(headerChangeTextHeight),
                         verticalAlignment = Alignment.CenterVertically,
@@ -204,11 +204,10 @@ fun AmountListHead(
 }
 
 @Composable
-fun HeaderIcon(
-    asset: Asset?,
-    iconSize: Dp = headerIconSize,
-) {
-    if (asset == null) { return }
+fun HeaderIcon(asset: Asset?, iconSize: Dp = headerIconSize) {
+    if (asset == null) {
+        return
+    }
     AssetIcon(
         asset = asset,
         size = iconSize,
@@ -225,6 +224,7 @@ fun AssetHeadActions(model: HeadActionsUIModel) {
             AssetWatchOnly()
             return
         }
+
         is HeadActionsUIModel.Buttons -> model.items
     }
     Row(
@@ -306,24 +306,14 @@ private fun AssetWatchOnly() {
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun AmountHeadAction(
-    title: String,
-    fontSize: TextUnit,
-    imageVector: ImageVector,
-    contentDescription: String,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    onNextFontSize: (TextUnit) -> Unit,
-    onClick: () -> Unit
-) {
+fun AmountHeadAction(title: String, fontSize: TextUnit, imageVector: ImageVector, contentDescription: String, modifier: Modifier = Modifier, enabled: Boolean = true, onNextFontSize: (TextUnit) -> Unit, onClick: () -> Unit) {
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(paddingDefault))
             .clickable(onClick = onClick, enabled = enabled)
-            .padding(paddingSmall)
-        ,
+            .padding(paddingSmall),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(paddingSmall / (fontSize.value * 0.5f))
+        verticalArrangement = Arrangement.spacedBy(paddingSmall / (fontSize.value * 0.5f)),
     ) {
         Box(
             modifier = Modifier
@@ -364,19 +354,9 @@ fun AmountHeadAction(
     }
 }
 
-private class ActionTextAutoSize(
-    private var minFontSize: TextUnit,
-    private val maxFontSize: TextUnit,
-    private val layoutSize: TextUnit,
-    private val stepSize: TextUnit,
-    private val onNewLayoutSize: (TextUnit) -> Unit,
-) : TextAutoSize {
+private class ActionTextAutoSize(private var minFontSize: TextUnit, private val maxFontSize: TextUnit, private val layoutSize: TextUnit, private val stepSize: TextUnit, private val onNewLayoutSize: (TextUnit) -> Unit) : TextAutoSize {
 
-
-    override fun TextAutoSizeLayoutScope.getFontSize(
-        constraints: Constraints,
-        text: AnnotatedString
-    ): TextUnit {
+    override fun TextAutoSizeLayoutScope.getFontSize(constraints: Constraints, text: AnnotatedString): TextUnit {
         val stepSize = stepSize.toPx()
         val smallest = minFontSize.toPx()
         val largest = maxFontSize.toPx()
@@ -412,33 +392,40 @@ private class ActionTextAutoSize(
         return current.toSp()
     }
 
-    private fun TextLayoutResult.didOverflow() =
-        when (layoutInput.overflow) {
-            TextOverflow.Clip,
-            TextOverflow.Visible -> didOverflowBounds()
-            TextOverflow.StartEllipsis,
-            TextOverflow.MiddleEllipsis,
-            TextOverflow.Ellipsis -> didOverflowByEllipsize()
-            else ->
-                throw IllegalArgumentException(
-                    "TextOverflow type ${layoutInput.overflow} is not supported."
-                )
-        }
+    private fun TextLayoutResult.didOverflow() = when (layoutInput.overflow) {
+        TextOverflow.Clip,
+        TextOverflow.Visible,
+        -> didOverflowBounds()
+
+        TextOverflow.StartEllipsis,
+        TextOverflow.MiddleEllipsis,
+        TextOverflow.Ellipsis,
+        -> didOverflowByEllipsize()
+
+        else ->
+            throw IllegalArgumentException(
+                "TextOverflow type ${layoutInput.overflow} is not supported.",
+            )
+    }
 
     private fun TextLayoutResult.didOverflowBounds() = didOverflowWidth || didOverflowHeight
 
-    private fun TextLayoutResult.didOverflowByEllipsize(): Boolean =
-        when (lineCount) {
-            0 -> false
-            1 -> isLineEllipsized(0)
-            else ->
-                when (layoutInput.overflow) {
-                    TextOverflow.StartEllipsis,
-                    TextOverflow.MiddleEllipsis -> didOverflowBounds()
-                    TextOverflow.Ellipsis -> isLineEllipsized(lineCount - 1)
-                    else -> false
-                }
-        }
+    private fun TextLayoutResult.didOverflowByEllipsize(): Boolean = when (lineCount) {
+        0 -> false
+
+        1 -> isLineEllipsized(0)
+
+        else ->
+            when (layoutInput.overflow) {
+                TextOverflow.StartEllipsis,
+                TextOverflow.MiddleEllipsis,
+                -> didOverflowBounds()
+
+                TextOverflow.Ellipsis -> isLineEllipsized(lineCount - 1)
+
+                else -> false
+            }
+    }
 
     override fun equals(other: Any?): Boolean {
         if (other === this) return true
@@ -460,7 +447,6 @@ private class ActionTextAutoSize(
         result = 31 * result + layoutSize.hashCode()
         return result
     }
-
 }
 
 @Preview(locale = "ru", device = Devices.PIXEL)

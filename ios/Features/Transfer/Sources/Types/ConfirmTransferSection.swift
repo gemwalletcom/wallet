@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemListRow
 import Primitives
 import PrimitivesComponents
 import Swap
@@ -24,17 +25,12 @@ enum ConfirmTransferSectionType: String, Identifiable, Equatable {
 public enum ConfirmTransferItem: Identifiable, Hashable, Sendable {
     case header
     case warnings
-    case app
-    case sender
-    case network
-    case paymentAsset
-    case recipient
-    case memo
+    case row(Int)
+    case verification
     case details
     case balanceChange(Int)
     case payload
     case networkFee
-    case verification
     case error
 
     public var id: Self {
@@ -43,19 +39,16 @@ public enum ConfirmTransferItem: Identifiable, Hashable, Sendable {
 }
 
 public enum ConfirmTransferItemModel {
-    case app(ListItemModel)
-    case sender(ListItemModel)
     case header(TransactionHeaderItemModel)
+    case row(GemListRow)
     case recipient(AddressListItemViewModel)
-    case network(ListItemModel)
     case paymentAsset(ListItemModel, selectable: Bool)
-    case memo(ListItemModel)
+    case verification(ListItemModel)
     case swapDetails(SwapDetailsViewModel)
     case networkFee(ListItemModel, selectable: Bool)
-    case verification(ListItemModel)
     case perpetualDetails(PerpetualDetailsViewModel)
-    case perpetualModifyPosition(PerpetualModifyViewModel)
-    case warnings([SimulationWarningViewModel])
+    case perpetualModifyPosition(GemListRow?)
+    case warnings([GemListRow])
     case payload([SimulationPayloadFieldViewModel])
     case balanceChange(ConfirmBalanceChangeViewModel)
     case error(title: String, error: Error, onInfoAction: VoidAction)

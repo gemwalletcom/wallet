@@ -16,12 +16,7 @@ pub struct WorkerContext {
 
 impl WorkerContext {
     pub fn new(settings: Arc<Settings>, database: Database, runtime: WorkerRuntime, job_filter: Option<String>) -> Self {
-        Self {
-            settings,
-            database,
-            runtime,
-            job_filter,
-        }
+        Self { settings, database, runtime, job_filter }
     }
 
     pub fn settings(&self) -> Arc<Settings> {

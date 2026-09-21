@@ -48,13 +48,7 @@ impl PortfolioClient {
     }
 
     fn build_portfolio(assets: Vec<ResolvedAsset>, chart_data: BTreeMap<i64, f64>) -> PortfolioAssets {
-        let values: Vec<ChartValue> = chart_data
-            .into_iter()
-            .map(|(ts, value)| ChartValue {
-                timestamp: ts as i32,
-                value: value as f32,
-            })
-            .collect();
+        let values: Vec<ChartValue> = chart_data.into_iter().map(|(ts, value)| ChartValue { timestamp: ts as i32, value: value as f32 }).collect();
 
         let cmp = |a: &&ChartValue, b: &&ChartValue| a.value.partial_cmp(&b.value).unwrap_or(Ordering::Equal);
         let all_time_high = values.iter().max_by(cmp).cloned();
@@ -66,11 +60,7 @@ impl PortfolioClient {
         let to_percentage = |cv: &ChartValue| ChartValuePercentage {
             date: chrono::DateTime::from_timestamp(cv.timestamp as i64, 0).unwrap_or_default(),
             value: cv.value,
-            percentage: if total_value_f32 > 0.0 {
-                (cv.value - total_value_f32) / total_value_f32 * 100.0
-            } else {
-                0.0
-            },
+            percentage: if total_value_f32 > 0.0 { (cv.value - total_value_f32) / total_value_f32 * 100.0 } else { 0.0 },
         };
 
         let allocation: Vec<PortfolioAllocation> = assets

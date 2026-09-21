@@ -8,6 +8,7 @@ fun String.words(): List<String> {
     for (char in this) {
         when {
             !char.isWhitespace() -> word.append(char)
+
             word.isNotEmpty() -> {
                 words.add(word.toString())
                 word.clear()

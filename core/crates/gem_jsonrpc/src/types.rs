@@ -49,11 +49,7 @@ pub struct JsonRpcError {
 impl Display for JsonRpcError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let original = self.message.trim();
-        let message = if original.is_empty() && self.code == ERROR_CLIENT_ERROR {
-            "Client error"
-        } else {
-            original
-        };
+        let message = if original.is_empty() && self.code == ERROR_CLIENT_ERROR { "Client error" } else { original };
 
         write!(f, "{} ({})", message, self.code)
     }
@@ -206,10 +202,7 @@ mod tests {
     fn test_deserialize_null_result_fails_with_detail() {
         let json = r#"{"id": 1, "result": null}"#;
         let err = serde_json::from_str::<JsonRpcResult<Block>>(json).unwrap_err();
-        assert!(
-            err.to_string()
-                .contains("failed to deserialize result: invalid type: null, expected struct Block, raw: null")
-        );
+        assert!(err.to_string().contains("failed to deserialize result: invalid type: null, expected struct Block, raw: null"));
     }
 
     #[test]

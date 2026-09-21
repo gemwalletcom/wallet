@@ -210,7 +210,6 @@
   <string name="errors_connections_no_supported_wallets">Não há carteiras suportadas disponíveis.</string>
   <string name="errors_connections_unsupported_chain">A cadeia fornecida não é suportada.</string>
   <string name="errors_swap_amount_too_small">Quantidade muito pequena</string>
-  <string name="errors_required">%1$s é necessário</string>
   <string name="errors_scan_transaction_malicious_description">Esta transação não pode ser concluída — o endereço da carteira de destino está vinculado a atividades suspeitas ou prejudiciais.</string>
   <string name="errors_scan_transaction_memo_required">%1$s O endereço da carteira de destino requer uma etiqueta/memorando de destino</string>
   <string name="errors_scan_transaction_malicious_title">Atividade suspeita</string>
@@ -273,7 +272,7 @@
   <string name="asset_decimals">Decimais</string>
   <string name="asset_token_id">ID do token</string>
   <string name="asset_contract">Contrato</string>
-  <string name="asset_state_empty_title">Suas transações aparecerão aqui️</string>
+  <string name="asset_state_empty_title">Suas transações aparecerão aqui</string>
   <string name="asset_state_empty_description">Receber, trocar ou comprar %1$s</string>
   <string name="asset_verification_unverified">Não verificado</string>
   <string name="asset_verification_suspicious">Suspeito</string>
@@ -422,7 +421,7 @@
   <string name="price_alerts_set_alert_set_target_price">Definir preço-alvo</string>
   <string name="price_alerts_set_alert_current_price">Preço atual</string>
   <string name="price_alerts_added_for">Definir alerta de preço %1$s</string>
-  <string name="price_alerts_state_empty_title">Seus alertas aparecerão aqui️</string>
+  <string name="price_alerts_state_empty_title">Seus alertas aparecerão aqui</string>
   <string name="price_alerts_state_empty_description">Habilite-os adicionando moedas para rastrear</string>
   <string name="price_alerts_auto_footer">Alertas são acionados em movimentos significativos de preços.</string>
   <string name="price_alerts_set_alert_title">Definir alerta de preço</string>
@@ -437,7 +436,7 @@
   <string name="lock_privacy_lock">Bloqueio de privacidade</string>
   <string name="lock_footer">Proteja o acesso a este aplicativo no seu dispositivo</string>
   <string name="verify_phrase_title">Confirmar</string>
-  <string name="warnings_multi_signature_blocked">Não transfira fundos para esta carteira %1$s Multi-Signature a menos que tenha certeza de que controla as chaves privadas. Não fazer isso pode expô-lo a golpes e você pode perder seus ativos permanentemente.</string>
+  <string name="warnings_externally_controlled_account">Esta conta %1$s pode ser controlada por outra pessoa. Não envie fundos para ela a menos que tenha certeza de que você a controla, ou poderá perder seus ativos permanentemente.</string>
   <string name="sell_title">Vender %1$s</string>
   <string name="info_network_fee_title">Taxa de rede</string>
   <string name="info_watch_wallet_title">Assistir carteira</string>
@@ -489,7 +488,7 @@
   <string name="nft_collection">Coleção</string>
   <string name="nft_save_to_photos">Salvar em fotos</string>
   <string name="nft_set_as_avatar">Definir como Avatar</string>
-  <string name="nft_state_empty_title">Seus NFTs aparecerão aqui️</string>
+  <string name="nft_state_empty_title">Seus NFTs aparecerão aqui</string>
   <string name="nft_state_empty_description">Receba seu primeiro NFT</string>
   <string name="nft_report_reason_spam">Spam</string>
   <string name="nft_report_reason_malicious">Malicioso</string>
@@ -593,7 +592,7 @@
   <string name="contacts_contact">Contato</string>
   <string name="contacts_addresses">Endereços</string>
   <string name="contacts_state_empty_title">Sem contatos</string>
-  <string name="contacts_state_empty_description">Salve seus endereços usados ​​com frequência.</string>
+  <string name="contacts_state_empty_description">Salve seus endereços usados com frequência.</string>
   <string name="contacts_create_new_contact">Criar novo contato</string>
   <string name="contacts_add_to_existing_contact">Adicionar a contato</string>
   <string name="simulation_header_unlimited_asset">Ilimitado %1$s</string>

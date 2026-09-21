@@ -120,9 +120,9 @@ pub(super) struct FastNearExecutionOutcome {
 
 impl FastNearTransaction {
     pub(super) fn fee(&self) -> BigUint {
-        self.receipts.iter().fold(self.execution_outcome.outcome.tokens_burnt.clone(), |fee, receipt| {
-            fee + &receipt.execution_outcome.outcome.tokens_burnt
-        })
+        self.receipts
+            .iter()
+            .fold(self.execution_outcome.outcome.tokens_burnt.clone(), |fee, receipt| fee + &receipt.execution_outcome.outcome.tokens_burnt)
     }
 
     pub(super) fn state(&self) -> TransactionState {

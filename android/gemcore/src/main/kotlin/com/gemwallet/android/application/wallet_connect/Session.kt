@@ -1,11 +1,11 @@
 package com.gemwallet.android.application.wallet_connect
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.WalletConnectionSession
+import uniffi.gemstone.GemChainServiceInterface
 import uniffi.gemstone.GemSessionApproval
 import uniffi.gemstone.GemWalletConnectServiceInterface
-import uniffi.gemstone.GemChainServiceInterface
-import com.gemwallet.android.ext.toGem
 
 fun WalletConnectSession.toConnectionSession(service: GemWalletConnectServiceInterface): WalletConnectionSession? {
     val metadata = metadata ?: return null
@@ -37,10 +37,6 @@ fun GemSessionApproval.toSupportedNamespaces(chainService: GemChainServiceInterf
         }
 }
 
-private data class ApprovedAccount(
-    val namespace: String,
-    val chainId: String,
-    val address: String,
-) {
+private data class ApprovedAccount(val namespace: String, val chainId: String, val address: String) {
     val accountId: String get() = "$chainId:$address"
 }

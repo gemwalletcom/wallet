@@ -37,9 +37,9 @@ public struct InAppNotificationsScene: View {
     @ViewBuilder
     private func notificationRow(_ itemModel: InAppNotificationListItemViewModel) -> some View {
         let view = ListItemView(model: itemModel.listItemModel)
-        if let url = itemModel.url {
+        if let destination = itemModel.destination {
             NavigationCustomLink(with: view) {
-                model.open(url: url)
+                model.open(destination: destination)
             }
         } else {
             view

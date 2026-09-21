@@ -7,9 +7,7 @@ pub struct SkipExplorer {
 
 impl SkipExplorer {
     pub fn boxed(chain: Chain) -> Box<dyn BlockExplorer> {
-        Box::new(Self {
-            chain_id: chain.network_id().to_string(),
-        })
+        Box::new(Self { chain_id: chain.network_id().to_string() })
     }
 }
 

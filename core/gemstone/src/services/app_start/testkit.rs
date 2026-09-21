@@ -5,6 +5,7 @@ use primitives::Wallet;
 use super::GemAppStartService;
 use crate::api::{GemApiClient, GemDeviceApiClient};
 use crate::services::asset_discovery::testkit::DiscoveryTestkit;
+use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::banner::GemBannerService;
 use crate::services::banner::testkit::MemoryBannerStore;
 use crate::services::config::GemConfigService;
@@ -20,6 +21,8 @@ use crate::testkit::{EmptyPreferences, TestAlienProvider};
 pub struct AppStartTestkit {
     pub service: GemAppStartService,
     pub wallets: WalletTestkit,
+    pub banners: Arc<MemoryBannerStore>,
+    pub assets: Arc<MemoryAssetStore>,
     pub first: Wallet,
     pub second: Wallet,
 }
@@ -41,7 +44,7 @@ impl AppStartTestkit {
             Arc::new(GemBannerService::new(banner_store.clone())),
             discovery.assets.clone(),
             discovery.balance.clone(),
-            Arc::new(GemWalletConfigurationService::new(device_api.clone(), banner_store, discovery.wallet_preferences.clone())),
+            Arc::new(GemWalletConfigurationService::new(device_api.clone(), banner_store.clone(), discovery.wallet_preferences.clone())),
             wallets.service.clone(),
             Arc::new(GemDeviceService::new(
                 device_api.clone(),
@@ -51,6 +54,13 @@ impl AppStartTestkit {
                 preferences,
             )),
         );
-        Self { service, wallets, first, second }
+        Self {
+            service,
+            wallets,
+            banners: banner_store,
+            assets: discovery.asset_store.clone(),
+            first,
+            second,
+        }
     }
 }

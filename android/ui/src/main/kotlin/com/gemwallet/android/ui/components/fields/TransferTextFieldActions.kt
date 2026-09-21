@@ -13,12 +13,7 @@ import com.gemwallet.android.ui.icons.AppIcons
 private val IconButtonSize = 36.dp
 
 @Composable
-fun TransferTextFieldActions(
-    value: String,
-    paste: (() -> Unit)? = null,
-    qrScanner: (() -> Unit)? = null,
-    onClean: () -> Unit
-) {
+fun TransferTextFieldActions(value: String, paste: (() -> Unit)? = null, qrScanner: (() -> Unit)? = null, onClean: () -> Unit) {
     if (value.isNotEmpty()) {
         IconButton(modifier = Modifier.size(IconButtonSize), onClick = onClean) {
             Icon(

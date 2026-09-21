@@ -6,6 +6,9 @@ use gem_client::ReqwestClient;
 use settings::testkit::get_test_settings;
 
 #[cfg(test)]
+use crate::models::Account;
+
+#[cfg(test)]
 pub const TEST_TRANSACTION_ID: &str = "LAEWXAG6FYFIEDAY76YQFKO46EIKEOIT4GTONUQFD6TL23XG45KQ";
 
 #[cfg(feature = "chain_integration_tests")]
@@ -21,4 +24,16 @@ pub fn create_algorand_test_client() -> AlgorandProvider<ReqwestClient> {
         AlgorandClient::new(ReqwestClient::new(settings.chains.algorand.url, client.clone())),
         Box::new(AlgorandIndexer::new(ReqwestClient::new(settings.indexer.algorand.url, client))),
     )
+}
+
+#[cfg(test)]
+impl Account {
+    pub fn mock() -> Self {
+        Self {
+            amount: 1_000_000,
+            assets: vec![],
+            min_balance: 100_000,
+            auth_addr: None,
+        }
+    }
 }

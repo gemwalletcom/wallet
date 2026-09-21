@@ -2,8 +2,8 @@ package com.gemwallet.android.domains.percentage
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.util.Locale
 import uniffi.gemstone.GemPercentageStyle
+import java.util.Locale
 
 class PercentageFormatterTest {
 
@@ -49,20 +49,26 @@ class PercentageFormatterTest {
             0.0.formatAsPercentage(
                 style = GemPercentageStyle.UNSIGNED_COMPACT,
                 locale = Locale.US,
-            )
+            ),
         )
     }
 
     @Test
     fun formatAsPercentage_compactStyle_isAvailableForNonUiCallers() {
-        assertEquals("12.5%", 12.5.formatAsPercentage(
-            style = GemPercentageStyle.UNSIGNED_COMPACT,
-            locale = Locale.US,
-        ))
-        assertEquals("12%", 12.0.formatAsPercentage(
-            style = GemPercentageStyle.UNSIGNED_COMPACT,
-            locale = Locale.US,
-        ))
+        assertEquals(
+            "12.5%",
+            12.5.formatAsPercentage(
+                style = GemPercentageStyle.UNSIGNED_COMPACT,
+                locale = Locale.US,
+            ),
+        )
+        assertEquals(
+            "12%",
+            12.0.formatAsPercentage(
+                style = GemPercentageStyle.UNSIGNED_COMPACT,
+                locale = Locale.US,
+            ),
+        )
     }
 
     @Test

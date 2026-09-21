@@ -84,21 +84,9 @@ impl Swapper for HyperCoreBridge {
                 let spot_send = SpotSend::new(amount, HYPERCORE_SYSTEM_ADDRESS.to_string(), timestamp, HYPERCORE_CORE_HYPE_TOKEN_ID.to_string());
                 let typed_data = transfer_to_hyper_evm_typed_data(spot_send).map_err(SwapperError::TransactionError)?;
 
-                Ok(SwapperQuoteData::new_contract(
-                    HYPERCORE_SYSTEM_ADDRESS.to_string(),
-                    quote.request.value.clone(),
-                    typed_data,
-                    None,
-                    None,
-                ))
+                Ok(SwapperQuoteData::new_contract(HYPERCORE_SYSTEM_ADDRESS.to_string(), quote.request.value.clone(), typed_data, None, None))
             }
-            Chain::Hyperliquid => Ok(SwapperQuoteData::new_contract(
-                HYPERCORE_SYSTEM_ADDRESS.to_string(),
-                quote.request.value.clone(),
-                "0x".to_string(),
-                None,
-                None,
-            )),
+            Chain::Hyperliquid => Ok(SwapperQuoteData::new_contract(HYPERCORE_SYSTEM_ADDRESS.to_string(), quote.request.value.clone(), "0x".to_string(), None, None)),
             _ => Err(SwapperError::NotSupportedChain),
         }
     }

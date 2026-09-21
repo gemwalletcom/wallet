@@ -46,10 +46,7 @@ impl GemPendingTransactionInput {
 
 impl GemRecentActivityService {
     pub fn mock(store: Arc<dyn GemRecentActivityStore>, wallet_id: Option<WalletId>) -> Self {
-        let session = Arc::new(GemWalletSessionService::new(
-            Arc::new(MemoryWalletSessionStore::default()),
-            Arc::new(MemoryWalletStore::default()),
-        ));
+        let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), Arc::new(MemoryWalletStore::default())));
         session.set_current_wallet_id(wallet_id).unwrap();
         Self::new(store, session)
     }

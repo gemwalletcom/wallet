@@ -5,10 +5,10 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
 import uniffi.gemstone.GemDeviceKeyService
 import uniffi.gemstone.GemDeviceKeyServiceInterface
 import uniffi.gemstone.GemSecureStore
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module

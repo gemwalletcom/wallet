@@ -16,7 +16,7 @@ object Migration_88_89 : Migration(88, 89) {
                 event TEXT NOT NULL,
                 PRIMARY KEY(id)
             )
-            """
+            """,
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS index_banners_event ON banners(event)")
         db.execSQL("CREATE INDEX IF NOT EXISTS index_banners_wallet_id ON banners(wallet_id)")

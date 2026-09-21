@@ -27,37 +27,23 @@ import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingMiddle
-import com.gemwallet.android.ui.theme.space8
 import com.gemwallet.android.ui.theme.smallIconSize
+import com.gemwallet.android.ui.theme.space8
 
 @Composable
-fun PropertyItem(
-    @StringRes action: Int,
-    actionIconModel: Any? = null,
-    data: String? = null,
-    info: InfoSheetEntity? = null,
-    listPosition: ListPosition = ListPosition.Middle,
-    onClick: () -> Unit,
-) {
+fun PropertyItem(@StringRes action: Int, actionIconModel: Any? = null, data: String? = null, info: InfoSheetEntity? = null, listPosition: ListPosition = ListPosition.Middle, onClick: () -> Unit) {
     PropertyItem(
         action = stringResource(action),
         actionIconModel = actionIconModel,
         data = data,
         info = info,
         listPosition = listPosition,
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
 @Composable
-fun PropertyItem(
-    action: String,
-    actionIconModel: Any? = null,
-    data: String? = null,
-    info: InfoSheetEntity? = null,
-    listPosition: ListPosition = ListPosition.Middle,
-    onClick: () -> Unit,
-) {
+fun PropertyItem(action: String, actionIconModel: Any? = null, data: String? = null, info: InfoSheetEntity? = null, listPosition: ListPosition = ListPosition.Middle, onClick: () -> Unit) {
     PropertyItem(
         modifier = Modifier.clickable(onClick = onClick),
         title = {
@@ -70,7 +56,7 @@ fun PropertyItem(
         data = {
             PropertyDataText(
                 text = data ?: "",
-                badge = { DataBadgeChevron() }
+                badge = { DataBadgeChevron() },
             )
         },
         listPosition = listPosition,
@@ -78,13 +64,7 @@ fun PropertyItem(
 }
 
 @Composable
-fun PropertyItem(
-    @StringRes title: Int,
-    data: String? = null,
-    info: InfoSheetEntity? = null,
-    dataColor: Color = MaterialTheme.colorScheme.secondary,
-    listPosition: ListPosition = ListPosition.Middle,
-) {
+fun PropertyItem(@StringRes title: Int, data: String? = null, info: InfoSheetEntity? = null, dataColor: Color = MaterialTheme.colorScheme.secondary, listPosition: ListPosition = ListPosition.Middle) {
     PropertyItem(
         title = stringResource(title),
         data = data,
@@ -95,13 +75,7 @@ fun PropertyItem(
 }
 
 @Composable
-fun PropertyItem(
-    @StringRes title: Int,
-    @StringRes data: Int,
-    info: InfoSheetEntity? = null,
-    dataColor: Color = MaterialTheme.colorScheme.secondary,
-    listPosition: ListPosition = ListPosition.Middle,
-) {
+fun PropertyItem(@StringRes title: Int, @StringRes data: Int, info: InfoSheetEntity? = null, dataColor: Color = MaterialTheme.colorScheme.secondary, listPosition: ListPosition = ListPosition.Middle) {
     PropertyItem(
         title = stringResource(title),
         data = stringResource(data),
@@ -112,13 +86,7 @@ fun PropertyItem(
 }
 
 @Composable
-fun PropertyItem(
-    title: String,
-    data: String? = null,
-    dataColor: Color = MaterialTheme.colorScheme.secondary,
-    info: InfoSheetEntity? = null,
-    listPosition: ListPosition = ListPosition.Middle,
-) {
+fun PropertyItem(title: String, data: String? = null, dataColor: Color = MaterialTheme.colorScheme.secondary, info: InfoSheetEntity? = null, listPosition: ListPosition = ListPosition.Middle) {
     PropertyItem(
         title = { PropertyTitleText(title, info = info) },
         data = data?.let { { PropertyDataText(data, color = dataColor) } },
@@ -127,12 +95,7 @@ fun PropertyItem(
 }
 
 @Composable
-fun PropertyItem(
-    title: @Composable () -> Unit,
-    data: @Composable (RowScope.() -> Unit)?,
-    modifier: Modifier = Modifier,
-    listPosition: ListPosition = ListPosition.Middle,
-) {
+fun PropertyItem(title: @Composable () -> Unit, data: @Composable (RowScope.() -> Unit)?, modifier: Modifier = Modifier, listPosition: ListPosition = ListPosition.Middle) {
     ListItem(
         modifier = modifier,
         title = title,
@@ -143,24 +106,12 @@ fun PropertyItem(
 }
 
 @Composable
-fun PropertyTitleText(
-    @StringRes text: Int,
-    badge: (@Composable () -> Unit)? = null,
-    trailing: (@Composable () -> Unit)? = null,
-    color: Color = MaterialTheme.colorScheme.onSurface,
-    info: InfoSheetEntity? = null,
-) {
+fun PropertyTitleText(@StringRes text: Int, badge: (@Composable () -> Unit)? = null, trailing: (@Composable () -> Unit)? = null, color: Color = MaterialTheme.colorScheme.onSurface, info: InfoSheetEntity? = null) {
     PropertyTitleText(stringResource(text), badge, trailing, color, info)
 }
 
 @Composable
-fun PropertyTitleText(
-    text: String,
-    badge: (@Composable () -> Unit)? = null,
-    trailing: (@Composable () -> Unit)? = null,
-    color: Color = MaterialTheme.colorScheme.onSurface,
-    info: InfoSheetEntity? = null,
-) {
+fun PropertyTitleText(text: String, badge: (@Composable () -> Unit)? = null, trailing: (@Composable () -> Unit)? = null, color: Color = MaterialTheme.colorScheme.onSurface, info: InfoSheetEntity? = null) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -188,12 +139,7 @@ fun PropertyTitleText(
 }
 
 @Composable
-fun RowScope.PropertyDataText(
-    text: String,
-    modifier: Modifier = Modifier,
-    badge: (@Composable () -> Unit)? = null,
-    color: Color = MaterialTheme.colorScheme.secondary,
-) {
+fun RowScope.PropertyDataText(text: String, modifier: Modifier = Modifier, badge: (@Composable () -> Unit)? = null, color: Color = MaterialTheme.colorScheme.secondary) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = text,

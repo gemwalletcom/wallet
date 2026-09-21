@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Foundation
 import enum Gemstone.GemConfirmError
 import struct Gemstone.GemTransferAmount
 import enum Gemstone.GemTransferAmountResult
-import Foundation
 
 public typealias TransferAmountValidation = Result<GemTransferAmount, GemConfirmError>
 

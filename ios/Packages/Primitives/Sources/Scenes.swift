@@ -4,11 +4,7 @@ import Foundation
 
 public enum Scenes {
     public struct CreateWallet: Hashable, Codable {
-        public let words: [String]
-
-        public init(words: [String]) {
-            self.words = words
-        }
+        public init() {}
     }
 
     public struct ImportWalletType: Hashable, Codable {
@@ -80,11 +76,7 @@ public enum Scenes {
     }
 
     public struct VerifyPhrase: Hashable, Codable {
-        public let words: [String]
-
-        public init(words: [String]) {
-            self.words = words
-        }
+        public init() {}
     }
 
     public struct WalletProfile: Hashable, Codable {

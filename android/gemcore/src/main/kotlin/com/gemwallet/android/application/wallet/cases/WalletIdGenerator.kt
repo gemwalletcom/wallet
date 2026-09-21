@@ -10,9 +10,11 @@ interface WalletIdGenerator {
         require(priorityAddress.isNotEmpty()) { "Account address cannot be empty" }
         val id = when (type) {
             WalletType.Multicoin -> "${type.string}_$priorityAddress"
+
             WalletType.Single,
             WalletType.PrivateKey,
-            WalletType.View -> "${type.string}_${priorityChain.string}_$priorityAddress"
+            WalletType.View,
+            -> "${type.string}_${priorityChain.string}_$priorityAddress"
         }
         return WalletId(id)
     }

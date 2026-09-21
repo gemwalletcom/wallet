@@ -56,11 +56,7 @@ impl FileKeystore {
     pub fn import_v3(&self, v3_path: &Path, v3_password: &[u8], new_password: &[u8], keystore_id: Option<String>) -> Result<StoredSecretMeta, KeystoreError> {
         let _queue = queue::lock()?;
         // Idempotent retry: authenticate an existing staged v4 file by id+password; replace it only when corrupt.
-        if let Some(parsed_id) = keystore_id
-            .as_deref()
-            .and_then(|id| KeystoreId::parse(id).ok())
-            .filter(|parsed_id| self.path_for_id(parsed_id).exists())
-        {
+        if let Some(parsed_id) = keystore_id.as_deref().and_then(|id| KeystoreId::parse(id).ok()).filter(|parsed_id| self.path_for_id(parsed_id).exists()) {
             match self.verify_unlocked(parsed_id.as_str(), new_password) {
                 Ok(meta) => return Ok(meta),
                 Err(KeystoreError::CorruptFile(_)) => fs::remove_file(self.path_for_id(&parsed_id))?,
@@ -279,9 +275,6 @@ fn listed_meta(path: &Path) -> Result<StoredSecretMeta, KeystoreError> {
 }
 
 fn keystore_id_from_path(path: &Path) -> Result<KeystoreId, KeystoreError> {
-    let file_stem = path
-        .file_stem()
-        .and_then(|file_stem| file_stem.to_str())
-        .ok_or_else(|| KeystoreError::corrupt_file("invalid keystore filename"))?;
+    let file_stem = path.file_stem().and_then(|file_stem| file_stem.to_str()).ok_or_else(|| KeystoreError::corrupt_file("invalid keystore filename"))?;
     KeystoreId::parse(file_stem).map_err(|_| KeystoreError::corrupt_file("invalid keystore filename"))
 }

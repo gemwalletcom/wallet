@@ -11,11 +11,7 @@ where
 {
     retry::for_host(host).max_retries_per_request(max_retries).classify_fn(|req_rep| {
         match req_rep.status() {
-            Some(StatusCode::TOO_MANY_REQUESTS)
-            | Some(StatusCode::INTERNAL_SERVER_ERROR)
-            | Some(StatusCode::BAD_GATEWAY)
-            | Some(StatusCode::SERVICE_UNAVAILABLE)
-            | Some(StatusCode::GATEWAY_TIMEOUT) => req_rep.retryable(),
+            Some(StatusCode::TOO_MANY_REQUESTS) | Some(StatusCode::INTERNAL_SERVER_ERROR) | Some(StatusCode::BAD_GATEWAY) | Some(StatusCode::SERVICE_UNAVAILABLE) | Some(StatusCode::GATEWAY_TIMEOUT) => req_rep.retryable(),
             None => req_rep.retryable(), // Network errors
             _ => req_rep.success(),
         }

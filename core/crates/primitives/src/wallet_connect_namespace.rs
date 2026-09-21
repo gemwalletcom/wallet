@@ -33,12 +33,8 @@ impl WalletConnectCAIP2 {
     pub fn get_chain(namespace: String, reference: String) -> Option<Chain> {
         let namespace = WalletConnectCAIP2::from_str(&namespace).ok()?;
         match namespace {
-            WalletConnectCAIP2::Eip155 => Chain::all()
-                .into_iter()
-                .find(|chain| chain.chain_type() == ChainType::Ethereum && chain.network_id() == reference),
-            WalletConnectCAIP2::Cosmos => Chain::all()
-                .into_iter()
-                .find(|chain| chain.chain_type() == ChainType::Cosmos && chain.network_id() == reference),
+            WalletConnectCAIP2::Eip155 => Chain::all().into_iter().find(|chain| chain.chain_type() == ChainType::Ethereum && chain.network_id() == reference),
+            WalletConnectCAIP2::Cosmos => Chain::all().into_iter().find(|chain| chain.chain_type() == ChainType::Cosmos && chain.network_id() == reference),
             WalletConnectCAIP2::Solana => Some(Chain::Solana),
             WalletConnectCAIP2::Algorand => Some(Chain::Algorand),
             WalletConnectCAIP2::Sui => Some(Chain::Sui),
@@ -141,10 +137,7 @@ mod tests {
     fn test_get_chain_from_id() {
         assert_eq!(WalletConnectCAIP2::get_chain_from_id(Some("eip155:1".to_string())), Ok(Chain::Ethereum));
         assert_eq!(WalletConnectCAIP2::get_chain_from_id(Some("eip155:4663".to_string())), Ok(Chain::Robinhood));
-        assert_eq!(
-            WalletConnectCAIP2::get_chain_from_id(Some("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp".to_string())),
-            Ok(Chain::Solana)
-        );
+        assert_eq!(WalletConnectCAIP2::get_chain_from_id(Some("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp".to_string())), Ok(Chain::Solana));
         assert_eq!(WalletConnectCAIP2::get_chain_from_id(Some("sui:mainnet".to_string())), Ok(Chain::Sui));
         assert_eq!(WalletConnectCAIP2::get_chain_from_id(Some("ton:-239".to_string())), Ok(Chain::Ton));
         assert_eq!(WalletConnectCAIP2::get_chain_from_id(Some("tron:0x2b6653dc".to_string())), Ok(Chain::Tron));

@@ -59,25 +59,9 @@ pub(super) fn add_init_order_move_calls(
         txb.pure(&Address::new(referrer)),
         txb.pure(&optional_bps_u8(route.referrer_bps)?),
     ];
-    let fee_ticket = move_call(
-        txb,
-        fee_manager_package,
-        "calculate_mctp_fee",
-        "prepare_calc_mctp_fee",
-        &[mctp_input_contract],
-        common_arguments.clone(),
-    )
-    .map_err(sui_error)?;
+    let fee_ticket = move_call(txb, fee_manager_package, "calculate_mctp_fee", "prepare_calc_mctp_fee", &[mctp_input_contract], common_arguments.clone()).map_err(sui_error)?;
     let fee_manager_state = txb.object(prefetched.objects[SUI_MCTP_FEE_MANAGER_STATE].input(false));
-    let fee_params = move_call(
-        txb,
-        fee_manager_package,
-        "calculate_mctp_fee",
-        "calculate_mctp_fee",
-        &[],
-        vec![fee_manager_state, fee_ticket],
-    )
-    .map_err(sui_error)?;
+    let fee_params = move_call(txb, fee_manager_package, "calculate_mctp_fee", "calculate_mctp_fee", &[], vec![fee_manager_state, fee_ticket]).map_err(sui_error)?;
 
     let mut init_arguments = common_arguments[1..].to_vec();
     init_arguments.push(txb.pure(&cctp_domain));

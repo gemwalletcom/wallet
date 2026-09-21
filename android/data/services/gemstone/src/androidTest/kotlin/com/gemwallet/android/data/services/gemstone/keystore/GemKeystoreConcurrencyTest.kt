@@ -31,7 +31,10 @@ class GemKeystoreConcurrencyTest {
 
     @Before
     fun setUp() {
-        baseDir = File(context.cacheDir, "gemk-concurrency").apply { deleteRecursively(); mkdirs() }
+        baseDir = File(context.cacheDir, "gemk-concurrency").apply {
+            deleteRecursively()
+            mkdirs()
+        }
     }
 
     @After

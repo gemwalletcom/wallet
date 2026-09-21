@@ -1,36 +1,38 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.PriceChangeCalculator
 import Components
-import Formatters
 import Foundation
+import func Gemstone.autocloseFieldState
+import class Gemstone.GemAutocloseEstimator
+import struct Gemstone.GemAutocloseField
+import struct Gemstone.GemAutocloseFieldState
 import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
-import class Gemstone.GemAutocloseEstimator
 
 public struct AutocloseViewModel {
-    private let type: TpslType
-    private let price: Double?
-    private let estimator: GemAutocloseEstimator
-    private let currencyFormatter: CurrencyFormatter
-    private let percentFormatter: PercentFormatter
+    private let state: GemAutocloseFieldState
 
     public init(
         type: TpslType,
         price: Double?,
         estimator: GemAutocloseEstimator,
-        currencyFormatter: CurrencyFormatter,
-        percentFormatter: PercentFormatter,
     ) {
-        self.type = type
-        self.price = price
-        self.estimator = estimator
-        self.currencyFormatter = currencyFormatter
-        self.percentFormatter = percentFormatter
+        state = autocloseFieldState(
+            field: GemAutocloseField(
+                tpslType: type.toGem(),
+                price: price,
+                originalPrice: nil,
+                formattedPrice: nil,
+                validation: .valid,
+                orderId: nil,
+            ),
+            estimator: estimator,
+            showsErrors: false,
+        )
     }
 
     public var priceTitle: String {
@@ -38,41 +40,22 @@ public struct AutocloseViewModel {
     }
 
     public var title: String {
-        type.autocloseTitle
+        state.tpslType.toPrimitives().autocloseTitle
     }
 
-    private let priceChangeCalculator = PriceChangeCalculator()
-
     public var profitTitle: String {
-        let isProfit = price.map { estimator.pnl(price: $0) >= 0 } ?? (type == .takeProfit)
-        return isProfit ? Localized.Perpetual.AutoClose.expectedProfit : Localized.Perpetual.AutoClose.expectedLoss
+        state.isProfit ? Localized.Perpetual.AutoClose.expectedProfit : Localized.Perpetual.AutoClose.expectedLoss
     }
 
     public var expectedPnL: String {
-        guard let price else { return "-" }
-        let pnl = estimator.pnl(price: price)
-        let roe = estimator.roe(price: price)
-        let percentText = percentFormatter.string(roe)
-
-        guard estimator.hasSize() else {
-            return percentText
-        }
-
-        let amount = priceChangeCalculator.sign(value: pnl).format(amount: currencyFormatter.string(abs(pnl)))
-        return priceChangeCalculator.pnlText(formattedAmount: amount, formattedPercentage: percentText)
+        state.estimate?.text ?? Placeholder.empty
     }
 
     public var roeColor: Color {
-        guard let price else { return Colors.secondaryText }
-        let roe = estimator.roe(price: price)
-        return PriceChangeColor.color(for: roe)
-    }
-
-    public var percents: [Int] {
-        estimator.percentSuggestions().map { Int($0) }
+        state.tone.color
     }
 
     public var percentSuggestions: [PercentageSuggestion] {
-        percents.map { PercentageSuggestion(value: $0) }
+        state.suggestions.map { PercentageSuggestion(number: $0) }
     }
 }

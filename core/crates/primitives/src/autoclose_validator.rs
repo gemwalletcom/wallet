@@ -17,11 +17,11 @@ pub struct AutocloseValidator {
 
 impl AutocloseValidator {
     pub fn new(trigger_type: TpslType, direction: PerpetualDirection, market_price: f64) -> Self {
-        Self {
-            trigger_type,
-            direction,
-            market_price,
-        }
+        Self { trigger_type, direction, market_price }
+    }
+
+    pub fn validate_optional(&self, price: Option<f64>) -> AutocloseValidation {
+        price.map_or(AutocloseValidation::Valid, |price| self.validate(price))
     }
 
     pub fn validate(&self, price: f64) -> AutocloseValidation {
@@ -33,11 +33,7 @@ impl AutocloseValidator {
             TpslType::StopLoss => self.direction == PerpetualDirection::Short,
         };
         if must_be_above {
-            if price > self.market_price {
-                AutocloseValidation::Valid
-            } else {
-                AutocloseValidation::TriggerMustBeHigher
-            }
+            if price > self.market_price { AutocloseValidation::Valid } else { AutocloseValidation::TriggerMustBeHigher }
         } else if price < self.market_price {
             AutocloseValidation::Valid
         } else {
@@ -168,10 +164,6 @@ mod estimator_tests {
     fn test_target_price_from_roe_survives_a_zero_leverage() {
         assert!((AutocloseEstimator::new(100.0, 1.0, PerpetualDirection::Long, 2).target_price_from_roe(20, TpslType::TakeProfit) - 110.0).abs() < 1e-9);
         assert!((AutocloseEstimator::new(100.0, 1.0, PerpetualDirection::Long, 2).target_price_from_roe(20, TpslType::StopLoss) - 90.0).abs() < 1e-9);
-        assert!(
-            AutocloseEstimator::new(100.0, 1.0, PerpetualDirection::Long, 0)
-                .target_price_from_roe(20, TpslType::TakeProfit)
-                .is_finite()
-        );
+        assert!(AutocloseEstimator::new(100.0, 1.0, PerpetualDirection::Long, 0).target_price_from_roe(20, TpslType::TakeProfit).is_finite());
     }
 }

@@ -26,12 +26,11 @@ pub fn ping_interval_milliseconds() -> u64 {
 }
 
 pub fn refresh_interval(kind: GemRefreshKind, status: ConnectionStatus) -> Duration {
-    match status {
-        ConnectionStatus::Online => STREAMING_REFRESH,
-        ConnectionStatus::NoInternet | ConnectionStatus::NoService => match kind {
-            GemRefreshKind::Market => MARKET_REFRESH,
-            GemRefreshKind::Wallet => WALLET_REFRESH,
-        },
+    match (kind, status) {
+        (GemRefreshKind::Chart | GemRefreshKind::Confirm, _) => MARKET_REFRESH,
+        (GemRefreshKind::Market | GemRefreshKind::Wallet, ConnectionStatus::Online) => STREAMING_REFRESH,
+        (GemRefreshKind::Market, ConnectionStatus::NoInternet | ConnectionStatus::NoService) => MARKET_REFRESH,
+        (GemRefreshKind::Wallet, ConnectionStatus::NoInternet | ConnectionStatus::NoService) => WALLET_REFRESH,
     }
 }
 
@@ -42,6 +41,15 @@ pub fn resets_component_health(component: GemConnectionComponent, is_healthy: bo
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_charts_and_confirmation_refresh_even_when_prices_are_streaming() {
+        for status in [ConnectionStatus::Online, ConnectionStatus::NoService, ConnectionStatus::NoInternet] {
+            for kind in [GemRefreshKind::Chart, GemRefreshKind::Confirm] {
+                assert_eq!(refresh_interval(kind, status), Duration::from_secs(60));
+            }
+        }
+    }
 
     #[test]
     fn test_keepalive_pings_before_the_reconnect_backoff_caps_out() {
@@ -58,16 +66,8 @@ mod tests {
         assert_eq!(reconnect_delay_milliseconds(1), 815);
         assert_eq!(reconnect_delay_milliseconds(3), 6_025);
         assert_eq!(reconnect_delay_milliseconds(4), 16_379);
-        assert_eq!(
-            reconnect_delay_milliseconds(5),
-            RECONNECT_MAXIMUM_MILLISECONDS as u64,
-            "the curve is capped from the attempt it first exceeds the maximum"
-        );
-        assert_eq!(
-            reconnect_delay_milliseconds(u32::MAX),
-            RECONNECT_MAXIMUM_MILLISECONDS as u64,
-            "an overflowing exponent still yields the cap"
-        );
+        assert_eq!(reconnect_delay_milliseconds(5), RECONNECT_MAXIMUM_MILLISECONDS as u64, "the curve is capped from the attempt it first exceeds the maximum");
+        assert_eq!(reconnect_delay_milliseconds(u32::MAX), RECONNECT_MAXIMUM_MILLISECONDS as u64, "an overflowing exponent still yields the cap");
     }
 
     #[test]
@@ -105,18 +105,9 @@ mod tests {
     #[test]
     fn test_only_recovering_internet_resets_component_health() {
         assert!(resets_component_health(GemConnectionComponent::Internet, true, Some(false)));
-        assert!(
-            !resets_component_health(GemConnectionComponent::Internet, true, Some(true)),
-            "internet that never dropped leaves the other components alone"
-        );
+        assert!(!resets_component_health(GemConnectionComponent::Internet, true, Some(true)), "internet that never dropped leaves the other components alone");
         assert!(!resets_component_health(GemConnectionComponent::Internet, true, None), "a first reading is not a recovery");
-        assert!(
-            !resets_component_health(GemConnectionComponent::Internet, false, Some(false)),
-            "losing internet keeps what is known"
-        );
-        assert!(
-            !resets_component_health(GemConnectionComponent::Stream, true, Some(false)),
-            "only internet recovery invalidates the other components"
-        );
+        assert!(!resets_component_health(GemConnectionComponent::Internet, false, Some(false)), "losing internet keeps what is known");
+        assert!(!resets_component_health(GemConnectionComponent::Stream, true, Some(false)), "only internet recovery invalidates the other components");
     }
 }

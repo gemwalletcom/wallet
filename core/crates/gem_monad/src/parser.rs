@@ -27,30 +27,10 @@ impl MonadParser {
         let validator_id = ethereum_value_from_log_data(log.topics.get(1)?, 0, EVENT_WORD_SIZE)?.to_u64()?.to_string();
 
         match log.topics.first()?.as_str() {
-            EVENT_DELEGATE => make_staking_transaction(
-                context,
-                &validator_id,
-                TransactionType::StakeDelegate,
-                ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE)?,
-            ),
-            EVENT_UNDELEGATE => make_staking_transaction(
-                context,
-                &validator_id,
-                TransactionType::StakeUndelegate,
-                ethereum_value_from_log_data(&log.data, EVENT_WORD_SIZE, EVENT_WORD_SIZE * 2)?,
-            ),
-            EVENT_WITHDRAW => make_staking_transaction(
-                context,
-                &validator_id,
-                TransactionType::StakeWithdraw,
-                ethereum_value_from_log_data(&log.data, EVENT_WORD_SIZE, EVENT_WORD_SIZE * 2)?,
-            ),
-            EVENT_CLAIM_REWARDS => make_staking_transaction(
-                context,
-                &validator_id,
-                TransactionType::StakeRewards,
-                ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE)?,
-            ),
+            EVENT_DELEGATE => make_staking_transaction(context, &validator_id, TransactionType::StakeDelegate, ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE)?),
+            EVENT_UNDELEGATE => make_staking_transaction(context, &validator_id, TransactionType::StakeUndelegate, ethereum_value_from_log_data(&log.data, EVENT_WORD_SIZE, EVENT_WORD_SIZE * 2)?),
+            EVENT_WITHDRAW => make_staking_transaction(context, &validator_id, TransactionType::StakeWithdraw, ethereum_value_from_log_data(&log.data, EVENT_WORD_SIZE, EVENT_WORD_SIZE * 2)?),
+            EVENT_CLAIM_REWARDS => make_staking_transaction(context, &validator_id, TransactionType::StakeRewards, ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE)?),
             _ => None,
         }
     }
@@ -100,14 +80,7 @@ mod tests {
         ];
 
         for (transaction, receipt, transaction_type, to, value) in cases {
-            let staking_transaction = ProtocolParsers::map_transaction_with_parsers(
-                &Chain::Monad,
-                &load_json_rpc_result(transaction),
-                &load_json_rpc_result(receipt),
-                DateTime::default(),
-                &[&MonadParser],
-            )
-            .unwrap();
+            let staking_transaction = ProtocolParsers::map_transaction_with_parsers(&Chain::Monad, &load_json_rpc_result(transaction), &load_json_rpc_result(receipt), DateTime::default(), &[&MonadParser]).unwrap();
             assert_eq!(staking_transaction.transaction_type, transaction_type);
             assert_eq!(staking_transaction.state, TransactionState::Confirmed);
             assert_eq!(staking_transaction.asset_id, AssetId::from_chain(Chain::Monad));

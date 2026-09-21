@@ -1,12 +1,12 @@
 package com.gemwallet.android.ui.models.chart
 
-import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.testkit.mockChartHeader
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemChartValueType
+import uniffi.gemstone.GemValueTone
 import java.util.Locale
 
 class ChartHeaderUIModelTest {

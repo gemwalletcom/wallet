@@ -26,14 +26,20 @@ public struct DelegationScene: View {
             .cleanListRow()
 
             Section {
-                ForEach(model.detailRowModels) { row in
-                    content(for: row)
+                ForEach(model.rows, id: \.self) { row in
+                    GemListRowView(row: row)
                 }
             }
 
-            if let rewardsRow = model.rewardsRowModel {
+            if let rewardsItem = model.rewardsItem {
                 Section {
-                    content(for: rewardsRow)
+                    if model.canClaimRewards {
+                        NavigationCustomLink(with: ListItemView(model: rewardsItem)) {
+                            model.onClaimRewards()
+                        }
+                    } else {
+                        ListItemView(model: rewardsItem)
+                    }
                 }
             }
 
@@ -49,20 +55,5 @@ public struct DelegationScene: View {
         }
         .navigationTitle(model.title)
         .listSectionSpacing(.compact)
-    }
-
-    @ViewBuilder
-    private func content(for row: DelegationRowViewModel) -> some View {
-        let item = ListItemView(model: row.model)
-        switch row.action {
-        case .plain:
-            item
-        case let .url(url):
-            SafariNavigationLink(url: url) { item }
-        case .claimRewards:
-            NavigationCustomLink(with: item) {
-                model.onClaimRewards()
-            }
-        }
     }
 }

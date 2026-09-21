@@ -8,9 +8,7 @@ const PAYBIS_WEBHOOK_PUBLIC_KEY: &str = include_str!("../../../testdata/paybis/p
 
 impl PaybisClient {
     pub fn verify_webhook(&self, request: &FiatWebhookRequest) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let signature = request
-            .header(SIGNATURE_HEADER)
-            .ok_or_else(|| FiatQuoteError::InvalidRequest("Missing Paybis webhook signature".to_string()))?;
+        let signature = request.header(SIGNATURE_HEADER).ok_or_else(|| FiatQuoteError::InvalidRequest("Missing Paybis webhook signature".to_string()))?;
 
         if verify_rsa_pss_signature(PAYBIS_WEBHOOK_PUBLIC_KEY, &request.raw_body, signature)? {
             Ok(())

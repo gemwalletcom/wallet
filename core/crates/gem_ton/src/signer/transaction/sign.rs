@@ -22,10 +22,7 @@ impl TonSigner {
     }
 
     pub fn sign_token_transfer(&self, input: &SignerInput, expire_at: Option<u32>) -> Result<String, SignerError> {
-        let sender_token_address = input
-            .metadata
-            .get_sender_token_address()?
-            .ok_or_else(|| SignerError::invalid_input("missing sender token address"))?;
+        let sender_token_address = input.metadata.get_sender_token_address()?.ok_or_else(|| SignerError::invalid_input("missing sender token address"))?;
 
         let jetton = JettonTransferRequest {
             query_id: 0,
@@ -100,10 +97,7 @@ fn expire_at_or_default(sequence: u32, expire_at: Option<u32>) -> Result<u32, Si
 #[cfg(test)]
 mod tests {
     use num_bigint::{BigInt, BigUint};
-    use primitives::{
-        Address as AddressTrait, Asset, AssetId, AssetType, Chain, FeeOption, NFTAsset, SignerInput, TransactionFee, TransactionInputType, TransactionLoadMetadata,
-        asset_constants::TON_USDT_TOKEN_ID, swap::SwapData,
-    };
+    use primitives::{Address as AddressTrait, Asset, AssetId, AssetType, Chain, FeeOption, NFTAsset, SignerInput, TransactionFee, TransactionInputType, TransactionLoadMetadata, asset_constants::TON_USDT_TOKEN_ID, swap::SwapData};
 
     use super::super::{
         message::build_internal_message,
@@ -124,15 +118,7 @@ mod tests {
         let signer = TonSigner::new(&hex::decode(TEST_TON_PRIVATE_KEY).unwrap()).unwrap();
         let address = signer.address().encode();
 
-        let input = SignerInput::mock_with_input_type(
-            TransactionInputType::Transfer {
-                asset: Asset::from_chain(Chain::Ton),
-            },
-            &address,
-            &address,
-            "10000",
-            TransactionLoadMetadata::mock_ton(1),
-        );
+        let input = SignerInput::mock_with_input_type(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Ton) }, &address, &address, "10000", TransactionLoadMetadata::mock_ton(1));
         assert_eq!(
             signer.sign_transfer(&input, Some(1_000_000_000)).unwrap(),
             "te6cckEBBAEArgABRYgBkF1w67cBLG0e0D7j0y2ShzflCe2JrlAjS4pC8UHg85AMAQGcOZ5W/jkCqNSj9wrP3isRN8k2PsJvAS1Rc7K+ABk/VgsvD4MSlcEFpS56SGhkmC7pSYwJM1Ocd7iIVUCY1DeFAimpoxc7msoAAAAAAQADAgFkQgBkF1w67cBLG0e0D7j0y2ShzflCe2JrlAjS4pC8UHg85BE4gAAAAAAAAAAAAAAAAAEDAABvNxKJ"
@@ -145,13 +131,7 @@ mod tests {
         let address = signer.address().encode();
 
         let asset = Asset::new(AssetId::from_token(Chain::Ton, TON_USDT_TOKEN_ID), String::new(), String::new(), 8, AssetType::TOKEN);
-        let input = SignerInput::mock_with_input_type(
-            TransactionInputType::Transfer { asset },
-            &address,
-            &address,
-            "10000",
-            TransactionLoadMetadata::mock_ton_jetton(1, SENDER_TOKEN_ADDRESS),
-        );
+        let input = SignerInput::mock_with_input_type(TransactionInputType::Transfer { asset }, &address, &address, "10000", TransactionLoadMetadata::mock_ton_jetton(1, SENDER_TOKEN_ADDRESS));
         assert_eq!(
             signer.sign_token_transfer(&input, Some(1_000_000_000)).unwrap(),
             "te6cckEBBAEA/wABRYgBkF1w67cBLG0e0D7j0y2ShzflCe2JrlAjS4pC8UHg85AMAQGcbaO6bjRLkbewbUrj8cYUocJI7vJDeXH4uoZqtTZzf5CRVBRw8rjMKMNg4MEafTwywe6wo2+BhefXkhOtdEakCympoxc7msoAAAAAAQADAgFgYgASwA6bnRklOr1y4MxDEh82TpZnlC7Kl8tiVkz/uVEgGgAAAAAAAAAAAAAAAAABAwCmD4p+pQAAAAAAAAAAInEIAZBdcOu3ASxtHtA+49Mtkoc35Qntia5QI0uKQvFB4PORADILrh124CWNo9oH3HplslDm/KE9sTXKBGlxSF4oPB5yAgKLD74O"
@@ -168,12 +148,7 @@ mod tests {
             },
             TransactionLoadMetadata::mock_ton(1),
         );
-        input.fee = TransactionFee::new_from_fee_with_option(
-            BigInt::from(0),
-            FeeOption::TokenAccountCreation,
-            BigInt::from(NFT_TRANSFER_ATTACHMENT),
-            AssetId::from_chain(Chain::Ton),
-        );
+        input.fee = TransactionFee::new_from_fee_with_option(BigInt::from(0), FeeOption::TokenAccountCreation, BigInt::from(NFT_TRANSFER_ATTACHMENT), AssetId::from_chain(Chain::Ton));
 
         assert_eq!(
             signer.sign_nft_transfer(&input, Some(1_000_000_000)).unwrap(),
@@ -193,10 +168,7 @@ mod tests {
         };
         let input = SignerInput::mock_ton(input_type, TransactionLoadMetadata::mock_ton(1));
 
-        assert_eq!(
-            signer.sign_nft_transfer(&input, Some(1_000_000_000)).unwrap_err().to_string(),
-            "Invalid input: missing NFT contract address"
-        );
+        assert_eq!(signer.sign_nft_transfer(&input, Some(1_000_000_000)).unwrap_err().to_string(), "Invalid input: missing NFT contract address");
     }
 
     /// Deploy parity vector from TrustWallet wallet-core:

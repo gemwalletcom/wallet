@@ -18,17 +18,13 @@ object QRCodeDecoder {
         DecodeHintType.TRY_HARDER to true,
     )
 
-    fun sampleSize(width: Int, height: Int): Int =
-        ceil(sqrt(width.toDouble() * height / MAX_IMAGE_PIXELS)).toInt().coerceAtLeast(1)
+    fun sampleSize(width: Int, height: Int): Int = ceil(sqrt(width.toDouble() * height / MAX_IMAGE_PIXELS)).toInt().coerceAtLeast(1)
 
-    fun decode(luma: ByteArray, rowStride: Int, width: Int, height: Int): String? =
-        decode(PlanarYUVLuminanceSource(luma, rowStride, height, 0, 0, width, height, false))
+    fun decode(luma: ByteArray, rowStride: Int, width: Int, height: Int): String? = decode(PlanarYUVLuminanceSource(luma, rowStride, height, 0, 0, width, height, false))
 
-    fun decode(pixels: IntArray, width: Int, height: Int): String? =
-        decode(RGBLuminanceSource(width, height, pixels))
+    fun decode(pixels: IntArray, width: Int, height: Int): String? = decode(RGBLuminanceSource(width, height, pixels))
 
-    private fun decode(source: LuminanceSource): String? =
-        tryDecode(source) ?: tryDecode(source.invert())
+    private fun decode(source: LuminanceSource): String? = tryDecode(source) ?: tryDecode(source.invert())
 
     private fun tryDecode(source: LuminanceSource): String? = try {
         MultiFormatReader().decode(BinaryBitmap(HybridBinarizer(source)), hints).text

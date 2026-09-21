@@ -15,7 +15,7 @@ struct PerpetualsSceneViewModelTests {
         let wallet = Wallet.mock(type: .multicoin)
         let model = PerpetualsSceneViewModel.mock(wallet: wallet)
 
-        #expect(model.headerViewModel.walletType == .multicoin)
+        #expect(model.headerViewModel.isWatchWallet == false)
     }
 
     @Test

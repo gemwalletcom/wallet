@@ -52,6 +52,7 @@ impl From<ClientError> for PaymentError {
                     reason: format!("Payment gateway returned HTTP {status}"),
                 },
             },
+            ClientError::Response { message, .. } => Self::InvalidRequest { reason: message },
             ClientError::Network(reason) | ClientError::Serialization(reason) => Self::Network { reason },
             ClientError::Timeout => Self::Network {
                 reason: "Payment gateway request timed out".to_string(),

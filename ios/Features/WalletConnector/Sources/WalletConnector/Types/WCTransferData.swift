@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemTransferData
 import struct Gemstone.GemWalletConnectTransactionRequest
+import struct Gemstone.SimulationResult
 import GemstonePrimitives
 import Primitives
-import struct Gemstone.GemTransferData
-import struct Gemstone.SimulationResult
 
 public struct WCTransferData: Identifiable, Sendable {
     public let transferData: GemTransferData

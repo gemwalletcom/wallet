@@ -49,15 +49,9 @@ mod tests {
     #[test]
     fn test_validate_sign_message() {
         let data = bs58::encode(include_str!("../../gem_solana/testdata/siws_sign_in.txt")).into_string();
-        assert_eq!(
-            validate_sign_message(&SignMessageValidation::mock(Chain::Solana, &SignDigestType::Base58, &data, "https://example.com")),
-            Ok(())
-        );
+        assert_eq!(validate_sign_message(&SignMessageValidation::mock(Chain::Solana, &SignDigestType::Base58, &data, "https://example.com")), Ok(()));
         assert_eq!(validate_sign_message_account(&SignDigestType::Base58, &data, TEST_PRIVATE_KEY_SOLANA_ADDRESS), Ok(()));
-        assert_eq!(
-            validate_sign_message_account(&SignDigestType::Base58, &data, "other"),
-            Err("SIWS address does not match signing account".to_string())
-        );
+        assert_eq!(validate_sign_message_account(&SignDigestType::Base58, &data, "other"), Err("SIWS address does not match signing account".to_string()));
     }
 
     #[test]

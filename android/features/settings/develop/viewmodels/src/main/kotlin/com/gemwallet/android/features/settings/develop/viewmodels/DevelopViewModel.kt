@@ -1,26 +1,30 @@
 package com.gemwallet.android.features.settings.develop.viewmodels
 
-import com.wallet.core.primitives.WalletId
-import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.ext.toPrimitives
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.IoDispatcher
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.NotificationsAvailable
 import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.PlatformStore
+import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 import uniffi.gemstone.GemDeveloperServiceInterface
+import javax.inject.Inject
 
 @HiltViewModel
 class DevelopViewModel @Inject constructor(
     private val service: GemDeveloperServiceInterface,
     private val getSession: GetSession,
     val notificationsAvailable: NotificationsAvailable,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val _deviceId = MutableStateFlow("")
@@ -31,12 +35,14 @@ class DevelopViewModel @Inject constructor(
     val platformStore = _platformStore.asStateFlow()
 
     init {
-        viewModelScope.launch(Dispatchers.IO) {
-            _deviceId.value = service.deviceId()
-            _platformStore.value = service.platformStore().toPrimitives()
-            if (notificationsAvailable) {
-                _pushToken.value = service.pushToken()
-            }
+        viewModelScope.launch(ioDispatcher) {
+            runCatchingCancellable {
+                _deviceId.value = service.deviceId()
+                _platformStore.value = service.platformStore().toPrimitives()
+                if (notificationsAvailable) {
+                    _pushToken.value = service.pushToken()
+                }
+            }.onFailure { Log.e(TAG, "reading the developer values failed", it) }
         }
     }
 
@@ -68,6 +74,10 @@ class DevelopViewModel @Inject constructor(
     }
 
     private fun launchAction(action: suspend () -> Unit) {
-        viewModelScope.launch(Dispatchers.IO) { action() }
+        viewModelScope.launch(ioDispatcher) {
+            runCatchingCancellable { action() }.onFailure { Log.e(TAG, "developer action failed", it) }
+        }
     }
 }
+
+private const val TAG = "Develop"

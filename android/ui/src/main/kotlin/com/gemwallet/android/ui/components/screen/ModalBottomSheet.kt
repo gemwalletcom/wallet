@@ -16,8 +16,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,9 +32,9 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.gemwallet.android.ui.components.dialog.DialogBar
 import com.gemwallet.android.ui.components.dialog.DialogBarDismissType
+import com.gemwallet.android.ui.theme.SheetSizing
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.alpha20
-import com.gemwallet.android.ui.theme.SheetSizing
 
 enum class SheetExpansion {
     Partial,
@@ -130,22 +130,15 @@ fun ModalBottomSheet(
 }
 
 @Composable
-private fun sheetWindowInsets(keyboard: WindowInsets): WindowInsets =
-    WindowInsets.systemBars
-        .union(WindowInsets.displayCutout)
-        .union(keyboard)
-        .only(WindowInsetsSides.Vertical)
+private fun sheetWindowInsets(keyboard: WindowInsets): WindowInsets = WindowInsets.systemBars
+    .union(WindowInsets.displayCutout)
+    .union(keyboard)
+    .only(WindowInsetsSides.Vertical)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ColumnScope.SheetContent(
-    sheetState: SheetState,
-    onDismissRequest: () -> Unit,
-    title: String?,
-    dismissType: DialogBarDismissType,
-    actions: @Composable RowScope.() -> Unit,
-    content: @Composable ColumnScope.() -> Unit,
-) {
+private fun ColumnScope.SheetContent(sheetState: SheetState, onDismissRequest: () -> Unit, title: String?, dismissType: DialogBarDismissType,
+    actions: @Composable RowScope.() -> Unit, content: @Composable ColumnScope.() -> Unit) {
     val keyboard = LocalSoftwareKeyboardController.current
     val isLeaving = sheetState.currentValue != SheetValue.Hidden && sheetState.targetValue == SheetValue.Hidden
     LaunchedEffect(isLeaving) {

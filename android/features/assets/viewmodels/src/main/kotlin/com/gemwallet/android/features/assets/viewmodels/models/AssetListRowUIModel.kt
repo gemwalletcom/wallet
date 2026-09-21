@@ -5,11 +5,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.wallet.core.primitives.AssetList
 
-data class AssetListRowUIModel(
-    val id: String,
-    val name: String,
-    val model: ListItemModel,
-)
+data class AssetListRowUIModel(val id: String, val name: String, val model: ListItemModel)
 
 internal fun AssetList.uiModel(): AssetListRowUIModel = AssetListRowUIModel(
     id = id,

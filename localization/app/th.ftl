@@ -240,7 +240,6 @@ errors_swap_not_supported_asset = ไม่รองรับสินทรั�
 errors_connections_no_supported_wallets = ไม่มีกระเป๋าเงินที่รองรับ
 errors_connections_unsupported_chain = ไม่รองรับโซ่ที่ให้มา
 errors_swap_amount_too_small = จำนวนเงินน้อยเกินไป
-errors_required = %@ เป็นสิ่งจำเป็น
 errors_scan_transaction_malicious_description = ไม่สามารถทำธุรกรรมนี้ให้เสร็จสมบูรณ์ได้ — ที่อยู่กระเป๋าเงินปลายทางเชื่อมโยงกับกิจกรรมที่น่าสงสัยหรือเป็นอันตราย
 errors_scan_transaction_memo_required = ที่อยู่กระเป๋าเงินปลายทาง %@ ต้องมีแท็กปลายทาง / บันทึกช่วยจำ
 errors_scan_transaction_malicious_title = กิจกรรมที่น่าสงสัย
@@ -315,7 +314,7 @@ asset_symbol = สัญลักษณ์
 asset_decimals = ทศนิยม
 asset_token_id = รหัสโทเค็น
 asset_contract = สัญญา
-asset_state_empty_title = ธุรกรรมของคุณจะปรากฏที่นี่️
+asset_state_empty_title = ธุรกรรมของคุณจะปรากฏที่นี่
 asset_state_empty_description = รับ แลกเปลี่ยน หรือ ซื้อ %@
 asset_verification_unverified = ไม่ได้รับการยืนยัน
 asset_verification_suspicious = สงสัย
@@ -536,7 +535,7 @@ verify_phrase_title = ยืนยัน
 
 # Warnings
 
-warnings_multi_signature_blocked = อย่าโอนเงินไปยังกระเป๋าเงินหลายลายเซ็น %@ นี้ เว้นแต่คุณจะแน่ใจว่าคุณควบคุมคีย์ส่วนตัวได้ การไม่ทำเช่นนั้นอาจทำให้คุณตกเป็นเหยื่อของการหลอกลวง และคุณอาจสูญเสียทรัพย์สินของคุณไปอย่างถาวร
+warnings_externally_controlled_account = บัญชี %@ นี้อาจถูกควบคุมโดยผู้อื่น อย่าส่งเงินไปยังบัญชีนี้ เว้นแต่คุณจะแน่ใจว่าคุณเป็นผู้ควบคุม มิฉะนั้นคุณอาจสูญเสียทรัพย์สินของคุณไปอย่างถาวร
 
 # Sell
 

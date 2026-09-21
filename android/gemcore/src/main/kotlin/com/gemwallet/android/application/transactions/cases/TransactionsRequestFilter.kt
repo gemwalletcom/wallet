@@ -1,11 +1,11 @@
 package com.gemwallet.android.application.transactions.cases
 
+import com.gemwallet.android.ext.requireChain
+import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
-import com.gemwallet.android.ext.requireChain
-import com.gemwallet.android.ext.toPrimitives
 import uniffi.gemstone.GemActivityFilters
 import uniffi.gemstone.GemTransactionFilter
 import uniffi.gemstone.activityFilters
@@ -18,8 +18,7 @@ sealed interface TransactionsRequestFilter {
     data class States(val states: List<TransactionState>) : TransactionsRequestFilter
 
     companion object {
-        fun activity(chains: List<Chain>, filters: List<GemTransactionFilter>): List<TransactionsRequestFilter> =
-            activityFilters(chains.map { it.string }, filters).toRequestFilters()
+        fun activity(chains: List<Chain>, filters: List<GemTransactionFilter>): List<TransactionsRequestFilter> = activityFilters(chains.map { it.string }, filters).toRequestFilters()
 
         fun activityDefaults(): List<TransactionsRequestFilter> = activity(emptyList(), emptyList())
     }

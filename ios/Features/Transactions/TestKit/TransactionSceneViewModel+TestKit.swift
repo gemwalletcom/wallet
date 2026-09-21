@@ -20,6 +20,7 @@ public extension TransactionSceneViewModel {
         memo: String? = nil,
         metadata: AnyCodableValue? = nil,
         confirmationEtaSeconds: UInt32? = nil,
+        wallet: Wallet = .mock(),
         onHeaderAction: ((GemTransactionHeaderAction) -> Void)? = nil,
     ) -> TransactionSceneViewModel {
         let swapMetadata = swapToAsset.flatMap {
@@ -49,7 +50,7 @@ public extension TransactionSceneViewModel {
                 assets: swapToAsset.map { [asset, $0] } ?? [],
                 confirmationEtaSeconds: confirmationEtaSeconds,
             ),
-            walletId: .mock(),
+            wallet: wallet,
             service: GemTransactionDetailsService.mock(),
             onHeaderAction: onHeaderAction,
         )

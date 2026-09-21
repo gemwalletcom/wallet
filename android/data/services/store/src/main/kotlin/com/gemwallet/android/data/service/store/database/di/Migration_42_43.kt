@@ -7,7 +7,8 @@ object Migration_42_43 : Migration(42, 43) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("DROP VIEW IF EXISTS `asset_info`")
 
-        db.execSQL("""
+        db.execSQL(
+            """
             |CREATE VIEW `asset_info` AS SELECT
             |            asset.id as id,
             |            asset.name as name,
@@ -58,6 +59,7 @@ object Migration_42_43 : Migration(42, 43) {
             |        LEFT JOIN balances ON asset_wallet.account_address = balances.account_address AND asset_wallet.asset_id = balances.asset_id AND asset_wallet.wallet_id = balances.wallet_id
             |        LEFT JOIN prices ON asset.id = prices.asset_id AND prices.currency = (SELECT currency FROM session WHERE id = 1)
             |        LEFT JOIN asset_config ON asset_wallet.asset_id = asset_config.asset_id AND asset_wallet.wallet_id = asset_config.wallet_id
-            """.trimMargin())
+            """.trimMargin(),
+        )
     }
 }

@@ -17,11 +17,7 @@ import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingSmall
 
 @Composable
-fun NftListItem(
-    model: NftItemUIModel,
-    listPosition: ListPosition,
-    onClick: () -> Unit,
-) {
+fun NftListItem(model: NftItemUIModel, listPosition: ListPosition, onClick: () -> Unit) {
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         listPosition = listPosition,
@@ -42,9 +38,9 @@ fun NftListItem(
             )
         },
         trailing = {
-            model.collectionSize?.let { count ->
+            model.countText?.let { countText ->
                 Text(
-                    text = count.toString(),
+                    text = countText,
                     color = MaterialTheme.colorScheme.secondary,
                     style = MaterialTheme.typography.bodyMedium,
                 )

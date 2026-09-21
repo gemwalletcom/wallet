@@ -3,8 +3,8 @@ use crate::{
     jsonrpc::{SolanaAccountEncoding, SolanaProgramAccountsFilter, SolanaRpc, SolanaRpcConfig, SolanaTokenAccountsFilter},
     metaplex::{decode_metadata, metadata::Metadata},
     models::{
-        AccountData, EpochInfo, InflationRate, ResultTokenInfo, SupplyResult, TokenAccountInfo, ValueResult, VoteAccounts, balances::SolanaBalance,
-        blockhash::SolanaBlockhashResult, prioritization_fee::SolanaPrioritizationFee, simulation::SimulateTransactionResult, transaction::BlockTransactions,
+        AccountData, EpochInfo, InflationRate, ResultTokenInfo, SupplyResult, TokenAccountInfo, ValueResult, VoteAccounts, balances::SolanaBalance, blockhash::SolanaBlockhashResult, prioritization_fee::SolanaPrioritizationFee,
+        simulation::SimulateTransactionResult, transaction::BlockTransactions,
     },
 };
 #[cfg(feature = "rpc")]
@@ -38,12 +38,7 @@ impl<C: Client + Clone> SolanaClient<C> {
     }
 
     pub async fn get_token_accounts_by_owner(&self, owner: &str, program_id: &str) -> Result<ValueResult<Vec<TokenAccountInfo>>, JsonRpcError> {
-        self.client
-            .request(SolanaRpc::GetTokenAccountsByOwner(
-                owner.to_string(),
-                SolanaTokenAccountsFilter::ProgramId(program_id.to_string()),
-            ))
-            .await
+        self.client.request(SolanaRpc::GetTokenAccountsByOwner(owner.to_string(), SolanaTokenAccountsFilter::ProgramId(program_id.to_string()))).await
     }
 
     pub async fn get_epoch_info(&self) -> Result<EpochInfo, JsonRpcError> {
@@ -51,9 +46,7 @@ impl<C: Client + Clone> SolanaClient<C> {
     }
 
     pub async fn get_token_accounts_by_mint(&self, owner: &str, mint: &str) -> Result<ValueResult<Vec<TokenAccountInfo>>, JsonRpcError> {
-        self.client
-            .request(SolanaRpc::GetTokenAccountsByOwner(owner.to_string(), SolanaTokenAccountsFilter::Mint(mint.to_string())))
-            .await
+        self.client.request(SolanaRpc::GetTokenAccountsByOwner(owner.to_string(), SolanaTokenAccountsFilter::Mint(mint.to_string()))).await
     }
 
     pub async fn get_transaction<T: DeserializeOwned + Send>(&self, signature: &str) -> Result<Option<T>, JsonRpcError> {
@@ -88,23 +81,16 @@ impl<C: Client + Clone> SolanaClient<C> {
             .enumerate()
             .filter_map(|(index, account)| account.map(|account| (index, account)))
             .map(|(index, account)| {
-                let data = account
-                    .data
-                    .first()
-                    .ok_or_else(|| -> Box<dyn Error + Send + Sync> { "Missing Solana account data".into() })?;
+                let data = account.data.first().ok_or_else(|| -> Box<dyn Error + Send + Sync> { "Missing Solana account data".into() })?;
                 let bytes = decode_base64(data)?;
                 let address = Pubkey::from_str(&addresses[index])?;
-                AddressLookupTableAccount::from_account_data(address, &bytes)
-                    .map_err(|err| -> Box<dyn Error + Send + Sync> { format!("Invalid Solana address lookup table: {err}").into() })
+                AddressLookupTableAccount::from_account_data(address, &bytes).map_err(|err| -> Box<dyn Error + Send + Sync> { format!("Invalid Solana address lookup table: {err}").into() })
             })
             .collect()
     }
 
     pub async fn get_staking_balance(&self, address: &str) -> Result<Vec<TokenAccountInfo>, JsonRpcError> {
-        let filters = vec![SolanaProgramAccountsFilter::Memcmp {
-            offset: 12,
-            bytes: address.to_string(),
-        }];
+        let filters = vec![SolanaProgramAccountsFilter::Memcmp { offset: 12, bytes: address.to_string() }];
         self.client.request(SolanaRpc::GetProgramAccounts(STAKE_PROGRAM_ID.to_string(), filters)).await
     }
 
@@ -134,9 +120,7 @@ impl<C: Client + Clone> SolanaClient<C> {
     }
 
     pub async fn get_token_mint_info(&self, token_mint: &str) -> Result<ResultTokenInfo, JsonRpcError> {
-        self.client
-            .request(SolanaRpc::GetAccountInfo(token_mint.to_string(), SolanaAccountEncoding::JsonParsed))
-            .await
+        self.client.request(SolanaRpc::GetAccountInfo(token_mint.to_string(), SolanaAccountEncoding::JsonParsed)).await
     }
 
     pub(crate) async fn get_account_info_base64(&self, address: &str) -> Result<ValueResult<Option<AccountData>>, JsonRpcError> {
@@ -150,10 +134,7 @@ impl<C: Client + Clone> SolanaClient<C> {
 
     pub async fn get_metaplex_metadata(&self, token_mint: &str) -> Result<Metadata, Box<dyn Error + Send + Sync>> {
         let pubkey = Pubkey::from_str(token_mint)?;
-        let metadata_key = Metadata::find_pda(pubkey)
-            .ok_or::<Box<dyn Error + Send + Sync>>("metadata program account not found".into())?
-            .0
-            .to_string();
+        let metadata_key = Metadata::find_pda(pubkey).ok_or::<Box<dyn Error + Send + Sync>>("metadata program account not found".into())?.0.to_string();
         let value = self.get_account_info_base64(&metadata_key).await?.value.ok_or("Failed to get metadata")?;
         let data = value.data.first().ok_or("Missing metadata account data")?;
         decode_metadata(data).map_err(|_| "Failed to decode metadata".into())

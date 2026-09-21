@@ -1,17 +1,20 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import func Gemstone.contactAddressFields
-import enum Gemstone.GemContactAddressField
-import protocol Gemstone.GemManageContactServiceProtocol
-import protocol Gemstone.GemNameServiceProtocol
 import Components
 import Foundation
+import func Gemstone.contactAddressFields
+import class Gemstone.GemChainService
+import enum Gemstone.GemContactAddressField
+import struct Gemstone.GemContactAddressInput
+import protocol Gemstone.GemManageContactServiceProtocol
+import protocol Gemstone.GemNameServiceProtocol
 import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
+import UIKit
 
 @Observable
 @MainActor
@@ -35,16 +38,11 @@ public final class ManageContactAddressViewModel {
         }
     }
 
-    public struct Input: Sendable {
-        public let chain: Chain
-        public let address: String
-        public let memo: String?
-        public let replacingId: String?
-    }
-
+    private let contactId: String
     private let mode: Mode
+    private let chains: [Chain]
     private let service: any GemManageContactServiceProtocol
-    private let onComplete: (Input) -> Void
+    private let onComplete: (GemContactAddressInput) -> Void
 
     var addressInputModel: AddressInputViewModel
     var memo: String = ""
@@ -53,10 +51,13 @@ public final class ManageContactAddressViewModel {
     public init(
         service: any GemManageContactServiceProtocol,
         nameService: any GemNameServiceProtocol,
+        contactId: String,
         mode: Mode,
-        onComplete: @escaping (Input) -> Void,
+        onComplete: @escaping (GemContactAddressInput) -> Void,
     ) {
+        self.contactId = contactId
         self.mode = mode
+        chains = GemChainService.shared.getChains(query: .empty).map { Chain(core: $0) }
         self.service = service
         self.onComplete = onComplete
         title = Localized.Common.address
@@ -103,7 +104,7 @@ public final class ManageContactAddressViewModel {
 
     var networkSelectorModel: NetworkSelectorViewModel {
         NetworkSelectorViewModel(
-            state: .data(.plain(Chain.allCases)),
+            state: .data(.plain(chains)),
             selectedItems: [chain],
             selectionType: .checkmark,
             title: GemContactAddressField.network.title,
@@ -114,8 +115,9 @@ public final class ManageContactAddressViewModel {
         addressInputModel.isValid ? .normal : .disabled
     }
 
-    private var input: Input {
-        Input(
+    private var input: GemContactAddressInput {
+        GemContactAddressInput(
+            contactId: contactId,
             chain: chain,
             address: addressInputModel.resolvedAddress,
             memo: memo,
@@ -136,7 +138,12 @@ extension ManageContactAddressViewModel {
         isPresentingScanner = true
     }
 
-    func onHandleScan(_ result: String) {
+    func onSelectPaste() {
+        guard let text = UIPasteboard.general.string else { return }
+        onScan(text)
+    }
+
+    func onScan(_ result: String) {
         let scan = service.scannedAddress(input: result)
         addressInputModel.update(text: scan.address)
         if let scannedMemo = scan.memo {

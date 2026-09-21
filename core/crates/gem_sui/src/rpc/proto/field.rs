@@ -31,9 +31,6 @@ mod tests {
 
     #[test]
     fn test_field_mask_encode() {
-        assert_eq!(
-            FieldMask::from_paths(["digest", "effects.status"]).encode(),
-            hex::decode("0a066469676573740a0e656666656374732e737461747573").unwrap()
-        );
+        assert_eq!(FieldMask::from_paths(["digest", "effects.status"]).encode(), hex::decode("0a066469676573740a0e656666656374732e737461747573").unwrap());
     }
 }

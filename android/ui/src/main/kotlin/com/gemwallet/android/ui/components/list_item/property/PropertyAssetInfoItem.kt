@@ -23,11 +23,7 @@ import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.Asset
 
 @Composable
-fun PropertyAssetInfoItem(
-    asset: Asset,
-    availableAmount: String,
-    onMaxAmount: () -> Unit,
-) {
+fun PropertyAssetInfoItem(asset: Asset, availableAmount: String, onMaxAmount: () -> Unit) {
     ListItem(
         leading = { AssetIcon(asset) },
         title = { ListItemTitleText(asset.name) },
@@ -40,22 +36,16 @@ fun PropertyAssetInfoItem(
                     containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = alpha10),
                     contentColor = MaterialTheme.colorScheme.onSurface,
                 ),
-                contentPadding = PaddingValues(space0)
+                contentPadding = PaddingValues(space0),
             ) {
                 Text(text = stringResource(id = R.string.transfer_max))
             }
-        }
+        },
     )
 }
 
 @Composable
-fun PropertyAssetBalanceItem(
-    model: BalanceInfoUIModel,
-    title: String?,
-    modifier: Modifier = Modifier,
-    showChevron: Boolean = false,
-    listPosition: ListPosition = ListPosition.Single,
-) {
+fun PropertyAssetBalanceItem(model: BalanceInfoUIModel, title: String?, modifier: Modifier = Modifier, showChevron: Boolean = false, listPosition: ListPosition = ListPosition.Single) {
     ListItem(
         modifier = modifier,
         leading = { AssetIcon(model.asset) },
@@ -68,6 +58,6 @@ fun PropertyAssetBalanceItem(
                     DataBadgeChevron()
                 }
             }
-        }
+        },
     )
 }

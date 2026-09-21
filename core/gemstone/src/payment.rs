@@ -275,11 +275,7 @@ pub enum GemPaymentDestination {
 }
 
 fn payment_asset_id(transaction: &PaymentTransaction) -> AssetId {
-    transaction
-        .request
-        .as_ref()
-        .and_then(|request| request.asset_id.clone())
-        .unwrap_or_else(|| AssetId::from_chain(transaction.account.chain))
+    transaction.request.as_ref().and_then(|request| request.asset_id.clone()).unwrap_or_else(|| AssetId::from_chain(transaction.account.chain))
 }
 
 fn payment_destination(request: &GemPaymentRequest, assets: Vec<GemPaymentWalletAsset>) -> GemPaymentDestination {
@@ -587,10 +583,7 @@ mod tests {
             asset_id: Some(AssetId::from_token(Chain::Solana, "11111111111111111111111111111111")),
             ..GemPaymentRequest::mock()
         };
-        assert_eq!(
-            payment_destination(&unknown_token, vec![bitcoin, ethereum, solana_usdc]),
-            GemPaymentDestination::Unsupported
-        );
+        assert_eq!(payment_destination(&unknown_token, vec![bitcoin, ethereum, solana_usdc]), GemPaymentDestination::Unsupported);
     }
 
     #[test]
@@ -804,9 +797,9 @@ mod tests {
         );
         assert_eq!(
             decode_url("solana:https%3A%2F%2Fwww.constant-k.com%2Fck-txreq%2F%3Ftok%3DMjYyfG9wZXJhdG9yfGFubnVhbHx8MTc4NzUyOTMxOXw3M2FiNDFhZmIwNTAxZWNjNjE2Y2E4NmIxZGE5N2FlOWZjM2Y1OGMzZWZhMGYxMjNiOGI4ZGYzZmU2YzQ3ZmM4").unwrap(),
-            GemPayment::Link { link: GemPaymentLink::SolanaPay {
-                url: CONSTANT_K.to_string(),
-            } }
+            GemPayment::Link {
+                link: GemPaymentLink::SolanaPay { url: CONSTANT_K.to_string() }
+            }
         );
         assert_eq!(
             decode_url("https://pay.walletconnect.com/?pid=pay_123").unwrap(),

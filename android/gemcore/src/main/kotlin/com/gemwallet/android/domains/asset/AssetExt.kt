@@ -14,9 +14,6 @@ import uniffi.gemstone.assetText
 val Asset.chain: Chain
     get() = id.chain
 
-val Asset.title: String
-    get() = "${id.chain.asset().name} (${symbol})"
-
 val Asset.stakeChain: StakeChain?
     get() = StakeChain.byChain(id.chain)
 

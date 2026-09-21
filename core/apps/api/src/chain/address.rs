@@ -8,41 +8,20 @@ use primitives::{AddressBalances, AssetBalance, ChainAddress, Transaction};
 use super::ChainClient;
 
 #[get("/chain/address/<chain>/<address>/balances")]
-pub async fn get_balances(
-    _permission: PermissionChainRead,
-    chain: ChainParam,
-    address: AddressParam,
-    client: &State<ChainClient>,
-) -> Result<ApiResponse<AddressBalances>, ApiError> {
+pub async fn get_balances(_permission: PermissionChainRead, chain: ChainParam, address: AddressParam, client: &State<ChainClient>) -> Result<ApiResponse<AddressBalances>, ApiError> {
     let request = ChainAddress::new(chain.0, address.0);
-    let (coin, staking, assets) = futures::try_join!(
-        client.get_balances_coin(request.clone()),
-        client.get_balances_staking(request.clone()),
-        client.get_balances_assets(request),
-    )?;
+    let (coin, staking, assets) = futures::try_join!(client.get_balances_coin(request.clone()), client.get_balances_staking(request.clone()), client.get_balances_assets(request),)?;
     Ok(AddressBalances { coin, staking, assets }.into())
 }
 
 #[get("/chain/address/<chain>/<address>/assets")]
-pub async fn get_assets(
-    _permission: PermissionChainRead,
-    chain: ChainParam,
-    address: AddressParam,
-    client: &State<ChainClient>,
-) -> Result<ApiResponse<Vec<AssetBalance>>, ApiError> {
+pub async fn get_assets(_permission: PermissionChainRead, chain: ChainParam, address: AddressParam, client: &State<ChainClient>) -> Result<ApiResponse<Vec<AssetBalance>>, ApiError> {
     let request = ChainAddress::new(chain.0, address.0);
     Ok(client.get_balances_assets(request).await?.into())
 }
 
 #[get("/chain/address/<chain>/<address>/transactions?<from_timestamp>&<limit>")]
-pub async fn get_transactions(
-    _permission: PermissionChainRead,
-    chain: ChainParam,
-    address: AddressParam,
-    from_timestamp: Option<u64>,
-    limit: QueryLimitParam,
-    client: &State<ChainClient>,
-) -> Result<ApiResponse<Vec<Transaction>>, ApiError> {
+pub async fn get_transactions(_permission: PermissionChainRead, chain: ChainParam, address: AddressParam, from_timestamp: Option<u64>, limit: QueryLimitParam, client: &State<ChainClient>) -> Result<ApiResponse<Vec<Transaction>>, ApiError> {
     let request = ChainAddress::new(chain.0, address.0);
     Ok(client.get_transactions(request, from_timestamp, limit.0).await?.into())
 }

@@ -72,16 +72,12 @@ mod tests {
 
     #[test]
     fn test_decode_approval() {
-        let approval =
-            decode_approval_hex("095ea7b3000000000000000000000000019e353a35efaa8e27c2a602a791ae1b19d9c9fa0000000000000000000000000000000000000000000000000000000000000000")
-                .unwrap();
+        let approval = decode_approval_hex("095ea7b3000000000000000000000000019e353a35efaa8e27c2a602a791ae1b19d9c9fa0000000000000000000000000000000000000000000000000000000000000000").unwrap();
 
         assert_eq!(approval.spender.encode(), "TA7mCjHFfo68FG3wc6pDCeRGbJSPZkBfL7");
         assert_eq!(approval.value, BigUint::from(0u32));
 
-        let prefixed_approval =
-            decode_approval_hex("095ea7b3000000000000000000000041c148af9b50bc03cc0c616cd85c66aae9bd90cd80ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
-                .unwrap();
+        let prefixed_approval = decode_approval_hex("095ea7b3000000000000000000000041c148af9b50bc03cc0c616cd85c66aae9bd90cd80ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap();
 
         assert_eq!(prefixed_approval.spender.encode(), "TTbCVPfUZmPhrB9sYC8GKgGBQQEdZovkmS");
         assert_eq!(prefixed_approval.value, BigUint::from_bytes_be(&[0xff; ABI_WORD_LEN]));

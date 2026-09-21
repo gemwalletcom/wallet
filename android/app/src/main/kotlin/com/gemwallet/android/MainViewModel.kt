@@ -1,22 +1,23 @@
 package com.gemwallet.android
 
+import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
 import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
-import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.data.services.gemstone.pricealerts.MigratePriceAlertsPreference
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.model.AuthState
-import android.util.Log
 import com.gemwallet.android.services.MigrateV3KeystoreService
-import kotlinx.coroutines.CoroutineDispatcher
-import uniffi.gemstone.GemWalletService
-import uniffi.gemstone.GemWalletServiceInterface
+import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.Appearance
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -32,6 +33,9 @@ import uniffi.gemstone.GemAppStartFailure
 import uniffi.gemstone.GemAppStartServiceInterface
 import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemPaymentException
+import uniffi.gemstone.GemServiceException
+import uniffi.gemstone.GemWalletService
+import uniffi.gemstone.GemWalletServiceInterface
 import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 
@@ -47,6 +51,7 @@ class MainViewModel @Inject constructor(
     private val lockTimer: LockTimer,
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val isInitialAuthRequired = userConfig.authRequired()
@@ -55,7 +60,7 @@ class MainViewModel @Inject constructor(
         MainUIState(
             initialAuth = if (isInitialAuthRequired) AuthState.Required else AuthState.Success,
             hasUnlockedApp = !isInitialAuthRequired,
-        )
+        ),
     )
     val uiState: StateFlow<MainUIState> = _uiState.asStateFlow()
 
@@ -102,6 +107,16 @@ class MainViewModel @Inject constructor(
                                     ?: state.copy(isScanErrorVisible = true)
                             }
                         }
+                    } catch (error: GemServiceException) {
+                        val input = when (val pending = pendingNavigationCoordinator.pendingNavigation.value) {
+                            is PendingNavigation.Loading -> pending.input
+                            else -> pending as? PendingNavigation.Input
+                        }
+                        pendingNavigationCoordinator.clear()
+                        when (input?.code) {
+                            null -> Log.e("MainViewModel", "notification navigation failed", error)
+                            else -> _uiState.update { it.copy(navigationError = error.errorText()) }
+                        }
                     }
                 }
         }
@@ -109,7 +124,11 @@ class MainViewModel @Inject constructor(
 
     fun isAuthRequired(): Boolean = userConfig.authRequired()
 
+    private var isMaintained = false
+
     internal fun maintain() {
+        if (isMaintained) return
+        isMaintained = true
         viewModelScope.launch(ioDispatcher) { appStartService.run().forEach(::logAppStartFailure) }
         viewModelScope.launch(ioDispatcher) {
             migratePriceAlertsPreference()
@@ -187,7 +206,7 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun handleIntent(intent: Intent) = pendingNavigationCoordinator.handleIntent(intent)
+    fun pendIntent(intent: Intent) = pendingNavigationCoordinator.pendIntent(intent)
 
     fun consumePendingNavigation() = pendingNavigationCoordinator.clear()
 

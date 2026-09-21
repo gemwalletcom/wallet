@@ -12,11 +12,7 @@ use crate::models::{Message, TransactionResponse};
 
 pub fn map_transaction_broadcast(response: &BroadcastResponse) -> Result<String, Box<dyn Error + Sync + Send>> {
     if let Some(tx_response) = &response.tx_response {
-        if tx_response.code != 0 {
-            Err(tx_response.raw_log.clone().into())
-        } else {
-            Ok(tx_response.txhash.clone())
-        }
+        if tx_response.code != 0 { Err(tx_response.raw_log.clone().into()) } else { Ok(tx_response.txhash.clone()) }
     } else if let Some(message) = &response.message {
         Err(format!("Broadcast error: {}", message).into())
     } else {
@@ -62,9 +58,7 @@ pub fn map_transaction(cosmos_chain: CosmosChain, transaction: TransactionRespon
         Some(coin) => BigUint::try_from(coin.amount.clone()).ok()?,
         None => BigUint::from(get_base_fee(cosmos_chain)),
     };
-    let fee_asset_id = fee_coin
-        .as_ref()
-        .map_or_else(|| native_asset_id.clone(), |coin| asset_id_from_denom(chain, &coin.denom, &default_denom));
+    let fee_asset_id = fee_coin.as_ref().map_or_else(|| native_asset_id.clone(), |coin| asset_id_from_denom(chain, &coin.denom, &default_denom));
 
     let memo = if body.memo.is_empty() { None } else { Some(body.memo.clone()) };
 

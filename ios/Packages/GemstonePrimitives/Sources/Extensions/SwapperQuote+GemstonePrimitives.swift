@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import func Gemstone.swapQuote
 import struct Gemstone.SwapperQuote
 import struct Gemstone.SwapQuote
+import func Gemstone.swapQuote
 
 public extension Gemstone.SwapperQuote {
     var swapQuote: Gemstone.SwapQuote {

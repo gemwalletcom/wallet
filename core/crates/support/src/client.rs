@@ -5,10 +5,7 @@ use crate::{
 };
 use cacher::CacherClient;
 use localizer::LanguageLocalizer;
-use primitives::{
-    Device, GorushNotification, PushNotification, PushNotificationTypes, StreamEvent, SupportMessage, SupportStreamEvent, SupportTypingStatus, device_stream_channel,
-    push_notification::PushNotificationSupport,
-};
+use primitives::{Device, GorushNotification, PushNotification, PushNotificationTypes, StreamEvent, SupportMessage, SupportStreamEvent, SupportTypingStatus, device_stream_channel, push_notification::PushNotificationSupport};
 use std::error::Error;
 use storage::database::devices::DevicesStore;
 use storage::{Database, OptionalExtension};
@@ -28,11 +25,7 @@ pub struct SupportClient {
 
 impl SupportClient {
     pub fn new(database: Database, stream_producer: StreamProducer, cacher: CacherClient) -> Self {
-        Self {
-            database,
-            stream_producer,
-            cacher,
-        }
+        Self { database, stream_producer, cacher }
     }
 
     pub fn get_device(&self, device_id: &str) -> Result<Option<Device>, Box<dyn Error + Send + Sync>> {
@@ -67,10 +60,7 @@ impl SupportClient {
         };
 
         self.publish_event(device, StreamEvent::Support(SupportStreamEvent::Typing(typing))).await?;
-        Ok(SupportWebhookResult {
-            notifications: 0,
-            stream_events: 1,
-        })
+        Ok(SupportWebhookResult { notifications: 0, stream_events: 1 })
     }
 
     fn build_notification(device: &Device, payload: &ChatwootWebhookPayload) -> Option<GorushNotification> {
@@ -134,8 +124,7 @@ mod tests {
 
     #[test]
     fn test_build_notification_private_message_created() {
-        let payload: ChatwootWebhookPayload =
-            serde_json::from_str(r#"{"event": "message_created", "message_type": "outgoing", "private": true, "content": "internal note"}"#).unwrap();
+        let payload: ChatwootWebhookPayload = serde_json::from_str(r#"{"event": "message_created", "message_type": "outgoing", "private": true, "content": "internal note"}"#).unwrap();
 
         let notification = SupportClient::build_notification(&Device::mock(), &payload);
 

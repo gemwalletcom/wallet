@@ -23,6 +23,10 @@ public final class GemstoneAssetStore: GemAssetStore, @unchecked Sendable {
         try assetStore.getAssets(for: assetIds).map(\.id.identifier)
     }
 
+    public func getAssetBasics(assetIds: [Gemstone.AssetId]) async throws -> [Gemstone.AssetBasic] {
+        try assetStore.getAssetBasics(for: assetIds).map { $0.toGem() }
+    }
+
     public func getAssets(assetIds: [Gemstone.AssetId]) throws -> [Gemstone.Asset] {
         try assetStore.getAssets(for: assetIds).map { $0.toGem() }
     }

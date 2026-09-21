@@ -18,7 +18,7 @@ impl FailureReason {
         if let Some(error) = error.downcast_ref::<ClientError>() {
             return match error {
                 ClientError::Timeout => Self::Timeout,
-                ClientError::Http { status, .. } => Self::Status(*status),
+                ClientError::Http { status, .. } | ClientError::Response { status, .. } => Self::Status(*status),
                 ClientError::Network(_) | ClientError::Serialization(_) => Self::RequestError,
             };
         }
@@ -41,10 +41,7 @@ mod tests {
             (ClientError::Timeout, FailureReason::Timeout),
             (ClientError::Http { status: 503, body: Vec::new() }, FailureReason::Status(503)),
             (ClientError::Network("request failed".to_string()), FailureReason::RequestError),
-            (
-                ClientError::Serialization("missing field `result` at line 1 column 2".to_string()),
-                FailureReason::RequestError,
-            ),
+            (ClientError::Serialization("missing field `result` at line 1 column 2".to_string()), FailureReason::RequestError),
         ];
 
         for (error, expected) in cases {

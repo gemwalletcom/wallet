@@ -113,11 +113,7 @@ pub(super) fn swift_random_key(route: &MayanSwiftQuote) -> Result<[u8; 32], Swap
 }
 
 pub(super) fn swift_payload_type(custom_payload: Option<&[u8]>) -> u8 {
-    if custom_payload.is_some() {
-        SWIFT_PAYLOAD_TYPE_CUSTOM_PAYLOAD
-    } else {
-        SWIFT_PAYLOAD_TYPE_DEFAULT
-    }
+    if custom_payload.is_some() { SWIFT_PAYLOAD_TYPE_CUSTOM_PAYLOAD } else { SWIFT_PAYLOAD_TYPE_DEFAULT }
 }
 
 pub(super) fn swift_custom_payload_hash(custom_payload: Option<&[u8]>) -> Result<[u8; 32], SwapperError> {

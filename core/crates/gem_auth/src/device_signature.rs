@@ -203,8 +203,7 @@ mod tests {
     // RFC 8032 Ed25519 test vector (shared with the iOS/Android device-key fixtures).
     const FIXTURE_PRIVATE_KEY_HEX: &str = "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60";
     const FIXTURE_PUBLIC_KEY_HEX: &str = "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a";
-    const FIXTURE_DEVICE_AUTH_SIGNATURE_HEX: &str =
-        "121bb28074b00114a7b267ae8a6292c9ffe56db6254b0c65389fd726dbdeffe95b15e6f48d3a3980f7a983da44a3de24c0771d0d8723cef2ced6d08d343a2101";
+    const FIXTURE_DEVICE_AUTH_SIGNATURE_HEX: &str = "121bb28074b00114a7b267ae8a6292c9ffe56db6254b0c65389fd726dbdeffe95b15e6f48d3a3980f7a983da44a3de24c0771d0d8723cef2ced6d08d343a2101";
 
     #[test]
     fn test_build_device_auth_header_parity() {

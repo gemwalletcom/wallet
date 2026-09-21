@@ -15,12 +15,7 @@ data class ChartHeaderUIModel(
     val type: GemChartValueType = GemChartValueType.PRICE,
 ) {
     companion object {
-        fun build(
-            header: GemChartHeader,
-            type: GemChartValueType = GemChartValueType.PRICE,
-            timestamp: Long? = null,
-            dateFormatter: (Long) -> String = { "" },
-        ): ChartHeaderUIModel = ChartHeaderUIModel(
+        fun build(header: GemChartHeader, type: GemChartValueType = GemChartValueType.PRICE, timestamp: Long? = null, dateFormatter: (Long) -> String = { "" }): ChartHeaderUIModel = ChartHeaderUIModel(
             priceText = header.value.text(),
             priceTone = header.value.tone,
             changeText = header.change?.text(),

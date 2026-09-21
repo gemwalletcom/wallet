@@ -1,23 +1,22 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels
 
-import com.gemwallet.android.ext.toGem
-import uniffi.gemstone.GemAmountException
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountDataProvider
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountProviderFactory
 import com.gemwallet.android.model.AssetInfo
-import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.testkit.mockAmountParamsTransfer
 import com.gemwallet.android.testkit.mockAssetCosmos
-import com.gemwallet.android.testkit.mockGemAmountInput
-import com.gemwallet.android.testkit.mockGemAssetBalance
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetPriceInfo
+import com.gemwallet.android.testkit.mockGemAmountInput
+import com.gemwallet.android.testkit.mockGemAssetBalance
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.Currency
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -38,23 +37,23 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.math.BigInteger
-import com.wallet.core.primitives.Currency
+import uniffi.gemstone.GemAmountException
 import uniffi.gemstone.GemAmountInput
 import uniffi.gemstone.GemAmountInputType
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemAssetBalance
+import uniffi.gemstone.GemTransferData
+import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AmountViewModelTest {
-
 
     private val testDispatcher = StandardTestDispatcher()
     private val asset = mockAssetCosmos()
 
     private val assetInfoFlow = MutableStateFlow<AssetInfo?>(
-        mockAssetInfo(asset = asset, price = mockAssetPriceInfo(price = 10.0))
+        mockAssetInfo(asset = asset, price = mockAssetPriceInfo(price = 10.0)),
     )
     private val inputFlow = MutableStateFlow<GemAmountInput?>(mockGemAmountInput(HundredAtom))
 

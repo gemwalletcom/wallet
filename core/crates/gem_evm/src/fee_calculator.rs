@@ -29,12 +29,7 @@ impl FeeCalculator {
         Self
     }
 
-    pub fn calculate_priority_fees(
-        &self,
-        fee_history: &EthereumFeeHistory,
-        priorities: &[FeePriority],
-        min_priority_fee: BigInt,
-    ) -> Result<Vec<PriorityFeeValue>, Box<dyn std::error::Error + Sync + Send>> {
+    pub fn calculate_priority_fees(&self, fee_history: &EthereumFeeHistory, priorities: &[FeePriority], min_priority_fee: BigInt) -> Result<Vec<PriorityFeeValue>, Box<dyn std::error::Error + Sync + Send>> {
         if fee_history.reward.is_empty() {
             return Err("fee_history.reward is empty".into());
         }
@@ -150,10 +145,6 @@ mod tests {
         };
 
         assert!(calculator.calculate_priority_fees(&empty_history, &[FeePriority::Normal], BigInt::from(100)).is_err());
-        assert!(
-            calculator
-                .calculate_priority_fees(&EthereumFeeHistory::mock_ethereum(), &[FeePriority::Normal], BigInt::from(100))
-                .is_err()
-        );
+        assert!(calculator.calculate_priority_fees(&EthereumFeeHistory::mock_ethereum(), &[FeePriority::Normal], BigInt::from(100)).is_err());
     }
 }

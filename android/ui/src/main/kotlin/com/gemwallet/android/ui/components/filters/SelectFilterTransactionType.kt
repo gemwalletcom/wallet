@@ -10,11 +10,7 @@ import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 
-fun LazyListScope.selectFilterTransactionType(
-    filters: List<TransactionFilterUIModel>,
-    filter: List<TransactionFilterUIModel>,
-    onFilter: (TransactionFilterUIModel) -> Unit,
-) {
+fun LazyListScope.selectFilterTransactionType(filters: List<TransactionFilterUIModel>, filter: List<TransactionFilterUIModel>, onFilter: (TransactionFilterUIModel) -> Unit) {
     item {
         SubheaderItem(R.string.filter_types)
     }

@@ -14,10 +14,7 @@ import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.models.ListPosition
 
 @Composable
-fun CollectionsPreviewSection(
-    onAction: (CollectionsPreviewAction) -> Unit,
-    viewModel: NftListViewModels = hiltViewModel(),
-) {
+fun CollectionsPreviewSection(onAction: (CollectionsPreviewAction) -> Unit, viewModel: NftListViewModels = hiltViewModel()) {
     val collections by viewModel.collections.collectAsStateWithLifecycle()
 
     Column {

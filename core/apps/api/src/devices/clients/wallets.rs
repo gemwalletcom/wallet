@@ -23,14 +23,11 @@ impl WalletsClient {
 
         Ok(rows
             .into_iter()
-            .fold(
-                BTreeMap::<String, (WalletId, Vec<Chain>)>::new(),
-                |mut acc, (wallet_row, subscription_row, _address_row)| {
-                    let wallet_id = wallet_row.wallet_id.0.clone();
-                    acc.entry(wallet_id.id()).or_insert((wallet_id, Vec::new())).1.push(subscription_row.chain.0);
-                    acc
-                },
-            )
+            .fold(BTreeMap::<String, (WalletId, Vec<Chain>)>::new(), |mut acc, (wallet_row, subscription_row, _address_row)| {
+                let wallet_id = wallet_row.wallet_id.0.clone();
+                acc.entry(wallet_id.id()).or_insert((wallet_id, Vec::new())).1.push(subscription_row.chain.0);
+                acc
+            })
             .into_values()
             .map(|(wallet_id, mut chains)| {
                 chains.sort_by(|a, b| a.as_ref().cmp(b.as_ref()));
@@ -54,10 +51,7 @@ impl WalletsClient {
                 .insert(subscription.chain.0);
         }
 
-        Ok(subscriptions
-            .into_values()
-            .map(|(wallet_id, source, addresses)| wallet_subscription(wallet_id, source, addresses))
-            .collect())
+        Ok(subscriptions.into_values().map(|(wallet_id, source, addresses)| wallet_subscription(wallet_id, source, addresses)).collect())
     }
 
     pub fn get_wallet_overviews(&self, device_row_id: i32) -> Result<Vec<AdminWalletOverview>, Box<dyn Error + Send + Sync>> {
@@ -89,10 +83,7 @@ impl WalletsClient {
                         .transactions()?
                         .count_transactions_by_addresses(wallet.addresses.into_iter().collect(), chains.iter().map(|chain| chain.as_ref().to_string()).collect())?,
                     fiat_transaction_count: self.database.fiat()?.count_fiat_transactions_by_device_and_wallet_id(device_row_id, wallet.wallet_id)?,
-                    nft_count: self
-                        .database
-                        .nft()?
-                        .count_nft_assets_by_address_ids(wallet.address_ids.into_iter().collect(), chains.clone())?,
+                    nft_count: self.database.nft()?.count_nft_assets_by_address_ids(wallet.address_ids.into_iter().collect(), chains.clone())?,
                     chains,
                     id: wallet.identifier,
                     source: wallet.source,
@@ -145,11 +136,7 @@ impl WalletsClient {
 
             let subscriptions: Vec<(i32, Chain, String)> = wallet_subscriptions
                 .iter()
-                .filter_map(|ws| {
-                    wallet_ids
-                        .get(&ws.wallet_id.id())
-                        .map(|&wallet_id| ws.chain_addresses().into_iter().map(move |ca| (wallet_id, ca.chain, ca.address)))
-                })
+                .filter_map(|ws| wallet_ids.get(&ws.wallet_id.id()).map(|&wallet_id| ws.chain_addresses().into_iter().map(move |ca| (wallet_id, ca.chain, ca.address))))
                 .flatten()
                 .collect();
 
@@ -195,10 +182,7 @@ fn wallet_subscription(wallet_id: WalletId, source: WalletSource, addresses: BTr
     WalletSubscription {
         wallet_id,
         source: Some(source),
-        subscriptions: addresses
-            .into_iter()
-            .map(|(address, chains)| AddressChains::new(address, chains.into_iter().collect()))
-            .collect(),
+        subscriptions: addresses.into_iter().map(|(address, chains)| AddressChains::new(address, chains.into_iter().collect())).collect(),
     }
 }
 

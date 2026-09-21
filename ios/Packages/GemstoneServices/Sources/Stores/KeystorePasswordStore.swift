@@ -3,8 +3,8 @@
 import Foundation
 import enum Gemstone.GemKeystoreAuthentication
 import protocol Gemstone.GemKeystorePassword
-import typealias Gemstone.WalletId
 import enum Gemstone.GemServiceError
+import typealias Gemstone.WalletId
 import Primitives
 
 public final class GemstoneKeystorePassword: GemKeystorePassword, @unchecked Sendable {

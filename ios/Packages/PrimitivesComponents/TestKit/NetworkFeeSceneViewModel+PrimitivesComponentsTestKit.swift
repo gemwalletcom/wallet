@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import enum Gemstone.GemConfirmFeeSelection
 import struct Gemstone.GemFeeOptionItem
 import struct Gemstone.GemFeeRateRows
-import enum Gemstone.GemConfirmFeeSelection
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesTestKit

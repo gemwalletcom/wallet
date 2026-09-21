@@ -8,22 +8,10 @@ const CREATE_IDEMPOTENT_DISCRIMINANT: u8 = 1;
 
 pub fn create_associated_token_account_idempotent(payer: &Pubkey, wallet: &Pubkey, mint: &Pubkey, token_program: &Pubkey) -> Result<Instruction> {
     let associated_token_address = get_associated_token_address_with_program_id(wallet, mint, token_program)?;
-    Ok(create_associated_token_account_idempotent_with_address(
-        payer,
-        &associated_token_address,
-        wallet,
-        mint,
-        token_program,
-    ))
+    Ok(create_associated_token_account_idempotent_with_address(payer, &associated_token_address, wallet, mint, token_program))
 }
 
-pub fn create_associated_token_account_idempotent_with_address(
-    payer: &Pubkey,
-    associated_token_address: &Pubkey,
-    wallet: &Pubkey,
-    mint: &Pubkey,
-    token_program: &Pubkey,
-) -> Instruction {
+pub fn create_associated_token_account_idempotent_with_address(payer: &Pubkey, associated_token_address: &Pubkey, wallet: &Pubkey, mint: &Pubkey, token_program: &Pubkey) -> Instruction {
     Instruction {
         program_id: associated_token_program(),
         accounts: vec![

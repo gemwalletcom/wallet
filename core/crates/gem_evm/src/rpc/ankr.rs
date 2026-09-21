@@ -10,10 +10,7 @@ use super::{EVMIndexerClient, TransactionReference};
 impl<C: Transport + Clone> EVMIndexerClient for AnkrClient<C> {
     async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<TransactionReference>, Box<dyn Error + Send + Sync>> {
         let (transactions, token_transfers) = futures::try_join!(self.get_transactions(address, limit), self.get_token_transfers(address, limit))?;
-        let hashes = transactions
-            .into_iter()
-            .map(|transaction| transaction.hash)
-            .chain(token_transfers.into_iter().map(|transfer| transfer.transaction_hash));
+        let hashes = transactions.into_iter().map(|transaction| transaction.hash).chain(token_transfers.into_iter().map(|transfer| transfer.transaction_hash));
         let mut seen = HashSet::new();
         Ok(hashes.filter(|hash| seen.insert(hash.clone())).map(|hash| TransactionReference::new(hash, None)).collect())
     }
@@ -60,9 +57,6 @@ mod tests {
                 TransactionReference::new("0x1111111111111111111111111111111111111111111111111111111111111111".to_string(), None)
             ]
         );
-        assert_eq!(
-            balances,
-            vec![("0x227D920e20eBAc8A40E7D6431B7d724Bb64D7245".to_string(), BigUint::from(3_371_908_000_000_000_000u64))]
-        );
+        assert_eq!(balances, vec![("0x227D920e20eBAc8A40E7D6431B7d724Bb64D7245".to_string(), BigUint::from(3_371_908_000_000_000_000u64))]);
     }
 }

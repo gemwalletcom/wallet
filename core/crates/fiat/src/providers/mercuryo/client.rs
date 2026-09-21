@@ -64,11 +64,7 @@ impl MercuryoClient {
     }
 
     pub async fn get_currency_limits(&self, from: String, to: String) -> Result<Response<HashMap<String, CurrencyLimits>>, ClientError> {
-        let target = MercuryoTarget::CurrencyLimits {
-            from,
-            to,
-            widget_id: self.widget_id.clone(),
-        };
+        let target = MercuryoTarget::CurrencyLimits { from, to, widget_id: self.widget_id.clone() };
         self.client.get(target).await
     }
 }

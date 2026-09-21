@@ -34,8 +34,16 @@ class ContactsViewModelTest {
 
     private val contact = Contact(id = "1", name = "Alice", description = null, imageUrl = null, createdAt = 0L, updatedAt = 0L)
 
-    private fun model(service: GemContactServiceInterface): ContactsViewModel =
-        ContactsViewModel(mockk<GetContacts>(relaxed = true) { every { getContacts() } returns flowOf(emptyList()) }, service, dispatcher, mockk<Context> { every { getString(any()) } returns "Error"; every { getString(any(), *anyVararg()) } returns "Error" })
+    private fun model(service: GemContactServiceInterface): ContactsViewModel = ContactsViewModel(
+        mockk<GetContacts>(relaxed = true) { every { getContacts() } returns flowOf(emptyList()) },
+        service,
+        dispatcher,
+        mockk<Context> {
+            every { getString(any()) } returns "Error"
+            every { getString(any(), *anyVararg()) } returns
+                "Error"
+        },
+    )
 
     @Test
     fun `a deleted contact leaves no error`() = runTest(dispatcher) {

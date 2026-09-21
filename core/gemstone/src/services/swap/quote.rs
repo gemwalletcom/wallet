@@ -1,3 +1,4 @@
+use crate::services::amount::model::GemNumberFormat;
 use std::sync::Arc;
 
 use primitives::{Asset, AssetId, Chain, Currency};
@@ -8,9 +9,8 @@ use super::slippage::{GemSlippageSelection, GemSlippageSession};
 use super::model::{GemSwapPairSelection, GemSwapSide};
 use super::rules;
 use super::{GemSwapPairSuggestion, GemSwapService, GemSwapSession, GemSwapTransfer};
-use crate::config::swap_config::{get_default_slippage, get_swap_config};
+use crate::config::swap_config::get_default_slippage;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
-use crate::models::swap::GemSlippageCheck;
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemPreferencesService;
@@ -29,13 +29,7 @@ pub struct GemSwapQuoteService {
 #[uniffi::export]
 impl GemSwapQuoteService {
     #[uniffi::constructor]
-    pub fn new(
-        swap: Arc<GemSwapService>,
-        preferences: Arc<GemPreferencesService>,
-        balances: Arc<GemBalanceService>,
-        stream: Arc<GemStreamSubscriptionService>,
-        session: Arc<GemWalletSessionService>,
-    ) -> Self {
+    pub fn new(swap: Arc<GemSwapService>, preferences: Arc<GemPreferencesService>, balances: Arc<GemBalanceService>, stream: Arc<GemStreamSubscriptionService>, session: Arc<GemWalletSessionService>) -> Self {
         Self {
             swap,
             preferences,
@@ -81,8 +75,8 @@ impl GemSwapQuoteService {
         rules::slippage_percent(bps)
     }
 
-    pub fn slippage_check(&self, bps: u32) -> GemSlippageCheck {
-        rules::slippage_check(bps, &get_swap_config())
+    pub fn slippage_percent_text(&self, bps: u32, format: GemNumberFormat) -> String {
+        rules::slippage_percent_text(bps, &format.decimal_separator)
     }
 
     pub fn default_slippage(&self, chain: Chain) -> SwapperSlippage {
@@ -102,8 +96,9 @@ impl GemSwapQuoteService {
         self.swap.get_quotes(wallet, from_asset, to_asset, value, use_max_amount, slippage_bps).await
     }
 
-    pub async fn suggest_pair(&self, pay_asset_id: Option<AssetId>) -> Result<Option<GemSwapPairSuggestion>, GemServiceError> {
-        self.swap.suggest_pair(self.session.current_wallet().await?, pay_asset_id).await
+    pub async fn suggest_pair(&self, pay_asset_id: Option<AssetId>) -> Option<GemSwapPairSuggestion> {
+        let Ok(wallet) = self.session.current_wallet().await else { return None };
+        self.swap.suggest_pair(wallet, pay_asset_id).await.ok().flatten()
     }
 
     pub async fn get_transfer(&self, quote: Quote) -> Result<GemSwapTransfer, SwapperError> {

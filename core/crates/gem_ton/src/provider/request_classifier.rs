@@ -27,10 +27,7 @@ mod tests {
             ("POST", "/api/v2/sendBocReturnHash", ChainRequestType::Broadcast),
             ("GET", "/api/v2/sendBocReturnHash", ChainRequestType::Unknown),
         ] {
-            assert_eq!(
-                BroadcastProvider.classify_request(ChainRequest::new(ChainRequestProtocol::Http, method, path, b"{}")),
-                expected
-            );
+            assert_eq!(BroadcastProvider.classify_request(ChainRequest::new(ChainRequestProtocol::Http, method, path, b"{}")), expected);
         }
     }
 }

@@ -27,11 +27,7 @@ impl<C: Transport + Clone> Client<C> {
 
     pub async fn get_token_balances(&self, address: &str) -> Result<Vec<(String, BigUint)>, Box<dyn Error + Send + Sync>> {
         let balances: TokenBalances = self.client.request(AlchemyRpc::GetTokenBalances { address: address.to_string() }).await?;
-        Ok(balances
-            .token_balances
-            .into_iter()
-            .filter_map(|balance| balance.token_balance.map(|value| (balance.contract_address, value)))
-            .collect())
+        Ok(balances.token_balances.into_iter().filter_map(|balance| balance.token_balance.map(|value| (balance.contract_address, value))).collect())
     }
 }
 
@@ -53,13 +49,7 @@ mod tests {
 
         let transfers = client.get_asset_transfers(TransferDirection::From, "0x123", 2).await.unwrap();
 
-        assert_eq!(
-            transfers,
-            vec![Transfer {
-                block_num: 2,
-                hash: "0xout".to_string()
-            }]
-        );
+        assert_eq!(transfers, vec![Transfer { block_num: 2, hash: "0xout".to_string() }]);
     }
 
     #[tokio::test]

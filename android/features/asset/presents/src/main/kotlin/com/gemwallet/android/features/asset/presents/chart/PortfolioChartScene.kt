@@ -25,6 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.asset.presents.localization.stringRes
 import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.PortfolioChartViewModel
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
@@ -38,10 +39,10 @@ import uniffi.gemstone.PortfolioChartType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PortfolioChartScene(
-    onCancel: () -> Unit,
-    viewModel: PortfolioChartViewModel = hiltViewModel(),
-) {
+fun PortfolioChartScene(onCancel: () -> Unit, viewModel: PortfolioChartViewModel = hiltViewModel()) {
+    val refreshIntervalMillis by viewModel.refreshIntervalMillis.collectAsStateWithLifecycle()
+    RefreshOnTimer(refreshIntervalMillis, viewModel::refresh)
+
     val statistics by viewModel.statistics.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val selectedType by viewModel.selectedType.collectAsStateWithLifecycle()
@@ -131,4 +132,3 @@ private fun PortfolioChart(viewModel: PortfolioChartViewModel) {
         periods = periods,
     )
 }
-

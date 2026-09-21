@@ -81,20 +81,10 @@ fn build_swap_forward_transaction(route: &MayanMonoChainQuote, deposit_call: &Ev
     )?;
 
     if route.from_token.contract.eq_ignore_ascii_case(EVM_ZERO_ADDRESS) {
-        return Ok(evm_builder::build_swap_and_forward_eth_transaction(
-            deposit_call,
-            swap,
-            deposit_call.amount_in,
-            deposit_call.amount_in.to_string(),
-        ));
+        return Ok(evm_builder::build_swap_and_forward_eth_transaction(deposit_call, swap, deposit_call.amount_in, deposit_call.amount_in.to_string()));
     }
 
-    Ok(evm_builder::build_swap_and_forward_erc20_transaction(
-        Address::from_str(&route.from_token.contract)?,
-        deposit_call,
-        swap,
-        "0",
-    ))
+    Ok(evm_builder::build_swap_and_forward_erc20_transaction(Address::from_str(&route.from_token.contract)?, deposit_call, swap, "0"))
 }
 
 #[cfg(test)]

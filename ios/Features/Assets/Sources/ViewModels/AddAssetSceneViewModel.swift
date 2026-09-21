@@ -1,10 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemAddAssetServiceProtocol
-import enum Gemstone.GemAddAssetPhase
-import struct Gemstone.GemAddAssetSession
 import Components
 import Foundation
+import enum Gemstone.GemAddAssetPhase
+import protocol Gemstone.GemAddAssetServiceProtocol
+import struct Gemstone.GemAddAssetSession
+import struct Gemstone.GemListSection
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -34,14 +35,23 @@ public final class AddAssetSceneViewModel {
         self.input = input
     }
 
-    var state: StateViewType<AddAssetViewModel> {
+    var sections: [GemListSection] {
+        service.sections(session: session)
+    }
+
+    var isLoading: Bool {
+        session.isLoading
+    }
+
+    var showsVerificationWarning: Bool {
+        session.viewState().canAdd
+    }
+
+    var buttonState: ButtonState {
         switch session.viewState().phase {
-        case .idle: return .noData
-        case .loading: return .loading
-        case let .found(core):
-            let asset = core.toPrimitives()
-            return .data(AddAssetViewModel(rows: session.assetRows(), link: service.tokenUrl(chain: asset.chain, tokenId: asset.tokenId ?? "")))
-        case .failed: return .error(AnyError(Localized.Errors.errorOccurred))
+        case .loading: .loading()
+        case .found: .normal
+        case .idle, .failed: .disabled
         }
     }
 
@@ -55,10 +65,6 @@ public final class AddAssetSceneViewModel {
 
     var networkTitle: String {
         Localized.Transfer.network
-    }
-
-    var errorTitle: String {
-        Localized.Errors.errorOccurred
     }
 
     var actionButtonTitle: String {
@@ -77,10 +83,6 @@ public final class AddAssetSceneViewModel {
         Images.System.qrCodeViewfinder
     }
 
-    var errorSystemImage: String {
-        SystemImage.errorOccurred
-    }
-
     var addressBinding: Binding<String> {
         Binding(
             get: { [self] in
@@ -95,7 +97,6 @@ public final class AddAssetSceneViewModel {
     func warningListItem(infoAction: @escaping () -> Void) -> ListItemModel {
         ListItemModel(
             title: Localized.Asset.Verification.warningTitle,
-            titleStyle: .headline,
             titleExtra: Localized.Asset.Verification.warningMessage,
             titleStyleExtra: .bodySecondary,
             imageStyle: warningImageStyle,
@@ -142,9 +143,10 @@ extension AddAssetSceneViewModel {
         guard let trigger = loadTrigger else { return }
         session = session.onLoading()
         do {
-            session = try await session.onFound(asset: service.token(chain: trigger.chain.rawValue, address: trigger.address))
+            let asset = try await service.token(chain: trigger.chain.rawValue, address: trigger.address)
+            session = session.onFound(chain: trigger.chain.rawValue, address: trigger.address, asset: asset)
         } catch {
-            session = session.onFailed()
+            session = session.onFailed(chain: trigger.chain.rawValue, address: trigger.address)
         }
     }
 

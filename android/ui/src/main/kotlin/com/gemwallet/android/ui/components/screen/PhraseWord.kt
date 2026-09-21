@@ -3,10 +3,7 @@ package com.gemwallet.android.ui.components.screen
 import uniffi.gemstone.GemSecretPhraseRow
 import uniffi.gemstone.secretPhraseRows
 
-data class PhraseWord(
-    val index: Int,
-    val word: String,
-)
+data class PhraseWord(val index: Int, val word: String)
 
 sealed interface PhraseRow {
     data class Pair(val left: PhraseWord, val right: PhraseWord) : PhraseRow

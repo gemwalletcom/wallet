@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import class Gemstone.GemCollectibleService
 import GemstonePrimitives
 import GemstoneServices
 import NFT
@@ -8,26 +9,25 @@ import Primitives
 import PrimitivesComponents
 import Store
 import SwiftUI
-import class Gemstone.GemCollectibleService
 
-extension ViewModelFactory {
+public extension ViewModelFactory {
     @MainActor
-    public func collectionsScene(wallet: Wallet) -> CollectionsViewModel {
+    func collectionsScene(wallet: Wallet) -> CollectionsViewModel {
         CollectionsViewModel(service: nftService, wallet: wallet)
     }
 
     @MainActor
-    public func collectionScene(wallet: Wallet, collectionId: String) -> CollectionViewModel {
+    func collectionScene(wallet: Wallet, collectionId: String) -> CollectionViewModel {
         CollectionViewModel(service: nftService, wallet: wallet, collectionId: collectionId)
     }
 
     @MainActor
-    public func unverifiedCollectionsScene(wallet: Wallet) -> UnverifiedCollectionsViewModel {
+    func unverifiedCollectionsScene(wallet: Wallet) -> UnverifiedCollectionsViewModel {
         UnverifiedCollectionsViewModel(service: nftService, wallet: wallet)
     }
 
     @MainActor
-    public func collectibleScene(wallet: Wallet, assetData: NFTAssetData, isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>) -> CollectibleViewModel {
+    func collectibleScene(wallet: Wallet, assetData: NFTAssetData, isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>) -> CollectibleViewModel {
         CollectibleViewModel(
             wallet: wallet,
             assetData: assetData,

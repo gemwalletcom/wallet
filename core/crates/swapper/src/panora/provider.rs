@@ -1,7 +1,6 @@
 use super::{client::PanoraClient, model};
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider,
-    SwapperQuoteAsset, SwapperQuoteData,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
     config::get_swap_proxy_url,
     fees::{ReferralFee, bps_to_percent_string, default_referral_fees},
 };
@@ -112,13 +111,7 @@ where
             payload_type: ENTRY_FUNCTION_PAYLOAD_TYPE.to_string(),
         };
 
-        Ok(SwapperQuoteData::new_contract(
-            String::new(),
-            BigUint::from(0u64),
-            serde_json::to_string(&payload)?,
-            None,
-            None,
-        ))
+        Ok(SwapperQuoteData::new_contract(String::new(), BigUint::from(0u64), serde_json::to_string(&payload)?, None, None))
     }
 }
 
@@ -153,10 +146,7 @@ mod tests {
             wallet_address: TEST_WALLET.to_string(),
             destination_address: TEST_WALLET.to_string(),
             value: BigUint::from(100000000u64),
-            options: Options {
-                slippage: 100.into(),
-                use_max_amount: false,
-            },
+            options: Options { slippage: 100.into(), use_max_amount: false },
         };
         let referral = default_referral_fees().aptos;
 
@@ -179,10 +169,7 @@ mod tests {
 
         assert_eq!(response.to_token.decimals, 6);
         assert_eq!(entry.to_token_amount, "0.891234");
-        assert_eq!(
-            entry.transaction_data.function,
-            "0x1c3206329806286fd2223647c9f9b130e66baeb6d7224a18c1f642ffe48f3b4c::panora_swap::router_entry"
-        );
+        assert_eq!(entry.transaction_data.function, "0x1c3206329806286fd2223647c9f9b130e66baeb6d7224a18c1f642ffe48f3b4c::panora_swap::router_entry");
         assert_eq!(entry.transaction_data.type_arguments, vec![APTOS_NATIVE_COIN]);
         assert_eq!(entry.transaction_data.arguments.len(), 20);
         assert_eq!(entry.transaction_data.arguments[2], serde_json::json!(1));

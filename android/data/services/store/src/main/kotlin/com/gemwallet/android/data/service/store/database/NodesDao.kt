@@ -1,13 +1,13 @@
 package com.gemwallet.android.data.service.store.database
 
-import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.ext.toGem
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.gemwallet.android.data.service.store.database.entities.DbNode
 import com.gemwallet.android.ext.requireChain
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Node
 import uniffi.gemstone.GemNodeStore
@@ -33,5 +33,4 @@ interface NodesDao : GemNodeStore {
 
     @Query("SELECT * FROM nodes WHERE chain = :chain ORDER BY priority DESC, url ASC")
     suspend fun getNodes(chain: Chain): List<DbNode>
-
 }

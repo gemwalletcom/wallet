@@ -11,9 +11,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.secondaryFaded
-import androidx.compose.ui.draw.clip
 import com.gemwallet.android.ui.theme.smallIconSize
 
 @Composable

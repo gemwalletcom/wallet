@@ -6,10 +6,10 @@ import com.gemwallet.android.features.setup_wallet.viewmodels.SetupWalletViewMod
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
-import kotlinx.coroutines.CompletableDeferred
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -21,8 +21,8 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemWalletServiceInterface

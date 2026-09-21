@@ -1,13 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Foundation
 import Gemstone
 import GemstonePrimitivesTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
 import Primitives
-import Testing
+import PrimitivesComponents
 @testable import Settings
 import SettingsTestKit
+import Testing
 
 @MainActor
 struct AboutUsViewModelTests {
@@ -26,7 +28,7 @@ struct AboutUsViewModelTests {
 
         await model.load()
 
-        #expect(model.releaseVersion == "99.0.0")
+        #expect(model.updateVersion == "99.0.0")
     }
 
     @Test
@@ -35,8 +37,7 @@ struct AboutUsViewModelTests {
 
         await model.load()
 
-        #expect(model.release == nil)
-        #expect(model.releaseVersion == nil)
+        #expect(model.updateVersion == nil)
     }
 
     @Test
@@ -47,7 +48,7 @@ struct AboutUsViewModelTests {
 
         await model.load()
 
-        #expect(model.release == nil)
+        #expect(model.updateVersion == nil)
     }
 
     @Test
@@ -61,14 +62,34 @@ struct AboutUsViewModelTests {
 
         #expect(preferences.isDeveloperEnabled)
         #expect(model.contextDevTitle != offTitle)
-        #expect(model.contextMenuItems.count == 2)
+        #expect(model.contextMenuItems(for: .text(title: .version, value: "1.0 (1)")).count == 2)
+        #expect(model.contextMenuItems(for: .loading).isEmpty)
     }
 
     @Test
     func theVersionReadsAsVersionAndBuild() {
         let model = AboutUsViewModel.mock()
 
-        #expect(model.versionTextValue.contains("("))
-        #expect(model.versionTextValue.hasSuffix(")"))
+        #expect(model.versionRowValue == "\(Bundle.main.releaseVersionNumber) (\(Bundle.main.buildVersionNumber))")
+    }
+}
+
+private extension AboutUsViewModel {
+    var versionRowValue: String? {
+        sections.flatMap(\.values).map(\.row).compactMap { row in
+            switch row {
+            case let .text(title, value) where title == .version: value
+            default: nil
+            }
+        }.first
+    }
+
+    var updateVersion: String? {
+        sections.flatMap(\.values).map(\.row).compactMap { row in
+            switch row {
+            case let .url(title, value, _, _, _) where title == .updateApp: value
+            default: nil
+            }
+        }.first
     }
 }

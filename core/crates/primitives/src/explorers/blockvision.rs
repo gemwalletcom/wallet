@@ -33,10 +33,7 @@ mod tests {
         assert_eq!(explorer.name(), "MonadVision");
         assert_eq!(explorer.get_address_url("0xabc"), "https://monadvision.com/address/0xabc");
         assert_eq!(explorer.get_tx_url("0x123"), "https://monadvision.com/tx/0x123");
-        assert_eq!(
-            explorer.get_token_url(MONAD_USDC_TOKEN_ID),
-            Some(format!("https://monadvision.com/token/{MONAD_USDC_TOKEN_ID}"))
-        );
+        assert_eq!(explorer.get_token_url(MONAD_USDC_TOKEN_ID), Some(format!("https://monadvision.com/token/{MONAD_USDC_TOKEN_ID}")));
         assert_eq!(
             explorer.get_validator_url("0xC11Ae71884A76744Fa7976e09AC5441F1233Ef6F"),
             Some("https://monadvision.com/validator/0xC11Ae71884A76744Fa7976e09AC5441F1233Ef6F".to_string())

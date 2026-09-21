@@ -8,18 +8,14 @@ import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
-import uniffi.gemstone.GemAssetBalance
 import uniffi.gemstone.AssetPrice
+import uniffi.gemstone.GemAssetBalance
 import uniffi.gemstone.GemFeeAsset
+import uniffi.gemstone.GemValueStyle
 import java.math.BigDecimal
 import java.math.BigInteger
-import uniffi.gemstone.GemValueStyle
 
-data class FeeAssetUIModel(
-    val asset: Asset,
-    val price: AssetPriceInfo?,
-    val available: BigInteger,
-) {
+data class FeeAssetUIModel(val asset: Asset, val price: AssetPriceInfo?, val available: BigInteger) {
     val priceValue: AssetPriceValue by lazy { AssetPriceValue(asset, price) }
     val isZeroBalance: Boolean get() = available.signum() == 0
     val balance: String by lazy { ValueFormatter(style = GemValueStyle.SHORT).string(amount, asset.symbol) }

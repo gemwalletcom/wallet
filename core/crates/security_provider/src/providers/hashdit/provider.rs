@@ -7,10 +7,7 @@ use serde::Serialize;
 
 use crate::providers::hashdit::{
     mapper,
-    models::{
-        AddressPoisoningRequest, AddressPoisoningResponse, DomainSecurityRequest, DomainSecurityResponse, SecurityData, SecurityRequest, SecurityResponse,
-        SolanaTokenSecurityRequest,
-    },
+    models::{AddressPoisoningRequest, AddressPoisoningResponse, DomainSecurityRequest, DomainSecurityResponse, SecurityData, SecurityRequest, SecurityResponse, SolanaTokenSecurityRequest},
     target::HashDitTarget,
 };
 use crate::{AddressPoisoningProvider, AddressPoisoningTarget, AddressScanProvider, AddressTarget, ScanResult, TokenScanProvider, TokenTarget, WebsiteScanProvider, WebsiteTarget};
@@ -25,10 +22,7 @@ pub struct HashDitProvider<C: Client> {
 
 impl<C: Client> HashDitProvider<C> {
     pub fn new(client: C, api_key: &str) -> Self {
-        Self {
-            client,
-            api_key: api_key.to_string(),
-        }
+        Self { client, api_key: api_key.to_string() }
     }
 
     fn headers(&self) -> HashMap<String, String> {
@@ -40,12 +34,7 @@ impl<C: Client> HashDitProvider<C> {
         Ok(response.into_data()?)
     }
 
-    async fn scan<T: Clone + Send + Sync, B: Serialize + Send + Sync>(
-        &self,
-        target: &T,
-        request_target: HashDitTarget,
-        body: &B,
-    ) -> Result<ScanResult<T>, Box<dyn std::error::Error + Send + Sync>> {
+    async fn scan<T: Clone + Send + Sync, B: Serialize + Send + Sync>(&self, target: &T, request_target: HashDitTarget, body: &B) -> Result<ScanResult<T>, Box<dyn std::error::Error + Send + Sync>> {
         let risk_level = self.security(request_target, body).await?.overall_risk_level;
         let is_malicious = risk_level.is_malicious();
         Ok(ScanResult {
@@ -189,12 +178,7 @@ mod tests {
     #[tokio::test]
     async fn test_scan_bsc_address_verdicts() {
         let cases = [
-            (
-                "0x123",
-                include_str!("../../../testdata/hashdit/address_security_medium_risk_response.json"),
-                false,
-                "Medium Risk",
-            ),
+            ("0x123", include_str!("../../../testdata/hashdit/address_security_medium_risk_response.json"), false, "Medium Risk"),
             (
                 "0x0f9adaaccd7caecc5019194e15ad19624fed95fa",
                 include_str!("../../../testdata/hashdit/address_security_significant_risk_response.json"),
@@ -262,9 +246,7 @@ mod tests {
         let client = MockClient::new().with_post(move |path, body| {
             assert_eq!(path, "/v2/hashdit/solana-token-security");
             assert_json(body, include_str!("../../../testdata/hashdit/solana_token_security_request.json"));
-            Ok(include_str!("../../../testdata/hashdit/solana_token_security_medium_risk_response.json")
-                .as_bytes()
-                .to_vec())
+            Ok(include_str!("../../../testdata/hashdit/solana_token_security_medium_risk_response.json").as_bytes().to_vec())
         });
         let target = TokenTarget {
             chain: Chain::Solana,
@@ -342,12 +324,7 @@ mod tests {
                 true,
                 Some("is_poisoning"),
             ),
-            (
-                "0x45BeBa0913382F5371E288f08E841FEfb01355B6",
-                include_str!("../../../testdata/hashdit/address_poisoning_safe_response.json"),
-                false,
-                None,
-            ),
+            ("0x45BeBa0913382F5371E288f08E841FEfb01355B6", include_str!("../../../testdata/hashdit/address_poisoning_safe_response.json"), false, None),
         ];
         for (address, response, is_malicious, reason) in cases {
             let client = MockClient::new().with_post(move |path, body| {

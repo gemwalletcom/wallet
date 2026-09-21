@@ -20,12 +20,7 @@ pub struct GetRequest<'a, C: ?Sized, R> {
 
 impl<'a, C: Client + ?Sized, R> GetRequest<'a, C, R> {
     pub(crate) fn new(client: &'a C, path: String, headers: HashMap<String, String>) -> Self {
-        Self {
-            client,
-            path,
-            headers,
-            response: None,
-        }
+        Self { client, path, headers, response: None }
     }
 
     pub fn query<Q: Serialize + ?Sized>(mut self, query: &Q) -> Self {

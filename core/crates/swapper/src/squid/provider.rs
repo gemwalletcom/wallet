@@ -13,8 +13,7 @@ use primitives::{
 
 use super::{SQUID_COSMOS_MULTICALL, SUPPORTED_CHAINS, client::SquidClient, model::*};
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError,
-    SwapperProvider, SwapperQuoteData,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     config::get_swap_proxy_url,
     cross_chain::VaultAddresses,
     fees::{DEFAULT_SWAP_FEE_BPS, default_referral_fees},
@@ -229,12 +228,7 @@ mod swap_integration_tests {
         let request = QuoteRequest::mock_osmosis_to_cosmos();
 
         let quote = squid.get_quote(&request).await?;
-        println!(
-            "OSMO->ATOM quote: from={}, to={}, eta={}s",
-            quote.from_value,
-            quote.to_value,
-            quote.eta_in_seconds.unwrap_or(0)
-        );
+        println!("OSMO->ATOM quote: from={}, to={}, eta={}s", quote.from_value, quote.to_value, quote.eta_in_seconds.unwrap_or(0));
         assert_eq!(quote.from_value, BigUint::from(10000000u64));
         assert!(quote.to_value > BigUint::ZERO);
 
@@ -259,12 +253,7 @@ mod swap_integration_tests {
         };
 
         let quote = squid.get_quote(&request).await?;
-        println!(
-            "ATOM->OSMO quote: from={}, to={}, eta={}s",
-            quote.from_value,
-            quote.to_value,
-            quote.eta_in_seconds.unwrap_or(0)
-        );
+        println!("ATOM->OSMO quote: from={}, to={}, eta={}s", quote.from_value, quote.to_value, quote.eta_in_seconds.unwrap_or(0));
         assert_eq!(quote.from_value, BigUint::from(1000000u64));
         assert!(quote.to_value > BigUint::ZERO);
 
@@ -278,9 +267,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_squid_swap_status() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let squid = Squid::new(Arc::new(crate::NativeProvider::default()));
-        let result = squid
-            .get_swap_result(Chain::Cosmos, "D68723CEADAB65795B176FAE0B84B0ED5923DA9AAEC69502F8D30554431250A9")
-            .await?;
+        let result = squid.get_swap_result(Chain::Cosmos, "D68723CEADAB65795B176FAE0B84B0ED5923DA9AAEC69502F8D30554431250A9").await?;
         println!("status: {:?}", result.status);
         assert_eq!(result.status, SwapStatus::Completed);
         Ok(())

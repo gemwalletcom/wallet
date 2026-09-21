@@ -1,18 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitives
 import struct Gemstone.SwapperQuote
+import GemstonePrimitives
+import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Swap
 import SwapTestKit
-import GemstoneServicesTestKit
 import Testing
 
 @MainActor
 struct SwapDetailsViewModelTests {
     @Test
-    func swapEstimationField() throws {
+    func swapEstimationField() {
         #expect(
             SwapDetailsViewModel
                 .mock(selectedQuote: SwapperQuote.mock(etaInSeconds: nil).swapQuote).swapEstimationField == nil,
@@ -23,7 +23,7 @@ struct SwapDetailsViewModelTests {
     }
 
     @Test
-    func switchRate() throws {
+    func switchRate() {
         let model = SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(toValue: 250_000_000_000).swapQuote)
 
         #expect(model.rateText == "1 ETH ≈ 250,000.00 USDT")
@@ -33,7 +33,7 @@ struct SwapDetailsViewModelTests {
     }
 
     @Test
-    func minReceiveAppliesSlippageBasisPoints() throws {
+    func minReceiveAppliesSlippageBasisPoints() {
         let model = SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(toValue: 250_000_000_000).swapQuote)
 
         #expect(model.minReceiveField.value.text == "248,750 USDT")

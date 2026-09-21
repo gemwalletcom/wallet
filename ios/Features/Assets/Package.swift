@@ -31,7 +31,6 @@ let package = Package(
         .package(name: "QRScanner", path: "../QRScanner"),
         .package(name: "Recents", path: "../Recents"),
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
-        .package(name: "BigInt", path: "../../Submodules/BigInt"),
     ],
     targets: [
         .target(
@@ -49,7 +48,6 @@ let package = Package(
                 "QRScanner",
                 "Recents",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
-                .product(name: "BigInt", package: "BigInt"),
             ],
             path: "Sources",
         ),
@@ -78,9 +76,9 @@ let package = Package(
                 "Store",
                 "AssetsTestKit",
                 "Assets",
-                .product(name: "BigInt", package: "BigInt"),
                 "Gemstone",
                 "GemstonePrimitives",
+                "Localization",
                 "Primitives",
             ],
         ),

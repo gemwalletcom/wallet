@@ -12,9 +12,7 @@ const QUERY_MEMO: &str = "memo";
 const QUERY_LABEL: &str = "label";
 
 pub fn decode(chain: Option<Chain>, path: &str) -> Result<Payment> {
-    Ok(Payment::Request {
-        request: get_request(chain, path)?,
-    })
+    Ok(Payment::Request { request: get_request(chain, path)? })
 }
 
 pub fn get_request(chain: Option<Chain>, path: &str) -> Result<PaymentRequest> {
@@ -113,9 +111,7 @@ mod tests {
     fn test_decode_refuses_what_it_cannot_sign() {
         assert_eq!(
             decode(Some(Chain::Bitcoin), &format!("{BITCOIN_ADDRESS}?req-somethingyoudontunderstand=50")),
-            Err(PaymentDecoderError::InvalidFormat(
-                "Unsupported required parameter: req-somethingyoudontunderstand".to_string()
-            ))
+            Err(PaymentDecoderError::InvalidFormat("Unsupported required parameter: req-somethingyoudontunderstand".to_string()))
         );
         assert_eq!(
             decode(Some(Chain::Bitcoin), &format!("{BITCOIN_ADDRESS}?req-dontexist=")),
