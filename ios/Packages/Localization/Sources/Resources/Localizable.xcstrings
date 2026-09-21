@@ -41836,13 +41836,13 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يطلب التاجر معلومات إضافية قبل الدفع."
+            "value": "يتطلب التاجر معلومات إضافية قبل الدفع."
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "মার্চেন্ট পেমেন্টের আগে অতিরিক্ত তথ্য চাইছে।"
+            "value": "পেমেন্টের আগে মার্চেন্টের অতিরিক্ত তথ্য প্রয়োজন।"
           }
         },
         "cs": {
@@ -41854,67 +41854,67 @@
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forhandleren beder om yderligere oplysninger før betalingen."
+            "value": "Forhandleren kræver yderligere oplysninger før betalingen."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Der Händler bittet vor der Zahlung um zusätzliche Informationen."
+            "value": "Der Händler benötigt vor der Zahlung zusätzliche Informationen."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The merchant is asking for additional information before the payment."
+            "value": "The merchant requires additional information before the payment."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El comercio solicita información adicional antes del pago."
+            "value": "El comercio requiere información adicional antes del pago."
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "فروشنده پیش از پرداخت اطلاعات بیشتری درخواست می‌کند."
+            "value": "فروشنده پیش از پرداخت به اطلاعات بیشتری نیاز دارد."
           }
         },
         "fil": {
           "stringUnit": {
             "state": "translated",
-            "value": "Humihingi ang merchant ng karagdagang impormasyon bago ang bayad."
+            "value": "Nangangailangan ang merchant ng karagdagang impormasyon bago ang bayad."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le marchand demande des informations supplémentaires avant le paiement."
+            "value": "Le marchand requiert des informations supplémentaires avant le paiement."
           }
         },
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ɗan kasuwa yana neman ƙarin bayani kafin biyan kuɗi."
+            "value": "Ɗan kasuwa yana buƙatar ƙarin bayani kafin biyan kuɗi."
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "בית העסק מבקש מידע נוסף לפני התשלום."
+            "value": "בית העסק דורש מידע נוסף לפני התשלום."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "व्यापारी भुगतान से पहले अतिरिक्त जानकारी मांग रहा है।"
+            "value": "व्यापारी को भुगतान से पहले अतिरिक्त जानकारी आवश्यक है।"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Merchant meminta informasi tambahan sebelum pembayaran."
+            "value": "Merchant memerlukan informasi tambahan sebelum pembayaran."
           }
         },
         "it": {
@@ -41926,37 +41926,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "加盟店が支払いの前に追加情報を求めています。"
+            "value": "加盟店は支払いの前に追加情報を必要としています。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "가맹점에서 결제 전에 추가 정보를 요청합니다."
+            "value": "가맹점에서 결제 전에 추가 정보가 필요합니다."
           }
         },
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Peniaga meminta maklumat tambahan sebelum pembayaran."
+            "value": "Peniaga memerlukan maklumat tambahan sebelum pembayaran."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "De verkoper vraagt om aanvullende informatie vóór de betaling."
+            "value": "De verkoper vereist aanvullende informatie vóór de betaling."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sprzedawca prosi o dodatkowe informacje przed płatnością."
+            "value": "Sprzedawca wymaga dodatkowych informacji przed płatnością."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O comerciante solicita informações adicionais antes do pagamento."
+            "value": "O comerciante requer informações adicionais antes do pagamento."
           }
         },
         "ro": {
@@ -41968,37 +41968,37 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Продавец запрашивает дополнительную информацию перед оплатой."
+            "value": "Продавцу требуется дополнительная информация перед оплатой."
           }
         },
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mfanyabiashara anaomba maelezo ya ziada kabla ya malipo."
+            "value": "Mfanyabiashara anahitaji maelezo ya ziada kabla ya malipo."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "ผู้ขายขอข้อมูลเพิ่มเติมก่อนการชำระเงิน"
+            "value": "ผู้ขายต้องการข้อมูลเพิ่มเติมก่อนการชำระเงิน"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Satıcı ödemeden önce ek bilgi istiyor."
+            "value": "Satıcı ödemeden önce ek bilgi gerektiriyor."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Продавець запитує додаткову інформацію перед оплатою."
+            "value": "Продавцю потрібна додаткова інформація перед оплатою."
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "تاجر ادائیگی سے پہلے اضافی معلومات مانگ رہا ہے۔"
+            "value": "تاجر کو ادائیگی سے پہلے اضافی معلومات درکار ہیں۔"
           }
         },
         "vi": {

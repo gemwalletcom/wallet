@@ -442,7 +442,7 @@
   <string name="info_watch_wallet_title">ארנק במעקב</string>
   <string name="info_watch_wallet_description">ארנק שאין לך גישה אליו, אבל אתה יכול לצפות בעסקאות ובתנועות שלו.</string>
   <string name="info_payment_verification_title">אימות תשלום</string>
-  <string name="info_payment_verification_description">בית העסק מבקש מידע נוסף לפני התשלום.</string>
+  <string name="info_payment_verification_description">בית העסק דורש מידע נוסף לפני התשלום.</string>
   <string name="info_network_fee_description">כל עסקה ברשת %1$s דורשת עמלה ב-%2$s ששולם לכורים על מנת לעבד את העסקה שלך, לא ארנק Gem. עמלות הרשת משתנות בהתאם לשימוש ברשת.</string>
   <string name="info_transaction_error_description">לא ניתן היה להשלים את העסקה עקב שגיאה, כגון חוסר כספים, קלט לא תקין או דחייה על ידי הרשת. אנא בדוק את הפרטים ונסה שוב.</string>
   <string name="info_transaction_pending_description">העסקה הוגשה וממתינה לאישור ברשת. זמני העיבוד עשויים להשתנות. אנא בדקו שוב לעדכונים.</string>

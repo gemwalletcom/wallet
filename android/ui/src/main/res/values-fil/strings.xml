@@ -442,7 +442,7 @@
   <string name="info_watch_wallet_title">Wallet na Binabantayan</string>
   <string name="info_watch_wallet_description">Isang wallet na wala kang access, ngunit maaari mong panoorin ang mga transaksyon at paggalaw nito.</string>
   <string name="info_payment_verification_title">Beripikasyon ng Bayad</string>
-  <string name="info_payment_verification_description">Humihingi ang merchant ng karagdagang impormasyon bago ang bayad.</string>
+  <string name="info_payment_verification_description">Nangangailangan ang merchant ng karagdagang impormasyon bago ang bayad.</string>
   <string name="info_network_fee_description">Ang bawat transaksyon sa %1$s network ay nangangailangan ng bayad sa %2$s na binabayaran sa mga minero upang maproseso ang iyong transaksyon, hindi ang Gem Wallet. Nag-iiba-iba ang mga bayarin sa network batay sa paggamit ng network.</string>
   <string name="info_transaction_error_description">Hindi makumpleto ang transaksyon dahil sa isang error, tulad ng hindi sapat na pondo, hindi wastong input, o pagtanggi ng network. Pakisuri ang mga detalye at subukang muli.</string>
   <string name="info_transaction_pending_description">Naisumite na ang transaksyon at naghihintay ng kumpirmasyon sa network. Maaaring mag-iba ang mga oras ng pagproseso. Mangyaring bumalik para sa mga update.</string>

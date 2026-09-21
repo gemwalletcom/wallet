@@ -442,7 +442,7 @@
   <string name="info_watch_wallet_title">Billetera de observación</string>
   <string name="info_watch_wallet_description">Una billetera a la que no tienes acceso, pero puedes observar sus transacciones y movimientos.</string>
   <string name="info_payment_verification_title">Verificación del pago</string>
-  <string name="info_payment_verification_description">El comercio solicita información adicional antes del pago.</string>
+  <string name="info_payment_verification_description">El comercio requiere información adicional antes del pago.</string>
   <string name="info_network_fee_description">Cada transacción en la red %1$s requiere una tarifa en %2$s pagada a los mineros para procesar su transacción, no a Gem Wallet. Las tarifas de red varían según el uso de la red.</string>
   <string name="info_transaction_error_description">La transacción no se pudo completar debido a un error, como fondos insuficientes, una entrada no válida o un rechazo de la red. Revise los detalles y vuelva a intentarlo.</string>
   <string name="info_transaction_pending_description">La transacción se ha enviado y está pendiente de confirmación en la red. El tiempo de procesamiento puede variar. Por favor, vuelva a consultar para obtener actualizaciones.</string>

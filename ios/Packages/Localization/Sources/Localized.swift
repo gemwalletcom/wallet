@@ -565,8 +565,8 @@ public enum Localized {
     public static func estimatedConfirmationDescription(_ p1: Any) -> String {
       return Localized.tr("Localizable", "info.estimated_confirmation_description", String(describing: p1), fallback: "This estimate is based on the transaction fee and current %@ network activity. The actual confirmation time may change and is not guaranteed.")
     }
-    /// The merchant is asking for additional information before the payment.
-    public static let paymentVerificationDescription = Localized.tr("Localizable", "info.payment_verification_description", fallback: "The merchant is asking for additional information before the payment.")
+    /// The merchant requires additional information before the payment.
+    public static let paymentVerificationDescription = Localized.tr("Localizable", "info.payment_verification_description", fallback: "The merchant requires additional information before the payment.")
     /// Payment Verification
     public static let paymentVerificationTitle = Localized.tr("Localizable", "info.payment_verification_title", fallback: "Payment Verification")
     /// Staking on TRON takes two steps. First freeze TRX, then stake it to earn rewards.

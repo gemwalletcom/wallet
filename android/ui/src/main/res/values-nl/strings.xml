@@ -442,7 +442,7 @@
   <string name="info_watch_wallet_title">Kijk-portemonnee</string>
   <string name="info_watch_wallet_description">Een portemonnee waar u geen toegang toe heeft, maar wel de transacties en bewegingen ervan kunt bekijken.</string>
   <string name="info_payment_verification_title">Betalingsverificatie</string>
-  <string name="info_payment_verification_description">De verkoper vraagt om aanvullende informatie vóór de betaling.</string>
+  <string name="info_payment_verification_description">De verkoper vereist aanvullende informatie vóór de betaling.</string>
   <string name="info_network_fee_description">Voor elke transactie op het %1$s netwerk is een vergoeding van %2$s vereist, betaald aan mijnwerkers om uw transactie te verwerken, niet aan Gem Wallet. De netwerkkosten variëren afhankelijk van het netwerkgebruik.</string>
   <string name="info_transaction_error_description">De transactie kon niet worden voltooid vanwege een fout, zoals onvoldoende saldo, ongeldige invoer of afwijzing door het netwerk. Controleer de details en probeer het opnieuw.</string>
   <string name="info_transaction_pending_description">De transactie is verzonden en wacht op bevestiging op het netwerk. Verwerkingstijden kunnen variëren. Kom later terug voor updates.</string>
