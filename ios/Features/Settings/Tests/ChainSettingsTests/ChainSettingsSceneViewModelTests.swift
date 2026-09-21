@@ -31,8 +31,7 @@ struct ChainSettingsSceneViewModelTests {
         await model.load()
 
         model.onSelectNodeForDeletion(.mock(url: "b"))
-        model.onDeleteNode()
-        try? await Task.sleep(for: .milliseconds(50))
+        await model.onDeleteNode()
 
         #expect(service.deletedNodes == ["b"])
         #expect(model.nodesModels.map(\.node.url) == ["a"])

@@ -18,16 +18,6 @@ struct ReceiveViewModelTests {
     private let ethereum = Primitives.Asset.mock(id: .mock(.ethereum))
     private let solana = Primitives.Asset.mock(id: .mock(.solana))
 
-    private func settle(until condition: () -> Bool = { false }) async {
-        for _ in 0 ..< 200 {
-            await Task.yield()
-            if condition() {
-                return
-            }
-            try? await Task.sleep(for: .milliseconds(5))
-        }
-    }
-
     @Test
     func theNetworksComeFromCore() {
         let service = GemReceiveServiceMock()
@@ -93,7 +83,7 @@ struct ReceiveViewModelTests {
         #expect(model.presentation == .networkSelector)
 
         model.onFinishNetworkSelection([ReceiveNetworkItem(assetId: bitcoin.id)])
-        await settle()
+        await model.selectNetworkTask?.value
 
         #expect(model.presentation == nil)
         #expect(model.copyModel.content.display == address)
@@ -107,7 +97,7 @@ struct ReceiveViewModelTests {
         let model = ReceiveViewModel.mock(service: service)
 
         model.onFinishNetworkSelection([ReceiveNetworkItem(assetId: ethereum.id)])
-        await settle(until: { model.assetModel.asset.chain == .ethereum })
+        await model.selectNetworkTask?.value
         await model.onChangeAsset()
 
         #expect(service.requestedAssetIds == [ethereum.id.identifier])
@@ -120,21 +110,11 @@ struct ReceiveViewModelTests {
     func aSlowerNetworkSwapDoesNotReplaceTheOneChosenAfterIt() async {
         let service = GemReceiveServiceMock()
         service.assetsById = [ethereum.id.identifier: ethereum.toGem(), solana.id.identifier: solana.toGem()]
-        let held = AsyncStream<CheckedContinuation<Void, Never>>.makeStream()
-        service.onAsset = { assetId in
-            guard assetId == ethereum.id.identifier else { return }
-            await withCheckedContinuation { held.continuation.yield($0) }
-        }
         let model = ReceiveViewModel.mock(service: service)
 
         model.onFinishNetworkSelection([ReceiveNetworkItem(assetId: ethereum.id)])
-        var pending = held.stream.makeAsyncIterator()
-        let resume = await pending.next()
-
         model.onFinishNetworkSelection([ReceiveNetworkItem(assetId: solana.id)])
-        await settle(until: { model.assetModel.asset.chain == .solana })
-        resume?.resume()
-        await settle()
+        await model.selectNetworkTask?.value
         await model.onChangeAsset()
 
         #expect(model.assetModel.asset.chain == .solana)
@@ -149,7 +129,7 @@ struct ReceiveViewModelTests {
         let model = ReceiveViewModel.mock(service: service)
 
         model.onFinishNetworkSelection([ReceiveNetworkItem(assetId: ethereum.id)])
-        await settle(until: { model.isPresentingAlertMessage != nil })
+        await model.selectNetworkTask?.value
 
         #expect(model.isPresentingAlertMessage?.message == "asset is gone")
         #expect(model.assetModel.asset.chain == .bitcoin)

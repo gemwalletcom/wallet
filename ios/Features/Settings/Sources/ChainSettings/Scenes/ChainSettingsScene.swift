@@ -32,7 +32,7 @@ public struct ChainSettingsScene: View {
                 Button(
                     model.deleteButtonTitle,
                     role: .destructive,
-                    action: model.onDeleteNode,
+                    action: onDeleteNode,
                 )
             },
         )
@@ -92,5 +92,13 @@ public struct ChainSettingsScene: View {
                 )
             }
         }
+    }
+}
+
+// MARK: - Actions
+
+extension ChainSettingsScene {
+    private func onDeleteNode() {
+        Task { await model.onDeleteNode() }
     }
 }

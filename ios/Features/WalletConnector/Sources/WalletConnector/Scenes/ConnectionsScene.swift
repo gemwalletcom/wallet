@@ -23,7 +23,7 @@ public struct ConnectionsScene: View {
                 ButtonListItem(
                     title: model.pasteButtonTitle,
                     image: Images.System.paste,
-                    action: model.onPaste,
+                    action: onPaste,
                 )
                 ButtonListItem(
                     title: model.scanQRCodeButtonTitle,
@@ -42,7 +42,7 @@ public struct ConnectionsScene: View {
                                     Button(
                                         model.disconnectTitle,
                                         role: .destructive,
-                                        action: { model.onSelectDisconnect(connection) },
+                                        action: { onSelectDisconnect(connection) },
                                     )
                                     .tint(Colors.red)
                                 }
@@ -62,11 +62,11 @@ public struct ConnectionsScene: View {
         .navigationDestination(for: WalletConnection.self) { connection in
             ConnectionScene(
                 model: model.connectionSceneModel(connection: connection),
-                onDisconnect: { model.onSelectDisconnect(connection) },
+                onDisconnect: { onSelectDisconnect(connection) },
             )
         }
         .sheet(isPresented: $model.isPresentingScanner) {
-            ScanQRCodeNavigationStack(scanType: .walletConnect, action: model.onHandleScan(_:))
+            ScanQRCodeNavigationStack(scanType: .walletConnect, action: onHandleScan)
         }
         .toolbarInfoButton(url: model.docsUrl)
         .alertSheet($model.isPresentingAlertMessage)
@@ -82,5 +82,21 @@ public struct ConnectionsScene: View {
         .navigationTitle(model.title)
         .taskOnce { model.load() }
         .onChange(of: model.walletConnectorPresenter?.isPresentingSheet?.id, model.hideConnectionBar)
+    }
+}
+
+// MARK: - Actions
+
+extension ConnectionsScene {
+    private func onPaste() {
+        Task { await model.onPaste() }
+    }
+
+    private func onHandleScan(_ result: String) {
+        Task { await model.onHandleScan(result) }
+    }
+
+    private func onSelectDisconnect(_ connection: WalletConnection) {
+        Task { await model.onSelectDisconnect(connection) }
     }
 }

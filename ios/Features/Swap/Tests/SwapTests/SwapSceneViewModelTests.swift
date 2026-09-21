@@ -146,50 +146,6 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
-    func cancelledTaskDoesNotUpdateStateWithError() async throws {
-        let service = GemSwapQuoteServiceMock(
-            quotesDelay: .milliseconds(100),
-            quotesError: SwapperError.NoQuoteAvailable,
-        )
-        let model = SwapSceneViewModel.mock(service: service)
-
-        let task = Task {
-            await model.load()
-        }
-
-        try await Task.sleep(for: .milliseconds(50))
-        task.cancel()
-        await task.value
-
-        if model.viewState.quoteError != nil {
-            Issue.record("State should not be .error when Task is cancelled")
-        }
-    }
-
-    @Test
-    func emptyInputDoesNotApplyLateQuote() async throws {
-        let service = GemSwapQuoteServiceMock(
-            quotes: [.mock()],
-            quotesDelay: .milliseconds(100),
-        )
-        let model = SwapSceneViewModel.mock(service: service)
-
-        let task = Task {
-            await model.load()
-        }
-
-        try await Task.sleep(for: .milliseconds(50))
-        model.amountInputModel.text = "0"
-        model.onChangeFromValue("1", "0")
-
-        await task.value
-
-        #expect(model.viewState.isInputEmpty)
-        #expect(model.toValue.isEmpty)
-        #expect(model.selectedSwapQuote == nil)
-    }
-
-    @Test
     func changingAmountClearsReceiveValueBeforeFetch() async {
         let model = SwapSceneViewModel.mock()
         await model.load()
@@ -233,29 +189,6 @@ struct SwapSceneViewModelTests {
 
         model.amountInputModel.text = .empty
         model.onChangeFromValue("1", .empty)
-
-        #expect(model.viewState.isInputEmpty)
-        #expect(model.toValue.isEmpty)
-        #expect(model.selectedSwapQuote == nil)
-    }
-
-    @Test
-    func emptyInputDoesNotApplyLateError() async throws {
-        let service = GemSwapQuoteServiceMock(
-            quotesDelay: .milliseconds(100),
-            quotesError: SwapperError.NoQuoteAvailable,
-        )
-        let model = SwapSceneViewModel.mock(service: service)
-
-        let task = Task {
-            await model.load()
-        }
-
-        try await Task.sleep(for: .milliseconds(50))
-        model.amountInputModel.text = "0"
-        model.onChangeFromValue("1", "0")
-
-        await task.value
 
         #expect(model.viewState.isInputEmpty)
         #expect(model.toValue.isEmpty)

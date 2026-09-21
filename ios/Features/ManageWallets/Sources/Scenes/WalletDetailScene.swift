@@ -47,7 +47,7 @@ public struct WalletDetailScene: View {
                     Section {
                         NavigationCustomLink(
                             with: ListItemView(model: model.showSecretListItem(for: secretKind)),
-                            action: model.onShowSecret,
+                            action: onShowSecret,
                         )
                     } header: {
                         Text(secretKind.title)
@@ -108,5 +108,13 @@ public struct WalletDetailScene: View {
         .sheet(item: $model.isPresentingExportWallet) {
             ExportWalletNavigationStack(flow: $0)
         }
+    }
+}
+
+// MARK: - Actions
+
+extension WalletDetailScene {
+    private func onShowSecret() {
+        Task { await model.onShowSecret() }
     }
 }

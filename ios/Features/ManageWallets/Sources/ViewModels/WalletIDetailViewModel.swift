@@ -121,13 +121,11 @@ extension WalletDetailViewModel {
         }
     }
 
-    func onShowSecret() {
-        Task {
-            do {
-                isPresentingExportWallet = try await service.exportSecret(walletId: wallet.id.id)
-            } catch {
-                isPresentingAlertMessage = AlertMessage(error: error)
-            }
+    func onShowSecret() async {
+        do {
+            isPresentingExportWallet = try await service.exportSecret(walletId: wallet.id.id)
+        } catch {
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
 

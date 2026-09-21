@@ -32,6 +32,15 @@ A package test target participates in the app/CI test plan only if it is registe
 - Keep tests concise, usually one behavior with a small number of assertions
 - Skip trivial tests that only restate obvious behavior
 
+## Async Work
+
+A test awaits work, never time. `Task.sleep`, a polling loop, or a settle helper turns runner load into a failure and proves nothing when it passes.
+
+- A view model method that does async work is `async`; the view owns the `Task` (`Button { Task { await model.onDeleteNode() } }`). The test calls `await model.onDeleteNode()` and asserts, including the negative case where nothing should have happened
+- Work the model must keep running on its own (a debounced lookup) keeps its `Task` in the model and exposes the handle; the test awaits `model.nameRecordTask?.value` or asserts the synchronous state the request leaves behind
+- A test never needs to be in the middle of a request. A rule about a late or stale result belongs to Core (`GemSwapSession.on_quote_results` drops a result for a request that is no longer current) and is tested there with data; a lookup that a newer one supersedes is cancelled by the model (`ReceiveViewModel.selectNetworkTask`), so the test makes both calls back to back and awaits the handle
+- An external stream (a database observation) is awaited through `withObservationTracking` and a continuation, one change at a time until the state is there; the only deadline is the `.timeLimit(.minutes(1))` trait on the test
+
 ## Mocks
 
 A mock exists once, beside its type, so every test reuses it instead of rebuilding the value.

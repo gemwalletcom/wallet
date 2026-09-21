@@ -103,13 +103,11 @@ extension ChainSettingsSceneViewModel {
         }
     }
 
-    func onDeleteNode() {
-        Task {
-            do {
-                try await delete()
-            } catch {
-                isPresentingAlertMessage = AlertMessage(error: error)
-            }
+    func onDeleteNode() async {
+        do {
+            try await delete()
+        } catch {
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
 }

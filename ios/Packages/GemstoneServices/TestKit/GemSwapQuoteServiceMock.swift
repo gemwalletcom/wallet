@@ -28,7 +28,6 @@ import PrimitivesTestKit
 public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchecked Sendable {
     private let quotes: @Sendable (BigInt) -> [SwapperQuote]
     private let quoteData: Gemstone.SwapQuoteData
-    private let quotesDelay: Duration?
     private let quotesError: Error?
     private let pairSuggestion: GemSwapPairSuggestion?
     public private(set) var storedSlippageBps: UInt32?
@@ -37,14 +36,12 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
     public init(
         quotes: @escaping @Sendable (BigInt) -> [SwapperQuote],
         quoteData: Gemstone.SwapQuoteData = .mock(),
-        quotesDelay: Duration? = nil,
         quotesError: Error? = nil,
         pairSuggestion: GemSwapPairSuggestion? = nil,
         slippageBps: UInt32? = nil,
     ) {
         self.quotes = quotes
         self.quoteData = quoteData
-        self.quotesDelay = quotesDelay
         self.quotesError = quotesError
         self.pairSuggestion = pairSuggestion
         storedSlippageBps = slippageBps
@@ -53,7 +50,6 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
     public convenience init(
         quotes: [SwapperQuote] = [.mock()],
         quoteData: Gemstone.SwapQuoteData = .mock(),
-        quotesDelay: Duration? = nil,
         quotesError: Error? = nil,
         pairSuggestion: GemSwapPairSuggestion? = nil,
         slippageBps: UInt32? = nil,
@@ -61,7 +57,6 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         self.init(
             quotes: { _ in quotes },
             quoteData: quoteData,
-            quotesDelay: quotesDelay,
             quotesError: quotesError,
             pairSuggestion: pairSuggestion,
             slippageBps: slippageBps,
@@ -133,9 +128,6 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
     }
 
     public func getQuotes(fromAsset _: Asset, toAsset _: Asset, value: BigUInt, useMaxAmount _: Bool, slippageBps _: UInt32?) async throws -> [SwapperQuote] {
-        if let quotesDelay {
-            try await Task.sleep(for: quotesDelay)
-        }
         if let quotesError {
             throw quotesError
         }

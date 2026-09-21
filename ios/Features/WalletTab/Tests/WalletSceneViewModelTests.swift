@@ -12,7 +12,7 @@ import WalletTabTestKit
 
 @MainActor
 struct WalletSceneViewModelTests {
-    @Test
+    @Test(.timeLimit(.minutes(1)))
     func renameNotifiesWalletBar() async throws {
         let wallet = Wallet.mock(id: .multicoin(address: "0x1"), name: "First")
         let db = try DB.mockWithWallets([wallet])
@@ -22,16 +22,10 @@ struct WalletSceneViewModelTests {
 
         #expect(model.walletBarModel.name == "First")
 
-        await confirmation(expectedCount: 1...) { changed in
-            withObservationTracking {
-                _ = model.wallet
-            } onChange: {
-                changed()
-            }
-
-            try? store.renameWallet(wallet.id, name: "Renamed")
-            for _ in 0 ..< 100 where model.wallet.name != "Renamed" {
-                try? await Task.sleep(for: .milliseconds(10))
+        try store.renameWallet(wallet.id, name: "Renamed")
+        while model.wallet.name != "Renamed" {
+            await withCheckedContinuation { changed in
+                withObservationTracking { _ = model.wallet } onChange: { changed.resume() }
             }
         }
 

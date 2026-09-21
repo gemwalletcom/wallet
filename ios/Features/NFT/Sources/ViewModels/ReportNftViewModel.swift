@@ -37,21 +37,19 @@ public final class ReportNftViewModel {
         Localized.Common.loading
     }
 
-    func submitReport(reason: String) {
+    func submitReport(reason: String) async {
         state = .loading
-        Task {
-            do {
-                try await service.report(report: ReportNft(
-                    collectionId: assetData.collection.id.identifier,
-                    assetId: assetData.asset.id.identifier,
-                    reason: reason,
-                ).toGem())
-                state = .data(true)
-                onComplete?()
-            } catch {
-                debugLog("Report NFT error: \(error)")
-                state = .error(error)
-            }
+        do {
+            try await service.report(report: ReportNft(
+                collectionId: assetData.collection.id.identifier,
+                assetId: assetData.asset.id.identifier,
+                reason: reason,
+            ).toGem())
+            state = .data(true)
+            onComplete?()
+        } catch {
+            debugLog("Report NFT error: \(error)")
+            state = .error(error)
         }
     }
 }
