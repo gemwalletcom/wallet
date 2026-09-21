@@ -30,7 +30,6 @@ import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer16
-import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.smallIconSize
@@ -75,7 +74,7 @@ private fun BannerText(model: BannerItemUIModel, onCancel: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Spacer16()
-            model.icon?.let { ListItemImageView(image = it, size = listItemIconSize) }
+            model.icon?.let { ListItemImageView(image = it) }
             Spacer16()
             Column(
                 modifier = Modifier

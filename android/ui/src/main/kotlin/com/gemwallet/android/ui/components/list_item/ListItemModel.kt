@@ -24,6 +24,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer6
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.alpha10
+import com.gemwallet.android.ui.theme.iconSize
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.pendingColor
@@ -89,18 +90,46 @@ enum class ListItemTagType {
 }
 
 sealed interface ListItemImage {
-    data class Asset(val assetId: AssetId) : ListItemImage
-    data class Url(val url: String, val placeholder: String? = null) : ListItemImage
-    data class Stored(val name: String, val placeholder: String? = null) : ListItemImage
-    data class Emoji(val glyph: String, val backgroundColor: Int? = null) : ListItemImage
-    data class Initials(val text: String) : ListItemImage
-    data class Symbol(val symbol: ListItemSymbol, val isFilled: Boolean = false) : ListItemImage
-    data class Drawable(@DrawableRes val id: Int, val style: ListItemDrawableStyle = ListItemDrawableStyle.Icon) : ListItemImage
+    val style: ListItemImageStyle
+
+    data class Asset(val assetId: AssetId) : ListItemImage {
+        override val style: ListItemImageStyle = ListItemImageStyle.Avatar
+    }
+
+    data class Url(val url: String, val placeholder: String? = null) : ListItemImage {
+        override val style: ListItemImageStyle = ListItemImageStyle.Avatar
+    }
+
+    data class Stored(val name: String, val placeholder: String? = null) : ListItemImage {
+        override val style: ListItemImageStyle = ListItemImageStyle.Avatar
+    }
+
+    data class Emoji(val glyph: String, val backgroundColor: Int? = null) : ListItemImage {
+        override val style: ListItemImageStyle = ListItemImageStyle.Avatar
+    }
+
+    data class Initials(val text: String) : ListItemImage {
+        override val style: ListItemImageStyle = ListItemImageStyle.Avatar
+    }
+
+    data class Symbol(
+        val symbol: ListItemSymbol,
+        val tint: ListItemTextStyle = ListItemTextStyle.Body,
+        override val style: ListItemImageStyle = ListItemImageStyle.Glyph,
+    ) : ListItemImage
+
+    data class Drawable(
+        @DrawableRes val id: Int,
+        override val style: ListItemImageStyle = ListItemImageStyle.Settings,
+    ) : ListItemImage
 }
 
-enum class ListItemDrawableStyle {
-    Icon,
-    Avatar,
+enum class ListItemImageStyle(val size: Dp, val isRounded: Boolean = false) {
+    Avatar(listItemIconSize, isRounded = true),
+    Banner(listItemIconSize),
+    Action(listItemIconSize),
+    Settings(iconSize),
+    Glyph(smallIconSize),
 }
 
 @Composable
@@ -112,18 +141,6 @@ fun ListItemTextStyle.color(): Color = when (this) {
     ListItemTextStyle.Warning -> pendingColor
     ListItemTextStyle.Primary -> MaterialTheme.colorScheme.primary
     ListItemTextStyle.Faded -> MaterialTheme.colorScheme.secondaryFaded
-}
-
-private fun ListItemImage.leadingSize(): Dp = when (this) {
-    is ListItemImage.Symbol -> if (isFilled) listItemIconSize else smallIconSize
-
-    is ListItemImage.Asset,
-    is ListItemImage.Url,
-    is ListItemImage.Stored,
-    is ListItemImage.Emoji,
-    is ListItemImage.Initials,
-    is ListItemImage.Drawable,
-    -> listItemIconSize
 }
 
 @Composable
@@ -145,7 +162,7 @@ fun ListItem(model: ListItemModel, listPosition: ListPosition, modifier: Modifie
         modifier = modifier,
         listPosition = listPosition,
         minHeight = minHeight,
-        leading = model.image?.let { image -> { ListItemImageView(image = image, size = image.leadingSize()) } },
+        leading = model.image?.let { image -> { ListItemImageView(image = image) } },
         title = {
             ListItemTitleText(
                 text = model.title,

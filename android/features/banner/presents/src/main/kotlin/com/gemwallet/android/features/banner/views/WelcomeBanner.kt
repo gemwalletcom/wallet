@@ -22,7 +22,6 @@ import com.gemwallet.android.ui.components.buttons.secondaryActionButtonColors
 import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 
@@ -38,7 +37,7 @@ internal fun WelcomeBanner(model: BannerItemUIModel, onBuy: () -> Unit, onReceiv
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(paddingSmall),
         ) {
-            model.icon?.let { ListItemImageView(image = it, size = listItemIconSize) }
+            model.icon?.let { ListItemImageView(image = it) }
             model.title?.let { title ->
                 Text(
                     text = title,

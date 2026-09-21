@@ -28,5 +28,5 @@ internal fun List<ContactAddress>.rows(service: GemManageContactServiceInterface
 internal fun addAddressListItem(context: Context): ListItemModel = ListItemModel(
     title = context.getString(R.string.common_address),
     titleStyle = ListItemTextStyle.Primary,
-    image = ListItemImage.Symbol(ListItemSymbol.Add),
+    image = ListItemImage.Symbol(ListItemSymbol.Add, tint = ListItemTextStyle.Primary),
 )

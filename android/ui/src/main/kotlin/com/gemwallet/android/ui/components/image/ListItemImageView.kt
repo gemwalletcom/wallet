@@ -18,16 +18,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.domains.asset.icon
-import com.gemwallet.android.ui.components.list_item.ListItemDrawableStyle
 import com.gemwallet.android.ui.components.list_item.ListItemImage
+import com.gemwallet.android.ui.components.list_item.ListItemImageStyle
 import com.gemwallet.android.ui.components.list_item.ListItemSymbol
+import com.gemwallet.android.ui.components.list_item.color
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.actionIconGlyphSize
-import com.gemwallet.android.ui.theme.iconSize
 import com.gemwallet.android.ui.theme.space12
 
 @Composable
-fun ListItemImageView(image: ListItemImage, size: Dp, modifier: Modifier = Modifier) {
+fun ListItemImageView(image: ListItemImage, modifier: Modifier = Modifier, style: ListItemImageStyle = image.style, size: Dp = style.size) {
     when (image) {
         is ListItemImage.Asset -> AsyncImage(
             model = image.assetId.iconModel(),
@@ -54,7 +54,7 @@ fun ListItemImageView(image: ListItemImage, size: Dp, modifier: Modifier = Modif
 
         is ListItemImage.Initials -> InitialsAvatar(text = image.text, size = size, modifier = modifier, placeholder = AppIcons.Person)
 
-        is ListItemImage.Symbol -> if (image.isFilled) {
+        is ListItemImage.Symbol -> if (style == ListItemImageStyle.Action) {
             Box(
                 modifier = modifier
                     .size(size)
@@ -73,17 +73,14 @@ fun ListItemImageView(image: ListItemImage, size: Dp, modifier: Modifier = Modif
                 imageVector = image.symbol.vector(),
                 contentDescription = null,
                 modifier = modifier.size(size),
-                tint = MaterialTheme.colorScheme.onSurface,
+                tint = image.tint.color(),
             )
         }
 
         is ListItemImage.Drawable -> Image(
             painter = painterResource(image.id),
             contentDescription = null,
-            modifier = when (image.style) {
-                ListItemDrawableStyle.Icon -> modifier.size(iconSize)
-                ListItemDrawableStyle.Avatar -> modifier.size(size).clip(CircleShape)
-            },
+            modifier = if (style.isRounded) modifier.size(size).clip(CircleShape) else modifier.size(size),
         )
     }
 }

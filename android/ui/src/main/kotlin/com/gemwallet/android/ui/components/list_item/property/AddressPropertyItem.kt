@@ -18,10 +18,10 @@ import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
 import com.gemwallet.android.ui.components.list_item.ListItemImage
+import com.gemwallet.android.ui.components.list_item.ListItemImageStyle
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
-import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.BlockExplorerLink
 
 @Composable
@@ -66,7 +66,7 @@ fun AddressPropertyItem(title: String, displayText: String, copyValue: String, i
                         text = displayText,
                         badge = when {
                             image != null -> {
-                                { DataBadgeChevron(onClick != null || explorerLink != null) { ListItemImageView(image = image, size = smallIconSize) } }
+                                { DataBadgeChevron(onClick != null || explorerLink != null) { ListItemImageView(image = image, style = ListItemImageStyle.Glyph) } }
                             }
 
                             onClick != null || explorerLink != null -> {

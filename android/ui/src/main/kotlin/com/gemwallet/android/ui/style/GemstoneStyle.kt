@@ -12,6 +12,7 @@ import com.gemwallet.android.ui.components.fields.AmountSymbolPlacement
 import com.gemwallet.android.ui.components.fields.AmountSymbolUIModel
 import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
 import com.gemwallet.android.ui.components.list_item.ListItemImage
+import com.gemwallet.android.ui.components.list_item.ListItemImageStyle
 import com.gemwallet.android.ui.components.list_item.ListItemSymbol
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.icons.AppIcons
@@ -205,8 +206,8 @@ fun GemAmountInputType.amountSymbol(assetSymbol: String, currency: Currency): Am
 fun GemBannerIcon.image(): ListItemImage = when (this) {
     GemBannerIcon.MoneyBag -> ListItemImage.Emoji(Emoji.moneyBag)
     is GemBannerIcon.Network -> ListItemImage.Asset(AssetId(chain.requireChain()))
-    GemBannerIcon.Warning -> ListItemImage.Symbol(ListItemSymbol.Warning)
-    GemBannerIcon.Suspicious -> ListItemImage.Drawable(R.drawable.suspicious)
-    GemBannerIcon.Bitcoin -> ListItemImage.Symbol(ListItemSymbol.CurrencyBitcoin)
-    GemBannerIcon.Perpetuals -> ListItemImage.Drawable(R.drawable.ic_perpetuals)
+    GemBannerIcon.Warning -> ListItemImage.Symbol(ListItemSymbol.Warning, tint = ListItemTextStyle.Secondary, style = ListItemImageStyle.Banner)
+    GemBannerIcon.Suspicious -> ListItemImage.Drawable(R.drawable.suspicious, style = ListItemImageStyle.Banner)
+    GemBannerIcon.Bitcoin -> ListItemImage.Symbol(ListItemSymbol.CurrencyBitcoin, tint = ListItemTextStyle.Secondary, style = ListItemImageStyle.Banner)
+    GemBannerIcon.Perpetuals -> ListItemImage.Drawable(R.drawable.ic_perpetuals, style = ListItemImageStyle.Banner)
 }

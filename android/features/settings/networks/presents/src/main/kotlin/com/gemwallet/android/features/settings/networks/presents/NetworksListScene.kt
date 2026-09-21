@@ -16,7 +16,7 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
-import com.gemwallet.android.ui.components.list_item.ListItemDrawableStyle
+import com.gemwallet.android.ui.components.list_item.ListItemImageStyle
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -46,7 +46,7 @@ internal fun NetworksListScene(chains: List<Chain>, chainFilter: TextFieldState,
 private fun StatusItem(onClick: () -> Unit) {
     val model = ListItemModel(
         title = stringResource(R.string.transaction_status),
-        image = ListItemImage.Drawable(R.drawable.brandmark, style = ListItemDrawableStyle.Avatar),
+        image = ListItemImage.Drawable(R.drawable.brandmark, style = ListItemImageStyle.Avatar),
     )
     ListItem(
         model = model,
