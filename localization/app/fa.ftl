@@ -396,6 +396,7 @@ stake_active_in = فعال در
 stake_minimum_amount = حداقل مبلغ
 stake_state_empty_title = استیک‌های شما اینجا نمایش داده می‌شوند
 stake_state_empty_description = اولین %@ خود را استیک کنید
+stake_state_empty_validators_title = هیچ اعتبارسنجی یافت نشد
 stake_resource = منبع
 stake_resource_energy = انرژی
 stake_resource_bandwidth = پهنای باند
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = درحال همگام سازی
 nodes_import_node_latest_block = آخرین بلاک
 nodes_import_node_latency = تاخیر
 nodes_gem_wallet_node = گره Gem Wallet
+nodes_stream = استریم
 nodes_import_node_warning_message = گره‌های سفارشی می‌توانند مخرب باشند و ممکن است داده‌های تراکنش شما را افشا کنند یا اطلاعات نادرست ارائه دهند.
 
 # Library

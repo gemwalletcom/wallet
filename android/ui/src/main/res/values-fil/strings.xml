@@ -339,6 +339,7 @@
   <string name="stake_minimum_amount">Minimum na halaga</string>
   <string name="stake_state_empty_title">Lalabas dito ang iyong mga stake</string>
   <string name="stake_state_empty_description">Mag-stake ng iyong unang %1$s</string>
+  <string name="stake_state_empty_validators_title">Walang nakitang mga validator</string>
   <string name="stake_resource">mapagkukunan</string>
   <string name="stake_resource_energy">Enerhiya</string>
   <string name="stake_resource_bandwidth">Bandwidth</string>
@@ -380,6 +381,7 @@
   <string name="nodes_import_node_latest_block">Pinakabagong Block</string>
   <string name="nodes_import_node_latency">Latency</string>
   <string name="nodes_gem_wallet_node">Gem Wallet Node</string>
+  <string name="nodes_stream">Stream</string>
   <string name="nodes_import_node_warning_message">Ang mga custom node ay maaaring maging malisyoso at maaaring maglantad ng iyong data ng transaksyon o magbigay ng maling impormasyon.</string>
   <string name="library_select_from_photo_library">Pumili mula sa Photo Library</string>
   <string name="fee_rates_info">Ang bilis ng transaksyon ay tinutukoy ng bayad sa network na binabayaran sa mga minero ng network.</string>

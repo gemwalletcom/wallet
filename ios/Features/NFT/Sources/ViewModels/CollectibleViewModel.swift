@@ -26,7 +26,6 @@ import SwiftUI
 public final class CollectibleViewModel {
     private let wallet: Wallet
     private let service: any GemCollectibleServiceProtocol
-    private let dateFormatter = RelativeDateFormatter(type: .date)
 
     public let query: ObservableQuery<NFTAssetRequest>
 
@@ -125,7 +124,7 @@ public final class CollectibleViewModel {
     func attributeText(_ value: GemCollectibleAttributeValue) -> String {
         switch value {
         case let .text(value): value
-        case let .date(date): dateFormatter.string(from: date)
+        case let .date(date): TransactionDateFormatter(date: date).day
         }
     }
 }

@@ -7,6 +7,7 @@ pub enum GemEmptyStateKind {
     Activity,
     Stake,
     Earn,
+    Validators,
     WalletConnect,
     Recents,
     Notifications,
@@ -43,6 +44,7 @@ pub enum GemEmptyStateText {
     StakeDescription,
     EarnTitle,
     EarnDescription,
+    ValidatorsTitle,
     WalletConnectTitle,
     WalletConnectDescription,
     RecentsTitle,
@@ -133,6 +135,12 @@ pub fn empty_state(input: GemEmptyStateInput) -> GemEmptyState {
         Earn => GemEmptyState {
             title: EarnTitle,
             description: Some(EarnDescription),
+            image: GemEmptyStateImage::Stake,
+            actions: vec![],
+        },
+        Validators => GemEmptyState {
+            title: ValidatorsTitle,
+            description: None,
             image: GemEmptyStateImage::Stake,
             actions: vec![],
         },
@@ -250,6 +258,19 @@ mod tests {
             .description,
             Some(GemEmptyStateText::NftsDescription)
         );
+    }
+
+    #[test]
+    fn test_an_empty_validator_list_says_so_instead_of_failing() {
+        let state = empty_state(GemEmptyStateInput {
+            kind: GemEmptyStateKind::Validators,
+            is_view_only: false,
+            offered_actions: vec![GemEmptyStateAction::Buy],
+        });
+        assert_eq!(state.title, GemEmptyStateText::ValidatorsTitle);
+        assert_eq!(state.description, None);
+        assert_eq!(state.image, GemEmptyStateImage::Stake);
+        assert!(state.actions.is_empty());
     }
 
     #[test]

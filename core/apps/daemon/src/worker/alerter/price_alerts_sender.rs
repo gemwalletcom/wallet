@@ -1,6 +1,6 @@
+use config_keys::ConfigKey;
 use pricer::PriceAlertClient;
 use pricer::price_alert_client::PriceAlertRules;
-use primitives::ConfigKey;
 use storage::{ConfigCacher, Database};
 use streamer::{NotificationsPayload, StreamProducer, StreamProducerQueue};
 

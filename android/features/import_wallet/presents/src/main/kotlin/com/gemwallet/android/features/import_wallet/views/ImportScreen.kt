@@ -42,7 +42,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.AppUrl
 import com.gemwallet.android.application.wallet_import.values.WalletImportResult
-import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.features.import_wallet.components.ImportInput
 import com.gemwallet.android.features.import_wallet.components.ImportKindTab
 import com.gemwallet.android.features.import_wallet.viewmodels.ImportInputUIModel
@@ -61,7 +60,6 @@ import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.sectionHeaderItem
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.buttonState
@@ -163,7 +161,7 @@ private fun ImportScene(
     title: String,
     showsTabs: Boolean,
     nameResolveIndicator: NameResolveIndicatorUIModel?,
-    dataError: Throwable?,
+    dataError: String?,
     buttonState: ButtonState,
     onImport: (generatedName: String) -> Unit,
     onInput: (String, Int) -> Unit,
@@ -290,10 +288,9 @@ private fun TypeSelection(tabs: List<ImportTabUIModel>, showsTabs: Boolean, onTy
 }
 
 @Composable
-private fun ErrorMessage(error: Throwable?) {
+private fun ErrorMessage(error: String?) {
     error ?: return
-    val text = error.errorText().text().takeIf { it.isNotBlank() } ?: stringResource(R.string.errors_unknown_try_again)
-    Text(text = text, color = MaterialTheme.colorScheme.error)
+    Text(text = error, color = MaterialTheme.colorScheme.error)
 }
 
 @Composable

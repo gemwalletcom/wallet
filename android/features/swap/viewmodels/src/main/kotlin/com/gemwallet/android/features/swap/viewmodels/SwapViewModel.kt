@@ -107,7 +107,7 @@ class SwapViewModel @Inject constructor(
 
     fun slippageState(bps: UInt?, isAuto: Boolean): SlippageStateUIModel = swapQuoteService.newSlippageSession(if (isAuto) GemSlippageSelection.Auto else GemSlippageSelection.Manual(bps ?: 0u))
         .viewState()
-        .uiModel(context, ::slippageText)
+        .uiModel(context)
 
     fun slippageBps(percent: Double): UInt? = swapQuoteService.slippageBpsFromPercent(percent)
 
@@ -120,9 +120,13 @@ class SwapViewModel @Inject constructor(
         session.distinctUntilChangedBy { it.isTransferLoading() to it.refreshPausedUntilRestart },
     ) { isEnabled, quoteSession -> quoteSession.refreshesQuotes(isEnabled) }
 
-    val payAsset = savedStateHandle.getStateFlow<String?>(RouteArgument.FromAssetId.key, null)
+    private val payAssetIdFlow = savedStateHandle.getStateFlow<String?>(RouteArgument.FromAssetId.key, null)
         .map { it?.toAssetId() }
-        .onEach { id -> id?.let { subscribePrice(it) } }
+
+    private val receiveAssetIdFlow = savedStateHandle.getStateFlow<String?>(RouteArgument.ToAssetId.key, null)
+        .map { it?.toAssetId() }
+
+    val payAsset = payAssetIdFlow
         .flatMapLatest { assetId -> assetId?.let { getAssetInfo(it) } ?: flow { emit(null) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -130,9 +134,7 @@ class SwapViewModel @Inject constructor(
         .map { asset -> asset?.let { swapQuoteService.defaultSlippage(it.asset.id.chain.string).bps } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val receiveAsset = savedStateHandle.getStateFlow<String?>(RouteArgument.ToAssetId.key, null)
-        .map { it?.toAssetId() }
-        .onEach { id -> id?.let { subscribePrice(it) } }
+    val receiveAsset = receiveAssetIdFlow
         .flatMapLatest { assetId -> assetId?.let { getAssetInfo(it) } ?: flow { emit(null) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -230,6 +232,10 @@ class SwapViewModel @Inject constructor(
         }.launchIn(viewModelScope)
         quoteResults
             .onEach(::onQuoteResults)
+            .launchIn(viewModelScope)
+        combine(payAssetIdFlow, receiveAssetIdFlow) { pay, receive -> listOfNotNull(pay, receive).map { it.toIdentifier() } }
+            .distinctUntilChanged()
+            .onEach(::refreshPair)
             .launchIn(viewModelScope)
         viewModelScope.launch { suggestPair() }
     }
@@ -350,8 +356,10 @@ class SwapViewModel @Inject constructor(
         }
     }
 
-    private fun subscribePrice(id: AssetId) = viewModelScope.launch(ioDispatcher) {
-        runCatchingCancellable { swapQuoteService.addPrices(listOf(id.toIdentifier())) }
+    private suspend fun refreshPair(assetIds: List<String>) = withContext(ioDispatcher) {
+        runCatchingCancellable { swapQuoteService.refreshPair(assetIds) }
+            .getOrNull()
+            ?.forEach { Log.e(TAG, "pair refresh failed at ${it.step}: ${it.message}") }
     }
 
     private fun onQuoteFetchStarted(requestKey: GemSwapRequest) {

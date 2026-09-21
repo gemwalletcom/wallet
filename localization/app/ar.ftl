@@ -396,6 +396,7 @@ stake_active_in = نشط في
 stake_minimum_amount = الحد الأدنى للمبلغ
 stake_state_empty_title = ستظهر عمليات التخزين هنا
 stake_state_empty_description = قم بتخزين أول %@
+stake_state_empty_validators_title = لم يتم العثور على مدققين
 stake_resource = المورد
 stake_resource_energy = طاقة
 stake_resource_bandwidth = عرض النطاق الترددي
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = في المزامنة
 nodes_import_node_latest_block = أحدث كتلة
 nodes_import_node_latency = كمون
 nodes_gem_wallet_node = Gem Wallet Node
+nodes_stream = التدفق
 nodes_import_node_warning_message = قد تكون العقد المخصصة ضارة وقد تكشف بيانات معاملاتك أو تقدم معلومات خاطئة.
 
 # Library

@@ -5,18 +5,12 @@ import PrimitivesComponents
 
 public struct SlippageSuggestion: SuggestionViewable {
     public let id: UInt32
-    private let percentText: String
+    public let title: String
+    public let inputValue: String
 
-    public var title: String {
-        "\(percentText)%"
-    }
-
-    public var inputValue: String {
-        percentText
-    }
-
-    public init(bps: UInt32, percentText: String) {
+    public init(bps: UInt32, title: String, inputValue: String) {
         id = bps
-        self.percentText = percentText
+        self.title = title
+        self.inputValue = inputValue
     }
 }

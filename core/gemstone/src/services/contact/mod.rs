@@ -96,14 +96,14 @@ impl GemContactService {
 }
 
 #[derive(uniffi::Object)]
-pub struct GemManageContactService {
+pub struct GemContactEditorService {
     contacts: Arc<GemContactService>,
     addresses: Arc<GemAddressService>,
     payments: Arc<GemPaymentService>,
 }
 
 #[uniffi::export]
-impl GemManageContactService {
+impl GemContactEditorService {
     #[uniffi::constructor]
     pub fn new(contacts: Arc<GemContactService>, addresses: Arc<GemAddressService>, payments: Arc<GemPaymentService>) -> Self {
         Self { contacts, addresses, payments }

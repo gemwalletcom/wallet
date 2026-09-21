@@ -62,8 +62,8 @@ public final class SwapSlippageViewModel {
         guard Self.bps(from: inputModel.text, service: service) != nil else { return nil }
         let state = viewState
         return state.check.errorText(
-            minimumText: Self.format(bps: state.minimumBps, service: service),
-            maximumText: Self.format(bps: state.maximumBps, service: service),
+            minimum: state.minimum,
+            maximum: state.maximum,
         )
     }
 
@@ -81,7 +81,9 @@ public final class SwapSlippageViewModel {
     }
 
     var suggestions: [SlippageSuggestion] {
-        viewState.suggestionsBps.map { SlippageSuggestion(bps: $0, percentText: Self.format(bps: $0, service: service)) }
+        viewState.suggestions.map {
+            SlippageSuggestion(bps: $0.bps, title: $0.percent.text(), inputValue: Self.format(bps: $0.bps, service: service))
+        }
     }
 
     func onSelect(suggestion: SlippageSuggestion) {

@@ -26,7 +26,7 @@ pub enum GemNotificationDestination {
 
 fn destination(url: Option<&str>) -> Option<GemNotificationDestination> {
     let url = url.filter(|url| !url.is_empty())?;
-    Some(match UrlAction::from_url(url) {
+    Some(match ::payment::classify_url(url) {
         Some(action) => GemNotificationDestination::InApp { action },
         None => GemNotificationDestination::Web { url: url.to_string() },
     })

@@ -3,7 +3,6 @@ package com.gemwallet.android.features.activities.viewmodels.models
 import android.content.Context
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.duration.formatEstimatedConfirmation
-import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.activities.viewmodels.localization.stringRes
 import com.gemwallet.android.features.activities.viewmodels.style.markerUIModel
@@ -12,6 +11,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemSymbol
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.style.textStyle
+import uniffi.gemstone.GemSwapProgress
 import uniffi.gemstone.GemSwapProgressMarker
 import uniffi.gemstone.GemSwapProgressState
 import uniffi.gemstone.GemSwapProgressStep
@@ -27,13 +27,13 @@ data class SwapProgressStepUIModel(val title: String, val subtitle: String, val 
 
 data class SwapProgressUIModel(val transfer: SwapProgressStepUIModel, val swap: SwapProgressStepUIModel, val estimatedTime: String?, val isConnectorActive: Boolean)
 
-internal fun TransactionDetailsValue.SwapProgress.uiModel(context: Context): SwapProgressUIModel {
-    val transferValue = ValueFormatter(style = GemValueStyle.AUTO).string(progress.fromValue, progress.fromAsset.toPrimitives())
+internal fun GemSwapProgress.uiModel(context: Context): SwapProgressUIModel {
+    val transferValue = ValueFormatter(style = GemValueStyle.AUTO).string(fromValue, fromAsset.toPrimitives())
     return SwapProgressUIModel(
-        transfer = progress.transfer.step(context, title = context.getString(R.string.transfer_title), subtitle = progress.transferText(transferValue)),
-        swap = progress.swap.step(context, title = context.getString(R.string.wallet_swap), subtitle = progress.providerName),
-        estimatedTime = progress.etaSeconds?.let(::formatEstimatedConfirmation),
-        isConnectorActive = progress.transfer.step == GemSwapProgressStep.COMPLETED,
+        transfer = transfer.step(context, title = context.getString(R.string.transfer_title), subtitle = transferText(transferValue)),
+        swap = swap.step(context, title = context.getString(R.string.wallet_swap), subtitle = providerName),
+        estimatedTime = etaSeconds?.let(::formatEstimatedConfirmation),
+        isConnectorActive = transfer.step == GemSwapProgressStep.COMPLETED,
     )
 }
 

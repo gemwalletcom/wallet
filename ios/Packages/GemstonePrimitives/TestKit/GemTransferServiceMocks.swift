@@ -274,8 +274,20 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         rewardsShown
     }
 
-    public func stakeActions(walletType _: Gemstone.WalletType, chain _: Gemstone.Chain, hasValidators: Bool, balance _: GemAssetBalance, delegations _: [Gemstone.Delegation]) -> [GemStakeActionItem] {
-        [GemStakeActionItem(action: .stake, isEnabled: hasValidators, requiresFrozenBalance: false, value: nil)]
+    public func resourceOptions(chain _: Gemstone.Chain) -> [Gemstone.Resource] {
+        [.bandwidth, .energy]
+    }
+
+    public func stakeActions(walletType _: Gemstone.WalletType, chain _: Gemstone.Chain, validators: [Gemstone.DelegationValidator], balance _: GemAssetBalance, delegations _: [Gemstone.Delegation]) -> [GemStakeActionItem] {
+        [
+            GemStakeActionItem(
+                action: .stake,
+                isEnabled: validators.isEmpty == false,
+                requiresFrozenBalance: false,
+                value: nil,
+                destination: .amount(input: .stake(validators: validators, validator: nil)),
+            ),
+        ]
     }
 
     public func claimRewards(chain _: Gemstone.Chain, delegations: [Gemstone.Delegation]) -> GemClaimRewards {

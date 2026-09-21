@@ -5,6 +5,7 @@ import Components
 import Formatters
 import Foundation
 import class Gemstone.Config
+import func Gemstone.formattedPercentage
 import enum Gemstone.GemSwapButtonAction
 import enum Gemstone.GemSwapErrorDisplay
 import struct Gemstone.GemSwapPairSelection
@@ -29,7 +30,9 @@ import Style
 @MainActor
 @Observable
 public final class SwapSceneViewModel {
-    static let inputPercentSuggestions = Config.shared.swapConfig().amountPercentPresets.map { PercentageSuggestion(value: Int($0)) }
+    static let inputPercentSuggestions = Config.shared.swapConfig().amountPercentPresets.map {
+        PercentageSuggestion(number: formattedPercentage(value: Double($0), style: .unsignedCompact))
+    }
 
     public let wallet: Wallet
 
@@ -314,10 +317,9 @@ extension SwapSceneViewModel {
     }
 
     func onAssetIdsChange(assetIds: Set<AssetId>) async {
-        let assetIds = Array(assetIds)
-        async let balances: () = updateBalances(for: assetIds)
-        async let prices: () = subscribePrices(for: assetIds)
-        _ = await (balances, prices)
+        for failure in await service.refreshPair(assetIds: Array(assetIds)) {
+            debugLog("SwapScene pair refresh error: \(failure.step) \(failure.message)")
+        }
     }
 
     func onSelectAssetPay() {
@@ -486,22 +488,6 @@ extension SwapSceneViewModel {
             debugLog("SwapScene get quotes error: \(error)")
         } catch {
             debugLog("SwapScene get quotes error: \(error)")
-        }
-    }
-
-    private func updateBalances(for assetIds: [AssetId]) async {
-        do {
-            try await service.updateBalances(assetIds: assetIds)
-        } catch {
-            debugLog("SwapScene balance update error: \(error)")
-        }
-    }
-
-    private func subscribePrices(for assetIds: [AssetId]) async {
-        do {
-            try await service.addPrices(assetIds: assetIds)
-        } catch {
-            debugLog("SwapScene price subscription error: \(error)")
         }
     }
 

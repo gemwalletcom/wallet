@@ -396,6 +396,7 @@ stake_active_in = Aktywne w
 stake_minimum_amount = Minimalna kwota
 stake_state_empty_title = Twoje stawki pojawią się tutaj
 stake_state_empty_description = Postaw swoją pierwszą %@
+stake_state_empty_validators_title = Nie znaleziono walidatorów
 stake_resource = Zasób
 stake_resource_energy = Energia
 stake_resource_bandwidth = Przepustowość
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = W synchronizacji
 nodes_import_node_latest_block = Najnowszy blok
 nodes_import_node_latency = Opóźnienie
 nodes_gem_wallet_node = Gem Wallet Node
+nodes_stream = Strumień
 nodes_import_node_warning_message = Węzły niestandardowe mogą mieć charakter złośliwy i ujawniać dane transakcji lub podawać fałszywe informacje.
 
 # Library

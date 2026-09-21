@@ -1,5 +1,5 @@
 use chrono::{NaiveDateTime, Utc};
-use primitives::ConfigKey;
+use config_keys::ConfigKey;
 use search_index::SearchIndexClient;
 use serde::Serialize;
 use std::error::Error;

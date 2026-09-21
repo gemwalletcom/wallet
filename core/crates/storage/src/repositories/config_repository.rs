@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use primitives::{ConfigKey, ConfigParamKey};
+use config_keys::{ConfigKey, ConfigParamKey};
 
 use crate::database::config::ConfigStore;
 use crate::models::ConfigRow;

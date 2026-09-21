@@ -1,6 +1,8 @@
 use std::cmp::Reverse;
 
-use primitives::{AssetId, Chain, ChainAsset, NodeCheckProfile, NodeCheckRequest, Wallet, node_check_request};
+use chain_traits::node_check::{NodeCheckProfile, NodeCheckRequest};
+use node_probes::node_check_request;
+use primitives::{AssetId, Chain, ChainAsset, Wallet};
 
 use crate::services::collections::unique;
 

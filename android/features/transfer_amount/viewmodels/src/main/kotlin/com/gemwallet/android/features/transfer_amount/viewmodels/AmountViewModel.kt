@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels
 
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,8 +11,15 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.features.transfer_amount.viewmodels.localization.text
+import com.gemwallet.android.features.transfer_amount.viewmodels.models.AmountExtrasUIModel
+import com.gemwallet.android.features.transfer_amount.viewmodels.models.AmountUiState
+import com.gemwallet.android.features.transfer_amount.viewmodels.models.ValidatorPickerUIModel
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountDataProvider
+import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountPerpetualProvider
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountProviderFactory
+import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountStakeProvider
+import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountTransferProvider
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.math.plainInputNumber
 import com.gemwallet.android.model.AmountParams
@@ -25,7 +33,9 @@ import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.style.amountSymbol
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -40,14 +50,19 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAmountEntry
 import uniffi.gemstone.GemAmountEquivalent
+import uniffi.gemstone.GemAmountErrorDisplay
+import uniffi.gemstone.GemAmountException
+import uniffi.gemstone.GemAmountInput
 import uniffi.gemstone.GemAmountInputType
 import uniffi.gemstone.GemAmountServiceInterface
+import uniffi.gemstone.GemAmountTitle
+import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemValueStyle
 import java.math.BigInteger
 import javax.inject.Inject
 
 @HiltViewModel
-class AmountViewModel @Inject constructor(service: GemAmountServiceInterface, factory: AmountProviderFactory, savedStateHandle: SavedStateHandle) : ViewModel() {
+class AmountViewModel @Inject constructor(service: GemAmountServiceInterface, factory: AmountProviderFactory, savedStateHandle: SavedStateHandle, @param:ApplicationContext private val context: Context) : ViewModel() {
 
     private val valueFormatter = ValueFormatter(style = GemValueStyle.AUTO)
 
@@ -58,12 +73,12 @@ class AmountViewModel @Inject constructor(service: GemAmountServiceInterface, fa
         private set
 
     val amountInputType = MutableStateFlow(GemAmountInputType.ASSET)
-    val amountError = MutableStateFlow<Throwable?>(null)
+    private val amountError = MutableStateFlow<Throwable?>(null)
 
     val currency: Currency = service.getCurrency().toPrimitives()
     private val currencyFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)
 
-    val amountSymbol: StateFlow<AmountSymbolUIModel> = combine(amountInputType, provider.assetInfo) { inputType, current ->
+    private val amountSymbol: StateFlow<AmountSymbolUIModel> = combine(amountInputType, provider.assetInfo) { inputType, current ->
         inputType.amountSymbol(current?.asset?.symbol.orEmpty(), currency)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, GemAmountInputType.ASSET.amountSymbol("", currency))
 
@@ -81,14 +96,14 @@ class AmountViewModel @Inject constructor(service: GemAmountServiceInterface, fa
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val availableBalanceFormatted: StateFlow<String> = combine(
+    private val availableBalanceFormatted: StateFlow<String> = combine(
         provider.input,
         provider.assetInfo,
     ) { input, current ->
         if (input == null || current == null) "" else valueFormatter.string(input.availableValue, current.asset)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
-    val reserveForFeeFormatted: StateFlow<String?> = combine(
+    private val reserveForFeeFormatted: StateFlow<String?> = combine(
         provider.assetInfo,
         entry,
     ) { current, entry ->
@@ -96,7 +111,7 @@ class AmountViewModel @Inject constructor(service: GemAmountServiceInterface, fa
         entry?.reservedFee?.let { valueFormatter.string(it, asset) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val amountEquivalent: StateFlow<String> = combine(
+    private val amountEquivalent: StateFlow<String> = combine(
         provider.assetInfo,
         entry,
     ) { current, entry ->
@@ -108,9 +123,65 @@ class AmountViewModel @Inject constructor(service: GemAmountServiceInterface, fa
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
-    val buttonState: StateFlow<ButtonState> = entry.map { entry ->
+    private val buttonState: StateFlow<ButtonState> = entry.map { entry ->
         buttonState(enabled = entry?.allowsConfirm() == true)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Disabled)
+
+    private val amountAsset: StateFlow<Asset?> = provider.assetInfo.map { current ->
+        val asset = current?.asset ?: return@map null
+        (provider as? AmountTransferProvider)?.displayAsset(asset) ?: asset
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val amountErrorDisplay: StateFlow<GemAmountErrorDisplay?> = amountError
+        .map { (it as? GemAmountException)?.display() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val uiState: StateFlow<AmountUiState> = combine(
+        combine(provider.title, amountAsset, amountSymbol, provider.input) { title, asset, symbol, input -> listOf(title, asset, symbol, input) },
+        combine(availableBalanceFormatted, reserveForFeeFormatted, amountEquivalent, buttonState) { available, reserve, equivalent, button -> listOf(available, reserve, equivalent, button) },
+        combine(provider.amountType, amountErrorDisplay, provider.extras) { amountType, errorDisplay, extras -> listOf(amountType, errorDisplay, extras) },
+    ) { screen, values, rest ->
+        val input = screen[3] as GemAmountInput?
+        val errorDisplay = rest[1] as GemAmountErrorDisplay?
+        AmountUiState(
+            title = (screen[0] as GemAmountTitle?)?.text(context).orEmpty(),
+            asset = screen[1] as Asset?,
+            amountSymbol = screen[2] as AmountSymbolUIModel,
+            canSwitchInputType = (rest[0] as GemAmountType?)?.canSwitchInputType() == true,
+            readOnly = input?.canChangeValue == false,
+            showsAssetBalance = input?.showsAssetBalance != false,
+            usesWholeAmounts = input?.usesWholeAmounts == true,
+            availableBalance = values[0] as String,
+            reserveForFee = values[1] as String?,
+            equivalent = values[2] as String,
+            error = errorDisplay?.text(context).orEmpty(),
+            errorTopic = errorDisplay?.info(),
+            buttonState = values[3] as ButtonState,
+            extras = rest[2] as AmountExtrasUIModel,
+        )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, AmountUiState())
+
+    private val stakeProvider = provider as? AmountStakeProvider
+
+    val perpetualProvider = provider as? AmountPerpetualProvider
+
+    val validatorPicker: StateFlow<ValidatorPickerUIModel?> = stakeProvider?.let { stake ->
+        combine(stake.validatorRows, stake.validatorState) { rows, selected ->
+            rows?.let { ValidatorPickerUIModel(rows = it, selectedId = selected?.validator?.id.orEmpty()) }
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    } ?: MutableStateFlow(null)
+
+    fun selectValidator(id: String?) {
+        stakeProvider?.selectValidator(id)
+    }
+
+    fun selectResource(resource: Resource) {
+        stakeProvider?.setResource(resource)
+    }
+
+    fun selectLeverage(value: Int) {
+        perpetualProvider?.setLeverage(value)
+    }
 
     init {
         entry

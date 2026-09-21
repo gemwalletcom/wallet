@@ -14,6 +14,7 @@ import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.localization.titleRes
+import com.wallet.core.primitives.AssetId
 import dagger.hilt.android.qualifiers.ApplicationContext
 import uniffi.gemstone.GemAssetBalanceRow
 import uniffi.gemstone.GemAssetDetailRow
@@ -44,14 +45,14 @@ class AssetInfoUIModelFactory @Inject constructor(@ApplicationContext private va
             explorerAddressUrl = details.addressLink?.link,
             explorerTokenUrl = details.tokenLink?.link,
             verificationStatus = details.verificationStatus?.toPrimitives(),
-            networkDestination = details.networkDestination,
+            networkAction = details.networkDestination.navigation(),
             shareUrl = details.shareUrl,
             detailsState = details.state,
             priceAlertMenu = details.state.priceAlert.menu(),
             emptyTransactions = details.state.emptyTransactionsAction.emptyTransactions(),
             banners = banners.map { it.uiModel(context) },
             priceListItem = ListItemModel(title = context.getString(R.string.asset_price), subtitle = priceRow?.row?.price?.text().orEmpty()),
-            sections = details.sections.map { section -> AssetInfoUIModel.SectionUIModel(section.title.titleRes(), section.rows.map { row(it) }) },
+            sections = details.sections.map { section -> AssetInfoUIModel.SectionUIModel(section.title.titleRes(), section.rows.map { row(it, asset.id) }) },
             accountInfoUIModel = AssetInfoUIModel.AccountInfoUIModel(
                 totalBalance = details.balanceValue.text(),
                 totalFiat = details.fiatValue?.text().orEmpty(),
@@ -60,12 +61,12 @@ class AssetInfoUIModelFactory @Inject constructor(@ApplicationContext private va
         )
     }
 
-    private fun row(row: GemAssetDetailRow): AssetInfoUIModel.RowUIModel = when (row) {
+    private fun row(row: GemAssetDetailRow, assetId: AssetId): AssetInfoUIModel.RowUIModel = when (row) {
         is GemAssetDetailRow.Price -> AssetInfoUIModel.RowUIModel.Price
         is GemAssetDetailRow.Network -> AssetInfoUIModel.RowUIModel.Network(row.name)
         is GemAssetDetailRow.Balance -> balance(row.row)
         is GemAssetDetailRow.Earn -> AssetInfoUIModel.RowUIModel.Earn(row.row)
-        is GemAssetDetailRow.Row -> AssetInfoUIModel.RowUIModel.Row(row.row)
+        is GemAssetDetailRow.Row -> AssetInfoUIModel.RowUIModel.Row(row.row, row.row.detailsAction(assetId))
     }
 
     private fun balance(item: GemAssetBalanceRow): AssetInfoUIModel.RowUIModel.Balance {

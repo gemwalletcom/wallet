@@ -396,6 +396,7 @@ stake_active_in = Aktibo Sa
 stake_minimum_amount = Minimum na halaga
 stake_state_empty_title = Lalabas dito ang iyong mga stake
 stake_state_empty_description = Mag-stake ng iyong unang %@
+stake_state_empty_validators_title = Walang nakitang mga validator
 stake_resource = mapagkukunan
 stake_resource_energy = Enerhiya
 stake_resource_bandwidth = Bandwidth
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = Sa Sync
 nodes_import_node_latest_block = Pinakabagong Block
 nodes_import_node_latency = Latency
 nodes_gem_wallet_node = Gem Wallet Node
+nodes_stream = Stream
 nodes_import_node_warning_message = Ang mga custom node ay maaaring maging malisyoso at maaaring maglantad ng iyong data ng transaksyon o magbigay ng maling impormasyon.
 
 # Library

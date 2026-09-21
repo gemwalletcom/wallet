@@ -7,12 +7,14 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.ChartViewModel
 import com.gemwallet.android.ui.components.chart.ChartStateView
 import com.gemwallet.android.ui.components.chart.GemLineChart
+import com.gemwallet.android.ui.format.rowDateFormatter
 import com.gemwallet.android.ui.models.dataOrNull
 import com.wallet.core.primitives.ChartPeriod
 
@@ -33,7 +35,7 @@ internal fun ChartSection(state: ChartUIModel.State, onPeriodSelect: (ChartPerio
         ChartStateView(
             state = state.chart,
             header = uiModel?.header(selectedIndex),
-            date = uiModel?.dateText(selectedIndex, state.period),
+            date = uiModel?.dateText(selectedIndex, state.period, LocalContext.current.rowDateFormatter()),
             period = state.period,
             onPeriodSelect = onPeriodSelect,
             periods = periods,

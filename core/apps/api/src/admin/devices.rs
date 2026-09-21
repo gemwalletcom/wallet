@@ -1,4 +1,5 @@
-use primitives::{AdminDevice, FiatTransactionData, TransactionsResponse, WalletSubscription};
+use crate::admin::model::AdminDevice;
+use primitives::{FiatTransactionData, TransactionsResponse, WalletSubscription};
 use rocket::{State, get};
 
 use crate::api_clients::{PermissionDeviceRead, PermissionDeviceSubscriptionsRead, PermissionDeviceTransactionsRead, PermissionFiatTransactionsRead};

@@ -1,6 +1,7 @@
-use crate::formatted_number::{GemFormattedNumber, GemValueTone};
-use crate::models::custom_types::GemBigUint;
+use crate::formatted_number::{GemFormattedNumber, GemNumberNotation, GemValueTone};
+use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
+use crate::precision::GemValueStyle;
 use crate::services::swap::model::GemSwapRate;
 use chrono::{DateTime, Utc};
 use primitives::{AddressName, Asset, AssetId, AssetPrice, Chain, ChainAsset, NFTAssetId, PerpetualDirection, Resource, Transaction, TransactionDirection, TransactionExtended, TransactionId, TransactionState, TransactionType};
@@ -88,11 +89,22 @@ pub enum GemAmountSign {
 
 #[uniffi::export]
 impl GemAmountSign {
-    pub fn format(&self, amount: String) -> String {
+    pub fn amount(&self, value: GemBigInt, decimals: u32, symbol: Option<String>, style: GemValueStyle) -> GemFormattedNumber {
+        let number = GemFormattedNumber::amount(number_formatter::BigNumberFormatter::f64_value(value.magnitude(), decimals), symbol, style);
         match self {
-            Self::None => amount,
-            Self::Incoming => format!("+{amount}"),
-            Self::Outgoing => format!("-{amount}"),
+            Self::None => number,
+            _ if number.value == 0.0 => number,
+            Self::Incoming => GemFormattedNumber {
+                notation: GemNumberNotation::Signed,
+                tone: GemValueTone::Positive,
+                ..number
+            },
+            Self::Outgoing => GemFormattedNumber {
+                value: -number.value,
+                notation: GemNumberNotation::Signed,
+                tone: GemValueTone::Plain,
+                ..number
+            },
         }
     }
 }
@@ -399,8 +411,23 @@ mod tests {
 
     #[test]
     fn test_a_signed_amount_carries_its_direction_and_an_unsigned_one_does_not() {
-        assert_eq!(GemAmountSign::Incoming.format("1.00 BTC".to_string()), "+1.00 BTC");
-        assert_eq!(GemAmountSign::Outgoing.format("1.00 BTC".to_string()), "-1.00 BTC");
-        assert_eq!(GemAmountSign::None.format("1.00 BTC".to_string()), "1.00 BTC");
+        use crate::formatted_number::{GemNumberNotation, GemValueTone};
+        use crate::precision::GemValueStyle;
+        let number = |sign: GemAmountSign, value: i64| sign.amount(value.into(), 2, Some("BTC".to_string()), GemValueStyle::Auto);
+
+        let incoming = number(GemAmountSign::Incoming, 100);
+        assert_eq!((incoming.value, incoming.notation, incoming.tone), (1.0, GemNumberNotation::Signed, GemValueTone::Positive));
+
+        let outgoing = number(GemAmountSign::Outgoing, 100);
+        assert_eq!((outgoing.value, outgoing.notation, outgoing.tone), (-1.0, GemNumberNotation::Signed, GemValueTone::Plain));
+
+        let unsigned = number(GemAmountSign::None, 100);
+        assert_eq!((unsigned.value, unsigned.notation), (1.0, GemNumberNotation::Plain));
+
+        let negative_outgoing = number(GemAmountSign::Outgoing, -100);
+        assert_eq!(negative_outgoing.value, -1.0, "the direction decides the sign, not the stored value");
+
+        let zero = number(GemAmountSign::Incoming, 0);
+        assert_eq!(zero.notation, GemNumberNotation::Plain, "nothing moved, so nothing is signed");
     }
 }

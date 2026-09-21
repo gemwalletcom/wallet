@@ -27,6 +27,7 @@ import com.gemwallet.android.features.buy.localization.titleRes
 import com.gemwallet.android.features.buy.viewmodels.FiatViewModel
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.features.buy.viewmodels.models.FiatUiState
+import com.gemwallet.android.ui.ObserveStartedState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.clickable
@@ -54,6 +55,8 @@ fun FiatNavScreen(cancelAction: CancelAction, onFiatTransactions: () -> Unit, vi
     val providerListItem by viewModel.providerListItem.collectAsStateWithLifecycle()
     val rateListItem by viewModel.rateListItem.collectAsStateWithLifecycle()
     val showFiatTypePicker by viewModel.showFiatTypePicker.collectAsStateWithLifecycle()
+
+    ObserveStartedState(viewModel::setRefreshEnabled)
 
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current

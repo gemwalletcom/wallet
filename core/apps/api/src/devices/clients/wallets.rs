@@ -1,7 +1,8 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::error::Error;
 
-use primitives::{AddressChains, AdminWalletOverview, Chain, WalletId, WalletSource, WalletSubscription, WalletSubscriptionChains};
+use crate::admin::model::AdminWalletOverview;
+use primitives::{AddressChains, Chain, WalletId, WalletSource, WalletSubscription, WalletSubscriptionChains};
 use storage::models::NewWalletRow;
 use storage::sql_types::WalletType;
 use storage::{Database, DevicesRepository, FiatRepository, NftRepository, RewardsRepository, TransactionsRepository, WalletsRepository};

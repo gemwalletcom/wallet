@@ -396,6 +396,7 @@ stake_active_in = 距激活
 stake_minimum_amount = 最低金额
 stake_state_empty_title = 质押将显示在这里
 stake_state_empty_description = 首次质押 %@
+stake_state_empty_validators_title = 未找到验证者
 stake_resource = 资源
 stake_resource_energy = 能量
 stake_resource_bandwidth = 带宽
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = 已同步
 nodes_import_node_latest_block = 最新区块
 nodes_import_node_latency = 延迟
 nodes_gem_wallet_node = Gem 钱包节点
+nodes_stream = 数据流
 nodes_import_node_warning_message = 自定义节点可能存在恶意，可能会泄露交易数据或提供虚假信息。
 
 # Library

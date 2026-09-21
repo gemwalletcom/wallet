@@ -1,5 +1,5 @@
+use chain_traits::node_check::NodeCheckStatus;
 use gem_tracing::{error_fields, info_with_fields};
-use primitives::NodeCheckStatus;
 
 const FIELD_WIDTH: usize = 30;
 const LATENCY_WIDTH: usize = 9;

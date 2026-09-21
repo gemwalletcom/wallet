@@ -1,7 +1,8 @@
 use std::error::Error;
 
+use config_keys::ConfigKey;
 use gem_tracing::{error_with_fields, info_with_fields};
-use primitives::{ConfigKey, NaiveDateTimeExt, RewardStatus, now};
+use primitives::{NaiveDateTimeExt, RewardStatus, now};
 use storage::{ConfigCacher, Database, RewardsEligibilityConfig, RewardsFilter, RewardsRepository};
 use streamer::{RewardsNotificationPayload, StreamProducer, StreamProducerQueue};
 

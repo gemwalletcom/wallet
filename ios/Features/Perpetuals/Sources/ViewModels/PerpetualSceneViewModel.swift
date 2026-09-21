@@ -114,10 +114,9 @@ public final class PerpetualSceneViewModel {
 
 public extension PerpetualSceneViewModel {
     func load() async {
-        async let positions: () = syncPositions()
-        async let refreshTransactions: () = updateTransactions()
+        async let refresh: () = refreshStored()
         async let refreshCandlesticks: () = chart.refresh(perpetual: perpetual)
-        _ = await (positions, refreshTransactions, refreshCandlesticks)
+        _ = await (refresh, refreshCandlesticks)
     }
 
     func onAppear() async {
@@ -135,8 +134,7 @@ public extension PerpetualSceneViewModel {
     func onScenePhaseChange(_: ScenePhase, _ newPhase: ScenePhase) {
         switch newPhase {
         case .active:
-            Task { await updateTransactions() }
-            Task { await chart.refresh(perpetual: perpetual) }
+            Task { await load() }
         case .inactive, .background: break
         @unknown default: break
         }
@@ -223,19 +221,9 @@ private extension PerpetualSceneViewModel {
         details.position.map { PerpetualPositionData(perpetual: perpetual, asset: asset, position: $0.toPrimitives()) }
     }
 
-    func syncPositions() async {
-        do {
-            try await service.syncPositions()
-        } catch {
-            debugLog("perpetual scene: sync positions error \(error)")
-        }
-    }
-
-    func updateTransactions() async {
-        do {
-            try await service.syncTransactions(assetId: asset.id.identifier)
-        } catch {
-            debugLog("perpetual scene: loadTransactions error \(error)")
+    func refreshStored() async {
+        for failure in await service.refresh(assetId: asset.id.identifier) {
+            debugLog("perpetual scene refresh error: \(failure.step) \(failure.message)")
         }
     }
 }

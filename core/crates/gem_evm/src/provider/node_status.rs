@@ -5,10 +5,10 @@ use std::time::Duration;
 use async_trait::async_trait;
 use chain_traits::{
     ChainBalances, ChainTraits,
-    node_check::{ChainNodeStatus, NodeCheckRecorder, record_node_state},
+    node_check::{ChainNodeStatus, NodeCheckRecorder, NodeCheckReport, NodeCheckRequest, record_node_state},
 };
 use gem_client::Client;
-use primitives::{NodeCheckReport, NodeCheckRequest, NodeSyncStatus};
+use primitives::NodeSyncStatus;
 
 use crate::{jsonrpc::TransactionObject, method, rpc::EthereumProvider};
 use receipt_history::record_receipt_checks;

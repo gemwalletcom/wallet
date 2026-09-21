@@ -75,8 +75,6 @@ class PerpetualMarketViewModel @Inject constructor(
     val isSearching: StateFlow<Boolean> = session.map { it.isSearching }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val depositAssetId: AssetId = GemPerpetual(PerpetualProvider.HYPERCORE).use { it.depositAsset() }.id.toAssetId()!!
-
     fun setSearching(searching: Boolean) {
         session.update { it.onSearchingChanged(searching) }
     }

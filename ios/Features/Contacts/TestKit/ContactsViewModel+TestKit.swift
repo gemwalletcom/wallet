@@ -9,7 +9,7 @@ public extension ContactsViewModel {
     static func mock(mode: Mode = .list) -> ContactsViewModel {
         ContactsViewModel(
             service: GemContactService.mock(),
-            manageContact: { .mock(mode: $0) },
+            contactEditor: { .mock(mode: $0) },
             mode: mode,
         )
     }

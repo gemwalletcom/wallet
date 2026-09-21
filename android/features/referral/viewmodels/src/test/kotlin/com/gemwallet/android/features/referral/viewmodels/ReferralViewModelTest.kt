@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.wallet.cases.GetWallets
+import com.gemwallet.android.features.referral.viewmodels.models.IncomingCodeUIModel
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockGemRewardsState
 import com.gemwallet.android.testkit.mockRewards
@@ -29,7 +30,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemIncomingCode
 import uniffi.gemstone.GemRewardsServiceInterface
 import uniffi.gemstone.Rewards
 
@@ -55,7 +55,10 @@ class ReferralViewModelTest {
     private val service = mockk<GemRewardsServiceInterface> {
         every { wallets(any()) } answers { firstArg() }
         every { selectedWallet(any(), any()) } answers { firstArg() }
-        every { state(any()) } answers { mockGemRewardsState(referralCode = firstArg<Rewards?>()?.code, usedReferralCode = firstArg<Rewards?>()?.usedReferralCode) }
+        every { state(any()) } answers {
+            val current = firstArg<Rewards?>()
+            mockGemRewardsState(referralCode = current?.code, usedReferralCode = current?.usedReferralCode, showsPendingActivation = current?.usedReferralCode != null)
+        }
         coEvery { getRewards(any()) } returns mockRewards()
         coEvery { useReferralCode(any(), any()) } returns mockRewards(usedReferralCode = "friend")
     }
@@ -76,12 +79,12 @@ class ReferralViewModelTest {
 
         try {
             runCurrent()
-            assertNull(viewModel.uiState.value.usedReferralCode)
+            assertNull(viewModel.uiState.value.pendingCode)
 
             viewModel.useCode("friend") {}
             runCurrent()
 
-            assertEquals("friend", viewModel.uiState.value.usedReferralCode)
+            assertEquals("friend", viewModel.uiState.value.pendingCode)
         } finally {
             viewModel.viewModelScope.cancel()
         }
@@ -93,12 +96,12 @@ class ReferralViewModelTest {
 
         try {
             runCurrent()
-            assertEquals(GemIncomingCode.Activate("friend"), viewModel.incomingCode.value)
+            assertEquals(IncomingCodeUIModel(activate = "friend"), viewModel.incomingCode.value)
 
             walletsFlow.value = listOf(wallet, secondWallet)
             runCurrent()
 
-            assertEquals(GemIncomingCode.Confirm("friend"), viewModel.incomingCode.value)
+            assertEquals(IncomingCodeUIModel(confirm = "friend"), viewModel.incomingCode.value)
         } finally {
             viewModel.viewModelScope.cancel()
         }
@@ -111,7 +114,7 @@ class ReferralViewModelTest {
         try {
             runCurrent()
 
-            assertNull(viewModel.incomingCode.value)
+            assertEquals(IncomingCodeUIModel(), viewModel.incomingCode.value)
         } finally {
             viewModel.viewModelScope.cancel()
         }

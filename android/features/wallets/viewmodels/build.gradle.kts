@@ -54,4 +54,9 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     implementation(libs.lifecycle.viewmodel)
+
+    testImplementation(testFixtures(project(":gemcore")))
+    testImplementation(libs.junit)
+    testImplementation(libs.mockk.android)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

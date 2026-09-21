@@ -8,12 +8,12 @@ import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.list_item.property.icon
+import com.gemwallet.android.ui.format.rowDateFormatter
 import com.gemwallet.android.ui.localization.infoDescriptionRes
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.stringRes
@@ -33,8 +33,8 @@ import uniffi.gemstone.GemNoticeKind
 import uniffi.gemstone.GemSocialLink
 import uniffi.gemstone.GemValueStyle
 import uniffi.gemstone.GemValueTone
-import java.text.DateFormat
-import java.util.Date
+import java.time.ZoneId
+import java.util.Locale
 
 internal sealed interface GemListRowUIModel {
     data class Notice(val title: String, val message: String?, val kind: GemNoticeKind) : GemListRowUIModel
@@ -71,7 +71,7 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
     is GemListRow.AllTime -> GemListRowUIModel.Item(
         ListItemModel(
             title = title.text(context),
-            titleExtra = DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(date)),
+            titleExtra = context.rowDateFormatter().section(date, ZoneId.systemDefault(), Locale.getDefault()),
             subtitle = value.text(),
             subtitleExtra = change.text(),
             subtitleExtraStyle = change.tone.textStyle(),
@@ -90,7 +90,7 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
         ),
     )
 
-    is GemListRow.Date -> GemListRowUIModel.Item(ListItemModel(title = title.text(context), subtitle = getRelativeDate(date)))
+    is GemListRow.Date -> GemListRowUIModel.Item(ListItemModel(title = title.text(context), subtitle = context.rowDateFormatter().row(date, ZoneId.systemDefault(), Locale.getDefault())))
 
     is GemListRow.Network -> GemListRowUIModel.Network(chain.requireChain(), name)
 

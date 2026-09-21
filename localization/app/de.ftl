@@ -396,6 +396,7 @@ stake_active_in = Aktiv in
 stake_minimum_amount = Mindestbetrag
 stake_state_empty_title = Ihre Einsätze werden hier angezeigt
 stake_state_empty_description = Setzen Sie Ihre ersten %@ ein
+stake_state_empty_validators_title = Keine Validatoren gefunden
 stake_resource = Ressource
 stake_resource_energy = Energie
 stake_resource_bandwidth = Bandbreite
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = Synchronisiert
 nodes_import_node_latest_block = Letzter Block
 nodes_import_node_latency = Latenzzeit
 nodes_gem_wallet_node = Gem Wallet Node
+nodes_stream = Stream
 nodes_import_node_warning_message = Benutzerdefinierte Knoten können bösartig sein und Ihre Transaktionsdaten offenlegen oder falsche Informationen liefern.
 
 # Library

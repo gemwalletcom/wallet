@@ -2,10 +2,8 @@ use std::error::Error;
 
 use localizer::LanguageLocalizer;
 use number_formatter::{ValueFormatter, ValueStyle};
-use primitives::{
-    AddressFormatStyle, AddressFormatter, Asset, AssetVecExt, Chain, DeviceSubscription, FiatQuoteType, GorushNotification, PushNotification, PushNotificationTransaction, PushNotificationTypes, Transaction, TransactionNFTTransferMetadata,
-    TransactionPerpetualMetadata, TransactionSwapMetadata, TransactionType,
-};
+use primitives::{AddressFormatStyle, AddressFormatter, Asset, AssetVecExt, Chain, DeviceSubscription, FiatQuoteType, Transaction, TransactionNFTTransferMetadata, TransactionPerpetualMetadata, TransactionSwapMetadata, TransactionType};
+use push_notification::{GorushNotification, PushNotification, PushNotificationTransaction, PushNotificationTypes};
 use storage::{Database, ScanAddressesRepository};
 
 use api_connector::pusher::model::Message;

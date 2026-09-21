@@ -171,7 +171,7 @@ extension NavigationRouter {
 @MainActor
 extension NavigationRouter {
     private func openPayment(_ payment: Gemstone.Payment) async throws {
-        guard let wallet = await walletSessionService.currentWallet else { return }
+        let wallet = try await walletSessionService.requireCurrentWallet().toPrimitives()
         switch payment {
         case let .request(request):
             let assets = try assetStore.getAssetsData(walletId: wallet.id, filters: [])
@@ -262,9 +262,8 @@ extension NavigationRouter {
     }
 
     private func navigateToAsset(walletId: WalletId, assetId: AssetId) async throws {
-        guard let wallet = try? await walletSessionService.getWallet(walletId: walletId),
-              let asset = try await assetsService.openWalletAsset(wallet: wallet, assetId: assetId)
-        else {
+        let wallet = try await walletSessionService.requireWallet(walletId: walletId)
+        guard let asset = try await assetsService.openWalletAsset(wallet: wallet, assetId: assetId) else {
             return
         }
 
@@ -272,12 +271,12 @@ extension NavigationRouter {
     }
 
     private func navigateToTransaction(walletId: WalletId, assetId: AssetId, transaction: Primitives.Transaction) async throws {
-        guard let wallet = try? await walletSessionService.getWallet(walletId: walletId),
-              let asset = try await transactionStateService.addNotificationTransaction(
-                  wallet: wallet.toGem(),
-                  assetId: assetId.identifier,
-                  transaction: transaction.toGem(),
-              ).map({ $0.toPrimitives() })
+        let wallet = try await walletSessionService.requireWallet(walletId: walletId)
+        guard let asset = try await transactionStateService.addNotificationTransaction(
+            wallet: wallet.toGem(),
+            assetId: assetId.identifier,
+            transaction: transaction.toGem(),
+        ).map({ $0.toPrimitives() })
         else {
             return
         }
@@ -309,7 +308,7 @@ extension NavigationRouter {
     }
 
     private func presentSwap(from fromId: AssetId, to toId: AssetId?) async throws {
-        guard let wallet = await walletSessionService.currentWallet else { return }
+        let wallet = try await walletSessionService.requireCurrentWallet().toPrimitives()
         try await presenter.presentSwap(from: fromId, to: toId, wallet: wallet)
     }
 
@@ -328,7 +327,7 @@ extension NavigationRouter {
     }
 
     private func presentAssetInput(type: SelectedAssetType, for asset: Asset) async throws {
-        guard let wallet = await walletSessionService.currentWallet else { return }
+        let wallet = try await walletSessionService.requireCurrentWallet().toPrimitives()
         try presenter.presentAssetInput(type: type, for: asset, wallet: wallet)
     }
 

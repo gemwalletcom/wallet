@@ -339,6 +339,7 @@
   <string name="stake_minimum_amount">最低金额</string>
   <string name="stake_state_empty_title">质押将显示在这里</string>
   <string name="stake_state_empty_description">首次质押 %1$s</string>
+  <string name="stake_state_empty_validators_title">未找到验证者</string>
   <string name="stake_resource">资源</string>
   <string name="stake_resource_energy">能量</string>
   <string name="stake_resource_bandwidth">带宽</string>
@@ -380,6 +381,7 @@
   <string name="nodes_import_node_latest_block">最新区块</string>
   <string name="nodes_import_node_latency">延迟</string>
   <string name="nodes_gem_wallet_node">Gem 钱包节点</string>
+  <string name="nodes_stream">数据流</string>
   <string name="nodes_import_node_warning_message">自定义节点可能存在恶意，可能会泄露交易数据或提供虚假信息。</string>
   <string name="library_select_from_photo_library">从照片中选取</string>
   <string name="fee_rates_info">交易速度取决于向矿工支付的网络费用</string>

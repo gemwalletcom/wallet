@@ -75,12 +75,20 @@ pub enum GemStakeAction {
     ClaimRewards,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, uniffi::Record)]
 pub struct GemStakeActionItem {
     pub action: GemStakeAction,
     pub is_enabled: bool,
     pub requires_frozen_balance: bool,
     pub value: Option<GemFormattedNumber>,
+    pub destination: GemStakeDestination,
+}
+
+#[derive(Debug, Clone, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
+pub enum GemStakeDestination {
+    Amount { input: GemStakeAmountInput },
+    ClaimRewards,
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]

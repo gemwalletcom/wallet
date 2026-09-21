@@ -1,5 +1,6 @@
+use chain_traits::node_check::NodeCheckProfile;
 use config::{Config as FileConfig, File, FileFormat};
-use primitives::{Chain, MINUTE, NodeCheckProfile};
+use primitives::{Chain, MINUTE};
 use serde_json::json;
 
 use crate::config::path::PathAllowlist;

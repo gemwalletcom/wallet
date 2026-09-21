@@ -6,12 +6,12 @@ import Primitives
 import Style
 import SwiftUI
 
-struct CollectionsSceneNavigationView: View {
+struct CollectionsSceneNavigationView<Model: CollectionsViewable>: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
 
-    @State private var model: CollectionsViewModel
+    @State private var model: Model
 
-    init(model: CollectionsViewModel) {
+    init(model: Model) {
         _model = State(initialValue: model)
     }
 
@@ -26,9 +26,11 @@ struct CollectionsSceneNavigationView: View {
                 )
             }
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: model.onSelectReceive) {
-                        Images.System.plus
+                if model.offersReceive {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: model.onSelectReceive) {
+                            Images.System.plus
+                        }
                     }
                 }
             }

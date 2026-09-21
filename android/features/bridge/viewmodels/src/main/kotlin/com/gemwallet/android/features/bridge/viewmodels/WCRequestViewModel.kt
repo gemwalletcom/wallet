@@ -188,7 +188,7 @@ class WCRequestViewModel @Inject constructor(
             onError = { error ->
                 activeRequest.finish(sessionRequest)
                 state.update { it.copy(responseState = RequestResponseState.Idle, approved = null) }
-                onError(error)
+                onError(error.text(context))
             },
         )
     }

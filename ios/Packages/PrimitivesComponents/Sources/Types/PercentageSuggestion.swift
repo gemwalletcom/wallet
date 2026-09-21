@@ -12,12 +12,6 @@ public struct PercentageSuggestion: SuggestionViewable {
         String(value)
     }
 
-    public init(value: Int) {
-        id = value
-        self.value = value
-        title = "\(value)%"
-    }
-
     public init(number: GemFormattedNumber) {
         value = Int(number.value)
         id = value

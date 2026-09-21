@@ -16,7 +16,6 @@ pub mod contract_call_data_mock;
 pub mod delegation_mock;
 pub mod device_mock;
 pub mod fiat_mock;
-pub mod gorush_mock;
 pub mod job_configuration_mock;
 pub mod json;
 pub mod json_rpc;

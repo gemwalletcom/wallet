@@ -22,6 +22,7 @@ public extension ViewModelFactory {
             navigationPath: navigationPath,
             walletService: walletService,
             preferences: observablePreferences,
+            biometry: biometryService,
             isPresentingCreateWalletSheet: isPresentingCreateWalletSheet,
             isPresentingImportWalletSheet: isPresentingImportWalletSheet,
         )
@@ -34,6 +35,7 @@ public extension ViewModelFactory {
             wallet: wallet,
             service: walletService,
             preferences: observablePreferences,
+            biometry: biometryService,
         )
     }
 
@@ -59,11 +61,11 @@ public extension ViewModelFactory {
 
     @MainActor
     func contactsScene(mode: ContactsViewModel.Mode = .list) -> ContactsViewModel {
-        ContactsViewModel(service: contactService, manageContact: manageContactScene, mode: mode)
+        ContactsViewModel(service: contactService, contactEditor: contactEditorScene, mode: mode)
     }
 
     @MainActor
-    func manageContactScene(mode: ManageContactViewModel.Mode) -> ManageContactViewModel {
-        ManageContactViewModel(service: manageContactService, nameService: nameService, mode: mode)
+    func contactEditorScene(mode: ContactEditorViewModel.Mode) -> ContactEditorViewModel {
+        ContactEditorViewModel(service: contactEditorService, nameService: nameService, mode: mode)
     }
 }

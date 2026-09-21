@@ -12,7 +12,7 @@ import com.wallet.core.primitives.WalletId
 
 @Composable
 fun WalletNavScreen(onPhraseShow: (WalletSecretInput) -> Unit, onSelectImage: (WalletId) -> Unit, onBoard: () -> Unit, onCancel: () -> Unit, viewModel: WalletViewModel = hiltViewModel()) {
-    val wallet by viewModel.wallet.collectAsStateWithLifecycle()
+    val wallet by viewModel.details.collectAsStateWithLifecycle()
     val secret by viewModel.secret.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
@@ -24,7 +24,7 @@ fun WalletNavScreen(onPhraseShow: (WalletSecretInput) -> Unit, onSelectImage: (W
         onAction = { action ->
             when (action) {
                 is WalletAction.SetName -> viewModel.setWalletName(action.name)
-                WalletAction.SelectImage -> wallet?.id?.let(onSelectImage)
+                WalletAction.SelectImage -> wallet?.walletId?.let(onSelectImage)
                 is WalletAction.ShowPhrase -> onPhraseShow(action.input)
                 WalletAction.Delete -> viewModel.delete(onBoard, onCancel)
                 WalletAction.Cancel -> onCancel()

@@ -2,7 +2,7 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use cacher::{CacheKey, CacherClient};
-use primitives::ConfigParamKey;
+use config_keys::ConfigParamKey;
 use settings_chain::{ChainProviders, TransactionsRequest, TransactionsResult};
 use storage::ConfigCacher;
 use streamer::{ChainAddressPayload, StreamProducer, StreamProducerQueue, TransactionsPayload, consumer::MessageConsumer};

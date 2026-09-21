@@ -16,6 +16,7 @@ public enum EmptyContentType {
     case activity(receive: (() -> Void)? = nil, buy: (() -> Void)? = nil, isViewOnly: Bool)
     case stake(symbol: String)
     case earn(symbol: String)
+    case validators
     case walletConnect
     case search(type: SearchType, action: (() -> Void)? = nil)
     case networkAssets(action: (() -> Void)? = nil)

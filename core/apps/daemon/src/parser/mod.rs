@@ -207,10 +207,10 @@ pub async fn run(settings: Settings, chain: Option<Chain>, health_state: Arc<Hea
     let database = Database::new(&settings.postgres.url, settings.postgres.pool)?;
 
     let config = storage::ConfigCacher::new(database.clone());
-    let catchup_reload_interval = config.get_i64(primitives::ConfigKey::ParserCatchupReloadInterval)?;
-    let min_check = config.get_duration(primitives::ConfigKey::ParserMinCheckInterval)?;
-    let max_check = config.get_duration(primitives::ConfigKey::ParserMaxCheckInterval)?;
-    let error_interval = config.get_duration(primitives::ConfigKey::ParserErrorInterval)?;
+    let catchup_reload_interval = config.get_i64(config_keys::ConfigKey::ParserCatchupReloadInterval)?;
+    let min_check = config.get_duration(config_keys::ConfigKey::ParserMinCheckInterval)?;
+    let max_check = config.get_duration(config_keys::ConfigKey::ParserMaxCheckInterval)?;
+    let error_interval = config.get_duration(config_keys::ConfigKey::ParserErrorInterval)?;
 
     let chains: Vec<Chain> = if let Some(chain) = chain {
         vec![chain]

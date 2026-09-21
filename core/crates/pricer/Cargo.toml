@@ -10,7 +10,9 @@ testkit = []
 serde_json = { workspace = true }
 chrono = { workspace = true }
 
+config_keys = { path = "../config_keys" }
 primitives = { path = "../primitives" }
+push_notification = { path = "../push_notification" }
 prices = { path = "../prices" }
 number_formatter = { path = "../number_formatter" }
 storage = { path = "../storage" }

@@ -70,7 +70,7 @@ impl GemAmountService {
     pub async fn transfer_data(&self, asset: Asset, transfer: GemAmountTransfer, value: GemBigInt, use_max_amount: bool) -> Result<GemTransferData, GemServiceError> {
         let owner = match transfer {
             GemAmountTransfer::Withdraw => {
-                let wallet = self.session.current_wallet().await?;
+                let wallet = self.session.require_current_wallet().await?;
                 let account = required_account(&wallet, asset.chain())?;
                 Some(GemRecipient::named(account.address.clone(), wallet.name.clone()))
             }
@@ -80,7 +80,7 @@ impl GemAmountService {
     }
 
     pub async fn earn_transfer_data(&self, asset: Asset, earn_type: GemEarnType, value: GemBigInt, use_max_amount: bool) -> Result<GemTransferData, GemServiceError> {
-        let wallet = self.session.current_wallet().await?;
+        let wallet = self.session.require_current_wallet().await?;
         let account = required_account(&wallet, asset.chain())?;
         let data = self.stake.get_earn_data(asset.id.clone(), account.address.clone(), value.to_string(), earn_type.clone()).await?;
         Ok(transfer_rules::earn_transfer_data(asset, earn_type, data, value, use_max_amount))

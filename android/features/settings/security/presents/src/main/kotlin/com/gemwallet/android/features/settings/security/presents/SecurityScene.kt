@@ -21,6 +21,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.settings.security.viewmodels.SecurityViewModel
+import com.gemwallet.android.features.settings.security.viewmodels.models.SecurityRowAction
+import com.gemwallet.android.features.settings.security.viewmodels.models.securityAction
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.GemListRowView
@@ -30,7 +32,6 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.compactIconSize
-import uniffi.gemstone.GemListRowTitle
 
 @Composable
 fun SecurityScene(onCancel: () -> Unit, viewModel: SecurityViewModel = hiltViewModel()) {
@@ -50,10 +51,10 @@ fun SecurityScene(onCancel: () -> Unit, viewModel: SecurityViewModel = hiltViewM
                         row = row,
                         listPosition = position,
                         onToggle = { title, isOn ->
-                            when (title) {
-                                GemListRowTitle.AUTHENTICATION -> context.requestAuth(AuthRequest.Default) { viewModel.setAuthRequired(isOn) }
-                                GemListRowTitle.HIDE_BALANCE -> viewModel.setHideBalances()
-                                else -> Unit
+                            when (title.securityAction()) {
+                                SecurityRowAction.Authentication -> context.requestAuth(AuthRequest.Default) { viewModel.setAuthRequired(isOn) }
+                                SecurityRowAction.HideBalance -> viewModel.setHideBalances()
+                                null -> Unit
                             }
                         },
                         onSelect = { isShowLockPeriods = true },

@@ -3,7 +3,7 @@ use std::sync::RwLock;
 use std::time::{Duration, Instant};
 
 use chrono::{DateTime, NaiveDateTime};
-use primitives::{ConfigKey, ConfigParamKey, RateLimit, RateLimitKey, RateLimitWindow};
+use config_keys::{ConfigKey, ConfigParamKey, RateLimit, RateLimitKey, RateLimitWindow};
 use serde::de::DeserializeOwned;
 use std::hash::Hash;
 

@@ -32,6 +32,22 @@ struct FormattedNumberTests {
     }
 
     @Test
+    func anAbbreviatedValueKeepsItsSign() {
+        let incoming = GemFormattedNumber(
+            value: 1_235_999,
+            unit: .currency(code: "USD"),
+            display: .abbreviated,
+            notation: .signed,
+            tone: .positive,
+            rounding: .toNearest,
+        )
+
+        #expect(incoming.text(locale: .US) == "+$1.24M")
+        #expect(GemFormattedNumber(value: -1_235_999, unit: .currency(code: "USD"), display: .abbreviated, notation: .signed, tone: .plain, rounding: .toNearest).text(locale: .US) == "-$1.24M")
+        #expect(GemFormattedNumber(value: -1_235_999, unit: .currency(code: "USD"), display: .abbreviated, notation: .plain, tone: .plain, rounding: .toNearest).text(locale: .US) == "-$1.24M")
+    }
+
+    @Test
     func anAmountReadsLikeTheValueFormatter() throws {
         let formatter = ValueFormatter(locale: .US, style: .auto)
         let values: [(BigInt, Int)] = [(5_205_516, 6), (99999, 6), (1992, 4), (1_239_999_000_000, 6), (546, 8)]

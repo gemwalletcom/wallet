@@ -24,7 +24,6 @@ import com.gemwallet.android.ui.components.list_item.iconModel
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingLarge
@@ -33,7 +32,7 @@ import com.wallet.core.primitives.WalletSource
 @Composable
 fun SetupWalletScreen(onComplete: () -> Unit, onSelectImage: () -> Unit, viewModel: SetupWalletViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbar = rememberSnackbarState(message = uiState.error?.text(), iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
+    val snackbar = rememberSnackbarState(message = uiState.error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 
     val handleDone = { onComplete() }
 

@@ -13,7 +13,7 @@ use std::str::FromStr;
 
 use super::model::{
     GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationListRow, GemDelegationStatus, GemEarnActions, GemStakeAction, GemStakeActionItem,
-    GemStakeAmountInput, GemStakeSection, GemStakeValidatorSelection, GemValidatorRow,
+    GemStakeAmountInput, GemStakeDestination, GemStakeSection, GemStakeValidatorSelection, GemValidatorRow,
 };
 use crate::config::image::GemImage;
 use crate::config::stake::EARN_OFFERED;
@@ -384,17 +384,46 @@ pub fn rewards_value(delegations: &[Delegation]) -> BigUint {
     delegations.iter().map(|delegation| delegation.base.rewards.clone()).sum()
 }
 
-pub fn stake_actions(wallet_type: WalletType, chain: Chain, has_validators: bool, balance: &GemAssetBalance, delegations: &[Delegation]) -> Vec<GemStakeActionItem> {
+pub fn resource_options(chain: Chain) -> Vec<Resource> {
+    match stake_config(chain).is_some_and(|config| config.uses_freeze) {
+        true => vec![Resource::Bandwidth, Resource::Energy],
+        false => Vec::new(),
+    }
+}
+
+fn default_resource(chain: Chain) -> Resource {
+    resource_options(chain).first().copied().unwrap_or(Resource::Bandwidth)
+}
+
+pub fn stake_actions(wallet_type: WalletType, chain: Chain, validators: &[DelegationValidator], balance: &GemAssetBalance, delegations: &[Delegation]) -> Vec<GemStakeActionItem> {
     let Some(config) = stake_config(chain).filter(|_| wallet_type != WalletType::View) else {
         return vec![];
     };
     let uses_freeze = config.uses_freeze;
     let requires_frozen_balance = requires_frozen_balance(chain, &(&balance.frozen + &balance.locked));
+    let has_validators = !validators.is_empty();
+    let resource = default_resource(chain);
+    let destination = |action| match action {
+        GemStakeAction::Stake => GemStakeDestination::Amount {
+            input: GemStakeAmountInput::Stake {
+                validators: validators.to_vec(),
+                validator: None,
+            },
+        },
+        GemStakeAction::Freeze => GemStakeDestination::Amount {
+            input: GemStakeAmountInput::Freeze { resource },
+        },
+        GemStakeAction::Unfreeze => GemStakeDestination::Amount {
+            input: GemStakeAmountInput::Unfreeze { resource },
+        },
+        GemStakeAction::ClaimRewards => GemStakeDestination::ClaimRewards,
+    };
     let item = |action: GemStakeAction, is_enabled: bool, requires_frozen_balance: bool| GemStakeActionItem {
         action,
         is_enabled,
         requires_frozen_balance,
         value: None,
+        destination: destination(action),
     };
     let rewards = rewards_value(delegations);
     [
@@ -1150,10 +1179,35 @@ mod tests {
     }
 
     #[test]
+    fn test_a_stake_action_carries_the_screen_it_opens() {
+        let validators = vec![DelegationValidator::mock()];
+        let destination = |chain, action| {
+            stake_actions(WalletType::Multicoin, chain, &validators, &GemAssetBalance::mock(), &[])
+                .into_iter()
+                .find(|item| item.action == action)
+                .map(|item| item.destination)
+        };
+
+        assert!(matches!(destination(Chain::Cosmos, GemStakeAction::Stake), Some(GemStakeDestination::Amount { input: GemStakeAmountInput::Stake { .. } })));
+        assert!(matches!(
+            destination(Chain::Tron, GemStakeAction::Freeze),
+            Some(GemStakeDestination::Amount {
+                input: GemStakeAmountInput::Freeze { resource: Resource::Bandwidth }
+            })
+        ));
+        assert_eq!(resource_options(Chain::Tron), vec![Resource::Bandwidth, Resource::Energy]);
+        assert!(resource_options(Chain::Cosmos).is_empty(), "a chain that does not freeze offers no resource");
+    }
+
+    #[test]
     fn test_stake_actions_follow_the_wallet_chain_and_balance() {
         use GemStakeAction::*;
-        let actions = |chain, has_validators, balance: GemAssetBalance, rewards: Vec<Delegation>| {
-            stake_actions(WalletType::Multicoin, chain, has_validators, &balance, &rewards)
+        let validators = |has: bool| match has {
+            true => vec![DelegationValidator::mock()],
+            false => Vec::new(),
+        };
+        let actions = |chain, has_validators: bool, balance: GemAssetBalance, rewards: Vec<Delegation>| {
+            stake_actions(WalletType::Multicoin, chain, &validators(has_validators), &balance, &rewards)
                 .into_iter()
                 .map(|item| (item.action, item.is_enabled, item.requires_frozen_balance))
                 .collect::<Vec<_>>()
@@ -1168,7 +1222,7 @@ mod tests {
         let claim = stake_actions(
             WalletType::Multicoin,
             Chain::Cosmos,
-            true,
+            &validators(true),
             &GemAssetBalance::mock(),
             &[Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 1_500_000)],
         )
@@ -1201,7 +1255,7 @@ mod tests {
             stake_actions(
                 WalletType::View,
                 Chain::Cosmos,
-                true,
+                &validators(true),
                 &GemAssetBalance::mock(),
                 &[Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 5)]
             )
@@ -1211,7 +1265,7 @@ mod tests {
             stake_actions(
                 WalletType::Multicoin,
                 Chain::Bitcoin,
-                true,
+                &validators(true),
                 &GemAssetBalance::mock(),
                 &[Delegation::mock_with(Chain::Bitcoin, StakeProviderType::Stake, DelegationState::Active, 5)]
             )

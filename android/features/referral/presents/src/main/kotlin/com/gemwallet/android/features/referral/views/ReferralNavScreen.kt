@@ -119,7 +119,7 @@ fun ReferralNavScreen(onClose: () -> Unit, viewModel: ReferralViewModel = hiltVi
     }
 
     if (showErrorDialog != null) {
-        val message = showErrorDialog?.errorText()?.text() ?: stringResource(R.string.transaction_status_failed)
+        val message = showErrorDialog?.errorText()?.text(LocalContext.current) ?: stringResource(R.string.transaction_status_failed)
         AlertDialog(
             containerColor = MaterialTheme.colorScheme.background,
             onDismissRequest = { showErrorDialog = null },

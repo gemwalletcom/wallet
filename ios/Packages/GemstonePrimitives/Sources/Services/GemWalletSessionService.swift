@@ -5,17 +5,6 @@ import protocol Gemstone.GemWalletSessionServiceProtocol
 import Primitives
 
 public extension GemWalletSessionServiceProtocol {
-    var wallets: [Wallet] {
-        get async {
-            do {
-                return try await getWallets()
-            } catch {
-                debugLog("get wallets error: \(error)")
-                return []
-            }
-        }
-    }
-
     var currentWallet: Wallet? {
         get async {
             do {
@@ -40,11 +29,8 @@ public extension GemWalletSessionServiceProtocol {
         try await getWallets().map { $0.toPrimitives() }
     }
 
-    func getWallet(walletId: WalletId) async throws -> Wallet {
-        guard let wallet = try await getWallet(walletId: walletId.id) else {
-            throw WalletSessionServiceError.noWalletId
-        }
-        return wallet.toPrimitives()
+    func requireWallet(walletId: WalletId) async throws -> Wallet {
+        try await requireWallet(walletId: walletId.id).toPrimitives()
     }
 
     func setCurrent(walletId: WalletId?) throws {

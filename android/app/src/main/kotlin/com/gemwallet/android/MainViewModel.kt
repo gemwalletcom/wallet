@@ -31,7 +31,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAppStartFailure
 import uniffi.gemstone.GemAppStartServiceInterface
-import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemPaymentException
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemWalletService
@@ -103,8 +102,7 @@ class MainViewModel @Inject constructor(
                         pendingNavigationCoordinator.clear()
                         if (isLoadingPayment) {
                             _uiState.update { state ->
-                                error.errorText?.let { state.copy(navigationError = it) }
-                                    ?: state.copy(isScanErrorVisible = true)
+                                state.copy(navigationError = error.errorText().text(context))
                             }
                         }
                     } catch (error: GemServiceException) {
@@ -115,7 +113,7 @@ class MainViewModel @Inject constructor(
                         pendingNavigationCoordinator.clear()
                         when (input?.code) {
                             null -> Log.e("MainViewModel", "notification navigation failed", error)
-                            else -> _uiState.update { it.copy(navigationError = error.errorText()) }
+                            else -> _uiState.update { it.copy(navigationError = error.errorText().text(context)) }
                         }
                     }
                 }
@@ -242,7 +240,7 @@ class MainViewModel @Inject constructor(
             pairWalletConnect.pair(
                 uri = uri,
                 onSuccess = {},
-                onError = ::showWalletConnectError,
+                onError = { showWalletConnectError(it.text(context)) },
             )
         }
     }
@@ -262,7 +260,7 @@ class MainViewModel @Inject constructor(
         val hasUnlockedApp: Boolean = false,
         val isWalletConnectPairingToastVisible: Boolean = false,
         val walletConnectError: String? = null,
-        val navigationError: GemErrorText? = null,
+        val navigationError: String? = null,
         val isWalletConnectUnsupportedVisible: Boolean = false,
         val isScanErrorVisible: Boolean = false,
     )

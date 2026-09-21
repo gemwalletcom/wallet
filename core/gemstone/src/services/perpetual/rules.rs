@@ -426,9 +426,12 @@ pub fn balance_total(balance: Option<&PerpetualBalance>) -> GemFormattedNumber {
 
 pub fn balance_header(balance: Option<PerpetualBalance>, wallet_type: WalletType) -> GemPerpetualBalanceHeader {
     let (available, withdrawable) = balance.as_ref().map_or((0.0, 0.0), |balance| (balance.available, balance.withdrawable));
+    let perpetual = GemPerpetual::new(PerpetualProvider::Hypercore);
     GemPerpetualBalanceHeader {
         total: balance_total(balance.as_ref()),
         available: GemFormattedNumber::usd(available),
+        deposit_asset: perpetual.deposit_asset(),
+        withdraw_asset: HYPERCORE_PERPETUAL_USDC.clone(),
         actions: match wallet_type {
             WalletType::View => GemHeaderActions::WatchOnly,
             WalletType::Multicoin | WalletType::Single | WalletType::PrivateKey => GemHeaderActions::Buttons {
@@ -870,6 +873,14 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::PerpetualTriggerOrder;
     use primitives::TransactionInputType;
+
+    #[test]
+    fn test_the_balance_header_names_the_asset_each_button_moves() {
+        let header = balance_header(None, WalletType::Multicoin);
+
+        assert_eq!(header.deposit_asset, GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset());
+        assert_eq!(header.withdraw_asset, *HYPERCORE_PERPETUAL_USDC, "a withdrawal leaves the perpetual account, not the chain");
+    }
 
     #[test]
     fn test_the_perpetual_screen_names_its_sections_rows_and_buttons_from_the_position() {

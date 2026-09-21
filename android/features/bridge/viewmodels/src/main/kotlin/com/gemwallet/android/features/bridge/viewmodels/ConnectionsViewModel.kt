@@ -12,6 +12,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemSymbol
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ListSection
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -51,7 +52,7 @@ class ConnectionsViewModel @Inject constructor(
             pairWalletConnect.pair(
                 uri = uri,
                 onSuccess = onSuccess,
-                onError = onError,
+                onError = { onError(it.text(context)) },
             )
         }
     }

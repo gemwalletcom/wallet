@@ -5,10 +5,11 @@ use std::error::Error;
 use std::sync::Arc;
 
 use cacher::CacherClient;
+use config_keys::ConfigKey;
 use job_runner::{JobHandle, ShutdownReceiver};
 use price_alerts_sender::PriceAlertSender;
 use pricer::PriceAlertClient;
-use primitives::{Chain, ConfigKey};
+use primitives::Chain;
 use settings::service_user_agent;
 use settings_chain::ChainProviders;
 use staking_rewards_notifier::{StakeRewardsConfig, StakingRewardsNotifier};

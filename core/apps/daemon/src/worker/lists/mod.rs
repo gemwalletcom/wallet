@@ -2,9 +2,10 @@ use std::error::Error;
 use std::sync::Arc;
 
 use coingecko::CoinGeckoClient;
+use config_keys::ConfigParamKey;
 use job_runner::{JobHandle, ShutdownReceiver};
 use lists::{CoinGeckoListProvider, ListsClient};
-use primitives::{ConfigParamKey, ListProviderName};
+use primitives::ListProviderName;
 use storage::ConfigCacher;
 
 use crate::model::WorkerService;

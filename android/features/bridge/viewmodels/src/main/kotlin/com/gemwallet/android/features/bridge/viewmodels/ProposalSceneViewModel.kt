@@ -154,7 +154,7 @@ class ProposalSceneViewModel @Inject constructor(
                     wallet = wallet,
                     proposal = proposal,
                     onSuccess = { finish(proposal) },
-                    onError = { message -> fail(proposal, GemErrorText.Message(message), onError) },
+                    onError = { error -> fail(proposal, error, onError) },
                 )
             }
             result.onFailure { err -> fail(proposal, err.errorText(), onError) }

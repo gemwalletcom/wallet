@@ -2,7 +2,8 @@ use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 
 use crate::asset_id::AssetId;
-use crate::payment_decoder::WALLET_CONNECT_PAY_HOST;
+
+pub const WALLET_CONNECT_PAY_HOST: &str = "pay.walletconnect.com";
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", content = "content", rename_all = "camelCase")]

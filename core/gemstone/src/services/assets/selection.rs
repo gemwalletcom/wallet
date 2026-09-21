@@ -93,11 +93,11 @@ impl GemAssetSelectionService {
     }
 
     pub async fn search_assets(&self, query: String) -> Result<Vec<AssetBasic>, GemServiceError> {
-        self.search.search_assets(self.session.current_wallet().await?, query, self.get_currency()).await
+        self.search.search_assets(self.session.require_current_wallet().await?, query, self.get_currency()).await
     }
 
     pub async fn search(&self, query: String, scope: GemSearchScope) -> Result<bool, GemServiceError> {
-        self.search.search(self.session.current_wallet().await?, query, scope, self.get_currency()).await
+        self.search.search(self.session.require_current_wallet().await?, query, scope, self.get_currency()).await
     }
 
     pub fn search_key(&self, query: String, scope: GemSearchScope) -> String {

@@ -15,7 +15,7 @@ struct AddContactNavigationView: View {
             Group {
                 switch action {
                 case let .new(recipient, chain):
-                    ManageContactScene(model: viewModelFactory.manageContactScene(mode: .add(recipient: recipient, chain: chain)))
+                    ContactEditorScene(model: viewModelFactory.contactEditorScene(mode: .add(recipient: recipient, chain: chain)))
                 case let .existing(recipient, chain):
                     ContactsNavigationView(model: viewModelFactory.contactsScene(mode: .addAddress(recipient, chain: chain)))
                 }

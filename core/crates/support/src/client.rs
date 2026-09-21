@@ -5,7 +5,8 @@ use crate::{
 };
 use cacher::CacherClient;
 use localizer::LanguageLocalizer;
-use primitives::{Device, GorushNotification, PushNotification, PushNotificationTypes, StreamEvent, SupportMessage, SupportStreamEvent, SupportTypingStatus, device_stream_channel, push_notification::PushNotificationSupport};
+use primitives::{Device, StreamEvent, SupportMessage, SupportStreamEvent, SupportTypingStatus, device_stream_channel};
+use push_notification::{GorushNotification, PushNotification, PushNotificationSupport, PushNotificationTypes};
 use std::error::Error;
 use storage::database::devices::DevicesStore;
 use storage::{Database, OptionalExtension};

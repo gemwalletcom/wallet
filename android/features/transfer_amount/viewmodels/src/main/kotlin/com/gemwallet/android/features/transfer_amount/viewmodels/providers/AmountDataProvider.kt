@@ -1,10 +1,12 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.features.transfer_amount.viewmodels.models.AmountExtrasUIModel
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.toGem
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -35,6 +37,8 @@ abstract class AmountDataProvider(private val scope: CoroutineScope) {
             if (type == null || current == null || currentBalance == null) null else type.input(current.asset.toGem(), currentBalance)
         }.stateIn(scope, SharingStarted.Eagerly, null)
     }
+
+    open val extras: StateFlow<AmountExtrasUIModel> by lazy { MutableStateFlow(AmountExtrasUIModel.None) }
 
     abstract suspend fun buildTransfer(amount: Crypto, isMax: Boolean): GemTransferData
 }

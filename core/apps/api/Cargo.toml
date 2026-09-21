@@ -32,7 +32,9 @@ settings_chain = { path = "../../crates/settings_chain" }
 name_resolver = { path = "../../crates/name_resolver" }
 in_app_notifications = { path = "../../crates/in_app_notifications" }
 localizer = { path = "../../crates/localizer" }
+config_keys = { path = "../../crates/config_keys" }
 primitives = { path = "../../crates/primitives" }
+push_notification = { path = "../../crates/push_notification" }
 portfolio = { path = "../../crates/portfolio" }
 api_connector = { path = "../../crates/api_connector" }
 search_index = { path = "../../crates/search_index" }

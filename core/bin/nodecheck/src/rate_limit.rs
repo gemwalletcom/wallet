@@ -5,7 +5,7 @@ use std::{
 };
 
 use chain_traits::ChainTraits;
-use primitives::{NodeCheckRequest, NodeCheckStatus};
+use chain_traits::node_check::{NodeCheckRequest, NodeCheckStatus};
 use tokio::{
     task::JoinSet,
     time::{MissedTickBehavior, interval},

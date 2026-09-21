@@ -13,15 +13,19 @@ import com.gemwallet.android.model.NotificationsAvailable
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.localization.text
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemPushResult
 import uniffi.gemstone.GemSettingsServiceInterface
 import javax.inject.Inject
 
@@ -39,7 +43,6 @@ class SettingsViewModel @Inject constructor(
 
     private val wallets = getWallets()
     private val developerEnabled = MutableStateFlow(userConfig.developEnabled())
-    val isDeveloperEnabled = developerEnabled.asStateFlow()
     private val walletConnectAvailable = MutableStateFlow(true)
 
     val sections = combine(wallets, developerEnabled, walletConnectAvailable) { wallets, _, walletConnect ->
@@ -65,20 +68,23 @@ class SettingsViewModel @Inject constructor(
     val pushEnabled = getPushEnabled.getPushEnabled()
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
-    fun toggleDeveloperMode() {
-        userConfig.developEnabled(!userConfig.developEnabled())
+    fun refreshDeveloperMode() {
         developerEnabled.value = userConfig.developEnabled()
     }
 
-    fun enableNotifications() {
-        viewModelScope.launch(ioDispatcher) {
-            switchPushEnabled.switchPushEnabled(true)
-        }
-    }
+    private val errorState = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = errorState.asStateFlow()
 
-    fun disableNotifications() {
+    fun enableNotifications() = switchNotifications(true)
+
+    fun disableNotifications() = switchNotifications(false)
+
+    fun clearError() = errorState.update { null }
+
+    private fun switchNotifications(enabled: Boolean) {
         viewModelScope.launch(ioDispatcher) {
-            switchPushEnabled.switchPushEnabled(false)
+            val state = switchPushEnabled.switchPushEnabled(enabled)
+            errorState.value = (state.result as? GemPushResult.NotRegistered)?.error?.text(context)
         }
     }
 }

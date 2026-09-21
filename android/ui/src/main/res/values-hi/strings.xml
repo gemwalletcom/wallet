@@ -339,6 +339,7 @@
   <string name="stake_minimum_amount">न्यूनतम राशि</string>
   <string name="stake_state_empty_title">आपके स्टेक यहां दिखाई देंगे</string>
   <string name="stake_state_empty_description">अपना पहला %1$s स्टेक करें</string>
+  <string name="stake_state_empty_validators_title">कोई सत्यापनकर्ता नहीं मिला</string>
   <string name="stake_resource">संसाधन</string>
   <string name="stake_resource_energy">ऊर्जा</string>
   <string name="stake_resource_bandwidth">बैंडविड्थ</string>
@@ -380,6 +381,7 @@
   <string name="nodes_import_node_latest_block">नवीनतम ब्लॉक</string>
   <string name="nodes_import_node_latency">विलंबता</string>
   <string name="nodes_gem_wallet_node">Gem Wallet Node</string>
+  <string name="nodes_stream">स्ट्रीम</string>
   <string name="nodes_import_node_warning_message">कस्टम नोड्स दुर्भावनापूर्ण हो सकते हैं और आपके लेनदेन डेटा को उजागर कर सकते हैं या गलत जानकारी प्रदान कर सकते हैं।</string>
   <string name="library_select_from_photo_library">फोटो लाइब्रेरी से चयन करें</string>
   <string name="fee_rates_info">लेन-देन की गति नेटवर्क खनिकों को भुगतान किए गए नेटवर्क शुल्क से निर्धारित होती है।</string>

@@ -15,7 +15,7 @@ use super::model::{
 };
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::config::image::GemImage;
-use crate::formatted_number::{GemFormattedNumber, GemNumberNotation, GemValueTone};
+use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::asset::wallet_default_assets;
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
@@ -277,23 +277,8 @@ fn value_tone(value: &GemTransactionRowValue) -> GemValueTone {
 }
 
 fn amount_value(amount: GemTransactionAmount) -> GemTransactionRowValue {
-    let magnitude = BigNumberFormatter::f64_value(&amount.value, amount.asset.decimals as u32);
-    let number = GemFormattedNumber::amount(magnitude, Some(amount.asset.symbol), GemValueStyle::Short);
     GemTransactionRowValue::Number {
-        number: match amount.sign {
-            GemAmountSign::None => number,
-            GemAmountSign::Incoming => GemFormattedNumber {
-                notation: GemNumberNotation::Signed,
-                tone: GemValueTone::Positive,
-                ..number
-            },
-            GemAmountSign::Outgoing => GemFormattedNumber {
-                value: -number.value,
-                notation: GemNumberNotation::Signed,
-                tone: GemValueTone::Plain,
-                ..number
-            },
-        },
+        number: amount.sign.amount(amount.value.into(), amount.asset.decimals as u32, Some(amount.asset.symbol), GemValueStyle::Short),
     }
 }
 
@@ -663,12 +648,13 @@ pub fn activity_filters(chains: Vec<Chain>, filters: Vec<GemTransactionFilter>) 
 
 #[cfg(test)]
 mod tests {
+    use crate::formatted_number::GemNumberNotation;
 
     #[test]
     fn test_the_value_tone_greens_an_incoming_amount_and_signs_a_pnl() {
         use super::super::model::{GemAmountSign, GemTransactionAmount, GemTransactionRowValue};
         use super::{amount_value, value_tone};
-        use crate::formatted_number::{GemFormattedNumber, GemNumberNotation, GemValueTone};
+        use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 
         let amount = |sign| {
             amount_value(GemTransactionAmount {

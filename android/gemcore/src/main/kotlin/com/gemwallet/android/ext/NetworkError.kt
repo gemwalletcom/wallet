@@ -1,9 +1,5 @@
 package com.gemwallet.android.ext
 
-import uniffi.gemstone.AlienException
-import uniffi.gemstone.GatewayException
-import uniffi.gemstone.GemErrorText
-import uniffi.gemstone.alienErrorText
 import java.io.EOFException
 import java.io.IOException
 import java.net.ConnectException
@@ -11,20 +7,6 @@ import java.net.NoRouteToHostException
 import java.net.UnknownHostException
 import java.security.cert.CertPathValidatorException
 import javax.net.ssl.SSLHandshakeException
-
-fun Throwable.toGemErrorText(): GemErrorText? = when (this) {
-    is GatewayException -> text()
-
-    is AlienException -> alienErrorText(this)
-
-    is IOException -> if (isNetworkUnavailable()) {
-        GemErrorText.NetworkOffline
-    } else {
-        GemErrorText.NetworkMessage(toGatewayNetworkMessage())
-    }
-
-    else -> cause?.toGemErrorText()
-}
 
 fun IOException.toGatewayNetworkMessage(): String = when {
     this is SSLHandshakeException -> certPathValidationMessage() ?: message ?: toString()

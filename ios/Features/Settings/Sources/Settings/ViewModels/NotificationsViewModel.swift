@@ -3,8 +3,10 @@
 import Components
 import Foundation
 import protocol Gemstone.GemNotificationsServiceProtocol
+import enum Gemstone.GemPushResult
 import Localization
 import Primitives
+import PrimitivesComponents
 import Style
 
 @Observable
@@ -35,7 +37,11 @@ public final class NotificationsViewModel {
 // MARK: - Business Logic
 
 extension NotificationsViewModel {
-    func enable(isEnabled: Bool) async throws {
-        self.isEnabled = try await service.setEnabled(enabled: isEnabled)
+    func enable(isEnabled: Bool) async {
+        let state = await service.setEnabled(enabled: isEnabled)
+        self.isEnabled = state.isEnabled
+        if case let .notRegistered(error) = state.result {
+            isPresentingAlertMessage = AlertMessage(message: error.text)
+        }
     }
 }

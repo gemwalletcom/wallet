@@ -13,6 +13,7 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.nft.viewmodels.localization.stringRes
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.toUIModels
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.WalletId
@@ -29,6 +30,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemNftList
+import uniffi.gemstone.GemNftListScreen
 import uniffi.gemstone.GemNftServiceInterface
 import javax.inject.Inject
 
@@ -44,10 +46,6 @@ class NftListViewModels @Inject constructor(
 
     val list: GemNftList = savedStateHandle.nftList()
 
-    val title: String = context.getString(list.stringRes())
-
-    val showReceiveAction: Boolean = list != GemNftList.UNVERIFIED
-
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing
 
@@ -62,6 +60,18 @@ class NftListViewModels @Inject constructor(
     private val nftData: StateFlow<List<NFTData>> = getNftCollections(savedStateHandle.nftCollectionId())
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    private val screen: StateFlow<GemNftListScreen> = nftData
+        .map { data -> nftService.listScreen(data.map { it.toGem() }, list) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, nftService.listScreen(emptyList(), list))
+
+    val title: StateFlow<String> = screen
+        .map { it.title.string(context) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, "")
+
+    val showReceiveAction: StateFlow<Boolean> = screen
+        .map { it.offersReceive }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     val collections = nftData
         .map { data -> nftService.listItems(data.map { it.toGem() }, list).toUIModels() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -75,7 +85,7 @@ class NftListViewModels @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun syncIfNeeded() {
-        if (list == GemNftList.COLLECTION) return
+        if (!screen.value.syncsOnAppear) return
         val current = walletId.value ?: return
         if (current == lastSyncedWalletId) return
         lastSyncedWalletId = current

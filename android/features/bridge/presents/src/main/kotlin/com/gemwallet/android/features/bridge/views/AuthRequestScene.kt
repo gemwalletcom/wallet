@@ -24,7 +24,6 @@ import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
 import com.gemwallet.android.ui.components.screen.FatalStateScene
 import com.gemwallet.android.ui.components.screen.LoadingScene
-import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.ListPosition
 
@@ -45,7 +44,7 @@ fun AuthRequestScene(request: WalletConnectAuthenticationRequest, verifyContext:
     when (val currentState = state) {
         is AuthSceneState.Error -> FatalStateScene(
             title = stringResource(id = R.string.wallet_connect_connect_title),
-            message = currentState.text.text(),
+            message = currentState.text,
             onCancel = viewModel::onReject,
         )
 

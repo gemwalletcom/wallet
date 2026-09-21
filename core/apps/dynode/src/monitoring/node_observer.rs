@@ -1,6 +1,7 @@
 use std::{str::FromStr, time::Instant};
 
-use primitives::{Chain, NodeCheckRequest, NodeStatusState};
+use chain_traits::node_check::NodeCheckRequest;
+use primitives::{Chain, NodeStatusState};
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use settings_chain::{ProviderConfig, ProviderFactory};
 

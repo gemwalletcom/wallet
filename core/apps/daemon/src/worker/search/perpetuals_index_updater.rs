@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use super::sync::{SearchSyncClient, SearchSyncResult};
-use primitives::ConfigKey;
+use config_keys::ConfigKey;
 use search_index::{PERPETUALS_INDEX_NAME, PerpetualDocument, SearchIndexClient, sanitize_index_primary_id};
 use storage::models::{AssetRow, PerpetualRow};
 use storage::{AssetsRepository, Database, PerpetualsRepository, TagRepository};

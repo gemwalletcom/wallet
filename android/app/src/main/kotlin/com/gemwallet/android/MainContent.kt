@@ -14,7 +14,6 @@ import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectReque
 import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.WalletApp
-import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.theme.WalletTheme
 
 @Composable
@@ -93,7 +92,7 @@ internal fun MainContent(
             onShown = onScanErrorShown,
         )
         MessageToast(
-            message = state.navigationError?.text(),
+            message = state.navigationError,
             onShown = onErrorDismiss,
         )
         ErrorDialog(

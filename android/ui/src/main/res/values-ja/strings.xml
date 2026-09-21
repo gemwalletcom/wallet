@@ -339,6 +339,7 @@
   <string name="stake_minimum_amount">最小額</string>
   <string name="stake_state_empty_title">ステークはここに表示されます</string>
   <string name="stake_state_empty_description">%1$s のステーキングを始めましょう</string>
+  <string name="stake_state_empty_validators_title">バリデーターが見つかりません</string>
   <string name="stake_resource">リソース</string>
   <string name="stake_resource_energy">エネルギー</string>
   <string name="stake_resource_bandwidth">帯域幅</string>
@@ -380,6 +381,7 @@
   <string name="nodes_import_node_latest_block">最新のブロック</string>
   <string name="nodes_import_node_latency">遅延</string>
   <string name="nodes_gem_wallet_node">Gem Walletノード</string>
+  <string name="nodes_stream">ストリーム</string>
   <string name="nodes_import_node_warning_message">カスタムノードは悪意のある第三者によって運営されている可能性があり、取引データの漏えいや虚偽情報の提供につながるおそれがあります。</string>
   <string name="library_select_from_photo_library">写真ライブラリから選択</string>
   <string name="fee_rates_info">取引速度は、ネットワークのマイナーに支払う手数料によって決まります。</string>

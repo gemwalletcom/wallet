@@ -1,4 +1,4 @@
-use primitives::{FailedNotification, GorushNotification, PushErrorLog};
+use push_notification::{FailedNotification, GorushNotification, PushErrorLog};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -41,7 +41,24 @@ pub struct Message {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::GorushNotification;
+    use primitives::Platform;
+    use push_notification::{GorushNotification, PushNotification, PushNotificationTypes};
+
+    fn mock_with(token: &str, device_id: &str) -> GorushNotification {
+        GorushNotification {
+            tokens: vec![token.to_string()],
+            platform: Platform::Android.as_i32(),
+            title: "Test".to_string(),
+            message: "Test".to_string(),
+            topic: None,
+            data: PushNotification {
+                notification_type: PushNotificationTypes::Test,
+                data: None,
+            },
+            device_id: device_id.to_string(),
+            dry_run: None,
+        }
+    }
 
     #[test]
     fn failures_matches_tokens() {
@@ -62,7 +79,7 @@ mod tests {
 
         let result = PushResult {
             response,
-            notifications: vec![GorushNotification::mock_with("token1", "device1"), GorushNotification::mock_with("token2", "device2")],
+            notifications: vec![mock_with("token1", "device1"), mock_with("token2", "device2")],
         };
 
         let failures = result.failures();
@@ -96,7 +113,7 @@ mod tests {
 
         let result = PushResult {
             response,
-            notifications: vec![GorushNotification::mock_with("token1", "device1"), GorushNotification::mock_with("token2", "device2")],
+            notifications: vec![mock_with("token1", "device1"), mock_with("token2", "device2")],
         };
 
         let failures = result.failures();

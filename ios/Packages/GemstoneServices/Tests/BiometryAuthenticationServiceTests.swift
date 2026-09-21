@@ -39,4 +39,37 @@ struct BiometryAuthenticationServiceTests {
 
         #expect(service.requiresAuthentication)
     }
+
+    @Test
+    @MainActor
+    func authenticateIfRequiredSkipsWhenAuthenticationIsOff() async throws {
+        let biometry = BiometryAuthenticationMock(requiresAuthentication: false)
+
+        let allowed = try await biometry.authenticateIfRequired(reason: "Delete wallet")
+
+        #expect(allowed)
+        #expect(biometry.authenticateCallsCount == 0)
+    }
+
+    @Test
+    @MainActor
+    func authenticateIfRequiredPromptsWhenAuthenticationIsOn() async throws {
+        let biometry = BiometryAuthenticationMock()
+
+        let allowed = try await biometry.authenticateIfRequired(reason: "Delete wallet")
+
+        #expect(allowed)
+        #expect(biometry.authenticateCallsCount == 1)
+    }
+
+    @Test
+    @MainActor
+    func aCancelledPromptDeniesTheAction() async throws {
+        let biometry = BiometryAuthenticationMock()
+        biometry.authenticateError = BiometryAuthenticationError.cancelledByUser
+
+        let allowed = try await biometry.authenticateIfRequired(reason: "Delete wallet")
+
+        #expect(!allowed)
+    }
 }

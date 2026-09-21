@@ -48,6 +48,10 @@ public final class ValidatorSelectSceneViewModel {
         Localized.Stake.validators
     }
 
+    public var emptyContent: EmptyContentTypeViewModel {
+        EmptyContentTypeViewModel(type: .validators)
+    }
+
     public var list: [ListItemValueSection<DelegationValidator>] {
         [
             listSection(title: Localized.Common.recommended, validators: recommended),

@@ -3,10 +3,11 @@ use std::error::Error;
 use std::sync::Arc;
 
 use cacher::{CacheKey, CacherClient};
+use config_keys::ConfigKey;
 use gem_tracing::info_with_fields;
 use pricer::PriceClient;
 use prices::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProviderAsset};
-use primitives::{AssetId, ConfigKey, PriceData, PriceId};
+use primitives::{AssetId, PriceData, PriceId};
 use storage::database::{assets::AssetFilter, prices::PriceFilter};
 use storage::models::{AssetRow, PriceRow};
 use storage::{AssetUpdate, AssetsRepository, ConfigCacher, Database, PricesRepository};

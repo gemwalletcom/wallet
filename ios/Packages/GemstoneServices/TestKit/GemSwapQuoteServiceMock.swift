@@ -9,6 +9,7 @@ import typealias Gemstone.Currency
 import struct Gemstone.GemNumberFormat
 import enum Gemstone.GemSlippageSelection
 import struct Gemstone.GemSlippageSession
+import struct Gemstone.GemSwapPairFailure
 import struct Gemstone.GemSwapPairSelection
 import struct Gemstone.GemSwapPairSuggestion
 import protocol Gemstone.GemSwapQuoteServiceProtocol
@@ -32,6 +33,7 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
     private let pairSuggestion: GemSwapPairSuggestion?
     public private(set) var storedSlippageBps: UInt32?
     public private(set) var priceSubscriptions: [[AssetId]] = []
+    public private(set) var balanceUpdates: [[AssetId]] = []
 
     public init(
         quotes: @escaping @Sendable (BigInt) -> [SwapperQuote],
@@ -121,10 +123,10 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         250
     }
 
-    public func updateBalances(assetIds _: [AssetId]) async throws {}
-
-    public func addPrices(assetIds: [AssetId]) async throws {
+    public func refreshPair(assetIds: [AssetId]) async -> [GemSwapPairFailure] {
         priceSubscriptions.append(assetIds)
+        balanceUpdates.append(assetIds)
+        return []
     }
 
     public func getQuotes(fromAsset _: Asset, toAsset _: Asset, value: BigUInt, useMaxAmount _: Bool, slippageBps _: UInt32?) async throws -> [SwapperQuote] {

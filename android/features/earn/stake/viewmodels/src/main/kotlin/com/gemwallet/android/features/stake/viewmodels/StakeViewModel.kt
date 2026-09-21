@@ -105,10 +105,9 @@ class StakeViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
-    private val hasValidators = assetId
+    private val validators = assetId
         .flatMapLatest { getValidators(it) }
-        .mapLatest { validators -> validators.isNotEmpty() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val claimRewards = combine(delegations, assetInfo.filterNotNull()) { delegations, assetInfo ->
         stakeService.claimRewards(assetInfo.asset.chain.string, delegations.map { it.toGem() })
@@ -118,12 +117,12 @@ class StakeViewModel @Inject constructor(
         walletType.filterNotNull(),
         delegations,
         assetInfo.filterNotNull(),
-        hasValidators,
-    ) { walletType, delegations, assetInfo, hasValidators ->
+        validators,
+    ) { walletType, delegations, assetInfo, validators ->
         stakeService.stakeActions(
             walletType = walletType.toGem(),
             chain = assetInfo.asset.chain.string,
-            hasValidators = hasValidators,
+            validators = validators.map { it.toGem() },
             balance = assetInfo.balance.toGem(),
             delegations = delegations.map { it.toGem() },
         )

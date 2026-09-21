@@ -8,14 +8,14 @@ Open the scanner from the wallet screen and scan this page from another device. 
 
 | Type | Supported fields | Core implementation |
 |---|---|---|
-| Plain address | A raw address with optional `amount`; the chain comes from the wallet assets it validates against | [Decoder](../core/crates/primitives/src/payment_decoder/decoder.rs) |
-| BIP-21 | `bitcoin:`, `litecoin:`, `bitcoincash:`, `dogecoin:`, `zcash:` with `amount`, `memo`, and `label` | [BIP-21 decoder](../core/crates/primitives/src/payment_decoder/bip21.rs) |
-| BIP-321 | `bitcoin:` may omit the address when `bc` carries it. Lightning, BOLT 12, silent payment and other instructions are ignored beside an on-chain address and rejected alone | [BIP-321 decoder](../core/crates/primitives/src/payment_decoder/bip321.rs) |
-| XRP | `xrp:`, `ripple:`, `xrpl:` with destination tag `dt` | [XRP decoder](../core/crates/primitives/src/payment_decoder/xrp.rs) |
-| ERC-681 | EVM native transfers and token `transfer` with `address` and `uint256` | [ERC-681 decoder](../core/crates/primitives/src/payment_decoder/erc681.rs) |
-| Solana Pay | SOL and SPL-token transfers with `amount`, `spl-token`, repeated `reference`, `memo`, and `label` | [Solana Pay decoder](../core/crates/primitives/src/payment_decoder/solana_pay.rs) |
-| TON transfer | Native TON transfer with atomic `amount` and text comment | [TON decoder](../core/crates/primitives/src/payment_decoder/ton_pay.rs) |
-| WalletConnect Pay | Merchant payment links: `https://pay.walletconnect.com/?pid=pay_…`, `https://pay.walletconnect.com/pay_…` and `wc:…?pay=…` | [WalletConnect Pay decoder](../core/crates/primitives/src/payment_decoder/wallet_connect_pay.rs) |
+| Plain address | A raw address with optional `amount`; the chain comes from the wallet assets it validates against | [Decoder](../core/crates/payment/src/decoder/url.rs) |
+| BIP-21 | `bitcoin:`, `litecoin:`, `bitcoincash:`, `dogecoin:`, `zcash:` with `amount`, `memo`, and `label` | [BIP-21 decoder](../core/crates/payment/src/decoder/bip21.rs) |
+| BIP-321 | `bitcoin:` may omit the address when `bc` carries it. Lightning, BOLT 12, silent payment and other instructions are ignored beside an on-chain address and rejected alone | [BIP-321 decoder](../core/crates/payment/src/decoder/bip321.rs) |
+| XRP | `xrp:`, `ripple:`, `xrpl:` with destination tag `dt` | [XRP decoder](../core/crates/payment/src/decoder/xrp.rs) |
+| ERC-681 | EVM native transfers and token `transfer` with `address` and `uint256` | [ERC-681 decoder](../core/crates/payment/src/decoder/erc681.rs) |
+| Solana Pay | SOL and SPL-token transfers with `amount`, `spl-token`, repeated `reference`, `memo`, and `label` | [Solana Pay decoder](../core/crates/payment/src/decoder/solana_pay.rs) |
+| TON transfer | Native TON transfer with atomic `amount` and text comment | [TON decoder](../core/crates/payment/src/decoder/ton_pay.rs) |
+| WalletConnect Pay | Merchant payment links: `https://pay.walletconnect.com/?pid=pay_…`, `https://pay.walletconnect.com/pay_…` and `wc:…?pay=…` | [WalletConnect Pay decoder](../core/crates/payment/src/decoder/wallet_connect_pay.rs) |
 
 ## How decoding works
 
@@ -71,7 +71,7 @@ Static Solana Pay transfer requests use the regular transfer flow. Each `referen
 Core entry points:
 
 - [URL action routing](../core/crates/primitives/src/url_action.rs)
-- [Payment decoder dispatch](../core/crates/primitives/src/payment_decoder/decoder.rs)
+- [Payment decoder dispatch](../core/crates/payment/src/decoder/url.rs)
 - [Payment service](../core/crates/payment/src/service.rs)
 - [WalletConnect Pay provider](../core/crates/payment/src/wallet_connect_pay/provider.rs)
 - [UniFFI bridge](../core/gemstone/src/payment.rs)

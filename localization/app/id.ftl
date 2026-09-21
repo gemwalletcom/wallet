@@ -396,6 +396,7 @@ stake_active_in = Aktif Di
 stake_minimum_amount = Jumlah minimum
 stake_state_empty_title = Staking Anda akan muncul di sini
 stake_state_empty_description = Staking %@ pertama Anda
+stake_state_empty_validators_title = Validator tidak ditemukan
 stake_resource = Sumber
 stake_resource_energy = Energi
 stake_resource_bandwidth = Lebar pita
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = Tersinkronasi
 nodes_import_node_latest_block = Blok Terkini
 nodes_import_node_latency = Latensi
 nodes_gem_wallet_node = Node Gem Wallet
+nodes_stream = Stream
 nodes_import_node_warning_message = Node kustom dapat bersifat berbahaya dan dapat membocorkan data transaksi Anda atau memberikan informasi palsu.
 
 # Library

@@ -1,5 +1,5 @@
 use super::sync::{SearchSyncClient, SearchSyncResult};
-use primitives::ConfigKey;
+use config_keys::ConfigKey;
 use search_index::{NFTDocument, NFTS_INDEX_NAME, SearchIndexClient};
 use storage::models::NftCollectionRow;
 use storage::{Database, NftCollectionFilter, NftRepository};

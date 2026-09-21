@@ -1,4 +1,5 @@
-use primitives::{AssetBasic, AssetScore, ConfigKey, asset_score::AssetRank};
+use config_keys::ConfigKey;
+use primitives::{AssetBasic, AssetScore, asset_score::AssetRank};
 use serde::Deserialize;
 use storage::{ConfigCacher, DatabaseError};
 

@@ -1,6 +1,7 @@
 use cacher::{CacheKey, CacherClient};
 use localizer::LanguageLocalizer;
-use primitives::{Asset, Chain, GorushNotification, PushNotification};
+use primitives::{Asset, Chain};
+use push_notification::{GorushNotification, PushNotification};
 use std::error::Error;
 use storage::{Database, DevicesRepository, WalletsRepository};
 use streamer::{NotificationsPayload, StreamProducer, StreamProducerQueue};

@@ -396,6 +396,7 @@ stake_active_in = Inayotumika Katika
 stake_minimum_amount = Kiasi cha chini
 stake_state_empty_title = Hisa zako zitaonekana hapa
 stake_state_empty_description = Shiriki %@ yako ya kwanza
+stake_state_empty_validators_title = Hakuna vithibitishaji vilivyopatikana
 stake_resource = Rasilimali
 stake_resource_energy = Nishati
 stake_resource_bandwidth = Bandwidth
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = Katika Usawazishaji
 nodes_import_node_latest_block = Block Karibuni
 nodes_import_node_latency = Kuchelewa
 nodes_gem_wallet_node = Gem Wallet Node
+nodes_stream = Mtiririko
 nodes_import_node_warning_message = Nodi maalum zinaweza kuwa na nia mbaya na zinaweza kufichua data ya muamala wako au kutoa taarifa za uongo.
 
 # Library

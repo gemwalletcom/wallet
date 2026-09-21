@@ -29,7 +29,7 @@ public final class ContactsViewModel {
     }
 
     private let service: any GemContactServiceProtocol
-    private let manageContact: @MainActor (ManageContactViewModel.Mode) -> ManageContactViewModel
+    private let contactEditor: @MainActor (ContactEditorViewModel.Mode) -> ContactEditorViewModel
     private let mode: Mode
 
     var isPresentingAlertMessage: AlertMessage?
@@ -43,11 +43,11 @@ public final class ContactsViewModel {
 
     public init(
         service: any GemContactServiceProtocol,
-        manageContact: @escaping @MainActor (ManageContactViewModel.Mode) -> ManageContactViewModel,
+        contactEditor: @escaping @MainActor (ContactEditorViewModel.Mode) -> ContactEditorViewModel,
         mode: Mode = .list,
     ) {
         self.service = service
-        self.manageContact = manageContact
+        self.contactEditor = contactEditor
         self.mode = mode
         query = ObservableQuery(ContactsRequest(), initialValue: [])
     }
@@ -63,11 +63,11 @@ public final class ContactsViewModel {
         }
     }
 
-    func manageContactModel(mode: ManageContactViewModel.Mode) -> ManageContactViewModel {
-        manageContact(mode)
+    func contactEditorModel(mode: ContactEditorViewModel.Mode) -> ContactEditorViewModel {
+        contactEditor(mode)
     }
 
-    var addContactMode: ManageContactViewModel.Mode {
+    var addContactMode: ContactEditorViewModel.Mode {
         switch mode {
         case .list: .add()
         case let .addAddress(recipient, chain): .add(recipient: recipient, chain: chain)

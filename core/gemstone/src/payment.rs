@@ -12,11 +12,11 @@ use crate::services::error::GemServiceError;
 use crate::services::transfer::model::{GemRecipient, GemTransferData};
 use num_bigint::{BigInt, BigUint};
 use number_formatter::BigNumberFormatter;
-use payment::{PaymentLoad, PaymentService, PaymentTransaction, PaymentUpdate, WalletConnectPayAuth};
+use payment::{PaymentLoad, PaymentService, PaymentTransaction, PaymentURLDecoder, PaymentUpdate, WalletConnectPayAuth};
 use primitives::TransactionInputType;
 use primitives::{
-    Asset, AssetId, Chain, ChainAddress, ChainType, PaymentInvoice, PaymentLink, PaymentQuote, PaymentStatus, PaymentURLDecoder, PaymentVerification, TransactionChange, TransactionState, TransactionType, TransactionUpdate,
-    TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, hex,
+    Asset, AssetId, Chain, ChainAddress, ChainType, PaymentInvoice, PaymentLink, PaymentQuote, PaymentStatus, PaymentVerification, TransactionChange, TransactionState, TransactionType, TransactionUpdate, TransferDataExtra,
+    TransferDataOutputAction, TransferDataOutputType, hex,
 };
 use uuid::Uuid;
 

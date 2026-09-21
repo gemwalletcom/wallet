@@ -396,6 +396,7 @@ stake_active_in = Actief In
 stake_minimum_amount = Minimumbedrag
 stake_state_empty_title = Uw inzet verschijnt hier
 stake_state_empty_description = Zet je eerste %@ in
+stake_state_empty_validators_title = Geen validatoren gevonden
 stake_resource = Hulpbron
 stake_resource_energy = Energie
 stake_resource_bandwidth = Bandbreedte
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = Gesynchroniseerd
 nodes_import_node_latest_block = Laatste blok
 nodes_import_node_latency = Latentie
 nodes_gem_wallet_node = Gem Wallet Node
+nodes_stream = Stream
 nodes_import_node_warning_message = Aangepaste nodes kunnen kwaadaardig zijn en uw transactiegegevens blootleggen of valse informatie verstrekken.
 
 # Library

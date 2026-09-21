@@ -7,9 +7,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.ext.requireChain
-import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.asset.presents.details.AssetDetailsAction
+import com.gemwallet.android.features.asset.viewmodels.details.models.AssetDetailsAction
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -17,12 +15,9 @@ import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
-import uniffi.gemstone.GemAssetNetworkDestination
-import uniffi.gemstone.GemListRow
-import uniffi.gemstone.GemListRowTitle
 
 @Composable
-internal fun AssetDetailRowItem(uiState: AssetInfoUIModel, row: AssetInfoUIModel.RowUIModel, listPosition: ListPosition, onSelect: (GemListRowTitle) -> Unit, onAction: (AssetDetailsAction) -> Unit) {
+internal fun AssetDetailRowItem(uiState: AssetInfoUIModel, row: AssetInfoUIModel.RowUIModel, listPosition: ListPosition, onAction: (AssetDetailsAction) -> Unit) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     when (row) {
@@ -32,7 +27,7 @@ internal fun AssetDetailRowItem(uiState: AssetInfoUIModel, row: AssetInfoUIModel
             chain = uiState.asset.chain,
             value = row.name,
             listPosition = listPosition,
-            onOpenNetwork = uiState.networkNavigation?.let { { onAction(it) } },
+            onOpenNetwork = uiState.networkAction?.let { { onAction(it) } },
         )
 
         is AssetInfoUIModel.RowUIModel.Balance -> {
@@ -68,16 +63,10 @@ internal fun AssetDetailRowItem(uiState: AssetInfoUIModel, row: AssetInfoUIModel
             accessory = { DataBadgeChevron() },
         )
 
-        is AssetInfoUIModel.RowUIModel.Row -> when (val listRow = row.row) {
-            is GemListRow.Link -> GemListRowView(row = listRow, listPosition = listPosition, modifier = Modifier.clickable { onSelect(listRow.title) })
-            else -> GemListRowView(row = listRow, listPosition = listPosition)
-        }
+        is AssetInfoUIModel.RowUIModel.Row -> GemListRowView(
+            row = row.row,
+            listPosition = listPosition,
+            modifier = row.action?.let { action -> Modifier.clickable { onAction(action) } } ?: Modifier,
+        )
     }
 }
-
-private val AssetInfoUIModel.networkNavigation: AssetDetailsAction.Navigation?
-    get() = when (val destination = networkDestination) {
-        is GemAssetNetworkDestination.Asset -> AssetDetailsAction.OpenNetwork(destination.asset.toPrimitives().id)
-        is GemAssetNetworkDestination.Assets -> AssetDetailsAction.OpenNetworkAssets(destination.chain.requireChain())
-        null -> null
-    }

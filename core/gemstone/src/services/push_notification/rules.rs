@@ -1,4 +1,4 @@
-use primitives::{PushNotificationAsset, PushNotificationSwapAsset, PushNotificationTransaction, PushNotificationTypes, PushNotificationWalletAsset};
+use push_notification::{PushNotificationAsset, PushNotificationSwapAsset, PushNotificationTransaction, PushNotificationTypes, PushNotificationWalletAsset};
 use serde::de::DeserializeOwned;
 
 use super::model::GemPushNotification;
@@ -38,7 +38,8 @@ fn payload<T: DeserializeOwned>(data: Option<&str>) -> Option<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{AssetId, Chain, PushNotification, PushNotificationReward, Transaction, WalletId};
+    use primitives::{AssetId, Chain, Transaction, WalletId};
+    use push_notification::{PushNotification, PushNotificationReward};
 
     fn envelope(notification: &PushNotification) -> (String, Option<String>) {
         (notification.notification_type.as_ref().to_string(), notification.data.as_ref().map(|data| data.to_string()))

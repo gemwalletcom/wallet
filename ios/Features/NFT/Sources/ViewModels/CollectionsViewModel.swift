@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemNftListScreen
 import protocol Gemstone.GemNftServiceProtocol
 import GemstonePrimitives
 import Localization
@@ -11,7 +12,7 @@ import SwiftUI
 @Observable
 @MainActor
 public final class CollectionsViewModel: CollectionsViewable, Sendable {
-    private let service: any GemNftServiceProtocol
+    public let service: any GemNftServiceProtocol
 
     public let query: ObservableQuery<NFTRequest>
 
@@ -28,8 +29,8 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
         query = ObservableQuery(NFTRequest(walletId: wallet.id, filter: .all), initialValue: [])
     }
 
-    public var title: String {
-        Localized.Nft.collections
+    public var screen: GemNftListScreen {
+        service.listScreen(data: query.value.map { $0.toGem() }, list: .collections)
     }
 
     public var content: CollectionsContent {
@@ -41,13 +42,4 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
     }
 
     // MARK: - Actions
-
-    public func load() async {
-        do {
-            let count = try await service.sync()
-            debugLog("update nfts: \(count)")
-        } catch {
-            debugLog("update nfts error: \(error)")
-        }
-    }
 }

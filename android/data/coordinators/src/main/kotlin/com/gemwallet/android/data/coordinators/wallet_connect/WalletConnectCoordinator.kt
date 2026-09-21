@@ -20,6 +20,7 @@ import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConne
 import com.gemwallet.android.application.wallet_connect.toConnectionSession
 import com.gemwallet.android.application.wallet_connect.toSupportedNamespaces
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneConnectionStore
+import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletConnection
@@ -38,6 +39,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemChainServiceInterface
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemWalletConnectRejectionReason
 import uniffi.gemstone.GemWalletConnectServiceInterface
 
@@ -93,33 +95,34 @@ class WalletConnectCoordinator(
 
     override fun observeConnection(connectionId: String): Flow<WalletConnection?> = connectionStore.observeConnection(connectionId)
 
-    override suspend fun disconnect(connectionId: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+    override suspend fun disconnect(connectionId: String, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
         walletConnectService.deleteSession(connectionId)
         val activeSession = activeSessions()?.firstOrNull { it.topic == connectionId }
-        if (activeSession != null) {
-            walletConnectClient.disconnectSession(activeSession.topic, onSuccess = {}, onError = {})
+        if (activeSession == null) {
+            onSuccess()
+            return
         }
-        onSuccess()
+        walletConnectClient.disconnectSession(activeSession.topic, onSuccess = onSuccess, onError = { onError(clientErrorText(it)) })
     }
 
-    override fun pair(uri: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+    override fun pair(uri: String, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
         initWalletConnect(
             onSuccess = {
                 try {
                     walletConnectClient.pair(
                         uri = uri,
                         onSuccess = { onSuccess() },
-                        onError = { onError(it.ifBlank { "Pair to ${uri.toUri().host} fail" }) },
+                        onError = { onError(clientErrorText(it)) },
                     )
                 } catch (err: Throwable) {
-                    onError("Wallet Connect unavailable: ${err.message}")
+                    onError(err.errorText())
                 }
             },
-            onError = { onError(it.ifBlank { "Wallet Connect unavailable" }) },
+            onError = { onError(clientErrorText(it)) },
         )
     }
 
-    override fun approveConnection(wallet: Wallet, proposal: WalletConnectSessionProposal, onSuccess: () -> Unit, onError: (String) -> Unit) {
+    override fun approveConnection(wallet: Wallet, proposal: WalletConnectSessionProposal, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
         val approval = walletConnectService.sessionApproval(wallet = wallet.toGem())
         val sessionNamespaces = walletConnectClient.generateApprovedNamespaces(
             proposal = proposal,
@@ -130,7 +133,7 @@ class WalletConnectCoordinator(
             caip2Chains = sessionNamespaces.values.flatMap { it.chains.orEmpty() },
             accounts = approval.accounts,
         )
-        approveAndStoreSession(wallet, "Connection failed", onSuccess, onError) { onApproved, onFailure ->
+        approveAndStoreSession(wallet, onSuccess, onError) { onApproved, onFailure ->
             walletConnectClient.approveSession(
                 proposal = proposal,
                 namespaces = sessionNamespaces,
@@ -141,7 +144,7 @@ class WalletConnectCoordinator(
         }
     }
 
-    override fun rejectConnection(proposal: WalletConnectSessionProposal, reason: GemWalletConnectRejectionReason, onSuccess: () -> Unit, onError: (String) -> Unit) {
+    override fun rejectConnection(proposal: WalletConnectSessionProposal, reason: GemWalletConnectRejectionReason, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
         val rejection = walletConnectService.sessionRejection(reason)
         walletConnectClient.rejectSession(
             proposal = proposal,
@@ -155,12 +158,12 @@ class WalletConnectCoordinator(
                 }
                 onSuccess()
             },
-            onError = onError,
+            onError = { onError(clientErrorText(it)) },
         )
     }
 
-    override fun approveAuthentication(request: WalletConnectAuthenticationRequest, auths: List<WalletConnectAuthObject>, wallet: Wallet, onSuccess: () -> Unit, onError: (String) -> Unit) {
-        approveAndStoreSession(wallet, "Authentication failed", onSuccess, onError) { onApproved, onFailure ->
+    override fun approveAuthentication(request: WalletConnectAuthenticationRequest, auths: List<WalletConnectAuthObject>, wallet: Wallet, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
+        approveAndStoreSession(wallet, onSuccess, onError) { onApproved, onFailure ->
             walletConnectClient.approveAuthentication(
                 request = request,
                 auths = auths,
@@ -170,12 +173,12 @@ class WalletConnectCoordinator(
         }
     }
 
-    override fun rejectAuthentication(request: WalletConnectAuthenticationRequest, onSuccess: () -> Unit, onError: (String) -> Unit) {
-        walletConnectClient.rejectAuthentication(request, onSuccess, onError)
+    override fun rejectAuthentication(request: WalletConnectAuthenticationRequest, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
+        walletConnectClient.rejectAuthentication(request, onSuccess) { onError(clientErrorText(it)) }
     }
 
-    override fun respond(topic: String, id: Long, response: WalletConnectJsonRpcResponse, onSuccess: () -> Unit, onError: (String) -> Unit) {
-        walletConnectClient.respondSessionRequest(topic, id, response, onSuccess, onError)
+    override fun respond(topic: String, id: Long, response: WalletConnectJsonRpcResponse, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
+        walletConnectClient.respondSessionRequest(topic, id, response, onSuccess) { onError(clientErrorText(it)) }
     }
 
     override fun authPayloadParams(payloadParams: WalletConnectAuthPayloadParams, supportedChains: List<String>, supportedMethods: List<String>): WalletConnectAuthPayloadParams =
@@ -222,23 +225,23 @@ class WalletConnectCoordinator(
         .onFailure { Log.e("WalletConnectCoordinator", "Failed to get active sessions", it) }
         .getOrNull()
 
-    private fun approveAndStoreSession(wallet: Wallet, failureMessage: String, onSuccess: () -> Unit, onError: (String) -> Unit, approve: (onSuccess: () -> Unit, onError: (String) -> Unit) -> Unit) {
+    private fun approveAndStoreSession(wallet: Wallet, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit, approve: (onSuccess: () -> Unit, onError: (String) -> Unit) -> Unit) {
         approvingWallet.value = wallet
         val activeBefore = activeSessions().orEmpty().map { it.topic }.toSet()
         approve(
-            { persistNewSessions(wallet, activeBefore, failureMessage, onSuccess, onError) },
-            onError,
+            { persistNewSessions(wallet, activeBefore, onSuccess, onError) },
+            { onError(clientErrorText(it)) },
         )
     }
 
-    private fun persistNewSessions(wallet: Wallet, activeBefore: Set<String>, failureMessage: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+    private fun persistNewSessions(wallet: Wallet, activeBefore: Set<String>, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
         scope.launch(Dispatchers.IO) {
             runCatching {
                 addNewSessions(wallet, activeBefore)
             }.onSuccess {
                 onSuccess()
             }.onFailure { error ->
-                onError(error.message ?: failureMessage)
+                onError(error.errorText())
             }
         }
     }
@@ -262,3 +265,5 @@ class WalletConnectCoordinator(
         walletConnectService.addConnection(WalletConnection(session = connectionSession, wallet = wallet).toGem())
     }
 }
+
+private fun clientErrorText(message: String): GemErrorText = message.ifBlank { null }?.let { GemErrorText.Message(it) } ?: GemErrorText.Unknown

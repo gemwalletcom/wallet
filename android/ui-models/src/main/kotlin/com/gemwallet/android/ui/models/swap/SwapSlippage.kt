@@ -6,8 +6,6 @@ import java.text.DecimalFormatSymbols
 
 object SwapSlippage {
 
-    fun percentLabel(bps: UInt, slippageText: (UInt) -> String): String = "${slippageText(bps)}%"
-
     fun numberFormat(): GemNumberFormat = GemNumberFormat(DecimalFormatSymbols.getInstance().decimalSeparator.toString())
 
     fun sanitize(input: String, maximumFractionDigits: UInt, maximumIntegerDigits: UInt): String = numberFormat().sanitize(input, maximumFractionDigits, maximumIntegerDigits)

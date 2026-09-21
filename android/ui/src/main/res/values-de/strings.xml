@@ -339,6 +339,7 @@
   <string name="stake_minimum_amount">Mindestbetrag</string>
   <string name="stake_state_empty_title">Ihre Einsätze werden hier angezeigt</string>
   <string name="stake_state_empty_description">Setzen Sie Ihre ersten %1$s ein</string>
+  <string name="stake_state_empty_validators_title">Keine Validatoren gefunden</string>
   <string name="stake_resource">Ressource</string>
   <string name="stake_resource_energy">Energie</string>
   <string name="stake_resource_bandwidth">Bandbreite</string>
@@ -380,6 +381,7 @@
   <string name="nodes_import_node_latest_block">Letzter Block</string>
   <string name="nodes_import_node_latency">Latenzzeit</string>
   <string name="nodes_gem_wallet_node">Gem Wallet Node</string>
+  <string name="nodes_stream">Stream</string>
   <string name="nodes_import_node_warning_message">Benutzerdefinierte Knoten können bösartig sein und Ihre Transaktionsdaten offenlegen oder falsche Informationen liefern.</string>
   <string name="library_select_from_photo_library">Aus der Fotobibliothek auswählen</string>
   <string name="fee_rates_info">Die Geschwindigkeit der Transaktion wird durch die Netzwerkgebühr bestimmt, die an die Miner des Netzwerks gezahlt wird.</string>

@@ -59,7 +59,7 @@ public final class PerpetualsSceneViewModel {
         set { session = session.onSearchingChanged(isSearching: newValue) }
     }
 
-    let onSelectAssetType: ((SelectAssetType) -> Void)?
+    let onSelectAmount: ((AmountInput) -> Void)?
     let onSelectAsset: ((Asset) -> Void)?
     let onSelectPortfolio: VoidAction
 
@@ -68,14 +68,14 @@ public final class PerpetualsSceneViewModel {
         service: any GemPerpetualServiceProtocol,
         observerService: any PerpetualObservable,
         recentAssetsService: any GemRecentActivityServiceProtocol,
-        onSelectAssetType: ((SelectAssetType) -> Void)? = nil,
+        onSelectAmount: ((AmountInput) -> Void)? = nil,
         onSelectAsset: ((Asset) -> Void)? = nil,
         onSelectPortfolio: (() -> Void)? = nil,
     ) {
         self.wallet = wallet
         self.service = service
         self.observerService = observerService
-        self.onSelectAssetType = onSelectAssetType
+        self.onSelectAmount = onSelectAmount
         self.onSelectAsset = onSelectAsset
         self.onSelectPortfolio = onSelectPortfolio
         positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.id, searchQuery: ""), initialValue: [])
@@ -157,9 +157,9 @@ extension PerpetualsSceneViewModel {
     func onSelectHeaderAction(type: GemHeaderButtonKind) {
         switch type {
         case .deposit:
-            onSelectAssetType?(.deposit)
+            onSelectAmount?(AmountInput(type: .deposit, asset: balanceHeader.depositAsset.toPrimitives()))
         case .withdraw:
-            onSelectAssetType?(.withdraw)
+            onSelectAmount?(AmountInput(type: .withdraw, asset: balanceHeader.withdrawAsset.toPrimitives()))
         default:
             break
         }

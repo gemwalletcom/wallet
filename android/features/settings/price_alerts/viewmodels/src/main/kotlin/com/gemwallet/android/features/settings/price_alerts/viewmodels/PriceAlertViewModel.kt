@@ -18,6 +18,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.localization.footer
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.localization.title
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ListSection
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Asset
@@ -42,7 +43,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemPriceAlertSectionKind
 import uniffi.gemstone.GemPriceAlertServiceInterface
 import uniffi.gemstone.GemSelectAssetType
@@ -104,8 +104,8 @@ class PriceAlertViewModel @Inject constructor(
 
     val isRefreshing = refreshState.asStateFlow()
 
-    private val errorState = MutableStateFlow<GemErrorText?>(null)
-    val error: StateFlow<GemErrorText?> = errorState.asStateFlow()
+    private val errorState = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = errorState.asStateFlow()
 
     init {
         val initialAssetId = savedStateHandle.get<String?>(RouteArgument.AssetId.key)?.toAssetId()
@@ -131,7 +131,7 @@ class PriceAlertViewModel @Inject constructor(
 
     fun togglePriceAlerts(enable: Boolean) = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable { service.setEnabled(enable) }
-            .onFailure { errorState.value = it.errorText() }
+            .onFailure { errorState.value = it.errorText().text(context) }
         alertsEnabled.update { service.isEnabled() }
     }
 
@@ -143,7 +143,7 @@ class PriceAlertViewModel @Inject constructor(
     fun excludeAsset(priceAlertId: String) = viewModelScope.launch(ioDispatcher) {
         val alert = alerts.value.firstOrNull { it.id == priceAlertId } ?: return@launch
         runCatchingCancellable { service.deletePriceAlerts(listOf(alert.priceAlert.toGem())) }
-            .onFailure { errorState.value = it.errorText() }
+            .onFailure { errorState.value = it.errorText().text(context) }
     }
 
     fun includeAsset(assetId: AssetId, callback: (Asset) -> Unit) = viewModelScope.launch(ioDispatcher) {
@@ -155,7 +155,7 @@ class PriceAlertViewModel @Inject constructor(
 
     private suspend fun setAutoAlert(assetId: AssetId, enabled: Boolean) {
         runCatchingCancellable { service.setAutoAlert(assetId.toIdentifier(), enabled) }
-            .onFailure { errorState.value = it.errorText() }
+            .onFailure { errorState.value = it.errorText().text(context) }
     }
 
     fun clearError() = errorState.update { null }

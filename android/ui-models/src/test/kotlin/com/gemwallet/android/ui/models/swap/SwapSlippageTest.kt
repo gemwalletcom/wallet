@@ -1,12 +1,13 @@
 package com.gemwallet.android.ui.models.swap
 
+import com.gemwallet.android.model.text
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import uniffi.gemstone.GemSlippageSession
+import java.util.Locale
 
 class SwapSlippageTest {
-    private val slippageText = { bps: UInt -> (bps.toDouble() / 100).toBigDecimal().stripTrailingZeros().toPlainString() }
 
     @Test
     fun parseBps_handsTheTypedPercentToCore() {
@@ -26,11 +27,12 @@ class SwapSlippageTest {
     }
 
     @Test
-    fun suggestions_formatToExpectedLabels() {
-        val suggestions = GemSlippageSession(isAuto = false, bps = 100u).viewState().suggestionsBps
+    fun suggestions_carryThePercentCoreFormatted() {
+        val suggestions = GemSlippageSession(isAuto = false, bps = 100u).viewState().suggestions
 
-        assertEquals(listOf(30u, 50u, 300u), suggestions)
-        assertEquals(listOf("0.3%", "0.5%", "3%"), suggestions.map { SwapSlippage.percentLabel(it, slippageText) })
+        assertEquals(listOf(30u, 50u, 300u), suggestions.map { it.bps })
+        assertEquals(listOf("0.3%", "0.5%", "3%"), suggestions.map { it.percent.text(Locale.US) })
+        assertEquals(listOf("%0,3", "%0,5", "%3"), suggestions.map { it.percent.text(Locale.forLanguageTag("tr")) })
     }
 
     @Test

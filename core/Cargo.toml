@@ -24,6 +24,10 @@ members = [
     "gemstone",
 
     "crates/primitives",
+    "crates/block_explorers",
+    "crates/config_keys",
+    "crates/node_probes",
+    "crates/push_notification",
     "crates/payment",
     "crates/fiat",
     "crates/cacher",

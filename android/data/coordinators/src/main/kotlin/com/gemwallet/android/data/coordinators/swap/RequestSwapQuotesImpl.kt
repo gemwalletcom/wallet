@@ -4,7 +4,6 @@ import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
 import com.gemwallet.android.ext.toGem
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
@@ -20,6 +19,7 @@ import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.isActive
 import uniffi.gemstone.GemSwapQuoteServiceInterface
 import uniffi.gemstone.GemSwapRequest
+import uniffi.gemstone.SwapperException
 import java.math.BigInteger
 
 class RequestSwapQuotesImpl(private val swapService: GemSwapQuoteServiceInterface) : RequestSwapQuotes {
@@ -71,9 +71,7 @@ class RequestSwapQuotesImpl(private val swapService: GemSwapQuoteServiceInterfac
         )
         currentCoroutineContext().ensureActive()
         SwapQuotesResult(quotes, params.key, params.pay, params.receive)
-    } catch (err: CancellationException) {
-        throw err
-    } catch (err: Throwable) {
+    } catch (err: SwapperException) {
         SwapQuotesResult(requestKey = params.key, pay = params.pay, receive = params.receive, err = err)
     }
 }

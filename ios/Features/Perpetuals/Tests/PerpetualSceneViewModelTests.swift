@@ -152,6 +152,21 @@ struct PerpetualSceneViewModelTests {
     }
 
     @Test
+    func comingBackToTheScreenSyncsTheSameTwoThingsAsOpeningIt() async {
+        let service = GemPerpetualDetailsServiceMock()
+        let asset = Primitives.Asset.mock()
+        let model = PerpetualSceneViewModel.mock(service: service, asset: asset)
+
+        model.onScenePhaseChange(.background, .active)
+        for _ in 0 ..< 200 where service.syncPositionsCount == 0 {
+            try? await Task.sleep(for: .milliseconds(20))
+        }
+
+        #expect(service.syncPositionsCount == 1, "a position closed while the app was away shows on return")
+        #expect(service.syncedTransactionAssetIds == [asset.id.identifier])
+    }
+
+    @Test
     func aFailedSyncIsSwallowedAndLeavesNoAlert() async {
         let service = GemPerpetualDetailsServiceMock()
         service.syncPositionsError = AnyError("offline")

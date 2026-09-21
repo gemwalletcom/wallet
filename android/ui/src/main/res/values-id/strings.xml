@@ -339,6 +339,7 @@
   <string name="stake_minimum_amount">Jumlah minimum</string>
   <string name="stake_state_empty_title">Staking Anda akan muncul di sini</string>
   <string name="stake_state_empty_description">Staking %1$s pertama Anda</string>
+  <string name="stake_state_empty_validators_title">Validator tidak ditemukan</string>
   <string name="stake_resource">Sumber</string>
   <string name="stake_resource_energy">Energi</string>
   <string name="stake_resource_bandwidth">Lebar pita</string>
@@ -380,6 +381,7 @@
   <string name="nodes_import_node_latest_block">Blok Terkini</string>
   <string name="nodes_import_node_latency">Latensi</string>
   <string name="nodes_gem_wallet_node">Node Gem Wallet</string>
+  <string name="nodes_stream">Stream</string>
   <string name="nodes_import_node_warning_message">Node kustom dapat bersifat berbahaya dan dapat membocorkan data transaksi Anda atau memberikan informasi palsu.</string>
   <string name="library_select_from_photo_library">Pilih dari Galeri Foto</string>
   <string name="fee_rates_info">Kecepatan transaksi dihitung berdasarkan biaya jaringan yang dibayarkan pada jaringan penambang</string>

@@ -1,0 +1,8 @@
+[package]
+name = "node_probes"
+version = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+chain_traits = { path = "../chain_traits" }
+primitives = { path = "../primitives" }

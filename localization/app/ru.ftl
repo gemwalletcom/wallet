@@ -396,6 +396,7 @@ stake_active_in = Активен в
 stake_minimum_amount = Минимальная сумма
 stake_state_empty_title = Ваш стейкинг будет отображаться здесь
 stake_state_empty_description = Начните стейкать %@
+stake_state_empty_validators_title = Валидаторы не найдены
 stake_resource = Ресурс
 stake_resource_energy = Энергия
 stake_resource_bandwidth = Пропускная способность
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = Синхронизировано
 nodes_import_node_latest_block = Последний блок
 nodes_import_node_latency = Задержка
 nodes_gem_wallet_node = Нод кошелька Gem
+nodes_stream = Поток
 nodes_import_node_warning_message = Пользовательские узлы могут быть вредоносными и способны раскрыть данные ваших транзакций или предоставить ложную информацию.
 
 # Library

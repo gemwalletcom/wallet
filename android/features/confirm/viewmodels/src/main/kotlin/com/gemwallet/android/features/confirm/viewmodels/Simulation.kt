@@ -3,7 +3,7 @@ package com.gemwallet.android.features.confirm.viewmodels
 import android.content.Context
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.model.ValueFormatter
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.list_head.SimulationHeaderUIModel
 import com.gemwallet.android.ui.components.list_head.headerUIModel
 import com.gemwallet.android.ui.components.list_item.ListItemImage
@@ -43,7 +43,7 @@ fun GemConfirmSimulationState.toSimulation(session: GemConfirmationInterface, co
     )
 }
 
-fun GemSimulationBalanceChange.formattedValue(): String = sign.format(ValueFormatter(style = GemValueStyle.FULL).string(value.abs(), asset.decimals, asset.symbol))
+fun GemSimulationBalanceChange.formattedValue(): String = sign.amount(value, asset.decimals.toUInt(), asset.symbol, GemValueStyle.FULL).text()
 
 fun GemSimulationBalanceChange.listItem(): ListItemModel = ListItemModel(
     title = asset.name,

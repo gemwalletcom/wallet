@@ -396,6 +396,7 @@ stake_active_in = 有効化まで
 stake_minimum_amount = 最小額
 stake_state_empty_title = ステークはここに表示されます
 stake_state_empty_description = %@ のステーキングを始めましょう
+stake_state_empty_validators_title = バリデーターが見つかりません
 stake_resource = リソース
 stake_resource_energy = エネルギー
 stake_resource_bandwidth = 帯域幅
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = 同期済み
 nodes_import_node_latest_block = 最新のブロック
 nodes_import_node_latency = 遅延
 nodes_gem_wallet_node = Gem Walletノード
+nodes_stream = ストリーム
 nodes_import_node_warning_message = カスタムノードは悪意のある第三者によって運営されている可能性があり、取引データの漏えいや虚偽情報の提供につながるおそれがあります。
 
 # Library

@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use primitives::{RateLimit, RateLimitKey, RateLimitWindow};
+use config_keys::{RateLimit, RateLimitKey, RateLimitWindow};
 
 use crate::{CacheKey, CacherClient};
 

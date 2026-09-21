@@ -8,7 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.ext.HypercoreUSDC
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.asset_select.presents.views.RecentsSheetHost
 import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
 import com.gemwallet.android.features.perpetual.viewmodels.PerpetualMarketViewModel
@@ -71,9 +71,9 @@ fun PerpetualMarketNavScreen(
 
                 PerpetualMarketAction.Close -> onCancel()
 
-                PerpetualMarketAction.Withdraw -> amountAction(AmountParams.Withdraw(HypercoreUSDC.id))
+                PerpetualMarketAction.Withdraw -> balanceHeader?.let { amountAction(AmountParams.Withdraw(it.withdrawAsset.toPrimitives().id)) }
 
-                PerpetualMarketAction.Deposit -> amountAction(AmountParams.Deposit(viewModel.depositAssetId))
+                PerpetualMarketAction.Deposit -> balanceHeader?.let { amountAction(AmountParams.Deposit(it.depositAsset.toPrimitives().id)) }
 
                 PerpetualMarketAction.OpenPortfolio -> onOpenPortfolio()
 

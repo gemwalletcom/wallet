@@ -2,7 +2,7 @@
 
 import Foundation
 
-enum GemListRowPresentationType: Identifiable, Equatable, Sendable {
+enum GemListRowPresentationType: Identifiable, Equatable {
     case copy
     case url(URL)
 

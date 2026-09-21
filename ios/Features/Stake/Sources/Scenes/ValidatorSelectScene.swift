@@ -31,6 +31,11 @@ public struct ValidatorSelectScene: View {
                 }
             }
         }
+        .overlay {
+            if model.list.isEmpty {
+                EmptyContentView(model: model.emptyContent)
+            }
+        }
         .navigationTitle(model.title)
     }
 }

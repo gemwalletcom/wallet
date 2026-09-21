@@ -36,7 +36,14 @@ public final class AmountStakeViewModel: AmountDataProvidable {
         self.asset = asset
         self.service = service
         if let resource = type.resource() {
-            selection = .resource(SelectionState(options: [.bandwidth, .energy], selected: resource.toPrimitives(), isEnabled: true, title: Localized.Stake.resource))
+            selection = .resource(
+                SelectionState(
+                    options: service.resourceOptions(chain: asset.chain.rawValue).map { $0.toPrimitives() },
+                    selected: resource.toPrimitives(),
+                    isEnabled: true,
+                    title: Localized.Stake.resource,
+                ),
+            )
             recommendedValidators = []
             action = type
         } else {

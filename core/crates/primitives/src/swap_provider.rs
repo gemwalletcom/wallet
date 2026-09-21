@@ -2,12 +2,6 @@ use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
 use typeshare::typeshare;
 
-use crate::{
-    block_explorer::BlockExplorer,
-    chain::Chain,
-    explorers::{AcrossScan, ChainflipScan, MayaScan, MayanScan, NearIntents, RelayScan, RuneScan, SkipExplorer, SwapsXyzScan},
-};
-
 #[derive(Debug, Copy, Clone, PartialEq, AsRefStr, EnumString, Eq, PartialOrd, Ord, Serialize, Deserialize, EnumIter)]
 #[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "snake_case")]
@@ -57,21 +51,6 @@ impl SwapProvider {
 
     pub fn cross_chain_providers() -> Vec<Self> {
         Self::all().into_iter().filter(Self::is_cross_chain).collect()
-    }
-
-    pub fn swap_explorer(&self, chain: Chain) -> Option<Box<dyn BlockExplorer>> {
-        match self {
-            Self::Mayan => Some(MayanScan::boxed()),
-            Self::Thorchain => Some(RuneScan::boxed()),
-            Self::Mayachain => Some(MayaScan::boxed()),
-            Self::Across => Some(AcrossScan::boxed()),
-            Self::Chainflip => Some(ChainflipScan::boxed()),
-            Self::NearIntents => Some(NearIntents::boxed()),
-            Self::Relay => Some(RelayScan::boxed()),
-            Self::Squid => Some(SkipExplorer::boxed(chain)),
-            Self::SwapsXyz => Some(SwapsXyzScan::boxed()),
-            Self::UniswapV3 | Self::UniswapV4 | Self::PancakeswapV3 | Self::Panora | Self::Jupiter | Self::Okx | Self::Oku | Self::Wagmi | Self::CetusClmm | Self::StonfiV2 | Self::Aerodrome | Self::Hyperliquid | Self::Orca => None,
-        }
     }
 
     pub fn name(&self) -> &str {
@@ -147,15 +126,5 @@ mod tests {
             "a stored swap row written before the rename still decodes"
         );
         assert_eq!(serde_json::to_string(&SwapProvider::CetusClmm).unwrap(), "\"cetus_clmm\"");
-    }
-
-    #[test]
-    fn test_swaps_xyz_explorer() {
-        let transaction_id = "0x6331c6eded7cfe4ed578e41a57855102b3fd60b3daa2c4bef992f4f5869856b4";
-        for chain in [Chain::Ton, Chain::Algorand, Chain::Stellar] {
-            let explorer = SwapProvider::SwapsXyz.swap_explorer(chain).unwrap();
-            assert_eq!(explorer.name(), "Swaps.xyz");
-            assert_eq!(explorer.get_swap_tx_url(&transaction_id.into()), format!("https://scan.swaps.xyz/transactions?search={transaction_id}"));
-        }
     }
 }

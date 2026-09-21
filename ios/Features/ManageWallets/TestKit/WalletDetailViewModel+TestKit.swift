@@ -2,6 +2,7 @@
 
 import class Gemstone.GemWalletService
 import protocol Gemstone.GemWalletServiceProtocol
+import GemstoneServices
 import GemstoneServicesTestKit
 import ManageWallets
 import Primitives
@@ -12,12 +13,14 @@ public extension WalletDetailViewModel {
     static func mock(
         wallet: Wallet = .mock(),
         service: any GemWalletServiceProtocol = GemWalletService.mock(),
+        biometry: any BiometryAuthenticatable = BiometryAuthenticationMock(requiresAuthentication: false),
     ) -> WalletDetailViewModel {
         WalletDetailViewModel(
             navigationPath: .constant(NavigationPath()),
             wallet: wallet,
             service: service,
             preferences: .mock(),
+            biometry: biometry,
         )
     }
 }

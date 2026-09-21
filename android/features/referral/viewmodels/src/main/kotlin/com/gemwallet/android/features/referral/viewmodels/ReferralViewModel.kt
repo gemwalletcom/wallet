@@ -10,9 +10,12 @@ import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.features.referral.viewmodels.models.IncomingCodeUIModel
+import com.gemwallet.android.features.referral.viewmodels.models.ReferralUIState
 import com.gemwallet.android.features.referral.viewmodels.models.RewardRedemptionUIModel
 import com.gemwallet.android.features.referral.viewmodels.models.infoRows
 import com.gemwallet.android.features.referral.viewmodels.models.uiModel
+import com.gemwallet.android.features.referral.viewmodels.models.uiState
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Wallet
@@ -59,16 +62,19 @@ class ReferralViewModel @Inject constructor(
     private val rewards = MutableStateFlow<Rewards?>(null)
     val inSync = MutableStateFlow(SyncType.Init)
 
-    val uiState = rewards.mapLatest { service.state(it) }
+    private val rewardsState = rewards.mapLatest { service.state(it) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, service.state(null))
 
-    val infoRows: StateFlow<List<ListItemModel>> = uiState.map { it.infoRows(context) }
+    val uiState: StateFlow<ReferralUIState> = rewardsState.map { it.uiState() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, rewardsState.value.uiState())
+
+    val infoRows: StateFlow<List<ListItemModel>> = rewardsState.map { it.infoRows(context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val redemptions: StateFlow<List<RewardRedemptionUIModel>> = uiState.map { state -> state.redemptions.mapNotNull { it.uiModel(context) } }
+    val redemptions: StateFlow<List<RewardRedemptionUIModel>> = rewardsState.map { state -> state.redemptions.mapNotNull { it.uiModel(context) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val referralLink = uiState.mapLatest { it.referralLink }
+    val referralLink = rewardsState.mapLatest { it.referralLink }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val availableWallets = getWallets().mapLatest { wallets -> service.wallets(wallets.map { it.toGem() }).map { it.toPrimitives() } }
@@ -77,9 +83,9 @@ class ReferralViewModel @Inject constructor(
     val availableWalletRows = availableWallets.mapLatest { wallets -> walletRows(wallets.map { it.toGem() }) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val incomingCode: StateFlow<GemIncomingCode?> = combine(referralCode, availableWallets) { code, wallets ->
-        incomingReferralCode(code, wallets.map { it.toGem() })
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    val incomingCode: StateFlow<IncomingCodeUIModel> = combine(referralCode, availableWallets) { code, wallets ->
+        incomingReferralCode(code, wallets.map { it.toGem() }).uiModel()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, IncomingCodeUIModel())
 
     private val session = getSession()
         .filterNotNull()

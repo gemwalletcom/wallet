@@ -17,6 +17,7 @@ use std::sync::Arc;
 use cacher::CacherClient;
 use charts_updater::{ChartsHistoryConfig, ChartsHistoryUpdater, ChartsUpdater};
 use coingecko::CoinGeckoClient;
+use config_keys::{ConfigKey, ConfigParamKey};
 use job_runner::{JobHandle, ShutdownReceiver};
 use markets_updater::MarketsUpdater;
 use missing_prices_publisher::MissingPricesPublisher;
@@ -26,7 +27,7 @@ use prices::{PriceAssetsProvider, PriceProvider, PriceProviderConfig, PriceProvi
 use prices_cleanup_updater::PricesCleanupUpdater;
 use prices_metrics_updater::PricesMetricsUpdater;
 use prices_updater::PricesUpdater;
-use primitives::{ChartTimeframe, ConfigKey, ConfigParamKey};
+use primitives::ChartTimeframe;
 use settings::Settings;
 use storage::repositories::prices_providers_repository::PricesProvidersRepository;
 use storage::{ConfigCacher, Database};

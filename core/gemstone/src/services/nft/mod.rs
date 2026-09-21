@@ -12,7 +12,7 @@ use std::sync::Arc;
 use primitives::{NFTAssetData, NFTAssetId, NFTData, ReportNft, WalletId};
 
 pub use collectible::GemCollectibleService;
-pub use model::{GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleSection, GemNftItem, GemNftList, GemNftUnverifiedRow};
+pub use model::{GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleSection, GemNftItem, GemNftList, GemNftListScreen, GemNftUnverifiedRow};
 pub use store::GemNftStore;
 
 use crate::api::{GemApiError, GemDeviceApiClient};
@@ -42,6 +42,10 @@ impl GemNftService {
 
     pub fn list_items(&self, data: Vec<NFTData>, list: GemNftList) -> Vec<GemNftItem> {
         rules::list_items(data, list)
+    }
+
+    pub fn list_screen(&self, data: Vec<NFTData>, list: GemNftList) -> GemNftListScreen {
+        rules::list_screen(&data, list)
     }
 
     pub fn unverified_row(&self, data: Vec<NFTData>, list: GemNftList) -> Option<GemNftUnverifiedRow> {

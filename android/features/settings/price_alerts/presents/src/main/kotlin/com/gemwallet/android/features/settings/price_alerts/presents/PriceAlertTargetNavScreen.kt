@@ -9,7 +9,6 @@ import com.gemwallet.android.features.settings.price_alerts.viewmodels.PriceAler
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertConfirmResult
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
-import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.style.textStyle
 import com.wallet.core.primitives.PriceAlertDirection
 import com.wallet.core.primitives.PriceAlertNotificationType
@@ -29,7 +28,7 @@ fun PriceAlertTargetNavScreen(onCancel: () -> Unit, onComplete: (String) -> Unit
     val priceState by viewModel.priceState.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
-    val snackbar = rememberSnackbarState(message = error?.text(), iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
+    val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 
     PriceAlertTargetScene(
         value = viewModel.value,

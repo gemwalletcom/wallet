@@ -7,8 +7,12 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.wallet.cases.DeleteWallet
 import com.gemwallet.android.application.wallet.cases.GetAllWallets
 import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
+import com.gemwallet.android.domains.wallet.aggregates.WalletDataAggregate
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.features.wallets.viewmodels.models.WalletItemUIModel
+import com.gemwallet.android.features.wallets.viewmodels.models.WalletsUIState
+import com.gemwallet.android.ui.components.list_item.uiModel
 import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,6 +22,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -35,8 +40,13 @@ class WalletsViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
-    val wallets = getAllWallets.getAllWallets()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, getAllWallets.getAllWallets().value)
+    private val wallets = getAllWallets.getAllWallets()
+
+    val uiState: StateFlow<WalletsUIState> = wallets.map { wallets ->
+        val (pinned, unpinned) = wallets.map { it.uiModel(context) }.partition { it.isPinned }
+        WalletsUIState(pinned = pinned, unpinned = unpinned)
+    }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, WalletsUIState())
 
     private val errorState = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = errorState.asStateFlow()
@@ -64,3 +74,10 @@ class WalletsViewModel @Inject constructor(
         errorState.value = error.errorText().text(context)
     }
 }
+
+private fun WalletDataAggregate.uiModel(context: Context) = WalletItemUIModel(
+    walletId = WalletId(row.id),
+    row = row.uiModel(context),
+    isCurrent = isCurrent,
+    isPinned = row.isPinned,
+)

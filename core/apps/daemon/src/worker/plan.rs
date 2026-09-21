@@ -75,7 +75,7 @@ impl<'a> JobPlanBuilder<'a> {
     where
         Items: IntoIterator<Item = Item>,
         Item: JobLabel + Clone + Send + Sync + 'static,
-        K: Fn(Item) -> primitives::ConfigParamKey,
+        K: Fn(Item) -> config_keys::ConfigParamKey,
         Builder: Fn(Item, JobVariant) -> F,
         F: Fn(JobContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<R, JobError>> + Send + 'static,

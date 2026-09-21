@@ -22,6 +22,7 @@ import com.gemwallet.android.features.bridge.viewmodels.model.map
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.WalletRowUIModel
 import com.gemwallet.android.ui.components.list_item.uiModel
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.buttonState
@@ -118,7 +119,7 @@ class WCAuthViewModel @Inject constructor(
                 }
             } catch (err: Throwable) {
                 if (isActiveRequest(request)) {
-                    rejectRequest(request, AuthSceneState.Error(err.errorText()))
+                    rejectRequest(request, AuthSceneState.Error(err.errorText().text(context)))
                 }
             }
         }
@@ -131,7 +132,7 @@ class WCAuthViewModel @Inject constructor(
         val approval = runCatching {
             buildApproval(request, wallet)
         }.getOrElse { err ->
-            _state.update { AuthSceneState.Error(err.errorText()) }
+            _state.update { AuthSceneState.Error(err.errorText().text(context)) }
             return
         }
 
@@ -180,15 +181,15 @@ class WCAuthViewModel @Inject constructor(
                             finish(request)
                         }
                     },
-                    onError = { message ->
+                    onError = { error ->
                         if (authRequest?.id == request.id) {
-                            _state.update { AuthSceneState.Error(GemErrorText.Message(message)) }
+                            _state.update { AuthSceneState.Error(error.text(context)) }
                         }
                     },
                 )
             } catch (err: Throwable) {
                 if (authRequest?.id == request.id) {
-                    _state.update { AuthSceneState.Error(err.errorText()) }
+                    _state.update { AuthSceneState.Error(err.errorText().text(context)) }
                 }
             }
         }
@@ -300,7 +301,7 @@ sealed interface AuthSceneState {
 
     data object Loading : AuthSceneState
 
-    class Error(val text: GemErrorText) : AuthSceneState
+    class Error(val text: String) : AuthSceneState
 
     sealed interface Content :
         AuthSceneState,

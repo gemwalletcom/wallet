@@ -61,7 +61,10 @@ public struct CollectionsScene<ViewModel: CollectionsViewable>: View {
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(model.title)
         .refreshable { await model.load() }
-        .task { await model.load() }
+        .task {
+            guard model.syncsOnAppear else { return }
+            await model.load()
+        }
     }
 }
 

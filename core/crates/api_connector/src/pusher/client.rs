@@ -1,7 +1,7 @@
 use super::model::{PushResult, Response};
 use super::target::PusherTarget;
 use gem_client::{ClientError, ClientExt, ReqwestClient};
-use primitives::{GorushNotification, GorushNotifications};
+use push_notification::{GorushNotification, GorushNotifications};
 
 #[derive(Clone, Debug)]
 pub struct PusherClient {

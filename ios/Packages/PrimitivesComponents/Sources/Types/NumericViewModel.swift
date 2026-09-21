@@ -1,7 +1,6 @@
 import BigInt
 import Components
 import Formatters
-import enum Gemstone.GemAmountSign
 import GemstonePrimitives
 import Primitives
 import Style
@@ -17,11 +16,11 @@ public struct NumericViewModel: Sendable, AmountDisplayable {
     }
 
     public var amount: TextValue {
-        let sign: GemAmountSign = data.value.isZero ? .none : style.sign
-        let crypto = style.formatter.string(
-            data.value,
-            decimals: data.asset.decimals.asInt,
-            currency: data.asset.symbol,
+        let number = style.sign.amount(
+            value: data.value,
+            decimals: UInt32(data.asset.decimals),
+            symbol: data.asset.symbol,
+            style: style.formatter.style,
         )
         let viewStyle = style.textStyle ?? TextStyle(
             font: .body,
@@ -29,7 +28,7 @@ public struct NumericViewModel: Sendable, AmountDisplayable {
             fontWeight: .medium,
         )
         return TextValue(
-            text: sign.format(amount: crypto),
+            text: number.text(locale: style.formatter.locale),
             style: viewStyle,
             lineLimit: 1,
         )

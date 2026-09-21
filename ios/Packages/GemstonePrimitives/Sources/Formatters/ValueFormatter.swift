@@ -9,8 +9,8 @@ import enum Gemstone.GemValueStyle
 import Primitives
 
 public struct ValueFormatter: Sendable {
-    private let locale: Locale
-    private let style: GemValueStyle
+    public let locale: Locale
+    public let style: GemValueStyle
 
     public init(
         locale: Locale = .current,

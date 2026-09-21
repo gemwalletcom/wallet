@@ -396,6 +396,7 @@ stake_active_in = 활성 상태
 stake_minimum_amount = 최소 금액
 stake_state_empty_title = 스테이킹 내역이 여기에 표시됩니다
 stake_state_empty_description = 첫 번째 %@ 스테이킹하세요
+stake_state_empty_validators_title = 검증인을 찾을 수 없습니다
 stake_resource = 리소스
 stake_resource_energy = 에너지
 stake_resource_bandwidth = 대역폭
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = 동기화 중
 nodes_import_node_latest_block = 최신 블록
 nodes_import_node_latency = 대기 시간
 nodes_gem_wallet_node = Gem Wallet Node
+nodes_stream = 스트림
 nodes_import_node_warning_message = 사용자 지정 노드는 악의적일 수 있으며 거래 데이터를 노출하거나 허위 정보를 제공할 수 있습니다.
 
 # Library

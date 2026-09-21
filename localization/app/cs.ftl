@@ -396,6 +396,7 @@ stake_active_in = Aktivní v
 stake_minimum_amount = Minimální částka
 stake_state_empty_title = Vaše sázky se zobrazí zde
 stake_state_empty_description = Vsaďte si první %@
+stake_state_empty_validators_title = Nenalezeni žádní validátoři
 stake_resource = Zdroj
 stake_resource_energy = Energie
 stake_resource_bandwidth = Šířka pásma
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = V Sync
 nodes_import_node_latest_block = Nejnovější blok
 nodes_import_node_latency = Latence
 nodes_gem_wallet_node = Gem Wallet Node
+nodes_stream = Stream
 nodes_import_node_warning_message = Vlastní uzly mohou být škodlivé a mohou zveřejnit vaše transakční data nebo poskytovat nepravdivé informace.
 
 # Library

@@ -1,4 +1,5 @@
-use primitives::{AssetAddress, AssetId, Chain, ChainAddress, FailedNotification, FiatProviderName, FiatTransactionUpdate, GorushNotification, ListId, NFTAssetId, NotificationType, PriceData, PriceId, Transaction, TransactionId};
+use primitives::{AssetAddress, AssetId, Chain, ChainAddress, FiatProviderName, FiatTransactionUpdate, ListId, NFTAssetId, NotificationType, PriceData, PriceId, Transaction, TransactionId};
+use push_notification::{FailedNotification, GorushNotification};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 

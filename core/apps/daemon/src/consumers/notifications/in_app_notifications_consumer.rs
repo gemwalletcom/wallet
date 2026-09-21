@@ -3,7 +3,8 @@ use std::error::Error;
 use async_trait::async_trait;
 use localizer::LanguageLocalizer;
 use number_formatter::{ValueFormatter, ValueStyle};
-use primitives::{Device, GorushNotification, JsonDecode, NotificationRewardsRedeemMetadata, NotificationType, PushNotification, PushNotificationReward, PushNotificationTypes, RewardEventType};
+use primitives::{Device, JsonDecode, NotificationRewardsRedeemMetadata, NotificationType, RewardEventType};
+use push_notification::{GorushNotification, PushNotification, PushNotificationReward, PushNotificationTypes};
 use storage::{AssetsRepository, Database, NewNotificationRow, NotificationType as StorageNotificationType, NotificationsRepository, WalletsRepository};
 use streamer::{InAppNotificationPayload, NotificationsPayload, StreamProducer, StreamProducerQueue, consumer::MessageConsumer};
 

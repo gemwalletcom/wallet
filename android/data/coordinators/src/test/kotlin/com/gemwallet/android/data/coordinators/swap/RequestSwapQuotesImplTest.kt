@@ -22,12 +22,14 @@ import org.junit.Test
 import uniffi.gemstone.GemNumberFormat
 import uniffi.gemstone.GemSlippageSelection
 import uniffi.gemstone.GemSlippageSession
+import uniffi.gemstone.GemSwapPairFailure
 import uniffi.gemstone.GemSwapPairSelection
 import uniffi.gemstone.GemSwapPairSuggestion
 import uniffi.gemstone.GemSwapQuoteServiceInterface
 import uniffi.gemstone.GemSwapSession
 import uniffi.gemstone.GemSwapSide
 import uniffi.gemstone.GemSwapTransfer
+import uniffi.gemstone.SwapperException
 import uniffi.gemstone.SwapperQuote
 import uniffi.gemstone.SwapperSlippage
 import java.math.BigDecimal
@@ -257,15 +259,13 @@ class RequestSwapQuotesImplTest {
                 if (nonCancellableOnFirst) withContext(NonCancellable) { delay(200) }
             }
 
-            if (shouldFail) throw IllegalStateException("boom")
+            if (shouldFail) throw SwapperException.ComputeQuoteException("boom")
             return emptyList()
         }
 
         override suspend fun getTransfer(quote: SwapperQuote): GemSwapTransfer = throw UnsupportedOperationException()
 
         override suspend fun suggestPair(payAssetId: String?): GemSwapPairSuggestion? = null
-
-        override suspend fun addPrices(assetIds: List<String>) = Unit
 
         override fun getCurrency(): uniffi.gemstone.Currency = com.wallet.core.primitives.Currency.USD.toGem()
 
@@ -291,6 +291,6 @@ class RequestSwapQuotesImplTest {
 
         override fun slippagePercent(bps: UInt): Double = throw UnsupportedOperationException()
 
-        override suspend fun updateBalances(assetIds: List<String>) = Unit
+        override suspend fun refreshPair(assetIds: List<String>): List<GemSwapPairFailure> = emptyList()
     }
 }

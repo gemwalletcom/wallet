@@ -15,7 +15,7 @@ public extension ViewModelFactory {
     @MainActor
     func perpetualsScene(
         wallet: Wallet,
-        onSelectAssetType: @escaping (SelectAssetType) -> Void,
+        onSelectAmount: @escaping (AmountInput) -> Void,
         onSelectAsset: @escaping (Asset) -> Void,
         onSelectPortfolio: @escaping () -> Void,
     ) -> PerpetualsSceneViewModel {
@@ -24,7 +24,7 @@ public extension ViewModelFactory {
             service: perpetualService,
             observerService: hyperliquidObserverService,
             recentAssetsService: recentAssetsService,
-            onSelectAssetType: onSelectAssetType,
+            onSelectAmount: onSelectAmount,
             onSelectAsset: onSelectAsset,
             onSelectPortfolio: onSelectPortfolio,
         )

@@ -134,7 +134,7 @@ impl GemPerpetualService {
     }
 
     pub async fn sync_current_positions(&self) -> Result<(), GemServiceError> {
-        let wallet = self.session.current_wallet().await?;
+        let wallet = self.session.require_current_wallet().await?;
         let Some(account) = hyperliquid_account(&wallet.accounts) else {
             return Ok(());
         };

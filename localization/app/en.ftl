@@ -745,6 +745,8 @@ stake_minimum_amount = Minimum amount
 stake_state_empty_title = Your stakes will appear here
 # Used in Earn, staking, delegation, and validator screens for the state empty description. Contains 1 string placeholder.
 stake_state_empty_description = Stake your first %@
+# Shown in place of the validator picker when a network returns no validators to choose from.
+stake_state_empty_validators_title = No validators found
 # Used in Earn, staking, delegation, and validator screens for the resource label.
 stake_resource = Resource
 # Used in Earn, staking, delegation, and validator screens for the resource energy label.
@@ -843,6 +845,8 @@ nodes_import_node_latest_block = Latest Block
 nodes_import_node_latency = Latency
 # Used in nodes UI for the gem wallet node label.
 nodes_gem_wallet_node = Gem Wallet Node
+# Service status screen row for the realtime stream connection to the Gem API, listed beside the API and node rows.
+nodes_stream = Stream
 # Used in nodes UI for the import node warning message.
 nodes_import_node_warning_message = Custom nodes can be malicious and may expose your transaction data or provide false information.
 

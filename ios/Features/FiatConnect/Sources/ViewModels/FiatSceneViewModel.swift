@@ -230,6 +230,11 @@ public final class FiatSceneViewModel {
 // MARK: - Actions
 
 extension FiatSceneViewModel {
+    func refreshQuotes() async {
+        guard session.refreshesQuotes(isScreenActive: true) else { return }
+        await load()
+    }
+
     func load() async {
         guard let request = session.quoteRequest() else { return }
         session = session.onFetchStarted(request: request)

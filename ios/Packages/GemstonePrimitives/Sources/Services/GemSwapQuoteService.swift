@@ -2,6 +2,7 @@
 
 import BigInt
 import Foundation
+import struct Gemstone.GemSwapPairFailure
 import struct Gemstone.GemSwapQuoteInput
 import protocol Gemstone.GemSwapQuoteServiceProtocol
 import struct Gemstone.GemTransferData
@@ -40,12 +41,8 @@ public extension GemSwapQuoteServiceProtocol {
         try await getTransfer(quote: quote).transferData(fromAsset: fromAsset.toGem(), toAsset: toAsset.toGem())
     }
 
-    func updateBalances(assetIds: [Primitives.AssetId]) async throws {
-        try await updateBalances(assetIds: assetIds.ids)
-    }
-
-    func addPrices(assetIds: [Primitives.AssetId]) async throws {
-        try await addPrices(assetIds: assetIds.ids)
+    func refreshPair(assetIds: [Primitives.AssetId]) async -> [GemSwapPairFailure] {
+        await refreshPair(assetIds: assetIds.ids)
     }
 }
 

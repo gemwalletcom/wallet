@@ -1,5 +1,5 @@
+use config_keys::{ConfigKey, ConfigParamKey};
 use diesel::prelude::*;
-use primitives::{ConfigKey, ConfigParamKey};
 
 #[derive(Debug, Clone, Queryable, Selectable, Insertable)]
 #[diesel(table_name = crate::schema::config)]

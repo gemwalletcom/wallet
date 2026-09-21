@@ -339,6 +339,7 @@
   <string name="stake_minimum_amount">সর্বনিম্ন পরিমাণ</string>
   <string name="stake_state_empty_title">আপনার বাজি এখানে প্রদর্শিত হবে।</string>
   <string name="stake_state_empty_description">আপনার প্রথম %1$s স্টেক করুন</string>
+  <string name="stake_state_empty_validators_title">কোনও যাচাইকারী পাওয়া যায়নি</string>
   <string name="stake_resource">রিসোর্স</string>
   <string name="stake_resource_energy">শক্তি</string>
   <string name="stake_resource_bandwidth">ব্যান্ডউইথ</string>
@@ -380,6 +381,7 @@
   <string name="nodes_import_node_latest_block">সর্বশেষ ব্লক</string>
   <string name="nodes_import_node_latency">লেটেন্সি</string>
   <string name="nodes_gem_wallet_node">Gem Wallet Node</string>
+  <string name="nodes_stream">স্ট্রিম</string>
   <string name="nodes_import_node_warning_message">কাস্টম নোডগুলি ক্ষতিকারক হতে পারে এবং আপনার লেনদেনের ডেটা প্রকাশ করতে পারে বা মিথ্যা তথ্য প্রদান করতে পারে।</string>
   <string name="library_select_from_photo_library">ফটো লাইব্রেরি থেকে নির্বাচন করুন</string>
   <string name="fee_rates_info">লেনদেনের গতি নেটওয়ার্ক মাইনারদের দেওয়া নেটওয়ার্ক ফি দ্বারা নির্ধারিত হয়।</string>

@@ -75,7 +75,7 @@ impl GemAssetsService {
     }
 
     pub async fn open_asset(&self, asset_id: AssetId) -> Result<Option<Asset>, GemServiceError> {
-        let wallet = self.session.current_wallet().await?;
+        let wallet = self.session.require_current_wallet().await?;
         self.open_wallet_asset(wallet, asset_id).await
     }
 

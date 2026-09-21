@@ -23,6 +23,7 @@ tokio = { workspace = true }
 
 settings = { path = "../settings" }
 storage = { path = "../storage" }
+config_keys = { path = "../config_keys" }
 primitives = { path = "../primitives" }
 chain_primitives = { path = "../chain_primitives" }
 serde_serializers = { path = "../serde_serializers" }

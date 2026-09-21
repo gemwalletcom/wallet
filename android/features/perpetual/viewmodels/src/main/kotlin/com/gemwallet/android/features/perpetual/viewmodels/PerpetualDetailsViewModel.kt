@@ -26,6 +26,7 @@ import com.gemwallet.android.ui.components.chart.CandlestickTooltipUIModel
 import com.gemwallet.android.ui.components.chart.uiModel
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.perpetual.listItem
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
@@ -41,6 +42,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -56,9 +58,9 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualPositionKind
 import uniffi.gemstone.candleTooltip
@@ -90,10 +92,16 @@ class PerpetualDetailsViewModel @Inject constructor(
         TransactionsRequestFilter.Types(service.activityTypes().map { it.toPrimitives() }),
     )
 
-    private val transactionSync = flow {
-        runCatchingCancellable { service.syncTransactions(assetId.toIdentifier()) }
-        emit(Unit)
-    }
+    private val refreshTrigger = MutableStateFlow(0L)
+    private val storedRefreshRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
+    private val storedSync = storedRefreshRequests
+        .transformLatest { _ ->
+            runCatchingCancellable { service.refresh(assetId.toIdentifier()) }
+                .getOrNull()
+                ?.forEach { Log.e(TAG, "perpetual refresh failed at ${it.step}: ${it.message}") }
+            emit(Unit)
+        }
         .onStart { emit(Unit) }
         .flowOn(ioDispatcher)
 
@@ -122,14 +130,13 @@ class PerpetualDetailsViewModel @Inject constructor(
 
     val transactions = combine(
         getTransactions.getTransactions(transactionFilters),
-        transactionSync,
+        storedSync,
     ) { transactions, _ -> transactions }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionFilters))
 
     val period = MutableStateFlow(service.chartPeriod().toPrimitives())
 
-    private val refreshTrigger = MutableStateFlow(0L)
     private val refreshState = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = refreshState.asStateFlow()
 
@@ -209,15 +216,12 @@ class PerpetualDetailsViewModel @Inject constructor(
         this.period.update { period }
     }
 
-    private val errorState = MutableStateFlow<GemErrorText?>(null)
-    val error: StateFlow<GemErrorText?> = errorState.asStateFlow()
+    private val errorState = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = errorState.asStateFlow()
 
     fun fetch() {
         refreshTrigger.update { it + 1 }
-        viewModelScope.launch(ioDispatcher) {
-            runCatchingCancellable { service.syncPositions() }
-                .onFailure { Log.e(TAG, "perpetual positions sync failed", it) }
-        }
+        storedRefreshRequests.tryEmit(Unit)
     }
 
     fun refresh() {
@@ -233,13 +237,16 @@ class PerpetualDetailsViewModel @Inject constructor(
 
     private fun position(kind: GemPerpetualPositionKind, amountAction: AmountTransactionAction) {
         val data = perpetual.value ?: return
-        val action = service.positionAction(data.perpetual.toGem(), data.asset.toGem(), details.value?.position, kind)
-        amountAction(AmountParams.Perpetual(assetId = data.asset.id, perpetualId = data.perpetual.id, positionAction = action))
+        runCatching { service.positionAction(data.perpetual.toGem(), data.asset.toGem(), details.value?.position, kind) }
+            .onSuccess { action -> amountAction(AmountParams.Perpetual(assetId = data.asset.id, perpetualId = data.perpetual.id, positionAction = action)) }
+            .onFailure { errorState.value = it.errorText().text(context) }
     }
 
     fun closePosition(confirmAction: ConfirmTransactionAction) {
         val data = perpetual.value ?: return
-        confirmAction(ConfirmTransferInput(service.closeTransfer(data.perpetual.toGem(), data.asset.toGem(), details.value?.position)))
+        runCatching { service.closeTransfer(data.perpetual.toGem(), data.asset.toGem(), details.value?.position) }
+            .onSuccess { confirmAction(ConfirmTransferInput(it)) }
+            .onFailure { errorState.value = it.errorText().text(context) }
     }
 
     fun clearError() = errorState.update { null }

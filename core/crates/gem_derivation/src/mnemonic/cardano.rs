@@ -1,4 +1,5 @@
 use gem_crypto::{hash::hmac_sha512, pbkdf::pbkdf2_hmac_sha512};
+use gem_keystore::Mnemonic;
 use zeroize::{Zeroize, Zeroizing};
 
 use crate::{AccountDerivationError, read_array};
@@ -28,6 +29,9 @@ impl Drop for CardanoNode {
 }
 
 pub(super) fn derive_private_key(entropy: &[u8]) -> Result<Zeroizing<Vec<u8>>, AccountDerivationError> {
+    if entropy.len() < Mnemonic::MIN_ENTROPY_LEN {
+        return Err(AccountDerivationError::invalid_input("invalid Cardano mnemonic entropy length"));
+    }
     let root = root_from_entropy(entropy)?;
     let payment = derive_path(root.clone(), PAYMENT_PATH)?;
     let stake = derive_path(root, STAKE_PATH)?;
@@ -138,6 +142,15 @@ mod tests {
              424db69a75edd4780a5fbc05d1a3c84ac4166ff8e424808481dd8e77627ce5f5\
              bf2eea84515a4e16c4ff06c92381822d910b5cbf9e9c144e1fb76a6291af7276"
                 .replace(char::is_whitespace, "")
+        );
+    }
+
+    #[test]
+    fn test_cardano_private_key_entropy_bounds() {
+        assert_eq!(derive_private_key(&[0u8; Mnemonic::MIN_ENTROPY_LEN]).unwrap().len(), PRIVATE_KEY_LEN);
+        assert_eq!(
+            derive_private_key(&[0u8; Mnemonic::MIN_ENTROPY_LEN - 1]).unwrap_err(),
+            AccountDerivationError::invalid_input("invalid Cardano mnemonic entropy length")
         );
     }
 }

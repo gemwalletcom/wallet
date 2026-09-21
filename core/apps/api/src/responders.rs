@@ -99,8 +99,11 @@ impl From<FiatQuoteError> for ApiError {
 }
 
 impl From<RequestError> for ApiError {
-    fn from(_: RequestError) -> Self {
-        ApiError::Forbidden
+    fn from(error: RequestError) -> Self {
+        match error {
+            RequestError::Forbidden => ApiError::Forbidden,
+            RequestError::LimitReached => ApiError::OkError(error.to_string()),
+        }
     }
 }
 
@@ -220,5 +223,11 @@ mod tests {
     #[test]
     fn test_request_error_maps_to_forbidden() {
         assert_eq!(ApiError::from(RequestError::Forbidden), ApiError::Forbidden);
+    }
+
+    #[test]
+    fn test_boxed_limit_reached_maps_to_ok_error() {
+        let error: Box<dyn std::error::Error + Send + Sync> = Box::new(RequestError::LimitReached);
+        assert_eq!(ApiError::from(error), ApiError::OkError("Rate limit reached".to_string()));
     }
 }

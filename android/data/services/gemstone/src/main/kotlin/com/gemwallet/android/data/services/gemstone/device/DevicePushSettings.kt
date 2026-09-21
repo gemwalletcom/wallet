@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.device
 
 import android.content.Context
-import android.util.Log
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
@@ -11,7 +10,6 @@ import com.gemwallet.android.application.device.cases.SetPushToken
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
-import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.model.NotificationsAvailable
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineDispatcher
@@ -30,6 +28,7 @@ import uniffi.gemstone.GemDeviceService
 import uniffi.gemstone.GemNotificationsService
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPreferencesServiceInterface
+import uniffi.gemstone.GemPushState
 
 class DevicePushSettings(
     private val context: Context,
@@ -50,14 +49,11 @@ class DevicePushSettings(
 
     private val pushEnabledState = MutableStateFlow(false)
 
-    override suspend fun switchPushEnabled(enabled: Boolean) = withContext(ioDispatcher) {
+    override suspend fun switchPushEnabled(enabled: Boolean): GemPushState = withContext(ioDispatcher) {
         userConfig.stopAskNotifications()
-        pushEnabledState.value = runCatchingCancellable {
-            notificationsService.get().setEnabled(enabled)
-        }.getOrElse {
-            Log.e(TAG, "push notifications toggle failed", it)
-            notificationsService.get().isEnabled()
-        }
+        val state = notificationsService.get().setEnabled(enabled)
+        pushEnabledState.value = state.isEnabled
+        state
     }
 
     override fun getPushEnabled(): Flow<Boolean> = pushEnabledState.onStart {
@@ -85,7 +81,6 @@ class DevicePushSettings(
     }
 
     private companion object {
-        const val TAG = "PushSettings"
         const val PUSH_TOKEN = "push_token"
         val LegacyPushEnabled = booleanPreferencesKey("push_enabled")
     }

@@ -12,8 +12,9 @@ use std::sync::Arc;
 
 use crate::client::SwapVaultAddressClient;
 use cacher::CacherClient;
+use config_keys::ConfigKey;
 use pricer::PriceClient;
-use primitives::{ConfigKey, TransactionId};
+use primitives::TransactionId;
 use settings::Settings;
 use storage::{ConfigCacher, Database};
 use streamer::{ConsumerStatusReporter, PricesPayload, QueueName, ShutdownReceiver, TransactionsPayload, WalletStreamPayload, run_consumer};

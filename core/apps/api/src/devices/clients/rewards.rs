@@ -2,9 +2,10 @@ use std::error::Error;
 
 use api_connector::PusherClient;
 use cacher::{CacherClient, GLOBAL_RATE_LIMIT_SCOPE, RateLimiter};
+use config_keys::{ConfigKey, RateLimitKey, RateLimitWindow};
 use gem_rewards::{IpSecurityClient, ReferralError, RewardsError, RiskScoreConfig, RiskScoringInput, UsernameError, evaluate_risk};
 use primitives::rewards::{RewardRedemptionOption, RewardStatus};
-use primitives::{ConfigKey, Localize, NaiveDateTimeExt, Platform, RateLimitKey, RateLimitWindow, ReferralLeaderboard, RewardEvent, Rewards, WalletId, now};
+use primitives::{Localize, NaiveDateTimeExt, Platform, ReferralLeaderboard, RewardEvent, Rewards, WalletId, now};
 use storage::models::DeviceRow;
 use storage::{ConfigCacher, Database, NewWalletRow, ReferralValidationError, RewardsRedemptionsRepository, RewardsRepository, RiskSignalsRepository, WalletSource, WalletType, WalletsRepository};
 use streamer::{RewardsNotificationPayload, StreamProducer, StreamProducerQueue};

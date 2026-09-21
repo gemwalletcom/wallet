@@ -26,6 +26,17 @@ public extension BiometryAuthenticatable {
     }
 
     @MainActor
+    func authenticateIfRequired(reason: String) async throws -> Bool {
+        guard requiresAuthentication else { return true }
+        do {
+            try await authenticate(reason: reason)
+            return true
+        } catch is BiometryAuthenticationError {
+            return false
+        }
+    }
+
+    @MainActor
     func enableAuthentication(_ enable: Bool, reason: String) async throws {
         try await enableAuthentication(enable, context: LAContext(), reason: reason)
     }

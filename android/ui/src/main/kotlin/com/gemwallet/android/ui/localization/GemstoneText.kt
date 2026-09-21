@@ -3,7 +3,6 @@ package com.gemwallet.android.ui.localization
 import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.duration.formatDuration
 import com.gemwallet.android.ext.asset
@@ -53,7 +52,6 @@ import uniffi.gemstone.GemRecipientErrorDisplay
 import uniffi.gemstone.GemRecipientSectionKind
 import uniffi.gemstone.GemSimulationPayloadTitle
 import uniffi.gemstone.GemSlippageCheck
-import uniffi.gemstone.PaymentStatus
 import uniffi.gemstone.GemTransactionFilter
 import uniffi.gemstone.GemTransactionRowSubtitle
 import uniffi.gemstone.GemTransactionStateTone
@@ -64,6 +62,7 @@ import uniffi.gemstone.GemVerificationLevel
 import uniffi.gemstone.GemWalletSecretKind
 import uniffi.gemstone.GemWalletSubtitle
 import uniffi.gemstone.LinkType
+import uniffi.gemstone.PaymentStatus
 import uniffi.gemstone.PerpetualMarginType
 import uniffi.gemstone.PerpetualProvider
 import uniffi.gemstone.StakeProviderType
@@ -202,6 +201,10 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
     is GemLocalizedText.PriceImpactWarning -> context.getString(R.string.swap_price_impact_warning_description, percent.text(), symbol)
 
     is GemLocalizedText.Balance -> context.getString(R.string.transfer_balance, amount.text())
+
+    GemLocalizedText.NftCollections -> context.getString(R.string.nft_collections)
+
+    GemLocalizedText.NftUnverified -> context.getString(R.string.asset_verification_unverified)
 
     is GemLocalizedText.StakeProvider -> when (provider) {
         StakeProviderType.STAKE -> context.getString(R.string.transfer_stake_title)
@@ -378,6 +381,7 @@ fun GemEmptyStateText.text(context: Context, symbol: String): String = when (thi
     GemEmptyStateText.STAKE_DESCRIPTION -> context.getString(R.string.stake_state_empty_description, symbol)
     GemEmptyStateText.EARN_TITLE -> context.getString(R.string.earn_state_empty_title)
     GemEmptyStateText.EARN_DESCRIPTION -> context.getString(R.string.earn_state_empty_description, symbol)
+    GemEmptyStateText.VALIDATORS_TITLE -> context.getString(R.string.stake_state_empty_validators_title)
     GemEmptyStateText.WALLET_CONNECT_TITLE -> context.getString(R.string.wallet_connect_no_active_connections)
     GemEmptyStateText.WALLET_CONNECT_DESCRIPTION -> context.getString(R.string.wallet_connect_state_empty_description)
     GemEmptyStateText.RECENTS_TITLE -> context.getString(R.string.recent_activity_state_empty_title)
@@ -436,9 +440,6 @@ private fun PaymentStatus.stringRes(): Int = when (this) {
     PaymentStatus.EXPIRED -> R.string.transaction_status_expired
     PaymentStatus.CANCELLED -> R.string.errors_cancelled
 }
-
-@Composable
-fun GemErrorText.text(): String = text(LocalContext.current)
 
 @StringRes
 fun GemHeaderButtonKind.stringRes(): Int = when (this) {
@@ -546,7 +547,7 @@ fun GemListSectionTitle.titleRes(): Int? = when (this) {
 
 fun GemListRowTitle.text(context: Context): String = when (this) {
     GemListRowTitle.API -> "API"
-    GemListRowTitle.STREAM -> "Stream"
+    GemListRowTitle.STREAM -> context.getString(R.string.nodes_stream)
     GemListRowTitle.GEM_WALLET_NODE -> context.getString(R.string.nodes_gem_wallet_node)
     GemListRowTitle.NAME -> context.getString(R.string.asset_name)
     GemListRowTitle.NETWORK -> context.getString(R.string.transfer_network)

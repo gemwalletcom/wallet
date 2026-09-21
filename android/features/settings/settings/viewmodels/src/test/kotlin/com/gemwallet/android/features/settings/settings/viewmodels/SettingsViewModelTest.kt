@@ -8,9 +8,11 @@ import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.features.settings.settings.viewmodels.models.settingsAction
 import com.gemwallet.android.testkit.mockWallet
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.actions.SettingsSceneAction
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -28,14 +30,18 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowIcon
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemListSection
 import uniffi.gemstone.GemListSectionFooter
 import uniffi.gemstone.GemListSectionTitle
+import uniffi.gemstone.GemPushResult
+import uniffi.gemstone.GemPushState
 import uniffi.gemstone.GemSettingsServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -68,10 +74,26 @@ class SettingsViewModelTest {
 
     @Test
     fun `disableNotifications switches push off`() = runTest(testDispatcher) {
+        coEvery { switchPushEnabled.switchPushEnabled(false) } returns GemPushState(isEnabled = false, result = GemPushResult.Stored)
+
         viewModel.disableNotifications()
         advanceUntilIdle()
 
         coVerify(exactly = 1) { switchPushEnabled.switchPushEnabled(false) }
+        assertNull(viewModel.error.value)
+    }
+
+    @Test
+    fun `a push toggle Core could not register reads its error`() = runTest(testDispatcher) {
+        coEvery { switchPushEnabled.switchPushEnabled(true) } returns GemPushState(isEnabled = true, result = GemPushResult.NotRegistered(GemErrorText.NetworkOffline))
+
+        viewModel.enableNotifications()
+        advanceUntilIdle()
+
+        assertEquals("string:${R.string.errors_network_offline}", viewModel.error.value)
+
+        viewModel.clearError()
+        assertNull(viewModel.error.value)
     }
 
     @Test
@@ -113,6 +135,6 @@ class SettingsViewModelTest {
         notificationsAvailable = true,
         settingsService = settingsService,
         ioDispatcher = testDispatcher,
-        context = mockk<Context> { every { getString(any()) } returns "" },
+        context = mockk<Context> { every { getString(any()) } answers { "string:${firstArg<Int>()}" } },
     )
 }

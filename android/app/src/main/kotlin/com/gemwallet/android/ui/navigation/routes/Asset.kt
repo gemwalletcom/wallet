@@ -3,8 +3,8 @@ package com.gemwallet.android.ui.navigation.routes
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.asset.presents.chart.AssetChartScene
-import com.gemwallet.android.features.asset.presents.details.AssetDetailsAction
 import com.gemwallet.android.features.asset.presents.details.AssetDetailsScreen
+import com.gemwallet.android.features.asset.viewmodels.details.models.AssetDetailsAction
 import com.gemwallet.android.ui.navigation.assetIdArgument
 import com.gemwallet.android.ui.navigation.routeArguments
 import com.wallet.core.primitives.AssetId

@@ -107,7 +107,7 @@ fun ConnectionsScene(onConnection: (String) -> Unit, onCancel: () -> Unit, viewM
         scanType = QRScanType.WalletConnect,
         onDismissRequest = { scannerShowed = false },
         onResult = {
-            viewModel.addPairing(it, onSuccess = {}, onError = {})
+            viewModel.addPairing(it, onSuccess = {}, onError = { error -> pairError = error })
             scannerShowed = false
         },
     )

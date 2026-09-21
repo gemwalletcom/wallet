@@ -13,10 +13,14 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import uniffi.gemstone.GemDeviceService
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemNotificationsService
 import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemPushResult
+import uniffi.gemstone.GemPushState
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DevicePushSettingsTest {
@@ -62,14 +66,27 @@ class DevicePushSettingsTest {
     }
 
     @Test
-    fun `the toggle asks Core instead of setting the device flag itself`() = runTest {
+    fun `the toggle reads the state Core answers with, not the one it asked for`() = runTest {
         val subject = settings(mockk<ConfigStore>(relaxed = true))
-        coEvery { notificationsService.setEnabled(true) } returns false
+        coEvery { notificationsService.setEnabled(true) } returns GemPushState(isEnabled = false, result = GemPushResult.PermissionDenied)
 
-        subject.switchPushEnabled(true)
+        val state = subject.switchPushEnabled(true)
         advanceUntilIdle()
 
+        assertEquals(false, state.isEnabled)
+        assertEquals(GemPushResult.PermissionDenied, state.result)
         coVerify(exactly = 1) { notificationsService.setEnabled(true) }
+    }
+
+    @Test
+    fun `a failed registration is carried back to the screen`() = runTest {
+        val subject = settings(mockk<ConfigStore>(relaxed = true))
+        coEvery { notificationsService.setEnabled(true) } returns GemPushState(isEnabled = true, result = GemPushResult.NotRegistered(GemErrorText.NetworkOffline))
+
+        val state = subject.switchPushEnabled(true)
+
+        assertEquals("the preference Core stored is what the toggle shows", true, state.isEnabled)
+        assertEquals(GemPushResult.NotRegistered(GemErrorText.NetworkOffline), state.result)
     }
 
     private fun TestScope.settings(configStore: ConfigStore) = DevicePushSettings(

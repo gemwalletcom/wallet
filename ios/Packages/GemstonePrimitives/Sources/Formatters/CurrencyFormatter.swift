@@ -6,8 +6,8 @@ import enum Gemstone.GemCurrencyStyle
 import Primitives
 
 public struct CurrencyFormatter: Sendable, Hashable {
-    private let locale: Locale
-    private let type: GemCurrencyStyle
+    public let locale: Locale
+    public let type: GemCurrencyStyle
     public let currencyCode: String
 
     public init(

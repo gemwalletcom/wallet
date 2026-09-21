@@ -33,6 +33,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.features.referral.viewmodels.SyncType
+import com.gemwallet.android.features.referral.viewmodels.models.IncomingCodeUIModel
+import com.gemwallet.android.features.referral.viewmodels.models.ReferralUIState
 import com.gemwallet.android.features.referral.viewmodels.models.RewardRedemptionUIModel
 import com.gemwallet.android.features.referral.views.components.referralHead
 import com.gemwallet.android.features.referral.views.components.referralInfo
@@ -64,8 +66,6 @@ import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemIncomingCode
-import uniffi.gemstone.GemRewardsState
 
 private val referralCodeMaxWidth = 250.dp
 
@@ -74,11 +74,11 @@ fun ReferralScene(
     inSync: SyncType,
     isAvailableWalletSelect: Boolean,
     referralLink: String?,
-    uiState: GemRewardsState,
+    uiState: ReferralUIState,
     infoRows: List<ListItemModel>,
     redemptions: List<RewardRedemptionUIModel>,
     currentWallet: Wallet?,
-    incomingCode: GemIncomingCode? = null,
+    incomingCode: IncomingCodeUIModel = IncomingCodeUIModel(),
     onUsername: (String, (Exception?) -> Unit) -> Unit,
     onCode: (String, (Exception?) -> Unit) -> Unit,
     onCancelCode: () -> Unit,
@@ -94,8 +94,8 @@ fun ReferralScene(
     val shareTitle = stringResource(id = R.string.common_share, link)
 
     var getStartedDialogShow by remember(uiState) { mutableStateOf(false) }
-    var codeDialogShow by remember(incomingCode, inSync) { mutableStateOf(incomingCode is GemIncomingCode.Confirm && inSync == SyncType.None) }
-    val referralCode = (incomingCode as? GemIncomingCode.Confirm)?.code
+    var codeDialogShow by remember(incomingCode, inSync) { mutableStateOf(incomingCode.confirm != null && inSync == SyncType.None) }
+    val referralCode = incomingCode.confirm
 
     val successStr = stringResource(R.string.common_done)
     val scope = rememberCoroutineScope()
@@ -116,7 +116,7 @@ fun ReferralScene(
     }
 
     LaunchedEffect(incomingCode) {
-        val code = (incomingCode as? GemIncomingCode.Activate)?.code ?: return@LaunchedEffect
+        val code = incomingCode.activate ?: return@LaunchedEffect
         onCancelCode()
         onCode(code, onCodeResult)
     }
@@ -165,9 +165,9 @@ fun ReferralScene(
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 referralHead(
-                    joinPointsCost = uiState.inviteRewardPoints.text(),
+                    joinPointsCost = uiState.joinPointsCost,
                     canInvite = uiState.canInvite,
-                    hasCode = uiState.hasReferralCode,
+                    hasCode = uiState.hasCode,
                     onGetStarted = { getStartedDialogShow = true },
                     onShare = onShare,
                 )
@@ -199,13 +199,13 @@ fun ReferralScene(
                 }
                 uiState.statusNotice?.let { notice ->
                     item {
-                        val code = uiState.usedReferralCode?.takeIf { uiState.showsPendingActivation }
+                        val code = uiState.pendingCode
                         GemListRowView(row = notice, listPosition = if (code != null) ListPosition.First else ListPosition.Single)
                         if (code != null) {
                             Box(modifier = Modifier.listItem(ListPosition.Last).padding(paddingDefault)) {
                                 MainActionButton(
                                     title = stringResource(R.string.transfer_confirm),
-                                    state = buttonState(enabled = uiState.canActivatePendingReferral),
+                                    state = buttonState(enabled = uiState.canActivatePending),
                                 ) {
                                     onCode(code, onCodeResult)
                                 }
@@ -242,7 +242,7 @@ private fun ReferralScenePreview() {
             inSync = SyncType.None,
             isAvailableWalletSelect = false,
             referralLink = null,
-            uiState = previewRewardsState(
+            uiState = previewReferralState(
                 hasReferralCode = true,
                 canInvite = true,
                 showsInfo = true,
@@ -270,7 +270,7 @@ private fun ReferralSceneNoRewardsPreview() {
             inSync = SyncType.None,
             isAvailableWalletSelect = false,
             referralLink = null,
-            uiState = previewRewardsState(canUseReferralCode = true),
+            uiState = previewReferralState(canUseReferralCode = true),
             infoRows = emptyList(),
             redemptions = emptyList(),
             currentWallet = previewWallet(),

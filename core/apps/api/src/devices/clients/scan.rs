@@ -4,9 +4,10 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use cacher::{AccessTokenCacherClient, CacherClient};
+use config_keys::{ConfigKey, ConfigParamKey};
 use gem_client::ReqwestClient;
 use gem_tracing::{DurationMs, info_with_fields};
-use primitives::{AssetId, ChainAddress, ConfigKey, ConfigParamKey, ScanProvider, ScanSource, ScanTransaction, ScanTransactionPayload, TransactionType, asset_score::AssetRank};
+use primitives::{AssetId, ChainAddress, ScanProvider, ScanSource, ScanTransaction, ScanTransactionPayload, TransactionType, asset_score::AssetRank};
 use reqwest::Url;
 use rocket::futures::future;
 use security_provider::providers::goplus::GoPlusProvider;

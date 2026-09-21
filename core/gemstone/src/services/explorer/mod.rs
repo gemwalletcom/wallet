@@ -4,10 +4,8 @@ pub(crate) mod testkit;
 
 use std::sync::Arc;
 
-use primitives::{
-    Chain,
-    block_explorer::{BlockExplorerLink, get_block_explorers_by_chain},
-};
+use block_explorers::get_block_explorers_by_chain;
+use primitives::{BlockExplorerLink, Chain};
 
 use crate::block_explorer::{Explorer, GemExplorerInput};
 use crate::services::error::GemServiceError;

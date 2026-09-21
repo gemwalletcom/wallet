@@ -1,0 +1,9 @@
+[package]
+name = "config_keys"
+version = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+primitives = { path = "../primitives" }
+serde = { workspace = true }
+strum = { workspace = true }

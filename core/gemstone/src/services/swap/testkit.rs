@@ -6,14 +6,18 @@ use swapper::{Quote, SwapperProvider};
 
 use super::GemSwapService;
 use super::model::{GemSwapButtonInput, GemSwapPair};
+use super::quote::GemSwapQuoteService;
 use super::session::{GemSwapQuoteInput, GemSwapQuotesResult, GemSwapRequest, GemSwapSession};
 use super::store::GemSwapStore;
 use crate::gem_swapper::GemSwapper;
 use crate::keystore::GemKeystore;
+use crate::services::asset_discovery::testkit::DiscoveryTestkit;
 use crate::services::error::GemServiceError;
 use crate::services::node::GemNodeService;
+use crate::services::stream::testkit::{MemoryStreamConnection, SubscriptionTestkit};
 use crate::services::wallet::testkit::MemoryKeystorePassword;
 use crate::testkit::TestAlienProvider;
+use primitives::Wallet;
 
 #[derive(Default)]
 pub struct MemorySwapStore {
@@ -112,5 +116,28 @@ impl GemSwapSession {
             }),
             ..session
         }
+    }
+}
+
+pub struct SwapQuoteTestkit {
+    pub service: GemSwapQuoteService,
+    pub discovery: DiscoveryTestkit,
+    pub connection: Arc<MemoryStreamConnection>,
+}
+
+impl SwapQuoteTestkit {
+    pub fn with_status(status: u16) -> Self {
+        let provider = Arc::new(TestAlienProvider::with_status(status));
+        let discovery = DiscoveryTestkit::with_provider(provider, Wallet::mock());
+        let subscription = SubscriptionTestkit::new(&[], &[]);
+        let connection = subscription.connection.clone();
+        let service = GemSwapQuoteService::new(
+            Arc::new(GemSwapService::mock(Arc::new(MemorySwapStore::default()))),
+            discovery.preferences.clone(),
+            discovery.balance.clone(),
+            Arc::new(subscription.service),
+            discovery.session.clone(),
+        );
+        Self { service, discovery, connection }
     }
 }

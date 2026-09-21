@@ -11,7 +11,11 @@ public extension GemPerpetualDetailsServiceProtocol {
     }
 
     func setChartPeriodValue(_ period: ChartPeriod) {
-        try? setChartPeriod(period: period.toGem())
+        do {
+            try setChartPeriod(period: period.toGem())
+        } catch {
+            debugLog("storing the chart period failed: \(error)")
+        }
     }
 
     func candleSubscription(perpetual: Perpetual, period: ChartPeriod) -> GemPerpetualSubscription {

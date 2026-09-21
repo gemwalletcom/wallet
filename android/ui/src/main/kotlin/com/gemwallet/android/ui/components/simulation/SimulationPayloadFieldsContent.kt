@@ -6,17 +6,19 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
+import com.gemwallet.android.ui.format.rowDateFormatter
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.PayloadField
 import uniffi.gemstone.GemSimulationPayloadValue
+import java.time.ZoneId
+import java.util.Locale
 
 fun LazyListScope.simulationPayloadFieldsContent(fields: List<PayloadField>, onDetailsClick: (() -> Unit)? = null) {
     if (fields.isEmpty() && onDetailsClick == null) {
@@ -41,7 +43,7 @@ fun LazyListScope.simulationPayloadFieldsContent(fields: List<PayloadField>, onD
             )
 
             is GemSimulationPayloadValue.Timestamp -> ListItem(
-                model = ListItemModel(title = title, subtitle = getRelativeDate(value.unixMs)),
+                model = ListItemModel(title = title, subtitle = LocalContext.current.rowDateFormatter().row(value.unixMs, ZoneId.systemDefault(), Locale.getDefault())),
                 listPosition = listPosition,
             )
         }

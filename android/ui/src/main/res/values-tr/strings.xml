@@ -339,6 +339,7 @@
   <string name="stake_minimum_amount">Minimum miktar</string>
   <string name="stake_state_empty_title">Stake\'leriniz burada görünecek</string>
   <string name="stake_state_empty_description">İlk %1$s stake\'inizi yapın</string>
+  <string name="stake_state_empty_validators_title">Hiçbir doğrulayıcı bulunamadı</string>
   <string name="stake_resource">Kaynak</string>
   <string name="stake_resource_energy">Enerji</string>
   <string name="stake_resource_bandwidth">Bant genişliği</string>
@@ -380,6 +381,7 @@
   <string name="nodes_import_node_latest_block">Son Blok</string>
   <string name="nodes_import_node_latency">Gecikme</string>
   <string name="nodes_gem_wallet_node">Gem Wallet Düğümü</string>
+  <string name="nodes_stream">Akış</string>
   <string name="nodes_import_node_warning_message">Özel düğümler kötü amaçlı olabilir ve işlem verilerinizi ifşa edebilir veya yanlış bilgi sağlayabilir.</string>
   <string name="library_select_from_photo_library">Fotoğraf Kitaplığından Seç</string>
   <string name="fee_rates_info">İşlem hızı, ağ madencilerine ödenen ağ ücreti tarafından belirlenir.</string>

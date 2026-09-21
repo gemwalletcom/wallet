@@ -10,8 +10,9 @@ use crate::sql_types::ChainRow;
 use crate::sql_types::{RewardEventType, RewardRedemptionType, RewardStatus, TransactionState, UsernameStatus};
 use crate::{DatabaseClient, DatabaseError, DieselResultExt, ReferralValidationError, UsernameValidationError};
 use chrono::NaiveDateTime;
+use config_keys::ConfigKey;
 use primitives::rewards::RewardStatus as PrimitiveRewardStatus;
-use primitives::{Chain, ConfigKey, NaiveDateTimeExt, ReferralLeader, ReferralLeaderboard, RewardEvent, Rewards, WalletId, now};
+use primitives::{Chain, NaiveDateTimeExt, ReferralLeader, ReferralLeaderboard, RewardEvent, Rewards, WalletId, now};
 
 fn create_username_and_rewards(client: &mut DatabaseClient, wallet_id: i32, address: &str, device_id: i32) -> Result<RewardsRow, DatabaseError> {
     UsernamesStore::create_username(

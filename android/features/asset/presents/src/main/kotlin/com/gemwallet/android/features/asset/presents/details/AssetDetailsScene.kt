@@ -19,6 +19,7 @@ import com.gemwallet.android.features.asset.presents.details.components.AssetDet
 import com.gemwallet.android.features.asset.presents.details.components.AssetHeadItem
 import com.gemwallet.android.features.asset.presents.details.components.BannerItem
 import com.gemwallet.android.features.asset.presents.details.components.EmptyTransactionsItem
+import com.gemwallet.android.features.asset.viewmodels.details.models.AssetDetailsAction
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.GemListRowView
@@ -32,7 +33,6 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.models.ListPosition
 import uniffi.gemstone.GemListRow
-import uniffi.gemstone.GemListRowTitle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,14 +45,6 @@ internal fun AssetDetailsScene(
     onAction: (AssetDetailsAction) -> Unit,
 ) {
     val detailsState = uiState.detailsState
-    val onSelect: (GemListRowTitle) -> Unit = { title ->
-        when (title) {
-            GemListRowTitle.PIN, GemListRowTitle.UNPIN -> onAction(AssetDetailsAction.Pin)
-            GemListRowTitle.ADD_TO_WALLET -> onAction(AssetDetailsAction.Add)
-            GemListRowTitle.PRICE_ALERTS -> onAction(AssetDetailsAction.OpenPriceAlerts(uiState.asset.id))
-            else -> Unit
-        }
-    }
     val swapAction = {
         onAction(
             AssetDetailsAction.Swap(
@@ -116,7 +108,7 @@ internal fun AssetDetailsScene(
                 uiState.sections.forEach { section ->
                     section.title?.let { title -> item { SubheaderItem(title) } }
                     itemsPositioned(section.rows) { position, row ->
-                        AssetDetailRowItem(uiState = uiState, row = row, listPosition = position, onSelect = onSelect, onAction = onAction)
+                        AssetDetailRowItem(uiState = uiState, row = row, listPosition = position, onAction = onAction)
                     }
                 }
                 item {

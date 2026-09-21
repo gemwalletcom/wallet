@@ -5,6 +5,7 @@ version = { workspace = true }
 
 [dependencies]
 gem_tracing = { path = "../tracing" }
+config_keys = { path = "../config_keys" }
 primitives = { path = "../primitives" }
 redis = { workspace = true }
 serde = { workspace = true }

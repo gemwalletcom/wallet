@@ -396,6 +396,7 @@ stake_active_in = Aktif Dalam
 stake_minimum_amount = Jumlah minimum
 stake_state_empty_title = Pertaruhan anda akan muncul di sini
 stake_state_empty_description = Pertaruhkan %@ pertama anda
+stake_state_empty_validators_title = Tiada pengesah ditemui
 stake_resource = Sumber
 stake_resource_energy = Tenaga
 stake_resource_bandwidth = Lebar jalur
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = Dalam Segerak
 nodes_import_node_latest_block = Blok Terkini
 nodes_import_node_latency = Latensi
 nodes_gem_wallet_node = Gem Wallet Node
+nodes_stream = Strim
 nodes_import_node_warning_message = Nod tersuai boleh berniat jahat dan mungkin mendedahkan data transaksi anda atau memberikan maklumat palsu.
 
 # Library

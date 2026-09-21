@@ -25,7 +25,7 @@ struct WalletsSceneViewModelTests {
         try session.setCurrent(walletId: .multicoin(address: "0x1"))
 
         let model = WalletsSceneViewModel.mock(walletService: service)
-        model.walletsQuery.value = await session.wallets
+        model.walletsQuery.value = try await session.getWallets()
 
         #expect(model.currentWalletId == .multicoin(address: "0x1"))
 
@@ -40,5 +40,32 @@ struct WalletsSceneViewModelTests {
         await model.onDeleteConfirmed(wallet: .mock(id: .multicoin(address: "0x3")))
 
         #expect(model.currentWalletId == .none)
+    }
+
+    @Test
+    func deletingAuthenticatesWhenAuthenticationIsEnabled() async throws {
+        let wallet = Primitives.Wallet.mock(id: .multicoin(address: "0x1"))
+        let db = try DB.mockWithWallets([wallet])
+        let biometry = BiometryAuthenticationMock()
+        let model = WalletsSceneViewModel.mock(walletService: GemWalletService.mock(db: db), biometry: biometry)
+
+        await model.onDeleteConfirmed(wallet: wallet)
+
+        #expect(biometry.authenticateCallsCount == 1)
+        #expect(try WalletStore.mock(db: db).getWallets().isEmpty)
+    }
+
+    @Test
+    func cancellingAuthenticationKeepsTheWallet() async throws {
+        let wallet = Primitives.Wallet.mock(id: .multicoin(address: "0x1"))
+        let db = try DB.mockWithWallets([wallet])
+        let biometry = BiometryAuthenticationMock()
+        biometry.authenticateError = BiometryAuthenticationError.cancelledByUser
+        let model = WalletsSceneViewModel.mock(walletService: GemWalletService.mock(db: db), biometry: biometry)
+
+        await model.onDeleteConfirmed(wallet: wallet)
+
+        #expect(model.isPresentingAlertMessage == nil)
+        #expect(try WalletStore.mock(db: db).getWallets().count == 1)
     }
 }

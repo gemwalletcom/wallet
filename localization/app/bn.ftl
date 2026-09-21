@@ -396,6 +396,7 @@ stake_active_in = যখন সক্রিয় হবে
 stake_minimum_amount = সর্বনিম্ন পরিমাণ
 stake_state_empty_title = আপনার বাজি এখানে প্রদর্শিত হবে।
 stake_state_empty_description = আপনার প্রথম %@ স্টেক করুন
+stake_state_empty_validators_title = কোনও যাচাইকারী পাওয়া যায়নি
 stake_resource = রিসোর্স
 stake_resource_energy = শক্তি
 stake_resource_bandwidth = ব্যান্ডউইথ
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = সিঙ্কে
 nodes_import_node_latest_block = সর্বশেষ ব্লক
 nodes_import_node_latency = লেটেন্সি
 nodes_gem_wallet_node = Gem Wallet Node
+nodes_stream = স্ট্রিম
 nodes_import_node_warning_message = কাস্টম নোডগুলি ক্ষতিকারক হতে পারে এবং আপনার লেনদেনের ডেটা প্রকাশ করতে পারে বা মিথ্যা তথ্য প্রদান করতে পারে।
 
 # Library

@@ -11,6 +11,7 @@ import com.gemwallet.android.testkit.mockWalletConnectionSession
 import com.gemwallet.android.testkit.mockWalletMulticoin
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.WalletConnection
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -34,6 +35,7 @@ import org.junit.Test
 import uniffi.gemstone.GemConnection
 import uniffi.gemstone.GemConnectionDetails
 import uniffi.gemstone.GemConnectionSection
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemWalletConnectServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -103,6 +105,7 @@ class ConnectionsViewModelTest {
             service,
             SavedStateHandle(mapOf(RouteArgument.ConnectionId.key to "connection-1")),
             dispatcher,
+            mockk(relaxed = true),
         ).also { scopes.add(it) }
 
         assertEquals("Uniswap", model.details.first { it != null }?.connection?.row?.title)
@@ -120,6 +123,7 @@ class ConnectionsViewModelTest {
             mockk(relaxed = true),
             SavedStateHandle(mapOf(RouteArgument.ConnectionId.key to "gone")),
             dispatcher,
+            mockk(relaxed = true),
         ).also { scopes.add(it) }
 
         var finished = false
@@ -128,5 +132,41 @@ class ConnectionsViewModelTest {
         assertTrue(finished)
         assertNull(model.details.value)
         coVerify(exactly = 0) { disconnect.disconnect(any(), any(), any()) }
+    }
+
+    @Test
+    fun `a failed disconnect stays on the screen with the error`() = runTest(dispatcher) {
+        val details = GemConnectionDetails(
+            connection = GemConnection(connection = connection.toGem(), row = mockGemConnectionRow(iconUrl = null)),
+            rows = emptyList(),
+        )
+        val service: GemWalletConnectServiceInterface = mockk(relaxed = true) {
+            every { connectionDetails(any()) } returns details
+        }
+        val connections: GetWalletConnections = mockk {
+            every { observeConnection("connection-1") } returns flowOf(connection)
+        }
+        val disconnect: DisconnectWalletConnection = mockk {
+            coEvery { disconnect(any(), any(), any()) } answers { thirdArg<(GemErrorText) -> Unit>()(GemErrorText.Message("session gone")) }
+        }
+        val model = ConnectionViewModel(
+            connections,
+            disconnect,
+            service,
+            SavedStateHandle(mapOf(RouteArgument.ConnectionId.key to "connection-1")),
+            dispatcher,
+            mockk(relaxed = true),
+        ).also { scopes.add(it) }
+        model.details.first { it != null }
+
+        var finished = false
+        model.disconnect { finished = true }
+        advanceUntilIdle()
+
+        assertEquals(false, finished)
+        assertEquals("session gone", model.error.value)
+
+        model.clearError()
+        assertNull(model.error.value)
     }
 }

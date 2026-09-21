@@ -1,12 +1,10 @@
 use gem_evm::address::ethereum_address_checksum;
 use number_formatter::BigNumberFormatter;
-use primitives::{
-    AssetId, PaymentAmount, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, PaymentStatus, TransactionType, TransferDataOutputType, WalletConnectCAIP2, WalletConnectCAIP19,
-    payment_decoder::is_payment_host,
-};
+use primitives::{AssetId, PaymentAmount, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, PaymentStatus, TransactionType, TransferDataOutputType, WalletConnectCAIP2, WalletConnectCAIP19};
 use url::Url;
 
 use crate::PaymentTransaction;
+use crate::decoder::is_payment_host;
 use crate::error::PaymentError;
 use crate::wallet_connect_pay::model::{Invoice, Options, PaymentAction, PaymentOption, PaymentOptionsResponse, PaymentPriceAmount, Quote};
 

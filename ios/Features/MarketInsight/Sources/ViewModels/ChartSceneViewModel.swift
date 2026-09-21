@@ -9,6 +9,7 @@ import enum Gemstone.GemChartPhase
 import protocol Gemstone.GemChartServiceProtocol
 import struct Gemstone.GemChartSession
 import enum Gemstone.GemInfoTopic
+import enum Gemstone.GemListRow
 import struct Gemstone.GemListSection
 import enum Gemstone.GemServiceError
 import GemstonePrimitives
@@ -75,6 +76,14 @@ public final class ChartSceneViewModel: ChartListViewable {
                 priceChangePercentage24h: $0.priceChangePercentage24h,
                 updatedAt: $0.updatedAt,
             )
+        }
+    }
+
+    func rowAction(for row: GemListRow) -> ChartRowAction? {
+        switch row {
+        case .link(.priceAlerts, _, _): .priceAlerts
+        case .link(.setPriceAlert, _, _): .setPriceAlert
+        default: nil
         }
     }
 

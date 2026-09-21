@@ -83,10 +83,53 @@ struct WalletDetailViewModelTests {
         let wallet = Primitives.Wallet.mock(id: .multicoin(address: "0x1"))
         let db = try DB.mockWithWallets([wallet])
         let walletStore = WalletStore.mock(db: db)
-        let model = WalletDetailViewModel.mock(wallet: wallet, service: GemWalletService.mock(db: db))
+        let biometry = BiometryAuthenticationMock(requiresAuthentication: false)
+        let model = WalletDetailViewModel.mock(wallet: wallet, service: GemWalletService.mock(db: db), biometry: biometry)
 
         #expect(await model.onDelete())
+        #expect(biometry.authenticateCallsCount == 0)
         #expect(try walletStore.getWallets().isEmpty)
+    }
+
+    @Test
+    func deletingAuthenticatesWhenAuthenticationIsEnabled() async throws {
+        let wallet = Primitives.Wallet.mock(id: .multicoin(address: "0x1"))
+        let db = try DB.mockWithWallets([wallet])
+        let walletStore = WalletStore.mock(db: db)
+        let biometry = BiometryAuthenticationMock()
+        let model = WalletDetailViewModel.mock(wallet: wallet, service: GemWalletService.mock(db: db), biometry: biometry)
+
+        #expect(await model.onDelete())
+        #expect(biometry.authenticateCallsCount == 1)
+        #expect(try walletStore.getWallets().isEmpty)
+    }
+
+    @Test
+    func cancellingAuthenticationKeepsTheWallet() async throws {
+        let wallet = Primitives.Wallet.mock(id: .multicoin(address: "0x1"))
+        let db = try DB.mockWithWallets([wallet])
+        let walletStore = WalletStore.mock(db: db)
+        let biometry = BiometryAuthenticationMock()
+        biometry.authenticateError = BiometryAuthenticationError.cancelledByUser
+        let model = WalletDetailViewModel.mock(wallet: wallet, service: GemWalletService.mock(db: db), biometry: biometry)
+
+        #expect(await model.onDelete() == false)
+        #expect(model.isPresentingAlertMessage == nil)
+        #expect(try walletStore.getWallets().count == 1)
+    }
+
+    @Test
+    func aFailedAuthenticationKeepsTheWallet() async throws {
+        let wallet = Primitives.Wallet.mock(id: .multicoin(address: "0x1"))
+        let db = try DB.mockWithWallets([wallet])
+        let walletStore = WalletStore.mock(db: db)
+        let biometry = BiometryAuthenticationMock()
+        biometry.authenticateError = BiometryAuthenticationError.authenticationFailed
+        let model = WalletDetailViewModel.mock(wallet: wallet, service: GemWalletService.mock(db: db), biometry: biometry)
+
+        #expect(await model.onDelete() == false)
+        #expect(model.isPresentingAlertMessage == nil)
+        #expect(try walletStore.getWallets().count == 1)
     }
 
     @Test

@@ -3,11 +3,12 @@ pub(crate) mod perpetual_classifier;
 mod perpetual_observer;
 
 use cacher::CacherClient;
+use config_keys::ConfigKey;
 use job_runner::{JobHandle, ShutdownReceiver};
 use perpetual_address_refresher::PerpetualAddressRefresher;
 use perpetual_classifier::{PerpetualPositionClassifier, PerpetualPositionClassifierConfig};
 use perpetual_observer::PerpetualPositionObserver;
-use primitives::{Chain, ConfigKey};
+use primitives::Chain;
 use settings_chain::ChainProviders;
 use std::error::Error;
 use std::sync::Arc;

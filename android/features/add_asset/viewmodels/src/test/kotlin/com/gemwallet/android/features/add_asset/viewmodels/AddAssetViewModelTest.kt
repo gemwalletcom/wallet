@@ -35,7 +35,6 @@ import uniffi.gemstone.GemAddAssetPhase
 import uniffi.gemstone.GemAddAssetServiceInterface
 import uniffi.gemstone.GemAddAssetSession
 import uniffi.gemstone.GemChainServiceInterface
-import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemServiceException
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -119,7 +118,7 @@ class AddAssetViewModelTest {
 
             assertEquals(false, finished)
             val failed = viewModel.uiState.first { it.error != null }
-            assertEquals(GemErrorText.Message("disk full"), failed.error)
+            assertEquals("disk full", failed.error)
             assertEquals(false, failed.isLoading)
 
             viewModel.clearError()

@@ -31,6 +31,7 @@ import com.gemwallet.android.features.settings.settings.viewmodels.PreferencesVi
 import com.gemwallet.android.features.settings.settings.viewmodels.localization.stringRes
 import com.gemwallet.android.features.settings.settings.viewmodels.models.PreferencesRowAction
 import com.gemwallet.android.features.settings.settings.viewmodels.models.of
+import com.gemwallet.android.features.settings.settings.viewmodels.models.opensPicker
 import com.gemwallet.android.features.settings.settings.viewmodels.models.preferencesAction
 import com.gemwallet.android.features.settings.settings.viewmodels.models.value
 import com.gemwallet.android.ui.R
@@ -124,7 +125,7 @@ private fun <T> OptionPickerRow(row: GemListRow, listPosition: ListPosition, cur
     GemListRowView(
         row = row,
         listPosition = listPosition,
-        modifier = if (row is GemListRow.Link) Modifier.clickable { expanded = true } else Modifier,
+        modifier = if (row.opensPicker()) Modifier.clickable { expanded = true } else Modifier,
         onSelect = { expanded = true },
         accessory = {
             DropdownMenu(

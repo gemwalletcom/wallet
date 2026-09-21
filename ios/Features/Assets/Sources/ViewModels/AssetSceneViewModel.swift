@@ -4,13 +4,16 @@ import Components
 import func Gemstone.assetBannerContext
 import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemAssetBalanceRow
+import enum Gemstone.GemAssetDetailRow
 import struct Gemstone.GemAssetDetails
 import struct Gemstone.GemAssetDetailsInput
 import protocol Gemstone.GemAssetDetailsServiceProtocol
+import enum Gemstone.GemAssetNetworkDestination
 import struct Gemstone.GemBannerContext
 import struct Gemstone.GemBannerRow
 import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemHeaderButtonKind
+import enum Gemstone.GemListRow
 import enum Gemstone.GemListRowTitle
 import enum Gemstone.GemLoadState
 import enum Gemstone.GemServiceError
@@ -86,6 +89,84 @@ public final class AssetSceneViewModel: Sendable {
 
     public var wallet: Wallet {
         input.wallet
+    }
+
+    func detailSections(_ details: GemAssetDetails) -> [AssetDetailSectionItem] {
+        details.sections.enumerated().map { index, section in
+            AssetDetailSectionItem(
+                id: "section-\(index)",
+                title: section.title.text,
+                rows: section.rows.enumerated().map { rowIndex, row in
+                    detailRowItem(row, id: "row-\(index)-\(rowIndex)", networkDestination: details.networkDestination)
+                },
+            )
+        }
+    }
+
+    private func detailRowItem(_ row: GemAssetDetailRow, id: String, networkDestination: GemAssetNetworkDestination?) -> AssetDetailRowItem {
+        switch row {
+        case let .price(price):
+            AssetDetailRowItem(
+                id: id,
+                content: .item(
+                    ListItemModel(
+                        title: Localized.Asset.price,
+                        subtitle: price.price?.text(),
+                        subtitleExtra: price.change?.text(),
+                        subtitleStyleExtra: TextStyle(font: .subheadline, color: price.change?.tone.color ?? Colors.gray),
+                    ),
+                ),
+                action: .price,
+                accessibilityIdentifier: "price",
+            )
+        case let .network(name):
+            AssetDetailRowItem(id: id, content: .network(name: name), action: networkAction(networkDestination))
+        case let .balance(item):
+            AssetDetailRowItem(
+                id: id,
+                content: .item(balanceListItem(for: item)),
+                action: balanceAction(item),
+                accessibilityIdentifier: balanceAccessibilityIdentifier(item),
+            )
+        case let .earn(row):
+            AssetDetailRowItem(id: id, content: .row(row), action: .earn)
+        case let .row(row):
+            AssetDetailRowItem(id: id, content: .row(row), action: rowAction(row))
+        }
+    }
+
+    private func networkAction(_ destination: GemAssetNetworkDestination?) -> AssetDetailRowAction? {
+        switch destination {
+        case let .asset(asset): .network(.asset(asset.toPrimitives()))
+        case let .assets(chain): .network(.assets(Chain(core: chain)))
+        case nil: nil
+        }
+    }
+
+    private func balanceAction(_ item: GemAssetBalanceRow) -> AssetDetailRowAction? {
+        switch item.row {
+        case .available, .pendingUnconfirmed: nil
+        case .staked: .stake
+        case .earn: .earn
+        case let .reserved(_, url): url.flatMap(URL.init).map { .explorer($0) }
+        }
+    }
+
+    private func balanceAccessibilityIdentifier(_ item: GemAssetBalanceRow) -> String? {
+        switch item.row {
+        case .staked: "stake"
+        case .earn: "earn"
+        case .available, .pendingUnconfirmed, .reserved: nil
+        }
+    }
+
+    private func rowAction(_ row: GemListRow) -> AssetDetailRowAction? {
+        switch row {
+        case .link(.priceAlerts, _, _): .priceAlerts
+        case .link(.pin, _, _), .link(.unpin, _, _): .pin
+        case .link(.addToWallet, _, _): .enable
+        default: nil
+        }
     }
 
     func balanceListItem(for item: GemAssetBalanceRow) -> ListItemModel {
@@ -251,6 +332,8 @@ public extension AssetSceneViewModel {
             Task {
                 do {
                     try await service.closeBanner(key: action.banner.gemKey)
+                } catch let error as GemServiceError {
+                    isPresentingToastMessage = .error(error.text().text)
                 } catch {
                     isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
                 }

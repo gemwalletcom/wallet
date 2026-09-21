@@ -4,8 +4,9 @@ use std::sync::Arc;
 
 use cacher::{CacheKey, CacherClient};
 use chain_traits::TransactionsRequest;
+use config_keys::ConfigParamKey;
 use gem_tracing::{error_with_fields, info_with_fields};
-use primitives::{Chain, ConfigParamKey};
+use primitives::Chain;
 use settings_chain::ChainProviders;
 use storage::ConfigCacher;
 use streamer::steam_producer_queue::StreamProducerQueue;

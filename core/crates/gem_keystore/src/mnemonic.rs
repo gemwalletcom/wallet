@@ -7,6 +7,8 @@ use crate::KeystoreError;
 pub struct Mnemonic;
 
 impl Mnemonic {
+    pub const MIN_ENTROPY_LEN: usize = 16;
+
     pub fn generate(word_count: usize) -> Result<Vec<String>, KeystoreError> {
         let entropy_len = entropy_len_for_word_count(word_count)?;
         let entropy = Zeroizing::new(gem_crypto::random::bytes::<32>()?);
@@ -62,7 +64,7 @@ impl Mnemonic {
 
 fn entropy_len_for_word_count(word_count: usize) -> Result<usize, KeystoreError> {
     match word_count {
-        12 => Ok(16),
+        12 => Ok(Mnemonic::MIN_ENTROPY_LEN),
         15 => Ok(20),
         18 => Ok(24),
         21 => Ok(28),
@@ -89,7 +91,7 @@ mod tests {
 
     #[test]
     fn test_entropy_len_for_word_count() {
-        assert_eq!(entropy_len_for_word_count(12).unwrap(), 16);
+        assert_eq!(entropy_len_for_word_count(12).unwrap(), Mnemonic::MIN_ENTROPY_LEN);
         assert_eq!(entropy_len_for_word_count(24).unwrap(), 32);
         assert_eq!(entropy_len_for_word_count(13).unwrap_err(), KeystoreError::invalid_input("mnemonic"));
     }
@@ -125,6 +127,7 @@ mod tests {
     #[test]
     fn test_entropy() {
         let entropy = Mnemonic::entropy(ABANDON_PHRASE).unwrap();
+        assert_eq!(entropy.len(), Mnemonic::MIN_ENTROPY_LEN);
         assert_eq!(hex::encode(entropy.as_slice()), "00000000000000000000000000000000");
     }
 }

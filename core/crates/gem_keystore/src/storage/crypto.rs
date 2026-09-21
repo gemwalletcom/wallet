@@ -6,7 +6,10 @@ use argon2::{Algorithm, Argon2, Params, Version};
 use zeroize::Zeroizing;
 
 use super::{
-    constants::{AES_GCM_NONCE_LEN, AES_GCM_TAG_LEN, DEFAULT_ARGON2_ITERATIONS, DEFAULT_ARGON2_MEMORY_KIB, DEFAULT_ARGON2_OUTPUT_LEN, DEFAULT_ARGON2_PARALLELISM, MAX_ARGON2_ITERATIONS, MAX_ARGON2_MEMORY_KIB, MAX_ARGON2_PARALLELISM},
+    constants::{
+        AES_GCM_NONCE_LEN, AES_GCM_TAG_LEN, DEFAULT_ARGON2_ITERATIONS, DEFAULT_ARGON2_MEMORY_KIB, DEFAULT_ARGON2_OUTPUT_LEN, DEFAULT_ARGON2_PARALLELISM, MAX_ARGON2_ITERATIONS, MAX_ARGON2_MEMORY_KIB, MAX_ARGON2_PARALLELISM,
+        MIN_ARGON2_ITERATIONS, MIN_ARGON2_MEMORY_KIB, MIN_ARGON2_PARALLELISM,
+    },
     format::validate_v4_password,
     types::{CipherParams, KdfParams},
 };
@@ -50,13 +53,13 @@ impl KdfParams {
                 output_len,
                 ..
             } => {
-                if *memory_kib == 0 || *memory_kib > MAX_ARGON2_MEMORY_KIB {
+                if !(MIN_ARGON2_MEMORY_KIB..=MAX_ARGON2_MEMORY_KIB).contains(memory_kib) {
                     return Err(KeystoreError::corrupt_file("invalid Argon2 memory"));
                 }
-                if *iterations == 0 || *iterations > MAX_ARGON2_ITERATIONS {
+                if !(MIN_ARGON2_ITERATIONS..=MAX_ARGON2_ITERATIONS).contains(iterations) {
                     return Err(KeystoreError::corrupt_file("invalid Argon2 iterations"));
                 }
-                if *parallelism == 0 || *parallelism > MAX_ARGON2_PARALLELISM {
+                if !(MIN_ARGON2_PARALLELISM..=MAX_ARGON2_PARALLELISM).contains(parallelism) {
                     return Err(KeystoreError::corrupt_file("invalid Argon2 parallelism"));
                 }
                 if *output_len != DEFAULT_ARGON2_OUTPUT_LEN {

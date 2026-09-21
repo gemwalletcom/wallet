@@ -12,6 +12,7 @@ import com.gemwallet.android.features.activities.viewmodels.TransactionDetailsVi
 import com.gemwallet.android.features.activities.viewmodels.models.TransactionDetailsRowUIModel
 import com.gemwallet.android.features.asset.presents.address.AddressDetailsSheet
 import com.gemwallet.android.ui.components.screen.LoadingScene
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.shareText
 import com.wallet.core.primitives.ChainAddress
 
@@ -38,12 +39,12 @@ fun TransactionDetailsNavScreen(onAction: (TransactionDetailsAction.Navigation) 
     }
 
     TransactionDetailsScene(
-        data = model,
+        title = model.rows.title.string(context),
         sections = sections,
         headerTarget = headerTarget,
         onAction = {
             when (it) {
-                TransactionDetailsAction.Share -> onShare(model.explorer.link, model.explorer.name)
+                TransactionDetailsAction.Share -> onShare(model.rows.explorer.link, model.rows.explorer.name)
                 TransactionDetailsAction.ShowFeeDetails -> isShowFeeDetails = true
                 is TransactionDetailsAction.OpenAddress -> selectedAddress = it.chainAddress
                 is TransactionDetailsAction.Navigation -> onAction(it)

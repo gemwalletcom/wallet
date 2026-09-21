@@ -1,8 +1,9 @@
 use super::api_clients::setup_api_client_grants;
 use super::database::run_migrations;
 use super::scan_addresses::setup_scan_addresses;
+use config_keys::{ConfigKey, ConfigParamKey};
 use gem_tracing::info_with_fields;
-use primitives::{Asset, AssetTag, Chain, ConfigKey, ConfigParamKey, FiatProviderName, NFTChain, PlatformStore as PrimitivePlatformStore, PriceProvider};
+use primitives::{Asset, AssetTag, Chain, FiatProviderName, NFTChain, PlatformStore as PrimitivePlatformStore, PriceProvider};
 use search_index::{INDEX_CONFIGS, INDEX_PRIMARY_KEY, SearchIndexClient, SearchIndexConfig};
 use settings::Settings;
 use std::collections::HashSet;

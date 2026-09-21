@@ -339,6 +339,7 @@
   <string name="stake_minimum_amount">حداقل مبلغ</string>
   <string name="stake_state_empty_title">استیک‌های شما اینجا نمایش داده می‌شوند</string>
   <string name="stake_state_empty_description">اولین %1$s خود را استیک کنید</string>
+  <string name="stake_state_empty_validators_title">هیچ اعتبارسنجی یافت نشد</string>
   <string name="stake_resource">منبع</string>
   <string name="stake_resource_energy">انرژی</string>
   <string name="stake_resource_bandwidth">پهنای باند</string>
@@ -380,6 +381,7 @@
   <string name="nodes_import_node_latest_block">آخرین بلاک</string>
   <string name="nodes_import_node_latency">تاخیر</string>
   <string name="nodes_gem_wallet_node">گره Gem Wallet</string>
+  <string name="nodes_stream">استریم</string>
   <string name="nodes_import_node_warning_message">گره‌های سفارشی می‌توانند مخرب باشند و ممکن است داده‌های تراکنش شما را افشا کنند یا اطلاعات نادرست ارائه دهند.</string>
   <string name="library_select_from_photo_library">انتخاب از تصاویر گالری</string>
   <string name="fee_rates_info">سرعت انجام تراکنش بر اساس کارمزدی که به ماینرهای شبکه پرداخت میشود مشخص میشود.</string>

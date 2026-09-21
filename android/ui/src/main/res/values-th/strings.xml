@@ -339,6 +339,7 @@
   <string name="stake_minimum_amount">จำนวนเงินขั้นต่ำ</string>
   <string name="stake_state_empty_title">การสเตคของคุณจะปรากฏที่นี่</string>
   <string name="stake_state_empty_description">สเตคครั้งแรกของคุณ %1$s</string>
+  <string name="stake_state_empty_validators_title">ไม่พบผู้ตรวจสอบความถูกต้อง</string>
   <string name="stake_resource">ทรัพยากร</string>
   <string name="stake_resource_energy">พลังงาน</string>
   <string name="stake_resource_bandwidth">แบนด์วิดท์</string>
@@ -380,6 +381,7 @@
   <string name="nodes_import_node_latest_block">บล็อกล่าสุด</string>
   <string name="nodes_import_node_latency">เวลาแฝง</string>
   <string name="nodes_gem_wallet_node">Gem Wallet Node</string>
+  <string name="nodes_stream">สตรีม</string>
   <string name="nodes_import_node_warning_message">โหนดที่กำหนดเองอาจเป็นอันตรายและอาจเปิดเผยข้อมูลธุรกรรมของคุณหรือให้ข้อมูลเท็จได้</string>
   <string name="library_select_from_photo_library">เลือกจากคลังรูปภาพ</string>
   <string name="fee_rates_info">ความเร็วของการทำธุรกรรมจะถูกกำหนดโดยค่าธรรมเนียมเครือข่ายที่จ่ายให้กับนักขุดในเครือข่าย</string>

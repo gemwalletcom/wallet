@@ -54,6 +54,7 @@ let package = Package(
                 "Gemstone",
                 "Primitives",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "GemstoneServices", package: "GemstoneServices"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
             ],
             path: "TestKit",

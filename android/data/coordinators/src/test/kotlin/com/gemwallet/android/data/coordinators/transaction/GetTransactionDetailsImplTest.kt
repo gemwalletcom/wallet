@@ -83,10 +83,10 @@ class GetTransactionDetailsImplTest {
 
         assertNotNull(result)
         verify { transactionDetailsService.detailRows(any(), GemWalletType.MULTICOIN) }
-        assertEquals("NEAR Intents", result?.explorer?.name)
+        assertEquals("NEAR Intents", result?.rows?.explorer?.name)
         assertEquals(
             "https://explorer.near-intents.org/transactions/${transaction.to}",
-            result?.explorer?.link,
+            result?.rows?.explorer?.link,
         )
     }
 }

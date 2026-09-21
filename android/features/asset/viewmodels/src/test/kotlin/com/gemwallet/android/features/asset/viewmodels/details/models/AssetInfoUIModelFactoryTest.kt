@@ -135,9 +135,10 @@ class AssetInfoUIModelFactoryTest {
         ).sections
 
         assertEquals(listOf(R.string.common_manage, null), sections.map { it.title })
+        assertEquals("the pin row carries the action the view only forwards", AssetDetailsAction.Pin, (sections.first().rows.first() as AssetInfoUIModel.RowUIModel.Row).action)
         assertEquals(
             listOf(
-                listOf(AssetInfoUIModel.RowUIModel.Row(link)),
+                listOf(AssetInfoUIModel.RowUIModel.Row(link, AssetDetailsAction.Pin)),
                 listOf(AssetInfoUIModel.RowUIModel.Price, AssetInfoUIModel.RowUIModel.Network("Ethereum (ERC20)")),
             ),
             sections.map { it.rows },

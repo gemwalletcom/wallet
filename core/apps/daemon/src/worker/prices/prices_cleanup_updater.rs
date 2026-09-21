@@ -1,6 +1,7 @@
 use cacher::{CacheKey, CacherClient};
 use chrono::Utc;
-use primitives::{ConfigKey, PriceProvider};
+use config_keys::ConfigKey;
+use primitives::PriceProvider;
 use std::error::Error;
 use std::sync::Arc;
 use storage::ConfigCacher;

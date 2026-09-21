@@ -9,12 +9,12 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemAddressService
 import uniffi.gemstone.GemAddressStore
+import uniffi.gemstone.GemContactEditorService
+import uniffi.gemstone.GemContactEditorServiceInterface
 import uniffi.gemstone.GemContactService
 import uniffi.gemstone.GemContactServiceInterface
 import uniffi.gemstone.GemContactStore
 import uniffi.gemstone.GemFileStore
-import uniffi.gemstone.GemManageContactService
-import uniffi.gemstone.GemManageContactServiceInterface
 import uniffi.gemstone.GemPaymentService
 import javax.inject.Singleton
 
@@ -38,5 +38,5 @@ object ContactsModule {
     fun provideGemContactServiceInterface(service: GemContactService): GemContactServiceInterface = service
 
     @Provides
-    fun provideGemManageContactService(contacts: GemContactService, addresses: GemAddressService, payments: GemPaymentService): GemManageContactServiceInterface = GemManageContactService(contacts, addresses, payments)
+    fun provideGemContactEditorService(contacts: GemContactService, addresses: GemAddressService, payments: GemPaymentService): GemContactEditorServiceInterface = GemContactEditorService(contacts, addresses, payments)
 }

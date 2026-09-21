@@ -2,7 +2,7 @@
 
 import Foundation
 
-enum ReceivePresentationType: Identifiable, Sendable {
+enum ReceivePresentationType: Identifiable {
     case share
     case networkSelector
     case copy

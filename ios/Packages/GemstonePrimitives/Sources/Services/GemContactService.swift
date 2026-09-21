@@ -2,8 +2,8 @@
 
 import Foundation
 import struct Gemstone.GemContactAddressInput
+import protocol Gemstone.GemContactEditorServiceProtocol
 import protocol Gemstone.GemContactServiceProtocol
-import protocol Gemstone.GemManageContactServiceProtocol
 import Primitives
 
 public extension GemContactServiceProtocol {
@@ -16,7 +16,7 @@ public extension GemContactServiceProtocol {
     }
 }
 
-public extension GemManageContactServiceProtocol {
+public extension GemContactEditorServiceProtocol {
     var defaultContactChain: Chain {
         Chain(core: defaultChain())
     }

@@ -36,6 +36,7 @@ use api_connector::PusherClient;
 use assets::{AssetsClient, SearchClient};
 use cacher::{AccessTokenCacherClient, CacherClient};
 use config::ConfigClient;
+use config_keys::ConfigKey;
 use devices::DevicesClient;
 use devices::{
     AddressNamesClient, FiatQuotesClient, NotificationsClient, PortfolioClient, RewardsClient, RewardsRedemptionClient, ScanClient, TransactionScanConfig, TransactionsClient, WalletConfigurationClient, WalletsClient, scan_providers,
@@ -45,7 +46,7 @@ use gem_rewards::{AbuseIPDBClient, IpApiClient, IpCheckProvider, IpSecurityClien
 use model::APIService;
 use name_resolver::{NameClient, NameConfig, NameProviderFactory};
 use pricer::{ChartClient, MarketsClient, PriceAlertClient, PriceClient};
-use primitives::{ConfigKey, FiatProviderName, PriceConfig};
+use primitives::{FiatProviderName, PriceConfig};
 use rocket::{Build, Rocket, catchers, routes};
 use search_index::{SearchIndexClient, SearchIndexConfig};
 use settings::Settings;
@@ -196,7 +197,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let cacher_client = CacherClient::new(redis_url).await?;
     let config_cacher = storage::ConfigCacher::new(database.clone());
     let price_config = PriceConfig {
-        primary_price_max_age: config_cacher.get_duration(primitives::ConfigKey::PricePrimaryMaxAge)?,
+        primary_price_max_age: config_cacher.get_duration(config_keys::ConfigKey::PricePrimaryMaxAge)?,
     };
 
     let price_client = PriceClient::new(database.clone(), cacher_client.clone());
@@ -335,8 +336,8 @@ async fn rocket_ws_stream(settings: Settings) -> Result<Rocket<Build>, Box<dyn E
     let stream_observer_config = websocket_stream::StreamObserverConfig {
         redis_url: settings.redis.url.clone(),
         cacher_client,
-        retention: config_cacher.get_duration(primitives::ConfigKey::DeviceStreamRetention)?,
-        history_limit: config_cacher.get_usize(primitives::ConfigKey::DeviceStreamHistoryLimit)?,
+        retention: config_cacher.get_duration(config_keys::ConfigKey::DeviceStreamRetention)?,
+        history_limit: config_cacher.get_usize(config_keys::ConfigKey::DeviceStreamHistoryLimit)?,
     };
 
     let jwt_config = devices::auth_config::JwtConfig {

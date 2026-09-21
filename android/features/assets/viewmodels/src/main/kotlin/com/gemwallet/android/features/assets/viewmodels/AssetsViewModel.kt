@@ -11,14 +11,18 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.assetSections
+import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGemKey
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.banner.BannerRowUIModel
 import com.gemwallet.android.ui.components.banner.uiModel
 import com.gemwallet.android.ui.components.screen.assetPinnedToast
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ToastEmitter
 import com.gemwallet.android.ui.models.ToastEmitterImpl
+import com.gemwallet.android.ui.models.ToastMessage
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Banner
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,6 +36,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemWalletHomeServiceInterface
 import javax.inject.Inject
@@ -130,7 +135,7 @@ class AssetsViewModel @Inject constructor(
 
     fun closeBanner(banner: Banner) = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable { service.closeBanner(banner.toGemKey()) }
-            .onFailure { Log.e(TAG, "banner ${banner.event} close failed", it) }
+            .onFailure { emitToast(ToastMessage(it.errorText().text(context), R.drawable.ic_error)) }
     }
 
     private companion object {

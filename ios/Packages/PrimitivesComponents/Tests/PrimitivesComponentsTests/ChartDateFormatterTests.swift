@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Formatters
 import Foundation
 import Primitives
 @testable import PrimitivesComponents
@@ -13,9 +12,11 @@ struct ChartDateFormatterTests {
     private let calendar: Calendar
 
     init() {
-        let relative = RelativeDateFormatter(locale: locale, timeZone: timeZone)
-        formatter = ChartDateFormatter(relative: relative, locale: locale, timeZone: timeZone)
-        calendar = relative.calendar
+        formatter = ChartDateFormatter(locale: locale, timeZone: timeZone)
+        var calendar = Calendar.current
+        calendar.locale = locale
+        calendar.timeZone = timeZone
+        self.calendar = calendar
     }
 
     @Test

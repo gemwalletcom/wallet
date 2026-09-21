@@ -7,9 +7,12 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualPosition
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
+import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockPerpetual
 import com.gemwallet.android.testkit.mockSession
+import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.ChartPeriod
@@ -17,6 +20,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -35,7 +39,6 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -56,16 +59,22 @@ class PerpetualDetailsViewModelTest {
 
     private val asset = mockAsset()
 
+    private fun perpetualData(): PerpetualDetailsDataAggregate = mockk(relaxed = true) {
+        every { perpetual } returns mockPerpetual()
+        every { this@mockk.asset } returns this@PerpetualDetailsViewModelTest.asset
+    }
+
     private fun viewModel(
         service: GemPerpetualDetailsServiceInterface = mockk(relaxed = true) {
             every { chartPeriod() } returns uniffi.gemstone.ChartPeriod.DAY
         },
+        data: PerpetualDetailsDataAggregate? = null,
     ): PerpetualDetailsViewModel {
         val session: GetSession = mockk {
             every { this@mockk.invoke() } returns MutableStateFlow(mockSession())
         }
         val perpetual: GetPerpetual = mockk {
-            every { getPerpetualByAssetId(any()) } returns flowOf(null)
+            every { getPerpetualByAssetId(any()) } returns flowOf(data)
         }
         val positions: GetPerpetualPosition = mockk(relaxed = true)
         val transactions: GetTransactions = mockk {
@@ -103,17 +112,23 @@ class PerpetualDetailsViewModelTest {
     }
 
     @Test
-    fun `refreshing shows the spinner and asks Core to sync the positions`() = runTest(dispatcher) {
+    fun `refreshing shows the spinner and asks Core for the stored data again`() = runTest(dispatcher) {
         val service: GemPerpetualDetailsServiceInterface = mockk(relaxed = true) {
             every { chartPeriod() } returns uniffi.gemstone.ChartPeriod.DAY
         }
         val model = viewModel(service = service)
+        advanceUntilIdle()
+        coVerify(exactly = 0) { service.refresh(any()) }
 
         model.refresh()
 
         assertTrue(model.isRefreshing.value)
         advanceUntilIdle()
-        coVerify { service.syncPositions() }
+        coVerify(exactly = 1) { service.refresh(asset.id.toIdentifier()) }
+
+        model.fetch()
+        advanceUntilIdle()
+        coVerify(exactly = 2) { service.refresh(asset.id.toIdentifier()) }
     }
 
     @Test
@@ -131,11 +146,36 @@ class PerpetualDetailsViewModelTest {
     }
 
     @Test
-    fun `an error is shown until it is cleared`() = runTest(dispatcher) {
-        val model = viewModel()
+    fun `a failed close reads the error instead of crashing the screen`() = runTest(dispatcher) {
+        val service: GemPerpetualDetailsServiceInterface = mockk(relaxed = true) {
+            every { chartPeriod() } returns uniffi.gemstone.ChartPeriod.DAY
+            every { closeTransfer(any(), any(), any()) } throws IllegalStateException("no position")
+        }
+        val model = viewModel(service = service, data = perpetualData())
+        val confirm: ConfirmTransactionAction = mockk(relaxed = true)
+        model.perpetual.first { it != null }
 
-        assertNull(model.error.value)
+        model.closePosition(confirm)
+
+        assertEquals("no position", model.error.value)
+        verify(exactly = 0) { confirm(any()) }
         model.clearError()
         assertNull(model.error.value)
+    }
+
+    @Test
+    fun `a failed position action reads the error`() = runTest(dispatcher) {
+        val service: GemPerpetualDetailsServiceInterface = mockk(relaxed = true) {
+            every { chartPeriod() } returns uniffi.gemstone.ChartPeriod.DAY
+            every { positionAction(any(), any(), any(), any()) } throws IllegalStateException("no market")
+        }
+        val model = viewModel(service = service, data = perpetualData())
+        val amount: AmountTransactionAction = mockk(relaxed = true)
+        model.perpetual.first { it != null }
+
+        model.increasePosition(amount)
+
+        assertEquals("no market", model.error.value)
+        verify(exactly = 0) { amount(any()) }
     }
 }

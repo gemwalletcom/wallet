@@ -17,6 +17,7 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.add_asset.viewmodels.models.AddAssetUIState
 import com.gemwallet.android.features.add_asset.viewmodels.models.verificationWarningListItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.Chain
@@ -41,7 +42,6 @@ import uniffi.gemstone.GemAddAssetPhase
 import uniffi.gemstone.GemAddAssetServiceInterface
 import uniffi.gemstone.GemAddAssetSession
 import uniffi.gemstone.GemChainServiceInterface
-import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemListSection
 import javax.inject.Inject
 
@@ -158,7 +158,7 @@ class AddAssetViewModel @Inject constructor(
                 service.add(wallet.toGem(), asset.id.toIdentifier())
             }
         }
-        state.update { it.copy(isImporting = false, error = added.exceptionOrNull()?.errorText()) }
+        state.update { it.copy(isImporting = false, error = added.exceptionOrNull()?.errorText()?.text(context)) }
         if (added.isSuccess) {
             onFinish()
         }
@@ -169,7 +169,7 @@ class AddAssetViewModel @Inject constructor(
     private suspend fun searchToken(session: GemAddAssetSession, chain: Chain, address: String): GemAddAssetSession = runCatchingCancellable { session.onFound(chain.string, address, service.token(chain.string, address)) }
         .getOrDefault(session.onFailed(chain.string, address))
 
-    private data class State(val isQrScan: Boolean = false, val isSelectChain: Boolean = false, val isImporting: Boolean = false, val error: GemErrorText? = null) {
+    private data class State(val isQrScan: Boolean = false, val isSelectChain: Boolean = false, val isImporting: Boolean = false, val error: String? = null) {
         fun toUIState(): AddAssetUIState = AddAssetUIState(
             scene = when {
                 isQrScan -> AddAssetUIState.Scene.QrScanner

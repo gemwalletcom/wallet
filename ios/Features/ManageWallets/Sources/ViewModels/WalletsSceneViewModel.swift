@@ -15,6 +15,7 @@ import SwiftUI
 public final class WalletsSceneViewModel {
     private let service: any GemWalletServiceProtocol
     private let preferences: ObservablePreferences
+    private let biometry: any BiometryAuthenticatable
     private let isPresentingCreateWalletSheet: Binding<Bool>
     private let isPresentingImportWalletSheet: Binding<Bool>
     private let navigationPath: Binding<NavigationPath>
@@ -37,12 +38,14 @@ public final class WalletsSceneViewModel {
         navigationPath: Binding<NavigationPath>,
         walletService: any GemWalletServiceProtocol,
         preferences: ObservablePreferences,
+        biometry: any BiometryAuthenticatable,
         isPresentingCreateWalletSheet: Binding<Bool>,
         isPresentingImportWalletSheet: Binding<Bool>,
     ) {
         self.navigationPath = navigationPath
         service = walletService
         self.preferences = preferences
+        self.biometry = biometry
         isPresentingAlertMessage = nil
         walletDelete = nil
         self.isPresentingCreateWalletSheet = isPresentingCreateWalletSheet
@@ -127,6 +130,9 @@ extension WalletsSceneViewModel {
 
     func onDeleteConfirmed(wallet: Wallet) async {
         do {
+            guard try await biometry.authenticateIfRequired(reason: Localized.Settings.Security.authentication) else {
+                return
+            }
             try await delete(wallet)
         } catch {
             isPresentingAlertMessage = AlertMessage(error: error)

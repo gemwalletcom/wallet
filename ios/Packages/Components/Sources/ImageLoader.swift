@@ -4,7 +4,7 @@ import Foundation
 import ImageIO
 import UIKit
 
-struct ImageRequest: Hashable, Sendable {
+struct ImageRequest: Hashable {
     let url: URL
     let maxPixelSize: CGFloat?
     let scale: CGFloat

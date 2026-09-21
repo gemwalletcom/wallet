@@ -2,10 +2,11 @@ use std::collections::HashSet;
 use std::error::Error;
 
 use cacher::{CacheError, CacheKey, CacherClient};
+use config_keys::ConfigKey;
 use gem_tracing::error_with_fields;
 use prices::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProviders};
 use primitives::currency::Currency;
-use primitives::{AssetId, AssetMarketPrice, AssetPriceInfo, AssetPrices, ChartTimeframe, ConfigKey, FiatRate, FiatRateProvider, PriceData, PriceId, PriceProvider};
+use primitives::{AssetId, AssetMarketPrice, AssetPriceInfo, AssetPrices, ChartTimeframe, FiatRate, FiatRateProvider, PriceData, PriceId, PriceProvider};
 use storage::database::assets::AssetFilter;
 use storage::models::{FiatRateRow, NewPriceRow, PriceAssetRow};
 use storage::{AssetsRepository, ChartsRepository, ConfigRepository, Database, PricesRepository};

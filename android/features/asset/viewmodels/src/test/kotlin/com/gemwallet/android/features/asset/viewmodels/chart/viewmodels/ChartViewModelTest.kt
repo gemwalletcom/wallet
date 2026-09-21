@@ -19,6 +19,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -36,6 +38,7 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemChartService
 import uniffi.gemstone.GemChartSession
+import uniffi.gemstone.GemServiceException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChartViewModelTest {
@@ -136,6 +139,55 @@ class ChartViewModelTest {
 
         assertEquals(ChartPeriod.Month, state.period)
         verify(exactly = 1) { chartService.setChartPeriod(ChartPeriod.Month.toGem()) }
+    }
+
+    @Test
+    fun `a pull to refresh keeps the chart that is already drawn`() = runTest(testDispatcher) {
+        val chart = mockGemChart(values = listOf(1f, 2f, 3f))
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns chart
+
+        val viewModel = createViewModel()
+        viewModel.chartUIState.first { it.chart is StateViewType.Data }
+        backgroundScope.launch { viewModel.isRefreshing.collect {} }
+        backgroundScope.launch { viewModel.chartUIState.collect {} }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val inFlight = CompletableDeferred<Unit>()
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } coAnswers {
+            inFlight.await()
+            chart
+        }
+        viewModel.refresh()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(true, viewModel.isRefreshing.value)
+        assertEquals(true, viewModel.chartUIState.value.chart is StateViewType.Data)
+
+        inFlight.complete(Unit)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(false, viewModel.isRefreshing.value)
+        coVerify(exactly = 2) { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) }
+    }
+
+    @Test
+    fun `a failed refresh leaves the loaded chart alone`() = runTest(testDispatcher) {
+        val chart = mockGemChart(values = listOf(1f, 2f, 3f))
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns chart
+
+        val viewModel = createViewModel()
+        viewModel.chartUIState.first { it.chart is StateViewType.Data }
+
+        backgroundScope.launch { viewModel.chartUIState.collect {} }
+        backgroundScope.launch { viewModel.isRefreshing.collect {} }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } throws GemServiceException.Api("offline")
+        viewModel.refresh()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(true, viewModel.chartUIState.value.chart is StateViewType.Data)
+        assertEquals(false, viewModel.isRefreshing.value)
     }
 
     private fun createViewModel(): ChartViewModel = ChartViewModel(

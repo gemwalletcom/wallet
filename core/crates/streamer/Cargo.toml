@@ -15,3 +15,4 @@ lapin = { version = "4.10.0" }
 
 gem_tracing = { path = "../tracing" }
 primitives = { path = "../primitives" }
+push_notification = { path = "../push_notification" }

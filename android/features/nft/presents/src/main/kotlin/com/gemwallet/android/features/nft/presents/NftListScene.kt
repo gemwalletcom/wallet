@@ -58,6 +58,8 @@ fun NftListNavScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val unverifiedListItem by viewModel.unverifiedListItem.collectAsStateWithLifecycle()
     val walletId by viewModel.walletId.collectAsStateWithLifecycle()
+    val title by viewModel.title.collectAsStateWithLifecycle()
+    val showReceiveAction by viewModel.showReceiveAction.collectAsStateWithLifecycle()
 
     LaunchedEffect(walletId) {
         viewModel.syncIfNeeded()
@@ -67,8 +69,8 @@ fun NftListNavScreen(
         items = items,
         isRefreshing = isRefreshing,
         unverifiedListItem = unverifiedListItem,
-        title = viewModel.title,
-        showReceiveAction = viewModel.showReceiveAction,
+        title = title,
+        showReceiveAction = showReceiveAction,
         listState = listState,
         onAction = { action ->
             when (action) {

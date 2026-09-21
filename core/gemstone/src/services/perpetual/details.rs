@@ -3,10 +3,11 @@ use std::sync::Arc;
 use primitives::chart::ChartCandleUpdate;
 use primitives::{Asset, AssetId, Chain, ChartPeriod, Perpetual, PerpetualPosition, TransactionType};
 
-use super::model::{GemPerpetualDetails, GemPerpetualPositionAction, GemPerpetualPositionKind};
+use super::model::{GemPerpetualDetails, GemPerpetualPositionAction, GemPerpetualPositionKind, GemPerpetualRefreshFailure, GemPerpetualRefreshStep};
 use super::{GemPerpetualService, rules};
 use crate::models::perpetual::{GemChartCandleStick, GemPerpetualSubscription};
 use crate::services::error::GemServiceError;
+use crate::services::failures::record_result;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::transactions::{GemTransactionFilter, GemTransactionsService, rules as transaction_rules};
 use crate::services::transfer::GemTransferData;
@@ -75,11 +76,68 @@ impl GemPerpetualDetailsService {
         rules::merged_candles(candles, update, &perpetual, &period)
     }
 
-    pub async fn sync_positions(&self) -> Result<(), GemServiceError> {
+    pub async fn refresh(&self, asset_id: AssetId) -> Vec<GemPerpetualRefreshFailure> {
+        let mut failures = Vec::new();
+        let (positions, transactions) = futures::join!(self.sync_positions(), self.sync_transactions(asset_id));
+        record_result(&mut failures, GemPerpetualRefreshStep::Positions, positions);
+        record_result(&mut failures, GemPerpetualRefreshStep::Transactions, transactions);
+        failures
+    }
+}
+
+impl GemPerpetualDetailsService {
+    async fn sync_positions(&self) -> Result<(), GemServiceError> {
         self.perpetuals.sync_current_positions().await
     }
 
-    pub async fn sync_transactions(&self, asset_id: AssetId) -> Result<(), GemServiceError> {
+    async fn sync_transactions(&self, asset_id: AssetId) -> Result<(), GemServiceError> {
         self.transactions.sync_wallet(self.session.current_wallet_id()?, Some(asset_id)).await
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use futures::executor::block_on;
+    use primitives::Chain;
+
+    use super::super::testkit::PerpetualTestkit;
+    use super::*;
+
+    #[test]
+    fn test_every_refresh_asks_for_the_transactions_of_the_asset_it_names() {
+        block_on(async {
+            let testkit = PerpetualTestkit::new().details_service();
+
+            let failures = testkit.service.refresh(Chain::HyperCore.as_asset_id()).await;
+
+            let steps: Vec<GemPerpetualRefreshStep> = failures.iter().map(|failure| failure.step).collect();
+            assert!(steps.contains(&GemPerpetualRefreshStep::Transactions), "a later take profit never arrives without this one");
+            let paths = testkit.provider.requested_paths();
+            assert!(paths.iter().any(|path| path.contains("devices/transactions") && path.contains("asset_id=hypercore")), "{paths:?}");
+        })
+    }
+
+    #[test]
+    fn test_a_wallet_without_a_hypercore_account_reports_nothing_for_its_positions() {
+        block_on(async {
+            let testkit = PerpetualTestkit::new().details_service();
+
+            let failures = testkit.service.refresh(Chain::HyperCore.as_asset_id()).await;
+
+            assert!(!failures.iter().any(|failure| failure.step == GemPerpetualRefreshStep::Positions), "{failures:?}");
+        })
+    }
+
+    #[test]
+    fn test_without_a_current_wallet_only_the_transactions_fail_for_that_reason() {
+        block_on(async {
+            let testkit = PerpetualTestkit::new().details_service();
+            testkit.session.set_current_wallet_id(None).unwrap();
+
+            let failures = testkit.service.refresh(Chain::HyperCore.as_asset_id()).await;
+
+            let transactions = failures.iter().find(|failure| failure.step == GemPerpetualRefreshStep::Transactions).unwrap();
+            assert!(transactions.message.contains("no current wallet"), "{transactions:?}");
+        })
     }
 }

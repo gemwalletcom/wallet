@@ -35,6 +35,7 @@ class GemListRowUIModelTest {
         every { context.getString(R.string.common_latency_in_ms, *anyVararg()) } returns "125 ms"
         every { context.getString(R.string.errors_error) } returns "Error"
         every { context.getString(R.string.nodes_gem_wallet_node) } returns "Gem Wallet Node"
+        every { context.getString(R.string.nodes_stream) } returns "Stream"
         val row = GemListRow.Latency(GemListRowTitle.STREAM, "", "api.gemwallet.com", GemLatencyStatus.Result(Latency(LatencyType.FAST, 125.0)))
         val model = (row.uiModel(context) as GemListRowUIModel.Item).model
         assertEquals("Stream", model.title)

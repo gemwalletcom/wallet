@@ -246,7 +246,7 @@ extension WalletConnectorService {
             verificationStatus: status.toPrimitives(),
         )
         let approvedWalletId = try await walletConnectorInteractor.sessionApproval(payload: payloadTopic)
-        let selectedWallet = try await walletSessionService.getWallet(walletId: approvedWalletId)
+        let selectedWallet = try await walletSessionService.requireWallet(walletId: approvedWalletId)
 
         let session = try await acceptProposal(proposal: proposal, wallet: selectedWallet)
         try await service.addConnection(WalletConnection(session: connectionSession(session), wallet: selectedWallet))

@@ -11,18 +11,12 @@ import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import uniffi.gemstone.GemStakeAction
 import uniffi.gemstone.GemStakeActionItem
+import uniffi.gemstone.GemStakeDestination
 
-enum class StakeAction { Stake, Freeze, Unfreeze, ClaimRewards }
-
-data class StakeActionUIModel(val action: StakeAction, val isEnabled: Boolean, val requiresFrozenBalance: Boolean, val model: ListItemModel)
+data class StakeActionUIModel(val destination: GemStakeDestination, val isEnabled: Boolean, val requiresFrozenBalance: Boolean, val model: ListItemModel)
 
 internal fun GemStakeActionItem.uiModel(context: Context, assetInfo: AssetInfo): StakeActionUIModel = StakeActionUIModel(
-    action = when (action) {
-        GemStakeAction.STAKE -> StakeAction.Stake
-        GemStakeAction.FREEZE -> StakeAction.Freeze
-        GemStakeAction.UNFREEZE -> StakeAction.Unfreeze
-        GemStakeAction.CLAIM_REWARDS -> StakeAction.ClaimRewards
-    },
+    destination = destination,
     isEnabled = isEnabled,
     requiresFrozenBalance = requiresFrozenBalance,
     model = ListItemModel(

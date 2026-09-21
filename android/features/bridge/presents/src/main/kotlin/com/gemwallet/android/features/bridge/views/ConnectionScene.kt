@@ -19,15 +19,19 @@ import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.models.ListPosition
 
 @Composable
 fun ConnectionScene(onCancel: () -> Unit, viewModel: ConnectionViewModel = hiltViewModel()) {
     val connectionListItem by viewModel.connectionListItem.collectAsStateWithLifecycle()
     val rows by viewModel.rows.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
+    val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 
     Scene(
         title = stringResource(id = R.string.wallet_connect_title),
+        snackbar = snackbar,
         mainAction = {
             TextButton(
                 modifier = Modifier.fillMaxWidth(),

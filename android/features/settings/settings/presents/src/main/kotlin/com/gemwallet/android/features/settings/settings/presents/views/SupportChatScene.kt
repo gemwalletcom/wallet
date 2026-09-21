@@ -35,7 +35,6 @@ import com.gemwallet.android.ui.components.empty.EmptyStateView
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
@@ -46,7 +45,7 @@ fun SupportChatNavScreen(onCancel: () -> Unit, viewModel: SupportChatSceneViewMo
     val isEmpty by viewModel.isEmpty.collectAsStateWithLifecycle()
     val typingAgentName by viewModel.typingAgentName.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
-    val snackbar = rememberSnackbarState(message = error?.text(), iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
+    val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
     var previewUrl by remember { mutableStateOf<String?>(null) }
 
     val imagePicker = rememberLauncherForActivityResult(PickVisualMedia()) { uri ->

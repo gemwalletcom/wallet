@@ -1,7 +1,7 @@
 use std::{collections::HashMap, sync::Arc, time::Duration};
 
+use node_probes::node_check_request;
 use primitives::Chain;
-use primitives::node_check_request;
 use tokio::sync::RwLock;
 
 use super::chain_monitor::ChainMonitor;

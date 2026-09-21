@@ -1,6 +1,7 @@
 use std::{collections::HashMap, iter, sync::Arc, time::Duration};
 
-use primitives::{Chain, NodeCheckRequest};
+use chain_traits::node_check::NodeCheckRequest;
+use primitives::Chain;
 use tokio::sync::RwLock;
 
 use super::chain_monitor::MonitorCycleSource;

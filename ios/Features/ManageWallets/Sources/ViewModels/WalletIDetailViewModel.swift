@@ -22,6 +22,7 @@ public final class WalletDetailViewModel {
     private let navigationPath: Binding<NavigationPath>
     private let service: any GemWalletServiceProtocol
     private let preferences: ObservablePreferences
+    private let biometry: any BiometryAuthenticatable
 
     var nameInput: String
     var isPresentingAlertMessage: AlertMessage?
@@ -38,10 +39,12 @@ public final class WalletDetailViewModel {
         wallet: Wallet,
         service: any GemWalletServiceProtocol,
         preferences: ObservablePreferences,
+        biometry: any BiometryAuthenticatable,
     ) {
         self.navigationPath = navigationPath
         self.service = service
         self.preferences = preferences
+        self.biometry = biometry
         nameInput = wallet.name
         isPresentingAlertMessage = nil
         isPresentingDeleteConfirmation = nil
@@ -135,6 +138,9 @@ extension WalletDetailViewModel {
 
     func onDelete() async -> Bool {
         do {
+            guard try await biometry.authenticateIfRequired(reason: Localized.Settings.Security.authentication) else {
+                return false
+            }
             try await delete()
             return true
         } catch let error as GemServiceError {

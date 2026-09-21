@@ -10,7 +10,7 @@ import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.util.Locale
 
-class CurrencyFormatter(private val type: Type = Type.Currency, private val currencyCode: String, private val locale: Locale = Locale.getDefault()) {
+class CurrencyFormatter(private val type: Type = Type.Currency, val currencyCode: String, val locale: Locale = Locale.getDefault()) {
     constructor(
         type: Type = Type.Currency,
         currency: Currency,
@@ -44,7 +44,7 @@ class CurrencyFormatter(private val type: Type = Type.Currency, private val curr
         currencyFormatter.format(value, precision(value.abs()))
     }
 
-    private val style: GemCurrencyStyle
+    val style: GemCurrencyStyle
         get() = when (type) {
             Type.Currency -> GemCurrencyStyle.CURRENCY
             Type.Fiat -> GemCurrencyStyle.FIAT

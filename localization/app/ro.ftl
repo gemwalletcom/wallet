@@ -396,6 +396,7 @@ stake_active_in = Activ în
 stake_minimum_amount = Suma minimă
 stake_state_empty_title = Mizele tale vor apărea aici
 stake_state_empty_description = Mizează primul tău %@
+stake_state_empty_validators_title = Nu s-au găsit validatori
 stake_resource = Resursă
 stake_resource_energy = Energie
 stake_resource_bandwidth = Lățime de bandă
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = În sincronizare
 nodes_import_node_latest_block = Ultimul bloc
 nodes_import_node_latency = Latența
 nodes_gem_wallet_node = Gem Wallet Node
+nodes_stream = Flux
 nodes_import_node_warning_message = Nodurile personalizate pot fi rău intenționate și pot expune datele tranzacțiilor sau pot furniza informații false.
 
 # Library

@@ -1,5 +1,7 @@
-use primitives::{block_explorer::get_block_explorer, chain::Chain};
 use std::str::FromStr;
+
+use block_explorers::{get_block_explorer, swap_explorer};
+use primitives::Chain;
 use swapper::SwapperProvider;
 
 use super::remote_types::GemExplorerInput;
@@ -30,7 +32,7 @@ impl Explorer {
 
     pub fn get_transaction_swap_url(&self, explorer_name: &str, input: GemExplorerInput, provider_id: &str) -> Option<ExplorerURL> {
         let provider = SwapperProvider::from_str(provider_id).ok()?;
-        let explorer = provider.swap_explorer(self.chain).unwrap_or_else(|| get_block_explorer(self.chain, explorer_name));
+        let explorer = swap_explorer(provider, self.chain).unwrap_or_else(|| get_block_explorer(self.chain, explorer_name));
         Some(ExplorerURL::new(&explorer.name(), &explorer.get_swap_tx_url(&input)))
     }
 
@@ -54,8 +56,9 @@ impl Explorer {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use block_explorers::get_block_explorers;
     use gem_solana::USDT_TOKEN_MINT;
-    use primitives::{asset_constants::TON_USDT_TOKEN_ID, block_explorer::get_block_explorers};
+    use primitives::asset_constants::TON_USDT_TOKEN_ID;
 
     #[test]
     fn test_bitcoin_explorers() {

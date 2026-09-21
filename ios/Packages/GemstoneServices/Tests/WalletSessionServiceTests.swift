@@ -32,4 +32,21 @@ struct WalletSessionServiceTests {
         #expect(current?.name == "Second")
         #expect(current?.accounts == second.accounts)
     }
+
+    @Test
+    func aWalletThatIsGoneReadsAsAnErrorInsteadOfAnEmptyScreen() async throws {
+        let wallet = Wallet.mock(id: .mock(address: "0x1"), name: "First")
+        let service = try GemWalletSessionService.mock(store: WalletStore.mock(db: .mockWithWallets([wallet])))
+
+        #expect(try await service.requireWallet(walletId: wallet.id).name == "First")
+        await #expect(throws: (any Error).self) {
+            try await service.requireWallet(walletId: .mock(address: "0xmissing"))
+        }
+        await #expect(throws: (any Error).self) {
+            try await service.requireCurrentWallet()
+        }
+
+        try service.setCurrent(walletId: wallet.id)
+        #expect(try await service.requireCurrentWallet().id == wallet.id.id)
+    }
 }

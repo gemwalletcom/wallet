@@ -12,7 +12,7 @@ pub mod fetch_prices_metadata_consumer;
 pub mod fetch_token_addresses_consumer;
 pub mod fetch_transaction_consumer;
 
-use primitives::ConfigKey;
+use config_keys::ConfigKey;
 use std::error::Error;
 use std::sync::Arc;
 use std::time::Duration;

@@ -32,13 +32,7 @@ public struct NotificationsScene: View {
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)
         .onChange(of: model.isEnabled) { _, newValue in
-            Task {
-                do {
-                    try await model.enable(isEnabled: newValue)
-                } catch {
-                    model.isPresentingAlertMessage = AlertMessage(error: error)
-                }
-            }
+            Task { await model.enable(isEnabled: newValue) }
         }
         .alertSheet($model.isPresentingAlertMessage)
         .navigationTitle(model.title)

@@ -31,16 +31,23 @@ struct SimulationPayloadFieldViewModelTests {
     }
 
     @Test
-    func timestampRowFormatsTheRelativeDate() {
-        let formatter = RelativeDateFormatter()
+    func timestampRowReadsThroughTheRowDateRenderer() {
         let viewModel = SimulationPayloadFieldViewModel(
             row: GemSimulationPayloadRow(title: .expiration, value: .timestamp(unixMs: 1_662_714_817_000)),
-            relativeDateFormatter: formatter,
         )
 
         #expect(viewModel.title == Localized.Common.expiration)
-        #expect(viewModel.subtitle == formatter.string(from: Date(timeIntervalSince1970: 1_662_714_817)))
+        #expect(viewModel.subtitle == TransactionDateFormatter(date: Date(timeIntervalSince1970: 1_662_714_817)).row)
         #expect(viewModel.contextMenuItems.isEmpty)
+    }
+
+    @Test
+    func aMissingTimestampReadsAsNothingRatherThan1970() {
+        let viewModel = SimulationPayloadFieldViewModel(
+            row: GemSimulationPayloadRow(title: .expiration, value: .timestamp(unixMs: 0)),
+        )
+
+        #expect(viewModel.subtitle.isEmpty)
     }
 
     @Test

@@ -98,10 +98,11 @@ private extension GemFormattedNumber {
 
     func abbreviatedText(locale: Locale) -> String {
         let formatter = AbbreviatedFormatter(locale: locale)
+        let magnitude = showsSign ? abs(value) : value
         if let currencyCode {
-            return formatter.string(from: value, currency: currencyCode, rule: roundingRule) ?? numberText(precision: .fraction(min: 2, max: 2), locale: locale)
+            return signText + (formatter.string(from: magnitude, currency: currencyCode, rule: roundingRule) ?? numberText(precision: .fraction(min: 2, max: 2), locale: locale))
         }
-        return appendingSymbol(formatter.string(from: value, rule: roundingRule) ?? numberText(precision: .fraction(min: 2, max: 2), locale: locale))
+        return appendingSymbol(signText + (formatter.string(from: magnitude, rule: roundingRule) ?? numberText(precision: .fraction(min: 2, max: 2), locale: locale)))
     }
 
     func thresholdText(_ threshold: Double, places: UInt32, locale: Locale) -> String {

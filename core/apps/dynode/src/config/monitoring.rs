@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use primitives::NodeCheckProfile;
+use chain_traits::node_check::NodeCheckProfile;
 use serde::Deserialize;
 use serde_serializers::duration;
 

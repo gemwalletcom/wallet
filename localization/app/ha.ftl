@@ -396,6 +396,7 @@ stake_active_in = Active In
 stake_minimum_amount = Mafi ƙarancin adadin
 stake_state_empty_title = Hannun jarinku zai bayyana a nan
 stake_state_empty_description = Bada %@ na farko
+stake_state_empty_validators_title = Ba a sami masu tabbatarwa ba
 stake_resource = Albarkatu
 stake_resource_energy = Makamashi
 stake_resource_bandwidth = Bandwidth
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = A cikin Daidaitawa
 nodes_import_node_latest_block = Sabbin Block
 nodes_import_node_latency = Latency
 nodes_gem_wallet_node = Gem Wallet Node
+nodes_stream = Stream
 nodes_import_node_warning_message = Maɓallan da aka keɓance na iya zama masu cutarwa kuma suna iya fallasa bayanan ma'amalar ku ko kuma samar da bayanan karya.
 
 # Library

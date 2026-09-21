@@ -1,11 +1,19 @@
 use super::rules;
 use crate::config::swap_config::get_swap_config;
+use crate::formatted_number::GemFormattedNumber;
 use crate::models::swap::GemSlippageCheck;
+use crate::percentage::GemPercentageStyle;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemSlippageSelection {
     Auto,
     Manual { bps: u32 },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemSlippageSuggestion {
+    pub bps: u32,
+    pub percent: GemFormattedNumber,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -15,9 +23,11 @@ pub struct GemSlippageViewState {
     pub allows_confirm: bool,
     pub shows_warning: bool,
     pub selection: GemSlippageSelection,
-    pub suggestions_bps: Vec<u32>,
+    pub suggestions: Vec<GemSlippageSuggestion>,
     pub minimum_bps: u32,
     pub maximum_bps: u32,
+    pub minimum: GemFormattedNumber,
+    pub maximum: GemFormattedNumber,
     pub maximum_fraction_digits: u32,
     pub maximum_integer_digits: u32,
 }
@@ -51,13 +61,19 @@ impl GemSlippageSession {
                 true => GemSlippageSelection::Auto,
                 false => GemSlippageSelection::Manual { bps: self.bps },
             },
-            suggestions_bps: config.slippage_suggestions_bps.clone(),
+            suggestions: config.slippage_suggestions_bps.iter().map(|bps| GemSlippageSuggestion { bps: *bps, percent: percent(*bps) }).collect(),
             minimum_bps: config.min_slippage_bps,
             maximum_bps: config.max_slippage_bps,
+            minimum: percent(config.min_slippage_bps),
+            maximum: percent(config.max_slippage_bps),
             maximum_fraction_digits: SLIPPAGE_FRACTION_DIGITS,
             maximum_integer_digits: rules::slippage_percent(config.max_slippage_bps).trunc().to_string().len() as u32,
         }
     }
+}
+
+fn percent(bps: u32) -> GemFormattedNumber {
+    GemFormattedNumber::percentage(rules::slippage_percent(bps), GemPercentageStyle::UnsignedCompact)
 }
 
 const SLIPPAGE_FRACTION_DIGITS: u32 = 2;
@@ -65,6 +81,19 @@ const SLIPPAGE_FRACTION_DIGITS: u32 = 2;
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_a_slippage_suggestion_carries_a_percent_no_app_has_to_sign() {
+        let state = GemSlippageSession::new(GemSlippageSelection::Auto).view_state();
+
+        assert_eq!(state.suggestions.iter().map(|suggestion| suggestion.bps).collect::<Vec<_>>(), get_swap_config().slippage_suggestions_bps);
+        assert!(
+            state.suggestions.iter().all(|suggestion| suggestion.percent.unit == crate::formatted_number::GemNumberUnit::Percent),
+            "a percent the apps append a literal sign to reads wrong in fr and tr"
+        );
+        assert_eq!(state.minimum.value, rules::slippage_percent(get_swap_config().min_slippage_bps));
+        assert_eq!(state.maximum.value, rules::slippage_percent(get_swap_config().max_slippage_bps));
+    }
 
     #[test]
     fn test_auto_confirms_whatever_the_input_says() {

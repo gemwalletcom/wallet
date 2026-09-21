@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use super::sync::{SearchSyncClient, SearchSyncResult};
-use primitives::ConfigKey;
+use config_keys::ConfigKey;
 use search_index::{ASSETS_INDEX_NAME, AssetDocument, SearchIndexClient, sanitize_index_primary_id};
 use storage::models::{AssetTagRow, PriceAssetDataRow};
 use storage::{AssetsUsageRanksRepository, AssetsWithPricesFilter, Database, PricesRepository, TagRepository};

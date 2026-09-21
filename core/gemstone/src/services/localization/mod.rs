@@ -33,6 +33,8 @@ pub enum GemLocalizedText {
     PriceImpactWarning { percent: GemFormattedNumber, symbol: String },
     Balance { amount: GemFormattedNumber },
     StakeProvider { provider: StakeProviderType },
+    NftCollections,
+    NftUnverified,
     PositionChange { change: GemPositionChange, direction: PerpetualDirection },
 }
 

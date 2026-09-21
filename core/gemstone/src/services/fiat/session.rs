@@ -172,6 +172,10 @@ impl GemFiatSession {
         self.current().quote_request()
     }
 
+    pub fn refreshes_quotes(&self, is_screen_active: bool) -> bool {
+        is_screen_active && !matches!(self.current().phase, GemFiatQuotePhase::Failed { .. })
+    }
+
     pub fn on_fetch_started(&self, request: GemFiatQuoteRequest) -> GemFiatSession {
         self.with_operation(self.operation(request.quote_type).on_fetch_started(&request))
     }
@@ -593,5 +597,37 @@ mod tests {
             Some(GemFiatQuotesMessage::Failed { error: GemErrorText::NetworkOffline }),
             "a failed quote names its error on both apps instead of a generic one"
         );
+    }
+
+    #[test]
+    fn test_a_failed_quote_stops_the_clock_and_an_off_screen_session_never_polls() {
+        let session = GemFiatSession::new(FiatQuoteType::Buy, Some(50));
+        let request = session.quote_request().unwrap();
+
+        assert!(session.refreshes_quotes(true));
+        assert!(!session.refreshes_quotes(false), "a backgrounded screen asks for nothing");
+
+        let failed = session.on_fetch_started(request.clone()).on_quote_results(GemFiatQuotesResult {
+            request: request.clone(),
+            quotes: vec![],
+            error: Some(GemServiceError::Offline),
+        });
+        assert!(!failed.refreshes_quotes(true), "the retry button owns the next request");
+
+        assert!(failed.on_amount_changed("75".to_string()).refreshes_quotes(true), "a new amount starts the clock again");
+    }
+
+    #[test]
+    fn test_the_other_side_of_the_session_keeps_its_own_clock() {
+        let session = GemFiatSession::new(FiatQuoteType::Buy, Some(50));
+        let request = session.quote_request().unwrap();
+        let failed = session.on_fetch_started(request.clone()).on_quote_results(GemFiatQuotesResult {
+            request,
+            quotes: vec![],
+            error: Some(GemServiceError::Offline),
+        });
+
+        assert!(!failed.refreshes_quotes(true));
+        assert!(failed.on_type_changed(FiatQuoteType::Sell).refreshes_quotes(true), "the sell side never failed");
     }
 }

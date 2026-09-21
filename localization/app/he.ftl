@@ -396,6 +396,7 @@ stake_active_in = פעיל בעוד
 stake_minimum_amount = סכום מינימלי
 stake_state_empty_title = ההימור שלך יופיע כאן
 stake_state_empty_description = החזק את %@ הראשון שלך
+stake_state_empty_validators_title = לא נמצאו מאמתים
 stake_resource = מַשׁאָב
 stake_resource_energy = אֵנֶרְגִיָה
 stake_resource_bandwidth = רוחב פס
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = בסנכרון
 nodes_import_node_latest_block = הבלוק האחרון
 nodes_import_node_latency = חביון
 nodes_gem_wallet_node = Gem Wallet Node
+nodes_stream = זרימה
 nodes_import_node_warning_message = צמתים מותאמים אישית עלולים להיות זדוניים ולחשוף את נתוני העסקאות שלך או לספק מידע כוזב.
 
 # Library

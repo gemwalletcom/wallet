@@ -14,31 +14,26 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.domains.wallet.aggregates.WalletDataAggregate
 import com.gemwallet.android.features.wallet.presents.dialogs.ConfirmWalletDeleteDialog
 import com.gemwallet.android.features.wallets.viewmodels.WalletsViewModel
+import com.gemwallet.android.features.wallets.viewmodels.models.WalletItemUIModel
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.WalletRowUIModel
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.wallet.core.primitives.WalletId
-import uniffi.gemstone.GemWalletPlaceholder
-import uniffi.gemstone.GemWalletRow
-import uniffi.gemstone.GemWalletSubtitle
 
 @Composable
 fun WalletsScreen(onCreateWallet: () -> Unit, onImportWallet: () -> Unit, onEditWallet: (WalletId) -> Unit, onSelectWallet: () -> Unit, onBoard: () -> Unit, onCancel: () -> Unit) {
     val viewModel: WalletsViewModel = hiltViewModel()
-    val wallets by viewModel.wallets.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
-    val walletSections = remember(wallets) {
-        wallets.toWalletSections()
-    }
 
     var deleteWalletId by remember { mutableStateOf<WalletId?>(null) }
 
     WalletsScene(
-        pinnedWallets = walletSections.pinnedWallets,
-        unpinnedWallets = walletSections.unpinnedWallets,
+        pinnedWallets = uiState.pinned,
+        unpinnedWallets = uiState.unpinned,
         snackbar = snackbar,
         onAction = { action ->
             when (action) {
@@ -55,7 +50,7 @@ fun WalletsScreen(onCreateWallet: () -> Unit, onImportWallet: () -> Unit, onEdit
 
     deleteWalletId?.let { pendingDeleteWalletId ->
         ConfirmWalletDeleteDialog(
-            walletName = walletSections.allWallets.firstOrNull { it.row.id == pendingDeleteWalletId.id }?.row?.name ?: "",
+            walletName = uiState.name(pendingDeleteWalletId),
             onConfirm = {
                 deleteWalletId = null
                 viewModel.deleteWallet(walletId = pendingDeleteWalletId, onBoard)
@@ -66,82 +61,26 @@ fun WalletsScreen(onCreateWallet: () -> Unit, onImportWallet: () -> Unit, onEdit
     }
 }
 
-internal data class WalletSections(val pinnedWallets: List<WalletDataAggregate>, val unpinnedWallets: List<WalletDataAggregate>) {
-    val allWallets: List<WalletDataAggregate>
-        get() = pinnedWallets + unpinnedWallets
-}
-
-internal fun List<WalletDataAggregate>.toWalletSections(): WalletSections {
-    val (pinnedWallets, unpinnedWallets) = partition { it.row.isPinned }
-    return WalletSections(
-        pinnedWallets = pinnedWallets,
-        unpinnedWallets = unpinnedWallets,
-    )
-}
-
 @Preview
 @Composable
 fun PreviewWalletScreen() {
+    val wallet = { id: String, name: String, isCurrent: Boolean, isPinned: Boolean ->
+        WalletItemUIModel(
+            walletId = WalletId(id),
+            row = WalletRowUIModel(id = id, name = name, subtitle = "Multicoin", icon = R.drawable.multicoin_wallet, supportIcon = null),
+            isCurrent = isCurrent,
+            isPinned = isPinned,
+        )
+    }
     MaterialTheme {
         Box {
             WalletsScene(
                 unpinnedWallets = listOf(
-                    object : WalletDataAggregate {
-                        override val isCurrent: Boolean = true
-                        override val row: GemWalletRow = GemWalletRow(
-                            id = "1",
-                            name = "Foo wallet #1",
-                            subtitle = GemWalletSubtitle.Multicoin,
-                            placeholder = GemWalletPlaceholder.Multicoin,
-                            showsWatchBadge = false,
-                            isPinned = false,
-                            hasAvatar = false,
-                            imageUrl = null,
-                        )
-                    },
-                    object : WalletDataAggregate {
-                        override val isCurrent: Boolean = false
-                        override val row: GemWalletRow = GemWalletRow(
-                            id = "2",
-                            name = "Foo wallet #2",
-                            subtitle = GemWalletSubtitle.Multicoin,
-                            placeholder = GemWalletPlaceholder.Multicoin,
-                            showsWatchBadge = false,
-                            isPinned = false,
-                            hasAvatar = false,
-                            imageUrl = null,
-                        )
-                    },
-                    object : WalletDataAggregate {
-                        override val isCurrent: Boolean = false
-                        override val row: GemWalletRow = GemWalletRow(
-                            id = "3",
-                            name = "Foo wallet #3",
-                            subtitle = GemWalletSubtitle.Multicoin,
-                            placeholder = GemWalletPlaceholder.Multicoin,
-                            showsWatchBadge = false,
-                            isPinned = false,
-                            hasAvatar = false,
-                            imageUrl = null,
-                        )
-                    },
+                    wallet("1", "Foo wallet #1", true, false),
+                    wallet("2", "Foo wallet #2", false, false),
+                    wallet("3", "Foo wallet #3", false, false),
                 ),
-                pinnedWallets = listOf(
-
-                    object : WalletDataAggregate {
-                        override val isCurrent: Boolean = true
-                        override val row: GemWalletRow = GemWalletRow(
-                            id = "4",
-                            name = "Foo wallet #4",
-                            subtitle = GemWalletSubtitle.Multicoin,
-                            placeholder = GemWalletPlaceholder.Multicoin,
-                            showsWatchBadge = false,
-                            isPinned = false,
-                            hasAvatar = false,
-                            imageUrl = null,
-                        )
-                    },
-                ),
+                pinnedWallets = listOf(wallet("4", "Foo wallet #4", true, true)),
                 onAction = {},
             )
         }

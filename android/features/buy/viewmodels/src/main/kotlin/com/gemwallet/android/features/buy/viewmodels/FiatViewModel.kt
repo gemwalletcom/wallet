@@ -40,7 +40,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
@@ -145,7 +147,10 @@ class FiatViewModel @Inject constructor(
         provider?.let { ListItemModel(title = context.getString(R.string.buy_rate), subtitle = it.rate) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val ticker = tickerFlow(service.quoteRefreshIntervalMilliseconds().toLong()) {}
+    private val refreshEnabled = MutableStateFlow(false)
+    private val ticker = combine(refreshEnabled, session) { isEnabled, quoteSession -> quoteSession.refreshesQuotes(isEnabled) }
+        .distinctUntilChanged()
+        .flatMapLatest { refreshes -> if (refreshes) tickerFlow(service.quoteRefreshIntervalMilliseconds().toLong()) {} else emptyFlow() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
     private val quoteRetry = MutableStateFlow(0L)
 
@@ -203,6 +208,10 @@ class FiatViewModel @Inject constructor(
 
     fun retry() {
         quoteRetry.value += 1
+    }
+
+    fun setRefreshEnabled(isEnabled: Boolean) {
+        refreshEnabled.value = isEnabled
     }
 
     suspend fun quoteUrl(): Result<String> {

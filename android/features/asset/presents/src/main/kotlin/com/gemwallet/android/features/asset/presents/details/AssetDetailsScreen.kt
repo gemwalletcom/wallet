@@ -5,13 +5,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.features.asset.viewmodels.details.models.AssetDetailsAction
 import com.gemwallet.android.features.asset.viewmodels.details.viewmodels.AssetDetailsViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.ToastEffect
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
-import com.gemwallet.android.ui.localization.text
 
 @Composable
 fun AssetDetailsScreen(onAction: (AssetDetailsAction.Navigation) -> Unit) {
@@ -20,7 +20,7 @@ fun AssetDetailsScreen(onAction: (AssetDetailsAction.Navigation) -> Unit) {
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
     val transactionsErrorRow by viewModel.transactionsErrorRow.collectAsStateWithLifecycle()
     val priceAlertError by viewModel.error.collectAsStateWithLifecycle()
-    val snackBar = rememberSnackbarState(message = priceAlertError?.text(), iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
+    val snackBar = rememberSnackbarState(message = priceAlertError, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
     ToastEffect(viewModel.toastEvents, snackBar)
     val uiModel by viewModel.uiModel.collectAsStateWithLifecycle()
 

@@ -7,11 +7,14 @@ use std::thread;
 use crate::{Keystore, KeystoreError, KeystoreId};
 
 use super::super::{
-    constants::AES_GCM_TAG_LEN,
+    constants::{AES_GCM_TAG_LEN, MAX_ARGON2_ITERATIONS, MAX_ARGON2_MEMORY_KIB, MAX_ARGON2_PARALLELISM, MIN_ARGON2_ITERATIONS, MIN_ARGON2_MEMORY_KIB, MIN_ARGON2_PARALLELISM},
     format::{FileV4, parse_v4},
     types::{FileKeystore, KdfParams, SecretKind},
 };
 use super::testkit::{PHRASE, assert_verify_path_error, v4_path, write_tampered};
+
+const HISTORICAL_ARGON2_MEMORY_KIB: u32 = 65_536;
+const HISTORICAL_ARGON2_ITERATIONS: u32 = 3;
 
 #[cfg(unix)]
 #[test]
@@ -144,7 +147,7 @@ fn test_v4_rejects_roundtrip_tampering() {
     tamper(&|file| file.kind = "private_key".to_string());
     assert_verify_path_error(&tampered_path, password, KeystoreError::AuthenticationFailed);
 
-    tamper(&|file| file.crypto.kdf.memory_kib = 8);
+    tamper(&|file| file.crypto.kdf.memory_kib += 1);
     assert_verify_path_error(&tampered_path, password, KeystoreError::AuthenticationFailed);
 
     tamper(&|file| file.crypto.kdf.salt = flip_hex_at(&file.crypto.kdf.salt, 0));
@@ -159,6 +162,38 @@ fn test_v4_rejects_roundtrip_tampering() {
     // The last ciphertext byte is part of the GCM tag.
     tamper(&|file| file.crypto.ciphertext = flip_hex_at(&file.crypto.ciphertext, file.crypto.ciphertext.len() - 1));
     assert_verify_path_error(&tampered_path, password, KeystoreError::AuthenticationFailed);
+}
+
+#[test]
+fn test_v4_argon2_parameter_bounds() {
+    let parse_error = |file: &FileV4| parse_v4(&serde_json::to_vec(file).unwrap()).unwrap_err();
+
+    let mut file = FileV4::mock();
+    file.crypto.kdf.memory_kib = MIN_ARGON2_MEMORY_KIB;
+    file.crypto.kdf.iterations = MIN_ARGON2_ITERATIONS;
+    file.crypto.kdf.parallelism = MIN_ARGON2_PARALLELISM;
+    parse_v4(&serde_json::to_vec(&file).unwrap()).unwrap();
+
+    file.crypto.kdf.memory_kib = HISTORICAL_ARGON2_MEMORY_KIB;
+    file.crypto.kdf.iterations = HISTORICAL_ARGON2_ITERATIONS;
+    parse_v4(&serde_json::to_vec(&file).unwrap()).unwrap();
+
+    file.crypto.kdf.memory_kib = MIN_ARGON2_MEMORY_KIB - 1;
+    assert_eq!(parse_error(&file), KeystoreError::corrupt_file("invalid Argon2 memory"));
+    file.crypto.kdf.memory_kib = MAX_ARGON2_MEMORY_KIB + 1;
+    assert_eq!(parse_error(&file), KeystoreError::corrupt_file("invalid Argon2 memory"));
+
+    file = FileV4::mock();
+    file.crypto.kdf.iterations = MIN_ARGON2_ITERATIONS - 1;
+    assert_eq!(parse_error(&file), KeystoreError::corrupt_file("invalid Argon2 iterations"));
+    file.crypto.kdf.iterations = MAX_ARGON2_ITERATIONS + 1;
+    assert_eq!(parse_error(&file), KeystoreError::corrupt_file("invalid Argon2 iterations"));
+
+    file = FileV4::mock();
+    file.crypto.kdf.parallelism = MIN_ARGON2_PARALLELISM - 1;
+    assert_eq!(parse_error(&file), KeystoreError::corrupt_file("invalid Argon2 parallelism"));
+    file.crypto.kdf.parallelism = MAX_ARGON2_PARALLELISM + 1;
+    assert_eq!(parse_error(&file), KeystoreError::corrupt_file("invalid Argon2 parallelism"));
 }
 
 #[test]

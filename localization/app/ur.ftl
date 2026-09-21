@@ -396,6 +396,7 @@ stake_active_in = میں ایکٹو
 stake_minimum_amount = کم از کم رقم
 stake_state_empty_title = آپ کے اسٹیکس یہاں ظاہر ہوں گے۔
 stake_state_empty_description = اپنا پہلا حصہ %@
+stake_state_empty_validators_title = کوئی تصدیق کنندہ نہیں ملا
 stake_resource = وسیلہ
 stake_resource_energy = توانائی
 stake_resource_bandwidth = بینڈوتھ
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = مطابقت پذیری میں
 nodes_import_node_latest_block = تازہ ترین بلاک
 nodes_import_node_latency = تاخیر
 nodes_gem_wallet_node = Gem Wallet Node
+nodes_stream = اسٹریم
 nodes_import_node_warning_message = حسب ضرورت نوڈس بدنیتی پر مبنی ہو سکتے ہیں اور آپ کے لین دین کے ڈیٹا کو بے نقاب کر سکتے ہیں یا غلط معلومات فراہم کر سکتے ہیں۔
 
 # Library

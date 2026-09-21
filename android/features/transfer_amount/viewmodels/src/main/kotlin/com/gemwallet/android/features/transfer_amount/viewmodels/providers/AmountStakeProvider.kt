@@ -6,11 +6,13 @@ import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.features.transfer_amount.viewmodels.models.AmountExtrasUIModel
 import com.gemwallet.android.features.transfer_amount.viewmodels.models.ValidatorsUIModel
 import com.gemwallet.android.features.transfer_amount.viewmodels.models.uiModel
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.ui.components.list_item.uiModel
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.Resource
@@ -68,6 +70,8 @@ class AmountStakeProvider(
         },
     )
     val resource: StateFlow<Resource> = selectedResource.asStateFlow()
+
+    val resourceOptions: List<Resource> by lazy { stakeService.resourceOptions(params.assetId.chain.string).map { it.toPrimitives() } }
 
     fun setResource(value: Resource) {
         selectedResource.update { value }
@@ -156,6 +160,14 @@ class AmountStakeProvider(
     fun selectValidator(id: String?) {
         selectedValidatorId.update { id }
     }
+
+    override val extras: StateFlow<AmountExtrasUIModel> = when (params) {
+        is AmountParams.Stake.Freeze, is AmountParams.Stake.Unfreeze -> selectedResource.map { AmountExtrasUIModel.Resources(resourceOptions, it) }
+
+        else -> combine(validatorState, canSelectValidator) { row, canSelect ->
+            row?.let { AmountExtrasUIModel.Validator(it.uiModel(), canSelect) } ?: AmountExtrasUIModel.None
+        }
+    }.stateIn(scope, SharingStarted.Eagerly, AmountExtrasUIModel.None)
 
     override val amountType: StateFlow<GemAmountType?> =
         combine(selected, selectedResource) { current, resource -> current?.confirmed(resource)?.amountType() }

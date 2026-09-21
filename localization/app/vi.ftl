@@ -396,6 +396,7 @@ stake_active_in = Đang hoạt động ở
 stake_minimum_amount = Số tiền tối thiểu
 stake_state_empty_title = Khoản đặt cọc của bạn sẽ xuất hiện ở đây
 stake_state_empty_description = Đặt cược %@ đầu tiên của bạn
+stake_state_empty_validators_title = Không tìm thấy trình xác thực nào
 stake_resource = Tài nguyên
 stake_resource_energy = Năng lượng
 stake_resource_bandwidth = Băng thông
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = Đồng bộ hóa
 nodes_import_node_latest_block = Khối mới nhất
 nodes_import_node_latency = Độ trễ
 nodes_gem_wallet_node = Gem Wallet Node
+nodes_stream = Luồng
 nodes_import_node_warning_message = Các node tùy chỉnh có thể chứa mã độc và có thể làm lộ dữ liệu giao dịch của bạn hoặc cung cấp thông tin sai lệch.
 
 # Library

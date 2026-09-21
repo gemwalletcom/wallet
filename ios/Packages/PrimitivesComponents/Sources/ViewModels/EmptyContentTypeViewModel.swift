@@ -56,6 +56,7 @@ private extension EmptyContentType {
         case .activity: .activity
         case .stake: .stake
         case .earn: .earn
+        case .validators: .validators
         case .walletConnect: .walletConnect
         case .notifications: .notifications
         case .recents: .recents
@@ -75,7 +76,7 @@ private extension EmptyContentType {
         switch self {
         case let .asset(_, _, _, isViewOnly): isViewOnly
         case let .activity(_, _, isViewOnly): isViewOnly
-        case .nfts, .priceAlerts, .stake, .earn, .walletConnect, .notifications, .recents, .contacts, .networkAssets, .search: false
+        case .nfts, .priceAlerts, .stake, .earn, .validators, .walletConnect, .notifications, .recents, .contacts, .networkAssets, .search: false
         }
     }
 
@@ -84,7 +85,7 @@ private extension EmptyContentType {
         case let .asset(symbol, _, _, _): symbol
         case let .stake(symbol): symbol
         case let .earn(symbol): symbol
-        case .nfts, .priceAlerts, .activity, .walletConnect, .notifications, .recents, .contacts, .networkAssets, .search: .empty
+        case .nfts, .priceAlerts, .activity, .validators, .walletConnect, .notifications, .recents, .contacts, .networkAssets, .search: .empty
         }
     }
 
@@ -104,7 +105,7 @@ private extension EmptyContentType {
             case .activity: [GemEmptyStateAction.clearFilters: action].compactMapValues { $0 }
             case .networks, .perpetuals: [:]
             }
-        case .priceAlerts, .stake, .earn, .walletConnect, .notifications, .recents, .contacts:
+        case .priceAlerts, .stake, .earn, .validators, .walletConnect, .notifications, .recents, .contacts:
             [:]
         }
     }

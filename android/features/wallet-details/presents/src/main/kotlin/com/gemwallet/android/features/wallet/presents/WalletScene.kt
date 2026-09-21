@@ -21,15 +21,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.domains.wallet.aggregates.WalletDetailsAggregate
 import com.gemwallet.android.features.wallet.presents.components.WalletAddress
 import com.gemwallet.android.features.wallet.presents.dialogs.ConfirmWalletDeleteDialog
+import com.gemwallet.android.features.wallet.viewmodels.models.WalletDetailsUIModel
 import com.gemwallet.android.features.wallet.viewmodels.models.WalletSecretUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.image.WalletAvatar
 import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.iconModel
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
@@ -39,12 +38,12 @@ import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 
 @Composable
-internal fun WalletScene(wallet: WalletDetailsAggregate?, secret: WalletSecretUIModel?, snackbar: SnackbarHostState? = null, onAction: (WalletAction) -> Unit) {
+internal fun WalletScene(wallet: WalletDetailsUIModel?, secret: WalletSecretUIModel?, snackbar: SnackbarHostState? = null, onAction: (WalletAction) -> Unit) {
     wallet ?: return
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    var walletName by remember(wallet.row.name) {
-        mutableStateOf(wallet.row.name)
+    var walletName by remember(wallet.name) {
+        mutableStateOf(wallet.name)
     }
     Scene(
         title = stringResource(id = R.string.common_wallet),
@@ -114,10 +113,10 @@ internal fun WalletScene(wallet: WalletDetailsAggregate?, secret: WalletSecretUI
 }
 
 @Composable
-private fun WalletAvatarHeader(wallet: WalletDetailsAggregate, onClick: () -> Unit) {
+private fun WalletAvatarHeader(wallet: WalletDetailsUIModel, onClick: () -> Unit) {
     WalletAvatar(
-        imageUrl = wallet.row.imageUrl,
-        placeholder = wallet.row.placeholder.iconModel(),
+        imageUrl = wallet.avatar.imageUrl,
+        placeholder = wallet.avatar.placeholder,
         size = extraLargeIconSize,
         modifier = Modifier.padding(vertical = paddingDefault),
         supportIcon = R.drawable.ic_edit_badge,

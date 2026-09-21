@@ -1,6 +1,7 @@
+use config_keys::{ConfigKey, RateLimitKey, RateLimitWindow};
 use gem_tracing::info_with_fields;
 use primitives::rewards::RewardStatus;
-use primitives::{ConfigKey, NaiveDateTimeExt, RateLimitKey, RateLimitWindow, now};
+use primitives::{NaiveDateTimeExt, now};
 use std::error::Error;
 use storage::{AbusePatterns, ConfigCacher, Database, RiskSignalsRepository};
 use streamer::{RewardsNotificationPayload, StreamProducer, StreamProducerQueue};

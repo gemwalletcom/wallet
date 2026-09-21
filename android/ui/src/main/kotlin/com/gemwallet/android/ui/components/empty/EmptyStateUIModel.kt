@@ -51,6 +51,7 @@ private fun EmptyContentType.kind() = when (this) {
     is EmptyContentType.Activity -> GemEmptyStateKind.ACTIVITY
     is EmptyContentType.Stake -> GemEmptyStateKind.STAKE
     is EmptyContentType.Earn -> GemEmptyStateKind.EARN
+    is EmptyContentType.Validators -> GemEmptyStateKind.VALIDATORS
     is EmptyContentType.WalletConnect -> GemEmptyStateKind.WALLET_CONNECT
     is EmptyContentType.Recents -> GemEmptyStateKind.RECENTS
     is EmptyContentType.Notifications -> GemEmptyStateKind.NOTIFICATIONS
@@ -67,9 +68,9 @@ private fun EmptyContentType.isViewOnly() = when (this) {
     is EmptyContentType.Activity -> isViewOnly
 
     is EmptyContentType.Nft, is EmptyContentType.PriceAlerts, is EmptyContentType.Contacts, is EmptyContentType.Stake,
-    is EmptyContentType.Earn, is EmptyContentType.WalletConnect, is EmptyContentType.Recents, is EmptyContentType.Notifications,
-    is EmptyContentType.NetworkAssets, is EmptyContentType.SearchAssets, is EmptyContentType.SearchNetworks,
-    is EmptyContentType.SearchActivity, is EmptyContentType.SearchPerpetuals,
+    is EmptyContentType.Earn, is EmptyContentType.Validators, is EmptyContentType.WalletConnect, is EmptyContentType.Recents,
+    is EmptyContentType.Notifications, is EmptyContentType.NetworkAssets, is EmptyContentType.SearchAssets,
+    is EmptyContentType.SearchNetworks, is EmptyContentType.SearchActivity, is EmptyContentType.SearchPerpetuals,
     -> false
 }
 
@@ -81,9 +82,9 @@ private fun EmptyContentType.symbol() = when (this) {
     is EmptyContentType.Earn -> symbol
 
     is EmptyContentType.Nft, is EmptyContentType.PriceAlerts, is EmptyContentType.Contacts, is EmptyContentType.Activity,
-    is EmptyContentType.WalletConnect, is EmptyContentType.Recents, is EmptyContentType.Notifications,
-    is EmptyContentType.NetworkAssets, is EmptyContentType.SearchAssets, is EmptyContentType.SearchNetworks,
-    is EmptyContentType.SearchActivity, is EmptyContentType.SearchPerpetuals,
+    is EmptyContentType.Validators, is EmptyContentType.WalletConnect, is EmptyContentType.Recents,
+    is EmptyContentType.Notifications, is EmptyContentType.NetworkAssets, is EmptyContentType.SearchAssets,
+    is EmptyContentType.SearchNetworks, is EmptyContentType.SearchActivity, is EmptyContentType.SearchPerpetuals,
     -> ""
 }
 
@@ -107,7 +108,7 @@ private fun EmptyContentType.actions(): Map<GemEmptyStateAction, () -> Unit> = w
     is EmptyContentType.SearchActivity -> listOfNotNull(onClearFilters?.let { GemEmptyStateAction.CLEAR_FILTERS to it }).toMap()
 
     is EmptyContentType.PriceAlerts, is EmptyContentType.Contacts, is EmptyContentType.Stake, is EmptyContentType.Earn,
-    is EmptyContentType.WalletConnect, is EmptyContentType.Recents, is EmptyContentType.Notifications,
-    is EmptyContentType.SearchNetworks, is EmptyContentType.SearchPerpetuals,
+    is EmptyContentType.Validators, is EmptyContentType.WalletConnect, is EmptyContentType.Recents,
+    is EmptyContentType.Notifications, is EmptyContentType.SearchNetworks, is EmptyContentType.SearchPerpetuals,
     -> emptyMap()
 }

@@ -3,10 +3,11 @@ mod pending_transactions_updater;
 mod vault_addresses_updater;
 
 use cacher::CacherClient;
+use config_keys::{ConfigKey, ConfigParamKey};
 use in_transit_updater::{InTransitConfig, InTransitUpdater};
 use job_runner::{JobHandle, ShutdownReceiver};
 use pending_transactions_updater::{PendingTransactionsUpdater, PendingTransactionsUpdaterConfig};
-use primitives::{ConfigKey, ConfigParamKey, JobConfiguration, SwapProvider};
+use primitives::{JobConfiguration, SwapProvider};
 use settings::service_user_agent;
 use settings_chain::{ChainProviders, ProviderFactory};
 use std::error::Error;

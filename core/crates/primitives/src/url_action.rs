@@ -1,4 +1,4 @@
-use crate::{Deeplink, Payment, PaymentURLDecoder, WalletConnectLink};
+use crate::{Deeplink, Payment, WalletConnectLink};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum UrlAction {
@@ -9,18 +9,20 @@ pub enum UrlAction {
 
 impl UrlAction {
     pub fn from_url(url: &str) -> Option<Self> {
-        PaymentURLDecoder::decode(url)
-            .ok()
-            .map(|payment| Self::Payment { payment })
-            .or_else(|| WalletConnectLink::from_url(url).map(|link| Self::WalletConnect { link }))
-            .or_else(|| Deeplink::from_url(url).map(|deeplink| Self::Deeplink { deeplink }))
+        if let Some(link) = WalletConnectLink::from_url(url) {
+            return Some(Self::WalletConnect { link });
+        }
+        if let Some(deeplink) = Deeplink::from_url(url) {
+            return Some(Self::Deeplink { deeplink });
+        }
+        None
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{AssetId, Chain, PaymentAmount, PaymentRequest};
+    use crate::{AssetId, Chain};
 
     #[test]
     fn test_from_url() {
@@ -46,32 +48,7 @@ mod tests {
                 },
             })
         );
-        assert_eq!(
-            UrlAction::from_url("bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=0.1"),
-            Some(UrlAction::Payment {
-                payment: Payment::Request {
-                    request: PaymentRequest {
-                        address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4".to_string(),
-                        amount: Some(PaymentAmount::ExactValue { value: "0.1".to_string() }),
-                        memo: None,
-                        label: None,
-                        references: None,
-                        asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
-                    }
-                },
-            })
-        );
         assert_eq!(UrlAction::from_url("https://example.com/tokens/bitcoin"), None);
-        assert_eq!(
-            UrlAction::from_url("not a url"),
-            Some(UrlAction::Payment {
-                payment: Payment::Request {
-                    request: PaymentRequest {
-                        address: "not a url".to_string(),
-                        ..PaymentRequest::mock()
-                    }
-                },
-            })
-        );
+        assert_eq!(UrlAction::from_url("not a url"), None);
     }
 }

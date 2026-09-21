@@ -396,6 +396,7 @@ stake_active_in = Activo en
 stake_minimum_amount = Monto minimo
 stake_state_empty_title = Tu stake aparecerá aquí
 stake_state_empty_description = Haz stake de tus primeros %@
+stake_state_empty_validators_title = No se encontraron validadores
 stake_resource = Recurso
 stake_resource_energy = Energía
 stake_resource_bandwidth = Ancho de banda
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = En sincronización
 nodes_import_node_latest_block = Último bloque
 nodes_import_node_latency = Latencia
 nodes_gem_wallet_node = Gem Wallet Node
+nodes_stream = Transmisión
 nodes_import_node_warning_message = Los nodos personalizados pueden ser maliciosos y pueden exponer sus datos de transacciones o proporcionar información falsa.
 
 # Library

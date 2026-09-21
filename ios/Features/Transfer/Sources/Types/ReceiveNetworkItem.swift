@@ -2,7 +2,7 @@
 
 import Primitives
 
-struct ReceiveNetworkItem: Hashable, Identifiable, Sendable {
+struct ReceiveNetworkItem: Hashable, Identifiable {
     let assetId: AssetId
 
     var id: String {

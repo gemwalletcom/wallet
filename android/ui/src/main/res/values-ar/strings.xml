@@ -339,6 +339,7 @@
   <string name="stake_minimum_amount">الحد الأدنى للمبلغ</string>
   <string name="stake_state_empty_title">ستظهر عمليات التخزين هنا</string>
   <string name="stake_state_empty_description">قم بتخزين أول %1$s</string>
+  <string name="stake_state_empty_validators_title">لم يتم العثور على مدققين</string>
   <string name="stake_resource">المورد</string>
   <string name="stake_resource_energy">طاقة</string>
   <string name="stake_resource_bandwidth">عرض النطاق الترددي</string>
@@ -380,6 +381,7 @@
   <string name="nodes_import_node_latest_block">أحدث كتلة</string>
   <string name="nodes_import_node_latency">كمون</string>
   <string name="nodes_gem_wallet_node">Gem Wallet Node</string>
+  <string name="nodes_stream">التدفق</string>
   <string name="nodes_import_node_warning_message">قد تكون العقد المخصصة ضارة وقد تكشف بيانات معاملاتك أو تقدم معلومات خاطئة.</string>
   <string name="library_select_from_photo_library">اختر من مكتبة الصور</string>
   <string name="fee_rates_info">يتم تحديد سرعة المعاملة من خلال رسوم الشبكة المدفوعة لعمال المناجم في الشبكة.</string>

@@ -67,14 +67,14 @@ struct StakeSceneViewModelTests {
         let transfer = GemTransferData.mock()
         let model = StakeSceneViewModel.mock(chain: .tron, stakeService: GemStakeServiceMock(claimRewardsDestination: .transfer(transfer: transfer)))
 
-        #expect(model.route(action: .claimRewards) == .transfer(.confirm(transfer)))
+        #expect(model.route(destination: .claimRewards) == .transfer(.confirm(transfer)))
     }
 
     @Test
     func claimRewardsAcrossValidatorsRoutesToAmount() {
         let model = StakeSceneViewModel.mock(chain: .tron)
 
-        guard case .transfer(.amount) = model.route(action: .claimRewards) else {
+        guard case .transfer(.amount) = model.route(destination: .claimRewards) else {
             Issue.record("expected an amount route")
             return
         }

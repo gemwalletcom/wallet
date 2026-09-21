@@ -197,6 +197,19 @@ final class FiatSceneViewModelTests {
     }
 
     @Test
+    func aFailedQuoteStopsTheClockUntilTheAmountChanges() async {
+        let model = FiatSceneViewModel.mock()
+        model.session = model.session.onQuoteResults(results: .mock(error: .Api(msg: "offline")))
+
+        await model.refreshQuotes()
+        #expect(model.viewState.buttonAction == .retryQuote, "the timer leaves the failure to the retry button")
+
+        model.onSelect(amount: 150)
+        await model.refreshQuotes()
+        #expect(model.viewState.buttonAction == .continue, "a new amount starts the clock again")
+    }
+
+    @Test
     func urlStateInitialValue() {
         let model = FiatSceneViewModel.mock()
 

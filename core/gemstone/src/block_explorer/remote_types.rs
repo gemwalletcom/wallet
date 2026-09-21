@@ -1,3 +1,3 @@
-use primitives::block_explorer::ExplorerInput;
+use block_explorers::ExplorerInput;
 
 pub type GemExplorerInput = ExplorerInput;

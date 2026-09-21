@@ -1,0 +1,8 @@
+[package]
+name = "block_explorers"
+version = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+primitives = { path = "../primitives" }
+url = { workspace = true }

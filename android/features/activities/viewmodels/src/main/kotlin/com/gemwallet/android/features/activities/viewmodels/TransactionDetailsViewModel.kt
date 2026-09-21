@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import uniffi.gemstone.transactionDetailSections
 import javax.inject.Inject
 
 @HiltViewModel
@@ -30,13 +31,15 @@ class TransactionDetailsViewModel @Inject constructor(private val getTransaction
     val data = getTransactionDetails.getTransactionDetails(transactionId)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val headerTarget: StateFlow<TransactionHeaderTarget?> = data.map { it?.headerAction?.target() }
+    val headerTarget: StateFlow<TransactionHeaderTarget?> = data.map { it?.rows?.headerAction?.target() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val sections: StateFlow<List<ListSection<TransactionDetailsRowUIModel>>> = data.map { details ->
-        details?.sections.orEmpty().mapIndexed { index, section ->
-            ListSection(id = index.toString(), items = section.rows.map { row -> details!!.value(row).uiModel(context, details.asset) })
-        }
+        details?.let { current ->
+            transactionDetailSections(current.rows).mapIndexed { index, section ->
+                ListSection(id = index.toString(), items = section.rows.map { row -> current.rows.uiModel(row, context, current.currency) })
+            }
+        }.orEmpty()
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 }

@@ -396,6 +396,7 @@ stake_active_in = में सक्रिय
 stake_minimum_amount = न्यूनतम राशि
 stake_state_empty_title = आपके स्टेक यहां दिखाई देंगे
 stake_state_empty_description = अपना पहला %@ स्टेक करें
+stake_state_empty_validators_title = कोई सत्यापनकर्ता नहीं मिला
 stake_resource = संसाधन
 stake_resource_energy = ऊर्जा
 stake_resource_bandwidth = बैंडविड्थ
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = सिंक में
 nodes_import_node_latest_block = नवीनतम ब्लॉक
 nodes_import_node_latency = विलंबता
 nodes_gem_wallet_node = Gem Wallet Node
+nodes_stream = स्ट्रीम
 nodes_import_node_warning_message = कस्टम नोड्स दुर्भावनापूर्ण हो सकते हैं और आपके लेनदेन डेटा को उजागर कर सकते हैं या गलत जानकारी प्रदान कर सकते हैं।
 
 # Library

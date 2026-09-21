@@ -2,9 +2,10 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use cacher::{CacheKey, CacherClient};
+use config_keys::{ConfigKey, ConfigParamKey};
 use gem_tracing::info_with_fields;
 use prices::{AssetPriceMapping, PriceProviders};
-use primitives::{ConfigKey, ConfigParamKey, PriceId};
+use primitives::PriceId;
 use storage::database::assets::AssetFilter;
 use storage::{AssetUpdate, AssetsLinksRepository, AssetsRepository, ConfigCacher, Database, PricesProvidersRepository, PricesRepository};
 use streamer::consumer::MessageConsumer;

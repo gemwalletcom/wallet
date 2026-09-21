@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.wallet_import.values.WalletImportResult
+import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
@@ -13,8 +14,10 @@ import com.gemwallet.android.ext.words
 import com.gemwallet.android.features.import_wallet.viewmodels.localization.fieldStringRes
 import com.gemwallet.android.features.import_wallet.viewmodels.localization.tabStringRes
 import com.gemwallet.android.model.ImportType
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
 import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.name.NameRecordController
 import com.gemwallet.android.ui.style.indicator
 import com.wallet.core.primitives.WalletSource
@@ -55,7 +58,7 @@ class ImportViewModel @Inject constructor(
 
     private val state = MutableStateFlow(ImportViewModelState())
     private val session = MutableStateFlow(GemWalletImportSession(GemWalletImportKind.PHRASE, "", null, false))
-    val uiState = combine(state, session) { state, session -> state.toUIState(session.isImporting) }
+    val uiState = combine(state, session) { state, session -> state.toUIState(session.isImporting, context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ImportUIState())
     val suggestions: StateFlow<List<String>> = session.map { it.suggestions() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -160,7 +163,7 @@ data class ImportViewModelState(
     val dataError: Throwable? = null,
     val existingWalletResult: WalletImportResult.Existing? = null,
 ) {
-    fun toUIState(loading: Boolean): ImportUIState = ImportUIState(
+    fun toUIState(loading: Boolean, context: Context): ImportUIState = ImportUIState(
         loading = loading,
         error = error,
         defaultWalletName = defaultWalletName,
@@ -169,7 +172,7 @@ data class ImportViewModelState(
         tabs = tabs.map { kind -> ImportTabUIModel(type = importType.copy(kind = kind), title = kind.tabStringRes(), isSelected = kind == importType.kind) },
         input = importType.kind.inputUiModel(),
         importType = importType,
-        dataError = dataError,
+        dataError = dataError?.errorText()?.text(context)?.ifBlank { context.getString(R.string.errors_unknown_try_again) },
         existingWalletResult = existingWalletResult,
     )
 }
@@ -183,7 +186,7 @@ data class ImportUIState(
     val tabs: List<ImportTabUIModel> = emptyList(),
     val showsTabs: Boolean = false,
     val input: ImportInputUIModel = GemWalletImportKind.PHRASE.inputUiModel(),
-    val dataError: Throwable? = null,
+    val dataError: String? = null,
     val existingWalletResult: WalletImportResult.Existing? = null,
 )
 

@@ -396,6 +396,7 @@ stake_active_in = ใช้งานอยู่
 stake_minimum_amount = จำนวนเงินขั้นต่ำ
 stake_state_empty_title = การสเตคของคุณจะปรากฏที่นี่
 stake_state_empty_description = สเตคครั้งแรกของคุณ %@
+stake_state_empty_validators_title = ไม่พบผู้ตรวจสอบความถูกต้อง
 stake_resource = ทรัพยากร
 stake_resource_energy = พลังงาน
 stake_resource_bandwidth = แบนด์วิดท์
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = ในการซิงค์
 nodes_import_node_latest_block = บล็อกล่าสุด
 nodes_import_node_latency = เวลาแฝง
 nodes_gem_wallet_node = Gem Wallet Node
+nodes_stream = สตรีม
 nodes_import_node_warning_message = โหนดที่กำหนดเองอาจเป็นอันตรายและอาจเปิดเผยข้อมูลธุรกรรมของคุณหรือให้ข้อมูลเท็จได้
 
 # Library

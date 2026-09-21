@@ -26,16 +26,16 @@ public struct ContactsNavigationView: View {
             }
             .sheet(isPresented: $model.isPresentingAddContact) {
                 NavigationStack {
-                    manageContact(for: model.addContactMode)
+                    contactEditor(for: model.addContactMode)
                         .toolbarDismissItem(type: .close, placement: .cancellationAction)
                 }
             }
             .navigationDestination(for: Scenes.Contact.self) {
-                manageContact(for: .edit($0.contact))
+                contactEditor(for: .edit($0.contact))
             }
     }
 
-    func manageContact(for mode: ManageContactViewModel.Mode) -> some View {
-        ManageContactScene(model: model.manageContactModel(mode: mode))
+    func contactEditor(for mode: ContactEditorViewModel.Mode) -> some View {
+        ContactEditorScene(model: model.contactEditorModel(mode: mode))
     }
 }

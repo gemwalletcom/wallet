@@ -10,6 +10,7 @@ import com.gemwallet.android.domains.perpetual.formatLeverage
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.PerpetualFormatter
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.features.transfer_amount.viewmodels.models.AmountExtrasUIModel
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.math.toUnsignedInts
 import com.gemwallet.android.model.AmountParams
@@ -158,6 +159,15 @@ class AmountPerpetualProvider(
 
     val autocloseListItem: StateFlow<ListItemModel?> = combine(takeProfit, stopLoss, ::autocloseListItem)
         .stateIn(scope, SharingStarted.Eagerly, autocloseListItem(takeProfit.value, stopLoss.value))
+
+    override val extras: StateFlow<AmountExtrasUIModel> = combine(leverageState, leverageListItem, autocloseListItem) { state, leverage, autoclose ->
+        AmountExtrasUIModel.Perpetual(
+            leverage = leverage,
+            leverages = state?.options.orEmpty(),
+            selectedLeverage = state?.current ?: 0,
+            autoclose = autoclose.takeIf { showsAutoclose },
+        )
+    }.stateIn(scope, SharingStarted.Eagerly, AmountExtrasUIModel.None)
 
     val marketPriceListItem: StateFlow<ListItemModel?> = perpetual.map { market ->
         market?.let { ListItemModel(title = context.getString(R.string.perpetual_market_price), subtitle = usdFormatter.string(it.price)) }

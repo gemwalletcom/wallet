@@ -12,13 +12,13 @@ import class Gemstone.GemBalanceService
 import class Gemstone.GemBannerService
 import class Gemstone.GemChainService
 import class Gemstone.GemConfirmService
+import class Gemstone.GemContactEditorService
 import class Gemstone.GemContactService
 import class Gemstone.GemDeeplinkService
 import class Gemstone.GemDeveloperService
 import class Gemstone.GemDeviceService
 import class Gemstone.GemExplorerService
 import class Gemstone.GemFiatService
-import class Gemstone.GemManageContactService
 import class Gemstone.GemNameService
 import class Gemstone.GemNftService
 import class Gemstone.GemNodeService
@@ -63,7 +63,7 @@ public struct ViewModelFactory: Sendable {
     let balanceService: GemBalanceService
     let confirmService: GemConfirmService
     let contactService: GemContactService
-    let manageContactService: GemManageContactService
+    let contactEditorService: GemContactEditorService
     let deeplinkService: GemDeeplinkService
     let explorerService: GemExplorerService
     let fiatService: GemFiatService

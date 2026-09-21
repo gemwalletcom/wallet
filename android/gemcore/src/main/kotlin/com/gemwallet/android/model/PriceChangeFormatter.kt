@@ -1,8 +1,7 @@
 package com.gemwallet.android.model
 
-import com.gemwallet.android.domains.price.PriceChangeCalculator
-import kotlin.math.abs
+import uniffi.gemstone.formattedSignedCurrency
 
 class PriceChangeFormatter(private val currencyFormatter: CurrencyFormatter) {
-    fun string(value: Double): String = PriceChangeCalculator.sign(value).format(currencyFormatter.string(abs(value)))
+    fun string(value: Double): String = formattedSignedCurrency(value, currencyFormatter.currencyCode, currencyFormatter.style).text(currencyFormatter.locale)
 }

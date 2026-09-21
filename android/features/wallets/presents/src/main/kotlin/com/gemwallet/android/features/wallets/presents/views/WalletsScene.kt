@@ -8,14 +8,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.domains.wallet.aggregates.WalletDataAggregate
 import com.gemwallet.android.features.wallets.presents.views.components.WalletsActions
 import com.gemwallet.android.features.wallets.presents.views.components.wallets
+import com.gemwallet.android.features.wallets.viewmodels.models.WalletItemUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.Scene
 
 @Composable
-internal fun WalletsScene(pinnedWallets: List<WalletDataAggregate>, unpinnedWallets: List<WalletDataAggregate>, snackbar: SnackbarHostState? = null, onAction: (WalletsAction) -> Unit) {
+internal fun WalletsScene(pinnedWallets: List<WalletItemUIModel>, unpinnedWallets: List<WalletItemUIModel>, snackbar: SnackbarHostState? = null, onAction: (WalletsAction) -> Unit) {
     val longPressedWallet = remember {
         mutableStateOf("")
     }

@@ -10,7 +10,10 @@ import com.gemwallet.android.application.wallet.cases.GetWalletDetails
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.features.wallet.viewmodels.models.WalletDetailsUIModel
+import com.gemwallet.android.features.wallet.viewmodels.models.uiModel
 import com.gemwallet.android.ui.components.image.EmojiAvatarRenderer
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.NftItemUIModel
 import com.gemwallet.android.ui.models.toUIModels
 import com.gemwallet.android.ui.theme.AvatarEmoji
@@ -26,7 +29,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemNftItem
 import uniffi.gemstone.GemWalletServiceInterface
 import javax.inject.Inject
@@ -43,7 +45,8 @@ class WalletImageViewModel @Inject constructor(
 
     private val walletId = savedStateHandle.requireWalletId()
 
-    val wallet = getWalletDetails.getWallet(walletId)
+    val details: StateFlow<WalletDetailsUIModel?> = getWalletDetails.getWallet(walletId)
+        .map { it?.uiModel() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val emojis: List<String> = AvatarEmoji.all
@@ -52,22 +55,22 @@ class WalletImageViewModel @Inject constructor(
         .map { data -> walletService.avatarItems(data.map { it.toGem() }).toUIModels() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val errorState = MutableStateFlow<GemErrorText?>(null)
-    val error: StateFlow<GemErrorText?> = errorState.asStateFlow()
+    private val errorState = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = errorState.asStateFlow()
 
     fun setEmoji(emoji: String, backgroundColor: Int) = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable { walletService.setAvatarImage(walletId.id, EmojiAvatarRenderer.render(context, emoji, backgroundColor)) }
-            .onFailure { errorState.value = it.errorText() }
+            .onFailure { errorState.value = it.errorText().text(context) }
     }
 
     fun setNftImage(url: String) = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable { walletService.setAvatarImageUrl(walletId.id, url) }
-            .onFailure { errorState.value = it.errorText() }
+            .onFailure { errorState.value = it.errorText().text(context) }
     }
 
     fun resetToDefault() = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable { walletService.removeAvatarImage(walletId.id) }
-            .onFailure { errorState.value = it.errorText() }
+            .onFailure { errorState.value = it.errorText().text(context) }
     }
 
     fun clearError() = errorState.update { null }

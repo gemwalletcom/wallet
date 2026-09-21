@@ -115,6 +115,10 @@ public extension GemLocalizedText {
             Localized.Swap.PriceImpactWarning.description(percent.text(), symbol)
         case let .balance(amount):
             Localized.Transfer.balance(amount.text())
+        case .nftCollections:
+            Localized.Nft.collections
+        case .nftUnverified:
+            Localized.Asset.Verification.unverified
         case let .stakeProvider(provider):
             switch provider {
             case .stake: Localized.Transfer.Stake.title
@@ -478,6 +482,7 @@ public extension GemEmptyStateText {
         case .stakeDescription: Localized.Stake.State.Empty.description(symbol)
         case .earnTitle: Localized.Earn.State.Empty.title
         case .earnDescription: Localized.Earn.State.Empty.description(symbol)
+        case .validatorsTitle: Localized.Stake.State.Empty.validatorsTitle
         case .walletConnectTitle: Localized.WalletConnect.noActiveConnections
         case .walletConnectDescription: Localized.WalletConnect.State.Empty.description
         case .recentsTitle: Localized.RecentActivity.State.Empty.title
@@ -665,7 +670,7 @@ public extension GemListRowTitle {
     var text: String {
         switch self {
         case .api: "API"
-        case .stream: "Stream"
+        case .stream: Localized.Nodes.stream
         case .gemWalletNode: Localized.Nodes.gemWalletNode
         case .name: Localized.Asset.name
         case .network: Localized.Transfer.network

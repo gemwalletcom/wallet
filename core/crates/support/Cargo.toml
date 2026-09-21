@@ -14,6 +14,7 @@ backend = [
     "dep:localizer",
     "dep:serde",
     "dep:serde_json",
+    "dep:push_notification",
     "dep:storage",
     "dep:streamer",
     "dep:sha2",
@@ -31,6 +32,7 @@ cacher = { path = "../cacher", optional = true }
 gem_client = { path = "../gem_client", features = ["reqwest"], optional = true }
 localizer = { path = "../localizer", optional = true }
 primitives = { path = "../primitives" }
+push_notification = { path = "../push_notification", optional = true }
 storage = { path = "../storage", optional = true }
 streamer = { path = "../streamer", optional = true }
 sha2 = { workspace = true, optional = true }

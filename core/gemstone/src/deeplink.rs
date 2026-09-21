@@ -22,7 +22,7 @@ impl GemDeeplinkService {
     }
 
     pub fn url_action(&self, url: String) -> Option<UrlAction> {
-        UrlAction::from_url(&url)
+        ::payment::classify_url(&url)
     }
 }
 

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemSlippageCheck
 import enum Gemstone.GemSwapButtonAction
 import enum Gemstone.GemSwapDetailRow
@@ -49,10 +50,10 @@ extension GemSwapErrorDisplay: @retroactive LocalizedError {
 }
 
 extension GemSlippageCheck {
-    func errorText(minimumText: String, maximumText: String) -> String? {
+    func errorText(minimum: GemFormattedNumber, maximum: GemFormattedNumber) -> String? {
         switch self {
-        case .belowMinimum: Localized.Common.minimumValue("\(minimumText)%")
-        case .aboveMaximum: Localized.Common.maximumValue("\(maximumText)%")
+        case .belowMinimum: Localized.Common.minimumValue(minimum.text())
+        case .aboveMaximum: Localized.Common.maximumValue(maximum.text())
         case .valid, .high: nil
         }
     }

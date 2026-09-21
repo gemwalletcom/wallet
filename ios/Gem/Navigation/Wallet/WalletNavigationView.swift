@@ -129,12 +129,12 @@ struct WalletNavigationView: View {
             )
         }
         .navigationDestination(for: Scenes.Collection.self) { scene in
-            CollectionsScene(
+            CollectionsSceneNavigationView(
                 model: viewModelFactory.collectionScene(wallet: model.wallet, collectionId: scene.id),
             )
         }
         .navigationDestination(for: Scenes.UnverifiedCollections.self) { _ in
-            CollectionsScene(
+            CollectionsSceneNavigationView(
                 model: viewModelFactory.unverifiedCollectionsScene(wallet: model.wallet),
             )
         }
@@ -151,7 +151,7 @@ struct WalletNavigationView: View {
             PerpetualsNavigationView(
                 model: viewModelFactory.perpetualsScene(
                     wallet: model.wallet,
-                    onSelectAssetType: { model.isPresentingSheet = .selectAsset($0, chains: []) },
+                    onSelectAmount: { model.isPresentingSheet = .amount($0) },
                     onSelectAsset: navigationState.openAsset,
                     onSelectPortfolio: { model.isPresentingSheet = .portfolio(.perpetuals) },
                 ),
@@ -197,6 +197,14 @@ struct WalletNavigationView: View {
                             wallet: model.wallet,
                             selectType: type,
                             chains: chains,
+                        ),
+                    )
+                case let .amount(input):
+                    AmountNavigationView(
+                        model: viewModelFactory.amountScene(
+                            input: input,
+                            wallet: model.wallet,
+                            onTransferAction: { model.isPresentingSheet = .transferData($0) },
                         ),
                     )
                 case let .infoSheet(type):

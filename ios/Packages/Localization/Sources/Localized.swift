@@ -801,6 +801,8 @@ public enum Localized {
   public enum Nodes {
     /// Gem Wallet Node
     public static let gemWalletNode = Localized.tr("Localizable", "nodes.gem_wallet_node", fallback: "Gem Wallet Node")
+    /// Stream
+    public static let stream = Localized.tr("Localizable", "nodes.stream", fallback: "Stream")
     public enum ImportNode {
       /// Chain ID
       public static let chainId = Localized.tr("Localizable", "nodes.import_node.chain_id", fallback: "Chain ID")
@@ -1370,6 +1372,8 @@ public enum Localized {
         }
         /// Your stakes will appear here
         public static let title = Localized.tr("Localizable", "stake.state.empty.title", fallback: "Your stakes will appear here")
+        /// No validators found
+        public static let validatorsTitle = Localized.tr("Localizable", "stake.state.empty.validators_title", fallback: "No validators found")
       }
     }
   }

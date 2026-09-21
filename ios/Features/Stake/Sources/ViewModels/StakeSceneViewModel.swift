@@ -10,6 +10,7 @@ import enum Gemstone.GemListRow
 import enum Gemstone.GemLoadState
 import enum Gemstone.GemStakeAction
 import struct Gemstone.GemStakeActionItem
+import enum Gemstone.GemStakeDestination
 import enum Gemstone.GemStakeSection
 import protocol Gemstone.GemStakeServiceProtocol
 import struct Gemstone.GemTransferData
@@ -104,7 +105,7 @@ public final class StakeSceneViewModel {
             StakeActionViewModel(
                 id: String(describing: item.action),
                 model: actionListItem(item),
-                action: item.action,
+                destination: item.destination,
                 infoAction: frozenBalanceInfoAction(for: item),
                 isEnabled: item.isEnabled,
             )
@@ -154,11 +155,9 @@ public final class StakeSceneViewModel {
         }
     }
 
-    func route(action: GemStakeAction) -> StakeRoute {
-        switch action {
-        case .stake: route(amount: .stake(.stake(validators: validators.map { $0.toGem() }, validator: nil)))
-        case .freeze: route(amount: .stake(.freeze(resource: Resource.bandwidth.toGem())))
-        case .unfreeze: route(amount: .stake(.unfreeze(resource: Resource.bandwidth.toGem())))
+    func route(destination: GemStakeDestination) -> StakeRoute {
+        switch destination {
+        case let .amount(input): route(amount: .stake(input))
         case .claimRewards: claimRewardsRoute
         }
     }
@@ -183,8 +182,8 @@ extension StakeSceneViewModel {
         delegationsState = await service.refresh(chain: chain.chain.rawValue, delegations: delegations.map { $0.toGem() })
     }
 
-    func onSelect(action: GemStakeAction) {
-        onNavigate?(route(action: action))
+    func onSelect(destination: GemStakeDestination) {
+        onNavigate?(route(destination: destination))
     }
 
     func onSelect(delegation: DelegationViewModel) {
@@ -215,7 +214,7 @@ extension StakeSceneViewModel {
         service.stakeActions(
             walletType: wallet.type.toGem(),
             chain: chain.chain.rawValue,
-            hasValidators: validators.isNotEmpty,
+            validators: validators.map { $0.toGem() },
             balance: GemAssetBalance(assetData.balance, assetId: asset.id, isActive: assetData.metadata.isActive),
             delegations: delegations.map { $0.toGem() },
         )

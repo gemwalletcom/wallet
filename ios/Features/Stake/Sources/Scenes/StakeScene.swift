@@ -70,7 +70,7 @@ extension StakeScene {
             NavigationCustomLink(with: ListItemView(model: item.model), action: infoAction)
         } else {
             NavigationCustomLink(with: ListItemView(model: item.model)) {
-                model.onSelect(action: item.action)
+                model.onSelect(destination: item.destination)
             }
             .enabled(item.isEnabled)
         }

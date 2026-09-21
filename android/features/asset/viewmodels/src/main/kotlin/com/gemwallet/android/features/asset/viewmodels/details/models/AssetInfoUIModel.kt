@@ -9,7 +9,6 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.VerificationStatus
 import uniffi.gemstone.GemAssetDetailsState
-import uniffi.gemstone.GemAssetNetworkDestination
 import uniffi.gemstone.GemBalanceRow
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemPriceAlertToggle
@@ -31,7 +30,7 @@ class AssetInfoUIModel(
     val explorerAddressUrl: String? = null,
     val explorerTokenUrl: String? = null,
     val verificationStatus: VerificationStatus? = null,
-    val networkDestination: GemAssetNetworkDestination? = null,
+    val networkAction: AssetDetailsAction.Navigation? = null,
     val shareUrl: String = "",
     val detailsState: GemAssetDetailsState,
     val priceAlertMenu: PriceAlertMenuUIModel = GemPriceAlertToggle.DISABLED.menu(),
@@ -52,7 +51,7 @@ class AssetInfoUIModel(
         data class Network(val name: String) : RowUIModel
         data class Balance(val type: BalanceViewType, val model: ListItemModel, val url: String? = null) : RowUIModel
         data class Earn(val row: GemListRow) : RowUIModel
-        data class Row(val row: GemListRow) : RowUIModel
+        data class Row(val row: GemListRow, val action: AssetDetailsAction?) : RowUIModel
     }
 
     enum class BalanceViewType {

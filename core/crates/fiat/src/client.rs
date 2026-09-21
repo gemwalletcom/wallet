@@ -10,12 +10,13 @@ use crate::{
     fiat_cacher_client::{CachedFiatQuote, FiatCacherClient},
     model::{FiatMapping, FiatMappingMap},
 };
+use config_keys::{ConfigKey, RateLimitKey};
 use futures::future::join_all;
 use gem_tracing::{error_with_fields, info_with_fields};
 use number_formatter::BigNumberFormatter;
 use primitives::{
-    Asset, Chain, ConfigKey, FiatAssetSymbol, FiatAssets, FiatProvider as PrimitiveFiatProvider, FiatProviderCountry, FiatQuote, FiatQuoteError as ProviderQuoteError, FiatQuoteRequest, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData,
-    FiatQuotes, FiatTransaction, PaymentType, RateLimitKey, RequestError, WalletType,
+    Asset, Chain, FiatAssetSymbol, FiatAssets, FiatProvider as PrimitiveFiatProvider, FiatProviderCountry, FiatQuote, FiatQuoteError as ProviderQuoteError, FiatQuoteRequest, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData, FiatQuotes,
+    FiatTransaction, PaymentType, RequestError, WalletType,
 };
 use storage::models::{NewFiatTransactionRow, WalletAddressRow};
 use storage::{AssetFilter, AssetsRepository, ConfigCacher, Database, FiatRepository, WalletsRepository};
@@ -273,7 +274,7 @@ impl FiatClient {
             allowed &= self.rate_limiter.consume(key, scope, self.config.get_rate_limit(key)?).await?;
         }
         if !allowed {
-            return Err(RequestError::Forbidden.into());
+            return Err(RequestError::LimitReached.into());
         }
         Ok(())
     }

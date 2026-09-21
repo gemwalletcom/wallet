@@ -409,6 +409,52 @@ class FiatViewModelTest {
         }
     }
 
+    @Test
+    fun `the quote clock only runs while the screen is started`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        try {
+            advanceTimeBy(DebounceSettleMs)
+            runCurrent()
+            coVerify(exactly = 1) { service.quotes(any(), any(), any()) }
+
+            advanceTimeBy(RefreshIntervalMs + DebounceSettleMs)
+            runCurrent()
+            coVerify(exactly = 1) { service.quotes(any(), any(), any()) }
+
+            viewModel.setRefreshEnabled(true)
+            advanceTimeBy(RefreshIntervalMs + DebounceSettleMs)
+            runCurrent()
+            coVerify(exactly = 2) { service.quotes(any(), any(), any()) }
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `a failed quote stops the clock until the amount changes`() = runTest(testDispatcher) {
+        coEvery { service.quotes(any(), any(), any()) } throws GemServiceException.Api("offline")
+        val viewModel = createViewModel()
+
+        try {
+            viewModel.setRefreshEnabled(true)
+            advanceTimeBy(DebounceSettleMs)
+            runCurrent()
+            coVerify(exactly = 1) { service.quotes(any(), any(), any()) }
+
+            advanceTimeBy(RefreshIntervalMs * 2)
+            runCurrent()
+            coVerify(exactly = 1) { service.quotes(any(), any(), any()) }
+
+            viewModel.updateAmount("75")
+            advanceTimeBy(DebounceSettleMs)
+            runCurrent()
+            coVerify(exactly = 1) { service.quotes(any(), any(), 75.0) }
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
     private fun createViewModel(initialAmount: Int? = null, initialType: FiatQuoteType? = null): FiatViewModel {
         val arguments = mutableMapOf<String, Any>(
             RouteArgument.AssetId.key to asset.id.toIdentifier(),
@@ -428,5 +474,6 @@ class FiatViewModelTest {
     private companion object {
         val OneBitcoin: BigInteger = BigInteger("100000000")
         const val DebounceSettleMs = 300L
+        const val RefreshIntervalMs = 300_000L
     }
 }

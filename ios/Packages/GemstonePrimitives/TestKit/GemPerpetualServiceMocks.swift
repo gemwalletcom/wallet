@@ -208,17 +208,12 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
         chartPeriodValue = period
     }
 
-    public func syncPositions() async throws {
+    public func refresh(assetId: Gemstone.AssetId) async -> [Gemstone.GemPerpetualRefreshFailure] {
         syncPositionsCount += 1
-        if let syncPositionsError {
-            throw syncPositionsError
-        }
-    }
-
-    public func syncTransactions(assetId: Gemstone.AssetId) async throws {
         syncedTransactionAssetIds.append(assetId)
-        if let syncTransactionsError {
-            throw syncTransactionsError
-        }
+        return [
+            syncPositionsError.map { GemPerpetualRefreshFailure(step: .positions, message: $0.localizedDescription) },
+            syncTransactionsError.map { GemPerpetualRefreshFailure(step: .transactions, message: $0.localizedDescription) },
+        ].compactMap(\.self)
     }
 }

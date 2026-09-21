@@ -339,6 +339,7 @@
   <string name="stake_minimum_amount">Suma minimă</string>
   <string name="stake_state_empty_title">Mizele tale vor apărea aici</string>
   <string name="stake_state_empty_description">Mizează primul tău %1$s</string>
+  <string name="stake_state_empty_validators_title">Nu s-au găsit validatori</string>
   <string name="stake_resource">Resursă</string>
   <string name="stake_resource_energy">Energie</string>
   <string name="stake_resource_bandwidth">Lățime de bandă</string>
@@ -380,6 +381,7 @@
   <string name="nodes_import_node_latest_block">Ultimul bloc</string>
   <string name="nodes_import_node_latency">Latența</string>
   <string name="nodes_gem_wallet_node">Gem Wallet Node</string>
+  <string name="nodes_stream">Flux</string>
   <string name="nodes_import_node_warning_message">Nodurile personalizate pot fi rău intenționate și pot expune datele tranzacțiilor sau pot furniza informații false.</string>
   <string name="library_select_from_photo_library">Selectați din Biblioteca foto</string>
   <string name="fee_rates_info">Viteza tranzacției este determinată de taxa de rețea plătită minerilor din rețea.</string>

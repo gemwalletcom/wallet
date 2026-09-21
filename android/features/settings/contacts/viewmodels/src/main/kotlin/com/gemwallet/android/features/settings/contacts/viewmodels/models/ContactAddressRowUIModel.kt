@@ -10,11 +10,11 @@ import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ContactAddress
 import uniffi.gemstone.GemAddressFormatStyle
-import uniffi.gemstone.GemManageContactServiceInterface
+import uniffi.gemstone.GemContactEditorServiceInterface
 
 data class ContactAddressRowUIModel(val address: ContactAddress, val model: ListItemModel)
 
-internal fun List<ContactAddress>.rows(service: GemManageContactServiceInterface): List<ContactAddressRowUIModel> = map { address ->
+internal fun List<ContactAddress>.rows(service: GemContactEditorServiceInterface): List<ContactAddressRowUIModel> = map { address ->
     ContactAddressRowUIModel(
         address = address,
         model = ListItemModel(

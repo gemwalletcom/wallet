@@ -20,5 +20,3 @@ fun GemListRow.settingsAction(): SettingsSceneAction? = when (this) {
 
     else -> null
 }
-
-fun GemListRow.opensDeveloperMenu(): Boolean = this is GemListRow.Link && title == GemListRowTitle.ABOUT_US

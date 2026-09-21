@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.IoDispatcher
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.wallet.chainAddresses
 import com.gemwallet.android.ext.errorText
@@ -17,7 +17,6 @@ import com.gemwallet.android.ui.models.ToastEmitterImpl
 import com.gemwallet.android.ui.models.ToastMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,6 +26,7 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.GemPaymentException
 import uniffi.gemstone.GemPaymentLoad
 import uniffi.gemstone.GemPaymentServiceInterface
+import javax.inject.Inject
 
 @HiltViewModel
 class PaymentVerificationViewModel @Inject constructor(
@@ -35,7 +35,8 @@ class PaymentVerificationViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
-) : ViewModel(), ToastEmitter by ToastEmitterImpl() {
+) : ViewModel(),
+    ToastEmitter by ToastEmitterImpl() {
 
     private val link = savedStateHandle.requirePaymentLink()
     private val urlState = MutableStateFlow(savedStateHandle.requireUrl())
@@ -56,7 +57,7 @@ class PaymentVerificationViewModel @Inject constructor(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: GemPaymentException) {
-                error.errorText?.let { emitToast(ToastMessage(it.text(context), R.drawable.ic_warning)) }
+                emitToast(ToastMessage(error.errorText().text(context), R.drawable.ic_warning))
             }
         }
     }

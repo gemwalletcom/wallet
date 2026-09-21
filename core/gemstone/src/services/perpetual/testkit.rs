@@ -7,13 +7,16 @@ use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::perpetual::PerpetualData;
 use primitives::{Asset, AssetBasic, AssetId, AssetProperties, AssetScore, AutocloseValidation, PerpetualDirection, PerpetualMarginType, PerpetualMarketData, PerpetualPosition, PerpetualProvider, TpslType, Wallet, WalletId};
 
+use super::details::GemPerpetualDetailsService;
 use super::model::{GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualTransferData};
 use super::{GemAutocloseField, GemAutocloseModify, GemPerpetualService, GemPerpetualStore};
+use crate::api::GemDeviceApiClient;
 use crate::gateway::GemGateway;
 use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::assets::{GemAssetStore, GemAssetsService};
 use crate::services::balance::GemBalanceService;
 use crate::services::balance::testkit::MemoryBalanceStore;
+use crate::services::device::GemDeviceKeyService;
 use crate::services::error::GemServiceError;
 use crate::services::node::GemNodeService;
 use crate::services::preferences::GemPreferencesService;
@@ -21,9 +24,12 @@ use crate::services::preferences::testkit::MemoryPreferencesStore;
 use crate::services::price::GemPriceService;
 use crate::services::price::testkit::MemoryPriceStore;
 use crate::services::stream::testkit::SubscriptionTestkit;
+use crate::services::transaction_state::testkit::RecordingTransactionStatus;
+use crate::services::transactions::GemTransactionsService;
+use crate::services::transactions::testkit::MemoryTransactionStore;
 use crate::services::transfer::GemRecentActivityService;
 use crate::services::transfer::testkit::MemoryRecentActivityStore;
-use crate::services::wallet::testkit::MemoryWalletStore;
+use crate::services::wallet::testkit::{MemoryAddressStore, MemoryWalletStore};
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_preferences::testkit::MemoryWalletPreferencesStore;
 use crate::services::wallet_session::GemWalletSessionService;
@@ -79,6 +85,7 @@ impl GemPerpetualStore for MemoryPerpetualStore {
 
 pub struct PerpetualTestkit {
     pub service: GemPerpetualService,
+    pub session: Arc<GemWalletSessionService>,
     pub provider: Arc<TestAlienProvider>,
     pub store: Arc<MemoryPerpetualStore>,
     pub asset_store: Arc<MemoryAssetStore>,
@@ -128,6 +135,7 @@ impl PerpetualTestkit {
             }),
             wallets.clone(),
         ));
+        let details_session = session.clone();
         let provider = Arc::new(provider);
         let gateway = Arc::new(GemGateway::new(provider.clone(), Arc::new(GemNodeService::mock()), preferences_store, Arc::new(EmptyPreferences)));
         let price = Arc::new(GemPriceService::new(Arc::new(MemoryPriceStore::default())));
@@ -157,6 +165,7 @@ impl PerpetualTestkit {
         );
         Self {
             service,
+            session: details_session,
             provider,
             store,
             asset_store,
@@ -167,6 +176,31 @@ impl PerpetualTestkit {
             wallet_id: wallet.id,
         }
     }
+
+    pub fn details_service(self) -> DetailsTestkit {
+        let device_api = Arc::new(GemDeviceApiClient::new(self.provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)))));
+        let transactions = Arc::new(GemTransactionsService::new(
+            device_api,
+            Arc::new(GemAssetsService::mock(self.provider.clone(), self.asset_store.clone())),
+            Arc::new(MemoryTransactionStore::default()),
+            Arc::new(MemoryAddressStore::default()),
+            self.wallet_preferences.clone(),
+            self.session.clone(),
+            Arc::new(RecordingTransactionStatus::default()),
+        ));
+        let service = GemPerpetualDetailsService::new(Arc::new(self.service), transactions, self.preferences.clone(), self.session.clone());
+        DetailsTestkit {
+            service,
+            session: self.session,
+            provider: self.provider,
+        }
+    }
+}
+
+pub struct DetailsTestkit {
+    pub service: GemPerpetualDetailsService,
+    pub session: Arc<GemWalletSessionService>,
+    pub provider: Arc<TestAlienProvider>,
 }
 
 impl Default for PerpetualTestkit {

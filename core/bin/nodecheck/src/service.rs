@@ -1,7 +1,7 @@
 use std::{sync::Arc, time::Instant};
 
 use chain_traits::ChainTraits;
-use primitives::NodeCheckRequest;
+use chain_traits::node_check::NodeCheckRequest;
 
 use crate::{
     rate_limit,

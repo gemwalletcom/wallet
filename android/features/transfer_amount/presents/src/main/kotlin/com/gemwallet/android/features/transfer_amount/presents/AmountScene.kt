@@ -23,12 +23,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import com.gemwallet.android.features.transfer_amount.presents.components.amountErrorInfo
-import com.gemwallet.android.features.transfer_amount.presents.components.amountErrorText
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.InfoSheetEntity
@@ -38,6 +37,7 @@ import com.gemwallet.android.ui.components.fields.AmountSymbolUIModel
 import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
 import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.components.isKeyboardVisible
+import com.gemwallet.android.ui.components.list_item.infoSheet
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyAssetInfoItem
 import com.gemwallet.android.ui.components.screen.Scene
@@ -50,6 +50,7 @@ import com.gemwallet.android.ui.theme.secondaryFaded
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
+import uniffi.gemstone.GemInfoTopic
 
 @Composable
 internal fun AmountScene(
@@ -62,7 +63,8 @@ internal fun AmountScene(
     readOnly: Boolean,
     usesWholeAmounts: Boolean,
     showsAssetBalance: Boolean,
-    error: Throwable?,
+    error: String,
+    errorTopic: GemInfoTopic?,
     equivalent: String,
     availableBalance: String,
     reserveForFee: String? = null,
@@ -71,7 +73,8 @@ internal fun AmountScene(
     additionParams: (@Composable () -> Unit)? = null,
 ) {
     val focusRequester = remember { FocusRequester() }
-    val errorInfo = amountErrorInfo(error = error, onBuy = { onAction(AmountAction.Buy) })
+    val context = LocalContext.current
+    val errorInfo = errorTopic?.infoSheet(context, null) { onAction(AmountAction.Buy) }
     var showsErrorInfo by remember { mutableStateOf(false) }
     val isKeyBoardOpen = WindowInsets.isKeyboardVisible
     val density = LocalDensity.current
@@ -114,7 +117,7 @@ internal fun AmountScene(
                     equivalent = equivalent,
                     readOnly = readOnly,
                     keyboardType = if (usesWholeAmounts) KeyboardType.Number else KeyboardType.Decimal,
-                    error = amountErrorText(error = error),
+                    error = error,
                     errorInfo = errorInfo?.let { { showsErrorInfo = true } },
                     onValueChange = { onAction(AmountAction.SetAmount(it)) },
                     onNext = { onAction(AmountAction.Next) },

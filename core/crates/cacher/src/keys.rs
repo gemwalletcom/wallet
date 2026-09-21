@@ -1,4 +1,4 @@
-use primitives::{RateLimitKey, RateLimitWindow};
+use config_keys::{RateLimitKey, RateLimitWindow};
 
 const SECONDS_PER_MINUTE: u64 = 60;
 const SECONDS_PER_HOUR: u64 = 60 * SECONDS_PER_MINUTE;

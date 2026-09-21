@@ -4,8 +4,9 @@ use std::sync::Arc;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use cacher::{CacheKey, CacherClient};
+use config_keys::ConfigParamKey;
 use gem_tracing::{DurationMs, error_with_fields, info_with_fields};
-use primitives::{Chain, ConfigParamKey, TransactionId, chain_transaction_timeout};
+use primitives::{Chain, TransactionId, chain_transaction_timeout};
 use settings_chain::{ChainProviders, TransactionIdRequest};
 use storage::{ConfigCacher, Database, DatabaseError, TransactionsRepository};
 use streamer::{StreamProducer, StreamProducerQueue, TransactionsPayload};

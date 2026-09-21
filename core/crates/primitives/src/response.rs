@@ -5,11 +5,15 @@ use std::fmt;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RequestError {
     Forbidden,
+    LimitReached,
 }
 
 impl fmt::Display for RequestError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Forbidden")
+        match self {
+            Self::Forbidden => write!(f, "Forbidden"),
+            Self::LimitReached => write!(f, "Rate limit reached"),
+        }
     }
 }
 

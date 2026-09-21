@@ -1,23 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
 import Foundation
 import struct Gemstone.GemSimulationPayloadRow
 import Primitives
 
 public struct SimulationPayloadFieldViewModel: Identifiable {
     public let row: GemSimulationPayloadRow
-    public let relativeDateFormatter: RelativeDateFormatter
     public let explorerItem: ContextMenuItemType?
 
     public init(
         row: GemSimulationPayloadRow,
-        relativeDateFormatter: RelativeDateFormatter = RelativeDateFormatter(),
         explorerItem: ContextMenuItemType? = nil,
     ) {
         self.row = row
-        self.relativeDateFormatter = relativeDateFormatter
         self.explorerItem = explorerItem
     }
 
@@ -37,7 +33,7 @@ public struct SimulationPayloadFieldViewModel: Identifiable {
         switch row.value {
         case let .text(text): text
         case let .address(display, _): display
-        case let .timestamp(unixMs): relativeDateFormatter.string(from: Date(timeIntervalSince1970: TimeInterval(unixMs) / 1000))
+        case let .timestamp(unixMs): TransactionDateFormatter(unixMilliseconds: unixMs).row
         }
     }
 

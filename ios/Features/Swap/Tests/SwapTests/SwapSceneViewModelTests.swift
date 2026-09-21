@@ -432,12 +432,13 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
-    func pricesSubscribeOnceForThePairAndNotForEveryEdit() async {
+    func thePairRefreshesPricesAndBalancesOnceAndNotForEveryEdit() async {
         let service = GemSwapQuoteServiceMock()
         let model = SwapSceneViewModel.mock(service: service)
 
         await model.onAssetIdsChange(assetIds: model.assetIds)
         #expect(service.priceSubscriptions.count == 1)
+        #expect(service.balanceUpdates.count == 1, "the balance the Max button spends from is refreshed with the prices")
         #expect(Set(service.priceSubscriptions[0]) == Set([AssetId.mockEthereum(), AssetId.mockEthereumUSDT()].map(\.identifier)))
 
         model.amountInputModel.text = "2"
@@ -449,5 +450,6 @@ struct SwapSceneViewModelTests {
         model.toAssetQuery.value = .mock(asset: .mockSolana())
         await model.onAssetIdsChange(assetIds: model.assetIds)
         #expect(service.priceSubscriptions.count == 2)
+        #expect(service.balanceUpdates.count == 2)
     }
 }

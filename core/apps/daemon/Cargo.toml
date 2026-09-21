@@ -25,7 +25,9 @@ coingecko = { path = "../../crates/coingecko" }
 lists = { path = "../../crates/lists" }
 pricer = { path = "../../crates/pricer" }
 prices = { path = "../../crates/prices" }
+config_keys = { path = "../../crates/config_keys" }
 primitives = { path = "../../crates/primitives" }
+push_notification = { path = "../../crates/push_notification" }
 fiat = { path = "../../crates/fiat" }
 nft = { path = "../../crates/nft" }
 job_runner = { path = "../../crates/job_runner" }

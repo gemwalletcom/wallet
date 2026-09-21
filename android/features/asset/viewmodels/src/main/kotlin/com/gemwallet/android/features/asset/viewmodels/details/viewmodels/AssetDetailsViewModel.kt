@@ -29,6 +29,7 @@ import com.gemwallet.android.model.toGem
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.assetAddedToast
 import com.gemwallet.android.ui.components.screen.assetPinnedToast
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ToastEmitter
 import com.gemwallet.android.ui.models.ToastEmitterImpl
 import com.gemwallet.android.ui.models.ToastMessage
@@ -60,7 +61,6 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAssetDetailsInput
 import uniffi.gemstone.GemAssetDetailsServiceInterface
 import uniffi.gemstone.GemBannerRow
-import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPriceAlertToggle
@@ -95,8 +95,8 @@ class AssetDetailsViewModel @Inject constructor(
 
     val isRefreshing = MutableStateFlow(false)
 
-    private val errorState = MutableStateFlow<GemErrorText?>(null)
-    val error: StateFlow<GemErrorText?> = errorState.asStateFlow()
+    private val errorState = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = errorState.asStateFlow()
 
     private val assetId = savedStateHandle.requireAssetId()
 
@@ -210,12 +210,12 @@ class AssetDetailsViewModel @Inject constructor(
         val name = chainAssetInfo.value?.assetInfo?.asset?.name.orEmpty()
         runCatchingCancellable { assetDetailsService.setPriceAlert(assetId.toIdentifier(), current.toggled() == GemPriceAlertToggle.ENABLED) }
             .onSuccess { emitToast(ToastMessage(context.getString(current.toastRes(), name), R.drawable.ic_notifications)) }
-            .onFailure { errorState.value = it.errorText() }
+            .onFailure { errorState.value = it.errorText().text(context) }
     }
 
     fun closeBanner(banner: Banner) = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable { assetDetailsService.closeBanner(banner.toGemKey()) }
-            .onFailure { Log.e(TAG, "banner ${banner.event} close failed", it) }
+            .onFailure { errorState.value = it.errorText().text(context) }
     }
 
     fun enablePerpetuals() {

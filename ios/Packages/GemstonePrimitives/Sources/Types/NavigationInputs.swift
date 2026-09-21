@@ -36,7 +36,7 @@ public struct SelectedAssetInput: Sendable, Hashable, Identifiable {
     }
 }
 
-public struct AmountInput: Hashable, Identifiable {
+public struct AmountInput: Hashable, Identifiable, Sendable {
     public let type: AmountType
     public let asset: Asset
 

@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,16 +10,21 @@ import com.gemwallet.android.application.wallet_connect.cases.GetWalletConnectio
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.bridge.viewmodels.model.listItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemWalletConnectServiceInterface
@@ -32,6 +38,7 @@ class ConnectionViewModel @Inject constructor(
     private val service: GemWalletConnectServiceInterface,
     savedState: SavedStateHandle,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val connectionId = savedState.requireString(RouteArgument.ConnectionId)
@@ -46,17 +53,22 @@ class ConnectionViewModel @Inject constructor(
     val rows: StateFlow<List<GemListRow>> = details.map { it?.rows.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Companion.Eagerly, emptyList())
 
+    private val errorState = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = errorState.asStateFlow()
+
     fun disconnect(onSuccess: () -> Unit) {
         details.value?.connection?.connection?.session?.id?.let {
             viewModelScope.launch(ioDispatcher) {
                 disconnectWalletConnection.disconnect(
                     connectionId = it,
                     onSuccess = { viewModelScope.launch(Dispatchers.Main) { onSuccess() } },
-                    onError = { viewModelScope.launch(Dispatchers.Main) { onSuccess() } },
+                    onError = { error -> errorState.value = error.text(context) },
                 )
             }
         } ?: onSuccess()
     }
+
+    fun clearError() = errorState.update { null }
 }
 
 private fun SavedStateHandle.requireString(argument: RouteArgument): String {

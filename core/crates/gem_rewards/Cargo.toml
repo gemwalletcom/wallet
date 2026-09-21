@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 num-bigint = { workspace = true }
+config_keys = { path = "../config_keys" }
 primitives = { path = "../primitives" }
 storage = { path = "../storage" }
 cacher = { path = "../cacher" }

@@ -5,11 +5,12 @@ mod service;
 
 use std::{error::Error, process::ExitCode};
 
+use chain_traits::node_check::NodeCheckProfile;
 use clap::Parser;
 use factory::new_provider;
 use gem_tracing::error_with_fields;
-use primitives::node_check_request;
-use primitives::{Chain, NodeCheckProfile};
+use node_probes::node_check_request;
+use primitives::Chain;
 
 use crate::service::NodeCheckService;
 

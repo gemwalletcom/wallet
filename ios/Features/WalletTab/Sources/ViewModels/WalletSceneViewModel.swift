@@ -6,6 +6,7 @@ import Foundation
 import struct Gemstone.GemBannerRow
 import enum Gemstone.GemHeaderButtonKind
 import struct Gemstone.GemPerpetualCollateral
+import enum Gemstone.GemServiceError
 import protocol Gemstone.GemWalletHomeServiceProtocol
 import func Gemstone.walletBannerEvents
 import func Gemstone.walletRow
@@ -208,6 +209,8 @@ public extension WalletSceneViewModel {
             Task {
                 do {
                     try await service.close(action.banner)
+                } catch let error as GemServiceError {
+                    isPresentingToastMessage = .error(error.text().text)
                 } catch {
                     isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
                 }

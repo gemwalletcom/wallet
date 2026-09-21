@@ -396,6 +396,7 @@ stake_active_in = Aktiv i
 stake_minimum_amount = Minimumsbeløb
 stake_state_empty_title = Dine indsatser vil blive vist her
 stake_state_empty_description = Indsæt dine første %@
+stake_state_empty_validators_title = Ingen validatorer fundet
 stake_resource = Ressource
 stake_resource_energy = Energi
 stake_resource_bandwidth = Båndbredde
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = Synkroniseret
 nodes_import_node_latest_block = Seneste blok
 nodes_import_node_latency = Latency
 nodes_gem_wallet_node = Gem Wallet Node
+nodes_stream = Stream
 nodes_import_node_warning_message = Brugerdefinerede noder kan være skadelige og kan eksponere dine transaktionsdata eller give falske oplysninger.
 
 # Library

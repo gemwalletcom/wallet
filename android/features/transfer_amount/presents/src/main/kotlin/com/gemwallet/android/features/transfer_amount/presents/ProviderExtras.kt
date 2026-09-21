@@ -9,15 +9,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.transfer_amount.presents.dialogs.AmountAutocloseSheet
 import com.gemwallet.android.features.transfer_amount.presents.dialogs.SelectLeverageDialog
-import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountDataProvider
-import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountEarnProvider
-import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountPerpetualProvider
-import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountStakeProvider
-import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountTransferProvider
-import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.features.transfer_amount.viewmodels.models.AmountExtrasUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.clickable
@@ -25,122 +18,67 @@ import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyValidatorItem
-import com.gemwallet.android.ui.components.list_item.uiModel
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Resource
-import uniffi.gemstone.GemAmountType
 
 @Composable
-fun ProviderExtras(provider: AmountDataProvider, amount: String, onPickValidator: () -> Unit) {
+fun ProviderExtras(extras: AmountExtrasUIModel, onPickValidator: () -> Unit, onSelectResource: (Resource) -> Unit, onSelectLeverage: (Int) -> Unit, onOpenAutoclose: () -> Unit) {
     Column {
-        when (provider) {
-            is AmountStakeProvider -> StakeProviderSection(provider, onPickValidator)
+        when (extras) {
+            AmountExtrasUIModel.None -> Unit
 
-            is AmountPerpetualProvider -> {
-                PerpetualLeverageSection(provider)
-                if (provider.showsAutoclose) {
-                    PerpetualAutocloseSection(provider, amount)
-                }
+            is AmountExtrasUIModel.Resources -> TabsBar(
+                tabs = extras.options,
+                selected = extras.selected,
+                onSelect = onSelectResource,
+            ) { item ->
+                Text(stringResource(item.stringRes()))
             }
 
-            is AmountEarnProvider -> EarnProviderSection(provider)
+            is AmountExtrasUIModel.Validator -> {
+                SubheaderItem(R.string.stake_validator)
+                PropertyValidatorItem(
+                    validator = extras.row,
+                    listPosition = ListPosition.Single,
+                    onClick = if (extras.canSelect) onPickValidator else null,
+                )
+            }
 
-            is AmountTransferProvider -> Unit
+            is AmountExtrasUIModel.EarnProvider -> {
+                SubheaderItem(R.string.common_provider)
+                PropertyValidatorItem(validator = extras.row, listPosition = ListPosition.Single)
+            }
+
+            is AmountExtrasUIModel.Perpetual -> PerpetualSections(extras, onSelectLeverage, onOpenAutoclose)
         }
     }
 }
 
 @Composable
-private fun StakeProviderSection(provider: AmountStakeProvider, onPickValidator: () -> Unit) {
-    when (provider.params) {
-        is AmountParams.Stake.Freeze, is AmountParams.Stake.Unfreeze -> StakeResourceSection(provider)
-
-        is AmountParams.Stake.Delegate,
-        is AmountParams.Stake.Undelegate,
-        is AmountParams.Stake.Redelegate,
-        is AmountParams.Stake.Withdraw,
-        is AmountParams.Stake.Rewards,
-        -> StakeValidatorSection(provider, onPickValidator)
-    }
-}
-
-@Composable
-private fun EarnProviderSection(provider: AmountEarnProvider) {
-    val amountType by provider.amountType.collectAsStateWithLifecycle()
-    (amountType as? GemAmountType.Earn)?.let { earn ->
-        SubheaderItem(R.string.common_provider)
-        PropertyValidatorItem(
-            validator = earn.provider.uiModel(),
-            listPosition = ListPosition.Single,
-        )
-    }
-}
-
-@Composable
-private fun StakeValidatorSection(provider: AmountStakeProvider, onPickValidator: () -> Unit) {
-    val validator by provider.validatorState.collectAsStateWithLifecycle()
-    val canSelectValidator by provider.canSelectValidator.collectAsStateWithLifecycle()
-    validator?.let { current ->
-        SubheaderItem(R.string.stake_validator)
-        PropertyValidatorItem(
-            validator = current.uiModel(),
-            listPosition = ListPosition.Single,
-            onClick = if (canSelectValidator) onPickValidator else null,
-        )
-    }
-}
-
-@Composable
-private fun StakeResourceSection(provider: AmountStakeProvider) {
-    val resource by provider.resource.collectAsStateWithLifecycle()
-    TabsBar(
-        tabs = listOf(Resource.Bandwidth, Resource.Energy),
-        selected = resource,
-        onSelect = provider::setResource,
-    ) { item ->
-        Text(stringResource(item.stringRes()))
-    }
-}
-
-@Composable
-private fun PerpetualLeverageSection(provider: AmountPerpetualProvider) {
-    val state = provider.leverageState.collectAsStateWithLifecycle().value ?: return
-    val model = provider.leverageListItem.collectAsStateWithLifecycle().value ?: return
+private fun PerpetualSections(extras: AmountExtrasUIModel.Perpetual, onSelectLeverage: (Int) -> Unit, onOpenAutoclose: () -> Unit) {
     var showLeverageSelect by remember { mutableStateOf(false) }
-    ListItem(
-        model = model,
-        listPosition = ListPosition.Single,
-        modifier = Modifier.clickable { showLeverageSelect = true },
-        accessory = { DataBadgeChevron() },
-    )
-    SelectLeverageDialog(
-        isVisible = showLeverageSelect,
-        leverages = state.options,
-        selected = state.current,
-        onDismiss = { showLeverageSelect = false },
-        onSelect = provider::setLeverage,
-    )
-}
-
-@Composable
-private fun PerpetualAutocloseSection(provider: AmountPerpetualProvider, amount: String) {
-    val model by provider.autocloseListItem.collectAsStateWithLifecycle()
-    var sheetVisible by remember { mutableStateOf(false) }
-
-    model?.let {
+    extras.leverage?.let { model ->
         ListItem(
-            model = it,
+            model = model,
             listPosition = ListPosition.Single,
-            modifier = Modifier.clickable { sheetVisible = true },
+            modifier = Modifier.clickable { showLeverageSelect = true },
+            accessory = { DataBadgeChevron() },
+        )
+        SelectLeverageDialog(
+            isVisible = showLeverageSelect,
+            leverages = extras.leverages,
+            selected = extras.selectedLeverage,
+            onDismiss = { showLeverageSelect = false },
+            onSelect = onSelectLeverage,
+        )
+    }
+    extras.autoclose?.let { model ->
+        ListItem(
+            model = model,
+            listPosition = ListPosition.Single,
+            modifier = Modifier.clickable(onClick = onOpenAutoclose),
             accessory = { DataBadgeChevron() },
         )
     }
-
-    AmountAutocloseSheet(
-        isVisible = sheetVisible,
-        provider = provider,
-        amount = amount,
-        onDismiss = { sheetVisible = false },
-    )
 }

@@ -8,6 +8,7 @@ import org.junit.Test
 import uniffi.gemstone.AlienException
 import uniffi.gemstone.GatewayException
 import uniffi.gemstone.GemErrorText
+import uniffi.gemstone.GemPaymentException
 import java.io.EOFException
 import java.io.IOException
 import java.net.ConnectException
@@ -35,10 +36,12 @@ class NetworkErrorTest {
             IllegalStateException("outer", AlienException.RequestException("request failed")) to
                 GemErrorText.NetworkMessage("request failed"),
         ).forEach { (source, expected) ->
-            assertEquals(expected, source.toGemErrorText())
+            assertEquals(expected, source.errorTextOrNull())
         }
 
-        assertNull(IllegalStateException("bad state").toGemErrorText())
+        assertNull(IllegalStateException("bad state").errorTextOrNull())
+        assertEquals(GemErrorText.Message("bad state"), IllegalStateException("bad state").errorText())
+        assertEquals("a scan with no payment option reads the same sentence on both apps", GemErrorText.NotSupported, GemPaymentException.NoPaymentOptions().errorText())
     }
 
     @Test

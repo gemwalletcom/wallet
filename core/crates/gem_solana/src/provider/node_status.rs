@@ -1,10 +1,10 @@
 use async_trait::async_trait;
 use chain_traits::{
     ChainBalances, ChainToken, ChainTraits,
-    node_check::{ChainNodeStatus, NodeCheckRecorder, record_node_state},
+    node_check::{ChainNodeStatus, NodeCheckRecorder, NodeCheckReport, NodeCheckRequest, record_node_state},
 };
 use gem_client::Client;
-use primitives::{NodeCheckReport, NodeCheckRequest, NodeSyncStatus};
+use primitives::NodeSyncStatus;
 use std::time::Duration;
 
 use crate::{USDC_TOKEN_MINT, method, rpc::SolanaProvider};

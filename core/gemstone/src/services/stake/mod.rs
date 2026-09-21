@@ -11,7 +11,7 @@ use chrono::Utc;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use primitives::{Asset, AssetId, Chain, Currency, Delegation, DelegationBase, DelegationValidator, StakeProviderType, StakeType, WalletId, WalletType};
+use primitives::{Asset, AssetId, Chain, Currency, Delegation, DelegationBase, DelegationValidator, Resource, StakeProviderType, StakeType, WalletId, WalletType};
 
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
@@ -20,7 +20,7 @@ use crate::models::{GemContractCallData, GemEarnType};
 
 pub use model::{
     GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationStatus, GemEarnActions, GemStakeAction, GemStakeActionItem, GemStakeAmountInput,
-    GemStakeSection, GemStakeValidatorSelection, GemValidatorRow,
+    GemStakeDestination, GemStakeSection, GemStakeValidatorSelection, GemValidatorRow,
 };
 pub use store::GemStakeStore;
 
@@ -138,8 +138,12 @@ impl GemStakeService {
         rules::positions(delegations)
     }
 
-    pub fn stake_actions(&self, wallet_type: WalletType, chain: Chain, has_validators: bool, balance: GemAssetBalance, delegations: Vec<Delegation>) -> Vec<GemStakeActionItem> {
-        rules::stake_actions(wallet_type, chain, has_validators, &balance, &delegations)
+    pub fn resource_options(&self, chain: Chain) -> Vec<Resource> {
+        rules::resource_options(chain)
+    }
+
+    pub fn stake_actions(&self, wallet_type: WalletType, chain: Chain, validators: Vec<DelegationValidator>, balance: GemAssetBalance, delegations: Vec<Delegation>) -> Vec<GemStakeActionItem> {
+        rules::stake_actions(wallet_type, chain, &validators, &balance, &delegations)
     }
 
     pub fn stake_sections(&self, chain: Chain, has_actions: bool, has_delegations: bool) -> Vec<GemStakeSection> {
@@ -208,7 +212,7 @@ impl GemStakeService {
     }
 
     async fn current_account(&self, chain: Chain) -> Result<(WalletId, String), GemServiceError> {
-        let wallet = self.session.current_wallet().await?;
+        let wallet = self.session.require_current_wallet().await?;
         let account = required_account(&wallet, chain)?;
         Ok((wallet.id.clone(), account.address.clone()))
     }

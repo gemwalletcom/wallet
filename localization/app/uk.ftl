@@ -396,6 +396,7 @@ stake_active_in = Активний в
 stake_minimum_amount = Мінімальна сума
 stake_state_empty_title = Ваші стейкинги з'являться тут
 stake_state_empty_description = Зробіть свій перший стейкінг %@
+stake_state_empty_validators_title = Валідаторів не знайдено
 stake_resource = Ресурс
 stake_resource_energy = Енергія
 stake_resource_bandwidth = Пропускна здатність
@@ -452,6 +453,7 @@ nodes_import_node_in_sync = У режимі синхронізації
 nodes_import_node_latest_block = Останній блок
 nodes_import_node_latency = Затримка
 nodes_gem_wallet_node = Gem нода
+nodes_stream = Потік
 nodes_import_node_warning_message = Користувацькі вузли можуть бути шкідливими та розкривати дані ваших транзакцій або надавати неправдиву інформацію.
 
 # Library

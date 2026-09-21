@@ -1,3 +1,4 @@
+use crate::services::localization::GemLocalizedText;
 use chrono::{DateTime, Utc};
 use primitives::{NFTAssetData, NFTData, VerificationStatus};
 
@@ -22,6 +23,13 @@ pub enum GemNftItem {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemNftUnverifiedRow {
     pub count_text: String,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemNftListScreen {
+    pub title: GemLocalizedText,
+    pub offers_receive: bool,
+    pub syncs_on_appear: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

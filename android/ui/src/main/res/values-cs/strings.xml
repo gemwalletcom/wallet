@@ -339,6 +339,7 @@
   <string name="stake_minimum_amount">Minimální částka</string>
   <string name="stake_state_empty_title">Vaše sázky se zobrazí zde</string>
   <string name="stake_state_empty_description">Vsaďte si první %1$s</string>
+  <string name="stake_state_empty_validators_title">Nenalezeni žádní validátoři</string>
   <string name="stake_resource">Zdroj</string>
   <string name="stake_resource_energy">Energie</string>
   <string name="stake_resource_bandwidth">Šířka pásma</string>
@@ -380,6 +381,7 @@
   <string name="nodes_import_node_latest_block">Nejnovější blok</string>
   <string name="nodes_import_node_latency">Latence</string>
   <string name="nodes_gem_wallet_node">Gem Wallet Node</string>
+  <string name="nodes_stream">Stream</string>
   <string name="nodes_import_node_warning_message">Vlastní uzly mohou být škodlivé a mohou zveřejnit vaše transakční data nebo poskytovat nepravdivé informace.</string>
   <string name="library_select_from_photo_library">Vyberte z knihovny fotografií</string>
   <string name="fee_rates_info">Rychlost transakce je určena síťovým poplatkem placeným síťovým těžařům.</string>

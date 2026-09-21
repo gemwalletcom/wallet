@@ -1,8 +1,9 @@
 use std::error::Error;
 use std::fmt;
 
+use config_keys::RateLimitKey;
 use localizer::LanguageLocalizer;
-use primitives::{Localize, RateLimitKey};
+use primitives::Localize;
 use storage::{DatabaseError, ReferralValidationError, UsernameValidationError};
 
 #[derive(Debug)]

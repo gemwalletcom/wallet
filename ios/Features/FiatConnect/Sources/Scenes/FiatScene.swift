@@ -39,7 +39,7 @@ public struct FiatScene: View {
             await model.load()
         }
         .onTimer(every: model.quoteRefreshInterval, id: model.loadTrigger) {
-            await model.load()
+            await model.refreshQuotes()
         }
         .alertSheet($model.isPresentingAlertMessage)
     }

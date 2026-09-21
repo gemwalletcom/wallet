@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.settings.price_alerts.viewmodels
 
+import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
@@ -21,6 +22,7 @@ import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.text
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -30,6 +32,7 @@ import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.PriceAlertDirection
 import com.wallet.core.primitives.PriceAlertNotificationType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -41,7 +44,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemFormattedNumber
 import uniffi.gemstone.GemPriceAlertServiceInterface
 import uniffi.gemstone.GemPriceAlertSession
@@ -57,6 +59,7 @@ class PriceAlertTargetViewModel @Inject constructor(
     private val priceAlertFormatter: PriceAlertFormatter,
     savedStateHandle: SavedStateHandle,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     val value = TextFieldState()
@@ -126,8 +129,8 @@ class PriceAlertTargetViewModel @Inject constructor(
 
     private fun GemFormattedNumber.suggestion(): Pair<String, String> = text() to numberFormat().valueText(value)
 
-    private val errorState = MutableStateFlow<GemErrorText?>(null)
-    val error: StateFlow<GemErrorText?> = errorState.asStateFlow()
+    private val errorState = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = errorState.asStateFlow()
 
     fun onDirection(direction: PriceAlertDirection) {
         _direction.update { direction }
@@ -145,7 +148,7 @@ class PriceAlertTargetViewModel @Inject constructor(
         viewModelScope.launch {
             runCatchingCancellable { withContext(ioDispatcher) { service.enablePriceAlert(priceAlert) } }
                 .onSuccess { onSaved(PriceAlertConfirmResult(type, direction, viewState.value.savedValue?.text().orEmpty())) }
-                .onFailure { errorState.value = it.errorText() }
+                .onFailure { errorState.value = it.errorText().text(context) }
             isSaving.value = false
         }
     }
