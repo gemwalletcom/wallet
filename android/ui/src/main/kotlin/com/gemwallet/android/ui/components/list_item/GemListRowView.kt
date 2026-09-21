@@ -83,7 +83,7 @@ fun GemListRowView(
                 minHeight = ListItemDefaults.plainMinHeight,
                 accessory = when {
                     row.trailingImage != null -> {
-                        { DataBadgeChevron(isShowChevron = false) { ListItemImageView(image = row.trailingImage, style = ListItemImageStyle.Glyph) } }
+                        { DataBadgeChevron(isShowChevron = false) { ListItemImageView(image = row.trailingImage, size = ListItemImageStyle.Glyph.size) } }
                     }
 
                     row.url != null || row.opensAnotherScreen -> {
