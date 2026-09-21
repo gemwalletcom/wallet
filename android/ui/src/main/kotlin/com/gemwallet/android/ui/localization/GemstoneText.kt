@@ -33,7 +33,6 @@ import uniffi.gemstone.GemApprovalValue
 import uniffi.gemstone.GemAssetMenuAction
 import uniffi.gemstone.GemBalanceResource
 import uniffi.gemstone.GemBalanceRowValue
-import uniffi.gemstone.GemBannerAmount
 import uniffi.gemstone.GemBannerDescription
 import uniffi.gemstone.GemBannerTitle
 import uniffi.gemstone.GemCandleTooltipRow
@@ -67,6 +66,7 @@ import uniffi.gemstone.GemWalletSubtitle
 import uniffi.gemstone.LinkType
 import uniffi.gemstone.PerpetualMarginType
 import uniffi.gemstone.PerpetualProvider
+import uniffi.gemstone.StakeProviderType
 import uniffi.gemstone.WalletConnectionVerificationStatus
 import uniffi.gemstone.verificationLevel
 import uniffi.gemstone.PriceChangeCalculator as GemPriceChangeCalculator
@@ -171,6 +171,8 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     GemLocalizedText.None -> context.getString(R.string.common_none)
 
+    GemLocalizedText.SlippageAuto -> context.getString(R.string.swap_slippage_auto)
+
     GemLocalizedText.RewardsUnverified -> context.getString(R.string.rewards_unverified_description)
 
     is GemLocalizedText.RewardsPending -> context.getString(R.string.rewards_pending_description, countdown.formatDuration())
@@ -194,6 +196,17 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
     is GemLocalizedText.Margin -> GemPerpetual(PerpetualProvider.HYPERCORE).use { it.marginText(amount.text(), context.getString(marginType.stringRes())) }
 
     is GemLocalizedText.Position -> GemPerpetual(PerpetualProvider.HYPERCORE).use { it.positionText(context.getString(direction.toPrimitives().stringRes()), leverage) }
+
+    is GemLocalizedText.Apr -> context.getString(R.string.stake_apr, value?.text().orEmpty())
+
+    is GemLocalizedText.PriceImpactWarning -> context.getString(R.string.swap_price_impact_warning_description, percent.text(), symbol)
+
+    is GemLocalizedText.Balance -> context.getString(R.string.transfer_balance, amount.text())
+
+    is GemLocalizedText.StakeProvider -> when (provider) {
+        StakeProviderType.STAKE -> context.getString(R.string.transfer_stake_title)
+        StakeProviderType.EARN -> context.getString(R.string.common_earn)
+    }
 
     is GemLocalizedText.PositionChange -> when (change) {
         GemPositionChange.INCREASE -> context.getString(R.string.perpetual_increase_direction, context.getString(direction.toPrimitives().stringRes()))
@@ -496,7 +509,7 @@ fun bannerDescription(context: Context, description: GemBannerDescription): Stri
     is GemBannerDescription.AccountActivation -> context.getString(
         R.string.banner_account_activation_description,
         description.networkName,
-        bannerAmount(description.fee),
+        description.fee.text(),
     )
 
     is GemBannerDescription.ExternallyControlledAccount -> context.getString(R.string.warnings_externally_controlled_account, description.networkName)
@@ -514,8 +527,6 @@ fun bannerDescription(context: Context, description: GemBannerDescription): Stri
     GemBannerDescription.TradePerpetuals -> context.getString(R.string.banner_perpetuals_description)
 }
 
-private fun bannerAmount(amount: GemBannerAmount): String = ValueFormatter(style = GemValueStyle.AUTO)
-    .string(amount.value, decimals = amount.decimals, currency = amount.symbol)
 fun GemRecipientErrorDisplay.string(context: Context): String = when (this) {
     is GemRecipientErrorDisplay.InvalidAddress -> context.getString(R.string.errors_invalid_asset_address, network)
 }
@@ -601,6 +612,14 @@ fun GemListRowTitle.text(context: Context): String = when (this) {
     GemListRowTitle.POSITION -> context.getString(R.string.perpetual_position)
     GemListRowTitle.DETAILS -> context.getString(R.string.common_details)
     GemListRowTitle.SLIPPAGE -> context.getString(R.string.swap_slippage)
+    GemListRowTitle.UNREALIZED_PNL -> context.getString(R.string.perpetual_unrealized_pnl)
+    GemListRowTitle.ACCOUNT_LEVERAGE -> context.getString(R.string.perpetual_account_leverage)
+    GemListRowTitle.MARGIN_USAGE -> context.getString(R.string.perpetual_margin_usage)
+    GemListRowTitle.ALL_TIME_PNL -> context.getString(R.string.perpetual_all_time_pnl)
+    GemListRowTitle.VOLUME -> context.getString(R.string.perpetual_volume)
+    GemListRowTitle.PRICE_IMPACT -> context.getString(R.string.swap_price_impact)
+    GemListRowTitle.MINIMUM_RECEIVE -> context.getString(R.string.swap_min_receive)
+    GemListRowTitle.ESTIMATED_TIME -> context.getString(R.string.swap_estimated_time_title)
     GemListRowTitle.MARKET_PRICE -> context.getString(R.string.perpetual_market_price)
     GemListRowTitle.ENTRY_PRICE -> context.getString(R.string.perpetual_entry_price)
     GemListRowTitle.LIQUIDATION_PRICE -> context.getString(R.string.info_perpetual_liquidation_price_title)

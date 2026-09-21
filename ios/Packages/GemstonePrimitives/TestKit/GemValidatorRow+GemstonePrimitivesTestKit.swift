@@ -2,6 +2,7 @@
 
 import struct Gemstone.DelegationValidator
 import struct Gemstone.GemFormattedNumber
+import enum Gemstone.GemLocalizedText
 import struct Gemstone.GemValidatorRow
 import GemstonePrimitives
 import Primitives
@@ -18,7 +19,7 @@ public extension GemValidatorRow {
             imageUrl: "https://assets.gemwallet.com/validator.png",
             placeholder: String(validator.name.prefix(1)),
             provider: .none,
-            apr: apr,
+            apr: .apr(value: apr),
         )
     }
 }

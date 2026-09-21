@@ -25,6 +25,10 @@ public final class GemstoneSupportStore: GemSupportStore, Sendable {
         try store.replace(id: id, with: message.toPrimitives())
     }
 
+    public func failPendingMessages(exceptIds: [String]) async throws {
+        try store.failPending(exceptIds: exceptIds)
+    }
+
     public func updateTyping(typing: Gemstone.SupportTyping) throws {
         self.typing.update(typing.toPrimitives())
     }

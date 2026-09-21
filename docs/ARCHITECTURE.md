@@ -251,30 +251,28 @@ pub struct GemAssetRowStyle {
 }
 ```
 
-The screen asks its service for the style once and passes it down, so wallet, search, select and network-asset lists all render from one answer and a change to what a row means is one edit in Core. The app's row model holds the style and exposes platform values from it:
+The screen asks its service for the style once and passes it down, so wallet, search, select and network-asset lists all render from one answer and a change to what a row means is one edit in Core. The style names the choices; a second projection resolves them against the asset, so neither app reads a title rule:
 
-```swift
-public var name: String {
-    switch rowStyle.title {
-    case .asset: assetDataModel.name
-    case .canonicalAsset: assetDataModel.asset.id.type == .native ? assetDataModel.asset.chain.asset.name : assetDataModel.name
-    case .network: assetDataModel.asset.chain.networkName
+```rust
+pub fn asset_row_text(asset: &Asset, style: GemAssetRowStyle) -> GemAssetRowText {
+    let chain_asset = ChainAsset::from_chain(asset.chain());
+    let title = match style.title {
+        GemAssetTitleStyle::Asset => asset.name.clone(),
+        GemAssetTitleStyle::CanonicalAsset => match asset.id.is_native() {
+            true => chain_asset.asset.name.clone(),
+            false => asset.name.clone(),
+        },
+        GemAssetTitleStyle::Network => chain_asset.network_name.clone(),
+    };
+    GemAssetRowText {
+        symbol: (style.shows_symbol && title != asset.symbol).then(|| asset.symbol.clone()),
+        network: (style.subtitle == GemAssetSubtitleStyle::Network && !asset.id.is_native()).then(|| chain_asset.network_name.clone()),
+        title,
     }
 }
 ```
 
-```kotlin
-private fun AssetInfo.title(naming: GemAssetTitleStyle): String = when (naming) {
-    GemAssetTitleStyle.ASSET -> asset.name
-    GemAssetTitleStyle.CANONICAL_ASSET -> when (asset.subtype) {
-        AssetSubtype.NATIVE -> asset.chain.asset().name
-        AssetSubtype.TOKEN -> asset.name
-    }
-    GemAssetTitleStyle.NETWORK -> asset.id.chain.asset().name
-}
-```
-
-R111 tracks the remaining asset-title decision in the example above: network and canonical naming must come from one Core projection. Treat those app-side branches as migration debt, not a pattern for new title rules.
+The row model holds the record and reads it; `name` is `text.title` on both apps, `symbol` is `text.symbol`, and a network subtitle is `text.network` or nothing. Before this, a network title read "TON" on iOS and "Gram" on Android, and the symbol was hidden against the row's title on one app and the raw asset name on the other.
 
 `GemValidatorRow`, `GemFiatQuoteRow`, `GemWalletRow` and `GemBalanceRow` are the same shape for their lists. A session is for a screen the user drives, with events and a derived view state; a projection of one value that answers the same way every time is a row. The thing to look for in a row model is a decision the record could carry: if both apps compute it, it belongs in the record, not in two view models.
 

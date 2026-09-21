@@ -1,9 +1,12 @@
-use crate::models::custom_types::GemBigInt;
 use primitives::{Asset, AssetId, Banner, BannerEvent, BannerState, Chain, ChainAsset, VerificationStatus, Wallet, WalletSource, WalletType};
 
-use super::model::{BannerScope, GemBannerAmount, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerDestination, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerLink, GemBannerTitle, banner_scope};
+use super::model::{BannerScope, GemBannerButton, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerDestination, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerLink, GemBannerStyle, GemBannerTitle, banner_scope};
 use crate::config::chain::account_activation_fee_url;
 use crate::config::docs::DocsUrl;
+use crate::formatted_number::GemFormattedNumber;
+#[cfg(test)]
+use crate::models::custom_types::GemBigInt;
+use crate::precision::GemValueStyle;
 use crate::services::transfer::rules as transfer_rules;
 
 const ACCOUNT_ACTIVATION_CHAINS: [Chain; 3] = [Chain::Xrp, Chain::Stellar, Chain::Algorand];
@@ -66,12 +69,22 @@ fn is_visible_event(event: BannerEvent, context: &GemBannerContext) -> bool {
     }
 }
 
-pub fn banner_content(event: BannerEvent, asset: Option<&Asset>) -> GemBannerContent {
+pub fn banner_content(event: BannerEvent, asset: Option<&Asset>, state: BannerState) -> GemBannerContent {
+    let style = match event {
+        BannerEvent::Onboarding => GemBannerStyle::Welcome,
+        _ => GemBannerStyle::List,
+    };
     GemBannerContent {
         icon: banner_icon(event, asset.map(|asset| asset.id.chain)),
         title: banner_title(event, asset),
         description: banner_description(event, asset),
         destination: banner_destination(event, asset),
+        buttons: match style {
+            GemBannerStyle::Welcome => vec![GemBannerButton::Buy, GemBannerButton::Receive],
+            GemBannerStyle::List => Vec::new(),
+        },
+        can_close: state != BannerState::AlwaysActive,
+        style,
     }
 }
 
@@ -122,11 +135,7 @@ fn banner_description(event: BannerEvent, asset: Option<&Asset>) -> Option<GemBa
             let asset = asset?;
             Some(GemBannerDescription::AccountActivation {
                 network_name: network_name(asset.id.chain),
-                fee: GemBannerAmount {
-                    value: GemBigInt::from(asset.id.chain.account_activation_fee()?),
-                    decimals: asset.decimals,
-                    symbol: asset.symbol.clone(),
-                },
+                fee: GemFormattedNumber::asset_amount(&num_bigint::BigInt::from(asset.id.chain.account_activation_fee()?), asset, GemValueStyle::Auto),
             })
         }
         BannerEvent::AccountBlockedMultiSignature => Some(GemBannerDescription::ExternallyControlledAccount { network_name: network_name(asset?.id.chain) }),
@@ -438,58 +447,72 @@ mod tests {
     #[test]
     fn test_banner_content_names_the_asset_field_per_line() {
         let ethereum = Asset::from_chain(Chain::Ethereum);
-        let stake = banner_content(BannerEvent::Stake, Some(&ethereum));
+        let stake = banner_content(BannerEvent::Stake, Some(&ethereum), BannerState::Active);
         assert_eq!(stake.title, Some(GemBannerTitle::Stake { asset_name: "Ethereum".to_string() }));
         assert_eq!(stake.description, Some(GemBannerDescription::Stake { asset_symbol: "ETH".to_string() }));
 
         let arbitrum = Asset::from_chain(Chain::Arbitrum);
         assert_eq!(arbitrum.name, "Arbitrum ETH");
         assert_eq!(
-            banner_content(BannerEvent::AccountBlockedMultiSignature, Some(&arbitrum)).description,
+            banner_content(BannerEvent::AccountBlockedMultiSignature, Some(&arbitrum), BannerState::Active).description,
             Some(GemBannerDescription::ExternallyControlledAccount { network_name: "Arbitrum".to_string() })
         );
 
         let usdc = Asset::mock_ethereum_usdc();
         assert_eq!(
-            banner_content(BannerEvent::ActivateAsset, Some(&usdc)).description,
+            banner_content(BannerEvent::ActivateAsset, Some(&usdc), BannerState::Active).description,
             Some(GemBannerDescription::ActivateAsset {
                 asset_symbol: "USDC".to_string(),
                 network_name: "Ethereum".to_string(),
             })
         );
 
-        let without_asset = banner_content(BannerEvent::Stake, None);
+        let without_asset = banner_content(BannerEvent::Stake, None, BannerState::Active);
         assert_eq!(without_asset.title, None);
         assert_eq!(without_asset.description, None);
+    }
+
+    #[test]
+    fn test_banner_content_names_its_layout_its_buttons_and_whether_it_closes() {
+        let ethereum = Asset::from_chain(Chain::Ethereum);
+        let onboarding = banner_content(BannerEvent::Onboarding, None, BannerState::Active);
+        let stake = banner_content(BannerEvent::Stake, Some(&ethereum), BannerState::Active);
+
+        assert_eq!(onboarding.style, GemBannerStyle::Welcome);
+        assert_eq!(onboarding.buttons, vec![GemBannerButton::Buy, GemBannerButton::Receive]);
+        assert_eq!(stake.style, GemBannerStyle::List);
+        assert!(stake.buttons.is_empty(), "a list banner is its own action");
+
+        assert!(stake.can_close);
+        assert!(!banner_content(BannerEvent::Stake, Some(&ethereum), BannerState::AlwaysActive).can_close, "a banner that is always active cannot be dismissed");
     }
 
     #[test]
     fn test_banner_content_drops_the_activation_description_without_a_fee() {
         let xrp = Asset::from_chain(Chain::Xrp);
         assert_eq!(
-            banner_content(BannerEvent::AccountActivation, Some(&xrp)).description,
+            banner_content(BannerEvent::AccountActivation, Some(&xrp), BannerState::Active).description,
             Some(GemBannerDescription::AccountActivation {
                 network_name: "XRP".to_string(),
-                fee: GemBannerAmount {
-                    value: GemBigInt::from(1_000_000),
-                    decimals: 6,
-                    symbol: "XRP".to_string(),
-                },
+                fee: GemFormattedNumber::asset_amount(&num_bigint::BigInt::from(1_000_000), &xrp, GemValueStyle::Auto),
             })
         );
 
         let ethereum = Asset::from_chain(Chain::Ethereum);
         assert_eq!(ethereum.id.chain.account_activation_fee(), None);
-        let without_fee = banner_content(BannerEvent::AccountActivation, Some(&ethereum));
+        let without_fee = banner_content(BannerEvent::AccountActivation, Some(&ethereum), BannerState::Active);
         assert_eq!(without_fee.description, None);
         assert_eq!(destination_link(&without_fee), None);
         assert_eq!(
-            destination_link(&banner_content(BannerEvent::AccountActivation, Some(&xrp))),
+            destination_link(&banner_content(BannerEvent::AccountActivation, Some(&xrp), BannerState::Active)),
             Some(GemBannerLink::External {
                 url: account_activation_fee_url(Chain::Xrp).unwrap()
             })
         );
-        assert_eq!(destination_link(&banner_content(BannerEvent::SuspiciousAsset, Some(&ethereum))), Some(GemBannerLink::Docs { item: DocsUrl::TokenVerification }));
+        assert_eq!(
+            destination_link(&banner_content(BannerEvent::SuspiciousAsset, Some(&ethereum), BannerState::Active)),
+            Some(GemBannerLink::Docs { item: DocsUrl::TokenVerification })
+        );
         assert_eq!(without_fee.title, Some(GemBannerTitle::AccountActivation));
     }
 
@@ -513,7 +536,7 @@ mod tests {
     #[test]
     fn test_banner_destination_per_event() {
         let usdc = Asset::mock_ethereum_usdc();
-        let kind = |event| destination_kind(banner_content(event, Some(&usdc)).destination.as_ref());
+        let kind = |event| destination_kind(banner_content(event, Some(&usdc), BannerState::Active).destination.as_ref());
 
         assert_eq!(kind(BannerEvent::Stake), "stake");
         assert_eq!(kind(BannerEvent::ActivateAsset), "activate asset");
@@ -523,14 +546,14 @@ mod tests {
         assert_eq!(kind(BannerEvent::Onboarding), "none");
 
         let xrp = Asset::from_chain(Chain::Xrp);
-        assert_eq!(destination_kind(banner_content(BannerEvent::AccountActivation, Some(&xrp)).destination.as_ref()), "url");
-        assert_eq!(destination_kind(banner_content(BannerEvent::ActivateAsset, None).destination.as_ref()), "none");
+        assert_eq!(destination_kind(banner_content(BannerEvent::AccountActivation, Some(&xrp), BannerState::Active).destination.as_ref()), "url");
+        assert_eq!(destination_kind(banner_content(BannerEvent::ActivateAsset, None, BannerState::Active).destination.as_ref()), "none");
     }
 
     #[test]
     fn test_activate_asset_destination_carries_an_account_activation_transfer() {
         let usdc = Asset::mock_ethereum_usdc();
-        let Some(GemBannerDestination::ActivateAsset { transfer }) = banner_content(BannerEvent::ActivateAsset, Some(&usdc)).destination else {
+        let Some(GemBannerDestination::ActivateAsset { transfer }) = banner_content(BannerEvent::ActivateAsset, Some(&usdc), BannerState::Active).destination else {
             panic!("the activate asset banner must carry its transfer");
         };
         let TransactionInputType::Account {
@@ -550,7 +573,7 @@ mod tests {
     #[test]
     fn test_banner_icon_per_event() {
         let stellar = Asset::from_chain(Chain::Stellar);
-        let icon = |event| banner_content(event, Some(&stellar)).icon;
+        let icon = |event| banner_content(event, Some(&stellar), BannerState::Active).icon;
         assert_eq!(icon(BannerEvent::Stake), Some(GemBannerIcon::MoneyBag));
         assert_eq!(icon(BannerEvent::AccountActivation), Some(GemBannerIcon::Network { chain: Chain::Stellar }));
         assert_eq!(icon(BannerEvent::ActivateAsset), Some(GemBannerIcon::Network { chain: Chain::Stellar }));
@@ -558,6 +581,6 @@ mod tests {
         assert_eq!(icon(BannerEvent::SuspiciousAsset), Some(GemBannerIcon::Suspicious));
         assert_eq!(icon(BannerEvent::Onboarding), Some(GemBannerIcon::Bitcoin));
         assert_eq!(icon(BannerEvent::TradePerpetuals), Some(GemBannerIcon::Perpetuals));
-        assert_eq!(banner_content(BannerEvent::AccountActivation, None).icon, None);
+        assert_eq!(banner_content(BannerEvent::AccountActivation, None, BannerState::Active).icon, None);
     }
 }

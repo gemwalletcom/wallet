@@ -61,8 +61,8 @@ internal fun AssetDetailRowItem(uiState: AssetInfoUIModel, row: AssetInfoUIModel
             )
         }
 
-        is AssetInfoUIModel.RowUIModel.Earn -> ListItem(
-            model = row.model,
+        is AssetInfoUIModel.RowUIModel.Earn -> GemListRowView(
+            row = row.row,
             listPosition = listPosition,
             modifier = Modifier.clickable { onAction(AssetDetailsAction.Earn(uiState.asset.id)) },
             accessory = { DataBadgeChevron() },

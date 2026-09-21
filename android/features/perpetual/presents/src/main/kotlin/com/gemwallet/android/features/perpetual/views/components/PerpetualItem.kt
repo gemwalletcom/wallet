@@ -15,7 +15,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
-import com.gemwallet.android.domains.price.values.EquivalentValue
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
@@ -33,6 +34,8 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
+import uniffi.gemstone.GemValueTone
+import uniffi.gemstone.priceRow
 
 private val trailingMinWidth = 40.dp
 
@@ -76,14 +79,12 @@ fun PerpetualItem(item: PerpetualDataAggregate, modifier: Modifier = Modifier, l
         title = item.title,
         modifier = modifier,
         listPosition = listPosition,
-        support = if (!item.showsPrice) {
-            null
-        } else {
+        support = item.price.price?.let { price ->
             {
                 PriceInfo(
-                    price = item.price.valueFormatted,
-                    changes = item.price.changePercentageFormatted,
-                    changeStyle = item.price.state.textStyle(),
+                    price = price.text(),
+                    changes = item.price.change?.text().orEmpty(),
+                    changeStyle = (item.price.change?.tone ?: GemValueTone.PLAIN).textStyle(),
                     style = MaterialTheme.typography.bodyMedium,
                     internalPadding = paddingHalfSmall,
                 )
@@ -106,7 +107,6 @@ private fun PerpetualItemPreview() {
     val sampleData = object : PerpetualDataAggregate {
         override val id = PerpetualId(PerpetualProvider.Hypercore, "BTC")
         override val title = "BTC"
-        override val showsPrice = true
         override val asset = Asset(
             id = AssetId(Chain.Bitcoin),
             name = "Bitcoin",
@@ -115,11 +115,7 @@ private fun PerpetualItemPreview() {
             type = AssetType.NATIVE,
         )
         override val isPinned: Boolean = true
-        override val price = object : EquivalentValue {
-            override val currency = Currency.USD
-            override val value = 95420.50
-            override val changePercentage = 2.5
-        }
+        override val price = priceRow(price = 95420.50, change = 2.5, currency = Currency.USD.toGem())
         override val volume = "$15.0B"
     }
 

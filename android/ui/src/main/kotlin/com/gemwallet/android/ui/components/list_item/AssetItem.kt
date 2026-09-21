@@ -19,7 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.domains.price.values.PriceValue
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.components.list_item.color
@@ -36,6 +36,8 @@ import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space6
 import com.wallet.core.primitives.Asset
+import uniffi.gemstone.GemPriceRow
+import uniffi.gemstone.GemValueTone
 
 @Composable
 private fun assetListItemContentPadding(): Dp = adaptivePadding(default = paddingMiddle, compact = space6)
@@ -99,15 +101,13 @@ fun Badge(text: String?) {
     )
 }
 
-fun assetPriceSupport(price: PriceValue?): (@Composable () -> Unit)? {
-    if (price == null || price.valueFormatted.isEmpty()) {
-        return null
-    }
+fun assetPriceSupport(price: GemPriceRow): (@Composable () -> Unit)? {
+    val value = price.price ?: return null
     return {
         PriceInfo(
-            price.valueFormatted,
-            price.changePercentageFormatted,
-            price.state.textStyle(),
+            value.text(),
+            price.change?.text().orEmpty(),
+            (price.change?.tone ?: GemValueTone.PLAIN).textStyle(),
             style = MaterialTheme.typography.bodyMedium,
             internalPadding = paddingHalfSmall,
         )

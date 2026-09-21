@@ -30,23 +30,24 @@ public extension ConfirmTransferSceneViewModel {
     ) -> ConfirmTransferSceneViewModel {
         let wallet = Wallet.mock(accounts: [.mock(chain: data.chain)])
         let rows = rows ?? { addressName in
-            [
-                .row(row: .wallet(
-                    wallet: walletRow(wallet: wallet.toGem()),
-                    copy: addressCopy(chain: data.chain.rawValue, address: wallet.accounts[0].address),
-                    explorer: BlockExplorerLink.mock().toGem(),
-                )),
-                .recipient(
-                    destination: .recipient(name: addressName?.name, address: data.recipient.address),
-                    addressName: addressName,
-                    memo: data.recipient.memo,
-                    chain: data.chain.rawValue,
-                    link: BlockExplorerLink.mock().toGem(),
-                ),
-                .row(row: .network(title: .network, chain: data.chain.rawValue, name: data.chain.rawValue)),
-                data.recipient.memo.map { GemConfirmRowContent.row(row: .memo(value: $0, copy: $0)) },
-                .details,
-            ].compactMap(\.self)
+            let walletContent: GemConfirmRowContent = .row(row: .wallet(
+                wallet: walletRow(wallet: wallet.toGem()),
+                copy: addressCopy(chain: data.chain.rawValue, address: wallet.accounts[0].address),
+                explorer: BlockExplorerLink.mock().toGem(),
+            ))
+            let recipient: GemConfirmRowContent = .recipient(
+                destination: .recipient(name: addressName?.name, address: data.recipient.address),
+                name: addressName?.name,
+                address: data.recipient.address,
+                memo: data.recipient.memo,
+                chain: data.chain.rawValue,
+                link: BlockExplorerLink.mock().toGem(),
+                avatar: nil,
+                isSelectable: true,
+            )
+            let network: GemConfirmRowContent = .row(row: .network(title: .network, chain: data.chain.rawValue, name: data.chain.rawValue))
+            let memo: GemConfirmRowContent? = data.recipient.memo.map { .row(row: .memo(value: $0, copy: $0)) }
+            return [walletContent, recipient, network, memo, .details].compactMap(\.self)
         }
         return ConfirmTransferSceneViewModel(
             request: request ?? .mock(data: data, simulation: simulation),

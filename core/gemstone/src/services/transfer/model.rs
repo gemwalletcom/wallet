@@ -116,7 +116,7 @@ pub enum GemConfirmRow {
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemConfirmDestination {
     Recipient { name: Option<String>, address: String },
-    Contract { address: String },
+    Contract { name: Option<String>, address: String },
     Validator { name: String, address: String },
     Resource { resource: Resource },
     Provider { name: String, address: String },

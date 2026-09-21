@@ -19,9 +19,8 @@ class AssetInfoUIModel(
     val assetInfo: AssetInfo,
     val name: String = "",
     val iconUrl: Any? = null,
-    val priceValue: String = "0",
     val priceDayChanges: String = "0",
-    val priceChangedType: GemValueTone = GemValueTone.POSITIVE,
+    val priceChangedType: GemValueTone = GemValueTone.PLAIN,
     val tokenType: AssetType = AssetType.NATIVE,
     val accountInfoUIModel: AccountInfoUIModel = AccountInfoUIModel(),
     val isBuyEnabled: Boolean = false,
@@ -52,7 +51,7 @@ class AssetInfoUIModel(
         data object Price : RowUIModel
         data class Network(val name: String) : RowUIModel
         data class Balance(val type: BalanceViewType, val model: ListItemModel, val url: String? = null) : RowUIModel
-        data class Earn(val model: ListItemModel) : RowUIModel
+        data class Earn(val row: GemListRow) : RowUIModel
         data class Row(val row: GemListRow) : RowUIModel
     }
 

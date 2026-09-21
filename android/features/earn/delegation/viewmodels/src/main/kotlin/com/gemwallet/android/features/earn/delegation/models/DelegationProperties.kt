@@ -3,11 +3,12 @@ package com.gemwallet.android.features.earn.delegation.models
 import android.content.Context
 import com.gemwallet.android.features.earn.delegation.viewmodels.localization.stringRes
 import com.gemwallet.android.ui.components.list_item.ListItemModel
-import com.gemwallet.android.ui.models.RewardsInfoUIModel
+import com.wallet.core.primitives.Asset
 import uniffi.gemstone.GemDelegationAction
+import uniffi.gemstone.GemDelegationDetails
 import uniffi.gemstone.GemListRow
 
-class DelegationProperties(val rows: List<DelegationRowUIModel>, val rewards: RewardsInfoUIModel)
+class DelegationProperties(val rows: List<DelegationRowUIModel>, val details: GemDelegationDetails, val asset: Asset)
 
 sealed interface DelegationRowUIModel {
     data class Row(val row: GemListRow) : DelegationRowUIModel

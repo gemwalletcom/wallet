@@ -23,6 +23,7 @@ pub enum QueueName {
     FetchAssetAssociations,
     // fetch prices for an asset or provider price id and store to db
     FetchPrices,
+    FetchPricesMetadata,
     // fetch provider list and store tag memberships
     FetchLists,
     // fetch new blocks and store to db
@@ -85,6 +86,7 @@ impl fmt::Display for QueueName {
             QueueName::FetchAssetStatus => write!(f, "fetch_asset_status"),
             QueueName::FetchAssetAssociations => write!(f, "fetch_asset_associations"),
             QueueName::FetchPrices => write!(f, "fetch_prices"),
+            QueueName::FetchPricesMetadata => write!(f, "fetch_prices_metadata"),
             QueueName::FetchLists => write!(f, "fetch_lists"),
             QueueName::FetchBlocks => write!(f, "fetch_blocks"),
             QueueName::FetchNFTCollection => write!(f, "fetch_nft_collection"),

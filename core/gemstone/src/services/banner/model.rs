@@ -1,5 +1,6 @@
 use crate::config::docs::DocsUrl;
-use crate::models::custom_types::{GemBigInt, GemBigUint};
+use crate::formatted_number::GemFormattedNumber;
+use crate::models::custom_types::GemBigUint;
 use crate::services::balance::GemAssetBalance;
 use crate::services::transfer::GemTransferData;
 use primitives::{Asset, AssetId, AssetMetaData, Banner, BannerEvent, BannerState, Chain, Wallet, WalletId};
@@ -28,7 +29,7 @@ impl GemBannerContext {
         super::rules::visible_banners(stored, self)
             .into_iter()
             .map(|banner| GemBannerRow {
-                content: super::rules::banner_content(banner.event, banner.asset.as_ref()),
+                content: super::rules::banner_content(banner.event, banner.asset.as_ref(), banner.state),
                 banner,
             })
             .collect()
@@ -150,13 +151,6 @@ pub enum GemBannerIcon {
     Perpetuals,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemBannerAmount {
-    pub value: GemBigInt,
-    pub decimals: i32,
-    pub symbol: String,
-}
-
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemBannerTitle {
     Stake { asset_name: String },
@@ -171,7 +165,7 @@ pub enum GemBannerTitle {
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemBannerDescription {
     Stake { asset_symbol: String },
-    AccountActivation { network_name: String, fee: GemBannerAmount },
+    AccountActivation { network_name: String, fee: GemFormattedNumber },
     ExternallyControlledAccount { network_name: String },
     ActivateAsset { asset_symbol: String, network_name: String },
     SuspiciousAsset,
@@ -200,6 +194,21 @@ pub struct GemBannerContent {
     pub title: Option<GemBannerTitle>,
     pub description: Option<GemBannerDescription>,
     pub destination: Option<GemBannerDestination>,
+    pub style: GemBannerStyle,
+    pub buttons: Vec<GemBannerButton>,
+    pub can_close: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemBannerStyle {
+    List,
+    Welcome,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemBannerButton {
+    Buy,
+    Receive,
 }
 
 #[cfg(test)]

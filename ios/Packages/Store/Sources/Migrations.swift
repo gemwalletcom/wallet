@@ -87,6 +87,7 @@ struct Migrations {
             try SearchRecord.create(db: db)
             try NotificationRecord.create(db: db)
             try FiatTransactionRecord.create(db: db)
+            try SupportMessageRecord.create(db: db)
         }
         try migrator.migrate(dbQueue)
     }

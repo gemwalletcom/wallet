@@ -1,5 +1,6 @@
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
+use crate::models::list::GemInfoTopic;
 use crate::payment::GemPaymentRecipient;
 use crate::services::balance::GemBalanceRequirement;
 use crate::services::stake::model::GemValidatorRow;
@@ -189,6 +190,19 @@ impl GemAmountError {
     }
 }
 
+#[uniffi::export]
+impl GemAmountErrorDisplay {
+    pub fn info(&self) -> Option<GemInfoTopic> {
+        match self {
+            Self::BelowMinimum { asset, minimum } => Some(GemInfoTopic::MinimumAmount {
+                asset: asset.clone(),
+                minimum: minimum.clone(),
+            }),
+            Self::None | Self::InvalidAmount | Self::InsufficientBalance { .. } => None,
+        }
+    }
+}
+
 impl std::fmt::Display for GemAmountError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -267,5 +281,24 @@ mod tests {
             GemAmountError::InsufficientBalance { asset: same.clone(), requirement }.display(),
             GemAmountErrorDisplay::InsufficientBalance { title: same.symbol }
         );
+    }
+
+    #[test]
+    fn test_only_a_below_minimum_amount_offers_an_info_sheet() {
+        let asset = Asset::from_chain(Chain::Ethereum);
+        let minimum = GemBigInt::from(1000);
+
+        assert_eq!(
+            GemAmountError::BelowMinimum {
+                asset: asset.clone(),
+                minimum: minimum.clone(),
+            }
+            .display()
+            .info(),
+            Some(GemInfoTopic::MinimumAmount { asset, minimum })
+        );
+        assert_eq!(GemAmountErrorDisplay::None.info(), None);
+        assert_eq!(GemAmountErrorDisplay::InvalidAmount.info(), None);
+        assert_eq!(GemAmountErrorDisplay::InsufficientBalance { title: "ETH".to_string() }.info(), None);
     }
 }

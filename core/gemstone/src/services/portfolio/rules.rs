@@ -3,8 +3,13 @@ use primitives::{
 };
 
 use super::model::GemPortfolioValues;
+use crate::formatted_number::{GemFormattedNumber, GemValueTone};
+use crate::models::list::{GemListRow, GemListRowTitle};
+use crate::percentage::GemPercentageStyle;
+use crate::precision::GemCurrencyStyle;
 use crate::services::chart::GemChartData;
 use crate::services::chart::rules::{change_chart_data, converted_values};
+use crate::services::localization::GemLocalizedText;
 
 pub fn converted_portfolio(portfolio: PortfolioAssets, rate: f64) -> GemPortfolioValues {
     GemPortfolioValues {
@@ -37,6 +42,44 @@ pub fn portfolio_chart_data(data: PortfolioData, portfolio_type: PortfolioType, 
     let chart = data.charts.iter().find(|chart| chart.chart_type == chart_type).or(data.charts.first())?;
     let shows_value = portfolio_type == PortfolioType::Wallet || chart_type == PortfolioChartType::Value;
     change_chart_data(chart.values.clone(), shows_value, portfolio_currency(portfolio_type, currency))
+}
+
+/// Every statistic finished as a row, so neither app formats a bare f64.
+pub fn statistic_rows(statistics: Vec<PortfolioStatistic>, currency: Currency) -> Vec<GemListRow> {
+    statistics
+        .into_iter()
+        .map(|statistic| match statistic {
+            PortfolioStatistic::AllTimeHigh { value } => all_time_row(GemListRowTitle::AllTimeHigh, value, currency.clone()),
+            PortfolioStatistic::AllTimeLow { value } => all_time_row(GemListRowTitle::AllTimeLow, value, currency.clone()),
+            PortfolioStatistic::UnrealizedPnl { value } => amount_row(GemListRowTitle::UnrealizedPnl, GemFormattedNumber::signed_usd(value)),
+            PortfolioStatistic::AllTimePnl { value } => amount_row(GemListRowTitle::AllTimePnl, GemFormattedNumber::signed_usd(value)),
+            PortfolioStatistic::AccountLeverage { value } => amount_row(GemListRowTitle::AccountLeverage, GemFormattedNumber::leverage(value)),
+            PortfolioStatistic::Volume { value } => amount_row(GemListRowTitle::Volume, GemFormattedNumber::usd(value)),
+            PortfolioStatistic::MarginUsage { value } => GemListRow::Label {
+                title: GemListRowTitle::MarginUsage,
+                text: GemLocalizedText::Pnl {
+                    amount: GemFormattedNumber::usd(value.used_value),
+                    percent: GemFormattedNumber::percentage(value.usage_percent, GemPercentageStyle::Unsigned),
+                },
+                tone: GemValueTone::Plain,
+                info: None,
+                progress: false,
+            },
+        })
+        .collect()
+}
+
+fn all_time_row(title: GemListRowTitle, value: ChartValuePercentage, currency: Currency) -> GemListRow {
+    GemListRow::AllTime {
+        title,
+        value: GemFormattedNumber::currency(value.value as f64, currency, GemCurrencyStyle::Currency),
+        date: value.date,
+        change: GemFormattedNumber::percentage(value.percentage as f64, GemPercentageStyle::Signed),
+    }
+}
+
+fn amount_row(title: GemListRowTitle, amount: GemFormattedNumber) -> GemListRow {
+    GemListRow::Amount { title, amount, info: None }
 }
 
 pub fn wallet_portfolio_data(values: GemPortfolioValues) -> PortfolioData {
@@ -126,6 +169,41 @@ mod tests {
     fn test_a_perpetuals_portfolio_is_quoted_in_dollars() {
         assert_eq!(portfolio_currency(PortfolioType::Perpetuals, Currency::EUR), Currency::USD, "perpetual collateral is dollars whatever the wallet is set to");
         assert_eq!(portfolio_currency(PortfolioType::Wallet, Currency::EUR), Currency::EUR);
+    }
+
+    #[test]
+    fn test_every_statistic_leaves_core_as_a_finished_row() {
+        let rows = statistic_rows(
+            vec![
+                PortfolioStatistic::AllTimeHigh {
+                    value: ChartValuePercentage {
+                        value: 120.0,
+                        percentage: -10.0,
+                        date: Utc::now(),
+                    },
+                },
+                PortfolioStatistic::UnrealizedPnl { value: -5.0 },
+                PortfolioStatistic::AccountLeverage { value: 3.0 },
+                PortfolioStatistic::Volume { value: 1_000.0 },
+                PortfolioStatistic::MarginUsage {
+                    value: PortfolioMarginUsage::new(4.3456, 0.125),
+                },
+            ],
+            Currency::EUR,
+        );
+
+        assert!(matches!(&rows[0], GemListRow::AllTime { title: GemListRowTitle::AllTimeHigh, value, .. } if value.value == 120.0));
+        assert!(
+            matches!(&rows[1], GemListRow::Amount { title: GemListRowTitle::UnrealizedPnl, amount, .. } if amount.tone == GemValueTone::Negative),
+            "a loss reads as a loss without either app deciding"
+        );
+        assert!(matches!(&rows[2], GemListRow::Amount { title: GemListRowTitle::AccountLeverage, .. }));
+        assert!(matches!(&rows[3], GemListRow::Amount { title: GemListRowTitle::Volume, .. }));
+        assert!(
+            matches!(&rows[4], GemListRow::Label { title: GemListRowTitle::MarginUsage, text: GemLocalizedText::Pnl { amount, percent }, .. }
+                if amount.value == 0.5432 && percent.value == 12.5),
+            "the margin usage carries its amount and percent, not a string either app builds"
+        );
     }
 
     #[test]

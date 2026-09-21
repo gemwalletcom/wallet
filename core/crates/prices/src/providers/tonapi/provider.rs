@@ -2,7 +2,7 @@ use std::error::Error;
 use std::time::Duration;
 
 use async_trait::async_trait;
-use gem_client::{ReqwestClient, retry};
+use gem_client::{ReqwestClient, default_should_retry, retry};
 use gem_tracing::warn_with_fields;
 use primitives::AssetId;
 use tokio::time::sleep;
@@ -37,7 +37,7 @@ impl TonApiProvider {
                 sleep(REQUEST_INTERVAL).await;
             }
             let tokens = chunk.iter().map(|mapping| mapping.provider_price_id.clone()).collect::<Vec<_>>();
-            let response = match retry(|| self.client.get_rates(&tokens), MAX_RETRIES).await {
+            let response = match retry(|| self.client.get_rates(&tokens), MAX_RETRIES, default_should_retry).await {
                 Ok(response) => response,
                 Err(error) => {
                     warn_with_fields!("skip failed TonAPI price chunk", chunk = index, token_count = tokens.len(), error = error.as_ref());

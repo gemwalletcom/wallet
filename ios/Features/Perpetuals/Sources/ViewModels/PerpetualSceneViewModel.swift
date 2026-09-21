@@ -86,10 +86,6 @@ public final class PerpetualSceneViewModel {
         GemPerpetualButton.modify.title
     }
 
-    public func positionModel(_ details: GemPerpetualDetails) -> PerpetualPositionViewModel? {
-        positionData(details).map { PerpetualPositionViewModel($0) }
-    }
-
     public func buttonModels(_ buttons: [GemPerpetualButton]) -> [PerpetualButtonViewModel] {
         buttons.map { PerpetualButtonViewModel(button: $0) }
     }
@@ -223,7 +219,7 @@ private extension PerpetualSceneViewModel {
         }
     }
 
-    func positionData(_ details: GemPerpetualDetails) -> PerpetualPositionData? {
+    public func positionData(_ details: GemPerpetualDetails) -> PerpetualPositionData? {
         details.position.map { PerpetualPositionData(perpetual: perpetual, asset: asset, position: $0.toPrimitives()) }
     }
 

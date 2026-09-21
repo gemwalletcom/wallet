@@ -2,28 +2,31 @@
 
 import Components
 import Formatters
+import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemHeaderActions
-import class Gemstone.PriceChangeCalculator
+import enum Gemstone.GemLocalizedText
+import enum Gemstone.GemValueTone
 import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI
 
 public struct WalletHeaderViewModel {
-    private let totalValue: TotalFiatValue
+    private let total: GemFormattedNumber
+    private let pnl: GemLocalizedText?
+    private let pnlTone: GemValueTone
     private let actions: GemHeaderActions
-    private let totalValueViewModel: TotalValueViewModel
 
     public init(
-        totalValue: TotalFiatValue,
-        currency: Currency,
-        showsPnl: Bool,
+        total: GemFormattedNumber,
+        pnl: GemLocalizedText?,
+        pnlTone: GemValueTone,
         actions: GemHeaderActions,
     ) {
-        self.totalValue = totalValue
+        self.total = total
+        self.pnl = pnl
+        self.pnlTone = pnlTone
         self.actions = actions
-        let formatter = CurrencyFormatter(type: .fiat, currencyCode: currency.rawValue)
-        totalValueViewModel = TotalValueViewModel(totalValue: totalValue, currencyFormatter: formatter, showsPnl: showsPnl)
     }
 }
 
@@ -35,7 +38,7 @@ extension WalletHeaderViewModel: ValueHeaderViewModel {
     }
 
     public var title: String {
-        totalValueViewModel.title
+        total.text()
     }
 
     public var assetImage: AssetImage? {
@@ -43,12 +46,11 @@ extension WalletHeaderViewModel: ValueHeaderViewModel {
     }
 
     public var subtitle: String? {
-        guard let amount = totalValueViewModel.pnlAmountText else { return nil }
-        return PriceChangeCalculator().pnlText(formattedAmount: amount, formattedPercentage: totalValueViewModel.pnlPercentageText)
+        pnl?.text
     }
 
     public var subtitleColor: Color {
-        totalValueViewModel.pnlColor
+        pnlTone.color
     }
 
     public var subtitleImage: Image? {

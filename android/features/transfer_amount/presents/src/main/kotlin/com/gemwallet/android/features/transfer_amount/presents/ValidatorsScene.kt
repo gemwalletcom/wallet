@@ -9,7 +9,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.ValidatorItem
 import com.gemwallet.android.ui.components.list_item.ValidatorRowUIModel
-import com.gemwallet.android.ui.components.list_item.formatApr
+import com.gemwallet.android.ui.components.list_item.aprText
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
@@ -74,5 +74,5 @@ private fun previewRow(id: String, name: String, apr: Double) = ValidatorRowUIMo
     name = name,
     imageUrl = null,
     placeholder = name.take(1),
-    aprText = apr.formatApr(),
+    apr = apr.aprText(),
 )

@@ -5,7 +5,8 @@ import Foundation
 import func Gemstone.addressCopy
 import protocol Gemstone.GemAssetSelectionServiceProtocol
 import struct Gemstone.GemWalletSearchCounts
-import func Gemstone.walletSearchPhase
+import struct Gemstone.GemWalletSearchState
+import func Gemstone.walletSearchState
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -30,7 +31,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
     }
 
     var isPresentingToastMessage: ToastMessage?
-    private var state: StateViewType<Bool> = .loading
+    private var loadState: StateViewType<Bool> = .loading
 
     public init(
         wallet: Wallet,
@@ -58,11 +59,11 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
     }
 
     var showPinned: Bool {
-        sections.pinnedAssets.isNotEmpty
+        state.showsPinned
     }
 
     var showAssets: Bool {
-        sections.assets.isNotEmpty
+        state.showsAssets
     }
 
     var perpetualsTitle: String {
@@ -70,23 +71,34 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
     }
 
     var perpetuals: [PerpetualData] {
-        sections.perpetuals
+        searchResult.perpetuals
     }
 
     var showPerpetuals: Bool {
-        searchQuery.request.scope.isList && sections.perpetuals.isNotEmpty && service.showPerpetuals(walletType: wallet.type.toGem(), chains: wallet.chains.map(\.rawValue))
+        state.showsPerpetuals
+    }
+
+    private var listsPerpetuals: Bool {
+        searchQuery.request.scope.isList && service.showPerpetuals(walletType: wallet.type.toGem(), chains: wallet.chains.map(\.rawValue))
+    }
+
+    private var state: GemWalletSearchState {
+        walletSearchState(
+            counts: GemWalletSearchCounts(
+                recents: 0,
+                pinnedAssets: UInt32(sections.pinnedAssets.count),
+                assets: UInt32(sections.assets.count),
+                pinnedPerpetuals: 0,
+                perpetuals: listsPerpetuals ? UInt32(perpetuals.count) : 0,
+                lists: 0,
+                nfts: 0,
+            ),
+            isLoading: loadState.isLoading,
+        )
     }
 
     var searchState: SearchContentState {
-        let counts = GemWalletSearchCounts(
-            recents: 0,
-            pinned: UInt32(sections.pinnedAssets.count),
-            assets: UInt32(sections.assets.count),
-            perpetuals: showPerpetuals ? UInt32(perpetuals.count) : 0,
-            lists: 0,
-            nfts: 0,
-        )
-        return switch walletSearchPhase(counts: counts, isLoading: state.isLoading) {
+        switch state.phase {
         case .results: .results
         case .loading: .loading
         case .empty: .empty(.search(type: .assets))
@@ -119,12 +131,12 @@ extension AssetsResultsSceneViewModel {
     }
 
     func refresh() async {
-        state = .loading
+        loadState = .loading
         do {
             try await service.search(query: searchQuery.request.searchBy, scope: searchQuery.request.scope)
-            state = .data(true)
+            loadState = .data(true)
         } catch {
-            state.setError(error)
+            loadState.setError(error)
         }
     }
 

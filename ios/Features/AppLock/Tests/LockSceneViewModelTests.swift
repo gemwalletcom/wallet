@@ -351,15 +351,16 @@ struct LockSceneViewModelTests {
     func onScenePhaseWhenAutoLockDisabled() {
         let mockService = BiometryAuthenticationMock(requiresAuthentication: false, availableAuthentication: .none)
         let viewModel = LockSceneViewModel(service: mockService)
-        viewModel.state = .unlocked
+        viewModel.state = .locked
 
-        viewModel.onScenePhase(.background)
+        viewModel.onScenePhase(.inactive)
         #expect(viewModel.state == .unlocked)
         #expect(!viewModel.shouldShowLockScreen)
 
         viewModel.onScenePhase(.active)
         #expect(viewModel.state == .unlocked)
         #expect(!viewModel.shouldShowLockScreen)
+        #expect(mockService.authenticateCallsCount == 0)
     }
 
     @Test

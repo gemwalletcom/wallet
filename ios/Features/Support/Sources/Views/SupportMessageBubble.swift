@@ -201,13 +201,19 @@ struct SupportMessageBubble: View {
             Text(time)
                 .font(.caption2)
                 .foregroundStyle(model.palette.secondary)
-        case .failed:
-            Button(action: model.retry) {
-                Image(systemName: SystemImage.refresh)
+        case let .failed(canRetry):
+            if canRetry {
+                Button(action: model.retry) {
+                    Image(systemName: SystemImage.refresh)
+                        .font(.caption)
+                        .foregroundStyle(model.palette.secondary)
+                }
+                .buttonStyle(.plain)
+            } else {
+                Image(systemName: SystemImage.exclamationmarkTriangle)
                     .font(.caption)
                     .foregroundStyle(model.palette.secondary)
             }
-            .buttonStyle(.plain)
         }
     }
 }

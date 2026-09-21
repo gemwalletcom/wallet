@@ -1,6 +1,7 @@
-use reqwest::{StatusCode, retry};
 use std::future::Future;
 use std::time::Duration;
+
+use reqwest::{StatusCode, retry};
 
 #[cfg(feature = "reqwest")]
 use tokio::time::sleep;
@@ -18,11 +19,11 @@ where
     })
 }
 
-pub async fn retry<T, E, F, Fut>(operation: F, max_retries: u32) -> Result<T, E>
+pub async fn retry<T, E, F, Fut, P>(operation: F, max_retries: u32, should_retry: P) -> Result<T, E>
 where
     F: Fn() -> Fut,
     Fut: Future<Output = Result<T, E>>,
-    E: std::fmt::Display,
+    P: Fn(&E) -> bool,
 {
     let mut attempt = 0;
 
@@ -30,7 +31,7 @@ where
         match operation().await {
             Ok(result) => return Ok(result),
             Err(err) => {
-                if default_should_retry(&err) && attempt < max_retries {
+                if attempt < max_retries && should_retry(&err) {
                     attempt += 1;
                     // Exponential backoff: 2^attempt seconds (2s, 4s, 8s, ...) with max cap
                     let delay = Duration::from_secs(2_u64.saturating_pow(attempt).min(1800)); // Cap at 30 minutes
@@ -70,4 +71,29 @@ pub fn default_should_retry<E: std::fmt::Display>(error: &E) -> bool {
     error_str.contains("too many requests") ||      // Rate limiting messages
     error_str.contains("throttled") ||              // Throttling messages
     error_str.contains("request is limited") // CoinGecko rate limit message
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    use super::retry;
+
+    #[tokio::test]
+    async fn test_retry_respects_predicate_and_limit() {
+        for (error, expected_attempts) in [(7, 2), (8, 1)] {
+            let attempts = AtomicUsize::new(0);
+            let result: Result<(), u8> = retry(
+                || async {
+                    attempts.fetch_add(1, Ordering::SeqCst);
+                    Err(error)
+                },
+                1,
+                |error| *error == 7,
+            )
+            .await;
+            assert_eq!(result, Err(error));
+            assert_eq!(attempts.load(Ordering::SeqCst), expected_attempts);
+        }
+    }
 }

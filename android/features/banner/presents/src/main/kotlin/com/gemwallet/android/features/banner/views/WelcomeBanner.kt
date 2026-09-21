@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -24,6 +25,7 @@ import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
+import uniffi.gemstone.GemBannerButton
 
 @Composable
 internal fun WelcomeBanner(model: BannerItemUIModel, onBuy: () -> Unit, onReceive: () -> Unit, onClose: () -> Unit) {
@@ -58,18 +60,24 @@ internal fun WelcomeBanner(model: BannerItemUIModel, onBuy: () -> Unit, onReceiv
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(paddingDefault),
             ) {
-                Button(
-                    modifier = Modifier.weight(1f),
-                    onClick = onBuy,
-                ) {
-                    Text(stringResource(R.string.wallet_buy))
-                }
-                Button(
-                    modifier = Modifier.weight(1f),
-                    onClick = onReceive,
-                    colors = secondaryActionButtonColors(),
-                ) {
-                    Text(stringResource(R.string.wallet_receive))
+                model.buttons.forEachIndexed { index, button ->
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        onClick = when (button) {
+                            GemBannerButton.BUY -> onBuy
+                            GemBannerButton.RECEIVE -> onReceive
+                        },
+                        colors = if (index == 0) ButtonDefaults.buttonColors() else secondaryActionButtonColors(),
+                    ) {
+                        Text(
+                            stringResource(
+                                when (button) {
+                                    GemBannerButton.BUY -> R.string.wallet_buy
+                                    GemBannerButton.RECEIVE -> R.string.wallet_receive
+                                },
+                            ),
+                        )
+                    }
                 }
             }
         }

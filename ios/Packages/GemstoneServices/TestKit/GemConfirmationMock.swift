@@ -6,8 +6,11 @@ public import typealias Gemstone.Chain
 public import typealias Gemstone.Currency
 public import enum Gemstone.GemAcquireAssetFlow
 public import protocol Gemstone.GemConfirmationProtocol
+public import enum Gemstone.GemConfirmError
+public import struct Gemstone.GemConfirmErrorInfo
 public import struct Gemstone.GemConfirmLoad
 public import struct Gemstone.GemConfirmLoadOptions
+public import struct Gemstone.GemConfirmMetadata
 public import enum Gemstone.GemConfirmRowContent
 public import struct Gemstone.GemConfirmScreen
 public import struct Gemstone.GemTransferData
@@ -16,6 +19,7 @@ public import enum Gemstone.GemListRow
 public import enum Gemstone.GemSubmitResult
 public import struct Gemstone.GemSwapPairSelection
 public import typealias Gemstone.PerpetualModifyConfirmData
+import func Gemstone.confirmErrorInfo
 import GemstonePrimitivesTestKit
 import Primitives
 
@@ -91,6 +95,10 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
 
     public func acquireSwapPair(feeAssetId: String?, assetId: String) -> GemSwapPairSelection {
         GemSwapPairSelection(payAssetId: feeAssetId, receiveAssetId: assetId)
+    }
+
+    public func errorInfo(error: GemConfirmError, metadata: GemConfirmMetadata?) -> GemConfirmErrorInfo? {
+        confirmErrorInfo(error: error, prices: metadata?.prices ?? [], currency: getCurrency())
     }
 
     public func insufficientNetworkFeeBuyAmount() -> Int32 {

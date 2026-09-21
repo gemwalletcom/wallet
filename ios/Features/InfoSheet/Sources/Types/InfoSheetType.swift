@@ -4,6 +4,7 @@ import BigInt
 import Components
 import Formatters
 import Foundation
+import struct Gemstone.GemConfirmErrorInfo
 import enum Gemstone.GemInfoTopic
 import GemstonePrimitives
 import Localization
@@ -14,8 +15,8 @@ import SwiftUI
 
 public enum InfoSheetType: Identifiable, Sendable, Equatable {
     case networkFee(Asset)
-    case balanceRequired(Asset, image: AssetImage, requirement: BalanceRequirement, button: InfoSheetButton)
-    case insufficientNetworkFee(Asset, title: String, image: AssetImage, requirement: BalanceRequirement?, price: Price?, currency: String, button: InfoSheetButton)
+    case balanceRequired(GemConfirmErrorInfo, image: AssetImage, button: InfoSheetButton?)
+    case insufficientNetworkFee(GemConfirmErrorInfo, image: AssetImage, button: InfoSheetButton?)
     case transactionState(imageURL: URL?, placeholder: Image?, model: TransactionStateViewModel)
     case estimatedConfirmation(Chain)
     case watchWallet
@@ -29,10 +30,10 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
     case noQuote
     // asset
     case assetStatus(VerificationStatus)
-    case accountMinimalBalance(Asset, required: BigInt)
+    case accountMinimalBalance(GemConfirmErrorInfo)
     /// stake / perpetual / earn
-    case minimumAmount(Asset, required: BigInt, action: InfoSheetAction)
-    case swapMinimumAmount(Asset, providerName: String, image: AssetImage, requirement: BalanceRequirement, price: Price?, currency: String, button: InfoSheetButton)
+    case minimumAmount(Asset, required: BigInt, action: InfoSheetAction?)
+    case swapMinimumAmount(GemConfirmErrorInfo, providerName: String, image: AssetImage, button: InfoSheetButton?)
     // stake
     case stakingReservedFees(image: AssetImage)
     case pendingUnconfirmedBalance
@@ -55,8 +56,8 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
     public var id: String {
         switch self {
         case .networkFee: "networkFees"
-        case let .insufficientNetworkFee(asset, _, _, _, _, _, _): "insufficientNetworkFee_\(asset.id.identifier)"
-        case let .balanceRequired(asset, _, _, _): "balanceRequired_\(asset.id.identifier)"
+        case let .insufficientNetworkFee(info, _, _): "insufficientNetworkFee_\(info.title)"
+        case let .balanceRequired(info, _, _): "balanceRequired_\(info.title)"
         case let .transactionState(_, _, model): model.state.id
         case let .estimatedConfirmation(chain): "estimatedConfirmation_\(chain.rawValue)"
         case .watchWallet: "watchWallet"
@@ -66,9 +67,9 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
         case .priceImpact: "priceImpact"
         case .slippage: "slippage"
         case let .assetStatus(status): "assetStatus_\(status.rawValue)"
-        case let .accountMinimalBalance(asset, amount): "accountMinimalBalance_\(asset.id.identifier)\(amount)"
+        case let .accountMinimalBalance(info): "accountMinimalBalance_\(info.title)"
         case let .minimumAmount(asset, amount, _): "minimumAmount_\(asset.id.identifier)\(amount)"
-        case let .swapMinimumAmount(asset, provider, _, requirement, _, _, _): "swapMinimumAmount_\(asset.id.identifier)\(provider)\(requirement.required)"
+        case let .swapMinimumAmount(info, providerName, _, _): "swapMinimumAmount_\(info.title)\(providerName)"
         case .stakingReservedFees: "stakingReservedFees"
         case .pendingUnconfirmedBalance: "pendingUnconfirmedBalance"
         case .stakeFrozenRequired: "stakeFrozenRequired"
@@ -94,9 +95,13 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
 }
 
 public extension InfoSheetType {
-    init(topic: GemInfoTopic, assetImage: AssetImage?) {
+    init(topic: GemInfoTopic, assetImage: AssetImage?, buyAction: InfoSheetAction? = nil) {
         self = switch topic {
         case let .networkFee(asset): .networkFee(asset.toPrimitives())
+        case let .minimumAmount(asset, minimum): .minimumAmount(asset.toPrimitives(), required: minimum, action: buyAction)
+        case .noQuote: .noQuote
+        case .priceImpact: .priceImpact
+        case .slippage: .slippage
         case .openInterest: .openInterest
         case .fundingApr: .fundingApr
         case .stakeApr: .stakeApr(assetImage?.placeholder)

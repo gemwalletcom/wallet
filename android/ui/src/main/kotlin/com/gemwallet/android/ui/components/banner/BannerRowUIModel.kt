@@ -9,12 +9,14 @@ import com.gemwallet.android.ui.localization.bannerTitle
 import com.gemwallet.android.ui.style.image
 import com.wallet.core.primitives.Banner
 import com.wallet.core.primitives.BannerState
+import uniffi.gemstone.GemBannerButton
 import uniffi.gemstone.GemBannerDestination
 import uniffi.gemstone.GemBannerLink
 import uniffi.gemstone.GemBannerRow
+import uniffi.gemstone.GemBannerStyle
 import uniffi.gemstone.GemTransferData
 
-data class BannerItemUIModel(val title: String?, val subtitle: String?, val icon: ListItemImage?, val canClose: Boolean, val destination: BannerDestination?)
+data class BannerItemUIModel(val title: String?, val subtitle: String?, val icon: ListItemImage?, val canClose: Boolean, val destination: BannerDestination?, val style: GemBannerStyle, val buttons: List<GemBannerButton>)
 
 sealed interface BannerDestination {
     data object Stake : BannerDestination
@@ -31,8 +33,10 @@ fun GemBannerRow.uiModel(context: Context): BannerRowUIModel = BannerRowUIModel(
         title = content.title?.let { bannerTitle(context, it) },
         subtitle = content.description?.let { bannerDescription(context, it) },
         icon = content.icon?.image(),
-        canClose = banner.state.toPrimitives() != BannerState.AlwaysActive,
+        canClose = content.canClose,
         destination = content.destination?.destination(),
+        style = content.style,
+        buttons = content.buttons,
     ),
 )
 

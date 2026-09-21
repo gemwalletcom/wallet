@@ -8,7 +8,8 @@ import enum Gemstone.GemImage
 import enum Gemstone.GemNftItem
 import struct Gemstone.GemWalletSearchCounts
 import struct Gemstone.GemWalletSearchLimits
-import func Gemstone.walletSearchPhase
+import struct Gemstone.GemWalletSearchState
+import func Gemstone.walletSearchState
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -29,7 +30,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     private let onDismissSearch: VoidAction
     private let onAddToken: VoidAction
 
-    private var state: StateViewType<Bool> = .noData
+    private var loadState: StateViewType<Bool> = .noData
 
     var searchableQuery: String = .empty
 
@@ -108,16 +109,8 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         service.getCurrency().toPrimitives()
     }
 
-    var showRecents: Bool {
-        service.flow(selectType: .walletSearch).showsRecents(isSearching: searchableQuery.isNotEmpty, hasRecents: recentModel.hasAssets)
-    }
-
-    var showPerpetuals: Bool {
-        sections.perpetuals.isNotEmpty && service.showPerpetuals(walletType: wallet.type.toGem(), chains: wallet.chains.map(\.rawValue))
-    }
-
     var searchState: SearchContentState {
-        switch walletSearchPhase(counts: searchCounts, isLoading: state.isLoading) {
+        switch state.phase {
         case .results:
             .results
         case .loading:
@@ -130,39 +123,62 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         }
     }
 
-    private var searchCounts: GemWalletSearchCounts {
-        GemWalletSearchCounts(
-            recents: showRecents ? 1 : 0,
-            pinned: showPinned ? 1 : 0,
-            assets: showAssets ? 1 : 0,
-            perpetuals: showPerpetuals ? 1 : 0,
-            lists: showLists ? 1 : 0,
-            nfts: showNFTs ? 1 : 0,
+    private var state: GemWalletSearchState {
+        walletSearchState(
+            counts: GemWalletSearchCounts(
+                recents: showsRecents ? UInt32(recentModel.assets.count) : 0,
+                pinnedAssets: UInt32(sections.pinnedAssets.count),
+                assets: UInt32(sections.assets.count),
+                pinnedPerpetuals: showsPerpetuals ? UInt32(sections.pinnedPerpetuals.count) : 0,
+                perpetuals: showsPerpetuals ? UInt32(sections.perpetuals.count) : 0,
+                lists: UInt32(sections.lists.count),
+                nfts: UInt32(sections.nfts.count),
+            ),
+            isLoading: loadState.isLoading,
         )
     }
 
+    private var showsRecents: Bool {
+        service.flow(selectType: .walletSearch).showsRecents(isSearching: searchableQuery.isNotEmpty, hasRecents: recentModel.hasAssets)
+    }
+
+    private var showsPerpetuals: Bool {
+        service.showPerpetuals(walletType: wallet.type.toGem(), chains: wallet.chains.map(\.rawValue))
+    }
+
+    var showRecents: Bool {
+        state.showsRecents
+    }
+
+    var showPerpetuals: Bool {
+        state.showsPerpetuals
+    }
+
     var showPinned: Bool {
-        sections.pinnedAssets.isNotEmpty || showPinnedPerpetuals
+        state.showsPinned
     }
 
     var showPinnedPerpetuals: Bool {
-        sections.pinnedPerpetuals.isNotEmpty && service.showPerpetuals(walletType: wallet.type.toGem(), chains: wallet.chains.map(\.rawValue))
+        state.showsPinnedPerpetuals
     }
 
     var showAssets: Bool {
-        sections.assets.isNotEmpty
+        state.showsAssets
     }
 
     var showLists: Bool {
-        sections.lists.isNotEmpty
+        state.showsLists
     }
 
     var showNFTs: Bool {
-        sections.nfts.isNotEmpty
+        state.showsNfts
     }
 
     var showAddToken: Bool {
-        service.supportsTokens(wallet: wallet.toGem())
+        service.flow(selectType: .walletSearch).showsAddToken(
+            supportsTokens: service.supportsTokens(wallet: wallet.toGem()),
+            hasChains: service.filterChains(wallet: wallet.toGem()).isNotEmpty,
+        )
     }
 
     private var limits: GemWalletSearchLimits {
@@ -300,18 +316,18 @@ extension WalletSearchSceneViewModel {
         searchQuery.request.searchBy = searchableQuery
         searchQuery.request.searchKey = service.searchKey(query: searchableQuery, scope: searchQuery.request.scope.gemScope)
         searchQuery.request.limit = Int(limits.fetch)
-        state = searchableQuery.isNotEmpty ? .loading : .noData
+        loadState = searchableQuery.isNotEmpty ? .loading : .noData
     }
 
     private func search(query: String) async {
-        state = .loading
+        loadState = .loading
         do {
             _ = try await service.search(query: query, scope: .all)
             guard query == searchableQuery.trim() else { return }
-            state = .data(true)
+            loadState = .data(true)
         } catch {
             guard query == searchableQuery.trim() else { return }
-            state.setError(error)
+            loadState.setError(error)
             debugLog("Search error: \(error)")
         }
     }

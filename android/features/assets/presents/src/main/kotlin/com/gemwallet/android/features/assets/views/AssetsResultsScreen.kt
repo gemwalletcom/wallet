@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.asset_select.presents.views.assetRows
-import com.gemwallet.android.features.asset_select.presents.views.getAssetBadge
 import com.gemwallet.android.features.asset_select.presents.views.searchState
 import com.gemwallet.android.features.assets.viewmodels.AssetsResultsViewModel
 import com.gemwallet.android.features.perpetual.views.components.PerpetualItem
@@ -73,7 +72,7 @@ fun AssetsResultsScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Asset
                         items = pinned,
                         onSelect = onAssetClick,
                         support = { assetPriceSupport(it.price) },
-                        titleBadge = { item -> getAssetBadge(item, viewModel.flow.rowStyle.showsSymbol) },
+                        titleBadge = { item -> item.symbol },
                         itemTrailing = { getBalanceInfo(it)() },
                         longPressedAsset = longPressedAsset,
                         contextActions = contextActions,
@@ -83,7 +82,7 @@ fun AssetsResultsScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Asset
                     items = unpinned,
                     onSelect = onAssetClick,
                     support = { assetPriceSupport(it.price) },
-                    titleBadge = { item -> getAssetBadge(item, viewModel.flow.rowStyle.showsSymbol) },
+                    titleBadge = { item -> item.symbol },
                     itemTrailing = { getBalanceInfo(it)() },
                     longPressedAsset = longPressedAsset,
                     contextActions = contextActions,

@@ -13,7 +13,7 @@ import Style
 import SwiftUI
 
 public struct AssetDataViewModel: Sendable {
-    private let assetData: AssetData
+    public let assetData: AssetData
     private let balanceViewModel: BalanceViewModel
 
     public let priceViewModel: PriceViewModel
@@ -57,36 +57,10 @@ public struct AssetDataViewModel: Sendable {
         assetData.asset.symbol
     }
 
-    // price
-
-    public var isPriceAvailable: Bool {
-        priceViewModel.isPriceAvailable
-    }
-
-    public var priceAmountText: String {
-        priceViewModel.priceAmountText
-    }
-
-    public var priceChangeText: String {
-        priceViewModel.priceChangeText
-    }
-
-    public var priceChangeTextColor: Color {
-        priceViewModel.priceChangeTextColor
-    }
-
     // balance
 
     public var balanceText: String {
         balanceViewModel.balanceText
-    }
-
-    public var availableBalanceText: String {
-        balanceViewModel.availableBalanceText
-    }
-
-    public var totalBalanceTextWithSymbol: String {
-        balanceViewModel.totalBalanceTextWithSymbol
     }
 
     public var availableBalanceTextWithSymbol: String {
@@ -99,15 +73,6 @@ public struct AssetDataViewModel: Sendable {
 
     public var hasAvailableBalance: Bool {
         balanceViewModel.availableBalanceAmount > 0
-    }
-
-    public var balanceTextColor: Color {
-        balanceViewModel.balanceTextColor
-    }
-
-    public var fiatBalanceText: String {
-        guard balanceViewModel.balanceAmount > 0 else { return .empty }
-        return priceViewModel.fiatValueText(value: balanceViewModel.total, decimals: asset.decimals.asInt) ?? .empty
     }
 
     public var isEnabled: Bool {

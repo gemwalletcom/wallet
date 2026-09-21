@@ -6,9 +6,9 @@ import com.gemwallet.android.features.swap.viewmodels.localization.stringRes
 import com.gemwallet.android.features.swap.viewmodels.localization.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.gemwallet.android.ui.components.list_item.infoSheet
 import com.gemwallet.android.ui.models.ButtonState
 import uniffi.gemstone.GemSwapButtonState
-import uniffi.gemstone.GemSwapErrorDisplay
 import uniffi.gemstone.GemSwapSessionAction
 import uniffi.gemstone.GemSwapViewState
 
@@ -58,18 +58,8 @@ internal fun createSwapUiState(state: GemSwapViewState, context: Context) = Swap
         GemSwapButtonState.ENABLED -> ButtonState.Enabled
     },
     errorText = state.error?.text(context),
-    errorInfo = state.error?.infoSheet(),
+    errorInfo = state.error?.info()?.infoSheet(context, null),
     isQuoteLoading = state.isQuoteLoading,
     isTransferLoading = state.isTransferLoading,
     isInputEmpty = state.isInputEmpty,
 )
-
-private fun GemSwapErrorDisplay.infoSheet(): InfoSheetEntity? = when (this) {
-    is GemSwapErrorDisplay.NoQuote -> InfoSheetEntity.NoQuoteInfo
-
-    is GemSwapErrorDisplay.NotSupportedAsset,
-    is GemSwapErrorDisplay.Offline,
-    is GemSwapErrorDisplay.MinimumAmount,
-    is GemSwapErrorDisplay.AmountTooSmall,
-    -> null
-}

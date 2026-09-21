@@ -1,10 +1,13 @@
 pub mod model;
 pub mod rules;
 pub mod store;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use crate::services::error::GemServiceError;
+use std::collections::HashSet;
 use std::future::Future;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use chrono::Utc;
 use primitives::{SupportMessage, SupportMessageInput, SupportMessageStatus};
@@ -14,7 +17,7 @@ use crate::alien::AlienProvider;
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::file::{GemFileStore, download};
 
-pub use model::GemSupportChatGroup;
+pub use model::{GemSupportChatGroup, GemSupportMessageOutcome};
 pub use store::GemSupportStore;
 
 #[derive(uniffi::Object)]
@@ -23,13 +26,25 @@ pub struct GemSupportService {
     store: Arc<dyn GemSupportStore>,
     files: Arc<dyn GemFileStore>,
     provider: Arc<dyn AlienProvider>,
+    sending: Mutex<HashSet<String>>,
 }
 
 #[uniffi::export]
 impl GemSupportService {
     #[uniffi::constructor]
     pub fn new(api: Arc<GemDeviceApiClient>, store: Arc<dyn GemSupportStore>, files: Arc<dyn GemFileStore>, provider: Arc<dyn AlienProvider>) -> Self {
-        Self { api, store, files, provider }
+        Self {
+            api,
+            store,
+            files,
+            provider,
+            sending: Mutex::new(HashSet::new()),
+        }
+    }
+
+    pub async fn recover_interrupted_messages(&self) -> Result<(), GemServiceError> {
+        let sending = self.sending.lock().expect("support sending ids").iter().cloned().collect();
+        self.store.fail_pending_messages(sending).await
     }
 
     pub async fn image_file(&self, url: String) -> Result<String, GemServiceError> {
@@ -64,9 +79,9 @@ impl GemSupportService {
     }
 
     pub async fn retry_message(&self, message: SupportMessage) -> Result<(), GemServiceError> {
-        if !message.images.is_empty() {
+        if !rules::can_retry(&message) {
             return Err(GemServiceError::Unsupported {
-                msg: "image messages cannot be retried".to_string(),
+                msg: "only a text message the user sent can be retried".to_string(),
             });
         }
         let content = message.content.clone();
@@ -82,12 +97,56 @@ impl GemSupportService {
         GemApiError: From<E>,
     {
         self.store.save_messages(vec![message.clone()]).await?;
-        match send.await {
+        self.sending.lock().expect("support sending ids").insert(message.id.clone());
+        let outcome = send.await;
+        self.sending.lock().expect("support sending ids").remove(&message.id);
+        match outcome {
             Ok(sent) => self.store.save_message(message.id, sent).await,
             Err(error) => {
                 self.store.save_messages(vec![rules::with_status(message, SupportMessageStatus::Failed)]).await?;
                 Err(GemApiError::from(error).into())
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use futures::executor::block_on;
+
+    use super::testkit::MemorySupportStore;
+    use super::*;
+
+    #[test]
+    fn test_recovery_fails_what_a_kill_left_sending_and_spares_what_is_still_in_flight() {
+        block_on(async {
+            let store = Arc::new(MemorySupportStore::default());
+            let service = GemSupportService::mock(store.clone());
+            store
+                .save_messages(vec![
+                    rules::pending_message("abandoned".into(), "hi".into(), vec![], Utc::now()),
+                    rules::pending_message("in-flight".into(), "yo".into(), vec![], Utc::now()),
+                ])
+                .await
+                .unwrap();
+            service.sending.lock().unwrap().insert("in-flight".to_string());
+
+            service.recover_interrupted_messages().await.unwrap();
+
+            assert_eq!(store.statuses(), vec![("abandoned".to_string(), SupportMessageStatus::Failed), ("in-flight".to_string(), SupportMessageStatus::Sending),]);
+        })
+    }
+
+    #[test]
+    fn test_a_send_that_failed_is_no_longer_in_flight() {
+        block_on(async {
+            let store = Arc::new(MemorySupportStore::default());
+            let service = GemSupportService::mock(store.clone());
+
+            assert!(service.send_text("hello".to_string()).await.is_err(), "the test provider answers 500");
+
+            assert!(service.sending.lock().unwrap().is_empty(), "a finished send leaves nothing to recover");
+            assert_eq!(store.statuses().into_iter().map(|(_, status)| status).collect::<Vec<_>>(), vec![SupportMessageStatus::Failed]);
+        })
     }
 }

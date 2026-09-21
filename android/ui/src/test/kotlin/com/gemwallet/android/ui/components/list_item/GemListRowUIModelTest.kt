@@ -1,7 +1,9 @@
 package com.gemwallet.android.ui.components.list_item
 
 import android.content.Context
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.text
+import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockFormattedNumber
 import com.gemwallet.android.testkit.mockGemWalletRow
 import com.gemwallet.android.ui.R
@@ -11,6 +13,7 @@ import io.mockk.every
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.BlockExplorerLink
 import uniffi.gemstone.GemCopy
@@ -24,6 +27,7 @@ import uniffi.gemstone.GemNumberUnit
 import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.Latency
 import uniffi.gemstone.LatencyType
+import java.math.BigInteger
 
 class GemListRowUIModelTest {
     @Test
@@ -143,6 +147,33 @@ class GemListRowUIModelTest {
         assertEquals(mockFormattedNumber(100.0).text(), model.subtitle)
         assertEquals(change.text(), model.subtitleExtra)
         assertEquals(GemValueTone.NEGATIVE.textStyle(), model.subtitleExtraStyle)
+    }
+
+    @Test
+    fun `a below minimum amount names the network the minimum and the buy action`() {
+        every { context.getString(R.string.asset_buy_asset, "BTC") } returns "Buy BTC"
+        var bought = false
+
+        val sheet = GemInfoTopic.MinimumAmount(mockAsset().toGem(), BigInteger("50000")).infoSheet(context, null) { bought = true }
+
+        assertEquals(R.string.info_minimum_amount_title, sheet.title)
+        assertEquals(listOf("**Bitcoin**", "**0.0005 BTC**"), sheet.descriptionArgs)
+        assertEquals("Buy BTC", sheet.actionLabel)
+        sheet.action?.invoke()
+        assertTrue(bought)
+    }
+
+    @Test
+    fun `a below minimum amount without a buy route offers no action`() {
+        val sheet = GemInfoTopic.MinimumAmount(mockAsset().toGem(), BigInteger("50000")).infoSheet(context, null)
+
+        assertNull(sheet.action)
+        assertNull(sheet.actionLabel)
+    }
+
+    @Test
+    fun `a missing swap quote opens the no quote sheet`() {
+        assertEquals(InfoSheetEntity.NoQuoteInfo, GemInfoTopic.NoQuote.infoSheet(context, null))
     }
 
     private fun GemListRow.menu(): List<GemListRowMenuItem> = (uiModel(context) as GemListRowUIModel.Item).menu

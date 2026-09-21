@@ -1,4 +1,4 @@
-use super::model::GemSupportChatGroup;
+use super::model::{GemSupportChatGroup, GemSupportMessageOutcome};
 use chrono::{DateTime, Utc};
 use primitives::{SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus};
 
@@ -26,6 +26,18 @@ pub fn pending_image(id: String, file_name: String, file_size: u64) -> SupportMe
         file_size: Some(file_size),
         width: None,
         height: None,
+    }
+}
+
+pub fn can_retry(message: &SupportMessage) -> bool {
+    message.sender.is_user() && message.images.is_empty()
+}
+
+pub fn message_outcome(message: &SupportMessage) -> GemSupportMessageOutcome {
+    match message.status {
+        SupportMessageStatus::Sending => GemSupportMessageOutcome::Sending,
+        SupportMessageStatus::Sent => GemSupportMessageOutcome::Sent,
+        SupportMessageStatus::Failed => GemSupportMessageOutcome::Failed { can_retry: can_retry(message) },
     }
 }
 
@@ -123,6 +135,26 @@ mod tests {
         assert_eq!(groups[0].sender, SupportMessageSender::User);
         assert_eq!(groups[2].sender, SupportMessageSender::mock_agent("Radmir"));
         assert!(chat_groups(vec![]).is_empty());
+    }
+
+    #[test]
+    fn test_only_a_failed_text_the_user_sent_offers_a_retry() {
+        let text = SupportMessage::mock("a", 0);
+        let with_image = SupportMessage {
+            images: vec![pending_image("image".into(), "photo.png".into(), 1)],
+            ..SupportMessage::mock("b", 0)
+        };
+        let from_agent = SupportMessage {
+            sender: SupportMessageSender::mock_agent("Gemma"),
+            ..SupportMessage::mock("c", 0)
+        };
+        let failed = |message: &SupportMessage| message_outcome(&with_status(message.clone(), SupportMessageStatus::Failed));
+
+        assert_eq!(failed(&text), GemSupportMessageOutcome::Failed { can_retry: true });
+        assert_eq!(failed(&with_image), GemSupportMessageOutcome::Failed { can_retry: false }, "an image cannot be sent again");
+        assert_eq!(failed(&from_agent), GemSupportMessageOutcome::Failed { can_retry: false }, "the agent's message is not ours to send");
+        assert_eq!(message_outcome(&with_status(text.clone(), SupportMessageStatus::Sending)), GemSupportMessageOutcome::Sending);
+        assert_eq!(message_outcome(&with_status(text, SupportMessageStatus::Sent)), GemSupportMessageOutcome::Sent);
     }
 
     #[test]

@@ -40,9 +40,9 @@ extension ChartView {
     private var priceHeader: some View {
         Group {
             if let element = selectedElement {
-                ChartHeaderView(model: model.headerViewModel(for: element))
-            } else if let chartHeaderViewModel = model.chartHeaderViewModel {
-                ChartHeaderView(model: chartHeaderViewModel)
+                ChartHeaderView(header: model.header(for: element), date: model.dateText(for: element))
+            } else if let header = model.chartHeader {
+                ChartHeaderView(header: header)
             }
         }
         .padding(.top, Spacing.small)

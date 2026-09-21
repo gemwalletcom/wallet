@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import uniffi.gemstone.GemPerpetualMarketQuery
 import uniffi.gemstone.GemPerpetualStore
 import uniffi.gemstone.PerpetualProvider as GemPerpetualProvider
 
@@ -75,24 +76,21 @@ class GemstonePerpetualStore(
         perpetualPositionDao.deleteAndUpsert(walletId.id, deleteIds, positions.map { it.toDB(walletId.id) })
     }
 
-    fun observePerpetuals(query: String? = null): Flow<List<PerpetualData>> {
-        val searchQuery = query?.trim().orEmpty()
-        if (searchQuery.isEmpty()) {
-            return perpetualDao.getPerpetualsData().toPerpetualData()
+    fun observePerpetuals(query: GemPerpetualMarketQuery): Flow<List<PerpetualData>> {
+        val limit = query.limit.toInt()
+        if (query.search.isEmpty()) {
+            return perpetualDao.getPerpetualsData(query.requiresVolume, limit).toPerpetualData()
         }
-        return searchDao.hasPerpetualPriorities(searchQuery)
+        return searchDao.hasPerpetualPriorities(query.search)
             .map { it > 0 }
             .distinctUntilChanged()
             .flatMapLatest { hasPriority ->
-                if (hasPriority) {
-                    perpetualDao.searchWithPriority(searchQuery).toPerpetualData()
-                } else {
-                    perpetualDao.getPerpetualsData().toPerpetualData().map { items -> items.filter { it.matches(searchQuery) } }
+                when (hasPriority) {
+                    true -> perpetualDao.searchWithPriority(query.search, limit).toPerpetualData()
+                    false -> perpetualDao.searchPerpetualsData(query.search, limit).toPerpetualData()
                 }
             }
     }
-
-    private fun PerpetualData.matches(query: String): Boolean = perpetual.name.contains(query, ignoreCase = true) || asset.symbol.contains(query, ignoreCase = true)
 
     fun observePerpetual(perpetualId: PerpetualId): Flow<PerpetualData?> = perpetualDao.getPerpetual(perpetualId.toIdentifier()).map { it?.toDTO() }
 

@@ -1,9 +1,18 @@
-use crate::model::{Coin, CoinCategory, CoinGeckoResponse, CoinIds, CoinInfo, CoinMarket, CoinMarketsQuery, CoinQuery, CointListQuery, Data, ExchangeRates, Global, MarketChart, MarketChartQuery, SearchTrending, TopGainersLosers};
-use crate::target::CoinGeckoTarget;
-use gem_client::{Client, ClientExt, RemoteProviderConfig, ReqwestClient, retry};
-use primitives::{FiatRate, currency::Currency};
-use reqwest::header::{HeaderMap, HeaderValue};
 use std::error::Error;
+
+use gem_client::{Client, ClientError, ClientExt, RemoteProviderConfig, ReqwestClient, builder, default_should_retry, retry};
+use primitives::{FiatRate, currency::Currency};
+use reqwest::{
+    header::{HeaderMap, HeaderValue, USER_AGENT},
+    retry::never,
+};
+
+use serde::de::DeserializeOwned;
+
+use crate::model::{
+    Coin, CoinCategory, CoinGeckoErrorResponse, CoinGeckoResponse, CoinIds, CoinInfo, CoinMarket, CoinMarketsQuery, CoinQuery, CointListQuery, Data, ExchangeRates, Global, MarketChart, MarketChartQuery, SearchTrending, TopGainersLosers,
+};
+use crate::target::CoinGeckoTarget;
 
 pub const MAX_MARKETS_PER_PAGE: usize = 250;
 const COINGECKO_API_HEADER_KEY: &str = "x-cg-pro-api-key";
@@ -17,11 +26,11 @@ pub struct CoinGeckoClient<C: Client> {
 impl CoinGeckoClient<ReqwestClient> {
     pub fn new(config: RemoteProviderConfig) -> Self {
         let mut headers = HeaderMap::new();
-        headers.insert(reqwest::header::USER_AGENT, HeaderValue::from_static(USER_AGENT_VALUE));
+        headers.insert(USER_AGENT, HeaderValue::from_static(USER_AGENT_VALUE));
         if !config.key.is_empty() {
             headers.insert(COINGECKO_API_HEADER_KEY, HeaderValue::from_str(&config.key).unwrap());
         }
-        let reqwest_client = gem_client::builder().default_headers(headers).build().unwrap();
+        let reqwest_client = builder().default_headers(headers).retry(never()).build().unwrap();
 
         let client = ReqwestClient::new(config.url, reqwest_client);
         Self { client }
@@ -35,19 +44,31 @@ impl<C: Client> CoinGeckoClient<C> {
 
     async fn get_json<T>(&self, target: CoinGeckoTarget) -> Result<T, Box<dyn Error + Send + Sync>>
     where
-        T: serde::de::DeserializeOwned + Send,
+        T: DeserializeOwned + Send,
     {
         retry(
             || async {
-                let response: CoinGeckoResponse<T> = self.client.get(target.clone()).await.map_err(|e| -> Box<dyn Error + Send + Sync> { Box::new(e) })?;
-                match response {
+                match self.client.get_or_error::<CoinGeckoResponse<T>, CoinGeckoErrorResponse>(target.clone()).await? {
                     CoinGeckoResponse::Success(data) => Ok(data),
-                    CoinGeckoResponse::Error(error) => Err(error.into()),
+                    CoinGeckoResponse::Error(error) => Err(ClientError::Http { status: 200, body: Some(error) }),
                 }
             },
             3,
+            |error| match error {
+                ClientError::Network(_)
+                | ClientError::Timeout
+                | ClientError::Http {
+                    status: 401 | 429 | 500 | 502 | 503 | 504, ..
+                } => true,
+                ClientError::Http { status: 200, body: Some(response) } => default_should_retry(response),
+                _ => false,
+            },
         )
         .await
+        .map_err(|error| match error {
+            ClientError::Http { status, body: Some(response) } if status == 200 || (status == 404 && response.is_coin_not_found()) => response.into(),
+            error => error.to_string().into(),
+        })
     }
 
     pub async fn get_global(&self) -> Result<Global, Box<dyn Error + Send + Sync>> {
@@ -188,8 +209,49 @@ impl<C: Client> CoinGeckoClient<C> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::sync::{
+        Arc,
+        atomic::{AtomicUsize, Ordering},
+    };
+
     use gem_client::testkit::MockClient;
+
+    use super::*;
+
+    #[tokio::test]
+    async fn test_get_coin_list_retries_transient_errors() {
+        for response in [
+            Err(ClientError::Network("connection interrupted".into())),
+            Err(ClientError::Http { status: 503, body: vec![] }),
+            Ok(br#"{"error":"request is limited"}"#.to_vec()),
+        ] {
+            let attempts = Arc::new(AtomicUsize::new(0));
+            let recorded = attempts.clone();
+            let client = CoinGeckoClient::new_with_client(MockClient::new().with_get(move |_| if recorded.fetch_add(1, Ordering::SeqCst) == 0 { response.clone() } else { Ok(b"[]".to_vec()) }));
+            assert_eq!(client.get_coin_list().await.unwrap().len(), 0);
+            assert_eq!(attempts.load(Ordering::SeqCst), 2);
+        }
+    }
+
+    #[tokio::test]
+    async fn test_get_coin_list_does_not_retry_permanent_errors() {
+        for error in [
+            ClientError::Http {
+                status: 404,
+                body: br#"{"error":"coin not found"}"#.to_vec(),
+            },
+            ClientError::Serialization("invalid field 503".into()),
+        ] {
+            let attempts = Arc::new(AtomicUsize::new(0));
+            let recorded = attempts.clone();
+            let client = CoinGeckoClient::new_with_client(MockClient::new().with_get(move |_| {
+                recorded.fetch_add(1, Ordering::SeqCst);
+                Err(error.clone())
+            }));
+            assert!(client.get_coin_list().await.is_err());
+            assert_eq!(attempts.load(Ordering::SeqCst), 1);
+        }
+    }
 
     #[tokio::test]
     async fn test_get_all_coin_markets_by_category_uses_category_query() {
@@ -200,7 +262,7 @@ mod tests {
                 }
                 "/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=2&sparkline=false&locale=en&category=xstocks-ecosystem&include_rehypothecated=true" => "[]",
                 _ => {
-                    return Err(gem_client::ClientError::Http { status: 404, body: path.as_bytes().to_vec() });
+                    return Err(ClientError::Http { status: 404, body: path.as_bytes().to_vec() });
                 }
             };
             Ok(body.as_bytes().to_vec())
@@ -219,7 +281,7 @@ mod tests {
             let body = match path {
                 "/api/v3/coins/categories/list" => r#"[{"category_id":"xstocks-ecosystem","name":"xStocks Ecosystem"}]"#,
                 _ => {
-                    return Err(gem_client::ClientError::Http { status: 404, body: path.as_bytes().to_vec() });
+                    return Err(ClientError::Http { status: 404, body: path.as_bytes().to_vec() });
                 }
             };
             Ok(body.as_bytes().to_vec())
@@ -234,7 +296,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_coin_markets_ids_skips_empty_ids() {
-        let client = MockClient::new().with_get(|path| Err(gem_client::ClientError::Http { status: 500, body: path.as_bytes().to_vec() }));
+        let client = MockClient::new().with_get(|path| Err(ClientError::Http { status: 500, body: path.as_bytes().to_vec() }));
         let client = CoinGeckoClient::new_with_client(client);
 
         let markets = client.get_coin_markets_ids(vec![], MAX_MARKETS_PER_PAGE).await.unwrap();

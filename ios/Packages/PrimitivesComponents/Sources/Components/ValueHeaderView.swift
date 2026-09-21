@@ -1,6 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import func Gemstone.formattedCurrency
+import func Gemstone.formattedPercentage
+import func Gemstone.formattedSignedCurrency
 import Localization
 import Primitives
 import Style
@@ -184,9 +187,12 @@ public struct ValueHeaderView: View {
 
 #Preview {
     let model = WalletHeaderViewModel(
-        totalValue: TotalFiatValue(value: 1000, pnlAmount: 50, pnlPercentage: 5.26),
-        currency: .usd,
-        showsPnl: true,
+        total: formattedCurrency(value: 1000, code: Currency.usd.rawValue, style: .fiat),
+        pnl: .pnl(
+            amount: formattedSignedCurrency(value: 50, code: Currency.usd.rawValue, style: .fiat),
+            percent: formattedPercentage(value: 5.26, style: .unsigned),
+        ),
+        pnlTone: .positive,
         actions: .buttons(buttons: []),
     )
 

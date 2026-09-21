@@ -5,14 +5,29 @@ use crate::services::collections::{missing, unique};
 use primitives::{Account, Asset, AssetBalance, AssetFiatValue, AssetId, BalanceCalculator, BalanceMetadata, Chain, TotalFiatValue};
 
 use super::model::{GemAssetBalance, GemAssetConfiguration, GemBalanceRecord, GemBalanceResource, GemBalanceResourceRow, GemBalanceUpdate, GemBalanceUpdateType};
-use crate::formatted_number::GemFormattedNumber;
+use crate::formatted_number::{GemFormattedNumber, GemValueTone};
+use crate::percentage::GemPercentageStyle;
+use crate::precision::GemCurrencyStyle;
 use crate::precision::GemValueStyle;
+use crate::services::localization::GemLocalizedText;
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
+use primitives::currency::Currency;
 
 pub fn balance_amount(value: &BigUint, asset: &Asset) -> GemFormattedNumber {
+    balance_amount_styled(value, asset, GemValueStyle::Auto)
+}
+
+#[uniffi::export]
+pub fn available_balance_text(asset: Asset, balance: GemAssetBalance) -> GemLocalizedText {
+    GemLocalizedText::Balance {
+        amount: GemFormattedNumber::amount(BigNumberFormatter::f64_value(&balance.available, asset.decimals.unsigned_abs()), None, GemValueStyle::Auto),
+    }
+}
+
+pub fn balance_amount_styled(value: &BigUint, asset: &Asset, style: GemValueStyle) -> GemFormattedNumber {
     let value = BigNumberFormatter::f64_value(value, asset.decimals.unsigned_abs());
-    GemFormattedNumber::amount(value, Some(asset.symbol.clone()), GemValueStyle::Auto)
+    GemFormattedNumber::amount(value, Some(asset.symbol.clone()), style)
 }
 
 #[uniffi::export]
@@ -30,6 +45,25 @@ pub fn balance_resource_rows(metadata: Option<BalanceMetadata>) -> Vec<GemBalanc
 
 pub fn total_fiat_value(balances: &[AssetFiatValue]) -> TotalFiatValue {
     BalanceCalculator::total_fiat_value(balances)
+}
+
+/// The wallet header, finished: the total as it is, and the change beside it when there is one.
+pub struct GemTotalHeader {
+    pub total: GemFormattedNumber,
+    pub pnl: Option<GemLocalizedText>,
+    pub pnl_tone: GemValueTone,
+}
+
+pub fn total_header(total: &TotalFiatValue, currency: Currency) -> GemTotalHeader {
+    let amount = GemFormattedNumber::signed_currency(total.pnl_amount, currency.clone(), GemCurrencyStyle::Fiat);
+    GemTotalHeader {
+        total: GemFormattedNumber::currency(total.value, currency, GemCurrencyStyle::Fiat),
+        pnl_tone: amount.tone,
+        pnl: shows_pnl(total).then(|| GemLocalizedText::Pnl {
+            amount,
+            percent: GemFormattedNumber::percentage(total.pnl_percentage, GemPercentageStyle::Unsigned),
+        }),
+    }
 }
 
 pub fn shows_pnl(total: &TotalFiatValue) -> bool {
@@ -169,6 +203,55 @@ pub fn exclude_native_mirrors(asset_ids: Vec<AssetId>) -> Vec<AssetId> {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn test_the_available_balance_reads_as_one_sentence_without_a_symbol() {
+        let asset = Asset::from_chain(Chain::Ethereum);
+        let balance = GemAssetBalance::mock_with_available(2_000_000_000_000_000_000);
+
+        let GemLocalizedText::Balance { amount } = available_balance_text(asset.clone(), balance) else {
+            panic!("a balance sentence carries an amount");
+        };
+
+        assert_eq!(amount.value, 2.0);
+        assert_eq!(amount.unit, crate::formatted_number::GemNumberUnit::Plain, "the swap input names the asset elsewhere");
+    }
+
+    #[test]
+    fn test_the_header_shows_the_total_as_it_is_and_the_change_only_when_there_is_one() {
+        let header = total_header(
+            &TotalFiatValue {
+                value: 1_250.0,
+                pnl_amount: -25.0,
+                pnl_percentage: 2.0,
+            },
+            Currency::USD,
+        );
+        assert_eq!(header.total.value, 1_250.0);
+        assert_eq!(header.pnl_tone, GemValueTone::Negative, "the change takes its tone from the amount, not the percent");
+        assert!(matches!(header.pnl, Some(GemLocalizedText::Pnl { amount, percent }) if amount.value == -25.0 && percent.value == 2.0));
+
+        let empty = total_header(
+            &TotalFiatValue {
+                value: 0.0,
+                pnl_amount: 0.0,
+                pnl_percentage: 0.0,
+            },
+            Currency::USD,
+        );
+        assert_eq!(empty.pnl, None, "an empty wallet has no change to show");
+
+        let negative = total_header(
+            &TotalFiatValue {
+                value: -5.0,
+                pnl_amount: 0.0,
+                pnl_percentage: 0.0,
+            },
+            Currency::USD,
+        );
+        assert_eq!(negative.total.value, -5.0, "a total that is negative reads as it is, never as zero");
+    }
+
     #[test]
     fn test_a_tron_resource_reads_available_over_total() {
         assert!(balance_resource_rows(None).is_empty(), "a chain with no resources has no rows");

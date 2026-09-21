@@ -49,6 +49,7 @@ impl IndexerService {
                 IndexerConsumer::FetchAssetAssociations,
                 IndexerConsumer::FetchLists,
                 IndexerConsumer::FetchPrices,
+                IndexerConsumer::FetchPricesMetadata,
             ],
             Self::Nfts => &[IndexerConsumer::FetchNftAssociations, IndexerConsumer::FetchNftAssets],
             Self::Balances => &[IndexerConsumer::FetchTokenAssociations, IndexerConsumer::FetchCoinAssociations],
@@ -67,6 +68,7 @@ pub enum IndexerConsumer {
     FetchAssetAssociations,
     FetchLists,
     FetchPrices,
+    FetchPricesMetadata,
     FetchBlocks,
     FetchTokenAssociations,
     FetchCoinAssociations,
@@ -141,6 +143,7 @@ mod tests {
                 IndexerConsumer::FetchAssetAssociations,
                 IndexerConsumer::FetchLists,
                 IndexerConsumer::FetchPrices,
+                IndexerConsumer::FetchPricesMetadata,
             ]
         );
         assert_eq!(IndexerService::Blocks.consumers(), &[IndexerConsumer::FetchBlocks]);

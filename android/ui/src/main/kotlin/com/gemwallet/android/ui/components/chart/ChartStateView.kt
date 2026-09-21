@@ -19,16 +19,17 @@ import com.gemwallet.android.ui.components.empty.EmptyStateView
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.StateViewType
-import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
 import com.gemwallet.android.ui.theme.chartFrameHeight
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space4
 import com.wallet.core.primitives.ChartPeriod
+import uniffi.gemstone.GemChartHeader
 
 @Composable
 fun <T> ChartStateView(
     state: StateViewType<T>,
-    header: ChartHeaderUIModel?,
+    header: GemChartHeader?,
+    date: String?,
     period: ChartPeriod,
     onPeriodSelect: (ChartPeriod) -> Unit,
     modifier: Modifier = Modifier,
@@ -44,7 +45,8 @@ fun <T> ChartStateView(
         ) {
             header?.takeIf { state is StateViewType.Data }?.let {
                 ChartHeader(
-                    model = it,
+                    header = it,
+                    date = date,
                     modifier = Modifier.padding(top = paddingSmall, bottom = space4),
                 )
             }

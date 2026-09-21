@@ -32,7 +32,7 @@ public struct ValidatorViewModel: Sendable {
     }
 
     public var aprText: String {
-        Localized.Stake.apr(row.apr?.text() ?? .empty)
+        row.apr.text
     }
 
     public var providerImage: Image? {

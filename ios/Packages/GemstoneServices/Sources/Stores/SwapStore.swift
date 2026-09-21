@@ -29,24 +29,28 @@ public final class GemstoneSwapStore: GemSwapStore, @unchecked Sendable {
             .map { GemSwapPair(fromAssetId: $0.fromAsset.identifier, toAssetId: $0.toAsset.identifier) }
     }
 
-    public func getRecentAssetIds(walletId: String) async throws -> [Gemstone.AssetId] {
-        try recentActivityStore.getRecent(walletId: WalletId.from(id: walletId), types: [.swapSelect, .swap])
-            .map(\.asset.id.identifier)
-    }
-
-    public func getPayAssetIds(walletId: String) async throws -> [Gemstone.AssetId] {
-        try assetStore.getAssetsData(
+    public func getRecentAssetIds(walletId: String, limit: UInt32) async throws -> [Gemstone.AssetId] {
+        try recentActivityStore.getRecent(
             walletId: WalletId.from(id: walletId),
+            types: [.swapSelect, .swap],
+            limit: Int(limit),
             filters: [.enabled, .swappable],
-            limit: nil,
         ).map(\.asset.id.identifier)
     }
 
-    public func getReceiveAssetIds(walletId: String, chains: [Gemstone.Chain], assetIds: [Gemstone.AssetId]) async throws -> [Gemstone.AssetId] {
+    public func getPayAssetIds(walletId: String, limit: UInt32) async throws -> [Gemstone.AssetId] {
+        try assetStore.getAssetsData(
+            walletId: WalletId.from(id: walletId),
+            filters: [.enabled, .swappable],
+            limit: Int(limit),
+        ).map(\.asset.id.identifier)
+    }
+
+    public func getReceiveAssetIds(walletId: String, chains: [Gemstone.Chain], assetIds: [Gemstone.AssetId], limit: UInt32) async throws -> [Gemstone.AssetId] {
         try assetStore.getAssetsData(
             walletId: WalletId.from(id: walletId),
             filters: [.enabled, .swappable, .chainsOrAssets(chains, assetIds)],
-            limit: nil,
+            limit: Int(limit),
         ).map(\.asset.id.identifier)
     }
 }

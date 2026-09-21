@@ -56,6 +56,27 @@ struct SupportMessageBubbleViewModelTests {
     }
 
     @Test
+    func onlyAFailedTextTheUserSentOffersARetry() {
+        guard case let .failed(canRetry) = SupportMessageBubbleViewModel.mock(message: .mock(sender: .user, status: .failed)).status else {
+            Issue.record("expected a failed status")
+            return
+        }
+        #expect(canRetry)
+
+        guard case let .failed(withImage) = SupportMessageBubbleViewModel.mock(message: .mock(sender: .user, status: .failed, images: [.mock(id: "img")])).status else {
+            Issue.record("expected a failed status")
+            return
+        }
+        #expect(withImage == false)
+
+        guard case let .failed(fromAgent) = SupportMessageBubbleViewModel.mock(message: .mock(sender: .agent(.mock()), status: .failed)).status else {
+            Issue.record("expected a failed status")
+            return
+        }
+        #expect(fromAgent == false)
+    }
+
+    @Test
     func retryingSendsTheSameMessageBack() {
         let recorder = MessageRecorder()
         let model = SupportMessageBubbleViewModel.mock(message: .mock(id: "1", status: .failed), retryAction: { recorder.record($0.id) })

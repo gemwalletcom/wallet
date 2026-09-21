@@ -33,8 +33,11 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.PortfolioData
 import uniffi.gemstone.PortfolioStatistic
 
@@ -170,8 +173,10 @@ class PortfolioChartViewModelTest {
         val viewModel = createViewModel()
         val statistics = viewModel.statistics.first { it.isNotEmpty() }
 
-        assertEquals(R.string.asset_all_time_high.toString(), statistics.single().title)
-        assertEquals("+5.00%", statistics.single().subtitleExtra)
+        val row = statistics.single()
+        assertTrue(row is GemListRow.AllTime && row.title == GemListRowTitle.ALL_TIME_HIGH)
+        assertEquals(5.0, (row as GemListRow.AllTime).change.value, 0.0)
+        assertEquals(99.0, row.value.value, 0.0)
     }
 
     private fun createViewModel(initialType: PortfolioType = PortfolioType.Wallet) = PortfolioChartViewModel(

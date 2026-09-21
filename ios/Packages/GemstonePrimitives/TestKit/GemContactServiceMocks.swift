@@ -153,6 +153,7 @@ public final class GemSupportServiceMock: GemSupportServiceProtocol, @unchecked 
     public private(set) var sentTexts: [String] = []
     public private(set) var retriedMessageIds: [String] = []
     public private(set) var requestedImageUrls: [String] = []
+    public private(set) var recoveredInterrupted = 0
 
     public init() {}
 
@@ -162,6 +163,10 @@ public final class GemSupportServiceMock: GemSupportServiceProtocol, @unchecked 
             throw imageFileError
         }
         return imageFilePath
+    }
+
+    public func recoverInterruptedMessages() async throws {
+        recoveredInterrupted += 1
     }
 
     public func retryMessage(message: Gemstone.SupportMessage) async throws {

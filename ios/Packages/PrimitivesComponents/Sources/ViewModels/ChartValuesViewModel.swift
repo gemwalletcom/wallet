@@ -18,6 +18,7 @@ public struct ChartValuesViewModel: Sendable {
     private let chartData: GemChartData
     private let bounds: GemChartBounds
     private let formatter: CurrencyFormatter
+    private let dateFormatter = ChartDateFormatter()
 
     public init(
         period: ChartPeriod,
@@ -57,15 +58,15 @@ public struct ChartValuesViewModel: Sendable {
         formatter.string(charts[Int(bounds.upperIndex)].value)
     }
 
-    var chartHeaderViewModel: ChartHeaderViewModel? {
-        chartData.header.map { headerViewModel($0, date: nil) }
+    var chartHeader: GemChartHeader? {
+        chartData.header
     }
 
-    func headerViewModel(for element: ChartDateValue) -> ChartHeaderViewModel {
-        headerViewModel(chartData.headerAt(value: element.value), date: element.date)
+    func header(for element: ChartDateValue) -> GemChartHeader {
+        chartData.headerAt(value: element.value)
     }
 
-    private func headerViewModel(_ header: GemChartHeader, date: Date?) -> ChartHeaderViewModel {
-        ChartHeaderViewModel(period: period, date: date, header: header, valueType: chartData.valueType)
+    func dateText(for element: ChartDateValue) -> String {
+        dateFormatter.string(for: element.date, period: period)
     }
 }

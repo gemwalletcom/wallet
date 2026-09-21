@@ -8,6 +8,7 @@ pub mod fetch_list_consumer;
 pub mod fetch_nft_asset_consumer;
 pub mod fetch_nft_assets_addresses_consumer;
 pub mod fetch_prices_consumer;
+pub mod fetch_prices_metadata_consumer;
 pub mod fetch_token_addresses_consumer;
 pub mod fetch_transaction_consumer;
 
@@ -23,21 +24,21 @@ use futures::future;
 use gem_client::ReqwestClient;
 use lists::{CoinGeckoListProvider, ListsClient};
 use pricer::PriceClient;
-use primitives::{AssetId, Chain, NFTChain, PriceProvider, TransactionIdRequest};
+use primitives::{AssetId, Chain, NFTChain, PriceId, PriceProvider, TransactionIdRequest};
 use security_provider::providers::goplus::GoPlusProvider;
 use security_provider::{ScanProviderFactory, ScanProviderRemoteConfig, TokenScanProviderConfig, TokenScanProviders};
 use settings::Settings;
 use storage::{ConfigCacher, Database};
 use streamer::{
-    ChainAddressPayload, ConsumerStatusReporter, FetchAssetAssociationsPayload, FetchAssetsPayload, FetchBlocksPayload, FetchListPayload, FetchNFTAssetPayload, FetchPricesPayload, QueueName, ShutdownReceiver, StreamConnection,
-    StreamProducer, StreamReader, run_consumer,
+    ChainAddressPayload, ConsumerConfig, ConsumerStatusReporter, FetchAssetAssociationsPayload, FetchAssetsPayload, FetchBlocksPayload, FetchListPayload, FetchNFTAssetPayload, FetchPricesPayload, QueueName, ShutdownReceiver,
+    StreamConnection, StreamProducer, StreamReader, run_consumer,
 };
 
 use crate::asset_spam::AssetClassificationRules;
 use crate::consumers::runner::ChainConsumerRunner;
 use crate::consumers::{chain_providers, chain_providers_for, consumer_config, reader_config};
 use crate::model::{IndexerConsumer, IndexerService};
-
+use crate::worker::prices::price_providers;
 use fetch_address_transactions_consumer::FetchAddressTransactionsConsumer;
 use fetch_asset_associations_consumer::FetchAssetAssociationsConsumer;
 use fetch_asset_status_consumer::FetchAssetStatusConsumer;
@@ -48,6 +49,7 @@ use fetch_list_consumer::FetchListConsumer;
 use fetch_nft_asset_consumer::FetchNftAssetConsumer;
 use fetch_nft_assets_addresses_consumer::FetchNftAssetsAddressesConsumer;
 use fetch_prices_consumer::FetchPricesConsumer;
+use fetch_prices_metadata_consumer::FetchPricesMetadataConsumer;
 use fetch_token_addresses_consumer::FetchTokenAddressesConsumer;
 use fetch_transaction_consumer::FetchTransactionConsumer;
 
@@ -78,6 +80,7 @@ pub async fn run_consumer_indexer(settings: Settings, service: IndexerService, s
                     FetchAssetAssociations => run_fetch_asset_associations(settings, database, shutdown_rx, reporter).await,
                     FetchLists => run_fetch_lists(settings, database, shutdown_rx, reporter).await,
                     FetchPrices => run_fetch_prices(settings, database, shutdown_rx, reporter).await,
+                    FetchPricesMetadata => run_fetch_prices_metadata(settings, database, shutdown_rx, reporter).await,
                     FetchTokenAssociations => run_fetch_token_associations(settings, database, shutdown_rx, reporter).await,
                     FetchCoinAssociations => run_fetch_coin_associations(settings, database, shutdown_rx, reporter).await,
                     FetchNftAssociations => run_fetch_nft_associations(settings, database, shutdown_rx, reporter).await,
@@ -178,6 +181,25 @@ async fn run_fetch_lists(settings: Arc<Settings>, database: Database, shutdown_r
     let lists_client = ListsClient::new(database.clone(), vec![Arc::new(CoinGeckoListProvider::new(database, coin_gecko_client))]);
     let consumer = FetchListConsumer { lists_client };
     run_consumer::<FetchListPayload, FetchListConsumer, u32>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter).await
+}
+
+async fn run_fetch_prices_metadata(settings: Arc<Settings>, database: Database, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
+    let queue = QueueName::FetchPricesMetadata;
+    let name = queue.to_string();
+    let connection = StreamConnection::new(&settings.rabbitmq.url, name.clone()).await?;
+    let config = reader_config(&settings.rabbitmq, name.clone());
+    let stream_reader = StreamReader::from_connection(&connection, config).await?;
+    let consumer = FetchPricesMetadataConsumer {
+        config: ConfigCacher::new(database.clone()),
+        database,
+        cacher: CacherClient::new(&settings.redis.url).await?,
+        providers: price_providers(&settings, PriceProvider::all()),
+    };
+    let config = ConsumerConfig {
+        skip_on_error: true,
+        ..consumer_config(&settings.consumer)
+    };
+    run_consumer::<PriceId, _, usize>(&name, stream_reader, queue, None, consumer, config, shutdown_rx, reporter).await
 }
 
 async fn run_fetch_prices(settings: Arc<Settings>, database: Database, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {

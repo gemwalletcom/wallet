@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import enum Gemstone.GemDelegationAction
+import struct Gemstone.GemDelegationDetails
 import enum Gemstone.GemListRow
 import protocol Gemstone.GemStakeServiceProtocol
 import struct Gemstone.GemTransferData
@@ -38,22 +39,31 @@ public struct DelegationSceneViewModel {
         self.onNavigate = onNavigate
     }
 
+    private var details: GemDelegationDetails {
+        service.delegationDetails(
+            delegation: model.delegation.toGem(),
+            asset: asset.toGem(),
+            price: model.delegation.price?.price,
+            currency: model.currency.toGem(),
+        )
+    }
+
     public var title: String {
-        providerType.title
+        details.title.text
     }
 
     public var rows: [GemListRow] {
-        service.delegationRows(delegation: model.delegation.toGem())
+        details.rows
     }
 
     public var rewardsItem: ListItemModel? {
-        model.rewardsText.map { rewardsText in
+        details.rewards.map { rewards in
             ListItemModel(
                 title: Localized.Stake.rewards,
                 titleStyle: model.titleStyle,
-                subtitle: rewardsText,
+                subtitle: rewards.text(),
                 subtitleStyle: model.subtitleStyle,
-                subtitleExtra: model.rewardsFiatValueText,
+                subtitleExtra: details.rewardsFiat?.text(),
                 subtitleStyleExtra: model.subtitleExtraStyle,
                 imageStyle: assetImageStyle,
             )
@@ -98,24 +108,8 @@ public extension DelegationSceneViewModel {
     }
 
     func onClaimRewards() {
-        onNavigate?(.transfer(.confirm(claimRewardsTransferData())))
-    }
-}
-
-// MARK: - Private
-
-extension DelegationSceneViewModel {
-    private func claimRewardsTransferData() -> GemTransferData {
-        service.stakeTransferData(
-            asset: asset.toGem(),
-            stakeType: StakeType.rewards([model.delegation.validator]).toGem(),
-            value: model.delegation.base.rewards,
-            useMaxAmount: false,
-        )
-    }
-
-    private var providerType: StakeProviderType {
-        model.delegation.validator.providerType
+        guard let claim = details.claim else { return }
+        onNavigate?(.transfer(.confirm(claim)))
     }
 }
 

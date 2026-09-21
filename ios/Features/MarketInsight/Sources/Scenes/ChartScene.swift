@@ -19,7 +19,7 @@ public struct ChartScene: View {
     public var body: some View {
         ChartListView(model: model) {
             ForEach(model.sections.listSections) { section in
-                Section(section.title ?? "") {
+                Section {
                     ForEach(section.values) { item in
                         switch item.row {
                         case .link(.priceAlerts, _, _):
@@ -34,6 +34,14 @@ public struct ChartScene: View {
                         default:
                             GemListRowView(row: item.row, onInfo: model.onInfo)
                         }
+                    }
+                } header: {
+                    if let title = section.title {
+                        Text(title)
+                    }
+                } footer: {
+                    if let footer = section.footer {
+                        Text(footer)
                     }
                 }
             }

@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
 import Foundation
-import class Gemstone.GemPerpetual
+import struct Gemstone.GemPerpetualOpenRow
+import func Gemstone.perpetualOpenRow
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -12,14 +12,13 @@ import SwiftUI
 
 struct OpenPositionItemViewModel: ListAssetItemViewable {
     private let data: AutocloseOpenData
-    private let currencyFormatter: CurrencyFormatter
-    private let perpetual = GemPerpetual(provider: .hypercore)
+    private let row: GemPerpetualOpenRow
 
     var action: ((ListAssetItemAction) -> Void)?
 
-    init(data: AutocloseOpenData, currencyFormatter: CurrencyFormatter = .usd) {
+    init(data: AutocloseOpenData) {
         self.data = data
-        self.currencyFormatter = currencyFormatter
+        row = perpetualOpenRow(direction: data.direction.toGem(), leverage: data.leverage, size: data.size)
     }
 
     var name: String {
@@ -37,8 +36,8 @@ struct OpenPositionItemViewModel: ListAssetItemViewable {
     var subtitleView: ListAssetItemSubtitleView {
         .type(
             TextValue(
-                text: positionTypeText,
-                style: TextStyle(font: .footnote, color: directionViewModel.color),
+                text: row.position.text,
+                style: TextStyle(font: .footnote, color: row.directionTone.color),
             ),
         )
     }
@@ -46,26 +45,13 @@ struct OpenPositionItemViewModel: ListAssetItemViewable {
     var rightView: ListAssetItemRightView {
         .balance(
             balance: TextValue(
-                text: data.size.isZero ? "" : currencyFormatter.string(data.size),
+                text: row.size?.text() ?? .empty,
                 style: TextStyle(font: .body, color: .primary, fontWeight: .medium),
             ),
             totalFiat: TextValue(
-                text: "",
+                text: .empty,
                 style: TextStyle(font: .footnote, color: Colors.secondaryText),
             ),
-        )
-    }
-}
-
-extension OpenPositionItemViewModel {
-    private var directionViewModel: PerpetualDirectionViewModel {
-        PerpetualDirectionViewModel(direction: data.direction)
-    }
-
-    private var positionTypeText: String {
-        perpetual.positionText(
-            directionName: directionViewModel.title,
-            formattedLeverage: perpetual.leverageText(value: data.leverage),
         )
     }
 }

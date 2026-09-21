@@ -9,10 +9,6 @@ interface GetSupportMessages {
     operator fun invoke(): Flow<List<SupportMessage>>
 }
 
-interface FailPendingSupportMessages {
-    suspend operator fun invoke()
-}
-
 interface GetSupportTyping {
     fun typingAgent(): StateFlow<SupportAgent?>
 }

@@ -79,7 +79,7 @@ public final class PerpetualsSceneViewModel {
         self.onSelectAsset = onSelectAsset
         self.onSelectPortfolio = onSelectPortfolio
         positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.id, searchQuery: ""), initialValue: [])
-        perpetualsQuery = ObservableQuery(PerpetualsRequest(searchQuery: ""), initialValue: [])
+        perpetualsQuery = ObservableQuery(.market(search: .empty), initialValue: [])
         walletBalanceQuery = ObservableQuery(
             PerpetualWalletBalanceRequest(walletId: wallet.id, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
             initialValue: nil,
@@ -177,7 +177,7 @@ extension PerpetualsSceneViewModel {
 
     func onSearchQueryChange(_ _: String, _: String) {
         let query = session.searchQuery()
-        perpetualsQuery.request = PerpetualsRequest(searchQuery: query)
+        perpetualsQuery.request = .market(search: query)
         positionsQuery.request = PerpetualPositionsRequest(walletId: wallet.id, searchQuery: query)
     }
 

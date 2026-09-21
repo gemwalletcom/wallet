@@ -22,6 +22,7 @@ pub struct MemorySwapStore {
     pub pay_asset_ids: Mutex<Vec<AssetId>>,
     pub receive_asset_ids: Mutex<Vec<AssetId>>,
     pub receive_requests: Mutex<Vec<(Vec<Chain>, Vec<AssetId>)>>,
+    pub limits: Mutex<Vec<u32>>,
 }
 
 #[async_trait::async_trait]
@@ -30,15 +31,18 @@ impl GemSwapStore for MemorySwapStore {
         Ok(self.pairs.lock().unwrap().clone())
     }
 
-    async fn get_recent_asset_ids(&self, _wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
+    async fn get_recent_asset_ids(&self, _wallet_id: WalletId, limit: u32) -> Result<Vec<AssetId>, GemServiceError> {
+        self.limits.lock().unwrap().push(limit);
         Ok(self.recent_asset_ids.lock().unwrap().clone())
     }
 
-    async fn get_pay_asset_ids(&self, _wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
+    async fn get_pay_asset_ids(&self, _wallet_id: WalletId, limit: u32) -> Result<Vec<AssetId>, GemServiceError> {
+        self.limits.lock().unwrap().push(limit);
         Ok(self.pay_asset_ids.lock().unwrap().clone())
     }
 
-    async fn get_receive_asset_ids(&self, _wallet_id: WalletId, chains: Vec<Chain>, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
+    async fn get_receive_asset_ids(&self, _wallet_id: WalletId, chains: Vec<Chain>, asset_ids: Vec<AssetId>, limit: u32) -> Result<Vec<AssetId>, GemServiceError> {
+        self.limits.lock().unwrap().push(limit);
         self.receive_requests.lock().unwrap().push((chains, asset_ids));
         Ok(self.receive_asset_ids.lock().unwrap().clone())
     }

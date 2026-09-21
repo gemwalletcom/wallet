@@ -8,6 +8,7 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.config.showPerpetuals
+import com.gemwallet.android.domains.balance.hiddenWhen
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualPositionRowUIModel
 import com.gemwallet.android.model.text
@@ -28,10 +29,10 @@ import javax.inject.Inject
 class PerpetualsPreviewViewModel @Inject constructor(userConfig: UserConfig, getSession: GetSession, getPositions: GetPerpetualPositions, getBalance: GetPerpetualBalance, @param:ApplicationContext private val context: Context) :
     ViewModel() {
 
-    val tradeListItem = combine(getBalance.getBalance(), getSession()) { balance, session ->
+    val tradeListItem = combine(getBalance.getBalance(), getSession(), userConfig.isHideBalances()) { balance, session, hideBalance ->
         ListItemModel(
             title = context.getString(R.string.perpetuals_trade),
-            subtitle = perpetualBalanceHeader(balance?.toGem(), (session?.wallet?.type ?: WalletType.View).toGem()).total.text(),
+            subtitle = perpetualBalanceHeader(balance?.toGem(), (session?.wallet?.type ?: WalletType.View).toGem()).total.text().hiddenWhen(hideBalance),
         )
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ListItemModel(title = context.getString(R.string.perpetuals_trade)))
@@ -39,7 +40,8 @@ class PerpetualsPreviewViewModel @Inject constructor(userConfig: UserConfig, get
     val showPerpetuals = userConfig.showPerpetuals(getSession())
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val positions = getPositions.getPerpetualPositions()
-        .map { positions -> positions.map { PerpetualPositionRowUIModel(it.asset, it.listItem(context)) } }
+    val positions = combine(getPositions.getPerpetualPositions(), userConfig.isHideBalances()) { positions, hideBalance ->
+        positions.map { PerpetualPositionRowUIModel(it.asset, it.listItem(context, hideBalance)) }
+    }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 }

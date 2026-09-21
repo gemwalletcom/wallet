@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemBannerButton
 import enum Gemstone.GemBannerDestination
 import Primitives
 
@@ -28,4 +29,13 @@ public enum BannerActionType: Sendable {
 public enum BannerButton: String, Sendable {
     case buy
     case receive
+}
+
+public extension GemBannerButton {
+    var button: BannerButton {
+        switch self {
+        case .buy: .buy
+        case .receive: .receive
+        }
+    }
 }

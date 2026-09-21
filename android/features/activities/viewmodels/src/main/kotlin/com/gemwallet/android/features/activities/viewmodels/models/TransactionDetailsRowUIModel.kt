@@ -49,7 +49,7 @@ internal fun TransactionDetailsValue.uiModel(context: Context, asset: Asset): Tr
             title = row.title.text(context),
             subtitle = row.amount.text(),
             subtitleExtra = row.fiat?.text(),
-            info = row.info.infoSheet(asset.iconModel()),
+            info = row.info.infoSheet(context, asset.iconModel()),
         ),
     )
 

@@ -131,9 +131,9 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         return WalletHomeState(
             sections: AssetsSections.from(assets),
             header: WalletHeaderViewModel(
-                totalValue: viewState.totalValue.toPrimitives(),
-                currency: currency,
-                showsPnl: viewState.showsPnl,
+                total: viewState.total,
+                pnl: viewState.pnl,
+                pnlTone: viewState.pnlTone,
                 actions: viewState.headerActions,
             ),
             currency: currency,

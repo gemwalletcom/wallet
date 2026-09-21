@@ -35,8 +35,8 @@ struct CandlestickChartView: View {
 
     private var priceHeader: some View {
         VStack {
-            if let headerModel = model.headerModel(for: selectedCandle) {
-                ChartHeaderView(model: headerModel)
+            if let header = model.header(for: selectedCandle) {
+                ChartHeaderView(header: header, date: model.dateText(for: selectedCandle))
             }
         }
         .padding(.top, Spacing.small)

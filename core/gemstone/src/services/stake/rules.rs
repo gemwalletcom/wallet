@@ -5,15 +5,15 @@ use crate::services::collections::{stale, unique};
 use num_bigint::{BigInt, BigUint};
 use primitives::AddressName;
 use primitives::{
-    AddressFormatStyle, AddressFormatter, AddressType, Asset, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator, EarnType, RedelegateData, Resource, StakeChain, StakeProviderType, StakeType, VerificationStatus,
-    WalletType, YieldProvider,
+    AddressFormatStyle, AddressFormatter, AddressType, Asset, Chain, Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, EarnType, RedelegateData, Resource, StakeChain, StakeProviderType, StakeType,
+    VerificationStatus, WalletType, YieldProvider,
 };
 use rand::seq::IndexedRandom;
 use std::str::FromStr;
 
 use super::model::{
-    GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationAmountInput, GemDelegationDestination, GemDelegationStatus, GemEarnActions, GemStakeAction, GemStakeActionItem, GemStakeAmountInput, GemStakeSection,
-    GemStakeValidatorSelection, GemValidatorRow,
+    GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationListRow, GemDelegationStatus, GemEarnActions, GemStakeAction, GemStakeActionItem,
+    GemStakeAmountInput, GemStakeSection, GemStakeValidatorSelection, GemValidatorRow,
 };
 use crate::config::image::GemImage;
 use crate::config::stake::EARN_OFFERED;
@@ -149,7 +149,9 @@ pub fn validator_row(validator: &DelegationValidator) -> GemValidatorRow {
         placeholder: name.chars().next().map(String::from).unwrap_or_default(),
         name,
         provider,
-        apr: (validator.apr > 0.0).then(|| GemFormattedNumber::percentage(validator.apr, GemPercentageStyle::Unsigned)),
+        apr: GemLocalizedText::Apr {
+            value: (validator.apr > 0.0).then(|| GemFormattedNumber::percentage(validator.apr, GemPercentageStyle::Unsigned)),
+        },
         validator: validator.clone(),
     }
 }
@@ -185,6 +187,47 @@ fn completion_title(delegation: &Delegation) -> Option<GemListRowTitle> {
             DelegationState::Pending | DelegationState::Deactivating | DelegationState::AwaitingWithdrawal => Some(GemListRowTitle::AvailableIn),
             DelegationState::Active | DelegationState::Inactive => None,
         },
+    }
+}
+
+pub fn delegation_details(delegation: &Delegation, asset: &Asset, price: Option<f64>, currency: Currency, rows: Vec<GemListRow>) -> GemDelegationDetails {
+    let amount = |value: &BigUint| GemFormattedNumber::asset_amount(&BigInt::from(value.clone()), asset, GemValueStyle::Auto);
+    let fiat = |value: &BigUint| crate::services::assets::rules::fiat_amount_of(asset, value, price, currency.clone());
+    let shows_rewards = shows_rewards(&delegation.base);
+
+    GemDelegationDetails {
+        title: GemLocalizedText::StakeProvider {
+            provider: delegation.validator.provider_type,
+        },
+        balance: amount(&delegation.base.balance),
+        fiat: fiat(&delegation.base.balance),
+        rewards: shows_rewards.then(|| amount(&delegation.base.rewards)),
+        rewards_fiat: shows_rewards.then(|| fiat(&delegation.base.rewards)).flatten(),
+        claim: shows_rewards.then(|| {
+            crate::services::transfer::rules::stake_transfer_data(
+                asset.clone(),
+                StakeType::Rewards(vec![delegation.validator.clone()]),
+                crate::models::custom_types::GemBigInt::from(BigInt::from(delegation.base.rewards.clone())),
+                false,
+            )
+        }),
+        rows,
+    }
+}
+
+pub fn delegation_list_row(delegation: &Delegation, asset: &Asset, price: Option<f64>, currency: Currency) -> GemDelegationListRow {
+    let amount = |value: &BigUint| GemFormattedNumber::asset_amount(&BigInt::from(value.clone()), asset, GemValueStyle::Short);
+    let fiat = |value: &BigUint| crate::services::assets::rules::fiat_amount_of(asset, value, price, currency.clone());
+    let shows_rewards = shows_rewards(&delegation.base);
+
+    GemDelegationListRow {
+        validator: validator_row(&delegation.validator),
+        status: delegation_status(delegation),
+        balance: amount(&delegation.base.balance),
+        fiat: fiat(&delegation.base.balance),
+        rewards: shows_rewards.then(|| amount(&delegation.base.rewards)),
+        rewards_fiat: shows_rewards.then(|| fiat(&delegation.base.rewards)).flatten(),
+        has_balance: delegation.base.balance > BigUint::ZERO,
     }
 }
 
@@ -632,6 +675,62 @@ mod tests {
     use primitives::Resource;
 
     #[test]
+    fn test_delegation_details_title_follows_the_provider_and_the_header_keeps_its_precision() {
+        let asset = Asset::from_chain(Chain::Cosmos);
+        let details = |provider, rewards: u64| {
+            let mut delegation = Delegation::mock();
+            delegation.validator.provider_type = provider;
+            delegation.base.balance = BigUint::from(838u64);
+            delegation.base.rewards = BigUint::from(rewards);
+            delegation.base.state = DelegationState::Active;
+            delegation_details(&delegation, &asset, Some(2.0), Currency::USD, vec![])
+        };
+
+        assert_eq!(
+            details(StakeProviderType::Earn, 0).title,
+            GemLocalizedText::StakeProvider { provider: StakeProviderType::Earn },
+            "an earn position is not titled Stake"
+        );
+        assert_eq!(details(StakeProviderType::Stake, 0).title, GemLocalizedText::StakeProvider { provider: StakeProviderType::Stake });
+
+        let earning = details(StakeProviderType::Stake, 500_000);
+        assert_eq!(
+            earning.balance.display,
+            GemFormattedNumber::asset_amount(&BigInt::from(838u64), &asset, GemValueStyle::Auto).display,
+            "the details header keeps the auto precision, not the list row's short one"
+        );
+        assert_ne!(earning.balance.display, GemFormattedNumber::asset_amount(&BigInt::from(838u64), &asset, GemValueStyle::Short).display);
+        assert!(earning.claim.is_some(), "rewards worth claiming come with the transfer that claims them");
+        assert!(details(StakeProviderType::Stake, 0).claim.is_none(), "nothing to claim is no transfer");
+    }
+
+    #[test]
+    fn test_a_delegation_row_greys_an_empty_stake_and_shows_rewards_only_when_there_are_some() {
+        let asset = Asset::from_chain(Chain::Cosmos);
+        let row = |balance: u64, rewards: u64, state| {
+            let mut delegation = Delegation::mock();
+            delegation.base.balance = BigUint::from(balance);
+            delegation.base.rewards = BigUint::from(rewards);
+            delegation.base.state = state;
+            delegation_list_row(&delegation, &asset, Some(2.0), Currency::USD)
+        };
+
+        let held = row(2_000_000, 500_000, DelegationState::Active);
+        assert!(held.has_balance);
+        assert_eq!(held.balance.value, 2.0);
+        assert_eq!(held.fiat.expect("a priced stake is worth something").value, 4.0);
+        assert_eq!(held.rewards.expect("active rewards are shown").value, 0.5);
+        assert_eq!(held.rewards_fiat.expect("and are worth something").value, 1.0);
+
+        let empty = row(0, 0, DelegationState::Active);
+        assert!(!empty.has_balance, "an empty stake greys on both apps");
+        assert_eq!(empty.fiat, None, "and is worth nothing the row can name");
+        assert_eq!(empty.rewards, None);
+
+        assert_eq!(row(2_000_000, 500_000, DelegationState::Pending).rewards, None, "only an active delegation is earning");
+    }
+
+    #[test]
     fn test_validator_display_name() {
         let solana = DelegationValidator {
             chain: Chain::Solana,
@@ -672,9 +771,15 @@ mod tests {
         assert_eq!(validator_row(&earn).provider, Some(YieldProvider::Yo));
 
         let paying = DelegationValidator { apr: 5.0, ..DelegationValidator::mock() };
-        assert_eq!(validator_row(&paying).apr, Some(GemFormattedNumber::percentage(5.0, GemPercentageStyle::Unsigned)));
+        assert_eq!(
+            validator_row(&paying).apr,
+            GemLocalizedText::Apr {
+                value: Some(GemFormattedNumber::percentage(5.0, GemPercentageStyle::Unsigned))
+            },
+            "the row says APR once, not a bare percent each app labels itself"
+        );
         let idle = DelegationValidator { apr: 0.0, ..DelegationValidator::mock() };
-        assert_eq!(validator_row(&idle).apr, None, "a validator paying nothing shows no rate");
+        assert_eq!(validator_row(&idle).apr, GemLocalizedText::Apr { value: None }, "a validator paying nothing shows no rate");
 
         let unknown = DelegationValidator {
             id: "not-a-provider".to_string(),

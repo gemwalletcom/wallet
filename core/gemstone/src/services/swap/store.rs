@@ -8,7 +8,7 @@ use super::model::GemSwapPair;
 #[async_trait]
 pub trait GemSwapStore: Send + Sync {
     async fn get_swap_pairs(&self, wallet_id: WalletId) -> Result<Vec<GemSwapPair>, GemServiceError>;
-    async fn get_recent_asset_ids(&self, wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError>;
-    async fn get_pay_asset_ids(&self, wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError>;
-    async fn get_receive_asset_ids(&self, wallet_id: WalletId, chains: Vec<Chain>, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError>;
+    async fn get_recent_asset_ids(&self, wallet_id: WalletId, limit: u32) -> Result<Vec<AssetId>, GemServiceError>;
+    async fn get_pay_asset_ids(&self, wallet_id: WalletId, limit: u32) -> Result<Vec<AssetId>, GemServiceError>;
+    async fn get_receive_asset_ids(&self, wallet_id: WalletId, chains: Vec<Chain>, asset_ids: Vec<AssetId>, limit: u32) -> Result<Vec<AssetId>, GemServiceError>;
 }

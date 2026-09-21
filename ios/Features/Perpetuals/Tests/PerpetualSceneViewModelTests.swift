@@ -25,7 +25,7 @@ struct PerpetualSceneViewModelTests {
         let model = PerpetualSceneViewModel.mock(service: service)
 
         #expect(model.details == service.detailsValue)
-        #expect(model.positionModel(model.details) == nil)
+        #expect(model.positionData(model.details) == nil)
     }
 
     @Test
@@ -35,7 +35,7 @@ struct PerpetualSceneViewModelTests {
         service.detailsValue = .mock(sections: [.position(rows: [])], position: position.toGem())
         let model = PerpetualSceneViewModel.mock(service: service)
 
-        #expect(model.positionModel(model.details)?.data.position == position)
+        #expect(model.positionData(model.details)?.position == position)
 
         model.onSelectAutoclose()
         #expect(model.isPresentingAutoclose?.position == position)

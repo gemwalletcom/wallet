@@ -3,7 +3,6 @@
 import Components
 import Formatters
 import Foundation
-import struct Gemstone.GemBannerAmount
 import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerRow
 import GemstonePrimitives
@@ -39,11 +38,11 @@ public struct BannerViewModel {
     }
 
     var description: String? {
-        content.description?.text(amount: formatted)
+        content.description?.text
     }
 
     var canClose: Bool {
-        banner.state != .alwaysActive
+        content.canClose
     }
 
     var imageSize: CGFloat {
@@ -87,35 +86,14 @@ public struct BannerViewModel {
     }
 
     var viewType: BannerViewType {
-        switch banner.event {
-        case .stake,
-             .accountActivation,
-             .accountBlockedMultiSignature,
-             .activateAsset,
-             .suspiciousAsset,
-             .tradePerpetuals: .list
-        case .onboarding: .banner
+        switch content.style {
+        case .list: .list
+        case .welcome: .banner
         }
     }
 
     var buttons: [BannerButtonViewModel] {
-        switch banner.event {
-        case .stake,
-             .accountActivation,
-             .accountBlockedMultiSignature,
-             .activateAsset,
-             .suspiciousAsset,
-             .tradePerpetuals: []
-        case .onboarding: [
-                BannerButtonViewModel(button: .buy, banner: banner),
-                BannerButtonViewModel(button: .receive, banner: banner),
-            ]
-        }
-    }
-
-    private func formatted(_ amount: GemBannerAmount) -> String {
-        ValueFormatter(style: .auto)
-            .string(amount.value, decimals: amount.decimals.asInt, currency: amount.symbol)
+        content.buttons.map { BannerButtonViewModel(button: $0.button, banner: banner) }
     }
 }
 

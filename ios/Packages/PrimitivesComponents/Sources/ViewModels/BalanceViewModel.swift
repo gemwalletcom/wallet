@@ -50,30 +50,12 @@ public struct BalanceViewModel: Sendable {
         return formatter.string(total, decimals: asset.decimals.asInt)
     }
 
-    public var availableBalanceText: String {
-        guard !balance.available.isZero else {
-            return .zero
-        }
-        return formatter.string(balance.available, decimals: asset.decimals.asInt)
-    }
-
-    public var totalBalanceTextWithSymbol: String {
-        formatter.string(total, decimals: asset.decimals.asInt, currency: asset.symbol)
-    }
-
     public var availableBalanceTextWithSymbol: String {
         formatter.string(balance.available, decimals: asset.decimals.asInt, currency: asset.symbol)
     }
 
     public func balanceTextWithSymbol(_ value: BigInt) -> String {
         formatter.string(value, decimals: asset.decimals.asInt, currency: asset.symbol)
-    }
-
-    public var balanceTextColor: Color {
-        guard !total.isZero else {
-            return Colors.gray
-        }
-        return Colors.black
     }
 
     public var energyText: String {

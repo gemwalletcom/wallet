@@ -4,6 +4,8 @@ import BigInt
 import Components
 import Foundation
 import func Gemstone.addressCopy
+import struct Gemstone.AssetPrice
+import func Gemstone.confirmErrorInfo
 import enum Gemstone.FeePriority
 import class Gemstone.GemAssetConfigService
 import struct Gemstone.GemBalanceRequirement
@@ -616,11 +618,12 @@ struct ConfirmTransferSceneViewModelTests {
         let required = BigInt(21_000_000_000_000)
         model.onSelectListError(error: .confirm(.InsufficientNetworkFee(asset: Asset.mockEthereum().toGem(), requirement: GemBalanceRequirement(required: required, available: 0, shortfall: required))))
 
-        guard case let .info(.insufficientNetworkFee(_, _, _, sheetRequirement, _, _, _)) = model.isPresentingSheet else {
+        guard case let .info(.insufficientNetworkFee(info, _, _)) = model.isPresentingSheet else {
             Issue.record("Expected insufficientNetworkFee sheet")
             return
         }
-        #expect(sheetRequirement == BalanceRequirement(required: required, available: .zero, shortfall: required))
+        #expect(info.required?.value == 0.000021)
+        #expect(info.shortfall?.value == 0.000021)
     }
 
     @Test
@@ -628,7 +631,7 @@ struct ConfirmTransferSceneViewModelTests {
         let model = ConfirmTransferSceneViewModel.mock()
         model.onSelectListError(error: .confirm(.InsufficientNetworkFee(asset: Asset.mockEthereum().toGem(), requirement: nil)))
 
-        guard case let .info(.insufficientNetworkFee(_, _, _, _, _, _, .action(_, action))) = model.isPresentingSheet else {
+        guard case let .info(.insufficientNetworkFee(_, _, .action(_, action))) = model.isPresentingSheet else {
             Issue.record("Expected insufficientNetworkFee sheet")
             return
         }
@@ -662,12 +665,12 @@ struct ConfirmTransferSceneViewModelTests {
         model.onSelectListError(error: .confirm(.InsufficientBalance(asset: Asset.mockTron().toGem(), requirement: GemBalanceRequirement(required: 36_798_300, available: 36_070_000, shortfall: 728_300))))
 
         guard case let .info(sheet) = model.isPresentingSheet,
-              case let .balanceRequired(_, _, requirement, .action(_, action)) = sheet
+              case let .balanceRequired(info, _, .action(_, action)) = sheet
         else {
             Issue.record("Expected balanceRequired sheet")
             return
         }
-        #expect(requirement == BalanceRequirement(required: 36_798_300, available: 36_070_000, shortfall: 728_300))
+        #expect(info.required?.value == 36.7983)
         #expect(InfoSheetModelFactory.create(from: sheet).description == Localized.Info.balanceRequiredDescription(
             "36.79 TRX".boldMarkdown(),
             "36.07 TRX".boldMarkdown(),
@@ -690,7 +693,7 @@ struct ConfirmTransferSceneViewModelTests {
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(asset)), acquireFlow: .options)
         model.onSelectListError(error: .confirm(.InsufficientBalance(asset: asset.toGem(), requirement: GemBalanceRequirement(required: 2, available: 1, shortfall: 1))))
 
-        guard case let .info(.balanceRequired(_, _, _, .action(_, action))) = model.isPresentingSheet else {
+        guard case let .info(.balanceRequired(_, _, .action(_, action))) = model.isPresentingSheet else {
             Issue.record("Expected balanceRequired sheet")
             return
         }
@@ -711,7 +714,7 @@ struct ConfirmTransferSceneViewModelTests {
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(asset)))
         model.onSelectListError(error: .confirm(.InsufficientBalance(asset: asset.toGem(), requirement: GemBalanceRequirement(required: 2, available: 1, shortfall: 1))))
 
-        guard case let .info(.balanceRequired(_, _, _, .action(_, action))) = model.isPresentingSheet else {
+        guard case let .info(.balanceRequired(_, _, .action(_, action))) = model.isPresentingSheet else {
             Issue.record("Expected balanceRequired sheet")
             return
         }
@@ -729,26 +732,23 @@ struct ConfirmTransferSceneViewModelTests {
     func insufficientNetworkFeeSheetShowsRequiredFeeWithFiat() {
         let asset = Asset.mockEthereum()
         let feeAsset = asset.chain.asset
-        let image = AssetViewModel(asset: asset).assetImage
-        let required = BigInt(2_000_000_000_000_000)
+        let error = GemConfirmError.InsufficientNetworkFee(
+            asset: asset.toGem(),
+            requirement: GemBalanceRequirement(required: 2_000_000_000_000_000, available: 0, shortfall: 2_000_000_000_000_000),
+        )
+        let sheet = { (prices: [AssetPrice]) in
+            confirmErrorInfo(error: error, prices: prices, currency: Currency.usd.toGem()).map {
+                InfoSheetModelFactory.create(from: ConfirmInfoSheetBuilder.build(for: $0, networkFeeBuyAmount: 10, onGetAsset: { _, _ in }))
+            }
+        }
 
-        let withPrice = InfoSheetModelFactory.create(from: .insufficientNetworkFee(
-            asset, title: asset.name, image: image, requirement: BalanceRequirement(required: required, available: .zero, shortfall: required),
-            price: .mock(price: 2000),
-            currency: "USD", button: .action(title: "", action: {}),
-        ))
-        let withoutPrice = InfoSheetModelFactory.create(from: .insufficientNetworkFee(
-            asset, title: asset.name, image: image, requirement: BalanceRequirement(required: required, available: .zero, shortfall: required),
-            price: nil, currency: "USD", button: .action(title: "", action: {}),
-        ))
-
-        #expect(withPrice.description == Localized.Info.InsufficientNetworkFeeBalance.description(
+        #expect(sheet([AssetPrice(assetId: asset.id.identifier, price: 2000, priceChangePercentage24h: 0, updatedAt: .now)])?.description == Localized.Info.InsufficientNetworkFeeBalance.description(
             "0.002 ETH (~$4.00)".boldMarkdown(),
             feeAsset.name.boldMarkdown(),
             "0 ETH".boldMarkdown(),
             "0.002 ETH".boldMarkdown(),
         ))
-        #expect(withoutPrice.description == Localized.Info.InsufficientNetworkFeeBalance.description(
+        #expect(sheet([])?.description == Localized.Info.InsufficientNetworkFeeBalance.description(
             "0.002 ETH".boldMarkdown(),
             feeAsset.name.boldMarkdown(),
             "0 ETH".boldMarkdown(),
@@ -762,12 +762,12 @@ struct ConfirmTransferSceneViewModelTests {
         model.onSelectListError(error: .confirm(.InsufficientNetworkFee(asset: Asset.mockTron().toGem(), requirement: nil)))
 
         guard case let .info(sheet) = model.isPresentingSheet,
-              case let .insufficientNetworkFee(asset, _, _, _, _, _, .action(_, action)) = sheet
+              case let .insufficientNetworkFee(info, _, .action(_, action)) = sheet
         else {
             Issue.record("Expected insufficientNetworkFee sheet")
             return
         }
-        #expect(asset.id == Asset.mockTron().id)
+        #expect(info.asset?.id == Asset.mockTron().id.identifier)
         #expect(InfoSheetModelFactory.create(from: sheet).buttonTitle == Localized.Asset.getAsset("TRX"))
 
         action()

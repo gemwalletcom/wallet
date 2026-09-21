@@ -35,7 +35,7 @@ final class RootSceneViewModel {
     private let viewModelFactory: ViewModelFactory
     private let walletSessionService: any GemWalletSessionServiceProtocol
     let walletConnectorPresenter: WalletConnectorPresenter
-    let lockWindow: any LockWindowPresentable
+    let lockWindow: LockWindow
 
     var currentWallet: Wallet? {
         walletSessionService.currentWalletId.flatMap { try? viewModelFactory.stores.walletStore.getWallet(id: $0) }
@@ -80,7 +80,7 @@ final class RootSceneViewModel {
         pushNotificationEnablerService: PushNotificationEnablerService,
         appLifecycleService: AppLifecycleService,
         navigationRouter: NavigationRouter,
-        lockWindowManager: any LockWindowPresentable,
+        lockWindow: LockWindow,
         viewModelFactory: ViewModelFactory,
         walletSessionService: any GemWalletSessionServiceProtocol,
         appUpdateService: any GemAppUpdateServiceProtocol,
@@ -95,7 +95,7 @@ final class RootSceneViewModel {
         self.pushNotificationEnablerService = pushNotificationEnablerService
         self.appLifecycleService = appLifecycleService
         self.navigationRouter = navigationRouter
-        lockWindow = lockWindowManager
+        self.lockWindow = lockWindow
         self.viewModelFactory = viewModelFactory
         self.walletSessionService = walletSessionService
         self.appUpdateService = appUpdateService

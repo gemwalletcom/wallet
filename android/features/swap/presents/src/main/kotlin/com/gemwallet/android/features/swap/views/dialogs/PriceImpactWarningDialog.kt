@@ -5,14 +5,17 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.models.swap.SwapPriceImpactUIModel
+import com.gemwallet.android.ui.localization.string
 import com.wallet.core.primitives.Asset
+import uniffi.gemstone.GemSwapPriceImpactRow
 
 @Composable
-internal fun PriceImpactWarningDialog(isVisible: Boolean, priceImpact: SwapPriceImpactUIModel?, asset: Asset?, onDismiss: () -> Unit, onContinue: () -> Unit) {
-    if (!isVisible || priceImpact == null || asset == null) {
+internal fun PriceImpactWarningDialog(isVisible: Boolean, priceImpact: GemSwapPriceImpactRow?, asset: Asset?, onDismiss: () -> Unit, onContinue: () -> Unit) {
+    val warning = priceImpact?.warning
+    if (!isVisible || warning == null || asset == null) {
         return
     }
 
@@ -34,15 +37,7 @@ internal fun PriceImpactWarningDialog(isVisible: Boolean, priceImpact: SwapPrice
             }
         },
         title = { Text(stringResource(R.string.swap_price_impact_warning_title)) },
-        text = {
-            Text(
-                stringResource(
-                    R.string.swap_price_impact_warning_description,
-                    priceImpact.warningText,
-                    asset.symbol,
-                ),
-            )
-        },
+        text = { Text(warning.string(LocalContext.current)) },
         containerColor = MaterialTheme.colorScheme.background,
     )
 }

@@ -145,7 +145,8 @@ object GatewayModule {
         walletConfigurationService: GemWalletConfigurationService,
         walletService: GemWalletService,
         deviceService: GemDeviceService,
-    ): GemAppStartService = GemAppStartService(configService, bannerService, assetsService, balanceService, walletConfigurationService, walletService, deviceService)
+        supportService: GemSupportService,
+    ): GemAppStartService = GemAppStartService(configService, bannerService, assetsService, balanceService, walletConfigurationService, walletService, deviceService, supportService)
 
     @Provides
     fun provideGemAppStartServiceInterface(service: GemAppStartService): GemAppStartServiceInterface = service

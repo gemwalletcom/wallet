@@ -72,35 +72,15 @@ public struct SwapDetailsView: View {
             }
 
             Section {
-                ForEach(model.detailRowList) { row in
-                    switch row {
-                    case .provider:
-                        EmptyView()
-                    case .rate:
-                        if let rateText = model.rateText {
-                            ListItemRotateView(
-                                title: model.rateTitle,
-                                subtitle: rateText,
-                                action: model.switchRateDirection,
-                            )
-                        }
-                    case .estimatedTime:
-                        if let swapEstimationField = model.swapEstimationField {
-                            ListItemView(field: swapEstimationField)
-                        }
-                    case .priceImpact:
-                        PriceImpactView(
-                            model: model.priceImpactModel,
-                            infoAction: { infoSheet = .priceImpact },
-                        )
-                    case .minimumReceive:
-                        ListItemView(field: model.minReceiveField)
-                    case .slippage:
-                        ListItemView(
-                            field: model.slippageField,
-                            infoAction: { infoSheet = .slippage },
-                        )
-                    }
+                if let rateText = model.rateText {
+                    ListItemRotateView(
+                        title: model.rateTitle,
+                        subtitle: rateText,
+                        action: model.switchRateDirection,
+                    )
+                }
+                ForEach(Array(model.detailRows.enumerated()), id: \.offset) { _, row in
+                    GemListRowView(row: row, onInfo: { infoSheet = InfoSheetType(topic: $0, assetImage: nil) })
                 }
             }
         }

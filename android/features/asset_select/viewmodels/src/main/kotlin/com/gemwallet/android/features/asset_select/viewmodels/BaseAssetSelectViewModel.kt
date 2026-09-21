@@ -13,7 +13,6 @@ import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.assetSections
 import com.gemwallet.android.domains.asset.toQueryFilters
-import com.gemwallet.android.domains.price.values.RowFormatters
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -62,7 +61,6 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetAction
 import uniffi.gemstone.GemAssetSearchStep
 import uniffi.gemstone.GemAssetSelectionServiceInterface
-import uniffi.gemstone.GemAssetTitleStyle
 import uniffi.gemstone.GemSelectAssetState
 import uniffi.gemstone.GemSelectAssetType
 
@@ -127,12 +125,11 @@ open class BaseAssetSelectViewModel(
         search.items(filters),
     ) { _, items ->
         val wallet = session.value?.wallet
-        val formatters = RowFormatters()
         items
             .map { item ->
                 val owner = item.owner ?: wallet?.getAccount(item.asset.id.chain)
                 val assetInfo = if (item.owner == owner) item else item.copy(owner = owner)
-                assetInfo.toAssetInfoDataAggregate(GemAssetTitleStyle.CANONICAL_ASSET, formatters = formatters)
+                assetInfo.toAssetInfoDataAggregate(flow.rowStyle)
             }
     }
         .flowOn(ioDispatcher)

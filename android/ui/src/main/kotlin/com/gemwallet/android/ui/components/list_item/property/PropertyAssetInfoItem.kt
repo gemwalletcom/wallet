@@ -10,17 +10,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.getBalanceInfo
-import com.gemwallet.android.ui.models.BalanceInfoUIModel
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.Asset
+import uniffi.gemstone.GemFormattedNumber
 
 @Composable
 fun PropertyAssetInfoItem(asset: Asset, availableAmount: String, onMaxAmount: () -> Unit) {
@@ -45,15 +46,15 @@ fun PropertyAssetInfoItem(asset: Asset, availableAmount: String, onMaxAmount: ()
 }
 
 @Composable
-fun PropertyAssetBalanceItem(model: BalanceInfoUIModel, title: String?, modifier: Modifier = Modifier, showChevron: Boolean = false, listPosition: ListPosition = ListPosition.Single) {
+fun PropertyAssetBalanceItem(asset: Asset, amount: GemFormattedNumber, fiat: GemFormattedNumber?, title: String?, modifier: Modifier = Modifier, showChevron: Boolean = false, listPosition: ListPosition = ListPosition.Single) {
     ListItem(
         modifier = modifier,
-        leading = { AssetIcon(model.asset) },
-        title = { ListItemTitleText(title ?: model.asset.name) },
+        leading = { AssetIcon(asset) },
+        title = { ListItemTitleText(title ?: asset.name) },
         listPosition = listPosition,
         trailing = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                getBalanceInfo(model, model)()
+                getBalanceInfo(amount.text(), fiat?.text().orEmpty(), isZero = false)()
                 if (showChevron) {
                     DataBadgeChevron()
                 }

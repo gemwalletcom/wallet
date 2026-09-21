@@ -13,8 +13,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.ext.networkName
-import com.gemwallet.android.ext.type
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
@@ -28,7 +26,6 @@ import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.iconSize
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetSubtype
 import kotlinx.collections.immutable.toImmutableList
 import uniffi.gemstone.GemAssetSubtitleStyle
 import uniffi.gemstone.GemAssetTrailingStyle
@@ -53,11 +50,7 @@ fun AssetSelectScreen(
     val clipboardManager = LocalContext.current.clipboardManager()
     val support: (AssetInfoDataAggregate) -> (@Composable () -> Unit)? = when (flow.subtitle) {
         GemAssetSubtitleStyle.NETWORK -> { item ->
-            if (item.asset.id.type() == AssetSubtype.NATIVE) {
-                null
-            } else {
-                @Composable { ListItemSupportText(item.asset.id.chain.networkName()) }
-            }
+            item.network?.let { network -> @Composable { ListItemSupportText(network) } }
         }
 
         GemAssetSubtitleStyle.PRICE -> { item -> assetPriceSupport(item.price) }
@@ -110,7 +103,7 @@ fun AssetSelectScreen(
 
     AssetSelectScene(
         title = titleContent ?: { SceneTitle(title) },
-        titleBadge = { item -> if (flow.showsSymbol) getAssetBadge(item) else null },
+        titleBadge = { item -> item.symbol },
         closeIcon = closeIcon,
         support = support,
         query = viewModel.queryState,

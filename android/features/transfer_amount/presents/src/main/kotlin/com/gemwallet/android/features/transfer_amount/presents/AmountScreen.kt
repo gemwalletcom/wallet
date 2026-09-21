@@ -16,9 +16,10 @@ import com.gemwallet.android.features.transfer_amount.viewmodels.providers.Amoun
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountTransferProvider
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.components.screen.LoadingScene
+import com.wallet.core.primitives.AssetId
 
 @Composable
-fun AmountScreen(onCancel: () -> Unit, onConfirm: (ConfirmTransferInput) -> Unit, viewModel: AmountViewModel = hiltViewModel()) {
+fun AmountScreen(onCancel: () -> Unit, onConfirm: (ConfirmTransferInput) -> Unit, onBuy: (AssetId) -> Unit, viewModel: AmountViewModel = hiltViewModel()) {
     val provider = viewModel.provider
     val title = provider.title.collectAsStateWithLifecycle().value?.asString().orEmpty()
     val assetInfo = provider.assetInfo.collectAsStateWithLifecycle().value ?: run {
@@ -84,6 +85,7 @@ fun AmountScreen(onCancel: () -> Unit, onConfirm: (ConfirmTransferInput) -> Unit
                         is AmountAction.SetAmount -> viewModel.updateAmount(action.amount)
                         AmountAction.SwitchInputType -> viewModel.switchInputType()
                         AmountAction.SetMaxAmount -> viewModel.onMaxAmount()
+                        AmountAction.Buy -> onBuy(assetInfo.asset.id)
                         AmountAction.Cancel -> onCancel()
                     }
                 },

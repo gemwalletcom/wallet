@@ -4,6 +4,7 @@ import Components
 import Formatters
 import Foundation
 import func Gemstone.candlestickHeader
+import struct Gemstone.GemChartHeader
 import struct Gemstone.GemPerpetualChartLayout
 import func Gemstone.perpetualChartLayout
 import class Gemstone.PriceChangeCalculator
@@ -24,6 +25,7 @@ struct CandlestickChartViewModel {
 
     private let layout: GemPerpetualChartLayout
     private let period: ChartPeriod
+    private let dateFormatter = ChartDateFormatter()
 
     init(
         candles: [ChartCandleStick],
@@ -75,13 +77,13 @@ struct CandlestickChartViewModel {
         candles.last.map(candleColor(for:)) ?? Colors.gray
     }
 
-    func headerModel(for selectedCandle: ChartCandleStick?) -> ChartHeaderViewModel? {
+    func header(for selectedCandle: ChartCandleStick?) -> GemChartHeader? {
         guard let target = selectedCandle ?? candles.last, let base = candles.first?.close else { return nil }
-        return ChartHeaderViewModel(
-            period: period,
-            date: selectedCandle?.date,
-            header: candlestickHeader(base: base, value: target.close),
-        )
+        return candlestickHeader(base: base, value: target.close)
+    }
+
+    func dateText(for selectedCandle: ChartCandleStick?) -> String? {
+        selectedCandle.map { dateFormatter.string(for: $0.date, period: period) }
     }
 
     func tooltipModel(for candle: ChartCandleStick) -> CandleTooltipViewModel {

@@ -332,12 +332,32 @@ pub(crate) fn unfreeze_available(resource: &primitives::Resource, balance: &GemA
 
 impl GemConfirmDestination {
     pub fn with_address_name(&self, address_name: Option<AddressName>) -> GemConfirmDestination {
-        match (self, address_name) {
-            (Self::Recipient { address, .. }, Some(address_name)) if !address_name.name.is_empty() => Self::Recipient {
+        let named = address_name.filter(|address_name| !address_name.name.is_empty());
+        match (self, named) {
+            (Self::Recipient { address, .. }, Some(address_name)) => Self::Recipient {
+                name: Some(address_name.name),
+                address: address.clone(),
+            },
+            (Self::Contract { address, .. }, Some(address_name)) => Self::Contract {
                 name: Some(address_name.name),
                 address: address.clone(),
             },
             _ => self.clone(),
+        }
+    }
+
+    pub fn address(&self) -> String {
+        match self {
+            Self::Recipient { address, .. } | Self::Contract { address, .. } | Self::Validator { address, .. } | Self::Provider { address, .. } => address.clone(),
+            Self::Resource { .. } => String::new(),
+        }
+    }
+
+    pub fn name(&self) -> Option<String> {
+        match self {
+            Self::Recipient { name, .. } | Self::Contract { name, .. } => name.clone(),
+            Self::Validator { name, .. } | Self::Provider { name, .. } => Some(name.clone()),
+            Self::Resource { .. } => None,
         }
     }
 }
@@ -357,7 +377,10 @@ impl GemTransferData {
         };
         match &self.input_type {
             TransactionInputType::Transfer { .. } | TransactionInputType::TransferNft { .. } | TransactionInputType::Deposit { .. } | TransactionInputType::Withdrawal { .. } => recipient(),
-            TransactionInputType::TokenApprove { .. } => Some(GemConfirmDestination::Contract { address: self.recipient.address.clone() }),
+            TransactionInputType::TokenApprove { .. } => Some(GemConfirmDestination::Contract {
+                name: None,
+                address: self.recipient.address.clone(),
+            }),
             TransactionInputType::Generic { extra, .. } => match extra.output_action {
                 TransferDataOutputAction::Send => recipient(),
                 TransferDataOutputAction::Sign => None,
@@ -956,7 +979,7 @@ mod tests {
                 approval_data: primitives::swap::ApprovalData::mock(),
             })
             .destination(),
-            Some(GemConfirmDestination::Contract { address: "recipient".into() })
+            Some(GemConfirmDestination::Contract { name: None, address: "recipient".into() })
         );
     }
 

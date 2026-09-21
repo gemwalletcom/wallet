@@ -17,10 +17,10 @@ public struct PortfolioScene: View {
     public var body: some View {
         NavigationStack {
             ChartListView(model: model) {
-                if model.statistics.isNotEmpty {
+                if model.statisticRows.isNotEmpty {
                     Section {
-                        ForEach(Array(model.statistics.enumerated()), id: \.offset) { _, statistic in
-                            ListItemView(model: model.statisticModel(statistic))
+                        ForEach(Array(model.statisticRows.enumerated()), id: \.offset) { _, row in
+                            GemListRowView(row: row)
                         }
                     } header: {
                         Text(model.statisticsTitle)

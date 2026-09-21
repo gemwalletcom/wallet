@@ -1,10 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
+import struct Gemstone.GemSwapPriceImpactRow
 import struct Gemstone.SwapPriceImpact
+import func Gemstone.swapPriceImpactRow
+import GemstonePrimitives
 import Localization
 import Primitives
+import PrimitivesComponents
 import Style
 import SwiftUI
 
@@ -12,14 +15,16 @@ struct PriceImpactViewModel {
     let fromAssetPrice: AssetPriceValue
     let swapPriceImpact: SwapPriceImpact?
 
-    private let percentFormatter = PercentFormatter.signed
+    private var row: GemSwapPriceImpactRow? {
+        swapPriceImpact.map { swapPriceImpactRow(impact: $0, paySymbol: fromAssetPrice.asset.symbol) }
+    }
 
     var showPriceImpactWarning: Bool {
-        swapPriceImpact?.isHigh == true
+        row?.warning != nil
     }
 
     var showsInSummary: Bool {
-        swapPriceImpact?.showsInSummary == true
+        row?.showsInSummary == true
     }
 
     var highImpactWarningTitle: String {
@@ -27,42 +32,22 @@ struct PriceImpactViewModel {
     }
 
     var highImpactWarningDescription: String? {
-        guard let priceImpactText else { return nil }
-        return Localized.Swap.PriceImpactWarning.description(priceImpactText, fromAssetPrice.asset.symbol)
+        row?.warning?.text
     }
 
     func listItem(infoAction: (() -> Void)?) -> ListItemModel? {
-        value.map { ListItemModel(title: priceImpactTitle, subtitle: $0.value, subtitleStyle: priceImpactStyle, infoAction: infoAction) }
+        priceImpactText.map { ListItemModel(title: priceImpactTitle, subtitle: $0, subtitleStyle: priceImpactStyle, infoAction: infoAction) }
     }
 
     var priceImpactTitle: String {
         Localized.Swap.priceImpact
     }
 
-    var value: PriceImpactValue? {
-        guard let swapPriceImpact else { return nil }
-
-        return PriceImpactValue(
-            type: swapPriceImpact.impactType,
-            value: percentFormatter.string(swapPriceImpact.percentage),
-        )
-    }
-
     var priceImpactText: String? {
-        swapPriceImpact.map { PercentFormatter.unsigned.string(abs($0.percentage)) }
+        row?.value.text()
     }
 
     var priceImpactStyle: TextStyle {
-        let color = switch value?.type {
-        case .low, nil: Colors.secondaryText
-        case .medium: Colors.orange
-        case .high: Colors.red
-        case .positive: Colors.green
-        }
-
-        return TextStyle(
-            font: .callout,
-            color: color,
-        )
+        TextStyle(font: .callout, color: row?.value.tone.color ?? Colors.gray)
     }
 }

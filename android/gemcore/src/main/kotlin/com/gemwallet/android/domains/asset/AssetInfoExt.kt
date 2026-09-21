@@ -18,10 +18,6 @@ val AssetInfo.decimals: Int
 val AssetInfo.chain: Chain
     get() = asset.chain
 
-val AssetInfo.availableBalanceAmount: String
-    get() = ValueFormatter(style = GemValueStyle.AUTO)
-        .string(balance.balance.available, decimals = asset.decimals)
-
 fun AssetInfo.calculateFiat(value: BigInteger): BigDecimal = toAssetPriceValue().calculateFiat(value)
 
 fun AssetInfo.calculateFiat(value: BigDecimal): BigDecimal = toAssetPriceValue().calculateFiat(value)

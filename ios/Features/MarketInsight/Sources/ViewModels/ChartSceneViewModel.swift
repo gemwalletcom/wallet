@@ -3,6 +3,7 @@
 import Components
 import Formatters
 import Foundation
+import struct Gemstone.AssetPrice
 import struct Gemstone.GemChart
 import enum Gemstone.GemChartPhase
 import protocol Gemstone.GemChartServiceProtocol
@@ -57,12 +58,23 @@ public final class ChartSceneViewModel: ChartListViewable {
     }
 
     public var chartState: StateViewType<ChartValuesViewModel> {
-        switch session.viewState().phase {
+        switch session.viewState(price: currentPrice).phase {
         case .loading: .loading
         case let .data(data):
             .data(ChartValuesViewModel(period: selectedPeriod, chartData: data))
         case .noData: .noData
         case let .failed(error): .error(error)
+        }
+    }
+
+    private var currentPrice: AssetPrice? {
+        priceData?.price.map {
+            AssetPrice(
+                assetId: asset.id.identifier,
+                price: $0.price,
+                priceChangePercentage24h: $0.priceChangePercentage24h,
+                updatedAt: $0.updatedAt,
+            )
         }
     }
 

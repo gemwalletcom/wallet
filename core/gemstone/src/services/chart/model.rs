@@ -1,11 +1,23 @@
 use super::rules;
 use crate::formatted_number::GemFormattedNumber;
-use primitives::{ChartDateValue, Currency};
+use primitives::{ChartDateValue, ChartPeriod, Currency};
 
 #[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
 pub enum GemChartValueType {
     Price,
     PriceChange,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemChartDateStyle {
+    Relative,
+    DayTime,
+    Day,
+}
+
+#[uniffi::export]
+pub fn chart_date_style(period: ChartPeriod) -> GemChartDateStyle {
+    rules::date_style(period)
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

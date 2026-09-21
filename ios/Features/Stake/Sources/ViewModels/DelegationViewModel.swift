@@ -3,10 +3,10 @@
 import Components
 import Formatters
 import Foundation
-import func Gemstone.delegationStatus
+import func Gemstone.delegationListRow
+import struct Gemstone.GemDelegationListRow
 import struct Gemstone.GemDelegationStatus
 import protocol Gemstone.GemStakeServiceProtocol
-import func Gemstone.validatorRow
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -16,30 +16,29 @@ import SwiftUI
 public struct DelegationViewModel: Sendable {
     public let delegation: Delegation
     public let currency: Currency
-    private let asset: Asset
-    private let formatter: ValueFormatter
-    private let service: any GemStakeServiceProtocol
-    private let priceViewModel: PriceViewModel
+    private let row: GemDelegationListRow
     public let validatorModel: ValidatorViewModel
 
     public init(
-        service: any GemStakeServiceProtocol,
+        service _: any GemStakeServiceProtocol,
         delegation: Delegation,
         asset: Asset,
-        formatter: ValueFormatter = .short,
+        formatter _: ValueFormatter = .short,
         currency: Currency,
     ) {
         self.delegation = delegation
         self.currency = currency
-        self.asset = asset
-        self.formatter = formatter
-        self.service = service
-        priceViewModel = PriceViewModel(price: delegation.price, currencyCode: currency.rawValue)
-        validatorModel = ValidatorViewModel(row: validatorRow(validator: delegation.validator.toGem()))
+        row = delegationListRow(
+            delegation: delegation.toGem(),
+            asset: asset.toGem(),
+            price: delegation.price?.price,
+            currency: currency.toGem(),
+        )
+        validatorModel = ValidatorViewModel(row: row.validator)
     }
 
     public var status: GemDelegationStatus {
-        delegationStatus(delegation: delegation.toGem())
+        row.status
     }
 
     public var listItem: ListItemModel {
@@ -61,7 +60,7 @@ public struct DelegationViewModel: Sendable {
     }
 
     public var subtitleStyle: TextStyle {
-        TextStyle(font: .callout, color: Colors.black, fontWeight: .semibold)
+        TextStyle(font: .callout, color: row.hasBalance ? Colors.black : Colors.gray, fontWeight: .semibold)
     }
 
     public var subtitleExtraStyle: TextStyle {
@@ -69,25 +68,19 @@ public struct DelegationViewModel: Sendable {
     }
 
     public var balanceText: String {
-        formatter.string(delegation.base.balance, decimals: asset.decimals.asInt, currency: asset.symbol)
+        row.balance.text()
     }
 
     public var fiatValueText: String? {
-        priceViewModel.fiatValueText(value: delegation.base.balance, decimals: asset.decimals.asInt)
-    }
-
-    private var showsRewards: Bool {
-        service.showsRewards(delegation: delegation.base.toGem())
+        row.fiat?.text()
     }
 
     public var rewardsText: String? {
-        guard showsRewards else { return nil }
-        return formatter.string(delegation.base.rewards, decimals: asset.decimals.asInt, currency: asset.symbol)
+        row.rewards?.text()
     }
 
     public var rewardsFiatValueText: String? {
-        guard showsRewards else { return nil }
-        return priceViewModel.fiatValueText(value: delegation.base.rewards, decimals: asset.decimals.asInt)
+        row.rewardsFiat?.text()
     }
 
     public var validatorText: String {

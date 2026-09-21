@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.coordinators.support
 
 import com.gemwallet.android.application.support.cases.ClearSupportTyping
-import com.gemwallet.android.application.support.cases.FailPendingSupportMessages
 import com.gemwallet.android.application.support.cases.GetSupportMessages
 import com.gemwallet.android.application.support.cases.GetSupportTyping
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneSupportStore
@@ -13,11 +12,6 @@ import kotlinx.coroutines.flow.StateFlow
 class GetSupportMessagesImpl(private val supportStore: GemstoneSupportStore) : GetSupportMessages {
 
     override fun invoke(): Flow<List<SupportMessage>> = supportStore.observeMessages()
-}
-
-class FailPendingSupportMessagesImpl(private val supportStore: GemstoneSupportStore) : FailPendingSupportMessages {
-
-    override suspend fun invoke() = supportStore.failPendingMessages()
 }
 
 class SupportTypingCoordinator(private val supportStore: GemstoneSupportStore) :

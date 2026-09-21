@@ -55,7 +55,7 @@ impl GemSwapService {
     pub async fn suggest_pair(&self, wallet: Wallet, pay_asset_id: Option<AssetId>) -> Result<Option<GemSwapPairSuggestion>, GemServiceError> {
         let pay_asset_id = match pay_asset_id {
             Some(asset_id) => asset_id,
-            None => match self.store.get_pay_asset_ids(wallet.id.clone()).await?.into_iter().next() {
+            None => match self.store.get_pay_asset_ids(wallet.id.clone(), rules::CANDIDATES_LIMIT).await?.into_iter().next() {
                 Some(asset_id) => asset_id,
                 None => return Ok(None),
             },
@@ -87,11 +87,11 @@ impl GemSwapService {
         if let Some(asset_id) = rules::most_swapped_receive_asset(&pairs, pay_asset_id, &supported) {
             return Ok(Some(asset_id));
         }
-        let recents = self.store.get_recent_asset_ids(wallet.id.clone()).await?;
+        let recents = self.store.get_recent_asset_ids(wallet.id.clone(), rules::RECENTS_LIMIT).await?;
         if let Some(asset_id) = rules::first_supported_receive_asset(recents, pay_asset_id, &supported) {
             return Ok(Some(asset_id));
         }
-        let candidates = self.store.get_receive_asset_ids(wallet.id.clone(), supported.chains.clone(), supported.asset_ids.clone()).await?;
+        let candidates = self.store.get_receive_asset_ids(wallet.id.clone(), supported.chains.clone(), supported.asset_ids.clone(), rules::CANDIDATES_LIMIT).await?;
         Ok(rules::first_supported_receive_asset(candidates, pay_asset_id, &supported))
     }
 
@@ -157,6 +157,23 @@ mod tests {
 
             assert_eq!(stored.pay_asset_id, Chain::Solana.as_asset_id());
             assert_eq!(named.pay_asset_id, Chain::Ethereum.as_asset_id());
+        });
+    }
+
+    #[test]
+    fn test_every_candidate_list_is_read_one_page_at_a_time() {
+        block_on(async {
+            let store = Arc::new(MemorySwapStore::default());
+            *store.pay_asset_ids.lock().unwrap() = vec![Chain::Solana.as_asset_id()];
+            let wallet = Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Solana]);
+
+            let _ = GemSwapService::mock(store.clone()).suggest_pair(wallet, None).await.unwrap();
+
+            let limits = store.limits.lock().unwrap().clone();
+            assert!(!limits.is_empty(), "a suggestion reads the store");
+            assert!(limits.iter().all(|limit| *limit > 0), "a wallet is never read whole: {limits:?}");
+            assert!(limits.contains(&rules::CANDIDATES_LIMIT));
+            assert!(limits.contains(&rules::RECENTS_LIMIT));
         });
     }
 

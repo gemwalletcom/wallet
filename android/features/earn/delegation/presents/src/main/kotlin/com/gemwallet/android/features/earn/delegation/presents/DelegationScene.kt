@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -20,6 +21,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyAssetBalan
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 
@@ -35,7 +37,7 @@ fun DelegationScene(onAmount: AmountTransactionAction, onConfirm: ConfirmTransac
         return
     }
     Scene(
-        title = stringResource(R.string.transfer_stake_title),
+        title = properties?.details?.title?.string(LocalContext.current) ?: stringResource(R.string.transfer_stake_title),
         onClose = onCancel,
     ) {
         LazyColumn {
@@ -55,7 +57,9 @@ fun DelegationScene(onAmount: AmountTransactionAction, onConfirm: ConfirmTransac
                         is DelegationRowUIModel.Row -> GemListRowView(row = row.row, listPosition = position)
 
                         DelegationRowUIModel.Rewards -> PropertyAssetBalanceItem(
-                            model = properties.rewards,
+                            asset = properties.asset,
+                            amount = properties.details.rewards ?: return@itemsPositioned,
+                            fiat = properties.details.rewardsFiat,
                             title = stringResource(R.string.stake_rewards),
                             modifier = if (canClaimRewards) Modifier.clickable { viewModel.onClaimRewards(onConfirm) } else Modifier,
                             showChevron = canClaimRewards,

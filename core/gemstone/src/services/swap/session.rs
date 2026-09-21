@@ -6,6 +6,7 @@ use super::model::{GemSwapButtonAction, GemSwapButtonInput};
 use super::rules;
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
+use crate::models::list::GemInfoTopic;
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
 use crate::services::amount::model::GemNumberFormat;
 
@@ -107,6 +108,16 @@ pub enum GemSwapErrorDisplay {
     Offline,
     MinimumAmount { asset: Asset, min_amount: GemBigInt },
     AmountTooSmall,
+}
+
+#[uniffi::export]
+impl GemSwapErrorDisplay {
+    pub fn info(&self) -> Option<GemInfoTopic> {
+        match self {
+            Self::NoQuote => Some(GemInfoTopic::NoQuote),
+            Self::NotSupportedAsset | Self::Offline | Self::MinimumAmount { .. } | Self::AmountTooSmall => None,
+        }
+    }
 }
 
 impl GemSwapErrorDisplay {
@@ -459,6 +470,22 @@ mod tests {
         assert_eq!(GemSwapErrorDisplay::new(&SwapperError::NotSupportedChain, None), GemSwapErrorDisplay::NotSupportedAsset);
         assert_eq!(GemSwapErrorDisplay::new(&SwapperError::NotSupportedAsset, None), GemSwapErrorDisplay::NotSupportedAsset);
         assert_eq!(GemSwapErrorDisplay::new(&SwapperError::Offline, None), GemSwapErrorDisplay::Offline);
+    }
+
+    #[test]
+    fn test_only_a_missing_quote_offers_an_info_sheet() {
+        assert_eq!(GemSwapErrorDisplay::NoQuote.info(), Some(GemInfoTopic::NoQuote));
+        assert_eq!(GemSwapErrorDisplay::NotSupportedAsset.info(), None);
+        assert_eq!(GemSwapErrorDisplay::Offline.info(), None);
+        assert_eq!(GemSwapErrorDisplay::AmountTooSmall.info(), None);
+        assert_eq!(
+            GemSwapErrorDisplay::MinimumAmount {
+                asset: Asset::from_chain(Chain::Ethereum),
+                min_amount: GemBigInt::from(1),
+            }
+            .info(),
+            None
+        );
     }
 
     #[test]

@@ -42,6 +42,14 @@ struct AssetSceneViewModelTests {
     }
 
     @Test
+    func theHeaderBalanceIsTheOneCoreFormatted() {
+        let asset = Asset.mockEthereum()
+        let model = AssetSceneViewModel.mock(.mock(asset: asset, balance: .mock()))
+
+        #expect(model.assetHeaderModel(model.details).title == GemFormattedNumber.mock(value: 0, unit: .symbol(symbol: asset.symbol)).text())
+    }
+
+    @Test
     func balanceRowsShowCoreValues() {
         let model = AssetSceneViewModel.mock(.mock(asset: .mockEthereum()))
         let apr = GemFormattedNumber.mock(value: 3.24, unit: .percent, notation: .plain)

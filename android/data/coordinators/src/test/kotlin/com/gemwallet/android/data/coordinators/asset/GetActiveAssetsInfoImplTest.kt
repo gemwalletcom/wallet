@@ -4,6 +4,7 @@ import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
 import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetPriceInfo
@@ -65,9 +66,9 @@ class GetActiveAssetsInfoImplTest {
     fun emitsFormattedRowsForEveryWalletAsset() = runTest {
         val rows = subject(hideBalance = false, scope = backgroundScope).assetsInfo().first { it.isNotEmpty() }
 
-        assertEquals(assets.toAssetInfoDataAggregates(naming = rowStyle.title, hideBalance = false), rows)
-        assertEquals("\$50,000.00", rows.first().price?.valueFormatted)
-        assertEquals("+2.50%", rows.first().price?.changePercentageFormatted)
+        assertEquals(assets.toAssetInfoDataAggregates(style = rowStyle, hideBalance = false), rows)
+        assertEquals("\$50,000.00", rows.first().price.price?.text())
+        assertEquals("+2.50%", rows.first().price.change?.text())
     }
 
     @Test
@@ -78,7 +79,7 @@ class GetActiveAssetsInfoImplTest {
         walletAssets.value = assets.mapIndexed { index, item ->
             if (index == 0) item.copy(price = mockAssetPriceInfo(price = 51000.0, priceChangePercentage24h = 2.5)) else item
         }
-        val second = subject.assetsInfo().first { it.first().price?.valueFormatted == "\$51,000.00" }
+        val second = subject.assetsInfo().first { it.first().price.price?.text() == "\$51,000.00" }
 
         assertNotSame(first[0], second[0])
         assertSame(first[1], second[1])
@@ -115,7 +116,7 @@ class GetActiveAssetsInfoImplTest {
     fun hidesBalancesWhenAsked() = runTest {
         val rows = subject(hideBalance = true, scope = backgroundScope).assetsInfo().first { it.isNotEmpty() }
 
-        assertEquals(assets.toAssetInfoDataAggregates(naming = rowStyle.title, hideBalance = true), rows)
+        assertEquals(assets.toAssetInfoDataAggregates(style = rowStyle, hideBalance = true), rows)
         assertEquals(listOf("*****", "*****", "*****"), rows.map { it.balance })
     }
 }

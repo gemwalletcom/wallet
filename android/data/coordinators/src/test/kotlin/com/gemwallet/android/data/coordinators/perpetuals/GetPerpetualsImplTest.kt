@@ -2,6 +2,7 @@ package com.gemwallet.android.data.coordinators.perpetuals
 
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import com.gemwallet.android.model.CurrencyFormatter
+import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockPerpetual
 import com.gemwallet.android.testkit.mockPerpetualData
 import com.wallet.core.primitives.Currency
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemValueTone
@@ -43,12 +45,12 @@ class GetPerpetualsImplTest {
 
         val rows = GetPerpetualsImpl(store).getPerpetuals(null).first()
 
-        assertEquals("$95,420.50", rows[0].price.valueFormatted)
-        assertEquals("+2.50%", rows[0].price.changePercentageFormatted)
-        assertEquals(GemValueTone.POSITIVE, rows[0].price.state)
+        assertEquals("$95,420.50", rows[0].price.price?.text())
+        assertEquals("+2.50%", rows[0].price.change?.text())
+        assertEquals(GemValueTone.POSITIVE, rows[0].price.change?.tone)
         assertEquals(CurrencyFormatter(type = CurrencyFormatter.Type.Abbreviated, currency = Currency.USD).string(15_000.0), rows[0].volume)
-        assertEquals("$0.00", rows[1].price.valueFormatted)
-        assertEquals("-1.25%", rows[1].price.changePercentageFormatted)
-        assertEquals(GemValueTone.NEGATIVE, rows[1].price.state)
+        assertNull("a market nobody quoted shows no price", rows[1].price.price)
+        assertEquals("-1.25%", rows[1].price.change?.text())
+        assertEquals(GemValueTone.NEGATIVE, rows[1].price.change?.tone)
     }
 }

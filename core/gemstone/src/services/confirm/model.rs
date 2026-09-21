@@ -335,14 +335,24 @@ pub enum GemConfirmRowContent {
     },
     Recipient {
         destination: GemConfirmDestination,
-        address_name: Option<AddressName>,
+        name: Option<String>,
+        address: String,
         memo: Option<String>,
         chain: Chain,
         link: BlockExplorerLink,
+        avatar: Option<GemAvatar>,
+        is_selectable: bool,
     },
     Details,
     PaymentAsset {
         symbol: String,
         selectable: bool,
     },
+}
+
+/// What a contact shows next to a recipient: its picture when it has one, its initials otherwise.
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAvatar {
+    pub image_url: Option<String>,
+    pub initials: String,
 }

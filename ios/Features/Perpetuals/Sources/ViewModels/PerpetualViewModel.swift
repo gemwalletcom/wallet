@@ -1,11 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
 import Foundation
 import struct Gemstone.GemPerpetualMarketRow
 import func Gemstone.perpetualMarketRow
-import func Gemstone.valueTone
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -16,16 +14,9 @@ import SwiftUI
 public struct PerpetualViewModel {
     public let perpetual: Perpetual
     public let row: GemPerpetualMarketRow
-    private let priceFormatter: CurrencyFormatter
-    private let percentFormatter = PercentFormatter.signed
 
-    public init(
-        perpetual: Perpetual,
-        asset: Asset,
-        priceFormatter: CurrencyFormatter = .usd,
-    ) {
+    public init(perpetual: Perpetual, asset: Asset) {
         self.perpetual = perpetual
-        self.priceFormatter = priceFormatter
         row = perpetualMarketRow(perpetual: perpetual.toGem(), asset: asset.toGem())
     }
 
@@ -38,14 +29,14 @@ public struct PerpetualViewModel {
     }
 
     public var priceText: String {
-        priceFormatter.string(perpetual.price)
+        row.price.price?.text() ?? .empty
     }
 
     public var priceChangeText: String {
-        percentFormatter.string(perpetual.pricePercentChange24h)
+        row.price.change?.text() ?? .empty
     }
 
     public var priceChangeTextColor: Color {
-        valueTone(value: perpetual.pricePercentChange24h).color
+        row.price.change?.tone.color ?? Colors.gray
     }
 }

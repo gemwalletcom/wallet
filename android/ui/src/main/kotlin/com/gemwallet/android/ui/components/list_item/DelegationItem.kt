@@ -8,18 +8,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.localization.stateText
-import com.gemwallet.android.ui.models.DelegationBalanceInfoUIModel
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.style.color
+import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Delegation
-import uniffi.gemstone.delegationStatus
+import uniffi.gemstone.delegationListRow
 
 @Composable
 fun DelegationItem(assetInfo: AssetInfo, delegation: Delegation, validator: ValidatorRowUIModel, listPosition: ListPosition, onClick: () -> Unit) {
-    val status = remember(delegation) { delegationStatus(delegation.toGem()) }
+    val row = remember(delegation, assetInfo) {
+        delegationListRow(
+            delegation.toGem(),
+            assetInfo.asset.toGem(),
+            assetInfo.price?.price?.price,
+            (assetInfo.price?.currency ?: Currency.USD).toGem(),
+        )
+    }
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         listPosition = listPosition,
@@ -34,17 +42,13 @@ fun DelegationItem(assetInfo: AssetInfo, delegation: Delegation, validator: Vali
         },
         subtitle = {
             ListItemSupportText(
-                status.stateText(),
-                color = status.tone.color(),
+                row.status.stateText(),
+                color = row.status.tone.color(),
             )
         },
         trailing = {
-            val balance = DelegationBalanceInfoUIModel(
-                assetInfo = assetInfo,
-                delegation = delegation.base,
-            )
             Row(verticalAlignment = Alignment.CenterVertically) {
-                getBalanceInfo(balance, balance).invoke()
+                getBalanceInfo(row.balance.text(), row.fiat?.text().orEmpty(), !row.hasBalance).invoke()
                 DataBadgeChevron()
             }
         },

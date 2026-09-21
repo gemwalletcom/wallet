@@ -33,9 +33,9 @@ public struct RecentActivityStore: Sendable {
         }
     }
 
-    public func getRecent(walletId: WalletId, types: [RecentActivityType]) throws -> [RecentAsset] {
+    public func getRecent(walletId: WalletId, types: [RecentActivityType], limit: Int, filters: [AssetsRequestFilter] = []) throws -> [RecentAsset] {
         try db.read { db in
-            try RecentActivityRequest(walletId: walletId, types: types).fetch(db)
+            try RecentActivityRequest(walletId: walletId, limit: limit, types: types, filters: filters).fetch(db)
         }
     }
 

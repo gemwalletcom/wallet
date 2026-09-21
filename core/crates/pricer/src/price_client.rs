@@ -1,12 +1,14 @@
+use std::collections::HashSet;
+use std::error::Error;
+
 use cacher::{CacheError, CacheKey, CacherClient};
 use gem_tracing::error_with_fields;
 use prices::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProviders};
 use primitives::currency::Currency;
-use primitives::{AssetId, AssetMarketPrice, AssetPriceInfo, AssetPrices, ChartTimeframe, FiatRate, FiatRateProvider, PriceData, PriceId, PriceProvider};
-use std::collections::HashSet;
-use std::error::Error;
+use primitives::{AssetId, AssetMarketPrice, AssetPriceInfo, AssetPrices, ChartTimeframe, ConfigKey, FiatRate, FiatRateProvider, PriceData, PriceId, PriceProvider};
+use storage::database::assets::AssetFilter;
 use storage::models::{FiatRateRow, NewPriceRow, PriceAssetRow};
-use storage::{AssetsRepository, ChartsRepository, Database, PricesRepository};
+use storage::{AssetsRepository, ChartsRepository, ConfigRepository, Database, PricesRepository};
 
 #[derive(Clone)]
 pub struct PriceClient {
@@ -114,11 +116,21 @@ impl PriceClient {
     pub async fn add_prices_for_asset_id(&self, providers: &PriceProviders, asset_id: &AssetId) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let asset_id_str = asset_id.to_string();
         let mut count = 0;
+        let cooldown = self.database.client()?.get_config_duration(ConfigKey::PriceMissingCooldown)?.as_secs();
         for provider in providers.values() {
-            match self.add_prices_with_mappings(provider.as_ref(), provider.get_mappings_for_asset_id(asset_id).await).await {
+            let kind = provider.provider();
+            let key = CacheKey::PriceMissingMapping(kind.id(), &asset_id_str, cooldown);
+            if self.cacher_client.get_cached_optional::<bool>(key).await?.is_some() {
+                continue;
+            }
+            let mappings = provider.get_mappings_for_asset_id(asset_id).await;
+            if matches!(&mappings, Ok(mappings) if mappings.is_empty()) {
+                self.cacher_client.set_cached(CacheKey::PriceMissingMapping(kind.id(), &asset_id_str, cooldown), &true).await?;
+                continue;
+            }
+            match self.add_prices_with_mappings(provider.as_ref(), mappings).await {
                 Ok(added) => count += added,
                 Err(err) => {
-                    let kind = provider.provider();
                     error_with_fields!("fetch prices provider failed", &*err, provider = kind.id(), asset_id = asset_id_str.as_str());
                 }
             }
@@ -149,8 +161,8 @@ impl PriceClient {
         if mappings.is_empty() {
             return Ok(vec![]);
         }
-        let asset_ids: Vec<AssetId> = mappings.iter().map(|m| m.asset_id.clone()).collect();
-        let existing: HashSet<AssetId> = self.database.assets()?.get_assets_rows(asset_ids)?.into_iter().map(|a| a.as_asset_id()).collect();
+        let asset_ids = mappings.iter().map(|mapping| mapping.asset_id.to_string()).collect();
+        let existing: HashSet<AssetId> = self.database.assets()?.get_asset_ids_by_filter(vec![AssetFilter::Ids(asset_ids)])?.into_iter().collect();
         Ok(mappings.into_iter().filter(|m| existing.contains(&m.asset_id)).collect())
     }
 

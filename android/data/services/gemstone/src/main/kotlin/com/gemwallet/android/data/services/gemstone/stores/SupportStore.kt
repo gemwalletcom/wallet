@@ -43,12 +43,13 @@ class GemstoneSupportStore(private val supportMessagesDao: SupportMessagesDao) :
         supportMessagesDao.replace(id, message.toPrimitives().toRecord())
     }
 
-    fun observeMessages(): Flow<List<SupportMessage>> = supportMessagesDao.getMessages().map { records -> records.map { it.toModel() } }
-
-    suspend fun failPendingMessages() {
+    override suspend fun failPendingMessages(exceptIds: List<String>) {
         supportMessagesDao.failPending(
             sending = SupportMessageStatus.Sending.string,
             failed = SupportMessageStatus.Failed.string,
+            exceptIds = exceptIds,
         )
     }
+
+    fun observeMessages(): Flow<List<SupportMessage>> = supportMessagesDao.getMessages().map { records -> records.map { it.toModel() } }
 }

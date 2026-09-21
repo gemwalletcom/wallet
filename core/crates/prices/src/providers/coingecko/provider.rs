@@ -183,7 +183,10 @@ mod tests {
             recorded_paths.lock().unwrap().push(path.to_string());
             match path {
                 value if value.starts_with("/api/v3/coins/bitcoin?") => Ok(COIN_INFO.as_bytes().to_vec()),
-                value if value.starts_with("/api/v3/coins/removed?") => Ok(br#"{"error":"coin not found"}"#.to_vec()),
+                value if value.starts_with("/api/v3/coins/removed?") => Err(ClientError::Http {
+                    status: 404,
+                    body: br#"{"error":"coin not found"}"#.to_vec(),
+                }),
                 _ => Err(ClientError::Http { status: 404, body: vec![] }),
             }
         });
@@ -224,8 +227,28 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_get_assets_metadata_preserves_unknown_not_found_errors() {
+        let client = MockClient::new().with_get(|_| {
+            Err(ClientError::Http {
+                status: 404,
+                body: b"route not found".to_vec(),
+            })
+        });
+        let provider = CoinGeckoPricesProvider {
+            client: CoinGeckoClient::new_with_client(client),
+        };
+        let mappings = vec![AssetPriceMapping::new(Chain::Bitcoin.as_asset_id(), "bitcoin".to_string())];
+        assert_eq!(provider.get_assets_metadata(mappings).await.unwrap_err().to_string(), "HTTP error: status 404");
+    }
+
+    #[tokio::test]
     async fn test_get_mappings_for_asset_id_returns_empty_when_coin_is_unavailable() {
-        let client = MockClient::new().with_get(|_| Ok(br#"{"error":"coin not found"}"#.to_vec()));
+        let client = MockClient::new().with_get(|_| {
+            Err(ClientError::Http {
+                status: 404,
+                body: br#"{"error":"coin not found"}"#.to_vec(),
+            })
+        });
         let provider = CoinGeckoPricesProvider {
             client: CoinGeckoClient::new_with_client(client),
         };

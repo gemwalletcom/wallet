@@ -31,7 +31,6 @@ import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModel
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
-import com.gemwallet.android.ui.models.swap.SwapPriceImpactUIModel
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -71,10 +70,12 @@ import uniffi.gemstone.GemSwapProviderRow
 import uniffi.gemstone.GemSwapQuoteServiceInterface
 import uniffi.gemstone.GemSwapRequest
 import uniffi.gemstone.GemTransferData
+import uniffi.gemstone.SwapPriceImpact
 import uniffi.gemstone.SwapPriceImpactType
 import uniffi.gemstone.SwapProvider
 import uniffi.gemstone.SwapperException
 import uniffi.gemstone.SwapperQuote
+import uniffi.gemstone.swapPriceImpactRow
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -598,12 +599,9 @@ class SwapViewModelTest {
                 isSelected = true,
             ),
             rate = AssetRatePair(forward = "1 SOL = 2.5 USDC", reverse = "1 USDC = 0.4 SOL"),
-            priceImpact = SwapPriceImpactUIModel(
-                type = SwapPriceImpactType.HIGH,
-                displayText = "-15%",
-                warningText = "High price impact",
-                isHigh = true,
-                showsInSummary = true,
+            priceImpact = swapPriceImpactRow(
+                SwapPriceImpact(percentage = -15.0, impactType = SwapPriceImpactType.HIGH, isHigh = true, showsInSummary = true),
+                "SOL",
             ),
             minimumReceive = "2.1 USDC",
             slippageText = "0.5%",

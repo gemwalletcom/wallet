@@ -3,6 +3,7 @@
 import Components
 import Formatters
 import Foundation
+import Gemstone
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -49,7 +50,11 @@ struct SwapTokenViewModel {
 
     var availableBalanceText: String? {
         switch type {
-        case let .selected(model): Localized.Transfer.balance(model.availableBalanceText)
+        case let .selected(model):
+            Gemstone.availableBalanceText(
+                asset: model.asset.toGem(),
+                balance: GemAssetBalance(model.assetData.balance, assetId: model.asset.id, isActive: model.assetData.metadata.isActive),
+            ).text
         case .placeholder: nil
         }
     }

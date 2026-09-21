@@ -24,6 +24,8 @@ pub enum CacheKey<'a> {
     FetchNftAsset(&'a str),
     Price(&'a str),
     PricerCoinInfo(&'a str),
+    PriceMetadata(&'a str, u64),
+    PriceMissingMapping(&'a str, &'a str, u64),
 
     // Fiat keys
     FiatRates,
@@ -84,6 +86,8 @@ impl CacheKey<'_> {
             Self::FetchNftAsset(asset_id) => format!("fetch:nft_asset:{}", asset_id),
             Self::Price(asset_id) => format!("prices:{}", asset_id),
             Self::PricerCoinInfo(coin_id) => format!("pricer:coin_info:{}", coin_id),
+            Self::PriceMetadata(id, _) => format!("prices:metadata:{}", id),
+            Self::PriceMissingMapping(provider, id, _) => format!("prices:missing_mapping:{}:{}", provider, id),
             Self::FiatRates => "fiat:rates".to_string(),
             Self::FiatQuote(device_id, wallet_id, ip_address, quote_id) => format!("fiat:quote:{}:{}:{}:{}", device_id, wallet_id, ip_address, quote_id),
             Self::FiatIpCheck(ip_address) => format!("fiat:ip_check:{}", ip_address),
@@ -123,6 +127,7 @@ impl CacheKey<'_> {
             Self::FetchNftAsset(_) => SECONDS_PER_HOUR,
             Self::Price(_) => 30 * SECONDS_PER_DAY,
             Self::PricerCoinInfo(_) => SECONDS_PER_DAY,
+            Self::PriceMetadata(_, ttl) | Self::PriceMissingMapping(_, _, ttl) => *ttl,
             Self::FiatRates => SECONDS_PER_DAY,
             Self::FiatQuote(_, _, _, _) => 5 * SECONDS_PER_MINUTE,
             Self::FiatIpCheck(_) => SECONDS_PER_DAY,

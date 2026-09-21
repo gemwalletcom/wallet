@@ -31,8 +31,10 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.confirm.models.ConfirmDetailElement
 import com.gemwallet.android.features.confirm.viewmodels.localization.broadcastLabel
 import com.gemwallet.android.features.confirm.viewmodels.localization.label
+import com.gemwallet.android.features.confirm.viewmodels.localization.text
 import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetRequest
 import com.gemwallet.android.features.confirm.viewmodels.models.AcquireOptionUIModel
+import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmErrorUIModel
 import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmHeaderUIModel
 import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmRowUIModel
 import com.gemwallet.android.features.confirm.viewmodels.models.FeeSelectionUIModel
@@ -40,6 +42,7 @@ import com.gemwallet.android.features.confirm.viewmodels.models.acquireOptions
 import com.gemwallet.android.features.confirm.viewmodels.models.buttonState
 import com.gemwallet.android.features.confirm.viewmodels.models.confirmHeader
 import com.gemwallet.android.features.confirm.viewmodels.models.feeItems
+import com.gemwallet.android.features.confirm.viewmodels.models.infoSheet
 import com.gemwallet.android.features.confirm.viewmodels.models.listItem
 import com.gemwallet.android.features.confirm.viewmodels.models.uiModel
 import com.gemwallet.android.features.confirm.viewmodels.models.verificationListItem
@@ -310,14 +313,11 @@ class ConfirmViewModel @Inject constructor(
     private val acquireRequestState = MutableStateFlow<AcquireAssetRequest?>(null)
     val acquireRequest = acquireRequestState.asStateFlow()
 
-    val loadError = combine(screen, feeUIModel, assetPrice, networkFeeBuyAmount) { screen, fee, assetPrice, buyAmount ->
-        screen.failure?.takeIf { it.stage == GemConfirmStage.LOAD }?.error?.display()?.uiModel(
-            context = context,
-            fee = fee as? FeeUIModel.FeeInfo,
-            assetPrice = assetPrice,
-            networkFeeBuyAmount = buyAmount,
-            acquireFlow = ::acquireFlow,
-            onAcquire = ::acquire,
+    val loadError = combine(screen, confirmation, content, networkFeeBuyAmount) { screen, confirmation, content, buyAmount ->
+        val error = screen.failure?.takeIf { it.stage == GemConfirmStage.LOAD }?.error ?: return@combine null
+        ConfirmErrorUIModel(
+            text = error.display().text(context),
+            info = confirmation?.errorInfo(error, content?.load?.metadata)?.infoSheet(context, buyAmount, ::acquire),
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

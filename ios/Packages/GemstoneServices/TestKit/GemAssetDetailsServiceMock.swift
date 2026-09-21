@@ -13,8 +13,10 @@ import struct Gemstone.GemAssetDetailsState
 import struct Gemstone.GemAssetRefresh
 import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerKey
+import struct Gemstone.GemFormattedNumber
 import struct Gemstone.GemSwapPairSuggestion
 import enum Gemstone.WalletType
+import GemstonePrimitivesTestKit
 import Primitives
 
 public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @unchecked Sendable {
@@ -43,6 +45,7 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
                 priceAlert: .disabled,
                 emptyTransactionsAction: nil,
             ),
+            balanceValue: .mock(value: 0, unit: .symbol(symbol: input.asset.symbol)),
             sections: [],
             title: input.asset.name,
             fiatValue: .none,

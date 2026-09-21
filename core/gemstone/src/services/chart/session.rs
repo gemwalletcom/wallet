@@ -1,4 +1,4 @@
-use primitives::{ChartPeriod, Currency};
+use primitives::{AssetPrice, ChartPeriod, Currency};
 
 use super::GemChart;
 use super::model::GemChartData;
@@ -42,12 +42,12 @@ impl GemChartSession {
         }
     }
 
-    fn phase(&self) -> GemChartPhase {
+    fn phase(&self, price: Option<AssetPrice>) -> GemChartPhase {
         if self.is_loading {
             return GemChartPhase::Loading;
         }
         match (&self.chart, &self.error) {
-            (Some(chart), _) => match rules::price_chart_data(chart.clone(), self.currency.clone()) {
+            (Some(chart), _) => match rules::price_chart_data(rules::chart_with_price(chart.clone(), price, self.period), self.currency.clone()) {
                 Some(data) => GemChartPhase::Data { data },
                 None => GemChartPhase::NoData,
             },
@@ -66,10 +66,10 @@ impl GemChartSession {
         Self::new(period, self.currency.clone())
     }
 
-    pub fn view_state(&self) -> GemChartViewState {
+    pub fn view_state(&self, price: Option<AssetPrice>) -> GemChartViewState {
         GemChartViewState {
             period: self.period,
-            phase: self.phase(),
+            phase: self.phase(price),
             is_refreshing: self.is_refreshing,
         }
     }
@@ -117,7 +117,7 @@ mod tests {
     fn test_a_chart_with_no_points_reads_as_no_data_not_as_a_failure() {
         let session = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_loaded(GemChart::mock(vec![]), ChartPeriod::Day);
 
-        assert_eq!(session.view_state().phase, GemChartPhase::NoData);
+        assert_eq!(session.view_state(None).phase, GemChartPhase::NoData);
     }
 
     #[test]
@@ -125,7 +125,7 @@ mod tests {
         let loaded = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_loaded(GemChart::mock(vec![ChartDateValue::mock(0, 0.0), ChartDateValue::mock(1, 1.0)]), ChartPeriod::Day);
 
         assert_eq!(loaded.on_select_period(ChartPeriod::Day), loaded, "reselecting a period is not a reload");
-        assert_eq!(loaded.on_select_period(ChartPeriod::Week).view_state().phase, GemChartPhase::Loading);
+        assert_eq!(loaded.on_select_period(ChartPeriod::Week).view_state(None).phase, GemChartPhase::Loading);
     }
 
     #[test]
@@ -133,11 +133,11 @@ mod tests {
         let refreshing = GemChartSession::new(ChartPeriod::Day, Currency::USD)
             .on_loaded(GemChart::mock(vec![ChartDateValue::mock(0, 0.0), ChartDateValue::mock(1, 1.0)]), ChartPeriod::Day)
             .on_refresh();
-        let state = refreshing.view_state();
+        let state = refreshing.view_state(None);
 
         assert!(state.is_refreshing);
         assert!(matches!(state.phase, GemChartPhase::Data { .. }), "the chart stays on screen while it refreshes");
-        assert_eq!(GemChartSession::new(ChartPeriod::Day, Currency::USD).on_refresh().view_state().phase, GemChartPhase::Loading);
+        assert_eq!(GemChartSession::new(ChartPeriod::Day, Currency::USD).on_refresh().view_state(None).phase, GemChartPhase::Loading);
     }
 
     #[test]
@@ -148,8 +148,32 @@ mod tests {
             .on_loaded(GemChart::mock(vec![ChartDateValue::mock(0, 0.0), ChartDateValue::mock(1, 1.0)]), ChartPeriod::Day)
             .on_failed(error, ChartPeriod::Day);
 
-        assert!(matches!(first.view_state().phase, GemChartPhase::Failed { .. }));
-        assert!(matches!(after_load.view_state().phase, GemChartPhase::Data { .. }));
+        assert!(matches!(first.view_state(None).phase, GemChartPhase::Failed { .. }));
+        assert!(matches!(after_load.view_state(None).phase, GemChartPhase::Data { .. }));
+    }
+
+    #[test]
+    fn test_a_newer_stored_price_moves_the_header_without_another_load() {
+        let points = vec![ChartDateValue::mock(0, 1.0), ChartDateValue::mock(1_000, 2.0)];
+        let loaded = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_loaded(GemChart::mock(points), ChartPeriod::Day);
+        let newer = AssetPrice {
+            asset_id: primitives::AssetId::from_chain(primitives::Chain::Bitcoin),
+            price: 3.0,
+            price_change_percentage_24h: 50.0,
+            updated_at: chrono::DateTime::from_timestamp(2_000, 0).expect("timestamp"),
+        };
+        let older = AssetPrice {
+            updated_at: chrono::DateTime::from_timestamp(0, 0).expect("timestamp"),
+            ..newer.clone()
+        };
+        let header = |price| match loaded.view_state(price).phase {
+            GemChartPhase::Data { data } => data.header.expect("a loaded chart has a header"),
+            other => panic!("a loaded chart shows data, not {other:?}"),
+        };
+
+        assert_eq!(header(Some(newer)).value.value, 3.0, "the price the database holds is the one on top of the chart");
+        assert_eq!(header(Some(older)).value.value, 2.0, "a price older than the last point does not move the header");
+        assert_eq!(header(None).value.value, 2.0);
     }
 
     #[test]
@@ -159,10 +183,10 @@ mod tests {
         let error = GemServiceError::Core { msg: "offline".to_string() };
 
         assert_eq!(
-            selected_week.on_loaded(GemChart::mock(values), ChartPeriod::Day).view_state().phase,
+            selected_week.on_loaded(GemChart::mock(values), ChartPeriod::Day).view_state(None).phase,
             GemChartPhase::Loading,
             "a chart for the period the user left behind never reaches the screen"
         );
-        assert_eq!(selected_week.on_failed(error, ChartPeriod::Day).view_state().phase, GemChartPhase::Loading, "neither does its failure");
+        assert_eq!(selected_week.on_failed(error, ChartPeriod::Day).view_state(None).phase, GemChartPhase::Loading, "neither does its failure");
     }
 }

@@ -8,9 +8,9 @@ use primitives::{
 };
 
 use super::model::{
-    AssetList, GemAssetAction, GemAssetDetailRow, GemAssetDetailSection, GemAssetDetailsState, GemAssetEmptyAction, GemAssetFilter, GemAssetMenuAction, GemAssetMenuInput, GemAssetNetworkDestination, GemAssetRowStyle, GemAssetSectionIds,
-    GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemHeaderActions, GemHeaderButton, GemHeaderButtonKind, GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetTitle,
-    GemSelectAssetType, GemSelectRowAction, GemWalletSearchCounts, GemWalletSearchLimits, GemWalletSearchPhase,
+    AssetList, GemAssetAction, GemAssetBalanceScope, GemAssetDetailRow, GemAssetDetailSection, GemAssetDetailsState, GemAssetEmptyAction, GemAssetFilter, GemAssetListRow, GemAssetListRowInput, GemAssetMenuAction, GemAssetMenuInput,
+    GemAssetNetworkDestination, GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemHeaderActions, GemHeaderButton, GemHeaderButtonKind, GemPriceRow,
+    GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetTitle, GemSelectAssetType, GemSelectRowAction, GemWalletSearchCounts, GemWalletSearchLimits, GemWalletSearchPhase, GemWalletSearchState,
 };
 use crate::config::search_config::{ASSETS_INITIAL_LIMIT, ASSETS_SEARCH_LIMIT, NFTS_PREVIEW_LIMIT, PERPETUALS_PREVIEW_LIMIT, RESULTS_LIMIT};
 use crate::config::stake::EARN_OFFERED;
@@ -186,6 +186,46 @@ pub fn asset_text(asset: &Asset) -> GemAssetText {
     }
 }
 
+pub fn asset_row_text(asset: &Asset, style: GemAssetRowStyle) -> GemAssetRowText {
+    let chain_asset = ChainAsset::from_chain(asset.chain());
+    let title = match style.title {
+        GemAssetTitleStyle::Asset => asset.name.clone(),
+        GemAssetTitleStyle::CanonicalAsset => match asset.id.is_native() {
+            true => chain_asset.asset.name.clone(),
+            false => asset.name.clone(),
+        },
+        GemAssetTitleStyle::Network => chain_asset.network_name.clone(),
+    };
+    GemAssetRowText {
+        symbol: (style.shows_symbol && title != asset.symbol).then(|| asset.symbol.clone()),
+        network: (style.subtitle == GemAssetSubtitleStyle::Network && !asset.id.is_native()).then(|| chain_asset.network_name.clone()),
+        title,
+    }
+}
+
+pub fn asset_list_row(input: GemAssetListRowInput) -> GemAssetListRow {
+    let GemAssetListRowInput {
+        asset,
+        balance,
+        scope,
+        price,
+        change,
+        currency,
+        style,
+    } = input;
+    let value = match scope {
+        GemAssetBalanceScope::Total => balance.total(),
+        GemAssetBalanceScope::Available => balance.available,
+    };
+    GemAssetListRow {
+        text: asset_row_text(&asset, style),
+        price: price_row(price, change, currency.clone()),
+        amount: crate::services::balance::rules::balance_amount_styled(&value, &asset, crate::precision::GemValueStyle::Short),
+        fiat: fiat_amount(&asset, &value, price, currency),
+        has_balance: value > GemBigUint::ZERO,
+    }
+}
+
 pub fn wallet_asset_row_style() -> GemAssetRowStyle {
     GemAssetRowStyle {
         title: GemAssetTitleStyle::CanonicalAsset,
@@ -344,6 +384,7 @@ pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: O
             },
             network_search: true,
             recents: true,
+            add_custom_token: true,
             ..flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Open))
         },
         GemSelectAssetType::WalletSearchResults => GemSelectAssetFlow {
@@ -384,12 +425,21 @@ pub fn applied_filters(flow: &GemSelectAssetFlow, chains: Vec<Chain>, has_balanc
     filters
 }
 
-pub fn wallet_search_phase(counts: &GemWalletSearchCounts, is_loading: bool) -> GemWalletSearchPhase {
-    let shown = counts.recents + counts.pinned + counts.assets + counts.perpetuals + counts.lists + counts.nfts;
-    match (shown > 0, is_loading) {
-        (true, _) => GemWalletSearchPhase::Results,
-        (false, true) => GemWalletSearchPhase::Loading,
-        (false, false) => GemWalletSearchPhase::Empty,
+pub fn wallet_search_state(counts: &GemWalletSearchCounts, is_loading: bool) -> GemWalletSearchState {
+    let shown = counts.recents + counts.pinned_assets + counts.assets + counts.pinned_perpetuals + counts.perpetuals + counts.lists + counts.nfts;
+    GemWalletSearchState {
+        phase: match (shown > 0, is_loading) {
+            (true, _) => GemWalletSearchPhase::Results,
+            (false, true) => GemWalletSearchPhase::Loading,
+            (false, false) => GemWalletSearchPhase::Empty,
+        },
+        shows_recents: counts.recents > 0,
+        shows_pinned: counts.pinned_assets > 0 || counts.pinned_perpetuals > 0,
+        shows_assets: counts.assets > 0,
+        shows_pinned_perpetuals: counts.pinned_perpetuals > 0,
+        shows_perpetuals: counts.perpetuals > 0,
+        shows_lists: counts.lists > 0,
+        shows_nfts: counts.nfts > 0,
     }
 }
 
@@ -415,8 +465,23 @@ pub fn asset_title(asset: &Asset) -> String {
 }
 
 pub fn fiat_value(asset: &Asset, balance: &GemAssetBalance, price: Option<f64>, currency: Currency) -> Option<GemFormattedNumber> {
-    let value: f64 = CryptoFiatConverter::to_fiat(&balance.total().to_string(), asset.decimals as u32, price?).ok()?.parse().ok()?;
+    fiat_amount(asset, &balance.total(), price, currency)
+}
+
+pub fn fiat_amount_of(asset: &Asset, value: &num_bigint::BigUint, price: Option<f64>, currency: Currency) -> Option<GemFormattedNumber> {
+    fiat_amount(asset, &GemBigUint::from(value.clone()), price, currency)
+}
+
+fn fiat_amount(asset: &Asset, value: &GemBigUint, price: Option<f64>, currency: Currency) -> Option<GemFormattedNumber> {
+    let value: f64 = CryptoFiatConverter::to_fiat(&value.to_string(), asset.decimals as u32, price?).ok()?.parse().ok()?;
     (value > 0.0).then(|| GemFormattedNumber::currency(value, currency, GemCurrencyStyle::Currency))
+}
+
+pub fn price_row(price: Option<f64>, change: Option<f64>, currency: Currency) -> GemPriceRow {
+    GemPriceRow {
+        price: price.filter(|price| *price > 0.0).map(|price| GemFormattedNumber::currency(price, currency, GemCurrencyStyle::Currency)),
+        change: change.map(|change| GemFormattedNumber::percentage(change, GemPercentageStyle::Signed).toned()),
+    }
 }
 
 fn apr(apr: Option<f64>) -> Option<GemFormattedNumber> {
@@ -446,6 +511,8 @@ pub struct DetailsSectionsInput<'a> {
     pub metadata: &'a AssetMetaData,
     pub balance: &'a GemAssetBalance,
     pub price: Option<f64>,
+    pub price_change_percentage_24h: Option<f64>,
+    pub currency: Currency,
     pub price_alerts: &'a [PriceAlert],
     pub fee_balance_metadata: Option<BalanceMetadata>,
 }
@@ -457,6 +524,8 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
         metadata,
         balance,
         price,
+        price_change_percentage_24h,
+        currency,
         price_alerts,
         fee_balance_metadata,
     } = input;
@@ -482,7 +551,9 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
         section(
             GemListSectionTitle::None,
             [
-                Some(GemAssetDetailRow::Price),
+                Some(GemAssetDetailRow::Price {
+                    row: price_row(price, price_change_percentage_24h, currency.clone()),
+                }),
                 (has_price(price) && displayed_alerts > 0).then(|| link(GemListRowTitle::PriceAlerts, Some(displayed_alerts.to_string()), GemListRowIcon::None)),
                 Some(GemAssetDetailRow::Network { name: asset_text(asset).network_full_name }),
             ]
@@ -494,7 +565,9 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
         section(
             GemListSectionTitle::None,
             match shows_earn {
-                true => vec![GemAssetDetailRow::Earn { apr: apr(metadata.earn_apr) }],
+                true => vec![GemAssetDetailRow::Earn {
+                    row: crate::services::stake::rules::earn_apr_row(&[], metadata.earn_apr),
+                }],
                 false => vec![],
             },
         ),
@@ -594,6 +667,97 @@ mod tests {
         assert_eq!(usdc.title, "USDC", "a name that already is the symbol is not repeated");
         assert_eq!(usdc.subtitle_symbol, None);
         assert_eq!(usdc.network_full_name, "Ethereum (ERC20)");
+    }
+
+    #[test]
+    fn test_a_list_row_carries_the_balance_its_fiat_and_whether_there_is_any() {
+        let usdc = Asset::mock_ethereum_usdc();
+        let row = |balance: GemAssetBalance, scope, price| {
+            asset_list_row(GemAssetListRowInput {
+                asset: usdc.clone(),
+                balance,
+                scope,
+                price,
+                change: Some(-2.5),
+                currency: Currency::USD,
+                style: wallet_asset_row_style(),
+            })
+        };
+        let held = GemAssetBalance {
+            staked: GemBigUint::from(2_000_000u32),
+            ..GemAssetBalance::mock_with_available(1_000_000)
+        };
+
+        let total = row(held.clone(), GemAssetBalanceScope::Total, Some(1.0));
+        assert_eq!(total.amount.value, 3.0);
+        assert_eq!(total.amount.unit, crate::formatted_number::GemNumberUnit::Symbol { symbol: usdc.symbol.clone() });
+        assert_eq!(total.fiat.expect("a priced balance is worth something").value, 3.0);
+        assert_eq!(total.price, price_row(Some(1.0), Some(-2.5), Currency::USD), "the row's price is the one the detail screen shows");
+        assert!(total.has_balance);
+
+        let available = row(held.clone(), GemAssetBalanceScope::Available, Some(1.0));
+        assert_eq!(available.amount.value, 1.0, "the buy screen spends what is available, not what is staked");
+
+        assert_eq!(row(held, GemAssetBalanceScope::Total, None).fiat, None, "an unpriced asset is worth nothing the row can name");
+
+        let empty = row(GemAssetBalance::mock(), GemAssetBalanceScope::Total, Some(1.0));
+        assert!(!empty.has_balance, "an empty balance greys the row on both apps");
+        assert_eq!(empty.fiat, None);
+    }
+
+    #[test]
+    fn test_a_row_titled_by_its_network_reads_the_network_not_the_coin() {
+        let style = |title| GemAssetRowStyle {
+            title,
+            shows_symbol: true,
+            subtitle: GemAssetSubtitleStyle::Network,
+            trailing: GemAssetTrailingStyle::Balance,
+        };
+        let ton = Asset::from_chain(Chain::Ton);
+
+        assert_eq!(asset_row_text(&ton, style(GemAssetTitleStyle::Network)).title, "TON");
+        assert_eq!(asset_row_text(&ton, style(GemAssetTitleStyle::Asset)).title, "Gram");
+        assert_eq!(asset_row_text(&ton, style(GemAssetTitleStyle::CanonicalAsset)).title, "Gram");
+    }
+
+    #[test]
+    fn test_a_row_shows_the_symbol_only_when_it_adds_to_the_title_it_shows() {
+        let style = |shows_symbol, title| GemAssetRowStyle {
+            title,
+            shows_symbol,
+            subtitle: GemAssetSubtitleStyle::Network,
+            trailing: GemAssetTrailingStyle::Balance,
+        };
+        let usdc = Asset::new(AssetId::from_token(Chain::Ethereum, "0xusdc"), "USDC".into(), "USDC".into(), 6, primitives::AssetType::ERC20);
+        let ethereum = Asset::from_chain(Chain::Ethereum);
+
+        assert_eq!(asset_row_text(&usdc, style(true, GemAssetTitleStyle::Asset)).symbol, None, "a name that already is the symbol is not repeated");
+        assert_eq!(asset_row_text(&ethereum, style(true, GemAssetTitleStyle::Asset)).symbol.as_deref(), Some("ETH"));
+        assert_eq!(asset_row_text(&ethereum, style(false, GemAssetTitleStyle::Asset)).symbol, None);
+        assert_eq!(
+            asset_row_text(&usdc, style(true, GemAssetTitleStyle::Network)).symbol.as_deref(),
+            Some("USDC"),
+            "the title the row shows is what the symbol would repeat"
+        );
+    }
+
+    #[test]
+    fn test_a_row_names_its_network_underneath_only_for_a_token() {
+        let style = |subtitle| GemAssetRowStyle {
+            title: GemAssetTitleStyle::Asset,
+            shows_symbol: false,
+            subtitle,
+            trailing: GemAssetTrailingStyle::Balance,
+        };
+        let usdc = Asset::new(AssetId::from_token(Chain::Ethereum, "0xusdc"), "USDC".into(), "USDC".into(), 6, primitives::AssetType::ERC20);
+
+        assert_eq!(asset_row_text(&usdc, style(GemAssetSubtitleStyle::Network)).network.as_deref(), Some("Ethereum"));
+        assert_eq!(asset_row_text(&usdc, style(GemAssetSubtitleStyle::Price)).network, None);
+        assert_eq!(
+            asset_row_text(&Asset::from_chain(Chain::Ethereum), style(GemAssetSubtitleStyle::Network)).network,
+            None,
+            "a coin's row already names its network"
+        );
     }
 
     #[test]
@@ -715,7 +879,7 @@ mod tests {
         assert_eq!(enabled(GemSelectAssetType::PriceAlert), ["network_search", "chain_filter", "popular_section", "enables_price_alert"]);
         assert!(enabled(GemSelectAssetType::Deposit).is_empty());
         assert_eq!(enabled(GemSelectAssetType::Withdraw), ["deposit_asset_display"]);
-        assert_eq!(enabled(GemSelectAssetType::WalletSearch), ["network_search", "recents"]);
+        assert_eq!(enabled(GemSelectAssetType::WalletSearch), ["network_search", "recents", "add_custom_token"]);
         assert!(enabled(GemSelectAssetType::WalletSearchResults).is_empty());
     }
 
@@ -834,21 +998,49 @@ mod tests {
     fn test_the_search_screen_shows_results_whenever_any_section_has_something() {
         let empty = GemWalletSearchCounts {
             recents: 0,
-            pinned: 0,
+            pinned_assets: 0,
             assets: 0,
+            pinned_perpetuals: 0,
             perpetuals: 0,
             lists: 0,
             nfts: 0,
         };
 
-        assert_eq!(wallet_search_phase(&empty, false), GemWalletSearchPhase::Empty);
-        assert_eq!(wallet_search_phase(&empty, true), GemWalletSearchPhase::Loading);
+        assert_eq!(wallet_search_state(&empty, false).phase, GemWalletSearchPhase::Empty);
+        assert_eq!(wallet_search_state(&empty, true).phase, GemWalletSearchPhase::Loading);
         assert_eq!(
-            wallet_search_phase(&GemWalletSearchCounts { nfts: 1, ..empty }, true),
+            wallet_search_state(&GemWalletSearchCounts { nfts: 1, ..empty }, true).phase,
             GemWalletSearchPhase::Results,
             "a section with results is not a loading screen"
         );
-        assert_eq!(wallet_search_phase(&GemWalletSearchCounts { recents: 2, ..empty }, false), GemWalletSearchPhase::Results);
+        assert_eq!(wallet_search_state(&GemWalletSearchCounts { recents: 2, ..empty }, false).phase, GemWalletSearchPhase::Results);
+        for counts in [
+            GemWalletSearchCounts { lists: 1, ..empty },
+            GemWalletSearchCounts { assets: 1, ..empty },
+            GemWalletSearchCounts { pinned_assets: 1, ..empty },
+            GemWalletSearchCounts { pinned_perpetuals: 1, ..empty },
+            GemWalletSearchCounts { perpetuals: 1, ..empty },
+        ] {
+            assert_eq!(wallet_search_state(&counts, false).phase, GemWalletSearchPhase::Results, "every section keeps the empty state away");
+        }
+    }
+
+    #[test]
+    fn test_a_section_shows_exactly_when_it_counted_something() {
+        let counts = GemWalletSearchCounts {
+            recents: 0,
+            pinned_assets: 0,
+            assets: 3,
+            pinned_perpetuals: 2,
+            perpetuals: 0,
+            lists: 1,
+            nfts: 0,
+        };
+        let state = wallet_search_state(&counts, false);
+
+        assert!(state.shows_assets && state.shows_lists && state.shows_pinned_perpetuals);
+        assert!(state.shows_pinned, "a pinned perpetual alone still opens the pinned section");
+        assert!(!state.shows_recents && !state.shows_perpetuals && !state.shows_nfts);
     }
 
     #[test]
@@ -1029,6 +1221,8 @@ mod tests {
             metadata,
             balance,
             price,
+            price_change_percentage_24h: None,
+            currency: Currency::USD,
             price_alerts,
             fee_balance_metadata: None,
         })
@@ -1193,6 +1387,8 @@ mod tests {
                 metadata: &AssetMetaData::mock(),
                 balance: &GemAssetBalance::mock(),
                 price: Some(1.0),
+                price_change_percentage_24h: None,
+                currency: Currency::USD,
                 price_alerts: &[],
                 fee_balance_metadata,
             });
@@ -1212,6 +1408,38 @@ mod tests {
     }
 
     #[test]
+    fn test_a_price_row_carries_the_quote_and_hides_one_nobody_gave() {
+        let quoted = price_row(Some(1234.5), Some(-2.5), Currency::USD);
+        let GemPriceRow { price, change } = quoted;
+        let price = price.expect("a quoted price is shown");
+        let change = change.expect("a change is shown beside it");
+
+        assert_eq!(price.value, 1234.5);
+        assert_eq!(price.unit, crate::formatted_number::GemNumberUnit::Currency { code: "USD".to_string() });
+        assert_eq!(change.tone, crate::formatted_number::GemValueTone::Negative, "a falling price reads red on both apps");
+
+        let unquoted = price_row(Some(0.0), None, Currency::USD);
+        assert_eq!(unquoted, GemPriceRow { price: None, change: None }, "neither app has to decide what a zero price reads as");
+        assert_eq!(price_row(None, None, Currency::USD), GemPriceRow { price: None, change: None });
+    }
+
+    #[test]
+    fn test_the_earn_row_reads_its_apr_the_same_way_stake_does() {
+        let earn_enabled = AssetMetaData {
+            is_earn_enabled: true,
+            earn_apr: Some(4.0),
+            ..AssetMetaData::mock()
+        };
+        let rows = sections(&Asset::from_chain(Chain::Ethereum), &earn_enabled, &GemAssetBalance::mock(), Some(1.0), &[]);
+        let earn = rows.iter().flat_map(|section| section.rows.clone()).find_map(|row| match row {
+            GemAssetDetailRow::Earn { row } => Some(row),
+            _ => None,
+        });
+
+        assert_eq!(earn, EARN_OFFERED.then(|| crate::services::stake::rules::earn_apr_row(&[], Some(4.0))));
+    }
+
+    #[test]
     fn test_details_sections_list_price_network_and_balances_in_order() {
         let token = Asset::mock_ethereum_usdc();
         let reserving = GemAssetBalance {
@@ -1221,7 +1449,8 @@ mod tests {
         let sections = sections(&token, &AssetMetaData::mock(), &reserving, Some(1.0), &[]);
 
         assert_eq!(sections.iter().map(|section| section.title).collect::<Vec<_>>(), vec![GemListSectionTitle::None, GemListSectionTitle::Balances]);
-        assert_eq!(sections[0].rows, vec![GemAssetDetailRow::Price, GemAssetDetailRow::Network { name: "Ethereum (ERC20)".to_string() }]);
+        assert!(matches!(sections[0].rows[0], GemAssetDetailRow::Price { .. }));
+        assert_eq!(sections[0].rows[1], GemAssetDetailRow::Network { name: "Ethereum (ERC20)".to_string() });
         assert!(sections[1].rows.iter().all(|row| matches!(row, GemAssetDetailRow::Balance { .. })));
     }
 

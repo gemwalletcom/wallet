@@ -96,10 +96,10 @@ extension AssetScene {
     @ViewBuilder
     private func detailRow(_ row: GemAssetDetailRow, networkDestination: GemAssetNetworkDestination?) -> some View {
         switch row {
-        case .price:
+        case let .price(row):
             NavigationLink(
                 value: Scenes.Price(asset: model.assetModel.asset),
-                label: { PriceListItemView(model: model.priceItemViewModel) },
+                label: { ListItemView(title: Localized.Asset.price, subtitle: row.price?.text(), subtitleExtra: row.change?.text(), subtitleStyleExtra: TextStyle(font: .subheadline, color: row.change?.tone.color ?? Colors.gray)) },
             )
             .accessibilityIdentifier("price")
         case let .network(name):
@@ -119,13 +119,9 @@ extension AssetScene {
             }
         case let .balance(item):
             balanceRow(item)
-        case let .earn(apr):
+        case let .earn(row):
             NavigationCustomLink(
-                with: HStack(spacing: Spacing.medium) {
-                    EmojiView(color: Colors.grayVeryLight, emoji: Emoji.WalletAvatar.moneyBag.rawValue)
-                        .frame(size: .image.asset)
-                    ListItemView(model: model.earnListItem(apr: apr))
-                },
+                with: GemListRowView(row: row),
                 action: { model.onSelectEarn() },
             )
         case let .row(row):

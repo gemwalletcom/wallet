@@ -108,6 +108,30 @@ struct WalletSearchSceneViewModelTests {
     }
 
     @Test
+    func aMatchingListAloneIsNotAnEmptySearch() {
+        let model = WalletSearchSceneViewModel.mock()
+        model.searchQuery.value = .mock(lists: [AssetList(id: "stocks", name: "Stocks", count: 2)])
+
+        if case .results = model.searchState {} else {
+            Issue.record("expected results, got \(model.searchState)")
+        }
+    }
+
+    @Test
+    func addingATokenNeedsBothTokenSupportAndAChainToAddItTo() {
+        let service = GemAssetSelectionServiceMock()
+        let model = WalletSearchSceneViewModel.mock(service: service)
+
+        #expect(model.showAddToken == false, "there is no chain to add a token to")
+
+        service.filterChainsResult = [Primitives.Chain.ethereum.toGem()]
+        #expect(model.showAddToken)
+
+        service.tokensSupported = false
+        #expect(model.showAddToken == false)
+    }
+
+    @Test
     func pinAssetPinsThroughTheService() async {
         let pinned: (assetId: String, pinned: Bool) = await withCheckedContinuation { continuation in
             let model = WalletSearchSceneViewModel.mock(

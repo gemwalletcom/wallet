@@ -15,12 +15,10 @@ import com.gemwallet.android.ui.localization.stringRes
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.AddressName
-import uniffi.gemstone.AddressType
+import uniffi.gemstone.GemAvatar
 import uniffi.gemstone.GemConfirmDestination
 import uniffi.gemstone.GemConfirmRowContent
 import uniffi.gemstone.GemListRow
-import uniffi.gemstone.contactInitials
 
 sealed interface ConfirmRowUIModel {
     data class Row(val row: GemListRow) : ConfirmRowUIModel
@@ -39,44 +37,31 @@ internal fun GemConfirmRowContent.uiModel(context: Context): ConfirmRowUIModel? 
 
 private fun GemConfirmRowContent.Recipient.uiModel(context: Context): ConfirmRowUIModel {
     val title = context.getString(destination.title())
-    return when (val destination = destination) {
-        is GemConfirmDestination.Recipient -> ConfirmRowUIModel.Address(
-            title = title,
-            name = destination.name,
-            address = destination.address,
-            chain = chain.toChain(),
-            explorerLink = link.toPrimitives(),
-            avatar = addressName?.avatar(destination.name),
-        )
-
-        is GemConfirmDestination.Contract -> ConfirmRowUIModel.Address(
-            title = title,
-            name = null,
-            address = destination.address,
-            chain = chain.toChain(),
-            explorerLink = link.toPrimitives(),
-            avatar = null,
+    return when (destination) {
+        is GemConfirmDestination.Resource -> ConfirmRowUIModel.Item(
+            ListItemModel(title = title, subtitle = context.getString((destination as GemConfirmDestination.Resource).resource.toPrimitives().stringRes())),
         )
 
         is GemConfirmDestination.Validator -> ConfirmRowUIModel.Validator(
             title = title,
-            name = destination.name,
-            address = destination.address,
+            name = name.orEmpty(),
+            address = address,
             chain = chain.toChain(),
             explorerLink = link.toPrimitives(),
         )
 
-        is GemConfirmDestination.Resource -> ConfirmRowUIModel.Item(ListItemModel(title = title, subtitle = context.getString(destination.resource.toPrimitives().stringRes())))
-
-        is GemConfirmDestination.Provider -> ConfirmRowUIModel.Item(ListItemModel(title = title, subtitle = destination.name))
+        else -> ConfirmRowUIModel.Address(
+            title = title,
+            name = name,
+            address = address,
+            chain = chain.toChain(),
+            explorerLink = link.toPrimitives(),
+            avatar = avatar?.listItemImage(),
+        )
     }
 }
 
-private fun AddressName.avatar(name: String?): ListItemImage? {
-    if (addressType != AddressType.CONTACT) return null
-    val initials = name?.let { contactInitials(it) }
-    return imageUrl?.takeIf { it.isNotEmpty() }?.let { ListItemImage.Stored(it, initials) } ?: initials?.let { ListItemImage.Initials(it) }
-}
+private fun GemAvatar.listItemImage(): ListItemImage = imageUrl?.let { ListItemImage.Stored(it, initials) } ?: ListItemImage.Initials(initials)
 
 fun FeeUIModel.listItem(context: Context, feeAsset: Asset?, showsFeeAssetSymbol: Boolean = false): ListItemModel {
     val title = context.getString(R.string.transfer_network_fee)

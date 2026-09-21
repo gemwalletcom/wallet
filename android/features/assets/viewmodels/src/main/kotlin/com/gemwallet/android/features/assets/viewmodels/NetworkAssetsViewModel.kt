@@ -92,9 +92,9 @@ class NetworkAssetsViewModel @Inject constructor(
     private fun groups(active: List<AssetInfo>, hidden: List<AssetInfo>): NetworkAssetGroups {
         val sections = active.tokens().assetSections(assetId = { it.asset.id }, isPinned = { it.metadata.isPinned })
         return NetworkAssetGroups(
-            pinned = sections.pinned.toAssetInfoDataAggregates(rowStyle.title),
-            unpinned = sections.unpinned.toAssetInfoDataAggregates(rowStyle.title),
-            hidden = hidden.tokens().toAssetInfoDataAggregates(rowStyle.title),
+            pinned = sections.pinned.toAssetInfoDataAggregates(rowStyle),
+            unpinned = sections.unpinned.toAssetInfoDataAggregates(rowStyle),
+            hidden = hidden.tokens().toAssetInfoDataAggregates(rowStyle),
             isLoaded = true,
         )
     }

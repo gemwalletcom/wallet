@@ -141,6 +141,7 @@ impl GemAssetDetailsService {
             metadata,
             balance,
             price,
+            price_change_percentage_24h,
             currency,
             banner_events,
             price_alerts,
@@ -150,7 +151,8 @@ impl GemAssetDetailsService {
         let has_balance = balance.available > GemBigUint::ZERO;
         GemAssetDetails {
             title: rules::asset_title(&asset),
-            fiat_value: rules::fiat_value(&asset, &balance, price, currency),
+            balance_value: crate::services::balance::rules::balance_amount(&balance.total(), &asset),
+            fiat_value: rules::fiat_value(&asset, &balance, price, currency.clone()),
             state: rules::details_state(wallet_type, &metadata, &banner_events, &price_alerts),
             sections: rules::details_sections(rules::DetailsSectionsInput {
                 wallet_type,
@@ -158,6 +160,8 @@ impl GemAssetDetailsService {
                 metadata: &metadata,
                 balance: &balance,
                 price,
+                price_change_percentage_24h,
+                currency,
                 price_alerts: &price_alerts,
                 fee_balance_metadata,
             }),

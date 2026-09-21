@@ -15,6 +15,7 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.PriceChangeFormatter
+import com.gemwallet.android.model.text
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Wallet
 import kotlinx.coroutines.CoroutineScope
@@ -28,7 +29,9 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import uniffi.gemstone.GemBannerRow
 import uniffi.gemstone.GemHeaderActions
+import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemPercentageStyle
+import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.GemWalletHomeServiceInterface
 import uniffi.gemstone.GemWalletRow
 import uniffi.gemstone.walletBannerEvents
@@ -65,11 +68,9 @@ class GetWalletSummaryImpl(
 
             WalletSummaryAggregateImpl(
                 walletRow = walletRow(wallet.toGem()),
-                displayState = buildWalletSummaryDisplayState(
-                    currency = session.currency,
-                    total = state.totalValue,
-                    showsPnl = state.showsPnl,
-                ),
+                walletTotalValue = state.total.text(),
+                changedValue = state.pnl,
+                changeTone = state.pnlTone,
                 isBalanceHidden = hideBalances,
                 headerActions = state.headerActions,
                 showCollections = state.showCollections,
@@ -81,45 +82,14 @@ class GetWalletSummaryImpl(
     override fun getWalletSummary(): Flow<WalletSummaryAggregate?> = walletSummary
 }
 
-internal fun buildWalletSummaryDisplayState(currency: Currency, total: GemTotalFiatValue, showsPnl: Boolean): WalletSummaryDisplayState {
-    val formatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)
-    val totalValue = total.value.toBigDecimal()
-    if (!showsPnl) {
-        return WalletSummaryDisplayState(
-            totalValue = formatter.string(totalValue.coerceAtLeast(BigDecimal.ZERO)),
-            changedValue = null,
-        )
-    }
-    return WalletSummaryDisplayState(
-        totalValue = formatter.string(totalValue),
-        changedValue = WalletSummaryEquivalentValue(
-            currency = currency,
-            value = total.pnlAmount,
-            changePercentage = total.pnlPercentage,
-        ),
-    )
-}
-
-internal class WalletSummaryEquivalentValue(override val currency: Currency, override val value: Double?, override val changePercentage: Double?) : EquivalentValue {
-    override val valueFormatted: String = value?.takeIf(Double::isFinite)?.let { amount ->
-        PriceChangeFormatter(CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)).string(amount)
-    }.orEmpty()
-
-    override val changePercentageFormatted: String = changePercentage.formatAsPercentage(style = GemPercentageStyle.UNSIGNED)
-}
-
-internal data class WalletSummaryDisplayState(val totalValue: String, val changedValue: EquivalentValue?)
-
 @Stable
 internal class WalletSummaryAggregateImpl(
     override val walletRow: GemWalletRow,
-    displayState: WalletSummaryDisplayState,
+    override val walletTotalValue: String,
+    override val changedValue: GemLocalizedText?,
+    override val changeTone: GemValueTone,
     override val isBalanceHidden: Boolean,
     override val headerActions: GemHeaderActions,
     override val showCollections: Boolean,
     override val banners: List<GemBannerRow>,
-) : WalletSummaryAggregate {
-    override val walletTotalValue: String = displayState.totalValue
-
-    override val changedValue: EquivalentValue? = displayState.changedValue
-}
+) : WalletSummaryAggregate

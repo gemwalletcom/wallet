@@ -40,7 +40,7 @@ import uniffi.gemstone.GemSearchScope
 import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.GemWalletSearchCounts
 import uniffi.gemstone.GemWalletSearchPhase
-import uniffi.gemstone.walletSearchPhase
+import uniffi.gemstone.walletSearchState
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -138,21 +138,32 @@ class WalletSearchViewModel @Inject constructor(
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val state: StateFlow<UIState> = combine(
-        uiState,
-        previewPerpetuals,
-        pinnedPerpetuals,
+    private val shownRecents: Flow<Int> = combine(recent, showsRecents) { recents, shows -> if (shows) recents.size else 0 }
+
+    private val assetCounts: Flow<Pair<Int, Int>> = combine(pinned, previewAssets) { pinnedAssets, assets -> pinnedAssets.size to assets.size }
+
+    private val perpetualCounts: Flow<Pair<Int, Int>> = combine(pinnedPerpetuals, previewPerpetuals) { pinnedPerps, perps -> pinnedPerps.size to perps.size }
+
+    private val searchCounts: Flow<GemWalletSearchCounts> = combine(
+        shownRecents,
+        assetCounts,
+        perpetualCounts,
+        lists,
         previewNfts,
-    ) { base, preview, pinnedPerps, nfts ->
-        val counts = GemWalletSearchCounts(
-            recents = 0u,
-            pinned = pinnedPerps.size.toUInt(),
-            assets = 0u,
-            perpetuals = preview.size.toUInt(),
-            lists = 0u,
+    ) { recents, assets, perpetuals, lists, nfts ->
+        GemWalletSearchCounts(
+            recents = recents.toUInt(),
+            pinnedAssets = assets.first.toUInt(),
+            assets = assets.second.toUInt(),
+            pinnedPerpetuals = perpetuals.first.toUInt(),
+            perpetuals = perpetuals.second.toUInt(),
+            lists = lists.size.toUInt(),
             nfts = nfts.size.toUInt(),
         )
-        when (walletSearchPhase(counts, base is UIState.Loading)) {
+    }
+
+    val state: StateFlow<UIState> = combine(uiState, searchCounts) { base, counts ->
+        when (walletSearchState(counts, base is UIState.Loading).phase) {
             GemWalletSearchPhase.RESULTS -> UIState.Idle
             GemWalletSearchPhase.LOADING, GemWalletSearchPhase.EMPTY -> base
         }

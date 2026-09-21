@@ -24,7 +24,7 @@ extension AssetHeaderViewModel: ValueHeaderViewModel {
     }
 
     var title: String {
-        assetDataModel.totalBalanceTextWithSymbol
+        details.balanceValue.text()
     }
 
     var subtitle: String? {

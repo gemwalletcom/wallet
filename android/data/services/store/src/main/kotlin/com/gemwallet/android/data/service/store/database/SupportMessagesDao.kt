@@ -14,8 +14,8 @@ interface SupportMessagesDao {
     @Query("SELECT * FROM support_messages ORDER BY createdAt ASC, id ASC")
     fun getMessages(): Flow<List<DbSupportMessage>>
 
-    @Query("UPDATE support_messages SET status = :failed WHERE status = :sending")
-    suspend fun failPending(sending: String, failed: String)
+    @Query("UPDATE support_messages SET status = :failed WHERE status = :sending AND id NOT IN (:exceptIds)")
+    suspend fun failPending(sending: String, failed: String, exceptIds: List<String>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addMessages(messages: List<DbSupportMessage>)

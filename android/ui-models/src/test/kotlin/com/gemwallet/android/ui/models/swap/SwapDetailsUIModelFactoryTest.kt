@@ -3,6 +3,7 @@ package com.gemwallet.android.ui.models.swap
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.model.ValueFormatter
+import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetPriceInfo
@@ -41,7 +42,7 @@ class SwapDetailsUIModelFactoryTest {
             ),
         )
 
-        assertEquals("-1.00%", result!!.priceImpact!!.displayText)
+        assertEquals("-1.00%", result!!.priceImpact!!.value.text())
         assertNull(result.summaryPriceImpactText)
         assertNull(result.summaryPriceImpactBadgeText)
         assertEquals("1.00%", result.slippageText)
@@ -84,8 +85,8 @@ class SwapDetailsUIModelFactoryTest {
             ),
         )
 
-        assertEquals("+2.34%", result!!.priceImpact!!.displayText)
-        assertEquals("2.34%", result.priceImpact.warningText)
+        assertEquals("+2.34%", result!!.priceImpact!!.value.text())
+        assertNull("a positive impact warns nobody", result.priceImpact.warning)
     }
 
     @Test

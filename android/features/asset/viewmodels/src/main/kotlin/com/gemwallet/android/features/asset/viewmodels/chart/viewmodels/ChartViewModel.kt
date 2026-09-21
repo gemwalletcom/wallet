@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
+import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -25,11 +26,13 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
+import uniffi.gemstone.AssetPrice
 import uniffi.gemstone.GemChartPhase
 import uniffi.gemstone.GemChartServiceInterface
 import uniffi.gemstone.GemRefreshKind
@@ -40,6 +43,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ChartViewModel internal constructor(
     getCurrentCurrency: GetCurrentCurrency,
+    getAssetTokenInfo: GetAssetTokenInfo,
     private val chartService: GemChartServiceInterface,
     private val assetId: AssetId,
     connectionStatusObserver: ConnectionStatusObserver,
@@ -53,6 +57,19 @@ class ChartViewModel internal constructor(
 
     val isRefreshing = refreshController.isRefreshing
 
+    private val price = getAssetTokenInfo(assetId)
+        .map { info ->
+            info?.price?.price?.let { price ->
+                AssetPrice(
+                    assetId = assetId.toIdentifier(),
+                    price = price.price,
+                    priceChangePercentage24h = price.priceChangePercentage24h,
+                    updatedAt = price.updatedAt,
+                )
+            }
+        }
+        .distinctUntilChanged()
+
     private val loaded = combine(
         selectedPeriod,
         getCurrentCurrency.getCurrency(),
@@ -60,7 +77,7 @@ class ChartViewModel internal constructor(
     ) { period, _, _ -> period }
         .transformLatest { period ->
             val loading = chartService.newSession().onSelectPeriod(period)
-            emit(loading.viewState())
+            emit(loading)
             val next = try {
                 loading.onLoaded(chartService.syncCharts(assetId.toIdentifier(), period), period)
             } catch (e: Exception) {
@@ -68,16 +85,16 @@ class ChartViewModel internal constructor(
                 loading.onFailed(e as? GemServiceException ?: GemServiceException.Core(e.message.orEmpty()), period)
             }
             refreshController.stopRefreshing()
-            emit(next.viewState())
+            emit(next)
         }
         .flowOn(ioDispatcher)
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(StopTimeoutMillis),
-            chartService.newSession().viewState(),
+            chartService.newSession(),
         )
 
-    val chartUIState = loaded.map { state ->
+    val chartUIState = combine(loaded, price) { session, price -> session.viewState(price) }.map { state ->
         ChartUIModel.State(
             period = state.period.toPrimitives(),
             chart = when (val phase = state.phase) {
@@ -109,12 +126,14 @@ class ChartViewModel internal constructor(
     @Inject
     constructor(
         getCurrentCurrency: GetCurrentCurrency,
+        getAssetTokenInfo: GetAssetTokenInfo,
         chartService: GemChartServiceInterface,
         savedStateHandle: SavedStateHandle,
         connectionStatusObserver: ConnectionStatusObserver,
         @IoDispatcher ioDispatcher: CoroutineDispatcher,
     ) : this(
         getCurrentCurrency = getCurrentCurrency,
+        getAssetTokenInfo = getAssetTokenInfo,
         chartService = chartService,
         assetId = savedStateHandle.requireAssetId(),
         connectionStatusObserver = connectionStatusObserver,

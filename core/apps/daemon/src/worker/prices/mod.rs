@@ -155,18 +155,15 @@ fn add_provider_jobs<'a>(
         ConfigParamKey::PriceProviderAssetsNewDuration(kind),
         |u| async move { u.update_assets_new().await },
     )?;
-    builder = add_updater_job(
-        builder,
-        database,
-        price_client,
-        &provider,
-        producer_assets,
-        config,
-        kind,
-        WorkerJob::UpdatePricesAssetsMetadata,
-        ConfigParamKey::PriceProviderAssetsMetadataDuration(kind),
-        |u| async move { u.update_assets_metadata().await },
-    )?;
+    builder = builder.job(JobVariant::labeled(WorkerJob::PublishPricesAssetsMetadata, kind), {
+        let cacher = cacher_client.clone();
+        let config = config.clone();
+        provider_job(database, price_client, provider.clone(), producer_assets.clone(), move |updater| {
+            let cacher = cacher.clone();
+            let config = config.clone();
+            async move { updater.publish_assets_metadata(&cacher, &config).await }
+        })
+    });
 
     let cleanup_variant = JobVariant::labeled(WorkerJob::CleanupOutdatedAssets, kind).with_param_duration(config, &ConfigParamKey::PriceProviderCleanOutdatedDuration(kind))?;
     builder = builder.job(cleanup_variant, {

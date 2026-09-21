@@ -7,7 +7,6 @@ import enum Gemstone.FeeOption
 import enum Gemstone.GemApprovalValue
 import enum Gemstone.GemAssetMenuAction
 import enum Gemstone.GemBalanceRowValue
-import struct Gemstone.GemBannerAmount
 import enum Gemstone.GemBannerDescription
 import enum Gemstone.GemBannerTitle
 import enum Gemstone.GemContactAddressField
@@ -84,6 +83,8 @@ public extension GemLocalizedText {
             number.text()
         case .none:
             Localized.Common.none
+        case .slippageAuto:
+            Localized.Swap.slippageAuto
         case .rewardsUnverified:
             Localized.Rewards.Unverified.description
         case let .rewardsPending(countdown):
@@ -108,6 +109,17 @@ public extension GemLocalizedText {
             GemPerpetual(provider: .hypercore).marginText(formattedAmount: amount.text(), marginTypeName: marginType.toPrimitives().title)
         case let .position(direction, leverage):
             GemPerpetual(provider: .hypercore).positionText(directionName: direction.toPrimitives().title, formattedLeverage: leverage)
+        case let .apr(value):
+            Localized.Stake.apr(value?.text() ?? .empty)
+        case let .priceImpactWarning(percent, symbol):
+            Localized.Swap.PriceImpactWarning.description(percent.text(), symbol)
+        case let .balance(amount):
+            Localized.Transfer.balance(amount.text())
+        case let .stakeProvider(provider):
+            switch provider {
+            case .stake: Localized.Transfer.Stake.title
+            case .earn: Localized.Common.earn
+            }
         case let .positionChange(change, direction):
             switch change {
             case .increase: Localized.Perpetual.increaseDirection(direction.toPrimitives().title)
@@ -598,10 +610,10 @@ public extension GemBannerTitle {
 }
 
 public extension GemBannerDescription {
-    func text(amount: (GemBannerAmount) -> String) -> String {
+    var text: String {
         switch self {
         case let .stake(assetSymbol): Localized.Banner.Stake.description(assetSymbol)
-        case let .accountActivation(networkName, fee): Localized.Banner.AccountActivation.description(networkName, amount(fee))
+        case let .accountActivation(networkName, fee): Localized.Banner.AccountActivation.description(networkName, fee.text())
         case let .externallyControlledAccount(networkName): Localized.Warnings.externallyControlledAccount(networkName)
         case let .activateAsset(assetSymbol, networkName): Localized.Banner.ActivateAsset.description(assetSymbol, networkName)
         case .suspiciousAsset: Localized.Banner.AssetStatus.description
@@ -730,11 +742,19 @@ public extension GemListRowTitle {
         case .position: Localized.Perpetual.position
         case .details: Localized.Common.details
         case .slippage: Localized.Swap.slippage
+        case .priceImpact: Localized.Swap.priceImpact
+        case .minimumReceive: Localized.Swap.minReceive
+        case .estimatedTime: Localized.Swap.EstimatedTime.title
         case .marketPrice: Localized.Perpetual.marketPrice
         case .fundingPayments: Localized.Info.Perpetual.FundingPayments.title
         case .marketCap: Localized.Asset.marketCap
         case .fullyDilutedValuation: Localized.Info.FullyDilutedValuation.title
         case .tradingVolume: Localized.Asset.tradingVolume
+        case .unrealizedPnl: Localized.Perpetual.unrealizedPnl
+        case .accountLeverage: Localized.Perpetual.accountLeverage
+        case .marginUsage: Localized.Perpetual.marginUsage
+        case .allTimePnl: Localized.Perpetual.allTimePnl
+        case .volume: Localized.Perpetual.volume
         case .circulatingSupply: Localized.Asset.circulatingSupply
         case .totalSupply: Localized.Asset.totalSupply
         case .maxSupply: Localized.Info.MaxSupply.title

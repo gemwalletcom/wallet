@@ -169,6 +169,7 @@ fun WalletNavGraph(
             amount(
                 onCancel = onCancel,
                 onConfirm = navigator::openConfirm,
+                onBuy = { navigator.openBuy(it) },
             )
 
             confirm(

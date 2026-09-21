@@ -232,12 +232,12 @@ extension AmountSceneViewModel {
     }
 
     func infoAction(for error: Error) -> (() -> Void)? {
-        guard case let .BelowMinimum(asset, required)? = error as? GemAmountError else {
+        guard let topic = (error as? GemAmountError)?.display().info() else {
             return nil
         }
         return { [weak self] in
             guard let self else { return }
-            isPresentingSheet = .infoAction(.minimumAmount(asset.toPrimitives(), required: required, action: onSelectBuy))
+            isPresentingSheet = .infoAction(InfoSheetType(topic: topic, assetImage: assetImage, buyAction: onSelectBuy))
         }
     }
 }

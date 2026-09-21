@@ -1,6 +1,7 @@
 package com.gemwallet.android.math
 
 import android.text.format.DateUtils
+import uniffi.gemstone.GemChartDateStyle
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -23,5 +24,16 @@ fun getRelativeDate(timestamp: Long): String {
         createdAt.timeInMillis = timestamp
         (DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT) as SimpleDateFormat)
             .format(createdAt.time)
+    }
+}
+
+fun getChartDate(timestamp: Long, style: GemChartDateStyle): String {
+    if (timestamp == 0L) {
+        return ""
+    }
+    return when (style) {
+        GemChartDateStyle.RELATIVE -> getRelativeDate(timestamp)
+        GemChartDateStyle.DAY_TIME -> DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(timestamp))
+        GemChartDateStyle.DAY -> DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(timestamp))
     }
 }

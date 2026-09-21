@@ -2,26 +2,32 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemPerpetualPositionRow
+import func Gemstone.perpetualPositionRow
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
 
 struct PerpetualPositionItemViewModel: ListAssetItemViewable {
-    let model: PerpetualPositionViewModel
+    let data: PerpetualPositionData
     let showBalancePrivacy: Binding<Bool>
     var action: ((ListAssetItemAction) -> Void)?
 
+    private let row: GemPerpetualPositionRow
+
     init(
-        model: PerpetualPositionViewModel,
+        data: PerpetualPositionData,
         showBalancePrivacy: Binding<Bool> = .constant(false),
     ) {
-        self.model = model
+        self.data = data
         self.showBalancePrivacy = showBalancePrivacy
+        row = perpetualPositionRow(perpetual: data.perpetual.toGem(), asset: data.asset.toGem(), position: data.position.toGem())
     }
 
     var name: String {
-        model.symbolText
+        row.title
     }
 
     var symbol: String? {
@@ -29,14 +35,14 @@ struct PerpetualPositionItemViewModel: ListAssetItemViewable {
     }
 
     var assetImage: AssetImage {
-        model.assetImage
+        AssetIdViewModel(assetId: data.perpetual.assetId).assetImage
     }
 
     var subtitleView: ListAssetItemSubtitleView {
         .type(
             TextValue(
-                text: model.positionTypeText,
-                style: TextStyle(font: .footnote, color: model.positionTypeColor),
+                text: row.position.text,
+                style: TextStyle(font: .footnote, color: row.directionTone.color),
             ),
         )
     }
@@ -44,12 +50,12 @@ struct PerpetualPositionItemViewModel: ListAssetItemViewable {
     var rightView: ListAssetItemRightView {
         .balance(
             balance: TextValue(
-                text: model.marginAmountText,
+                text: row.margin.text(),
                 style: TextStyle(font: .body, color: .primary, fontWeight: .medium),
             ),
             totalFiat: TextValue(
-                text: model.pnlWithPercentText,
-                style: TextStyle(font: .footnote, color: model.pnlColor),
+                text: row.pnl.text,
+                style: TextStyle(font: .footnote, color: row.pnlTone.color),
             ),
         )
     }
@@ -57,6 +63,6 @@ struct PerpetualPositionItemViewModel: ListAssetItemViewable {
 
 extension PerpetualPositionItemViewModel: Identifiable {
     var id: String {
-        model.id
+        data.position.id
     }
 }

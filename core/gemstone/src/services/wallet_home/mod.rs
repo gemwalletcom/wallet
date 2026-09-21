@@ -4,6 +4,8 @@ pub(crate) mod testkit;
 
 use std::sync::Arc;
 
+use crate::formatted_number::{GemFormattedNumber, GemValueTone};
+use crate::services::localization::GemLocalizedText;
 use primitives::{AssetFiatValue, AssetId, Banner, Currency, TotalFiatValue, Wallet, WalletId};
 
 use crate::services::asset_discovery::GemAssetDiscoveryService;
@@ -21,6 +23,9 @@ pub use rules::GemPerpetualCollateral;
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemWalletHomeViewState {
     pub total_value: TotalFiatValue,
+    pub total: GemFormattedNumber,
+    pub pnl: Option<GemLocalizedText>,
+    pub pnl_tone: GemValueTone,
     pub shows_pnl: bool,
     pub header_actions: GemHeaderActions,
     pub show_collections: bool,
@@ -73,7 +78,12 @@ impl GemWalletHomeService {
         let is_wallet_empty = balances.iter().all(|balance| balance.amount == 0.0);
         let total_value = self.total_fiat_value(wallet.id.clone(), balances, perpetual);
         let visible_banners = GemBannerContext::wallet(wallet, is_wallet_empty).visible_banners(banners);
+        let currency = self.preferences.get_currency();
+        let header = balance_rules::total_header(&total_value, currency);
         GemWalletHomeViewState {
+            total: header.total,
+            pnl: header.pnl,
+            pnl_tone: header.pnl_tone,
             shows_pnl: balance_rules::shows_pnl(&total_value),
             header_actions: rules::header_actions(wallet_type, &chains, rules::header_buttons_enabled(&visible_banners)),
             show_collections: self.preferences.show_collections(wallet_type, chains.clone()),

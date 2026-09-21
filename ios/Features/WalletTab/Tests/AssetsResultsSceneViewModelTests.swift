@@ -83,6 +83,18 @@ struct AssetsResultsSceneViewModelTests {
     }
 
     @Test
+    func aPinnedPerpetualStaysInTheListResult() {
+        let model = AssetsResultsSceneViewModel.mock(request: WalletSearchRequest(walletId: .mock(), scope: .list("trending"), types: [.perpetual]))
+        model.searchQuery.value = .mock(perpetuals: [
+            .mock(metadata: .mock(isPinned: true)),
+            .mock(metadata: .mock(isPinned: false)),
+        ])
+
+        #expect(model.showPerpetuals)
+        #expect(model.perpetuals.count == 2)
+    }
+
+    @Test
     func selectingAnAssetCallsBack() {
         var selected: [Asset] = []
         let model = AssetsResultsSceneViewModel.mock(onSelectAsset: { selected.append($0) })

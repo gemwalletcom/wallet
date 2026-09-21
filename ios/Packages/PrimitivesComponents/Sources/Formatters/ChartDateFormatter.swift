@@ -2,6 +2,9 @@
 
 import Formatters
 import Foundation
+import func Gemstone.chartDateStyle
+import enum Gemstone.GemChartDateStyle
+import GemstonePrimitives
 import Primitives
 
 public struct ChartDateFormatter: Sendable {
@@ -20,10 +23,10 @@ public struct ChartDateFormatter: Sendable {
     }
 
     public func string(for date: Date, period: ChartPeriod) -> String {
-        switch period {
-        case .hour, .day: relative.string(from: date)
-        case .week, .month: date.formatted(dateTime.month(.abbreviated).day().hour().minute())
-        case .year, .all: date.formatted(dateTime.year().month(.abbreviated).day())
+        switch chartDateStyle(period: period.toGem()) {
+        case .relative: relative.string(from: date)
+        case .dayTime: date.formatted(dateTime.month(.abbreviated).day().hour().minute())
+        case .day: date.formatted(dateTime.year().month(.abbreviated).day())
         }
     }
 

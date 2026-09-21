@@ -27,6 +27,7 @@ import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.Portfoli
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.components.TabsBar
+import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
@@ -76,7 +77,7 @@ fun PortfolioChartScene(onCancel: () -> Unit, viewModel: PortfolioChartViewModel
                 if (state.chart is StateViewType.Data || state.chart == StateViewType.NoData) {
                     if (statistics.isNotEmpty()) {
                         item { SubheaderItem(R.string.common_info) }
-                        itemsPositioned(statistics) { position, item -> ListItem(model = item, listPosition = position) }
+                        itemsPositioned(statistics) { position, row -> GemListRowView(row = row, listPosition = position) }
                     }
                 }
             }

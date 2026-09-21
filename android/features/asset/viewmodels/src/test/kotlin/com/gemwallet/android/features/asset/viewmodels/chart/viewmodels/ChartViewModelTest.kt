@@ -2,13 +2,16 @@ package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
 import com.gemwallet.android.testkit.mockGemChart
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.dataOrNull
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.Currency
 import io.mockk.coEvery
@@ -18,8 +21,10 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.job
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -135,6 +140,9 @@ class ChartViewModelTest {
 
     private fun createViewModel(): ChartViewModel = ChartViewModel(
         getCurrentCurrency = getCurrentCurrency,
+        getAssetTokenInfo = object : GetAssetTokenInfo {
+            override fun invoke(assetId: AssetId): Flow<AssetInfo?> = flowOf(null)
+        },
         chartService = chartService,
         assetId = asset.id,
         connectionStatusObserver = mockk(relaxed = true),

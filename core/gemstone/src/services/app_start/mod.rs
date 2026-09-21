@@ -16,6 +16,7 @@ use crate::services::config::GemConfigService;
 use crate::services::device::GemDeviceService;
 use crate::services::error::GemServiceError;
 use crate::services::failures::{StepFailure, record};
+use crate::services::support::GemSupportService;
 use crate::services::wallet::GemWalletService;
 use crate::services::wallet_configuration::GemWalletConfigurationService;
 
@@ -28,6 +29,7 @@ pub struct GemAppStartService {
     wallet_configuration: Arc<GemWalletConfigurationService>,
     wallet: Arc<GemWalletService>,
     device: Arc<GemDeviceService>,
+    support: Arc<GemSupportService>,
 }
 
 #[uniffi::export]
@@ -41,6 +43,7 @@ impl GemAppStartService {
         wallet_configuration: Arc<GemWalletConfigurationService>,
         wallet: Arc<GemWalletService>,
         device: Arc<GemDeviceService>,
+        support: Arc<GemSupportService>,
     ) -> Self {
         Self {
             config,
@@ -50,6 +53,7 @@ impl GemAppStartService {
             wallet_configuration,
             wallet,
             device,
+            support,
         }
     }
 
@@ -80,12 +84,13 @@ impl GemAppStartService {
 
     pub async fn run(&self) -> Vec<GemAppStartFailure> {
         let default_assets = recorded(GemAppStartStep::SetupAssets, self.assets.ensure_default_assets()).await;
-        let (banners, config_and_assets, device) = futures::join!(
+        let (banners, config_and_assets, device, support) = futures::join!(
             recorded(GemAppStartStep::SetupBanners, self.banners.setup()),
             self.sync_config_and_assets(),
             recorded(GemAppStartStep::SyncDevice, async { self.device.synchronize().await.map(|_| ()) }),
+            recorded(GemAppStartStep::RecoverSupportMessages, self.support.recover_interrupted_messages()),
         );
-        [default_assets, banners, config_and_assets, device].concat()
+        [default_assets, banners, config_and_assets, device, support].concat()
     }
 
     pub async fn setup_wallet(&self, wallet: Wallet) -> Vec<GemAppStartFailure> {
@@ -127,8 +132,12 @@ mod tests {
 
     use primitives::AssetId;
 
+    use chrono::Utc;
+    use primitives::SupportMessageStatus;
+
     use super::testkit::AppStartTestkit;
     use super::*;
+    use crate::services::support::{GemSupportStore, rules::pending_message};
 
     #[test]
     fn test_a_wallet_whose_keystore_cannot_be_read_does_not_stop_the_others() {
@@ -142,6 +151,18 @@ mod tests {
             assert_eq!(chain_failures.len(), 1, "{failures:?}");
             assert!(chain_failures[0].message.contains(&testkit.first.id.id()));
             assert!(!chain_failures[0].message.contains(&testkit.second.id.id()));
+        })
+    }
+
+    #[test]
+    fn test_the_app_start_fails_a_support_message_a_previous_run_left_sending() {
+        block_on(async {
+            let testkit = AppStartTestkit::new().await;
+            testkit.support.save_messages(vec![pending_message("abandoned".into(), "hi".into(), vec![], Utc::now())]).await.unwrap();
+
+            testkit.service.run().await;
+
+            assert_eq!(testkit.support.statuses(), vec![("abandoned".to_string(), SupportMessageStatus::Failed)]);
         })
     }
 

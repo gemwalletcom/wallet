@@ -6,10 +6,18 @@ import uniffi.gemstone.GemAssetDetailSection
 import uniffi.gemstone.GemAssetDetails
 import uniffi.gemstone.GemAssetDetailsState
 import uniffi.gemstone.GemFormattedNumber
+import uniffi.gemstone.GemNumberUnit
 import uniffi.gemstone.GemSwapPairSuggestion
 
-fun mockGemAssetDetails(asset: Asset = mockAsset(), state: GemAssetDetailsState = mockGemAssetDetailsState(), sections: List<GemAssetDetailSection> = emptyList(), fiatValue: GemFormattedNumber? = null) = GemAssetDetails(
+fun mockGemAssetDetails(
+    asset: Asset = mockAsset(),
+    state: GemAssetDetailsState = mockGemAssetDetailsState(),
+    sections: List<GemAssetDetailSection> = emptyList(),
+    fiatValue: GemFormattedNumber? = null,
+    balanceValue: GemFormattedNumber = mockFormattedNumber(value = 0.0, unit = GemNumberUnit.Symbol(symbol = asset.symbol)),
+) = GemAssetDetails(
     state = state,
+    balanceValue = balanceValue,
     sections = sections,
     title = asset.name,
     fiatValue = fiatValue,

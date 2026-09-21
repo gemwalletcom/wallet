@@ -7,10 +7,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
 
@@ -33,7 +35,7 @@ fun ValidatorItem(data: ValidatorRowUIModel, listPosition: ListPosition, isSelec
         listPosition = listPosition,
         trailing = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                ListItemSupportText(R.string.stake_apr, data.aprText)
+                ListItemSupportText(data.apr.string(LocalContext.current))
             }
         },
     )
@@ -86,5 +88,5 @@ private fun previewValidatorRow() = ValidatorRowUIModel(
     name = "Castlenode",
     imageUrl = "",
     placeholder = "C",
-    aprText = 9.10.formatApr(),
+    apr = 9.10.aprText(),
 )

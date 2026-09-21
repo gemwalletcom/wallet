@@ -37,8 +37,10 @@ import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.secondaryFaded
 
 @Composable
 fun ColumnScope.AmountField(
@@ -53,6 +55,7 @@ fun ColumnScope.AmountField(
     keyboardType: KeyboardType = KeyboardType.Decimal,
     maximumFractionDigits: UInt? = null,
     error: String,
+    errorInfo: (() -> Unit)? = null,
     textStyle: TextStyle = MaterialTheme.typography.displaySmall,
     transformation: AmountTransformation = CryptoAmountTransformation(symbol.symbol, symbol.placement, MaterialTheme.colorScheme.secondary),
 ) {
@@ -112,10 +115,23 @@ fun ColumnScope.AmountField(
         }
     }
     error.takeIf { it.isNotEmpty() }?.run {
-        Text(
-            text = error,
-            color = MaterialTheme.colorScheme.error,
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(paddingSmall),
+        ) {
+            errorInfo?.let { onInfo ->
+                Icon(
+                    modifier = Modifier.size(compactIconSize).clickable(onClick = onInfo),
+                    imageVector = AppIcons.InfoOutlined,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.secondaryFaded,
+                )
+            }
+            Text(
+                text = error,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
     }
 }
 

@@ -31,6 +31,8 @@ import uniffi.gemstone.GemListRowIcon
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemListSectionTitle
 import uniffi.gemstone.GemNumberUnit
+import uniffi.gemstone.GemPriceRow
+import uniffi.gemstone.GemValueTone
 import java.math.BigInteger
 
 class AssetInfoUIModelFactoryTest {
@@ -100,13 +102,35 @@ class AssetInfoUIModelFactoryTest {
     }
 
     @Test
+    fun `the price row shows what core quoted and nothing when nobody quoted`() {
+        val price = mockFormattedNumber(value = 1234.5, unit = GemNumberUnit.Currency(code = "USD"))
+        val change = mockFormattedNumber(value = -2.5, unit = GemNumberUnit.Percent, tone = GemValueTone.NEGATIVE)
+        val assetInfo = mockAssetInfo(asset = mockAsset(), owner = null)
+        val quoted = listOf(GemAssetDetailSection(GemListSectionTitle.NONE, listOf(GemAssetDetailRow.Price(GemPriceRow(price, change)))))
+        val unquoted = listOf(GemAssetDetailSection(GemListSectionTitle.NONE, listOf(GemAssetDetailRow.Price(GemPriceRow(null, null)))))
+
+        assertEquals(price.text(), model(assetInfo, sections = quoted).priceListItem.subtitle)
+        assertEquals(change.text(), model(assetInfo, sections = quoted).priceDayChanges)
+        assertEquals(GemValueTone.NEGATIVE, model(assetInfo, sections = quoted).priceChangedType)
+        assertEquals("", model(assetInfo, sections = unquoted).priceListItem.subtitle)
+        assertEquals("", model(assetInfo, sections = unquoted).priceDayChanges)
+    }
+
+    @Test
+    fun `the header balance is the one core formatted`() {
+        val balance = mockFormattedNumber(value = 2.5, unit = GemNumberUnit.Symbol(symbol = "ETH"))
+
+        assertEquals(balance.text(), model(mockAssetInfo(asset = mockAsset(), owner = null), balanceValue = balance).accountInfoUIModel.totalBalance)
+    }
+
+    @Test
     fun `sections keep the order and titles core decided`() {
         val link = GemListRow.Link(GemListRowTitle.PIN, null, GemListRowIcon.PIN)
         val sections = model(
             mockAssetInfo(asset = mockAsset(), owner = null),
             sections = listOf(
                 GemAssetDetailSection(GemListSectionTitle.MANAGE, listOf(GemAssetDetailRow.Row(link))),
-                GemAssetDetailSection(GemListSectionTitle.NONE, listOf(GemAssetDetailRow.Price, GemAssetDetailRow.Network("Ethereum (ERC20)"))),
+                GemAssetDetailSection(GemListSectionTitle.NONE, listOf(GemAssetDetailRow.Price(GemPriceRow(price = null, change = null)), GemAssetDetailRow.Network("Ethereum (ERC20)"))),
             ),
         ).sections
 
@@ -125,9 +149,14 @@ class AssetInfoUIModelFactoryTest {
         every { getString(any(), *anyVararg()) } answers { "${firstArg<Int>()}${(args[1] as Array<*>).joinToString("")}" }
     }
 
-    private fun model(assetInfo: AssetInfo, sections: List<GemAssetDetailSection> = emptyList(), fiatValue: GemFormattedNumber? = null) = AssetInfoUIModelFactory(context).create(
+    private fun model(
+        assetInfo: AssetInfo,
+        sections: List<GemAssetDetailSection> = emptyList(),
+        fiatValue: GemFormattedNumber? = null,
+        balanceValue: GemFormattedNumber = mockFormattedNumber(value = 0.0, unit = GemNumberUnit.Symbol(symbol = assetInfo.asset.symbol)),
+    ) = AssetInfoUIModelFactory(context).create(
         mockChainAssetInfo(assetInfo),
-        mockGemAssetDetails(assetInfo.asset, mockGemAssetDetailsState(showsBanners = true), sections, fiatValue),
+        mockGemAssetDetails(assetInfo.asset, mockGemAssetDetailsState(showsBanners = true), sections, fiatValue, balanceValue),
         banners = emptyList(),
     )
 }

@@ -9,11 +9,13 @@ import com.gemwallet.android.data.service.store.database.entities.mockDbPerpetua
 import com.gemwallet.android.testkit.mockAssetEthereum
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.perpetualMarketQuery
 
 class GemstonePerpetualStoreTest {
 
@@ -32,23 +34,39 @@ class GemstonePerpetualStoreTest {
     )
 
     @Test
-    fun `a query without stored priorities filters by name and symbol`() = runTest {
+    fun `a query without stored priorities matches name and symbol in the database`() = runTest {
         every { searchDao.hasPerpetualPriorities(any()) } returns flowOf(0)
-        every { perpetualDao.getPerpetualsData() } returns flowOf(listOf(bitcoin, ethereum))
+        every { perpetualDao.searchPerpetualsData("bitcoin", MARKETS_LIMIT) } returns flowOf(listOf(bitcoin))
+        every { perpetualDao.searchPerpetualsData("doge", MARKETS_LIMIT) } returns flowOf(emptyList())
 
-        assertEquals(listOf("BTC-PERP"), store.observePerpetuals("bitcoin").first().map { it.perpetual.identifier })
-        assertEquals(listOf("ETH-PERP"), store.observePerpetuals("eth").first().map { it.perpetual.identifier })
-        assertEquals(emptyList<String>(), store.observePerpetuals("doge").first())
-        assertEquals(2, store.observePerpetuals(null).first().size)
+        assertEquals(listOf("BTC-PERP"), store.observePerpetuals(perpetualMarketQuery("bitcoin")).first().map { it.perpetual.identifier })
+        assertEquals(emptyList<String>(), store.observePerpetuals(perpetualMarketQuery("doge")).first())
     }
 
     @Test
     fun `a query with stored priorities uses the priority order from the database`() = runTest {
         every { searchDao.hasPerpetualPriorities("btc") } returns flowOf(1)
-        every { perpetualDao.searchWithPriority("btc") } returns flowOf(listOf(ethereum, bitcoin))
+        every { perpetualDao.searchWithPriority("btc", MARKETS_LIMIT) } returns flowOf(listOf(ethereum, bitcoin))
 
-        val result = store.observePerpetuals("btc").first()
+        val result = store.observePerpetuals(perpetualMarketQuery("btc")).first()
 
         assertEquals(listOf("ETH-PERP", "BTC-PERP"), result.map { it.perpetual.identifier })
+    }
+
+    @Test
+    fun `browsing asks for traded markets and a search asks for every one`() = runTest {
+        every { searchDao.hasPerpetualPriorities(any()) } returns flowOf(0)
+        every { perpetualDao.getPerpetualsData(true, MARKETS_LIMIT) } returns flowOf(listOf(bitcoin, ethereum))
+        every { perpetualDao.searchPerpetualsData("btc", MARKETS_LIMIT) } returns flowOf(listOf(bitcoin))
+
+        assertEquals(2, store.observePerpetuals(perpetualMarketQuery("")).first().size)
+        assertEquals(1, store.observePerpetuals(perpetualMarketQuery("  btc ")).first().size)
+
+        verify { perpetualDao.getPerpetualsData(true, MARKETS_LIMIT) }
+        verify(exactly = 0) { perpetualDao.getPerpetualsData(false, any()) }
+    }
+
+    private companion object {
+        const val MARKETS_LIMIT = 100
     }
 }

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemAvatar
 import enum Gemstone.GemConfirmDestination
 import enum Gemstone.GemConfirmRowContent
 import enum Gemstone.GemListRow
@@ -29,28 +30,43 @@ struct ConfirmRowViewModelTests {
     func recipientFollowsTheDestination() throws {
         let cases: [(GemConfirmDestination, String, String)] = [
             (.recipient(name: nil, address: "0xrecipient"), Localized.Transfer.Recipient.title, "0xrecipient"),
-            (.contract(address: "0xspender"), Localized.Asset.contract, "0xspender"),
+            (.contract(name: nil, address: "0xspender"), Localized.Asset.contract, "0xspender"),
             (.validator(name: "Allnodes", address: "validator1"), Localized.Stake.validator, "validator1"),
             (.provider(name: "Yo", address: "0xprovider"), Localized.Common.provider, "0xprovider"),
         ]
         for (destination, title, address) in cases {
-            let item = try #require(model(destination).recipientItem)
+            let item = try #require(model(destination, address: address).recipientItem)
             #expect(item.title == title)
             #expect(item.account.address == address)
+            #expect(item.onSelect != nil, "a destination with an address can be opened")
         }
-        #expect(try #require(model(.resource(resource: Resource.energy.toGem())).recipientItem).title == Localized.Stake.resource)
+
+        let resource = try #require(model(.resource(resource: Resource.energy.toGem()), address: "").recipientItem)
+        #expect(resource.title == Localized.Stake.resource)
+        #expect(resource.onSelect == nil, "a resource has no address to open")
     }
 
     @Test
-    func contactImage() throws {
-        let withImage = try #require(model(.recipient(name: nil, address: "0x1"), addressName: .mock(type: .contact, imageUrl: "avatar.png")).recipientItem)
-        let withoutImage = try #require(model(.recipient(name: nil, address: "0x1"), addressName: .mock(type: .contact, imageUrl: nil)).recipientItem)
+    func aContactShowsItsPictureOrTheInitialsCoreWrote() throws {
+        let withImage = try #require(model(.recipient(name: "Ada", address: "0x1"), address: "0x1", avatar: GemAvatar(imageUrl: "avatar.png", initials: "AD")).recipientItem)
+        let withoutImage = try #require(model(.recipient(name: "Ada", address: "0x1"), address: "0x1", avatar: GemAvatar(imageUrl: nil, initials: "AD")).recipientItem)
+
         #expect(withImage.account.assetImage?.imageURL == ImageSource("avatar.png").url)
         #expect(withoutImage.account.assetImage?.imageURL == nil)
+        #expect(withoutImage.account.assetImage?.type == .text("AD"))
     }
 
-    private func model(_ destination: GemConfirmDestination, addressName: AddressName? = nil) -> ConfirmRowViewModel {
-        ConfirmRowViewModel(content: .recipient(destination: destination, addressName: addressName?.toGem(), memo: nil, chain: Chain.ethereum.rawValue, link: BlockExplorerLink.mock().toGem()))
+    private func model(_ destination: GemConfirmDestination, address: String, avatar: GemAvatar? = nil) -> ConfirmRowViewModel {
+        ConfirmRowViewModel(content: .recipient(
+            destination: destination,
+            name: nil,
+            address: address,
+            memo: nil,
+            chain: Chain.ethereum.rawValue,
+            link: BlockExplorerLink.mock().toGem(),
+            avatar: avatar,
+            isSelectable: !address.isEmpty,
+        ), onSelectAddress: { _ in })
     }
 }
 

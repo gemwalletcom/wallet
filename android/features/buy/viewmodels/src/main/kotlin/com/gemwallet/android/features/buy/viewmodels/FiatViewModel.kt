@@ -49,11 +49,12 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemAssetTitleStyle
+import uniffi.gemstone.GemAssetBalanceScope
 import uniffi.gemstone.GemFiatQuoteRequest
 import uniffi.gemstone.GemFiatQuoteServiceInterface
 import uniffi.gemstone.GemFiatQuotesResult
 import uniffi.gemstone.GemFiatViewState
+import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.GemServiceException
 import javax.inject.Inject
 
@@ -100,8 +101,8 @@ class FiatViewModel @Inject constructor(
         .map {
             val assetInfo = it.toAssetInfo()
             assetInfo.toAssetInfoDataAggregate(
-                naming = GemAssetTitleStyle.CANONICAL_ASSET,
-                displayedAmount = assetInfo.balance.balanceAmount.available,
+                style = GemSelectAssetType.Buy.flow().rowStyle,
+                scope = GemAssetBalanceScope.AVAILABLE,
             )
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

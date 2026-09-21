@@ -32,10 +32,10 @@ struct PerpetualItemViewModel: ListAssetItemViewable {
     }
 
     var subtitleView: ListAssetItemSubtitleView {
-        guard model.row.showsPrice else { return .none }
+        guard let price = model.row.price.price else { return .none }
         return .price(
             price: TextValue(
-                text: model.priceText,
+                text: price.text(),
                 style: TextStyle(font: .footnote, color: Colors.gray),
             ),
             priceChangePercentage24h: TextValue(

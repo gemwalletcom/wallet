@@ -9,6 +9,7 @@ import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.math.getRelativeDate
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
@@ -30,6 +31,7 @@ import uniffi.gemstone.GemListRowIcon
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemNoticeKind
 import uniffi.gemstone.GemSocialLink
+import uniffi.gemstone.GemValueStyle
 import uniffi.gemstone.GemValueTone
 import java.text.DateFormat
 import java.util.Date
@@ -61,7 +63,7 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
     is GemListRow.Text -> GemListRowUIModel.Item(ListItemModel(title = title.text(context), subtitle = value))
 
     is GemListRow.Amount -> GemListRowUIModel.Item(
-        ListItemModel(title = title.text(context), subtitle = amount.text(), subtitleStyle = amount.tone.subtitleStyle(), info = info?.infoSheet(infoIcon)),
+        ListItemModel(title = title.text(context), subtitle = amount.text(), subtitleStyle = amount.tone.subtitleStyle(), info = info?.infoSheet(context, infoIcon)),
     )
 
     is GemListRow.Ranked -> GemListRowUIModel.Item(ListItemModel(title = title.text(context), subtitle = amount.text(), titleTag = "#$rank"))
@@ -76,7 +78,7 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
         ),
     )
 
-    is GemListRow.Duration -> GemListRowUIModel.Item(ListItemModel(title = title.text(context), subtitle = parts.formatDuration(), info = info?.infoSheet(infoIcon)))
+    is GemListRow.Duration -> GemListRowUIModel.Item(ListItemModel(title = title.text(context), subtitle = parts.formatDuration(), info = info?.infoSheet(context, infoIcon)))
 
     is GemListRow.Label -> GemListRowUIModel.Item(
         ListItemModel(
@@ -84,7 +86,7 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
             subtitle = text.string(context),
             subtitleStyle = tone.subtitleStyle(),
             subtitleTagType = if (progress) ListItemTagType.Progress else ListItemTagType.None,
-            info = info?.infoSheet(infoIcon),
+            info = info?.infoSheet(context, infoIcon),
         ),
     )
 
@@ -121,7 +123,7 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
             title = title.text(context),
             subtitle = lines.firstOrNull()?.string(context),
             subtitleExtra = lines.getOrNull(1)?.string(context),
-            info = info?.infoSheet(infoIcon),
+            info = info?.infoSheet(context, infoIcon),
         ),
     )
 
@@ -195,8 +197,23 @@ private fun GemListRowIcon.image(): ListItemImage? = when (this) {
     GemListRowIcon.ADD_TO_WALLET -> ListItemImage.Symbol(ListItemSymbol.AddCircle)
 }
 
-fun GemInfoTopic.infoSheet(icon: Any?): InfoSheetEntity = when (this) {
+fun GemInfoTopic.infoSheet(context: Context, icon: Any?, onBuy: (() -> Unit)? = null): InfoSheetEntity = when (this) {
     is GemInfoTopic.NetworkFee -> asset.toPrimitives().let { InfoSheetEntity.NetworkFeeInfo(it.chain.networkName(), it.symbol) }
+
+    is GemInfoTopic.MinimumAmount -> asset.toPrimitives().let {
+        InfoSheetEntity.MinimumAmountInfo(
+            networkTitle = it.chain.networkName(),
+            value = ValueFormatter(style = GemValueStyle.FULL).string(minimum, it.decimals, it.symbol),
+            actionLabel = onBuy?.let { _ -> context.getString(R.string.asset_buy_asset, it.symbol) },
+            action = onBuy,
+        )
+    }
+
+    GemInfoTopic.NoQuote -> InfoSheetEntity.NoQuoteInfo
+
+    GemInfoTopic.PriceImpact -> InfoSheetEntity.PriceImpactInfo
+
+    GemInfoTopic.Slippage -> InfoSheetEntity.Slippage
 
     GemInfoTopic.OpenInterest -> InfoSheetEntity.OpenInterestInfo
 

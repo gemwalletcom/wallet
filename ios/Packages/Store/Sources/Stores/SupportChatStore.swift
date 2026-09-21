@@ -19,6 +19,15 @@ public struct SupportChatStore: Sendable {
         }
     }
 
+    public func failPending(exceptIds: [String]) throws {
+        try db.write { db in
+            try SupportMessageRecord
+                .filter(SupportMessageRecord.Columns.status == SupportMessageStatus.sending.rawValue)
+                .filter(!exceptIds.contains(SupportMessageRecord.Columns.id))
+                .updateAll(db, SupportMessageRecord.Columns.status.set(to: SupportMessageStatus.failed.rawValue))
+        }
+    }
+
     public func replace(id: String, with message: SupportMessage) throws {
         try db.write { db in
             _ = try SupportMessageRecord.deleteOne(db, key: id)

@@ -114,6 +114,16 @@ sealed class InfoSheetEntity(
             descriptionArgs = listOf("**$value**"),
         )
 
+    class MinimumAmountInfo(networkTitle: String, value: String, actionLabel: String?, action: (() -> Unit)?) :
+        InfoSheetEntity(
+            icon = R.drawable.ic_splash,
+            title = R.string.info_minimum_amount_title,
+            description = R.string.info_minimum_amount_description,
+            action = action,
+            actionLabel = actionLabel,
+            descriptionArgs = listOf("**$networkTitle**", "**$value**"),
+        )
+
     class SwapMinimumAmountInfo(provider: SwapProvider, providerName: String, required: String, available: String, shortfall: String, actionLabel: String, action: () -> Unit) :
         InfoSheetEntity(
             icon = provider.iconModel(),

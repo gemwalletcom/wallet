@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import com.gemwallet.android.features.transfer_amount.presents.components.amountErrorInfo
 import com.gemwallet.android.features.transfer_amount.presents.components.amountErrorText
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
@@ -70,6 +71,8 @@ internal fun AmountScene(
     additionParams: (@Composable () -> Unit)? = null,
 ) {
     val focusRequester = remember { FocusRequester() }
+    val errorInfo = amountErrorInfo(error = error, onBuy = { onAction(AmountAction.Buy) })
+    var showsErrorInfo by remember { mutableStateOf(false) }
     val isKeyBoardOpen = WindowInsets.isKeyboardVisible
     val density = LocalDensity.current
     val isSmallScreen = with(density) {
@@ -112,6 +115,7 @@ internal fun AmountScene(
                     readOnly = readOnly,
                     keyboardType = if (usesWholeAmounts) KeyboardType.Number else KeyboardType.Decimal,
                     error = amountErrorText(error = error),
+                    errorInfo = errorInfo?.let { { showsErrorInfo = true } },
                     onValueChange = { onAction(AmountAction.SetAmount(it)) },
                     onNext = { onAction(AmountAction.Next) },
                 )
@@ -132,6 +136,10 @@ internal fun AmountScene(
             }
             item { additionParams?.invoke() }
         }
+    }
+
+    if (showsErrorInfo && errorInfo != null) {
+        InfoBottomSheet(errorInfo) { showsErrorInfo = false }
     }
 
     LaunchedEffect(Unit) {

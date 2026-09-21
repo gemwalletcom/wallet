@@ -21,30 +21,30 @@ public enum InfoSheetModelFactory {
                 image: .image(Images.Info.networkFee),
                 button: .url(AppUrl.docs(.networkFees)),
             )
-        case let .balanceRequired(asset, image, requirement, button):
+        case let .balanceRequired(info, image, button):
             return InfoSheetModel(
-                title: Localized.Info.balanceRequiredTitle(asset.symbol),
+                title: Localized.Info.balanceRequiredTitle(info.title),
                 description: Localized.Info.balanceRequiredDescription(
-                    Self.formatted(requirement.required, asset: asset),
-                    Self.formatted(requirement.available, asset: asset),
-                    Self.formatted(requirement.shortfall, asset: asset),
+                    info.required.boldText,
+                    info.available.boldText,
+                    info.shortfall.boldText,
                 ),
                 image: .assetImage(image),
                 button: button,
             )
-        case let .insufficientNetworkFee(asset, title, image, requirement, price, currency, button):
-            let description: String = if let requirement {
+        case let .insufficientNetworkFee(info, image, button):
+            let description: String = if info.available != nil {
                 Localized.Info.InsufficientNetworkFeeBalance.description(
-                    Self.amountWithFiat(requirement.required, asset: asset, price: price, currency: currency).boldMarkdown(),
-                    asset.chain.networkName.boldMarkdown(),
-                    Self.formatted(requirement.available, asset: asset),
-                    Self.formatted(requirement.shortfall, asset: asset),
+                    info.requiredWithFiat.boldMarkdown(),
+                    info.networkName.boldMarkdown(),
+                    info.available.boldText,
+                    info.shortfall.boldText,
                 )
             } else {
-                Localized.Transfer.insufficientNetworkFeeBalance(title.boldMarkdown())
+                Localized.Transfer.insufficientNetworkFeeBalance(info.title.boldMarkdown())
             }
             return InfoSheetModel(
-                title: Localized.Info.balanceRequiredTitle(asset.symbol),
+                title: Localized.Info.balanceRequiredTitle(info.title),
                 description: description,
                 image: .assetImage(image),
                 button: button,
@@ -119,9 +119,8 @@ public enum InfoSheetModelFactory {
                 image: .assetImage(model.assetImage),
                 button: .url(model.docsUrl),
             )
-        case let .accountMinimalBalance(asset, required):
-            let formatter = ValueFormatter(style: .auto)
-            let amount = formatter.string(required, asset: asset)
+        case let .accountMinimalBalance(info):
+            let amount = info.required?.text() ?? .empty
             return InfoSheetModel(
                 title: Localized.Info.AccountMinimumBalance.title,
                 description: Localized.Transfer.minimumAccountBalance(amount.boldMarkdown()),
@@ -136,16 +135,16 @@ public enum InfoSheetModelFactory {
                 title: Localized.Info.MinimumAmount.title,
                 description: Localized.Info.MinimumAmount.description(chain, amount),
                 image: .image(Images.Logo.logo),
-                button: .action(title: Localized.Asset.buyAsset(asset.symbol), action: action),
+                button: action.map { .action(title: Localized.Asset.buyAsset(asset.symbol), action: $0) },
             )
-        case let .swapMinimumAmount(asset, providerName, image, requirement, price, currency, button):
+        case let .swapMinimumAmount(info, providerName, image, button):
             return InfoSheetModel(
                 title: Localized.Info.MinimumAmount.title,
                 description: Localized.Info.swapMinimumAmountDescription(
                     providerName.boldMarkdown(),
-                    Self.amountWithFiat(requirement.required, asset: asset, price: price, currency: currency).boldMarkdown(),
-                    Self.formatted(requirement.available, asset: asset),
-                    Self.formatted(requirement.shortfall, asset: asset),
+                    info.requiredWithFiat.boldMarkdown(),
+                    info.available.boldText,
+                    info.shortfall.boldText,
                 ),
                 image: .assetImage(image),
                 button: button,
@@ -249,21 +248,5 @@ public enum InfoSheetModelFactory {
                 image: .image(Images.Logo.logo),
             )
         }
-    }
-
-    private static func formatted(_ value: BigInt, asset: Asset) -> String {
-        ValueFormatter(style: .auto).string(value, asset: asset).boldMarkdown()
-    }
-
-    private static func amountWithFiat(_ value: BigInt, asset: Asset, price: Price?, currency: String) -> String {
-        let display = NumericViewModel(
-            data: AssetValuePrice(asset: asset, value: value, price: price?.price == 0 ? nil : price),
-            style: AmountDisplayStyle(currencyCode: currency),
-        )
-        let amountText = display.amount.text
-        guard let fiatText = display.fiat?.text else {
-            return amountText
-        }
-        return "\(amountText) (~\(fiatText))"
     }
 }

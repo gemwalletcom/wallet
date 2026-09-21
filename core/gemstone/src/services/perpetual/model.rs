@@ -2,7 +2,7 @@ use super::rules;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListRow, GemListSection};
-use crate::services::assets::model::GemHeaderActions;
+use crate::services::assets::model::{GemHeaderActions, GemPriceRow};
 use crate::services::failures::StepFailure;
 use crate::services::localization::GemLocalizedText;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
@@ -88,6 +88,23 @@ pub struct GemPerpetualPositionRow {
     pub title: String,
     pub leverage: String,
     pub direction: PerpetualDirection,
+    pub position: GemLocalizedText,
+    pub direction_tone: GemValueTone,
+    pub margin: GemFormattedNumber,
+    pub pnl: GemLocalizedText,
+    pub pnl_tone: GemValueTone,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemPerpetualOpenRow {
+    pub position: GemLocalizedText,
+    pub direction_tone: GemValueTone,
+    pub size: Option<GemFormattedNumber>,
+}
+
+#[uniffi::export]
+pub fn perpetual_open_row(direction: PerpetualDirection, leverage: u8, size: f64) -> GemPerpetualOpenRow {
+    rules::open_row(direction, leverage, size)
 }
 
 #[uniffi::export]
@@ -98,7 +115,7 @@ pub fn perpetual_position_row(perpetual: Perpetual, asset: Asset, position: Perp
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemPerpetualMarketRow {
     pub title: String,
-    pub shows_price: bool,
+    pub price: GemPriceRow,
     pub volume_24h: GemFormattedNumber,
     pub open_interest: GemFormattedNumber,
     pub funding_apr: GemFormattedNumber,
@@ -302,6 +319,18 @@ pub struct GemPerpetualMarketSession {
     pub is_searching: bool,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct GemPerpetualMarketQuery {
+    pub search: String,
+    pub limit: u32,
+    pub requires_volume: bool,
+}
+
+#[uniffi::export]
+pub fn perpetual_market_query(search: String) -> GemPerpetualMarketQuery {
+    super::rules::market_query(search.trim().to_string())
+}
+
 #[uniffi::export]
 impl GemPerpetualMarketSession {
     pub fn on_query_changed(&self, query: String) -> Self {
@@ -324,6 +353,18 @@ impl GemPerpetualMarketSession {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_browsing_lists_traded_markets_and_a_search_reaches_every_one() {
+        let browsing = perpetual_market_query(String::new());
+        assert!(browsing.requires_volume, "the market list is what is being traded");
+        assert_eq!(browsing.limit, super::super::rules::MARKETS_LIMIT);
+
+        let searching = perpetual_market_query("  btc ".to_string());
+        assert_eq!(searching.search, "btc", "the query reaches the store trimmed");
+        assert!(!searching.requires_volume, "a search reaches a market that has not traded today");
+        assert_eq!(searching.limit, browsing.limit);
+    }
 
     #[test]
     fn test_only_opening_a_position_shows_autoclose() {

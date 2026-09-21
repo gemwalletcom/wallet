@@ -28,8 +28,27 @@ interface PerpetualDao {
     }
 
     @Transaction
-    @Query("SELECT * FROM perpetuals WHERE volume24h > 0 ORDER BY volume24h DESC")
-    fun getPerpetualsData(): Flow<List<DbPerpetualData>>
+    @Query(
+        """
+        SELECT * FROM perpetuals
+        WHERE :requiresVolume = 0 OR volume24h > 0 OR isPinned
+        ORDER BY isPinned DESC, volume24h DESC
+        LIMIT :limit
+    """,
+    )
+    fun getPerpetualsData(requiresVolume: Boolean, limit: Int): Flow<List<DbPerpetualData>>
+
+    @Transaction
+    @Query(
+        """
+        SELECT perpetuals.* FROM perpetuals
+        JOIN asset ON asset.id = perpetuals.assetId
+        WHERE perpetuals.name LIKE '%' || :search || '%' OR asset.symbol LIKE '%' || :search || '%'
+        ORDER BY perpetuals.isPinned DESC, perpetuals.volume24h DESC
+        LIMIT :limit
+    """,
+    )
+    fun searchPerpetualsData(search: String, limit: Int): Flow<List<DbPerpetualData>>
 
     @Transaction
     @Query(
@@ -37,10 +56,11 @@ interface PerpetualDao {
         SELECT perpetuals.* FROM perpetuals
         JOIN search ON perpetuals.id = search.perpetualId
         WHERE search.`query` = :query
-        ORDER BY search.priority ASC, perpetuals.volume24h DESC
+        ORDER BY perpetuals.isPinned DESC, search.priority ASC, perpetuals.volume24h DESC
+        LIMIT :limit
     """,
     )
-    fun searchWithPriority(query: String): Flow<List<DbPerpetualData>>
+    fun searchWithPriority(query: String, limit: Int): Flow<List<DbPerpetualData>>
 
     @Transaction
     @Query("SELECT * FROM perpetuals WHERE id = :perpetualId")

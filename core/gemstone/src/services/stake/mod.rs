@@ -19,8 +19,8 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::{GemContractCallData, GemEarnType};
 
 pub use model::{
-    GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationAmountInput, GemDelegationDestination, GemDelegationStatus, GemEarnActions, GemStakeAction, GemStakeActionItem, GemStakeAmountInput, GemStakeSection,
-    GemStakeValidatorSelection, GemValidatorRow,
+    GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationStatus, GemEarnActions, GemStakeAction, GemStakeActionItem, GemStakeAmountInput,
+    GemStakeSection, GemStakeValidatorSelection, GemValidatorRow,
 };
 pub use store::GemStakeStore;
 
@@ -153,6 +153,11 @@ impl GemStakeService {
     pub fn delegation_rows(&self, delegation: Delegation) -> Vec<GemListRow> {
         let validator_url = self.validator_url(delegation.validator.clone());
         rules::delegation_rows(&delegation, validator_url, Utc::now())
+    }
+
+    pub fn delegation_details(&self, delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency) -> GemDelegationDetails {
+        let rows = self.delegation_rows(delegation.clone());
+        rules::delegation_details(&delegation, &asset, price, currency, rows)
     }
 
     pub fn claim_rewards(&self, chain: Chain, delegations: Vec<Delegation>) -> GemClaimRewards {

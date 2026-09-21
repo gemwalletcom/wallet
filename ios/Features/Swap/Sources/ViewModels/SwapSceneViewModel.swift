@@ -19,6 +19,7 @@ import struct Gemstone.SwapperQuote
 import func Gemstone.swapperQuoteSummary
 import struct Gemstone.SwapQuote
 import GemstonePrimitives
+import InfoSheet
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -202,11 +203,11 @@ public final class SwapSceneViewModel {
     }
 
     var errorInfoAction: VoidAction {
-        guard let error = viewState.error, case .noQuote = error else {
+        guard let topic = viewState.error?.info() else {
             return nil
         }
         return VoidAction { [weak self] in
-            self?.isPresentingInfoSheet = .info(.noQuote)
+            self?.isPresentingInfoSheet = .info(InfoSheetType(topic: topic, assetImage: nil))
         }
     }
 

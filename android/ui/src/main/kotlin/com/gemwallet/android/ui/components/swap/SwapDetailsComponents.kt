@@ -24,6 +24,7 @@ import com.gemwallet.android.ui.components.dialog.DialogBarDismissType
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.image.iconModel
+import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
@@ -36,14 +37,14 @@ import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.swap.SwapDetailRowUIModel
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModel
-import com.gemwallet.android.ui.models.swap.SwapPriceImpactUIModel
+import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.style.textStyle
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.pendingColor
+import uniffi.gemstone.GemSwapPriceImpactRow
 import uniffi.gemstone.GemSwapProviderRow
-import uniffi.gemstone.SwapPriceImpactType
+import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.SwapProvider
 
 @Composable
@@ -131,36 +132,11 @@ fun SwapDetailsBottomSheet(
                     )
                 }
             }
+            item {
+                AssetRatePropertyItem(model.rate, ListPosition.First)
+            }
             itemsIndexed(model.rows) { index, row ->
-                val listPosition = ListPosition.getPosition(index, model.rows.size)
-                when (row) {
-                    is SwapDetailRowUIModel.Rate -> AssetRatePropertyItem(row.rate, listPosition)
-
-                    is SwapDetailRowUIModel.EstimatedTime -> formatEstimatedConfirmation(row.seconds).takeIf { it.isNotEmpty() }?.let {
-                        ListItem(model = ListItemModel(title = stringResource(R.string.swap_estimated_time_title), subtitle = it), listPosition = listPosition)
-                    }
-
-                    is SwapDetailRowUIModel.PriceImpact -> ListItem(
-                        model = ListItemModel(
-                            title = stringResource(R.string.swap_price_impact),
-                            subtitle = row.model.displayText,
-                            subtitleStyle = row.model.type.textStyle(),
-                            info = InfoSheetEntity.PriceImpactInfo,
-                        ),
-                        listPosition = listPosition,
-                    )
-
-                    is SwapDetailRowUIModel.MinimumReceive -> ListItem(model = ListItemModel(title = stringResource(R.string.swap_min_receive), subtitle = row.text), listPosition = listPosition)
-
-                    is SwapDetailRowUIModel.Slippage -> ListItem(
-                        model = ListItemModel(
-                            title = stringResource(R.string.swap_slippage),
-                            subtitle = row.text ?: stringResource(R.string.swap_slippage_auto),
-                            info = InfoSheetEntity.Slippage,
-                        ),
-                        listPosition = listPosition,
-                    )
-                }
+                GemListRowView(row = row, listPosition = ListPosition.getPosition(index + 1, model.rows.size + 1))
             }
         }
     }
@@ -222,14 +198,4 @@ private fun SwapDetailsUIModel.inlineProviders(isSelectionEnabled: Boolean): Lis
 }
 
 @Composable
-private fun SwapPriceImpactUIModel?.getColor() = when (this?.type) {
-    SwapPriceImpactType.POSITIVE -> MaterialTheme.colorScheme.tertiary
-
-    SwapPriceImpactType.MEDIUM -> pendingColor
-
-    SwapPriceImpactType.HIGH -> MaterialTheme.colorScheme.error
-
-    SwapPriceImpactType.LOW,
-    null,
-    -> MaterialTheme.colorScheme.secondary
-}
+private fun GemSwapPriceImpactRow?.getColor() = (this?.value?.tone ?: GemValueTone.NEUTRAL).color()

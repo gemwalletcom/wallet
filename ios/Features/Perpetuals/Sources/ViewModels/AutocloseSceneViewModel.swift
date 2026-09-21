@@ -107,7 +107,7 @@ public final class AutocloseSceneViewModel {
 
     public var positionItemViewModel: any ListAssetItemViewable {
         switch type {
-        case let .modify(position, _): PerpetualPositionItemViewModel(model: PerpetualPositionViewModel(position))
+        case let .modify(position, _): PerpetualPositionItemViewModel(data: position)
         case let .open(data, _): OpenPositionItemViewModel(data: data)
         }
     }

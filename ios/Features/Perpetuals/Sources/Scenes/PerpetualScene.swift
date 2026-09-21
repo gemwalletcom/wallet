@@ -22,7 +22,7 @@ public struct PerpetualScene: View {
     public var body: some View {
         @Bindable var chart = model.chart
         let details = model.details
-        let position = model.positionModel(details)
+        let position = model.positionData(details)
 
         return List {
             Section {} header: {
@@ -37,7 +37,7 @@ public struct PerpetualScene: View {
                                 model: CandlestickChartViewModel(
                                     candles: data.candles,
                                     period: data.period,
-                                    position: position?.data.position,
+                                    position: position?.position,
                                 ),
                             )
                         case let .error(error):
@@ -133,8 +133,8 @@ public struct PerpetualScene: View {
     }
 
     @ViewBuilder
-    private func positionContent(_ position: PerpetualPositionViewModel, rows: [GemPerpetualPositionDetail]) -> some View {
-        ListAssetItemView(model: PerpetualPositionItemViewModel(model: position))
+    private func positionContent(_ position: PerpetualPositionData, rows: [GemPerpetualPositionDetail]) -> some View {
+        ListAssetItemView(model: PerpetualPositionItemViewModel(data: position))
 
         ForEach(rows, id: \.kind) { detail in
             switch detail.kind {

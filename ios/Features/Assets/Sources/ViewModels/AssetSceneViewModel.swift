@@ -95,14 +95,6 @@ public final class AssetSceneViewModel: Sendable {
         }
     }
 
-    func earnListItem(apr: GemFormattedNumber?) -> ListItemModel {
-        ListItemModel(
-            title: StakeProviderType.earn.title,
-            subtitle: Localized.Stake.apr(apr?.text() ?? ""),
-            subtitleStyle: TextStyle(font: .callout, color: Colors.green),
-        )
-    }
-
     public var details: GemAssetDetails {
         service.details(
             input: GemAssetDetailsInput(
@@ -112,6 +104,7 @@ public final class AssetSceneViewModel: Sendable {
                 metadata: assetData.metadata.toGem(),
                 balance: stakeBalance,
                 price: assetData.price?.price,
+                priceChangePercentage24h: assetData.price?.priceChangePercentage24h,
                 currency: preferences.currency.toGem(),
                 bannerEvents: visibleBanners.map(\.banner.event),
                 priceAlerts: assetData.priceAlerts.map { $0.toGem() },
@@ -127,13 +120,6 @@ public final class AssetSceneViewModel: Sendable {
 
     var showTransactions: Bool {
         transactionSections.isNotEmpty
-    }
-
-    var priceItemViewModel: PriceListItemViewModel {
-        PriceListItemViewModel(
-            title: Localized.Asset.price,
-            model: assetDataModel.priceViewModel,
-        )
     }
 
     var networkAssetImage: AssetImage {

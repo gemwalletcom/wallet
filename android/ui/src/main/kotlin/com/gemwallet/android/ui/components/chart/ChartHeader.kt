@@ -14,41 +14,44 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.space8
+import uniffi.gemstone.GemChartHeader
+import uniffi.gemstone.GemValueTone
 
 @Composable
-fun ChartHeader(model: ChartHeaderUIModel, modifier: Modifier = Modifier) {
+fun ChartHeader(header: GemChartHeader, date: String?, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        model.headerValueText?.let { headerValue ->
+        val secondaryValue = header.secondaryValue?.text()
+        secondaryValue?.let { headerValue ->
             Text(
                 text = headerValue,
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.onSurface,
             )
         }
-        val changeStyle = if (model.headerValueText != null) {
+        val changeStyle = if (secondaryValue != null) {
             MaterialTheme.typography.titleMedium.copy(fontSize = 17.sp, fontWeight = FontWeight.Medium)
         } else {
             MaterialTheme.typography.headlineSmall
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = model.priceText,
+                text = header.value.text(),
                 style = changeStyle,
-                color = model.priceTone.color(),
+                color = header.value.tone.color(),
             )
-            model.changeText?.let { change ->
+            header.change?.let { change ->
                 Spacer(modifier = Modifier.width(space8))
                 Text(
-                    text = change,
-                    style = if (model.headerValueText != null) changeStyle else MaterialTheme.typography.bodyLarge,
-                    color = model.changeTone.color(),
+                    text = change.text(),
+                    style = if (secondaryValue != null) changeStyle else MaterialTheme.typography.bodyLarge,
+                    color = (change.tone ?: GemValueTone.PLAIN).color(),
                 )
             }
         }
@@ -57,7 +60,7 @@ fun ChartHeader(model: ChartHeaderUIModel, modifier: Modifier = Modifier) {
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = model.dateText.orEmpty(),
+                text = date.orEmpty(),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.secondary,
             )

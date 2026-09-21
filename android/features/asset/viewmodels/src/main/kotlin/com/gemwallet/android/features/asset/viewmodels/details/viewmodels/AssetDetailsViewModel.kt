@@ -151,6 +151,7 @@ class AssetDetailsViewModel @Inject constructor(
                 metadata = assetInfo.metadata.toGem(),
                 balance = assetInfo.balance.toGem(),
                 price = assetInfo.price?.price?.price,
+                priceChangePercentage24h = assetInfo.price?.price?.priceChangePercentage24h,
                 currency = session.currency.toGem(),
                 bannerEvents = banners.map { row -> row.banner.event },
                 priceAlerts = priceAlerts.map { alert -> alert.toGem() },

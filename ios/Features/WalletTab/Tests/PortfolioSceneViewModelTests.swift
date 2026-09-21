@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemListRowTitle
 import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
@@ -33,16 +34,16 @@ struct PortfolioSceneViewModelTests {
     }
 
     @Test
-    func testStatistics() {
+    func statistics() {
         let model = PortfolioSceneViewModel.mock()
-        #expect(model.statistics.isEmpty)
+        #expect(model.statisticRows.isEmpty)
 
         model.state.wallet = .data(.mockWallet())
-        #expect(model.statistics.count == 2)
+        #expect(model.statisticRows.count == 2)
 
         model.state.selectedType = .perpetuals
         model.state.perpetual = .data(.mockPerpetual())
-        #expect(model.statistics.count == 5)
+        #expect(model.statisticRows.count == 5)
     }
 
     @Test
@@ -89,16 +90,23 @@ struct PortfolioSceneViewModelTests {
     }
 
     @Test
-    func testStatisticModel() {
+    func theStatisticRowsCarryTheTitlesCoreChose() {
         let model = PortfolioSceneViewModel.mock()
+        model.state.selectedType = .perpetuals
+        model.state.perpetual = .data(.mockPerpetual())
 
-        #expect(model.statisticModel(.allTimeHigh(value: .mock())).title == "All Time High")
-        #expect(model.statisticModel(.allTimeLow(value: .mock())).title == "All Time Low")
-        #expect(model.statisticModel(.unrealizedPnl(value: 500)).title == "Unrealized PnL")
-        #expect(model.statisticModel(.accountLeverage(value: 2.5)).title == "Account Leverage")
-        #expect(model.statisticModel(.accountLeverage(value: 2.5)).subtitle == "2.50x")
-        #expect(model.statisticModel(.marginUsage(value: .mock())).title == "Margin Usage")
-        #expect(model.statisticModel(.allTimePnl(value: 1200)).title == "All Time PnL")
-        #expect(model.statisticModel(.volume(value: 50000)).title == "Volume")
+        let titles: [GemListRowTitle] = model.statisticRows.compactMap { row in
+            switch row {
+            case let .amount(title, _, _): title
+            case let .label(title, _, _, _, _): title
+            case let .allTime(title, _, _, _): title
+            default: nil
+            }
+        }
+
+        #expect(titles.contains(.unrealizedPnl))
+        #expect(titles.contains(.accountLeverage))
+        #expect(titles.contains(.marginUsage))
+        #expect(titles.count == model.statisticRows.count, "every statistic became a row Core filled")
     }
 }

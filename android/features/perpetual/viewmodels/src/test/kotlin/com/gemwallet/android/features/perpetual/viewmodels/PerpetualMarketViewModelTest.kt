@@ -12,8 +12,8 @@ import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualBalance
+import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.WalletType
 import io.mockk.coEvery
@@ -38,6 +38,7 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemHeaderActions
 import uniffi.gemstone.GemHeaderButtonKind
+import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemMarketsRefreshTrigger
 import uniffi.gemstone.GemPerpetualBalanceHeader
 import uniffi.gemstone.GemPerpetualServiceInterface
@@ -86,12 +87,7 @@ class PerpetualMarketViewModelTest {
         assertEquals(GemMarketsRefreshTrigger.SCHEDULED, trigger.await())
     }
 
-    private fun viewModel(
-        service: GemPerpetualServiceInterface,
-        positions: List<PerpetualPositionDataAggregate> = emptyList(),
-        balance: PerpetualBalance? = null,
-        walletType: WalletType = WalletType.Multicoin,
-    ): PerpetualMarketViewModel {
+    private fun viewModel(service: GemPerpetualServiceInterface, positions: List<PerpetualPositionDataAggregate> = emptyList(), balance: PerpetualBalance? = null, walletType: WalletType = WalletType.Multicoin): PerpetualMarketViewModel {
         val getPerpetuals = mockk<GetPerpetuals>()
         every { getPerpetuals.getPerpetuals(any<Flow<String?>>()) } returns flowOf(emptyList())
         val getPositions = mockk<GetPerpetualPositions>()
@@ -124,6 +120,8 @@ class PerpetualMarketViewModelTest {
             every { title } returns "Bitcoin"
             every { perpetualId } returns PerpetualId(PerpetualProvider.Hypercore, "BTC-USD")
             every { asset } returns mockAsset(chain = Chain.Bitcoin, name = "Bitcoin", symbol = "BTC")
+            every { positionLabel } returns GemLocalizedText.Text("LONG 5x")
+            every { pnl } returns GemLocalizedText.Text("+$1.00 (+1.00%)")
         }
         val viewModel = viewModel(mockk(relaxed = true), positions = listOf(position))
         viewModel.setQuery("btc-usd")

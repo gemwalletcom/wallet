@@ -5,9 +5,10 @@ pub mod store;
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{Chain, ChartPeriod, PortfolioAssets, PortfolioAssetsRequest, PortfolioChartType, PortfolioData, PortfolioType, Wallet, WalletId};
+use primitives::{Chain, ChartPeriod, PortfolioAssets, PortfolioAssetsRequest, PortfolioChartType, PortfolioData, PortfolioStatistic, PortfolioType, Wallet, WalletId};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
+use crate::models::list::GemListRow;
 use crate::services::chart::GemChartData;
 use crate::services::error::GemServiceError;
 use crate::services::perpetual::GemPerpetualService;
@@ -17,6 +18,11 @@ use crate::services::stream::rules::hyperliquid_account;
 
 pub use model::GemPortfolioValues;
 pub use store::GemPortfolioStore;
+
+#[uniffi::export]
+pub fn portfolio_statistic_rows(statistics: Vec<PortfolioStatistic>, currency: Currency) -> Vec<GemListRow> {
+    rules::statistic_rows(statistics, currency)
+}
 
 #[uniffi::export]
 pub fn portfolio_chart_data(data: PortfolioData, portfolio_type: PortfolioType, chart_type: PortfolioChartType, currency: Currency) -> Option<GemChartData> {

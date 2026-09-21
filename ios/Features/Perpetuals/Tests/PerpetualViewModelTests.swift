@@ -5,6 +5,7 @@ import GemstonePrimitives
 import PerpetualsTestKit
 import Primitives
 import PrimitivesTestKit
+import Style
 import Testing
 
 struct PerpetualViewModelTests {
@@ -33,5 +34,13 @@ struct PerpetualViewModelTests {
         #expect(PerpetualViewModel(perpetual: .mock(price: 45000), asset: .mock()).priceText == "$45,000.00")
         #expect(PerpetualViewModel(perpetual: .mock(price: 0.5), asset: .mock()).priceText == "$0.5")
         #expect(PerpetualViewModel(perpetual: .mock(price: 1234.56), asset: .mock()).priceText == "$1,234.56")
+        #expect(PerpetualViewModel(perpetual: .mock(price: 0), asset: .mock()).priceText.isEmpty, "a market with no price shows none")
+    }
+
+    @Test
+    func priceChangeCarriesItsSignAndTone() {
+        #expect(PerpetualViewModel(perpetual: .mock(pricePercentChange24h: 2.5), asset: .mock()).priceChangeText == "+2.50%")
+        #expect(PerpetualViewModel(perpetual: .mock(pricePercentChange24h: 2.5), asset: .mock()).priceChangeTextColor == Colors.green)
+        #expect(PerpetualViewModel(perpetual: .mock(pricePercentChange24h: -2.5), asset: .mock()).priceChangeTextColor == Colors.red)
     }
 }

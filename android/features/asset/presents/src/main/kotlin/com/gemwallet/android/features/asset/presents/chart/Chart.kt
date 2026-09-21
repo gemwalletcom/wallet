@@ -33,6 +33,7 @@ internal fun ChartSection(state: ChartUIModel.State, onPeriodSelect: (ChartPerio
         ChartStateView(
             state = state.chart,
             header = uiModel?.header(selectedIndex),
+            date = uiModel?.dateText(selectedIndex, state.period),
             period = state.period,
             onPeriodSelect = onPeriodSelect,
             periods = periods,

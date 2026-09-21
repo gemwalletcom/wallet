@@ -42,7 +42,7 @@ import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.GemWalletSearchCounts
 import uniffi.gemstone.GemWalletSearchPhase
-import uniffi.gemstone.walletSearchPhase
+import uniffi.gemstone.walletSearchState
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -98,13 +98,14 @@ class AssetsResultsViewModel @Inject constructor(
     ) { pinned, assets, perpetuals, fetching ->
         val counts = GemWalletSearchCounts(
             recents = 0u,
-            pinned = pinned.size.toUInt(),
+            pinnedAssets = pinned.size.toUInt(),
             assets = assets.size.toUInt(),
+            pinnedPerpetuals = 0u,
             perpetuals = perpetuals.size.toUInt(),
             lists = 0u,
             nfts = 0u,
         )
-        when (walletSearchPhase(counts, fetching)) {
+        when (walletSearchState(counts, fetching).phase) {
             GemWalletSearchPhase.RESULTS -> UIState.Idle
             GemWalletSearchPhase.LOADING -> UIState.Loading
             GemWalletSearchPhase.EMPTY -> UIState.Empty

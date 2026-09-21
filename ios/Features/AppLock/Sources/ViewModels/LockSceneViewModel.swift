@@ -88,6 +88,10 @@ public class LockSceneViewModel {
 
 extension LockSceneViewModel {
     func onScenePhase(_ phase: ScenePhase) {
+        guard isAutoLockEnabled else {
+            resetLockState()
+            return
+        }
         switch phase {
         case .background:
             if case let .unlocking(attempt) = state, !attempt.isInvalidated {

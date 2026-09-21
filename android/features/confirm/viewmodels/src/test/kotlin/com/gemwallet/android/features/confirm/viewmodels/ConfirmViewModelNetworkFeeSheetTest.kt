@@ -46,6 +46,7 @@ import uniffi.gemstone.GemConfirmPhase
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmation
 import uniffi.gemstone.GemSwapPairSelection
+import uniffi.gemstone.confirmErrorInfo
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -105,6 +106,7 @@ class ConfirmViewModelNetworkFeeSheetTest {
     private fun viewModel(): ConfirmViewModel {
         val transfer = mockGemTransferData(asset = asset, value = BigInteger.TEN)
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
+        every { confirmation.errorInfo(any(), any()) } answers { confirmErrorInfo(firstArg(), emptyList(), Currency.USD.toGem()) }
         every { confirmation.insufficientNetworkFeeBuyAmount() } returns 10
         every { confirmation.acquireAssetFlow(any()) } returns GemAcquireAssetFlow.FIAT
         every { confirmation.acquireSwapPair(any(), any()) } returns GemSwapPairSelection(payAssetId = payAsset.id.toIdentifier(), receiveAssetId = asset.id.toIdentifier())

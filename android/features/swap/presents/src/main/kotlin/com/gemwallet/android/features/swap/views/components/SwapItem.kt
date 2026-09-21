@@ -23,13 +23,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import com.gemwallet.android.domains.asset.availableBalanceAmount
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.swap.viewmodels.models.SwapItemInteraction
 import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.toGem
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.fields.AmountInputTransformation
@@ -37,6 +39,7 @@ import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingHalfSmall
@@ -45,6 +48,8 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallPadding
 import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.Asset
+import uniffi.gemstone.GemLocalizedText
+import uniffi.gemstone.availableBalanceText
 
 @Composable
 internal fun SwapItem(item: AssetInfo?, equivalent: String, calculating: Boolean = false, interaction: SwapItemInteraction, state: TextFieldState = rememberTextFieldState(), onBalanceClick: () -> Unit, onAssetSelect: () -> Unit) {
@@ -79,7 +84,7 @@ internal fun SwapItem(item: AssetInfo?, equivalent: String, calculating: Boolean
                 onClick = onAssetSelect,
             )
             SwapBalance(
-                balance = item?.availableBalanceAmount,
+                balance = item?.let { availableBalanceText(it.asset.toGem(), it.balance.toGem()) },
                 interaction = interaction,
                 onBalanceClick = onBalanceClick,
             )
@@ -154,7 +159,7 @@ private fun SwapEquivalent(calculating: Boolean, equivalent: String) {
 }
 
 @Composable
-private fun SwapBalance(balance: String?, interaction: SwapItemInteraction, onBalanceClick: () -> Unit) {
+private fun SwapBalance(balance: GemLocalizedText?, interaction: SwapItemInteraction, onBalanceClick: () -> Unit) {
     Text(
         modifier = Modifier
             .clickable(
@@ -163,7 +168,7 @@ private fun SwapBalance(balance: String?, interaction: SwapItemInteraction, onBa
                 onClick = onBalanceClick,
             )
             .smallPadding(),
-        text = if (balance == null) "" else stringResource(id = R.string.transfer_balance, balance),
+        text = balance?.string(LocalContext.current).orEmpty(),
         minLines = 1,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,

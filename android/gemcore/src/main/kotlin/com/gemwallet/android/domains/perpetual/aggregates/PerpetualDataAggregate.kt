@@ -1,8 +1,8 @@
 package com.gemwallet.android.domains.perpetual.aggregates
 
-import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.PerpetualId
+import uniffi.gemstone.GemPriceRow
 
 interface PerpetualDataAggregate {
 
@@ -10,9 +10,7 @@ interface PerpetualDataAggregate {
 
     val title: String
 
-    val showsPrice: Boolean
-
-    val price: EquivalentValue
+    val price: GemPriceRow
 
     val volume: String
 

@@ -38,7 +38,7 @@ public struct PerpetualPositionsList: View {
     private func listItem(for position: PerpetualPositionData) -> ListAssetItemView {
         ListAssetItemView(
             model: PerpetualPositionItemViewModel(
-                model: PerpetualPositionViewModel(position),
+                data: position,
                 showBalancePrivacy: $showBalancePrivacy,
             ),
         )

@@ -14,7 +14,6 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.PortfolioState
 import com.gemwallet.android.features.asset.viewmodels.chart.models.StopTimeoutMillis
-import com.gemwallet.android.features.asset.viewmodels.chart.models.listItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.dataOrNull
@@ -39,10 +38,12 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
+import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemPortfolioServiceInterface
 import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.PortfolioChartType
 import uniffi.gemstone.portfolioChartData
+import uniffi.gemstone.portfolioStatisticRows
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -119,10 +120,9 @@ class PortfolioChartViewModel internal constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), ChartUIModel.State())
 
-    val statistics: StateFlow<List<ListItemModel>> = portfolio
+    val statistics: StateFlow<List<GemListRow>> = portfolio
         .map { state ->
-            val currency = service.currency(state.type.toGem()).toPrimitives()
-            state.data.dataOrNull?.statistics.orEmpty().map { it.listItem(context, currency) }
+            portfolioStatisticRows(state.data.dataOrNull?.statistics.orEmpty(), service.currency(state.type.toGem()))
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), emptyList())
 

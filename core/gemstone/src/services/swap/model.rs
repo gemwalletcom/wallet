@@ -6,8 +6,15 @@ use primitives::{Asset, AssetId};
 use swapper::{Quote, SwapperError};
 
 use super::rules;
-use crate::formatted_number::GemFormattedNumber;
+use crate::duration_formatter::DurationFormatter;
+use crate::formatted_number::{GemFormattedNumber, GemValueTone};
+use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
+use crate::percentage::GemPercentageStyle;
+use crate::precision::GemValueStyle;
+use crate::services::localization::GemLocalizedText;
+use num_bigint::BigInt;
 use primitives::TransactionInputType;
+use primitives::swap::SwapPriceImpact;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAssetRate {
@@ -35,6 +42,18 @@ pub struct GemSwapQuoteSummary {
     pub rate: Option<GemSwapRate>,
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemSwapPriceImpactRow {
+    pub value: GemFormattedNumber,
+    pub shows_in_summary: bool,
+    pub warning: Option<GemLocalizedText>,
+}
+
+#[uniffi::export]
+pub fn swap_price_impact_row(impact: SwapPriceImpact, pay_symbol: String) -> GemSwapPriceImpactRow {
+    rules::price_impact_row(impact, pay_symbol)
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemSwapDetailRow {
     Provider,
@@ -49,6 +68,50 @@ pub enum GemSwapDetailRow {
 impl GemSwapQuoteSummary {
     pub fn slippage_percent(&self) -> f64 {
         rules::slippage_percent(self.quote.slippage_bps)
+    }
+
+    /// Every detail row but the provider and the rate, which each app renders richly.
+    pub fn detail_rows(&self, receive_asset: Asset, price_impact: Option<SwapPriceImpact>, has_selected_slippage: bool) -> Vec<GemListRow> {
+        let price_impact = price_impact.filter(|impact| impact.shows_in_summary);
+        [
+            self.quote.eta_in_seconds.map(|seconds| GemListRow::Duration {
+                title: GemListRowTitle::EstimatedTime,
+                parts: DurationFormatter::new().estimate_parts(seconds as i64),
+                info: None,
+            }),
+            price_impact.map(|impact| GemListRow::Label {
+                title: GemListRowTitle::PriceImpact,
+                text: GemLocalizedText::Number {
+                    number: GemFormattedNumber::percentage(impact.percentage, GemPercentageStyle::Signed),
+                },
+                tone: match impact.is_high {
+                    true => GemValueTone::Negative,
+                    false => GemValueTone::Plain,
+                },
+                info: Some(GemInfoTopic::PriceImpact),
+                progress: false,
+            }),
+            Some(GemListRow::Amount {
+                title: GemListRowTitle::MinimumReceive,
+                amount: GemFormattedNumber::asset_amount(&BigInt::from(self.min_receive_value.clone()), &receive_asset, GemValueStyle::Auto),
+                info: None,
+            }),
+            Some(GemListRow::Label {
+                title: GemListRowTitle::Slippage,
+                text: match has_selected_slippage {
+                    true => GemLocalizedText::Number {
+                        number: GemFormattedNumber::percentage(self.slippage_percent(), GemPercentageStyle::Unsigned),
+                    },
+                    false => GemLocalizedText::SlippageAuto,
+                },
+                tone: GemValueTone::Plain,
+                info: Some(GemInfoTopic::Slippage),
+                progress: false,
+            }),
+        ]
+        .into_iter()
+        .flatten()
+        .collect()
     }
 
     pub fn rows(&self, shows_price_impact: bool) -> Vec<GemSwapDetailRow> {
@@ -174,6 +237,55 @@ mod tests {
         assert!(!rows.contains(&GemSwapDetailRow::PriceImpact), "the impact row shows only when the screen has prices for it");
         assert_eq!(rows.last(), Some(&GemSwapDetailRow::Slippage));
         assert!(summary.rows(true).contains(&GemSwapDetailRow::PriceImpact));
+    }
+
+    #[test]
+    fn test_the_slippage_row_reads_auto_until_the_user_picks_one() {
+        use crate::models::list::{GemListRow, GemListRowTitle};
+        use crate::services::localization::GemLocalizedText;
+
+        let quote = SwapQuote::mock_with_provider(SwapProvider::UniswapV3);
+        let summary = swap_quote_summary(quote, Asset::from_chain(Chain::Ethereum), Asset::from_chain(Chain::Solana));
+        let slippage = |has_selected| {
+            summary
+                .detail_rows(Asset::from_chain(Chain::Solana), None, has_selected)
+                .into_iter()
+                .find_map(|row| match row {
+                    GemListRow::Label { title: GemListRowTitle::Slippage, text, .. } => Some(text),
+                    _ => None,
+                })
+                .unwrap()
+        };
+
+        assert_eq!(slippage(false), GemLocalizedText::SlippageAuto);
+        assert!(
+            matches!(slippage(true), GemLocalizedText::Number { number } if number.value == summary.slippage_percent()),
+            "a chosen slippage reads as the percent the quote was priced with"
+        );
+    }
+
+    #[test]
+    fn test_an_impact_the_screen_hides_leaves_no_row() {
+        use crate::models::list::{GemListRow, GemListRowTitle};
+        use primitives::swap::{SwapPriceImpact, SwapPriceImpactType};
+
+        let quote = SwapQuote::mock_with_provider(SwapProvider::UniswapV3);
+        let summary = swap_quote_summary(quote, Asset::from_chain(Chain::Ethereum), Asset::from_chain(Chain::Solana));
+        let impact = |shows_in_summary| SwapPriceImpact {
+            percentage: -5.0,
+            impact_type: SwapPriceImpactType::High,
+            is_high: true,
+            shows_in_summary,
+        };
+        let has_impact_row = |impact| {
+            summary
+                .detail_rows(Asset::from_chain(Chain::Solana), Some(impact), false)
+                .iter()
+                .any(|row| matches!(row, GemListRow::Label { title: GemListRowTitle::PriceImpact, .. }))
+        };
+
+        assert!(has_impact_row(impact(true)));
+        assert!(!has_impact_row(impact(false)), "the screen decides whether an impact is worth a row, once");
     }
 
     #[test]

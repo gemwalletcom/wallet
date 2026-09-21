@@ -96,7 +96,6 @@ fun AmountListHead(
     icon: Any? = null,
     iconPlaceholder: String? = null,
     changedValue: String? = null,
-    changedPercentages: String? = null,
     changeStyle: ListItemTextStyle = ListItemTextStyle.Secondary,
     onClick: (() -> Unit)? = null,
     onSubtitleClick: (() -> Unit)? = null,
@@ -172,13 +171,6 @@ fun AmountListHead(
                             color = highlightColor,
                             style = changeTextStyle,
                         )
-                        if (!hidden && !changedPercentages.isNullOrBlank()) {
-                            Text(
-                                text = "($changedPercentages)",
-                                color = highlightColor,
-                                style = changeTextStyle,
-                            )
-                        }
                         if (onSubtitleClick != null) {
                             Icon(
                                 imageVector = AppIcons.ShowChart,

@@ -96,6 +96,60 @@ pub fn asset_text(asset: Asset) -> GemAssetText {
     super::rules::asset_text(&asset)
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct GemAssetRowText {
+    pub title: String,
+    pub symbol: Option<String>,
+    pub network: Option<String>,
+}
+
+#[uniffi::export]
+pub fn asset_row_text(asset: Asset, style: GemAssetRowStyle) -> GemAssetRowText {
+    super::rules::asset_row_text(&asset, style)
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemAssetBalanceScope {
+    Total,
+    Available,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAssetListRowInput {
+    pub asset: Asset,
+    pub balance: GemAssetBalance,
+    pub scope: GemAssetBalanceScope,
+    pub price: Option<f64>,
+    pub change: Option<f64>,
+    pub currency: Currency,
+    pub style: GemAssetRowStyle,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemPriceRow {
+    pub price: Option<GemFormattedNumber>,
+    pub change: Option<GemFormattedNumber>,
+}
+
+#[uniffi::export]
+pub fn price_row(price: Option<f64>, change: Option<f64>, currency: Currency) -> GemPriceRow {
+    super::rules::price_row(price, change, currency)
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAssetListRow {
+    pub text: GemAssetRowText,
+    pub price: GemPriceRow,
+    pub amount: GemFormattedNumber,
+    pub fiat: Option<GemFormattedNumber>,
+    pub has_balance: bool,
+}
+
+#[uniffi::export]
+pub fn asset_list_row(input: GemAssetListRowInput) -> GemAssetListRow {
+    super::rules::asset_list_row(input)
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
 pub struct GemAssetRowStyle {
     pub title: GemAssetTitleStyle,
@@ -408,8 +462,9 @@ pub enum GemHeaderButtonKind {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
 pub struct GemWalletSearchCounts {
     pub recents: u32,
-    pub pinned: u32,
+    pub pinned_assets: u32,
     pub assets: u32,
+    pub pinned_perpetuals: u32,
     pub perpetuals: u32,
     pub lists: u32,
     pub nfts: u32,
@@ -422,9 +477,21 @@ pub enum GemWalletSearchPhase {
     Empty,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+pub struct GemWalletSearchState {
+    pub phase: GemWalletSearchPhase,
+    pub shows_recents: bool,
+    pub shows_pinned: bool,
+    pub shows_assets: bool,
+    pub shows_pinned_perpetuals: bool,
+    pub shows_perpetuals: bool,
+    pub shows_lists: bool,
+    pub shows_nfts: bool,
+}
+
 #[uniffi::export]
-pub fn wallet_search_phase(counts: GemWalletSearchCounts, is_loading: bool) -> GemWalletSearchPhase {
-    super::rules::wallet_search_phase(&counts, is_loading)
+pub fn wallet_search_state(counts: GemWalletSearchCounts, is_loading: bool) -> GemWalletSearchState {
+    super::rules::wallet_search_state(&counts, is_loading)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
@@ -478,10 +545,10 @@ pub struct GemAssetDetailsState {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemAssetDetailRow {
-    Price,
+    Price { row: GemPriceRow },
     Network { name: String },
     Balance { row: GemAssetBalanceRow },
-    Earn { apr: Option<GemFormattedNumber> },
+    Earn { row: GemListRow },
     Row { row: GemListRow },
 }
 
@@ -499,6 +566,7 @@ pub struct GemAssetDetailsInput {
     pub metadata: AssetMetaData,
     pub balance: GemAssetBalance,
     pub price: Option<f64>,
+    pub price_change_percentage_24h: Option<f64>,
     pub currency: Currency,
     pub banner_events: Vec<BannerEvent>,
     pub price_alerts: Vec<PriceAlert>,
@@ -508,6 +576,7 @@ pub struct GemAssetDetailsInput {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemAssetDetails {
     pub state: GemAssetDetailsState,
+    pub balance_value: GemFormattedNumber,
     pub sections: Vec<GemAssetDetailSection>,
     pub title: String,
     pub fiat_value: Option<GemFormattedNumber>,

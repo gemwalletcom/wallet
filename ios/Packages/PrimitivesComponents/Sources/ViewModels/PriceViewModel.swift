@@ -16,7 +16,6 @@ public struct PriceViewModel: Sendable {
     public let price: Price?
 
     private let currencyFormatter: CurrencyFormatter
-    static let percentFormatter = PercentFormatter.signed
 
     public init(
         price: Price?,
@@ -27,35 +26,8 @@ public struct PriceViewModel: Sendable {
         currencyFormatter = CurrencyFormatter(type: currencyFormatterType, currencyCode: currencyCode)
     }
 
-    public var isPriceAvailable: Bool {
-        guard let price else { return false }
-        return price.price != 0
-    }
-
-    public var priceAmountText: String {
-        guard let price else { return "" }
-        return currencyFormatter.string(price.price)
-    }
-
-    private var priceChange: Double? {
-        price?.priceChangePercentage24h ?? .none
-    }
-
-    public var priceChangeText: String {
-        guard let priceChange else { return "" }
-        return Self.percentFormatter.string(priceChange)
-    }
-
-    public var priceChangeTextColor: Color {
-        Self.priceChangeTextColor(value: priceChange)
-    }
-
     public static func priceChangeTextColor(value: Double?) -> Color {
         valueTone(value: value ?? 0).color
-    }
-
-    public var priceChangeTextBackgroundColor: Color {
-        valueTone(value: priceChange ?? 0).backgroundColor
     }
 
     public func fiatAmountText(amount: Double) -> String {

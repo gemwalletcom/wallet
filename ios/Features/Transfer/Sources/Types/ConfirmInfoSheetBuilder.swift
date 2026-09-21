@@ -3,7 +3,7 @@
 import Components
 import Foundation
 import enum Gemstone.GemAcquireAssetFlow
-import enum Gemstone.GemConfirmErrorDisplay
+import struct Gemstone.GemConfirmErrorInfo
 import GemstonePrimitives
 import InfoSheet
 import Localization
@@ -12,75 +12,35 @@ import PrimitivesComponents
 
 enum ConfirmInfoSheetBuilder {
     static func build(
-        for error: ConfirmTransferError,
-        feePrice: Price?,
-        prices: [AssetId: Price],
-        currency: String,
-        acquireFlow: (Asset) -> GemAcquireAssetFlow,
+        for info: GemConfirmErrorInfo,
         networkFeeBuyAmount: Int,
         onGetAsset: @escaping @MainActor @Sendable (Asset, Int?) -> Void,
-    ) -> InfoSheetType? {
-        switch error {
-        case let .confirm(error):
-            confirmSheet(for: error.display(), feePrice: feePrice, prices: prices, currency: currency, acquireFlow: acquireFlow, networkFeeBuyAmount: networkFeeBuyAmount, onGetAsset: onGetAsset)
-        case .other:
-            nil
-        }
-    }
+    ) -> InfoSheetType {
+        let asset = info.asset?.toPrimitives()
+        let image = asset.map { AssetViewModel(asset: $0).assetImage } ?? AssetImage()
+        let button = acquireButton(info, asset: asset, buyAmount: nil, onGetAsset: onGetAsset)
+        let feeButton = acquireButton(info, asset: asset, buyAmount: networkFeeBuyAmount, onGetAsset: onGetAsset)
 
-    private static func confirmSheet(
-        for display: GemConfirmErrorDisplay,
-        feePrice: Price?,
-        prices: [AssetId: Price],
-        currency: String,
-        acquireFlow: (Asset) -> GemAcquireAssetFlow,
-        networkFeeBuyAmount: Int,
-        onGetAsset: @escaping @MainActor @Sendable (Asset, Int?) -> Void,
-    ) -> InfoSheetType? {
-        switch display {
-        case let .balanceRequired(asset, requirement):
-            let asset = asset.toPrimitives()
-            return .balanceRequired(asset, image: image(for: asset), requirement: requirement.toPrimitives(), button: acquireButton(asset, flow: acquireFlow(asset)) { onGetAsset(asset, nil) })
-        case let .networkFeeRequired(asset, title, requirement):
-            let asset = asset.toPrimitives()
-            return .insufficientNetworkFee(asset, title: title, image: image(for: asset), requirement: requirement.toPrimitives(), price: feePrice, currency: currency, button: acquireButton(asset, flow: acquireFlow(asset)) {
-                onGetAsset(asset, networkFeeBuyAmount)
-            })
-        case let .networkFeeMissing(asset, title):
-            let asset = asset.toPrimitives()
-            return .insufficientNetworkFee(asset, title: title, image: image(for: asset), requirement: nil, price: feePrice, currency: currency, button: acquireButton(asset, flow: acquireFlow(asset)) {
-                onGetAsset(asset, networkFeeBuyAmount)
-            })
-        case let .minimumAccountBalance(asset, required):
-            return .accountMinimalBalance(asset.toPrimitives(), required: required)
-        case let .swapMinimum(asset, provider, providerName, requirement):
-            let asset = asset.toPrimitives()
-            return .swapMinimumAmount(
-                asset,
-                providerName: providerName,
-                image: AssetImage(placeholder: provider.toPrimitives().image),
-                requirement: requirement.toPrimitives(),
-                price: prices[asset.id],
-                currency: currency,
-                button: acquireButton(asset, flow: acquireFlow(asset)) { onGetAsset(asset, nil) },
-            )
+        return switch info.sheet {
+        case .balanceRequired: .balanceRequired(info, image: image, button: button)
+        case .networkFeeRequired, .networkFeeMissing: .insufficientNetworkFee(info, image: image, button: feeButton)
+        case .minimumAccountBalance: .accountMinimalBalance(info)
+        case let .swapMinimum(provider, providerName):
+            .swapMinimumAmount(info, providerName: providerName, image: AssetImage(placeholder: provider.toPrimitives().image), button: button)
         case let .dustThreshold(chain):
-            let chain = Chain(core: chain)
-            return .dustThreshold(chain, image: image(for: chain.asset))
-        case .malicious: return .maliciousTransaction
-        case let .memoRequired(symbol): return .memoRequired(symbol: symbol)
-        case .feeRatesMissing, .offline, .accountMissing, .unknown, .insufficientFunds, .payment, .cancelled, .message:
-            return nil
+            .dustThreshold(Chain(core: chain), image: AssetViewModel(asset: Chain(core: chain).asset).assetImage)
+        case .malicious: .maliciousTransaction
+        case let .memoRequired(symbol): .memoRequired(symbol: symbol)
         }
     }
 
-    private static func image(for asset: Asset) -> AssetImage {
-        AssetViewModel(asset: asset).assetImage
-    }
-
-    private static func acquireButton(_ asset: Asset, flow: GemAcquireAssetFlow, action: @escaping InfoSheetAction) -> InfoSheetButton {
-        switch flow {
-        case .options, .fiat: .action(title: flow.actionTitle(symbol: asset.symbol), action: action)
-        }
+    private static func acquireButton(
+        _ info: GemConfirmErrorInfo,
+        asset: Asset?,
+        buyAmount: Int?,
+        onGetAsset: @escaping @MainActor @Sendable (Asset, Int?) -> Void,
+    ) -> InfoSheetButton? {
+        guard let asset, let flow = info.acquire else { return nil }
+        return .action(title: flow.actionTitle(symbol: asset.symbol), action: { onGetAsset(asset, buyAmount) })
     }
 }

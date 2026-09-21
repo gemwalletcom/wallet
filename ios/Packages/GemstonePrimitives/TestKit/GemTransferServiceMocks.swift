@@ -229,6 +229,10 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         []
     }
 
+    public func delegationDetails(delegation: Gemstone.Delegation, asset: Gemstone.Asset, price: Double?, currency: Gemstone.Currency) -> GemDelegationDetails {
+        Gemstone.delegationDetails(delegation: delegation, asset: asset, price: price, currency: currency)
+    }
+
     public func stakeTransferData(asset: Gemstone.Asset, stakeType: Gemstone.StakeType, value: Gemstone.GemBigInt, useMaxAmount: Bool) -> GemTransferData {
         GemTransferData(inputType: .stake(asset: asset, stakeType: stakeType), recipient: GemRecipient(address: ""), value: value, useMaxAmount: useMaxAmount)
     }

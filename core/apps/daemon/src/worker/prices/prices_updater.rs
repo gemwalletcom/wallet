@@ -1,13 +1,16 @@
+use std::collections::{HashMap, HashSet};
+use std::error::Error;
+use std::sync::Arc;
+
+use cacher::{CacheKey, CacherClient};
 use gem_tracing::info_with_fields;
 use pricer::PriceClient;
-use prices::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProviderAsset, PriceProviderAssetMetadata};
-use primitives::{AssetId, PriceData};
-use std::collections::{BTreeMap, HashMap, HashSet};
-use std::sync::Arc;
-use storage::database::prices::PriceFilter;
+use prices::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProviderAsset};
+use primitives::{AssetId, ConfigKey, PriceData, PriceId};
+use storage::database::{assets::AssetFilter, prices::PriceFilter};
 use storage::models::{AssetRow, PriceRow};
-use storage::{AssetUpdate, AssetsLinksRepository, AssetsRepository, Database, PricesRepository};
-use streamer::{PricesPayload, StreamProducer, StreamProducerQueue};
+use storage::{AssetUpdate, AssetsRepository, ConfigCacher, Database, PricesRepository};
+use streamer::{PricesPayload, QueueName, StreamProducer, StreamProducerQueue};
 
 const BATCH_SIZE: usize = 1000;
 
@@ -28,42 +31,47 @@ impl PricesUpdater {
         }
     }
 
-    pub async fn update_assets(&self, limit: usize) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn update_assets(&self, limit: usize) -> Result<usize, Box<dyn Error + Send + Sync>> {
         if limit == 0 {
             return Ok(0);
         }
         self.save_assets(self.provider.get_assets(limit).await?).await
     }
 
-    pub async fn update_assets_new(&self) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn update_assets_new(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
         self.save_assets(self.provider.get_assets_new().await?).await
     }
 
-    pub async fn update_assets_metadata(&self) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn publish_assets_metadata(&self, cacher: &CacherClient, config: &ConfigCacher) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let provider = self.provider.provider();
-        let prices = self.database.prices()?.get_prices_by_filter(vec![PriceFilter::Provider(provider)])?;
-        let mappings = self.get_enabled_asset_price_mappings(prices)?;
-        if mappings.is_empty() {
-            return Ok(0);
+        let mappings = self.database.prices()?.get_prices_assets_by_provider(provider)?;
+        let asset_ids = mappings.iter().map(|mapping| mapping.asset_id.to_string()).collect();
+        let enabled: HashSet<_> = self.database.assets()?.get_asset_ids_by_filter(vec![AssetFilter::Ids(asset_ids), AssetFilter::IsEnabled(true)])?.into_iter().collect();
+        let retry = config.get_duration(ConfigKey::PriceMetadataRetryInterval)?.as_secs();
+        let mut ids: Vec<_> = mappings.into_iter().filter(|mapping| enabled.contains(&mapping.asset_id.0)).map(|mapping| mapping.price_id.0).collect();
+        ids.sort_by_cached_key(PriceId::id);
+        ids.dedup();
+        let keys = ids.iter().map(|id| CacheKey::PriceMetadata(&id.to_string(), retry).key()).collect();
+        let cooling_down: HashSet<PriceId> = cacher.get_values(keys).await?;
+        let ids: Vec<_> = ids.into_iter().filter(|id| !cooling_down.contains(id)).take(config.get_usize(ConfigKey::PriceMetadataBatchSize)?).collect();
+        for id in &ids {
+            cacher.set_cached(CacheKey::PriceMetadata(&id.to_string(), retry), id).await?;
+            if !self.stream_producer.publish(QueueName::FetchPricesMetadata, id).await? {
+                return Err(format!("Metadata publish rejected for {id}").into());
+            }
         }
-
-        let mut updated = 0;
-        for batch in metadata_batches(mappings) {
-            updated += self.save_assets_metadata(self.provider.get_assets_metadata(batch).await?)?;
-        }
-
-        info_with_fields!("update prices assets metadata", provider = provider.id(), count = updated);
-        Ok(updated)
+        info_with_fields!("publish prices metadata", provider = provider.id(), count = ids.len());
+        Ok(ids.len())
     }
 
-    pub async fn update_prices_all(&self) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn update_prices_all(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let provider = self.provider.provider();
         let prices = self.database.prices()?.get_prices_by_filter(vec![PriceFilter::Provider(provider)])?;
         let mappings = self.get_asset_price_mappings(prices)?;
         self.update_prices(mappings).await
     }
 
-    pub async fn update_prices_window(&self, offset: usize, limit: usize) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn update_prices_window(&self, offset: usize, limit: usize) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let provider = self.provider.provider();
         let prices: Vec<PriceRow> = self.database.prices()?.get_prices_by_filter(vec![PriceFilter::Provider(provider)])?.into_iter().skip(offset).take(limit).collect();
         if prices.is_empty() {
@@ -73,40 +81,29 @@ impl PricesUpdater {
         self.update_prices(mappings).await
     }
 
-    pub async fn update_prices(&self, mappings: Vec<AssetPriceMapping>) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn update_prices(&self, mappings: Vec<AssetPriceMapping>) -> Result<usize, Box<dyn Error + Send + Sync>> {
         if mappings.is_empty() {
             return Ok(0);
         }
         self.publish_prices(self.provider.get_prices(mappings).await?).await
     }
 
-    fn get_asset_price_mappings(&self, prices: Vec<PriceRow>) -> Result<Vec<AssetPriceMapping>, Box<dyn std::error::Error + Send + Sync>> {
+    fn get_asset_price_mappings(&self, prices: Vec<PriceRow>) -> Result<Vec<AssetPriceMapping>, Box<dyn Error + Send + Sync>> {
         if prices.is_empty() {
             return Ok(vec![]);
         }
 
-        let provider_price_ids_by_price_id: HashMap<String, String> = prices.into_iter().map(|price| (price.id.to_string(), price.provider_price_id().to_string())).collect();
-        let asset_rows = self.database.prices()?.get_prices_assets_for_price_ids(provider_price_ids_by_price_id.keys().cloned().collect())?;
-
-        Ok(asset_rows
+        let price_ids = prices.into_iter().map(|price| price.id.to_string()).collect();
+        Ok(self
+            .database
+            .prices()?
+            .get_prices_assets_for_price_ids(price_ids)?
             .into_iter()
-            .filter_map(|row| {
-                provider_price_ids_by_price_id
-                    .get(&row.price_id.to_string())
-                    .cloned()
-                    .map(|provider_price_id| AssetPriceMapping::new(row.asset_id.0, provider_price_id))
-            })
+            .map(|mapping| AssetPriceMapping::new(mapping.asset_id.0, mapping.price_id.0.provider_price_id))
             .collect())
     }
 
-    fn get_enabled_asset_price_mappings(&self, prices: Vec<PriceRow>) -> Result<Vec<AssetPriceMapping>, Box<dyn std::error::Error + Send + Sync>> {
-        let mappings = self.get_asset_price_mappings(prices)?;
-        let asset_ids = mappings.iter().map(|mapping| mapping.asset_id.clone()).collect();
-        let enabled: HashSet<AssetId> = self.database.assets()?.get_assets_rows(asset_ids)?.into_iter().filter(|asset| asset.is_enabled).map(|asset| asset.as_asset_id()).collect();
-        Ok(mappings.into_iter().filter(|mapping| enabled.contains(&mapping.asset_id)).collect())
-    }
-
-    async fn save_assets(&self, assets: Vec<PriceProviderAsset>) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
+    async fn save_assets(&self, assets: Vec<PriceProviderAsset>) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let provider = self.provider.provider();
         let mut saved = 0;
         let mut queued = 0;
@@ -136,7 +133,7 @@ impl PricesUpdater {
         Ok(saved)
     }
 
-    async fn publish_prices(&self, prices: Vec<AssetPriceFull>) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
+    async fn publish_prices(&self, prices: Vec<AssetPriceFull>) -> Result<usize, Box<dyn Error + Send + Sync>> {
         if prices.is_empty() {
             return Ok(0);
         }
@@ -152,32 +149,12 @@ impl PricesUpdater {
         Ok(count)
     }
 
-    fn save_assets_metadata(&self, metadata: Vec<PriceProviderAssetMetadata>) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
-        let metadata_by_asset_id: HashMap<String, PriceProviderAssetMetadata> = metadata.into_iter().map(|asset_metadata| (asset_metadata.asset_id.to_string(), asset_metadata)).collect();
-
-        let mut updated = 0;
-        for asset_metadata in metadata_by_asset_id.values() {
-            self.database.assets()?.update_assets(vec![asset_metadata.asset_id.clone()], vec![AssetUpdate::Rank(asset_metadata.rank)])?;
-            self.database.assets_links()?.add_assets_links(&asset_metadata.asset_id, asset_metadata.links.clone())?;
-            updated += 1;
-        }
-        Ok(updated)
-    }
-
-    fn store_asset_updates(&self, updates: Vec<(AssetId, AssetUpdate)>) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    fn store_asset_updates(&self, updates: Vec<(AssetId, AssetUpdate)>) -> Result<(), Box<dyn Error + Send + Sync>> {
         for (asset_id, update) in updates {
             self.database.assets()?.update_assets(vec![asset_id], vec![update])?;
         }
         Ok(())
     }
-}
-
-fn metadata_batches(mappings: Vec<AssetPriceMapping>) -> Vec<Vec<AssetPriceMapping>> {
-    let grouped = mappings.into_iter().fold(BTreeMap::<String, Vec<AssetPriceMapping>>::new(), |mut grouped, mapping| {
-        grouped.entry(mapping.provider_price_id.clone()).or_default().push(mapping);
-        grouped
-    });
-    grouped.into_values().collect::<Vec<_>>().chunks(BATCH_SIZE).map(|groups| groups.iter().flatten().cloned().collect()).collect()
 }
 
 fn asset_supply_update(asset: &PriceProviderAsset, current: &AssetRow) -> Option<(AssetId, AssetUpdate)> {
@@ -189,28 +166,4 @@ fn asset_supply_update(asset: &PriceProviderAsset, current: &AssetRow) -> Option
         return None;
     }
     Some((asset.mapping.asset_id.clone(), AssetUpdate::supply(circulating, total, max)?))
-}
-
-#[cfg(test)]
-mod tests {
-    use primitives::Chain;
-
-    use super::*;
-
-    #[test]
-    fn test_metadata_batches_keep_provider_price_ids_together() {
-        let repeated = (0..=BATCH_SIZE).map(|index| AssetPriceMapping::new(AssetId::from_token(Chain::Ethereum, &format!("0x{index:x}")), "shared".to_string()));
-        let unique = (0..BATCH_SIZE).map(|index| {
-            let id = format!("price-{index}");
-            AssetPriceMapping::new(AssetId::from_token(Chain::Ethereum, &format!("0x1{index:x}")), id)
-        });
-
-        let batches = metadata_batches(repeated.chain(unique).collect());
-        let shared_batches = batches.iter().filter(|batch| batch.iter().any(|mapping| mapping.provider_price_id == "shared")).count();
-        let unique_ids: HashSet<&str> = batches.iter().flatten().map(|mapping| mapping.provider_price_id.as_str()).collect();
-
-        assert_eq!(batches.len(), 2);
-        assert_eq!(shared_batches, 1);
-        assert_eq!(unique_ids.len(), BATCH_SIZE + 1);
-    }
 }

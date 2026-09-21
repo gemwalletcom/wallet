@@ -214,16 +214,13 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
 
 extension ConfirmTransferSceneViewModel {
     func onSelectListError(error: ConfirmTransferError) {
-        guard let sheet = ConfirmInfoSheetBuilder.build(
-            for: error,
-            feePrice: state.metadata?.feePrice,
-            prices: state.metadata?.assetPrices ?? [:],
-            currency: confirmation.currency.rawValue,
-            acquireFlow: { confirmation.acquireAssetFlow(chain: $0.chain.rawValue) },
+        guard case let .confirm(confirmError) = error,
+              let info = confirmation.errorInfo(error: confirmError, metadata: state.metadata) else { return }
+        isPresentingSheet = .info(ConfirmInfoSheetBuilder.build(
+            for: info,
             networkFeeBuyAmount: Int(confirmation.insufficientNetworkFeeBuyAmount()),
             onGetAsset: { [weak self] asset, buyAmount in self?.onSelectGetAsset(asset, buyAmount: buyAmount) },
-        ) else { return }
-        isPresentingSheet = .info(sheet)
+        ))
     }
 
     func onSelectNetworkFeeInfo() {

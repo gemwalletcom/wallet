@@ -10,12 +10,11 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualPositionData
+import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.perpetualPositionRow
 
 class PerpetualPositionDataAggregateImpl(private val data: PerpetualPositionData) : PerpetualPositionDataAggregate {
-    private val marginFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)
-
     override val perpetualId: PerpetualId
         get() = data.perpetual.id
     override val asset: Asset = data.asset
@@ -24,7 +23,8 @@ class PerpetualPositionDataAggregateImpl(private val data: PerpetualPositionData
     override val title: String = row.title
     override val direction: PerpetualDirection = data.position.direction
     override val leverage: String = row.leverage
-    override val marginAmount: String = marginFormatter.string(data.position.marginAmount)
-    override val pnlWithPercentage: String = formatPnlWithPercentage(data.position.pnl, data.position.marginAmount)
-    override val pnlState: GemValueTone = data.position.pnl.tone()
+    override val positionLabel: GemLocalizedText = row.position
+    override val marginAmount: String = row.margin.text()
+    override val pnl: GemLocalizedText = row.pnl
+    override val pnlState: GemValueTone = row.pnlTone
 }

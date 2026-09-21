@@ -15,7 +15,6 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset_select.presents.views.AssetSelectAction
 import com.gemwallet.android.features.asset_select.presents.views.AssetSelectScene
 import com.gemwallet.android.features.asset_select.presents.views.RecentsSheetHost
-import com.gemwallet.android.features.asset_select.presents.views.getAssetBadge
 import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
 import com.gemwallet.android.features.assets.viewmodels.WalletSearchViewModel
 import com.gemwallet.android.features.assets.viewmodels.models.AssetListRowUIModel
@@ -178,7 +177,7 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
                 autoFocus = true,
             )
         },
-        titleBadge = { item -> getAssetBadge(item, viewModel.flow.rowStyle.showsSymbol) },
+        titleBadge = { item -> item.symbol },
         support = { assetPriceSupport(it.price) },
         query = viewModel.queryState,
         pinned = pinned,

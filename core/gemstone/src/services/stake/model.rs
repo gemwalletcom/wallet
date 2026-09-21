@@ -1,10 +1,12 @@
 use super::rules;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
+use crate::models::list::GemListRow;
 use crate::services::amount::model::GemAmountType;
 use crate::services::amount::rules as amount_rules;
 use crate::services::error::GemServiceError;
+use crate::services::localization::GemLocalizedText;
 use crate::services::transfer::GemTransferData;
-use primitives::{Asset, Delegation, DelegationState, DelegationValidator, EarnType, Resource, StakeType, YieldProvider};
+use primitives::{Asset, Currency, Delegation, DelegationState, DelegationValidator, EarnType, Resource, StakeType, YieldProvider};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemStakeSection {
@@ -22,6 +24,38 @@ pub struct GemDelegationStatus {
 #[uniffi::export]
 pub fn delegation_status(delegation: Delegation) -> GemDelegationStatus {
     rules::delegation_status(&delegation)
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemDelegationDetails {
+    pub title: GemLocalizedText,
+    pub balance: GemFormattedNumber,
+    pub fiat: Option<GemFormattedNumber>,
+    pub rewards: Option<GemFormattedNumber>,
+    pub rewards_fiat: Option<GemFormattedNumber>,
+    pub rows: Vec<GemListRow>,
+    pub claim: Option<GemTransferData>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemDelegationListRow {
+    pub validator: GemValidatorRow,
+    pub status: GemDelegationStatus,
+    pub balance: GemFormattedNumber,
+    pub fiat: Option<GemFormattedNumber>,
+    pub rewards: Option<GemFormattedNumber>,
+    pub rewards_fiat: Option<GemFormattedNumber>,
+    pub has_balance: bool,
+}
+
+#[uniffi::export]
+pub fn delegation_details(delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency) -> GemDelegationDetails {
+    rules::delegation_details(&delegation, &asset, price, currency, Vec::new())
+}
+
+#[uniffi::export]
+pub fn delegation_list_row(delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency) -> GemDelegationListRow {
+    rules::delegation_list_row(&delegation, &asset, price, currency)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -152,5 +186,5 @@ pub struct GemValidatorRow {
     pub image_url: String,
     pub placeholder: String,
     pub provider: Option<YieldProvider>,
-    pub apr: Option<GemFormattedNumber>,
+    pub apr: GemLocalizedText,
 }

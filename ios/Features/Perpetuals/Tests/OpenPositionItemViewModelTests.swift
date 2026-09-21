@@ -5,6 +5,7 @@ import Components
 import PerpetualsTestKit
 import Primitives
 import PrimitivesTestKit
+import Style
 import Testing
 
 struct OpenPositionItemViewModelTests {
@@ -19,7 +20,7 @@ struct OpenPositionItemViewModelTests {
             Issue.record("expected a type subtitle, got \(model.subtitleView)")
             return
         }
-        #expect(value.text.isNotEmpty)
+        #expect(value.text == "LONG 5x")
     }
 
     @Test
@@ -32,6 +33,8 @@ struct OpenPositionItemViewModelTests {
             return
         }
         #expect(longValue.text != shortValue.text)
+        #expect(longValue.style.color == Colors.green)
+        #expect(shortValue.style.color == Colors.red)
     }
 
     @Test

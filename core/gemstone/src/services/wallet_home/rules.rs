@@ -125,7 +125,7 @@ mod tests {
         let row = |event| {
             let banner = Banner::mock(event, BannerState::Active);
             GemBannerRow {
-                content: banner_content(banner.event, banner.asset.as_ref()),
+                content: banner_content(banner.event, banner.asset.as_ref(), banner.state),
                 banner,
             }
         };

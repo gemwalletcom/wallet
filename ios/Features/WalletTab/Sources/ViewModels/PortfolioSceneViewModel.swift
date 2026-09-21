@@ -3,12 +3,13 @@
 import Components
 import Formatters
 import Foundation
+import enum Gemstone.GemListRow
 import protocol Gemstone.GemPortfolioServiceProtocol
 import func Gemstone.leverageNumber
 import func Gemstone.portfolioChartData
 import struct Gemstone.PortfolioData
 import struct Gemstone.PortfolioMarginUsage
-import enum Gemstone.PortfolioStatistic
+import func Gemstone.portfolioStatisticRows
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -71,8 +72,11 @@ public final class PortfolioSceneViewModel: ChartListViewable {
         selectedState.value?.availablePeriods.map { $0.toPrimitives() } ?? [.day, .week, .month, .year, .all]
     }
 
-    var statistics: [PortfolioStatistic] {
-        selectedState.value?.statistics ?? []
+    var statisticRows: [GemListRow] {
+        portfolioStatisticRows(
+            statistics: selectedState.value?.statistics ?? [],
+            currency: service.currency(portfolioType: state.selectedType.toGem()),
+        )
     }
 
     var statisticsTitle: String {
@@ -117,22 +121,6 @@ extension PortfolioSceneViewModel {
     func chartTypeTitle(for type: PortfolioChartType) -> String {
         type.title
     }
-
-    func statisticModel(_ statistic: PortfolioStatistic) -> ListItemModel {
-        let title = statistic.title
-        switch statistic {
-        case let .allTimeHigh(chartValue), let .allTimeLow(chartValue):
-            return allTimeModel(title: title, chartValue: chartValue.toPrimitives())
-        case let .unrealizedPnl(value), let .allTimePnl(value):
-            return pnlModel(title: title, value: value)
-        case let .accountLeverage(value):
-            return ListItemModel(title: title, subtitle: leverageNumber(value: value).text())
-        case let .marginUsage(margin):
-            return marginModel(title: title, margin)
-        case let .volume(value):
-            return ListItemModel(title: title, subtitle: perpetualFormatter.string(value))
-        }
-    }
 }
 
 // MARK: - Private
@@ -149,21 +137,5 @@ extension PortfolioSceneViewModel {
             return nil
         }
         return ChartValuesViewModel(period: selectedPeriod, chartData: chartData)
-    }
-
-    private func allTimeModel(title: String, chartValue: ChartValuePercentage) -> ListItemModel {
-        AllTimeValueViewModel(priceFormatter: priceFormatter, percentFormatter: percentFormatter)
-            .model(title: title, chartValue: chartValue)
-    }
-
-    private func pnlModel(title: String, value: Double) -> ListItemModel {
-        let pnl = PriceChangeViewModel(value: value, currencyFormatter: perpetualFormatter)
-        return ListItemModel(title: title, subtitle: pnl.text ?? "-", subtitleStyle: pnl.textStyle)
-    }
-
-    private func marginModel(title: String, _ margin: PortfolioMarginUsage) -> ListItemModel {
-        let value = perpetualFormatter.string(margin.usedValue)
-        let percent = PercentFormatter.unsigned.string(margin.usagePercent)
-        return ListItemModel(title: title, subtitle: "\(value) (\(percent))")
     }
 }

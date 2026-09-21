@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use primitives::{Asset, AssetLink, AssetMarket, AssetPrice, BlockExplorerLink, ChartDateValue, ChartPeriod, ChartValue, ChartValuePercentage, Currency, PriceAlert, PriceChangeCalculator};
 
-use super::model::{GemChartBounds, GemChartData, GemChartHeader, GemChartValueType};
+use super::model::{GemChartBounds, GemChartData, GemChartDateStyle, GemChartHeader, GemChartValueType};
 use super::{GemChart, GemChartCurrent};
 use crate::config::social::social_links;
 use crate::formatted_number::GemFormattedNumber;
@@ -11,6 +11,14 @@ use crate::percentage::GemPercentageStyle;
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
 use crate::services::price::rules::has_price;
 use crate::services::price_alert::rules::displayed_price_alert_ids;
+
+pub fn date_style(period: ChartPeriod) -> GemChartDateStyle {
+    match period {
+        ChartPeriod::Hour | ChartPeriod::Day => GemChartDateStyle::Relative,
+        ChartPeriod::Week | ChartPeriod::Month => GemChartDateStyle::DayTime,
+        ChartPeriod::Year | ChartPeriod::All => GemChartDateStyle::Day,
+    }
+}
 
 const MARKET_CAP_RANK_BADGE_LIMIT: i32 = 1000;
 const MIN_CHART_POINTS: usize = 2;
@@ -39,6 +47,13 @@ pub fn current_value(values: &[ChartDateValue], latest: Option<AssetPrice>, now:
         value: latest.price,
         change_percentage: change_percentage(period, base_value, &latest),
     })
+}
+
+pub fn chart_with_price(chart: GemChart, price: Option<AssetPrice>, period: ChartPeriod) -> GemChart {
+    match current_value(&chart.values, price, Utc::now(), period, chart.base_value) {
+        Some(current) => GemChart { current: Some(current), ..chart },
+        None => chart,
+    }
 }
 
 fn change_percentage(period: ChartPeriod, base_value: f64, latest: &AssetPrice) -> f64 {
@@ -275,6 +290,16 @@ mod tests {
     }
     use crate::formatted_number::GemValueTone;
     use primitives::{AssetId, ChartValuePercentage, LinkType, PriceAlertDirection, currency::Currency};
+
+    #[test]
+    fn test_a_chart_date_reads_by_how_long_the_period_is() {
+        assert_eq!(date_style(ChartPeriod::Hour), GemChartDateStyle::Relative);
+        assert_eq!(date_style(ChartPeriod::Day), GemChartDateStyle::Relative);
+        assert_eq!(date_style(ChartPeriod::Week), GemChartDateStyle::DayTime);
+        assert_eq!(date_style(ChartPeriod::Month), GemChartDateStyle::DayTime);
+        assert_eq!(date_style(ChartPeriod::Year), GemChartDateStyle::Day, "a year of points needs no clock");
+        assert_eq!(date_style(ChartPeriod::All), GemChartDateStyle::Day);
+    }
 
     #[test]
     fn test_price_chart_data_needs_two_points() {

@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.support.cases.ClearSupportTyping
-import com.gemwallet.android.application.support.cases.FailPendingSupportMessages
 import com.gemwallet.android.application.support.cases.GetSupportMessages
 import com.gemwallet.android.application.support.cases.GetSupportTyping
 import com.gemwallet.android.ext.errorText
@@ -34,7 +33,6 @@ import javax.inject.Inject
 class SupportChatSceneViewModel @Inject constructor(
     private val supportService: GemSupportServiceInterface,
     private val getSupportMessages: GetSupportMessages,
-    private val failPendingSupportMessages: FailPendingSupportMessages,
     private val getSupportTyping: GetSupportTyping,
     private val clearSupportTyping: ClearSupportTyping,
     private val imageAttachmentFactory: SupportImageAttachmentFactory,
@@ -61,7 +59,6 @@ class SupportChatSceneViewModel @Inject constructor(
 
     fun fetch() = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable {
-            failPendingSupportMessages()
             val fromTimestamp = supportService.syncFromTimestamp(messages.first().map { it.toGem() })
             supportService.syncMessages(fromTimestamp)
         }.onFailure { Log.e(TAG, "fetch error", it) }
@@ -82,11 +79,8 @@ class SupportChatSceneViewModel @Inject constructor(
         }
     }
 
-    fun retry(message: SupportMessage) {
-        if (message.images.isNotEmpty()) return
-        viewModelScope.launch(ioDispatcher) {
-            alertOnFailure { supportService.retryMessage(message.toGem()) }
-        }
+    fun retry(message: SupportMessage) = viewModelScope.launch(ioDispatcher) {
+        alertOnFailure { supportService.retryMessage(message.toGem()) }
     }
 
     override fun onCleared() {

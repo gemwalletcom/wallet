@@ -1,9 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemSupportMessageOutcome
 import func Gemstone.parseSupportMessageDisplayContent
 import struct Gemstone.SupportMessageDisplayContent
 import struct Gemstone.SupportMessageLink
+import func Gemstone.supportMessageOutcome
+import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI
@@ -34,8 +37,14 @@ struct SupportMessageBubbleViewModel: Identifiable {
     var hasLinks: Bool { links.isNotEmpty }
     var hasImages: Bool { message.images.isNotEmpty }
     var images: [SupportMessageImage] { message.images }
-    var isSending: Bool { message.status == .sending }
-    var isFailed: Bool { message.status == .failed }
+    var isSending: Bool { outcome == .sending }
+    var isFailed: Bool {
+        if case .failed = outcome {
+            true
+        } else {
+            false
+        }
+    }
 
     var palette: Palette {
         switch message.sender {
@@ -53,11 +62,15 @@ struct SupportMessageBubbleViewModel: Identifiable {
 
     var time: String { message.createdAt.formatted(date: .omitted, time: .shortened) }
 
+    private var outcome: GemSupportMessageOutcome {
+        supportMessageOutcome(message: message.toGem())
+    }
+
     var status: Status {
-        switch message.status {
+        switch outcome {
         case .sending: .sending
         case .sent: .sent(time: time)
-        case .failed: .failed
+        case let .failed(canRetry): .failed(canRetry: canRetry)
         }
     }
 
@@ -87,6 +100,6 @@ extension SupportMessageBubbleViewModel {
     enum Status {
         case sending
         case sent(time: String)
-        case failed
+        case failed(canRetry: Bool)
     }
 }

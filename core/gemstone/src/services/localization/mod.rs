@@ -1,4 +1,4 @@
-use primitives::{Chain, DelegationState, FeeUnitType, PerpetualDirection, PerpetualMarginType, Resource, TransactionState};
+use primitives::{Chain, DelegationState, FeeUnitType, PerpetualDirection, PerpetualMarginType, Resource, StakeProviderType, TransactionState};
 
 use crate::duration_formatter::GemDurationPart;
 use crate::formatted_number::GemFormattedNumber;
@@ -16,6 +16,7 @@ pub enum GemLocalizedText {
     Text { text: String },
     Number { number: GemFormattedNumber },
     None,
+    SlippageAuto,
     RewardsUnverified,
     RewardsPending { countdown: Vec<GemDurationPart> },
     RewardsPendingReady,
@@ -28,6 +29,10 @@ pub enum GemLocalizedText {
     Pnl { amount: GemFormattedNumber, percent: GemFormattedNumber },
     Margin { amount: GemFormattedNumber, margin_type: PerpetualMarginType },
     Position { direction: PerpetualDirection, leverage: String },
+    Apr { value: Option<GemFormattedNumber> },
+    PriceImpactWarning { percent: GemFormattedNumber, symbol: String },
+    Balance { amount: GemFormattedNumber },
+    StakeProvider { provider: StakeProviderType },
     PositionChange { change: GemPositionChange, direction: PerpetualDirection },
 }
 

@@ -20,7 +20,7 @@ public extension DelegationViewModel {
                     state: state,
                     assetId: .mock(.tron),
                     balance: 1_500_000_000,
-                    rewards: 500_000_000,
+                    rewards: rewardsShown ? 500_000_000 : 0,
                 ),
             ),
             asset: Chain.tron.asset,

@@ -4,7 +4,8 @@ import BigInt
 import Components
 import Formatters
 import Foundation
-import enum Gemstone.GemSwapDetailRow
+import enum Gemstone.GemInfoTopic
+import enum Gemstone.GemListRow
 import struct Gemstone.GemSwapQuoteSummary
 import struct Gemstone.GemSwapRate
 import struct Gemstone.SwapperQuote
@@ -72,24 +73,15 @@ public final class SwapDetailsViewModel {
     }
 
     var providerTitle: String {
-        GemSwapDetailRow.provider.title
+        Localized.Common.provider
     }
 
-    var detailRowList: [SwapDetailRow] {
-        detailRows.map { row in
-            switch row {
-            case .provider: .provider
-            case .rate: .rate
-            case .estimatedTime: .estimatedTime
-            case .priceImpact: .priceImpact
-            case .minimumReceive: .minimumReceive
-            case .slippage: .slippage
-            }
-        }
-    }
-
-    var detailRows: [GemSwapDetailRow] {
-        summary.rows(showsPriceImpact: shouldShowPriceImpactInDetails)
+    var detailRows: [GemListRow] {
+        summary.detailRows(
+            receiveAsset: toAssetPrice.asset.toGem(),
+            priceImpact: swapPriceImpact,
+            hasSelectedSlippage: slippagePercent != nil,
+        )
     }
 
     // MARK: - Provider
@@ -120,19 +112,10 @@ public final class SwapDetailsViewModel {
         SwapProvidersViewModel(state: state.map { .plain($0) })
     }
 
-    // MARK: - Estimation
-
-    var swapEstimationField: ListItemField? {
-        guard let etaSeconds else { return nil }
-        let estimationTime = EstimatedConfirmationFormatter().string(seconds: etaSeconds)
-        guard estimationTime.isEmpty == false else { return nil }
-        return ListItemField(title: GemSwapDetailRow.estimatedTime.title, value: estimationTime)
-    }
-
     // MARK: - Rate
 
     var rateTitle: String {
-        GemSwapDetailRow.rate.title
+        Localized.Buy.rate
     }
 
     var rateText: String? {
@@ -154,23 +137,7 @@ public final class SwapDetailsViewModel {
     }
 
     var priceImpactValue: String? {
-        priceImpactModel.value?.value
-    }
-
-    // MARK: - Slippage
-
-    var slippageField: ListItemField {
-        let value = slippagePercent.map { percentSignLessFormatter.string($0) } ?? Localized.Swap.slippageAuto
-        return ListItemField(title: GemSwapDetailRow.slippage.title, value: value)
-    }
-
-    // MARK: - Min receive
-
-    var minReceiveField: ListItemField {
-        ListItemField(
-            title: GemSwapDetailRow.minimumReceive.title,
-            value: valueFormatter.string(minReceiveValue, asset: toAssetPrice.asset),
-        )
+        priceImpactModel.priceImpactText
     }
 }
 
