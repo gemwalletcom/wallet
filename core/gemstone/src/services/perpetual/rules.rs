@@ -418,22 +418,22 @@ pub fn collateral_asset_id(chain: Chain) -> Option<AssetId> {
     wallet_default_assets(chain).into_iter().find(|asset| asset.asset_type == AssetType::PERPETUAL).map(|asset| asset.id)
 }
 
+pub fn balance_total(balance: Option<&PerpetualBalance>) -> GemFormattedNumber {
+    GemFormattedNumber::usd(balance.map_or(0.0, |balance| balance.available + balance.reserved))
+}
+
 pub fn balance_header(balance: Option<PerpetualBalance>, wallet_type: WalletType) -> GemPerpetualBalanceHeader {
-    let balance = balance.unwrap_or(PerpetualBalance {
-        available: 0.0,
-        reserved: 0.0,
-        withdrawable: 0.0,
-    });
+    let (available, withdrawable) = balance.as_ref().map_or((0.0, 0.0), |balance| (balance.available, balance.withdrawable));
     GemPerpetualBalanceHeader {
-        total: GemFormattedNumber::usd(balance.available + balance.reserved),
-        available: GemFormattedNumber::usd(balance.available),
+        total: balance_total(balance.as_ref()),
+        available: GemFormattedNumber::usd(available),
         actions: match wallet_type {
             WalletType::View => GemHeaderActions::WatchOnly,
             WalletType::Multicoin | WalletType::Single | WalletType::PrivateKey => GemHeaderActions::Buttons {
                 buttons: vec![
                     GemHeaderButton {
                         kind: GemHeaderButtonKind::Withdraw,
-                        is_enabled: balance.available > 0.0,
+                        is_enabled: withdrawable > 0.0,
                     },
                     GemHeaderButton {
                         kind: GemHeaderButtonKind::Deposit,
@@ -1857,5 +1857,25 @@ mod tests {
             "an empty balance has nothing to withdraw"
         );
         assert_eq!(balance_header(None, WalletType::View).actions, GemHeaderActions::WatchOnly);
+
+        let withdraw = |balance: PerpetualBalance| match balance_header(Some(balance), WalletType::Multicoin).actions {
+            GemHeaderActions::Buttons { buttons } => buttons.into_iter().find(|button| button.kind == GemHeaderButtonKind::Withdraw).map(|button| button.is_enabled),
+            GemHeaderActions::WatchOnly => None,
+        };
+        let leveraged = PerpetualBalance {
+            available: 50.0,
+            reserved: 50.0,
+            withdrawable: 0.0,
+        };
+        let underwater = PerpetualBalance {
+            available: 0.0,
+            reserved: 706.0,
+            withdrawable: 305.0,
+        };
+        assert_eq!(withdraw(leveraged.clone()), Some(false), "margin left over above 10x leverage is not withdrawable");
+        assert_eq!(withdraw(underwater.clone()), Some(true), "hyperliquid still pays out below the initial margin");
+        assert_eq!(balance_total(Some(&leveraged)), GemFormattedNumber::usd(100.0));
+        assert_eq!(balance_total(Some(&underwater)), GemFormattedNumber::usd(706.0));
+        assert_eq!(balance_total(None), GemFormattedNumber::usd(0.0));
     }
 }

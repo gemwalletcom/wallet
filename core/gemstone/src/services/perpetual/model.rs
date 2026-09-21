@@ -342,6 +342,11 @@ pub struct GemPerpetualBalanceHeader {
 }
 
 #[uniffi::export]
+pub fn perpetual_balance_total(balance: Option<PerpetualBalance>) -> GemFormattedNumber {
+    rules::balance_total(balance.as_ref())
+}
+
+#[uniffi::export]
 pub fn perpetual_balance_header(balance: Option<PerpetualBalance>, wallet_type: WalletType) -> GemPerpetualBalanceHeader {
     rules::balance_header(balance, wallet_type)
 }

@@ -61,10 +61,6 @@ impl GemPerpetual {
         leverage_text(value)
     }
 
-    pub fn can_withdraw(&self, available: f64) -> bool {
-        available > 0.0
-    }
-
     pub fn autoclose_percent(&self, value: u8) -> Option<u8> {
         (value != 0).then_some(value)
     }
@@ -235,15 +231,6 @@ mod tests {
         assert!(!estimator.is_profit(Some(90.0), TpslType::TakeProfit));
         assert!(estimator.is_profit(None, TpslType::TakeProfit));
         assert!(!estimator.is_profit(None, TpslType::StopLoss));
-    }
-
-    #[test]
-    fn test_withdraw_needs_an_available_balance() {
-        let perpetual = GemPerpetual::new(PerpetualProvider::Hypercore);
-
-        assert!(perpetual.can_withdraw(0.01));
-        assert!(!perpetual.can_withdraw(0.0));
-        assert!(!perpetual.can_withdraw(-1.0));
     }
 
     #[test]
