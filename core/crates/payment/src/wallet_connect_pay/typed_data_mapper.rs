@@ -19,12 +19,7 @@ pub(super) fn map_typed_data(typed_data: &str) -> Result<TypedDataTransfer, Paym
     let (token, amount, from, recipient) = match message.primary_type.as_str() {
         PRIMARY_TYPE_PERMIT_TRANSFER_FROM => {
             let permitted = find_field_struct(&message.message, "permitted").ok_or_else(|| missing("permitted"))?;
-            (
-                get_field(permitted, "token")?,
-                get_amount(permitted, "amount")?,
-                None,
-                get_field(&message.message, "spender")?,
-            )
+            (get_field(permitted, "token")?, get_amount(permitted, "amount")?, None, get_field(&message.message, "spender")?)
         }
         PRIMARY_TYPE_TRANSFER_WITH_AUTHORIZATION | PRIMARY_TYPE_RECEIVE_WITH_AUTHORIZATION => (
             verifying_contract.clone(),
@@ -59,9 +54,7 @@ fn missing(name: &str) -> PaymentError {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::wallet_connect_pay::testkit::{
-        PERMIT_TRANSFER_FROM, PYUSD_TOKEN_ID, RECEIVE_WITH_AUTHORIZATION, TEST_ACCOUNT_WITHOUT_ALLOWANCE, TEST_AUTHORIZATION_RECIPIENT, TEST_PERMIT_SPENDER,
-    };
+    use crate::wallet_connect_pay::testkit::{PERMIT_TRANSFER_FROM, PYUSD_TOKEN_ID, RECEIVE_WITH_AUTHORIZATION, TEST_ACCOUNT_WITHOUT_ALLOWANCE, TEST_AUTHORIZATION_RECIPIENT, TEST_PERMIT_SPENDER};
     use primitives::asset_constants::ETHEREUM_USDT_TOKEN_ID;
     use primitives::contract_constants::UNISWAP_PERMIT2_CONTRACT;
 
@@ -94,18 +87,14 @@ mod tests {
             })
         );
         assert_eq!(
-            map_typed_data(&RECEIVE_WITH_AUTHORIZATION.replace(PRIMARY_TYPE_RECEIVE_WITH_AUTHORIZATION, PRIMARY_TYPE_TRANSFER_WITH_AUTHORIZATION))
-                .map(|transfer| transfer.recipient),
+            map_typed_data(&RECEIVE_WITH_AUTHORIZATION.replace(PRIMARY_TYPE_RECEIVE_WITH_AUTHORIZATION, PRIMARY_TYPE_TRANSFER_WITH_AUTHORIZATION)).map(|transfer| transfer.recipient),
             Ok(TEST_AUTHORIZATION_RECIPIENT.to_string())
         );
 
         let mut unknown = permit_transfer_from();
         unknown["primaryType"] = Value::from("TokenPermissions");
         unknown["message"] = unknown["message"]["permitted"].take();
-        assert_eq!(
-            map_typed_data(&unknown.to_string()),
-            Err(PaymentError::invalid_request("Unsupported payment signature: TokenPermissions"))
-        );
+        assert_eq!(map_typed_data(&unknown.to_string()), Err(PaymentError::invalid_request("Unsupported payment signature: TokenPermissions")));
         let mut unsigned_value = permit_transfer_from();
         unsigned_value["types"]["TokenPermissions"] = serde_json::json!([{"name": "token", "type": "address"}]);
         assert_eq!(

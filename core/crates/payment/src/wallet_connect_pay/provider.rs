@@ -122,9 +122,8 @@ mod tests {
     use crate::wallet_connect_pay::payment_mapper::map_invoice;
     use crate::wallet_connect_pay::testkit;
     use crate::wallet_connect_pay::testkit::{
-        FETCH_IDENTITY_REQUIRED, FETCH_SEND, OPTIONS, OPTIONS_FAILED, OPTIONS_IDENTITY_REQUIRED, STATUS_EXPIRED, STATUS_FAILED, STATUS_PROCESSING, STATUS_REQUIRES_ACTION,
-        STATUS_SUCCEEDED, STATUS_SUCCEEDED_COIN, TEST_ACCOUNT, TEST_PAYMENT_ID, TEST_PERMIT_SPENDER, TEST_ROUTER, accounts, addresses, fetch_actions, options, quote,
-        quote_actions, quotes, request,
+        FETCH_IDENTITY_REQUIRED, FETCH_SEND, OPTIONS, OPTIONS_FAILED, OPTIONS_IDENTITY_REQUIRED, STATUS_EXPIRED, STATUS_FAILED, STATUS_PROCESSING, STATUS_REQUIRES_ACTION, STATUS_SUCCEEDED, STATUS_SUCCEEDED_COIN, TEST_ACCOUNT,
+        TEST_PAYMENT_ID, TEST_PERMIT_SPENDER, TEST_ROUTER, accounts, addresses, fetch_actions, options, quote, quote_actions, quotes, request,
     };
     use gem_client::ClientError;
     use gem_client::testkit::MockClient;
@@ -194,12 +193,7 @@ mod tests {
                 asset_id: AssetId::from_chain(Chain::Optimism),
                 url: quotes(OPTIONS_IDENTITY_REQUIRED, TEST_ACCOUNT)[0].collect_data_url.clone().unwrap().replace(
                     &format!("accounts=eip155%3A10%3A{TEST_ACCOUNT}"),
-                    &format!(
-                        "accounts={}",
-                        ["42161", "10", "137", "8453", "1", "56"]
-                            .map(|chain| format!("eip155%3A{chain}%3A{TEST_ACCOUNT}"))
-                            .join("%2C")
-                    ),
+                    &format!("accounts={}", ["42161", "10", "137", "8453", "1", "56"].map(|chain| format!("eip155%3A{chain}%3A{TEST_ACCOUNT}")).join("%2C")),
                 ),
             }),
             "a refused quote verifies every account with the form of the response, not the one of the option"
@@ -209,9 +203,7 @@ mod tests {
             Err(PaymentError::Status { status: PaymentStatus::Failed })
         );
         assert_eq!(
-            provider(gateway(OPTIONS, Ok(FETCH_SEND)))
-                .load(&[ChainAddress::new(Chain::Solana, TEST_ACCOUNT.to_string())])
-                .await,
+            provider(gateway(OPTIONS, Ok(FETCH_SEND))).load(&[ChainAddress::new(Chain::Solana, TEST_ACCOUNT.to_string())]).await,
             Err(PaymentError::NoPaymentOptions),
             "no supported account asks the gateway nothing"
         );
@@ -223,9 +215,7 @@ mod tests {
         let token = quote(OPTIONS, TEST_ACCOUNT, &usdc);
         let permit = quote_actions(&token);
         assert_eq!(
-            provider(gateway(OPTIONS, Err(identity_required())))
-                .select_asset(&addresses(TEST_ACCOUNT), usdc.clone())
-                .await,
+            provider(gateway(OPTIONS, Err(identity_required()))).select_asset(&addresses(TEST_ACCOUNT), usdc.clone()).await,
             Ok(PaymentLoad::Sign {
                 transaction: PaymentTransaction {
                     invoice: invoice(OPTIONS),
@@ -241,9 +231,7 @@ mod tests {
             "a token quote carries its actions, the gateway is not asked to build them"
         );
         assert_eq!(
-            provider(gateway(OPTIONS, Ok(FETCH_SEND)))
-                .select_asset(&addresses(TEST_ACCOUNT), AssetId::from_chain(Chain::Polygon))
-                .await,
+            provider(gateway(OPTIONS, Ok(FETCH_SEND))).select_asset(&addresses(TEST_ACCOUNT), AssetId::from_chain(Chain::Polygon)).await,
             Err(PaymentError::NoPaymentOptions)
         );
     }
@@ -270,15 +258,10 @@ mod tests {
 
         assert_eq!(provider(gateway(STATUS_PROCESSING)).confirm("opt_1", results()).await, Ok(()));
         assert_eq!(provider(gateway(STATUS_SUCCEEDED)).confirm("opt_1", results()).await, Ok(()));
-        assert_eq!(
-            provider(gateway(STATUS_FAILED)).confirm("opt_1", results()).await,
-            Err(PaymentError::Status { status: PaymentStatus::Failed })
-        );
+        assert_eq!(provider(gateway(STATUS_FAILED)).confirm("opt_1", results()).await, Err(PaymentError::Status { status: PaymentStatus::Failed }));
         assert_eq!(
             provider(gateway(STATUS_REQUIRES_ACTION)).confirm("opt_1", results()).await,
-            Err(PaymentError::Status {
-                status: PaymentStatus::RequiresAction
-            }),
+            Err(PaymentError::Status { status: PaymentStatus::RequiresAction }),
             "results the gateway did not take leave the payment unpaid"
         );
     }

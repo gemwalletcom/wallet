@@ -41,23 +41,15 @@ fn from_payment_url(url: &Url) -> Option<String> {
     if !is_payment_host(url) {
         return None;
     }
-    query_value(url, QUERY_PAYMENT_ID)
-        .or_else(|| Some(url.path().trim_matches('/').to_string()))
-        .filter(|payment_id| is_payment_id(payment_id))
+    query_value(url, QUERY_PAYMENT_ID).or_else(|| Some(url.path().trim_matches('/').to_string())).filter(|payment_id| is_payment_id(payment_id))
 }
 
 fn is_payment_id(payment_id: &str) -> bool {
-    payment_id.starts_with(PAYMENT_ID_PREFIX)
-        && payment_id
-            .chars()
-            .all(|character| character.is_ascii_alphanumeric() || PAYMENT_ID_EXTRA_CHARACTERS.contains(character))
+    payment_id.starts_with(PAYMENT_ID_PREFIX) && payment_id.chars().all(|character| character.is_ascii_alphanumeric() || PAYMENT_ID_EXTRA_CHARACTERS.contains(character))
 }
 
 pub fn is_payment_host(url: &Url) -> bool {
-    url.scheme() == HTTPS_URL_SCHEME
-        && url
-            .host_str()
-            .is_some_and(|host| host == WALLET_CONNECT_PAY_HOST || host.ends_with(WALLET_CONNECT_PAY_HOST_SUFFIX))
+    url.scheme() == HTTPS_URL_SCHEME && url.host_str().is_some_and(|host| host == WALLET_CONNECT_PAY_HOST || host.ends_with(WALLET_CONNECT_PAY_HOST_SUFFIX))
 }
 
 #[cfg(test)]
@@ -67,9 +59,7 @@ mod tests {
     #[test]
     fn test_decode() {
         let link = Payment::Link {
-            link: PaymentLink::WalletConnectPay {
-                payment_id: "pay_123".to_string(),
-            },
+            link: PaymentLink::WalletConnectPay { payment_id: "pay_123".to_string() },
         };
 
         assert_eq!(decode("https://pay.walletconnect.com/?pid=pay_123").unwrap(), link);

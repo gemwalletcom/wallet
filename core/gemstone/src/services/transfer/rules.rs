@@ -3,12 +3,9 @@ use num_bigint::BigInt;
 use primitives::SwapProvider;
 use primitives::swap::ApprovalData;
 use primitives::{
-    AccountDataType, AddressName, Asset, AssetId, AssetType, Chain, ContractCallData, DelegationValidator, EarnType, FeePriority, PaymentVerification,
-    PerpetualType, RecentActivityType, StakeType, Transaction, TransactionDirection,
-    TransactionInputType, TransactionNFTTransferMetadata,
-    TransactionPaymentMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionType,
-    TransactionWalletConnectMetadata,
-    TransferDataOutputAction, TransferDataOutputType,
+    AccountDataType, AddressName, Asset, AssetId, AssetType, Chain, ContractCallData, DelegationValidator, EarnType, FeePriority, PaymentVerification, PerpetualType, RecentActivityType, StakeType, Transaction, TransactionDirection,
+    TransactionInputType, TransactionNFTTransferMetadata, TransactionPaymentMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionType,
+    TransactionWalletConnectMetadata, TransferDataOutputAction, TransferDataOutputType,
 };
 
 use super::model::{GemConfirmDestination, GemConfirmRow, GemConfirmTitle, GemPendingTransactionInput, GemRecentActivity, GemRecipient, GemTransferData, GemTransferOutput};
@@ -233,9 +230,16 @@ impl TransferInput for TransactionInputType {
                 asset_id: from_asset.id.clone(),
                 to_asset_id: Some(to_asset.id.clone()),
             }),
-            Self::Deposit { .. } | Self::Stake { .. } | Self::TokenApprove { .. } | Self::Generic { .. } | Self::Payment { .. } | Self::TransferNft { .. }
+            Self::Deposit { .. }
+            | Self::Stake { .. }
+            | Self::TokenApprove { .. }
+            | Self::Generic { .. }
+            | Self::Payment { .. }
+            | Self::TransferNft { .. }
             | Self::Account { .. }
-            | Self::Perpetual { .. } | Self::Earn { .. } | Self::Withdrawal { .. } => None,
+            | Self::Perpetual { .. }
+            | Self::Earn { .. }
+            | Self::Withdrawal { .. } => None,
         }
     }
 
@@ -290,12 +294,7 @@ impl TransferInput for TransactionInputType {
                 link: invoice.link.clone(),
                 merchant: invoice.merchant.clone(),
             })?),
-            Self::Transfer { .. }
-            | Self::Deposit { .. }
-            | Self::Withdrawal { .. }
-            | Self::TokenApprove { .. }
-            | Self::Account { .. }
-            | Self::Earn { .. } => None,
+            Self::Transfer { .. } | Self::Deposit { .. } | Self::Withdrawal { .. } | Self::TokenApprove { .. } | Self::Account { .. } | Self::Earn { .. } => None,
         };
         Ok(value)
     }
@@ -312,8 +311,7 @@ impl TransferInput for TransactionInputType {
             Self::Stake { .. } => !is_intermediate,
             Self::Perpetual { .. } => hash.starts_with(HYPERCORE_ORDER_PREFIX),
             Self::Swap { to_asset, swap_data, .. } => !(to_asset.chain() == Chain::HyperCore && swap_data.quote.provider_data.provider == SwapProvider::Hyperliquid && is_intermediate),
-            Self::Transfer { .. } | Self::Deposit { .. } | Self::TokenApprove { .. } | Self::Generic { .. } | Self::Payment { .. } | Self::TransferNft { .. } | Self::Account { .. } | Self::Earn { .. }
-            | Self::Withdrawal { .. } => true,
+            Self::Transfer { .. } | Self::Deposit { .. } | Self::TokenApprove { .. } | Self::Generic { .. } | Self::Payment { .. } | Self::TransferNft { .. } | Self::Account { .. } | Self::Earn { .. } | Self::Withdrawal { .. } => true,
         }
     }
 }
@@ -617,7 +615,8 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::asset_balance::BalanceMetadata;
     use primitives::{
-        Delegation, DelegationBase, DelegationValidator, NFTAsset, PaymentInvoice, PaymentMerchant, PaymentPrice, PerpetualConfirmData, PerpetualDirection, PerpetualModifyConfirmData, PerpetualReduceData, Resource, SwapProvider, TransactionType, TransferDataExtra,
+        Delegation, DelegationBase, DelegationValidator, NFTAsset, PaymentInvoice, PaymentMerchant, PaymentPrice, PerpetualConfirmData, PerpetualDirection, PerpetualModifyConfirmData, PerpetualReduceData, Resource, SwapProvider,
+        TransactionType, TransferDataExtra,
         known_assets::HYPERCORE_PERPETUAL_USDC,
         swap::{SwapData, SwapQuote, SwapQuoteData},
     };
@@ -741,10 +740,7 @@ mod tests {
         assert_eq!(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Ethereum) }.title(), GemConfirmTitle::Send);
         assert_eq!(TransactionInputType::Deposit { asset: Asset::from_chain(Chain::HyperCore) }.title(), GemConfirmTitle::Deposit);
         assert_eq!(TransactionInputType::Withdrawal { asset: Asset::from_chain(Chain::HyperCore) }.title(), GemConfirmTitle::Withdraw);
-        assert_eq!(
-            TransactionInputType::mock_payment(Asset::from_chain(Chain::Ethereum), TransferDataExtra::mock()).title(),
-            GemConfirmTitle::Payment
-        );
+        assert_eq!(TransactionInputType::mock_payment(Asset::from_chain(Chain::Ethereum), TransferDataExtra::mock()).title(), GemConfirmTitle::Payment);
         assert_eq!(
             TransactionInputType::TokenApprove {
                 asset: Asset::from_chain(Chain::Ethereum),
@@ -822,10 +818,7 @@ mod tests {
         assert_eq!(generic.confirm_rows(), vec![GemConfirmRow::App, GemConfirmRow::Sender, GemConfirmRow::Network]);
 
         let quoted = GemTransferData::mock(TransactionInputType::mock_payment(Asset::from_chain(Chain::Ethereum), TransferDataExtra::mock()));
-        assert_eq!(
-            quoted.confirm_rows(),
-            vec![GemConfirmRow::Recipient, GemConfirmRow::Sender, GemConfirmRow::Network, GemConfirmRow::PaymentAsset]
-        );
+        assert_eq!(quoted.confirm_rows(), vec![GemConfirmRow::Recipient, GemConfirmRow::Sender, GemConfirmRow::Network, GemConfirmRow::PaymentAsset]);
         let solana_pay = GemTransferData::mock(TransactionInputType::Payment {
             asset: Asset::from_chain(Chain::Solana),
             invoice: PaymentInvoice { quotes: vec![], ..PaymentInvoice::mock() },
@@ -1234,10 +1227,7 @@ mod tests {
             .unwrap();
         assert_eq!(approve_leg.to, ApprovalData::mock().spender);
         assert!(approve_leg.metadata.is_none(), "the approve leg must not look like the payment to the tracker");
-        let payment_leg = GemPendingTransactionInput::mock(token_payment, TransactionType::Transfer, "pay_1", 0, 1)
-            .pending_transaction()
-            .unwrap()
-            .unwrap();
+        let payment_leg = GemPendingTransactionInput::mock(token_payment, TransactionType::Transfer, "pay_1", 0, 1).pending_transaction().unwrap().unwrap();
         assert_eq!(payment_leg.to, "recipient");
         assert!(payment_leg.payment_metadata().is_some());
 

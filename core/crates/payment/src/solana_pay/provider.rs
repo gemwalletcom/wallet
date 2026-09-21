@@ -34,10 +34,7 @@ impl<C: Client> PaymentProvider for SolanaPayProvider<C> {
             transaction: PaymentTransaction {
                 invoice: PaymentInvoice {
                     link: PaymentLink::SolanaPay { url: self.url.clone() },
-                    merchant: PaymentMerchant {
-                        name: info.label,
-                        icon: info.icon,
-                    },
+                    merchant: PaymentMerchant { name: info.label, icon: info.icon },
                     price: None,
                     quotes: vec![],
                     verification: None,

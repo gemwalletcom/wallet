@@ -141,22 +141,22 @@ mod tests {
     }
 
     #[test]
-fn test_post_processing_stake_chains_are_unique() {
-    let mut transaction = Transaction::mock();
-    transaction.transaction_type = TransactionType::StakeDelegate;
-    transaction.asset_id = AssetId::from_chain(Chain::Ethereum);
-    transaction.metadata = Some(serde_json::json!({
-        "assetTransfers": [
-            { "assetId": "solana", "from": "a", "to": "b", "value": "1" },
-            { "assetId": "ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7", "from": "a", "to": "b", "value": "1" }
-        ]
-    }));
+    fn test_post_processing_stake_chains_are_unique() {
+        let mut transaction = Transaction::mock();
+        transaction.transaction_type = TransactionType::StakeDelegate;
+        transaction.asset_id = AssetId::from_chain(Chain::Ethereum);
+        transaction.metadata = Some(serde_json::json!({
+            "assetTransfers": [
+                { "assetId": "solana", "from": "a", "to": "b", "value": "1" },
+                { "assetId": "ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7", "from": "a", "to": "b", "value": "1" }
+            ]
+        }));
 
-    let processing = post_processing(&transaction, TransactionState::Pending, TransactionState::Confirmed).unwrap();
+        let processing = post_processing(&transaction, TransactionState::Pending, TransactionState::Confirmed).unwrap();
 
-    let mut chains = processing.stake_chains.clone();
-    chains.sort();
-    assert_eq!(processing.stake_chains.len(), 2);
-    assert_eq!(chains, vec![Chain::Ethereum, Chain::Solana]);
-}
+        let mut chains = processing.stake_chains.clone();
+        chains.sort();
+        assert_eq!(processing.stake_chains.len(), 2);
+        assert_eq!(chains, vec![Chain::Ethereum, Chain::Solana]);
+    }
 }

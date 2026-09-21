@@ -233,14 +233,7 @@ impl GemConfirmErrorDisplay {
             | Self::MinimumAccountBalance { .. }
             | Self::SwapMinimum { .. }
             | Self::DustThreshold { .. } => true,
-            Self::Offline
-            | Self::FeeRatesMissing
-            | Self::Cancelled
-            | Self::AccountMissing
-            | Self::Unknown
-            | Self::InsufficientFunds
-            | Self::Payment { .. }
-            | Self::Message { .. } => false,
+            Self::Offline | Self::FeeRatesMissing | Self::Cancelled | Self::AccountMissing | Self::Unknown | Self::InsufficientFunds | Self::Payment { .. } | Self::Message { .. } => false,
         }
     }
 }

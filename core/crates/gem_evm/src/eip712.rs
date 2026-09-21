@@ -322,10 +322,7 @@ mod tests {
         assert_eq!(find_field_string(details, "token"), Some(ETHEREUM_USDT_TOKEN_ID.to_string()));
         assert_eq!(find_field_string(&message.message, "details"), None);
         assert_eq!(find_field_struct(&message.message, "spender"), None);
-        assert_eq!(
-            find_field_biguint(details, "amount"),
-            Some(BigUint::parse_bytes(b"1461501637330902918203684832716283019655932542975", 10).unwrap())
-        );
+        assert_eq!(find_field_biguint(details, "amount"), Some(BigUint::parse_bytes(b"1461501637330902918203684832716283019655932542975", 10).unwrap()));
         assert_eq!(
             find_field_biguint(
                 &[EIP712Field {

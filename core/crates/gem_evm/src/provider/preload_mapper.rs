@@ -4,10 +4,7 @@ use alloy_primitives::hex;
 use num_bigint::BigInt;
 use num_traits::Num;
 use primitives::swap::SwapQuoteDataType;
-use primitives::{
-    AssetSubtype, EVMChain, FeeRate, NFTType, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra, decode_hex,
-    fee::FeePriority, fee::GasPriceType,
-};
+use primitives::{AssetSubtype, EVMChain, FeeRate, NFTType, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra, decode_hex, fee::FeePriority, fee::GasPriceType};
 
 use crate::constants::TRANSFER_GAS_LIMIT;
 use crate::encode::{encode_erc20_approve_max_value, encode_erc20_transfer, encode_erc721_transfer, encode_erc1155_transfer};
@@ -95,9 +92,7 @@ pub fn get_transaction_params(_chain: EVMChain, input: &TransactionLoadInput) ->
             extra: TransferDataExtra { approval: Some(approval), .. },
             ..
         } => Ok(TransactionParams::new_approval(approval.token.clone(), encode_erc20_approve_max_value(&approval.spender)?)),
-        TransactionInputType::Generic { extra, .. } | TransactionInputType::Payment { extra, .. } => {
-            Ok(TransactionParams::new(extra.to.clone(), extra.data.clone().unwrap_or_default(), value))
-        }
+        TransactionInputType::Generic { extra, .. } | TransactionInputType::Payment { extra, .. } => Ok(TransactionParams::new(extra.to.clone(), extra.data.clone().unwrap_or_default(), value)),
         TransactionInputType::Stake { .. } => Err("Unsupported chain for staking".into()),
         TransactionInputType::Earn { data: earn_data, .. } => {
             if let Some(approval) = &earn_data.approval {

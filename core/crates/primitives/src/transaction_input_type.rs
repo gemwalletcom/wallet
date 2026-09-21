@@ -4,10 +4,7 @@ use crate::stake_type::StakeType;
 use crate::swap::{ApprovalData, SwapData, SwapQuoteDataType};
 use crate::transaction_fee::TransactionFee;
 use crate::transaction_load_metadata::TransactionLoadMetadata;
-use crate::{
-    ApplicationMetadata, Asset, AssetId, GasPriceType, PaymentInvoice, PerpetualType, SignerError, TransactionType, TransferDataExtra, nft::NFTAsset,
-    perpetual::AccountDataType,
-};
+use crate::{ApplicationMetadata, Asset, AssetId, GasPriceType, PaymentInvoice, PerpetualType, SignerError, TransactionType, TransferDataExtra, nft::NFTAsset, perpetual::AccountDataType};
 use num_bigint::BigInt;
 use num_bigint::BigUint;
 use num_traits::ToPrimitive;

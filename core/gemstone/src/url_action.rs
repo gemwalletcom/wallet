@@ -44,9 +44,7 @@ mod tests {
             url_action("https://pay.walletconnect.com/?pid=pay_123"),
             Some(UrlAction::Payment {
                 payment: Payment::Link {
-                    link: PaymentLink::WalletConnectPay {
-                        payment_id: "pay_123".to_string(),
-                    },
+                    link: PaymentLink::WalletConnectPay { payment_id: "pay_123".to_string() },
                 },
             })
         );

@@ -16,10 +16,7 @@ pub struct PaymentService {
 
 impl PaymentService {
     pub fn new(rpc_provider: Arc<dyn RpcTransport>, wallet_connect_pay_auth: WalletConnectPayAuth) -> Self {
-        Self {
-            rpc_provider,
-            wallet_connect_pay_auth,
-        }
+        Self { rpc_provider, wallet_connect_pay_auth }
     }
 
     pub async fn load(&self, link: &PaymentLink, addresses: &[ChainAddress]) -> Result<PaymentLoad, PaymentError> {
@@ -43,11 +40,7 @@ impl PaymentService {
     fn provider(&self, link: &PaymentLink) -> Box<dyn PaymentProvider> {
         match link {
             PaymentLink::SolanaPay { url } => Box::new(SolanaPayProvider::new(RpcClient::new(url.clone(), self.rpc_provider.clone()), url.clone())),
-            PaymentLink::WalletConnectPay { payment_id } => Box::new(WalletConnectPayProvider::new(
-                self.rpc_provider.clone(),
-                self.wallet_connect_pay_auth.clone(),
-                payment_id.clone(),
-            )),
+            PaymentLink::WalletConnectPay { payment_id } => Box::new(WalletConnectPayProvider::new(self.rpc_provider.clone(), self.wallet_connect_pay_auth.clone(), payment_id.clone())),
         }
     }
 
@@ -82,9 +75,6 @@ mod tests {
             PaymentService::validate_account(&[Chain::Ethereum], &account, std::slice::from_ref(&account)),
             Err(PaymentError::invalid_request("Payment account chain is not supported by provider"))
         );
-        assert_eq!(
-            PaymentService::validate_account(&[Chain::Solana], &account, &[]),
-            Err(PaymentError::invalid_request("Payment account changed"))
-        );
+        assert_eq!(PaymentService::validate_account(&[Chain::Solana], &account, &[]), Err(PaymentError::invalid_request("Payment account changed")));
     }
 }

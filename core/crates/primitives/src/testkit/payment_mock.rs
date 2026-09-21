@@ -1,6 +1,4 @@
-use crate::{
-    Asset, AssetId, Chain, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, TransactionInputType, TransferDataExtra,
-};
+use crate::{Asset, AssetId, Chain, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, TransactionInputType, TransferDataExtra};
 use num_bigint::BigUint;
 
 impl PaymentRequest {
@@ -19,9 +17,7 @@ impl PaymentRequest {
 impl PaymentInvoice {
     pub fn mock() -> Self {
         Self {
-            link: PaymentLink::WalletConnectPay {
-                payment_id: "pay_123".to_string(),
-            },
+            link: PaymentLink::WalletConnectPay { payment_id: "pay_123".to_string() },
             merchant: PaymentMerchant::mock(),
             price: Some(PaymentPrice::mock()),
             quotes: vec![PaymentQuote::mock(AssetId::from_chain(Chain::Ethereum))],
@@ -41,10 +37,7 @@ impl PaymentMerchant {
 
 impl PaymentPrice {
     pub fn mock() -> Self {
-        Self {
-            currency: "USD".to_string(),
-            amount: 0.10,
-        }
+        Self { currency: "USD".to_string(), amount: 0.10 }
     }
 }
 

@@ -8,9 +8,9 @@ use primitives::{AddressName, AssetId, BlockExplorerLink, Chain, ChainAddress, P
 use super::error::GemConfirmErrorInfo;
 use super::model::GemConfirmMetadata;
 use super::rules::{acquire_swap_pair, preload_simulation};
-use crate::payment::GemPaymentLoad;
 use super::{GemAcquireAssetFlow, GemConfirmError, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmScreen, GemConfirmTransferService, GemSubmitResult, GemTransferAmountResult};
 use crate::models::list::GemListRow;
+use crate::payment::GemPaymentLoad;
 use crate::services::swap::model::GemSwapPairSelection;
 use crate::services::transfer::GemTransferData;
 use crate::services::wallet::GemKeystoreAuthentication;
@@ -162,12 +162,7 @@ impl GemConfirmation {
                 msg: "Transfer is not a payment".to_string(),
             });
         };
-        let addresses = self
-            .wallet
-            .accounts
-            .iter()
-            .map(|account| ChainAddress::new(account.chain, account.address.clone()))
-            .collect();
+        let addresses = self.wallet.accounts.iter().map(|account| ChainAddress::new(account.chain, account.address.clone())).collect();
         let transfer = match self.service.payment().select_asset(&invoice.link, addresses, asset_id).await? {
             GemPaymentLoad::Sign { transfer } => transfer,
             GemPaymentLoad::Verify { invoice, asset_id, url } => self.service.payment().quote_transfer_data(invoice, asset_id, PaymentVerification { url }).await?,
@@ -182,10 +177,7 @@ impl GemConfirmation {
 mod tests {
     use futures::executor::block_on;
     use num_bigint::BigInt;
-    use primitives::{
-        Account, Asset, AssetId, Chain, FeePriority, SimulationBalanceChange, SimulationResult, SimulationWarning, TransactionInputType, TransferDataExtra,
-        Wallet, WalletId,
-    };
+    use primitives::{Account, Asset, AssetId, Chain, FeePriority, SimulationBalanceChange, SimulationResult, SimulationWarning, TransactionInputType, TransferDataExtra, Wallet, WalletId};
 
     use std::sync::atomic::Ordering;
 
@@ -313,15 +305,8 @@ mod tests {
             let sent = confirmation(TransactionInputType::Transfer { asset: ethereum.clone() });
             let paid = confirmation(TransactionInputType::mock_payment(ethereum.clone(), TransferDataExtra::mock()));
 
-            assert_eq!(
-                sent.select_asset(AssetId::from_chain(Chain::SmartChain)).await.map_err(|error| error.to_string()),
-                Err("Transfer is not a payment".to_string())
-            );
-            assert_eq!(
-                paid.select_asset(ethereum.id).await.map_err(|error| error.to_string()),
-                Ok(()),
-                "the asset already paid with is not selected again"
-            );
+            assert_eq!(sent.select_asset(AssetId::from_chain(Chain::SmartChain)).await.map_err(|error| error.to_string()), Err("Transfer is not a payment".to_string()));
+            assert_eq!(paid.select_asset(ethereum.id).await.map_err(|error| error.to_string()), Ok(()), "the asset already paid with is not selected again");
         });
     }
 }

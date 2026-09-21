@@ -35,8 +35,8 @@ use crate::services::simulation::{GemSimulationFormatter, GemSimulationService};
 use crate::services::transaction_state::{GemTransactionStateService, GemTransactionStatusService};
 use crate::services::transfer::rules::TransferInput;
 use crate::signer::GemSignerError;
-use primitives::TransactionInputType;
 use num_bigint::BigInt;
+use primitives::TransactionInputType;
 use primitives::{Asset, AssetId, Chain, SimulationPayloadFieldDisplay, SimulationResult, Transaction, TransactionFee, WalletId};
 
 #[derive(uniffi::Object)]

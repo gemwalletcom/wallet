@@ -1,7 +1,6 @@
 use crate::{
-    AddressName, AssetAddress, NFTAssetId, TransactionId, TransactionNFTTransferMetadata, TransactionPaymentMetadata, TransactionSwapMetadata,
-    asset_id::AssetId, transaction_direction::TransactionDirection, transaction_metadata_types::TransactionAssetTransfersMetadata,
-    transaction_state::TransactionState, transaction_type::TransactionType, transaction_utxo::TransactionUtxoInput,
+    AddressName, AssetAddress, NFTAssetId, TransactionId, TransactionNFTTransferMetadata, TransactionPaymentMetadata, TransactionSwapMetadata, asset_id::AssetId, transaction_direction::TransactionDirection,
+    transaction_metadata_types::TransactionAssetTransfersMetadata, transaction_state::TransactionState, transaction_type::TransactionType, transaction_utxo::TransactionUtxoInput,
 };
 
 use chrono::{DateTime, Utc};

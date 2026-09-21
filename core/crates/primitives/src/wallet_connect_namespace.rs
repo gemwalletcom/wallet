@@ -160,10 +160,7 @@ mod tests {
     #[test]
     fn test_get_asset_id() {
         assert_eq!(WalletConnectCAIP19::get_asset_id("eip155:10/slip44:614"), Some(AssetId::from_chain(Chain::Optimism)));
-        assert_eq!(
-            WalletConnectCAIP19::get_asset_id("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"),
-            Some(AssetId::from_chain(Chain::Solana))
-        );
+        assert_eq!(WalletConnectCAIP19::get_asset_id("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"), Some(AssetId::from_chain(Chain::Solana)));
         assert_eq!(
             WalletConnectCAIP19::get_asset_id("eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7"),
             Some(AssetId::from_token(Chain::Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7"))

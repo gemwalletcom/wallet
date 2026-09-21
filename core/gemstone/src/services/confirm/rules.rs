@@ -15,8 +15,8 @@ use primitives::AddressType;
 use primitives::currency::Currency;
 use primitives::{AddressName, BlockExplorerLink};
 use primitives::{
-    Asset, AssetId, Chain, ChainType, EVMChain, FeePriority, FeeUnitType, GasPriceType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationResult,
-    SimulationWarningType, Transaction, TransactionPreloadInput, TransactionType, TransferDataOutputAction, TransferDataOutputType, Wallet,
+    Asset, AssetId, Chain, ChainType, EVMChain, FeePriority, FeeUnitType, GasPriceType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationResult, SimulationWarningType, Transaction, TransactionPreloadInput,
+    TransactionType, TransferDataOutputAction, TransferDataOutputType, Wallet,
 };
 
 use super::error::{GemConfirmError, GemConfirmErrorDisplay, GemConfirmErrorInfo, GemConfirmErrorSheet};
@@ -179,9 +179,7 @@ pub fn approval_value_from(value: Option<&GemBigUint>, is_unlimited: bool) -> Ge
 impl GemConfirmData {
     pub fn fee_rate_rows(&self, selection: GemConfirmFeeSelection, fee_asset: Asset) -> GemFeeRateRows {
         let selection = match selection {
-            GemConfirmFeeSelection::Priority { priority } if !self.fee_rates.iter().any(|rate| rate.priority == priority) => {
-                GemConfirmFeeSelection::Priority { priority: self.selected_priority }
-            }
+            GemConfirmFeeSelection::Priority { priority } if !self.fee_rates.iter().any(|rate| rate.priority == priority) => GemConfirmFeeSelection::Priority { priority: self.selected_priority },
             selection => selection,
         };
         fee_rate_rows(self.input.transfer.input_type.get_asset().chain(), &fee_asset, &self.fee_rates, &selection, &self.fee)
@@ -703,18 +701,9 @@ mod tests {
     fn test_is_broadcast() {
         let payment = TransactionInputType::mock_payment(Asset::mock_erc20(), TransferDataExtra::mock_signature(vec![], None));
 
-        assert!(
-            is_broadcast(&payment, &GemSignedTransaction::mock(TransactionType::TokenApproval)),
-            "a payment sends its approval"
-        );
-        assert!(
-            !is_broadcast(&payment, &GemSignedTransaction::mock(TransactionType::Transfer)),
-            "and hands over its signature"
-        );
-        assert!(is_broadcast(
-            &TransactionInputType::Transfer { asset: Asset::mock_sol() },
-            &GemSignedTransaction::mock(TransactionType::Transfer)
-        ));
+        assert!(is_broadcast(&payment, &GemSignedTransaction::mock(TransactionType::TokenApproval)), "a payment sends its approval");
+        assert!(!is_broadcast(&payment, &GemSignedTransaction::mock(TransactionType::Transfer)), "and hands over its signature");
+        assert!(is_broadcast(&TransactionInputType::Transfer { asset: Asset::mock_sol() }, &GemSignedTransaction::mock(TransactionType::Transfer)));
 
         let approve_request = TransactionInputType::Generic {
             asset: Asset::mock_erc20(),
@@ -1231,11 +1220,7 @@ mod tests {
             None
         );
         assert_eq!(payment(TransferDataExtra { data: None, ..extra.clone() }).simulation_payload(), None);
-        assert_eq!(
-            payment(TransferDataExtra { data: Some(Vec::new()), ..extra }).simulation_payload(),
-            None,
-            "a coin transfer carries no calldata to simulate"
-        );
+        assert_eq!(payment(TransferDataExtra { data: Some(Vec::new()), ..extra }).simulation_payload(), None, "a coin transfer carries no calldata to simulate");
         assert_eq!(
             payment(TransferDataExtra::mock_signature(b"0xdeadbeef".to_vec(), None)).simulation_payload(),
             None,

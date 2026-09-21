@@ -157,9 +157,7 @@ impl ChainTransactionSigner {
             },
             fee: input.fee.clone(),
         };
-        self.one(&approve, private_key, TransactionType::TokenApproval, "token approval", |signer, i, key| {
-            signer.sign_token_approval(i, key)
-        })
+        self.one(&approve, private_key, TransactionType::TokenApproval, "token approval", |signer, i, key| signer.sign_token_approval(i, key))
     }
 
     fn sign_swap_transfer(&self, input: &SignerInput, private_key: &[u8], from_asset: &Asset, swap_data: &SwapData) -> Result<Vec<GemSignedTransaction>, GemstoneError> {
@@ -312,14 +310,7 @@ mod tests {
         let signer = ChainTransactionSigner::new(Chain::Ethereum);
         let key = TEST_PRIVATE_KEY.to_vec();
         let typed_data = mock_eip712_json(1).into_bytes();
-        let payment = |approval, gas_limit| -> GemSignerInput {
-            SignerInput::mock_evm(
-                TransactionInputType::mock_payment(Asset::mock_erc20(), TransferDataExtra::mock_signature(typed_data.clone(), approval)),
-                "0",
-                gas_limit,
-            )
-            .into()
-        };
+        let payment = |approval, gas_limit| -> GemSignerInput { SignerInput::mock_evm(TransactionInputType::mock_payment(Asset::mock_erc20(), TransferDataExtra::mock_signature(typed_data.clone(), approval)), "0", gas_limit).into() };
         let approval = ApprovalData::mock();
         let approve: GemSignerInput = SignerInput::mock_evm(
             TransactionInputType::TokenApprove {

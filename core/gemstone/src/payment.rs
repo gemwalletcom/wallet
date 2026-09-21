@@ -15,8 +15,8 @@ use number_formatter::BigNumberFormatter;
 use payment::{PaymentLoad, PaymentService, PaymentTransaction, PaymentUpdate, WalletConnectPayAuth};
 use primitives::TransactionInputType;
 use primitives::{
-    Asset, AssetId, Chain, ChainAddress, ChainType, PaymentInvoice, PaymentLink, PaymentQuote, PaymentStatus, PaymentURLDecoder, PaymentVerification,
-    TransactionChange, TransactionState, TransactionType, TransactionUpdate, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, hex,
+    Asset, AssetId, Chain, ChainAddress, ChainType, PaymentInvoice, PaymentLink, PaymentQuote, PaymentStatus, PaymentURLDecoder, PaymentVerification, TransactionChange, TransactionState, TransactionType, TransactionUpdate,
+    TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, hex,
 };
 use uuid::Uuid;
 
@@ -135,10 +135,7 @@ fn quote_transfer_data(invoice: GemPaymentInvoice, asset: Asset, verification: P
     Ok(GemTransferData {
         input_type: TransactionInputType::Payment {
             asset,
-            invoice: GemPaymentInvoice {
-                verification: Some(verification),
-                ..invoice
-            },
+            invoice: GemPaymentInvoice { verification: Some(verification), ..invoice },
             extra: TransferDataExtra {
                 transaction_type: TransactionType::Transfer,
                 ..Default::default()
@@ -202,14 +199,7 @@ pub(crate) fn payment_record_hash(link: &PaymentLink) -> Option<String> {
 
 fn payment_transaction_update(hash: &str, update: PaymentUpdate) -> TransactionUpdate {
     match update.status {
-        PaymentStatus::Succeeded => TransactionUpdate::new(
-            TransactionState::Confirmed,
-            update
-                .transaction_id
-                .map(|new| TransactionChange::HashChange { old: hash.to_string(), new })
-                .into_iter()
-                .collect(),
-        ),
+        PaymentStatus::Succeeded => TransactionUpdate::new(TransactionState::Confirmed, update.transaction_id.map(|new| TransactionChange::HashChange { old: hash.to_string(), new }).into_iter().collect()),
         PaymentStatus::Failed | PaymentStatus::Expired | PaymentStatus::Cancelled => TransactionUpdate::new_state(TransactionState::Failed),
         PaymentStatus::RequiresAction | PaymentStatus::Processing => TransactionUpdate::new_state(TransactionState::Pending),
     }
@@ -428,31 +418,22 @@ mod tests {
         let solana_pay = TransactionInputType::Payment {
             asset: Asset::mock_sol(),
             invoice: PaymentInvoice {
-                link: PaymentLink::SolanaPay { url: "https://merchant.example/pay".to_string() },
+                link: PaymentLink::SolanaPay {
+                    url: "https://merchant.example/pay".to_string(),
+                },
                 quotes: vec![],
                 ..PaymentInvoice::mock()
             },
             extra: TransferDataExtra::mock(),
         };
 
-        assert_eq!(
-            block_on(GemPaymentService::mock().confirm(&solana_pay, vec!["0xhash".to_string()])),
-            Ok(()),
-            "a rail without quotes has nothing to confirm"
-        );
+        assert_eq!(block_on(GemPaymentService::mock().confirm(&solana_pay, vec!["0xhash".to_string()])), Ok(()), "a rail without quotes has nothing to confirm");
     }
 
     #[test]
     fn test_payment_record_hash() {
-        assert_eq!(
-            payment_record_hash(&PaymentLink::WalletConnectPay { payment_id: "pay_1".to_string() }).as_deref(),
-            Some("pay_1")
-        );
-        assert_eq!(
-            payment_record_hash(&PaymentLink::SolanaPay { url: "solana:pay".to_string() }),
-            None,
-            "only a relayed payment is recorded by its id"
-        );
+        assert_eq!(payment_record_hash(&PaymentLink::WalletConnectPay { payment_id: "pay_1".to_string() }).as_deref(), Some("pay_1"));
+        assert_eq!(payment_record_hash(&PaymentLink::SolanaPay { url: "solana:pay".to_string() }), None, "only a relayed payment is recorded by its id");
     }
 
     const BITCOIN_ADDRESS: &str = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4";
@@ -804,9 +785,7 @@ mod tests {
         assert_eq!(
             decode_url("https://pay.walletconnect.com/?pid=pay_123").unwrap(),
             GemPayment::Link {
-                link: GemPaymentLink::WalletConnectPay {
-                    payment_id: "pay_123".to_string(),
-                },
+                link: GemPaymentLink::WalletConnectPay { payment_id: "pay_123".to_string() },
             }
         );
     }

@@ -5,10 +5,7 @@ use serde::{Serialize, de::DeserializeOwned};
 
 use crate::error::PaymentError;
 use crate::wallet_connect_pay::config::WalletConnectPayAuth;
-use crate::wallet_connect_pay::model::{
-    ConfirmPaymentRequest, FetchActionsRequest, FetchActionsResponse, PaymentActions, PaymentOptionsRequest, PaymentOptionsResponse, PaymentStatusResponse,
-    WalletConnectPayActionResult,
-};
+use crate::wallet_connect_pay::model::{ConfirmPaymentRequest, FetchActionsRequest, FetchActionsResponse, PaymentActions, PaymentOptionsRequest, PaymentOptionsResponse, PaymentStatusResponse, WalletConnectPayActionResult};
 use crate::wallet_connect_pay::target::WalletConnectPayTarget;
 
 pub(super) const WALLET_CONNECT_PAY_API_URL: &str = "https://api.pay.walletconnect.com";
@@ -37,20 +34,13 @@ impl<C: Client> WalletConnectPayClient<C> {
     }
 
     pub(super) async fn get_options(&self, payment_id: &str, accounts: &[String]) -> Result<PaymentOptionsResponse, PaymentError> {
-        let target = WalletConnectPayTarget::Options {
-            payment_id: payment_id.to_string(),
-        };
+        let target = WalletConnectPayTarget::Options { payment_id: payment_id.to_string() };
         self.post(target, &PaymentOptionsRequest { accounts }).await
     }
 
     pub(super) async fn get_actions(&self, payment_id: &str, option_id: &str, data: String) -> Result<PaymentActions, PaymentError> {
-        let target = WalletConnectPayTarget::Fetch {
-            payment_id: payment_id.to_string(),
-        };
-        let request = FetchActionsRequest {
-            option_id: option_id.to_string(),
-            data,
-        };
+        let target = WalletConnectPayTarget::Fetch { payment_id: payment_id.to_string() };
+        let request = FetchActionsRequest { option_id: option_id.to_string(), data };
         match self.post(target, &request).await {
             Ok(FetchActionsResponse { actions }) => Ok(PaymentActions::Ready(actions)),
             Err(PaymentError::InvalidRequest { reason }) if reason.contains(COLLECT_DATA_REQUIRED_MESSAGE) => Ok(PaymentActions::CollectData),
@@ -59,9 +49,7 @@ impl<C: Client> WalletConnectPayClient<C> {
     }
 
     pub(super) async fn confirm(&self, payment_id: &str, option_id: &str, action_results: Vec<String>) -> Result<PaymentStatusResponse, PaymentError> {
-        let target = WalletConnectPayTarget::Confirm {
-            payment_id: payment_id.to_string(),
-        };
+        let target = WalletConnectPayTarget::Confirm { payment_id: payment_id.to_string() };
         let request = ConfirmPaymentRequest {
             option_id: option_id.to_string(),
             results: action_results.into_iter().map(WalletConnectPayActionResult::wallet_rpc).collect(),
@@ -70,9 +58,7 @@ impl<C: Client> WalletConnectPayClient<C> {
     }
 
     pub(super) async fn get_status(&self, payment_id: &str) -> Result<PaymentStatusResponse, PaymentError> {
-        let target = WalletConnectPayTarget::Status {
-            payment_id: payment_id.to_string(),
-        };
+        let target = WalletConnectPayTarget::Status { payment_id: payment_id.to_string() };
         self.client.get(target).headers(self.headers.clone()).await.map_err(PaymentError::from)
     }
 
