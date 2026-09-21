@@ -225,11 +225,7 @@
   <string name="errors_no_internet_connection">Geen internetverbinding</string>
   <string name="errors_no_service_connection">Geen serviceverbinding</string>
   <string name="errors_balances_activity_outdated">Saldi en activiteit zijn mogelijk verouderd.</string>
-  <string name="errors_payment_in_progress">De betaling is al in behandeling</string>
-  <string name="errors_payment_paid">De betaling is al voldaan</string>
-  <string name="errors_payment_failed">De betaling is mislukt</string>
-  <string name="errors_payment_expired">De betaling is verlopen</string>
-  <string name="errors_payment_cancelled">De betaling is geannuleerd</string>
+  <string name="errors_payment_status">Betaling: %1$s</string>
   <string name="activity_title">Activiteit</string>
   <string name="activity_state_empty_title">Uw activiteit zal hier verschijnen</string>
   <string name="activity_state_empty_description">Maak uw eerste transactie</string>
@@ -257,6 +253,7 @@
   <string name="transaction_status_completed">Voltooid</string>
   <string name="transaction_status_inprogress">In uitvoering</string>
   <string name="transaction_status_refunded">Terugbetaald</string>
+  <string name="transaction_status_expired">Verlopen</string>
   <string name="asset_balances">Saldi</string>
   <string name="asset_balances_available">Beschikbaar</string>
   <string name="asset_price">Prijs</string>

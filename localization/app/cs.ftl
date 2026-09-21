@@ -255,11 +255,7 @@ errors_network_offline = Zdá se, že je internetové připojení offline.
 errors_no_internet_connection = Žádné připojení k internetu
 errors_no_service_connection = Žádné připojení ke službě
 errors_balances_activity_outdated = Zůstatky a aktivita mohou být zastaralé.
-errors_payment_in_progress = Platba již probíhá
-errors_payment_paid = Platba již byla uhrazena
-errors_payment_failed = Platba se nezdařila
-errors_payment_expired = Platnost platby vypršela
-errors_payment_cancelled = Platba byla zrušena
+errors_payment_status = Platba: %@
 
 # Activity
 
@@ -296,6 +292,7 @@ transaction_swap_again = Znovu vyměnit
 transaction_status_completed = Dokončeno
 transaction_status_inprogress = Probíhá
 transaction_status_refunded = Vráceno
+transaction_status_expired = Vypršelo
 
 # Asset
 

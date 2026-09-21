@@ -255,11 +255,7 @@ errors_network_offline = يبدو أن الاتصال بالإنترنت غير 
 errors_no_internet_connection = لا يوجد اتصال بالإنترنت
 errors_no_service_connection = لا يوجد اتصال بالخدمة
 errors_balances_activity_outdated = قد تكون الأرصدة والنشاط غير محدثة.
-errors_payment_in_progress = الدفع قيد التنفيذ بالفعل
-errors_payment_paid = تم الدفع بالفعل
-errors_payment_failed = فشل الدفع
-errors_payment_expired = انتهت صلاحية الدفع
-errors_payment_cancelled = تم إلغاء الدفع
+errors_payment_status = الدفع: %@
 
 # Activity
 
@@ -296,6 +292,7 @@ transaction_swap_again = التبديل مرة أخرى
 transaction_status_completed = مكتمل
 transaction_status_inprogress = في تَقَدم
 transaction_status_refunded = ردها
+transaction_status_expired = منتهي الصلاحية
 
 # Asset
 

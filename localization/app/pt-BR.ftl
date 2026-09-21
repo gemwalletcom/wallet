@@ -255,11 +255,7 @@ errors_network_offline = A conexão com a internet parece estar offline.
 errors_no_internet_connection = Sem conexão com a internet
 errors_no_service_connection = Sem conexão com o serviço
 errors_balances_activity_outdated = Os saldos e a atividade podem estar desatualizados.
-errors_payment_in_progress = O pagamento já está em andamento
-errors_payment_paid = O pagamento já foi realizado
-errors_payment_failed = O pagamento falhou
-errors_payment_expired = O pagamento expirou
-errors_payment_cancelled = O pagamento foi cancelado
+errors_payment_status = Pagamento: %@
 
 # Activity
 
@@ -296,6 +292,7 @@ transaction_swap_again = Troque novamente
 transaction_status_completed = Concluído
 transaction_status_inprogress = Em andamento
 transaction_status_refunded = Reembolsado
+transaction_status_expired = Expirado
 
 # Asset
 

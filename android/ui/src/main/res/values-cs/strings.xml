@@ -225,11 +225,7 @@
   <string name="errors_no_internet_connection">Žádné připojení k internetu</string>
   <string name="errors_no_service_connection">Žádné připojení ke službě</string>
   <string name="errors_balances_activity_outdated">Zůstatky a aktivita mohou být zastaralé.</string>
-  <string name="errors_payment_in_progress">Platba již probíhá</string>
-  <string name="errors_payment_paid">Platba již byla uhrazena</string>
-  <string name="errors_payment_failed">Platba se nezdařila</string>
-  <string name="errors_payment_expired">Platnost platby vypršela</string>
-  <string name="errors_payment_cancelled">Platba byla zrušena</string>
+  <string name="errors_payment_status">Platba: %1$s</string>
   <string name="activity_title">Aktivita</string>
   <string name="activity_state_empty_title">Vaše aktivita se zde zobrazí</string>
   <string name="activity_state_empty_description">Proveďte svou první transakci</string>
@@ -257,6 +253,7 @@
   <string name="transaction_status_completed">Dokončeno</string>
   <string name="transaction_status_inprogress">Probíhá</string>
   <string name="transaction_status_refunded">Vráceno</string>
+  <string name="transaction_status_expired">Vypršelo</string>
   <string name="asset_balances">Zůstatky</string>
   <string name="asset_balances_available">K dispozici</string>
   <string name="asset_price">Cena</string>

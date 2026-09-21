@@ -225,11 +225,7 @@
   <string name="errors_no_internet_connection">Hakuna muunganisho wa intaneti</string>
   <string name="errors_no_service_connection">Hakuna muunganisho wa huduma</string>
   <string name="errors_balances_activity_outdated">Salio na shughuli huenda si za sasa.</string>
-  <string name="errors_payment_in_progress">Malipo tayari yanaendelea</string>
-  <string name="errors_payment_paid">Malipo tayari yamefanywa</string>
-  <string name="errors_payment_failed">Malipo yameshindikana</string>
-  <string name="errors_payment_expired">Malipo yameisha muda</string>
-  <string name="errors_payment_cancelled">Malipo yameghairiwa</string>
+  <string name="errors_payment_status">Malipo: %1$s</string>
   <string name="activity_title">Shughuli</string>
   <string name="activity_state_empty_title">Shughuli yako itaonekana hapa</string>
   <string name="activity_state_empty_description">Fanya muamala wako wa kwanza</string>
@@ -257,6 +253,7 @@
   <string name="transaction_status_completed">Imekamilika</string>
   <string name="transaction_status_inprogress">Inaendelea</string>
   <string name="transaction_status_refunded">Imerejeshwa</string>
+  <string name="transaction_status_expired">Imeisha muda</string>
   <string name="asset_balances">Salio</string>
   <string name="asset_balances_available">Inapatikana</string>
   <string name="asset_price">Bei</string>

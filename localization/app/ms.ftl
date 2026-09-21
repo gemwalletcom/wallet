@@ -255,11 +255,7 @@ errors_network_offline = Sambungan Internet nampaknya di luar talian.
 errors_no_internet_connection = Tiada sambungan internet
 errors_no_service_connection = Tiada sambungan perkhidmatan
 errors_balances_activity_outdated = Baki dan aktiviti mungkin tidak terkini.
-errors_payment_in_progress = Pembayaran sudah sedang dijalankan
-errors_payment_paid = Pembayaran sudah dibuat
-errors_payment_failed = Pembayaran gagal
-errors_payment_expired = Pembayaran telah tamat tempoh
-errors_payment_cancelled = Pembayaran telah dibatalkan
+errors_payment_status = Pembayaran: %@
 
 # Activity
 
@@ -296,6 +292,7 @@ transaction_swap_again = Tukar Lagi
 transaction_status_completed = Selesai
 transaction_status_inprogress = Sedang Berlangsung
 transaction_status_refunded = Dibayar balik
+transaction_status_expired = Tamat tempoh
 
 # Asset
 

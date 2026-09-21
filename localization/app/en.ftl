@@ -488,16 +488,8 @@ errors_no_internet_connection = No internet connection
 # Used in the connection status banner when app services are unreachable.
 errors_no_service_connection = No service connection
 errors_balances_activity_outdated = Balances and activity may be outdated.
-# Used as the error when a scanned payment is being paid by someone else.
-errors_payment_in_progress = Payment is already in progress
-# Used as the error when a scanned payment has already been paid.
-errors_payment_paid = Payment is already paid
-# Used as the error when the payment gateway reports a failed payment.
-errors_payment_failed = Payment has failed
-# Used as the error when a payment expired before it was paid.
-errors_payment_expired = Payment has expired
-# Used as the error when the merchant cancelled the payment.
-errors_payment_cancelled = Payment was cancelled
+# Used as the error when a scanned payment cannot be paid; %@ is the payment status.
+errors_payment_status = Payment: %@
 
 # Activity
 
@@ -561,6 +553,8 @@ transaction_status_completed = Completed
 transaction_status_inprogress = In Progress
 # Used in transaction status and detail screens for the status refunded label.
 transaction_status_refunded = Refunded
+# Used in transaction status and detail screens for the status expired label.
+transaction_status_expired = Expired
 
 # Asset
 

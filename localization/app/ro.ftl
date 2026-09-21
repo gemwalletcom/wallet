@@ -255,11 +255,7 @@ errors_network_offline = Conexiunea la internet pare să fie offline.
 errors_no_internet_connection = Nicio conexiune la internet
 errors_no_service_connection = Nicio conexiune la serviciu
 errors_balances_activity_outdated = Soldurile și activitatea pot fi învechite.
-errors_payment_in_progress = Plata este deja în curs
-errors_payment_paid = Plata a fost deja efectuată
-errors_payment_failed = Plata a eșuat
-errors_payment_expired = Plata a expirat
-errors_payment_cancelled = Plata a fost anulată
+errors_payment_status = Plată: %@
 
 # Activity
 
@@ -296,6 +292,7 @@ transaction_swap_again = Schimbați din nou
 transaction_status_completed = Terminat
 transaction_status_inprogress = În curs
 transaction_status_refunded = Rambursat
+transaction_status_expired = Expirat
 
 # Asset
 

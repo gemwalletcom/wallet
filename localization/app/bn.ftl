@@ -255,11 +255,7 @@ errors_network_offline = ইন্টারনেট সংযোগটি অ�
 errors_no_internet_connection = ইন্টারনেট সংযোগ নেই
 errors_no_service_connection = পরিষেবা সংযোগ নেই
 errors_balances_activity_outdated = ব্যালেন্স এবং কার্যকলাপ পুরনো হতে পারে।
-errors_payment_in_progress = পেমেন্ট ইতিমধ্যে চলছে
-errors_payment_paid = পেমেন্ট ইতিমধ্যে সম্পন্ন হয়েছে
-errors_payment_failed = পেমেন্ট ব্যর্থ হয়েছে
-errors_payment_expired = পেমেন্টের মেয়াদ শেষ হয়ে গেছে
-errors_payment_cancelled = পেমেন্ট বাতিল করা হয়েছে
+errors_payment_status = পেমেন্ট: %@
 
 # Activity
 
@@ -296,6 +292,7 @@ transaction_swap_again = আবার অদলবদল করুন
 transaction_status_completed = সম্পন্ন
 transaction_status_inprogress = চলছে
 transaction_status_refunded = ফেরত দেওয়া হয়েছে
+transaction_status_expired = মেয়াদোত্তীর্ণ
 
 # Asset
 

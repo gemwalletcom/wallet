@@ -255,11 +255,7 @@ errors_network_offline = انٹرنیٹ کنکشن آف لائن معلوم ہو
 errors_no_internet_connection = انٹرنیٹ کنکشن نہیں ہے
 errors_no_service_connection = سروس کنکشن نہیں ہے
 errors_balances_activity_outdated = بیلنس اور سرگرمی پرانی ہو سکتی ہے۔
-errors_payment_in_progress = ادائیگی پہلے ہی جاری ہے
-errors_payment_paid = ادائیگی پہلے ہی ہو چکی ہے
-errors_payment_failed = ادائیگی ناکام ہو گئی
-errors_payment_expired = ادائیگی کی میعاد ختم ہو گئی
-errors_payment_cancelled = ادائیگی منسوخ کر دی گئی
+errors_payment_status = ادائیگی: %@
 
 # Activity
 
@@ -296,6 +292,7 @@ transaction_swap_again = دوبارہ تبدیل کریں۔
 transaction_status_completed = مکمل
 transaction_status_inprogress = جاری ہے۔
 transaction_status_refunded = رقم کی واپسی
+transaction_status_expired = میعاد ختم
 
 # Asset
 

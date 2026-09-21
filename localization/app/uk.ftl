@@ -255,11 +255,7 @@ errors_network_offline = Здається, підключення до Інте�
 errors_no_internet_connection = Немає підключення до інтернету
 errors_no_service_connection = Немає підключення до сервісу
 errors_balances_activity_outdated = Баланси та активність можуть бути застарілими.
-errors_payment_in_progress = Платіж уже виконується
-errors_payment_paid = Платіж уже здійснено
-errors_payment_failed = Платіж не виконано
-errors_payment_expired = Термін платежу минув
-errors_payment_cancelled = Платіж скасовано
+errors_payment_status = Платіж: %@
 
 # Activity
 
@@ -296,6 +292,7 @@ transaction_swap_again = Знову обміняти
 transaction_status_completed = Завершено
 transaction_status_inprogress = У процесі
 transaction_status_refunded = Повернено кошти
+transaction_status_expired = Прострочено
 
 # Asset
 

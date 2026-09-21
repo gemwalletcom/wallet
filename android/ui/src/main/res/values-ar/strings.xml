@@ -225,11 +225,7 @@
   <string name="errors_no_internet_connection">لا يوجد اتصال بالإنترنت</string>
   <string name="errors_no_service_connection">لا يوجد اتصال بالخدمة</string>
   <string name="errors_balances_activity_outdated">قد تكون الأرصدة والنشاط غير محدثة.</string>
-  <string name="errors_payment_in_progress">الدفع قيد التنفيذ بالفعل</string>
-  <string name="errors_payment_paid">تم الدفع بالفعل</string>
-  <string name="errors_payment_failed">فشل الدفع</string>
-  <string name="errors_payment_expired">انتهت صلاحية الدفع</string>
-  <string name="errors_payment_cancelled">تم إلغاء الدفع</string>
+  <string name="errors_payment_status">الدفع: %1$s</string>
   <string name="activity_title">نشاط</string>
   <string name="activity_state_empty_title">سوف يظهر نشاطك هنا</string>
   <string name="activity_state_empty_description">قم بإجراء معاملتك الأولى</string>
@@ -257,6 +253,7 @@
   <string name="transaction_status_completed">مكتمل</string>
   <string name="transaction_status_inprogress">في تَقَدم</string>
   <string name="transaction_status_refunded">ردها</string>
+  <string name="transaction_status_expired">منتهي الصلاحية</string>
   <string name="asset_balances">أرصدة</string>
   <string name="asset_balances_available">متاح</string>
   <string name="asset_price">سعر</string>

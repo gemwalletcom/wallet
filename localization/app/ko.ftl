@@ -255,11 +255,7 @@ errors_network_offline = 인터넷 연결이 끊긴 것 같습니다.
 errors_no_internet_connection = 인터넷 연결 없음
 errors_no_service_connection = 서비스 연결 없음
 errors_balances_activity_outdated = 잔액 및 활동이 최신이 아닐 수 있습니다.
-errors_payment_in_progress = 결제가 이미 진행 중입니다
-errors_payment_paid = 이미 결제되었습니다
-errors_payment_failed = 결제에 실패했습니다
-errors_payment_expired = 결제가 만료되었습니다
-errors_payment_cancelled = 결제가 취소되었습니다
+errors_payment_status = 결제: %@
 
 # Activity
 
@@ -296,6 +292,7 @@ transaction_swap_again = 다시 바꾸기
 transaction_status_completed = 완료됨
 transaction_status_inprogress = 진행 중
 transaction_status_refunded = 환불됨
+transaction_status_expired = 만료됨
 
 # Asset
 

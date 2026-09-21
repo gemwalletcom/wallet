@@ -255,11 +255,7 @@ errors_network_offline = Da alama haɗin intanet ɗin ya katse.
 errors_no_internet_connection = Babu haɗin intanet
 errors_no_service_connection = Babu haɗin sabis
 errors_balances_activity_outdated = Ma'aunai da ayyuka na iya zama tsofaffi.
-errors_payment_in_progress = Biyan kuɗin ya riga ya fara
-errors_payment_paid = An riga an biya
-errors_payment_failed = Biyan kuɗin ya gaza
-errors_payment_expired = Biyan kuɗin ya ƙare
-errors_payment_cancelled = An soke biyan kuɗin
+errors_payment_status = Biyan kuɗi: %@
 
 # Activity
 
@@ -296,6 +292,7 @@ transaction_swap_again = Sake Musanya
 transaction_status_completed = An kammala
 transaction_status_inprogress = Ana ci gaba
 transaction_status_refunded = An mayar da kuɗi
+transaction_status_expired = Ya ƙare
 
 # Asset
 

@@ -225,11 +225,7 @@
   <string name="errors_no_internet_connection">אין חיבור לאינטרנט</string>
   <string name="errors_no_service_connection">אין חיבור לשירות</string>
   <string name="errors_balances_activity_outdated">היתרות והפעילות עשויות להיות לא מעודכנות.</string>
-  <string name="errors_payment_in_progress">התשלום כבר מתבצע</string>
-  <string name="errors_payment_paid">התשלום כבר בוצע</string>
-  <string name="errors_payment_failed">התשלום נכשל</string>
-  <string name="errors_payment_expired">פג תוקף התשלום</string>
-  <string name="errors_payment_cancelled">התשלום בוטל</string>
+  <string name="errors_payment_status">תשלום: %1$s</string>
   <string name="activity_title">פעילות</string>
   <string name="activity_state_empty_title">הפעילות שלך תופיע כאן</string>
   <string name="activity_state_empty_description">בצעו את העסקה הראשונה שלכם</string>
@@ -257,6 +253,7 @@
   <string name="transaction_status_completed">הושלם</string>
   <string name="transaction_status_inprogress">בתהליך</string>
   <string name="transaction_status_refunded">החזר כספי</string>
+  <string name="transaction_status_expired">פג תוקף</string>
   <string name="asset_balances">יתרות</string>
   <string name="asset_balances_available">זמין</string>
   <string name="asset_price">מחיר</string>

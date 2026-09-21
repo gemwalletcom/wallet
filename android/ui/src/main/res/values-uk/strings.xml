@@ -225,11 +225,7 @@
   <string name="errors_no_internet_connection">Немає підключення до інтернету</string>
   <string name="errors_no_service_connection">Немає підключення до сервісу</string>
   <string name="errors_balances_activity_outdated">Баланси та активність можуть бути застарілими.</string>
-  <string name="errors_payment_in_progress">Платіж уже виконується</string>
-  <string name="errors_payment_paid">Платіж уже здійснено</string>
-  <string name="errors_payment_failed">Платіж не виконано</string>
-  <string name="errors_payment_expired">Термін платежу минув</string>
-  <string name="errors_payment_cancelled">Платіж скасовано</string>
+  <string name="errors_payment_status">Платіж: %1$s</string>
   <string name="activity_title">Активність</string>
   <string name="activity_state_empty_title">Ваша активність відображатиметься тут</string>
   <string name="activity_state_empty_description">Зробіть свою першу транзакцію</string>
@@ -257,6 +253,7 @@
   <string name="transaction_status_completed">Завершено</string>
   <string name="transaction_status_inprogress">У процесі</string>
   <string name="transaction_status_refunded">Повернено кошти</string>
+  <string name="transaction_status_expired">Прострочено</string>
   <string name="asset_balances">Залишки</string>
   <string name="asset_balances_available">Доступно</string>
   <string name="asset_price">Ціна</string>

@@ -426,12 +426,15 @@ fun GemErrorText.text(context: Context): String = when (this) {
     is GemErrorText.Message -> text
 }
 
-fun PaymentStatus.errorText(context: Context): String = when (this) {
-    PaymentStatus.REQUIRES_ACTION, PaymentStatus.FAILED -> context.getString(R.string.errors_payment_failed)
-    PaymentStatus.PROCESSING -> context.getString(R.string.errors_payment_in_progress)
-    PaymentStatus.SUCCEEDED -> context.getString(R.string.errors_payment_paid)
-    PaymentStatus.EXPIRED -> context.getString(R.string.errors_payment_expired)
-    PaymentStatus.CANCELLED -> context.getString(R.string.errors_payment_cancelled)
+fun PaymentStatus.errorText(context: Context): String = context.getString(R.string.errors_payment_status, context.getString(stringRes()))
+
+@StringRes
+private fun PaymentStatus.stringRes(): Int = when (this) {
+    PaymentStatus.REQUIRES_ACTION, PaymentStatus.FAILED -> R.string.transaction_status_failed
+    PaymentStatus.PROCESSING -> R.string.transaction_status_inprogress
+    PaymentStatus.SUCCEEDED -> R.string.transaction_status_completed
+    PaymentStatus.EXPIRED -> R.string.transaction_status_expired
+    PaymentStatus.CANCELLED -> R.string.errors_cancelled
 }
 
 @Composable

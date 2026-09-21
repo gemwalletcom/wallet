@@ -225,11 +225,7 @@
   <string name="errors_no_internet_connection">Ingen internetforbindelse</string>
   <string name="errors_no_service_connection">Ingen serviceforbindelse</string>
   <string name="errors_balances_activity_outdated">Saldi og aktivitet kan være forældede.</string>
-  <string name="errors_payment_in_progress">Betalingen er allerede i gang</string>
-  <string name="errors_payment_paid">Betalingen er allerede gennemført</string>
-  <string name="errors_payment_failed">Betalingen mislykkedes</string>
-  <string name="errors_payment_expired">Betalingen er udløbet</string>
-  <string name="errors_payment_cancelled">Betalingen blev annulleret</string>
+  <string name="errors_payment_status">Betaling: %1$s</string>
   <string name="activity_title">Aktivitet</string>
   <string name="activity_state_empty_title">Din aktivitet vil blive vist her</string>
   <string name="activity_state_empty_description">Foretag din første transaktion</string>
@@ -257,6 +253,7 @@
   <string name="transaction_status_completed">Afsluttet</string>
   <string name="transaction_status_inprogress">Igangværende</string>
   <string name="transaction_status_refunded">Refunderet</string>
+  <string name="transaction_status_expired">Udløbet</string>
   <string name="asset_balances">Balancer</string>
   <string name="asset_balances_available">Tilgængelig</string>
   <string name="asset_price">Pris</string>

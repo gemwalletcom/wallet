@@ -225,11 +225,7 @@
   <string name="errors_no_internet_connection">İnternet bağlantısı yok</string>
   <string name="errors_no_service_connection">Servis bağlantısı yok</string>
   <string name="errors_balances_activity_outdated">Bakiyeler ve etkinlik güncel olmayabilir.</string>
-  <string name="errors_payment_in_progress">Ödeme zaten işleniyor</string>
-  <string name="errors_payment_paid">Ödeme zaten yapılmış</string>
-  <string name="errors_payment_failed">Ödeme başarısız oldu</string>
-  <string name="errors_payment_expired">Ödemenin süresi doldu</string>
-  <string name="errors_payment_cancelled">Ödeme iptal edildi</string>
+  <string name="errors_payment_status">Ödeme: %1$s</string>
   <string name="activity_title">Aktivite</string>
   <string name="activity_state_empty_title">Etkinliğiniz burada görünecek</string>
   <string name="activity_state_empty_description">İlk işleminizi yapın</string>
@@ -257,6 +253,7 @@
   <string name="transaction_status_completed">Tamamlandı</string>
   <string name="transaction_status_inprogress">Devam Ediyor</string>
   <string name="transaction_status_refunded">Para iadesi yapıldı</string>
+  <string name="transaction_status_expired">Süresi doldu</string>
   <string name="asset_balances">Bakiyeler</string>
   <string name="asset_balances_available">Mevcut</string>
   <string name="asset_price">Fiyat</string>

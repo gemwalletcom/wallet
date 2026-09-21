@@ -255,11 +255,7 @@ errors_network_offline = インターネット接続が切断されているよ�
 errors_no_internet_connection = インターネット接続がありません
 errors_no_service_connection = サービスに接続できません
 errors_balances_activity_outdated = 残高とアクティビティは最新でない場合があります。
-errors_payment_in_progress = この支払いはすでに処理中です
-errors_payment_paid = この支払いはすでに完了しています
-errors_payment_failed = 支払いに失敗しました
-errors_payment_expired = 支払いの有効期限が切れました
-errors_payment_cancelled = 支払いはキャンセルされました
+errors_payment_status = 支払い: %@
 
 # Activity
 
@@ -296,6 +292,7 @@ transaction_swap_again = 再度スワップ
 transaction_status_completed = 完了
 transaction_status_inprogress = 進行中
 transaction_status_refunded = 返金済み
+transaction_status_expired = 期限切れ
 
 # Asset
 

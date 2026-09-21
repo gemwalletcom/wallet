@@ -225,11 +225,7 @@
   <string name="errors_no_internet_connection">اتصال اینترنت برقرار نیست</string>
   <string name="errors_no_service_connection">اتصال سرویس برقرار نیست</string>
   <string name="errors_balances_activity_outdated">موجودی‌ها و فعالیت ممکن است به‌روز نباشند.</string>
-  <string name="errors_payment_in_progress">پرداخت از قبل در حال انجام است</string>
-  <string name="errors_payment_paid">پرداخت قبلاً انجام شده است</string>
-  <string name="errors_payment_failed">پرداخت ناموفق بود</string>
-  <string name="errors_payment_expired">پرداخت منقضی شد</string>
-  <string name="errors_payment_cancelled">پرداخت لغو شد</string>
+  <string name="errors_payment_status">پرداخت: %1$s</string>
   <string name="activity_title">فعالیت</string>
   <string name="activity_state_empty_title">فعالیت شما اینجا نمایش داده می‌شود</string>
   <string name="activity_state_empty_description">اولین تراکنش خود را انجام دهید</string>
@@ -257,6 +253,7 @@
   <string name="transaction_status_completed">تکمیل شد</string>
   <string name="transaction_status_inprogress">در حال انجام است</string>
   <string name="transaction_status_refunded">بازپرداخت شد</string>
+  <string name="transaction_status_expired">منقضی شد</string>
   <string name="asset_balances">موجودی ها</string>
   <string name="asset_balances_available">در دسترس</string>
   <string name="asset_price">قيمت</string>

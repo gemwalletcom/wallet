@@ -225,11 +225,7 @@
   <string name="errors_no_internet_connection">Walang koneksyon sa internet</string>
   <string name="errors_no_service_connection">Walang koneksyon sa serbisyo</string>
   <string name="errors_balances_activity_outdated">Maaaring luma na ang mga balanse at aktibidad.</string>
-  <string name="errors_payment_in_progress">Isinasagawa na ang bayad</string>
-  <string name="errors_payment_paid">Nabayaran na</string>
-  <string name="errors_payment_failed">Nabigo ang bayad</string>
-  <string name="errors_payment_expired">Nag-expire na ang bayad</string>
-  <string name="errors_payment_cancelled">Nakansela ang bayad</string>
+  <string name="errors_payment_status">Bayad: %1$s</string>
   <string name="activity_title">Aktibidad</string>
   <string name="activity_state_empty_title">Lalabas dito ang iyong aktibidad</string>
   <string name="activity_state_empty_description">Gawin ang iyong unang transaksyon</string>
@@ -257,6 +253,7 @@
   <string name="transaction_status_completed">Nakumpleto</string>
   <string name="transaction_status_inprogress">Isinasagawa</string>
   <string name="transaction_status_refunded">Na-refund</string>
+  <string name="transaction_status_expired">Nag-expire</string>
   <string name="asset_balances">Mga balanse</string>
   <string name="asset_balances_available">Available</string>
   <string name="asset_price">Presyo</string>

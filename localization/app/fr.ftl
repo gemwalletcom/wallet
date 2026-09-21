@@ -255,11 +255,7 @@ errors_network_offline = La connexion Internet semble être hors ligne.
 errors_no_internet_connection = Pas de connexion Internet
 errors_no_service_connection = Pas de connexion au service
 errors_balances_activity_outdated = Les soldes et l'activité peuvent être obsolètes.
-errors_payment_in_progress = Le paiement est déjà en cours
-errors_payment_paid = Le paiement a déjà été effectué
-errors_payment_failed = Le paiement a échoué
-errors_payment_expired = Le paiement a expiré
-errors_payment_cancelled = Le paiement a été annulé
+errors_payment_status = Paiement : %@
 
 # Activity
 
@@ -296,6 +292,7 @@ transaction_swap_again = Échanger à nouveau
 transaction_status_completed = Terminé
 transaction_status_inprogress = En cours
 transaction_status_refunded = Remboursé
+transaction_status_expired = Expiré
 
 # Asset
 

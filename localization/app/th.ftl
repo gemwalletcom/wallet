@@ -255,11 +255,7 @@ errors_network_offline = ดูเหมือนว่าการเชื่�
 errors_no_internet_connection = ไม่มีการเชื่อมต่ออินเทอร์เน็ต
 errors_no_service_connection = ไม่มีการเชื่อมต่อบริการ
 errors_balances_activity_outdated = ยอดคงเหลือและกิจกรรมอาจไม่เป็นปัจจุบัน
-errors_payment_in_progress = การชำระเงินนี้กำลังดำเนินการอยู่แล้ว
-errors_payment_paid = การชำระเงินนี้ได้ชำระแล้ว
-errors_payment_failed = การชำระเงินล้มเหลว
-errors_payment_expired = การชำระเงินหมดอายุแล้ว
-errors_payment_cancelled = การชำระเงินถูกยกเลิกแล้ว
+errors_payment_status = การชำระเงิน: %@
 
 # Activity
 
@@ -296,6 +292,7 @@ transaction_swap_again = แลกเปลี่ยนอีกครั้ง
 transaction_status_completed = เสร็จสิ้น
 transaction_status_inprogress = อยู่ระหว่างดำเนินการ
 transaction_status_refunded = ได้รับเงินคืน
+transaction_status_expired = หมดอายุ
 
 # Asset
 

@@ -537,12 +537,16 @@ public extension GemErrorText {
 
 extension PaymentStatus {
     public var errorText: String {
+        Localized.Errors.paymentStatus(text)
+    }
+
+    var text: String {
         switch self {
-        case .requiresAction, .failed: Localized.Errors.paymentFailed
-        case .processing: Localized.Errors.paymentInProgress
-        case .succeeded: Localized.Errors.paymentPaid
-        case .expired: Localized.Errors.paymentExpired
-        case .cancelled: Localized.Errors.paymentCancelled
+        case .requiresAction, .failed: Localized.Transaction.Status.failed
+        case .processing: Localized.Transaction.Status.inprogress
+        case .succeeded: Localized.Transaction.Status.completed
+        case .expired: Localized.Transaction.Status.expired
+        case .cancelled: Localized.Errors.cancelled
         }
     }
 }

@@ -225,11 +225,7 @@
   <string name="errors_no_internet_connection">ইন্টারনেট সংযোগ নেই</string>
   <string name="errors_no_service_connection">পরিষেবা সংযোগ নেই</string>
   <string name="errors_balances_activity_outdated">ব্যালেন্স এবং কার্যকলাপ পুরনো হতে পারে।</string>
-  <string name="errors_payment_in_progress">পেমেন্ট ইতিমধ্যে চলছে</string>
-  <string name="errors_payment_paid">পেমেন্ট ইতিমধ্যে সম্পন্ন হয়েছে</string>
-  <string name="errors_payment_failed">পেমেন্ট ব্যর্থ হয়েছে</string>
-  <string name="errors_payment_expired">পেমেন্টের মেয়াদ শেষ হয়ে গেছে</string>
-  <string name="errors_payment_cancelled">পেমেন্ট বাতিল করা হয়েছে</string>
+  <string name="errors_payment_status">পেমেন্ট: %1$s</string>
   <string name="activity_title">কার্যকলাপ</string>
   <string name="activity_state_empty_title">আপনার কার্যকলাপ এখানে প্রদর্শিত হবে</string>
   <string name="activity_state_empty_description">আপনার প্রথম লেনদেন করুন</string>
@@ -257,6 +253,7 @@
   <string name="transaction_status_completed">সম্পন্ন</string>
   <string name="transaction_status_inprogress">চলছে</string>
   <string name="transaction_status_refunded">ফেরত দেওয়া হয়েছে</string>
+  <string name="transaction_status_expired">মেয়াদোত্তীর্ণ</string>
   <string name="asset_balances">ভারসাম্য</string>
   <string name="asset_balances_available">পাওয়া যায়</string>
   <string name="asset_price">দাম</string>

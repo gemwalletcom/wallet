@@ -255,11 +255,7 @@ errors_network_offline = İnternet bağlantısı kesilmiş gibi görünüyor.
 errors_no_internet_connection = İnternet bağlantısı yok
 errors_no_service_connection = Servis bağlantısı yok
 errors_balances_activity_outdated = Bakiyeler ve etkinlik güncel olmayabilir.
-errors_payment_in_progress = Ödeme zaten işleniyor
-errors_payment_paid = Ödeme zaten yapılmış
-errors_payment_failed = Ödeme başarısız oldu
-errors_payment_expired = Ödemenin süresi doldu
-errors_payment_cancelled = Ödeme iptal edildi
+errors_payment_status = Ödeme: %@
 
 # Activity
 
@@ -296,6 +292,7 @@ transaction_swap_again = Tekrar Değiştir
 transaction_status_completed = Tamamlandı
 transaction_status_inprogress = Devam Ediyor
 transaction_status_refunded = Para iadesi yapıldı
+transaction_status_expired = Süresi doldu
 
 # Asset
 

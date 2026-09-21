@@ -255,11 +255,7 @@ errors_network_offline = Kết nối Internet dường như đang bị ngắt.
 errors_no_internet_connection = Không có kết nối internet
 errors_no_service_connection = Không có kết nối dịch vụ
 errors_balances_activity_outdated = Số dư và hoạt động có thể chưa được cập nhật.
-errors_payment_in_progress = Thanh toán đã đang được xử lý
-errors_payment_paid = Thanh toán đã được thực hiện
-errors_payment_failed = Thanh toán thất bại
-errors_payment_expired = Thanh toán đã hết hạn
-errors_payment_cancelled = Thanh toán đã bị hủy
+errors_payment_status = Thanh toán: %@
 
 # Activity
 
@@ -296,6 +292,7 @@ transaction_swap_again = Hoán đổi lần nữa
 transaction_status_completed = Đã hoàn thành
 transaction_status_inprogress = Đang tiến hành
 transaction_status_refunded = Đã hoàn tiền
+transaction_status_expired = Đã hết hạn
 
 # Asset
 

@@ -225,11 +225,7 @@
   <string name="errors_no_internet_connection">No internet connection</string>
   <string name="errors_no_service_connection">No service connection</string>
   <string name="errors_balances_activity_outdated">Balances and activity may be outdated.</string>
-  <string name="errors_payment_in_progress">Payment is already in progress</string>
-  <string name="errors_payment_paid">Payment is already paid</string>
-  <string name="errors_payment_failed">Payment has failed</string>
-  <string name="errors_payment_expired">Payment has expired</string>
-  <string name="errors_payment_cancelled">Payment was cancelled</string>
+  <string name="errors_payment_status">Payment: %1$s</string>
   <string name="activity_title">Activity</string>
   <string name="activity_state_empty_title">Your activity will appear here</string>
   <string name="activity_state_empty_description">Make your first transaction</string>
@@ -257,6 +253,7 @@
   <string name="transaction_status_completed">Completed</string>
   <string name="transaction_status_inprogress">In Progress</string>
   <string name="transaction_status_refunded">Refunded</string>
+  <string name="transaction_status_expired">Expired</string>
   <string name="asset_balances">Balances</string>
   <string name="asset_balances_available">Available</string>
   <string name="asset_price">Price</string>

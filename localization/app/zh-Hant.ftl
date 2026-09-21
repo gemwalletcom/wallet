@@ -255,11 +255,7 @@ errors_network_offline = 網路連線似乎已斷開。
 errors_no_internet_connection = 無網際網路連線
 errors_no_service_connection = 無法連線至服務
 errors_balances_activity_outdated = 餘額和交易紀錄可能尚未更新。
-errors_payment_in_progress = 此付款已在處理中
-errors_payment_paid = 此付款已完成
-errors_payment_failed = 付款失敗
-errors_payment_expired = 付款已過期
-errors_payment_cancelled = 付款已取消
+errors_payment_status = 付款： %@
 
 # Activity
 
@@ -296,6 +292,7 @@ transaction_swap_again = 再次兌換
 transaction_status_completed = 已完成
 transaction_status_inprogress = 進行中
 transaction_status_refunded = 已退款
+transaction_status_expired = 已過期
 
 # Asset
 

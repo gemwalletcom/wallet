@@ -255,11 +255,7 @@ errors_network_offline = Internetforbindelsen ser ud til at være offline.
 errors_no_internet_connection = Ingen internetforbindelse
 errors_no_service_connection = Ingen serviceforbindelse
 errors_balances_activity_outdated = Saldi og aktivitet kan være forældede.
-errors_payment_in_progress = Betalingen er allerede i gang
-errors_payment_paid = Betalingen er allerede gennemført
-errors_payment_failed = Betalingen mislykkedes
-errors_payment_expired = Betalingen er udløbet
-errors_payment_cancelled = Betalingen blev annulleret
+errors_payment_status = Betaling: %@
 
 # Activity
 
@@ -296,6 +292,7 @@ transaction_swap_again = Byt igen
 transaction_status_completed = Afsluttet
 transaction_status_inprogress = Igangværende
 transaction_status_refunded = Refunderet
+transaction_status_expired = Udløbet
 
 # Asset
 

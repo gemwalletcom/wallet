@@ -255,11 +255,7 @@ errors_network_offline = Muunganisho wa intaneti unaonekana kuwa nje ya mtandao.
 errors_no_internet_connection = Hakuna muunganisho wa intaneti
 errors_no_service_connection = Hakuna muunganisho wa huduma
 errors_balances_activity_outdated = Salio na shughuli huenda si za sasa.
-errors_payment_in_progress = Malipo tayari yanaendelea
-errors_payment_paid = Malipo tayari yamefanywa
-errors_payment_failed = Malipo yameshindikana
-errors_payment_expired = Malipo yameisha muda
-errors_payment_cancelled = Malipo yameghairiwa
+errors_payment_status = Malipo: %@
 
 # Activity
 
@@ -296,6 +292,7 @@ transaction_swap_again = Badilisha Tena
 transaction_status_completed = Imekamilika
 transaction_status_inprogress = Inaendelea
 transaction_status_refunded = Imerejeshwa
+transaction_status_expired = Imeisha muda
 
 # Asset
 

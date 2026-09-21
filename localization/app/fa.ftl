@@ -255,11 +255,7 @@ errors_network_offline = به نظر می‌رسد اتصال اینترنت آ�
 errors_no_internet_connection = اتصال اینترنت برقرار نیست
 errors_no_service_connection = اتصال سرویس برقرار نیست
 errors_balances_activity_outdated = موجودی‌ها و فعالیت ممکن است به‌روز نباشند.
-errors_payment_in_progress = پرداخت از قبل در حال انجام است
-errors_payment_paid = پرداخت قبلاً انجام شده است
-errors_payment_failed = پرداخت ناموفق بود
-errors_payment_expired = پرداخت منقضی شد
-errors_payment_cancelled = پرداخت لغو شد
+errors_payment_status = پرداخت: %@
 
 # Activity
 
@@ -296,6 +292,7 @@ transaction_swap_again = دوباره مبادله کنید
 transaction_status_completed = تکمیل شد
 transaction_status_inprogress = در حال انجام است
 transaction_status_refunded = بازپرداخت شد
+transaction_status_expired = منقضی شد
 
 # Asset
 

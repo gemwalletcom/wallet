@@ -225,11 +225,7 @@
   <string name="errors_no_internet_connection">Sem conexão com a internet</string>
   <string name="errors_no_service_connection">Sem conexão com o serviço</string>
   <string name="errors_balances_activity_outdated">Os saldos e a atividade podem estar desatualizados.</string>
-  <string name="errors_payment_in_progress">O pagamento já está em andamento</string>
-  <string name="errors_payment_paid">O pagamento já foi realizado</string>
-  <string name="errors_payment_failed">O pagamento falhou</string>
-  <string name="errors_payment_expired">O pagamento expirou</string>
-  <string name="errors_payment_cancelled">O pagamento foi cancelado</string>
+  <string name="errors_payment_status">Pagamento: %1$s</string>
   <string name="activity_title">Atividade</string>
   <string name="activity_state_empty_title">Sua atividade aparecerá aqui</string>
   <string name="activity_state_empty_description">Faça sua primeira transação</string>
@@ -257,6 +253,7 @@
   <string name="transaction_status_completed">Concluído</string>
   <string name="transaction_status_inprogress">Em andamento</string>
   <string name="transaction_status_refunded">Reembolsado</string>
+  <string name="transaction_status_expired">Expirado</string>
   <string name="asset_balances">Saldos</string>
   <string name="asset_balances_available">Disponível</string>
   <string name="asset_price">Preço</string>

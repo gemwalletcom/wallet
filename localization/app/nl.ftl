@@ -255,11 +255,7 @@ errors_network_offline = De internetverbinding lijkt offline te zijn.
 errors_no_internet_connection = Geen internetverbinding
 errors_no_service_connection = Geen serviceverbinding
 errors_balances_activity_outdated = Saldi en activiteit zijn mogelijk verouderd.
-errors_payment_in_progress = De betaling is al in behandeling
-errors_payment_paid = De betaling is al voldaan
-errors_payment_failed = De betaling is mislukt
-errors_payment_expired = De betaling is verlopen
-errors_payment_cancelled = De betaling is geannuleerd
+errors_payment_status = Betaling: %@
 
 # Activity
 
@@ -296,6 +292,7 @@ transaction_swap_again = Opnieuw ruilen
 transaction_status_completed = Voltooid
 transaction_status_inprogress = In uitvoering
 transaction_status_refunded = Terugbetaald
+transaction_status_expired = Verlopen
 
 # Asset
 

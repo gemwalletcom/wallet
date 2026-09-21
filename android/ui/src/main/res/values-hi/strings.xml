@@ -225,11 +225,7 @@
   <string name="errors_no_internet_connection">इंटरनेट कनेक्शन नहीं है</string>
   <string name="errors_no_service_connection">सेवा कनेक्शन नहीं है</string>
   <string name="errors_balances_activity_outdated">बैलेंस और गतिविधि पुरानी हो सकती है।</string>
-  <string name="errors_payment_in_progress">भुगतान पहले से ही प्रगति पर है</string>
-  <string name="errors_payment_paid">भुगतान पहले ही हो चुका है</string>
-  <string name="errors_payment_failed">भुगतान विफल रहा</string>
-  <string name="errors_payment_expired">भुगतान की समय-सीमा समाप्त हो गई</string>
-  <string name="errors_payment_cancelled">भुगतान रद्द कर दिया गया</string>
+  <string name="errors_payment_status">भुगतान: %1$s</string>
   <string name="activity_title">गतिविधि</string>
   <string name="activity_state_empty_title">आपकी गतिविधि यहां दिखाई देगी</string>
   <string name="activity_state_empty_description">अपना पहला लेनदेन करें</string>
@@ -257,6 +253,7 @@
   <string name="transaction_status_completed">पूरा हुआ</string>
   <string name="transaction_status_inprogress">प्रगति पर है</string>
   <string name="transaction_status_refunded">वापस कर दिया गया</string>
+  <string name="transaction_status_expired">समय सीमा समाप्त</string>
   <string name="asset_balances">शेष राशि</string>
   <string name="asset_balances_available">उपलब्ध</string>
   <string name="asset_price">कीमत</string>

@@ -255,11 +255,7 @@ errors_network_offline = Mukhang offline ang koneksyon sa internet.
 errors_no_internet_connection = Walang koneksyon sa internet
 errors_no_service_connection = Walang koneksyon sa serbisyo
 errors_balances_activity_outdated = Maaaring luma na ang mga balanse at aktibidad.
-errors_payment_in_progress = Isinasagawa na ang bayad
-errors_payment_paid = Nabayaran na
-errors_payment_failed = Nabigo ang bayad
-errors_payment_expired = Nag-expire na ang bayad
-errors_payment_cancelled = Nakansela ang bayad
+errors_payment_status = Bayad: %@
 
 # Activity
 
@@ -296,6 +292,7 @@ transaction_swap_again = Magpalit Muli
 transaction_status_completed = Nakumpleto
 transaction_status_inprogress = Isinasagawa
 transaction_status_refunded = Na-refund
+transaction_status_expired = Nag-expire
 
 # Asset
 

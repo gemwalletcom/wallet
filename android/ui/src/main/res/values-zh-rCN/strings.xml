@@ -225,11 +225,7 @@
   <string name="errors_no_internet_connection">无互联网连接</string>
   <string name="errors_no_service_connection">无服务连接</string>
   <string name="errors_balances_activity_outdated">余额和交易记录可能不是最新的。</string>
-  <string name="errors_payment_in_progress">该付款已在处理中</string>
-  <string name="errors_payment_paid">该付款已完成</string>
-  <string name="errors_payment_failed">付款失败</string>
-  <string name="errors_payment_expired">付款已过期</string>
-  <string name="errors_payment_cancelled">付款已取消</string>
+  <string name="errors_payment_status">付款： %1$s</string>
   <string name="activity_title">交易记录</string>
   <string name="activity_state_empty_title">交易将在此显示</string>
   <string name="activity_state_empty_description">发起第一笔交易</string>
@@ -257,6 +253,7 @@
   <string name="transaction_status_completed">已完成</string>
   <string name="transaction_status_inprogress">进行中</string>
   <string name="transaction_status_refunded">已退款</string>
+  <string name="transaction_status_expired">已过期</string>
   <string name="asset_balances">余额</string>
   <string name="asset_balances_available">可用余额</string>
   <string name="asset_price">价格</string>

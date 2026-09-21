@@ -225,11 +225,7 @@
   <string name="errors_no_internet_connection">انٹرنیٹ کنکشن نہیں ہے</string>
   <string name="errors_no_service_connection">سروس کنکشن نہیں ہے</string>
   <string name="errors_balances_activity_outdated">بیلنس اور سرگرمی پرانی ہو سکتی ہے۔</string>
-  <string name="errors_payment_in_progress">ادائیگی پہلے ہی جاری ہے</string>
-  <string name="errors_payment_paid">ادائیگی پہلے ہی ہو چکی ہے</string>
-  <string name="errors_payment_failed">ادائیگی ناکام ہو گئی</string>
-  <string name="errors_payment_expired">ادائیگی کی میعاد ختم ہو گئی</string>
-  <string name="errors_payment_cancelled">ادائیگی منسوخ کر دی گئی</string>
+  <string name="errors_payment_status">ادائیگی: %1$s</string>
   <string name="activity_title">سرگرمی</string>
   <string name="activity_state_empty_title">آپ کی سرگرمی یہاں ظاہر ہوگی۔</string>
   <string name="activity_state_empty_description">اپنا پہلا لین دین کریں۔</string>
@@ -257,6 +253,7 @@
   <string name="transaction_status_completed">مکمل</string>
   <string name="transaction_status_inprogress">جاری ہے۔</string>
   <string name="transaction_status_refunded">رقم کی واپسی</string>
+  <string name="transaction_status_expired">میعاد ختم</string>
   <string name="asset_balances">بیلنس</string>
   <string name="asset_balances_available">دستیاب</string>
   <string name="asset_price">قیمت</string>

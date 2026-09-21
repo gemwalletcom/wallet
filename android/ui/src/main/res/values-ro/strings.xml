@@ -225,11 +225,7 @@
   <string name="errors_no_internet_connection">Nicio conexiune la internet</string>
   <string name="errors_no_service_connection">Nicio conexiune la serviciu</string>
   <string name="errors_balances_activity_outdated">Soldurile și activitatea pot fi învechite.</string>
-  <string name="errors_payment_in_progress">Plata este deja în curs</string>
-  <string name="errors_payment_paid">Plata a fost deja efectuată</string>
-  <string name="errors_payment_failed">Plata a eșuat</string>
-  <string name="errors_payment_expired">Plata a expirat</string>
-  <string name="errors_payment_cancelled">Plata a fost anulată</string>
+  <string name="errors_payment_status">Plată: %1$s</string>
   <string name="activity_title">Activitate</string>
   <string name="activity_state_empty_title">Activitatea ta va apărea aici</string>
   <string name="activity_state_empty_description">Efectuați prima tranzacție</string>
@@ -257,6 +253,7 @@
   <string name="transaction_status_completed">Terminat</string>
   <string name="transaction_status_inprogress">În curs</string>
   <string name="transaction_status_refunded">Rambursat</string>
+  <string name="transaction_status_expired">Expirat</string>
   <string name="asset_balances">Solduri</string>
   <string name="asset_balances_available">Disponibil</string>
   <string name="asset_price">Preț</string>

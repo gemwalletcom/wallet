@@ -32089,957 +32089,193 @@
         }
       }
     },
-    "errors.payment_cancelled": {
+    "errors.payment_status": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تم إلغاء الدفع"
+            "value": "الدفع: %@"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "পেমেন্ট বাতিল করা হয়েছে"
+            "value": "পেমেন্ট: %@"
           }
         },
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Platba byla zrušena"
+            "value": "Platba: %@"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Betalingen blev annulleret"
+            "value": "Betaling: %@"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die Zahlung wurde abgebrochen"
+            "value": "Zahlung: %@"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Payment was cancelled"
+            "value": "Payment: %@"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El pago fue cancelado"
+            "value": "Pago: %@"
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "پرداخت لغو شد"
+            "value": "پرداخت: %@"
           }
         },
         "fil": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nakansela ang bayad"
+            "value": "Bayad: %@"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le paiement a été annulé"
+            "value": "Paiement : %@"
           }
         },
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "An soke biyan kuɗin"
+            "value": "Biyan kuɗi: %@"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "התשלום בוטל"
+            "value": "תשלום: %@"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "भुगतान रद्द कर दिया गया"
+            "value": "भुगतान: %@"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pembayaran dibatalkan"
+            "value": "Pembayaran: %@"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Il pagamento è stato annullato"
+            "value": "Pagamento: %@"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "支払いはキャンセルされました"
+            "value": "支払い: %@"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "결제가 취소되었습니다"
+            "value": "결제: %@"
           }
         },
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pembayaran telah dibatalkan"
+            "value": "Pembayaran: %@"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "De betaling is geannuleerd"
+            "value": "Betaling: %@"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Płatność została anulowana"
+            "value": "Płatność: %@"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O pagamento foi cancelado"
+            "value": "Pagamento: %@"
           }
         },
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Plata a fost anulată"
+            "value": "Plată: %@"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Платёж отменён"
+            "value": "Платёж: %@"
           }
         },
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "Malipo yameghairiwa"
+            "value": "Malipo: %@"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "การชำระเงินถูกยกเลิกแล้ว"
+            "value": "การชำระเงิน: %@"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ödeme iptal edildi"
+            "value": "Ödeme: %@"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Платіж скасовано"
+            "value": "Платіж: %@"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "ادائیگی منسوخ کر دی گئی"
+            "value": "ادائیگی: %@"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Thanh toán đã bị hủy"
+            "value": "Thanh toán: %@"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "付款已取消"
+            "value": "付款： %@"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "付款已取消"
-          }
-        }
-      }
-    },
-    "errors.payment_expired": {
-      "extractionState": "manual",
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "انتهت صلاحية الدفع"
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "পেমেন্টের মেয়াদ শেষ হয়ে গেছে"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Platnost platby vypršela"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Betalingen er udløbet"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die Zahlung ist abgelaufen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Payment has expired"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "El pago ha caducado"
-          }
-        },
-        "fa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "پرداخت منقضی شد"
-          }
-        },
-        "fil": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nag-expire na ang bayad"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Le paiement a expiré"
-          }
-        },
-        "ha": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Biyan kuɗin ya ƙare"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "פג תוקף התשלום"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "भुगतान की समय-सीमा समाप्त हो गई"
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pembayaran telah kedaluwarsa"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Il pagamento è scaduto"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "支払いの有効期限が切れました"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "결제가 만료되었습니다"
-          }
-        },
-        "ms": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pembayaran telah tamat tempoh"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "De betaling is verlopen"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Płatność wygasła"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O pagamento expirou"
-          }
-        },
-        "ro": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Plata a expirat"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Срок платежа истёк"
-          }
-        },
-        "sw": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Malipo yameisha muda"
-          }
-        },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "การชำระเงินหมดอายุแล้ว"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ödemenin süresi doldu"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Термін платежу минув"
-          }
-        },
-        "ur": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ادائیگی کی میعاد ختم ہو گئی"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thanh toán đã hết hạn"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "付款已过期"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "付款已過期"
-          }
-        }
-      }
-    },
-    "errors.payment_failed": {
-      "extractionState": "manual",
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "فشل الدفع"
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "পেমেন্ট ব্যর্থ হয়েছে"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Platba se nezdařila"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Betalingen mislykkedes"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die Zahlung ist fehlgeschlagen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Payment has failed"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "El pago ha fallado"
-          }
-        },
-        "fa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "پرداخت ناموفق بود"
-          }
-        },
-        "fil": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nabigo ang bayad"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Le paiement a échoué"
-          }
-        },
-        "ha": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Biyan kuɗin ya gaza"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "התשלום נכשל"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "भुगतान विफल रहा"
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pembayaran gagal"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Il pagamento non è riuscito"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "支払いに失敗しました"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "결제에 실패했습니다"
-          }
-        },
-        "ms": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pembayaran gagal"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "De betaling is mislukt"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Płatność nie powiodła się"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O pagamento falhou"
-          }
-        },
-        "ro": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Plata a eșuat"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Платёж не выполнен"
-          }
-        },
-        "sw": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Malipo yameshindikana"
-          }
-        },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "การชำระเงินล้มเหลว"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ödeme başarısız oldu"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Платіж не виконано"
-          }
-        },
-        "ur": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ادائیگی ناکام ہو گئی"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thanh toán thất bại"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "付款失败"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "付款失敗"
-          }
-        }
-      }
-    },
-    "errors.payment_in_progress": {
-      "extractionState": "manual",
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "الدفع قيد التنفيذ بالفعل"
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "পেমেন্ট ইতিমধ্যে চলছে"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Platba již probíhá"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Betalingen er allerede i gang"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die Zahlung läuft bereits"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Payment is already in progress"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "El pago ya está en curso"
-          }
-        },
-        "fa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "پرداخت از قبل در حال انجام است"
-          }
-        },
-        "fil": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Isinasagawa na ang bayad"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Le paiement est déjà en cours"
-          }
-        },
-        "ha": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Biyan kuɗin ya riga ya fara"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "התשלום כבר מתבצע"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "भुगतान पहले से ही प्रगति पर है"
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pembayaran sudah sedang diproses"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Il pagamento è già in corso"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "この支払いはすでに処理中です"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "결제가 이미 진행 중입니다"
-          }
-        },
-        "ms": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pembayaran sudah sedang dijalankan"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "De betaling is al in behandeling"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Płatność jest już w toku"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O pagamento já está em andamento"
-          }
-        },
-        "ro": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Plata este deja în curs"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Платёж уже выполняется"
-          }
-        },
-        "sw": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Malipo tayari yanaendelea"
-          }
-        },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "การชำระเงินนี้กำลังดำเนินการอยู่แล้ว"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ödeme zaten işleniyor"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Платіж уже виконується"
-          }
-        },
-        "ur": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ادائیگی پہلے ہی جاری ہے"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thanh toán đã đang được xử lý"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "该付款已在处理中"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此付款已在處理中"
-          }
-        }
-      }
-    },
-    "errors.payment_paid": {
-      "extractionState": "manual",
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تم الدفع بالفعل"
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "পেমেন্ট ইতিমধ্যে সম্পন্ন হয়েছে"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Platba již byla uhrazena"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Betalingen er allerede gennemført"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die Zahlung wurde bereits geleistet"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Payment is already paid"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "El pago ya se ha realizado"
-          }
-        },
-        "fa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "پرداخت قبلاً انجام شده است"
-          }
-        },
-        "fil": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nabayaran na"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Le paiement a déjà été effectué"
-          }
-        },
-        "ha": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "An riga an biya"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "התשלום כבר בוצע"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "भुगतान पहले ही हो चुका है"
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pembayaran sudah dilakukan"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Il pagamento è già stato effettuato"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "この支払いはすでに完了しています"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이미 결제되었습니다"
-          }
-        },
-        "ms": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pembayaran sudah dibuat"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "De betaling is al voldaan"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Płatność została już zrealizowana"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O pagamento já foi realizado"
-          }
-        },
-        "ro": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Plata a fost deja efectuată"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Платёж уже совершён"
-          }
-        },
-        "sw": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Malipo tayari yamefanywa"
-          }
-        },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "การชำระเงินนี้ได้ชำระแล้ว"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ödeme zaten yapılmış"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Платіж уже здійснено"
-          }
-        },
-        "ur": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ادائیگی پہلے ہی ہو چکی ہے"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thanh toán đã được thực hiện"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "该付款已完成"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此付款已完成"
+            "value": "付款： %@"
           }
         }
       }
@@ -93396,6 +92632,197 @@
           "stringUnit": {
             "state": "translated",
             "value": "成功"
+          }
+        }
+      }
+    },
+    "transaction.status.expired": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "منتهي الصلاحية"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "মেয়াদোত্তীর্ণ"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vypršelo"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Udløbet"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abgelaufen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expired"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expirado"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "منقضی شد"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nag-expire"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expiré"
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ya ƙare"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "פג תוקף"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "समय सीमा समाप्त"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kedaluwarsa"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scaduto"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "期限切れ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "만료됨"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tamat tempoh"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlopen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wygasło"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expirado"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expirat"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Истекло"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imeisha muda"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "หมดอายุ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Süresi doldu"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Прострочено"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "میعاد ختم"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã hết hạn"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已过期"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已過期"
           }
         }
       }
