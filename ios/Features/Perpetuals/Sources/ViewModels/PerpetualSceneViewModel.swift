@@ -3,18 +3,15 @@
 import Components
 import Foundation
 import enum Gemstone.GemInfoTopic
-import enum Gemstone.GemListRow
 import enum Gemstone.GemPerpetualButton
+import struct Gemstone.GemPerpetualDetails
 import protocol Gemstone.GemPerpetualDetailsServiceProtocol
 import enum Gemstone.GemPerpetualPositionAction
-import struct Gemstone.GemPerpetualPositionDetail
 import enum Gemstone.GemPerpetualPositionKind
-import enum Gemstone.GemPerpetualSection
 import func Gemstone.transactionsListLimit
 import GemstonePrimitives
 import GemstoneServices
 import InfoSheet
-import Localization
 import Primitives
 import PrimitivesComponents
 import Store
@@ -81,44 +78,20 @@ public final class PerpetualSceneViewModel {
         )
     }
 
-    public var navigationTitle: String {
-        perpetualViewModel.name
-    }
-
-    public var hasOpenPosition: Bool {
-        !positionViewModels.isEmpty
-    }
-
-    public var sections: [GemPerpetualSection] {
-        service.sections(hasPosition: hasOpenPosition)
-    }
-
-    public var buttons: [GemPerpetualButton] {
-        service.buttons(hasPosition: hasOpenPosition)
-    }
-
-    public var modifyButtons: [GemPerpetualButton] {
-        service.modifyButtons()
-    }
-
-    public var buttonModels: [PerpetualButtonViewModel] {
-        buttons.map { PerpetualButtonViewModel(button: $0) }
-    }
-
-    public var modifyButtonModels: [PerpetualButtonViewModel] {
-        modifyButtons.map { PerpetualButtonViewModel(button: $0) }
+    public var details: GemPerpetualDetails {
+        service.details(perpetual: perpetual.toGem(), asset: asset.toGem(), positions: positions.map { $0.position.toGem() })
     }
 
     public var modifyTitle: String {
         GemPerpetualButton.modify.title
     }
 
-    public var infoRows: [GemListRow] {
-        service.infoRows(perpetual: perpetual.toGem(), asset: asset.toGem())
+    public func positionModel(_ details: GemPerpetualDetails) -> PerpetualPositionViewModel? {
+        positionData(details).map { PerpetualPositionViewModel($0) }
     }
 
-    public func positionDetails(_ position: PerpetualPositionViewModel) -> [GemPerpetualPositionDetail] {
-        service.positionDetails(position: position.data.position.toGem())
+    public func buttonModels(_ buttons: [GemPerpetualButton]) -> [PerpetualButtonViewModel] {
+        buttons.map { PerpetualButtonViewModel(button: $0) }
     }
 
     public func onSelect(_ button: PerpetualButtonViewModel) {
@@ -138,14 +111,6 @@ public final class PerpetualSceneViewModel {
 
     public var perpetual: Perpetual {
         perpetualData.perpetual
-    }
-
-    public var perpetualViewModel: PerpetualViewModel {
-        PerpetualViewModel(perpetual: perpetual, asset: asset)
-    }
-
-    public var positionViewModels: [PerpetualPositionViewModel] {
-        positions.map { PerpetualPositionViewModel($0) }
     }
 }
 
@@ -192,7 +157,7 @@ public extension PerpetualSceneViewModel {
     }
 
     func onSelectAutoclose() {
-        isPresentingAutoclose = positions.first
+        isPresentingAutoclose = positionData(details)
     }
 
     func onModifyPosition() {
@@ -201,7 +166,7 @@ public extension PerpetualSceneViewModel {
 
     func onClosePosition() {
         do {
-            try onTransferData?(service.closeTransfer(perpetual: perpetual.toGem(), asset: asset.toGem(), position: positions.first?.position.toGem()))
+            try onTransferData?(service.closeTransfer(perpetual: perpetual.toGem(), asset: asset.toGem(), position: details.position))
         } catch {
             isPresentingAlertMessage = AlertMessage(error: error)
         }
@@ -251,11 +216,15 @@ private extension PerpetualSceneViewModel {
 
     func onPositionAction(_ kind: GemPerpetualPositionKind) {
         do {
-            let positionAction = try service.positionAction(perpetual: perpetual.toGem(), asset: asset.toGem(), position: positions.first?.position.toGem(), kind: kind)
+            let positionAction = try service.positionAction(perpetual: perpetual.toGem(), asset: asset.toGem(), position: details.position, kind: kind)
             onPerpetualPosition?(positionAction)
         } catch {
             isPresentingAlertMessage = AlertMessage(error: error)
         }
+    }
+
+    func positionData(_ details: GemPerpetualDetails) -> PerpetualPositionData? {
+        details.position.map { PerpetualPositionData(perpetual: perpetual, asset: asset, position: $0.toPrimitives()) }
     }
 
     func syncPositions() async {

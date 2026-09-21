@@ -139,12 +139,8 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
 }
 
 public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServiceProtocol, @unchecked Sendable {
-    public var buttonsValue: [GemPerpetualButton] = []
-    public var modifyButtonsValue: [GemPerpetualButton] = []
-    public var sectionsValue: [GemPerpetualSection] = []
-    public var infoRowsValue: [GemListRow] = []
-    public var positionDetailsValue: [GemPerpetualPositionDetail] = []
     public var activityTypesValue: [Gemstone.TransactionType] = [.perpetualOpenPosition, .perpetualClosePosition, .perpetualModifyPosition]
+    public var detailsValue: GemPerpetualDetails = .mock()
     public var chartPeriodValue: Gemstone.ChartPeriod = Primitives.ChartPeriod.day.toGem()
     public var candlesticksValue: [Gemstone.ChartCandleStick] = []
     public var mergedCandlesValue: [Gemstone.ChartCandleStick]?
@@ -164,10 +160,6 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
         activityTypesValue
     }
 
-    public func buttons(hasPosition: Bool) -> [GemPerpetualButton] {
-        hasPosition ? modifyButtonsValue : buttonsValue
-    }
-
     public func candleSubscription(perpetual: Gemstone.Perpetual, period: Gemstone.ChartPeriod) -> GemPerpetualSubscription {
         .candle(symbol: perpetual.name, interval: period.toPrimitives().rawValue)
     }
@@ -184,10 +176,6 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
         try closeTransferResult.get()
     }
 
-    public func infoRows(perpetual _: Gemstone.Perpetual, asset _: Gemstone.Asset) -> [GemListRow] {
-        infoRowsValue
-    }
-
     public func marketSubscription(perpetual: Gemstone.Perpetual) -> GemPerpetualSubscription {
         .marketData(symbol: perpetual.name)
     }
@@ -201,10 +189,6 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
         mergedCandlesValue
     }
 
-    public func modifyButtons() -> [GemPerpetualButton] {
-        modifyButtonsValue
-    }
-
     public func positionAction(
         perpetual _: Gemstone.Perpetual,
         asset _: Gemstone.Asset,
@@ -215,12 +199,8 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
         return try positionActionResult.get()
     }
 
-    public func positionDetails(position _: Gemstone.PerpetualPosition) -> [GemPerpetualPositionDetail] {
-        positionDetailsValue
-    }
-
-    public func sections(hasPosition _: Bool) -> [GemPerpetualSection] {
-        sectionsValue
+    public func details(perpetual _: Gemstone.Perpetual, asset _: Gemstone.Asset, positions _: [Gemstone.PerpetualPosition]) -> GemPerpetualDetails {
+        detailsValue
     }
 
     public func setChartPeriod(period: Gemstone.ChartPeriod) throws {

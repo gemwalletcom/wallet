@@ -66,21 +66,21 @@ pub struct GemPerpetualConnection {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemPerpetualDetailsSummary {
+pub struct GemPerpetualConfirmDetailsSummary {
     pub text: Option<GemLocalizedText>,
     pub tone: GemValueTone,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemPerpetualDetails {
+pub struct GemPerpetualConfirmDetails {
     pub id: String,
-    pub summary: GemPerpetualDetailsSummary,
+    pub summary: GemPerpetualConfirmDetailsSummary,
     pub sections: Vec<GemListSection>,
 }
 
 #[uniffi::export]
-pub fn perpetual_details(perpetual_type: PerpetualType) -> Option<GemPerpetualDetails> {
-    rules::details(&perpetual_type)
+pub fn perpetual_confirm_details(perpetual_type: PerpetualType) -> Option<GemPerpetualConfirmDetails> {
+    rules::confirm_details(&perpetual_type)
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -192,10 +192,18 @@ impl StepFailure for GemPerpetualRefreshFailure {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemPerpetualSection {
-    Position,
-    Info,
+    Position { rows: Vec<GemPerpetualPositionDetail> },
+    Info { buttons: Vec<GemPerpetualButton>, rows: Vec<GemListRow> },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemPerpetualDetails {
+    pub title: String,
+    pub sections: Vec<GemPerpetualSection>,
+    pub modify_buttons: Vec<GemPerpetualButton>,
+    pub position: Option<PerpetualPosition>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

@@ -2,14 +2,14 @@
 
 import Components
 import Foundation
-import struct Gemstone.GemPerpetualDetails
+import struct Gemstone.GemPerpetualConfirmDetails
 import Localization
 import Style
 
 public struct PerpetualDetailsViewModel: Sendable, Identifiable {
-    private let details: GemPerpetualDetails
+    private let details: GemPerpetualConfirmDetails
 
-    public init(details: GemPerpetualDetails) {
+    public init(details: GemPerpetualConfirmDetails) {
         self.details = details
     }
 

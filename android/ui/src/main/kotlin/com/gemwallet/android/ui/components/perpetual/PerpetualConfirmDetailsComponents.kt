@@ -17,10 +17,10 @@ import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.style.textStyle
-import uniffi.gemstone.GemPerpetualDetails
+import uniffi.gemstone.GemPerpetualConfirmDetails
 
 @Composable
-fun PerpetualDetailsSummaryItem(details: GemPerpetualDetails, onClick: () -> Unit, listPosition: ListPosition = ListPosition.Single) {
+fun PerpetualDetailsSummaryItem(details: GemPerpetualConfirmDetails, onClick: () -> Unit, listPosition: ListPosition = ListPosition.Single) {
     ListItem(
         model = ListItemModel(
             title = stringResource(R.string.common_details),
@@ -34,7 +34,7 @@ fun PerpetualDetailsSummaryItem(details: GemPerpetualDetails, onClick: () -> Uni
 }
 
 @Composable
-fun PerpetualDetailsBottomSheet(isVisible: Boolean, details: GemPerpetualDetails?, onDismiss: () -> Unit) {
+fun PerpetualDetailsBottomSheet(isVisible: Boolean, details: GemPerpetualConfirmDetails?, onDismiss: () -> Unit) {
     ModalBottomSheet(
         item = details.takeIf { isVisible },
         onDismissRequest = onDismiss,

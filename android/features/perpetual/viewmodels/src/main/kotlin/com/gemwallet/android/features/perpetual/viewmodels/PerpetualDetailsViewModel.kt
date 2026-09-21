@@ -13,15 +13,12 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
-import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDetailsDataAggregate
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.perpetual.viewmodels.localization.stringRes
-import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualDetailsSectionUIModel
-import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualPositionRowUIModel
+import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualDetailsUIModel
 import com.gemwallet.android.features.perpetual.viewmodels.model.uiModel
 import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualChartUIModel
 import com.gemwallet.android.model.AmountParams
@@ -64,7 +61,6 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualPositionKind
-import uniffi.gemstone.GemPerpetualSection
 import uniffi.gemstone.candleTooltip
 import javax.inject.Inject
 
@@ -118,24 +114,11 @@ class PerpetualDetailsViewModel @Inject constructor(
     val positionListItem: StateFlow<ListItemModel?> = position.map { it?.listItem(context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val sections: StateFlow<List<PerpetualDetailsSectionUIModel>> = combine(perpetual, position) { perpetual, position ->
-        service.sections(position != null).map { section ->
-            when (section) {
-                GemPerpetualSection.POSITION -> PerpetualDetailsSectionUIModel.Position(context.getString(section.stringRes()), positionRows(position))
-
-                GemPerpetualSection.INFO -> PerpetualDetailsSectionUIModel.Info(
-                    title = context.getString(section.stringRes()),
-                    buttons = if (perpetual == null) emptyList() else service.buttons(position != null).map { it.uiModel(context) },
-                    rows = perpetual?.let { details -> service.infoRows(details.perpetual.toGem(), details.asset.toGem()) }.orEmpty(),
-                )
-            }
-        }
+    val details: StateFlow<PerpetualDetailsUIModel?> = combine(perpetual, position) { perpetual, position ->
+        perpetual?.let { service.details(it.perpetual.toGem(), it.asset.toGem(), listOfNotNull(position?.position?.toGem())).uiModel(context) }
     }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    val modifyButtons = service.modifyButtons().map { it.uiModel(context) }
-
-    private fun positionRows(position: PerpetualPositionDetailsDataAggregate?): List<PerpetualPositionRowUIModel> = position?.let { service.positionDetails(it.position.toGem()).map { detail -> detail.uiModel() } }.orEmpty()
+        .flowOn(ioDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val transactions = combine(
         getTransactions.getTransactions(transactionFilters),
@@ -250,13 +233,13 @@ class PerpetualDetailsViewModel @Inject constructor(
 
     private fun position(kind: GemPerpetualPositionKind, amountAction: AmountTransactionAction) {
         val data = perpetual.value ?: return
-        val action = service.positionAction(data.perpetual.toGem(), data.asset.toGem(), position.value?.position?.toGem(), kind)
+        val action = service.positionAction(data.perpetual.toGem(), data.asset.toGem(), details.value?.position, kind)
         amountAction(AmountParams.Perpetual(assetId = data.asset.id, perpetualId = data.perpetual.id, positionAction = action))
     }
 
     fun closePosition(confirmAction: ConfirmTransactionAction) {
         val data = perpetual.value ?: return
-        confirmAction(ConfirmTransferInput(service.closeTransfer(data.perpetual.toGem(), data.asset.toGem(), position.value?.position?.toGem())))
+        confirmAction(ConfirmTransferInput(service.closeTransfer(data.perpetual.toGem(), data.asset.toGem(), details.value?.position)))
     }
 
     fun clearError() = errorState.update { null }

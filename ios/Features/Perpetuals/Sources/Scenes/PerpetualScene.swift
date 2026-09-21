@@ -1,5 +1,6 @@
 import Components
 import Formatters
+import struct Gemstone.GemPerpetualPositionDetail
 import GemstonePrimitives
 import GemstoneServices
 import InfoSheet
@@ -20,8 +21,10 @@ public struct PerpetualScene: View {
 
     public var body: some View {
         @Bindable var chart = model.chart
+        let details = model.details
+        let position = model.positionModel(details)
 
-        List {
+        return List {
             Section {} header: {
                 VStack {
                     VStack {
@@ -34,7 +37,7 @@ public struct PerpetualScene: View {
                                 model: CandlestickChartViewModel(
                                     candles: data.candles,
                                     period: data.period,
-                                    position: model.positions.first?.position,
+                                    position: position?.data.position,
                                 ),
                             )
                         case let .error(error):
@@ -52,20 +55,20 @@ public struct PerpetualScene: View {
             }
             .fullWidthSection()
 
-            ForEach(model.sections, id: \.self) { section in
+            ForEach(details.sections, id: \.self) { section in
                 switch section {
-                case .position:
-                    ForEach(model.positionViewModels) { position in
+                case let .position(rows):
+                    if let position {
                         Section {
-                            positionContent(position)
+                            positionContent(position, rows: rows)
                         } header: {
                             Text(section.title)
                         }
                     }
-                case .info:
-                    buttonsSection
+                case let .info(buttons, rows):
+                    buttonsSection(model.buttonModels(buttons))
                     Section(header: Text(section.title)) {
-                        ForEach(model.infoRows, id: \.self) { row in
+                        ForEach(rows, id: \.self) { row in
                             GemListRowView(row: row, onInfo: model.onInfo)
                         }
                     }
@@ -77,7 +80,7 @@ public struct PerpetualScene: View {
                     .listRowInsets(.assetListRowInsets)
             }
         }
-        .navigationTitle(model.navigationTitle)
+        .navigationTitle(details.title)
         .navigationBarTitleDisplayMode(.inline)
         .alertSheet($model.isPresentingAlertMessage)
         .sheet(item: $model.isPresentingInfoSheet) {
@@ -88,7 +91,7 @@ public struct PerpetualScene: View {
             presenting: $model.isPresentingModifyAlert,
             sensoryFeedback: .warning,
             actions: { _ in
-                ForEach(model.modifyButtonModels) { button in
+                ForEach(model.buttonModels(details.modifyButtons)) { button in
                     Button(button.title, role: button.isDestructive ? .destructive : nil) {
                         model.onSelect(button)
                     }
@@ -109,10 +112,10 @@ public struct PerpetualScene: View {
         .onChange(of: chart.currentPeriod, model.onPeriodChange)
     }
 
-    private var buttonsSection: some View {
+    private func buttonsSection(_ buttons: [PerpetualButtonViewModel]) -> some View {
         Section {
             HStack(spacing: Spacing.medium) {
-                ForEach(model.buttonModels) { button in
+                ForEach(buttons) { button in
                     Button(button.title) { model.onSelect(button) }
                         .frame(maxWidth: .infinity)
                         .buttonStyle(style(for: button))
@@ -130,10 +133,10 @@ public struct PerpetualScene: View {
     }
 
     @ViewBuilder
-    private func positionContent(_ position: PerpetualPositionViewModel) -> some View {
+    private func positionContent(_ position: PerpetualPositionViewModel, rows: [GemPerpetualPositionDetail]) -> some View {
         ListAssetItemView(model: PerpetualPositionItemViewModel(model: position))
 
-        ForEach(model.positionDetails(position), id: \.kind) { detail in
+        ForEach(rows, id: \.kind) { detail in
             switch detail.kind {
             case .pnl:
                 GemListRowView(row: detail.row)

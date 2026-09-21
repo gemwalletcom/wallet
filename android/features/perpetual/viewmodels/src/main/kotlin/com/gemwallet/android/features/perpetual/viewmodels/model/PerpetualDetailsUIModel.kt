@@ -6,6 +6,16 @@ import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemPerpetualButton
 import uniffi.gemstone.GemPerpetualPositionDetail
 import uniffi.gemstone.GemPerpetualPositionDetailRow
+import uniffi.gemstone.GemPerpetualDetails
+import uniffi.gemstone.GemPerpetualSection
+import uniffi.gemstone.PerpetualPosition
+
+data class PerpetualDetailsUIModel(
+    val title: String,
+    val sections: List<PerpetualDetailsSectionUIModel>,
+    val modifyButtons: List<PerpetualButtonUIModel>,
+    val position: PerpetualPosition?,
+)
 
 sealed interface PerpetualDetailsSectionUIModel {
     val title: String
@@ -26,6 +36,18 @@ data class PerpetualButtonUIModel(val title: String, val action: PerpetualButton
 enum class PerpetualButtonAction { OpenLong, OpenShort, Modify, Close, Increase, Reduce }
 
 enum class PerpetualButtonTone { Positive, Negative, Primary }
+
+internal fun GemPerpetualDetails.uiModel(context: Context): PerpetualDetailsUIModel = PerpetualDetailsUIModel(
+    title = title,
+    sections = sections.map { it.uiModel(context) },
+    modifyButtons = modifyButtons.map { it.uiModel(context) },
+    position = position,
+)
+
+internal fun GemPerpetualSection.uiModel(context: Context): PerpetualDetailsSectionUIModel = when (this) {
+    is GemPerpetualSection.Position -> PerpetualDetailsSectionUIModel.Position(context.getString(stringRes()), rows.map { it.uiModel() })
+    is GemPerpetualSection.Info -> PerpetualDetailsSectionUIModel.Info(context.getString(stringRes()), buttons.map { it.uiModel(context) }, rows)
+}
 
 internal fun GemPerpetualButton.uiModel(context: Context): PerpetualButtonUIModel = when (this) {
     GemPerpetualButton.LONG -> PerpetualButtonUIModel(context.getString(stringRes()), PerpetualButtonAction.OpenLong, PerpetualButtonTone.Positive)

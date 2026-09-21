@@ -9,8 +9,8 @@ import uniffi.gemstone.GemPerpetualSection
 
 @StringRes
 internal fun GemPerpetualSection.stringRes(): Int = when (this) {
-    GemPerpetualSection.POSITION -> R.string.perpetual_position
-    GemPerpetualSection.INFO -> R.string.common_info
+    is GemPerpetualSection.Position -> R.string.perpetual_position
+    is GemPerpetualSection.Info -> R.string.common_info
 }
 
 @StringRes

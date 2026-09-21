@@ -103,7 +103,7 @@ import uniffi.gemstone.PerpetualProvider
 import uniffi.gemstone.PerpetualType
 import uniffi.gemstone.SimulationResult
 import uniffi.gemstone.TransactionInputType
-import uniffi.gemstone.perpetualDetails
+import uniffi.gemstone.perpetualConfirmDetails
 import uniffi.gemstone.showsFeeAssets
 import uniffi.gemstone.swapQuoteSummary
 import java.math.BigInteger
@@ -443,7 +443,7 @@ class ConfirmViewModel @Inject constructor(
 
         is PerpetualType.Modify -> confirmation.value?.autocloseRow(type.data)?.let { ConfirmDetailElement.PerpetualModifyAutoclose(it) }
 
-        else -> perpetualDetails(type)
+        else -> perpetualConfirmDetails(type)
             ?.let(ConfirmDetailElement::PerpetualDetails)
     }
 

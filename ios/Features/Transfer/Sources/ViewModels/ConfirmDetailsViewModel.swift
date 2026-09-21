@@ -5,7 +5,7 @@ import Components
 import protocol Gemstone.GemConfirmationProtocol
 import struct Gemstone.GemConfirmMetadata
 import struct Gemstone.GemSwapQuoteSummary
-import func Gemstone.perpetualDetails
+import func Gemstone.perpetualConfirmDetails
 import func Gemstone.swapQuoteSummary
 import enum Gemstone.TransactionInputType
 import GemstonePrimitives
@@ -55,7 +55,7 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
             if case let .modify(data) = perpetualType {
                 return .perpetualModifyPosition(confirmation.autocloseRow(data: data))
             }
-            guard let details = perpetualDetails(perpetualType: perpetualType) else { return .empty }
+            guard let details = perpetualConfirmDetails(perpetualType: perpetualType) else { return .empty }
             return .perpetualDetails(PerpetualDetailsViewModel(details: details))
         case .transfer,
              .deposit,

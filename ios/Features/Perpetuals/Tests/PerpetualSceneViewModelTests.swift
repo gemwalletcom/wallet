@@ -15,25 +15,30 @@ import Testing
 @MainActor
 struct PerpetualSceneViewModelTests {
     @Test
-    func theTitleFallsBackToTheAssetSymbol() {
-        let model = PerpetualSceneViewModel.mock(asset: .mock(symbol: "HYPE"))
+    func theSceneReadsItsScreenFromCore() {
+        let service = GemPerpetualDetailsServiceMock()
+        service.detailsValue = .mock(
+            title: "HYPE",
+            sections: [.info(buttons: [.long, .short], rows: [.loading])],
+            modifyButtons: [.increase, .reduce],
+        )
+        let model = PerpetualSceneViewModel.mock(service: service)
 
-        #expect(model.navigationTitle == "HYPE")
+        #expect(model.details == service.detailsValue)
+        #expect(model.positionModel(model.details) == nil)
     }
 
     @Test
-    func theSceneReadsItsRowsFromCore() {
+    func thePositionCoreNamesIsTheOneTheSceneShowsAndActsOn() {
         let service = GemPerpetualDetailsServiceMock()
-        service.sectionsValue = [.position]
-        service.buttonsValue = [.long, .short]
-        service.modifyButtonsValue = [.increase, .reduce]
-        service.infoRowsValue = [.loading]
+        let position = Primitives.PerpetualPosition.mock()
+        service.detailsValue = .mock(sections: [.position(rows: [])], position: position.toGem())
         let model = PerpetualSceneViewModel.mock(service: service)
 
-        #expect(model.sections == [.position])
-        #expect(model.buttons == [.long, .short])
-        #expect(model.modifyButtons == [.increase, .reduce])
-        #expect(model.infoRows == [.loading])
+        #expect(model.positionModel(model.details)?.data.position == position)
+
+        model.onSelectAutoclose()
+        #expect(model.isPresentingAutoclose?.position == position)
     }
 
     @Test

@@ -42,29 +42,24 @@ fun PerpetualPositionNavScreen(
         onDispose { viewModel.onScreenExit() }
     }
 
-    val perpetual by viewModel.perpetual.collectAsStateWithLifecycle()
-    val position by viewModel.position.collectAsStateWithLifecycle()
+    val details by viewModel.details.collectAsStateWithLifecycle()
     val positionListItem by viewModel.positionListItem.collectAsStateWithLifecycle()
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
     val chart by viewModel.chart.collectAsStateWithLifecycle()
     val period by viewModel.period.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
-    val sections by viewModel.sections.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error?.text(), iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
     var showAutoclose by remember { mutableStateOf(false) }
 
     PerpetualPositionScene(
-        perpetual = perpetual,
-        position = position,
+        details = details,
         positionListItem = positionListItem,
         transactions = transactions,
         chart = chart,
         tooltip = viewModel::tooltip,
         period = period,
         isRefreshing = isRefreshing,
-        sections = sections,
-        modifyButtons = viewModel.modifyButtons,
         snackbar = snackbar,
         onAction = { action ->
             when (action) {

@@ -12,8 +12,8 @@ use strum::IntoEnumIterator;
 
 use super::model::{
     GemCandleTooltip, GemCandleTooltipCell, GemCandleTooltipRow, GemMarketsRefreshTrigger, GemPerpetualBalanceHeader, GemPerpetualButton, GemPerpetualChartLayout, GemPerpetualChartLine, GemPerpetualChartLineKind, GemPerpetualCloseInput,
-    GemPerpetualDetails, GemPerpetualDetailsSummary, GemPerpetualMarketCounts, GemPerpetualMarketRow, GemPerpetualMarketSection, GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualPositionAction, GemPerpetualPositionDetail,
-    GemPerpetualPositionDetailRow, GemPerpetualPositionKind, GemPerpetualPositionRow, GemPerpetualSection, GemPerpetualTransferData,
+    GemPerpetualConfirmDetails, GemPerpetualConfirmDetailsSummary, GemPerpetualDetails, GemPerpetualMarketCounts, GemPerpetualMarketRow, GemPerpetualMarketSection, GemPerpetualOrderAction, GemPerpetualOrderInput,
+    GemPerpetualPositionAction, GemPerpetualPositionDetail, GemPerpetualPositionDetailRow, GemPerpetualPositionKind, GemPerpetualPositionRow, GemPerpetualSection, GemPerpetualTransferData,
 };
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigInt;
@@ -72,7 +72,7 @@ pub fn perpetual_asset_basics(data: &[PerpetualData]) -> Vec<AssetBasic> {
         .collect()
 }
 
-pub fn details(perpetual_type: &PerpetualType) -> Option<GemPerpetualDetails> {
+pub fn confirm_details(perpetual_type: &PerpetualType) -> Option<GemPerpetualConfirmDetails> {
     let (direction, data, summarised_by) = match perpetual_type {
         PerpetualType::Open { data } => (data.direction.clone(), data, SummarisedBy::Position),
         PerpetualType::Close { data } => (data.direction.clone(), data, SummarisedBy::Pnl),
@@ -82,20 +82,20 @@ pub fn details(perpetual_type: &PerpetualType) -> Option<GemPerpetualDetails> {
     };
     let pnl = data.pnl.map(|pnl| pnl_text(pnl, data.margin_amount));
     let summary = match summarised_by {
-        SummarisedBy::Position => GemPerpetualDetailsSummary {
+        SummarisedBy::Position => GemPerpetualConfirmDetailsSummary {
             text: Some(position_text(&direction, data.leverage)),
             tone: direction_tone(&direction),
         },
-        SummarisedBy::Pnl => GemPerpetualDetailsSummary {
+        SummarisedBy::Pnl => GemPerpetualConfirmDetailsSummary {
             text: pnl.as_ref().map(|(text, _)| text.clone()),
             tone: pnl.as_ref().map_or(GemValueTone::Neutral, |(_, tone)| *tone),
         },
-        SummarisedBy::Change(change) => GemPerpetualDetailsSummary {
+        SummarisedBy::Change(change) => GemPerpetualConfirmDetailsSummary {
             text: Some(GemLocalizedText::PositionChange { change, direction: direction.clone() }),
             tone: GemValueTone::Neutral,
         },
     };
-    Some(GemPerpetualDetails {
+    Some(GemPerpetualConfirmDetails {
         id: data.base_asset.id.to_string(),
         summary,
         sections: details_sections(&direction, data, pnl),
@@ -716,11 +716,27 @@ pub fn position_row(perpetual: &Perpetual, asset: &Asset, position: &PerpetualPo
     }
 }
 
-pub fn perpetual_sections(has_position: bool) -> Vec<GemPerpetualSection> {
-    [has_position.then_some(GemPerpetualSection::Position), Some(GemPerpetualSection::Info)].into_iter().flatten().collect()
+pub fn details(perpetual: &Perpetual, asset: &Asset, positions: Vec<PerpetualPosition>) -> GemPerpetualDetails {
+    let position = positions.into_iter().next();
+    let market = market_row(perpetual, asset);
+    GemPerpetualDetails {
+        title: market.title.clone(),
+        sections: [
+            position.as_ref().map(|position| GemPerpetualSection::Position { rows: position_details(position) }),
+            Some(GemPerpetualSection::Info {
+                buttons: perpetual_buttons(position.is_some()),
+                rows: info_rows(market),
+            }),
+        ]
+        .into_iter()
+        .flatten()
+        .collect(),
+        modify_buttons: vec![GemPerpetualButton::Increase, GemPerpetualButton::Reduce],
+        position,
+    }
 }
 
-pub fn position_details(position: &PerpetualPosition) -> Vec<GemPerpetualPositionDetail> {
+fn position_details(position: &PerpetualPosition) -> Vec<GemPerpetualPositionDetail> {
     let amount = |title: GemListRowTitle, amount: GemFormattedNumber, info: Option<GemInfoTopic>| GemListRow::Amount { title, amount, info };
     let label = |title: GemListRowTitle, text: GemLocalizedText, tone: GemValueTone, info: Option<GemInfoTopic>| GemListRow::Label { title, text, tone, info, progress: false };
     let pnl = GemLocalizedText::Pnl {
@@ -785,7 +801,7 @@ fn autoclose_lines(position: &PerpetualPosition) -> Vec<GemLocalizedText> {
     }
 }
 
-pub fn info_rows(row: GemPerpetualMarketRow) -> Vec<GemListRow> {
+fn info_rows(row: GemPerpetualMarketRow) -> Vec<GemListRow> {
     vec![
         GemListRow::Amount {
             title: GemListRowTitle::DailyVolume,
@@ -805,15 +821,11 @@ pub fn info_rows(row: GemPerpetualMarketRow) -> Vec<GemListRow> {
     ]
 }
 
-pub fn perpetual_buttons(has_position: bool) -> Vec<GemPerpetualButton> {
+fn perpetual_buttons(has_position: bool) -> Vec<GemPerpetualButton> {
     match has_position {
         true => vec![GemPerpetualButton::Modify, GemPerpetualButton::Close],
         false => vec![GemPerpetualButton::Long, GemPerpetualButton::Short],
     }
-}
-
-pub fn modify_buttons() -> Vec<GemPerpetualButton> {
-    vec![GemPerpetualButton::Increase, GemPerpetualButton::Reduce]
 }
 
 #[cfg(test)]
@@ -828,11 +840,40 @@ mod tests {
 
     #[test]
     fn test_the_perpetual_screen_names_its_sections_rows_and_buttons_from_the_position() {
+        let perpetual = Perpetual::mock();
+        let asset = Asset::mock();
+        let position = PerpetualPosition::mock();
+        let modify_buttons = vec![GemPerpetualButton::Increase, GemPerpetualButton::Reduce];
+
+        assert_eq!(
+            details(&perpetual, &asset, vec![]),
+            GemPerpetualDetails {
+                title: market_row(&perpetual, &asset).title,
+                sections: vec![GemPerpetualSection::Info {
+                    buttons: vec![GemPerpetualButton::Long, GemPerpetualButton::Short],
+                    rows: info_rows(market_row(&perpetual, &asset)),
+                }],
+                modify_buttons: modify_buttons.clone(),
+                position: None,
+            }
+        );
+        assert_eq!(
+            details(&perpetual, &asset, vec![position.clone()]),
+            GemPerpetualDetails {
+                title: market_row(&perpetual, &asset).title,
+                sections: vec![
+                    GemPerpetualSection::Position { rows: position_details(&position) },
+                    GemPerpetualSection::Info {
+                        buttons: vec![GemPerpetualButton::Modify, GemPerpetualButton::Close],
+                        rows: info_rows(market_row(&perpetual, &asset)),
+                    },
+                ],
+                modify_buttons,
+                position: Some(position),
+            }
+        );
+
         let detail_kinds = |position: &PerpetualPosition| position_details(position).into_iter().map(|detail| detail.kind).collect::<Vec<_>>();
-        assert_eq!(perpetual_sections(false), vec![GemPerpetualSection::Info]);
-        assert_eq!(perpetual_sections(true), vec![GemPerpetualSection::Position, GemPerpetualSection::Info]);
-        assert_eq!(perpetual_buttons(false), vec![GemPerpetualButton::Long, GemPerpetualButton::Short]);
-        assert_eq!(perpetual_buttons(true), vec![GemPerpetualButton::Modify, GemPerpetualButton::Close]);
 
         let without_liquidation = PerpetualPosition {
             liquidation_price: Some(0.0),
@@ -1490,9 +1531,9 @@ mod tests {
     }
 
     #[test]
-    fn test_details_read_the_reduce_direction_from_the_position_and_leave_a_modify_without_details() {
+    fn test_confirm_details_read_the_reduce_direction_from_the_position_and_leave_a_modify_without_details() {
         let data = PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None);
-        let reduce = details(&PerpetualType::Reduce {
+        let reduce = confirm_details(&PerpetualType::Reduce {
             data: PerpetualReduceData {
                 data: data.clone(),
                 position_direction: PerpetualDirection::Short,
@@ -1501,7 +1542,7 @@ mod tests {
         .unwrap();
         assert_eq!(
             reduce.summary,
-            GemPerpetualDetailsSummary {
+            GemPerpetualConfirmDetailsSummary {
                 text: Some(GemLocalizedText::PositionChange {
                     change: GemPositionChange::Reduce,
                     direction: PerpetualDirection::Short,
@@ -1510,10 +1551,10 @@ mod tests {
             }
         );
 
-        let open = details(&PerpetualType::Open { data: data.clone() }).unwrap();
+        let open = confirm_details(&PerpetualType::Open { data: data.clone() }).unwrap();
         assert_eq!(
             open.summary,
-            GemPerpetualDetailsSummary {
+            GemPerpetualConfirmDetailsSummary {
                 text: Some(GemLocalizedText::Position {
                     direction: PerpetualDirection::Long,
                     leverage: "5x".to_string(),
@@ -1523,7 +1564,7 @@ mod tests {
         );
 
         assert!(
-            details(&PerpetualType::Modify {
+            confirm_details(&PerpetualType::Modify {
                 data: PerpetualModifyConfirmData::mock(vec![], None, None)
             })
             .is_none()
@@ -1531,13 +1572,13 @@ mod tests {
     }
 
     #[test]
-    fn test_details_sections_carry_finished_rows_and_the_trigger_prices_the_provider_sent() {
+    fn test_confirm_details_sections_carry_finished_rows_and_the_trigger_prices_the_provider_sent() {
         let data = PerpetualConfirmData {
             pnl: Some(5.0),
             entry_price: Some(100.0),
             ..PerpetualConfirmData::mock(PerpetualDirection::Long, 0, Some("12.345".to_string()), None)
         };
-        let sections = details(&PerpetualType::Close { data }).unwrap().sections;
+        let sections = confirm_details(&PerpetualType::Close { data }).unwrap().sections;
         let rows = |index: usize| sections[index].rows.clone();
 
         assert_eq!(
@@ -1627,8 +1668,8 @@ mod tests {
     }
 
     #[test]
-    fn test_details_leave_out_the_rows_the_data_has_no_value_for() {
-        let sections = details(&PerpetualType::Open {
+    fn test_confirm_details_leave_out_the_rows_the_data_has_no_value_for() {
+        let sections = confirm_details(&PerpetualType::Open {
             data: PerpetualConfirmData::mock(PerpetualDirection::Short, 0, None, None),
         })
         .unwrap()
