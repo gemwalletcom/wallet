@@ -32,7 +32,6 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualMarketSceneState
 import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualMarketSectionUIModel
 import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualPositionRowUIModel
-import com.gemwallet.android.features.perpetual.views.components.MarketHeadActions
 import com.gemwallet.android.features.perpetual.views.components.PerpetualItem
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
@@ -42,6 +41,8 @@ import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_head.AmountListHead
+import com.gemwallet.android.ui.components.list_head.AssetHeadActions
+import com.gemwallet.android.ui.components.list_head.uiModel
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.PinnedAssetsHeaderItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
@@ -66,8 +67,6 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.WalletType
-import uniffi.gemstone.GemHeaderActions
-import uniffi.gemstone.GemHeaderButtonKind
 import uniffi.gemstone.GemPerpetualBalanceHeader
 import uniffi.gemstone.PerpetualBalance
 import uniffi.gemstone.perpetualBalanceHeader
@@ -75,7 +74,7 @@ import uniffi.gemstone.perpetualBalanceHeader
 @Composable
 internal fun PerpetualMarketScene(
     sceneState: PerpetualMarketSceneState,
-    balanceHeader: GemPerpetualBalanceHeader,
+    balanceHeader: GemPerpetualBalanceHeader?,
     positions: List<PerpetualPositionRowUIModel>,
     unpinnedPerpetuals: List<PerpetualDataAggregate>,
     pinnedPerpetuals: List<PerpetualDataAggregate>,
@@ -121,7 +120,7 @@ internal fun PerpetualMarketScene(
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
             ) {
-                if (!isSearching) {
+                if (!isSearching && balanceHeader != null) {
                     item {
                         AmountListHead(
                             amount = balanceHeader.total.text(),
@@ -131,15 +130,16 @@ internal fun PerpetualMarketScene(
                             ),
                             onClick = { onAction(PerpetualMarketAction.OpenPortfolio) },
                         ) {
-                            when (val actions = balanceHeader.actions) {
-                                GemHeaderActions.WatchOnly -> Unit
-
-                                is GemHeaderActions.Buttons -> MarketHeadActions(
-                                    canWithdraw = actions.buttons.any { it.kind == GemHeaderButtonKind.WITHDRAW && it.isEnabled },
-                                    onWithdraw = { onAction(PerpetualMarketAction.Withdraw) },
+                            AssetHeadActions(
+                                balanceHeader.actions.uiModel(
+                                    onTransfer = null,
+                                    onReceive = null,
+                                    onBuy = null,
+                                    onSwap = null,
                                     onDeposit = { onAction(PerpetualMarketAction.Deposit) },
-                                )
-                            }
+                                    onWithdraw = { onAction(PerpetualMarketAction.Withdraw) },
+                                ),
+                            )
                         }
                     }
                 }

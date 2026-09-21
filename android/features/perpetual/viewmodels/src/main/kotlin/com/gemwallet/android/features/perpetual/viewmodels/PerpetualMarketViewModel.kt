@@ -28,7 +28,6 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.RecentActivityType
-import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -38,6 +37,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -113,10 +114,12 @@ class PerpetualMarketViewModel @Inject constructor(
     val positionRows: StateFlow<List<PerpetualPositionRowUIModel>> = positions
         .map { items -> items.map { PerpetualPositionRowUIModel(it.asset, it.listItem(context)) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-    val balanceHeader: StateFlow<GemPerpetualBalanceHeader> = combine(getBalance.getBalance(), getSession()) { balance, session ->
-        perpetualBalanceHeader(balance?.toGem(), (session?.wallet?.type ?: WalletType.View).toGem())
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, perpetualBalanceHeader(null, WalletType.View.toGem()))
+    val balanceHeader: StateFlow<GemPerpetualBalanceHeader?> = combine(
+        getBalance.getBalance(),
+        getSession().filterNotNull().map { it.wallet.type }.distinctUntilChanged(),
+    ) { balance, walletType -> perpetualBalanceHeader(balance?.toGem(), walletType.toGem()) }
+        .flowOn(ioDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     val recent: StateFlow<List<Asset>> =
         recentAssetsService.getRecentAssets(RecentAssetsRequest(types = listOf(RecentActivityType.Perpetual)))
             .map { items -> items.map { it.asset } }
