@@ -5,16 +5,16 @@ import SwiftUI
 private struct LockWindowViewModifier: ViewModifier {
     @Environment(\.scenePhase) var scenePhase
     @Environment(\.colorScheme) var colorScheme
-    private let lockWindow: any LockWindowPresentable
+    private let lockWindow: LockWindow
 
-    init(lockWindow: any LockWindowPresentable) {
+    init(lockWindow: LockWindow) {
         self.lockWindow = lockWindow
     }
 
     func body(content: Content) -> some View {
         content
             .onChange(of: scenePhase, initial: true) { _, newPhase in
-                lockWindow.setPhase(phase: newPhase)
+                lockWindow.lockModel.onScenePhase(newPhase)
             }
             .onChange(of: colorScheme, initial: true) { _, newColorScheme in
                 lockWindow.setColorScheme(newColorScheme)
@@ -29,7 +29,7 @@ private struct LockWindowViewModifier: ViewModifier {
 }
 
 public extension View {
-    func lockWindow(_ lockWindow: any LockWindowPresentable) -> some View {
+    func lockWindow(_ lockWindow: LockWindow) -> some View {
         modifier(LockWindowViewModifier(lockWindow: lockWindow))
     }
 }

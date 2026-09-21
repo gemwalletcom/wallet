@@ -4,14 +4,19 @@ import SwiftUI
 
 @Observable
 @MainActor
-public final class LockWindow: LockWindowPresentable {
-    public var lockModel: LockSceneViewModel
-    public var overlayWindow: UIWindow?
+public final class LockWindow {
+    public let lockModel: LockSceneViewModel
+    public private(set) var overlayWindow: UIWindow?
 
+    private let sceneWindow: @MainActor () -> UIWindow?
     private var userInterfaceStyle: UIUserInterfaceStyle = .unspecified
 
-    public init(lockModel: LockSceneViewModel) {
+    public init(
+        lockModel: LockSceneViewModel,
+        sceneWindow: @escaping @MainActor () -> UIWindow?,
+    ) {
         self.lockModel = lockModel
+        self.sceneWindow = sceneWindow
     }
 
     public var showLockScreen: Bool {
@@ -20,14 +25,6 @@ public final class LockWindow: LockWindowPresentable {
 
     public var isPrivacyLockVisible: Bool {
         lockModel.isPrivacyLockVisible
-    }
-
-    public func setPhase(phase: ScenePhase) {
-        guard lockModel.isAutoLockEnabled else {
-            lockModel.resetLockState()
-            return
-        }
-        lockModel.onScenePhase(phase)
     }
 
     public func setColorScheme(_ colorScheme: ColorScheme) {
@@ -55,10 +52,8 @@ public final class LockWindow: LockWindowPresentable {
 
 extension LockWindow {
     private func presentLockWindow() {
-        if overlayWindow == nil,
-           let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene
-        {
-            overlayWindow = makeOverlayWindow(in: scene)
+        if overlayWindow == nil, let window = sceneWindow() {
+            overlayWindow = configured(window)
         }
 
         if overlayWindow?.alpha != lockModel.privacyLockAlpha {
@@ -73,10 +68,8 @@ extension LockWindow {
         overlayWindow?.isHidden = true
     }
 
-    private func makeOverlayWindow(in scene: UIWindowScene) -> UIWindow {
-        let host = UIHostingController(rootView: LockScreenScene(model: lockModel))
-        let window = UIWindow(windowScene: scene)
-        window.rootViewController = host
+    private func configured(_ window: UIWindow) -> UIWindow {
+        window.rootViewController = UIHostingController(rootView: LockScreenScene(model: lockModel))
         window.windowLevel = .alert + 1
         window.backgroundColor = .clear
         window.overrideUserInterfaceStyle = userInterfaceStyle
