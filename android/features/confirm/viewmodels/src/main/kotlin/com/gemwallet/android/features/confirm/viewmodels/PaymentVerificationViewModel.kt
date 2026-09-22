@@ -19,6 +19,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -45,9 +46,11 @@ class PaymentVerificationViewModel @Inject constructor(
     val url: StateFlow<String> = urlState.asStateFlow()
     val confirm: StateFlow<ConfirmTransferInput?> = confirmState.asStateFlow()
     val verificationBridge = PaymentVerificationBridge(::onPaymentVerified)
+    private var verifying: Job? = null
 
     private fun onPaymentVerified() {
-        viewModelScope.launch(ioDispatcher) {
+        if (verifying?.isActive == true) return
+        verifying = viewModelScope.launch(ioDispatcher) {
             val wallet = getSession().value?.wallet ?: return@launch
             try {
                 when (val load = paymentService.load(link, wallet.chainAddresses.map { it.toGem() })) {
