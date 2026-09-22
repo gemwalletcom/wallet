@@ -139,13 +139,13 @@ impl GemConfirmation {
     }
 
     pub async fn load(&self, options: GemConfirmLoadOptions) -> Result<GemConfirmLoad, GemConfirmError> {
+        let load = self.latest_load.fetch_add(1, Ordering::SeqCst) + 1;
         if let Some(asset_id) = options.asset_id.clone() {
             self.select_asset(asset_id).await?;
         }
         if self.transfer().verification().is_some() {
             return self.state().await;
         }
-        let load = self.latest_load.fetch_add(1, Ordering::SeqCst) + 1;
         let result = self.load_screen(options).await;
         self.store_latest(load, result).await
     }
