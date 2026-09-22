@@ -199,8 +199,6 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
                 feeModel: feeModel,
                 infoAction: onSelectNetworkFeeInfo,
             )
-        case .verification:
-            ConfirmVerificationViewModel(infoAction: onSelectVerificationInfo)
         case .error:
             ConfirmErrorViewModel(
                 error: state.transactionError,
