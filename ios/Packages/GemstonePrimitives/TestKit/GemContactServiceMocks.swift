@@ -55,7 +55,6 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
     public var connectionSectionsValue: [GemConnectionSection] = []
     public var connectionRowValue = GemConnectionRow(title: "", host: nil, initial: nil, iconUrl: nil)
     public var connectionDetailRows: [GemListRow] = []
-    public var originRejected = false
     public var hasSessionsValue = false
     public var signatureResult: Result<String, Error> = .success("0x")
 
@@ -112,10 +111,6 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
 
     public func hasSessions() async throws -> Bool {
         hasSessionsValue
-    }
-
-    public func isOriginRejected(metadataUrl _: String, origin _: String?, validation _: Gemstone.WalletConnectionVerificationStatus) -> Bool {
-        originRejected
     }
 
     public func prepareSessionProposal(

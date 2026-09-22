@@ -9,11 +9,10 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectAuthPayload
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticationRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
-import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
 import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.bridge.viewmodels.localization.text
 import com.gemwallet.android.features.bridge.viewmodels.model.ConnectionHeadUIModel
 import com.gemwallet.android.features.bridge.viewmodels.model.ReviewTexts
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectReviewModel
@@ -41,10 +40,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemApplicationMetadataServiceInterface
-import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemWalletConnectAuthAccount
-import uniffi.gemstone.GemWalletConnectFailure
+import uniffi.gemstone.GemWalletConnectException
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.MessageSigner
 import uniffi.gemstone.MessageType
@@ -56,7 +55,6 @@ import javax.inject.Inject
 @HiltViewModel
 class WCAuthViewModel @Inject constructor(
     private val approveWalletConnectAuthentication: ApproveWalletConnectAuthentication,
-    private val prepareSessionProposal: PrepareSessionProposal,
     private val activeRequest: ActiveWalletConnectRequest,
     private val walletConnectService: GemWalletConnectServiceInterface,
     private val metadataService: GemApplicationMetadataServiceInterface,
@@ -78,49 +76,25 @@ class WCAuthViewModel @Inject constructor(
         authRequest = request
         hasResponded = false
         _state.update { AuthSceneState.Loading }
-        if (walletConnectService.isOriginRejected(request.metadata?.url.orEmpty(), verifyContext.origin, verifyContext.map())) {
-            onNotify(GemWalletConnectFailure.MaliciousOrigin.text(context))
-            hasResponded = true
-            approveWalletConnectAuthentication.rejectAuthentication(request)
-            finish(request)
-            return
-        }
-        viewModelScope.launch(ioDispatcher) {
-            try {
-                val prepared = prepareSessionProposal(
-                    name = request.metadata?.name.orEmpty(),
-                    description = request.metadata?.description.orEmpty(),
-                    url = request.metadata?.url.orEmpty(),
-                    icons = listOfNotNull(request.metadata?.icon),
-                    requiredChainIds = emptyList(),
-                    optionalChainIds = walletConnectService.authenticationChainIds(request.payloadParams.chains),
-                    origin = verifyContext.origin,
-                    validation = verifyContext.map(),
-                )
-
+        viewModelScope.launch {
+            val content = withContext(ioDispatcher) {
+                runCatchingCancellable { requestContent(request, verifyContext) }
+            }.getOrElse { err ->
                 if (!isActiveRequest(request)) {
                     return@launch
                 }
-                val selectedWallet = prepared.proposal.defaultWallet
-                val approval = buildApproval(request, selectedWallet)
-
-                if (!isActiveRequest(request)) {
-                    return@launch
-                }
-                _state.update {
-                    AuthSceneState.Request(
-                        texts = ReviewTexts(context),
-                        peer = metadataService.connectionRow(prepared.proposal.metadata.toGem()).headUIModel(),
-                        availableWallets = prepared.proposal.wallets,
-                        availableWalletRows = walletRows(prepared.proposal.wallets.map { it.toGem() }).map { it.uiModel(context) },
-                        selectedWallet = selectedWallet,
-                        approval = approval,
-                    )
-                }
-            } catch (err: Throwable) {
-                if (isActiveRequest(request)) {
+                if (err is GemWalletConnectException.InvalidOrigin) {
+                    onNotify(err.errorText().text(context))
+                    hasResponded = true
+                    approveWalletConnectAuthentication.rejectAuthentication(request)
+                    finish(request)
+                } else {
                     rejectRequest(request, AuthSceneState.Error(err.errorText().text(context)))
                 }
+                return@launch
+            }
+            if (isActiveRequest(request)) {
+                _state.update { content }
             }
         }
     }
@@ -234,6 +208,30 @@ class WCAuthViewModel @Inject constructor(
     private fun reset() {
         authRequest = null
         _state.update { AuthSceneState.Loading }
+    }
+
+    private suspend fun requestContent(request: WalletConnectAuthenticationRequest, verifyContext: WalletConnectVerifyContext): AuthSceneState.Request {
+        val prepared = walletConnectService.prepareSessionProposal(
+            requiredChainIds = emptyList(),
+            optionalChainIds = walletConnectService.authenticationChainIds(request.payloadParams.chains),
+            metadata = walletConnectService.applicationMetadata(
+                request.metadata?.name.orEmpty(),
+                request.metadata?.description.orEmpty(),
+                request.metadata?.url.orEmpty(),
+                listOfNotNull(request.metadata?.icon),
+            ),
+            origin = verifyContext.origin,
+            validation = verifyContext.map(),
+        )
+        val selectedWallet = prepared.proposal.defaultWallet.toPrimitives()
+        return AuthSceneState.Request(
+            texts = ReviewTexts(context),
+            peer = metadataService.connectionRow(prepared.proposal.metadata).headUIModel(),
+            availableWallets = prepared.proposal.wallets.map { it.toPrimitives() },
+            availableWalletRows = walletRows(prepared.proposal.wallets).map { it.uiModel(context) },
+            selectedWallet = selectedWallet,
+            approval = buildApproval(request, selectedWallet),
+        )
     }
 
     private fun buildApproval(request: WalletConnectAuthenticationRequest, wallet: Wallet): AuthApproval {

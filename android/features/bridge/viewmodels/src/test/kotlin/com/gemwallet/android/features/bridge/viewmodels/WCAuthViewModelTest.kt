@@ -5,11 +5,10 @@ import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectReque
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthPayloadParams
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticationRequest
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
-import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockApplicationMetadata
 import com.gemwallet.android.testkit.mockGemConnectionRow
 import com.gemwallet.android.testkit.mockGemWalletConnectAuthAccount
-import com.gemwallet.android.testkit.mockWalletConnectPairingProposal
 import com.gemwallet.android.testkit.mockWalletConnectVerifyContext
 import com.gemwallet.android.testkit.mockWalletConnectionSessionProposal
 import com.gemwallet.android.testkit.mockWalletMulticoin
@@ -36,8 +35,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemApplicationMetadataServiceInterface
+import uniffi.gemstone.GemSessionProposal
 import uniffi.gemstone.GemWalletConnectAuthAccount
+import uniffi.gemstone.GemWalletConnectException
 import uniffi.gemstone.GemWalletConnectServiceInterface
+import uniffi.gemstone.WalletConnectionVerificationStatus
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WCAuthViewModelTest {
@@ -87,7 +89,11 @@ class WCAuthViewModelTest {
     }
 
     private fun service(accounts: (String) -> List<GemWalletConnectAuthAccount>): GemWalletConnectServiceInterface = mockk(relaxed = true) {
-        every { isOriginRejected(any(), any(), any()) } returns false
+        every { applicationMetadata(any(), any(), any(), any()) } returns mockApplicationMetadata().toGem()
+        coEvery { prepareSessionProposal(any(), any(), any(), any(), any()) } returns GemSessionProposal(
+            proposal = mockWalletConnectionSessionProposal(defaultWallet = main, wallets = listOf(main, secondary)).toGem(),
+            verificationStatus = WalletConnectionVerificationStatus.VERIFIED,
+        )
         every { authenticationChainIds(any()) } returns listOf("eip155:1")
         every { authenticationMethods() } returns listOf("personal_sign")
         every { authenticationAccounts(any(), any()) } answers { accounts(secondArg<uniffi.gemstone.Wallet>().id) }
@@ -99,15 +105,8 @@ class WCAuthViewModelTest {
         every { authMessage(any(), any()) } returns "app.uniswap.org wants you to sign in"
     }
 
-    private fun proposals(): PrepareSessionProposal = mockk {
-        coEvery { this@mockk(any(), any(), any(), any(), any(), any(), any(), any()) } returns mockWalletConnectPairingProposal(
-            mockWalletConnectionSessionProposal(defaultWallet = main, wallets = listOf(main, secondary)),
-        )
-    }
-
-    private fun viewModel(service: GemWalletConnectServiceInterface, approve: ApproveWalletConnectAuthentication = approval(), prepare: PrepareSessionProposal = proposals()) = WCAuthViewModel(
+    private fun viewModel(service: GemWalletConnectServiceInterface, approve: ApproveWalletConnectAuthentication = approval()) = WCAuthViewModel(
         approveWalletConnectAuthentication = approve,
-        prepareSessionProposal = prepare,
         activeRequest = ActiveWalletConnectRequest(events = emptyFlow()),
         walletConnectService = service,
         metadataService = metadataService(),
@@ -126,18 +125,18 @@ class WCAuthViewModelTest {
     }
 
     @Test
-    fun `a malicious origin rejects before preparing a proposal`() = runTest(dispatcher) {
-        val notified = mutableListOf<String>()
+    fun `a malicious origin notifies the scene and rejects the request`() = runTest(dispatcher) {
+        val notified = CompletableDeferred<String>()
         val approve = approval()
-        val prepare = proposals()
         val service = service { listOf(mockGemWalletConnectAuthAccount()) }
-        every { service.isOriginRejected(any(), any(), any()) } returns true
+        coEvery { service.prepareSessionProposal(any(), any(), any(), any(), any()) } throws GemWalletConnectException.InvalidOrigin()
+        val model = viewModel(service, approve)
 
-        viewModel(service, approve, prepare).onRequest(request, verifyContext) { notified.add(it) }
+        model.onRequest(request, verifyContext) { notified.complete(it) }
 
-        assertEquals(listOf("Malicious origin"), notified)
+        assertEquals("Malicious origin", notified.await())
         verify { approve.rejectAuthentication(request, any(), any()) }
-        coVerify(exactly = 0) { prepare(any(), any(), any(), any(), any(), any(), any(), any()) }
+        assertTrue(model.state.value is AuthSceneState.Loading)
     }
 
     @Test
