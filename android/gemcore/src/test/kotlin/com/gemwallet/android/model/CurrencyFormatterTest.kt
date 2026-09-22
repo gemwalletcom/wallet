@@ -12,6 +12,19 @@ class CurrencyFormatterTest {
     private val currencyUS = CurrencyFormatter(currency = Currency.USD, locale = Locale.US)
     private val currencyUK = CurrencyFormatter(currency = Currency.GBP, locale = Locale.UK)
     private val fiatUS = CurrencyFormatter(style = GemCurrencyStyle.FIAT, currency = Currency.USD, locale = Locale.US)
+    private val shortUS = CurrencyFormatter(style = GemCurrencyStyle.SHORT, currency = Currency.USD, locale = Locale.US)
+    private val shortUK = CurrencyFormatter(style = GemCurrencyStyle.SHORT, currency = Currency.GBP, locale = Locale.UK)
+
+    @Test
+    fun short_readsDustBelowTheAmountThreshold() {
+        assertEquals("<$0.0001", shortUS.string(0.00000783))
+        assertEquals("<£0.0001", shortUK.string(0.00000783))
+        assertEquals("$0.0001", shortUS.string(0.0001))
+        assertEquals("$0.00", shortUS.string(0.0))
+        assertEquals("$0.0345", shortUS.string(0.0345))
+        assertEquals("$1,234.50", shortUS.string(1234.5))
+        assertEquals("$0.00000783", currencyUS.string(0.00000783))
+    }
 
     @Test
     fun currency_normal() {

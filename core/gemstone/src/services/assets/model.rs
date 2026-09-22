@@ -2,6 +2,7 @@ use primitives::{Asset, AssetId, AssetMetaData, AssetType, BalanceMetadata, Bann
 
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::list::{GemListRow, GemListSectionTitle};
+use crate::precision::GemCurrencyStyle;
 use crate::services::balance::{GemAssetBalance, GemAssetBalanceRow};
 use crate::services::price_alert::rules::GemPriceAlertToggle;
 use crate::services::swap::GemSwapPairSuggestion;
@@ -127,8 +128,8 @@ pub struct GemPriceRow {
 }
 
 #[uniffi::export]
-pub fn price_row(price: Option<f64>, change: Option<f64>, currency: Currency) -> GemPriceRow {
-    super::rules::price_row(price, change, currency)
+pub fn price_row(price: Option<f64>, change: Option<f64>, currency: Currency, style: GemCurrencyStyle) -> GemPriceRow {
+    super::rules::price_row(price, change, currency, style)
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

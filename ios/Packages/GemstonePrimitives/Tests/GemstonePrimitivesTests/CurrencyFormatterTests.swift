@@ -12,6 +12,20 @@ final class CurrencyFormatterTests {
     let abbreviatedFormatterUS = CurrencyFormatter(type: .abbreviated, locale: .US, currencyCode: Currency.usd.rawValue)
     let abbreviatedFormatterUK = CurrencyFormatter(type: .abbreviated, locale: .UK, currencyCode: Currency.gbp.rawValue)
 
+    let shortFormatterUS = CurrencyFormatter(type: .short, locale: .US, currencyCode: Currency.usd.rawValue)
+    let shortFormatterUK = CurrencyFormatter(type: .short, locale: .UK, currencyCode: Currency.gbp.rawValue)
+
+    @Test
+    func shortReadsDustBelowTheAmountThreshold() {
+        #expect(shortFormatterUS.string(0.00000783) == "<$0.0001")
+        #expect(shortFormatterUK.string(0.00000783) == "<£0.0001")
+        #expect(shortFormatterUS.string(0.0001) == "$0.0001")
+        #expect(shortFormatterUS.string(0) == "$0.00")
+        #expect(shortFormatterUS.string(0.0345) == "$0.0345")
+        #expect(shortFormatterUS.string(1234.5) == "$1,234.50")
+        #expect(currencyFormatterUS.string(0.00000783) == "$0.00000783")
+    }
+
     @Test
     func currency() {
         #expect(currencyFormatterUS.string(0) == "$0.00")

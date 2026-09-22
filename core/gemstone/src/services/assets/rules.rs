@@ -219,9 +219,9 @@ pub fn asset_list_row(input: GemAssetListRowInput) -> GemAssetListRow {
     };
     GemAssetListRow {
         text: asset_row_text(&asset, style),
-        price: price_row(price, change, currency.clone()),
+        price: price_row(price, change, currency.clone(), GemCurrencyStyle::Short),
         amount: crate::services::balance::rules::balance_amount_styled(&value, &asset, crate::precision::GemValueStyle::Short),
-        fiat: fiat_amount(&asset, &value, price, currency),
+        fiat: fiat_amount(&asset, &value, price, currency, GemCurrencyStyle::Short),
         has_balance: value > GemBigUint::ZERO,
     }
 }
@@ -465,21 +465,21 @@ pub fn asset_title(asset: &Asset) -> String {
 }
 
 pub fn fiat_value(asset: &Asset, balance: &GemAssetBalance, price: Option<f64>, currency: Currency) -> Option<GemFormattedNumber> {
-    fiat_amount(asset, &balance.total(), price, currency)
+    fiat_amount(asset, &balance.total(), price, currency, GemCurrencyStyle::Currency)
 }
 
-pub fn fiat_amount_of(asset: &Asset, value: &num_bigint::BigUint, price: Option<f64>, currency: Currency) -> Option<GemFormattedNumber> {
-    fiat_amount(asset, &GemBigUint::from(value.clone()), price, currency)
+pub fn fiat_amount_of(asset: &Asset, value: &num_bigint::BigUint, price: Option<f64>, currency: Currency, style: GemCurrencyStyle) -> Option<GemFormattedNumber> {
+    fiat_amount(asset, &GemBigUint::from(value.clone()), price, currency, style)
 }
 
-fn fiat_amount(asset: &Asset, value: &GemBigUint, price: Option<f64>, currency: Currency) -> Option<GemFormattedNumber> {
+fn fiat_amount(asset: &Asset, value: &GemBigUint, price: Option<f64>, currency: Currency, style: GemCurrencyStyle) -> Option<GemFormattedNumber> {
     let value: f64 = CryptoFiatConverter::to_fiat(&value.to_string(), asset.decimals as u32, price?).ok()?.parse().ok()?;
-    (value > 0.0).then(|| GemFormattedNumber::currency(value, currency, GemCurrencyStyle::Currency))
+    (value > 0.0).then(|| GemFormattedNumber::currency(value, currency, style))
 }
 
-pub fn price_row(price: Option<f64>, change: Option<f64>, currency: Currency) -> GemPriceRow {
+pub fn price_row(price: Option<f64>, change: Option<f64>, currency: Currency, style: GemCurrencyStyle) -> GemPriceRow {
     GemPriceRow {
-        price: price.filter(|price| *price > 0.0).map(|price| GemFormattedNumber::currency(price, currency, GemCurrencyStyle::Currency)),
+        price: price.filter(|price| *price > 0.0).map(|price| GemFormattedNumber::currency(price, currency, style)),
         change: change.map(|change| GemFormattedNumber::percentage(change, GemPercentageStyle::Signed).toned()),
     }
 }
@@ -531,7 +531,7 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
     } = input;
     let chain = asset.chain();
     let displayed_alerts = displayed_price_alert_ids(price_alerts.to_vec()).len();
-    let quoted = price_row(price, price_change_percentage_24h, currency.clone());
+    let quoted = price_row(price, price_change_percentage_24h, currency.clone(), GemCurrencyStyle::Currency);
     let row = |row: GemListRow| GemAssetDetailRow::Row { row };
     let link = |title: GemListRowTitle, value: Option<String>, icon: GemListRowIcon| row(GemListRow::Link { title, value, icon });
     let section = |title: GemListSectionTitle, rows: Vec<GemAssetDetailRow>| (!rows.is_empty()).then_some(GemAssetDetailSection { title, rows });
@@ -697,7 +697,7 @@ mod tests {
         assert_eq!(total.amount.value, 3.0);
         assert_eq!(total.amount.unit, crate::formatted_number::GemNumberUnit::Symbol { symbol: usdc.symbol.clone() });
         assert_eq!(total.fiat.expect("a priced balance is worth something").value, 3.0);
-        assert_eq!(total.price, price_row(Some(1.0), Some(-2.5), Currency::USD), "the row's price is the one the detail screen shows");
+        assert_eq!(total.price, price_row(Some(1.0), Some(-2.5), Currency::USD, GemCurrencyStyle::Short), "the row's price is the list-width one");
         assert!(total.has_balance);
 
         let available = row(held.clone(), GemAssetBalanceScope::Available, Some(1.0));
@@ -1414,7 +1414,7 @@ mod tests {
 
     #[test]
     fn test_a_price_row_carries_the_quote_and_hides_one_nobody_gave() {
-        let quoted = price_row(Some(1234.5), Some(-2.5), Currency::USD);
+        let quoted = price_row(Some(1234.5), Some(-2.5), Currency::USD, GemCurrencyStyle::Short);
         let GemPriceRow { price, change } = quoted;
         let price = price.expect("a quoted price is shown");
         let change = change.expect("a change is shown beside it");
@@ -1423,9 +1423,23 @@ mod tests {
         assert_eq!(price.unit, crate::formatted_number::GemNumberUnit::Currency { code: "USD".to_string() });
         assert_eq!(change.tone, crate::formatted_number::GemValueTone::Negative, "a falling price reads red on both apps");
 
-        let unquoted = price_row(Some(0.0), None, Currency::USD);
+        let tiny = |style| price_row(Some(0.00000783), None, Currency::USD, style).price.expect("a tiny price is still quoted").display;
+        assert_eq!(
+            tiny(GemCurrencyStyle::Short),
+            crate::formatted_number::GemNumberDisplay::BelowThreshold { threshold: 0.0001, places: 4 },
+            "a list row reads <$0.0001 instead of wrapping"
+        );
+        assert_eq!(
+            tiny(GemCurrencyStyle::Currency),
+            crate::formatted_number::GemNumberDisplay::Number {
+                precision: crate::precision::GemPrecision::Significant { max: 4 }
+            },
+            "a detail row has the width for the digits"
+        );
+
+        let unquoted = price_row(Some(0.0), None, Currency::USD, GemCurrencyStyle::Short);
         assert_eq!(unquoted, GemPriceRow { price: None, change: None }, "neither app has to decide what a zero price reads as");
-        assert_eq!(price_row(None, None, Currency::USD), GemPriceRow { price: None, change: None });
+        assert_eq!(price_row(None, None, Currency::USD, GemCurrencyStyle::Short), GemPriceRow { price: None, change: None });
     }
 
     #[test]
