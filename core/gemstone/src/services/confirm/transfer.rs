@@ -8,7 +8,7 @@ use crate::config::fiat_config::get_fiat_config;
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::GemListRow;
 use crate::models::transaction::GemSignedTransaction;
-use crate::payment::GemPaymentService;
+use crate::payment::{GemPaymentError, GemPaymentService};
 use crate::services::assets::config::GemAssetConfigService;
 use crate::services::confirm::rules::{confirm_row_contents, is_broadcast, is_insufficient_network_fee};
 use crate::services::confirm::{
@@ -137,9 +137,11 @@ impl GemConfirmTransferService {
         let TransactionInputType::Payment { .. } = input_type else {
             return None;
         };
-        if let Err(error) = self.payment.confirm(input_type, action_results).await {
-            return Some(payment_error_text(error));
-        }
+        let warning = match self.payment.confirm(input_type, action_results).await {
+            Ok(()) => None,
+            Err(error @ GemPaymentError::Network { .. }) => Some(payment_error_text(error)),
+            Err(error) => return Some(payment_error_text(error)),
+        };
         if let Some(hash) = self.payment.record_hash(input_type)
             && !signatures.is_empty()
         {
@@ -149,7 +151,7 @@ impl GemConfirmTransferService {
             };
             self.confirm.store_pending(&record, &[hash], signatures).await;
         }
-        None
+        warning
     }
 
     pub(super) fn confirm_input(&self, wallet: Wallet, transfer: GemTransferData) -> Result<GemConfirmInput, GemConfirmError> {
