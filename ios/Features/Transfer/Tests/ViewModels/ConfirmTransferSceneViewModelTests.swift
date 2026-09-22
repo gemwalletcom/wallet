@@ -105,9 +105,10 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func failedPaymentAssetSwitchShowsTheErrorOnTheAssetItBelongsTo() async {
         let invoice = PaymentInvoice.mock(quotes: [.mock(asset: .mockBNB()), .mock(asset: .mockEthereum())])
+        let shown = GemTransferData.mockPayment(asset: .mockBNB(), invoice: invoice)
         let picked = GemTransferData.mockPayment(asset: .mockEthereum(), invoice: invoice)
-        let confirmation = GemConfirmationMock(state: .mock(transfer: picked, preload: nil), load: .failure(GemConfirmError.Load(msg: "gateway")))
-        let model = ConfirmTransferSceneViewModel.mock(data: .mockPayment(asset: .mockBNB(), invoice: invoice), confirmation: confirmation)
+        let confirmation = GemConfirmationMock(state: .mock(transfer: shown, preload: nil), load: .failure(GemConfirmError.Load(msg: "gateway")), selection: picked)
+        let model = ConfirmTransferSceneViewModel.mock(data: shown, confirmation: confirmation)
 
         model.selectPaymentAsset(.mockEthereum())
         await model.load()

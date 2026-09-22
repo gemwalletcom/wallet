@@ -30,7 +30,9 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     private let authenticationValue: GemKeystoreAuthentication
     private let rows: (Gemstone.AddressName?) -> [GemConfirmRowContent]
     private let acquireFlow: GemAcquireAssetFlow
+    private let selection: GemTransferData?
     private var loaded: GemConfirmLoad?
+    private var selected: GemTransferData?
     public private(set) var loadOptions: [GemConfirmLoadOptions] = []
     public var onLoad: (@MainActor () -> Void)?
 
@@ -41,6 +43,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         authentication: GemKeystoreAuthentication = .none,
         rows: @escaping (Gemstone.AddressName?) -> [GemConfirmRowContent] = { _ in [] },
         acquireFlow: GemAcquireAssetFlow = .fiat,
+        selection: GemTransferData? = nil,
     ) {
         initialState = state
         loadResult = load
@@ -48,6 +51,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         authenticationValue = authentication
         self.rows = rows
         self.acquireFlow = acquireFlow
+        self.selection = selection
     }
 
     public func screen() -> GemConfirmScreen {
@@ -55,7 +59,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     }
 
     public func transfer() -> GemTransferData {
-        (loaded ?? initialState).transfer
+        selected ?? (loaded ?? initialState).transfer
     }
 
     public func state() async throws -> GemConfirmLoad {
@@ -65,6 +69,9 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     public func load(options: GemConfirmLoadOptions) async throws -> GemConfirmLoad {
         loadOptions.append(options)
         await onLoad?()
+        if options.assetId != nil {
+            selected = selection
+        }
         loaded = try loadResult.get()
         return try loadResult.get()
     }
