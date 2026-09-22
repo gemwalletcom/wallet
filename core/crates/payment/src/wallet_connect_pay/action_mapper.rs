@@ -44,7 +44,7 @@ fn map_sign(quote: &Quote, action: &WalletRpcAction) -> Result<TypedDataTransfer
         return Err(PaymentError::invalid_request("Payment asks to sign from another account"));
     }
     let typed_data = EthereumRequestHandler::parse_typed_data(chain, &action.params).map_err(PaymentError::invalid_request)?;
-    let transfer = map_typed_data(&typed_data)?;
+    let transfer = map_typed_data(&typed_data, chain)?;
     if !transfer.token.eq_ignore_ascii_case(quote.token()) {
         return Err(PaymentError::invalid_request(format!("Payment asks to sign for token {} on a quote of {}", transfer.token, quote.asset_id)));
     }
@@ -258,7 +258,7 @@ mod tests {
                 "Payment approves {} for a permit verified by {UNISWAP_PERMIT2_CONTRACT}",
                 ethereum_address_checksum(TEST_ROUTER).unwrap()
             ))),
-            "an unlimited approval goes only to the contract that verifies the permit"
+            "an unlimited approval goes only to Permit2, the contract that verifies the permit"
         );
     }
 }

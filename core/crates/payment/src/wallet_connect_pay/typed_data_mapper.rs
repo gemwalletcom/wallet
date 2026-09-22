@@ -1,5 +1,7 @@
 use gem_evm::eip712::{EIP712Field, find_field_biguint, find_field_string, find_field_struct, parse_eip712_json};
+use gem_evm::uniswap::deployment::get_uniswap_permit2_by_chain;
 use num_bigint::BigUint;
+use primitives::Chain;
 use serde_json::Value;
 
 use crate::error::PaymentError;
@@ -9,7 +11,7 @@ const PRIMARY_TYPE_PERMIT_TRANSFER_FROM: &str = "PermitTransferFrom";
 const PRIMARY_TYPE_TRANSFER_WITH_AUTHORIZATION: &str = "TransferWithAuthorization";
 const PRIMARY_TYPE_RECEIVE_WITH_AUTHORIZATION: &str = "ReceiveWithAuthorization";
 
-pub(super) fn map_typed_data(typed_data: &str) -> Result<TypedDataTransfer, PaymentError> {
+pub(super) fn map_typed_data(typed_data: &str, chain: Chain) -> Result<TypedDataTransfer, PaymentError> {
     let value: Value = serde_json::from_str(typed_data).map_err(|error| PaymentError::invalid_request(format!("Invalid payment signature: {error}")))?;
     let message = parse_eip712_json(&value).map_err(PaymentError::invalid_request)?;
     if message.domain.chain_id.is_none() {
@@ -18,6 +20,10 @@ pub(super) fn map_typed_data(typed_data: &str) -> Result<TypedDataTransfer, Paym
     let verifying_contract = message.domain.verifying_contract.clone().ok_or_else(|| missing("verifying contract"))?;
     let (token, amount, from, recipient) = match message.primary_type.as_str() {
         PRIMARY_TYPE_PERMIT_TRANSFER_FROM => {
+            let permit2 = get_uniswap_permit2_by_chain(&chain).ok_or_else(|| PaymentError::invalid_request(format!("Payment signature has no Permit2 on {}", chain.as_ref())))?;
+            if !verifying_contract.eq_ignore_ascii_case(permit2) {
+                return Err(PaymentError::invalid_request(format!("Payment signature is verified by {verifying_contract}, not by Permit2")));
+            }
             let permitted = find_field_struct(&message.message, "permitted").ok_or_else(|| missing("permitted"))?;
             (get_field(permitted, "token")?, get_amount(permitted, "amount")?, None, get_field(&message.message, "spender")?)
         }
@@ -65,7 +71,7 @@ mod tests {
     #[test]
     fn test_map_typed_data() {
         assert_eq!(
-            map_typed_data(PERMIT_TRANSFER_FROM),
+            map_typed_data(PERMIT_TRANSFER_FROM, Chain::Ethereum),
             Ok(TypedDataTransfer {
                 token: ETHEREUM_USDT_TOKEN_ID.to_string(),
                 amount: BigUint::from(100_000u32),
@@ -76,7 +82,7 @@ mod tests {
             })
         );
         assert_eq!(
-            map_typed_data(RECEIVE_WITH_AUTHORIZATION),
+            map_typed_data(RECEIVE_WITH_AUTHORIZATION, Chain::Ethereum),
             Ok(TypedDataTransfer {
                 token: PYUSD_TOKEN_ID.to_string(),
                 amount: BigUint::from(100_000u32),
@@ -87,18 +93,18 @@ mod tests {
             })
         );
         assert_eq!(
-            map_typed_data(&RECEIVE_WITH_AUTHORIZATION.replace(PRIMARY_TYPE_RECEIVE_WITH_AUTHORIZATION, PRIMARY_TYPE_TRANSFER_WITH_AUTHORIZATION)).map(|transfer| transfer.recipient),
+            map_typed_data(&RECEIVE_WITH_AUTHORIZATION.replace(PRIMARY_TYPE_RECEIVE_WITH_AUTHORIZATION, PRIMARY_TYPE_TRANSFER_WITH_AUTHORIZATION), Chain::Ethereum).map(|transfer| transfer.recipient),
             Ok(TEST_AUTHORIZATION_RECIPIENT.to_string())
         );
 
         let mut unknown = permit_transfer_from();
         unknown["primaryType"] = Value::from("TokenPermissions");
         unknown["message"] = unknown["message"]["permitted"].take();
-        assert_eq!(map_typed_data(&unknown.to_string()), Err(PaymentError::invalid_request("Unsupported payment signature: TokenPermissions")));
+        assert_eq!(map_typed_data(&unknown.to_string(), Chain::Ethereum), Err(PaymentError::invalid_request("Unsupported payment signature: TokenPermissions")));
         let mut unsigned_value = permit_transfer_from();
         unsigned_value["types"]["TokenPermissions"] = serde_json::json!([{"name": "token", "type": "address"}]);
         assert_eq!(
-            map_typed_data(&unsigned_value.to_string()),
+            map_typed_data(&unsigned_value.to_string(), Chain::Ethereum),
             Err(PaymentError::invalid_request("Payment signature has no amount")),
             "an amount the schema does not declare is not part of the signature"
         );
@@ -106,9 +112,23 @@ mod tests {
         unbound["domain"].as_object_mut().unwrap().remove("chainId");
         unbound["types"]["EIP712Domain"] = serde_json::json!([{"name": "name", "type": "string"}, {"name": "verifyingContract", "type": "address"}]);
         assert_eq!(
-            map_typed_data(&unbound.to_string()),
+            map_typed_data(&unbound.to_string(), Chain::Ethereum),
             Err(PaymentError::invalid_request("Payment signature has no chain id")),
             "a signature without a chain replays on every chain"
         );
+    }
+
+    #[test]
+    fn test_a_permit_verified_by_anything_but_permit2_is_refused() {
+        let foreign = "0x1111111111111111111111111111111111111111";
+        let mut hijacked = permit_transfer_from();
+        hijacked["domain"]["verifyingContract"] = Value::from(foreign);
+
+        assert_eq!(
+            map_typed_data(&hijacked.to_string(), Chain::Ethereum),
+            Err(PaymentError::invalid_request(format!("Payment signature is verified by {foreign}, not by Permit2"))),
+            "the approve that follows goes to the verifying contract, so it must be the Permit2 the wallet knows"
+        );
+        assert_eq!(map_typed_data(PERMIT_TRANSFER_FROM, Chain::Bitcoin), Err(PaymentError::invalid_request("Payment signature has no Permit2 on bitcoin")));
     }
 }
