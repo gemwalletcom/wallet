@@ -45,6 +45,8 @@ import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemFiatService
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemNameService
+import uniffi.gemstone.GemNavigationService
+import uniffi.gemstone.GemNavigationServiceInterface
 import uniffi.gemstone.GemNftService
 import uniffi.gemstone.GemNotificationStore
 import uniffi.gemstone.GemPerpetualService
@@ -224,4 +226,11 @@ object AssetsModule {
 
     @Provides
     fun provideGemAssetsServiceInterface(service: GemAssetsService): GemAssetsServiceInterface = service
+
+    @Provides
+    @Singleton
+    fun provideGemNavigationService(assets: GemAssetsService, session: GemWalletSessionService): GemNavigationService = GemNavigationService(assets, session)
+
+    @Provides
+    fun provideGemNavigationServiceInterface(service: GemNavigationService): GemNavigationServiceInterface = service
 }

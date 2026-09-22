@@ -207,7 +207,7 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemPaymentService(alienProvider: AlienProvider): GemPaymentService = GemPaymentService(alienProvider)
+    fun provideGemPaymentService(alienProvider: AlienProvider, assetsService: GemAssetsService): GemPaymentService = GemPaymentService(alienProvider, assetsService)
 
     @Provides
     @Singleton

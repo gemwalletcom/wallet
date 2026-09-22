@@ -25,7 +25,7 @@ import com.gemwallet.android.features.setup_wallet.navigation.SetupWalletRoute
 import com.gemwallet.android.features.wallet.presents.WalletImageSource
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ImportType
-import com.gemwallet.android.toRoute
+import com.gemwallet.android.routes
 import com.gemwallet.android.ui.navigation.routes.AboutusRoute
 import com.gemwallet.android.ui.navigation.routes.AddAssetRoute
 import com.gemwallet.android.ui.navigation.routes.AddContactRoute
@@ -96,6 +96,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemDeeplinkServiceInterface
+import uniffi.gemstone.GemNavigationServiceInterface
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.UrlAction
 class WalletNavigator(
@@ -103,6 +104,7 @@ class WalletNavigator(
     val currentTab: MutableState<String>,
     private val deeplinkService: GemDeeplinkServiceInterface,
     private val assetsService: GemAssetsServiceInterface,
+    private val navigationService: GemNavigationServiceInterface,
     private val scope: CoroutineScope,
 ) {
     private val toastMessages = mutableStateMapOf<NavKey, String>()
@@ -217,9 +219,9 @@ class WalletNavigator(
 
     fun openUrlAction(action: UrlAction): Boolean {
         val deeplink = (action as? UrlAction.Deeplink)?.deeplink ?: return false
-        when (val route = deeplink.toRoute() ?: return false) {
-            is AssetRoute -> openAssetRoute(route)
-            else -> push(route)
+        scope.launch {
+            val routes = withContext(Dispatchers.IO) { navigationService.openDeeplink(deeplink).routes() }
+            routes.forEach(::push)
         }
         return true
     }

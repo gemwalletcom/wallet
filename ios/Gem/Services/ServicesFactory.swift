@@ -82,7 +82,7 @@ struct ServicesFactory {
                 deviceKey: deviceKeyService,
             ),
         )
-        let paymentService = Gemstone.GemPaymentService(provider: nativeProvider)
+        let paymentService = Gemstone.GemPaymentService(provider: nativeProvider, assets: assetsService)
         let transactionSimulationService = GemSimulationService(provider: nativeProvider, nodes: nodeService)
         let webSocket = Self.makeWebSocket(deviceKeyService: deviceKeyService, reconnection: connectionService)
         let serviceStatusConfiguration = URLSessionConfiguration.default
@@ -312,6 +312,7 @@ struct ServicesFactory {
             pushNotificationService: pushNotificationService,
             transactionStore: stores.transactionStore,
             deeplinkService: Gemstone.GemDeeplinkService(),
+            navigationService: Gemstone.GemNavigationService(assets: assetsService, session: walletSessionService),
             paymentService: paymentService,
             transactionStateService: transactionStateService,
             walletConnectorPresenter: walletConnectorPresenter,

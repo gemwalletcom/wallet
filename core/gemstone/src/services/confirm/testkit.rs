@@ -129,6 +129,9 @@ impl GemAssetStore for MemoryAssetStore {
     async fn get_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, GemServiceError> {
         Ok(asset_ids.into_iter().map(|id| Asset::from_chain(id.chain)).collect())
     }
+    async fn get_wallet_assets(&self, _: WalletId) -> Result<Vec<Asset>, GemServiceError> {
+        Ok(vec![])
+    }
     async fn save_assets(&self, _: Vec<AssetBasic>) -> Result<(), GemServiceError> {
         panic!("unexpected asset write")
     }

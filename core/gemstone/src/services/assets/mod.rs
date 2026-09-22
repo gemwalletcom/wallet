@@ -53,6 +53,10 @@ impl GemAssetsService {
         }
     }
 
+    pub async fn wallet_assets(&self, wallet_id: WalletId) -> Result<Vec<Asset>, GemServiceError> {
+        self.store.get_wallet_assets(wallet_id).await
+    }
+
     pub async fn ensure_asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {
         if let Some(asset) = self.stored_asset(&asset_id).await? {
             return Ok(asset);

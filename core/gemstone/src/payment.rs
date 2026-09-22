@@ -6,13 +6,15 @@ use crate::alien::{AlienProvider, AlienProviderWrapper};
 use crate::config::chain::is_memo_supported;
 use crate::models::custom_types::GemBigUint;
 use crate::models::payment::{GemPayment, GemPaymentAmount, GemPaymentLink, GemPaymentRequest, GemPaymentTransaction};
+use crate::services::assets::GemAssetsService;
+use crate::services::error::GemServiceError;
 use crate::services::transfer::model::{GemRecipient, GemTransferData};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use payment::PaymentService as CorePaymentService;
 use payment::PaymentURLDecoder;
 use primitives::TransactionInputType;
-use primitives::{Asset, AssetId, Chain, ChainAddress, ChainType, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, hex};
+use primitives::{Asset, AssetId, Chain, ChainAddress, ChainType, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, Wallet, hex};
 
 pub type GemPaymentError = payment::PaymentError;
 
@@ -26,14 +28,23 @@ pub enum GemPaymentError {
 #[derive(uniffi::Object)]
 pub struct GemPaymentService {
     service: CorePaymentService,
+    assets: Arc<GemAssetsService>,
 }
 
 #[uniffi::export]
 impl GemPaymentService {
     #[uniffi::constructor]
-    pub fn new(provider: Arc<dyn AlienProvider>) -> Self {
+    pub fn new(provider: Arc<dyn AlienProvider>, assets: Arc<GemAssetsService>) -> Self {
         Self {
             service: CorePaymentService::new(Arc::new(AlienProviderWrapper::new(provider))),
+            assets,
+        }
+    }
+
+    pub async fn prepare(&self, payment: GemPayment, wallet: Wallet) -> Result<GemPaymentTarget, GemServiceError> {
+        match payment {
+            GemPayment::Request { request } => self.prepare_request(request, wallet).await,
+            GemPayment::Link { link } => self.prepare_link(link, wallet).await,
         }
     }
 
@@ -62,6 +73,12 @@ impl GemPaymentService {
     }
 
     pub fn transaction_transfer_data(&self, transaction: GemPaymentTransaction, asset: Asset) -> GemTransferData {
+        transaction_transfer_data(transaction, asset)
+    }
+}
+
+pub(crate) fn transaction_transfer_data(transaction: GemPaymentTransaction, asset: Asset) -> GemTransferData {
+    {
         let wallet_asset = GemPaymentWalletAsset {
             asset_id: asset.id.clone(),
             decimals: asset.decimals,
@@ -109,7 +126,7 @@ fn transaction_data(transaction: &str) -> Vec<u8> {
     }
 }
 
-fn transfer_data(transfer: &GemPaymentConfirmTransfer, asset: Asset) -> GemTransferData {
+pub(crate) fn transfer_data(transfer: &GemPaymentConfirmTransfer, asset: Asset) -> GemTransferData {
     GemTransferData {
         input_type: TransactionInputType::Transfer { asset },
         recipient: GemRecipient {
@@ -145,12 +162,57 @@ pub struct GemPaymentRecipient {
     pub amount: Option<String>,
 }
 
+#[derive(Debug, Clone, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
+pub enum GemPaymentTarget {
+    Confirm { transfer: GemTransferData },
+    Recipient { asset: Asset, payment: GemPaymentRecipient },
+    SelectAsset { payment: GemPaymentRecipient, chains: Vec<Chain> },
+    Unsupported,
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemPaymentDestination {
     Confirm { transfer: GemPaymentConfirmTransfer },
     Recipient { asset_id: AssetId, payment: GemPaymentRecipient },
     SelectAsset { payment: GemPaymentRecipient, chains: Vec<Chain> },
     Unsupported,
+}
+
+impl GemPaymentService {
+    async fn prepare_request(&self, request: GemPaymentRequest, wallet: Wallet) -> Result<GemPaymentTarget, GemServiceError> {
+        let assets = self.assets.wallet_assets(wallet.id.clone()).await?;
+        let payable = assets
+            .iter()
+            .map(|asset| GemPaymentWalletAsset {
+                asset_id: asset.id.clone(),
+                decimals: asset.decimals,
+            })
+            .collect();
+        Ok(match payment_destination(&request, payable) {
+            GemPaymentDestination::Confirm { transfer } => match assets.iter().find(|asset| asset.id == transfer.asset_id) {
+                Some(asset) => GemPaymentTarget::Confirm {
+                    transfer: transfer_data(&transfer, asset.clone()),
+                },
+                None => GemPaymentTarget::Unsupported,
+            },
+            GemPaymentDestination::Recipient { asset_id, payment } => match assets.into_iter().find(|asset| asset.id == asset_id) {
+                Some(asset) => GemPaymentTarget::Recipient { asset, payment },
+                None => GemPaymentTarget::Unsupported,
+            },
+            GemPaymentDestination::SelectAsset { payment, chains } => GemPaymentTarget::SelectAsset { payment, chains },
+            GemPaymentDestination::Unsupported => GemPaymentTarget::Unsupported,
+        })
+    }
+
+    async fn prepare_link(&self, link: GemPaymentLink, wallet: Wallet) -> Result<GemPaymentTarget, GemServiceError> {
+        let addresses = wallet.accounts.iter().map(|account| ChainAddress::new(account.chain, account.address.clone())).collect::<Vec<_>>();
+        let transaction = self.service.load(&link, &addresses).await.map_err(|error| GemServiceError::Gateway { msg: error.to_string() })?;
+        let asset = self.assets.ensure_token_asset(payment_asset_id(&transaction)).await?;
+        Ok(GemPaymentTarget::Confirm {
+            transfer: self.transaction_transfer_data(transaction, asset),
+        })
+    }
 }
 
 fn payment_asset_id(transaction: &GemPaymentTransaction) -> AssetId {
@@ -268,7 +330,55 @@ fn transfer_value(request: &GemPaymentRequest, decimals: i32) -> Option<BigUint>
 mod tests {
     use super::*;
     use crate::models::payment::{GemPaymentAmount, GemPaymentLink, GemPaymentRequest};
-    use crate::testkit::{TestAlienProvider, mock_payment_transaction};
+    use crate::services::assets::testkit::MemoryAssetStore;
+    use crate::testkit::TestAlienProvider;
+    use crate::testkit::mock_payment_transaction;
+    use futures::executor::block_on;
+    use primitives::{AssetBasic, AssetProperties, AssetScore};
+    use std::sync::Arc;
+
+    fn service_with(assets: &[Asset]) -> GemPaymentService {
+        let store = Arc::new(MemoryAssetStore::default());
+        *store.assets.lock().unwrap() = assets.iter().map(|asset| AssetBasic::new(asset.clone(), AssetProperties::default(asset.id.clone()), AssetScore::default())).collect();
+        GemPaymentService::new(Arc::new(TestAlienProvider::with_status(200)), Arc::new(GemAssetsService::mock(Arc::new(TestAlienProvider::with_status(200)), store)))
+    }
+
+    #[test]
+    fn test_a_request_for_a_token_the_wallet_holds_confirms_whether_or_not_it_is_shown() {
+        let token = Asset::new(
+            AssetId::from(Chain::Ethereum, Some("0xdac17f958d2ee523a2206206994597c13d831ec7".to_string())),
+            "Tether".to_string(),
+            "USDT".to_string(),
+            6,
+            primitives::AssetType::ERC20,
+        );
+        let request = GemPaymentRequest {
+            address: "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326".to_string(),
+            amount: Some(GemPaymentAmount::AtomicValue { value: 1_000_000u32.into() }),
+            asset_id: Some(token.id.clone()),
+            ..GemPaymentRequest::mock()
+        };
+
+        let target = block_on(service_with(std::slice::from_ref(&token)).prepare(GemPayment::Request { request }, Wallet::mock())).unwrap();
+
+        let GemPaymentTarget::Confirm { transfer } = target else {
+            panic!("a token the wallet holds is payable whether or not the screen shows it")
+        };
+        assert_eq!(transfer.input_type.get_asset().id, token.id);
+        assert_eq!(transfer.value, 1_000_000u32.into());
+    }
+
+    #[test]
+    fn test_a_request_for_a_token_the_wallet_does_not_hold_is_not_payable() {
+        let request = GemPaymentRequest {
+            address: "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326".to_string(),
+            asset_id: Some(AssetId::from(Chain::Ethereum, Some("0xmissing".to_string()))),
+            ..GemPaymentRequest::mock()
+        };
+
+        assert!(matches!(block_on(service_with(&[]).prepare(GemPayment::Request { request }, Wallet::mock())).unwrap(), GemPaymentTarget::Unsupported));
+    }
+
     use primitives::{Asset, AssetId, AssetType, Chain};
 
     const BITCOIN_ADDRESS: &str = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4";
@@ -531,9 +641,7 @@ mod tests {
             memo: Some("order 7".to_string()),
             ..mock_payment_transaction()
         };
-        let service = GemPaymentService::new(Arc::new(TestAlienProvider::with_status(200)));
-
-        let decoded = service.transaction_transfer_data(
+        let decoded = transaction_transfer_data(
             GemPaymentTransaction {
                 request: Some(GemPaymentRequest {
                     address: SOLANA_ADDRESS.to_string(),
@@ -560,12 +668,12 @@ mod tests {
             transaction: "0x0a0b".to_string(),
             ..transaction.clone()
         };
-        match &service.transaction_transfer_data(hex_encoded, asset.clone()).input_type {
+        match &transaction_transfer_data(hex_encoded, asset.clone()).input_type {
             TransactionInputType::Generic { extra, .. } => assert_eq!(extra.data.as_deref(), Some([0x0a, 0x0b].as_slice())),
             input_type => panic!("expected a generic input type, got {input_type:?}"),
         }
 
-        let undecodable = service.transaction_transfer_data(transaction, asset);
+        let undecodable = transaction_transfer_data(transaction, asset);
         assert_eq!(undecodable.recipient.address, "");
         assert_eq!(undecodable.recipient.memo.as_deref(), Some("order 7"));
         assert_eq!(undecodable.value, 0.into());
@@ -573,7 +681,7 @@ mod tests {
 
     #[test]
     fn test_request() {
-        let decode_url = |url: &str| GemPaymentService::new(Arc::new(TestAlienProvider::with_status(200))).decode_url(url.to_string());
+        let decode_url = |url: &str| PaymentURLDecoder::decode(url).map_err(GemstoneError::from);
         assert_eq!(
             decode_url("solana:3u3ta6yXYgpheLGc2GVF3QkLHAUwBrvX71Eg8XXjJHGw?amount=0.42301").unwrap(),
             GemPayment::Request {
@@ -591,7 +699,7 @@ mod tests {
 
     #[test]
     fn test_link() {
-        let decode_url = |url: &str| GemPaymentService::new(Arc::new(TestAlienProvider::with_status(200))).decode_url(url.to_string());
+        let decode_url = |url: &str| PaymentURLDecoder::decode(url).map_err(GemstoneError::from);
         const CONSTANT_K: &str = "https://www.constant-k.com/ck-txreq/?tok=MjYyfG9wZXJhdG9yfGFubnVhbHx8MTc4NzUyOTMxOXw3M2FiNDFhZmIwNTAxZWNjNjE2Y2E4NmIxZGE5N2FlOWZjM2Y1OGMzZWZhMGYxMjNiOGI4ZGYzZmU2YzQ3ZmM4";
 
         assert_eq!(

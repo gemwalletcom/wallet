@@ -61,6 +61,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemDeeplinkService
+import uniffi.gemstone.GemNavigationServiceInterface
 import uniffi.gemstone.GemWalletImportKind
 import uniffi.gemstone.GemWalletSecretKind
 
@@ -568,11 +569,17 @@ class WalletNavigatorTest {
         assertEquals(listOf(WalletRootRoute, ReceiveRoute(mockAssetId(Chain.Tron))), navigator.backStack.toList())
     }
 
-    private fun navigatorWith(vararg routes: NavKey, assetsService: GemAssetsServiceInterface = mockk(), scope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined)): WalletNavigator = WalletNavigator(
+    private fun navigatorWith(
+        vararg routes: NavKey,
+        assetsService: GemAssetsServiceInterface = mockk(),
+        navigationService: GemNavigationServiceInterface = mockk(relaxed = true),
+        scope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined),
+    ): WalletNavigator = WalletNavigator(
         backStack = NavBackStack(*routes),
         currentTab = mutableStateOf(assetsRoute),
         deeplinkService = GemDeeplinkService(),
         assetsService = assetsService,
+        navigationService = navigationService,
         scope = scope,
     )
 }

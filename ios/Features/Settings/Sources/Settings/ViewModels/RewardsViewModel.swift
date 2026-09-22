@@ -146,7 +146,7 @@ public final class RewardsViewModel: Sendable {
     }
 
     var pendingReferral: (code: String, isEnabled: Bool)? {
-        rewardsState.actions.compactMap { action in
+        rewardsState.actions.compactMap { action -> (code: String, isEnabled: Bool)? in
             guard case let .activatePendingReferral(code, isEnabled) = action else { return nil }
             return (code, isEnabled)
         }.first
