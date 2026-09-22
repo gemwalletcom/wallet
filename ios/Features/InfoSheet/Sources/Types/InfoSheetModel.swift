@@ -33,6 +33,10 @@ public struct InfoSheetModel: Sendable {
     public let titleStyle: TextStyle
     public let descriptionStyle: TextStyle
 
+    public var buttonTitle: String {
+        button?.title ?? Localized.Common.learnMore
+    }
+
     public init(
         title: String,
         description: String,

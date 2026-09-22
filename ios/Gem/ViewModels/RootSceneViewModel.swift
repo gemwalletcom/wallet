@@ -110,13 +110,13 @@ final class RootSceneViewModel {
 
 extension RootSceneViewModel {
     func setup() {
-        Task {
-            isPresentingRootWarning = await onstartService.isDeviceCompromised()
-        }
         rateService.requestReviewIfDue()
         Task { await checkForUpdate() }
         Task { await appLifecycleService.setup() }
         Task { await setupWallets() }
+        Task {
+            isPresentingRootWarning = await onstartService.isDeviceCompromised()
+        }
     }
 
     func onScenePhaseChanged(_: ScenePhase, _ newPhase: ScenePhase) {

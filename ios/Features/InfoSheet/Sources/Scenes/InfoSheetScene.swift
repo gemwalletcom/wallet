@@ -53,7 +53,7 @@ public struct InfoSheetScene: View {
     private var actionButtons: some View {
         VStack(spacing: .small) {
             if let button = model.button {
-                StateButton(text: button.title) {
+                StateButton(text: model.buttonTitle) {
                     onAction(button)
                 }
             }
