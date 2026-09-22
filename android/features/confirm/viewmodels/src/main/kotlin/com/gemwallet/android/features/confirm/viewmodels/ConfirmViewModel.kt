@@ -419,7 +419,8 @@ class ConfirmViewModel @Inject constructor(
     }
 
     fun changePaymentAsset(assetId: AssetId) {
-        if (transfer.value?.asset?.id == assetId) return
+        val current = transfer.value
+        if (current?.asset?.id == assetId && current.verification() == null) return
         screen.update { it.onLoadStarted() }
         assetSelection.update { assetId }
     }

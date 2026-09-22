@@ -244,7 +244,7 @@ extension ConfirmTransferSceneViewModel {
 
     public func selectPaymentAsset(_ asset: Asset) {
         isPresentingSheet = nil
-        guard asset.id != transfer.asset.id else { return }
+        guard asset.id != transfer.asset.id || state.verification != nil else { return }
         assetSelection = asset.id
     }
 
