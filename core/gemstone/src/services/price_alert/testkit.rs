@@ -71,6 +71,16 @@ impl GemNotificationPermissions for GrantedNotificationPermissions {
     }
 }
 
+pub fn price_alert_service(store: Arc<dyn GemPriceAlertStore>) -> Arc<super::GemPriceAlertService> {
+    let provider = Arc::new(TestAlienProvider::new(crate::alien::AlienResponse::new(None, Vec::new())));
+    Arc::new(super::GemPriceAlertService::new(
+        Arc::new(GemDeviceApiClient::new(provider, Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences))))),
+        Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default()))),
+        store,
+        Arc::new(GrantedNotificationPermissions),
+    ))
+}
+
 pub struct PriceAlertTestkit {
     pub service: super::GemPriceAlertService,
     pub store: Arc<MemoryPriceAlertStore>,

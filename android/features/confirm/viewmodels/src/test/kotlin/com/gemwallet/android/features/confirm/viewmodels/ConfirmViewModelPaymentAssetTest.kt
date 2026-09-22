@@ -7,6 +7,8 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmHeaderUIModel
+import com.gemwallet.android.domains.confirm.asset
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetEthereumUSDT
@@ -40,9 +42,12 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemConfirmHeader
+import uniffi.gemstone.GemConfirmLoad
 import uniffi.gemstone.GemConfirmLoadOptions
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmation
+import uniffi.gemstone.GemTransactionHeader
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.TransactionInputType
 
@@ -76,19 +81,19 @@ class ConfirmViewModelPaymentAssetTest {
     @Test
     fun changingTheAssetReloadsWithItAndTheHeaderFollowsTheLoadedTransfer() = runTest(testDispatcher) {
         val viewModel = viewModel(payment(ethereum)).also { model = it }
-        assertEquals(ethereum, viewModel.amountUIModel.first { it != null }?.asset)
+        assertEquals(ethereum, viewModel.headerAsset())
 
         viewModel.changePaymentAsset(usdt.id)
         advanceUntilIdle()
 
         coVerify { confirmation.load(match<GemConfirmLoadOptions> { it.assetId == usdt.id.toIdentifier() }) }
-        assertEquals(usdt, viewModel.amountUIModel.first { it?.asset == usdt }?.asset)
+        assertEquals(usdt, viewModel.header.first { (it as? ConfirmHeaderUIModel.Symbol)?.asset == usdt }.let { (it as ConfirmHeaderUIModel.Symbol).asset })
     }
 
     @Test
     fun reselectingTheCurrentAssetDoesNotReload() = runTest(testDispatcher) {
         val viewModel = viewModel(payment(ethereum)).also { model = it }
-        viewModel.amountUIModel.first { it != null }
+        viewModel.headerAsset()
 
         viewModel.changePaymentAsset(ethereum.id)
         advanceUntilIdle()
@@ -101,10 +106,13 @@ class ConfirmViewModelPaymentAssetTest {
         inputType = TransactionInputType.Payment(asset = asset.toGem(), invoice = mockPaymentInvoice(quotes = listOf(ethereum, usdt)), extra = mockTransferDataExtra()),
     )
 
+    private suspend fun ConfirmViewModel.headerAsset() = (header.first { it is ConfirmHeaderUIModel.Symbol } as ConfirmHeaderUIModel.Symbol).asset
+
     private fun viewModel(transfer: GemTransferData): ConfirmViewModel {
         every { confirmService.confirmation(any(), any(), any()) } returns confirmation
         every { confirmation.screen() } returns mockGemConfirmScreen()
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
+        every { confirmation.header(any()) } answers { GemConfirmHeader.Transaction(GemTransactionHeader.Symbol((firstArg<GemConfirmLoad?>()?.transfer ?: transfer).asset.toGem())) }
         coEvery { confirmation.state() } returns mockGemConfirmLoad(ethereum).copy(transfer = transfer)
         coEvery { confirmation.load(any()) } answers {
             val options = firstArg<GemConfirmLoadOptions>()

@@ -4,6 +4,7 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
 import com.gemwallet.android.testkit.mockGemConfirmSimulationState
+import com.wallet.core.primitives.Chain
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
@@ -40,5 +41,6 @@ class SimulationTest {
             listOf("-0.100005 SOL", "+0.75 USDC"),
             simulation.balanceChanges.map { it.formattedValue() },
         )
+        assertEquals(Chain.Ethereum, simulation.chain)
     }
 }

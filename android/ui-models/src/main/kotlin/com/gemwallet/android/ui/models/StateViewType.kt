@@ -4,7 +4,7 @@ sealed interface StateViewType<out T> {
     data object NoData : StateViewType<Nothing>
     data object Loading : StateViewType<Nothing>
     data class Data<T>(val data: T) : StateViewType<T>
-    data object Error : StateViewType<Nothing>
+    data class Error(val message: String? = null) : StateViewType<Nothing>
 }
 
 val <T> StateViewType<T>.dataOrNull: T?
@@ -13,6 +13,6 @@ val <T> StateViewType<T>.dataOrNull: T?
 fun <T, R> StateViewType<T>.flatMap(transform: (T) -> StateViewType<R>): StateViewType<R> = when (this) {
     StateViewType.NoData -> StateViewType.NoData
     StateViewType.Loading -> StateViewType.Loading
-    StateViewType.Error -> StateViewType.Error
+    is StateViewType.Error -> this
     is StateViewType.Data -> transform(data)
 }

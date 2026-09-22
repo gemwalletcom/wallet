@@ -177,7 +177,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
     public func itemModel(for item: ConfirmTransferItem) -> any ItemModelProvidable<ConfirmTransferItemModel> {
         switch item {
         case .header:
-            ConfirmHeaderViewModel(state: state, currency: confirmation.currency)
+            ConfirmHeaderViewModel(header: confirmation.header(load: state.load), currency: confirmation.currency)
         case .warnings:
             ConfirmTransferItemModel.warnings(simulationWarnings)
         case let .row(index):
@@ -230,6 +230,10 @@ extension ConfirmTransferSceneViewModel {
             for: fields,
             explorerLink: { explorerLink(chain: transfer.chain, address: $0) },
             onOpenURL: { [weak self] in self?.isPresentingSheet = .url($0) },
+            onSelectAddress: { [weak self] address in
+                guard let self else { return }
+                onSelectAddress(ChainAddress(chain: request.data.chain, address: address))
+            },
         )
     }
 

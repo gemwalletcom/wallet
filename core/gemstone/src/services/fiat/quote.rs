@@ -8,6 +8,7 @@ use super::session::GemFiatSession;
 use super::{GemFiatService, rules};
 use crate::config::fiat_config::get_fiat_config;
 use crate::formatted_number::GemFormattedNumber;
+use crate::models::state::GemLoadState;
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
 use crate::services::transfer::GemRecentActivityService;
@@ -61,8 +62,8 @@ impl GemFiatQuoteService {
         self.fiat.quote_refresh_interval_milliseconds()
     }
 
-    pub async fn sync_transactions(&self) -> Result<(), GemServiceError> {
-        self.fiat.sync_transactions(self.session.current_wallet_id()?).await
+    pub async fn refresh_transactions(&self, has_transactions: bool) -> GemLoadState {
+        GemLoadState::refreshed(self.sync_transactions().await, has_transactions)
     }
 
     pub async fn quotes(&self, quote_type: FiatQuoteType, asset_id: AssetId, amount: f64) -> Result<Vec<FiatQuote>, GemServiceError> {
@@ -78,6 +79,12 @@ impl GemFiatQuoteService {
         let url = self.fiat.get_quote_url(wallet_id.clone(), quote_id).await?;
         self.balances.set_assets_enabled(wallet_id, vec![asset_id], true).await?;
         Ok(url)
+    }
+}
+
+impl GemFiatQuoteService {
+    async fn sync_transactions(&self) -> Result<(), GemServiceError> {
+        self.fiat.sync_transactions(self.session.current_wallet_id()?).await
     }
 }
 

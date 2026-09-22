@@ -12,7 +12,7 @@ use crate::services::balance::GemBalanceStore;
 use crate::services::collections::unique;
 use crate::services::error::GemServiceError;
 use crate::services::price::rules as price_rules;
-use crate::services::price_alert::GemPriceAlertStore;
+use crate::services::price_alert::GemPriceAlertService;
 
 #[derive(Default)]
 struct SubscriptionState {
@@ -22,9 +22,11 @@ struct SubscriptionState {
 }
 
 #[derive(uniffi::Object)]
+/// Holds `GemBalanceStore` rather than `GemBalanceService`, which owns it: the balance service holds
+/// this one to resubscribe after a write, so the reverse edge would be a cycle.
 pub struct GemStreamSubscriptionService {
     balances: Arc<dyn GemBalanceStore>,
-    alerts: Arc<dyn GemPriceAlertStore>,
+    alerts: Arc<GemPriceAlertService>,
     connection: Arc<dyn GemStreamConnection>,
     state: Mutex<SubscriptionState>,
 }
@@ -32,7 +34,7 @@ pub struct GemStreamSubscriptionService {
 #[uniffi::export]
 impl GemStreamSubscriptionService {
     #[uniffi::constructor]
-    pub fn new(balances: Arc<dyn GemBalanceStore>, alerts: Arc<dyn GemPriceAlertStore>, connection: Arc<dyn GemStreamConnection>) -> Self {
+    pub fn new(balances: Arc<dyn GemBalanceStore>, alerts: Arc<GemPriceAlertService>, connection: Arc<dyn GemStreamConnection>) -> Self {
         Self {
             balances,
             alerts,
@@ -111,7 +113,7 @@ impl GemStreamSubscriptionService {
         if !self.connection.is_connected().await {
             return Ok(());
         }
-        let alert_asset_ids = self.alerts.get_price_alerts(None).await?.into_iter().map(|alert| alert.asset_id).chain(state.requested.iter().cloned()).collect();
+        let alert_asset_ids = self.alerts.price_alerts(None).await?.into_iter().map(|alert| alert.asset_id).chain(state.requested.iter().cloned()).collect();
         let enabled_asset_ids = match &state.wallet_id {
             Some(wallet_id) => self.balances.get_enabled_asset_ids(wallet_id.clone()).await?,
             None => vec![],

@@ -7,6 +7,7 @@ use primitives::{Asset, AssetBasic, AssetFull, AssetId, WalletId};
 pub trait GemAssetStore: Send + Sync {
     async fn get_asset_ids(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError>;
     async fn get_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, GemServiceError>;
+    async fn get_wallet_assets(&self, wallet_id: WalletId) -> Result<Vec<Asset>, GemServiceError>;
     async fn get_asset_basics(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetBasic>, GemServiceError>;
     async fn save_assets(&self, assets: Vec<AssetBasic>) -> Result<(), GemServiceError>;
     async fn save_asset(&self, asset: AssetFull) -> Result<(), GemServiceError>;

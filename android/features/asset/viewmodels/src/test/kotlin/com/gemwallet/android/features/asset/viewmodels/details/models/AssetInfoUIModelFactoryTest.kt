@@ -31,7 +31,6 @@ import uniffi.gemstone.GemListRowIcon
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemListSectionTitle
 import uniffi.gemstone.GemNumberUnit
-import uniffi.gemstone.GemPriceRow
 import uniffi.gemstone.GemValueTone
 import java.math.BigInteger
 
@@ -105,15 +104,17 @@ class AssetInfoUIModelFactoryTest {
     fun `the price row shows what core quoted and nothing when nobody quoted`() {
         val price = mockFormattedNumber(value = 1234.5, unit = GemNumberUnit.Currency(code = "USD"))
         val change = mockFormattedNumber(value = -2.5, unit = GemNumberUnit.Percent, tone = GemValueTone.NEGATIVE)
-        val assetInfo = mockAssetInfo(asset = mockAsset(), owner = null)
-        val quoted = listOf(GemAssetDetailSection(GemListSectionTitle.NONE, listOf(GemAssetDetailRow.Price(GemPriceRow(price, change)))))
-        val unquoted = listOf(GemAssetDetailSection(GemListSectionTitle.NONE, listOf(GemAssetDetailRow.Price(GemPriceRow(null, null)))))
+        val asset = mockAsset()
+        val assetInfo = mockAssetInfo(asset = asset, owner = null)
+        val quoted = listOf(GemAssetDetailSection(GemListSectionTitle.NONE, listOf(GemAssetDetailRow.Row(GemListRow.Quote(GemListRowTitle.PRICE, price, change)))))
+        val unquoted = listOf(GemAssetDetailSection(GemListSectionTitle.NONE, listOf(GemAssetDetailRow.Row(GemListRow.Quote(GemListRowTitle.PRICE, null, null)))))
 
-        assertEquals(price.text(), model(assetInfo, sections = quoted).priceListItem.subtitle)
-        assertEquals(change.text(), model(assetInfo, sections = quoted).priceDayChanges)
-        assertEquals(GemValueTone.NEGATIVE, model(assetInfo, sections = quoted).priceChangedType)
-        assertEquals("", model(assetInfo, sections = unquoted).priceListItem.subtitle)
-        assertEquals("", model(assetInfo, sections = unquoted).priceDayChanges)
+        val quotedRow = model(assetInfo, sections = quoted).sections.first().rows.first() as AssetInfoUIModel.RowUIModel.Row
+        val unquotedRow = model(assetInfo, sections = unquoted).sections.first().rows.first() as AssetInfoUIModel.RowUIModel.Row
+
+        assertEquals(GemListRow.Quote(GemListRowTitle.PRICE, price, change), quotedRow.row)
+        assertEquals(AssetDetailsAction.OpenChart(asset.id), quotedRow.action)
+        assertEquals(GemListRow.Quote(GemListRowTitle.PRICE, null, null), unquotedRow.row)
     }
 
     @Test
@@ -126,11 +127,18 @@ class AssetInfoUIModelFactoryTest {
     @Test
     fun `sections keep the order and titles core decided`() {
         val link = GemListRow.Link(GemListRowTitle.PIN, null, GemListRowIcon.PIN)
+        val asset = mockAsset()
         val sections = model(
-            mockAssetInfo(asset = mockAsset(), owner = null),
+            mockAssetInfo(asset = asset, owner = null),
             sections = listOf(
                 GemAssetDetailSection(GemListSectionTitle.MANAGE, listOf(GemAssetDetailRow.Row(link))),
-                GemAssetDetailSection(GemListSectionTitle.NONE, listOf(GemAssetDetailRow.Price(GemPriceRow(price = null, change = null)), GemAssetDetailRow.Network("Ethereum (ERC20)"))),
+                GemAssetDetailSection(
+                    GemListSectionTitle.NONE,
+                    listOf(
+                        GemAssetDetailRow.Row(GemListRow.Quote(GemListRowTitle.PRICE, null, null)),
+                        GemAssetDetailRow.Row(GemListRow.Network(GemListRowTitle.NETWORK, "ethereum", "Ethereum (ERC20)")),
+                    ),
+                ),
             ),
         ).sections
 
@@ -139,7 +147,10 @@ class AssetInfoUIModelFactoryTest {
         assertEquals(
             listOf(
                 listOf(AssetInfoUIModel.RowUIModel.Row(link, AssetDetailsAction.Pin)),
-                listOf(AssetInfoUIModel.RowUIModel.Price, AssetInfoUIModel.RowUIModel.Network("Ethereum (ERC20)")),
+                listOf(
+                    AssetInfoUIModel.RowUIModel.Row(GemListRow.Quote(GemListRowTitle.PRICE, null, null), AssetDetailsAction.OpenChart(asset.id)),
+                    AssetInfoUIModel.RowUIModel.Row(GemListRow.Network(GemListRowTitle.NETWORK, "ethereum", "Ethereum (ERC20)"), null),
+                ),
             ),
             sections.map { it.rows },
         )

@@ -9,7 +9,7 @@ import com.wallet.core.primitives.WalletType
 
 fun mockWalletId(id: String = "wallet-1") = WalletId(id)
 
-fun mockWallet(id: String = "wallet-1", name: String = "Wallet", type: WalletType = WalletType.Multicoin, accounts: List<Account> = emptyList(), source: WalletSource = WalletSource.Create) = Wallet(
+fun mockWallet(id: String = "multicoin_0x1", name: String = "Wallet", type: WalletType = WalletType.Multicoin, accounts: List<Account> = emptyList(), source: WalletSource = WalletSource.Create) = Wallet(
     id = WalletId(id),
     name = name,
     index = 0,

@@ -49,6 +49,7 @@ internal fun WalletConnectPayloadDetailsSheet(
     isVisible: Boolean,
     primaryFields: List<PayloadField>,
     secondaryFields: List<PayloadField>,
+    onAddressClick: (String) -> Unit,
     onViewFullMessage: () -> Unit,
     onDismissRequest: () -> Unit,
     viewFullMessageListItem: ListItemModel,
@@ -63,6 +64,7 @@ internal fun WalletConnectPayloadDetailsSheet(
             simulationPayloadDetailsContent(
                 primaryFields = primaryFields,
                 secondaryFields = secondaryFields,
+                onAddressClick = onAddressClick,
             )
             item {
                 ListItem(

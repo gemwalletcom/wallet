@@ -74,6 +74,8 @@ mod tests {
     use crate::services::error::GemServiceError;
     use crate::services::preferences::testkit::MemoryPreferencesStore;
     use crate::services::wallet::testkit::MemoryWalletStore;
+    use crate::services::wallet_session::GemWalletSessionService;
+    use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
     use crate::testkit::{EmptyPreferences, TestAlienProvider};
 
     #[derive(Default)]
@@ -103,10 +105,11 @@ mod tests {
             wallets: std::sync::Mutex::new(vec![Wallet::mock()]),
             ..Default::default()
         });
+        let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets));
         let device = Arc::new(GemDeviceService::new(
             device_api.clone(),
-            Arc::new(GemSubscriptionService::new(device_api, wallets.clone())),
-            wallets,
+            Arc::new(GemSubscriptionService::new(device_api, session.clone())),
+            session,
             Arc::new(MemoryDevicePlatform),
             preferences.clone(),
         ));

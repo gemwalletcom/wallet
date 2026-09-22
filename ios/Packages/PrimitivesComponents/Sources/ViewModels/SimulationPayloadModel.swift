@@ -25,14 +25,33 @@ public struct SimulationPayloadModel: Sendable {
         for rows: [GemSimulationPayloadRow],
         explorerLink: (String) -> BlockExplorerLink,
         onOpenURL: @escaping (URL) -> Void,
+        onSelectAddress: (@MainActor @Sendable (String) -> Void)? = nil,
     ) -> [SimulationPayloadFieldViewModel] {
-        rows.map { row in
-            let explorerItem: ContextMenuItemType? = switch row.value {
-            case let .address(_, address): explorerMenuItem(link: explorerLink(address), onOpenURL: onOpenURL)
-            case .text, .timestamp: nil
-            }
-            return SimulationPayloadFieldViewModel(row: row, explorerItem: explorerItem)
+        rows.map { fieldModel(for: $0, explorerLink: explorerLink, onOpenURL: onOpenURL, onSelectAddress: onSelectAddress) }
+    }
+
+    private func fieldModel(
+        for row: GemSimulationPayloadRow,
+        explorerLink: (String) -> BlockExplorerLink,
+        onOpenURL: @escaping (URL) -> Void,
+        onSelectAddress: (@MainActor @Sendable (String) -> Void)?,
+    ) -> SimulationPayloadFieldViewModel {
+        guard case let .address(_, address) = row.value else {
+            return SimulationPayloadFieldViewModel(row: row)
         }
+        return SimulationPayloadFieldViewModel(
+            row: row,
+            explorerItem: explorerMenuItem(link: explorerLink(address), onOpenURL: onOpenURL),
+            onSelect: selectAddress(address, onSelectAddress: onSelectAddress),
+        )
+    }
+
+    private func selectAddress(
+        _ address: String,
+        onSelectAddress: (@MainActor @Sendable (String) -> Void)?,
+    ) -> (@MainActor @Sendable () -> Void)? {
+        guard let onSelectAddress else { return nil }
+        return { onSelectAddress(address) }
     }
 
     private func explorerMenuItem(

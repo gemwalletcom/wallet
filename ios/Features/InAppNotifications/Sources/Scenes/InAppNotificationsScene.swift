@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import Localization
 import PrimitivesComponents
 import Store
 import SwiftUI
@@ -14,6 +15,11 @@ public struct InAppNotificationsScene: View {
 
     public var body: some View {
         List {
+            if let error = model.loadError {
+                Section {
+                    ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
+                }
+            }
             ForEach(model.sections) { section in
                 Section(header: section.title.map { Text($0) }) {
                     ForEach(section.values) { itemModel in
@@ -25,7 +31,7 @@ public struct InAppNotificationsScene: View {
         }
         .listSectionSpacing(.compact)
         .overlay {
-            if model.sections.isEmpty {
+            if model.sections.isEmpty, model.loadError == nil {
                 EmptyContentView(model: model.emptyContentModel)
             }
         }

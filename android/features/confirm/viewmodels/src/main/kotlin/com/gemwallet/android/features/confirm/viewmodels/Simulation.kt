@@ -11,6 +11,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
 import com.gemwallet.android.ui.style.textStyle
+import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemConfirmSimulationState
 import uniffi.gemstone.GemConfirmationInterface
 import uniffi.gemstone.GemListRow
@@ -24,6 +25,7 @@ data class Simulation(
     val secondaryPayloadFields: List<PayloadField> = emptyList(),
     val header: SimulationHeaderUIModel? = null,
     val balanceChanges: List<GemSimulationBalanceChange> = emptyList(),
+    val chain: Chain? = null,
 )
 
 fun GemConfirmSimulationState.toSimulation(session: GemConfirmationInterface, context: Context): Simulation {
@@ -40,6 +42,7 @@ fun GemConfirmSimulationState.toSimulation(session: GemConfirmationInterface, co
             .withExplorerLinks(chain) { chain, address -> session.addressUrl(chain.string, address) },
         header = details.header?.headerUIModel(context),
         balanceChanges = details.balanceChanges,
+        chain = chain,
     )
 }
 

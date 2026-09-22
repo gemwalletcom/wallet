@@ -4,13 +4,17 @@ import Components
 import Foundation
 import enum Gemstone.GemIncomingCode
 import enum Gemstone.GemListRow
+import enum Gemstone.GemRewardsAction
 import struct Gemstone.GemRewardsRedemption
 import protocol Gemstone.GemRewardsServiceProtocol
+import struct Gemstone.GemRewardsSession
 import struct Gemstone.GemRewardsState
+import struct Gemstone.GemRewardsViewState
 import enum Gemstone.GemServiceError
 import struct Gemstone.GemWalletRow
 import func Gemstone.incomingReferralCode
 import struct Gemstone.RewardRedemptionOption
+import func Gemstone.rewardsSession
 import func Gemstone.walletRow
 import func Gemstone.walletRows
 import GemstonePrimitives
@@ -24,12 +28,11 @@ import Style
 public final class RewardsViewModel: Sendable {
     private let service: any GemRewardsServiceProtocol
     private let activateCode: String?
-    private let emptyState: GemRewardsState
 
     private(set) var selectedWallet: Wallet
     private(set) var wallets: [Wallet]
 
-    var state: StateViewType<GemRewardsState> = .loading
+    private(set) var session: GemRewardsSession
     var toastMessage: ToastMessage?
     var isPresentingSheet: RewardsSheetType?
     var isPresentingAlert: AlertMessage?
@@ -43,7 +46,7 @@ public final class RewardsViewModel: Sendable {
         let core = wallets.map { $0.toGem() }
         guard let wallet = service.selectedWallet(current: currentWallet?.toGem(), wallets: core).map({ $0.toPrimitives() }) else { return nil }
         self.service = service
-        emptyState = service.state(rewards: nil)
+        session = rewardsSession().onSelectWallet(walletId: wallet.id.id)
         selectedWallet = wallet
         self.wallets = service.wallets(wallets: core).map { $0.toPrimitives() }
         self.activateCode = activateCode
@@ -122,19 +125,31 @@ public final class RewardsViewModel: Sendable {
         rewardsState.redemptions.map { RewardRedemptionOptionViewModel(redemption: $0) }
     }
 
+    var viewState: GemRewardsViewState {
+        session.viewState(now: Date())
+    }
+
     var rewardsState: GemRewardsState {
-        if case let .data(state) = state {
-            return state
-        }
-        return emptyState
+        viewState.rewards
     }
 
     var referralCode: String? {
         rewardsState.referralCode
     }
 
-    var infoRows: [GemListRow] {
-        rewardsState.infoRows
+    var sections: [ListSection<GemListSectionRow>] {
+        rewardsState.sections.listSections
+    }
+
+    func action(_ action: GemRewardsAction) -> Bool {
+        rewardsState.actions.contains(action)
+    }
+
+    var pendingReferral: (code: String, isEnabled: Bool)? {
+        rewardsState.actions.compactMap { action -> (code: String, isEnabled: Bool)? in
+            guard case let .activatePendingReferral(code, isEnabled) = action else { return nil }
+            return (code, isEnabled)
+        }.first
     }
 
     var invitedBy: String? {
@@ -146,7 +161,7 @@ public final class RewardsViewModel: Sendable {
     }
 
     var activatePendingButtonType: ButtonType {
-        rewardsState.canActivatePendingReferral ? .primary() : .primary(.disabled)
+        pendingReferral?.isEnabled == true ? .primary() : .primary(.disabled)
     }
 
     var selectedWalletRow: GemWalletRow {
@@ -167,7 +182,7 @@ public final class RewardsViewModel: Sendable {
             wallet: selectedWallet,
         ) { [weak self] rewards in
             guard let self else { return }
-            state = .data(service.state(rewards: rewards))
+            session = session.onRewards(rewards: rewards)
         }
     }
 
@@ -179,7 +194,7 @@ public final class RewardsViewModel: Sendable {
         ) { [weak self] _ in
             guard let self else { return }
             showActivatedToast()
-            Task { await self.load() }
+            Task { await self.refresh() }
         }
     }
 
@@ -188,15 +203,17 @@ public final class RewardsViewModel: Sendable {
     func selectWallet(id: String) {
         guard let wallet = wallets.first(where: { $0.id.id == id }) else { return }
         selectedWallet = wallet
-        Task { await load(wallet: wallet) }
+        session = session.onSelectWallet(walletId: wallet.id.id)
+        Task { await refresh() }
     }
 
-    func load() async {
-        await load(wallet: selectedWallet)
+    func refresh() async {
+        let result = await service.refresh(walletId: selectedWallet.id.id)
+        session = session.onResult(result: result)
     }
 
     func onTaskOnce() async {
-        await load()
+        await refresh()
 
         switch incomingReferralCode(code: activateCode, wallets: wallets.map { $0.toGem() }) {
         case let .activate(code): await useReferralCode(code)
@@ -206,14 +223,14 @@ public final class RewardsViewModel: Sendable {
     }
 
     func activatePendingReferral() async {
-        guard let code = rewardsState.usedReferralCode else { return }
+        guard let code = pendingReferral?.code else { return }
         await useReferralCode(code)
     }
 
     private func useReferralCode(_ code: String) async {
         do {
             let rewards = try await service.useReferralCode(wallet: selectedWallet, code: code)
-            state = .data(service.state(rewards: rewards))
+            session = session.onRewards(rewards: rewards)
             showActivatedToast()
         } catch let error as GemServiceError {
             showError(error.text().text)
@@ -240,7 +257,7 @@ public final class RewardsViewModel: Sendable {
                 AlertAction(title: Localized.Transfer.confirm, isDefaultAction: true) { [weak self] in
                     Task {
                         await self?.redeem(option: option)
-                        await self?.load()
+                        await self?.refresh()
                     }
                 },
                 .cancel(title: Localized.Common.cancel),
@@ -269,15 +286,5 @@ public final class RewardsViewModel: Sendable {
             message: message,
             actions: [.cancel(title: Localized.Common.done)],
         )
-    }
-
-    private func load(wallet: Wallet) async {
-        state = .loading
-        do {
-            let rewards = try await service.getRewards(wallet: wallet)
-            state = .data(service.state(rewards: rewards))
-        } catch {
-            state = .noData
-        }
     }
 }

@@ -37,6 +37,7 @@ import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.GemTransactionFilter
 import uniffi.gemstone.GemTransactionsEmptyState
 import uniffi.gemstone.GemTransactionsServiceInterface
+import uniffi.gemstone.loadError
 import uniffi.gemstone.transactionsEmptyState
 import javax.inject.Inject
 
@@ -100,7 +101,7 @@ class TransactionsViewModel @Inject constructor(
     private val transactionsState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
 
     val errorRow: StateFlow<GemListRow?> = combine(transactionsState, transactions) { state, items ->
-        (state as? GemLoadState.Error)?.takeIf { items?.isEmpty() == true }?.let { GemListRow.Error(it.error) }
+        loadError(state, items?.isEmpty() != true)?.let { GemListRow.Error(it) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     init {

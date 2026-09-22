@@ -33,6 +33,7 @@ import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemPercentageStyle
 import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.GemWalletHomeServiceInterface
+import uniffi.gemstone.GemWalletHomeViewState
 import uniffi.gemstone.GemWalletRow
 import uniffi.gemstone.walletBannerEvents
 import uniffi.gemstone.walletRow
@@ -67,14 +68,9 @@ class GetWalletSummaryImpl(
             )
 
             WalletSummaryAggregateImpl(
+                state = state,
                 walletRow = walletRow(wallet.toGem()),
-                walletTotalValue = state.total.text(),
-                changedValue = state.pnl,
-                changeTone = state.pnlTone,
                 isBalanceHidden = hideBalances,
-                headerActions = state.headerActions,
-                showCollections = state.showCollections,
-                banners = state.visibleBanners,
             )
         }
     }.stateIn(scope, SharingStarted.Eagerly, null)
@@ -83,13 +79,4 @@ class GetWalletSummaryImpl(
 }
 
 @Stable
-internal class WalletSummaryAggregateImpl(
-    override val walletRow: GemWalletRow,
-    override val walletTotalValue: String,
-    override val changedValue: GemLocalizedText?,
-    override val changeTone: GemValueTone,
-    override val isBalanceHidden: Boolean,
-    override val headerActions: GemHeaderActions,
-    override val showCollections: Boolean,
-    override val banners: List<GemBannerRow>,
-) : WalletSummaryAggregate
+internal class WalletSummaryAggregateImpl(override val state: GemWalletHomeViewState, override val walletRow: GemWalletRow, override val isBalanceHidden: Boolean) : WalletSummaryAggregate

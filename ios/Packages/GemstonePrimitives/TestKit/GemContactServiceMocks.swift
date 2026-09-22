@@ -13,7 +13,7 @@ public extension GemContactService {
     static func mock() -> GemContactService {
         GemContactService(
             store: GemContactStoreMock(),
-            addressStore: GemAddressStoreMock(),
+            names: .mock(),
             files: GemFileStoreMock(),
         )
     }
@@ -23,7 +23,6 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
     public var connectionSectionsValue: [GemConnectionSection] = []
     public var connectionRowValue = GemConnectionRow(title: "", host: nil, initial: nil, iconUrl: nil)
     public var connectionDetailRows: [GemListRow] = []
-    public var originRejected = false
     public var hasSessionsValue = false
     public var signatureResult: Result<String, Error> = .success("0x")
 
@@ -80,10 +79,6 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
 
     public func hasSessions() async throws -> Bool {
         hasSessionsValue
-    }
-
-    public func isOriginRejected(metadataUrl _: String, origin _: String?, validation _: Gemstone.WalletConnectionVerificationStatus) -> Bool {
-        originRejected
     }
 
     public func prepareSessionProposal(
@@ -200,10 +195,11 @@ public final class GemSupportServiceMock: GemSupportServiceProtocol, @unchecked 
         .map { UInt64(max($0.createdAt.timeIntervalSince1970, 0)) } ?? 0
     }
 
-    public func syncMessages(fromTimestamp: UInt64) async throws {
+    public func refresh(fromTimestamp: UInt64, hasMessages: Bool) async -> GemLoadState {
         syncedTimestamps.append(fromTimestamp)
-        if let syncError {
-            throw syncError
+        guard let syncError else {
+            return .data
         }
+        return hasMessages ? .data : .error(error: .Api(msg: syncError.localizedDescription))
     }
 }

@@ -5,7 +5,6 @@ import Foundation
 import protocol Gemstone.GemWalletServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
-import Localization
 import Primitives
 import PrimitivesComponents
 import SwiftUI
@@ -73,22 +72,14 @@ extension CreateWalletModel {
     }
 
     func createWallet(words: [String]) async throws -> CreatedWallet {
-        let name = try await service.defaultWalletName(chain: .none)
         let result = try await service.importWallet(
-            name: name.text.text,
-            type: service.importRequest(kind: .phrase, chain: nil, input: words.joined(separator: " "), nameRecord: nil),
+            kind: .phrase,
+            chain: .none,
+            input: words.joined(separator: " "),
+            nameRecord: .none,
             source: .create,
         )
-        return CreatedWallet(wallet: result.wallet, hasExistingWallets: name.hasExistingWallets)
-    }
-
-    func setupWalletComplete(wallet: Wallet) {
-        do {
-            try service.setCurrentWalletId(walletId: wallet.id.id)
-            dismiss()
-        } catch {
-            isPresentingAlertMessage = AlertMessage(title: Localized.Errors.errorOccurred, error: error)
-        }
+        return CreatedWallet(wallet: result.wallet().toPrimitives(), hasExistingWallets: result.hasExistingWallets())
     }
 }
 

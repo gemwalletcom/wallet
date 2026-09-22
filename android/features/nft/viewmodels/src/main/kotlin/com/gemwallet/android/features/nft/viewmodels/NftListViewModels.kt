@@ -1,14 +1,12 @@
 package com.gemwallet.android.features.nft.viewmodels
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.nft.cases.GetNftCollections
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.nft.viewmodels.localization.stringRes
 import com.gemwallet.android.ui.R
@@ -24,14 +22,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemNftList
 import uniffi.gemstone.GemNftListScreen
 import uniffi.gemstone.GemNftServiceInterface
+import uniffi.gemstone.loadError
 import javax.inject.Inject
 
 @HiltViewModel
@@ -48,6 +50,8 @@ class NftListViewModels @Inject constructor(
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing
+
+    private val loadState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
 
     private val session = getSession()
 
@@ -75,6 +79,10 @@ class NftListViewModels @Inject constructor(
     val collections = nftData
         .map { data -> nftService.listItems(data.map { it.toGem() }, list).toUIModels() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val errorRow: StateFlow<GemListRow?> = combine(loadState, collections) { state, items ->
+        loadError(state, items.isNotEmpty())?.let { GemListRow.Error(it) }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val unverifiedListItem: StateFlow<ListItemModel?> = nftData
         .map { data ->
@@ -106,11 +114,6 @@ class NftListViewModels @Inject constructor(
     }
 
     private suspend fun sync() {
-        runCatchingCancellable { nftService.sync() }
-            .onFailure { Log.e(TAG, "nft collections sync failed", it) }
-    }
-
-    private companion object {
-        const val TAG = "NftList"
+        loadState.update { nftService.refresh(collections.value.isNotEmpty()) }
     }
 }

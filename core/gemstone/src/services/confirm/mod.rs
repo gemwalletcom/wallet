@@ -2,6 +2,7 @@
 
 mod confirmation;
 mod error;
+pub(crate) mod header;
 mod model;
 pub(crate) mod rules;
 pub(crate) mod screen;

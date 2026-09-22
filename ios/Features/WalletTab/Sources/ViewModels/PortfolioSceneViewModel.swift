@@ -1,21 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
 import Foundation
 import enum Gemstone.GemListRow
 import protocol Gemstone.GemPortfolioServiceProtocol
-import func Gemstone.leverageNumber
-import func Gemstone.portfolioChartData
-import struct Gemstone.PortfolioData
-import struct Gemstone.PortfolioMarginUsage
-import func Gemstone.portfolioStatisticRows
+import struct Gemstone.GemPortfolioSession
+import struct Gemstone.GemPortfolioViewState
+import func Gemstone.portfolioSession
 import GemstonePrimitives
 import GemstoneServices
 import Localization
 import Primitives
 import PrimitivesComponents
-import Style
 
 @Observable
 @MainActor
@@ -24,21 +20,7 @@ public final class PortfolioSceneViewModel: ChartListViewable {
     private let service: any GemPortfolioServiceProtocol
     private let preferences: ObservablePreferences
 
-    private let currencyFormatter: CurrencyFormatter
-    private let priceFormatter: CurrencyFormatter
-    private let percentFormatter = PercentFormatter.signed
-    private let perpetualFormatter: CurrencyFormatter
-
-    var state: PortfolioState
-
-    private var selectedState: StateViewType<PortfolioData> {
-        state[state.selectedType]
-    }
-
-    public var selectedPeriod: ChartPeriod {
-        get { state.selectedPeriod }
-        set { state.selectedPeriod = newValue }
-    }
+    private var session: GemPortfolioSession
 
     public init(
         wallet: Wallet,
@@ -49,34 +31,51 @@ public final class PortfolioSceneViewModel: ChartListViewable {
         self.wallet = wallet
         self.service = service
         self.preferences = preferences
-        perpetualFormatter = CurrencyFormatter(type: .currency, currencyCode: service.currency(portfolioType: PortfolioType.perpetuals.toGem()).toPrimitives().rawValue)
-        let currencyCode = preferences.currency.rawValue
-        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
-        priceFormatter = CurrencyFormatter(currencyCode: currencyCode)
-        state = PortfolioState(selectedType: defaultType)
+        session = portfolioSession(portfolioType: defaultType.toGem())
     }
 
-    var showSegmentedControl: Bool {
-        preferences.showPerpetuals(for: wallet)
+    private var state: GemPortfolioViewState {
+        session.viewState()
     }
 
-    var navigationTitle: String {
-        showSegmentedControl ? "" : typeTitle(for: state.selectedType)
+    var selectedType: PortfolioType {
+        get { state.portfolioType.toPrimitives() }
+        set { session = session.onSelectType(portfolioType: newValue.toGem()) }
     }
 
-    public var chartState: StateViewType<ChartValuesViewModel> {
-        selectedState.flatMap { chartViewModel(from: $0).map { .data($0) } ?? .noData }
+    var selectedChartType: PortfolioChartType {
+        get { state.chartType.toPrimitives() }
+        set { session = session.onSelectChartType(chartType: newValue.toGem()) }
+    }
+
+    public var selectedPeriod: ChartPeriod {
+        get { state.period.toPrimitives() }
+        set { session = session.onSelectPeriod(period: newValue.toGem()) }
     }
 
     public var periods: [ChartPeriod] {
-        selectedState.value?.availablePeriods.map { $0.toPrimitives() } ?? [.day, .week, .month, .year, .all]
+        state.periods.map { $0.toPrimitives() }
+    }
+
+    public var chartState: StateViewType<ChartValuesViewModel> {
+        switch state.phase {
+        case .loading: .loading
+        case let .data(chart): .data(ChartValuesViewModel(period: selectedPeriod, chartData: chart))
+        case .noData: .noData
+        case let .failed(error): .error(error)
+        }
+    }
+
+    var showSegmentedControl: Bool {
+        preferences.isPerpetualEnabled && service.showPerpetuals(walletType: wallet.type.toGem(), chains: wallet.chains.map(\.rawValue))
+    }
+
+    var navigationTitle: String {
+        showSegmentedControl ? "" : typeTitle(for: selectedType)
     }
 
     var statisticRows: [GemListRow] {
-        portfolioStatisticRows(
-            statistics: selectedState.value?.statistics ?? [],
-            currency: service.currency(portfolioType: state.selectedType.toGem()),
-        )
+        state.statistics
     }
 
     var statisticsTitle: String {
@@ -84,7 +83,7 @@ public final class PortfolioSceneViewModel: ChartListViewable {
     }
 
     var showChartTypePicker: Bool {
-        state.selectedType == .perpetuals
+        state.showsChartTypePicker
     }
 }
 
@@ -92,26 +91,14 @@ public final class PortfolioSceneViewModel: ChartListViewable {
 
 extension PortfolioSceneViewModel {
     public func load() async {
-        let type = state.selectedType
-        let period = selectedPeriod
-        state[type] = .loading
-        do {
-            let data = try await service.portfolioData(wallet: wallet.toGem(), portfolioType: type.toGem(), period: period.toGem())
-            guard period == selectedPeriod else { return }
-            let periods = data.availablePeriods.map { $0.toPrimitives() }
-            if periods.isNotEmpty, !periods.contains(period) {
-                selectedPeriod = periods.first ?? period
-            }
-            state[type] = .data(data)
-        } catch {
-            guard period == selectedPeriod else { return }
-            state[type].setError(error)
-        }
+        session = session.onSelectWallet(walletId: wallet.id.id, currency: preferences.currency.toGem())
+        let result = await service.refresh(wallet: wallet.toGem(), request: session.request())
+        session = session.onResult(result: result)
     }
 
-    func onTypeChanged(_: PortfolioType, _: PortfolioType) {
-        guard selectedState.value == nil else { return }
-        Task { await load() }
+    func loadIfNeeded() async {
+        guard session.needsLoad() else { return }
+        await load()
     }
 
     func typeTitle(for type: PortfolioType) -> String {
@@ -120,22 +107,5 @@ extension PortfolioSceneViewModel {
 
     func chartTypeTitle(for type: PortfolioChartType) -> String {
         type.title
-    }
-}
-
-// MARK: - Private
-
-extension PortfolioSceneViewModel {
-    private func chartViewModel(from data: PortfolioData) -> ChartValuesViewModel? {
-        let portfolioType = state.selectedType.toGem()
-        guard let chartData = portfolioChartData(
-            data: data,
-            portfolioType: portfolioType,
-            chartType: state.selectedChartType.toGem(),
-            currency: service.currency(portfolioType: portfolioType),
-        ) else {
-            return nil
-        }
-        return ChartValuesViewModel(period: selectedPeriod, chartData: chartData)
     }
 }

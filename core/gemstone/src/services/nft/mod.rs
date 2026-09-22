@@ -5,6 +5,7 @@ pub mod store;
 #[cfg(test)]
 pub(crate) mod testkit;
 
+use crate::models::state::GemLoadState;
 use crate::services::error::GemServiceError;
 use std::future::Future;
 use std::sync::Arc;
@@ -32,8 +33,8 @@ impl GemNftService {
         Self { api, store, session }
     }
 
-    pub async fn sync(&self) -> Result<u32, GemServiceError> {
-        self.sync_wallet(self.session.current_wallet_id()?).await
+    pub async fn refresh(&self, has_collections: bool) -> GemLoadState {
+        GemLoadState::refreshed(self.sync().await.map(|_| ()), has_collections)
     }
 
     pub async fn ensure_asset(&self, asset_id: NFTAssetId) -> Result<NFTAssetData, GemServiceError> {
@@ -81,6 +82,12 @@ impl GemNftService {
         let count = data.len() as u32;
         self.store.save_nfts(wallet_id, data).await?;
         Ok(count)
+    }
+}
+
+impl GemNftService {
+    async fn sync(&self) -> Result<u32, GemServiceError> {
+        self.sync_wallet(self.session.current_wallet_id()?).await
     }
 }
 

@@ -18,6 +18,7 @@ use crate::services::balance::GemBalanceService;
 use crate::services::balance::testkit::MemoryBalanceStore;
 use crate::services::device::GemDeviceKeyService;
 use crate::services::error::GemServiceError;
+use crate::services::name::GemNameService;
 use crate::services::node::GemNodeService;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::preferences::testkit::MemoryPreferencesStore;
@@ -142,14 +143,7 @@ impl PerpetualTestkit {
         let asset_store = Arc::new(MemoryAssetStore::default());
         let assets = Arc::new(GemAssetsService::mock(provider.clone(), asset_store.clone()));
         let balances = Arc::new(MemoryBalanceStore::default());
-        let balance = Arc::new(GemBalanceService::new(
-            gateway.clone(),
-            wallets.clone(),
-            asset_store.clone(),
-            balances.clone(),
-            assets.clone(),
-            Arc::new(SubscriptionTestkit::new(&[], &[]).service),
-        ));
+        let balance = Arc::new(GemBalanceService::new(gateway.clone(), balances.clone(), assets.clone(), session.clone(), Arc::new(SubscriptionTestkit::new(&[], &[]).service)));
         let wallet_preferences = Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default())));
         let store = Arc::new(MemoryPerpetualStore::default());
         let service = GemPerpetualService::new(
@@ -180,10 +174,10 @@ impl PerpetualTestkit {
     pub fn details_service(self) -> DetailsTestkit {
         let device_api = Arc::new(GemDeviceApiClient::new(self.provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)))));
         let transactions = Arc::new(GemTransactionsService::new(
-            device_api,
+            device_api.clone(),
             Arc::new(GemAssetsService::mock(self.provider.clone(), self.asset_store.clone())),
             Arc::new(MemoryTransactionStore::default()),
-            Arc::new(MemoryAddressStore::default()),
+            Arc::new(GemNameService::new(device_api.clone(), Arc::new(MemoryAddressStore::default()))),
             self.wallet_preferences.clone(),
             self.session.clone(),
             Arc::new(RecordingTransactionStatus::default()),

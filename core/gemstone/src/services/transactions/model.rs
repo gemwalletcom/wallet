@@ -282,6 +282,7 @@ pub struct GemTransactionDetailRows {
     pub estimated_confirmation_seconds: Option<u32>,
     pub participant: Option<GemTransactionParticipant>,
     pub provider_name: Option<String>,
+    pub provider_contract: Option<String>,
     pub memo: Option<String>,
     pub resource: Option<Resource>,
     pub rate: Option<GemSwapRate>,
@@ -303,7 +304,6 @@ pub struct GemTransactionFeeRow {
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemTransactionHeaderKind {
     Amount { shows_fiat: bool },
-    Payment,
     Swap,
     Nft,
     Symbol,

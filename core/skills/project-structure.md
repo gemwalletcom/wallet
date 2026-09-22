@@ -91,7 +91,7 @@ Individual `gem_*` crates for each blockchain with unified RPC client patterns:
 ## Key Dependency Relationships
 
 ```
-gemstone/          ← generates UniFFI bindings, builds the Android AAR, and ships a self-contained iOS GemTest example
+gemstone/          ← generates UniFFI bindings and builds the Android AAR and iOS static libraries
   ├── swapper/     ← DEX/CEX swap integrations (uses gem_* chain crates)
   ├── signer/      ← transaction signing (uses chain_primitives, gem_hash)
   └── primitives/  ← central types shared by almost everything

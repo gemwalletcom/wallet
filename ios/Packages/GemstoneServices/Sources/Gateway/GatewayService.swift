@@ -43,12 +43,12 @@ public actor GatewayService: Sendable {
     public nonisolated func stakeService(
         staticApi: GemStaticApiClient,
         store: any GemStakeStore,
-        addressStore: any GemAddressStore,
+        names: GemNameService,
         explorer: GemExplorerService,
         preferences: GemPreferencesService,
         session: GemWalletSessionService,
     ) -> GemStakeService {
-        GemStakeService(gateway: gateway, staticApi: staticApi, store: store, addressStore: addressStore, explorer: explorer, preferences: preferences, session: session)
+        GemStakeService(gateway: gateway, staticApi: staticApi, store: store, names: names, explorer: explorer, preferences: preferences, session: session)
     }
 
     public nonisolated func transactionStateService(
@@ -63,13 +63,12 @@ public actor GatewayService: Sendable {
     }
 
     public nonisolated func balanceService(
-        walletStore: any GemWalletStore,
-        assetStore: any GemAssetStore,
         store: any GemBalanceStore,
         assets: GemAssetsService,
+        session: GemWalletSessionService,
         stream: GemStreamSubscriptionService,
     ) -> GemBalanceService {
-        GemBalanceService(gateway: gateway, walletStore: walletStore, assetStore: assetStore, store: store, assets: assets, stream: stream)
+        GemBalanceService(gateway: gateway, store: store, assets: assets, session: session, stream: stream)
     }
 
     public nonisolated func assetsService(

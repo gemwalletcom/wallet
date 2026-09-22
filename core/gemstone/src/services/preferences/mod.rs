@@ -88,10 +88,6 @@ impl GemPreferencesService {
         self.store.set(IS_PERPETUAL_ENABLED.to_string(), enabled.to_string())
     }
 
-    pub fn show_perpetuals(&self, wallet_type: WalletType, chains: Vec<Chain>) -> bool {
-        crate::services::perpetual::rules::show_perpetuals(self.is_perpetual_enabled(), wallet_type, &chains)
-    }
-
     pub fn is_hide_balance_enabled(&self) -> bool {
         rules::flag(self.store.get(IS_HIDE_BALANCE_ENABLED.to_string()))
     }
@@ -164,6 +160,10 @@ impl GemPreferencesService {
 }
 
 impl GemPreferencesService {
+    pub fn show_perpetuals(&self, wallet_type: WalletType, chains: Vec<Chain>) -> bool {
+        crate::services::perpetual::rules::show_perpetuals(self.is_perpetual_enabled(), wallet_type, &chains)
+    }
+
     pub fn get_chart_period(&self) -> ChartPeriod {
         self.store.get(CHART_PERIOD.to_string()).and_then(|value| ChartPeriod::from_str(&value).ok()).unwrap_or(ChartPeriod::Day)
     }

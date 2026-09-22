@@ -37,7 +37,6 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
         self.onSetAssetPinned = onSetAssetPinned
     }
 
-    public var perpetualsShown = true
     public var tokensSupported = true
     public var nftSearchItems: [GemNftItem] = []
     public var filterChainsResult: [Gemstone.Chain] = []
@@ -54,6 +53,8 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
     public func walletSearchLimits(query _: String) -> GemWalletSearchLimits {
         GemWalletSearchLimits(assets: 12, fetch: 13, perpetuals: 3, nfts: 3, results: 100)
     }
+
+    public var perpetualsShown = true
 
     public func getCurrency() -> Currency {
         Primitives.Currency.usd.toGem()

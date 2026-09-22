@@ -119,12 +119,7 @@ public final class EarnSceneViewModel {
     }
 
     var providersState: StateViewType<Bool> {
-        switch viewState {
-        case .noData: .noData
-        case .loading: providers.isEmpty ? .loading : .data(true)
-        case .data: providers.isEmpty ? .noData : .data(true)
-        case let .error(error): .error(error)
-        }
+        viewState.stateViewType(providers).map { _ in true }
     }
 }
 

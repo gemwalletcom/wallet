@@ -8,14 +8,14 @@ import Style
 import SwiftUI
 
 public struct SignMessageScene: View {
-    @State private var model: SignMessageSceneViewModel
+    @Bindable var model: SignMessageSceneViewModel
     private let onComplete: () -> Void
 
     public init(
         model: SignMessageSceneViewModel,
         onComplete: @escaping () -> Void,
     ) {
-        _model = State(wrappedValue: model)
+        self.model = model
         self.onComplete = onComplete
     }
 
@@ -41,8 +41,10 @@ public struct SignMessageScene: View {
                 Section {
                     SimulationPayloadFieldsContent(models: model.fieldModels(for: model.payloadModel.primaryFields))
 
-                    NavigationCustomLink(with: ListItemView(model: model.payloadDetailsListItem)) {
-                        model.onViewPayloadDetails()
+                    if model.payloadModel.hasDetails {
+                        NavigationCustomLink(with: ListItemView(model: model.payloadDetailsListItem)) {
+                            model.onViewPayloadDetails()
+                        }
                     }
                 }
             } else {
@@ -64,19 +66,6 @@ public struct SignMessageScene: View {
         .navigationTitle(model.title)
         .alertSheet($model.isPresentingAlertMessage)
         .safariSheet(url: $model.isPresentingUrl)
-        .sheet(isPresented: $model.isPresentingPayloadDetails) {
-            if model.payloadModel.hasFields {
-                NavigationStack {
-                    SimulationPayloadDetailsScene(
-                        primaryModels: model.fieldModels(for: model.payloadModel.primaryFields),
-                        secondaryModels: model.fieldModels(for: model.payloadModel.secondaryFields),
-                        actionListItem: model.viewFullMessageListItem,
-                        actionDestination: AnyView(TextMessageScene(text: model.messageText)),
-                    )
-                }
-                .sheetPresentation([.large])
-            }
-        }
     }
 
     func sign() {

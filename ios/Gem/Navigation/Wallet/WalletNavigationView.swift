@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Assets
 import Components
 import GemstonePrimitives
 import InfoSheet
@@ -228,7 +227,7 @@ struct WalletNavigationView: View {
                 case let .addContact(action):
                     AddContactNavigationView(action: action)
                 case let .addressDetails(chainAddress):
-                    AddressDetailsNavigationStack(model: viewModelFactory.addressDetailsScene(chainAddress: chainAddress))
+                    AddressDetailsDestination(chainAddress: chainAddress)
                 case .swap:
                     SwapNavigationStack(wallet: model.wallet, onComplete: model.onTransferComplete)
                 }

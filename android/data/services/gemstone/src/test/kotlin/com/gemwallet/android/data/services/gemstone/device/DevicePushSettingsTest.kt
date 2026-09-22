@@ -6,6 +6,7 @@ import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import dagger.Lazy
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -30,11 +31,13 @@ class DevicePushSettingsTest {
     private val userConfig = mockk<UserConfig>(relaxed = true)
 
     @Test
-    fun `switching push stops asking about notifications`() = runTest {
+    fun `switching push asks for permission before it records the ask`() = runTest {
         settings(ConfigStore(mockk(relaxed = true))).switchPushEnabled(true)
 
-        coVerify(exactly = 1) { userConfig.stopAskNotifications() }
-        coVerify(exactly = 1) { notificationsService.setEnabled(true) }
+        coVerifyOrder {
+            notificationsService.setEnabled(true)
+            userConfig.stopAskNotifications()
+        }
     }
 
     @Test

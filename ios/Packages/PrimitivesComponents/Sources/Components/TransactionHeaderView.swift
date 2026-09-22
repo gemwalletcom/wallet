@@ -7,11 +7,10 @@ import SwiftUI
 
 public enum TransactionHeaderType {
     case amount(AmountDisplay)
-    case payment(price: String, amount: AmountDisplay)
     case swap(from: SwapAmountField, to: SwapAmountField)
     case nft(name: String?, image: AssetImage)
     case asset(image: AssetImage)
-    case assetValue(AssetValueHeaderViewModel)
+    case assetValue(any ValueHeaderViewModel)
 }
 
 public struct TransactionHeaderView: View {
@@ -30,9 +29,14 @@ public struct TransactionHeaderView: View {
         VStack(alignment: .center) {
             switch type {
             case let .amount(display):
-                amountHeader(TransactionAmountHeaderViewModel(display: display))
-            case let .payment(price, amount):
-                amountHeader(TransactionAmountHeaderViewModel(display: amount, price: price))
+                ValueHeaderView(
+                    model: TransactionAmountHeaderViewModel(display: display),
+                    isPrivacyEnabled: .constant(false),
+                    titleActionType: .none,
+                    spacing: .transactionAmount,
+                    onHeaderAction: nil,
+                    onInfoAction: nil,
+                )
             case let .swap(from, to):
                 SwapAmountView(from: from, to: to, action: action)
             case let .nft(name, image):
@@ -51,16 +55,5 @@ public struct TransactionHeaderView: View {
             }
         }
         .frame(maxWidth: .infinity)
-    }
-
-    private func amountHeader(_ model: TransactionAmountHeaderViewModel) -> some View {
-        ValueHeaderView(
-            model: model,
-            isPrivacyEnabled: .constant(false),
-            titleActionType: .none,
-            spacing: .transactionAmount,
-            onHeaderAction: nil,
-            onInfoAction: nil,
-        )
     }
 }

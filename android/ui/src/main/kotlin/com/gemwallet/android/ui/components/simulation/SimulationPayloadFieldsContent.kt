@@ -20,7 +20,7 @@ import uniffi.gemstone.GemSimulationPayloadValue
 import java.time.ZoneId
 import java.util.Locale
 
-fun LazyListScope.simulationPayloadFieldsContent(fields: List<PayloadField>, onDetailsClick: (() -> Unit)? = null) {
+fun LazyListScope.simulationPayloadFieldsContent(fields: List<PayloadField>, onAddressClick: ((String) -> Unit)? = null, onDetailsClick: (() -> Unit)? = null) {
     if (fields.isEmpty() && onDetailsClick == null) {
         return
     }
@@ -35,6 +35,7 @@ fun LazyListScope.simulationPayloadFieldsContent(fields: List<PayloadField>, onD
                 copyValue = value.address,
                 explorerLink = payload.explorerLink,
                 listPosition = listPosition,
+                onClick = onAddressClick?.let { click -> { click(value.address) } },
             )
 
             is GemSimulationPayloadValue.Text -> ListItem(
@@ -60,10 +61,10 @@ fun LazyListScope.simulationPayloadFieldsContent(fields: List<PayloadField>, onD
     }
 }
 
-fun LazyListScope.simulationPayloadDetailsContent(primaryFields: List<PayloadField>, secondaryFields: List<PayloadField>) {
-    simulationPayloadFieldsContent(primaryFields)
+fun LazyListScope.simulationPayloadDetailsContent(primaryFields: List<PayloadField>, secondaryFields: List<PayloadField>, onAddressClick: ((String) -> Unit)? = null) {
+    simulationPayloadFieldsContent(primaryFields, onAddressClick = onAddressClick)
     if (secondaryFields.isNotEmpty()) {
         item { SubheaderItem(R.string.common_details) }
-        simulationPayloadFieldsContent(secondaryFields)
+        simulationPayloadFieldsContent(secondaryFields, onAddressClick = onAddressClick)
     }
 }

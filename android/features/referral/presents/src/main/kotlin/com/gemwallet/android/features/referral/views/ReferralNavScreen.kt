@@ -50,18 +50,24 @@ fun ReferralNavScreen(onClose: () -> Unit, viewModel: ReferralViewModel = hiltVi
     val currentWallet by viewModel.currentWallet.collectAsStateWithLifecycle()
     val referralLink by viewModel.referralLink.collectAsStateWithLifecycle()
     val inSync by viewModel.inSync.collectAsStateWithLifecycle()
+    val loadError by viewModel.loadError.collectAsStateWithLifecycle()
     val incomingCode by viewModel.incomingCode.collectAsStateWithLifecycle()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val infoRows by viewModel.infoRows.collectAsStateWithLifecycle()
+    val actions by viewModel.actions.collectAsStateWithLifecycle()
+    val notices by viewModel.notices.collectAsStateWithLifecycle()
+    val inviteRewardPoints by viewModel.inviteRewardPoints.collectAsStateWithLifecycle()
+    val sections by viewModel.sections.collectAsStateWithLifecycle()
     val redemptions by viewModel.redemptions.collectAsStateWithLifecycle()
 
     ReferralScene(
         inSync = inSync,
+        loadError = loadError,
         isAvailableWalletSelect = availableWallets.size > 1,
         incomingCode = incomingCode,
         referralLink = referralLink,
-        uiState = uiState,
-        infoRows = infoRows,
+        actions = actions,
+        notices = notices,
+        inviteRewardPoints = inviteRewardPoints,
+        sections = sections,
         redemptions = redemptions,
         currentWallet = currentWallet,
         onUsername = viewModel::createReferral,

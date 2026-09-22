@@ -4,6 +4,7 @@ pub mod store;
 #[cfg(test)]
 pub(crate) mod testkit;
 
+use crate::models::state::GemLoadState;
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
@@ -69,18 +70,8 @@ impl GemPriceAlertService {
         }
     }
 
-    pub async fn sync(&self, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
-        let remote = self.api.client.get_price_alerts(asset_id.as_ref().map(ToString::to_string)).await.map_err(GemApiError::from)?;
-        let remote = match &asset_id {
-            Some(asset_id) => remote.into_iter().filter(|alert| alert.asset_id == *asset_id).collect(),
-            None => remote,
-        };
-        let local = self.store.get_price_alerts(asset_id).await?;
-        let changes = rules::reconcile(local, remote);
-        if changes.delete_ids.is_empty() && changes.alerts.is_empty() {
-            return Ok(());
-        }
-        self.store.update_price_alerts(changes.alerts, changes.delete_ids).await
+    pub async fn refresh(&self, asset_id: Option<AssetId>, has_alerts: bool) -> GemLoadState {
+        GemLoadState::refreshed(self.sync(asset_id).await, has_alerts)
     }
 
     pub async fn delete_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemServiceError> {
@@ -96,6 +87,24 @@ impl GemPriceAlertService {
 }
 
 impl GemPriceAlertService {
+    pub async fn price_alerts(&self, asset_id: Option<AssetId>) -> Result<Vec<PriceAlert>, GemServiceError> {
+        self.store.get_price_alerts(asset_id).await
+    }
+
+    pub async fn sync(&self, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
+        let remote = self.api.client.get_price_alerts(asset_id.as_ref().map(ToString::to_string)).await.map_err(GemApiError::from)?;
+        let remote = match &asset_id {
+            Some(asset_id) => remote.into_iter().filter(|alert| alert.asset_id == *asset_id).collect(),
+            None => remote,
+        };
+        let local = self.store.get_price_alerts(asset_id).await?;
+        let changes = rules::reconcile(local, remote);
+        if changes.delete_ids.is_empty() && changes.alerts.is_empty() {
+            return Ok(());
+        }
+        self.store.update_price_alerts(changes.alerts, changes.delete_ids).await
+    }
+
     pub async fn add_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemServiceError> {
         self.store.update_price_alerts(alerts.clone(), Vec::new()).await?;
         match self.api.client.add_price_alerts(alerts.clone()).await {

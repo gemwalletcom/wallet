@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemServiceError
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -16,12 +17,12 @@ public struct RewardsScene: View {
 
     public var body: some View {
         List {
-            switch model.state {
+            switch model.viewState.state {
             case .loading:
                 CenterLoadingView()
             case let .error(error):
                 stateErrorView(error: error)
-            case .data:
+            case .data, .noData:
                 inviteFriendsSection
                 if let notice = model.rewardsState.errorNotice {
                     Section {
@@ -29,17 +30,13 @@ public struct RewardsScene: View {
                     }
                 }
                 statusSection
-                if model.rewardsState.showsInfo {
-                    infoSection
-                }
+                infoSections
                 if model.redemptionOptions.isNotEmpty {
                     redemptionOptionsSection(options: model.redemptionOptions)
                 }
-            case .noData:
-                inviteFriendsSection
             }
         }
-        .refreshable { await model.load() }
+        .refreshable { await model.refresh() }
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)
         .listStyle(.insetGrouped)
@@ -99,15 +96,15 @@ public struct RewardsScene: View {
         .alertSheet($model.isPresentingAlert)
     }
 
-    private func stateErrorView(error: Error) -> some View {
+    private func stateErrorView(error: GemServiceError) -> some View {
         Section {
             StateEmptyView(
                 title: model.errorTitle,
-                description: error.localizedDescription,
+                description: error.text().text,
                 image: nil,
             ) {
                 Button(Localized.Common.tryAgain) {
-                    Task { await model.load() }
+                    Task { await model.refresh() }
                 }
                 .buttonStyle(.blue())
             }
@@ -138,7 +135,7 @@ public struct RewardsScene: View {
                     featureItem(emoji: "🎉", text: Localized.Rewards.GetRewards.title)
                 }
 
-                if model.rewardsState.canInvite {
+                if model.action(.share) {
                     Button {
                         model.isPresentingSheet = .share
                     } label: {
@@ -148,7 +145,7 @@ public struct RewardsScene: View {
                         }
                     }
                     .buttonStyle(.blue())
-                } else if !model.rewardsState.hasReferralCode {
+                } else if model.action(.createCode) {
                     Button {
                         model.isPresentingSheet = .createCode
                     } label: {
@@ -161,7 +158,7 @@ public struct RewardsScene: View {
             .padding(.vertical, Spacing.small)
         }
 
-        if model.rewardsState.canUseReferralCode {
+        if model.action(.useReferralCode) {
             Section {
                 Button {
                     model.isPresentingSheet = .activateCode(code: "")
@@ -201,18 +198,22 @@ public struct RewardsScene: View {
         }
     }
 
-    private var infoSection: some View {
-        Section {
-            ForEach(Array(model.infoRows.enumerated()), id: \.offset) { _, row in
-                if case let .text(title, _) = row, title == .myReferralCode {
-                    GemListRowView(row: row)
-                        .contextMenu(model.referralLink.map { [.copy(value: $0)] } ?? [])
-                } else {
-                    GemListRowView(row: row)
+    private var infoSections: some View {
+        ForEach(model.sections) { section in
+            Section {
+                ForEach(section.values) { item in
+                    if case let .text(title, _) = item.row, title == .myReferralCode {
+                        GemListRowView(row: item.row)
+                            .contextMenu(model.referralLink.map { [.copy(value: $0)] } ?? [])
+                    } else {
+                        GemListRowView(row: item.row)
+                    }
+                }
+            } header: {
+                if let title = section.title {
+                    Text(title)
                 }
             }
-        } header: {
-            Text(model.statsSectionTitle)
         }
     }
 
@@ -222,7 +223,7 @@ public struct RewardsScene: View {
             Section {
                 GemListRowView(row: notice)
 
-                if model.rewardsState.showsPendingActivation {
+                if model.pendingReferral != nil {
                     HStack {
                         Spacer()
                         StateButton(

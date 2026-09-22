@@ -32,6 +32,7 @@ import com.gemwallet.android.ui.LocalAssetsService
 import com.gemwallet.android.ui.LocalChainService
 import com.gemwallet.android.ui.LocalConnectionStatus
 import com.gemwallet.android.ui.LocalDeeplinkService
+import com.gemwallet.android.ui.LocalNavigationService
 import com.gemwallet.android.ui.LocalStreamConnected
 import com.gemwallet.android.ui.components.ConnectionBannerState
 import com.gemwallet.android.ui.components.LocalConnectionBannerState
@@ -47,6 +48,7 @@ import uniffi.gemstone.GemAddressService
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemDeeplinkService
+import uniffi.gemstone.GemNavigationService
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -66,6 +68,8 @@ class MainActivity :
     @Inject lateinit var addressService: GemAddressService
 
     @Inject lateinit var deeplinkService: GemDeeplinkService
+
+    @Inject lateinit var navigationService: GemNavigationService
 
     @Inject lateinit var assetsService: GemAssetsService
 
@@ -133,6 +137,7 @@ class MainActivity :
                 LocalAddressService provides addressService,
                 LocalAssetsService provides assetsService,
                 LocalDeeplinkService provides deeplinkService,
+                LocalNavigationService provides navigationService,
                 LocalChainService provides chainService,
             ) {
                 MainContent(

@@ -1,11 +1,9 @@
 import Components
 import Foundation
 import protocol Gemstone.GemNameServiceProtocol
-import enum Gemstone.GemServiceError
 import enum Gemstone.GemWalletImportKind
 import struct Gemstone.GemWalletImportScreen
 import struct Gemstone.GemWalletImportSession
-import enum Gemstone.GemWalletImportType
 import protocol Gemstone.GemWalletServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
@@ -182,33 +180,18 @@ extension ImportWalletSceneViewModel {
 
 extension ImportWalletSceneViewModel {
     private func importWallet() async throws {
-        let nameRecord = nameRecordViewModel?.state.record()
-        let defaultName = try await service.defaultWalletName(chain: chain?.toGem()).text.text
-        try await importWallet(
-            name: service.importName(nameRecord: nameRecord, defaultName: defaultName),
-            type: service.importRequest(kind: importType, chain: chain?.toGem(), input: input, nameRecord: nameRecord),
+        let result = try await service.importWallet(
+            kind: importType,
+            chain: chain,
+            input: input,
+            nameRecord: nameRecordViewModel?.state.record(),
+            source: .import,
         )
-    }
-
-    private func importWallet(name: String, type: GemWalletImportType) async throws {
-        let result = try await service.importWallet(name: name, type: type, source: .import)
-
-        let wallet = result.wallet
-        await activateWallet(wallet)
+        let wallet = result.wallet().toPrimitives()
+        session = session.onImporting(isImporting: false)
         switch result {
         case .new: onComplete?(.new(wallet))
         case .existing: isPresentingExistingWalletName = wallet.name
         }
-    }
-
-    private func activateWallet(_ wallet: Wallet) async {
-        do {
-            try service.setCurrentWalletId(walletId: wallet.id.id)
-        } catch let error as GemServiceError {
-            isPresentingAlertMessage = AlertMessage(title: alertTitle, message: error.text().text)
-        } catch {
-            debugLog("import wallet error: \(error)")
-        }
-        session = session.onImporting(isImporting: false)
     }
 }

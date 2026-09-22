@@ -57,14 +57,27 @@ struct SupportChatSceneViewModelTests {
     }
 
     @Test
-    func aFailedSyncLeavesNoAlert() async {
+    func aFailedSyncShowsTheErrorInsteadOfTheEmptyChat() async {
         let service = GemSupportServiceMock()
         service.syncError = AnyError("offline")
         let model = SupportChatSceneViewModel.mock(service: service)
 
         await model.load()
 
+        #expect(model.loadError != nil, "an empty chat that failed to load is not an empty chat")
         #expect(model.isPresentingAlertMessage == nil)
+    }
+
+    @Test
+    func aFailedSyncKeepsTheMessagesAlreadyShown() async {
+        let service = GemSupportServiceMock()
+        service.syncError = AnyError("offline")
+        let model = SupportChatSceneViewModel.mock(service: service)
+        model.query.value = [.mock(id: "a", sender: .user)]
+
+        await model.load()
+
+        #expect(model.loadError == nil)
     }
 
     @Test

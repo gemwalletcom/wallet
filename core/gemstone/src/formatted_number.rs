@@ -169,7 +169,7 @@ impl GemFormattedNumber {
             rounding: GemNumberRounding::ToNearest,
             unit: GemNumberUnit::Multiplier,
             display: GemNumberDisplay::Number {
-                precision: number_formatter::Precision::TWO_PLACES.into(),
+                precision: number_formatter::Precision::UP_TO_TWO_PLACES.into(),
             },
         }
     }
@@ -232,11 +232,6 @@ pub fn formatted_amount(value: f64, symbol: Option<String>, style: GemValueStyle
 #[uniffi::export]
 pub fn formatted_percentage(value: f64, style: GemPercentageStyle) -> GemFormattedNumber {
     GemFormattedNumber::percentage(value, style)
-}
-
-#[uniffi::export]
-pub fn leverage_number(value: f64) -> GemFormattedNumber {
-    GemFormattedNumber::leverage(value)
 }
 
 fn value_display(value: f64, style: GemValueStyle) -> GemNumberDisplay {
@@ -329,8 +324,9 @@ mod tests {
         assert_eq!(
             leverage.display,
             GemNumberDisplay::Number {
-                precision: number_formatter::Precision::TWO_PLACES.into()
-            }
+                precision: number_formatter::Precision::UP_TO_TWO_PLACES.into()
+            },
+            "a whole leverage reads 5x, not 5.00x"
         );
         assert_eq!(leverage.notation, GemNumberNotation::Plain);
     }

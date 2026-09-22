@@ -19,11 +19,9 @@ class GetPerpetualPositionImpl @Inject constructor(private val perpetualStore: G
     }
 }
 
-class PerpetualPositionDetailsDataAggregateImpl(private val data: PerpetualPositionData, private val positionData: PerpetualPositionDataAggregateImpl = PerpetualPositionDataAggregateImpl(data)) :
+class PerpetualPositionDetailsDataAggregateImpl(data: PerpetualPositionData, positionData: PerpetualPositionDataAggregateImpl = PerpetualPositionDataAggregateImpl(data)) :
     PerpetualPositionDetailsDataAggregate,
     PerpetualPositionDataAggregate by positionData {
-
-    override val perpetualId: PerpetualId = data.position.perpetualId
 
     override val position: PerpetualPosition = data.position
 }

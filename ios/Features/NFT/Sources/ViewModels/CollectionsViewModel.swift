@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemLoadState
 import struct Gemstone.GemNftListScreen
 import protocol Gemstone.GemNftServiceProtocol
 import GemstonePrimitives
@@ -15,6 +16,8 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
     public let service: any GemNftServiceProtocol
 
     public let query: ObservableQuery<NFTRequest>
+
+    public var loadState: GemLoadState = .loading
 
     public var isPresentingReceiveSelectAssetType: SelectAssetType?
 

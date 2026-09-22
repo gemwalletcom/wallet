@@ -13,15 +13,18 @@ import com.gemwallet.android.features.settings.in_app_notifications.viewmodels.I
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
+import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.dateSectionedList
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.rememberDateSections
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.models.ListPosition
 
 @Composable
 fun InAppNotificationsScene(onAction: (InAppNotificationsAction) -> Unit, viewModel: InAppNotificationsViewModel = hiltViewModel()) {
     val notifications by viewModel.notifications.collectAsStateWithLifecycle()
+    val errorRow by viewModel.errorRow.collectAsStateWithLifecycle()
 
     Scene(
         title = stringResource(R.string.settings_notifications_title),
@@ -29,10 +32,14 @@ fun InAppNotificationsScene(onAction: (InAppNotificationsAction) -> Unit, viewMo
     ) {
         val sections = rememberDateSections(notifications) { it.createdAt }
         if (notifications.isEmpty()) {
-            EmptyContentView(
-                type = EmptyContentType.Notifications,
-                modifier = Modifier.fillMaxSize(),
-            )
+            when (val row = errorRow) {
+                null -> EmptyContentView(
+                    type = EmptyContentType.Notifications,
+                    modifier = Modifier.fillMaxSize(),
+                )
+
+                else -> GemListRowView(row = row, listPosition = ListPosition.Single)
+            }
         } else {
             LazyColumn {
                 dateSectionedList(

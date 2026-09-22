@@ -1,20 +1,23 @@
 package com.gemwallet.android.features.referral.viewmodels.models
 
 import android.content.Context
+import androidx.annotation.StringRes
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
-import com.gemwallet.android.ui.localization.text
-import uniffi.gemstone.GemListRow
+import com.gemwallet.android.ui.components.list_item.listItemModel
+import com.gemwallet.android.ui.localization.titleRes
 import uniffi.gemstone.GemRewardsRedemption
 import uniffi.gemstone.GemRewardsState
 
 data class RewardRedemptionUIModel(val redemption: GemRewardsRedemption, val model: ListItemModel, val confirmationMessage: String)
 
-internal fun GemRewardsState.infoRows(context: Context): List<ListItemModel> = infoRows.mapNotNull { row ->
-    (row as? GemListRow.Text)?.let { ListItemModel(title = it.title.text(context), subtitle = it.value) }
+data class RewardsSectionUIModel(@StringRes val title: Int?, val rows: List<ListItemModel>)
+
+internal fun GemRewardsState.sectionModels(context: Context): List<RewardsSectionUIModel> = sections.map { section ->
+    RewardsSectionUIModel(title = section.title.titleRes(), rows = section.rows.mapNotNull { it.listItemModel(context) })
 }
 
 internal fun GemRewardsRedemption.uiModel(context: Context): RewardRedemptionUIModel? {

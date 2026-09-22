@@ -39,12 +39,14 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.ActionIcon
+import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.SwipeableItemWithActions
 import com.gemwallet.android.ui.components.list_item.SwitchProperty
 import com.gemwallet.android.ui.components.list_item.listSections
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.ListSection
 import com.gemwallet.android.ui.theme.headerIconSize
 import com.gemwallet.android.ui.theme.paddingHalfSmall
@@ -52,12 +54,14 @@ import com.gemwallet.android.ui.theme.paddingLarge
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.AssetId
+import uniffi.gemstone.GemListRow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun PriceAlertScene(
     asset: AssetInfoDataAggregate? = null,
     sections: List<ListSection<PriceAlertDataAggregate>>,
+    errorRow: GemListRow?,
     isAutoAlertEnabled: Boolean,
     enabled: Boolean,
     syncState: Boolean,
@@ -89,9 +93,10 @@ internal fun PriceAlertScene(
             onRefresh = { onAction(PriceAlertAction.Refresh) },
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
+                errorRow?.let { row -> item { GemListRowView(row = row, listPosition = ListPosition.Single) } }
                 if (isAssetView) {
                     autoAlertToggle(asset, isAutoAlertEnabled) { onAction(PriceAlertAction.ToggleAutoAlert(it)) }
-                    emptyAlertingAssets(sections.isEmpty() && !isAutoAlertEnabled)
+                    emptyAlertingAssets(sections.isEmpty() && !isAutoAlertEnabled && errorRow == null)
                     assets(
                         revealable = revealable,
                         sections = sections,
@@ -112,7 +117,7 @@ internal fun PriceAlertScene(
                             color = MaterialTheme.colorScheme.secondary,
                         )
                     }
-                    emptyAlertingAssets(sections.isEmpty() && !isAutoAlertEnabled)
+                    emptyAlertingAssets(sections.isEmpty() && !isAutoAlertEnabled && errorRow == null)
                     assets(
                         revealable = revealable,
                         sections = sections,

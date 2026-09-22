@@ -31,9 +31,10 @@ Before running checks, confirm the active checkout/worktree and command director
 | Core change that affects mobile bindings or shared models | `cd core && just test <CRATE>`<br>`cd core && cargo clippy -p <crate> --all-features -- -D warnings`<br>`cd core && just format`<br>`just generate`<br>`just ios build`<br>`just android build` |
 | Shared localization input change | `just localize`<br>Rebuild the affected app(s) if the generated strings are consumed by the change |
 | Core enum mapper change (`Gemstone+Localized.swift`, `GemstoneText.kt`) | `just check-mappers` |
+| New or removed `#[uniffi::export]` function | `just check-ffi` |
 | Documentation-only change | `git diff --check`<br>`just check-docs`<br>Inspect changed links, paths, commands, and instructions |
 
-Repo Checks runs `check-mappers` and `check-docs` on every pull request, so a mapper the checker stops reading fails there as well as locally.
+Repo Checks runs `check-mappers`, `check-docs` and `check-ffi` on every pull request, so a mapper the checker stops reading, or an export no app calls, fails there as well as locally. `check-ffi` is the standing sweep: an exported function that Core itself still uses keeps its body and loses only the `#[uniffi::export]`.
 
 Navigation, app wiring, wallet-critical UI, security-sensitive code, Room migrations, signing, transaction construction, wallet import/export, seed phrases, private keys, and auth flows are never presentation-only. Use the stricter platform/security checks for those tasks.
 

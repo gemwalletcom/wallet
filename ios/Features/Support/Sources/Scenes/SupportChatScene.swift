@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import Localization
 import QuickLook
 import Store
 import Style
@@ -33,7 +34,10 @@ public struct SupportChatScene: View {
                 .animation(.smooth, value: model.typingAgentName)
             }
             .defaultScrollAnchor(.bottom)
-            if model.isEmpty {
+            if let error = model.loadError {
+                ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
+                    .padding(.medium)
+            } else if model.isEmpty {
                 StateEmptyView(
                     title: model.emptyTitle,
                     description: model.emptyDescription,

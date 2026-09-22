@@ -43,6 +43,7 @@ fun PriceAlertsNavScreen(toastMessage: String? = null, onToastShown: () -> Unit 
     val asset by viewModel.asset.collectAsStateWithLifecycle()
     val priceAlertEnabled by viewModel.priceAlertEnabled.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val errorRow by viewModel.errorRow.collectAsStateWithLifecycle()
 
     AnimatedContent(selectingAsset, label = "") { selecting ->
         when (selecting) {
@@ -60,6 +61,7 @@ fun PriceAlertsNavScreen(toastMessage: String? = null, onToastShown: () -> Unit 
             )
 
             false -> PriceAlertScene(
+                errorRow = errorRow,
                 asset = asset,
                 sections = sections,
                 isAutoAlertEnabled = isAutoAlertEnabled,

@@ -12,6 +12,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.features.asset.presents.address.AddressDetailsSheet
 import com.gemwallet.android.features.bridge.localization.string
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectReviewModel
 import com.gemwallet.android.model.AuthRequest
@@ -27,11 +28,17 @@ import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsCon
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.wallet.core.primitives.ChainAddress
 
 @Composable
 internal fun WalletConnectReviewScene(model: WalletConnectReviewModel, buttonState: ButtonState, details: LazyListScope.() -> Unit, onApprove: () -> Unit, onReject: () -> Unit) {
     val context = LocalContext.current
     var sheetType by remember { mutableStateOf<WalletConnectReviewSheetType?>(null) }
+    var selectedAddress by remember { mutableStateOf<ChainAddress?>(null) }
+    val openAddress = { address: String ->
+        sheetType = null
+        selectedAddress = ChainAddress(model.chain, address)
+    }
 
     Scene(
         title = model.messageType.string(),
@@ -72,7 +79,10 @@ internal fun WalletConnectReviewScene(model: WalletConnectReviewModel, buttonSta
             if (model.hasPayload) {
                 simulationPayloadFieldsContent(
                     fields = model.primaryPayloadFields,
-                    onDetailsClick = { sheetType = WalletConnectReviewSheetType.Details },
+                    onAddressClick = openAddress,
+                    onDetailsClick = model.secondaryPayloadFields
+                        .takeIf { it.isNotEmpty() }
+                        ?.let { { sheetType = WalletConnectReviewSheetType.Details } },
                 )
             } else {
                 walletConnectTextMessage(model.message)
@@ -84,9 +94,14 @@ internal fun WalletConnectReviewScene(model: WalletConnectReviewModel, buttonSta
         isVisible = sheetType == WalletConnectReviewSheetType.Details,
         primaryFields = model.primaryPayloadFields,
         secondaryFields = model.secondaryPayloadFields,
+        onAddressClick = openAddress,
         onViewFullMessage = { sheetType = WalletConnectReviewSheetType.FullMessage },
         onDismissRequest = { sheetType = null },
         viewFullMessageListItem = model.viewFullMessageListItem,
+    )
+    AddressDetailsSheet(
+        chainAddress = selectedAddress,
+        onDismiss = { selectedAddress = null },
     )
     WalletConnectFullMessageSheet(
         isVisible = sheetType == WalletConnectReviewSheetType.FullMessage,

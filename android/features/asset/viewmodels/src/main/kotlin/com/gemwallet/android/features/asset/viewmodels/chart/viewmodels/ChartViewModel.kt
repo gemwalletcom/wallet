@@ -106,7 +106,7 @@ class ChartViewModel internal constructor(
                 GemChartPhase.Loading -> StateViewType.Loading
                 is GemChartPhase.Data -> StateViewType.Data(ChartUIModel(phase.data))
                 GemChartPhase.NoData -> StateViewType.NoData
-                is GemChartPhase.Failed -> StateViewType.Error
+                is GemChartPhase.Failed -> StateViewType.Error()
             },
         )
     }

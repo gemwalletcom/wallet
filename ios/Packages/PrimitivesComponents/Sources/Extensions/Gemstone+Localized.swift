@@ -102,13 +102,13 @@ public extension GemLocalizedText {
         case .invalidTokenId:
             Localized.Errors.Token.invalidId
         case let .triggerOrder(order, price):
-            GemPerpetual(provider: .hypercore).triggerOrderText(label: order.title, formattedPrice: price?.text())
+            "\(order.title): \(price?.text() ?? Placeholder.empty)"
         case let .pnl(amount, percent):
             PriceChangeCalculator().pnlText(formattedAmount: amount.text(), formattedPercentage: percent.text())
         case let .margin(amount, marginType):
-            GemPerpetual(provider: .hypercore).marginText(formattedAmount: amount.text(), marginTypeName: marginType.toPrimitives().title)
+            "\(amount.text()) (\(marginType.toPrimitives().title))"
         case let .position(direction, leverage):
-            GemPerpetual(provider: .hypercore).positionText(directionName: direction.toPrimitives().title, formattedLeverage: leverage)
+            "\(direction.toPrimitives().title.uppercased()) \(leverage.text())"
         case let .apr(value):
             Localized.Stake.apr(value?.text() ?? .empty)
         case let .priceImpactWarning(percent, symbol):
@@ -649,6 +649,7 @@ public extension GemListSectionTitle {
         switch self {
         case .none: nil
         case .balances: Localized.Asset.balances
+        case .info: Localized.Common.info
         case .community: Localized.Settings.community
         case .manage: Localized.Common.manage
         case .resources: Localized.Asset.resources

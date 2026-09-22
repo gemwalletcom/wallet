@@ -33,9 +33,9 @@ import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingDefault
 
 @Composable
-internal fun GetStartedDialog(isVisible: Boolean, onUsername: (String, (Exception?) -> Unit) -> Unit, onDismiss: () -> Unit) {
+internal fun GetStartedDialog(isVisible: Boolean, onUsername: (String, (Throwable?) -> Unit) -> Unit, onDismiss: () -> Unit) {
     var username by remember { mutableStateOf("") }
-    var showError by remember { mutableStateOf<Exception?>(null) }
+    var showError by remember { mutableStateOf<Throwable?>(null) }
     var showProgress by remember { mutableStateOf(false) }
 
     val focusRequester = remember { FocusRequester() }

@@ -14,8 +14,17 @@ public struct SimulationPayloadFieldsContent: View {
     public var body: some View {
         ForEach(Array(models.enumerated()), id: \.offset) {
             let model = $0.element
-            ListItemView(model: model.listItem)
+            row(model)
                 .contextMenu(model.contextMenuItems)
+        }
+    }
+
+    @ViewBuilder
+    private func row(_ model: SimulationPayloadFieldViewModel) -> some View {
+        if let onSelect = model.onSelect {
+            NavigationCustomLink(with: ListItemView(model: model.listItem), action: onSelect)
+        } else {
+            ListItemView(model: model.listItem)
         }
     }
 }

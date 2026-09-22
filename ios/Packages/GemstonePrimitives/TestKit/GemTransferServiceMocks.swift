@@ -32,6 +32,10 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
         min(5, maxLeverage)
     }
 
+    public func perpetualLeverageOptions(maxLeverage: UInt8) -> [GemPickerOption] {
+        stride(from: UInt8(1), through: maxLeverage, by: 1).map { GemPickerOption(value: $0, label: .text(text: "\($0)x")) }
+    }
+
     public func perpetualAmountType(action: GemPerpetualPositionAction, leverage: UInt8) -> GemAmountType {
         builder.perpetualAmountType(action: action, leverage: leverage)
     }
@@ -92,7 +96,9 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
         300_000
     }
 
-    public func syncTransactions() async throws {}
+    public func refreshTransactions(hasTransactions _: Bool) async -> GemLoadState {
+        .data
+    }
 
     public func quotes(quoteType _: Gemstone.FiatQuoteType, assetId _: Gemstone.AssetId, amount _: Double) async throws -> [Gemstone.FiatQuote] {
         quotes
@@ -100,6 +106,12 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
 
     public func quoteUrl(assetId _: Gemstone.AssetId, quoteId _: String) async throws -> Gemstone.FiatQuoteUrl {
         throw AnyError("not stubbed")
+    }
+}
+
+public extension GemPaymentService {
+    static func mock() -> GemPaymentService {
+        GemPaymentService(provider: StubAlienProvider(), assets: .mock())
     }
 }
 

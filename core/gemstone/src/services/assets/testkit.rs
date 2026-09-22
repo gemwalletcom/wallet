@@ -54,6 +54,9 @@ impl GemAssetStore for MemoryAssetStore {
     async fn get_asset_basics(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetBasic>, GemServiceError> {
         Ok(self.assets.lock().unwrap().iter().filter(|basic| asset_ids.contains(&basic.asset.id)).cloned().collect())
     }
+    async fn get_wallet_assets(&self, _wallet_id: WalletId) -> Result<Vec<Asset>, GemServiceError> {
+        Ok(self.assets.lock().unwrap().iter().map(|basic| basic.asset.clone()).collect())
+    }
     async fn save_assets(&self, assets: Vec<AssetBasic>) -> Result<(), GemServiceError> {
         self.asset_writes.lock().unwrap().push(assets.clone());
         let mut stored = self.assets.lock().unwrap();

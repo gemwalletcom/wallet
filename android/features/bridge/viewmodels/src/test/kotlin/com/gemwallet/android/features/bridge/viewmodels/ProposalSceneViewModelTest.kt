@@ -3,9 +3,9 @@ package com.gemwallet.android.features.bridge.viewmodels
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnection
-import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.testkit.mockApplicationMetadata
 import com.gemwallet.android.testkit.mockGemConnectionRow
-import com.gemwallet.android.testkit.mockWalletConnectPairingProposal
 import com.gemwallet.android.testkit.mockWalletConnectSessionProposal
 import com.gemwallet.android.testkit.mockWalletConnectVerifyContext
 import com.gemwallet.android.testkit.mockWalletConnectionSessionProposal
@@ -33,6 +33,7 @@ import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemApplicationMetadataServiceInterface
+import uniffi.gemstone.GemSessionProposal
 import uniffi.gemstone.GemWalletConnectException
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnectionVerificationStatus
@@ -67,17 +68,15 @@ class ProposalSceneViewModelTest {
 
     private fun service(): GemWalletConnectServiceInterface = mockk(relaxed = true) {
         every { shouldProcessMessage(any()) } returns true
-    }
-
-    private fun proposals(): PrepareSessionProposal = mockk {
-        coEvery { this@mockk(any(), any(), any(), any(), any(), any(), any(), any()) } returns mockWalletConnectPairingProposal(
-            mockWalletConnectionSessionProposal(defaultWallet = main, wallets = listOf(main, secondary)),
+        every { applicationMetadata(any(), any(), any(), any()) } returns mockApplicationMetadata().toGem()
+        coEvery { prepareSessionProposal(any(), any(), any(), any(), any()) } returns GemSessionProposal(
+            proposal = mockWalletConnectionSessionProposal(defaultWallet = main, wallets = listOf(main, secondary)).toGem(),
+            verificationStatus = WalletConnectionVerificationStatus.VERIFIED,
         )
     }
 
-    private fun viewModel(service: GemWalletConnectServiceInterface = service(), approve: ApproveWalletConnection = mockk(relaxed = true), prepare: PrepareSessionProposal = proposals()) = ProposalSceneViewModel(
+    private fun viewModel(service: GemWalletConnectServiceInterface = service(), approve: ApproveWalletConnection = mockk(relaxed = true)) = ProposalSceneViewModel(
         approveWalletConnection = approve,
-        prepareSessionProposal = prepare,
         activeRequest = ActiveWalletConnectRequest(events = emptyFlow()),
         walletConnectService = service,
         metadataService = metadataService(),
@@ -104,10 +103,9 @@ class ProposalSceneViewModelTest {
     @Test
     fun `a proposal Core has already seen is dropped`() = runTest(dispatcher) {
         val service = service()
-        val prepare = proposals()
         every { service.shouldProcessMessage(any()) } returns false
 
-        val model = viewModel(service = service, prepare = prepare)
+        val model = viewModel(service = service)
         model.onProposal(proposal, verifyContext) {}
 
         assertNull(model.selectedWallet.value)
@@ -118,12 +116,10 @@ class ProposalSceneViewModelTest {
     fun `an invalid origin notifies the scene and rejects the proposal`() = runTest(dispatcher) {
         val notified = CompletableDeferred<String>()
         val approve: ApproveWalletConnection = mockk(relaxed = true)
-        val prepare = proposals()
-        coEvery {
-            prepare(any(), any(), any(), any(), any(), any(), any(), any())
-        } throws GemWalletConnectException.InvalidOrigin()
+        val service = service()
+        coEvery { service.prepareSessionProposal(any(), any(), any(), any(), any()) } throws GemWalletConnectException.InvalidOrigin()
 
-        viewModel(approve = approve, prepare = prepare).onProposal(proposal, verifyContext) { notified.complete(it) }
+        viewModel(service = service, approve = approve).onProposal(proposal, verifyContext) { notified.complete(it) }
 
         assertEquals("Malicious origin", notified.await())
         advanceUntilIdle()

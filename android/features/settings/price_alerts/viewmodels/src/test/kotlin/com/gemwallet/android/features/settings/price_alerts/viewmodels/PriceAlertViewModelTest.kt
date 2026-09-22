@@ -24,6 +24,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPriceAlertService
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.PriceAlertFormatter
@@ -125,7 +126,7 @@ class PriceAlertViewModelTest {
                 state = firstArg()
                 Unit
             }
-            coEvery { sync(any()) } returns Unit
+            coEvery { refresh(any(), any()) } returns GemLoadState.Data
         }
     }
 }

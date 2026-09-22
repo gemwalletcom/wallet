@@ -20,12 +20,12 @@ use crate::services::balance::GemBalanceService;
 use crate::services::device::GemDeviceService;
 use crate::services::fiat::GemFiatService;
 use crate::services::nft::GemNftService;
-use crate::services::notification::GemNotificationStore;
+use crate::services::notification::GemNotificationService;
 use crate::services::perpetual::GemPerpetualService;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
 use crate::services::price_alert::GemPriceAlertService;
-use crate::services::support::GemSupportStore;
+use crate::services::support::GemSupportService;
 use crate::services::transactions::GemTransactionsService;
 use crate::services::wallet_session::GemWalletSessionService;
 
@@ -38,8 +38,8 @@ pub struct GemStreamService {
     nft: Arc<GemNftService>,
     perpetual: Arc<GemPerpetualService>,
     fiat: Arc<GemFiatService>,
-    notifications: Arc<dyn GemNotificationStore>,
-    support: Arc<dyn GemSupportStore>,
+    notifications: Arc<GemNotificationService>,
+    support: Arc<GemSupportService>,
     subscriptions: Arc<GemStreamSubscriptionService>,
     preferences: Arc<GemPreferencesService>,
     session: Arc<GemWalletSessionService>,
@@ -58,8 +58,8 @@ impl GemStreamService {
         nft: Arc<GemNftService>,
         perpetual: Arc<GemPerpetualService>,
         fiat: Arc<GemFiatService>,
-        notifications: Arc<dyn GemNotificationStore>,
-        support: Arc<dyn GemSupportStore>,
+        notifications: Arc<GemNotificationService>,
+        support: Arc<GemSupportService>,
         subscriptions: Arc<GemStreamSubscriptionService>,
         preferences: Arc<GemPreferencesService>,
         session: Arc<GemWalletSessionService>,

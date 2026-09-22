@@ -1,5 +1,5 @@
 use super::model::{GemAvatar, GemConfirmRowContent};
-use crate::address_formatter::GemAddressService;
+use crate::address_formatter::{GemAddressFormatStyle, GemAddressService, format_address};
 use crate::application::GemApplicationMetadataService;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::copy::address_copy;
@@ -579,8 +579,9 @@ pub fn confirm_row_contents(transfer: &GemTransferData, wallet: Wallet, address_
                 let destination = destination.with_address_name(address_name.clone());
                 let avatar = contact_avatar(address_name.as_ref(), destination.name().as_deref());
                 let address = destination.address();
+                let short_address = format_address(&address, Some(chain), GemAddressFormatStyle::Short);
                 GemConfirmRowContent::Recipient {
-                    name: GemAddressService::new().name_text(destination.name(), address.clone(), avatar.is_some()),
+                    name: GemAddressService::new().name_text(destination.name(), short_address, avatar.is_some()),
                     is_selectable: !address.is_empty(),
                     address,
                     destination,
@@ -1682,6 +1683,17 @@ mod tests {
         let (nameless, _, no_avatar, _) = recipient(None);
         assert_eq!(no_avatar, None, "an address nobody named shows no avatar");
         assert_eq!(nameless, None, "an unnamed address has no name text");
+
+        let validator = DelegationValidator::stake(Chain::HyperCore, "0x000000000056f99d36b6f2e0c51fd41496bbacb8".into(), "ValiDAO".into(), true, 0.0, 0.0);
+        let unstake = GemTransferData::mock(TransactionInputType::Stake {
+            asset: Asset::from_chain(Chain::HyperCore),
+            stake_type: StakeType::Unstake(Delegation::mock_with_validator(validator)),
+        });
+        let validator_name = confirm_row_contents(&unstake, Wallet::mock(), None, link).into_iter().find_map(|content| match content {
+            GemConfirmRowContent::Recipient { name, .. } => name,
+            _ => None,
+        });
+        assert_eq!(validator_name.as_deref(), Some("ValiDAO (0x000...bacb8)"), "a name without a picture carries the short address, never the full one");
     }
 
     #[test]

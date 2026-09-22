@@ -6,6 +6,7 @@ use primitives::currency::Currency;
 use primitives::{AddressName, AssetId, BlockExplorerLink, Chain, ChainAddress, PaymentVerification, PerpetualModifyConfirmData, SimulationResult, TransactionInputType, Wallet};
 
 use super::error::GemConfirmErrorInfo;
+use super::header::{self, GemConfirmHeader};
 use super::model::GemConfirmMetadata;
 use super::rules::{acquire_swap_pair, preload_simulation};
 use super::{GemAcquireAssetFlow, GemConfirmError, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmScreen, GemConfirmTransferService, GemSubmitResult, GemTransferAmountResult};
@@ -71,6 +72,10 @@ impl GemConfirmation {
 impl GemConfirmation {
     pub fn screen(&self) -> GemConfirmScreen {
         GemConfirmScreen::initial(self.simulation.as_ref())
+    }
+
+    pub fn header(&self, load: Option<GemConfirmLoad>) -> GemConfirmHeader {
+        header::header(&self.transfer(), self.simulation.as_ref(), load.as_ref(), self.service.get_currency())
     }
 
     pub fn get_currency(&self) -> Currency {

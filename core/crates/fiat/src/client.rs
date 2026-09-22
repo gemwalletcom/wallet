@@ -180,7 +180,7 @@ impl FiatClient {
             let provider_id = provider_name.id().to_string();
             let db_provider = db_providers.iter().find(|p| p.id == provider_name)?;
 
-            let countries: HashSet<String> = fiat_providers_countries.iter().filter(|x| x.provider == provider_name).map(|x| x.alpha2.clone()).collect();
+            let countries: HashSet<String> = fiat_providers_countries.iter().filter(|x| x.provider == provider_name && x.is_allowed).map(|x| x.alpha2.clone()).collect();
 
             let mapping = fiat_mapping_map.get(&provider_id);
             if !is_provider_eligible(db_provider, &countries, mapping, country_code, request) {

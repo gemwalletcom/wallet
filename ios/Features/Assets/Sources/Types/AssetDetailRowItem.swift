@@ -23,7 +23,6 @@ public enum AssetNetworkDestination {
 
 public enum AssetDetailRowContent {
     case item(ListItemModel)
-    case network(name: String)
     case row(GemListRow)
 }
 

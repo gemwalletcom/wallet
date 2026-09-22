@@ -4,7 +4,6 @@ import Components
 import Foundation
 import func Gemstone.addressCopy
 import protocol Gemstone.GemAssetSelectionServiceProtocol
-import class Gemstone.GemPerpetual
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import struct Gemstone.GemSelectAssetFlow
 import enum Gemstone.GemSelectAssetState
@@ -214,9 +213,9 @@ extension SelectAssetViewModel {
     }
 
     func displayAssetData(_ assetData: AssetData) -> AssetData {
-        guard flow.depositAssetDisplay else { return assetData }
+        guard let displayAsset = flow.displayAsset else { return assetData }
         return AssetData(
-            asset: GemPerpetual(provider: .hypercore).depositAsset().toPrimitives(),
+            asset: displayAsset.toPrimitives(),
             balance: assetData.balance,
             account: assetData.account,
             price: assetData.price,

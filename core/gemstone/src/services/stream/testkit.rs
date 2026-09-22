@@ -9,7 +9,7 @@ use primitives::{AssetId, Chain, PriceAlert, StreamMessage, WalletId};
 use super::{GemStreamConnection, GemStreamSubscriptionService};
 use crate::services::balance::testkit::MemoryBalanceStore;
 use crate::services::error::GemServiceError;
-use crate::services::price_alert::testkit::MemoryPriceAlertStore;
+use crate::services::price_alert::testkit::{MemoryPriceAlertStore, price_alert_service};
 
 pub struct SubscriptionTestkit {
     pub service: GemStreamSubscriptionService,
@@ -26,7 +26,7 @@ impl SubscriptionTestkit {
         connection.connected.store(true, Ordering::SeqCst);
         let service = GemStreamSubscriptionService::new(
             balances.clone(),
-            Arc::new(MemoryPriceAlertStore::with_alerts(alerted.iter().map(|chain| PriceAlert::mock(*chain, None)).collect())),
+            price_alert_service(Arc::new(MemoryPriceAlertStore::with_alerts(alerted.iter().map(|chain| PriceAlert::mock(*chain, None)).collect()))),
             connection.clone(),
         );
         Self { service, balances, connection, wallet_id }

@@ -7,9 +7,9 @@ use crate::config::perpetual_config::{LEVERAGE_OPTIONS, leverage_options};
 use crate::models::GemAsset;
 use crate::models::custom_types::GemBigInt;
 use crate::models::perpetual::GemPerpetualSubscription;
-use crate::models::placeholder::EMPTY_VALUE;
 use crate::services::perpetual::model::{GemPerpetualCloseInput, GemPerpetualOrderInput};
 use crate::services::perpetual::rules as perpetual_rules;
+use crate::services::settings::rules::{GemPickerOption, leverage_option};
 use crate::services::transfer::model::{GemRecipient, GemTransferData};
 use primitives::TransactionInputType;
 
@@ -25,18 +25,6 @@ impl GemPerpetual {
     #[uniffi::constructor]
     pub fn new(provider: PerpetualProvider) -> Self {
         Self { provider }
-    }
-
-    pub fn margin_text(&self, formatted_amount: String, margin_type_name: String) -> String {
-        format!("{} ({})", formatted_amount, margin_type_name)
-    }
-
-    pub fn position_text(&self, direction_name: String, formatted_leverage: String) -> String {
-        format!("{} {}", direction_name.to_uppercase(), formatted_leverage)
-    }
-
-    pub fn trigger_order_text(&self, label: String, formatted_price: Option<String>) -> String {
-        format!("{}: {}", label, formatted_price.as_deref().unwrap_or(EMPTY_VALUE))
     }
 
     pub fn format_price(&self, price: f64, decimals: i32) -> String {
@@ -57,15 +45,14 @@ impl GemPerpetual {
         }
     }
 
-    pub fn leverage_text(&self, value: u8) -> String {
-        leverage_text(value)
-    }
-
-    pub fn leverage_options(&self, max_leverage: Option<u8>) -> Vec<u8> {
+    pub fn leverage_options(&self, max_leverage: Option<u8>) -> Vec<GemPickerOption> {
         match max_leverage {
             Some(max_leverage) => leverage_options(max_leverage),
             None => LEVERAGE_OPTIONS.to_vec(),
         }
+        .into_iter()
+        .map(leverage_option)
+        .collect()
     }
 }
 
@@ -222,15 +209,6 @@ mod tests {
     }
 
     #[test]
-    fn test_the_margin_and_trigger_templates_read_the_same_on_both_apps() {
-        let perpetual = GemPerpetual::new(PerpetualProvider::Hypercore);
-
-        assert_eq!(perpetual.margin_text("$12.50".to_string(), "Cross".to_string()), "$12.50 (Cross)");
-        assert_eq!(perpetual.trigger_order_text("Take Profit".to_string(), Some("$120.00".to_string())), "Take Profit: $120.00");
-        assert_eq!(perpetual.trigger_order_text("Stop Loss".to_string(), None), "Stop Loss: -");
-    }
-
-    #[test]
     fn test_autoclose_validator_treats_an_unset_price_as_valid() {
         let validator = AutocloseValidator::new(TpslType::TakeProfit, PerpetualDirection::Long, 100.0);
 
@@ -239,23 +217,23 @@ mod tests {
     }
 }
 
-pub fn leverage_text(value: u8) -> String {
-    format!("{value}x")
-}
-
 #[cfg(test)]
 mod option_tests {
     use super::*;
+    use crate::formatted_number::GemNumberUnit;
+    use crate::services::localization::GemLocalizedText;
 
     #[test]
-    fn test_leverage_carries_its_suffix() {
-        assert_eq!(GemPerpetual::new(PerpetualProvider::Hypercore).leverage_text(40), "40x");
-    }
+    fn test_every_leverage_option_carries_the_number_the_picker_shows() {
+        let options = GemPerpetual::new(PerpetualProvider::Hypercore).leverage_options(Some(40));
 
-    #[test]
-    fn test_a_position_row_shouts_its_direction_beside_the_leverage() {
-        let perpetual = GemPerpetual::new(PerpetualProvider::Hypercore);
-        assert_eq!(perpetual.position_text("Long".to_string(), perpetual.leverage_text(5)), "LONG 5x");
-        assert_eq!(perpetual.position_text("Short".to_string(), perpetual.leverage_text(40)), "SHORT 40x");
+        assert_eq!(options.first().map(|option| option.value), Some(1));
+        assert_eq!(options.last().map(|option| option.value), Some(40));
+        assert!(
+            options
+                .iter()
+                .all(|option| matches!(&option.label, GemLocalizedText::Number { number } if number.value == option.value as f64 && number.unit == GemNumberUnit::Multiplier)),
+            "the picker reads the option's own number, it does not build the text again"
+        );
     }
 }

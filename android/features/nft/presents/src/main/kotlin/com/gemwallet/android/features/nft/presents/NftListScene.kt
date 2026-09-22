@@ -28,6 +28,7 @@ import com.gemwallet.android.features.nft.viewmodels.NftListViewModels
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
+import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -41,6 +42,7 @@ import com.gemwallet.android.ui.models.actions.NftAssetIdAction
 import com.gemwallet.android.ui.models.actions.NftCollectionIdAction
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
+import uniffi.gemstone.GemListRow
 
 private val collectibleCellMinSize = 150.dp
 
@@ -57,6 +59,7 @@ fun NftListNavScreen(
     val items by viewModel.collections.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val unverifiedListItem by viewModel.unverifiedListItem.collectAsStateWithLifecycle()
+    val errorRow by viewModel.errorRow.collectAsStateWithLifecycle()
     val walletId by viewModel.walletId.collectAsStateWithLifecycle()
     val title by viewModel.title.collectAsStateWithLifecycle()
     val showReceiveAction by viewModel.showReceiveAction.collectAsStateWithLifecycle()
@@ -68,6 +71,7 @@ fun NftListNavScreen(
     NftListScene(
         items = items,
         isRefreshing = isRefreshing,
+        errorRow = errorRow,
         unverifiedListItem = unverifiedListItem,
         title = title,
         showReceiveAction = showReceiveAction,
@@ -89,6 +93,7 @@ fun NftListNavScreen(
 internal fun NftListScene(
     items: List<NftItemUIModel>,
     isRefreshing: Boolean,
+    errorRow: GemListRow?,
     unverifiedListItem: ListItemModel?,
     title: String,
     showReceiveAction: Boolean,
@@ -117,13 +122,17 @@ internal fun NftListScene(
             if (items.isEmpty() && unverifiedListItem == null) {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     item {
-                        EmptyContentView(
-                            type = nftEmptyContentType(
-                                showReceiveAction = showReceiveAction,
-                                onAction = onAction,
-                            ),
-                            modifier = Modifier.fillParentMaxSize(),
-                        )
+                        if (errorRow == null) {
+                            EmptyContentView(
+                                type = nftEmptyContentType(
+                                    showReceiveAction = showReceiveAction,
+                                    onAction = onAction,
+                                ),
+                                modifier = Modifier.fillParentMaxSize(),
+                            )
+                        } else {
+                            GemListRowView(row = errorRow, listPosition = ListPosition.Single)
+                        }
                     }
                 }
                 return@PullToRefreshBox

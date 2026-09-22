@@ -294,7 +294,7 @@ pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: O
         popular_section: false,
         balance_filter: false,
         add_custom_token: false,
-        deposit_asset_display: false,
+        display_asset: None,
     };
     match select_type {
         GemSelectAssetType::Send => GemSelectAssetFlow {
@@ -372,7 +372,7 @@ pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: O
         ),
         GemSelectAssetType::Withdraw => with_filter(
             GemSelectAssetFlow {
-                deposit_asset_display: true,
+                display_asset: Some(GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset()),
                 ..flow(GemSelectRowAction::Navigate, None)
             },
             Some(GemAssetFilter::asset_ids(vec![HYPERCORE_PERPETUAL_USDC.id.clone()])),
@@ -531,6 +531,7 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
     } = input;
     let chain = asset.chain();
     let displayed_alerts = displayed_price_alert_ids(price_alerts.to_vec()).len();
+    let quoted = price_row(price, price_change_percentage_24h, currency.clone());
     let row = |row: GemListRow| GemAssetDetailRow::Row { row };
     let link = |title: GemListRowTitle, value: Option<String>, icon: GemListRowIcon| row(GemListRow::Link { title, value, icon });
     let section = |title: GemListSectionTitle, rows: Vec<GemAssetDetailRow>| (!rows.is_empty()).then_some(GemAssetDetailSection { title, rows });
@@ -551,11 +552,17 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
         section(
             GemListSectionTitle::None,
             [
-                Some(GemAssetDetailRow::Price {
-                    row: price_row(price, price_change_percentage_24h, currency.clone()),
-                }),
+                Some(row(GemListRow::Quote {
+                    title: GemListRowTitle::Price,
+                    value: quoted.price,
+                    change: quoted.change,
+                })),
                 (has_price(price) && displayed_alerts > 0).then(|| link(GemListRowTitle::PriceAlerts, Some(displayed_alerts.to_string()), GemListRowIcon::None)),
-                Some(GemAssetDetailRow::Network { name: asset_text(asset).network_full_name }),
+                Some(row(GemListRow::Network {
+                    title: GemListRowTitle::Network,
+                    chain,
+                    name: asset_text(asset).network_full_name,
+                })),
             ]
             .into_iter()
             .flatten()
@@ -565,9 +572,7 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
         section(
             GemListSectionTitle::None,
             match shows_earn {
-                true => vec![GemAssetDetailRow::Earn {
-                    row: crate::services::stake::rules::earn_apr_row(&[], metadata.earn_apr),
-                }],
+                true => vec![row(crate::services::stake::rules::earn_apr_row(&[], metadata.earn_apr))],
                 false => vec![],
             },
         ),
@@ -861,7 +866,7 @@ mod tests {
                 ("popular_section", flow.popular_section),
                 ("balance_filter", flow.balance_filter),
                 ("add_custom_token", flow.add_custom_token),
-                ("deposit_asset_display", flow.deposit_asset_display),
+                ("display_asset", flow.display_asset.is_some()),
                 ("enables_price_alert", flow.enables_price_alert),
             ]
             .into_iter()
@@ -878,7 +883,7 @@ mod tests {
         assert_eq!(enabled(GemSelectAssetType::Manage), ["network_search", "chain_filter", "balance_filter", "add_custom_token"]);
         assert_eq!(enabled(GemSelectAssetType::PriceAlert), ["network_search", "chain_filter", "popular_section", "enables_price_alert"]);
         assert!(enabled(GemSelectAssetType::Deposit).is_empty());
-        assert_eq!(enabled(GemSelectAssetType::Withdraw), ["deposit_asset_display"]);
+        assert_eq!(enabled(GemSelectAssetType::Withdraw), ["display_asset"]);
         assert_eq!(enabled(GemSelectAssetType::WalletSearch), ["network_search", "recents", "add_custom_token"]);
         assert!(enabled(GemSelectAssetType::WalletSearchResults).is_empty());
     }
@@ -1432,7 +1437,7 @@ mod tests {
         };
         let rows = sections(&Asset::from_chain(Chain::Ethereum), &earn_enabled, &GemAssetBalance::mock(), Some(1.0), &[]);
         let earn = rows.iter().flat_map(|section| section.rows.clone()).find_map(|row| match row {
-            GemAssetDetailRow::Earn { row } => Some(row),
+            GemAssetDetailRow::Row { row } if matches!(row, GemListRow::Amount { title: GemListRowTitle::StakeApr, .. } | GemListRow::Text { title: GemListRowTitle::StakeApr, .. }) => Some(row),
             _ => None,
         });
 
@@ -1449,8 +1454,22 @@ mod tests {
         let sections = sections(&token, &AssetMetaData::mock(), &reserving, Some(1.0), &[]);
 
         assert_eq!(sections.iter().map(|section| section.title).collect::<Vec<_>>(), vec![GemListSectionTitle::None, GemListSectionTitle::Balances]);
-        assert!(matches!(sections[0].rows[0], GemAssetDetailRow::Price { .. }));
-        assert_eq!(sections[0].rows[1], GemAssetDetailRow::Network { name: "Ethereum (ERC20)".to_string() });
+        assert!(matches!(
+            sections[0].rows[0],
+            GemAssetDetailRow::Row {
+                row: GemListRow::Quote { title: GemListRowTitle::Price, .. }
+            }
+        ));
+        assert_eq!(
+            sections[0].rows[1],
+            GemAssetDetailRow::Row {
+                row: GemListRow::Network {
+                    title: GemListRowTitle::Network,
+                    chain: Chain::Ethereum,
+                    name: "Ethereum (ERC20)".to_string(),
+                },
+            }
+        );
         assert!(sections[1].rows.iter().all(|row| matches!(row, GemAssetDetailRow::Balance { .. })));
     }
 
@@ -1591,10 +1610,14 @@ mod tests {
             ..GemAssetBalance::mock()
         };
         let offers_earn = |metadata: &AssetMetaData, balance: &GemAssetBalance| {
-            sections(&asset, metadata, balance, Some(1.0), &[])
-                .iter()
-                .flat_map(|section| section.rows.clone())
-                .any(|row| matches!(row, GemAssetDetailRow::Earn { .. }))
+            sections(&asset, metadata, balance, Some(1.0), &[]).iter().flat_map(|section| section.rows.clone()).any(|row| {
+                matches!(
+                    row,
+                    GemAssetDetailRow::Row {
+                        row: GemListRow::Amount { title: GemListRowTitle::StakeApr, .. } | GemListRow::Text { title: GemListRowTitle::StakeApr, .. }
+                    }
+                )
+            })
         };
 
         assert_eq!(offers_earn(&earn_enabled, &GemAssetBalance::mock()), EARN_OFFERED);

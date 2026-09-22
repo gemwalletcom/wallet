@@ -2,6 +2,8 @@
 
 import Components
 import Foundation
+import func Gemstone.candleSession
+import struct Gemstone.GemCandleSession
 import protocol Gemstone.GemPerpetualDetailsServiceProtocol
 import enum Gemstone.GemPerpetualSubscription
 import GemstonePrimitives
@@ -19,15 +21,25 @@ public final class PerpetualChartModel {
 
     private var observeTask: Task<Void, Never>?
 
-    public var state: StateViewType<PerpetualCandles> = .loading
+    private var session: GemCandleSession
+
     public var currentPeriod: ChartPeriod {
-        didSet { service.setChartPeriodValue(currentPeriod) }
+        get { session.period.toPrimitives() }
+        set {
+            session = session.onSelectPeriod(period: newValue.toGem())
+            service.setChartPeriodValue(newValue)
+        }
     }
 
     public init(service: any GemPerpetualDetailsServiceProtocol, observerService: any PerpetualObservable) {
         self.service = service
         self.observerService = observerService
-        currentPeriod = service.chartPeriodValue
+        session = candleSession(period: service.chartPeriodValue.toGem())
+    }
+
+    public var state: StateViewType<PerpetualCandles> {
+        let viewState = session.viewState()
+        return viewState.state.stateViewType(PerpetualCandles(period: viewState.period.toPrimitives(), candles: viewState.candles.map { $0.toPrimitives() }))
     }
 
     public var emptyTitle: String { Localized.Common.notAvailable }
@@ -52,7 +64,6 @@ public extension PerpetualChartModel {
     }
 
     func onPeriodChange(perpetual: Perpetual, from oldPeriod: ChartPeriod, to newPeriod: ChartPeriod) async {
-        state = .loading
         await unsubscribeCandles(candleSubscription(perpetual: perpetual, period: oldPeriod))
         await updateCandlesticks(perpetual: perpetual)
         await subscribeCandles(candleSubscription(perpetual: perpetual, period: newPeriod))
@@ -71,18 +82,9 @@ private extension PerpetualChartModel {
     }
 
     func updateCandlesticks(perpetual: Perpetual) async {
-        let period = currentPeriod
-        if state.value == nil {
-            state = .loading
-        }
-        do {
-            let candlesticks = try await service.candlesticks(perpetual: perpetual, period: period)
-            guard period == currentPeriod else { return }
-            state = .data(PerpetualCandles(period: period, candles: candlesticks))
-        } catch {
-            guard period == currentPeriod else { return }
-            state.setError(error)
-        }
+        session = session.onSelectMarket(perpetual: perpetual.toGem())
+        guard let request = session.request() else { return }
+        session = await session.onResult(result: service.candles(request: request))
     }
 
     func subscribeCandles(_ subscription: GemPerpetualSubscription) async {
@@ -111,11 +113,8 @@ private extension PerpetualChartModel {
     }
 
     func mergeCandle(_ update: ChartCandleUpdate, perpetual: Perpetual) {
-        guard case let .data(loaded) = state,
-              let merged = service.mergedCandles(update: update, into: loaded.candles, perpetual: perpetual, period: loaded.period)
-        else {
-            return
-        }
-        state = .data(PerpetualCandles(period: loaded.period, candles: merged))
+        let viewState = session.viewState()
+        guard let merged = service.mergedCandles(update: update, into: viewState.candles.map { $0.toPrimitives() }, perpetual: perpetual, period: viewState.period.toPrimitives()) else { return }
+        session = session.onCandles(candles: merged.map { $0.toGem() })
     }
 }

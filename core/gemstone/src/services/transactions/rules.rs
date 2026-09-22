@@ -130,6 +130,7 @@ pub fn detail_rows(extended: &TransactionExtended, wallet_type: WalletType, part
         estimated_confirmation_seconds: details.estimated_confirmation_seconds,
         participant,
         provider_name: details.provider_name,
+        provider_contract: transaction.contract.clone().filter(|contract| !contract.is_empty()),
         memo: transaction.memo.clone().filter(|memo| !memo.is_empty()),
         resource: resource(transaction),
         rate: swap_rate(extended),
@@ -179,9 +180,9 @@ pub fn detail_sections(rows: &GemTransactionDetailRows) -> Vec<GemTransactionDet
             name: ChainAsset::from_chain(rows.asset.chain()).network_name,
         })),
         rows.provider_name.clone().map(|name| {
-            list(GemListRow::Text {
-                title: GemListRowTitle::Provider,
-                value: name,
+            list(GemListRow::Provider {
+                name,
+                contract: rows.provider_contract.clone(),
             })
         }),
         rows.pnl.clone().map(|pnl| {
@@ -307,7 +308,6 @@ fn header(extended: &TransactionExtended) -> GemTransactionHeader {
     };
     match header_kind(transaction) {
         GemTransactionHeaderKind::Amount { shows_fiat } => amount(shows_fiat),
-        GemTransactionHeaderKind::Payment => amount(true),
         GemTransactionHeaderKind::Swap => match (swap_leg(extended, SwapLeg::From, GemAmountSign::None), swap_leg(extended, SwapLeg::To, GemAmountSign::None)) {
             (Some(from), Some(to)) => GemTransactionHeader::Swap { from, to },
             _ => amount(true),
@@ -1175,6 +1175,7 @@ mod tests {
         let kind = |row: GemTransactionDetailRow| match row {
             GemTransactionDetailRow::Row { row: GemListRow::Explorer { .. } } => "Explorer".to_string(),
             GemTransactionDetailRow::Row { row: GemListRow::Memo { .. } } => "Memo".to_string(),
+            GemTransactionDetailRow::Row { row: GemListRow::Provider { .. } } => "Provider".to_string(),
             GemTransactionDetailRow::Row {
                 row: GemListRow::Date { title, .. } | GemListRow::Label { title, .. } | GemListRow::Text { title, .. } | GemListRow::Network { title, .. } | GemListRow::Amount { title, .. },
             } => format!("{title:?}"),
@@ -1238,6 +1239,18 @@ mod tests {
             vec!["Date", "Status", "Rate", "Network", "Provider"],
             "a watch-only wallet cannot sign, so the confirmed swap offers no swap again"
         );
+        assert!(
+            detail_rows(&confirmed, WalletType::Multicoin, None, explorer.clone(), Currency::USD).provider_contract.is_none(),
+            "a deposit-address swap has no contract to open"
+        );
+        let mut routed = confirmed.clone();
+        routed.transaction.contract = Some("0xrouter".to_string());
+        let routed_rows = detail_rows(&routed, WalletType::Multicoin, None, explorer.clone(), Currency::USD);
+        let provider_contract = detail_sections(&routed_rows).into_iter().flat_map(|section| section.rows).find_map(|row| match row {
+            GemTransactionDetailRow::Row { row: GemListRow::Provider { contract, .. } } => Some(contract),
+            _ => None,
+        });
+        assert_eq!(provider_contract, Some(Some("0xrouter".to_string())), "a router contract is the address the provider row opens");
 
         let mut open = TransactionExtended::mock_transaction(Transaction::mock_with_state(TransactionType::PerpetualOpenPosition, TransactionState::Confirmed, TransactionDirection::Outgoing));
         open.transaction.metadata = Some(

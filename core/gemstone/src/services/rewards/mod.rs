@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
-use chrono::Utc;
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::{AuthenticatedRequest, ReferralCode, Rewards, Wallet, WalletId};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
+use crate::models::state::GemLoadState;
 use crate::services::auth::GemAuthService;
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
@@ -12,10 +12,12 @@ use crate::services::wallet_session::rules as session_rules;
 
 pub mod model;
 pub mod rules;
+pub mod session;
 #[cfg(test)]
 pub(crate) mod testkit;
 
-pub use model::{GemIncomingCode, GemRewardsState};
+pub use model::{GemIncomingCode, GemRewardsResult, GemRewardsState, GemRewardsViewState};
+pub use session::GemRewardsSession;
 
 #[uniffi::export]
 pub fn incoming_referral_code(code: Option<String>, wallets: Vec<Wallet>) -> Option<GemIncomingCode> {
@@ -44,12 +46,13 @@ impl GemRewardsService {
         session_rules::rewards_wallet(current, &self.wallets(wallets))
     }
 
-    pub fn state(&self, rewards: Option<Rewards>) -> GemRewardsState {
-        rules::state(rewards.as_ref(), Utc::now())
-    }
-
-    pub async fn get_rewards(&self, wallet_id: WalletId) -> Result<Rewards, GemServiceError> {
-        Ok(self.api.client.get_rewards(wallet_id.id()).await.map_err(GemApiError::from)?)
+    pub async fn refresh(&self, wallet_id: WalletId) -> GemRewardsResult {
+        let rewards = self.get_rewards(wallet_id.clone()).await;
+        GemRewardsResult {
+            wallet_id,
+            state: GemLoadState::of(&rewards),
+            rewards: rewards.ok(),
+        }
     }
 
     pub async fn create_referral(&self, wallet: Wallet, code: String) -> Result<Rewards, GemServiceError> {
@@ -82,6 +85,12 @@ impl GemRewardsService {
             self.balance.set_assets_enabled(wallet_id, vec![asset.id.clone()], true).await?;
         }
         Ok(result)
+    }
+}
+
+impl GemRewardsService {
+    async fn get_rewards(&self, wallet_id: WalletId) -> Result<Rewards, GemServiceError> {
+        Ok(self.api.client.get_rewards(wallet_id.id()).await.map_err(GemApiError::from)?)
     }
 }
 

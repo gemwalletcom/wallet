@@ -23,6 +23,7 @@ import uniffi.gemstone.GemAvatarService
 import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemFileStore
 import uniffi.gemstone.GemKeystore
+import uniffi.gemstone.GemNameService
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemWalletPreferencesService
 import uniffi.gemstone.GemWalletService
@@ -49,7 +50,7 @@ object WalletsModule {
         fileStore: GemFileStore,
         walletPreferencesService: GemWalletPreferencesService,
         explorerService: GemExplorerService,
-        addressStore: GemstoneAddressStore,
+        nameService: GemNameService,
         avatarService: GemAvatarService,
     ): GemWalletService = GemWalletService(
         keystore,
@@ -60,7 +61,7 @@ object WalletsModule {
         fileStore,
         walletPreferencesService,
         explorerService,
-        addressStore,
+        nameService,
         avatarService,
     )
 

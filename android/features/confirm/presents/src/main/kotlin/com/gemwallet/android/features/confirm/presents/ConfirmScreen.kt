@@ -127,6 +127,12 @@ fun ConfirmScreen(
     var isVerificationInfoVisible by remember { mutableStateOf(false) }
     var selectedDetailElement by remember(input) { mutableStateOf<ConfirmDetailElement?>(null) }
     var selectedAddress by remember(input) { mutableStateOf<ChainAddress?>(null) }
+    val openPayloadAddress = simulation.chain?.let { chain ->
+        { address: String ->
+            showSimulationDetails = false
+            selectedAddress = ChainAddress(chain, address)
+        }
+    }
     var isShowedBroadcastError by remember(executeErrorText) { mutableStateOf(executeErrorText != null) }
     val isShowBottomSheetInfo by viewModel.isErrorSheetVisible.collectAsStateWithLifecycle()
 
@@ -170,13 +176,15 @@ fun ConfirmScreen(
         ) {
             item {
                 when (val model = header) {
-                    is ConfirmHeaderUIModel.Placeholder -> Box(
+                    is ConfirmHeaderUIModel.Placeholder -> AmountListHead(amount = "", icon = model.icon)
+
+                    is ConfirmHeaderUIModel.ReservedSpace -> Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .alpha(0f)
                             .clearAndSetSemantics { },
                     ) {
-                        AmountListHead(amount = "", icon = model.asset)
+                        AmountListHead(amount = "", icon = model.icon)
                     }
 
                     is ConfirmHeaderUIModel.Simulation -> AssetValueListHead(model.header)
@@ -190,7 +198,7 @@ fun ConfirmScreen(
                         toEquivalentText = model.toEquivalentText,
                     )
 
-                    is ConfirmHeaderUIModel.Nft -> NftHead(model.nftAsset)
+                    is ConfirmHeaderUIModel.Nft -> NftHead(model.source)
 
                     is ConfirmHeaderUIModel.Symbol -> AmountListHead(amount = model.asset.symbol, icon = model.asset)
 
@@ -245,6 +253,7 @@ fun ConfirmScreen(
             itemsPositioned(simulation.warnings) { position, row -> GemListRowView(row = row, listPosition = position) }
             simulationPayloadFieldsContent(
                 fields = simulation.primaryPayloadFields,
+                onAddressClick = openPayloadAddress,
                 onDetailsClick = simulation.secondaryPayloadFields
                     .takeIf { it.isNotEmpty() }
                     ?.let { { showSimulationDetails = true } },
@@ -311,6 +320,7 @@ fun ConfirmScreen(
                 simulationPayloadDetailsContent(
                     primaryFields = simulation.primaryPayloadFields,
                     secondaryFields = simulation.secondaryPayloadFields,
+                    onAddressClick = openPayloadAddress,
                 )
             }
         }

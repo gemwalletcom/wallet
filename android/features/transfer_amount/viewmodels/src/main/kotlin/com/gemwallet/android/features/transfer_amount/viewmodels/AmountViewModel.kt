@@ -179,7 +179,7 @@ class AmountViewModel @Inject constructor(service: GemAmountServiceInterface, fa
         stakeProvider?.setResource(resource)
     }
 
-    fun selectLeverage(value: Int) {
+    fun selectLeverage(value: UByte) {
         perpetualProvider?.setLeverage(value)
     }
 

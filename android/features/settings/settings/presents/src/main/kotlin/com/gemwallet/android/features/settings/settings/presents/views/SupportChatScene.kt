@@ -32,9 +32,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.settings.settings.viewmodels.SupportChatSceneViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyStateView
+import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
@@ -45,6 +47,7 @@ fun SupportChatNavScreen(onCancel: () -> Unit, viewModel: SupportChatSceneViewMo
     val isEmpty by viewModel.isEmpty.collectAsStateWithLifecycle()
     val typingAgentName by viewModel.typingAgentName.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
+    val errorRow by viewModel.errorRow.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
     var previewUrl by remember { mutableStateOf<String?>(null) }
 
@@ -85,11 +88,19 @@ fun SupportChatNavScreen(onCancel: () -> Unit, viewModel: SupportChatSceneViewMo
                     onImageClick = { previewUrl = it },
                     onRetry = viewModel::retry,
                 )
-                if (isEmpty) {
-                    EmptyStateView(
-                        title = stringResource(R.string.support_state_empty_title),
-                        description = stringResource(R.string.support_state_empty_description),
-                        iconVector = AppIcons.Article,
+                when (val row = errorRow) {
+                    null -> if (isEmpty) {
+                        EmptyStateView(
+                            title = stringResource(R.string.support_state_empty_title),
+                            description = stringResource(R.string.support_state_empty_description),
+                            iconVector = AppIcons.Article,
+                            modifier = Modifier.align(Alignment.Center).padding(paddingDefault),
+                        )
+                    }
+
+                    else -> GemListRowView(
+                        row = row,
+                        listPosition = ListPosition.Single,
                         modifier = Modifier.align(Alignment.Center).padding(paddingDefault),
                     )
                 }

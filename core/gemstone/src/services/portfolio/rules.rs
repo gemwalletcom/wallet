@@ -1,5 +1,6 @@
 use primitives::{
-    ChartPeriod, ChartValuePercentage, Currency, PerpetualPortfolio, PerpetualPortfolioTimeframeData, PortfolioAssets, PortfolioChartData, PortfolioChartType, PortfolioData, PortfolioMarginUsage, PortfolioStatistic, PortfolioType,
+    ChartPeriod, ChartValuePercentage, Currency, PerpetualPortfolio, PerpetualPortfolioTimeframeData, PortfolioAsset, PortfolioAssets, PortfolioChartData, PortfolioChartType, PortfolioData, PortfolioMarginUsage, PortfolioStatistic,
+    PortfolioType,
 };
 
 use super::model::GemPortfolioValues;
@@ -7,9 +8,17 @@ use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::list::{GemListRow, GemListRowTitle};
 use crate::percentage::GemPercentageStyle;
 use crate::precision::GemCurrencyStyle;
+use crate::services::balance::model::GemAssetBalance;
 use crate::services::chart::GemChartData;
 use crate::services::chart::rules::{change_chart_data, converted_values};
 use crate::services::localization::GemLocalizedText;
+
+pub fn portfolio_asset(balance: &GemAssetBalance) -> PortfolioAsset {
+    PortfolioAsset {
+        asset_id: balance.asset_id.clone(),
+        value: balance.total(),
+    }
+}
 
 pub fn converted_portfolio(portfolio: PortfolioAssets, rate: f64) -> GemPortfolioValues {
     GemPortfolioValues {
@@ -27,7 +36,14 @@ fn converted_percentage(value: ChartValuePercentage, rate: f64) -> ChartValuePer
     }
 }
 
-fn wallet_periods() -> Vec<ChartPeriod> {
+pub fn fallback_period(period: ChartPeriod, offered: &[ChartPeriod]) -> Option<ChartPeriod> {
+    match offered.is_empty() || offered.contains(&period) {
+        true => None,
+        false => offered.first().copied(),
+    }
+}
+
+pub fn wallet_periods() -> Vec<ChartPeriod> {
     vec![ChartPeriod::Day, ChartPeriod::Week, ChartPeriod::Month, ChartPeriod::Year, ChartPeriod::All]
 }
 
@@ -164,6 +180,19 @@ mod tests {
     use primitives::{ChartDateValue, ChartValue, PerpetualAccountSummary};
 
     use super::*;
+
+    #[test]
+    fn test_the_portfolio_value_is_the_balance_total_core_already_owns() {
+        let balance = GemAssetBalance {
+            available: 100u32.into(),
+            staked: 20u32.into(),
+            reserved: 7u32.into(),
+            ..GemAssetBalance::zero(primitives::AssetId::new("ethereum").unwrap())
+        };
+
+        assert_eq!(portfolio_asset(&balance).value, balance.total());
+        assert_eq!(portfolio_asset(&balance).value, 120u32.into(), "a reserved balance is not part of the total");
+    }
 
     #[test]
     fn test_a_perpetuals_portfolio_is_quoted_in_dollars() {

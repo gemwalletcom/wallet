@@ -152,14 +152,15 @@ extension WalletConnectorService {
 
     private func observeSessionRequests(_ stream: AsyncStream<(request: Request, context: VerifyContext?)>) async {
         for await (request, verifyContext) in stream {
-            debugLog("Session request received: \(request.method)")
+            debugLog("Session request received: \(request.method) chain: \(request.chainId.absoluteString)")
             debugLog("Verify context: \(String(describing: verifyContext))")
 
             let params: String
             do {
                 params = try JSONEncoder().encode(request.params).encodeString()
+                debugLog("Session request params: \(params)")
             } catch {
-                debugLog("Error encoding request params: \(error)")
+                debugLog("Error encoding request params: \(error) raw: \(request.params.stringRepresentation)")
                 await rejectRequest(request, error: error)
                 continue
             }
@@ -182,6 +183,7 @@ extension WalletConnectorService {
                 }
             }
             if let failure = outcome.failure {
+                debugLog("Session request failed: \(String(describing: failure)) params: \(params)")
                 await walletConnectorInteractor.sessionReject(error: failure.error)
             }
         }

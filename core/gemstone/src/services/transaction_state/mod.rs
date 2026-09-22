@@ -102,6 +102,13 @@ impl GemTransactionStateService {
 }
 
 impl GemTransactionStateService {
+    pub async fn clear_pending_transactions(&self) -> Result<(), GemServiceError> {
+        for pending in self.store.get_pending_transactions().await? {
+            self.store.delete_transaction(pending.wallet.id, pending.transaction.id).await?;
+        }
+        Ok(())
+    }
+
     pub async fn add_transactions(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
         self.store.add_transactions(wallet_id, transactions).await
     }

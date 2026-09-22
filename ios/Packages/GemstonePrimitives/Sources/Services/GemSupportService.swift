@@ -5,10 +5,6 @@ import protocol Gemstone.GemSupportServiceProtocol
 import Primitives
 
 public extension GemSupportServiceProtocol {
-    func syncMessages(fromTimestamp: Int) async throws {
-        try await syncMessages(fromTimestamp: UInt64(fromTimestamp))
-    }
-
     func sendMessage(_ content: SupportMessageContent) async throws {
         switch content {
         case let .text(text):

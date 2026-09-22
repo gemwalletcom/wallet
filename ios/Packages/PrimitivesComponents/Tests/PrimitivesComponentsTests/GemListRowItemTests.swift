@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import func Gemstone.addressCopy
+import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
 import func Gemstone.walletRow
@@ -65,6 +66,21 @@ struct GemListRowItemTests {
         }
         #expect(title == Localized.Transfer.network)
         #expect(subtitle == "Ethereum (ERC20)")
+    }
+
+    @Test
+    func aQuoteRowKeepsTheChangeBesideThePrice() {
+        let price = GemFormattedNumber.mock(value: 2.55)
+        let change = GemFormattedNumber.mock(value: -0.69, unit: .percent, tone: .negative)
+        guard case let .listItem(model) = GemListRow.quote(title: .price, value: price, change: change).item(onInfo: nil) else {
+            Issue.record("Expected a quote row")
+            return
+        }
+        #expect(model.title == Localized.Asset.price)
+        #expect(model.subtitle == price.text())
+        #expect(model.subtitleSuffix == change.text())
+        #expect(model.subtitleSuffixStyle.color == Colors.red)
+        #expect(model.subtitleExtra == nil)
     }
 
     @Test

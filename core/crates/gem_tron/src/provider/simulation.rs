@@ -86,7 +86,8 @@ mod tests {
                 is_unlimited: false,
             })
         );
-        assert_eq!(result.payload[0].value, "TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM");
+        assert_eq!(result.payload[0].value, "approve");
+        assert_eq!(result.payload[2].value, "TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM");
     }
 
     #[tokio::test]
@@ -102,8 +103,9 @@ mod tests {
                 is_unlimited: true,
             })
         );
-        assert_eq!(result.payload[0].value, "TQqgNg13s2DjvXhW1ky4v6TsR8wZGvb7Y4");
+        assert_eq!(result.payload[0].value, "approve");
         assert_eq!(result.payload[1].value, "TTJxU3P8rHycAyFY4kVtGNfmnMH4ezcuM9");
+        assert_eq!(result.payload[2].value, "TQqgNg13s2DjvXhW1ky4v6TsR8wZGvb7Y4");
         assert_eq!(result.payload[3].value, "1791689320");
         assert_eq!(result.warnings.len(), 1);
     }

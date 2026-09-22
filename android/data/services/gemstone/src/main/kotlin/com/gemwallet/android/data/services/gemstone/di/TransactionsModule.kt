@@ -18,6 +18,7 @@ import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemBalanceService
 import uniffi.gemstone.GemDeviceApiClient
 import uniffi.gemstone.GemGateway
+import uniffi.gemstone.GemNameService
 import uniffi.gemstone.GemNftService
 import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemStakeService
@@ -39,7 +40,7 @@ object TransactionsModule {
         apiClient: GemDeviceApiClient,
         assetsService: GemAssetsService,
         transactionStore: GemstoneTransactionStore,
-        addressStore: GemstoneAddressStore,
+        nameService: GemNameService,
         walletPreferencesService: GemWalletPreferencesService,
         walletSessionService: GemWalletSessionService,
         tracker: TransactionStatusService,
@@ -47,7 +48,7 @@ object TransactionsModule {
         apiClient,
         assetsService,
         transactionStore,
-        addressStore,
+        nameService,
         walletPreferencesService,
         walletSessionService,
         tracker,

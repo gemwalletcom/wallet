@@ -4,13 +4,14 @@ pub mod store;
 #[cfg(test)]
 pub(crate) mod testkit;
 
+use crate::models::state::GemLoadState;
 use crate::services::error::GemServiceError;
 use std::collections::HashSet;
 use std::future::Future;
 use std::sync::{Arc, Mutex};
 
 use chrono::Utc;
-use primitives::{SupportMessage, SupportMessageInput, SupportMessageStatus};
+use primitives::{SupportMessage, SupportMessageInput, SupportMessageStatus, SupportTyping};
 use uuid::Uuid;
 
 use crate::alien::AlienProvider;
@@ -60,9 +61,8 @@ impl GemSupportService {
         rules::sync_from_timestamp(messages)
     }
 
-    pub async fn sync_messages(&self, from_timestamp: u64) -> Result<(), GemServiceError> {
-        let messages = self.api.client.get_support_messages(from_timestamp).await.map_err(GemApiError::from)?;
-        self.store.save_messages(messages).await
+    pub async fn refresh(&self, from_timestamp: u64, has_messages: bool) -> GemLoadState {
+        GemLoadState::refreshed(self.sync_messages(from_timestamp).await, has_messages)
     }
 
     pub async fn send_text(&self, content: String) -> Result<(), GemServiceError> {
@@ -91,6 +91,23 @@ impl GemSupportService {
 }
 
 impl GemSupportService {
+    pub async fn save_messages(&self, messages: Vec<SupportMessage>) -> Result<(), GemServiceError> {
+        self.store.save_messages(messages).await
+    }
+
+    pub fn update_typing(&self, typing: SupportTyping) -> Result<(), GemServiceError> {
+        self.store.update_typing(typing)
+    }
+
+    pub fn clear_typing(&self) -> Result<(), GemServiceError> {
+        self.store.clear_typing()
+    }
+
+    async fn sync_messages(&self, from_timestamp: u64) -> Result<(), GemServiceError> {
+        let messages = self.api.client.get_support_messages(from_timestamp).await.map_err(GemApiError::from)?;
+        self.store.save_messages(messages).await
+    }
+
     async fn deliver<F, E>(&self, message: SupportMessage, send: F) -> Result<(), GemServiceError>
     where
         F: Future<Output = Result<SupportMessage, E>>,

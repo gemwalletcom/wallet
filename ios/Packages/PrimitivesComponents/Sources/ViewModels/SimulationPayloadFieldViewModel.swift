@@ -8,13 +8,16 @@ import Primitives
 public struct SimulationPayloadFieldViewModel: Identifiable {
     public let row: GemSimulationPayloadRow
     public let explorerItem: ContextMenuItemType?
+    public let onSelect: (@MainActor @Sendable () -> Void)?
 
     public init(
         row: GemSimulationPayloadRow,
         explorerItem: ContextMenuItemType? = nil,
+        onSelect: (@MainActor @Sendable () -> Void)? = nil,
     ) {
         self.row = row
         self.explorerItem = explorerItem
+        self.onSelect = onSelect
     }
 
     public var id: GemSimulationPayloadRow {

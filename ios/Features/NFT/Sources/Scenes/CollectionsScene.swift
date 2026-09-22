@@ -53,7 +53,10 @@ public struct CollectionsScene<ViewModel: CollectionsViewable>: View {
         .bindQuery(model.query)
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .overlay {
-            if model.content.isEmpty {
+            if let error = model.loadError {
+                ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
+                    .padding(.horizontal, .medium)
+            } else if model.content.isEmpty {
                 EmptyContentView(model: model.emptyContentModel)
             }
         }

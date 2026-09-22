@@ -2,7 +2,9 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemLoadState
 import protocol Gemstone.GemSupportServiceProtocol
+import func Gemstone.loadError
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -21,6 +23,8 @@ public final class SupportChatSceneViewModel {
     var previewURL: URL?
     var isPresentingAlertMessage: AlertMessage?
 
+    private var loadState: GemLoadState = .loading
+
     public init(service: any GemSupportServiceProtocol, typing: ObservableSupportTyping) {
         self.service = service
         self.typing = typing
@@ -31,6 +35,11 @@ public final class SupportChatSceneViewModel {
     var emptyTitle: String { Localized.Support.stateEmptyTitle }
     var emptyDescription: String { Localized.Support.stateEmptyDescription }
     var isEmpty: Bool { query.value.isEmpty }
+
+    var loadError: Error? {
+        Gemstone.loadError(state: loadState, hasRows: !isEmpty)
+    }
+
     var typingAgentName: String? { typing.agent?.name }
 
     @ObservationIgnored
@@ -49,11 +58,7 @@ public final class SupportChatSceneViewModel {
 
     func load() async {
         let fromTimestamp = service.syncFromTimestamp(messages: query.value.map { $0.toGem() })
-        do {
-            try await service.syncMessages(fromTimestamp: fromTimestamp)
-        } catch {
-            debugLog("SupportChatSceneViewModel load error: \(error)")
-        }
+        loadState = await service.refresh(fromTimestamp: fromTimestamp, hasMessages: !isEmpty)
     }
 
     func onScenePhaseChange(_: ScenePhase, _ newPhase: ScenePhase) {

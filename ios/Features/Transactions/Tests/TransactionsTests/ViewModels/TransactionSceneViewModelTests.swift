@@ -265,6 +265,7 @@ struct TransactionSceneViewModelTests {
         case let .label(title, _, _, _, _): "\(title)"
         case let .amount(title, _, _): "\(title)"
         case .explorer: "explorer"
+        case .provider: "provider"
         default: "\(row)"
         }
     }

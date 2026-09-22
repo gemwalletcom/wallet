@@ -3,8 +3,11 @@ package com.gemwallet.android.ui.components.list_item
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -52,6 +55,8 @@ data class ListItemModel(
     val subtitleStyle: ListItemTextStyle = ListItemTextStyle.Secondary,
     val subtitleExtra: String? = null,
     val subtitleExtraStyle: ListItemTextStyle = ListItemTextStyle.Secondary,
+    val subtitleSuffix: String? = null,
+    val subtitleSuffixStyle: ListItemTextStyle = ListItemTextStyle.Secondary,
     val subtitleTagType: ListItemTagType = ListItemTagType.None,
     val image: ListItemImage? = null,
     val info: InfoSheetEntity? = null,
@@ -149,7 +154,7 @@ fun ListItem(model: ListItemModel, listPosition: ListPosition, modifier: Modifie
         PropertyItem(
             modifier = modifier,
             title = { PropertyTitleText(text = model.title, color = model.titleStyle.color(), info = model.info) },
-            data = if (model.subtitle == null && accessory == null && model.subtitleTagType == ListItemTagType.None) {
+            data = if (model.subtitle == null && model.subtitleSuffix == null && accessory == null && model.subtitleTagType == ListItemTagType.None) {
                 null
             } else {
                 { PropertyDataText(text = model.subtitle ?: "", color = model.subtitleStyle.color(), badge = subtitleBadge(model, accessory)) }
@@ -179,15 +184,20 @@ fun ListItem(model: ListItemModel, listPosition: ListPosition, modifier: Modifie
             null
         } else {
             {
-                if (model.subtitle != null || model.subtitleExtra != null) {
+                if (model.subtitle != null || model.subtitleSuffix != null || model.subtitleExtra != null) {
                     Column(horizontalAlignment = Alignment.End) {
-                        model.subtitle?.let {
-                            Text(
-                                text = it,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = model.subtitleStyle.color(),
-                                maxLines = 1,
-                            )
+                        if (model.subtitle != null || model.subtitleSuffix != null) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                model.subtitle?.let {
+                                    Text(
+                                        text = it,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = model.subtitleStyle.color(),
+                                        maxLines = 1,
+                                    )
+                                }
+                                model.subtitleSuffix?.let { SubtitleSuffix(it, model.subtitleSuffixStyle) }
+                            }
                         }
                         model.subtitleExtra?.let { ListItemSupportText(text = it, color = model.subtitleExtraStyle.color()) }
                     }
@@ -199,13 +209,30 @@ fun ListItem(model: ListItemModel, listPosition: ListPosition, modifier: Modifie
     )
 }
 
-private fun subtitleBadge(model: ListItemModel, accessory: (@Composable () -> Unit)?): (@Composable () -> Unit)? = when (model.subtitleTagType) {
-    ListItemTagType.None -> accessory
+@Composable
+private fun SubtitleSuffix(text: String, style: ListItemTextStyle) {
+    Spacer(modifier = Modifier.width(paddingHalfSmall))
+    Text(
+        text = text,
+        color = style.color(),
+        style = MaterialTheme.typography.bodyLarge,
+        maxLines = 1,
+    )
+}
 
-    ListItemTagType.Progress, ListItemTagType.Pending -> {
-        {
-            SubtitleTag(model)
-            accessory?.invoke()
+private fun subtitleBadge(model: ListItemModel, accessory: (@Composable () -> Unit)?): (@Composable () -> Unit)? {
+    if (model.subtitleSuffix == null && model.subtitleTagType == ListItemTagType.None && accessory == null) {
+        return null
+    }
+    return {
+        model.subtitleSuffix?.let { SubtitleSuffix(it, model.subtitleSuffixStyle) }
+        when (model.subtitleTagType) {
+            ListItemTagType.None -> accessory?.invoke()
+
+            ListItemTagType.Progress, ListItemTagType.Pending -> {
+                SubtitleTag(model)
+                accessory?.invoke()
+            }
         }
     }
 }

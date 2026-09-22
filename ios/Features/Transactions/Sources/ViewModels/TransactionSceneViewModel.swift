@@ -94,7 +94,7 @@ extension TransactionSceneViewModel: ListSectionProvideable {
     private var headerItem: TransactionItemModel {
         let headerType = rows.header.headerType(currency: service.getCurrency().toPrimitives())
         let showClearHeader = switch headerType {
-        case .amount, .payment, .nft, .asset, .assetValue: true
+        case .amount, .nft, .asset, .assetValue: true
         case .swap: false
         }
         return .header(TransactionHeaderItemModel(headerType: headerType, showClearHeader: showClearHeader))
@@ -142,6 +142,10 @@ extension TransactionSceneViewModel {
         case let .asset(assetId):
             onHeaderAction(.asset(assetId: assetId.identifier))
         }
+    }
+
+    func onSelectProviderContract(_ address: String) {
+        onSelectAddress?(ChainAddress(chain: transactionExtended.transaction.assetId.chain, address: address))
     }
 
     func onSelectSwapAgain() {

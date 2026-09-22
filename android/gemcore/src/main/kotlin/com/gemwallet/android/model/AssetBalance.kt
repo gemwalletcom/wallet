@@ -74,8 +74,6 @@ private fun Balance<BigInteger>.createAmount(decimals: Int) = Balance(
 
 fun Balance<Double>.getTotalAmount() = available + frozen + locked + staked + pending + rewards + earn
 
-fun Balance<BigInteger>.getTotalAmount() = available + frozen + locked + staked + pending + rewards + earn
-
 fun AssetBalance.toGem() = GemAssetBalance(
     assetId = asset.id.toIdentifier(),
     available = balance.available,

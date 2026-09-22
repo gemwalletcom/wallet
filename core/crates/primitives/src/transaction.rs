@@ -170,10 +170,16 @@ impl Transaction {
 
     pub fn finalize(&self, addresses: Vec<String>) -> Self {
         if !self.asset_id.chain.is_utxo() {
-            let Some(metadata) = self.asset_transfers_metadata() else {
+            if let Some(metadata) = self.asset_transfers_metadata() {
+                return self.project_asset_transfer(metadata, &addresses).unwrap_or_else(|| self.clone());
+            }
+            if addresses.is_empty() {
                 return self.clone();
+            }
+            return Self {
+                direction: TransactionDirection::from_parties(&self.from, &self.to, &addresses),
+                ..self.clone()
             };
-            return self.project_asset_transfer(metadata, &addresses).unwrap_or_else(|| self.clone());
         }
 
         let (Some(utxo_inputs), Some(utxo_outputs)) = (self.utxo_inputs.as_deref(), self.utxo_outputs.as_deref()) else {
@@ -223,19 +229,13 @@ impl Transaction {
             return None;
         }
 
-        let direction = if contains(&transfer.from) {
-            if contains(&transfer.to) { TransactionDirection::SelfTransfer } else { TransactionDirection::Outgoing }
-        } else {
-            TransactionDirection::Incoming
-        };
-
         Some(Self {
             asset_id: transfer.asset_id,
-            from: transfer.from,
-            to: transfer.to,
+            from: transfer.from.clone(),
+            to: transfer.to.clone(),
             transaction_type: TransactionType::Transfer,
             value: transfer.value.clone(),
-            direction,
+            direction: TransactionDirection::from_parties(&transfer.from, &transfer.to, addresses),
             metadata: None,
             ..self.clone()
         })
@@ -526,11 +526,22 @@ mod tests {
     }
 
     #[test]
-    fn test_finalize_non_utxo_unchanged() {
+    fn test_finalize_non_utxo_direction() {
         let original = Transaction::mock();
-        let transaction = original.clone().finalize(vec!["0xfrom".to_string()]);
+        let outgoing = original.finalize(vec!["0xFROM".to_string()]);
+        assert_eq!(outgoing.direction, TransactionDirection::Outgoing);
+        assert_eq!((outgoing.from.as_str(), outgoing.to.as_str(), outgoing.value), ("0xfrom", "0xto", original.value.clone()));
 
-        assert_eq!((transaction.from, transaction.to, transaction.value), (original.from, original.to, original.value));
+        assert_eq!(original.finalize(vec!["0xTO".to_string()]).direction, TransactionDirection::Incoming);
+        assert_eq!(original.finalize(vec!["0xfrom".to_string(), "0xto".to_string()]).direction, TransactionDirection::SelfTransfer);
+        assert_eq!(original.finalize(vec![]).direction, original.direction);
+
+        let sweep = Transaction {
+            from: "0x54914A963c4197172130C26D496a367bD6609D88".to_string(),
+            to: "0x0D9DAB1A248f63B0a48965bA8435e4de7497a3dC".to_string(),
+            ..Transaction::mock()
+        };
+        assert_eq!(sweep.finalize(vec!["0x0d9dab1a248f63b0a48965ba8435e4de7497a3dc".to_string()]).direction, TransactionDirection::Incoming);
     }
 
     #[test]

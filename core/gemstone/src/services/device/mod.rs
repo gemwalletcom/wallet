@@ -17,7 +17,7 @@ pub use signer::GemDeviceRequestSigner;
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::preferences::GemPreferencesService;
 use crate::services::subscription::GemSubscriptionService;
-use crate::services::wallet::GemWalletStore;
+use crate::services::wallet_session::GemWalletSessionService;
 use futures::lock::Mutex;
 use gem_api::WalletRequestPreflight;
 use gem_client::ClientError;
@@ -27,7 +27,7 @@ use std::sync::Weak;
 pub struct GemDeviceService {
     api: Arc<GemDeviceApiClient>,
     subscriptions: Arc<GemSubscriptionService>,
-    wallet_store: Arc<dyn GemWalletStore>,
+    session: Arc<GemWalletSessionService>,
     platform: Arc<dyn GemDevicePlatform>,
     preferences: Arc<GemPreferencesService>,
     sync_lock: Mutex<()>,
@@ -36,11 +36,11 @@ pub struct GemDeviceService {
 #[uniffi::export]
 impl GemDeviceService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemDeviceApiClient>, subscriptions: Arc<GemSubscriptionService>, wallet_store: Arc<dyn GemWalletStore>, platform: Arc<dyn GemDevicePlatform>, preferences: Arc<GemPreferencesService>) -> Self {
+    pub fn new(api: Arc<GemDeviceApiClient>, subscriptions: Arc<GemSubscriptionService>, session: Arc<GemWalletSessionService>, platform: Arc<dyn GemDevicePlatform>, preferences: Arc<GemPreferencesService>) -> Self {
         Self {
             api,
             subscriptions,
-            wallet_store,
+            session,
             platform,
             preferences,
             sync_lock: Mutex::new(()),
@@ -111,12 +111,12 @@ impl GemDeviceService {
         if rules::device_changed(&pushed, &local) {
             return Ok(true);
         }
-        let signature = rules::subscriptions_signature(&self.wallet_store.get_wallets().await?);
+        let signature = rules::subscriptions_signature(&self.session.get_wallets().await?);
         Ok(self.preferences.get_pushed_subscriptions() != Some(signature))
     }
 
     async fn sync(&self, device: Device) -> Result<Device, GemServiceError> {
-        let signature = rules::subscriptions_signature(&self.wallet_store.get_wallets().await?);
+        let signature = rules::subscriptions_signature(&self.session.get_wallets().await?);
         let mut version = self.preferences.get_subscriptions_version();
         let remote = self.get_or_create(&device).await?;
 

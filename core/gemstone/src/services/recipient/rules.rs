@@ -150,7 +150,6 @@ fn recipient_row(chain: Chain, recipient: GemRecipient) -> GemRecipientRow {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::payment::GemPaymentService;
     use crate::services::recipient::model::GemRecipientSession;
 
     const ADDRESS: &str = "0x1f9090aae28b8a3dceadf281b0f12828e676c326";
@@ -304,7 +303,6 @@ mod tests {
 
     #[test]
     fn test_scan_confirms_an_asset_payment_and_only_fills_an_nft_recipient() {
-        let payments = GemPaymentService::mock();
         let destination = GemPaymentDestination::Confirm {
             transfer: GemPaymentConfirmTransfer {
                 asset_id: primitives::AssetId::from_chain(Chain::Ethereum),
@@ -317,15 +315,16 @@ mod tests {
         let asset = GemRecipientType::Asset { asset: Asset::from_chain(Chain::Ethereum) };
         let nft = GemRecipientType::Nft { nft_asset: primitives::NFTAsset::mock() };
 
-        assert!(matches!(scan_route(destination.clone(), &asset, |transfer| payments.transfer_data(transfer, Asset::from_chain(Chain::Ethereum))), Ok(GemRecipientScan::Confirm { transfer }) if transfer.recipient.address == ADDRESS));
         assert!(
-            matches!(scan_route(destination, &nft, |transfer| payments.transfer_data(transfer, Asset::from_chain(Chain::Ethereum))), Ok(GemRecipientScan::Recipient { payment }) if payment.recipient.address == ADDRESS && payment.amount.is_none())
+            matches!(scan_route(destination.clone(), &asset, |transfer| crate::payment::transfer_data(&transfer, Asset::from_chain(Chain::Ethereum))), Ok(GemRecipientScan::Confirm { transfer }) if transfer.recipient.address == ADDRESS)
+        );
+        assert!(
+            matches!(scan_route(destination, &nft, |transfer| crate::payment::transfer_data(&transfer, Asset::from_chain(Chain::Ethereum))), Ok(GemRecipientScan::Recipient { payment }) if payment.recipient.address == ADDRESS && payment.amount.is_none())
         );
     }
 
     #[test]
     fn test_scan_fills_a_recipient_and_rejects_the_rest() {
-        let payments = GemPaymentService::mock();
         let asset = GemRecipientType::Asset { asset: Asset::from_chain(Chain::Ethereum) };
         let payment = GemPaymentRecipient {
             recipient: GemRecipient::address(ADDRESS.to_string()),
@@ -336,14 +335,16 @@ mod tests {
             payment: payment.clone(),
         };
 
-        assert!(matches!(scan_route(recipient, &asset, |transfer| payments.transfer_data(transfer, Asset::from_chain(Chain::Ethereum))), Ok(GemRecipientScan::Recipient { payment: found }) if found == payment));
+        assert!(matches!(scan_route(recipient, &asset, |transfer| crate::payment::transfer_data(&transfer, Asset::from_chain(Chain::Ethereum))), Ok(GemRecipientScan::Recipient { payment: found }) if found == payment));
         assert!(matches!(
-            scan_route(GemPaymentDestination::Unsupported, &asset, |transfer| payments.transfer_data(transfer, Asset::from_chain(Chain::Ethereum))),
+            scan_route(GemPaymentDestination::Unsupported, &asset, |transfer| crate::payment::transfer_data(&transfer, Asset::from_chain(Chain::Ethereum))),
             Err(GemRecipientError::InvalidAddress { .. })
         ));
         assert!(matches!(
-            scan_route(GemPaymentDestination::SelectAsset { payment, chains: vec![] }, &asset, |transfer| payments
-                .transfer_data(transfer, Asset::from_chain(Chain::Ethereum))),
+            scan_route(GemPaymentDestination::SelectAsset { payment, chains: vec![] }, &asset, |transfer| crate::payment::transfer_data(
+                &transfer,
+                Asset::from_chain(Chain::Ethereum)
+            )),
             Err(GemRecipientError::InvalidAddress { .. })
         ));
     }

@@ -19,6 +19,12 @@ public struct PriceAlertsScene: View {
         List {
             toggleView
 
+            if let error = model.loadError {
+                Section {
+                    ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
+                }
+            }
+
             ListItemValueSectionList(
                 list: model.sections,
                 content: { alert in
@@ -32,7 +38,7 @@ public struct PriceAlertsScene: View {
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)
         .overlay {
-            if model.priceAlerts.isEmpty {
+            if model.priceAlerts.isEmpty, model.loadError == nil {
                 EmptyContentView(model: model.emptyContentModel)
             }
         }

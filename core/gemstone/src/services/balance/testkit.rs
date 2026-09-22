@@ -156,10 +156,10 @@ impl BalanceTestkit {
             assets.clone(),
             Arc::new(GemPriceService::new(Arc::new(MemoryPriceStore::default()))),
             preferences,
-            session,
+            session.clone(),
         ));
         let balances = Arc::new(balances);
-        let service = GemBalanceService::new(gateway, wallets, assets.clone(), balances.clone(), assets_service, Arc::new(SubscriptionTestkit::new(&[], &[]).service));
+        let service = GemBalanceService::new(gateway, balances.clone(), assets_service, session, Arc::new(SubscriptionTestkit::new(&[], &[]).service));
         Self { service, assets, balances }
     }
 

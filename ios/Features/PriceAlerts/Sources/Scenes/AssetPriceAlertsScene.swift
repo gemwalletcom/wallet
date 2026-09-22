@@ -17,6 +17,12 @@ public struct AssetPriceAlertsScene: View {
 
     public var body: some View {
         List {
+            if let error = model.loadError {
+                Section {
+                    ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
+                }
+            }
+
             Section {
                 Toggle(isOn: model.isAutoAlertEnabledBinding) {
                     ListAssetItemView(model: model.autoAlertItemModel)

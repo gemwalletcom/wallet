@@ -97,7 +97,7 @@ extension CreateWalletNavigationStack {
         }
     }
 
-    func onSetupWalletComplete(wallet: Wallet) {
-        model.setupWalletComplete(wallet: wallet)
+    func onSetupWalletComplete(wallet _: Wallet) {
+        model.dismiss()
     }
 }

@@ -5,7 +5,6 @@ import Gemstone
 
 public final class GemRewardsServiceMock: GemRewardsServiceProtocol, @unchecked Sendable {
     public var rewardsResult: Result<Rewards, Error> = .success(.mock())
-    public var stateForRewards: (Rewards?) -> GemRewardsState = { rewards in .mock(referralCode: rewards?.code, referralLink: rewards?.code.map { "https://gemwallet.com/join?code=\($0)" }) }
     public var useReferralCodeError: Error?
     public var redeemError: Error?
 
@@ -21,9 +20,12 @@ public final class GemRewardsServiceMock: GemRewardsServiceProtocol, @unchecked 
         return try rewardsResult.get()
     }
 
-    public func getRewards(walletId: WalletId) async throws -> Rewards {
+    public func refresh(walletId: WalletId) async -> GemRewardsResult {
         rewardsCalls.append(walletId)
-        return try rewardsResult.get()
+        guard let rewards = try? rewardsResult.get() else {
+            return GemRewardsResult(walletId: walletId, state: .error(error: .Api(msg: "offline")), rewards: nil)
+        }
+        return GemRewardsResult(walletId: walletId, state: .data, rewards: rewards)
     }
 
     public func redeem(wallet _: Wallet, redemptionId: String) async throws -> RedemptionResult {
@@ -36,10 +38,6 @@ public final class GemRewardsServiceMock: GemRewardsServiceProtocol, @unchecked 
 
     public func selectedWallet(current: Wallet?, wallets _: [Wallet]) -> Wallet? {
         current
-    }
-
-    public func state(rewards: Rewards?) -> GemRewardsState {
-        stateForRewards(rewards)
     }
 
     public func useReferralCode(wallet: Wallet, code: String) async throws -> Rewards {

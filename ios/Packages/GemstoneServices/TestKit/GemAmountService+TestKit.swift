@@ -2,6 +2,7 @@
 
 import Foundation
 import class Gemstone.GemAmountService
+import class Gemstone.GemNameService
 import class Gemstone.GemPreferencesService
 import class Gemstone.GemStaticApiClient
 import GemstonePrimitivesTestKit
@@ -16,7 +17,7 @@ public extension GemAmountService {
             stake: GatewayService.mock().stakeService(
                 staticApi: GemStaticApiClient(provider: NativeProvider()),
                 store: GemstoneStakeStore(store: .mock()),
-                addressStore: GemstoneAddressStore(store: .mock()),
+                names: .mock(),
                 explorer: .mock(),
                 preferences: preferences,
                 session: .mock(),

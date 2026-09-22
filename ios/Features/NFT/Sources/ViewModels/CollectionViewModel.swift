@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemLoadState
 import struct Gemstone.GemNftListScreen
 import protocol Gemstone.GemNftServiceProtocol
 import GemstonePrimitives
@@ -17,6 +18,8 @@ public final class CollectionViewModel: CollectionsViewable, Sendable {
 
     public let wallet: Wallet
     public let query: ObservableQuery<NFTRequest>
+
+    public var loadState: GemLoadState = .loading
 
     public var isPresentingReceiveSelectAssetType: SelectAssetType?
 

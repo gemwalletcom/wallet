@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
@@ -38,6 +37,9 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
+import uniffi.gemstone.GemLoadState
+import uniffi.gemstone.GemPortfolioResult
+import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.PortfolioData
 import uniffi.gemstone.PortfolioStatistic
 
@@ -53,14 +55,17 @@ class PortfolioChartViewModelTest {
         every { this@mockk.invoke() } returns sessionFlow
     }
     private val observePerpetualWallet = mockk<ObservePerpetualWallet>(relaxed = true)
-    private val service = mockk<uniffi.gemstone.GemPortfolioServiceInterface> {
-        every { currency(any()) } returns Currency.USD.toGem()
-    }
+    private val service = mockk<uniffi.gemstone.GemPortfolioServiceInterface>()
 
     private fun stubPortfolio(type: PortfolioType? = null, period: ChartPeriod? = null, data: PortfolioData) {
         coEvery {
-            service.portfolioData(any(), type?.toGem() ?: any(), period?.toGem() ?: any())
-        } returns data
+            service.refresh(
+                any(),
+                match { request ->
+                    (type == null || request.portfolioType == type.toGem()) && (period == null || request.period == period.toGem())
+                },
+            )
+        } answers { GemPortfolioResult(request = secondArg(), state = GemLoadState.Data, data = data) }
     }
 
     @Before
@@ -100,7 +105,9 @@ class PortfolioChartViewModelTest {
         viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == 2 }
 
         assertEquals(ChartPeriod.All, viewModel.chartUIState.first { it.chart != StateViewType.Loading }.period)
-        coVerify(exactly = 1) { service.portfolioData(session.wallet.toGem(), PortfolioType.Wallet.toGem(), ChartPeriod.All.toGem()) }
+        coVerify(exactly = 1) {
+            service.refresh(session.wallet.toGem(), match { it.portfolioType == PortfolioType.Wallet.toGem() && it.period == ChartPeriod.All.toGem() })
+        }
     }
 
     @Test
@@ -114,7 +121,7 @@ class PortfolioChartViewModelTest {
         val state = viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == 3 }
 
         assertEquals(ChartPeriod.Month, state.period)
-        coVerify { service.portfolioData(any(), PortfolioType.Wallet.toGem(), ChartPeriod.Month.toGem()) }
+        coVerify { service.refresh(any(), match { it.portfolioType == PortfolioType.Wallet.toGem() && it.period == ChartPeriod.Month.toGem() }) }
     }
 
     @Test
@@ -128,7 +135,7 @@ class PortfolioChartViewModelTest {
         val state = viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == 3 }
 
         assertEquals(ChartPeriod.Day, state.period)
-        coVerify { service.portfolioData(any(), PortfolioType.Wallet.toGem(), ChartPeriod.Day.toGem()) }
+        coVerify { service.refresh(any(), match { it.portfolioType == PortfolioType.Wallet.toGem() && it.period == ChartPeriod.Day.toGem() }) }
     }
 
     @Test
@@ -140,18 +147,20 @@ class PortfolioChartViewModelTest {
         viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == 2 }
 
         assertEquals(PortfolioType.Perpetuals, viewModel.selectedType.value)
-        coVerify(exactly = 0) { service.portfolioData(any(), PortfolioType.Wallet.toGem(), any()) }
+        coVerify(exactly = 0) { service.refresh(any(), match { it.portfolioType == PortfolioType.Wallet.toGem() }) }
     }
 
     @Test
     fun `shows error state when the portfolio request fails`() = runTest(testDispatcher) {
-        coEvery { service.portfolioData(any(), any(), any()) } throws IllegalStateException("network down")
+        coEvery { service.refresh(any(), any()) } answers {
+            GemPortfolioResult(request = secondArg(), state = GemLoadState.Error(GemServiceException.Core("network down")), data = null)
+        }
         val viewModel = createViewModel()
         backgroundScope.launch { viewModel.chartUIState.collect {} }
 
         val state = viewModel.chartUIState.first { it.chart != StateViewType.Loading }
 
-        assertEquals(StateViewType.Error, state.chart)
+        assertEquals(StateViewType.Error(), state.chart)
     }
 
     @Test
@@ -186,6 +195,5 @@ class PortfolioChartViewModelTest {
         initialType = initialType,
         connectionStatusObserver = mockk(relaxed = true),
         ioDispatcher = testDispatcher,
-        context = mockk<Context> { every { getString(any()) } answers { firstArg<Int>().toString() } },
     ).also(viewModels::add)
 }

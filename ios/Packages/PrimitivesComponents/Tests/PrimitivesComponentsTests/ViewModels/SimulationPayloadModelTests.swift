@@ -66,4 +66,32 @@ struct SimulationPayloadModelTests {
 
         #expect(items.isEmpty)
     }
+
+    @Test
+    @MainActor
+    func addressFieldSelectsTheAddress() {
+        var selected: String?
+
+        let item = SimulationPayloadModel.mock(primaryFields: [contract]).fieldModels(
+            for: [contract],
+            explorerLink: { _ in BlockExplorerLink(name: "Etherscan", link: "https://etherscan.io/address/0x1") },
+            onOpenURL: { _ in },
+            onSelectAddress: { selected = $0 },
+        )[0]
+
+        item.onSelect?()
+        #expect(selected == "0x1")
+    }
+
+    @Test
+    func textFieldDoesNotSelectAnAddress() {
+        let item = SimulationPayloadModel.mock(secondaryFields: [method]).fieldModels(
+            for: [method],
+            explorerLink: { BlockExplorerLink(name: "Etherscan", link: "https://etherscan.io/address/\($0)") },
+            onOpenURL: { _ in },
+            onSelectAddress: { _ in },
+        )[0]
+
+        #expect(item.onSelect == nil)
+    }
 }

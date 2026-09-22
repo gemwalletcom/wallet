@@ -10,6 +10,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.activities.viewmodels.TransactionDetailsViewModel
 import com.gemwallet.android.features.activities.viewmodels.models.TransactionDetailsRowUIModel
+import com.gemwallet.android.features.activities.viewmodels.models.chain
 import com.gemwallet.android.features.asset.presents.address.AddressDetailsSheet
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.localization.string
@@ -42,6 +43,7 @@ fun TransactionDetailsNavScreen(onAction: (TransactionDetailsAction.Navigation) 
         title = model.rows.title.string(context),
         sections = sections,
         headerTarget = headerTarget,
+        chain = model.rows.chain(),
         onAction = {
             when (it) {
                 TransactionDetailsAction.Share -> onShare(model.rows.explorer.link, model.rows.explorer.name)

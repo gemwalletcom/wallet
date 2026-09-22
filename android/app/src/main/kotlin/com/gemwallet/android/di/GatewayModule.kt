@@ -127,13 +127,13 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemWalletConfigurationService(apiClient: GemstoneDeviceApiClient, bannerStore: GemBannerStore, walletPreferencesService: GemWalletPreferencesService): GemWalletConfigurationService =
-        GemWalletConfigurationService(apiClient, bannerStore, walletPreferencesService)
+    fun provideGemWalletConfigurationService(apiClient: GemstoneDeviceApiClient, bannerService: GemBannerService, walletPreferencesService: GemWalletPreferencesService): GemWalletConfigurationService =
+        GemWalletConfigurationService(apiClient, bannerService, walletPreferencesService)
 
     @Provides
     @Singleton
-    fun provideGemSearchService(assetsService: GemAssetsService, priceService: GemPriceService, perpetualStore: GemstonePerpetualStore, searchStore: GemSearchStore): GemSearchService =
-        GemSearchService(assetsService, priceService, perpetualStore, searchStore)
+    fun provideGemSearchService(assetsService: GemAssetsService, priceService: GemPriceService, perpetualService: GemPerpetualService, searchStore: GemSearchStore): GemSearchService =
+        GemSearchService(assetsService, priceService, perpetualService, searchStore)
 
     @Provides
     @Singleton

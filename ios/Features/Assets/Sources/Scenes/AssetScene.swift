@@ -126,17 +126,7 @@ extension AssetScene {
     private func rowContent(_ content: AssetDetailRowContent) -> some View {
         switch content {
         case let .item(model): ListItemView(model: model)
-        case let .network(name): networkView(name: name)
         case let .row(row): GemListRowView(row: row)
         }
-    }
-
-    private func networkView(name: String) -> some View {
-        ListItemImageView(
-            title: Localized.Transfer.network,
-            subtitle: name,
-            assetImage: model.networkAssetImage,
-            imageSize: .list.image,
-        )
     }
 }

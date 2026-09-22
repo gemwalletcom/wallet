@@ -39,6 +39,7 @@ import java.util.Locale
 internal sealed interface GemListRowUIModel {
     data class Notice(val title: String, val message: String?, val kind: GemNoticeKind) : GemListRowUIModel
     data class Item(val model: ListItemModel, val url: String? = null, val opensAnotherScreen: Boolean = false, val trailingImage: ListItemImage? = null, val menu: List<GemListRowMenuItem> = emptyList()) : GemListRowUIModel
+    data class Provider(val model: ListItemModel, val contract: String?) : GemListRowUIModel
     data class Icon(val asset: Asset) : GemListRowUIModel
     data class Network(val chain: Chain, val name: String) : GemListRowUIModel
     data class Address(val address: String, val copy: GemCopy) : GemListRowUIModel
@@ -62,8 +63,22 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
 
     is GemListRow.Text -> GemListRowUIModel.Item(ListItemModel(title = title.text(context), subtitle = value))
 
+    is GemListRow.Provider -> GemListRowUIModel.Provider(
+        ListItemModel(title = GemListRowTitle.PROVIDER.text(context), subtitle = name),
+        contract = contract,
+    )
+
     is GemListRow.Amount -> GemListRowUIModel.Item(
         ListItemModel(title = title.text(context), subtitle = amount.text(), subtitleStyle = amount.tone.subtitleStyle(), info = info?.infoSheet(context, infoIcon)),
+    )
+
+    is GemListRow.Quote -> GemListRowUIModel.Item(
+        ListItemModel(
+            title = title.text(context),
+            subtitle = value?.text(),
+            subtitleSuffix = change?.text(),
+            subtitleSuffixStyle = change?.tone?.textStyle() ?: ListItemTextStyle.Secondary,
+        ),
     )
 
     is GemListRow.Ranked -> GemListRowUIModel.Item(ListItemModel(title = title.text(context), subtitle = amount.text(), titleTag = "#$rank"))

@@ -93,6 +93,10 @@ A service composes rules with I/O. It may hold its own feature store and narrow 
 
 Inspect the dependency graph before replacing a foreign-domain store with its service. Never introduce an `Arc` cycle to satisfy this rule; split out a narrow query service, invert the dependency, or redesign the ownership boundary first. `GemWalletService` already depends on `GemWalletSessionService`, so making the session service depend back on the wallet service would be worse than the store debt it replaces.
 
+`GemWalletSessionService` is the narrow query service for wallets: it answers `get_wallets`, `get_wallet` and `require_wallet` and depends on nothing but its two stores, so balance, subscription, device and asset discovery read wallets through it rather than holding `GemWalletStore`. Three holdings are kept, each because the owner already depends on the holder: `GemWalletSessionService` and `GemAvatarService` hold `GemWalletStore` (`GemWalletService` holds both), and `GemStreamSubscriptionService` holds `GemBalanceStore` (`GemBalanceService` holds the subscription service). A kept holding is a named exception, not a precedent — record why it is kept where it is declared.
+
+A store that is a platform port rather than a domain — `GemFileStore`, `GemWalletSessionStore`, `GemDevicePlatform`, `GemNotificationPermissions` — is not a foreign-domain store and several services may hold it.
+
 ```rust
 // services/confirm/mod.rs
 #[derive(uniffi::Object)]
@@ -165,6 +169,8 @@ An export earns its place by making a decision. A function that looks up a const
 The test is what the caller could not have worked out: if the answer depends only on the variant, the variant is the answer and the app maps it. If it depends on state, configuration, a chain rule or several values at once, it is a decision and Core owns it.
 
 The one exception is a [projection](#a-row-is-projected-from-its-value-never-fetched-from-a-service).
+
+**An export also loses its place when the last app caller goes**, because the generated interface, the wrapper and the mock requirement stay behind on both apps. `just check-ffi` reports every `#[uniffi::export] pub fn` that no app names; a function Core still uses keeps its body and loses only the export, one nothing uses is deleted. The composition services are where this happens most, and `GemExplorerService` is the finished shape: only its constructor is exported, because the composition root builds the object, while `get_address_url` and `get_transaction_link` sit in a plain `impl` block that the screen services call — every screen reads its explorer link through [its own screen service](#composition-services-are-reached-through-the-screen-service).
 
 ### A staged load names what each stage waits for
 
@@ -431,7 +437,9 @@ impl<T: Clone + Default> GemLoad<T> {
 
 `data` is the decision: a fetch that succeeds replaces the value, a fetch that fails keeps a value already on screen, and only a screen with nothing to keep shows the error. A screen therefore hands its record back for the next load — `refresh(details)`, not `refresh(chain, address)` — so Core decides what survives a failure. Never re-derive the previous value from the sections the app is rendering: that is the same decision read backwards out of the UI.
 
-A screen whose rows come from a store query rather than a Core record — the stake delegations, the asset transactions, the activity list — tells its refresh what it shows (`GemStakeService::refresh` takes the delegations, `GemAssetDetailsService::refresh` and `GemTransactionsService::refresh` take `has_transactions`), and Core answers with `GemLoadState::refreshed`. An `Error` state takes the place of the empty state and is drawn as the shared error row (`GemListRow::Error` on Android, `ListItemErrorView` on iOS); rows already on screen stay, with no error.
+A screen whose rows come from a store query rather than a Core record — the stake delegations, the asset transactions, the activity list — tells its refresh what it shows (`GemStakeService::refresh` takes the delegations, `GemAssetDetailsService::refresh` and `GemTransactionsService::refresh` take `has_transactions`), and Core answers with `GemLoadState::refreshed`. An `Error` state takes the place of the empty state and is drawn as the shared error row (`GemListRow::Error` on Android, `ListItemErrorView` on iOS); rows already on screen stay, with no error. Which failure earns that row is `load_error(state, has_rows)`, not a `case .error` each screen writes for itself.
+
+`GemLoadState` is the only shape for these four answers. A screen that needs `Loading | Data | Failed` has not found a fifth case, it has restated this enum, and the four ways it crosses are all on `GemLoadState`: `of` builds it from a `Result`, `into_result` reads it back, `refreshed` folds a sync into what the screen shows, and `data` on `GemLoad<T>` makes the transition. Each app turns it into the state its views already take, once: `GemLoadState.stateViewType(_:)` on iOS, `loadError` plus the row builders on Android.
 
 ### One copy model for every address, phrase and key
 
@@ -475,15 +483,13 @@ A view model that already owns the screen's service still asks that service for 
 
 ### The row carries the whole answer; the view model only reads it
 
-Once Core owns the row, the app-side model has nothing left to decide, and a model whose every property is a one-line read of the record should not exist. `GemWalletRow` carries `id`, `name`, `subtitle`, `placeholder`, `showsWatchBadge`, `isPinned`, `hasAvatar` and `imageUrl`, and each app maps it once, in a row extension, to the platform model its view takes: iOS `GemWalletRow.listItem` builds the `ListItemModel` that `WalletListItemView` draws, Android `GemWalletRow.uiModel(context)` builds the `WalletRowUIModel` that `WalletItem` draws. No view model restates its fields.
+Once Core owns the row, the app-side model has nothing left to decide. `GemWalletRow` carries `id`, `name`, `subtitle`, `placeholder`, `showsWatchBadge`, `isPinned`, `hasAvatar` and `imageUrl`, and each app maps it once, in a row extension, to the platform model its view takes: iOS `GemWalletRow.listItem` builds the `ListItemModel` that `WalletListItemView` draws, Android `GemWalletRow.uiModel(context)` builds the `WalletRowUIModel` that `WalletItem` draws. Where a model still stands between the row and the view, it is [the row and nothing else](#an-app-row-model-stores-the-row-and-nothing-else).
 
 Two things a record cannot carry are a localized string and a bundled image asset, and both have one home per platform.
 
 **Every Core case that becomes localized text maps in the module's mapper file** ([one mapper per module](#one-mapper-per-module-names-every-core-key-it-renders)): Core returns the case, the file returns the string. Never push the app's string catalog into Core through a foreign localizer — that trades a maintained translation for an FFI crossing per row. Text Core composes itself, such as a default wallet name, is a `GemLocalizedText` case (`WalletDefaultName { index }`) that the mapper renders like any other.
 
 **A Core case that becomes a bundled image maps in the module's style mapper**, beside the colours: `GemEmptyStateImage.image` in iOS `Gemstone+Style.swift` and `GemEmptyStateImage.image()` in Android `style/GemstoneStyle.kt` are that mapping, one place per platform, read by every screen.
-
-A row model earns its place only by owning something the record cannot: formatting that depends on locale or user preference, a binding, a bundled asset, or a join to app-side data. Keep it for those and read the record for everything else.
 
 ### A details screen gets a details record, not a row plus the object it came from
 
@@ -608,7 +614,16 @@ This is as far as a view model should move into Core, and the limits are the poi
 
 Core has no observation primitive and no lifecycle, which is why the reactive half stays in the app. The view model owns the task, the debounce, the cancellation and the navigation; the session owns the answers.
 
-**Async outcomes identify the request that produced them.** Core validates whether the request still applies before changing domain state, including failures. Native cancellation saves work but does not establish freshness. Reuse the owning request/input type; introduce a generation only if overlapping identical inputs require it. [Fiat result acceptance](../core/gemstone/src/services/fiat/session.rs) and [swap result acceptance](../core/gemstone/src/services/swap/session.rs) are the existing examples. [Performance](PERFORMANCE.md) requires rejecting obsolete wallet, asset and quote results. S72–S74 cover request identity for chart migrations.
+**Async outcomes identify the request that produced them.** Core validates whether the request still applies before changing domain state, including failures. Native cancellation saves work but does not establish freshness. Reuse the owning request/input type; introduce a generation only if overlapping identical inputs require it. [Fiat result acceptance](../core/gemstone/src/services/fiat/session.rs) and [swap result acceptance](../core/gemstone/src/services/swap/session.rs) are the existing examples. The shape a service-backed load takes: the service returns a result carrying the request it answers, [`GemLoadState`](#a-screens-load-state-is-one-core-state-and-a-failed-refresh-keeps-what-is-shown) and the value it loaded — [`GemPortfolioResult`](../core/gemstone/src/services/portfolio/session.rs), [`GemRewardsResult`](../core/gemstone/src/services/rewards/model.rs) — and the session folds it with `on_result`, which drops an answer for a selection the screen has moved past and hands the rest to `GemLoad::data`. A per-screen `Loaded | Failed` enum beside that state is a second answer to a question `GemLoadState` already answers. The view model is then two lines and holds no cancellation flag of its own:
+
+```swift
+func refresh() async {
+    let result = await service.refresh(walletId: selectedWallet.id.id)
+    session = session.onResult(result: result)
+}
+```
+
+Never pre-assign a freshly loading record and pass it back in as the shown state: that throws away the rows a failed refresh is supposed to keep. [Performance](PERFORMANCE.md) requires rejecting obsolete wallet, asset and quote results. S72 covers request identity for the remaining chart migration.
 
 ### A screen's state is one phase enum, never a bag of flags
 
@@ -761,11 +776,11 @@ A row or view state carries `GemFormattedNumber`, never a bare `f64`. The adapti
 
 Currency symbols and placement come from the platform's locale renderer. Shared templates such as `GemAssetRate::text` take locale-rendered pieces and labels. Storage/input values (`GemPriceUpdate`, `GemAssetDetailsInput.price`) do not need display wrappers; existing finished text is not precedent for locale-sensitive quantities. Fiat suggestions and rewards counts already cross as `GemFormattedNumber`.
 
-### An app row model holds the Core record; it does not restate its fields
+### An app row model stores the row and nothing else
 
-A row model that copies `url`, `host` and `isSelected` out of a Core record is a partial twin: the copy has to be maintained, and a field added in Core reaches the screen only after someone widens the copy. Hold the record and read through it.
+A row model that copies `url`, `host` and `isSelected` out of a Core record is a partial twin: the copy has to be maintained, and a field added in Core reaches the screen only after someone widens the copy. Hold the record and read through it. A model still earns its place when a list protocol demands one, or when it owns something the record cannot — formatting that depends on locale or user preference, a binding, a bundled asset, or a join to app-side data — but one stored property is the whole of it.
 
-The test is what the model carries that the record cannot, not how much they overlap. A screen input that holds two app assets and a max-amount flag and *projects* the Core request from them is not a twin, however many field names rhyme; a record that carries the same fields re-typed, so that both have to move together, is one whatever it is called.
+The test is what the model carries that the record cannot, not how much they overlap. A screen input that holds two app assets and a max-amount flag and *projects* the Core request from them is not a twin, however many field names rhyme; a record that carries the same fields re-typed, so that both have to move together, is one whatever it is called. Holding the domain object *and* the row is the twin this rule exists to prevent: the model then has two places to answer the same question, and the two apps answer it differently.
 
 ```swift
 struct ChainNodeViewModel {
@@ -778,9 +793,7 @@ struct ChainNodeViewModel {
 
 `GemNodeRow` already carries the node, its title, its latest-block subtitle, its latency status and whether it can be deleted, so the model stores the row and every member reads through it. This is the same rule as [no hand-written twins](#6-where-derived-domain-answers-live), applied to the presentation layer. A view-facing UI model that turns the row into platform values for a composable (Android's `GemNodeRow.uiModel(context)`) is the [translation](#a-ui-state-class-translates-the-view-state-it-does-not-re-shape-it), not a twin: it holds no Core type.
 
-### A row model conforms to a UI protocol; it stores nothing but the row
-
-A row model still earns its place when a list protocol demands one — it is the type that conforms. What it may not do is keep a second source of truth beside the record:
+The type that conforms to a list protocol reads the same way:
 
 ```swift
 struct PriceAlertItemViewModel: ListAssetItemViewable {
@@ -801,7 +814,7 @@ class TransactionDataAggregateImpl(
 }
 ```
 
-One stored property, and every member reads through it. When a member cannot — a title, a symbol, an id for the image — that field belongs on the Core row, not on a second thing the model holds alongside it. Holding the domain object *and* the row is the twin this rule exists to prevent: the model then has two places to answer the same question, and the two apps answer it differently.
+When a member cannot read through the row — a title, a symbol, an id for the image — that field belongs on the Core row, not on a second thing the model holds alongside it.
 
 Four questions settle where a member goes, in order:
 
@@ -839,7 +852,7 @@ Those extensions live in the module's [two mapper files](#one-mapper-per-module-
 
 A record crosses by copy. Count calls and copied payloads, and measure the Rust work behind them. The rules below avoid unnecessary crossings without introducing a caching framework.
 
-**Feature views do not call Core directly.** A body or composable can run repeatedly. The model owns derivation: one cheap pure projection per render is allowed by the preceding example; expensive preparation and list projections run when their inputs change. Views consume the prepared result. Do not introduce `remember` around a feature-level Core call as a substitute for the model boundary.
+**Feature views do not call Core directly.** A body or composable can run repeatedly, so the model owns derivation and the view consumes the prepared result — [derived once and passed down](#a-screen-derives-its-record-once-and-passes-it-down). Do not introduce `remember` around a feature-level Core call as a substitute for the model boundary.
 
 **One call per list, not one per row.** A rule that takes the whole list — `matching_assets(assets, query)` — costs one crossing; the same rule as `matches(asset, query)` costs one per item and copies each item twice. `transaction_rows(transactions)` builds a page of rows in one crossing, where `transaction_row(transaction)` per item would send a whole `TransactionExtended` in and a row back for each one — a page of 500 would be 1000 record copies. Prefer `rows(items) -> Vec<Row>` for anything that can be long.
 
@@ -1245,7 +1258,7 @@ The identifier string matches native database storage. Mapping the binding direc
 
 ## 7. At most one Core service on iOS; narrow cases on Android
 
-An iOS view model holds **at most one** Core service, named `service`, and it is **`private`**; a model that does not need Core holds none. Reuse the owning domain service when it already answers the screen. Add a screen-level service only when it genuinely composes collaborators or returns a cohesive screen result — never to satisfy a field-count rule. An Android view model holds the same Core service through its generated `GemFooServiceInterface` (`private val service`), plus the observed reads the screen watches as narrow application cases (a Room `Flow` behind `GetPriceAlerts`, `GetTransactions`, `GetWalletAssets`) and `GetSession`. A case that only forwards a Core call — a setter over one service method, a lookup over another — is migration debt: delete it and call the service. A non-private service on iOS usually means the view is reaching through the model for a dependency.
+An iOS view model holds **at most one** Core service, named `service`, and it is **`private`**; a model that does not need Core holds none. Reuse the owning domain service when it already answers the screen. Add a screen-level service only when it genuinely composes collaborators or returns a cohesive screen result — never to satisfy a field-count rule. An Android view model holds the same Core service through its generated `GemFooServiceInterface` (`private val service`), plus the observed reads the screen watches as narrow application cases (a Room `Flow` behind `GetPriceAlerts`, `GetTransactions`, `GetWalletAssets`) and `GetSession`. A case that only forwards a Core call — a setter over one service method, a lookup over another — is migration debt: delete it and call the service. A non-private service on iOS usually means the view is reaching through the model for a dependency. A second Core service added so a screen can answer one question is the same mistake from the other side: if the owning service can forward the call, it should, and a one-line forward on it is not a duplicate reader. `show_perpetuals` is the worked example: the preferences service keeps the rule, and the asset selection, perpetual and portfolio services each forward it to the screens they own, so no screen reads the preference itself. The observation seam still registers the setting — `ObservablePreferences.isPerpetualEnabled` on iOS, `UserConfig.isPerpetualEnabled()` on Android — and the answer comes from the service.
 
 **Native observation is intentional.** iOS holds `ObservableQuery<Request>` over GRDB `ValueObservation`, with `BindableQuery` as the database-injection seam. Android injects a narrow case returning a Room `Flow`. Both are observation dependencies beside the service; neither is a second business owner.
 
@@ -1333,7 +1346,7 @@ For a real platform-only concern, iOS uses a feature service in `Features/<Featu
 
 ### Composition services are reached through the screen service
 
-`GemExplorerService`, `GemDeeplinkService`, `GemSwapService`, `GemAssetConfigService`, `GemPriceService` are *composition* services: screen services hold them, and a screen reads their answers through its own service — the chart's contract link rides in `GemChartService::sections`, the confirm screen's sender link is `GemConfirmTransferService::address_url`, the asset screen's share link, token link and swap pair ride in its `GemAssetDetails` record (`share_url`, `token_link`, `swap_pair`), and the confirm sheet's acquire flow is `GemConfirmation::acquire_asset_flow`. A composition service's method is exported only while an app still calls it; once every screen reads it through its screen service, move the method to a plain `impl` block (the constructor stays exported because the composition root builds the object). One route per answer, and it is the screen service's: an answer also reached through a Hilt-injected coordinator or a `CompositionLocal` is a second route, and two routes disagree somewhere (a slippage default, an acquire-flow title). A composition service therefore reaches the Compose tree only at the root: the navigation builder, the one caller that is not a screen, reads `LocalDeeplinkService` and `LocalAssetsService` once in `rememberWalletNavigationState` and hands them to `WalletNavigator` as parameters; no feature composable reads one.
+`GemExplorerService`, `GemDeeplinkService`, `GemSwapService`, `GemAssetConfigService`, `GemPriceService` are *composition* services: screen services hold them, and a screen reads their answers through its own service — the chart's contract link rides in `GemChartService::sections`, the confirm screen's sender link is `GemConfirmTransferService::address_url`, the asset screen's share link, token link and swap pair ride in its `GemAssetDetails` record (`share_url`, `token_link`, `swap_pair`), and the confirm sheet's acquire flow is `GemConfirmation::acquire_asset_flow`. A composition service's method is exported only while an app still calls it ([no trivial exports](#no-trivial-exports)). One route per answer, and it is the screen service's: an answer also reached through a Hilt-injected coordinator or a `CompositionLocal` is a second route, and two routes disagree somewhere (a slippage default, an acquire-flow title). A composition service therefore reaches the Compose tree only at the root: the navigation builder, the one caller that is not a screen, reads `LocalDeeplinkService` and `LocalAssetsService` once in `rememberWalletNavigationState` and hands them to `WalletNavigator` as parameters; no feature composable reads one.
 
 On Android the Hilt module binds both the concrete class and the generated interface (`fun provideGemFooServiceInterface(service: GemFooService): GemFooServiceInterface = service`): Core constructors need the concrete type to compose, view models and coordinators take the interface.
 
@@ -1659,7 +1672,7 @@ The signer's convention must be explicit and tested. HyperCore reduce orders int
 
 ### FFI has a maintenance cost
 
-An exported method creates generated interfaces, wrappers, and mock requirements even when no app uses it. After replacing a path, check callers on both apps, including extension wrappers and implicit receiver calls. Match the receiver when methods share a name. Move methods used only inside Core to a plain `impl`; delete unused ones. Platform ports implemented by the apps are different: Core is their caller.
+After replacing a path, check callers on both apps, including extension wrappers and implicit receiver calls, and match the receiver when methods share a name; what the replaced export then owes is in [no trivial exports](#no-trivial-exports). Platform ports implemented by the apps are different: Core is their caller.
 
 Types and conversions may become redundant after un-exporting a method. Keep `Gem` for the FFI surface and reuse the underlying domain type internally when the wrapper carries no distinct meaning. Do not expose an API solely so a mock can reconstruct the production result.
 

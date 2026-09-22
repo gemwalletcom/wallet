@@ -39,6 +39,15 @@ struct MigrationsTests {
             }
             try db.execute(sql: "INSERT INTO assets (id, chain, name, symbol, decimals, type) VALUES ('ethereum', 'ethereum', 'Ethereum', 'ETH', 18, 'NATIVE')")
             try db.execute(sql: "INSERT INTO price_alerts (id, assetId, currency, price, priceDirection) VALUES ('ethereum_USD_1e-05_up', 'ethereum', 'USD', 0.00001, 'up')")
+
+            try db.drop(table: AssetMarketRecord.databaseTableName)
+            try db.alter(table: PriceRecord.databaseTableName) {
+                $0.add(column: AssetMarketRecord.Columns.marketCap.name, .double)
+                $0.add(column: AssetMarketRecord.Columns.marketCapRank.name, .integer)
+                $0.add(column: AssetMarketRecord.Columns.allTimeHigh.name, .double)
+                $0.add(column: AssetMarketRecord.Columns.allTimeHighDate.name, .date)
+            }
+            try db.execute(sql: "INSERT INTO prices (assetId, price, priceUsd, priceChangePercentage24h, marketCap, marketCapRank, allTimeHigh, allTimeHighDate) VALUES ('ethereum', 2, 2, 1, 42, 7, 4800, 0)")
         }
         try migrations.runChanges(dbQueue: dbQueue)
 
@@ -51,6 +60,7 @@ struct MigrationsTests {
             #expect(balanceColumns.contains(where: { $0.name == BalanceRecord.Columns.isActive.name }))
             #expect(balanceColumns.contains(where: { $0.name == BalanceRecord.Columns.earn.name }))
             #expect(balanceColumns.contains(where: { $0.name == BalanceRecord.Columns.earnAmount.name }))
+            #expect(!balanceColumns.contains(where: { $0.name == "lastUsedAt" }), "nothing reads the column, so it is gone")
 
             let assetColumns = try db.columns(in: AssetRecord.databaseTableName)
             #expect(assetColumns.contains(where: { $0.name == AssetRecord.Columns.isSellable.name }))
@@ -62,9 +72,16 @@ struct MigrationsTests {
             let validatorColumns = try db.columns(in: StakeValidatorRecord.databaseTableName)
             #expect(validatorColumns.contains(where: { $0.name == StakeValidatorRecord.Columns.providerType.name }))
 
-            let priceColumns = try db.columns(in: PriceRecord.databaseTableName)
-            #expect(priceColumns.contains(where: { $0.name == PriceRecord.Columns.marketCap.name }))
-            #expect(priceColumns.contains(where: { $0.name == PriceRecord.Columns.priceUsd.name }))
+            let priceColumns = try db.columns(in: PriceRecord.databaseTableName).map(\.name)
+            #expect(priceColumns.contains(PriceRecord.Columns.priceUsd.name))
+            #expect(!priceColumns.contains(AssetMarketRecord.Columns.marketCap.name), "market data lives in its own table")
+
+            let market = try #require(try AssetMarketRecord.fetchOne(db))
+            #expect(market.assetId.identifier == "ethereum")
+            #expect(market.marketCap == 42)
+            #expect(market.marketCapRank == 7)
+            #expect(market.allTimeHigh == 4800)
+            #expect(market.allTimeHighDate == Date(timeIntervalSince1970: 0))
 
             #expect(try! db.tableExists(AssetLinkRecord.databaseTableName))
             #expect(try! db.tableExists(SearchRecord.databaseTableName))

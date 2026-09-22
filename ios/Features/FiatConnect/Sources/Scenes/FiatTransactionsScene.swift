@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import Localization
 import Primitives
 import PrimitivesComponents
 import Store
@@ -16,6 +17,11 @@ public struct FiatTransactionsScene: View {
 
     public var body: some View {
         List {
+            if let error = model.loadError {
+                Section {
+                    ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
+                }
+            }
             ForEach(model.sections) { section in
                 Section {
                     ForEach(section.values) {
@@ -38,7 +44,7 @@ public struct FiatTransactionsScene: View {
             .listRowInsets(.assetListRowInsets)
         }
         .overlay {
-            if model.transactions.isEmpty {
+            if model.transactions.isEmpty, model.loadError == nil {
                 EmptyContentView(model: model.emptyContentModel)
                     .padding(.horizontal, .medium)
             }

@@ -33,7 +33,11 @@ impl GemBannerService {
     }
 
     pub async fn close(&self, key: GemBannerKey) -> Result<(), GemServiceError> {
-        self.store.set_state(key, BannerState::Cancelled).await
+        self.set_banner_state(key, BannerState::Cancelled).await
+    }
+
+    pub async fn set_banner_state(&self, key: GemBannerKey, state: BannerState) -> Result<(), GemServiceError> {
+        self.store.set_state(key, state).await
     }
 
     pub fn banner_content(&self, event: BannerEvent, asset: Option<Asset>, state: BannerState) -> GemBannerContent {

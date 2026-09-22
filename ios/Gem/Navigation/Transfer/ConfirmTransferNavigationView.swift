@@ -79,7 +79,7 @@ struct ConfirmTransferNavigationView: View {
                     }
                     .sheetPresentation(.forCurrentDeviceSize(expandable: true))
                 case let .addressDetails(chainAddress):
-                    AddressDetailsNavigationStack(model: viewModelFactory.addressDetailsScene(chainAddress: chainAddress))
+                    AddressDetailsDestination(chainAddress: chainAddress)
                 }
             }
     }

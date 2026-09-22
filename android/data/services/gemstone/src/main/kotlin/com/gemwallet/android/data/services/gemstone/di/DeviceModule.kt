@@ -28,6 +28,7 @@ import uniffi.gemstone.GemNotificationPermissions
 import uniffi.gemstone.GemNotificationsService
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemSubscriptionService
+import uniffi.gemstone.GemWalletSessionService
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -40,14 +41,14 @@ object DeviceModule {
     fun provideGemDeviceService(
         @Named("registration") apiClient: GemDeviceApiClient,
         subscriptionService: GemSubscriptionService,
-        walletStore: GemstoneWalletStore,
+        walletSessionService: GemWalletSessionService,
         platform: GemstoneDevicePlatform,
         preferencesService: GemPreferencesService,
-    ): GemDeviceService = GemDeviceService(apiClient, subscriptionService, walletStore, platform, preferencesService)
+    ): GemDeviceService = GemDeviceService(apiClient, subscriptionService, walletSessionService, platform, preferencesService)
 
     @Provides
     @Singleton
-    fun provideGemSubscriptionService(@Named("registration") apiClient: GemDeviceApiClient, walletStore: GemstoneWalletStore): GemSubscriptionService = GemSubscriptionService(apiClient, walletStore)
+    fun provideGemSubscriptionService(@Named("registration") apiClient: GemDeviceApiClient, walletSessionService: GemWalletSessionService): GemSubscriptionService = GemSubscriptionService(apiClient, walletSessionService)
 
     @Provides
     @Singleton

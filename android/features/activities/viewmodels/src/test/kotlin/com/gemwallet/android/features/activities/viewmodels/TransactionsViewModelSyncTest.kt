@@ -63,7 +63,7 @@ class TransactionsViewModelSyncTest {
         viewModel.syncIfNeeded()?.join()
 
         coVerify(exactly = 2) { service.refresh(null, false) }
-        assertEquals(GemListRow.Error(offline), viewModel.errorRow.value)
+        assertEquals(offline.message, (viewModel.errorRow.value as GemListRow.Error).error.message)
     }
 
     @Test

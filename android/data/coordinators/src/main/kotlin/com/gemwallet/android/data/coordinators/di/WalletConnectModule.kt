@@ -8,9 +8,7 @@ import com.gemwallet.android.application.wallet_connect.cases.DisconnectWalletCo
 import com.gemwallet.android.application.wallet_connect.cases.GetWalletConnections
 import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
 import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
-import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
 import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConnectRequest
-import com.gemwallet.android.data.coordinators.wallet_connect.PrepareSessionProposalImpl
 import com.gemwallet.android.data.coordinators.wallet_connect.WalletConnectCoordinator
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneConnectionStore
 import dagger.Module
@@ -24,12 +22,6 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 @Module
 object WalletConnectModule {
-    @Provides
-    @Singleton
-    fun providePrepareSessionProposal(walletConnectService: GemWalletConnectService): PrepareSessionProposal = PrepareSessionProposalImpl(
-        walletConnectService = walletConnectService,
-    )
-
     @Singleton
     @Provides
     fun provideWalletConnectCoordinator(connectionStore: GemstoneConnectionStore, walletConnectClient: WalletConnectClient, walletConnectService: GemWalletConnectService, chainService: GemChainService): WalletConnectCoordinator =

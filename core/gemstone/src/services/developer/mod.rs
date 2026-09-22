@@ -9,8 +9,8 @@ use crate::services::device::GemDevicePlatform;
 use crate::services::error::GemServiceError;
 use crate::services::perpetual::GemPerpetualService;
 use crate::services::preferences::GemPreferencesService;
-use crate::services::transaction_state::GemTransactionStateStore;
-use crate::services::transactions::GemTransactionStore;
+use crate::services::transaction_state::GemTransactionStateService;
+use crate::services::transactions::GemTransactionsService;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 
 pub use store::GemDeveloperStore;
@@ -20,8 +20,8 @@ pub struct GemDeveloperService {
     platform: Arc<dyn GemDevicePlatform>,
     preferences: Arc<GemPreferencesService>,
     wallet_preferences: Arc<GemWalletPreferencesService>,
-    transaction_state: Arc<dyn GemTransactionStateStore>,
-    transactions: Arc<dyn GemTransactionStore>,
+    transaction_state: Arc<GemTransactionStateService>,
+    transactions: Arc<GemTransactionsService>,
     perpetual: Arc<GemPerpetualService>,
     store: Arc<dyn GemDeveloperStore>,
 }
@@ -33,8 +33,8 @@ impl GemDeveloperService {
         platform: Arc<dyn GemDevicePlatform>,
         preferences: Arc<GemPreferencesService>,
         wallet_preferences: Arc<GemWalletPreferencesService>,
-        transaction_state: Arc<dyn GemTransactionStateStore>,
-        transactions: Arc<dyn GemTransactionStore>,
+        transaction_state: Arc<GemTransactionStateService>,
+        transactions: Arc<GemTransactionsService>,
         perpetual: Arc<GemPerpetualService>,
         store: Arc<dyn GemDeveloperStore>,
     ) -> Self {
@@ -62,10 +62,7 @@ impl GemDeveloperService {
     }
 
     pub async fn clear_pending_transactions(&self) -> Result<(), GemServiceError> {
-        for pending in self.transaction_state.get_pending_transactions().await? {
-            self.transaction_state.delete_transaction(pending.wallet.id, pending.transaction.id).await?;
-        }
-        Ok(())
+        self.transaction_state.clear_pending_transactions().await
     }
 
     pub fn reset_transactions_timestamp(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {

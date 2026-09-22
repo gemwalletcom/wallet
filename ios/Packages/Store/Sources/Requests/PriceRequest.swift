@@ -14,6 +14,7 @@ public struct PriceRequest: DatabaseQueryable {
     public func fetch(_ db: Database) throws -> PriceData? {
         try AssetRecord
             .including(optional: AssetRecord.price)
+            .including(optional: AssetRecord.market)
             .including(all: AssetRecord.priceAlerts)
             .including(all: AssetRecord.links)
             .filter(AssetRecord.Columns.id == assetId.identifier)

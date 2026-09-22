@@ -11,7 +11,6 @@ interface PerpetualPositionDataAggregate {
     val asset: Asset
     val title: String
     val direction: PerpetualDirection
-    val leverage: String
     val positionLabel: GemLocalizedText
     val marginAmount: String
     val pnl: GemLocalizedText

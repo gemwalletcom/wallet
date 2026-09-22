@@ -38,9 +38,9 @@ pub(crate) fn map_approval_simulation(decoded: TransactionApproval) -> Simulatio
             None,
         )],
         payload: vec![
+            SimulationPayloadField::standard(SimulationPayloadFieldKind::Method, "approve", SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Primary),
+            SimulationPayloadField::standard(SimulationPayloadFieldKind::Contract, contract, SimulationPayloadFieldType::Address, SimulationPayloadFieldDisplay::Primary),
             SimulationPayloadField::standard(SimulationPayloadFieldKind::Spender, approval.spender, SimulationPayloadFieldType::Address, SimulationPayloadFieldDisplay::Primary),
-            SimulationPayloadField::standard(SimulationPayloadFieldKind::Contract, contract, SimulationPayloadFieldType::Address, SimulationPayloadFieldDisplay::Secondary),
-            SimulationPayloadField::standard(SimulationPayloadFieldKind::Method, "approve", SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Secondary),
         ],
         balance_changes: vec![],
     };
@@ -98,6 +98,10 @@ mod tests {
                     value: if is_unlimited { None } else { Some(value) },
                     is_unlimited
                 })
+            );
+            assert_eq!(
+                result.payload.iter().map(|field| field.display.clone()).collect::<Vec<_>>(),
+                vec![SimulationPayloadFieldDisplay::Primary, SimulationPayloadFieldDisplay::Primary, SimulationPayloadFieldDisplay::Primary]
             );
         }
     }

@@ -50,8 +50,8 @@ class DevicePushSettings(
     private val pushEnabledState = MutableStateFlow(false)
 
     override suspend fun switchPushEnabled(enabled: Boolean): GemPushState = withContext(ioDispatcher) {
-        userConfig.stopAskNotifications()
         val state = notificationsService.get().setEnabled(enabled)
+        userConfig.stopAskNotifications()
         pushEnabledState.value = state.isEnabled
         state
     }

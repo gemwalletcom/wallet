@@ -42,7 +42,6 @@ import com.gemwallet.android.ui.components.clipboard.setCopy
 import com.gemwallet.android.ui.components.screen.PhraseLayout
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.phraseRows
-import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.Spacer16
@@ -61,7 +60,6 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: (walletId: WalletId?) ->
 
     val viewModel: CreateWalletViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val defaultNameText by viewModel.defaultNameText.collectAsStateWithLifecycle()
     val errorText by viewModel.errorText.collectAsStateWithLifecycle()
     val verificationState by viewModel.verificationState.collectAsStateWithLifecycle()
 
@@ -88,7 +86,6 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: (walletId: WalletId?) ->
             }
 
             false -> UI(
-                defaultName = defaultNameText,
                 data = uiState.data,
                 dataError = errorText,
                 onCreate = viewModel::confirmPhrase,
@@ -117,10 +114,9 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: (walletId: WalletId?) ->
 }
 
 @Composable
-private fun UI(defaultName: String, data: List<String>, dataError: String?, onCreate: (String) -> Unit, onCancel: () -> Unit) {
+private fun UI(data: List<String>, dataError: String?, onCreate: () -> Unit, onCancel: () -> Unit) {
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
-    val name = defaultName
     Scene(
         title = stringResource(id = R.string.wallet_new_title),
         onClose = onCancel,
@@ -128,7 +124,7 @@ private fun UI(defaultName: String, data: List<String>, dataError: String?, onCr
         mainAction = {
             MainActionButton(
                 title = stringResource(id = R.string.common_continue),
-                onClick = { onCreate(name) },
+                onClick = onCreate,
             )
         },
     ) {
@@ -169,7 +165,6 @@ fun PreviewCreateUI() {
     WalletTheme {
         Column {
             UI(
-                defaultName = "Wallet 2",
                 data = listOf(
                     "cinnamon", "two", "three", "cinnamon", "five", "six",
                     "seven", "eight", "cinnamon", "ten", "eleven", "twelve",

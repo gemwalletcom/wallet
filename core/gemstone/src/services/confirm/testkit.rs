@@ -72,21 +72,14 @@ impl ConfirmTestkit {
                 })
                 .collect(),
         ));
-        let balance = Arc::new(GemBalanceService::new(
-            gateway.clone(),
-            wallets,
-            asset_store,
-            balances.clone(),
-            assets.clone(),
-            Arc::new(SubscriptionTestkit::new(&[], &[]).service),
-        ));
+        let balance = Arc::new(GemBalanceService::new(gateway.clone(), balances.clone(), assets.clone(), session.clone(), Arc::new(SubscriptionTestkit::new(&[], &[]).service)));
         let explorer = Arc::new(GemExplorerService::new(preferences.clone()));
-        let addresses = Arc::new(MemoryAddressStore::default());
+        let names = Arc::new(GemNameService::new(device_api.clone(), Arc::new(MemoryAddressStore::default())));
         let stake = Arc::new(GemStakeService::new(
             gateway.clone(),
             Arc::new(GemStaticApiClient::new(provider.clone())),
             Arc::new(UnusedStakeStore),
-            addresses.clone(),
+            names.clone(),
             explorer.clone(),
             preferences.clone(),
             session.clone(),
@@ -115,7 +108,7 @@ impl ConfirmTestkit {
         let service = Arc::new(GemConfirmTransferService::new(
             confirm.clone(),
             explorer,
-            Arc::new(GemNameService::new(device_api, addresses)),
+            names,
             Arc::new(GemAssetConfigService::new()),
             Arc::new(UnusedSigner),
             Arc::new(MemoryKeystorePassword::default()),
@@ -139,6 +132,9 @@ impl GemAssetStore for MemoryAssetStore {
     }
     async fn get_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, GemServiceError> {
         Ok(asset_ids.into_iter().map(|id| Asset::from_chain(id.chain)).collect())
+    }
+    async fn get_wallet_assets(&self, _: WalletId) -> Result<Vec<Asset>, GemServiceError> {
+        Ok(vec![])
     }
     async fn save_assets(&self, _: Vec<AssetBasic>) -> Result<(), GemServiceError> {
         panic!("unexpected asset write")
