@@ -1,19 +1,19 @@
 package com.gemwallet.android
 
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.confirm.asset
 import com.gemwallet.android.domains.confirm.unpackTransferData
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAccount
-import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.testkit.mockSession
-import com.gemwallet.android.testkit.mockWallet
-import com.gemwallet.android.ui.navigation.routes.PaymentVerificationRoute
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockPaymentInvoice
+import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockTransferDataExtra
+import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
+import com.gemwallet.android.ui.navigation.routes.PaymentVerificationRoute
 import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
 import io.mockk.every
@@ -79,7 +79,6 @@ class PaymentNavigationTest {
         recipient = GemRecipient(address = SOLANA_ADDRESS),
         value = BigInteger("19000000"),
     )
-
 
     private companion object {
         const val PAYMENT_URL = "https://example.com/pay"

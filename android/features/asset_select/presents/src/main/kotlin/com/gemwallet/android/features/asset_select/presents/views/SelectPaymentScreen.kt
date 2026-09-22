@@ -6,11 +6,7 @@ import com.gemwallet.android.features.asset_select.viewmodels.PaymentSelectViewM
 import com.wallet.core.primitives.AssetId
 
 @Composable
-fun SelectPaymentScreen(
-    onCancel: () -> Unit,
-    onSelect: (AssetId) -> Unit,
-    viewModel: PaymentSelectViewModel = hiltViewModel(),
-) {
+fun SelectPaymentScreen(onCancel: () -> Unit, onSelect: (AssetId) -> Unit, viewModel: PaymentSelectViewModel = hiltViewModel()) {
     AssetSelectScreen(
         onCancel = onCancel,
         onSelect = onSelect,

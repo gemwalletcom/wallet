@@ -3,13 +3,13 @@ package com.gemwallet.android.ui.components
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.webkit.WebResourceRequest
-import android.webkit.WebView as AndroidWebView
 import android.webkit.WebViewClient
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
+import android.webkit.WebView as AndroidWebView
 
 interface WebViewBridge {
     val name: String
@@ -17,11 +17,7 @@ interface WebViewBridge {
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun WebView(
-    url: String,
-    bridge: WebViewBridge? = null,
-    modifier: Modifier = Modifier,
-) {
+fun WebView(url: String, bridge: WebViewBridge? = null, modifier: Modifier = Modifier) {
     key(url) {
         AndroidView(
             modifier = modifier,

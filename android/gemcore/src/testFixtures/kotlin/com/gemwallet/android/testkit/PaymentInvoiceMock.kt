@@ -8,10 +8,7 @@ import uniffi.gemstone.PaymentLink
 import uniffi.gemstone.PaymentMerchant
 import uniffi.gemstone.PaymentQuote
 
-fun mockPaymentInvoice(
-    link: PaymentLink = PaymentLink.SolanaPay("https://example.com/pay"),
-    quotes: List<Asset> = emptyList(),
-) = PaymentInvoice(
+fun mockPaymentInvoice(link: PaymentLink = PaymentLink.SolanaPay("https://example.com/pay"), quotes: List<Asset> = emptyList()) = PaymentInvoice(
     link = link,
     merchant = PaymentMerchant(name = "Merchant", icon = "https://example.com/icon.png"),
     price = null,

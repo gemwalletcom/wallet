@@ -119,7 +119,10 @@ class ConfirmViewModelPaymentAssetTest {
             savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transfer.pack()))),
             connectionStatusObserver = mockk(relaxed = true),
             ioDispatcher = testDispatcher,
-            context = mockk<Context> { every { getString(any()) } returns "Error"; every { getString(any(), *anyVararg()) } returns "Error" },
+            context = mockk<Context> {
+                every { getString(any()) } returns "Error"
+                every { getString(any(), *anyVararg()) } returns "Error"
+            },
         )
     }
 }

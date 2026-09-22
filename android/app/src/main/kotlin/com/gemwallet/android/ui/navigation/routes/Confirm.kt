@@ -30,9 +30,7 @@ data class PaymentSelectRoute(val assetIds: List<AssetId>) : NavKey
 @Serializable
 data class PaymentVerificationRoute(val url: String, val link: @Contextual PaymentLink) : NavKey
 
-fun EntryProviderScope<NavKey>.confirm(
-    navigator: WalletNavigator,
-    finishAction: FinishConfirmAction, onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit, cancelAction: CancelAction) {
+fun EntryProviderScope<NavKey>.confirm(navigator: WalletNavigator, finishAction: FinishConfirmAction, onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit, cancelAction: CancelAction) {
     entry<ConfirmRoute>(
         metadata = { key -> routeArguments(paramsArgument(key.params)) },
     ) { key ->

@@ -19,13 +19,13 @@ import uniffi.gemstone.GemChainSettingsServiceInterface
 import uniffi.gemstone.GemConfirmService
 import uniffi.gemstone.GemConfirmServiceInterface
 import uniffi.gemstone.GemConfirmTransferService
-import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemConfirmTransferServiceInterface
 import uniffi.gemstone.GemDeviceService
 import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemNameService
 import uniffi.gemstone.GemNodeService
+import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPriceAlertService

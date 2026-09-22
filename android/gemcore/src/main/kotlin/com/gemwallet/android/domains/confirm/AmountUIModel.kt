@@ -11,7 +11,6 @@ import com.wallet.core.primitives.NFTAsset
 import uniffi.gemstone.GemTransactionHeaderKind
 import uniffi.gemstone.GemValueStyle
 import uniffi.gemstone.PaymentPrice
-
 import java.math.BigInteger
 
 class AmountUIModel(

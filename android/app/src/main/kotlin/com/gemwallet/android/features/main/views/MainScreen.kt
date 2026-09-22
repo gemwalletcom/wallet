@@ -38,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.MessageToast
 import com.gemwallet.android.features.activities.presents.list.TransactionsNavScreen
 import com.gemwallet.android.features.assets.viewmodels.AssetsViewModel
 import com.gemwallet.android.features.assets.views.AssetsAction
@@ -52,7 +53,6 @@ import com.gemwallet.android.ui.components.animation.NavigationAnimation
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.actions.SettingsSceneAction
 import com.gemwallet.android.ui.navigation.WalletNavigator
-import com.gemwallet.android.MessageToast
 import com.gemwallet.android.ui.navigation.WalletRootRoute
 import com.gemwallet.android.ui.navigation.routes.assetsRoute
 import com.gemwallet.android.ui.navigation.routes.settingsRoute

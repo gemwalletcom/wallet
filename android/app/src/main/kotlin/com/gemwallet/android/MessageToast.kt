@@ -14,10 +14,7 @@ internal fun MessageToast(visible: Boolean, @StringRes message: Int, onShown: ()
 }
 
 @Composable
-internal fun MessageToast(
-    message: String?,
-    onShown: () -> Unit,
-) {
+internal fun MessageToast(message: String?, onShown: () -> Unit) {
     val context = LocalContext.current
     LaunchedEffect(message) {
         if (message != null) {

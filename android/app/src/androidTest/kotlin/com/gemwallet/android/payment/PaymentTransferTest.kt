@@ -1,17 +1,10 @@
 package com.gemwallet.android.payment
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import uniffi.gemstone.AlienProvider
-import uniffi.gemstone.GemAssetsService
-import uniffi.gemstone.GemPaymentService
-import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetInfo
-import uniffi.gemstone.TransactionInputType
 import com.gemwallet.android.model.PaymentDestination
 import com.gemwallet.android.model.toPaymentWalletAsset
-import uniffi.gemstone.GemPaymentDestination
-import uniffi.gemstone.GemPaymentRecipient
 import com.gemwallet.android.testkit.includeGemstoneLibs
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetEthereum
@@ -21,13 +14,20 @@ import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
 import com.gemwallet.android.testkit.mockAssetXrp
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.Payment
-import uniffi.gemstone.PaymentRequest
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import uniffi.gemstone.AlienProvider
+import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemPaymentDestination
+import uniffi.gemstone.GemPaymentRecipient
+import uniffi.gemstone.GemPaymentService
+import uniffi.gemstone.GemRecipient
+import uniffi.gemstone.Payment
+import uniffi.gemstone.PaymentRequest
+import uniffi.gemstone.TransactionInputType
 import java.math.BigInteger
 
 private const val BITCOIN_ADDRESS = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"

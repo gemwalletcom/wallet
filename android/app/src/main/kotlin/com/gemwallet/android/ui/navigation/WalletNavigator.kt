@@ -359,9 +359,10 @@ internal fun NavKey.isConfirmFlowSegmentRoute(): Boolean = when (this) {
     is EarnRoute,
     is StakeRoute,
     is SwapPairRoute,
-        is SwapSelectRoute,
-        is PaymentSelectRoute,
-        is PaymentVerificationRoute -> true
+    is SwapSelectRoute,
+    is PaymentSelectRoute,
+    is PaymentVerificationRoute,
+    -> true
 
     else -> false
 }

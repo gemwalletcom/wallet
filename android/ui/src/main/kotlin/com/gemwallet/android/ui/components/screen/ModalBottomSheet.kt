@@ -137,8 +137,7 @@ private fun sheetWindowInsets(keyboard: WindowInsets): WindowInsets = WindowInse
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ColumnScope.SheetContent(sheetState: SheetState, onDismissRequest: () -> Unit, title: String?, dismissType: DialogBarDismissType,
-    actions: @Composable RowScope.() -> Unit, content: @Composable ColumnScope.() -> Unit) {
+private fun ColumnScope.SheetContent(sheetState: SheetState, onDismissRequest: () -> Unit, title: String?, dismissType: DialogBarDismissType, actions: @Composable RowScope.() -> Unit, content: @Composable ColumnScope.() -> Unit) {
     val keyboard = LocalSoftwareKeyboardController.current
     val isLeaving = sheetState.currentValue != SheetValue.Hidden && sheetState.targetValue == SheetValue.Hidden
     LaunchedEffect(isLeaving) {

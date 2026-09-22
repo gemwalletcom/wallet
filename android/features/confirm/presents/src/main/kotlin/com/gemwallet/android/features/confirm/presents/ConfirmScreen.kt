@@ -11,11 +11,11 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,20 +43,19 @@ import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmHeaderUIM
 import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmRowUIModel
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.InfoBottomSheet
+import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.components.WebView
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.AmountListHead
-import com.gemwallet.android.ui.components.InfoBottomSheet
-import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.list_head.AssetValueListHead
-import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.components.list_head.NftHead
 import com.gemwallet.android.ui.components.list_head.SwapListHead
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
-import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsBottomSheet
 import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsSummaryItem
@@ -67,6 +66,7 @@ import com.gemwallet.android.ui.components.simulation.simulationPayloadDetailsCo
 import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsContent
 import com.gemwallet.android.ui.components.swap.SwapDetailsBottomSheet
 import com.gemwallet.android.ui.components.swap.SwapDetailsSummaryItem
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.CancelAction
@@ -254,7 +254,11 @@ fun ConfirmScreen(
                 feeListItem?.let {
                     val onSelect: (() -> Unit)? = when {
                         verification != null -> viewModel::showVerification
-                        feeModel is FeeUIModel.FeeInfo -> { { showSelectTxSpeed = true } }
+
+                        feeModel is FeeUIModel.FeeInfo -> {
+                            { showSelectTxSpeed = true }
+                        }
+
                         else -> null
                     }
                     ListItem(

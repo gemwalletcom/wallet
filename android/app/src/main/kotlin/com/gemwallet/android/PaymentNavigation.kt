@@ -3,8 +3,8 @@ package com.gemwallet.android
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.domains.wallet.chainAddresses
 import com.gemwallet.android.domains.confirm.pack
+import com.gemwallet.android.domains.wallet.chainAddresses
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.PaymentDestination
 import com.gemwallet.android.serializer.toJson

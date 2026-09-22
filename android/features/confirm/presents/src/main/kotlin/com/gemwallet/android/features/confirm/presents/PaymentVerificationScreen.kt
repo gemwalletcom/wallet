@@ -25,11 +25,7 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 
 @Composable
-fun PaymentVerificationScreen(
-    onCancel: () -> Unit,
-    onConfirm: ConfirmTransactionAction,
-    viewModel: PaymentVerificationViewModel = hiltViewModel(),
-) {
+fun PaymentVerificationScreen(onCancel: () -> Unit, onConfirm: ConfirmTransactionAction, viewModel: PaymentVerificationViewModel = hiltViewModel()) {
     val url by viewModel.url.collectAsStateWithLifecycle()
     val confirm by viewModel.confirm.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
