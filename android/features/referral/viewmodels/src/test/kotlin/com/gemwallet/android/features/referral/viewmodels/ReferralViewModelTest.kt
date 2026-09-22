@@ -11,6 +11,7 @@ import com.gemwallet.android.testkit.mockGemRewardsResult
 import com.gemwallet.android.testkit.mockRewards
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWalletMulticoin
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import io.mockk.coEvery
 import io.mockk.every
@@ -28,6 +29,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemRewardsServiceInterface
@@ -148,6 +150,29 @@ class ReferralViewModelTest {
             runCurrent()
 
             assertEquals(IncomingCodeUIModel(), viewModel.incomingCode.value)
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `the info section shows the code, the referral count, the points and the inviter`() = runTest(testDispatcher) {
+        coEvery { service.refresh(any()) } answers {
+            mockGemRewardsResult(walletId = firstArg(), rewards = mockRewards(code = "GEM123", usedReferralCode = "FRIEND", points = 250))
+        }
+        val viewModel = createViewModel()
+
+        try {
+            runCurrent()
+
+            val rows = viewModel.infoRows.value
+            assertEquals(
+                listOf(R.string.rewards_my_referral_code, R.string.rewards_referrals, R.string.rewards_points, R.string.rewards_invited_by).map { "string:$it" },
+                rows.map { it.title },
+            )
+            assertEquals("GEM123", rows[0].subtitle)
+            assertTrue(rows[2].subtitle.orEmpty().contains("250"))
+            assertEquals("FRIEND", rows[3].subtitle)
         } finally {
             viewModel.viewModelScope.cancel()
         }
