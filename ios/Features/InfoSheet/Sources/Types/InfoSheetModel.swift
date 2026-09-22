@@ -8,8 +8,15 @@ import SwiftUI
 public typealias InfoSheetAction = @MainActor @Sendable () -> Void
 
 public enum InfoSheetButton: Sendable {
-    case url(URL)
+    case url(URL, title: String? = nil)
     case action(title: String, action: InfoSheetAction)
+
+    var title: String {
+        switch self {
+        case let .url(_, title): title ?? Localized.Common.learnMore
+        case let .action(title, _): title
+        }
+    }
 }
 
 public enum InfoSheetImage: Sendable {
@@ -22,21 +29,16 @@ public struct InfoSheetModel: Sendable {
     public let description: String
     public let image: InfoSheetImage?
     public let button: InfoSheetButton?
+    public let secondaryButtons: [InfoSheetButton]
     public let titleStyle: TextStyle
     public let descriptionStyle: TextStyle
-
-    public var buttonTitle: String {
-        switch button {
-        case .url, .none: Localized.Common.learnMore
-        case let .action(title, _): title
-        }
-    }
 
     public init(
         title: String,
         description: String,
         image: InfoSheetImage? = nil,
         button: InfoSheetButton? = nil,
+        secondaryButtons: [InfoSheetButton] = [],
         titleStyle: TextStyle = .boldTitle,
         descriptionStyle: TextStyle = .bodySecondary,
     ) {
@@ -44,11 +46,12 @@ public struct InfoSheetModel: Sendable {
         self.description = description
         self.image = image
         self.button = button
+        self.secondaryButtons = secondaryButtons
         self.titleStyle = titleStyle
         self.descriptionStyle = descriptionStyle
     }
 
     var shouldShowButton: Bool {
-        button != nil
+        button != nil || !secondaryButtons.isEmpty
     }
 }

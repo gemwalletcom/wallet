@@ -39,29 +39,51 @@ public struct InfoSheetScene: View {
                     }
                 })
                 .if(model.shouldShowButton) {
-                    $0.safeAreaButton { actionButton }
+                    $0.safeAreaView {
+                        actionButtons
+                            .frame(maxWidth: .scene.button.maxWidth)
+                            .padding(.bottom, .scene.bottom)
+                    }
                 }
                 .safariSheet(url: $isPresentedUrl)
         }
         .presentationDetents(.forCurrentDeviceSize())
     }
 
-    private var actionButton: StateButton {
-        StateButton(
-            text: model.buttonTitle,
-            action: onAction,
-        )
+    private var actionButtons: some View {
+        VStack(spacing: .small) {
+            if let button = model.button {
+                StateButton(text: button.title) {
+                    onAction(button)
+                }
+            }
+            ForEach(model.secondaryButtons.indices, id: \.self) { index in
+                let button = model.secondaryButtons[index]
+                Button {
+                    onAction(button)
+                } label: {
+                    Text(button.title)
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(Colors.black)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: StateButtonStyle.maxHeight)
+                        .contentShape(Capsule())
+                        .overlay {
+                            Capsule().strokeBorder(Colors.gray, lineWidth: 1)
+                        }
+                }
+                .buttonStyle(.plain)
+            }
+        }
     }
 }
 
 // MARK: - Actions
 
 extension InfoSheetScene {
-    private func onAction() {
-        guard let button = model.button else { return }
-
+    private func onAction(_ button: InfoSheetButton) {
         switch button {
-        case let .url(url):
+        case let .url(url, _):
             isPresentedUrl = url
         case let .action(_, action):
             action()

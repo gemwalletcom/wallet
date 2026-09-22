@@ -1,19 +1,22 @@
 import GemstonePrimitives
+import InfoSheet
 import Style
 import SwiftUI
 
 struct JailbreakWarningView: View {
-    let onIgnore: () -> Void
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        ContentUnavailableView {
-            Label("Security Warning", systemImage: SystemImage.exclamationmarkTriangle)
-        } description: {
-            Text("Your device appears to be jailbroken. This may put your wallet and funds at risk.")
-        } actions: {
-            Link("Learn more", destination: AppUrl.docs(.rootedDevice))
-            Button("Ignore", action: onIgnore)
-                .buttonStyle(.borderedProminent)
-        }
+        InfoSheetScene(
+            model: InfoSheetModel(
+                title: "Security Warning",
+                description: "Your device appears to be jailbroken. This may put your wallet and funds at risk.",
+                image: .image(Image(systemName: SystemImage.exclamationmarkTriangle)),
+                button: .url(AppUrl.docs(.rootedDevice), title: "Learn More"),
+                secondaryButtons: [
+                    .action(title: "Continue Anyway", action: { dismiss() }),
+                ],
+            ),
+        )
     }
 }
