@@ -38,7 +38,7 @@ use crate::services::transfer::rules::TransferInput;
 use crate::signer::GemSignerError;
 use num_bigint::BigInt;
 use primitives::TransactionInputType;
-use primitives::{Asset, AssetId, Chain, SimulationPayloadFieldDisplay, SimulationResult, Transaction, TransactionFee, WalletId};
+use primitives::{Asset, AssetId, BlockExplorerLink, Chain, SimulationPayloadFieldDisplay, SimulationResult, Transaction, TransactionFee, WalletId};
 
 #[derive(uniffi::Object)]
 pub struct GemConfirmService {
@@ -158,7 +158,7 @@ impl GemConfirmService {
         })
     }
 
-    pub fn simulation(&self, input_type: TransactionInputType, simulation: Option<SimulationResult>, assets: Vec<Asset>) -> Result<GemConfirmSimulation, GemConfirmError> {
+    pub fn simulation(&self, input_type: TransactionInputType, simulation: Option<SimulationResult>, assets: Vec<Asset>, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> Result<GemConfirmSimulation, GemConfirmError> {
         let has_critical_warning = simulation.as_ref().map(SimulationResult::has_critical_warning).unwrap_or(false);
         let chain = input_type.transaction_asset().chain();
         let approval = input_type.approval_value();
@@ -186,8 +186,8 @@ impl GemConfirmService {
         let (primary_fields, secondary_fields): (Vec<_>, Vec<_>) = payload_fields.into_iter().partition(|field| field.display == SimulationPayloadFieldDisplay::Primary);
         Ok(GemConfirmSimulation {
             has_critical_warning,
-            primary_fields: payload_rows(&primary_fields, Some(chain), &[]),
-            secondary_fields: payload_rows(&secondary_fields, Some(chain), &[]),
+            primary_fields: payload_rows(&primary_fields, chain, &address_url),
+            secondary_fields: payload_rows(&secondary_fields, chain, &address_url),
             header,
             balance_changes,
         })

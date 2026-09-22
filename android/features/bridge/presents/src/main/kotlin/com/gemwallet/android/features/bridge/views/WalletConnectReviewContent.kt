@@ -27,9 +27,9 @@ import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.components.simulation.simulationPayloadDetailsContent
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.WalletId
+import uniffi.gemstone.GemSimulationPayloadRow
 
 internal fun LazyListScope.walletConnectTextMessage(message: String) {
     item {
@@ -47,8 +47,8 @@ internal fun LazyListScope.walletConnectTextMessage(message: String) {
 @Composable
 internal fun WalletConnectPayloadDetailsSheet(
     isVisible: Boolean,
-    primaryFields: List<PayloadField>,
-    secondaryFields: List<PayloadField>,
+    primaryFields: List<GemSimulationPayloadRow>,
+    secondaryFields: List<GemSimulationPayloadRow>,
     onAddressClick: (String) -> Unit,
     onViewFullMessage: () -> Unit,
     onDismissRequest: () -> Unit,

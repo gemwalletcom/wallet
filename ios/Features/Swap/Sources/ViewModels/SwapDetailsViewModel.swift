@@ -2,7 +2,6 @@
 
 import BigInt
 import Components
-import Formatters
 import Foundation
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
@@ -21,7 +20,6 @@ import PrimitivesComponents
 @Observable
 public final class SwapDetailsViewModel {
     private let valueFormatter = ValueFormatter(style: .auto)
-    private let percentSignLessFormatter = PercentFormatter.unsigned
 
     let state: StateViewType<[SwapProviderItem]>
     private let fromAssetPrice: AssetPriceValue

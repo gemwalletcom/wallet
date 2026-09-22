@@ -1,8 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
 import Foundation
+import func Gemstone.formattedPercentage
+import enum Gemstone.GemPercentageStyle
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -10,11 +11,11 @@ import Style
 
 public struct AllTimeValueViewModel: Sendable {
     private let priceFormatter: CurrencyFormatter
-    private let percentFormatter: PercentFormatter
+    private let percentageStyle: GemPercentageStyle
 
-    public init(priceFormatter: CurrencyFormatter, percentFormatter: PercentFormatter) {
+    public init(priceFormatter: CurrencyFormatter, percentageStyle: GemPercentageStyle) {
         self.priceFormatter = priceFormatter
-        self.percentFormatter = percentFormatter
+        self.percentageStyle = percentageStyle
     }
 
     public func allTimeHigh(chartValue: ChartValuePercentage) -> ListItemModel {
@@ -31,7 +32,7 @@ public struct AllTimeValueViewModel: Sendable {
             title: title,
             titleExtra: TransactionDateFormatter(date: chartValue.date).section,
             subtitle: priceFormatter.string(Double(chartValue.value)),
-            subtitleExtra: percentFormatter.string(percentage),
+            subtitleExtra: Gemstone.formattedPercentage(value: percentage, style: percentageStyle).text(),
             subtitleStyleExtra: TextStyle(font: .callout, color: PriceViewModel.priceChangeTextColor(value: percentage)),
         )
     }

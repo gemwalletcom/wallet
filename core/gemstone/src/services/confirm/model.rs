@@ -140,10 +140,10 @@ impl GemConfirmSimulation {
         [address_requests(&self.primary_fields, chain), address_requests(&self.secondary_fields, chain)].concat()
     }
 
-    pub(super) fn with_address_names(self, chain: Chain, names: &[AddressName]) -> Self {
+    pub(super) fn with_address_names(self, names: &[AddressName]) -> Self {
         Self {
-            primary_fields: named_payload_rows(self.primary_fields, Some(chain), names),
-            secondary_fields: named_payload_rows(self.secondary_fields, Some(chain), names),
+            primary_fields: named_payload_rows(self.primary_fields, names),
+            secondary_fields: named_payload_rows(self.secondary_fields, names),
             ..self
         }
     }

@@ -1,5 +1,5 @@
 use gem_solana::siws::SiwsMessage;
-use primitives::{Chain, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, promote_single_secondary_payload_field};
+use primitives::{BlockExplorerLink, Chain, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, promote_single_secondary_payload_field};
 use std::borrow::Cow;
 use std::collections::HashSet;
 
@@ -25,11 +25,11 @@ pub struct MessagePayloadFields {
 }
 
 impl MessagePayloadFields {
-    pub(super) fn rows(self, chain: Chain) -> MessagePayloadPreview {
+    pub(super) fn rows(self, chain: Chain, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> MessagePayloadPreview {
         MessagePayloadPreview {
             message_type: self.message_type,
-            primary: payload_rows(&self.primary, Some(chain), &[]),
-            secondary: payload_rows(&self.secondary, Some(chain), &[]),
+            primary: payload_rows(&self.primary, chain, &address_url),
+            secondary: payload_rows(&self.secondary, chain, &address_url),
         }
     }
 }

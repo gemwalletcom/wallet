@@ -406,8 +406,10 @@ mod tests {
         let value = BigUint::from(1_000_000u32);
         assert_eq!(min_receive_value(&value, 0), value);
         assert_eq!(min_receive_value(&value, 100), BigUint::from(990_000u32));
+        assert_eq!(min_receive_value(&value, 50), BigUint::from(995_000u32));
         assert_eq!(min_receive_value(&value, BASIS_POINTS), BigUint::from(0u32));
         assert_eq!(min_receive_value(&value, BASIS_POINTS + 1), BigUint::from(0u32));
+        assert_eq!(min_receive_value(&BigUint::from(1u32), 100), BigUint::from(0u32), "a single atomic unit floors to nothing");
     }
 
     #[test]

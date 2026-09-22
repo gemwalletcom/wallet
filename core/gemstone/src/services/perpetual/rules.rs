@@ -1215,6 +1215,10 @@ mod tests {
         assert_eq!(tooltip.prices[1].value, GemFormattedNumber::adaptive(120.0, None));
         assert_eq!(tooltip.summary[0].value, GemFormattedNumber::percentage(10.0, GemPercentageStyle::Signed));
         assert_eq!(tooltip.summary[1].value, GemFormattedNumber::usd_abbreviated(220.0));
+
+        let flat = candle_tooltip(&ChartCandleStick { open: 0.0, ..candle });
+
+        assert_eq!(flat.summary[0].value, GemFormattedNumber::percentage(0.0, GemPercentageStyle::Signed), "an open of nothing has no percentage to quote");
     }
 
     #[test]

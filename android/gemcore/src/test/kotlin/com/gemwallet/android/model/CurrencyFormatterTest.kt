@@ -3,6 +3,7 @@ package com.gemwallet.android.model
 import com.wallet.core.primitives.Currency
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.GemCurrencyStyle
 import java.math.BigDecimal
 import java.util.Locale
 
@@ -10,7 +11,7 @@ class CurrencyFormatterTest {
 
     private val currencyUS = CurrencyFormatter(currency = Currency.USD, locale = Locale.US)
     private val currencyUK = CurrencyFormatter(currency = Currency.GBP, locale = Locale.UK)
-    private val fiatUS = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD, locale = Locale.US)
+    private val fiatUS = CurrencyFormatter(style = GemCurrencyStyle.FIAT, currency = Currency.USD, locale = Locale.US)
 
     @Test
     fun currency_normal() {

@@ -3,7 +3,6 @@
 import Components
 import Foundation
 import struct Gemstone.GemSimulationPayloadRow
-import Localization
 import Primitives
 
 public struct SimulationPayloadModel: Sendable {
@@ -23,26 +22,22 @@ public struct SimulationPayloadModel: Sendable {
 
     public func fieldModels(
         for rows: [GemSimulationPayloadRow],
-        explorerLink: (String) -> BlockExplorerLink,
-        onOpenURL: @escaping (URL) -> Void,
         onSelectAddress: (@MainActor @Sendable (String) -> Void)? = nil,
     ) -> [SimulationPayloadFieldViewModel] {
-        rows.map { fieldModel(for: $0, explorerLink: explorerLink, onOpenURL: onOpenURL, onSelectAddress: onSelectAddress) }
+        rows.map { fieldModel(for: $0, onSelectAddress: onSelectAddress) }
     }
 
     private func fieldModel(
         for row: GemSimulationPayloadRow,
-        explorerLink: (String) -> BlockExplorerLink,
-        onOpenURL: @escaping (URL) -> Void,
         onSelectAddress: (@MainActor @Sendable (String) -> Void)?,
     ) -> SimulationPayloadFieldViewModel {
-        guard case let .address(_, address) = row.value else {
+        guard case let .address(_, copy, explorer) = row.value else {
             return SimulationPayloadFieldViewModel(row: row)
         }
         return SimulationPayloadFieldViewModel(
             row: row,
-            explorerItem: explorerMenuItem(link: explorerLink(address), onOpenURL: onOpenURL),
-            onSelect: selectAddress(address, onSelectAddress: onSelectAddress),
+            kind: .address(ExplorerContextData(copyValue: copy.copyValue, explorerLink: explorer.toPrimitives())),
+            onSelect: selectAddress(copy.value, onSelectAddress: onSelectAddress),
         )
     }
 
@@ -52,16 +47,5 @@ public struct SimulationPayloadModel: Sendable {
     ) -> (@MainActor @Sendable () -> Void)? {
         guard let onSelectAddress else { return nil }
         return { onSelectAddress(address) }
-    }
-
-    private func explorerMenuItem(
-        link: BlockExplorerLink,
-        onOpenURL: @escaping (URL) -> Void,
-    ) -> ContextMenuItemType {
-        .url(title: Localized.Transaction.viewOn(link.name), onOpen: {
-            if let url = URL(string: link.link) {
-                onOpenURL(url)
-            }
-        })
     }
 }

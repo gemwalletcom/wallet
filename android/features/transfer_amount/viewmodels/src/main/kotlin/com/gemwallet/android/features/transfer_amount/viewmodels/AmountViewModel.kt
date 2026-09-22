@@ -57,6 +57,7 @@ import uniffi.gemstone.GemAmountInputType
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountTitle
 import uniffi.gemstone.GemAmountType
+import uniffi.gemstone.GemCurrencyStyle
 import uniffi.gemstone.GemValueStyle
 import java.math.BigInteger
 import javax.inject.Inject
@@ -76,7 +77,7 @@ class AmountViewModel @Inject constructor(service: GemAmountServiceInterface, fa
     private val amountError = MutableStateFlow<Throwable?>(null)
 
     val currency: Currency = service.getCurrency().toPrimitives()
-    private val currencyFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)
+    private val currencyFormatter = CurrencyFormatter(style = GemCurrencyStyle.FIAT, currency = currency)
 
     private val amountSymbol: StateFlow<AmountSymbolUIModel> = combine(amountInputType, provider.assetInfo) { inputType, current ->
         inputType.amountSymbol(current?.asset?.symbol.orEmpty(), currency)

@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
 import Foundation
 import func Gemstone.autocloseOpenSession
 import func Gemstone.autocloseSession
@@ -20,7 +19,6 @@ import SwiftUI
 @MainActor
 public final class AutocloseSceneViewModel {
     private let currencyFormatter: CurrencyFormatter
-    private let percentFormatter = PercentFormatter.signed
     private let perpetualFormatter = PerpetualFormatter(provider: .hypercore)
     private let type: AutocloseType
     private let estimator: GemAutocloseEstimator

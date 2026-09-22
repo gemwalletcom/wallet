@@ -26,7 +26,6 @@ public final class SignMessageSceneViewModel {
     private let confirmTransferDelegate: TransferDataCallback.ConfirmTransferDelegate
     private var preview: GemSignMessagePreview
 
-    public var isPresentingUrl: URL?
     public var presentedSheet: SignMessageSheet?
     public var isPresentingAlertMessage: AlertMessage?
     private var hasLoadedAddressNames = false
@@ -154,8 +153,6 @@ public extension SignMessageSceneViewModel {
     func fieldModels(for fields: [GemSimulationPayloadRow]) -> [SimulationPayloadFieldViewModel] {
         payloadModel.fieldModels(
             for: fields,
-            explorerLink: { service.addressUrl(chain: request.chain, address: $0).toPrimitives() },
-            onOpenURL: { [weak self] in self?.isPresentingUrl = $0 },
             onSelectAddress: { [weak self] address in
                 guard let self else { return }
                 presentedSheet = .addressDetails(ChainAddress(chain: Chain(core: request.chain), address: address))

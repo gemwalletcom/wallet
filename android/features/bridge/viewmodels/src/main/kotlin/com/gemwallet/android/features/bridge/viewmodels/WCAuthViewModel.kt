@@ -23,7 +23,6 @@ import com.gemwallet.android.ui.components.list_item.WalletRowUIModel
 import com.gemwallet.android.ui.components.list_item.uiModel
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
-import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
@@ -42,10 +41,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemApplicationMetadataServiceInterface
+import uniffi.gemstone.GemSignMessageServiceInterface
+import uniffi.gemstone.GemSimulationPayloadRow
 import uniffi.gemstone.GemWalletConnectAuthAccount
 import uniffi.gemstone.GemWalletConnectException
 import uniffi.gemstone.GemWalletConnectServiceInterface
-import uniffi.gemstone.MessageSigner
 import uniffi.gemstone.MessageType
 import uniffi.gemstone.SignDigestType
 import uniffi.gemstone.SignMessage
@@ -57,6 +57,7 @@ class WCAuthViewModel @Inject constructor(
     private val approveWalletConnectAuthentication: ApproveWalletConnectAuthentication,
     private val activeRequest: ActiveWalletConnectRequest,
     private val walletConnectService: GemWalletConnectServiceInterface,
+    private val signMessageService: GemSignMessageServiceInterface,
     private val metadataService: GemApplicationMetadataServiceInterface,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
@@ -262,28 +263,19 @@ class WCAuthViewModel @Inject constructor(
 
     private fun supportedAccounts(wallet: Wallet, request: WalletConnectAuthenticationRequest): List<GemWalletConnectAuthAccount> = walletConnectService.authenticationAccounts(request.payloadParams.chains, wallet.toGem())
 
-    private fun payloadPreview(chain: Chain, message: String): AuthPayloadPreview {
-        val signer = MessageSigner(
-            SignMessage(
-                chain = chain.string,
-                signType = SignDigestType.SIWE,
-                data = message.toByteArray(),
-            ),
+    private fun payloadPreview(chain: Chain, message: String): AuthPayloadPreview = signMessageService.payloadPreview(
+        SignMessage(
+            chain = chain.string,
+            signType = SignDigestType.SIWE,
+            data = message.toByteArray(),
+        ),
+    )?.let { preview ->
+        AuthPayloadPreview(
+            messageType = preview.messageType,
+            primaryFields = preview.primary,
+            secondaryFields = preview.secondary,
         )
-        return try {
-            signer.payloadPreview(emptyList())?.let { preview ->
-                AuthPayloadPreview(
-                    messageType = preview.messageType,
-                    primaryFields = preview.primary.map { PayloadField(row = it) },
-                    secondaryFields = preview.secondary.map { PayloadField(row = it) },
-                )
-            } ?: AuthPayloadPreview()
-        } catch (_: Throwable) {
-            AuthPayloadPreview()
-        } finally {
-            signer.close()
-        }
-    }
+    } ?: AuthPayloadPreview()
 
     private suspend fun signAuthMessage(wallet: Wallet, chain: Chain, message: String): String = walletConnectService.signMessage(
         wallet.id.id,
@@ -319,8 +311,8 @@ sealed interface AuthSceneState {
         override val name: String get() = peer.title
         override val uri: String get() = peer.host.orEmpty()
         override val chain: Chain get() = approval.chain
-        override val primaryPayloadFields: List<PayloadField> get() = approval.primaryPayloadFields
-        override val secondaryPayloadFields: List<PayloadField> get() = approval.secondaryPayloadFields
+        override val primaryPayloadFields: List<GemSimulationPayloadRow> get() = approval.primaryPayloadFields
+        override val secondaryPayloadFields: List<GemSimulationPayloadRow> get() = approval.secondaryPayloadFields
         override val messageType: MessageType get() = approval.messageType
         override val message: String get() = approval.message
     }
@@ -351,10 +343,10 @@ data class AuthApproval(
     val issuer: String,
     val message: String,
     val messageType: MessageType,
-    val primaryPayloadFields: List<PayloadField>,
-    val secondaryPayloadFields: List<PayloadField>,
+    val primaryPayloadFields: List<GemSimulationPayloadRow>,
+    val secondaryPayloadFields: List<GemSimulationPayloadRow>,
 ) {
     val chain: Chain get() = account.chain
 }
 
-private data class AuthPayloadPreview(val messageType: MessageType = MessageType.TEXT, val primaryFields: List<PayloadField> = emptyList(), val secondaryFields: List<PayloadField> = emptyList())
+private data class AuthPayloadPreview(val messageType: MessageType = MessageType.TEXT, val primaryFields: List<GemSimulationPayloadRow> = emptyList(), val secondaryFields: List<GemSimulationPayloadRow> = emptyList())

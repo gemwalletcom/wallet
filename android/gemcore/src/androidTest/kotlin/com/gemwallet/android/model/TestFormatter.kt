@@ -5,6 +5,7 @@ import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.Currency
 import junit.framework.TestCase.assertEquals
 import org.junit.Test
+import uniffi.gemstone.GemCurrencyStyle
 import uniffi.gemstone.GemValueStyle
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -13,7 +14,7 @@ import java.util.Locale
 class TestFormatter {
     @Test
     fun testCompactFormat_Italy() {
-        val formatter = CurrencyFormatter(type = CurrencyFormatter.Type.Abbreviated, currency = Currency.EUR, locale = Locale.ITALY)
+        val formatter = CurrencyFormatter(style = GemCurrencyStyle.ABBREVIATED, currency = Currency.EUR, locale = Locale.ITALY)
         assertEquals("5\u00A0Mln\u00A0€", formatter.string(5_000_000.0))
         assertEquals("7,89\u00A0Mld\u00A0€", formatter.string(7_890_000_000.0))
         assertEquals("1,2\u00A0Bln\u00A0€", formatter.string(1_200_000_000_000.0))
@@ -21,11 +22,11 @@ class TestFormatter {
 
     @Test
     fun testCompactFormat_Usd() {
-        val formatter = CurrencyFormatter(type = CurrencyFormatter.Type.Abbreviated, currency = Currency.USD, locale = Locale.US)
+        val formatter = CurrencyFormatter(style = GemCurrencyStyle.ABBREVIATED, currency = Currency.USD, locale = Locale.US)
         assertEquals("\$5M", formatter.string(5_000_000.0))
         assertEquals("\$7.89B", formatter.string(7_890_000_000.0))
         assertEquals("\$1.2T", formatter.string(1_200_000_000_000.0))
-        assertEquals("\$19.87M", formatter.string(1.9876725E7))
+        assertEquals("\$19.88M", formatter.string(1.9876725E7))
     }
 
     @Test
@@ -42,7 +43,7 @@ class TestFormatter {
         assertEquals("20.07M BTC", formatter.string(BigDecimal("20070000"), currency = "BTC"))
         assertEquals("19.87M BTC", formatter.string(BigDecimal("19876725"), currency = "BTC"))
 
-        val currencyFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Abbreviated, currency = Currency.USD, locale = Locale.US)
+        val currencyFormatter = CurrencyFormatter(style = GemCurrencyStyle.ABBREVIATED, currency = Currency.USD, locale = Locale.US)
         assertEquals("\$267.12K", currencyFormatter.string(267_123.0))
     }
 }

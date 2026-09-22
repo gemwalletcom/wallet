@@ -5,10 +5,11 @@ import com.gemwallet.android.domains.price.PriceChangeCalculator
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.PriceChangeFormatter
 import com.wallet.core.primitives.Currency
+import uniffi.gemstone.GemCurrencyStyle
 import uniffi.gemstone.PriceChangeCalculator as GemPriceChangeCalculator
 
 private val pnlFormatter = PriceChangeFormatter(
-    CurrencyFormatter(type = CurrencyFormatter.Type.Currency, currency = Currency.USD),
+    CurrencyFormatter(style = GemCurrencyStyle.CURRENCY, currency = Currency.USD),
 )
 
 fun formatPnlWithPercentage(pnl: Double, marginAmount: Double): String {

@@ -496,7 +496,10 @@ struct ConfirmTransferSceneViewModelTests {
             SimulationPayloadField.standard(kind: .method, value: "Approve", fieldType: .text, display: .primary),
         ]
         let rows = [
-            GemSimulationPayloadRow(title: .contract, value: .address(display: "0x1111...1111", address: "0x1111111111111111111111111111111111111111")),
+            GemSimulationPayloadRow(
+                title: .contract,
+                value: .address(display: "0x1111...1111", copy: addressCopy(chain: Chain.ethereum.rawValue, address: "0x1111111111111111111111111111111111111111"), explorer: BlockExplorerLink.mock().toGem()),
+            ),
             GemSimulationPayloadRow(title: .method, value: .text(text: "Approve")),
         ]
         let model = ConfirmTransferSceneViewModel.mock(

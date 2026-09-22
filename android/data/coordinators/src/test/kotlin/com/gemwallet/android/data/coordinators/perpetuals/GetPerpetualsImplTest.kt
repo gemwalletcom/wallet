@@ -16,6 +16,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemCurrencyStyle
 import uniffi.gemstone.GemValueTone
 import java.util.Locale
 
@@ -48,7 +49,7 @@ class GetPerpetualsImplTest {
         assertEquals("$95,420.50", rows[0].price.price?.text())
         assertEquals("+2.50%", rows[0].price.change?.text())
         assertEquals(GemValueTone.POSITIVE, rows[0].price.change?.tone)
-        assertEquals(CurrencyFormatter(type = CurrencyFormatter.Type.Abbreviated, currency = Currency.USD).string(15_000.0), rows[0].volume)
+        assertEquals(CurrencyFormatter(style = GemCurrencyStyle.ABBREVIATED, currency = Currency.USD).string(15_000.0), rows[0].volume)
         assertNull("a market nobody quoted shows no price", rows[1].price.price)
         assertEquals("-1.25%", rows[1].price.change?.text())
         assertEquals(GemValueTone.NEGATIVE, rows[1].price.change?.tone)

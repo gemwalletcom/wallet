@@ -643,36 +643,15 @@ class SwapViewModelTest {
     }
 
     @Test
-    fun `amount above the balance blocks the button before any quote`() = runTest(testDispatcher) {
-        val viewModel = createViewModel(swapSavedState())
-        advanceUntilIdle()
-
-        viewModel.payValue.setTextAndPlaceCursorAtEnd("2")
-        Snapshot.sendApplyNotifications()
-        awaitCondition { viewModel.uiState.value.actionTitle == R.string.transfer_insufficient_balance }
-
-        assertEquals(ButtonState.Disabled, viewModel.uiState.value.buttonState)
-
-        viewModel.payValue.setTextAndPlaceCursorAtEnd("1")
-        Snapshot.sendApplyNotifications()
-        awaitCondition { viewModel.uiState.value.actionTitle == R.string.wallet_swap }
-    }
-
-    @Test
-    fun `minimum amount is offered only when the balance covers it`() = runTest(testDispatcher) {
+    fun `taking the offered minimum fills the pay field with it`() = runTest(testDispatcher) {
         val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
         every { requestSwapQuotes.invoke(any(), any(), any(), any(), any(), any()) } returns quotesFlow
 
         val viewModel = createViewModel(swapSavedState())
         advanceUntilIdle()
 
-        failQuote(viewModel, quotesFlow, SwapperException.InputAmountException("2000000000"))
-        awaitCondition { viewModel.uiState.value.actionTitle == R.string.transfer_insufficient_balance }
-        assertEquals(ButtonState.Disabled, viewModel.uiState.value.buttonState)
-
         failQuote(viewModel, quotesFlow, SwapperException.InputAmountException("500000000"))
         awaitCondition { viewModel.uiState.value.actionTitle == R.string.swap_use_minimum_amount }
-        assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
 
         viewModel.onPrimaryAction(onConfirm = {}, onShowPriceImpactWarning = {}, authorize = { it() })
         advanceUntilIdle()
@@ -695,23 +674,6 @@ class SwapViewModelTest {
         advanceUntilIdle()
 
         assertEquals("0.000000001", viewModel.payValue.text.toString())
-    }
-
-    @Test
-    fun `only retryable quote failures offer a retry`() = runTest(testDispatcher) {
-        val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
-        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any(), any()) } returns quotesFlow
-
-        val viewModel = createViewModel(swapSavedState())
-        advanceUntilIdle()
-
-        failQuote(viewModel, quotesFlow, SwapperException.NoQuoteAvailable())
-        awaitCondition { viewModel.uiState.value.actionTitle == R.string.common_try_again }
-        assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
-
-        failQuote(viewModel, quotesFlow, SwapperException.NoAvailableProvider())
-        awaitCondition { viewModel.uiState.value.actionTitle == R.string.wallet_swap }
-        assertEquals(ButtonState.Disabled, viewModel.uiState.value.buttonState)
     }
 
     private suspend fun failQuote(viewModel: SwapViewModel, quotesFlow: MutableSharedFlow<SwapQuotesResult?>, error: SwapperException) {

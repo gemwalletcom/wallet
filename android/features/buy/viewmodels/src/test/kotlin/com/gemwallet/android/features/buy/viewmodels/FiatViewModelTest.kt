@@ -51,6 +51,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.FiatQuoteUrl
+import uniffi.gemstone.GemCurrencyStyle
 import uniffi.gemstone.GemFiatQuoteServiceInterface
 import uniffi.gemstone.GemFiatSuggestedAmount
 import uniffi.gemstone.GemServiceException
@@ -70,7 +71,7 @@ class FiatViewModelTest {
     private val getAssetPriceUsd = object : GetAssetPriceUsd {
         override fun invoke(assetId: AssetId): Flow<Double?> = assetPriceUsdFlow
     }
-    private val fiatFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)
+    private val fiatFormatter = CurrencyFormatter(style = GemCurrencyStyle.FIAT, currency = Currency.USD)
     private val context = mockk<Context> {
         every { getString(any()) } answers { "string:${firstArg<Int>()}" }
         every { getString(any(), *anyVararg()) } answers { "string:${firstArg<Int>()}" }

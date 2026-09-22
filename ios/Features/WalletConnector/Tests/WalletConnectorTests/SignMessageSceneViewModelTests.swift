@@ -155,8 +155,8 @@ struct SignMessageSceneViewModelTests {
         #expect(!viewModel.isButtonDisabled)
         #expect(viewModel.payloadModel.hasFields)
         #expect(viewModel.payloadModel.primaryFields.contains { row in
-            guard case let .address(_, address) = row.value else { return false }
-            return row.title == .spender && address == "0x3333333333333333333333333333333333333333"
+            guard case let .address(_, copy, _) = row.value else { return false }
+            return row.title == .spender && copy.value == "0x3333333333333333333333333333333333333333"
         })
     }
 
