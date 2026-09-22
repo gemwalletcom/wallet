@@ -265,3 +265,143 @@ fn decode_address_table_lookups(decoder: &mut Decoder<'_>) -> Result<Vec<Message
         })
         .collect()
 }
+
+#[cfg(test)]
+mod tests {
+    use std::iter::repeat_n;
+
+    use super::*;
+    use crate::testkit::{mock_v1_mainnet_transaction_bytes, mock_v1_transaction};
+    use crate::{encode_length_to_compact_u16_bytes, types::message::MESSAGE_VERSION_PREFIX};
+
+    fn legacy_message_bytes(header: [u8; 3], num_accounts: u8) -> Vec<u8> {
+        let mut bytes = header.to_vec();
+        bytes.push(num_accounts);
+        bytes.extend(repeat_n(0u8, 32 * num_accounts as usize));
+        bytes.extend_from_slice(&[0u8; 32]);
+        bytes
+    }
+
+    fn transaction_bytes(message: &[u8], signature_count: u8) -> Vec<u8> {
+        let mut bytes = vec![signature_count];
+        bytes.extend(repeat_n(0u8, 64 * signature_count as usize));
+        bytes.extend_from_slice(message);
+        bytes
+    }
+
+    #[test]
+    fn test_deserialize_rejects_huge_instruction_count() {
+        let mut message = legacy_message_bytes([1, 0, 0], 1);
+        message.extend(encode_length_to_compact_u16_bytes(60_000).unwrap());
+
+        assert!(VersionedTransaction::deserialize_with_version(&transaction_bytes(&message, 1)).is_err());
+    }
+
+    #[test]
+    fn test_deserialize_rejects_inconsistent_header() {
+        for header in [[1, 0, 5], [1, 0, 2], [1, 2, 0], [1, 1, 0], [0, 0, 0], [3, 0, 0]] {
+            let mut message = legacy_message_bytes(header, 2);
+            message.push(0);
+            let bytes = transaction_bytes(&message, header[0]);
+            assert!(VersionedTransaction::deserialize_with_version(&bytes).is_err(), "header {header:?} must be rejected");
+        }
+
+        let mut message = legacy_message_bytes([1, 0, 2], 2);
+        message.push(0);
+        message.push(0);
+        message[0] |= MESSAGE_VERSION_PREFIX;
+        assert!(VersionedTransaction::deserialize_with_version(&transaction_bytes(&message, 1)).is_err());
+    }
+
+    #[test]
+    fn test_deserialize_rejects_signature_count_mismatch() {
+        let mut message = legacy_message_bytes([2, 0, 0], 2);
+        message.push(0);
+
+        assert!(VersionedTransaction::deserialize_with_version(&transaction_bytes(&message, 2)).is_ok());
+        assert!(VersionedTransaction::deserialize_with_version(&transaction_bytes(&message, 1)).is_err());
+        assert!(VersionedTransaction::deserialize_with_version(&transaction_bytes(&message, 3)).is_err());
+    }
+
+    #[test]
+    fn test_deserialize_rejects_trailing_bytes_and_missing_lookup_count() {
+        let mut message = legacy_message_bytes([1, 0, 0], 1);
+        message.push(0);
+        let mut legacy = transaction_bytes(&message, 1);
+        assert!(VersionedTransaction::deserialize_with_version(&legacy).is_ok());
+        legacy.push(0);
+        assert!(VersionedTransaction::deserialize_with_version(&legacy).is_err());
+
+        let mut message = legacy_message_bytes([1, 0, 0], 1);
+        message.insert(0, MESSAGE_VERSION_PREFIX);
+        message.push(0);
+        let mut v0 = transaction_bytes(&message, 1);
+        assert!(VersionedTransaction::deserialize_with_version(&v0).is_err());
+        v0.push(0);
+        assert!(VersionedTransaction::deserialize_with_version(&v0).is_ok());
+    }
+
+    #[test]
+    fn test_deserialize_rejects_too_many_account_keys() {
+        let mut message = legacy_message_bytes([1, 0, 0], 1);
+        message.insert(0, MESSAGE_VERSION_PREFIX);
+        message.push(0);
+        message.push(1);
+        message.extend_from_slice(&[7u8; 32]);
+        message.extend(encode_length_to_compact_u16_bytes(255).unwrap());
+        message.extend(0..=254u8);
+        let mut full = message.clone();
+        message.push(0);
+        assert!(VersionedTransaction::deserialize_with_version(&transaction_bytes(&message, 1)).is_ok());
+
+        full.push(1);
+        full.push(255);
+        assert!(VersionedTransaction::deserialize_with_version(&transaction_bytes(&full, 1)).is_err());
+    }
+
+    #[test]
+    fn test_deserialize_rejects_unsupported_version() {
+        let mut message = legacy_message_bytes([1, 0, 0], 1);
+        message.insert(0, MESSAGE_VERSION_PREFIX | 1);
+        message.push(0);
+        message.push(0);
+
+        assert!(VersionedTransaction::deserialize_with_version(&transaction_bytes(&message, 1)).is_err());
+    }
+
+    #[test]
+    fn test_v1_rejects_malformed_wire_data() {
+        let transaction = mock_v1_transaction(1, 0);
+        let bytes = transaction.serialize().unwrap();
+
+        let mut unknown_mask = bytes.clone();
+        unknown_mask[4] |= 0b100000;
+        assert!(VersionedTransaction::deserialize_with_version(&unknown_mask).is_err());
+
+        let mut partial_priority_fee = bytes.clone();
+        partial_priority_fee[4] &= !0b10;
+        assert!(VersionedTransaction::deserialize_with_version(&partial_priority_fee).is_err());
+
+        let mut duplicate_account = bytes.clone();
+        duplicate_account.copy_within(42..74, 74);
+        assert!(VersionedTransaction::deserialize_with_version(&duplicate_account).is_err());
+
+        let mut invalid_program_index = bytes.clone();
+        invalid_program_index[126] = 2;
+        assert!(VersionedTransaction::deserialize_with_version(&invalid_program_index).is_err());
+
+        let mut truncated = bytes.clone();
+        truncated.pop();
+        assert!(VersionedTransaction::deserialize_with_version(&truncated).is_err());
+
+        let mut trailing = bytes;
+        trailing.push(0);
+        assert!(VersionedTransaction::deserialize_with_version(&trailing).is_err());
+
+        let mut oversized_wire = mock_v1_mainnet_transaction_bytes();
+        oversized_wire[124..126].copy_from_slice(&3906u16.to_le_bytes());
+        oversized_wire.insert(4032, 0);
+        assert_eq!(oversized_wire.len(), MAX_V1_TRANSACTION_SIZE + 1);
+        assert!(VersionedTransaction::deserialize_with_version(&oversized_wire).is_err());
+    }
+}
