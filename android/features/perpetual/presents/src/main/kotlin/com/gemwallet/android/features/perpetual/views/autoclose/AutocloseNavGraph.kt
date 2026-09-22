@@ -30,6 +30,7 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.savedState
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
+import com.gemwallet.android.features.asset.presents.address.AddressDetailsScreen
 import com.gemwallet.android.features.confirm.presents.ConfirmScreen
 import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
 import com.gemwallet.android.features.perpetual.viewmodels.AutocloseViewModel
@@ -38,6 +39,7 @@ import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.theme.SheetSizing
 import com.gemwallet.android.ui.viewmodel.NavEntryViewModelStoreOwner
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.ChainAddress
 import kotlinx.serialization.Serializable
 
 @Composable
@@ -97,16 +99,28 @@ private fun AutocloseNavGraphContent(onDismiss: () -> Unit, finishAction: Finish
                 },
             )
         }
+        entry<AutocloseAddressDetailsRoute> { route ->
+            AddressDetailsScreen(
+                chainAddress = route.chainAddress,
+                onCancel = popInternal,
+            )
+        }
         entry<AutocloseConfirmRoute> {
             transfer?.let { input ->
                 ConfirmScreen(
                     input = input,
                     cancelAction = popInternal,
-                    finishAction = { hash ->
-                        finishAction(hash)
+                    finishAction = { hash, warning ->
+                        finishAction(hash, warning)
                         onDismiss()
                     },
                     onAcquireAsset = onAcquireAsset,
+                    onOpenAddress = { chainAddress ->
+                        val route = AutocloseAddressDetailsRoute(chainAddress)
+                        if (backStack.lastOrNull() != route) {
+                            backStack.add(route)
+                        }
+                    },
                     handleSystemBack = true,
                 )
             }
@@ -138,6 +152,9 @@ private data object AutocloseRoute : NavKey
 
 @Serializable
 private data object AutocloseConfirmRoute : NavKey
+
+@Serializable
+private data class AutocloseAddressDetailsRoute(val chainAddress: ChainAddress) : NavKey
 
 private typealias AutocloseNavTransition =
     AnimatedContentTransitionScope<Scene<NavKey>>.() -> ContentTransform

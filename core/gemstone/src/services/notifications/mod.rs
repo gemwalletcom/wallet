@@ -36,6 +36,15 @@ impl GemNotificationsService {
         self.permissions.is_available() && self.preferences.is_push_notifications_enabled()
     }
 
+    /// Opening support is the one place the app offers to turn notifications on, because a reply
+    /// arrives while the app is closed. It asks once, and only when there is something to ask for.
+    pub async fn enable_for_support(&self) -> Option<GemPushState> {
+        if !self.permissions.is_available() || self.preferences.is_push_notifications_enabled() {
+            return None;
+        }
+        Some(self.set_enabled(true).await)
+    }
+
     pub async fn set_enabled(&self, enabled: bool) -> GemPushState {
         let wanted = enabled && self.permissions.is_available();
         if wanted {
@@ -74,6 +83,8 @@ mod tests {
     use crate::services::error::GemServiceError;
     use crate::services::preferences::testkit::MemoryPreferencesStore;
     use crate::services::wallet::testkit::MemoryWalletStore;
+    use crate::services::wallet_session::GemWalletSessionService;
+    use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
     use crate::testkit::{EmptyPreferences, TestAlienProvider};
 
     #[derive(Default)]
@@ -103,10 +114,11 @@ mod tests {
             wallets: std::sync::Mutex::new(vec![Wallet::mock()]),
             ..Default::default()
         });
+        let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets));
         let device = Arc::new(GemDeviceService::new(
             device_api.clone(),
-            Arc::new(GemSubscriptionService::new(device_api, wallets.clone())),
-            wallets,
+            Arc::new(GemSubscriptionService::new(device_api, session.clone())),
+            session,
             Arc::new(MemoryDevicePlatform),
             preferences.clone(),
         ));
@@ -144,6 +156,26 @@ mod tests {
             let retried = service.set_enabled(true).await;
             assert!(matches!(retried.result, GemPushResult::NotRegistered { .. }));
             assert_eq!(permissions.requests.load(Ordering::SeqCst), 2, "an identical toggle re-attempts the unfinished registration");
+        })
+    }
+
+    #[test]
+    fn test_support_asks_once_and_only_when_there_is_something_to_ask_for() {
+        block_on(async {
+            let permissions = Arc::new(TestPermissions::default());
+            let service = service(503, permissions.clone());
+
+            assert!(service.enable_for_support().await.is_none(), "nothing to ask for without the os permission");
+            assert_eq!(permissions.requests.load(Ordering::SeqCst), 0);
+
+            permissions.available.store(true, Ordering::SeqCst);
+            permissions.granted.store(true, Ordering::SeqCst);
+
+            assert!(service.enable_for_support().await.is_some(), "support offers to turn them on");
+            assert_eq!(permissions.requests.load(Ordering::SeqCst), 1);
+
+            assert!(service.enable_for_support().await.is_none(), "opening support again never asks twice");
+            assert_eq!(permissions.requests.load(Ordering::SeqCst), 1);
         })
     }
 

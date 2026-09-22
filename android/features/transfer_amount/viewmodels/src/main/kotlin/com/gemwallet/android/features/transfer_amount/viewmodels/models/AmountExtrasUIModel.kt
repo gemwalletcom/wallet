@@ -3,6 +3,7 @@ package com.gemwallet.android.features.transfer_amount.viewmodels.models
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ValidatorRowUIModel
 import com.wallet.core.primitives.Resource
+import uniffi.gemstone.GemPickerOption
 
 sealed interface AmountExtrasUIModel {
     data object None : AmountExtrasUIModel
@@ -13,5 +14,5 @@ sealed interface AmountExtrasUIModel {
 
     data class EarnProvider(val row: ValidatorRowUIModel) : AmountExtrasUIModel
 
-    data class Perpetual(val leverage: ListItemModel?, val leverages: List<Int>, val selectedLeverage: Int, val autoclose: ListItemModel?) : AmountExtrasUIModel
+    data class Perpetual(val leverage: ListItemModel?, val leverages: List<GemPickerOption>, val selectedLeverage: GemPickerOption?, val autoclose: ListItemModel?) : AmountExtrasUIModel
 }

@@ -36,6 +36,7 @@ object AppIcons {
     val ExpandMore: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_expand_more)
     val FilterAlt: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_filter_alt)
     val History: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_history)
+    val ClockBadgeExclamation: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_clock_badge_exclamation)
     val Image: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_image)
     val ImageOutlined: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_image_outlined)
     val Info: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_info)

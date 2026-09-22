@@ -3,7 +3,7 @@ use std::str;
 use ::signer::Ed25519KeyPair;
 use chrono::Utc;
 use gem_encoding::encode_base64;
-use primitives::{ApplicationMetadataSource, Chain, ChainSigner, SignerError, SignerInput, TransferDataOutputType};
+use primitives::{Chain, ChainSigner, SignerError, SignerInput, TransactionInputType, TransferDataOutputType};
 
 use super::{instructions, sign_message as sign_solana_message, swap, transaction};
 use crate::{Pubkey, VersionedTransactionExt, decode_transaction, siws::SiwsMessage, transaction::is_transaction_bytes};
@@ -57,7 +57,6 @@ impl ChainSigner for SolanaChainSigner {
 
     fn sign_data(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
         let extra = input.input_type.get_generic_data().map_err(SignerError::invalid_input)?;
-        let metadata = input.input_type.get_application_metadata().map_err(SignerError::invalid_input)?;
         let data = extra.data_as_str().map_err(SignerError::invalid_input)?;
         let mut transaction = decode_transaction(data).map_err(SignerError::invalid_input)?;
 
@@ -65,7 +64,7 @@ impl ChainSigner for SolanaChainSigner {
             return Err(SignerError::invalid_input("user signature should be first"));
         }
 
-        if metadata.source == ApplicationMetadataSource::Payment {
+        if let TransactionInputType::Payment { .. } = input.input_type {
             *transaction.recent_blockhash_mut() = transaction::block_hash(input)?;
         }
 
@@ -92,7 +91,7 @@ mod tests {
     use crate::{SignatureBytes, VersionedTransaction};
     use gem_encoding::decode_base64;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
-    use primitives::{ApplicationMetadataSource, Chain, ChainSigner, SignerInput, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataOutputType};
+    use primitives::{Chain, ChainSigner, SignerInput, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataOutputType};
 
     #[test]
     fn test_deserialize_single_signature_transaction() {
@@ -137,10 +136,10 @@ mod tests {
         let encoded = encode_base64(&transaction.serialize().unwrap());
         let blockhash = bs58::encode([4; 32]).into_string();
         let mut input = TransactionLoadInput::mock_sign_data(Chain::Solana, &encoded, TransferDataOutputType::EncodedTransaction);
-        let TransactionInputType::Generic { metadata, .. } = &mut input.input_type else {
+        let TransactionInputType::Generic { asset, extra, .. } = input.input_type.clone() else {
             panic!("expected generic transaction input");
         };
-        metadata.source = ApplicationMetadataSource::Payment;
+        input.input_type = TransactionInputType::mock_payment(asset, extra);
         input.metadata = TransactionLoadMetadata::mock_solana(&blockhash);
         let fee = input.default_fee();
         let input = SignerInput::new(input, fee);

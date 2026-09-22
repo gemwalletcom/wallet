@@ -131,6 +131,8 @@ buy_no_results = Aucun devis disponible
 # Transfer
 
 transfer_network_fee = Frais de réseau
+transfer_pay_with = Payer avec
+transfer_payment_title = Paiement
 transfer_memo = Mémo
 transfer_confirm = Confirmer
 transfer_from = De
@@ -156,6 +158,7 @@ transfer_activate_asset_title = Activer l'actif
 transfer_recipient_my_wallets = Mes portefeuilles
 transfer_recipient_view_wallets = Voir les portefeuilles
 transfer_minimum_account_balance = Un solde minimum %@ doit rester après cela, à moins que vous n'utilisiez votre solde complet.
+transfer_destination_account_activation = L'adresse de destination requiert un minimum de %@.
 transfer_smart_contract_title = Contrat intelligent
 transfer_other_title = Autre
 transfer_maximum_amount = Le montant maximum est de %@
@@ -253,6 +256,7 @@ errors_network_offline = La connexion Internet semble être hors ligne.
 errors_no_internet_connection = Pas de connexion Internet
 errors_no_service_connection = Pas de connexion au service
 errors_balances_activity_outdated = Les soldes et l'activité peuvent être obsolètes.
+errors_payment_status = Paiement : %@
 
 # Activity
 
@@ -289,6 +293,7 @@ transaction_swap_again = Échanger à nouveau
 transaction_status_completed = Terminé
 transaction_status_inprogress = En cours
 transaction_status_refunded = Remboursé
+transaction_status_expired = Expiré
 
 # Asset
 
@@ -541,6 +546,8 @@ sell_title = Vendre %@
 info_network_fee_title = Frais de réseau
 info_watch_wallet_title = Portefeuille en lecture seule
 info_watch_wallet_description = Un portefeuille auquel vous n'avez pas accès, mais dont vous pouvez surveiller les transactions et les mouvements.
+info_payment_verification_title = Vérification du paiement
+info_payment_verification_description = Le marchand requiert des informations supplémentaires avant le paiement.
 info_network_fee_description = Chaque transaction sur le réseau %@ nécessite des frais en %@ payés aux mineurs pour traiter votre transaction, et non à Gem Wallet. Les frais de réseau varient en fonction de l'utilisation du réseau.
 info_transaction_error_description = La transaction n'a pas pu être finalisée en raison d'une erreur, telle qu'un fonds insuffisant, une saisie non valide ou un rejet par le réseau. Veuillez vérifier les détails et réessayer.
 info_transaction_pending_description = La transaction a été soumise et est en attente de confirmation sur le réseau. Les délais de traitement peuvent varier. Veuillez consulter régulièrement les mises à jour.

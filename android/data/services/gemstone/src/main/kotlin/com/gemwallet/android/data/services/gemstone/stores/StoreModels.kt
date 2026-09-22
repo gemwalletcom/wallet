@@ -2,8 +2,8 @@ package com.gemwallet.android.data.services.gemstone.stores
 
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
 import com.gemwallet.android.data.service.store.database.entities.DbPrice
+import com.gemwallet.android.ext.toGem
 import uniffi.gemstone.AssetPrice
-import uniffi.gemstone.BalanceMetadata
 import uniffi.gemstone.GemAssetBalance
 import java.math.BigInteger
 
@@ -19,13 +19,7 @@ fun DbBalance.toGemAssetBalance(): GemAssetBalance = GemAssetBalance(
     reserved = BigInteger(reserved),
     withdrawable = BigInteger(withdrawable),
     earn = BigInteger(earn),
-    metadata = BalanceMetadata(
-        votes = votes.toUInt(),
-        energyAvailable = energyAvailable.toUInt(),
-        energyTotal = energyTotal.toUInt(),
-        bandwidthAvailable = bandwidthAvailable.toUInt(),
-        bandwidthTotal = bandwidthTotal.toUInt(),
-    ),
+    metadata = metadata?.toGem(),
     isActive = isActive,
 )
 

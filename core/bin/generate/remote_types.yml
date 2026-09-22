@@ -50,6 +50,12 @@ remote:
   - PaymentRequest
   - PaymentLink
   - Payment
+  - PaymentQuote
+  - PaymentMerchant
+  - PaymentPrice
+  - PaymentInvoice
+  - PaymentVerification
+  - PaymentStatus
   - AssetMarket
   - AssetMetaData
   - AssetPrice

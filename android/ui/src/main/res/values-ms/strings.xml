@@ -110,6 +110,8 @@
   <string name="buy_rate">Kadar</string>
   <string name="buy_no_results">Tiada sebut harga tersedia</string>
   <string name="transfer_network_fee">Yuran Rangkaian</string>
+  <string name="transfer_pay_with">Bayar dengan</string>
+  <string name="transfer_payment_title">Pembayaran</string>
   <string name="transfer_memo">Memo</string>
   <string name="transfer_confirm">Sahkan</string>
   <string name="transfer_from">Daripada</string>
@@ -135,6 +137,7 @@
   <string name="transfer_recipient_my_wallets">Dompet Saya</string>
   <string name="transfer_recipient_view_wallets">Lihat Dompet</string>
   <string name="transfer_minimum_account_balance">Baki minimum %1$s mesti kekal selepas ini, melainkan anda menggunakan baki penuh anda.</string>
+  <string name="transfer_destination_account_activation">Alamat destinasi memerlukan minimum %1$s.</string>
   <string name="transfer_smart_contract_title">Kontrak Pintar</string>
   <string name="transfer_other_title">Lain-lain</string>
   <string name="transfer_maximum_amount">Jumlah Maksimum ialah %1$s</string>
@@ -223,6 +226,7 @@
   <string name="errors_no_internet_connection">Tiada sambungan internet</string>
   <string name="errors_no_service_connection">Tiada sambungan perkhidmatan</string>
   <string name="errors_balances_activity_outdated">Baki dan aktiviti mungkin tidak terkini.</string>
+  <string name="errors_payment_status">Pembayaran: %1$s</string>
   <string name="activity_title">Aktiviti</string>
   <string name="activity_state_empty_title">Aktiviti anda akan dipaparkan di sini</string>
   <string name="activity_state_empty_description">Buat transaksi pertama anda</string>
@@ -250,6 +254,7 @@
   <string name="transaction_status_completed">Selesai</string>
   <string name="transaction_status_inprogress">Sedang Berlangsung</string>
   <string name="transaction_status_refunded">Dibayar balik</string>
+  <string name="transaction_status_expired">Tamat tempoh</string>
   <string name="asset_balances">Baki</string>
   <string name="asset_balances_available">Tersedia</string>
   <string name="asset_price">Harga</string>
@@ -436,6 +441,8 @@
   <string name="info_network_fee_title">Yuran Rangkaian</string>
   <string name="info_watch_wallet_title">Tonton Wallet</string>
   <string name="info_watch_wallet_description">Dompet yang anda tidak mempunyai akses, tetapi anda boleh menonton transaksi dan pergerakannya.</string>
+  <string name="info_payment_verification_title">Pengesahan Pembayaran</string>
+  <string name="info_payment_verification_description">Peniaga memerlukan maklumat tambahan sebelum pembayaran.</string>
   <string name="info_network_fee_description">Setiap transaksi pada rangkaian %1$s memerlukan bayaran dalam %2$s dibayar kepada pelombong untuk memproses transaksi anda, bukan Gem Wallet. Yuran rangkaian berbeza-beza berdasarkan penggunaan rangkaian.</string>
   <string name="info_transaction_error_description">Urus niaga tidak dapat diselesaikan kerana ralat, seperti dana tidak mencukupi, input tidak sah atau penolakan oleh rangkaian. Sila semak butiran dan cuba lagi.</string>
   <string name="info_transaction_pending_description">Urus niaga telah diserahkan dan sedang menunggu pengesahan pada rangkaian. Masa pemprosesan mungkin berbeza-beza. Sila semak semula untuk kemas kini.</string>

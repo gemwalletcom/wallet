@@ -87,6 +87,7 @@ pub enum GemConfirmTitle {
     Swap,
     Approve,
     Request,
+    Payment,
     Stake,
     Unstake,
     Redelegate,
@@ -109,6 +110,7 @@ pub enum GemConfirmRow {
     Network,
     Memo,
     Details,
+    PaymentAsset,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]

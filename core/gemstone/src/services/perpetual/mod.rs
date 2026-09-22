@@ -1,4 +1,5 @@
 pub mod autoclose;
+pub mod candles;
 pub mod details;
 pub mod model;
 pub mod rules;
@@ -15,15 +16,16 @@ use std::sync::Arc;
 use chrono::Utc;
 use gem_hypercore::models::websocket::HyperliquidSocketMessage;
 use gem_hypercore::provider::websocket_mapper::{diff_clearinghouse_positions, diff_open_orders_positions, parse_websocket_data};
-use primitives::perpetual::PerpetualBalance;
+use primitives::perpetual::{PerpetualBalance, PerpetualData};
 use primitives::portfolio::PerpetualPortfolio;
-use primitives::{Asset, AssetId, Chain, ChartPeriod, PerpetualAccountMode, PerpetualProvider, Wallet, WalletId};
+use primitives::{Asset, AssetId, Chain, ChartPeriod, PerpetualAccountMode, PerpetualProvider, Wallet, WalletId, WalletType};
 use std::collections::HashMap;
 
 use crate::config::perpetual_config::PRICES_UPDATE_INTERVAL_SECONDS;
 use crate::services::preferences::GemPreferencesService;
 
 pub use autoclose::{GemAutocloseField, GemAutocloseModify};
+pub use candles::{GemCandleRequest, GemCandleResult, GemCandleSession, GemCandleViewState};
 pub use details::GemPerpetualDetailsService;
 pub use model::{
     GemMarketsRefreshTrigger, GemPerpetualButton, GemPerpetualDetails, GemPerpetualMarketCounts, GemPerpetualPositionAction, GemPerpetualPositionDetailRow, GemPerpetualPositionKind, GemPerpetualSection, GemPerpetualSocketUpdate,
@@ -102,8 +104,12 @@ impl GemPerpetualService {
         Ok(self.should_connect_perpetuals(wallet))
     }
 
+    pub fn show_perpetuals(&self, wallet_type: WalletType, chains: Vec<Chain>) -> bool {
+        self.preferences.show_perpetuals(wallet_type, chains)
+    }
+
     pub fn should_connect_perpetuals(&self, wallet: Option<Wallet>) -> bool {
-        wallet.is_some_and(|wallet| rules::show_perpetuals(self.preferences.is_perpetual_enabled(), wallet.wallet_type, &wallet.chains()))
+        wallet.is_some_and(|wallet| self.show_perpetuals(wallet.wallet_type, wallet.chains()))
     }
 
     pub async fn set_pinned(&self, perpetual_id: String, pinned: bool) -> Result<(), GemServiceError> {
@@ -144,12 +150,16 @@ impl GemPerpetualService {
     pub async fn sync_markets(&self, chain: Chain) -> Result<(), GemServiceError> {
         let currency = self.preferences.get_currency();
         let data = self.gateway.get_perpetuals_data(chain).await?;
-        self.assets.save_assets(rules::perpetual_asset_basics(&data)).await?;
-        self.store.save_perpetuals(data).await?;
+        self.save_markets(data).await?;
         if let Some(price) = rules::collateral_price(chain) {
             self.price.update_prices(vec![price], currency).await?;
         }
         self.preferences.set_perpetual_markets_updated_at(Some(Utc::now().timestamp()))
+    }
+
+    pub async fn save_markets(&self, data: Vec<PerpetualData>) -> Result<(), GemServiceError> {
+        self.assets.save_assets(rules::perpetual_asset_basics(&data)).await?;
+        self.store.save_perpetuals(data).await
     }
 
     pub async fn get_portfolio(&self, chain: Chain, address: String) -> Result<PerpetualPortfolio, GemServiceError> {

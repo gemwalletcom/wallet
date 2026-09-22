@@ -33,6 +33,17 @@ class TransactionDetailsRowUIModelTest {
     }
 
     @Test
+    fun `an approval header is the asset image and a symbol header is its text`() {
+        val asset = mockGemTransactionAmount().asset
+        val image = mockGemTransactionDetailRows(header = GemTransactionHeader.AssetImage(asset)).uiModel(GemTransactionDetailRow.Header, context, Currency.USD)
+        val symbol = mockGemTransactionDetailRows(header = GemTransactionHeader.Symbol(asset)).uiModel(GemTransactionDetailRow.Header, context, Currency.USD)
+
+        assertTrue("a token approval shows the asset, not its symbol as an amount", image is TransactionDetailsRowUIModel.AssetHead)
+        assertTrue(symbol is TransactionDetailsRowUIModel.AmountHead)
+        assertEquals(asset.symbol, (symbol as TransactionDetailsRowUIModel.AmountHead).amount)
+    }
+
+    @Test
     fun `a fee row reads the numbers core formatted`() {
         val rows = mockGemTransactionDetailRows()
 

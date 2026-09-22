@@ -43,18 +43,19 @@ impl AppStartTestkit {
         let device_key = Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)));
         let device_api = Arc::new(GemDeviceApiClient::new(provider.clone(), device_key));
         let banner_store = Arc::new(MemoryBannerStore::default());
+        let banners = Arc::new(GemBannerService::new(banner_store.clone()));
         let support_store = Arc::new(MemorySupportStore::default());
         let service = GemAppStartService::new(
             Arc::new(GemConfigService::new(Arc::new(GemApiClient::new(provider.clone())), preferences.clone())),
-            Arc::new(GemBannerService::new(banner_store.clone())),
+            banners.clone(),
             discovery.assets.clone(),
             discovery.balance.clone(),
-            Arc::new(GemWalletConfigurationService::new(device_api.clone(), banner_store.clone(), discovery.wallet_preferences.clone())),
+            Arc::new(GemWalletConfigurationService::new(device_api.clone(), banners.clone(), discovery.wallet_preferences.clone())),
             wallets.service.clone(),
             Arc::new(GemDeviceService::new(
                 device_api.clone(),
-                Arc::new(GemSubscriptionService::new(device_api.clone(), discovery.wallets.clone())),
-                discovery.wallets.clone(),
+                Arc::new(GemSubscriptionService::new(device_api.clone(), discovery.session.clone())),
+                discovery.session.clone(),
                 Arc::new(MemoryDevicePlatform),
                 preferences,
             )),

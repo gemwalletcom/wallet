@@ -22,7 +22,7 @@ use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigUint;
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowIcon, GemListRowTitle, GemUrlTarget};
 use crate::percentage::GemPercentageStyle;
-use crate::precision::GemValueStyle;
+use crate::precision::{GemCurrencyStyle, GemValueStyle};
 use crate::services::balance::{GemAssetBalance, GemBalanceRow};
 use crate::services::error::GemServiceError;
 use crate::services::localization::GemLocalizedText;
@@ -192,7 +192,7 @@ fn completion_title(delegation: &Delegation) -> Option<GemListRowTitle> {
 
 pub fn delegation_details(delegation: &Delegation, asset: &Asset, price: Option<f64>, currency: Currency, rows: Vec<GemListRow>) -> GemDelegationDetails {
     let amount = |value: &BigUint| GemFormattedNumber::asset_amount(&BigInt::from(value.clone()), asset, GemValueStyle::Auto);
-    let fiat = |value: &BigUint| crate::services::assets::rules::fiat_amount_of(asset, value, price, currency.clone());
+    let fiat = |value: &BigUint| crate::services::assets::rules::fiat_amount_of(asset, value, price, currency.clone(), GemCurrencyStyle::Currency);
     let shows_rewards = shows_rewards(&delegation.base);
 
     GemDelegationDetails {
@@ -217,7 +217,7 @@ pub fn delegation_details(delegation: &Delegation, asset: &Asset, price: Option<
 
 pub fn delegation_list_row(delegation: &Delegation, asset: &Asset, price: Option<f64>, currency: Currency) -> GemDelegationListRow {
     let amount = |value: &BigUint| GemFormattedNumber::asset_amount(&BigInt::from(value.clone()), asset, GemValueStyle::Short);
-    let fiat = |value: &BigUint| crate::services::assets::rules::fiat_amount_of(asset, value, price, currency.clone());
+    let fiat = |value: &BigUint| crate::services::assets::rules::fiat_amount_of(asset, value, price, currency.clone(), GemCurrencyStyle::Short);
     let shows_rewards = shows_rewards(&delegation.base);
 
     GemDelegationListRow {

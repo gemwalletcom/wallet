@@ -61,10 +61,6 @@ fun mockDbAssetInfo(
     balanceWithdrawableAmount = null,
     balanceTotalAmount = null,
     balanceFiatTotalAmount = null,
-    votes = null,
-    energyAvailable = null,
-    energyTotal = null,
-    bandwidthAvailable = null,
-    bandwidthTotal = null,
+    balanceMetadata = null,
     assetIsActive = assetIsActive,
 )

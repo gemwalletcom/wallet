@@ -86,7 +86,6 @@ pub fn perpetual_confirm_details(perpetual_type: PerpetualType) -> Option<GemPer
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemPerpetualPositionRow {
     pub title: String,
-    pub leverage: String,
     pub direction: PerpetualDirection,
     pub position: GemLocalizedText,
     pub direction_tone: GemValueTone,

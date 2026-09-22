@@ -131,6 +131,8 @@ buy_no_results = Brak dostępnych ofert
 # Transfer
 
 transfer_network_fee = Opłata sieciowa
+transfer_pay_with = Zapłać za pomocą
+transfer_payment_title = Płatność
 transfer_memo = Notatka
 transfer_confirm = Potwierdź
 transfer_from = Od
@@ -156,6 +158,7 @@ transfer_activate_asset_title = Aktywuj zasób
 transfer_recipient_my_wallets = Moje portfele
 transfer_recipient_view_wallets = Wyświetl portfele
 transfer_minimum_account_balance = Po tym musi pozostać minimalne saldo %@, chyba że wykorzystujesz całe saldo.
+transfer_destination_account_activation = Adres docelowy wymaga minimum %@.
 transfer_smart_contract_title = Inteligentny kontrakt
 transfer_other_title = Inne
 transfer_maximum_amount = Maksymalna kwota to %@
@@ -253,6 +256,7 @@ errors_network_offline = Połączenie internetowe wydaje się być niedostępne.
 errors_no_internet_connection = Brak połączenia z internetem
 errors_no_service_connection = Brak połączenia z usługą
 errors_balances_activity_outdated = Salda i aktywność mogą być nieaktualne.
+errors_payment_status = Płatność: %@
 
 # Activity
 
@@ -289,6 +293,7 @@ transaction_swap_again = Zamień ponownie
 transaction_status_completed = Ukończono
 transaction_status_inprogress = W toku
 transaction_status_refunded = Zwrócono
+transaction_status_expired = Wygasło
 
 # Asset
 
@@ -541,6 +546,8 @@ sell_title = Sprzedaj %@
 info_network_fee_title = Opłata sieciowa
 info_watch_wallet_title = Portfel obserwowany
 info_watch_wallet_description = Portfel, do którego nie masz dostępu, ale możesz śledzić zawarte w nim transakcje i ruchy.
+info_payment_verification_title = Weryfikacja płatności
+info_payment_verification_description = Sprzedawca wymaga dodatkowych informacji przed płatnością.
 info_network_fee_description = Każda transakcja w sieci %@ wymaga opłaty w wysokości %@ płaconej górnikom za przetworzenie Twojej transakcji, a nie Gem Wallet. Opłaty sieciowe różnią się w zależności od wykorzystania sieci.
 info_transaction_error_description = Transakcja nie mogła zostać ukończona z powodu błędu, takiego jak niewystarczające środki, nieprawidłowe dane wejściowe lub odrzucenie przez sieć. Sprawdź szczegóły i spróbuj ponownie.
 info_transaction_pending_description = Transakcja została wysłana i oczekuje na potwierdzenie w sieci. Czasy przetwarzania mogą się różnić. Sprawdź ponownie, czy są jakieś aktualizacje.

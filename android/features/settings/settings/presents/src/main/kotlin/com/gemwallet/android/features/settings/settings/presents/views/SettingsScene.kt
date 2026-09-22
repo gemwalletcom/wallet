@@ -36,9 +36,6 @@ import com.gemwallet.android.ui.theme.space0
 fun SettingsScene(onAction: (SettingsSceneAction) -> Unit, walletConnectEnabled: Boolean = true, scrollState: ScrollState = rememberScrollState()) {
     val viewModel: SettingsViewModel = hiltViewModel()
     val sections by viewModel.sections.collectAsStateWithLifecycle()
-    val pushEnabled by viewModel.pushEnabled.collectAsStateWithLifecycle()
-    val notificationsAvailable = viewModel.notificationsAvailable
-
     LaunchedEffect(walletConnectEnabled) { viewModel.setWalletConnectAvailable(walletConnectEnabled) }
 
     LifecycleResumeEffect(Unit) {
@@ -47,8 +44,8 @@ fun SettingsScene(onAction: (SettingsSceneAction) -> Unit, walletConnectEnabled:
     }
 
     val onRowAction: (SettingsSceneAction) -> Unit = { action ->
-        if (action == SettingsSceneAction.Support && notificationsAvailable && !pushEnabled) {
-            viewModel.enableNotifications()
+        if (action == SettingsSceneAction.Support) {
+            viewModel.openSupport()
         }
         onAction(action)
     }

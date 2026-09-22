@@ -7,6 +7,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmHeaderUIModel
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockGemConfirmLoad
@@ -35,9 +36,11 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemConfirmHeader
 import uniffi.gemstone.GemConfirmPhase
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmation
+import uniffi.gemstone.GemTransactionHeader
 import uniffi.gemstone.GemTransferData
 import java.math.BigInteger
 
@@ -60,27 +63,14 @@ class ConfirmViewModelHeaderTest {
     }
 
     @Test
-    fun headerCarriesTheRequestedAmountWhileTheFeeIsStillLoading() = runTest(testDispatcher) {
-        val value = BigInteger.valueOf(150_000)
-        val viewModel = viewModel(mockGemTransferData(value = value)).also { model = it }
+    fun theHeadShowsWhatCoreComposedWhileTheFeeIsStillLoading() = runTest(testDispatcher) {
+        val viewModel = viewModel(mockGemTransferData(value = BigInteger.valueOf(150_000))).also { model = it }
 
-        val amount = viewModel.amountUIModel.first { it != null }
+        val header = viewModel.header.first { it != null }
 
-        assertEquals(asset, amount?.asset)
-        assertEquals(value, amount?.amount)
+        assertEquals(asset, (header as ConfirmHeaderUIModel.Symbol).asset)
         assertEquals(FeeUIModel.Calculating, viewModel.feeUIModel.first { it != null })
         assertEquals(GemConfirmPhase.LOADING, viewModel.screen.value.phase)
-    }
-
-    @Test
-    fun maxSendHeaderCarriesTheRequestedBalanceWhileTheFeeIsStillLoading() = runTest(testDispatcher) {
-        val balance = BigInteger.valueOf(170_400)
-        val viewModel = viewModel(mockGemTransferData(value = balance, useMaxAmount = true)).also { model = it }
-
-        val amount = viewModel.amountUIModel.first { it != null }
-
-        assertEquals(asset, amount?.asset)
-        assertEquals(balance, amount?.amount)
     }
 
     private fun viewModel(transfer: GemTransferData): ConfirmViewModel {
@@ -88,7 +78,8 @@ class ConfirmViewModelHeaderTest {
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
         every { confirmation.insufficientNetworkFeeBuyAmount() } returns 10
         every { confirmation.screen() } returns mockGemConfirmScreen()
-        coEvery { confirmation.state() } returns mockGemConfirmLoad(asset)
+        every { confirmation.header(any()) } returns GemConfirmHeader.Transaction(GemTransactionHeader.Symbol(asset.toGem()))
+        coEvery { confirmation.state() } returns mockGemConfirmLoad(asset).copy(transfer = transfer)
         coEvery { confirmation.load(any()) } coAnswers { awaitCancellation() }
         every { confirmService.confirmation(any(), transfer, any()) } returns confirmation
         return ConfirmViewModel(

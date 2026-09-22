@@ -131,6 +131,8 @@ buy_no_results = نقل قولی در دسترس نیست
 # Transfer
 
 transfer_network_fee = کارمزد شبکه
+transfer_pay_with = پرداخت با
+transfer_payment_title = پرداخت
 transfer_memo = یادداشت
 transfer_confirm = تایید کردن
 transfer_from = از
@@ -156,6 +158,7 @@ transfer_activate_asset_title = دارایی را فعال کنید
 transfer_recipient_my_wallets = کیف پول‌های من
 transfer_recipient_view_wallets = مشاهده کیف پول‌ها
 transfer_minimum_account_balance = حداقل موجودی %@ باید بعد از این باقی بماند، مگر اینکه از موجودی کامل خود استفاده کنید.
+transfer_destination_account_activation = آدرس مقصد حداقل %@ نیاز دارد.
 transfer_smart_contract_title = قرارداد هوشمند
 transfer_other_title = دیگر
 transfer_maximum_amount = حداکثر مقدار %@ است
@@ -253,6 +256,7 @@ errors_network_offline = به نظر می‌رسد اتصال اینترنت آ�
 errors_no_internet_connection = اتصال اینترنت برقرار نیست
 errors_no_service_connection = اتصال سرویس برقرار نیست
 errors_balances_activity_outdated = موجودی‌ها و فعالیت ممکن است به‌روز نباشند.
+errors_payment_status = پرداخت: %@
 
 # Activity
 
@@ -289,6 +293,7 @@ transaction_swap_again = دوباره مبادله کنید
 transaction_status_completed = تکمیل شد
 transaction_status_inprogress = در حال انجام است
 transaction_status_refunded = بازپرداخت شد
+transaction_status_expired = منقضی شد
 
 # Asset
 
@@ -541,6 +546,8 @@ sell_title = فروش %@
 info_network_fee_title = کارمزد شبکه
 info_watch_wallet_title = کیف پول مشاهده‌ای
 info_watch_wallet_description = کیف پولی که به آن دسترسی ندارید اما می توانید تراکنش ها و حرکات آن را تماشا کنید.
+info_payment_verification_title = تأیید پرداخت
+info_payment_verification_description = فروشنده پیش از پرداخت به اطلاعات بیشتری نیاز دارد.
 info_network_fee_description = هر تراکنش در شبکه %@ نیاز به کارمزدی در %@ دارد که برای پردازش تراکنش شما به استخراج کنندگان پرداخت می شود، نه Gem Wallet. هزینه های شبکه بر اساس استفاده از شبکه متفاوت است.
 info_transaction_error_description = تراکنش به دلیل خطایی مانند موجودی ناکافی، ورودی نامعتبر یا رد شدن توسط شبکه، انجام نشد. لطفاً جزئیات را بررسی کرده و دوباره امتحان کنید.
 info_transaction_pending_description = تراکنش ارسال شده و در انتظار تأیید در شبکه است. زمان پردازش ممکن است متفاوت باشد. لطفاً برای به‌روزرسانی‌ها دوباره مراجعه کنید.

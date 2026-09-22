@@ -4,6 +4,7 @@ import Components
 import Foundation
 import enum Gemstone.GemLoadState
 import protocol Gemstone.GemTransactionsServiceProtocol
+import func Gemstone.loadError
 import func Gemstone.transactionsEmptyState
 import GemstonePrimitives
 import GemstoneServices
@@ -55,8 +56,7 @@ public final class TransactionsViewModel {
     }
 
     public var loadError: Error? {
-        guard sections.isEmpty, case let .error(error) = transactionsState else { return nil }
-        return error
+        Gemstone.loadError(state: transactionsState, hasRows: !sections.isEmpty)
     }
 
     public var emptyContentModel: EmptyContentTypeViewModel {

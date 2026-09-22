@@ -1,6 +1,5 @@
 package com.gemwallet.android.ui.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
@@ -34,11 +33,10 @@ fun EmojiPickerGrid(emojis: List<String>, onSelect: (String) -> Unit, background
             ) {
                 EmojiView(
                     emoji = emoji,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable { onSelect(emoji) },
+                    modifier = Modifier.fillMaxSize(),
                     background = background,
                     scale = AvatarScale.EMOJI,
+                    onClick = { onSelect(emoji) },
                 )
             }
         }

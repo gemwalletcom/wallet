@@ -12,6 +12,8 @@ use crate::services::wallet::GemWalletStore;
 
 pub use store::GemWalletSessionStore;
 
+/// Holds `GemWalletStore` rather than `GemWalletService`, which owns it: the wallet service already
+/// depends on this one, so the reverse edge would be a cycle. This is the narrow wallet query service.
 #[derive(uniffi::Object)]
 pub struct GemWalletSessionService {
     store: Arc<dyn GemWalletSessionStore>,

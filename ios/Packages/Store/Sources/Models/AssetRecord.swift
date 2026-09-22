@@ -51,6 +51,7 @@ struct AssetRecord: Identifiable, Codable, PersistableRecord, FetchableRecord, T
     var associations: [AssetAssociation]
 
     static let price = hasOne(PriceRecord.self)
+    static let market = hasOne(AssetMarketRecord.self).forKey("market")
     static let links = hasMany(AssetLinkRecord.self, key: "links")
     static let balance = hasOne(BalanceRecord.self)
     static let account = hasOne(AccountRecord.self, key: "account", using: ForeignKey(["chain"], to: ["chain"]))
@@ -171,7 +172,7 @@ extension PriceRecordInfo {
             asset: asset.mapToAsset(),
             price: price?.mapToPrice(),
             priceAlerts: priceAlerts.or([]).map { $0.map() },
-            market: price?.mapToMarket(),
+            market: market?.mapToMarket(),
             links: links.map(\.link),
         )
     }

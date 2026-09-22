@@ -1,9 +1,9 @@
 use std::str::FromStr;
 
 use super::error::{PaymentDecoderError, Result};
-use primitives::{Chain, ChainType, payment::Payment};
+use primitives::{Chain, ChainType, HTTPS_URL_SCHEME, WALLET_CONNECT_URL_SCHEME, payment::Payment};
 
-use super::{bip21, bip321, erc681, solana_pay, ton_pay, xrp};
+use super::{bip21, bip321, erc681, solana_pay, ton_pay, wallet_connect_pay, xrp};
 
 const DOGECOIN_SCHEME: &str = "dogecoin";
 const RIPPLE_SCHEME: &str = "ripple";
@@ -20,8 +20,12 @@ impl PaymentURLDecoder {
             return bip21::decode(None, uri);
         };
         let path = path.strip_prefix("//").unwrap_or(path);
+        let scheme = scheme.to_ascii_lowercase();
 
-        match get_chain(&scheme.to_ascii_lowercase()).ok_or(PaymentDecoderError::InvalidScheme)? {
+        if scheme == HTTPS_URL_SCHEME || scheme == WALLET_CONNECT_URL_SCHEME {
+            return wallet_connect_pay::decode(uri);
+        }
+        match get_chain(&scheme).ok_or(PaymentDecoderError::InvalidScheme)? {
             Chain::Bitcoin => bip321::decode(path),
             Chain::Ethereum => erc681::decode(path),
             Chain::Solana => solana_pay::decode(path),
@@ -50,7 +54,7 @@ mod tests {
     use super::*;
     use primitives::{
         AssetId, Chain,
-        payment::{PaymentAmount, PaymentRequest},
+        payment::{PaymentAmount, PaymentLink, PaymentRequest},
     };
 
     const BITCOIN_ADDRESS: &str = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4";
@@ -142,10 +146,18 @@ mod tests {
     }
 
     #[test]
+    fn test_decode_wallet_connect_pay() {
+        let link = Payment::Link {
+            link: PaymentLink::WalletConnectPay { payment_id: "pay_123".to_string() },
+        };
+
+        assert_eq!(PaymentURLDecoder::decode("https://pay.walletconnect.com/?pid=pay_123").unwrap(), link);
+        assert_eq!(PaymentURLDecoder::decode("WC:abc@2?pay=https%3A%2F%2Fpay.walletconnect.com%2F%3Fpid%3Dpay_123").unwrap(), link);
+    }
+
+    #[test]
     fn test_refuses_what_it_cannot_sign() {
         assert!(PaymentURLDecoder::decode("wc:abc123@2?relay-protocol=irn&symKey=deadbeef").is_err());
-        assert!(PaymentURLDecoder::decode("wc:abc@2?pay=https%3A%2F%2Fpay.walletconnect.com%2F%3Fpid%3Dpay_123").is_err());
-        assert!(PaymentURLDecoder::decode("https://pay.walletconnect.com/?pid=pay_123").is_err());
         assert!(PaymentURLDecoder::decode("https://gemwallet.com/tokens/bitcoin").is_err());
         assert!(PaymentURLDecoder::decode("gem://wc?sessionTopic=abc").is_err());
         assert!(PaymentURLDecoder::decode("lightning:lnbc1pvjluezpp5qqqsyq").is_err());

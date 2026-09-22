@@ -5,6 +5,7 @@ mod parse;
 #[cfg(test)]
 mod hash_tests;
 
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_serializers::deserialize_option_u64_from_str_or_int;
@@ -61,6 +62,34 @@ pub struct EIP712Message {
     pub domain: EIP712Domain,
     pub primary_type: String,
     pub message: Vec<EIP712Field>,
+}
+
+pub fn find_field_string(fields: &[EIP712Field], name: &str) -> Option<String> {
+    fields.iter().find(|field| field.name == name).and_then(|field| match &field.value {
+        EIP712TypedValue::Address { value } | EIP712TypedValue::Uint256 { value } | EIP712TypedValue::String { value } => Some(value.clone()),
+        EIP712TypedValue::Struct { .. } | EIP712TypedValue::Int256 { .. } | EIP712TypedValue::Bool { .. } | EIP712TypedValue::Bytes { .. } | EIP712TypedValue::Array { .. } => None,
+    })
+}
+
+pub fn find_field_biguint(fields: &[EIP712Field], name: &str) -> Option<BigUint> {
+    let value = find_field_string(fields, name)?;
+    match value.strip_prefix("0x") {
+        Some(hex) => BigUint::parse_bytes(hex.as_bytes(), 16),
+        None => value.parse().ok(),
+    }
+}
+
+pub fn find_field_struct<'a>(fields: &'a [EIP712Field], name: &str) -> Option<&'a [EIP712Field]> {
+    fields.iter().find(|field| field.name == name).and_then(|field| match &field.value {
+        EIP712TypedValue::Struct { fields } => Some(fields.as_slice()),
+        EIP712TypedValue::Address { .. }
+        | EIP712TypedValue::Uint256 { .. }
+        | EIP712TypedValue::Int256 { .. }
+        | EIP712TypedValue::String { .. }
+        | EIP712TypedValue::Bool { .. }
+        | EIP712TypedValue::Bytes { .. }
+        | EIP712TypedValue::Array { .. } => None,
+    })
 }
 
 pub fn eip712_domain_types() -> Vec<EIP712Type> {
@@ -282,6 +311,30 @@ mod tests {
             }
             _ => panic!("Expected sigDeadline field to be a Uint256"),
         }
+    }
+
+    #[test]
+    fn test_find_field() {
+        let value: serde_json::Value = serde_json::from_str(include_str!("../testdata/uniswap_permit2.json")).unwrap();
+        let message = parse_eip712_json(&value).unwrap();
+        let details = find_field_struct(&message.message, "details").unwrap();
+
+        assert_eq!(find_field_string(details, "token"), Some(ETHEREUM_USDT_TOKEN_ID.to_string()));
+        assert_eq!(find_field_string(&message.message, "details"), None);
+        assert_eq!(find_field_struct(&message.message, "spender"), None);
+        assert_eq!(find_field_biguint(details, "amount"), Some(BigUint::parse_bytes(b"1461501637330902918203684832716283019655932542975", 10).unwrap()));
+        assert_eq!(
+            find_field_biguint(
+                &[EIP712Field {
+                    name: "amount".to_string(),
+                    value: EIP712TypedValue::Uint256 { value: "0x186a0".to_string() }
+                }],
+                "amount"
+            ),
+            Some(BigUint::from(100_000u32))
+        );
+        assert_eq!(find_field_biguint(details, "nonce"), Some(BigUint::ZERO));
+        assert_eq!(find_field_biguint(details, "deadline"), None);
     }
 
     #[test]

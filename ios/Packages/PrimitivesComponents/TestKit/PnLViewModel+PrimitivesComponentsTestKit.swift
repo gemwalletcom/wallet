@@ -13,7 +13,7 @@ public extension PnLViewModel {
             pnl: pnl,
             marginAmount: marginAmount,
             currencyFormatter: CurrencyFormatter.usd,
-            percentFormatter: PercentFormatter.signed,
+            percentageStyle: .signed,
         )
     }
 }

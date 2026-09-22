@@ -2,9 +2,9 @@ package com.gemwallet.android.features.bridge.viewmodels.model
 
 import com.gemwallet.android.ui.components.list_head.SimulationHeaderUIModel
 import com.gemwallet.android.ui.components.list_item.ListItemModel
-import com.gemwallet.android.ui.models.PayloadField
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemSimulationPayloadRow
 import uniffi.gemstone.MessageType
 
 interface WalletConnectReviewModel {
@@ -13,8 +13,8 @@ interface WalletConnectReviewModel {
     val name: String
     val uri: String
     val chain: Chain
-    val primaryPayloadFields: List<PayloadField>
-    val secondaryPayloadFields: List<PayloadField>
+    val primaryPayloadFields: List<GemSimulationPayloadRow>
+    val secondaryPayloadFields: List<GemSimulationPayloadRow>
     val messageType: MessageType
     val message: String
     val warnings: List<GemListRow> get() = emptyList()

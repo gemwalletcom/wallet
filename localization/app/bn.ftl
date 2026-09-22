@@ -131,6 +131,8 @@ buy_no_results = কোনো উদ্ধৃতি উপলব্ধ নেই
 # Transfer
 
 transfer_network_fee = নেটওয়ার্ক ফি
+transfer_pay_with = যা দিয়ে পেমেন্ট করবেন
+transfer_payment_title = পেমেন্ট
 transfer_memo = মেমো
 transfer_confirm = নিশ্চিত করুন
 transfer_from = প্রেরক
@@ -156,6 +158,7 @@ transfer_activate_asset_title = অ্যাসেট সক্রিয় ক�
 transfer_recipient_my_wallets = আমার ওয়ালেট
 transfer_recipient_view_wallets = ওয়ালেট দেখুন
 transfer_minimum_account_balance = এর পরেও ন্যূনতম %@ ব্যালেন্স থাকতে হবে, যদি না আপনি আপনার সম্পূর্ণ ব্যালেন্স ব্যবহার করছেন।
+transfer_destination_account_activation = গন্তব্য ঠিকানার জন্য সর্বনিম্ন %@ প্রয়োজন।
 transfer_smart_contract_title = স্মার্ট চুক্তি
 transfer_other_title = অন্যান্য
 transfer_maximum_amount = সর্বাধিক পরিমাণ হল %@
@@ -253,6 +256,7 @@ errors_network_offline = ইন্টারনেট সংযোগটি অ�
 errors_no_internet_connection = ইন্টারনেট সংযোগ নেই
 errors_no_service_connection = পরিষেবা সংযোগ নেই
 errors_balances_activity_outdated = ব্যালেন্স এবং কার্যকলাপ পুরনো হতে পারে।
+errors_payment_status = পেমেন্ট: %@
 
 # Activity
 
@@ -289,6 +293,7 @@ transaction_swap_again = আবার অদলবদল করুন
 transaction_status_completed = সম্পন্ন
 transaction_status_inprogress = চলছে
 transaction_status_refunded = ফেরত দেওয়া হয়েছে
+transaction_status_expired = মেয়াদোত্তীর্ণ
 
 # Asset
 
@@ -541,6 +546,8 @@ sell_title = %@ বিক্রি করুন
 info_network_fee_title = নেটওয়ার্ক ফি
 info_watch_wallet_title = ওয়ালেট দেখুন
 info_watch_wallet_description = একটি মানিব্যাগ যা আপনার অ্যাক্সেস নেই, তবে আপনি এটির লেনদেন এবং গতিবিধি দেখতে পারেন।
+info_payment_verification_title = পেমেন্ট যাচাইকরণ
+info_payment_verification_description = পেমেন্টের আগে মার্চেন্টের অতিরিক্ত তথ্য প্রয়োজন।
 info_network_fee_description = %@ নেটওয়ার্কে প্রতিটি লেনদেনের জন্য আপনার লেনদেন প্রক্রিয়া করার জন্য %@-এ ফি দিতে হবে, Gem Wallet নয়। নেটওয়ার্ক ফি নেটওয়ার্ক ব্যবহারের উপর ভিত্তি করে পরিবর্তিত হয়।
 info_transaction_error_description = একটি ত্রুটির কারণে লেনদেন সম্পন্ন করা যায়নি, যেমন অপর্যাপ্ত তহবিল, অবৈধ ইনপুট, বা নেটওয়ার্ক দ্বারা প্রত্যাখ্যান। অনুগ্রহ করে বিস্তারিত পর্যালোচনা করুন এবং আবার চেষ্টা করুন।
 info_transaction_pending_description = লেনদেন জমা দেওয়া হয়েছে এবং নেটওয়ার্কে নিশ্চিতকরণের জন্য অপেক্ষা করছে। প্রক্রিয়াকরণের সময় পরিবর্তিত হতে পারে। আপডেটের জন্য আবার চেক করুন.

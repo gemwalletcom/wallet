@@ -110,6 +110,8 @@
   <string name="buy_rate">معدل</string>
   <string name="buy_no_results">لا توجد عروض أسعار متاحة</string>
   <string name="transfer_network_fee">رسوم الشبكة</string>
+  <string name="transfer_pay_with">الدفع بواسطة</string>
+  <string name="transfer_payment_title">الدفع</string>
   <string name="transfer_memo">مذكرة</string>
   <string name="transfer_confirm">يتأكد</string>
   <string name="transfer_from">من</string>
@@ -135,6 +137,7 @@
   <string name="transfer_recipient_my_wallets">محفظتي</string>
   <string name="transfer_recipient_view_wallets">عرض المحافظ</string>
   <string name="transfer_minimum_account_balance">يجب أن يتبقى حد أدنى من الرصيد %1$s بعد ذلك، ما لم تكن تستخدم رصيدك بالكامل.</string>
+  <string name="transfer_destination_account_activation">يتطلب عنوان الوجهة حداً أدنى قدره %1$s.</string>
   <string name="transfer_smart_contract_title">العقد الذكي</string>
   <string name="transfer_other_title">آخر</string>
   <string name="transfer_maximum_amount">الحد الأقصى للمبلغ هو %1$s</string>
@@ -223,6 +226,7 @@
   <string name="errors_no_internet_connection">لا يوجد اتصال بالإنترنت</string>
   <string name="errors_no_service_connection">لا يوجد اتصال بالخدمة</string>
   <string name="errors_balances_activity_outdated">قد تكون الأرصدة والنشاط غير محدثة.</string>
+  <string name="errors_payment_status">الدفع: %1$s</string>
   <string name="activity_title">نشاط</string>
   <string name="activity_state_empty_title">سوف يظهر نشاطك هنا</string>
   <string name="activity_state_empty_description">قم بإجراء معاملتك الأولى</string>
@@ -250,6 +254,7 @@
   <string name="transaction_status_completed">مكتمل</string>
   <string name="transaction_status_inprogress">في تَقَدم</string>
   <string name="transaction_status_refunded">ردها</string>
+  <string name="transaction_status_expired">منتهي الصلاحية</string>
   <string name="asset_balances">أرصدة</string>
   <string name="asset_balances_available">متاح</string>
   <string name="asset_price">سعر</string>
@@ -436,6 +441,8 @@
   <string name="info_network_fee_title">رسوم الشبكة</string>
   <string name="info_watch_wallet_title">شاهد المحفظة</string>
   <string name="info_watch_wallet_description">محفظة لا يمكنك الوصول إليها، ولكن يمكنك مشاهدة معاملاتها وحركاتها.</string>
+  <string name="info_payment_verification_title">التحقق من الدفع</string>
+  <string name="info_payment_verification_description">يتطلب التاجر معلومات إضافية قبل الدفع.</string>
   <string name="info_network_fee_description">تتطلب كل معاملة على شبكة %1$s رسومًا بعملة %2$s تُدفع لعمال المناجم لمعالجة معاملتك، وليس Gem Wallet. تختلف رسوم الشبكة حسب استخدام الشبكة.</string>
   <string name="info_transaction_error_description">تعذّر إتمام المعاملة بسبب خطأ، مثل عدم كفاية الرصيد، أو إدخال غير صحيح، أو رفض من قِبل الشبكة. يُرجى مراجعة التفاصيل والمحاولة مرة أخرى.</string>
   <string name="info_transaction_pending_description">تم إرسال المعاملة وهي بانتظار التأكيد على الشبكة. قد تختلف أوقات المعالجة. يُرجى مراجعة التحديثات.</string>

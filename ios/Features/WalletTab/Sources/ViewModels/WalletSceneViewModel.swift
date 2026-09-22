@@ -72,7 +72,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
             PerpetualWalletBalanceRequest(walletId: wallet.id, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
             initialValue: nil,
         )
-        assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: [.enabledBalance]), initialValue: [])
+        assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: [.enabledBalance], limit: nil), initialValue: [])
         bannersQuery = ObservableQuery(
             BannersRequest(walletId: wallet.id, assetId: .none, events: walletBannerEvents().map { $0.toPrimitives() }),
             initialValue: [],

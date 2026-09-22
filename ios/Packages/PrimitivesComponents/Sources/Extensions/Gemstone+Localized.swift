@@ -36,6 +36,7 @@ import enum Gemstone.GemTransactionTitle
 import enum Gemstone.GemTriggerOrder
 import enum Gemstone.GemWalletSubtitle
 import enum Gemstone.LinkType
+import enum Gemstone.PaymentStatus
 import enum Gemstone.PerpetualDirection
 import enum Gemstone.PerpetualType
 import class Gemstone.PriceChangeCalculator
@@ -101,13 +102,13 @@ public extension GemLocalizedText {
         case .invalidTokenId:
             Localized.Errors.Token.invalidId
         case let .triggerOrder(order, price):
-            GemPerpetual(provider: .hypercore).triggerOrderText(label: order.title, formattedPrice: price?.text())
+            "\(order.title): \(price?.text() ?? Placeholder.empty)"
         case let .pnl(amount, percent):
             PriceChangeCalculator().pnlText(formattedAmount: amount.text(), formattedPercentage: percent.text())
         case let .margin(amount, marginType):
-            GemPerpetual(provider: .hypercore).marginText(formattedAmount: amount.text(), marginTypeName: marginType.toPrimitives().title)
+            "\(amount.text()) (\(marginType.toPrimitives().title))"
         case let .position(direction, leverage):
-            GemPerpetual(provider: .hypercore).positionText(directionName: direction.toPrimitives().title, formattedLeverage: leverage)
+            "\(direction.toPrimitives().title.uppercased()) \(leverage.text())"
         case let .apr(value):
             Localized.Stake.apr(value?.text() ?? .empty)
         case let .priceImpactWarning(percent, symbol):
@@ -527,6 +528,7 @@ public extension GemErrorText {
         case .unsupportedChain: Localized.Errors.Connections.unsupportedChain
         case .maliciousOrigin: Localized.Errors.Connections.maliciousOrigin
         case .noSupportedWallets: Localized.Errors.Connections.noSupportedWallets
+        case let .payment(status): status.errorText
         case .invalidSecretPhrase: Localized.Errors.Import.invalidSecretPhrase
         case let .invalidSecretPhraseWords(words): Localized.Errors.Import.invalidSecretPhraseWord(words.joined(separator: ", "))
         case .invalidPrivateKey: Localized.Errors.Import.invalidPrivateKey
@@ -538,10 +540,27 @@ public extension GemErrorText {
     }
 }
 
+extension PaymentStatus {
+    public var errorText: String {
+        Localized.Errors.paymentStatus(text)
+    }
+
+    var text: String {
+        switch self {
+        case .requiresAction, .failed: Localized.Transaction.Status.failed
+        case .processing: Localized.Transaction.Status.inprogress
+        case .succeeded: Localized.Transaction.Status.completed
+        case .expired: Localized.Transaction.Status.expired
+        case .cancelled: Localized.Errors.cancelled
+        }
+    }
+}
+
 public extension GemSelectAssetTitle {
     var text: String {
         switch self {
         case .send: Localized.Wallet.send
+        case .payWith: Localized.Transfer.payWith
         case .receive: Localized.Wallet.receive
         case .receiveCollection: Localized.Wallet.receiveCollection
         case .buy: Localized.Wallet.buy
@@ -630,6 +649,7 @@ public extension GemListSectionTitle {
         switch self {
         case .none: nil
         case .balances: Localized.Asset.balances
+        case .info: Localized.Common.info
         case .community: Localized.Settings.community
         case .manage: Localized.Common.manage
         case .resources: Localized.Asset.resources

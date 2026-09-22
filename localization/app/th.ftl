@@ -131,6 +131,8 @@ buy_no_results = ไม่มีใบเสนอราคา
 # Transfer
 
 transfer_network_fee = ค่าธรรมเนียมเครือข่าย
+transfer_pay_with = ชำระด้วย
+transfer_payment_title = การชำระเงิน
 transfer_memo = บันทึก
 transfer_confirm = ยืนยัน
 transfer_from = จาก
@@ -156,6 +158,7 @@ transfer_activate_asset_title = เปิดใช้งานสินทรั
 transfer_recipient_my_wallets = กระเป๋าสตางค์ของฉัน
 transfer_recipient_view_wallets = ดูกระเป๋าสตางค์
 transfer_minimum_account_balance = ยอดคงเหลือขั้นต่ำ %@ ต้องคงอยู่หลังจากนี้ เว้นแต่คุณจะใช้ยอดคงเหลือทั้งหมดของคุณ
+transfer_destination_account_activation = ที่อยู่ปลายทางต้องมีขั้นต่ำ %@
 transfer_smart_contract_title = สัญญาอัจฉริยะ
 transfer_other_title = อื่นๆ
 transfer_maximum_amount = จำนวนเงินสูงสุดคือ %@
@@ -253,6 +256,7 @@ errors_network_offline = ดูเหมือนว่าการเชื่�
 errors_no_internet_connection = ไม่มีการเชื่อมต่ออินเทอร์เน็ต
 errors_no_service_connection = ไม่มีการเชื่อมต่อบริการ
 errors_balances_activity_outdated = ยอดคงเหลือและกิจกรรมอาจไม่เป็นปัจจุบัน
+errors_payment_status = การชำระเงิน: %@
 
 # Activity
 
@@ -289,6 +293,7 @@ transaction_swap_again = แลกเปลี่ยนอีกครั้ง
 transaction_status_completed = เสร็จสิ้น
 transaction_status_inprogress = อยู่ระหว่างดำเนินการ
 transaction_status_refunded = ได้รับเงินคืน
+transaction_status_expired = หมดอายุ
 
 # Asset
 
@@ -541,6 +546,8 @@ sell_title = ขาย %@
 info_network_fee_title = ค่าธรรมเนียมเครือข่าย
 info_watch_wallet_title = ดูกระเป๋าเงิน
 info_watch_wallet_description = กระเป๋าเงินที่คุณไม่สามารถเข้าถึงได้แต่คุณสามารถดูธุรกรรมและการเคลื่อนไหวได้
+info_payment_verification_title = การยืนยันตัวตนสำหรับการชำระเงิน
+info_payment_verification_description = ผู้ขายต้องการข้อมูลเพิ่มเติมก่อนการชำระเงิน
 info_network_fee_description = ทุกธุรกรรมบนเครือข่าย %@ ต้องเสียค่าธรรมเนียมเป็น %@ ที่จ่ายให้กับนักขุดเพื่อดำเนินการธุรกรรมของคุณ ไม่ใช่ Gem Wallet ค่าธรรมเนียมเครือข่ายจะแตกต่างกันไปตามการใช้งานเครือข่าย
 info_transaction_error_description = ไม่สามารถทำธุรกรรมให้เสร็จสมบูรณ์ได้เนื่องจากเกิดข้อผิดพลาด เช่น เงินไม่เพียงพอ ข้อมูลที่ป้อนไม่ถูกต้อง หรือเครือข่ายปฏิเสธ โปรดตรวจสอบรายละเอียดและลองอีกครั้ง
 info_transaction_pending_description = ธุรกรรมได้รับการส่งแล้วและกำลังรอการยืนยันบนเครือข่าย เวลาในการประมวลผลอาจแตกต่างกัน โปรดตรวจสอบอีกครั้งเพื่อดูการอัปเดต

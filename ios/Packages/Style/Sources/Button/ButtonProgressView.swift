@@ -14,8 +14,9 @@ struct ButtonProgressView: View {
             .stroke(Colors.whiteSolid, style: StrokeStyle(lineWidth: .space2, lineCap: .round))
             .padding(.space1)
             .frame(width: Sizing.image.small, height: Sizing.image.small)
-            .rotationEffect(.degrees(isRotating ? 360 : 0))
-            .animation(.linear(duration: Self.rotationDuration).repeatForever(autoreverses: false), value: isRotating)
+            .animation(.linear(duration: Self.rotationDuration).repeatForever(autoreverses: false)) { content in
+                content.rotationEffect(.degrees(isRotating ? 360 : 0))
+            }
             .onAppear { isRotating = true }
     }
 }

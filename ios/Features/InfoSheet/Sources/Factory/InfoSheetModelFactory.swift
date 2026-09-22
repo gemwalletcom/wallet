@@ -69,6 +69,13 @@ public enum InfoSheetModelFactory {
                 image: .image(Images.Wallets.watch),
                 button: .url(AppUrl.docs(.whatIsWatchWallet)),
             )
+        case .paymentVerification:
+            return InfoSheetModel(
+                title: Localized.Info.paymentVerificationTitle,
+                description: Localized.Info.paymentVerificationDescription,
+                image: .image(Images.Logo.logo),
+                button: nil,
+            )
         case let .stakeLockTime(placeholder):
             return InfoSheetModel(
                 title: Localized.Stake.lockTime,

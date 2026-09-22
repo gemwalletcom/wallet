@@ -7,7 +7,6 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.ChainAssetInfo
 import com.gemwallet.android.model.text
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.banner.uiModel
 import com.gemwallet.android.ui.components.image.iconModel
@@ -21,7 +20,6 @@ import uniffi.gemstone.GemAssetDetailRow
 import uniffi.gemstone.GemAssetDetails
 import uniffi.gemstone.GemBalanceRow
 import uniffi.gemstone.GemBannerRow
-import uniffi.gemstone.GemValueTone
 import javax.inject.Inject
 
 class AssetInfoUIModelFactory @Inject constructor(@ApplicationContext private val context: Context) {
@@ -29,13 +27,10 @@ class AssetInfoUIModelFactory @Inject constructor(@ApplicationContext private va
     fun create(chainAssetInfo: ChainAssetInfo, details: GemAssetDetails, banners: List<GemBannerRow>): AssetInfoUIModel {
         val assetInfo = chainAssetInfo.assetInfo
         val asset = assetInfo.asset
-        val priceRow = details.sections.flatMap { it.rows }.filterIsInstance<GemAssetDetailRow.Price>().firstOrNull()
         return AssetInfoUIModel(
             assetInfo = assetInfo,
             name = details.title,
             iconUrl = asset.id.iconModel(),
-            priceDayChanges = priceRow?.row?.change?.text().orEmpty(),
-            priceChangedType = priceRow?.row?.change?.tone ?: GemValueTone.PLAIN,
             tokenType = asset.type,
             isBuyEnabled = assetInfo.metadata.isBuyEnabled,
             isSwapEnabled = assetInfo.metadata.isSwapEnabled,
@@ -51,8 +46,9 @@ class AssetInfoUIModelFactory @Inject constructor(@ApplicationContext private va
             priceAlertMenu = details.state.priceAlert.menu(),
             emptyTransactions = details.state.emptyTransactionsAction.emptyTransactions(),
             banners = banners.map { it.uiModel(context) },
-            priceListItem = ListItemModel(title = context.getString(R.string.asset_price), subtitle = priceRow?.row?.price?.text().orEmpty()),
-            sections = details.sections.map { section -> AssetInfoUIModel.SectionUIModel(section.title.titleRes(), section.rows.map { row(it, asset.id) }) },
+            sections = details.sections.map { section ->
+                AssetInfoUIModel.SectionUIModel(section.title.titleRes(), section.rows.map { row(it, asset.id, details.networkDestination.navigation()) })
+            },
             accountInfoUIModel = AssetInfoUIModel.AccountInfoUIModel(
                 totalBalance = details.balanceValue.text(),
                 totalFiat = details.fiatValue?.text().orEmpty(),
@@ -61,12 +57,9 @@ class AssetInfoUIModelFactory @Inject constructor(@ApplicationContext private va
         )
     }
 
-    private fun row(row: GemAssetDetailRow, assetId: AssetId): AssetInfoUIModel.RowUIModel = when (row) {
-        is GemAssetDetailRow.Price -> AssetInfoUIModel.RowUIModel.Price
-        is GemAssetDetailRow.Network -> AssetInfoUIModel.RowUIModel.Network(row.name)
+    private fun row(row: GemAssetDetailRow, assetId: AssetId, network: AssetDetailsAction.Navigation?): AssetInfoUIModel.RowUIModel = when (row) {
         is GemAssetDetailRow.Balance -> balance(row.row)
-        is GemAssetDetailRow.Earn -> AssetInfoUIModel.RowUIModel.Earn(row.row)
-        is GemAssetDetailRow.Row -> AssetInfoUIModel.RowUIModel.Row(row.row, row.row.detailsAction(assetId))
+        is GemAssetDetailRow.Row -> AssetInfoUIModel.RowUIModel.Row(row.row, row.row.detailsAction(assetId) ?: row.row.networkAction(network))
     }
 
     private fun balance(item: GemAssetBalanceRow): AssetInfoUIModel.RowUIModel.Balance {

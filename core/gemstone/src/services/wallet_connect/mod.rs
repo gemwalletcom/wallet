@@ -85,10 +85,6 @@ impl GemWalletConnectService {
         rules::record_seen_message(&mut seen, message_id, SEEN_MESSAGES_LIMIT)
     }
 
-    pub fn is_origin_rejected(&self, metadata_url: String, origin: Option<String>, validation: WalletConnectionVerificationStatus) -> bool {
-        rules::is_origin_rejected(&WalletConnectVerifier::validate_origin(metadata_url, origin, validation))
-    }
-
     pub async fn add_connection(&self, connection: WalletConnection) -> Result<(), GemServiceError> {
         self.store.add_connection(connection).await
     }
@@ -229,6 +225,10 @@ impl GemWalletConnectService {
 }
 
 impl GemWalletConnectService {
+    fn is_origin_rejected(&self, metadata_url: String, origin: Option<String>, validation: WalletConnectionVerificationStatus) -> bool {
+        rules::is_origin_rejected(&WalletConnectVerifier::validate_origin(metadata_url, origin, validation))
+    }
+
     async fn request_response(&self, topic: String, method: String, params: String, chain_id: String, domain: String, expiry: Option<u64>) -> Result<GemWalletConnectResponse, GemServiceError> {
         let action = self.wallet_connect.parse_request(topic.clone(), method, params, chain_id, domain.clone())?;
         let session_id = topic;
@@ -403,8 +403,9 @@ mod tests {
                         })
                     );
                     assert_eq!(request.simulation.header.as_ref().unwrap().asset_id.to_string(), "tron_TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t");
-                    assert_eq!(request.simulation.payload[0].value, spender);
+                    assert_eq!(request.simulation.payload[0].value, "approve");
                     assert_eq!(request.simulation.payload[1].value, contract);
+                    assert_eq!(request.simulation.payload[2].value, spender);
                     assert_eq!(request.simulation.header.as_ref().unwrap().is_unlimited, is_unlimited);
                     assert_eq!(request.simulation.warnings.len(), 1);
                 }

@@ -11,8 +11,9 @@ use crate::{provider::preload_mapper::map_transaction_preload, rpc::XrpClient};
 #[async_trait]
 impl<C: Client + Clone> ChainTransactionLoad for XrpClient<C> {
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Send + Sync>> {
-        let result = self.get_account_info_full(&input.sender_address).await?;
-        map_transaction_preload(result)
+        let destination = input.input_type.swap_to_address().unwrap_or(&input.destination_address);
+        let (sender, destination_exists) = futures::try_join!(self.get_account_info_full(&input.sender_address), self.account_exists(destination))?;
+        map_transaction_preload(sender, destination_exists)
     }
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {

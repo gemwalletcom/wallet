@@ -110,6 +110,8 @@
   <string name="buy_rate">Koers</string>
   <string name="buy_no_results">Geen offertes beschikbaar</string>
   <string name="transfer_network_fee">Netwerkkosten</string>
+  <string name="transfer_pay_with">Betalen met</string>
+  <string name="transfer_payment_title">Betaling</string>
   <string name="transfer_memo">Memo</string>
   <string name="transfer_confirm">Bevestig</string>
   <string name="transfer_from">Van</string>
@@ -135,6 +137,7 @@
   <string name="transfer_recipient_my_wallets">Mijn portemonnees</string>
   <string name="transfer_recipient_view_wallets">Bekijk portemonnees</string>
   <string name="transfer_minimum_account_balance">Hierna moet er minimaal %1$s saldo overblijven, tenzij u uw volledige saldo gebruikt.</string>
+  <string name="transfer_destination_account_activation">Het bestemmingsadres vereist een minimum van %1$s.</string>
   <string name="transfer_smart_contract_title">Slim contract</string>
   <string name="transfer_other_title">Anders</string>
   <string name="transfer_maximum_amount">Maximaal bedrag is %1$s</string>
@@ -223,6 +226,7 @@
   <string name="errors_no_internet_connection">Geen internetverbinding</string>
   <string name="errors_no_service_connection">Geen serviceverbinding</string>
   <string name="errors_balances_activity_outdated">Saldi en activiteit zijn mogelijk verouderd.</string>
+  <string name="errors_payment_status">Betaling: %1$s</string>
   <string name="activity_title">Activiteit</string>
   <string name="activity_state_empty_title">Uw activiteit zal hier verschijnen</string>
   <string name="activity_state_empty_description">Maak uw eerste transactie</string>
@@ -250,6 +254,7 @@
   <string name="transaction_status_completed">Voltooid</string>
   <string name="transaction_status_inprogress">In uitvoering</string>
   <string name="transaction_status_refunded">Terugbetaald</string>
+  <string name="transaction_status_expired">Verlopen</string>
   <string name="asset_balances">Saldi</string>
   <string name="asset_balances_available">Beschikbaar</string>
   <string name="asset_price">Prijs</string>
@@ -436,6 +441,8 @@
   <string name="info_network_fee_title">Netwerkkosten</string>
   <string name="info_watch_wallet_title">Kijk-portemonnee</string>
   <string name="info_watch_wallet_description">Een portemonnee waar u geen toegang toe heeft, maar wel de transacties en bewegingen ervan kunt bekijken.</string>
+  <string name="info_payment_verification_title">Betalingsverificatie</string>
+  <string name="info_payment_verification_description">De verkoper vereist aanvullende informatie vóór de betaling.</string>
   <string name="info_network_fee_description">Voor elke transactie op het %1$s netwerk is een vergoeding van %2$s vereist, betaald aan mijnwerkers om uw transactie te verwerken, niet aan Gem Wallet. De netwerkkosten variëren afhankelijk van het netwerkgebruik.</string>
   <string name="info_transaction_error_description">De transactie kon niet worden voltooid vanwege een fout, zoals onvoldoende saldo, ongeldige invoer of afwijzing door het netwerk. Controleer de details en probeer het opnieuw.</string>
   <string name="info_transaction_pending_description">De transactie is verzonden en wacht op bevestiging op het netwerk. Verwerkingstijden kunnen variëren. Kom later terug voor updates.</string>

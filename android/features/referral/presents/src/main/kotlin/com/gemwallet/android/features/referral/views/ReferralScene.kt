@@ -34,8 +34,8 @@ import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.features.referral.viewmodels.SyncType
 import com.gemwallet.android.features.referral.viewmodels.models.IncomingCodeUIModel
-import com.gemwallet.android.features.referral.viewmodels.models.ReferralUIState
 import com.gemwallet.android.features.referral.viewmodels.models.RewardRedemptionUIModel
+import com.gemwallet.android.features.referral.viewmodels.models.RewardsSectionUIModel
 import com.gemwallet.android.features.referral.views.components.referralHead
 import com.gemwallet.android.features.referral.views.components.referralInfo
 import com.gemwallet.android.features.referral.views.dialogs.GetStartedDialog
@@ -67,6 +67,7 @@ import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemRewardsAction
 import uniffi.gemstone.GemServiceException
 
 private val referralCodeMaxWidth = 250.dp
@@ -77,8 +78,10 @@ fun ReferralScene(
     loadError: GemServiceException?,
     isAvailableWalletSelect: Boolean,
     referralLink: String?,
-    uiState: ReferralUIState,
-    infoRows: List<ListItemModel>,
+    actions: List<GemRewardsAction>,
+    notices: List<GemListRow>,
+    inviteRewardPoints: String,
+    sections: List<RewardsSectionUIModel>,
     redemptions: List<RewardRedemptionUIModel>,
     currentWallet: Wallet?,
     incomingCode: IncomingCodeUIModel = IncomingCodeUIModel(),
@@ -96,7 +99,7 @@ fun ReferralScene(
     val joinText = stringResource(R.string.rewards_share_text, link)
     val shareTitle = stringResource(id = R.string.common_share, link)
 
-    var getStartedDialogShow by remember(uiState) { mutableStateOf(false) }
+    var getStartedDialogShow by remember(actions) { mutableStateOf(false) }
     var codeDialogShow by remember(incomingCode, inSync) { mutableStateOf(incomingCode.confirm != null && inSync == SyncType.None) }
     val referralCode = incomingCode.confirm
 
@@ -172,14 +175,13 @@ fun ReferralScene(
                     return@LazyColumn
                 }
                 referralHead(
-                    joinPointsCost = uiState.joinPointsCost,
-                    canInvite = uiState.canInvite,
-                    hasCode = uiState.hasCode,
+                    joinPointsCost = inviteRewardPoints,
+                    action = actions.firstOrNull { it is GemRewardsAction.Share || it is GemRewardsAction.CreateCode },
                     onGetStarted = { getStartedDialogShow = true },
                     onShare = onShare,
                 )
 
-                if (uiState.canUseReferralCode) {
+                if (actions.contains(GemRewardsAction.UseReferralCode)) {
                     item {
                         Spacer8()
                         Box(modifier = Modifier.padding(horizontal = sceneContentPadding())) {
@@ -201,28 +203,24 @@ fun ReferralScene(
                         )
                     }
                 }
-                uiState.errorNotice?.let { notice ->
-                    item { GemListRowView(row = notice, listPosition = ListPosition.Single) }
-                }
-                uiState.statusNotice?.let { notice ->
+                val pending = actions.filterIsInstance<GemRewardsAction.ActivatePendingReferral>().firstOrNull()
+                notices.forEachIndexed { index, notice ->
+                    val isLast = index == notices.lastIndex
                     item {
-                        val code = uiState.pendingCode
-                        GemListRowView(row = notice, listPosition = if (code != null) ListPosition.First else ListPosition.Single)
-                        if (code != null) {
+                        GemListRowView(row = notice, listPosition = if (isLast && pending != null) ListPosition.First else ListPosition.Single)
+                        if (isLast && pending != null) {
                             Box(modifier = Modifier.listItem(ListPosition.Last).padding(paddingDefault)) {
                                 MainActionButton(
                                     title = stringResource(R.string.transfer_confirm),
-                                    state = buttonState(enabled = uiState.canActivatePending),
+                                    state = buttonState(enabled = pending.isEnabled),
                                 ) {
-                                    onCode(code, onCodeResult)
+                                    onCode(pending.code, onCodeResult)
                                 }
                             }
                         }
                     }
                 }
-                if (uiState.showsInfo) {
-                    referralInfo(infoRows, redemptions, onRedeem)
-                }
+                referralInfo(sections, redemptions, onRedeem)
             }
         }
     }
@@ -250,13 +248,10 @@ private fun ReferralScenePreview() {
             inSync = SyncType.None,
             isAvailableWalletSelect = false,
             referralLink = null,
-            uiState = previewReferralState(
-                hasReferralCode = true,
-                canInvite = true,
-                showsInfo = true,
-                referralCode = "testuser",
-            ),
-            infoRows = emptyList(),
+            actions = listOf(GemRewardsAction.Share),
+            notices = emptyList(),
+            inviteRewardPoints = "100",
+            sections = emptyList(),
             redemptions = emptyList(),
             currentWallet = previewWallet(),
             onUsername = { _, _ -> },
@@ -279,8 +274,10 @@ private fun ReferralSceneNoRewardsPreview() {
             inSync = SyncType.None,
             isAvailableWalletSelect = false,
             referralLink = null,
-            uiState = previewReferralState(canUseReferralCode = true),
-            infoRows = emptyList(),
+            actions = listOf(GemRewardsAction.CreateCode, GemRewardsAction.UseReferralCode),
+            notices = emptyList(),
+            inviteRewardPoints = "100",
+            sections = emptyList(),
             redemptions = emptyList(),
             currentWallet = previewWallet(),
             onUsername = { _, _ -> },

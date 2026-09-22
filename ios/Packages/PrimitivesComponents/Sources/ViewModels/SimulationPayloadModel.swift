@@ -3,7 +3,6 @@
 import Components
 import Foundation
 import struct Gemstone.GemSimulationPayloadRow
-import Localization
 import Primitives
 
 public struct SimulationPayloadModel: Sendable {
@@ -23,26 +22,30 @@ public struct SimulationPayloadModel: Sendable {
 
     public func fieldModels(
         for rows: [GemSimulationPayloadRow],
-        explorerLink: (String) -> BlockExplorerLink,
-        onOpenURL: @escaping (URL) -> Void,
+        onSelectAddress: (@MainActor @Sendable (String) -> Void)? = nil,
     ) -> [SimulationPayloadFieldViewModel] {
-        rows.map { row in
-            let explorerItem: ContextMenuItemType? = switch row.value {
-            case let .address(_, address): explorerMenuItem(link: explorerLink(address), onOpenURL: onOpenURL)
-            case .text, .timestamp: nil
-            }
-            return SimulationPayloadFieldViewModel(row: row, explorerItem: explorerItem)
-        }
+        rows.map { fieldModel(for: $0, onSelectAddress: onSelectAddress) }
     }
 
-    private func explorerMenuItem(
-        link: BlockExplorerLink,
-        onOpenURL: @escaping (URL) -> Void,
-    ) -> ContextMenuItemType {
-        .url(title: Localized.Transaction.viewOn(link.name), onOpen: {
-            if let url = URL(string: link.link) {
-                onOpenURL(url)
-            }
-        })
+    private func fieldModel(
+        for row: GemSimulationPayloadRow,
+        onSelectAddress: (@MainActor @Sendable (String) -> Void)?,
+    ) -> SimulationPayloadFieldViewModel {
+        guard case let .address(_, copy, explorer) = row.value else {
+            return SimulationPayloadFieldViewModel(row: row)
+        }
+        return SimulationPayloadFieldViewModel(
+            row: row,
+            kind: .address(ExplorerContextData(copyValue: copy.copyValue, explorerLink: explorer.toPrimitives())),
+            onSelect: selectAddress(copy.value, onSelectAddress: onSelectAddress),
+        )
+    }
+
+    private func selectAddress(
+        _ address: String,
+        onSelectAddress: (@MainActor @Sendable (String) -> Void)?,
+    ) -> (@MainActor @Sendable () -> Void)? {
+        guard let onSelectAddress else { return nil }
+        return { onSelectAddress(address) }
     }
 }

@@ -131,6 +131,8 @@ buy_no_results = 見積もりなし
 # Transfer
 
 transfer_network_fee = ネットワーク手数料
+transfer_pay_with = 支払い方法
+transfer_payment_title = 支払い
 transfer_memo = メモ
 transfer_confirm = 確認
 transfer_from = 送信元
@@ -156,6 +158,7 @@ transfer_activate_asset_title = アセットを有効化
 transfer_recipient_my_wallets = マイウォレット
 transfer_recipient_view_wallets = ウォレットを表示
 transfer_minimum_account_balance = 全額を使用する場合を除き、取引後も最低 %@ の残高を維持する必要があります。
+transfer_destination_account_activation = 宛先アドレスには最低 %@ が必要です。
 transfer_smart_contract_title = スマートコントラクト
 transfer_other_title = その他
 transfer_maximum_amount = 最大金額は %@ です
@@ -253,6 +256,7 @@ errors_network_offline = インターネット接続が切断されているよ�
 errors_no_internet_connection = インターネット接続がありません
 errors_no_service_connection = サービスに接続できません
 errors_balances_activity_outdated = 残高とアクティビティは最新でない場合があります。
+errors_payment_status = 支払い: %@
 
 # Activity
 
@@ -289,6 +293,7 @@ transaction_swap_again = 再度スワップ
 transaction_status_completed = 完了
 transaction_status_inprogress = 進行中
 transaction_status_refunded = 返金済み
+transaction_status_expired = 期限切れ
 
 # Asset
 
@@ -541,6 +546,8 @@ sell_title = %@を売る
 info_network_fee_title = ネットワーク手数料
 info_watch_wallet_title = ウォッチウォレット
 info_watch_wallet_description = 資産を操作する権限はありませんが、取引や資金の動きを確認できるウォレットです。
+info_payment_verification_title = 支払いの本人確認
+info_payment_verification_description = 加盟店は支払いの前に追加情報を必要としています。
 info_network_fee_description = %@ ネットワーク上のすべての取引には、取引処理のためにマイナーに支払われる %@ の手数料が必要であり、Gem Wallet には支払われません。ネットワーク手数料はネットワークの使用状況により変動します。
 info_transaction_error_description = 残高不足、無効な入力、ネットワークによる拒否などのエラーにより、取引を完了できませんでした。詳細をご確認の上、再度お試しください。
 info_transaction_pending_description = 取引は送信済みで、ネットワーク上での確認を待っています。処理時間は異なる場合があります。最新情報を再度ご確認ください。

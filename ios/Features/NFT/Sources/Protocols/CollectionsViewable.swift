@@ -5,6 +5,7 @@ import Foundation
 import enum Gemstone.GemLoadState
 import struct Gemstone.GemNftListScreen
 import protocol Gemstone.GemNftServiceProtocol
+import func Gemstone.loadError
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -52,8 +53,7 @@ public extension CollectionsViewable {
     }
 
     var loadError: Error? {
-        guard content.isEmpty, case let .error(error) = loadState else { return nil }
-        return error
+        Gemstone.loadError(state: loadState, hasRows: !content.isEmpty)
     }
 
     func load() async {

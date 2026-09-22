@@ -2,11 +2,12 @@ use crate::GemstoneError;
 use crate::formatted_number::GemFormattedNumber;
 use crate::gateway::GatewayError;
 use crate::models::custom_types::GemBigInt;
+use crate::payment::GemPaymentError;
 use crate::services::balance::GemBalanceRequirement;
 use crate::services::confirm::model::GemAcquireAssetFlow;
 use crate::services::error::GemServiceError;
 use crate::signer::GemSignerError;
-use primitives::{Asset, AssetId, Chain, SwapProvider};
+use primitives::{Asset, AssetId, Chain, PaymentStatus, SwapProvider};
 
 #[derive(Debug, Clone, uniffi::Error)]
 pub enum GemConfirmError {
@@ -47,6 +48,10 @@ pub enum GemConfirmError {
         asset: Asset,
         requirement: GemBalanceRequirement,
     },
+    DestinationAccountActivation {
+        asset: Asset,
+        required: GemBigInt,
+    },
     BelowSwapMinimum {
         asset: Asset,
         provider: SwapProvider,
@@ -64,6 +69,9 @@ pub enum GemConfirmError {
     },
     ApprovalInvalid {
         msg: String,
+    },
+    Payment {
+        status: PaymentStatus,
     },
     Cancelled,
 }
@@ -84,10 +92,12 @@ impl GemConfirmError {
             | Self::InsufficientBalance { .. }
             | Self::InsufficientNetworkFee { .. }
             | Self::MinimumAccountBalanceTooLow { .. }
+            | Self::DestinationAccountActivation { .. }
             | Self::BelowSwapMinimum { .. }
             | Self::SenderMismatch { .. }
             | Self::Sign { .. }
             | Self::ApprovalInvalid { .. }
+            | Self::Payment { .. }
             | Self::Cancelled => false,
         }
     }
@@ -121,6 +131,10 @@ pub enum GemConfirmErrorDisplay {
         asset: Asset,
         required: GemBigInt,
     },
+    DestinationAccountActivation {
+        asset: Asset,
+        required: GemBigInt,
+    },
     SwapMinimum {
         asset: Asset,
         provider: SwapProvider,
@@ -131,6 +145,9 @@ pub enum GemConfirmErrorDisplay {
         chain: Chain,
     },
     InsufficientFunds,
+    Payment {
+        status: PaymentStatus,
+    },
     Message {
         msg: String,
     },
@@ -196,6 +213,10 @@ impl GemConfirmError {
                 asset: asset.clone(),
                 required: requirement.required.clone(),
             },
+            Self::DestinationAccountActivation { asset, required } => GemConfirmErrorDisplay::DestinationAccountActivation {
+                asset: asset.clone(),
+                required: required.clone(),
+            },
             Self::BelowSwapMinimum { asset, provider, provider_name, requirement } => GemConfirmErrorDisplay::SwapMinimum {
                 asset: asset.clone(),
                 provider: *provider,
@@ -207,6 +228,7 @@ impl GemConfirmError {
                 GemSignerError::InsufficientFunds => GemConfirmErrorDisplay::InsufficientFunds,
                 GemSignerError::InvalidInput(_) | GemSignerError::SigningError(_) | GemSignerError::SwapValueBelowMinimum { .. } => GemConfirmErrorDisplay::Message { msg: msg.clone() },
             },
+            Self::Payment { status } => GemConfirmErrorDisplay::Payment { status: *status },
             Self::BalanceMissing { .. } | Self::Network { .. } | Self::Load { .. } | Self::Broadcast { .. } | Self::Record { .. } | Self::ApprovalInvalid { .. } => GemConfirmErrorDisplay::Message { msg: self.to_string() },
         }
     }
@@ -224,7 +246,7 @@ impl GemConfirmErrorDisplay {
             | Self::MinimumAccountBalance { .. }
             | Self::SwapMinimum { .. }
             | Self::DustThreshold { .. } => true,
-            Self::Offline | Self::FeeRatesMissing | Self::Cancelled | Self::AccountMissing | Self::Unknown | Self::InsufficientFunds | Self::Message { .. } => false,
+            Self::Offline | Self::FeeRatesMissing | Self::Cancelled | Self::AccountMissing | Self::Unknown | Self::InsufficientFunds | Self::DestinationAccountActivation { .. } | Self::Payment { .. } | Self::Message { .. } => false,
         }
     }
 }
@@ -241,11 +263,13 @@ impl std::fmt::Display for GemConfirmError {
             Self::InsufficientBalance { asset, .. } => write!(f, "not enough {} balance", asset.symbol),
             Self::InsufficientNetworkFee { asset, .. } => write!(f, "not enough {} to pay the network fee", asset.symbol),
             Self::MinimumAccountBalanceTooLow { asset, requirement } => write!(f, "{} balance must stay above {}", asset.symbol, requirement.required),
+            Self::DestinationAccountActivation { asset, required } => write!(f, "{} destination activation requires {}", asset.symbol, required),
             Self::BelowSwapMinimum { asset, provider_name, requirement, .. } => {
                 write!(f, "{} amount is below the {} minimum {}", asset.symbol, provider_name, requirement.required)
             }
             Self::SenderMismatch { from, signer } => write!(f, "transaction was built for {from} but would be signed by {signer}"),
             Self::Cancelled => write!(f, "cancelled"),
+            Self::Payment { status } => write!(f, "payment is {status:?}"),
             Self::Network { msg } | Self::Load { msg } | Self::Broadcast { msg, .. } | Self::Record { msg } | Self::Sign { msg, .. } | Self::ApprovalInvalid { msg } => {
                 write!(f, "{msg}")
             }
@@ -264,6 +288,15 @@ pub(super) fn sign_error(chain: Chain, error: GemstoneError) -> GemConfirmError 
             chain,
             msg,
         },
+    }
+}
+
+impl From<GemPaymentError> for GemConfirmError {
+    fn from(error: GemPaymentError) -> Self {
+        match error {
+            GemPaymentError::Status { status } => Self::Payment { status },
+            error => Self::Load { msg: error.to_string() },
+        }
     }
 }
 

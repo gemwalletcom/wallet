@@ -20,8 +20,4 @@ public extension GemPreferencesServiceProtocol {
     func setAppearanceValue(_ appearance: Primitives.Appearance) throws {
         try setAppearance(appearance: appearance.toGem())
     }
-
-    func showPerpetuals(for wallet: Wallet) -> Bool {
-        showPerpetuals(walletType: wallet.type.toGem(), chains: wallet.chains.map(\.rawValue))
-    }
 }

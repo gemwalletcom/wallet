@@ -131,6 +131,8 @@ buy_no_results = Немає доступних котирувань
 # Transfer
 
 transfer_network_fee = Мережева плата
+transfer_pay_with = Оплатити за допомогою
+transfer_payment_title = Платіж
 transfer_memo = Memo
 transfer_confirm = Підтвердити
 transfer_from = Від
@@ -156,6 +158,7 @@ transfer_activate_asset_title = Активувати актив
 transfer_recipient_my_wallets = Мої гаманці
 transfer_recipient_view_wallets = Переглянути гаманці
 transfer_minimum_account_balance = Після цього має залишитися мінімальний баланс %@, якщо ви не використовуєте весь баланс.
+transfer_destination_account_activation = Адреса призначення вимагає мінімум %@.
 transfer_smart_contract_title = Смартконтракт
 transfer_other_title = Інше
 transfer_maximum_amount = Максимальна сума %@
@@ -253,6 +256,7 @@ errors_network_offline = Здається, підключення до Інте�
 errors_no_internet_connection = Немає підключення до інтернету
 errors_no_service_connection = Немає підключення до сервісу
 errors_balances_activity_outdated = Баланси та активність можуть бути застарілими.
+errors_payment_status = Платіж: %@
 
 # Activity
 
@@ -289,6 +293,7 @@ transaction_swap_again = Знову обміняти
 transaction_status_completed = Завершено
 transaction_status_inprogress = У процесі
 transaction_status_refunded = Повернено кошти
+transaction_status_expired = Прострочено
 
 # Asset
 
@@ -541,6 +546,8 @@ sell_title = Продати %@
 info_network_fee_title = Мережева плата
 info_watch_wallet_title = Watch Wallet
 info_watch_wallet_description = Гаманець, до якого у вас немає доступу, але ви можете спостерігати за його транзакціями та рухами.
+info_payment_verification_title = Перевірка платежу
+info_payment_verification_description = Продавцю потрібна додаткова інформація перед оплатою.
 info_network_fee_description = Кожна транзакція в мережі %@ вимагає комісію в %@, яка сплачується майнерам за обробку вашої транзакції, а не Gem Wallet. Розмір мережевої комісії залежить від використання мережі.
 info_transaction_error_description = Транзакцію не вдалося завершити через помилку, таку як недостатня кількість коштів, недійсні дані або відхилення мережею. Перегляньте деталі та повторіть спробу.
 info_transaction_pending_description = Транзакцію надіслано та очікує підтвердження в мережі. Час обробки може змінюватися. Будь ласка, слідкуйте за оновленнями.

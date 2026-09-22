@@ -215,7 +215,6 @@ pub fn contact_row(contact: Contact) -> GemContactRow {
     }
 }
 
-#[uniffi::export]
 pub fn contact_initials(name: String) -> String {
     name.trim().chars().take(2).collect::<String>().to_uppercase()
 }

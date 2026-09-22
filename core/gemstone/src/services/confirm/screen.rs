@@ -9,6 +9,7 @@ impl GemConfirmScreen {
             phase: GemConfirmPhase::Loading,
             has_critical_warning: simulation.is_some_and(SimulationResult::has_critical_warning),
             failure: None,
+            has_preload: true,
         }
     }
 
@@ -33,7 +34,7 @@ impl GemConfirmScreen {
             GemConfirmPhase::Loading | GemConfirmPhase::Confirming => button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Loading),
             GemConfirmPhase::Failed if self.is_account_missing() => button(GemConfirmButtonKind::AccountMissing, GemConfirmButtonState::Disabled),
             GemConfirmPhase::Failed => button(GemConfirmButtonKind::Retry, GemConfirmButtonState::Enabled),
-            GemConfirmPhase::Ready if self.failure.is_some() || self.has_critical_warning => button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Disabled),
+            GemConfirmPhase::Ready if !self.has_preload || self.failure.is_some() || self.has_critical_warning => button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Disabled),
             GemConfirmPhase::Ready => button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Enabled),
         }
     }
@@ -42,6 +43,9 @@ impl GemConfirmScreen {
         match self.phase {
             GemConfirmPhase::Loading => GemConfirmFeeRow::Loading,
             GemConfirmPhase::Failed => GemConfirmFeeRow::Unavailable {
+                text: crate::models::placeholder::EMPTY_VALUE.to_string(),
+            },
+            GemConfirmPhase::Ready | GemConfirmPhase::Confirming if !self.has_preload => GemConfirmFeeRow::Unavailable {
                 text: crate::models::placeholder::EMPTY_VALUE.to_string(),
             },
             GemConfirmPhase::Ready | GemConfirmPhase::Confirming => GemConfirmFeeRow::Ready,
@@ -53,7 +57,7 @@ impl GemConfirmScreen {
             GemConfirmPhase::Loading | GemConfirmPhase::Confirming => None,
             GemConfirmPhase::Failed if self.is_account_missing() => None,
             GemConfirmPhase::Failed => Some(GemConfirmAction::Load),
-            GemConfirmPhase::Ready if self.failure.is_some() => None,
+            GemConfirmPhase::Ready if !self.has_preload || self.failure.is_some() => None,
             GemConfirmPhase::Ready => Some(GemConfirmAction::Execute),
         }
     }
@@ -63,6 +67,7 @@ impl GemConfirmScreen {
             phase: GemConfirmPhase::Loading,
             has_critical_warning: self.has_critical_warning,
             failure: None,
+            has_preload: self.has_preload,
         }
     }
 
@@ -75,6 +80,7 @@ impl GemConfirmScreen {
             phase: GemConfirmPhase::Ready,
             has_critical_warning: load.simulation.simulation.as_ref().is_some_and(|simulation| simulation.has_critical_warning),
             failure: amount_error.map(|error| GemConfirmFailure { stage: GemConfirmStage::Load, error }),
+            has_preload: load.preload.is_some(),
         }
     }
 
@@ -109,6 +115,9 @@ mod tests {
 
     use super::super::model::{GemConfirmData, GemConfirmPreload};
     use super::*;
+    use crate::models::custom_types::GemBigInt;
+    use crate::models::placeholder::EMPTY_VALUE;
+    use crate::transfer_amount::GemTransferAmount;
 
     #[test]
     fn test_a_missing_account_offers_no_retry() {
@@ -193,6 +202,26 @@ mod tests {
     }
 
     #[test]
+    fn test_a_screen_without_a_preload_cannot_be_confirmed() {
+        let waiting = GemConfirmScreen {
+            phase: GemConfirmPhase::Ready,
+            has_preload: false,
+            ..GemConfirmScreen::initial(None)
+        };
+
+        assert_eq!(waiting.fee_row(), GemConfirmFeeRow::Unavailable { text: EMPTY_VALUE.to_string() });
+        assert_eq!(
+            waiting.button(),
+            GemConfirmButton {
+                kind: GemConfirmButtonKind::Confirm,
+                state: GemConfirmButtonState::Disabled
+            }
+        );
+        assert_eq!(waiting.action(), None);
+        assert!(!GemConfirmScreen::initial(None).on_loaded(GemConfirmLoad::mock()).has_preload);
+    }
+
+    #[test]
     fn test_confirm_fee_row_waits_for_the_preload_and_gives_up_on_failure() {
         let loading = GemConfirmScreen {
             has_critical_warning: true,
@@ -232,13 +261,24 @@ mod tests {
         assert_eq!(started.action(), None);
 
         let mut load = GemConfirmLoad::mock();
+        let data = GemConfirmData::mock(Chain::Ethereum, TransactionInputType::Transfer { asset: Asset::mock_eth() });
+        load.preload = Some(GemConfirmPreload {
+            confirm_data: data.clone(),
+            amount: GemTransferAmountResult::Amount {
+                amount: GemTransferAmount {
+                    value: GemBigInt::from(1),
+                    network_fee: GemBigInt::from(1),
+                    is_max_amount: false,
+                },
+            },
+        });
         let ready = started.on_loaded(load.clone());
         assert_eq!(ready.phase, GemConfirmPhase::Ready);
         assert!(ready.failure.is_none());
         assert_eq!(ready.action(), Some(GemConfirmAction::Execute));
 
         load.preload = Some(GemConfirmPreload {
-            confirm_data: GemConfirmData::mock(Chain::Ethereum, TransactionInputType::Transfer { asset: Asset::mock_eth() }),
+            confirm_data: data,
             amount: GemTransferAmountResult::Error {
                 error: GemConfirmError::Load { msg: "down".to_string() },
             },

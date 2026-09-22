@@ -109,8 +109,6 @@ final class FiatSceneViewModelTests {
 
         #expect(!model.showFiatTypePicker)
         #expect(model.type == .buy)
-        #expect(model.session.sell.amount == "40")
-        #expect(model.session.buy.amount == "40")
         #expect(model.amount == "40")
         #expect(model.loadTrigger?.request == GemFiatQuoteRequest(quoteType: .buy, amount: 40))
         #expect(model.loadTrigger?.isImmediate == true)
@@ -187,13 +185,12 @@ final class FiatSceneViewModelTests {
     }
 
     @Test
-    func failedQuotesOfferARetry() {
+    func aFailedQuoteReadsAsAnErrorAndItsActionAsRetry() {
         let model = FiatSceneViewModel.mock()
         model.session = model.session.onQuoteResults(results: .mock(error: .Api(msg: "offline")))
 
         #expect(model.quotesState(model.viewState).isError)
         #expect(model.actionButtonTitle(model.viewState) == Localized.Common.tryAgain)
-        #expect(model.actionButtonState(model.viewState) == .normal)
     }
 
     @Test

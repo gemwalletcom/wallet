@@ -10,13 +10,12 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import uniffi.gemstone.PortfolioAsset
 import java.math.BigInteger
 
 class GemstonePortfolioStoreTest {
 
     @Test
-    fun getWalletAssets_returnsStoredTotals() = runBlocking {
+    fun `hands core the stored balance instead of a total the app summed`() = runBlocking {
         val bitcoin = mockAsset()
         val walletId = mockWalletId()
         val assetsDao = mockk<AssetsDao> {
@@ -30,8 +29,9 @@ class GemstonePortfolioStoreTest {
         }
         val subject = GemstonePortfolioStore(assetsDao)
 
-        val assets = subject.getWalletAssets(walletId.id)
+        val balances = subject.getWalletBalances(walletId.id)
 
-        assertEquals(listOf(PortfolioAsset(assetId = bitcoin.id.toIdentifier(), value = BigInteger("1000"))), assets)
+        assertEquals(listOf(bitcoin.id.toIdentifier()), balances.map { it.assetId })
+        assertEquals(listOf(BigInteger("1000")), balances.map { it.available })
     }
 }

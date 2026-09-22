@@ -4,6 +4,7 @@ import Components
 import Foundation
 import enum Gemstone.GemLoadState
 import protocol Gemstone.GemSupportServiceProtocol
+import func Gemstone.loadError
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -36,8 +37,7 @@ public final class SupportChatSceneViewModel {
     var isEmpty: Bool { query.value.isEmpty }
 
     var loadError: Error? {
-        guard isEmpty, case let .error(error) = loadState else { return nil }
-        return error
+        Gemstone.loadError(state: loadState, hasRows: !isEmpty)
     }
 
     var typingAgentName: String? { typing.agent?.name }

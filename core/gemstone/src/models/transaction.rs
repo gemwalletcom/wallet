@@ -139,6 +139,7 @@ pub enum GemTransactionLoadMetadata {
     Xrp {
         sequence: u64,
         block_number: u64,
+        is_destination_address_exist: bool,
     },
     Algorand {
         sequence: u64,
@@ -337,7 +338,11 @@ mod tests {
         assert_eq!(transaction_metadata_block_number(&bitcoin), None);
         assert_eq!(transaction_metadata_sequence(&bitcoin), None);
 
-        let xrp = GemTransactionLoadMetadata::Xrp { sequence: 7, block_number: 91 };
+        let xrp = GemTransactionLoadMetadata::Xrp {
+            sequence: 7,
+            block_number: 91,
+            is_destination_address_exist: true,
+        };
         assert_eq!(transaction_metadata_block_number(&xrp), Some("91".to_string()));
         assert_eq!(transaction_metadata_sequence(&xrp), Some("7".to_string()));
     }

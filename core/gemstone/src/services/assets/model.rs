@@ -2,6 +2,7 @@ use primitives::{Asset, AssetId, AssetMetaData, AssetType, BalanceMetadata, Bann
 
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::list::{GemListRow, GemListSectionTitle};
+use crate::precision::GemCurrencyStyle;
 use crate::services::balance::{GemAssetBalance, GemAssetBalanceRow};
 use crate::services::price_alert::rules::GemPriceAlertToggle;
 use crate::services::swap::GemSwapPairSuggestion;
@@ -40,6 +41,7 @@ pub enum GemSelectAssetType {
     Buy,
     SwapPay,
     SwapReceive { pay_asset_id: Option<AssetId> },
+    Payment { asset_ids: Vec<AssetId> },
     Manage,
     PriceAlert,
     Deposit,
@@ -102,11 +104,6 @@ pub struct GemAssetRowText {
     pub network: Option<String>,
 }
 
-#[uniffi::export]
-pub fn asset_row_text(asset: Asset, style: GemAssetRowStyle) -> GemAssetRowText {
-    super::rules::asset_row_text(&asset, style)
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemAssetBalanceScope {
     Total,
@@ -131,8 +128,8 @@ pub struct GemPriceRow {
 }
 
 #[uniffi::export]
-pub fn price_row(price: Option<f64>, change: Option<f64>, currency: Currency) -> GemPriceRow {
-    super::rules::price_row(price, change, currency)
+pub fn price_row(price: Option<f64>, change: Option<f64>, currency: Currency, style: GemCurrencyStyle) -> GemPriceRow {
+    super::rules::price_row(price, change, currency, style)
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -160,6 +157,7 @@ pub struct GemAssetRowStyle {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemSelectAssetTitle {
     Send,
+    PayWith,
     Receive,
     ReceiveCollection,
     Buy,
@@ -178,7 +176,7 @@ pub enum GemSelectAssetSection {
     Networks,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSelectAssetFlow {
     pub title: GemSelectAssetTitle,
     pub assets_section: GemSelectAssetSection,
@@ -194,7 +192,7 @@ pub struct GemSelectAssetFlow {
     pub popular_section: bool,
     pub balance_filter: bool,
     pub add_custom_token: bool,
-    pub deposit_asset_display: bool,
+    pub display_asset: Option<Asset>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
@@ -543,10 +541,7 @@ pub struct GemAssetDetailsState {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemAssetDetailRow {
-    Price { row: GemPriceRow },
-    Network { name: String },
     Balance { row: GemAssetBalanceRow },
-    Earn { row: GemListRow },
     Row { row: GemListRow },
 }
 

@@ -36,7 +36,7 @@ public extension GemWalletService {
             files: GemstoneFileStore(),
             preferences: GemWalletPreferencesService.mock(),
             explorer: GemExplorerService(preferences: appPreferences),
-            addresses: GemstoneAddressStore(store: AddressStore(db: db)),
+            names: .mock(),
             avatar: GemAvatarService(wallets: gemWalletStore, files: GemstoneFileStore(), provider: NativeProvider()),
         )
     }

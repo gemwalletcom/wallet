@@ -131,6 +131,8 @@ buy_no_results = 사용 가능한 견적이 없습니다.
 # Transfer
 
 transfer_network_fee = 네트워크 수수료
+transfer_pay_with = 결제 수단
+transfer_payment_title = 결제
 transfer_memo = 메모
 transfer_confirm = 확인
 transfer_from = 보내는 사람
@@ -156,6 +158,7 @@ transfer_activate_asset_title = 자산 활성화
 transfer_recipient_my_wallets = 내 지갑
 transfer_recipient_view_wallets = 지갑 보기
 transfer_minimum_account_balance = 전체 잔액을 사용하지 않는 한, 이 후에는 최소 %@ 잔액이 남아 있어야 합니다.
+transfer_destination_account_activation = 받는 주소에는 최소 %@이(가) 필요합니다.
 transfer_smart_contract_title = 스마트 계약
 transfer_other_title = 기타
 transfer_maximum_amount = 최대 금액은 %@입니다.
@@ -253,6 +256,7 @@ errors_network_offline = 인터넷 연결이 끊긴 것 같습니다.
 errors_no_internet_connection = 인터넷 연결 없음
 errors_no_service_connection = 서비스 연결 없음
 errors_balances_activity_outdated = 잔액 및 활동이 최신이 아닐 수 있습니다.
+errors_payment_status = 결제: %@
 
 # Activity
 
@@ -289,6 +293,7 @@ transaction_swap_again = 다시 바꾸기
 transaction_status_completed = 완료됨
 transaction_status_inprogress = 진행 중
 transaction_status_refunded = 환불됨
+transaction_status_expired = 만료됨
 
 # Asset
 
@@ -541,6 +546,8 @@ sell_title = %@ 판매
 info_network_fee_title = 네트워크 수수료
 info_watch_wallet_title = 시계 지갑
 info_watch_wallet_description = 접근할 수는 없지만 거래 및 이동을 볼 수 있는 지갑입니다.
+info_payment_verification_title = 결제 본인 확인
+info_payment_verification_description = 가맹점에서 결제 전에 추가 정보가 필요합니다.
 info_network_fee_description = %@ 네트워크의 모든 거래에는 Gem Wallet이 아닌 거래를 처리하기 위해 채굴자에게 지불되는 %@ 수수료가 필요합니다. 네트워크 요금은 네트워크 사용량에 따라 다릅니다.
 info_transaction_error_description = 자금 부족, 잘못된 입력, 네트워크 거부 등의 오류로 인해 거래를 완료할 수 없습니다. 세부 정보를 확인하고 다시 시도해 주세요.
 info_transaction_pending_description = 거래가 제출되었으며 네트워크에서 확인을 기다리고 있습니다. 처리 시간은 다를 수 있습니다. 업데이트된 내용을 다시 확인해 주세요.

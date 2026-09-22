@@ -95,6 +95,10 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         isPerpetualEnabled && connects
     }
 
+    public func showPerpetuals(walletType _: Gemstone.WalletType, chains _: [Gemstone.Chain]) -> Bool {
+        isPerpetualEnabled && connects
+    }
+
     private func syncMarketsIfNeeded(chain: Gemstone.Chain, trigger: Gemstone.GemMarketsRefreshTrigger) async throws -> Bool {
         if trigger == .scheduled, updatedAt != nil {
             return false
@@ -145,6 +149,7 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
     public var detailsValue: GemPerpetualDetails = .mock()
     public var chartPeriodValue: Gemstone.ChartPeriod = Primitives.ChartPeriod.day.toGem()
     public var candlesticksValue: [Gemstone.ChartCandleStick] = []
+    public var candlesticksError: GemServiceError?
     public var mergedCandlesValue: [Gemstone.ChartCandleStick]?
     public var closeTransferResult: Result<Gemstone.GemTransferData, Error> = .success(.mock())
     public var positionActionResult: Result<GemPerpetualPositionAction, Error> = .success(.open(data: .mock()))
@@ -166,8 +171,18 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
         .candle(symbol: perpetual.name, interval: period.toPrimitives().rawValue)
     }
 
+    public func candles(request: GemCandleRequest) async -> GemCandleResult {
+        if let candlesticksError {
+            return GemCandleResult(request: request, state: .error(error: candlesticksError), candles: [])
+        }
+        return GemCandleResult(request: request, state: .data, candles: candlesticksValue)
+    }
+
     public func candlesticks(perpetual _: Gemstone.Perpetual, period _: Gemstone.ChartPeriod) async throws -> [Gemstone.ChartCandleStick] {
-        candlesticksValue
+        if let candlesticksError {
+            throw candlesticksError
+        }
+        return candlesticksValue
     }
 
     public func chartPeriod() -> Gemstone.ChartPeriod {

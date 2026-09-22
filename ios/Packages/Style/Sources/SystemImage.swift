@@ -35,6 +35,7 @@ public enum SystemImage {
     public static let search = "magnifyingglass"
     public static let exclamationmarkTriangleFill = "exclamationmark.triangle.fill"
     public static let exclamationmarkTriangle = "exclamationmark.triangle"
+    public static let clockBadgeExclamationmark = "clock.badge.exclamationmark"
     public static let gallery = "photo.on.rectangle.angled"
     public static let photo = "photo"
     public static let xmarkCircle = "xmark.circle.fill"

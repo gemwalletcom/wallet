@@ -23,7 +23,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Resource
 
 @Composable
-fun ProviderExtras(extras: AmountExtrasUIModel, onPickValidator: () -> Unit, onSelectResource: (Resource) -> Unit, onSelectLeverage: (Int) -> Unit, onOpenAutoclose: () -> Unit) {
+fun ProviderExtras(extras: AmountExtrasUIModel, onPickValidator: () -> Unit, onSelectResource: (Resource) -> Unit, onSelectLeverage: (UByte) -> Unit, onOpenAutoclose: () -> Unit) {
     Column {
         when (extras) {
             AmountExtrasUIModel.None -> Unit
@@ -56,7 +56,7 @@ fun ProviderExtras(extras: AmountExtrasUIModel, onPickValidator: () -> Unit, onS
 }
 
 @Composable
-private fun PerpetualSections(extras: AmountExtrasUIModel.Perpetual, onSelectLeverage: (Int) -> Unit, onOpenAutoclose: () -> Unit) {
+private fun PerpetualSections(extras: AmountExtrasUIModel.Perpetual, onSelectLeverage: (UByte) -> Unit, onOpenAutoclose: () -> Unit) {
     var showLeverageSelect by remember { mutableStateOf(false) }
     extras.leverage?.let { model ->
         ListItem(

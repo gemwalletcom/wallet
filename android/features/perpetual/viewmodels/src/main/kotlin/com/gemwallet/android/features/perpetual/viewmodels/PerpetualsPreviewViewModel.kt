@@ -7,8 +7,8 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
-import com.gemwallet.android.data.services.gemstone.config.showPerpetuals
 import com.gemwallet.android.domains.balance.hiddenWhen
+import com.gemwallet.android.ext.chainIds
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualPositionRowUIModel
 import com.gemwallet.android.model.text
@@ -22,12 +22,19 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.perpetualBalanceHeader
 import javax.inject.Inject
 
 @HiltViewModel
-class PerpetualsPreviewViewModel @Inject constructor(userConfig: UserConfig, getSession: GetSession, getPositions: GetPerpetualPositions, getBalance: GetPerpetualBalance, @param:ApplicationContext private val context: Context) :
-    ViewModel() {
+class PerpetualsPreviewViewModel @Inject constructor(
+    userConfig: UserConfig,
+    getSession: GetSession,
+    getPositions: GetPerpetualPositions,
+    getBalance: GetPerpetualBalance,
+    service: GemPerpetualService,
+    @param:ApplicationContext private val context: Context,
+) : ViewModel() {
 
     val tradeListItem = combine(getBalance.getBalance(), getSession(), userConfig.isHideBalances()) { balance, session, hideBalance ->
         ListItemModel(
@@ -37,7 +44,9 @@ class PerpetualsPreviewViewModel @Inject constructor(userConfig: UserConfig, get
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ListItemModel(title = context.getString(R.string.perpetuals_trade)))
 
-    val showPerpetuals = userConfig.showPerpetuals(getSession())
+    val showPerpetuals = combine(getSession(), userConfig.isPerpetualEnabled()) { session, _ ->
+        session?.wallet?.let { service.showPerpetuals(it.type.toGem(), it.chainIds) } ?: false
+    }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val positions = combine(getPositions.getPerpetualPositions(), userConfig.isHideBalances()) { positions, hideBalance ->

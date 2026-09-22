@@ -18,7 +18,7 @@ pub use self::database::{
     DatabaseClient,
     assets::{AssetFilter, AssetUpdate},
     charts::ChartFilter,
-    fiat::FiatAssetFilter,
+    fiat::{FiatAssetFilter, FiatAssetUpdate, FiatProviderCountryFilter, FiatProviderCountryUpdate},
     nft::{NftAssetFilter, NftCollectionFilter},
     prices::{AssetsWithPricesFilter, PriceUpdate},
     referrals::{AbusePatterns, ReferralUpdate},

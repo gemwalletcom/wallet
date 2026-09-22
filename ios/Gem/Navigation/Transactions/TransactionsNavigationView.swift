@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Assets
 import Components
 import GemstonePrimitives
 import Localization
@@ -80,7 +79,7 @@ struct TransactionsNavigationView: View {
                 case let .addContact(action):
                     AddContactNavigationView(action: action)
                 case let .addressDetails(chainAddress):
-                    AddressDetailsNavigationStack(model: viewModelFactory.addressDetailsScene(chainAddress: chainAddress))
+                    AddressDetailsDestination(chainAddress: chainAddress)
                 }
             }
     }

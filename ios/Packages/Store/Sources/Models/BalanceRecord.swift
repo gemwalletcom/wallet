@@ -37,7 +37,6 @@ struct BalanceRecord: Codable, FetchableRecord, PersistableRecord {
         static let earnAmount = Column("earnAmount")
         static let totalAmount = Column("totalAmount")
         static let metadata = Column("metadata")
-        static let lastUsedAt = Column("lastUsedAt")
         static let updatedAt = Column("updatedAt")
     }
 
@@ -82,7 +81,6 @@ struct BalanceRecord: Codable, FetchableRecord, PersistableRecord {
 
     var metadata: BalanceMetadata?
 
-    var lastUsedAt: Date?
     var updatedAt: Date?
 }
 
@@ -135,7 +133,6 @@ extension BalanceRecord: CreateTable {
             $0.column(Columns.isActive.name, .boolean).defaults(to: true).indexed()
 
             $0.column(Columns.metadata.name, .jsonText)
-            $0.column(Columns.lastUsedAt.name, .date)
             $0.column(Columns.updatedAt.name, .date)
             $0.uniqueKey([
                 Columns.assetId.name,

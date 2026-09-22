@@ -39,10 +39,12 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemConfirmButtonState
 import uniffi.gemstone.GemConfirmFeeSelection
+import uniffi.gemstone.GemConfirmHeader
 import uniffi.gemstone.GemConfirmPhase
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmation
 import uniffi.gemstone.GemRecipient
+import uniffi.gemstone.GemTransactionHeader
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConfirmViewModelRequestTest {
@@ -131,6 +133,7 @@ class ConfirmViewModelRequestTest {
     private fun viewModel(handle: SavedStateHandle): ConfirmViewModel {
         every { confirmService.confirmation(any(), any(), any()) } returns confirmation
         every { confirmation.screen() } returns mockGemConfirmScreen()
+        every { confirmation.header(any()) } returns GemConfirmHeader.Transaction(GemTransactionHeader.Symbol(asset.toGem()))
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
         every { confirmation.errorInfo(any(), any()) } returns null
         coEvery { confirmation.state() } returns mockGemConfirmLoad(asset)

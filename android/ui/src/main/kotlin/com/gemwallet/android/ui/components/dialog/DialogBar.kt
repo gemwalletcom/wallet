@@ -2,6 +2,8 @@ package com.gemwallet.android.ui.components.dialog
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -18,7 +20,7 @@ import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space0
 @Composable
-fun DialogBar(onDismissRequest: () -> Unit, title: String? = null, dismissType: DialogBarDismissType = DialogBarDismissType.Close) {
+fun DialogBar(onDismissRequest: () -> Unit, title: String? = null, dismissType: DialogBarDismissType = DialogBarDismissType.Close, actions: @Composable RowScope.() -> Unit = {}) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -60,6 +62,12 @@ fun DialogBar(onDismissRequest: () -> Unit, title: String? = null, dismissType: 
                     style = MaterialTheme.typography.titleMedium,
                 )
             }
+            Row(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(horizontal = paddingHalfSmall, vertical = paddingHalfSmall),
+                content = actions,
+            )
         }
     }
 }

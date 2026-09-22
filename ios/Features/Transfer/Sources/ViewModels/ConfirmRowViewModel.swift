@@ -6,6 +6,7 @@ import class Gemstone.GemAddressService
 import enum Gemstone.GemConfirmDestination
 import enum Gemstone.GemConfirmRowContent
 import GemstonePrimitives
+import Localization
 import Primitives
 import PrimitivesComponents
 
@@ -45,6 +46,8 @@ extension ConfirmRowViewModel: ItemModelProvidable {
                     onSelect: isSelectable ? selectAction(chainAddress: ChainAddress(chain: Chain(core: chain), address: address)) : nil,
                 ),
             )
+        case let .paymentAsset(symbol, selectable):
+            .paymentAsset(ListItemModel(title: Localized.Transfer.payWith, subtitle: symbol), selectable: selectable)
         case .details:
             .empty
         }
@@ -63,7 +66,7 @@ extension ConfirmRowViewModel {
 extension GemConfirmRowContent {
     func item(at index: Int) -> ConfirmTransferItem {
         switch self {
-        case .row, .recipient: .row(index)
+        case .row, .recipient, .paymentAsset: .row(index)
         case .details: .details
         }
     }

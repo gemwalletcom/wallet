@@ -92,12 +92,7 @@ public struct ValueHeaderView: View {
                 )
                 .padding(.bottom, spacing.assetImageBottom)
             }
-            titleView
-                .numericTransition(for: model.title)
-                .minimumScaleFactor(0.35)
-                .font(.app.largeTitle)
-                .foregroundStyle(Colors.black)
-                .lineLimit(1)
+            titleLine
                 .padding(.bottom, spacing.titleBottom)
 
             if let subtitle = model.subtitle {
@@ -166,6 +161,24 @@ public struct ValueHeaderView: View {
         } else {
             content
         }
+    }
+
+    private var titleLine: some View {
+        Text("\u{00a0}")
+            .font(.app.largeTitle)
+            .lineLimit(1)
+            .hidden()
+            .accessibilityHidden(true)
+            .frame(maxWidth: .infinity)
+            .overlay {
+                titleView
+                    .numericTransition(for: model.title)
+                    .minimumScaleFactor(0.35)
+                    .font(.app.largeTitle)
+                    .foregroundStyle(Colors.black)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity)
+            }
     }
 
     @ViewBuilder

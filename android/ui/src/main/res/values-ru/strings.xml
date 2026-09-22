@@ -110,6 +110,8 @@
   <string name="buy_rate">Курс</string>
   <string name="buy_no_results">Нет доступных котировок</string>
   <string name="transfer_network_fee">Сетевая плата</string>
+  <string name="transfer_pay_with">Оплатить с помощью</string>
+  <string name="transfer_payment_title">Платёж</string>
   <string name="transfer_memo">Мемо</string>
   <string name="transfer_confirm">Подтвердить</string>
   <string name="transfer_from">От</string>
@@ -135,6 +137,7 @@
   <string name="transfer_recipient_my_wallets">Мои кошельки</string>
   <string name="transfer_recipient_view_wallets">Посмотреть кошельки</string>
   <string name="transfer_minimum_account_balance">После этого должен оставаться минимальный баланс %1$s, если только вы не используете весь свой баланс.</string>
+  <string name="transfer_destination_account_activation">Адрес назначения требует минимум %1$s.</string>
   <string name="transfer_smart_contract_title">Смарт-контракт</string>
   <string name="transfer_other_title">Прочее</string>
   <string name="transfer_maximum_amount">Максимальная сумма %1$s</string>
@@ -223,6 +226,7 @@
   <string name="errors_no_internet_connection">Нет подключения к интернету</string>
   <string name="errors_no_service_connection">Нет подключения к сервису</string>
   <string name="errors_balances_activity_outdated">Балансы и активность могут быть устаревшими.</string>
+  <string name="errors_payment_status">Платёж: %1$s</string>
   <string name="activity_title">Активность</string>
   <string name="activity_state_empty_title">Ваша активность будет отображаться здесь</string>
   <string name="activity_state_empty_description">Совершите свою первую транзакцию</string>
@@ -250,6 +254,7 @@
   <string name="transaction_status_completed">Завершено</string>
   <string name="transaction_status_inprogress">В процессе</string>
   <string name="transaction_status_refunded">Возврат средств</string>
+  <string name="transaction_status_expired">Истекло</string>
   <string name="asset_balances">Балансы</string>
   <string name="asset_balances_available">Доступно</string>
   <string name="asset_price">Цена</string>
@@ -436,6 +441,8 @@
   <string name="info_network_fee_title">Сетевая плата</string>
   <string name="info_watch_wallet_title">Смотреть кошелек</string>
   <string name="info_watch_wallet_description">Кошелек, к которому у вас нет доступа, но вы можете следить за его транзакциями и движениями.</string>
+  <string name="info_payment_verification_title">Проверка платежа</string>
+  <string name="info_payment_verification_description">Продавцу требуется дополнительная информация перед оплатой.</string>
   <string name="info_network_fee_description">Каждая транзакция в сети %1$s требует плату в %2$s выплачиваемую майнерам за обработку вашей транзакции, а не Gem Wallet. Сетевые сборы варьируются в зависимости от использования сети.</string>
   <string name="info_transaction_error_description">Транзакция не может быть завершена из-за ошибки, например, недостаточно средств, неверных данных или отклонения сетью. Пожалуйста, проверьте детали и повторите попытку.</string>
   <string name="info_transaction_pending_description">Транзакция была отправлена и ожидает подтверждения в сети. Время обработки может меняться. Пожалуйста, проверяйте обновления.</string>

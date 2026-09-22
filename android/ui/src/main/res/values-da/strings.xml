@@ -110,6 +110,8 @@
   <string name="buy_rate">Kurs</string>
   <string name="buy_no_results">Ingen tilbud tilgængelige</string>
   <string name="transfer_network_fee">Netværksgebyr</string>
+  <string name="transfer_pay_with">Betal med</string>
+  <string name="transfer_payment_title">Betaling</string>
   <string name="transfer_memo">Memo</string>
   <string name="transfer_confirm">Bekræft</string>
   <string name="transfer_from">Fra</string>
@@ -135,6 +137,7 @@
   <string name="transfer_recipient_my_wallets">Mine tegnebøger</string>
   <string name="transfer_recipient_view_wallets">Se tegnebøger</string>
   <string name="transfer_minimum_account_balance">Der skal være en minimumsaldo på %1$s tilbage efter dette, medmindre du bruger din fulde saldo.</string>
+  <string name="transfer_destination_account_activation">Destinationsadressen kræver et minimum på %1$s.</string>
   <string name="transfer_smart_contract_title">Smart kontrakt</string>
   <string name="transfer_other_title">Andet</string>
   <string name="transfer_maximum_amount">Det maksimale beløb er %1$s</string>
@@ -223,6 +226,7 @@
   <string name="errors_no_internet_connection">Ingen internetforbindelse</string>
   <string name="errors_no_service_connection">Ingen serviceforbindelse</string>
   <string name="errors_balances_activity_outdated">Saldi og aktivitet kan være forældede.</string>
+  <string name="errors_payment_status">Betaling: %1$s</string>
   <string name="activity_title">Aktivitet</string>
   <string name="activity_state_empty_title">Din aktivitet vil blive vist her</string>
   <string name="activity_state_empty_description">Foretag din første transaktion</string>
@@ -250,6 +254,7 @@
   <string name="transaction_status_completed">Afsluttet</string>
   <string name="transaction_status_inprogress">Igangværende</string>
   <string name="transaction_status_refunded">Refunderet</string>
+  <string name="transaction_status_expired">Udløbet</string>
   <string name="asset_balances">Balancer</string>
   <string name="asset_balances_available">Tilgængelig</string>
   <string name="asset_price">Pris</string>
@@ -436,6 +441,8 @@
   <string name="info_network_fee_title">Netværksgebyr</string>
   <string name="info_watch_wallet_title">Overvågningstegnebog</string>
   <string name="info_watch_wallet_description">En tegnebog, som du ikke har adgang til, men du kan se dens transaktioner og bevægelser.</string>
+  <string name="info_payment_verification_title">Betalingsverificering</string>
+  <string name="info_payment_verification_description">Forhandleren kræver yderligere oplysninger før betalingen.</string>
   <string name="info_network_fee_description">Hver transaktion på %1$s netværket kræver et gebyr i %2$s betalt til minearbejdere for at behandle din transaktion, ikke Gem Wallet. Netværksgebyrer varierer afhængigt af netværksbrug.</string>
   <string name="info_transaction_error_description">Transaktionen kunne ikke gennemføres på grund af en fejl, såsom utilstrækkelige midler, ugyldigt input eller afvisning af netværket. Gennemgå venligst detaljerne og prøv igen.</string>
   <string name="info_transaction_pending_description">Transaktionen er blevet indsendt og afventer bekræftelse på netværket. Behandlingstiderne kan variere. Kom venligst tilbage for opdateringer.</string>

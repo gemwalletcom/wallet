@@ -58,9 +58,9 @@ pub fn lock_period_from_minutes(minutes: Option<u32>) -> GemLockPeriod {
     minutes.and_then(|minutes| lock_periods().into_iter().find(|period| period.minutes() == minutes)).unwrap_or(GemLockPeriod::OneMinute)
 }
 
-pub(super) fn should_relock(elapsed_milliseconds: i64, lock_interval_minutes: u32, auth_required: bool, has_pending_request: bool) -> bool {
+pub(super) fn should_relock(elapsed_milliseconds: i64, lock_interval_minutes: u32, auth_required: bool) -> bool {
     let period = lock_period_from_minutes(Some(lock_interval_minutes));
-    auth_required && !has_pending_request && elapsed_milliseconds > i64::from(period.milliseconds())
+    auth_required && elapsed_milliseconds > i64::from(period.milliseconds())
 }
 
 #[cfg(test)]
@@ -95,13 +95,13 @@ mod tests {
     }
 
     #[test]
-    fn test_relock_needs_auth_no_pending_request_and_an_elapsed_period() {
-        assert!(should_relock(60_001, 1, true, false));
-        assert!(!should_relock(60_000, 1, true, false), "the period has to be exceeded, not merely reached");
-        assert!(!should_relock(60_001, 1, false, false), "no lock when authentication is off");
-        assert!(!should_relock(60_001, 1, true, true), "a request in flight holds the lock off");
-        assert!(should_relock(1, 0, true, false), "immediate locks as soon as any time has passed");
-        assert!(!should_relock(0, 0, true, false));
-        assert!(should_relock(60_001, 7, true, false), "an unknown stored interval falls back to the default period");
+    fn test_relock_needs_auth_and_an_elapsed_period() {
+        assert!(should_relock(60_001, 1, true));
+        assert!(!should_relock(60_000, 1, true), "the period has to be exceeded, not merely reached");
+        assert!(!should_relock(60_001, 1, false), "no lock when authentication is off");
+        assert!(should_relock(1, 0, true), "immediate locks as soon as any time has passed");
+        assert!(!should_relock(0, 0, true));
+        assert!(should_relock(60_001, 7, true), "an unknown stored interval falls back to the default period");
+        assert!(should_relock(i64::MAX, 60, true), "nothing in flight holds the lock off once the period has passed");
     }
 }

@@ -12,8 +12,8 @@ sealed interface TransactionDetailsAction {
     data class OpenNft(val assetId: NFTAssetId) : Navigation
     data class OpenPerpetual(val assetId: AssetId) : Navigation
     data class OpenSwap(val fromAssetId: AssetId, val toAssetId: AssetId) : Navigation
+    data class OpenAddress(val chainAddress: ChainAddress) : Navigation
 
     data object Share : TransactionDetailsAction
     data object ShowFeeDetails : TransactionDetailsAction
-    data class OpenAddress(val chainAddress: ChainAddress) : TransactionDetailsAction
 }

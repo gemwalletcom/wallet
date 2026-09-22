@@ -21,5 +21,25 @@ fun GemListRow.detailsAction(assetId: AssetId): AssetDetailsAction? = when (this
         else -> null
     }
 
+    is GemListRow.Quote -> when (title) {
+        GemListRowTitle.PRICE -> AssetDetailsAction.OpenChart(assetId)
+        else -> null
+    }
+
+    is GemListRow.Amount -> when (title) {
+        GemListRowTitle.STAKE_APR -> AssetDetailsAction.Earn(assetId)
+        else -> null
+    }
+
+    is GemListRow.Text -> when (title) {
+        GemListRowTitle.STAKE_APR -> AssetDetailsAction.Earn(assetId)
+        else -> null
+    }
+
+    else -> null
+}
+
+internal fun GemListRow.networkAction(network: AssetDetailsAction.Navigation?): AssetDetailsAction? = when (this) {
+    is GemListRow.Network -> network
     else -> null
 }

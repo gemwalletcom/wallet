@@ -6,6 +6,7 @@ import GRDB
 struct PriceRecordInfo: FetchableRecord, Codable {
     var asset: AssetRecord
     var price: PriceRecord?
+    var market: AssetMarketRecord?
     var priceAlerts: [PriceAlertRecord]?
     var links: [AssetLinkRecord]
 }

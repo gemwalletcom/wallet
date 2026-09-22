@@ -80,7 +80,7 @@ impl FiatQuoteTestkit {
         ));
         let balances = Arc::new(MemoryBalanceStore::default());
         let recents = Arc::new(MemoryRecentActivityStore::default());
-        let balance = Arc::new(GemBalanceService::new(gateway, wallets, asset_store, balances.clone(), assets.clone(), Arc::new(SubscriptionTestkit::new(&[], &[]).service)));
+        let balance = Arc::new(GemBalanceService::new(gateway, balances.clone(), assets.clone(), session.clone(), Arc::new(SubscriptionTestkit::new(&[], &[]).service)));
         let fiat = Arc::new(GemFiatService::new(
             Arc::new(GemDeviceApiClient::new(provider, Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences))))),
             assets,

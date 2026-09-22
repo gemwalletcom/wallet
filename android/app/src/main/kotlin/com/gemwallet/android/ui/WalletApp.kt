@@ -77,6 +77,7 @@ fun WalletApp(
                     activeRequest = activeRequest,
                     requestKey = key,
                     onAcquireAsset = navigator::openAcquireAsset,
+                    onOpenAddress = navigator::openAddress,
                     onError = onWalletConnectError,
                 )
             }

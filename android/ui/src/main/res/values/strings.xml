@@ -110,6 +110,8 @@
   <string name="buy_rate">Rate</string>
   <string name="buy_no_results">No quotes available</string>
   <string name="transfer_network_fee">Network Fee</string>
+  <string name="transfer_pay_with">Pay with</string>
+  <string name="transfer_payment_title">Payment</string>
   <string name="transfer_memo">Memo</string>
   <string name="transfer_confirm">Confirm</string>
   <string name="transfer_from">From</string>
@@ -135,6 +137,7 @@
   <string name="transfer_recipient_my_wallets">My Wallets</string>
   <string name="transfer_recipient_view_wallets">View Wallets</string>
   <string name="transfer_minimum_account_balance">A minimum %1$s balance must remain after this, unless you\'re using your full balance.</string>
+  <string name="transfer_destination_account_activation">The destination address requires a minimum of %1$s.</string>
   <string name="transfer_smart_contract_title">Smart Contract</string>
   <string name="transfer_other_title">Other</string>
   <string name="transfer_maximum_amount">Maximum Amount is %1$s</string>
@@ -223,6 +226,7 @@
   <string name="errors_no_internet_connection">No internet connection</string>
   <string name="errors_no_service_connection">No service connection</string>
   <string name="errors_balances_activity_outdated">Balances and activity may be outdated.</string>
+  <string name="errors_payment_status">Payment: %1$s</string>
   <string name="activity_title">Activity</string>
   <string name="activity_state_empty_title">Your activity will appear here</string>
   <string name="activity_state_empty_description">Make your first transaction</string>
@@ -250,6 +254,7 @@
   <string name="transaction_status_completed">Completed</string>
   <string name="transaction_status_inprogress">In Progress</string>
   <string name="transaction_status_refunded">Refunded</string>
+  <string name="transaction_status_expired">Expired</string>
   <string name="asset_balances">Balances</string>
   <string name="asset_balances_available">Available</string>
   <string name="asset_price">Price</string>
@@ -436,6 +441,8 @@
   <string name="info_network_fee_title">Network Fee</string>
   <string name="info_watch_wallet_title">Watch Wallet</string>
   <string name="info_watch_wallet_description">A wallet that you do not have access to, but you can watch its transactions and movements.</string>
+  <string name="info_payment_verification_title">Payment Verification</string>
+  <string name="info_payment_verification_description">The merchant requires additional information before the payment.</string>
   <string name="info_network_fee_description">Every transaction on the %1$s network requires a fee in %2$s paid to miners to process your transaction, not Gem Wallet. Network fees varies based on network usage.</string>
   <string name="info_transaction_error_description">The transaction could not be completed due to an error, such as insufficient funds, invalid input, or rejection by the network. Please review the details and try again.</string>
   <string name="info_transaction_pending_description">The transaction has been submitted and is awaiting confirmation on the network. Processing times may vary. Please check back for updates.</string>

@@ -31,6 +31,10 @@ public final class GemstoneAssetStore: GemAssetStore, @unchecked Sendable {
         try assetStore.getAssets(for: assetIds).map { $0.toGem() }
     }
 
+    public func getWalletAssets(walletId: String) async throws -> [Gemstone.Asset] {
+        try assetStore.getAssetsData(walletId: WalletId.from(id: walletId), filters: [], limit: nil).map { $0.asset.toGem() }
+    }
+
     public func saveAssets(assets: [Gemstone.AssetBasic]) async throws {
         try assetStore.add(assets: assets.map { $0.toPrimitives() })
     }

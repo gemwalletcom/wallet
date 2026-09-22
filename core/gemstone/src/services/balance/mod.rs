@@ -18,9 +18,9 @@ pub use model::{GemAssetBalance, GemAssetBalanceRow, GemBalanceRecord, GemBalanc
 pub use store::GemBalanceStore;
 
 use crate::gateway::GemGateway;
-use crate::services::assets::{GemAssetStore, GemAssetsService};
+use crate::services::assets::GemAssetsService;
 use crate::services::stream::GemStreamSubscriptionService;
-use crate::services::wallet::GemWalletStore;
+use crate::services::wallet_session::GemWalletSessionService;
 use rules::{BalanceKind, BalanceRequest};
 
 type PublishedSequences = HashMap<(AssetId, Discriminant<GemBalanceUpdateType>), u64>;
@@ -28,10 +28,9 @@ type PublishedSequences = HashMap<(AssetId, Discriminant<GemBalanceUpdateType>),
 #[derive(uniffi::Object)]
 pub struct GemBalanceService {
     gateway: Arc<GemGateway>,
-    wallet_store: Arc<dyn GemWalletStore>,
-    asset_store: Arc<dyn GemAssetStore>,
     store: Arc<dyn GemBalanceStore>,
     assets: Arc<GemAssetsService>,
+    session: Arc<GemWalletSessionService>,
     stream: Arc<GemStreamSubscriptionService>,
     sequence: AtomicU64,
     published: Mutex<HashMap<WalletId, Arc<AsyncMutex<PublishedSequences>>>>,
@@ -40,13 +39,12 @@ pub struct GemBalanceService {
 #[uniffi::export]
 impl GemBalanceService {
     #[uniffi::constructor]
-    pub fn new(gateway: Arc<GemGateway>, wallet_store: Arc<dyn GemWalletStore>, asset_store: Arc<dyn GemAssetStore>, store: Arc<dyn GemBalanceStore>, assets: Arc<GemAssetsService>, stream: Arc<GemStreamSubscriptionService>) -> Self {
+    pub fn new(gateway: Arc<GemGateway>, store: Arc<dyn GemBalanceStore>, assets: Arc<GemAssetsService>, session: Arc<GemWalletSessionService>, stream: Arc<GemStreamSubscriptionService>) -> Self {
         Self {
             gateway,
-            wallet_store,
-            asset_store,
             store,
             assets,
+            session,
             stream,
             sequence: AtomicU64::new(0),
             published: Mutex::new(HashMap::new()),
@@ -87,7 +85,7 @@ impl GemBalanceService {
     }
 
     pub async fn update(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
-        let Some(wallet) = self.wallet_store.get_wallet(wallet_id.clone()).await.map_err(|error| GemServiceError::Store { msg: error.to_string() })? else {
+        let Some(wallet) = self.session.get_wallet(wallet_id.clone()).await? else {
             return Ok(());
         };
         let sequence = self.next_sequence();
@@ -95,11 +93,7 @@ impl GemBalanceService {
         let results = join_all(requests.iter().map(|request| self.chain_balances(request))).await;
         let (balances, failure) = rules::published_balances(results);
         if !balances.is_empty() {
-            let assets = self
-                .asset_store
-                .get_assets(balances.iter().map(|(_, balance)| balance.asset_id.clone()).collect())
-                .await
-                .map_err(|error| GemServiceError::Store { msg: error.to_string() })?;
+            let assets = self.assets.assets(balances.iter().map(|(_, balance)| balance.asset_id.clone()).collect()).await?;
             self.write_balances(wallet_id, sequence, rules::balance_updates(balances), &assets).await?;
         }
         match failure {
@@ -141,11 +135,7 @@ impl GemBalanceService {
 
     pub async fn update_balances(&self, wallet_id: WalletId, updates: Vec<GemBalanceUpdate>) -> Result<(), GemServiceError> {
         let sequence = self.next_sequence();
-        let assets = self
-            .asset_store
-            .get_assets(updates.iter().map(|update| update.asset_id.clone()).collect())
-            .await
-            .map_err(|error| GemServiceError::Store { msg: error.to_string() })?;
+        let assets = self.assets.assets(updates.iter().map(|update| update.asset_id.clone()).collect()).await?;
         self.write_balances(wallet_id, sequence, updates, &assets).await
     }
 
@@ -234,6 +224,8 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::Chain;
     use testkit::{BalanceTestkit, MemoryBalanceStore};
+
+    use crate::services::assets::GemAssetStore;
 
     #[test]
     fn test_hiding_an_asset_unpins_it_in_the_same_write() {

@@ -2,7 +2,7 @@ use std::fmt;
 
 use crate::mnemonic::{apply_phrase_suggestion, phrase_suggestions};
 use crate::services::localization::GemLocalizedText;
-use primitives::{BlockExplorerLink, Chain, ChainAddress, Wallet};
+use primitives::{BlockExplorerLink, Chain, ChainAddress, NameRecord, Wallet, WalletSource};
 
 use super::rules;
 
@@ -112,12 +112,6 @@ impl GemWalletImportSession {
     }
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
-pub struct GemWalletDefaultName {
-    pub text: GemLocalizedText,
-    pub has_existing_wallets: bool,
-}
-
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemWalletImportScreen {
     pub title: GemLocalizedText,
@@ -125,10 +119,47 @@ pub struct GemWalletImportScreen {
     pub shows_kinds: bool,
 }
 
+#[derive(Clone, uniffi::Record)]
+pub struct GemWalletImportRequest {
+    pub kind: GemWalletImportKind,
+    pub chain: Option<Chain>,
+    pub input: String,
+    pub name_record: Option<NameRecord>,
+    pub default_name: String,
+    pub source: WalletSource,
+}
+
+impl fmt::Debug for GemWalletImportRequest {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("GemWalletImportRequest")
+            .field("kind", &self.kind)
+            .field("chain", &self.chain)
+            .field("default_name", &self.default_name)
+            .field("source", &self.source)
+            .finish_non_exhaustive()
+    }
+}
+
 #[derive(Debug, Clone, uniffi::Enum)]
 pub enum GemWalletImportResult {
-    New { wallet: Wallet },
+    New { wallet: Wallet, has_existing_wallets: bool },
     Existing { wallet: Wallet },
+}
+
+#[uniffi::export]
+impl GemWalletImportResult {
+    pub fn wallet(&self) -> Wallet {
+        match self {
+            Self::New { wallet, .. } | Self::Existing { wallet } => wallet.clone(),
+        }
+    }
+
+    pub fn has_existing_wallets(&self) -> bool {
+        match self {
+            Self::New { has_existing_wallets, .. } => *has_existing_wallets,
+            Self::Existing { .. } => true,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]

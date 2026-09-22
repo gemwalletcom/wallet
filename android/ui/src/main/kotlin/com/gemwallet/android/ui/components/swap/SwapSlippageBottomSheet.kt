@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,12 +22,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.SuffixTextField
 import com.gemwallet.android.ui.components.SuggestionsBar
+import com.gemwallet.android.ui.components.fields.decimalKeyboardOptions
 import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
 import com.gemwallet.android.ui.components.list_item.SwitchProperty
 import com.gemwallet.android.ui.components.list_item.listItem
@@ -113,7 +112,7 @@ fun SwapSlippageBottomSheet(
                         onValueChange = { input = SwapSlippage.sanitize(it, state.maximumFractionDigits, state.maximumIntegerDigits) },
                         suffix = "%",
                         focusRequester = focusRequester,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        keyboardOptions = decimalKeyboardOptions(),
                     )
                 }
                 state.footerText?.let { FooterText(text = it, color = MaterialTheme.colorScheme.error) }

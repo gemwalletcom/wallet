@@ -25,8 +25,9 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
+import uniffi.gemstone.GemRewardsAction
 
-internal fun LazyListScope.referralHead(joinPointsCost: String, canInvite: Boolean, hasCode: Boolean, onGetStarted: () -> Unit, onShare: () -> Unit) {
+internal fun LazyListScope.referralHead(joinPointsCost: String, action: GemRewardsAction?, onGetStarted: () -> Unit, onShare: () -> Unit) {
     item {
         Column(
             modifier = Modifier
@@ -110,19 +111,21 @@ internal fun LazyListScope.referralHead(joinPointsCost: String, canInvite: Boole
                     )
                 }
             }
-            when {
-                !hasCode -> MainActionButton(
+            when (action) {
+                GemRewardsAction.CreateCode -> MainActionButton(
                     title = stringResource(R.string.common_get_started),
                     onClick = onGetStarted,
                 )
 
-                canInvite -> MainActionButton(
+                GemRewardsAction.Share -> MainActionButton(
                     onClick = onShare,
                 ) {
                     Icon(AppIcons.Share, contentDescription = "share")
                     Spacer8()
                     Text(stringResource(R.string.rewards_invite_friends_title))
                 }
+
+                else -> Unit
             }
         }
     }

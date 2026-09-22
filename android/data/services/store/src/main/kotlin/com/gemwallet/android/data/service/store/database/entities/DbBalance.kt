@@ -70,12 +70,7 @@ data class DbBalance(
     @ColumnInfo("is_active") var isActive: Boolean = true,
     @ColumnInfo("is_pinned") var isPinned: Boolean = false,
     @ColumnInfo("is_visible") var isVisible: Boolean = false,
-    @ColumnInfo("list_position") var listPosition: Int = 0,
-    @ColumnInfo("votes", defaultValue = "0") var votes: Long = 0L,
-    @ColumnInfo("energy_available", defaultValue = "0") var energyAvailable: Long = 0L,
-    @ColumnInfo("energy_total", defaultValue = "0") var energyTotal: Long = 0L,
-    @ColumnInfo("bandwidth_available", defaultValue = "0") var bandwidthAvailable: Long = 0L,
-    @ColumnInfo("bandwidth_total", defaultValue = "0") var bandwidthTotal: Long = 0L,
+    @ColumnInfo("metadata") var metadata: BalanceMetadata? = null,
     @ColumnInfo("updated_at") var updatedAt: Long?,
 )
 
@@ -108,12 +103,6 @@ fun DbBalance.toDTO(): AssetBalance? {
         ),
         totalAmount = totalAmount,
         isActive = isActive,
-        metadata = BalanceMetadata(
-            votes = votes.toUInt(),
-            energyAvailable = energyAvailable.toUInt(),
-            energyTotal = energyTotal.toUInt(),
-            bandwidthAvailable = bandwidthAvailable.toUInt(),
-            bandwidthTotal = bandwidthTotal.toUInt(),
-        ),
+        metadata = metadata,
     )
 }

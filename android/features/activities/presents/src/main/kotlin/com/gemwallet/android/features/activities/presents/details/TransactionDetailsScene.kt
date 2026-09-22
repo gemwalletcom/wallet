@@ -18,6 +18,7 @@ import com.gemwallet.android.features.activities.viewmodels.models.TransactionHe
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.AmountListHead
+import com.gemwallet.android.ui.components.list_head.AssetListHead
 import com.gemwallet.android.ui.components.list_head.NftHead
 import com.gemwallet.android.ui.components.list_head.SwapListHead
 import com.gemwallet.android.ui.components.list_item.GemListRowView
@@ -34,10 +35,11 @@ import com.gemwallet.android.ui.models.ListSection
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.padding16
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainAddress
 
 @Composable
-internal fun TransactionDetailsScene(title: String, sections: List<ListSection<TransactionDetailsRowUIModel>>, headerTarget: TransactionHeaderTarget?, onAction: (TransactionDetailsAction) -> Unit) {
+internal fun TransactionDetailsScene(title: String, sections: List<ListSection<TransactionDetailsRowUIModel>>, headerTarget: TransactionHeaderTarget?, chain: Chain, onAction: (TransactionDetailsAction) -> Unit) {
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
     Scene(
@@ -77,7 +79,12 @@ internal fun TransactionDetailsScene(title: String, sections: List<ListSection<T
 
                     is TransactionDetailsRowUIModel.SwapProgress -> SwapProgressItem(row.model)
 
-                    is TransactionDetailsRowUIModel.Row -> GemListRowView(row = row.row, listPosition = position, infoIcon = row.infoIcon)
+                    is TransactionDetailsRowUIModel.Row -> GemListRowView(
+                        row = row.row,
+                        listPosition = position,
+                        infoIcon = row.infoIcon,
+                        onSelectAddress = { address -> onAction(TransactionDetailsAction.OpenAddress(ChainAddress(chain, address))) },
+                    )
 
                     is TransactionDetailsRowUIModel.NftHead -> NftHead(
                         metadata = row.metadata,
@@ -88,6 +95,11 @@ internal fun TransactionDetailsScene(title: String, sections: List<ListSection<T
                         icon = row.asset,
                         amount = row.amount,
                         equivalent = row.equivalent,
+                        onClick = headerTarget?.let { target -> { onAction(target.navigation()) } },
+                    )
+
+                    is TransactionDetailsRowUIModel.AssetHead -> AssetListHead(
+                        asset = row.asset,
                         onClick = headerTarget?.let { target -> { onAction(target.navigation()) } },
                     )
 

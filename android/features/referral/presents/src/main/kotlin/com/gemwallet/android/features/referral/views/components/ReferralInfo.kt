@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.features.referral.viewmodels.models.RewardRedemptionUIModel
+import com.gemwallet.android.features.referral.viewmodels.models.RewardsSectionUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
@@ -22,11 +23,13 @@ import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.models.ListPosition
 
-internal fun LazyListScope.referralInfo(rows: List<ListItemModel>, redemptions: List<RewardRedemptionUIModel>, onRedeem: (RewardRedemptionUIModel) -> Unit) {
-    item {
-        SubheaderItem(R.string.common_info)
-        rows.forEachIndexed { index, row ->
-            ListItem(model = row, listPosition = ListPosition.getPosition(index, rows.size))
+internal fun LazyListScope.referralInfo(sections: List<RewardsSectionUIModel>, redemptions: List<RewardRedemptionUIModel>, onRedeem: (RewardRedemptionUIModel) -> Unit) {
+    sections.forEach { section ->
+        item {
+            section.title?.let { SubheaderItem(it) }
+            section.rows.forEachIndexed { index, row ->
+                ListItem(model = row, listPosition = ListPosition.getPosition(index, section.rows.size))
+            }
         }
     }
 

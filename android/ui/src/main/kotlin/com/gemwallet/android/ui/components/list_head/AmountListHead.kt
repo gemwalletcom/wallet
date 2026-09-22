@@ -51,13 +51,15 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.gemwallet.android.domains.asset.icon
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DisplayText
 import com.gemwallet.android.ui.components.HideToggle
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.InfoSheetEntity
-import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.components.image.iconModel
+import com.gemwallet.android.ui.components.image.supportIconModel
 import com.gemwallet.android.ui.components.isHidden
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.components.list_item.color
@@ -81,6 +83,7 @@ import com.gemwallet.android.ui.theme.space10
 import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.tinyIconSize
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemHeaderActions
 import uniffi.gemstone.GemHeaderButton
 import uniffi.gemstone.GemHeaderButtonKind
@@ -114,14 +117,18 @@ fun AmountListHead(
                 .padding(start = paddingDefault, end = paddingDefault, bottom = paddingSmall),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            (icon as? Asset)?.let {
-                HeaderIcon(it)
-            } ?: IconWithBadge(
-                icon = icon,
-                placeholder = iconPlaceholder,
-                size = headerIconSize,
-                badgeBackgroundColor = MaterialTheme.colorScheme.surface,
-            )
+            when (icon) {
+                is Asset -> HeaderIcon(icon)
+
+                is AssetId -> HeaderIcon(icon)
+
+                else -> IconWithBadge(
+                    icon = icon,
+                    placeholder = iconPlaceholder,
+                    size = headerIconSize,
+                    badgeBackgroundColor = MaterialTheme.colorScheme.surface,
+                )
+            }
 
             icon?.let { Spacer16() }
 
@@ -197,11 +204,16 @@ fun AmountListHead(
 
 @Composable
 fun HeaderIcon(asset: Asset?, iconSize: Dp = headerIconSize) {
-    if (asset == null) {
-        return
-    }
-    AssetIcon(
-        asset = asset,
+    asset ?: return
+    HeaderIcon(asset.id, iconSize)
+}
+
+@Composable
+fun HeaderIcon(assetId: AssetId, iconSize: Dp = headerIconSize) {
+    IconWithBadge(
+        icon = assetId.iconModel(),
+        placeholder = assetId.icon().placeholder,
+        supportIcon = assetId.supportIconModel(),
         size = iconSize,
         badgeBackgroundColor = MaterialTheme.colorScheme.surface,
     )

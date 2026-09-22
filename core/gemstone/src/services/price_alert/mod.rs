@@ -87,6 +87,10 @@ impl GemPriceAlertService {
 }
 
 impl GemPriceAlertService {
+    pub async fn price_alerts(&self, asset_id: Option<AssetId>) -> Result<Vec<PriceAlert>, GemServiceError> {
+        self.store.get_price_alerts(asset_id).await
+    }
+
     pub async fn sync(&self, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
         let remote = self.api.client.get_price_alerts(asset_id.as_ref().map(ToString::to_string)).await.map_err(GemApiError::from)?;
         let remote = match &asset_id {

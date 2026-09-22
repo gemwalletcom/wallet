@@ -1,11 +1,36 @@
-use primitives::{ApplicationMetadata, ChainAddress, PaymentRequest, TransactionType};
+use primitives::swap::ApprovalData;
+use primitives::{AssetId, ChainAddress, PaymentInvoice, PaymentRequest, PaymentStatus, TransactionType, TransferDataOutputType};
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PaymentUpdate {
+    pub status: PaymentStatus,
+    pub transaction_id: Option<String>,
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct PaymentTransaction {
-    pub merchant: ApplicationMetadata,
+    pub invoice: PaymentInvoice,
     pub account: ChainAddress,
     pub transaction: String,
     pub transaction_type: TransactionType,
     pub memo: Option<String>,
     pub request: Option<PaymentRequest>,
+    pub output_type: TransferDataOutputType,
+    pub approval: Option<ApprovalData>,
+}
+
+#[allow(clippy::large_enum_variant)]
+#[derive(Debug, Clone, PartialEq)]
+pub enum PaymentLoad {
+    Sign { transaction: PaymentTransaction },
+    Verify { invoice: PaymentInvoice, asset_id: AssetId, url: String },
+}
+
+impl PaymentLoad {
+    pub(crate) fn account(&self) -> Option<&ChainAddress> {
+        match self {
+            Self::Sign { transaction } => Some(&transaction.account),
+            Self::Verify { .. } => None,
+        }
+    }
 }

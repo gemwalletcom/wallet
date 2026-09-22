@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.di
 
 import android.content.Context
+import com.gemwallet.android.application.device.cases.EnablePushForSupport
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.GetPushToken
 import com.gemwallet.android.application.device.cases.SetPushToken
@@ -28,6 +29,7 @@ import uniffi.gemstone.GemNotificationPermissions
 import uniffi.gemstone.GemNotificationsService
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemSubscriptionService
+import uniffi.gemstone.GemWalletSessionService
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -40,14 +42,14 @@ object DeviceModule {
     fun provideGemDeviceService(
         @Named("registration") apiClient: GemDeviceApiClient,
         subscriptionService: GemSubscriptionService,
-        walletStore: GemstoneWalletStore,
+        walletSessionService: GemWalletSessionService,
         platform: GemstoneDevicePlatform,
         preferencesService: GemPreferencesService,
-    ): GemDeviceService = GemDeviceService(apiClient, subscriptionService, walletStore, platform, preferencesService)
+    ): GemDeviceService = GemDeviceService(apiClient, subscriptionService, walletSessionService, platform, preferencesService)
 
     @Provides
     @Singleton
-    fun provideGemSubscriptionService(@Named("registration") apiClient: GemDeviceApiClient, walletStore: GemstoneWalletStore): GemSubscriptionService = GemSubscriptionService(apiClient, walletStore)
+    fun provideGemSubscriptionService(@Named("registration") apiClient: GemDeviceApiClient, walletSessionService: GemWalletSessionService): GemSubscriptionService = GemSubscriptionService(apiClient, walletSessionService)
 
     @Provides
     @Singleton
@@ -96,6 +98,9 @@ object DeviceModule {
 
     @Provides
     fun provideSwitchPushEnabledCase(pushSettings: DevicePushSettings): SwitchPushEnabled = pushSettings
+
+    @Provides
+    fun provideEnablePushForSupportCase(pushSettings: DevicePushSettings): EnablePushForSupport = pushSettings
 
     @Provides
     fun provideGetPushEnabledCase(pushSettings: DevicePushSettings): GetPushEnabled = pushSettings

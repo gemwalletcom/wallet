@@ -21,7 +21,7 @@ use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle};
 use crate::models::placeholder::EMPTY_VALUE;
-use crate::perpetual::{GemPerpetual, leverage_text};
+use crate::perpetual::GemPerpetual;
 use crate::services::assets::model::{GemHeaderActions, GemHeaderButton, GemHeaderButtonKind};
 use crate::services::error::GemServiceError;
 use crate::services::localization::{GemLocalizedText, GemPositionChange, GemTriggerOrder};
@@ -197,7 +197,7 @@ fn trigger_order_section(data: &PerpetualConfirmData) -> Option<Vec<GemListRow>>
 fn position_text(direction: &PerpetualDirection, leverage: u8) -> GemLocalizedText {
     GemLocalizedText::Position {
         direction: direction.clone(),
-        leverage: leverage_text(leverage),
+        leverage: GemFormattedNumber::leverage(leverage as f64),
     }
 }
 
@@ -713,7 +713,7 @@ pub fn market_row(perpetual: &Perpetual, asset: &Asset) -> GemPerpetualMarketRow
             true => asset.symbol.clone(),
             false => perpetual.name.clone(),
         },
-        price: crate::services::assets::rules::price_row(Some(perpetual.price), Some(perpetual.price_percent_change_24h), Currency::USD),
+        price: crate::services::assets::rules::price_row(Some(perpetual.price), Some(perpetual.price_percent_change_24h), Currency::USD, GemCurrencyStyle::Short),
         volume_24h: GemFormattedNumber::usd_abbreviated(perpetual.volume_24h),
         open_interest: GemFormattedNumber::usd_abbreviated(perpetual.open_interest),
         funding_apr: GemFormattedNumber::percentage(funding_apr(perpetual.funding), GemPercentageStyle::Signed),
@@ -722,30 +722,22 @@ pub fn market_row(perpetual: &Perpetual, asset: &Asset) -> GemPerpetualMarketRow
 
 pub fn open_row(direction: PerpetualDirection, leverage: u8, size: f64) -> GemPerpetualOpenRow {
     GemPerpetualOpenRow {
-        position: GemLocalizedText::Position {
-            leverage: crate::perpetual::leverage_text(leverage),
-            direction: direction.clone(),
-        },
+        position: position_text(&direction, leverage),
         direction_tone: direction_tone(&direction),
         size: (size > 0.0).then(|| GemFormattedNumber::currency(size, Currency::USD, GemCurrencyStyle::Currency)),
     }
 }
 
 pub fn position_row(perpetual: &Perpetual, asset: &Asset, position: &PerpetualPosition) -> GemPerpetualPositionRow {
-    let leverage = crate::perpetual::leverage_text(position.leverage);
     let (pnl, pnl_tone) = pnl_text(position.pnl, position.margin_amount);
     GemPerpetualPositionRow {
         title: match asset.symbol.is_empty() {
             true => perpetual.name.clone(),
             false => asset.symbol.clone(),
         },
-        position: GemLocalizedText::Position {
-            direction: position.direction.clone(),
-            leverage: leverage.clone(),
-        },
+        position: position_text(&position.direction, position.leverage),
         direction_tone: direction_tone(&position.direction),
         margin: GemFormattedNumber::currency(position.margin_amount, Currency::USD, GemCurrencyStyle::Fiat),
-        leverage,
         direction: position.direction.clone(),
         pnl,
         pnl_tone,
@@ -1223,6 +1215,10 @@ mod tests {
         assert_eq!(tooltip.prices[1].value, GemFormattedNumber::adaptive(120.0, None));
         assert_eq!(tooltip.summary[0].value, GemFormattedNumber::percentage(10.0, GemPercentageStyle::Signed));
         assert_eq!(tooltip.summary[1].value, GemFormattedNumber::usd_abbreviated(220.0));
+
+        let flat = candle_tooltip(&ChartCandleStick { open: 0.0, ..candle });
+
+        assert_eq!(flat.summary[0].value, GemFormattedNumber::percentage(0.0, GemPercentageStyle::Signed), "an open of nothing has no percentage to quote");
     }
 
     #[test]
@@ -1235,7 +1231,7 @@ mod tests {
         assert_eq!(market_row(&priced, &asset).title, "BTC");
         assert_eq!(
             market_row(&priced, &asset).price,
-            crate::services::assets::rules::price_row(Some(priced.price), Some(priced.price_percent_change_24h), Currency::USD),
+            crate::services::assets::rules::price_row(Some(priced.price), Some(priced.price_percent_change_24h), Currency::USD, GemCurrencyStyle::Short),
             "the row carries its price the way every other row does"
         );
         assert_eq!(market_row(&unpriced, &asset).price.price, None);
@@ -1335,7 +1331,7 @@ mod tests {
 
         assert_eq!(position_row(&market, &symboled, &held).title, symboled.symbol);
         assert_eq!(position_row(&market, &unsymboled, &held).title, "BTC");
-        assert_eq!(position_row(&market, &symboled, &held).leverage, "40x");
+        assert_eq!(position_row(&market, &symboled, &held).position, position_text(&held.direction, 40));
     }
 
     #[test]
@@ -1360,7 +1356,7 @@ mod tests {
             row.position,
             GemLocalizedText::Position {
                 direction: PerpetualDirection::Short,
-                leverage: "5x".to_string()
+                leverage: GemFormattedNumber::leverage(5.0)
             },
             "the label is one value, not a direction and a leverage each app joins"
         );
@@ -1649,7 +1645,7 @@ mod tests {
             GemPerpetualConfirmDetailsSummary {
                 text: Some(GemLocalizedText::Position {
                     direction: PerpetualDirection::Long,
-                    leverage: "5x".to_string(),
+                    leverage: GemFormattedNumber::leverage(5.0),
                 }),
                 tone: GemValueTone::Positive,
             }
@@ -1680,7 +1676,7 @@ mod tests {
                     title: GemListRowTitle::Position,
                     text: GemLocalizedText::Position {
                         direction: PerpetualDirection::Long,
-                        leverage: "5x".to_string(),
+                        leverage: GemFormattedNumber::leverage(5.0),
                     },
                     tone: GemValueTone::Positive,
                     info: None,

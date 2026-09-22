@@ -1,5 +1,5 @@
 use super::model::{GemAvatar, GemConfirmRowContent};
-use crate::address_formatter::GemAddressService;
+use crate::address_formatter::{GemAddressFormatStyle, GemAddressService, format_address};
 use crate::application::GemApplicationMetadataService;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::copy::address_copy;
@@ -15,8 +15,8 @@ use primitives::AddressType;
 use primitives::currency::Currency;
 use primitives::{AddressName, BlockExplorerLink};
 use primitives::{
-    ApplicationMetadataSource, Asset, AssetId, Chain, ChainType, EVMChain, FeePriority, FeeUnitType, GasPriceType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationResult, SimulationWarningType, Transaction,
-    TransactionPreloadInput, Wallet,
+    Asset, AssetId, Chain, ChainType, EVMChain, FeePriority, FeeUnitType, GasPriceType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationResult, SimulationWarningType, Transaction, TransactionPreloadInput,
+    TransactionType, TransferDataOutputAction, TransferDataOutputType, Wallet,
 };
 
 use super::error::{GemConfirmError, GemConfirmErrorDisplay, GemConfirmErrorInfo, GemConfirmErrorSheet};
@@ -94,7 +94,7 @@ pub(super) trait ConfirmInput {
 impl ConfirmInput for TransactionInputType {
     fn requires_scan(&self) -> bool {
         match self {
-            Self::Transfer { .. } | Self::Swap { .. } | Self::TokenApprove { .. } | Self::Generic { .. } => true,
+            Self::Transfer { .. } | Self::Swap { .. } | Self::TokenApprove { .. } | Self::Generic { .. } | Self::Payment { .. } => true,
             Self::Deposit { .. } | Self::Withdrawal { .. } | Self::Stake { .. } | Self::TransferNft { .. } | Self::Account { .. } | Self::Perpetual { .. } | Self::Earn { .. } => false,
         }
     }
@@ -107,6 +107,7 @@ impl ConfirmInput for TransactionInputType {
             | Self::Swap { .. }
             | Self::Stake { .. }
             | Self::Generic { .. }
+            | Self::Payment { .. }
             | Self::TransferNft { .. }
             | Self::Account { .. }
             | Self::Perpetual { .. }
@@ -123,25 +124,19 @@ impl ConfirmInput for TransactionInputType {
     }
 
     fn simulation_payload(&self) -> Option<String> {
-        let Self::Generic { metadata, extra, .. } = self else {
+        let Self::Payment { extra, .. } = self else {
             return None;
         };
-        match metadata.source {
-            ApplicationMetadataSource::Payment => extra.data.as_ref().and_then(|data| String::from_utf8(data.clone()).ok()),
-            ApplicationMetadataSource::WalletConnect => None,
+        if extra.output_type == TransferDataOutputType::Signature {
+            return None;
         }
+        extra.data.as_ref().filter(|data| !data.is_empty()).and_then(|data| String::from_utf8(data.clone()).ok())
     }
 
     fn validate_simulation(&self, simulation: &SimulationResult) -> Result<(), GemConfirmError> {
-        let Self::Generic { metadata, .. } = self else {
+        let Self::Payment { .. } = self else {
             return Ok(());
         };
-
-        match metadata.source {
-            ApplicationMetadataSource::Payment => {}
-            ApplicationMetadataSource::WalletConnect => return Ok(()),
-        }
-
         if let Some(warning) = simulation.warnings.iter().find(|warning| warning.warning == SimulationWarningType::ValidationError) {
             return Err(GemConfirmError::Load {
                 msg: warning.message.clone().unwrap_or_else(|| "Payment simulation failed".to_string()),
@@ -151,15 +146,25 @@ impl ConfirmInput for TransactionInputType {
     }
 
     fn broadcast_options(&self) -> GemBroadcastOptions {
-        let skip_preflight = match (self.get_asset().chain(), self) {
-            (Chain::Solana, Self::Generic { metadata, .. }) => match metadata.source {
-                ApplicationMetadataSource::Payment => false,
-                ApplicationMetadataSource::WalletConnect => true,
-            },
-            (Chain::Solana, Self::Swap { .. }) => true,
-            _ => false,
-        };
-        GemBroadcastOptions { skip_preflight }
+        match (self.get_asset().chain(), self) {
+            (Chain::Solana, Self::Swap { .. } | Self::Generic { .. }) => GemBroadcastOptions { skip_preflight: true },
+            _ => GemBroadcastOptions { skip_preflight: false },
+        }
+    }
+}
+
+pub(super) fn is_broadcast(input_type: &TransactionInputType, transaction: &GemSignedTransaction) -> bool {
+    match (input_type.output().output_action, input_type) {
+        (TransferDataOutputAction::Send, _) => true,
+        (TransferDataOutputAction::Sign, TransactionInputType::Payment { .. }) => transaction.transaction_type == TransactionType::TokenApproval,
+        (TransferDataOutputAction::Sign, _) => false,
+    }
+}
+
+pub(super) fn is_signature_only(input_type: &TransactionInputType) -> bool {
+    match input_type {
+        TransactionInputType::Payment { extra, .. } => extra.output_type == TransferDataOutputType::Signature && extra.approval.is_none(),
+        _ => false,
     }
 }
 
@@ -173,6 +178,10 @@ pub fn approval_value_from(value: Option<&GemBigUint>, is_unlimited: bool) -> Ge
 #[uniffi::export]
 impl GemConfirmData {
     pub fn fee_rate_rows(&self, selection: GemConfirmFeeSelection, fee_asset: Asset) -> GemFeeRateRows {
+        let selection = match selection {
+            GemConfirmFeeSelection::Priority { priority } if !self.fee_rates.iter().any(|rate| rate.priority == priority) => GemConfirmFeeSelection::Priority { priority: self.selected_priority },
+            selection => selection,
+        };
         fee_rate_rows(self.input.transfer.input_type.get_asset().chain(), &fee_asset, &self.fee_rates, &selection, &self.fee)
     }
 }
@@ -189,6 +198,7 @@ impl GemConfirmData {
             fee_asset_balance: metadata.fee_asset_balance.available.clone().into(),
             fee: self.fee.fee.clone(),
             is_max_amount: transfer.use_max_amount,
+            destination_account_exists: self.metadata.get_is_destination_address_exist().ok(),
         };
         Ok(match input.calculate() {
             Ok(amount) => GemTransferAmountResult::Amount { amount },
@@ -214,6 +224,7 @@ fn amount_error(error: GemTransferAmountError, asset: &Asset, fee_asset: &Asset)
             asset: error_asset(&asset_id),
             requirement: GemBalanceRequirement::new(required, available),
         },
+        GemTransferAmountError::DestinationAccountActivation { asset_id, required, .. } => GemConfirmError::DestinationAccountActivation { asset: error_asset(&asset_id), required },
         GemTransferAmountError::BelowSwapMinimum { asset_id, provider, minimum, value } => GemConfirmError::BelowSwapMinimum {
             asset: error_asset(&asset_id),
             provider,
@@ -329,6 +340,8 @@ pub fn error_info(display: &GemConfirmErrorDisplay, prices: &[AssetPrice], curre
         | GemConfirmErrorDisplay::AccountMissing
         | GemConfirmErrorDisplay::Unknown
         | GemConfirmErrorDisplay::InsufficientFunds
+        | GemConfirmErrorDisplay::DestinationAccountActivation { .. }
+        | GemConfirmErrorDisplay::Payment { .. }
         | GemConfirmErrorDisplay::Message { .. } => None,
     }
 }
@@ -569,8 +582,9 @@ pub fn confirm_row_contents(transfer: &GemTransferData, wallet: Wallet, address_
                 let destination = destination.with_address_name(address_name.clone());
                 let avatar = contact_avatar(address_name.as_ref(), destination.name().as_deref());
                 let address = destination.address();
+                let short_address = format_address(&address, Some(chain), GemAddressFormatStyle::Short);
                 GemConfirmRowContent::Recipient {
-                    name: GemAddressService::new().name_text(destination.name(), address.clone(), avatar.is_some()),
+                    name: GemAddressService::new().name_text(destination.name(), short_address, avatar.is_some()),
                     is_selectable: !address.is_empty(),
                     address,
                     destination,
@@ -603,6 +617,13 @@ pub fn confirm_row_contents(transfer: &GemTransferData, wallet: Wallet, address_
                 })
             }
             GemConfirmRow::Details => Some(GemConfirmRowContent::Details),
+            GemConfirmRow::PaymentAsset => match &transfer.input_type {
+                TransactionInputType::Payment { asset, invoice, .. } => Some(GemConfirmRowContent::PaymentAsset {
+                    symbol: asset.symbol.clone(),
+                    selectable: invoice.quotes.len() > 1,
+                }),
+                _ => None,
+            },
         })
         .collect()
 }
@@ -678,6 +699,40 @@ mod tests {
             Err(GemConfirmError::ApprovalInvalid { .. }) => {}
             result => panic!("expected an invalid approval error, got {result:?}"),
         }
+    }
+
+    #[test]
+    fn test_is_broadcast() {
+        let payment = TransactionInputType::mock_payment(Asset::mock_erc20(), TransferDataExtra::mock_signature(vec![], None));
+
+        assert!(is_broadcast(&payment, &GemSignedTransaction::mock(TransactionType::TokenApproval)), "a payment sends its approval");
+        assert!(!is_broadcast(&payment, &GemSignedTransaction::mock(TransactionType::Transfer)), "and hands over its signature");
+        assert!(is_broadcast(&TransactionInputType::Transfer { asset: Asset::mock_sol() }, &GemSignedTransaction::mock(TransactionType::Transfer)));
+
+        let approve_request = TransactionInputType::Generic {
+            asset: Asset::mock_erc20(),
+            metadata: ApplicationMetadata::mock(),
+            extra: TransferDataExtra {
+                output_action: TransferDataOutputAction::Sign,
+                transaction_type: TransactionType::TokenApproval,
+                approval: Some(ApprovalData::mock()),
+                ..TransferDataExtra::mock()
+            },
+        };
+        assert!(
+            !is_broadcast(&approve_request, &GemSignedTransaction::mock(TransactionType::TokenApproval)),
+            "an approval a dapp only asked to sign is handed back, never sent"
+        );
+    }
+
+    #[test]
+    fn test_is_signature_only() {
+        let payment = |approval| TransactionInputType::mock_payment(Asset::mock_erc20(), TransferDataExtra::mock_signature(vec![], approval));
+
+        assert!(is_signature_only(&payment(None)));
+        assert!(!is_signature_only(&payment(Some(ApprovalData::mock()))), "the approval is a transaction");
+        assert!(!is_signature_only(&TransactionInputType::mock_payment(Asset::mock_erc20(), TransferDataExtra::mock())));
+        assert!(!is_signature_only(&TransactionInputType::Transfer { asset: Asset::mock_erc20() }));
     }
 
     #[test]
@@ -779,6 +834,16 @@ mod tests {
             },
         );
         assert_eq!(fast.rows[0].fee, Some(BigInt::from(10_000) + &rent), "the rent does not shrink with the priority either");
+    }
+
+    #[test]
+    fn test_fee_rate_rows_highlight_the_priority_core_selected_when_the_asked_one_is_not_offered() {
+        let mut confirm = GemConfirmData::mock(Chain::Ethereum, TransactionInputType::Transfer { asset: Asset::mock() });
+        confirm.fee_rates = vec![GemFeeRate::mock(FeePriority::Normal, 10)];
+        confirm.selected_priority = FeePriority::Normal;
+        let rows = confirm.fee_rate_rows(GemConfirmFeeSelection::Priority { priority: FeePriority::Fast }, Asset::mock());
+
+        assert_eq!(rows.selected_total, Some(BigInt::from(10)));
     }
 
     #[test]
@@ -900,14 +965,7 @@ mod tests {
     #[test]
     fn test_validate_simulation() {
         for chain in [Chain::Solana, Chain::Ethereum, Chain::Sui] {
-            let payment = TransactionInputType::Generic {
-                asset: Asset::from_chain(chain),
-                metadata: ApplicationMetadata {
-                    source: ApplicationMetadataSource::Payment,
-                    ..ApplicationMetadata::mock()
-                },
-                extra: TransferDataExtra::mock(),
-            };
+            let payment = TransactionInputType::mock_payment(Asset::from_chain(chain), TransferDataExtra::mock());
             let wallet_connect = TransactionInputType::Generic {
                 asset: Asset::from_chain(chain),
                 metadata: ApplicationMetadata::mock(),
@@ -938,20 +996,15 @@ mod tests {
             to_asset: Asset::mock_spl_token(),
             swap_data: SwapData::mock(),
         };
-        for (chain, source, skip_preflight) in [
-            (Chain::Solana, ApplicationMetadataSource::Payment, false),
-            (Chain::Solana, ApplicationMetadataSource::WalletConnect, true),
-            (Chain::Ethereum, ApplicationMetadataSource::Payment, false),
-            (Chain::Ethereum, ApplicationMetadataSource::WalletConnect, false),
-            (Chain::Sui, ApplicationMetadataSource::Payment, false),
-            (Chain::Sui, ApplicationMetadataSource::WalletConnect, false),
-        ] {
-            let input = TransactionInputType::Generic {
+        for (chain, skip_preflight) in [(Chain::Solana, true), (Chain::Ethereum, false), (Chain::Sui, false)] {
+            let wallet_connect = TransactionInputType::Generic {
                 asset: Asset::from_chain(chain),
-                metadata: ApplicationMetadata { source, ..ApplicationMetadata::mock() },
+                metadata: ApplicationMetadata::mock(),
                 extra: TransferDataExtra::mock(),
             };
-            assert_eq!(input.broadcast_options().skip_preflight, skip_preflight, "{chain}: {source:?}");
+            let payment = TransactionInputType::mock_payment(Asset::from_chain(chain), TransferDataExtra::mock());
+            assert_eq!(wallet_connect.broadcast_options().skip_preflight, skip_preflight, "{chain}: wallet connect");
+            assert!(!payment.broadcast_options().skip_preflight, "{chain}: payment");
         }
 
         let approve = TransactionInputType::TokenApprove {
@@ -1073,6 +1126,7 @@ mod tests {
                 false,
             ),
             (TransactionInputType::Transfer { asset: Asset::mock_erc20() }, true),
+            (TransactionInputType::mock_payment(Asset::mock_erc20(), TransferDataExtra::mock()), true),
             (TransactionInputType::Withdrawal { asset: Asset::mock_erc20() }, false),
             (
                 TransactionInputType::Earn {
@@ -1145,57 +1199,36 @@ mod tests {
 
     #[test]
     fn test_simulation_payload_only_for_utf8_payment_calls() {
-        let asset = Asset::mock_sol();
-        let metadata = ApplicationMetadata {
-            source: ApplicationMetadataSource::Payment,
-            ..ApplicationMetadata::mock()
-        };
         let extra = TransferDataExtra {
             data: Some(b"0xdeadbeef".to_vec()),
             ..TransferDataExtra::mock()
         };
+        let payment = |extra: TransferDataExtra| TransactionInputType::mock_payment(Asset::mock_sol(), extra);
 
+        assert_eq!(payment(extra.clone()).simulation_payload(), Some("0xdeadbeef".to_string()));
         assert_eq!(
             TransactionInputType::Generic {
-                asset: asset.clone(),
-                metadata: metadata.clone(),
-                extra: extra.clone(),
-            }
-            .simulation_payload(),
-            Some("0xdeadbeef".to_string())
-        );
-        assert_eq!(
-            TransactionInputType::Generic {
-                asset: asset.clone(),
-                metadata: ApplicationMetadata {
-                    source: ApplicationMetadataSource::WalletConnect,
-                    ..metadata.clone()
-                },
+                asset: Asset::mock_sol(),
+                metadata: ApplicationMetadata::mock(),
                 extra: extra.clone(),
             }
             .simulation_payload(),
             None
         );
         assert_eq!(
-            TransactionInputType::Generic {
-                asset: asset.clone(),
-                metadata: metadata.clone(),
-                extra: TransferDataExtra {
-                    data: Some(vec![0xff, 0xfe]),
-                    ..extra.clone()
-                },
-            }
+            payment(TransferDataExtra {
+                data: Some(vec![0xff, 0xfe]),
+                ..extra.clone()
+            })
             .simulation_payload(),
             None
         );
+        assert_eq!(payment(TransferDataExtra { data: None, ..extra.clone() }).simulation_payload(), None);
+        assert_eq!(payment(TransferDataExtra { data: Some(Vec::new()), ..extra }).simulation_payload(), None, "a coin transfer carries no calldata to simulate");
         assert_eq!(
-            TransactionInputType::Generic {
-                asset,
-                metadata,
-                extra: TransferDataExtra { data: None, ..extra },
-            }
-            .simulation_payload(),
-            None
+            payment(TransferDataExtra::mock_signature(b"0xdeadbeef".to_vec(), None)).simulation_payload(),
+            None,
+            "typed data is not a transaction to simulate"
         );
 
         let swap = TransactionInputType::Swap {
@@ -1653,6 +1686,17 @@ mod tests {
         let (nameless, _, no_avatar, _) = recipient(None);
         assert_eq!(no_avatar, None, "an address nobody named shows no avatar");
         assert_eq!(nameless, None, "an unnamed address has no name text");
+
+        let validator = DelegationValidator::stake(Chain::HyperCore, "0x000000000056f99d36b6f2e0c51fd41496bbacb8".into(), "ValiDAO".into(), true, 0.0, 0.0);
+        let unstake = GemTransferData::mock(TransactionInputType::Stake {
+            asset: Asset::from_chain(Chain::HyperCore),
+            stake_type: StakeType::Unstake(Delegation::mock_with_validator(validator)),
+        });
+        let validator_name = confirm_row_contents(&unstake, Wallet::mock(), None, link).into_iter().find_map(|content| match content {
+            GemConfirmRowContent::Recipient { name, .. } => name,
+            _ => None,
+        });
+        assert_eq!(validator_name.as_deref(), Some("ValiDAO (0x000...bacb8)"), "a name without a picture carries the short address, never the full one");
     }
 
     #[test]

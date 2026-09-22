@@ -43,7 +43,7 @@ SwiftPM builds for the host, so the two `check` recipes only cover packages that
 
 The app links Core through `libgemstone.a` and the generated `Gemstone.swift`/`GemstoneFFI.h`, so run `just generate-stone` after any Core change before building or testing iOS. It builds the simulator library, generates the bindings from that library, and rewrites a binding file only when its content changed, so an unchanged FFI surface causes no Swift recompile. It takes about 3s when Core is unchanged and about 20s after a `gemstone` edit.
 
-`just generate-stone release` (or `BUILD_MODE=release`) builds the simulator and device libraries in release. `GEMSTONE_IOS_TARGETS` overrides the target list, for example `GEMSTONE_IOS_TARGETS=aarch64-apple-ios` for a debug build on a device.
+`just generate-stone release` (or `BUILD_MODE=release`) builds the device library in release. An Xcode simulator release builds the simulator library instead. `GEMSTONE_IOS_TARGETS` overrides the target list, for example `GEMSTONE_IOS_TARGETS=aarch64-apple-ios` for a debug build on a device.
 
 ## Generation and Localization
 

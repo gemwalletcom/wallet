@@ -10,6 +10,7 @@ import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.AssetAssociation
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetLink
+import com.wallet.core.primitives.BalanceMetadata
 import com.wallet.core.primitives.CoreListItem
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.NFTAttribute
@@ -111,6 +112,12 @@ class StoreConverters {
 
     @TypeConverter
     fun toNftAttributes(value: String?): List<NFTAttribute>? = value?.let { runCatching { jsonEncoder.decodeFromString(nftAttributesSerializer, it) }.getOrDefault(emptyList()) }
+
+    @TypeConverter
+    fun fromBalanceMetadata(value: BalanceMetadata?): String? = value?.let { jsonEncoder.encodeToString(BalanceMetadata.serializer(), it) }
+
+    @TypeConverter
+    fun toBalanceMetadata(value: String?): BalanceMetadata? = value?.let { runCatching { jsonEncoder.decodeFromString(BalanceMetadata.serializer(), it) }.getOrNull() }
 
     @TypeConverter
     fun fromCoreListItem(value: CoreListItem): String = jsonEncoder.encodeToString(CoreListItem.serializer(), value)

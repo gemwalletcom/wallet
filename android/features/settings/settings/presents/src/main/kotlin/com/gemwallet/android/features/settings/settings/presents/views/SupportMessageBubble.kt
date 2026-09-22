@@ -290,7 +290,10 @@ private fun MessageMeta(message: SupportMessage, time: String, color: Color, onR
                     imageVector = AppIcons.Refresh,
                     contentDescription = null,
                     tint = color,
-                    modifier = Modifier.size(statusIconSize).clickable { onRetry(message) },
+                    modifier = Modifier
+                        .size(statusIconSize)
+                        .clip(CircleShape)
+                        .clickable { onRetry(message) },
                 )
             } else {
                 Icon(

@@ -15,6 +15,7 @@ import uniffi.gemstone.GemContactService
 import uniffi.gemstone.GemContactServiceInterface
 import uniffi.gemstone.GemContactStore
 import uniffi.gemstone.GemFileStore
+import uniffi.gemstone.GemNameService
 import uniffi.gemstone.GemPaymentService
 import javax.inject.Singleton
 
@@ -32,7 +33,7 @@ object ContactsModule {
 
     @Singleton
     @Provides
-    fun provideGemContactService(store: GemContactStore, addressStore: GemAddressStore, fileStore: GemFileStore): GemContactService = GemContactService(store, addressStore, fileStore)
+    fun provideGemContactService(store: GemContactStore, nameService: GemNameService, fileStore: GemFileStore): GemContactService = GemContactService(store, nameService, fileStore)
 
     @Provides
     fun provideGemContactServiceInterface(service: GemContactService): GemContactServiceInterface = service

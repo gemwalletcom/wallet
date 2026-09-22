@@ -35,7 +35,11 @@ pub fn abbreviates_value(style: ValueStyle, magnitude: f64) -> bool {
 }
 
 pub fn is_value_dust(style: ValueStyle, magnitude: f64) -> bool {
-    matches!(style, ValueStyle::Short) && magnitude != 0.0 && magnitude.abs() < VALUE_DUST_THRESHOLD
+    matches!(style, ValueStyle::Short) && is_dust(magnitude)
+}
+
+pub fn is_dust(magnitude: f64) -> bool {
+    magnitude != 0.0 && magnitude.abs() < VALUE_DUST_THRESHOLD
 }
 
 const SMALL_VALUE_THRESHOLD: f64 = 0.99;

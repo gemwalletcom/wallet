@@ -110,6 +110,8 @@
   <string name="buy_rate">שער</string>
   <string name="buy_no_results">אין הצעות מחיר זמינות</string>
   <string name="transfer_network_fee">עמלת רשת</string>
+  <string name="transfer_pay_with">לשלם באמצעות</string>
+  <string name="transfer_payment_title">תשלום</string>
   <string name="transfer_memo">תזכיר</string>
   <string name="transfer_confirm">אשר</string>
   <string name="transfer_from">מ</string>
@@ -135,6 +137,7 @@
   <string name="transfer_recipient_my_wallets">הארנקים שלי</string>
   <string name="transfer_recipient_view_wallets">הצג ארנקים</string>
   <string name="transfer_minimum_account_balance">לאחר מכן חייבת להישאר יתרה מינימלית %1$s, אלא אם כן אתה משתמש ביתרה מלאה.</string>
+  <string name="transfer_destination_account_activation">כתובת היעד דורשת מינימום של %1$s.</string>
   <string name="transfer_smart_contract_title">חוזה חכם</string>
   <string name="transfer_other_title">אחר</string>
   <string name="transfer_maximum_amount">הכמות המקסימלית היא %1$s</string>
@@ -223,6 +226,7 @@
   <string name="errors_no_internet_connection">אין חיבור לאינטרנט</string>
   <string name="errors_no_service_connection">אין חיבור לשירות</string>
   <string name="errors_balances_activity_outdated">היתרות והפעילות עשויות להיות לא מעודכנות.</string>
+  <string name="errors_payment_status">תשלום: %1$s</string>
   <string name="activity_title">פעילות</string>
   <string name="activity_state_empty_title">הפעילות שלך תופיע כאן</string>
   <string name="activity_state_empty_description">בצעו את העסקה הראשונה שלכם</string>
@@ -250,6 +254,7 @@
   <string name="transaction_status_completed">הושלם</string>
   <string name="transaction_status_inprogress">בתהליך</string>
   <string name="transaction_status_refunded">החזר כספי</string>
+  <string name="transaction_status_expired">פג תוקף</string>
   <string name="asset_balances">יתרות</string>
   <string name="asset_balances_available">זמין</string>
   <string name="asset_price">מחיר</string>
@@ -436,6 +441,8 @@
   <string name="info_network_fee_title">עמלת רשת</string>
   <string name="info_watch_wallet_title">ארנק במעקב</string>
   <string name="info_watch_wallet_description">ארנק שאין לך גישה אליו, אבל אתה יכול לצפות בעסקאות ובתנועות שלו.</string>
+  <string name="info_payment_verification_title">אימות תשלום</string>
+  <string name="info_payment_verification_description">בית העסק דורש מידע נוסף לפני התשלום.</string>
   <string name="info_network_fee_description">כל עסקה ברשת %1$s דורשת עמלה ב-%2$s ששולם לכורים על מנת לעבד את העסקה שלך, לא ארנק Gem. עמלות הרשת משתנות בהתאם לשימוש ברשת.</string>
   <string name="info_transaction_error_description">לא ניתן היה להשלים את העסקה עקב שגיאה, כגון חוסר כספים, קלט לא תקין או דחייה על ידי הרשת. אנא בדוק את הפרטים ונסה שוב.</string>
   <string name="info_transaction_pending_description">העסקה הוגשה וממתינה לאישור ברשת. זמני העיבוד עשויים להשתנות. אנא בדקו שוב לעדכונים.</string>

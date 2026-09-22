@@ -17,6 +17,8 @@ import uniffi.gemstone.GemDeveloperService
 import uniffi.gemstone.GemDeveloperServiceInterface
 import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemTransactionStateService
+import uniffi.gemstone.GemTransactionsService
 import uniffi.gemstone.GemWalletPreferencesService
 
 @InstallIn(SingletonComponent::class)
@@ -32,16 +34,16 @@ object DeveloperModule {
         platform: GemstoneDevicePlatform,
         preferencesService: GemPreferencesService,
         walletPreferencesService: GemWalletPreferencesService,
-        transactionStateStore: GemstoneTransactionStateStore,
-        transactionStore: GemstoneTransactionStore,
+        transactionStateService: GemTransactionStateService,
+        transactionsService: GemTransactionsService,
         perpetualService: GemPerpetualService,
         developerStore: GemstoneDeveloperStore,
     ): GemDeveloperServiceInterface = GemDeveloperService(
         platform,
         preferencesService,
         walletPreferencesService,
-        transactionStateStore,
-        transactionStore,
+        transactionStateService,
+        transactionsService,
         perpetualService,
         developerStore,
     )

@@ -57,7 +57,7 @@ struct RewardsViewModelTests {
 
         await model.refresh()
 
-        guard case .error = model.load.state else {
+        guard case .error = model.viewState.state else {
             Issue.record("a failed load must not read as a wallet without a code")
             return
         }
@@ -74,7 +74,7 @@ struct RewardsViewModelTests {
         model.selectWallet(id: second.id.id)
         await model.refresh()
 
-        #expect(model.load.walletId == second.id.id)
+        #expect(model.session.walletId == second.id.id)
     }
 
     @Test
@@ -120,7 +120,7 @@ struct RewardsViewModelTests {
     @Test
     func activatingAPendingReferralSendsTheStoredCode() async throws {
         let service = GemRewardsServiceMock()
-        service.stateForRewards = { _ in .mock(canActivatePendingReferral: true, usedReferralCode: "pending") }
+        service.rewardsResult = .success(.mock(code: nil, usedReferralCode: "pending", status: .pending, verifyAfter: .distantPast))
         let model = try #require(RewardsViewModel.mock(service: service, wallets: [first, second]))
         await model.refresh()
 
@@ -134,7 +134,7 @@ struct RewardsViewModelTests {
     @Test
     func aFailedActivationShowsTheError() async throws {
         let service = GemRewardsServiceMock()
-        service.stateForRewards = { _ in .mock(canActivatePendingReferral: true, usedReferralCode: "pending") }
+        service.rewardsResult = .success(.mock(code: nil, usedReferralCode: "pending", status: .pending, verifyAfter: .distantPast))
         service.useReferralCodeError = GemServiceError.Api(msg: "code already used")
         let model = try #require(RewardsViewModel.mock(service: service, wallets: [first, second]))
         await model.refresh()
@@ -171,7 +171,7 @@ struct RewardsViewModelTests {
     @Test
     func aReadyPendingReferralCanBeActivated() async throws {
         let service = GemRewardsServiceMock()
-        service.stateForRewards = { _ in .mock(showsPendingActivation: true, canActivatePendingReferral: true, usedReferralCode: "pending") }
+        service.rewardsResult = .success(.mock(code: nil, usedReferralCode: "pending", status: .pending, verifyAfter: .distantPast))
         let model = try #require(RewardsViewModel.mock(service: service, wallets: [first, second]))
         await model.refresh()
 
@@ -181,7 +181,7 @@ struct RewardsViewModelTests {
     @Test
     func aWaitingPendingReferralCannotBeActivated() async throws {
         let service = GemRewardsServiceMock()
-        service.stateForRewards = { _ in .mock(showsPendingActivation: true, usedReferralCode: "pending") }
+        service.rewardsResult = .success(.mock(code: nil, usedReferralCode: "pending", status: .pending, verifyAfter: .distantFuture))
         let model = try #require(RewardsViewModel.mock(service: service, wallets: [first, second]))
         await model.refresh()
 

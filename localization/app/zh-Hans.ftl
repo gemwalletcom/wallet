@@ -131,6 +131,8 @@ buy_no_results = 暂无报价
 # Transfer
 
 transfer_network_fee = 网络费用
+transfer_pay_with = 支付方式
+transfer_payment_title = 付款
 transfer_memo = 备注
 transfer_confirm = 确认
 transfer_from = 来自
@@ -156,6 +158,7 @@ transfer_activate_asset_title = 启用资产
 transfer_recipient_my_wallets = 我的钱包
 transfer_recipient_view_wallets = 查看钱包
 transfer_minimum_account_balance = 除非使用全部余额，否则需保留至少 %@ 余额。
+transfer_destination_account_activation = 目标地址最低需要 %@。
 transfer_smart_contract_title = 智能合约
 transfer_other_title = 其他
 transfer_maximum_amount = 最高金额为%@
@@ -253,6 +256,7 @@ errors_network_offline = 网络连接似乎已断开。
 errors_no_internet_connection = 无互联网连接
 errors_no_service_connection = 无服务连接
 errors_balances_activity_outdated = 余额和交易记录可能不是最新的。
+errors_payment_status = 付款： %@
 
 # Activity
 
@@ -289,6 +293,7 @@ transaction_swap_again = 再次兑换
 transaction_status_completed = 已完成
 transaction_status_inprogress = 进行中
 transaction_status_refunded = 已退款
+transaction_status_expired = 已过期
 
 # Asset
 
@@ -541,6 +546,8 @@ sell_title = 出售%@
 info_network_fee_title = 网络费用
 info_watch_wallet_title = 观察钱包
 info_watch_wallet_description = 这是一个您无法操作的钱包，但可以查看它的交易和资产变动。
+info_payment_verification_title = 付款身份验证
+info_payment_verification_description = 商家在付款前需要您提供更多信息。
 info_network_fee_description = 在 %@ 网络上的每笔交易都需要以 %@ 支付给矿工的手续费，以处理交易，Gem Wallet 不收取此费用。网络手续费根据网络使用情况而变化。
 info_transaction_error_description = 由于资金不足、输入无效或网络拒绝等错误，交易无法完成。请检查详情并重试。
 info_transaction_pending_description = 交易已提交，正在等待网络确认。处理时间可能有所不同。请稍后查看更新。

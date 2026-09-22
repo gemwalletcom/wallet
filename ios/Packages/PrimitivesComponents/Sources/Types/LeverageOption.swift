@@ -2,27 +2,28 @@
 
 import Components
 import Foundation
-import class Gemstone.GemPerpetual
-import enum Gemstone.PerpetualProvider
+import struct Gemstone.GemPickerOption
 
 public struct LeverageOption: WheelPickerDisplayable, Sendable {
-    public static let allOptions: [LeverageOption] = options(maxLeverage: nil)
-
-    public static func options(maxLeverage: UInt8?) -> [LeverageOption] {
-        GemPerpetual(provider: .hypercore).leverageOptions(maxLeverage: maxLeverage).map { .init(value: $0) }
+    public static func selected(_ value: UInt8, in options: [LeverageOption]) -> LeverageOption? {
+        options.first { $0.value == value }
     }
 
-    public let value: UInt8
+    private let option: GemPickerOption
 
-    public init(value: UInt8) {
-        self.value = value
+    public init(option: GemPickerOption) {
+        self.option = option
+    }
+
+    public var value: UInt8 {
+        option.value
     }
 
     public var id: UInt8 {
-        value
+        option.value
     }
 
     public var displayText: String {
-        GemPerpetual(provider: .hypercore).leverageText(value: value)
+        option.label.text
     }
 }

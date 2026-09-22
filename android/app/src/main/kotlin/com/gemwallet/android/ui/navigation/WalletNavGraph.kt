@@ -35,6 +35,7 @@ import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.navigation.routes.SettingsAction
 import com.gemwallet.android.ui.navigation.routes.addAssetScreen
+import com.gemwallet.android.ui.navigation.routes.addressDetailsScreen
 import com.gemwallet.android.ui.navigation.routes.amount
 import com.gemwallet.android.ui.navigation.routes.assetChartScreen
 import com.gemwallet.android.ui.navigation.routes.assetScreen
@@ -173,7 +174,8 @@ fun WalletNavGraph(
             )
 
             confirm(
-                finishAction = { _ -> navigator.popConfirmFlow() },
+                navigator = navigator,
+                finishAction = { _, warning -> navigator.popConfirmFlow(warning) },
                 onAcquireAsset = navigator::openAcquireAsset,
                 cancelAction = onCancel,
             )
@@ -235,6 +237,7 @@ fun WalletNavGraph(
                         is TransactionDetailsAction.OpenNft -> navigator.openNftAsset(it.assetId)
                         is TransactionDetailsAction.OpenPerpetual -> navigator.openPerpetualDetails(it.assetId)
                         is TransactionDetailsAction.OpenSwap -> navigator.openSwap(it.fromAssetId, it.toAssetId)
+                        is TransactionDetailsAction.OpenAddress -> navigator.openAddress(it.chainAddress)
                     }
                 },
             )
@@ -323,6 +326,8 @@ fun WalletNavGraph(
             )
 
             referral(onClose = onCancel)
+
+            addressDetailsScreen(onCancel = onCancel)
 
             walletConnectRequest(content = walletConnectRequest)
         }

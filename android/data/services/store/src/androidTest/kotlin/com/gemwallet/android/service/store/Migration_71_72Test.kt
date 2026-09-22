@@ -116,6 +116,8 @@ class Migration_71_72Test {
         assertTrue(migratedDb.hasIndex("fiat_transactions", "index_fiat_transactions_walletId"))
         assertTrue(migratedDb.hasIndex("fiat_transactions", "index_fiat_transactions_assetId"))
         assertEquals(0, migratedDb.longForQuery("SELECT COUNT(*) FROM balances WHERE asset_id = 'missing' OR wallet_id = 'missing-wallet'"))
+        assertEquals(1, migratedDb.longForQuery("SELECT COUNT(*) FROM asset WHERE id = 'ethereum_0xother'"))
+        assertEquals(0, migratedDb.longForQuery("SELECT COUNT(*) FROM balances WHERE asset_id = 'ethereum_0xother' AND wallet_id = 'wallet-1'"))
         migratedDb.close()
 
         val roomDb = Room.databaseBuilder(context, GemDatabase::class.java, testDb)
@@ -124,13 +126,10 @@ class Migration_71_72Test {
             .build()
 
         val assets = roomDb.assetsDao().getAssetsInfo("wallet-1").first()
-        val allWalletAssets = roomDb.assetsDao().getAssetsInfoByAllWallets("wallet-1", listOf("ethereum_0xother")).first()
         val accountsAfterMigration = roomDb.accountsDao().getByWalletId("wallet-1")
 
         assertEquals(listOf("ethereum", "ethereum_0xtoken"), assets.map { it.id }.sorted())
         assertEquals(assets.map { it.id }.toSet().size, assets.size)
-        assertEquals(listOf("ethereum_0xother"), allWalletAssets.map { it.id })
-        assertEquals(listOf(null), allWalletAssets.map { it.visible })
         assertEquals(listOf(Chain.Ethereum), accountsAfterMigration.map { it.chain })
 
         roomDb.assetsDao().setAssetConfiguration("wallet-1", listOf("ethereum"), isVisible = true, isPinned = true)

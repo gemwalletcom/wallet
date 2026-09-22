@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Formatters
 import Foundation
+import func Gemstone.formattedCurrency
 import enum Gemstone.GemCurrencyStyle
 import Primitives
 
@@ -29,21 +29,6 @@ public struct CurrencyFormatter: Sendable, Hashable {
     }
 
     public func string(_ value: Double) -> String {
-        guard type.abbreviates(magnitude: value) else {
-            return currencyString(value)
-        }
-        return abbreviatedFormatter.string(from: value, currency: currencyCode) ?? currencyString(value)
-    }
-}
-
-// MARK: - Private
-
-private extension CurrencyFormatter {
-    var abbreviatedFormatter: AbbreviatedFormatter {
-        AbbreviatedFormatter(locale: locale)
-    }
-
-    func currencyString(_ value: Double) -> String {
-        value.formatted(.currency(code: currencyCode).locale(locale).precision(type.precision(magnitude: abs(value)).formatStyle))
+        Gemstone.formattedCurrency(value: value, code: currencyCode, style: type).text(locale: locale)
     }
 }

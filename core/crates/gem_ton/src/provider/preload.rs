@@ -38,7 +38,7 @@ pub fn calculate_transaction_fee(input: &TransactionLoadInput, recipient_token_a
             SwapQuoteDataType::Transfer => transfer_fee(from_asset.id.token_subtype(), input.memo.as_deref(), recipient_token_address.as_deref(), &base_fee, &mut options),
         },
         TransactionInputType::TokenApprove { .. } => base_fee.clone(),
-        TransactionInputType::Generic { .. } => base_fee.clone(),
+        TransactionInputType::Generic { .. } | TransactionInputType::Payment { .. } => base_fee.clone(),
         TransactionInputType::Perpetual { .. } => base_fee.clone(),
         _ => base_fee.clone(),
     };

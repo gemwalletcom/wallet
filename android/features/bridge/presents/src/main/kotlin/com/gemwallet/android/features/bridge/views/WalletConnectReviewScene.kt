@@ -27,11 +27,16 @@ import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsCon
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.wallet.core.primitives.ChainAddress
 
 @Composable
-internal fun WalletConnectReviewScene(model: WalletConnectReviewModel, buttonState: ButtonState, details: LazyListScope.() -> Unit, onApprove: () -> Unit, onReject: () -> Unit) {
+internal fun WalletConnectReviewScene(model: WalletConnectReviewModel, buttonState: ButtonState, details: LazyListScope.() -> Unit, onApprove: () -> Unit, onReject: () -> Unit, onOpenAddress: (ChainAddress) -> Unit) {
     val context = LocalContext.current
     var sheetType by remember { mutableStateOf<WalletConnectReviewSheetType?>(null) }
+    val openAddress = { address: String ->
+        sheetType = null
+        onOpenAddress(ChainAddress(model.chain, address))
+    }
 
     Scene(
         title = model.messageType.string(),
@@ -72,7 +77,10 @@ internal fun WalletConnectReviewScene(model: WalletConnectReviewModel, buttonSta
             if (model.hasPayload) {
                 simulationPayloadFieldsContent(
                     fields = model.primaryPayloadFields,
-                    onDetailsClick = { sheetType = WalletConnectReviewSheetType.Details },
+                    onAddressClick = openAddress,
+                    onDetailsClick = model.secondaryPayloadFields
+                        .takeIf { it.isNotEmpty() }
+                        ?.let { { sheetType = WalletConnectReviewSheetType.Details } },
                 )
             } else {
                 walletConnectTextMessage(model.message)
@@ -84,6 +92,7 @@ internal fun WalletConnectReviewScene(model: WalletConnectReviewModel, buttonSta
         isVisible = sheetType == WalletConnectReviewSheetType.Details,
         primaryFields = model.primaryPayloadFields,
         secondaryFields = model.secondaryPayloadFields,
+        onAddressClick = openAddress,
         onViewFullMessage = { sheetType = WalletConnectReviewSheetType.FullMessage },
         onDismissRequest = { sheetType = null },
         viewFullMessageListItem = model.viewFullMessageListItem,

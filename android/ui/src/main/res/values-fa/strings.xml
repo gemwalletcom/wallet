@@ -110,6 +110,8 @@
   <string name="buy_rate">نرخ</string>
   <string name="buy_no_results">نقل قولی در دسترس نیست</string>
   <string name="transfer_network_fee">کارمزد شبکه</string>
+  <string name="transfer_pay_with">پرداخت با</string>
+  <string name="transfer_payment_title">پرداخت</string>
   <string name="transfer_memo">یادداشت</string>
   <string name="transfer_confirm">تایید کردن</string>
   <string name="transfer_from">از</string>
@@ -135,6 +137,7 @@
   <string name="transfer_recipient_my_wallets">کیف پول‌های من</string>
   <string name="transfer_recipient_view_wallets">مشاهده کیف پول‌ها</string>
   <string name="transfer_minimum_account_balance">حداقل موجودی %1$s باید بعد از این باقی بماند، مگر اینکه از موجودی کامل خود استفاده کنید.</string>
+  <string name="transfer_destination_account_activation">آدرس مقصد حداقل %1$s نیاز دارد.</string>
   <string name="transfer_smart_contract_title">قرارداد هوشمند</string>
   <string name="transfer_other_title">دیگر</string>
   <string name="transfer_maximum_amount">حداکثر مقدار %1$s است</string>
@@ -223,6 +226,7 @@
   <string name="errors_no_internet_connection">اتصال اینترنت برقرار نیست</string>
   <string name="errors_no_service_connection">اتصال سرویس برقرار نیست</string>
   <string name="errors_balances_activity_outdated">موجودی‌ها و فعالیت ممکن است به‌روز نباشند.</string>
+  <string name="errors_payment_status">پرداخت: %1$s</string>
   <string name="activity_title">فعالیت</string>
   <string name="activity_state_empty_title">فعالیت شما اینجا نمایش داده می‌شود</string>
   <string name="activity_state_empty_description">اولین تراکنش خود را انجام دهید</string>
@@ -250,6 +254,7 @@
   <string name="transaction_status_completed">تکمیل شد</string>
   <string name="transaction_status_inprogress">در حال انجام است</string>
   <string name="transaction_status_refunded">بازپرداخت شد</string>
+  <string name="transaction_status_expired">منقضی شد</string>
   <string name="asset_balances">موجودی ها</string>
   <string name="asset_balances_available">در دسترس</string>
   <string name="asset_price">قيمت</string>
@@ -436,6 +441,8 @@
   <string name="info_network_fee_title">کارمزد شبکه</string>
   <string name="info_watch_wallet_title">کیف پول مشاهده‌ای</string>
   <string name="info_watch_wallet_description">کیف پولی که به آن دسترسی ندارید اما می توانید تراکنش ها و حرکات آن را تماشا کنید.</string>
+  <string name="info_payment_verification_title">تأیید پرداخت</string>
+  <string name="info_payment_verification_description">فروشنده پیش از پرداخت به اطلاعات بیشتری نیاز دارد.</string>
   <string name="info_network_fee_description">هر تراکنش در شبکه %1$s نیاز به کارمزدی در %2$s دارد که برای پردازش تراکنش شما به استخراج کنندگان پرداخت می شود، نه Gem Wallet. هزینه های شبکه بر اساس استفاده از شبکه متفاوت است.</string>
   <string name="info_transaction_error_description">تراکنش به دلیل خطایی مانند موجودی ناکافی، ورودی نامعتبر یا رد شدن توسط شبکه، انجام نشد. لطفاً جزئیات را بررسی کرده و دوباره امتحان کنید.</string>
   <string name="info_transaction_pending_description">تراکنش ارسال شده و در انتظار تأیید در شبکه است. زمان پردازش ممکن است متفاوت باشد. لطفاً برای به‌روزرسانی‌ها دوباره مراجعه کنید.</string>

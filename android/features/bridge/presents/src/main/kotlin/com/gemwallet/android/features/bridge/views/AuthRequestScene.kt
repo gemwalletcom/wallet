@@ -26,9 +26,10 @@ import com.gemwallet.android.ui.components.screen.FatalStateScene
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.ListPosition
+import com.wallet.core.primitives.ChainAddress
 
 @Composable
-fun AuthRequestScene(request: WalletConnectAuthenticationRequest, verifyContext: WalletConnectVerifyContext) {
+fun AuthRequestScene(request: WalletConnectAuthenticationRequest, verifyContext: WalletConnectVerifyContext, onOpenAddress: (ChainAddress) -> Unit) {
     val context = LocalContext.current
     val viewModel: WCAuthViewModel = hiltViewModel()
     BackHandler(onBack = viewModel::onReject)
@@ -60,12 +61,13 @@ fun AuthRequestScene(request: WalletConnectAuthenticationRequest, verifyContext:
             onApprove = viewModel::onApprove,
             onReject = viewModel::onReject,
             onWalletSelected = viewModel::onWalletSelected,
+            onOpenAddress = onOpenAddress,
         )
     }
 }
 
 @Composable
-private fun AuthRequestContent(state: AuthSceneState.Content, buttonState: ButtonState, onApprove: () -> Unit, onReject: () -> Unit, onWalletSelected: (com.wallet.core.primitives.WalletId) -> Unit) {
+private fun AuthRequestContent(state: AuthSceneState.Content, buttonState: ButtonState, onApprove: () -> Unit, onReject: () -> Unit, onWalletSelected: (com.wallet.core.primitives.WalletId) -> Unit, onOpenAddress: (ChainAddress) -> Unit) {
     var isShowSelectWallets by remember { mutableStateOf(false) }
     val canSelectWallet = state.availableWallets.size > 1
 
@@ -97,6 +99,7 @@ private fun AuthRequestContent(state: AuthSceneState.Content, buttonState: Butto
         },
         onApprove = onApprove,
         onReject = onReject,
+        onOpenAddress = onOpenAddress,
     )
 
     WalletSelectionSheet(

@@ -15,8 +15,8 @@ use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::balance::GemBalanceService;
 use crate::services::nft::GemNftService;
 use crate::services::transactions::GemTransactionsService;
-use crate::services::wallet::GemWalletStore;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
+use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
 pub struct GemAssetDiscoveryService {
@@ -24,7 +24,7 @@ pub struct GemAssetDiscoveryService {
     balance: Arc<GemBalanceService>,
     transactions: Arc<GemTransactionsService>,
     nft: Arc<GemNftService>,
-    wallet_store: Arc<dyn GemWalletStore>,
+    session: Arc<GemWalletSessionService>,
     preferences: Arc<GemWalletPreferencesService>,
 }
 
@@ -36,7 +36,7 @@ impl GemAssetDiscoveryService {
         balance: Arc<GemBalanceService>,
         transactions: Arc<GemTransactionsService>,
         nft: Arc<GemNftService>,
-        wallet_store: Arc<dyn GemWalletStore>,
+        session: Arc<GemWalletSessionService>,
         preferences: Arc<GemWalletPreferencesService>,
     ) -> Self {
         Self {
@@ -44,7 +44,7 @@ impl GemAssetDiscoveryService {
             balance,
             transactions,
             nft,
-            wallet_store,
+            session,
             preferences,
         }
     }
@@ -59,7 +59,7 @@ impl GemAssetDiscoveryService {
     }
 
     async fn sync_assets(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
-        let Some(wallet) = self.wallet_store.get_wallet(wallet_id.clone()).await? else {
+        let Some(wallet) = self.session.get_wallet(wallet_id.clone()).await? else {
             return Ok(());
         };
         let from_timestamp = self.preferences.get_assets_timestamp(wallet_id.clone());

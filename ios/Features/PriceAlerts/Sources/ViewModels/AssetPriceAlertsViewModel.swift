@@ -4,6 +4,7 @@ import Components
 import enum Gemstone.GemLoadState
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import enum Gemstone.GemServiceError
+import func Gemstone.loadError
 import class Gemstone.PriceAlertFormatter
 import GemstoneServices
 import Localization
@@ -32,8 +33,7 @@ public final class AssetPriceAlertsViewModel: Sendable {
     private var loadState: GemLoadState = .loading
 
     var loadError: Error? {
-        guard priceAlerts.isEmpty, case let .error(error) = loadState else { return nil }
-        return error
+        Gemstone.loadError(state: loadState, hasRows: !priceAlerts.isEmpty)
     }
 
     public init(

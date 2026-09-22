@@ -2,6 +2,7 @@ package com.gemwallet.android.ui.models.navigation
 
 enum class RouteArgument(val key: String) {
     AssetId("assetId"),
+    AssetIds("assetIds"),
     Chain("chain"),
     Code("code"),
     ConnectionId("connectionId"),
@@ -14,6 +15,7 @@ enum class RouteArgument(val key: String) {
     NftCollectionId("nftCollectionId"),
     Params("params"),
     Payment("payment"),
+    PaymentLink("paymentLink"),
     Query("query"),
     Scope("scope"),
     SwapItemType("swapItemType"),
@@ -22,6 +24,7 @@ enum class RouteArgument(val key: String) {
     TransactionId("transactionId"),
     Type("type"),
     Unverified("unverified"),
+    Url("url"),
     ValidatorId("validatorId"),
     WalletId("walletId"),
 }

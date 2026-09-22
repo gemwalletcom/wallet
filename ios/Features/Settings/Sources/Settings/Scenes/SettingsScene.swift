@@ -81,5 +81,6 @@ extension SettingsScene {
 
     private func onOpenSupport() {
         isPresentingSupport = true
+        Task { await model.openSupport() }
     }
 }

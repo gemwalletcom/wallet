@@ -92,7 +92,7 @@ struct SelectAssetSceneNavigationStack: View {
                                 onTransferAction: { navigate(to: .confirm($0)) },
                             ),
                         )
-                    case .manage, .priceAlert, .swap:
+                    case .manage, .priceAlert, .swap, .payment:
                         EmptyView()
                     }
                 }

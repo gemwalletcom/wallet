@@ -4,6 +4,7 @@ import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetBalance
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetMetaData
@@ -79,7 +80,7 @@ class AssetInfoDataAggregateTest {
     fun assetInfoDataAggregate_balance_hideBalanceTrue_returnsStars() {
         val assetInfo = mockAssetInfo(
             asset = btcAsset,
-            balance = AssetBalance.create(btcAsset, available = BigInteger("100000000")),
+            balance = mockAssetBalance(btcAsset, available = BigInteger("100000000")),
         )
         val aggregate = assetInfo.toAssetInfoDataAggregate(mockGemAssetRowStyle(), hideBalance = true)
 
@@ -90,7 +91,7 @@ class AssetInfoDataAggregateTest {
     fun assetInfoDataAggregate_balance_hideBalanceFalse_returnsFormattedBalance() {
         val assetInfo = mockAssetInfo(
             asset = btcAsset,
-            balance = AssetBalance.create(btcAsset, available = BigInteger("100000000")),
+            balance = mockAssetBalance(btcAsset, available = BigInteger("100000000")),
         )
         val aggregate = assetInfo.toAssetInfoDataAggregate(mockGemAssetRowStyle(), hideBalance = false)
         assertEquals("1 BTC", aggregate.balance)
@@ -100,7 +101,7 @@ class AssetInfoDataAggregateTest {
     fun assetInfoDataAggregate_balance_zeroBalance_returnsFormattedZero() {
         val assetInfo = mockAssetInfo(
             asset = btcAsset,
-            balance = AssetBalance.create(btcAsset, available = BigInteger("0")),
+            balance = mockAssetBalance(btcAsset, available = BigInteger("0")),
         )
         val aggregate = assetInfo.toAssetInfoDataAggregate(mockGemAssetRowStyle(), hideBalance = false)
 
@@ -111,7 +112,7 @@ class AssetInfoDataAggregateTest {
     fun assetInfoDataAggregate_balanceEquivalent_hideBalanceTrue_returnsStars() {
         val assetInfo = mockAssetInfo(
             asset = btcAsset,
-            balance = AssetBalance.create(btcAsset, available = BigInteger("100000000")),
+            balance = mockAssetBalance(btcAsset, available = BigInteger("100000000")),
             price = mockAssetPriceInfo(price = 50000.0),
         )
         val aggregate = assetInfo.toAssetInfoDataAggregate(mockGemAssetRowStyle(), hideBalance = true)
@@ -123,7 +124,7 @@ class AssetInfoDataAggregateTest {
     fun assetInfoDataAggregate_balanceEquivalent_withPrice_returnsFormattedFiat() {
         val assetInfo = mockAssetInfo(
             asset = btcAsset,
-            balance = AssetBalance.create(btcAsset, available = BigInteger("100000000")),
+            balance = mockAssetBalance(btcAsset, available = BigInteger("100000000")),
             price = mockAssetPriceInfo(price = 50000.0),
         )
         val aggregate = assetInfo.toAssetInfoDataAggregate(mockGemAssetRowStyle(), hideBalance = false)
@@ -134,7 +135,7 @@ class AssetInfoDataAggregateTest {
     fun assetInfoDataAggregate_balanceEquivalent_noPrice_returnsEmpty() {
         val assetInfo = mockAssetInfo(
             asset = btcAsset,
-            balance = AssetBalance.create(btcAsset, available = BigInteger("100000000")),
+            balance = mockAssetBalance(btcAsset, available = BigInteger("100000000")),
             price = null,
         )
         val aggregate = assetInfo.toAssetInfoDataAggregate(mockGemAssetRowStyle(), hideBalance = false)
@@ -146,7 +147,7 @@ class AssetInfoDataAggregateTest {
     fun assetInfoDataAggregate_balanceEquivalent_zeroPriceValue_returnsEmpty() {
         val assetInfo = mockAssetInfo(
             asset = btcAsset,
-            balance = AssetBalance.create(btcAsset, available = BigInteger("100000000")),
+            balance = mockAssetBalance(btcAsset, available = BigInteger("100000000")),
             price = mockAssetPriceInfo(price = 0.0),
         )
         val aggregate = assetInfo.toAssetInfoDataAggregate(mockGemAssetRowStyle(), hideBalance = false)
@@ -158,7 +159,7 @@ class AssetInfoDataAggregateTest {
     fun assetInfoDataAggregate_balanceEquivalent_nonFinitePrice_returnsEmpty() {
         val assetInfo = mockAssetInfo(
             asset = btcAsset,
-            balance = AssetBalance.create(btcAsset, available = BigInteger("100000000")),
+            balance = mockAssetBalance(btcAsset, available = BigInteger("100000000")),
             price = mockAssetPriceInfo(price = Double.NaN),
         )
         val aggregate = assetInfo.toAssetInfoDataAggregate(mockGemAssetRowStyle(), hideBalance = false)
@@ -171,7 +172,7 @@ class AssetInfoDataAggregateTest {
     fun assetInfoDataAggregate_availableScope_showsWhatIsSpendable() {
         val assetInfo = mockAssetInfo(
             asset = btcAsset,
-            balance = AssetBalance.create(btcAsset, available = BigInteger("100000000"), staked = BigInteger("200000000")),
+            balance = mockAssetBalance(btcAsset, available = BigInteger("100000000"), staked = BigInteger("200000000")),
         )
 
         assertEquals("3 BTC", assetInfo.toAssetInfoDataAggregate(mockGemAssetRowStyle()).balance)
@@ -182,7 +183,7 @@ class AssetInfoDataAggregateTest {
     fun assetInfoDataAggregate_isZeroBalance_zeroBalance_returnsTrue() {
         val assetInfo = mockAssetInfo(
             asset = btcAsset,
-            balance = AssetBalance.create(btcAsset, available = BigInteger("0")),
+            balance = mockAssetBalance(btcAsset, available = BigInteger("0")),
         )
         val aggregate = assetInfo.toAssetInfoDataAggregate(mockGemAssetRowStyle(), hideBalance = false)
 
@@ -336,7 +337,7 @@ class AssetInfoDataAggregateTest {
     fun assetInfoDataAggregate_balanceEquivalent_withEuroCurrency_returnsEuroFormat() {
         val assetInfo = mockAssetInfo(
             asset = ethAsset,
-            balance = AssetBalance.create(ethAsset, available = BigInteger("1000000000000000000")),
+            balance = mockAssetBalance(ethAsset, available = BigInteger("1000000000000000000")),
             price = mockAssetPriceInfo(price = 3000.0, currency = Currency.EUR),
         )
         val aggregate = assetInfo.toAssetInfoDataAggregate(mockGemAssetRowStyle(), hideBalance = false)
@@ -348,7 +349,7 @@ class AssetInfoDataAggregateTest {
     fun assetInfoDataAggregate_balance_multipleBalanceTypes_returnsTotal() {
         val assetInfo = mockAssetInfo(
             asset = btcAsset,
-            balance = AssetBalance.create(
+            balance = mockAssetBalance(
                 btcAsset,
                 available = BigInteger("50000000"),
                 staked = BigInteger("30000000"),
@@ -391,12 +392,12 @@ class AssetInfoDataAggregateTest {
         val items = listOf(
             mockAssetInfo(
                 asset = btcAsset,
-                balance = AssetBalance.create(btcAsset, available = BigInteger("150000000")),
+                balance = mockAssetBalance(btcAsset, available = BigInteger("150000000")),
                 price = mockAssetPriceInfo(price = 50000.0, priceChangePercentage24h = 1.0),
             ),
             mockAssetInfo(
                 asset = ethAsset,
-                balance = AssetBalance.create(ethAsset, available = BigInteger("2000000000000000000")),
+                balance = mockAssetBalance(ethAsset, available = BigInteger("2000000000000000000")),
                 price = mockAssetPriceInfo(price = 3000.0, priceChangePercentage24h = -1.0, currency = Currency.EUR),
             ),
             mockAssetInfo(asset = btcAsset, price = null),

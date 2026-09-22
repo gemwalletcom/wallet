@@ -131,6 +131,8 @@ buy_no_results = אין הצעות מחיר זמינות
 # Transfer
 
 transfer_network_fee = עמלת רשת
+transfer_pay_with = לשלם באמצעות
+transfer_payment_title = תשלום
 transfer_memo = תזכיר
 transfer_confirm = אשר
 transfer_from = מ
@@ -156,6 +158,7 @@ transfer_activate_asset_title = הפעל את הנכס
 transfer_recipient_my_wallets = הארנקים שלי
 transfer_recipient_view_wallets = הצג ארנקים
 transfer_minimum_account_balance = לאחר מכן חייבת להישאר יתרה מינימלית %@, אלא אם כן אתה משתמש ביתרה מלאה.
+transfer_destination_account_activation = כתובת היעד דורשת מינימום של %@.
 transfer_smart_contract_title = חוזה חכם
 transfer_other_title = אחר
 transfer_maximum_amount = הכמות המקסימלית היא %@
@@ -253,6 +256,7 @@ errors_network_offline = נראה שחיבור האינטרנט אינו מקו�
 errors_no_internet_connection = אין חיבור לאינטרנט
 errors_no_service_connection = אין חיבור לשירות
 errors_balances_activity_outdated = היתרות והפעילות עשויות להיות לא מעודכנות.
+errors_payment_status = תשלום: %@
 
 # Activity
 
@@ -289,6 +293,7 @@ transaction_swap_again = החלפה נוספת
 transaction_status_completed = הושלם
 transaction_status_inprogress = בתהליך
 transaction_status_refunded = החזר כספי
+transaction_status_expired = פג תוקף
 
 # Asset
 
@@ -541,6 +546,8 @@ sell_title = למכור %@
 info_network_fee_title = עמלת רשת
 info_watch_wallet_title = ארנק במעקב
 info_watch_wallet_description = ארנק שאין לך גישה אליו, אבל אתה יכול לצפות בעסקאות ובתנועות שלו.
+info_payment_verification_title = אימות תשלום
+info_payment_verification_description = בית העסק דורש מידע נוסף לפני התשלום.
 info_network_fee_description = כל עסקה ברשת %@ דורשת עמלה ב-%@ ששולם לכורים על מנת לעבד את העסקה שלך, לא ארנק Gem. עמלות הרשת משתנות בהתאם לשימוש ברשת.
 info_transaction_error_description = לא ניתן היה להשלים את העסקה עקב שגיאה, כגון חוסר כספים, קלט לא תקין או דחייה על ידי הרשת. אנא בדוק את הפרטים ונסה שוב.
 info_transaction_pending_description = העסקה הוגשה וממתינה לאישור ברשת. זמני העיבוד עשויים להשתנות. אנא בדקו שוב לעדכונים.

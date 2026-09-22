@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
+import com.gemwallet.android.application.device.cases.EnablePushForSupport
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.application.wallet.cases.GetWallets
@@ -34,6 +35,7 @@ class SettingsViewModel @Inject constructor(
     private val userConfig: UserConfig,
     private val getWallets: GetWallets,
     private val switchPushEnabled: SwitchPushEnabled,
+    private val enablePushForSupport: EnablePushForSupport,
     private val getPushEnabled: GetPushEnabled,
     val notificationsAvailable: NotificationsAvailable,
     private val settingsService: GemSettingsServiceInterface,
@@ -74,6 +76,13 @@ class SettingsViewModel @Inject constructor(
 
     private val errorState = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = errorState.asStateFlow()
+
+    fun openSupport() {
+        viewModelScope.launch(ioDispatcher) {
+            val state = enablePushForSupport.enablePushForSupport() ?: return@launch
+            errorState.value = (state.result as? GemPushResult.NotRegistered)?.error?.text(context)
+        }
+    }
 
     fun enableNotifications() = switchNotifications(true)
 

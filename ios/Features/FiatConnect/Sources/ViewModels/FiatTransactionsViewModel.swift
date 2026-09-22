@@ -4,6 +4,7 @@ import Components
 import Foundation
 import protocol Gemstone.GemFiatQuoteServiceProtocol
 import enum Gemstone.GemLoadState
+import func Gemstone.loadError
 import GemstoneServices
 import Localization
 import Primitives
@@ -38,8 +39,7 @@ public final class FiatTransactionsViewModel {
     }
 
     var loadError: Error? {
-        guard transactions.isEmpty, case let .error(error) = loadState else { return nil }
-        return error
+        Gemstone.loadError(state: loadState, hasRows: !transactions.isEmpty)
     }
 
     var emptyContentModel: EmptyContentTypeViewModel {

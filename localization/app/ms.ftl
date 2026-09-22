@@ -131,6 +131,8 @@ buy_no_results = Tiada sebut harga tersedia
 # Transfer
 
 transfer_network_fee = Yuran Rangkaian
+transfer_pay_with = Bayar dengan
+transfer_payment_title = Pembayaran
 transfer_memo = Memo
 transfer_confirm = Sahkan
 transfer_from = Daripada
@@ -156,6 +158,7 @@ transfer_activate_asset_title = Aktifkan Aset
 transfer_recipient_my_wallets = Dompet Saya
 transfer_recipient_view_wallets = Lihat Dompet
 transfer_minimum_account_balance = Baki minimum %@ mesti kekal selepas ini, melainkan anda menggunakan baki penuh anda.
+transfer_destination_account_activation = Alamat destinasi memerlukan minimum %@.
 transfer_smart_contract_title = Kontrak Pintar
 transfer_other_title = Lain-lain
 transfer_maximum_amount = Jumlah Maksimum ialah %@
@@ -253,6 +256,7 @@ errors_network_offline = Sambungan Internet nampaknya di luar talian.
 errors_no_internet_connection = Tiada sambungan internet
 errors_no_service_connection = Tiada sambungan perkhidmatan
 errors_balances_activity_outdated = Baki dan aktiviti mungkin tidak terkini.
+errors_payment_status = Pembayaran: %@
 
 # Activity
 
@@ -289,6 +293,7 @@ transaction_swap_again = Tukar Lagi
 transaction_status_completed = Selesai
 transaction_status_inprogress = Sedang Berlangsung
 transaction_status_refunded = Dibayar balik
+transaction_status_expired = Tamat tempoh
 
 # Asset
 
@@ -541,6 +546,8 @@ sell_title = Jual %@
 info_network_fee_title = Yuran Rangkaian
 info_watch_wallet_title = Tonton Wallet
 info_watch_wallet_description = Dompet yang anda tidak mempunyai akses, tetapi anda boleh menonton transaksi dan pergerakannya.
+info_payment_verification_title = Pengesahan Pembayaran
+info_payment_verification_description = Peniaga memerlukan maklumat tambahan sebelum pembayaran.
 info_network_fee_description = Setiap transaksi pada rangkaian %@ memerlukan bayaran dalam %@ dibayar kepada pelombong untuk memproses transaksi anda, bukan Gem Wallet. Yuran rangkaian berbeza-beza berdasarkan penggunaan rangkaian.
 info_transaction_error_description = Urus niaga tidak dapat diselesaikan kerana ralat, seperti dana tidak mencukupi, input tidak sah atau penolakan oleh rangkaian. Sila semak butiran dan cuba lagi.
 info_transaction_pending_description = Urus niaga telah diserahkan dan sedang menunggu pengesahan pada rangkaian. Masa pemprosesan mungkin berbeza-beza. Sila semak semula untuk kemas kini.

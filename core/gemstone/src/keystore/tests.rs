@@ -135,3 +135,49 @@ fn test_gem_keystore_single_phrase_import_create() {
     assert_eq!(stored.accounts[0].chain, Chain::Solana);
     assert_eq!(stored.accounts[0].derivation_path, "m/44'/501'/0'/0'");
 }
+
+#[test]
+fn test_gem_keystore_survives_concurrent_create_read_and_delete() {
+    let dir = TempDir::new().unwrap();
+    let path = dir.path().to_string_lossy().to_string();
+    let password = || b"password".to_vec();
+    let threads = 8;
+
+    let created: Vec<_> = std::thread::scope(|scope| {
+        let handles: Vec<_> = (0..threads)
+            .map(|_| {
+                let path = path.clone();
+                scope.spawn(move || GemKeystore::new(path).unwrap().create_store(GemImportType::mock_single_phrase(), password()).unwrap())
+            })
+            .collect();
+        handles.into_iter().map(|handle| handle.join().unwrap()).collect()
+    });
+
+    let keystore_id = created[0].keystore_id.clone();
+    assert!(created.iter().all(|stored| stored.keystore_id == keystore_id), "concurrent creates of one wallet must agree on its id");
+    let files: Vec<_> = std::fs::read_dir(dir.path())
+        .unwrap()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.path().extension().is_some_and(|extension| extension == "json"))
+        .collect();
+    assert_eq!(files.len(), 1, "the race must leave one keystore file, not a duplicate per thread");
+
+    let phrases: Vec<_> = std::thread::scope(|scope| {
+        let handles: Vec<_> = (0..threads)
+            .map(|_| {
+                let (path, keystore_id) = (path.clone(), keystore_id.clone());
+                scope.spawn(move || GemKeystore::new(path).unwrap().export_recovery_phrase(keystore_id, password()).unwrap().join(" "))
+            })
+            .collect();
+        handles.into_iter().map(|handle| handle.join().unwrap()).collect()
+    });
+    assert!(phrases.iter().all(|phrase| *phrase == mock_phrase_words().join(" ")), "every concurrent read must return the stored phrase");
+
+    std::thread::scope(|scope| {
+        for _ in 0..threads {
+            let (path, keystore_id) = (path.clone(), keystore_id.clone());
+            scope.spawn(move || GemKeystore::new(path).unwrap().delete(keystore_id));
+        }
+    });
+    assert!(!dir.path().join(format!("{keystore_id}.json")).exists(), "the file must be gone after a concurrent delete");
+}

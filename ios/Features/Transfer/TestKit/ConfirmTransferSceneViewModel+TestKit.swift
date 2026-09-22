@@ -21,11 +21,12 @@ public extension ConfirmTransferSceneViewModel {
         request: ConfirmTransferRequest? = nil,
         data: GemTransferData = .mock(),
         simulation: SimulationResult? = nil,
-        load: Result<GemConfirmLoad, any Error> = .success(.mock()),
-        execute: Result<GemSubmitResult, any Error> = .success(.signed(data: [])),
+        load: Result<GemConfirmLoad, any Error>? = nil,
+        execute: Result<GemSubmitResult, any Error> = .success(.signed(data: [], warning: nil)),
         rows: ((Gemstone.AddressName?) -> [GemConfirmRowContent])? = nil,
         acquireFlow: GemAcquireAssetFlow = .fiat,
         confirmation: GemConfirmationMock? = nil,
+        onComplete: ((GemSubmitResult) -> Void)? = nil,
     ) -> ConfirmTransferSceneViewModel {
         let wallet = Wallet.mock(accounts: [.mock(chain: data.chain)])
         let rows = rows ?? { addressName in
@@ -52,13 +53,13 @@ public extension ConfirmTransferSceneViewModel {
             request: request ?? .mock(data: data, simulation: simulation),
             wallet: wallet,
             confirmation: confirmation ?? GemConfirmationMock(
-                state: .mock(feeAsset: data.feeAsset().toPrimitives(), preload: nil),
-                load: load,
+                state: .mock(transfer: data, feeAsset: data.feeAsset().toPrimitives(), preload: nil),
+                load: load ?? .success(.mock(transfer: data)),
                 execute: execute,
                 rows: rows,
                 acquireFlow: acquireFlow,
             ),
-            onComplete: nil,
+            onComplete: onComplete,
         )
     }
 }

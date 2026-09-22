@@ -63,9 +63,9 @@ fun <T> ChartStateView(
                         icon = painterResource(R.drawable.empty_activity),
                     )
 
-                    StateViewType.Error -> EmptyStateView(
+                    is StateViewType.Error -> EmptyStateView(
                         modifier = Modifier.fillMaxSize(),
-                        title = stringResource(R.string.errors_no_data_available),
+                        title = state.message ?: stringResource(R.string.errors_no_data_available),
                         iconVector = AppIcons.Warning,
                     )
 

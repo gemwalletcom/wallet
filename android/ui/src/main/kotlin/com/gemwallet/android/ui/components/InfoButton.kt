@@ -2,7 +2,7 @@ package com.gemwallet.android.ui.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -21,8 +21,8 @@ fun InfoButton(entity: InfoSheetEntity) {
     var showBottomSheet by remember { mutableStateOf(false) }
     Icon(
         modifier = Modifier
-            .clip(RoundedCornerShape(percent = 50))
             .size(smallIconSize)
+            .clip(CircleShape)
             .clickable(onClick = { showBottomSheet = true }),
         imageVector = AppIcons.InfoOutlined,
         contentDescription = "",

@@ -30,25 +30,6 @@ impl GemKeystore {
         keystore_id_for_wallet(wallet_id)
     }
 
-    pub fn preview_import(&self, import: GemImportType) -> Result<GemWalletImport, GemstoneError> {
-        match import {
-            GemImportType::PrivateKey { value, chain } => {
-                let value = Zeroizing::new(value);
-                let account = derive_account_from_private_key_value(&value, chain)?;
-                let wallet_id = derive_wallet_id_from_account(&account, WalletType::PrivateKey)?;
-                Ok(GemWalletImport::new(wallet_id, WalletType::PrivateKey, vec![account]))
-            }
-            GemImportType::MulticoinPhrase { words, chains } => {
-                let (wallet_id, accounts, _phrase) = derive_mnemonic_wallet(words, chains, WalletType::Multicoin, Chain::Ethereum)?;
-                Ok(GemWalletImport::new(wallet_id, WalletType::Multicoin, accounts))
-            }
-            GemImportType::SinglePhrase { words, chain } => {
-                let (wallet_id, accounts, _phrase) = derive_mnemonic_wallet(words, vec![chain], WalletType::Single, chain)?;
-                Ok(GemWalletImport::new(wallet_id, WalletType::Single, accounts))
-            }
-        }
-    }
-
     pub fn create_store(&self, import: GemImportType, password: Vec<u8>) -> Result<GemStoredWallet, GemstoneError> {
         let password = Zeroizing::new(password);
         match import {
@@ -123,6 +104,25 @@ impl GemKeystore {
 }
 
 impl GemKeystore {
+    pub fn preview_import(&self, import: GemImportType) -> Result<GemWalletImport, GemstoneError> {
+        match import {
+            GemImportType::PrivateKey { value, chain } => {
+                let value = Zeroizing::new(value);
+                let account = derive_account_from_private_key_value(&value, chain)?;
+                let wallet_id = derive_wallet_id_from_account(&account, WalletType::PrivateKey)?;
+                Ok(GemWalletImport::new(wallet_id, WalletType::PrivateKey, vec![account]))
+            }
+            GemImportType::MulticoinPhrase { words, chains } => {
+                let (wallet_id, accounts, _phrase) = derive_mnemonic_wallet(words, chains, WalletType::Multicoin, Chain::Ethereum)?;
+                Ok(GemWalletImport::new(wallet_id, WalletType::Multicoin, accounts))
+            }
+            GemImportType::SinglePhrase { words, chain } => {
+                let (wallet_id, accounts, _phrase) = derive_mnemonic_wallet(words, vec![chain], WalletType::Single, chain)?;
+                Ok(GemWalletImport::new(wallet_id, WalletType::Single, accounts))
+            }
+        }
+    }
+
     pub fn has_stored_wallets(&self) -> Result<bool, GemstoneError> {
         Ok(!self.inner.list()?.is_empty())
     }
@@ -257,7 +257,7 @@ mod migration_tests {
 
     use primitives::{Chain, hex};
 
-    use super::{GemKeystore, keystore_id_for_wallet};
+    use super::{GemImportType, GemKeystore, keystore_id_for_wallet};
 
     const V3_MNEMONIC: &str = include_str!("../../../crates/gem_keystore/testdata/v3_ios_mnemonic.json");
     const V3_PRIVATE_KEY: &str = include_str!("../../../crates/gem_keystore/testdata/v3_ios_private_key.json");
@@ -388,6 +388,23 @@ mod migration_tests {
         assert_eq!(keystore.export_recovery_phrase(keystore_id.clone(), NEW_PASSWORD.to_vec()).unwrap().join(" "), EXPECTED_PHRASE);
         let accounts = keystore.add_accounts(keystore_id, NEW_PASSWORD.to_vec(), vec![Chain::Solana]).unwrap();
         assert_eq!(accounts[0].address, EXPECTED_SOLANA_ADDRESS);
+
+        let _ = std::fs::remove_dir_all(&base);
+    }
+
+    #[test]
+    fn an_imported_private_key_derives_its_chain_address() {
+        let base = std::env::temp_dir().join("gemstone_keystore_preview_import");
+        std::fs::create_dir_all(&base).unwrap();
+        let keystore = GemKeystore::new(base.to_string_lossy().into_owned()).unwrap();
+        let address = |value: &str, chain| keystore.preview_import(GemImportType::PrivateKey { value: value.to_string(), chain }).unwrap().accounts[0].address.clone();
+
+        assert_eq!(
+            address("4ha2npeRkDXipjgGJ3L5LhZ9TK9dRjP2yktydkFBhAzXj3N8ytpYyTS24kxcYGEefy4WKWRcog2zSPvpPZoGmxCC", Chain::Solana),
+            "JSTURBrew3zGaJjtk7qcvd7gapeExX3GC7DiQBaCKzU"
+        );
+        assert_eq!(address("0x30df0ffc2b43717f4653c2a1e827e9dfb3d9364e019cc60092496cd4997d5d6e", Chain::Ethereum), "0x4ce31c0b2114abe61Ac123E1E6254E961C18D10B");
+        assert_eq!(address("SA6XNHUKMW4QAKSHB2NOZ4SYP34ERYVAWSBTEDREYSJ2LEJ5LFHLTIRJ", Chain::Stellar), "GADB4BDKTOE36L6QN2JLIPNNJ7EZPSY5BIVKWXLWYZLIPXNQWIRQQZKT");
 
         let _ = std::fs::remove_dir_all(&base);
     }

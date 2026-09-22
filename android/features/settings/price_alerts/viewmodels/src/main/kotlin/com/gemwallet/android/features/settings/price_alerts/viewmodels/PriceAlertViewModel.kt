@@ -49,6 +49,7 @@ import uniffi.gemstone.GemPriceAlertSectionKind
 import uniffi.gemstone.GemPriceAlertServiceInterface
 import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.PriceAlertFormatter
+import uniffi.gemstone.loadError
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -112,7 +113,7 @@ class PriceAlertViewModel @Inject constructor(
     private val loadState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
 
     val errorRow: StateFlow<GemListRow?> = combine(loadState, sections) { state, shown ->
-        (state as? GemLoadState.Error)?.takeIf { shown.isEmpty() }?.let { GemListRow.Error(it.error) }
+        loadError(state, shown.isNotEmpty())?.let { GemListRow.Error(it) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     init {

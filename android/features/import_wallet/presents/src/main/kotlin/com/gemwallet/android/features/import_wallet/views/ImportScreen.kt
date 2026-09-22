@@ -97,15 +97,12 @@ fun ImportScreen(importType: ImportType, onImported: (WalletImportResult) -> Uni
         importType = uiState.importType,
         tabs = uiState.tabs,
         input = uiState.input,
-        defaultWalletName = uiState.defaultWalletName,
         title = uiState.title,
         showsTabs = uiState.showsTabs,
         nameResolveIndicator = nameResolveIndicator,
         dataError = uiState.dataError,
         buttonState = buttonState(loading = uiState.loading),
-        onImport = { generatedName ->
-            viewModel.import(generatedName, onImported)
-        },
+        onImport = { viewModel.import(onImported) },
         onInput = viewModel::onInput,
         onTypeChange = viewModel::importKind,
         invalidWords = viewModel::invalidPhraseWords,
@@ -157,13 +154,12 @@ private fun ImportScene(
     importType: ImportType,
     tabs: List<ImportTabUIModel>,
     input: ImportInputUIModel,
-    defaultWalletName: String?,
     title: String,
     showsTabs: Boolean,
     nameResolveIndicator: NameResolveIndicatorUIModel?,
     dataError: String?,
     buttonState: ButtonState,
-    onImport: (generatedName: String) -> Unit,
+    onImport: () -> Unit,
     onInput: (String, Int) -> Unit,
     onTypeChange: (ImportType) -> Unit,
     invalidWords: (String) -> Set<String>,
@@ -171,7 +167,6 @@ private fun ImportScene(
     onSelectSuggestion: (String) -> ImportTextUIModel,
     onCancel: () -> Unit,
 ) {
-    val generatedName = defaultWalletName.orEmpty()
     var dataErrorState by remember(dataError) { mutableStateOf(dataError) }
 
     Scene(
@@ -181,9 +176,7 @@ private fun ImportScene(
             MainActionButton(
                 title = stringResource(id = R.string.wallet_import_action),
                 state = buttonState,
-                onClick = {
-                    onImport(generatedName)
-                },
+                onClick = onImport,
             )
         },
     ) {
@@ -316,7 +309,6 @@ fun PreviewImportAddress() {
                     supportsPhraseSuggestions = false,
                     showsViewOnlyWarning = true,
                 ),
-                defaultWalletName = "Wallet 1",
                 title = "Ethereum",
                 showsTabs = true,
                 nameResolveIndicator = null,

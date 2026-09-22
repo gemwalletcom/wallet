@@ -41,12 +41,10 @@ fun com.wallet.core.primitives.Appearance.toGem(): uniffi.gemstone.Appearance = 
 
 fun uniffi.gemstone.ApplicationMetadataSource.toPrimitives(): com.wallet.core.primitives.ApplicationMetadataSource = when (this) {
     uniffi.gemstone.ApplicationMetadataSource.WALLET_CONNECT -> com.wallet.core.primitives.ApplicationMetadataSource.WalletConnect
-    uniffi.gemstone.ApplicationMetadataSource.PAYMENT -> com.wallet.core.primitives.ApplicationMetadataSource.Payment
 }
 
 fun com.wallet.core.primitives.ApplicationMetadataSource.toGem(): uniffi.gemstone.ApplicationMetadataSource = when (this) {
     com.wallet.core.primitives.ApplicationMetadataSource.WalletConnect -> uniffi.gemstone.ApplicationMetadataSource.WALLET_CONNECT
-    com.wallet.core.primitives.ApplicationMetadataSource.Payment -> uniffi.gemstone.ApplicationMetadataSource.PAYMENT
 }
 
 fun uniffi.gemstone.AssetAssociationType.toPrimitives(): com.wallet.core.primitives.AssetAssociationType = when (this) {

@@ -1,6 +1,7 @@
 package com.gemwallet.android
 
 import android.content.Intent
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.PushNotificationField
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
@@ -20,13 +21,15 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import uniffi.gemstone.GemDeeplinkService
+import uniffi.gemstone.GemNavigationServiceInterface
+import uniffi.gemstone.GemNavigationTarget
 
 class PendingNavigationCoordinatorTest {
 
     private val notificationNavigation = mockk<NotificationNavigation>(relaxed = true)
     private val paymentNavigation = mockk<PaymentNavigation>(relaxed = true)
-    private val assetNavigation = mockk<AssetNavigation>()
-    private val coordinator = PendingNavigationCoordinator(notificationNavigation, paymentNavigation, assetNavigation, GemDeeplinkService())
+    private val navigationService = mockk<GemNavigationServiceInterface>(relaxed = true)
+    private val coordinator = PendingNavigationCoordinator(notificationNavigation, paymentNavigation, navigationService, GemDeeplinkService())
 
     @Test
     fun buildRoutes_withoutPendingInput_isNoOp() = runTest {
@@ -62,6 +65,7 @@ class PendingNavigationCoordinatorTest {
     @Test
     fun buildRoutes_webDeepLink_storesRoute() = runTest {
         val uri = "https://gemwallet.com/join/gemcoder"
+        coEvery { navigationService.openDeeplink(any()) } returns GemNavigationTarget.Rewards("gemcoder")
         coordinator.pendScan(uri)
 
         coordinator.buildRoutes(NoOpWalletConnect)
@@ -73,7 +77,7 @@ class PendingNavigationCoordinatorTest {
     @Test
     fun buildRoutes_buyDeepLink_storesRouteWhenCoreOpensTheAsset() = runTest {
         val asset = mockAsset(chain = Chain.Bitcoin)
-        coEvery { assetNavigation.fiatRoute(asset.id, 100, FiatQuoteType.Buy) } returns FiatInputRoute(asset.id, 100, FiatQuoteType.Buy)
+        coEvery { navigationService.openDeeplink(any()) } returns GemNavigationTarget.Fiat(asset.toGem(), 100, FiatQuoteType.Buy.toGem())
         coordinator.pendScan("gem://tokens/bitcoin/buy?amount=100")
 
         coordinator.buildRoutes(NoOpWalletConnect)
@@ -84,7 +88,7 @@ class PendingNavigationCoordinatorTest {
 
     @Test
     fun buildRoutes_buyDeepLink_isDroppedWhenCoreRejectsTheAsset() = runTest {
-        coEvery { assetNavigation.fiatRoute(any(), any(), any()) } returns null
+        coEvery { navigationService.openDeeplink(any()) } returns GemNavigationTarget.None
         coordinator.pendScan("gem://tokens/bitcoin/buy")
 
         coordinator.buildRoutes(NoOpWalletConnect)
@@ -100,6 +104,7 @@ class PendingNavigationCoordinatorTest {
             "https://gemwallet.com/perpetuals/",
             "https://gemwallet.com/es/perpetuals/",
         )
+        coEvery { navigationService.openDeeplink(any()) } returns GemNavigationTarget.Perpetuals
 
         uris.forEach { uri ->
             coordinator.pendScan(uri)

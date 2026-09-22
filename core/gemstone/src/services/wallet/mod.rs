@@ -31,7 +31,7 @@ pub(crate) mod testkit;
 use std::sync::Arc;
 
 use gem_keystore::Mnemonic;
-use primitives::{Chain, ChainAsset, NFTData, NameRecord, Wallet, WalletId, WalletSource, WalletType};
+use primitives::{Chain, ChainAsset, NFTData, Wallet, WalletId, WalletSource, WalletType};
 
 use crate::keystore::decode_password;
 use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, keystore_id_for_wallet};
@@ -40,8 +40,7 @@ use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::file::GemFileStore;
 use crate::services::localization::GemLocalizedText;
-use crate::services::name::GemAddressStore;
-use crate::services::name::store::GemAddressNameWriter;
+use crate::services::name::GemNameService;
 use crate::services::nft::model::{GemNftItem, GemNftList};
 use crate::services::nft::rules as nft_rules;
 use crate::services::preferences::GemPreferencesService;
@@ -50,7 +49,7 @@ use crate::services::wallet_session::GemWalletSessionService;
 use primitives::BlockExplorerLink;
 
 pub use error::GemWalletImportError;
-pub use model::{GemWalletDefaultName, GemWalletDeletion, GemWalletDetails, GemWalletImportKind, GemWalletImportResult, GemWalletImportScreen, GemWalletImportSession, GemWalletImportType, GemWalletSecret};
+pub use model::{GemWalletDeletion, GemWalletDetails, GemWalletImportKind, GemWalletImportRequest, GemWalletImportResult, GemWalletImportScreen, GemWalletImportSession, GemWalletImportType, GemWalletSecret};
 pub use password::{GemKeystoreAuthentication, GemKeystorePassword};
 pub use store::GemWalletStore;
 pub use verify_phrase::GemVerifyPhraseSession;
@@ -73,7 +72,7 @@ pub struct GemWalletService {
     files: Arc<dyn GemFileStore>,
     preferences: Arc<GemWalletPreferencesService>,
     explorer: Arc<GemExplorerService>,
-    addresses: Arc<dyn GemAddressStore>,
+    names: Arc<GemNameService>,
     avatar: Arc<GemAvatarService>,
 }
 
@@ -89,7 +88,7 @@ impl GemWalletService {
         files: Arc<dyn GemFileStore>,
         preferences: Arc<GemWalletPreferencesService>,
         explorer: Arc<GemExplorerService>,
-        addresses: Arc<dyn GemAddressStore>,
+        names: Arc<GemNameService>,
         avatar: Arc<GemAvatarService>,
     ) -> Self {
         Self {
@@ -101,7 +100,7 @@ impl GemWalletService {
             files,
             preferences,
             explorer,
-            addresses,
+            names,
             avatar,
         }
     }
@@ -130,17 +129,14 @@ impl GemWalletService {
         Mnemonic::generate(12).map_err(|error| GemServiceError::Core { msg: error.to_string() })
     }
 
-    pub async fn default_wallet_name(&self, chain: Option<Chain>) -> Result<GemWalletDefaultName, GemServiceError> {
+    pub async fn default_wallet_name(&self, chain: Option<Chain>) -> Result<GemLocalizedText, GemServiceError> {
         let index = rules::next_wallet_index(&self.store.get_wallets().await?);
-        Ok(GemWalletDefaultName {
-            text: match chain {
-                Some(chain) => GemLocalizedText::WalletDefaultNameChain {
-                    network_name: ChainAsset::from_chain(chain).network_name,
-                    index,
-                },
-                None => GemLocalizedText::WalletDefaultName { index },
+        Ok(match chain {
+            Some(chain) => GemLocalizedText::WalletDefaultNameChain {
+                network_name: ChainAsset::from_chain(chain).network_name,
+                index,
             },
-            has_existing_wallets: index > 1,
+            None => GemLocalizedText::WalletDefaultName { index },
         })
     }
 
@@ -152,63 +148,12 @@ impl GemWalletService {
         rules::import_screen(chain)
     }
 
-    pub fn import_request(&self, kind: GemWalletImportKind, chain: Option<Chain>, input: String, name_record: Option<NameRecord>) -> Result<GemWalletImportType, GemServiceError> {
-        Ok(rules::import_request(kind, chain, &input, name_record.as_ref())?)
-    }
-
-    pub fn import_name(&self, name_record: Option<NameRecord>, default_name: String) -> String {
-        rules::import_name(name_record.as_ref(), default_name)
-    }
-
-    pub async fn import_wallet(&self, name: String, import: GemWalletImportType, source: WalletSource) -> Result<GemWalletImportResult, GemServiceError> {
-        let import = import.validated()?;
-        let preview = self.preview_import(import.clone())?;
-        let wallet_id = WalletId::from_id(&preview.wallet_id).ok_or_else(|| GemServiceError::Core {
-            msg: format!("invalid wallet id {}", preview.wallet_id),
-        })?;
-        let wallets = self.store.get_wallets().await?;
-        if let Some(wallet) = rules::existing_wallet(&wallets, &wallet_id, preview.wallet_type) {
-            return Ok(GemWalletImportResult::Existing { wallet });
-        }
-        let index = rules::next_wallet_index(&wallets);
-        let (wallet, stored_secret) = match import {
-            GemWalletImportType::Address { address, chain } => (
-                Wallet {
-                    index,
-                    ..rules::view_wallet(name, chain, address)
-                },
-                None,
-            ),
-            import => {
-                let keystore_id = keystore_id_for_wallet(wallet_id.id());
-                let is_new_secret = !self.keystore.exists(keystore_id.clone());
-                let password = decode_password(&self.password.get_password(!self.keystore.has_stored_wallets()?)?);
-                let stored = self.keystore.create_store(keystore_import(import), password)?;
-                let wallet = Wallet {
-                    id: wallet_id,
-                    external_id: None,
-                    name,
-                    index,
-                    wallet_type: stored.wallet_type,
-                    accounts: stored.accounts.into_iter().map(rules::account).collect(),
-                    is_pinned: false,
-                    image_url: None,
-                    source,
-                };
-                (wallet, is_new_secret.then_some(keystore_id))
-            }
-        };
-        if let Err(error) = self.store_wallet(&wallet).await {
-            if let Some(keystore_id) = stored_secret {
-                let _ = self.keystore.delete(keystore_id);
-            }
-            return Err(error);
-        }
-        if wallet.source == WalletSource::Create {
-            self.preferences.complete_initial_synchronization(wallet.id.clone())?;
-        }
-        self.invalidate_subscriptions().await?;
-        Ok(GemWalletImportResult::New { wallet })
+    pub async fn import_wallet(&self, request: GemWalletImportRequest) -> Result<GemWalletImportResult, GemServiceError> {
+        let import = rules::import_request(request.kind, request.chain, &request.input, request.name_record.as_ref())?;
+        let name = rules::import_name(request.name_record.as_ref(), &request.default_name);
+        let result = self.store_import(name, import, request.source).await?;
+        self.session.set_current_wallet_id(Some(result.wallet().id))?;
+        Ok(result)
     }
 
     pub async fn delete_wallet(&self, wallet_id: WalletId) -> Result<GemWalletDeletion, GemServiceError> {
@@ -219,7 +164,7 @@ impl GemWalletService {
             self.keystore.delete_wallet_secrets(wallet.id.id(), rules::legacy_keystore_id(&wallet))?;
         }
         self.store.delete_wallet(wallet.id.clone()).await?;
-        self.addresses.delete_address_names(rules::wallet_address_names(&wallet)).await?;
+        self.names.delete_names(rules::wallet_address_names(&wallet)).await?;
         if let Some(image_url) = wallet.image_url.clone() {
             self.files.remove(image_url)?;
         }
@@ -319,7 +264,7 @@ impl GemWalletService {
             msg: format!("wallet {} not found", wallet_id.id()),
         })?;
         self.store.set_name(wallet_id, name.clone()).await?;
-        self.addresses.save_names(rules::wallet_address_names(&Wallet { name, ..wallet })).await
+        self.names.save_names(rules::wallet_address_names(&Wallet { name, ..wallet })).await
     }
 
     pub fn sorted_wallets(&self, wallets: Vec<Wallet>) -> Vec<Wallet> {
@@ -344,6 +289,63 @@ impl GemWalletService {
             }
             import => Ok(self.keystore.preview_import(keystore_import(import))?),
         }
+    }
+
+    async fn store_import(&self, name: String, import: GemWalletImportType, source: WalletSource) -> Result<GemWalletImportResult, GemServiceError> {
+        let import = import.validated()?;
+        if name.is_empty() {
+            return Err(GemServiceError::Core {
+                msg: "a wallet cannot be stored without a name".to_string(),
+            });
+        }
+        let preview = self.preview_import(import.clone())?;
+        let wallet_id = WalletId::from_id(&preview.wallet_id).ok_or_else(|| GemServiceError::Core {
+            msg: format!("invalid wallet id {}", preview.wallet_id),
+        })?;
+        let wallets = self.store.get_wallets().await?;
+        if let Some(wallet) = rules::existing_wallet(&wallets, &wallet_id, preview.wallet_type) {
+            return Ok(GemWalletImportResult::Existing { wallet });
+        }
+        let has_existing_wallets = !wallets.is_empty();
+        let index = rules::next_wallet_index(&wallets);
+        let (wallet, stored_secret) = match import {
+            GemWalletImportType::Address { address, chain } => (
+                Wallet {
+                    index,
+                    ..rules::view_wallet(name, chain, address)
+                },
+                None,
+            ),
+            import => {
+                let keystore_id = keystore_id_for_wallet(wallet_id.id());
+                let is_new_secret = !self.keystore.exists(keystore_id.clone());
+                let password = decode_password(&self.password.get_password(!self.keystore.has_stored_wallets()?)?);
+                let stored = self.keystore.create_store(keystore_import(import), password)?;
+                let wallet = Wallet {
+                    id: wallet_id,
+                    external_id: None,
+                    name,
+                    index,
+                    wallet_type: stored.wallet_type,
+                    accounts: stored.accounts.into_iter().map(rules::account).collect(),
+                    is_pinned: false,
+                    image_url: None,
+                    source,
+                };
+                (wallet, is_new_secret.then_some(keystore_id))
+            }
+        };
+        if let Err(error) = self.store_wallet(&wallet).await {
+            if let Some(keystore_id) = stored_secret {
+                let _ = self.keystore.delete(keystore_id);
+            }
+            return Err(error);
+        }
+        if wallet.source == WalletSource::Create {
+            self.preferences.complete_initial_synchronization(wallet.id.clone())?;
+        }
+        self.invalidate_subscriptions().await?;
+        Ok(GemWalletImportResult::New { wallet, has_existing_wallets })
     }
 
     pub async fn setup_chains_outcome(&self, chains: Vec<Chain>) -> Result<SetupChainsOutcome, GemServiceError> {
@@ -377,7 +379,7 @@ impl GemWalletService {
 
     async fn store_wallet(&self, wallet: &Wallet) -> Result<(), GemServiceError> {
         self.store.add_wallet(wallet.clone()).await?;
-        self.addresses.save_names(rules::wallet_address_names(wallet)).await
+        self.names.save_names(rules::wallet_address_names(wallet)).await
     }
 
     async fn invalidate_subscriptions(&self) -> Result<(), GemServiceError> {
@@ -457,7 +459,7 @@ mod tests {
             let context = WalletTestkit::new();
             let wallet = context.import("Savings", PHRASE).await;
             let account = wallet.accounts[0].clone();
-            let name = async |context: &WalletTestkit| context.addresses.get_address_name(account.chain, account.address.clone()).await.unwrap();
+            let name = async |context: &WalletTestkit| context.service.names.address_name(account.chain, account.address.clone()).await.unwrap();
 
             let stored = name(&context).await.unwrap();
             assert_eq!((stored.name.as_str(), stored.address_type), ("Savings", AddressType::InternalWallet));
@@ -467,6 +469,36 @@ mod tests {
 
             context.service.delete_wallet(wallet.id.clone()).await.unwrap();
             assert!(name(&context).await.is_none());
+        });
+    }
+
+    #[test]
+    fn test_import_names_stores_and_activates_the_wallet_in_one_call() {
+        block_on(async {
+            let context = WalletTestkit::new();
+            let request = |words: [&str; 12], default_name: &str| GemWalletImportRequest {
+                kind: GemWalletImportKind::Phrase,
+                chain: Some(Chain::Ethereum),
+                input: words.join(" "),
+                name_record: None,
+                default_name: default_name.to_string(),
+                source: WalletSource::Import,
+            };
+
+            let first = context.service.import_wallet(request(PHRASE, "Wallet #1")).await.unwrap();
+
+            assert!(matches!(first, GemWalletImportResult::New { has_existing_wallets: false, .. }));
+            assert_eq!(first.wallet().name, "Wallet #1");
+            assert_eq!(context.service.current_wallet_id().unwrap(), Some(first.wallet().id), "the import activates the wallet without a second call");
+
+            let second = context.service.import_wallet(request(OTHER_PHRASE, "Wallet #2")).await.unwrap();
+
+            assert!(matches!(second, GemWalletImportResult::New { has_existing_wallets: true, .. }));
+            assert_eq!(context.service.current_wallet_id().unwrap(), Some(second.wallet().id));
+
+            let error = context.service.import_wallet(request(PHRASE, "   ")).await.unwrap_err();
+
+            assert!(matches!(error, GemServiceError::Core { .. }), "a wallet is never stored under a blank name");
         });
     }
 
@@ -491,14 +523,14 @@ mod tests {
             };
             *context.wallets.add_wallet_error.lock().unwrap() = Some(GemServiceError::Store { msg: "disk full".to_string() });
 
-            let error = context.service.import_wallet("First".to_string(), import.clone(), WalletSource::Create).await.unwrap_err();
+            let error = context.service.store_import("First".to_string(), import.clone(), WalletSource::Create).await.unwrap_err();
 
             assert!(matches!(error, GemServiceError::Store { .. }));
             assert!(!context.service.keystore.has_stored_wallets().unwrap());
             assert!(context.wallets.get_wallets().await.unwrap().is_empty());
 
             *context.wallets.add_wallet_error.lock().unwrap() = None;
-            let result = context.service.import_wallet("First".to_string(), import, WalletSource::Create).await.unwrap();
+            let result = context.service.store_import("First".to_string(), import, WalletSource::Create).await.unwrap();
             assert!(matches!(result, GemWalletImportResult::New { .. }));
         });
     }
@@ -510,7 +542,7 @@ mod tests {
             let phrase = context.import("Phrase", PHRASE).await;
             let key = "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318".to_string();
             let import = GemWalletImportType::PrivateKey { value: key.clone(), chain: Chain::Ethereum };
-            let GemWalletImportResult::New { wallet: private } = context.service.import_wallet("Key".to_string(), import, WalletSource::Import).await.unwrap() else {
+            let GemWalletImportResult::New { wallet: private, .. } = context.service.store_import("Key".to_string(), import, WalletSource::Import).await.unwrap() else {
                 panic!("expected a new wallet");
             };
             let view = rules::view_wallet("View".to_string(), Chain::Ethereum, private.accounts[0].address.clone());
@@ -524,6 +556,26 @@ mod tests {
             );
             assert_eq!(context.service.export_secret(private.id.clone()).await.unwrap(), GemWalletSecret::PrivateKey { key });
             assert!(context.service.export_secret(view.id.clone()).await.is_err());
+        });
+    }
+
+    #[test]
+    fn test_setup_chains_reads_the_password_only_when_a_wallet_can_gain_a_chain() {
+        block_on(async {
+            let context = WalletTestkit::new();
+            let wallet = context.import("Only", PHRASE).await;
+            let reads = || context.passwords.create_requests.lock().unwrap().len();
+            let before = reads();
+
+            context.service.setup_chains(vec![Chain::Ethereum]).await.unwrap();
+
+            assert_eq!(reads(), before, "a wallet that misses no chain never unlocks the keystore");
+
+            let _ = context.service.keystore.delete(keystore_id_for_wallet(wallet.id.id()));
+            context.service.setup_chains(vec![Chain::Ethereum, Chain::Solana]).await.unwrap();
+
+            assert_eq!(reads(), before, "a wallet with no keystore is skipped before the password is read");
+            assert_eq!(context.service.wallets().await.unwrap()[0].accounts.len(), 1);
         });
     }
 

@@ -5,6 +5,7 @@ import Foundation
 import enum Gemstone.GemLoadState
 import enum Gemstone.GemNotificationDestination
 import protocol Gemstone.GemNotificationServiceProtocol
+import func Gemstone.loadError
 import enum Gemstone.UrlAction
 import Localization
 import Primitives
@@ -42,8 +43,7 @@ public final class InAppNotificationsViewModel {
     }
 
     public var loadError: Error? {
-        guard notifications.isEmpty, case let .error(error) = loadState else { return nil }
-        return error
+        Gemstone.loadError(state: loadState, hasRows: !notifications.isEmpty)
     }
 
     public var emptyContentModel: EmptyContentTypeViewModel {

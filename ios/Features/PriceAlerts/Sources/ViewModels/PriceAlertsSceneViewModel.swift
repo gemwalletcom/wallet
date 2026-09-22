@@ -3,6 +3,7 @@
 import Components
 import enum Gemstone.GemLoadState
 import protocol Gemstone.GemPriceAlertServiceProtocol
+import func Gemstone.loadError
 import class Gemstone.PriceAlertFormatter
 import GemstonePrimitives
 import GemstoneServices
@@ -48,8 +49,7 @@ public final class PriceAlertsSceneViewModel: Sendable {
     }
 
     var loadError: Error? {
-        guard priceAlerts.isEmpty, case let .error(error) = loadState else { return nil }
-        return error
+        Gemstone.loadError(state: loadState, hasRows: !priceAlerts.isEmpty)
     }
 
     var emptyContentModel: EmptyContentTypeViewModel {

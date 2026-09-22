@@ -48,6 +48,8 @@ public struct ListItemModel {
     public let subtitle: String?
     public let subtitleStyle: TextStyle
     public let subtitleLineLimit: Int?
+    public let subtitleSuffix: String?
+    public let subtitleSuffixStyle: TextStyle
     public let subtitleTagType: TitleTagType
     public let subtitleExtra: String?
     public let subtitleStyleExtra: TextStyle
@@ -70,6 +72,8 @@ public struct ListItemModel {
         subtitle: String? = nil,
         subtitleStyle: TextStyle = StyleDefaults.subtitleStyle,
         subtitleLineLimit: Int? = 1,
+        subtitleSuffix: String? = nil,
+        subtitleSuffixStyle: TextStyle = StyleDefaults.subtitleStyle,
         subtitleTagType: TitleTagType = .none,
         subtitleExtra: String? = nil,
         subtitleStyleExtra: TextStyle = StyleDefaults.subtitleExtraStyle,
@@ -91,6 +95,8 @@ public struct ListItemModel {
         self.subtitle = subtitle
         self.subtitleStyle = subtitleStyle
         self.subtitleLineLimit = subtitleLineLimit
+        self.subtitleSuffix = subtitleSuffix
+        self.subtitleSuffixStyle = subtitleSuffixStyle
         self.subtitleTagType = subtitleTagType
         self.subtitleExtra = subtitleExtra
         self.subtitleStyleExtra = subtitleStyleExtra
@@ -114,6 +120,10 @@ public struct ListItemModel {
 
     public var subtitleTextValue: TextValue? {
         subtitle.map { TextValue(text: $0, style: subtitleStyle, lineLimit: subtitleLineLimit) }
+    }
+
+    public var subtitleSuffixTextValue: TextValue? {
+        subtitleSuffix.map { TextValue(text: $0, style: subtitleSuffixStyle, lineLimit: 1) }
     }
 
     public var subtitleExtraTextValue: TextValue? {

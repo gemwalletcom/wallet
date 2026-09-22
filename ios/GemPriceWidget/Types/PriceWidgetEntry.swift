@@ -59,7 +59,7 @@ private extension CoinPrice {
             symbol: symbol,
             priceText: price.formatted(.currency(code: "USD").precision(.fractionLength(2))),
             changeText: PercentFormatter().string(change),
-            changeIsPositive: change >= 0,
+            changeTone: WidgetValueTone(change: change),
             image: Images.name(chain.rawValue),
         )
     }

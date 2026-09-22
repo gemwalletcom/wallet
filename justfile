@@ -80,5 +80,11 @@ check-mappers:
 check-docs:
     @python3 ./scripts/check-docs-links.py
 
+check-ffi:
+    @python3 ./scripts/check-ffi-surface.py
+
+check-boundaries:
+    @python3 ./scripts/check-boundaries.py
+
 bump TARGET="patch":
     @bash ./scripts/bump.sh {{TARGET}}

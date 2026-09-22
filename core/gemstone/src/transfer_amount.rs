@@ -19,6 +19,7 @@ pub(crate) struct GemTransferAmountInput {
     pub(crate) fee_asset_balance: GemBigInt,
     pub(crate) fee: GemBigInt,
     pub(crate) is_max_amount: bool,
+    pub(crate) destination_account_exists: Option<bool>,
 }
 
 impl From<GemTransferAmountInput> for TransferAmountInput {
@@ -31,6 +32,7 @@ impl From<GemTransferAmountInput> for TransferAmountInput {
             fee_asset_balance: value.fee_asset_balance,
             fee: value.fee,
             is_max_amount: value.is_max_amount,
+            destination_account_exists: value.destination_account_exists,
         }
     }
 }

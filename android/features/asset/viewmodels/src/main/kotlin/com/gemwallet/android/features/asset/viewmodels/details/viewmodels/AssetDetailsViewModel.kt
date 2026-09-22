@@ -65,6 +65,7 @@ import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPriceAlertToggle
 import uniffi.gemstone.GemRefreshKind
+import uniffi.gemstone.loadError
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -123,7 +124,7 @@ class AssetDetailsViewModel @Inject constructor(
     }
 
     val transactionsErrorRow: StateFlow<GemListRow?> = combine(transactionsState, transactions) { state, items ->
-        (state as? GemLoadState.Error)?.takeIf { items.isEmpty() }?.let { GemListRow.Error(it.error) }
+        loadError(state, items.isNotEmpty())?.let { GemListRow.Error(it) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val banners = chainAssetInfo.filterNotNull()

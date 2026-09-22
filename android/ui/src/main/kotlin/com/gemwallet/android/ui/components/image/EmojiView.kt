@@ -1,6 +1,7 @@
 package com.gemwallet.android.ui.components.image
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
@@ -12,10 +13,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 
 @Composable
-fun EmojiView(emoji: String, modifier: Modifier = Modifier, background: Color, scale: Float) {
+fun EmojiView(emoji: String, modifier: Modifier = Modifier, background: Color, scale: Float, onClick: (() -> Unit)? = null) {
+    val press = if (onClick == null) Modifier else Modifier.clickable(onClick = onClick)
     BoxWithConstraints(
         modifier = modifier
             .clip(CircleShape)
+            .then(press)
             .background(background),
         contentAlignment = Alignment.Center,
     ) {

@@ -17,26 +17,29 @@ import Testing
 @MainActor
 struct ImportWalletSceneViewModelTests {
     @Test
-    func existingImportSetsCurrentWallet() async throws {
+    func importActivatesTheWalletItStored() async throws {
         let db = DB.mockWithChains([.ethereum])
         let sessionStore = GemstoneWalletSessionStore.mock()
         let session = GemWalletSessionService.mock(store: WalletStore.mock(db: db), sessionStore: sessionStore)
         let service = GemWalletService.mock(db: db, sessionStore: sessionStore)
 
         let walletA = try await service.importWallet(
-            name: "Wallet A",
-            type: .singlePhrase(words: LocalKeystore.words, chain: Primitives.Chain.ethereum.toGem()),
+            kind: .phrase,
+            chain: .ethereum,
+            input: LocalKeystore.words.joined(separator: " "),
+            nameRecord: .none,
             source: .import,
-        ).wallet
+        ).wallet().toPrimitives()
 
         let walletB = try await service.importWallet(
-            name: "Wallet B",
-            type: .singlePhrase(words: service.createWallet(), chain: Primitives.Chain.ethereum.toGem()),
+            kind: .phrase,
+            chain: .ethereum,
+            input: service.createWallet().joined(separator: " "),
+            nameRecord: .none,
             source: .import,
-        ).wallet
-        try await session.setCurrent(wallet: walletB)
+        ).wallet().toPrimitives()
 
-        #expect(session.currentWalletId == walletB.id)
+        #expect(session.currentWalletId == walletB.id, "an import needs no second call to become current")
 
         let model = ImportWalletSceneViewModel.mock(service: service)
         model.input = LocalKeystore.words.joined(separator: " ")

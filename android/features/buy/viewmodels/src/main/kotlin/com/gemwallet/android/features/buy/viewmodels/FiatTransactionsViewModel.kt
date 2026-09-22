@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.GemFiatQuoteServiceInterface
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLoadState
+import uniffi.gemstone.loadError
 import javax.inject.Inject
 
 @HiltViewModel
@@ -40,7 +41,7 @@ class FiatTransactionsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val errorRow: StateFlow<GemListRow?> = combine(loadState, transactions) { state, items ->
-        (state as? GemLoadState.Error)?.takeIf { items.isEmpty() }?.let { GemListRow.Error(it.error) }
+        loadError(state, items.isNotEmpty())?.let { GemListRow.Error(it) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     init {

@@ -1,21 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemConfirmHeader
 import Primitives
 import PrimitivesComponents
 
 struct ConfirmHeaderViewModel {
-    private let request: ConfirmTransferRequest
-    private let state: ConfirmTransferState
+    private let header: GemConfirmHeader
     private let currency: Currency
 
-    init(
-        request: ConfirmTransferRequest,
-        state: ConfirmTransferState,
-        currency: Currency,
-    ) {
-        self.request = request
-        self.state = state
+    init(header: GemConfirmHeader, currency: Currency) {
+        self.header = header
         self.currency = currency
     }
 }
@@ -46,27 +41,13 @@ extension TransactionHeaderType {
 
 private extension ConfirmHeaderViewModel {
     var headerType: TransactionHeaderType {
-        if let headerData = state.simulation.headerData {
-            return .assetValue(AssetValueHeaderViewModel(data: headerData))
+        switch header {
+        case let .value(value):
+            .assetValue(AssetValueHeaderViewModel(data: value))
+        case let .placeholder(assetId):
+            .assetValue(AssetValueHeaderPlaceholder(assetImage: AssetIdViewModel(assetId: AssetId(core: assetId)).assetImage))
+        case let .transaction(header):
+            header.headerType(currency: currency)
         }
-
-        if case let .tokenApprove(asset, _) = request.data.inputType {
-            return .asset(image: AssetViewModel(asset: asset.toPrimitives()).assetImage)
-        }
-
-        if case .generic = request.data.inputType,
-           let header = request.simulation?.header
-        {
-            return .asset(image: AssetIdViewModel(assetId: AssetId(core: header.assetId)).assetImage)
-        }
-
-        return TransactionInputViewModel(
-            data: request.data,
-            fee: state.fee,
-            metaData: state.metadata,
-            transferAmount: state.transferAmount,
-            feeAsset: state.feeAsset,
-            currency: currency.rawValue,
-        ).headerType
     }
 }

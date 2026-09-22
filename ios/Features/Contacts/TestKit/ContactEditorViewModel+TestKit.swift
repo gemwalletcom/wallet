@@ -2,6 +2,7 @@
 
 import Contacts
 import GemstonePrimitivesTestKit
+import GemstoneServicesTestKit
 
 public extension ContactEditorViewModel {
     @MainActor

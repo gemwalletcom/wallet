@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemSubmitResult
 import enum Gemstone.TransactionInputType
 import GemstonePrimitives
 import Localization
@@ -8,6 +9,13 @@ import Primitives
 import Style
 
 public extension ToastMessage {
+    static func transfer(_ result: GemSubmitResult, for type: TransactionInputType) -> ToastMessage? {
+        switch result {
+        case let .sent(_, warning?), let .signed(_, warning?): .error(warning.text)
+        case .sent, .signed: transfer(for: type)
+        }
+    }
+
     static func transfer(for type: TransactionInputType) -> ToastMessage? {
         guard case let .perpetual(_, perpetualType) = type else {
             return nil

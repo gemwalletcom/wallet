@@ -13,6 +13,7 @@ pub enum TransferAmountError {
     InsufficientBalance { asset_id: AssetId, required: BigInt, available: BigInt },
     InsufficientNetworkFee { asset_id: AssetId, required: BigInt, available: BigInt },
     MinimumAccountBalanceTooLow { asset_id: AssetId, required: BigInt, available: BigInt },
+    DestinationAccountActivation { asset_id: AssetId, required: BigInt, value: BigInt },
     BelowSwapMinimum { asset_id: AssetId, provider: SwapProvider, minimum: BigInt, value: BigInt },
 }
 
@@ -27,6 +28,9 @@ impl std::fmt::Display for TransferAmountError {
             }
             Self::MinimumAccountBalanceTooLow { asset_id, required, available } => {
                 write!(f, "{} account balance below minimum: required {}, remaining {}", asset_id, required, available)
+            }
+            Self::DestinationAccountActivation { asset_id, required, value } => {
+                write!(f, "{asset_id} destination activation below minimum: required {required}, value {value}")
             }
             Self::BelowSwapMinimum { asset_id, provider, minimum, value } => {
                 write!(f, "{} amount {} is below the {} minimum {}", asset_id, value, provider.name(), minimum)
@@ -61,6 +65,10 @@ impl TransferAmountError {
             available,
         }
     }
+
+    fn destination_account_activation(asset_id: &AssetId, required: BigInt, value: BigInt) -> Self {
+        Self::DestinationAccountActivation { asset_id: asset_id.clone(), required, value }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -72,12 +80,13 @@ pub struct TransferAmountInput {
     pub fee_asset_balance: BigInt,
     pub fee: BigInt,
     pub is_max_amount: bool,
+    pub destination_account_exists: Option<bool>,
 }
 
 impl TransactionInputType {
     pub fn spends_balance(&self) -> bool {
         match self {
-            Self::Transfer { .. } | Self::Withdrawal { .. } | Self::Deposit { .. } | Self::Swap { .. } | Self::Generic { .. } => true,
+            Self::Transfer { .. } | Self::Withdrawal { .. } | Self::Deposit { .. } | Self::Swap { .. } | Self::Generic { .. } | Self::Payment { .. } => true,
             Self::Stake { stake_type, .. } => match stake_type {
                 StakeType::Stake(_) | StakeType::Freeze(_) => true,
                 StakeType::Unstake(_) | StakeType::Unfreeze(_) | StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Withdraw(_) => false,
@@ -130,6 +139,15 @@ impl TransferAmountInput {
             && remaining_balance < *minimum
         {
             return Err(TransferAmountError::minimum_account_balance_too_low(&asset.id, minimum.clone(), remaining_balance));
+        }
+
+        if let Some(minimum) = asset.chain().account_activation_fee().map(BigInt::from)
+            && self.destination_account_exists == Some(false)
+            && asset.asset_type == AssetType::NATIVE
+            && matches!(self.input_type, TransactionInputType::Transfer { .. } | TransactionInputType::Payment { .. })
+            && value < minimum
+        {
+            return Err(TransferAmountError::destination_account_activation(&asset.id, minimum, value));
         }
 
         if let Ok(swap_data) = self.input_type.get_swap_data()
@@ -543,6 +561,45 @@ mod tests {
             5_000_000,
         );
         assert!(activate.calculate().is_ok());
+    }
+
+    #[test]
+    fn test_calculate_destination_account_activation() {
+        let asset = Asset::from_chain(Chain::Xrp);
+        let xrp = TransactionInputType::Transfer { asset: asset.clone() };
+        let mut missing = TransferAmountInput::mock(xrp.clone(), 500_000, 5_000_000, 5_000_000);
+        missing.destination_account_exists = Some(false);
+        assert_eq!(
+            missing.calculate().unwrap_err(),
+            TransferAmountError::DestinationAccountActivation {
+                asset_id: asset.id,
+                required: BigInt::from(1_000_000),
+                value: BigInt::from(500_000),
+            }
+        );
+
+        let mut enough = TransferAmountInput::mock(xrp.clone(), 1_000_000, 5_000_000, 5_000_000);
+        enough.destination_account_exists = Some(false);
+        assert!(enough.calculate().is_ok());
+
+        let mut exists = TransferAmountInput::mock(xrp, 500_000, 5_000_000, 5_000_000);
+        exists.destination_account_exists = Some(true);
+        assert!(exists.calculate().is_ok());
+
+        let mut stellar = TransferAmountInput::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Stellar) }, 5_000_000, 20_000_000, 20_000_000);
+        stellar.destination_account_exists = Some(false);
+        assert_eq!(
+            stellar.calculate().unwrap_err(),
+            TransferAmountError::DestinationAccountActivation {
+                asset_id: Asset::from_chain(Chain::Stellar).id,
+                required: BigInt::from(10_000_000),
+                value: BigInt::from(5_000_000),
+            }
+        );
+
+        let mut ethereum = TransferAmountInput::mock(TransactionInputType::Transfer { asset: Asset::mock() }, 1, 100_000, 100_000);
+        ethereum.destination_account_exists = Some(false);
+        assert!(ethereum.calculate().is_ok());
     }
 
     #[test]

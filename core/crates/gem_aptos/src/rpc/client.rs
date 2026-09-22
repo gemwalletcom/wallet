@@ -117,7 +117,7 @@ impl<C: Client> AptosClient<C> {
                 let payload = payload.ok_or("Unsupported Aptos stake type")?;
                 self.simulate_transaction(&input.sender_address, sequence, payload, &input.gas_price.gas_price().to_string()).await
             }
-            TransactionInputType::Generic { .. } => Ok(DEFAULT_MAX_GAS_AMOUNT),
+            TransactionInputType::Generic { .. } | TransactionInputType::Payment { .. } => Ok(DEFAULT_MAX_GAS_AMOUNT),
             TransactionInputType::TokenApprove { .. } | TransactionInputType::Perpetual { .. } | TransactionInputType::Earn { .. } => Err("Unsupported Aptos transaction type".into()),
         }
     }

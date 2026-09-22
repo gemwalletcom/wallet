@@ -110,6 +110,8 @@
   <string name="buy_rate">Rate</string>
   <string name="buy_no_results">Babu abin da ake so</string>
   <string name="transfer_network_fee">Kudin hanyar sadarwa</string>
+  <string name="transfer_pay_with">Biya da</string>
+  <string name="transfer_payment_title">Biyan kuɗi</string>
   <string name="transfer_memo">Memo</string>
   <string name="transfer_confirm">Tabbatar</string>
   <string name="transfer_from">Daga</string>
@@ -135,6 +137,7 @@
   <string name="transfer_recipient_my_wallets">Wallets dina</string>
   <string name="transfer_recipient_view_wallets">Duba Wallet</string>
   <string name="transfer_minimum_account_balance">Mafi ƙarancin ma\'auni %1$s dole ne ya kasance bayan wannan, sai dai idan kuna amfani da cikakken ma\'aunin ku.</string>
+  <string name="transfer_destination_account_activation">Adireshin makoma yana buƙatar mafi ƙarancin %1$s.</string>
   <string name="transfer_smart_contract_title">Kwangilar Smart</string>
   <string name="transfer_other_title">Sauran</string>
   <string name="transfer_maximum_amount">Matsakaicin adadin shine %1$s</string>
@@ -223,6 +226,7 @@
   <string name="errors_no_internet_connection">Babu haɗin intanet</string>
   <string name="errors_no_service_connection">Babu haɗin sabis</string>
   <string name="errors_balances_activity_outdated">Ma\'aunai da ayyuka na iya zama tsofaffi.</string>
+  <string name="errors_payment_status">Biyan kuɗi: %1$s</string>
   <string name="activity_title">Ayyuka</string>
   <string name="activity_state_empty_title">Ayyukanku za su bayyana a nan</string>
   <string name="activity_state_empty_description">Yi ciniki na farko</string>
@@ -250,6 +254,7 @@
   <string name="transaction_status_completed">An kammala</string>
   <string name="transaction_status_inprogress">Ana ci gaba</string>
   <string name="transaction_status_refunded">An mayar da kuɗi</string>
+  <string name="transaction_status_expired">Ya ƙare</string>
   <string name="asset_balances">Ma\'auni</string>
   <string name="asset_balances_available">Akwai</string>
   <string name="asset_price">Farashin</string>
@@ -436,6 +441,8 @@
   <string name="info_network_fee_title">Kudin hanyar sadarwa</string>
   <string name="info_watch_wallet_title">Kalli Wallet</string>
   <string name="info_watch_wallet_description">Wallet wanda ba ku da damar yin amfani da shi, amma kuna iya kallon ma\'amaloli da motsinsa.</string>
+  <string name="info_payment_verification_title">Tabbatar da biyan kuɗi</string>
+  <string name="info_payment_verification_description">Ɗan kasuwa yana buƙatar ƙarin bayani kafin biyan kuɗi.</string>
   <string name="info_network_fee_description">Kowace ciniki akan hanyar sadarwar %1$s tana buƙatar kuɗi a cikin %2$s da aka biya ga masu hakar ma\'adinai don aiwatar da kasuwancin ku, ba Gem Wallet ba. Kudaden hanyar sadarwa sun bambanta dangane da amfani da hanyar sadarwa.</string>
   <string name="info_transaction_error_description">Ba za a iya kammala cinikin ba saboda kuskure, kamar rashin isassun kuɗi, shigarwa mara inganci, ko kin amincewa da hanyar sadarwa. Da fatan za a sake nazarin cikakkun bayanai kuma a sake gwadawa.</string>
   <string name="info_transaction_pending_description">An ƙaddamar da ma\'amala kuma yana jiran tabbaci akan hanyar sadarwar. Lokutan sarrafawa na iya bambanta. Da fatan za a duba baya don sabuntawa.</string>

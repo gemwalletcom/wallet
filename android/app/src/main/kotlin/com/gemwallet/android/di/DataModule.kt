@@ -25,6 +25,7 @@ import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemNameService
 import uniffi.gemstone.GemNodeService
+import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPriceAlertService
@@ -93,6 +94,7 @@ object DataModule {
         passwordStore: PasswordStore,
         recentActivity: GemRecentActivityService,
         preferencesService: GemPreferencesService,
+        paymentService: GemPaymentService,
     ): GemConfirmTransferService = GemConfirmTransferService(
         confirmService as GemConfirmService,
         explorerService,
@@ -102,6 +104,7 @@ object DataModule {
         GemstoneKeystorePassword(passwordStore),
         recentActivity,
         preferencesService,
+        paymentService,
     )
 
     @Provides

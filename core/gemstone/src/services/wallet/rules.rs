@@ -87,8 +87,8 @@ pub fn import_request(kind: GemWalletImportKind, chain: Option<Chain>, input: &s
     }
 }
 
-pub fn import_name(name_record: Option<&NameRecord>, default_name: String) -> String {
-    name_record.map(|record| record.name.trim()).filter(|name| !name.is_empty()).map(str::to_string).unwrap_or(default_name)
+pub fn import_name(name_record: Option<&NameRecord>, default_name: &str) -> String {
+    name_record.map(|record| record.name.trim()).filter(|name| !name.is_empty()).unwrap_or(default_name.trim()).to_string()
 }
 
 fn validated_words(words: Vec<String>) -> Result<Vec<String>, GemWalletImportError> {
@@ -345,9 +345,10 @@ mod tests {
 
     #[test]
     fn test_import_name_uses_the_resolved_name_unless_it_is_blank() {
-        assert_eq!(import_name(Some(&NameRecord::mock("vitalik.eth", "0x1")), "Wallet #2".to_string()), "vitalik.eth");
-        assert_eq!(import_name(Some(&NameRecord::mock("  ", "0x1")), "Wallet #2".to_string()), "Wallet #2");
-        assert_eq!(import_name(None, "Wallet #2".to_string()), "Wallet #2");
+        assert_eq!(import_name(Some(&NameRecord::mock("vitalik.eth", "0x1")), "Wallet #2"), "vitalik.eth");
+        assert_eq!(import_name(Some(&NameRecord::mock("  ", "0x1")), "Wallet #2"), "Wallet #2");
+        assert_eq!(import_name(None, "Wallet #2"), "Wallet #2");
+        assert_eq!(import_name(None, "  "), "", "a blank default name is never stored as a wallet name");
     }
 
     const PHRASE: &str = "test test test test test test test test test test test junk";
