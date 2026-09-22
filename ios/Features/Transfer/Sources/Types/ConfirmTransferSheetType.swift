@@ -10,7 +10,6 @@ public enum ConfirmTransferSheetType: Identifiable, Sendable {
     case info(InfoSheetType)
     case networkFeeSelector
     case payloadDetails
-    case url(URL)
     case fiatConnect(assetAddress: AssetAddress, wallet: Wallet, amount: Int?)
     case getAsset(Asset, buyAmount: Int?)
     case selectedAsset(SelectedAssetInput, wallet: Wallet)
@@ -21,7 +20,6 @@ public enum ConfirmTransferSheetType: Identifiable, Sendable {
     public var id: String {
         switch self {
         case let .info(type): "info-\(type.id)"
-        case let .url(url): "url-\(url)"
         case .networkFeeSelector: "network-fee-selector"
         case .payloadDetails: "payload-details"
         case .fiatConnect: "fiat-connect"

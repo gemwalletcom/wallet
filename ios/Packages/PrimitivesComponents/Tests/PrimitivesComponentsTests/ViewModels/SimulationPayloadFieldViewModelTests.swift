@@ -2,32 +2,30 @@
 
 import Formatters
 import Foundation
+import func Gemstone.addressCopy
 import struct Gemstone.GemSimulationPayloadRow
 import enum Gemstone.GemSimulationPayloadTitle
+import GemstonePrimitives
 import Localization
+import Primitives
 import PrimitivesComponents
+import PrimitivesTestKit
 import Testing
 
 struct SimulationPayloadFieldViewModelTests {
     private let address = "0x2Df1c51E09aECF9cacB7bc98cB1742757f163dF7"
 
     @Test
-    func addressRowShowsItsDisplayAndOffersCopyAndExplorer() {
+    func addressRowShowsItsDisplay() {
         let viewModel = SimulationPayloadFieldViewModel(
-            row: GemSimulationPayloadRow(title: .spender, value: .address(display: "Hyperliquid (0x2Df1...3dF7)", address: address)),
-            explorerItem: .url(title: "Etherscan", onOpen: {}),
+            row: GemSimulationPayloadRow(
+                title: .spender,
+                value: .address(display: "Hyperliquid (0x2Df1...3dF7)", copy: addressCopy(chain: Chain.ethereum.rawValue, address: address), explorer: BlockExplorerLink.mock().toGem()),
+            ),
         )
 
         #expect(viewModel.title == Localized.Transfer.to)
         #expect(viewModel.subtitle == "Hyperliquid (0x2Df1...3dF7)")
-        #expect(viewModel.contextMenuItems.count == 2)
-
-        guard case let .copy(_, value, _, _) = viewModel.contextMenuItems[0] else {
-            Issue.record("Expected copy context menu item")
-            return
-        }
-
-        #expect(value == address)
     }
 
     @Test
@@ -38,7 +36,6 @@ struct SimulationPayloadFieldViewModelTests {
 
         #expect(viewModel.title == Localized.Common.expiration)
         #expect(viewModel.subtitle == TransactionDateFormatter(date: Date(timeIntervalSince1970: 1_662_714_817)).row)
-        #expect(viewModel.contextMenuItems.isEmpty)
     }
 
     @Test
@@ -58,7 +55,6 @@ struct SimulationPayloadFieldViewModelTests {
 
         #expect(viewModel.title == "issuedAt")
         #expect(viewModel.subtitle == "Set Approval For All")
-        #expect(viewModel.contextMenuItems.isEmpty)
     }
 
     @Test

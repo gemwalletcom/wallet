@@ -167,7 +167,7 @@ impl GemConfirmTransferService {
             Some(simulation) => self.confirm.ensure_simulation_assets(simulation.asset_ids()).await?,
             None => Vec::new(),
         };
-        let Ok(details) = self.confirm.simulation(input_type, simulation.clone(), assets) else {
+        let Ok(details) = self.confirm.simulation(input_type, simulation.clone(), assets, |chain, address| self.address_url(chain, address)) else {
             return Ok(simulation_seed(chain, simulation));
         };
         let requests = details.address_requests(chain);
@@ -176,7 +176,7 @@ impl GemConfirmTransferService {
             chain,
             warnings: simulation.as_ref().map(|result| warning_rows(&result.warnings)).unwrap_or_default(),
             result: simulation,
-            simulation: Some(details.with_address_names(chain, &address_names)),
+            simulation: Some(details.with_address_names(&address_names)),
         })
     }
 

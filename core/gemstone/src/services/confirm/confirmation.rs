@@ -3,7 +3,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 use futures::lock::Mutex;
 use primitives::currency::Currency;
-use primitives::{AddressName, AssetId, BlockExplorerLink, Chain, PerpetualModifyConfirmData, SimulationResult, Wallet};
+use primitives::{AddressName, AssetId, Chain, PerpetualModifyConfirmData, SimulationResult, Wallet};
 
 use super::error::GemConfirmErrorInfo;
 use super::header::{self, GemConfirmHeader};
@@ -86,10 +86,6 @@ impl GemConfirmation {
 
     pub fn row_contents(&self, address_name: Option<AddressName>) -> Vec<GemConfirmRowContent> {
         self.service.row_contents(self.transfer.clone(), self.wallet.clone(), address_name)
-    }
-
-    pub fn address_url(&self, chain: Chain, address: String) -> BlockExplorerLink {
-        self.service.address_url(chain, address)
     }
 
     pub fn acquire_asset_flow(&self, chain: Chain) -> GemAcquireAssetFlow {

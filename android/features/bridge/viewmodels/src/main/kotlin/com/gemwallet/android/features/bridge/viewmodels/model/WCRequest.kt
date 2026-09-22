@@ -6,8 +6,6 @@ import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ui.components.list_head.SimulationHeaderUIModel
 import com.gemwallet.android.ui.components.list_head.headerUIModel
 import com.gemwallet.android.ui.components.list_item.ListItemModel
-import com.gemwallet.android.ui.models.PayloadField
-import com.gemwallet.android.ui.models.withExplorerLinks
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Chain
@@ -69,13 +67,11 @@ sealed class WCRequest(internal val pending: WalletConnectPendingRequest, privat
         override val header: SimulationHeaderUIModel?
             get() = preview.header?.headerUIModel(context)
 
-        override val primaryPayloadFields: List<PayloadField> by lazy { preview.primaryFields.fields() }
+        override val primaryPayloadFields: List<GemSimulationPayloadRow> get() = preview.primaryFields
 
-        override val secondaryPayloadFields: List<PayloadField> by lazy { preview.secondaryFields.fields() }
+        override val secondaryPayloadFields: List<GemSimulationPayloadRow> get() = preview.secondaryFields
 
         suspend fun withAddressNames(): SignMessage = SignMessage(request, row, service, texts, context, service.withAddressNames(chain.string, preview))
-
-        private fun List<GemSimulationPayloadRow>.fields(): List<PayloadField> = withExplorerLinks(chain) { chain, address -> service.addressUrl(chain.string, address) }
     }
 
     class Transaction(private val request: WalletConnectPendingRequest.Transaction, row: GemConnectionRow) : WCRequest(request, row) {

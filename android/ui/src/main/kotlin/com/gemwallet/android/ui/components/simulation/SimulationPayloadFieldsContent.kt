@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
@@ -15,27 +16,27 @@ import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.format.rowDateFormatter
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.PayloadField
+import uniffi.gemstone.GemSimulationPayloadRow
 import uniffi.gemstone.GemSimulationPayloadValue
 import java.time.ZoneId
 import java.util.Locale
 
-fun LazyListScope.simulationPayloadFieldsContent(fields: List<PayloadField>, onAddressClick: ((String) -> Unit)? = null, onDetailsClick: (() -> Unit)? = null) {
+fun LazyListScope.simulationPayloadFieldsContent(fields: List<GemSimulationPayloadRow>, onAddressClick: ((String) -> Unit)? = null, onDetailsClick: (() -> Unit)? = null) {
     if (fields.isEmpty() && onDetailsClick == null) {
         return
     }
     val totalItems = fields.size + if (onDetailsClick != null) 1 else 0
-    itemsIndexed(fields) { index, payload ->
+    itemsIndexed(fields) { index, row ->
         val listPosition = ListPosition.getPosition(index, totalItems)
-        val title = payload.row.title.text(LocalContext.current)
-        when (val value = payload.row.value) {
+        val title = row.title.text(LocalContext.current)
+        when (val value = row.value) {
             is GemSimulationPayloadValue.Address -> AddressPropertyItem(
                 title = title,
                 displayText = value.display,
-                copyValue = value.address,
-                explorerLink = payload.explorerLink,
+                copyValue = value.copy.value,
+                explorerLink = value.explorer.toPrimitives(),
                 listPosition = listPosition,
-                onClick = onAddressClick?.let { click -> { click(value.address) } },
+                onClick = onAddressClick?.let { click -> { click(value.copy.value) } },
             )
 
             is GemSimulationPayloadValue.Text -> ListItem(
@@ -61,7 +62,7 @@ fun LazyListScope.simulationPayloadFieldsContent(fields: List<PayloadField>, onA
     }
 }
 
-fun LazyListScope.simulationPayloadDetailsContent(primaryFields: List<PayloadField>, secondaryFields: List<PayloadField>, onAddressClick: ((String) -> Unit)? = null) {
+fun LazyListScope.simulationPayloadDetailsContent(primaryFields: List<GemSimulationPayloadRow>, secondaryFields: List<GemSimulationPayloadRow>, onAddressClick: ((String) -> Unit)? = null) {
     simulationPayloadFieldsContent(primaryFields, onAddressClick = onAddressClick)
     if (secondaryFields.isNotEmpty()) {
         item { SubheaderItem(R.string.common_details) }

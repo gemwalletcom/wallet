@@ -109,6 +109,7 @@ class WCAuthViewModelTest {
         approveWalletConnectAuthentication = approve,
         activeRequest = ActiveWalletConnectRequest(events = emptyFlow()),
         walletConnectService = service,
+        signMessageService = mockk { every { payloadPreview(any()) } returns null },
         metadataService = metadataService(),
         ioDispatcher = dispatcher,
         context = mockk(relaxed = true) {

@@ -21,7 +21,7 @@ use super::{
 };
 use crate::{GemstoneError, keystore::GemKeystore, siwe::SiweMessage};
 use gem_tron::signer::tron_hash_message;
-use primitives::{Chain, ChainSigner, SimulationPayloadField};
+use primitives::{BlockExplorerLink, Chain, ChainSigner, SimulationPayloadField};
 use std::sync::Arc;
 use zeroize::Zeroizing;
 
@@ -42,21 +42,19 @@ pub enum MessagePreview {
     Siwe(SiweMessage),
 }
 
-#[derive(Debug, uniffi::Object)]
+#[derive(Debug)]
 pub struct MessageSigner {
     pub message: SignMessage,
     timestamp: u64,
 }
 
-#[uniffi::export]
 impl MessageSigner {
-    #[uniffi::constructor]
     pub fn new(message: SignMessage) -> Self {
         let timestamp = unix_seconds().unwrap_or(0);
         Self { message, timestamp }
     }
 
-    pub fn payload_preview(&self, simulation_payload: Vec<SimulationPayloadField>) -> Result<Option<MessagePayloadPreview>, GemstoneError> {
+    pub fn payload_preview(&self, simulation_payload: Vec<SimulationPayloadField>, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> Result<Option<MessagePayloadPreview>, GemstoneError> {
         let payload_preview = match self.preview()? {
             MessagePreview::Text(_) => match self.message.sign_type {
                 SignDigestType::Eip191 | SignDigestType::Siwe => self.siwe_payload_preview(simulation_payload),
@@ -67,7 +65,7 @@ impl MessageSigner {
             MessagePreview::Siwe(message) => Some(MessagePayloadFields::from_siwe(&message, simulation_payload)),
         };
 
-        Ok(payload_preview.map(|fields| fields.rows(self.message.chain)))
+        Ok(payload_preview.map(|fields| fields.rows(self.message.chain, address_url)))
     }
 
     fn hash(&self) -> Result<Vec<u8>, GemstoneError> {
@@ -240,6 +238,13 @@ mod tests {
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use signer::Ed25519KeyPair;
 
+    fn explorer_link(chain: Chain, address: String) -> BlockExplorerLink {
+        BlockExplorerLink {
+            name: "Explorer".to_string(),
+            link: format!("https://explorer.test/{chain}/{address}"),
+        }
+    }
+
     #[test]
     fn test_eip712_chain_signer_matches_message_signer() {
         let json = include_str!("./test/eip712_seaport.json");
@@ -403,7 +408,7 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
 
         assert_eq!(hex::encode(&hash), "5468697320697320616e206578616d706c65206d65737361676520746f206265207369676e6564202d2031373437313235373539303630");
 
-        assert_eq!(decoder.payload_preview(vec![]).unwrap(), None);
+        assert_eq!(decoder.payload_preview(vec![], explorer_link).unwrap(), None);
 
         let result_data = b"StV1DL6CwTryKyV"; // Data to pass to get_result, mimicking Swift test
         let result = decoder.get_result(result_data);
@@ -424,7 +429,7 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
         assert_eq!(decoder.preview().unwrap(), MessagePreview::Text(message.to_string()));
         assert_eq!(decoder.plain_preview(), message);
         assert_eq!(decoder.hash().unwrap(), message.as_bytes());
-        assert_eq!(decoder.payload_preview(vec![]).unwrap().unwrap().message_type, MessageType::Siws);
+        assert_eq!(decoder.payload_preview(vec![], explorer_link).unwrap().unwrap().message_type, MessageType::Siws);
         assert_eq!(decoder.sign(Zeroizing::new(TEST_PRIVATE_KEY.to_vec())).unwrap(), bs58::encode(key_pair.sign(message.as_bytes())).into_string(),);
     }
 
@@ -437,7 +442,7 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
             data: bs58::encode(message.as_bytes()).into_string().into_bytes(),
         });
 
-        assert!(decoder.payload_preview(vec![]).is_err());
+        assert!(decoder.payload_preview(vec![], explorer_link).is_err());
         assert_eq!(decoder.preview().unwrap(), MessagePreview::Text(message.clone()));
         assert_eq!(decoder.hash().unwrap(), message.as_bytes());
     }
@@ -699,7 +704,7 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
             data: message.as_bytes().to_vec(),
         });
 
-        let payload_preview = decoder.payload_preview(vec![]).unwrap().expect("expected SIWE payload preview");
+        let payload_preview = decoder.payload_preview(vec![], explorer_link).unwrap().expect("expected SIWE payload preview");
         assert_eq!(payload_preview.message_type, MessageType::Siwe);
         assert_eq!(payload_preview.primary.len(), 2);
         assert_eq!(payload_preview.primary[0].title, GemSimulationPayloadTitle::Custom { label: "domain".to_string() });

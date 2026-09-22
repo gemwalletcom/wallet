@@ -23,8 +23,6 @@ struct ConfirmTransferNavigationView: View {
                 switch $0 {
                 case let .info(type):
                     InfoSheetScene(type: type)
-                case let .url(url):
-                    SFSafariView(url: url)
                 case .networkFeeSelector:
                     NetworkFeeSheet(model: model.feeModel)
                 case .payloadDetails:

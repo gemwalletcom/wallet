@@ -14,8 +14,10 @@ public struct SimulationPayloadFieldsContent: View {
     public var body: some View {
         ForEach(Array(models.enumerated()), id: \.offset) {
             let model = $0.element
-            row(model)
-                .contextMenu(model.contextMenuItems)
+            switch model.kind {
+            case let .address(context): row(model).explorerContext(context)
+            case .plain: row(model)
+            }
         }
     }
 

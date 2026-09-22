@@ -65,7 +65,6 @@ public struct SignMessageScene: View {
         }
         .navigationTitle(model.title)
         .alertSheet($model.isPresentingAlertMessage)
-        .safariSheet(url: $model.isPresentingUrl)
     }
 
     func sign() {

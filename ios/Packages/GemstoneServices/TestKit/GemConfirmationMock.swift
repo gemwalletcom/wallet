@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 public import struct Gemstone.AddressName
-public import struct Gemstone.BlockExplorerLink
 public import typealias Gemstone.Chain
 public import typealias Gemstone.Currency
 public import enum Gemstone.GemAcquireAssetFlow
@@ -79,10 +78,6 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
 
     public func authentication() -> GemKeystoreAuthentication {
         authenticationValue
-    }
-
-    public func addressUrl(chain: Chain, address: String) -> BlockExplorerLink {
-        BlockExplorerLink(name: "Explorer", link: "https://explorer.test/\(chain)/\(address)")
     }
 
     public func rowContents(addressName: Gemstone.AddressName?) -> [GemConfirmRowContent] {
