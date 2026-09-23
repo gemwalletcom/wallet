@@ -33,7 +33,6 @@ public final class SwapDetailsViewModel {
     private let currency: String
     let allowSelectProvider: Bool
     private let minReceiveValue: BigInt
-    private let etaSeconds: UInt32?
     private let swapProviderSelectAction: ((SwapProvider) -> Void)?
 
     public init(
@@ -57,7 +56,6 @@ public final class SwapDetailsViewModel {
         self.currency = currency
         self.allowSelectProvider = allowSelectProvider
         minReceiveValue = BigInt(summary.minReceiveValue)
-        etaSeconds = summary.quote.etaInSeconds
         self.swapProviderSelectAction = swapProviderSelectAction
     }
 

@@ -81,7 +81,7 @@ where
                 slippage_bps: request.options.slippage.bps,
             },
             request: request.clone(),
-            eta_in_seconds: Some(0),
+            eta_in_seconds: None,
         })
     }
 

@@ -111,7 +111,7 @@ extension TransactionSceneViewModel: ListSectionProvideable {
         return .swapProgress(TransactionSwapProgressItemModel(
             transfer: .init(title: Localized.Transfer.title, subtitle: progress.transferText(formattedValue: amount), state: progress.transfer),
             swap: .init(title: Localized.Wallet.swap, subtitle: progress.providerName, state: progress.swap),
-            estimatedTime: progress.etaSeconds.map { EstimatedConfirmationFormatter().string(seconds: $0) },
+            estimatedTime: progress.etaSeconds.flatMap { EstimatedConfirmationFormatter().string(seconds: $0) },
         ))
     }
 

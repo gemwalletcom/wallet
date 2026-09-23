@@ -315,9 +315,9 @@ pub fn stake_info_rows(asset: &Asset, staking_apr: Option<f64>) -> Vec<GemListRo
             amount: GemFormattedNumber::percentage(apr, GemPercentageStyle::Unsigned).toned(),
             info: Some(GemInfoTopic::StakeApr),
         }),
-        (lock_time_seconds(chain) > 0).then(|| GemListRow::Duration {
+        lock_time_parts(chain).map(|parts| GemListRow::Duration {
             title: GemListRowTitle::LockTime,
-            parts: lock_time_parts(chain),
+            parts,
             info: Some(GemInfoTopic::StakeLockTime),
             estimate: false,
         }),
@@ -352,12 +352,9 @@ pub fn delegation_rows(delegation: &Delegation, now: DateTime<Utc>) -> Vec<GemLi
             info: None,
             progress: false,
         }),
-        completion_title(delegation).map(|title| GemListRow::Duration {
-            title,
-            parts: completion_countdown_parts(delegation, now),
-            info: None,
-            estimate: false,
-        }),
+        completion_title(delegation)
+            .zip(completion_countdown_parts(delegation, now))
+            .map(|(title, parts)| GemListRow::Duration { title, parts, info: None, estimate: false }),
     ]
     .into_iter()
     .flatten()
@@ -389,19 +386,13 @@ fn lock_time_seconds(chain: Chain) -> u64 {
     stake_config(chain).map(|config| config.time_lock).unwrap_or_default()
 }
 
-fn lock_time_parts(chain: Chain) -> Vec<GemDurationPart> {
+fn lock_time_parts(chain: Chain) -> Option<Vec<GemDurationPart>> {
     day_parts(lock_time_seconds(chain) as i64)
 }
 
-fn completion_countdown_parts(delegation: &Delegation, now: DateTime<Utc>) -> Vec<GemDurationPart> {
-    let Some(completion_date) = delegation.base.completion_date else {
-        return vec![];
-    };
-    let remaining = (completion_date - now).num_seconds();
-    if remaining <= 0 {
-        return vec![];
-    }
-    countdown_parts(remaining)
+fn completion_countdown_parts(delegation: &Delegation, now: DateTime<Utc>) -> Option<Vec<GemDurationPart>> {
+    let remaining = (delegation.base.completion_date? - now).num_seconds();
+    (remaining > 0).then(|| countdown_parts(remaining))
 }
 
 fn min_stake_amount(chain: Chain) -> BigInt {
@@ -970,7 +961,7 @@ mod tests {
             rows[1],
             GemListRow::Duration {
                 title: GemListRowTitle::LockTime,
-                parts: lock_time_parts(Chain::Tron),
+                parts: lock_time_parts(Chain::Tron).unwrap(),
                 info: Some(GemInfoTopic::StakeLockTime),
                 estimate: false,
             }
@@ -1082,11 +1073,12 @@ mod tests {
     fn test_the_lock_time_reads_as_whole_days() {
         assert_eq!(
             lock_time_parts(Chain::Cosmos),
-            vec![GemDurationPart {
+            Some(vec![GemDurationPart {
                 value: (lock_time_seconds(Chain::Cosmos) / 86_400) as i64,
                 unit: GemDurationUnit::Day
-            }]
+            }])
         );
+        assert_eq!(lock_time_parts(Chain::Bitcoin), None);
     }
 
     #[test]
@@ -1095,9 +1087,13 @@ mod tests {
         let mut pending = Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Deactivating, 0);
         pending.base.completion_date = Some(now + Duration::days(2));
 
-        assert_eq!(completion_countdown_parts(&pending, now).first().map(|part| (part.value, part.unit)), Some((2, GemDurationUnit::Day)));
+        assert_eq!(completion_countdown_parts(&pending, now).and_then(|parts| parts.first().map(|part| (part.value, part.unit))), Some((2, GemDurationUnit::Day)));
         pending.base.completion_date = Some(now - Duration::hours(1));
-        assert!(completion_countdown_parts(&pending, now).is_empty());
+        assert_eq!(completion_countdown_parts(&pending, now), None);
+        assert!(
+            !delegation_rows(&pending, now).iter().any(|row| matches!(row, GemListRow::Duration { .. })),
+            "a passed completion date leaves no empty countdown row"
+        );
     }
 
     #[test]

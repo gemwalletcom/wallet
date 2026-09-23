@@ -15,7 +15,6 @@ data class SwapDetailsUIModel(
     val priceImpact: GemSwapPriceImpactRow?,
     val slippageBps: UInt,
     val selectedSlippage: UInt?,
-    val etaInSeconds: UInt? = null,
     val isProviderSelectable: Boolean = false,
 ) {
     val summaryPriceImpactText: String?
