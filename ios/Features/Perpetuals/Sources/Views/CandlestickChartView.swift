@@ -52,6 +52,7 @@ struct CandlestickChartView: View {
 
     private var chart: some View {
         Chart {
+            currentPriceMark
             candlestickMarks
             linesMarks
             selectionMarks
@@ -127,6 +128,15 @@ struct CandlestickChartView: View {
         }
         .chartXScale(domain: model.xAxisRange)
         .chartYScale(domain: model.yAxisRange)
+    }
+
+    @ChartContentBuilder
+    private var currentPriceMark: some ChartContent {
+        if let currentPrice = model.currentPrice {
+            RuleMark(y: .value(ChartKey.price, currentPrice))
+                .foregroundStyle(Colors.gray.opacity(.semiStrong))
+                .lineStyle(StrokeStyle(lineWidth: 1, dash: [2, 3]))
+        }
     }
 
     @ChartContentBuilder
