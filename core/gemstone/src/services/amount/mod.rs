@@ -7,9 +7,7 @@ use std::sync::Arc;
 
 use primitives::{Asset, Currency, PerpetualDirection};
 
-pub use model::{
-    GemAmountEarnType, GemAmountEntry, GemAmountEquivalent, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType, GemAmountTransfer, GemAmountType, GemPerpetualAutoclose,
-};
+pub use model::{GemAmountEarnType, GemAmountEntry, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType, GemAmountTransfer, GemAmountType, GemPerpetualAutoclose};
 
 use crate::config::perpetual_config::{leverage_options, select_leverage};
 

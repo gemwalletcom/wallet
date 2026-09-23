@@ -25,7 +25,6 @@ import com.gemwallet.android.math.plainInputNumber
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CurrencyFormatter
-import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.fields.AmountSymbolUIModel
 import com.gemwallet.android.ui.models.ButtonState
@@ -49,7 +48,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAmountEntry
-import uniffi.gemstone.GemAmountEquivalent
 import uniffi.gemstone.GemAmountErrorDisplay
 import uniffi.gemstone.GemAmountException
 import uniffi.gemstone.GemAmountInput
@@ -58,14 +56,11 @@ import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountTitle
 import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemCurrencyStyle
-import uniffi.gemstone.GemValueStyle
 import java.math.BigInteger
 import javax.inject.Inject
 
 @HiltViewModel
 class AmountViewModel @Inject constructor(service: GemAmountServiceInterface, factory: AmountProviderFactory, savedStateHandle: SavedStateHandle, @param:ApplicationContext private val context: Context) : ViewModel() {
-
-    private val valueFormatter = ValueFormatter(style = GemValueStyle.AUTO)
 
     private val params: AmountParams = savedStateHandle.requireAmountParams()
     val provider: AmountDataProvider = factory.create(params, viewModelScope)
@@ -97,31 +92,16 @@ class AmountViewModel @Inject constructor(service: GemAmountServiceInterface, fa
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val availableBalanceFormatted: StateFlow<String> = combine(
-        provider.input,
-        provider.assetInfo,
-    ) { input, current ->
-        if (input == null || current == null) "" else valueFormatter.string(input.availableValue, current.asset)
+    private val availableBalanceFormatted: StateFlow<String> = provider.input.map { input ->
+        input?.balance?.text().orEmpty()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
-    private val reserveForFeeFormatted: StateFlow<String?> = combine(
-        provider.assetInfo,
-        entry,
-    ) { current, entry ->
-        val asset = current?.asset ?: return@combine null
-        entry?.reservedFee?.let { valueFormatter.string(it, asset) }
+    private val reserveForFeeFormatted: StateFlow<String?> = entry.map { entry ->
+        entry?.reservedFee?.text()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val amountEquivalent: StateFlow<String> = combine(
-        provider.assetInfo,
-        entry,
-    ) { current, entry ->
-        val asset = current?.asset ?: return@combine ""
-        when (val equivalent = entry?.equivalent) {
-            is GemAmountEquivalent.Fiat -> equivalent.amount.text()
-            is GemAmountEquivalent.Asset -> valueFormatter.string(equivalent.value, asset.decimals, asset.symbol)
-            null -> ""
-        }
+    private val amountEquivalent: StateFlow<String> = entry.map { entry ->
+        entry?.equivalent?.text().orEmpty()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     private val buttonState: StateFlow<ButtonState> = entry.map { entry ->

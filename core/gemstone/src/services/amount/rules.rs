@@ -4,15 +4,14 @@ use num_bigint::{BigInt, BigUint};
 use primitives::{Asset, AutocloseEstimator, Chain, Currency, EarnType, PerpetualDirection, StakeChain, TpslType};
 
 use super::model::{
-    GemAmountEarnType, GemAmountEntry, GemAmountEquivalent, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType, GemAmountTitle, GemAmountTransfer, GemAmountType,
-    GemPerpetualAutoclose,
+    GemAmountEarnType, GemAmountEntry, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType, GemAmountTitle, GemAmountTransfer, GemAmountType, GemPerpetualAutoclose,
 };
 use crate::config::perpetual_config::{MIN_DEPOSIT_AMOUNT, MIN_WITHDRAW_AMOUNT};
 use crate::config::stake::get_stake_config;
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::GemBigInt;
 use crate::perpetual::GemPerpetual;
-use crate::precision::GemCurrencyStyle;
+use crate::precision::{GemCurrencyStyle, GemValueStyle};
 use crate::services::balance::{GemAssetBalance, GemBalanceRequirement};
 use crate::services::error::GemServiceError;
 use crate::services::perpetual::GemPerpetualPositionAction;
@@ -36,6 +35,7 @@ impl GemAmountType {
         let max_after_fee = (&available - &reserve).max(BigInt::from(0));
         let reserved_fee = reserves_fee(self, &reserve, &max_after_fee, &minimum_value(self, asset)).then_some(reserve);
         GemAmountInput {
+            balance: GemFormattedNumber::asset_amount(&available, asset, GemValueStyle::Auto),
             available_value: available.clone(),
             max_value: if reserved_fee.is_some() { max_after_fee } else { available },
             reserved_fee,
@@ -61,9 +61,9 @@ impl GemAmountType {
         };
         let is_max = value.as_ref() == Some(&input.max_value);
         GemAmountEntry {
-            equivalent: equivalent(value.as_ref(), decimals, price, input_type, currency),
+            equivalent: equivalent(value.as_ref(), asset, price, input_type, currency),
             is_max,
-            reserved_fee: if is_max { input.reserved_fee.clone() } else { None },
+            reserved_fee: input.reserved_fee.as_ref().filter(|_| is_max).map(|fee| GemFormattedNumber::asset_amount(fee, asset, GemValueStyle::Auto)),
             value,
             error,
         }
@@ -110,19 +110,17 @@ fn invalid_number<E>(_: E) -> GemAmountError {
     GemAmountError::InvalidNumber
 }
 
-fn equivalent(value: Option<&BigInt>, decimals: u32, price: Option<f64>, input_type: GemAmountInputType, currency: Currency) -> GemAmountEquivalent {
+fn equivalent(value: Option<&BigInt>, asset: &Asset, price: Option<f64>, input_type: GemAmountInputType, currency: Currency) -> GemFormattedNumber {
     let value = value.cloned().unwrap_or_default();
     match input_type {
         GemAmountInputType::Asset => {
             let amount = valid_price(price)
-                .and_then(|price| CryptoFiatConverter::to_fiat(&value.to_string(), decimals, price).ok())
+                .and_then(|price| CryptoFiatConverter::to_fiat(&value.to_string(), asset.decimals as u32, price).ok())
                 .and_then(|fiat| fiat.parse().ok())
                 .unwrap_or(0.0);
-            GemAmountEquivalent::Fiat {
-                amount: GemFormattedNumber::currency(amount, currency, GemCurrencyStyle::Currency),
-            }
+            GemFormattedNumber::currency(amount, currency, GemCurrencyStyle::Currency)
         }
-        GemAmountInputType::Fiat => GemAmountEquivalent::Asset { value },
+        GemAmountInputType::Fiat => GemFormattedNumber::asset_amount(&value, asset, GemValueStyle::Auto),
     }
 }
 
@@ -526,7 +524,7 @@ mod tests {
         let entry = GemAmountEntry {
             value: Some(BigInt::from(1)),
             error: None,
-            equivalent: GemAmountEquivalent::Asset { value: BigInt::from(1) },
+            equivalent: GemFormattedNumber::asset_amount(&BigInt::from(1), &Asset::mock_hypercore_usdc(), GemValueStyle::Auto),
             is_max: false,
             reserved_fee: None,
         };
@@ -537,6 +535,7 @@ mod tests {
         assert!(!GemAmountEntry { error: Some(GemAmountError::Zero), ..entry }.allows_confirm());
     }
     use super::*;
+    use crate::formatted_number::GemNumberUnit;
     use crate::models::custom_types::GemBigUint;
     use crate::payment::GemPaymentRecipient;
     use primitives::Resource;
@@ -941,24 +940,21 @@ mod tests {
         let typed = GemAmountType::Transfer.entry(&usdc, &funded, Some(2.0), GemAmountInputType::Asset, "1000.123456".to_string(), Currency::USD);
         assert_eq!(typed.value, Some(BigInt::from(1_000_123_456)));
         assert_eq!(typed.error, None);
-        assert_eq!(
-            typed.equivalent,
-            GemAmountEquivalent::Fiat {
-                amount: GemFormattedNumber::currency(2000.246912, Currency::USD, GemCurrencyStyle::Currency)
-            }
-        );
+        assert_eq!(typed.equivalent, GemFormattedNumber::currency(2000.246912, Currency::USD, GemCurrencyStyle::Currency));
         assert!(!typed.is_max);
         assert_eq!(
             GemAmountType::Transfer.entry(&usdc, &hundred, None, GemAmountInputType::Asset, "1.5".to_string(), Currency::USD).equivalent,
-            GemAmountEquivalent::Fiat {
-                amount: GemFormattedNumber::currency(0.0, Currency::USD, GemCurrencyStyle::Currency)
-            },
+            GemFormattedNumber::currency(0.0, Currency::USD, GemCurrencyStyle::Currency),
             "without a price the screen still shows a zero equivalent rather than nothing"
         );
 
         let fiat = GemAmountType::Transfer.entry(&usdc, &funded, Some(1.0), GemAmountInputType::Fiat, "1000.123456".to_string(), Currency::USD);
         assert_eq!(fiat.value, Some(BigInt::from(1_000_120_000)));
-        assert_eq!(fiat.equivalent, GemAmountEquivalent::Asset { value: BigInt::from(1_000_120_000) });
+        assert_eq!(
+            fiat.equivalent,
+            GemFormattedNumber::asset_amount(&BigInt::from(1_000_120_000), &usdc, GemValueStyle::Auto),
+            "the asset equivalent arrives formatted, so neither app picks a style for it"
+        );
         assert_eq!(
             GemAmountType::Transfer.entry(&usdc, &funded, Some(1.0), GemAmountInputType::Fiat, "1000".to_string(), Currency::USD).value,
             Some(BigInt::from(1_000_000_000))
@@ -991,12 +987,7 @@ mod tests {
         let empty = entry(GemAmountInputType::Asset, " ");
         assert_eq!(empty.value, None);
         assert_eq!(empty.error, None);
-        assert_eq!(
-            empty.equivalent,
-            GemAmountEquivalent::Fiat {
-                amount: GemFormattedNumber::currency(0.0, Currency::USD, GemCurrencyStyle::Currency)
-            }
-        );
+        assert_eq!(empty.equivalent, GemFormattedNumber::currency(0.0, Currency::USD, GemCurrencyStyle::Currency));
 
         assert_eq!(entry(GemAmountInputType::Asset, "abc").error, Some(GemAmountError::InvalidNumber));
         assert_eq!(entry(GemAmountInputType::Asset, "-1").error, Some(GemAmountError::InvalidNumber));
@@ -1024,6 +1015,16 @@ mod tests {
     }
 
     #[test]
+    fn test_the_input_carries_the_balance_already_formatted() {
+        let ether = Asset::from_chain(Chain::Ethereum);
+        let input = GemAmountType::Transfer.input(&ether, &GemAssetBalance::mock_with_available(1_500_000_000_000_000_000));
+        assert_eq!(input.available_value, BigInt::from(1_500_000_000_000_000_000u64), "the raw value stays, because entry reads it back");
+        assert_eq!(input.balance, GemFormattedNumber::asset_amount(&BigInt::from(1_500_000_000_000_000_000u64), &ether, GemValueStyle::Auto));
+        assert_eq!(input.balance.unit, GemNumberUnit::Symbol { symbol: ether.symbol.clone() }, "the symbol travels with the number");
+        assert_eq!(input.balance.value, 1.5);
+    }
+
+    #[test]
     fn test_entry_max_carries_the_reserved_fee() {
         let cosmos = Asset::from_chain(Chain::Cosmos);
         let config = get_stake_config(StakeChain::Cosmos);
@@ -1037,7 +1038,7 @@ mod tests {
         let max_text = BigNumberFormatter::value(&max.value.to_string(), cosmos.decimals).unwrap();
         let at_max = stake.entry(&cosmos, &input, Some(10.0), GemAmountInputType::Asset, max_text, Currency::USD);
         assert!(at_max.is_max);
-        assert_eq!(at_max.reserved_fee, Some(BigInt::from(config.reserved_for_fees)));
+        assert_eq!(at_max.reserved_fee, Some(GemFormattedNumber::asset_amount(&BigInt::from(config.reserved_for_fees), &cosmos, GemValueStyle::Auto)));
 
         let below_max = stake.entry(&cosmos, &input, Some(10.0), GemAmountInputType::Asset, "1".to_string(), Currency::USD);
         assert!(!below_max.is_max);

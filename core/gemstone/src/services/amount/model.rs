@@ -101,6 +101,7 @@ pub enum GemAmountPerpetualPosition {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAmountInput {
     pub available_value: GemBigInt,
+    pub balance: GemFormattedNumber,
     pub max_value: GemBigInt,
     pub reserved_fee: Option<GemBigInt>,
     pub can_change_value: bool,
@@ -124,19 +125,13 @@ impl GemAmountInputType {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
-pub enum GemAmountEquivalent {
-    Fiat { amount: GemFormattedNumber },
-    Asset { value: GemBigInt },
-}
-
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAmountEntry {
     pub value: Option<GemBigInt>,
     pub error: Option<GemAmountError>,
-    pub equivalent: GemAmountEquivalent,
+    pub equivalent: GemFormattedNumber,
     pub is_max: bool,
-    pub reserved_fee: Option<GemBigInt>,
+    pub reserved_fee: Option<GemFormattedNumber>,
 }
 
 #[uniffi::export]

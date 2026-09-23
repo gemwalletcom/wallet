@@ -27,8 +27,6 @@ public final class AmountSceneViewModel {
     private let wallet: Wallet
     private let onTransferAction: TransferDataAction
 
-    private let formatter = ValueFormatter(style: .full)
-    private let amountFormatter = ValueFormatter.auto
     let currencyFormatter: CurrencyFormatter
     private let currency: Currency
 
@@ -100,12 +98,7 @@ public final class AmountSceneViewModel {
     }
 
     var balanceText: String {
-        let value = ValueFormatter(style: .auto).string(
-            input.availableValue,
-            decimals: asset.decimals.asInt,
-            currency: asset.symbol,
-        )
-        return Localized.Transfer.balance(value)
+        Localized.Transfer.balance(input.balance.text())
     }
 
     var actionButtonState: ButtonState {
@@ -117,7 +110,7 @@ public final class AmountSceneViewModel {
 
     var infoText: String? {
         guard let reservedFee = entry.reservedFee else { return nil }
-        return Localized.Transfer.reservedFees(amountFormatter.string(reservedFee, asset: asset))
+        return Localized.Transfer.reservedFees(reservedFee.text())
     }
 
     var maxTitle: String {
@@ -287,9 +280,6 @@ private extension AmountSceneViewModel {
     }
 
     var secondaryText: String {
-        switch entry.equivalent {
-        case let .fiat(amount): amount.text()
-        case let .asset(value): amountFormatter.string(value, asset: asset)
-        }
+        entry.equivalent.text()
     }
 }
