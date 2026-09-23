@@ -5,6 +5,7 @@ import typealias Gemstone.Asset
 import typealias Gemstone.AssetBasic
 import typealias Gemstone.AssetFull
 import typealias Gemstone.AssetId
+import enum Gemstone.GemAssetFilter
 import protocol Gemstone.GemAssetStore
 import GemstonePrimitives
 import Primitives
@@ -31,8 +32,8 @@ public final class GemstoneAssetStore: GemAssetStore, @unchecked Sendable {
         try assetStore.getAssets(for: assetIds).map { $0.toGem() }
     }
 
-    public func getWalletAssets(walletId: String) async throws -> [Gemstone.Asset] {
-        try assetStore.getAssetsData(walletId: WalletId.from(id: walletId), filters: [], limit: nil).map { $0.asset.toGem() }
+    public func getWalletAssets(walletId: String, filters: [GemAssetFilter]) async throws -> [Gemstone.Asset] {
+        try assetStore.getAssetsData(walletId: WalletId.from(id: walletId), filters: filters.map { $0.map() }, limit: nil).map { $0.asset.toGem() }
     }
 
     public func saveAssets(assets: [Gemstone.AssetBasic]) async throws {

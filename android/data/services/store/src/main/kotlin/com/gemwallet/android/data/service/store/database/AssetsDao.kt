@@ -199,8 +199,51 @@ interface AssetsDao {
     @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank >= 0 AND balanceTotalAmount > 0 ORDER BY balanceFiatTotalAmount DESC, assetRank DESC")
     suspend fun getPortfolioAssets(walletId: String): List<DbAssetInfo>
 
-    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND assetRank >= 0 ORDER BY balanceFiatTotalAmount DESC, assetRank DESC")
-    suspend fun getWalletAssets(walletId: String): List<DbAssetInfo>
+    @Query(
+        """
+        SELECT * FROM $ASSET_INFO WHERE
+            walletId = :walletId
+            AND assetRank >= 0
+            AND (NOT :enabled OR isEnabled = 1)
+            AND (NOT :buyable OR isBuyEnabled = 1)
+            AND (NOT :sellable OR isSellEnabled = 1)
+            AND (NOT :swappable OR isSwapEnabled = 1)
+            AND (NOT :hasBalance OR balanceTotalAmount > 0)
+            AND (NOT :hasAvailableBalance OR balanceAvailableAmount > 0)
+            AND (NOT :byChainsOrAssetIds OR chain IN (:chains) OR id IN (:assetIds))
+            AND (NOT :byChains OR chain IN (:selectedChains))
+            ORDER BY balanceFiatTotalAmount DESC, assetRank DESC
+        """,
+    )
+    suspend fun getWalletAssetsQuery(
+        walletId: String,
+        enabled: Boolean,
+        buyable: Boolean,
+        sellable: Boolean,
+        swappable: Boolean,
+        hasBalance: Boolean,
+        hasAvailableBalance: Boolean,
+        byChainsOrAssetIds: Boolean,
+        chains: List<Chain>,
+        assetIds: List<String>,
+        byChains: Boolean,
+        selectedChains: List<Chain>,
+    ): List<DbAssetInfo>
+
+    suspend fun getWalletAssets(walletId: String, filters: Set<GemAssetFilter> = emptySet()): List<DbAssetInfo> = getWalletAssetsQuery(
+        walletId = walletId,
+        enabled = GemAssetFilter.Enabled in filters,
+        buyable = GemAssetFilter.Buyable in filters,
+        sellable = GemAssetFilter.Sellable in filters,
+        swappable = GemAssetFilter.Swappable in filters,
+        hasBalance = GemAssetFilter.HasBalance in filters,
+        hasAvailableBalance = GemAssetFilter.HasAvailableBalance in filters,
+        byChainsOrAssetIds = filters.chainsOrAssetIds() != null,
+        chains = filters.chainsOrAssetIds()?.chains.orEmpty().map { it.requireChain() },
+        assetIds = filters.chainsOrAssetIds()?.assetIds.orEmpty(),
+        byChains = filters.chains().isNotEmpty(),
+        selectedChains = filters.chains(),
+    )
 
     @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank >= 0 AND chain = :chain ORDER BY balanceFiatTotalAmount DESC, assetRank DESC")
     fun getAssetsInfoByChain(walletId: String, chain: Chain): Flow<List<DbAssetInfo>>

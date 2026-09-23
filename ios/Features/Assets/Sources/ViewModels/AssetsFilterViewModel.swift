@@ -3,6 +3,7 @@
 import Components
 import struct Gemstone.GemSelectAssetFlow
 import GemstonePrimitives
+import GemstoneServices
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -25,7 +26,7 @@ public struct AssetsFilterViewModel: Sendable, Equatable {
     }
 
     var filters: [AssetsRequestFilter] {
-        flow.appliedFilters(chains: chainsFilter.selectedChains.map(\.rawValue), hasBalance: hasBalance).map(AssetsRequestFilter.init(core:))
+        flow.appliedFilters(chains: chainsFilter.selectedChains.map(\.rawValue), hasBalance: hasBalance).map { $0.map() }
     }
 
     var showHasBalanceToggle: Bool {

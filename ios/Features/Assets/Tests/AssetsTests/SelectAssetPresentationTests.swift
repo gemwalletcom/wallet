@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import Assets
-import enum Gemstone.GemAssetFilter
 import enum Gemstone.GemSelectAssetType
 import GemstonePrimitives
 import Primitives
@@ -28,12 +27,5 @@ struct SelectAssetPresentationTests {
     func scopeMapsFromTheFlow() {
         #expect(GemSelectAssetType.send.flow().requestScope == .wallet)
         #expect(GemSelectAssetType.priceAlert.flow().requestScope == .allAssets)
-    }
-
-    @Test
-    func chainsOrAssetIdsFilterMapsBothSlots() {
-        let filter = AssetsRequestFilter(core: .chainsOrAssetIds(chains: ["ethereum"], assetIds: ["smartchain_0x123"]))
-
-        #expect(filter == .chainsOrAssets(["ethereum"], ["smartchain_0x123"]))
     }
 }

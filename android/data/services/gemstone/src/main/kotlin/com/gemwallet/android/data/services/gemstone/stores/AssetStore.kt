@@ -27,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemAssetFilter
 import uniffi.gemstone.GemAssetStore
 import uniffi.gemstone.AssetFiatValue as GemAssetFiatValue
 
@@ -38,8 +39,8 @@ class GemstoneAssetStore(private val assetsDao: AssetsDao) : GemAssetStore {
 
     override suspend fun getAssets(assetIds: List<String>): List<uniffi.gemstone.Asset> = assetsDao.getAssetsByIds(assetIds).toDTO().map { it.toGem() }
 
-    override suspend fun getWalletAssets(walletId: String): List<uniffi.gemstone.Asset> = withContext(Dispatchers.IO) {
-        assetsDao.getWalletAssets(walletId).toAssetInfoModels().map { it.asset.toGem() }
+    override suspend fun getWalletAssets(walletId: String, filters: List<GemAssetFilter>): List<uniffi.gemstone.Asset> = withContext(Dispatchers.IO) {
+        assetsDao.getWalletAssets(walletId, filters.toSet()).toAssetInfoModels().map { it.asset.toGem() }
     }
 
     override suspend fun getAssetBasics(assetIds: List<String>): List<uniffi.gemstone.AssetBasic> = withContext(Dispatchers.IO) {

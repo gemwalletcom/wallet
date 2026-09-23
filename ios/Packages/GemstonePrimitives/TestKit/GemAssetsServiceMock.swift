@@ -18,7 +18,7 @@ public final class GemAssetStoreMock: GemAssetStore, @unchecked Sendable {
         assets.filter { assetIds.contains($0.id) }
     }
 
-    public func getWalletAssets(walletId _: Gemstone.WalletId) async throws -> [Gemstone.Asset] {
+    public func getWalletAssets(walletId _: Gemstone.WalletId, filters _: [Gemstone.GemAssetFilter]) async throws -> [Gemstone.Asset] {
         assets
     }
 
