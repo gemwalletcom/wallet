@@ -3,12 +3,13 @@ package com.gemwallet.android.model
 import com.wallet.core.primitives.Currency
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.GemCurrencyStyle
 import java.util.Locale
 
 class PriceChangeFormatterTest {
 
     private val fiatUS = PriceChangeFormatter(
-        CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD, locale = Locale.US),
+        CurrencyFormatter(style = GemCurrencyStyle.FIAT, currency = Currency.USD, locale = Locale.US),
     )
     private val adaptiveUS = PriceChangeFormatter(
         CurrencyFormatter(currency = Currency.USD, locale = Locale.US),

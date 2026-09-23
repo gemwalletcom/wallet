@@ -45,6 +45,6 @@ final class CoinPriceRowViewModel {
     }
 
     var percentageColor: Color {
-        coin.changeIsPositive ? Colors.green : Colors.red
+        coin.changeTone.color
     }
 }

@@ -28,6 +28,7 @@ pub mod fiat;
 pub mod file;
 pub mod localization;
 pub mod name;
+pub mod navigation;
 pub mod nft;
 pub mod node;
 pub mod notification;

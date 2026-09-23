@@ -7,6 +7,8 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.util.Locale
 
 class SectionDateFormatterTest {
@@ -25,11 +27,13 @@ class SectionDateFormatterTest {
 
     @Test
     fun `a row reads the day and the time, and nothing at all for no timestamp`() {
-        val at = { hour: Int, minute: Int, day: Int -> ZonedDateTime.of(2026, 5, day, hour, minute, 0, 0, zone).toInstant().toEpochMilli() }
+        val today = at(14, 30, 12)
+        val yesterday = at(9, 15, 11)
+        val earlier = at(8, 5, 10)
 
-        assertEquals("Today, 2:30\u202fPM", formatter.row(at(14, 30, 12), zone, locale))
-        assertEquals("Yesterday, 9:15\u202fAM", formatter.row(at(9, 15, 11), zone, locale))
-        assertEquals("May 10, 2026, 8:05\u202fAM", formatter.row(at(8, 5, 10), zone, locale))
+        assertEquals("Today, ${time(today)}", formatter.row(millis(today), zone, locale))
+        assertEquals("Yesterday, ${time(yesterday)}", formatter.row(millis(yesterday), zone, locale))
+        assertEquals(dateTime(earlier, FormatStyle.LONG), formatter.row(millis(earlier), zone, locale))
         assertEquals("", formatter.row(0, zone, locale))
     }
 
@@ -44,13 +48,23 @@ class SectionDateFormatterTest {
 
     @Test
     fun `a chart date follows the style Core picks for the period`() {
-        val at = ZonedDateTime.of(2026, 5, 10, 8, 5, 0, 0, zone).toInstant().toEpochMilli()
+        val earlier = at(8, 5, 10)
 
-        assertEquals("May 10, 2026, 8:05\u202fAM", formatter.chartDate(at, GemChartDateStyle.RELATIVE, zone, locale))
-        assertEquals("May 10, 2026, 8:05\u202fAM", formatter.chartDate(at, GemChartDateStyle.DAY_TIME, zone, locale))
-        assertEquals("May 10, 2026", formatter.chartDate(at, GemChartDateStyle.DAY, zone, locale))
+        assertEquals(dateTime(earlier, FormatStyle.LONG), formatter.chartDate(millis(earlier), GemChartDateStyle.RELATIVE, zone, locale))
+        assertEquals(dateTime(earlier, FormatStyle.MEDIUM), formatter.chartDate(millis(earlier), GemChartDateStyle.DAY_TIME, zone, locale))
+        assertEquals(date(earlier, FormatStyle.MEDIUM), formatter.chartDate(millis(earlier), GemChartDateStyle.DAY, zone, locale))
         assertEquals("", formatter.chartDate(0, GemChartDateStyle.DAY, zone, locale))
     }
+
+    private fun at(hour: Int, minute: Int, day: Int): ZonedDateTime = ZonedDateTime.of(2026, 5, day, hour, minute, 0, 0, zone)
+
+    private fun millis(moment: ZonedDateTime): Long = moment.toInstant().toEpochMilli()
+
+    private fun time(moment: ZonedDateTime): String = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale).format(moment)
+
+    private fun dateTime(moment: ZonedDateTime, date: FormatStyle): String = DateTimeFormatter.ofLocalizedDateTime(date, FormatStyle.SHORT).withLocale(locale).format(moment)
+
+    private fun date(moment: ZonedDateTime, style: FormatStyle): String = DateTimeFormatter.ofLocalizedDate(style).withLocale(locale).format(moment)
 
     @Test
     fun test_format() {

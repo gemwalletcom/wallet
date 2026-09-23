@@ -36,7 +36,7 @@ struct WalletConnectorNavigationStack: View {
                         ),
                     )
                 case let .signMessage(data):
-                    SignMessageScene(
+                    SignMessageNavigationView(
                         model: viewModelFactory.signMessageScene(
                             request: data.payload,
                             confirmTransferDelegate: data.delegate,
@@ -63,5 +63,30 @@ struct WalletConnectorNavigationStack: View {
                 }
             }
         }
+    }
+}
+
+private struct SignMessageNavigationView: View {
+    @State private var model: SignMessageSceneViewModel
+    private let onComplete: () -> Void
+
+    init(
+        model: SignMessageSceneViewModel,
+        onComplete: @escaping () -> Void,
+    ) {
+        _model = State(initialValue: model)
+        self.onComplete = onComplete
+    }
+
+    var body: some View {
+        SignMessageScene(model: model, onComplete: onComplete)
+            .sheet(item: $model.presentedSheet) { sheet in
+                switch sheet {
+                case .payloadDetails:
+                    SignMessagePayloadDetails(model: model)
+                case let .addressDetails(chainAddress):
+                    AddressDetailsDestination(chainAddress: chainAddress)
+                }
+            }
     }
 }

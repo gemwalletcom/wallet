@@ -21,7 +21,6 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
             elapsedMilliseconds: elapsedMilliseconds,
             lockIntervalMinutes: lockPeriod.gemLockPeriod.minutes(),
             authRequired: requiresAuthentication,
-            hasPendingRequest: false,
         )
     }
 

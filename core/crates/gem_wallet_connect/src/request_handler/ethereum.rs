@@ -28,6 +28,14 @@ impl EthereumRequestHandler {
     }
 
     pub fn parse_sign_typed_data(chain: Chain, params: Value) -> Result<WalletConnectAction, String> {
+        Ok(WalletConnectAction::SignMessage {
+            chain,
+            sign_type: SignDigestType::Eip712,
+            data: Self::parse_typed_data(chain, &params)?,
+        })
+    }
+
+    pub fn parse_typed_data(chain: Chain, params: &Value) -> Result<String, String> {
         let typed_data = params.at(1)?;
         let data = if let Some(s) = typed_data.as_str() {
             s.to_string()
@@ -37,12 +45,7 @@ impl EthereumRequestHandler {
 
         let expected_chain_id = Self::expected_chain_id(chain)?;
         validate_eip712_chain_id(&data, expected_chain_id)?;
-
-        Ok(WalletConnectAction::SignMessage {
-            chain,
-            sign_type: SignDigestType::Eip712,
-            data,
-        })
+        Ok(data)
     }
 
     pub fn parse_sign_transaction(chain: Chain, params: Value) -> Result<WalletConnectAction, String> {
@@ -71,12 +74,17 @@ impl EthereumRequestHandler {
         Ok(WalletConnectTransaction::Ethereum { data: transaction.into(), kind })
     }
 
-    fn parse_transaction_data(chain: Chain, params: Value) -> Result<String, String> {
-        let transaction = params.at(0)?.clone();
+    pub fn parse_transaction(chain: Chain, params: &Value) -> Result<WCEthereumTransaction, String> {
+        let transaction = params.at(0)?;
         transaction.as_object().ok_or_else(|| "Expected Ethereum transaction object".to_string())?;
         let parsed: WCEthereumTransaction = serde_json::from_value(transaction.clone()).map_err(|error| error.to_string())?;
         Self::validate_transaction_chain_id(chain, parsed.chain_id)?;
-        serde_json::to_string(&transaction).map_err(|e| format!("Failed to serialize transaction: {}", e))
+        Ok(parsed)
+    }
+
+    fn parse_transaction_data(chain: Chain, params: Value) -> Result<String, String> {
+        Self::parse_transaction(chain, &params)?;
+        serde_json::to_string(params.at(0)?).map_err(|e| format!("Failed to serialize transaction: {}", e))
     }
 
     fn validate_transaction_chain_id(chain: Chain, chain_id: Option<u64>) -> Result<(), String> {

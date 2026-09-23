@@ -26,6 +26,7 @@ public enum ConfirmTransferItem: Identifiable, Hashable, Sendable {
     case header
     case warnings
     case row(Int)
+    case verification
     case details
     case balanceChange(Int)
     case payload
@@ -41,6 +42,8 @@ public enum ConfirmTransferItemModel {
     case header(TransactionHeaderItemModel)
     case row(GemListRow)
     case recipient(AddressListItemViewModel)
+    case paymentAsset(ListItemModel, selectable: Bool)
+    case verification(ListItemModel)
     case swapDetails(SwapDetailsViewModel)
     case networkFee(ListItemModel, selectable: Bool)
     case perpetualDetails(PerpetualDetailsViewModel)

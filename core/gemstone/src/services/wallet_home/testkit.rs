@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use primitives::WalletId;
+use primitives::{Wallet, WalletId};
 
 use super::GemWalletHomeService;
 use crate::services::asset_discovery::testkit::DiscoveryTestkit;
@@ -22,7 +22,11 @@ pub struct WalletHomeTestkit {
 
 impl WalletHomeTestkit {
     pub fn with_status(status: u16) -> Self {
-        let discovery = DiscoveryTestkit::with_status(status);
+        Self::with_wallet(status, Wallet::mock())
+    }
+
+    pub fn with_wallet(status: u16, wallet: Wallet) -> Self {
+        let discovery = DiscoveryTestkit::with_provider(Arc::new(TestAlienProvider::with_status(status)), wallet);
         let service = GemWalletHomeService::new(
             discovery.balance.clone(),
             discovery.discovery.clone(),

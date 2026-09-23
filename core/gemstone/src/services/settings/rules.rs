@@ -3,10 +3,9 @@ use primitives::{Currency, PlatformStore, Release};
 use crate::config::perpetual_config;
 use crate::config::public::PublicUrl;
 use crate::config::social::community_links;
-use crate::formatted_number::{GemFormattedNumber, GemNumberDisplay};
+use crate::formatted_number::GemFormattedNumber;
 use crate::models::list::{GemListRow, GemListRowIcon, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle, GemUrlTarget};
 use crate::percentage::GemPercentageStyle;
-use crate::precision::GemPrecision;
 use crate::services::currency;
 use crate::services::localization::GemLocalizedText;
 
@@ -32,6 +31,15 @@ pub struct GemPickerOption {
     pub label: GemLocalizedText,
 }
 
+pub fn leverage_option(value: u8) -> GemPickerOption {
+    GemPickerOption {
+        value,
+        label: GemLocalizedText::Number {
+            number: GemFormattedNumber::leverage(value as f64),
+        },
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemPerpetualPickers {
     pub leverage: Vec<GemPickerOption>,
@@ -41,20 +49,7 @@ pub struct GemPerpetualPickers {
 
 pub fn perpetual_pickers() -> GemPerpetualPickers {
     GemPerpetualPickers {
-        leverage: perpetual_config::LEVERAGE_OPTIONS
-            .iter()
-            .map(|value| GemPickerOption {
-                value: *value,
-                label: GemLocalizedText::Number {
-                    number: GemFormattedNumber {
-                        display: GemNumberDisplay::Number {
-                            precision: GemPrecision::Fraction { min: 0, max: 2 },
-                        },
-                        ..GemFormattedNumber::leverage(*value as f64)
-                    },
-                },
-            })
-            .collect(),
+        leverage: perpetual_config::LEVERAGE_OPTIONS.iter().map(|value| leverage_option(*value)).collect(),
         take_profit: autoclose_options(perpetual_config::TAKE_PROFIT_PERCENT_OPTIONS),
         stop_loss: autoclose_options(perpetual_config::STOP_LOSS_PERCENT_OPTIONS),
     }
@@ -460,6 +455,7 @@ mod tests {
             | GemListRow::Link { title, .. }
             | GemListRow::Text { title, .. }
             | GemListRow::Amount { title, .. }
+            | GemListRow::Quote { title, .. }
             | GemListRow::Ranked { title, .. }
             | GemListRow::AllTime { title, .. }
             | GemListRow::Identifier { title, .. }
@@ -471,7 +467,8 @@ mod tests {
             | GemListRow::Toggle { title, .. }
             | GemListRow::Picker { title, .. }
             | GemListRow::Lines { title, .. } => Some(*title),
-            GemListRow::App { .. }
+            GemListRow::Provider { .. }
+            | GemListRow::App { .. }
             | GemListRow::Wallet { .. }
             | GemListRow::Memo { .. }
             | GemListRow::Social { .. }

@@ -2,14 +2,12 @@ use crate::duration_formatter::countdown_parts;
 use crate::precision::GemValueStyle;
 use chrono::{DateTime, Utc};
 use number_formatter::BigNumberFormatter;
-use primitives::{CoreEmoji, RewardRedemptionOption, RewardStatus, Rewards, Wallet, WalletId};
+use primitives::{CoreEmoji, RewardRedemptionOption, RewardStatus, Rewards, Wallet};
 
-use super::model::{GemIncomingCode, GemRewardsLoad, GemRewardsRedemption, GemRewardsState};
+use super::model::{GemIncomingCode, GemRewardsAction, GemRewardsRedemption, GemRewardsState};
 use crate::config::rewards::get_referral_url;
 use crate::formatted_number::{GemFormattedNumber, GemNumberUnit};
-use crate::models::list::{GemListRow, GemListRowTitle, GemNoticeKind};
-use crate::models::state::GemLoadState;
-use crate::services::error::GemServiceError;
+use crate::models::list::{GemListRow, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle, GemNoticeKind};
 use crate::services::localization::GemLocalizedText;
 
 pub fn incoming_code(code: Option<&str>, wallets: &[Wallet]) -> Option<GemIncomingCode> {
@@ -18,42 +16,6 @@ pub fn incoming_code(code: Option<&str>, wallets: &[Wallet]) -> Option<GemIncomi
         [] => None,
         [_] => Some(GemIncomingCode::Activate { code }),
         _ => Some(GemIncomingCode::Confirm { code }),
-    }
-}
-
-pub fn loading(wallet_id: Option<WalletId>, now: DateTime<Utc>) -> GemRewardsLoad {
-    GemRewardsLoad {
-        wallet_id,
-        state: GemLoadState::Loading,
-        rewards: state(None, now),
-    }
-}
-
-pub fn loaded(shown: &GemRewardsLoad, wallet_id: WalletId, rewards: Result<Rewards, GemServiceError>, now: DateTime<Utc>) -> GemRewardsLoad {
-    let shows_rewards = shown.wallet_id.as_ref() == Some(&wallet_id) && shown.state == GemLoadState::Data;
-    GemRewardsLoad {
-        state: GemLoadState::refreshed(rewards.as_ref().map(|_| ()).map_err(Clone::clone), shows_rewards),
-        rewards: match (&rewards, shows_rewards) {
-            (Ok(rewards), _) => state(Some(rewards), now),
-            (Err(_), true) => shown.rewards.clone(),
-            (Err(_), false) => state(None, now),
-        },
-        wallet_id: Some(wallet_id),
-    }
-}
-
-pub fn updated(shown: &GemRewardsLoad, rewards: Rewards, now: DateTime<Utc>) -> GemRewardsLoad {
-    GemRewardsLoad {
-        wallet_id: shown.wallet_id.clone(),
-        state: GemLoadState::Data,
-        rewards: state(Some(&rewards), now),
-    }
-}
-
-pub fn accepted(shown: GemRewardsLoad, loaded: GemRewardsLoad) -> GemRewardsLoad {
-    match shown.wallet_id == loaded.wallet_id {
-        true => loaded,
-        false => shown,
     }
 }
 
@@ -70,25 +32,49 @@ pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
     let can_activate_pending_referral = has_pending_referral && rewards.verify_after.is_some_and(|verify_after| now >= verify_after);
     let is_unverified = has_referral_code && rewards.status == RewardStatus::Unverified && !has_pending_referral;
     let referral_code = rewards.code.clone().filter(|code| !code.is_empty());
+    let can_invite = has_referral_code && matches!(rewards.status, RewardStatus::Verified | RewardStatus::Trusted | RewardStatus::Attribution);
+    let used_referral_code = rewards.used_referral_code.clone().filter(|code| !code.is_empty());
+    let pending_code = (has_pending_referral && !is_unverified).then(|| used_referral_code.clone()).flatten();
     GemRewardsState {
-        has_referral_code,
-        can_invite: has_referral_code && matches!(rewards.status, RewardStatus::Verified | RewardStatus::Trusted | RewardStatus::Attribution),
-        can_use_referral_code: !has_referral_code && !has_used_referral_code,
-        shows_info: has_referral_code || has_used_referral_code,
+        actions: actions(has_referral_code, can_invite, !has_referral_code && !has_used_referral_code, pending_code, can_activate_pending_referral),
         error_notice: rewards.disable_reason.clone().map(|reason| GemListRow::Notice {
             title: GemListRowTitle::Error,
             message: Some(GemLocalizedText::Text { text: reason }),
             kind: GemNoticeKind::Error,
         }),
         status_notice: status_notice(is_unverified, has_pending_referral, can_activate_pending_referral, rewards, now),
-        shows_pending_activation: has_pending_referral && !is_unverified,
-        can_activate_pending_referral,
+        sections: sections(
+            has_referral_code || has_used_referral_code,
+            info_rows(referral_code.as_deref(), rewards.referral_count, rewards.points, rewards.used_referral_code.as_deref()),
+        ),
         invite_reward_points: points_number(rewards.invite_reward_points),
         referral_code: referral_code.clone(),
         referral_link: referral_code.as_deref().map(get_referral_url),
-        used_referral_code: rewards.used_referral_code.clone().filter(|code| !code.is_empty()),
-        info_rows: info_rows(referral_code.as_deref(), rewards.referral_count, rewards.points, rewards.used_referral_code.as_deref()),
+        used_referral_code,
         redemptions: redemptions(rewards),
+    }
+}
+
+fn actions(has_referral_code: bool, can_invite: bool, can_use_referral_code: bool, pending_code: Option<String>, can_activate_pending: bool) -> Vec<GemRewardsAction> {
+    [
+        (!has_referral_code).then_some(GemRewardsAction::CreateCode),
+        can_invite.then_some(GemRewardsAction::Share),
+        can_use_referral_code.then_some(GemRewardsAction::UseReferralCode),
+        pending_code.map(|code| GemRewardsAction::ActivatePendingReferral { code, is_enabled: can_activate_pending }),
+    ]
+    .into_iter()
+    .flatten()
+    .collect()
+}
+
+fn sections(shows_info: bool, info_rows: Vec<GemListRow>) -> Vec<GemListSection> {
+    match shows_info && !info_rows.is_empty() {
+        true => vec![GemListSection {
+            title: GemListSectionTitle::Info,
+            footer: GemListSectionFooter::None,
+            rows: info_rows,
+        }],
+        false => Vec::new(),
     }
 }
 
@@ -167,43 +153,16 @@ fn has_value(code: Option<&str>) -> bool {
 #[cfg(test)]
 mod tests {
 
-    #[test]
-    fn test_a_failed_load_reads_as_an_error_instead_of_a_wallet_without_a_code() {
-        let wallet_id = WalletId::Multicoin("0x1".to_string());
-        let offline = || Err(GemServiceError::Gateway { msg: "offline".to_string() });
-        let shown = loading(Some(wallet_id.clone()), now());
-
-        let failed = loaded(&shown, wallet_id.clone(), offline(), now());
-        assert!(matches!(failed.state, GemLoadState::Error { .. }), "a wallet with a code must not be offered the create-code screen");
-        assert!(!failed.rewards.can_invite);
-
-        let invited = Rewards {
-            code: Some("GEM123".to_string()),
-            ..Rewards::mock(None, RewardStatus::Verified)
-        };
-        let shown = loaded(&shown, wallet_id.clone(), Ok(invited), now());
-        assert_eq!(shown.state, GemLoadState::Data);
-
-        let kept = loaded(&shown, wallet_id.clone(), offline(), now());
-        assert_eq!((kept.state, kept.rewards), (GemLoadState::Data, shown.rewards.clone()), "a failed refresh keeps the code already on screen");
-
-        let other = WalletId::Multicoin("0x2".to_string());
-        let switched = loaded(&shown, other.clone(), offline(), now());
-        assert!(matches!(switched.state, GemLoadState::Error { .. }), "another wallet's rows are not this wallet's rows");
-        assert_eq!(switched.wallet_id, Some(other));
+    fn info_section_rows(state: &GemRewardsState) -> Vec<GemListRow> {
+        state.sections.iter().flat_map(|section| section.rows.clone()).collect()
     }
 
-    #[test]
-    fn test_a_load_for_a_wallet_that_is_no_longer_shown_is_dropped() {
-        let first = WalletId::Multicoin("0x1".to_string());
-        let second = WalletId::Multicoin("0x2".to_string());
-        let shown = loading(Some(second.clone()), now());
-        let late = loaded(&loading(Some(first.clone()), now()), first, Ok(Rewards::mock(None, RewardStatus::Verified)), now());
-
-        assert_eq!(accepted(shown.clone(), late.clone()), shown, "the wallet moved on before the answer arrived");
-        assert_eq!(accepted(late.clone(), late.clone()), late);
+    fn pending_activation(state: &GemRewardsState) -> Option<bool> {
+        state.actions.iter().find_map(|action| match action {
+            GemRewardsAction::ActivatePendingReferral { is_enabled, .. } => Some(*is_enabled),
+            _ => None,
+        })
     }
-
     #[test]
     fn test_the_info_rows_hold_every_value_the_screen_shows_and_skip_the_absent_ones() {
         let invited = Rewards {
@@ -214,8 +173,7 @@ mod tests {
         };
 
         let titles = |rewards: &Rewards| {
-            state(Some(rewards), now())
-                .info_rows
+            info_rows(rewards.code.as_deref(), rewards.referral_count, rewards.points, rewards.used_referral_code.as_deref())
                 .into_iter()
                 .map(|row| match row {
                     GemListRow::Text { title, value } => (title, value),
@@ -245,6 +203,8 @@ mod tests {
             vec![GemListRowTitle::Referrals, GemListRowTitle::Points],
             "a wallet with no code of its own and no inviter shows neither row",
         );
+        assert!(state(Some(&alone), now()).sections.is_empty(), "and it has no info section at all, so no screen decides that for itself");
+        assert_eq!(info_section_rows(&state(Some(&invited), now())).len(), 4, "the section the screen shows is the one the rows built");
     }
 
     #[test]
@@ -373,8 +333,7 @@ mod tests {
         assert_eq!(state.referral_code.as_deref(), Some("gem"));
         assert_eq!(state.used_referral_code.as_deref(), Some("friend"));
         assert_eq!(
-            state
-                .info_rows
+            info_section_rows(&state)
                 .iter()
                 .filter_map(|row| match row {
                     GemListRow::Amount { title, amount, .. } => Some((*title, amount.value)),
@@ -406,24 +365,21 @@ mod tests {
     fn test_state_without_a_code_lets_the_wallet_start_or_use_a_code() {
         let state = state(Some(&Rewards::mock(Some(""), RewardStatus::Unverified)), now());
 
-        assert!(!state.has_referral_code);
-        assert!(state.can_use_referral_code);
-        assert!(!state.shows_info);
+        assert_eq!(state.actions, vec![GemRewardsAction::CreateCode, GemRewardsAction::UseReferralCode]);
+        assert!(state.sections.is_empty(), "a wallet with nothing to show has no info section");
         assert_eq!(state.status_notice, None);
-        assert!(!state.can_invite);
     }
 
     #[test]
     fn test_state_invites_only_from_a_verified_trusted_or_attribution_code() {
         for status in [RewardStatus::Verified, RewardStatus::Trusted, RewardStatus::Attribution] {
             let state = state(Some(&Rewards::mock(Some("gem"), status)), now());
-            assert!(state.can_invite, "{status:?}");
-            assert!(state.shows_info);
-            assert!(!state.can_use_referral_code);
+            assert_eq!(state.actions, vec![GemRewardsAction::Share], "{status:?}");
+            assert_eq!(state.sections.iter().map(|section| section.title).collect::<Vec<_>>(), vec![GemListSectionTitle::Info]);
             assert_eq!(state.status_notice, None);
         }
         for status in [RewardStatus::Unverified, RewardStatus::Pending, RewardStatus::Disabled] {
-            assert!(!state(Some(&Rewards::mock(Some("gem"), status)), now()).can_invite, "{status:?}");
+            assert!(!state(Some(&Rewards::mock(Some("gem"), status)), now()).actions.contains(&GemRewardsAction::Share), "{status:?}");
         }
     }
 
@@ -452,19 +408,18 @@ mod tests {
             }),
             "a pending referral replaces the unverified notice"
         );
-        assert!(state.shows_pending_activation);
+        assert!(pending_activation(&state).is_some());
     }
 
     #[test]
     fn test_state_activates_a_pending_referral_once_verify_after_is_reached() {
         let waiting = state(Some(&Rewards::mock_pending(now() + TimeDelta::hours(1))), now());
-        assert!(waiting.shows_pending_activation);
-        assert!(!waiting.can_activate_pending_referral);
-        assert!(waiting.shows_info);
-        assert!(!waiting.can_use_referral_code);
+        assert_eq!(pending_activation(&waiting), Some(false), "the button waits in place while the countdown runs");
+        assert_eq!(waiting.sections.iter().map(|section| section.title).collect::<Vec<_>>(), vec![GemListSectionTitle::Info]);
+        assert!(!waiting.actions.contains(&GemRewardsAction::UseReferralCode));
 
         let ready = state(Some(&Rewards::mock_pending(now())), now());
-        assert!(ready.can_activate_pending_referral);
+        assert_eq!(pending_activation(&ready), Some(true));
         assert!(matches!(
             ready.status_notice,
             Some(GemListRow::Notice {
@@ -472,16 +427,14 @@ mod tests {
                 ..
             })
         ));
-        assert!(state(Some(&Rewards::mock_pending(now() - TimeDelta::seconds(1))), now()).can_activate_pending_referral);
+        assert_eq!(pending_activation(&state(Some(&Rewards::mock_pending(now() - TimeDelta::seconds(1))), now())), Some(true));
 
         let without_used_code = Rewards {
             code: Some("gem".to_string()),
             used_referral_code: None,
             ..Rewards::mock_pending(now() - TimeDelta::hours(1))
         };
-        let state = state(Some(&without_used_code), now());
-        assert!(!state.shows_pending_activation);
-        assert!(!state.can_activate_pending_referral);
+        assert_eq!(pending_activation(&state(Some(&without_used_code), now())), None);
     }
 
     #[test]
@@ -489,8 +442,6 @@ mod tests {
         let json = r#"{"code":null,"referralCount":0,"points":0,"usedReferralCode":"friend","status":"pending","verifyAfter":"2026-01-06T10:13:34Z","redemptionOptions":[],"disableReason":null}"#;
         let rewards: Rewards = serde_json::from_str(json).unwrap();
 
-        let state = state(Some(&rewards), now());
-        assert!(state.shows_pending_activation);
-        assert!(state.can_activate_pending_referral);
+        assert_eq!(pending_activation(&state(Some(&rewards), now())), Some(true));
     }
 }

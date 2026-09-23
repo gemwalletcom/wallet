@@ -3,9 +3,11 @@ use std::sync::Arc;
 use primitives::chart::ChartCandleUpdate;
 use primitives::{Asset, AssetId, Chain, ChartPeriod, Perpetual, PerpetualPosition, TransactionType};
 
+use super::candles::{GemCandleRequest, GemCandleResult};
 use super::model::{GemPerpetualDetails, GemPerpetualPositionAction, GemPerpetualPositionKind, GemPerpetualRefreshFailure, GemPerpetualRefreshStep};
 use super::{GemPerpetualService, rules};
 use crate::models::perpetual::{GemChartCandleStick, GemPerpetualSubscription};
+use crate::models::state::GemLoadState;
 use crate::services::error::GemServiceError;
 use crate::services::failures::record_result;
 use crate::services::preferences::GemPreferencesService;
@@ -66,6 +68,15 @@ impl GemPerpetualDetailsService {
 
     pub fn market_subscription(&self, perpetual: Perpetual) -> GemPerpetualSubscription {
         GemPerpetualSubscription::MarketData { symbol: rules::symbol(&perpetual) }
+    }
+
+    pub async fn candles(&self, request: GemCandleRequest) -> GemCandleResult {
+        let candles = self.perpetuals.get_candlesticks(Chain::HyperCore, request.symbol.clone(), request.period).await;
+        GemCandleResult {
+            request,
+            state: GemLoadState::of(&candles),
+            candles: candles.unwrap_or_default(),
+        }
     }
 
     pub async fn candlesticks(&self, perpetual: Perpetual, period: ChartPeriod) -> Result<Vec<GemChartCandleStick>, GemServiceError> {

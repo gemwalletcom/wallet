@@ -12,10 +12,11 @@ use gem_ton::rpc::client::TonClient;
 use gem_tron::rpc::{TronProvider, client::TronClient};
 use gem_wallet_connect::{SignDigestType as WcSignDigestType, WCEthereumTransactionData as WcEthereumTransactionData, WalletConnectTransactionType as WcWalletConnectTransactionType};
 use primitives::{
-    AddressName, AssetId, Chain, ChainAddress, EVMChain, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningType,
+    AddressName, AssetId, BlockExplorerLink, Chain, ChainAddress, EVMChain, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity, SimulationWarning,
+    SimulationWarningType,
 };
 
-use crate::address_formatter::{GemAddressFormatStyle, format_address};
+use crate::models::copy::{GemCopy, address_copy};
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListRow, GemListRowTitle, GemNoticeKind};
 use crate::services::localization::GemLocalizedText;
@@ -61,6 +62,8 @@ impl GemSimulationService {
         Ok(simulation.prepend_warnings(validation_warnings))
     }
 
+    /// Fails open, the way the scanner does: a provider that cannot answer reaches the review as an
+    /// empty result rather than stopping a signature, and the validation warnings are unaffected.
     pub async fn simulate_send_transaction(&self, chain: Chain, transaction_type: WalletConnectTransactionType, data: String) -> Result<SimulationResult, GemstoneError> {
         let transaction_type: WcWalletConnectTransactionType = transaction_type.into();
         let validation_warnings = simulation::send_transaction_validation_warnings(&transaction_type, &data);
@@ -232,28 +235,28 @@ pub enum GemSimulationPayloadTitle {
     Custom { label: String },
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
 pub enum GemSimulationPayloadValue {
     Text { text: String },
-    Address { display: String, address: String },
+    Address { display: String, copy: GemCopy, explorer: BlockExplorerLink },
     Timestamp { unix_ms: i64 },
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
 pub struct GemSimulationPayloadRow {
     pub title: GemSimulationPayloadTitle,
     pub value: GemSimulationPayloadValue,
 }
 
-pub fn payload_rows(fields: &[SimulationPayloadField], chain: Option<Chain>, names: &[AddressName]) -> Vec<GemSimulationPayloadRow> {
-    fields.iter().map(|field| payload_row(field, chain, names)).collect()
+pub fn payload_rows(fields: &[SimulationPayloadField], chain: Chain, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> Vec<GemSimulationPayloadRow> {
+    fields.iter().map(|field| payload_row(field, chain, &address_url)).collect()
 }
 
-pub fn named_payload_rows(rows: Vec<GemSimulationPayloadRow>, chain: Option<Chain>, names: &[AddressName]) -> Vec<GemSimulationPayloadRow> {
+pub fn named_payload_rows(rows: Vec<GemSimulationPayloadRow>, names: &[AddressName]) -> Vec<GemSimulationPayloadRow> {
     rows.into_iter()
         .map(|row| GemSimulationPayloadRow {
             value: match row.value {
-                GemSimulationPayloadValue::Address { address, .. } => address_value(address, chain, names),
+                GemSimulationPayloadValue::Address { copy, explorer, .. } => address_value(copy, names, explorer),
                 GemSimulationPayloadValue::Text { .. } | GemSimulationPayloadValue::Timestamp { .. } => row.value,
             },
             title: row.title,
@@ -264,13 +267,13 @@ pub fn named_payload_rows(rows: Vec<GemSimulationPayloadRow>, chain: Option<Chai
 pub fn address_requests(rows: &[GemSimulationPayloadRow], chain: Chain) -> Vec<ChainAddress> {
     rows.iter()
         .filter_map(|row| match &row.value {
-            GemSimulationPayloadValue::Address { address, .. } => Some(ChainAddress::new(chain, address.clone())),
+            GemSimulationPayloadValue::Address { copy, .. } => Some(ChainAddress::new(chain, copy.value.clone())),
             GemSimulationPayloadValue::Text { .. } | GemSimulationPayloadValue::Timestamp { .. } => None,
         })
         .collect()
 }
 
-fn payload_row(field: &SimulationPayloadField, chain: Option<Chain>, names: &[AddressName]) -> GemSimulationPayloadRow {
+fn payload_row(field: &SimulationPayloadField, chain: Chain, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> GemSimulationPayloadRow {
     GemSimulationPayloadRow {
         title: match field.kind {
             SimulationPayloadFieldKind::Contract => GemSimulationPayloadTitle::Contract,
@@ -285,7 +288,7 @@ fn payload_row(field: &SimulationPayloadField, chain: Option<Chain>, names: &[Ad
         },
         value: match field.field_type {
             SimulationPayloadFieldType::Text => GemSimulationPayloadValue::Text { text: field.value.clone() },
-            SimulationPayloadFieldType::Address => address_value(field.value.clone(), chain, names),
+            SimulationPayloadFieldType::Address => address_value(address_copy(chain, field.value.clone()), &[], address_url(chain, field.value.clone())),
             SimulationPayloadFieldType::Timestamp => match timestamp_unix_ms(&field.value) {
                 Some(unix_ms) => GemSimulationPayloadValue::Timestamp { unix_ms },
                 None => GemSimulationPayloadValue::Text { text: field.value.clone() },
@@ -294,14 +297,13 @@ fn payload_row(field: &SimulationPayloadField, chain: Option<Chain>, names: &[Ad
     }
 }
 
-fn address_value(address: String, chain: Option<Chain>, names: &[AddressName]) -> GemSimulationPayloadValue {
-    let short = format_address(&address, chain, GemAddressFormatStyle::Short);
+fn address_value(copy: GemCopy, names: &[AddressName], explorer: BlockExplorerLink) -> GemSimulationPayloadValue {
     let display = names
         .iter()
-        .find(|name| name.address.eq_ignore_ascii_case(&address) && !name.name.is_empty() && !name.name.eq_ignore_ascii_case(&address))
-        .map(|name| format!("{} ({short})", name.name))
-        .unwrap_or(short);
-    GemSimulationPayloadValue::Address { display, address }
+        .find(|name| name.address.eq_ignore_ascii_case(&copy.value) && !name.name.is_empty() && !name.name.eq_ignore_ascii_case(&copy.value))
+        .map(|name| format!("{} ({})", name.name, copy.display))
+        .unwrap_or_else(|| copy.display.clone());
+    GemSimulationPayloadValue::Address { display, copy, explorer }
 }
 
 fn timestamp_unix_ms(value: &str) -> Option<i64> {
@@ -521,8 +523,15 @@ mod tests {
         assert_eq!(formatter.payload_fields(payload, true).into_iter().map(|field| field.kind).collect::<Vec<_>>(), vec![SimulationPayloadFieldKind::Spender]);
     }
 
+    fn link(chain: Chain, address: String) -> BlockExplorerLink {
+        BlockExplorerLink {
+            name: "Etherscan".to_string(),
+            link: format!("https://etherscan.io/address/{address}?{chain}"),
+        }
+    }
+
     #[test]
-    fn test_payload_rows_title_by_kind_and_carry_the_short_address_or_the_parsed_timestamp() {
+    fn test_payload_rows_title_by_kind_and_carry_the_copy_the_link_or_the_parsed_timestamp() {
         let address = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4";
         let fields = vec![
             SimulationPayloadField::standard(SimulationPayloadFieldKind::Spender, address, SimulationPayloadFieldType::Address, SimulationPayloadFieldDisplay::Primary),
@@ -530,18 +539,20 @@ mod tests {
             SimulationPayloadField::custom("issuedAt", "2024-01-02T03:04:05.123Z", SimulationPayloadFieldType::Timestamp, SimulationPayloadFieldDisplay::Secondary),
             SimulationPayloadField::custom("statement", "Sign in", SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Secondary),
         ];
-        let short = format_address(address, Some(Chain::Ethereum), GemAddressFormatStyle::Short);
+        let copy = address_copy(Chain::Ethereum, address.to_string());
 
-        let rows = payload_rows(&fields, Some(Chain::Ethereum), &[]);
+        let rows = payload_rows(&fields, Chain::Ethereum, link);
 
+        assert_ne!(copy.display, address, "the row shows the short address");
         assert_eq!(
             rows,
             vec![
                 GemSimulationPayloadRow {
                     title: GemSimulationPayloadTitle::Spender,
                     value: GemSimulationPayloadValue::Address {
-                        display: short,
-                        address: address.to_string()
+                        display: copy.display.clone(),
+                        copy,
+                        explorer: link(Chain::Ethereum, address.to_string()),
                     },
                 },
                 GemSimulationPayloadRow {
@@ -561,7 +572,7 @@ mod tests {
     }
 
     #[test]
-    fn test_named_payload_rows_prefix_a_known_name_and_skip_names_that_repeat_the_address() {
+    fn test_named_payload_rows_prefix_a_known_name_skip_names_that_repeat_the_address_and_keep_the_link() {
         let address = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4";
         let other = "0x0000000000000000000000000000000000000001";
         let rows = payload_rows(
@@ -569,8 +580,8 @@ mod tests {
                 SimulationPayloadField::standard(SimulationPayloadFieldKind::Spender, address, SimulationPayloadFieldType::Address, SimulationPayloadFieldDisplay::Primary),
                 SimulationPayloadField::standard(SimulationPayloadFieldKind::Contract, other, SimulationPayloadFieldType::Address, SimulationPayloadFieldDisplay::Primary),
             ],
-            Some(Chain::Ethereum),
-            &[],
+            Chain::Ethereum,
+            link,
         );
         let name = |address: &str, name: &str| AddressName {
             chain: Chain::Ethereum,
@@ -581,21 +592,24 @@ mod tests {
             image_url: None,
         };
 
-        let named = named_payload_rows(rows, Some(Chain::Ethereum), &[name(&address.to_lowercase(), "Hyperliquid"), name(other, other)]);
+        let named = named_payload_rows(rows, &[name(&address.to_lowercase(), "Hyperliquid"), name(other, other)]);
 
-        let short = format_address(address, Some(Chain::Ethereum), GemAddressFormatStyle::Short);
+        let copy = address_copy(Chain::Ethereum, address.to_string());
         assert_eq!(
             named[0].value,
             GemSimulationPayloadValue::Address {
-                display: format!("Hyperliquid ({short})"),
-                address: address.to_string()
+                display: format!("Hyperliquid ({})", copy.display),
+                copy,
+                explorer: link(Chain::Ethereum, address.to_string()),
             }
         );
+        let other_copy = address_copy(Chain::Ethereum, other.to_string());
         assert_eq!(
             named[1].value,
             GemSimulationPayloadValue::Address {
-                display: format_address(other, Some(Chain::Ethereum), GemAddressFormatStyle::Short),
-                address: other.to_string()
+                display: other_copy.display.clone(),
+                copy: other_copy,
+                explorer: link(Chain::Ethereum, other.to_string()),
             }
         );
         assert_eq!(

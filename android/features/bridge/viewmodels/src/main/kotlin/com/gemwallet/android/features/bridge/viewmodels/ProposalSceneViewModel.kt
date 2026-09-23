@@ -9,11 +9,9 @@ import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectReque
 import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProposal
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnection
-import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.bridge.viewmodels.localization.text
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.bridge.viewmodels.model.ConnectionHeadUIModel
 import com.gemwallet.android.features.bridge.viewmodels.model.headUIModel
 import com.gemwallet.android.features.bridge.viewmodels.model.map
@@ -22,11 +20,11 @@ import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemSymbol
 import com.gemwallet.android.ui.components.list_item.uiModel
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.style.textStyle
-import com.wallet.core.primitives.WalletConnectionSessionProposal
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -42,8 +40,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemApplicationMetadataServiceInterface
 import uniffi.gemstone.GemErrorText
+import uniffi.gemstone.GemSessionProposal
 import uniffi.gemstone.GemWalletConnectException
-import uniffi.gemstone.GemWalletConnectFailure
 import uniffi.gemstone.GemWalletConnectRejectionReason
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnectionVerificationStatus
@@ -53,7 +51,6 @@ import javax.inject.Inject
 @HiltViewModel
 class ProposalSceneViewModel @Inject constructor(
     private val approveWalletConnection: ApproveWalletConnection,
-    private val prepareSessionProposal: PrepareSessionProposal,
     private val activeRequest: ActiveWalletConnectRequest,
     private val walletConnectService: GemWalletConnectServiceInterface,
     private val metadataService: GemApplicationMetadataServiceInterface,
@@ -64,24 +61,24 @@ class ProposalSceneViewModel @Inject constructor(
     val state = MutableStateFlow<ProposalSceneState>(ProposalSceneState.Init(WalletConnectionVerificationStatus.UNKNOWN))
 
     private val _proposal = MutableStateFlow<WalletConnectSessionProposal?>(null)
-    private val _sessionProposal = MutableStateFlow<WalletConnectionSessionProposal?>(null)
+    private val _sessionProposal = MutableStateFlow<GemSessionProposal?>(null)
 
-    val proposal = _sessionProposal.map { proposal -> proposal?.metadata?.let { metadataService.connectionRow(it.toGem()) } }
+    val proposal = _sessionProposal.map { prepared -> prepared?.let { metadataService.connectionRow(it.proposal.metadata) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val peerHead: StateFlow<ConnectionHeadUIModel?> = proposal.map { it?.headUIModel() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val availableWallets = _sessionProposal.map { it?.wallets.orEmpty() }
+    val availableWallets = _sessionProposal.map { prepared -> prepared?.proposal?.wallets.orEmpty().map { it.toPrimitives() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val availableWalletRows = availableWallets.map { wallets -> walletRows(wallets.map { it.toGem() }).map { it.uiModel(context) } }
+    val availableWalletRows = _sessionProposal.map { prepared -> walletRows(prepared?.proposal?.wallets.orEmpty()).map { it.uiModel(context) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val _selectedWallet = MutableStateFlow<com.wallet.core.primitives.Wallet?>(null)
 
-    val selectedWallet = combine(_selectedWallet, _sessionProposal) { wallet, proposal ->
-        wallet ?: proposal?.defaultWallet
+    val selectedWallet = combine(_selectedWallet, _sessionProposal) { wallet, prepared ->
+        wallet ?: prepared?.proposal?.defaultWallet?.toPrimitives()
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -113,25 +110,22 @@ class ProposalSceneViewModel @Inject constructor(
         viewModelScope.launch {
             val prepared = withContext(ioDispatcher) {
                 runCatchingCancellable {
-                    prepareSessionProposal(
-                        name = proposal.name,
-                        description = proposal.description,
-                        url = proposal.url,
-                        icons = proposal.icons,
+                    walletConnectService.prepareSessionProposal(
                         requiredChainIds = proposal.requiredNamespaces.values.flatMap { it.chains.orEmpty() },
                         optionalChainIds = proposal.optionalNamespaces.values.flatMap { it.chains.orEmpty() },
+                        metadata = walletConnectService.applicationMetadata(proposal.name, proposal.description, proposal.url, proposal.icons),
                         origin = verifyContext.origin,
                         validation = verifyContext.map(),
                     )
                 }
             }.getOrElse { error ->
                 Log.e(TAG, "session proposal rejected: ${error.message}")
-                if (error is GemWalletConnectException.InvalidOrigin) onNotify(GemWalletConnectFailure.MaliciousOrigin.text(context))
+                if (error is GemWalletConnectException.InvalidOrigin) onNotify(error.errorText().text(context))
                 reject(proposal, (error as? GemWalletConnectException)?.rejectionReason() ?: GemWalletConnectRejectionReason.USER_REJECTED)
                 return@launch
             }
             state.update { ProposalSceneState.Init(prepared.verificationStatus) }
-            _sessionProposal.update { prepared.proposal }
+            _sessionProposal.update { prepared }
             _proposal.update { proposal }
         }
     }

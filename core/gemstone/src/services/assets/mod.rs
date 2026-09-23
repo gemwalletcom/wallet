@@ -53,6 +53,10 @@ impl GemAssetsService {
         }
     }
 
+    pub async fn wallet_assets(&self, wallet_id: WalletId) -> Result<Vec<Asset>, GemServiceError> {
+        self.store.get_wallet_assets(wallet_id).await
+    }
+
     pub async fn ensure_asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {
         if let Some(asset) = self.stored_asset(&asset_id).await? {
             return Ok(asset);
@@ -147,7 +151,9 @@ impl GemAssetsService {
         }
         let synced = self.sync_missing_assets(missing.clone()).await.unwrap_or_default();
         for asset_id in rules::missing_asset_ids(missing, synced) {
-            self.node_token_asset(asset_id).await?;
+            if self.node_token_asset(asset_id).await.is_err() {
+                continue;
+            }
         }
         self.assets(asset_ids).await
     }
@@ -302,6 +308,24 @@ mod tests {
             let writes = store.asset_writes.lock().unwrap();
             assert_eq!(writes.len(), 2);
             assert_eq!(writes[1], vec![reranked], "only the row that changed is written");
+        })
+    }
+
+    #[test]
+    fn test_a_simulation_review_opens_when_a_token_cannot_be_read() {
+        block_on(async {
+            let ethereum = Asset::from_chain(Chain::Ethereum);
+            let store = Arc::new(MemoryAssetStore {
+                assets: std::sync::Mutex::new(vec![rules::default_asset_basic(ethereum.clone())]),
+                ..MemoryAssetStore::default()
+            });
+            let service = GemAssetsService::mock(Arc::new(TestAlienProvider::offline()), store.clone());
+            let unverified = AssetId::from_token(Chain::Ethereum, "0x1234567890123456789012345678901234567890");
+
+            let assets = service.ensure_simulation_assets(vec![ethereum.id.clone(), unverified]).await.unwrap();
+
+            assert_eq!(assets, vec![ethereum]);
+            assert!(store.asset_writes.lock().unwrap().is_empty(), "an unreadable token is not stored");
         })
     }
 

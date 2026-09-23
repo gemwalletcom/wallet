@@ -36,9 +36,19 @@ import com.gemwallet.android.ui.style.icon
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.smallIconSize
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemListSection
+
+private fun GemListRow.actionTitle(): GemListRowTitle? = when (this) {
+    is GemListRow.Quote -> title
+    is GemListRow.Amount -> title
+    is GemListRow.Text -> title
+    is GemListRow.Link -> title
+    is GemListRow.Network -> title
+    else -> null
+}
 
 fun LazyListScope.gemListSections(sections: List<GemListSection>, onSelect: ((GemListRowTitle) -> Unit)? = null) {
     sections.forEachIndexed { index, section ->
@@ -59,6 +69,7 @@ fun GemListRowView(
     modifier: Modifier = Modifier,
     onToggle: ((GemListRowTitle, Boolean) -> Unit)? = null,
     onSelect: ((GemListRowTitle) -> Unit)? = null,
+    onSelectAddress: ((String) -> Unit)? = null,
     infoIcon: Any? = null,
     accessory: (@Composable () -> Unit)? = null,
 ) {
@@ -66,6 +77,7 @@ fun GemListRowView(
     val uriHandler = LocalUriHandler.current
     val clipboardManager = context.clipboardManager()
 
+    val actionTitle = row.actionTitle()
     when (val row = row.uiModel(context, infoIcon)) {
         is GemListRowUIModel.Notice -> WarningItem(
             title = row.title,
@@ -75,18 +87,36 @@ fun GemListRowView(
             icon = row.kind.icon(),
         )
 
-        is GemListRowUIModel.Item -> GemListRowMenu(items = row.menu) { menuModifier ->
+        is GemListRowUIModel.Provider -> {
+            val openContract = row.contract?.let { contract -> onSelectAddress?.let { select -> { select(contract) } } }
             ListItem(
                 model = row.model,
                 listPosition = listPosition,
-                modifier = modifier.then(menuModifier).then(row.url?.let { url -> Modifier.clickable { uriHandler.open(context, url) } } ?: Modifier),
+                modifier = modifier.then(openContract?.let { Modifier.clickable(onClick = it) } ?: Modifier),
+                minHeight = ListItemDefaults.plainMinHeight,
+                accessory = if (openContract == null) accessory else ({ DataBadgeChevron() }),
+            )
+        }
+
+        is GemListRowUIModel.Item -> GemListRowMenu(items = row.menu) { menuModifier ->
+            val selects = onSelect != null && actionTitle != null && row.url == null
+            ListItem(
+                model = row.model,
+                listPosition = listPosition,
+                modifier = modifier.then(menuModifier).then(
+                    when {
+                        row.url != null -> Modifier.clickable { uriHandler.open(context, row.url) }
+                        selects -> Modifier.clickable { onSelect(actionTitle) }
+                        else -> Modifier
+                    },
+                ),
                 minHeight = ListItemDefaults.plainMinHeight,
                 accessory = when {
                     row.trailingImage != null -> {
-                        { DataBadgeChevron(isShowChevron = false) { ListItemImageView(image = row.trailingImage, style = ListItemImageStyle.Glyph) } }
+                        { DataBadgeChevron(isShowChevron = false) { ListItemImageView(image = row.trailingImage, size = smallIconSize) } }
                     }
 
-                    row.url != null || row.opensAnotherScreen -> {
+                    row.url != null || row.opensAnotherScreen || selects -> {
                         {
                             DataBadgeChevron()
                             if (accessory != null) accessory()
@@ -107,7 +137,12 @@ fun GemListRowView(
             HeaderIcon(row.asset)
         }
 
-        is GemListRowUIModel.Network -> PropertyNetworkItem(row.chain, value = row.name, listPosition = listPosition)
+        is GemListRowUIModel.Network -> PropertyNetworkItem(
+            chain = row.chain,
+            value = row.name,
+            listPosition = listPosition,
+            onOpenNetwork = onSelect?.let { select -> { select(GemListRowTitle.NETWORK) } },
+        )
 
         is GemListRowUIModel.Address -> AddressCard(row = row) { clipboardManager.setCopy(context, row.copy) }
 

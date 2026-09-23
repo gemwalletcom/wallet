@@ -8,6 +8,7 @@ use crate::GemstoneError;
 use crate::api::{GemApiClient, GemDeviceApiClient, GemStaticApiClient};
 use crate::gateway::GemGateway;
 use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionLoadFee, GemTransactionLoadMetadata};
+use crate::payment::GemPaymentService;
 use crate::services::assets::{GemAssetStore, GemAssetsService, config::GemAssetConfigService};
 use crate::services::balance::testkit::MemoryBalanceStore;
 use crate::services::balance::{GemAssetBalance, GemBalanceService};
@@ -71,27 +72,29 @@ impl ConfirmTestkit {
                 })
                 .collect(),
         ));
-        let balance = Arc::new(GemBalanceService::new(
-            gateway.clone(),
-            wallets,
-            asset_store,
-            balances.clone(),
-            assets.clone(),
-            Arc::new(SubscriptionTestkit::new(&[], &[]).service),
-        ));
+        let balance = Arc::new(GemBalanceService::new(gateway.clone(), balances.clone(), assets.clone(), session.clone(), Arc::new(SubscriptionTestkit::new(&[], &[]).service)));
         let explorer = Arc::new(GemExplorerService::new(preferences.clone()));
-        let addresses = Arc::new(MemoryAddressStore::default());
+        let names = Arc::new(GemNameService::new(device_api.clone(), Arc::new(MemoryAddressStore::default())));
         let stake = Arc::new(GemStakeService::new(
             gateway.clone(),
             Arc::new(GemStaticApiClient::new(provider.clone())),
             Arc::new(UnusedStakeStore),
-            addresses.clone(),
+            names.clone(),
             explorer.clone(),
             preferences.clone(),
             session.clone(),
         ));
         let nft = Arc::new(GemNftService::new(device_api.clone(), Arc::new(MemoryNftStore::default()), session.clone()));
-        let transactions = Arc::new(GemTransactionStateService::new(gateway.clone(), Arc::new(MemoryTransactionStateStore::default()), assets.clone(), balance.clone(), stake, nft));
+        let payment = Arc::new(GemPaymentService::new(provider.clone(), assets.clone()));
+        let transactions = Arc::new(GemTransactionStateService::new(
+            gateway.clone(),
+            Arc::new(MemoryTransactionStateStore::default()),
+            assets.clone(),
+            balance.clone(),
+            stake,
+            nft,
+            payment.clone(),
+        ));
         let confirm = Arc::new(GemConfirmService::new(
             gateway,
             Arc::new(GemSimulationService::new(provider, Arc::new(GemNodeService::mock()))),
@@ -105,12 +108,13 @@ impl ConfirmTestkit {
         let service = Arc::new(GemConfirmTransferService::new(
             confirm.clone(),
             explorer,
-            Arc::new(GemNameService::new(device_api, addresses)),
+            names,
             Arc::new(GemAssetConfigService::new()),
             Arc::new(UnusedSigner),
             Arc::new(MemoryKeystorePassword::default()),
             Arc::new(GemRecentActivityService::new(Arc::new(MemoryRecentActivityStore::default()), session)),
             preferences,
+            payment,
         ));
         Self { service, confirm, balances }
     }
@@ -128,6 +132,9 @@ impl GemAssetStore for MemoryAssetStore {
     }
     async fn get_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, GemServiceError> {
         Ok(asset_ids.into_iter().map(|id| Asset::from_chain(id.chain)).collect())
+    }
+    async fn get_wallet_assets(&self, _: WalletId) -> Result<Vec<Asset>, GemServiceError> {
+        Ok(vec![])
     }
     async fn save_assets(&self, _: Vec<AssetBasic>) -> Result<(), GemServiceError> {
         panic!("unexpected asset write")
@@ -240,6 +247,7 @@ impl GemConfirmLoad {
     pub fn mock() -> Self {
         let eth = Asset::mock_eth();
         GemConfirmLoad {
+            transfer: GemTransferData::mock(TransactionInputType::Transfer { asset: eth.clone() }),
             sender: Account::mock(Chain::Ethereum, "sender"),
             metadata: GemConfirmMetadata::mock(&eth.id, 0),
             fee_asset: eth,

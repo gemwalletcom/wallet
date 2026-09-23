@@ -1,6 +1,8 @@
 use crate::alien::{AlienError, AlienHttpMethod, AlienProvider, AlienResponse, AlienTarget};
 use crate::models::gateway::GemFeeRate;
 use crate::models::transaction::{GemFeeOptions, GemSignedTransaction, GemTransactionLoadFee};
+use crate::payment::GemPaymentService;
+use crate::services::assets::{GemAssetsService, testkit::MemoryAssetStore};
 use crate::services::error::GemServiceError;
 use crate::services::preferences::{GemPreferencesStore, GemSecureStore};
 use async_trait::async_trait;
@@ -9,7 +11,7 @@ use gem_wallet_connect::WCEthereumTransactionData;
 use num_bigint::BigInt;
 use payment::PaymentTransaction;
 use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER};
-use primitives::{ApplicationMetadata, AssetId, Chain, ChainAddress, FeePriority, GasPriceType, TransactionType};
+use primitives::{AssetId, Chain, ChainAddress, FeePriority, GasPriceType, PaymentInvoice, TransactionType, TransferDataOutputType};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -115,14 +117,23 @@ pub fn mock_wc_ethereum_transaction_data() -> WCEthereumTransactionData {
     }
 }
 
+impl GemPaymentService {
+    pub fn mock() -> Self {
+        let provider: Arc<dyn AlienProvider> = Arc::new(TestAlienProvider::with_status(200));
+        Self::new(provider.clone(), Arc::new(GemAssetsService::mock(provider, Arc::new(MemoryAssetStore::default()))))
+    }
+}
+
 pub fn mock_payment_transaction() -> PaymentTransaction {
     PaymentTransaction {
-        merchant: ApplicationMetadata::mock(),
+        invoice: PaymentInvoice::mock(),
         account: ChainAddress::new(Chain::Solana, "HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5".to_string()),
         transaction: "encoded".to_string(),
         transaction_type: TransactionType::Transfer,
         memo: None,
         request: None,
+        output_type: TransferDataOutputType::EncodedTransaction,
+        approval: None,
     }
 }
 

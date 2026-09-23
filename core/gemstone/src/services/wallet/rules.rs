@@ -87,8 +87,8 @@ pub fn import_request(kind: GemWalletImportKind, chain: Option<Chain>, input: &s
     }
 }
 
-pub fn import_name(name_record: Option<&NameRecord>, default_name: String) -> String {
-    name_record.map(|record| record.name.trim()).filter(|name| !name.is_empty()).map(str::to_string).unwrap_or(default_name)
+pub fn import_name(name_record: Option<&NameRecord>, default_name: &str) -> String {
+    name_record.map(|record| record.name.trim()).filter(|name| !name.is_empty()).unwrap_or(default_name.trim()).to_string()
 }
 
 fn validated_words(words: Vec<String>) -> Result<Vec<String>, GemWalletImportError> {
@@ -170,6 +170,13 @@ pub fn details(wallet: &Wallet) -> GemWalletDetails {
             _ => None,
         },
         address_explorer: None,
+    }
+}
+
+pub fn is_new_wallet(source: &WalletSource, has_synced: bool) -> bool {
+    match source {
+        WalletSource::Create => !has_synced,
+        WalletSource::Import => false,
     }
 }
 
@@ -265,6 +272,14 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_only_a_created_wallet_that_never_synced_is_new() {
+        assert!(is_new_wallet(&WalletSource::Create, false));
+        assert!(!is_new_wallet(&WalletSource::Create, true));
+        assert!(!is_new_wallet(&WalletSource::Import, false));
+        assert!(!is_new_wallet(&WalletSource::Import, true));
+    }
+
+    #[test]
     fn test_the_import_screen_names_the_network_and_offers_one_kind_for_multicoin() {
         let multicoin = import_screen(None);
         let ethereum = import_screen(Some(Chain::Ethereum));
@@ -345,9 +360,10 @@ mod tests {
 
     #[test]
     fn test_import_name_uses_the_resolved_name_unless_it_is_blank() {
-        assert_eq!(import_name(Some(&NameRecord::mock("vitalik.eth", "0x1")), "Wallet #2".to_string()), "vitalik.eth");
-        assert_eq!(import_name(Some(&NameRecord::mock("  ", "0x1")), "Wallet #2".to_string()), "Wallet #2");
-        assert_eq!(import_name(None, "Wallet #2".to_string()), "Wallet #2");
+        assert_eq!(import_name(Some(&NameRecord::mock("vitalik.eth", "0x1")), "Wallet #2"), "vitalik.eth");
+        assert_eq!(import_name(Some(&NameRecord::mock("  ", "0x1")), "Wallet #2"), "Wallet #2");
+        assert_eq!(import_name(None, "Wallet #2"), "Wallet #2");
+        assert_eq!(import_name(None, "  "), "", "a blank default name is never stored as a wallet name");
     }
 
     const PHRASE: &str = "test test test test test test test test test test test junk";

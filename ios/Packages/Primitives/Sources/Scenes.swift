@@ -79,14 +79,6 @@ public enum Scenes {
         public init() {}
     }
 
-    public struct WalletProfile: Hashable, Codable {
-        public let wallet: Wallet
-
-        public init(wallet: Wallet) {
-            self.wallet = wallet
-        }
-    }
-
     public struct WalletDetail: Hashable, Codable {
         public let wallet: Wallet
 

@@ -55,11 +55,7 @@ interface BalancesDao {
             earn = :earn,
             earn_amount = :earnAmount,
             total_amount = :availableAmount + :frozenAmount + :lockedAmount + :stakedAmount + :pendingAmount + :rewardsAmount + :earnAmount,
-            votes = :votes,
-            energy_available = :energyAvailable,
-            energy_total = :energyTotal,
-            bandwidth_available = :bandwidthAvailable,
-            bandwidth_total = :bandwidthTotal,
+            metadata = :metadata,
             updated_at = :updatedAt,
             is_active = :isActive
         WHERE wallet_id = :walletId AND asset_id = :assetId
@@ -88,11 +84,7 @@ interface BalancesDao {
         withdrawableAmount: Double,
         earn: String,
         earnAmount: Double,
-        votes: Long,
-        energyAvailable: Long,
-        energyTotal: Long,
-        bandwidthAvailable: Long,
-        bandwidthTotal: Long,
+        metadata: String?,
         isActive: Boolean,
         updatedAt: Long,
     )

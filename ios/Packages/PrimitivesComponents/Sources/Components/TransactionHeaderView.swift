@@ -10,7 +10,7 @@ public enum TransactionHeaderType {
     case swap(from: SwapAmountField, to: SwapAmountField)
     case nft(name: String?, image: AssetImage)
     case asset(image: AssetImage)
-    case assetValue(AssetValueHeaderViewModel)
+    case assetValue(any ValueHeaderViewModel)
 }
 
 public struct TransactionHeaderView: View {

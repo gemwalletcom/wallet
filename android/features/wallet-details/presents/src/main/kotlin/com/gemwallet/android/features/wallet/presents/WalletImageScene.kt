@@ -49,7 +49,7 @@ private const val NFT_COLUMNS = 2
 private enum class WalletImageTab { EMOJI, COLLECTIONS }
 
 @Composable
-internal fun WalletImageScene(wallet: WalletDetailsUIModel?, emojis: List<String>, nftImages: List<NftItemUIModel>, source: WalletImageSource, snackbar: SnackbarHostState? = null, onAction: (WalletImageAction) -> Unit) {
+internal fun WalletImageScene(wallet: WalletDetailsUIModel?, emojis: List<String>, nftImages: List<NftItemUIModel>, snackbar: SnackbarHostState? = null, onAction: (WalletImageAction) -> Unit) {
     wallet ?: return
     var selectedTab by remember { mutableStateOf(WalletImageTab.EMOJI) }
     val emojiBackground = MaterialTheme.colorScheme.secondaryFaded
@@ -77,55 +77,43 @@ internal fun WalletImageScene(wallet: WalletDetailsUIModel?, emojis: List<String
                 },
             )
             Spacer16()
-            when (source) {
-                WalletImageSource.Onboarding -> Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                ) {
-                    EmojiPickerGrid(emojis = emojis, onSelect = onEmoji, background = emojiBackground)
-                }
+            PrimaryTabRow(
+                selectedTabIndex = selectedTab.ordinal,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Tab(
+                    selected = selectedTab == WalletImageTab.EMOJI,
+                    onClick = { selectedTab = WalletImageTab.EMOJI },
+                    text = { Text(stringResource(id = R.string.common_emoji)) },
+                )
+                Tab(
+                    selected = selectedTab == WalletImageTab.COLLECTIONS,
+                    onClick = { selectedTab = WalletImageTab.COLLECTIONS },
+                    text = { Text(stringResource(id = R.string.nft_collections)) },
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+            ) {
+                when (selectedTab) {
+                    WalletImageTab.EMOJI -> EmojiPickerGrid(emojis = emojis, onSelect = onEmoji, background = emojiBackground)
 
-                WalletImageSource.Wallet -> {
-                    PrimaryTabRow(
-                        selectedTabIndex = selectedTab.ordinal,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Tab(
-                            selected = selectedTab == WalletImageTab.EMOJI,
-                            onClick = { selectedTab = WalletImageTab.EMOJI },
-                            text = { Text(stringResource(id = R.string.common_emoji)) },
+                    WalletImageTab.COLLECTIONS -> if (nftImages.isEmpty()) {
+                        Text(
+                            text = stringResource(id = R.string.nft_state_empty_title),
+                            color = MaterialTheme.colorScheme.secondary,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(paddingDefault),
                         )
-                        Tab(
-                            selected = selectedTab == WalletImageTab.COLLECTIONS,
-                            onClick = { selectedTab = WalletImageTab.COLLECTIONS },
-                            text = { Text(stringResource(id = R.string.nft_collections)) },
+                    } else {
+                        NftGrid(
+                            nftImages = nftImages,
+                            onNftImage = { onAction(WalletImageAction.SetNftImage(it)) },
                         )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                    ) {
-                        when (selectedTab) {
-                            WalletImageTab.EMOJI -> EmojiPickerGrid(emojis = emojis, onSelect = onEmoji, background = emojiBackground)
-
-                            WalletImageTab.COLLECTIONS -> if (nftImages.isEmpty()) {
-                                Text(
-                                    text = stringResource(id = R.string.nft_state_empty_title),
-                                    color = MaterialTheme.colorScheme.secondary,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier
-                                        .align(Alignment.Center)
-                                        .padding(paddingDefault),
-                                )
-                            } else {
-                                NftGrid(
-                                    nftImages = nftImages,
-                                    onNftImage = { onAction(WalletImageAction.SetNftImage(it)) },
-                                )
-                            }
-                        }
                     }
                 }
             }

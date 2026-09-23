@@ -23,3 +23,9 @@ jobs:
 
       - name: Check guidance links
         run: python3 ./scripts/check-docs-links.py
+
+      - name: Check FFI surface
+        run: python3 ./scripts/check-ffi-surface.py
+
+      - name: Check boundary rules
+        run: python3 ./scripts/check-boundaries.py

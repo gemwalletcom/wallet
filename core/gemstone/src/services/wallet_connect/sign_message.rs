@@ -4,6 +4,7 @@ use primitives::{Account, ApplicationMetadata, Asset, Chain, Wallet, WalletId};
 
 use crate::application::GemApplicationMetadataService;
 use crate::keystore::{GemKeystore, decode_password, keystore_id_for_wallet};
+use crate::message::payload::MessagePayloadPreview;
 use crate::message::sign_type::{MessageType, SignMessage};
 use crate::message::signer::MessageSigner;
 use crate::models::copy::address_copy;
@@ -72,16 +73,21 @@ impl GemSignMessageService {
         let has_critical_warning = simulation.has_critical_warning();
         let header = GemSimulationValue::from_simulation(&simulation, &assets);
         let payload_fields = self.simulation_formatter.payload_fields(simulation.payload, header.is_some());
-        let payload = signer.payload_preview(payload_fields).ok().flatten();
+        let address_url = |chain, address| self.explorer.get_address_url(chain, address);
+        let payload = signer.payload_preview(payload_fields, address_url).ok().flatten();
         GemSignMessagePreview {
             message_type: payload.as_ref().map(|preview| preview.message_type).unwrap_or(MessageType::Text),
             text: signer.plain_preview(),
             primary_fields: payload.as_ref().map(|preview| preview.primary.clone()).unwrap_or_default(),
             secondary_fields: payload.map(|preview| preview.secondary).unwrap_or_default(),
             has_critical_warning,
-            rows: review_rows(chain, &wallet, &account, &session.metadata, header.is_some(), |chain, address| self.explorer.get_address_url(chain, address)),
+            rows: review_rows(chain, &wallet, &account, &session.metadata, header.is_some(), address_url),
             header,
         }
+    }
+
+    pub fn payload_preview(&self, message: SignMessage) -> Option<MessagePayloadPreview> {
+        MessageSigner::new(message).payload_preview(Vec::new(), |chain, address| self.explorer.get_address_url(chain, address)).ok().flatten()
     }
 
     pub async fn with_address_names(&self, chain: Chain, preview: GemSignMessagePreview) -> GemSignMessagePreview {
@@ -91,14 +97,10 @@ impl GemSignMessageService {
         }
         let names = self.names.get_address_names(requests).await.unwrap_or_default();
         GemSignMessagePreview {
-            primary_fields: named_payload_rows(preview.primary_fields, Some(chain), &names),
-            secondary_fields: named_payload_rows(preview.secondary_fields, Some(chain), &names),
+            primary_fields: named_payload_rows(preview.primary_fields, &names),
+            secondary_fields: named_payload_rows(preview.secondary_fields, &names),
             ..preview
         }
-    }
-
-    pub fn address_url(&self, chain: Chain, address: String) -> BlockExplorerLink {
-        self.explorer.get_address_url(chain, address)
     }
 }
 

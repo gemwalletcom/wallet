@@ -1,49 +1,74 @@
 package com.gemwallet.android.features.confirm.viewmodels.models
 
-import com.gemwallet.android.domains.confirm.AmountUIModel
+import android.content.Context
+import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AssetPriceValue
+import com.gemwallet.android.ui.components.image.NftImageSource
 import com.gemwallet.android.ui.components.list_head.SimulationHeaderUIModel
+import com.gemwallet.android.ui.components.list_head.amountText
+import com.gemwallet.android.ui.components.list_head.fiat
+import com.gemwallet.android.ui.components.list_head.headerUIModel
+import com.gemwallet.android.ui.components.list_head.priceValue
+import com.gemwallet.android.ui.components.list_head.valueText
 import com.gemwallet.android.ui.models.ButtonState
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FeePriority
-import com.wallet.core.primitives.NFTAsset
 import uniffi.gemstone.GemConfirmButtonState
-import uniffi.gemstone.GemTransactionHeaderKind
+import uniffi.gemstone.GemConfirmHeader
+import uniffi.gemstone.GemTransactionHeader
 import java.math.BigInteger
 
 sealed interface ConfirmHeaderUIModel {
-    data class Placeholder(val asset: Asset?) : ConfirmHeaderUIModel
+    data class Placeholder(val icon: Any?) : ConfirmHeaderUIModel
+    data class ReservedSpace(val icon: Any?) : ConfirmHeaderUIModel
     data class Simulation(val header: SimulationHeaderUIModel) : ConfirmHeaderUIModel
     data class Swap(val fromAsset: AssetPriceValue, val fromValueText: String, val fromEquivalentText: String?, val toAsset: AssetPriceValue, val toValueText: String, val toEquivalentText: String?) : ConfirmHeaderUIModel
-    data class Nft(val nftAsset: NFTAsset) : ConfirmHeaderUIModel
+    data class Nft(val source: NftImageSource) : ConfirmHeaderUIModel
     data class Symbol(val asset: Asset) : ConfirmHeaderUIModel
     data class Amount(val amount: String, val equivalent: String?, val asset: Asset?) : ConfirmHeaderUIModel
 }
 
 data class FeeSelectionUIModel(val selectedPriority: FeePriority?, val customRate: BigInteger?)
 
-internal fun confirmHeader(amountModel: AmountUIModel?, simulationHeader: SimulationHeaderUIModel?, isPayment: Boolean, isLoading: Boolean, headerAsset: Asset?): ConfirmHeaderUIModel? = when {
-    isPayment && simulationHeader == null && isLoading -> ConfirmHeaderUIModel.Placeholder(headerAsset)
+internal fun confirmHeader(header: GemConfirmHeader, isLoading: Boolean, isPayment: Boolean, context: Context, currency: Currency): ConfirmHeaderUIModel = when (header) {
+    is GemConfirmHeader.Value -> ConfirmHeaderUIModel.Simulation(header.value.headerUIModel(context))
+    is GemConfirmHeader.Placeholder -> ConfirmHeaderUIModel.Placeholder(header.assetId.toAssetId())
+    is GemConfirmHeader.Transaction -> header.header.uiModel(currency).reservedWhile(isLoading && isPayment)
+}
 
-    simulationHeader != null -> ConfirmHeaderUIModel.Simulation(simulationHeader)
+private fun ConfirmHeaderUIModel.reservedWhile(reserved: Boolean): ConfirmHeaderUIModel = when {
+    reserved -> ConfirmHeaderUIModel.ReservedSpace(headerIcon())
+    else -> this
+}
 
-    amountModel?.headerKind is GemTransactionHeaderKind.Swap -> ConfirmHeaderUIModel.Swap(
-        fromAsset = amountModel.fromAsset,
-        fromValueText = amountModel.fromAmountText,
-        fromEquivalentText = amountModel.fromAmountEquivalentText,
-        toAsset = requireNotNull(amountModel.toAsset),
-        toValueText = requireNotNull(amountModel.toAmountText),
-        toEquivalentText = amountModel.toAmountEquivalentText,
+private fun ConfirmHeaderUIModel.headerIcon(): Any? = when (this) {
+    is ConfirmHeaderUIModel.Amount -> asset
+    is ConfirmHeaderUIModel.Symbol -> asset
+    else -> null
+}
+
+private fun GemTransactionHeader.uiModel(currency: Currency): ConfirmHeaderUIModel = when (this) {
+    is GemTransactionHeader.Swap -> ConfirmHeaderUIModel.Swap(
+        fromAsset = from.priceValue(currency),
+        fromValueText = from.valueText(),
+        fromEquivalentText = from.fiat(currency),
+        toAsset = to.priceValue(currency),
+        toValueText = to.valueText(),
+        toEquivalentText = to.fiat(currency),
     )
 
-    amountModel?.headerKind is GemTransactionHeaderKind.Nft -> amountModel.nftAsset?.let { ConfirmHeaderUIModel.Nft(it) }
+    is GemTransactionHeader.Nft -> ConfirmHeaderUIModel.Nft(NftImageSource(url = imageUrl, name = name.orEmpty()))
 
-    amountModel?.headerKind is GemTransactionHeaderKind.Symbol || amountModel?.headerKind is GemTransactionHeaderKind.AssetImage -> ConfirmHeaderUIModel.Symbol(amountModel.asset)
+    is GemTransactionHeader.Symbol -> ConfirmHeaderUIModel.Symbol(asset.toPrimitives())
 
-    else -> ConfirmHeaderUIModel.Amount(
-        amount = amountModel?.cryptoAmount ?: "",
-        equivalent = amountModel?.amountEquivalent?.takeIf { (amountModel.headerKind as? GemTransactionHeaderKind.Amount)?.showsFiat != false },
-        asset = headerAsset,
+    is GemTransactionHeader.AssetImage -> ConfirmHeaderUIModel.Symbol(asset.toPrimitives())
+
+    is GemTransactionHeader.Amount -> ConfirmHeaderUIModel.Amount(
+        amount = amount.amountText(),
+        equivalent = amount.fiat(currency).takeIf { showsFiat },
+        asset = amount.asset.toPrimitives(),
     )
 }
 

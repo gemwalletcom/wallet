@@ -142,6 +142,61 @@ class ChartViewModelTest {
     }
 
     @Test
+    fun `selecting a period loads the chart without the refresh indicator`() = runTest(testDispatcher) {
+        val day = mockGemChart(values = listOf(1f, 2f))
+        val week = mockGemChart(values = listOf(3f, 4f, 5f))
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns day
+
+        val viewModel = createViewModel()
+        viewModel.chartUIState.first { it.chart is StateViewType.Data }
+        backgroundScope.launch { viewModel.isRefreshing.collect {} }
+        backgroundScope.launch { viewModel.chartUIState.collect {} }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val inFlight = CompletableDeferred<Unit>()
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Week.toGem()) } coAnswers {
+            inFlight.await()
+            week
+        }
+        viewModel.setPeriod(ChartPeriod.Week)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(ChartPeriod.Week, viewModel.chartUIState.value.period)
+        assertEquals(true, viewModel.chartUIState.value.chart is StateViewType.Loading)
+        assertEquals(false, viewModel.isRefreshing.value)
+
+        inFlight.complete(Unit)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(false, viewModel.isRefreshing.value)
+        assertEquals(true, viewModel.chartUIState.value.chart is StateViewType.Data)
+    }
+
+    @Test
+    fun `opening the chart loads it without the refresh indicator`() = runTest(testDispatcher) {
+        val chart = mockGemChart(values = listOf(1f, 2f))
+        val inFlight = CompletableDeferred<Unit>()
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } coAnswers {
+            inFlight.await()
+            chart
+        }
+
+        val viewModel = createViewModel()
+        backgroundScope.launch { viewModel.isRefreshing.collect {} }
+        backgroundScope.launch { viewModel.chartUIState.collect {} }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(true, viewModel.chartUIState.value.chart is StateViewType.Loading)
+        assertEquals(false, viewModel.isRefreshing.value)
+
+        inFlight.complete(Unit)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(true, viewModel.chartUIState.value.chart is StateViewType.Data)
+        assertEquals(false, viewModel.isRefreshing.value)
+    }
+
+    @Test
     fun `a pull to refresh keeps the chart that is already drawn`() = runTest(testDispatcher) {
         val chart = mockGemChart(values = listOf(1f, 2f, 3f))
         coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns chart

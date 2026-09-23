@@ -131,6 +131,8 @@ buy_no_results = Não há cotações disponíveis
 # Transfer
 
 transfer_network_fee = Taxa de rede
+transfer_pay_with = Pagar com
+transfer_payment_title = Pagamento
 transfer_memo = Memorando
 transfer_confirm = Confirmar
 transfer_from = De
@@ -156,6 +158,7 @@ transfer_activate_asset_title = Ativar ativo
 transfer_recipient_my_wallets = Minhas Carteiras
 transfer_recipient_view_wallets = Ver carteiras
 transfer_minimum_account_balance = Um saldo mínimo de %@ deve permanecer após isso, a menos que você esteja usando seu saldo total.
+transfer_destination_account_activation = O endereço de destino requer um mínimo de %@.
 transfer_smart_contract_title = Contrato Inteligente
 transfer_other_title = Outro
 transfer_maximum_amount = O valor máximo é %@
@@ -253,6 +256,7 @@ errors_network_offline = A conexão com a internet parece estar offline.
 errors_no_internet_connection = Sem conexão com a internet
 errors_no_service_connection = Sem conexão com o serviço
 errors_balances_activity_outdated = Os saldos e a atividade podem estar desatualizados.
+errors_payment_status = Pagamento: %@
 
 # Activity
 
@@ -289,6 +293,7 @@ transaction_swap_again = Troque novamente
 transaction_status_completed = Concluído
 transaction_status_inprogress = Em andamento
 transaction_status_refunded = Reembolsado
+transaction_status_expired = Expirado
 
 # Asset
 
@@ -541,6 +546,8 @@ sell_title = Vender %@
 info_network_fee_title = Taxa de rede
 info_watch_wallet_title = Assistir carteira
 info_watch_wallet_description = Uma carteira à qual você não tem acesso, mas pode monitorar suas transações e movimentos.
+info_payment_verification_title = Verificação do pagamento
+info_payment_verification_description = O comerciante requer informações adicionais antes do pagamento.
 info_network_fee_description = Cada transação na rede %@ exige uma taxa em %@ paga aos mineradores para processar sua transação, não à Gem Wallet. As taxas de rede variam de acordo com o uso da rede.
 info_transaction_error_description = A transação não pôde ser concluída devido a um erro, como fundos insuficientes, entrada inválida ou rejeição pela rede. Revise os detalhes e tente novamente.
 info_transaction_pending_description = A transação foi enviada e aguarda confirmação na rede. O tempo de processamento pode variar. Verifique novamente para obter atualizações.

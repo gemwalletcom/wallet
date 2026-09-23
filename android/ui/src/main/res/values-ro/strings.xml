@@ -110,6 +110,8 @@
   <string name="buy_rate">Rata</string>
   <string name="buy_no_results">Nu există oferte disponibile</string>
   <string name="transfer_network_fee">Taxa de retea</string>
+  <string name="transfer_pay_with">Plătește cu</string>
+  <string name="transfer_payment_title">Plată</string>
   <string name="transfer_memo">Notă</string>
   <string name="transfer_confirm">Confirmați</string>
   <string name="transfer_from">De la</string>
@@ -135,6 +137,7 @@
   <string name="transfer_recipient_my_wallets">Portofelele mele</string>
   <string name="transfer_recipient_view_wallets">Vizualizați portofele</string>
   <string name="transfer_minimum_account_balance">După aceasta, trebuie să rămână un sold minim %1$s, cu excepția cazului în care utilizați soldul integral.</string>
+  <string name="transfer_destination_account_activation">Adresa de destinație necesită un minim de %1$s.</string>
   <string name="transfer_smart_contract_title">Contract inteligent</string>
   <string name="transfer_other_title">Altele</string>
   <string name="transfer_maximum_amount">Suma maximă este %1$s</string>
@@ -223,6 +226,7 @@
   <string name="errors_no_internet_connection">Nicio conexiune la internet</string>
   <string name="errors_no_service_connection">Nicio conexiune la serviciu</string>
   <string name="errors_balances_activity_outdated">Soldurile și activitatea pot fi învechite.</string>
+  <string name="errors_payment_status">Plată: %1$s</string>
   <string name="activity_title">Activitate</string>
   <string name="activity_state_empty_title">Activitatea ta va apărea aici</string>
   <string name="activity_state_empty_description">Efectuați prima tranzacție</string>
@@ -250,6 +254,7 @@
   <string name="transaction_status_completed">Terminat</string>
   <string name="transaction_status_inprogress">În curs</string>
   <string name="transaction_status_refunded">Rambursat</string>
+  <string name="transaction_status_expired">Expirat</string>
   <string name="asset_balances">Solduri</string>
   <string name="asset_balances_available">Disponibil</string>
   <string name="asset_price">Preț</string>
@@ -436,6 +441,8 @@
   <string name="info_network_fee_title">Taxa de retea</string>
   <string name="info_watch_wallet_title">Portofel de monitorizare</string>
   <string name="info_watch_wallet_description">Un portofel la care nu ai acces, dar îi poți urmări tranzacțiile și mișcările.</string>
+  <string name="info_payment_verification_title">Verificarea plății</string>
+  <string name="info_payment_verification_description">Comerciantul solicită informații suplimentare înainte de plată.</string>
   <string name="info_network_fee_description">Fiecare tranzacție din rețeaua %1$s necesită o taxă în %2$s plătită minerilor pentru a vă procesa tranzacția, nu Gem Wallet. Taxele de rețea variază în funcție de utilizarea rețelei.</string>
   <string name="info_transaction_error_description">Tranzacția nu a putut fi finalizată din cauza unei erori, cum ar fi fonduri insuficiente, introducere nevalidă sau respingere din partea rețelei. Vă rugăm să examinați detaliile și să încercați din nou.</string>
   <string name="info_transaction_pending_description">Tranzacția a fost trimisă și așteaptă confirmarea în rețea. Timpii de procesare pot varia. Vă rugăm să verificați din nou pentru actualizări.</string>

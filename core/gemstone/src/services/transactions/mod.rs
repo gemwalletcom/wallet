@@ -23,8 +23,7 @@ pub use store::GemTransactionStore;
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::assets::GemAssetsService;
 use crate::services::chain::rules as chain_rules;
-use crate::services::name::GemAddressStore;
-use crate::services::name::store::GemAddressNameWriter;
+use crate::services::name::GemNameService;
 use crate::services::swap::GemSwapPair;
 use crate::services::transaction_state::GemTransactionStatusService;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
@@ -35,7 +34,7 @@ pub struct GemTransactionsService {
     api: Arc<GemDeviceApiClient>,
     assets: Arc<GemAssetsService>,
     store: Arc<dyn GemTransactionStore>,
-    address_store: Arc<dyn GemAddressStore>,
+    names: Arc<GemNameService>,
     wallet_preferences: Arc<GemWalletPreferencesService>,
     session: Arc<GemWalletSessionService>,
     transaction_status: Arc<dyn GemTransactionStatusService>,
@@ -56,7 +55,7 @@ impl GemTransactionsService {
         api: Arc<GemDeviceApiClient>,
         assets: Arc<GemAssetsService>,
         store: Arc<dyn GemTransactionStore>,
-        address_store: Arc<dyn GemAddressStore>,
+        names: Arc<GemNameService>,
         wallet_preferences: Arc<GemWalletPreferencesService>,
         session: Arc<GemWalletSessionService>,
         transaction_status: Arc<dyn GemTransactionStatusService>,
@@ -65,7 +64,7 @@ impl GemTransactionsService {
             api,
             assets,
             store,
-            address_store,
+            names,
             wallet_preferences,
             session,
             transaction_status,
@@ -82,6 +81,10 @@ impl GemTransactionsService {
 }
 
 impl GemTransactionsService {
+    pub async fn save_transactions(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
+        self.store.save_transactions(wallet_id, transactions).await
+    }
+
     async fn sync(&self, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
         self.sync_wallet(self.session.current_wallet_id()?, asset_id).await
     }
@@ -102,7 +105,7 @@ impl GemTransactionsService {
         }
         let pending = rules::pending_transactions(&response.transactions);
         self.store.save_transactions(wallet_id.clone(), response.transactions).await?;
-        self.address_store.save_names(response.address_names).await?;
+        self.names.save_names(response.address_names).await?;
         self.wallet_preferences.set_transactions_timestamp(wallet_id.clone(), asset_id, timestamp)?;
         if !pending.is_empty() {
             self.transaction_status.track(wallet_id, pending);

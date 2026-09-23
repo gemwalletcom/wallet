@@ -123,6 +123,7 @@ mod tests {
                 TransactionLoadMetadata::Xrp {
                     sequence: 32_268_248,
                     block_number: 32_268_269 - LEDGER_SEQUENCE_OFFSET,
+                    is_destination_address_exist: true,
                 },
             )
         };
@@ -148,6 +149,7 @@ mod tests {
                 TransactionLoadMetadata::Xrp {
                     sequence: 93_674_951,
                     block_number: 187_349_950 - LEDGER_SEQUENCE_OFFSET,
+                    is_destination_address_exist: true,
                 },
             )
         };
@@ -203,6 +205,7 @@ mod tests {
                 TransactionLoadMetadata::Xrp {
                     sequence: 32_268_248,
                     block_number: 32_268_269 - LEDGER_SEQUENCE_OFFSET,
+                    is_destination_address_exist: true,
                 },
             )
         };
@@ -231,6 +234,7 @@ mod tests {
                 TransactionLoadMetadata::Xrp {
                     sequence: 93_674_950,
                     block_number: 187_349_950 - LEDGER_SEQUENCE_OFFSET,
+                    is_destination_address_exist: true,
                 },
             )
         };

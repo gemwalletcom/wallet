@@ -3,20 +3,17 @@ use chain_traits::ChainBalances;
 use std::error::Error;
 
 use gem_client::Client;
-use gem_jsonrpc::types::JsonRpcError;
 use primitives::AssetBalance;
 
 use crate::{
     provider::balances_mapper::{map_balance_assets, map_balance_coin, map_balance_tokens},
-    rpc::XrpClient,
+    rpc::{XrpClient, client::is_account_not_found},
 };
-
-const ACCOUNT_NOT_FOUND_ERROR_CODE: i32 = 19;
 
 fn default_if_account_not_found<T: Default>(result: Result<T, Box<dyn Error + Send + Sync>>) -> Result<T, Box<dyn Error + Send + Sync>> {
     match result {
         Ok(value) => Ok(value),
-        Err(error) if error.downcast_ref::<JsonRpcError>().is_some_and(|error| error.code == ACCOUNT_NOT_FOUND_ERROR_CODE) => Ok(T::default()),
+        Err(error) if is_account_not_found(&*error) => Ok(T::default()),
         Err(error) => Err(error),
     }
 }
@@ -66,7 +63,7 @@ mod tests {
             };
             Ok(json!({
                 "error": "actNotFound",
-                "error_code": ACCOUNT_NOT_FOUND_ERROR_CODE,
+                "error_code": crate::rpc::client::ACCOUNT_NOT_FOUND_ERROR_CODE,
                 "error_message": error_message,
                 "status": "error"
             }))

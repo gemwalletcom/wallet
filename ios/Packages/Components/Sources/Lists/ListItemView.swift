@@ -109,6 +109,7 @@ public struct ListItemView: View {
                     SubtitleView(
                         subtitle: subtitle,
                         subtitleTagType: model.subtitleTagType,
+                        subtitleSuffix: model.subtitleSuffixTextValue,
                         subtitleExtra: model.subtitleExtraTextValue,
                     )
                 }
@@ -221,6 +222,7 @@ extension ListItemView {
     struct SubtitleView: View {
         let subtitle: TextValue
         let subtitleTagType: TitleTagType
+        let subtitleSuffix: TextValue?
         let subtitleExtra: TextValue?
 
         var body: some View {
@@ -232,6 +234,12 @@ extension ListItemView {
                         .lineLimit(subtitle.lineLimit)
                         .truncationMode(.middle)
 
+                    if let subtitleSuffix {
+                        Text(subtitleSuffix.text)
+                            .textStyle(subtitleSuffix.style)
+                            .lineLimit(subtitleSuffix.lineLimit)
+                    }
+
                     switch subtitleTagType {
                     case .none:
                         EmptyView()
@@ -240,6 +248,7 @@ extension ListItemView {
                             .scaleEffect(scale)
                     case let .image(image):
                         image
+                            .foregroundStyle(subtitle.style.color)
                     }
                 }
 

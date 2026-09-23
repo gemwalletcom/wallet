@@ -1,14 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
 import Foundation
+import func Gemstone.autocloseOpenSession
 import func Gemstone.autocloseSession
 import enum Gemstone.GemAutocloseConfirmPolicy
 import class Gemstone.GemAutocloseEstimator
-import struct Gemstone.GemAutocloseField
-import struct Gemstone.GemAutocloseModify
-import struct Gemstone.GemAutoclosePrices
 import struct Gemstone.GemAutocloseSession
 import struct Gemstone.GemAutocloseViewState
 import GemstonePrimitives
@@ -22,7 +19,6 @@ import SwiftUI
 @MainActor
 public final class AutocloseSceneViewModel {
     private let currencyFormatter: CurrencyFormatter
-    private let percentFormatter = PercentFormatter.signed
     private let perpetualFormatter = PerpetualFormatter(provider: .hypercore)
     private let type: AutocloseType
     private let estimator: GemAutocloseEstimator
@@ -73,18 +69,11 @@ public final class AutocloseSceneViewModel {
                 position: position.position.toGem(),
             )
         case let .open(data, _):
-            GemAutocloseSession(
-                modify: GemAutocloseModify(
-                    direction: data.direction.toGem(),
-                    assetIndex: nil,
-                    takeProfit: GemAutocloseField(tpslType: .takeProfit, price: nil, originalPrice: nil, formattedPrice: nil, validation: .valid, orderId: nil),
-                    stopLoss: GemAutocloseField(tpslType: .stopLoss, price: nil, originalPrice: nil, formattedPrice: nil, validation: .valid, orderId: nil),
-                ),
-                policy: .whenBuildable,
-                submitAttempted: false,
-                prices: GemAutoclosePrices(entry: nil, market: data.marketPrice),
-                provider: .hypercore,
+            autocloseOpenSession(
+                direction: data.direction.toGem(),
+                marketPrice: data.marketPrice,
                 decimals: data.assetDecimals,
+                provider: .hypercore,
             )
         }
     }

@@ -61,9 +61,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualPositionKind
+import uniffi.gemstone.candleSession
 import uniffi.gemstone.candleTooltip
+import uniffi.gemstone.loadError
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -92,7 +96,6 @@ class PerpetualDetailsViewModel @Inject constructor(
         TransactionsRequestFilter.Types(service.activityTypes().map { it.toPrimitives() }),
     )
 
-    private val refreshTrigger = MutableStateFlow(0L)
     private val storedRefreshRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
     private val storedSync = storedRefreshRequests
@@ -114,7 +117,7 @@ class PerpetualDetailsViewModel @Inject constructor(
         getSession().filterNotNull(),
     ) { perpetual, session -> perpetual to session.wallet.id }
         .flatMapLatest { (perpetual, walletId) ->
-            perpetual?.let { getPerpetualPosition.getPositionByPerpetual(walletId, it.id) } ?: flowOf(null)
+            perpetual?.let { getPerpetualPosition.getPositionByPerpetual(walletId, it.perpetual.id) } ?: flowOf(null)
         }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -135,39 +138,27 @@ class PerpetualDetailsViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionFilters))
 
-    val period = MutableStateFlow(service.chartPeriod().toPrimitives())
+    private val candles = MutableStateFlow(candleSession(service.chartPeriod()))
 
-    private val refreshState = MutableStateFlow(false)
-    val isRefreshing: StateFlow<Boolean> = refreshState.asStateFlow()
+    val period: StateFlow<ChartPeriod> = candles.map { it.period.toPrimitives() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, candles.value.period.toPrimitives())
 
-    private val candles: StateFlow<StateViewType<List<ChartCandleStick>>> = combine(period, refreshTrigger) { period, _ -> period }
-        .flatMapLatest { period ->
-            flow {
-                emit(StateViewType.Loading)
-                try {
-                    val market = perpetual.value?.perpetual
-                    var candles = market?.let { service.candlesticks(it.toGem(), period.toGem()).map { candle -> candle.toPrimitives() } }.orEmpty()
-                    refreshState.value = false
-                    emit(candles.toChartState())
-                    if (market == null) return@flow
-                    perpetualObserver.chartUpdates
-                        .collect { update ->
-                            candles = service.mergedCandles(candles.map { it.toGem() }, update.toGem(), market.toGem(), period.toGem())
-                                ?.map { it.toPrimitives() } ?: return@collect
-                            emit(candles.toChartState())
-                        }
-                } catch (e: Exception) {
-                    currentCoroutineContext().ensureActive()
-                    refreshState.value = false
-                    emit(StateViewType.Error)
-                }
+    private val candleViewState = candles.map { it.viewState() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, candles.value.viewState())
+
+    val isRefreshing: StateFlow<Boolean> = candleViewState.map { it.isRefreshing }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val chart: StateFlow<StateViewType<PerpetualChartUIModel>> = combine(candleViewState, position) { state, position ->
+        when (val error = loadError(state.state, state.candles.isNotEmpty())) {
+            null -> when (state.state) {
+                GemLoadState.Loading -> StateViewType.Loading
+                GemLoadState.NoData -> StateViewType.NoData
+                else -> StateViewType.Data(PerpetualChartUIModel.from(state.candles.map { it.toPrimitives() }, position?.position, context))
             }
-        }
-        .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), StateViewType.Loading)
 
-    val chart: StateFlow<StateViewType<PerpetualChartUIModel>> = combine(candles, position) { state, position ->
-        state.flatMap { StateViewType.Data(PerpetualChartUIModel.from(it, position?.position, context)) }
+            else -> StateViewType.Error(error.errorText().text(context))
+        }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), StateViewType.Loading)
 
     fun tooltip(candle: ChartCandleStick): CandlestickTooltipUIModel = candleTooltip(candle.toGem()).uiModel(context)
@@ -175,6 +166,26 @@ class PerpetualDetailsViewModel @Inject constructor(
     private val screenVisible = MutableStateFlow(false)
 
     init {
+        viewModelScope.launch {
+            combine(perpetual.map { it?.perpetual }.distinctUntilChanged(), candles, ::Pair).collectLatest { (market, session) ->
+                val selected = market?.let { session.onSelectMarket(it.toGem()) } ?: return@collectLatest
+                if (selected != session) {
+                    candles.value = selected
+                    return@collectLatest
+                }
+                val request = session.request()?.takeIf { session.needsCandles() } ?: return@collectLatest
+                val result = withContext(ioDispatcher) { service.candles(request) }
+                candles.update { it.onResult(result) }
+            }
+        }
+        viewModelScope.launch {
+            perpetualObserver.chartUpdates.collect { update ->
+                val market = perpetual.value?.perpetual ?: return@collect
+                val session = candles.value
+                val merged = withContext(ioDispatcher) { service.mergedCandles(session.candles, update.toGem(), market.toGem(), session.period) } ?: return@collect
+                candles.update { it.onCandles(merged) }
+            }
+        }
         viewModelScope.launch {
             combine(
                 screenVisible,
@@ -213,19 +224,18 @@ class PerpetualDetailsViewModel @Inject constructor(
             runCatchingCancellable { service.setChartPeriod(period.toGem()) }
                 .onFailure { Log.e(TAG, "storing the chart period failed", it) }
         }
-        this.period.update { period }
+        candles.update { it.onSelectPeriod(period.toGem()) }
     }
 
     private val errorState = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = errorState.asStateFlow()
 
     fun fetch() {
-        refreshTrigger.update { it + 1 }
         storedRefreshRequests.tryEmit(Unit)
     }
 
     fun refresh() {
-        refreshState.value = true
+        candles.update { it.onRefresh() }
         fetch()
     }
 

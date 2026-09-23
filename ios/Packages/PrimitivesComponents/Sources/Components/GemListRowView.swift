@@ -17,17 +17,20 @@ public struct GemListRowView: View {
     private let row: GemListRow
     private let onToggle: ((GemListRowTitle, Bool) -> Void)?
     private let onSelect: ((GemListRowTitle) -> Void)?
+    private let onSelectAddress: ((String) -> Void)?
     private let onInfo: ((GemInfoTopic) -> Void)?
 
     public init(
         row: GemListRow,
         onToggle: ((GemListRowTitle, Bool) -> Void)? = nil,
         onSelect: ((GemListRowTitle) -> Void)? = nil,
+        onSelectAddress: ((String) -> Void)? = nil,
         onInfo: ((GemInfoTopic) -> Void)? = nil,
     ) {
         self.row = row
         self.onToggle = onToggle
         self.onSelect = onSelect
+        self.onSelectAddress = onSelectAddress
         self.onInfo = onInfo
     }
 
@@ -45,6 +48,12 @@ public struct GemListRowView: View {
             }
         case let .listItem(model):
             ListItemView(model: model)
+        case let .provider(model, contract):
+            if let contract, let onSelectAddress {
+                NavigationCustomLink(with: ListItemView(model: model)) { onSelectAddress(contract) }
+            } else {
+                ListItemView(model: model)
+            }
         case let .picker(model, title):
             NavigationCustomLink(with: ListItemView(model: model)) { onSelect?(title) }
         case let .toggle(label, title, isOn, imageStyle):

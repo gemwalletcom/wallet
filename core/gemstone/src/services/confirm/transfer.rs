@@ -7,12 +7,15 @@ use primitives::{Asset, Chain, PerpetualModifyConfirmData, SimulationResult, Wal
 use crate::config::fiat_config::get_fiat_config;
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::GemListRow;
+use crate::models::transaction::GemSignedTransaction;
+use crate::payment::{GemPaymentError, GemPaymentService};
 use crate::services::assets::config::GemAssetConfigService;
-use crate::services::confirm::rules::{confirm_row_contents, is_insufficient_network_fee};
+use crate::services::confirm::rules::{confirm_row_contents, is_broadcast, is_insufficient_network_fee};
 use crate::services::confirm::{
     GemAcquireAssetFlow, GemConfirmData, GemConfirmError, GemConfirmFeeLoad, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmService, GemConfirmSimulationState, GemConfirmation, GemFeeAsset,
     GemSubmitResult, GemTransactionSigner, SendInput,
 };
+use crate::services::error_text::{GemErrorText, payment_error_text};
 use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemNameService;
 use crate::services::perpetual::rules::autoclose_row;
@@ -34,6 +37,7 @@ pub struct GemConfirmTransferService {
     password: Arc<dyn GemKeystorePassword>,
     recent_activity: Arc<GemRecentActivityService>,
     preferences: Arc<GemPreferencesService>,
+    payment: Arc<GemPaymentService>,
 }
 
 #[uniffi::export]
@@ -48,6 +52,7 @@ impl GemConfirmTransferService {
         password: Arc<dyn GemKeystorePassword>,
         recent_activity: Arc<GemRecentActivityService>,
         preferences: Arc<GemPreferencesService>,
+        payment: Arc<GemPaymentService>,
     ) -> Self {
         Self {
             confirm,
@@ -58,6 +63,7 @@ impl GemConfirmTransferService {
             password,
             recent_activity,
             preferences,
+            payment,
         }
     }
 
@@ -72,13 +78,6 @@ fn simulation_seed(chain: Chain, simulation: Option<SimulationResult>) -> GemCon
         warnings: simulation.as_ref().map(|result| warning_rows(&result.warnings)).unwrap_or_default(),
         result: simulation,
         simulation: None,
-    }
-}
-
-fn is_broadcast(result: &GemSubmitResult) -> bool {
-    match result {
-        GemSubmitResult::Sent { .. } => true,
-        GemSubmitResult::Signed { .. } => false,
     }
 }
 
@@ -106,6 +105,9 @@ impl GemConfirmTransferService {
     pub(super) fn insufficient_network_fee_buy_amount(&self) -> i32 {
         get_fiat_config().insufficient_network_fee_buy_amount
     }
+    pub(super) fn payment(&self) -> &GemPaymentService {
+        &self.payment
+    }
 
     pub(super) async fn submit(&self, wallet: Wallet, confirm: GemConfirmData, value: GemBigInt, network_fee: GemBigInt, simulation: Option<SimulationResult>) -> Result<GemSubmitResult, GemConfirmError> {
         let wallet_id = wallet.id.clone();
@@ -117,11 +119,39 @@ impl GemConfirmTransferService {
             network_fee,
             simulation,
         };
-        let result = self.confirm.submit(input, self.signer.clone()).await?;
-        if is_broadcast(&result) {
-            let _ = self.recent_activity.add(input_type, wallet_id).await;
+        let signed = self.confirm.sign(&input, self.signer.clone()).await?;
+        let (transactions, signatures): (Vec<GemSignedTransaction>, Vec<GemSignedTransaction>) = signed.into_iter().partition(|transaction| is_broadcast(&input_type, transaction));
+        let data: Vec<String> = signatures.iter().map(|transaction| transaction.data.clone()).collect();
+        if transactions.is_empty() {
+            let warning = self.report_payment(&input, data.clone(), &signatures).await;
+            return Ok(GemSubmitResult::Signed { data, warning });
         }
-        Ok(result)
+        let hashes = self.confirm.send(input.clone(), transactions).await?;
+        let _ = self.recent_activity.add(input_type, wallet_id).await;
+        let warning = self.report_payment(&input, [hashes.clone(), data].concat(), &signatures).await;
+        Ok(GemSubmitResult::Sent { hashes, warning })
+    }
+
+    async fn report_payment(&self, input: &SendInput, action_results: Vec<String>, signatures: &[GemSignedTransaction]) -> Option<GemErrorText> {
+        let input_type = &input.confirm.input.transfer.input_type;
+        let TransactionInputType::Payment { .. } = input_type else {
+            return None;
+        };
+        let warning = match self.payment.confirm(input_type, action_results).await {
+            Ok(()) => None,
+            Err(error @ GemPaymentError::Network { .. }) => Some(payment_error_text(error)),
+            Err(error) => return Some(payment_error_text(error)),
+        };
+        if let Some(hash) = self.payment.record_hash(input_type)
+            && !signatures.is_empty()
+        {
+            let record = SendInput {
+                network_fee: GemBigInt::from(0),
+                ..input.clone()
+            };
+            self.confirm.store_pending(&record, &[hash], signatures).await;
+        }
+        warning
     }
 
     pub(super) fn confirm_input(&self, wallet: Wallet, transfer: GemTransferData) -> Result<GemConfirmInput, GemConfirmError> {
@@ -151,6 +181,7 @@ impl GemConfirmTransferService {
             self.names.address_name(chain, input.transfer.recipient.address.clone()),
         );
         Ok(GemConfirmLoad {
+            transfer: input.transfer.clone(),
             sender: input.from.clone(),
             fee_asset: input_type.fee_asset(),
             metadata: metadata?,
@@ -167,7 +198,7 @@ impl GemConfirmTransferService {
             Some(simulation) => self.confirm.ensure_simulation_assets(simulation.asset_ids()).await?,
             None => Vec::new(),
         };
-        let Ok(details) = self.confirm.simulation(input_type, simulation.clone(), assets) else {
+        let Ok(details) = self.confirm.simulation(input_type, simulation.clone(), assets, |chain, address| self.address_url(chain, address)) else {
             return Ok(simulation_seed(chain, simulation));
         };
         let requests = details.address_requests(chain);
@@ -176,7 +207,7 @@ impl GemConfirmTransferService {
             chain,
             warnings: simulation.as_ref().map(|result| warning_rows(&result.warnings)).unwrap_or_default(),
             result: simulation,
-            simulation: Some(details.with_address_names(chain, &address_names)),
+            simulation: Some(details.with_address_names(&address_names)),
         })
     }
 
@@ -186,19 +217,5 @@ impl GemConfirmTransferService {
             asset: Asset::from_chain(balance.asset_id.chain),
             requirement: None,
         })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_only_a_broadcast_send_records_recent_activity() {
-        let sent = GemSubmitResult::Sent { hashes: vec!["0xhash".to_string()] };
-        let signed = GemSubmitResult::Signed { data: vec!["0xsigned".to_string()] };
-
-        assert!(is_broadcast(&sent));
-        assert!(!is_broadcast(&signed));
     }
 }

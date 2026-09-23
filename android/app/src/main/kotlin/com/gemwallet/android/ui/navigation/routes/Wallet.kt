@@ -7,7 +7,6 @@ import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.domains.wallet.WalletSecretInput
 import com.gemwallet.android.features.create_wallet.views.PhraseAlertDialog
 import com.gemwallet.android.features.wallet.presents.WalletImageNavScreen
-import com.gemwallet.android.features.wallet.presents.WalletImageSource
 import com.gemwallet.android.features.wallet.presents.WalletNavScreen
 import com.gemwallet.android.features.wallet.presents.WalletSecretDataNavScreen
 import com.gemwallet.android.model.AuthRequest
@@ -22,7 +21,7 @@ import kotlinx.serialization.Serializable
 data class WalletDetailsRoute(val walletId: WalletId) : NavKey
 
 @Serializable
-data class WalletImageRoute(val walletId: WalletId, val source: WalletImageSource = WalletImageSource.Wallet) : NavKey
+data class WalletImageRoute(val walletId: WalletId) : NavKey
 
 @Serializable
 data class WalletSecurityReminderRoute(val input: WalletSecretInput) : NavKey
@@ -48,8 +47,8 @@ fun EntryProviderScope<NavKey>.walletScreen(onBoard: () -> Unit, onCancel: () ->
 
     entry<WalletImageRoute>(
         metadata = { key -> routeArguments(RouteArgument.WalletId to key.walletId.id) },
-    ) { key ->
-        WalletImageNavScreen(onCancel = onCancel, source = key.source)
+    ) {
+        WalletImageNavScreen(onCancel = onCancel)
     }
 
     entry<WalletSecurityReminderRoute> { key ->

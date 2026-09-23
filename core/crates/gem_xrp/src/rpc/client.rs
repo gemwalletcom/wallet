@@ -12,6 +12,8 @@ use primitives::Chain;
 use crate::jsonrpc::XrpRpc;
 use crate::models::rpc::{AccountInfo, AccountInfoResult, AccountLedger, AccountObjects, FeesResult, Ledger, LedgerData, LedgerInfo, ServerInfo, ServerInfoResult, TransactionBroadcast, TransactionStatus};
 
+pub(crate) const ACCOUNT_NOT_FOUND_ERROR_CODE: i32 = 19;
+
 #[derive(Clone, Debug)]
 pub struct XrpClient<C: Client + Clone> {
     client: JsonRpcClient<C>,
@@ -38,6 +40,14 @@ impl<C: Client + Clone> XrpClient<C> {
     pub async fn get_account_info(&self, address: &str) -> Result<Option<AccountInfo>, Box<dyn Error + Send + Sync>> {
         let result = self.get_account_info_full(address).await?;
         Ok(result.account_data)
+    }
+
+    pub async fn account_exists(&self, address: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        match self.get_account_info(address).await {
+            Ok(account) => Ok(account.is_some()),
+            Err(error) if is_account_not_found(&*error) => Ok(false),
+            Err(error) => Err(error),
+        }
     }
 
     pub async fn get_account_info_full(&self, address: &str) -> Result<AccountInfoResult, Box<dyn Error + Send + Sync>> {
@@ -97,6 +107,10 @@ where
     }
 
     Ok(serde_json::from_value(result)?)
+}
+
+pub(crate) fn is_account_not_found(error: &(dyn Error + Send + Sync + 'static)) -> bool {
+    error.downcast_ref::<JsonRpcError>().is_some_and(|error| error.code == ACCOUNT_NOT_FOUND_ERROR_CODE)
 }
 
 fn map_error_result(result: &Value) -> Option<JsonRpcError> {

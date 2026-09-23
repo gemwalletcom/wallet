@@ -14,7 +14,7 @@ import uniffi.gemstone.formattedCurrency
 class BuyFiatProviderUIModelTest {
 
     private val testAsset = mockAsset()
-    private val formatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)
+    private val formatter = CurrencyFormatter(style = GemCurrencyStyle.FIAT, currency = Currency.USD)
 
     @Test
     fun `the row's fiat amount is the one shown`() {

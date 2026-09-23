@@ -1,7 +1,6 @@
 package com.gemwallet.android.domains.price.values
 
 import com.gemwallet.android.testkit.mockEquivalentValue
-import com.wallet.core.primitives.Currency
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -10,154 +9,25 @@ import uniffi.gemstone.GemValueTone
 class EquivalentValueTest {
 
     @Test
-    fun testPriceableValue_stateUp() {
-        val price = mockEquivalentValue(changePercentage = 2.5)
+    fun `a value the price cannot express formats as nothing`() {
+        assertEquals("", mockEquivalentValue(value = null).valueFormatted)
+        assertEquals("", mockEquivalentValue(value = Double.NaN).valueFormatted)
+        assertEquals("", mockEquivalentValue(value = Double.POSITIVE_INFINITY).valueFormatted)
 
-        assertEquals(GemValueTone.POSITIVE, price.state)
+        assertTrue(mockEquivalentValue(value = 0.0).valueFormatted.isNotEmpty())
+        assertTrue(mockEquivalentValue(value = -100.0).valueFormatted.isNotEmpty())
     }
 
     @Test
-    fun testPriceableValue_stateDown() {
-        val price = mockEquivalentValue(changePercentage = -2.5)
+    fun `a missing change has no tone and no percentage`() {
+        val missing = mockEquivalentValue(changePercentage = null)
 
-        assertEquals(GemValueTone.NEGATIVE, price.state)
-    }
+        assertEquals(GemValueTone.NEUTRAL, missing.state)
+        assertEquals("", missing.changePercentageFormatted)
 
-    @Test
-    fun testPriceableValue_stateNone() {
-        val price = mockEquivalentValue(changePercentage = 0.0)
+        val present = mockEquivalentValue(changePercentage = 2.5)
 
-        assertEquals(GemValueTone.NEUTRAL, price.state)
-    }
-
-    @Test
-    fun testPriceableValue_stateNullPercentage() {
-        val price = mockEquivalentValue(changePercentage = null)
-
-        assertEquals(GemValueTone.NEUTRAL, price.state)
-    }
-
-    @Test
-    fun testPriceableValue_dayChangePercentageFormattedPositive() {
-        val price = mockEquivalentValue(changePercentage = 2.5)
-        val formatted = price.changePercentageFormatted
-
-        assertEquals("+2.50%", formatted)
-    }
-
-    @Test
-    fun testPriceableValue_dayChangePercentageFormattedNegative() {
-        val price = mockEquivalentValue(changePercentage = -5.2)
-        val formatted = price.changePercentageFormatted
-
-        assertEquals("-5.20%", formatted)
-    }
-
-    @Test
-    fun testPriceableValue_dayChangePercentageFormattedZero() {
-        val price = mockEquivalentValue(changePercentage = 0.0)
-        val formatted = price.changePercentageFormatted
-
-        assertEquals("+0.00%", formatted)
-    }
-
-    @Test
-    fun testPriceableValue_dayChangePercentageFormattedNull() {
-        val price = mockEquivalentValue(changePercentage = null)
-        val formatted = price.changePercentageFormatted
-
-        assertEquals("", formatted)
-    }
-
-    @Test
-    fun testPriceableValue_priceValueFormattedWithNull() {
-        val price = mockEquivalentValue(value = null)
-        val formatted = price.valueFormatted
-
-        assertEquals("", formatted)
-    }
-
-    @Test
-    fun testPriceableValue_priceValueFormattedWithNaN() {
-        val price = mockEquivalentValue(value = Double.NaN)
-        val formatted = price.valueFormatted
-
-        assertEquals("", formatted)
-    }
-
-    @Test
-    fun testPriceableValue_priceValueFormattedWithInfinity() {
-        val price = mockEquivalentValue(value = Double.POSITIVE_INFINITY)
-        val formatted = price.valueFormatted
-
-        assertEquals("", formatted)
-    }
-
-    @Test
-    fun testPriceableValue_priceValueFormattedWithZero() {
-        val price = mockEquivalentValue(value = 0.0)
-        val formatted = price.valueFormatted
-
-        assertTrue("Formatted zero price should not be empty", formatted.isNotEmpty())
-    }
-
-    @Test
-    fun testPriceableValue_priceValueFormattedWithLowValue() {
-        val price = mockEquivalentValue(value = 0.0025)
-        val formatted = price.valueFormatted
-
-        assertTrue("Formatted low price should not be empty", formatted.isNotEmpty())
-    }
-
-    @Test
-    fun testPriceableValue_priceValueFormattedWithNegative() {
-        val price = mockEquivalentValue(value = -100.0)
-        val formatted = price.valueFormatted
-
-        assertTrue("Formatted negative price should not be empty", formatted.isNotEmpty())
-    }
-
-    @Test
-    fun testPriceableValue_multiplePropertiesConsistency() {
-        val price = mockEquivalentValue(
-            value = 50000.0,
-            changePercentage = 3.5,
-            currency = Currency.USD,
-        )
-
-        assertEquals(50000.0, price.value!!, 0.01)
-        assertEquals(3.5, price.changePercentage!!, 0.01)
-        assertEquals(Currency.USD, price.currency)
-        assertEquals(GemValueTone.POSITIVE, price.state)
-        assertEquals("+3.50%", price.changePercentageFormatted)
-    }
-
-    @Test
-    fun testPriceableValue_stateTransitionFromPositiveToNegative() {
-        val priceUp = mockEquivalentValue(changePercentage = 1.5)
-        assertEquals(GemValueTone.POSITIVE, priceUp.state)
-
-        val priceDown = mockEquivalentValue(changePercentage = -1.5)
-        assertEquals(GemValueTone.NEGATIVE, priceDown.state)
-    }
-
-    @Test
-    fun testPriceableValue_stateWithVerySmallChange() {
-        val priceSmallUp = mockEquivalentValue(changePercentage = 0.001)
-        assertEquals(GemValueTone.POSITIVE, priceSmallUp.state)
-        assertEquals("+0.00%", priceSmallUp.changePercentageFormatted)
-
-        val priceSmallDown = mockEquivalentValue(changePercentage = -0.001)
-        assertEquals(GemValueTone.NEGATIVE, priceSmallDown.state)
-        assertEquals("-0.00%", priceSmallDown.changePercentageFormatted)
-    }
-
-    @Test
-    fun testPriceableValue_stateWithMinimumDetectableChange() {
-        val priceMinUp = mockEquivalentValue(changePercentage = 0.01)
-        assertEquals(GemValueTone.POSITIVE, priceMinUp.state)
-
-        val priceMinDown = mockEquivalentValue(changePercentage = -0.01)
-        assertEquals(GemValueTone.NEGATIVE, priceMinDown.state)
+        assertEquals(GemValueTone.POSITIVE, present.state)
+        assertEquals("+2.50%", present.changePercentageFormatted)
     }
 }

@@ -23,10 +23,18 @@ struct ConfirmTransferNavigationView: View {
                 switch $0 {
                 case let .info(type):
                     InfoSheetScene(type: type)
-                case let .url(url):
-                    SFSafariView(url: url)
                 case .networkFeeSelector:
                     NetworkFeeSheet(model: model.feeModel)
+                case let .paymentAsset(type):
+                    SelectAssetSceneNavigationStack(
+                        model: viewModelFactory.selectAssetScene(
+                            wallet: model.assetAcquisitionWallet,
+                            selectType: type,
+                            selectAssetAction: model.selectPaymentAsset,
+                        ),
+                    )
+                case let .paymentVerification(url):
+                    PaymentVerificationScene(model: PaymentVerificationSceneViewModel(url: url, onComplete: model.onPaymentVerified))
                 case .payloadDetails:
                     NavigationStack {
                         SimulationPayloadDetailsScene(
@@ -69,7 +77,7 @@ struct ConfirmTransferNavigationView: View {
                     }
                     .sheetPresentation(.forCurrentDeviceSize(expandable: true))
                 case let .addressDetails(chainAddress):
-                    AddressDetailsNavigationStack(model: viewModelFactory.addressDetailsScene(chainAddress: chainAddress))
+                    AddressDetailsDestination(chainAddress: chainAddress)
                 }
             }
     }

@@ -4,6 +4,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.SemanticsNodeInteraction
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.text.TextLayoutResult
@@ -11,6 +14,7 @@ import androidx.compose.ui.text.TextStyle
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
+import kotlin.math.roundToInt
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -41,6 +45,39 @@ class ListItemTitleStyleTest {
             assertEquals(title, expected.fontSize, style.fontSize)
             assertEquals(title, expected.fontWeight, style.fontWeight)
         }
+    }
+
+    @Test
+    fun aLatencyBadgeDoesNotMoveTheHostAndTheSpinnerStaysOnScreen() {
+        composeRule.setContent {
+            WalletTheme {
+                Column {
+                    ListItem(
+                        model = ListItemModel(title = "Loading", titleTag = "", titleTagType = ListItemTagType.Progress, titleExtra = "loading-host"),
+                        listPosition = ListPosition.First,
+                    )
+                    ListItem(
+                        model = ListItemModel(title = "Fast", titleTag = "93 ms", titleTagStyle = ListItemTextStyle.Positive, titleExtra = "fast-host"),
+                        listPosition = ListPosition.Middle,
+                    )
+                    ListItem(
+                        model = ListItemModel(title = "Slow", titleTag = "210 ms", titleTagStyle = ListItemTextStyle.Warning, titleExtra = "slow-host"),
+                        listPosition = ListPosition.Last,
+                    )
+                }
+            }
+        }
+
+        val loadingGap = gap("Loading", "loading-host")
+        assertEquals(loadingGap, gap("Fast", "fast-host"))
+        assertEquals(loadingGap, gap("Slow", "slow-host"))
+        composeRule.onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate), useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    private fun gap(title: String, host: String): Int {
+        val titleBottom = composeRule.onNodeWithText(title, useUnmergedTree = true).fetchSemanticsNode().boundsInRoot.bottom
+        val hostTop = composeRule.onNodeWithText(host, useUnmergedTree = true).fetchSemanticsNode().boundsInRoot.top
+        return (hostTop - titleBottom).roundToInt()
     }
 
     private fun SemanticsNodeInteraction.textStyle(): TextStyle {

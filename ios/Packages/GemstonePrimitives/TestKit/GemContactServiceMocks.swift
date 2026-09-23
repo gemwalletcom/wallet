@@ -13,41 +13,9 @@ public extension GemContactService {
     static func mock() -> GemContactService {
         GemContactService(
             store: GemContactStoreMock(),
-            addressStore: GemAddressStoreMock(),
+            names: .mock(),
             files: GemFileStoreMock(),
         )
-    }
-}
-
-public final class GemContactEditorServiceMock: GemContactEditorServiceProtocol, @unchecked Sendable {
-    private let service: GemContactEditorService
-
-    public init() {
-        service = GemContactEditorService(
-            contacts: .mock(),
-            addresses: GemAddressService(),
-            payments: GemPaymentService.mock(),
-        )
-    }
-
-    public func scannedAddress(input: String) -> GemContactScannedAddress {
-        service.scannedAddress(input: input)
-    }
-
-    public func defaultChain() -> Gemstone.Chain {
-        service.defaultChain()
-    }
-
-    public func saveContact(input: GemContactInput) async throws -> Gemstone.Contact {
-        try await service.saveContact(input: input)
-    }
-
-    public func formatAddress(address: String, chain: Gemstone.Chain, style: GemAddressFormatStyle) -> String {
-        service.formatAddress(address: address, chain: chain, style: style)
-    }
-
-    public func newSession(contact: Gemstone.Contact?, addresses: [Gemstone.ContactAddress]) -> GemContactSession {
-        service.newSession(contact: contact, addresses: addresses)
     }
 }
 
@@ -55,7 +23,6 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
     public var connectionSectionsValue: [GemConnectionSection] = []
     public var connectionRowValue = GemConnectionRow(title: "", host: nil, initial: nil, iconUrl: nil)
     public var connectionDetailRows: [GemListRow] = []
-    public var originRejected = false
     public var hasSessionsValue = false
     public var signatureResult: Result<String, Error> = .success("0x")
 
@@ -112,10 +79,6 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
 
     public func hasSessions() async throws -> Bool {
         hasSessionsValue
-    }
-
-    public func isOriginRejected(metadataUrl _: String, origin _: String?, validation _: Gemstone.WalletConnectionVerificationStatus) -> Bool {
-        originRejected
     }
 
     public func prepareSessionProposal(

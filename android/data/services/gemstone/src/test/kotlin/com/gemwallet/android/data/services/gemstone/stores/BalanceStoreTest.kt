@@ -51,7 +51,7 @@ class GemstoneBalanceStoreTest {
                 pending = "0", pendingAmount = 0.0, pendingUnconfirmed = "0", pendingUnconfirmedAmount = 0.0,
                 rewards = "0", rewardsAmount = 0.0, reserved = "0", reservedAmount = 0.0, withdrawable = "0", withdrawableAmount = 0.0,
                 earn = "0", earnAmount = 0.0,
-                votes = 0L, energyAvailable = 0L, energyTotal = 0L, bandwidthAvailable = 0L, bandwidthTotal = 0L,
+                metadata = null,
                 isActive = true,
                 updatedAt = any(),
             )

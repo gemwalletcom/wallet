@@ -17,8 +17,6 @@ public final class ImportWalletViewModel {
     private let nameService: any GemNameServiceProtocol
     let onComplete: VoidAction
 
-    var isPresentingSelectImageWallet: Wallet?
-
     public init(
         service: any GemWalletServiceProtocol,
         preferences: ObservablePreferences,
@@ -35,32 +33,11 @@ public final class ImportWalletViewModel {
         preferences.isAcceptTermsCompleted
     }
 
-    func importWalletModel(type: ImportWalletType, onComplete: @escaping @MainActor @Sendable (ImportWalletSceneResult) -> Void) -> ImportWalletSceneViewModel {
+    func importWalletModel(type: ImportWalletType) -> ImportWalletSceneViewModel {
         ImportWalletSceneViewModel(service: service, preferences: preferences, nameService: nameService, type: type, onComplete: onComplete)
     }
 
     func importWalletTypeModel() -> ImportWalletTypeViewModel {
         ImportWalletTypeViewModel()
-    }
-
-    func setupWalletModel(wallet: Wallet, onComplete: @escaping (Wallet) -> Void) -> SetupWalletViewModel {
-        SetupWalletViewModel(
-            wallet: wallet,
-            service: service,
-            onSelectImage: { [weak self] in self?.presentSelectImage(wallet: $0) },
-            onComplete: onComplete,
-        )
-    }
-
-    func walletImageModel(wallet: Wallet) -> WalletImageViewModel {
-        WalletImageViewModel(wallet: wallet, source: .onboarding, service: service)
-    }
-}
-
-// MARK: - Actions
-
-extension ImportWalletViewModel {
-    func presentSelectImage(wallet: Wallet) {
-        isPresentingSelectImageWallet = wallet
     }
 }

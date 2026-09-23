@@ -62,8 +62,8 @@ public extension SwapQuoteData {
 }
 
 public extension ApprovalData {
-    static func mock() -> ApprovalData {
-        ApprovalData(token: "", spender: "", value: .zero, isUnlimited: false)
+    static func mock(isUnlimited: Bool = false) -> ApprovalData {
+        ApprovalData(token: "", spender: "", value: .zero, isUnlimited: isUnlimited)
     }
 }
 

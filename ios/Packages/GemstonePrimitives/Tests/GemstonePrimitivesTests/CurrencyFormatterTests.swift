@@ -12,6 +12,20 @@ final class CurrencyFormatterTests {
     let abbreviatedFormatterUS = CurrencyFormatter(type: .abbreviated, locale: .US, currencyCode: Currency.usd.rawValue)
     let abbreviatedFormatterUK = CurrencyFormatter(type: .abbreviated, locale: .UK, currencyCode: Currency.gbp.rawValue)
 
+    let shortFormatterUS = CurrencyFormatter(type: .short, locale: .US, currencyCode: Currency.usd.rawValue)
+    let shortFormatterUK = CurrencyFormatter(type: .short, locale: .UK, currencyCode: Currency.gbp.rawValue)
+
+    @Test
+    func shortReadsDustBelowTheAmountThreshold() {
+        #expect(shortFormatterUS.string(0.00000783) == "<$0.0001")
+        #expect(shortFormatterUK.string(0.00000783) == "<£0.0001")
+        #expect(shortFormatterUS.string(0.0001) == "$0.0001")
+        #expect(shortFormatterUS.string(0) == "$0.00")
+        #expect(shortFormatterUS.string(0.0345) == "$0.0345")
+        #expect(shortFormatterUS.string(1234.5) == "$1,234.50")
+        #expect(currencyFormatterUS.string(0.00000783) == "$0.00000783")
+    }
+
     @Test
     func currency() {
         #expect(currencyFormatterUS.string(0) == "$0.00")
@@ -59,10 +73,10 @@ final class CurrencyFormatterTests {
         #expect(abbreviatedFormatterUS.string(-10000) == "-$10,000.00")
         #expect(abbreviatedFormatterUS.string(-5_600_000) == "-$5.6M")
 
-        #expect(abbreviatedFormatterUK.string(123_456) == "£123.45k")
+        #expect(abbreviatedFormatterUK.string(123_456) == "£123.46k", "an abbreviated value rounds the way the record asks, half-even, not down")
         #expect(abbreviatedFormatterUK.string(5_000_000) == "£5m")
         #expect(abbreviatedFormatterUK.string(7_890_000_000) == "£7.89bn")
         #expect(abbreviatedFormatterUK.string(1_200_000_000_000) == "£1.2tn")
-        #expect(abbreviatedFormatterUK.string(-9_999_999_999) == "-£9.99bn")
+        #expect(abbreviatedFormatterUK.string(-9_999_999_999) == "-£10bn")
     }
 }

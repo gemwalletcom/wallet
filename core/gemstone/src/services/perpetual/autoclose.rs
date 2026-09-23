@@ -130,8 +130,12 @@ impl GemAutocloseModify {
 }
 
 impl GemAutocloseModify {
+    fn is_complete(&self) -> bool {
+        self.take_profit.is_acceptable() && self.stop_loss.is_acceptable() && (self.take_profit.should_update() || self.stop_loss.should_update())
+    }
+
     fn can_build(&self) -> bool {
-        self.asset_index.is_some() && self.take_profit.is_acceptable() && self.stop_loss.is_acceptable() && (self.take_profit.should_update() || self.stop_loss.should_update())
+        self.asset_index.is_some() && self.is_complete()
     }
 
     fn build(&self, asset_index: i32) -> Vec<PerpetualModifyPositionType> {
@@ -214,10 +218,10 @@ impl GemAutocloseSession {
     }
 
     pub fn view_state(&self) -> GemAutocloseViewState {
-        let can_build = self.modify.can_build();
         GemAutocloseViewState {
             confirm_enabled: match (self.policy, self.submit_attempted) {
-                (GemAutocloseConfirmPolicy::WhenBuildable, _) | (GemAutocloseConfirmPolicy::UntilSubmitted, true) => can_build,
+                (GemAutocloseConfirmPolicy::WhenBuildable, _) => self.modify.is_complete(),
+                (GemAutocloseConfirmPolicy::UntilSubmitted, true) => self.modify.can_build(),
                 (GemAutocloseConfirmPolicy::UntilSubmitted, false) => self.modify.take_profit.has_pending_change() || self.modify.stop_loss.has_pending_change(),
             },
             shows_errors: self.submit_attempted,
@@ -284,8 +288,51 @@ pub fn autoclose_session(perpetual: Perpetual, asset: Asset, position: Perpetual
     )
 }
 
+#[uniffi::export]
+pub fn autoclose_open_session(direction: PerpetualDirection, market_price: f64, decimals: i32, provider: PerpetualProvider) -> GemAutocloseSession {
+    let empty = |tpsl_type: TpslType| GemAutocloseField {
+        tpsl_type,
+        price: None,
+        original_price: None,
+        formatted_price: None,
+        validation: AutocloseValidation::Valid,
+        order_id: None,
+    };
+    GemAutocloseSession::new(
+        GemAutocloseModify {
+            direction,
+            asset_index: None,
+            take_profit: empty(TpslType::TakeProfit),
+            stop_loss: empty(TpslType::StopLoss),
+        },
+        GemAutocloseConfirmPolicy::WhenBuildable,
+        GemAutoclosePrices { entry: None, market: market_price },
+        provider,
+        decimals,
+    )
+}
+
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn test_an_open_position_starts_empty_and_prices_against_the_snapshot_it_was_given() {
+        let session = autoclose_open_session(PerpetualDirection::Long, 100.0, 2, PerpetualProvider::Hypercore);
+        let state = session.view_state();
+
+        assert!(!state.confirm_enabled, "nothing has been entered yet");
+        assert_eq!(state.entry_price, None, "an unopened position has no entry price");
+        assert_eq!(state.market_price, GemFormattedNumber::currency(100.0, Currency::USD, GemCurrencyStyle::Currency));
+        assert_eq!(session.initial_text(TpslType::TakeProfit, ".".to_string()), None);
+
+        let above = session.on_price(TpslType::TakeProfit, Some(120.0));
+        assert_eq!(above.modify.take_profit.validation, AutocloseValidation::Valid);
+        assert!(above.view_state().confirm_enabled);
+
+        let below = session.on_price(TpslType::TakeProfit, Some(80.0));
+        assert_ne!(below.modify.take_profit.validation, AutocloseValidation::Valid, "a long takes profit above the market it was opened against");
+        assert!(!below.view_state().confirm_enabled);
+    }
 
     #[test]
     fn test_each_platform_gates_confirm_the_way_its_policy_says() {

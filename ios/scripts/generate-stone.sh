@@ -26,14 +26,26 @@ fi
 
 PROFILE="debug"
 BUILD_FLAG=""
-DEFAULT_TARGETS="aarch64-apple-ios-sim"
 if [ "$BUILD_MODE" = "release" ]; then
     PROFILE="release"
     BUILD_FLAG="--release"
-    DEFAULT_TARGETS="aarch64-apple-ios-sim aarch64-apple-ios"
-elif [ "${PLATFORM_NAME:-}" = "iphoneos" ]; then
-    DEFAULT_TARGETS="aarch64-apple-ios"
 fi
+
+case "${PLATFORM_NAME:-}" in
+    iphoneos)
+        DEFAULT_TARGETS="aarch64-apple-ios"
+        ;;
+    iphonesimulator)
+        DEFAULT_TARGETS="aarch64-apple-ios-sim"
+        ;;
+    *)
+        if [ "$BUILD_MODE" = "release" ]; then
+            DEFAULT_TARGETS="aarch64-apple-ios"
+        else
+            DEFAULT_TARGETS="aarch64-apple-ios-sim"
+        fi
+        ;;
+esac
 TARGETS="${GEMSTONE_IOS_TARGETS:-$DEFAULT_TARGETS}"
 
 read_deployment_target() {

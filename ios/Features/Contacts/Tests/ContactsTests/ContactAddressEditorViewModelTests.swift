@@ -5,6 +5,7 @@ import ContactsTestKit
 import class Gemstone.GemChainService
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
+import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 import Testing

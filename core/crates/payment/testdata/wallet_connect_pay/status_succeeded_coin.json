@@ -1,0 +1,20 @@
+{
+  "status": "succeeded",
+  "isFinal": true,
+  "pollInMs": null,
+  "info": {
+    "txId": "0x068608e32ed1555d2955d791d8824a03b10b05db3bc7fd66784cde2196ba14b0",
+    "optionAmount": {
+      "unit": "caip19/eip155:56/slip44:714",
+      "value": "140490511749776",
+      "display": {
+        "assetSymbol": "BNB",
+        "assetName": "BNB",
+        "decimals": 18,
+        "networkName": "BNB Smart Chain",
+        "iconUrl": "https://api.walletconnect.com/assets/v1/image/token/BNB/md",
+        "networkIconUrl": "https://api.walletconnect.com/assets/v1/image/network/eip155:56/md"
+      }
+    }
+  }
+}

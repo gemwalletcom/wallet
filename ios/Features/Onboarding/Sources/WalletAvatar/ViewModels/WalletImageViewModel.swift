@@ -16,17 +16,11 @@ import SwiftUI
 @MainActor
 @Observable
 public final class WalletImageViewModel: Sendable {
-    public enum Source {
-        case onboarding
-        case wallet
-    }
-
     struct NFTAssetImageItem: Identifiable {
         let id: String
         let assetImage: AssetImage
     }
 
-    public let source: Source
     private let service: any GemWalletServiceProtocol
 
     public let walletQuery: ObservableQuery<WalletRequest>
@@ -46,20 +40,15 @@ public final class WalletImageViewModel: Sendable {
 
     public init(
         wallet: Wallet,
-        source: Source = .wallet,
         service: any GemWalletServiceProtocol,
     ) {
-        self.source = source
         self.service = service
         walletQuery = ObservableQuery(WalletRequest(walletId: wallet.id), initialValue: wallet)
         nftQuery = ObservableQuery(NFTRequest(walletId: wallet.id, filter: .all), initialValue: [])
     }
 
     var title: String {
-        switch source {
-        case .onboarding: Localized.Wallet.New.title
-        case .wallet: Localized.Common.avatar
-        }
+        Localized.Common.avatar
     }
 
     var emptyContentModel: EmptyContentTypeViewModel {

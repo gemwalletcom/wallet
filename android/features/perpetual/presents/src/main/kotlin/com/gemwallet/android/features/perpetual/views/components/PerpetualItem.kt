@@ -35,6 +35,7 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
 import uniffi.gemstone.GemValueTone
+import uniffi.gemstone.GemCurrencyStyle
 import uniffi.gemstone.priceRow
 
 private val trailingMinWidth = 40.dp
@@ -115,7 +116,7 @@ private fun PerpetualItemPreview() {
             type = AssetType.NATIVE,
         )
         override val isPinned: Boolean = true
-        override val price = priceRow(price = 95420.50, change = 2.5, currency = Currency.USD.toGem())
+        override val price = priceRow(price = 95420.50, change = 2.5, currency = Currency.USD.toGem(), style = GemCurrencyStyle.SHORT)
         override val volume = "$15.0B"
     }
 

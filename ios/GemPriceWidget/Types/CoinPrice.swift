@@ -9,7 +9,7 @@ struct CoinPrice: Identifiable {
     let symbol: String
     let priceText: String
     let changeText: String
-    let changeIsPositive: Bool
+    let changeTone: WidgetValueTone
     let image: Image?
 
     var id: String {

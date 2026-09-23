@@ -61,7 +61,7 @@ extension WidgetPriceService {
                 symbol: basic.asset.symbol,
                 priceText: priceText(price.price, currency: currency, widgetFamily: widgetFamily),
                 changeText: PercentFormatter().string(price.priceChangePercentage24h),
-                changeIsPositive: price.priceChangePercentage24h >= 0,
+                changeTone: WidgetValueTone(change: price.priceChangePercentage24h),
                 image: Images.name(assetId.chain.rawValue),
             )
         }

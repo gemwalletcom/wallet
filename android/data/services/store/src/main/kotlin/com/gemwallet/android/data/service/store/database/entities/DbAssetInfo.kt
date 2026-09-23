@@ -72,11 +72,7 @@ data class DbAssetInfo(
     val balanceEarnAmount: Double? = null,
     val balanceTotalAmount: Double?,
     val balanceFiatTotalAmount: Double?,
-    val votes: Long?,
-    val energyAvailable: Long?,
-    val energyTotal: Long?,
-    val bandwidthAvailable: Long?,
-    val bandwidthTotal: Long?,
+    val balanceMetadata: BalanceMetadata?,
     val assetIsActive: Boolean?,
 )
 
@@ -122,17 +118,7 @@ fun DbAssetInfo.toDTO(): AssetInfo? {
         ),
         totalAmount = entity.balanceTotalAmount ?: 0.0,
         fiatTotalAmount = entity.balanceFiatTotalAmount ?: 0.0,
-        metadata = if ((entity.energyTotal ?: 0) > 0 || (entity.bandwidthTotal ?: 0) > 0) {
-            BalanceMetadata(
-                votes = entity.votes?.toUInt() ?: 0U,
-                energyAvailable = entity.energyAvailable?.toUInt() ?: 0U,
-                energyTotal = entity.energyTotal?.toUInt() ?: 0U,
-                bandwidthAvailable = entity.bandwidthAvailable?.toUInt() ?: 0U,
-                bandwidthTotal = entity.bandwidthTotal?.toUInt() ?: 0U,
-            )
-        } else {
-            null
-        },
+        metadata = entity.balanceMetadata,
         isActive = assetIsActive != false,
     )
 

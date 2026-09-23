@@ -5,6 +5,8 @@ import Foundation
 import struct Gemstone.GemDurationPart
 import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemListRow
+import struct Gemstone.GemListSection
+import enum Gemstone.GemRewardsAction
 import struct Gemstone.GemRewardsRedemption
 import struct Gemstone.GemRewardsState
 import struct Gemstone.RedemptionResult
@@ -76,14 +78,10 @@ public extension RedemptionResult {
 
 public extension GemRewardsState {
     static func mock(
-        hasReferralCode: Bool = true,
-        canInvite: Bool = true,
-        canUseReferralCode: Bool = true,
-        showsInfo: Bool = true,
+        actions: [GemRewardsAction] = [.share, .useReferralCode],
         errorNotice: GemListRow? = nil,
         statusNotice: GemListRow? = nil,
-        showsPendingActivation: Bool = false,
-        canActivatePendingReferral: Bool = false,
+        sections: [GemListSection] = [],
         inviteRewardPoints: GemFormattedNumber = .mock(value: 100, display: .number(precision: .fraction(min: 0, max: 0)), notation: .plain),
         referralCode: String? = "test123",
         referralLink: String? = "https://gemwallet.com/join?code=test123",
@@ -91,19 +89,14 @@ public extension GemRewardsState {
         redemptions: [GemRewardsRedemption] = [],
     ) -> GemRewardsState {
         GemRewardsState(
-            hasReferralCode: hasReferralCode,
-            canInvite: canInvite,
-            canUseReferralCode: canUseReferralCode,
-            showsInfo: showsInfo,
+            actions: actions,
             errorNotice: errorNotice,
             statusNotice: statusNotice,
-            showsPendingActivation: showsPendingActivation,
-            canActivatePendingReferral: canActivatePendingReferral,
+            sections: sections,
             inviteRewardPoints: inviteRewardPoints,
             referralCode: referralCode,
             referralLink: referralLink,
             usedReferralCode: usedReferralCode,
-            infoRows: [],
             redemptions: redemptions,
         )
     }

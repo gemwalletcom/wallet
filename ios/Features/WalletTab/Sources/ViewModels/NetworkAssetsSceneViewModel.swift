@@ -36,11 +36,11 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
         self.service = service
         onManageAssetsAction = onManageAssets
         activeQuery = ObservableQuery(
-            AssetsRequest(walletId: wallet.id, filters: [.chains([chain.rawValue]), .enabledBalance]),
+            AssetsRequest(walletId: wallet.id, filters: [.chains([chain.rawValue]), .enabledBalance], limit: nil),
             initialValue: [],
         )
         hiddenQuery = ObservableQuery(
-            AssetsRequest(walletId: wallet.id, filters: [.chains([chain.rawValue]), .disabledBalance, .hasBalance]),
+            AssetsRequest(walletId: wallet.id, filters: [.chains([chain.rawValue]), .disabledBalance, .hasBalance], limit: nil),
             initialValue: [],
         )
     }

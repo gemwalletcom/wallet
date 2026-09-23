@@ -5,6 +5,7 @@ import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.testkit.mockAmountParamsTransfer
+import com.gemwallet.android.testkit.mockAssetBalance
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockGemTransferData
@@ -95,7 +96,7 @@ class AmountTransferProviderTest {
     fun `withdraw availableBalance uses withdrawable, not available`() = runBlocking {
         val info = mockAssetInfo(
             asset = asset,
-            balance = AssetBalance.create(asset = asset, available = BigInteger("9000000"), withdrawable = BigInteger("5000000")),
+            balance = mockAssetBalance(asset = asset, available = BigInteger("9000000"), withdrawable = BigInteger("5000000")),
         )
         val getInfo = mockk<GetAssetInfo> {
             every { this@mockk.invoke(asset.id) } returns flowOf(info)

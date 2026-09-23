@@ -10,9 +10,10 @@ import com.gemwallet.android.features.bridge.views.ProposalScene
 import com.gemwallet.android.features.bridge.views.RequestScene
 import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.ChainAddress
 
 @Composable
-internal fun WalletConnectRequestContent(activeRequest: ActiveWalletConnectRequest, requestKey: String, onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit, onError: (String) -> Unit) {
+internal fun WalletConnectRequestContent(activeRequest: ActiveWalletConnectRequest, requestKey: String, onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit, onOpenAddress: (ChainAddress) -> Unit, onError: (String) -> Unit) {
     val request by activeRequest.current.collectAsStateWithLifecycle()
     when (val current = request?.takeIf { it.key == requestKey }) {
         null -> Unit
@@ -20,6 +21,7 @@ internal fun WalletConnectRequestContent(activeRequest: ActiveWalletConnectReque
         is WalletConnectUserRequest.AuthenticationRequest -> AuthRequestScene(
             request = current.request,
             verifyContext = current.verifyContext,
+            onOpenAddress = onOpenAddress,
         )
 
         is WalletConnectUserRequest.SessionProposal -> ProposalScene(
@@ -32,6 +34,7 @@ internal fun WalletConnectRequestContent(activeRequest: ActiveWalletConnectReque
             request = current.request,
             verifyContext = current.verifyContext,
             onAcquireAsset = onAcquireAsset,
+            onOpenAddress = onOpenAddress,
             onError = onError,
         )
     }

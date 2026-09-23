@@ -87,7 +87,7 @@ class WCRequestViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Enabled)
 
     fun onRequest(sessionRequest: WalletConnectSessionRequest, verifyContext: WalletConnectVerifyContext, onNotify: (String) -> Unit, onError: (String) -> Unit) {
-        if (requestJob != null && state.value.sessionRequest == sessionRequest) {
+        if (state.value.sessionRequest == sessionRequest) {
             return
         }
         requestJob?.cancel()

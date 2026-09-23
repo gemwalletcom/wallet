@@ -4,6 +4,8 @@ pub(crate) mod testkit;
 
 use std::sync::Arc;
 
+use chrono::Utc;
+
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::services::localization::GemLocalizedText;
 use primitives::{AssetFiatValue, AssetId, Banner, Currency, TotalFiatValue, Wallet, WalletId};
@@ -16,6 +18,7 @@ use crate::services::balance::rules as balance_rules;
 use crate::services::banner::{GemBannerContext, GemBannerKey, GemBannerRow, GemBannerService};
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemPreferencesService;
+use crate::services::wallet::rules as wallet_rules;
 use crate::services::wallet_preferences::{GemDiscoveryStep, GemWalletPreferencesService};
 use crate::services::wallet_session::GemWalletSessionService;
 pub use rules::GemPerpetualCollateral;
@@ -107,6 +110,12 @@ impl GemWalletHomeService {
 
     pub async fn refresh(&self) -> Result<(), GemServiceError> {
         let wallet_id = self.session.current_wallet_id()?;
+        let assets_timestamp = self.wallet_preferences.get_assets_timestamp(wallet_id.clone());
+        if let Some(wallet) = self.session.get_wallet(wallet_id.clone()).await?
+            && wallet_rules::is_new_wallet(&wallet.source, assets_timestamp > 0)
+        {
+            return self.wallet_preferences.set_assets_timestamp(wallet_id, Utc::now().timestamp() as u64);
+        }
         let (balances, discovery) = futures::join!(self.balances.update_enabled_balances(wallet_id.clone()), self.discovery.discover(wallet_id));
         balances?;
         discovery
@@ -140,7 +149,7 @@ mod tests {
     use super::testkit::WalletHomeTestkit;
     use crate::services::assets::model::GemHeaderActions;
     use crate::services::wallet_preferences::GemDiscoveryStep;
-    use primitives::{AssetFiatValue, Banner, BannerEvent, BannerState, Wallet};
+    use primitives::{AssetFiatValue, Banner, BannerEvent, BannerState, Wallet, WalletSource};
 
     #[test]
     fn test_the_home_state_answers_whether_perpetuals_show() {
@@ -213,6 +222,31 @@ mod tests {
                     "{step:?} was marked complete after a failed refresh"
                 );
             }
+        })
+    }
+
+    #[test]
+    fn test_a_new_wallet_asks_the_network_only_from_its_second_refresh() {
+        block_on(async {
+            let testkit = WalletHomeTestkit::with_wallet(
+                503,
+                Wallet {
+                    source: WalletSource::Create,
+                    ..Wallet::mock()
+                },
+            );
+            testkit.balances.enabled_asset_ids.lock().unwrap().insert(testkit.wallet_id.clone(), vec![AssetId::from_chain(Chain::Ethereum)]);
+
+            testkit.service.refresh().await.unwrap();
+
+            assert!(testkit.provider.requested_paths().is_empty(), "a wallet created a moment ago has nothing to discover");
+            assert!(testkit.wallet_preferences.get_assets_timestamp(testkit.wallet_id.clone()) > 0);
+
+            assert!(testkit.service.refresh().await.is_err());
+
+            let paths = testkit.provider.requested_paths();
+            assert!(paths.iter().any(|path| path.contains("gemnodes.com")), "a later refresh must fetch balances: {paths:?}");
+            assert!(paths.iter().any(|path| path.contains("devices/assets")), "a later refresh must discover: {paths:?}");
         })
     }
 

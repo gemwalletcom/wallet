@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -25,7 +24,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.ext.toGem
@@ -35,6 +33,7 @@ import com.gemwallet.android.model.toGem
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.fields.AmountInputTransformation
+import com.gemwallet.android.ui.components.fields.decimalKeyboardOptions
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
@@ -207,10 +206,7 @@ private fun SwapItemInput(calculating: Boolean, interaction: SwapItemInteraction
                 textStyle = inputTextStyle,
                 lineLimits = TextFieldLineLimits.SingleLine,
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    autoCorrectEnabled = false,
-                    keyboardType = KeyboardType.Decimal,
-                ),
+                keyboardOptions = decimalKeyboardOptions(),
                 decorator = { innerTextField ->
                     if (assetSelected && state.text.isEmpty()) {
                         Text(

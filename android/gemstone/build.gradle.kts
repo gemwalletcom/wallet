@@ -71,7 +71,7 @@ val buildGemstoneHost = tasks.register<Exec>("buildGemstoneHost") {
     workingDir = coreRoot
     outputs.file(gemstoneHostLibrary)
     outputs.upToDateWhen { false }
-    commandLine("/bin/sh", "-l", "-c", "cargo build --package gemstone --lib")
+    commandLine("/bin/sh", "-l", "-c", "cargo rustc --package gemstone --lib --crate-type cdylib")
 }
 
 val bindgenKotlin = tasks.register<Exec>("bindgenKotlin") {
@@ -102,7 +102,7 @@ val buildCargoNdk = tasks.register<Exec>("buildCargoNdk") {
     workingDir = gemstoneRoot
     outputs.dir(jniLibsDir)
     outputs.upToDateWhen { false }
-    commandLine("/bin/sh", "-l", "-c", "cargo ndk $cargoNdkTargets -o ${jniLibsDir.absolutePath} build --lib $cargoBuildFlag")
+    commandLine("/bin/sh", "-l", "-c", "cargo ndk $cargoNdkTargets -o ${jniLibsDir.absolutePath} rustc --lib --crate-type cdylib $cargoBuildFlag")
 }
 
 tasks.configureEach {

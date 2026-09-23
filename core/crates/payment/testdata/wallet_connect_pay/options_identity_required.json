@@ -1,0 +1,296 @@
+{
+  "info": {
+    "status": "requires_action",
+    "amount": {
+      "unit": "iso4217/USD",
+      "value": "10",
+      "display": {
+        "assetSymbol": "USD",
+        "assetName": "US Dollar",
+        "decimals": 2
+      }
+    },
+    "expiresAt": 1789587847,
+    "merchant": {
+      "name": "Gem Wallet Test Merchant",
+      "iconUrl": "https://imagedelivery.net/_aTEfDRm7z3tKgu9JhfeKA/28f1b431-9d2a-4083-1bf8-5958939a2300/md"
+    },
+    "buyer": null
+  },
+  "collectData": {
+    "fields": [
+      {
+        "type": "text",
+        "id": "fullName",
+        "name": "Full name",
+        "required": true
+      },
+      {
+        "type": "date",
+        "id": "dob",
+        "name": "Date of birth",
+        "required": true
+      }
+    ],
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "pobCountry",
+            "pobAddress"
+          ]
+        },
+        {
+          "required": [
+            "porCountry",
+            "porAddress"
+          ]
+        }
+      ],
+      "properties": {
+        "dob": {
+          "description": "Date of birth in YYYY-MM-DD format",
+          "format": "date",
+          "title": "Date of Birth",
+          "type": "string"
+        },
+        "fullName": {
+          "description": "User's full legal name",
+          "minLength": 1,
+          "title": "Full Name",
+          "type": "string"
+        },
+        "pobAddress": {
+          "description": "Place of birth city and state (e.g., 'New York, NY')",
+          "maxLength": 200,
+          "title": "Place of Birth Address",
+          "type": "string"
+        },
+        "pobCountry": {
+          "description": "Place of birth country code (ISO 3166-1 alpha-2)",
+          "pattern": "^[A-Z]{2}$",
+          "title": "Place of Birth Country",
+          "type": "string"
+        },
+        "porAddress": {
+          "description": "Place of residence street address, city, and state",
+          "maxLength": 200,
+          "title": "Place of Residence Address",
+          "type": "string"
+        },
+        "porCountry": {
+          "description": "Place of residence country code (ISO 3166-1 alpha-2)",
+          "pattern": "^[A-Z]{2}$",
+          "title": "Place of Residence Country",
+          "type": "string"
+        },
+        "tosConfirmed": {
+          "const": true,
+          "description": "Must be true to confirm Terms of Service acceptance",
+          "title": "Terms of Service Confirmation",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "fullName",
+        "dob",
+        "tosConfirmed"
+      ],
+      "type": "object"
+    },
+    "url": "https://pay.walletconnect.com/collect/?pid=pay_dfa2ecc101M2NV3FG4QSGGGZDQYW8DX45A&accounts=eip155%3A42161%3A0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB%2Ceip155%3A10%3A0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB%2Ceip155%3A137%3A0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB%2Ceip155%3A8453%3A0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB%2Ceip155%3A1%3A0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB%2Ceip155%3A56%3A0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB"
+  },
+  "options": [
+    {
+      "id": "f6d28ce1-5b63-4644-be05-d9bff7984c91",
+      "account": "eip155:10:0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB",
+      "amount": {
+        "unit": "caip19/eip155:10/slip44:60",
+        "value": "41864979753524",
+        "display": {
+          "assetSymbol": "ETH",
+          "assetName": "Ether",
+          "decimals": 18,
+          "networkName": "Optimism",
+          "iconUrl": "https://api.walletconnect.com/assets/v1/image/token/ETH/md",
+          "networkIconUrl": "https://api.walletconnect.com/assets/v1/image/network/eip155:10/md"
+        }
+      },
+      "etaS": 5,
+      "expiresAt": 1789587260,
+      "actions": [
+        {
+          "type": "build",
+          "data": {
+            "data": ""
+          }
+        }
+      ],
+      "collectData": {
+        "url": "https://pay.walletconnect.com/collect/?pid=pay_dfa2ecc101M2NV3FG4QSGGGZDQYW8DX45A&accounts=eip155%3A10%3A0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB"
+      }
+    },
+    {
+      "id": "3d0ced42-364d-4557-924a-9791a8f70989",
+      "account": "eip155:1:0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB",
+      "amount": {
+        "unit": "caip19/eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7",
+        "value": "100000",
+        "display": {
+          "assetSymbol": "USDT",
+          "assetName": "Tether USD",
+          "decimals": 6,
+          "networkName": "Ethereum",
+          "iconUrl": "https://api.walletconnect.com/assets/v1/image/token/USDT/md",
+          "networkIconUrl": "https://api.walletconnect.com/assets/v1/image/network/eip155:1/md"
+        }
+      },
+      "etaS": 5,
+      "expiresAt": null,
+      "actions": [
+        {
+          "type": "walletRpc",
+          "data": {
+            "chain_id": "eip155:1",
+            "method": "eth_signTypedData_v4",
+            "params": [
+              "0x92abce21234d71ec443e679f3a1feafd3fc830fb",
+              "{\"domain\":{\"name\":\"Permit2\",\"chainId\":\"0x1\",\"verifyingContract\":\"0x000000000022d473030f116ddee9f6b43ac78ba3\"},\"types\":{\"EIP712Domain\":[{\"type\":\"string\",\"name\":\"name\"},{\"type\":\"uint256\",\"name\":\"chainId\"},{\"type\":\"address\",\"name\":\"verifyingContract\"}],\"PermitTransferFrom\":[{\"type\":\"TokenPermissions\",\"name\":\"permitted\"},{\"type\":\"address\",\"name\":\"spender\"},{\"type\":\"uint256\",\"name\":\"nonce\"},{\"type\":\"uint256\",\"name\":\"deadline\"}],\"TokenPermissions\":[{\"type\":\"address\",\"name\":\"token\"},{\"type\":\"uint256\",\"name\":\"amount\"}]},\"primaryType\":\"PermitTransferFrom\",\"message\":{\"deadline\":\"0x6aaaf2b3\",\"nonce\":\"0xd0d10bf913b96228c4f02a3c1601a3072afc685d7548f273a762ccb50240cb6e\",\"permitted\":{\"amount\":\"0x186a0\",\"token\":\"0xdac17f958d2ee523a2206206994597c13d831ec7\"},\"spender\":\"0x5fae5310f257437fbfed0da3c417da410078058e\"}}"
+            ]
+          }
+        }
+      ],
+      "collectData": {
+        "url": "https://pay.walletconnect.com/collect/?pid=pay_dfa2ecc101M2NV3FG4QSGGGZDQYW8DX45A&accounts=eip155%3A1%3A0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB"
+      }
+    },
+    {
+      "id": "5e6a3e34-bafc-4ac3-9358-5888d884fc7a",
+      "account": "eip155:1:0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB",
+      "amount": {
+        "unit": "caip19/eip155:1/slip44:60",
+        "value": "41780541224583",
+        "display": {
+          "assetSymbol": "ETH",
+          "assetName": "Ether",
+          "decimals": 18,
+          "networkName": "Ethereum",
+          "iconUrl": "https://api.walletconnect.com/assets/v1/image/token/ETH/md",
+          "networkIconUrl": "https://api.walletconnect.com/assets/v1/image/network/eip155:1/md"
+        }
+      },
+      "etaS": 5,
+      "expiresAt": 1789587260,
+      "actions": [
+        {
+          "type": "build",
+          "data": {
+            "data": ""
+          }
+        }
+      ],
+      "collectData": {
+        "url": "https://pay.walletconnect.com/collect/?pid=pay_dfa2ecc101M2NV3FG4QSGGGZDQYW8DX45A&accounts=eip155%3A1%3A0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB"
+      }
+    },
+    {
+      "id": "1799e123-dd17-4e23-8a92-981176015b52",
+      "account": "eip155:56:0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB",
+      "amount": {
+        "unit": "caip19/eip155:56/slip44:714",
+        "value": "140022010917391",
+        "display": {
+          "assetSymbol": "BNB",
+          "assetName": "BNB",
+          "decimals": 18,
+          "networkName": "BNB Smart Chain",
+          "iconUrl": "https://api.walletconnect.com/assets/v1/image/token/BNB/md",
+          "networkIconUrl": "https://api.walletconnect.com/assets/v1/image/network/eip155:56/md"
+        }
+      },
+      "etaS": 5,
+      "expiresAt": 1789587260,
+      "actions": [
+        {
+          "type": "build",
+          "data": {
+            "data": ""
+          }
+        }
+      ],
+      "collectData": {
+        "url": "https://pay.walletconnect.com/collect/?pid=pay_dfa2ecc101M2NV3FG4QSGGGZDQYW8DX45A&accounts=eip155%3A56%3A0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB"
+      }
+    },
+    {
+      "id": "f7b267b2-b178-4830-9b98-2b8cb37c8e7f",
+      "account": "eip155:56:0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB",
+      "amount": {
+        "unit": "caip19/eip155:56/erc20:0x55d398326f99059fF775485246999027B3197955",
+        "value": "100000000000000000",
+        "display": {
+          "assetSymbol": "USDT",
+          "assetName": "Binance-Peg BSC-USD",
+          "decimals": 18,
+          "networkName": "BNB Smart Chain",
+          "iconUrl": "https://api.walletconnect.com/assets/v1/image/token/USDT/md",
+          "networkIconUrl": "https://api.walletconnect.com/assets/v1/image/network/eip155:56/md"
+        }
+      },
+      "etaS": 5,
+      "expiresAt": null,
+      "actions": [
+        {
+          "type": "walletRpc",
+          "data": {
+            "chain_id": "eip155:56",
+            "method": "eth_signTypedData_v4",
+            "params": [
+              "0x92abce21234d71ec443e679f3a1feafd3fc830fb",
+              "{\"domain\":{\"name\":\"Permit2\",\"chainId\":\"0x38\",\"verifyingContract\":\"0x000000000022d473030f116ddee9f6b43ac78ba3\"},\"types\":{\"EIP712Domain\":[{\"type\":\"string\",\"name\":\"name\"},{\"type\":\"uint256\",\"name\":\"chainId\"},{\"type\":\"address\",\"name\":\"verifyingContract\"}],\"PermitTransferFrom\":[{\"type\":\"TokenPermissions\",\"name\":\"permitted\"},{\"type\":\"address\",\"name\":\"spender\"},{\"type\":\"uint256\",\"name\":\"nonce\"},{\"type\":\"uint256\",\"name\":\"deadline\"}],\"TokenPermissions\":[{\"type\":\"address\",\"name\":\"token\"},{\"type\":\"uint256\",\"name\":\"amount\"}]},\"primaryType\":\"PermitTransferFrom\",\"message\":{\"deadline\":\"0x6aaaf2b3\",\"nonce\":\"0xc6415c709642f0de50d0ede44959ef6ca9c5a205293c6794e7271588cd95ea74\",\"permitted\":{\"amount\":\"0x16345785d8a0000\",\"token\":\"0x55d398326f99059ff775485246999027b3197955\"},\"spender\":\"0x5fae5310f257437fbfed0da3c417da410078058e\"}}"
+            ]
+          }
+        }
+      ],
+      "collectData": {
+        "url": "https://pay.walletconnect.com/collect/?pid=pay_dfa2ecc101M2NV3FG4QSGGGZDQYW8DX45A&accounts=eip155%3A56%3A0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB"
+      }
+    },
+    {
+      "id": "2dd023a2-db2b-4f6c-a587-09160474cff1",
+      "account": "eip155:56:0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB",
+      "amount": {
+        "unit": "caip19/eip155:56/erc20:0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+        "value": "100000000000000000",
+        "display": {
+          "assetSymbol": "USDC",
+          "assetName": "Binance-Peg USD Coin",
+          "decimals": 18,
+          "networkName": "BNB Smart Chain",
+          "iconUrl": "https://api.walletconnect.com/assets/v1/image/token/USDC/md",
+          "networkIconUrl": "https://api.walletconnect.com/assets/v1/image/network/eip155:56/md"
+        }
+      },
+      "etaS": 5,
+      "expiresAt": null,
+      "actions": [
+        {
+          "type": "walletRpc",
+          "data": {
+            "chain_id": "eip155:56",
+            "method": "eth_signTypedData_v4",
+            "params": [
+              "0x92abce21234d71ec443e679f3a1feafd3fc830fb",
+              "{\"domain\":{\"name\":\"Permit2\",\"chainId\":\"0x38\",\"verifyingContract\":\"0x000000000022d473030f116ddee9f6b43ac78ba3\"},\"types\":{\"EIP712Domain\":[{\"type\":\"string\",\"name\":\"name\"},{\"type\":\"uint256\",\"name\":\"chainId\"},{\"type\":\"address\",\"name\":\"verifyingContract\"}],\"PermitTransferFrom\":[{\"type\":\"TokenPermissions\",\"name\":\"permitted\"},{\"type\":\"address\",\"name\":\"spender\"},{\"type\":\"uint256\",\"name\":\"nonce\"},{\"type\":\"uint256\",\"name\":\"deadline\"}],\"TokenPermissions\":[{\"type\":\"address\",\"name\":\"token\"},{\"type\":\"uint256\",\"name\":\"amount\"}]},\"primaryType\":\"PermitTransferFrom\",\"message\":{\"deadline\":\"0x6aaaf2b3\",\"nonce\":\"0x3f8e278a72494b9b1e9233cb69d842ce04724cf8aef0ba310d8af24b762e396\",\"permitted\":{\"amount\":\"0x16345785d8a0000\",\"token\":\"0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d\"},\"spender\":\"0x5fae5310f257437fbfed0da3c417da410078058e\"}}"
+            ]
+          }
+        }
+      ],
+      "collectData": {
+        "url": "https://pay.walletconnect.com/collect/?pid=pay_dfa2ecc101M2NV3FG4QSGGGZDQYW8DX45A&accounts=eip155%3A56%3A0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB"
+      }
+    }
+  ]
+}

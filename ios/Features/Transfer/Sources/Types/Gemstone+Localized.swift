@@ -57,6 +57,7 @@ extension GemConfirmTitle {
         case .swap: Localized.Wallet.swap
         case .approve: Localized.Transfer.Approve.title
         case .request: Localized.Transfer.reviewRequest
+        case .payment: Localized.Transfer.paymentTitle
         case .stake: Localized.Transfer.Stake.title
         case .unstake: Localized.Transfer.Unstake.title
         case .redelegate: Localized.Transfer.Redelegate.title
@@ -117,6 +118,8 @@ extension GemConfirmErrorDisplay: @retroactive LocalizedError {
             Localized.Transfer.insufficientNetworkFeeBalance(title.boldMarkdown())
         case let .minimumAccountBalance(asset, required):
             Localized.Transfer.minimumAccountBalance(Self.amount(required, asset: asset).boldMarkdown())
+        case let .destinationAccountActivation(asset, required):
+            Localized.Transfer.destinationAccountActivation(Self.amount(required, asset: asset).boldMarkdown())
         case let .swapMinimum(asset, _, providerName, requirement):
             Localized.Info.swapMinimumAmountDescription(
                 providerName.boldMarkdown(),
@@ -126,6 +129,7 @@ extension GemConfirmErrorDisplay: @retroactive LocalizedError {
             )
         case .dustThreshold: Localized.Errors.dustThresholdShort
         case .insufficientFunds: Localized.Info.InsufficientBalance.title
+        case let .payment(status): status.errorText
         case let .message(msg): msg
         }
     }

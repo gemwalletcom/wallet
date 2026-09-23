@@ -1,18 +1,14 @@
 package com.gemwallet.android.data.services.gemstone.di
 
 import android.content.Context
-import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.data.service.store.LocalStore
 import com.gemwallet.android.data.service.store.database.AccountsDao
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.data.service.store.database.WalletsDao
 import com.gemwallet.android.data.services.gemstone.GemstoneFileStore
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneAddressStore
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletPreferencesStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
-import dagger.Lazy
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -20,49 +16,15 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemAvatarService
-import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemFileStore
-import uniffi.gemstone.GemKeystore
-import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemWalletPreferencesService
 import uniffi.gemstone.GemWalletService
 import uniffi.gemstone.GemWalletServiceInterface
-import uniffi.gemstone.GemWalletSessionService
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
 object WalletsModule {
-
-    @Provides
-    @Singleton
-    fun provideGemKeystore(@ApplicationContext context: Context): GemKeystore = GemKeystore(context.dataDir.toString())
-
-    @Provides
-    @Singleton
-    fun provideGemWalletService(
-        keystore: GemKeystore,
-        passwordStore: PasswordStore,
-        walletStore: GemstoneWalletStore,
-        walletSessionService: GemWalletSessionService,
-        preferencesService: GemPreferencesService,
-        fileStore: GemFileStore,
-        walletPreferencesService: GemWalletPreferencesService,
-        explorerService: GemExplorerService,
-        addressStore: GemstoneAddressStore,
-        avatarService: GemAvatarService,
-    ): GemWalletService = GemWalletService(
-        keystore,
-        GemstoneKeystorePassword(passwordStore),
-        walletStore,
-        walletSessionService,
-        preferencesService,
-        fileStore,
-        walletPreferencesService,
-        explorerService,
-        addressStore,
-        avatarService,
-    )
 
     @Provides
     fun provideGemWalletServiceInterface(service: GemWalletService): GemWalletServiceInterface = service

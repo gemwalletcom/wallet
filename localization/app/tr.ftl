@@ -131,6 +131,8 @@ buy_no_results = Teklif bulunamadı
 # Transfer
 
 transfer_network_fee = Ağ Ücreti
+transfer_pay_with = Şununla öde
+transfer_payment_title = Ödeme
 transfer_memo = Memo
 transfer_confirm = Onayla
 transfer_from = Kimden
@@ -156,6 +158,7 @@ transfer_activate_asset_title = Varlığı Etkinleştir
 transfer_recipient_my_wallets = Cüzdanlarım
 transfer_recipient_view_wallets = Cüzdanları Görüntüle
 transfer_minimum_account_balance = Bakiyenizin tamamını kullanmadığınız sürece, bundan sonra minimum %@ bakiye kalmalıdır.
+transfer_destination_account_activation = Hedef adres en az %@ gerektirir.
 transfer_smart_contract_title = Akıllı Sözleşme
 transfer_other_title = Diğer
 transfer_maximum_amount = Maksimum Tutar %@
@@ -253,6 +256,7 @@ errors_network_offline = İnternet bağlantısı kesilmiş gibi görünüyor.
 errors_no_internet_connection = İnternet bağlantısı yok
 errors_no_service_connection = Servis bağlantısı yok
 errors_balances_activity_outdated = Bakiyeler ve etkinlik güncel olmayabilir.
+errors_payment_status = Ödeme: %@
 
 # Activity
 
@@ -289,6 +293,7 @@ transaction_swap_again = Tekrar Değiştir
 transaction_status_completed = Tamamlandı
 transaction_status_inprogress = Devam Ediyor
 transaction_status_refunded = Para iadesi yapıldı
+transaction_status_expired = Süresi doldu
 
 # Asset
 
@@ -541,6 +546,8 @@ sell_title = %@ sat
 info_network_fee_title = Ağ Ücreti
 info_watch_wallet_title = Cüzdanı İzle
 info_watch_wallet_description = Erişiminizin olmadığı, ancak işlemlerini ve hareketlerini izleyebileceğiniz bir cüzdan.
+info_payment_verification_title = Ödeme Doğrulaması
+info_payment_verification_description = Satıcı ödemeden önce ek bilgi gerektiriyor.
 info_network_fee_description = %@ ağındaki her işlem, işleminizi gerçekleştirmek için madencilere Gem Wallet'a değil, %@ tutarında bir ücret ödenmesini gerektirir. Ağ ücretleri ağ kullanımına göre değişir.
 info_transaction_error_description = İşlem, yetersiz fon, geçersiz giriş veya ağ tarafından reddedilme gibi bir hata nedeniyle tamamlanamadı. Lütfen ayrıntıları inceleyin ve tekrar deneyin.
 info_transaction_pending_description = İşlem gönderildi ve ağda onay bekleniyor. İşlem süreleri değişiklik gösterebilir. Lütfen güncellemeler için tekrar kontrol edin.

@@ -131,6 +131,8 @@ buy_no_results = Không có báo giá nào
 # Transfer
 
 transfer_network_fee = Phí mạng
+transfer_pay_with = Thanh toán bằng
+transfer_payment_title = Thanh toán
 transfer_memo = Ghi chú
 transfer_confirm = Xác nhận
 transfer_from = Từ
@@ -156,6 +158,7 @@ transfer_activate_asset_title = Kích hoạt tài sản
 transfer_recipient_my_wallets = Ví của tôi
 transfer_recipient_view_wallets = Xem ví
 transfer_minimum_account_balance = Sau đó, bạn phải giữ lại số dư tối thiểu %@, trừ khi bạn sử dụng hết số dư.
+transfer_destination_account_activation = Địa chỉ đích yêu cầu tối thiểu %@.
 transfer_smart_contract_title = Hợp đồng thông minh
 transfer_other_title = Khác
 transfer_maximum_amount = Số tiền tối đa là %@
@@ -253,6 +256,7 @@ errors_network_offline = Kết nối Internet dường như đang bị ngắt.
 errors_no_internet_connection = Không có kết nối internet
 errors_no_service_connection = Không có kết nối dịch vụ
 errors_balances_activity_outdated = Số dư và hoạt động có thể chưa được cập nhật.
+errors_payment_status = Thanh toán: %@
 
 # Activity
 
@@ -289,6 +293,7 @@ transaction_swap_again = Hoán đổi lần nữa
 transaction_status_completed = Đã hoàn thành
 transaction_status_inprogress = Đang tiến hành
 transaction_status_refunded = Đã hoàn tiền
+transaction_status_expired = Đã hết hạn
 
 # Asset
 
@@ -541,6 +546,8 @@ sell_title = Bán %@
 info_network_fee_title = Phí mạng
 info_watch_wallet_title = Ví đồng hồ
 info_watch_wallet_description = Một ví mà bạn không thể truy cập nhưng bạn có thể theo dõi các giao dịch và biến động của nó.
+info_payment_verification_title = Xác minh thanh toán
+info_payment_verification_description = Người bán yêu cầu thêm thông tin trước khi thanh toán.
 info_network_fee_description = Mọi giao dịch trên mạng %@ đều yêu cầu một khoản phí bằng %@ trả cho người khai thác để xử lý giao dịch của bạn, không phải Ví Gem. Phí mạng thay đổi tùy theo mức sử dụng mạng.
 info_transaction_error_description = Giao dịch không thể hoàn tất do lỗi, chẳng hạn như không đủ tiền, đầu vào không hợp lệ hoặc bị mạng từ chối. Vui lòng xem lại chi tiết và thử lại.
 info_transaction_pending_description = Giao dịch đã được gửi và đang chờ xác nhận trên mạng. Thời gian xử lý có thể thay đổi. Vui lòng kiểm tra lại để cập nhật.

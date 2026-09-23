@@ -38,38 +38,6 @@ install-android-targets:
     rustup target add x86_64-linux-android aarch64-linux-android armv7-linux-androideabi
     cargo install cargo-ndk@${CARGO_NDK_VERSION}
 
-build-ios: prepare-ios-package build-ios-lib
-    #!/usr/bin/env bash
-    set -o pipefail
-    DEVICE_ID=$(xcrun simctl list devices available | grep iPhone | head -1 | sed 's/.*(\([A-F0-9-]*\)).*/\1/')
-    DERIVED_DATA_PATH="$PWD/${IOS_DERIVED_DATA}"
-    PRODUCTS_DIR="$DERIVED_DATA_PATH/Build/Products/$XCODE_CONFIGURATION-iphonesimulator"
-    echo "Using Simulator: $DEVICE_ID"
-    cd ${IOS_PROJECT_FOLDER}
-    xcodebuild \
-    -scheme GemTest \
-    -configuration "$XCODE_CONFIGURATION" \
-    -derivedDataPath "$DERIVED_DATA_PATH" \
-    -destination "platform=iOS Simulator,id=$DEVICE_ID,arch=arm64" \
-    "OTHER_LDFLAGS=\$(inherited) -L$PRODUCTS_DIR -lgemstone" \
-    build | xcbeautify
-
-test-ios: prepare-ios-package build-ios-simulator-lib
-    #!/usr/bin/env bash
-    set -o pipefail
-    DEVICE_ID=$(xcrun simctl list devices available | grep iPhone | head -1 | sed 's/.*(\([A-F0-9-]*\)).*/\1/')
-    DERIVED_DATA_PATH="$PWD/${IOS_DERIVED_DATA}"
-    PRODUCTS_DIR="$DERIVED_DATA_PATH/Build/Products/$XCODE_CONFIGURATION-iphonesimulator"
-    echo "Using Simulator: $DEVICE_ID"
-    cd ${IOS_PROJECT_FOLDER}
-    xcodebuild \
-    -scheme GemTest \
-    -configuration "$XCODE_CONFIGURATION" \
-    -derivedDataPath "$DERIVED_DATA_PATH" \
-    -destination "platform=iOS Simulator,id=$DEVICE_ID,arch=arm64" \
-    "OTHER_LDFLAGS=\$(inherited) -L$PRODUCTS_DIR -lgemstone" \
-    test | xcbeautify
-
 export LIB_NAME := "gemstone"
 export STATIC_LIB_NAME := "lib" + LIB_NAME + ".a"
 export DY_LIB_NAME := if os() == "macos" { "libgemstone.dylib" } else { "libgemstone.so" }
@@ -82,7 +50,6 @@ export TARGET_DIR := "../target"
 export GEN_SWIFT_FOLDER := "generated/swift"
 export GEN_KOTLIN_FOLDER := "generated/kotlin"
 export ANDROID_MODULE_FOLDER := "android/gemstone/src/main/java"
-export IOS_PROJECT_FOLDER := "tests/ios/GemTest"
 export IOS_PACKAGE_FOLDER := "tests/ios/Packages/Gemstone"
 export IOS_DERIVED_DATA := "tests/ios/build/DerivedData"
 export IOS_SIMULATOR_RUST_TARGET := "aarch64-apple-ios-sim"
@@ -106,10 +73,10 @@ build-ios-lib targets=IOS_RUST_TARGETS:
         echo "note: Building Gemstone Rust library for $rust_target ($profile)"
         case "$rust_target" in
             aarch64-apple-ios | aarch64-apple-ios-sim)
-                IPHONEOS_DEPLOYMENT_TARGET=17.0 cargo build --target "$rust_target" --lib ${build_flag}
+                IPHONEOS_DEPLOYMENT_TARGET=17.0 cargo rustc --target "$rust_target" --lib ${build_flag} --crate-type staticlib
                 ;;
             aarch64-apple-ios-macabi | aarch64-apple-darwin)
-                env -u IPHONEOS_DEPLOYMENT_TARGET cargo build --target "$rust_target" --lib ${build_flag}
+                env -u IPHONEOS_DEPLOYMENT_TARGET cargo rustc --target "$rust_target" --lib ${build_flag} --crate-type staticlib
                 ;;
             *)
                 echo "error: unsupported Gemstone iOS Rust target: $rust_target" >&2
@@ -137,7 +104,7 @@ bindgen-swift:
     if [ "${BUILD_MODE}" == "release" ]; then \
         export RUSTFLAGS="${RUSTFLAGS:-} -C strip=none"; \
     fi
-    cargo build {{CARGO_BUILD_FLAG}}
+    cargo rustc {{CARGO_BUILD_FLAG}} --lib --crate-type cdylib
     if [ ! -f "${LIB_OUTPUT_PATH}" ]; then \
         echo "Failed to locate ${DY_LIB_NAME} at ${LIB_OUTPUT_PATH} (mode ${BUILD_MODE})"; \
         exit 1; \
@@ -159,7 +126,7 @@ bindgen-kotlin:
     if [ "${BUILD_MODE}" == "release" ]; then \
         export RUSTFLAGS="${RUSTFLAGS:-} -C strip=none"; \
     fi
-    cargo build {{CARGO_BUILD_FLAG}}
+    cargo rustc {{CARGO_BUILD_FLAG}} --lib --crate-type cdylib
     if [ ! -f "${LIB_OUTPUT_PATH}" ]; then \
         echo "Failed to locate ${DY_LIB_NAME} at ${LIB_OUTPUT_PATH} (mode ${BUILD_MODE})"; \
         exit 1; \

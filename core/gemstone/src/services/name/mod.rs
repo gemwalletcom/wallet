@@ -54,6 +54,14 @@ impl GemNameService {
         self.store.get_address_name(chain, address).await
     }
 
+    pub async fn save_names(&self, names: Vec<AddressName>) -> Result<(), GemServiceError> {
+        self.store.save_names(names).await
+    }
+
+    pub async fn delete_names(&self, names: Vec<AddressName>) -> Result<(), GemServiceError> {
+        self.store.delete_address_names(names).await
+    }
+
     pub async fn get_address_names(&self, requests: Vec<ChainAddress>) -> Result<Vec<AddressName>, GemServiceError> {
         let requests = rules::unique_requests(requests);
         if requests.is_empty() {

@@ -21,11 +21,6 @@ pub struct GemDelegationStatus {
     pub tone: GemValueTone,
 }
 
-#[uniffi::export]
-pub fn delegation_status(delegation: Delegation) -> GemDelegationStatus {
-    rules::delegation_status(&delegation)
-}
-
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemDelegationDetails {
     pub title: GemLocalizedText,

@@ -3,7 +3,7 @@ import Foundation
 import Primitives
 
 public final class LocalKeystore: Keystore, @unchecked Sendable {
-    public let gemKeystore: GemKeystore
+    package let gemKeystore: GemKeystore
     private let keystoreURL: URL
     private let keystorePassword: KeystorePassword
     private let queue = DispatchQueue(label: "com.gemwallet.keystore", qos: .userInitiated)

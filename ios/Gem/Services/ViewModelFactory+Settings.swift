@@ -28,6 +28,7 @@ public extension ViewModelFactory {
     func settingsScene() -> SettingsViewModel {
         SettingsViewModel(
             service: GemSettingsService(preferences: preferencesService),
+            notifications: GemNotificationsService(device: deviceService, preferences: preferencesService, permissions: notificationPermissions),
             observablePreferences: observablePreferences,
         )
     }

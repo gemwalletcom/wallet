@@ -18,6 +18,7 @@ pub use store::GemTransactionStateStore;
 use tracker::{GemTransactionUpdater, Tracking, poll};
 
 use crate::gateway::GemGateway;
+use crate::payment::GemPaymentService;
 use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
 use crate::services::nft::GemNftService;
@@ -36,6 +37,7 @@ pub struct GemTransactionStateService {
     balance: Arc<GemBalanceService>,
     stake: Arc<GemStakeService>,
     nft: Arc<GemNftService>,
+    payments: Arc<GemPaymentService>,
     tracking: Tracking,
     status: OnceLock<Arc<dyn GemTransactionStatusService>>,
 }
@@ -43,7 +45,15 @@ pub struct GemTransactionStateService {
 #[uniffi::export]
 impl GemTransactionStateService {
     #[uniffi::constructor]
-    pub fn new(gateway: Arc<GemGateway>, store: Arc<dyn GemTransactionStateStore>, assets: Arc<GemAssetsService>, balance: Arc<GemBalanceService>, stake: Arc<GemStakeService>, nft: Arc<GemNftService>) -> Self {
+    pub fn new(
+        gateway: Arc<GemGateway>,
+        store: Arc<dyn GemTransactionStateStore>,
+        assets: Arc<GemAssetsService>,
+        balance: Arc<GemBalanceService>,
+        stake: Arc<GemStakeService>,
+        nft: Arc<GemNftService>,
+        payments: Arc<GemPaymentService>,
+    ) -> Self {
         Self {
             gateway,
             store,
@@ -51,6 +61,7 @@ impl GemTransactionStateService {
             balance,
             stake,
             nft,
+            payments,
             tracking: Tracking::default(),
             status: OnceLock::new(),
         }
@@ -91,6 +102,13 @@ impl GemTransactionStateService {
 }
 
 impl GemTransactionStateService {
+    pub async fn clear_pending_transactions(&self) -> Result<(), GemServiceError> {
+        for pending in self.store.get_pending_transactions().await? {
+            self.store.delete_transaction(pending.wallet.id, pending.transaction.id).await?;
+        }
+        Ok(())
+    }
+
     pub async fn add_transactions(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
         self.store.add_transactions(wallet_id, transactions).await
     }
@@ -104,7 +122,10 @@ impl GemTransactionStateService {
     }
 
     pub async fn update(&self, wallet_id: WalletId, transaction: Transaction) -> Result<Option<GemTransactionStateResult>, GemServiceError> {
-        let update = self.gateway.get_transaction_update(transaction.clone()).await.map_err(|error| error.to_string());
+        let update = match rules::payment_link(&transaction) {
+            Some(link) => self.payments.transaction_update(transaction.hash(), &link).await.map_err(|error| error.to_string()),
+            None => self.gateway.get_transaction_update(transaction.clone()).await.map_err(|error| error.to_string()),
+        };
         let previous_state = transaction.state;
         let result = merge_update(self.store.as_ref(), wallet_id.clone(), transaction.clone(), update, Utc::now()).await?;
         let Some(mut result) = result else {

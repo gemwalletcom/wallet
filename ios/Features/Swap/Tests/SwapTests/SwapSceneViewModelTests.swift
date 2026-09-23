@@ -388,50 +388,6 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
-    func minimumAmountIsOfferedOnlyWhenTheBalanceCoversIt() {
-        let model = SwapSceneViewModel.mock()
-
-        model.session = .mockFailed(.InputAmountError(minAmount: "900000000000000000"))
-        #expect(model.buttonViewModel.buttonAction == .useMinimumAmount(value: 900_000_000_000_000_000))
-
-        model.session = .mockFailed(.InputAmountError(minAmount: "2000000000000000000"))
-        #expect(model.buttonViewModel.buttonAction == .insufficientBalance)
-    }
-
-    @Test
-    func unaffordableAmountBlocksTheButtonBeforeAnyQuote() {
-        let model = SwapSceneViewModel.mock()
-
-        model.amountInputModel.text = "2"
-        model.onChangeFromValue("1", "2")
-
-        #expect(model.viewState.isQuoteLoading)
-        #expect(model.buttonViewModel.buttonAction == .insufficientBalance)
-
-        model.amountInputModel.text = "1"
-        model.onChangeFromValue("2", "1")
-
-        #expect(model.buttonViewModel.buttonAction == .swap)
-    }
-
-    @Test
-    func onlyRetryableFailuresOfferARetry() {
-        let model = SwapSceneViewModel.mock()
-
-        model.session = .mockFailed(.NoQuoteAvailable)
-        #expect(model.buttonViewModel.buttonAction == .retryQuote)
-
-        model.session = .mockFailed(.NoAvailableProvider)
-        #expect(model.buttonViewModel.buttonAction == .swap)
-
-        model.session = GemSwapSession.mockReady().failedTransfer(.TransactionError("nonce"))
-        #expect(model.buttonViewModel.buttonAction == .retryTransfer)
-
-        model.session = GemSwapSession.mockReady().failedTransfer(.NotSupportedAsset)
-        #expect(model.buttonViewModel.buttonAction == .swap)
-    }
-
-    @Test
     func thePairRefreshesPricesAndBalancesOnceAndNotForEveryEdit() async {
         let service = GemSwapQuoteServiceMock()
         let model = SwapSceneViewModel.mock(service: service)

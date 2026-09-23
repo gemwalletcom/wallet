@@ -4,6 +4,7 @@ import BigInt
 import Foundation
 import struct Gemstone.GemRecipient
 import struct Gemstone.GemTransferData
+import struct Gemstone.PaymentInvoice
 import enum Gemstone.TransactionInputType
 import struct Gemstone.TransferDataExtra
 import GemstonePrimitives
@@ -30,11 +31,12 @@ public extension GemTransferData {
         transaction: String = "transaction",
         recipient: GemRecipient = .mock(),
         value: BigInt = .zero,
+        invoice: PaymentInvoice = .mock(),
     ) -> GemTransferData {
         .mock(
-            type: .generic(
-                asset: asset,
-                metadata: .mock(source: .payment),
+            type: .payment(
+                asset: asset.toGem(),
+                invoice: invoice,
                 extra: .mock(data: Data(transaction.utf8)),
             ),
             recipient: recipient,

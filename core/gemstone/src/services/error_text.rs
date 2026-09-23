@@ -6,6 +6,7 @@ use crate::services::error::GemServiceError;
 use crate::services::node::model::GemAddNodeError;
 use crate::services::wallet::error::GemWalletImportError;
 use crate::services::wallet_connect::error::GemWalletConnectError;
+use primitives::PaymentStatus;
 
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
 pub enum GemErrorText {
@@ -19,6 +20,7 @@ pub enum GemErrorText {
     UnsupportedChain,
     MaliciousOrigin,
     NoSupportedWallets,
+    Payment { status: PaymentStatus },
     InvalidSecretPhrase,
     InvalidSecretPhraseWords { words: Vec<String> },
     InvalidPrivateKey,
@@ -113,6 +115,7 @@ pub fn alien_error_text(error: AlienError) -> GemErrorText {
 pub fn payment_error_text(error: GemPaymentError) -> GemErrorText {
     match error {
         GemPaymentError::NoPaymentOptions => GemErrorText::NotSupported,
+        GemPaymentError::Status { status } => GemErrorText::Payment { status },
         GemPaymentError::InvalidRequest { reason } | GemPaymentError::Network { reason } => GemErrorText::Message { text: reason },
     }
 }

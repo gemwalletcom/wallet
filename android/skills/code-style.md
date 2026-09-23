@@ -9,6 +9,7 @@ Use for any Kotlin or Compose change.
 - No blocking store, Room, or gemstone call on the main thread. A synchronous getter reached from a view model constructor, a Hilt provider, or composition throws and kills the process; expose it as a suspend function or flow and collect it. `allowMainThreadQueries()` belongs to migration tests only
 - Row models for a list a screen scrolls are built off the main thread (`flowOn(ioDispatcher)` before `stateIn`), and every string a row displays is computed in that mapper, not in composition. The main thread only collects finished rows, so a list of any size keeps scrolling while its source keeps emitting
 - Prefer the smallest change that satisfies the requirement
+- A press highlight matches the control's visible shape. `clickable` draws a rectangle unless the shape is clipped outside it: set the size, `clip` to the same shape the pixels use, then `clickable`. `clickable` before `clip`, or on a modifier that a child clips later, leaves a square highlight on a round image (the avatar emoji grid). A rectangular list row stays rectangular
 
 ## Gradle Dependencies
 

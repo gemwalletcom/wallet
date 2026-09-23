@@ -12,6 +12,7 @@ impl TransferAmountInput {
             fee_asset_balance: BigInt::from(fee_asset_balance),
             fee: BigInt::from(5_000u64),
             is_max_amount: false,
+            destination_account_exists: None,
         }
     }
 }

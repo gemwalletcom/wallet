@@ -14,7 +14,6 @@ public struct WalletImageScene: View {
         case emoji, collections
     }
 
-    @Environment(\.dismiss) private var dismiss
     @State private var selectedTab: Tab = .emoji
     @State private var model: WalletImageViewModel
 
@@ -27,23 +26,18 @@ public struct WalletImageScene: View {
             AvatarView(
                 avatarImage: model.avatarAssetImage(for: model.wallet),
                 size: model.emojiViewSize,
-                removeAction: model.hasAvatar ? { onRemoveAvatar() } : nil,
+                removeAction: model.hasAvatar ? { model.onRemoveAvatar() } : nil,
             )
             .padding(.top, .medium)
             .padding(.bottom, .extraLarge)
-            switch model.source {
-            case .onboarding:
+            pickerView
+                .padding(.bottom, .medium)
+                .padding(.horizontal, .medium)
+            switch selectedTab {
+            case .emoji:
                 emojiSelector
-            case .wallet:
-                pickerView
-                    .padding(.bottom, .medium)
-                    .padding(.horizontal, .medium)
-                switch selectedTab {
-                case .emoji:
-                    emojiSelector
-                case .collections:
-                    collectionsView
-                }
+            case .collections:
+                collectionsView
             }
         }
         .bindQuery(model.walletQuery, model.nftQuery)
@@ -64,7 +58,6 @@ public struct WalletImageScene: View {
     private var emojiSelector: some View {
         EmojiSelectorView(emojis: model.emojiList) { value in
             model.setAvatarEmoji(value: value)
-            onDismiss()
         }
     }
 
@@ -99,24 +92,12 @@ public struct WalletImageScene: View {
 // MARK: - Actions
 
 private extension WalletImageScene {
-    func onRemoveAvatar() {
-        model.onRemoveAvatar()
-        onDismiss()
-    }
-
     func onSelectNftAsset(_ item: WalletImageViewModel.NFTAssetImageItem) {
         guard let url = item.assetImage.imageURL else {
             return
         }
         Task {
             await model.setImage(from: url)
-        }
-    }
-
-    func onDismiss() {
-        switch model.source {
-        case .onboarding: dismiss()
-        case .wallet: break
         }
     }
 }

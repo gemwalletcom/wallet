@@ -144,6 +144,10 @@ extension TransactionSceneViewModel {
         }
     }
 
+    func onSelectProviderContract(_ address: String) {
+        onSelectAddress?(ChainAddress(chain: transactionExtended.transaction.assetId.chain, address: address))
+    }
+
     func onSelectSwapAgain() {
         guard let onHeaderAction, case let .swap(fromAssetId, toAssetId) = rows.headerAction else {
             return

@@ -1,7 +1,7 @@
 use super::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER, TEST_OSMOSIS_SENDER};
 use crate::{
-    ApplicationMetadata, ApplicationMetadataSource, Asset, AssetId, AssetType, Chain, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra,
-    TransferDataOutputAction, TransferDataOutputType, UTXO, asset_constants::NEAR_USDT_ASSET_ID,
+    ApplicationMetadata, Asset, AssetId, AssetType, Chain, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType,
+    UTXO, asset_constants::NEAR_USDT_ASSET_ID,
 };
 use num_bigint::BigInt;
 use num_bigint::BigUint;
@@ -235,21 +235,29 @@ impl TransactionLoadInput {
     }
 
     pub fn mock_sign_data(chain: Chain, data: &str, output_type: TransferDataOutputType) -> Self {
-        Self::mock_sign_data_with_source(chain, data, output_type, ApplicationMetadataSource::WalletConnect)
+        Self::mock_sign_data_with_input_type(TransactionInputType::Generic {
+            asset: Asset::from_chain(chain),
+            metadata: ApplicationMetadata::mock(),
+            extra: Self::sign_data_extra(data, output_type),
+        })
     }
 
-    pub fn mock_sign_data_with_source(chain: Chain, data: &str, output_type: TransferDataOutputType, source: ApplicationMetadataSource) -> Self {
+    pub fn mock_sign_data_payment(chain: Chain, data: &str, output_type: TransferDataOutputType) -> Self {
+        Self::mock_sign_data_with_input_type(TransactionInputType::mock_payment(Asset::from_chain(chain), Self::sign_data_extra(data, output_type)))
+    }
+
+    fn sign_data_extra(data: &str, output_type: TransferDataOutputType) -> TransferDataExtra {
+        TransferDataExtra {
+            data: Some(data.as_bytes().to_vec()),
+            output_type,
+            output_action: TransferDataOutputAction::Send,
+            ..Default::default()
+        }
+    }
+
+    fn mock_sign_data_with_input_type(input_type: TransactionInputType) -> Self {
         TransactionLoadInput {
-            input_type: TransactionInputType::Generic {
-                asset: Asset::from_chain(chain),
-                metadata: ApplicationMetadata { source, ..ApplicationMetadata::mock() },
-                extra: TransferDataExtra {
-                    data: Some(data.as_bytes().to_vec()),
-                    output_type,
-                    output_action: TransferDataOutputAction::Send,
-                    ..Default::default()
-                },
-            },
+            input_type,
             sender_address: "test".into(),
             destination_address: "test".into(),
             value: BigUint::from(0u64),

@@ -443,6 +443,10 @@ public enum Localized {
     public static let notSupported = Localized.tr("Localizable", "errors.not_supported", fallback: "Not Supported")
     /// This device does not support QR code scanning. You can only select QR code image from library.
     public static let notSupportedQr = Localized.tr("Localizable", "errors.not_supported_qr", fallback: "This device does not support QR code scanning. You can only select QR code image from library.")
+    /// Payment: %@
+    public static func paymentStatus(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "errors.payment_status", String(describing: p1), fallback: "Payment: %@")
+    }
     /// Permissions Not Granted
     public static let permissionsNotGranted = Localized.tr("Localizable", "errors.permissions_not_granted", fallback: "Permissions Not Granted")
     /// Transfer Error
@@ -555,6 +559,10 @@ public enum Localized {
     public static func estimatedConfirmationDescription(_ p1: Any) -> String {
       return Localized.tr("Localizable", "info.estimated_confirmation_description", String(describing: p1), fallback: "This estimate is based on the transaction fee and current %@ network activity. The actual confirmation time may change and is not guaranteed.")
     }
+    /// The merchant requires additional information before the payment.
+    public static let paymentVerificationDescription = Localized.tr("Localizable", "info.payment_verification_description", fallback: "The merchant requires additional information before the payment.")
+    /// Payment Verification
+    public static let paymentVerificationTitle = Localized.tr("Localizable", "info.payment_verification_title", fallback: "Payment Verification")
     /// Staking on TRON takes two steps. First freeze TRX, then stake it to earn rewards.
     public static let stakeFrozenRequiredDescription = Localized.tr("Localizable", "info.stake_frozen_required_description", fallback: "Staking on TRON takes two steps. First freeze TRX, then stake it to earn rewards.")
     /// Freeze TRX to Stake
@@ -1431,6 +1439,8 @@ public enum Localized {
       public static let completed = Localized.tr("Localizable", "transaction.status.completed", fallback: "Completed")
       /// Successful
       public static let confirmed = Localized.tr("Localizable", "transaction.status.confirmed", fallback: "Successful")
+      /// Expired
+      public static let expired = Localized.tr("Localizable", "transaction.status.expired", fallback: "Expired")
       /// Failed
       public static let failed = Localized.tr("Localizable", "transaction.status.failed", fallback: "Failed")
       /// In Progress
@@ -1456,6 +1466,10 @@ public enum Localized {
     }
     /// Confirm
     public static let confirm = Localized.tr("Localizable", "transfer.confirm", fallback: "Confirm")
+    /// The destination address requires a minimum of %@.
+    public static func destinationAccountActivation(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "transfer.destination_account_activation", String(describing: p1), fallback: "The destination address requires a minimum of %@.")
+    }
     /// From
     public static let from = Localized.tr("Localizable", "transfer.from", fallback: "From")
     /// Insufficient %@ balance.
@@ -1486,6 +1500,10 @@ public enum Localized {
     public static let network = Localized.tr("Localizable", "transfer.network", fallback: "Network")
     /// Network Fee
     public static let networkFee = Localized.tr("Localizable", "transfer.network_fee", fallback: "Network Fee")
+    /// Pay with
+    public static let payWith = Localized.tr("Localizable", "transfer.pay_with", fallback: "Pay with")
+    /// Payment
+    public static let paymentTitle = Localized.tr("Localizable", "transfer.payment_title", fallback: "Payment")
     /// We've left %@ in your balance to cover future network fees.
     public static func reservedFees(_ p1: Any) -> String {
       return Localized.tr("Localizable", "transfer.reserved_fees", String(describing: p1), fallback: "We've left %@ in your balance to cover future network fees.")

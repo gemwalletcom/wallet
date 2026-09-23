@@ -11,7 +11,7 @@ use std::future::Future;
 use std::sync::{Arc, Mutex};
 
 use chrono::Utc;
-use primitives::{SupportMessage, SupportMessageInput, SupportMessageStatus};
+use primitives::{SupportMessage, SupportMessageInput, SupportMessageStatus, SupportTyping};
 use uuid::Uuid;
 
 use crate::alien::AlienProvider;
@@ -91,6 +91,18 @@ impl GemSupportService {
 }
 
 impl GemSupportService {
+    pub async fn save_messages(&self, messages: Vec<SupportMessage>) -> Result<(), GemServiceError> {
+        self.store.save_messages(messages).await
+    }
+
+    pub fn update_typing(&self, typing: SupportTyping) -> Result<(), GemServiceError> {
+        self.store.update_typing(typing)
+    }
+
+    pub fn clear_typing(&self) -> Result<(), GemServiceError> {
+        self.store.clear_typing()
+    }
+
     async fn sync_messages(&self, from_timestamp: u64) -> Result<(), GemServiceError> {
         let messages = self.api.client.get_support_messages(from_timestamp).await.map_err(GemApiError::from)?;
         self.store.save_messages(messages).await

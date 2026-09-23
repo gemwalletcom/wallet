@@ -13,22 +13,22 @@ pub use store::GemSearchStore;
 
 use crate::services::assets::{GemAssetsService, rules as assets_rules};
 use crate::services::error::GemServiceError;
-use crate::services::perpetual::{GemPerpetualStore, rules as perpetual_rules};
+use crate::services::perpetual::GemPerpetualService;
 use crate::services::price::GemPriceService;
 
 #[derive(uniffi::Object)]
 pub struct GemSearchService {
     assets: Arc<GemAssetsService>,
     price: Arc<GemPriceService>,
-    perpetual_store: Arc<dyn GemPerpetualStore>,
+    perpetuals: Arc<GemPerpetualService>,
     store: Arc<dyn GemSearchStore>,
 }
 
 #[uniffi::export]
 impl GemSearchService {
     #[uniffi::constructor]
-    pub fn new(assets: Arc<GemAssetsService>, price: Arc<GemPriceService>, perpetual_store: Arc<dyn GemPerpetualStore>, store: Arc<dyn GemSearchStore>) -> Self {
-        Self { assets, price, perpetual_store, store }
+    pub fn new(assets: Arc<GemAssetsService>, price: Arc<GemPriceService>, perpetuals: Arc<GemPerpetualService>, store: Arc<dyn GemSearchStore>) -> Self {
+        Self { assets, price, perpetuals, store }
     }
 }
 
@@ -69,9 +69,7 @@ impl GemSearchService {
     }
 
     async fn save_perpetuals(&self, perpetuals: &[PerpetualSearchData], key: &str) -> Result<(), GemServiceError> {
-        let data = rules::perpetual_data(perpetuals);
-        self.assets.save_assets(perpetual_rules::perpetual_asset_basics(&data)).await?;
-        self.perpetual_store.save_perpetuals(data).await?;
+        self.perpetuals.save_markets(rules::perpetual_data(perpetuals)).await?;
         self.store.set_perpetuals(key.to_string(), rules::perpetual_ids(perpetuals)).await
     }
 }

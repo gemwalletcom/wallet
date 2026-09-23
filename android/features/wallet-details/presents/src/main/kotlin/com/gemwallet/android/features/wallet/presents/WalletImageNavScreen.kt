@@ -9,33 +9,22 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 
 @Composable
-fun WalletImageNavScreen(onCancel: () -> Unit, source: WalletImageSource = WalletImageSource.Wallet, viewModel: WalletImageViewModel = hiltViewModel()) {
+fun WalletImageNavScreen(onCancel: () -> Unit, viewModel: WalletImageViewModel = hiltViewModel()) {
     val wallet by viewModel.details.collectAsStateWithLifecycle()
     val nftImages by viewModel.nftImages.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
-    val dismissOnSelect = { if (source == WalletImageSource.Onboarding) onCancel() }
 
     WalletImageScene(
         wallet = wallet,
         emojis = viewModel.emojis,
         nftImages = nftImages,
-        source = source,
         snackbar = snackbar,
         onAction = { action ->
             when (action) {
-                is WalletImageAction.SetEmoji -> {
-                    viewModel.setEmoji(action.emoji, action.backgroundColor)
-                    dismissOnSelect()
-                }
-
+                is WalletImageAction.SetEmoji -> viewModel.setEmoji(action.emoji, action.backgroundColor)
                 is WalletImageAction.SetNftImage -> viewModel.setNftImage(action.url)
-
-                WalletImageAction.ResetToDefault -> {
-                    viewModel.resetToDefault()
-                    dismissOnSelect()
-                }
-
+                WalletImageAction.ResetToDefault -> viewModel.resetToDefault()
                 WalletImageAction.Close -> onCancel()
             }
         },

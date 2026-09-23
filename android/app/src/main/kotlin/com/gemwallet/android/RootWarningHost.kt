@@ -7,7 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.gemwallet.android.ui.components.RootWarningDialog
-import com.gemwallet.android.ui.components.isDeviceRooted
 import com.gemwallet.android.ui.theme.WalletTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -18,8 +17,8 @@ internal fun RootWarningHost(darkTheme: Boolean, onCancel: () -> Unit) {
         var showRootWarningDialog by remember { mutableStateOf(false) }
 
         LaunchedEffect(Unit) {
-            showRootWarningDialog = withContext(Dispatchers.Default) {
-                isDeviceRooted()
+            showRootWarningDialog = withContext(Dispatchers.IO) {
+                !BuildConfig.DEBUG && RootChecker().isDeviceRooted()
             }
         }
 

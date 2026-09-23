@@ -6,6 +6,7 @@ use crate::models::gateway::GemFeeRate;
 use crate::models::list::GemListRow;
 use crate::models::transaction::{GemFeeOptionItem, GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::services::balance::GemAssetBalance;
+use crate::services::error_text::GemErrorText;
 use crate::services::localization::GemLocalizedText;
 use crate::services::simulation::{GemSimulationPayloadRow, address_requests, named_payload_rows};
 use crate::services::transactions::GemAmountSign;
@@ -51,6 +52,7 @@ impl GemConfirmFeeSelection {
 pub struct GemConfirmLoadOptions {
     pub fee_selection: GemConfirmFeeSelection,
     pub fee_asset_id: Option<AssetId>,
+    pub asset_id: Option<AssetId>,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -66,8 +68,8 @@ pub struct GemConfirmData {
 
 #[derive(Debug, Clone, uniffi::Enum)]
 pub enum GemSubmitResult {
-    Signed { data: Vec<String> },
-    Sent { hashes: Vec<String> },
+    Signed { data: Vec<String>, warning: Option<GemErrorText> },
+    Sent { hashes: Vec<String>, warning: Option<GemErrorText> },
 }
 
 #[derive(Debug, Clone)]
@@ -138,10 +140,10 @@ impl GemConfirmSimulation {
         [address_requests(&self.primary_fields, chain), address_requests(&self.secondary_fields, chain)].concat()
     }
 
-    pub(super) fn with_address_names(self, chain: Chain, names: &[AddressName]) -> Self {
+    pub(super) fn with_address_names(self, names: &[AddressName]) -> Self {
         Self {
-            primary_fields: named_payload_rows(self.primary_fields, Some(chain), names),
-            secondary_fields: named_payload_rows(self.secondary_fields, Some(chain), names),
+            primary_fields: named_payload_rows(self.primary_fields, names),
+            secondary_fields: named_payload_rows(self.secondary_fields, names),
             ..self
         }
     }
@@ -149,6 +151,7 @@ impl GemConfirmSimulation {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmLoad {
+    pub transfer: GemTransferData,
     pub sender: GemAccount,
     pub fee_asset: Asset,
     pub metadata: GemConfirmMetadata,
@@ -250,6 +253,8 @@ pub struct GemConfirmScreen {
     pub phase: GemConfirmPhase,
     pub has_critical_warning: bool,
     pub failure: Option<GemConfirmFailure>,
+    #[uniffi(default = true)]
+    pub has_preload: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -339,6 +344,10 @@ pub enum GemConfirmRowContent {
         is_selectable: bool,
     },
     Details,
+    PaymentAsset {
+        symbol: String,
+        selectable: bool,
+    },
 }
 
 /// What a contact shows next to a recipient: its picture when it has one, its initials otherwise.

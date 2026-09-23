@@ -1,9 +1,7 @@
 package com.gemwallet.android.di
 
 import android.content.Context
-import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.data.password.TinkGemPreferences
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePreferencesStore
 import com.gemwallet.android.data.services.gemstone.stream.GemstoneStreamConnection
@@ -42,7 +40,6 @@ import uniffi.gemstone.GemFiatServiceInterface
 import uniffi.gemstone.GemFiatStore
 import uniffi.gemstone.GemFileStore
 import uniffi.gemstone.GemGateway
-import uniffi.gemstone.GemKeystore
 import uniffi.gemstone.GemNodeService
 import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemPaymentServiceInterface
@@ -118,22 +115,13 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemAuthService(apiClient: GemstoneDeviceApiClient, keystore: GemKeystore, passwordStore: PasswordStore, deviceKeyService: GemDeviceKeyService): GemAuthService = GemAuthService(
-        apiClient,
-        keystore,
-        GemstoneKeystorePassword(passwordStore),
-        deviceKeyService,
-    )
+    fun provideGemWalletConfigurationService(apiClient: GemstoneDeviceApiClient, bannerService: GemBannerService, walletPreferencesService: GemWalletPreferencesService): GemWalletConfigurationService =
+        GemWalletConfigurationService(apiClient, bannerService, walletPreferencesService)
 
     @Provides
     @Singleton
-    fun provideGemWalletConfigurationService(apiClient: GemstoneDeviceApiClient, bannerStore: GemBannerStore, walletPreferencesService: GemWalletPreferencesService): GemWalletConfigurationService =
-        GemWalletConfigurationService(apiClient, bannerStore, walletPreferencesService)
-
-    @Provides
-    @Singleton
-    fun provideGemSearchService(assetsService: GemAssetsService, priceService: GemPriceService, perpetualStore: GemstonePerpetualStore, searchStore: GemSearchStore): GemSearchService =
-        GemSearchService(assetsService, priceService, perpetualStore, searchStore)
+    fun provideGemSearchService(assetsService: GemAssetsService, priceService: GemPriceService, perpetualService: GemPerpetualService, searchStore: GemSearchStore): GemSearchService =
+        GemSearchService(assetsService, priceService, perpetualService, searchStore)
 
     @Provides
     @Singleton
@@ -207,7 +195,7 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemPaymentService(alienProvider: AlienProvider): GemPaymentService = GemPaymentService(alienProvider)
+    fun provideGemPaymentService(alienProvider: AlienProvider, assetsService: GemAssetsService): GemPaymentService = GemPaymentService(alienProvider, assetsService)
 
     @Provides
     @Singleton

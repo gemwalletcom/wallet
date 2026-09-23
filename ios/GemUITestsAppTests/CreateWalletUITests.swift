@@ -46,9 +46,6 @@ final class CreateWalletUITests: XCTestCase {
         app.tapCreateWallet()
 
         _ = creationFlow(app: app, checkShowSecretDataScene: false)
-
-        // SetupWalletScene
-        app.buttons["Done"].firstMatch.tap()
     }
 
     private func creationFlow(app: XCUIApplication, checkShowSecretDataScene: Bool) -> [String] {

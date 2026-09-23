@@ -110,6 +110,8 @@
   <string name="buy_rate">Kiwango</string>
   <string name="buy_no_results">Hakuna nukuu zinazopatikana</string>
   <string name="transfer_network_fee">Ada ya Mtandao</string>
+  <string name="transfer_pay_with">Lipa kwa</string>
+  <string name="transfer_payment_title">Malipo</string>
   <string name="transfer_memo">Memo</string>
   <string name="transfer_confirm">Thibitisha</string>
   <string name="transfer_from">Kutoka</string>
@@ -135,6 +137,7 @@
   <string name="transfer_recipient_my_wallets">Pochi Zangu</string>
   <string name="transfer_recipient_view_wallets">Tazama Pochi</string>
   <string name="transfer_minimum_account_balance">Salio la chini la %1$s lazima lisalie baada ya hili, isipokuwa kama unatumia salio lako kamili.</string>
+  <string name="transfer_destination_account_activation">Anwani lengwa inahitaji kiwango cha chini cha %1$s.</string>
   <string name="transfer_smart_contract_title">Mkataba wa Smart</string>
   <string name="transfer_other_title">Nyingine</string>
   <string name="transfer_maximum_amount">Kiasi cha juu ni %1$s</string>
@@ -223,6 +226,7 @@
   <string name="errors_no_internet_connection">Hakuna muunganisho wa intaneti</string>
   <string name="errors_no_service_connection">Hakuna muunganisho wa huduma</string>
   <string name="errors_balances_activity_outdated">Salio na shughuli huenda si za sasa.</string>
+  <string name="errors_payment_status">Malipo: %1$s</string>
   <string name="activity_title">Shughuli</string>
   <string name="activity_state_empty_title">Shughuli yako itaonekana hapa</string>
   <string name="activity_state_empty_description">Fanya muamala wako wa kwanza</string>
@@ -250,6 +254,7 @@
   <string name="transaction_status_completed">Imekamilika</string>
   <string name="transaction_status_inprogress">Inaendelea</string>
   <string name="transaction_status_refunded">Imerejeshwa</string>
+  <string name="transaction_status_expired">Imeisha muda</string>
   <string name="asset_balances">Salio</string>
   <string name="asset_balances_available">Inapatikana</string>
   <string name="asset_price">Bei</string>
@@ -436,6 +441,8 @@
   <string name="info_network_fee_title">Ada ya Mtandao</string>
   <string name="info_watch_wallet_title">Tazama Wallet</string>
   <string name="info_watch_wallet_description">Mkoba ambao huna ufikiaji, lakini unaweza kutazama shughuli na harakati zake.</string>
+  <string name="info_payment_verification_title">Uthibitisho wa Malipo</string>
+  <string name="info_payment_verification_description">Mfanyabiashara anahitaji maelezo ya ziada kabla ya malipo.</string>
   <string name="info_network_fee_description">Kila muamala kwenye mtandao wa %1$s unahitaji ada ya %2$s kulipwa kwa wachimbaji ili kushughulikia muamala wako, si Gem Wallet. Ada za mtandao hutofautiana kulingana na matumizi ya mtandao.</string>
   <string name="info_transaction_error_description">Muamala haukuweza kukamilika kwa sababu ya hitilafu, kama vile uhaba wa fedha, ingizo batili au kukataliwa na mtandao. Tafadhali kagua maelezo na ujaribu tena.</string>
   <string name="info_transaction_pending_description">Muamala umewasilishwa na unasubiri uthibitisho kwenye mtandao. Nyakati za usindikaji zinaweza kutofautiana. Tafadhali angalia tena kwa sasisho.</string>

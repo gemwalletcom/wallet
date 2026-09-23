@@ -14,10 +14,12 @@ import uniffi.gemstone.FfiConverterTypeGemPaymentRecipient
 import uniffi.gemstone.FfiConverterTypeGemPerpetualPositionAction
 import uniffi.gemstone.FfiConverterTypeGemRecipient
 import uniffi.gemstone.FfiConverterTypeGemTransferData
+import uniffi.gemstone.FfiConverterTypePaymentLink
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemPerpetualPositionAction
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemTransferData
+import uniffi.gemstone.PaymentLink
 import java.nio.ByteBuffer
 import java.util.Base64
 
@@ -47,4 +49,5 @@ val gemRecordSerializers = SerializersModule {
     contextual(GemPerpetualPositionAction::class, gemRecordSerializer(FfiConverterTypeGemPerpetualPositionAction))
     contextual(GemTransferData::class, gemRecordSerializer(FfiConverterTypeGemTransferData))
     contextual(Delegation::class, gemRecordSerializer(FfiConverterTypeDelegation))
+    contextual(PaymentLink::class, gemRecordSerializer(FfiConverterTypePaymentLink))
 }

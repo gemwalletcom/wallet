@@ -47,8 +47,6 @@ class UserConfig(private val context: Context, private val configStore: ConfigSt
 
     fun setRateApplicationShown() = preferencesService.setRateApplicationShown()
 
-    fun showPerpetuals(wallet: Wallet): Boolean = preferencesService.showPerpetuals(wallet.type.toGem(), wallet.chainIds)
-
     private val hideBalancesState = MutableStateFlow(preferencesService.isHideBalanceEnabled())
     private val perpetualEnabledState = MutableStateFlow(preferencesService.isPerpetualEnabled())
     private val appearanceState = MutableStateFlow(preferencesService.getAppearance().toPrimitives())

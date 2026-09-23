@@ -9,6 +9,9 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.coroutines.resume
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -31,6 +34,8 @@ interface WebSocketConnectable {
     val isConnected: Boolean
     val connectionLatency: Duration?
 
+    suspend fun ping(): Duration? = connectionLatency
+
     fun connect(): Flow<WebSocketEvent>
     suspend fun send(message: String): Boolean
 }
@@ -46,6 +51,29 @@ class WebSocketConnection(private val requestProvider: suspend () -> WebSocketRe
 
     override val connectionLatency: Duration?
         get() = activeSession.get()?.connectionLatency?.get()
+
+    override suspend fun ping(): Duration? {
+        val request = requestProvider()
+        return withTimeoutOrNull(PROBE_TIMEOUT.toMillis()) {
+            suspendCancellableCoroutine { continuation ->
+                val socket = client.newWebSocket(
+                    request.toOkHttpRequest(),
+                    object : WebSocketListener() {
+                        override fun onOpen(webSocket: WebSocket, response: Response) {
+                            val elapsed = (response.receivedResponseAtMillis - response.sentRequestAtMillis).takeIf { it >= 0 }
+                            webSocket.cancel()
+                            if (continuation.isActive) continuation.resume(elapsed?.let(Duration::ofMillis))
+                        }
+
+                        override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+                            if (continuation.isActive) continuation.resume(null)
+                        }
+                    },
+                )
+                continuation.invokeOnCancellation { socket.cancel() }
+            }
+        }
+    }
 
     override fun connect(): Flow<WebSocketEvent> = channelFlow {
         var reconnectAttempt = 0
@@ -125,5 +153,6 @@ class WebSocketConnection(private val requestProvider: suspend () -> WebSocketRe
 
     companion object {
         private const val TAG = "WebSocketConnection"
+        private val PROBE_TIMEOUT = Duration.ofSeconds(10)
     }
 }

@@ -17,7 +17,6 @@ import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.scene.Scene
 import androidx.navigation3.ui.NavDisplay
-import com.gemwallet.android.application.wallet_import.values.WalletImportResult
 import com.gemwallet.android.features.activities.presents.details.TransactionDetailsAction
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetDetailsAction
 import com.gemwallet.android.features.asset_select.presents.navigation.assetsManageScreen
@@ -28,13 +27,12 @@ import com.gemwallet.android.features.main.views.MainScreen
 import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.features.onboarding.acceptTermsScreen
 import com.gemwallet.android.features.settings.contacts.presents.ContactsAction
-import com.gemwallet.android.features.setup_wallet.navigation.setupWalletScreen
-import com.gemwallet.android.features.wallet.presents.WalletImageSource
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.navigation.routes.SettingsAction
 import com.gemwallet.android.ui.navigation.routes.addAssetScreen
+import com.gemwallet.android.ui.navigation.routes.addressDetailsScreen
 import com.gemwallet.android.ui.navigation.routes.amount
 import com.gemwallet.android.ui.navigation.routes.assetChartScreen
 import com.gemwallet.android.ui.navigation.routes.assetScreen
@@ -173,7 +171,8 @@ fun WalletNavGraph(
             )
 
             confirm(
-                finishAction = { _ -> navigator.popConfirmFlow() },
+                navigator = navigator,
+                finishAction = { _, warning -> navigator.popConfirmFlow(warning) },
                 onAcquireAsset = navigator::openAcquireAsset,
                 cancelAction = onCancel,
             )
@@ -235,6 +234,7 @@ fun WalletNavGraph(
                         is TransactionDetailsAction.OpenNft -> navigator.openNftAsset(it.assetId)
                         is TransactionDetailsAction.OpenPerpetual -> navigator.openPerpetualDetails(it.assetId)
                         is TransactionDetailsAction.OpenSwap -> navigator.openSwap(it.fromAssetId, it.toAssetId)
+                        is TransactionDetailsAction.OpenAddress -> navigator.openAddress(it.chainAddress)
                     }
                 },
             )
@@ -287,29 +287,13 @@ fun WalletNavGraph(
             createWalletScreen(
                 onCreateWallet = navigator::openCreateWallet,
                 onCancel = onCancel,
-                onCreated = { walletId ->
-                    if (walletId != null) {
-                        navigator.openSetupWallet(walletId)
-                    } else {
-                        navigator.resetToWallet()
-                    }
-                },
+                onCreated = navigator::resetToWallet,
             )
 
             importWalletScreen(
                 onCancel = onCancel,
-                onImported = { result ->
-                    when (result) {
-                        is WalletImportResult.New -> navigator.openSetupWallet(result.wallet.id)
-                        is WalletImportResult.Existing -> navigator.resetToWallet()
-                    }
-                },
+                onImported = navigator::resetToWallet,
                 onSelectType = navigator::openImportWallet,
-            )
-
-            setupWalletScreen(
-                onComplete = navigator::resetToWallet,
-                onSelectImage = { navigator.openWalletImage(it, WalletImageSource.Onboarding) },
             )
 
             perpetualScreen(
@@ -323,6 +307,8 @@ fun WalletNavGraph(
             )
 
             referral(onClose = onCancel)
+
+            addressDetailsScreen(onCancel = onCancel)
 
             walletConnectRequest(content = walletConnectRequest)
         }

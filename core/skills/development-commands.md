@@ -8,9 +8,8 @@ All commands use the `just` task runner. Run from the workspace root unless spec
 just build                      # Build the workspace
 just clean                      # Clean workspace build artifacts
 just build-gemstone             # Build cross-platform library
-just gemstone build-ios         # Build the core iOS GemTest project
 just gemstone bindgen-swift     # Generate iOS Swift bindings (run in gemstone/)
-just gemstone prepare-ios-package # Prepare the core iOS GemTest package (run in gemstone/)
+just gemstone prepare-ios-package # Copy the Swift bindings into the local Gemstone package (run in gemstone/)
 just gemstone build-android     # Build Android AAR (run in gemstone/)
 ```
 
@@ -25,7 +24,6 @@ just test <CRATE> <FILTER>      # Run matching unit tests in one crate
 just test "" <FILTER>           # Run matching workspace unit tests
 just build-integration-tests   # Compile all integration suites without running them
 just test-integration           # Run integration tests only
-just gemstone test-ios          # Run iOS integration tests (run in gemstone/)
 cargo test --test integration_test --package <CRATE> --features <FEATURE>  # Manual integration test
 ```
 
@@ -83,7 +81,7 @@ For the apps, `just generate-stone` from the repo root builds the iOS library an
 ### Swift Bindings (iOS)
 ```sh
 just gemstone bindgen-swift     # Generate Swift bindings only (run in gemstone/)
-just gemstone prepare-ios-package # Copy Swift bindings into the GemTest local package
+just gemstone prepare-ios-package # Copy Swift bindings into the local Gemstone package
 ```
 Generated files: `gemstone/generated/swift/`; the core iOS example copies these into `gemstone/tests/ios/Packages/Gemstone`.
 

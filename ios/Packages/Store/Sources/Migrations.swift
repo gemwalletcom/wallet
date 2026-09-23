@@ -50,6 +50,7 @@ struct Migrations {
             // asset
             try FiatRateRecord.create(db: db)
             try PriceRecord.create(db: db)
+            try AssetMarketRecord.create(db: db)
             try AssetLinkRecord.create(db: db)
 
             // transactions
@@ -172,7 +173,7 @@ struct Migrations {
 
         migrator.registerMigration("Add lastUsedAt to \(BalanceRecord.databaseTableName)") { db in
             try? db.alter(table: BalanceRecord.databaseTableName) {
-                $0.add(column: BalanceRecord.Columns.lastUsedAt.name, .date)
+                $0.add(column: "lastUsedAt", .date)
             }
         }
 
@@ -182,12 +183,12 @@ struct Migrations {
 
         migrator.registerMigration("Add market values to prices table \(PriceRecord.databaseTableName)") { db in
             try? db.alter(table: PriceRecord.databaseTableName) {
-                $0.add(column: PriceRecord.Columns.marketCap.name, .double)
-                $0.add(column: PriceRecord.Columns.marketCapRank.name, .integer)
-                $0.add(column: PriceRecord.Columns.totalVolume.name, .double)
-                $0.add(column: PriceRecord.Columns.circulatingSupply.name, .double)
-                $0.add(column: PriceRecord.Columns.totalSupply.name, .double)
-                $0.add(column: PriceRecord.Columns.maxSupply.name, .double)
+                $0.add(column: AssetMarketRecord.Columns.marketCap.name, .double)
+                $0.add(column: AssetMarketRecord.Columns.marketCapRank.name, .integer)
+                $0.add(column: AssetMarketRecord.Columns.totalVolume.name, .double)
+                $0.add(column: AssetMarketRecord.Columns.circulatingSupply.name, .double)
+                $0.add(column: AssetMarketRecord.Columns.totalSupply.name, .double)
+                $0.add(column: AssetMarketRecord.Columns.maxSupply.name, .double)
             }
         }
 
@@ -212,7 +213,7 @@ struct Migrations {
 
         migrator.registerMigration("Add marketCapFdv table \(PriceRecord.databaseTableName)") { db in
             try? db.alter(table: PriceRecord.databaseTableName) {
-                $0.add(column: PriceRecord.Columns.marketCapFdv.name, .double)
+                $0.add(column: AssetMarketRecord.Columns.marketCapFdv.name, .double)
             }
         }
 
@@ -369,12 +370,12 @@ struct Migrations {
 
         migrator.registerMigration("Add allTimeHigh/Low to \(PriceRecord.databaseTableName)") { db in
             try? db.alter(table: PriceRecord.databaseTableName) {
-                $0.add(column: PriceRecord.Columns.allTimeHigh.name, .double)
-                $0.add(column: PriceRecord.Columns.allTimeHighDate.name, .date)
-                $0.add(column: PriceRecord.Columns.allTimeHighChangePercentage.name, .double)
-                $0.add(column: PriceRecord.Columns.allTimeLow.name, .double)
-                $0.add(column: PriceRecord.Columns.allTimeLowDate.name, .date)
-                $0.add(column: PriceRecord.Columns.allTimeLowChangePercentage.name, .double)
+                $0.add(column: AssetMarketRecord.Columns.allTimeHigh.name, .double)
+                $0.add(column: AssetMarketRecord.Columns.allTimeHighDate.name, .date)
+                $0.add(column: AssetMarketRecord.Columns.allTimeHighChangePercentage.name, .double)
+                $0.add(column: AssetMarketRecord.Columns.allTimeLow.name, .double)
+                $0.add(column: AssetMarketRecord.Columns.allTimeLowDate.name, .date)
+                $0.add(column: AssetMarketRecord.Columns.allTimeLowChangePercentage.name, .double)
             }
         }
 
@@ -536,6 +537,45 @@ struct Migrations {
         migrator.registerMigration("Recreate \(PriceAlertRecord.databaseTableName) with Core identifiers") { db in
             try? db.drop(table: PriceAlertRecord.databaseTableName)
             try PriceAlertRecord.create(db: db)
+        }
+
+        migrator.registerMigration("Move the market columns of \(PriceRecord.databaseTableName) into \(AssetMarketRecord.databaseTableName)") { db in
+            try AssetMarketRecord.create(db: db)
+            let columns = try db.columns(in: PriceRecord.databaseTableName).map(\.name)
+            let moved = [
+                AssetMarketRecord.Columns.marketCap,
+                AssetMarketRecord.Columns.marketCapFdv,
+                AssetMarketRecord.Columns.marketCapRank,
+                AssetMarketRecord.Columns.totalVolume,
+                AssetMarketRecord.Columns.circulatingSupply,
+                AssetMarketRecord.Columns.totalSupply,
+                AssetMarketRecord.Columns.maxSupply,
+                AssetMarketRecord.Columns.allTimeHigh,
+                AssetMarketRecord.Columns.allTimeHighDate,
+                AssetMarketRecord.Columns.allTimeHighChangePercentage,
+                AssetMarketRecord.Columns.allTimeLow,
+                AssetMarketRecord.Columns.allTimeLowDate,
+                AssetMarketRecord.Columns.allTimeLowChangePercentage,
+            ].map(\.name).filter { columns.contains($0) }
+            guard !moved.isEmpty else { return }
+            let names = moved.joined(separator: ", ")
+            let present = moved.map { "\($0) IS NOT NULL" }.joined(separator: " OR ")
+            try db
+                .execute(
+                    sql: "INSERT OR REPLACE INTO \(AssetMarketRecord.databaseTableName) (\(AssetMarketRecord.Columns.assetId.name), \(names)) SELECT \(PriceRecord.Columns.assetId.name), \(names) FROM \(PriceRecord.databaseTableName) WHERE \(present)",
+                )
+            try db.alter(table: PriceRecord.databaseTableName) { table in
+                for name in moved {
+                    table.drop(column: name)
+                }
+            }
+        }
+
+        migrator.registerMigration("Drop the unread lastUsedAt column of \(BalanceRecord.databaseTableName)") { db in
+            guard try db.columns(in: BalanceRecord.databaseTableName).contains(where: { $0.name == "lastUsedAt" }) else { return }
+            try db.alter(table: BalanceRecord.databaseTableName) {
+                $0.drop(column: "lastUsedAt")
+            }
         }
 
         migrator.registerMigration("Delete \(FiatRateRecord.databaseTableName) rows with an unknown currency") { db in

@@ -131,6 +131,8 @@ buy_no_results = Hakuna nukuu zinazopatikana
 # Transfer
 
 transfer_network_fee = Ada ya Mtandao
+transfer_pay_with = Lipa kwa
+transfer_payment_title = Malipo
 transfer_memo = Memo
 transfer_confirm = Thibitisha
 transfer_from = Kutoka
@@ -156,6 +158,7 @@ transfer_activate_asset_title = Washa Kipengee
 transfer_recipient_my_wallets = Pochi Zangu
 transfer_recipient_view_wallets = Tazama Pochi
 transfer_minimum_account_balance = Salio la chini la %@ lazima lisalie baada ya hili, isipokuwa kama unatumia salio lako kamili.
+transfer_destination_account_activation = Anwani lengwa inahitaji kiwango cha chini cha %@.
 transfer_smart_contract_title = Mkataba wa Smart
 transfer_other_title = Nyingine
 transfer_maximum_amount = Kiasi cha juu ni %@
@@ -253,6 +256,7 @@ errors_network_offline = Muunganisho wa intaneti unaonekana kuwa nje ya mtandao.
 errors_no_internet_connection = Hakuna muunganisho wa intaneti
 errors_no_service_connection = Hakuna muunganisho wa huduma
 errors_balances_activity_outdated = Salio na shughuli huenda si za sasa.
+errors_payment_status = Malipo: %@
 
 # Activity
 
@@ -289,6 +293,7 @@ transaction_swap_again = Badilisha Tena
 transaction_status_completed = Imekamilika
 transaction_status_inprogress = Inaendelea
 transaction_status_refunded = Imerejeshwa
+transaction_status_expired = Imeisha muda
 
 # Asset
 
@@ -541,6 +546,8 @@ sell_title = Uza %@
 info_network_fee_title = Ada ya Mtandao
 info_watch_wallet_title = Tazama Wallet
 info_watch_wallet_description = Mkoba ambao huna ufikiaji, lakini unaweza kutazama shughuli na harakati zake.
+info_payment_verification_title = Uthibitisho wa Malipo
+info_payment_verification_description = Mfanyabiashara anahitaji maelezo ya ziada kabla ya malipo.
 info_network_fee_description = Kila muamala kwenye mtandao wa %@ unahitaji ada ya %@ kulipwa kwa wachimbaji ili kushughulikia muamala wako, si Gem Wallet. Ada za mtandao hutofautiana kulingana na matumizi ya mtandao.
 info_transaction_error_description = Muamala haukuweza kukamilika kwa sababu ya hitilafu, kama vile uhaba wa fedha, ingizo batili au kukataliwa na mtandao. Tafadhali kagua maelezo na ujaribu tena.
 info_transaction_pending_description = Muamala umewasilishwa na unasubiri uthibitisho kwenye mtandao. Nyakati za usindikaji zinaweza kutofautiana. Tafadhali angalia tena kwa sasisho.

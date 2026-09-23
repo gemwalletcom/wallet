@@ -10,6 +10,8 @@ use crate::services::error::GemServiceError;
 use crate::services::file::{GemFileStore, IMAGE_EXTENSION, download};
 use crate::services::wallet::GemWalletStore;
 
+/// Holds `GemWalletStore` rather than `GemWalletService`, which owns it: the wallet service holds
+/// this one and forwards the avatar calls, so the reverse edge would be a cycle.
 #[derive(uniffi::Object)]
 pub struct GemAvatarService {
     wallets: Arc<dyn GemWalletStore>,

@@ -19,23 +19,10 @@ public struct ImportWalletNavigationStack: View {
                 .toolbarDismissItem(type: .close, placement: .topBarLeading)
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationDestination(for: ImportWalletType.self) { type in
-                    ImportWalletScene(
-                        model: model.importWalletModel(type: type) { @MainActor result in onImportResult(result) },
-                    )
-                }
-                .navigationDestination(for: Scenes.WalletProfile.self) { scene in
-                    SetupWalletScene(model: model.setupWalletModel(wallet: scene.wallet, onComplete: onSetupWalletComplete))
-                        .navigationBarBackButtonHidden()
-                        .interactiveDismissDisabled()
+                    ImportWalletScene(model: model.importWalletModel(type: type))
                 }
                 .navigationDestination(for: Scenes.ImportWalletType.self) { _ in
                     importWalletTypeScene
-                }
-                .sheet(item: $model.isPresentingSelectImageWallet) { wallet in
-                    NavigationStack {
-                        WalletImageScene(model: model.walletImageModel(wallet: wallet))
-                            .toolbarDismissItem(type: .close, placement: .topBarLeading)
-                    }
                 }
         }
     }
@@ -60,20 +47,6 @@ extension ImportWalletNavigationStack {
     func navigate(to route: ImportWalletRoute) {
         switch route {
         case .importWalletType: navigationPath.append(Scenes.ImportWalletType())
-        case let .walletProfile(wallet): navigationPath.append(Scenes.WalletProfile(wallet: wallet))
         }
-    }
-
-    func onImportResult(_ result: ImportWalletSceneResult) {
-        switch result {
-        case let .new(wallet):
-            navigate(to: .walletProfile(wallet: wallet))
-        case .existing:
-            model.onComplete?()
-        }
-    }
-
-    func onSetupWalletComplete(_: Wallet) {
-        model.onComplete?()
     }
 }

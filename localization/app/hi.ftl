@@ -131,6 +131,8 @@ buy_no_results = कोई उद्धरण उपलब्ध नहीं �
 # Transfer
 
 transfer_network_fee = नेटवर्क शुल्क
+transfer_pay_with = इससे भुगतान करें
+transfer_payment_title = भुगतान
 transfer_memo = मेमो
 transfer_confirm = पुष्टि करें
 transfer_from = से
@@ -156,6 +158,7 @@ transfer_activate_asset_title = संपत्ति सक्रिय कर�
 transfer_recipient_my_wallets = मेरे बटुए
 transfer_recipient_view_wallets = वॉलेट देखें
 transfer_minimum_account_balance = इसके बाद न्यूनतम %@ शेष राशि बनी रहनी चाहिए, जब तक कि आप अपनी पूरी शेष राशि का उपयोग नहीं कर रहे हों।
+transfer_destination_account_activation = गंतव्य पते के लिए न्यूनतम %@ आवश्यक है।
 transfer_smart_contract_title = स्मार्ट कॉन्ट्रैक्ट
 transfer_other_title = अन्य
 transfer_maximum_amount = अधिकतम राशि %@ है
@@ -253,6 +256,7 @@ errors_network_offline = इंटरनेट कनेक्शन ऑफ़�
 errors_no_internet_connection = इंटरनेट कनेक्शन नहीं है
 errors_no_service_connection = सेवा कनेक्शन नहीं है
 errors_balances_activity_outdated = बैलेंस और गतिविधि पुरानी हो सकती है।
+errors_payment_status = भुगतान: %@
 
 # Activity
 
@@ -289,6 +293,7 @@ transaction_swap_again = फिर से स्वैप करें
 transaction_status_completed = पूरा हुआ
 transaction_status_inprogress = प्रगति पर है
 transaction_status_refunded = वापस कर दिया गया
+transaction_status_expired = समय सीमा समाप्त
 
 # Asset
 
@@ -541,6 +546,8 @@ sell_title = बेचें %@
 info_network_fee_title = नेटवर्क शुल्क
 info_watch_wallet_title = वॉलेट देखें
 info_watch_wallet_description = एक वॉलेट जिस तक आपकी पहुंच नहीं है, लेकिन आप इसके लेनदेन और गतिविधियों पर नजर रख सकते हैं।
+info_payment_verification_title = भुगतान सत्यापन
+info_payment_verification_description = व्यापारी को भुगतान से पहले अतिरिक्त जानकारी आवश्यक है।
 info_network_fee_description = %@ नेटवर्क पर प्रत्येक लेनदेन के लिए आपके लेनदेन को संसाधित करने के लिए खनिकों को भुगतान किए जाने वाले %@ शुल्क की आवश्यकता होती है, Gem Wallet की नहीं। नेटवर्क शुल्क नेटवर्क उपयोग के आधार पर भिन्न होता है।
 info_transaction_error_description = अपर्याप्त धनराशि, अमान्य इनपुट या नेटवर्क द्वारा अस्वीकृति जैसी किसी त्रुटि के कारण लेनदेन पूरा नहीं हो सका। कृपया विवरण की समीक्षा करें और पुनः प्रयास करें।
 info_transaction_pending_description = लेन-देन सबमिट कर दिया गया है और नेटवर्क पर पुष्टि की प्रतीक्षा कर रहा है। प्रसंस्करण समय अलग-अलग हो सकता है। कृपया अपडेट के लिए वापस जाँच करें।

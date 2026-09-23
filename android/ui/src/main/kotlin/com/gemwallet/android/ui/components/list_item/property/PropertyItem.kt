@@ -3,6 +3,7 @@ package com.gemwallet.android.ui.components.list_item.property
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -14,9 +15,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import com.gemwallet.android.ui.components.InfoButton
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.image.AsyncImage
@@ -98,11 +102,37 @@ fun PropertyItem(title: String, data: String? = null, dataColor: Color = Materia
 fun PropertyItem(title: @Composable () -> Unit, data: @Composable (RowScope.() -> Unit)?, modifier: Modifier = Modifier, listPosition: ListPosition = ListPosition.Middle) {
     ListItem(
         modifier = modifier,
-        title = title,
-        trailing = data,
+        title = { PropertyRow(title = title, data = data) },
         listPosition = listPosition,
         minHeight = ListItemDefaults.plainMinHeight,
     )
+}
+
+@Composable
+private fun PropertyRow(title: @Composable () -> Unit, data: (@Composable RowScope.() -> Unit)?) {
+    val spacing = with(LocalDensity.current) { ListItemDefaults.contentSpacing.roundToPx() }
+    Layout(
+        content = {
+            Box(contentAlignment = Alignment.CenterStart) { title() }
+            Row(horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) { data?.invoke(this) }
+        },
+    ) { (titleMeasurable, dataMeasurable), constraints ->
+        val titleIntrinsic = titleMeasurable.maxIntrinsicWidth(constraints.maxHeight)
+        val dataIntrinsic = dataMeasurable.maxIntrinsicWidth(constraints.maxHeight)
+        val available = (constraints.maxWidth - if (dataIntrinsic > 0) spacing else 0).coerceAtLeast(0)
+        val (titleWidth, dataWidth) = if (titleIntrinsic <= dataIntrinsic) {
+            minOf(titleIntrinsic, available).let { it to available - it }
+        } else {
+            minOf(dataIntrinsic, available).let { available - it to it }
+        }
+        val titlePlaceable = titleMeasurable.measure(Constraints(maxWidth = titleWidth, maxHeight = constraints.maxHeight))
+        val dataPlaceable = dataMeasurable.measure(Constraints(maxWidth = dataWidth, maxHeight = constraints.maxHeight))
+        val height = maxOf(titlePlaceable.height, dataPlaceable.height, constraints.minHeight)
+        layout(constraints.maxWidth, height) {
+            titlePlaceable.placeRelative(0, (height - titlePlaceable.height) / 2)
+            dataPlaceable.placeRelative(constraints.maxWidth - dataPlaceable.width, (height - dataPlaceable.height) / 2)
+        }
+    }
 }
 
 @Composable
@@ -140,8 +170,9 @@ fun PropertyTitleText(text: String, badge: (@Composable () -> Unit)? = null, tra
 
 @Composable
 fun RowScope.PropertyDataText(text: String, modifier: Modifier = Modifier, badge: (@Composable () -> Unit)? = null, color: Color = MaterialTheme.colorScheme.secondary) {
-    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+    Row(modifier = modifier, horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
         Text(
+            modifier = Modifier.weight(1f, false),
             text = text,
             textAlign = TextAlign.End,
             maxLines = 1,

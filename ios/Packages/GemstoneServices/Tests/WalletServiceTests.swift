@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import class Gemstone.GemPreferencesService
+import struct Gemstone.GemWalletImportRequest
 import class Gemstone.GemWalletPreferencesService
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
@@ -14,6 +15,17 @@ import Store
 import StoreTestKit
 import Testing
 
+private func importRequest(words: [String] = LocalKeystore.words, name: String = "Wallet") -> GemWalletImportRequest {
+    GemWalletImportRequest(
+        kind: .phrase,
+        chain: Primitives.Chain.ethereum.toGem(),
+        input: words.joined(separator: " "),
+        nameRecord: .none,
+        defaultName: name,
+        source: Primitives.WalletSource.import.toGem(),
+    )
+}
+
 struct WalletServiceTests {
     @Test
     func deleteLastWalletNotifiesObservers() async throws {
@@ -23,11 +35,7 @@ struct WalletServiceTests {
         let session = GemWalletSessionService.mock(store: walletStore, sessionStore: sessionStore)
         let service = GemWalletService.mock(db: db, sessionStore: sessionStore)
 
-        let wallet = try await service.importWallet(
-            name: "Wallet",
-            type: .multicoinPhrase(words: LocalKeystore.words, chains: [Primitives.Chain.ethereum].map { $0.toGem() }),
-            source: .import,
-        ).wallet
+        let wallet = try await service.importWallet(request: importRequest()).wallet().toPrimitives()
         try await session.setCurrent(wallet: wallet)
 
         try await confirmation { confirm in
@@ -41,87 +49,15 @@ struct WalletServiceTests {
     }
 
     @Test
-    func setupChainsFailsWithoutSeededAsset() async throws {
-        let db = DB.mockWithChains([.ethereum])
-        let walletStore = WalletStore.mock(db: db)
-        let assetStore = AssetStore.mock(db: db)
-        let service = GemWalletService.mock(db: db)
-
-        _ = try await service.importWallet(
-            name: "Wallet",
-            type: .multicoinPhrase(words: LocalKeystore.words, chains: [Primitives.Chain.ethereum].map { $0.toGem() }),
-            source: .import,
-        )
-
-        await #expect(throws: Error.self) {
-            try await service.setup(chains: [.ethereum, .seiEvm])
-        }
-
-        try assetStore.add(assets: [.mock(asset: .mock(id: AssetId(chain: .seiEvm)))])
-
-        try await service.setup(chains: [.ethereum, .seiEvm])
-
-        let wallet = try #require(try walletStore.getWallets().first)
-        #expect(wallet.accounts.contains(where: { $0.chain == .seiEvm }))
-    }
-
-    @Test
     func passwordCreatedOnFirstImport() async throws {
         let mockPassword = MockKeystorePassword()
         let service = GemWalletService.mock(keystore: LocalKeystore.mock(keystorePassword: mockPassword), db: .mockWithChains([.ethereum]))
 
         #expect(try mockPassword.getPassword().isEmpty)
 
-        _ = try await service.importWallet(
-            name: "First Wallet",
-            type: .multicoinPhrase(words: LocalKeystore.words, chains: [Primitives.Chain.ethereum].map { $0.toGem() }),
-            source: .import,
-        )
+        _ = try await service.importWallet(request: importRequest(name: "First Wallet"))
 
         #expect(try mockPassword.getPassword().count == 64)
-    }
-
-    @Test
-    func setupChainsAddsMissingChains() async throws {
-        let db = DB.mockWithChains([.ethereum, .solana])
-        let walletStore = WalletStore.mock(db: db)
-        let service = GemWalletService.mock(db: db)
-        _ = try await service.importWallet(name: "ETH only", type: .multicoinPhrase(words: LocalKeystore.words, chains: [Primitives.Chain.ethereum].map { $0.toGem() }), source: .import)
-
-        try await service.setup(chains: [.ethereum, .solana])
-
-        let wallet = try #require(try walletStore.getWallets().first)
-        #expect(wallet.accounts.map(\.chain).asSet() == [Chain.ethereum, .solana].asSet())
-    }
-
-    @Test
-    func setupChainsSkipsWalletsWithoutKeystoreWithoutReadingPassword() async throws {
-        let mockPassword = MockKeystorePassword()
-        let keystore = LocalKeystore.mock(keystorePassword: mockPassword)
-        let db = DB.mockWithChains([.ethereum, .solana])
-        let walletStore = WalletStore.mock(db: db)
-        let service = GemWalletService.mock(keystore: keystore, db: db)
-        let wallet = try await service.importWallet(name: "ETH only", type: .multicoinPhrase(words: LocalKeystore.words, chains: [Primitives.Chain.ethereum].map { $0.toGem() }), source: .import).wallet
-        _ = try keystore.gemKeystore.delete(keystoreId: keystore.gemKeystore.keystoreId(walletId: wallet.id.id))
-        let passwordReadsBefore = mockPassword.getPasswordCallsCount
-
-        try await service.setup(chains: [.ethereum, .solana])
-
-        #expect(try walletStore.getWallets().first?.accounts.count == 1)
-        #expect(mockPassword.getPasswordCallsCount == passwordReadsBefore)
-    }
-
-    @Test
-    func setupChainsAddNoMissingChains() async throws {
-        let mockPassword = MockKeystorePassword()
-        let keystore = LocalKeystore.mock(keystorePassword: mockPassword)
-        let service = GemWalletService.mock(keystore: keystore, db: .mockWithChains([.ethereum, .solana]))
-        _ = try await service.importWallet(name: "Complete", type: .multicoinPhrase(words: LocalKeystore.words, chains: [Primitives.Chain.ethereum, .solana].map { $0.toGem() }), source: .import)
-        let passwordReadsBefore = mockPassword.getPasswordCallsCount
-
-        try await service.setup(chains: [.ethereum, .solana])
-
-        #expect(mockPassword.getPasswordCallsCount == passwordReadsBefore)
     }
 
     @Test
@@ -137,7 +73,7 @@ struct WalletServiceTests {
         let wallets = try await withThrowingTaskGroup(of: Primitives.Wallet.self) { group in
             for (index, words) in words.enumerated() {
                 group.addTask {
-                    try await service.importWallet(name: "Wallet \(index)", type: .multicoinPhrase(words: words, chains: [Primitives.Chain.ethereum].map { $0.toGem() }), source: .import).wallet
+                    try await service.importWallet(request: importRequest(words: words, name: "Wallet \(index)")).wallet().toPrimitives()
                 }
             }
             var wallets: [Primitives.Wallet] = []

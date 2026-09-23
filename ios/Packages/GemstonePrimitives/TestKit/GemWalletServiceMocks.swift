@@ -33,8 +33,9 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
     private var priceAlertsEnabled: Bool
     private var skippedAppVersion: String?
 
-    public init(priceAlertsEnabled: Bool = false) {
+    public init(priceAlertsEnabled: Bool = false, perpetualEnabled: Bool = false) {
         self.priceAlertsEnabled = priceAlertsEnabled
+        self.perpetualEnabled = perpetualEnabled
     }
 
     public func setPriceAlertsEnabled(enabled: Bool) throws {
@@ -57,7 +58,7 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
 
     public func setPushNotificationsEnabled(enabled _: Bool) throws {}
 
-    private var perpetualEnabled = false
+    private var perpetualEnabled: Bool
     private var hideBalanceEnabled = false
     private var developerEnabled = false
     private var acceptTermsCompleted = false
@@ -178,24 +179,42 @@ public final class GemStreamServiceMock: GemStreamServiceProtocol, @unchecked Se
 }
 
 public final class GemPortfolioServiceMock: GemPortfolioServiceProtocol, @unchecked Sendable {
-    private let allTimeHigh: Primitives.ChartValuePercentage?
-    private let allTimeLow: Primitives.ChartValuePercentage?
+    public var dataForType: (Gemstone.PortfolioType) -> Gemstone.PortfolioData
+    public var error: GemServiceError?
+    public var perpetualsShown = false
 
-    public init(allTimeHigh: Primitives.ChartValuePercentage? = nil, allTimeLow: Primitives.ChartValuePercentage? = nil) {
-        self.allTimeHigh = allTimeHigh
-        self.allTimeLow = allTimeLow
+    public private(set) var requests: [GemPortfolioRequest] = []
+
+    public init() {
+        dataForType = { type in
+            switch type {
+            case .wallet: .mockWallet()
+            case .perpetuals: .mockPerpetual()
+            }
+        }
     }
 
     public func currency(portfolioType _: Gemstone.PortfolioType) -> Gemstone.Currency {
         Primitives.Currency.usd.toGem()
     }
 
-    public func portfolioData(wallet _: Gemstone.Wallet, portfolioType _: Gemstone.PortfolioType, period _: Gemstone.ChartPeriod) async throws -> Gemstone.PortfolioData {
-        Gemstone.PortfolioData(
-            charts: [Gemstone.PortfolioChartData(chartType: .value, values: [])],
-            statistics: [allTimeHigh.map { .allTimeHigh(value: $0.toGem()) }, allTimeLow.map { .allTimeLow(value: $0.toGem()) }].compactMap(\.self),
-            availablePeriods: [.day, .week, .month, .year, .all],
-        )
+    public func showPerpetuals(walletType _: Gemstone.WalletType, chains _: [Gemstone.Chain]) -> Bool {
+        perpetualsShown
+    }
+
+    public func portfolioData(wallet _: Gemstone.Wallet, portfolioType: Gemstone.PortfolioType, period _: Gemstone.ChartPeriod) async throws -> Gemstone.PortfolioData {
+        if let error {
+            throw error
+        }
+        return dataForType(portfolioType)
+    }
+
+    public func refresh(wallet _: Gemstone.Wallet, request: GemPortfolioRequest) async -> GemPortfolioResult {
+        requests.append(request)
+        if let error {
+            return GemPortfolioResult(request: request, state: .error(error: error), data: nil)
+        }
+        return GemPortfolioResult(request: request, state: .data, data: dataForType(request.portfolioType))
     }
 }
 

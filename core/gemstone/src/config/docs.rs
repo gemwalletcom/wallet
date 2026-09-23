@@ -51,7 +51,7 @@ impl DocsUrl {
             Self::NetworkFees => "/faq/network-fees/",
             Self::StakingLockTime => "/faq/lock-time/",
             Self::ExternallyControlledAccount => "/guides/secure-wallet/externally-controlled-account/",
-            Self::RootedDevice => "/guides/secure-wallet/rooted-device/",
+            Self::RootedDevice => "/guides/rooted-device/",
             Self::PriceImpact => "/faq/price-impact/",
             Self::TokenApproval => "/faq/token-approval/",
             Self::Slippage => "/faq/slippage/",

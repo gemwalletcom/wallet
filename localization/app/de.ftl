@@ -131,6 +131,8 @@ buy_no_results = Keine Kurse verfügbar.
 # Transfer
 
 transfer_network_fee = Netzwerk-Gebühr
+transfer_pay_with = Bezahlen mit
+transfer_payment_title = Zahlung
 transfer_memo = Memo
 transfer_confirm = Bestätigen
 transfer_from = Von
@@ -156,6 +158,7 @@ transfer_activate_asset_title = Asset aktivieren
 transfer_recipient_my_wallets = Meine Wallets
 transfer_recipient_view_wallets = Wallets anzeigen
 transfer_minimum_account_balance = Danach muss ein Mindestguthaben %@ übrig bleiben, es sei denn, Sie nutzen Ihr gesamtes Guthaben.
+transfer_destination_account_activation = Die Zieladresse erfordert ein Minimum von %@.
 transfer_smart_contract_title = Intelligenter Vertrag
 transfer_other_title = Andere
 transfer_maximum_amount = Der Höchstbetrag beträgt %@
@@ -253,6 +256,7 @@ errors_network_offline = Die Internetverbindung scheint unterbrochen zu sein.
 errors_no_internet_connection = Keine Internetverbindung
 errors_no_service_connection = Keine Serviceverbindung
 errors_balances_activity_outdated = Guthaben und Aktivität sind möglicherweise nicht aktuell.
+errors_payment_status = Zahlung: %@
 
 # Activity
 
@@ -289,6 +293,7 @@ transaction_swap_again = Erneut tauschen
 transaction_status_completed = Abgeschlossen
 transaction_status_inprogress = In Bearbeitung
 transaction_status_refunded = Erstattet
+transaction_status_expired = Abgelaufen
 
 # Asset
 
@@ -541,6 +546,8 @@ sell_title = Verkaufen %@
 info_network_fee_title = Netzwerk-Gebühr
 info_watch_wallet_title = Beobachtungs-Wallet
 info_watch_wallet_description = Eine Wallet, auf die Sie keinen Zugriff haben, deren Transaktionen und Bewegungen Sie jedoch beobachten können.
+info_payment_verification_title = Zahlungsverifizierung
+info_payment_verification_description = Der Händler benötigt vor der Zahlung zusätzliche Informationen.
 info_network_fee_description = Für jede Transaktion im %@-Netzwerk wird eine Gebühr in %@ an die Miner gezahlt, um Ihre Transaktion abzuwickeln, nicht an Gem Wallet. Die Netzwerkgebühren variieren je nach Netzwerknutzung.
 info_transaction_error_description = Die Transaktion konnte aufgrund eines Fehlers nicht abgeschlossen werden, z. B. aufgrund unzureichender Mittel, ungültiger Eingaben oder einer Ablehnung durch das Netzwerk. Bitte überprüfen Sie die Details und versuchen Sie es erneut.
 info_transaction_pending_description = Die Transaktion wurde übermittelt und wartet auf die Bestätigung im Netzwerk. Die Bearbeitungszeit kann variieren. Bitte schauen Sie später noch einmal vorbei, um Updates zu erhalten.

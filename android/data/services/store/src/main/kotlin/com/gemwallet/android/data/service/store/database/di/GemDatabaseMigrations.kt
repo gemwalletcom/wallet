@@ -28,4 +28,5 @@ fun gemDatabaseMigrations(context: Context): Array<Migration> = arrayOf(
     Migration_92_93,
     Migration_93_94,
     Migration_94_95,
+    Migration_95_96,
 )

@@ -14,7 +14,6 @@ import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectReque
 import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.WalletApp
-import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.theme.WalletTheme
 
 @Composable
@@ -66,14 +65,6 @@ internal fun MainContent(
                 )
             }
 
-            if (isWalletUnlocked && pendingNavigation is PendingNavigation.Loading) {
-                LoadingScene(
-                    title = stringResource(R.string.transfer_review_request),
-                    onCancel = onPendingNavigationConsumed,
-                    closeIcon = true,
-                )
-            }
-
             when {
                 isEnrollmentRequired -> SystemAuthEnrollmentRequired(
                     onOpenSettings = onOpenSystemAuthSettings,
@@ -91,12 +82,21 @@ internal fun MainContent(
             )
         }
         MessageToast(
+            visible = isWalletUnlocked && pendingNavigation is PendingNavigation.Loading,
+            message = R.string.common_loading,
+            onShown = {},
+        )
+        MessageToast(
             visible = state.isScanErrorVisible,
             message = R.string.errors_not_supported,
             onShown = onScanErrorShown,
         )
+        MessageToast(
+            message = state.navigationError,
+            onShown = onErrorDismiss,
+        )
         ErrorDialog(
-            error = state.navigationError ?: state.walletConnectError ?: unsupportedWalletConnectError,
+            error = state.walletConnectError ?: unsupportedWalletConnectError,
             onDismiss = onErrorDismiss,
         )
     }

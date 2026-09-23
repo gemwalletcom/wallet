@@ -8,16 +8,16 @@ use primitives::{
     ChartCandleStick, ChartCandleUpdate, ChartDateValue, ChartPeriod, ChartValuePercentage, ConnectionComponent, ConnectionStatus, Contact, ContactAddress, ContractCallData, CoreEmoji, CoreListItem, CoreListItemBadge, CoreListItemIcon,
     Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, DeviceLocale, EarnType, FeePriority, FeeUnitType, FiatProvider, FiatProviderName, FiatQuote, FiatQuoteType, FiatQuoteUrl, FiatRate, FiatTransaction,
     FiatTransactionAssetData, FiatTransactionData, FiatTransactionStatus, GasPriceType, InAppNotification, Latency, LatencyType, LinkType, MarketDominance, Markets, MarketsAssets, NFTAsset, NFTAssetData, NFTAttribute, NFTAttributeType,
-    NFTCollection, NFTData, NFTImages, NFTResource, NFTType, NameProvider, NameRecord, Node, NodeState, Payment, PaymentAmount, PaymentLink, PaymentRequest, PaymentType, Perpetual, PerpetualAccountMode, PerpetualAccountSummary,
-    PerpetualBalance, PerpetualBasic, PerpetualConfirmData, PerpetualData, PerpetualDirection, PerpetualMarginType, PerpetualMarketData, PerpetualMetadata, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualOrderType,
-    PerpetualPortfolioTimeframeData, PerpetualPosition, PerpetualProvider, PerpetualReduceData, PerpetualSearchData, PerpetualTriggerOrder, PerpetualType, Platform, PlatformStore, PortfolioAsset, PortfolioChartData, PortfolioChartType,
-    PortfolioData, PortfolioMarginUsage, PortfolioStatistic, PortfolioType, Price, PriceAlert, PriceAlertData, PriceAlertDirection, PriceAlertNotificationType, PriceProvider, RecentActivityType, RedelegateData, RedemptionResult,
-    RedemptionStatus, ReferralAllowance, ReferralQuota, Release, ReportNft, ReportReason, Resource, RewardRedemption, RewardRedemptionOption, RewardRedemptionType, RewardStatus, Rewards, SimulationBalanceChange, SimulationHeader,
-    SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningApproval, SimulationWarningType,
-    SolanaNftStandard, SolanaTokenProgramId, StakeProviderType, StakeType, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus, SupportTyping, SupportTypingStatus, SwapData, SwapPriceImpact,
-    SwapPriceImpactType, SwapProvider, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType, TPSLOrderData, TotalFiatValue, TpslType, Transaction, TransactionDirection, TransactionExtended, TransactionInputType, TransactionState,
-    TransactionType, TransactionUtxoInput, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UTXO, VerificationStatus, Wallet, WalletConnection, WalletConnectionSession,
-    WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus, WalletSource, WalletType, YieldProvider,
+    NFTCollection, NFTData, NFTImages, NFTResource, NFTType, NameProvider, NameRecord, Node, NodeState, Payment, PaymentAmount, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, PaymentStatus,
+    PaymentType, PaymentVerification, Perpetual, PerpetualAccountMode, PerpetualAccountSummary, PerpetualBalance, PerpetualBasic, PerpetualConfirmData, PerpetualData, PerpetualDirection, PerpetualMarginType, PerpetualMarketData,
+    PerpetualMetadata, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualOrderType, PerpetualPortfolioTimeframeData, PerpetualPosition, PerpetualProvider, PerpetualReduceData, PerpetualSearchData, PerpetualTriggerOrder,
+    PerpetualType, Platform, PlatformStore, PortfolioAsset, PortfolioChartData, PortfolioChartType, PortfolioData, PortfolioMarginUsage, PortfolioStatistic, PortfolioType, Price, PriceAlert, PriceAlertData, PriceAlertDirection,
+    PriceAlertNotificationType, PriceProvider, RecentActivityType, RedelegateData, RedemptionResult, RedemptionStatus, ReferralAllowance, ReferralQuota, Release, ReportNft, ReportReason, Resource, RewardRedemption, RewardRedemptionOption,
+    RewardRedemptionType, RewardStatus, Rewards, SimulationBalanceChange, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult,
+    SimulationSeverity, SimulationWarning, SimulationWarningApproval, SimulationWarningType, SolanaNftStandard, SolanaTokenProgramId, StakeProviderType, StakeType, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageSender,
+    SupportMessageStatus, SupportTyping, SupportTypingStatus, SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProvider, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType, TPSLOrderData, TotalFiatValue, TpslType,
+    Transaction, TransactionDirection, TransactionExtended, TransactionInputType, TransactionState, TransactionType, TransactionUtxoInput, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze,
+    TronVote, UTXO, VerificationStatus, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus, WalletSource, WalletType, YieldProvider,
 };
 use std::str::FromStr;
 
@@ -45,7 +45,6 @@ pub enum Appearance {
 #[uniffi::remote(Enum)]
 pub enum ApplicationMetadataSource {
     WalletConnect,
-    Payment,
 }
 
 #[uniffi::remote(Enum)]
@@ -408,6 +407,17 @@ pub enum PaymentAmount {
 #[uniffi::remote(Enum)]
 pub enum PaymentLink {
     SolanaPay { url: String },
+    WalletConnectPay { payment_id: String },
+}
+
+#[uniffi::remote(Enum)]
+pub enum PaymentStatus {
+    RequiresAction,
+    Processing,
+    Succeeded,
+    Failed,
+    Expired,
+    Cancelled,
 }
 
 #[uniffi::remote(Enum)]
@@ -734,6 +744,7 @@ pub enum TransactionInputType {
     Stake { asset: Asset, stake_type: StakeType },
     TokenApprove { asset: Asset, approval_data: ApprovalData },
     Generic { asset: Asset, metadata: ApplicationMetadata, extra: TransferDataExtra },
+    Payment { asset: Asset, invoice: PaymentInvoice, extra: TransferDataExtra },
     TransferNft { asset: Asset, nft_asset: NFTAsset },
     Account { asset: Asset, account_type: AccountDataType },
     Perpetual { asset: Asset, perpetual_type: PerpetualType },
@@ -1312,6 +1323,34 @@ pub struct Node {
 }
 
 #[uniffi::remote(Record)]
+pub struct PaymentInvoice {
+    pub link: PaymentLink,
+    pub merchant: PaymentMerchant,
+    pub price: Option<PaymentPrice>,
+    pub quotes: Vec<PaymentQuote>,
+    pub verification: Option<PaymentVerification>,
+}
+
+#[uniffi::remote(Record)]
+pub struct PaymentMerchant {
+    pub name: String,
+    pub icon: String,
+}
+
+#[uniffi::remote(Record)]
+pub struct PaymentPrice {
+    pub currency: String,
+    pub amount: f64,
+}
+
+#[uniffi::remote(Record)]
+pub struct PaymentQuote {
+    pub id: String,
+    pub asset_id: primitives::AssetId,
+    pub value: GemBigUint,
+}
+
+#[uniffi::remote(Record)]
 pub struct PaymentRequest {
     pub address: String,
     pub amount: Option<PaymentAmount>,
@@ -1319,6 +1358,11 @@ pub struct PaymentRequest {
     pub label: Option<String>,
     pub references: Option<Vec<String>>,
     pub asset_id: Option<primitives::AssetId>,
+}
+
+#[uniffi::remote(Record)]
+pub struct PaymentVerification {
+    pub url: String,
 }
 
 #[uniffi::remote(Record)]

@@ -50,7 +50,7 @@ public struct TransactionScene: View {
                 action: model.switchRateDirection,
             )
         case let .row(row):
-            GemListRowView(row: row, onInfo: model.onInfo)
+            GemListRowView(row: row, onSelectAddress: model.onSelectProviderContract, onInfo: model.onInfo)
         case let .swapAgain(text):
             let button = StateButton(
                 text: text,

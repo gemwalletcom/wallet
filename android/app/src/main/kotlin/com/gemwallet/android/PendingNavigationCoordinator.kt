@@ -1,11 +1,10 @@
 package com.gemwallet.android
 
 import android.content.Intent
+import android.util.Log
 import androidx.annotation.VisibleForTesting
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.serializer.decodeJson
-import com.wallet.core.primitives.FiatQuoteType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,6 +12,7 @@ import kotlinx.coroutines.flow.update
 import uniffi.gemstone.Deeplink
 import uniffi.gemstone.GemDeeplinkService
 import uniffi.gemstone.GemDeeplinkServiceInterface
+import uniffi.gemstone.GemNavigationServiceInterface
 import uniffi.gemstone.Payment
 import uniffi.gemstone.UrlAction
 import uniffi.gemstone.WalletConnectLink
@@ -40,9 +40,13 @@ internal sealed interface PendingNavigation {
 class PendingNavigationCoordinator @Inject constructor(
     private val notificationNavigation: NotificationNavigation,
     private val paymentNavigation: PaymentNavigation,
-    private val assetNavigation: AssetNavigation,
+    private val navigationService: GemNavigationServiceInterface,
     private val deeplinkService: GemDeeplinkServiceInterface,
 ) {
+
+    private companion object {
+        const val TAG = "PendingNavigation"
+    }
 
     private val _pendingNavigation = MutableStateFlow<PendingNavigation?>(null)
     internal val pendingNavigation: StateFlow<PendingNavigation?> = _pendingNavigation.asStateFlow()
@@ -99,11 +103,9 @@ class PendingNavigationCoordinator @Inject constructor(
         is UrlAction.Payment -> paymentNavigation.routes(action.payment)
     }
 
-    private suspend fun routes(deeplink: Deeplink): List<NavKey> = when (deeplink) {
-        is Deeplink.Buy -> listOfNotNull(assetNavigation.fiatRoute(deeplink.assetId.toAssetId(), deeplink.amount, FiatQuoteType.Buy))
-        is Deeplink.Sell -> listOfNotNull(assetNavigation.fiatRoute(deeplink.assetId.toAssetId(), deeplink.amount, FiatQuoteType.Sell))
-        is Deeplink.Asset, is Deeplink.Receive, is Deeplink.Rewards, is Deeplink.Swap, Deeplink.Perpetuals -> listOfNotNull(deeplink.toRoute())
-    }
+    private suspend fun routes(deeplink: Deeplink): List<NavKey> = runCatching { navigationService.openDeeplink(deeplink).routes() }
+        .onFailure { Log.e(TAG, "preparing a deep link failed", it) }
+        .getOrDefault(emptyList())
 
     private fun replace(pending: PendingNavigation, replacement: PendingNavigation?) {
         _pendingNavigation.update { current -> if (current === pending) replacement else current }

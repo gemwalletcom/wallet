@@ -25,11 +25,13 @@ sealed interface ConfirmRowUIModel {
     data class Item(val model: ListItemModel) : ConfirmRowUIModel
     data class Address(val title: String, val name: String?, val address: String, val chain: Chain, val explorerLink: BlockExplorerLink, val avatar: ListItemImage?) : ConfirmRowUIModel
     data class Validator(val title: String, val name: String, val address: String, val chain: Chain, val explorerLink: BlockExplorerLink) : ConfirmRowUIModel
+    data class PaymentAsset(val model: ListItemModel, val selectable: Boolean) : ConfirmRowUIModel
 }
 
 internal fun GemConfirmRowContent.uiModel(context: Context): ConfirmRowUIModel? = when (this) {
     is GemConfirmRowContent.Row -> ConfirmRowUIModel.Row(row)
     is GemConfirmRowContent.Recipient -> uiModel(context)
+    is GemConfirmRowContent.PaymentAsset -> ConfirmRowUIModel.PaymentAsset(model = ListItemModel(title = context.getString(R.string.transfer_pay_with), subtitle = symbol), selectable = selectable)
     is GemConfirmRowContent.Details -> null
 }
 
@@ -77,6 +79,12 @@ fun FeeUIModel.listItem(context: Context, feeAsset: Asset?, showsFeeAssetSymbol:
         )
     }
 }
+
+internal fun verificationListItem(context: Context): ListItemModel = ListItemModel(
+    title = context.getString(R.string.info_payment_verification_title),
+    subtitleTagType = ListItemTagType.Pending,
+    info = InfoSheetEntity.PaymentVerificationInfo,
+)
 
 internal fun FeeUIModel.FeeInfo.feeItems(context: Context): List<ListItemModel> = feeItems.map { (option, info) ->
     ListItemModel(title = context.getString(option.stringRes()), subtitle = info.cryptoAmount)

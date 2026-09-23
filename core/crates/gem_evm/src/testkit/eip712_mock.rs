@@ -1,4 +1,4 @@
-use crate::eip712::{EIP712Domain, EIP712Field, EIP712Message, EIP712TypedValue, eip712_domain_types};
+use crate::eip712::{EIP712Domain, EIP712Field, EIP712Message, EIP712Type, EIP712TypedValue, eip712_domain_types};
 
 impl EIP712Domain {
     pub fn mock(chain_id: u64) -> Self {
@@ -25,9 +25,10 @@ impl EIP712Message {
     }
 
     pub fn to_json_string(&self) -> String {
+        let domain_types: Vec<EIP712Type> = eip712_domain_types().into_iter().filter(|field| field.name != "verifyingContract").collect();
         serde_json::to_string(&serde_json::json!({
             "types": {
-                "EIP712Domain": eip712_domain_types(),
+                "EIP712Domain": domain_types,
                 "Message": [
                     { "name": "content", "type": "string" }
                 ]

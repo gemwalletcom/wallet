@@ -46,7 +46,6 @@ import uniffi.gemstone.GemLatencyStatus
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemListSectionTitle
 import uniffi.gemstone.GemLocalizedText
-import uniffi.gemstone.GemPerpetual
 import uniffi.gemstone.GemPositionChange
 import uniffi.gemstone.GemRecipientErrorDisplay
 import uniffi.gemstone.GemRecipientSectionKind
@@ -62,12 +61,14 @@ import uniffi.gemstone.GemVerificationLevel
 import uniffi.gemstone.GemWalletSecretKind
 import uniffi.gemstone.GemWalletSubtitle
 import uniffi.gemstone.LinkType
+import uniffi.gemstone.PaymentStatus
 import uniffi.gemstone.PerpetualMarginType
-import uniffi.gemstone.PerpetualProvider
 import uniffi.gemstone.StakeProviderType
 import uniffi.gemstone.WalletConnectionVerificationStatus
 import uniffi.gemstone.verificationLevel
 import uniffi.gemstone.PriceChangeCalculator as GemPriceChangeCalculator
+
+private const val EMPTY_VALUE = "-"
 
 fun GemTransactionTitle.string(context: Context): String = when (this) {
     GemTransactionTitle.Received -> context.getString(R.string.transaction_title_received)
@@ -187,13 +188,13 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     GemLocalizedText.InvalidTokenId -> context.getString(R.string.errors_token_invalid_id)
 
-    is GemLocalizedText.TriggerOrder -> GemPerpetual(PerpetualProvider.HYPERCORE).use { it.triggerOrderText(context.getString(order.stringRes()), price?.text()) }
+    is GemLocalizedText.TriggerOrder -> "${context.getString(order.stringRes())}: ${price?.text() ?: EMPTY_VALUE}"
 
     is GemLocalizedText.Pnl -> GemPriceChangeCalculator().use { it.pnlText(amount.text(), percent.text()) }
 
-    is GemLocalizedText.Margin -> GemPerpetual(PerpetualProvider.HYPERCORE).use { it.marginText(amount.text(), context.getString(marginType.stringRes())) }
+    is GemLocalizedText.Margin -> "${amount.text()} (${context.getString(marginType.stringRes())})"
 
-    is GemLocalizedText.Position -> GemPerpetual(PerpetualProvider.HYPERCORE).use { it.positionText(context.getString(direction.toPrimitives().stringRes()), leverage) }
+    is GemLocalizedText.Position -> "${context.getString(direction.toPrimitives().stringRes()).uppercase()} ${leverage.text()}"
 
     is GemLocalizedText.Apr -> context.getString(R.string.stake_apr, value?.text().orEmpty())
 
@@ -419,6 +420,7 @@ fun GemErrorText.text(context: Context): String = when (this) {
     GemErrorText.UnsupportedChain -> context.getString(R.string.errors_connections_unsupported_chain)
     GemErrorText.MaliciousOrigin -> context.getString(R.string.errors_connections_malicious_origin)
     GemErrorText.NoSupportedWallets -> context.getString(R.string.errors_connections_no_supported_wallets)
+    is GemErrorText.Payment -> status.errorText(context)
     GemErrorText.InvalidSecretPhrase -> context.getString(R.string.errors_import_invalid_secret_phrase)
     is GemErrorText.InvalidSecretPhraseWords -> context.getString(R.string.errors_import_invalid_secret_phrase_word, words.joinToString())
     GemErrorText.InvalidPrivateKey -> context.getString(R.string.errors_import_invalid_private_key)
@@ -426,6 +428,17 @@ fun GemErrorText.text(context: Context): String = when (this) {
     GemErrorText.NoAccountForChain -> context.getString(R.string.errors_wallet_account_missing)
     GemErrorText.Unknown -> context.getString(R.string.errors_unknown)
     is GemErrorText.Message -> text
+}
+
+fun PaymentStatus.errorText(context: Context): String = context.getString(R.string.errors_payment_status, context.getString(stringRes()))
+
+@StringRes
+private fun PaymentStatus.stringRes(): Int = when (this) {
+    PaymentStatus.REQUIRES_ACTION, PaymentStatus.FAILED -> R.string.transaction_status_failed
+    PaymentStatus.PROCESSING -> R.string.transaction_status_inprogress
+    PaymentStatus.SUCCEEDED -> R.string.transaction_status_completed
+    PaymentStatus.EXPIRED -> R.string.transaction_status_expired
+    PaymentStatus.CANCELLED -> R.string.errors_cancelled
 }
 
 @StringRes
@@ -526,6 +539,7 @@ fun GemRecipientErrorDisplay.string(context: Context): String = when (this) {
 fun GemListSectionTitle.titleRes(): Int? = when (this) {
     GemListSectionTitle.NONE -> null
     GemListSectionTitle.BALANCES -> R.string.asset_balances
+    GemListSectionTitle.INFO -> R.string.common_info
     GemListSectionTitle.COMMUNITY -> R.string.settings_community
     GemListSectionTitle.MANAGE -> R.string.common_manage
     GemListSectionTitle.RESOURCES -> R.string.asset_resources

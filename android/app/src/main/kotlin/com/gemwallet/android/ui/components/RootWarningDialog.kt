@@ -1,6 +1,5 @@
 package com.gemwallet.android.ui.components
 
-import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.AlertDialog
@@ -13,12 +12,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.AppUrl
-import com.gemwallet.android.BuildConfig
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.Spacer8
 import uniffi.gemstone.DocsUrl
-import java.io.File
 
 @Composable
 fun RootWarningDialog(onCancel: () -> Unit, onIgnore: () -> Unit) {
@@ -52,32 +49,4 @@ fun RootWarningDialog(onCancel: () -> Unit, onIgnore: () -> Unit) {
             }
         },
     )
-}
-
-fun isDeviceRooted() = !BuildConfig.DEBUG && RootChecker().isDeviceRooted()
-
-private class RootChecker {
-
-    fun isDeviceRooted(): Boolean = hasRootedFiles() || hasRootedProcesses() || hasTestKeys()
-
-    private fun hasRootedFiles(): Boolean = arrayOf(
-        "/system/app/Superuser.apk",
-        "/sbin/su",
-        "/system/bin/su",
-        "/system/xbin/su",
-        "/data/local/xbin/su",
-        "/data/local/bin/su",
-        "/system/sd/xbin/su",
-        "/system/bin/failsafe/su",
-        "/data/local/su",
-    ).any { path -> File(path).exists() }
-
-    private fun hasRootedProcesses(): Boolean = try {
-        val process = Runtime.getRuntime().exec(arrayOf("/system/xbin/which", "su"))
-        process.inputStream.bufferedReader().use { it.readLine() != null }
-    } catch (_: Exception) {
-        false
-    }
-
-    private fun hasTestKeys(): Boolean = Build.TAGS?.contains("test-keys") == true
 }

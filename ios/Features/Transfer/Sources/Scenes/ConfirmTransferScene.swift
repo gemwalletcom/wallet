@@ -59,6 +59,12 @@ extension ConfirmTransferScene {
             GemListRowView(row: row)
         case let .recipient(model):
             AddressListItemView(model: model)
+        case let .paymentAsset(model, selectable):
+            NavigationCustomLink(
+                with: ListItemView(model: model),
+                isEnabled: selectable,
+                action: self.model.onSelectPaymentAsset,
+            )
         case let .swapDetails(model):
             NavigationCustomLink(
                 with: SwapDetailsListView(model: model),
@@ -82,6 +88,11 @@ extension ConfirmTransferScene {
             } else {
                 ListItemView(model: model)
             }
+        case let .verification(model):
+            NavigationCustomLink(
+                with: ListItemView(model: model),
+                action: self.model.onSelectVerification,
+            )
         case let .warnings(rows):
             ForEach(rows, id: \.self) { GemListRowView(row: $0) }
         case let .balanceChange(model):

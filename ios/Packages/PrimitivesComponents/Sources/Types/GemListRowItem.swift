@@ -24,6 +24,7 @@ struct AddressCardModel {
 enum GemListRowItem {
     case notice(title: String, message: String?, kind: GemNoticeKind)
     case listItem(ListItemModel)
+    case provider(ListItemModel, contract: String?)
     case picker(ListItemModel, title: GemListRowTitle)
     case toggle(label: String, title: GemListRowTitle, isOn: Bool, imageStyle: ListItemImageStyle?)
     case page(ListItemModel, url: URL)
@@ -48,8 +49,19 @@ extension GemListRow {
             .notice(title: title.text, message: message?.text, kind: kind)
         case let .text(title, value):
             .listItem(ListItemModel(title: title.text, subtitle: value))
+        case let .provider(name, contract):
+            .provider(ListItemModel(title: GemListRowTitle.provider.text, subtitle: name), contract: contract)
         case let .amount(title, amount, info):
             .listItem(ListItemModel(title: title.text, subtitle: amount.text(), subtitleStyle: subtitleStyle(amount.tone), infoAction: infoAction(info, onInfo: onInfo)))
+        case let .quote(title, value, change):
+            .listItem(
+                ListItemModel(
+                    title: title.text,
+                    subtitle: value?.text(),
+                    subtitleSuffix: change?.text(),
+                    subtitleSuffixStyle: change.map { subtitleStyle($0.tone) } ?? ListItemModel.StyleDefaults.subtitleStyle,
+                ),
+            )
         case let .ranked(title, amount, rank):
             .listItem(
                 ListItemModel(

@@ -20,6 +20,7 @@ use crate::services::error::{GemServiceError, required_account};
 use crate::services::perpetual::GemPerpetualPositionAction;
 use crate::services::perpetual::rules as perpetual_rules;
 use crate::services::preferences::GemPreferencesService;
+use crate::services::settings::rules::{GemPickerOption, leverage_option};
 use crate::services::stake::GemStakeService;
 use crate::services::transfer::rules as transfer_rules;
 use crate::services::transfer::{GemRecipient, GemTransferData};
@@ -45,6 +46,10 @@ impl GemAmountService {
 
     pub fn perpetual_leverage(&self, max_leverage: u8) -> u8 {
         select_leverage(self.preferences.get_perpetual_leverage(), &leverage_options(max_leverage))
+    }
+
+    pub fn perpetual_leverage_options(&self, max_leverage: u8) -> Vec<GemPickerOption> {
+        leverage_options(max_leverage).into_iter().map(leverage_option).collect()
     }
 
     pub fn perpetual_autoclose(&self, price: f64, direction: PerpetualDirection, leverage: u8) -> GemPerpetualAutoclose {

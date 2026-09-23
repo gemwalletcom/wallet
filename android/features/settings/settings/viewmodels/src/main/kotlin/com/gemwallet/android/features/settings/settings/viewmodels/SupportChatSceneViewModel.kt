@@ -33,6 +33,7 @@ import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemSupportServiceInterface
+import uniffi.gemstone.loadError
 import javax.inject.Inject
 
 @HiltViewModel
@@ -67,7 +68,7 @@ class SupportChatSceneViewModel @Inject constructor(
     private val loadState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
 
     val errorRow: StateFlow<GemListRow?> = combine(loadState, messages) { state, shown ->
-        (state as? GemLoadState.Error)?.takeIf { shown.isEmpty() }?.let { GemListRow.Error(it.error) }
+        loadError(state, shown.isNotEmpty())?.let { GemListRow.Error(it) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun fetch() = viewModelScope.launch(ioDispatcher) {

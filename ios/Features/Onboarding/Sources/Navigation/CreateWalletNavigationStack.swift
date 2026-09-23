@@ -25,11 +25,6 @@ public struct CreateWalletNavigationStack: View {
                         model: model.verifyPhraseModel(onComplete: onVerifyPhraseComplete),
                     )
                 }
-                .navigationDestination(for: Scenes.WalletProfile.self) { scene in
-                    SetupWalletScene(model: model.setupWalletModel(wallet: scene.wallet, onComplete: onSetupWalletComplete))
-                        .navigationBarBackButtonHidden()
-                        .interactiveDismissDisabled()
-                }
                 .navigationDestination(for: Scenes.CreateWallet.self) { _ in
                     ShowSecretDataScene(
                         model: NewSecretPhraseViewModel(
@@ -40,12 +35,6 @@ public struct CreateWalletNavigationStack: View {
                 }
                 .navigationDestination(for: Scenes.SecurityReminder.self) { _ in
                     securityReminderScene
-                }
-                .sheet(item: $model.isPresentingSelectImageWallet) { wallet in
-                    NavigationStack {
-                        WalletImageScene(model: model.walletImageModel(wallet: wallet))
-                            .toolbarDismissItem(type: .close, placement: .topBarLeading)
-                    }
                 }
                 .alertSheet($model.isPresentingAlertMessage)
         }
@@ -84,20 +73,11 @@ extension CreateWalletNavigationStack {
                 model.isPresentingAlertMessage = AlertMessage(title: Localized.Errors.errorOccurred, error: error)
             }
         case .verifyPhrase: navigationPath.append(Scenes.VerifyPhrase())
-        case let .walletProfile(wallet): navigationPath.append(Scenes.WalletProfile(wallet: wallet))
         }
     }
 
     func onVerifyPhraseComplete(words: [String]) async throws {
-        let created = try await model.createWallet(words: words)
-        if created.hasExistingWallets {
-            navigate(to: .walletProfile(wallet: created.wallet))
-        } else {
-            onSetupWalletComplete(wallet: created.wallet)
-        }
-    }
-
-    func onSetupWalletComplete(wallet: Wallet) {
-        model.setupWalletComplete(wallet: wallet)
+        try await model.createWallet(words: words)
+        model.dismiss()
     }
 }

@@ -28,7 +28,7 @@ pub enum GemLocalizedText {
     TriggerOrder { order: GemTriggerOrder, price: Option<GemFormattedNumber> },
     Pnl { amount: GemFormattedNumber, percent: GemFormattedNumber },
     Margin { amount: GemFormattedNumber, margin_type: PerpetualMarginType },
-    Position { direction: PerpetualDirection, leverage: String },
+    Position { direction: PerpetualDirection, leverage: GemFormattedNumber },
     Apr { value: Option<GemFormattedNumber> },
     PriceImpactWarning { percent: GemFormattedNumber, symbol: String },
     Balance { amount: GemFormattedNumber },

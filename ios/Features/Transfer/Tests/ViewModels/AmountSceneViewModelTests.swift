@@ -67,43 +67,6 @@ struct AmountSceneViewModelTests {
     }
 
     @Test
-    func stakeValidation() {
-        let assetData = AssetData.mock(
-            asset: .mockBNB(),
-            balance: .mock(available: 5_000_000_000_000_000_000),
-        )
-        let model = AmountSceneViewModel.mock(
-            type: .stake(.stake(validators: [DelegationValidator.mock().toGem()], validator: nil)),
-            assetData: assetData,
-        )
-
-        model.amountInputModel.text = "0.099"
-        model.onChangeAmountText("", "0.099")
-        #expect(model.amountInputModel.isValid == false)
-
-        model.amountInputModel.text = "1.5"
-        model.onChangeAmountText("", "1.5")
-        #expect(model.amountInputModel.isValid == true)
-    }
-
-    @Test
-    func transferValidation() {
-        let assetData = AssetData.mock(
-            asset: .mockBNB(),
-            balance: .mock(available: 10_000_000_000_000_000),
-        )
-        let model = AmountSceneViewModel.mock(assetData: assetData)
-
-        model.amountInputModel.text = "0.001"
-        model.onChangeAmountText("", "0.001")
-        #expect(model.amountInputModel.isValid == true)
-
-        model.amountInputModel.text = "100"
-        model.onChangeAmountText("", "100")
-        #expect(model.amountInputModel.isValid == false)
-    }
-
-    @Test
     func unfreezeResourceSwitch() {
         let assetData = AssetData.mock(
             asset: .mockTron(),

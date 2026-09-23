@@ -41,6 +41,9 @@ struct RootScene: View {
                 await model.openUrl(url)
             }
         }
+        .sheet(isPresented: $model.isPresentingRootWarning) {
+            JailbreakWarningView()
+        }
         .sheet(isPresented: presenter.isPresentingWallets) {
             WalletsNavigationStack()
         }

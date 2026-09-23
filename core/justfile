@@ -11,9 +11,6 @@ clean:
 build-gemstone:
     just gemstone build
 
-build-ios:
-    just gemstone build-ios
-
 install: install-sccache install-typeshare install-postgres install-diesel
 
 install-sccache:

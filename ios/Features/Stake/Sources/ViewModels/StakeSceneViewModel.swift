@@ -131,21 +131,14 @@ public final class StakeSceneViewModel {
 
     var delegationsViewState: StateViewType<[DelegationViewModel]> {
         let currency = service.getCurrency().toPrimitives()
-        let delegationModels = delegations.map { delegation in
+        return delegationsState.stateViewType(delegations.map { delegation in
             DelegationViewModel(
                 service: service,
                 delegation: delegation,
                 asset: asset,
                 currency: currency,
             )
-        }
-
-        switch delegationsState {
-        case .noData: return .noData
-        case .loading: return delegationModels.isEmpty ? .loading : .data(delegationModels)
-        case .data: return delegationModels.isEmpty ? .noData : .data(delegationModels)
-        case let .error(error): return .error(error)
-        }
+        })
     }
 
     var claimRewardsRoute: StakeRoute {

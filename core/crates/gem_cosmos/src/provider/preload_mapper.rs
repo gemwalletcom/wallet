@@ -27,6 +27,7 @@ fn get_gas_limit(input_type: &TransactionInputType) -> Result<u64, Box<dyn Error
         | TransactionInputType::Account { .. }
         | TransactionInputType::TokenApprove { .. }
         | TransactionInputType::Generic { .. }
+        | TransactionInputType::Payment { .. }
         | TransactionInputType::Perpetual { .. }
         | TransactionInputType::Earn { .. } => TRANSFER_GAS_LIMIT,
         TransactionInputType::Swap { swap_data, .. } => get_swap_gas_limit(swap_data)?,

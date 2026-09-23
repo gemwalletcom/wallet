@@ -3,7 +3,7 @@ use std::str;
 use ::signer::Ed25519KeyPair;
 use chrono::Utc;
 use gem_encoding::encode_base64;
-use primitives::{ApplicationMetadataSource, Chain, ChainSigner, SignerError, SignerInput, TransferDataOutputType};
+use primitives::{Chain, ChainSigner, SignerError, SignerInput, TransactionInputType, TransferDataOutputType};
 
 use super::{instructions, sign_message as sign_solana_message, swap, transaction};
 use crate::{Pubkey, VersionedTransactionExt, decode_transaction, siws::SiwsMessage, transaction::is_transaction_bytes};
@@ -57,11 +57,12 @@ impl ChainSigner for SolanaChainSigner {
 
     fn sign_data(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
         let extra = input.input_type.get_generic_data().map_err(SignerError::invalid_input)?;
-        let metadata = input.input_type.get_application_metadata().map_err(SignerError::invalid_input)?;
         let data = extra.data_as_str().map_err(SignerError::invalid_input)?;
         let mut transaction = decode_transaction(data).map_err(SignerError::invalid_input)?;
 
-        if metadata.source == ApplicationMetadataSource::Payment && !transaction.uses_durable_nonce() {
+        if let TransactionInputType::Payment { .. } = input.input_type
+            && !transaction.uses_durable_nonce()
+        {
             *transaction.recent_blockhash_mut() = transaction::block_hash(input)?;
         }
 
@@ -87,11 +88,15 @@ mod tests {
     use crate::{CompiledInstruction, SignatureBytes, VersionedTransaction};
     use gem_encoding::decode_base64;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
-    use primitives::{ApplicationMetadataSource, Chain, ChainSigner, SignerInput, TransactionLoadInput, TransactionLoadMetadata, TransferDataOutputType};
+    use primitives::{Chain, ChainSigner, SignerInput, TransactionLoadInput, TransactionLoadMetadata, TransferDataOutputType};
 
-    fn signed_blockhash(transaction: VersionedTransaction, source: ApplicationMetadataSource) -> [u8; 32] {
+    fn signed_blockhash(transaction: VersionedTransaction, payment: bool) -> [u8; 32] {
         let encoded = encode_base64(&transaction.serialize().unwrap());
-        let mut input = TransactionLoadInput::mock_sign_data_with_source(Chain::Solana, &encoded, TransferDataOutputType::EncodedTransaction, source);
+        let mut input = if payment {
+            TransactionLoadInput::mock_sign_data_payment(Chain::Solana, &encoded, TransferDataOutputType::EncodedTransaction)
+        } else {
+            TransactionLoadInput::mock_sign_data(Chain::Solana, &encoded, TransferDataOutputType::EncodedTransaction)
+        };
         input.metadata = TransactionLoadMetadata::mock_solana(&bs58::encode([4; 32]).into_string());
         let fee = input.default_fee();
 
@@ -118,9 +123,9 @@ mod tests {
         *wallet_connect.recent_blockhash_mut() = [0; 32];
         wallet_connect.add_signature(SignatureBytes::new([0; 64]));
 
-        assert_eq!(signed_blockhash(latest_blockhash, ApplicationMetadataSource::Payment), [4; 32]);
-        assert_eq!(signed_blockhash(durable_nonce, ApplicationMetadataSource::Payment), [7; 32]);
-        assert_eq!(signed_blockhash(wallet_connect, ApplicationMetadataSource::WalletConnect), [0; 32]);
+        assert_eq!(signed_blockhash(latest_blockhash, true), [4; 32]);
+        assert_eq!(signed_blockhash(durable_nonce, true), [7; 32]);
+        assert_eq!(signed_blockhash(wallet_connect, false), [0; 32]);
     }
 
     #[test]

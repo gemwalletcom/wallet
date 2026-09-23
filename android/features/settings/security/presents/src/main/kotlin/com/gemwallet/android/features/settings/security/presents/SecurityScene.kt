@@ -52,7 +52,7 @@ fun SecurityScene(onCancel: () -> Unit, viewModel: SecurityViewModel = hiltViewM
                         listPosition = position,
                         onToggle = { title, isOn ->
                             when (title.securityAction()) {
-                                SecurityRowAction.Authentication -> context.requestAuth(AuthRequest.Default) { viewModel.setAuthRequired(isOn) }
+                                SecurityRowAction.Authentication -> context.requestAuth(AuthRequest.Required) { viewModel.setAuthRequired(isOn) }
                                 SecurityRowAction.HideBalance -> viewModel.setHideBalances()
                                 null -> Unit
                             }

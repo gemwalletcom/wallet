@@ -72,10 +72,7 @@ impl GemFormattedNumber {
             tone: GemValueTone::Plain,
             rounding: GemNumberRounding::ToNearest,
             unit: GemNumberUnit::Currency { code },
-            display: match style.abbreviates(value) {
-                true => GemNumberDisplay::Abbreviated,
-                false => GemNumberDisplay::Number { precision: style.precision(value) },
-            },
+            display: currency_display(value, style),
         }
     }
 
@@ -169,7 +166,7 @@ impl GemFormattedNumber {
             rounding: GemNumberRounding::ToNearest,
             unit: GemNumberUnit::Multiplier,
             display: GemNumberDisplay::Number {
-                precision: number_formatter::Precision::TWO_PLACES.into(),
+                precision: number_formatter::Precision::UP_TO_TWO_PLACES.into(),
             },
         }
     }
@@ -234,9 +231,17 @@ pub fn formatted_percentage(value: f64, style: GemPercentageStyle) -> GemFormatt
     GemFormattedNumber::percentage(value, style)
 }
 
-#[uniffi::export]
-pub fn leverage_number(value: f64) -> GemFormattedNumber {
-    GemFormattedNumber::leverage(value)
+fn currency_display(value: f64, style: GemCurrencyStyle) -> GemNumberDisplay {
+    if style.abbreviates(value) {
+        return GemNumberDisplay::Abbreviated;
+    }
+    if style.is_dust(value) {
+        return GemNumberDisplay::BelowThreshold {
+            threshold: number_formatter::VALUE_DUST_THRESHOLD,
+            places: number_formatter::VALUE_DUST_PLACES,
+        };
+    }
+    GemNumberDisplay::Number { precision: style.precision(value) }
 }
 
 fn value_display(value: f64, style: GemValueStyle) -> GemNumberDisplay {
@@ -292,6 +297,28 @@ mod tests {
     }
 
     #[test]
+    fn test_only_a_short_currency_reads_dust_below_the_amount_threshold() {
+        let price = GemFormattedNumber::currency(0.00000783, Currency::USD, GemCurrencyStyle::Short);
+        assert_eq!(price.unit, GemNumberUnit::Currency { code: "USD".to_string() });
+        assert_eq!(price.display, GemNumberDisplay::BelowThreshold { threshold: 0.0001, places: 4 });
+
+        assert_eq!(
+            GemFormattedNumber::currency(0.0001, Currency::USD, GemCurrencyStyle::Short).display,
+            GemNumberDisplay::Number {
+                precision: GemPrecision::Significant { max: 4 }
+            },
+            "the threshold itself still reads as a number"
+        );
+        assert_eq!(
+            GemFormattedNumber::currency(0.00000783, Currency::USD, GemCurrencyStyle::Currency).display,
+            GemNumberDisplay::Number {
+                precision: GemPrecision::Significant { max: 4 }
+            },
+            "a chart or alert price keeps its digits"
+        );
+    }
+
+    #[test]
     fn test_a_percentage_carries_its_sign_rule_with_it() {
         let signed = GemFormattedNumber::percentage(-2.0, GemPercentageStyle::Signed);
         assert_eq!(signed.value, -2.0);
@@ -329,8 +356,9 @@ mod tests {
         assert_eq!(
             leverage.display,
             GemNumberDisplay::Number {
-                precision: number_formatter::Precision::TWO_PLACES.into()
-            }
+                precision: number_formatter::Precision::UP_TO_TWO_PLACES.into()
+            },
+            "a whole leverage reads 5x, not 5.00x"
         );
         assert_eq!(leverage.notation, GemNumberNotation::Plain);
     }

@@ -52,8 +52,5 @@ final class ImportWalletReceiveBitcoinUITests: XCTestCase {
         // ImportWalletScene
         app.textFields["importInputField"].typeText(words)
         app.buttons["Import"].firstMatch.tap()
-
-        // SetupWalletScene
-        app.buttons["Done"].firstMatch.tap()
     }
 }

@@ -12,14 +12,11 @@ import uniffi.gemstone.GemAssetDetailsState
 import uniffi.gemstone.GemBalanceRow
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemPriceAlertToggle
-import uniffi.gemstone.GemValueTone
 
 class AssetInfoUIModel(
     val assetInfo: AssetInfo,
     val name: String = "",
     val iconUrl: Any? = null,
-    val priceDayChanges: String = "0",
-    val priceChangedType: GemValueTone = GemValueTone.PLAIN,
     val tokenType: AssetType = AssetType.NATIVE,
     val accountInfoUIModel: AccountInfoUIModel = AccountInfoUIModel(),
     val isBuyEnabled: Boolean = false,
@@ -36,7 +33,6 @@ class AssetInfoUIModel(
     val priceAlertMenu: PriceAlertMenuUIModel = GemPriceAlertToggle.DISABLED.menu(),
     val emptyTransactions: EmptyTransactionsUIModel = EmptyTransactionsUIModel(showsBuy = false, showsSwap = false),
     val banners: List<BannerRowUIModel>,
-    val priceListItem: ListItemModel = ListItemModel(title = ""),
     val sections: List<SectionUIModel> = emptyList(),
 ) {
 
@@ -47,10 +43,7 @@ class AssetInfoUIModel(
     data class SectionUIModel(@StringRes val title: Int?, val rows: List<RowUIModel>)
 
     sealed interface RowUIModel {
-        data object Price : RowUIModel
-        data class Network(val name: String) : RowUIModel
         data class Balance(val type: BalanceViewType, val model: ListItemModel, val url: String? = null) : RowUIModel
-        data class Earn(val row: GemListRow) : RowUIModel
         data class Row(val row: GemListRow, val action: AssetDetailsAction?) : RowUIModel
     }
 

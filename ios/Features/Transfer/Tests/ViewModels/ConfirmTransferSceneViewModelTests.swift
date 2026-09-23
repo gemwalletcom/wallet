@@ -17,6 +17,9 @@ import enum Gemstone.GemListRow
 import protocol Gemstone.GemNameServiceProtocol
 import struct Gemstone.GemSimulationPayloadRow
 import struct Gemstone.GemTransferData
+import struct Gemstone.PaymentInvoice
+import struct Gemstone.PaymentQuote
+import struct Gemstone.PaymentVerification
 import struct Gemstone.SimulationPayloadField
 import enum Gemstone.TransactionInputType
 import func Gemstone.walletRow
@@ -44,6 +47,89 @@ struct ConfirmTransferSceneViewModelTests {
         #expect(model.isHeaderVisible == false)
         model.state.load = .mock(preload: .mock())
         #expect(model.isHeaderVisible == true)
+    }
+
+    @Test
+    func paymentHeaderShowsWhenAmountIsKnown() {
+        let model = ConfirmTransferSceneViewModel.mock(data: .mockPayment(value: 1))
+
+        #expect(model.isHeaderVisible == true)
+    }
+
+    @Test
+    func selectingAnotherPaymentAssetReloadsWithIt() async {
+        let invoice = PaymentInvoice.mock(quotes: [.mock(asset: .mockEthereum()), .mock(asset: .mockBNB())])
+        let bnb = GemTransferData.mockPayment(asset: .mockBNB(), invoice: invoice)
+        let confirmation = GemConfirmationMock(state: .mock(preload: nil), load: .success(.mock(transfer: bnb)))
+        let model = ConfirmTransferSceneViewModel.mock(data: .mockPayment(asset: .mockEthereum(), invoice: invoice), confirmation: confirmation)
+        model.state.screen = .mock(phase: .ready)
+        model.onSelectPaymentAsset()
+        guard case let .paymentAsset(selection)? = model.isPresentingSheet else {
+            Issue.record("Expected the asset picker")
+            return
+        }
+        #expect(selection == .payment([Asset.mockEthereum().id, Asset.mockBNB().id]))
+
+        model.selectPaymentAsset(.mockBNB())
+        await model.load()
+
+        #expect(model.isPresentingSheet == nil)
+        #expect(confirmation.loadOptions.last?.assetId == Asset.mockBNB().id.identifier)
+        #expect(model.transfer.chain == .smartChain)
+        #expect(model.state.preload != nil)
+    }
+
+    @Test
+    func gatedPaymentAssetReplacesTheFeeRowAndOpensTheForm() async {
+        let invoice = PaymentInvoice.mock(quotes: [.mock(asset: .mockEthereum()), .mock(asset: .mockBNB())], verification: PaymentVerification(url: "https://walletconnect.com/collect"))
+        let gated = GemTransferData.mockPayment(asset: .mockBNB(), invoice: invoice)
+        let confirmation = GemConfirmationMock(state: .mock(preload: nil), load: .success(.mock(transfer: gated, preload: nil)))
+        let model = ConfirmTransferSceneViewModel.mock(data: .mockPayment(asset: .mockEthereum(), invoice: .mock()), confirmation: confirmation)
+
+        model.selectPaymentAsset(.mockBNB())
+        await model.load()
+
+        #expect(model.transfer.chain == .smartChain)
+        #expect(model.sections.contains { $0.values.contains(.verification) })
+        #expect(model.button.state == .disabled)
+
+        model.onSelectVerification()
+
+        guard case let .paymentVerification(url)? = model.isPresentingSheet else {
+            Issue.record("Expected the verification sheet")
+            return
+        }
+        #expect(url.absoluteString == "https://walletconnect.com/collect")
+    }
+
+    @Test
+    func failedPaymentAssetSwitchShowsTheErrorOnTheAssetItBelongsTo() async {
+        let invoice = PaymentInvoice.mock(quotes: [.mock(asset: .mockBNB()), .mock(asset: .mockEthereum())])
+        let shown = GemTransferData.mockPayment(asset: .mockBNB(), invoice: invoice)
+        let picked = GemTransferData.mockPayment(asset: .mockEthereum(), invoice: invoice)
+        let confirmation = GemConfirmationMock(state: .mock(transfer: shown, preload: nil), load: .failure(GemConfirmError.Load(msg: "gateway")), selection: picked)
+        let model = ConfirmTransferSceneViewModel.mock(data: shown, confirmation: confirmation)
+
+        model.selectPaymentAsset(.mockEthereum())
+        await model.load()
+
+        #expect(model.transfer.chain == .ethereum, "the header follows the asset the load failed for")
+        #expect(model.state.load != nil, "a failed load keeps what the screen already showed")
+        #expect(model.state.transactionError != nil)
+    }
+
+    @Test
+    func selectingTheSamePaymentAssetOnlyClosesTheSheet() async {
+        let invoice = PaymentInvoice.mock(quotes: [.mock(asset: .mockBNB())])
+        let model = ConfirmTransferSceneViewModel.mock(data: .mockPayment(asset: .mockBNB(), invoice: invoice))
+        await model.load()
+        model.onSelectPaymentAsset()
+
+        model.selectPaymentAsset(.mockBNB())
+
+        #expect(model.assetSelection == nil)
+        #expect(model.isPresentingSheet == nil)
+        #expect(model.state.preload != nil)
     }
 
     @Test
@@ -410,7 +496,10 @@ struct ConfirmTransferSceneViewModelTests {
             SimulationPayloadField.standard(kind: .method, value: "Approve", fieldType: .text, display: .primary),
         ]
         let rows = [
-            GemSimulationPayloadRow(title: .contract, value: .address(display: "0x1111...1111", address: "0x1111111111111111111111111111111111111111")),
+            GemSimulationPayloadRow(
+                title: .contract,
+                value: .address(display: "0x1111...1111", copy: addressCopy(chain: Chain.ethereum.rawValue, address: "0x1111111111111111111111111111111111111111"), explorer: BlockExplorerLink.mock().toGem()),
+            ),
             GemSimulationPayloadRow(title: .method, value: .text(text: "Approve")),
         ]
         let model = ConfirmTransferSceneViewModel.mock(
@@ -564,8 +653,9 @@ struct ConfirmTransferSceneViewModelTests {
     func acquireSwapPairAsksCoreWithTheLoadedFeeAsset() {
         let asset = Asset.mockTempoPathUSD()
         let feeAsset = Asset.mockTempoUSDC()
-        let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(asset)))
-        model.state = .mock(load: .mock(preload: .mock()), feeAsset: feeAsset, screen: .mock(phase: .ready))
+        let data = GemTransferData.mock(type: .transfer(asset))
+        let model = ConfirmTransferSceneViewModel.mock(data: data)
+        model.state = .mock(load: .mock(transfer: data, preload: .mock()), feeAsset: feeAsset, screen: .mock(phase: .ready))
 
         let pair = model.acquireSwapPair(to: asset)
 

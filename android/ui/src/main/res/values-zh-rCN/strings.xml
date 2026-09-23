@@ -110,6 +110,8 @@
   <string name="buy_rate">汇率</string>
   <string name="buy_no_results">暂无报价</string>
   <string name="transfer_network_fee">网络费用</string>
+  <string name="transfer_pay_with">支付方式</string>
+  <string name="transfer_payment_title">付款</string>
   <string name="transfer_memo">备注</string>
   <string name="transfer_confirm">确认</string>
   <string name="transfer_from">来自</string>
@@ -135,6 +137,7 @@
   <string name="transfer_recipient_my_wallets">我的钱包</string>
   <string name="transfer_recipient_view_wallets">查看钱包</string>
   <string name="transfer_minimum_account_balance">除非使用全部余额，否则需保留至少 %1$s 余额。</string>
+  <string name="transfer_destination_account_activation">目标地址最低需要 %1$s。</string>
   <string name="transfer_smart_contract_title">智能合约</string>
   <string name="transfer_other_title">其他</string>
   <string name="transfer_maximum_amount">最高金额为%1$s</string>
@@ -223,6 +226,7 @@
   <string name="errors_no_internet_connection">无互联网连接</string>
   <string name="errors_no_service_connection">无服务连接</string>
   <string name="errors_balances_activity_outdated">余额和交易记录可能不是最新的。</string>
+  <string name="errors_payment_status">付款： %1$s</string>
   <string name="activity_title">交易记录</string>
   <string name="activity_state_empty_title">交易将在此显示</string>
   <string name="activity_state_empty_description">发起第一笔交易</string>
@@ -250,6 +254,7 @@
   <string name="transaction_status_completed">已完成</string>
   <string name="transaction_status_inprogress">进行中</string>
   <string name="transaction_status_refunded">已退款</string>
+  <string name="transaction_status_expired">已过期</string>
   <string name="asset_balances">余额</string>
   <string name="asset_balances_available">可用余额</string>
   <string name="asset_price">价格</string>
@@ -436,6 +441,8 @@
   <string name="info_network_fee_title">网络费用</string>
   <string name="info_watch_wallet_title">观察钱包</string>
   <string name="info_watch_wallet_description">这是一个您无法操作的钱包，但可以查看它的交易和资产变动。</string>
+  <string name="info_payment_verification_title">付款身份验证</string>
+  <string name="info_payment_verification_description">商家在付款前需要您提供更多信息。</string>
   <string name="info_network_fee_description">在 %1$s 网络上的每笔交易都需要以 %2$s 支付给矿工的手续费，以处理交易，Gem Wallet 不收取此费用。网络手续费根据网络使用情况而变化。</string>
   <string name="info_transaction_error_description">由于资金不足、输入无效或网络拒绝等错误，交易无法完成。请检查详情并重试。</string>
   <string name="info_transaction_pending_description">交易已提交，正在等待网络确认。处理时间可能有所不同。请稍后查看更新。</string>

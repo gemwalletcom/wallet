@@ -57,6 +57,7 @@ dependencies {
     implementation(project(":features:asset_select:viewmodels"))
     implementation(project(":features:asset_select:presents"))
     implementation(project(":features:confirm:presents"))
+    implementation(project(":features:asset:presents"))
     implementation(project(":features:confirm:viewmodels"))
 
     implementation(libs.hilt.lifecycle.viewmodel.compose)

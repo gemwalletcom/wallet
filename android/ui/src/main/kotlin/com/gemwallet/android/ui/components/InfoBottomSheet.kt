@@ -27,6 +27,7 @@ import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.dialog.DialogBar
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
@@ -218,6 +219,12 @@ sealed class InfoSheetEntity(
         infoUrl = { AppUrl.docs(DocsUrl.Slippage) },
     )
 
+    object PaymentVerificationInfo : InfoSheetEntity(
+        icon = R.drawable.ic_splash,
+        title = R.string.info_payment_verification_title,
+        description = R.string.info_payment_verification_description,
+    )
+
     object NoQuoteInfo : InfoSheetEntity(
         icon = R.drawable.ic_splash,
         title = R.string.errors_swap_no_quote_available,
@@ -343,7 +350,7 @@ fun InfoBottomSheet(item: InfoSheetEntity?, onClose: () -> Unit) {
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Spacer16()
+            DialogBar(onDismissRequest = onClose)
             InfoSheetIcon(shownItem)
             Spacer16()
             Text(

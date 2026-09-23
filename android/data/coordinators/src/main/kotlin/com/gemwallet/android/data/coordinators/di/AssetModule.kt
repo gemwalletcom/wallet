@@ -101,14 +101,14 @@ object AssetModule {
         balanceService: GemBalanceService,
         transactionsService: GemTransactionsService,
         nftService: GemNftService,
-        walletStore: GemstoneWalletStore,
+        walletSessionService: GemWalletSessionService,
         walletPreferencesService: GemWalletPreferencesService,
     ): GemAssetDiscoveryService = GemAssetDiscoveryService(
         apiClient,
         balanceService,
         transactionsService,
         nftService,
-        walletStore,
+        walletSessionService,
         walletPreferencesService,
     )
 

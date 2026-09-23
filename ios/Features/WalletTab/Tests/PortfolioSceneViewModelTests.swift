@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import enum Gemstone.GemListRowTitle
+import enum Gemstone.GemServiceError
+import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
@@ -12,8 +14,13 @@ import WalletTabTestKit
 struct PortfolioSceneViewModelTests {
     @Test
     func testShowSegmentedControl() {
-        #expect(PortfolioSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: false)).showSegmentedControl == false)
-        #expect(PortfolioSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true)).showSegmentedControl == false)
+        let service = GemPortfolioServiceMock()
+        #expect(PortfolioSceneViewModel.mock(service: service, preferences: .mock(isPerpetualEnabled: false)).showSegmentedControl == false)
+        #expect(PortfolioSceneViewModel.mock(service: service, preferences: .mock(isPerpetualEnabled: true)).showSegmentedControl == false, "a wallet without a perpetual chain has one portfolio")
+
+        service.perpetualsShown = true
+        #expect(PortfolioSceneViewModel.mock(service: service, preferences: .mock(isPerpetualEnabled: true)).showSegmentedControl)
+        #expect(PortfolioSceneViewModel.mock(service: service, preferences: .mock(isPerpetualEnabled: false)).showSegmentedControl == false, "the setting still hides it")
     }
 
     @Test
@@ -27,73 +34,78 @@ struct PortfolioSceneViewModelTests {
         let model = PortfolioSceneViewModel.mock()
         let walletTitle = model.navigationTitle
 
-        model.state.selectedType = .perpetuals
-        let perpTitle = model.navigationTitle
+        model.selectedType = Primitives.PortfolioType.perpetuals
 
-        #expect(walletTitle != perpTitle)
+        #expect(walletTitle != model.navigationTitle)
     }
 
     @Test
-    func statistics() {
-        let model = PortfolioSceneViewModel.mock()
+    func eachTypeCarriesItsOwnStatistics() async {
+        let model = PortfolioSceneViewModel.mock(service: GemPortfolioServiceMock())
         #expect(model.statisticRows.isEmpty)
 
-        model.state.wallet = .data(.mockWallet())
+        await model.load()
         #expect(model.statisticRows.count == 2)
 
-        model.state.selectedType = .perpetuals
-        model.state.perpetual = .data(.mockPerpetual())
+        model.selectedType = Primitives.PortfolioType.perpetuals
+        await model.loadIfNeeded()
         #expect(model.statisticRows.count == 5)
     }
 
     @Test
-    func testPeriods() {
-        let model = PortfolioSceneViewModel.mock()
+    func theOfferedPeriodsComeFromThePortfolio() async {
+        let service = GemPortfolioServiceMock()
+        service.dataForType = { _ in .mockWallet(availablePeriods: [.day, .month]) }
+        let model = PortfolioSceneViewModel.mock(service: service)
+
         #expect(model.periods == [.day, .week, .month, .year, .all])
 
-        model.state.wallet = .data(.mockWallet(availablePeriods: [.day, .month]))
+        await model.load()
+
         #expect(model.periods == [.day, .month])
+        #expect(model.selectedPeriod == .day, "the portfolio does not offer the selected period, so it falls back to the first")
     }
 
     @Test
-    func testChartState() {
+    func testChartState() async {
         let model = PortfolioSceneViewModel.mock()
         #expect(model.chartState.isLoading)
 
-        model.state.wallet = .data(.mockWallet())
+        await model.load()
         #expect(!model.chartState.isLoading)
-        #expect(!model.chartState.isNoData)
+    }
 
-        model.state.wallet = .error(AnyError("test"))
+    @Test
+    func aFailedLoadShowsTheError() async {
+        let service = GemPortfolioServiceMock()
+        service.error = .Core(msg: "offline")
+        let model = PortfolioSceneViewModel.mock(service: service)
+
+        await model.load()
+
         #expect(model.chartState.isError)
     }
 
     @Test
-    func onTypeChangedSkipsFetchWhenCached() {
-        let model = PortfolioSceneViewModel.mock()
-        model.state.perpetual = .data(.mockPerpetual())
-        model.state.selectedType = .perpetuals
+    func switchingBackToALoadedTypeAsksForNothing() async {
+        let service = GemPortfolioServiceMock()
+        let model = PortfolioSceneViewModel.mock(service: service)
+        await model.load()
 
-        model.onTypeChanged(.wallet, .perpetuals)
+        model.selectedType = Primitives.PortfolioType.perpetuals
+        await model.loadIfNeeded()
+        model.selectedType = Primitives.PortfolioType.wallet
+        await model.loadIfNeeded()
 
-        #expect(!model.state.perpetual.isLoading)
+        #expect(service.requests.map(\.portfolioType) == [.wallet, .perpetuals])
     }
 
     @Test
-    func onTypeChangedFetchesWhenNotCached() {
+    func theStatisticRowsCarryTheTitlesCoreChose() async {
         let model = PortfolioSceneViewModel.mock()
-        model.state.selectedType = .perpetuals
+        model.selectedType = Primitives.PortfolioType.perpetuals
 
-        model.onTypeChanged(.wallet, .perpetuals)
-
-        #expect(model.state.perpetual.isLoading)
-    }
-
-    @Test
-    func theStatisticRowsCarryTheTitlesCoreChose() {
-        let model = PortfolioSceneViewModel.mock()
-        model.state.selectedType = .perpetuals
-        model.state.perpetual = .data(.mockPerpetual())
+        await model.load()
 
         let titles: [GemListRowTitle] = model.statisticRows.compactMap { row in
             switch row {

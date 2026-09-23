@@ -2,6 +2,7 @@ package com.gemwallet.android.data.services.gemstone.stores
 
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
+import com.gemwallet.android.data.service.store.database.StoreConverters
 import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.ext.toPrimitives
 import kotlinx.coroutines.Dispatchers
@@ -12,6 +13,8 @@ import uniffi.gemstone.GemBalanceRecord
 import uniffi.gemstone.GemBalanceStore
 
 class GemstoneBalanceStore(private val balancesDao: BalancesDao, private val assetsDao: AssetsDao, private val transactionRunner: StoreTransactionRunner) : GemBalanceStore {
+
+    private val converters = StoreConverters()
 
     override suspend fun getAvailableBalances(walletId: String, assetIds: List<String>): List<GemAssetBalance> = withContext(Dispatchers.IO) {
         balancesDao.getByAssets(walletId, assetIds).map { it.toGemAssetBalance() }
@@ -25,7 +28,6 @@ class GemstoneBalanceStore(private val balancesDao: BalancesDao, private val ass
     override suspend fun updateBalances(walletId: String, balances: List<GemBalanceRecord>) = transactionRunner.run {
         val updatedAt = System.currentTimeMillis()
         for (balance in balances) {
-            val metadata = balance.metadata?.toPrimitives()
             balancesDao.updateBalance(
                 walletId = walletId,
                 assetId = balance.assetId,
@@ -49,11 +51,7 @@ class GemstoneBalanceStore(private val balancesDao: BalancesDao, private val ass
                 withdrawableAmount = balance.withdrawable.amount,
                 earn = balance.earn.value.toString(),
                 earnAmount = balance.earn.amount,
-                votes = metadata?.votes?.toLong() ?: 0L,
-                energyAvailable = metadata?.energyAvailable?.toLong() ?: 0L,
-                energyTotal = metadata?.energyTotal?.toLong() ?: 0L,
-                bandwidthAvailable = metadata?.bandwidthAvailable?.toLong() ?: 0L,
-                bandwidthTotal = metadata?.bandwidthTotal?.toLong() ?: 0L,
+                metadata = converters.fromBalanceMetadata(balance.metadata?.toPrimitives()),
                 isActive = balance.isActive,
                 updatedAt = updatedAt,
             )

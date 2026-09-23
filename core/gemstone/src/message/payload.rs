@@ -1,5 +1,5 @@
 use gem_solana::siws::SiwsMessage;
-use primitives::{Chain, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, promote_single_secondary_payload_field};
+use primitives::{BlockExplorerLink, Chain, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, promote_single_secondary_payload_field};
 use std::borrow::Cow;
 use std::collections::HashSet;
 
@@ -25,11 +25,11 @@ pub struct MessagePayloadFields {
 }
 
 impl MessagePayloadFields {
-    pub(super) fn rows(self, chain: Chain) -> MessagePayloadPreview {
+    pub(super) fn rows(self, chain: Chain, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> MessagePayloadPreview {
         MessagePayloadPreview {
             message_type: self.message_type,
-            primary: payload_rows(&self.primary, Some(chain), &[]),
-            secondary: payload_rows(&self.secondary, Some(chain), &[]),
+            primary: payload_rows(&self.primary, chain, &address_url),
+            secondary: payload_rows(&self.secondary, chain, &address_url),
         }
     }
 }
@@ -97,9 +97,22 @@ impl MessagePayloadFields {
     }
 }
 
+fn is_approval_payload(payload: &[SimulationPayloadField]) -> bool {
+    payload.iter().any(|field| field.kind == SimulationPayloadFieldKind::Method && is_approval_method(&field.value))
+}
+
+fn is_approval_method(value: &str) -> bool {
+    matches!(value.to_ascii_lowercase().as_str(), "approve" | "permit" | "permit single" | "permit batch" | "set approval for all")
+}
+
 fn grouped_payload_preview(message_type: MessageType, preview_fields: Vec<MessagePayloadField>, simulation_payload: Vec<SimulationPayloadField>) -> MessagePayloadFields {
-    let merged_payload = merge_payload(simulation_payload.clone(), preview_fields);
-    let grouped_payload = if simulation_payload.is_empty() { grouped_preview_fields(merged_payload) } else { merged_payload };
+    let grouped_payload = if simulation_payload.is_empty() {
+        grouped_preview_fields(merge_payload(simulation_payload, preview_fields))
+    } else if is_approval_payload(&simulation_payload) {
+        simulation_payload
+    } else {
+        merge_payload(simulation_payload, preview_fields)
+    };
 
     let grouped_payload = promote_single_secondary_payload_field(grouped_payload);
     let grouped_payload = promote_secondary_payload_when_primary_is_empty(grouped_payload);
@@ -450,9 +463,41 @@ mod tests {
 
         assert_eq!(preview.message_type, MessageType::Eip712);
         assert_eq!(preview.primary.len(), 3);
-        assert_eq!(preview.secondary.len(), 2);
+        assert_eq!(
+            preview.primary.iter().map(|field| field.kind.clone()).collect::<Vec<_>>(),
+            vec![SimulationPayloadFieldKind::Contract, SimulationPayloadFieldKind::Method, SimulationPayloadFieldKind::Spender]
+        );
+        assert!(preview.secondary.is_empty());
+    }
+
+    #[test]
+    fn eip712_preview_merges_a_simulation_that_is_not_an_approval() {
+        let preview = GemEIP712Message {
+            domain: EIP712Domain {
+                name: Some("Example".into()),
+                version: None,
+                chain_id: Some(1),
+                verifying_contract: Some("0xContract".into()),
+                salts: None,
+            },
+            message: vec![GemEIP712Section {
+                name: "Order".into(),
+                values: vec![GemEIP712Value {
+                    name: "amount".into(),
+                    value: "100".into(),
+                    value_type: GemEIP712ValueType::Text,
+                }],
+            }],
+        }
+        .payload_preview(vec![SimulationPayloadField::custom("note", "hello", SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Primary)]);
+
+        assert_eq!(preview.primary.len(), 1);
+        assert_eq!(preview.primary[0].label.as_deref(), Some("note"));
+        assert_eq!(preview.secondary.len(), 4);
         assert_eq!(preview.secondary[0].label.as_deref(), Some("domain"));
-        assert_eq!(preview.secondary[1].kind, SimulationPayloadFieldKind::Value);
+        assert_eq!(preview.secondary[1].kind, SimulationPayloadFieldKind::Method);
+        assert_eq!(preview.secondary[2].kind, SimulationPayloadFieldKind::Contract);
+        assert_eq!(preview.secondary[3].kind, SimulationPayloadFieldKind::Value);
     }
 
     #[test]

@@ -42,10 +42,12 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAcquireAssetFlow
 import uniffi.gemstone.GemConfirmException
+import uniffi.gemstone.GemConfirmHeader
 import uniffi.gemstone.GemConfirmPhase
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmation
 import uniffi.gemstone.GemSwapPairSelection
+import uniffi.gemstone.GemTransactionHeader
 import uniffi.gemstone.confirmErrorInfo
 import java.math.BigInteger
 
@@ -82,7 +84,7 @@ class ConfirmViewModelNetworkFeeSheetTest {
         assertEquals(GemConfirmPhase.FAILED, viewModel.screen.value.phase)
         assertFalse(viewModel.isErrorSheetVisible.value)
 
-        viewModel.send(FinishConfirmAction { _ -> })
+        viewModel.send(FinishConfirmAction { _, _ -> })
         advanceUntilIdle()
 
         assertTrue(viewModel.isErrorSheetVisible.value)
@@ -112,6 +114,7 @@ class ConfirmViewModelNetworkFeeSheetTest {
         every { confirmation.acquireSwapPair(any(), any()) } returns GemSwapPairSelection(payAssetId = payAsset.id.toIdentifier(), receiveAssetId = asset.id.toIdentifier())
         every { confirmService.confirmation(any(), transfer, any()) } returns confirmation
         every { confirmation.screen() } returns mockGemConfirmScreen()
+        every { confirmation.header(any()) } returns GemConfirmHeader.Transaction(GemTransactionHeader.Symbol(asset.toGem()))
         coEvery { confirmation.state() } returns mockGemConfirmLoad(asset)
         coEvery { confirmation.load(any()) } answers {
             throw GemConfirmException.InsufficientNetworkFee(asset = asset.toGem(), requirement = null)

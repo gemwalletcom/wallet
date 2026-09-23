@@ -26,8 +26,7 @@ pub use store::GemStakeStore;
 
 use crate::services::balance::GemAssetBalance;
 use crate::services::explorer::GemExplorerService;
-use crate::services::name::GemAddressStore;
-use crate::services::name::store::GemAddressNameWriter;
+use crate::services::name::GemNameService;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::transfer::GemTransferData;
 use crate::services::transfer::rules as transfer_rules;
@@ -39,7 +38,7 @@ pub struct GemStakeService {
     gateway: Arc<GemGateway>,
     static_api: Arc<GemStaticApiClient>,
     store: Arc<dyn GemStakeStore>,
-    address_store: Arc<dyn GemAddressStore>,
+    names: Arc<GemNameService>,
     explorer: Arc<GemExplorerService>,
     preferences: Arc<GemPreferencesService>,
     session: Arc<GemWalletSessionService>,
@@ -52,7 +51,7 @@ impl GemStakeService {
         gateway: Arc<GemGateway>,
         static_api: Arc<GemStaticApiClient>,
         store: Arc<dyn GemStakeStore>,
-        address_store: Arc<dyn GemAddressStore>,
+        names: Arc<GemNameService>,
         explorer: Arc<GemExplorerService>,
         preferences: Arc<GemPreferencesService>,
         session: Arc<GemWalletSessionService>,
@@ -61,7 +60,7 @@ impl GemStakeService {
             gateway,
             static_api,
             store,
-            address_store,
+            names,
             explorer,
             preferences,
             session,
@@ -224,7 +223,7 @@ impl GemStakeService {
             if !stale_ids.is_empty() {
                 self.store.deactivate_validators(asset_id, stale_ids).await?;
             }
-            self.address_store.save_names(rules::validator_address_names(&validators)).await?;
+            self.names.save_names(rules::validator_address_names(&validators)).await?;
         }
         Ok(())
     }

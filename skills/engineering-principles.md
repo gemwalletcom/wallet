@@ -27,6 +27,7 @@ A real fix is not deferred into a plan item. Adding the correct change to [Open 
 - Keep types and functions single-purpose; expose only what current callers require
 - Immutable bindings (`let`, `val`, non-`mut`); mutation only where ownership requires it, in the narrowest scope
 - Resolve conflicting examples against the documented contract and caller behavior. Recency or a passing test alone does not make a pattern correct; explain the choice and flag unrelated drift
+- A press highlight matches the visible shape of the control. A circle or rounded image keeps a circle or rounded highlight; a rectangular row keeps a rectangular one. On Android the clip of that shape comes before `clickable` (`android/skills/code-style.md`)
 
 ## Abstractions Must Earn Their Place
 

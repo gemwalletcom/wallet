@@ -33,6 +33,7 @@ import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemNftList
 import uniffi.gemstone.GemNftListScreen
 import uniffi.gemstone.GemNftServiceInterface
+import uniffi.gemstone.loadError
 import javax.inject.Inject
 
 @HiltViewModel
@@ -80,7 +81,7 @@ class NftListViewModels @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val errorRow: StateFlow<GemListRow?> = combine(loadState, collections) { state, items ->
-        (state as? GemLoadState.Error)?.takeIf { items.isEmpty() }?.let { GemListRow.Error(it.error) }
+        loadError(state, items.isNotEmpty())?.let { GemListRow.Error(it) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val unverifiedListItem: StateFlow<ListItemModel?> = nftData

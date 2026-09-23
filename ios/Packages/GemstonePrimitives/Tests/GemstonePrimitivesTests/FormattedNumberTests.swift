@@ -3,6 +3,7 @@
 import BigInt
 import Foundation
 import func Gemstone.formattedAmount
+import func Gemstone.formattedCurrency
 import struct Gemstone.GemFormattedNumber
 @testable import GemstonePrimitives
 import Testing
@@ -45,6 +46,16 @@ struct FormattedNumberTests {
         #expect(incoming.text(locale: .US) == "+$1.24M")
         #expect(GemFormattedNumber(value: -1_235_999, unit: .currency(code: "USD"), display: .abbreviated, notation: .signed, tone: .plain, rounding: .toNearest).text(locale: .US) == "-$1.24M")
         #expect(GemFormattedNumber(value: -1_235_999, unit: .currency(code: "USD"), display: .abbreviated, notation: .plain, tone: .plain, rounding: .toNearest).text(locale: .US) == "-$1.24M")
+    }
+
+    @Test
+    func aShortPriceReadsLikeTheCurrencyFormatter() {
+        let formatter = CurrencyFormatter(type: .short, locale: .US, currencyCode: "USD")
+
+        for value in [0.00000783, 0.0001, 0.0345, 1234.5] {
+            #expect(formattedCurrency(value: value, code: "USD", style: .short).text(locale: .US) == formatter.string(value))
+        }
+        #expect(formattedCurrency(value: 0.00000783, code: "USD", style: .short).text(locale: .US) == "<$0.0001")
     }
 
     @Test

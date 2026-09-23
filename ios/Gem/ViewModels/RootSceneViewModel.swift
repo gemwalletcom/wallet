@@ -44,6 +44,7 @@ final class RootSceneViewModel {
     var currentWalletId: WalletId? { walletSessionService.currentWalletId }
     var colorScheme: ColorScheme? { observablePreferences.appearance.colorScheme }
     var updateVersionAlertMessage: AlertMessage?
+    var isPresentingRootWarning = false
 
     var isPresentingToastMessage: ToastMessage? {
         get { toastPresenter.toastMessage }
@@ -113,6 +114,9 @@ extension RootSceneViewModel {
         Task { await checkForUpdate() }
         Task { await appLifecycleService.setup() }
         Task { await setupWallets() }
+        Task {
+            isPresentingRootWarning = await onstartService.isDeviceCompromised()
+        }
     }
 
     func onScenePhaseChanged(_: ScenePhase, _ newPhase: ScenePhase) {

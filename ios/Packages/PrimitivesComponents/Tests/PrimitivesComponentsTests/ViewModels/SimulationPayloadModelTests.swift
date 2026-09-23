@@ -1,16 +1,23 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import func Gemstone.addressCopy
 import struct Gemstone.GemSimulationPayloadRow
-import Localization
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import PrimitivesComponentsTestKit
 import Testing
 
 struct SimulationPayloadModelTests {
-    private let contract = GemSimulationPayloadRow(title: .contract, value: .address(display: "0x1", address: "0x1"))
+    private let link = BlockExplorerLink(name: "Etherscan", link: "https://etherscan.io/address/0x1")
+    private let contract: GemSimulationPayloadRow
     private let method = GemSimulationPayloadRow(title: .method, value: .text(text: "approve"))
+
+    init() {
+        let copy = addressCopy(chain: Chain.ethereum.rawValue, address: "0x1")
+        contract = GemSimulationPayloadRow(title: .contract, value: .address(display: "0x1", copy: copy, explorer: link.toGem()))
+    }
 
     @Test
     func emptyFieldsHaveNoDetails() {
@@ -35,35 +42,41 @@ struct SimulationPayloadModelTests {
     }
 
     @Test
-    func addressFieldContextMenuOpensExplorerLink() {
-        let link = BlockExplorerLink(name: "Etherscan", link: "https://etherscan.io/address/0x1")
-        var openedURL: URL?
+    func addressFieldCopiesAndOpensTheRowsExplorerLink() {
+        let kind = SimulationPayloadModel.mock(primaryFields: [contract]).fieldModels(for: [contract])[0].kind
 
-        let items = SimulationPayloadModel.mock(primaryFields: [contract]).fieldModels(
-            for: [contract],
-            explorerLink: { _ in link },
-            onOpenURL: { openedURL = $0 },
-        )[0].contextMenuItems
-
-        #expect(items.count == 2)
-        guard case let .url(title, onOpen) = items[1], let onOpen else {
-            Issue.record("Expected explorer url context menu item")
-            return
-        }
-
-        #expect(title == Localized.Transaction.viewOn(link.name))
-        onOpen()
-        #expect(openedURL == URL(string: link.link))
+        #expect(kind == .address(ExplorerContextData(copyValue: .address(value: "0x1", chain: .ethereum), explorerLink: link)))
     }
 
     @Test
-    func textFieldContextMenuOmitsExplorerLink() {
-        let items = SimulationPayloadModel.mock(secondaryFields: [method]).fieldModels(
-            for: [method],
-            explorerLink: { BlockExplorerLink(name: "Etherscan", link: "https://etherscan.io/address/\($0)") },
-            onOpenURL: { _ in },
-        )[0].contextMenuItems
+    func textFieldIsPlain() {
+        let model = SimulationPayloadModel.mock(secondaryFields: [method]).fieldModels(for: [method])[0]
 
-        #expect(items.isEmpty)
+        #expect(model.kind == .plain)
+        #expect(model.onSelect == nil)
+    }
+
+    @Test
+    @MainActor
+    func addressFieldSelectsTheAddress() {
+        var selected: String?
+
+        let model = SimulationPayloadModel.mock(primaryFields: [contract]).fieldModels(
+            for: [contract],
+            onSelectAddress: { selected = $0 },
+        )[0]
+
+        model.onSelect?()
+        #expect(selected == "0x1")
+    }
+
+    @Test
+    func textFieldDoesNotSelectAnAddress() {
+        let model = SimulationPayloadModel.mock(secondaryFields: [method]).fieldModels(
+            for: [method],
+            onSelectAddress: { _ in },
+        )[0]
+
+        #expect(model.onSelect == nil)
     }
 }

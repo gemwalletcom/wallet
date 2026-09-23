@@ -5,7 +5,6 @@ import Foundation
 import protocol Gemstone.GemWalletServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
-import Localization
 import Primitives
 import PrimitivesComponents
 import SwiftUI
@@ -26,7 +25,6 @@ public final class CreateWalletModel {
     let onComplete: VoidAction
 
     private(set) var words: [String] = []
-    var isPresentingSelectImageWallet: Wallet?
     var isPresentingAlertMessage: AlertMessage?
 
     public init(
@@ -43,19 +41,6 @@ public final class CreateWalletModel {
         preferences.isAcceptTermsCompleted
     }
 
-    func setupWalletModel(wallet: Wallet, onComplete: @escaping (Wallet) -> Void) -> SetupWalletViewModel {
-        SetupWalletViewModel(
-            wallet: wallet,
-            service: service,
-            onSelectImage: { [weak self] in self?.presentSelectImage(wallet: $0) },
-            onComplete: onComplete,
-        )
-    }
-
-    func walletImageModel(wallet: Wallet) -> WalletImageViewModel {
-        WalletImageViewModel(wallet: wallet, source: .onboarding, service: service)
-    }
-
     func dismiss() {
         onComplete?()
     }
@@ -64,35 +49,17 @@ public final class CreateWalletModel {
 // MARK: - Actions
 
 extension CreateWalletModel {
-    func presentSelectImage(wallet: Wallet) {
-        isPresentingSelectImageWallet = wallet
-    }
-
     func generateSecretPhrase() throws {
         words = try service.createWallet()
     }
 
-    func createWallet(words: [String]) async throws -> CreatedWallet {
-        let name = try await service.defaultWalletName(chain: .none)
-        let result = try await service.importWallet(
-            name: name.text.text,
-            type: service.importRequest(kind: .phrase, chain: nil, input: words.joined(separator: " "), nameRecord: nil),
+    func createWallet(words: [String]) async throws {
+        _ = try await service.importWallet(
+            kind: .phrase,
+            chain: .none,
+            input: words.joined(separator: " "),
+            nameRecord: .none,
             source: .create,
         )
-        return CreatedWallet(wallet: result.wallet, hasExistingWallets: name.hasExistingWallets)
     }
-
-    func setupWalletComplete(wallet: Wallet) {
-        do {
-            try service.setCurrentWalletId(walletId: wallet.id.id)
-            dismiss()
-        } catch {
-            isPresentingAlertMessage = AlertMessage(title: Localized.Errors.errorOccurred, error: error)
-        }
-    }
-}
-
-struct CreatedWallet {
-    let wallet: Wallet
-    let hasExistingWallets: Bool
 }

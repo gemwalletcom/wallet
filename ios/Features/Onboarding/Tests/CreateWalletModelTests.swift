@@ -14,12 +14,13 @@ import Testing
 @MainActor
 struct CreateWalletModelTests {
     @Test
-    func createWalletSetsWalletConfiguration() async throws {
-        let model = CreateWalletModel.mock(service: GemWalletService.mock(db: .mockWithChains(AssetConfiguration.allChains)))
+    func aCreatedWalletIsStoredAsCreated() async throws {
+        let service = GemWalletService.mock(db: .mockWithChains(AssetConfiguration.allChains))
+        let model = CreateWalletModel.mock(service: service)
 
-        let created = try await model.createWallet(words: LocalKeystore.words)
-        #expect(created.wallet.source == .create)
-        #expect(created.hasExistingWallets == false)
+        try await model.createWallet(words: LocalKeystore.words)
+
+        #expect(try await service.wallets().map(\.source) == [.create])
     }
 
     @Test

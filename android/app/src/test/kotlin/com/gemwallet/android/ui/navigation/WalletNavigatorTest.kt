@@ -15,7 +15,6 @@ import com.gemwallet.android.features.import_wallet.navigation.ImportSelectTypeR
 import com.gemwallet.android.features.onboarding.AcceptTermsDestination
 import com.gemwallet.android.features.onboarding.AcceptTermsRoute
 import com.gemwallet.android.features.onboarding.OnboardingRoute
-import com.gemwallet.android.features.setup_wallet.navigation.SetupWalletRoute
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
@@ -61,6 +60,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemDeeplinkService
+import uniffi.gemstone.GemNavigationServiceInterface
 import uniffi.gemstone.GemWalletImportKind
 import uniffi.gemstone.GemWalletSecretKind
 
@@ -113,16 +113,15 @@ class WalletNavigatorTest {
     }
 
     @Test
-    fun openSetupWallet_replacesCreateOrImportRoute() {
-        val walletId = mockWalletId("wallet-1")
+    fun resetToWallet_landsOnTheWalletFromCreateOrImport() {
         val createNavigator = navigatorWith(OnboardingRoute, CreateWalletRoute)
         val importNavigator = navigatorWith(OnboardingRoute, ImportMulticoinWalletRoute)
 
-        createNavigator.openSetupWallet(walletId)
-        importNavigator.openSetupWallet(walletId)
+        createNavigator.resetToWallet()
+        importNavigator.resetToWallet()
 
-        assertEquals(listOf(OnboardingRoute, SetupWalletRoute(walletId)), createNavigator.backStack.toList())
-        assertEquals(listOf(OnboardingRoute, SetupWalletRoute(walletId)), importNavigator.backStack.toList())
+        assertEquals(listOf(WalletRootRoute), createNavigator.backStack.toList())
+        assertEquals(listOf(WalletRootRoute), importNavigator.backStack.toList())
     }
 
     @Test
@@ -568,11 +567,17 @@ class WalletNavigatorTest {
         assertEquals(listOf(WalletRootRoute, ReceiveRoute(mockAssetId(Chain.Tron))), navigator.backStack.toList())
     }
 
-    private fun navigatorWith(vararg routes: NavKey, assetsService: GemAssetsServiceInterface = mockk(), scope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined)): WalletNavigator = WalletNavigator(
+    private fun navigatorWith(
+        vararg routes: NavKey,
+        assetsService: GemAssetsServiceInterface = mockk(),
+        navigationService: GemNavigationServiceInterface = mockk(relaxed = true),
+        scope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined),
+    ): WalletNavigator = WalletNavigator(
         backStack = NavBackStack(*routes),
         currentTab = mutableStateOf(assetsRoute),
         deeplinkService = GemDeeplinkService(),
         assetsService = assetsService,
+        navigationService = navigationService,
         scope = scope,
     )
 }

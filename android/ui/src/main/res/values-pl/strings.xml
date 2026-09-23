@@ -110,6 +110,8 @@
   <string name="buy_rate">Kurs</string>
   <string name="buy_no_results">Brak dostępnych ofert</string>
   <string name="transfer_network_fee">Opłata sieciowa</string>
+  <string name="transfer_pay_with">Zapłać za pomocą</string>
+  <string name="transfer_payment_title">Płatność</string>
   <string name="transfer_memo">Notatka</string>
   <string name="transfer_confirm">Potwierdź</string>
   <string name="transfer_from">Od</string>
@@ -135,6 +137,7 @@
   <string name="transfer_recipient_my_wallets">Moje portfele</string>
   <string name="transfer_recipient_view_wallets">Wyświetl portfele</string>
   <string name="transfer_minimum_account_balance">Po tym musi pozostać minimalne saldo %1$s, chyba że wykorzystujesz całe saldo.</string>
+  <string name="transfer_destination_account_activation">Adres docelowy wymaga minimum %1$s.</string>
   <string name="transfer_smart_contract_title">Inteligentny kontrakt</string>
   <string name="transfer_other_title">Inne</string>
   <string name="transfer_maximum_amount">Maksymalna kwota to %1$s</string>
@@ -223,6 +226,7 @@
   <string name="errors_no_internet_connection">Brak połączenia z internetem</string>
   <string name="errors_no_service_connection">Brak połączenia z usługą</string>
   <string name="errors_balances_activity_outdated">Salda i aktywność mogą być nieaktualne.</string>
+  <string name="errors_payment_status">Płatność: %1$s</string>
   <string name="activity_title">Aktywność</string>
   <string name="activity_state_empty_title">Twoja aktywność będzie tutaj wyświetlana</string>
   <string name="activity_state_empty_description">Dokonaj pierwszej transakcji</string>
@@ -250,6 +254,7 @@
   <string name="transaction_status_completed">Ukończono</string>
   <string name="transaction_status_inprogress">W toku</string>
   <string name="transaction_status_refunded">Zwrócono</string>
+  <string name="transaction_status_expired">Wygasło</string>
   <string name="asset_balances">Salda</string>
   <string name="asset_balances_available">Dostępne</string>
   <string name="asset_price">Cena</string>
@@ -436,6 +441,8 @@
   <string name="info_network_fee_title">Opłata sieciowa</string>
   <string name="info_watch_wallet_title">Portfel obserwowany</string>
   <string name="info_watch_wallet_description">Portfel, do którego nie masz dostępu, ale możesz śledzić zawarte w nim transakcje i ruchy.</string>
+  <string name="info_payment_verification_title">Weryfikacja płatności</string>
+  <string name="info_payment_verification_description">Sprzedawca wymaga dodatkowych informacji przed płatnością.</string>
   <string name="info_network_fee_description">Każda transakcja w sieci %1$s wymaga opłaty w wysokości %2$s płaconej górnikom za przetworzenie Twojej transakcji, a nie Gem Wallet. Opłaty sieciowe różnią się w zależności od wykorzystania sieci.</string>
   <string name="info_transaction_error_description">Transakcja nie mogła zostać ukończona z powodu błędu, takiego jak niewystarczające środki, nieprawidłowe dane wejściowe lub odrzucenie przez sieć. Sprawdź szczegóły i spróbuj ponownie.</string>
   <string name="info_transaction_pending_description">Transakcja została wysłana i oczekuje na potwierdzenie w sieci. Czasy przetwarzania mogą się różnić. Sprawdź ponownie, czy są jakieś aktualizacje.</string>

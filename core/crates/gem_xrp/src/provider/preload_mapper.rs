@@ -2,11 +2,12 @@ use crate::models::rpc::AccountInfoResult;
 use primitives::TransactionLoadMetadata;
 use std::error::Error;
 
-pub fn map_transaction_preload(account_result: AccountInfoResult) -> Result<TransactionLoadMetadata, Box<dyn Error + Send + Sync>> {
+pub fn map_transaction_preload(account_result: AccountInfoResult, destination_exists: bool) -> Result<TransactionLoadMetadata, Box<dyn Error + Send + Sync>> {
     if let Some(account_data) = account_result.account_data {
         Ok(TransactionLoadMetadata::Xrp {
             sequence: account_data.sequence,
             block_number: account_result.ledger_current_index,
+            is_destination_address_exist: destination_exists,
         })
     } else {
         Err("Account not found".into())
@@ -32,11 +33,17 @@ mod tests {
             ledger_current_index: 67890,
         };
 
-        let result = map_transaction_preload(account_result).unwrap();
+        let result = map_transaction_preload(account_result, false).unwrap();
 
-        if let TransactionLoadMetadata::Xrp { sequence, block_number } = result {
+        if let TransactionLoadMetadata::Xrp {
+            sequence,
+            block_number,
+            is_destination_address_exist,
+        } = result
+        {
             assert_eq!(sequence, 12345);
             assert_eq!(block_number, 67890);
+            assert!(!is_destination_address_exist);
         } else {
             panic!("Expected XRP metadata");
         }
@@ -49,7 +56,7 @@ mod tests {
             ledger_current_index: 67890,
         };
 
-        let result = map_transaction_preload(account_result);
+        let result = map_transaction_preload(account_result, true);
         assert!(result.is_err());
         assert_eq!(result.unwrap_err().to_string(), "Account not found");
     }

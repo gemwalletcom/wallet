@@ -5,5 +5,4 @@ import Primitives
 
 enum ImportWalletRoute {
     case importWalletType
-    case walletProfile(wallet: Wallet)
 }

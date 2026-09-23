@@ -97,15 +97,17 @@ internal class SystemAuthenticator(private val activity: FragmentActivity, priva
     }
 
     fun requestAuth(auth: AuthRequest, onSuccess: () -> Unit) {
-        if (!viewModel.isAuthRequired()) {
-            onSuccess()
-        } else if (refreshEnrollment()) {
-            authRequests.enqueue(
-                requiresConfirmation = auth.requiresConfirmation,
-                onSuccess = onSuccess,
-            )?.let(::startAuthRequest)
+        if (viewModel.isAuthRequired() || auth == AuthRequest.Required) {
+            if (refreshEnrollment()) {
+                authRequests.enqueue(
+                    requiresConfirmation = auth.requiresConfirmation,
+                    onSuccess = onSuccess,
+                )?.let(::startAuthRequest)
+            } else {
+                openSettings()
+            }
         } else {
-            openSettings()
+            onSuccess()
         }
     }
 

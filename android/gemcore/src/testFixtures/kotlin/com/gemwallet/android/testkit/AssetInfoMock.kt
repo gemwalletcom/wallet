@@ -11,7 +11,7 @@ import com.wallet.core.primitives.WalletId
 fun mockAssetInfo(
     asset: Asset = mockAsset(),
     owner: Account? = mockAccount(asset.id.chain),
-    balance: AssetBalance = AssetBalance.create(asset),
+    balance: AssetBalance = mockAssetBalance(asset),
     walletId: WalletId? = mockWalletId(),
     price: AssetPriceInfo? = null,
     metadata: AssetMetaData = mockAssetMetaData(),

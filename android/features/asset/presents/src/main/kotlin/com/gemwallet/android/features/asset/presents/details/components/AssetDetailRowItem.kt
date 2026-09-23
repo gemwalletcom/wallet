@@ -6,13 +6,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
-import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetDetailsAction
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
-import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
 
@@ -21,15 +19,6 @@ internal fun AssetDetailRowItem(uiState: AssetInfoUIModel, row: AssetInfoUIModel
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     when (row) {
-        AssetInfoUIModel.RowUIModel.Price -> PriceItem(uiState, listPosition, onChart = { onAction(AssetDetailsAction.OpenChart(it)) })
-
-        is AssetInfoUIModel.RowUIModel.Network -> PropertyNetworkItem(
-            chain = uiState.asset.chain,
-            value = row.name,
-            listPosition = listPosition,
-            onOpenNetwork = uiState.networkAction?.let { { onAction(it) } },
-        )
-
         is AssetInfoUIModel.RowUIModel.Balance -> {
             val onBalance: (() -> Unit)? = when (row.type) {
                 AssetInfoUIModel.BalanceViewType.Available,
@@ -56,17 +45,11 @@ internal fun AssetDetailRowItem(uiState: AssetInfoUIModel, row: AssetInfoUIModel
             )
         }
 
-        is AssetInfoUIModel.RowUIModel.Earn -> GemListRowView(
-            row = row.row,
-            listPosition = listPosition,
-            modifier = Modifier.clickable { onAction(AssetDetailsAction.Earn(uiState.asset.id)) },
-            accessory = { DataBadgeChevron() },
-        )
-
         is AssetInfoUIModel.RowUIModel.Row -> GemListRowView(
             row = row.row,
             listPosition = listPosition,
-            modifier = row.action?.let { action -> Modifier.clickable { onAction(action) } } ?: Modifier,
+            onSelect = row.action?.let { action -> { onAction(action) } },
+            modifier = if (row.action is AssetDetailsAction.OpenChart) Modifier.testTag("assetChart") else Modifier,
         )
     }
 }

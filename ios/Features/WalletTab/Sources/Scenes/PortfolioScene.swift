@@ -27,14 +27,14 @@ public struct PortfolioScene: View {
                     }
                 }
             }
-            .onChange(of: model.state.selectedType, model.onTypeChanged)
+            .task(id: model.selectedType) { await model.loadIfNeeded() }
             .navigationTitle(model.navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbarDismissItem(type: .close, placement: .cancellationAction)
             .toolbar {
                 if model.showSegmentedControl {
                     ToolbarItem(placement: .principal) {
-                        Picker("", selection: $model.state.selectedType) {
+                        Picker("", selection: $model.selectedType) {
                             ForEach(PortfolioType.allCases) { type in
                                 Text(model.typeTitle(for: type)).tag(type)
                             }
@@ -46,13 +46,13 @@ public struct PortfolioScene: View {
                 if model.showChartTypePicker {
                     ToolbarItem(placement: .topBarTrailing) {
                         Menu {
-                            Picker("", selection: $model.state.selectedChartType) {
+                            Picker("", selection: $model.selectedChartType) {
                                 ForEach(PortfolioChartType.allCases) { type in
                                     Text(model.chartTypeTitle(for: type)).tag(type)
                                 }
                             }
                         } label: {
-                            Text(model.chartTypeTitle(for: model.state.selectedChartType))
+                            Text(model.chartTypeTitle(for: model.selectedChartType))
                                 .fontWeight(.semibold)
                         }
                     }

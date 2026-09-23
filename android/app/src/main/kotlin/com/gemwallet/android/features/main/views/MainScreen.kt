@@ -38,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.MessageToast
 import com.gemwallet.android.features.activities.presents.list.TransactionsNavScreen
 import com.gemwallet.android.features.assets.viewmodels.AssetsViewModel
 import com.gemwallet.android.features.assets.views.AssetsAction
@@ -77,6 +78,11 @@ fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onW
             isPresentingScanner = false
             viewModel.onScan(code)
         },
+    )
+
+    MessageToast(
+        message = navigator.toastMessage(WalletRootRoute),
+        onShown = { navigator.clearToastMessage(WalletRootRoute) },
     )
 
     BackHandler(isRootRouteActive && currentTab.value != assetsRoute) {

@@ -6,7 +6,6 @@ import Foundation
 
 public enum ApplicationMetadataSource: String, Codable, Equatable, Hashable, Sendable {
 	case walletConnect
-	case payment
 }
 
 public struct ApplicationMetadata: Codable, Equatable, Hashable, Sendable {

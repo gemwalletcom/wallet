@@ -69,13 +69,7 @@ impl TransactionRow {
         let inputs: Option<Vec<TransactionUtxoInput>> = serde_json::from_value(self.utxo_inputs.clone().into())?;
         let outputs: Option<Vec<TransactionUtxoInput>> = serde_json::from_value(self.utxo_outputs.clone().into())?;
 
-        let direction = if addresses.contains(&from) {
-            TransactionDirection::Outgoing
-        } else if addresses.contains(&to_address) {
-            TransactionDirection::Incoming
-        } else {
-            TransactionDirection::SelfTransfer
-        };
+        let direction = TransactionDirection::from_parties(&from, &to_address, &addresses);
         let transaction_type = self.kind.0.clone();
         let fee = BigUint::from_str(self.fee.as_deref().unwrap_or("0")).map_err(serde_json::Error::custom)?;
         let value = BigUint::from_str(self.value.as_deref().unwrap_or("0")).map_err(serde_json::Error::custom)?;
@@ -145,8 +139,40 @@ impl NewTransactionRow {
 
 #[cfg(test)]
 mod tests {
-    use super::NewTransactionRow;
-    use primitives::Transaction;
+    use super::{NewTransactionRow, TransactionRow};
+    use crate::sql_types::{TransactionState, TransactionType};
+    use primitives::{AssetId, Chain, Transaction, TransactionDirection};
+
+    #[test]
+    fn test_as_primitive() {
+        let row = TransactionRow {
+            id: 1,
+            chain: Chain::Ethereum.into(),
+            hash: "0x0a1a78e51d162d08f73c8ea1cab5967076d15e6a2defd998c97b476c88c88b48".to_string(),
+            from_address: Some("0x54914A963c4197172130C26D496a367bD6609D88".to_string()),
+            to_address: Some("0x0D9DAB1A248f63B0a48965bA8435e4de7497a3dC".to_string()),
+            memo: None,
+            state: TransactionState::Confirmed,
+            kind: TransactionType::Transfer,
+            value: Some("28603917".to_string()),
+            asset_id: AssetId::from_token(Chain::Ethereum, "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48").into(),
+            fee: Some("1".to_string()),
+            utxo_inputs: None,
+            utxo_outputs: None,
+            fee_asset_id: AssetId::from_chain(Chain::Ethereum).into(),
+            metadata: None,
+            created_at: chrono::Utc::now().naive_utc(),
+        };
+        let user = "0x0d9dab1a248f63b0a48965ba8435e4de7497a3dc".to_string();
+
+        assert_eq!(row.as_primitive(vec![user]).unwrap().direction, TransactionDirection::Incoming);
+        assert_eq!(row.as_primitive(vec![row.from_address.clone().unwrap()]).unwrap().direction, TransactionDirection::Outgoing);
+        assert_eq!(
+            row.as_primitive(vec![row.from_address.clone().unwrap(), row.to_address.clone().unwrap()]).unwrap().direction,
+            TransactionDirection::SelfTransfer
+        );
+        assert_eq!(row.as_primitive(vec![]).unwrap().direction, TransactionDirection::SelfTransfer);
+    }
 
     #[test]
     fn test_from_primitive_strips_nul_from_memo() {

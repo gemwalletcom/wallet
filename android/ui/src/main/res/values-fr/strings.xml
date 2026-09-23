@@ -110,6 +110,8 @@
   <string name="buy_rate">Tarif</string>
   <string name="buy_no_results">Aucun devis disponible</string>
   <string name="transfer_network_fee">Frais de réseau</string>
+  <string name="transfer_pay_with">Payer avec</string>
+  <string name="transfer_payment_title">Paiement</string>
   <string name="transfer_memo">Mémo</string>
   <string name="transfer_confirm">Confirmer</string>
   <string name="transfer_from">De</string>
@@ -135,6 +137,7 @@
   <string name="transfer_recipient_my_wallets">Mes portefeuilles</string>
   <string name="transfer_recipient_view_wallets">Voir les portefeuilles</string>
   <string name="transfer_minimum_account_balance">Un solde minimum %1$s doit rester après cela, à moins que vous n\'utilisiez votre solde complet.</string>
+  <string name="transfer_destination_account_activation">L\'adresse de destination requiert un minimum de %1$s.</string>
   <string name="transfer_smart_contract_title">Contrat intelligent</string>
   <string name="transfer_other_title">Autre</string>
   <string name="transfer_maximum_amount">Le montant maximum est de %1$s</string>
@@ -223,6 +226,7 @@
   <string name="errors_no_internet_connection">Pas de connexion Internet</string>
   <string name="errors_no_service_connection">Pas de connexion au service</string>
   <string name="errors_balances_activity_outdated">Les soldes et l\'activité peuvent être obsolètes.</string>
+  <string name="errors_payment_status">Paiement : %1$s</string>
   <string name="activity_title">Activité</string>
   <string name="activity_state_empty_title">Votre activité apparaîtra ici</string>
   <string name="activity_state_empty_description">Effectuez votre première transaction</string>
@@ -250,6 +254,7 @@
   <string name="transaction_status_completed">Terminé</string>
   <string name="transaction_status_inprogress">En cours</string>
   <string name="transaction_status_refunded">Remboursé</string>
+  <string name="transaction_status_expired">Expiré</string>
   <string name="asset_balances">Soldes</string>
   <string name="asset_balances_available">Disponible</string>
   <string name="asset_price">Prix</string>
@@ -436,6 +441,8 @@
   <string name="info_network_fee_title">Frais de réseau</string>
   <string name="info_watch_wallet_title">Portefeuille en lecture seule</string>
   <string name="info_watch_wallet_description">Un portefeuille auquel vous n\'avez pas accès, mais dont vous pouvez surveiller les transactions et les mouvements.</string>
+  <string name="info_payment_verification_title">Vérification du paiement</string>
+  <string name="info_payment_verification_description">Le marchand requiert des informations supplémentaires avant le paiement.</string>
   <string name="info_network_fee_description">Chaque transaction sur le réseau %1$s nécessite des frais en %2$s payés aux mineurs pour traiter votre transaction, et non à Gem Wallet. Les frais de réseau varient en fonction de l\'utilisation du réseau.</string>
   <string name="info_transaction_error_description">La transaction n\'a pas pu être finalisée en raison d\'une erreur, telle qu\'un fonds insuffisant, une saisie non valide ou un rejet par le réseau. Veuillez vérifier les détails et réessayer.</string>
   <string name="info_transaction_pending_description">La transaction a été soumise et est en attente de confirmation sur le réseau. Les délais de traitement peuvent varier. Veuillez consulter régulièrement les mises à jour.</string>

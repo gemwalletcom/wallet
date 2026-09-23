@@ -2,7 +2,7 @@ use chrono::{Duration, Utc};
 use fiat::{FiatProvider, model::FiatProviderAsset};
 use gem_tracing::info_with_fields;
 use primitives::{AssetId, AssetTag, Diff, FiatProviderName, currency::Currency};
-use storage::{AssetFilter, AssetUpdate, FiatAssetFilter, FiatAssetRowsExt};
+use storage::{AssetFilter, AssetUpdate, FiatAssetFilter, FiatAssetRowsExt, FiatAssetUpdate, FiatProviderCountryFilter, FiatProviderCountryUpdate};
 use storage::{AssetsRepository, Database, TagRepository};
 
 #[derive(Clone, Copy)]
@@ -108,12 +108,26 @@ impl FiatAssetsUpdater {
         let assets = validated_assets.into_iter().map(|(fiat_asset, asset)| self.map_fiat_asset(fiat_asset, asset)).collect::<Vec<primitives::FiatAsset>>();
 
         let insert_assets = assets.into_iter().map(storage::models::FiatAssetRow::from_primitive).collect::<Result<Vec<storage::models::FiatAssetRow>, _>>()?;
+        let ids = insert_assets.iter().map(|asset| asset.id.clone()).collect::<Vec<_>>();
 
         if !insert_assets.is_empty() {
             self.database.fiat()?.add_fiat_assets(insert_assets)?;
         }
+        let disabled = if ids.is_empty() {
+            0
+        } else {
+            let current_ids = self
+                .database
+                .fiat()?
+                .get_fiat_assets_by_filter(vec![FiatAssetFilter::Provider(provider_name), FiatAssetFilter::IsEnabledByProvider(true)])?
+                .into_iter()
+                .map(|asset| asset.id)
+                .collect();
+            let result = Diff::compare(current_ids, ids);
+            self.database.fiat()?.update_fiat_assets(result.different, vec![FiatAssetUpdate::IsEnabledByProvider(false)])?
+        };
 
-        info_with_fields!("fiat update assets", provider = provider_name.id(), assets = asset_count);
+        info_with_fields!("fiat update assets", provider = provider_name.id(), assets = asset_count, disabled = disabled);
 
         Ok(asset_count)
     }
@@ -123,8 +137,24 @@ impl FiatAssetsUpdater {
         let countries = provider.get_countries().await?;
         let country_count = countries.len();
         let country_rows = countries.into_iter().map(storage::models::FiatProviderCountryRow::from_primitive).collect::<Vec<_>>();
-        self.database.fiat()?.add_fiat_providers_countries(country_rows)?;
-        info_with_fields!("fiat update countries", provider = provider_name.id(), countries = country_count);
+        let ids = country_rows.iter().map(|country| country.id.clone()).collect::<Vec<_>>();
+        if !country_rows.is_empty() {
+            self.database.fiat()?.add_fiat_providers_countries(country_rows)?;
+        }
+        let disabled = if ids.is_empty() {
+            0
+        } else {
+            let current_ids = self
+                .database
+                .fiat()?
+                .get_fiat_providers_countries_by_filter(vec![FiatProviderCountryFilter::Provider(provider_name), FiatProviderCountryFilter::IsAllowed(true)])?
+                .into_iter()
+                .map(|country| country.id)
+                .collect();
+            let result = Diff::compare(current_ids, ids);
+            self.database.fiat()?.update_fiat_providers_countries(result.different, vec![FiatProviderCountryUpdate::IsAllowed(false)])?
+        };
+        info_with_fields!("fiat update countries", provider = provider_name.id(), countries = country_count, disabled = disabled);
         Ok(country_count)
     }
 

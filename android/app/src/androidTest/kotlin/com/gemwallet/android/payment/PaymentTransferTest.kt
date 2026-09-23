@@ -2,9 +2,8 @@ package com.gemwallet.android.payment
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.PaymentDestination
-import com.gemwallet.android.model.toPaymentWalletAsset
 import com.gemwallet.android.testkit.includeGemstoneLibs
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetEthereum
@@ -20,9 +19,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import uniffi.gemstone.AlienProvider
+import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemPaymentDestination
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemPaymentService
+import uniffi.gemstone.GemPaymentWalletAsset
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.Payment
 import uniffi.gemstone.PaymentRequest
@@ -34,6 +35,8 @@ private const val SOLANA_ADDRESS = "HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5
 private const val RIPPLE_ADDRESS = "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
 private const val EVM_ADDRESS = "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326"
 private const val USDC_TOKEN_ID = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+
+private fun AssetInfo.toPaymentWalletAsset(): GemPaymentWalletAsset = GemPaymentWalletAsset(assetId = asset.id.toIdentifier(), decimals = asset.decimals)
 
 @RunWith(AndroidJUnit4::class)
 class PaymentTransferTest {
@@ -48,7 +51,7 @@ class PaymentTransferTest {
     private val solana = mockAssetInfo(asset = mockAssetSolana())
     private val ripple = mockAssetInfo(asset = mockAssetXrp())
     private val usdc = mockAssetInfo(asset = mockAssetSolanaUSDC())
-    private val paymentService = GemPaymentService(mockk<AlienProvider>())
+    private val paymentService = GemPaymentService(mockk<AlienProvider>(), mockk<GemAssetsService>())
 
     private fun decode(url: String): PaymentRequest = requireNotNull((paymentService.decodeUrl(url) as? Payment.Request)?.request) { "not a payment request: $url" }
 
@@ -102,25 +105,5 @@ class PaymentTransferTest {
         val recipient = destination(usdc, "solana:$SOLANA_ADDRESS?amount=0.0000001&spl-token=$USDC_TOKEN_ID")
 
         assertTrue("a seventh decimal is not signable as USDC, got $recipient", recipient is GemPaymentDestination.Recipient)
-    }
-
-    @Test
-    fun from_walletAssets() {
-        val ethereum = mockAssetInfo(asset = mockAssetEthereum())
-        val smartChain = mockAssetInfo(asset = mockAssetSmartChain())
-        val assets = listOf(bitcoin, ethereum, smartChain)
-
-        assertEquals(
-            PaymentDestination.SelectAsset(GemPaymentRecipient(GemRecipient(EVM_ADDRESS)), listOf(Chain.Ethereum, Chain.SmartChain)),
-            PaymentDestination.from(decode(EVM_ADDRESS), assets, paymentService),
-        )
-
-        val confirm = PaymentDestination.from(decode("bitcoin:$BITCOIN_ADDRESS?amount=0.0001"), assets, paymentService)
-        assertTrue("one payable asset must go straight to confirm, got $confirm", confirm is PaymentDestination.Confirm)
-
-        assertEquals(
-            PaymentDestination.Unsupported,
-            PaymentDestination.from(decode("ripple:$RIPPLE_ADDRESS"), assets, paymentService),
-        )
     }
 }

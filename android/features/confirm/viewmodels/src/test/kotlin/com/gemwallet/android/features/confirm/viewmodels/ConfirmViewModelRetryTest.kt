@@ -41,12 +41,14 @@ import org.junit.Test
 import uniffi.gemstone.GasPriceType
 import uniffi.gemstone.GemConfirmData
 import uniffi.gemstone.GemConfirmFeeSelection
+import uniffi.gemstone.GemConfirmHeader
 import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemConfirmPhase
 import uniffi.gemstone.GemConfirmPreload
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmation
 import uniffi.gemstone.GemFeeOptions
+import uniffi.gemstone.GemTransactionHeader
 import uniffi.gemstone.GemTransactionLoadFee
 import uniffi.gemstone.GemTransactionLoadMetadata
 import uniffi.gemstone.GemTransferAmount
@@ -87,7 +89,7 @@ class ConfirmViewModelRetryTest {
         coVerify(exactly = 1) { confirmation.load(any()) }
         assertEquals(GemConfirmPhase.FAILED, viewModel.screen.value.phase)
 
-        viewModel.send(FinishConfirmAction { _ -> })
+        viewModel.send(FinishConfirmAction { _, _ -> })
         advanceUntilIdle()
 
         coVerify(exactly = 2) { confirmation.load(any()) }
@@ -109,6 +111,7 @@ class ConfirmViewModelRetryTest {
         every { confirmation.insufficientNetworkFeeBuyAmount() } returns 10
         every { confirmService.confirmation(any(), transfer, any()) } returns confirmation
         every { confirmation.screen() } returns mockGemConfirmScreen()
+        every { confirmation.header(any()) } returns GemConfirmHeader.Transaction(GemTransactionHeader.Symbol(asset.toGem()))
         coEvery { confirmation.state() } returns mockGemConfirmLoad(asset)
         var calls = 0
         coEvery { confirmation.load(any()) } answers {

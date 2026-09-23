@@ -42,7 +42,6 @@ public final class BiometryAuthenticationMock: BiometryAuthenticatable, @uncheck
             elapsedMilliseconds: elapsedMilliseconds,
             lockIntervalMinutes: lockPeriod.gemLockPeriod.minutes(),
             authRequired: requiresAuthentication,
-            hasPendingRequest: false,
         )
     }
 

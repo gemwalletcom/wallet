@@ -219,9 +219,9 @@ pub fn asset_list_row(input: GemAssetListRowInput) -> GemAssetListRow {
     };
     GemAssetListRow {
         text: asset_row_text(&asset, style),
-        price: price_row(price, change, currency.clone()),
+        price: price_row(price, change, currency.clone(), GemCurrencyStyle::Short),
         amount: crate::services::balance::rules::balance_amount_styled(&value, &asset, crate::precision::GemValueStyle::Short),
-        fiat: fiat_amount(&asset, &value, price, currency),
+        fiat: fiat_amount(&asset, &value, price, currency, GemCurrencyStyle::Short),
         has_balance: value > GemBigUint::ZERO,
     }
 }
@@ -243,6 +243,7 @@ fn select_asset_title(select_type: &GemSelectAssetType) -> GemSelectAssetTitle {
         GemSelectAssetType::Buy => GemSelectAssetTitle::Buy,
         GemSelectAssetType::SwapPay => GemSelectAssetTitle::SwapPay,
         GemSelectAssetType::SwapReceive { .. } => GemSelectAssetTitle::SwapReceive,
+        GemSelectAssetType::Payment { .. } => GemSelectAssetTitle::PayWith,
         GemSelectAssetType::Manage => GemSelectAssetTitle::ManageTokenList,
         GemSelectAssetType::PriceAlert => GemSelectAssetTitle::SelectAsset,
         GemSelectAssetType::Deposit => GemSelectAssetTitle::Deposit,
@@ -259,6 +260,7 @@ fn select_asset_section(select_type: &GemSelectAssetType) -> GemSelectAssetSecti
         | GemSelectAssetType::Buy
         | GemSelectAssetType::SwapPay
         | GemSelectAssetType::SwapReceive { .. }
+        | GemSelectAssetType::Payment { .. }
         | GemSelectAssetType::Manage
         | GemSelectAssetType::PriceAlert
         | GemSelectAssetType::Deposit
@@ -292,7 +294,7 @@ pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: O
         popular_section: false,
         balance_filter: false,
         add_custom_token: false,
-        deposit_asset_display: false,
+        display_asset: None,
     };
     match select_type {
         GemSelectAssetType::Send => GemSelectAssetFlow {
@@ -340,6 +342,7 @@ pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: O
             },
             swap_receive_assets.map(GemAssetFilter::from),
         ),
+        GemSelectAssetType::Payment { asset_ids } => with_filter(flow(GemSelectRowAction::Select, None), Some(GemAssetFilter::asset_ids(asset_ids))),
         GemSelectAssetType::Manage => with_filter(
             GemSelectAssetFlow {
                 row_style: style(true, GemAssetSubtitleStyle::Network, GemAssetTrailingStyle::Toggle),
@@ -369,7 +372,7 @@ pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: O
         ),
         GemSelectAssetType::Withdraw => with_filter(
             GemSelectAssetFlow {
-                deposit_asset_display: true,
+                display_asset: Some(GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset()),
                 ..flow(GemSelectRowAction::Navigate, None)
             },
             Some(GemAssetFilter::asset_ids(vec![HYPERCORE_PERPETUAL_USDC.id.clone()])),
@@ -462,21 +465,21 @@ pub fn asset_title(asset: &Asset) -> String {
 }
 
 pub fn fiat_value(asset: &Asset, balance: &GemAssetBalance, price: Option<f64>, currency: Currency) -> Option<GemFormattedNumber> {
-    fiat_amount(asset, &balance.total(), price, currency)
+    fiat_amount(asset, &balance.total(), price, currency, GemCurrencyStyle::Currency)
 }
 
-pub fn fiat_amount_of(asset: &Asset, value: &num_bigint::BigUint, price: Option<f64>, currency: Currency) -> Option<GemFormattedNumber> {
-    fiat_amount(asset, &GemBigUint::from(value.clone()), price, currency)
+pub fn fiat_amount_of(asset: &Asset, value: &num_bigint::BigUint, price: Option<f64>, currency: Currency, style: GemCurrencyStyle) -> Option<GemFormattedNumber> {
+    fiat_amount(asset, &GemBigUint::from(value.clone()), price, currency, style)
 }
 
-fn fiat_amount(asset: &Asset, value: &GemBigUint, price: Option<f64>, currency: Currency) -> Option<GemFormattedNumber> {
+fn fiat_amount(asset: &Asset, value: &GemBigUint, price: Option<f64>, currency: Currency, style: GemCurrencyStyle) -> Option<GemFormattedNumber> {
     let value: f64 = CryptoFiatConverter::to_fiat(&value.to_string(), asset.decimals as u32, price?).ok()?.parse().ok()?;
-    (value > 0.0).then(|| GemFormattedNumber::currency(value, currency, GemCurrencyStyle::Currency))
+    (value > 0.0).then(|| GemFormattedNumber::currency(value, currency, style))
 }
 
-pub fn price_row(price: Option<f64>, change: Option<f64>, currency: Currency) -> GemPriceRow {
+pub fn price_row(price: Option<f64>, change: Option<f64>, currency: Currency, style: GemCurrencyStyle) -> GemPriceRow {
     GemPriceRow {
-        price: price.filter(|price| *price > 0.0).map(|price| GemFormattedNumber::currency(price, currency, GemCurrencyStyle::Currency)),
+        price: price.filter(|price| *price > 0.0).map(|price| GemFormattedNumber::currency(price, currency, style)),
         change: change.map(|change| GemFormattedNumber::percentage(change, GemPercentageStyle::Signed).toned()),
     }
 }
@@ -528,6 +531,7 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
     } = input;
     let chain = asset.chain();
     let displayed_alerts = displayed_price_alert_ids(price_alerts.to_vec()).len();
+    let quoted = price_row(price, price_change_percentage_24h, currency.clone(), GemCurrencyStyle::Currency);
     let row = |row: GemListRow| GemAssetDetailRow::Row { row };
     let link = |title: GemListRowTitle, value: Option<String>, icon: GemListRowIcon| row(GemListRow::Link { title, value, icon });
     let section = |title: GemListSectionTitle, rows: Vec<GemAssetDetailRow>| (!rows.is_empty()).then_some(GemAssetDetailSection { title, rows });
@@ -548,11 +552,17 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
         section(
             GemListSectionTitle::None,
             [
-                Some(GemAssetDetailRow::Price {
-                    row: price_row(price, price_change_percentage_24h, currency.clone()),
-                }),
+                Some(row(GemListRow::Quote {
+                    title: GemListRowTitle::Price,
+                    value: quoted.price,
+                    change: quoted.change,
+                })),
                 (has_price(price) && displayed_alerts > 0).then(|| link(GemListRowTitle::PriceAlerts, Some(displayed_alerts.to_string()), GemListRowIcon::None)),
-                Some(GemAssetDetailRow::Network { name: asset_text(asset).network_full_name }),
+                Some(row(GemListRow::Network {
+                    title: GemListRowTitle::Network,
+                    chain,
+                    name: asset_text(asset).network_full_name,
+                })),
             ]
             .into_iter()
             .flatten()
@@ -562,9 +572,7 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
         section(
             GemListSectionTitle::None,
             match shows_earn {
-                true => vec![GemAssetDetailRow::Earn {
-                    row: crate::services::stake::rules::earn_apr_row(&[], metadata.earn_apr),
-                }],
+                true => vec![row(crate::services::stake::rules::earn_apr_row(&[], metadata.earn_apr))],
                 false => vec![],
             },
         ),
@@ -689,7 +697,7 @@ mod tests {
         assert_eq!(total.amount.value, 3.0);
         assert_eq!(total.amount.unit, crate::formatted_number::GemNumberUnit::Symbol { symbol: usdc.symbol.clone() });
         assert_eq!(total.fiat.expect("a priced balance is worth something").value, 3.0);
-        assert_eq!(total.price, price_row(Some(1.0), Some(-2.5), Currency::USD), "the row's price is the one the detail screen shows");
+        assert_eq!(total.price, price_row(Some(1.0), Some(-2.5), Currency::USD, GemCurrencyStyle::Short), "the row's price is the list-width one");
         assert!(total.has_balance);
 
         let available = row(held.clone(), GemAssetBalanceScope::Available, Some(1.0));
@@ -804,6 +812,7 @@ mod tests {
         assert_eq!(row(GemSelectAssetType::Buy), (GemSelectRowAction::Navigate, Some(GemAssetAction::Buy)));
         assert_eq!(row(GemSelectAssetType::SwapPay), (GemSelectRowAction::Select, Some(GemAssetAction::SwapPay)));
         assert_eq!(row(GemSelectAssetType::SwapReceive { pay_asset_id: None }), (GemSelectRowAction::Select, Some(GemAssetAction::SwapReceive)));
+        assert_eq!(row(GemSelectAssetType::Payment { asset_ids: vec![] }), (GemSelectRowAction::Select, None));
         assert_eq!(row(GemSelectAssetType::Manage), (GemSelectRowAction::Toggle, None));
         assert_eq!(row(GemSelectAssetType::PriceAlert), (GemSelectRowAction::Select, None));
         assert_eq!(row(GemSelectAssetType::Deposit), (GemSelectRowAction::Navigate, None));
@@ -857,7 +866,7 @@ mod tests {
                 ("popular_section", flow.popular_section),
                 ("balance_filter", flow.balance_filter),
                 ("add_custom_token", flow.add_custom_token),
-                ("deposit_asset_display", flow.deposit_asset_display),
+                ("display_asset", flow.display_asset.is_some()),
                 ("enables_price_alert", flow.enables_price_alert),
             ]
             .into_iter()
@@ -870,10 +879,11 @@ mod tests {
         assert_eq!(enabled(GemSelectAssetType::Buy), ["network_search", "chain_filter", "recents", "popular_section"]);
         assert_eq!(enabled(GemSelectAssetType::SwapPay), ["chain_filter", "recents"]);
         assert_eq!(enabled(GemSelectAssetType::SwapReceive { pay_asset_id: None }), ["network_search", "chain_filter", "recents"]);
+        assert!(enabled(GemSelectAssetType::Payment { asset_ids: vec![] }).is_empty());
         assert_eq!(enabled(GemSelectAssetType::Manage), ["network_search", "chain_filter", "balance_filter", "add_custom_token"]);
         assert_eq!(enabled(GemSelectAssetType::PriceAlert), ["network_search", "chain_filter", "popular_section", "enables_price_alert"]);
         assert!(enabled(GemSelectAssetType::Deposit).is_empty());
-        assert_eq!(enabled(GemSelectAssetType::Withdraw), ["deposit_asset_display"]);
+        assert_eq!(enabled(GemSelectAssetType::Withdraw), ["display_asset"]);
         assert_eq!(enabled(GemSelectAssetType::WalletSearch), ["network_search", "recents", "add_custom_token"]);
         assert!(enabled(GemSelectAssetType::WalletSearchResults).is_empty());
     }
@@ -1404,7 +1414,7 @@ mod tests {
 
     #[test]
     fn test_a_price_row_carries_the_quote_and_hides_one_nobody_gave() {
-        let quoted = price_row(Some(1234.5), Some(-2.5), Currency::USD);
+        let quoted = price_row(Some(1234.5), Some(-2.5), Currency::USD, GemCurrencyStyle::Short);
         let GemPriceRow { price, change } = quoted;
         let price = price.expect("a quoted price is shown");
         let change = change.expect("a change is shown beside it");
@@ -1413,9 +1423,23 @@ mod tests {
         assert_eq!(price.unit, crate::formatted_number::GemNumberUnit::Currency { code: "USD".to_string() });
         assert_eq!(change.tone, crate::formatted_number::GemValueTone::Negative, "a falling price reads red on both apps");
 
-        let unquoted = price_row(Some(0.0), None, Currency::USD);
+        let tiny = |style| price_row(Some(0.00000783), None, Currency::USD, style).price.expect("a tiny price is still quoted").display;
+        assert_eq!(
+            tiny(GemCurrencyStyle::Short),
+            crate::formatted_number::GemNumberDisplay::BelowThreshold { threshold: 0.0001, places: 4 },
+            "a list row reads <$0.0001 instead of wrapping"
+        );
+        assert_eq!(
+            tiny(GemCurrencyStyle::Currency),
+            crate::formatted_number::GemNumberDisplay::Number {
+                precision: crate::precision::GemPrecision::Significant { max: 4 }
+            },
+            "a detail row has the width for the digits"
+        );
+
+        let unquoted = price_row(Some(0.0), None, Currency::USD, GemCurrencyStyle::Short);
         assert_eq!(unquoted, GemPriceRow { price: None, change: None }, "neither app has to decide what a zero price reads as");
-        assert_eq!(price_row(None, None, Currency::USD), GemPriceRow { price: None, change: None });
+        assert_eq!(price_row(None, None, Currency::USD, GemCurrencyStyle::Short), GemPriceRow { price: None, change: None });
     }
 
     #[test]
@@ -1427,7 +1451,7 @@ mod tests {
         };
         let rows = sections(&Asset::from_chain(Chain::Ethereum), &earn_enabled, &GemAssetBalance::mock(), Some(1.0), &[]);
         let earn = rows.iter().flat_map(|section| section.rows.clone()).find_map(|row| match row {
-            GemAssetDetailRow::Earn { row } => Some(row),
+            GemAssetDetailRow::Row { row } if matches!(row, GemListRow::Amount { title: GemListRowTitle::StakeApr, .. } | GemListRow::Text { title: GemListRowTitle::StakeApr, .. }) => Some(row),
             _ => None,
         });
 
@@ -1444,8 +1468,22 @@ mod tests {
         let sections = sections(&token, &AssetMetaData::mock(), &reserving, Some(1.0), &[]);
 
         assert_eq!(sections.iter().map(|section| section.title).collect::<Vec<_>>(), vec![GemListSectionTitle::None, GemListSectionTitle::Balances]);
-        assert!(matches!(sections[0].rows[0], GemAssetDetailRow::Price { .. }));
-        assert_eq!(sections[0].rows[1], GemAssetDetailRow::Network { name: "Ethereum (ERC20)".to_string() });
+        assert!(matches!(
+            sections[0].rows[0],
+            GemAssetDetailRow::Row {
+                row: GemListRow::Quote { title: GemListRowTitle::Price, .. }
+            }
+        ));
+        assert_eq!(
+            sections[0].rows[1],
+            GemAssetDetailRow::Row {
+                row: GemListRow::Network {
+                    title: GemListRowTitle::Network,
+                    chain: Chain::Ethereum,
+                    name: "Ethereum (ERC20)".to_string(),
+                },
+            }
+        );
         assert!(sections[1].rows.iter().all(|row| matches!(row, GemAssetDetailRow::Balance { .. })));
     }
 
@@ -1586,10 +1624,14 @@ mod tests {
             ..GemAssetBalance::mock()
         };
         let offers_earn = |metadata: &AssetMetaData, balance: &GemAssetBalance| {
-            sections(&asset, metadata, balance, Some(1.0), &[])
-                .iter()
-                .flat_map(|section| section.rows.clone())
-                .any(|row| matches!(row, GemAssetDetailRow::Earn { .. }))
+            sections(&asset, metadata, balance, Some(1.0), &[]).iter().flat_map(|section| section.rows.clone()).any(|row| {
+                matches!(
+                    row,
+                    GemAssetDetailRow::Row {
+                        row: GemListRow::Amount { title: GemListRowTitle::StakeApr, .. } | GemListRow::Text { title: GemListRowTitle::StakeApr, .. }
+                    }
+                )
+            })
         };
 
         assert_eq!(offers_earn(&earn_enabled, &GemAssetBalance::mock()), EARN_OFFERED);

@@ -1,5 +1,6 @@
 use num_bigint::BigInt;
 
+#[derive(Debug, PartialEq)]
 pub struct TransactionParams {
     pub to: String,
     pub data: Vec<u8>,

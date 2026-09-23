@@ -14,6 +14,7 @@ import com.gemwallet.android.testkit.mockWalletConnectionSession
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ButtonState
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -200,6 +201,25 @@ class WCRequestViewModelTest {
             Triple(topic, 42L, WalletConnectJsonRpcResponse.Result("0xsignature")),
             responded.await(),
         )
+    }
+
+    @Test
+    fun `the same request is not started again`() = runTest(dispatcher) {
+        val requests = WalletConnectPendingRequests()
+        val service = service()
+        val model = viewModel(service = service, requests = requests)
+
+        model.onRequest(sessionRequest, verifyContext, onNotify = {}, onError = {})
+        val job = pending(requests)
+        model.awaitContent()
+
+        model.onRequest(sessionRequest, verifyContext, onNotify = {}, onError = {})
+        advanceUntilIdle()
+
+        assertNotNull(requests.current.value)
+        coVerify(exactly = 1) { service.requestOutcome(any()) }
+
+        job.cancel()
     }
 
     @Test
