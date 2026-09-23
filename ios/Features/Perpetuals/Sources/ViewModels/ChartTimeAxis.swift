@@ -10,10 +10,16 @@ struct ChartTimeAxis {
         static let yearSpan: TimeInterval = 360 * day
     }
 
+    private enum Format {
+        case time
+        case timeAndDay
+        case day
+        case monthYear
+    }
+
     let ticks: [Date]
 
-    private let span: TimeInterval
-    private let step: TimeInterval
+    private let format: Format
     private let calendar: Calendar
     private let locale: Locale
 
@@ -22,22 +28,20 @@ struct ChartTimeAxis {
         let start = range.lowerBound.addingTimeInterval(span * Constants.edgeInset)
         let visible = dates.filter { $0 >= start }
         let candles = Self.candlesPerLabel(visible.count, interval: interval)
-        self.span = span
-        step = interval * Double(candles)
+        let first = dates.first ?? .distantPast
+        format = Self.format(span: span, step: interval * Double(candles), covered: (dates.last ?? first).timeIntervalSince(first))
         self.calendar = calendar
         self.locale = locale
         ticks = stride(from: visible.count - 1, through: 0, by: -candles).map { visible[$0] }.reversed()
     }
 
     func label(for date: Date) -> String {
-        let style = if span >= Constants.yearSpan {
-            monthStyle
-        } else if step < Constants.day {
-            startsDay(date) ? dayStyle : timeStyle
-        } else {
-            dayStyle
+        switch format {
+        case .time: date.formatted(timeStyle)
+        case .timeAndDay: date.formatted(startsDay(date) ? dayStyle : timeStyle)
+        case .day: date.formatted(dayStyle)
+        case .monthYear: date.formatted(monthStyle)
         }
-        return date.formatted(style)
     }
 
     private static func candlesPerLabel(_ count: Int, interval: TimeInterval) -> Int {
@@ -51,25 +55,37 @@ struct ChartTimeAxis {
         let candlesPerDay = Int((Constants.day / interval).rounded())
         return Int((Double(candles) / Double(candlesPerDay)).rounded(.up)) * candlesPerDay
     }
+
+    private static func format(span: TimeInterval, step: TimeInterval, covered: TimeInterval) -> Format {
+        if span >= Constants.yearSpan {
+            .monthYear
+        } else if step >= Constants.day {
+            .day
+        } else if covered <= Constants.day {
+            .time
+        } else {
+            .timeAndDay
+        }
+    }
 }
 
 // MARK: - Private
 
 private extension ChartTimeAxis {
-    var format: Date.FormatStyle {
+    var style: Date.FormatStyle {
         Date.FormatStyle(locale: locale, calendar: calendar, timeZone: calendar.timeZone)
     }
 
     var timeStyle: Date.FormatStyle {
-        format.hour().minute()
+        style.hour().minute()
     }
 
     var dayStyle: Date.FormatStyle {
-        format.day().month(.abbreviated)
+        style.day().month(.abbreviated)
     }
 
     var monthStyle: Date.FormatStyle {
-        format.month(.abbreviated).year()
+        style.month(.abbreviated).year()
     }
 
     func startsDay(_ date: Date) -> Bool {

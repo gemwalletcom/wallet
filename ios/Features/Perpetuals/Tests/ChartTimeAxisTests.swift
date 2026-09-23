@@ -13,9 +13,15 @@ struct ChartTimeAxisTests {
     }
 
     @Test
-    func aDayShowsTheDateOnTheFirstLabelOfAnEarlierDay() throws {
-        #expect(try labels(axis(from: "2026-09-22T16:30:00Z", every: 1800, count: 48)) == ["22 Sep", "01:00", "06:00", "11:00", "16:00"])
-        #expect(try labels(axis(from: "2026-09-22T20:00:00Z", every: 3600, count: 21)) == ["23 Sep", "04:00", "08:00", "12:00", "16:00"], "a label at midnight names the day")
+    func aChartWithinADayShowsTimesOnly() throws {
+        #expect(try labels(axis(from: "2026-09-22T16:30:00Z", every: 1800, count: 48)) == ["20:00", "01:00", "06:00", "11:00", "16:00"])
+        #expect(try labels(axis(from: "2026-09-22T20:00:00Z", every: 3600, count: 21)) == ["00:00", "04:00", "08:00", "12:00", "16:00"], "midnight stays a time")
+    }
+
+    @Test
+    func aChartOverMoreThanADayShowsTheDateOnTheFirstLabelOfAnEarlierDay() throws {
+        #expect(try labels(axis(from: "2026-09-22T04:00:00Z", every: 4 * 3600, count: 9)) == ["22 Sep", "20:00", "04:00", "12:00"])
+        #expect(try labels(axis(from: "2026-09-21T12:00:00Z", every: 4 * 3600, count: 13)) == ["22 Sep", "12:00", "23 Sep", "12:00"], "a label at midnight names the day")
     }
 
     @Test
