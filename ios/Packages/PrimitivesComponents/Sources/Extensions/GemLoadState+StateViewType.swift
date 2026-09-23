@@ -4,7 +4,7 @@ import Components
 import enum Gemstone.GemLoadState
 
 public extension GemLoadState {
-    func stateViewType<T>(_ value: T?) -> StateViewType<T> {
+    private func stateViewType<T>(_ value: T?) -> StateViewType<T> {
         switch self {
         case .noData: .noData
         case .loading: value.map { .data($0) } ?? .loading

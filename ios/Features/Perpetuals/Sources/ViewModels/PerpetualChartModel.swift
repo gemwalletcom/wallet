@@ -39,7 +39,9 @@ public final class PerpetualChartModel {
 
     public var state: StateViewType<PerpetualCandles> {
         let viewState = session.viewState()
-        return viewState.state.stateViewType(PerpetualCandles(period: viewState.period.toPrimitives(), candles: viewState.candles.map { $0.toPrimitives() }))
+        return viewState.state.stateViewType(viewState.candles).map { candles in
+            PerpetualCandles(period: viewState.period.toPrimitives(), candles: candles.map { $0.toPrimitives() })
+        }
     }
 
     public var emptyTitle: String { Localized.Common.notAvailable }

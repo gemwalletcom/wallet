@@ -15,6 +15,17 @@ import Testing
 @MainActor
 struct PerpetualSceneViewModelTests {
     @Test
+    func aPeriodWithoutCandlesYetShowsLoadingInsteadOfAnEmptyChart() {
+        let model = PerpetualSceneViewModel.mock()
+
+        #expect(model.chart.state.isLoading)
+
+        model.chart.currentPeriod = .week
+
+        #expect(model.chart.state.isLoading)
+    }
+
+    @Test
     func theSceneReadsItsScreenFromCore() {
         let service = GemPerpetualDetailsServiceMock()
         service.detailsValue = .mock(
