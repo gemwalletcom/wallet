@@ -13,7 +13,7 @@ use crate::services::transfer::model::{GemConfirmRow, GemTransferData};
 use crate::services::wallet::model::wallet_row;
 use primitives::AddressType;
 use primitives::currency::Currency;
-use primitives::{AddressName, BlockExplorerLink};
+use primitives::{AddressName, BlockExplorerLink, PaymentVerification};
 use primitives::{
     Asset, AssetId, Chain, ChainType, EVMChain, FeePriority, FeeUnitType, GasPriceType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationResult, SimulationWarningType, Transaction, TransactionPreloadInput,
     TransactionType, TransferDataOutputAction, TransferDataOutputType, Wallet,
@@ -166,6 +166,11 @@ pub(super) fn is_signature_only(input_type: &TransactionInputType) -> bool {
         TransactionInputType::Payment { extra, .. } => extra.output_type == TransferDataOutputType::Signature && extra.approval.is_none(),
         _ => false,
     }
+}
+
+/// A pick reloads when it names a different asset, or when the transfer still owes a verification the pick has to re-run.
+pub(super) fn asset_pick_needs_reload(current: &AssetId, picked: &AssetId, verification: Option<&PaymentVerification>) -> bool {
+    current != picked || verification.is_some()
 }
 
 pub fn approval_value_from(value: Option<&GemBigUint>, is_unlimited: bool) -> GemApprovalValue {

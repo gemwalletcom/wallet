@@ -25,7 +25,7 @@ pub struct GemConfirmInput {
     pub transfer: GemTransferData,
 }
 
-#[derive(Debug, Clone, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemConfirmFeeSelection {
     Priority { priority: FeePriority },
     Custom { gas_price: GemBigInt },
@@ -48,11 +48,44 @@ impl GemConfirmFeeSelection {
     }
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemConfirmLoadOptions {
     pub fee_selection: GemConfirmFeeSelection,
     pub fee_asset_id: Option<AssetId>,
     pub asset_id: Option<AssetId>,
+}
+
+impl GemConfirmLoadOptions {
+    pub(super) fn initial(transfer: &GemTransferData) -> Self {
+        Self {
+            fee_selection: GemConfirmFeeSelection::Priority { priority: transfer.default_fee_priority() },
+            fee_asset_id: None,
+            asset_id: None,
+        }
+    }
+}
+
+#[uniffi::export]
+impl GemConfirmLoadOptions {
+    pub fn on_fee_selection(&self, selection: GemConfirmFeeSelection) -> GemConfirmLoadOptions {
+        Self { fee_selection: selection, ..self.clone() }
+    }
+
+    pub fn on_fee_asset(&self, picked: AssetId, loaded_fee_asset: Option<AssetId>) -> GemConfirmLoadOptions {
+        let current = self.fee_asset_id.clone().or(loaded_fee_asset);
+        if current.is_some_and(|current| !super::rules::asset_pick_needs_reload(&current, &picked, None)) {
+            return self.clone();
+        }
+        Self { fee_asset_id: Some(picked), ..self.clone() }
+    }
+
+    pub fn on_payment_asset(&self, picked: AssetId, transfer: GemTransferData) -> GemConfirmLoadOptions {
+        let current = self.asset_id.clone().unwrap_or_else(|| transfer.input_asset().id);
+        if !super::rules::asset_pick_needs_reload(&current, &picked, transfer.verification().as_ref()) {
+            return self.clone();
+        }
+        Self { asset_id: Some(picked), ..self.clone() }
+    }
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -314,6 +347,67 @@ mod tests {
         assert_eq!(metadata.asset_price().map(|price| price.price), Some(1.0));
         assert_eq!(metadata.fee_price().map(|price| price.price), Some(2.0));
         assert_eq!(metadata.price(AssetId::from_chain(primitives::Chain::Ethereum)), None);
+    }
+
+    #[test]
+    fn test_load_options_start_from_the_transfer_default_priority() {
+        let transfer = GemTransferData::mock(primitives::TransactionInputType::Transfer { asset: Asset::mock_eth() });
+        let options = GemConfirmLoadOptions::initial(&transfer);
+
+        assert_eq!(options.fee_selection, GemConfirmFeeSelection::Priority { priority: transfer.default_fee_priority() });
+        assert_eq!(options.fee_asset_id, None);
+        assert_eq!(options.asset_id, None);
+    }
+
+    #[test]
+    fn test_a_fee_asset_pick_that_changes_nothing_is_not_a_change() {
+        let ethereum = AssetId::from_chain(primitives::Chain::Ethereum);
+        let smartchain = AssetId::from_chain(primitives::Chain::SmartChain);
+        let transfer = GemTransferData::mock(primitives::TransactionInputType::Transfer { asset: Asset::mock_eth() });
+        let options = GemConfirmLoadOptions::initial(&transfer);
+
+        assert_eq!(options.on_fee_asset(ethereum.clone(), Some(ethereum.clone())), options, "picking the fee asset already shown is not a change");
+        assert_eq!(options.on_fee_asset(ethereum.clone(), None).fee_asset_id, Some(ethereum.clone()), "a pick made before anything has loaded is always a change");
+
+        let selected = options.on_fee_asset(smartchain.clone(), Some(ethereum.clone()));
+        assert_eq!(selected.fee_asset_id, Some(smartchain.clone()));
+        assert_eq!(selected.on_fee_asset(smartchain, Some(ethereum)), selected, "a pending pick is compared against, not the fee asset the last load returned");
+    }
+
+    #[test]
+    fn test_a_payment_asset_pick_is_compared_against_the_pending_one() {
+        let ethereum = Asset::mock_eth();
+        let smartchain = AssetId::from_chain(primitives::Chain::SmartChain);
+        let transfer = GemTransferData::mock(primitives::TransactionInputType::Transfer { asset: ethereum.clone() });
+        let options = GemConfirmLoadOptions::initial(&transfer);
+
+        assert_eq!(options.on_payment_asset(ethereum.id.clone(), transfer.clone()), options, "paying with the asset already shown is not a change");
+
+        let selected = options.on_payment_asset(smartchain.clone(), transfer.clone());
+        assert_eq!(selected.asset_id, Some(smartchain.clone()));
+        assert_eq!(selected.on_payment_asset(smartchain, transfer.clone()), selected);
+        assert_eq!(
+            selected.on_payment_asset(ethereum.id.clone(), transfer).asset_id,
+            Some(ethereum.id),
+            "going back to the original asset while the first load is still running is a change"
+        );
+    }
+
+    #[test]
+    fn test_a_transfer_that_still_owes_a_verification_reloads_the_same_asset() {
+        let ethereum = Asset::mock_eth();
+        let invoice = primitives::PaymentInvoice {
+            verification: Some(primitives::PaymentVerification { url: "https://verify".to_string() }),
+            ..primitives::PaymentInvoice::mock()
+        };
+        let transfer = GemTransferData::mock(primitives::TransactionInputType::Payment {
+            asset: ethereum.clone(),
+            invoice,
+            extra: primitives::TransferDataExtra::mock(),
+        });
+        let options = GemConfirmLoadOptions::initial(&transfer);
+
+        assert_eq!(options.on_payment_asset(ethereum.id.clone(), transfer).asset_id, Some(ethereum.id));
     }
 
     #[test]

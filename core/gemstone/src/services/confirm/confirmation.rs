@@ -8,7 +8,7 @@ use primitives::{AddressName, AssetId, Chain, ChainAddress, PaymentVerification,
 use super::error::GemConfirmErrorInfo;
 use super::header::{self, GemConfirmHeader};
 use super::model::GemConfirmMetadata;
-use super::rules::{acquire_swap_pair, preload_simulation};
+use super::rules::{acquire_swap_pair, asset_pick_needs_reload, preload_simulation};
 use super::{GemAcquireAssetFlow, GemConfirmError, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmScreen, GemConfirmTransferService, GemSubmitResult, GemTransferAmountResult};
 use crate::models::list::GemListRow;
 use crate::payment::GemPaymentLoad;
@@ -72,6 +72,10 @@ impl GemConfirmation {
 impl GemConfirmation {
     pub fn screen(&self) -> GemConfirmScreen {
         GemConfirmScreen::initial(self.simulation.as_ref())
+    }
+
+    pub fn load_options(&self) -> GemConfirmLoadOptions {
+        GemConfirmLoadOptions::initial(&self.transfer())
     }
 
     pub fn header(&self, load: Option<GemConfirmLoad>) -> GemConfirmHeader {
@@ -155,7 +159,7 @@ impl GemConfirmation {
 impl GemConfirmation {
     async fn select_asset(&self, asset_id: AssetId) -> Result<(), GemConfirmError> {
         let transfer = self.transfer();
-        if transfer.input_type.get_asset().id == asset_id && transfer.verification().is_none() {
+        if !asset_pick_needs_reload(&transfer.input_asset().id, &asset_id, transfer.verification().as_ref()) {
             return Ok(());
         }
         let TransactionInputType::Payment { invoice, .. } = transfer.input_type else {
