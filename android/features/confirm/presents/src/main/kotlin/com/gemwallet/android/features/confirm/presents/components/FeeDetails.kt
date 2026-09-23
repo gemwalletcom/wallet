@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
+import com.gemwallet.android.domains.asset.icon
 import com.gemwallet.android.domains.confirm.FeeAssetUIModel
 import com.gemwallet.android.domains.confirm.FeeDetailsModel
 import com.gemwallet.android.domains.confirm.FeeUIModel
@@ -45,8 +46,8 @@ import com.gemwallet.android.features.confirm.viewmodels.models.listItem
 import com.gemwallet.android.features.confirm.viewmodels.models.rowUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SuffixTextField
+import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.image.IconWithBadge
-import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.ListItemModel
@@ -205,7 +206,6 @@ private fun FeeRates(
                 FeeAssetRow(
                     feeAsset = feeAsset,
                     isSelected = false,
-                    showChevron = true,
                     listPosition = ListPosition.Single,
                     onClick = onFeeAssets,
                 )
@@ -256,7 +256,6 @@ private fun FeeAssets(assets: List<FeeAssetUIModel>, selectedAssetId: AssetId, o
             FeeAssetRow(
                 feeAsset = feeAsset,
                 isSelected = feeAsset.asset.id == selectedAssetId,
-                showChevron = false,
                 listPosition = ListPosition.getPosition(index, assets.size),
                 onClick = { onSelect(feeAsset.asset.id) },
             )
@@ -265,19 +264,27 @@ private fun FeeAssets(assets: List<FeeAssetUIModel>, selectedAssetId: AssetId, o
 }
 
 @Composable
-private fun FeeAssetRow(feeAsset: FeeAssetUIModel, isSelected: Boolean, showChevron: Boolean, listPosition: ListPosition, onClick: () -> Unit) {
-    AssetListItem(
-        asset = feeAsset.asset,
+private fun FeeAssetRow(feeAsset: FeeAssetUIModel, isSelected: Boolean, listPosition: ListPosition, onClick: () -> Unit) {
+    val asset = feeAsset.asset
+    ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         listPosition = listPosition,
-        badge = feeAsset.asset.symbol.takeUnless { it == feeAsset.asset.name },
+        leading = {
+            IconWithBadge(
+                badge = if (isSelected) {
+                    { SelectionCheckmark() }
+                } else {
+                    null
+                },
+            ) {
+                AsyncImage(model = asset, placeholderText = asset.id.icon().placeholder, size = listItemIconSize)
+            }
+        },
+        title = { ListItemTitleText(asset.symbol) },
+        subtitle = asset.name.takeUnless { it == asset.symbol }?.let { { ListItemSupportText(it) } },
         trailing = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            DataBadgeChevron {
                 getBalanceInfo(feeAsset.balance, feeAsset.equivalent, feeAsset.isZeroBalance).invoke()
-                when {
-                    isSelected -> SelectionCheckmark(modifier = Modifier.padding(start = paddingSmall))
-                    showChevron -> DataBadgeChevron()
-                }
             }
         },
     )
