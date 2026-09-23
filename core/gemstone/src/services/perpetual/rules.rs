@@ -46,6 +46,7 @@ const CHART_RANGE_PADDING_FRACTION: f64 = 0.05;
 const CHART_RANGE_FLOOR_FRACTION: f64 = 0.95;
 const CHART_LINE_VISIBILITY_BUFFER_FRACTION: f64 = 0.5;
 const CHART_LABEL_OVERLAP_FRACTION: f64 = 0.06;
+const CHART_CURRENT_PRICE_CLEARANCE_FRACTION: f64 = 0.08;
 const CHART_MINIMUM_SPAN_FRACTION: f64 = 0.001;
 const CHART_MINIMUM_SPAN: f64 = 1e-9;
 const CHART_TICK_COUNT: usize = 4;
@@ -276,6 +277,7 @@ pub fn chart_layout(candles: &[ChartCandleStick], position: Option<&PerpetualPos
     let price_low = if lowest > 0.0 { (lowest - padding).max(lowest * CHART_RANGE_FLOOR_FRACTION) } else { lowest - padding };
     let price_high = highest + padding;
     let overlap_threshold = (price_high - price_low) * CHART_LABEL_OVERLAP_FRACTION;
+    let current_price_clearance = (price_high - price_low) * CHART_CURRENT_PRICE_CLEARANCE_FRACTION;
     let mut previous: Option<(f64, u32)> = None;
     let lines = lines
         .into_iter()
@@ -295,7 +297,11 @@ pub fn chart_layout(candles: &[ChartCandleStick], position: Option<&PerpetualPos
     GemPerpetualChartLayout {
         price_low,
         price_high,
-        ticks: chart_ticks(candle_low, candle_high).into_iter().map(|tick| GemFormattedNumber::adaptive(tick, None)).collect(),
+        ticks: chart_ticks(candle_low, candle_high)
+            .into_iter()
+            .filter(|tick| candles.last().is_none_or(|candle| (tick - candle.close).abs() >= current_price_clearance))
+            .map(|tick| GemFormattedNumber::adaptive(tick, None))
+            .collect(),
         x_tick_count: chart_x_tick_count(candles.len()),
         lines,
         current_price: candles.last().map(|candle| GemFormattedNumber::adaptive(candle.close, None)),
@@ -1167,14 +1173,20 @@ mod tests {
     }
 
     #[test]
-    fn test_chart_layout_pads_the_candle_range_and_draws_four_ticks() {
+    fn test_chart_layout_pads_the_candle_range_and_keeps_its_ticks_clear_of_the_current_price() {
         let layout = chart_layout(&[ChartCandleStick::mock_range(9.0, 12.0), ChartCandleStick::mock_range(10.0, 13.0)], None);
+        let between = chart_layout(&[ChartCandleStick::mock_range(9.0, 13.0), ChartCandleStick::mock_range(10.0, 12.3)], None);
 
         assert!(layout.price_low < 9.0 && layout.price_low >= 9.0 * CHART_RANGE_FLOOR_FRACTION);
         assert!(layout.price_high > 13.0);
-        assert_eq!(layout.ticks.len(), 4);
+        assert_eq!(layout.ticks.len(), 3, "the top level sits on the last close of 13");
         assert_eq!(layout.ticks[0].value, 9.0);
-        assert_eq!(layout.ticks[3].value, 13.0);
+        assert_eq!(between.ticks.len(), 4, "a close between the levels keeps all four");
+        assert_eq!(
+            chart_layout(&[ChartCandleStick::mock_range(9.0, 13.0), ChartCandleStick::mock_range(10.0, 12.7)], None).ticks.len(),
+            3,
+            "a level within the current price label.s height of the close is left out"
+        );
         assert!(layout.lines.is_empty());
     }
 
@@ -1229,7 +1241,7 @@ mod tests {
     fn test_chart_layout_keeps_a_measurable_range_for_flat_and_negative_series() {
         let flat = chart_layout(&[ChartCandleStick::mock_range(100.0, 100.0)], None);
         assert!(flat.price_low < flat.price_high);
-        assert_eq!(flat.ticks.iter().map(|tick| tick.value).collect::<Vec<_>>(), vec![100.0]);
+        assert_eq!(flat.ticks.len(), 0, "the only level of a flat series is the current price itself");
 
         let negative = chart_layout(&[ChartCandleStick::mock_range(-10.0, -5.0)], None);
         assert!(negative.price_low < -10.0);
