@@ -2,7 +2,6 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use chain_traits::{ChainAddressStatus, ChainPerpetual};
-use chrono::TimeDelta;
 use futures::{future::try_join_all, try_join};
 use gem_client::Client;
 use primitives::{
@@ -18,8 +17,6 @@ use crate::{
     provider::perpetual_mapper::{map_account_summary_aggregate, map_candlesticks, map_perpetual_balance_from_spot, map_perpetual_portfolio, map_perpetuals_data, map_positions, merge_perpetual_portfolios},
     rpc::client::HyperCoreClient,
 };
-
-const CANDLE_HISTORY_PERIODS: i64 = 4;
 
 fn filter_active_dex(perp_dexs: &[Option<PerpDex>], enabled_hip3_markets: &[String]) -> Vec<(u32, Option<String>)> {
     perp_dexs
@@ -45,13 +42,6 @@ fn filter_active_dex(perp_dexs: &[Option<PerpDex>], enabled_hip3_markets: &[Stri
             Some((index as u32, Some(dex.name.clone())))
         })
         .collect()
-}
-
-fn candles_start_time(period: &ChartPeriod, end_time: i64) -> i64 {
-    match period {
-        ChartPeriod::All => 0,
-        _ => end_time - TimeDelta::minutes(i64::from(period.minutes()) * CANDLE_HISTORY_PERIODS).num_milliseconds(),
-    }
 }
 
 pub fn candle_interval(period: &ChartPeriod) -> &'static str {
@@ -182,7 +172,14 @@ impl<C: Client> ChainPerpetual for HyperCoreClient<C> {
         let interval = candle_interval(&period);
 
         let end_time = chrono::Utc::now().timestamp() * 1000;
-        let start_time = candles_start_time(&period, end_time);
+        let start_time = match period {
+            ChartPeriod::Hour => end_time - 60 * 60 * 1000,
+            ChartPeriod::Day => end_time - 24 * 60 * 60 * 1000,
+            ChartPeriod::Week => end_time - 7 * 24 * 60 * 60 * 1000,
+            ChartPeriod::Month => end_time - 30 * 24 * 60 * 60 * 1000,
+            ChartPeriod::Year => end_time - 365 * 24 * 60 * 60 * 1000,
+            ChartPeriod::All => 0,
+        };
 
         let candlesticks = self.get_candlesticks(&symbol, interval, start_time, end_time).await?;
         Ok(map_candlesticks(candlesticks))
@@ -217,16 +214,6 @@ mod tests {
     use primitives::testkit::json::load_testdata;
     use primitives::{InMemoryPreferences, PerpetualId, PerpetualProvider};
     use serde_json::Value;
-
-    #[test]
-    fn test_candles_start_time() {
-        let end_time = 1_000_000_000_000;
-
-        assert_eq!(candles_start_time(&ChartPeriod::Hour, end_time), end_time - 4 * 60 * 60 * 1000, "four periods of candles leave room to zoom out");
-        assert_eq!(candles_start_time(&ChartPeriod::Day, end_time), end_time - 4 * 24 * 60 * 60 * 1000);
-        assert_eq!(candles_start_time(&ChartPeriod::Year, end_time), end_time - 4 * 365 * 24 * 60 * 60 * 1000);
-        assert_eq!(candles_start_time(&ChartPeriod::All, end_time), 0);
-    }
 
     #[test]
     fn test_filter_active_dex_filters_inactive() {

@@ -94,15 +94,10 @@ impl GemCandleSession {
             value: self.candles.clone(),
         }
         .data(result.state.into_result(result.candles));
-        let zoom = match self.candles.is_empty() {
-            true => period_zoom(&shown.value, self.period),
-            false => self.zoom,
-        };
         Self {
             state: shown.state,
             candles: shown.value,
             is_refreshing: false,
-            zoom,
             ..self.clone()
         }
     }
@@ -145,7 +140,7 @@ impl GemCandleSession {
                 (state, _) => state.clone(),
             },
             viewport: viewport(&self.candles, self.zoom),
-            base: period_base(&self.candles, self.period),
+            base: self.candles.first().map_or(0.0, |candle| candle.close),
             is_refreshing: self.is_refreshing,
         }
     }
@@ -162,22 +157,6 @@ impl GemCandleSession {
             zoom: GemChartZoom::identity(),
         }
     }
-}
-
-fn period_zoom(candles: &[GemChartCandleStick], period: ChartPeriod) -> GemChartZoom {
-    let (Some(first), Some(last)) = (candles.first(), candles.last()) else {
-        return GemChartZoom::identity();
-    };
-    let periods = (last.date - first.date).num_minutes() as f64 / f64::from(period.minutes());
-    GemChartZoom { scale: periods }.clamped(candles.len())
-}
-
-fn period_base(candles: &[GemChartCandleStick], period: ChartPeriod) -> f64 {
-    let Some(last) = candles.last() else {
-        return 0.0;
-    };
-    let start = last.date - TimeDelta::minutes(i64::from(period.minutes()));
-    candles.iter().find(|candle| candle.date >= start).map_or(last.close, |candle| candle.close)
 }
 
 fn viewport(candles: &[GemChartCandleStick], zoom: GemChartZoom) -> GemCandleViewport {
@@ -332,24 +311,16 @@ mod tests {
     }
 
     #[test]
-    fn test_a_first_load_opens_on_the_period_and_keeps_older_candles_for_zooming_out() {
-        let session = candle_session(ChartPeriod::Hour).on_select_market(market("BTC"));
-        let candles: Vec<GemChartCandleStick> = (0..240).map(|minute| GemChartCandleStick::mock(minute * 60, 100.0 + minute as f64)).collect();
-        let shown = session.on_result(loaded(session.request().unwrap(), candles.clone()));
+    fn test_on_result() {
+        let candles: Vec<GemChartCandleStick> = (0..60).map(|minute| GemChartCandleStick::mock(minute * 60, 100.0 + minute as f64)).collect();
+        let shown = session().on_result(loaded(session().request().unwrap(), candles.clone()));
         let state = shown.view_state();
 
-        assert_eq!(shown.zoom, GemChartZoom { scale: 239.0 / 60.0 });
-        assert_eq!(state.viewport.candles, candles[179..], "the chart opens on the last hour, without a candle wholly off its edge");
+        assert_eq!(state.viewport.candles, candles, "a first load shows the whole period");
+        assert_eq!(state.header_at(candles[59].close), candlestick_header(candles[0].close, candles[59].close), "the header change is over the whole period");
         assert_eq!(
-            state.header_at(candles[239].close),
-            candlestick_header(candles[179].close, candles[239].close),
-            "the header change is over the period, not over the history kept for zooming out"
-        );
-        assert_eq!(shown.candles, candles);
-        assert_eq!(shown.on_zoom(0.1).zoom, GemChartZoom::identity(), "zooming out reaches the whole history");
-        assert_eq!(
-            shown.on_zoom(0.5).on_refresh().on_result(loaded(shown.request().unwrap(), candles)).zoom,
-            GemChartZoom { scale: 239.0 / 120.0 },
+            shown.on_zoom(2.0).on_refresh().on_result(loaded(shown.request().unwrap(), candles)).zoom,
+            GemChartZoom { scale: 2.0 },
             "a refresh keeps the zoom the user chose"
         );
         assert_eq!(candle_session(ChartPeriod::Hour).view_state().base, 0.0);
