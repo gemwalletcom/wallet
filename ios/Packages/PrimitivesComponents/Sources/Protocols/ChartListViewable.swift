@@ -8,6 +8,7 @@ import Primitives
 public protocol ChartListViewable: AnyObject, Observable {
     var chartState: StateViewType<ChartValuesViewModel> { get }
     var selectedPeriod: ChartPeriod { get set }
+    var isPinching: Bool { get set }
     var periods: [ChartPeriod] { get }
     func load() async
     func onZoom(_ magnification: Double)

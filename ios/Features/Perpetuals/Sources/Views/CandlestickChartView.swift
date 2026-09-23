@@ -24,11 +24,12 @@ struct CandlestickChartView: View {
     private let model: CandlestickChartViewModel
     private let onZoom: @MainActor (Double) -> Void
 
+    @Binding private var isPinching: Bool
     @State private var selectedCandle: ChartCandleStick?
-    @State private var isPinching = false
 
-    init(model: CandlestickChartViewModel, onZoom: @escaping @MainActor (Double) -> Void) {
+    init(model: CandlestickChartViewModel, isPinching: Binding<Bool>, onZoom: @escaping @MainActor (Double) -> Void) {
         self.model = model
+        _isPinching = isPinching
         self.onZoom = onZoom
     }
 
@@ -38,6 +39,7 @@ struct CandlestickChartView: View {
             chart
                 .padding(.bottom, Spacing.small)
         }
+        .sensoryFeedback(.selection, trigger: selectedCandle?.date) { _, date in date != nil }
     }
 
     private var priceHeader: some View {
@@ -59,25 +61,17 @@ struct CandlestickChartView: View {
         }
         .chartOverlay { proxy in
             GeometryReader { geometry in
-                Rectangle()
-                    .fill(.clear)
-                    .contentShape(Rectangle())
-                    .gesture(
-                        DragGesture(minimumDistance: 0)
-                            .onChanged { value in
-                                guard !isPinching, let candle = findCandle(location: value.location, proxy: proxy, geometry: geometry) else { return }
+                Color.clear
+                    .chartGestures(
+                        isPinching: $isPinching,
+                        onScrub: { location in
+                            if let candle = findCandle(location: location, proxy: proxy, geometry: geometry) {
                                 selectedCandle = candle
                             }
-                            .onEnded { _ in
-                                selectedCandle = nil
-                            },
+                        },
+                        onScrubEnd: { selectedCandle = nil },
+                        onZoom: onZoom,
                     )
-                    .chartZoom(isPinching: $isPinching, onZoom: onZoom)
-                    .onChange(of: isPinching) {
-                        if isPinching {
-                            selectedCandle = nil
-                        }
-                    }
 
                 if let selectedCandle {
                     tooltipOverlay(for: selectedCandle, proxy: proxy, geometry: geometry)

@@ -24,6 +24,8 @@ public final class PerpetualChartModel {
 
     private var session: GemCandleSession
 
+    public var isPinching = false
+
     public var currentPeriod: ChartPeriod {
         get { session.period.toPrimitives() }
         set {

@@ -58,6 +58,7 @@ public struct PerpetualScene: View {
                     .listRowInsets(.assetListRowInsets)
             }
         }
+        .scrollDisabled(model.chart.isPinching)
         .navigationTitle(details.title)
         .navigationBarTitleDisplayMode(.inline)
         .alertSheet($model.isPresentingAlertMessage)

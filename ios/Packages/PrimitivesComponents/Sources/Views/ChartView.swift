@@ -23,11 +23,12 @@ public struct ChartView: View {
     private let model: ChartValuesViewModel
     private let onZoom: @MainActor (Double) -> Void
 
+    @Binding private var isPinching: Bool
     @State private var selectedElement: ChartDateValue?
-    @State private var isPinching = false
 
-    public init(model: ChartValuesViewModel, onZoom: @escaping @MainActor (Double) -> Void) {
+    public init(model: ChartValuesViewModel, isPinching: Binding<Bool>, onZoom: @escaping @MainActor (Double) -> Void) {
         self.model = model
+        _isPinching = isPinching
         self.onZoom = onZoom
     }
 
@@ -36,6 +37,7 @@ public struct ChartView: View {
             priceHeader
             chart
         }
+        .sensoryFeedback(.selection, trigger: selectedElement?.date) { _, date in date != nil }
     }
 }
 
@@ -98,24 +100,13 @@ extension ChartView {
         }
         .chartOverlay { proxy in
             GeometryReader { geometry in
-                Rectangle()
-                    .fill(.clear)
-                    .contentShape(Rectangle())
-                    .gesture(
-                        DragGesture(minimumDistance: 0)
-                            .onChanged { value in
-                                onDragChange(location: value.location, proxy: proxy, geometry: geometry)
-                            }
-                            .onEnded { _ in
-                                onDragEnd()
-                            },
+                Color.clear
+                    .chartGestures(
+                        isPinching: $isPinching,
+                        onScrub: { onScrub(location: $0, proxy: proxy, geometry: geometry) },
+                        onScrubEnd: { selectedElement = nil },
+                        onZoom: onZoom,
                     )
-                    .chartZoom(isPinching: $isPinching, onZoom: onZoom)
-                    .onChange(of: isPinching) {
-                        if isPinching {
-                            selectedElement = nil
-                        }
-                    }
 
                 if let lastPoint = model.charts.last,
                    let plotFrame = proxy.plotFrame,
@@ -190,8 +181,8 @@ extension ChartView {
 // MARK: - Actions
 
 extension ChartView {
-    private func onDragChange(location: CGPoint, proxy: ChartProxy, geometry: GeometryProxy) {
-        guard !isPinching, let plotFrame = proxy.plotFrame else { return }
+    private func onScrub(location: CGPoint, proxy: ChartProxy, geometry: GeometryProxy) {
+        guard let plotFrame = proxy.plotFrame else { return }
 
         let relativeX = location.x - geometry[plotFrame].origin.x
         guard let targetDate = proxy.value(atX: relativeX) as Date?,
@@ -201,9 +192,5 @@ extension ChartView {
         }
 
         selectedElement = element
-    }
-
-    private func onDragEnd() {
-        selectedElement = nil
     }
 }

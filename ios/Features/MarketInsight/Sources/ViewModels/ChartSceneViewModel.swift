@@ -31,6 +31,7 @@ public final class ChartSceneViewModel: ChartListViewable {
     let assetModel: AssetViewModel
 
     private var session: GemChartSession
+    public var isPinching = false
     public var selectedPeriod: ChartPeriod {
         get { session.period.toPrimitives() }
         set {

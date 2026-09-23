@@ -17,10 +17,12 @@ struct PerpetualChartSection: View {
                 switch chart.state {
                 case .noData:
                     StateEmptyView(title: chart.emptyTitle, image: chart.emptyImage)
-                case .loading: LoadingView()
+                case .loading:
+                    LoadingView()
                 case let .data(viewState):
                     CandlestickChartView(
                         model: CandlestickChartViewModel(viewState: viewState, position: position),
+                        isPinching: $chart.isPinching,
                         onZoom: chart.onZoom,
                     )
                 case let .error(error):

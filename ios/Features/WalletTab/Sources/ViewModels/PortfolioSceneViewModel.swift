@@ -52,6 +52,8 @@ public final class PortfolioSceneViewModel: ChartListViewable {
         set { update(session.onSelectPeriod(period: newValue.toGem())) }
     }
 
+    public var isPinching = false
+
     public var periods: [ChartPeriod] {
         state.periods.map { $0.toPrimitives() }
     }

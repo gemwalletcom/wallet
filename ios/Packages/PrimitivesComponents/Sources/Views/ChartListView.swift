@@ -22,6 +22,7 @@ public struct ChartListView<Model: ChartListViewable, Content: View>: View {
             .fullWidthSection()
             content()
         }
+        .scrollDisabled(model.isPinching)
         .listSectionSpacing(.compact)
         .background {
             ChartPeriodLoader(model: model)

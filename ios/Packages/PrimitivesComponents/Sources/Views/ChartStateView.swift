@@ -22,7 +22,7 @@ public struct ChartStateView<Model: ChartListViewable>: View {
                 case .loading:
                     LoadingView()
                 case let .data(chart):
-                    ChartView(model: chart, onZoom: model.onZoom)
+                    ChartView(model: chart, isPinching: $model.isPinching, onZoom: model.onZoom)
                 case let .error(error):
                     StateEmptyView(
                         title: error.networkOrNoDataDescription,
