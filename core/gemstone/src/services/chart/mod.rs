@@ -3,6 +3,7 @@ pub mod rules;
 pub mod session;
 #[cfg(test)]
 pub(crate) mod testkit;
+pub mod zoom;
 
 use std::sync::Arc;
 
@@ -18,7 +19,8 @@ use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
 use session::GemChartSession;
 
-pub use model::{GemChartBounds, GemChartData, GemChartHeader, GemChartValueType};
+pub use model::{GemChartBounds, GemChartData, GemChartHeader, GemChartValueType, GemChartViewport};
+pub use zoom::GemChartZoom;
 
 #[uniffi::export]
 pub fn candlestick_header(base: f64, value: f64) -> GemChartHeader {

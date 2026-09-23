@@ -204,7 +204,7 @@ private fun PerpetualPositionScenePreview() {
             ),
             positionListItem = null,
             transactions = emptyList(),
-            chart = StateViewType.Data(PerpetualChartUIModel.from(chartData, samplePosition, LocalContext.current)),
+            chart = StateViewType.Data(PerpetualChartUIModel.from(chartData, chartData.first().close, samplePosition, LocalContext.current)),
             tooltip = { CandlestickTooltipUIModel(emptyList(), emptyList()) },
             period = ChartPeriod.Day,
             isRefreshing = false,

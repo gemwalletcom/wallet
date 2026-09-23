@@ -159,7 +159,7 @@ class PerpetualDetailsViewModel @Inject constructor(
             null -> when (state.state) {
                 GemLoadState.Loading -> StateViewType.Loading
                 GemLoadState.NoData -> StateViewType.NoData
-                else -> StateViewType.Data(PerpetualChartUIModel.from(state.candles.map { it.toPrimitives() }, position?.position, context))
+                else -> StateViewType.Data(PerpetualChartUIModel.from(state.viewport.candles.map { it.toPrimitives() }, state.base, position?.position, context))
             }
 
             else -> StateViewType.Error(error.errorText().text(context))

@@ -15,11 +15,10 @@ import uniffi.gemstone.perpetualChartLayout
 import java.time.ZoneId
 import java.util.Locale
 
-data class PerpetualChartUIModel(val candles: List<ChartCandleStick>, val chart: CandlestickChartUIModel) {
+data class PerpetualChartUIModel(val candles: List<ChartCandleStick>, val base: Double, val chart: CandlestickChartUIModel) {
     fun header(selectedIndex: Int?): GemChartHeader? {
-        val base = candles.firstOrNull() ?: return null
-        val target = selectedIndex?.let { candles.getOrNull(it) } ?: candles.last()
-        return candlestickHeader(base.close, target.close)
+        val target = selectedIndex?.let { candles.getOrNull(it) } ?: candles.lastOrNull() ?: return null
+        return candlestickHeader(base, target.close)
     }
 
     fun dateText(selectedIndex: Int?, period: ChartPeriod, formatter: SectionDateFormatter): String? {
@@ -28,8 +27,9 @@ data class PerpetualChartUIModel(val candles: List<ChartCandleStick>, val chart:
     }
 
     companion object {
-        fun from(candles: List<ChartCandleStick>, position: PerpetualPosition?, context: Context): PerpetualChartUIModel = PerpetualChartUIModel(
+        fun from(candles: List<ChartCandleStick>, base: Double, position: PerpetualPosition?, context: Context): PerpetualChartUIModel = PerpetualChartUIModel(
             candles = candles,
+            base = base,
             chart = CandlestickChartUIModel.from(
                 candles = candles,
                 layout = perpetualChartLayout(candles.map { it.toGem() }, position?.toGem()),

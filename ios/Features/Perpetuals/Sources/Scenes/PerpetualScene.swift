@@ -21,37 +21,15 @@ public struct PerpetualScene: View {
     }
 
     public var body: some View {
-        @Bindable var chart = model.chart
         let details = model.details
 
         return List {
             Section {} header: {
-                VStack {
-                    VStack {
-                        switch chart.state {
-                        case .noData:
-                            StateEmptyView(title: chart.emptyTitle, image: chart.emptyImage)
-                        case .loading: LoadingView()
-                        case let .data(data):
-                            CandlestickChartView(
-                                model: CandlestickChartViewModel(
-                                    candles: data.candles,
-                                    period: data.period,
-                                    position: details.position?.toPrimitives(),
-                                ),
-                            )
-                        case let .error(error):
-                            StateEmptyView(
-                                title: error.networkOrNoDataDescription,
-                                image: Images.ErrorContent.error,
-                            )
-                        }
-                    }
-                    .frame(height: Sizing.chart.height)
-
-                    PeriodSelectorView(selectedPeriod: $chart.currentPeriod)
-                        .padding(.horizontal, Spacing.medium)
-                }
+                PerpetualChartSection(
+                    chart: model.chart,
+                    position: details.position?.toPrimitives(),
+                    onPeriodChange: model.onPeriodChange,
+                )
             }
             .fullWidthSection()
 
@@ -109,7 +87,6 @@ public struct PerpetualScene: View {
             Task { await model.onDisappear() }
         }
         .onChange(of: scenePhase, model.onScenePhaseChange)
-        .onChange(of: chart.currentPeriod, model.onPeriodChange)
     }
 
     private func buttonsSection(_ buttons: [PerpetualButtonViewModel]) -> some View {

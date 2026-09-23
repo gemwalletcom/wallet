@@ -5,6 +5,7 @@ import Foundation
 import struct Gemstone.GemChartBounds
 import struct Gemstone.GemChartData
 import struct Gemstone.GemChartHeader
+import struct Gemstone.GemChartViewport
 import GemstonePrimitives
 import Primitives
 import Style
@@ -14,21 +15,26 @@ public struct ChartValuesViewModel: Sendable {
     public let period: ChartPeriod
     public let lineColor: Color
     let charts: [ChartDateValue]
+    let renderValues: [ChartDateValue]
 
     private let chartData: GemChartData
+    private let viewport: GemChartViewport
     let bounds: GemChartBounds
     private let dateFormatter = ChartDateFormatter()
 
     public init(
         period: ChartPeriod,
         chartData: GemChartData,
+        viewport: GemChartViewport,
         lineColor: Color = Colors.blue,
     ) {
         self.period = period
         self.chartData = chartData
+        self.viewport = viewport
         self.lineColor = lineColor
-        charts = chartData.values.map { $0.toPrimitives() }
-        bounds = chartData.bounds()
+        charts = viewport.values.map { $0.toPrimitives() }
+        renderValues = viewport.renderValues.map { $0.toPrimitives() }
+        bounds = viewport.bounds
     }
 
     var yScale: [Double] {
@@ -36,8 +42,7 @@ public struct ChartValuesViewModel: Sendable {
     }
 
     var xScale: [Date] {
-        guard let first = charts.first?.date, let last = charts.last?.date else { return [] }
-        return [first, last.addingTimeInterval(last.timeIntervalSince(first) * 0.02)]
+        [viewport.start, viewport.end.addingTimeInterval(viewport.end.timeIntervalSince(viewport.start) * 0.02)]
     }
 
     var lowerBoundDate: Date {
@@ -58,5 +63,11 @@ public struct ChartValuesViewModel: Sendable {
 
     func dateText(for element: ChartDateValue) -> String {
         dateFormatter.string(for: element.date, period: period)
+    }
+
+    func value(for date: Date) -> ChartDateValue? {
+        renderValues
+            .filter { $0.date >= viewport.start }
+            .min { abs($0.date.distance(to: date)) < abs($1.date.distance(to: date)) }
     }
 }

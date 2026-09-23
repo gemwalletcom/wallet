@@ -639,7 +639,7 @@ pub fn symbol(perpetual: &Perpetual) -> String {
 }
 
 pub fn merged_candles(candles: Vec<ChartCandleStick>, update: ChartCandleUpdate, perpetual: &Perpetual, period: &ChartPeriod) -> Option<Vec<ChartCandleStick>> {
-    (update.coin == symbol(perpetual) && update.interval == candle_interval(period)).then(|| merge_candle(candles, update.candle))
+    (!candles.is_empty() && update.coin == symbol(perpetual) && update.interval == candle_interval(period)).then(|| merge_candle(candles, update.candle))
 }
 
 fn merge_candle(candles: Vec<ChartCandleStick>, candle: ChartCandleStick) -> Vec<ChartCandleStick> {
@@ -1941,7 +1941,8 @@ mod tests {
             None,
             "a candle for another interval is not this chart's"
         );
-        assert_eq!(merged_candles(candles, ChartCandleUpdate { coin: "OTHER".to_string(), ..update }, &perpetual, &ChartPeriod::Day), None);
+        assert_eq!(merged_candles(candles, ChartCandleUpdate { coin: "OTHER".to_string(), ..update.clone() }, &perpetual, &ChartPeriod::Day), None);
+        assert_eq!(merged_candles(Vec::new(), update, &perpetual, &ChartPeriod::Day), None, "a streamed candle before the first load is not an empty chart");
     }
 
     #[test]

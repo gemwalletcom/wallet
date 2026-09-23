@@ -1,3 +1,5 @@
+use chrono::{DateTime, Utc};
+
 use super::rules;
 use crate::formatted_number::GemFormattedNumber;
 use primitives::{ChartDateValue, ChartPeriod, Currency};
@@ -45,6 +47,15 @@ pub struct GemChartBounds {
     pub y_max: f64,
     pub low: GemFormattedNumber,
     pub high: GemFormattedNumber,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemChartViewport {
+    pub start: DateTime<Utc>,
+    pub end: DateTime<Utc>,
+    pub values: Vec<ChartDateValue>,
+    pub render_values: Vec<ChartDateValue>,
+    pub bounds: GemChartBounds,
 }
 
 #[uniffi::export]

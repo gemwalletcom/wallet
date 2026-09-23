@@ -18,11 +18,14 @@ private enum ChartKey {
 
 struct CandlestickChartView: View {
     private let model: CandlestickChartViewModel
+    private let onZoom: @MainActor (Double) -> Void
 
     @State private var selectedCandle: ChartCandleStick?
+    @State private var isPinching = false
 
-    init(model: CandlestickChartViewModel) {
+    init(model: CandlestickChartViewModel, onZoom: @escaping @MainActor (Double) -> Void) {
         self.model = model
+        self.onZoom = onZoom
     }
 
     var body: some View {
@@ -57,14 +60,19 @@ struct CandlestickChartView: View {
                     .gesture(
                         DragGesture(minimumDistance: 0)
                             .onChanged { value in
-                                if let candle = findCandle(location: value.location, proxy: proxy, geometry: geometry) {
-                                    selectedCandle = candle
-                                }
+                                guard !isPinching, let candle = findCandle(location: value.location, proxy: proxy, geometry: geometry) else { return }
+                                selectedCandle = candle
                             }
                             .onEnded { _ in
                                 selectedCandle = nil
                             },
                     )
+                    .chartZoom(isPinching: $isPinching, onZoom: onZoom)
+                    .onChange(of: isPinching) {
+                        if isPinching {
+                            selectedCandle = nil
+                        }
+                    }
 
                 if let selectedCandle {
                     tooltipOverlay(for: selectedCandle, proxy: proxy, geometry: geometry)
@@ -120,10 +128,10 @@ struct CandlestickChartView: View {
             .foregroundStyle(color)
 
             RectangleMark(
-                x: .value(ChartKey.date, candle.date),
+                xStart: .value(ChartKey.date, model.bodyStart(for: candle)),
+                xEnd: .value(ChartKey.date, model.bodyEnd(for: candle)),
                 yStart: .value(ChartKey.open, candle.open),
                 yEnd: .value(ChartKey.close, candle.close),
-                width: .fixed(.space4),
             )
             .foregroundStyle(color)
         }

@@ -59,7 +59,7 @@ public final class PortfolioSceneViewModel: ChartListViewable {
     public var chartState: StateViewType<ChartValuesViewModel> {
         switch state.phase {
         case .loading: .loading
-        case let .data(chart): .data(ChartValuesViewModel(period: state.period.toPrimitives(), chartData: chart))
+        case let .data(chart, viewport): .data(ChartValuesViewModel(period: state.period.toPrimitives(), chartData: chart, viewport: viewport))
         case .noData: .noData
         case let .failed(error): .error(error)
         }
@@ -98,6 +98,10 @@ extension PortfolioSceneViewModel {
     func loadIfNeeded() async {
         guard session.needsLoad() else { return }
         await load()
+    }
+
+    public func onZoom(_ magnification: Double) {
+        update(session.onZoom(magnification: magnification))
     }
 
     func typeTitle(for type: PortfolioType) -> String {

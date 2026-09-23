@@ -6,7 +6,7 @@ import SwiftUI
 public struct ChartListView<Model: ChartListViewable, Content: View>: View {
     @Environment(\.connectionStatus) private var connectionStatus
 
-    @Bindable var model: Model
+    let model: Model
     @ViewBuilder let content: () -> Content
 
     public init(model: Model, @ViewBuilder content: @escaping () -> Content) {
@@ -17,18 +17,14 @@ public struct ChartListView<Model: ChartListViewable, Content: View>: View {
     public var body: some View {
         List {
             Section {} header: {
-                ChartStateView(
-                    state: model.chartState,
-                    selectedPeriod: $model.selectedPeriod,
-                    periods: model.periods,
-                )
+                ChartStateView(model: model)
             }
             .fullWidthSection()
             content()
         }
         .listSectionSpacing(.compact)
-        .task(id: model.selectedPeriod) {
-            await model.load()
+        .background {
+            ChartPeriodLoader(model: model)
         }
         .refreshable {
             await model.load()
@@ -36,5 +32,16 @@ public struct ChartListView<Model: ChartListViewable, Content: View>: View {
         .refreshableTimer(every: connectionStatus.refreshInterval(for: .chart)) { @MainActor _ in
             await model.load()
         }
+    }
+}
+
+private struct ChartPeriodLoader<Model: ChartListViewable>: View {
+    let model: Model
+
+    var body: some View {
+        Color.clear
+            .task(id: model.selectedPeriod) {
+                await model.load()
+            }
     }
 }

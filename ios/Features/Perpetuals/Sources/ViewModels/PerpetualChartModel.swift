@@ -39,8 +39,12 @@ public final class PerpetualChartModel {
 
     public var state: StateViewType<PerpetualCandles> {
         let viewState = session.viewState()
-        return viewState.state.stateViewType(viewState.candles).map { candles in
-            PerpetualCandles(period: viewState.period.toPrimitives(), candles: candles.map { $0.toPrimitives() })
+        return viewState.state.stateViewType(viewState.candles).map { _ in
+            PerpetualCandles(
+                period: viewState.period.toPrimitives(),
+                viewport: viewState.viewport,
+                base: viewState.base,
+            )
         }
     }
 
@@ -74,6 +78,10 @@ public extension PerpetualChartModel {
     func refresh(perpetual: Perpetual) async {
         await updateCandlesticks(perpetual: perpetual)
     }
+
+    func onZoom(_ magnification: Double) {
+        session = session.onZoom(magnification: magnification)
+    }
 }
 
 // MARK: - Private
@@ -86,7 +94,8 @@ private extension PerpetualChartModel {
     func updateCandlesticks(perpetual: Perpetual) async {
         session = session.onSelectMarket(perpetual: perpetual.toGem())
         guard let request = session.request() else { return }
-        session = await session.onResult(result: service.candles(request: request))
+        let result = await service.candles(request: request)
+        session = session.onResult(result: result)
     }
 
     func subscribeCandles(_ subscription: GemPerpetualSubscription) async {

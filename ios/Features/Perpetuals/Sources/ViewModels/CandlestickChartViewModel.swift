@@ -4,10 +4,10 @@ import Components
 import Formatters
 import Foundation
 import func Gemstone.candlestickHeader
+import struct Gemstone.GemCandleViewport
 import struct Gemstone.GemChartHeader
 import struct Gemstone.GemPerpetualChartLayout
 import func Gemstone.perpetualChartLayout
-import class Gemstone.PriceChangeCalculator
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -15,29 +15,34 @@ import Style
 import SwiftUI
 
 struct CandlestickChartViewModel {
-    private let priceChangeCalculator = PriceChangeCalculator()
     enum Constants {
         static let labelOverlapSpacing: CGFloat = 115
+        static let candleBodyWidthRatio: Double = 0.6
     }
 
     let candles: [ChartCandleStick]
 
+    private let viewport: GemCandleViewport
+    private let base: Double
     private let layout: GemPerpetualChartLayout
     private let period: ChartPeriod
     private let dateFormatter = ChartDateFormatter()
 
     init(
-        candles: [ChartCandleStick],
+        viewport: GemCandleViewport,
+        base: Double,
         period: ChartPeriod = .day,
         position: PerpetualPosition? = nil,
     ) {
-        self.candles = candles
-        layout = perpetualChartLayout(candles: candles.map { $0.toGem() }, position: position?.toGem())
+        self.viewport = viewport
+        self.base = base
+        candles = viewport.candles.map { $0.toPrimitives() }
+        layout = perpetualChartLayout(candles: viewport.candles, position: position?.toGem())
         self.period = period
     }
 
     var xAxisRange: ClosedRange<Date> {
-        (candles.first?.date ?? Date()) ... (candles.last?.date ?? Date())
+        viewport.start ... viewport.end
     }
 
     var yAxisRange: ClosedRange<Double> {
@@ -81,7 +86,7 @@ struct CandlestickChartViewModel {
     }
 
     func header(for selectedCandle: ChartCandleStick?) -> GemChartHeader? {
-        guard let target = selectedCandle ?? candles.last, let base = candles.first?.close else { return nil }
+        guard let target = selectedCandle ?? candles.last else { return nil }
         return candlestickHeader(base: base, value: target.close)
     }
 
@@ -91,6 +96,18 @@ struct CandlestickChartViewModel {
 
     func tooltipModel(for candle: ChartCandleStick) -> CandleTooltipViewModel {
         CandleTooltipViewModel(candle: candle)
+    }
+
+    func bodyStart(for candle: ChartCandleStick) -> Date {
+        candle.date.addingTimeInterval(-bodyHalfWidth)
+    }
+
+    func bodyEnd(for candle: ChartCandleStick) -> Date {
+        candle.date.addingTimeInterval(bodyHalfWidth)
+    }
+
+    private var bodyHalfWidth: TimeInterval {
+        TimeInterval(viewport.intervalSeconds) * Constants.candleBodyWidthRatio / 2
     }
 
     func candle(for date: Date) -> ChartCandleStick? {

@@ -38,6 +38,7 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemChartService
 import uniffi.gemstone.GemChartSession
+import uniffi.gemstone.GemChartZoom
 import uniffi.gemstone.GemServiceException
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -58,7 +59,7 @@ class ChartViewModelTest {
         Dispatchers.setMain(testDispatcher)
         every { chartService.chartPeriod() } returns ChartPeriod.Day.toGem()
         every { chartService.newSession() } answers {
-            GemChartSession(chartService.chartPeriod(), currencyFlow.value.toGem(), chart = null, error = null, isLoading = true, isRefreshing = false)
+            GemChartSession(chartService.chartPeriod(), currencyFlow.value.toGem(), chart = null, error = null, isLoading = true, isRefreshing = false, zoom = GemChartZoom(1.0))
         }
     }
 
