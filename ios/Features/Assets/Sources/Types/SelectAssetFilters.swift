@@ -11,10 +11,6 @@ extension GemSelectAssetFlow {
         case .allAssets: .allAssets
         }
     }
-
-    var requestFilters: [AssetsRequestFilter] {
-        filters.map(AssetsRequestFilter.init(core:))
-    }
 }
 
 extension AssetsRequestFilter {

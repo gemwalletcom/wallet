@@ -18,6 +18,19 @@ struct SelectAssetViewModelTests {
     }
 
     @Test
+    func recentsFollowTheChainFilter() {
+        let model = SelectAssetViewModel.mock(selectType: .send(.none), chains: [.bitcoin])
+
+        #expect(model.recentModel.query.request.filters == [.enabled, .hasBalance, .chains([Chain.bitcoin.rawValue])])
+
+        var filter = model.filterModel
+        filter.chainsFilter.selectedChains = [.ethereum]
+        model.onChangeFilterModel(model.filterModel, model: filter)
+
+        #expect(model.recentModel.query.request.filters == [.enabled, .hasBalance, .chains([Chain.ethereum.rawValue])])
+    }
+
+    @Test
     func showEmpty() {
         #expect(SelectAssetViewModel.mock(assets: []).showEmpty == true)
         #expect(SelectAssetViewModel.mock(assets: [AssetData.mock(metadata: .mock(isPinned: true))]).showEmpty == false)

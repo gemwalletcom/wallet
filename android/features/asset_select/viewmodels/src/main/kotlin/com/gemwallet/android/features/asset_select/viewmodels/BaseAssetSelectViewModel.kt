@@ -173,12 +173,12 @@ open class BaseAssetSelectViewModel(
         .map { it.unpinned }
         .stateIn(viewModelScope, SharingStarted.Eagerly, sections.value.unpinned)
 
-    val recent = currentQuery
-        .flatMapLatest { query ->
+    val recent = combine(currentQuery, chainFilter, balanceFilter) { query, chains, hasBalance -> query to assetFilters(chains, hasBalance) }
+        .flatMapLatest { (query, filters) ->
             if (query.isNotEmpty() || !flow.recents) {
                 flow { emit(emptyList()) }
             } else {
-                recentAssetsService.getRecentAssets(RecentAssetsRequest(types = recentTypes, filters = assetFilters()))
+                recentAssetsService.getRecentAssets(RecentAssetsRequest(types = recentTypes, filters = filters))
             }
         }
         .map { items -> items.map { it.asset }.toImmutableList() }
@@ -300,7 +300,9 @@ open class BaseAssetSelectViewModel(
     val recentTypes: List<RecentActivityType>
         get() = flow.action?.recentActivityTypes()?.map { it.toPrimitives() } ?: RecentActivityType.entries
 
-    fun assetFilters(): Set<AssetFilter> = flow.filters.toQueryFilters()
+    fun assetFilters(): Set<AssetFilter> = assetFilters(chainFilter.value, balanceFilter.value)
+
+    private fun assetFilters(chains: List<Chain>, hasBalance: Boolean): Set<AssetFilter> = flow.appliedFilters(chains.map { it.string }, hasBalance).toQueryFilters()
 
     open fun assetsSearchLimit(query: String): Int = NO_QUERY_LIMIT
 

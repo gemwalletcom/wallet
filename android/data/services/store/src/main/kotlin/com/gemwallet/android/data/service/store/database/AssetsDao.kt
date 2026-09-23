@@ -18,6 +18,7 @@ import com.gemwallet.android.data.service.store.database.entities.DbRecentActivi
 import com.gemwallet.android.data.service.store.database.entities.DbRecentAsset
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.NO_QUERY_LIMIT
+import com.gemwallet.android.model.chains
 import com.gemwallet.android.model.chainsOrAssetIds
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
@@ -339,6 +340,7 @@ interface AssetsDao {
                     AND balances.available_amount > 0
             ))
             AND (NOT :byChainsOrAssetIds OR asset.chain IN (:chains) OR asset.id IN (:assetIds))
+            AND (NOT :byChains OR asset.chain IN (:selectedChains))
         GROUP BY asset.id
         ORDER BY added_at DESC, asset.id ASC
         LIMIT CASE WHEN :limit <= 0 THEN -1 ELSE :limit END
@@ -355,6 +357,8 @@ interface AssetsDao {
         byChainsOrAssetIds: Boolean,
         chains: List<Chain>,
         assetIds: List<String>,
+        byChains: Boolean,
+        selectedChains: List<Chain>,
         limit: Int,
     ): Flow<List<DbRecentAsset>>
 
@@ -369,6 +373,8 @@ interface AssetsDao {
         byChainsOrAssetIds = filters.chainsOrAssetIds() != null,
         chains = filters.chainsOrAssetIds()?.chains.orEmpty(),
         assetIds = filters.chainsOrAssetIds()?.ids.orEmpty(),
+        byChains = filters.chains().isNotEmpty(),
+        selectedChains = filters.chains(),
         limit = limit,
     )
 

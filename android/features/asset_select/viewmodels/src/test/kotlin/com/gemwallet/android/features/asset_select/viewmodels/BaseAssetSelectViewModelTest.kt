@@ -7,6 +7,7 @@ import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAsset
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.model.chains
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
@@ -137,6 +138,24 @@ class BaseAssetSelectViewModelTest {
         assertEquals(emptyList<Chain>(), model.chainFilter.value)
         assertTrue(!model.balanceFilter.value)
         assertEquals(2, model.unpinned.first { it.size == 2 }.size)
+    }
+
+    @Test
+    fun `recents follow the chain filter`() = runTest(dispatcher) {
+        val requests = MutableStateFlow<List<RecentAssetsRequest>>(emptyList())
+        val recents: RecentAssetsService = mockk(relaxed = true) {
+            every { getRecentAssets(any()) } answers {
+                requests.value += firstArg<RecentAssetsRequest>()
+                flowOf(emptyList())
+            }
+        }
+        val model = viewModel(emptyList(), recents = recents)
+
+        model.setChainFilter(listOf(Chain.Bitcoin))
+
+        val bitcoin = setOf(AssetFilter.Chains(listOf(Chain.Bitcoin)))
+        assertEquals(bitcoin, requests.first { it.lastOrNull()?.filters == bitcoin }.last().filters)
+        assertEquals(bitcoin, model.assetFilters())
     }
 
     @Test

@@ -22,12 +22,14 @@ public extension SelectAssetViewModel {
         assets: [AssetData] = [],
         state: StateViewType<[AssetBasic]> = .noData,
         service: any GemAssetSelectionServiceProtocol = GemAssetSelectionServiceMock(),
+        chains: [Chain] = [],
     ) -> SelectAssetViewModel {
         let model = SelectAssetViewModel(
             wallet: wallet,
             selectType: selectType,
             service: service,
             recentAssetsService: GemRecentActivityService(store: GemstoneRecentActivityStore(store: .mock()), session: .mock()),
+            chains: chains,
         )
         model.assetsQuery.value = assets
         model.state = state

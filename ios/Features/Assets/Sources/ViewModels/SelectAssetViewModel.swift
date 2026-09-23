@@ -71,7 +71,7 @@ public final class SelectAssetViewModel {
         recentModel = RecentAssetsModel(
             walletId: wallet.id,
             types: flow.action?.recentActivityTypes().map { $0.toPrimitives() } ?? RecentActivityType.allCases,
-            filters: flow.requestFilters,
+            filters: filter.filters,
             service: recentAssetsService,
         )
     }
@@ -184,6 +184,7 @@ extension SelectAssetViewModel {
 
     func onChangeFilterModel(_: AssetsFilterViewModel, model: AssetsFilterViewModel) {
         assetsQuery.request.filters = model.filters
+        recentModel.query.request.filters = model.filters
     }
 }
 

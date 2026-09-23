@@ -25,8 +25,7 @@ struct SelectAssetPresentationTests {
     }
 
     @Test
-    func filtersAndScopeMapFromTheFlow() {
-        #expect(GemSelectAssetType.send.flow().requestFilters == [.enabled, .hasBalance])
+    func scopeMapsFromTheFlow() {
         #expect(GemSelectAssetType.send.flow().requestScope == .wallet)
         #expect(GemSelectAssetType.priceAlert.flow().requestScope == .allAssets)
     }
