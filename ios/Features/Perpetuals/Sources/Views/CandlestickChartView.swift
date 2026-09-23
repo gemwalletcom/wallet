@@ -17,6 +17,10 @@ private enum ChartKey {
 }
 
 struct CandlestickChartView: View {
+    private enum Metrics {
+        static let dateLabelWidth: CGFloat = 60
+    }
+
     private let model: CandlestickChartViewModel
     private let onZoom: @MainActor (Double) -> Void
 
@@ -80,9 +84,18 @@ struct CandlestickChartView: View {
             }
         }
         .chartXAxis {
-            AxisMarks(position: .bottom, values: .automatic(desiredCount: model.xAxisTickCount)) { _ in
+            AxisMarks(position: .bottom, values: model.xAxisTicks) { value in
                 AxisGridLine(stroke: ChartGridStyle.strokeStyle)
                     .foregroundStyle(ChartGridStyle.color)
+                AxisValueLabel(horizontalSpacing: -Metrics.dateLabelWidth / 2, verticalSpacing: Spacing.small) {
+                    if let date = value.as(Date.self) {
+                        Text(model.xAxisLabel(for: date))
+                            .font(.caption2)
+                            .foregroundStyle(Colors.gray)
+                            .fixedSize()
+                            .frame(width: Metrics.dateLabelWidth)
+                    }
+                }
             }
         }
         .chartYAxis {

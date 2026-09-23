@@ -25,6 +25,7 @@ struct CandlestickChartViewModel {
     private let viewport: GemCandleViewport
     private let base: Double
     private let layout: GemPerpetualChartLayout
+    private let timeAxis: ChartTimeAxis
     private let period: ChartPeriod
     private let dateFormatter = ChartDateFormatter()
 
@@ -38,6 +39,7 @@ struct CandlestickChartViewModel {
         self.base = base
         candles = viewport.candles.map { $0.toPrimitives() }
         layout = perpetualChartLayout(candles: viewport.candles, position: position?.toGem())
+        timeAxis = ChartTimeAxis(dates: viewport.candles.map(\.date), range: viewport.start ... viewport.end, interval: TimeInterval(viewport.intervalSeconds))
         self.period = period
     }
 
@@ -61,8 +63,12 @@ struct CandlestickChartViewModel {
         layout.ticks[safe: index]?.text() ?? ""
     }
 
-    var xAxisTickCount: Int {
-        Int(layout.xTickCount)
+    var xAxisTicks: [Date] {
+        timeAxis.ticks
+    }
+
+    func xAxisLabel(for date: Date) -> String {
+        timeAxis.label(for: date)
     }
 
     var lineLabelOffsets: [CGFloat] {
