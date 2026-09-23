@@ -107,29 +107,6 @@ extension AssetRecord: CreateTable {
     }
 }
 
-extension Asset {
-    var record: AssetRecord {
-        AssetRecord(
-            id: id.identifier,
-            chain: chain,
-            tokenId: tokenId ?? "",
-            name: name,
-            symbol: symbol,
-            decimals: Int(decimals),
-            type: type,
-            isEnabled: false,
-            isBuyable: false,
-            isSellable: false,
-            isSwappable: false,
-            isStakeable: false,
-            isEarnable: false,
-            rank: 0,
-            hasImage: false,
-            associations: [],
-        )
-    }
-}
-
 extension AssetRecord {
     var properties: AssetProperties {
         AssetProperties(

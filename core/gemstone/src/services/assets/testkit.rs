@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
-use primitives::{Asset, AssetBasic, AssetFull, AssetId, Wallet, WalletId};
+use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetProperties, AssetRank, AssetScore, Wallet, WalletId};
 
 use super::details::GemAssetDetailsService;
 use super::icon::GemAssetIconImage;
@@ -32,6 +32,17 @@ use crate::services::wallet_session::GemWalletSessionService;
 use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
 use crate::testkit::{EmptyPreferences, TestAlienProvider};
 
+fn as_stored(basic: AssetBasic) -> AssetBasic {
+    AssetBasic::new(
+        basic.asset,
+        AssetProperties { has_price: false, ..basic.properties },
+        AssetScore {
+            rank: basic.score.rank,
+            rank_type: AssetRank::Unknown,
+        },
+    )
+}
+
 #[derive(Default)]
 pub struct MemoryAssetStore {
     pub assets: Mutex<Vec<AssetBasic>>,
@@ -60,7 +71,7 @@ impl GemAssetStore for MemoryAssetStore {
     async fn save_assets(&self, assets: Vec<AssetBasic>) -> Result<(), GemServiceError> {
         self.asset_writes.lock().unwrap().push(assets.clone());
         let mut stored = self.assets.lock().unwrap();
-        for basic in assets {
+        for basic in assets.into_iter().map(as_stored) {
             match stored.iter_mut().find(|current| current.asset.id == basic.asset.id) {
                 Some(current) => *current = basic,
                 None => stored.push(basic),
@@ -69,7 +80,7 @@ impl GemAssetStore for MemoryAssetStore {
         Ok(())
     }
     async fn save_asset(&self, asset: AssetFull) -> Result<(), GemServiceError> {
-        self.assets.lock().unwrap().push(AssetBasic::new(asset.asset, asset.properties, asset.score));
+        self.assets.lock().unwrap().push(as_stored(AssetBasic::new(asset.asset, asset.properties, asset.score)));
         Ok(())
     }
     async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {

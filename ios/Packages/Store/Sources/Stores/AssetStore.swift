@@ -11,18 +11,10 @@ public struct AssetStore: Sendable {
         self.db = db.dbQueue
     }
 
-    public func insert(assets: [AssetBasic]) throws {
-        try db.write { db in
-            for asset in assets {
-                try asset.record.insert(db, onConflict: .ignore)
-            }
-        }
-    }
-
     public func add(assets: [AssetBasic]) throws {
         try db.write { db in
             for asset in assets {
-                try asset.asset.record.insert(db, onConflict: .ignore)
+                try asset.record.insert(db, onConflict: .ignore)
                 try AssetRecord
                     .filter(AssetRecord.Columns.id == asset.asset.id.identifier)
                     .updateAll(
@@ -40,6 +32,7 @@ public struct AssetStore: Sendable {
                         AssetRecord.Columns.isEarnable.set(to: asset.properties.isEarnable),
                         AssetRecord.Columns.stakingApr.set(to: asset.properties.stakingApr),
                         AssetRecord.Columns.earnApr.set(to: asset.properties.earnApr),
+                        AssetRecord.Columns.hasImage.set(to: asset.properties.hasImage),
                     )
             }
         }

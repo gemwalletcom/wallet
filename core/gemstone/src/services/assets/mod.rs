@@ -287,6 +287,7 @@ mod tests {
     use crate::services::assets::testkit::MemoryAssetStore;
     use crate::testkit::TestAlienProvider;
     use futures::executor::block_on;
+    use primitives::AssetRank;
     use primitives::asset_constants::{ARC_USDC_TOKEN_ID, ETHEREUM_USDT_ASSET_ID};
 
     #[test]
@@ -294,7 +295,9 @@ mod tests {
         block_on(async {
             let store = Arc::new(MemoryAssetStore::default());
             let service = GemAssetsService::mock(Arc::new(TestAlienProvider::with_status(503)), store.clone());
-            let ethereum = rules::default_asset_basic(Asset::from_chain(Chain::Ethereum));
+            let mut ethereum = rules::default_asset_basic(Asset::from_chain(Chain::Ethereum));
+            ethereum.properties.has_price = true;
+            assert_ne!(ethereum.score.rank_type, AssetRank::Unknown, "the backend names a rank type the apps never receive");
 
             service.save_assets(vec![ethereum.clone()]).await.unwrap();
             service.save_assets(vec![ethereum.clone()]).await.unwrap();

@@ -21,6 +21,19 @@ struct AssetStoreTests {
     }
 
     @Test
+    func addKeepsTheBackendPropertiesOnInsertAndOnUpdate() throws {
+        let db = DB.mock()
+        let store = AssetStore(db: db)
+        let asset = AssetBasic.mock(asset: .mockEthereum(), properties: .mock(hasImage: true))
+
+        try store.add(assets: [asset])
+        #expect(try store.getAssetBasics(for: [asset.asset.id.identifier]).first?.properties.hasImage == true)
+
+        try store.add(assets: [AssetBasic.mock(asset: .mockEthereum(), properties: .mock(hasImage: false))])
+        #expect(try store.getAssetBasics(for: [asset.asset.id.identifier]).first?.properties.hasImage == false)
+    }
+
+    @Test
     func swappableFlagIsSetOnlyWhereMissing() throws {
         let db = DB.mockWithChains([.ethereum, .bitcoin])
         let store = AssetStore(db: db)

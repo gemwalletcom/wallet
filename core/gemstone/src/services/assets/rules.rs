@@ -3,8 +3,8 @@ use std::str::FromStr;
 
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::{
-    Asset, AssetBasic, AssetId, AssetMetaData, AssetPrice, AssetProperties, AssetScore, BalanceMetadata, BannerEvent, Chain, ChainAsset, ConfigVersions, Currency, PerpetualProvider, PriceAlert, StakeChain, VerificationStatus, Wallet,
-    WalletType,
+    Asset, AssetBasic, AssetId, AssetMetaData, AssetPrice, AssetProperties, AssetRank, AssetScore, BalanceMetadata, BannerEvent, Chain, ChainAsset, ConfigVersions, Currency, PerpetualProvider, PriceAlert, StakeChain, VerificationStatus,
+    Wallet, WalletType,
 };
 
 use super::model::{
@@ -108,7 +108,22 @@ pub fn changed_assets(assets: Vec<AssetBasic>, stored: &[AssetBasic]) -> Vec<Ass
 }
 
 fn is_persisted_same(left: &AssetBasic, right: &AssetBasic) -> bool {
-    left.asset == right.asset && left.properties == right.properties && left.score == right.score
+    as_persisted(left) == as_persisted(right)
+}
+
+fn as_persisted(basic: &AssetBasic) -> AssetBasic {
+    AssetBasic {
+        asset: basic.asset.clone(),
+        properties: AssetProperties {
+            has_price: false,
+            ..basic.properties.clone()
+        },
+        score: AssetScore {
+            rank_type: AssetRank::Unknown,
+            ..basic.score.clone()
+        },
+        price: None,
+    }
 }
 
 pub fn missing_assets(assets: Vec<AssetBasic>, existing: Vec<AssetId>) -> Vec<AssetBasic> {
