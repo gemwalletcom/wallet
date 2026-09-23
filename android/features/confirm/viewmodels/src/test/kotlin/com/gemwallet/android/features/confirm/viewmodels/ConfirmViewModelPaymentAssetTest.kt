@@ -13,6 +13,7 @@ import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetEthereumUSDT
 import com.gemwallet.android.testkit.mockGemConfirmLoad
+import com.gemwallet.android.testkit.mockGemConfirmLoadOptions
 import com.gemwallet.android.testkit.mockGemConfirmScreen
 import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockPaymentInvoice
@@ -28,6 +29,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelAndJoin
@@ -117,6 +119,22 @@ class ConfirmViewModelPaymentAssetTest {
         coVerify(exactly = 0) { confirmation.load(match<GemConfirmLoadOptions> { it.assetId != null }) }
     }
 
+    @Test
+    fun changingTheAssetBackWhileTheFirstLoadRunsStillReloads() = runTest(testDispatcher) {
+        val gate = CompletableDeferred<Unit>()
+        val viewModel = viewModel(payment(ethereum), gate).also { model = it }
+        viewModel.headerAsset()
+
+        viewModel.changePaymentAsset(usdt.id)
+        advanceUntilIdle()
+        viewModel.changePaymentAsset(ethereum.id)
+        advanceUntilIdle()
+        gate.complete(Unit)
+        advanceUntilIdle()
+
+        coVerify { confirmation.load(match<GemConfirmLoadOptions> { it.assetId == ethereum.id.toIdentifier() }) }
+    }
+
     private fun payment(asset: Asset) = mockGemTransferData(
         asset = asset,
         inputType = TransactionInputType.Payment(asset = asset.toGem(), invoice = mockPaymentInvoice(quotes = listOf(ethereum, usdt)), extra = mockTransferDataExtra()),
@@ -124,14 +142,18 @@ class ConfirmViewModelPaymentAssetTest {
 
     private suspend fun ConfirmViewModel.headerAsset() = (header.first { it is ConfirmHeaderUIModel.Symbol } as ConfirmHeaderUIModel.Symbol).asset
 
-    private fun viewModel(transfer: GemTransferData): ConfirmViewModel {
+    private fun viewModel(transfer: GemTransferData, gate: CompletableDeferred<Unit>? = null): ConfirmViewModel {
         every { confirmService.confirmation(any(), any(), any()) } returns confirmation
         every { confirmation.screen() } returns mockGemConfirmScreen()
+        every { confirmation.loadOptions() } returns mockGemConfirmLoadOptions()
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
         every { confirmation.header(any()) } answers { GemConfirmHeader.Transaction(GemTransactionHeader.Symbol((firstArg<GemConfirmLoad?>()?.transfer ?: transfer).asset.toGem())) }
         coEvery { confirmation.state() } returns mockGemConfirmLoad(ethereum).copy(transfer = transfer)
-        coEvery { confirmation.load(any()) } answers {
+        coEvery { confirmation.load(any()) } coAnswers {
             val options = firstArg<GemConfirmLoadOptions>()
+            if (options.assetId == usdt.id.toIdentifier()) {
+                gate?.await()
+            }
             val asset = if (options.assetId == usdt.id.toIdentifier()) usdt else ethereum
             mockGemConfirmLoad(asset).copy(transfer = payment(asset))
         }

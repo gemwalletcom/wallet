@@ -9,6 +9,7 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockGemConfirmLoad
+import com.gemwallet.android.testkit.mockGemConfirmLoadOptions
 import com.gemwallet.android.testkit.mockGemConfirmScreen
 import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockSession
@@ -121,18 +122,19 @@ class ConfirmViewModelRequestTest {
         val viewModel = viewModel(SavedStateHandle()).also { model = it }
         viewModel.init(transfer)
         advanceUntilIdle()
-        val fast = GemConfirmFeeSelection.Priority(FeePriority.Fast.toGem())
-        viewModel.feeSelection.value = fast
+        viewModel.changeFeePriority(FeePriority.Fast)
+        advanceUntilIdle()
 
         viewModel.init(transfer)
         advanceUntilIdle()
 
-        assertEquals(fast, viewModel.feeSelection.value)
+        assertEquals(FeePriority.Fast, viewModel.feeSelectionUIModel.value.selectedPriority)
     }
 
     private fun viewModel(handle: SavedStateHandle): ConfirmViewModel {
         every { confirmService.confirmation(any(), any(), any()) } returns confirmation
         every { confirmation.screen() } returns mockGemConfirmScreen()
+        every { confirmation.loadOptions() } returns mockGemConfirmLoadOptions()
         every { confirmation.header(any()) } returns GemConfirmHeader.Transaction(GemTransactionHeader.Symbol(asset.toGem()))
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
         every { confirmation.errorInfo(any(), any()) } returns null

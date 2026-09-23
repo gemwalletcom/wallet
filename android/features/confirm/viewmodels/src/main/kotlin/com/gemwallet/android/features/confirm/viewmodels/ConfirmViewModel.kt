@@ -13,7 +13,6 @@ import com.gemwallet.android.domains.confirm.FeeDetailsModel
 import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.gemwallet.android.domains.confirm.applicationMetadata
 import com.gemwallet.android.domains.confirm.asset
-import com.gemwallet.android.domains.confirm.confirmLoadOptions
 import com.gemwallet.android.domains.confirm.nftAsset
 import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.domains.confirm.paymentInvoice
@@ -47,7 +46,6 @@ import com.gemwallet.android.features.confirm.viewmodels.models.uiModel
 import com.gemwallet.android.features.confirm.viewmodels.models.verificationListItem
 import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.FeeAssetSelection
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.text
@@ -94,6 +92,7 @@ import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemConfirmFeeRow
 import uniffi.gemstone.GemConfirmFeeSelection
 import uniffi.gemstone.GemConfirmLoad
+import uniffi.gemstone.GemConfirmLoadOptions
 import uniffi.gemstone.GemConfirmPhase
 import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemConfirmStage
@@ -135,9 +134,7 @@ class ConfirmViewModel @Inject constructor(
     val isErrorSheetVisible = MutableStateFlow(false)
     val isVerificationVisible = MutableStateFlow(false)
     val verificationBridge = PaymentVerificationBridge(::onPaymentVerified)
-    val feeSelection = MutableStateFlow<GemConfirmFeeSelection>(GemConfirmFeeSelection.Priority(FeePriority.Normal.toGem()))
-    private val feeAssetSelection = MutableStateFlow<FeeAssetSelection>(FeeAssetSelection.Automatic)
-    private val assetSelection = MutableStateFlow<AssetId?>(null)
+    private val loadOptions = MutableStateFlow<GemConfirmLoadOptions?>(null)
     private val requestSimulation = MutableStateFlow<SimulationResult?>(null)
     private val requestWallet = MutableStateFlow<Wallet?>(null)
 
@@ -154,7 +151,10 @@ class ConfirmViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val confirmation = combine(request.filterNotNull(), wallet.filterNotNull()) { request, wallet ->
-        confirmService.confirmation(wallet.toGem(), request, requestSimulation.value).also { screen.value = it.screen() }
+        confirmService.confirmation(wallet.toGem(), request, requestSimulation.value).also {
+            screen.value = it.screen()
+            loadOptions.value = it.loadOptions()
+        }
     }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -171,12 +171,10 @@ class ConfirmViewModel @Inject constructor(
 
     private val load = combine(
         confirmation.filterNotNull(),
-        feeSelection,
-        feeAssetSelection,
-        assetSelection,
+        loadOptions.filterNotNull(),
         reload.onStart { emit(Unit) },
-    ) { session, feeSelection, feeAssetSelection, assetSelection, _ ->
-        session to confirmLoadOptions(feeSelection, feeAssetSelection, assetSelection)
+    ) { session, options, _ ->
+        session to options
     }
         .transformLatest { (session, options) ->
             screen.update { it.onLoadStarted() }
@@ -313,8 +311,6 @@ class ConfirmViewModel @Inject constructor(
             if (savedStateHandle.get<String?>(RouteArgument.Params.key) == pack) {
                 return@launch
             }
-            assetSelection.value = null
-            feeSelection.value = GemConfirmFeeSelection.Priority(transfer.defaultFeePriority())
             screen.update { it.onLoadStarted() }
             savedStateHandle[RouteArgument.Params.key] = pack
         }
@@ -375,38 +371,28 @@ class ConfirmViewModel @Inject constructor(
         confirmation?.let { confirmHeader(it.header(load), loading, isPlaceholder, context, currency) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val feeSelectionUIModel: StateFlow<FeeSelectionUIModel> = feeSelection.map { FeeSelectionUIModel(it.selectedPriority()?.toPrimitives(), it.customGasPrice()) }
+    val feeSelectionUIModel: StateFlow<FeeSelectionUIModel> = loadOptions.filterNotNull()
+        .map { FeeSelectionUIModel(it.feeSelection.selectedPriority()?.toPrimitives(), it.feeSelection.customGasPrice()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, FeeSelectionUIModel(FeePriority.Normal, null))
 
     fun changeFeePriority(priority: FeePriority) = changeFeeSelection(GemConfirmFeeSelection.Priority(priority.toGem()))
 
     fun changeCustomFee(gasPrice: BigInteger) = changeFeeSelection(GemConfirmFeeSelection.Custom(gasPrice))
 
+    private fun changeFeeSelection(selection: GemConfirmFeeSelection) = loadOptions.update { it?.onFeeSelection(selection) }
+
     fun feeDetailsModel(currentFee: FeeUIModel.FeeInfo, feeAsset: FeeAssetUIModel): FeeDetailsModel? {
         val confirmData = content.value?.confirmData ?: return null
-        return FeeDetailsModel(currentFee, feeAsset, confirmData.feeRateRows(feeSelection.value, feeAsset.asset.toGem()))
-    }
-
-    fun changeFeeSelection(selection: GemConfirmFeeSelection) {
-        if (selection == feeSelection.value) return
-        screen.update { it.onLoadStarted() }
-        feeSelection.update { selection }
+        val options = loadOptions.value ?: return null
+        return FeeDetailsModel(currentFee, feeAsset, confirmData.feeRateRows(options.feeSelection, feeAsset.asset.toGem()))
     }
 
     fun changePaymentAsset(assetId: AssetId) {
-        val current = transfer.value
-        if (current?.asset?.id == assetId && current.verification() == null) return
-        screen.update { it.onLoadStarted() }
-        assetSelection.update { assetId }
+        val current = transfer.value ?: return
+        loadOptions.update { it?.onPaymentAsset(assetId.toIdentifier(), current) }
     }
 
-    fun changeFeeAsset(assetId: AssetId) {
-        if (feeAsset.value?.asset?.id == assetId) return
-        val selection = FeeAssetSelection.Selected(assetId)
-        if (selection == feeAssetSelection.value) return
-        screen.update { it.onLoadStarted() }
-        feeAssetSelection.update { selection }
-    }
+    fun changeFeeAsset(assetId: AssetId) = loadOptions.update { it?.onFeeAsset(assetId.toIdentifier(), feeAsset.value?.asset?.id?.toIdentifier()) }
 
     fun fetch() {
         screen.update { it.onLoadStarted() }
