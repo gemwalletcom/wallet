@@ -29,7 +29,7 @@ public struct ConfirmTransferScene: View {
             StateButton(model.confirmButtonModel)
         }
         .frame(maxWidth: .infinity)
-        .task(id: model.preloadSelection) {
+        .task(id: model.loadOptions) {
             await model.load()
         }
         .refreshableTimer(every: connectionStatus.refreshInterval(for: .confirm)) { @MainActor _ in

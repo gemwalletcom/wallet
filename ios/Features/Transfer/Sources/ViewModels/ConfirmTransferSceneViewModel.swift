@@ -7,6 +7,7 @@ import struct Gemstone.GemConfirmButton
 import enum Gemstone.GemConfirmError
 import enum Gemstone.GemConfirmFeeRow
 import enum Gemstone.GemConfirmFeeSelection
+import struct Gemstone.GemConfirmLoadOptions
 import enum Gemstone.GemConfirmRowContent
 import struct Gemstone.GemConfirmSimulationState
 import struct Gemstone.GemFeeRateRows
@@ -32,12 +33,10 @@ import WalletConnector
 @Observable
 @MainActor
 public final class ConfirmTransferSceneViewModel {
-    var feeSelection: GemConfirmFeeSelection {
-        didSet { feeRates = state.feeRateRows(selection: feeSelection) }
+    private(set) var loadOptions: GemConfirmLoadOptions {
+        didSet { feeRates = state.feeRateRows(selection: loadOptions.feeSelection) }
     }
 
-    var feeAssetSelection: FeeAssetSelection
-    var assetSelection: AssetId?
     var state: ConfirmTransferState {
         didSet { onStateChange(state: state) }
     }
@@ -68,24 +67,19 @@ public final class ConfirmTransferSceneViewModel {
         self.confirmation = confirmation
         self.onComplete = onComplete
 
-        let feeSelection = GemConfirmFeeSelection.priority(priority: request.data.defaultFeePriority())
+        let loadOptions = confirmation.loadOptions()
         let state = ConfirmTransferState(
             transfer: request.data,
             simulation: ConfirmSimulationState(result: request.simulation),
             screen: confirmation.screen(),
         )
         let screen = state.screen
-        self.feeSelection = feeSelection
+        self.loadOptions = loadOptions
         self.state = state
-        feeAssetSelection = .automatic
         button = screen.button()
         feeRow = screen.feeRow()
-        feeRates = state.feeRateRows(selection: feeSelection)
+        feeRates = state.feeRateRows(selection: loadOptions.feeSelection)
         rowContents = confirmation.rowContents(addressName: state.addressName?.toGem())
-    }
-
-    var preloadSelection: ConfirmPreloadSelection {
-        ConfirmPreloadSelection(fee: feeSelection, feeAsset: feeAssetSelection, asset: assetSelection)
     }
 
     var payloadDetailsListItem: ListItemModel {
@@ -143,13 +137,13 @@ public final class ConfirmTransferSceneViewModel {
         NetworkFeeSceneViewModel(
             feeAsset: state.feeAsset,
             currency: confirmation.currency,
-            selection: feeSelection,
+            selection: loadOptions.feeSelection,
             feeRates: feeRates,
             feeAssetPrice: state.metadata?.feePrice,
             feeAmount: state.fee?.fee,
             additionalFees: state.confirmData?.additionalFees ?? [],
             feeAssets: state.feeAssets.map { $0.feeAssetItem(currency: confirmation.currency) },
-            onSelect: { [weak self] in self?.feeSelection = $0 },
+            onSelect: { [weak self] in self?.changeFeeSelection($0) },
             onSelectFeeAsset: { [weak self] in self?.selectFeeAsset($0) },
         )
     }
@@ -246,8 +240,7 @@ extension ConfirmTransferSceneViewModel {
 
     public func selectPaymentAsset(_ asset: Asset) {
         isPresentingSheet = nil
-        guard asset.id != transfer.asset.id || state.verification != nil else { return }
-        assetSelection = asset.id
+        loadOptions = loadOptions.onPaymentAsset(picked: asset.id.identifier, transfer: transfer)
     }
 
     func onSelectVerification() {
@@ -292,7 +285,7 @@ extension ConfirmTransferSceneViewModel {
         state.screen = state.screen.onLoadStarted()
         do {
             state = try await ConfirmTransferState(confirmation.state(), screen: state.screen)
-            let load = try await confirmation.load(options: preloadSelection.loadOptions)
+            let load = try await confirmation.load(options: loadOptions)
             state = ConfirmTransferState(load, screen: state.screen.onLoaded(load: load))
         } catch let error as GemConfirmError {
             guard !Task.isCancelled else { return }
@@ -308,7 +301,7 @@ extension ConfirmTransferSceneViewModel {
         let screen = state.screen
         button = screen.button()
         feeRow = screen.feeRow()
-        feeRates = state.feeRateRows(selection: feeSelection)
+        feeRates = state.feeRateRows(selection: loadOptions.feeSelection)
         rowContents = confirmation.rowContents(addressName: state.addressName?.toGem())
         guard let error = state.transactionError else { return }
         switch error {
@@ -319,9 +312,12 @@ extension ConfirmTransferSceneViewModel {
         }
     }
 
+    func changeFeeSelection(_ selection: GemConfirmFeeSelection) {
+        loadOptions = loadOptions.onFeeSelection(selection: selection)
+    }
+
     private func selectFeeAsset(_ assetId: AssetId) {
-        guard state.feeAsset.id != assetId else { return }
-        feeAssetSelection = .selected(assetId)
+        loadOptions = loadOptions.onFeeAsset(picked: assetId.identifier, loadedFeeAsset: state.feeAsset.id.identifier)
     }
 }
 

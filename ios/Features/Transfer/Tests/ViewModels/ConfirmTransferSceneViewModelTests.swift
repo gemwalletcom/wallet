@@ -74,7 +74,7 @@ struct ConfirmTransferSceneViewModelTests {
         await model.load()
 
         #expect(model.isPresentingSheet == nil)
-        #expect(confirmation.loadOptions.last?.assetId == Asset.mockBNB().id.identifier)
+        #expect(confirmation.requestedOptions.last?.assetId == Asset.mockBNB().id.identifier)
         #expect(model.transfer.chain == .smartChain)
         #expect(model.state.preload != nil)
     }
@@ -127,7 +127,7 @@ struct ConfirmTransferSceneViewModelTests {
 
         model.selectPaymentAsset(.mockBNB())
 
-        #expect(model.assetSelection == nil)
+        #expect(model.loadOptions.assetId == nil)
         #expect(model.isPresentingSheet == nil)
         #expect(model.state.preload != nil)
     }
@@ -322,7 +322,7 @@ struct ConfirmTransferSceneViewModelTests {
         #expect(model.state.preload?.confirmData.feeRates.map(\.priority) == priorities)
 
         model.state.simulation = .mock(warnings: [.notice(title: .warning, message: .externallyOwnedSpenderWarning, kind: .warning)])
-        model.feeSelection = .priority(priority: .fast)
+        model.changeFeeSelection(.priority(priority: .fast))
         await model.load()
 
         #expect(model.state.simulation.warnings.isEmpty)
@@ -351,7 +351,7 @@ struct ConfirmTransferSceneViewModelTests {
                 #expect(selectable)
                 reloading()
             }
-            model.feeSelection = .priority(priority: .fast)
+            model.changeFeeSelection(.priority(priority: .fast))
             await model.load()
         }
         #expect(model.state.preload?.confirmData.feeRates.count == 2)

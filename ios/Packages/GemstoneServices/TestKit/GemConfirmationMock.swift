@@ -33,7 +33,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     private let selection: GemTransferData?
     private var loaded: GemConfirmLoad?
     private var selected: GemTransferData?
-    public private(set) var loadOptions: [GemConfirmLoadOptions] = []
+    public private(set) var requestedOptions: [GemConfirmLoadOptions] = []
     public var onLoad: (@MainActor () -> Void)?
 
     public init(
@@ -60,6 +60,10 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         .mock()
     }
 
+    public func loadOptions() -> GemConfirmLoadOptions {
+        GemConfirmLoadOptions(feeSelection: .priority(priority: transfer().defaultFeePriority()), feeAssetId: nil, assetId: nil)
+    }
+
     public func header(load _: GemConfirmLoad?) -> GemConfirmHeader {
         headerValue
     }
@@ -73,7 +77,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     }
 
     public func load(options: GemConfirmLoadOptions) async throws -> GemConfirmLoad {
-        loadOptions.append(options)
+        requestedOptions.append(options)
         await onLoad?()
         if options.assetId != nil {
             selected = selection
