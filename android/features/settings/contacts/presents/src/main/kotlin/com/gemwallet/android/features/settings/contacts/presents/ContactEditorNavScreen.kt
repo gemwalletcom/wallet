@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.settings.contacts.presents
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -15,6 +16,8 @@ import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 fun ContactEditorNavScreen(onSaved: () -> Unit, onCancel: () -> Unit, viewModel: ContactEditorViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = uiState.errorText, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
+
+    BackHandler(uiState.page != ContactEditorPage.Form) { viewModel.back() }
 
     LaunchedEffect(uiState.saved) {
         if (uiState.saved) {

@@ -28,7 +28,6 @@ fun ContactAddressEditorScene(input: ContactAddressInput, onAddressChange: (Stri
 
     Scene(
         title = stringResource(R.string.common_address),
-        backHandle = true,
         onClose = { onAction(ContactAddressEditorAction.Cancel) },
         actions = {
             IconButton(onClick = { onAction(ContactAddressEditorAction.Confirm) }, enabled = input.isConfirmEnabled) {

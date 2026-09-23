@@ -128,6 +128,15 @@ class ContactEditorViewModel @Inject constructor(
 
     private fun updateSession(transform: (GemContactSession) -> GemContactSession) = state.update { it.copy(session = transform(it.session)) }
 
+    fun back() {
+        when (state.value.page) {
+            ContactEditorPage.Form -> Unit
+            ContactEditorPage.Address -> cancelAddress()
+            ContactEditorPage.SelectChain -> cancelSelectChain()
+            ContactEditorPage.Avatar -> cancelAvatar()
+        }
+    }
+
     fun setName(value: String) = updateSession { it.onNameChanged(value) }
 
     fun setDescription(value: String) = updateSession { it.onDescriptionChanged(value) }
