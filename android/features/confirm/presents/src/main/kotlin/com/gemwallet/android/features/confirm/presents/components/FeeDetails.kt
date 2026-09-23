@@ -177,7 +177,7 @@ fun FeeDetails(
                 selectedAssetId = currentFee.feeAsset.id,
                 onSelect = {
                     onSelectFeeAsset(it)
-                    page = FeeDetailsPage.Details
+                    onCancel()
                 },
             )
         }
