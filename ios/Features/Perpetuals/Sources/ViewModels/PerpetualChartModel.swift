@@ -4,6 +4,7 @@ import Components
 import Foundation
 import func Gemstone.candleSession
 import struct Gemstone.GemCandleSession
+import struct Gemstone.GemCandleViewState
 import protocol Gemstone.GemPerpetualDetailsServiceProtocol
 import enum Gemstone.GemPerpetualSubscription
 import GemstonePrimitives
@@ -37,15 +38,9 @@ public final class PerpetualChartModel {
         session = candleSession(period: service.chartPeriodValue.toGem())
     }
 
-    public var state: StateViewType<PerpetualCandles> {
+    public var state: StateViewType<GemCandleViewState> {
         let viewState = session.viewState()
-        return viewState.state.stateViewType(viewState.viewport.candles).map { _ in
-            PerpetualCandles(
-                period: viewState.period.toPrimitives(),
-                viewport: viewState.viewport,
-                base: viewState.base,
-            )
-        }
+        return viewState.state.stateViewType(viewState.viewport.candles).map { _ in viewState }
     }
 
     public var emptyTitle: String { Localized.Common.notAvailable }

@@ -4,7 +4,7 @@ use primitives::{ChartCandleUpdate, ChartPeriod, Perpetual};
 use super::rules;
 use crate::models::perpetual::GemChartCandleStick;
 use crate::models::state::{GemLoad, GemLoadState};
-use crate::services::chart::GemChartZoom;
+use crate::services::chart::{GemChartHeader, GemChartZoom, candlestick_header};
 
 const TRAILING_ROOM_FRACTION: f64 = 0.1;
 
@@ -36,6 +36,13 @@ pub struct GemCandleViewState {
     pub viewport: GemCandleViewport,
     pub base: f64,
     pub is_refreshing: bool,
+}
+
+#[uniffi::export]
+impl GemCandleViewState {
+    pub fn header_at(&self, value: f64) -> GemChartHeader {
+        candlestick_header(self.base, value)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -333,7 +340,11 @@ mod tests {
 
         assert_eq!(shown.zoom, GemChartZoom { scale: 239.0 / 60.0 });
         assert_eq!(state.viewport.candles, candles[179..], "the chart opens on the last hour, without a candle wholly off its edge");
-        assert_eq!(state.base, candles[179].close, "the header change is over the period, not over the history kept for zooming out");
+        assert_eq!(
+            state.header_at(candles[239].close),
+            candlestick_header(candles[179].close, candles[239].close),
+            "the header change is over the period, not over the history kept for zooming out"
+        );
         assert_eq!(shown.candles, candles);
         assert_eq!(shown.on_zoom(0.1).zoom, GemChartZoom::identity(), "zooming out reaches the whole history");
         assert_eq!(

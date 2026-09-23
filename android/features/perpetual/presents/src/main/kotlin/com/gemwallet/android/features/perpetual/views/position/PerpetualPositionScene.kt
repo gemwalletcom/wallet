@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualButtonUIModel
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualDetailsSectionUIModel
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualDetailsUIModel
@@ -45,9 +46,12 @@ import com.wallet.core.primitives.PerpetualOrderType
 import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.PerpetualTriggerOrder
+import uniffi.gemstone.GemCandleViewState
+import uniffi.gemstone.GemCandleViewport
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
+import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemPerpetualButton
 import uniffi.gemstone.GemValueTone
@@ -168,6 +172,14 @@ private fun PerpetualPositionScenePreview() {
             volume = 500000000.0 + (index * 10000000.0),
         )
     }
+    val previewCandles = chartData.map { it.toGem() }
+    val chartState = GemCandleViewState(
+        period = ChartPeriod.Day.toGem(),
+        state = GemLoadState.Data,
+        viewport = GemCandleViewport(start = previewCandles.first().date, end = previewCandles.last().date, intervalSeconds = 3600, candles = previewCandles),
+        base = chartData.first().close,
+        isRefreshing = false,
+    )
 
     WalletTheme {
         PerpetualPositionScene(
@@ -204,7 +216,7 @@ private fun PerpetualPositionScenePreview() {
             ),
             positionListItem = null,
             transactions = emptyList(),
-            chart = StateViewType.Data(PerpetualChartUIModel.from(chartData, chartData.first().close, samplePosition, LocalContext.current)),
+            chart = StateViewType.Data(PerpetualChartUIModel.from(chartState, samplePosition, LocalContext.current)),
             tooltip = { CandlestickTooltipUIModel(emptyList(), emptyList()) },
             period = ChartPeriod.Day,
             isRefreshing = false,

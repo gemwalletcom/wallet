@@ -18,14 +18,9 @@ struct PerpetualChartSection: View {
                 case .noData:
                     StateEmptyView(title: chart.emptyTitle, image: chart.emptyImage)
                 case .loading: LoadingView()
-                case let .data(data):
+                case let .data(viewState):
                     CandlestickChartView(
-                        model: CandlestickChartViewModel(
-                            viewport: data.viewport,
-                            base: data.base,
-                            period: data.period,
-                            position: position,
-                        ),
+                        model: CandlestickChartViewModel(viewState: viewState, position: position),
                         onZoom: chart.onZoom,
                     )
                 case let .error(error):

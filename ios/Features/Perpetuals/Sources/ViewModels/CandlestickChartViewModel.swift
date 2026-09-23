@@ -3,8 +3,8 @@
 import Components
 import Formatters
 import Foundation
-import func Gemstone.candlestickHeader
 import struct Gemstone.GemCandleViewport
+import struct Gemstone.GemCandleViewState
 import struct Gemstone.GemChartHeader
 import struct Gemstone.GemPerpetualChartLayout
 import func Gemstone.perpetualChartLayout
@@ -22,25 +22,19 @@ struct CandlestickChartViewModel {
 
     let candles: [ChartCandleStick]
 
-    private let viewport: GemCandleViewport
-    private let base: Double
+    private let viewState: GemCandleViewState
     private let layout: GemPerpetualChartLayout
     private let timeAxis: ChartTimeAxis
     private let period: ChartPeriod
     private let dateFormatter = ChartDateFormatter()
 
-    init(
-        viewport: GemCandleViewport,
-        base: Double,
-        period: ChartPeriod = .day,
-        position: PerpetualPosition? = nil,
-    ) {
-        self.viewport = viewport
-        self.base = base
+    init(viewState: GemCandleViewState, position: PerpetualPosition? = nil) {
+        self.viewState = viewState
+        let viewport = viewState.viewport
         candles = viewport.candles.map { $0.toPrimitives() }
         layout = perpetualChartLayout(candles: viewport.candles, position: position?.toGem())
         timeAxis = ChartTimeAxis(dates: viewport.candles.map(\.date), range: viewport.start ... viewport.end, interval: TimeInterval(viewport.intervalSeconds))
-        self.period = period
+        period = viewState.period.toPrimitives()
     }
 
     var xAxisRange: ClosedRange<Date> {
@@ -93,7 +87,7 @@ struct CandlestickChartViewModel {
 
     func header(for selectedCandle: ChartCandleStick?) -> GemChartHeader? {
         guard let target = selectedCandle ?? candles.last else { return nil }
-        return candlestickHeader(base: base, value: target.close)
+        return viewState.headerAt(value: target.close)
     }
 
     func dateText(for selectedCandle: ChartCandleStick?) -> String? {
@@ -114,6 +108,10 @@ struct CandlestickChartViewModel {
 
     private var bodyHalfWidth: TimeInterval {
         TimeInterval(viewport.intervalSeconds) * Constants.candleBodyWidthRatio / 2
+    }
+
+    private var viewport: GemCandleViewport {
+        viewState.viewport
     }
 
     func candle(for date: Date) -> ChartCandleStick? {

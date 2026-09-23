@@ -2,23 +2,24 @@ package com.gemwallet.android.features.perpetual.viewmodels.models
 
 import android.content.Context
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.perpetual.viewmodels.localization.stringRes
 import com.gemwallet.android.ui.format.SectionDateFormatter
 import com.gemwallet.android.ui.models.chart.CandlestickChartUIModel
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PerpetualPosition
+import uniffi.gemstone.GemCandleViewState
 import uniffi.gemstone.GemChartHeader
-import uniffi.gemstone.candlestickHeader
 import uniffi.gemstone.chartDateStyle
 import uniffi.gemstone.perpetualChartLayout
 import java.time.ZoneId
 import java.util.Locale
 
-data class PerpetualChartUIModel(val candles: List<ChartCandleStick>, val base: Double, val chart: CandlestickChartUIModel) {
+data class PerpetualChartUIModel(val candles: List<ChartCandleStick>, val state: GemCandleViewState, val chart: CandlestickChartUIModel) {
     fun header(selectedIndex: Int?): GemChartHeader? {
         val target = selectedIndex?.let { candles.getOrNull(it) } ?: candles.lastOrNull() ?: return null
-        return candlestickHeader(base, target.close)
+        return state.headerAt(target.close)
     }
 
     fun dateText(selectedIndex: Int?, period: ChartPeriod, formatter: SectionDateFormatter): String? {
@@ -27,14 +28,17 @@ data class PerpetualChartUIModel(val candles: List<ChartCandleStick>, val base: 
     }
 
     companion object {
-        fun from(candles: List<ChartCandleStick>, base: Double, position: PerpetualPosition?, context: Context): PerpetualChartUIModel = PerpetualChartUIModel(
-            candles = candles,
-            base = base,
-            chart = CandlestickChartUIModel.from(
+        fun from(state: GemCandleViewState, position: PerpetualPosition?, context: Context): PerpetualChartUIModel {
+            val candles = state.viewport.candles.map { it.toPrimitives() }
+            return PerpetualChartUIModel(
                 candles = candles,
-                layout = perpetualChartLayout(candles.map { it.toGem() }, position?.toGem()),
-                lineLabel = { kind -> context.getString(kind.stringRes()) },
-            ),
-        )
+                state = state,
+                chart = CandlestickChartUIModel.from(
+                    candles = candles,
+                    layout = perpetualChartLayout(state.viewport.candles, position?.toGem()),
+                    lineLabel = { kind -> context.getString(kind.stringRes()) },
+                ),
+            )
+        }
     }
 }
