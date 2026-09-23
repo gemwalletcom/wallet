@@ -155,7 +155,7 @@ class PerpetualDetailsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val chart: StateFlow<StateViewType<PerpetualChartUIModel>> = combine(candleViewState, position) { state, position ->
-        when (val error = loadError(state.state, state.candles.isNotEmpty())) {
+        when (val error = loadError(state.state, state.viewport.candles.isNotEmpty())) {
             null -> when (state.state) {
                 GemLoadState.Loading -> StateViewType.Loading
                 GemLoadState.NoData -> StateViewType.NoData
@@ -185,10 +185,7 @@ class PerpetualDetailsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             perpetualObserver.chartUpdates.collect { update ->
-                val market = perpetual.value?.perpetual ?: return@collect
-                val session = candles.value
-                val merged = withContext(ioDispatcher) { service.mergedCandles(session.candles, update.toGem(), market.toGem(), session.period) } ?: return@collect
-                candles.update { it.onCandles(merged) }
+                candles.update { it.onCandleUpdate(update.toGem()) }
             }
         }
         viewModelScope.launch {

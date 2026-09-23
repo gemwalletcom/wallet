@@ -153,7 +153,6 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
     public var chartPeriodValue: Gemstone.ChartPeriod = Primitives.ChartPeriod.day.toGem()
     public var candlesticksValue: [Gemstone.ChartCandleStick] = []
     public var candlesticksError: GemServiceError?
-    public var mergedCandlesValue: [Gemstone.ChartCandleStick]?
     public var closeTransferResult: Result<Gemstone.GemTransferData, Error> = .success(.mock())
     public var positionActionResult: Result<GemPerpetualPositionAction, Error> = .success(.open(data: .mock()))
     public var syncPositionsError: Error?
@@ -191,15 +190,6 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
 
     public func marketSubscription(perpetual: Gemstone.Perpetual) -> GemPerpetualSubscription {
         .marketData(symbol: perpetual.name)
-    }
-
-    public func mergedCandles(
-        candles _: [Gemstone.ChartCandleStick],
-        update _: Gemstone.ChartCandleUpdate,
-        perpetual _: Gemstone.Perpetual,
-        period _: Gemstone.ChartPeriod,
-    ) -> [Gemstone.ChartCandleStick]? {
-        mergedCandlesValue
     }
 
     public func positionAction(

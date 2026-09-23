@@ -39,7 +39,7 @@ public final class PerpetualChartModel {
 
     public var state: StateViewType<PerpetualCandles> {
         let viewState = session.viewState()
-        return viewState.state.stateViewType(viewState.candles).map { _ in
+        return viewState.state.stateViewType(viewState.viewport.candles).map { _ in
             PerpetualCandles(
                 period: viewState.period.toPrimitives(),
                 viewport: viewState.viewport,
@@ -59,7 +59,7 @@ public extension PerpetualChartModel {
         await subscribeCandles(candleSubscription(perpetual: perpetual, period: currentPeriod))
         observeTask?.cancel()
         observeTask = Task {
-            await observeCandles(perpetual: perpetual)
+            await observeCandles()
         }
     }
 
@@ -114,18 +114,12 @@ private extension PerpetualChartModel {
         }
     }
 
-    func observeCandles(perpetual: Perpetual) async {
+    func observeCandles() async {
         for await update in await observerService.chartService.makeStream() {
             if Task.isCancelled {
                 break
             }
-            mergeCandle(update, perpetual: perpetual)
+            session = session.onCandleUpdate(update: update.toGem())
         }
-    }
-
-    func mergeCandle(_ update: ChartCandleUpdate, perpetual: Perpetual) {
-        let viewState = session.viewState()
-        guard let merged = service.mergedCandles(update: update, into: viewState.candles.map { $0.toPrimitives() }, perpetual: perpetual, period: viewState.period.toPrimitives()) else { return }
-        session = session.onCandles(candles: merged.map { $0.toGem() })
     }
 }

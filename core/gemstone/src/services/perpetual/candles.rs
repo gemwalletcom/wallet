@@ -1,5 +1,5 @@
 use chrono::{DateTime, TimeDelta, Utc};
-use primitives::{ChartPeriod, Perpetual};
+use primitives::{ChartCandleUpdate, ChartPeriod, Perpetual};
 
 use super::rules;
 use crate::models::perpetual::GemChartCandleStick;
@@ -33,7 +33,6 @@ pub struct GemCandleViewport {
 pub struct GemCandleViewState {
     pub period: ChartPeriod,
     pub state: GemLoadState,
-    pub candles: Vec<GemChartCandleStick>,
     pub viewport: GemCandleViewport,
     pub base: f64,
     pub is_refreshing: bool,
@@ -108,12 +107,18 @@ impl GemCandleSession {
         }
     }
 
-    pub fn on_candles(&self, candles: Vec<GemChartCandleStick>) -> Self {
-        Self {
-            state: GemLoadState::Data,
-            candles,
-            is_refreshing: false,
-            ..self.clone()
+    pub fn on_candle_update(&self, update: ChartCandleUpdate) -> Self {
+        let Some(symbol) = &self.symbol else {
+            return self.clone();
+        };
+        match rules::merged_candles(self.candles.clone(), update, symbol, &self.period) {
+            Some(candles) => Self {
+                state: GemLoadState::Data,
+                candles,
+                is_refreshing: false,
+                ..self.clone()
+            },
+            None => self.clone(),
         }
     }
 
@@ -132,7 +137,6 @@ impl GemCandleSession {
                 (GemLoadState::Data, true) => GemLoadState::NoData,
                 (state, _) => state.clone(),
             },
-            candles: self.candles.clone(),
             viewport: viewport(&self.candles, self.zoom),
             base: period_base(&self.candles, self.period),
             is_refreshing: self.is_refreshing,
@@ -252,7 +256,7 @@ mod tests {
         let kept = shown.on_refresh().on_result(failed(shown.request().unwrap()));
 
         assert_eq!(kept.view_state().state, GemLoadState::Data);
-        assert_eq!(kept.view_state().candles, vec![candle(1)]);
+        assert_eq!(kept.view_state().viewport.candles, vec![candle(1)]);
         assert!(!kept.view_state().is_refreshing, "a failed refresh stops the spinner too");
         assert!(matches!(session().on_result(failed(session().request().unwrap())).view_state().state, GemLoadState::Error { .. }));
     }
@@ -305,7 +309,17 @@ mod tests {
 
         assert_eq!(zoomed.zoom, GemChartZoom { scale: 3.0 });
         assert_eq!(zoomed.on_zoom(3.0).zoom, GemChartZoom { scale: 5.0 }, "the session clamps against the candles it holds");
-        assert_eq!(zoomed.on_candles(candles).zoom, zoomed.zoom, "a streamed candle keeps the zoom");
+        assert_eq!(
+            zoomed
+                .on_candle_update(ChartCandleUpdate {
+                    coin: "BTC".to_string(),
+                    interval: rules::candle_interval(&ChartPeriod::Day).to_string(),
+                    candle: GemChartCandleStick::mock(40 * 60, 100.0),
+                })
+                .zoom,
+            zoomed.zoom,
+            "a streamed candle keeps the zoom"
+        );
         assert_eq!(zoomed.on_select_period(ChartPeriod::Week).zoom, GemChartZoom::identity(), "a new period starts unzoomed");
         assert_eq!(zoomed.on_select_market(market("ETH")).zoom, GemChartZoom::identity());
     }
@@ -320,7 +334,7 @@ mod tests {
         assert_eq!(shown.zoom, GemChartZoom { scale: 239.0 / 60.0 });
         assert_eq!(state.viewport.candles, candles[179..], "the chart opens on the last hour, without a candle wholly off its edge");
         assert_eq!(state.base, candles[179].close, "the header change is over the period, not over the history kept for zooming out");
-        assert_eq!(state.candles, candles);
+        assert_eq!(shown.candles, candles);
         assert_eq!(shown.on_zoom(0.1).zoom, GemChartZoom::identity(), "zooming out reaches the whole history");
         assert_eq!(
             shown.on_zoom(0.5).on_refresh().on_result(loaded(shown.request().unwrap(), candles)).zoom,
@@ -331,12 +345,34 @@ mod tests {
     }
 
     #[test]
-    fn test_a_streamed_candle_replaces_what_is_shown_without_asking_again() {
+    fn test_on_candle_update() {
         let shown = session().on_result(loaded(session().request().unwrap(), vec![candle(1)]));
+        let update = ChartCandleUpdate {
+            coin: "BTC".to_string(),
+            interval: rules::candle_interval(&ChartPeriod::Day).to_string(),
+            candle: candle(2),
+        };
+        let updated = shown.on_candle_update(update.clone());
+        let week = shown.on_select_period(ChartPeriod::Week).on_result(loaded(
+            GemCandleRequest {
+                symbol: "BTC".to_string(),
+                period: ChartPeriod::Week,
+            },
+            vec![candle(1)],
+        ));
+        let eth = shown.on_select_market(market("ETH")).on_result(loaded(
+            GemCandleRequest {
+                symbol: "ETH".to_string(),
+                period: ChartPeriod::Day,
+            },
+            vec![candle(1)],
+        ));
 
-        let merged = shown.on_candles(vec![candle(1), candle(2)]);
-
-        assert_eq!(merged.view_state().candles.len(), 2);
-        assert!(!merged.needs_candles());
+        assert_eq!(updated.candles, vec![candle(2)]);
+        assert_eq!(updated.view_state().state, GemLoadState::Data);
+        assert!(!updated.needs_candles(), "a streamed candle replaces what is shown without asking again");
+        assert_eq!(week.on_candle_update(update.clone()), week, "a candle streamed for the period the screen left never reaches the new one");
+        assert_eq!(eth.on_candle_update(update.clone()), eth, "another market's candle is not this chart's");
+        assert_eq!(session().on_candle_update(update), session(), "a candle streamed before the first load is not a chart");
     }
 }

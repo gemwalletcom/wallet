@@ -1,12 +1,11 @@
 use std::sync::Arc;
 
-use primitives::chart::ChartCandleUpdate;
 use primitives::{Asset, AssetId, Chain, ChartPeriod, Perpetual, PerpetualPosition, TransactionType};
 
 use super::candles::{GemCandleRequest, GemCandleResult};
 use super::model::{GemPerpetualDetails, GemPerpetualPositionAction, GemPerpetualPositionKind, GemPerpetualRefreshFailure, GemPerpetualRefreshStep};
 use super::{GemPerpetualService, rules};
-use crate::models::perpetual::{GemChartCandleStick, GemPerpetualSubscription};
+use crate::models::perpetual::GemPerpetualSubscription;
 use crate::models::state::GemLoadState;
 use crate::services::error::GemServiceError;
 use crate::services::failures::record_result;
@@ -77,10 +76,6 @@ impl GemPerpetualDetailsService {
             state: GemLoadState::of(&candles),
             candles: candles.unwrap_or_default(),
         }
-    }
-
-    pub fn merged_candles(&self, candles: Vec<GemChartCandleStick>, update: ChartCandleUpdate, perpetual: Perpetual, period: ChartPeriod) -> Option<Vec<GemChartCandleStick>> {
-        rules::merged_candles(candles, update, &perpetual, &period)
     }
 
     pub async fn refresh(&self, asset_id: AssetId) -> Vec<GemPerpetualRefreshFailure> {
