@@ -91,11 +91,8 @@ impl GemCandleSession {
     }
 
     pub fn request(&self) -> Option<GemCandleRequest> {
-        self.symbol.clone().map(|symbol| GemCandleRequest { symbol, period: self.period })
-    }
-
-    pub fn needs_candles(&self) -> bool {
-        self.symbol.is_some() && (self.is_refreshing || matches!(self.state, GemLoadState::Loading))
+        let needs_candles = self.is_refreshing || matches!(self.state, GemLoadState::Loading);
+        self.symbol.clone().filter(|_| needs_candles).map(|symbol| GemCandleRequest { symbol, period: self.period })
     }
 
     pub fn view_state(&self) -> GemCandleViewState {
@@ -181,7 +178,8 @@ mod tests {
     fn test_a_failed_refresh_keeps_the_candles_on_screen() {
         let shown = session().on_result(loaded(session().request().unwrap(), vec![candle(1)]));
 
-        let kept = shown.on_refresh().on_result(failed(shown.request().unwrap()));
+        let refreshing = shown.on_refresh();
+        let kept = refreshing.on_result(failed(refreshing.request().unwrap()));
 
         assert_eq!(kept.view_state().state, GemLoadState::Data);
         assert_eq!(kept.view_state().candles, vec![candle(1)]);
@@ -201,8 +199,8 @@ mod tests {
             selected,
             "another market's candles are not this one's"
         );
-        assert!(selected.needs_candles());
-        assert!(!candle_session(ChartPeriod::Day).needs_candles(), "there is nothing to ask for before a market is known");
+        assert!(selected.request().is_some());
+        assert!(candle_session(ChartPeriod::Day).request().is_none(), "there is nothing to ask for before a market is known");
         assert!(
             !candle_session(ChartPeriod::Day).on_refresh().view_state().is_refreshing,
             "a market the screen does not have yet cannot be refreshed, so the spinner never starts"
@@ -216,6 +214,7 @@ mod tests {
         let merged = shown.on_candles(vec![candle(1), candle(2)]);
 
         assert_eq!(merged.view_state().candles.len(), 2);
-        assert!(!merged.needs_candles());
+        assert!(merged.request().is_none());
+        assert!(shown.request().is_none(), "shown candles are not asked for again until a refresh");
     }
 }

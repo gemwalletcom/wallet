@@ -1543,6 +1543,7 @@ mod tests {
         let unquoted = price_row(Some(0.0), None, Currency::USD, GemCurrencyStyle::Short);
         assert_eq!(unquoted, GemPriceRow { price: None, change: None }, "neither app has to decide what a zero price reads as");
         assert_eq!(price_row(None, None, Currency::USD, GemCurrencyStyle::Short), GemPriceRow { price: None, change: None });
+        assert_eq!(price_row(Some(-10.0), None, Currency::USD, GemCurrencyStyle::Short).price, None, "a price below zero is no price");
     }
 
     #[test]

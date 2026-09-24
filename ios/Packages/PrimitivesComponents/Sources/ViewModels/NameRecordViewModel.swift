@@ -64,8 +64,4 @@ public final class NameRecordViewModel {
         nameRecordTask?.cancel()
         state = .none
     }
-
-    public func isNameSupported(name: String) -> Bool {
-        nameService.isNameSupported(name: name)
-    }
 }

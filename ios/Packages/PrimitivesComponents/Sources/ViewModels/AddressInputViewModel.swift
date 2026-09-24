@@ -106,10 +106,9 @@ extension AddressInputViewModel {
     private func onChangeChain() {
         nameRecordViewModel.reset()
         update(error: nil)
+        nameRecordViewModel.getNameRecord(name: text, chain: chain)
 
-        if nameRecordViewModel.isNameSupported(name: text) {
-            nameRecordViewModel.getNameRecord(name: text, chain: chain)
-        } else if text.isNotEmpty {
+        if nameRecordViewModel.state == .none, text.isNotEmpty {
             validate()
         }
     }

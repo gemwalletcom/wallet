@@ -1,6 +1,5 @@
 import func Gemstone.formattedCurrency
 import func Gemstone.formattedPercentage
-import func Gemstone.formattedSignedCurrency
 import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemHeaderActions
 import struct Gemstone.GemHeaderButton
@@ -52,7 +51,7 @@ struct WalletHeaderViewModelTests {
             total: currency(total),
             pnl: pnlAmount.map {
                 .pnl(
-                    amount: formattedSignedCurrency(value: $0, code: Currency.usd.rawValue, style: .fiat),
+                    amount: signed(currency($0)),
                     percent: formattedPercentage(value: pnlPercentage, style: .unsigned),
                 )
             },
@@ -63,5 +62,11 @@ struct WalletHeaderViewModelTests {
 
     private func currency(_ value: Double) -> GemFormattedNumber {
         formattedCurrency(value: value, code: Currency.usd.rawValue, style: .fiat)
+    }
+
+    private func signed(_ number: GemFormattedNumber) -> GemFormattedNumber {
+        var signed = number
+        signed.notation = .signed
+        return signed
     }
 }

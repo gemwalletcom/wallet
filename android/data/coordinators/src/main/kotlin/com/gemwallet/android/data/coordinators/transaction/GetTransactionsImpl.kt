@@ -33,7 +33,6 @@ import uniffi.gemstone.GemTransactionRowValue
 import uniffi.gemstone.GemTransactionStatus
 import uniffi.gemstone.GemTransactionTitle
 import uniffi.gemstone.GemValueTone
-import uniffi.gemstone.transactionRow
 import uniffi.gemstone.transactionRows
 
 @OptIn(ExperimentalCoroutinesApi::class)

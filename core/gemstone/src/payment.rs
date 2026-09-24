@@ -67,23 +67,21 @@ impl GemPaymentService {
         }
     }
 
-    pub async fn prepare(&self, payment: GemPayment, wallet: Wallet) -> Result<GemPaymentTarget, GemServiceError> {
+    pub async fn prepare(&self, payment: GemPayment, wallet: Wallet) -> Result<GemPaymentTarget, GemPaymentError> {
         match payment {
-            GemPayment::Request { request } => self.prepare_request(request, wallet).await,
+            GemPayment::Request { request } => Ok(self.prepare_request(request, wallet).await?),
             GemPayment::Link { link } => self.prepare_link(link, wallet).await,
         }
     }
+}
 
+impl GemPaymentService {
     pub async fn load(&self, link: GemPaymentLink, addresses: Vec<ChainAddress>) -> Result<GemPaymentLoad, GemPaymentError> {
         self.payment_load(self.payments.load(&link, &addresses).await?).await
     }
 
     pub fn decode_url(&self, string: String) -> Result<GemPayment, GemstoneError> {
         Ok(PaymentURLDecoder::decode(&string)?)
-    }
-
-    pub fn destination(&self, request: GemPaymentRequest, assets: Vec<GemPaymentWalletAsset>) -> GemPaymentDestination {
-        payment_destination(&request, assets)
     }
 
     pub fn transfer_destination(&self, request: GemPaymentRequest, asset: GemPaymentWalletAsset) -> GemPaymentDestination {
@@ -93,9 +91,7 @@ impl GemPaymentService {
     pub fn transfer_data(&self, transfer: GemPaymentConfirmTransfer, asset: Asset) -> GemTransferData {
         transfer_data(&transfer, asset)
     }
-}
 
-impl GemPaymentService {
     async fn prepare_request(&self, request: GemPaymentRequest, wallet: Wallet) -> Result<GemPaymentTarget, GemServiceError> {
         let (assets, destination) = match self.request_destination(&request, &wallet, GemAssetAction::Send.filters()).await? {
             (_, GemPaymentDestination::Unsupported) => self.request_destination(&request, &wallet, Vec::new()).await?,
@@ -130,9 +126,9 @@ impl GemPaymentService {
         Ok((assets, destination))
     }
 
-    async fn prepare_link(&self, link: GemPaymentLink, wallet: Wallet) -> Result<GemPaymentTarget, GemServiceError> {
+    async fn prepare_link(&self, link: GemPaymentLink, wallet: Wallet) -> Result<GemPaymentTarget, GemPaymentError> {
         let addresses = wallet.accounts.iter().map(|account| ChainAddress::new(account.chain, account.address.clone())).collect();
-        Ok(match self.load(link, addresses).await.map_err(|error| GemServiceError::Gateway { msg: error.to_string() })? {
+        Ok(match self.load(link, addresses).await? {
             GemPaymentLoad::Sign { transfer } => GemPaymentTarget::Confirm { transfer },
             GemPaymentLoad::Verify { invoice, url, .. } => GemPaymentTarget::Verify { url, link: invoice.link },
         })
@@ -284,7 +280,7 @@ pub(crate) fn transfer_data(transfer: &GemPaymentConfirmTransfer, asset: Asset) 
     }
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GemPaymentWalletAsset {
     pub asset_id: AssetId,
     pub decimals: i32,
@@ -316,7 +312,7 @@ pub enum GemPaymentTarget {
     Unsupported,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum GemPaymentDestination {
     Confirm { transfer: GemPaymentConfirmTransfer },
     Recipient { asset_id: AssetId, payment: GemPaymentRecipient },

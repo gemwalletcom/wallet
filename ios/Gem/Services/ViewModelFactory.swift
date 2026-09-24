@@ -35,7 +35,6 @@ import class Gemstone.GemRewardsService
 import class Gemstone.GemSearchService
 import class Gemstone.GemServiceStatus
 import class Gemstone.GemSignMessageService
-import class Gemstone.GemSimulationFormatter
 import class Gemstone.GemStakeService
 import class Gemstone.GemStreamSubscriptionService
 import protocol Gemstone.GemSupportServiceProtocol
@@ -79,7 +78,6 @@ public struct ViewModelFactory: Sendable {
     let priceService: GemPriceService
     let rewardsService: GemRewardsService
     let searchService: GemSearchService
-    let simulationFormatter: GemSimulationFormatter
     let stakeService: GemStakeService
     let streamSubscriptionService: GemStreamSubscriptionService
     let swapService: GemSwapService

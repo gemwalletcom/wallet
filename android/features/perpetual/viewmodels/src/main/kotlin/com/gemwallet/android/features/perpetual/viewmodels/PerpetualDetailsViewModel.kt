@@ -179,7 +179,7 @@ class PerpetualDetailsViewModel @Inject constructor(
                     candles.value = selected
                     return@collectLatest
                 }
-                val request = session.request()?.takeIf { session.needsCandles() } ?: return@collectLatest
+                val request = session.request() ?: return@collectLatest
                 val result = withContext(ioDispatcher) { service.candles(request) }
                 candles.update { it.onResult(result) }
             }

@@ -25,7 +25,7 @@ import org.junit.Assume.assumeTrue
 import org.junit.Test
 import uniffi.gemstone.GemTransactionBadge
 import uniffi.gemstone.GemTransactionRowSubtitle
-import uniffi.gemstone.transactionRow
+import uniffi.gemstone.transactionRows
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -74,7 +74,7 @@ class TransactionDataAggregateImplTest {
 
     private val ethAsset = mockAssetEthereum()
 
-    private fun createAggregate(transaction: TransactionExtended): TransactionDataAggregate = TransactionDataAggregateImpl(transactionRow(transaction.toGem()))
+    private fun createAggregate(transaction: TransactionExtended): TransactionDataAggregate = TransactionDataAggregateImpl(transactionRows(listOf(transaction.toGem())).first())
 
     @Test
     fun testBasicPropertyDelegation() {

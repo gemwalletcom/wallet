@@ -126,11 +126,6 @@ pub fn swapper_quote_summary(quote: Quote, from_asset: Asset, to_asset: Asset, f
     swap_quote_summary(rules::swap_quote(&quote), from_asset, to_asset, from_price, to_price)
 }
 
-#[uniffi::export]
-pub fn swap_quote(quote: Quote) -> SwapQuote {
-    rules::swap_quote(&quote)
-}
-
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSwapTransfer {
     pub quote: SwapQuote,

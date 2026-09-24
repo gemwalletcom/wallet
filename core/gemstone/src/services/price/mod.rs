@@ -28,7 +28,9 @@ impl GemPriceService {
     pub fn new(store: Arc<dyn GemPriceStore>, preferences: Arc<GemPreferencesService>) -> Self {
         Self { store, preferences, writes: Mutex::new(()) }
     }
+}
 
+impl GemPriceService {
     pub async fn change_currency(&self, currency: Currency) -> Result<(), GemServiceError> {
         let _writes = self.writes.lock().await;
         let previous = self.preferences.get_currency();
@@ -43,9 +45,7 @@ impl GemPriceService {
         self.store.convert_prices(currency.clone(), rate.rate).await?;
         self.preferences.set_currency(currency)
     }
-}
 
-impl GemPriceService {
     pub async fn rated_currencies(&self) -> Result<Vec<Currency>, GemServiceError> {
         Ok(self.store.get_rates().await?.into_iter().map(|rate| rate.symbol).collect())
     }

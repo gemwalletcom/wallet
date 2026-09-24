@@ -5,7 +5,6 @@ import Formatters
 import Foundation
 import struct Gemstone.GemTransactionRow
 import enum Gemstone.Resource
-import func Gemstone.transactionRow
 import func Gemstone.transactionRows
 import GemstonePrimitives
 import Localization
@@ -17,7 +16,7 @@ public struct TransactionViewModel: Sendable, Identifiable, Equatable {
     private let row: GemTransactionRow
 
     public init(transaction: TransactionExtended) {
-        self.init(row: transactionRow(transaction: transaction.toGem()))
+        self.init(row: transactionRows(transactions: [transaction.toGem()])[0])
     }
 
     public init(row: GemTransactionRow) {

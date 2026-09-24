@@ -15,7 +15,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.AssetListItem
@@ -35,8 +34,11 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
 import uniffi.gemstone.GemCurrencyStyle
+import uniffi.gemstone.GemPercentageStyle
+import uniffi.gemstone.GemPriceRow
 import uniffi.gemstone.GemValueTone
-import uniffi.gemstone.priceRow
+import uniffi.gemstone.formattedCurrency
+import uniffi.gemstone.formattedPercentage
 
 private val trailingMinWidth = 40.dp
 
@@ -117,7 +119,7 @@ private fun PerpetualItemPreview() {
             type = AssetType.NATIVE,
         )
         override val isPinned: Boolean = true
-        override val price = priceRow(price = 95420.50, change = 2.5, currency = Currency.USD.toGem(), style = GemCurrencyStyle.SHORT)
+        override val price = previewPriceRow(95420.50, 2.5)
         override val volume = "$15.0B"
     }
 
@@ -125,3 +127,8 @@ private fun PerpetualItemPreview() {
         PerpetualItem(item = sampleData)
     }
 }
+
+internal fun previewPriceRow(price: Double, change: Double) = GemPriceRow(
+    price = formattedCurrency(price, Currency.USD.string, GemCurrencyStyle.SHORT),
+    change = formattedPercentage(change, GemPercentageStyle.SIGNED).copy(tone = if (change < 0) GemValueTone.NEGATIVE else GemValueTone.POSITIVE),
+)

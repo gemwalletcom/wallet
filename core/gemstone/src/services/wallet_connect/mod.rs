@@ -92,11 +92,6 @@ impl GemWalletConnectService {
         self.should_process_message(rules::proposal_message_id(&proposer_public_key))
     }
 
-    pub fn should_process_message(&self, message_id: String) -> bool {
-        let mut seen = self.seen_messages.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
-        rules::record_seen_message(&mut seen, message_id, SEEN_MESSAGES_LIMIT)
-    }
-
     pub async fn add_connection(&self, connection: WalletConnection) -> Result<(), GemServiceError> {
         self.store.add_connection(connection).await
     }
@@ -234,6 +229,11 @@ impl GemWalletConnectService {
 }
 
 impl GemWalletConnectService {
+    pub fn should_process_message(&self, message_id: String) -> bool {
+        let mut seen = self.seen_messages.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+        rules::record_seen_message(&mut seen, message_id, SEEN_MESSAGES_LIMIT)
+    }
+
     fn is_origin_rejected(&self, metadata_url: String, origin: Option<String>, validation: WalletConnectionVerificationStatus) -> bool {
         rules::is_origin_rejected(&WalletConnectVerifier::validate_origin(metadata_url, origin, validation))
     }

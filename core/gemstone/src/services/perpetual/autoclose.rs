@@ -177,7 +177,6 @@ pub struct GemAutocloseEstimate {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAutocloseViewState {
     pub confirm_enabled: bool,
-    pub shows_errors: bool,
     pub take_profit: GemAutocloseFieldState,
     pub stop_loss: GemAutocloseFieldState,
     pub price_rows: Vec<GemListRow>,
@@ -242,7 +241,6 @@ impl GemAutocloseSession {
                 (GemAutocloseConfirmPolicy::UntilSubmitted, true) => self.modify.is_complete(),
                 (GemAutocloseConfirmPolicy::UntilSubmitted, false) => self.modify.take_profit.has_pending_change() || self.modify.stop_loss.has_pending_change(),
             },
-            shows_errors: self.submit_attempted,
             price_rows: [self.prices.entry.map(|price| price_row(GemListRowTitle::EntryPrice, price)), Some(price_row(GemListRowTitle::MarketPrice, self.prices.market))]
                 .into_iter()
                 .flatten()
@@ -543,9 +541,9 @@ mod tests {
             GemAutocloseEstimate::mock(),
         );
 
-        assert!(!session.view_state().shows_errors);
+        assert_eq!(session.view_state().take_profit.validation, AutocloseValidation::Valid, "an invalid price stays quiet before a submit attempt");
         assert_eq!(session.view_state().price_rows.len(), 1, "no entry price without a position");
-        assert!(session.on_submit_attempt().view_state().shows_errors);
+        assert_eq!(session.on_submit_attempt().view_state().take_profit.validation, AutocloseValidation::InvalidAmount);
     }
     use super::*;
 

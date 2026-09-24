@@ -4,7 +4,6 @@ import Components
 import Formatters
 import Foundation
 import struct Gemstone.GemPriceAlertRow
-import class Gemstone.PriceAlertFormatter
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -17,10 +16,6 @@ struct PriceAlertItemViewModel: ListAssetItemViewable {
 
     init(row: GemPriceAlertRow) {
         self.row = row
-    }
-
-    init(data: PriceAlertData, currency: Currency) {
-        self.init(row: PriceAlertFormatter.shared.row(data: data.toGem(), priceCurrency: currency.toGem()))
     }
 
     var name: String {

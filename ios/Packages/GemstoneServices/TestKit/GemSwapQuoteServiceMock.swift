@@ -14,7 +14,6 @@ import struct Gemstone.GemSwapSession
 import enum Gemstone.GemSwapSide
 import struct Gemstone.GemSwapTransfer
 import struct Gemstone.SwapperQuote
-import func Gemstone.swapQuote
 import struct Gemstone.SwapQuoteData
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
@@ -106,7 +105,7 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
 
     public func getTransfer(quote: SwapperQuote) async throws -> GemSwapTransfer {
         GemSwapTransfer(
-            quote: Gemstone.swapQuote(quote: quote),
+            quote: quote.swapQuote,
             data: quoteData,
             recipient: quote.request.destinationAddress,
             value: quote.request.value,

@@ -25,7 +25,6 @@ pub use rules::GemPerpetualCollateral;
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemWalletHomeViewState {
-    pub total_value: TotalFiatValue,
     pub total: GemFormattedNumber,
     pub pnl: Option<GemLocalizedText>,
     pub pnl_tone: GemValueTone,
@@ -90,7 +89,6 @@ impl GemWalletHomeService {
             show_collections: self.preferences.show_collections(wallet_type, chains.clone()),
             shows_perpetuals: self.preferences.show_perpetuals(wallet_type, chains),
             visible_banners,
-            total_value,
         }
     }
 

@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemChainServiceInterface
 import uniffi.gemstone.GemChainSettingsServiceInterface
 import uniffi.gemstone.GemExplorerRow
 import uniffi.gemstone.GemNodeListSession
@@ -36,7 +37,12 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class NetworksViewModel @Inject constructor(private val service: GemChainSettingsServiceInterface, @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher, @param:ApplicationContext private val context: Context) : ViewModel() {
+class NetworksViewModel @Inject constructor(
+    private val service: GemChainSettingsServiceInterface,
+    private val chainService: GemChainServiceInterface,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @param:ApplicationContext private val context: Context,
+) : ViewModel() {
 
     private val state = MutableStateFlow(State())
     val uiState = state
@@ -49,9 +55,9 @@ class NetworksViewModel @Inject constructor(private val service: GemChainSetting
 
     init {
         viewModelScope.launch {
-            updateState { it.copy(availableChains = service.chains("").map { it.requireChain() }) }
+            updateState { it.copy(availableChains = chainService.getChains("").map { it.requireChain() }) }
             snapshotFlow { chainFilter.text }.collectLatest { query ->
-                updateState { it.copy(availableChains = service.chains(query.toString()).map { it.requireChain() }) }
+                updateState { it.copy(availableChains = chainService.getChains(query.toString()).map { it.requireChain() }) }
             }
         }
     }

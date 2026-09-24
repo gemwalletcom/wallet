@@ -6,7 +6,6 @@ use super::model::{GemAddNodeError, GemExplorerRow, GemNodeCheck, GemNodeSelecti
 use super::rules;
 use super::session::{GemAddNodeSession, GemNodeListSession};
 use crate::gateway::GemGateway;
-use crate::services::chain::rules as chain_rules;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::node::GemNodeService;
@@ -23,10 +22,6 @@ impl GemChainSettingsService {
     #[uniffi::constructor]
     pub fn new(nodes: Arc<GemNodeService>, explorer: Arc<GemExplorerService>, gateway: Arc<GemGateway>) -> Self {
         Self { nodes, explorer, gateway }
-    }
-
-    pub fn chains(&self, query: String) -> Vec<Chain> {
-        chain_rules::matching_chains(chain_rules::chains_by_rank(), &query)
     }
 
     pub fn explorer_rows(&self, chain: Chain) -> Vec<GemExplorerRow> {

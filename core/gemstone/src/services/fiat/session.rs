@@ -79,6 +79,33 @@ pub struct GemFiatSession {
 }
 
 impl GemFiatSession {
+    fn quote_rows(&self, asset_price: Option<f64>) -> Vec<GemFiatQuoteRow> {
+        self.current().quotes.iter().map(|quote| rules::quote_row(quote, asset_price)).collect()
+    }
+
+    fn selected_quote_row(&self, asset_price: Option<f64>) -> Option<GemFiatQuoteRow> {
+        self.selected_quote().map(|quote| rules::quote_row(&quote, asset_price))
+    }
+
+    fn can_select_provider(&self) -> bool {
+        self.current().quotes.len() > 1
+    }
+
+    fn amount_check(&self) -> GemFiatAmountCheck {
+        let operation = self.current();
+        match operation.parsed_amount() {
+            Some(amount) => rules::amount_check(&get_fiat_config(), operation.quote_type, amount, operation.selected_quote().as_ref(), &self.available, crate::constants::FIAT_QUOTE_CURRENCY),
+            None => GemFiatAmountCheck::Valid,
+        }
+    }
+
+    fn button_action(&self) -> GemFiatButtonAction {
+        match self.current().phase {
+            GemFiatQuotePhase::Failed { .. } => GemFiatButtonAction::RetryQuote,
+            _ => GemFiatButtonAction::Continue,
+        }
+    }
+
     pub fn new(quote_type: FiatQuoteType, amount: Option<u32>) -> Self {
         let config = get_fiat_config();
         let operation = |operation_type: FiatQuoteType| {
@@ -192,35 +219,8 @@ impl GemFiatSession {
         self.with_operation(self.current().on_provider_selected(provider))
     }
 
-    fn quote_rows(&self, asset_price: Option<f64>) -> Vec<GemFiatQuoteRow> {
-        self.current().quotes.iter().map(|quote| rules::quote_row(quote, asset_price)).collect()
-    }
-
-    fn selected_quote_row(&self, asset_price: Option<f64>) -> Option<GemFiatQuoteRow> {
-        self.selected_quote().map(|quote| rules::quote_row(&quote, asset_price))
-    }
-
     fn selected_quote(&self) -> Option<FiatQuote> {
         self.current().selected_quote()
-    }
-
-    fn can_select_provider(&self) -> bool {
-        self.current().quotes.len() > 1
-    }
-
-    fn amount_check(&self) -> GemFiatAmountCheck {
-        let operation = self.current();
-        match operation.parsed_amount() {
-            Some(amount) => rules::amount_check(&get_fiat_config(), operation.quote_type, amount, operation.selected_quote().as_ref(), &self.available, crate::constants::FIAT_QUOTE_CURRENCY),
-            None => GemFiatAmountCheck::Valid,
-        }
-    }
-
-    fn button_action(&self) -> GemFiatButtonAction {
-        match self.current().phase {
-            GemFiatQuotePhase::Failed { .. } => GemFiatButtonAction::RetryQuote,
-            _ => GemFiatButtonAction::Continue,
-        }
     }
 
     fn button_state(&self, is_url_loading: bool) -> GemButtonState {

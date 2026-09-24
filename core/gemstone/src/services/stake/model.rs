@@ -51,11 +51,6 @@ pub fn delegation_details(wallet_type: WalletType, delegation: Delegation, asset
 }
 
 #[uniffi::export]
-pub fn delegation_list_row(delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency) -> GemDelegationListRow {
-    rules::delegation_list_row(&delegation, &asset, price, currency)
-}
-
-#[uniffi::export]
 pub fn delegation_list_rows(delegations: Vec<Delegation>, asset: Asset, price: Option<f64>, currency: Currency) -> Vec<GemDelegationListRow> {
     delegations.iter().map(|delegation| rules::delegation_list_row(delegation, &asset, price, currency.clone())).collect()
 }

@@ -15,13 +15,11 @@ class NameServiceMock : GemNameServiceInterface {
         return GemNameRecordState.Complete(mockNameRecord().toGem())
     }
 
-    override fun isNameSupported(name: String): Boolean = name.split(".").size >= 2
-
     override fun nameInputStep(state: GemNameRecordState, name: String, chain: uniffi.gemstone.Chain?): GemNameInputStep = when {
         name.isEmpty() || chain == null -> GemNameInputStep.Reset
         state is GemNameRecordState.Loading && state.name == name && state.chain == chain -> GemNameInputStep.Unchanged
         state is GemNameRecordState.Complete && state.record.name == name && state.record.chain == chain -> GemNameInputStep.Unchanged
-        !isNameSupported(name) -> GemNameInputStep.Reset
+        name.split(".").size < 2 -> GemNameInputStep.Reset
         else -> GemNameInputStep.Resolve(name, 500u)
     }
 

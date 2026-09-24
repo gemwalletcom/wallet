@@ -3,7 +3,6 @@
 import Components
 import func Gemstone.formattedCurrency
 import func Gemstone.formattedPercentage
-import func Gemstone.formattedSignedCurrency
 import Localization
 import Primitives
 import Style
@@ -199,10 +198,15 @@ public struct ValueHeaderView: View {
 // MARK: - Previews
 
 #Preview {
+    let amount = {
+        var amount = formattedCurrency(value: 50, code: Currency.usd.rawValue, style: .fiat)
+        amount.notation = .signed
+        return amount
+    }()
     let model = WalletHeaderViewModel(
         total: formattedCurrency(value: 1000, code: Currency.usd.rawValue, style: .fiat),
         pnl: .pnl(
-            amount: formattedSignedCurrency(value: 50, code: Currency.usd.rawValue, style: .fiat),
+            amount: amount,
             percent: formattedPercentage(value: 5.26, style: .unsigned),
         ),
         pnlTone: .positive,

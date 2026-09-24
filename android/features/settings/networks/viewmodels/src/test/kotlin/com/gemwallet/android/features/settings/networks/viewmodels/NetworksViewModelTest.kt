@@ -22,6 +22,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemChainSettingsServiceInterface
 import uniffi.gemstone.GemNodeListSession
 import uniffi.gemstone.GemNodeSelection
@@ -46,7 +47,6 @@ class NetworksViewModelTest {
     private fun service(nodesByCall: List<List<GemNodeSelection>>, statuses: Map<String, GemNodeStatusState> = emptyMap()): GemChainSettingsServiceInterface {
         var call = 0
         return mockk(relaxed = true) {
-            every { chains(any()) } returns listOf(Chain.Ethereum.string)
             every { explorerRows(any()) } returns emptyList()
             every { newNodeListSession(any()) } answers { GemNodeListSession(firstArg(), emptyList(), emptyMap()) }
             coEvery { nodes(any()) } answers { nodesByCall.getOrElse(call) { nodesByCall.last() }.also { call++ } }
@@ -62,6 +62,7 @@ class NetworksViewModelTest {
         )
         val viewModel = NetworksViewModel(
             service,
+            GemChainService(),
             dispatcher,
             mockk<Context> {
                 every { getString(any()) } returns "Error"
@@ -84,6 +85,7 @@ class NetworksViewModelTest {
         )
         val viewModel = NetworksViewModel(
             service,
+            GemChainService(),
             dispatcher,
             mockk<Context> {
                 every { getString(any()) } returns "Error"

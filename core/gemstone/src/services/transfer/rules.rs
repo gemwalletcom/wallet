@@ -36,10 +36,6 @@ pub(crate) trait TransferInput {
 
 #[uniffi::export]
 impl GemTransferData {
-    pub fn transaction_type(&self) -> TransactionType {
-        self.input_type.transaction_type()
-    }
-
     pub fn input_asset(&self) -> Asset {
         self.input_type.input_asset()
     }
@@ -61,6 +57,10 @@ impl GemTransferData {
 }
 
 impl GemTransferData {
+    pub fn transaction_type(&self) -> TransactionType {
+        self.input_type.transaction_type()
+    }
+
     pub fn header_kind(&self) -> GemTransactionHeaderKind {
         self.input_type.header_kind()
     }

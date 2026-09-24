@@ -1,7 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import struct Gemstone.GemTransferData
 import struct Gemstone.GemValidatorRow
+import enum Gemstone.StakeType
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
@@ -113,18 +115,29 @@ struct AmountStakeViewModelTests {
         let freeze = try AmountStakeViewModel.mock(asset: .mockTron(), type: .freeze(resource: Resource.bandwidth.toGem())).makeTransferData(value: 100, useMaxAmount: false)
         let unfreeze = try AmountStakeViewModel.mock(asset: .mockTron(), type: .unfreeze(resource: Resource.energy.toGem())).makeTransferData(value: 100, useMaxAmount: false)
 
-        #expect(stake.transactionType().toPrimitives() == .stakeDelegate)
-        #expect(unstake.transactionType().toPrimitives() == .stakeUndelegate)
-        #expect(redelegate.transactionType().toPrimitives() == .stakeRedelegate)
-        #expect(withdraw.transactionType().toPrimitives() == .stakeWithdraw)
-        #expect(freeze.transactionType().toPrimitives() == .stakeFreeze)
-        #expect(unfreeze.transactionType().toPrimitives() == .stakeUnfreeze)
+        #expect(stakeType(stake) == .stake(validator.toGem()))
+        #expect(stakeType(unstake) == .unstake(delegation.toGem()))
+        #expect(stakeType(redelegate).map {
+            if case .redelegate = $0 {
+                true
+            } else {
+                false
+            }
+        } == true)
+        #expect(stakeType(withdraw) == .withdraw(delegation.toGem()))
+        #expect(stakeType(freeze) == .freeze(Resource.bandwidth.toGem()))
+        #expect(stakeType(unfreeze) == .unfreeze(Resource.energy.toGem()))
         #expect(stake.value == "100")
         #expect(unstake.value == "100")
         #expect(redelegate.value == "100")
         #expect(withdraw.value == "100")
         #expect(freeze.value == "100")
         #expect(unfreeze.value == "100")
+    }
+
+    private func stakeType(_ data: GemTransferData) -> Gemstone.StakeType? {
+        guard case let .stake(_, stakeType) = data.inputType else { return nil }
+        return stakeType
     }
 }
 

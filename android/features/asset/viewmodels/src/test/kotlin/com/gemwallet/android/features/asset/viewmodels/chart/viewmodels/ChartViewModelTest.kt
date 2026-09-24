@@ -52,13 +52,13 @@ class ChartViewModelTest {
         every { getCurrency() } returns currencyFlow
     }
     private val chartService = mockk<GemChartService>(relaxed = true)
+    private var savedPeriod = ChartPeriod.Day
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        every { chartService.chartPeriod() } returns ChartPeriod.Day.toGem()
         every { chartService.newSession() } answers {
-            GemChartSession(chartService.chartPeriod(), currencyFlow.value.toGem(), chart = null, error = null, isLoading = true, isRefreshing = false)
+            GemChartSession(savedPeriod.toGem(), currencyFlow.value.toGem(), chart = null, error = null, isLoading = true, isRefreshing = false)
         }
     }
 
@@ -118,7 +118,7 @@ class ChartViewModelTest {
     @Test
     fun `initial request uses saved chart period`() = runTest(testDispatcher) {
         val chart = mockGemChart(values = listOf(1f, 2f))
-        every { chartService.chartPeriod() } returns ChartPeriod.Month.toGem()
+        savedPeriod = ChartPeriod.Month
         coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Month.toGem()) } returns chart
 
         val viewModel = createViewModel()

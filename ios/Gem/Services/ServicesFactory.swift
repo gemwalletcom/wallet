@@ -381,7 +381,6 @@ struct ServicesFactory {
             priceService: priceService,
             rewardsService: rewardsService,
             searchService: searchService,
-            simulationFormatter: Gemstone.GemSimulationFormatter(),
             stakeService: stakeService,
             streamSubscriptionService: streamSubscriptionService,
             swapService: swapService,

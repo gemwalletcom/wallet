@@ -35,6 +35,7 @@ import uniffi.gemstone.GemAddAssetChains
 import uniffi.gemstone.GemAddAssetPhase
 import uniffi.gemstone.GemAddAssetServiceInterface
 import uniffi.gemstone.GemAddAssetSession
+import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemServiceException
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -47,7 +48,6 @@ class AddAssetViewModelTest {
             GemAddAssetSession(chain = firstArg(), address = "", asset = null, isLoading = false, isAdding = false, failed = false)
         }
         every { chainPicker(any()) } returns GemAddAssetChains(chains = listOf(Chain.Ethereum.string), defaultChain = Chain.Ethereum.string, showsPicker = false)
-        every { matchingChains(any(), any()) } answers { firstArg() }
         every { sections(any()) } returns emptyList()
         coEvery { token(Chain.Ethereum.string, "0x1") } returns token.toGem()
         coEvery { add(any(), any()) } returns Unit
@@ -64,7 +64,7 @@ class AddAssetViewModelTest {
 
     @Test
     fun `typed address resolves the token through the service`() = runTest {
-        val viewModel = AddAssetViewModel(getSession, service, dispatcher, mockk(relaxed = true))
+        val viewModel = AddAssetViewModel(getSession, service, GemChainService(), dispatcher, mockk(relaxed = true))
         try {
             withContext(Dispatchers.Main) {
                 viewModel.addressState.value = "0x1"
@@ -80,7 +80,7 @@ class AddAssetViewModelTest {
 
     @Test
     fun `addAsset adds the found token to the current wallet`() = runTest {
-        val viewModel = AddAssetViewModel(getSession, service, dispatcher, mockk(relaxed = true))
+        val viewModel = AddAssetViewModel(getSession, service, GemChainService(), dispatcher, mockk(relaxed = true))
         try {
             withContext(Dispatchers.Main) {
                 viewModel.addressState.value = "0x1"
@@ -101,7 +101,7 @@ class AddAssetViewModelTest {
     @Test
     fun `a failed add stays on the screen and reports the Core message`() = runTest {
         coEvery { service.add(any(), any()) } throws GemServiceException.Api("disk full")
-        val viewModel = AddAssetViewModel(getSession, service, dispatcher, mockk(relaxed = true))
+        val viewModel = AddAssetViewModel(getSession, service, GemChainService(), dispatcher, mockk(relaxed = true))
         try {
             withContext(Dispatchers.Main) {
                 viewModel.addressState.value = "0x1"
