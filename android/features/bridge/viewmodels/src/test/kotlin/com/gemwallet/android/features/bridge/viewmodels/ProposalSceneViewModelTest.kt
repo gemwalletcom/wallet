@@ -76,6 +76,8 @@ class ProposalSceneViewModelTest {
         ioDispatcher = dispatcher,
         context = mockk(relaxed = true) {
             every { getString(R.string.errors_connections_malicious_origin) } returns "Malicious origin"
+            every { getString(R.string.errors_connections_unsupported_chain) } returns "Unsupported chain"
+            every { getString(R.string.errors_connections_no_supported_wallets) } returns "No supported wallets"
         },
     ).also { models.add(it) }
 
@@ -106,17 +108,23 @@ class ProposalSceneViewModelTest {
     }
 
     @Test
-    fun `an invalid origin notifies the scene and rejects the proposal`() = runTest(dispatcher) {
-        val notified = CompletableDeferred<String>()
-        val approve: ApproveWalletConnection = mockk(relaxed = true)
-        val service = service()
-        coEvery { service.prepareSessionProposal(any(), any(), any(), any(), any()) } throws GemWalletConnectException.InvalidOrigin()
+    fun `every proposal Core refuses notifies the scene and rejects the proposal`() = runTest(dispatcher) {
+        listOf(
+            GemWalletConnectException.InvalidOrigin() to "Malicious origin",
+            GemWalletConnectException.UnsupportedChains() to "Unsupported chain",
+            GemWalletConnectException.UnsupportedWallets() to "No supported wallets",
+        ).forEach { (error, text) ->
+            val notified = CompletableDeferred<String>()
+            val approve: ApproveWalletConnection = mockk(relaxed = true)
+            val service = service()
+            coEvery { service.prepareSessionProposal(any(), any(), any(), any(), any()) } throws error
 
-        viewModel(service = service, approve = approve).onProposal(proposal, verifyContext) { notified.complete(it) }
+            viewModel(service = service, approve = approve).onProposal(proposal, verifyContext) { notified.complete(it) }
 
-        assertEquals("Malicious origin", notified.await())
-        advanceUntilIdle()
-        verify { approve.rejectConnection(proposal, any(), any(), any()) }
+            assertEquals(text, notified.await())
+            advanceUntilIdle()
+            verify { approve.rejectConnection(proposal, any(), any(), any()) }
+        }
     }
 
     @Test

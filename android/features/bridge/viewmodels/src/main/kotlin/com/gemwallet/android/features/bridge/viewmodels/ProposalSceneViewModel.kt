@@ -119,7 +119,7 @@ class ProposalSceneViewModel @Inject constructor(
                 }
             }.getOrElse { error ->
                 Log.e(TAG, "session proposal rejected: ${error.message}")
-                if (error is GemWalletConnectException.InvalidOrigin) onNotify(error.errorText().text(context))
+                onNotify(error.errorText().text(context))
                 reject(proposal, (error as? GemWalletConnectException)?.rejectionReason() ?: GemWalletConnectRejectionReason.USER_REJECTED)
                 return@launch
             }
