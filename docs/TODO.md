@@ -220,7 +220,6 @@ The API never returns internal text: `ApiError::Internal` logs its detail on the
 
 ### iOS and Android differ
 
-- **BD34** **S** **Android wipes the clipboard a minute after every copy; iOS only expires secrets.** Android `ClipboardExt.kt:16-32` always clears; iOS `CopyTypeViewModel.swift:25-27,42-50` only for sensitive kinds (`core/gemstone/src/models/copy.rs:17-22`); `docs/PRODUCT.md:41`.
 - **BD35** **S** **Android redeems points on one tap; iOS asks for confirmation.** iOS `RewardsViewModel.swift:243-266`; Android `ReferralNavScreen.kt:80-93`.
 - **BD36** **S** **Android allows submitting an empty username or code, and double-submitting the code.** iOS `CreateRewardsCodeViewModel.swift:45`, `RedeemRewardsCodeViewModel.swift:43`; Android `GetStartedDialog.kt:59-60`, `ReferralCodeDialog.kt:57`.
 - **BD38** **S** **The WalletConnect Pay web view loads plain `http` on Android only.** iOS `Components/Sources/WebView.swift:67-79` (https + host); Android `ui/components/WebView.kt:38-45` (http or https); `docs/WALLETCONNECT_PAY.md`.

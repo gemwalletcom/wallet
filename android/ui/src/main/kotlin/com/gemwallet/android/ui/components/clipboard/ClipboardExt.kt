@@ -27,9 +27,11 @@ internal fun ClipboardManager.setClip(context: Context, data: String, isSensitiv
     }
     setPrimaryClip(clip)
 
-    Executors.newSingleThreadScheduledExecutor().schedule({
-        context.clipboardManager().clearPrimaryClip()
-    }, 1, TimeUnit.MINUTES)
+    if (isSensitive) {
+        Executors.newSingleThreadScheduledExecutor().schedule({
+            context.clipboardManager().clearPrimaryClip()
+        }, 1, TimeUnit.MINUTES)
+    }
 
     if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
         Toast.makeText(context, context.getString(R.string.common_copied_to_clipboard), Toast.LENGTH_SHORT).show()
