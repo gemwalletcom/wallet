@@ -28,6 +28,8 @@ pub struct GemPriceAlertViewState {
     pub percentage_suggestions: Vec<GemFormattedNumber>,
     pub price_suggestions: Vec<GemFormattedNumber>,
     pub saved_value: Option<GemFormattedNumber>,
+    pub current_price: Option<GemFormattedNumber>,
+    pub price_change: Option<GemFormattedNumber>,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -38,6 +40,7 @@ pub struct GemPriceAlertSession {
     pub selected_direction: PriceAlertDirection,
     pub input: Option<f64>,
     pub current_price: Option<f64>,
+    pub price_change: Option<f64>,
     pub is_saving: bool,
 }
 
@@ -50,6 +53,7 @@ impl GemPriceAlertSession {
             selected_direction: PriceAlertDirection::Up,
             input: None,
             current_price: None,
+            price_change: None,
             is_saving: false,
         }
     }
@@ -69,8 +73,8 @@ impl GemPriceAlertSession {
         Self { input, ..self.clone() }
     }
 
-    pub fn on_price(&self, current_price: Option<f64>) -> Self {
-        Self { current_price, ..self.clone() }
+    pub fn on_price(&self, current_price: Option<f64>, price_change: Option<f64>) -> Self {
+        Self { current_price, price_change, ..self.clone() }
     }
 
     pub fn on_saving(&self, is_saving: bool) -> Self {
@@ -108,6 +112,8 @@ impl GemPriceAlertSession {
                 .map(|value| self.price_number(value))
                 .collect(),
             saved_value: self.input.map(|input| self.input_number(input)),
+            current_price: price.map(|price| self.price_number(price)),
+            price_change: self.price_change.map(|change| GemFormattedNumber::percentage(change, GemPercentageStyle::Signed).toned()),
         }
     }
 }
@@ -226,7 +232,18 @@ mod tests {
         let without_price = GemPriceAlertSession::new(AssetId::from_chain(primitives::Chain::Ethereum), Currency::USD);
 
         assert!(without_price.view_state().price_suggestions.is_empty());
-        assert!(without_price.on_price(Some(0.0)).view_state().percentage_suggestions.is_empty());
+        assert!(without_price.on_price(Some(0.0), None).view_state().percentage_suggestions.is_empty());
         assert!(!GemPriceAlertSession::mock().view_state().price_suggestions.is_empty());
+    }
+
+    #[test]
+    fn test_the_current_price_and_its_change_come_formatted() {
+        let session = GemPriceAlertSession::new(AssetId::from_chain(primitives::Chain::Ethereum), Currency::USD).on_price(Some(100.0), Some(-2.5));
+        let state = session.view_state();
+
+        assert_eq!(state.current_price.map(|price| price.value), Some(100.0));
+        let change = state.price_change.unwrap();
+        assert_eq!((change.value, change.tone), (-2.5, crate::formatted_number::GemValueTone::Negative));
+        assert_eq!(session.on_price(Some(0.0), None).view_state().current_price, None, "a zero price is no price");
     }
 }

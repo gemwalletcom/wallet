@@ -80,15 +80,15 @@ public final class SetPriceAlertViewModel {
             .onType(notificationType: state.type.notificationType.toGem())
             .onDirection(selectedDirection: state.selectedDirection.toGem())
             .onInput(input: amountValue)
-            .onPrice(currentPrice: assetData.price?.price)
+            .onPrice(currentPrice: assetData.price?.price, priceChange: assetData.price?.priceChangePercentage24h)
             .onSaving(isSaving: isSaving)
     }
 
-    func currencyInputConfig(for assetData: AssetData) -> any CurrencyInputConfigurable {
+    var currencyInputConfig: any CurrencyInputConfigurable {
         SetPriceAlertCurrencyInputConfig(
             type: state.type,
             alertDirection: state.selectedDirection,
-            assetData: assetData,
+            currentPrice: viewState.currentPrice,
             formatter: currencyFormatter,
             onTapActionButton: toggleAlertDirection,
         )

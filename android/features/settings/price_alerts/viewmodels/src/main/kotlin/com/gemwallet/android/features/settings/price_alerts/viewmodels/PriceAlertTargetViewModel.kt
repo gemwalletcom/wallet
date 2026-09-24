@@ -9,8 +9,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
-import com.gemwallet.android.domains.percentage.formatAsPercentage
-import com.gemwallet.android.domains.price.tone
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
@@ -20,7 +18,6 @@ import com.gemwallet.android.features.settings.price_alerts.viewmodels.localizat
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertConfirmResult
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.math.parseInputNumberOrNull
-import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
@@ -48,7 +45,6 @@ import uniffi.gemstone.GemFormattedNumber
 import uniffi.gemstone.GemPriceAlertServiceInterface
 import uniffi.gemstone.GemPriceAlertSession
 import uniffi.gemstone.GemPriceAlertViewState
-import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.PriceAlertFormatter
 import javax.inject.Inject
 
@@ -68,22 +64,11 @@ class PriceAlertTargetViewModel @Inject constructor(
 
     val assetInfo = getAssetInfo(assetId)
     val currency = service.getCurrency().toPrimitives()
-    val currentPrice = assetInfo.map { info ->
-        info?.price?.let { CurrencyFormatter(currency = it.currency).string(it.price.price) } ?: ""
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
-    val currentPriceValue = assetInfo.map { it?.price?.price?.price ?: 0.0 }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, 0.0)
+    private val assetPrice = assetInfo.map { it?.price?.price }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val asset: StateFlow<Asset?> = assetInfo.map { it?.asset }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val priceChangeFormatted: StateFlow<String> = assetInfo.map {
-        it?.price?.price?.priceChangePercentage24h.formatAsPercentage()
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
-
-    val priceState: StateFlow<GemValueTone> = assetInfo.map {
-        it?.price?.price?.priceChangePercentage24h.tone()
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, GemValueTone.NEUTRAL)
 
     private val _direction = MutableStateFlow(PriceAlertDirection.Up)
     val direction: StateFlow<PriceAlertDirection> = _direction
@@ -95,16 +80,16 @@ class PriceAlertTargetViewModel @Inject constructor(
 
     private val session: StateFlow<GemPriceAlertSession> = combine(
         snapshotFlow { value.text },
-        currentPriceValue,
+        assetPrice,
         _type,
         _direction,
         isSaving,
-    ) { text, currentPrice, type, selectedDirection, saving ->
+    ) { text, price, type, selectedDirection, saving ->
         service.newAlertSession(assetId.toIdentifier())
             .onType(type.toGem())
             .onDirection(selectedDirection.toGem())
             .onInput(text.toString().parseInputNumberOrNull()?.toDouble())
-            .onPrice(currentPrice)
+            .onPrice(price?.price, price?.priceChangePercentage24h)
             .onSaving(saving)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, service.newAlertSession(assetId.toIdentifier()))
 
@@ -114,6 +99,12 @@ class PriceAlertTargetViewModel @Inject constructor(
     @get:StringRes
     val prompt: StateFlow<Int> = viewState.map { it.prompt.stringRes() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.prompt.stringRes())
+
+    val currentPrice: StateFlow<String> = viewState.map { it.currentPrice?.text().orEmpty() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, "")
+
+    val priceChange: StateFlow<GemFormattedNumber?> = viewState.map { it.priceChange }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val resolvedDirection: StateFlow<PriceAlertDirection?> = viewState.map { it.direction?.toPrimitives() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

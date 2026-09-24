@@ -27,6 +27,7 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
             selectedDirection: .up,
             input: nil,
             currentPrice: nil,
+            priceChange: nil,
             isSaving: false,
         )
     }

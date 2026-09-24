@@ -7,11 +7,13 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.PriceAlertTargetViewModel
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertConfirmResult
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.style.textStyle
 import com.wallet.core.primitives.PriceAlertDirection
 import com.wallet.core.primitives.PriceAlertNotificationType
+import uniffi.gemstone.GemValueTone
 
 @Composable
 fun PriceAlertTargetNavScreen(onCancel: () -> Unit, onComplete: (String) -> Unit = { onCancel() }, viewModel: PriceAlertTargetViewModel = hiltViewModel()) {
@@ -24,8 +26,7 @@ fun PriceAlertTargetNavScreen(onCancel: () -> Unit, onComplete: (String) -> Unit
     val priceSuggestions by viewModel.priceSuggestions.collectAsStateWithLifecycle()
     val percentageSuggestions by viewModel.percentageSuggestions.collectAsStateWithLifecycle()
     val asset by viewModel.asset.collectAsStateWithLifecycle()
-    val priceChangeFormatted by viewModel.priceChangeFormatted.collectAsStateWithLifecycle()
-    val priceState by viewModel.priceState.collectAsStateWithLifecycle()
+    val priceChange by viewModel.priceChange.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
@@ -41,8 +42,8 @@ fun PriceAlertTargetNavScreen(onCancel: () -> Unit, onComplete: (String) -> Unit
         percentageSuggestions = percentageSuggestions,
         asset = asset,
         assetPriceFormatted = currentPriceFormatted,
-        assetPriceChangeFormatted = priceChangeFormatted,
-        assetValueStyle = priceState.textStyle(),
+        assetPriceChangeFormatted = priceChange?.text().orEmpty(),
+        assetValueStyle = (priceChange?.tone ?: GemValueTone.NEUTRAL).textStyle(),
         buttonState = buttonState,
         snackbar = snackbar,
         onType = viewModel::onType,

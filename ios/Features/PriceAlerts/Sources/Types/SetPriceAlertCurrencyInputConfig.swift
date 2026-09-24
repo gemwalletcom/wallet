@@ -3,6 +3,7 @@
 import Components
 import Formatters
 import Foundation
+import struct Gemstone.GemFormattedNumber
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -12,7 +13,7 @@ import SwiftUI
 struct SetPriceAlertCurrencyInputConfig: CurrencyInputConfigurable {
     let type: SetPriceAlertType
     let alertDirection: PriceAlertDirection
-    let assetData: AssetData
+    let currentPrice: GemFormattedNumber?
     let formatter: CurrencyFormatter
     let onTapActionButton: VoidAction
 
@@ -38,8 +39,8 @@ struct SetPriceAlertCurrencyInputConfig: CurrencyInputConfigurable {
     }
 
     var secondaryText: String {
-        guard let price = assetData.price?.price else { return .empty }
-        return [Localized.PriceAlerts.SetAlert.currentPrice, formatter.string(price)].joined(separator: " ")
+        guard let currentPrice else { return .empty }
+        return [Localized.PriceAlerts.SetAlert.currentPrice, currentPrice.text()].joined(separator: " ")
     }
 
     var keyboardType: UIKeyboardType {

@@ -29,7 +29,7 @@ struct SetPriceAlertScene: View {
 
                     CurrencyInputView(
                         text: $model.state.amount,
-                        config: model.currencyInputConfig(for: model.assetData),
+                        config: model.currencyInputConfig,
                     )
                     .focused($focusedField)
                 }
