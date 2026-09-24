@@ -34,7 +34,7 @@ fun RowScope.AssetDetailsMenu(uiState: AssetInfoUIModel, priceAlert: PriceAlertM
     val shareTitle = stringResource(id = R.string.common_share)
 
     val onShare = fun () {
-        context.shareText(subject = null, text = uiState.shareUrl, chooserTitle = shareTitle)
+        context.shareText(subject = null, text = uiState.details.shareUrl, chooserTitle = shareTitle)
     }
 
     val enablePriceAlert = fun () {
@@ -57,18 +57,18 @@ fun RowScope.AssetDetailsMenu(uiState: AssetInfoUIModel, priceAlert: PriceAlertM
         onDismissRequest = { menuExpanded = false },
         containerColor = MaterialTheme.colorScheme.background,
     ) {
-        uiState.explorerAddressUrl?.let {
+        uiState.details.addressLink?.link?.let {
             DropdownMenuItem(
                 text = {
-                    Text(stringResource(R.string.asset_view_address_on, uiState.explorerName))
+                    Text(stringResource(R.string.asset_view_address_on, uiState.details.explorerName))
                 },
                 onClick = { uriHandler.open(context, it) },
             )
         }
-        uiState.explorerTokenUrl?.let {
+        uiState.details.tokenLink?.link?.let {
             DropdownMenuItem(
                 text = {
-                    Text(stringResource(R.string.asset_view_token_on, uiState.explorerName))
+                    Text(stringResource(R.string.asset_view_token_on, uiState.details.explorerName))
                 },
                 onClick = { uriHandler.open(context, it) },
             )

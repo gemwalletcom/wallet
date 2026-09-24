@@ -5,31 +5,14 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.components.banner.BannerRowUIModel
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetType
-import com.wallet.core.primitives.VerificationStatus
-import uniffi.gemstone.GemAssetDetailsState
+import uniffi.gemstone.GemAssetDetails
 import uniffi.gemstone.GemBalanceRow
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemPriceAlertToggle
 
 class AssetInfoUIModel(
     val assetInfo: AssetInfo,
-    val name: String = "",
-    val iconUrl: Any? = null,
-    val tokenType: AssetType = AssetType.NATIVE,
-    val accountInfoUIModel: AccountInfoUIModel = AccountInfoUIModel(),
-    val isBuyEnabled: Boolean = false,
-    val isSwapEnabled: Boolean = false,
-    val swapPayAssetId: AssetId? = null,
-    val swapReceiveAssetId: AssetId? = null,
-    val explorerName: String = "",
-    val explorerAddressUrl: String? = null,
-    val explorerTokenUrl: String? = null,
-    val verificationStatus: VerificationStatus? = null,
-    val networkAction: AssetDetailsAction.Navigation? = null,
-    val shareUrl: String = "",
-    val detailsState: GemAssetDetailsState,
+    val details: GemAssetDetails,
     val priceAlertMenu: PriceAlertMenuUIModel = GemPriceAlertToggle.DISABLED.menu(),
     val emptyTransactions: EmptyTransactionsUIModel = EmptyTransactionsUIModel(showsBuy = false, showsSwap = false),
     val banners: List<BannerRowUIModel>,
@@ -37,8 +20,6 @@ class AssetInfoUIModel(
 ) {
 
     val asset: Asset get() = assetInfo.asset
-
-    data class AccountInfoUIModel(val totalBalance: String = "0", val totalFiat: String = "", val owner: String = "")
 
     data class SectionUIModel(@StringRes val title: Int?, val rows: List<RowUIModel>)
 

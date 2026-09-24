@@ -14,6 +14,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
+import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.asset.presents.details.components.AssetDetailRowItem
 import com.gemwallet.android.features.asset.presents.details.components.AssetDetailsMenu
 import com.gemwallet.android.features.asset.presents.details.components.AssetHeadItem
@@ -44,10 +46,10 @@ internal fun AssetDetailsScene(
     snackBar: SnackbarHostState = remember { SnackbarHostState() },
     onAction: (AssetDetailsAction) -> Unit,
 ) {
-    val detailsState = uiState.detailsState
+    val detailsState = uiState.details.state
     val swapAction: () -> Unit = {
-        uiState.swapPayAssetId?.let { payAssetId ->
-            onAction(AssetDetailsAction.Swap(fromAssetId = payAssetId, toAssetId = uiState.swapReceiveAssetId))
+        uiState.details.swapPair.payAssetId.toAssetId()?.let { payAssetId ->
+            onAction(AssetDetailsAction.Swap(fromAssetId = payAssetId, toAssetId = uiState.details.swapPair.receiveAssetId?.toAssetId()))
         }
     }
 
@@ -55,7 +57,7 @@ internal fun AssetDetailsScene(
         titleContent = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = uiState.name,
+                    text = uiState.details.title,
                     maxLines = 1,
                     overflow = TextOverflow.MiddleEllipsis,
                 )
@@ -101,7 +103,7 @@ internal fun AssetDetailsScene(
                         )
                     }
                 }
-                uiState.verificationStatus?.let { verificationStatusItem(it) }
+                uiState.details.verificationStatus?.let { verificationStatusItem(it.toPrimitives()) }
                 uiState.sections.forEach { section ->
                     section.title?.let { title -> item { SubheaderItem(title) } }
                     itemsPositioned(section.rows) { position, row ->

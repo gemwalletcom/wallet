@@ -206,7 +206,7 @@ class AssetDetailsViewModel @Inject constructor(
     }
 
     fun togglePriceAlert(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {
-        val current = uiModel.value?.detailsState?.priceAlert ?: return@launch
+        val current = uiModel.value?.details?.state?.priceAlert ?: return@launch
         val name = chainAssetInfo.value?.assetInfo?.asset?.name.orEmpty()
         runCatchingCancellable { assetDetailsService.setPriceAlert(assetId.toIdentifier(), current.toggled() == GemPriceAlertToggle.ENABLED) }
             .onSuccess { emitToast(ToastMessage(context.getString(current.toastRes(), name), R.drawable.ic_notifications)) }

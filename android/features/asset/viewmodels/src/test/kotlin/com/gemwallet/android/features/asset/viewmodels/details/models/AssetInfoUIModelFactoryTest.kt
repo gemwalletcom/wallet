@@ -49,11 +49,6 @@ class AssetInfoUIModelFactoryTest {
     fun tearDown() = unmockkStatic("com.gemwallet.android.ext.ChainKt")
 
     @Test
-    fun `the row name is the title core decided`() {
-        assertEquals("Renamed Cosmos", model(mockAssetInfo(asset = mockAsset(chain = Chain.Cosmos, name = "Renamed Cosmos"), owner = null)).name)
-    }
-
-    @Test
     fun `balance rows show the values core formatted`() {
         val staked = mockFormattedNumber(value = 2.0, unit = GemNumberUnit.Symbol(symbol = "ATOM"))
         val apr = mockFormattedNumber(value = 5.0, unit = GemNumberUnit.Percent)
@@ -92,15 +87,6 @@ class AssetInfoUIModelFactoryTest {
     }
 
     @Test
-    fun `the header fiat value is the one core formatted and empty without one`() {
-        val fiat = mockFormattedNumber(value = 3.0, unit = GemNumberUnit.Currency(code = "EUR"))
-        val assetInfo = mockAssetInfo(asset = mockAsset(), owner = null)
-
-        assertEquals(fiat.text(), model(assetInfo, fiatValue = fiat).accountInfoUIModel.totalFiat)
-        assertEquals("", model(assetInfo).accountInfoUIModel.totalFiat)
-    }
-
-    @Test
     fun `the price row shows what core quoted and nothing when nobody quoted`() {
         val price = mockFormattedNumber(value = 1234.5, unit = GemNumberUnit.Currency(code = "USD"))
         val change = mockFormattedNumber(value = -2.5, unit = GemNumberUnit.Percent, tone = GemValueTone.NEGATIVE)
@@ -115,13 +101,6 @@ class AssetInfoUIModelFactoryTest {
         assertEquals(GemListRow.Quote(GemListRowTitle.PRICE, price, change), quotedRow.row)
         assertEquals(AssetDetailsAction.OpenChart(asset.id), quotedRow.action)
         assertEquals(GemListRow.Quote(GemListRowTitle.PRICE, null, null), unquotedRow.row)
-    }
-
-    @Test
-    fun `the header balance is the one core formatted`() {
-        val balance = mockFormattedNumber(value = 2.5, unit = GemNumberUnit.Symbol(symbol = "ETH"))
-
-        assertEquals(balance.text(), model(mockAssetInfo(asset = mockAsset(), owner = null), balanceValue = balance).accountInfoUIModel.totalBalance)
     }
 
     @Test
