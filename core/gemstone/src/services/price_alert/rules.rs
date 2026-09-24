@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
-use primitives::{AssetId, Currency, PriceAlert, PriceAlertData, PriceAlertDirection, PriceAlertNotificationType};
+use primitives::{Asset, AssetId, Currency, Price, PriceAlert, PriceAlertData, PriceAlertDirection, PriceAlertNotificationType};
 
 use crate::formatted_number::GemFormattedNumber;
 use crate::percentage::GemPercentageStyle;
@@ -94,6 +94,14 @@ pub struct GemPriceAlertListSection {
     pub items: Vec<GemPriceAlertItem>,
 }
 
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemAssetPriceAlerts {
+    pub auto_alert: GemPriceAlertToggle,
+    pub auto_row: GemPriceAlertRow,
+    pub alerts: Vec<GemPriceAlertItem>,
+    pub shows_empty: bool,
+}
+
 fn text(number: Option<GemFormattedNumber>) -> GemPriceAlertText {
     match number {
         Some(value) => GemPriceAlertText::Number { value },
@@ -174,6 +182,31 @@ pub fn price_alert_list_sections(alerts: Vec<PriceAlertData>, price_currency: Cu
                 .collect(),
         })
         .collect()
+}
+
+pub fn asset_price_alerts(asset: Asset, price: Option<Price>, alerts: Vec<PriceAlertData>, price_currency: Currency) -> GemAssetPriceAlerts {
+    let sections = price_alert_list_sections(alerts, price_currency.clone());
+    let auto_alert = match sections.iter().any(|section| section.kind == GemPriceAlertSectionKind::Auto) {
+        true => GemPriceAlertToggle::Enabled,
+        false => GemPriceAlertToggle::Disabled,
+    };
+    let alerts: Vec<GemPriceAlertItem> = sections
+        .into_iter()
+        .filter(|section| matches!(section.kind, GemPriceAlertSectionKind::Asset { .. }))
+        .flat_map(|section| section.items)
+        .collect();
+    let auto = PriceAlertData {
+        price_alert: PriceAlert::new_auto(asset.id.clone(), Currency::USD),
+        asset,
+        price,
+        rank_score: 0,
+    };
+    GemAssetPriceAlerts {
+        shows_empty: auto_alert == GemPriceAlertToggle::Disabled && alerts.is_empty(),
+        auto_alert,
+        auto_row: price_alert_row(&auto, price_currency),
+        alerts,
+    }
 }
 
 pub fn price_alert_toggle(alerts: &[PriceAlert]) -> GemPriceAlertToggle {
@@ -377,6 +410,24 @@ mod tests {
         let items = |index: usize| sections[index].items.iter().map(|item| (item.data.price_alert.id(), item.row.clone())).collect::<Vec<_>>();
         assert_eq!(items(0), vec![(auto.price_alert.id(), price_alert_row(&auto, Currency::USD))]);
         assert_eq!(items(1), vec![(over.price_alert.id(), price_alert_row(&over, Currency::USD))]);
+    }
+
+    #[test]
+    fn test_an_asset_screen_reads_its_toggle_rows_and_empty_state_from_one_record() {
+        let bitcoin = AssetId::from_chain(Chain::Bitcoin);
+        let asset = Asset::from_chain(Chain::Bitcoin);
+        let auto = PriceAlertData::mock(PriceAlert::new_auto(bitcoin.clone(), Currency::USD), None, None);
+        let over = PriceAlertData::mock(PriceAlert::new_price(bitcoin, Currency::USD, 100.0, PriceAlertDirection::Up), None, None);
+
+        let both = asset_price_alerts(asset.clone(), None, vec![over.clone(), auto], Currency::USD);
+        assert_eq!(both.auto_alert, GemPriceAlertToggle::Enabled);
+        assert_eq!(both.alerts.iter().map(|item| item.id.clone()).collect::<Vec<_>>(), vec![over.price_alert.id()], "the auto alert is the toggle, not a row");
+        assert!(!both.shows_empty);
+        assert_eq!(both.auto_row.kind, GemPriceAlertKind::Auto);
+
+        let none = asset_price_alerts(asset, None, vec![], Currency::USD);
+        assert_eq!(none.auto_alert, GemPriceAlertToggle::Disabled);
+        assert!(none.shows_empty);
     }
 
     #[test]

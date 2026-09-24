@@ -39,7 +39,8 @@ fun PriceAlertsNavScreen(toastMessage: String? = null, onToastShown: () -> Unit 
     var selectingAsset by remember { mutableStateOf(false) }
 
     val sections by viewModel.sections.collectAsStateWithLifecycle()
-    val isAutoAlertEnabled by viewModel.isAutoAlertEnabled.collectAsStateWithLifecycle()
+    val assetAlerts by viewModel.assetAlerts.collectAsStateWithLifecycle()
+    val showsEmpty by viewModel.showsEmpty.collectAsStateWithLifecycle()
     val asset by viewModel.asset.collectAsStateWithLifecycle()
     val priceAlertEnabled by viewModel.priceAlertEnabled.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
@@ -64,7 +65,8 @@ fun PriceAlertsNavScreen(toastMessage: String? = null, onToastShown: () -> Unit 
                 errorRow = errorRow,
                 asset = asset,
                 sections = sections,
-                isAutoAlertEnabled = isAutoAlertEnabled,
+                assetAlerts = assetAlerts,
+                showsEmpty = showsEmpty,
                 enabled = priceAlertEnabled == true,
                 syncState = isRefreshing,
                 isAssetView = viewModel.isAssetManage(),

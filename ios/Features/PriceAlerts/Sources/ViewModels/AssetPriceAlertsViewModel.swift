@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemAssetPriceAlerts
 import enum Gemstone.GemLoadState
-import struct Gemstone.GemPriceAlertListSection
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import enum Gemstone.GemServiceError
 import func Gemstone.loadError
@@ -54,26 +54,12 @@ public final class AssetPriceAlertsViewModel: Sendable {
     }
 
     var autoAlertItemModel: PriceAlertItemViewModel {
-        PriceAlertItemViewModel(
-            data: PriceAlertData(
-                asset: asset,
-                price: priceQuery.value?.price,
-                priceAlert: .default(for: asset.id, currency: .default),
-                rankScore: 0,
-            ),
-            currency: currency,
-        )
+        PriceAlertItemViewModel(row: assetAlerts.autoRow)
     }
 
     var isAutoAlertEnabledBinding: Binding<Bool> {
         Binding(
-            get: { self.sections.contains {
-                if case .auto = $0.kind {
-                    true
-                } else {
-                    false
-                }
-            } },
+            get: { self.assetAlerts.autoAlert == .enabled },
             set: { newValue in
                 Task { await self.toggleAutoAlert(enabled: newValue) }
             },
@@ -81,19 +67,24 @@ public final class AssetPriceAlertsViewModel: Sendable {
     }
 
     var alerts: [PriceAlertItem] {
-        sections.filter {
-            if case .asset = $0.kind {
-                true
-            } else {
-                false
-            }
-        }
-        .flatMap(\.items)
-        .map(PriceAlertItem.init(item:))
+        assetAlerts.alerts.map(PriceAlertItem.init(item:))
     }
 
-    private var sections: [GemPriceAlertListSection] {
-        PriceAlertFormatter.shared.sections(alerts: priceAlerts.map { $0.toGem() }, priceCurrency: currency.toGem())
+    var showsEmpty: Bool {
+        assetAlerts.showsEmpty && loadError == nil
+    }
+
+    var emptyContentModel: EmptyContentTypeViewModel {
+        EmptyContentTypeViewModel(type: EmptyContentType(.priceAlerts))
+    }
+
+    private var assetAlerts: GemAssetPriceAlerts {
+        PriceAlertFormatter.shared.assetAlerts(
+            asset: asset.toGem(),
+            price: priceQuery.value?.price?.toGem(),
+            alerts: priceAlerts.map { $0.toGem() },
+            priceCurrency: currency.toGem(),
+        )
     }
 
     var currency: Currency {

@@ -22,6 +22,7 @@ import com.gemwallet.android.ui.models.ListSection
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Price
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -41,10 +42,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemAssetPriceAlerts
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPriceAlertSectionKind
 import uniffi.gemstone.GemPriceAlertServiceInterface
+import uniffi.gemstone.GemPriceAlertToggle
 import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.PriceAlertFormatter
 import uniffi.gemstone.loadError
@@ -69,36 +72,42 @@ class PriceAlertViewModel @Inject constructor(
         .mapLatest { it?.toAssetId() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val asset = assetId.flatMapLatest { id ->
+    private val assetInfo = assetId.flatMapLatest { id ->
         if (id != null) getAssetTokenInfo(id) else flowOf(null)
     }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val asset = assetInfo
         .mapLatest { it?.toAssetInfoDataAggregate(GemSelectAssetType.PriceAlert.flow().rowStyle) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val alerts = assetId.flatMapLatest { getPriceAlerts(it) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    val assetAlerts: StateFlow<GemAssetPriceAlerts?> = combine(assetInfo, alerts) { info, alerts ->
+        info ?: return@combine null
+        val price = info.price?.price?.let { Price(price = it.price, priceChangePercentage24h = it.priceChangePercentage24h, updatedAt = it.updatedAt).toGem() }
+        priceAlertFormatter.assetAlerts(info.asset.toGem(), price, alerts.map { it.toGem() }, service.getCurrency())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     private val grouped = alerts.map { alerts ->
         priceAlertFormatter.sections(alerts.map { it.toGem() }, service.getCurrency())
             .map { section -> section.kind to section.items.map(::PriceAlertItemUIModel) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val isAutoAlertEnabled = grouped.map { sections -> sections.any { (kind, _) -> kind is GemPriceAlertSectionKind.Auto } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    val sections: StateFlow<List<ListSection<PriceAlertItemUIModel>>> = combine(grouped, assetAlerts, assetId) { grouped, assetAlerts, assetId ->
+        when (assetId) {
+            null -> grouped.map { (kind, items) -> ListSection(id = kind.sectionId(), title = kind.title(), items = items, footer = kind.footer(context)) }
 
-    val sections: StateFlow<List<ListSection<PriceAlertItemUIModel>>> = combine(grouped, assetId) { grouped, assetId ->
-        grouped.mapNotNull { (kind, items) ->
-            when {
-                assetId == null -> ListSection(id = kind.sectionId(), title = kind.title(), items = items, footer = kind.footer(context))
-                kind is GemPriceAlertSectionKind.Asset -> ListSection(id = kind.sectionId(), title = context.getString(R.string.stake_active), items = items)
-                else -> null
-            }
+            else -> assetAlerts?.alerts.orEmpty().takeIf { it.isNotEmpty() }?.let { alerts ->
+                listOf(ListSection(id = assetId.toIdentifier(), title = context.getString(R.string.stake_active), items = alerts.map(::PriceAlertItemUIModel)))
+            }.orEmpty()
         }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val priceAlertEnabled = assetId.flatMapLatest { id ->
-        if (id == null) alertsEnabled else isAutoAlertEnabled
+        if (id == null) alertsEnabled else assetAlerts.map { it?.autoAlert == GemPriceAlertToggle.ENABLED }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -112,6 +121,10 @@ class PriceAlertViewModel @Inject constructor(
     val errorRow: StateFlow<GemListRow?> = combine(loadState, sections) { state, shown ->
         loadError(state, shown.isNotEmpty())?.let { GemListRow.Error(it) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val showsEmpty: StateFlow<Boolean> = combine(assetId, assetAlerts, sections, errorRow) { assetId, assetAlerts, sections, errorRow ->
+        errorRow == null && if (assetId == null) sections.isEmpty() else assetAlerts?.showsEmpty == true
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     init {
         val initialAssetId = savedStateHandle.get<String?>(RouteArgument.AssetId.key)?.toAssetId()

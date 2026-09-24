@@ -41,6 +41,11 @@ public struct AssetPriceAlertsScene: View {
                     Text(Localized.Stake.active)
                 }
             }
+
+            if model.showsEmpty {
+                EmptyContentView(model: model.emptyContentModel)
+                    .cleanListRow()
+            }
         }
         .bindQuery(model.query)
         .bindQuery(model.priceQuery)

@@ -54,8 +54,10 @@ import com.gemwallet.android.ui.theme.paddingLarge
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.AssetId
+import uniffi.gemstone.GemAssetPriceAlerts
 import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemPriceAlertToggle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,7 +65,8 @@ internal fun PriceAlertScene(
     asset: AssetInfoDataAggregate? = null,
     sections: List<ListSection<PriceAlertItemUIModel>>,
     errorRow: GemListRow?,
-    isAutoAlertEnabled: Boolean,
+    assetAlerts: GemAssetPriceAlerts?,
+    showsEmpty: Boolean,
     enabled: Boolean,
     syncState: Boolean,
     isAssetView: Boolean,
@@ -96,8 +99,8 @@ internal fun PriceAlertScene(
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 errorRow?.let { row -> item { GemListRowView(row = row, listPosition = ListPosition.Single) } }
                 if (isAssetView) {
-                    autoAlertToggle(asset, isAutoAlertEnabled) { onAction(PriceAlertAction.ToggleAutoAlert(it)) }
-                    emptyAlertingAssets(sections.isEmpty() && !isAutoAlertEnabled && errorRow == null)
+                    autoAlertToggle(asset, assetAlerts) { onAction(PriceAlertAction.ToggleAutoAlert(it)) }
+                    emptyAlertingAssets(showsEmpty)
                     assets(
                         revealable = revealable,
                         sections = sections,
@@ -118,7 +121,7 @@ internal fun PriceAlertScene(
                             color = MaterialTheme.colorScheme.secondary,
                         )
                     }
-                    emptyAlertingAssets(sections.isEmpty() && !isAutoAlertEnabled && errorRow == null)
+                    emptyAlertingAssets(showsEmpty)
                     assets(
                         revealable = revealable,
                         sections = sections,
@@ -131,13 +134,15 @@ internal fun PriceAlertScene(
     }
 }
 
-private fun LazyListScope.autoAlertToggle(asset: AssetInfoDataAggregate?, isAutoAlertEnabled: Boolean, onToggleAutoAlert: (Boolean) -> Unit) {
+private fun LazyListScope.autoAlertToggle(asset: AssetInfoDataAggregate?, assetAlerts: GemAssetPriceAlerts?, onToggleAutoAlert: (Boolean) -> Unit) {
     item {
         val currentAsset = asset ?: return@item
+        val alerts = assetAlerts ?: return@item
 
         PriceAlertAutoAssetItem(
             asset = currentAsset,
-            enabled = isAutoAlertEnabled,
+            row = alerts.autoRow,
+            enabled = alerts.autoAlert == GemPriceAlertToggle.ENABLED,
             onCheckedChange = onToggleAutoAlert,
         )
         Text(

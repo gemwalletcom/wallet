@@ -10,26 +10,26 @@ import com.gemwallet.android.features.settings.price_alerts.presents.localizatio
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.PriceAlertItemUIModel
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.PriceInfo
-import com.gemwallet.android.ui.components.list_item.assetPriceSupport
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.style.textStyle
+import uniffi.gemstone.GemPriceAlertRow
 
-internal fun priceAlertSupport(item: PriceAlertItemUIModel): (@Composable () -> Unit)? = {
+internal fun priceAlertSupport(row: GemPriceAlertRow): (@Composable () -> Unit)? = {
     PriceInfo(
-        price = item.row.prefix.string(),
-        changes = item.row.suffix.string(),
-        changeStyle = item.row.direction.tone().textStyle(),
+        price = row.prefix.string(),
+        changes = row.suffix.string(),
+        changeStyle = row.direction.tone().textStyle(),
         style = MaterialTheme.typography.bodyMedium,
     )
 }
 
 @Composable
-internal fun PriceAlertAutoAssetItem(asset: AssetInfoDataAggregate, enabled: Boolean, onCheckedChange: (Boolean) -> Unit) {
+internal fun PriceAlertAutoAssetItem(asset: AssetInfoDataAggregate, row: GemPriceAlertRow, enabled: Boolean, onCheckedChange: (Boolean) -> Unit) {
     AssetListItem(
         asset = asset,
         listPosition = ListPosition.Single,
-        support = assetPriceSupport(asset.price),
-        badge = asset.asset.symbol,
+        support = priceAlertSupport(row),
+        badge = row.symbol,
         trailing = {
             Switch(
                 checked = enabled,
@@ -45,7 +45,7 @@ internal fun PriceAlertAssetItem(item: PriceAlertItemUIModel, listPosition: List
         modifier = modifier,
         asset = item.asset,
         listPosition = listPosition,
-        support = priceAlertSupport(item),
+        support = priceAlertSupport(item.row),
         badge = item.row.symbol,
     )
 }
