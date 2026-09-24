@@ -89,16 +89,7 @@ public final class ChartSceneViewModel: ChartListViewable {
         }
     }
 
-    var sections: [GemListSection] {
-        guard let priceData else { return [] }
-        return service.sections(
-            asset: priceData.asset.toGem(),
-            price: priceData.price?.price,
-            market: priceData.market?.toGem(),
-            priceAlerts: priceData.priceAlerts.map { $0.toGem() },
-            links: priceData.links.map { $0.toGem() },
-        )
-    }
+    private(set) var sections: [GemListSection] = []
 
     public init(
         service: any GemChartServiceProtocol,
@@ -135,15 +126,34 @@ public extension ChartSceneViewModel {
         }
     }
 
+    func updateSections() async {
+        guard let priceData else { return }
+        do {
+            let sections = try await service.sections(
+                asset: priceData.asset.toGem(),
+                price: priceData.price?.price,
+                market: priceData.market?.toGem(),
+                priceAlerts: priceData.priceAlerts.map { $0.toGem() },
+                links: priceData.links.map { $0.toGem() },
+            )
+            guard !Task.isCancelled, priceData == self.priceData else { return }
+            self.sections = sections
+        } catch {
+            debugLog("chart scene: sections error \(error)")
+        }
+    }
+
     var currency: Primitives.Currency {
         preferences.currency
     }
 
     func onChangeCurrency() async {
         let next = session.onCurrency(currency: currency.toGem())
-        guard next != session else { return }
-        session = next
-        await load()
+        if next != session {
+            session = next
+            await load()
+        }
+        await updateSections()
     }
 
     func onSelectSetPriceAlerts() {

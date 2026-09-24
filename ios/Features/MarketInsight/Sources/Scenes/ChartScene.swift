@@ -50,6 +50,9 @@ public struct ChartScene: View {
         .task(id: model.currency) {
             await model.onChangeCurrency()
         }
+        .task(id: model.priceData) {
+            await model.updateSections()
+        }
         .navigationTitle(model.title)
         .sheet(item: $model.isPresentingInfoSheet) {
             InfoSheetScene(type: $0)

@@ -10,6 +10,7 @@ import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.models.navigation.requireAssetId
@@ -60,16 +61,18 @@ class AssetChartViewModel internal constructor(
         sections(info, assetLinks, assetMarket, alerts)
     }
         .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, sections(storedAssetInfo, emptyList(), null, emptyList()))
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private fun sections(assetInfo: AssetInfo?, links: List<AssetLink>, market: AssetMarket?, priceAlerts: List<PriceAlert>): List<GemListSection> = assetInfo?.let {
-        chartService.sections(
-            asset = it.asset.toGem(),
-            price = it.price?.price?.price,
-            market = market?.toGem(),
-            priceAlerts = priceAlerts.map { alert -> alert.toGem() },
-            links = links.map { link -> link.toGem() },
-        )
+    private suspend fun sections(assetInfo: AssetInfo?, links: List<AssetLink>, market: AssetMarket?, priceAlerts: List<PriceAlert>): List<GemListSection> = assetInfo?.let {
+        runCatchingCancellable {
+            chartService.sections(
+                asset = it.asset.toGem(),
+                price = it.price?.price?.price,
+                market = market?.toGem(),
+                priceAlerts = priceAlerts.map { alert -> alert.toGem() },
+                links = links.map { link -> link.toGem() },
+            )
+        }.getOrNull()
     }.orEmpty()
 
     @Inject

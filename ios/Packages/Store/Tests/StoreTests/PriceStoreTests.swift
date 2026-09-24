@@ -50,20 +50,15 @@ struct PriceStoreTests {
     }
 
     @Test
-    func convertPricesRecomputesMarketFiguresFromUsd() throws {
+    func convertPricesKeepsMarketFiguresInUsd() throws {
         let db = DB.mockWithChains([.ethereum])
         let priceStore = PriceStore(db: db)
-        try priceStore.updateMarket(
-            assetId: Chain.ethereum.assetId,
-            market: .mock(marketCap: 900, circulatingSupply: 10),
-            marketUsd: .mock(marketCap: 1000, circulatingSupply: 10),
-        )
+        try priceStore.updateMarket(assetId: Chain.ethereum.assetId, market: .mock(marketCap: 1000, circulatingSupply: 10))
         let read = { (column: String) in try db.dbQueue.read { try Double.fetchOne($0, sql: "SELECT \(column) FROM asset_market") } }
 
         _ = try priceStore.convertPrices(rate: 2)
 
-        #expect(try read("marketCap") == 2000)
-        #expect(try read("marketCapUsd") == 1000)
+        #expect(try read("marketCap") == 1000)
         #expect(try read("circulatingSupply") == 10)
     }
 

@@ -51,9 +51,9 @@ public struct PriceStore: Sendable {
         }
     }
 
-    public func updateMarket(assetId: AssetId, market: AssetMarket, marketUsd: AssetMarket) throws {
+    public func updateMarket(assetId: AssetId, market: AssetMarket) throws {
         try db.write { db in
-            try AssetMarketRecord(assetId: assetId, market: market, marketUsd: marketUsd).upsert(db)
+            try AssetMarketRecord(assetId: assetId, market: market).upsert(db)
         }
     }
 
@@ -74,8 +74,7 @@ public struct PriceStore: Sendable {
     }
 
     private func convertPrices(_ db: Database, rate: Double) throws -> Int {
-        try AssetMarketRecord.updateAll(db, AssetMarketRecord.Columns.usdPairs.map { $0.value.set(to: $0.usd * rate) })
-        return try PriceRecord.updateAll(db, [
+        try PriceRecord.updateAll(db, [
             PriceRecord.Columns.price.set(to: PriceRecord.Columns.priceUsd * rate),
         ])
     }

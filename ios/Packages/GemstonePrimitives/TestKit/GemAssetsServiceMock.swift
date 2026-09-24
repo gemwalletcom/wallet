@@ -54,7 +54,7 @@ public final class GemPriceStoreMock: GemPriceStore, @unchecked Sendable {
     public func saveRates(rates _: [Gemstone.FiatRate], conversion _: Gemstone.FiatRate?) async throws {}
     public func savePrices(currency _: Gemstone.Currency, prices _: [Gemstone.GemPriceUpdate]) async throws {}
     public func convertPrices(currency _: Gemstone.Currency, rate _: Double) async throws {}
-    public func saveMarket(market _: Gemstone.GemMarketUpdate) async throws {}
+    public func saveMarket(assetId _: Gemstone.AssetId, market _: Gemstone.AssetMarket) async throws {}
 }
 
 public final class GemWalletStoreMock: GemWalletStore, @unchecked Sendable {

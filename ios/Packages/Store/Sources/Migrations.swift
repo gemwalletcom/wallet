@@ -90,15 +90,11 @@ struct Migrations {
             try FiatTransactionRecord.create(db: db)
             try SupportMessageRecord.create(db: db)
         }
-        migrator.registerMigration("Add USD market values to \(AssetMarketRecord.databaseTableName)") { db in
-            let columns = try db.columns(in: AssetMarketRecord.databaseTableName).map(\.name)
-            let missing = AssetMarketRecord.Columns.usdPairs.map(\.usd.name).filter { !columns.contains($0) }
-            guard !missing.isEmpty else { return }
-            try db.alter(table: AssetMarketRecord.databaseTableName) { table in
-                for name in missing {
-                    table.add(column: name, .double)
-                }
+        migrator.registerMigration("Recreate \(AssetMarketRecord.databaseTableName)") { db in
+            if try db.tableExists(AssetMarketRecord.databaseTableName) {
+                try db.drop(table: AssetMarketRecord.databaseTableName)
             }
+            try AssetMarketRecord.create(db: db)
         }
 
         try migrator.migrate(dbQueue)
@@ -550,10 +546,9 @@ struct Migrations {
             try PriceAlertRecord.create(db: db)
         }
 
-        migrator.registerMigration("Move the market columns of \(PriceRecord.databaseTableName) into \(AssetMarketRecord.databaseTableName)") { db in
-            try AssetMarketRecord.create(db: db)
+        migrator.registerMigration("Drop the market columns of \(PriceRecord.databaseTableName)") { db in
             let columns = try db.columns(in: PriceRecord.databaseTableName).map(\.name)
-            let moved = [
+            let market = [
                 AssetMarketRecord.Columns.marketCap,
                 AssetMarketRecord.Columns.marketCapFdv,
                 AssetMarketRecord.Columns.marketCapRank,
@@ -568,15 +563,9 @@ struct Migrations {
                 AssetMarketRecord.Columns.allTimeLowDate,
                 AssetMarketRecord.Columns.allTimeLowChangePercentage,
             ].map(\.name).filter { columns.contains($0) }
-            guard !moved.isEmpty else { return }
-            let names = moved.joined(separator: ", ")
-            let present = moved.map { "\($0) IS NOT NULL" }.joined(separator: " OR ")
-            try db
-                .execute(
-                    sql: "INSERT OR REPLACE INTO \(AssetMarketRecord.databaseTableName) (\(AssetMarketRecord.Columns.assetId.name), \(names)) SELECT \(PriceRecord.Columns.assetId.name), \(names) FROM \(PriceRecord.databaseTableName) WHERE \(present)",
-                )
+            guard !market.isEmpty else { return }
             try db.alter(table: PriceRecord.databaseTableName) { table in
-                for name in moved {
+                for name in market {
                     table.drop(column: name)
                 }
             }
