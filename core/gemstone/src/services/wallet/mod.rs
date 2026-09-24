@@ -255,6 +255,9 @@ impl GemWalletService {
     }
 
     pub async fn rename(&self, wallet_id: WalletId, name: String) -> Result<(), GemServiceError> {
+        if name.trim().is_empty() {
+            return Ok(());
+        }
         let wallet = self.store.get_wallet(wallet_id.clone()).await?.ok_or_else(|| GemServiceError::NotFound {
             msg: format!("wallet {} not found", wallet_id.id()),
         })?;
@@ -288,7 +291,7 @@ impl GemWalletService {
 
     async fn store_import(&self, name: String, import: GemWalletImportType, source: WalletSource) -> Result<GemWalletImportResult, GemServiceError> {
         let import = import.validated()?;
-        if name.is_empty() {
+        if name.trim().is_empty() {
             return Err(GemServiceError::Core {
                 msg: "a wallet cannot be stored without a name".to_string(),
             });
@@ -459,6 +462,9 @@ mod tests {
             assert_eq!((stored.name.as_str(), stored.address_type), ("Savings", AddressType::InternalWallet));
 
             context.service.rename(wallet.id.clone(), "Spending".to_string()).await.unwrap();
+            assert_eq!(name(&context).await.unwrap().name, "Spending");
+
+            context.service.rename(wallet.id.clone(), " ".to_string()).await.unwrap();
             assert_eq!(name(&context).await.unwrap().name, "Spending");
 
             context.service.delete_wallet(wallet.id.clone()).await.unwrap();

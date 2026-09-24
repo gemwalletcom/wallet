@@ -59,7 +59,7 @@ impl GemRewardsService {
         let wallet_id = wallet.id.id();
         let request = AuthenticatedRequest {
             auth: self.auth.get_auth_payload(wallet).await?,
-            data: ReferralCode { code },
+            data: ReferralCode { code: code.trim().to_string() },
         };
         Ok(self.api.client.create_referral(wallet_id, request).await.map_err(GemApiError::from)?)
     }
@@ -68,7 +68,7 @@ impl GemRewardsService {
         let wallet_id = wallet.id.clone();
         let request = AuthenticatedRequest {
             auth: self.auth.get_auth_payload(wallet).await?,
-            data: ReferralCode { code },
+            data: ReferralCode { code: code.trim().to_string() },
         };
         self.api.client.use_referral_code(wallet_id.id(), request).await.map_err(GemApiError::from)?;
         self.get_rewards(wallet_id).await

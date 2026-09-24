@@ -630,7 +630,9 @@ pub fn details_state(wallet_type: WalletType, metadata: &AssetMetaData, banner_e
         },
         shows_banners: !banner_events.is_empty(),
         price_alert: price_alert_toggle(price_alerts),
-        empty_transactions_action: if metadata.is_buy_enabled {
+        empty_transactions_action: if is_view_only {
+            None
+        } else if metadata.is_buy_enabled {
             Some(GemAssetEmptyAction::Buy)
         } else if metadata.is_swap_enabled {
             Some(GemAssetEmptyAction::Swap)
@@ -1347,7 +1349,7 @@ mod tests {
         assert!(state.is_view_only);
         assert_eq!(state.header_actions, GemHeaderActions::WatchOnly);
         assert!(!state.shows_banners);
-        assert_eq!(state.empty_transactions_action, Some(GemAssetEmptyAction::Buy));
+        assert_eq!(state.empty_transactions_action, None);
     }
 
     #[test]
