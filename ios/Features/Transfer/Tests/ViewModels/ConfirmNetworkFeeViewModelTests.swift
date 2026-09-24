@@ -48,6 +48,7 @@ struct ConfirmNetworkFeeViewModelTests {
             feeAssetPrice: .mock(price: 1),
             feeAmount: 1,
             feeAssets: [pathUSD, usdc],
+            showsFeeAssets: true,
             onSelectFeeAsset: { _ in },
         )
         let model = ConfirmNetworkFeeViewModel(
@@ -76,6 +77,7 @@ struct ConfirmNetworkFeeViewModelTests {
                 feeAssetPrice: .mock(price: 1),
                 feeAmount: 1,
                 feeAssets: [pathUSD, usdc],
+                showsFeeAssets: true,
                 onSelectFeeAsset: { _ in },
             ),
             infoAction: {},

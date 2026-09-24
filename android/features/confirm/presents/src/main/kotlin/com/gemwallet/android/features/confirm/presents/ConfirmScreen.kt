@@ -75,7 +75,6 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChainAddress
 import uniffi.gemstone.GemConfirmAction
-import uniffi.gemstone.GemConfirmPhase
 import uniffi.gemstone.SimulationResult
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -95,7 +94,7 @@ fun ConfirmScreen(
 ) {
     val refreshIntervalMillis by viewModel.refreshIntervalMillis.collectAsStateWithLifecycle()
     RefreshOnTimer(refreshIntervalMillis) {
-        if (viewModel.screen.value.phase == GemConfirmPhase.READY) viewModel.fetch()
+        if (viewModel.screen.value.refreshes()) viewModel.fetch()
     }
 
     val context = LocalContext.current

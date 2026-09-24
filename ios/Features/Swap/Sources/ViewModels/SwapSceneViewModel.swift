@@ -485,8 +485,7 @@ extension SwapSceneViewModel {
         case .insufficientBalance: break
         case let .useMinimumAmount(value): setFromValue(minimum: value)
         case .swap:
-            if let warningText = swapDetailsViewModel?.highImpactWarningDescription
-            {
+            if let warningText = swapDetailsViewModel?.highImpactWarningDescription {
                 isPresentingPriceImpactConfirmation = warningText
                 return
             }

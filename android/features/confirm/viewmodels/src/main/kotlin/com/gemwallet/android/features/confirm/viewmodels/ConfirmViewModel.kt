@@ -107,7 +107,6 @@ import uniffi.gemstone.PerpetualType
 import uniffi.gemstone.SimulationResult
 import uniffi.gemstone.TransactionInputType
 import uniffi.gemstone.perpetualConfirmDetails
-import uniffi.gemstone.showsFeeAssets
 import uniffi.gemstone.swapProviderRow
 import uniffi.gemstone.swapQuoteSummary
 import java.math.BigInteger
@@ -229,7 +228,7 @@ class ConfirmViewModel @Inject constructor(
     val feeAssets = content.map { it?.feeAssets.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val showsFeeAssets = combine(feeAsset, feeAssets) { asset, assets -> showsFeeAssets(assets.map { it.asset.id.toIdentifier() }, asset?.asset?.id?.toIdentifier()) }
+    val showsFeeAssets = content.map { it?.load?.showsFeeAssets() == true }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val detailElements = combine(transfer, content, ::buildDetailElements)

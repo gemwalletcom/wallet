@@ -47,11 +47,10 @@ struct NetworkFeeSceneViewModelTests {
         let pathUSD = FeeAssetItem.mock(asset: .mockTempoPathUSD())
         let usdc = FeeAssetItem.mock(asset: .mockTempoUSDC())
         let onSelect: @MainActor (AssetId) -> Void = { _ in }
-        let selectable = NetworkFeeSceneViewModel.mock(feeAsset: pathUSD.asset, feeAssets: [pathUSD, usdc], onSelectFeeAsset: onSelect)
+        let selectable = NetworkFeeSceneViewModel.mock(feeAsset: pathUSD.asset, feeAssets: [pathUSD, usdc], showsFeeAssets: true, onSelectFeeAsset: onSelect)
 
         #expect(NetworkFeeSceneViewModel.mock(feeAsset: pathUSD.asset, feeAssets: [pathUSD], onSelectFeeAsset: onSelect).showFeeAssets == false)
-        #expect(NetworkFeeSceneViewModel.mock(feeAsset: pathUSD.asset, feeAssets: [pathUSD, usdc]).showFeeAssets == false)
-        #expect(NetworkFeeSceneViewModel.mock(feeAsset: pathUSD.asset, feeAssets: [usdc], onSelectFeeAsset: onSelect).showFeeAssets)
+        #expect(NetworkFeeSceneViewModel.mock(feeAsset: pathUSD.asset, feeAssets: [pathUSD, usdc], showsFeeAssets: true).showFeeAssets == false)
         #expect(selectable.showFeeAssets)
         #expect(selectable.showFeeDetails)
     }
@@ -66,6 +65,7 @@ struct NetworkFeeSceneViewModelTests {
         #expect(NetworkFeeSceneViewModel.mock(
             feeAsset: pathUSD.asset,
             feeAssets: [pathUSD, usdc],
+            showsFeeAssets: true,
             onSelectFeeAsset: onSelect,
         ).feeAssetSymbol == nil)
         #expect(NetworkFeeSceneViewModel.mock(
@@ -73,6 +73,7 @@ struct NetworkFeeSceneViewModelTests {
             feeAssetPrice: .mock(price: 1),
             feeAmount: 1,
             feeAssets: [pathUSD, usdc],
+            showsFeeAssets: true,
             onSelectFeeAsset: onSelect,
         ).feeAssetSymbol == pathUSD.asset.symbol)
     }

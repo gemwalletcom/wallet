@@ -17,6 +17,7 @@ public extension NetworkFeeSceneViewModel {
         feeAmount: BigInt? = nil,
         additionalFees: [GemFeeOptionItem] = [],
         feeAssets: [FeeAssetItem] = [],
+        showsFeeAssets: Bool = false,
         onSelect: (@MainActor (GemConfirmFeeSelection) -> Void)? = nil,
         onSelectFeeAsset: (@MainActor (AssetId) -> Void)? = nil,
     ) -> NetworkFeeSceneViewModel {
@@ -29,6 +30,7 @@ public extension NetworkFeeSceneViewModel {
             feeAmount: feeAmount,
             additionalFees: additionalFees,
             feeAssets: feeAssets,
+            showsFeeAssets: showsFeeAssets,
             onSelect: onSelect,
             onSelectFeeAsset: onSelectFeeAsset,
         )

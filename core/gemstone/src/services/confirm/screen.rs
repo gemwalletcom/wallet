@@ -29,6 +29,10 @@ impl GemConfirmScreen {
 
 #[uniffi::export]
 impl GemConfirmScreen {
+    pub fn refreshes(&self) -> bool {
+        self.phase == GemConfirmPhase::Ready
+    }
+
     pub fn button(&self) -> GemConfirmButton {
         let button = |kind, state| GemConfirmButton { kind, state };
         match self.phase {
@@ -117,6 +121,27 @@ mod tests {
     use super::super::model::{GemConfirmData, GemConfirmFee};
     use super::*;
     use crate::models::placeholder::EMPTY_VALUE;
+
+    #[test]
+    fn test_only_a_ready_screen_refreshes_on_the_timer() {
+        let screen = GemConfirmScreen::initial(None);
+
+        assert!(!screen.refreshes());
+        assert!(
+            GemConfirmScreen {
+                phase: GemConfirmPhase::Ready,
+                ..screen.clone()
+            }
+            .refreshes()
+        );
+        assert!(
+            !GemConfirmScreen {
+                phase: GemConfirmPhase::Confirming,
+                ..screen
+            }
+            .refreshes()
+        );
+    }
 
     #[test]
     fn test_a_missing_account_offers_no_retry() {

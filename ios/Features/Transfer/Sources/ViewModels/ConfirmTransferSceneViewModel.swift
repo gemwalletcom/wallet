@@ -135,6 +135,7 @@ public final class ConfirmTransferSceneViewModel {
             feeAmount: state.fee?.value,
             additionalFees: state.fee?.additionalFees ?? [],
             feeAssets: state.feeAssets.map { $0.feeAssetItem(currency: confirmation.currency) },
+            showsFeeAssets: state.load?.showsFeeAssets() ?? false,
             onSelect: { [weak self] in self?.changeFeeSelection($0) },
             onSelectFeeAsset: { [weak self] in self?.selectFeeAsset($0) },
         )

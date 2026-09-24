@@ -329,8 +329,11 @@ pub struct GemConfirmButton {
 }
 
 #[uniffi::export]
-pub fn shows_fee_assets(fee_asset_ids: Vec<AssetId>, selected: Option<AssetId>) -> bool {
-    super::rules::shows_fee_assets(&fee_asset_ids, selected.as_ref())
+impl GemConfirmLoad {
+    pub fn shows_fee_assets(&self) -> bool {
+        let fee_asset_ids: Vec<AssetId> = self.fee_assets.iter().map(|fee_asset| fee_asset.asset.id.clone()).collect();
+        super::rules::shows_fee_assets(&fee_asset_ids, Some(&self.fee_asset.id))
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]

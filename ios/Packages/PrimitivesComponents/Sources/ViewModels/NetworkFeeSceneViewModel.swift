@@ -8,7 +8,6 @@ import struct Gemstone.GemFeeAmount
 import struct Gemstone.GemFeeOptionItem
 import struct Gemstone.GemFeeRateRow
 import struct Gemstone.GemFeeRateRows
-import func Gemstone.showsFeeAssets
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -24,6 +23,7 @@ public struct NetworkFeeSceneViewModel {
     private let feeAmount: BigInt?
     private let additionalFees: [GemFeeOptionItem]
     private let feeAssets: [FeeAssetItem]
+    private let showsFeeAssets: Bool
     private let onSelect: (@MainActor (GemConfirmFeeSelection) -> Void)?
     private let onSelectFeeAsset: (@MainActor (AssetId) -> Void)?
 
@@ -36,6 +36,7 @@ public struct NetworkFeeSceneViewModel {
         feeAmount: BigInt? = nil,
         additionalFees: [GemFeeOptionItem] = [],
         feeAssets: [FeeAssetItem] = [],
+        showsFeeAssets: Bool = false,
         onSelect: (@MainActor (GemConfirmFeeSelection) -> Void)? = nil,
         onSelectFeeAsset: (@MainActor (AssetId) -> Void)? = nil,
     ) {
@@ -47,6 +48,7 @@ public struct NetworkFeeSceneViewModel {
         self.feeAmount = feeAmount
         self.additionalFees = additionalFees
         self.feeAssets = feeAssets
+        self.showsFeeAssets = showsFeeAssets
         self.onSelect = onSelect
         self.onSelectFeeAsset = onSelectFeeAsset
     }
@@ -73,7 +75,7 @@ public struct NetworkFeeSceneViewModel {
     }
 
     var showFeeAssets: Bool {
-        onSelectFeeAsset != nil && showsFeeAssets(feeAssetIds: feeAssets.map(\.asset.id.identifier), selected: feeAsset.id.identifier)
+        onSelectFeeAsset != nil && showsFeeAssets
     }
 
     var selectedFeeAssetItem: FeeAssetItem {

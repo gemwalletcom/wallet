@@ -33,7 +33,7 @@ public struct ConfirmTransferScene: View {
             await model.load()
         }
         .refreshableTimer(every: connectionStatus.refreshInterval(for: .confirm)) { @MainActor _ in
-            guard model.state.screen.phase == .ready else { return }
+            guard model.state.screen.refreshes() else { return }
             await model.load()
         }
         .navigationTitle(model.title)
