@@ -3,8 +3,8 @@
 import BigInt
 import Formatters
 import Foundation
-import func Gemstone.dustThreshold
-import func Gemstone.dustThresholdPlaces
+import func Gemstone.formattedAmount
+import enum Gemstone.GemPrecision
 import enum Gemstone.GemValueStyle
 import Primitives
 
@@ -31,14 +31,11 @@ public struct ValueFormatter: Sendable {
         if value.isZero {
             return appendingCurrency("0", currency: currency)
         }
-        let magnitude = decimal.doubleValue
-        if style.abbreviates(magnitude: magnitude), let abbreviated = abbreviatedFormatter.string(from: decimal) {
-            return appendingCurrency(abbreviated, currency: currency)
+        let number = formattedAmount(value: decimal.doubleValue, symbol: currency.isEmpty ? nil : currency, style: style)
+        guard case let .number(precision) = number.display else {
+            return number.text(locale: locale)
         }
-        if style.isDust(magnitude: magnitude) {
-            return appendingCurrency("<\(formattedDustThreshold)", currency: currency)
-        }
-        return appendingCurrency(decimal.formatted(formatStyle(for: magnitude)), currency: currency)
+        return appendingCurrency(decimal.formatted(formatStyle(precision: precision)), currency: currency)
     }
 
     public func double(from number: BigInt, decimals: Int) throws -> Double {
@@ -52,24 +49,12 @@ public struct ValueFormatter: Sendable {
 // MARK: - Private
 
 private extension ValueFormatter {
-    var abbreviatedFormatter: AbbreviatedFormatter {
-        AbbreviatedFormatter(locale: locale)
-    }
-
-    var formattedDustThreshold: String {
-        Decimal(dustThreshold()).formatted(
-            Decimal.FormatStyle()
-                .locale(locale)
-                .precision(.fractionLength(Int(dustThresholdPlaces()))),
-        )
-    }
-
-    func formatStyle(for magnitude: Double) -> Decimal.FormatStyle {
+    func formatStyle(precision: GemPrecision) -> Decimal.FormatStyle {
         Decimal.FormatStyle()
             .locale(locale)
             .grouping(.automatic)
             .rounded(rule: .towardZero)
-            .precision(style.precision(magnitude: magnitude).formatStyle)
+            .precision(precision.formatStyle)
     }
 
     func appendingCurrency(_ value: String, currency: String) -> String {

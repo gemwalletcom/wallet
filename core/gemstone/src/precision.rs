@@ -15,7 +15,6 @@ impl From<Precision> for GemPrecision {
     }
 }
 
-#[uniffi::export]
 pub fn adaptive_precision(magnitude: f64) -> GemPrecision {
     number_formatter::precision::adaptive(magnitude).into()
 }
@@ -37,7 +36,6 @@ impl From<GemValueStyle> for ValueStyle {
     }
 }
 
-#[uniffi::export]
 impl GemValueStyle {
     pub fn precision(&self, magnitude: f64) -> GemPrecision {
         number_formatter::precision::value((*self).into(), magnitude).into()
@@ -52,16 +50,6 @@ impl GemValueStyle {
     }
 }
 
-#[uniffi::export]
-pub fn dust_threshold() -> f64 {
-    number_formatter::VALUE_DUST_THRESHOLD
-}
-
-#[uniffi::export]
-pub fn dust_threshold_places() -> u32 {
-    number_formatter::VALUE_DUST_PLACES
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemCurrencyStyle {
     Currency,
@@ -70,7 +58,6 @@ pub enum GemCurrencyStyle {
     Abbreviated,
 }
 
-#[uniffi::export]
 impl GemCurrencyStyle {
     pub fn precision(&self, magnitude: f64) -> GemPrecision {
         match self {
@@ -109,8 +96,6 @@ mod tests {
 
         assert!(GemValueStyle::Short.is_dust(0.00009));
         assert!(!GemValueStyle::Short.is_dust(0.0));
-        assert_eq!(dust_threshold(), 0.0001);
-        assert_eq!(dust_threshold_places(), 4);
     }
 
     #[test]
