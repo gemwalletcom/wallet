@@ -221,7 +221,6 @@ The API never returns internal text: `ApiError::Internal` logs its detail on the
 
 ### iOS and Android differ
 
-- **BD35** **S** **Android redeems points on one tap; iOS asks for confirmation.** iOS `RewardsViewModel.swift:243-266`; Android `ReferralNavScreen.kt:80-93`.
 - **BD38** **S** **The WalletConnect Pay web view loads plain `http` on Android only.** iOS `Components/Sources/WebView.swift:67-79` (https + host); Android `ui/components/WebView.kt:38-45` (http or https); `docs/WALLETCONNECT_PAY.md`.
 - **BD39** **M** **A push for another wallet opens under the current wallet on Android, with an empty transaction screen.** iOS `NavigationRouter.swift:154,173,181-186,279-285` switches wallet first; Android `NavigationTargetRoutes.kt:17,24` ignores `walletId`, `GetTransactionDetailsImpl.kt:21-24`.
 - **BD40** **S** **Support photos on Android may arrive rotated and downscaled, and only one can be sent at a time.** iOS `PhotosPickerItem+Support.swift:10-17`, multi-select `SupportMessageInputBar.swift:33`; Android `SupportImageAttachmentFactory.kt:19-44` (no EXIF, power-of-two scaling), `SupportChatScene.kt:54-56`. Rotation likely.

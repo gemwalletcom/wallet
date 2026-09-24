@@ -47,7 +47,7 @@ private fun RewardRedemptionOptionItem(item: RewardRedemptionUIModel, listPositi
     ListItem(
         model = item.model,
         listPosition = listPosition,
-        modifier = Modifier.clickable { showConfirm = true },
+        modifier = Modifier.clickable { if (item.redemption.canRedeem) showConfirm = true else onClick() },
         accessory = { DataBadgeChevron() },
     )
 
