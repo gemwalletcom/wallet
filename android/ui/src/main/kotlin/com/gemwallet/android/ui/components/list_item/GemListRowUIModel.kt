@@ -25,7 +25,6 @@ import com.gemwallet.android.ui.style.badgeIconRes
 import com.gemwallet.android.ui.style.textStyle
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.GemCopy
 import uniffi.gemstone.GemCopyKind
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemLatencyStatus
@@ -47,7 +46,6 @@ internal sealed interface GemListRowUIModel {
     data class Rate(val title: String, val rate: AssetRatePair) : GemListRowUIModel
     data class Icon(val asset: Asset) : GemListRowUIModel
     data class Network(val chain: Chain, val name: String) : GemListRowUIModel
-    data class Address(val address: String, val copy: GemCopy) : GemListRowUIModel
     data class Social(val links: List<GemSocialLink>) : GemListRowUIModel
     data class Toggle(val model: ListItemModel, val title: GemListRowTitle, val isOn: Boolean) : GemListRowUIModel
     data class Picker(val model: ListItemModel, val title: GemListRowTitle) : GemListRowUIModel
@@ -181,8 +179,6 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
     is GemListRow.Error -> GemListRowUIModel.Notice(title = GemListRowTitle.ERROR.text(context), message = error.errorText().text(context), kind = GemNoticeKind.ERROR)
 
     is GemListRow.Icon -> GemListRowUIModel.Icon(asset = chain.requireChain().asset())
-
-    is GemListRow.Address -> GemListRowUIModel.Address(address = address, copy = copy)
 
     is GemListRow.Toggle -> GemListRowUIModel.Toggle(listItemModel(context, title, null, icon), title, isOn)
 

@@ -16,11 +16,6 @@ import Localization
 import Primitives
 import Style
 
-struct AddressCardModel {
-    let address: String
-    let copyModel: CopyTypeViewModel
-}
-
 enum GemListRowItem {
     case notice(title: String, message: String?, kind: GemNoticeKind)
     case listItem(ListItemModel)
@@ -36,7 +31,6 @@ enum GemListRowItem {
     case wallet(ListItemModel, context: ExplorerContextData)
     case memo(ListItemModel, copy: String?)
     case icon(AssetImage)
-    case address(AddressCardModel)
     case social([GemSocialLink])
     case loading
 }
@@ -166,8 +160,6 @@ extension GemListRow {
             .page(ListItemModel(title: Localized.Transaction.viewOn(name)), url: URL(string: url) ?? BlockExplorerLink(name: name, link: url).url)
         case let .icon(chain):
             .icon(AssetIdViewModel(assetId: Chain(core: chain).assetId).assetImage)
-        case let .address(address, copy):
-            .address(AddressCardModel(address: address, copyModel: copy.copyModel))
         case .loading:
             .loading
         }

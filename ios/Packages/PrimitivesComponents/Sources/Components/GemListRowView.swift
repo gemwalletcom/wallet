@@ -109,10 +109,6 @@ public struct GemListRowView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.bottom, .small)
                 .cleanListRow()
-        case let .address(model):
-            AddressCardView(model: model, action: { presentation = .copy })
-                .cleanListRow()
-                .copyToast(model: model.copyModel, isPresenting: isPresentingCopyToast)
         case .loading:
             ListItemLoadingView()
         }
@@ -120,13 +116,6 @@ public struct GemListRowView: View {
 }
 
 extension GemListRowView {
-    private var isPresentingCopyToast: Binding<Bool> {
-        Binding(
-            get: { presentation == .copy },
-            set: { presentation = $0 ? .copy : nil },
-        )
-    }
-
     private var isPresentingUrl: Binding<URL?> {
         Binding(
             get: {

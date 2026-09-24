@@ -19,7 +19,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.setCopy
 import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_head.HeaderIcon
@@ -76,7 +75,6 @@ fun GemListRowView(
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-    val clipboardManager = context.clipboardManager()
 
     val actionTitle = row.actionTitle()
     when (val row = row.uiModel(context, infoIcon)) {
@@ -148,8 +146,6 @@ fun GemListRowView(
             listPosition = listPosition,
             onOpenNetwork = onSelect?.let { select -> { select(GemListRowTitle.NETWORK) } },
         )
-
-        is GemListRowUIModel.Address -> AddressCard(row = row) { clipboardManager.setCopy(context, row.copy) }
 
         is GemListRowUIModel.Toggle -> ListItem(
             model = row.model,
