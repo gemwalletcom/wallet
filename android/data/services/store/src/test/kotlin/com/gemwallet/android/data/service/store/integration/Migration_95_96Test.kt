@@ -1,4 +1,4 @@
-package com.gemwallet.android.service.store
+package com.gemwallet.android.data.service.store.integration
 
 import androidx.room.testing.MigrationTestHelper
 import androidx.sqlite.db.SupportSQLiteDatabase
@@ -6,9 +6,7 @@ import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.data.service.store.database.GemDatabase
-import com.gemwallet.android.data.service.store.database.StoreConverters
 import com.gemwallet.android.data.service.store.database.di.Migration_95_96
-import com.wallet.core.primitives.BalanceMetadata
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
@@ -34,19 +32,19 @@ class Migration_95_96Test {
     }
 
     @Test
-    fun everyMetadataFieldRoundTripsIntoTheJsonColumn() {
-        helper.createDatabase(testDb, 95).use { database ->
+    fun theBalancesAreKeptAndTheOldColumnsDropped() {
+        val kept = "SELECT asset_id, wallet_id, available, available_amount, withdrawableAmount, total_amount, is_active, is_pinned, is_visible, updated_at FROM balances ORDER BY asset_id"
+        val before = helper.createDatabase(testDb, 95).use { database ->
             database.seedWallet()
             database.execSQL(balanceRow("tron", "11, 22, 33, 44, 55, 3"))
             database.execSQL(balanceRow("bitcoin", "0, 0, 0, 0, 0, 0"))
+            database.execSQL("UPDATE balances SET available = '12345', available_amount = 1.5, withdrawableAmount = 0.25, total_amount = 2.5, is_pinned = 1 WHERE asset_id = 'tron'")
+            database.rows(kept)
         }
 
         helper.runMigrationsAndValidate(testDb, 96, true, Migration_95_96).use { database ->
-            val converters = StoreConverters()
-            val tron = converters.toBalanceMetadata(database.metadata("tron"))
-
-            assertEquals(BalanceMetadata(votes = 11U, energyAvailable = 22U, energyTotal = 33U, bandwidthAvailable = 44U, bandwidthTotal = 55U), tron)
-            assertNull("a balance with nothing to carry has no metadata, the way iOS stores it", database.metadata("bitcoin"))
+            assertEquals(before, database.rows(kept))
+            assertNull(database.metadata("tron"))
 
             val columns = database.rows("PRAGMA table_info(balances)").mapNotNull { it.getOrNull(1) }
             for (dropped in listOf("votes", "energy_available", "energy_total", "bandwidth_available", "bandwidth_total", "list_position")) {

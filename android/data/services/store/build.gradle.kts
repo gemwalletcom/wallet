@@ -13,7 +13,6 @@ android {
     defaultConfig {
         minSdk = 28
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
 
         ksp {
@@ -44,8 +43,14 @@ android {
         enable = true
     }
 
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
+
     sourceSets {
-        getByName("androidTest") {
+        getByName("test") {
             assets {
                 directories.add("$projectDir/schemas")
             }
@@ -77,8 +82,7 @@ dependencies {
     implementation(libs.ktx.core)
     testImplementation(libs.junit)
     testImplementation(testFixtures(project(":gemcore")))
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.junit.runner)
-    androidTestImplementation(libs.room.testing)
-    androidTestImplementation(testFixtures(project(":gemcore")))
+    testImplementation(libs.androidx.junit)
+    testImplementation(libs.room.testing)
+    testImplementation(libs.robolectric)
 }

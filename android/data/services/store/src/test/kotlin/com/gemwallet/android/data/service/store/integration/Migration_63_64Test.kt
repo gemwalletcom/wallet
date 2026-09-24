@@ -1,4 +1,4 @@
-package com.gemwallet.android.service.store
+package com.gemwallet.android.data.service.store.integration
 
 import android.content.Context
 import androidx.room.testing.MigrationTestHelper

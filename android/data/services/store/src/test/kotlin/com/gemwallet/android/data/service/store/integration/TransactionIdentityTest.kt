@@ -1,4 +1,4 @@
-package com.gemwallet.android.service.store
+package com.gemwallet.android.data.service.store.integration
 
 import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
