@@ -36,6 +36,7 @@ import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space6
 import com.wallet.core.primitives.Asset
+import uniffi.gemstone.GemFormattedNumber
 import uniffi.gemstone.GemPriceRow
 import uniffi.gemstone.GemValueTone
 
@@ -176,6 +177,12 @@ fun getBalanceInfo(crypto: String, equivalent: String, isZero: Boolean): @Compos
             equivalent = equivalent.takeIf { !isZero }.orEmpty(),
             color = color,
         )
+    }
+    )
+
+fun getBalanceInfo(amount: GemFormattedNumber, equivalent: GemFormattedNumber?): @Composable () -> Unit = (
+    @Composable {
+        BalanceInfo(crypto = amount.text(), equivalent = equivalent?.text().orEmpty(), color = amount.tone.color())
     }
     )
 

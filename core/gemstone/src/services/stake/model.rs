@@ -40,7 +40,6 @@ pub struct GemDelegationListRow {
     pub fiat: Option<GemFormattedNumber>,
     pub rewards: Option<GemFormattedNumber>,
     pub rewards_fiat: Option<GemFormattedNumber>,
-    pub has_balance: bool,
 }
 
 #[uniffi::export]

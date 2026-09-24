@@ -1,5 +1,5 @@
 use super::rules;
-use crate::formatted_number::GemFormattedNumber;
+use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::services::swap::GemAssetRate;
 use primitives::{FiatProviderName, FiatQuoteType, FiatTransactionAssetData};
 
@@ -43,7 +43,7 @@ pub enum GemFiatTransactionBadge {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
 pub struct GemFiatTransactionStatus {
     pub badge: Option<GemFiatTransactionBadge>,
-    pub is_dimmed: bool,
+    pub tone: GemValueTone,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -54,7 +54,6 @@ pub struct GemFiatTransactionRow {
     pub value: GemFormattedNumber,
     pub fiat_value: GemFormattedNumber,
     pub badge: Option<GemFiatTransactionBadge>,
-    pub is_dimmed: bool,
     pub details_url: Option<String>,
 }
 

@@ -223,11 +223,20 @@ pub fn delegation_list_row(delegation: &Delegation, asset: &Asset, price: Option
     GemDelegationListRow {
         validator: validator_row(&delegation.validator),
         status: delegation_status(delegation),
-        balance: amount(&delegation.base.balance),
+        balance: GemFormattedNumber {
+            tone: balance_tone(&delegation.base.balance),
+            ..amount(&delegation.base.balance)
+        },
         fiat: fiat(&delegation.base.balance),
         rewards: shows_rewards.then(|| amount(&delegation.base.rewards)),
         rewards_fiat: shows_rewards.then(|| fiat(&delegation.base.rewards)).flatten(),
-        has_balance: delegation.base.balance > BigUint::ZERO,
+    }
+}
+
+fn balance_tone(balance: &BigUint) -> GemValueTone {
+    match *balance > BigUint::ZERO {
+        true => GemValueTone::Plain,
+        false => GemValueTone::Neutral,
     }
 }
 
@@ -747,14 +756,14 @@ mod tests {
         };
 
         let held = row(2_000_000, 500_000, DelegationState::Active);
-        assert!(held.has_balance);
+        assert_eq!(held.balance.tone, GemValueTone::Plain);
         assert_eq!(held.balance.value, 2.0);
         assert_eq!(held.fiat.expect("a priced stake is worth something").value, 4.0);
         assert_eq!(held.rewards.expect("active rewards are shown").value, 0.5);
         assert_eq!(held.rewards_fiat.expect("and are worth something").value, 1.0);
 
         let empty = row(0, 0, DelegationState::Active);
-        assert!(!empty.has_balance, "an empty stake greys on both apps");
+        assert_eq!(empty.balance.tone, GemValueTone::Neutral, "an empty stake greys on both apps");
         assert_eq!(empty.fiat, None, "and is worth nothing the row can name");
         assert_eq!(empty.rewards, None);
 

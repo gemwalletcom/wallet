@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.localization.stateText
@@ -36,7 +35,7 @@ fun DelegationItem(item: DelegationRowUIModel, listPosition: ListPosition, onCli
         },
         trailing = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                getBalanceInfo(row.balance.text(), row.fiat?.text().orEmpty(), !row.hasBalance).invoke()
+                getBalanceInfo(row.balance, row.fiat).invoke()
                 DataBadgeChevron()
             }
         },

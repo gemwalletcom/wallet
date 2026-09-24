@@ -29,7 +29,7 @@ private fun FiatTransactionAssetData.uiModel(row: GemFiatTransactionRow, context
         titleTagStyle = row.badge?.textStyle() ?: ListItemTextStyle.Secondary,
         titleExtra = row.subtitle,
         subtitle = row.value.text(),
-        subtitleStyle = if (row.isDimmed) ListItemTextStyle.Secondary else ListItemTextStyle.Body,
+        subtitleStyle = row.value.tone.textStyle(),
         subtitleExtra = row.fiatValue.text(),
         image = ListItemImage.Drawable(row.provider.toPrimitives().iconResource()),
     ),

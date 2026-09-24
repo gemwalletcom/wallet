@@ -38,7 +38,7 @@ public struct FiatTransactionViewModel: Sendable, Identifiable {
             titleExtra: row.subtitle,
             titleStyleExtra: .footnote,
             subtitle: row.value.text(locale: locale),
-            subtitleStyle: TextStyle(font: .callout, color: row.isDimmed ? Colors.gray : Colors.black),
+            subtitleStyle: TextStyle(font: .callout, color: row.value.tone.color),
             subtitleExtra: row.fiatValue.text(locale: locale),
             subtitleStyleExtra: TextStyle(font: .footnote, color: Colors.gray),
             imageStyle: .asset(assetImage: .image(row.provider.toPrimitives().image)),

@@ -44,7 +44,7 @@ public struct DelegationViewModel: Sendable {
     }
 
     public var subtitleStyle: TextStyle {
-        TextStyle(font: .callout, color: row.hasBalance ? Colors.black : Colors.gray, fontWeight: .semibold)
+        TextStyle(font: .callout, color: row.balance.tone.color, fontWeight: .semibold)
     }
 
     public var subtitleExtraStyle: TextStyle {
