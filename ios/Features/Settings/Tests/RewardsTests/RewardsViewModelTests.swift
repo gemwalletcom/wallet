@@ -150,7 +150,7 @@ struct RewardsViewModelTests {
         let service = GemRewardsServiceMock()
         let model = try #require(RewardsViewModel.mock(service: service, wallets: [first, second]))
 
-        await model.redeem(option: .mock(id: "option-7"))
+        await model.redeem(redemptionId: "option-7")
 
         #expect(service.redeemedIds == ["option-7"])
         #expect(model.toastMessage != nil)
@@ -162,7 +162,7 @@ struct RewardsViewModelTests {
         service.redeemError = GemServiceError.Api(msg: "out of stock")
         let model = try #require(RewardsViewModel.mock(service: service, wallets: [first, second]))
 
-        await model.redeem(option: .mock(id: "option-7"))
+        await model.redeem(redemptionId: "option-7")
 
         #expect(model.isPresentingAlert?.message == "out of stock")
         #expect(model.toastMessage == nil)

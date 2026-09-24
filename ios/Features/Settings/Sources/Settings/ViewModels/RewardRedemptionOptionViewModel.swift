@@ -3,7 +3,6 @@
 import Components
 import Foundation
 import struct Gemstone.GemRewardsRedemption
-import struct Gemstone.RewardRedemptionOption
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -12,19 +11,12 @@ import PrimitivesComponents
 struct RewardRedemptionOptionViewModel: Identifiable {
     let redemption: GemRewardsRedemption
 
-    private var option: RewardRedemptionOption {
-        redemption.option
-    }
-
     var id: String {
-        option.id
+        redemption.id
     }
 
     var title: String {
-        switch option.redemptionType {
-        case .asset, .giftAsset:
-            Localized.Rewards.WaysSpend.Asset.title(valueText)
-        }
+        redemption.title.text
     }
 
     var subtitle: String {
@@ -36,10 +28,7 @@ struct RewardRedemptionOptionViewModel: Identifiable {
     }
 
     var assetImage: AssetImage {
-        guard let asset = option.asset else {
-            return AssetImage()
-        }
-        return AssetIdViewModel(assetId: Primitives.AssetId(core: asset.id)).assetImage
+        AssetIdViewModel(assetId: Primitives.AssetId(core: redemption.assetId)).assetImage
     }
 
     var pointsText: String {

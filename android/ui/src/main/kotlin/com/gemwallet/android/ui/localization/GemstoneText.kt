@@ -205,6 +205,8 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     GemLocalizedText.NftUnverified -> context.getString(R.string.asset_verification_unverified)
 
+    is GemLocalizedText.RewardsRedeemAsset -> context.getString(R.string.rewards_ways_spend_asset_title, value.text())
+
     GemLocalizedText.EnableDeveloper -> context.getString(R.string.settings_enable_value, context.getString(R.string.settings_developer))
 
     GemLocalizedText.DisableDeveloper -> context.getString(R.string.settings_disable_value, context.getString(R.string.settings_developer))

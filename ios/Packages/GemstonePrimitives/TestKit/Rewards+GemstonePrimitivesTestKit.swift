@@ -104,11 +104,12 @@ public extension GemRewardsState {
 
 public extension GemRewardsRedemption {
     static func mock(
-        option: RewardRedemptionOption = .mock(),
+        id: String = "option",
+        assetId: String = "ethereum",
         canRedeem: Bool = true,
         points: GemFormattedNumber = .mock(value: 100, display: .number(precision: .fraction(min: 0, max: 0)), notation: .plain),
         value: GemFormattedNumber = .mock(),
     ) -> GemRewardsRedemption {
-        GemRewardsRedemption(option: option, canRedeem: canRedeem, points: points, value: value)
+        GemRewardsRedemption(id: id, assetId: assetId, title: .rewardsRedeemAsset(value: value), canRedeem: canRedeem, points: points, value: value)
     }
 }

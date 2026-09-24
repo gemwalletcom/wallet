@@ -13,7 +13,6 @@ import struct Gemstone.GemRewardsViewState
 import enum Gemstone.GemServiceError
 import struct Gemstone.GemWalletRow
 import func Gemstone.incomingReferralCode
-import struct Gemstone.RewardRedemptionOption
 import func Gemstone.rewardsSession
 import func Gemstone.walletRow
 import func Gemstone.walletRows
@@ -250,14 +249,13 @@ public final class RewardsViewModel: Sendable {
 
     func showRedemptionAlert(for redemption: GemRewardsRedemption) {
         let viewModel = RewardRedemptionOptionViewModel(redemption: redemption)
-        let option = redemption.option
         isPresentingAlert = AlertMessage(
             title: viewModel.confirmationMessage,
             message: "",
             actions: [
                 AlertAction(title: Localized.Transfer.confirm, isDefaultAction: true) { [weak self] in
                     Task {
-                        await self?.redeem(option: option)
+                        await self?.redeem(redemptionId: redemption.id)
                         await self?.refresh()
                     }
                 },
@@ -266,9 +264,9 @@ public final class RewardsViewModel: Sendable {
         )
     }
 
-    func redeem(option: RewardRedemptionOption) async {
+    func redeem(redemptionId: String) async {
         do {
-            _ = try await service.redeem(wallet: selectedWallet, redemptionId: option.id)
+            _ = try await service.redeem(wallet: selectedWallet, redemptionId: redemptionId)
             toastMessage = ToastMessage.success(Localized.Common.done)
         } catch let error as GemServiceError {
             showError(error.text().text)

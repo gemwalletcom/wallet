@@ -36,6 +36,7 @@ pub enum GemLocalizedText {
     NftCollections,
     NftUnverified,
     EnableDeveloper,
+    RewardsRedeemAsset { value: GemFormattedNumber },
     DisableDeveloper,
     PositionChange { change: GemPositionChange, direction: PerpetualDirection },
 }

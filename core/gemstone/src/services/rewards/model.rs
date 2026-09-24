@@ -1,7 +1,9 @@
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::list::{GemListRow, GemListSection};
 use crate::models::state::GemLoadState;
-use primitives::{RewardRedemptionOption, Rewards, WalletId};
+use primitives::{AssetId, Rewards, WalletId};
+
+use crate::services::localization::GemLocalizedText;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemRewardsResult {
@@ -46,7 +48,9 @@ pub enum GemIncomingCode {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemRewardsRedemption {
-    pub option: RewardRedemptionOption,
+    pub id: String,
+    pub asset_id: AssetId,
+    pub title: GemLocalizedText,
     pub can_redeem: bool,
     pub points: GemFormattedNumber,
     pub value: GemFormattedNumber,

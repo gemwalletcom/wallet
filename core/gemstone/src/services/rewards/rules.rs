@@ -117,10 +117,13 @@ fn redemptions(rewards: &Rewards) -> Vec<GemRewardsRedemption> {
         .filter_map(|option| {
             let asset = option.asset.as_ref()?;
             let value = BigNumberFormatter::f64_value(&option.value, asset.decimals as u32);
+            let value = GemFormattedNumber::amount(value, Some(asset.symbol.clone()), GemValueStyle::Short);
             Some(GemRewardsRedemption {
+                id: option.id.clone(),
+                asset_id: asset.id.clone(),
+                title: GemLocalizedText::RewardsRedeemAsset { value: value.clone() },
                 points: points_number(option.points),
-                value: GemFormattedNumber::amount(value, Some(asset.symbol.clone()), GemValueStyle::Short),
-                option: option.clone(),
+                value,
                 can_redeem: can_redeem(rewards, option),
             })
         })
@@ -295,11 +298,15 @@ mod tests {
         let redemptions = state(Some(&rewards), now()).redemptions;
 
         assert_eq!(
-            redemptions.iter().map(|redemption| redemption.option.id.as_str()).collect::<Vec<_>>(),
+            redemptions.iter().map(|redemption| redemption.id.as_str()).collect::<Vec<_>>(),
             vec!["affordable", "too-expensive", "sold-out", "last-one"],
             "an option that pays out nothing the wallet can hold is not a row"
         );
         assert_eq!(redemptions.iter().map(|redemption| redemption.can_redeem).collect::<Vec<_>>(), vec![true, false, false, true]);
+        assert!(
+            redemptions.iter().all(|redemption| redemption.title == GemLocalizedText::RewardsRedeemAsset { value: redemption.value.clone() }),
+            "the row title names the value it pays out"
+        );
     }
 
     #[test]

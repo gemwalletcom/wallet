@@ -94,7 +94,7 @@ class ReferralViewModel @Inject constructor(
     val sections: StateFlow<List<RewardsSectionUIModel>> = rewardsState.map { it.sectionModels(context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val redemptions: StateFlow<List<RewardRedemptionUIModel>> = rewardsState.map { state -> state.redemptions.mapNotNull { it.uiModel(context) } }
+    val redemptions: StateFlow<List<RewardRedemptionUIModel>> = rewardsState.map { state -> state.redemptions.map { it.uiModel(context) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val referralLink = rewardsState.mapLatest { it.referralLink }
@@ -164,7 +164,7 @@ class ReferralViewModel @Inject constructor(
     fun redeem(redemption: GemRewardsRedemption, callback: (Throwable?) -> Unit) {
         val wallet = currentWallet.value ?: return
         viewModelScope.launch(ioDispatcher) {
-            runCatchingCancellable { service.redeem(wallet.toGem(), redemption.option.id) }
+            runCatchingCancellable { service.redeem(wallet.toGem(), redemption.id) }
                 .onSuccess { sync() }
                 .report(callback)
         }

@@ -119,6 +119,8 @@ public extension GemLocalizedText {
             Localized.Nft.collections
         case .nftUnverified:
             Localized.Asset.Verification.unverified
+        case let .rewardsRedeemAsset(value):
+            Localized.Rewards.WaysSpend.Asset.title(value.text())
         case .enableDeveloper:
             Localized.Settings.enableValue(Localized.Settings.developer)
         case .disableDeveloper:
