@@ -5,7 +5,7 @@ use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetProperties, AssetRa
 
 use super::details::GemAssetDetailsService;
 use super::icon::GemAssetIconImage;
-use super::{GemAssetStore, GemAssetsService};
+use super::{GemAssetFilter, GemAssetStore, GemAssetsService};
 use crate::alien::AlienProvider;
 use crate::api::{GemApiClient, GemDeviceApiClient};
 use crate::config::image::GemImage;
@@ -47,6 +47,8 @@ fn as_stored(basic: AssetBasic) -> AssetBasic {
 pub struct MemoryAssetStore {
     pub assets: Mutex<Vec<AssetBasic>>,
     pub id_reads: Mutex<usize>,
+    pub filtered_asset_ids: Mutex<Vec<AssetId>>,
+    pub wallet_asset_filters: Mutex<Vec<Vec<GemAssetFilter>>>,
     pub asset_writes: Mutex<Vec<Vec<AssetBasic>>>,
     pub added_balances: Mutex<Vec<(WalletId, Vec<AssetId>, bool)>>,
     pub buyable_writes: Mutex<Vec<Vec<AssetId>>>,
@@ -67,8 +69,18 @@ impl GemAssetStore for MemoryAssetStore {
     async fn get_asset_basics(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetBasic>, GemServiceError> {
         Ok(self.assets.lock().unwrap().iter().filter(|basic| asset_ids.contains(&basic.asset.id)).cloned().collect())
     }
-    async fn get_wallet_assets(&self, _wallet_id: WalletId) -> Result<Vec<Asset>, GemServiceError> {
-        Ok(self.assets.lock().unwrap().iter().map(|basic| basic.asset.clone()).collect())
+    async fn get_wallet_assets(&self, _wallet_id: WalletId, filters: Vec<GemAssetFilter>) -> Result<Vec<Asset>, GemServiceError> {
+        let filtered = self.filtered_asset_ids.lock().unwrap().clone();
+        let assets = self
+            .assets
+            .lock()
+            .unwrap()
+            .iter()
+            .filter(|basic| filters.is_empty() || filtered.contains(&basic.asset.id))
+            .map(|basic| basic.asset.clone())
+            .collect();
+        self.wallet_asset_filters.lock().unwrap().push(filters);
+        Ok(assets)
     }
     async fn save_assets(&self, assets: Vec<AssetBasic>) -> Result<(), GemServiceError> {
         self.asset_writes.lock().unwrap().push(assets.clone());

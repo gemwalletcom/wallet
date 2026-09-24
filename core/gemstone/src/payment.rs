@@ -7,7 +7,7 @@ use crate::config::chain::is_memo_supported;
 use crate::config::wallet_connect::get_wallet_connect_config;
 use crate::models::custom_types::GemBigUint;
 use crate::models::payment::{GemPayment, GemPaymentAmount, GemPaymentInvoice, GemPaymentLink, GemPaymentRequest};
-use crate::services::assets::GemAssetsService;
+use crate::services::assets::{GemAssetAction, GemAssetFilter, GemAssetsService};
 use crate::services::error::GemServiceError;
 use crate::services::transfer::model::{GemRecipient, GemTransferData};
 use chain_primitives::checksum_address;
@@ -97,15 +97,11 @@ impl GemPaymentService {
 
 impl GemPaymentService {
     async fn prepare_request(&self, request: GemPaymentRequest, wallet: Wallet) -> Result<GemPaymentTarget, GemServiceError> {
-        let assets = self.assets.wallet_assets(wallet.id.clone()).await?;
-        let payable = assets
-            .iter()
-            .map(|asset| GemPaymentWalletAsset {
-                asset_id: asset.id.clone(),
-                decimals: asset.decimals,
-            })
-            .collect();
-        Ok(match payment_destination(&request, payable) {
+        let (assets, destination) = match self.request_destination(&request, &wallet, GemAssetAction::Send.filters()).await? {
+            (_, GemPaymentDestination::Unsupported) => self.request_destination(&request, &wallet, Vec::new()).await?,
+            sendable => sendable,
+        };
+        Ok(match destination {
             GemPaymentDestination::Confirm { transfer } => match assets.iter().find(|asset| asset.id == transfer.asset_id) {
                 Some(asset) => GemPaymentTarget::Confirm {
                     transfer: transfer_data(&transfer, asset.clone()),
@@ -119,6 +115,19 @@ impl GemPaymentService {
             GemPaymentDestination::SelectAsset { payment, chains } => GemPaymentTarget::SelectAsset { payment, chains },
             GemPaymentDestination::Unsupported => GemPaymentTarget::Unsupported,
         })
+    }
+
+    async fn request_destination(&self, request: &GemPaymentRequest, wallet: &Wallet, filters: Vec<GemAssetFilter>) -> Result<(Vec<Asset>, GemPaymentDestination), GemServiceError> {
+        let assets = self.assets.wallet_assets(wallet.id.clone(), filters).await?;
+        let payable = assets
+            .iter()
+            .map(|asset| GemPaymentWalletAsset {
+                asset_id: asset.id.clone(),
+                decimals: asset.decimals,
+            })
+            .collect();
+        let destination = payment_destination(request, payable);
+        Ok((assets, destination))
     }
 
     async fn prepare_link(&self, link: GemPaymentLink, wallet: Wallet) -> Result<GemPaymentTarget, GemServiceError> {
@@ -437,10 +446,34 @@ mod tests {
     use primitives::{Asset, AssetBasic, AssetId, AssetProperties, AssetScore, AssetType, Chain, PaymentInvoice};
     use std::sync::Arc;
 
-    fn service_with(assets: &[Asset]) -> GemPaymentService {
+    fn service_with(assets: &[Asset], sendable: &[&Asset]) -> (GemPaymentService, Arc<MemoryAssetStore>) {
         let store = Arc::new(MemoryAssetStore::default());
         *store.assets.lock().unwrap() = assets.iter().map(|asset| AssetBasic::new(asset.clone(), AssetProperties::default(asset.id.clone()), AssetScore::default())).collect();
-        GemPaymentService::new(Arc::new(TestAlienProvider::with_status(200)), Arc::new(GemAssetsService::mock(Arc::new(TestAlienProvider::with_status(200)), store)))
+        *store.filtered_asset_ids.lock().unwrap() = sendable.iter().map(|asset| asset.id.clone()).collect();
+        let service = GemPaymentService::new(Arc::new(TestAlienProvider::with_status(200)), Arc::new(GemAssetsService::mock(Arc::new(TestAlienProvider::with_status(200)), store.clone())));
+        (service, store)
+    }
+
+    #[test]
+    fn test_a_scan_opens_selection_only_when_the_send_list_shows_more_than_one_match() {
+        let (bitcoin, near) = (Asset::from_chain(Chain::Bitcoin), Asset::from_chain(Chain::Near));
+        let scan = |sendable: &[&Asset]| {
+            let (service, store) = service_with(&[bitcoin.clone(), near.clone()], sendable);
+            let request = GemPaymentRequest {
+                address: BITCOIN_ADDRESS.to_string(),
+                ..GemPaymentRequest::mock()
+            };
+            let target = block_on(service.prepare(GemPayment::Request { request }, Wallet::mock())).unwrap();
+            (target, store.wallet_asset_filters.lock().unwrap().clone())
+        };
+
+        let (target, filters) = scan(&[&bitcoin]);
+        let GemPaymentTarget::Recipient { asset, .. } = target else { panic!("{target:?}") };
+        assert_eq!(asset.id, bitcoin.id);
+        assert_eq!(filters, [GemAssetAction::Send.filters()]);
+
+        let GemPaymentTarget::SelectAsset { chains, .. } = scan(&[&bitcoin, &near]).0 else { panic!() };
+        assert_eq!(chains, [Chain::Bitcoin, Chain::Near]);
     }
 
     #[test]
@@ -458,7 +491,7 @@ mod tests {
             asset_id: Some(token.id.clone()),
             ..GemPaymentRequest::mock()
         };
-        let target = block_on(service_with(std::slice::from_ref(&token)).prepare(GemPayment::Request { request }, Wallet::mock())).unwrap();
+        let target = block_on(service_with(std::slice::from_ref(&token), &[]).0.prepare(GemPayment::Request { request }, Wallet::mock())).unwrap();
         let GemPaymentTarget::Confirm { transfer } = target else {
             panic!("a token the wallet holds is payable whether or not the screen shows it")
         };
@@ -473,7 +506,7 @@ mod tests {
             asset_id: Some(AssetId::from(Chain::Ethereum, Some("0xmissing".to_string()))),
             ..GemPaymentRequest::mock()
         };
-        let GemPaymentTarget::Unsupported = block_on(service_with(&[]).prepare(GemPayment::Request { request }, Wallet::mock())).unwrap() else {
+        let GemPaymentTarget::Unsupported = block_on(service_with(&[], &[]).0.prepare(GemPayment::Request { request }, Wallet::mock())).unwrap() else {
             panic!("a token the wallet does not hold is not payable")
         };
     }
