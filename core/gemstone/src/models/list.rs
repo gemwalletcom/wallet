@@ -34,6 +34,9 @@ pub enum GemListRowTitle {
     Address,
     Available,
     Stake,
+    Freeze,
+    Unfreeze,
+    ClaimRewards,
     Earn,
     PendingUnconfirmed,
     Reserved,
@@ -151,6 +154,7 @@ pub enum GemInfoTopic {
     FundingApr,
     StakeApr,
     StakeLockTime,
+    StakeFrozenRequired,
     TransactionStatus { state: TransactionState, tone: GemTransactionStateTone },
     AutoClose,
     LiquidationPrice,
@@ -228,6 +232,11 @@ pub enum GemListRow {
     Rate {
         title: GemListRowTitle,
         rate: GemAssetRate,
+    },
+    Action {
+        title: GemListRowTitle,
+        value: Option<GemFormattedNumber>,
+        info: Option<GemInfoTopic>,
     },
     Quote {
         title: GemListRowTitle,

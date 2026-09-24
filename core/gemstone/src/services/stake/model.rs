@@ -80,7 +80,7 @@ pub enum GemStakeAction {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemStakeActionItem {
     pub action: GemStakeAction,
-    pub value: Option<GemFormattedNumber>,
+    pub row: GemListRow,
     pub tap: GemStakeActionTap,
 }
 

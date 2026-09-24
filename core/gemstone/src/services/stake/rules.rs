@@ -456,9 +456,13 @@ pub fn stake_actions(wallet_type: WalletType, chain: Chain, validators: &[Delega
         },
         GemStakeAction::ClaimRewards => claim_destination(chain, delegations.to_vec()),
     };
-    let item = |action: GemStakeAction, is_enabled: bool, requires_frozen_balance: bool| GemStakeActionItem {
+    let item = |action: GemStakeAction, value: Option<GemFormattedNumber>, is_enabled: bool, requires_frozen_balance: bool| GemStakeActionItem {
         action,
-        value: None,
+        row: GemListRow::Action {
+            title: action_title(action),
+            value,
+            info: requires_frozen_balance.then_some(GemInfoTopic::StakeFrozenRequired),
+        },
         tap: match (requires_frozen_balance, is_enabled) {
             (true, _) => GemStakeActionTap::FrozenBalanceInfo,
             (false, false) => GemStakeActionTap::Disabled,
@@ -467,17 +471,23 @@ pub fn stake_actions(wallet_type: WalletType, chain: Chain, validators: &[Delega
     };
     let rewards = rewards_value(delegations);
     [
-        Some(item(GemStakeAction::Stake, has_validators || requires_frozen_balance, requires_frozen_balance)),
-        uses_freeze.then(|| item(GemStakeAction::Freeze, true, false)),
-        uses_freeze.then(|| item(GemStakeAction::Unfreeze, true, false)),
-        can_claim_stake_rewards(chain, &rewards).then(|| GemStakeActionItem {
-            value: rewards_amount(chain, &rewards),
-            ..item(GemStakeAction::ClaimRewards, true, false)
-        }),
+        Some(item(GemStakeAction::Stake, None, has_validators || requires_frozen_balance, requires_frozen_balance)),
+        uses_freeze.then(|| item(GemStakeAction::Freeze, None, true, false)),
+        uses_freeze.then(|| item(GemStakeAction::Unfreeze, None, true, false)),
+        can_claim_stake_rewards(chain, &rewards).then(|| item(GemStakeAction::ClaimRewards, rewards_amount(chain, &rewards), true, false)),
     ]
     .into_iter()
     .flatten()
     .collect()
+}
+
+fn action_title(action: GemStakeAction) -> GemListRowTitle {
+    match action {
+        GemStakeAction::Stake => GemListRowTitle::Stake,
+        GemStakeAction::Freeze => GemListRowTitle::Freeze,
+        GemStakeAction::Unfreeze => GemListRowTitle::Unfreeze,
+        GemStakeAction::ClaimRewards => GemListRowTitle::ClaimRewards,
+    }
 }
 
 fn rewards_amount(chain: Chain, rewards: &BigUint) -> Option<GemFormattedNumber> {
@@ -1324,8 +1334,12 @@ mod tests {
         .into_iter()
         .find(|item| item.action == ClaimRewards);
         assert_eq!(
-            claim.and_then(|item| item.value),
-            Some(GemFormattedNumber::amount(1.5, Some("ATOM".to_string()), GemValueStyle::Auto)),
+            claim.map(|item| item.row),
+            Some(GemListRow::Action {
+                title: GemListRowTitle::ClaimRewards,
+                value: Some(GemFormattedNumber::amount(1.5, Some("ATOM".to_string()), GemValueStyle::Auto)),
+                info: None,
+            }),
             "claiming shows the rewards it would claim"
         );
         assert_eq!(

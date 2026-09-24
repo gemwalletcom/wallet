@@ -7,8 +7,6 @@ import struct Gemstone.GemAssetBalance
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
 import enum Gemstone.GemLoadState
-import enum Gemstone.GemStakeAction
-import struct Gemstone.GemStakeActionItem
 import struct Gemstone.GemStakeDelegationItem
 import enum Gemstone.GemStakeDestination
 import struct Gemstone.GemStakeInput
@@ -104,13 +102,6 @@ public final class StakeSceneViewModel {
         switch destination {
         case let .amount(input): route(amount: .stake(input))
         case let .confirm(transfer): .transfer(.confirm(transfer))
-        }
-    }
-
-    func listItem(_ item: GemStakeActionItem) -> ListItemModel {
-        switch item.tap {
-        case .frozenBalanceInfo: ListItemModel(title: item.action.title, titleStyle: .bodySecondary, infoAction: onStakeFrozenInfo)
-        case .open, .disabled: ListItemModel(title: item.action.title, subtitle: item.value?.text())
         }
     }
 }

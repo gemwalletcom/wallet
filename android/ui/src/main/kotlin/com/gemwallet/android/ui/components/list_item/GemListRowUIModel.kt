@@ -75,6 +75,15 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
 
     is GemListRow.Rate -> GemListRowUIModel.Item(ListItemModel(title = title.text(context), subtitle = rate.text(rate.value.text())))
 
+    is GemListRow.Action -> GemListRowUIModel.Item(
+        ListItemModel(
+            title = title.text(context),
+            titleStyle = if (info == null) ListItemTextStyle.Body else ListItemTextStyle.Faded,
+            subtitle = value?.text(),
+            info = info?.infoSheet(context, infoIcon),
+        ),
+    )
+
     is GemListRow.Quote -> GemListRowUIModel.Item(
         ListItemModel(
             title = title.text(context),
@@ -242,6 +251,8 @@ fun GemInfoTopic.infoSheet(context: Context, icon: Any?, onBuy: (() -> Unit)? = 
     GemInfoTopic.StakeApr -> InfoSheetEntity.StakeAprInfo(icon)
 
     GemInfoTopic.StakeLockTime -> InfoSheetEntity.StakeLockTimeInfo(icon)
+
+    GemInfoTopic.StakeFrozenRequired -> InfoSheetEntity.StakeFrozenRequired(icon)
 
     GemInfoTopic.AutoClose -> InfoSheetEntity.AutoCloseInfo
 

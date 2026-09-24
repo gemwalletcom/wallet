@@ -106,6 +106,7 @@ public extension InfoSheetType {
         case .fundingApr: .fundingApr
         case .stakeApr: .stakeApr(assetImage?.placeholder)
         case .stakeLockTime: .stakeLockTime(assetImage?.placeholder)
+        case .stakeFrozenRequired: .stakeFrozenRequired
         case .autoClose: .autoclose
         case .liquidationPrice: .liquidationPrice
         case .fundingPayments: .fundingPayments

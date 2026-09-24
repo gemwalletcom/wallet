@@ -55,6 +55,15 @@ extension GemListRow {
             .listItem(ListItemModel(title: title.text, subtitle: amount.text(), subtitleStyle: subtitleStyle(amount.tone), infoAction: infoAction(info, onInfo: onInfo)))
         case let .rate(title, rate):
             .listItem(ListItemModel(title: title.text, subtitle: rate.text(formattedValue: rate.value.text())))
+        case let .action(title, value, info):
+            .listItem(
+                ListItemModel(
+                    title: title.text,
+                    titleStyle: info == nil ? ListItemModel.StyleDefaults.titleStyle : .bodySecondary,
+                    subtitle: value?.text(),
+                    infoAction: infoAction(info, onInfo: onInfo),
+                ),
+            )
         case let .quote(title, value, change):
             .listItem(
                 ListItemModel(

@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemAmountServiceInterface
+import uniffi.gemstone.GemListRow
 
 class AmountProviderFactoryTest {
 
@@ -42,7 +43,9 @@ class AmountProviderFactoryTest {
         getSession = mockk<GetSession>(relaxed = true) {
             every { this@mockk.invoke() } returns MutableStateFlow(null)
         },
-        service = mockk<GemAmountServiceInterface>(relaxed = true),
+        service = mockk<GemAmountServiceInterface>(relaxed = true) {
+            every { perpetualAutocloseRow(any(), any()) } returns GemListRow.Loading
+        },
         stakeService = mockk(relaxed = true),
     )
     private val scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())

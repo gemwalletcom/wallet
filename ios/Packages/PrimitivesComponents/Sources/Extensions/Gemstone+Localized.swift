@@ -702,6 +702,9 @@ public extension GemListRowTitle {
         case .address: Localized.Common.address
         case .available: Localized.Asset.Balances.available
         case .stake: Localized.Wallet.stake
+        case .freeze: Localized.Transfer.Freeze.title
+        case .unfreeze: Localized.Transfer.Unfreeze.title
+        case .claimRewards: Localized.Transfer.ClaimRewards.title
         case .earn: Localized.Common.earn
         case .pendingUnconfirmed: Localized.Stake.pending
         case .reserved: Localized.Asset.Balances.reserved

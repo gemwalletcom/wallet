@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import enum Gemstone.GemDelegationAction
-import enum Gemstone.GemStakeAction
 import enum Gemstone.GemStakeSection
 import Localization
 import Primitives
@@ -12,17 +11,6 @@ extension GemStakeSection {
         case .manage: Localized.Common.manage
         case .resources: Localized.Asset.resources
         case .delegations: Localized.Stake.delegations
-        }
-    }
-}
-
-extension GemStakeAction {
-    var title: String {
-        switch self {
-        case .stake: Localized.Transfer.Stake.title
-        case .freeze: Localized.Transfer.Freeze.title
-        case .unfreeze: Localized.Transfer.Unfreeze.title
-        case .claimRewards: Localized.Transfer.ClaimRewards.title
         }
     }
 }

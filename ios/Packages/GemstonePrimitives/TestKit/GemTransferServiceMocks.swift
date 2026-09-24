@@ -232,12 +232,12 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         let actions = [
             GemStakeActionItem(
                 action: .stake,
-                value: nil,
+                row: .action(title: .stake, value: nil, info: nil),
                 tap: validators.isEmpty ? .disabled : .open(destination: .amount(input: .stake(validators: validators, validator: nil))),
             ),
             GemStakeActionItem(
                 action: .claimRewards,
-                value: nil,
+                row: .action(title: .claimRewards, value: nil, info: nil),
                 tap: .open(destination: claimRewardsDestination ?? .amount(input: .rewards(delegations: input.delegations, validator: nil))),
             ),
         ]
