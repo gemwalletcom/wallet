@@ -13,6 +13,7 @@ extension View {
 
 private struct ConnectionStatusBannerModifier: ViewModifier {
     @Environment(\.connectionStatus) private var connectionStatus
+    @State private var isVisible = false
     @State private var isDismissed = false
     @State private var bannerHeight: CGFloat = .zero
 
@@ -22,7 +23,7 @@ private struct ConnectionStatusBannerModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         let model = model
-        let isPresented = model.isVisible && !isDismissed
+        let isPresented = isVisible && !isDismissed
         return content
             .contentMargins(.bottom, isPresented ? bannerHeight + .small : nil, for: .scrollContent)
             .overlay(alignment: .bottom) {
@@ -36,8 +37,11 @@ private struct ConnectionStatusBannerModifier: ViewModifier {
                     .padding(.bottom, .space32 + .space32)
                 }
             }
-            .onChange(of: model.isVisible) { _, isVisible in
-                if isVisible {
+            .task(id: model.isVisible) {
+                let isVisible = model.isVisible
+                guard (try? await Task.sleep(for: ConnectionStatusViewModel.bannerSettleDelay)) != nil else { return }
+                self.isVisible = isVisible
+                if !isVisible {
                     isDismissed = false
                 }
             }

@@ -34,6 +34,10 @@ impl GemConnectionService {
         rules::reconnection(attempt, connected)
     }
 
+    pub fn banner_settle_delay(&self) -> Duration {
+        rules::banner_settle_delay()
+    }
+
     pub fn offline_debounce_milliseconds(&self) -> u64 {
         rules::offline_debounce_milliseconds()
     }

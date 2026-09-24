@@ -12,6 +12,7 @@ const PING_INTERVAL_MILLISECONDS: u64 = 30_000;
 const MARKET_REFRESH: Duration = Duration::from_secs(60);
 const WALLET_REFRESH: Duration = Duration::from_secs(300);
 const STREAMING_REFRESH: Duration = Duration::from_secs(900);
+const BANNER_SETTLE_DELAY: Duration = Duration::from_secs(10);
 
 pub fn reconnection(attempt: u32, connected: Duration) -> GemReconnection {
     let attempt = if connected >= Duration::from_millis(PING_INTERVAL_MILLISECONDS) { 0 } else { attempt };
@@ -23,6 +24,10 @@ pub fn reconnection(attempt: u32, connected: Duration) -> GemReconnection {
 
 fn reconnect_delay(attempt: u32) -> Duration {
     Duration::from_millis((RECONNECT_MULTIPLIER_MILLISECONDS * f64::from(attempt).exp()).min(RECONNECT_MAXIMUM_MILLISECONDS) as u64)
+}
+
+pub fn banner_settle_delay() -> Duration {
+    BANNER_SETTLE_DELAY
 }
 
 pub fn offline_debounce_milliseconds() -> u64 {

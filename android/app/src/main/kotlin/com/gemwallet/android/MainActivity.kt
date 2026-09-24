@@ -40,6 +40,7 @@ import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.ConnectionComponent
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -47,6 +48,7 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAddressService
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemChainService
+import uniffi.gemstone.GemConnectionService
 import uniffi.gemstone.GemDeeplinkService
 import uniffi.gemstone.GemNavigationService
 import javax.inject.Inject
@@ -60,6 +62,8 @@ class MainActivity :
     private lateinit var systemAuthenticator: SystemAuthenticator
 
     @Inject lateinit var connectionStatusObserver: ConnectionStatusObserver
+
+    @Inject lateinit var connectionService: GemConnectionService
 
     @Inject lateinit var notificationPermissionRequests: NotificationPermissionRequests
 
@@ -120,6 +124,7 @@ class MainActivity :
             }
             val connectionBannerState = remember { ConnectionBannerState() }
             LaunchedEffect(connectionStatus) {
+                delay(connectionService.bannerSettleDelay().toMillis())
                 connectionBannerState.update(connectionStatus.stringRes()?.let(::getString))
             }
             val appearance by viewModel.appearance.collectAsStateWithLifecycle()
