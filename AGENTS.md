@@ -45,7 +45,6 @@ Cross-platform subsystem references live in [docs/](docs). Read the relevant one
 - [Deep links](docs/DEEPLINKS.md) — deep link URL contract, support-chat links, and the web association requirements
 - [Device](docs/DEVICE.md) — device authentication, registration and subscription sync, and the WebSocket stream
 - [WalletConnect Pay](docs/WALLETCONNECT_PAY.md) — payment links: gateway protocol, actions, identity verification, on-chain settlement, activity record and tracking
-- [Swapper](docs/SWAPPER.md) — quote flow, route preloading, and the shared route cache
 - [Dynode](docs/DYNODE.md) — local proxy usage and configuration
 
 Core-owned subsystems (keystore, device and wallet authentication, WebSockets, provider coverage) are listed in [core/AGENTS.md](core/AGENTS.md).

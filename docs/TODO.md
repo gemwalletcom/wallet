@@ -263,7 +263,6 @@ The API never returns internal text: `ApiError::Internal` logs its detail on the
 ### Docs versus code
 
 - **BD54** **S** **`FEATURES.md` describes a `scanEnable` switch that doesn't exist and says scan settings have no cache delay.** `docs/FEATURES.md:167` vs `scanTypeEnable.<type>` (`config_param_key.rs:135-137`) read through the 60s cache (`scan_client.rs:89,162`); scans also run for `Payment` (`core/gemstone/src/services/scan/rules.rs:10`).
-- **BD55** **S** **`SWAPPER.md` says Android quotes time out after 10s; the real limits are 60s connect and 120s read/write.** `docs/SWAPPER.md:67` vs `ClientsModule.kt:45-47` (shared client used by `SwapModule.kt:29`).
 - **BD56** **S** **The wallet-home "Loading" row disappears after a failed discovery.** `docs/PRODUCT.md:144,151,159,194` vs iOS `WalletSceneViewModel.swift:243-257`, Android `AssetsViewModel.kt:104-112` (cleared even when `refresh()` threw).
 - **BD57** **S** **A deep link with an unknown action opens a token page instead of the browser.** `docs/DEEPLINKS.md:29` vs `core/crates/primitives/src/deeplink.rs:62-69` (falls back to `Deeplink::Asset`, so `gem://tokens/bitcoin/stake` is token id `stake`).
 
@@ -333,6 +332,10 @@ Leads the seven surveys examined and rejected, kept so the same lead is not re-r
 ## Ledger of closed sections
 
 An entry is dated rationale, not a current completion claim. Landed items are one line each; decided and closed-as-correct entries keep their reasoning so the same lead is not re-raised with the same answer.
+
+**BD55 (2026-09-24).** Closed: `SWAPPER.md` is deleted (its product rules moved to [product/swap.md](product/swap.md)), so the wrong Android timeout it stated is gone with it; the real limits are 60s connect and 120s read/write on the shared client.
+
+**Max swap amounts (2026-09-14, recorded from the deleted `SWAPPER.md`).** Accepted: for a transfer-type max swap the confirm trims by the fee only when the fee exceeds the chain reserve, while the EVM and Tron signers always subtract the fee and the other signers never do, so the confirmed and signed amounts can differ by up to one network fee on those providers. Left as is because moving the trim to either side changes a signing path for every provider; revisit only if a provider reports a rejection this difference causes. Also from that file: Core sets no per-provider quote deadline, so the slowest eligible provider decides how long a quote round waits, and a deadline is a product policy, not a tuning constant.
 
 **AUD39 (2026-09-23).** Declined, then its ledger line was dropped in `da61e19671`; recorded here so it is not re-raised: coin, token and staking balances stay separate, independent calls, because a shared per-chain snapshot would let one component's failure or latency hold back the others. The implementation was reverted in `98bbdca63e`. Do not merge them to save the repeated account read on Tron, Cosmos or Stellar.
 

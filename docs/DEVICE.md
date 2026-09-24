@@ -88,3 +88,16 @@ How the apps drive it:
 - Events are applied in order, rates before later prices. `GemStreamService::decode_event` applies only local effects (prices, rates, notifications, support); the network follow-up for balance, transaction, NFT, perpetual, price-alert and fiat events runs through `GemStreamService::sync`, started outside the socket loop so a replayed backlog never delays the price snapshot.
 
 Backend: [stream handler](../core/apps/api/src/websocket_stream/stream.rs), [client logic](../core/apps/api/src/websocket_stream/client.rs), [message types](../core/crates/primitives/src/stream.rs), [price payload](../core/crates/primitives/src/websocket.rs).
+
+## Wallet authentication
+
+Endpoints that act for a wallet (rewards and referrals, for example) also need proof of wallet ownership: the client fetches a nonce from `GET /v2/devices/auth/nonce` (`{"nonce", "timestamp"}`), signs the `AuthMessage` `{"chain", "address", "authNonce": {"nonce", "timestamp"}}` serialized as JSON with the wallet key (Keccak256 then ECDSA on Ethereum, hex with `0x`), and sends it in the body beside the payload:
+
+```json
+{
+  "auth": { "deviceId": "…", "chain": "ethereum", "address": "0x…", "nonce": "…", "signature": "0x…" },
+  "data": { "code": "myusername" }
+}
+```
+
+The request is still device-authenticated: the body hash inside the `Gem` header binds the wallet-signed body to the request. Backend side: [wallet signature verification](../core/crates/gem_auth/src/signature.rs), [auth guards](../core/apps/api/src/auth/guard.rs), [nonce management](../core/crates/services/src/auth/client.rs), [auth primitives](../core/crates/primitives/src/auth.rs).
