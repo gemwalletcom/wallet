@@ -3,6 +3,7 @@ package com.gemwallet.android.ui.components.list_item
 import android.content.Context
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.duration.formatDuration
+import com.gemwallet.android.domains.duration.formatEstimate
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.networkName
@@ -105,7 +106,13 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
         ),
     )
 
-    is GemListRow.Duration -> GemListRowUIModel.Item(ListItemModel(title = title.text(context), subtitle = parts.formatDuration(), info = info?.infoSheet(context, infoIcon)))
+    is GemListRow.Duration -> GemListRowUIModel.Item(
+        ListItemModel(
+            title = title.text(context),
+            subtitle = if (estimate) parts.formatEstimate() else parts.formatDuration(),
+            info = info?.infoSheet(context, infoIcon),
+        ),
+    )
 
     is GemListRow.Label -> GemListRowUIModel.Item(
         ListItemModel(
@@ -267,6 +274,8 @@ fun GemInfoTopic.infoSheet(context: Context, icon: Any?, onBuy: (() -> Unit)? = 
     GemInfoTopic.TotalSupply -> InfoSheetEntity.TotalSupply
 
     GemInfoTopic.MaxSupply -> InfoSheetEntity.MaxSupply
+
+    is GemInfoTopic.EstimatedConfirmation -> InfoSheetEntity.EstimatedConfirmationInfo(chain.requireChain())
 
     is GemInfoTopic.TransactionStatus -> InfoSheetEntity.TransactionInfo(
         icon = icon,

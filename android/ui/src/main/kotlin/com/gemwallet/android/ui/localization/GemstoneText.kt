@@ -632,6 +632,7 @@ fun GemListRowTitle.text(context: Context): String = when (this) {
     GemListRowTitle.PRICE_IMPACT -> context.getString(R.string.swap_price_impact)
     GemListRowTitle.MINIMUM_RECEIVE -> context.getString(R.string.swap_min_receive)
     GemListRowTitle.ESTIMATED_TIME -> context.getString(R.string.swap_estimated_time_title)
+    GemListRowTitle.ESTIMATED_CONFIRMATION -> context.getString(R.string.transaction_estimated_confirmation)
     GemListRowTitle.MARKET_PRICE -> context.getString(R.string.perpetual_market_price)
     GemListRowTitle.RATE -> context.getString(R.string.buy_rate)
     GemListRowTitle.ENTRY_PRICE -> context.getString(R.string.perpetual_entry_price)

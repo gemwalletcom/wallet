@@ -84,7 +84,6 @@ extension TransactionSceneViewModel: ListSectionProvideable {
         case .header: headerItem
         case .swapProgress: swapProgressItem
         case .swapAgain: rows.swapAgain == nil ? TransactionItemModel.empty : .swapAgain(text: Localized.Transaction.swapAgain)
-        case .estimatedConfirmation: estimatedConfirmationItem
         case .participant: TransactionParticipantViewModel(
                 participant: rows.participant,
                 chain: transactionExtended.transaction.assetId.chain,
@@ -115,15 +114,6 @@ extension TransactionSceneViewModel: ListSectionProvideable {
             transfer: .init(title: Localized.Transfer.title, subtitle: progress.transferText(formattedValue: amount), state: progress.transfer),
             swap: .init(title: Localized.Wallet.swap, subtitle: progress.providerName, state: progress.swap),
             estimatedTime: progress.etaSeconds.map { EstimatedConfirmationFormatter().string(seconds: $0) },
-        ))
-    }
-
-    private var estimatedConfirmationItem: TransactionItemModel {
-        guard let seconds = rows.estimatedConfirmationSeconds else { return .empty }
-        return .listItem(ListItemModel(
-            title: Localized.Transaction.estimatedConfirmation,
-            subtitle: EstimatedConfirmationFormatter().string(seconds: seconds),
-            infoAction: onSelectEstimatedConfirmationInfo,
         ))
     }
 
@@ -176,10 +166,6 @@ extension TransactionSceneViewModel {
 
     func onInfo(_ topic: GemInfoTopic) {
         isPresentingTransactionSheet = .info(InfoSheetType(topic: topic, assetImage: TransactionViewModel(transaction: transactionExtended).assetImage))
-    }
-
-    private func onSelectEstimatedConfirmationInfo() {
-        isPresentingTransactionSheet = .info(.estimatedConfirmation(transactionExtended.transaction.assetId.chain))
     }
 }
 

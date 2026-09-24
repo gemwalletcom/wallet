@@ -12,8 +12,10 @@ fun formatDuration(vararg measures: Measure, locale: Locale = Locale.getDefault(
 
 fun List<GemDurationPart>.formatDuration(locale: Locale = Locale.getDefault()): String = if (isEmpty()) "" else formatDuration(*measures(), locale = locale)
 
-fun formatEstimatedConfirmation(seconds: UInt, locale: Locale = Locale.getDefault()): String {
-    val measures = estimatedDurationParts(seconds.toLong()).measures()
+fun formatEstimatedConfirmation(seconds: UInt, locale: Locale = Locale.getDefault()): String = estimatedDurationParts(seconds.toLong()).formatEstimate(locale)
+
+fun List<GemDurationPart>.formatEstimate(locale: Locale = Locale.getDefault()): String {
+    val measures = measures()
     if (measures.isEmpty()) return ""
     val duration = MeasureFormat.getInstance(locale, MeasureFormat.FormatWidth.SHORT).formatMeasures(*measures)
     return "≈ $duration"

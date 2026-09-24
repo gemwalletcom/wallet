@@ -68,6 +68,7 @@ impl GemSwapQuoteSummary {
                 title: GemListRowTitle::EstimatedTime,
                 parts: estimated_duration_parts(seconds as i64),
                 info: None,
+                estimate: false,
             }),
             price_impact.map(|impact| GemListRow::Label {
                 title: GemListRowTitle::PriceImpact,

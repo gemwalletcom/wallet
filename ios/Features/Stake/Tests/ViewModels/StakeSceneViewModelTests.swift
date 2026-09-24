@@ -23,7 +23,7 @@ struct StakeSceneViewModelTests {
     func theInfoSectionShowsTheRowsCoreReturns() {
         let rows: [GemListRow] = [
             .amount(title: .stakeApr, amount: .mock(value: 12.5, tone: .positive), info: .stakeApr),
-            .duration(title: .lockTime, parts: [GemDurationPart(value: 14, unit: .day)], info: .stakeLockTime),
+            .duration(title: .lockTime, parts: [GemDurationPart(value: 14, unit: .day)], info: .stakeLockTime, estimate: false),
         ]
         let model = StakeSceneViewModel.mock(chain: .tron, stakeService: GemStakeServiceMock(infoRows: rows))
 

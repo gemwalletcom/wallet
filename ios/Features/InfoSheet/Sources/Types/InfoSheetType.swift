@@ -114,6 +114,7 @@ public extension InfoSheetType {
         case .circulatingSupply: .circulatingSupply
         case .totalSupply: .totalSupply
         case .maxSupply: .maxSupply
+        case let .estimatedConfirmation(chain): .estimatedConfirmation(Chain(core: chain))
         case let .transactionStatus(state, tone):
             .transactionState(
                 imageURL: assetImage?.imageURL,

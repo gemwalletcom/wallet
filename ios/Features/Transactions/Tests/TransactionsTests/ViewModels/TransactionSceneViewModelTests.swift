@@ -3,6 +3,7 @@ import Foundation
 import enum Gemstone.GemListRow
 import enum Gemstone.GemTransactionDetailRow
 import enum Gemstone.GemTransactionHeaderAction
+import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import Localization
 import Primitives
@@ -152,9 +153,7 @@ struct TransactionSceneViewModelTests {
         } else {
             Issue.record("Expected swap progress for in-transit cross-chain swap")
         }
-        if case .empty = model.item(for: .estimatedConfirmation) {} else {
-            Issue.record("Expected cross-chain estimate to be hidden from transaction details")
-        }
+        #expect(estimatedConfirmation(model) == nil)
         if case .empty = TransactionSceneViewModel.mock(type: .transfer, state: .pending).item(for: GemTransactionDetailRow.swapProgress) {} else {
             Issue.record("Expected no swap progress for a transfer")
         }
@@ -229,16 +228,23 @@ struct TransactionSceneViewModelTests {
     }
 
     @Test
-    func estimatedConfirmationItemModel() {
+    func estimatedConfirmationItemModel() throws {
         let pending = TransactionSceneViewModel.mock(state: .pending, confirmationEtaSeconds: 720)
 
-        guard case let .listItem(item) = pending.item(for: .estimatedConfirmation) else {
-            Issue.record("Expected estimated confirmation item")
+        guard case let .duration(_, parts, info, estimate) = try #require(estimatedConfirmation(pending)) else {
+            Issue.record("Expected estimated confirmation row")
             return
         }
-        #expect(item.subtitle == "≈ 12 min")
-        if case .empty = TransactionSceneViewModel.mock(state: .confirmed, confirmationEtaSeconds: 720).item(for: .estimatedConfirmation) {} else {
-            Issue.record("Expected confirmed transaction estimate to be hidden")
+        #expect(estimate)
+        #expect(info != nil)
+        #expect(EstimatedConfirmationFormatter(locale: Locale(identifier: "en_US")).string(parts: parts) == "≈ 12 min")
+        #expect(estimatedConfirmation(TransactionSceneViewModel.mock(state: .confirmed, confirmationEtaSeconds: 720)) == nil)
+    }
+
+    private func estimatedConfirmation(_ model: TransactionSceneViewModel) -> GemListRow? {
+        listRows(model).first {
+            guard case .duration(.estimatedConfirmation, _, _, _) = $0 else { return false }
+            return true
         }
     }
 

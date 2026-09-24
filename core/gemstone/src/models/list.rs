@@ -111,6 +111,7 @@ pub enum GemListRowTitle {
     PriceImpact,
     MinimumReceive,
     EstimatedTime,
+    EstimatedConfirmation,
     MarketPrice,
     Rate,
     EntryPrice,
@@ -163,6 +164,7 @@ pub enum GemInfoTopic {
     CirculatingSupply,
     TotalSupply,
     MaxSupply,
+    EstimatedConfirmation { chain: Chain },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -258,6 +260,7 @@ pub enum GemListRow {
         title: GemListRowTitle,
         parts: Vec<GemDurationPart>,
         info: Option<GemInfoTopic>,
+        estimate: bool,
     },
     Label {
         title: GemListRowTitle,

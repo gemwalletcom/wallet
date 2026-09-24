@@ -15,6 +15,7 @@ use super::model::{
 };
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::config::image::GemImage;
+use crate::duration_formatter::estimated_duration_parts;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::asset::wallet_default_assets;
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
@@ -189,7 +190,14 @@ pub fn detail_sections(rows: &GemTransactionDetailRows) -> Vec<GemTransactionDet
             date: rows.created_at,
         })),
         Some(list(status_row(rows))),
-        rows.estimated_confirmation_seconds.is_some().then_some(EstimatedConfirmation),
+        rows.estimated_confirmation_seconds.map(|seconds| {
+            list(GemListRow::Duration {
+                title: GemListRowTitle::EstimatedConfirmation,
+                parts: estimated_duration_parts(i64::from(seconds)),
+                info: Some(GemInfoTopic::EstimatedConfirmation { chain: rows.asset.chain() }),
+                estimate: true,
+            })
+        }),
         rows.participant.is_some().then_some(Participant),
         rows.memo.clone().filter(|memo| !memo.is_empty()).map(|memo| list(GemListRow::Memo { value: memo.clone(), copy: Some(memo) })),
         rows.resource.map(|resource| {
@@ -1237,6 +1245,28 @@ mod tests {
             ))),
             vec![vec!["Header"], vec!["Date", "Status", "Participant", "Memo", "Network"], vec!["Fee"], vec!["Explorer"]],
             "a transfer has no swap sections and shows its memo beside the recipient"
+        );
+
+        let sending = TransactionExtended {
+            confirmation_eta_seconds: Some(90),
+            ..TransactionExtended::mock_transaction(Transaction::mock_with_state(TransactionType::Transfer, TransactionState::Pending, TransactionDirection::Outgoing))
+        };
+        let estimate = detail_sections(&detail_rows(&sending, WalletType::Multicoin, None, explorer.clone(), Currency::USD))
+            .into_iter()
+            .flat_map(|section| section.rows)
+            .find_map(|row| match row {
+                GemTransactionDetailRow::Row { row: row @ GemListRow::Duration { .. } } => Some(row),
+                _ => None,
+            });
+        assert_eq!(
+            estimate,
+            Some(GemListRow::Duration {
+                title: GemListRowTitle::EstimatedConfirmation,
+                parts: estimated_duration_parts(90),
+                info: Some(GemInfoTopic::EstimatedConfirmation { chain: sending.asset.chain() }),
+                estimate: true,
+            }),
+            "a pending transfer estimates its confirmation and explains it for its network"
         );
 
         let pending = TransactionExtended {

@@ -783,6 +783,7 @@ public extension GemListRowTitle {
         case .priceImpact: Localized.Swap.priceImpact
         case .minimumReceive: Localized.Swap.minReceive
         case .estimatedTime: Localized.Swap.EstimatedTime.title
+        case .estimatedConfirmation: Localized.Transaction.estimatedConfirmation
         case .marketPrice: Localized.Perpetual.marketPrice
         case .fundingPayments: Localized.Info.Perpetual.FundingPayments.title
         case .marketCap: Localized.Asset.marketCap

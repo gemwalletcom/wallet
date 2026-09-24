@@ -44,7 +44,7 @@ struct SwapDetailsViewModelTests {
 
     private func durationParts(_ quote: SwapperQuote) -> [GemDurationPart]? {
         SwapDetailsViewModel.mock(selectedQuote: quote.swapQuote).detailRows.compactMap { row -> [GemDurationPart]? in
-            guard case let .duration(title, parts, _) = row, title == .estimatedTime else { return nil }
+            guard case let .duration(title, parts, _, _) = row, title == .estimatedTime else { return nil }
             return parts
         }.first
     }

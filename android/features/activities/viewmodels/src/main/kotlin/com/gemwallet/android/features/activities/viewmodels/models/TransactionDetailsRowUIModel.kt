@@ -2,7 +2,6 @@ package com.gemwallet.android.features.activities.viewmodels.models
 
 import android.content.Context
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.domains.duration.formatEstimatedConfirmation
 import com.gemwallet.android.domains.swap.AssetRateFormatter
 import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.ext.toPrimitives
@@ -14,7 +13,6 @@ import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.components.list_head.amountText
 import com.gemwallet.android.ui.components.list_head.fiat
@@ -65,14 +63,6 @@ internal fun GemTransactionDetailRows.uiModel(row: GemTransactionDetailRow, cont
         GemTransactionDetailRow.SwapAgain -> requireNotNull(swapAgain).let {
             TransactionDetailsRowUIModel.SwapAgain(fromAssetId = AssetId(it.fromAssetId), toAssetId = AssetId(it.toAssetId))
         }
-
-        GemTransactionDetailRow.EstimatedConfirmation -> TransactionDetailsRowUIModel.Item(
-            ListItemModel(
-                title = context.getString(R.string.transaction_estimated_confirmation),
-                subtitle = formatEstimatedConfirmation(requireNotNull(estimatedConfirmationSeconds)),
-                info = InfoSheetEntity.EstimatedConfirmationInfo(asset.chain),
-            ),
-        )
 
         GemTransactionDetailRow.Participant -> requireNotNull(participant).address(context, asset.chain)
 

@@ -13,7 +13,11 @@ public struct EstimatedConfirmationFormatter {
     }
 
     public func string(seconds: UInt32) -> String {
-        guard let duration = estimatedDurationParts(seconds: Int64(seconds)).string(style: .short, calendar: calendar) else {
+        string(parts: estimatedDurationParts(seconds: Int64(seconds)))
+    }
+
+    public func string(parts: [GemDurationPart]) -> String {
+        guard let duration = parts.string(style: .short, calendar: calendar) else {
             return ""
         }
         return "≈ \(duration)"

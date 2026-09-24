@@ -301,7 +301,6 @@ pub enum GemTransactionDetailRow {
     Header,
     SwapProgress,
     SwapAgain,
-    EstimatedConfirmation,
     Participant,
     Rate,
     Fee,

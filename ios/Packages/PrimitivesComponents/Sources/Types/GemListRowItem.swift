@@ -92,8 +92,14 @@ extension GemListRow {
                     subtitleStyleExtra: TextStyle(font: .callout, color: change.tone.color),
                 ),
             )
-        case let .duration(title, parts, info):
-            .listItem(ListItemModel(title: title.text, subtitle: CountdownFormatter().string(parts: parts), infoAction: infoAction(info, onInfo: onInfo)))
+        case let .duration(title, parts, info, estimate):
+            .listItem(
+                ListItemModel(
+                    title: title.text,
+                    subtitle: estimate ? EstimatedConfirmationFormatter().string(parts: parts) : CountdownFormatter().string(parts: parts),
+                    infoAction: infoAction(info, onInfo: onInfo),
+                ),
+            )
         case let .label(title, text, tone, info, progress):
             .listItem(
                 ListItemModel(

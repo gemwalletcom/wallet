@@ -319,6 +319,7 @@ pub fn stake_info_rows(asset: &Asset, staking_apr: Option<f64>) -> Vec<GemListRo
             title: GemListRowTitle::LockTime,
             parts: lock_time_parts(chain),
             info: Some(GemInfoTopic::StakeLockTime),
+            estimate: false,
         }),
         (minimum > BigInt::ZERO).then(|| BigNumberFormatter::f64_value(&minimum, asset.decimals as u32)).map(|value| GemListRow::Amount {
             title: GemListRowTitle::MinimumAmount,
@@ -355,6 +356,7 @@ pub fn delegation_rows(delegation: &Delegation, now: DateTime<Utc>) -> Vec<GemLi
             title,
             parts: completion_countdown_parts(delegation, now),
             info: None,
+            estimate: false,
         }),
     ]
     .into_iter()
@@ -966,6 +968,7 @@ mod tests {
                 title: GemListRowTitle::LockTime,
                 parts: lock_time_parts(Chain::Tron),
                 info: Some(GemInfoTopic::StakeLockTime),
+                estimate: false,
             }
         );
         assert_eq!(
