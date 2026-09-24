@@ -104,7 +104,6 @@ fun ImportScreen(importType: ImportType, onImported: () -> Unit, onCancel: () ->
         onImport = { viewModel.import(onImported) },
         onInput = viewModel::onInput,
         onTypeChange = viewModel::importKind,
-        invalidWords = viewModel::invalidPhraseWords,
         suggestions = suggestions,
         onSelectSuggestion = viewModel::selectSuggestion,
         onCancel = onCancel,
@@ -161,7 +160,6 @@ private fun ImportScene(
     onImport: () -> Unit,
     onInput: (String, Int) -> Unit,
     onTypeChange: (ImportType) -> Unit,
-    invalidWords: (String) -> Set<String>,
     suggestions: List<String>,
     onSelectSuggestion: (String) -> ImportTextUIModel,
     onCancel: () -> Unit,
@@ -195,7 +193,7 @@ private fun ImportScene(
                         onTypeChange(type)
                         inputState.value = TextFieldValue()
                     }
-                    DataInput(input, inputState, nameResolveIndicator, invalidWords, suggestions, onSelectSuggestion, onInput) {
+                    DataInput(input, inputState, nameResolveIndicator, suggestions, onSelectSuggestion, onInput) {
                         dataErrorState = null
                     }
                     ErrorMessage(dataErrorState)
@@ -223,14 +221,12 @@ private fun DataInput(
     input: ImportInputUIModel,
     inputState: MutableState<TextFieldValue>,
     nameResolveIndicator: NameResolveIndicatorUIModel?,
-    invalidWords: (String) -> Set<String>,
     suggestions: List<String>,
     onSelectSuggestion: (String) -> ImportTextUIModel,
     onInput: (String, Int) -> Unit,
     onChange: () -> Unit,
 ) {
     ImportInput(
-        invalidWords = invalidWords,
         inputState = inputState.value,
         input = input,
         indicator = nameResolveIndicator,
@@ -303,7 +299,6 @@ fun PreviewImportAddress() {
                 ),
                 input = ImportInputUIModel(
                     placeholder = R.string.wallet_import_address_field,
-                    isPhrase = false,
                     protectsInput = false,
                     supportsPhraseSuggestions = false,
                     showsViewOnlyWarning = true,
@@ -316,7 +311,6 @@ fun PreviewImportAddress() {
                 onImport = {},
                 onInput = { _, _ -> },
                 onTypeChange = {},
-                invalidWords = { emptySet() },
                 suggestions = emptyList(),
                 onSelectSuggestion = { ImportTextUIModel("", 0) },
                 onCancel = {},

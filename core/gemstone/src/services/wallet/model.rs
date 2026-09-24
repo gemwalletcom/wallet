@@ -1,6 +1,5 @@
 use std::fmt;
 
-use crate::mnemonic::{apply_phrase_suggestion, phrase_suggestions};
 use crate::services::localization::GemLocalizedText;
 use primitives::{BlockExplorerLink, Chain, ChainAddress, NameRecord, Wallet, WalletSource};
 
@@ -48,67 +47,6 @@ impl GemWalletImportKind {
 
     pub fn resolves_names(&self) -> bool {
         matches!(self, Self::Address)
-    }
-}
-
-#[derive(Clone, PartialEq, uniffi::Record)]
-pub struct GemWalletImportSession {
-    pub kind: GemWalletImportKind,
-    pub text: String,
-    pub cursor: Option<u32>,
-    pub is_importing: bool,
-}
-
-impl fmt::Debug for GemWalletImportSession {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("GemWalletImportSession")
-            .field("kind", &self.kind)
-            .field("cursor", &self.cursor)
-            .field("is_importing", &self.is_importing)
-            .finish_non_exhaustive()
-    }
-}
-
-#[uniffi::export]
-impl GemWalletImportSession {
-    pub fn on_kind_changed(&self, kind: GemWalletImportKind) -> Self {
-        Self {
-            kind,
-            text: String::new(),
-            cursor: None,
-            is_importing: false,
-        }
-    }
-
-    pub fn on_input_changed(&self, text: String, cursor: Option<u32>) -> Self {
-        Self { text, cursor, ..self.clone() }
-    }
-
-    pub fn on_suggestion_selected(&self, word: String) -> Self {
-        let edit = apply_phrase_suggestion(&self.text, self.input_cursor(), &word);
-        Self {
-            text: edit.text,
-            cursor: Some(edit.cursor),
-            ..self.clone()
-        }
-    }
-
-    pub fn on_importing(&self, is_importing: bool) -> Self {
-        Self { is_importing, ..self.clone() }
-    }
-
-    pub fn suggestions(&self) -> Vec<String> {
-        match self.kind {
-            GemWalletImportKind::Phrase => phrase_suggestions(&self.text, self.input_cursor()),
-            GemWalletImportKind::PrivateKey | GemWalletImportKind::Address => vec![],
-        }
-    }
-}
-
-impl GemWalletImportSession {
-    fn input_cursor(&self) -> u32 {
-        let end = self.text.encode_utf16().count() as u32;
-        self.cursor.map_or(end, |cursor| cursor.min(end))
     }
 }
 
@@ -240,51 +178,8 @@ pub enum GemWalletSecretKind {
 }
 
 #[cfg(test)]
-mod import_session_tests {
+mod secret_debug_tests {
     use super::*;
-
-    fn session(kind: GemWalletImportKind) -> GemWalletImportSession {
-        GemWalletImportSession {
-            kind,
-            text: String::new(),
-            cursor: None,
-            is_importing: false,
-        }
-    }
-
-    #[test]
-    fn test_suggestions_follow_the_cursor_and_only_a_phrase_gets_them() {
-        let typed = session(GemWalletImportKind::Phrase).on_input_changed("abandon woo zoo".into(), Some(11));
-
-        assert_eq!(typed.suggestions(), vec!["wood", "wool"]);
-        assert_eq!(typed.on_input_changed("woo".into(), None).suggestions(), vec!["wood", "wool"], "no cursor reads as the end");
-        assert_eq!(typed.on_input_changed("woo".into(), Some(99)).suggestions(), vec!["wood", "wool"], "a stale cursor is clamped");
-        assert!(session(GemWalletImportKind::PrivateKey).on_input_changed("woo".into(), None).suggestions().is_empty());
-    }
-
-    #[test]
-    fn test_selecting_a_suggestion_replaces_the_word_and_moves_the_cursor() {
-        let picked = session(GemWalletImportKind::Phrase).on_input_changed("abandon woo".into(), None).on_suggestion_selected("wood".into());
-
-        assert_eq!((picked.text.as_str(), picked.cursor), ("abandon wood ", Some(13)));
-    }
-
-    #[test]
-    fn test_changing_the_kind_clears_the_input() {
-        let changed = session(GemWalletImportKind::Phrase)
-            .on_input_changed("abandon".into(), Some(3))
-            .on_importing(true)
-            .on_kind_changed(GemWalletImportKind::Address);
-
-        assert_eq!(changed, session(GemWalletImportKind::Address));
-    }
-
-    #[test]
-    fn test_debug_never_prints_the_secret() {
-        let debug = format!("{:?}", session(GemWalletImportKind::Phrase).on_input_changed("abandon ability".into(), None));
-
-        assert!(!debug.contains("abandon"), "{debug}");
-    }
 
     #[test]
     fn test_debug_never_prints_an_import_or_exported_secret() {

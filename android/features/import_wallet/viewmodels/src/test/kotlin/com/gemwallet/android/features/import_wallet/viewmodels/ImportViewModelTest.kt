@@ -25,7 +25,6 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import uniffi.gemstone.GemLocalizedText
-import uniffi.gemstone.GemMnemonic
 import uniffi.gemstone.GemNameRecordState
 import uniffi.gemstone.GemNameServiceInterface
 import uniffi.gemstone.GemWalletImportKind
@@ -52,7 +51,6 @@ class ImportViewModelTest {
     private fun viewModel(nameService: GemNameServiceInterface, ioDispatcher: CoroutineDispatcher, service: GemWalletServiceInterface = service()) = ImportViewModel(
         service = service,
         nameService = nameService,
-        mnemonic = GemMnemonic(),
         ioDispatcher = ioDispatcher,
         context = mockk<Context> {
             every { getString(any()) } returns "Wallet"

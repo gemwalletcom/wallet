@@ -39,7 +39,7 @@ private struct ConnectionStatusBannerModifier: ViewModifier {
             }
             .task(id: model.isVisible) {
                 let isVisible = model.isVisible
-                guard (try? await Task.sleep(for: ConnectionStatusViewModel.bannerSettleDelay)) != nil else { return }
+                guard await (try? Task.sleep(for: ConnectionStatusViewModel.bannerSettleDelay)) != nil else { return }
                 self.isVisible = isVisible
                 if !isVisible {
                     isDismissed = false

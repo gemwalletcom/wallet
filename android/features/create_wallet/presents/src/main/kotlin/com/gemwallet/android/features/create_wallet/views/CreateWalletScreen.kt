@@ -65,6 +65,7 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
     val verificationState by viewModel.verificationState.collectAsStateWithLifecycle()
     val phraseRows by viewModel.phraseRows.collectAsStateWithLifecycle()
     val verifiedRows by viewModel.verifiedRows.collectAsStateWithLifecycle()
+    val verificationChoices by viewModel.verificationChoices.collectAsStateWithLifecycle()
 
     BackHandler(uiState.isShowSafeMessage) {
         viewModel.dismissSafeMessage()
@@ -81,6 +82,7 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
             true -> verificationState?.let { verification ->
                 CheckPhrase(
                     state = verification,
+                    choices = verificationChoices,
                     rows = verifiedRows,
                     onPick = viewModel::onPickWord,
                     onDone = { viewModel.createWallet(onCreated) },

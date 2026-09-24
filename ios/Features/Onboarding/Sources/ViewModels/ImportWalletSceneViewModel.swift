@@ -3,8 +3,8 @@ import Foundation
 import protocol Gemstone.GemNameServiceProtocol
 import enum Gemstone.GemWalletImportKind
 import struct Gemstone.GemWalletImportScreen
-import struct Gemstone.GemWalletImportSession
 import protocol Gemstone.GemWalletServiceProtocol
+import func Gemstone.phraseSuggestions
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -21,7 +21,24 @@ final class ImportWalletSceneViewModel {
     let type: ImportWalletType
     private let importScreen: GemWalletImportScreen
 
-    private(set) var session = GemWalletImportSession(kind: .phrase, text: "", cursor: nil, isImporting: false)
+    var input: String = "" {
+        didSet { refreshSuggestions() }
+    }
+
+    var inputCursor: Int? {
+        didSet { refreshSuggestions() }
+    }
+
+    var importType: GemWalletImportKind = .phrase {
+        didSet {
+            input = ""
+            inputCursor = nil
+            isImporting = false
+        }
+    }
+
+    private(set) var wordsSuggestion: [String] = []
+    private var isImporting = false
     let nameRecordViewModel: NameRecordViewModel
 
     var isPresentingScanner = false
@@ -52,31 +69,12 @@ final class ImportWalletSceneViewModel {
         importScreen.title.text
     }
 
-    var input: String {
-        get { session.text }
-        set { session = session.onInputChanged(text: newValue, cursor: session.cursor) }
-    }
-
-    var inputCursor: Int? {
-        get { session.cursor.map { Int($0) } }
-        set { session = session.onInputChanged(text: session.text, cursor: newValue.map { UInt32($0) }) }
-    }
-
-    var importType: GemWalletImportKind {
-        get { session.kind }
-        set { session = session.onKindChanged(kind: newValue) }
-    }
-
     var showsPhraseSuggestions: Bool {
-        importType.supportsPhraseSuggestions() && wordsSuggestion.isNotEmpty
-    }
-
-    var wordsSuggestion: [String] {
-        session.suggestions()
+        wordsSuggestion.isNotEmpty
     }
 
     var buttonState: ButtonState {
-        session.isImporting ? .loading(showProgress: true) : .normal
+        isImporting ? .loading(showProgress: true) : .normal
     }
 
     var pasteButtonTitle: String {
@@ -143,12 +141,12 @@ extension ImportWalletSceneViewModel {
     }
 
     func onSelectActionButton() async {
-        session = session.onImporting(isImporting: true)
+        isImporting = true
 
         do {
             try await importWallet()
         } catch {
-            session = session.onImporting(isImporting: false)
+            isImporting = false
             isPresentingAlertMessage = AlertMessage(title: alertTitle, error: error)
         }
     }
@@ -158,11 +156,14 @@ extension ImportWalletSceneViewModel {
     }
 
     func onHandleScan(_ result: String) {
-        session = session.onInputChanged(text: result, cursor: nil)
+        input = result
+        inputCursor = nil
     }
 
     func onSelectWord(_ word: String) {
-        session = session.onSuggestionSelected(word: word)
+        let completed = PhraseInput(text: input, cursor: inputCursor).completing(with: word)
+        input = completed.text
+        inputCursor = completed.cursor
     }
 
     func onPaste() {
@@ -170,7 +171,8 @@ extension ImportWalletSceneViewModel {
             UINotificationFeedbackGenerator().notificationOccurred(.error)
             return
         }
-        session = session.onInputChanged(text: string.trim(), cursor: nil)
+        input = string.trim()
+        inputCursor = nil
 
         if shouldProtectInput {
             CopyTypeViewModel.clearClipboard()
@@ -193,10 +195,21 @@ extension ImportWalletSceneViewModel {
             nameRecord: showsNameRecord ? nameRecordViewModel.state.record() : nil,
             source: .import,
         )
-        session = session.onImporting(isImporting: false)
+        isImporting = false
         switch result {
         case .new: onComplete?()
         case let .existing(wallet): isPresentingExistingWalletName = wallet.name
         }
+    }
+}
+
+extension ImportWalletSceneViewModel {
+    private func refreshSuggestions() {
+        guard importType.supportsPhraseSuggestions() else {
+            wordsSuggestion = []
+            return
+        }
+        let phrase = PhraseInput(text: input, cursor: inputCursor)
+        wordsSuggestion = phraseSuggestions(word: phrase.word, cursor: UInt32(phrase.wordCursor))
     }
 }

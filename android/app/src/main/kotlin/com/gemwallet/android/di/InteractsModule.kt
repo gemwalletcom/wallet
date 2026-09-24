@@ -11,18 +11,12 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import uniffi.gemstone.GemMnemonic
-import uniffi.gemstone.GemMnemonicInterface
 import uniffi.gemstone.GemTransactionSigner
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
 object InteractsModule {
-
-    @Singleton
-    @Provides
-    fun provideMnemonic(): GemMnemonicInterface = GemMnemonic()
 
     @Singleton
     @Provides

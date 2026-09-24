@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.ext.errorText
-import com.gemwallet.android.ext.words
 import com.gemwallet.android.features.import_wallet.viewmodels.localization.fieldStringRes
 import com.gemwallet.android.features.import_wallet.viewmodels.localization.tabStringRes
 import com.gemwallet.android.model.ImportType
@@ -32,31 +31,30 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemMnemonicInterface
 import uniffi.gemstone.GemNameRecordState
 import uniffi.gemstone.GemNameServiceInterface
 import uniffi.gemstone.GemWalletImportKind
 import uniffi.gemstone.GemWalletImportResult
-import uniffi.gemstone.GemWalletImportSession
 import uniffi.gemstone.GemWalletServiceInterface
+import uniffi.gemstone.phraseSuggestions
 import javax.inject.Inject
 
 @HiltViewModel
 class ImportViewModel @Inject constructor(
     private val service: GemWalletServiceInterface,
     nameService: GemNameServiceInterface,
-    private val mnemonic: GemMnemonicInterface,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
-    fun invalidPhraseWords(text: String): Set<String> = mnemonic.findInvalidWords(text.words()).toSet()
-
     private val state = MutableStateFlow(ImportViewModelState())
-    private val session = MutableStateFlow(GemWalletImportSession(GemWalletImportKind.PHRASE, "", null, false))
-    val uiState = combine(state, session) { state, session -> state.toUIState(session.isImporting, context) }
+    private val input = MutableStateFlow(PhraseInput.of("", null))
+    private val isImporting = MutableStateFlow(false)
+    val uiState = combine(state, isImporting) { state, importing -> state.toUIState(importing, context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ImportUIState())
-    val suggestions: StateFlow<List<String>> = session.map { it.suggestions() }
+    val suggestions: StateFlow<List<String>> = combine(input, state) { input, state ->
+        if (state.importType.kind.supportsPhraseSuggestions()) phraseSuggestions(input.word, input.wordCursor.toUInt()) else emptyList()
+    }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val nameRecordController = NameRecordController(nameService, viewModelScope)
@@ -66,7 +64,7 @@ class ImportViewModel @Inject constructor(
 
     fun importKind(type: ImportType) {
         nameRecordController.reset()
-        session.update { it.onKindChanged(type.kind) }
+        resetInput()
         state.update {
             it.copy(
                 importType = type,
@@ -76,7 +74,7 @@ class ImportViewModel @Inject constructor(
     }
 
     fun onInput(value: String, cursor: Int) {
-        session.update { it.onInputChanged(value, cursor.toUInt()) }
+        input.value = PhraseInput.of(value, cursor)
         val importType = state.value.importType
         if (importType.kind.resolvesNames()) {
             nameRecordController.getNameRecord(value, importType.chain)
@@ -86,14 +84,21 @@ class ImportViewModel @Inject constructor(
     }
 
     fun selectSuggestion(word: String): ImportTextUIModel {
-        val next = session.updateAndGet { it.onSuggestionSelected(word) }
-        return ImportTextUIModel(next.text, next.cursor?.toInt() ?: next.text.length)
+        val next = input.updateAndGet { it.completing(word) }
+        return ImportTextUIModel(next.text, next.cursor)
     }
 
-    fun clearInput() = session.update { it.onInputChanged("", null) }
+    fun clearInput() {
+        input.value = PhraseInput.of("", null)
+    }
+
+    private fun resetInput() {
+        clearInput()
+        isImporting.value = false
+    }
 
     fun importSelect(importType: ImportType) {
-        session.update { it.onKindChanged(importType.kind) }
+        resetInput()
         val screen = service.importScreen(importType.chain?.string)
         state.update {
             it.copy(
@@ -106,18 +111,19 @@ class ImportViewModel @Inject constructor(
     }
 
     fun import(onImported: () -> Unit) {
-        if (session.value.isImporting) {
+        if (isImporting.value) {
             return
         }
         val nameRecord = nameRecordController.state.value.record()
-        val data = session.updateAndGet { it.onImporting(true) }.text
+        isImporting.value = true
+        val data = input.value.text
 
         viewModelScope.launch(ioDispatcher) {
             try {
                 val importType = state.value.importType
                 val imported = service.importWallet(importType.kind, importType.chain, data, nameRecord, WalletSource.Import, context)
                 state.update { it.copy(dataError = null) }
-                session.update { it.onImporting(false) }
+                isImporting.value = false
                 withContext(Dispatchers.Main) {
                     when (imported) {
                         is GemWalletImportResult.New -> onImported()
@@ -128,7 +134,7 @@ class ImportViewModel @Inject constructor(
                 throw err
             } catch (err: Throwable) {
                 state.update { it.copy(dataError = err) }
-                session.update { it.onImporting(false) }
+                isImporting.value = false
             }
         }
     }
@@ -176,14 +182,10 @@ data class ImportTextUIModel(val text: String, val cursor: Int)
 
 data class ImportTabUIModel(val type: ImportType, @StringRes val title: Int, val isSelected: Boolean)
 
-data class ImportInputUIModel(@StringRes val placeholder: Int, val isPhrase: Boolean, val protectsInput: Boolean, val supportsPhraseSuggestions: Boolean, val showsViewOnlyWarning: Boolean)
+data class ImportInputUIModel(@StringRes val placeholder: Int, val protectsInput: Boolean, val supportsPhraseSuggestions: Boolean, val showsViewOnlyWarning: Boolean)
 
 internal fun GemWalletImportKind.inputUiModel() = ImportInputUIModel(
     placeholder = fieldStringRes(),
-    isPhrase = when (this) {
-        GemWalletImportKind.PHRASE -> true
-        GemWalletImportKind.ADDRESS, GemWalletImportKind.PRIVATE_KEY -> false
-    },
     protectsInput = protectsInput(),
     supportsPhraseSuggestions = supportsPhraseSuggestions(),
     showsViewOnlyWarning = showsViewOnlyWarning(),

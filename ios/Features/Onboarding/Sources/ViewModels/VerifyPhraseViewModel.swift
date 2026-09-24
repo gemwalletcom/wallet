@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import struct Gemstone.GemVerifyPhraseSession
+import struct Gemstone.GemVerifyPhraseSetup
 import struct Gemstone.GemVerifyPhraseViewState
 import GemstonePrimitives
 import Localization
@@ -15,6 +16,8 @@ import SwiftUI
 @MainActor
 final class VerifyPhraseViewModel {
     private let onComplete: ([String]) async throws -> Void
+    private let words: [String]
+    private let choices: [String]
 
     private var session: GemVerifyPhraseSession {
         didSet { viewState = session.viewState() }
@@ -24,11 +27,14 @@ final class VerifyPhraseViewModel {
     var isPresentingAlertMessage: AlertMessage?
 
     init(
-        session: GemVerifyPhraseSession,
+        words: [String],
+        setup: GemVerifyPhraseSetup,
         onComplete: @escaping ([String]) async throws -> Void,
     ) {
-        self.session = session
-        viewState = session.viewState()
+        self.words = words
+        choices = setup.choices
+        session = setup.session
+        viewState = setup.session.viewState()
         self.onComplete = onComplete
     }
 
@@ -45,12 +51,12 @@ final class VerifyPhraseViewModel {
     }
 
     var rows: [SecretPhraseRow] {
-        SecretPhraseRow.rows(for: viewState.verified)
+        SecretPhraseRow.rows(for: words.enumerated().map { $0.offset < Int(viewState.verifiedCount) ? $0.element : .empty })
     }
 
     var groups: [[WordIndex]] {
         viewState.groups.map { group in
-            group.map { WordIndex(index: Int($0.index), word: $0.word) }
+            group.map { WordIndex(index: Int($0.index), word: choices[Int($0.index)]) }
         }
     }
 
@@ -79,7 +85,7 @@ extension VerifyPhraseViewModel {
 
     func complete() async {
         do {
-            try await onComplete(session.words)
+            try await onComplete(words)
         } catch {
             session = session.onCreating(isCreating: false)
             isPresentingAlertMessage = AlertMessage(title: Localized.Errors.createWallet(""), error: error)

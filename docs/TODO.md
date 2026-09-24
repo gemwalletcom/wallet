@@ -19,12 +19,12 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Security and bugs:** AUD69 (secrets cross only when needed), AUD67, AUD68, AUD5, AUD59, BD20.
+1. **Security and bugs:** AUD67, AUD68, AUD5, AUD59, BD20.
 2. **Generated constants:** D174.
 3. **Deletions:** VM173, VM174, VM177 (the FFI trim; extend `check-ffi-surface.py` first).
 4. **Pass-throughs:** VM175, VM176.
 5. **Derive once:** VM178, VM179.
-6. **Settled differences:** VM102, VM124, VM126, VM127, VM128, VM129, VM92, BD58, D74, D75, BD59, BD60, BD61, BD62, BD63, BD64, BD56, AUD50.
+6. **Settled differences:** VM102, VM124, VM127, VM128, VM129, BD58, D74, D75, BD59, BD60, BD61, BD62, BD63, BD64, BD56, AUD50.
 7. **One view state:** VM168, VM167, VM169, VM170, VM171, VM144, VM125, VM134, VM89.
 8. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
 9. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
@@ -40,7 +40,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Screens / entry points | Existing owner or infrastructure to extend | Open work |
 |---|---|---|
 | App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79, D75 |
-| Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemWalletImportSession`, `GemVerifyPhraseSession`, keystore and native auth ports | VM126, VM92, VM175 |
+| Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | VM175 |
 | Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM175, VM176 |
 | Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | D74, VM172, VM175, VM178, AUD68 |
 | Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM127, VM167, VM176, VM178, BD64 |
@@ -89,10 +89,6 @@ An id belongs in this table only while its bullet exists below. The upstream ite
 Transaction-critical input, a user-visible outcome that a swallowed error hides, a write that runs when nothing changed, and a policy the two apps run on different triggers.
 
 - **AUD5** **M** **Bug — a sent transaction that fails to record leaves no local row and no tracking.** [`store_pending`](../core/gemstone/src/services/confirm/mod.rs) calls `record(...).unwrap_or_default()`, so a failed `add_transactions` write becomes an empty list: no pending row is stored, `track` is handed nothing, and `execute` returns `Sent` as if everything succeeded. The funds are on chain and the activity sync will eventually fetch the transaction, so what is lost is local visibility and state polling, not funds. Do not route the outcome through the confirmation result: both apps read only `hashes` from `GemExecuteResult::Sent` ([iOS](../ios/Features/Transfer/Sources/ViewModels/ConfirmTransferSceneViewModel.swift), [Android](../android/features/confirm/viewmodels/src/main/kotlin/com/gemwallet/android/features/confirm/viewmodels/ConfirmViewModel.kt)), and its `transactions` payload was removed as dead FFI weight, so a new field or enum there would be read by nobody. **Decided:** `store_pending` retries the write once, silently, then relies on the next activity sync; no new screen state. Cover the `Broadcast` error path too, where `store_pending` already runs for a partial broadcast.
-- **AUD69** **M** **A secret crosses into Gemstone only for the operation that needs it.** Written into [security.md](../skills/security.md): a secret phrase or private key crosses once, at the import, export or signing call; editing the input stays in the app. Two sessions break the rule today, because a session record crosses by value on every event and Core cannot zero the copies.
-  - **Import:** `GemWalletImportSession` ([`wallet/model.rs`](../core/gemstone/src/services/wallet/model.rs)) holds `text`, and both apps send the whole phrase on every keystroke through `on_input_changed(text, cursor)` just to get word suggestions. The app keeps the text; Core answers `phrase_suggestions(word)` for the word at the cursor and returns the suggestion the app inserts; the phrase crosses once, at import. Paste stays in the app (VM126).
-  - **Verify phrase:** `GemVerifyPhraseSession` ([`verify_phrase.rs`](../core/gemstone/src/services/wallet/verify_phrase.rs)) carries every word of the new wallet by value on each pick. The words stay in Core, in an object created with the generated phrase and dropped at the end, and the picks cross as indexes.
-  - Android's `GemMnemonic` highlight, which sends the phrase on every recomposition, goes with VM92. Keep `GemWalletImportSession`'s redacting `Debug`.
 - **AUD59** **S** **Surface the first balance fetch after enabling an asset.** [`refresh_enabled_assets`](../core/gemstone/src/services/balance/mod.rs) runs `let _ = self.update(...)` from `set_assets_enabled` and `setup_wallet`, so a just-enabled token sits at zero with no error until a refresh. Returning the failure alone does not help: both apps only `debugLog` a failed toggle, and iOS `AssetSceneViewModel.onSelectEnable` would drop its "asset shown" toast although the asset was enabled; side-effect callers (fiat quote, reward redemption, transaction post-processing, discovery) would fail their own action on a balance fetch. **Decided:** an error toast after the successful enable. Return the failure from the user-facing toggles only and give the side-effect callers a write-only enable.
 - **AUD67** **S** **A failed autoclose transfer does nothing when Confirm is tapped.** `GemAutocloseModify::transfer` ([`autoclose.rs`](../core/gemstone/src/services/perpetual/autoclose.rs)) fails when the perpetual has no asset index.
   - **iOS:** `AutocloseSceneViewModel.onSelectConfirm` returns on `try?`.
@@ -115,10 +111,6 @@ A screen whose state changes is a session, and a screen that reads gets one reco
 - **VM125** **M** **One transfer-data export for the amount screen.** Both apps keep a four-way provider family whose only job is to pick the Core export. `GemAmountType` in [`amount/model.rs`](../core/gemstone/src/services/amount/model.rs) already unions the four kinds; [`GemAmountService`](../core/gemstone/src/services/amount/mod.rs) plus `GemStakeService::stake_transfer_data` become one `transfer_data(request, value, use_max)`, whose signature is an engineering choice. S40's "no session" decision stands; this is an export consolidation.
   - **iOS:** `AmountDataProvider.swift:17-31` and `AmountDataProvidable.swift`, with `AmountTransferViewModel` `transferData`, `AmountStakeViewModel` `stakeTransferData`, `AmountEarnViewModel` `earnTransferData` and `AmountPerpetualViewModel` `perpetualTransferData`. Delete the enum, the protocol, `AmountTransferViewModel` and `AmountEarnViewModel`.
   - **Android:** `AmountProviderFactory.kt:28-67` and `AmountDataProvider.kt` with the four providers. Delete the factory, the base class and the transfer and earn providers; stake and perpetual keep their selection state.
-- **VM126** **S** **A pasted secret is trimmed by the app, the same way on both.** Paste stays in the app, so the secret does not cross into Core while it is edited (AUD69); it crosses once, at import.
-  - **iOS:** trims the pasted text (`ImportWalletSceneViewModel.swift:163-172`).
-  - **Android:** appends a trailing space for a phrase and trims otherwise, deciding `isPhrase` from the kind itself (`ImportInput.kt:109-110`, `ImportViewModel.kt:182-191`).
-  - **Expected:** iOS: trim, no trailing space. Delete Android's transform and `ImportInputUIModel.isPhrase`.
 - **VM127** **M** **The select-asset picker takes its order, limit and text match from Core.** Core's `RESULTS_LIMIT = 100` reaches only the wallet-tab results through `GemWalletSearchLimits`; `GemSelectAssetFlow` carries an order, limit and match record both queries apply (indexed SQL stays native). Delete iOS `defaultQueryLimit` and the rank-only arm, and Android's `NO_QUERY_LIMIT`/`assetsSearchLimit`.
   - **iOS:** a typed search orders by `rank` only (replacing the pinned/enabled/fiat order at `:165-171`), caps at `defaultQueryLimit = 100` and matches `tokenId LIKE` ([`AssetsRequest.swift`](../ios/Packages/Store/Sources/Requests/AssetsRequest.swift) `:94-98`).
   - **Android:** matches `asset_info.id LIKE '%' || :query || '%'`, orders `pinned DESC, visible DESC, balanceFiatTotalAmount DESC, assetRank DESC` and caps at `NO_QUERY_LIMIT = Int.MAX_VALUE` (`AssetsDao.kt:213-226`).
@@ -262,10 +254,6 @@ Taps on rows that already exist, not new row types.
 
 ## 9. Persistence and parity
 
-- **VM92** **S** **Drop Android's invalid phrase word highlight.** The iOS way: no highlight.
-  - **iOS:** no highlight.
-  - **Android:** highlights invalid words through a separate `GemMnemonic`, called from the text transformation on each recomposition, which also sends the phrase to Core on every recomposition (AUD69).
-  - **Expected:** iOS. Delete the highlight, `GemMnemonic`'s provider (`InteractsModule.kt:25`) and `ImportViewModel`'s invalid-word state.
 - **VM98** **M** **Transaction assets are stored two ways.**
   - **iOS:** stores every asset a transaction touches through `transactionAssetIds` into its transaction-assets table.
   - **Android:** stores only swap pairs through `transactionSwapPair` into `DbTransactionSwapMetadata`.
