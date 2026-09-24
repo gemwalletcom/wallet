@@ -46,8 +46,8 @@ import com.wallet.core.primitives.PerpetualOrderType
 import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.PerpetualTriggerOrder
-import uniffi.gemstone.GemCandleViewState
 import uniffi.gemstone.GemCandleTickFormat
+import uniffi.gemstone.GemCandleViewState
 import uniffi.gemstone.GemCandleViewport
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemListRow
@@ -100,6 +100,7 @@ internal fun PerpetualPositionScene(
                         period = period,
                         tooltip = tooltip,
                         onPeriodSelect = { onAction(PerpetualDetailsAction.SelectChartPeriod(it)) },
+                        onZoom = { onAction(PerpetualDetailsAction.ZoomChart(it)) },
                     )
                 }
                 details?.sections.orEmpty().forEach { section ->

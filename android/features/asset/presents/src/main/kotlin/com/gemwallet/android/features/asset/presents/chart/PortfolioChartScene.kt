@@ -130,6 +130,7 @@ private fun PortfolioChart(viewModel: PortfolioChartViewModel) {
     ChartSection(
         state = state,
         onPeriodSelect = viewModel::setPeriod,
+        onZoom = viewModel::onZoom,
         periods = periods,
     )
 }

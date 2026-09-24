@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -17,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextMeasurer
@@ -34,26 +36,30 @@ import com.gemwallet.android.ui.models.chart.CandleUIModel
 import com.gemwallet.android.ui.models.chart.CandlestickChartUIModel
 import com.gemwallet.android.ui.models.chart.ChartAxisTick
 import com.gemwallet.android.ui.models.chart.ChartReferenceLineUIModel
+import com.gemwallet.android.ui.models.chart.ChartTimeTick
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.space1
 import com.gemwallet.android.ui.theme.space2
+import com.gemwallet.android.ui.theme.space24
 import com.gemwallet.android.ui.theme.space4
 import com.gemwallet.android.ui.theme.space6
 import com.gemwallet.android.ui.theme.space8
 import uniffi.gemstone.GemPerpetualChartLineKind
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
 private object CandlestickMetrics {
     val topPadding = paddingDefault
-    val bottomPadding = space8
+    val bottomPadding = space24
     val rightAxisWidth = 88.dp
     val leftPadding = space8
     val labelPadding = space4
-    val candleSpacingFraction = 0.25f
-    val candleBodyWidth = space4
+    val timeLabelGap = space4
     val wickWidth = space1
+    val currentPriceDash = space2
+    val currentPriceGap = 3.dp
     val referenceLineThickness = space1
     val referenceLineDash = space4
     val referenceLineGap = 3.dp
@@ -73,7 +79,7 @@ private object CandlestickMetrics {
 }
 
 @Composable
-fun GemCandlestickChart(model: CandlestickChartUIModel, selectedIndex: Int? = null, onSelectionChanged: (Int?) -> Unit = {}, modifier: Modifier = Modifier) {
+fun GemCandlestickChart(model: CandlestickChartUIModel, selectedIndex: Int? = null, onSelectionChanged: (Int?) -> Unit = {}, onZoom: (Float) -> Unit = {}, modifier: Modifier = Modifier) {
     if (model.candles.isEmpty()) return
 
     val density = LocalDensity.current
@@ -84,6 +90,7 @@ fun GemCandlestickChart(model: CandlestickChartUIModel, selectedIndex: Int? = nu
     val flatColor = ListItemTextStyle.Secondary.color()
     val axisLabelColor = MaterialTheme.colorScheme.secondary
     val gridGuidelineColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.13f)
+    val currentPriceLineColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f)
     val selectionAccentColor = MaterialTheme.colorScheme.primary
     val referenceColorByRole = referenceColors()
 
@@ -95,9 +102,13 @@ fun GemCandlestickChart(model: CandlestickChartUIModel, selectedIndex: Int? = nu
         TextStyle(color = axisLabelColor, fontSize = CandlestickMetrics.axisLabelSize, textAlign = TextAlign.Start)
     }
     val whiteLabelStyle = remember(axisLabelStyle) { axisLabelStyle.copy(color = Color.White) }
+    val timeLabelStyle = remember(axisLabelStyle) { axisLabelStyle.copy(textAlign = TextAlign.Center) }
+    val currentPriceDashEffect = remember(density) {
+        with(density) { PathEffect.dashPathEffect(floatArrayOf(CandlestickMetrics.currentPriceDash.toPx(), CandlestickMetrics.currentPriceGap.toPx())) }
+    }
 
     val wickWidthPx = with(density) { CandlestickMetrics.wickWidth.toPx() }
-    val maxBodyWidthPx = with(density) { CandlestickMetrics.candleBodyWidth.toPx() }
+    val timeLabelGapPx = with(density) { CandlestickMetrics.timeLabelGap.toPx() }
     val referenceLineThicknessPx = with(density) { CandlestickMetrics.referenceLineThickness.toPx() }
     val referenceLineDashPx = with(density) { CandlestickMetrics.referenceLineDash.toPx() }
     val referenceLineGapPx = with(density) { CandlestickMetrics.referenceLineGap.toPx() }
@@ -133,32 +144,32 @@ fun GemCandlestickChart(model: CandlestickChartUIModel, selectedIndex: Int? = nu
         val plotHeight = plotBottom - plotTop
         if (plotWidth <= 0 || plotHeight <= 0) return@Box
 
-        val slotWidth = plotWidth / model.candles.size
-        val bodyWidth = min(
-            maxBodyWidthPx,
-            max(1f, slotWidth * (1f - CandlestickMetrics.candleSpacingFraction)),
-        )
+        val bodyWidth = max(1f, model.bodyWidthFraction * plotWidth)
 
-        fun slotCenter(index: Int): Float = plotLeft + slotWidth * (index + 0.5f)
+        fun candleX(index: Int): Float = plotLeft + model.candles[index].x * plotWidth
         fun valueToY(value: Double): Float = (plotBottom - (value - model.yMin) / model.ySpan * plotHeight).toFloat()
-        fun touchToIndex(x: Float): Int? {
-            if (x < plotLeft || x > plotRight) return null
-            return ((x - plotLeft) / slotWidth).toInt().coerceIn(0, model.candles.lastIndex)
+
+        val indexAt by rememberUpdatedState { x: Float ->
+            model.candles.indices.takeIf { x in plotLeft..plotRight }?.minByOrNull { abs(candleX(it) - x) }
         }
+        val selectionChanged by rememberUpdatedState(onSelectionChanged)
+        val zoom by rememberUpdatedState(onZoom)
 
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
-                .chartSelection(
-                    chartSize,
-                    model.candles.size,
-                    indexAt = ::touchToIndex,
-                    onSelectionChanged = onSelectionChanged,
+                .chartGestures(
+                    indexAt = { indexAt(it) },
+                    onSelectionChanged = { selectionChanged(it) },
+                    onZoom = { zoom(it) },
                 ),
         ) {
             drawYAxis(model.yTicks, plotLeft, plotRight, plotTop, plotBottom, gridGuidelineColor, gridDashEffect, textMeasurer, axisLabelStyle, labelPaddingPx)
-            drawXAxisGridlines(model.xGridlineFractions, plotLeft, plotRight, plotTop, plotBottom, gridGuidelineColor, gridDashEffect)
-            drawCandles(model.candles, ::slotCenter, ::valueToY, bodyWidth, wickWidthPx, upColor, downColor, flatColor)
+            drawTimeAxis(model.xTicks, plotLeft, plotWidth, plotTop, plotBottom, gridGuidelineColor, gridDashEffect, textMeasurer, timeLabelStyle, timeLabelGapPx)
+            drawCurrentPriceLine(model.candles.last(), ::valueToY, plotLeft, plotRight, plotTop, plotBottom, currentPriceLineColor, currentPriceDashEffect)
+            clipRect(left = plotLeft, top = 0f, right = plotRight, bottom = size.height) {
+                drawCandles(model.candles, ::candleX, ::valueToY, bodyWidth, wickWidthPx, upColor, downColor, flatColor)
+            }
             drawReferenceLines(
                 referenceLines = model.referenceLines,
                 referenceColorByRole = referenceColorByRole,
@@ -198,7 +209,7 @@ fun GemCandlestickChart(model: CandlestickChartUIModel, selectedIndex: Int? = nu
                 selectedIndex = selectedIndex,
                 selectionAlpha = selection.alpha,
                 candles = model.candles,
-                slotCenter = ::slotCenter,
+                candleX = ::candleX,
                 valueToY = ::valueToY,
                 plotTop = plotTop,
                 plotBottom = plotBottom,
@@ -259,10 +270,9 @@ private fun DrawScope.drawYAxis(
     }
 }
 
-private fun DrawScope.drawXAxisGridlines(fractions: List<Float>, plotLeft: Float, plotRight: Float, plotTop: Float, plotBottom: Float, color: Color, dash: PathEffect) {
-    val plotWidth = plotRight - plotLeft
-    fractions.forEach { fraction ->
-        val x = plotLeft + plotWidth * fraction
+private fun DrawScope.drawTimeAxis(ticks: List<ChartTimeTick>, plotLeft: Float, plotWidth: Float, plotTop: Float, plotBottom: Float, color: Color, dash: PathEffect, textMeasurer: TextMeasurer, style: TextStyle, labelGapPx: Float) {
+    ticks.forEach { tick ->
+        val x = plotLeft + plotWidth * tick.fraction
         drawLine(
             color = color,
             start = Offset(x, plotTop),
@@ -270,13 +280,27 @@ private fun DrawScope.drawXAxisGridlines(fractions: List<Float>, plotLeft: Float
             strokeWidth = 1f,
             pathEffect = dash,
         )
+        val measured = textMeasurer.measure(tick.label, style)
+        drawText(textLayoutResult = measured, topLeft = Offset(x - measured.size.width / 2f, plotBottom + labelGapPx))
     }
 }
 
-private fun DrawScope.drawCandles(candles: List<CandleUIModel>, slotCenter: (Int) -> Float, valueToY: (Double) -> Float, bodyWidth: Float, wickWidthPx: Float, upColor: Color, downColor: Color, flatColor: Color) {
+private fun DrawScope.drawCurrentPriceLine(lastCandle: CandleUIModel, valueToY: (Double) -> Float, plotLeft: Float, plotRight: Float, plotTop: Float, plotBottom: Float, color: Color, dash: PathEffect) {
+    val y = valueToY(lastCandle.close)
+    if (y !in plotTop..plotBottom) return
+    drawLine(
+        color = color,
+        start = Offset(plotLeft, y),
+        end = Offset(plotRight, y),
+        strokeWidth = 1f,
+        pathEffect = dash,
+    )
+}
+
+private fun DrawScope.drawCandles(candles: List<CandleUIModel>, candleX: (Int) -> Float, valueToY: (Double) -> Float, bodyWidth: Float, wickWidthPx: Float, upColor: Color, downColor: Color, flatColor: Color) {
     candles.forEachIndexed { index, candle ->
         val color = candleColor(candle, upColor, downColor, flatColor)
-        val centerX = slotCenter(index)
+        val centerX = candleX(index)
         drawLine(
             color = color,
             start = Offset(centerX, valueToY(candle.high)),
@@ -387,7 +411,7 @@ private fun DrawScope.drawSelection(
     selectedIndex: Int?,
     selectionAlpha: Float,
     candles: List<CandleUIModel>,
-    slotCenter: (Int) -> Float,
+    candleX: (Int) -> Float,
     valueToY: (Double) -> Float,
     plotTop: Float,
     plotBottom: Float,
@@ -398,7 +422,7 @@ private fun DrawScope.drawSelection(
     dotBorderPx: Float,
 ) {
     if (selectedIndex == null || selectedIndex !in candles.indices || selectionAlpha <= 0f) return
-    val centerX = slotCenter(selectedIndex)
+    val centerX = candleX(selectedIndex)
     val closeY = valueToY(candles[selectedIndex].close)
     drawLine(
         color = accentColor.copy(alpha = CandlestickMetrics.SELECTION_LINE_ALPHA * selectionAlpha),

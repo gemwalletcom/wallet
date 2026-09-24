@@ -50,6 +50,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -172,7 +173,7 @@ class PerpetualDetailsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            combine(perpetual.map { it?.perpetual }.distinctUntilChanged(), candles, ::Pair).collectLatest { (market, session) ->
+            combine(perpetual.map { it?.perpetual }.distinctUntilChanged(), candles.distinctUntilChangedBy { it.request() to it.needsCandles() }, ::Pair).collectLatest { (market, session) ->
                 val selected = market?.let { session.onSelectMarket(it.toGem()) } ?: return@collectLatest
                 if (selected != session) {
                     candles.value = selected
@@ -228,6 +229,10 @@ class PerpetualDetailsViewModel @Inject constructor(
                 .onFailure { Log.e(TAG, "storing the chart period failed", it) }
         }
         candles.update { it.onSelectPeriod(period.toGem()) }
+    }
+
+    fun onZoom(magnification: Float) {
+        candles.update { it.onZoom(magnification.toDouble()) }
     }
 
     private val errorState = MutableStateFlow<String?>(null)

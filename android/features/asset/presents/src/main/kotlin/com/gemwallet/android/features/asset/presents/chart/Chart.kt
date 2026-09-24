@@ -12,7 +12,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.ChartViewModel
-import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.chart.ChartStateView
 import com.gemwallet.android.ui.components.chart.GemLineChart
 import com.gemwallet.android.ui.format.rowDateFormatter
@@ -23,11 +22,11 @@ import com.wallet.core.primitives.ChartPeriod
 fun Chart(viewModel: ChartViewModel = hiltViewModel()) {
     val state by viewModel.chartUIState.collectAsStateWithLifecycle()
 
-    ChartSection(state = state, onPeriodSelect = viewModel::setPeriod)
+    ChartSection(state = state, onPeriodSelect = viewModel::setPeriod, onZoom = viewModel::onZoom)
 }
 
 @Composable
-internal fun ChartSection(state: ChartUIModel.State, onPeriodSelect: (ChartPeriod) -> Unit, periods: List<ChartPeriod> = ChartPeriod.entries) {
+internal fun ChartSection(state: ChartUIModel.State, onPeriodSelect: (ChartPeriod) -> Unit, onZoom: (Float) -> Unit, periods: List<ChartPeriod> = ChartPeriod.entries) {
     key(state.period) {
         var selectedIndex by remember { mutableStateOf<Int?>(null) }
 
@@ -42,13 +41,15 @@ internal fun ChartSection(state: ChartUIModel.State, onPeriodSelect: (ChartPerio
             periods = periods,
         ) { model ->
             GemLineChart(
-                points = model.renderPoints,
+                points = model.points,
                 bounds = model.bounds,
                 lineColor = MaterialTheme.colorScheme.primary,
+                selectableFrom = model.selectableFrom,
                 selectedIndex = selectedIndex,
                 onSelectionChanged = { selectedIndex = it },
-                minLabel = model.bounds.low.text(),
-                maxLabel = model.bounds.high.text(),
+                onZoom = onZoom,
+                minLabel = model.minLabel,
+                maxLabel = model.maxLabel,
             )
         }
     }

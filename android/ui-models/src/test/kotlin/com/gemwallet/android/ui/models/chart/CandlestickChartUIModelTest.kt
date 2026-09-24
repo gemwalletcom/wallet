@@ -1,27 +1,39 @@
 package com.gemwallet.android.ui.models.chart
 
-import com.wallet.core.primitives.ChartCandleStick
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.ChartCandleStick
+import uniffi.gemstone.GemCandleTickFormat
+import uniffi.gemstone.GemCandleViewport
 import uniffi.gemstone.GemPerpetualChartLayout
 import uniffi.gemstone.GemPerpetualChartLine
 import uniffi.gemstone.GemPerpetualChartLineKind
 import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.formattedAdaptive
+import java.time.ZoneOffset
+import java.util.Locale
 
 class CandlestickChartUIModelTest {
 
     private val candles = listOf(
-        ChartCandleStick(date = 1_000L, open = 10.0, high = 12.0, low = 9.0, close = 11.0, volume = 100.0),
-        ChartCandleStick(date = 2_000L, open = 11.0, high = 13.0, low = 10.0, close = 10.0, volume = 110.0),
-        ChartCandleStick(date = 3_000L, open = 10.0, high = 10.0, low = 10.0, close = 10.0, volume = 120.0),
+        ChartCandleStick(date = 60_000L, open = 10.0, high = 12.0, low = 9.0, close = 11.0, volume = 100.0),
+        ChartCandleStick(date = 120_000L, open = 11.0, high = 13.0, low = 10.0, close = 10.0, volume = 110.0),
+        ChartCandleStick(date = 180_000L, open = 10.0, high = 10.0, low = 10.0, close = 10.0, volume = 120.0),
+    )
+
+    private val viewport = GemCandleViewport(
+        start = 30_000L,
+        end = 330_000L,
+        intervalSeconds = 60,
+        candles = candles,
+        ticks = listOf(120_000L, 180_000L),
+        tickFormat = GemCandleTickFormat.TIME,
     )
 
     private val layout = GemPerpetualChartLayout(
         priceLow = 8.0,
         priceHigh = 14.0,
         ticks = listOf(9.0, 11.0, 13.0).map { formattedAdaptive(it, null) },
-        xTickCount = 6u,
         lines = listOf(GemPerpetualChartLine(GemPerpetualChartLineKind.ENTRY, formattedAdaptive(10.5, null), 0u)),
         currentPrice = formattedAdaptive(10.0, null),
         tones = listOf(GemValueTone.POSITIVE, GemValueTone.NEGATIVE, GemValueTone.NEUTRAL),
@@ -54,15 +66,26 @@ class CandlestickChartUIModelTest {
     }
 
     @Test
-    fun xGridlineFractionsSpanZeroToOne() {
-        val model = model(layout.copy(xTickCount = 2u))
+    fun candlesSitAtTheirTimeInTheWindow() {
+        val model = model()
 
-        assertEquals(listOf(0f, 1f), model.xGridlineFractions)
+        assertEquals(listOf(0.1f, 0.3f, 0.5f), model.candles.map { it.x })
+        assertEquals(0.12f, model.bodyWidthFraction, 1e-6f)
+    }
+
+    @Test
+    fun timeTicksAreLabelledAtTheirCandles() {
+        val model = model()
+
+        assertEquals(listOf(0.3f, 0.5f), model.xTicks.map { it.fraction })
+        assertEquals(listOf("00:02", "00:03"), model.xTicks.map { it.label })
     }
 
     private fun model(layout: GemPerpetualChartLayout = this.layout) = CandlestickChartUIModel.from(
-        candles = candles,
+        viewport = viewport,
         layout = layout,
         lineLabel = { "Entry" },
+        zone = ZoneOffset.UTC,
+        locale = Locale.UK,
     )
 }

@@ -50,7 +50,6 @@ const CHART_CURRENT_PRICE_CLEARANCE_FRACTION: f64 = 0.08;
 const CHART_MINIMUM_SPAN_FRACTION: f64 = 0.001;
 const CHART_MINIMUM_SPAN: f64 = 1e-9;
 const CHART_TICK_COUNT: usize = 4;
-const CHART_X_TICK_COUNT: usize = 6;
 
 pub fn perpetual_asset_basics(data: &[PerpetualData]) -> Vec<AssetBasic> {
     data.iter()
@@ -302,15 +301,10 @@ pub fn chart_layout(candles: &[ChartCandleStick], position: Option<&PerpetualPos
             .filter(|tick| candles.last().is_none_or(|candle| (tick - candle.close).abs() >= current_price_clearance))
             .map(|tick| GemFormattedNumber::adaptive(tick, None))
             .collect(),
-        x_tick_count: chart_x_tick_count(candles.len()),
         lines,
         current_price: candles.last().map(|candle| GemFormattedNumber::adaptive(candle.close, None)),
         tones: candles.iter().map(|candle| value_tone(candle.close - candle.open)).collect(),
     }
-}
-
-fn chart_x_tick_count(candle_count: usize) -> u32 {
-    if candle_count < 2 { 0 } else { CHART_X_TICK_COUNT.min(candle_count) as u32 }
 }
 
 fn chart_ticks(candle_low: f64, candle_high: f64) -> Vec<f64> {
@@ -1199,14 +1193,6 @@ mod tests {
         let layout = chart_layout(&[rising, falling, flat], None);
 
         assert_eq!(layout.tones, vec![GemValueTone::Positive, GemValueTone::Negative, GemValueTone::Neutral]);
-    }
-
-    #[test]
-    fn test_chart_x_tick_count_never_exceeds_the_candles_it_can_mark() {
-        assert_eq!(chart_x_tick_count(0), 0, "an empty series draws no gridlines");
-        assert_eq!(chart_x_tick_count(1), 0, "a single candle spans nothing to divide");
-        assert_eq!(chart_x_tick_count(4), 4);
-        assert_eq!(chart_x_tick_count(40), CHART_X_TICK_COUNT as u32);
     }
 
     #[test]

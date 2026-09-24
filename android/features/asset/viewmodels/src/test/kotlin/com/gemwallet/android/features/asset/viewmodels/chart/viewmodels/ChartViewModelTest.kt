@@ -227,6 +227,36 @@ class ChartViewModelTest {
     }
 
     @Test
+    fun `a pinch during a refresh keeps the load that is in flight`() = runTest(testDispatcher) {
+        val chart = mockGemChart(values = (1..40).map { it.toFloat() })
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns chart
+
+        val viewModel = createViewModel()
+        viewModel.chartUIState.first { it.chart is StateViewType.Data }
+        backgroundScope.launch { viewModel.chartUIState.collect {} }
+        backgroundScope.launch { viewModel.isRefreshing.collect {} }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val inFlight = CompletableDeferred<Unit>()
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } coAnswers {
+            inFlight.await()
+            chart
+        }
+        viewModel.refresh()
+        testDispatcher.scheduler.advanceUntilIdle()
+        repeat(3) {
+            viewModel.onZoom(1.5f)
+            testDispatcher.scheduler.advanceUntilIdle()
+        }
+        inFlight.complete(Unit)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        coVerify(exactly = 2) { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) }
+        assertEquals(false, viewModel.isRefreshing.value)
+        assertEquals(true, viewModel.chartUIState.value.chart.dataOrNull!!.viewport.start > chart.values.first().date)
+    }
+
+    @Test
     fun `a failed refresh leaves the loaded chart alone`() = runTest(testDispatcher) {
         val chart = mockGemChart(values = listOf(1f, 2f, 3f))
         coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns chart

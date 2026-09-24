@@ -29,13 +29,20 @@ import com.wallet.core.primitives.ChartPeriod
 private val TooltipRightSafeArea = 96.dp
 
 @Composable
-internal fun PerpetualChartSection(state: StateViewType<PerpetualChartUIModel>, period: ChartPeriod, tooltip: (ChartCandleStick) -> CandlestickTooltipUIModel, onPeriodSelect: (ChartPeriod) -> Unit, modifier: Modifier = Modifier) {
+internal fun PerpetualChartSection(
+    state: StateViewType<PerpetualChartUIModel>,
+    period: ChartPeriod,
+    tooltip: (ChartCandleStick) -> CandlestickTooltipUIModel,
+    onPeriodSelect: (ChartPeriod) -> Unit,
+    onZoom: (Float) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val model = state.dataOrNull
     val data = model?.candles.orEmpty()
     var selectedIndex by remember(period) { mutableStateOf<Int?>(null) }
     val safeSelectedIndex = selectedIndex?.takeIf { it in data.indices }
     val selectedCandle = safeSelectedIndex?.let { data[it] }
-    val isSelectedRightHalf = safeSelectedIndex?.let { it.toFloat() / data.size.toFloat() > 0.5f } ?: false
+    val isSelectedRightHalf = (safeSelectedIndex?.let { model?.chart?.candles?.getOrNull(it)?.x } ?: 0f) > 0.5f
 
     val chartUIModel = model?.chart
     val header = remember(model, safeSelectedIndex) { model?.header(safeSelectedIndex) }
@@ -56,6 +63,7 @@ internal fun PerpetualChartSection(state: StateViewType<PerpetualChartUIModel>, 
                 model = chartUIModel,
                 selectedIndex = safeSelectedIndex,
                 onSelectionChanged = { selectedIndex = it },
+                onZoom = onZoom,
             )
             TooltipOverlay(
                 visible = tooltipModel != null,

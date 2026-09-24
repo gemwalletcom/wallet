@@ -34,7 +34,7 @@ data class PerpetualChartUIModel(val candles: List<ChartCandleStick>, val state:
                 candles = candles,
                 state = state,
                 chart = CandlestickChartUIModel.from(
-                    candles = candles,
+                    viewport = state.viewport,
                     layout = perpetualChartLayout(state.viewport.candles, position?.toGem()),
                     lineLabel = { kind -> context.getString(kind.stringRes()) },
                 ),
