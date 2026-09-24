@@ -13,6 +13,8 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.nft.viewmodels.models.NftDetailsUIModel
 import com.gemwallet.android.features.nft.viewmodels.models.ReportReasonUIModel
 import com.gemwallet.android.features.nft.viewmodels.models.uiModel
+import com.gemwallet.android.ui.components.image.canSaveImageToGallery
+import com.gemwallet.android.ui.components.image.saveImageToGallery
 import com.gemwallet.android.ui.models.navigation.requireNftAssetId
 import com.wallet.core.primitives.ReportNft
 import com.wallet.core.primitives.ReportReason
@@ -40,7 +42,7 @@ class NftDetailsViewModel @Inject constructor(
 
     private val nftAssetId = savedStateHandle.requireNftAssetId()
 
-    private val details = getNftAssetDetails(nftAssetId)
+    private val details = getNftAssetDetails(nftAssetId, canSaveImage = canSaveImageToGallery)
         .catch { Log.e(TAG, "Collectible details unavailable", it) }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -58,6 +60,11 @@ class NftDetailsViewModel @Inject constructor(
     suspend fun setAsAvatar(): Boolean = withContext(ioDispatcher) {
         val url = details.value?.asset?.images?.preview?.url ?: return@withContext false
         runCatchingCancellable { service.setWalletAvatar(url) }.isSuccess
+    }
+
+    suspend fun saveImage(): Boolean = withContext(ioDispatcher) {
+        val asset = details.value?.asset ?: return@withContext false
+        runCatchingCancellable { context.saveImageToGallery(url = asset.images.preview.url, name = asset.name) }.isSuccess
     }
 
     suspend fun report(reason: ReportReason): Boolean = withContext(ioDispatcher) {

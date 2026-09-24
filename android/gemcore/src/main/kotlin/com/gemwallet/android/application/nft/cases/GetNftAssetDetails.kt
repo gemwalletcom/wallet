@@ -5,5 +5,5 @@ import com.wallet.core.primitives.NFTAssetId
 import kotlinx.coroutines.flow.Flow
 
 interface GetNftAssetDetails {
-    operator fun invoke(assetId: NFTAssetId): Flow<NftAssetDetailsData?>
+    operator fun invoke(assetId: NFTAssetId, canSaveImage: Boolean): Flow<NftAssetDetailsData?>
 }

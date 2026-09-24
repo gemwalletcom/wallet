@@ -27,7 +27,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import uniffi.gemstone.GemCollectibleAction
 
 @Composable
-fun NftHeaderActions(canSend: Boolean, actions: List<GemCollectibleAction>, onSend: () -> Unit, onRefresh: () -> Unit, onSetAsAvatar: () -> Unit, onReport: () -> Unit) {
+fun NftHeaderActions(canSend: Boolean, actions: List<GemCollectibleAction>, onSend: () -> Unit, onRefresh: () -> Unit, onSaveImage: () -> Unit, onSetAsAvatar: () -> Unit, onReport: () -> Unit) {
     var actionFontSize by remember { mutableStateOf(16.sp) }
     var isMenuExpanded by remember { mutableStateOf(false) }
     val send = stringResource(R.string.wallet_send)
@@ -95,7 +95,14 @@ fun NftHeaderActions(canSend: Boolean, actions: List<GemCollectibleAction>, onSe
                             },
                         )
 
-                        GemCollectibleAction.SAVE_IMAGE -> Unit
+                        GemCollectibleAction.SAVE_IMAGE -> DropdownMenuItem(
+                            text = { Text(stringResource(R.string.nft_save_to_photos)) },
+                            leadingIcon = { Icon(AppIcons.Image, contentDescription = null) },
+                            onClick = {
+                                isMenuExpanded = false
+                                onSaveImage()
+                            },
+                        )
                     }
                 }
             }
