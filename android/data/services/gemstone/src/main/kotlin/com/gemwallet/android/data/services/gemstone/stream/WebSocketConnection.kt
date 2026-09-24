@@ -21,6 +21,9 @@ import java.time.Duration
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.resume
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
+import kotlin.time.toJavaDuration
 
 data class WebSocketRequest(val url: String, val headers: Map<String, String> = emptyMap())
 
@@ -76,17 +79,19 @@ class WebSocketConnection(private val requestProvider: suspend () -> WebSocketRe
     }
 
     override fun connect(): Flow<WebSocketEvent> = channelFlow {
-        var reconnectAttempt = 0
+        var reconnectAttempt = 0u
         while (isActive) {
+            var connectedAt: TimeMark? = null
             runCatchingCancellable {
                 observeSession(requestProvider()).collect { event ->
-                    if (event == WebSocketEvent.Connected) reconnectAttempt = 0
+                    if (event == WebSocketEvent.Connected) connectedAt = TimeSource.Monotonic.markNow()
                     send(event)
                 }
             }.onFailure { Log.e(TAG, "Connection error", it) }
             send(WebSocketEvent.Disconnected)
-            delay(connectionService.reconnectDelayMilliseconds(reconnectAttempt.toUInt()).toLong())
-            reconnectAttempt++
+            val reconnection = connectionService.reconnection(reconnectAttempt, connectedAt.connectedDuration())
+            reconnectAttempt = reconnection.nextAttempt
+            delay(reconnection.delay.toMillis())
         }
     }
 
@@ -163,3 +168,5 @@ class WebSocketConnection(private val requestProvider: suspend () -> WebSocketRe
         private val PROBE_TIMEOUT = Duration.ofSeconds(10)
     }
 }
+
+internal fun TimeMark?.connectedDuration(): Duration = this?.elapsedNow()?.toJavaDuration() ?: Duration.ZERO

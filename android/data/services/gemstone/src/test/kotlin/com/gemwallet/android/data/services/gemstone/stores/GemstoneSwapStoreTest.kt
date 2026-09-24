@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
 import com.gemwallet.android.data.service.store.database.AssetsDao
+import com.gemwallet.android.data.service.store.database.AssetsRequestFilter
 import com.gemwallet.android.data.service.store.database.TransactionsDao
 import com.gemwallet.android.testkit.mockWalletId
 import com.wallet.core.primitives.RecentActivityType
@@ -10,7 +11,6 @@ import io.mockk.verify
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
-import uniffi.gemstone.GemAssetFilter
 
 class GemstoneSwapStoreTest {
 
@@ -64,7 +64,7 @@ class GemstoneSwapStoreTest {
             assetsDao.getRecentAssets(
                 walletId = mockWalletId().id,
                 type = listOf(RecentActivityType.SwapSelect, RecentActivityType.Swap),
-                filters = setOf(GemAssetFilter.Enabled, GemAssetFilter.Swappable),
+                filters = setOf(AssetsRequestFilter.Enabled, AssetsRequestFilter.Swappable),
                 limit = 20,
             )
         }

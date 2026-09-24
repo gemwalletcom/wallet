@@ -20,13 +20,12 @@ class ConnectionBannerState {
     var title by mutableStateOf<String?>(null)
         private set
 
-    var isDismissed by mutableStateOf(false)
-        private set
+    private var isDismissed by mutableStateOf(false)
 
     val isVisible: Boolean get() = title != null && !isDismissed
 
     fun update(title: String?) {
-        if (title != null && this.title == null) {
+        if (title == null) {
             isDismissed = false
         }
         this.title = title

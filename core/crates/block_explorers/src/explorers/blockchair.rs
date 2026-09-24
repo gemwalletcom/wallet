@@ -19,6 +19,10 @@ pub fn new_doge() -> Box<dyn BlockExplorer> {
     Metadata::blockchair(NAME, "https://blockchair.com/dogecoin").explorer()
 }
 
+pub fn new_dash() -> Box<dyn BlockExplorer> {
+    Metadata::blockchair(NAME, "https://blockchair.com/dash").explorer()
+}
+
 pub fn new_zcash() -> Box<dyn BlockExplorer> {
     Metadata::blockchair(NAME, "https://blockchair.com/zcash").explorer()
 }

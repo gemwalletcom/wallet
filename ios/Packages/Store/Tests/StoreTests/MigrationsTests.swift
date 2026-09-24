@@ -40,7 +40,6 @@ struct MigrationsTests {
             try db.execute(sql: "INSERT INTO assets (id, chain, name, symbol, decimals, type) VALUES ('ethereum', 'ethereum', 'Ethereum', 'ETH', 18, 'NATIVE')")
             try db.execute(sql: "INSERT INTO price_alerts (id, assetId, currency, price, priceDirection) VALUES ('ethereum_USD_1e-05_up', 'ethereum', 'USD', 0.00001, 'up')")
 
-            try db.drop(table: AssetMarketRecord.databaseTableName)
             try db.alter(table: PriceRecord.databaseTableName) {
                 $0.add(column: AssetMarketRecord.Columns.marketCap.name, .double)
                 $0.add(column: AssetMarketRecord.Columns.marketCapRank.name, .integer)
@@ -75,13 +74,7 @@ struct MigrationsTests {
             let priceColumns = try db.columns(in: PriceRecord.databaseTableName).map(\.name)
             #expect(priceColumns.contains(PriceRecord.Columns.priceUsd.name))
             #expect(!priceColumns.contains(AssetMarketRecord.Columns.marketCap.name), "market data lives in its own table")
-
-            let market = try #require(try AssetMarketRecord.fetchOne(db))
-            #expect(market.assetId.identifier == "ethereum")
-            #expect(market.marketCap == 42)
-            #expect(market.marketCapRank == 7)
-            #expect(market.allTimeHigh == 4800)
-            #expect(market.allTimeHighDate == Date(timeIntervalSince1970: 0))
+            #expect(try db.tableExists(AssetMarketRecord.databaseTableName))
 
             #expect(try! db.tableExists(AssetLinkRecord.databaseTableName))
             #expect(try! db.tableExists(SearchRecord.databaseTableName))
@@ -91,5 +84,58 @@ struct MigrationsTests {
             #expect(!(try! db.tableExists("nodes_selected_v1")))
             #expect(try PriceAlertRecord.fetchCount(db) == 0, "alerts stored under the app's old identifier format are dropped and come back from the next sync")
         }
+    }
+
+    @Test
+    func upgradeFromAnOldSchema() throws {
+        let dbQueue = try DatabaseQueue()
+        try dbQueue.write { db in
+            try db.execute(sql: """
+            CREATE TABLE grdb_migrations (identifier TEXT NOT NULL PRIMARY KEY);
+            INSERT INTO grdb_migrations (identifier) VALUES ('Create all start table');
+            CREATE TABLE \(WalletRecord.databaseTableName) (id TEXT PRIMARY KEY, name TEXT, type TEXT, "index" INTEGER, "order" INTEGER);
+            CREATE TABLE \(AccountRecord.databaseTableName) (walletId TEXT, chain TEXT, address TEXT);
+            CREATE TABLE \(AssetRecord.databaseTableName) (id TEXT PRIMARY KEY, chain TEXT, name TEXT, symbol TEXT, decimals INTEGER, type TEXT);
+            CREATE TABLE \(BalanceRecord.databaseTableName) (assetId TEXT, walletId TEXT, available TEXT, frozen TEXT, locked TEXT, staked TEXT, pending TEXT);
+            CREATE TABLE \(PriceRecord.databaseTableName) (assetId TEXT PRIMARY KEY, price DOUBLE, priceChangePercentage24h DOUBLE);
+            CREATE TABLE \(TransactionRecord.databaseTableName) (id TEXT PRIMARY KEY, walletId TEXT, assetId TEXT, chain TEXT);
+            CREATE TABLE \(StakeValidatorRecord.databaseTableName) (id TEXT PRIMARY KEY, chain TEXT);
+            INSERT INTO \(AssetRecord.databaseTableName) (id, chain, name, symbol, decimals, type) VALUES ('ethereum', 'ethereum', 'Ethereum', 'ETH', 18, 'NATIVE');
+            INSERT INTO \(PriceRecord.databaseTableName) (assetId, price, priceChangePercentage24h) VALUES ('ethereum', 2, 1);
+            """)
+        }
+
+        var migrations = Migrations()
+        try migrations.run(dbQueue: dbQueue)
+        try migrations.runChanges(dbQueue: dbQueue)
+
+        try dbQueue.read { db in
+            let balanceColumns = try db.columns(in: BalanceRecord.databaseTableName).map(\.name)
+            #expect(balanceColumns.contains(BalanceRecord.Columns.earnAmount.name))
+            #expect(balanceColumns.contains(BalanceRecord.Columns.totalAmount.name))
+            #expect(!balanceColumns.contains("lastUsedAt"))
+            #expect(try db.columns(in: WalletRecord.databaseTableName).map(\.name).contains(WalletRecord.Columns.isPinned.name))
+            #expect(try db.columns(in: StakeValidatorRecord.databaseTableName).map(\.name).contains(StakeValidatorRecord.Columns.providerType.name))
+            #expect(try !(db.columns(in: PriceRecord.databaseTableName).map(\.name).contains(AssetMarketRecord.Columns.marketCap.name)))
+            #expect(try db.tableExists(AssetMarketRecord.databaseTableName))
+            #expect(try db.tableExists(AddressRecord.databaseTableName))
+            #expect(try PriceRecord.fetchCount(db) == 1)
+        }
+    }
+
+    @Test
+    func recreateMarketTableOnAnUpgradeWithoutIt() throws {
+        let dbQueue = try DatabaseQueue()
+        var migrations = Migrations()
+        try migrations.run(dbQueue: dbQueue)
+        try dbQueue.write { db in
+            try db.drop(table: AssetMarketRecord.databaseTableName)
+            try db.execute(sql: "DELETE FROM grdb_migrations WHERE identifier = ?", arguments: ["Recreate \(AssetMarketRecord.databaseTableName)"])
+        }
+
+        var upgraded = Migrations()
+        try upgraded.run(dbQueue: dbQueue)
+
+        #expect(try dbQueue.read { try $0.tableExists(AssetMarketRecord.databaseTableName) })
     }
 }

@@ -16,15 +16,11 @@ import com.gemwallet.android.data.service.store.database.entities.DbAssetMarket
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
 import com.gemwallet.android.data.service.store.database.entities.DbRecentActivity
 import com.gemwallet.android.data.service.store.database.entities.DbRecentAsset
-import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.model.NO_QUERY_LIMIT
-import com.gemwallet.android.model.chains
-import com.gemwallet.android.model.chainsOrAssetIds
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.RecentActivityType
 import kotlinx.coroutines.flow.Flow
-import uniffi.gemstone.GemAssetFilter
 
 private const val ASSET_INFO_COLUMNS = """
     asset.id AS id,
@@ -230,17 +226,17 @@ interface AssetsDao {
         selectedChains: List<Chain>,
     ): List<DbAssetInfo>
 
-    suspend fun getWalletAssets(walletId: String, filters: Set<GemAssetFilter> = emptySet()): List<DbAssetInfo> = getWalletAssetsQuery(
+    suspend fun getWalletAssets(walletId: String, filters: Set<AssetsRequestFilter> = emptySet()): List<DbAssetInfo> = getWalletAssetsQuery(
         walletId = walletId,
-        enabled = GemAssetFilter.Enabled in filters,
-        buyable = GemAssetFilter.Buyable in filters,
-        sellable = GemAssetFilter.Sellable in filters,
-        swappable = GemAssetFilter.Swappable in filters,
-        hasBalance = GemAssetFilter.HasBalance in filters,
-        hasAvailableBalance = GemAssetFilter.HasAvailableBalance in filters,
-        byChainsOrAssetIds = filters.chainsOrAssetIds() != null,
-        chains = filters.chainsOrAssetIds()?.chains.orEmpty().map { it.requireChain() },
-        assetIds = filters.chainsOrAssetIds()?.assetIds.orEmpty(),
+        enabled = AssetsRequestFilter.Enabled in filters,
+        buyable = AssetsRequestFilter.Buyable in filters,
+        sellable = AssetsRequestFilter.Sellable in filters,
+        swappable = AssetsRequestFilter.Swappable in filters,
+        hasBalance = AssetsRequestFilter.HasBalance in filters,
+        hasAvailableBalance = AssetsRequestFilter.HasAvailableBalance in filters,
+        byChainsOrAssetIds = filters.chainsOrAssets() != null,
+        chains = filters.chainsOrAssets()?.chains.orEmpty(),
+        assetIds = filters.chainsOrAssets()?.assetIds.orEmpty(),
         byChains = filters.chains().isNotEmpty(),
         selectedChains = filters.chains(),
     )
@@ -415,17 +411,17 @@ interface AssetsDao {
         limit: Int,
     ): Flow<List<DbRecentAsset>>
 
-    fun getRecentAssets(walletId: String, type: List<RecentActivityType>, filters: Set<GemAssetFilter> = emptySet(), limit: Int = 10): Flow<List<DbRecentAsset>> = getRecentAssetsQuery(
+    fun getRecentAssets(walletId: String, type: List<RecentActivityType>, filters: Set<AssetsRequestFilter> = emptySet(), limit: Int = 10): Flow<List<DbRecentAsset>> = getRecentAssetsQuery(
         walletId = walletId,
         type = type,
-        enabled = GemAssetFilter.Enabled in filters,
-        buyable = GemAssetFilter.Buyable in filters,
-        swappable = GemAssetFilter.Swappable in filters,
-        hasBalance = GemAssetFilter.HasBalance in filters,
-        hasAvailableBalance = GemAssetFilter.HasAvailableBalance in filters,
-        byChainsOrAssetIds = filters.chainsOrAssetIds() != null,
-        chains = filters.chainsOrAssetIds()?.chains.orEmpty().map { it.requireChain() },
-        assetIds = filters.chainsOrAssetIds()?.assetIds.orEmpty(),
+        enabled = AssetsRequestFilter.Enabled in filters,
+        buyable = AssetsRequestFilter.Buyable in filters,
+        swappable = AssetsRequestFilter.Swappable in filters,
+        hasBalance = AssetsRequestFilter.HasBalance in filters,
+        hasAvailableBalance = AssetsRequestFilter.HasAvailableBalance in filters,
+        byChainsOrAssetIds = filters.chainsOrAssets() != null,
+        chains = filters.chainsOrAssets()?.chains.orEmpty(),
+        assetIds = filters.chainsOrAssets()?.assetIds.orEmpty(),
         byChains = filters.chains().isNotEmpty(),
         selectedChains = filters.chains(),
         limit = limit,

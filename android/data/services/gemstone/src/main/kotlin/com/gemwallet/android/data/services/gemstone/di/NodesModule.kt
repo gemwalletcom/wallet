@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.di
 
 import com.gemwallet.android.data.service.store.database.NodesDao
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneNodeStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePreferencesStore
 import dagger.Module
 import dagger.Provides
@@ -21,7 +22,7 @@ object NodesModule {
 
     @Provides
     @Singleton
-    fun provideNodeService(nodesDao: NodesDao, preferences: GemstonePreferencesStore): GemNodeService = GemNodeService(nodesDao, preferences)
+    fun provideNodeService(nodesDao: NodesDao, preferences: GemstonePreferencesStore): GemNodeService = GemNodeService(GemstoneNodeStore(nodesDao), preferences)
 
     @Provides
     fun provideGemNodeServiceInterface(service: GemNodeService): GemNodeServiceInterface = service

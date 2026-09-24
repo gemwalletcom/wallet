@@ -12,7 +12,7 @@ use std::sync::Arc;
 use primitives::currency::Currency;
 use primitives::{AssetId, AssetMarket, AssetPrice, FiatRate};
 
-pub use model::{GemMarketUpdate, GemPriceUpdate};
+pub use model::GemPriceUpdate;
 pub use store::GemPriceStore;
 
 #[derive(uniffi::Object)]
@@ -69,17 +69,11 @@ impl GemPriceService {
     }
 
     pub async fn update_market(&self, asset_id: AssetId, market: AssetMarket) -> Result<(), GemServiceError> {
-        let _writes = self.writes.lock().await;
-        let Some(rate) = self.rate(self.preferences.get_currency()).await? else {
-            return Ok(());
-        };
-        self.store
-            .save_market(GemMarketUpdate {
-                asset_id,
-                market: rules::market_in_currency(market.clone(), rate.rate),
-                market_usd: market,
-            })
-            .await
+        self.store.save_market(asset_id, market).await
+    }
+
+    pub async fn market_in_currency(&self, market: AssetMarket, currency: Currency) -> Result<Option<AssetMarket>, GemServiceError> {
+        Ok(self.rate(currency).await?.map(|rate| rules::market_in_currency(market, rate.rate)))
     }
 
     pub async fn rate(&self, currency: Currency) -> Result<Option<FiatRate>, GemServiceError> {
@@ -161,7 +155,7 @@ mod tests {
     }
 
     #[test]
-    fn test_a_market_is_saved_in_usd_and_in_the_current_currency() {
+    fn test_a_market_is_saved_in_usd_and_shown_in_the_current_currency() {
         let store = Arc::new(rates());
         let service = GemPriceService::mock(store.clone());
         let market = AssetMarket {
@@ -173,10 +167,11 @@ mod tests {
         futures::executor::block_on(service.change_currency(Currency::EUR)).unwrap();
         futures::executor::block_on(service.update_market(AssetId::from_chain(Chain::Solana), market.clone())).unwrap();
 
-        let saved = store.markets.lock().unwrap()[0].clone();
-        assert_eq!(saved.market_usd.market_cap, Some(1_000.0));
-        assert_eq!(saved.market.market_cap, Some(500.0));
-        assert_eq!(saved.market.circulating_supply, Some(10.0));
+        assert_eq!(store.markets.lock().unwrap()[0].1.market_cap, Some(1_000.0));
+        let shown = futures::executor::block_on(service.market_in_currency(market.clone(), Currency::EUR)).unwrap().unwrap();
+        assert_eq!(shown.market_cap, Some(500.0));
+        assert_eq!(shown.circulating_supply, Some(10.0));
+        assert!(futures::executor::block_on(service.market_in_currency(market, Currency::GBP)).unwrap().is_none());
     }
 
     #[test]
