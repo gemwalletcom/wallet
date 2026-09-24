@@ -4,6 +4,7 @@ import androidx.compose.runtime.Stable
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
+import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemTransactionBadge
 import uniffi.gemstone.GemTransactionRowSubtitle
 import uniffi.gemstone.GemTransactionStatus
@@ -14,6 +15,7 @@ import uniffi.gemstone.GemValueTone
 interface TransactionDataAggregate {
     val id: TransactionId
     val asset: Asset
+    val icon: GemAssetIcon
     val value: String
     val equivalentValue: String?
     val status: GemTransactionStatus

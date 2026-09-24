@@ -72,6 +72,7 @@ pub fn row(extended: &TransactionExtended) -> GemTransactionRow {
     let transaction = &extended.transaction;
     let value = row_value(extended, transaction_value(transaction));
     GemTransactionRow {
+        icon: crate::services::assets::icon::asset_icon(&extended.asset.id),
         id: transaction.id.clone(),
         asset: extended.asset.clone(),
         transaction_type: transaction.transaction_type.clone(),

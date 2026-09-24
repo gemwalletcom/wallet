@@ -42,7 +42,7 @@ public struct TransactionViewModel: Sendable, Identifiable, Equatable {
     }
 
     public var assetImage: AssetImage {
-        let asset = AssetIdViewModel(assetId: assetId).assetImage
+        let asset = AssetImage(icon: row.icon)
         if let nftImageUrl = row.nftImageUrl {
             return AssetImage(
                 type: .text(""),
@@ -63,7 +63,7 @@ public struct TransactionViewModel: Sendable, Identifiable, Equatable {
         switch row.badge {
         case .incoming: Images.Transaction.incoming
         case .outgoing: Images.Transaction.outgoing
-        case .asset: AssetIdViewModel(assetId: assetId).assetImage.chainPlaceholder
+        case .asset: AssetImage(icon: row.icon).chainPlaceholder
         }
     }
 

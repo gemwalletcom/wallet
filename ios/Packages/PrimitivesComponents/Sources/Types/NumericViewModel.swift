@@ -1,7 +1,7 @@
 import BigInt
-import func Gemstone.fiatEquivalent
 import Components
 import Formatters
+import func Gemstone.fiatEquivalent
 import GemstonePrimitives
 import Primitives
 import Style

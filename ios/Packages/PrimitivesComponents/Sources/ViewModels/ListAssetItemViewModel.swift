@@ -66,7 +66,7 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
     public init(
         showBalancePrivacy: Binding<Bool>,
         assetData: AssetData,
-        formatter: ValueFormatter,
+        formatter _: ValueFormatter,
         currency: Currency,
         rowStyle: GemAssetRowStyle,
     ) {

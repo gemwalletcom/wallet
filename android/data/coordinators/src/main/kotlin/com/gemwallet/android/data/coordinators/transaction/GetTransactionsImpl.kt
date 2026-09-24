@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
+import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemTransactionBadge
 import uniffi.gemstone.GemTransactionRow
 import uniffi.gemstone.GemTransactionRowSubtitle
@@ -114,6 +115,8 @@ class TransactionDataAggregateImpl(private val row: GemTransactionRow) : Transac
     override val id: TransactionId = TransactionId(row.id)
 
     override val asset: Asset = row.asset.toPrimitives()
+
+    override val icon: GemAssetIcon = row.icon
 
     override val status: GemTransactionStatus = row.status
 

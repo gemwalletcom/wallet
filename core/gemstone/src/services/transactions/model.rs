@@ -245,6 +245,7 @@ pub struct GemTransactionRow {
     pub equivalent_value: GemTransactionRowValue,
     pub nft_image_url: Option<String>,
     pub badge: GemTransactionBadge,
+    pub icon: crate::services::assets::icon::GemAssetIcon,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

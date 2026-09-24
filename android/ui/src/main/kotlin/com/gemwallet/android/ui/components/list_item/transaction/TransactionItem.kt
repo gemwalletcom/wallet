@@ -92,7 +92,7 @@ private fun TransactionIcon(data: TransactionDataAggregate) = when (data.badge) 
     GemTransactionBadge.OUTGOING,
     -> DirectionBadgedIcon(data)
 
-    GemTransactionBadge.ASSET -> AssetIcon(data.asset)
+    GemTransactionBadge.ASSET -> AssetIcon(data.icon)
 }
 
 private const val BADGE_ICON_SCALE = 0.65f
@@ -109,8 +109,8 @@ private fun DirectionBadgedIcon(data: TransactionDataAggregate) {
         GemTransactionBadge.OUTGOING, GemTransactionBadge.ASSET -> MaterialTheme.colorScheme.primary
     }
     IconWithBadge(
-        icon = data.nftImageUrl ?: data.asset.iconModel(),
-        placeholder = if (data.nftImageUrl != null) "NFT" else data.asset.id.icon().placeholder,
+        icon = data.nftImageUrl ?: data.icon.iconModel(),
+        placeholder = if (data.nftImageUrl != null) "NFT" else data.icon.placeholder,
         size = size,
     ) {
         BadgeCircle(size = size, color = color) {
@@ -171,6 +171,7 @@ fun PreviewTransactionItem() {
                     decimals = 8,
                     type = AssetType.NATIVE,
                 )
+                override val icon = asset.id.icon()
                 override val value = "-0.9998888999 BTC"
                 override val equivalentValue: String? = null
                 override val title = GemTransactionTitle.Transfer
@@ -201,6 +202,7 @@ fun PreviewSwapTransactionItem() {
                     decimals = 18,
                     type = AssetType.NATIVE,
                 )
+                override val icon = asset.id.icon()
                 override val value = "+19 TON"
                 override val equivalentValue = "-0.09 BNB"
                 override val status = GemTransactionStatus(tone = GemTransactionStateTone.SUCCESS, showsBadge = false, showsProgress = false)
