@@ -58,33 +58,17 @@ public final class RecentsSceneViewModel {
         Localized.Filter.clear
     }
 
-    var showEmpty: Bool {
-        recentsSections.empty != nil
-    }
-
-    var showClear: Bool {
-        recentsSections.showsClear
-    }
-
-    private var viewState: GemRecentsViewState {
+    var viewState: GemRecentsViewState {
         service.viewState(assets: recentAssets.map { $0.asset.toGem() }, query: searchQuery)
     }
 
-    private var recentsSections: GemRecentsSections {
-        viewState.sections
+    func sections(_ state: GemRecentsViewState) -> [ListSection<RecentAsset>] {
+        let matching = Set(state.matchingAssetIds)
+        return DateSectionBuilder(items: recentAssets.filter { matching.contains($0.asset.id.identifier) }, dateKeyPath: \.createdAt).build()
     }
 
-    var sections: [ListSection<RecentAsset>] {
-        DateSectionBuilder(items: filteredAssets, dateKeyPath: \.createdAt).build()
-    }
-
-    var emptyModel: any EmptyContentViewable {
-        EmptyContentTypeViewModel(type: EmptyContentType(recentsSections.empty ?? .recents))
-    }
-
-    private var filteredAssets: [RecentAsset] {
-        let matching = Set(viewState.matchingAssetIds)
-        return recentAssets.filter { matching.contains($0.asset.id.identifier) }
+    func emptyModel(_ sections: GemRecentsSections) -> any EmptyContentViewable {
+        EmptyContentTypeViewModel(type: EmptyContentType(sections.empty ?? .recents))
     }
 }
 

@@ -56,11 +56,11 @@ final class FiatSceneViewModelTests {
     @Test
     func testCurrencySymbol() {
         let model = FiatSceneViewModel.mock()
-        #expect(model.currencyInputConfig.currencySymbol == "$")
+        #expect(model.currencyInputConfig(model.viewState).currencySymbol == "$")
 
         model.type = .sell
 
-        #expect(model.currencyInputConfig.currencySymbol == "$")
+        #expect(model.currencyInputConfig(model.viewState).currencySymbol == "$")
     }
 
     @Test
@@ -125,7 +125,7 @@ final class FiatSceneViewModelTests {
             return
         }
         #expect(rate.text(formattedValue: rate.value.text()) == "1 \(model.asset.symbol) ≈ $600.00")
-        #expect(model.cryptoAmountValue == "≈ 2 BTC")
+        #expect(model.cryptoAmountValue(model.viewState) == "≈ 2 BTC")
     }
 
     @Test
@@ -155,13 +155,13 @@ final class FiatSceneViewModelTests {
 
         #expect(model.selectedQuote(model.viewState)?.quoteId == affordable.id)
         #expect(model.allowSelectProvider(model.viewState))
-        #expect(model.amountError == nil)
+        #expect(model.amountError(model.viewState) == nil)
         #expect(model.actionButtonState(model.viewState) == .normal)
 
         model.onSelectQuotes([FiatQuoteViewModel(row: .mock(provider: .transak))])
 
         #expect(model.selectedQuote(model.viewState)?.quoteId == unaffordable.id)
-        #expect(model.amountError?.localizedDescription == Localized.Transfer.insufficientBalance("**\(model.asset.name) (\(model.asset.symbol))**"))
+        #expect(model.amountError(model.viewState)?.localizedDescription == Localized.Transfer.insufficientBalance("**\(model.asset.name) (\(model.asset.symbol))**"))
         #expect(model.actionButtonState(model.viewState) == .disabled)
         #expect(!model.isPresentingFiatProvider)
     }
@@ -266,7 +266,7 @@ final class FiatSceneViewModelTests {
         model.amount = "4"
 
         #expect(model.loadTrigger == nil)
-        #expect(model.amountError?.localizedDescription == Localized.Transfer.minimumAmount("$5.00"))
+        #expect(model.amountError(model.viewState)?.localizedDescription == Localized.Transfer.minimumAmount("$5.00"))
     }
 
     @Test
@@ -299,37 +299,37 @@ final class FiatSceneViewModelTests {
         let model = FiatSceneViewModel.mock()
 
         model.amount = .empty
-        #expect(model.amountError == nil)
+        #expect(model.amountError(model.viewState) == nil)
 
         model.amount = "0"
-        #expect(model.amountError == nil)
+        #expect(model.amountError(model.viewState) == nil)
 
         model.amount = "."
-        #expect(model.amountError?.localizedDescription == Localized.Errors.invalidAmount)
+        #expect(model.amountError(model.viewState)?.localizedDescription == Localized.Errors.invalidAmount)
 
         model.amount = "4"
-        #expect(model.amountError?.localizedDescription == Localized.Transfer.minimumAmount("$5.00"))
+        #expect(model.amountError(model.viewState)?.localizedDescription == Localized.Transfer.minimumAmount("$5.00"))
 
         model.amount = "10001"
-        #expect(model.amountError?.localizedDescription == Localized.Transfer.maximumAmount("$10,000.00"))
+        #expect(model.amountError(model.viewState)?.localizedDescription == Localized.Transfer.maximumAmount("$10,000.00"))
 
         model.amount = "100"
         #expect(model.quotesState(model.viewState).isLoading)
-        #expect(model.amountError == nil)
+        #expect(model.amountError(model.viewState) == nil)
 
         model.session = model.session.onQuoteResults(results: .mock(quotes: [.mock(fiatAmount: 100, cryptoAmount: 1)], amount: 100))
         #expect(model.selectedQuote(model.viewState) != nil)
-        #expect(model.amountError == nil)
+        #expect(model.amountError(model.viewState) == nil)
 
         model.amount = "200"
         model.session = model.session.onQuoteResults(results: .mock(amount: 200))
         #expect(model.quotesState(model.viewState).isNoData)
-        #expect(model.amountError == nil)
+        #expect(model.amountError(model.viewState) == nil)
 
         model.amount = "300"
         model.session = model.session.onQuoteResults(results: .mock(amount: 300, error: .Api(msg: "offline")))
         #expect(model.quotesState(model.viewState).isError)
-        #expect(model.amountError == nil)
+        #expect(model.amountError(model.viewState) == nil)
     }
 
     @Test
@@ -377,14 +377,14 @@ final class FiatSceneViewModelTests {
     func onlyAWholeAmountIsAccepted() {
         let model = FiatSceneViewModel.mock()
 
-        #expect(model.currencyInputConfig.keyboardType == .numberPad)
+        #expect(model.currencyInputConfig(model.viewState).keyboardType == .numberPad)
 
         model.amount = "12.5"
-        #expect(model.amountError?.localizedDescription == Localized.Errors.invalidAmount)
+        #expect(model.amountError(model.viewState)?.localizedDescription == Localized.Errors.invalidAmount)
         #expect(model.loadTrigger == nil)
 
         model.amount = "12"
-        #expect(model.amountError == nil)
+        #expect(model.amountError(model.viewState) == nil)
         #expect(model.loadTrigger?.request == GemFiatQuoteRequest(quoteType: .buy, amount: 12))
     }
 

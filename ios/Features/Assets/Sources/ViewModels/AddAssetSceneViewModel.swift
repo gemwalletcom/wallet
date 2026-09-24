@@ -5,6 +5,7 @@ import Foundation
 import enum Gemstone.GemAddAssetPhase
 import protocol Gemstone.GemAddAssetServiceProtocol
 import struct Gemstone.GemAddAssetSession
+import struct Gemstone.GemAddAssetViewState
 import struct Gemstone.GemListSection
 import GemstonePrimitives
 import Localization
@@ -19,7 +20,15 @@ public final class AddAssetSceneViewModel {
     private let service: any GemAddAssetServiceProtocol
     private let wallet: Wallet
 
-    private var session: GemAddAssetSession
+    private var session: GemAddAssetSession {
+        didSet {
+            viewState = session.viewState()
+            sections = service.sections(session: session)
+        }
+    }
+
+    private var viewState: GemAddAssetViewState
+    private(set) var sections: [GemListSection]
     var input: AddAssetInput
 
     var isPresentingScanner = false
@@ -36,12 +45,11 @@ public final class AddAssetSceneViewModel {
             chain: picker.defaultChain.map { Chain(core: $0) },
             showsChainPicker: picker.showsPicker,
         )
-        session = service.newSession(chain: input.chain?.rawValue)
+        let session = service.newSession(chain: input.chain?.rawValue)
+        self.session = session
+        viewState = session.viewState()
+        sections = service.sections(session: session)
         self.input = input
-    }
-
-    var sections: [GemListSection] {
-        service.sections(session: session)
     }
 
     var isLoading: Bool {
@@ -49,11 +57,11 @@ public final class AddAssetSceneViewModel {
     }
 
     var showsVerificationWarning: Bool {
-        session.viewState().canAdd
+        viewState.canAdd
     }
 
     var buttonState: ButtonState {
-        session.viewState().button.state
+        viewState.button.state
     }
 
     var title: String {

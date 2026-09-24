@@ -15,9 +15,10 @@ public struct RecentsScene: View {
     }
 
     public var body: some View {
+        let state = model.viewState
         NavigationStack {
             List {
-                ForEach(model.sections) { section in
+                ForEach(model.sections(state)) { section in
                     Section {
                         ForEach(section.values) { recentAsset in
                             NavigationCustomLink(
@@ -43,15 +44,15 @@ public struct RecentsScene: View {
             )
             .autocorrectionDisabled()
             .overlay {
-                if model.showEmpty {
-                    EmptyContentView(model: model.emptyModel)
+                if state.sections.empty != nil {
+                    EmptyContentView(model: model.emptyModel(state.sections))
                 }
             }
             .navigationTitle(model.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbarContent {
                 ToolbarDismissItem(type: .close, placement: .topBarLeading)
-                if model.showClear {
+                if state.sections.showsClear {
                     ToolbarItemView(placement: .topBarTrailing) {
                         Button(model.clearTitle, action: model.onSelectClear)
                             .bold()

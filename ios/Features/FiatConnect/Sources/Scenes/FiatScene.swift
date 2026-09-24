@@ -17,8 +17,8 @@ public struct FiatScene: View {
         return List {
             CurrencyInputValidationView(
                 text: $model.amount,
-                error: model.amountError,
-                config: model.currencyInputConfig,
+                error: model.amountError(viewState),
+                config: model.currencyInputConfig(viewState),
             )
             .padding(.top, .medium)
             .listGroupRowStyle()

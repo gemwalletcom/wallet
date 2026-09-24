@@ -21,6 +21,7 @@ public final class PortfolioSceneViewModel: ChartListViewable {
     private let preferences: ObservablePreferences
 
     private var session: GemPortfolioSession
+    private var state: GemPortfolioViewState
 
     public init(
         wallet: Wallet,
@@ -31,26 +32,24 @@ public final class PortfolioSceneViewModel: ChartListViewable {
         self.wallet = wallet
         self.service = service
         self.preferences = preferences
-        session = portfolioSession(portfolioType: defaultType.toGem())
-    }
-
-    private var state: GemPortfolioViewState {
-        session.viewState()
+        let session = portfolioSession(portfolioType: defaultType.toGem())
+        self.session = session
+        state = session.viewState()
     }
 
     var selectedType: PortfolioType {
         get { state.portfolioType.toPrimitives() }
-        set { session = session.onSelectType(portfolioType: newValue.toGem()) }
+        set { update(session.onSelectType(portfolioType: newValue.toGem())) }
     }
 
     var selectedChartType: PortfolioChartType {
         get { state.chartType.toPrimitives() }
-        set { session = session.onSelectChartType(chartType: newValue.toGem()) }
+        set { update(session.onSelectChartType(chartType: newValue.toGem())) }
     }
 
     public var selectedPeriod: ChartPeriod {
         get { state.period.toPrimitives() }
-        set { session = session.onSelectPeriod(period: newValue.toGem()) }
+        set { update(session.onSelectPeriod(period: newValue.toGem())) }
     }
 
     public var periods: [ChartPeriod] {
@@ -60,7 +59,7 @@ public final class PortfolioSceneViewModel: ChartListViewable {
     public var chartState: StateViewType<ChartValuesViewModel> {
         switch state.phase {
         case .loading: .loading
-        case let .data(chart): .data(ChartValuesViewModel(period: selectedPeriod, chartData: chart))
+        case let .data(chart): .data(ChartValuesViewModel(period: state.period.toPrimitives(), chartData: chart))
         case .noData: .noData
         case let .failed(error): .error(error)
         }
@@ -71,7 +70,7 @@ public final class PortfolioSceneViewModel: ChartListViewable {
     }
 
     var navigationTitle: String {
-        showSegmentedControl ? "" : typeTitle(for: selectedType)
+        showSegmentedControl ? "" : typeTitle(for: state.portfolioType.toPrimitives())
     }
 
     var statisticRows: [GemListRow] {
@@ -91,9 +90,9 @@ public final class PortfolioSceneViewModel: ChartListViewable {
 
 extension PortfolioSceneViewModel {
     public func load() async {
-        session = session.onSelectWallet(walletId: wallet.id.id, currency: preferences.currency.toGem())
+        update(session.onSelectWallet(walletId: wallet.id.id, currency: preferences.currency.toGem()))
         let result = await service.refresh(wallet: wallet.toGem(), request: session.request())
-        session = session.onResult(result: result)
+        update(session.onResult(result: result))
     }
 
     func loadIfNeeded() async {
@@ -107,5 +106,10 @@ extension PortfolioSceneViewModel {
 
     func chartTypeTitle(for type: PortfolioChartType) -> String {
         type.title
+    }
+
+    private func update(_ session: GemPortfolioSession) {
+        self.session = session
+        state = session.viewState()
     }
 }

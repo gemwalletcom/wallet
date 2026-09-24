@@ -86,7 +86,7 @@ public final class FiatSceneViewModel {
         set { applyAmount(newValue, isImmediate: false) }
     }
 
-    var amountError: (any Error)? {
+    func amountError(_ viewState: GemFiatViewState) -> (any Error)? {
         switch viewState.phase {
         case .noInput, .loading, .noQuotes, .failed: nil
         case .invalidInput: viewState.phase.inputErrorText.map(AnyError.init)
@@ -128,9 +128,9 @@ public final class FiatSceneViewModel {
         viewState.canSelectProvider
     }
 
-    var currencyInputConfig: any CurrencyInputConfigurable {
+    func currencyInputConfig(_ viewState: GemFiatViewState) -> any CurrencyInputConfigurable {
         FiatCurrencyInputConfig(
-            secondaryText: cryptoAmountValue,
+            secondaryText: cryptoAmountValue(viewState),
             currencySymbol: currencyFormatter.symbol,
             numberFormat: NumberInput.format(locale),
         )
@@ -197,9 +197,10 @@ public final class FiatSceneViewModel {
         })
     }
 
-    var cryptoAmountValue: String {
-        guard let selectedQuoteViewModel else { return " " }
-        return selectedQuoteViewModel.row.cryptoEstimateText(formattedValue: selectedQuoteViewModel.amountText)
+    func cryptoAmountValue(_ viewState: GemFiatViewState) -> String {
+        guard let quote = selectedQuote(viewState) else { return " " }
+        let model = FiatQuoteViewModel(row: quote, locale: locale)
+        return model.row.cryptoEstimateText(formattedValue: model.amountText)
     }
 
     func providerAssetImage(_ provider: Gemstone.FiatProviderName) -> AssetImage? {
@@ -282,11 +283,6 @@ extension FiatSceneViewModel {
 
     private var balanceModel: BalanceViewModel {
         BalanceViewModel(asset: asset, balance: assetData.balance, formatter: valueFormatter)
-    }
-
-    private var selectedQuoteViewModel: FiatQuoteViewModel? {
-        guard let quote = selectedQuote(viewState) else { return nil }
-        return FiatQuoteViewModel(row: quote, locale: locale)
     }
 
     private func applyAmount(_ text: String, isImmediate: Bool) {

@@ -27,9 +27,9 @@ public final class TransactionSceneViewModel {
     private let onAddContact: ((AddContactType) -> Void)?
     private let onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)?
 
-    public let query: ObservableQuery<TransactionRequest>
+    public let query: ObservableQuery<MappedRequest<TransactionRequest, TransactionDetails>>
     var transactionExtended: TransactionExtended {
-        query.value
+        query.value.transaction
     }
 
     var isPresentingTransactionSheet: TransactionSheetType?
@@ -48,7 +48,14 @@ public final class TransactionSceneViewModel {
         self.onHeaderAction = onHeaderAction
         self.onAddContact = onAddContact
         self.onSelectAddress = onSelectAddress
-        query = ObservableQuery(TransactionRequest(walletId: wallet.id, recordId: transaction.recordId), initialValue: transaction)
+        let walletType = wallet.type.toGem()
+        let details: @Sendable (TransactionExtended) -> TransactionDetails = { [service] in
+            TransactionDetails(transaction: $0, rows: service.detailRows(transaction: $0.toGem(), walletType: walletType))
+        }
+        query = ObservableQuery(
+            MappedRequest(TransactionRequest(walletId: wallet.id, recordId: transaction.recordId), transform: details),
+            initialValue: details(transaction),
+        )
     }
 
     var title: String {
@@ -180,7 +187,7 @@ extension TransactionSceneViewModel {
 
 extension TransactionSceneViewModel {
     private var rows: GemTransactionDetailRows {
-        service.detailRows(transaction: transactionExtended.toGem(), walletType: wallet.type.toGem())
+        query.value.rows
     }
 
     var feeDetailsViewModel: NetworkFeeSceneViewModel {
@@ -193,4 +200,9 @@ extension TransactionSceneViewModel {
             feeAmount: BigInt(fee.value),
         )
     }
+}
+
+public struct TransactionDetails: Equatable, Sendable {
+    let transaction: TransactionExtended
+    let rows: GemTransactionDetailRows
 }
