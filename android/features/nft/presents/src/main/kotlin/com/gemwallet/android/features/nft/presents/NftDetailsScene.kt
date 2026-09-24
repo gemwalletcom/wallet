@@ -64,6 +64,7 @@ fun NFTDetailsScene(cancelAction: CancelAction, onRecipient: (NFTAsset) -> Unit,
     var isReportVisible by remember { mutableStateOf(false) }
     val reported = stringResource(R.string.transaction_status_confirmed)
     val avatarSet = stringResource(R.string.nft_set_as_avatar)
+    val imageSaved = stringResource(R.string.nft_save_to_photos)
     Scene(
         titleContent = {
             NftTitle(
@@ -101,6 +102,15 @@ fun NFTDetailsScene(cancelAction: CancelAction, onRecipient: (NFTAsset) -> Unit,
                             scope.launch {
                                 if (viewModel.refresh()) {
                                     snackbar.showSnackbar(refresh, R.drawable.ic_check_circle)
+                                } else {
+                                    snackbar.showSnackbar(refreshFailed, R.drawable.ic_error)
+                                }
+                            }
+                        },
+                        onSaveImage = {
+                            scope.launch {
+                                if (viewModel.saveImage()) {
+                                    snackbar.showSnackbar(imageSaved, R.drawable.ic_check_circle)
                                 } else {
                                     snackbar.showSnackbar(refreshFailed, R.drawable.ic_error)
                                 }

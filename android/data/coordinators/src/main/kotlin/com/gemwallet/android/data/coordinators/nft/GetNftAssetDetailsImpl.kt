@@ -20,7 +20,7 @@ import uniffi.gemstone.GemCollectibleServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetNftAssetDetailsImpl(private val getSession: GetSession, private val getAssetNft: GetAssetNft, private val nftStore: GemstoneNftStore, private val collectibleService: GemCollectibleServiceInterface) : GetNftAssetDetails {
-    override fun invoke(assetId: NFTAssetId): Flow<NftAssetDetailsData?> {
+    override fun invoke(assetId: NFTAssetId, canSaveImage: Boolean): Flow<NftAssetDetailsData?> {
         return getSession().filterNotNull()
             .flatMapLatest { session ->
                 getAssetNft.getAssetNft(assetId)
@@ -31,7 +31,7 @@ class GetNftAssetDetailsImpl(private val getSession: GetSession, private val get
                         NftAssetDetailsData(
                             collection = nftData.collection,
                             asset = asset,
-                            details = collectibleService.details(session.wallet.type.toGem(), assetData.toGem(), isOwned, canSaveImage = false),
+                            details = collectibleService.details(session.wallet.type.toGem(), assetData.toGem(), isOwned, canSaveImage),
                         )
                     }
             }
