@@ -2,7 +2,7 @@ package com.gemwallet.android.features.settings.settings.viewmodels
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
 import android.net.Uri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -17,13 +17,14 @@ class SupportImageAttachmentFactory @Inject constructor(@param:ApplicationContex
     private val limits = supportAttachmentLimits()
 
     suspend fun fromUri(uri: Uri): ByteArray? = withContext(Dispatchers.IO) {
-        val bounds = BitmapFactory.Options().also { options ->
-            options.inJustDecodeBounds = true
-            context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, options) } ?: return@withContext null
-        }
-        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return@withContext null
-        val options = BitmapFactory.Options().also { it.inSampleSize = supportImageSampleSize(bounds.outWidth, bounds.outHeight, limits.maxDimension.toInt()) }
-        val bitmap = context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, options) } ?: return@withContext null
+        val source = ImageDecoder.createSource(context.contentResolver, uri)
+        val bitmap = runCatching {
+            ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
+                val (width, height) = supportImageSize(info.size.width, info.size.height, limits.maxDimension.toInt())
+                decoder.setTargetSize(width, height)
+                decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+            }
+        }.getOrNull() ?: return@withContext null
         try {
             ByteArrayOutputStream().use { stream ->
                 bitmap.compress(Bitmap.CompressFormat.JPEG, limits.jpegQuality.toInt(), stream)
@@ -35,10 +36,9 @@ class SupportImageAttachmentFactory @Inject constructor(@param:ApplicationContex
     }
 }
 
-internal fun supportImageSampleSize(width: Int, height: Int, maxDimension: Int): Int {
-    var sampleSize = 1
-    while (maxOf(width, height) / sampleSize > maxDimension) {
-        sampleSize *= 2
-    }
-    return sampleSize
+internal fun supportImageSize(width: Int, height: Int, maxDimension: Int): Pair<Int, Int> {
+    val longest = maxOf(width, height)
+    if (longest <= maxDimension) return width to height
+    val scale = maxDimension.toDouble() / longest
+    return maxOf(1, (width * scale).toInt()) to maxOf(1, (height * scale).toInt())
 }
