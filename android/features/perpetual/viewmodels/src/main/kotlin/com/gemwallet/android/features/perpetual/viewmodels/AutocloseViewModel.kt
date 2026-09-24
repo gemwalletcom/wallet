@@ -86,7 +86,7 @@ class AutocloseViewModel @Inject constructor(
         position?.let { buildUiModel(it, takeProfit, stopLoss, attempted) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val positionListItem: StateFlow<ListItemModel?> = uiModel.map { it?.position?.listItem(context) }
+    val positionListItem: StateFlow<ListItemModel?> = uiModel.map { it?.positionRow?.listItem(context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val priceRows: StateFlow<List<GemListRow>> = uiModel.map { it?.priceRows.orEmpty() }

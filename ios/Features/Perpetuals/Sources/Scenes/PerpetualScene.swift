@@ -1,6 +1,7 @@
 import Components
 import Formatters
 import struct Gemstone.GemPerpetualPositionDetail
+import struct Gemstone.GemPerpetualPositionRow
 import GemstonePrimitives
 import GemstoneServices
 import InfoSheet
@@ -22,7 +23,6 @@ public struct PerpetualScene: View {
     public var body: some View {
         @Bindable var chart = model.chart
         let details = model.details
-        let position = model.positionData(details)
 
         return List {
             Section {} header: {
@@ -37,7 +37,7 @@ public struct PerpetualScene: View {
                                 model: CandlestickChartViewModel(
                                     candles: data.candles,
                                     period: data.period,
-                                    position: position?.position,
+                                    position: details.position?.toPrimitives(),
                                 ),
                             )
                         case let .error(error):
@@ -58,9 +58,9 @@ public struct PerpetualScene: View {
             ForEach(details.sections, id: \.self) { section in
                 switch section {
                 case let .position(rows):
-                    if let position {
+                    if let positionRow = details.positionRow {
                         Section {
-                            positionContent(position, rows: rows)
+                            positionContent(positionRow, rows: rows)
                         } header: {
                             Text(section.title)
                         }
@@ -133,8 +133,8 @@ public struct PerpetualScene: View {
     }
 
     @ViewBuilder
-    private func positionContent(_ position: PerpetualPositionData, rows: [GemPerpetualPositionDetail]) -> some View {
-        ListAssetItemView(model: PerpetualPositionItemViewModel(data: position))
+    private func positionContent(_ row: GemPerpetualPositionRow, rows: [GemPerpetualPositionDetail]) -> some View {
+        ListAssetItemView(model: PerpetualPositionItemViewModel(row: row))
 
         ForEach(rows, id: \.kind) { detail in
             switch detail.kind {

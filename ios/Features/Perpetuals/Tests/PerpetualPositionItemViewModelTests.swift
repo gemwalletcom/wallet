@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import func Gemstone.perpetualPositionRow
+import GemstonePrimitives
 @testable import Perpetuals
 import Primitives
 import PrimitivesTestKit
@@ -11,7 +13,7 @@ import Testing
 struct PerpetualPositionItemViewModelTests {
     @Test
     func nameReadsTheAssetSymbol() {
-        #expect(PerpetualPositionItemViewModel(data: .mock()).name == "BTC")
+        #expect(model(.mock()).name == "BTC")
     }
 
     @Test
@@ -35,7 +37,7 @@ struct PerpetualPositionItemViewModelTests {
 
     @Test
     func marginAndProfitSitOnTheRight() {
-        guard case let .balance(balance, totalFiat) = PerpetualPositionItemViewModel(data: .mock(position: .mock(marginAmount: 12.5, pnl: -1.25))).rightView else {
+        guard case let .balance(balance, totalFiat) = model(.mock(position: .mock(marginAmount: 12.5, pnl: -1.25))).rightView else {
             Issue.record("a position always shows its margin")
             return
         }
@@ -44,7 +46,11 @@ struct PerpetualPositionItemViewModelTests {
     }
 
     private func subtitle(_ data: PerpetualPositionData) -> TextValue? {
-        guard case let .type(value) = PerpetualPositionItemViewModel(data: data).subtitleView else { return nil }
+        guard case let .type(value) = model(data).subtitleView else { return nil }
         return value
+    }
+
+    private func model(_ data: PerpetualPositionData) -> PerpetualPositionItemViewModel {
+        PerpetualPositionItemViewModel(row: perpetualPositionRow(perpetual: data.perpetual.toGem(), asset: data.asset.toGem(), position: data.position.toGem()))
     }
 }

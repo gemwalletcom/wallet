@@ -95,9 +95,9 @@ public final class AutocloseSceneViewModel {
         autocloseModel(type: .stopLoss, price: stopLossPrice)
     }
 
-    public var positionItemViewModel: any ListAssetItemViewable {
+    public var positionItemViewModel: (any ListAssetItemViewable)? {
         switch type {
-        case let .modify(position, _): PerpetualPositionItemViewModel(data: position)
+        case .modify: viewState.positionRow.map { PerpetualPositionItemViewModel(row: $0) }
         case let .open(data, _): OpenPositionItemViewModel(data: data)
         }
     }

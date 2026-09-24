@@ -1,6 +1,5 @@
 package com.gemwallet.android.ui.models.perpetual.autoclose
 
-import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregateImpl
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.text
@@ -22,7 +21,7 @@ object AutocloseUIModelFactory {
             leverage = position.position.leverage,
         )
         return AutocloseUIModel(
-            position = PerpetualPositionDataAggregateImpl(position),
+            positionRow = state.positionRow,
             priceRows = state.priceRows,
             takeProfit = createField(takeProfit, estimator, state.showsErrors),
             stopLoss = createField(stopLoss, estimator, state.showsErrors),

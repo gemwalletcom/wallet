@@ -9,6 +9,7 @@ use crate::perpetual::GemPerpetual;
 use crate::precision::GemCurrencyStyle;
 use crate::services::error::GemServiceError;
 use crate::services::localization::GemLocalizedText;
+use crate::services::perpetual::model::GemPerpetualPositionRow;
 use crate::services::transfer::GemTransferData;
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, TPSLOrderData};
@@ -176,6 +177,7 @@ pub struct GemAutocloseViewState {
     pub confirm_enabled: bool,
     pub shows_errors: bool,
     pub price_rows: Vec<GemListRow>,
+    pub position_row: Option<GemPerpetualPositionRow>,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -186,6 +188,7 @@ pub struct GemAutocloseSession {
     pub prices: GemAutoclosePrices,
     pub provider: PerpetualProvider,
     pub decimals: i32,
+    pub position_row: Option<GemPerpetualPositionRow>,
 }
 
 fn price_row(title: GemListRowTitle, price: f64) -> GemListRow {
@@ -233,12 +236,13 @@ impl GemAutocloseSession {
                 .into_iter()
                 .flatten()
                 .collect(),
+            position_row: self.position_row.clone(),
         }
     }
 }
 
 impl GemAutocloseSession {
-    pub fn new(modify: GemAutocloseModify, policy: GemAutocloseConfirmPolicy, prices: GemAutoclosePrices, provider: PerpetualProvider, decimals: i32) -> Self {
+    pub fn new(modify: GemAutocloseModify, policy: GemAutocloseConfirmPolicy, prices: GemAutoclosePrices, provider: PerpetualProvider, decimals: i32, position_row: Option<GemPerpetualPositionRow>) -> Self {
         Self {
             modify,
             policy,
@@ -246,6 +250,7 @@ impl GemAutocloseSession {
             prices,
             provider,
             decimals,
+            position_row,
         }
     }
 
@@ -289,8 +294,9 @@ pub fn autoclose_session(perpetual: Perpetual, asset: Asset, position: Perpetual
             entry: Some(position.entry_price),
             market: perpetual.price,
         },
-        perpetual.provider,
+        perpetual.provider.clone(),
         asset.decimals,
+        Some(super::rules::position_row(&perpetual, &asset, &position)),
     )
 }
 
@@ -315,6 +321,7 @@ pub fn autoclose_open_session(direction: PerpetualDirection, market_price: f64, 
         GemAutoclosePrices { entry: None, market: market_price },
         provider,
         decimals,
+        None,
     )
 }
 
@@ -403,8 +410,8 @@ mod tests {
     fn test_each_platform_gates_confirm_the_way_its_policy_says() {
         let changed = GemAutocloseModify::mock(GemAutocloseField::mock(Some(110.0), Some(100.0), true, None), GemAutocloseField::mock(None, None, true, None));
         let prices = GemAutoclosePrices { entry: Some(100.0), market: 110.0 };
-        let ios = GemAutocloseSession::new(changed.clone(), GemAutocloseConfirmPolicy::WhenBuildable, prices.clone(), PerpetualProvider::Hypercore, 2);
-        let android = GemAutocloseSession::new(changed, GemAutocloseConfirmPolicy::UntilSubmitted, prices, PerpetualProvider::Hypercore, 2);
+        let ios = GemAutocloseSession::new(changed.clone(), GemAutocloseConfirmPolicy::WhenBuildable, prices.clone(), PerpetualProvider::Hypercore, 2, None);
+        let android = GemAutocloseSession::new(changed, GemAutocloseConfirmPolicy::UntilSubmitted, prices, PerpetualProvider::Hypercore, 2, None);
 
         assert_eq!(ios.view_state().confirm_enabled, ios.modify.can_build());
         assert_eq!(
@@ -447,6 +454,7 @@ mod tests {
             GemAutoclosePrices { entry: None, market: 110.0 },
             PerpetualProvider::Hypercore,
             2,
+            None,
         );
 
         assert!(!session.view_state().shows_errors);
@@ -587,6 +595,8 @@ mod tests {
         assert_eq!(session.prices.market, 110.0);
         assert_eq!(session.prices.entry, Some(position.entry_price));
         assert!(!session.view_state().confirm_enabled, "an untouched form has nothing to submit");
+        assert!(session.view_state().position_row.is_some(), "the modify screen shows the position it edits");
+        assert!(autoclose_open_session(PerpetualDirection::Long, 100.0, 2, PerpetualProvider::Hypercore).view_state().position_row.is_none());
     }
 
     #[test]

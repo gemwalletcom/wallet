@@ -21,8 +21,10 @@ public struct AutocloseScene: View {
 
     public var body: some View {
         List {
-            Section {
-                ListAssetItemView(model: model.positionItemViewModel)
+            if let positionItemViewModel = model.positionItemViewModel {
+                Section {
+                    ListAssetItemView(model: positionItemViewModel)
+                }
             }
 
             Section {

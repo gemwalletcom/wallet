@@ -103,4 +103,5 @@ fun mockAutocloseViewState(confirmEnabled: Boolean = false, showsErrors: Boolean
         GemListRow.Amount(title = GemListRowTitle.ENTRY_PRICE, amount = mockFormattedNumber(100.0), info = null),
         GemListRow.Amount(title = GemListRowTitle.MARKET_PRICE, amount = mockFormattedNumber(110.0), info = null),
     ),
+    positionRow = null,
 )

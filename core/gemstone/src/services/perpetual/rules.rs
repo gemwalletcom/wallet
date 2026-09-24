@@ -764,6 +764,7 @@ pub fn details(perpetual: &Perpetual, asset: &Asset, positions: Vec<PerpetualPos
         .flatten()
         .collect(),
         modify_buttons: button_rows(&[GemPerpetualButton::Increase, GemPerpetualButton::Reduce]),
+        position_row: position.as_ref().map(|position| position_row(perpetual, asset, position)),
         position,
     }
 }
@@ -953,6 +954,7 @@ mod tests {
                 }],
                 modify_buttons: modify_buttons.clone(),
                 position: None,
+                position_row: None,
             }
         );
         assert_eq!(
@@ -967,6 +969,7 @@ mod tests {
                     },
                 ],
                 modify_buttons,
+                position_row: Some(position_row(&perpetual, &asset, &position)),
                 position: Some(position),
             }
         );

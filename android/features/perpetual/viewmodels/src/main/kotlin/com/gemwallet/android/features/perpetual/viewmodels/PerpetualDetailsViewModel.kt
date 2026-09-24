@@ -63,6 +63,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemLoadState
+import uniffi.gemstone.GemPerpetualDetails
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualPositionKind
 import uniffi.gemstone.candleSession
@@ -123,13 +124,16 @@ class PerpetualDetailsViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val positionListItem: StateFlow<ListItemModel?> = position.map { it?.listItem(context) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val details: StateFlow<PerpetualDetailsUIModel?> = combine(perpetual, position) { perpetual, position ->
-        perpetual?.let { service.details(it.perpetual.toGem(), it.asset.toGem(), listOfNotNull(position?.position?.toGem())).uiModel(context) }
+    private val detailsState: StateFlow<GemPerpetualDetails?> = combine(perpetual, position) { perpetual, position ->
+        perpetual?.let { service.details(it.perpetual.toGem(), it.asset.toGem(), listOfNotNull(position?.position?.toGem())) }
     }
         .flowOn(ioDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val positionListItem: StateFlow<ListItemModel?> = detailsState.map { it?.positionRow?.listItem(context) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), null)
+
+    val details: StateFlow<PerpetualDetailsUIModel?> = detailsState.map { it?.uiModel(context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val transactions = combine(

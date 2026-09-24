@@ -236,6 +236,7 @@ pub struct GemPerpetualDetails {
     pub sections: Vec<GemPerpetualSection>,
     pub modify_buttons: Vec<GemPerpetualButtonRow>,
     pub position: Option<PerpetualPosition>,
+    pub position_row: Option<GemPerpetualPositionRow>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

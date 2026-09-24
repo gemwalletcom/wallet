@@ -3,7 +3,6 @@
 import Components
 import Foundation
 import struct Gemstone.GemPerpetualPositionRow
-import func Gemstone.perpetualPositionRow
 import func Gemstone.perpetualPositionRows
 import GemstonePrimitives
 import Primitives
@@ -16,11 +15,7 @@ struct PerpetualPositionItemViewModel: ListAssetItemViewable, Identifiable {
     let showBalancePrivacy: Binding<Bool>
     var action: ((ListAssetItemAction) -> Void)?
 
-    init(data: PerpetualPositionData) {
-        self.init(row: perpetualPositionRow(perpetual: data.perpetual.toGem(), asset: data.asset.toGem(), position: data.position.toGem()))
-    }
-
-    private init(row: GemPerpetualPositionRow, showBalancePrivacy: Binding<Bool> = .constant(false)) {
+    init(row: GemPerpetualPositionRow, showBalancePrivacy: Binding<Bool> = .constant(false)) {
         self.row = row
         self.showBalancePrivacy = showBalancePrivacy
     }
