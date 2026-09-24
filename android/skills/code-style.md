@@ -34,5 +34,6 @@ Use for any Kotlin or Compose change.
 - Table names are plural `snake_case` (`nft_collections`, `nft_assets`, `nft_assets_associations`)
 - Entity fields are Kotlin `camelCase` and the column keeps the property name. `@ColumnInfo` maps only the older entities that already own `snake_case` columns; a new entity does not add it. Reference: `data/services/store/src/main/kotlin/com/gemwallet/android/data/service/store/database/entities/DbContact.kt`
 - When an equivalent iOS store model exists, mirror its schema naming instead of inventing Android-only variants; keep one naming scheme within a table
+- Queries use Room's API: one plain `@Query` select per DAO method, and `@Embedded`/`@Relation` for related rows. Never hand-written joins, subqueries or `COALESCE` in a query string; when Room cannot express a relation, compose plain DAO reads in the store
 
 Shared clean-code principles live in `../../skills/engineering-principles.md`.

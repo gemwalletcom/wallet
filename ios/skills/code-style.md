@@ -25,6 +25,10 @@ References: `ios/Gem/App.swift` (app composition), `ios/Gem/ViewModels/MainTabVi
 - `Primitives` and `InfoSheet` never import `Gemstone`; features import it directly and scoped (`import protocol Gemstone.X`), there is no wrapper layer. Rationale in [Architecture](../../docs/ARCHITECTURE.md#5-the-app-maps-it-does-not-decide)
 - App targets link only the package products their own sources import; transitive products link on their own
 
+## Store
+
+- Store reads use GRDB's query interface: record filters, associations (`belongsTo`, `hasOne`, `hasMany`, `through:`), `including`/`joining`, and a `Codable, FetchableRecord` info type for joined rows. Never a raw SQL string
+
 ## Style
 
 - `Spacing` constants from the `Style` package, never hardcoded spacing (`ios/Packages/Style/Sources/Spacing.swift`)
