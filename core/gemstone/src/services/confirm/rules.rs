@@ -1,4 +1,4 @@
-use super::model::{GemAvatar, GemConfirmRowContent};
+use super::model::GemConfirmRowContent;
 use crate::address_formatter::{GemAddressFormatStyle, GemAddressService, format_address};
 use crate::application;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
@@ -7,10 +7,9 @@ use crate::models::list::{GemListRow, GemListRowTitle};
 use crate::models::placeholder::text_or_placeholder;
 use crate::precision::GemCurrencyStyle;
 use crate::services::assets::rules::asset_text;
-use crate::services::contact::model::contact_initials;
+use crate::services::contact::model::contact_avatar;
 use crate::services::transfer::model::{GemConfirmRow, GemTransferData};
 use crate::services::wallet::model::wallet_row;
-use primitives::AddressType;
 use primitives::currency::Currency;
 use primitives::{AddressName, BlockExplorerLink, PaymentVerification};
 use primitives::{
@@ -357,14 +356,6 @@ pub fn error_info(display: &GemConfirmErrorDisplay, prices: &[AssetPrice], curre
         | GemConfirmErrorDisplay::Payment { .. }
         | GemConfirmErrorDisplay::Message { .. } => None,
     }
-}
-
-fn contact_avatar(address_name: Option<&AddressName>, name: Option<&str>) -> Option<GemAvatar> {
-    let address_name = address_name.filter(|address_name| address_name.address_type == AddressType::Contact)?;
-    Some(GemAvatar {
-        image_url: address_name.image_url.clone().filter(|url| !url.is_empty()),
-        initials: contact_initials(name.unwrap_or(&address_name.name).to_string()),
-    })
 }
 
 pub fn acquire_asset_flow(chain: Chain) -> GemAcquireAssetFlow {

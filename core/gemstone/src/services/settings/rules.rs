@@ -525,6 +525,8 @@ mod tests {
             | GemListRow::Memo { .. }
             | GemListRow::Social { .. }
             | GemListRow::Icon { .. }
+            | GemListRow::Avatar { .. }
+            | GemListRow::WalletAvatar { .. }
             | GemListRow::Address { .. }
             | GemListRow::Explorer { .. }
             | GemListRow::Loading
