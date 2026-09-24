@@ -49,30 +49,3 @@ public extension Primitives.Delegation {
         Gemstone.Delegation(base: base.toGem(), validator: validator.toGem(), price: price?.toGem())
     }
 }
-
-public extension Primitives.RedelegateData {
-    init(core: Gemstone.RedelegateData) {
-        self.init(
-            delegation: Primitives.Delegation(core: core.delegation),
-            toValidator: core.toValidator.toPrimitives(),
-        )
-    }
-
-    func toGem() -> Gemstone.RedelegateData {
-        Gemstone.RedelegateData(delegation: delegation.toGem(), toValidator: toValidator.toGem())
-    }
-}
-
-public extension Primitives.StakeType {
-    func toGem() -> Gemstone.StakeType {
-        switch self {
-        case let .stake(validator): .stake(validator.toGem())
-        case let .unstake(delegation): .unstake(delegation.toGem())
-        case let .redelegate(data): .redelegate(data.toGem())
-        case let .rewards(validators): .rewards(validators.map { $0.toGem() })
-        case let .withdraw(delegation): .withdraw(delegation.toGem())
-        case let .freeze(resource): .freeze(resource.toGem())
-        case let .unfreeze(resource): .unfreeze(resource.toGem())
-        }
-    }
-}

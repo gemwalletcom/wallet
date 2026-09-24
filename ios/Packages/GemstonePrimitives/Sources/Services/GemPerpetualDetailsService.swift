@@ -22,10 +22,6 @@ public extension GemPerpetualDetailsServiceProtocol {
         candleSubscription(perpetual: perpetual.toGem(), period: period.toGem())
     }
 
-    func candlesticks(perpetual: Perpetual, period: ChartPeriod) async throws -> [ChartCandleStick] {
-        try await candlesticks(perpetual: perpetual.toGem(), period: period.toGem()).map { $0.toPrimitives() }
-    }
-
     func mergedCandles(update: ChartCandleUpdate, into candlesticks: [ChartCandleStick], perpetual: Perpetual, period: ChartPeriod) -> [ChartCandleStick]? {
         mergedCandles(candles: candlesticks.map { $0.toGem() }, update: update.toGem(), perpetual: perpetual.toGem(), period: period.toGem())?
             .map { $0.toPrimitives() }

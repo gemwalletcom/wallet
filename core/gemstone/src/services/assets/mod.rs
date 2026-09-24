@@ -65,6 +65,13 @@ impl GemAssetsService {
         self.stored_asset(&asset_id).await?.ok_or_else(|| GemServiceError::NotFound { msg: format!("asset not found: {asset_id}") })
     }
 
+    pub async fn open_asset(&self, asset_id: AssetId) -> Result<Option<Asset>, GemServiceError> {
+        let wallet = self.session.require_current_wallet().await?;
+        self.open_wallet_asset(wallet, asset_id).await
+    }
+}
+
+impl GemAssetsService {
     pub async fn ensure_token_asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {
         if asset_id.is_native_mirror() {
             return Err(GemServiceError::Unsupported {
@@ -76,11 +83,6 @@ impl GemAssetsService {
             Err(error) if asset_id.is_native() => Err(error),
             Err(_) => self.node_token_asset(asset_id).await,
         }
-    }
-
-    pub async fn open_asset(&self, asset_id: AssetId) -> Result<Option<Asset>, GemServiceError> {
-        let wallet = self.session.require_current_wallet().await?;
-        self.open_wallet_asset(wallet, asset_id).await
     }
 
     pub async fn open_wallet_asset(&self, wallet: Wallet, asset_id: AssetId) -> Result<Option<Asset>, GemServiceError> {
@@ -95,9 +97,7 @@ impl GemAssetsService {
         self.add_missing_balances(wallet.id, vec![asset_id]).await?;
         Ok(Some(asset))
     }
-}
 
-impl GemAssetsService {
     async fn sync_asset(&self, asset_id: AssetId) -> Result<AssetFull, GemServiceError> {
         let asset = self.get_asset(asset_id.clone()).await?;
         self.store.save_asset(asset.clone()).await?;

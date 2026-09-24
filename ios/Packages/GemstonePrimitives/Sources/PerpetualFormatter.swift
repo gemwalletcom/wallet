@@ -11,10 +11,6 @@ public struct PerpetualFormatter {
         perpetual = Gemstone.GemPerpetual(provider: provider.toGem())
     }
 
-    public func formatPrice(_ price: Double, decimals: Int32) -> String {
-        perpetual.formatPrice(price: price, decimals: decimals)
-    }
-
     public func formatInputPrice(_ price: Double, decimals: Int32, locale: Locale = .current) -> String {
         perpetual.formatInputPrice(price: price, decimals: decimals, decimalSeparator: NumberInput.format(locale).decimalSeparator)
     }

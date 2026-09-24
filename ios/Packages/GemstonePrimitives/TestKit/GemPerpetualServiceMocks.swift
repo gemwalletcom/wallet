@@ -180,13 +180,6 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
         return GemCandleResult(request: request, state: .data, candles: candlesticksValue)
     }
 
-    public func candlesticks(perpetual _: Gemstone.Perpetual, period _: Gemstone.ChartPeriod) async throws -> [Gemstone.ChartCandleStick] {
-        if let candlesticksError {
-            throw candlesticksError
-        }
-        return candlesticksValue
-    }
-
     public func chartPeriod() -> Gemstone.ChartPeriod {
         chartPeriodValue
     }

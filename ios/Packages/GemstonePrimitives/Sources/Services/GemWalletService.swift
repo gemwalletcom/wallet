@@ -23,10 +23,6 @@ public extension GemWalletServiceProtocol {
         try await deleteWallet(walletId: wallet.id.id)
     }
 
-    func setup(chains: [Chain]) async throws {
-        _ = try await setupChains(chains: chains.map(\.rawValue))
-    }
-
     func pin(wallet: Wallet) async throws {
         try await setPinned(walletId: wallet.id.id, pinned: true)
     }
@@ -37,10 +33,6 @@ public extension GemWalletServiceProtocol {
 
     func rename(walletId: WalletId, newName: String) async throws {
         try await rename(walletId: walletId.id, name: newName)
-    }
-
-    func getWallets() async throws -> [Wallet] {
-        try await wallets().map { $0.toPrimitives() }
     }
 
     func setImage(data: Data, for wallet: Wallet) async throws {
