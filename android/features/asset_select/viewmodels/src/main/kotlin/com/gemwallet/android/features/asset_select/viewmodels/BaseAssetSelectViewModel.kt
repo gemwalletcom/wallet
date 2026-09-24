@@ -58,6 +58,7 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetAction
 import uniffi.gemstone.GemAssetFilter
 import uniffi.gemstone.GemAssetSearchStep
+import uniffi.gemstone.GemAssetSectionCounts
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemCopy
 import uniffi.gemstone.GemSelectAssetState
@@ -188,8 +189,13 @@ open class BaseAssetSelectViewModel(
     val showsRecents: StateFlow<Boolean> = combine(snapshotFlow { queryState.text.isNotEmpty() }, recent) { hasQuery, recents -> flow.showsRecents(hasQuery, recents.isNotEmpty()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val uiState = combine(assetsContent, isSearching) { assets, isSearching ->
-        when (flow.state(assets.isNotEmpty(), isSearching)) {
+    val uiState = combine(sections, isSearching) { sections, isSearching ->
+        val counts = GemAssetSectionCounts(
+            pinned = sections.pinned.size.toUInt(),
+            popular = sections.popular.size.toUInt(),
+            assets = sections.unpinned.size.toUInt(),
+        )
+        when (flow.state(counts, isSearching)) {
             GemSelectAssetState.IDLE -> UIState.Idle
             GemSelectAssetState.LOADING -> UIState.Loading
             GemSelectAssetState.EMPTY -> UIState.Empty

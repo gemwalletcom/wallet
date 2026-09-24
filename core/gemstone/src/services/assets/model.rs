@@ -222,8 +222,8 @@ impl GemSelectAssetFlow {
         }
     }
 
-    pub fn state(&self, has_items: bool, is_searching: bool) -> GemSelectAssetState {
-        match (has_items, is_searching) {
+    pub fn state(&self, counts: GemAssetSectionCounts, is_searching: bool) -> GemSelectAssetState {
+        match (counts.pinned + counts.popular + counts.assets > 0, is_searching) {
             (true, _) => GemSelectAssetState::Idle,
             (false, true) => GemSelectAssetState::Loading,
             (false, false) => GemSelectAssetState::Empty,
@@ -317,7 +317,7 @@ impl GemAssetAction {
 
 #[cfg(test)]
 mod tests {
-    use super::{Asset, AssetType, GemAssetAction, GemAssetFilter, GemAssetSearchStep, GemSelectAssetState, GemSelectAssetType, RecentActivityType};
+    use super::{Asset, AssetType, GemAssetAction, GemAssetFilter, GemAssetSearchStep, GemAssetSectionCounts, GemSelectAssetState, GemSelectAssetType, RecentActivityType};
     use primitives::Chain;
 
     #[test]
@@ -336,10 +336,19 @@ mod tests {
     #[test]
     fn test_the_list_reads_as_loading_only_while_a_search_finds_nothing() {
         let flow = GemSelectAssetType::Buy.flow();
-        assert_eq!(flow.state(true, true), GemSelectAssetState::Idle);
-        assert_eq!(flow.state(true, false), GemSelectAssetState::Idle);
-        assert_eq!(flow.state(false, true), GemSelectAssetState::Loading);
-        assert_eq!(flow.state(false, false), GemSelectAssetState::Empty);
+        let listed = GemAssetSectionCounts { assets: 2, ..Default::default() };
+        let none = GemAssetSectionCounts::default();
+        assert_eq!(flow.state(listed, true), GemSelectAssetState::Idle);
+        assert_eq!(flow.state(listed, false), GemSelectAssetState::Idle);
+        assert_eq!(flow.state(none, true), GemSelectAssetState::Loading);
+        assert_eq!(flow.state(none, false), GemSelectAssetState::Empty);
+    }
+
+    #[test]
+    fn test_a_result_of_only_popular_or_pinned_rows_is_a_list() {
+        let flow = GemSelectAssetType::Buy.flow();
+        assert_eq!(flow.state(GemAssetSectionCounts { popular: 3, ..Default::default() }, false), GemSelectAssetState::Idle);
+        assert_eq!(flow.state(GemAssetSectionCounts { pinned: 1, ..Default::default() }, true), GemSelectAssetState::Idle);
     }
 
     #[test]
@@ -410,6 +419,13 @@ pub struct GemAssetSectionIds {
     pub pinned: Vec<AssetId>,
     pub popular: Vec<AssetId>,
     pub assets: Vec<AssetId>,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, uniffi::Record)]
+pub struct GemAssetSectionCounts {
+    pub pinned: u32,
+    pub popular: u32,
+    pub assets: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]

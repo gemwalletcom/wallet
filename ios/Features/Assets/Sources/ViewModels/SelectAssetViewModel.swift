@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import func Gemstone.addressCopy
+import struct Gemstone.GemAssetSectionCounts
 import protocol Gemstone.GemAssetSelectionServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import struct Gemstone.GemSelectAssetFlow
@@ -121,7 +122,13 @@ public final class SelectAssetViewModel {
     }
 
     var listState: GemSelectAssetState {
-        flow.state(hasItems: sections.pinned.isNotEmpty || sections.assets.isNotEmpty, isSearching: state.isLoading)
+        let sections = sections
+        let counts = GemAssetSectionCounts(
+            pinned: UInt32(sections.pinned.count),
+            popular: UInt32(sections.popular.count),
+            assets: UInt32(sections.assets.count),
+        )
+        return flow.state(counts: counts, isSearching: state.isLoading)
     }
 
     var showLoading: Bool {

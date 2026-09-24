@@ -180,15 +180,6 @@ fun AssetSelectScene(
     var showSelectNetworks by remember { mutableStateOf(false) }
     val longPressedAsset = remember { mutableStateOf<AssetId?>(null) }
 
-    val commonAssets = remember(popular, unpinned) {
-        if (popular.isEmpty()) {
-            unpinned
-        } else {
-            val popularIds = popular.mapTo(HashSet()) { it.asset.id }
-            unpinned.filter { it.asset.id !in popularIds }
-        }
-    }
-
     LaunchedEffect(Unit) {
         snapshotFlow { query.text.toString() }
             .drop(1)
@@ -256,12 +247,12 @@ fun AssetSelectScene(
             listsContent?.invoke(this)
             perpetualsContent?.invoke(this)
             nftsContent?.invoke(this)
-            if (assetsHeaderRes != null && commonAssets.isNotEmpty()) {
+            if (assetsHeaderRes != null && unpinned.isNotEmpty()) {
                 item {
                     SubheaderItem(assetsHeaderRes, onAssetsHeaderClick)
                 }
             }
-            assets(commonAssets, AssetsGroupType.None, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
+            assets(unpinned, AssetsGroupType.None, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
             searchState(
                 state = state,
                 isAddAvailable = isAddAvailable,
