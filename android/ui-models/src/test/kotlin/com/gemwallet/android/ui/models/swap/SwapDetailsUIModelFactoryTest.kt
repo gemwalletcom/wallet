@@ -2,7 +2,6 @@ package com.gemwallet.android.ui.models.swap
 
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetPriceValue
-import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetEthereum
@@ -16,7 +15,6 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemSwapProviderRow
-import uniffi.gemstone.GemValueStyle
 import uniffi.gemstone.SwapProvider
 import uniffi.gemstone.swapProviderRow
 import uniffi.gemstone.swapQuoteSummary
@@ -37,7 +35,6 @@ class SwapDetailsUIModelFactoryTest {
         assertEquals("-1.00%", result!!.priceImpact!!.value.text())
         assertNull(result.summaryPriceImpactText)
         assertNull(result.summaryPriceImpactBadgeText)
-        assertEquals("1.00%", result.slippageText)
         assertEquals(30u, result.etaInSeconds)
     }
 
@@ -82,8 +79,6 @@ class SwapDetailsUIModelFactoryTest {
         val usdc = mockAssetPriceValue(asset = mockAsset(symbol = "USDC", name = "USDC", decimals = 6), price = mockAssetPriceInfo(price = 1.0))
         val result = SwapDetailsUIModelFactory.create(
             SwapDetailsUIModelInput(
-                payAsset = eth,
-                receiveAsset = usdc,
                 summary = summary("1000000000000000000", "2000000000", DEFAULT_SLIPPAGE_BPS, null, eth, usdc),
                 provider = provider(
                     toValue = "2000000000",
@@ -126,8 +121,6 @@ class SwapDetailsUIModelFactoryTest {
         val summary = summary(fromValue, toValue, slippageBps, etaInSeconds, payAsset, receiveAsset)
         return SwapDetailsUIModelFactory.create(
             SwapDetailsUIModelInput(
-                payAsset = payAsset,
-                receiveAsset = receiveAsset,
                 summary = summary,
                 provider = provider,
                 providers = providers,
@@ -155,9 +148,6 @@ class SwapDetailsUIModelFactoryTest {
         currency = Currency.USD.toGem(),
         isSelected = true,
     )
-
-    private fun formattedReceiveAmount(atomicValue: String) = ValueFormatter(style = GemValueStyle.AUTO)
-        .string(java.math.BigInteger(atomicValue), receiveAsset.asset)
 
     private companion object {
         const val DEFAULT_FROM_VALUE = "1000000000000000000"

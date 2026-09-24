@@ -208,8 +208,6 @@ class SwapViewModel @Inject constructor(
 
         SwapDetailsUIModelFactory.create(
             SwapDetailsUIModelInput(
-                payAsset = quote.pay.toAssetPriceValue(),
-                receiveAsset = quote.receive.toAssetPriceValue(),
                 summary = summary,
                 provider = provider,
                 providers = providers,

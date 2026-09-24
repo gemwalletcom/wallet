@@ -619,8 +619,6 @@ class SwapViewModelTest {
             ),
             rate = AssetRatePair(forward = "1 SOL = 2.5 USDC", reverse = "1 USDC = 0.4 SOL"),
             priceImpact = GemSwapPriceImpactRow(value = mockFormattedNumber(-15.0), showsInSummary = true, warning = GemLocalizedText.Text(text = "high impact")),
-            minimumReceive = "2.1 USDC",
-            slippageText = "0.5%",
             slippageBps = 50u,
             selectedSlippage = 50u,
         )

@@ -449,8 +449,6 @@ class ConfirmViewModel @Inject constructor(
         )
         val model = SwapDetailsUIModelFactory.create(
             SwapDetailsUIModelInput(
-                payAsset = fromAsset,
-                receiveAsset = toAsset,
                 summary = summary,
                 provider = provider,
                 slippageBps = swapData.quote.slippageBps,

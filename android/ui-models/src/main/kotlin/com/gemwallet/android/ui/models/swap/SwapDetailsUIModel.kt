@@ -13,8 +13,6 @@ data class SwapDetailsUIModel(
     val providers: List<GemSwapProviderRow> = emptyList(),
     val rate: AssetRatePair,
     val priceImpact: GemSwapPriceImpactRow?,
-    val minimumReceive: String,
-    val slippageText: String,
     val slippageBps: UInt,
     val selectedSlippage: UInt?,
     val etaInSeconds: UInt? = null,
