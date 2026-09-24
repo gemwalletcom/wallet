@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemAcquireAsset
 import protocol Gemstone.GemConfirmationProtocol
 import struct Gemstone.GemConfirmButton
 import enum Gemstone.GemConfirmError
@@ -16,7 +17,6 @@ import enum Gemstone.GemListRow
 import protocol Gemstone.GemPreferencesServiceProtocol
 import struct Gemstone.GemSimulationPayloadRow
 import enum Gemstone.GemSubmitResult
-import struct Gemstone.GemSwapPairSelection
 import enum Gemstone.GemTransferAmountResult
 import struct Gemstone.GemTransferData
 import struct Gemstone.SimulationResult
@@ -202,8 +202,7 @@ extension ConfirmTransferSceneViewModel {
               let info = confirmation.errorInfo(error: confirmError) else { return }
         isPresentingSheet = .info(ConfirmInfoSheetBuilder.build(
             for: info,
-            networkFeeBuyAmount: Int(confirmation.insufficientNetworkFeeBuyAmount()),
-            onGetAsset: { [weak self] asset, buyAmount in self?.onSelectGetAsset(asset, buyAmount: buyAmount) },
+            onGetAsset: { [weak self] asset, acquire in self?.onSelectGetAsset(asset, acquire: acquire) },
         ))
     }
 
@@ -312,15 +311,15 @@ extension ConfirmTransferSceneViewModel {
 // MARK: - Private
 
 extension ConfirmTransferSceneViewModel {
-    private func onSelectGetAsset(_ asset: Asset, buyAmount: Int? = nil) {
-        switch confirmation.acquireAssetFlow(chain: asset.chain.rawValue) {
+    private func onSelectGetAsset(_ asset: Asset, acquire: GemAcquireAsset) {
+        switch acquire.flow {
         case .options:
-            isPresentingSheet = .getAsset(asset, buyAmount: buyAmount)
+            isPresentingSheet = .getAsset(asset, acquire: acquire)
         case .fiat:
             isPresentingSheet = .fiatConnect(
                 assetAddress: AssetAddress(asset: asset, address: senderAddress),
                 wallet: wallet,
-                amount: buyAmount,
+                amount: acquire.buyAmount.map(Int.init),
             )
         }
     }
@@ -349,10 +348,6 @@ extension ConfirmTransferSceneViewModel {
 
     public func assetAddress(_ asset: Asset) -> AssetAddress {
         AssetAddress(asset: asset, address: senderAddress)
-    }
-
-    public func acquireSwapPair(to asset: Asset) -> GemSwapPairSelection {
-        confirmation.acquireSwapPair(feeAssetId: state.feeAsset.id.identifier, assetId: asset.id.identifier)
     }
 
     public var assetAcquisitionWallet: Wallet {

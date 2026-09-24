@@ -82,7 +82,7 @@ import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemAcquireAssetFlow
+import uniffi.gemstone.GemAcquireAsset
 import uniffi.gemstone.GemConfirmAction
 import uniffi.gemstone.GemConfirmButton
 import uniffi.gemstone.GemConfirmButtonKind
@@ -162,11 +162,6 @@ class ConfirmViewModel @Inject constructor(
         .map { it.getCurrency().toPrimitives() }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    private val networkFeeBuyAmount = confirmation.filterNotNull()
-        .map { it.insufficientNetworkFeeBuyAmount() }
-        .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     private val load = combine(
         confirmation.filterNotNull(),
@@ -274,22 +269,16 @@ class ConfirmViewModel @Inject constructor(
     private val acquireRequestState = MutableStateFlow<AcquireAssetRequest?>(null)
     val acquireRequest = acquireRequestState.asStateFlow()
 
-    val loadError = combine(screen, confirmation, networkFeeBuyAmount) { screen, confirmation, buyAmount ->
+    val loadError = combine(screen, confirmation) { screen, confirmation ->
         val error = screen.failure?.takeIf { it.stage == GemConfirmStage.LOAD }?.error ?: return@combine null
         ConfirmErrorUIModel(
             text = error.display().text(context),
-            info = confirmation?.errorInfo(error)?.infoSheet(context, buyAmount, ::acquire),
+            info = confirmation?.errorInfo(error)?.infoSheet(context, ::acquire),
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    fun acquire(asset: Asset, buyAmount: Int?) {
-        val pair = confirmation.value?.acquireSwapPair(feeAsset.value?.asset?.id?.toIdentifier(), asset.id.toIdentifier())
-        acquireRequestState.value = AcquireAssetRequest(
-            asset = asset,
-            buyAmount = buyAmount,
-            offersOptions = acquireFlow(asset) == GemAcquireAssetFlow.OPTIONS,
-            swapPayAssetId = pair?.payAssetId?.toAssetId(),
-        )
+    fun acquire(asset: Asset, acquire: GemAcquireAsset) {
+        acquireRequestState.value = AcquireAssetRequest(asset = asset, acquire = acquire)
     }
 
     fun dismissAcquire() = acquireRequestState.update { null }
@@ -474,8 +463,6 @@ class ConfirmViewModel @Inject constructor(
 
         return ConfirmDetailElement.SwapDetails(model)
     }
-
-    private fun acquireFlow(asset: Asset): GemAcquireAssetFlow = requireNotNull(confirmation.value).acquireAssetFlow(asset.chain.string)
 }
 
 private fun Throwable.toConfirmError(): GemConfirmException = this as? GemConfirmException ?: GemConfirmException.Load(msg = message.orEmpty())

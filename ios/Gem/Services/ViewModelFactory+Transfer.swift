@@ -69,7 +69,6 @@ public extension ViewModelFactory {
             confirm: confirmService,
             explorer: explorerService,
             names: nameService,
-            assetConfig: assetConfig,
             signer: KeystoreTransactionSigner(keystore: keystore),
             password: GemstoneKeystorePassword(keystore: keystore),
             recentActivity: recentAssetsService,

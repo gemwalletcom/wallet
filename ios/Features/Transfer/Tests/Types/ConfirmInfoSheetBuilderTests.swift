@@ -82,8 +82,9 @@ struct ConfirmInfoSheetBuilderTests {
     }
 
     private func info(for error: GemConfirmError) -> InfoSheetType? {
-        confirmErrorInfo(error: error, prices: [], currency: Currency.usd.toGem()).map {
-            ConfirmInfoSheetBuilder.build(for: $0, networkFeeBuyAmount: 10, onGetAsset: { _, _ in })
+        let ethereum = Asset.mockEthereum().id.identifier
+        return confirmErrorInfo(error: error, prices: [], currency: Currency.usd.toGem(), inputAssetId: ethereum, feeAssetId: ethereum).map {
+            ConfirmInfoSheetBuilder.build(for: $0, onGetAsset: { _, _ in })
         }
     }
 

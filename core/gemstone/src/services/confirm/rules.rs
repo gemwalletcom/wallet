@@ -20,10 +20,11 @@ use primitives::{
 
 use super::error::{GemConfirmError, GemConfirmErrorDisplay, GemConfirmErrorInfo, GemConfirmErrorSheet};
 use super::model::{
-    ConfirmState, GemAcquireAssetFlow, GemApprovalValue, GemConfirmData, GemConfirmFee, GemConfirmFeeLoad, GemConfirmFeeSelection, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata, GemConfirmSimulationState, GemFeeAsset, GemFeeRateRow,
-    GemFeeRateRows, GemTransferAmountResult, SendInput,
+    ConfirmState, GemAcquireAsset, GemAcquireAssetFlow, GemApprovalValue, GemConfirmData, GemConfirmFee, GemConfirmFeeLoad, GemConfirmFeeSelection, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata, GemConfirmSimulationState,
+    GemFeeAsset, GemFeeRateRow, GemFeeRateRows, GemTransferAmountResult, SendInput,
 };
 use crate::config::chain::custom_fee_enabled;
+use crate::config::fiat_config::get_fiat_config;
 use crate::fee::fee_rate_text;
 use crate::models::custom_types::GemBigUint;
 use crate::models::gateway::{GemBroadcastOptions, GemFeeRate};
@@ -309,10 +310,11 @@ fn asset_balance(balances: &[GemAssetBalance], asset_id: &AssetId) -> Result<Gem
         .ok_or_else(|| GemConfirmError::BalanceMissing { asset_id: asset_id.clone() })
 }
 
-pub fn error_info(display: &GemConfirmErrorDisplay, prices: &[AssetPrice], currency: Currency) -> Option<GemConfirmErrorInfo> {
+pub fn error_info(display: &GemConfirmErrorDisplay, prices: &[AssetPrice], currency: Currency, input_asset_id: &AssetId, fee_asset_id: &AssetId) -> Option<GemConfirmErrorInfo> {
     let info = |sheet: GemConfirmErrorSheet, asset: Option<&Asset>, title: String, requirement: Option<&GemBalanceRequirement>, required: Option<&GemBigInt>| {
         let required = required.or(requirement.map(|requirement| &requirement.required));
         let price = asset.and_then(|asset| prices.iter().find(|price| price.asset_id == asset.id)).map(|price| price.price);
+        let buy_amount = matches!(sheet, GemConfirmErrorSheet::NetworkFeeRequired | GemConfirmErrorSheet::NetworkFeeMissing).then(|| get_fiat_config().insufficient_network_fee_buy_amount);
         GemConfirmErrorInfo {
             sheet,
             asset: asset.cloned(),
@@ -321,7 +323,11 @@ pub fn error_info(display: &GemConfirmErrorDisplay, prices: &[AssetPrice], curre
             required_fiat: asset.zip(required).zip(price).map(|((asset, value), price)| GemFormattedNumber::asset_fiat(value, asset, price, currency)),
             available: asset.zip(requirement).map(|(asset, requirement)| GemFormattedNumber::asset_amount(&requirement.available, asset, GemValueStyle::Auto)),
             shortfall: asset.zip(requirement).map(|(asset, requirement)| GemFormattedNumber::asset_amount(&requirement.shortfall, asset, GemValueStyle::Auto)),
-            acquire: asset.map(|asset| acquire_asset_flow(asset.chain())),
+            acquire: asset.map(|asset| GemAcquireAsset {
+                flow: acquire_asset_flow(asset.chain()),
+                buy_amount,
+                swap_pair: acquire_swap_pair(input_asset_id, fee_asset_id, asset.id.clone()),
+            }),
         }
     };
     match display {
@@ -1105,16 +1111,27 @@ mod tests {
         };
 
         let prices = vec![AssetPrice::new(asset.id.clone(), 2_000.0, 0.0, chrono::Utc::now())];
-        let info = error_info(&display, &prices, Currency::USD).unwrap();
+        let token = AssetId::from_token(Chain::Ethereum, "0xtoken");
+        let info = error_info(&display, &prices, Currency::USD, &token, &asset.id).unwrap();
 
         assert_eq!(info.sheet, GemConfirmErrorSheet::NetworkFeeRequired);
         assert_eq!(info.required.as_ref().map(|number| number.value), Some(3.0), "the sheet names what the transaction requires, not the fee alone");
         assert_eq!(info.available.as_ref().map(|number| number.value), Some(1.0));
         assert_eq!(info.shortfall.as_ref().map(|number| number.value), Some(2.0));
         assert_eq!(info.required_fiat.as_ref().map(|number| number.value), Some(6_000.0));
-        assert_eq!(info.acquire, Some(GemAcquireAssetFlow::Fiat));
+        let acquire = info.acquire.unwrap();
+        assert_eq!(acquire.flow, GemAcquireAssetFlow::Fiat);
+        assert_eq!(acquire.buy_amount, Some(get_fiat_config().insufficient_network_fee_buy_amount), "a fee sheet buys the fee amount");
+        assert_eq!(acquire.swap_pair, acquire_swap_pair(&token, &asset.id, asset.id.clone()));
 
-        let without_price = error_info(&display, &[], Currency::USD).unwrap();
+        let balance = GemConfirmErrorDisplay::BalanceRequired { asset: asset.clone(), requirement };
+        assert_eq!(
+            error_info(&balance, &prices, Currency::USD, &token, &asset.id).unwrap().acquire.unwrap().buy_amount,
+            None,
+            "a balance sheet leaves the amount to the user"
+        );
+
+        let without_price = error_info(&display, &[], Currency::USD, &token, &asset.id).unwrap();
         assert_eq!(without_price.required_fiat, None, "no price means no fiat, never a zero");
     }
 
@@ -1129,13 +1146,14 @@ mod tests {
             GemConfirmErrorDisplay::InsufficientFunds,
             GemConfirmErrorDisplay::Message { msg: "boom".to_string() },
         ] {
-            assert_eq!(error_info(&display, &[], Currency::USD), None, "{display:?}");
+            assert_eq!(error_info(&display, &[], Currency::USD, &AssetId::from_chain(Chain::Ethereum), &AssetId::from_chain(Chain::Ethereum)), None, "{display:?}");
         }
     }
 
     #[test]
     fn test_a_sheet_without_an_asset_carries_no_amount_and_no_acquire() {
-        let info = error_info(&GemConfirmErrorDisplay::DustThreshold { chain: Chain::Bitcoin }, &[], Currency::USD).unwrap();
+        let bitcoin = AssetId::from_chain(Chain::Bitcoin);
+        let info = error_info(&GemConfirmErrorDisplay::DustThreshold { chain: Chain::Bitcoin }, &[], Currency::USD, &bitcoin, &bitcoin).unwrap();
 
         assert_eq!(info.sheet, GemConfirmErrorSheet::DustThreshold { chain: Chain::Bitcoin });
         assert!(info.required.is_none() && info.available.is_none() && info.shortfall.is_none() && info.acquire.is_none());

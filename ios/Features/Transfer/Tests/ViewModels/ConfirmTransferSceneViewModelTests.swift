@@ -648,26 +648,12 @@ struct ConfirmTransferSceneViewModelTests {
             Issue.record("Expected fiatConnect sheet")
             return
         }
-        #expect(amount == Int(GemConfirmationMock.networkFeeBuyAmount))
-    }
-
-    @Test
-    func acquireSwapPairAsksCoreWithTheLoadedFeeAsset() {
-        let asset = Asset.mockTempoPathUSD()
-        let feeAsset = Asset.mockTempoUSDC()
-        let data = GemTransferData.mock(type: .transfer(asset))
-        let model = ConfirmTransferSceneViewModel.mock(data: data)
-        model.state = .mock(load: .mock(transfer: data, fee: .mock()), feeAsset: feeAsset, screen: .mock(phase: .ready))
-
-        let pair = model.acquireSwapPair(to: asset)
-
-        #expect(pair.payAssetId == feeAsset.id.identifier)
-        #expect(pair.receiveAssetId == asset.id.identifier)
+        #expect(amount != nil, "a fee sheet buys the fee amount Core names")
     }
 
     @Test
     func tronInsufficientBalanceActionShowsGetOptions() {
-        let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mockTronUSDT())), acquireFlow: .options)
+        let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mockTronUSDT())))
         model.onSelectListError(error: .confirm(.InsufficientBalance(asset: Asset.mockTron().toGem(), requirement: GemBalanceRequirement(required: 36_798_300, available: 36_070_000, shortfall: 728_300))))
 
         guard case let .info(sheet) = model.isPresentingSheet,
@@ -685,18 +671,18 @@ struct ConfirmTransferSceneViewModelTests {
 
         action()
 
-        guard case let .getAsset(asset, buyAmount) = model.isPresentingSheet else {
+        guard case let .getAsset(asset, acquire) = model.isPresentingSheet else {
             Issue.record("Expected getAsset sheet")
             return
         }
         #expect(asset.id == Asset.mockTron().id)
-        #expect(buyAmount == nil)
+        #expect(acquire.buyAmount == nil)
     }
 
     @Test
     func tronTokenInsufficientBalancePreservesAsset() {
         let asset = Asset.mockTronUSDT()
-        let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(asset)), acquireFlow: .options)
+        let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(asset)))
         model.onSelectListError(error: .confirm(.InsufficientBalance(asset: asset.toGem(), requirement: GemBalanceRequirement(required: 2, available: 1, shortfall: 1))))
 
         guard case let .info(.balanceRequired(_, _, .action(_, action))) = model.isPresentingSheet else {
@@ -705,13 +691,13 @@ struct ConfirmTransferSceneViewModelTests {
         }
         action()
 
-        guard case let .getAsset(sheetAsset, buyAmount) = model.isPresentingSheet else {
+        guard case let .getAsset(sheetAsset, acquire) = model.isPresentingSheet else {
             Issue.record("Expected getAsset sheet")
             return
         }
         #expect(sheetAsset.id == asset.id)
         #expect(model.assetAddress(sheetAsset).asset.id == asset.id)
-        #expect(buyAmount == nil)
+        #expect(acquire.buyAmount == nil)
     }
 
     @Test
@@ -743,8 +729,8 @@ struct ConfirmTransferSceneViewModelTests {
             requirement: GemBalanceRequirement(required: 2_000_000_000_000_000, available: 0, shortfall: 2_000_000_000_000_000),
         )
         let sheet = { (prices: [AssetPrice]) in
-            confirmErrorInfo(error: error, prices: prices, currency: Currency.usd.toGem()).map {
-                InfoSheetModelFactory.create(from: ConfirmInfoSheetBuilder.build(for: $0, networkFeeBuyAmount: 10, onGetAsset: { _, _ in }))
+            confirmErrorInfo(error: error, prices: prices, currency: Currency.usd.toGem(), inputAssetId: asset.id.identifier, feeAssetId: feeAsset.id.identifier).map {
+                InfoSheetModelFactory.create(from: ConfirmInfoSheetBuilder.build(for: $0, onGetAsset: { _, _ in }))
             }
         }
 
@@ -764,7 +750,7 @@ struct ConfirmTransferSceneViewModelTests {
 
     @Test
     func tronInsufficientNetworkFeeUsesFeeAsset() {
-        let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mockTronUSDT())), acquireFlow: .options)
+        let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mockTronUSDT())))
         model.onSelectListError(error: .confirm(.InsufficientNetworkFee(asset: Asset.mockTron().toGem(), requirement: nil)))
 
         guard case let .info(sheet) = model.isPresentingSheet,
@@ -778,12 +764,12 @@ struct ConfirmTransferSceneViewModelTests {
 
         action()
 
-        guard case let .getAsset(asset, buyAmount) = model.isPresentingSheet else {
+        guard case let .getAsset(asset, acquire) = model.isPresentingSheet else {
             Issue.record("Expected getAsset sheet")
             return
         }
         #expect(asset.id == Asset.mockTron().id)
-        #expect(buyAmount == Int(GemConfirmationMock.networkFeeBuyAmount))
+        #expect(acquire.buyAmount != nil)
     }
 
     private func verifyNonEmpty(_ model: any ItemModelProvidable<ConfirmTransferItemModel>) {

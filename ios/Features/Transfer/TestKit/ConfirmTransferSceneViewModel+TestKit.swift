@@ -2,7 +2,6 @@
 
 import func Gemstone.addressCopy
 import struct Gemstone.AddressName
-import enum Gemstone.GemAcquireAssetFlow
 import struct Gemstone.GemConfirmLoad
 import enum Gemstone.GemConfirmRowContent
 import enum Gemstone.GemSubmitResult
@@ -24,7 +23,6 @@ public extension ConfirmTransferSceneViewModel {
         load: Result<GemConfirmLoad, any Error>? = nil,
         execute: Result<GemSubmitResult, any Error> = .success(.signed(data: [], warning: nil)),
         rows: ((Gemstone.AddressName?) -> [GemConfirmRowContent])? = nil,
-        acquireFlow: GemAcquireAssetFlow = .fiat,
         confirmation: GemConfirmationMock? = nil,
         onComplete: ((GemSubmitResult) -> Void)? = nil,
     ) -> ConfirmTransferSceneViewModel {
@@ -57,7 +55,6 @@ public extension ConfirmTransferSceneViewModel {
                 load: load ?? .success(.mock(transfer: data)),
                 execute: execute,
                 rows: rows,
-                acquireFlow: acquireFlow,
             ),
             onComplete: onComplete,
         )

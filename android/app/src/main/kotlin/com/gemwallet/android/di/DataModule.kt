@@ -9,7 +9,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemAssetSelectionService
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemAssetsService
@@ -101,7 +100,6 @@ object DataModule {
         confirmService as GemConfirmService,
         explorerService,
         nameService,
-        GemAssetConfigService(),
         signer,
         GemstoneKeystorePassword(passwordStore),
         recentActivity,

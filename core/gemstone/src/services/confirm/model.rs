@@ -9,6 +9,7 @@ use crate::services::balance::GemAssetBalance;
 use crate::services::error_text::GemErrorText;
 use crate::services::localization::GemLocalizedText;
 use crate::services::simulation::{GemSimulationPayloadRow, address_requests, named_payload_rows};
+use crate::services::swap::model::GemSwapPairSelection;
 use crate::services::transactions::GemAmountSign;
 use crate::services::transfer::GemTransferData;
 use crate::services::transfer::model::GemConfirmDestination;
@@ -118,6 +119,13 @@ pub struct SendInput {
 pub enum GemAcquireAssetFlow {
     Options,
     Fiat,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAcquireAsset {
+    pub flow: GemAcquireAssetFlow,
+    pub buy_amount: Option<i32>,
+    pub swap_pair: GemSwapPairSelection,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

@@ -80,12 +80,11 @@ class ConfirmErrorUIModelTest {
         shortfall = BigInteger(shortfall),
     )
 
-    private fun GemConfirmException.sheet() = confirmErrorInfo(this, emptyList(), Currency.USD)?.infoSheet(
+    private fun GemConfirmException.sheet() = confirmErrorInfo(this, emptyList(), Currency.USD, "ethereum", "ethereum")?.infoSheet(
         context = mockk<Context> {
             every { getString(any()) } returns "Error"
             every { getString(any(), *anyVararg()) } returns "Error"
         },
-        networkFeeBuyAmount = 0,
         onAcquire = { _, _ -> },
     )
 }

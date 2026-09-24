@@ -2,7 +2,7 @@
 
 import Components
 import Foundation
-import enum Gemstone.GemAcquireAssetFlow
+import struct Gemstone.GemAcquireAsset
 import struct Gemstone.GemConfirmErrorInfo
 import GemstonePrimitives
 import InfoSheet
@@ -13,17 +13,15 @@ import PrimitivesComponents
 enum ConfirmInfoSheetBuilder {
     static func build(
         for info: GemConfirmErrorInfo,
-        networkFeeBuyAmount: Int,
-        onGetAsset: @escaping @MainActor @Sendable (Asset, Int?) -> Void,
+        onGetAsset: @escaping @MainActor @Sendable (Asset, GemAcquireAsset) -> Void,
     ) -> InfoSheetType {
         let asset = info.asset?.toPrimitives()
         let image = asset.map { AssetViewModel(asset: $0).assetImage } ?? AssetImage()
-        let button = acquireButton(info, asset: asset, buyAmount: nil, onGetAsset: onGetAsset)
-        let feeButton = acquireButton(info, asset: asset, buyAmount: networkFeeBuyAmount, onGetAsset: onGetAsset)
+        let button = acquireButton(info, asset: asset, onGetAsset: onGetAsset)
 
         return switch info.sheet {
         case .balanceRequired: .balanceRequired(info, image: image, button: button)
-        case .networkFeeRequired, .networkFeeMissing: .insufficientNetworkFee(info, image: image, button: feeButton)
+        case .networkFeeRequired, .networkFeeMissing: .insufficientNetworkFee(info, image: image, button: button)
         case .minimumAccountBalance: .accountMinimalBalance(info)
         case let .swapMinimum(provider, providerName):
             .swapMinimumAmount(info, providerName: providerName, image: AssetImage(placeholder: provider.toPrimitives().image), button: button)
@@ -37,10 +35,9 @@ enum ConfirmInfoSheetBuilder {
     private static func acquireButton(
         _ info: GemConfirmErrorInfo,
         asset: Asset?,
-        buyAmount: Int?,
-        onGetAsset: @escaping @MainActor @Sendable (Asset, Int?) -> Void,
+        onGetAsset: @escaping @MainActor @Sendable (Asset, GemAcquireAsset) -> Void,
     ) -> InfoSheetButton? {
-        guard let asset, let flow = info.acquire else { return nil }
-        return .action(title: flow.actionTitle(symbol: asset.symbol), action: { onGetAsset(asset, buyAmount) })
+        guard let asset, let acquire = info.acquire else { return nil }
+        return .action(title: acquire.flow.actionTitle(symbol: asset.symbol), action: { onGetAsset(asset, acquire) })
     }
 }

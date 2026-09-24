@@ -12,7 +12,7 @@ use crate::api::{GemApiClient, GemDeviceApiClient, GemStaticApiClient};
 use crate::gateway::GemGateway;
 use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::payment::GemPaymentService;
-use crate::services::assets::{GemAssetStore, GemAssetsService, config::GemAssetConfigService};
+use crate::services::assets::{GemAssetStore, GemAssetsService};
 use crate::services::balance::testkit::MemoryBalanceStore;
 use crate::services::balance::{GemAssetBalance, GemBalanceService};
 use crate::services::device::GemDeviceKeyService;
@@ -113,7 +113,6 @@ impl ConfirmTestkit {
             confirm.clone(),
             explorer,
             names,
-            Arc::new(GemAssetConfigService::new()),
             Arc::new(UnusedSigner),
             Arc::new(MemoryKeystorePassword::default()),
             Arc::new(GemRecentActivityService::new(Arc::new(MemoryRecentActivityStore::default()), session)),

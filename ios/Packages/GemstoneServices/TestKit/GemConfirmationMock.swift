@@ -3,7 +3,6 @@
 public import struct Gemstone.AddressName
 public import typealias Gemstone.Chain
 public import typealias Gemstone.Currency
-public import enum Gemstone.GemAcquireAssetFlow
 public import protocol Gemstone.GemConfirmationProtocol
 public import enum Gemstone.GemConfirmError
 public import struct Gemstone.GemConfirmErrorInfo
@@ -17,7 +16,6 @@ public import struct Gemstone.GemFeeRateRows
 public import enum Gemstone.GemKeystoreAuthentication
 public import enum Gemstone.GemListRow
 public import enum Gemstone.GemSubmitResult
-public import struct Gemstone.GemSwapPairSelection
 public import struct Gemstone.GemTransferData
 public import typealias Gemstone.PerpetualModifyConfirmData
 import func Gemstone.confirmErrorInfo
@@ -30,7 +28,6 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     private let executeResult: Result<GemSubmitResult, any Error>
     private let authenticationValue: GemKeystoreAuthentication
     private let rows: (Gemstone.AddressName?) -> [GemConfirmRowContent]
-    private let acquireFlow: GemAcquireAssetFlow
     private let selection: GemTransferData?
     private let feeRates: GemFeeRateRows?
     private var loaded: GemConfirmLoad?
@@ -44,7 +41,6 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         execute: Result<GemSubmitResult, any Error> = .success(.signed(data: [], warning: nil)),
         authentication: GemKeystoreAuthentication = .none,
         rows: @escaping (Gemstone.AddressName?) -> [GemConfirmRowContent] = { _ in [] },
-        acquireFlow: GemAcquireAssetFlow = .fiat,
         selection: GemTransferData? = nil,
         feeRates: GemFeeRateRows? = nil,
     ) {
@@ -53,7 +49,6 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         executeResult = execute
         authenticationValue = authentication
         self.rows = rows
-        self.acquireFlow = acquireFlow
         self.selection = selection
         self.feeRates = feeRates
     }
@@ -119,25 +114,18 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         rows(addressName)
     }
 
-    public func acquireAssetFlow(chain _: Chain) -> GemAcquireAssetFlow {
-        acquireFlow
-    }
-
-    public func acquireSwapPair(feeAssetId: String?, assetId: String) -> GemSwapPairSelection {
-        GemSwapPairSelection(payAssetId: feeAssetId, receiveAssetId: assetId)
-    }
-
     public func errorInfo(error: GemConfirmError) -> GemConfirmErrorInfo? {
-        confirmErrorInfo(error: error, prices: (loaded ?? initialState).metadata.prices, currency: getCurrency())
-    }
-
-    public func insufficientNetworkFeeBuyAmount() -> Int32 {
-        Self.networkFeeBuyAmount
+        let state = loaded ?? initialState
+        return confirmErrorInfo(
+            error: error,
+            prices: state.metadata.prices,
+            currency: getCurrency(),
+            inputAssetId: transfer().inputAsset().id,
+            feeAssetId: state.feeAsset.id,
+        )
     }
 
     public func autocloseRow(data _: PerpetualModifyConfirmData) -> GemListRow? {
         nil
     }
-
-    public static let networkFeeBuyAmount: Int32 = 10
 }

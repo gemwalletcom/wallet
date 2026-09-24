@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemAcquireAsset
 import GemstonePrimitives
 import InfoSheet
 import Primitives
@@ -13,7 +14,7 @@ public enum ConfirmTransferSheetType: Identifiable, Sendable {
     case paymentVerification(URL)
     case payloadDetails
     case fiatConnect(assetAddress: AssetAddress, wallet: Wallet, amount: Int?)
-    case getAsset(Asset, buyAmount: Int?)
+    case getAsset(Asset, acquire: GemAcquireAsset)
     case selectedAsset(SelectedAssetInput, wallet: Wallet)
     case swapDetails
     case perpetualDetails(PerpetualDetailsViewModel)

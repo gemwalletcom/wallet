@@ -41,6 +41,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemAcquireAsset
 import uniffi.gemstone.GemAcquireAssetFlow
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemConfirmHeader
@@ -103,8 +104,10 @@ class ConfirmViewModelNetworkFeeSheetTest {
         assertEquals("Error", error.text)
         assertTrue(error.info is InfoSheetEntity.NetworkFeeRequiredInfo)
 
-        viewModel.acquire(asset, 10)
-        assertEquals(AcquireAssetRequest(asset = asset, buyAmount = 10, offersOptions = false, swapPayAssetId = payAsset.id), viewModel.acquireRequest.value)
+        val acquire = GemAcquireAsset(GemAcquireAssetFlow.FIAT, 10, GemSwapPairSelection(payAssetId = payAsset.id.toIdentifier(), receiveAssetId = asset.id.toIdentifier()))
+        viewModel.acquire(asset, acquire)
+        assertEquals(AcquireAssetRequest(asset = asset, acquire = acquire), viewModel.acquireRequest.value)
+        assertEquals(payAsset.id, viewModel.acquireRequest.value?.swapPayAssetId)
         viewModel.dismissAcquire()
         assertEquals(null, viewModel.acquireRequest.value)
     }
@@ -112,10 +115,7 @@ class ConfirmViewModelNetworkFeeSheetTest {
     private fun viewModel(): ConfirmViewModel {
         val transfer = mockGemTransferData(asset = asset, value = BigInteger.TEN)
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
-        every { confirmation.errorInfo(any()) } answers { confirmErrorInfo(firstArg(), emptyList(), Currency.USD.toGem()) }
-        every { confirmation.insufficientNetworkFeeBuyAmount() } returns 10
-        every { confirmation.acquireAssetFlow(any()) } returns GemAcquireAssetFlow.FIAT
-        every { confirmation.acquireSwapPair(any(), any()) } returns GemSwapPairSelection(payAssetId = payAsset.id.toIdentifier(), receiveAssetId = asset.id.toIdentifier())
+        every { confirmation.errorInfo(any()) } answers { confirmErrorInfo(firstArg(), emptyList(), Currency.USD.toGem(), asset.id.toIdentifier(), asset.id.toIdentifier()) }
         every { confirmService.confirmation(any(), transfer, any()) } returns confirmation
         every { confirmation.screen() } returns mockGemConfirmScreen()
         every { confirmation.loadOptions() } returns mockGemConfirmLoadOptions()

@@ -2,18 +2,17 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard};
 
 use primitives::currency::Currency;
-use primitives::{AddressName, AssetId, Chain, ChainAddress, PaymentVerification, PerpetualModifyConfirmData, SimulationResult, TransactionInputType, Wallet};
+use primitives::{AddressName, AssetId, ChainAddress, PaymentVerification, PerpetualModifyConfirmData, SimulationResult, TransactionInputType, Wallet};
 
 use super::error::GemConfirmErrorInfo;
 use super::header::{self, GemConfirmHeader};
-use super::rules::{acquire_swap_pair, asset_pick_needs_reload, preload_simulation};
+use super::rules::{asset_pick_needs_reload, preload_simulation};
 use super::{
-    ConfirmState, GemAcquireAssetFlow, GemConfirmError, GemConfirmFeeLoad, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmScreen, GemConfirmTransferService, GemConfirmViewState, GemFeeRateRows,
-    GemSubmitResult, GemTransferAmountResult, SendInput,
+    ConfirmState, GemConfirmError, GemConfirmFeeLoad, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmScreen, GemConfirmTransferService, GemConfirmViewState, GemFeeRateRows, GemSubmitResult,
+    GemTransferAmountResult, SendInput,
 };
 use crate::models::list::GemListRow;
 use crate::payment::GemPaymentLoad;
-use crate::services::swap::model::GemSwapPairSelection;
 use crate::services::transfer::GemTransferData;
 use crate::services::wallet::GemKeystoreAuthentication;
 
@@ -125,23 +124,13 @@ impl GemConfirmation {
         self.service.row_contents(self.transfer(), self.wallet.clone(), address_name)
     }
 
-    pub fn acquire_asset_flow(&self, chain: Chain) -> GemAcquireAssetFlow {
-        self.service.acquire_asset_flow(chain)
-    }
-
-    pub fn acquire_swap_pair(&self, fee_asset_id: Option<AssetId>, asset_id: AssetId) -> GemSwapPairSelection {
-        let transfer = self.transfer();
-        let fee_asset_id = fee_asset_id.unwrap_or_else(|| transfer.fee_asset().id);
-        acquire_swap_pair(&transfer.input_asset().id, &fee_asset_id, asset_id)
-    }
-
     pub fn error_info(&self, error: GemConfirmError) -> Option<GemConfirmErrorInfo> {
-        let prices = self.stored().as_ref().map(|state| state.load.metadata.prices.clone()).unwrap_or_default();
-        super::error::confirm_error_info(error, prices, self.get_currency())
-    }
-
-    pub fn insufficient_network_fee_buy_amount(&self) -> i32 {
-        self.service.insufficient_network_fee_buy_amount()
+        let transfer = self.transfer();
+        let (prices, fee_asset_id) = match self.stored().as_ref() {
+            Some(state) => (state.load.metadata.prices.clone(), state.load.fee_asset.id.clone()),
+            None => (Vec::new(), transfer.fee_asset().id),
+        };
+        super::error::confirm_error_info(error, prices, self.get_currency(), transfer.input_asset().id, fee_asset_id)
     }
 
     pub fn autoclose_row(&self, data: PerpetualModifyConfirmData) -> Option<GemListRow> {

@@ -4,14 +4,12 @@ use std::sync::Arc;
 use primitives::currency::Currency;
 use primitives::{Asset, Chain, PerpetualModifyConfirmData, SimulationResult, Wallet, WalletId};
 
-use crate::config::fiat_config::get_fiat_config;
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::GemListRow;
 use crate::models::transaction::GemSignedTransaction;
 use crate::payment::{GemPaymentError, GemPaymentService};
-use crate::services::assets::config::GemAssetConfigService;
 use crate::services::confirm::rules::{confirm_row_contents, is_broadcast, is_insufficient_network_fee};
-use crate::services::confirm::{GemAcquireAssetFlow, GemConfirmError, GemConfirmInput, GemConfirmLoad, GemConfirmRowContent, GemConfirmService, GemConfirmSimulationState, GemConfirmation, GemSubmitResult, GemTransactionSigner, SendInput};
+use crate::services::confirm::{GemConfirmError, GemConfirmInput, GemConfirmLoad, GemConfirmRowContent, GemConfirmService, GemConfirmSimulationState, GemConfirmation, GemSubmitResult, GemTransactionSigner, SendInput};
 use crate::services::error_text::{GemErrorText, payment_error_text};
 use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemNameService;
@@ -29,7 +27,6 @@ pub struct GemConfirmTransferService {
     confirm: Arc<GemConfirmService>,
     explorer: Arc<GemExplorerService>,
     names: Arc<GemNameService>,
-    asset_config: Arc<GemAssetConfigService>,
     signer: Arc<dyn GemTransactionSigner>,
     password: Arc<dyn GemKeystorePassword>,
     recent_activity: Arc<GemRecentActivityService>,
@@ -44,7 +41,6 @@ impl GemConfirmTransferService {
         confirm: Arc<GemConfirmService>,
         explorer: Arc<GemExplorerService>,
         names: Arc<GemNameService>,
-        asset_config: Arc<GemAssetConfigService>,
         signer: Arc<dyn GemTransactionSigner>,
         password: Arc<dyn GemKeystorePassword>,
         recent_activity: Arc<GemRecentActivityService>,
@@ -55,7 +51,6 @@ impl GemConfirmTransferService {
             confirm,
             explorer,
             names,
-            asset_config,
             signer,
             password,
             recent_activity,
@@ -94,12 +89,6 @@ impl GemConfirmTransferService {
     }
     pub(super) fn autoclose_row(&self, data: PerpetualModifyConfirmData) -> Option<GemListRow> {
         autoclose_row(&data)
-    }
-    pub(super) fn acquire_asset_flow(&self, chain: Chain) -> GemAcquireAssetFlow {
-        self.asset_config.acquire_flow(chain)
-    }
-    pub(super) fn insufficient_network_fee_buy_amount(&self) -> i32 {
-        get_fiat_config().insufficient_network_fee_buy_amount
     }
     pub(super) fn payment(&self) -> &GemPaymentService {
         &self.payment

@@ -4,7 +4,7 @@ use crate::gateway::GatewayError;
 use crate::models::custom_types::GemBigInt;
 use crate::payment::GemPaymentError;
 use crate::services::balance::GemBalanceRequirement;
-use crate::services::confirm::model::GemAcquireAssetFlow;
+use crate::services::confirm::model::GemAcquireAsset;
 use crate::services::error::GemServiceError;
 use crate::signer::GemSignerError;
 use primitives::{Asset, AssetId, Chain, PaymentStatus, SwapProvider};
@@ -174,13 +174,13 @@ pub struct GemConfirmErrorInfo {
     pub required_fiat: Option<GemFormattedNumber>,
     pub available: Option<GemFormattedNumber>,
     pub shortfall: Option<GemFormattedNumber>,
-    pub acquire: Option<GemAcquireAssetFlow>,
+    pub acquire: Option<GemAcquireAsset>,
 }
 
 /// The one rule behind `GemConfirmation::error_info`, exported so a test double can answer it faithfully.
 #[uniffi::export]
-pub fn confirm_error_info(error: GemConfirmError, prices: Vec<primitives::AssetPrice>, currency: primitives::currency::Currency) -> Option<GemConfirmErrorInfo> {
-    super::rules::error_info(&error.display(), &prices, currency)
+pub fn confirm_error_info(error: GemConfirmError, prices: Vec<primitives::AssetPrice>, currency: primitives::currency::Currency, input_asset_id: AssetId, fee_asset_id: AssetId) -> Option<GemConfirmErrorInfo> {
+    super::rules::error_info(&error.display(), &prices, currency, &input_asset_id, &fee_asset_id)
 }
 
 #[uniffi::export]

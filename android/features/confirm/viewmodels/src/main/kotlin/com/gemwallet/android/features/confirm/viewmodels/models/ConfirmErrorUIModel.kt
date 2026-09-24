@@ -3,6 +3,7 @@ package com.gemwallet.android.features.confirm.viewmodels.models
 import android.content.Context
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.requireChain
+import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.confirm.viewmodels.localization.actionLabel
 import com.gemwallet.android.model.text
@@ -13,18 +14,24 @@ import com.gemwallet.android.ui.components.InfoSheetEntity.NetworkFeeRequiredInf
 import com.gemwallet.android.ui.components.InfoSheetEntity.SwapMinimumAmountInfo
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
+import uniffi.gemstone.GemAcquireAsset
+import uniffi.gemstone.GemAcquireAssetFlow
 import uniffi.gemstone.GemConfirmErrorInfo
 import uniffi.gemstone.GemConfirmErrorSheet
 import uniffi.gemstone.GemFormattedNumber
 
 data class ConfirmErrorUIModel(val text: String, val info: InfoSheetEntity?)
 
-data class AcquireAssetRequest(val asset: Asset, val buyAmount: Int?, val offersOptions: Boolean, val swapPayAssetId: AssetId? = null)
+data class AcquireAssetRequest(val asset: Asset, val acquire: GemAcquireAsset) {
+    val offersOptions: Boolean get() = acquire.flow == GemAcquireAssetFlow.OPTIONS
+    val buyAmount: Int? get() = acquire.buyAmount
+    val swapPayAssetId: AssetId? get() = acquire.swapPair.payAssetId?.toAssetId()
+}
 
-internal fun GemConfirmErrorInfo.infoSheet(context: Context, networkFeeBuyAmount: Int, onAcquire: (Asset, Int?) -> Unit): InfoSheetEntity? {
+internal fun GemConfirmErrorInfo.infoSheet(context: Context, onAcquire: (Asset, GemAcquireAsset) -> Unit): InfoSheetEntity? {
     val asset = asset?.toPrimitives()
-    val label = { asset?.let { acquire?.actionLabel(context, it.symbol) } }
-    val acquireAction = { buyAmount: Int? -> asset?.let { { onAcquire(it, buyAmount) } } }
+    val label = { asset?.let { acquire?.flow?.actionLabel(context, it.symbol) } }
+    val acquireAction = { asset?.let { asset -> acquire?.let { acquire -> { onAcquire(asset, acquire) } } } }
     return when (val sheet = sheet) {
         GemConfirmErrorSheet.BalanceRequired -> BalanceRequiredInfo(
             asset = asset ?: return null,
@@ -32,7 +39,7 @@ internal fun GemConfirmErrorInfo.infoSheet(context: Context, networkFeeBuyAmount
             available = available.text(),
             shortfall = shortfall.text(),
             actionLabel = label().orEmpty(),
-            action = acquireAction(null) ?: return null,
+            action = acquireAction() ?: return null,
         )
 
         GemConfirmErrorSheet.NetworkFeeRequired -> NetworkBalanceRequiredInfo(
@@ -41,14 +48,14 @@ internal fun GemConfirmErrorInfo.infoSheet(context: Context, networkFeeBuyAmount
             available = available.text(),
             shortfall = shortfall.text(),
             actionLabel = label().orEmpty(),
-            action = acquireAction(networkFeeBuyAmount) ?: return null,
+            action = acquireAction() ?: return null,
         )
 
         GemConfirmErrorSheet.NetworkFeeMissing -> NetworkFeeRequiredInfo(
             chain = (asset ?: return null).chain,
             title = title,
             actionLabel = label().orEmpty(),
-            action = acquireAction(networkFeeBuyAmount) ?: return null,
+            action = acquireAction() ?: return null,
         )
 
         GemConfirmErrorSheet.MinimumAccountBalance -> InfoSheetEntity.MinimumAccountBalanceInfo(
@@ -63,7 +70,7 @@ internal fun GemConfirmErrorInfo.infoSheet(context: Context, networkFeeBuyAmount
             available = available.text(),
             shortfall = shortfall.text(),
             actionLabel = label().orEmpty(),
-            action = acquireAction(null) ?: return null,
+            action = acquireAction() ?: return null,
         )
 
         is GemConfirmErrorSheet.DustThreshold -> InfoSheetEntity.DustThresholdInfo(chain = sheet.chain.requireChain())

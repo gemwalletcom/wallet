@@ -3,6 +3,7 @@
 import Assets
 import Components
 import FiatConnect
+import struct Gemstone.GemSwapPairSelection
 import GemstonePrimitives
 import InfoSheet
 import Perpetuals
@@ -51,10 +52,11 @@ struct ConfirmTransferNavigationView: View {
                         .navigationBarTitleDisplayMode(.inline)
                         .toolbarDismissItem(type: .close, placement: .topBarLeading)
                     }
-                case let .getAsset(asset, buyAmount):
+                case let .getAsset(asset, acquire):
                     GetAssetNavigationStack(
                         asset: asset,
-                        buyAmount: buyAmount,
+                        buyAmount: acquire.buyAmount.map(Int.init),
+                        swapPair: acquire.swapPair,
                         model: model,
                         viewModelFactory: viewModelFactory,
                     )
@@ -88,6 +90,7 @@ private struct GetAssetNavigationStack: View {
 
     let asset: Asset
     let buyAmount: Int?
+    let swapPair: GemSwapPairSelection
     let model: ConfirmTransferSceneViewModel
     let viewModelFactory: ViewModelFactory
 
@@ -141,7 +144,7 @@ private struct GetAssetNavigationStack: View {
                 model: viewModelFactory.swapScene(
                     input: SwapInput(
                         wallet: model.assetAcquisitionWallet,
-                        pairSelector: model.acquireSwapPair(to: asset).map(),
+                        pairSelector: swapPair.map(),
                     ),
                     onSwap: { actionNavigationPath.append(ConfirmTransferInput(data: $0)) },
                 ),

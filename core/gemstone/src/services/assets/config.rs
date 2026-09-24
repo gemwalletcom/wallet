@@ -4,7 +4,6 @@ use super::icon::{GemAssetIcon, asset_icon};
 use super::model::GemAssetSectionIds;
 use super::rules::{asset_sections, default_asset_basic, popular_asset_ids};
 use crate::models::asset::chain_asset_wrapper;
-use crate::services::confirm::{GemAcquireAssetFlow, acquire_asset_flow};
 
 #[derive(Default, uniffi::Object)]
 pub struct GemAssetConfigService {}
@@ -37,11 +36,7 @@ impl GemAssetConfigService {
     }
 }
 
-impl GemAssetConfigService {
-    pub fn acquire_flow(&self, chain: Chain) -> GemAcquireAssetFlow {
-        acquire_asset_flow(chain)
-    }
-}
+impl GemAssetConfigService {}
 
 #[cfg(test)]
 mod tests {

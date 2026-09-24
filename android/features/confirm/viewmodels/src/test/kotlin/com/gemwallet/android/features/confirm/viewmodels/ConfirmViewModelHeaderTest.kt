@@ -80,7 +80,6 @@ class ConfirmViewModelHeaderTest {
             every { feeRateRows() } returns null
         }.stubViewState()
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
-        every { confirmation.insufficientNetworkFeeBuyAmount() } returns 10
         every { confirmation.screen() } returns mockGemConfirmScreen()
         every { confirmation.loadOptions() } returns mockGemConfirmLoadOptions()
         every { confirmation.header() } returns GemConfirmHeader.Transaction(GemTransactionHeader.Symbol(asset.toGem()))
