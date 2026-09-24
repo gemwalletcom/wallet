@@ -180,7 +180,7 @@ public final class FiatSceneViewModel {
         guard !assetData.balance.available.isZero else {
             return nil
         }
-        return balanceModel.availableBalanceTextWithSymbol
+        return valueFormatter.string(assetData.balance.available, asset: asset)
     }
 
     var fiatProviderViewModel: FiatProvidersViewModel {
@@ -279,10 +279,6 @@ extension FiatSceneViewModel {
 extension FiatSceneViewModel {
     func fiatTransactionsModel() -> FiatTransactionsViewModel {
         FiatTransactionsViewModel(walletId: wallet.id, service: service)
-    }
-
-    private var balanceModel: BalanceViewModel {
-        BalanceViewModel(asset: asset, balance: assetData.balance, formatter: valueFormatter)
     }
 
     private func applyAmount(_ text: String, isImmediate: Bool) {

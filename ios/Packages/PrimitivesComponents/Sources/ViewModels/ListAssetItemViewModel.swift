@@ -72,7 +72,6 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
     ) {
         let model = AssetDataViewModel(
             assetData: assetData,
-            formatter: formatter,
             currency: currency,
         )
         self.init(

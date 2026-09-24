@@ -14,14 +14,12 @@ import SwiftUI
 
 public struct AssetDataViewModel: Sendable {
     public let assetData: AssetData
-    private let balanceViewModel: BalanceViewModel
 
     public let priceViewModel: PriceViewModel
     public let currency: Currency
 
     public init(
         assetData: AssetData,
-        formatter: ValueFormatter,
         currency: Currency,
         currencyFormatterType: GemCurrencyStyle = .currency,
     ) {
@@ -30,11 +28,6 @@ public struct AssetDataViewModel: Sendable {
             price: assetData.price,
             currencyCode: currency.rawValue,
             currencyFormatterType: currencyFormatterType,
-        )
-        balanceViewModel = BalanceViewModel(
-            asset: assetData.asset,
-            balance: assetData.balance,
-            formatter: formatter,
         )
         self.currency = currency
     }
@@ -55,24 +48,6 @@ public struct AssetDataViewModel: Sendable {
 
     public var symbol: String {
         assetData.asset.symbol
-    }
-
-    // balance
-
-    public var balanceText: String {
-        balanceViewModel.balanceText
-    }
-
-    public var availableBalanceTextWithSymbol: String {
-        balanceViewModel.availableBalanceTextWithSymbol
-    }
-
-    public func balanceTextWithSymbol(_ value: BigInt) -> String {
-        balanceViewModel.balanceTextWithSymbol(value)
-    }
-
-    public var hasAvailableBalance: Bool {
-        balanceViewModel.availableBalanceAmount > 0
     }
 
     public var isEnabled: Bool {

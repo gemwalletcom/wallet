@@ -1,4 +1,5 @@
 import BigInt
+import func Gemstone.fiatEquivalent
 import Components
 import Formatters
 import GemstonePrimitives
@@ -35,8 +36,8 @@ public struct NumericViewModel: Sendable, AmountDisplayable {
     }
 
     public var fiat: TextValue? {
-        guard let text = PriceViewModel(price: data.price, currencyCode: style.currencyCode)
-            .fiatValueText(value: data.value, decimals: data.asset.decimals.asInt)
+        guard let currency = Currency(rawValue: style.currencyCode),
+              let text = fiatEquivalent(asset: data.asset.toGem(), value: data.value, price: data.price?.price, currency: currency.toGem())?.text()
         else { return nil }
 
         return TextValue(

@@ -27,7 +27,7 @@ public struct FeeAssetItem: Sendable {
 extension FeeAssetItem: SimpleListItemViewable {
     public var title: String { asset.symbol }
     public var titleExtra: String? { asset.name == title ? nil : asset.name }
-    public var subtitle: String? { balanceModel.availableBalanceTextWithSymbol }
+    public var subtitle: String? { ValueFormatter(style: .short).string(balance.available, asset: asset) }
     public var subtitleExtra: String? {
         fiatEquivalent(asset: asset.toGem(), value: balance.available, price: price?.price, currency: currency.toGem())?.text()
     }
@@ -52,10 +52,6 @@ extension FeeAssetItem: SimpleListItemViewable {
             placeholder: image.placeholder,
             chainPlaceholder: isSelected ? Images.Wallets.selected : nil,
         )
-    }
-
-    private var balanceModel: BalanceViewModel {
-        BalanceViewModel(asset: asset, balance: balance, formatter: .short)
     }
 }
 

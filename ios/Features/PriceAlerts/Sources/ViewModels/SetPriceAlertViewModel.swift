@@ -99,7 +99,6 @@ public final class SetPriceAlertViewModel {
             showBalancePrivacy: .constant(false),
             assetDataModel: AssetDataViewModel(
                 assetData: assetData,
-                formatter: .short,
                 currency: currency,
             ),
             rowStyle: GemSelectAssetType.priceAlert.flow().rowStyle,

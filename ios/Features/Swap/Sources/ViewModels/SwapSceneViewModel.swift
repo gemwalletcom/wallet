@@ -226,7 +226,6 @@ public final class SwapSceneViewModel {
             type: .selected(
                 AssetDataViewModel(
                     assetData: assetData,
-                    formatter: .auto,
                     currency: service.currency,
                     currencyFormatterType: .currency,
                 ),

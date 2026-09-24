@@ -23,7 +23,7 @@ public struct ListAssetItemsViewModel {
         showBalancePrivacy: Binding<Bool> = .constant(false),
         action: ((ListAssetItemAction, AssetData) -> Void)? = nil,
     ) -> [ListAssetItemViewModel] {
-        let models = assetDatas.map { AssetDataViewModel(assetData: $0, formatter: .short, currency: currency) }
+        let models = assetDatas.map { AssetDataViewModel(assetData: $0, currency: currency) }
         let rows = assetListRows(inputs: models.map { ListAssetItemViewModel.rowInput($0, rowStyle: rowStyle) })
         return zip(models, rows).map { model, row in
             ListAssetItemViewModel(

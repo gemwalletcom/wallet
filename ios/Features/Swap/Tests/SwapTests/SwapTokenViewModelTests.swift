@@ -25,7 +25,6 @@ struct SwapTokenViewModelTests {
         let asset = Asset.mock(decimals: 8)
         let assetData = AssetDataViewModel(
             assetData: .mock(asset: asset, price: .mock(price: 50000)),
-            formatter: .short,
             currency: .usd,
         )
         let model = SwapTokenViewModel(type: .selected(assetData), interaction: GemSwapSideInteraction(isAmountEditable: true, isAssetSelectable: true, isBalanceActionEnabled: true))

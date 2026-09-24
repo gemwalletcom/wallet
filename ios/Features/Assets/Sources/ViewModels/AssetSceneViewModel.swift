@@ -213,7 +213,6 @@ public final class AssetSceneViewModel: Sendable {
     var assetDataModel: AssetDataViewModel {
         AssetDataViewModel(
             assetData: assetData,
-            formatter: .auto,
             currency: preferences.currency,
         )
     }

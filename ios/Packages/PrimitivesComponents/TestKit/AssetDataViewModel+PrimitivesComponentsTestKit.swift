@@ -9,12 +9,10 @@ import PrimitivesTestKit
 public extension AssetDataViewModel {
     static func mock(
         assetData: AssetData = .mock(),
-        formatter: ValueFormatter = .short,
         currency: Currency = .usd,
     ) -> AssetDataViewModel {
         AssetDataViewModel(
             assetData: assetData,
-            formatter: formatter,
             currency: currency,
         )
     }
