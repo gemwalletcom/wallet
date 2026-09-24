@@ -64,3 +64,4 @@ flowchart LR
 - Coin, staking, token and earn balances are separate requests; never merge them into one, because one slow or failing request must not hold back the others.
 - A network that fails keeps its last values on screen; there is no "unknown" state.
 - An answer always belongs to the wallet it was requested for, never the wallet on screen.
+- A price or portfolio chart, or the price widget, that cannot load shows that there is no data, and only being offline shows an error, because server text is not written for users.

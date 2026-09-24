@@ -212,7 +212,8 @@ impl GemPortfolioSession {
                 Some(chart) => GemPortfolioPhase::Data { chart },
                 None => GemPortfolioPhase::NoData,
             },
-            (GemLoadState::Error { error }, None) => GemPortfolioPhase::Failed { error: error.clone() },
+            (GemLoadState::Error { error: GemServiceError::Offline }, None) => GemPortfolioPhase::Failed { error: GemServiceError::Offline },
+            (GemLoadState::Error { .. }, None) => GemPortfolioPhase::NoData,
             (GemLoadState::NoData | GemLoadState::Data, None) => GemPortfolioPhase::NoData,
         }
     }
@@ -321,11 +322,16 @@ mod tests {
     #[test]
     fn test_a_failure_after_a_load_keeps_the_portfolio_on_screen() {
         let session = session();
-        let error = GemServiceError::Core { msg: "offline".to_string() };
+        let error = GemServiceError::Offline;
         let shown = session.on_result(loaded(session.request(), data(vec![ChartPeriod::All])));
 
         assert!(matches!(session.on_result(failed(session.request(), error.clone())).view_state().phase, GemPortfolioPhase::Failed { .. }));
         assert!(!matches!(shown.on_result(failed(shown.request(), error)).view_state().phase, GemPortfolioPhase::Failed { .. }));
+        assert_eq!(
+            session.on_result(failed(session.request(), GemServiceError::Api { msg: "Not found".to_string() })).view_state().phase,
+            GemPortfolioPhase::NoData,
+            "server text never reaches the chart; only being offline is an error"
+        );
     }
 
     #[test]

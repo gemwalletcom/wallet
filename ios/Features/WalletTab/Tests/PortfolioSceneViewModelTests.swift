@@ -76,14 +76,19 @@ struct PortfolioSceneViewModelTests {
     }
 
     @Test
-    func aFailedLoadShowsTheError() async {
-        let service = GemPortfolioServiceMock()
-        service.error = .Core(msg: "offline")
-        let model = PortfolioSceneViewModel.mock(service: service)
+    func onlyAnOfflineLoadShowsTheError() async {
+        let offlineService = GemPortfolioServiceMock()
+        offlineService.error = .Offline
+        let offline = PortfolioSceneViewModel.mock(service: offlineService)
+        await offline.load()
 
-        await model.load()
+        let failedService = GemPortfolioServiceMock()
+        failedService.error = .Core(msg: "Not found")
+        let failed = PortfolioSceneViewModel.mock(service: failedService)
+        await failed.load()
 
-        #expect(model.chartState.isError)
+        #expect(offline.chartState.isError)
+        #expect(failed.chartState.isError == false)
     }
 
     @Test

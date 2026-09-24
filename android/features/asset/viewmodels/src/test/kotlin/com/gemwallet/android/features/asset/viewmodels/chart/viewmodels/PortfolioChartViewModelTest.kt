@@ -149,16 +149,22 @@ class PortfolioChartViewModelTest {
     }
 
     @Test
-    fun `shows error state when the portfolio request fails`() = runTest(testDispatcher) {
+    fun `a failed portfolio request shows no data and only being offline shows an error`() = runTest(testDispatcher) {
         coEvery { service.refresh(any(), any()) } answers {
             GemPortfolioResult(request = secondArg(), state = GemLoadState.Error(GemServiceException.Gateway("network down")), data = null)
         }
-        val viewModel = createViewModel()
-        backgroundScope.launch { viewModel.chartUIState.collect {} }
+        val failed = createViewModel()
+        backgroundScope.launch { failed.chartUIState.collect {} }
 
-        val state = viewModel.chartUIState.first { it.chart != StateViewType.Loading }
+        assertEquals(StateViewType.NoData, failed.chartUIState.first { it.chart != StateViewType.Loading }.chart)
 
-        assertEquals(StateViewType.Error("network down"), state.chart)
+        coEvery { service.refresh(any(), any()) } answers {
+            GemPortfolioResult(request = secondArg(), state = GemLoadState.Error(GemServiceException.Offline()), data = null)
+        }
+        val offline = createViewModel()
+        backgroundScope.launch { offline.chartUIState.collect {} }
+
+        assertTrue(offline.chartUIState.first { it.chart != StateViewType.Loading }.chart is StateViewType.Error)
     }
 
     @Test

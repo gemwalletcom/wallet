@@ -41,6 +41,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import dagger.hilt.android.EntryPointAccessors
+import uniffi.gemstone.GemServiceException
 
 private val priceRowHeight = 72.dp
 
@@ -48,11 +49,11 @@ class PricesWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val entryPoint = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java)
-        val noData = context.getString(R.string.errors_no_data_available)
-        val items = try {
-            entryPoint.mediumWidgetCoins(context)
-        } catch (_: Throwable) {
-            emptyList()
+        val result = runCatching { entryPoint.mediumWidgetCoins(context) }
+        val items = result.getOrDefault(emptyList())
+        val noData = when (result.exceptionOrNull()) {
+            is GemServiceException.Offline -> context.getString(R.string.errors_network_offline)
+            else -> context.getString(R.string.errors_no_data_available)
         }
 
         provideContent {

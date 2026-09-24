@@ -7,6 +7,7 @@ import Style
 import SwiftHTTPClient
 import SwiftUI
 import WidgetKit
+import WidgetLocalization
 
 struct WidgetPriceService {
     private let provider: Provider<WidgetAssetsTarget>
@@ -34,7 +35,7 @@ struct WidgetPriceService {
                 widgetFamily: widgetFamily,
             )
         } catch {
-            return PriceWidgetEntry.error(error: error.localizedDescription, widgetFamily: widgetFamily)
+            return PriceWidgetEntry.error(error: isNetworkError(error) ? error.localizedDescription : WidgetLocalized.Widget.empty, widgetFamily: widgetFamily)
         }
     }
 }
