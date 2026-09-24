@@ -82,7 +82,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
         searchQuery.request.scope.isList && service.showPerpetuals(walletType: wallet.type.toGem(), chains: wallet.chains.map(\.rawValue))
     }
 
-    private var state: GemWalletSearchState {
+    var state: GemWalletSearchState {
         walletSearchState(
             counts: GemWalletSearchCounts(
                 recents: 0,
@@ -98,6 +98,10 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
     }
 
     var searchState: SearchContentState {
+        searchState(state)
+    }
+
+    func searchState(_ state: GemWalletSearchState) -> SearchContentState {
         switch state.phase {
         case .idle: .results
         case .loading: .loading

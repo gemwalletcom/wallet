@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import func Gemstone.assetListRows
 import Components
 import Formatters
 import func Gemstone.addressCopy
+import func Gemstone.assetListRows
 import struct Gemstone.GemAssetRowStyle
 import GemstonePrimitives
 import Primitives

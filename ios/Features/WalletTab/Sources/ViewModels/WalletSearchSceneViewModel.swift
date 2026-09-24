@@ -91,7 +91,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var collectionsContent: CollectionsContent {
-        CollectionsContent(items: NFTGridPosterBuilder.items(previewNFTs))
+        derived.collectionsContent
     }
 
     var sections: WalletSearchSections {
@@ -102,7 +102,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         derived.view
     }
 
-    private var derived: WalletSearchDerived {
+    var derived: WalletSearchDerived {
         let result = searchResult
         let nfts = service.searchCollections(data: result.collections.map { $0.toGem() }, query: searchQuery.request.searchBy)
         let sections = WalletSearchSections.from(result, nfts: nfts)
@@ -128,7 +128,11 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var searchState: SearchContentState {
-        switch state.phase {
+        searchState(derived)
+    }
+
+    func searchState(_ derived: WalletSearchDerived) -> SearchContentState {
+        switch derived.view.state.phase {
         case .idle:
             .results
         case .loading:
@@ -136,7 +140,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         case .empty:
             .empty(EmptyContentType(
                 .searchAssets,
-                actions: [.addCustomToken: showAddToken ? { [weak self] in self?.onSelectAddCustomToken() } : nil],
+                actions: [.addCustomToken: derived.view.showsAddToken ? { [weak self] in self?.onSelectAddCustomToken() } : nil],
             ))
         }
     }
@@ -182,15 +186,15 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var previewAssets: [AssetData] {
-        sections.assets.prefix(Int(limits.assets)).asArray()
+        derived.previewAssets
     }
 
     var previewPerpetuals: [PerpetualData] {
-        sections.perpetuals.prefix(Int(limits.perpetuals)).asArray()
+        derived.previewPerpetuals
     }
 
     var previewNFTs: [GemNftEntry] {
-        sections.nfts.prefix(Int(limits.nfts)).asArray()
+        derived.previewNFTs
     }
 
     var hasMoreAssets: Bool {
@@ -352,4 +356,22 @@ extension WalletSearchSceneViewModel {
 struct WalletSearchDerived {
     let sections: WalletSearchSections
     let view: GemWalletSearchView
+}
+
+extension WalletSearchDerived {
+    var previewAssets: [AssetData] {
+        sections.assets.prefix(Int(view.limits.assets)).asArray()
+    }
+
+    var previewPerpetuals: [PerpetualData] {
+        sections.perpetuals.prefix(Int(view.limits.perpetuals)).asArray()
+    }
+
+    var previewNFTs: [GemNftEntry] {
+        sections.nfts.prefix(Int(view.limits.nfts)).asArray()
+    }
+
+    var collectionsContent: CollectionsContent {
+        CollectionsContent(items: NFTGridPosterBuilder.items(previewNFTs))
+    }
 }

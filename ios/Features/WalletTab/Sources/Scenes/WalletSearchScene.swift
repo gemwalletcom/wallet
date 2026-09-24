@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemWalletSearchState
+import struct Gemstone.GemWalletSearchView
 import GemstoneServices
 import Localization
 import NFT
@@ -20,12 +22,13 @@ public struct WalletSearchScene: View {
     }
 
     public var body: some View {
-        SearchableWrapper(
-            content: { content },
+        let search = model.derived
+        return SearchableWrapper(
+            content: { content(search) },
             isSearching: $model.isSearching,
             dismissSearch: $model.dismissSearch,
         )
-        .searchStateOverlay(model.searchState, background: Colors.sheetInsetGroupedListStyle)
+        .searchStateOverlay(model.searchState(search), background: Colors.sheetInsetGroupedListStyle)
         .bindQuery(model.searchQuery, model.recentModel.query)
         .searchable(
             text: $model.searchableQuery,
@@ -50,41 +53,42 @@ public struct WalletSearchScene: View {
         .recentAssetsSheet(model: model.recentModel, onSelect: model.onSelectRecent)
     }
 
-    private var content: some View {
-        List {
-            if model.showRecents {
+    private func content(_ search: WalletSearchDerived) -> some View {
+        let state = search.view.state
+        return List {
+            if state.showsRecents {
                 RecentAssetsSectionView(
                     model: model.recentModel,
                     onSelect: model.onSelectRecent,
                 )
             }
 
-            if model.showPinned {
+            if state.showsPinned {
                 Section(
                     content: {
-                        if model.showPinnedPerpetuals {
-                            perpetualItems(for: model.sections.pinnedPerpetuals)
+                        if state.showsPinnedPerpetuals {
+                            perpetualItems(for: search.sections.pinnedPerpetuals)
                         }
-                        assetItems(for: model.sections.pinnedAssets)
+                        assetItems(for: search.sections.pinnedAssets)
                     },
                     header: { PinnedSectionHeader() },
                 )
                 .listRowInsets(.assetListRowInsets)
             }
 
-            if model.showLists {
+            if state.showsLists {
                 Section(
-                    content: { listItems(for: model.sections.lists) },
+                    content: { listItems(for: search.sections.lists) },
                     header: { SectionHeaderView(title: model.listsTitle) },
                 )
                 .listRowInsets(.assetListRowInsets)
             }
 
-            if model.showPerpetuals {
+            if state.showsPerpetuals {
                 Section(
-                    content: { perpetualItems(for: model.previewPerpetuals) },
+                    content: { perpetualItems(for: search.previewPerpetuals) },
                     header: {
-                        if model.hasMorePerpetuals {
+                        if search.view.hasMorePerpetuals {
                             HeaderNavigationLinkView(title: model.perpetualsTitle, destination: Scenes.Perpetuals())
                         } else {
                             SectionHeaderView(title: model.perpetualsTitle)
@@ -94,11 +98,11 @@ public struct WalletSearchScene: View {
                 .listRowInsets(.assetListRowInsets)
             }
 
-            if model.showNFTs {
+            if state.showsNfts {
                 Section(
-                    content: { CollectionsPreviewView(content: model.collectionsContent) },
+                    content: { CollectionsPreviewView(content: search.collectionsContent) },
                     header: {
-                        if model.hasMoreNFTs {
+                        if search.view.hasMoreNfts {
                             HeaderNavigationLinkView(title: model.collectionsTitle, destination: Scenes.Collections())
                         } else {
                             SectionHeaderView(title: model.collectionsTitle)
@@ -108,11 +112,11 @@ public struct WalletSearchScene: View {
                 .listRowInsets(.assetListRowInsets)
             }
 
-            if model.showAssets {
+            if state.showsAssets {
                 Section(
-                    content: { assetItems(for: model.previewAssets) },
+                    content: { assetItems(for: search.previewAssets) },
                     header: {
-                        if model.hasMoreAssets {
+                        if search.view.hasMoreAssets {
                             HeaderNavigationLinkView(
                                 title: model.assetsTitle,
                                 destination: model.assetsResultsDestination,
