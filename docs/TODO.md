@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Security and bugs:** AUD67, AUD5, AUD59, BD20.
+1. **Security and bugs:** AUD5, AUD59, BD20.
 2. **Generated constants:** D174.
 3. **Deletions:** VM173, VM174, VM177 (the FFI trim; extend `check-ffi-surface.py` first).
 4. **Pass-throughs:** VM175, VM176.
@@ -57,7 +57,6 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | VM169, BD61 |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM172 |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | VM172, VM177 |
-| Perpetual open/modify/autoclose forms | `GemAutocloseSession`, `GemAutocloseDraft`, existing amount flow | AUD67 |
 | Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | AUD59, VM171; preserve exact atomic values |
 | Earn list, provider and deposit amount | Existing stake/earn owner and amount extras | BD60; preserve the existing feature gate |
 | NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM134, VM175, BD20, BD62 |
@@ -90,10 +89,6 @@ Transaction-critical input, a user-visible outcome that a swallowed error hides,
 
 - **AUD5** **M** **Bug — a sent transaction that fails to record leaves no local row and no tracking.** [`store_pending`](../core/gemstone/src/services/confirm/mod.rs) calls `record(...).unwrap_or_default()`, so a failed `add_transactions` write becomes an empty list: no pending row is stored, `track` is handed nothing, and `execute` returns `Sent` as if everything succeeded. The funds are on chain and the activity sync will eventually fetch the transaction, so what is lost is local visibility and state polling, not funds. Do not route the outcome through the confirmation result: both apps read only `hashes` from `GemExecuteResult::Sent` ([iOS](../ios/Features/Transfer/Sources/ViewModels/ConfirmTransferSceneViewModel.swift), [Android](../android/features/confirm/viewmodels/src/main/kotlin/com/gemwallet/android/features/confirm/viewmodels/ConfirmViewModel.kt)), and its `transactions` payload was removed as dead FFI weight, so a new field or enum there would be read by nobody. **Decided:** `store_pending` retries the write once, silently, then relies on the next activity sync; no new screen state. Cover the `Broadcast` error path too, where `store_pending` already runs for a partial broadcast.
 - **AUD59** **S** **Surface the first balance fetch after enabling an asset.** [`refresh_enabled_assets`](../core/gemstone/src/services/balance/mod.rs) runs `let _ = self.update(...)` from `set_assets_enabled` and `setup_wallet`, so a just-enabled token sits at zero with no error until a refresh. Returning the failure alone does not help: both apps only `debugLog` a failed toggle, and iOS `AssetSceneViewModel.onSelectEnable` would drop its "asset shown" toast although the asset was enabled; side-effect callers (fiat quote, reward redemption, transaction post-processing, discovery) would fail their own action on a balance fetch. **Decided:** an error toast after the successful enable. Return the failure from the user-facing toggles only and give the side-effect callers a write-only enable.
-- **AUD67** **S** **A failed autoclose transfer does nothing when Confirm is tapped.** `GemAutocloseModify::transfer` ([`autoclose.rs`](../core/gemstone/src/services/perpetual/autoclose.rs)) fails when the perpetual has no asset index.
-  - **iOS:** `AutocloseSceneViewModel.onSelectConfirm` returns on `try?`.
-  - **Android:** `AutocloseViewModel.onConfirm` returns on `runCatching { … }.getOrNull()`.
-  - **Expected:** both show Core's error text (`GemServiceError.text()`), as other confirm failures do.
 
 ## 2. One view state per screen
 

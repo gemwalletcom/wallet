@@ -55,4 +55,18 @@ struct AutocloseSceneViewModelTests {
         #expect(model.takeProfitModel.expectedPnL != "-")
         #expect(model.confirmButtonType == .primary(.normal))
     }
+
+    @Test
+    func aTransferCoreRefusesShowsTheError() {
+        var transfers = 0
+        let data = PerpetualPositionData.mock(perpetual: .mock(identifier: "BTC"))
+        let model = AutocloseSceneViewModel(type: .modify(data, onTransferAction: { _ in transfers += 1 }))
+        model.input.takeProfit.text = "1500"
+        model.onChangePrice()
+
+        model.onSelectConfirm()
+
+        #expect(transfers == 0)
+        #expect(model.isPresentingAlertMessage != nil)
+    }
 }

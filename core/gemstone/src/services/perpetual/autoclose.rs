@@ -115,7 +115,7 @@ pub struct GemAutocloseModify {
 #[uniffi::export]
 impl GemAutocloseModify {
     pub fn transfer(&self, provider: PerpetualProvider, asset: Asset) -> Result<GemTransferData, GemServiceError> {
-        let asset_index = self.asset_index.ok_or_else(|| GemServiceError::InvalidInput {
+        let asset_index = self.asset_index.ok_or_else(|| GemServiceError::Core {
             msg: "perpetual has no asset index".to_string(),
         })?;
         let data = PerpetualModifyConfirmData {
@@ -132,10 +132,6 @@ impl GemAutocloseModify {
 impl GemAutocloseModify {
     fn is_complete(&self) -> bool {
         self.take_profit.is_acceptable() && self.stop_loss.is_acceptable() && (self.take_profit.should_update() || self.stop_loss.should_update())
-    }
-
-    fn can_build(&self) -> bool {
-        self.asset_index.is_some() && self.is_complete()
     }
 
     fn build(&self, asset_index: i32) -> Vec<PerpetualModifyPositionType> {
@@ -243,7 +239,7 @@ impl GemAutocloseSession {
             stop_loss: autoclose_field_state(self.modify.stop_loss.clone(), &estimator, self.submit_attempted),
             confirm_enabled: match (self.policy, self.submit_attempted) {
                 (GemAutocloseConfirmPolicy::WhenBuildable, _) => self.modify.is_complete(),
-                (GemAutocloseConfirmPolicy::UntilSubmitted, true) => self.modify.can_build(),
+                (GemAutocloseConfirmPolicy::UntilSubmitted, true) => self.modify.is_complete(),
                 (GemAutocloseConfirmPolicy::UntilSubmitted, false) => self.modify.take_profit.has_pending_change() || self.modify.stop_loss.has_pending_change(),
             },
             shows_errors: self.submit_attempted,
@@ -459,7 +455,7 @@ mod tests {
         let ios = GemAutocloseSession::new(changed.clone(), GemAutocloseConfirmPolicy::WhenBuildable, prices.clone(), PerpetualProvider::Hypercore, 2, None, GemAutocloseEstimate::mock());
         let android = GemAutocloseSession::new(changed, GemAutocloseConfirmPolicy::UntilSubmitted, prices, PerpetualProvider::Hypercore, 2, None, GemAutocloseEstimate::mock());
 
-        assert_eq!(ios.view_state().confirm_enabled, ios.modify.can_build());
+        assert_eq!(ios.view_state().confirm_enabled, ios.modify.is_complete());
         assert_eq!(
             ios.view_state().price_rows,
             vec![
@@ -476,7 +472,29 @@ mod tests {
             ]
         );
         assert!(android.view_state().confirm_enabled, "a pending change is enough before a submit");
-        assert_eq!(android.on_submit_attempt().view_state().confirm_enabled, android.modify.can_build());
+        assert_eq!(android.on_submit_attempt().view_state().confirm_enabled, android.modify.is_complete());
+    }
+
+    #[test]
+    fn test_a_position_without_an_asset_index_confirms_and_the_transfer_says_why() {
+        let modify = GemAutocloseModify {
+            asset_index: None,
+            ..GemAutocloseModify::mock(GemAutocloseField::mock(Some(110.0), Some(100.0), true, None), GemAutocloseField::mock(None, None, true, None))
+        };
+        let session = GemAutocloseSession::new(
+            modify,
+            GemAutocloseConfirmPolicy::UntilSubmitted,
+            GemAutoclosePrices { entry: Some(100.0), market: 105.0 },
+            PerpetualProvider::Hypercore,
+            2,
+            None,
+            GemAutocloseEstimate::mock(),
+        )
+        .on_submit_attempt();
+
+        assert!(session.view_state().confirm_enabled, "the tap reaches the transfer, which reports the problem");
+        let error = session.modify.transfer(PerpetualProvider::Hypercore, Asset::mock()).unwrap_err();
+        assert_eq!(error.text(), crate::services::error_text::GemErrorText::Unknown, "the user sees the generic error, not the internal reason");
     }
 
     #[test]
@@ -572,16 +590,16 @@ mod tests {
     }
 
     #[test]
-    fn test_can_build() {
+    fn test_is_complete() {
         let none = GemAutocloseField::mock(None, None, false, None);
-        assert!(GemAutocloseModify::mock(GemAutocloseField::mock(Some(110.0), Some(100.0), true, None), none.clone()).can_build());
-        assert!(!GemAutocloseModify::mock(GemAutocloseField::mock(Some(100.0), Some(100.0), true, None), GemAutocloseField::mock(Some(90.0), Some(90.0), true, None)).can_build());
-        assert!(!GemAutocloseModify::mock(GemAutocloseField::mock(Some(110.0), Some(100.0), false, None), none.clone()).can_build());
-        assert!(GemAutocloseModify::mock(GemAutocloseField::mock(None, Some(100.0), false, None), none.clone()).can_build());
-        assert!(GemAutocloseModify::mock(none.clone(), GemAutocloseField::mock(Some(90.0), None, true, None)).can_build());
-        assert!(!GemAutocloseModify::mock(none.clone(), none.clone()).can_build());
-        assert!(!GemAutocloseModify::mock(GemAutocloseField::mock(Some(110.0), Some(100.0), false, None), GemAutocloseField::mock(Some(80.0), Some(90.0), false, None)).can_build());
-        assert!(!GemAutocloseModify::mock(GemAutocloseField::mock(Some(110.0), Some(100.0), true, None), GemAutocloseField::mock(Some(80.0), Some(90.0), false, None)).can_build());
+        assert!(GemAutocloseModify::mock(GemAutocloseField::mock(Some(110.0), Some(100.0), true, None), none.clone()).is_complete());
+        assert!(!GemAutocloseModify::mock(GemAutocloseField::mock(Some(100.0), Some(100.0), true, None), GemAutocloseField::mock(Some(90.0), Some(90.0), true, None)).is_complete());
+        assert!(!GemAutocloseModify::mock(GemAutocloseField::mock(Some(110.0), Some(100.0), false, None), none.clone()).is_complete());
+        assert!(GemAutocloseModify::mock(GemAutocloseField::mock(None, Some(100.0), false, None), none.clone()).is_complete());
+        assert!(GemAutocloseModify::mock(none.clone(), GemAutocloseField::mock(Some(90.0), None, true, None)).is_complete());
+        assert!(!GemAutocloseModify::mock(none.clone(), none.clone()).is_complete());
+        assert!(!GemAutocloseModify::mock(GemAutocloseField::mock(Some(110.0), Some(100.0), false, None), GemAutocloseField::mock(Some(80.0), Some(90.0), false, None)).is_complete());
+        assert!(!GemAutocloseModify::mock(GemAutocloseField::mock(Some(110.0), Some(100.0), true, None), GemAutocloseField::mock(Some(80.0), Some(90.0), false, None)).is_complete());
     }
 
     #[test]
@@ -668,7 +686,7 @@ mod tests {
     }
 
     #[test]
-    fn test_a_perpetual_without_an_asset_index_can_never_confirm() {
+    fn test_a_perpetual_without_an_asset_index_never_builds_an_order() {
         let perpetual = Perpetual {
             identifier: "BTC".to_string(),
             ..Perpetual::mock()
@@ -677,8 +695,10 @@ mod tests {
         let session = autoclose_session(perpetual, Asset::from_chain(primitives::Chain::HyperCore), PerpetualPosition::mock()).on_price(TpslType::TakeProfit, Some(500.0));
 
         assert_eq!(session.modify.asset_index, None);
-        assert!(!session.on_submit_attempt().view_state().confirm_enabled, "an unparsed identifier must never reach a market");
-        assert!(session.modify.transfer(PerpetualProvider::Hypercore, Asset::from_chain(primitives::Chain::HyperCore)).is_err());
+        assert!(
+            session.modify.transfer(PerpetualProvider::Hypercore, Asset::from_chain(primitives::Chain::HyperCore)).is_err(),
+            "an unparsed identifier must never reach a market"
+        );
     }
 
     #[test]

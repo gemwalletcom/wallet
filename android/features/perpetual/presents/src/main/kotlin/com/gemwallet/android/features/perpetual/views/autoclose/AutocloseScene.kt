@@ -3,6 +3,7 @@ package com.gemwallet.android.features.perpetual.views.autoclose
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,7 +31,7 @@ import com.wallet.core.primitives.TpslType
 import uniffi.gemstone.GemAutocloseViewState
 
 @Composable
-internal fun AutocloseScene(model: GemAutocloseViewState, positionListItem: ListItemModel?, takeProfitText: String, stopLossText: String, onAction: (AutocloseAction) -> Unit) {
+internal fun AutocloseScene(model: GemAutocloseViewState, positionListItem: ListItemModel?, takeProfitText: String, stopLossText: String, snackbar: SnackbarHostState, onAction: (AutocloseAction) -> Unit) {
     var focusedField: TpslType? by remember { mutableStateOf(null) }
 
     val activeField = focusedField?.let { type ->
@@ -49,6 +50,7 @@ internal fun AutocloseScene(model: GemAutocloseViewState, positionListItem: List
     Scene(
         title = stringResource(R.string.perpetual_auto_close),
         onClose = { onAction(AutocloseAction.Close) },
+        snackbar = snackbar,
         closeIcon = true,
         mainActionWidth = if (isPercentBarVisible) MainActionWidth.FillWidth else MainActionWidth.Constrained,
         mainActionPadding = PaddingValues(

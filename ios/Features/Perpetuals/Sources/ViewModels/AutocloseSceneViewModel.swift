@@ -22,6 +22,7 @@ public final class AutocloseSceneViewModel {
     private let decimalSeparator = NumberInput.format(.current).decimalSeparator
 
     var input: AutocloseInput
+    var isPresentingAlertMessage: AlertMessage?
     private var session: GemAutocloseSession
 
     public init(type: AutocloseType) {
@@ -119,8 +120,11 @@ public extension AutocloseSceneViewModel {
 
         switch type {
         case let .modify(position, onTransferAction):
-            guard let transfer = try? attempted.modify.transfer(provider: position.perpetual.provider.toGem(), asset: position.asset.toGem()) else { return }
-            onTransferAction?(transfer)
+            do {
+                try onTransferAction?(attempted.modify.transfer(provider: position.perpetual.provider.toGem(), asset: position.asset.toGem()))
+            } catch {
+                isPresentingAlertMessage = AlertMessage(error: error)
+            }
 
         case let .open(_, onComplete):
             onComplete(input.selection)
