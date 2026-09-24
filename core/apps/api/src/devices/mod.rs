@@ -4,7 +4,7 @@ pub mod constants;
 pub mod error;
 pub mod guard;
 pub mod signature;
-use crate::params::{AssetIdParam, ChainParam, ChartPeriodParam, CurrencyParam, FiatProviderIdParam, FiatQuoteTypeParam, NftAssetIdParam, QueryLimitParam, TransactionIdParam, UserAgent};
+use crate::params::{AddressParam, AssetIdParam, ChainParam, ChartPeriodParam, CurrencyParam, FiatProviderIdParam, FiatQuoteTypeParam, NftAssetIdParam, QueryLimitParam, TransactionIdParam, UserAgent};
 use crate::responders::{ApiError, ApiResponse};
 use auth_config::AuthConfig;
 use body::DeviceJson;
@@ -18,8 +18,8 @@ use primitives::name::NameRecord;
 use primitives::nft::NFTAssetData;
 use primitives::rewards::{RedemptionRequest, RedemptionResult, RewardRedemptionOption};
 use primitives::{
-    AddressName, AssetId, AuthNonce, ChainAddress, DefiPosition, FiatAssets, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, InAppNotification, NFTData, PortfolioAssets, PortfolioAssetsRequest, PriceAlerts, ReportNft, RewardEvent, Rewards,
-    ScanTransaction, ScanTransactionPayload, Transaction, TransactionsResponse, WalletConfigurationResult, WalletId, WalletSubscription, WalletSubscriptionChains,
+    AddressDetails, AddressName, AssetId, AuthNonce, ChainAddress, DefiPosition, FiatAssets, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, InAppNotification, NFTData, PortfolioAssets, PortfolioAssetsRequest, PriceAlerts, ReportNft,
+    RewardEvent, Rewards, ScanTransaction, ScanTransactionPayload, Transaction, TransactionsResponse, WalletConfigurationResult, WalletId, WalletSubscription, WalletSubscriptionChains,
 };
 use rocket::{FromForm, State, delete, get, post, put};
 use services::assets::AssetsClient;
@@ -34,7 +34,7 @@ use services::prices::{PortfolioClient, PriceAlertClient};
 use services::rewards::{RewardsClient, RewardsRedemptionClient};
 use services::security::ScanClient;
 use services::support::SupportApiClient;
-use services::transactions::{AddressNamesClient, TransactionsClient};
+use services::transactions::{AddressDetailsClient, AddressNamesClient, TransactionsClient};
 
 use crate::auth::WalletSigned;
 
@@ -106,6 +106,11 @@ pub async fn get_device_transaction_v2(_device: AuthenticatedDevice, id: Transac
 #[post("/devices/address_names", format = "json", data = "<requests>")]
 pub async fn get_device_address_names_v2(_device: AuthenticatedDevice, requests: DeviceJson<Vec<ChainAddress>>, client: &State<AddressNamesClient>) -> Result<ApiResponse<Vec<AddressName>>, ApiError> {
     Ok(client.get_address_names(requests.into_inner()).await?.into())
+}
+
+#[get("/devices/addresses/<chain>/<address>")]
+pub async fn get_device_address_details_v2(_device: AuthenticatedDevice, chain: ChainParam, address: AddressParam, client: &State<AddressDetailsClient>) -> Result<ApiResponse<AddressDetails>, ApiError> {
+    Ok(client.get_address_details(ChainAddress::new(chain.0, address.0)).await?.into())
 }
 
 #[get("/devices/nft_assets")]

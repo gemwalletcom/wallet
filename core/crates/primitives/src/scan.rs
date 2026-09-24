@@ -133,20 +133,23 @@ impl ScanAddress {
         self.chain == chain && self.address == address && self.is_verified == Some(true) && self.is_malicious != Some(true)
     }
 
-    pub fn address_name(&self) -> Option<AddressName> {
-        let status = if self.is_malicious == Some(true) {
+    pub fn verification_status(&self) -> VerificationStatus {
+        if self.is_malicious == Some(true) {
             VerificationStatus::Suspicious
         } else if self.is_verified == Some(true) {
             VerificationStatus::Verified
         } else {
             VerificationStatus::Unverified
-        };
+        }
+    }
+
+    pub fn address_name(&self) -> Option<AddressName> {
         Some(AddressName {
             chain: self.chain,
             address: self.address.clone(),
             name: self.name.clone()?,
             address_type: self.address_type.clone()?,
-            status,
+            status: self.verification_status(),
             image_url: None,
         })
     }
