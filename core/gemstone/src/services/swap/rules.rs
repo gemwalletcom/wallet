@@ -1,9 +1,10 @@
+use crate::address::account_matches_address;
 use crate::formatted_number::GemFormattedNumber;
 use num_bigint::BigInt;
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::swap::{SwapPriceImpact, SwapPriceImpactType, SwapProviderData, SwapQuote, SwapQuoteData};
-use primitives::{Asset, AssetId, Chain, Wallet};
+use primitives::{Account, Asset, AssetId, Chain, Wallet};
 use swapper::permit2_data::{Permit2Detail, PermitSingle};
 use swapper::{AssetList, Options, Permit2ApprovalData, Quote, QuoteRequest, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode};
 
@@ -154,6 +155,18 @@ fn asset_rate(base: &Asset, quote: &Asset, value: f64) -> GemAssetRate {
     }
 }
 
+pub fn validate_quote_wallet(wallet: &Wallet, quote: &Quote) -> Result<(), SwapperError> {
+    let from_chain = AssetId::new(&quote.request.from_asset.id).ok_or(SwapperError::NotSupportedAsset)?.chain;
+    let to_chain = AssetId::new(&quote.request.to_asset.id).ok_or(SwapperError::NotSupportedAsset)?.chain;
+    if !account_matches_address(wallet_account(wallet, from_chain)?, &quote.request.wallet_address) {
+        return Err(SwapperError::TransactionError("quote sender does not match the selected wallet".to_string()));
+    }
+    if !account_matches_address(wallet_account(wallet, to_chain)?, &quote.request.destination_address) {
+        return Err(SwapperError::TransactionError("quote destination does not match the selected wallet".to_string()));
+    }
+    Ok(())
+}
+
 pub fn swap_quote(quote: &Quote) -> SwapQuote {
     SwapQuote {
         from_address: quote.request.wallet_address.clone(),
@@ -204,8 +217,12 @@ fn quote_asset(asset: &Asset) -> SwapperQuoteAsset {
     }
 }
 
+fn wallet_account(wallet: &Wallet, chain: Chain) -> Result<&Account, SwapperError> {
+    wallet.account(chain).ok_or(SwapperError::NotSupportedChain)
+}
+
 fn account_address(wallet: &Wallet, chain: Chain) -> Result<String, SwapperError> {
-    wallet.accounts.iter().find(|account| account.chain == chain).map(|account| account.address.clone()).ok_or(SwapperError::NotSupportedChain)
+    wallet_account(wallet, chain).map(|account| account.address.clone())
 }
 
 pub fn most_swapped_receive_asset(pairs: &[GemSwapPair], pay_asset_id: &AssetId, supported: &AssetList) -> Option<AssetId> {
