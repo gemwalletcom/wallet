@@ -130,7 +130,7 @@ pub async fn get_device_defi_positions_v2(device: AuthenticatedDeviceWallet, cli
 
 #[get("/devices/rewards")]
 pub async fn get_device_rewards_v2(device: AuthenticatedDeviceWallet, client: &State<RewardsClient>) -> Result<ApiResponse<Rewards>, ApiError> {
-    Ok(client.get_rewards_by_wallet_id(device.wallet_id).await?.into())
+    Ok(client.get_rewards_by_wallet_id(device.wallet_id, device.record.device.locale.as_ref()).await?.into())
 }
 
 #[get("/devices/rewards/events")]

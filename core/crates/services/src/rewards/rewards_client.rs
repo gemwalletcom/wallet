@@ -4,6 +4,7 @@ use std::sync::Arc;
 use cacher::{CacherClient, GLOBAL_RATE_LIMIT_SCOPE, RateLimiter};
 use config_keys::{ConfigKey, RateLimitKey, RateLimitWindow};
 use gem_tracing::error_with_fields;
+use localizer::LanguageLocalizer;
 use primitives::rewards::{RewardRedemptionOption, RewardStatus};
 use primitives::{Localize, NaiveDateTimeExt, Platform, ReferralLeaderboard, RewardEvent, Rewards, WalletId, WalletSource, WalletType, now};
 use pusher::PusherClient;
@@ -74,10 +75,13 @@ impl RewardsClient {
         RewardsError::Username(error.localize(locale))
     }
 
-    pub async fn get_rewards_by_wallet_id(&self, wallet_id: i32) -> Result<Rewards, Box<dyn Error + Send + Sync>> {
+    pub async fn get_rewards_by_wallet_id(&self, wallet_id: i32, locale: &str) -> Result<Rewards, Box<dyn Error + Send + Sync>> {
         let rules = username_rules(&self.config).await?;
         match self.db.run(move |client| rewards_by_wallet_id(client, wallet_id, &rules)).await {
-            Ok(rewards) => Ok(rewards),
+            Ok(rewards) => Ok(Rewards {
+                disable_reason: rewards.disable_reason.map(|_| LanguageLocalizer::new_with_language(locale).notification_rewards_disabled_description()),
+                ..rewards
+            }),
             Err(error) if error.is_not_found() => Ok(Rewards::default()),
             Err(error) => Err(error.into()),
         }
