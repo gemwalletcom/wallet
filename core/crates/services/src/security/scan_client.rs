@@ -9,7 +9,7 @@ use config_keys::{ConfigKey, ConfigParamKey};
 use futures::future;
 use gem_client::ReqwestClient;
 use gem_tracing::{error_with_fields, info_with_fields};
-use primitives::{ScanOutcome, ScanProvider, ScanTransaction, ScanTransactionPayload, ScanType};
+use primitives::{ScanOutcome, ScanProvider, ScanSource, ScanTransaction, ScanTransactionPayload, ScanType};
 use security::providers::goplus::GoPlusProvider;
 use security::transaction_scan::{ProviderCheck, ScanSubject, ScanTargets, TransactionScanInput, TransactionScanResult, evaluate_transaction_scan, plan_transaction_scan, scan_subjects, token_asset_ids, website_host};
 use security::{ScanProviderConfig, ScanProviderFactory, ScanResult, TransactionScanProviders};
@@ -202,6 +202,26 @@ impl ScanClient {
     fn log(payload: &ScanTransactionPayload, result: &TransactionScanResult) {
         let transaction_type = payload.transaction_type.as_ref();
         let chain = payload.target.asset_id.chain.as_ref();
+        let has_token_assets = !token_asset_ids(payload).is_empty();
+        let scan_types = ScanType::all()
+            .into_iter()
+            .filter(|scan_type| match scan_type {
+                ScanType::Address | ScanType::AddressPoisoning | ScanType::Website => result.subjects.iter().any(|subject| subject.scan_type == *scan_type),
+                ScanType::Asset => has_token_assets,
+            })
+            .collect::<Vec<_>>();
+        let scan_types = format!("|{}|", scan_types.iter().map(|scan_type| scan_type.as_ref()).collect::<Vec<_>>().join("|"));
+        let providers = ScanProvider::all()
+            .into_iter()
+            .filter(|provider| result.checks.iter().any(|check| check.provider == *provider) || result.detections.iter().any(|detection| detection.provider == Some(*provider)))
+            .collect::<Vec<_>>();
+        let scan_providers = (result.source == ScanSource::Local)
+            .then_some("internal")
+            .into_iter()
+            .chain(providers.iter().map(|provider| provider.as_ref()))
+            .collect::<Vec<_>>()
+            .join("|");
+        let scan_providers = format!("|{scan_providers}|");
         let website_host = website_host(payload);
         let target = if payload.target.address.is_empty() {
             website_host.clone().unwrap_or_default()
@@ -214,6 +234,8 @@ impl ScanClient {
             transaction_type = transaction_type,
             chain = chain,
             source = result.source.as_ref(),
+            scan_types = scan_types,
+            scan_providers = scan_providers,
             malicious = result.scan.is_malicious == Some(true),
             target = format!("{target:?}"),
             origin_asset_id = payload.origin.asset_id,
