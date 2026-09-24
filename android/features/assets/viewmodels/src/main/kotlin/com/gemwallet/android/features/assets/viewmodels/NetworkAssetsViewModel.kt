@@ -10,7 +10,6 @@ import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
-import com.gemwallet.android.domains.asset.assetSections
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
@@ -32,10 +31,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAssetRowStyle
-import uniffi.gemstone.GemNetworkAssetCounts
 import uniffi.gemstone.GemNetworkAssetSections
 import uniffi.gemstone.GemWalletHomeServiceInterface
-import uniffi.gemstone.showsOnNetworkAssets
+import uniffi.gemstone.networkAssetSections
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -78,8 +76,8 @@ class NetworkAssetsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, assetGroups.value.hidden)
 
     val sections: StateFlow<GemNetworkAssetSections> = assetGroups
-        .map { it.counts().sections() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, assetGroups.value.counts().sections())
+        .map { it.sections }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, assetGroups.value.sections)
 
     init {
         viewModelScope.launch(ioDispatcher) {
@@ -90,16 +88,21 @@ class NetworkAssetsViewModel @Inject constructor(
     }
 
     private fun groups(active: List<AssetInfo>, hidden: List<AssetInfo>): NetworkAssetGroups {
-        val sections = active.tokens().assetSections(assetId = { it.asset.id }, isPinned = { it.metadata.isPinned })
+        val ids = networkAssetSections(
+            active = active.map { it.asset.id.toIdentifier() },
+            pinned = active.filter { it.metadata.isPinned }.map { it.asset.id.toIdentifier() },
+            hidden = hidden.map { it.asset.id.toIdentifier() },
+        )
+        val byId = (active + hidden).associateBy { it.asset.id.toIdentifier() }
+        val assets = { assetIds: List<String> -> assetIds.mapNotNull(byId::get).toAssetInfoDataAggregates(rowStyle) }
         return NetworkAssetGroups(
-            pinned = sections.pinned.toAssetInfoDataAggregates(rowStyle),
-            unpinned = sections.unpinned.toAssetInfoDataAggregates(rowStyle),
-            hidden = hidden.tokens().toAssetInfoDataAggregates(rowStyle),
+            pinned = assets(ids.pinned),
+            unpinned = assets(ids.unpinned),
+            hidden = assets(ids.hidden),
+            sections = ids.sections,
             isLoaded = true,
         )
     }
-
-    private fun List<AssetInfo>.tokens(): List<AssetInfo> = filter { showsOnNetworkAssets(it.asset.id.toIdentifier()) }
 
     fun hideAsset(assetId: AssetId) = setEnabled(assetId, false)
 
@@ -124,13 +127,8 @@ private data class NetworkAssetGroups(
     val pinned: List<AssetInfoDataAggregate> = emptyList(),
     val unpinned: List<AssetInfoDataAggregate> = emptyList(),
     val hidden: List<AssetInfoDataAggregate> = emptyList(),
+    val sections: GemNetworkAssetSections = GemNetworkAssetSections(showsPinned = false, showsUnpinned = false, showsHidden = false, showsEmpty = true),
     val isLoaded: Boolean = false,
 ) {
-    fun counts(): GemNetworkAssetCounts = GemNetworkAssetCounts(
-        pinned = pinned.size.toUInt(),
-        unpinned = unpinned.size.toUInt(),
-        hidden = hidden.size.toUInt(),
-    )
-
     fun assetIds(): List<String> = (pinned + unpinned + hidden).map { it.id.toIdentifier() }
 }

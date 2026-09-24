@@ -429,13 +429,6 @@ pub struct GemAssetSectionCounts {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
-pub struct GemNetworkAssetCounts {
-    pub pinned: u32,
-    pub unpinned: u32,
-    pub hidden: u32,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
 pub struct GemNetworkAssetSections {
     pub shows_pinned: bool,
     pub shows_unpinned: bool,
@@ -443,21 +436,17 @@ pub struct GemNetworkAssetSections {
     pub shows_empty: bool,
 }
 
-#[uniffi::export]
-pub fn shows_on_network_assets(asset_id: AssetId) -> bool {
-    asset_id.is_token()
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct GemNetworkAssetIds {
+    pub pinned: Vec<AssetId>,
+    pub unpinned: Vec<AssetId>,
+    pub hidden: Vec<AssetId>,
+    pub sections: GemNetworkAssetSections,
 }
 
 #[uniffi::export]
-impl GemNetworkAssetCounts {
-    pub fn sections(&self) -> GemNetworkAssetSections {
-        GemNetworkAssetSections {
-            shows_pinned: self.pinned > 0,
-            shows_unpinned: self.unpinned > 0,
-            shows_hidden: self.hidden > 0,
-            shows_empty: self.pinned == 0 && self.unpinned == 0 && self.hidden == 0,
-        }
-    }
+pub fn network_asset_sections(active: Vec<AssetId>, pinned: Vec<AssetId>, hidden: Vec<AssetId>) -> GemNetworkAssetIds {
+    super::rules::network_asset_sections(active, &pinned, hidden)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

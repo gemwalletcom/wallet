@@ -9,8 +9,9 @@ use primitives::{
 
 use super::model::{
     AssetList, GemAssetAction, GemAssetBalanceScope, GemAssetDetailRow, GemAssetDetailSection, GemAssetDetailsState, GemAssetEmptyAction, GemAssetFilter, GemAssetListRow, GemAssetListRowInput, GemAssetMenuAction, GemAssetMenuInput,
-    GemAssetNetworkDestination, GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemHeaderActions, GemHeaderButton, GemHeaderButtonKind, GemPriceRow,
-    GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetState, GemSelectAssetTitle, GemSelectAssetType, GemSelectRowAction, GemWalletSearchCounts, GemWalletSearchLimits, GemWalletSearchState,
+    GemAssetNetworkDestination, GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemHeaderActions, GemHeaderButton, GemHeaderButtonKind,
+    GemNetworkAssetIds, GemNetworkAssetSections, GemPriceRow, GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetState, GemSelectAssetTitle, GemSelectAssetType, GemSelectRowAction, GemWalletSearchCounts,
+    GemWalletSearchLimits, GemWalletSearchState,
 };
 use crate::config::search_config::{ASSETS_INITIAL_LIMIT, ASSETS_SEARCH_LIMIT, NFTS_PREVIEW_LIMIT, PERPETUALS_PREVIEW_LIMIT, RESULTS_LIMIT};
 use crate::config::stake::EARN_OFFERED;
@@ -413,6 +414,18 @@ pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: O
             ..flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Open))
         },
     }
+}
+
+pub fn network_asset_sections(active: Vec<AssetId>, pinned: &[AssetId], hidden: Vec<AssetId>) -> GemNetworkAssetIds {
+    let (pinned, unpinned): (Vec<AssetId>, Vec<AssetId>) = active.into_iter().filter(AssetId::is_token).partition(|id| pinned.contains(id));
+    let hidden: Vec<AssetId> = hidden.into_iter().filter(AssetId::is_token).collect();
+    let sections = GemNetworkAssetSections {
+        shows_pinned: !pinned.is_empty(),
+        shows_unpinned: !unpinned.is_empty(),
+        shows_hidden: !hidden.is_empty(),
+        shows_empty: pinned.is_empty() && unpinned.is_empty() && hidden.is_empty(),
+    };
+    GemNetworkAssetIds { pinned, unpinned, hidden, sections }
 }
 
 pub fn asset_sections(ids: Vec<AssetId>, pinned_ids: Vec<AssetId>, shows_popular: bool, popular_ids: Vec<AssetId>) -> GemAssetSectionIds {
@@ -975,22 +988,25 @@ mod tests {
 
     #[test]
     fn test_the_network_screen_lists_the_chain_tokens_without_its_coin() {
-        use super::super::model::shows_on_network_assets;
+        let coin = AssetId::from_chain(Chain::Ethereum);
+        let usdc = Asset::mock_ethereum_usdc().id;
+        let pinned = AssetId::from_token(Chain::Ethereum, "0xpinned");
+        let hidden = AssetId::from_token(Chain::Ethereum, "0xhidden");
 
-        assert!(!shows_on_network_assets(AssetId::from_chain(Chain::Ethereum)));
-        assert!(shows_on_network_assets(Asset::mock_ethereum_usdc().id));
+        let ids = network_asset_sections(vec![coin.clone(), usdc.clone(), pinned.clone()], &[coin.clone(), pinned.clone()], vec![coin, hidden.clone()]);
+
+        assert_eq!((ids.pinned, ids.unpinned, ids.hidden), (vec![pinned], vec![usdc], vec![hidden]));
+        assert!(ids.sections.shows_pinned && ids.sections.shows_unpinned && ids.sections.shows_hidden && !ids.sections.shows_empty);
     }
 
     #[test]
     fn test_network_assets_are_empty_only_when_every_section_is() {
-        use super::super::model::GemNetworkAssetCounts;
-        let counts = |pinned, unpinned, hidden| GemNetworkAssetCounts { pinned, unpinned, hidden }.sections();
+        let token = AssetId::from_token(Chain::Ethereum, "0xtoken");
 
-        assert!(counts(0, 0, 0).shows_empty);
-        assert!(!counts(0, 0, 1).shows_empty);
-        assert!(counts(0, 0, 1).shows_hidden);
-        assert!(counts(2, 0, 0).shows_pinned);
-        assert!(!counts(2, 0, 0).shows_unpinned);
+        assert!(network_asset_sections(vec![], &[], vec![]).sections.shows_empty);
+        assert!(network_asset_sections(vec![AssetId::from_chain(Chain::Ethereum)], &[], vec![]).sections.shows_empty, "the coin alone leaves the screen empty");
+        let hidden_only = network_asset_sections(vec![], &[], vec![token]).sections;
+        assert!(hidden_only.shows_hidden && !hidden_only.shows_empty && !hidden_only.shows_pinned && !hidden_only.shows_unpinned);
     }
 
     #[test]

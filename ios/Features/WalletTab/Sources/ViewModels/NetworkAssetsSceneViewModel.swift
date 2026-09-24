@@ -2,10 +2,10 @@
 
 import Components
 import Foundation
-import struct Gemstone.GemNetworkAssetCounts
+import struct Gemstone.GemNetworkAssetIds
 import struct Gemstone.GemNetworkAssetSections
 import protocol Gemstone.GemWalletHomeServiceProtocol
-import func Gemstone.showsOnNetworkAssets
+import func Gemstone.networkAssetSections
 import GemstoneServices
 import Localization
 import Primitives
@@ -61,24 +61,16 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
         service.getCurrency().toPrimitives()
     }
 
-    var active: [AssetData] {
-        activeQuery.value.filter { showsOnNetworkAssets(assetId: $0.asset.id.identifier) }
-    }
-
     var pinned: [AssetData] {
-        activeSections.pinned
+        assets(networkIds.pinned)
     }
 
     var unpinned: [AssetData] {
-        activeSections.assets
-    }
-
-    private var activeSections: AssetsSections {
-        AssetsSections.from(active)
+        assets(networkIds.unpinned)
     }
 
     var hidden: [AssetData] {
-        hiddenQuery.value.filter { showsOnNetworkAssets(assetId: $0.asset.id.identifier) }
+        assets(networkIds.hidden)
     }
 
     var showPinned: Bool {
@@ -102,11 +94,21 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
     }
 
     private var sections: GemNetworkAssetSections {
-        GemNetworkAssetCounts(
-            pinned: UInt32(pinned.count),
-            unpinned: UInt32(unpinned.count),
-            hidden: UInt32(hidden.count),
-        ).sections()
+        networkIds.sections
+    }
+
+    private var networkIds: GemNetworkAssetIds {
+        let active = activeQuery.value
+        return networkAssetSections(
+            active: active.map(\.asset.id.identifier),
+            pinned: active.filter(\.metadata.isPinned).map(\.asset.id.identifier),
+            hidden: hiddenQuery.value.map(\.asset.id.identifier),
+        )
+    }
+
+    private func assets(_ ids: [String]) -> [AssetData] {
+        let byId = Dictionary((activeQuery.value + hiddenQuery.value).map { ($0.asset.id.identifier, $0) }, uniquingKeysWith: { first, _ in first })
+        return ids.compactMap { byId[$0] }
     }
 
     var emptyModel: EmptyContentTypeViewModel {
@@ -114,7 +116,7 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
     }
 
     var assetIds: [AssetId] {
-        (active + hidden).map(\.asset.id)
+        (pinned + unpinned + hidden).map(\.asset.id)
     }
 
     func updateBalances() async {

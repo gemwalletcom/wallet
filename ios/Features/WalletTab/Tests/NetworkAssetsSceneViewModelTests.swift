@@ -27,7 +27,7 @@ struct NetworkAssetsSceneViewModelTests {
         let model = NetworkAssetsSceneViewModel.mock()
         model.activeQuery.value = [.mock(asset: .mockEthereum()), .mock(asset: .mockEthereumUSDT(), metadata: .mock(isPinned: false))]
 
-        #expect(model.active.count == 1)
+        #expect(model.unpinned.map(\.asset.id) == [Asset.mockEthereumUSDT().id])
         #expect(model.showUnpinned)
         #expect(model.showEmpty == false)
     }
