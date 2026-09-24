@@ -19,14 +19,14 @@ public struct NFTRequest: DatabaseQueryable {
     }
 
     public func fetch(_ db: Database) throws -> [NFTData] {
-        var request = NFTCollectionRecord
-            .including(
-                all: NFTCollectionRecord.assets
-                    .joining(
-                        required: NFTAssetRecord.assetAssociations
-                            .filter(NFTAssetAssociationRecord.Columns.walletId == walletId.id),
-                    ),
+        let walletAssets = NFTCollectionRecord.assets
+            .joining(
+                required: NFTAssetRecord.assetAssociations
+                    .filter(NFTAssetAssociationRecord.Columns.walletId == walletId.id),
             )
+        var request = NFTCollectionRecord
+            .joining(required: walletAssets.forKey("walletAssets"))
+            .including(all: walletAssets)
             .distinct()
             .asRequest(of: NFTCollectionRecordInfo.self)
 
