@@ -118,8 +118,8 @@ impl MessageSigner {
         }
     }
 
-    pub fn sign_with_keystore(&self, keystore: Arc<GemKeystore>, keystore_id: String, password: Vec<u8>) -> Result<String, GemstoneError> {
-        let private_key = keystore.signing_key(&keystore_id, self.message.chain, password)?;
+    pub fn sign_with_keystore(&self, keystore: Arc<GemKeystore>, keystore_id: String, address: &str, password: Vec<u8>) -> Result<String, GemstoneError> {
+        let private_key = keystore.signing_key(&keystore_id, self.message.chain, address, password)?;
         self.sign(private_key)
     }
 

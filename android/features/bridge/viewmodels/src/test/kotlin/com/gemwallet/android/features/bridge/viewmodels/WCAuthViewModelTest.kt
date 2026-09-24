@@ -91,7 +91,7 @@ class WCAuthViewModelTest {
         every { authenticationChainIds(any()) } returns listOf("eip155:1")
         every { authenticationMethods() } returns listOf("personal_sign")
         every { authenticationAccounts(any(), any()) } answers { accounts(secondArg<uniffi.gemstone.Wallet>().id) }
-        coEvery { signMessage(any(), any()) } returns "0xsignature"
+        coEvery { signMessage(any(), any(), any()) } returns "0xsignature"
     }
 
     private fun approval(): ApproveWalletConnectAuthentication = mockk(relaxed = true) {
@@ -204,7 +204,7 @@ class WCAuthViewModelTest {
         model.onApprove()
 
         assertEquals(main, approved.await())
-        coVerify { service.signMessage("multicoin_0xabc", any()) }
+        coVerify { service.signMessage("multicoin_0xabc", match { it.chain == "ethereum" && it.address == "0xabc" }, any()) }
         verify { approve.authObject(any(), "did:pkh:eip155:1:0xabc", "0xsignature") }
     }
 

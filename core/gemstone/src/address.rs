@@ -1,4 +1,37 @@
-use primitives::{Chain, ChainType};
+use gem_algorand::AlgorandAddress;
+use gem_aptos::AccountAddress as AptosAddress;
+use gem_bitcoin::BitcoinAddress;
+use gem_evm::EthereumAddress;
+use gem_polkadot::PolkadotAddress;
+use gem_solana::SolanaAddress;
+use gem_stellar::StellarAddress;
+use gem_sui::address::SuiAddress;
+use gem_ton::Address as TonAddress;
+use gem_tron::address::TronAddress;
+use gem_xrp::XrpAddress;
+use primitives::{Account, Address, BitcoinChain, Chain, ChainType};
+
+pub(crate) fn account_matches_address(account: &Account, address: &str) -> bool {
+    let expected = account.address.as_str();
+    match account.chain.chain_type() {
+        ChainType::Ethereum | ChainType::HyperCore => parsed_addresses_match(expected, address, EthereumAddress::try_parse),
+        ChainType::Solana => parsed_addresses_match(expected, address, SolanaAddress::try_parse),
+        ChainType::Ton => parsed_addresses_match(expected, address, TonAddress::try_parse),
+        ChainType::Tron => parsed_addresses_match(expected, address, TronAddress::try_parse),
+        ChainType::Aptos => parsed_addresses_match(expected, address, AptosAddress::try_parse),
+        ChainType::Sui => parsed_addresses_match(expected, address, SuiAddress::try_parse),
+        ChainType::Stellar => parsed_addresses_match(expected, address, StellarAddress::try_parse),
+        ChainType::Algorand => parsed_addresses_match(expected, address, AlgorandAddress::try_parse),
+        ChainType::Xrp => parsed_addresses_match(expected, address, XrpAddress::try_parse),
+        ChainType::Polkadot => parsed_addresses_match(expected, address, PolkadotAddress::try_parse),
+        ChainType::Bitcoin => BitcoinChain::from_chain(account.chain).is_some_and(|chain| parsed_addresses_match(expected, address, |address| BitcoinAddress::try_parse_for_chain(address, chain))),
+        ChainType::Cosmos | ChainType::Near | ChainType::Cardano => expected == address,
+    }
+}
+
+fn parsed_addresses_match<T: Address>(left: &str, right: &str, parse: impl Fn(&str) -> Option<T>) -> bool {
+    parse(left).zip(parse(right)).is_some_and(|(left, right)| left.as_bytes() == right.as_bytes())
+}
 
 pub fn validate_address(address: &str, chain: Chain) -> bool {
     match chain.chain_type() {
@@ -21,7 +54,81 @@ pub fn validate_address(address: &str, chain: Chain) -> bool {
 
 #[cfg(test)]
 mod tests {
+    use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER, TEST_SOLANA_SENDER, TEST_TON_SENDER};
+
     use super::*;
+
+    #[test]
+    fn test_account_matches_address_evm() {
+        for chain in [Chain::Ethereum, Chain::HyperCore] {
+            let account = Account::mock(chain, TEST_EVM_SENDER);
+            assert!(account_matches_address(&account, &TEST_EVM_SENDER.to_lowercase()));
+            assert!(account_matches_address(&account, TEST_EVM_SENDER.trim_start_matches("0x")));
+            assert!(!account_matches_address(&account, &format!(" {TEST_EVM_SENDER}\n")));
+            assert!(!account_matches_address(&account, TEST_EVM_RECIPIENT));
+            assert!(!account_matches_address(&account, "invalid"));
+            assert!(!account_matches_address(&Account::mock(chain, "invalid"), TEST_EVM_SENDER));
+            assert!(!account_matches_address(&Account::mock(chain, ""), ""));
+        }
+    }
+
+    #[test]
+    fn test_account_matches_address_ton() {
+        let account = Account::mock(Chain::Ton, TEST_TON_SENDER);
+        let address = TonAddress::try_parse(TEST_TON_SENDER).unwrap();
+        assert!(account_matches_address(&account, &address.encode_bounceable()));
+        assert!(account_matches_address(&account, &format!("{}:{}", address.workchain(), hex::encode(address.hash_part()))));
+        assert!(!account_matches_address(&account, &TonAddress::new(-1, *address.hash_part()).encode()));
+        assert!(!account_matches_address(&account, "invalid"));
+    }
+
+    #[test]
+    fn test_account_matches_address_bitcoin() {
+        let bitcoin = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4";
+        let bitcoin_cash = "qpzl3jxkzgvfd9flnd26leud5duv795fnv7vuaha70";
+        let account = Account::mock(Chain::Bitcoin, bitcoin);
+        assert!(account_matches_address(&account, &bitcoin.to_uppercase()));
+        assert!(account_matches_address(&Account::mock(Chain::BitcoinCash, bitcoin_cash), &format!("bitcoincash:{bitcoin_cash}")));
+        assert!(!account_matches_address(&Account::mock(Chain::Litecoin, bitcoin), bitcoin));
+        assert!(!account_matches_address(&account, "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"));
+    }
+
+    #[test]
+    fn test_account_matches_address_case_sensitive() {
+        let account = Account::mock(Chain::Solana, TEST_SOLANA_SENDER);
+        assert!(account_matches_address(&account, TEST_SOLANA_SENDER));
+        assert!(!account_matches_address(&account, &TEST_SOLANA_SENDER.to_lowercase()));
+    }
+
+    #[test]
+    fn test_account_matches_address_parsed_hex() {
+        let address = "ada112cfb90b44ba889cc5d39ac2bf46281e4a91f7919c693bcd9b8323e81ed2";
+        for chain in [Chain::Aptos, Chain::Sui] {
+            let account = Account::mock(chain, &format!("0x{address}"));
+            assert!(account_matches_address(&account, &format!("0x{}", address.to_uppercase())));
+            assert!(!account_matches_address(&account, &format!("0x{}", "ab".repeat(32))));
+        }
+    }
+
+    #[test]
+    fn test_account_matches_address_rejects_unparseable_addresses() {
+        for chain in [
+            Chain::Ethereum,
+            Chain::HyperCore,
+            Chain::Bitcoin,
+            Chain::Ton,
+            Chain::Solana,
+            Chain::Tron,
+            Chain::Aptos,
+            Chain::Sui,
+            Chain::Stellar,
+            Chain::Algorand,
+            Chain::Xrp,
+            Chain::Polkadot,
+        ] {
+            assert!(!account_matches_address(&Account::mock(chain, "invalid"), "invalid"), "{chain}");
+        }
+    }
 
     #[test]
     fn test_chain_address_validation() {

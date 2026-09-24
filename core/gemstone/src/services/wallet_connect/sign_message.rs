@@ -55,9 +55,14 @@ impl GemSignMessageService {
         }
     }
 
-    pub async fn sign(&self, wallet_id: WalletId, message: SignMessage) -> Result<String, GemServiceError> {
+    pub async fn sign(&self, wallet_id: WalletId, account: Account, message: SignMessage) -> Result<String, GemServiceError> {
+        if account.chain != message.chain {
+            return Err(GemServiceError::InvalidInput {
+                msg: "approved account chain does not match the message chain".to_string(),
+            });
+        }
         let password = decode_password(&self.password.get_password(false)?);
-        Ok(MessageSigner::new(message).sign_with_keystore(self.keystore.clone(), keystore_id_for_wallet(wallet_id.id()), password)?)
+        Ok(MessageSigner::new(message).sign_with_keystore(self.keystore.clone(), keystore_id_for_wallet(wallet_id.id()), &account.address, password)?)
     }
 
     pub fn preview(&self, request: GemWalletConnectMessageRequest) -> GemSignMessagePreview {

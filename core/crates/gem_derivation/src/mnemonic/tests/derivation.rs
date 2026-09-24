@@ -1,8 +1,8 @@
 use primitives::{Chain, WalletType, hex};
 
-use crate::{AccountDerivationError, derive_wallet_id_from_account};
+use crate::{AccountDerivationError, derive_account_from_private_key, derive_wallet_id_from_account};
 
-use super::super::derivation::{derive_accounts_from_mnemonic, derive_private_key_from_mnemonic};
+use super::super::derivation::{derive_accounts_from_mnemonic, derive_legacy_solana_private_key_from_mnemonic, derive_private_key_from_mnemonic};
 use super::{PHRASE, TEST_PHRASE, bitcoin_family_v3_vectors, expected_derivation};
 
 #[test]
@@ -94,4 +94,12 @@ fn test_derive_private_key_from_mnemonic() {
 
     assert_eq!(private_key.len(), 32);
     assert_eq!(hex::encode(private_key.as_slice()), "1ab42cc412b618bdea3a599e3c9bae199ebf030895b039e9db1e30dafb12b727");
+}
+
+#[test]
+fn test_derive_legacy_solana_private_key_from_mnemonic() {
+    let address = |private_key: &[u8]| derive_account_from_private_key(private_key, Chain::Solana).unwrap().address;
+
+    assert_eq!(address(&derive_private_key_from_mnemonic(PHRASE, Chain::Solana).unwrap()), "HAgk14JpMQLgt6rVgv7cBQFJWFto5Dqxi472uT3DKpqk");
+    assert_eq!(address(&derive_legacy_solana_private_key_from_mnemonic(PHRASE).unwrap()), "GjJyeC1r2RgkuoCWMyPYkCWSGSGLcz266EaAkLA27AhL");
 }

@@ -120,7 +120,7 @@ public final class SignMessageSceneViewModel {
     }
 
     public func signMessage() async throws {
-        let signature = try await service.sign(walletId: request.wallet.id, message: request.message)
+        let signature = try await service.sign(walletId: request.wallet.id, account: request.account, message: request.message)
         confirmTransferDelegate(.success(signature))
     }
 

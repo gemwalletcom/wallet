@@ -122,7 +122,7 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
         return !seen
     }
 
-    public func signMessage(walletId _: Gemstone.WalletId, message _: Gemstone.SignMessage) async throws -> String {
+    public func signMessage(walletId _: Gemstone.WalletId, account _: Gemstone.Account, message _: Gemstone.SignMessage) async throws -> String {
         try signatureResult.get()
     }
 

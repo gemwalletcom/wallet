@@ -119,7 +119,7 @@ impl GemSwapService {
             .map(|password| decode_password(&password))
             .map_err(|error| SwapperError::TransactionError(error.to_string()))?;
         let signature = signer
-            .sign_with_keystore(self.keystore.clone(), keystore_id_for_wallet(wallet.id.id()), password)
+            .sign_with_keystore(self.keystore.clone(), keystore_id_for_wallet(wallet.id.id()), &quote.request.wallet_address, password)
             .map_err(|error| SwapperError::TransactionError(error.to_string()))?;
         let signature = primitives::hex::decode_hex(&signature).map_err(|error| SwapperError::TransactionError(error.to_string()))?;
         Ok(Permit2Data { permit_single, signature })
