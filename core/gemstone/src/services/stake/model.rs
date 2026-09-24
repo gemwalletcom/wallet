@@ -3,10 +3,11 @@ use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::list::GemListRow;
 use crate::services::amount::model::GemAmountType;
 use crate::services::amount::rules as amount_rules;
+use crate::services::balance::GemAssetBalance;
 use crate::services::error::GemServiceError;
 use crate::services::localization::GemLocalizedText;
 use crate::services::transfer::GemTransferData;
-use primitives::{Asset, BlockExplorerLink, Currency, Delegation, DelegationState, DelegationValidator, EarnType, Resource, StakeType, WalletType, YieldProvider};
+use primitives::{Asset, BalanceMetadata, BlockExplorerLink, Currency, Delegation, DelegationState, DelegationValidator, EarnType, Resource, StakeType, WalletType, YieldProvider};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemStakeSection {
@@ -105,6 +106,37 @@ pub enum GemDelegationDestination {
 pub enum GemDelegationAmountInput {
     Stake { input: GemStakeAmountInput },
     Earn { earn_type: EarnType },
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemStakeInput {
+    pub wallet_type: WalletType,
+    pub asset: Asset,
+    pub balance: GemAssetBalance,
+    pub balance_metadata: Option<BalanceMetadata>,
+    pub staking_apr: Option<f64>,
+    pub price: Option<f64>,
+    pub currency: Currency,
+    pub validators: Vec<DelegationValidator>,
+    pub delegations: Vec<Delegation>,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemStakeDelegationItem {
+    pub delegation: Delegation,
+    pub row: GemDelegationListRow,
+    pub destination: GemDelegationDestination,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemStakeViewState {
+    pub sections: Vec<GemStakeSection>,
+    pub info_rows: Vec<GemListRow>,
+    pub actions: Vec<GemStakeActionItem>,
+    pub resource_rows: Vec<GemListRow>,
+    pub delegations: Vec<GemStakeDelegationItem>,
+    pub validators: Vec<DelegationValidator>,
+    pub claim_rewards: GemClaimRewards,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]

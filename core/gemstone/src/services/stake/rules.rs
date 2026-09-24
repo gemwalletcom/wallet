@@ -13,7 +13,7 @@ use std::str::FromStr;
 
 use super::model::{
     GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationListRow, GemDelegationStatus, GemEarnActions, GemStakeAction, GemStakeActionItem,
-    GemStakeAmountInput, GemStakeDestination, GemStakeSection, GemStakeValidatorSelection, GemValidatorRow,
+    GemStakeAmountInput, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorSelection, GemStakeViewState, GemValidatorRow,
 };
 use crate::config::image::GemImage;
 use crate::config::stake::EARN_OFFERED;
@@ -260,6 +260,40 @@ pub fn can_claim_all_rewards(chain: Chain, delegations_with_rewards: usize) -> b
 
 fn stake_config(chain: Chain) -> Option<StakeChainConfig> {
     StakeChain::from_chain(chain).map(get_stake_config)
+}
+
+pub fn stake_view_state(input: GemStakeInput) -> GemStakeViewState {
+    let GemStakeInput {
+        wallet_type,
+        asset,
+        balance,
+        balance_metadata,
+        staking_apr,
+        price,
+        currency,
+        validators,
+        delegations,
+    } = input;
+    let chain = asset.chain();
+    let validators = selectable_validators(validators);
+    let delegations = sorted_delegations(delegations);
+    let actions = stake_actions(wallet_type, chain, &validators, &balance, &delegations);
+    GemStakeViewState {
+        sections: stake_sections(uses_freeze(chain), !actions.is_empty(), !delegations.is_empty()),
+        info_rows: stake_info_rows(&asset, staking_apr),
+        resource_rows: crate::services::balance::rules::balance_resource_rows(balance_metadata),
+        claim_rewards: claim_rewards(chain, delegations.clone()),
+        delegations: delegations
+            .into_iter()
+            .map(|delegation| GemStakeDelegationItem {
+                row: delegation_list_row(&delegation, &asset, price, currency.clone()),
+                destination: delegation_destination(wallet_type, asset.clone(), delegation.clone()),
+                delegation,
+            })
+            .collect(),
+        actions,
+        validators,
+    }
 }
 
 pub fn stake_sections(uses_freeze: bool, has_actions: bool, has_delegations: bool) -> Vec<GemStakeSection> {
@@ -1200,6 +1234,34 @@ mod tests {
             delegation_actions(WalletType::Multicoin, &Delegation::mock_with(Chain::Ethereum, StakeProviderType::Earn, DelegationState::Inactive, 0)),
             vec![Withdraw]
         );
+    }
+
+    #[test]
+    fn test_the_stake_screen_is_one_record_built_from_the_same_rules() {
+        let asset = Asset::from_chain(Chain::Cosmos);
+        let delegations = vec![
+            Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Pending, 0),
+            Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 10),
+        ];
+        let validators = vec![DelegationValidator::mock()];
+        let state = stake_view_state(GemStakeInput {
+            wallet_type: WalletType::Multicoin,
+            asset: asset.clone(),
+            balance: GemAssetBalance::mock(),
+            balance_metadata: None,
+            staking_apr: None,
+            price: None,
+            currency: Currency::USD,
+            validators: validators.clone(),
+            delegations: delegations.clone(),
+        });
+
+        let sorted = sorted_delegations(delegations);
+        assert_eq!(state.delegations.iter().map(|item| item.delegation.clone()).collect::<Vec<_>>(), sorted);
+        assert_eq!(state.validators, selectable_validators(validators.clone()));
+        assert_eq!(state.sections, stake_sections(uses_freeze(Chain::Cosmos), !state.actions.is_empty(), true));
+        assert_eq!(state.delegations[0].row, delegation_list_row(&sorted[0], &asset, None, Currency::USD));
+        assert!(state.resource_rows.is_empty());
     }
 
     #[test]

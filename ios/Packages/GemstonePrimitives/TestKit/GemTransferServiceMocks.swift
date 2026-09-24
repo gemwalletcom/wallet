@@ -228,12 +228,31 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         .text(title: .stakeApr, value: "")
     }
 
-    public func stakeSections(chain _: Gemstone.Chain, hasActions: Bool, hasDelegations: Bool) -> [Gemstone.GemStakeSection] {
-        [hasActions ? .manage : nil, freezes ? .resources : nil, hasDelegations ? .delegations : nil].compactMap(\.self)
-    }
-
-    public func stakeInfoRows(asset _: Gemstone.Asset, stakingApr _: Double?) -> [GemListRow] {
-        infoRows
+    public func stakeViewState(input: GemStakeInput) -> GemStakeViewState {
+        let actions = [
+            GemStakeActionItem(
+                action: .stake,
+                isEnabled: validators.isEmpty == false,
+                requiresFrozenBalance: false,
+                value: nil,
+                destination: .amount(input: .stake(validators: validators, validator: nil)),
+            ),
+        ]
+        return GemStakeViewState(
+            sections: [.manage, freezes ? .resources : nil, input.delegations.isEmpty ? nil : .delegations].compactMap(\.self),
+            infoRows: infoRows,
+            actions: actions,
+            resourceRows: Gemstone.balanceResourceRows(metadata: input.balanceMetadata),
+            delegations: input.delegations.map {
+                GemStakeDelegationItem(
+                    delegation: $0,
+                    row: Gemstone.delegationListRow(delegation: $0, asset: input.asset, price: input.price, currency: input.currency),
+                    destination: .details,
+                )
+            },
+            validators: validators,
+            claimRewards: GemClaimRewards(destination: claimRewardsDestination ?? .amount(delegations: input.delegations)),
+        )
     }
 
     public func delegationRows(delegation _: Gemstone.Delegation) -> [GemListRow] {
@@ -280,22 +299,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
 
     public func resourceOptions(chain _: Gemstone.Chain) -> [Gemstone.Resource] {
         [.bandwidth, .energy]
-    }
-
-    public func stakeActions(walletType _: Gemstone.WalletType, chain _: Gemstone.Chain, validators: [Gemstone.DelegationValidator], balance _: GemAssetBalance, delegations _: [Gemstone.Delegation]) -> [GemStakeActionItem] {
-        [
-            GemStakeActionItem(
-                action: .stake,
-                isEnabled: validators.isEmpty == false,
-                requiresFrozenBalance: false,
-                value: nil,
-                destination: .amount(input: .stake(validators: validators, validator: nil)),
-            ),
-        ]
-    }
-
-    public func claimRewards(chain _: Gemstone.Chain, delegations: [Gemstone.Delegation]) -> GemClaimRewards {
-        GemClaimRewards(destination: claimRewardsDestination ?? .amount(delegations: delegations))
     }
 
     public func selectableValidators(validators _: [Gemstone.DelegationValidator]) -> [Gemstone.DelegationValidator] {

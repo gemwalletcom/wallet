@@ -37,6 +37,7 @@ import org.junit.Test
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemStakeServiceInterface
+import uniffi.gemstone.GemStakeViewState
 import java.math.BigInteger
 import kotlin.time.Duration.Companion.seconds
 
@@ -63,8 +64,15 @@ class StakeViewModelTest {
         every { this@mockk() } returns MutableStateFlow(mockSession())
     }
     private val stakeService = mockk<GemStakeServiceInterface>(relaxed = true) {
-        every { stakeInfoRows(any(), any()) } returns emptyList()
-        every { claimRewards(asset.id.chain.string, any()) } returns mockClaimRewards()
+        every { stakeViewState(any()) } returns GemStakeViewState(
+            sections = emptyList(),
+            infoRows = emptyList(),
+            actions = emptyList(),
+            resourceRows = emptyList(),
+            delegations = emptyList(),
+            validators = emptyList(),
+            claimRewards = mockClaimRewards(),
+        )
     }
 
     @Before

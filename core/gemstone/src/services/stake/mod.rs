@@ -20,11 +20,10 @@ use crate::models::{GemContractCallData, GemEarnType};
 
 pub use model::{
     GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationStatus, GemEarnActions, GemStakeAction, GemStakeActionItem, GemStakeAmountInput,
-    GemStakeDestination, GemStakeSection, GemStakeValidatorSelection, GemValidatorRow,
+    GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorSelection, GemStakeViewState, GemValidatorRow,
 };
 pub use store::GemStakeStore;
 
-use crate::services::balance::GemAssetBalance;
 use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemNameService;
 use crate::services::preferences::GemPreferencesService;
@@ -112,10 +111,6 @@ impl GemStakeService {
         rules::delegation_action_destination(asset, delegation, action, validators)
     }
 
-    pub fn sorted_delegations(&self, delegations: Vec<Delegation>) -> Vec<Delegation> {
-        rules::sorted_delegations(delegations)
-    }
-
     pub fn positions(&self, delegations: Vec<Delegation>) -> Vec<Delegation> {
         rules::positions(delegations)
     }
@@ -124,25 +119,17 @@ impl GemStakeService {
         rules::resource_options(chain)
     }
 
-    pub fn stake_actions(&self, wallet_type: WalletType, chain: Chain, validators: Vec<DelegationValidator>, balance: GemAssetBalance, delegations: Vec<Delegation>) -> Vec<GemStakeActionItem> {
-        rules::stake_actions(wallet_type, chain, &validators, &balance, &delegations)
+    pub fn stake_view_state(&self, input: GemStakeInput) -> GemStakeViewState {
+        rules::stake_view_state(input)
     }
 
-    pub fn stake_sections(&self, chain: Chain, has_actions: bool, has_delegations: bool) -> Vec<GemStakeSection> {
-        rules::stake_sections(rules::uses_freeze(chain), has_actions, has_delegations)
-    }
-
-    pub fn stake_info_rows(&self, asset: Asset, staking_apr: Option<f64>) -> Vec<GemListRow> {
-        rules::stake_info_rows(&asset, staking_apr)
+    pub fn sorted_delegations(&self, delegations: Vec<Delegation>) -> Vec<Delegation> {
+        rules::sorted_delegations(delegations)
     }
 
     pub fn delegation_details(&self, wallet_type: WalletType, delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency) -> GemDelegationDetails {
         let rows = self.delegation_rows(delegation.clone());
         rules::delegation_details(wallet_type, &delegation, &asset, price, currency, rows)
-    }
-
-    pub fn claim_rewards(&self, chain: Chain, delegations: Vec<Delegation>) -> GemClaimRewards {
-        rules::claim_rewards(chain, delegations)
     }
 
     pub fn selectable_validators(&self, validators: Vec<DelegationValidator>) -> Vec<DelegationValidator> {

@@ -3,7 +3,6 @@
 import Components
 import Formatters
 import Foundation
-import func Gemstone.balanceResourceRows
 import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemClaimRewards
 import enum Gemstone.GemInfoTopic
@@ -11,9 +10,12 @@ import enum Gemstone.GemListRow
 import enum Gemstone.GemLoadState
 import enum Gemstone.GemStakeAction
 import struct Gemstone.GemStakeActionItem
+import struct Gemstone.GemStakeDelegationItem
 import enum Gemstone.GemStakeDestination
+import struct Gemstone.GemStakeInput
 import enum Gemstone.GemStakeSection
 import protocol Gemstone.GemStakeServiceProtocol
+import struct Gemstone.GemStakeViewState
 import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import GemstoneServices
@@ -37,14 +39,6 @@ public final class StakeSceneViewModel {
     public let delegationsQuery: ObservableQuery<DelegationsRequest>
     public let validatorsQuery: ObservableQuery<ValidatorsRequest>
     public let assetQuery: ObservableQuery<AssetRequest>
-
-    public var delegations: [Delegation] {
-        service.sortedDelegations(delegations: delegationsQuery.value.map { $0.toGem() }).map { Delegation(core: $0) }
-    }
-
-    public var validators: [DelegationValidator] {
-        selectable(validatorsQuery.value)
-    }
 
     public var assetData: AssetData {
         assetQuery.value
@@ -75,32 +69,32 @@ public final class StakeSceneViewModel {
         Localized.Transfer.Stake.title
     }
 
-    private func selectable(_ validators: [DelegationValidator]) -> [DelegationValidator] {
-        service.selectableValidators(validators: validators.map { $0.toGem() }).map { $0.toPrimitives() }
+    public var viewState: GemStakeViewState {
+        service.stakeViewState(
+            input: GemStakeInput(
+                walletType: wallet.type.toGem(),
+                asset: asset.toGem(),
+                balance: GemAssetBalance(assetData.balance, assetId: asset.id, isActive: assetData.metadata.isActive),
+                balanceMetadata: assetData.balance.metadata?.toGem(),
+                stakingApr: assetData.metadata.stakingApr,
+                price: assetData.price?.price,
+                currency: service.getCurrency(),
+                validators: validatorsQuery.value.map { $0.toGem() },
+                delegations: delegationsQuery.value.map { $0.toGem() },
+            ),
+        )
     }
 
-    var sections: [GemStakeSection] {
-        service.stakeSections(chain: chain.chain.rawValue, hasActions: actions.isNotEmpty, hasDelegations: delegations.isNotEmpty)
+    func sectionModels(_ state: GemStakeViewState) -> [StakeSectionViewModel] {
+        state.sections.map { StakeSectionViewModel(section: $0, title: $0.title) }
     }
 
-    var infoRows: [GemListRow] {
-        service.stakeInfoRows(asset: asset.toGem(), stakingApr: assetData.metadata.stakingApr)
+    func showsDelegationsPlaceholder(_ state: GemStakeViewState) -> Bool {
+        !state.sections.contains(.delegations)
     }
 
-    var actions: [GemStakeActionItem] {
-        stakeActions
-    }
-
-    var sectionModels: [StakeSectionViewModel] {
-        sections.map { StakeSectionViewModel(section: $0, title: $0.title) }
-    }
-
-    var showsDelegationsPlaceholder: Bool {
-        !sections.contains(.delegations)
-    }
-
-    var actionModels: [StakeActionViewModel] {
-        actions.map { item in
+    func actionModels(_ state: GemStakeViewState) -> [StakeActionViewModel] {
+        state.actions.map { item in
             StakeActionViewModel(
                 id: String(describing: item.action),
                 model: actionListItem(item),
@@ -111,34 +105,18 @@ public final class StakeSceneViewModel {
         }
     }
 
-    var resourceRows: [GemListRow] {
-        balanceResourceRows(metadata: assetData.balance.metadata?.toGem())
-    }
-
     var emptyContentModel: EmptyContentTypeViewModel {
         EmptyContentTypeViewModel(type: EmptyContentType(.stake, symbol: assetModel.symbol))
     }
 
-    func route(delegation: Delegation) -> StakeRoute {
-        service.delegationDestination(walletType: wallet.type.toGem(), asset: asset.toGem(), delegation: delegation.toGem())
-            .route(delegation: delegation, validators: validators)
+    func delegationsViewState(_ state: GemStakeViewState) -> StateViewType<[GemStakeDelegationItem]> {
+        delegationsState.stateViewType(state.delegations)
     }
 
-    var delegationsViewState: StateViewType<[(delegation: Delegation, model: DelegationViewModel)]> {
-        delegationsState.stateViewType(DelegationViewModel.items(delegations, asset: asset, price: assetData.price?.price, currency: service.getCurrency().toPrimitives()))
-    }
-
-    var claimRewardsRoute: StakeRoute {
-        switch claimRewards.destination {
-        case let .transfer(transfer): .transfer(.confirm(transfer))
-        case let .amount(delegations): route(amount: .stake(.rewards(delegations: delegations, validator: nil)))
-        }
-    }
-
-    func route(destination: GemStakeDestination) -> StakeRoute {
+    func route(destination: GemStakeDestination, state: GemStakeViewState) -> StakeRoute {
         switch destination {
         case let .amount(input): route(amount: .stake(input))
-        case .claimRewards: claimRewardsRoute
+        case .claimRewards: claimRewardsRoute(state.claimRewards)
         }
     }
 
@@ -159,15 +137,16 @@ public final class StakeSceneViewModel {
 extension StakeSceneViewModel {
     func load() async {
         delegationsState = .loading
-        delegationsState = await service.refresh(chain: chain.chain.rawValue, delegations: delegations.map { $0.toGem() })
+        delegationsState = await service.refresh(chain: chain.chain.rawValue, delegations: viewState.delegations.map(\.delegation))
     }
 
-    func onSelect(destination: GemStakeDestination) {
-        onNavigate?(route(destination: destination))
+    func onSelect(destination: GemStakeDestination, state: GemStakeViewState) {
+        onNavigate?(route(destination: destination, state: state))
     }
 
-    func onSelect(delegation: Delegation) {
-        onNavigate?(route(delegation: delegation))
+    func onSelect(delegation item: GemStakeDelegationItem, state: GemStakeViewState) {
+        let delegation = Delegation(core: item.delegation)
+        onNavigate?(item.destination.route(delegation: delegation, validators: state.validators.map { $0.toPrimitives() }))
     }
 
     func onInfo(_ topic: GemInfoTopic) {
@@ -190,18 +169,11 @@ extension StakeSceneViewModel {
         chain.chain.asset
     }
 
-    private var stakeActions: [GemStakeActionItem] {
-        service.stakeActions(
-            walletType: wallet.type.toGem(),
-            chain: chain.chain.rawValue,
-            validators: validators.map { $0.toGem() },
-            balance: GemAssetBalance(assetData.balance, assetId: asset.id, isActive: assetData.metadata.isActive),
-            delegations: delegations.map { $0.toGem() },
-        )
-    }
-
-    private var claimRewards: GemClaimRewards {
-        service.claimRewards(chain: chain.chain.rawValue, delegations: delegations.map { $0.toGem() })
+    private func claimRewardsRoute(_ claimRewards: GemClaimRewards) -> StakeRoute {
+        switch claimRewards.destination {
+        case let .transfer(transfer): .transfer(.confirm(transfer))
+        case let .amount(delegations): route(amount: .stake(.rewards(delegations: delegations, validator: nil)))
+        }
     }
 
     private func route(amount: AmountType) -> StakeRoute {

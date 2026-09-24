@@ -26,7 +26,7 @@ struct StakeSceneViewModelTests {
         ]
         let model = StakeSceneViewModel.mock(chain: .tron, stakeService: GemStakeServiceMock(infoRows: rows))
 
-        #expect(model.infoRows == rows)
+        #expect(model.viewState.infoRows == rows)
     }
 
     @Test
@@ -46,7 +46,7 @@ struct StakeSceneViewModelTests {
 
         await model.load()
 
-        guard case .error = model.delegationsViewState else {
+        guard case .error = model.delegationsViewState(model.viewState) else {
             Issue.record("expected the refresh error")
             return
         }
@@ -57,7 +57,7 @@ struct StakeSceneViewModelTests {
         let tron = StakeSceneViewModel.mock(chain: .tron)
         tron.assetQuery.value = .mock(asset: Chain.tron.asset, balance: .mock(frozen: 1))
 
-        let stake = tron.actions.first { $0.action == .stake }
+        let stake = tron.viewState.actions.first { $0.action == .stake }
         #expect(stake?.isEnabled == false)
         #expect(stake?.requiresFrozenBalance == false)
     }
@@ -67,14 +67,14 @@ struct StakeSceneViewModelTests {
         let transfer = GemTransferData.mock()
         let model = StakeSceneViewModel.mock(chain: .tron, stakeService: GemStakeServiceMock(claimRewardsDestination: .transfer(transfer: transfer)))
 
-        #expect(model.route(destination: .claimRewards) == .transfer(.confirm(transfer)))
+        #expect(model.route(destination: .claimRewards, state: model.viewState) == .transfer(.confirm(transfer)))
     }
 
     @Test
     func claimRewardsAcrossValidatorsRoutesToAmount() {
         let model = StakeSceneViewModel.mock(chain: .tron)
 
-        guard case .transfer(.amount) = model.route(destination: .claimRewards) else {
+        guard case .transfer(.amount) = model.route(destination: .claimRewards, state: model.viewState) else {
             Issue.record("expected an amount route")
             return
         }

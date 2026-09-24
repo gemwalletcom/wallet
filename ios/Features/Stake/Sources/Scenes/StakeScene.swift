@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemStakeViewState
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -15,17 +16,18 @@ public struct StakeScene: View {
     }
 
     public var body: some View {
+        let state = model.viewState
         List {
             headerSection
-            stakeInfoSection
-            ForEach(model.sectionModels) { section in
+            stakeInfoSection(state)
+            ForEach(model.sectionModels(state)) { section in
                 Section(section.title) {
-                    content(for: section)
+                    content(for: section, state: state)
                 }
             }
-            if model.showsDelegationsPlaceholder {
+            if model.showsDelegationsPlaceholder(state) {
                 Section {
-                    delegationsPlaceholder
+                    delegationsPlaceholder(state)
                 }
             }
         }
@@ -50,46 +52,46 @@ extension StakeScene {
     }
 
     @ViewBuilder
-    private func content(for section: StakeSectionViewModel) -> some View {
+    private func content(for section: StakeSectionViewModel, state: GemStakeViewState) -> some View {
         switch section.section {
         case .manage:
-            ForEach(model.actionModels) { item in
-                actionLink(item)
+            ForEach(model.actionModels(state)) { item in
+                actionLink(item, state: state)
             }
         case .resources:
-            ForEach(model.resourceRows, id: \.self) { row in
+            ForEach(state.resourceRows, id: \.self) { row in
                 GemListRowView(row: row)
             }
         case .delegations:
-            delegationsPlaceholder
+            delegationsPlaceholder(state)
         }
     }
 
     @ViewBuilder
-    private func actionLink(_ item: StakeActionViewModel) -> some View {
+    private func actionLink(_ item: StakeActionViewModel, state: GemStakeViewState) -> some View {
         if let infoAction = item.infoAction {
             NavigationCustomLink(with: ListItemView(model: item.model), action: infoAction)
         } else {
             NavigationCustomLink(with: ListItemView(model: item.model)) {
-                model.onSelect(destination: item.destination)
+                model.onSelect(destination: item.destination, state: state)
             }
             .enabled(item.isEnabled)
         }
     }
 
     @ViewBuilder
-    private var delegationsPlaceholder: some View {
-        switch model.delegationsViewState {
+    private func delegationsPlaceholder(_ state: GemStakeViewState) -> some View {
+        switch model.delegationsViewState(state) {
         case .noData:
             EmptyContentView(model: model.emptyContentModel)
                 .cleanListRow()
         case .loading:
             ListItemLoadingView()
                 .id(UUID())
-        case let .data(delegations):
-            ForEach(delegations, id: \.delegation.id) { delegation, item in
-                NavigationCustomLink(with: DelegationView(delegation: item)) {
-                    model.onSelect(delegation: delegation)
+        case let .data(items):
+            ForEach(items, id: \.id) { item in
+                NavigationCustomLink(with: DelegationView(delegation: DelegationViewModel(row: item.row))) {
+                    model.onSelect(delegation: item, state: state)
                 }
             }
             .listRowInsets(.assetListRowInsets)
@@ -98,9 +100,9 @@ extension StakeScene {
         }
     }
 
-    private var stakeInfoSection: some View {
+    private func stakeInfoSection(_ state: GemStakeViewState) -> some View {
         Section {
-            ForEach(model.infoRows, id: \.self) { row in
+            ForEach(state.infoRows, id: \.self) { row in
                 GemListRowView(row: row, onInfo: model.onInfo)
             }
         }
