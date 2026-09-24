@@ -28,8 +28,8 @@ pub use autoclose::{GemAutocloseField, GemAutocloseModify};
 pub use candles::{GemCandleRequest, GemCandleResult, GemCandleSession, GemCandleViewState};
 pub use details::GemPerpetualDetailsService;
 pub use model::{
-    GemMarketsRefreshTrigger, GemPerpetualButton, GemPerpetualDetails, GemPerpetualMarketCounts, GemPerpetualPositionAction, GemPerpetualPositionDetailRow, GemPerpetualPositionKind, GemPerpetualSection, GemPerpetualSocketUpdate,
-    GemPerpetualTransferData,
+    GemMarketsRefreshTrigger, GemPerpetualButton, GemPerpetualDetails, GemPerpetualEnablementTrigger, GemPerpetualMarketCounts, GemPerpetualPositionAction, GemPerpetualPositionDetailRow, GemPerpetualPositionKind, GemPerpetualSection,
+    GemPerpetualSocketUpdate, GemPerpetualTransferData,
 };
 pub use store::GemPerpetualStore;
 
@@ -95,21 +95,19 @@ impl GemPerpetualService {
         failures
     }
 
-    pub async fn sync_enablement(&self, wallet: Option<Wallet>, trigger: GemMarketsRefreshTrigger) -> Result<bool, GemServiceError> {
+    pub async fn sync_enablement(&self, wallet: Option<Wallet>, trigger: GemPerpetualEnablementTrigger) -> Result<bool, GemServiceError> {
         if !self.preferences.is_perpetual_enabled() {
             self.clear_markets().await?;
             return Ok(false);
         }
-        self.sync_markets_if_needed(Chain::HyperCore, trigger).await?;
+        if trigger != GemPerpetualEnablementTrigger::Foreground {
+            self.sync_markets_if_needed(Chain::HyperCore, GemMarketsRefreshTrigger::Scheduled).await?;
+        }
         Ok(self.should_connect_perpetuals(wallet))
     }
 
     pub fn show_perpetuals(&self, wallet_type: WalletType, chains: Vec<Chain>) -> bool {
         self.preferences.show_perpetuals(wallet_type, chains)
-    }
-
-    pub fn should_connect_perpetuals(&self, wallet: Option<Wallet>) -> bool {
-        wallet.is_some_and(|wallet| self.show_perpetuals(wallet.wallet_type, wallet.chains()))
     }
 
     pub async fn set_pinned(&self, perpetual_id: String, pinned: bool) -> Result<(), GemServiceError> {
@@ -131,6 +129,10 @@ impl GemPerpetualService {
 }
 
 impl GemPerpetualService {
+    fn should_connect_perpetuals(&self, wallet: Option<Wallet>) -> bool {
+        wallet.is_some_and(|wallet| self.preferences.show_perpetuals(wallet.wallet_type, wallet.chains()))
+    }
+
     pub async fn sync_markets_if_needed(&self, chain: Chain, trigger: GemMarketsRefreshTrigger) -> Result<bool, GemServiceError> {
         if !trigger.should_sync_markets(self.markets_updated_at()?, Utc::now().timestamp()) {
             return Ok(false);
@@ -421,7 +423,7 @@ mod tests {
             let testkit = PerpetualTestkit::new();
             testkit.preferences.set_perpetual_enabled(false).unwrap();
 
-            assert!(!testkit.service.sync_enablement(None, GemMarketsRefreshTrigger::UserRequested).await.unwrap());
+            assert!(!testkit.service.sync_enablement(None, GemPerpetualEnablementTrigger::PreferenceChanged).await.unwrap());
 
             assert_eq!(*testkit.store.deleted.lock().unwrap(), 1);
             assert_eq!(
@@ -430,6 +432,17 @@ mod tests {
                 "the store is told which collateral the clear takes with the markets"
             );
             assert!(testkit.provider.requested_paths().is_empty());
+        })
+    }
+
+    #[test]
+    fn test_returning_to_the_foreground_decides_the_connection_without_refreshing_markets() {
+        block_on(async {
+            let testkit = PerpetualTestkit::new();
+            testkit.preferences.set_perpetual_enabled(true).unwrap();
+
+            assert!(!testkit.service.sync_enablement(None, GemPerpetualEnablementTrigger::Foreground).await.unwrap(), "no wallet, nothing to connect");
+            assert!(testkit.provider.requested_paths().is_empty(), "the foreground leaves the markets to the other triggers");
         })
     }
 

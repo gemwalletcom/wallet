@@ -22,7 +22,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemMarketsRefreshTrigger
 import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPerpetualServiceInterface
 import uniffi.gemstone.GemPerpetualStreamService
@@ -58,14 +57,6 @@ class HyperliquidObserverService(
                         .onFailure { Log.e(TAG, "Perpetual connection failed", it) }
                         .getOrNull() ?: return@collectLatest
                     observeConnection(wallet.id, connection.address, connection.mode.toPrimitives())
-                }
-        }
-        scope.launch {
-            observePerpetualWallet()
-                .distinctUntilChangedBy { it?.id?.id }
-                .collectLatest { wallet ->
-                    runCatchingCancellable { perpetualService.syncEnablement(wallet?.toGem(), GemMarketsRefreshTrigger.SCHEDULED) }
-                        .onFailure { Log.e(TAG, "perpetual markets sync failed", it) }
                 }
         }
     }

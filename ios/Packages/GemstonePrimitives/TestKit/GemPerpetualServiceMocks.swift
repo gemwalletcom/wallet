@@ -84,17 +84,15 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         updatedAt
     }
 
-    public func syncEnablement(wallet: Gemstone.Wallet?, trigger: Gemstone.GemMarketsRefreshTrigger) async throws -> Bool {
-        if isPerpetualEnabled {
-            _ = try await syncMarketsIfNeeded(chain: "hypercore", trigger: trigger)
-        } else {
+    public func syncEnablement(wallet _: Gemstone.Wallet?, trigger: Gemstone.GemPerpetualEnablementTrigger) async throws -> Bool {
+        guard isPerpetualEnabled else {
             try await clearMarkets()
+            return false
         }
-        return shouldConnectPerpetuals(wallet: wallet)
-    }
-
-    public func shouldConnectPerpetuals(wallet _: Gemstone.Wallet?) -> Bool {
-        isPerpetualEnabled && connects
+        if trigger != .foreground {
+            _ = try await syncMarketsIfNeeded(chain: "hypercore", trigger: .scheduled)
+        }
+        return connects
     }
 
     public func showPerpetuals(walletType _: Gemstone.WalletType, chains _: [Gemstone.Chain]) -> Bool {

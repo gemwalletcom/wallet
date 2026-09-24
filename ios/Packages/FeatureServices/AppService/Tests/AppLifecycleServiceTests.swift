@@ -140,7 +140,7 @@ struct AppLifecycleServiceTests {
     }
 
     @Test
-    func updateWalletConnectionsKeepsMarketsUntouched() async throws {
+    func updateWalletConnectionsRefreshesStaleMarkets() async throws {
         let perpetuals = GemPerpetualServiceMock()
         let service = try AppLifecycleService.mock(
             perpetualService: perpetuals,
@@ -149,7 +149,7 @@ struct AppLifecycleServiceTests {
 
         await service.updateWalletConnections()
 
-        #expect(perpetuals.syncMarketsCount == 0)
+        #expect(perpetuals.syncMarketsCount == 1, "a wallet switch refreshes markets that were never synced")
         #expect(perpetuals.clearMarketsCount == 0)
     }
 }
