@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactionDetails
 import com.gemwallet.android.application.transactions.cases.GetTransactions
-import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
@@ -30,6 +29,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemTransactionFilter
+import uniffi.gemstone.GemTransactionRow
 import uniffi.gemstone.GemTransactionsServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -56,7 +56,7 @@ class TransactionsViewModelFiltersTest {
             every { filterChains(any()) } returns emptyList()
         }
         val transactions: GetTransactions = mockk {
-            every { getTransactions(any()) } returns flowOf(emptyList<TransactionDataAggregate>())
+            every { getTransactions(any()) } returns flowOf(emptyList<GemTransactionRow>())
             every { stored(any()) } returns emptyList()
         }
         val getSession: GetSession = mockk { every { this@mockk.invoke() } returns session }

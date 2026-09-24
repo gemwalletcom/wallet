@@ -13,7 +13,6 @@ import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.navigation.WalletNavigator
-import com.gemwallet.android.ui.navigation.assetIdsArgument
 import com.gemwallet.android.ui.navigation.paramsArgument
 import com.gemwallet.android.ui.navigation.routeArguments
 import com.wallet.core.primitives.AssetId
@@ -47,10 +46,9 @@ fun EntryProviderScope<NavKey>.confirm(navigator: WalletNavigator, finishAction:
         )
     }
 
-    entry<PaymentSelectRoute>(
-        metadata = { key -> routeArguments(assetIdsArgument(key.assetIds)) },
-    ) {
+    entry<PaymentSelectRoute> { key ->
         SelectPaymentScreen(
+            assetIds = key.assetIds,
             onCancel = cancelAction::invoke,
             onSelect = navigator::finishPaymentSelect,
         )
