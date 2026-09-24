@@ -18,7 +18,6 @@ pub enum GemPriceAlertKind {
     Decrease,
 }
 
-#[uniffi::export]
 impl GemPriceAlertKind {
     pub fn groups_by_asset(&self) -> bool {
         match self {

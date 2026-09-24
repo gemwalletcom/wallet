@@ -55,10 +55,6 @@ impl GemWalletSessionService {
         Ok(wallet_id)
     }
 
-    pub fn shows_rewards(&self, wallets: Vec<Wallet>) -> bool {
-        rules::shows_rewards(&wallets)
-    }
-
     pub async fn get_wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
         self.wallets.get_wallets().await
     }

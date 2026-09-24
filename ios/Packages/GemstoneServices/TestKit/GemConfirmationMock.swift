@@ -60,7 +60,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     }
 
     public func loadOptions() -> GemConfirmLoadOptions {
-        GemConfirmLoadOptions(feeSelection: .priority(priority: transfer().defaultFeePriority()), feeAssetId: nil, assetId: nil)
+        GemConfirmLoadOptions(feeSelection: .priority(priority: .normal), feeAssetId: nil, assetId: nil)
     }
 
     public func header() -> GemConfirmHeader {

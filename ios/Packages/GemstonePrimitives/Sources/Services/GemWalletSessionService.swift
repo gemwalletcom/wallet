@@ -42,8 +42,4 @@ public extension GemWalletSessionServiceProtocol {
             try setCurrent(walletId: wallet.id)
         }
     }
-
-    func showsRewards(wallets: [Wallet]) -> Bool {
-        showsRewards(wallets: wallets.map { $0.toGem() })
-    }
 }

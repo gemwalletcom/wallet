@@ -258,7 +258,6 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
                 percent: formattedPercentage(value: total.pnlPercentage, style: .unsigned),
             ) : nil,
             pnlTone: valueTone(value: total.pnlAmount),
-            showsPnl: showsPnl,
             headerActions: .buttons(buttons: [GemHeaderButtonKind.send, .receive, .buy].map { GemHeaderButton(kind: $0, isEnabled: isEnabled) }),
             showCollections: false,
             showsPerpetuals: false,

@@ -179,7 +179,6 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
 }
 
 public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Sendable {
-    private let rewardsShown: Bool
     private let claimable: Bool
     private let explorerAddress: String?
     private let actions: [Gemstone.GemDelegationAction]
@@ -191,7 +190,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     private let refreshState: GemLoadState
 
     public init(
-        rewardsShown: Bool = false,
         claimable: Bool = false,
         explorerAddress: String? = nil,
         actions: [Gemstone.GemDelegationAction] = [],
@@ -202,7 +200,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         claimRewardsDestination: GemClaimRewardsDestination? = nil,
         refreshState: GemLoadState = .data,
     ) {
-        self.rewardsShown = rewardsShown
         self.claimable = claimable
         self.explorerAddress = explorerAddress
         self.actions = actions
@@ -282,10 +279,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
             row.explorer = explorerAddress.map { Gemstone.BlockExplorerLink(name: "MockExplorer", link: "https://explorer.mock/validator/\($0)") }
             return row
         }
-    }
-
-    public func showsRewards(delegation _: Gemstone.DelegationBase) -> Bool {
-        rewardsShown
     }
 
     public func resourceOptions(chain _: Gemstone.Chain) -> [Gemstone.Resource] {

@@ -120,10 +120,6 @@ impl GemStakeService {
         rules::can_claim_rewards(wallet_type, &delegation)
     }
 
-    pub fn shows_rewards(&self, delegation: DelegationBase) -> bool {
-        rules::shows_rewards(&delegation)
-    }
-
     pub fn sorted_delegations(&self, delegations: Vec<Delegation>) -> Vec<Delegation> {
         rules::sorted_delegations(delegations)
     }

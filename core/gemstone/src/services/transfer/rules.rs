@@ -44,10 +44,6 @@ impl GemTransferData {
         self.input_type.input_asset()
     }
 
-    pub fn header_kind(&self) -> GemTransactionHeaderKind {
-        self.input_type.header_kind()
-    }
-
     pub fn title(&self) -> GemConfirmTitle {
         self.input_type.title()
     }
@@ -61,6 +57,12 @@ impl GemTransferData {
 
     pub fn fee_asset(&self) -> Asset {
         self.input_type.fee_asset()
+    }
+}
+
+impl GemTransferData {
+    pub fn header_kind(&self) -> GemTransactionHeaderKind {
+        self.input_type.header_kind()
     }
 
     pub fn default_fee_priority(&self) -> FeePriority {
