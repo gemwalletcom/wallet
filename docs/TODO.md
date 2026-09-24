@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Security and bugs:** AUD5, AUD59, BD20.
+1. **Security and bugs:** AUD59, BD20.
 2. **Generated constants:** D174.
 3. **Deletions:** VM173, VM174, VM177 (the FFI trim; extend `check-ffi-surface.py` first).
 4. **Pass-throughs:** VM175, VM176.
@@ -51,7 +51,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | VM128, VM177 |
 | Recipient/address/name input | `GemRecipientSession`, `GemNameService`, existing input component | VM177; keep debounce/observation native |
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountEntry`, `GemAutocloseDraft`, existing provider inputs | VM124, VM125, VM179 |
-| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | AUD5, VM62, VM102, VM129, VM144, VM145, VM168, VM170, BD63 |
+| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM62, VM102, VM129, VM144, VM145, VM168, VM170, BD63 |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | AUD50, VM166 |
 | Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM62, VM145, VM98, VM176 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | VM169, BD61 |
@@ -87,7 +87,6 @@ An id belongs in this table only while its bullet exists below. The upstream ite
 
 Transaction-critical input, a user-visible outcome that a swallowed error hides, a write that runs when nothing changed, and a policy the two apps run on different triggers.
 
-- **AUD5** **M** **Bug — a sent transaction that fails to record leaves no local row and no tracking.** [`store_pending`](../core/gemstone/src/services/confirm/mod.rs) calls `record(...).unwrap_or_default()`, so a failed `add_transactions` write becomes an empty list: no pending row is stored, `track` is handed nothing, and `execute` returns `Sent` as if everything succeeded. The funds are on chain and the activity sync will eventually fetch the transaction, so what is lost is local visibility and state polling, not funds. Do not route the outcome through the confirmation result: both apps read only `hashes` from `GemExecuteResult::Sent` ([iOS](../ios/Features/Transfer/Sources/ViewModels/ConfirmTransferSceneViewModel.swift), [Android](../android/features/confirm/viewmodels/src/main/kotlin/com/gemwallet/android/features/confirm/viewmodels/ConfirmViewModel.kt)), and its `transactions` payload was removed as dead FFI weight, so a new field or enum there would be read by nobody. **Decided:** `store_pending` retries the write once, silently, then relies on the next activity sync; no new screen state. Cover the `Broadcast` error path too, where `store_pending` already runs for a partial broadcast.
 - **AUD59** **S** **Surface the first balance fetch after enabling an asset.** [`refresh_enabled_assets`](../core/gemstone/src/services/balance/mod.rs) runs `let _ = self.update(...)` from `set_assets_enabled` and `setup_wallet`, so a just-enabled token sits at zero with no error until a refresh. Returning the failure alone does not help: both apps only `debugLog` a failed toggle, and iOS `AssetSceneViewModel.onSelectEnable` would drop its "asset shown" toast although the asset was enabled; side-effect callers (fiat quote, reward redemption, transaction post-processing, discovery) would fail their own action on a balance fetch. **Decided:** an error toast after the successful enable. Return the failure from the user-facing toggles only and give the side-effect callers a write-only enable.
 
 ## 2. One view state per screen
