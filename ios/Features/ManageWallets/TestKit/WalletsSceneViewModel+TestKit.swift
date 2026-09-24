@@ -15,7 +15,6 @@ public extension WalletsSceneViewModel {
         WalletsSceneViewModel(
             navigationPath: .constant(NavigationPath()),
             walletService: walletService,
-            preferences: .mock(),
             biometry: biometry,
             isPresentingCreateWalletSheet: .constant(false),
             isPresentingImportWalletSheet: .constant(false),

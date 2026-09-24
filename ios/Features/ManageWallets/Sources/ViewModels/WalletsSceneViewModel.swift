@@ -14,7 +14,6 @@ import SwiftUI
 @MainActor
 public final class WalletsSceneViewModel {
     private let service: any GemWalletServiceProtocol
-    private let preferences: ObservablePreferences
     private let biometry: any BiometryAuthenticatable
     private let isPresentingCreateWalletSheet: Binding<Bool>
     private let isPresentingImportWalletSheet: Binding<Bool>
@@ -37,14 +36,12 @@ public final class WalletsSceneViewModel {
     public init(
         navigationPath: Binding<NavigationPath>,
         walletService: any GemWalletServiceProtocol,
-        preferences: ObservablePreferences,
         biometry: any BiometryAuthenticatable,
         isPresentingCreateWalletSheet: Binding<Bool>,
         isPresentingImportWalletSheet: Binding<Bool>,
     ) {
         self.navigationPath = navigationPath
         service = walletService
-        self.preferences = preferences
         self.biometry = biometry
         isPresentingAlertMessage = nil
         walletDelete = nil
@@ -93,7 +90,7 @@ extension WalletsSceneViewModel {
     }
 
     private func delete(_ wallet: Wallet) async throws {
-        try await preferences.reload(after: service.delete(wallet))
+        _ = try await service.delete(wallet)
     }
 
     private func pin(_ wallet: Wallet) async throws {

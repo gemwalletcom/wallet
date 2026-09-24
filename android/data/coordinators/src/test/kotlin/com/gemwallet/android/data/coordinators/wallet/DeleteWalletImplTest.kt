@@ -1,11 +1,9 @@
 package com.gemwallet.android.data.coordinators.wallet
 
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.testkit.mockWalletId
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -25,9 +23,7 @@ class DeleteWalletImplTest {
 
     private val walletService = mockk<GemWalletService>()
 
-    private val userConfig = mockk<UserConfig>(relaxed = true)
-
-    private val delete = DeleteWalletImpl(walletService, userConfig)
+    private val delete = DeleteWalletImpl(walletService)
 
     @Before
     fun setUp() {
@@ -51,7 +47,6 @@ class DeleteWalletImplTest {
         assertTrue(result.isFailure)
         assertFalse(onBoarded)
         assertFalse(completed)
-        verify(exactly = 0) { userConfig.reload() }
     }
 
     @Test
@@ -65,7 +60,6 @@ class DeleteWalletImplTest {
 
         assertFalse(onBoarded)
         assertTrue(completed)
-        verify(exactly = 0) { userConfig.reload() }
 
         coEvery { walletService.deleteWallet(walletId.id) } returns GemWalletDeletion.LAST_WALLET_DELETED
 
@@ -73,6 +67,5 @@ class DeleteWalletImplTest {
 
         assertTrue(onBoarded)
         coVerify { walletService.deleteWallet(walletId.id) }
-        verify { userConfig.reload() }
     }
 }

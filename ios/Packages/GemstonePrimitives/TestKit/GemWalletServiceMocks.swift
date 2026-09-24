@@ -42,6 +42,8 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
         lock.withLock { priceAlertsEnabled = enabled }
     }
 
+    public func setObserver(observer _: any GemPreferencesObserver) {}
+
     public func getCurrency() -> Gemstone.Currency {
         Primitives.Currency.usd.toGem()
     }

@@ -21,7 +21,6 @@ import SwiftUI
 public final class WalletDetailViewModel {
     private let navigationPath: Binding<NavigationPath>
     private let service: any GemWalletServiceProtocol
-    private let preferences: ObservablePreferences
     private let biometry: any BiometryAuthenticatable
 
     var nameInput: String
@@ -38,12 +37,10 @@ public final class WalletDetailViewModel {
         navigationPath: Binding<NavigationPath>,
         wallet: Wallet,
         service: any GemWalletServiceProtocol,
-        preferences: ObservablePreferences,
         biometry: any BiometryAuthenticatable,
     ) {
         self.navigationPath = navigationPath
         self.service = service
-        self.preferences = preferences
         self.biometry = biometry
         nameInput = wallet.name
         isPresentingAlertMessage = nil
@@ -103,7 +100,7 @@ extension WalletDetailViewModel {
     }
 
     func delete() async throws {
-        try await preferences.reload(after: service.delete(wallet))
+        _ = try await service.delete(wallet)
     }
 
     func onSelectImage() {

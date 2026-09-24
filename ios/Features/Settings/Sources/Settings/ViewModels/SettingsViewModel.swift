@@ -49,7 +49,8 @@ public final class SettingsViewModel {
 
 extension SettingsViewModel: ListSectionProvideable {
     public var sections: [ListSection<GemListSectionRow>] {
-        service.sections(
+        observablePreferences.changes
+        return service.sections(
             wallets: walletsQuery.value.map { $0.toGem() },
             notificationsAvailable: true,
             walletConnectAvailable: true,

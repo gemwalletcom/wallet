@@ -43,6 +43,5 @@ public final class CurrencySceneViewModel {
 extension CurrencySceneViewModel {
     func setCurrency(_ currency: Gemstone.Currency) async throws {
         try await service.setCurrency(currency: currency)
-        preferences.reload()
     }
 }

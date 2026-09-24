@@ -5,7 +5,7 @@ pub mod store;
 pub(crate) mod testkit;
 
 use crate::services::error::GemServiceError;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use primitives::ChartPeriod;
 use primitives::currency::Currency;
@@ -48,9 +48,15 @@ const SUBSCRIPTIONS_VERSION: &str = "subscriptions_version";
 const PUSHED_DEVICE: &str = "pushed_device";
 const PUSHED_SUBSCRIPTIONS: &str = "pushed_subscriptions";
 
+#[uniffi::export(rust, foreign)]
+pub trait GemPreferencesObserver: Send + Sync {
+    fn on_preferences_changed(&self);
+}
+
 #[derive(uniffi::Object)]
 pub struct GemPreferencesService {
     store: Arc<dyn GemPreferencesStore>,
+    observer: Mutex<Option<Arc<dyn GemPreferencesObserver>>>,
 }
 
 #[uniffi::export]
@@ -60,7 +66,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_currency(&self, currency: Currency) -> Result<(), GemServiceError> {
-        self.store.set(CURRENCY.to_string(), currency.as_ref().to_string())
+        self.set_observed(CURRENCY, currency.as_ref().to_string())
     }
 
     pub fn setup_currency(&self, locale_currency: Option<String>) -> Result<Currency, GemServiceError> {
@@ -85,7 +91,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_perpetual_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
-        self.store.set(IS_PERPETUAL_ENABLED.to_string(), enabled.to_string())
+        self.set_observed(IS_PERPETUAL_ENABLED, enabled.to_string())
     }
 
     pub fn is_hide_balance_enabled(&self) -> bool {
@@ -93,7 +99,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_hide_balance_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
-        self.store.set(IS_HIDE_BALANCE_ENABLED.to_string(), enabled.to_string())
+        self.set_observed(IS_HIDE_BALANCE_ENABLED, enabled.to_string())
     }
 
     pub fn is_developer_enabled(&self) -> bool {
@@ -101,7 +107,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_developer_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
-        self.store.set(IS_DEVELOPER_ENABLED.to_string(), enabled.to_string())
+        self.set_observed(IS_DEVELOPER_ENABLED, enabled.to_string())
     }
 
     pub fn is_accept_terms_completed(&self) -> bool {
@@ -109,7 +115,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_accept_terms_completed(&self) -> Result<(), GemServiceError> {
-        self.store.set(IS_ACCEPT_TERMS_COMPLETED.to_string(), true.to_string())
+        self.set_observed(IS_ACCEPT_TERMS_COMPLETED, true.to_string())
     }
 
     pub fn get_appearance(&self) -> Appearance {
@@ -117,7 +123,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_appearance(&self, appearance: Appearance) -> Result<(), GemServiceError> {
-        self.store.set(APPEARANCE.to_string(), rules::appearance_value(appearance).to_string())
+        self.set_observed(APPEARANCE, rules::appearance_value(appearance).to_string())
     }
 
     pub fn increment_launches_count(&self) -> Result<u32, GemServiceError> {
@@ -151,7 +157,11 @@ impl GemPreferencesService {
 
     #[uniffi::constructor]
     pub fn new(store: Arc<dyn GemPreferencesStore>) -> Self {
-        Self { store }
+        Self { store, observer: Mutex::new(None) }
+    }
+
+    pub fn set_observer(&self, observer: Arc<dyn GemPreferencesObserver>) {
+        *self.observer.lock().unwrap() = Some(observer);
     }
 
     pub fn set_price_alerts_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
@@ -173,7 +183,9 @@ impl GemPreferencesService {
     }
 
     pub fn clear(&self) -> Result<(), GemServiceError> {
-        self.store.clear()
+        self.store.clear()?;
+        self.notify();
+        Ok(())
     }
 
     pub fn show_collections(&self, wallet_type: WalletType, chains: Vec<Chain>) -> bool {
@@ -316,6 +328,19 @@ impl GemPreferencesService {
     fn stored_currency(&self) -> Option<Currency> {
         self.store.get(CURRENCY.to_string()).and_then(|code| Currency::from_str(&code).ok())
     }
+
+    fn set_observed(&self, key: &str, value: String) -> Result<(), GemServiceError> {
+        self.store.set(key.to_string(), value)?;
+        self.notify();
+        Ok(())
+    }
+
+    fn notify(&self) {
+        let observer = self.observer.lock().unwrap().clone();
+        if let Some(observer) = observer {
+            observer.on_preferences_changed();
+        }
+    }
 }
 
 impl GemPreferencesService {
@@ -357,6 +382,35 @@ impl GemPreferencesService {
 mod tests {
     use super::testkit::MemoryPreferencesStore;
     use super::*;
+
+    #[derive(Default)]
+    struct CountingObserver(std::sync::atomic::AtomicUsize);
+
+    impl GemPreferencesObserver for CountingObserver {
+        fn on_preferences_changed(&self) {
+            self.0.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        }
+    }
+
+    #[test]
+    fn test_the_observer_hears_the_preferences_screens_show_and_not_bookkeeping() {
+        let service = GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default()));
+        let observer = Arc::new(CountingObserver::default());
+        service.set_observer(observer.clone());
+        let count = || observer.0.load(std::sync::atomic::Ordering::SeqCst);
+
+        service.set_currency(Currency::EUR).unwrap();
+        service.set_developer_enabled(true).unwrap();
+        service.set_perpetual_enabled(true).unwrap();
+        assert_eq!(count(), 3);
+
+        service.set_price_alerts_enabled(true).unwrap();
+        service.set_device_registered(true).unwrap();
+        assert_eq!(count(), 3, "internal bookkeeping does not redraw the apps");
+
+        service.clear().unwrap();
+        assert_eq!(count(), 4);
+    }
 
     #[test]
     fn test_price_alerts_enabled_defaults_to_false_and_round_trips() {

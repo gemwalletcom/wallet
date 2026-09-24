@@ -19,7 +19,6 @@ public extension WalletDetailViewModel {
             navigationPath: .constant(NavigationPath()),
             wallet: wallet,
             service: service,
-            preferences: .mock(),
             biometry: biometry,
         )
     }

@@ -11,7 +11,6 @@ import com.gemwallet.android.data.coordinators.wallet.GetAllWalletsImpl
 import com.gemwallet.android.data.coordinators.wallet.GetWalletDetailsImpl
 import com.gemwallet.android.data.coordinators.wallet.GetWalletImpl
 import com.gemwallet.android.data.coordinators.wallet.GetWalletsImpl
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import dagger.Module
 import dagger.Provides
@@ -41,5 +40,5 @@ object WalletModule {
     fun provideGetAllWallets(getSession: GetSession, walletStore: GemstoneWalletStore, walletService: GemWalletService): GetAllWallets = GetAllWalletsImpl(getSession, walletStore, walletService)
 
     @Provides
-    fun provideDeleteWallet(walletService: GemWalletService, userConfig: UserConfig): DeleteWallet = DeleteWalletImpl(walletService, userConfig)
+    fun provideDeleteWallet(walletService: GemWalletService): DeleteWallet = DeleteWalletImpl(walletService)
 }

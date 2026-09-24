@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import uniffi.gemstone.GemPreferencesObserver
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPreferencesServiceInterface
 import uniffi.gemstone.GemSecureStore
@@ -77,7 +78,15 @@ class UserConfig(private val context: Context, private val configStore: ConfigSt
         appearanceState.value = preferencesService.getAppearance().toPrimitives()
     }
 
-    fun reload() {
+    init {
+        preferencesService.setObserver(
+            object : GemPreferencesObserver {
+                override fun onPreferencesChanged() = reload()
+            },
+        )
+    }
+
+    private fun reload() {
         hideBalancesState.value = preferencesService.isHideBalanceEnabled()
         perpetualEnabledState.value = preferencesService.isPerpetualEnabled()
         appearanceState.value = preferencesService.getAppearance().toPrimitives()

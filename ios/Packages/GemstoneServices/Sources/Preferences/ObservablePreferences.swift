@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPreferencesObserver
 import protocol Gemstone.GemPreferencesServiceProtocol
-import enum Gemstone.GemWalletDeletion
 import GemstonePrimitives
 import Observation
 import Primitives
@@ -12,6 +12,7 @@ public final class ObservablePreferences: Sendable {
 
     public init(preferencesService: any GemPreferencesServiceProtocol) {
         self.preferencesService = preferencesService
+        preferencesService.setObserver(observer: PreferencesObserver(preferences: self))
     }
 
     @ObservationIgnored
@@ -59,14 +60,13 @@ public final class ObservablePreferences: Sendable {
         return preferencesService.isAcceptTermsCompleted()
     }
 
-    public func reload(after deletion: GemWalletDeletion) {
-        switch deletion {
-        case .walletsRemaining: break
-        case .lastWalletDeleted: reload()
-        }
+    @ObservationIgnored
+    public var changes: Void {
+        access(keyPath: \.changes)
     }
 
     public func reload() {
+        withMutation(keyPath: \.changes) {}
         withMutation(keyPath: \.currency) {}
         withMutation(keyPath: \.isHideBalanceEnabled) {}
         withMutation(keyPath: \.isDeveloperEnabled) {}
@@ -112,6 +112,20 @@ public final class ObservablePreferences: Sendable {
             try operation()
         } catch {
             debugLog("preferences write error: \(error)")
+        }
+    }
+}
+
+private final class PreferencesObserver: GemPreferencesObserver, @unchecked Sendable {
+    private weak var preferences: ObservablePreferences?
+
+    init(preferences: ObservablePreferences) {
+        self.preferences = preferences
+    }
+
+    func onPreferencesChanged() {
+        Task { @MainActor [weak preferences] in
+            preferences?.reload()
         }
     }
 }
