@@ -1,4 +1,4 @@
-use primitives::{AssetId, Deeplink, UrlAction};
+use primitives::{AssetId, Chain, Deeplink, UrlAction};
 
 #[uniffi::remote(Enum)]
 pub enum Deeplink {
@@ -9,6 +9,7 @@ pub enum Deeplink {
     Buy { asset_id: AssetId, amount: Option<i32> },
     Sell { asset_id: AssetId, amount: Option<i32> },
     Swap { asset_id: AssetId },
+    Address { chain: Chain, address: String },
 }
 
 #[derive(Default, uniffi::Object)]

@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use crate::services::transaction_state::GemTransactionStateService;
 
-use primitives::{Asset, AssetId, AssetType, Deeplink, FiatQuoteType, Transaction, WalletId};
+use primitives::{Asset, AssetId, AssetType, Chain, Deeplink, FiatQuoteType, Transaction, WalletId};
 
 use crate::services::assets::GemAssetsService;
 use crate::services::error::GemServiceError;
@@ -22,6 +22,7 @@ pub enum GemNavigationTarget {
     Rewards { code: Option<String> },
     Support,
     Transaction { asset: Asset, wallet_id: WalletId, transaction: Transaction, is_perpetual: bool },
+    Address { chain: Chain, address: String },
     None,
 }
 
@@ -37,7 +38,7 @@ impl GemNavigationTarget {
         match self {
             Self::Asset { .. } | Self::Transaction { .. } | Self::Perpetuals => Some(GemNavigationTab::Wallet),
             Self::Rewards { .. } | Self::Support => Some(GemNavigationTab::Settings),
-            Self::Receive { .. } | Self::Fiat { .. } | Self::Swap { .. } | Self::None => None,
+            Self::Receive { .. } | Self::Fiat { .. } | Self::Swap { .. } | Self::Address { .. } | Self::None => None,
         }
     }
 }
@@ -68,6 +69,7 @@ impl GemNavigationService {
                 from: self.account_asset(asset_id).await?,
                 to: None,
             }),
+            Deeplink::Address { chain, address } => Ok(GemNavigationTarget::Address { chain, address }),
         }
     }
 

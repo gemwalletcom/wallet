@@ -6,6 +6,7 @@ use crate::{AssetId, Chain, GEM_URL_SCHEME, HTTPS_URL_SCHEME};
 const DEEPLINK_HOST: &str = "gemwallet.com";
 
 const PATH_TOKENS: &str = "tokens";
+const PATH_ADDRESS: &str = "address";
 const PATH_PERPETUALS: &str = "perpetuals";
 const PATH_REWARDS: &str = "rewards";
 const PATH_JOIN: &str = "join";
@@ -26,6 +27,7 @@ pub enum Deeplink {
     Buy { asset_id: AssetId, amount: Option<i32> },
     Sell { asset_id: AssetId, amount: Option<i32> },
     Swap { asset_id: AssetId },
+    Address { chain: Chain, address: String },
 }
 
 impl Deeplink {
@@ -48,6 +50,7 @@ impl Deeplink {
 
         let deeplink = match component.as_str() {
             PATH_TOKENS => Self::from_asset_segments(url, params)?,
+            PATH_ADDRESS => Self::from_address_segments(params)?,
             PATH_PERPETUALS => Deeplink::Perpetuals,
             PATH_REWARDS | PATH_JOIN => Deeplink::Rewards {
                 code: params.first().cloned().or_else(|| query_value(url, QUERY_CODE)),
@@ -63,6 +66,16 @@ impl Deeplink {
             _ => None,
         }
         .or_else(|| Some(Deeplink::Asset { asset_id: asset_id_from_segments(segments)? }))
+    }
+
+    fn from_address_segments(segments: &[String]) -> Option<Self> {
+        match segments {
+            [chain, address] => Some(Deeplink::Address {
+                chain: chain.parse().ok()?,
+                address: address.clone(),
+            }),
+            _ => None,
+        }
     }
 
     fn from_asset_action(url: &Url, segments: &[String], action: &str) -> Option<Self> {
@@ -86,6 +99,7 @@ impl Deeplink {
             Deeplink::Buy { asset_id, amount } => asset_path(asset_id, Some(ACTION_BUY), *amount),
             Deeplink::Sell { asset_id, amount } => asset_path(asset_id, Some(ACTION_SELL), *amount),
             Deeplink::Swap { asset_id } => asset_path(asset_id, Some(ACTION_SWAP), None),
+            Deeplink::Address { chain, address } => format!("/{PATH_ADDRESS}/{}/{address}", chain.as_ref()),
         }
     }
 }
@@ -252,11 +266,28 @@ mod tests {
         assert_eq!(Deeplink::from_url("https://gemwallet.com/en/join?code=test"), Some(Deeplink::Rewards { code: Some("test".to_string()) }));
         assert_eq!(Deeplink::from_url("https://gemwallet.com/join"), Some(Deeplink::Rewards { code: None }));
         assert_eq!(Deeplink::from_url("https://gemwallet.com/tokens"), None);
+        assert_eq!(Deeplink::from_url("https://gemwallet.com/address/ethereum"), None);
+        assert_eq!(Deeplink::from_url("https://gemwallet.com/address/notachain/0x1"), None);
+        assert_eq!(Deeplink::from_url("https://gemwallet.com/address/ethereum/0x1/extra"), None);
         assert_eq!(Deeplink::from_url("https://gemwallet.com/tokens/notachain"), None);
         assert_eq!(Deeplink::from_url("https://example.com/tokens/bitcoin"), None);
         assert_eq!(Deeplink::from_url("https://gemwallet.com/unknown"), None);
         assert_eq!(Deeplink::from_url("not a url"), None);
     }
+    #[test]
+    fn test_address() {
+        let address = Deeplink::Address {
+            chain: Chain::SmartChain,
+            address: "0xBAd1d35bCe0e8F28F5a3403e7a0bA96c5b0a0b4C".to_string(),
+        };
+
+        assert_eq!(address.to_url(), "https://gemwallet.com/address/smartchain/0xBAd1d35bCe0e8F28F5a3403e7a0bA96c5b0a0b4C");
+        assert_eq!(address.to_gem_url(), "gem://address/smartchain/0xBAd1d35bCe0e8F28F5a3403e7a0bA96c5b0a0b4C");
+        assert_eq!(Deeplink::from_url(&address.to_url()), Some(address.clone()));
+        assert_eq!(Deeplink::from_url(&address.to_gem_url()), Some(address.clone()));
+        assert_eq!(Deeplink::from_url("https://gemwallet.com/en/address/smartchain/0xBAd1d35bCe0e8F28F5a3403e7a0bA96c5b0a0b4C"), Some(address));
+    }
+
     #[test]
     fn test_from_url_asset_actions() {
         assert_eq!(
