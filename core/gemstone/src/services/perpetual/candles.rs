@@ -7,6 +7,9 @@ use crate::models::state::{GemLoad, GemLoadState};
 use crate::services::chart::{GemChartHeader, GemChartZoom, candlestick_header};
 
 const TRAILING_ROOM_FRACTION: f64 = 0.1;
+const MAX_TICKS: usize = 5;
+const TICK_INSET_FRACTION: f64 = 0.1;
+const TICK_YEAR_DAYS: i64 = 360;
 
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
 pub struct GemCandleRequest {
@@ -21,12 +24,23 @@ pub struct GemCandleResult {
     pub candles: Vec<GemChartCandleStick>,
 }
 
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemCandleTickFormat {
+    #[default]
+    Time,
+    TimeOrDay,
+    Day,
+    MonthYear,
+}
+
 #[derive(Debug, Default, Clone, PartialEq, uniffi::Record)]
 pub struct GemCandleViewport {
     pub start: DateTime<Utc>,
     pub end: DateTime<Utc>,
     pub interval_seconds: i64,
     pub candles: Vec<GemChartCandleStick>,
+    pub ticks: Vec<DateTime<Utc>>,
+    pub tick_format: GemCandleTickFormat,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -172,12 +186,55 @@ fn viewport(candles: &[GemChartCandleStick], zoom: GemChartZoom) -> GemCandleVie
         .unwrap_or_default();
     let visible_start = zoom.clamped(candles.len()).visible_start(first.date, last.date);
     let first_drawn = candles.partition_point(|candle| candle.date <= visible_start - interval).min(candles.len() - 1);
-    let room = TimeDelta::milliseconds(((last.date - visible_start).num_milliseconds() as f64 * TRAILING_ROOM_FRACTION) as i64);
+    let room = fraction_of(last.date - visible_start, TRAILING_ROOM_FRACTION);
+    let start = visible_start - interval / 2;
+    let end = last.date + room.max(interval / 2);
+    let drawn = &candles[first_drawn..];
+    let inset = start + fraction_of(end - start, TICK_INSET_FRACTION);
+    let labelled = &drawn[drawn.partition_point(|candle| candle.date < inset)..];
+    let per_tick = candles_per_tick(labelled.len(), interval);
     GemCandleViewport {
-        start: visible_start - interval / 2,
-        end: last.date + room.max(interval / 2),
+        start,
+        end,
         interval_seconds: interval.num_seconds(),
-        candles: candles[first_drawn..].to_vec(),
+        candles: drawn.to_vec(),
+        ticks: labelled.iter().rev().step_by(per_tick).rev().map(|candle| candle.date).collect(),
+        tick_format: tick_format(end - start, interval * per_tick as i32, last.date - drawn[0].date),
+    }
+}
+
+fn fraction_of(span: TimeDelta, fraction: f64) -> TimeDelta {
+    TimeDelta::milliseconds((span.num_milliseconds() as f64 * fraction) as i64)
+}
+
+fn candles_per_tick(count: usize, interval: TimeDelta) -> usize {
+    let gaps = count.saturating_sub(1) as f64;
+    let rough = gaps / (MAX_TICKS - 1) as f64;
+    let fitting = rough.floor().max(1.0);
+    let candles = match gaps / fitting < MAX_TICKS as f64 {
+        true => fitting,
+        false => rough.ceil(),
+    } as usize;
+    let day = TimeDelta::days(1);
+    match interval > TimeDelta::zero() && interval < day && interval * candles as i32 >= day {
+        true => {
+            let per_day = (day.num_seconds() as f64 / interval.num_seconds() as f64).round() as usize;
+            candles.div_ceil(per_day) * per_day
+        }
+        false => candles,
+    }
+}
+
+fn tick_format(span: TimeDelta, step: TimeDelta, covered: TimeDelta) -> GemCandleTickFormat {
+    let day = TimeDelta::days(1);
+    if span >= TimeDelta::days(TICK_YEAR_DAYS) {
+        GemCandleTickFormat::MonthYear
+    } else if step >= day {
+        GemCandleTickFormat::Day
+    } else if covered <= day {
+        GemCandleTickFormat::Time
+    } else {
+        GemCandleTickFormat::TimeOrDay
     }
 }
 
@@ -286,6 +343,63 @@ mod tests {
         assert_eq!(gapped.interval_seconds, 60, "a gap in trading does not widen the candles");
         assert_eq!(viewport(&candles[..1], GemChartZoom::identity()).candles, candles[..1], "a lone candle is still drawn");
         assert_eq!(viewport(&[], GemChartZoom::identity()), GemCandleViewport::default());
+    }
+
+    #[test]
+    fn test_ticks() {
+        let series = |from: &str, seconds: i64, count: i64| -> Vec<GemChartCandleStick> {
+            let first = DateTime::parse_from_rfc3339(from).unwrap().timestamp();
+            (0..count).map(|index| GemChartCandleStick::mock(first + index * seconds, 1.0)).collect()
+        };
+        let at = |dates: &[&str]| -> Vec<DateTime<Utc>> { dates.iter().map(|date| DateTime::parse_from_rfc3339(date).unwrap().to_utc()).collect() };
+        let axis = |candles: Vec<GemChartCandleStick>| {
+            let viewport = viewport(&candles, GemChartZoom::identity());
+            (viewport.ticks, viewport.tick_format)
+        };
+        let monthly: Vec<GemChartCandleStick> = (0..14)
+            .map(|month| GemChartCandleStick::mock(DateTime::parse_from_rfc3339("2025-08-07T00:00:00Z").unwrap().checked_add_months(chrono::Months::new(month)).unwrap().timestamp(), 1.0))
+            .collect();
+
+        assert_eq!(
+            axis(series("2026-09-23T15:08:00Z", 60, 61)),
+            (
+                at(&["2026-09-23T15:16:00Z", "2026-09-23T15:29:00Z", "2026-09-23T15:42:00Z", "2026-09-23T15:55:00Z", "2026-09-23T16:08:00Z"]),
+                GemCandleTickFormat::Time
+            ),
+            "an hour is labelled on its candles counted back from the newest"
+        );
+        assert_eq!(
+            axis(series("2026-09-22T16:30:00Z", 1800, 48)),
+            (
+                at(&["2026-09-22T20:00:00Z", "2026-09-23T01:00:00Z", "2026-09-23T06:00:00Z", "2026-09-23T11:00:00Z", "2026-09-23T16:00:00Z"]),
+                GemCandleTickFormat::Time
+            ),
+            "candles that fit in a day are labelled with times only"
+        );
+        assert_eq!(
+            axis(series("2026-09-22T04:00:00Z", 4 * 3600, 9)),
+            (at(&["2026-09-22T12:00:00Z", "2026-09-22T20:00:00Z", "2026-09-23T04:00:00Z", "2026-09-23T12:00:00Z"]), GemCandleTickFormat::TimeOrDay)
+        );
+        assert_eq!(
+            axis(series("2026-09-16T16:00:00Z", 4 * 3600, 43)),
+            (at(&["2026-09-17T16:00:00Z", "2026-09-19T16:00:00Z", "2026-09-21T16:00:00Z", "2026-09-23T16:00:00Z"]), GemCandleTickFormat::Day),
+            "a step of a day or more lands on whole days of candles"
+        );
+        assert_eq!(
+            axis(monthly),
+            (
+                at(&["2025-09-07T00:00:00Z", "2025-12-07T00:00:00Z", "2026-03-07T00:00:00Z", "2026-06-07T00:00:00Z", "2026-09-07T00:00:00Z"]),
+                GemCandleTickFormat::MonthYear
+            ),
+            "a chart over a year names the month and year"
+        );
+        for (seconds, count) in [(60, 1), (60, 60), (1800, 48), (4 * 3600, 42), (12 * 3600, 60), (7 * 86400, 52), (30 * 86400, 40)] {
+            let candles = series("2026-01-05T00:00:00Z", seconds, count);
+            let (ticks, _) = axis(candles.clone());
+            assert!(ticks.iter().all(|tick| candles.iter().any(|candle| candle.date == *tick)), "{count} candles of {seconds} s");
+            assert_eq!(ticks.last(), candles.last().map(|candle| &candle.date), "{count} candles of {seconds} s");
+            assert!(ticks.len() <= MAX_TICKS, "{count} candles of {seconds} s");
+        }
     }
 
     #[test]

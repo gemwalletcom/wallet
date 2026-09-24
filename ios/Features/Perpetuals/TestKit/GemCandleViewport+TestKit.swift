@@ -12,6 +12,8 @@ public extension GemCandleViewport {
             end: candles.last?.date ?? Date(timeIntervalSince1970: 0),
             intervalSeconds: 60,
             candles: candles.map { $0.toGem() },
+            ticks: candles.map(\.date),
+            tickFormat: .time,
         )
     }
 }

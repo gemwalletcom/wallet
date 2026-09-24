@@ -47,6 +47,7 @@ import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.PerpetualTriggerOrder
 import uniffi.gemstone.GemCandleViewState
+import uniffi.gemstone.GemCandleTickFormat
 import uniffi.gemstone.GemCandleViewport
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemListRow
@@ -176,7 +177,14 @@ private fun PerpetualPositionScenePreview() {
     val chartState = GemCandleViewState(
         period = ChartPeriod.Day.toGem(),
         state = GemLoadState.Data,
-        viewport = GemCandleViewport(start = previewCandles.first().date, end = previewCandles.last().date, intervalSeconds = 3600, candles = previewCandles),
+        viewport = GemCandleViewport(
+            start = previewCandles.first().date,
+            end = previewCandles.last().date,
+            intervalSeconds = 3600,
+            candles = previewCandles,
+            ticks = previewCandles.map { it.date },
+            tickFormat = GemCandleTickFormat.TIME,
+        ),
         base = chartData.first().close,
         isRefreshing = false,
     )

@@ -33,7 +33,7 @@ struct CandlestickChartViewModel {
         let viewport = viewState.viewport
         candles = viewport.candles.map { $0.toPrimitives() }
         layout = perpetualChartLayout(candles: viewport.candles, position: position?.toGem())
-        timeAxis = ChartTimeAxis(dates: viewport.candles.map(\.date), range: viewport.start ... viewport.end, interval: TimeInterval(viewport.intervalSeconds))
+        timeAxis = ChartTimeAxis(ticks: viewport.ticks, format: viewport.tickFormat)
         period = viewState.period.toPrimitives()
     }
 
