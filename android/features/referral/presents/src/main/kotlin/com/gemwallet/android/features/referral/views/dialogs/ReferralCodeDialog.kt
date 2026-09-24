@@ -40,7 +40,8 @@ fun ReferralCodeDialog(isVisible: Boolean, referralCode: String?, onCode: (Strin
         onDismiss()
         code = ""
     }
-    val doneAction: () -> Unit = {
+    val doneAction: () -> Unit = done@{
+        if (code.isEmpty() || showProgress) return@done
         showProgress = true
 
         onCode(code) {
@@ -55,6 +56,7 @@ fun ReferralCodeDialog(isVisible: Boolean, referralCode: String?, onCode: (Strin
     val done: @Composable () -> Unit = {
         TextButton(
             onClick = doneAction,
+            enabled = code.isNotEmpty() && !showProgress,
         ) {
             if (showProgress) {
                 CircularProgressIndicator16()

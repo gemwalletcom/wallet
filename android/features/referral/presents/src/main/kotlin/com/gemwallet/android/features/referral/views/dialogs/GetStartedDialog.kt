@@ -44,7 +44,8 @@ internal fun GetStartedDialog(isVisible: Boolean, onUsername: (String, (Throwabl
         onDismiss()
         username = ""
     }
-    val doneAction: () -> Unit = {
+    val doneAction: () -> Unit = done@{
+        if (username.isEmpty() || showProgress) return@done
         showProgress = true
         onUsername(username) {
             showProgress = false
@@ -58,7 +59,7 @@ internal fun GetStartedDialog(isVisible: Boolean, onUsername: (String, (Throwabl
     val done: @Composable () -> Unit = {
         TextButton(
             onClick = doneAction,
-            enabled = !showProgress,
+            enabled = username.isNotEmpty() && !showProgress,
         ) {
             if (showProgress) {
                 CircularProgressIndicator16()

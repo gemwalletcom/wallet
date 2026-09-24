@@ -146,7 +146,7 @@ fn info_rows(referral_code: Option<&str>, referral_count: i32, points: i32, used
 }
 
 fn can_redeem(rewards: &Rewards, option: &RewardRedemptionOption) -> bool {
-    rewards.status.is_verified() && rewards.points >= option.points && option.remaining.is_none_or(|remaining| remaining > 0)
+    rewards.points >= option.points && option.remaining.is_none_or(|remaining| remaining > 0)
 }
 
 fn has_value(code: Option<&str>) -> bool {
@@ -263,7 +263,6 @@ mod tests {
         let asset = Some(Asset::mock_eth());
         let rewards = Rewards {
             points: 100,
-            status: RewardStatus::Verified,
             redemption_options: vec![
                 RewardRedemptionOption {
                     id: "affordable".to_string(),
@@ -304,11 +303,6 @@ mod tests {
             "an option that pays out nothing the wallet can hold is not a row"
         );
         assert_eq!(redemptions.iter().map(|redemption| redemption.can_redeem).collect::<Vec<_>>(), vec![true, false, false, true]);
-        let unverified = Rewards {
-            status: RewardStatus::Pending,
-            ..rewards.clone()
-        };
-        assert!(state(Some(&unverified), now()).redemptions.iter().all(|redemption| !redemption.can_redeem), "only a verified user can redeem");
         assert!(
             redemptions.iter().all(|redemption| redemption.title == GemLocalizedText::RewardsRedeemAsset { value: redemption.value.clone() }),
             "the row title names the value it pays out"
