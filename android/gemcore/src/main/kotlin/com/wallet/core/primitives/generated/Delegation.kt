@@ -8,17 +8,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
 @Serializable
-data class DelegationValidator (
-	val chain: Chain,
-	val id: String,
-	val name: String,
-	val isActive: Boolean,
-	val commission: Double,
-	val apr: Double,
-	val providerType: StakeProviderType
-)
-
-@Serializable
 enum class DelegationState(val string: String) {
 	@SerialName("active")
 	Active("active"),
@@ -33,4 +22,34 @@ enum class DelegationState(val string: String) {
 	@SerialName("awaitingwithdrawal")
 	AwaitingWithdrawal("awaitingwithdrawal"),
 }
+
+@Serializable
+data class DelegationBase (
+	val assetId: AssetId,
+	val state: DelegationState,
+	val balance: SerializedBigInteger,
+	val shares: SerializedBigInteger,
+	val rewards: SerializedBigInteger,
+	val completionDate: SerializedDate? = null,
+	val delegationId: String,
+	val validatorId: String
+)
+
+@Serializable
+data class DelegationValidator (
+	val chain: Chain,
+	val id: String,
+	val name: String,
+	val isActive: Boolean,
+	val commission: Double,
+	val apr: Double,
+	val providerType: StakeProviderType
+)
+
+@Serializable
+data class Delegation (
+	val base: DelegationBase,
+	val validator: DelegationValidator,
+	val price: Price? = null
+)
 

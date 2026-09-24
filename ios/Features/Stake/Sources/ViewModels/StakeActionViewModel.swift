@@ -18,6 +18,6 @@ struct StakeSectionViewModel: Identifiable {
 
 extension GemStakeDelegationItem: @retroactive Identifiable {
     public var id: String {
-        Delegation(core: delegation).id
+        delegation.toPrimitives().id
     }
 }

@@ -85,7 +85,7 @@ public final class EarnSceneViewModel {
     }
 
     func positionItems(_ view: GemEarnView) -> [(delegation: Delegation, model: DelegationViewModel)] {
-        DelegationViewModel.items(view.positions.map { Delegation(core: $0) }, asset: asset, price: assetData.price?.price, currency: service.getCurrency().toPrimitives())
+        DelegationViewModel.items(view.positions.map { $0.toPrimitives() }, asset: asset, price: assetData.price?.price, currency: service.getCurrency().toPrimitives())
     }
 
     func route(delegation: Delegation) -> StakeRoute {

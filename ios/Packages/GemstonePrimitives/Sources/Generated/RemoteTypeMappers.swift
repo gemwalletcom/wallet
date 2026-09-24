@@ -1184,6 +1184,34 @@ public extension Primitives.StakeProviderType {
     }
 }
 
+public extension Gemstone.StakeType {
+    func toPrimitives() -> Primitives.StakeType {
+        switch self {
+        case .stake(let value): .stake(value.toPrimitives())
+        case .unstake(let value): .unstake(value.toPrimitives())
+        case .redelegate(let value): .redelegate(value.toPrimitives())
+        case .rewards(let value): .rewards(value.map { $0.toPrimitives() })
+        case .withdraw(let value): .withdraw(value.toPrimitives())
+        case .freeze(let value): .freeze(value.toPrimitives())
+        case .unfreeze(let value): .unfreeze(value.toPrimitives())
+        }
+    }
+}
+
+public extension Primitives.StakeType {
+    func toGem() -> Gemstone.StakeType {
+        switch self {
+        case .stake(let value): .stake(value.toGem())
+        case .unstake(let value): .unstake(value.toGem())
+        case .redelegate(let value): .redelegate(value.toGem())
+        case .rewards(let value): .rewards(value.map { $0.toGem() })
+        case .withdraw(let value): .withdraw(value.toGem())
+        case .freeze(let value): .freeze(value.toGem())
+        case .unfreeze(let value): .unfreeze(value.toGem())
+        }
+    }
+}
+
 public extension Gemstone.SupportMessageSender {
     func toPrimitives() -> Primitives.SupportMessageSender {
         switch self {
@@ -2188,6 +2216,56 @@ public extension Primitives.CoreListItem {
     }
 }
 
+public extension Gemstone.Delegation {
+    func toPrimitives() -> Primitives.Delegation {
+        Primitives.Delegation(
+            base: base.toPrimitives(),
+            validator: validator.toPrimitives(),
+            price: price.map { $0.toPrimitives() },
+        )
+    }
+}
+
+public extension Primitives.Delegation {
+    func toGem() -> Gemstone.Delegation {
+        Gemstone.Delegation(
+            base: base.toGem(),
+            validator: validator.toGem(),
+            price: price.map { $0.toGem() },
+        )
+    }
+}
+
+public extension Gemstone.DelegationBase {
+    func toPrimitives() -> Primitives.DelegationBase {
+        Primitives.DelegationBase(
+            assetId: Primitives.AssetId(core: assetId),
+            state: state.toPrimitives(),
+            balance: BigInt(balance),
+            shares: BigInt(shares),
+            rewards: BigInt(rewards),
+            completionDate: completionDate,
+            delegationId: delegationId,
+            validatorId: validatorId,
+        )
+    }
+}
+
+public extension Primitives.DelegationBase {
+    func toGem() -> Gemstone.DelegationBase {
+        Gemstone.DelegationBase(
+            assetId: assetId.identifier,
+            state: state.toGem(),
+            balance: balance.magnitude,
+            shares: shares.magnitude,
+            rewards: rewards.magnitude,
+            completionDate: completionDate,
+            delegationId: delegationId,
+            validatorId: validatorId,
+        )
+    }
+}
+
 public extension Gemstone.DelegationValidator {
     func toPrimitives() -> Primitives.DelegationValidator {
         Primitives.DelegationValidator(
@@ -2976,6 +3054,24 @@ public extension Primitives.PriceAlertData {
             price: price.map { $0.toGem() },
             priceAlert: priceAlert.toGem(),
             rankScore: rankScore,
+        )
+    }
+}
+
+public extension Gemstone.RedelegateData {
+    func toPrimitives() -> Primitives.RedelegateData {
+        Primitives.RedelegateData(
+            delegation: delegation.toPrimitives(),
+            toValidator: toValidator.toPrimitives(),
+        )
+    }
+}
+
+public extension Primitives.RedelegateData {
+    func toGem() -> Gemstone.RedelegateData {
+        Gemstone.RedelegateData(
+            delegation: delegation.toGem(),
+            toValidator: toValidator.toGem(),
         )
     }
 }

@@ -9,6 +9,7 @@ prefix = ''
 "Int64" = "Int64"
 "BigInt" = "String"
 "BigUint" = "String"
+"BigIntValue" = "BigIntValue"
 "DateTime" = "Date"
 "Value" = "AnyCodableValue" # Fix later to be adjustable
 
@@ -23,6 +24,7 @@ prefix = ''
 "Value" = "JsonValue"
 "BigInt" = "String"
 "BigUint" = "String"
+"BigIntValue" = "SerializedBigInteger"
 
 [typescript.type_mappings]
 "DateTime" = "Date"
@@ -30,6 +32,7 @@ prefix = ''
 "Value" = "object"
 "BigInt" = "BigInteger"
 "BigUint" = "BigInteger"
+"BigIntValue" = "BigInteger"
 "NaiveDateTime" = "Date"
 "AssetId" = "string"
 "UInt64" = "BigInteger"

@@ -487,10 +487,13 @@ fn variant_field(line: &str) -> Option<Field> {
 fn fields(body: &[&str], camel_case_fields: bool) -> Vec<Field> {
     let mut fields = Vec::new();
     let mut rename = None;
+    let mut serialized_as = None;
     let mut skipped = false;
     for line in body {
         if let Some(value) = serde_rename(line.trim()) {
             rename = Some(value);
+        } else if let Some(value) = typeshare_serialized_as(line.trim()) {
+            serialized_as = Some(value);
         } else if line.trim() == "#[typeshare(skip)]" {
             skipped = true;
         } else if let Some((rust, Some(type_name))) = member(line) {
@@ -500,12 +503,16 @@ fn fields(body: &[&str], camel_case_fields: bool) -> Vec<Field> {
                     false => rust.clone(),
                 }),
                 rust,
-                type_name,
+                type_name: serialized_as.take().unwrap_or(type_name),
                 skipped: std::mem::take(&mut skipped),
             });
         }
     }
     fields
+}
+
+fn typeshare_serialized_as(line: &str) -> Option<String> {
+    Some(line.strip_prefix("#[typeshare(serialized_as = \"")?.split('"').next()?.to_string())
 }
 
 fn serde_content(line: &str) -> Option<String> {
@@ -823,5 +830,17 @@ mod tests {
         let body = body(&mut lines);
         assert_eq!(body.len(), 4);
         assert_eq!(lines.next(), Some("impl GasPriceType {"));
+    }
+
+    #[test]
+    fn test_a_field_serialized_as_another_type_maps_through_that_type() {
+        let fields = fields(&["    #[typeshare(serialized_as = \"BigIntValue\")]", "    pub balance: BigUint,", "    pub rewards: BigUint,"], true);
+        assert_eq!(fields[0].type_name, "BigIntValue");
+        assert_eq!(fields[1].type_name, "BigUint", "the override belongs to the next field only");
+
+        let config = Config::from_yaml(CONFIG);
+        assert_eq!(SWIFT.convert(&config, "BigIntValue", "value", 0), "BigInt(value)");
+        assert_eq!(SWIFT.convert(&config, "BigIntValue", "value", 1), "value.magnitude");
+        assert_eq!(KOTLIN.convert(&config, "BigIntValue", "value", 0), "value");
     }
 }

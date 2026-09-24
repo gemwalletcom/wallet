@@ -9,6 +9,7 @@ use crate::stake_provider_type::StakeProviderType;
 use crate::{AssetId, Chain, Price, StakeValidator};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct Delegation {
     pub base: DelegationBase,
@@ -17,15 +18,19 @@ pub struct Delegation {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct DelegationBase {
     pub asset_id: AssetId,
     pub state: DelegationState,
     #[serde(serialize_with = "serialize_biguint", deserialize_with = "deserialize_biguint_from_str")]
+    #[typeshare(serialized_as = "BigIntValue")]
     pub balance: BigUint,
     #[serde(serialize_with = "serialize_biguint", deserialize_with = "deserialize_biguint_from_str")]
+    #[typeshare(serialized_as = "BigIntValue")]
     pub shares: BigUint,
     #[serde(serialize_with = "serialize_biguint", deserialize_with = "deserialize_biguint_from_str")]
+    #[typeshare(serialized_as = "BigIntValue")]
     pub rewards: BigUint,
     pub completion_date: Option<DateTime<Utc>>,
     pub delegation_id: String,

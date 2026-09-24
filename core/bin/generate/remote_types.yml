@@ -254,6 +254,10 @@ conversions:
     swift:
       - "{}.description"
       - "BigUInt(stringLiteral: {})"
+  BigIntValue:
+    swift:
+      - "BigInt({})"
+      - "{}.magnitude"
   serde_json::Value:
     swift:
       - "AnyCodableValue(core: {})"
@@ -265,4 +269,5 @@ declared:
   UInt64: primitives::UInt64
   serde_json::Value: GemJsonValue
   BigUint: GemBigUint
+  BigIntValue: GemBigUint
   DateTime<Utc>: chrono::DateTime<chrono::Utc>

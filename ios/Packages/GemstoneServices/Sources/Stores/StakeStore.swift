@@ -44,7 +44,7 @@ public final class GemstoneStakeStore: GemStakeStore, @unchecked Sendable {
     public func updateDelegations(walletId: String, delegations: [Gemstone.DelegationBase], deleteIds: [String]) async throws {
         try store.updateAndDelete(
             walletId: WalletId.from(id: walletId),
-            delegations: delegations.map { Primitives.DelegationBase(core: $0) },
+            delegations: delegations.map { $0.toPrimitives() },
             deleteIds: deleteIds,
         )
     }

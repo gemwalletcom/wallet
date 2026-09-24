@@ -814,6 +814,26 @@ fun com.wallet.core.primitives.StakeProviderType.toGem(): uniffi.gemstone.StakeP
     com.wallet.core.primitives.StakeProviderType.Earn -> uniffi.gemstone.StakeProviderType.EARN
 }
 
+fun uniffi.gemstone.StakeType.toPrimitives(): com.wallet.core.primitives.StakeType = when (this) {
+    is uniffi.gemstone.StakeType.Stake -> com.wallet.core.primitives.StakeType.Stake(v1.toPrimitives())
+    is uniffi.gemstone.StakeType.Unstake -> com.wallet.core.primitives.StakeType.Unstake(v1.toPrimitives())
+    is uniffi.gemstone.StakeType.Redelegate -> com.wallet.core.primitives.StakeType.Redelegate(v1.toPrimitives())
+    is uniffi.gemstone.StakeType.Rewards -> com.wallet.core.primitives.StakeType.Rewards(v1.map { it.toPrimitives() })
+    is uniffi.gemstone.StakeType.Withdraw -> com.wallet.core.primitives.StakeType.Withdraw(v1.toPrimitives())
+    is uniffi.gemstone.StakeType.Freeze -> com.wallet.core.primitives.StakeType.Freeze(v1.toPrimitives())
+    is uniffi.gemstone.StakeType.Unfreeze -> com.wallet.core.primitives.StakeType.Unfreeze(v1.toPrimitives())
+}
+
+fun com.wallet.core.primitives.StakeType.toGem(): uniffi.gemstone.StakeType = when (this) {
+    is com.wallet.core.primitives.StakeType.Stake -> uniffi.gemstone.StakeType.Stake(content.toGem())
+    is com.wallet.core.primitives.StakeType.Unstake -> uniffi.gemstone.StakeType.Unstake(content.toGem())
+    is com.wallet.core.primitives.StakeType.Redelegate -> uniffi.gemstone.StakeType.Redelegate(content.toGem())
+    is com.wallet.core.primitives.StakeType.Rewards -> uniffi.gemstone.StakeType.Rewards(content.map { it.toGem() })
+    is com.wallet.core.primitives.StakeType.Withdraw -> uniffi.gemstone.StakeType.Withdraw(content.toGem())
+    is com.wallet.core.primitives.StakeType.Freeze -> uniffi.gemstone.StakeType.Freeze(content.toGem())
+    is com.wallet.core.primitives.StakeType.Unfreeze -> uniffi.gemstone.StakeType.Unfreeze(content.toGem())
+}
+
 fun uniffi.gemstone.SupportMessageSender.toPrimitives(): com.wallet.core.primitives.SupportMessageSender = when (this) {
     is uniffi.gemstone.SupportMessageSender.User -> com.wallet.core.primitives.SupportMessageSender.User
     is uniffi.gemstone.SupportMessageSender.Agent -> com.wallet.core.primitives.SupportMessageSender.Agent(v1.toPrimitives())
@@ -1482,6 +1502,40 @@ fun com.wallet.core.primitives.CoreListItem.toGem(): uniffi.gemstone.CoreListIte
     url = url,
 )
 
+fun uniffi.gemstone.Delegation.toPrimitives(): com.wallet.core.primitives.Delegation = com.wallet.core.primitives.Delegation(
+    base = base.toPrimitives(),
+    validator = validator.toPrimitives(),
+    price = price?.let { it.toPrimitives() },
+)
+
+fun com.wallet.core.primitives.Delegation.toGem(): uniffi.gemstone.Delegation = uniffi.gemstone.Delegation(
+    base = base.toGem(),
+    validator = validator.toGem(),
+    price = price?.let { it.toGem() },
+)
+
+fun uniffi.gemstone.DelegationBase.toPrimitives(): com.wallet.core.primitives.DelegationBase = com.wallet.core.primitives.DelegationBase(
+    assetId = com.wallet.core.primitives.AssetId(assetId),
+    state = state.toPrimitives(),
+    balance = balance,
+    shares = shares,
+    rewards = rewards,
+    completionDate = completionDate,
+    delegationId = delegationId,
+    validatorId = validatorId,
+)
+
+fun com.wallet.core.primitives.DelegationBase.toGem(): uniffi.gemstone.DelegationBase = uniffi.gemstone.DelegationBase(
+    assetId = assetId.toIdentifier(),
+    state = state.toGem(),
+    balance = balance,
+    shares = shares,
+    rewards = rewards,
+    completionDate = completionDate,
+    delegationId = delegationId,
+    validatorId = validatorId,
+)
+
 fun uniffi.gemstone.DelegationValidator.toPrimitives(): com.wallet.core.primitives.DelegationValidator = com.wallet.core.primitives.DelegationValidator(
     chain = chain.toChain(),
     id = id,
@@ -2000,6 +2054,16 @@ fun com.wallet.core.primitives.PriceAlertData.toGem(): uniffi.gemstone.PriceAler
     price = price?.let { it.toGem() },
     priceAlert = priceAlert.toGem(),
     rankScore = rankScore,
+)
+
+fun uniffi.gemstone.RedelegateData.toPrimitives(): com.wallet.core.primitives.RedelegateData = com.wallet.core.primitives.RedelegateData(
+    delegation = delegation.toPrimitives(),
+    toValidator = toValidator.toPrimitives(),
+)
+
+fun com.wallet.core.primitives.RedelegateData.toGem(): uniffi.gemstone.RedelegateData = uniffi.gemstone.RedelegateData(
+    delegation = delegation.toGem(),
+    toValidator = toValidator.toGem(),
 )
 
 fun uniffi.gemstone.Release.toPrimitives(): com.wallet.core.primitives.Release = com.wallet.core.primitives.Release(
