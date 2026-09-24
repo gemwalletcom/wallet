@@ -10,6 +10,7 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import uniffi.gemstone.GemAssetBalanceScope
+import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemAssetListRow
 import uniffi.gemstone.GemAssetListRowInput
 import uniffi.gemstone.GemAssetRowStyle
@@ -21,6 +22,7 @@ import uniffi.gemstone.assetListRows
 data class AssetInfoDataAggregate(
     val id: AssetId,
     val asset: Asset,
+    val icon: GemAssetIcon,
     val title: String,
     val symbol: String?,
     val network: String?,
@@ -54,6 +56,7 @@ private fun AssetInfo.rowInput(style: GemAssetRowStyle, scope: GemAssetBalanceSc
 private fun AssetInfo.aggregate(row: GemAssetListRow, hideBalance: Boolean): AssetInfoDataAggregate = AssetInfoDataAggregate(
     id = asset.id,
     asset = asset,
+    icon = row.icon,
     title = row.text.title,
     symbol = row.text.symbol,
     network = row.text.network,

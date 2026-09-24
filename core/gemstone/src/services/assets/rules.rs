@@ -237,6 +237,7 @@ pub fn asset_list_row(input: GemAssetListRowInput) -> GemAssetListRow {
         GemAssetBalanceScope::Available => balance.available,
     };
     GemAssetListRow {
+        icon: super::icon::asset_icon(&asset.id),
         text: asset_row_text(&asset, style),
         price: price_row(price, change, currency.clone(), GemCurrencyStyle::Short),
         amount: crate::services::balance::rules::balance_amount_styled(&value, &asset, crate::precision::GemValueStyle::Short),

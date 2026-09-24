@@ -136,6 +136,7 @@ pub fn price_row(price: Option<f64>, change: Option<f64>, currency: Currency, st
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAssetListRow {
+    pub icon: super::icon::GemAssetIcon,
     pub text: GemAssetRowText,
     pub price: GemPriceRow,
     pub amount: GemFormattedNumber,

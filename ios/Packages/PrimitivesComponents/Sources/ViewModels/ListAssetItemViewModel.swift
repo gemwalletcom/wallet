@@ -132,6 +132,6 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
     }
 
     public var assetImage: AssetImage {
-        AssetViewModel(asset: assetDataModel.asset).assetImage
+        AssetImage(icon: row.icon)
     }
 }

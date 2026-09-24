@@ -17,6 +17,7 @@ import com.gemwallet.android.domains.asset.icon
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.Asset
+import uniffi.gemstone.GemAssetIcon
 
 @Composable
 fun AssetIcon(asset: Asset, size: Dp = listItemIconSize, badgeBackgroundColor: Color? = null) {
@@ -24,6 +25,17 @@ fun AssetIcon(asset: Asset, size: Dp = listItemIconSize, badgeBackgroundColor: C
         icon = asset.iconModel(),
         placeholder = asset.id.icon().placeholder,
         supportIcon = asset.supportIconModel(),
+        size = size,
+        badgeBackgroundColor = badgeBackgroundColor,
+    )
+}
+
+@Composable
+fun AssetIcon(icon: GemAssetIcon, size: Dp = listItemIconSize, badgeBackgroundColor: Color? = null) {
+    IconWithBadge(
+        icon = icon.iconModel(),
+        placeholder = icon.placeholder,
+        supportIcon = icon.supportIconModel(),
         size = size,
         badgeBackgroundColor = badgeBackgroundColor,
     )

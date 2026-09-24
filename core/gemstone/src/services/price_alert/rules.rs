@@ -1,3 +1,4 @@
+use crate::services::assets::icon::{GemAssetIcon, asset_icon};
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
@@ -61,6 +62,7 @@ pub enum GemPriceAlertText {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemPriceAlertRow {
     pub asset_id: AssetId,
+    pub icon: GemAssetIcon,
     pub title: String,
     pub symbol: Option<String>,
     pub kind: GemPriceAlertKind,
@@ -242,6 +244,7 @@ pub fn price_alert_row(data: &PriceAlertData, price_currency: Currency) -> GemPr
 
     GemPriceAlertRow {
         asset_id: asset.id.clone(),
+        icon: asset_icon(&asset.id),
         title: asset.name.clone(),
         symbol: (asset.name != asset.symbol).then(|| asset.symbol.clone()),
         kind,
@@ -522,6 +525,7 @@ mod tests {
             price_alert_row(&PriceAlertData::mock(auto.clone(), Some(100.0), Some(-2.0)), Currency::EUR),
             GemPriceAlertRow {
                 asset_id: asset.id.clone(),
+                icon: asset_icon(&asset.id),
                 title: asset.name.clone(),
                 symbol: Some(asset.symbol.clone()),
                 kind: GemPriceAlertKind::Auto,
@@ -541,6 +545,7 @@ mod tests {
             price_alert_row(&PriceAlertData::mock(over.clone(), Some(100.0), Some(-2.0)), Currency::EUR),
             GemPriceAlertRow {
                 asset_id: asset.id.clone(),
+                icon: asset_icon(&asset.id),
                 title: asset.name.clone(),
                 symbol: Some(asset.symbol.clone()),
                 kind: GemPriceAlertKind::Over,
@@ -572,6 +577,7 @@ mod tests {
             price_alert_row(&PriceAlertData::mock(under.clone(), Some(100.0), Some(2.0)), Currency::USD),
             GemPriceAlertRow {
                 asset_id: asset.id.clone(),
+                icon: asset_icon(&asset.id),
                 title: asset.name.clone(),
                 symbol: Some(asset.symbol.clone()),
                 kind: GemPriceAlertKind::Under,
@@ -597,6 +603,7 @@ mod tests {
             price_alert_row(&PriceAlertData::mock(priced.clone(), Some(100.0), Some(-2.0)), Currency::USD),
             GemPriceAlertRow {
                 asset_id: asset.id.clone(),
+                icon: asset_icon(&asset.id),
                 title: asset.name.clone(),
                 symbol: Some(asset.symbol.clone()),
                 kind: GemPriceAlertKind::Auto,

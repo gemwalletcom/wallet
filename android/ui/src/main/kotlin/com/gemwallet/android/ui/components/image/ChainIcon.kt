@@ -9,6 +9,7 @@ import com.gemwallet.android.ui.R
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
+import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemAssetIconImage
 import uniffi.gemstone.GemLocalTokenIcon
 
@@ -81,7 +82,11 @@ fun GemLocalTokenIcon.iconResource(): Int = when (this) {
 
 fun Chain.iconModel(): Any? = iconChain().iconResource()
 
-fun AssetId.iconModel(): Any? = when (val image = icon().image) {
+fun AssetId.iconModel(): Any? = icon().iconModel()
+
+fun GemAssetIcon.supportIconModel(): Any? = badge?.toChain()?.iconResource()
+
+fun GemAssetIcon.iconModel(): Any? = when (val image = image) {
     is GemAssetIconImage.Local -> image.chain.toChain().iconResource()
     is GemAssetIconImage.LocalToken -> image.token.iconResource()
     is GemAssetIconImage.Remote -> image.url

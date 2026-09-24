@@ -1,12 +1,14 @@
 package com.gemwallet.android.testkit
 
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
+import com.gemwallet.android.domains.asset.icon
 import com.wallet.core.primitives.Asset
 import uniffi.gemstone.GemPriceRow
 
 fun mockAssetInfoDataAggregate(asset: Asset = mockAsset(), pinned: Boolean = false) = AssetInfoDataAggregate(
     id = asset.id,
     asset = asset,
+    icon = asset.id.icon(),
     title = asset.name,
     symbol = null,
     network = null,

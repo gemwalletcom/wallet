@@ -36,6 +36,7 @@ import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space6
 import com.wallet.core.primitives.Asset
+import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemFormattedNumber
 import uniffi.gemstone.GemPriceRow
 import uniffi.gemstone.GemValueTone
@@ -58,7 +59,7 @@ fun AssetListItem(
         minHeight = ListItemDefaults.iconMinHeight,
         contentPadding = assetListItemContentPadding(),
         titleSubtitleSpacing = space0,
-        leading = @Composable { AssetIcon(asset.asset) },
+        leading = @Composable { AssetIcon(asset.icon) },
         title = @Composable { ListItemTitleText(asset.title, { Badge(text = badge) }) },
         subtitle = support,
         trailing = if (trailing == null) {
@@ -70,14 +71,23 @@ fun AssetListItem(
 }
 
 @Composable
-fun AssetListItem(asset: Asset, listPosition: ListPosition, modifier: Modifier = Modifier, title: String = asset.name, support: @Composable (() -> Unit)? = null, badge: String? = null, trailing: (@Composable () -> Unit)? = null) {
+fun AssetListItem(
+    asset: Asset,
+    listPosition: ListPosition,
+    modifier: Modifier = Modifier,
+    icon: GemAssetIcon? = null,
+    title: String = asset.name,
+    support: @Composable (() -> Unit)? = null,
+    badge: String? = null,
+    trailing: (@Composable () -> Unit)? = null,
+) {
     ListItem(
         modifier = modifier,
         listPosition = listPosition,
         minHeight = ListItemDefaults.iconMinHeight,
         contentPadding = assetListItemContentPadding(),
         titleSubtitleSpacing = space0,
-        leading = @Composable { AssetIcon(asset) },
+        leading = @Composable { icon?.let { AssetIcon(it) } ?: AssetIcon(asset) },
         title = @Composable { ListItemTitleText(title, { Badge(text = badge) }) },
         subtitle = support,
         trailing = if (trailing == null) {

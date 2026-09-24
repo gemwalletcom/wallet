@@ -45,6 +45,7 @@ internal fun PriceAlertAssetItem(item: PriceAlertItemUIModel, listPosition: List
         modifier = modifier,
         asset = item.asset,
         listPosition = listPosition,
+        icon = item.row.icon,
         support = priceAlertSupport(item.row),
         badge = item.row.symbol,
     )
