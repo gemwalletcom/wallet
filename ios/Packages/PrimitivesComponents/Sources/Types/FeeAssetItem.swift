@@ -2,6 +2,7 @@
 
 import Components
 import Formatters
+import func Gemstone.fiatEquivalent
 import struct Gemstone.GemFeeAsset
 import GemstonePrimitives
 import Primitives
@@ -27,7 +28,9 @@ extension FeeAssetItem: SimpleListItemViewable {
     public var title: String { asset.symbol }
     public var titleExtra: String? { asset.name == title ? nil : asset.name }
     public var subtitle: String? { balanceModel.availableBalanceTextWithSymbol }
-    public var subtitleExtra: String? { fiatBalanceText.isEmpty ? nil : fiatBalanceText }
+    public var subtitleExtra: String? {
+        fiatEquivalent(asset: asset.toGem(), value: balance.available, price: price?.price, currency: currency.toGem())?.text()
+    }
 
     public var titleStyle: TextStyle {
         TextStyle(font: .callout, color: Colors.black, fontWeight: .semibold)
@@ -53,11 +56,6 @@ extension FeeAssetItem: SimpleListItemViewable {
 
     private var balanceModel: BalanceViewModel {
         BalanceViewModel(asset: asset, balance: balance, formatter: .short)
-    }
-
-    private var fiatBalanceText: String {
-        guard let price, balanceModel.balanceAmount > 0 else { return .empty }
-        return PriceViewModel(price: price, currencyCode: currency.rawValue).fiatAmountText(amount: balanceModel.balanceAmount)
     }
 }
 
