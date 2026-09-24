@@ -1,13 +1,13 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
 import com.gemwallet.android.data.service.store.database.AssetsDao
+import com.gemwallet.android.data.service.store.database.AssetsRequestFilter
 import com.gemwallet.android.data.service.store.database.TransactionsDao
 import com.gemwallet.android.ext.requireChain
 import com.wallet.core.primitives.RecentActivityType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemAssetFilter
 import uniffi.gemstone.GemSwapPair
 import uniffi.gemstone.GemSwapStore
 
@@ -21,7 +21,7 @@ class GemstoneSwapStore(private val assetsDao: AssetsDao, private val transactio
         assetsDao.getRecentAssets(
             walletId = walletId,
             type = listOf(RecentActivityType.SwapSelect, RecentActivityType.Swap),
-            filters = setOf(GemAssetFilter.Enabled, GemAssetFilter.Swappable),
+            filters = setOf(AssetsRequestFilter.Enabled, AssetsRequestFilter.Swappable),
             limit = limit.toInt(),
         ).firstOrNull().orEmpty().map { it.asset.id }
     }

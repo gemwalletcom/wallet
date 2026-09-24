@@ -953,6 +953,10 @@ An adapter maps reads and writes and nothing more — **no rules or mapping impl
 
 **Stores only write rows whose values differ.** A blanket write churns observers and hides real changes.
 
+**The native store speaks primitives only.** `ios/Packages/Store` and `android/data/services/store` never reference Gemstone, and a Core store trait is implemented only in the adapter layer (`GemstoneServices`, `data/services/gemstone`). Core types stop at the adapter, which maps them to primitives or store-owned types (`AssetsRequestFilter`) and passes Core values such as `transactionsListLimit()` in as parameters.
+
+**Migrations fail loudly.** iOS `run()` only creates tables or recreates a cache; a column change belongs in `runChanges()`, which also runs on fresh installs, so each step checks what exists instead of `try?`. A cache of server data is dropped and recreated, not migrated. The Room version ships with its exported schema and a registered migration, and never falls back to a destructive migration.
+
 ### Choose the persistence owner
 
 | What the service needs | Trait | Shape | iOS | Android |

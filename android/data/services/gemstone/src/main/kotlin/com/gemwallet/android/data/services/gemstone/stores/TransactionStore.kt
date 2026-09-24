@@ -10,10 +10,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import uniffi.gemstone.transactionsListLimit
 
 class GemstoneTransactionStore(private val transactionsDao: TransactionsDao) {
     fun observeTransactions(walletId: WalletId, filters: List<TransactionsRequestFilter>): Flow<List<TransactionExtended>> =
-        transactionsDao.getExtendedTransactions(walletId, filters).distinctUntilChanged().mapNotNull { items -> items.toDTO() }
+        transactionsDao.getExtendedTransactions(walletId, filters, transactionsListLimit().toInt()).distinctUntilChanged().mapNotNull { items -> items.toDTO() }
 
     fun observeTransaction(walletId: WalletId, transactionId: TransactionId): Flow<TransactionExtended?> = transactionsDao.getExtendedTransaction(walletId, transactionId).distinctUntilChanged().map { it?.toDTO() }
 

@@ -118,7 +118,7 @@ interface TransactionsDao {
     )
     fun getExtendedTransactions(query: SupportSQLiteQuery): Flow<List<DbTransactionExtended>>
 
-    fun getExtendedTransactions(walletId: WalletId, filters: List<TransactionsRequestFilter> = emptyList()): Flow<List<DbTransactionExtended>> = getExtendedTransactions(buildExtendedTransactionsSql(walletId, filters).toSupportSQLiteQuery())
+    fun getExtendedTransactions(walletId: WalletId, filters: List<TransactionsRequestFilter>, limit: Int): Flow<List<DbTransactionExtended>> = getExtendedTransactions(buildExtendedTransactionsSql(walletId, filters, limit).toSupportSQLiteQuery())
 
     @RawQuery(
         observedEntities = [

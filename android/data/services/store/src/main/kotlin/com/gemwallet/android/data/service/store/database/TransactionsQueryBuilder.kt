@@ -3,7 +3,6 @@ package com.gemwallet.android.data.service.store.database
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.WalletId
-import uniffi.gemstone.transactionsListLimit
 
 private fun TransactionsRequestFilter.toSqlClause(): SqlClause = when (this) {
     is TransactionsRequestFilter.Chains -> SqlClause.inList("asset.chain", chains.map { it.string })
@@ -20,12 +19,12 @@ private fun TransactionsRequestFilter.toSqlClause(): SqlClause = when (this) {
     is TransactionsRequestFilter.States -> SqlClause.inList("tx.state", states.map { it.name })
 }
 
-fun buildExtendedTransactionsSql(walletId: WalletId, filters: List<TransactionsRequestFilter>): SqlQuery {
+fun buildExtendedTransactionsSql(walletId: WalletId, filters: List<TransactionsRequestFilter>, limit: Int): SqlQuery {
     val source = EXTENDED_SOURCE.replace(":walletId", "?")
     return SqlQueryBuilder(baseSql = "SELECT $EXTENDED_COLUMNS $source", baseArgs = listOf(walletId.id))
         .whereAll(filters.map { it.toSqlClause() })
         .orderBy("tx.createdAt DESC")
-        .limit(transactionsListLimit().toInt())
+        .limit(limit)
         .build()
 }
 
