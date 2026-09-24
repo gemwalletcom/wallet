@@ -39,6 +39,15 @@ struct Migrations {
         }
     }
 
+    private static func replaceTotalAmount(_ db: Database) throws {
+        let table = BalanceRecord.databaseTableName
+        guard try db.hasColumn(BalanceRecord.Columns.earnAmount.name, in: table) else { return }
+        if try db.hasColumn(BalanceRecord.Columns.totalAmount.name, in: table) {
+            try db.alter(table: table) { $0.drop(column: BalanceRecord.Columns.totalAmount.name) }
+        }
+        try db.alter(table: table) { $0.addColumn(sql: BalanceRecord.totalAmountSQlCreation) }
+    }
+
     mutating func run(dbQueue: DatabaseQueue) throws {
         migrator.registerMigration("Create all start table") { db in
             // wallet
@@ -91,9 +100,7 @@ struct Migrations {
             try SupportMessageRecord.create(db: db)
         }
         migrator.registerMigration("Recreate \(AssetMarketRecord.databaseTableName)") { db in
-            if try db.tableExists(AssetMarketRecord.databaseTableName) {
-                try db.drop(table: AssetMarketRecord.databaseTableName)
-            }
+            try db.dropTableIfExists(AssetMarketRecord.databaseTableName)
             try AssetMarketRecord.create(db: db)
         }
 
@@ -102,136 +109,110 @@ struct Migrations {
 
     mutating func runChanges(dbQueue: DatabaseQueue) throws {
         migrator.registerMigration("Delete missing assetId in \(PriceRecord.databaseTableName), \(BalanceRecord.databaseTableName)") {
-            try? $0.execute(sql: "DELETE FROM prices WHERE assetId NOT IN (SELECT id FROM assets)")
-            try? $0.execute(sql: "DELETE FROM balances WHERE assetId NOT IN (SELECT id FROM assets)")
+            try $0.execute(sql: "DELETE FROM prices WHERE assetId NOT IN (SELECT id FROM assets)")
+            try $0.execute(sql: "DELETE FROM balances WHERE assetId NOT IN (SELECT id FROM assets)")
         }
 
         migrator.registerMigration("Add isPinned to \(WalletRecord.databaseTableName)") { db in
-            try? db.alter(table: WalletRecord.databaseTableName) {
-                $0.add(column: WalletRecord.Columns.isPinned.name, .boolean).defaults(to: false)
-            }
+            try db.addColumnIfMissing(WalletRecord.Columns.isPinned.name, .boolean, to: WalletRecord.databaseTableName) { $0.defaults(to: false) }
         }
 
         migrator.registerMigration("Set order as index in \(WalletRecord.databaseTableName)") { db in
-            try? db.execute(sql: "UPDATE wallets SET \"order\" = \"index\"")
+            guard try db.hasColumn(WalletRecord.Columns.index.name, in: WalletRecord.databaseTableName),
+                  try db.hasColumn(WalletRecord.Columns.order.name, in: WalletRecord.databaseTableName) else { return }
+            try db.execute(sql: "UPDATE wallets SET \"order\" = \"index\"")
         }
 
         migrator.registerMigration("Create \(PriceAlertRecord.databaseTableName)") { db in
-            try? PriceAlertRecord.create(db: db)
+            try db.createIfMissing(PriceAlertRecord.self)
         }
 
         migrator.registerMigration("Recreate \(BannerRecord.databaseTableName)") { db in
-            try? db.drop(table: BannerRecord.databaseTableName)
-            try? BannerRecord.create(db: db)
+            try db.dropTableIfExists(BannerRecord.databaseTableName)
+            try BannerRecord.create(db: db)
         }
 
         migrator.registerMigration("Add balances value to \(BalanceRecord.databaseTableName)") { db in
-            try? db.alter(table: BalanceRecord.databaseTableName) {
-                $0.add(column: BalanceRecord.Columns.availableAmount.name, .double).defaults(to: 0)
-                $0.add(column: BalanceRecord.Columns.frozenAmount.name, .double).defaults(to: 0)
-                $0.add(column: BalanceRecord.Columns.lockedAmount.name, .double).defaults(to: 0)
-                $0.add(column: BalanceRecord.Columns.stakedAmount.name, .double).defaults(to: 0)
-                $0.add(column: BalanceRecord.Columns.pendingAmount.name, .double).defaults(to: 0)
-                $0.add(column: BalanceRecord.Columns.rewardsAmount.name, .double).defaults(to: 0)
-                $0.add(column: BalanceRecord.Columns.reservedAmount.name, .double).defaults(to: 0)
-                $0.addColumn(sql: BalanceRecord.totalAmountSQlCreation)
+            let amounts = [
+                BalanceRecord.Columns.availableAmount,
+                BalanceRecord.Columns.frozenAmount,
+                BalanceRecord.Columns.lockedAmount,
+                BalanceRecord.Columns.stakedAmount,
+                BalanceRecord.Columns.pendingAmount,
+                BalanceRecord.Columns.rewardsAmount,
+                BalanceRecord.Columns.reservedAmount,
+            ]
+            for amount in amounts {
+                try db.addColumnIfMissing(amount.name, .double, to: BalanceRecord.databaseTableName) { $0.defaults(to: 0) }
             }
+            try Self.replaceTotalAmount(db)
         }
 
         migrator.registerMigration("Add rewards to \(BalanceRecord.databaseTableName)") { db in
-            try? db.alter(table: BalanceRecord.databaseTableName) {
-                $0.add(column: BalanceRecord.Columns.rewards.name, .text)
-                    .defaults(to: "0")
-            }
+            try db.addColumnIfMissing(BalanceRecord.Columns.rewards.name, .text, to: BalanceRecord.databaseTableName) { $0.defaults(to: "0") }
         }
 
         migrator.registerMigration("Add reserved to \(BalanceRecord.databaseTableName)") { db in
-            try? db.alter(table: BalanceRecord.databaseTableName) {
-                $0.add(column: BalanceRecord.Columns.reserved.name, .text)
-                    .defaults(to: "0")
-            }
+            try db.addColumnIfMissing(BalanceRecord.Columns.reserved.name, .text, to: BalanceRecord.databaseTableName) { $0.defaults(to: "0") }
         }
 
         migrator.registerMigration("Add updatedAt to \(BalanceRecord.databaseTableName)") { db in
-            try? db.alter(table: BalanceRecord.databaseTableName) {
-                $0.add(column: BalanceRecord.Columns.updatedAt.name, .date)
-            }
+            try db.addColumnIfMissing(BalanceRecord.Columns.updatedAt.name, .date, to: BalanceRecord.databaseTableName)
         }
 
         migrator.registerMigration("Add isSellable to \(AssetRecord.databaseTableName)") { db in
-            try? db.alter(table: AssetRecord.databaseTableName) {
-                $0.add(column: AssetRecord.Columns.isSellable.name, .boolean)
-                    .defaults(to: false)
-            }
+            try db.addColumnIfMissing(AssetRecord.Columns.isSellable.name, .boolean, to: AssetRecord.databaseTableName) { $0.defaults(to: false) }
         }
 
         migrator.registerMigration("Add isStakeable to \(AssetRecord.databaseTableName)") { db in
-            try? db.alter(table: AssetRecord.databaseTableName) {
-                $0.add(column: AssetRecord.Columns.isStakeable.name, .boolean)
-                    .defaults(to: false)
-            }
+            try db.addColumnIfMissing(AssetRecord.Columns.isStakeable.name, .boolean, to: AssetRecord.databaseTableName) { $0.defaults(to: false) }
         }
 
         migrator.registerMigration("Add rank to \(AssetRecord.databaseTableName)") { db in
-            try? db.alter(table: AssetRecord.databaseTableName) {
-                $0.add(column: AssetRecord.Columns.rank.name, .numeric).defaults(to: 0)
-            }
+            try db.addColumnIfMissing(AssetRecord.Columns.rank.name, .numeric, to: AssetRecord.databaseTableName) { $0.defaults(to: 0) }
         }
 
         migrator.registerMigration("Add lastUsedAt to \(BalanceRecord.databaseTableName)") { db in
-            try? db.alter(table: BalanceRecord.databaseTableName) {
-                $0.add(column: "lastUsedAt", .date)
-            }
+            try db.addColumnIfMissing("lastUsedAt", .date, to: BalanceRecord.databaseTableName)
         }
 
         migrator.registerMigration("Create \(AssetLinkRecord.databaseTableName)") { db in
-            try? AssetLinkRecord.create(db: db)
+            try db.createIfMissing(AssetLinkRecord.self)
         }
 
         migrator.registerMigration("Add market values to prices table \(PriceRecord.databaseTableName)") { db in
-            try? db.alter(table: PriceRecord.databaseTableName) {
-                $0.add(column: AssetMarketRecord.Columns.marketCap.name, .double)
-                $0.add(column: AssetMarketRecord.Columns.marketCapRank.name, .integer)
-                $0.add(column: AssetMarketRecord.Columns.totalVolume.name, .double)
-                $0.add(column: AssetMarketRecord.Columns.circulatingSupply.name, .double)
-                $0.add(column: AssetMarketRecord.Columns.totalSupply.name, .double)
-                $0.add(column: AssetMarketRecord.Columns.maxSupply.name, .double)
-            }
+            try db.addColumnIfMissing(AssetMarketRecord.Columns.marketCap.name, .double, to: PriceRecord.databaseTableName)
+            try db.addColumnIfMissing(AssetMarketRecord.Columns.marketCapRank.name, .integer, to: PriceRecord.databaseTableName)
+            try db.addColumnIfMissing(AssetMarketRecord.Columns.totalVolume.name, .double, to: PriceRecord.databaseTableName)
+            try db.addColumnIfMissing(AssetMarketRecord.Columns.circulatingSupply.name, .double, to: PriceRecord.databaseTableName)
+            try db.addColumnIfMissing(AssetMarketRecord.Columns.totalSupply.name, .double, to: PriceRecord.databaseTableName)
+            try db.addColumnIfMissing(AssetMarketRecord.Columns.maxSupply.name, .double, to: PriceRecord.databaseTableName)
         }
 
         migrator.registerMigration("Add stakingApr to \(AssetRecord.databaseTableName)") { db in
-            try? db.alter(table: AssetRecord.databaseTableName) {
-                $0.add(column: AssetRecord.Columns.stakingApr.name, .double)
-            }
+            try db.addColumnIfMissing(AssetRecord.Columns.stakingApr.name, .double, to: AssetRecord.databaseTableName)
         }
 
         migrator.registerMigration("Update \(BalanceRecord.Columns.totalAmount.name) column") { db in
-            try? db.alter(table: BalanceRecord.databaseTableName) {
-                $0.drop(column: BalanceRecord.Columns.totalAmount.name)
-                $0.addColumn(sql: BalanceRecord.totalAmountSQlCreation)
-            }
+            try Self.replaceTotalAmount(db)
         }
 
         migrator.registerMigration("Add isActive to \(BalanceRecord.databaseTableName)") { db in
-            try? db.alter(table: BalanceRecord.databaseTableName) {
-                $0.add(column: BalanceRecord.Columns.isActive.name, .boolean).defaults(to: true)
-            }
+            try db.addColumnIfMissing(BalanceRecord.Columns.isActive.name, .boolean, to: BalanceRecord.databaseTableName) { $0.defaults(to: true) }
         }
 
         migrator.registerMigration("Add marketCapFdv table \(PriceRecord.databaseTableName)") { db in
-            try? db.alter(table: PriceRecord.databaseTableName) {
-                $0.add(column: AssetMarketRecord.Columns.marketCapFdv.name, .double)
-            }
+            try db.addColumnIfMissing(AssetMarketRecord.Columns.marketCapFdv.name, .double, to: PriceRecord.databaseTableName)
         }
 
         // not relevant for new users, only debug
         migrator.registerMigration("Add initial nft setup tables drop") { db in
-            try? db.drop(table: NFTCollectionRecord.databaseTableName)
-            try? db.drop(table: NFTAssetRecord.databaseTableName)
-            try? db.drop(table: NFTAssetAssociationRecord.databaseTableName)
-            try? db.drop(table: "nft_collection_images")
-            try? db.drop(table: "nft_images")
-            try? db.drop(table: "nft_attributes")
+            try db.dropTableIfExists(NFTCollectionRecord.databaseTableName)
+            try db.dropTableIfExists(NFTAssetRecord.databaseTableName)
+            try db.dropTableIfExists(NFTAssetAssociationRecord.databaseTableName)
+            try db.dropTableIfExists("nft_collection_images")
+            try db.dropTableIfExists("nft_images")
+            try db.dropTableIfExists("nft_attributes")
         }
 
         migrator.registerMigration("Add initial nft tables setup") { db in
@@ -241,41 +222,31 @@ struct Migrations {
         }
 
         migrator.registerMigration("Add links to \(NFTCollectionRecord.databaseTableName)") { db in
-            try? db.alter(table: NFTCollectionRecord.databaseTableName) {
-                $0.add(column: NFTCollectionRecord.Columns.links.name, .jsonText)
-            }
+            try db.addColumnIfMissing(NFTCollectionRecord.Columns.links.name, .jsonText, to: NFTCollectionRecord.databaseTableName)
         }
 
         migrator.registerMigration("Add attributes to \(NFTAssetRecord.databaseTableName)") { db in
-            try? db.drop(table: "nft_attributes")
-            try? db.alter(table: NFTAssetRecord.databaseTableName) {
-                $0.add(column: NFTAssetRecord.Columns.attributes.name, .jsonText)
-            }
+            try db.dropTableIfExists("nft_attributes")
+            try db.addColumnIfMissing(NFTAssetRecord.Columns.attributes.name, .jsonText, to: NFTAssetRecord.databaseTableName)
         }
 
         migrator.registerMigration("Add contractAddress to \(NFTAssetRecord.databaseTableName)") { db in
-            try? db.alter(table: NFTAssetRecord.databaseTableName) {
-                $0.add(column: NFTAssetRecord.Columns.contractAddress.name, .text)
-            }
+            try db.addColumnIfMissing(NFTAssetRecord.Columns.contractAddress.name, .text, to: NFTAssetRecord.databaseTableName)
         }
 
         migrator.registerMigration("Add imageUrl to \(WalletRecord.databaseTableName)") { db in
-            try? db.alter(table: WalletRecord.databaseTableName) {
-                $0.add(column: WalletRecord.Columns.imageUrl.name, .text)
-                $0.add(column: WalletRecord.Columns.updatedAt.name, .date)
-            }
+            try db.addColumnIfMissing(WalletRecord.Columns.imageUrl.name, .text, to: WalletRecord.databaseTableName)
+            try db.addColumnIfMissing(WalletRecord.Columns.updatedAt.name, .date, to: WalletRecord.databaseTableName)
         }
 
         migrator.registerMigration("Add currency to \(PriceAlertRecord.databaseTableName)") { db in
-            try? db.alter(table: PriceAlertRecord.databaseTableName) {
-                $0.add(column: PriceAlertRecord.Columns.currency.name, .text).defaults(to: "USD")
-            }
+            try db.addColumnIfMissing(PriceAlertRecord.Columns.currency.name, .text, to: PriceAlertRecord.databaseTableName) { $0.defaults(to: "USD") }
         }
 
         migrator.registerMigration("Re-create nft tables") { db in
-            try? db.drop(table: NFTAssetAssociationRecord.databaseTableName)
-            try? db.drop(table: NFTAssetRecord.databaseTableName)
-            try? db.drop(table: NFTCollectionRecord.databaseTableName)
+            try db.dropTableIfExists(NFTAssetAssociationRecord.databaseTableName)
+            try db.dropTableIfExists(NFTAssetRecord.databaseTableName)
+            try db.dropTableIfExists(NFTCollectionRecord.databaseTableName)
 
             try NFTCollectionRecord.create(db: db)
             try NFTAssetRecord.create(db: db)
@@ -283,170 +254,121 @@ struct Migrations {
         }
 
         migrator.registerMigration("Add fiat rates") { db in
-            try? FiatRateRecord.create(db: db)
+            try db.createIfMissing(FiatRateRecord.self)
         }
 
         migrator.registerMigration("Add priceUsd to prices table \(PriceRecord.databaseTableName)") { db in
-            try? db.alter(table: PriceRecord.databaseTableName) {
-                $0.add(column: PriceRecord.Columns.priceUsd.name, .double)
-                    .notNull()
-                    .defaults(to: 0)
-            }
+            try db.addColumnIfMissing(PriceRecord.Columns.priceUsd.name, .double, to: PriceRecord.databaseTableName) { $0.notNull().defaults(to: 0) }
         }
 
         migrator.registerMigration("Add updatedAt to \(PriceRecord.databaseTableName)") { db in
-            try? db.alter(table: PriceRecord.databaseTableName) {
-                $0.add(column: PriceRecord.Columns.updatedAt.name, .date)
-            }
+            try db.addColumnIfMissing(PriceRecord.Columns.updatedAt.name, .date, to: PriceRecord.databaseTableName)
         }
 
         migrator.registerMigration("Add \(AddressRecord.databaseTableName) table") { db in
-            try? AddressRecord.create(db: db)
+            try db.createIfMissing(AddressRecord.self)
         }
 
         migrator.registerMigration("Add Perpetuals tables") { db in
             try Self.clearChainData(db, chain: "hypercore")
 
-            try? db.drop(table: PerpetualRecord.databaseTableName)
-            try? db.drop(table: PerpetualPositionRecord.databaseTableName)
+            try db.dropTableIfExists(PerpetualRecord.databaseTableName)
+            try db.dropTableIfExists(PerpetualPositionRecord.databaseTableName)
 
-            try? PerpetualRecord.create(db: db)
-            try? PerpetualPositionRecord.create(db: db)
+            try PerpetualRecord.create(db: db)
+            try PerpetualPositionRecord.create(db: db)
         }
 
         migrator.registerMigration("Add withdrawable to \(BalanceRecord.databaseTableName)") { db in
-            try? db.alter(table: BalanceRecord.databaseTableName) {
-                $0.add(column: BalanceRecord.Columns.withdrawable.name, .text)
-                    .defaults(to: "0")
-                $0.add(column: BalanceRecord.Columns.withdrawableAmount.name, .double)
-                    .defaults(to: 0)
-            }
+            try db.addColumnIfMissing(BalanceRecord.Columns.withdrawable.name, .text, to: BalanceRecord.databaseTableName) { $0.defaults(to: "0") }
+            try db.addColumnIfMissing(BalanceRecord.Columns.withdrawableAmount.name, .double, to: BalanceRecord.databaseTableName) { $0.defaults(to: 0) }
         }
 
         migrator.registerMigration("Add metadata to \(BalanceRecord.databaseTableName)") { db in
-            try? db.alter(table: BalanceRecord.databaseTableName) {
-                $0.add(column: BalanceRecord.Columns.metadata.name, .jsonText)
-            }
+            try db.addColumnIfMissing(BalanceRecord.Columns.metadata.name, .jsonText, to: BalanceRecord.databaseTableName)
         }
 
         migrator.registerMigration("Clear metadata from \(BalanceRecord.databaseTableName)") { db in
-            try? db.execute(sql: "UPDATE \(BalanceRecord.databaseTableName) SET metadata = NULL WHERE metadata IS NOT NULL")
+            guard try db.hasColumn(BalanceRecord.Columns.metadata.name, in: BalanceRecord.databaseTableName) else { return }
+            try db.execute(sql: "UPDATE \(BalanceRecord.databaseTableName) SET metadata = NULL WHERE metadata IS NOT NULL")
         }
 
         migrator.registerMigration("Add isEnabled to \(AssetRecord.databaseTableName)") { db in
-            try? db.alter(table: AssetRecord.databaseTableName) {
-                $0.add(column: AssetRecord.Columns.isEnabled.name, .boolean).defaults(to: true)
-            }
+            try db.addColumnIfMissing(AssetRecord.Columns.isEnabled.name, .boolean, to: AssetRecord.databaseTableName) { $0.defaults(to: true) }
         }
 
         migrator.registerMigration("Add source to \(WalletRecord.databaseTableName)") { db in
-            try? db.alter(table: WalletRecord.databaseTableName) {
-                $0.add(column: WalletRecord.Columns.source.name, .text).defaults(to: WalletSource.create.rawValue)
-            }
+            try db.addColumnIfMissing(WalletRecord.Columns.source.name, .text, to: WalletRecord.databaseTableName) { $0.defaults(to: WalletSource.create.rawValue) }
         }
         migrator.registerMigration("Add maxLeverage to \(PerpetualRecord.databaseTableName)") { db in
-            try? db.alter(table: PerpetualRecord.databaseTableName) {
-                $0.add(column: PerpetualRecord.Columns.maxLeverage.name, .integer)
-                    .notNull()
-                    .defaults(to: 1)
-            }
+            try db.addColumnIfMissing(PerpetualRecord.Columns.maxLeverage.name, .integer, to: PerpetualRecord.databaseTableName) { $0.notNull().defaults(to: 1) }
         }
 
         migrator.registerMigration("Create \(RecentActivityRecord.databaseTableName)") { db in
-            try? RecentActivityRecord.create(db: db)
+            try db.createIfMissing(RecentActivityRecord.self)
         }
 
         migrator.registerMigration("Add pendingUnconfirmed to \(BalanceRecord.databaseTableName)") { db in
-            try? db.alter(table: BalanceRecord.databaseTableName) {
-                $0.add(column: BalanceRecord.Columns.pendingUnconfirmed.name, .text)
-                    .defaults(to: "0")
-                $0.add(column: BalanceRecord.Columns.pendingUnconfirmedAmount.name, .double)
-                    .defaults(to: 0)
-            }
+            try db.addColumnIfMissing(BalanceRecord.Columns.pendingUnconfirmed.name, .text, to: BalanceRecord.databaseTableName) { $0.defaults(to: "0") }
+            try db.addColumnIfMissing(BalanceRecord.Columns.pendingUnconfirmedAmount.name, .double, to: BalanceRecord.databaseTableName) { $0.defaults(to: 0) }
         }
 
         migrator.registerMigration("Create \(SearchRecord.databaseTableName) and drop assets_search") { db in
-            try? SearchRecord.create(db: db)
-            try? db.drop(table: "assets_search")
+            try db.dropTableIfExists("assets_search")
         }
 
         migrator.registerMigration("Create \(NotificationRecord.databaseTableName)") { db in
-            try? db.drop(table: NotificationRecord.databaseTableName)
-            try? NotificationRecord.create(db: db)
+            try db.dropTableIfExists(NotificationRecord.databaseTableName)
+            try NotificationRecord.create(db: db)
         }
 
         migrator.registerMigration("Add allTimeHigh/Low to \(PriceRecord.databaseTableName)") { db in
-            try? db.alter(table: PriceRecord.databaseTableName) {
-                $0.add(column: AssetMarketRecord.Columns.allTimeHigh.name, .double)
-                $0.add(column: AssetMarketRecord.Columns.allTimeHighDate.name, .date)
-                $0.add(column: AssetMarketRecord.Columns.allTimeHighChangePercentage.name, .double)
-                $0.add(column: AssetMarketRecord.Columns.allTimeLow.name, .double)
-                $0.add(column: AssetMarketRecord.Columns.allTimeLowDate.name, .date)
-                $0.add(column: AssetMarketRecord.Columns.allTimeLowChangePercentage.name, .double)
-            }
+            try db.addColumnIfMissing(AssetMarketRecord.Columns.allTimeHigh.name, .double, to: PriceRecord.databaseTableName)
+            try db.addColumnIfMissing(AssetMarketRecord.Columns.allTimeHighDate.name, .date, to: PriceRecord.databaseTableName)
+            try db.addColumnIfMissing(AssetMarketRecord.Columns.allTimeHighChangePercentage.name, .double, to: PriceRecord.databaseTableName)
+            try db.addColumnIfMissing(AssetMarketRecord.Columns.allTimeLow.name, .double, to: PriceRecord.databaseTableName)
+            try db.addColumnIfMissing(AssetMarketRecord.Columns.allTimeLowDate.name, .date, to: PriceRecord.databaseTableName)
+            try db.addColumnIfMissing(AssetMarketRecord.Columns.allTimeLowChangePercentage.name, .double, to: PriceRecord.databaseTableName)
         }
 
         migrator.registerMigration("Migrate wallet IDs to WalletIdentifier format") { db in
-            try? db.alter(table: WalletRecord.databaseTableName) {
-                $0.add(column: WalletRecord.Columns.externalId.name, .text)
-            }
+            try db.addColumnIfMissing(WalletRecord.Columns.externalId.name, .text, to: WalletRecord.databaseTableName)
             try WalletIdMigration.migrate(db: db)
         }
 
         migrator.registerMigration("Add hasImage to \(AssetRecord.databaseTableName)") { db in
-            try? db.alter(table: AssetRecord.databaseTableName) {
-                $0.add(column: AssetRecord.Columns.hasImage.name, .boolean).defaults(to: false)
-            }
+            try db.addColumnIfMissing(AssetRecord.Columns.hasImage.name, .boolean, to: AssetRecord.databaseTableName) { $0.defaults(to: false) }
         }
 
         migrator.registerMigration("Create \(ContactRecord.databaseTableName) and \(ContactAddressRecord.databaseTableName)") { db in
-            try? ContactRecord.create(db: db)
-            try? ContactAddressRecord.create(db: db)
+            try db.createIfMissing(ContactRecord.self)
+            try db.createIfMissing(ContactAddressRecord.self)
         }
 
         migrator.registerMigration("Add type to \(AddressRecord.databaseTableName)") { db in
-            try? db.alter(table: AddressRecord.databaseTableName) {
-                $0.add(column: AddressRecord.Columns.type.name, .text)
-            }
+            try db.addColumnIfMissing(AddressRecord.Columns.type.name, .text, to: AddressRecord.databaseTableName)
         }
 
         migrator.registerMigration("Add earn support") { db in
-            try? db.alter(table: AssetRecord.databaseTableName) {
-                $0.add(column: AssetRecord.Columns.isEarnable.name, .boolean).defaults(to: false)
-                $0.add(column: AssetRecord.Columns.earnApr.name, .double)
-            }
-
-            try? db.alter(table: BalanceRecord.databaseTableName) {
-                $0.add(column: BalanceRecord.Columns.earn.name, .text)
-                    .defaults(to: "0")
-                $0.add(column: BalanceRecord.Columns.earnAmount.name, .double)
-                    .defaults(to: 0)
-            }
-
-            try? db.alter(table: BalanceRecord.databaseTableName) {
-                $0.drop(column: BalanceRecord.Columns.totalAmount.name)
-                $0.addColumn(sql: BalanceRecord.totalAmountSQlCreation)
-            }
+            try db.addColumnIfMissing(AssetRecord.Columns.isEarnable.name, .boolean, to: AssetRecord.databaseTableName) { $0.defaults(to: false) }
+            try db.addColumnIfMissing(AssetRecord.Columns.earnApr.name, .double, to: AssetRecord.databaseTableName)
+            try db.addColumnIfMissing(BalanceRecord.Columns.earn.name, .text, to: BalanceRecord.databaseTableName) { $0.defaults(to: "0") }
+            try db.addColumnIfMissing(BalanceRecord.Columns.earnAmount.name, .double, to: BalanceRecord.databaseTableName) { $0.defaults(to: 0) }
+            try Self.replaceTotalAmount(db)
         }
 
         migrator.registerMigration("Add providerType to stake_validators") { db in
-            try? db.alter(table: StakeValidatorRecord.databaseTableName) {
-                $0.add(column: StakeValidatorRecord.Columns.providerType.name, .text)
-                    .defaults(to: StakeProviderType.stake.rawValue)
+            try db.addColumnIfMissing(StakeValidatorRecord.Columns.providerType.name, .text, to: StakeValidatorRecord.databaseTableName) {
+                $0.defaults(to: StakeProviderType.stake.rawValue)
             }
         }
 
         migrator.registerMigration("Add status to \(AddressRecord.databaseTableName) and \(NFTCollectionRecord.databaseTableName)") { db in
-            try? db.alter(table: AddressRecord.databaseTableName) {
-                $0.add(column: AddressRecord.Columns.status.name, .text)
-                    .notNull()
-                    .defaults(to: VerificationStatus.unverified.rawValue)
+            try db.addColumnIfMissing(AddressRecord.Columns.status.name, .text, to: AddressRecord.databaseTableName) {
+                $0.notNull().defaults(to: VerificationStatus.unverified.rawValue)
             }
-
-            try? db.alter(table: NFTCollectionRecord.databaseTableName) {
-                $0.add(column: NFTCollectionRecord.Columns.status.name, .text)
-                    .notNull()
-                    .defaults(to: VerificationStatus.unverified.rawValue)
+            try db.addColumnIfMissing(NFTCollectionRecord.Columns.status.name, .text, to: NFTCollectionRecord.databaseTableName) {
+                $0.notNull().defaults(to: VerificationStatus.unverified.rawValue)
             }
         }
 
@@ -459,19 +381,16 @@ struct Migrations {
         }
 
         migrator.registerMigration("Create \(FiatTransactionRecord.databaseTableName)") { db in
-            try? FiatTransactionRecord.create(db: db)
+            try db.createIfMissing(FiatTransactionRecord.self)
         }
 
         migrator.registerMigration("Recreate \(PerpetualRecord.databaseTableName)") { db in
-            try? db.execute(sql: "DELETE FROM \(SearchRecord.databaseTableName) WHERE \(SearchRecord.Columns.perpetualId.name) IS NOT NULL")
-
-            if try db.tableExists(PerpetualPositionRecord.databaseTableName) {
-                try db.drop(table: PerpetualPositionRecord.databaseTableName)
+            if try db.hasColumn(SearchRecord.Columns.perpetualId.name, in: SearchRecord.databaseTableName) {
+                try db.execute(sql: "DELETE FROM \(SearchRecord.databaseTableName) WHERE \(SearchRecord.Columns.perpetualId.name) IS NOT NULL")
             }
 
-            if try db.tableExists(PerpetualRecord.databaseTableName) {
-                try db.drop(table: PerpetualRecord.databaseTableName)
-            }
+            try db.dropTableIfExists(PerpetualPositionRecord.databaseTableName)
+            try db.dropTableIfExists(PerpetualRecord.databaseTableName)
 
             try PerpetualRecord.create(db: db)
             try PerpetualPositionRecord.create(db: db)
@@ -496,7 +415,7 @@ struct Migrations {
         }
 
         migrator.registerMigration("Create \(AssetListRecord.databaseTableName) and recreate \(SearchRecord.databaseTableName)") { db in
-            try? db.drop(table: SearchRecord.databaseTableName)
+            try db.dropTableIfExists(SearchRecord.databaseTableName)
             try AssetListRecord.create(db: db)
             try SearchRecord.create(db: db)
         }
@@ -506,43 +425,33 @@ struct Migrations {
         }
 
         migrator.registerMigration("Add associations to \(AssetRecord.databaseTableName)") { db in
-            try? db.alter(table: AssetRecord.databaseTableName) {
-                $0.add(column: AssetRecord.Columns.associations.name, .jsonText)
-                    .notNull()
-                    .defaults(to: "[]")
-            }
+            try db.addColumnIfMissing(AssetRecord.Columns.associations.name, .jsonText, to: AssetRecord.databaseTableName) { $0.notNull().defaults(to: "[]") }
         }
 
         migrator.registerMigration("Add estimated confirmation to \(TransactionRecord.databaseTableName)") { db in
-            try? db.alter(table: TransactionRecord.databaseTableName) {
-                $0.add(column: TransactionRecord.Columns.confirmationEtaSeconds.name, .integer)
-            }
+            try db.addColumnIfMissing(TransactionRecord.Columns.confirmationEtaSeconds.name, .integer, to: TransactionRecord.databaseTableName)
         }
 
         migrator.registerMigration("Add imageUrl to \(ContactRecord.databaseTableName)") { db in
-            try? db.alter(table: ContactRecord.databaseTableName) {
-                $0.add(column: ContactRecord.Columns.imageUrl.name, .text)
-            }
+            try db.addColumnIfMissing(ContactRecord.Columns.imageUrl.name, .text, to: ContactRecord.databaseTableName)
         }
 
         migrator.registerMigration("Add imageUrl to \(AddressRecord.databaseTableName)") { db in
-            try? db.alter(table: AddressRecord.databaseTableName) {
-                $0.add(column: AddressRecord.Columns.imageUrl.name, .text)
-            }
+            try db.addColumnIfMissing(AddressRecord.Columns.imageUrl.name, .text, to: AddressRecord.databaseTableName)
         }
 
         migrator.registerMigration("Recreate \(BannerRecord.databaseTableName) without chain") { db in
-            try? db.drop(table: BannerRecord.databaseTableName)
-            try? BannerRecord.create(db: db)
+            try db.dropTableIfExists(BannerRecord.databaseTableName)
+            try BannerRecord.create(db: db)
         }
 
         migrator.registerMigration("Drop node selection tables") { db in
-            try? db.drop(table: "nodes_selected")
-            try? db.drop(table: "nodes_selected_v1")
+            try db.dropTableIfExists("nodes_selected")
+            try db.dropTableIfExists("nodes_selected_v1")
         }
 
         migrator.registerMigration("Recreate \(PriceAlertRecord.databaseTableName) with Core identifiers") { db in
-            try? db.drop(table: PriceAlertRecord.databaseTableName)
+            try db.dropTableIfExists(PriceAlertRecord.databaseTableName)
             try PriceAlertRecord.create(db: db)
         }
 
@@ -584,5 +493,26 @@ struct Migrations {
         }
 
         try migrator.migrate(dbQueue)
+    }
+}
+
+private extension Database {
+    func hasColumn(_ column: String, in table: String) throws -> Bool {
+        try tableExists(table) && columns(in: table).contains { $0.name == column }
+    }
+
+    func dropTableIfExists(_ table: String) throws {
+        guard try tableExists(table) else { return }
+        try drop(table: table)
+    }
+
+    func createIfMissing(_ record: any CreateTable.Type) throws {
+        guard try !tableExists(record.databaseTableName) else { return }
+        try record.create(db: self)
+    }
+
+    func addColumnIfMissing(_ column: String, _ type: Database.ColumnType, to table: String, _ configure: (ColumnDefinition) -> Void = { _ in }) throws {
+        guard try tableExists(table), try !columns(in: table).contains(where: { $0.name == column }) else { return }
+        try alter(table: table) { configure($0.add(column: column, type)) }
     }
 }
