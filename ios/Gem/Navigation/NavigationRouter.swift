@@ -172,7 +172,7 @@ extension NavigationRouter {
             presenter.isPresentingSupport.wrappedValue = true
         case let .transaction(asset, walletId, transaction, _):
             let stored = try transactionStore.getTransaction(walletId: Primitives.WalletId.from(id: walletId), transactionId: transaction.toPrimitives().id)
-            try openTarget(path: getPath(for: asset.toPrimitives(), transaction: stored), walletId: walletId)
+            try openTarget(path: getPath(for: asset.toPrimitives(), transactionId: stored.transaction.id), walletId: walletId)
         case .none:
             break
         }
@@ -294,10 +294,10 @@ extension NavigationRouter {
         }
     }
 
-    private func getPath(for asset: Asset, transaction: TransactionExtended) -> [any Hashable & Codable] {
+    private func getPath(for asset: Asset, transactionId: TransactionId) -> [any Hashable & Codable] {
         switch asset.type {
-        case .perpetual: [Scenes.Perpetuals(), Scenes.Perpetual(asset), Scenes.Transaction(transaction: transaction)]
-        default: [Scenes.Asset(asset: asset), Scenes.Transaction(transaction: transaction)]
+        case .perpetual: [Scenes.Perpetuals(), Scenes.Perpetual(asset), Scenes.Transaction(id: transactionId)]
+        default: [Scenes.Asset(asset: asset), Scenes.Transaction(id: transactionId)]
         }
     }
 

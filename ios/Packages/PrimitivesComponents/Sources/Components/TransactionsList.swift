@@ -15,7 +15,7 @@ public struct TransactionsList: View {
         ForEach(sections) { section in
             Section {
                 ForEach(section.values) { model in
-                    NavigationLink(value: Scenes.Transaction(transaction: model.transaction)) {
+                    NavigationLink(value: Scenes.Transaction(id: model.transactionId)) {
                         TransactionView(model: model)
                     }
                 }

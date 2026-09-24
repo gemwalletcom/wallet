@@ -35,28 +35,28 @@ struct TransactionsNavigationView: View {
             .navigationBarTitleDisplayMode(.inline)
             .navigationTitle(model.title)
             .navigationDestination(for: Scenes.Transaction.self) {
-                TransactionNavigationView(
-                    model: viewModelFactory.transactionScene(
-                        transaction: $0.transaction,
-                        wallet: model.wallet,
-                        onHeaderAction: { action in
-                            Task {
-                                do {
-                                    try await presenter.openTransactionHeaderAction(
-                                        action,
-                                        wallet: model.wallet,
-                                        navigationState: navigationState,
-                                        nftDestination: navigationState.activity,
-                                    )
-                                } catch {
-                                    model.isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
-                                }
+                if let sceneModel = viewModelFactory.transactionScene(
+                    transactionId: $0.id,
+                    wallet: model.wallet,
+                    onHeaderAction: { action in
+                        Task {
+                            do {
+                                try await presenter.openTransactionHeaderAction(
+                                    action,
+                                    wallet: model.wallet,
+                                    navigationState: navigationState,
+                                    nftDestination: navigationState.activity,
+                                )
+                            } catch {
+                                model.isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
                             }
-                        },
-                        onAddContact: { model.isPresentingSheet = .addContact($0) },
-                        onSelectAddress: { model.isPresentingSheet = .addressDetails($0) },
-                    ),
-                )
+                        }
+                    },
+                    onAddContact: { model.isPresentingSheet = .addContact($0) },
+                    onSelectAddress: { model.isPresentingSheet = .addressDetails($0) },
+                ) {
+                    TransactionNavigationView(model: sceneModel)
+                }
             }
             .navigationDestination(for: Scenes.Collectible.self) {
                 CollectibleScene(

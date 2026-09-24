@@ -14,26 +14,31 @@ import Style
 import SwiftUI
 
 public struct TransactionViewModel: Sendable, Identifiable, Equatable {
-    public let transaction: TransactionExtended
     private let row: GemTransactionRow
 
     public init(transaction: TransactionExtended) {
-        self.init(transaction: transaction, row: transactionRow(transaction: transaction.toGem()))
+        self.init(row: transactionRow(transaction: transaction.toGem()))
     }
 
-    public init(transaction: TransactionExtended, row: GemTransactionRow) {
-        self.transaction = transaction
+    public init(row: GemTransactionRow) {
         self.row = row
     }
 
     public var id: String {
-        transaction.id
+        row.id
+    }
+
+    public var transactionId: TransactionId {
+        TransactionId(core: row.id)
+    }
+
+    public var createdAt: Date {
+        row.createdAt
     }
 
     public static func sections(_ transactions: [TransactionExtended]) -> [ListSection<TransactionViewModel>] {
-        let models = zip(transactions, transactionRows(transactions: transactions.map { $0.toGem() }))
-            .map { TransactionViewModel(transaction: $0, row: $1) }
-        return DateSectionBuilder(items: models, dateKeyPath: \.transaction.transaction.createdAt).build()
+        let models = transactionRows(transactions: transactions.map { $0.toGem() }).map(TransactionViewModel.init(row:))
+        return DateSectionBuilder(items: models, dateKeyPath: \.createdAt).build()
     }
 
     public var assetImage: AssetImage {
@@ -101,7 +106,7 @@ public struct TransactionViewModel: Sendable, Identifiable, Equatable {
     }
 
     public var titleTagTextValue: TextValue? {
-        let model = TransactionStateViewModel(state: transaction.transaction.state, tone: row.status.tone)
+        let model = TransactionStateViewModel(state: row.state.toPrimitives(), tone: row.status.tone)
         let title: String? = row.status.showsBadge ? model.title : .none
         return title.map {
             TextValue(
@@ -142,7 +147,7 @@ public struct TransactionViewModel: Sendable, Identifiable, Equatable {
     }
 
     private var assetId: AssetId {
-        transaction.transaction.assetId
+        row.asset.toPrimitives().id
     }
 
     private func participantTitle(prefix: String, participant: String) -> String? {

@@ -188,10 +188,10 @@ public enum Scenes {
     }
 
     public struct Transaction: Hashable, Codable {
-        public let transaction: TransactionExtended
+        public let id: TransactionId
 
-        public init(transaction: TransactionExtended) {
-            self.transaction = transaction
+        public init(id: TransactionId) {
+            self.id = id
         }
     }
 
