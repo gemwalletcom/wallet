@@ -32,7 +32,6 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.RecentActivityType
-import com.wallet.core.primitives.WalletType
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CoroutineDispatcher
@@ -95,8 +94,12 @@ open class BaseAssetSelectViewModel(
     val chainFilter = MutableStateFlow<List<Chain>>(emptyList())
     val balanceFilter = MutableStateFlow(false)
 
-    val availableChains = session
-        .map { session -> session?.wallet?.let { service.filterChains(it.toGem()).map { chain -> chain.requireChain() } } ?: emptyList() }
+    private val walletFlow = session
+        .map { session -> session?.wallet?.let { service.walletFlow(selectType, it.toGem()) } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val availableChains = walletFlow
+        .map { walletFlow -> walletFlow?.chains?.map { chain -> chain.requireChain() }.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     protected val currentQuery = snapshotFlow { queryState.text.toString() }
@@ -198,14 +201,12 @@ open class BaseAssetSelectViewModel(
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, GemSelectAssetState.IDLE)
 
-    val isChainFilterAvailable = combine(getSession(), availableChains) { session, chains ->
-        flow.showsChainFilter(session?.wallet?.type == WalletType.Multicoin, chains.isNotEmpty())
-    }
+    val isChainFilterAvailable = walletFlow
+        .map { it?.showsChainFilter == true }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val isAddAssetAvailable = combine(getSession(), availableChains) { session, chains ->
-        flow.showsAddToken(service.supportsTokens(session?.wallet?.toGem()), chains.isNotEmpty())
-    }
+    val isAddAssetAvailable = walletFlow
+        .map { it?.showsAddToken == true }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     fun onSelected(asset: Asset) {

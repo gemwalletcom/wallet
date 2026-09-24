@@ -175,10 +175,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var showAddToken: Bool {
-        service.flow(selectType: .walletSearch).showsAddToken(
-            supportsTokens: service.supportsTokens(wallet: wallet.toGem()),
-            hasChains: service.filterChains(wallet: wallet.toGem()).isNotEmpty,
-        )
+        service.walletFlow(selectType: .walletSearch, wallet: wallet.toGem()).showsAddToken
     }
 
     private var limits: GemWalletSearchLimits {

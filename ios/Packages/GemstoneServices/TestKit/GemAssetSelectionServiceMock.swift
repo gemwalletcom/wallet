@@ -13,6 +13,7 @@ import struct Gemstone.GemNftEntry
 import enum Gemstone.GemSearchScope
 import struct Gemstone.GemSelectAssetFlow
 import enum Gemstone.GemSelectAssetType
+import struct Gemstone.GemSelectAssetWalletFlow
 import struct Gemstone.GemWalletSearchLimits
 import typealias Gemstone.NftData
 import struct Gemstone.Wallet
@@ -68,12 +69,15 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
         nftSearchItems
     }
 
-    public func supportsTokens(wallet _: Gemstone.Wallet?) -> Bool {
-        tokensSupported
-    }
-
-    public func filterChains(wallet _: Gemstone.Wallet) -> [Gemstone.Chain] {
-        filterChainsResult
+    public func walletFlow(selectType: GemSelectAssetType, wallet: Gemstone.Wallet) -> GemSelectAssetWalletFlow {
+        let flow = selectType.flow()
+        let hasChains = filterChainsResult.isNotEmpty
+        return GemSelectAssetWalletFlow(
+            flow: flow,
+            chains: filterChainsResult,
+            showsAddToken: flow.addCustomToken && tokensSupported && hasChains,
+            showsChainFilter: flow.chainFilter && wallet.walletType == .multicoin && hasChains,
+        )
     }
 
     public func search(query _: String, scope _: GemSearchScope) async throws -> Bool {

@@ -8,6 +8,7 @@ import protocol Gemstone.GemAssetSelectionServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import struct Gemstone.GemSelectAssetFlow
 import enum Gemstone.GemSelectAssetState
+import struct Gemstone.GemSelectAssetWalletFlow
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -24,6 +25,7 @@ public final class SelectAssetViewModel {
     private let service: any GemAssetSelectionServiceProtocol
     let selectType: SelectAssetType
     let flow: GemSelectAssetFlow
+    private let walletFlow: GemSelectAssetWalletFlow
 
     public let wallet: Wallet
 
@@ -56,13 +58,15 @@ public final class SelectAssetViewModel {
         self.service = service
         self.wallet = wallet
         self.selectType = selectType
-        flow = service.flow(selectType: selectType.flowType)
+        let walletFlow = service.walletFlow(selectType: selectType.flowType, wallet: wallet.toGem())
+        self.walletFlow = walletFlow
+        flow = walletFlow.flow
         onSelectAssetAction = selectAssetAction
 
         let filter = AssetsFilterViewModel(
             flow: flow,
             model: ChainsFilterViewModel(
-                chains: service.filterChains(wallet: wallet.toGem()).map { Chain(core: $0) },
+                chains: walletFlow.chains.map { Chain(core: $0) },
                 selected: chains,
             ),
         )
@@ -110,11 +114,11 @@ public final class SelectAssetViewModel {
     }
 
     public var showAddToken: Bool {
-        flow.showsAddToken(supportsTokens: service.supportsTokens(wallet: wallet.toGem()), hasChains: filterModel.chainsFilter.hasChains)
+        walletFlow.showsAddToken
     }
 
     public var showFilter: Bool {
-        flow.showsChainFilter(isMulticoin: wallet.isMultiCoins, hasChains: filterModel.chainsFilter.hasChains)
+        walletFlow.showsChainFilter
     }
 
     var isNetworkSearchEnabled: Bool {

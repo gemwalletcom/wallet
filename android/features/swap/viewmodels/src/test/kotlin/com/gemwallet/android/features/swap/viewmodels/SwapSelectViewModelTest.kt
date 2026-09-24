@@ -26,6 +26,7 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemSelectAssetType
+import uniffi.gemstone.GemSelectAssetWalletFlow
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SwapSelectViewModelTest {
@@ -45,7 +46,7 @@ class SwapSelectViewModelTest {
         every { searchService.search(any(), any(), any(), any()) } returns flowOf(emptyList())
         every { service.flow(any()) } answers { firstArg<GemSelectAssetType>().flow() }
         coEvery { service.searchAssets(any()) } returns emptyList()
-        every { service.supportsTokens(any()) } returns false
+        every { service.walletFlow(any(), any()) } answers { GemSelectAssetWalletFlow(flow = firstArg<GemSelectAssetType>().flow(), chains = emptyList(), showsAddToken = false, showsChainFilter = false) }
         every { service.searchDebounceMilliseconds() } returns 250uL
     }
 

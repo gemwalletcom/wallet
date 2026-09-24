@@ -47,6 +47,7 @@ import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemSelectAssetFlow
 import uniffi.gemstone.GemSelectAssetScope
 import uniffi.gemstone.GemSelectAssetType
+import uniffi.gemstone.GemSelectAssetWalletFlow
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class BaseAssetSelectViewModelTest {
@@ -94,7 +95,7 @@ class BaseAssetSelectViewModelTest {
         service: GemAssetSelectionServiceInterface = mockk(relaxed = true) {
             every { flow(any()) } returns sendFlow()
             every { searchDebounceMilliseconds() } returns 0u
-            every { filterChains(any()) } returns emptyList()
+            every { walletFlow(any(), any()) } answers { GemSelectAssetWalletFlow(flow = firstArg<GemSelectAssetType>().flow(), chains = emptyList(), showsAddToken = false, showsChainFilter = false) }
         },
     ): BaseAssetSelectViewModel {
         val session: GetSession = mockk {
@@ -171,7 +172,7 @@ class BaseAssetSelectViewModelTest {
         val service: GemAssetSelectionServiceInterface = mockk(relaxed = true) {
             every { flow(any()) } returns sendFlow()
             every { searchDebounceMilliseconds() } returns 0u
-            every { filterChains(any()) } returns emptyList()
+            every { walletFlow(any(), any()) } answers { GemSelectAssetWalletFlow(flow = firstArg<GemSelectAssetType>().flow(), chains = emptyList(), showsAddToken = false, showsChainFilter = false) }
         }
         val model = viewModel(listOf(mockAssetInfo(asset = ethereum)), service = service)
         model.unpinned.first { it.isNotEmpty() }

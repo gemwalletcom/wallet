@@ -231,6 +231,12 @@ impl GemSelectAssetFlow {
         }
     }
 
+    pub fn applied_filters(&self, chains: Vec<Chain>, has_balance: bool) -> Vec<GemAssetFilter> {
+        super::rules::applied_filters(self, chains, has_balance)
+    }
+}
+
+impl GemSelectAssetFlow {
     pub fn shows_add_token(&self, supports_tokens: bool, has_chains: bool) -> bool {
         self.add_custom_token && supports_tokens && has_chains
     }
@@ -238,10 +244,14 @@ impl GemSelectAssetFlow {
     pub fn shows_chain_filter(&self, is_multicoin: bool, has_chains: bool) -> bool {
         self.chain_filter && is_multicoin && has_chains
     }
+}
 
-    pub fn applied_filters(&self, chains: Vec<Chain>, has_balance: bool) -> Vec<GemAssetFilter> {
-        super::rules::applied_filters(self, chains, has_balance)
-    }
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemSelectAssetWalletFlow {
+    pub flow: GemSelectAssetFlow,
+    pub chains: Vec<Chain>,
+    pub shows_add_token: bool,
+    pub shows_chain_filter: bool,
 }
 
 #[uniffi::export]

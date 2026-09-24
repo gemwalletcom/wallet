@@ -4,7 +4,7 @@ use primitives::currency::Currency;
 use primitives::{Asset, AssetBasic, AssetId, Chain, NFTData, Wallet, WalletType};
 
 use super::GemAssetsService;
-use super::model::{GemAssetAction, GemSelectAssetFlow, GemSelectAssetType, GemWalletSearchLimits};
+use super::model::{GemAssetAction, GemSelectAssetFlow, GemSelectAssetType, GemSelectAssetWalletFlow, GemWalletSearchLimits};
 use super::rules;
 use crate::services::chain::rules as chain_rules;
 use crate::services::nft::model::GemNftEntry;
@@ -80,12 +80,16 @@ impl GemAssetSelectionService {
         self.preferences.get_currency()
     }
 
-    pub fn filter_chains(&self, wallet: Wallet) -> Vec<Chain> {
-        chain_rules::wallet_chains_by_rank(&wallet)
-    }
-
-    pub fn supports_tokens(&self, wallet: Option<Wallet>) -> bool {
-        wallet.is_some_and(|wallet| !rules::token_chains(&wallet).is_empty())
+    pub fn wallet_flow(&self, select_type: GemSelectAssetType, wallet: Wallet) -> GemSelectAssetWalletFlow {
+        let flow = self.flow(select_type);
+        let chains = chain_rules::wallet_chains_by_rank(&wallet);
+        let has_chains = !chains.is_empty();
+        GemSelectAssetWalletFlow {
+            shows_add_token: flow.shows_add_token(!rules::token_chains(&wallet).is_empty(), has_chains),
+            shows_chain_filter: flow.shows_chain_filter(wallet.wallet_type == WalletType::Multicoin, has_chains),
+            chains,
+            flow,
+        }
     }
 
     pub fn search_collections(&self, data: Vec<NFTData>, query: String) -> Vec<GemNftEntry> {
