@@ -19,7 +19,6 @@ import com.gemwallet.android.features.add_asset.viewmodels.models.verificationWa
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
-import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -38,6 +37,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemAddAssetButton
 import uniffi.gemstone.GemAddAssetPhase
 import uniffi.gemstone.GemAddAssetServiceInterface
 import uniffi.gemstone.GemAddAssetSession
@@ -62,11 +62,15 @@ class AddAssetViewModel @Inject constructor(
     private val wallet = getSession().map { it?.wallet }.filterNotNull()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val availableChains = wallet.map { wallet ->
-        wallet?.let { service.chains(it.toGem()).map { chain -> chain.requireChain() } }
-    }
+    private val chainPicker = wallet.map { wallet -> wallet?.let { service.chainPicker(it.toGem()) } }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val availableChains = chainPicker.map { picker -> picker?.chains?.map { chain -> chain.requireChain() } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val showsChainPicker = chainPicker.map { it?.showsPicker == true }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val chains = snapshotFlow { chainFilter.text }.combine(availableChains) { query, availableChains ->
         availableChains?.let { service.matchingChains(it.map { chain -> chain.string }, query.toString()).map { chain -> chain.requireChain() } } ?: emptyList()
@@ -75,8 +79,8 @@ class AddAssetViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val chain = MutableStateFlow<Chain?>(null)
-    val selectedChain = availableChains.combine(chain) { availableChains, chain ->
-        chain ?: service.defaultChain(availableChains.orEmpty().map { it.string })?.requireChain()
+    val selectedChain = chainPicker.combine(chain) { picker, chain ->
+        chain ?: picker?.defaultChain?.requireChain()
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -114,7 +118,11 @@ class AddAssetViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val buttonState = combine(session, uiState) { session, uiState ->
-        buttonState(enabled = session.viewState().canAdd, loading = uiState.isLoading)
+        when (session.onAdding(uiState.isLoading).viewState().button) {
+            GemAddAssetButton.LOADING -> ButtonState.Loading
+            GemAddAssetButton.ENABLED -> ButtonState.Enabled
+            GemAddAssetButton.DISABLED -> ButtonState.Disabled
+        }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Disabled)
 
     fun onQrScan() {

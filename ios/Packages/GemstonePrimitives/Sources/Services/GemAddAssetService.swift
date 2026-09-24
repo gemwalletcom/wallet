@@ -4,14 +4,6 @@ import protocol Gemstone.GemAddAssetServiceProtocol
 import Primitives
 
 public extension GemAddAssetServiceProtocol {
-    func chains(wallet: Wallet) -> [Chain] {
-        chains(wallet: wallet.toGem()).map { Chain(core: $0) }
-    }
-
-    func defaultChain(chains: [Chain]) -> Chain? {
-        defaultChain(chains: chains.map(\.rawValue)).map { Chain(core: $0) }
-    }
-
     func token(chain: Chain, address: String) async throws -> Asset {
         try await token(chain: chain.rawValue, address: address).toPrimitives()
     }

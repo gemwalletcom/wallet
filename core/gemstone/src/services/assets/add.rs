@@ -21,10 +21,25 @@ pub enum GemAddAssetPhase {
     Failed,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemAddAssetButton {
+    Loading,
+    Enabled,
+    Disabled,
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAddAssetViewState {
     pub phase: GemAddAssetPhase,
     pub can_add: bool,
+    pub button: GemAddAssetButton,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAddAssetChains {
+    pub chains: Vec<Chain>,
+    pub default_chain: Option<Chain>,
+    pub shows_picker: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -33,6 +48,7 @@ pub struct GemAddAssetSession {
     pub address: String,
     pub asset: Option<Asset>,
     pub is_loading: bool,
+    pub is_adding: bool,
     pub failed: bool,
 }
 
@@ -43,6 +59,7 @@ impl GemAddAssetSession {
             address: String::new(),
             asset: None,
             is_loading: false,
+            is_adding: false,
             failed: false,
         }
     }
@@ -78,6 +95,7 @@ impl GemAddAssetSession {
             address,
             asset: None,
             is_loading: false,
+            is_adding: false,
             failed: false,
         }
     }
@@ -98,6 +116,10 @@ impl GemAddAssetSession {
             is_loading: self.searches_token(),
             ..self.cleared(self.chain, self.address.clone())
         }
+    }
+
+    pub fn on_adding(&self, is_adding: bool) -> Self {
+        Self { is_adding, ..self.clone() }
     }
 
     pub fn on_found(&self, chain: Chain, address: String, asset: Asset) -> Self {
@@ -138,10 +160,13 @@ impl GemAddAssetSession {
         } else {
             GemAddAssetPhase::Idle
         };
-        GemAddAssetViewState {
-            can_add: matches!(phase, GemAddAssetPhase::Found { .. }),
-            phase,
-        }
+        let can_add = matches!(phase, GemAddAssetPhase::Found { .. });
+        let button = match (self.is_loading || self.is_adding, can_add) {
+            (true, _) => GemAddAssetButton::Loading,
+            (false, true) => GemAddAssetButton::Enabled,
+            (false, false) => GemAddAssetButton::Disabled,
+        };
+        GemAddAssetViewState { can_add, button, phase }
     }
 }
 
@@ -163,12 +188,13 @@ impl GemAddAssetService {
         GemAddAssetSession::new(chain)
     }
 
-    pub fn chains(&self, wallet: Wallet) -> Vec<Chain> {
-        rules::token_chains(&wallet)
-    }
-
-    pub fn default_chain(&self, chains: Vec<Chain>) -> Option<Chain> {
-        rules::default_token_chain(&chains)
+    pub fn chain_picker(&self, wallet: Wallet) -> GemAddAssetChains {
+        let chains = rules::token_chains(&wallet);
+        GemAddAssetChains {
+            default_chain: rules::default_token_chain(&chains),
+            shows_picker: chains.len() > 1,
+            chains,
+        }
     }
 
     pub fn matching_chains(&self, chains: Vec<Chain>, query: String) -> Vec<Chain> {
@@ -213,6 +239,18 @@ mod session_tests {
         let retyped = found.on_address("0xdef".to_string());
         assert_eq!(retyped.view_state().phase, GemAddAssetPhase::Idle);
         assert!(!retyped.view_state().can_add, "a token that was never looked up cannot be added");
+    }
+
+    #[test]
+    fn test_the_button_spins_while_looking_up_or_adding_and_enables_on_a_found_token() {
+        let idle = GemAddAssetSession::new(Some(Chain::Ethereum)).on_address("0xabc".to_string());
+        assert_eq!(idle.view_state().button, GemAddAssetButton::Disabled);
+        assert_eq!(idle.on_loading().view_state().button, GemAddAssetButton::Loading);
+
+        let found = idle.on_found(Chain::Ethereum, "0xabc".to_string(), Asset::mock());
+        assert_eq!(found.view_state().button, GemAddAssetButton::Enabled);
+        assert_eq!(found.on_adding(true).view_state().button, GemAddAssetButton::Loading);
+        assert_eq!(found.on_adding(true).on_adding(false).view_state().button, GemAddAssetButton::Enabled);
     }
 
     #[test]

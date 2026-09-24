@@ -31,6 +31,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemAddAssetChains
 import uniffi.gemstone.GemAddAssetPhase
 import uniffi.gemstone.GemAddAssetServiceInterface
 import uniffi.gemstone.GemAddAssetSession
@@ -43,10 +44,9 @@ class AddAssetViewModelTest {
     private val token = mockAsset(chain = Chain.Ethereum, tokenId = "0x1", name = "Token", symbol = "TKN", decimals = 18, type = AssetType.ERC20)
     private val service = mockk<GemAddAssetServiceInterface> {
         every { newSession(any()) } answers {
-            GemAddAssetSession(chain = firstArg(), address = "", asset = null, isLoading = false, failed = false)
+            GemAddAssetSession(chain = firstArg(), address = "", asset = null, isLoading = false, isAdding = false, failed = false)
         }
-        every { chains(any()) } returns listOf(Chain.Ethereum.string)
-        every { defaultChain(any()) } returns Chain.Ethereum.string
+        every { chainPicker(any()) } returns GemAddAssetChains(chains = listOf(Chain.Ethereum.string), defaultChain = Chain.Ethereum.string, showsPicker = false)
         every { matchingChains(any(), any()) } answers { firstArg() }
         every { sections(any()) } returns emptyList()
         coEvery { token(Chain.Ethereum.string, "0x1") } returns token.toGem()

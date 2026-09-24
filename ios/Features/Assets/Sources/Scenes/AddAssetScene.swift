@@ -66,7 +66,7 @@ extension AddAssetScene {
         List {
             if let chain = model.input.chain {
                 Section(model.networkTitle) {
-                    if model.input.hasManyChains {
+                    if model.input.showsChainPicker {
                         NavigationLink(value: Scenes.NetworksSelector()) {
                             ChainView(model: ChainViewModel(chain: chain))
                         }

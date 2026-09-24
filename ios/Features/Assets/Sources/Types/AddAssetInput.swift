@@ -4,16 +4,14 @@ import Primitives
 
 struct AddAssetInput {
     let chains: [Chain]
+    let showsChainPicker: Bool
 
     var chain: Chain?
     var address: String?
 
-    var hasManyChains: Bool {
-        chains.count > 1
-    }
-
-    init(chains: [Chain], chain: Chain?) {
+    init(chains: [Chain], chain: Chain?, showsChainPicker: Bool) {
         self.chains = chains
         self.chain = chain
+        self.showsChainPicker = showsChainPicker
     }
 }

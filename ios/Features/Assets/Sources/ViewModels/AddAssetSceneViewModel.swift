@@ -30,8 +30,12 @@ public final class AddAssetSceneViewModel {
     public init(wallet: Wallet, service: any GemAddAssetServiceProtocol) {
         self.service = service
         self.wallet = wallet
-        let chains = service.chains(wallet: wallet)
-        let input = AddAssetInput(chains: chains, chain: service.defaultChain(chains: chains))
+        let picker = service.chainPicker(wallet: wallet.toGem())
+        let input = AddAssetInput(
+            chains: picker.chains.map { Chain(core: $0) },
+            chain: picker.defaultChain.map { Chain(core: $0) },
+            showsChainPicker: picker.showsPicker,
+        )
         session = service.newSession(chain: input.chain?.rawValue)
         self.input = input
     }
@@ -49,10 +53,10 @@ public final class AddAssetSceneViewModel {
     }
 
     var buttonState: ButtonState {
-        switch session.viewState().phase {
+        switch session.viewState().button {
         case .loading: .loading()
-        case .found: .normal
-        case .idle, .failed: .disabled
+        case .enabled: .normal
+        case .disabled: .disabled
         }
     }
 
@@ -153,11 +157,13 @@ extension AddAssetSceneViewModel {
 
     func onSelectImportToken(onComplete: VoidAction) {
         guard let asset = session.asset?.toPrimitives() else { return }
+        session = session.onAdding(isAdding: true)
         Task {
             do {
                 try await service.add(wallet: wallet.toGem(), assetId: asset.id.identifier)
                 onComplete?()
             } catch {
+                session = session.onAdding(isAdding: false)
                 isPresentingAlertMessage = AlertMessage(error: error)
             }
         }

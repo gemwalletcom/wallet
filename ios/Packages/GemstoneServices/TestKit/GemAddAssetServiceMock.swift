@@ -4,6 +4,7 @@ public import struct Gemstone.Account
 import typealias Gemstone.Asset
 import typealias Gemstone.AssetId
 import typealias Gemstone.Chain
+import struct Gemstone.GemAddAssetChains
 import protocol Gemstone.GemAddAssetServiceProtocol
 import struct Gemstone.GemAddAssetSession
 import struct Gemstone.GemListSection
@@ -22,15 +23,11 @@ public final class GemAddAssetServiceMock: GemAddAssetServiceProtocol, @unchecke
     }
 
     public func newSession(chain: Gemstone.Chain?) -> GemAddAssetSession {
-        GemAddAssetSession(chain: chain, address: "", asset: nil, isLoading: false, failed: false)
+        GemAddAssetSession(chain: chain, address: "", asset: nil, isLoading: false, isAdding: false, failed: false)
     }
 
-    public func chains(wallet _: Wallet) -> [Chain] {
-        chains.map(\.rawValue)
-    }
-
-    public func defaultChain(chains: [Chain]) -> Chain? {
-        chains.first
+    public func chainPicker(wallet _: Wallet) -> GemAddAssetChains {
+        GemAddAssetChains(chains: chains.map(\.rawValue), defaultChain: chains.first?.rawValue, showsPicker: chains.count > 1)
     }
 
     public func matchingChains(chains: [Chain], query _: String) -> [Chain] {

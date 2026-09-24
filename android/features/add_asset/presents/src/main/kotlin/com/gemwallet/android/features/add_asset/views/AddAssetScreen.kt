@@ -19,7 +19,7 @@ import com.wallet.core.primitives.QRScanType
 @Composable
 fun AddAssetScreen(onFinish: () -> Unit, onCancel: () -> Unit, viewModel: AddAssetViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val availableChains by viewModel.availableChains.collectAsStateWithLifecycle()
+    val showsChainPicker by viewModel.showsChainPicker.collectAsStateWithLifecycle()
     val chains by viewModel.chains.collectAsStateWithLifecycle()
     val network by viewModel.selectedChain.collectAsStateWithLifecycle()
     val sections by viewModel.sections.collectAsStateWithLifecycle()
@@ -55,7 +55,7 @@ fun AddAssetScreen(onFinish: () -> Unit, onCancel: () -> Unit, viewModel: AddAss
                 sections = sections,
                 verificationWarningRow = verificationWarningRow,
                 buttonState = buttonState,
-                canSelectChain = (availableChains?.size ?: 0) > 1,
+                canSelectChain = showsChainPicker,
                 snackbar = snackbar,
                 onAction = { action ->
                     when (action) {
