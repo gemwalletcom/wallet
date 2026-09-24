@@ -43,7 +43,7 @@ Cross-platform subsystem references live in [docs/](docs). Read the relevant one
 - [Open work](docs/TODO.md) — Every open item, ordered, with the exemplar to copy for each; delete an item's line in the commit that lands it
 - [Performance](docs/PERFORMANCE.md) — responsiveness principles, budgets, and testing for wallet, asset, transaction, confirmation, and swap screens on both apps
 - [Deep links](docs/DEEPLINKS.md) — deep link URL contract, support-chat links, and the web association requirements
-- [Device and subscriptions](docs/DEVICE_SUBSCRIPTIONS.md) — device registration, subscription sync, and the iOS/Android contract
+- [Device](docs/DEVICE.md) — device authentication, registration and subscription sync, and the WebSocket stream
 - [WalletConnect Pay](docs/WALLETCONNECT_PAY.md) — payment links: gateway protocol, actions, identity verification, on-chain settlement, activity record and tracking
 - [Swapper](docs/SWAPPER.md) — quote flow, route preloading, and the shared route cache
 - [Dynode](docs/DYNODE.md) — local proxy usage and configuration

@@ -150,7 +150,7 @@ App entrypoints:
 
 ## Device Authentication
 
-The `Gem <base64>` `Authorization` header format lives in the shared `gem_auth` crate, used by both the client and the backend — see [DEVICE_AUTHENTICATION.md](DEVICE_AUTHENTICATION.md) for the wire format.
+The `Gem <base64>` `Authorization` header format lives in the shared `gem_auth` crate, used by both the client and the backend — see [DEVICE.md](DEVICE.md#authentication) for the wire format.
 
 Keystore side:
 
