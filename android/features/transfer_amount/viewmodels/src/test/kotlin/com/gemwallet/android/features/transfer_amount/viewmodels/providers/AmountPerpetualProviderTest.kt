@@ -58,7 +58,7 @@ class AmountPerpetualProviderTest {
 
     @Test
     fun `a leverage change refreshes untouched defaults and keeps an edited price`() = runTest {
-        val provider = makeProvider(autoclose = { leverage -> GemPerpetualAutoclose(takeProfit = 60000.0 + leverage.toDouble(), stopLoss = 40000.0 - leverage.toDouble()) })
+        val provider = makeProvider(autoclose = { leverage -> GemPerpetualAutoclose(takeProfit = "${60000 + leverage.toInt()}", stopLoss = "${40000 - leverage.toInt()}") })
         val defaultStopLoss = provider.stopLoss.value
 
         provider.setTakeProfit("99999")
@@ -95,7 +95,7 @@ class AmountPerpetualProviderTest {
                 ),
                 selected = GemPickerOption(value = 5u, label = GemLocalizedText.Text("5x")),
             )
-            every { perpetualAutoclose(any(), any(), any()) } answers { autoclose(thirdArg<Byte>().toUByte()) }
+            every { perpetualAutoclose(any(), any(), any()) } answers { autoclose(secondArg<Byte>().toUByte()) }
             every { perpetualAutocloseRow(any(), any()) } returns GemListRow.Lines(GemListRowTitle.AUTO_CLOSE, emptyList(), null)
         }
         val perpetualAggregate = mockPerpetualData()

@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use num_bigint::{BigInt, BigUint};
-use primitives::{Asset, AutocloseEstimator, Chain, Currency, EarnType, PerpetualDirection, StakeChain, TpslType};
+use primitives::{Asset, AutocloseEstimator, Chain, Currency, EarnType, StakeChain, TpslType};
 
 use super::model::{
     GemAmountEarnType, GemAmountEntry, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType, GemAmountTitle, GemAmountTransfer, GemAmountType, GemPerpetualAutoclose,
@@ -263,9 +263,14 @@ impl GemAmountType {
     }
 }
 
-pub fn perpetual_autoclose(price: f64, direction: PerpetualDirection, leverage: u8, take_profit_percent: u8, stop_loss_percent: u8) -> GemPerpetualAutoclose {
-    let estimator = AutocloseEstimator::for_open(price, 0.0, leverage, direction);
-    let target = |percent: u8, trigger_type: TpslType| (percent > 0).then(|| estimator.target_price_from_roe(i32::from(percent), trigger_type));
+pub fn perpetual_autoclose(action: &GemPerpetualPositionAction, leverage: u8, take_profit_percent: u8, stop_loss_percent: u8, decimal_separator: &str) -> GemPerpetualAutoclose {
+    if !action.shows_autoclose() {
+        return GemPerpetualAutoclose { take_profit: None, stop_loss: None };
+    }
+    let data = action.data();
+    let estimator = AutocloseEstimator::for_open(data.price, 0.0, leverage, data.direction.clone());
+    let perpetual = GemPerpetual::new(data.provider.clone());
+    let target = |percent: u8, trigger_type: TpslType| (percent > 0).then(|| perpetual.format_input_price(estimator.target_price_from_roe(i32::from(percent), trigger_type), data.asset.decimals, decimal_separator.to_string()));
     GemPerpetualAutoclose {
         take_profit: target(take_profit_percent, TpslType::TakeProfit),
         stop_loss: target(stop_loss_percent, TpslType::StopLoss),
@@ -538,10 +543,11 @@ mod tests {
     use crate::formatted_number::GemNumberUnit;
     use crate::models::custom_types::GemBigUint;
     use crate::payment::GemPaymentRecipient;
+    use crate::services::perpetual::GemPerpetualTransferData;
     use primitives::Resource;
     use primitives::asset_balance::BalanceMetadata;
     use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
-    use primitives::{Delegation, DelegationBase, DelegationValidator};
+    use primitives::{Delegation, DelegationBase, DelegationValidator, PerpetualDirection};
 
     #[test]
     fn test_input_text_is_plain_digits_with_the_callers_separator() {
@@ -1147,18 +1153,27 @@ mod tests {
 
     #[test]
     fn test_perpetual_autoclose_follows_the_preference_percents() {
-        let long = perpetual_autoclose(100.0, PerpetualDirection::Long, 10, 50, 20);
-        assert_eq!(long.take_profit, Some(105.0));
-        assert_eq!(long.stop_loss, Some(98.0));
+        let open = |direction: PerpetualDirection| GemPerpetualPositionAction::Open {
+            data: GemPerpetualTransferData {
+                direction,
+                ..GemPerpetualTransferData::mock()
+            },
+        };
+        let long = perpetual_autoclose(&open(PerpetualDirection::Long), 10, 50, 20, ",");
+        assert_eq!(long.take_profit.as_deref(), Some("105"));
+        assert_eq!(long.stop_loss.as_deref(), Some("98"));
 
-        let short = perpetual_autoclose(100.0, PerpetualDirection::Short, 10, 50, 20);
-        assert_eq!(short.take_profit, Some(95.0));
-        assert_eq!(short.stop_loss, Some(102.0));
+        let short = perpetual_autoclose(&open(PerpetualDirection::Short), 10, 50, 20, ",");
+        assert_eq!(short.take_profit.as_deref(), Some("95"));
+        assert_eq!(short.stop_loss.as_deref(), Some("102"));
 
-        let off = perpetual_autoclose(100.0, PerpetualDirection::Long, 10, 0, 20);
+        let off = perpetual_autoclose(&open(PerpetualDirection::Long), 10, 0, 20, ".");
         assert_eq!(off.take_profit, None);
-        assert_eq!(off.stop_loss, Some(98.0));
-        assert_eq!(perpetual_autoclose(100.0, PerpetualDirection::Long, 10, 0, 0), GemPerpetualAutoclose { take_profit: None, stop_loss: None });
+        assert_eq!(off.stop_loss.as_deref(), Some("98"));
+        let empty = GemPerpetualAutoclose { take_profit: None, stop_loss: None };
+        assert_eq!(perpetual_autoclose(&open(PerpetualDirection::Long), 10, 0, 0, "."), empty);
+        let increase = GemPerpetualPositionAction::Increase { data: GemPerpetualTransferData::mock() };
+        assert_eq!(perpetual_autoclose(&increase, 10, 50, 20, "."), empty, "only an open position takes defaults");
     }
 
     #[test]

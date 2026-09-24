@@ -150,8 +150,8 @@ pub struct GemAmountMaxEntry {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemPerpetualAutoclose {
-    pub take_profit: Option<f64>,
-    pub stop_loss: Option<f64>,
+    pub take_profit: Option<String>,
+    pub stop_loss: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Error)]

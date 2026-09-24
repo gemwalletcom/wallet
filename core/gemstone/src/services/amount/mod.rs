@@ -5,7 +5,7 @@ pub mod rules;
 
 use std::sync::Arc;
 
-use primitives::{Asset, Currency, PerpetualDirection};
+use primitives::{Asset, Currency};
 
 pub use model::{
     GemAmountEarnType, GemAmountEntry, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType, GemAmountTransfer, GemAmountType, GemLeverageSelection, GemPerpetualAutoclose,
@@ -18,6 +18,7 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::list::GemListRow;
 use crate::services::error::{GemServiceError, required_account};
 use crate::services::perpetual::GemPerpetualPositionAction;
+use crate::services::perpetual::autoclose::GemAutocloseDraft;
 use crate::services::perpetual::rules as perpetual_rules;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::settings::rules::{GemPickerOption, leverage_option};
@@ -52,15 +53,20 @@ impl GemAmountService {
         Some(GemLeverageSelection { options, selected })
     }
 
-    pub fn perpetual_autoclose(&self, price: f64, direction: PerpetualDirection, leverage: u8) -> GemPerpetualAutoclose {
-        rules::perpetual_autoclose(price, direction, leverage, self.preferences.get_perpetual_take_profit_percent(), self.preferences.get_perpetual_stop_loss_percent())
+    pub fn perpetual_autoclose(&self, action: GemPerpetualPositionAction, leverage: u8, decimal_separator: String) -> GemPerpetualAutoclose {
+        rules::perpetual_autoclose(&action, leverage, self.preferences.get_perpetual_take_profit_percent(), self.preferences.get_perpetual_stop_loss_percent(), &decimal_separator)
     }
 
-    pub fn perpetual_autoclose_row(&self, take_profit: Option<f64>, stop_loss: Option<f64>) -> GemListRow {
+    pub fn perpetual_autoclose_row(&self, draft: GemAutocloseDraft, decimal_separator: String) -> GemListRow {
+        let (take_profit, stop_loss) = draft.prices(&decimal_separator);
         perpetual_rules::amount_autoclose_row(take_profit, stop_loss)
     }
 
-    pub fn perpetual_transfer_data(&self, action: GemPerpetualPositionAction, value: GemBigInt, use_max_amount: bool, leverage: u8, take_profit: Option<f64>, stop_loss: Option<f64>) -> GemTransferData {
+    pub fn perpetual_transfer_data(&self, action: GemPerpetualPositionAction, value: GemBigInt, use_max_amount: bool, leverage: u8, draft: GemAutocloseDraft, decimal_separator: String) -> GemTransferData {
+        let (take_profit, stop_loss) = match action.shows_autoclose() {
+            true => draft.prices(&decimal_separator),
+            false => (None, None),
+        };
         perpetual_rules::order_transfer(action, value, use_max_amount, leverage, take_profit, stop_loss)
     }
 

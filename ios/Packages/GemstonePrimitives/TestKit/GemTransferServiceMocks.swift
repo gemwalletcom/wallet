@@ -20,8 +20,8 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
         Primitives.Currency.usd.toGem()
     }
 
-    public func perpetualTransferData(action: GemPerpetualPositionAction, value: Gemstone.GemBigInt, useMaxAmount: Bool, leverage: UInt8, takeProfit: Double?, stopLoss: Double?) -> GemTransferData {
-        builder.perpetualTransferData(action: action, value: value, useMaxAmount: useMaxAmount, leverage: leverage, takeProfit: takeProfit, stopLoss: stopLoss)
+    public func perpetualTransferData(action: GemPerpetualPositionAction, value: Gemstone.GemBigInt, useMaxAmount: Bool, leverage: UInt8, draft: GemAutocloseDraft, decimalSeparator: String) -> GemTransferData {
+        builder.perpetualTransferData(action: action, value: value, useMaxAmount: useMaxAmount, leverage: leverage, draft: draft, decimalSeparator: decimalSeparator)
     }
 
     public func earnTransferData(asset _: Gemstone.Asset, earnType _: Gemstone.EarnType, value _: Gemstone.GemBigInt, useMaxAmount _: Bool) async throws -> GemTransferData {
@@ -47,12 +47,12 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
 
     public var perpetualAutocloseValue: @Sendable (UInt8) -> GemPerpetualAutoclose = { _ in GemPerpetualAutoclose(takeProfit: nil, stopLoss: nil) }
 
-    public func perpetualAutoclose(price _: Double, direction _: Gemstone.PerpetualDirection, leverage: UInt8) -> GemPerpetualAutoclose {
+    public func perpetualAutoclose(action _: GemPerpetualPositionAction, leverage: UInt8, decimalSeparator _: String) -> GemPerpetualAutoclose {
         perpetualAutocloseValue(leverage)
     }
 
-    public func perpetualAutocloseRow(takeProfit: Double?, stopLoss: Double?) -> GemListRow {
-        builder.perpetualAutocloseRow(takeProfit: takeProfit, stopLoss: stopLoss)
+    public func perpetualAutocloseRow(draft: GemAutocloseDraft, decimalSeparator: String) -> GemListRow {
+        builder.perpetualAutocloseRow(draft: draft, decimalSeparator: decimalSeparator)
     }
 }
 

@@ -26,6 +26,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     let leverageTextStyle: TextStyle
     private let service: any GemAmountServiceProtocol
 
+    private let decimalSeparator = NumberInput.format(.current).decimalSeparator
     private var draft: GemAutocloseDraft
 
     init(asset: Asset, action: GemPerpetualPositionAction, service: any GemAmountServiceProtocol) {
@@ -33,7 +34,11 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         self.action = action
         self.service = service
         (leverageSelection, leverageTextStyle) = Self.makeLeverageSelection(action: action, service: service)
-        let defaults = Self.makeDefaultAutoclose(action: action, leverage: leverageSelection?.selected.value ?? action.transferData().leverage, service: service)
+        let defaults = service.perpetualAutoclose(
+            action: action,
+            leverage: leverageSelection?.selected.value ?? action.transferData().leverage,
+            decimalSeparator: decimalSeparator,
+        )
         draft = autocloseDraft(takeProfit: defaults.takeProfit, stopLoss: defaults.stopLoss)
     }
 
@@ -50,10 +55,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     }
 
     var autocloseListItem: ListItemModel? {
-        service.perpetualAutocloseRow(
-            takeProfit: takeProfit.flatMap { NumberInput.double($0) },
-            stopLoss: stopLoss.flatMap { NumberInput.double($0) },
-        ).listItemModel()
+        service.perpetualAutocloseRow(draft: draft, decimalSeparator: decimalSeparator).listItemModel()
     }
 
     private var transferData: GemPerpetualTransferData {
@@ -86,8 +88,8 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
             value: value,
             useMaxAmount: useMaxAmount,
             leverage: leverage,
-            takeProfit: takeProfit.flatMap { NumberInput.double($0) },
-            stopLoss: stopLoss.flatMap { NumberInput.double($0) },
+            draft: draft,
+            decimalSeparator: decimalSeparator,
         )
     }
 
@@ -106,7 +108,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     }
 
     func onChangeLeverage() {
-        let defaults = Self.makeDefaultAutoclose(action: action, leverage: leverage, service: service)
+        let defaults = service.perpetualAutoclose(action: action, leverage: leverage, decimalSeparator: decimalSeparator)
         draft = draft.onDefaults(takeProfit: defaults.takeProfit, stopLoss: defaults.stopLoss)
     }
 
@@ -142,22 +144,5 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         )
 
         return (selection, textStyle)
-    }
-
-    private static func makeDefaultAutoclose(
-        action: GemPerpetualPositionAction,
-        leverage: UInt8,
-        service: any GemAmountServiceProtocol,
-    ) -> (takeProfit: String?, stopLoss: String?) {
-        guard case .open = action else {
-            return (nil, nil)
-        }
-        let transferData = action.transferData()
-        let autoclose = service.perpetualAutoclose(price: transferData.price, direction: transferData.direction, leverage: leverage)
-        let formatter = PerpetualFormatter(provider: .hypercore)
-        return (
-            autoclose.takeProfit.map { formatter.formatInputPrice($0, decimals: transferData.asset.decimals) },
-            autoclose.stopLoss.map { formatter.formatInputPrice($0, decimals: transferData.asset.decimals) },
-        )
     }
 }

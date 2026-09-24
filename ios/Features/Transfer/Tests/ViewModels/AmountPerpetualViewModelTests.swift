@@ -77,7 +77,7 @@ struct AmountPerpetualViewModelTests {
     @Test
     func aLeverageChangeRefreshesUntouchedDefaultsAndKeepsEditedPrices() throws {
         let service = GemAmountServiceMock(builder: GemAmountService.mock())
-        service.perpetualAutocloseValue = { leverage in GemPerpetualAutoclose(takeProfit: 100 + Double(leverage), stopLoss: 50 - Double(leverage)) }
+        service.perpetualAutocloseValue = { leverage in GemPerpetualAutoclose(takeProfit: "\(100 + Int(leverage))", stopLoss: "\(50 - Int(leverage))") }
         let model = AmountPerpetualViewModel.mock(action: .open(data: .mock(leverage: 10)), service: service)
         let selection = try #require(model.leverageSelection)
         let other = try #require(selection.options.first { $0 != selection.selected })

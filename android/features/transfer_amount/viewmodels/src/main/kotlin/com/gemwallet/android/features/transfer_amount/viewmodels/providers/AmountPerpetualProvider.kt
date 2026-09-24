@@ -5,7 +5,6 @@ import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.domains.perpetual.LeverageState
 import com.gemwallet.android.ext.HypercoreUSDC
-import com.gemwallet.android.ext.PerpetualFormatter
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.transfer_amount.viewmodels.models.AmountExtrasUIModel
 import com.gemwallet.android.math.numberFormat
@@ -45,7 +44,6 @@ import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemAssetBalance
 import uniffi.gemstone.GemAutocloseSession
 import uniffi.gemstone.GemAutocloseViewState
-import uniffi.gemstone.GemPerpetualAutoclose
 import uniffi.gemstone.GemPerpetualPositionAction
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.PerpetualProvider
@@ -71,6 +69,8 @@ class AmountPerpetualProvider(
             .stateIn(scope, SharingStarted.Eagerly, null)
 
     val direction: PerpetualDirection = params.direction
+
+    private val decimalSeparator = numberFormat().decimalSeparator.toString()
 
     private val draft = MutableStateFlow(autocloseDraft(null, null))
 
@@ -130,20 +130,12 @@ class AmountPerpetualProvider(
 
     fun onAutocloseSubmitted(): Boolean = autoclose.updateAndGet { it?.onSubmitAttempt() }?.viewState()?.confirmEnabled == true
 
-    private val defaultAutoclose: StateFlow<GemPerpetualAutoclose?> = if (isOpenAction) {
-        combine(perpetual.filterNotNull(), leverageState.filterNotNull()) { market, state ->
-            service.perpetualAutoclose(market.perpetual.price, direction.toGem(), state.current.value)
-        }.stateIn(scope, SharingStarted.Eagerly, null)
-    } else {
-        MutableStateFlow(null)
-    }
-
     init {
         scope.launch {
-            combine(defaultAutoclose.filterNotNull(), perpetual.filterNotNull()) { autoclose, market ->
-                val format = { price: Double -> PerpetualFormatter.formatInputPrice(market.perpetual.provider, price, market.asset.decimals) }
-                autoclose.takeProfit?.let(format) to autoclose.stopLoss?.let(format)
-            }.collect { (takeProfit, stopLoss) -> draft.update { it.onDefaults(takeProfit, stopLoss) } }
+            leverageState.filterNotNull().collect { state ->
+                val defaults = service.perpetualAutoclose(params.positionAction, state.current.value, decimalSeparator)
+                draft.update { it.onDefaults(defaults.takeProfit, defaults.stopLoss) }
+            }
         }
     }
 
@@ -160,8 +152,8 @@ class AmountPerpetualProvider(
         }
     }.stateIn(scope, SharingStarted.Eagerly, null)
 
-    val autocloseListItem: StateFlow<ListItemModel?> = combine(takeProfit, stopLoss, ::autocloseListItem)
-        .stateIn(scope, SharingStarted.Eagerly, autocloseListItem(takeProfit.value, stopLoss.value))
+    val autocloseListItem: StateFlow<ListItemModel?> = draft.map { service.perpetualAutocloseRow(it, decimalSeparator).listItemModel(context) }
+        .stateIn(scope, SharingStarted.Eagerly, null)
 
     override val extras: StateFlow<AmountExtrasUIModel> = combine(leverageState, leverageListItem, autocloseListItem) { state, leverage, autoclose ->
         AmountExtrasUIModel.Perpetual(
@@ -189,10 +181,6 @@ class AmountPerpetualProvider(
         )
     }
 
-    private fun autocloseListItem(takeProfit: String?, stopLoss: String?): ListItemModel? = service
-        .perpetualAutocloseRow(takeProfit?.parseInputNumberOrNull()?.toDouble(), stopLoss?.parseInputNumberOrNull()?.toDouble())
-        .listItemModel(context)
-
     override val amountType: StateFlow<GemAmountType?> = combine(
         perpetual.filterNotNull(),
         leverageState,
@@ -213,9 +201,7 @@ class AmountPerpetualProvider(
         value = amount.atomicValue,
         useMaxAmount = isMax,
         leverage = leverageState.value?.current?.value ?: params.positionAction.transferData().leverage,
-        takeProfit = trigger(takeProfit.value),
-        stopLoss = trigger(stopLoss.value),
+        draft = draft.value,
+        decimalSeparator = decimalSeparator,
     )
-
-    private fun trigger(text: String?): Double? = if (showsAutoclose) text?.let { it.parseInputNumberOrNull()?.toDouble() } else null
 }

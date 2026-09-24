@@ -5,6 +5,7 @@ use crate::percentage::GemPercentageStyle;
 use crate::perpetual::GemAutocloseEstimator;
 use crate::perpetual::GemPerpetual;
 use crate::precision::GemCurrencyStyle;
+use crate::services::amount::rules::plain_number;
 use crate::services::error::GemServiceError;
 use crate::services::localization::GemLocalizedText;
 use crate::services::perpetual::model::GemPerpetualPositionRow;
@@ -403,7 +404,17 @@ impl GemAutocloseDraft {
     }
 }
 
+impl GemAutocloseDraft {
+    pub fn prices(&self, decimal_separator: &str) -> (Option<f64>, Option<f64>) {
+        (self.take_profit.price(decimal_separator), self.stop_loss.price(decimal_separator))
+    }
+}
+
 impl GemAutocloseDraftField {
+    fn price(&self, decimal_separator: &str) -> Option<f64> {
+        self.value.as_ref().and_then(|text| plain_number(decimal_separator, text).parse().ok())
+    }
+
     fn on_default(&self, value: Option<String>) -> GemAutocloseDraftField {
         match self.is_edited {
             true => self.clone(),
@@ -492,6 +503,14 @@ mod tests {
         assert!(state.take_profit.estimate.is_some());
         assert!(state.stop_loss.estimate.is_none());
         assert_eq!(state.take_profit.tpsl_type, TpslType::TakeProfit);
+    }
+
+    #[test]
+    fn test_a_draft_reads_its_prices_in_the_user_locale() {
+        let draft = autoclose_draft(Some("1 234,5".to_string()), None).on_edited(TpslType::StopLoss, Some("98,25".to_string()));
+
+        assert_eq!(draft.prices(","), (Some(1234.5), Some(98.25)));
+        assert_eq!(autoclose_draft(Some("abc".to_string()), None).prices("."), (None, None));
     }
 
     #[test]
