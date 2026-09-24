@@ -9,17 +9,6 @@ pub struct CoinData {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Coin {
-    #[serde(deserialize_with = "deserialize_biguint_from_str")]
-    pub value: BigUint,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CoinStore {
-    pub coin: Coin,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CoinInfo {
     pub decimals: u8,
     pub name: String,

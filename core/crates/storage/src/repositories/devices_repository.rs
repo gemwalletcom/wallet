@@ -37,7 +37,6 @@ impl DeviceRecord {
 
 pub trait DevicesRepository {
     fn add_device(&mut self, device: Device) -> Result<Device, DatabaseError>;
-    fn get_device_by_id(&mut self, id: i32) -> Result<Device, DatabaseError>;
     fn get_device(&mut self, device_id: &str) -> Result<Device, DatabaseError>;
     fn get_device_record(&mut self, device_id: &str) -> Result<DeviceRecord, DatabaseError>;
     fn get_device_exist(&mut self, device_id: &str) -> Result<bool, DatabaseError>;
@@ -64,16 +63,6 @@ impl DevicesRepository for DatabaseClient {
             .set((device_id.eq(excluded(device_id)),))
             .returning(DeviceRow::as_returning())
             .get_result(&mut self.connection)?
-            .as_primitive())
-    }
-
-    fn get_device_by_id(&mut self, device_row_id: i32) -> Result<Device, DatabaseError> {
-        use crate::schema::devices::dsl::*;
-        Ok(devices
-            .find(device_row_id)
-            .select(DeviceRow::as_select())
-            .first(&mut self.connection)
-            .or_not_found_internal(device_row_id.to_string())?
             .as_primitive())
     }
 

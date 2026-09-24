@@ -58,7 +58,6 @@ pub struct AssetSupply {
 }
 
 pub trait AssetsRepository {
-    fn get_assets_all(&mut self) -> Result<Vec<AssetBasic>, DatabaseError>;
     fn add_assets(&mut self, values: Vec<AssetBasic>) -> Result<usize, DatabaseError>;
     fn update_assets(&mut self, asset_ids: Vec<AssetId>, updates: Vec<AssetUpdate>) -> Result<usize, DatabaseError>;
     fn upsert_assets(&mut self, values: Vec<Asset>) -> Result<usize, DatabaseError>;
@@ -158,17 +157,6 @@ fn asset_associations(client: &mut DatabaseClient, requested_asset_id: &str) -> 
 }
 
 impl AssetsRepository for DatabaseClient {
-    fn get_assets_all(&mut self) -> Result<Vec<AssetBasic>, DatabaseError> {
-        use crate::schema::assets::dsl::*;
-        Ok(assets
-            .filter(is_enabled.eq(true))
-            .select(AssetRow::as_select())
-            .load(&mut self.connection)?
-            .into_iter()
-            .map(|x| x.as_basic_primitive())
-            .collect())
-    }
-
     fn add_assets(&mut self, values: Vec<AssetBasic>) -> Result<usize, DatabaseError> {
         use crate::schema::assets::dsl::*;
         if values.is_empty() {

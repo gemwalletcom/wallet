@@ -19,8 +19,6 @@ pub mod auth;
 pub use self::auth::{AuthMessage, AuthNonce, AuthPayload, AuthenticatedRequest};
 pub mod app_constants;
 pub use self::app_constants::{GEM_ANDROID_PACKAGE_ID, GEM_API_HOST, GEM_IOS_BUNDLE_ID, GEM_NODES_ASIA_HOST, GEM_NODES_EUROPE_HOST, GEM_NODES_HOST};
-pub mod auth_status;
-pub use self::auth_status::AuthStatus;
 pub mod chain;
 pub use self::chain::Chain;
 pub mod asset_metadata;
@@ -112,8 +110,6 @@ pub mod fiat_rate;
 pub use self::fiat_rate::FiatRate;
 pub mod fiat_rate_provider;
 pub use self::fiat_rate_provider::FiatRateProvider;
-pub mod fiat_provider_id;
-pub use self::fiat_provider_id::FiatProviderId;
 pub mod platform;
 pub use self::platform::Platform;
 pub mod platform_store;
@@ -211,8 +207,8 @@ pub use self::price_alert::{DevicePriceAlert, PriceAlert, PriceAlertData, PriceA
 pub mod rewards;
 pub mod risk_signal;
 pub use self::rewards::{
-    RedemptionResult, RedemptionStatus, ReferralAllowance, ReferralCode, ReferralLeader, ReferralLeaderboard, ReferralQuota, RewardEvent, RewardEventType, RewardLevel, RewardRedemption, RewardRedemptionOption, RewardRedemptionType,
-    RewardStatus, Rewards,
+    RedemptionResult, RedemptionStatus, ReferralAllowance, ReferralCode, ReferralLeader, ReferralLeaderboard, ReferralQuota, RewardEvent, RewardEventType, RewardRedemption, RewardRedemptionOption, RewardRedemptionType, RewardStatus,
+    Rewards,
 };
 pub use self::risk_signal::{NewRiskSignal, RiskSignal};
 pub mod tag;

@@ -5,14 +5,12 @@ use diesel::upsert::excluded;
 use primitives::{AssetAddress as PrimitiveAssetAddress, AssetId, ChainAddress};
 
 use crate::models::{AssetAddressRow, AssetAddressRowsExt};
-use crate::sql_types::AssetId as AssetIdRow;
 use crate::{DatabaseClient, DatabaseError};
 
 pub trait AssetsAddressesRepository {
     fn add_assets_addresses(&mut self, values: Vec<PrimitiveAssetAddress>) -> Result<usize, DatabaseError>;
     fn get_assets_by_addresses(&mut self, values: Vec<ChainAddress>, from_datetime: Option<NaiveDateTime>) -> Result<Vec<AssetId>, DatabaseError>;
     fn get_asset_addresses(&mut self, value: ChainAddress) -> Result<Vec<PrimitiveAssetAddress>, DatabaseError>;
-    fn get_asset_address(&mut self, value: ChainAddress, asset_id: AssetId) -> Result<Option<PrimitiveAssetAddress>, DatabaseError>;
     fn delete_assets_addresses(&mut self, values: Vec<PrimitiveAssetAddress>) -> Result<usize, DatabaseError>;
 }
 
@@ -61,19 +59,6 @@ impl AssetsAddressesRepository for DatabaseClient {
             .into_iter()
             .map(|row| row.as_primitive())
             .collect()
-    }
-
-    fn get_asset_address(&mut self, chain_address: ChainAddress, target_asset_id: AssetId) -> Result<Option<PrimitiveAssetAddress>, DatabaseError> {
-        use crate::schema::assets_addresses::dsl::*;
-        assets_addresses
-            .filter(chain.eq(chain_address.chain.as_ref()))
-            .filter(address.eq(chain_address.address))
-            .filter(asset_id.eq(AssetIdRow::from(target_asset_id)))
-            .select(AssetAddressRow::as_select())
-            .first(&mut self.connection)
-            .optional()?
-            .map(|row| row.as_primitive())
-            .transpose()
     }
 
     fn delete_assets_addresses(&mut self, values: Vec<PrimitiveAssetAddress>) -> Result<usize, DatabaseError> {

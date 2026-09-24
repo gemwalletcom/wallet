@@ -3,13 +3,11 @@ use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
 use primitives::known_assets::ARBITRUM_USDC;
 use primitives::{Asset, AutocloseEstimator as Estimator, AutocloseValidation, AutocloseValidator as Validator, PerpetualConfirmData, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType};
 
-use crate::config::perpetual_config::{LEVERAGE_OPTIONS, leverage_options};
 use crate::models::GemAsset;
 use crate::models::custom_types::GemBigInt;
 use crate::models::perpetual::GemPerpetualSubscription;
 use crate::services::perpetual::model::{GemPerpetualCloseInput, GemPerpetualOrderInput};
 use crate::services::perpetual::rules as perpetual_rules;
-use crate::services::settings::rules::{GemPickerOption, leverage_option};
 use crate::services::transfer::model::{GemRecipient, GemTransferData};
 use primitives::TransactionInputType;
 
@@ -43,16 +41,6 @@ impl GemPerpetual {
         match self.provider {
             PerpetualProvider::Hypercore => ARBITRUM_USDC.clone(),
         }
-    }
-
-    pub fn leverage_options(&self, max_leverage: Option<u8>) -> Vec<GemPickerOption> {
-        match max_leverage {
-            Some(max_leverage) => leverage_options(max_leverage),
-            None => LEVERAGE_OPTIONS.to_vec(),
-        }
-        .into_iter()
-        .map(leverage_option)
-        .collect()
     }
 }
 
@@ -216,26 +204,5 @@ mod tests {
 
         assert_eq!(validator.validate(None), AutocloseValidation::Valid);
         assert_eq!(validator.validate(Some(90.0)), AutocloseValidation::TriggerMustBeHigher);
-    }
-}
-
-#[cfg(test)]
-mod option_tests {
-    use super::*;
-    use crate::formatted_number::GemNumberUnit;
-    use crate::services::localization::GemLocalizedText;
-
-    #[test]
-    fn test_every_leverage_option_carries_the_number_the_picker_shows() {
-        let options = GemPerpetual::new(PerpetualProvider::Hypercore).leverage_options(Some(40));
-
-        assert_eq!(options.first().map(|option| option.value), Some(1));
-        assert_eq!(options.last().map(|option| option.value), Some(40));
-        assert!(
-            options
-                .iter()
-                .all(|option| matches!(&option.label, GemLocalizedText::Number { number } if number.value == option.value as f64 && number.unit == GemNumberUnit::Multiplier)),
-            "the picker reads the option's own number, it does not build the text again"
-        );
     }
 }

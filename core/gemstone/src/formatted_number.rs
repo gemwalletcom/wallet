@@ -80,10 +80,6 @@ impl GemFormattedNumber {
         Self::amount(asset_value(value, asset.decimals), Some(asset.symbol.clone()), style)
     }
 
-    pub fn asset_fiat(value: &num_bigint::BigInt, asset: &primitives::Asset, price: f64, currency: Currency) -> Self {
-        Self::currency(asset_value(value, asset.decimals) * price, currency, GemCurrencyStyle::Currency)
-    }
-
     pub fn usd(value: f64) -> Self {
         Self::currency(value, Currency::USD, GemCurrencyStyle::Currency)
     }

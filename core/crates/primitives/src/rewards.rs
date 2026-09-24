@@ -5,17 +5,6 @@ use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
 
 use crate::Asset;
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize, EnumIter, AsRefStr, PartialEq)]
-#[serde(rename_all = "camelCase")]
-#[strum(serialize_all = "camelCase")]
-pub enum RewardLevel {}
-
-impl RewardLevel {
-    pub fn all() -> Vec<Self> {
-        Self::iter().collect()
-    }
-}
-
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, EnumIter, EnumString, AsRefStr, PartialEq, Eq, Hash)]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]

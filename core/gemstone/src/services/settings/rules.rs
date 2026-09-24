@@ -359,7 +359,7 @@ mod tests {
             pickers
                 .leverage
                 .iter()
-                .all(|option| matches!(option.label, GemLocalizedText::Number { ref number } if number.unit == crate::formatted_number::GemNumberUnit::Multiplier))
+                .all(|option| matches!(option.label, GemLocalizedText::Number { ref number } if number.value == option.value as f64 && number.unit == crate::formatted_number::GemNumberUnit::Multiplier))
         );
         assert_eq!(pickers.take_profit.first().map(|option| option.label.clone()), Some(GemLocalizedText::None), "no take profit reads as none");
         assert_eq!(
