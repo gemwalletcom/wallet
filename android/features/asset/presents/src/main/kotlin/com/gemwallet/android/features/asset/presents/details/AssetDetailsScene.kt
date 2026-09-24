@@ -45,13 +45,10 @@ internal fun AssetDetailsScene(
     onAction: (AssetDetailsAction) -> Unit,
 ) {
     val detailsState = uiState.detailsState
-    val swapAction = {
-        onAction(
-            AssetDetailsAction.Swap(
-                fromAssetId = uiState.swapPayAssetId ?: uiState.asset.id,
-                toAssetId = uiState.swapReceiveAssetId,
-            ),
-        )
+    val swapAction: () -> Unit = {
+        uiState.swapPayAssetId?.let { payAssetId ->
+            onAction(AssetDetailsAction.Swap(fromAssetId = payAssetId, toAssetId = uiState.swapReceiveAssetId))
+        }
     }
 
     Scene(

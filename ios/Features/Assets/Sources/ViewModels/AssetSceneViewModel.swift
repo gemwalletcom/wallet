@@ -268,8 +268,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     var swapAssetType: SelectedAssetType {
-        guard details.swapPair.receiveAssetId != nil else { return .swap(assetData.asset, nil) }
-        return .swap(assetData.asset.chain.asset, assetData.asset)
+        .swap(AssetId(core: details.swapPair.payAssetId), details.swapPair.receiveAssetId.map { AssetId(core: $0) })
     }
 }
 

@@ -25,7 +25,7 @@ struct AssetSceneViewModelTests {
             service: GemAssetDetailsServiceMock(assetPair: GemSwapPairSuggestion(payAssetId: asset.id.identifier, receiveAssetId: nil)),
         )
 
-        #expect(model.swapAssetType == .swap(asset, nil))
+        #expect(model.swapAssetType == .swap(asset.id, nil))
     }
 
     @Test
@@ -38,7 +38,7 @@ struct AssetSceneViewModelTests {
             ),
         )
 
-        #expect(model.swapAssetType == .swap(asset.chain.asset, asset))
+        #expect(model.swapAssetType == .swap(asset.chain.assetId, asset.id))
     }
 
     @Test

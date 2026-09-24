@@ -65,14 +65,14 @@ struct SelectedAssetNavigationStack: View {
                             amount: amount,
                         ),
                     )
-                case let .swap(fromAsset, toAsset):
+                case let .swap(fromAssetId, toAssetId):
                     SwapNavigationView(
                         model: viewModelFactory.swapScene(
                             input: SwapInput(
                                 wallet: wallet,
                                 pairSelector: SwapPairSelectorViewModel(
-                                    fromAssetId: fromAsset.id,
-                                    toAssetId: toAsset?.id,
+                                    fromAssetId: fromAssetId,
+                                    toAssetId: toAssetId,
                                 ),
                             ),
                             onSwap: { navigate(to: .confirm($0)) },

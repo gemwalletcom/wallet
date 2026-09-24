@@ -68,12 +68,10 @@ extension NavigationPresenter {
         wallet: Wallet,
     ) async throws {
         let fromAsset = try await assetsService.ensureAsset(for: fromAssetId)
-        let toAsset: Asset? = if let toAssetId {
-            try await assetsService.ensureAsset(for: toAssetId)
-        } else {
-            nil
+        if let toAssetId {
+            _ = try await assetsService.ensureAsset(for: toAssetId)
         }
-        try presentAssetInput(type: .swap(fromAsset, toAsset), for: fromAsset, wallet: wallet)
+        try presentAssetInput(type: .swap(fromAssetId, toAssetId), for: fromAsset, wallet: wallet)
     }
 
     func openTransactionHeaderAction(
@@ -100,8 +98,8 @@ extension NavigationPresenter {
         }
     }
 
-    func completeSwap(fromAsset: Asset, navigationState: NavigationStateManager) async throws {
-        let asset = try await assetsService.ensureAsset(for: fromAsset.id)
+    func completeSwap(fromAssetId: AssetId, navigationState: NavigationStateManager) async throws {
+        let asset = try await assetsService.ensureAsset(for: fromAssetId)
         switch navigationState.selectedTab {
         case .wallet:
             navigationState.wallet.setPath([Scenes.Asset(asset: asset)])

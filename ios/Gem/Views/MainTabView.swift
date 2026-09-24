@@ -132,10 +132,10 @@ extension MainTabView {
                 break
             }
             presenter.isPresentingAssetInput.wrappedValue = nil
-        case let .swap(fromAsset, _):
+        case let .swap(fromAssetId, _):
             Task {
                 do {
-                    try await presenter.completeSwap(fromAsset: fromAsset, navigationState: navigationState)
+                    try await presenter.completeSwap(fromAssetId: fromAssetId, navigationState: navigationState)
                 } catch {
                     model.isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
                 }
