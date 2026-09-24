@@ -31,3 +31,4 @@ flowchart LR
 ## Rules
 
 - A username is permanent; a wallet that has one cannot set another.
+- An option can be redeemed only once the account is verified; until then it is listed but not tappable.
