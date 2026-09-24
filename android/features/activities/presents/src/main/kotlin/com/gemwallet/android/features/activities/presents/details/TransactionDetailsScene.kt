@@ -25,7 +25,6 @@ import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.listSections
 import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
-import com.gemwallet.android.ui.components.list_item.property.AssetRatePropertyItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.format.rememberFormattedAddress
@@ -113,8 +112,6 @@ internal fun TransactionDetailsScene(title: String, sections: List<ListSection<T
                         onSwapClick = headerTarget?.let { target -> { onAction(target.navigation()) } },
                         onAssetClick = { onAction(TransactionDetailsAction.OpenAsset(it)) },
                     )
-
-                    is TransactionDetailsRowUIModel.Rate -> AssetRatePropertyItem(row.rate, position)
 
                     is TransactionDetailsRowUIModel.SwapAgain -> MainActionButton(
                         title = stringResource(R.string.transaction_swap_again),

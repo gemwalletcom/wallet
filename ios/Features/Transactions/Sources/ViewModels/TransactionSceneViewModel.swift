@@ -33,7 +33,6 @@ public final class TransactionSceneViewModel {
     }
 
     var isPresentingTransactionSheet: TransactionSheetType?
-    private var isRateInverse = false
 
     public init(
         transaction: TransactionExtended,
@@ -91,7 +90,6 @@ extension TransactionSceneViewModel: ListSectionProvideable {
                 onAddContact: onAddContact,
                 onSelectAddress: onSelectAddress,
             )
-        case .rate: rows.rate.map { TransactionItemModel.rate(title: Localized.Buy.rate, value: AssetRateViewModel(rate: $0).text(isInverse: isRateInverse)) } ?? .empty
         case .fee: feeItem
         case let .row(row): TransactionItemModel.row(row)
         }
@@ -150,10 +148,6 @@ extension TransactionSceneViewModel {
             return
         }
         onHeaderAction(.swap(fromAssetId: fromAssetId, toAssetId: toAssetId))
-    }
-
-    func switchRateDirection() {
-        isRateInverse.toggle()
     }
 
     func onSelectShare() {

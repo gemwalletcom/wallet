@@ -209,7 +209,13 @@ pub fn detail_sections(rows: &GemTransactionDetailRows) -> Vec<GemTransactionDet
                 progress: false,
             })
         }),
-        rows.rate.is_some().then_some(Rate),
+        rows.rate.clone().map(|rate| {
+            list(GemListRow::Rate {
+                title: GemListRowTitle::Rate,
+                rate: rate.direct,
+                inverse: Some(rate.inverse),
+            })
+        }),
         Some(list(GemListRow::Network {
             title: GemListRowTitle::Network,
             chain: rows.asset.chain(),
@@ -1227,7 +1233,7 @@ mod tests {
             GemTransactionDetailRow::Row { row: GemListRow::Memo { .. } } => "Memo".to_string(),
             GemTransactionDetailRow::Row { row: GemListRow::Provider { .. } } => "Provider".to_string(),
             GemTransactionDetailRow::Row {
-                row: GemListRow::Date { title, .. } | GemListRow::Label { title, .. } | GemListRow::Text { title, .. } | GemListRow::Network { title, .. } | GemListRow::Amount { title, .. },
+                row: GemListRow::Date { title, .. } | GemListRow::Label { title, .. } | GemListRow::Text { title, .. } | GemListRow::Network { title, .. } | GemListRow::Amount { title, .. } | GemListRow::Rate { title, .. },
             } => format!("{title:?}"),
             other => format!("{other:?}"),
         };

@@ -4,6 +4,8 @@ import android.content.Context
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.duration.formatDuration
 import com.gemwallet.android.domains.duration.formatEstimate
+import com.gemwallet.android.domains.swap.AssetRateFormatter
+import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.networkName
@@ -42,6 +44,7 @@ internal sealed interface GemListRowUIModel {
     data class Item(val model: ListItemModel, val url: String? = null, val opensAnotherScreen: Boolean = false, val trailingImage: ListItemImage? = null, val menu: List<GemListRowMenuItem> = emptyList(), val address: String? = null) :
         GemListRowUIModel
     data class Provider(val model: ListItemModel, val contract: String?) : GemListRowUIModel
+    data class Rate(val title: String, val rate: AssetRatePair) : GemListRowUIModel
     data class Icon(val asset: Asset) : GemListRowUIModel
     data class Network(val chain: Chain, val name: String) : GemListRowUIModel
     data class Address(val address: String, val copy: GemCopy) : GemListRowUIModel
@@ -74,7 +77,9 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
         ListItemModel(title = title.text(context), subtitle = amount.text(), subtitleStyle = amount.tone.subtitleStyle(), info = info?.infoSheet(context, infoIcon)),
     )
 
-    is GemListRow.Rate -> GemListRowUIModel.Item(ListItemModel(title = title.text(context), subtitle = rate.text(rate.value.text())))
+    is GemListRow.Rate -> inverse?.let { inverse ->
+        GemListRowUIModel.Rate(title.text(context), AssetRatePair(forward = AssetRateFormatter().format(rate), reverse = AssetRateFormatter().format(inverse)))
+    } ?: GemListRowUIModel.Item(ListItemModel(title = title.text(context), subtitle = AssetRateFormatter().format(rate)))
 
     is GemListRow.Action -> GemListRowUIModel.Item(
         ListItemModel(

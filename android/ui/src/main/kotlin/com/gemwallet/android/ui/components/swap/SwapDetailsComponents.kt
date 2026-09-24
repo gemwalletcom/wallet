@@ -132,7 +132,7 @@ fun SwapDetailsBottomSheet(
                 }
             }
             item {
-                AssetRatePropertyItem(model.rate, ListPosition.First)
+                AssetRatePropertyItem(stringResource(R.string.buy_rate), model.rate, ListPosition.First)
             }
             itemsIndexed(model.rows) { index, row ->
                 GemListRowView(row = row, listPosition = ListPosition.getPosition(index + 1, model.rows.size + 1))

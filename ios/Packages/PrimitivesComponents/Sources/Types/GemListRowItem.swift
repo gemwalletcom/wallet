@@ -24,6 +24,7 @@ struct AddressCardModel {
 enum GemListRowItem {
     case notice(title: String, message: String?, kind: GemNoticeKind)
     case listItem(ListItemModel)
+    case rate(title: String, direct: String, inverse: String)
     case provider(ListItemModel, contract: String?)
     case picker(ListItemModel, title: GemListRowTitle)
     case toggle(label: String, title: GemListRowTitle, isOn: Bool, imageStyle: ListItemImageStyle?)
@@ -53,8 +54,12 @@ extension GemListRow {
             .provider(ListItemModel(title: title.text, subtitle: name), contract: contract)
         case let .amount(title, amount, info):
             .listItem(ListItemModel(title: title.text, subtitle: amount.text(), subtitleStyle: subtitleStyle(amount.tone), infoAction: infoAction(info, onInfo: onInfo)))
-        case let .rate(title, rate):
-            .listItem(ListItemModel(title: title.text, subtitle: rate.text(formattedValue: rate.value.text())))
+        case let .rate(title, rate, inverse):
+            if let inverse {
+                .rate(title: title.text, direct: rate.text(formattedValue: rate.value.text()), inverse: inverse.text(formattedValue: inverse.value.text()))
+            } else {
+                .listItem(ListItemModel(title: title.text, subtitle: rate.text(formattedValue: rate.value.text())))
+            }
         case let .action(title, value, info):
             .listItem(
                 ListItemModel(

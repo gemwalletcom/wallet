@@ -234,6 +234,7 @@ pub enum GemListRow {
     Rate {
         title: GemListRowTitle,
         rate: GemAssetRate,
+        inverse: Option<GemAssetRate>,
     },
     Action {
         title: GemListRowTitle,

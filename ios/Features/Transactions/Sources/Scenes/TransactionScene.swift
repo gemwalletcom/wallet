@@ -27,8 +27,6 @@ public struct TransactionScene: View {
     @ViewBuilder
     private func content(for itemModel: TransactionItemModel) -> some View {
         switch itemModel {
-        case let .listItem(model):
-            ListItemView(model: model)
         case let .fee(model):
             NavigationCustomLink(
                 with: ListItemView(model: model),
@@ -43,12 +41,6 @@ public struct TransactionScene: View {
             TransactionSwapProgressView(model: model)
         case let .participant(model):
             AddressListItemView(model: model)
-        case let .rate(title, value):
-            ListItemRotateView(
-                title: title,
-                subtitle: value,
-                action: model.switchRateDirection,
-            )
         case let .row(row):
             GemListRowView(row: row, onSelectAddress: model.onSelectProviderContract, onInfo: model.onInfo)
         case let .swapAgain(text):

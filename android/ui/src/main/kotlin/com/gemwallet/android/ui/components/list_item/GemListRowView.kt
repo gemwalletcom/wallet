@@ -23,6 +23,7 @@ import com.gemwallet.android.ui.components.clipboard.setCopy
 import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_head.HeaderIcon
+import com.gemwallet.android.ui.components.list_item.property.AssetRatePropertyItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
@@ -129,6 +130,8 @@ fun GemListRowView(
                 },
             )
         }
+
+        is GemListRowUIModel.Rate -> AssetRatePropertyItem(title = row.title, rate = row.rate, listPosition = listPosition)
 
         is GemListRowUIModel.Icon -> Column(
             modifier = Modifier

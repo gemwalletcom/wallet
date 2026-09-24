@@ -131,7 +131,11 @@ impl GemFiatSession {
             amount: operation.amount.clone(),
             phase: operation.phase.clone(),
             quote_rows: self.quote_rows(asset_price),
-            rate_row: selected_quote_row.as_ref().and_then(|row| row.rate.clone()).map(|rate| GemListRow::Rate { title: GemListRowTitle::Rate, rate }),
+            rate_row: selected_quote_row.as_ref().and_then(|row| row.rate.clone()).map(|rate| GemListRow::Rate {
+                title: GemListRowTitle::Rate,
+                rate,
+                inverse: None,
+            }),
             selected_quote_row,
             can_select_provider: self.can_select_provider(),
             amount_check: self.amount_check(),
@@ -569,7 +573,11 @@ mod tests {
         assert_eq!(state.quote_rows.len(), 2);
         assert_eq!(
             state.rate_row,
-            state.selected_quote_row.as_ref().and_then(|row| row.rate.clone()).map(|rate| GemListRow::Rate { title: GemListRowTitle::Rate, rate }),
+            state.selected_quote_row.as_ref().and_then(|row| row.rate.clone()).map(|rate| GemListRow::Rate {
+                title: GemListRowTitle::Rate,
+                rate,
+                inverse: None,
+            }),
             "the selected quote's rate is drawn as the shared row"
         );
         assert!(state.rate_row.is_some());

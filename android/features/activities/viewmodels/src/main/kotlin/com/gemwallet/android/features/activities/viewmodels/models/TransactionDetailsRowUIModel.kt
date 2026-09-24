@@ -2,8 +2,6 @@ package com.gemwallet.android.features.activities.viewmodels.models
 
 import android.content.Context
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.domains.swap.AssetRateFormatter
-import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.activities.viewmodels.localization.stringRes
 import com.gemwallet.android.model.AssetPriceInfo
@@ -47,7 +45,6 @@ sealed interface TransactionDetailsRowUIModel {
     data class AssetHead(val asset: Asset) : TransactionDetailsRowUIModel
     data class SwapHead(val fromAsset: AssetPriceValue, val fromValueText: String, val fromEquivalentText: String?, val toAsset: AssetPriceValue, val toValueText: String, val toEquivalentText: String?) : TransactionDetailsRowUIModel
 
-    data class Rate(val rate: AssetRatePair) : TransactionDetailsRowUIModel
     data class SwapAgain(val fromAssetId: AssetId, val toAssetId: AssetId) : TransactionDetailsRowUIModel
 }
 
@@ -65,8 +62,6 @@ internal fun GemTransactionDetailRows.uiModel(row: GemTransactionDetailRow, cont
         }
 
         GemTransactionDetailRow.Participant -> requireNotNull(participant).address(context, asset.chain)
-
-        GemTransactionDetailRow.Rate -> TransactionDetailsRowUIModel.Rate(AssetRateFormatter().format(requireNotNull(rate)))
 
         GemTransactionDetailRow.Fee -> TransactionDetailsRowUIModel.Fee(
             ListItemModel(

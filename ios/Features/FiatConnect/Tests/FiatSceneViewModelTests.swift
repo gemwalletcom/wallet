@@ -120,7 +120,7 @@ final class FiatSceneViewModelTests {
         let model = FiatSceneViewModel.mock()
         model.session = model.session.onQuoteResults(results: .mock(quotes: [.mock(fiatAmount: 1200, cryptoAmount: 2.0)]))
 
-        guard case let .rate(_, rate) = model.viewState.rateRow else {
+        guard case let .rate(_, rate, _) = model.viewState.rateRow else {
             Issue.record("a selected quote shows its rate")
             return
         }

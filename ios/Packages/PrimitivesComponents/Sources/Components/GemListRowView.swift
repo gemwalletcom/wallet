@@ -13,6 +13,7 @@ public struct GemListRowView: View {
     @Environment(\.openURL) private var openURL
 
     @State private var presentation: GemListRowPresentationType?
+    @State private var isRateInverse = false
 
     private let row: GemListRow
     private let onToggle: ((GemListRowTitle, Bool) -> Void)?
@@ -59,6 +60,8 @@ public struct GemListRowView: View {
             }
         case let .listItem(model):
             ListItemView(model: model)
+        case let .rate(title, direct, inverse):
+            ListItemRotateView(title: title, subtitle: isRateInverse ? inverse : direct) { isRateInverse.toggle() }
         case let .provider(model, contract):
             if let contract, let onSelectAddress {
                 NavigationCustomLink(with: ListItemView(model: model)) { onSelectAddress(contract) }
