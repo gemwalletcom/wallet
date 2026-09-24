@@ -31,3 +31,5 @@ flowchart LR
 ## Rules
 
 - A username is permanent; a wallet that has one cannot set another.
+- A disabled account sees why in its own language, never the internal reason the server stored.
+- Redeeming with too few points, or an option that has run out, says so instead of a generic error.
