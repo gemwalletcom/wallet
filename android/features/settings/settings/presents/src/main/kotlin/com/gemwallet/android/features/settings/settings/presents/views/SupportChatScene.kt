@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -36,20 +38,29 @@ import com.gemwallet.android.ui.components.empty.EmptyStateView
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
+import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 
 @Composable
-fun SupportChatNavScreen(onCancel: () -> Unit, viewModel: SupportChatSceneViewModel = hiltViewModel()) {
+fun SupportChatNavScreen(message: RouteMessage?, onMessageShown: () -> Unit, onCancel: () -> Unit, viewModel: SupportChatSceneViewModel = hiltViewModel()) {
     val days by viewModel.days.collectAsStateWithLifecycle()
     val isEmpty by viewModel.isEmpty.collectAsStateWithLifecycle()
     val typingAgentName by viewModel.typingAgentName.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val errorRow by viewModel.errorRow.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
+    val context = LocalContext.current
+    LaunchedEffect(message) {
+        message?.let {
+            snackbar.showSnackbar(it, context)
+            onMessageShown()
+        }
+    }
     var previewUrl by remember { mutableStateOf<String?>(null) }
 
     val imagePicker = rememberLauncherForActivityResult(PickMultipleVisualMedia()) { uris ->

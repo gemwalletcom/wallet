@@ -5,6 +5,7 @@ import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.asset.presents.chart.AssetChartScene
 import com.gemwallet.android.features.asset.presents.details.AssetDetailsScreen
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetDetailsAction
+import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.gemwallet.android.ui.navigation.assetIdArgument
 import com.gemwallet.android.ui.navigation.routeArguments
 import com.wallet.core.primitives.AssetId
@@ -31,8 +32,8 @@ fun EntryProviderScope<NavKey>.assetChartScreen(
     onPriceAlerts: (AssetId) -> Unit,
     onAddPriceAlertTarget: (AssetId) -> Unit,
     onOpenAddress: (ChainAddress) -> Unit,
-    toastMessage: (AssetChartRoute) -> String?,
-    onToastShown: (AssetChartRoute) -> Unit,
+    routeMessage: (AssetChartRoute) -> RouteMessage?,
+    onRouteMessageShown: (AssetChartRoute) -> Unit,
     onCancel: () -> Unit,
 ) {
     entry<AssetChartRoute>(
@@ -42,8 +43,8 @@ fun EntryProviderScope<NavKey>.assetChartScreen(
             onPriceAlerts = onPriceAlerts,
             onAddPriceAlertTarget = onAddPriceAlertTarget,
             onOpenAddress = onOpenAddress,
-            toastMessage = toastMessage(key),
-            onToastShown = { onToastShown(key) },
+            message = routeMessage(key),
+            onMessageShown = { onRouteMessageShown(key) },
             onCancel = onCancel,
         )
     }

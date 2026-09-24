@@ -24,6 +24,7 @@ import com.gemwallet.android.features.settings.settings.presents.views.Notificat
 import com.gemwallet.android.features.settings.settings.presents.views.PreferencesScene
 import com.gemwallet.android.features.settings.settings.presents.views.SupportChatNavScreen
 import com.gemwallet.android.ui.models.actions.PreferencesAction
+import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.gemwallet.android.ui.navigation.assetIdArgument
 import com.gemwallet.android.ui.navigation.routeArguments
 import com.gemwallet.android.ui.open
@@ -72,7 +73,12 @@ data object PreferencesRoute : NavKey
 @Serializable
 data object NotificationsRoute : NavKey
 
-fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit, onOpenUrl: (String) -> Boolean, toastMessage: (NavKey) -> String?, onToastShown: (NavKey) -> Unit) {
+fun EntryProviderScope<NavKey>.settingsScreen(
+    onAction: (SettingsAction) -> Unit,
+    onOpenUrl: (String) -> Boolean,
+    routeMessage: (NavKey) -> RouteMessage?,
+    onRouteMessageShown: (NavKey) -> Unit,
+) {
     val onCancel = { onAction(SettingsAction.Cancel) }
 
     entry<CurrenciesRoute> {
@@ -98,10 +104,12 @@ fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit
         )
     }
 
-    entry<InAppNotificationsRoute> {
+    entry<InAppNotificationsRoute> { key ->
         val context = LocalContext.current
         val uriHandler = LocalUriHandler.current
         InAppNotificationsScene(
+            message = routeMessage(key),
+            onMessageShown = { onRouteMessageShown(key) },
             onAction = { action ->
                 when (action) {
                     InAppNotificationsAction.Cancel -> onAction(SettingsAction.Cancel)
@@ -125,8 +133,8 @@ fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit
 
     entry<PriceAlertsRoute> { key ->
         priceAlertsScreenContent(
-            toastMessage = toastMessage(key),
-            onToastShown = { onToastShown(key) },
+            message = routeMessage(key),
+            onMessageShown = { onRouteMessageShown(key) },
             onAction = onAction,
         )
     }
@@ -135,8 +143,8 @@ fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit
         metadata = { key -> routeArguments(assetIdArgument(key.assetId)) },
     ) { key ->
         priceAlertsScreenContent(
-            toastMessage = toastMessage(key),
-            onToastShown = { onToastShown(key) },
+            message = routeMessage(key),
+            onMessageShown = { onRouteMessageShown(key) },
             onAction = onAction,
         )
     }
@@ -170,7 +178,7 @@ fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit
         )
     }
 
-    entry<SupportRoute> {
+    entry<SupportRoute> { key ->
         val context = LocalContext.current
         val defaultUriHandler = LocalUriHandler.current
         val currentOnOpenUrl by rememberUpdatedState(onOpenUrl)
@@ -184,16 +192,20 @@ fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit
             }
         }
         CompositionLocalProvider(LocalUriHandler provides uriHandler) {
-            SupportChatNavScreen(onCancel = onCancel)
+            SupportChatNavScreen(
+                message = routeMessage(key),
+                onMessageShown = { onRouteMessageShown(key) },
+                onCancel = onCancel,
+            )
         }
     }
 }
 
 @Composable
-private fun priceAlertsScreenContent(toastMessage: String?, onToastShown: () -> Unit, onAction: (SettingsAction) -> Unit) {
+private fun priceAlertsScreenContent(message: RouteMessage?, onMessageShown: () -> Unit, onAction: (SettingsAction) -> Unit) {
     PriceAlertsNavScreen(
-        toastMessage = toastMessage,
-        onToastShown = onToastShown,
+        message = message,
+        onMessageShown = onMessageShown,
         onChart = { onAction(SettingsAction.Chart(it)) },
         onAddPriceAlertTarget = { onAction(SettingsAction.AddPriceAlertTarget(it)) },
         onCancel = { onAction(SettingsAction.Cancel) },

@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.navigation
 
+import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateMapOf
@@ -10,6 +11,8 @@ import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.domains.search.WalletSearchTag
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.domains.wallet.WalletSecretInput
+import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset_select.presents.navigation.AssetsManageRoute
 import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
@@ -24,6 +27,7 @@ import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.routes
+import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.gemwallet.android.ui.navigation.routes.AboutusRoute
 import com.gemwallet.android.ui.navigation.routes.AddAssetRoute
 import com.gemwallet.android.ui.navigation.routes.AddContactRoute
@@ -111,7 +115,7 @@ class WalletNavigator(
     private val navigationService: GemNavigationServiceInterface,
     private val scope: CoroutineScope,
 ) {
-    private val toastMessages = mutableStateMapOf<NavKey, String>()
+    private val routeMessages = mutableStateMapOf<NavKey, RouteMessage>()
     private val swapSelections = mutableStateMapOf<NavKey, SwapSelection>()
     private val paymentSelections = mutableStateMapOf<NavKey, AssetId>()
 
@@ -127,12 +131,9 @@ class WalletNavigator(
     }
 
     private fun openAssetRoute(route: AssetRoute) = scope.launch {
-        val asset = withContext(Dispatchers.IO) {
-            assetsService.openAsset(route.assetId.toIdentifier())
-        }
-        if (asset != null) {
-            push(route)
-        }
+        runCatchingCancellable { withContext(Dispatchers.IO) { assetsService.openAsset(route.assetId.toIdentifier()) } }
+            .onSuccess { asset -> if (asset != null) push(route) }
+            .onFailure { Log.e(TAG, "opening an asset failed", it) }
     }
 
     private fun replaceTop(route: NavKey) {
@@ -172,13 +173,13 @@ class WalletNavigator(
         backStack.add(route)
     }
 
-    fun toastMessage(route: NavKey): String? = toastMessages[route]
+    fun routeMessage(route: NavKey): RouteMessage? = routeMessages[route]
 
-    fun clearToastMessage(route: NavKey) {
-        toastMessages.remove(route)
+    fun clearRouteMessage(route: NavKey) {
+        routeMessages.remove(route)
     }
 
-    fun popWithToast(message: String) = popWithResult(toastMessages, message)
+    fun popWithToast(message: String) = popWithResult(routeMessages, RouteMessage.Toast(message))
 
     fun swapSelection(route: NavKey): SwapSelection? = swapSelections[route]
 
@@ -236,10 +237,17 @@ class WalletNavigator(
 
     fun openUrlAction(action: UrlAction): Boolean {
         val deeplink = (action as? UrlAction.Deeplink)?.deeplink ?: return false
+        val origin = backStack.lastOrNull()
         scope.launch {
-            val target = withContext(Dispatchers.IO) { navigationService.openDeeplink(deeplink) }
-            selectTab(target.tab())
-            target.routes().forEach(::push)
+            runCatchingCancellable { withContext(Dispatchers.IO) { navigationService.openDeeplink(deeplink) } }
+                .onSuccess { target ->
+                    selectTab(target.tab())
+                    target.routes().forEach(::push)
+                }
+                .onFailure { error ->
+                    Log.e(TAG, "opening a deep link failed", error)
+                    origin?.let { routeMessages[it] = RouteMessage.Error(error.errorText()) }
+                }
         }
         return true
     }
@@ -345,7 +353,7 @@ class WalletNavigator(
 
     fun popConfirmFlow(toast: String? = null) {
         val index = backStack.indexOfLast { !it.isConfirmFlowSegmentRoute() }
-        toast?.let { message -> backStack.getOrNull(index)?.let { target -> toastMessages[target] = message } }
+        toast?.let { message -> backStack.getOrNull(index)?.let { target -> routeMessages[target] = RouteMessage.Toast(message) } }
         popFrom(index + 1)
     }
 
@@ -358,7 +366,11 @@ class WalletNavigator(
     private fun clearTransientState() {
         clearSwapSelections()
         paymentSelections.clear()
-        toastMessages.clear()
+        routeMessages.clear()
+    }
+
+    private companion object {
+        const val TAG = "WalletNavigator"
     }
 }
 

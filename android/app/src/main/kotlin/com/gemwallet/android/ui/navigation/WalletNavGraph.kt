@@ -141,8 +141,8 @@ fun WalletNavGraph(
                 onPriceAlerts = navigator::openPriceAlerts,
                 onAddPriceAlertTarget = navigator::openAddPriceAlertTarget,
                 onOpenAddress = navigator::openAddress,
-                toastMessage = navigator::toastMessage,
-                onToastShown = navigator::clearToastMessage,
+                routeMessage = navigator::routeMessage,
+                onRouteMessageShown = navigator::clearRouteMessage,
                 onCancel = onCancel,
             )
 
@@ -265,8 +265,8 @@ fun WalletNavGraph(
                     }
                 },
                 onOpenUrl = navigator::openNotificationUrl,
-                toastMessage = navigator::toastMessage,
-                onToastShown = navigator::clearToastMessage,
+                routeMessage = navigator::routeMessage,
+                onRouteMessageShown = navigator::clearRouteMessage,
             )
 
             contactsScreen(
