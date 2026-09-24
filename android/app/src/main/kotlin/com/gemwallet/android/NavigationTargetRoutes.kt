@@ -27,6 +27,12 @@ internal fun GemNavigationTarget.routes(): List<NavKey> = when (this) {
     GemNavigationTarget.None -> emptyList()
 }
 
+internal fun GemNavigationTarget.walletId(): String? = when (this) {
+    is GemNavigationTarget.Asset -> walletId
+    is GemNavigationTarget.Transaction -> walletId
+    is GemNavigationTarget.Receive, is GemNavigationTarget.Fiat, is GemNavigationTarget.Swap, GemNavigationTarget.Perpetuals, is GemNavigationTarget.Rewards, GemNavigationTarget.Support, GemNavigationTarget.None -> null
+}
+
 private fun assetRoutes(assetId: com.wallet.core.primitives.AssetId, isPerpetual: Boolean): List<NavKey> = when {
     isPerpetual -> listOf(PerpetualRoute, PerpetualPositionRoute(assetId))
     else -> listOf(AssetRoute(assetId))

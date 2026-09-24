@@ -1,6 +1,7 @@
 package com.gemwallet.android
 
 import com.gemwallet.android.application.wallet.cases.GetWallet
+import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAccount
@@ -33,11 +34,13 @@ import uniffi.gemstone.GemPushNotificationService
 
 class NotificationNavigationTest {
 
+    private val setCurrentWallet = mockk<SetCurrentWallet>(relaxed = true)
+
     private fun navigation(target: GemNavigationTarget): NotificationNavigation {
         val navigationService = mockk<GemNavigationServiceInterface> {
             coEvery { openNotification(any()) } returns target
         }
-        return NotificationNavigation(navigationService, GemPushNotificationService())
+        return NotificationNavigation(navigationService, GemPushNotificationService(), setCurrentWallet)
     }
 
     @Test
@@ -71,12 +74,14 @@ class NotificationNavigationTest {
             ).routes
 
         assertEquals(listOf(AssetRoute(asset.id), TransactionDetailsRoute(transaction.id)), routes)
+        coVerify { setCurrentWallet.setCurrentWallet(walletId) }
     }
 
     @Test
     fun `support and rewards need no asset at all`() = runBlocking {
         assertEquals(PendingNavigation.Routes(listOf(SupportRoute), GemNavigationTab.SETTINGS), navigation(GemNavigationTarget.Support).prepareNavigation(GemPushNotification.Support))
         assertEquals(PendingNavigation.Routes(listOf(ReferralRoute(code = null)), GemNavigationTab.SETTINGS), navigation(GemNavigationTarget.Rewards(null)).prepareNavigation(GemPushNotification.Rewards))
+        coVerify(exactly = 0) { setCurrentWallet.setCurrentWallet(any()) }
     }
 
     @Test

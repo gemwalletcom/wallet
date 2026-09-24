@@ -19,6 +19,7 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.FiatQuoteType
 import com.wallet.core.primitives.Wallet
+import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemNavigationServiceInterface
@@ -27,7 +28,7 @@ import uniffi.gemstone.GemPushNotificationService
 import uniffi.gemstone.GemPushNotificationServiceInterface
 import javax.inject.Inject
 
-class NotificationNavigation @Inject constructor(private val navigationService: GemNavigationServiceInterface, private val pushNotificationService: GemPushNotificationServiceInterface) {
+class NotificationNavigation @Inject constructor(private val navigationService: GemNavigationServiceInterface, private val pushNotificationService: GemPushNotificationServiceInterface, private val setCurrentWallet: SetCurrentWallet) {
     internal suspend fun prepareNavigation(intent: Intent): PendingNavigation.Routes {
         if (!intent.hasNotificationPayload()) {
             return PendingNavigation.Routes(emptyList())
@@ -40,7 +41,11 @@ class NotificationNavigation @Inject constructor(private val navigationService: 
         return prepareNavigation(notification)
     }
 
-    internal suspend fun prepareNavigation(notification: GemPushNotification): PendingNavigation.Routes = navigationService.openNotification(notification).destination()
+    internal suspend fun prepareNavigation(notification: GemPushNotification): PendingNavigation.Routes {
+        val target = navigationService.openNotification(notification)
+        target.walletId()?.let { setCurrentWallet.setCurrentWallet(WalletId(it)) }
+        return target.destination()
+    }
 }
 
 internal fun Intent.putNotificationPayload(type: String?, rawData: String?): Intent = apply {
