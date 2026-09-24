@@ -180,6 +180,7 @@ pub enum GemListRowIcon {
     Wallets,
     Security,
     Notifications,
+    PriceAlerts,
     Preferences,
     WalletConnect,
     Support,

@@ -200,6 +200,7 @@ public extension GemListRowIcon {
         case .wallets: AssetImage.image(Images.Settings.wallets)
         case .security: AssetImage.image(Images.Settings.security)
         case .notifications: AssetImage.image(Images.Settings.notifications)
+        case .priceAlerts: AssetImage.image(Images.Settings.priceAlerts)
         case .preferences: AssetImage.image(Images.Settings.preferences)
         case .walletConnect: AssetImage.image(Images.Settings.walletConnect)
         case .support: AssetImage.image(Images.Settings.support)
@@ -220,7 +221,7 @@ public extension GemListRowIcon {
 
     var imageStyle: ListItemImageStyle? {
         switch self {
-        case .none, .appLogo, .wallets, .security, .notifications, .preferences, .walletConnect, .support, .rewards, .aboutUs, .developer, .currency, .language, .appearance, .networks, .contacts, .perpetuals:
+        case .none, .appLogo, .wallets, .security, .notifications, .priceAlerts, .preferences, .walletConnect, .support, .rewards, .aboutUs, .developer, .currency, .language, .appearance, .networks, .contacts, .perpetuals:
             .settings(assetImage: assetImage)
         case .pin, .unpin, .addToWallet:
             .list(assetImage: assetImage)

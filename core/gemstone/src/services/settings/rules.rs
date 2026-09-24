@@ -130,6 +130,27 @@ pub fn preferences_sections(input: GemPreferencesInput) -> Vec<GemListSection> {
     ]
 }
 
+pub fn notifications_sections(push_enabled: bool) -> Vec<GemListSection> {
+    let section = |row: GemListRow| GemListSection {
+        title: GemListSectionTitle::None,
+        footer: GemListSectionFooter::None,
+        rows: vec![row],
+    };
+    vec![
+        section(GemListRow::Toggle {
+            title: GemListRowTitle::Notifications,
+            value: None,
+            icon: GemListRowIcon::None,
+            is_on: push_enabled,
+        }),
+        section(GemListRow::Link {
+            title: GemListRowTitle::PriceAlerts,
+            value: None,
+            icon: GemListRowIcon::PriceAlerts,
+        }),
+    ]
+}
+
 pub fn security_sections(input: GemSecurityInput) -> Vec<GemListSection> {
     let toggle = |title: GemListRowTitle, is_on: bool| GemListRow::Toggle {
         title,
@@ -266,6 +287,29 @@ pub fn sections(wallets_count: usize, notifications_available: bool, wallet_conn
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_notifications_offer_the_push_toggle_and_the_price_alerts_link() {
+        let sections = notifications_sections(true);
+
+        assert_eq!(
+            sections.iter().map(|section| section.rows.clone()).collect::<Vec<_>>(),
+            vec![
+                vec![GemListRow::Toggle {
+                    title: GemListRowTitle::Notifications,
+                    value: None,
+                    icon: GemListRowIcon::None,
+                    is_on: true,
+                }],
+                vec![GemListRow::Link {
+                    title: GemListRowTitle::PriceAlerts,
+                    value: None,
+                    icon: GemListRowIcon::PriceAlerts,
+                }],
+            ]
+        );
+        assert!(matches!(notifications_sections(false)[0].rows[0], GemListRow::Toggle { is_on: false, .. }));
+    }
 
     fn preferences_input(perpetuals_enabled: bool, language: Option<&str>) -> GemPreferencesInput {
         GemPreferencesInput {

@@ -2,8 +2,10 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemListRowTitle
 import protocol Gemstone.GemNotificationsServiceProtocol
 import enum Gemstone.GemPushResult
+import func Gemstone.notificationsSections
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -25,18 +27,26 @@ public final class NotificationsViewModel {
     var title: String {
         Localized.Settings.Notifications.title
     }
+}
 
-    var priceAlertsListItem: ListItemModel {
-        ListItemModel(
-            title: Localized.Settings.PriceAlerts.title,
-            imageStyle: .settings(assetImage: AssetImage.image(Images.Settings.priceAlerts)),
-        )
+// MARK: - ListSectionProvideable
+
+extension NotificationsViewModel: ListSectionProvideable {
+    public var sections: [ListSection<GemListSectionRow>] {
+        notificationsSections(pushEnabled: isEnabled).listSections
     }
 }
 
 // MARK: - Business Logic
 
 extension NotificationsViewModel {
+    func onToggle(_ title: GemListRowTitle, _ isOn: Bool) {
+        switch title {
+        case .notifications: isEnabled = isOn
+        default: break
+        }
+    }
+
     func enable(isEnabled: Bool) async {
         let state = await service.setEnabled(enabled: isEnabled)
         self.isEnabled = state.isEnabled

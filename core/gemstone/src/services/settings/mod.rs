@@ -63,6 +63,11 @@ impl GemSettingsService {
 }
 
 #[uniffi::export]
+pub fn notifications_sections(push_enabled: bool) -> Vec<GemListSection> {
+    rules::notifications_sections(push_enabled)
+}
+
+#[uniffi::export]
 pub fn about_sections(version: String, build: String, update: Option<Release>) -> Vec<GemListSection> {
     rules::about_sections(version, build, update)
 }

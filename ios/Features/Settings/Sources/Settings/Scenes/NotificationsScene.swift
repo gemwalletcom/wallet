@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemListRow
 import Primitives
 import PrimitivesComponents
 import Style
@@ -14,20 +15,8 @@ public struct NotificationsScene: View {
     }
 
     public var body: some View {
-        List {
-            Section {
-                Toggle(
-                    model.title,
-                    isOn: $model.isEnabled,
-                )
-                .toggleStyle(AppToggleStyle())
-            }
-
-            Section {
-                NavigationLink(value: Scenes.PriceAlerts()) {
-                    ListItemView(model: model.priceAlertsListItem)
-                }
-            }
+        ListSectionView(provider: model) { row in
+            content(for: row)
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)
@@ -36,5 +25,20 @@ public struct NotificationsScene: View {
         }
         .alertSheet($model.isPresentingAlertMessage)
         .navigationTitle(model.title)
+    }
+}
+
+// MARK: - UI Components
+
+extension NotificationsScene {
+    @ViewBuilder
+    private func content(for row: GemListRow) -> some View {
+        if case .link(.priceAlerts, _, _) = row {
+            NavigationLink(value: Scenes.PriceAlerts()) {
+                GemListRowView(row: row)
+            }
+        } else {
+            GemListRowView(row: row, onToggle: model.onToggle)
+        }
     }
 }

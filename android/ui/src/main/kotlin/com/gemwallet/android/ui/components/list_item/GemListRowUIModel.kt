@@ -199,6 +199,7 @@ private fun GemListRowIcon.image(): ListItemImage? = when (this) {
     GemListRowIcon.WALLETS -> ListItemImage.Drawable(R.drawable.settings_wallets)
     GemListRowIcon.SECURITY -> ListItemImage.Drawable(R.drawable.settings_security)
     GemListRowIcon.NOTIFICATIONS -> ListItemImage.Drawable(R.drawable.settings_notifications)
+    GemListRowIcon.PRICE_ALERTS -> ListItemImage.Drawable(R.drawable.settings_pricealert)
     GemListRowIcon.PREFERENCES -> ListItemImage.Drawable(R.drawable.settings_preferences)
     GemListRowIcon.WALLET_CONNECT -> ListItemImage.Drawable(R.drawable.settings_wc)
     GemListRowIcon.SUPPORT -> ListItemImage.Drawable(R.drawable.settings_support)

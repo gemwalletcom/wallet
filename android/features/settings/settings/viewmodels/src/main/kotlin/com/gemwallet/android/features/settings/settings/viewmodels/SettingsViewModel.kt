@@ -11,9 +11,6 @@ import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.NotificationsAvailable
-import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.ListItemImage
-import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.text
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -23,11 +20,14 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemListSection
 import uniffi.gemstone.GemPushResult
 import uniffi.gemstone.GemSettingsServiceInterface
+import uniffi.gemstone.notificationsSections
 import javax.inject.Inject
 
 @HiltViewModel
@@ -60,15 +60,12 @@ class SettingsViewModel @Inject constructor(
         walletConnectAvailable.value = available
     }
 
-    val notificationsListItem = ListItemModel(title = context.getString(R.string.settings_notifications_title))
-
-    val priceAlertsListItem = ListItemModel(
-        title = context.getString(R.string.settings_price_alerts_title),
-        image = ListItemImage.Drawable(R.drawable.settings_pricealert),
-    )
-
     val pushEnabled = getPushEnabled.getPushEnabled()
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    val notificationsSections: StateFlow<List<GemListSection>> = pushEnabled
+        .map(::notificationsSections)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, notificationsSections(pushEnabled.value))
 
     fun refreshDeveloperMode() {
         developerEnabled.value = userConfig.developEnabled()
