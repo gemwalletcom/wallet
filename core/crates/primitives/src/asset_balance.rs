@@ -70,25 +70,25 @@ impl AssetBalance {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Balance {
-    #[serde(serialize_with = "serde_serializers::serialize_biguint")]
+    #[serde(with = "serde_serializers::biguint::string")]
     pub available: BigUint,
-    #[serde(serialize_with = "serde_serializers::serialize_biguint")]
+    #[serde(with = "serde_serializers::biguint::string")]
     pub frozen: BigUint,
-    #[serde(serialize_with = "serde_serializers::serialize_biguint")]
+    #[serde(with = "serde_serializers::biguint::string")]
     pub locked: BigUint,
-    #[serde(serialize_with = "serde_serializers::serialize_biguint")]
+    #[serde(with = "serde_serializers::biguint::string")]
     pub staked: BigUint,
-    #[serde(serialize_with = "serde_serializers::serialize_biguint")]
+    #[serde(with = "serde_serializers::biguint::string")]
     pub pending: BigUint,
-    #[serde(serialize_with = "serde_serializers::serialize_biguint")]
+    #[serde(with = "serde_serializers::biguint::string")]
     pub pending_unconfirmed: BigUint,
-    #[serde(serialize_with = "serde_serializers::serialize_biguint")]
+    #[serde(with = "serde_serializers::biguint::string")]
     pub rewards: BigUint,
-    #[serde(serialize_with = "serde_serializers::serialize_biguint")]
+    #[serde(with = "serde_serializers::biguint::string")]
     pub reserved: BigUint,
-    #[serde(serialize_with = "serde_serializers::serialize_biguint")]
+    #[serde(with = "serde_serializers::biguint::string")]
     pub earn: BigUint,
-    #[serde(serialize_with = "serde_serializers::serialize_biguint")]
+    #[serde(with = "serde_serializers::biguint::string")]
     pub withdrawable: BigUint,
     pub metadata: Option<BalanceMetadata>,
 }
@@ -201,5 +201,6 @@ mod tests {
                 "metadata": null
             })
         );
+        assert_eq!(serde_json::from_value::<Balance>(value).unwrap(), balance);
     }
 }
