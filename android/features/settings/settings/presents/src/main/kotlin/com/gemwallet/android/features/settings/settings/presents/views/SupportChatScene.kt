@@ -2,6 +2,7 @@ package com.gemwallet.android.features.settings.settings.presents.views
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts.PickMultipleVisualMedia
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -51,8 +52,8 @@ fun SupportChatNavScreen(onCancel: () -> Unit, viewModel: SupportChatSceneViewMo
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
     var previewUrl by remember { mutableStateOf<String?>(null) }
 
-    val imagePicker = rememberLauncherForActivityResult(PickVisualMedia()) { uri ->
-        uri?.let(viewModel::sendImage)
+    val imagePicker = rememberLauncherForActivityResult(PickMultipleVisualMedia()) { uris ->
+        viewModel.sendImages(uris)
     }
 
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {

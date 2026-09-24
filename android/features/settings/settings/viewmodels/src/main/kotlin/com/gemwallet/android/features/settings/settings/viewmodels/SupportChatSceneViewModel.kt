@@ -81,14 +81,16 @@ class SupportChatSceneViewModel @Inject constructor(
         alertOnFailure { supportService.sendText(content) }
     }
 
-    fun sendImage(uri: Uri) = viewModelScope.launch(ioDispatcher) {
-        alertOnFailure {
-            val image = imageAttachmentFactory.fromUri(uri)
-            if (image == null) {
-                errorState.value = GemErrorText.NotSupported.text(context)
-                return@alertOnFailure
+    fun sendImages(uris: List<Uri>) = viewModelScope.launch(ioDispatcher) {
+        for (uri in uris) {
+            alertOnFailure {
+                val image = imageAttachmentFactory.fromUri(uri)
+                if (image == null) {
+                    errorState.value = GemErrorText.NotSupported.text(context)
+                    return@alertOnFailure
+                }
+                supportService.sendImage(image)
             }
-            supportService.sendImage(image)
         }
     }
 

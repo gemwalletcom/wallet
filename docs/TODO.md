@@ -213,7 +213,6 @@ The API never returns internal text: `ApiError::Internal` logs its detail on the
 ### iOS and Android differ
 
 - **BD39** **M** **A push for another wallet opens under the current wallet on Android, with an empty transaction screen.** iOS `NavigationRouter.swift:154,173,181-186,279-285` switches wallet first; Android `NavigationTargetRoutes.kt:17,24` ignores `walletId`, `GetTransactionDetailsImpl.kt:21-24`.
-- **BD40** **S** **Android sends one support photo at a time; iOS picks several.** iOS multi-select `SupportMessageInputBar.swift:33`; Android `SupportChatScene.kt:54-56` uses a single-item picker.
 - **BD41** **S** **After enabling developer mode, the iOS Developer row may not appear until a redraw.** iOS `SettingsViewModel.swift:50-57` doesn't observe `preferences.isDeveloperEnabled` (`AboutUsViewModel.swift:70-72`); Android refreshes on resume (`SettingsScene.kt:40-43`). Likely. Lands with VM86: the settings sections read the flag inside Core, so the fix is an observable preference change, not an extra read per render to register the dependency.
 
 ### Freshness
