@@ -24,7 +24,6 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     let action: GemPerpetualPositionAction
     let leverageSelection: SelectionState<LeverageOption>?
     let leverageTextStyle: TextStyle
-    let currencyFormatter: CurrencyFormatter
     private let service: any GemAmountServiceProtocol
 
     private var draft: GemAutocloseDraft
@@ -33,7 +32,6 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         self.asset = asset
         self.action = action
         self.service = service
-        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: service.getCurrency().toPrimitives().rawValue)
         (leverageSelection, leverageTextStyle) = Self.makeLeverageSelection(action: action, service: service)
         let defaults = Self.makeDefaultAutoclose(action: action, leverage: leverageSelection?.selected.value ?? action.transferData().leverage, service: service)
         draft = autocloseDraft(takeProfit: defaults.takeProfit, stopLoss: defaults.stopLoss)

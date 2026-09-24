@@ -19,7 +19,6 @@ import SwiftUI
 @Observable
 @MainActor
 public final class AutocloseSceneViewModel {
-    private let currencyFormatter: CurrencyFormatter
     private let perpetualFormatter = PerpetualFormatter(provider: .hypercore)
     private let type: AutocloseType
     private let estimator: GemAutocloseEstimator
@@ -46,12 +45,11 @@ public final class AutocloseSceneViewModel {
         }
     }
 
-    public init(type: AutocloseType, currencyFormatter: CurrencyFormatter = .usd) {
+    public init(type: AutocloseType) {
         let session = Self.session(for: type)
         let separator = NumberInput.format(.current).decimalSeparator
 
         self.type = type
-        self.currencyFormatter = currencyFormatter
         self.session = session
         estimator = Self.estimator(for: type)
         input = AutocloseInput(
@@ -165,25 +163,6 @@ extension AutocloseSceneViewModel {
 
     private var stopLossPrice: Double? {
         NumberInput.double(input.stopLoss.text)
-    }
-
-    private var position: PerpetualPositionData? {
-        guard case let .modify(position, _) = type else { return nil }
-        return position
-    }
-
-    private var marketPrice: Double {
-        switch type {
-        case let .modify(position, _): position.perpetual.price
-        case let .open(data, _): data.marketPrice
-        }
-    }
-
-    private var entryPrice: Double? {
-        switch type {
-        case let .modify(position, _): position.position.entryPrice
-        case .open: nil
-        }
     }
 
     private var assetDecimals: Int32 {

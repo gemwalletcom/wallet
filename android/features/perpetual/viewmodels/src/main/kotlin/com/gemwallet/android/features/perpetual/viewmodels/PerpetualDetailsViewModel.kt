@@ -267,5 +267,3 @@ class PerpetualDetailsViewModel @Inject constructor(
 
     fun clearError() = errorState.update { null }
 }
-
-private fun List<ChartCandleStick>.toChartState(): StateViewType<List<ChartCandleStick>> = if (isEmpty()) StateViewType.NoData else StateViewType.Data(this)

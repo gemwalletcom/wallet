@@ -33,8 +33,6 @@ public final class StakeSceneViewModel {
     private var delegationsState: GemLoadState = .loading
     private let chain: StakeChain
 
-    private let formatter = ValueFormatter(style: .auto)
-
     public let wallet: Wallet
     public let delegationsQuery: ObservableQuery<DelegationsRequest>
     public let validatorsQuery: ObservableQuery<ValidatorsRequest>
