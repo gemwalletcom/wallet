@@ -16,7 +16,7 @@ use crate::payment::GemPaymentService;
 use crate::services::file::{GemFileStore, IMAGE_EXTENSION};
 use crate::services::name::GemNameService;
 
-pub use model::{GemContactAddressInput, GemContactAvatar, GemContactAvatarChoice, GemContactInput, GemContactRow, GemContactScannedAddress, GemContactSession, contact_initials, contact_row};
+pub use model::{GemContactAddressInput, GemContactAvatar, GemContactAvatarChoice, GemContactAvatarImage, GemContactInput, GemContactRow, GemContactScannedAddress, GemContactSession, contact_initials, contact_row};
 pub use store::GemContactStore;
 
 #[derive(uniffi::Object)]

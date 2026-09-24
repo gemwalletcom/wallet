@@ -8,8 +8,7 @@ import com.gemwallet.android.application.contacts.cases.GetContacts
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAvatarState
-import com.gemwallet.android.features.settings.contacts.viewmodels.models.image
+import com.gemwallet.android.features.settings.contacts.viewmodels.models.listItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.Contact
@@ -50,7 +49,7 @@ class ContactsViewModel @Inject constructor(
             title = row.title,
             titleExtra = row.subtitle,
             titleExtraLineLimit = 1,
-            image = ContactAvatarState.from(contact.contact.imageUrl).image(row.initials),
+            image = row.avatar.listItemImage(emojiBackground = 0),
         ),
     )
 

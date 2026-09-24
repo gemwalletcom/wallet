@@ -13,11 +13,11 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressForm
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressInput
-import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAvatarState
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactEditorPage
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactEditorState
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactEditorUIState
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.addAddressListItem
+import com.gemwallet.android.features.settings.contacts.viewmodels.models.listItemImage
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.rows
 import com.gemwallet.android.ui.components.image.EmojiAvatarRenderer
 import com.gemwallet.android.ui.localization.string
@@ -86,13 +86,9 @@ class ContactEditorViewModel @Inject constructor(
         ContactEditorUIState(
             isEdit = current.isEdit,
             name = session.name,
-            initials = session.initials(),
             description = session.description,
-            avatar = when (val avatar = session.avatar) {
-                GemContactAvatarChoice.Empty -> ContactAvatarState.Empty
-                is GemContactAvatarChoice.Image -> ContactAvatarState.Image(avatar.imageUrl)
-                is GemContactAvatarChoice.Emoji -> ContactAvatarState.Emoji(avatar.emoji, current.emojiBackground)
-            },
+            avatar = session.avatarImage().listItemImage(current.emojiBackground),
+            hasAvatar = session.avatar !is GemContactAvatarChoice.Empty,
             addresses = addresses,
             addressRows = addresses.rows(service),
             addAddressListItem = addAddressListItem(context),

@@ -27,6 +27,14 @@ pub enum GemContactAvatarChoice {
     Emoji { emoji: String },
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemContactAvatarImage {
+    Initials { text: String },
+    Placeholder,
+    Image { image_url: String, initials: String },
+    Emoji { emoji: String },
+}
+
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemContactSession {
     pub id: String,
@@ -74,8 +82,12 @@ impl GemContactSession {
         rules::can_save_contact(&self.name, self.is_saving)
     }
 
-    pub fn initials(&self) -> String {
-        contact_initials(self.name.clone())
+    pub fn avatar_image(&self) -> GemContactAvatarImage {
+        match &self.avatar {
+            GemContactAvatarChoice::Empty => contact_avatar_image(None, &self.name),
+            GemContactAvatarChoice::Image { image_url } => contact_avatar_image(Some(image_url.clone()), &self.name),
+            GemContactAvatarChoice::Emoji { emoji } => GemContactAvatarImage::Emoji { emoji: emoji.clone() },
+        }
     }
 
     pub fn input(&self, avatar: GemContactAvatar) -> GemContactInput {
@@ -147,7 +159,8 @@ mod tests {
         assert!(!session().on_name_changed("  ".into()).can_save(), "spaces are not a name");
         let named = session().on_name_changed("ada lovelace".into());
         assert!(named.can_save());
-        assert_eq!(named.initials(), "AD");
+        assert_eq!(named.avatar_image(), GemContactAvatarImage::Initials { text: "AD".into() });
+        assert_eq!(session().avatar_image(), GemContactAvatarImage::Placeholder, "a blank name has no initials to show");
         assert!(!named.on_saving(true).can_save(), "a save already running blocks another");
     }
 
@@ -203,7 +216,7 @@ mod tests {
 pub struct GemContactRow {
     pub title: String,
     pub subtitle: Option<String>,
-    pub initials: String,
+    pub avatar: GemContactAvatarImage,
 }
 
 #[uniffi::export]
@@ -214,8 +227,17 @@ pub fn contact_rows(contacts: Vec<Contact>) -> Vec<GemContactRow> {
 pub fn contact_row(contact: Contact) -> GemContactRow {
     GemContactRow {
         title: contact.name.clone(),
+        avatar: contact_avatar_image(contact.image_url.clone(), &contact.name),
         subtitle: contact.description.filter(|description| !description.trim().is_empty()),
-        initials: contact_initials(contact.name.clone()),
+    }
+}
+
+fn contact_avatar_image(image_url: Option<String>, name: &str) -> GemContactAvatarImage {
+    let initials = contact_initials(name.to_string());
+    match (image_url, initials.is_empty()) {
+        (Some(image_url), _) => GemContactAvatarImage::Image { image_url, initials },
+        (None, true) => GemContactAvatarImage::Placeholder,
+        (None, false) => GemContactAvatarImage::Initials { text: initials },
     }
 }
 
@@ -252,16 +274,24 @@ mod row_tests {
     }
 
     #[test]
-    fn test_initials_take_two_trimmed_characters_in_upper_case() {
-        assert_eq!(
+    fn test_a_row_avatar_shows_the_image_then_the_initials_then_a_placeholder() {
+        let row = |name: &str, image_url: Option<&str>| {
             contact_row(Contact {
-                name: "  ada lovelace".into(),
+                name: name.into(),
+                image_url: image_url.map(String::from),
                 ..Contact::mock()
             })
-            .initials,
-            "AD"
+            .avatar
+        };
+        assert_eq!(row("  ada lovelace", None), GemContactAvatarImage::Initials { text: "AD".into() });
+        assert_eq!(row("Q", None), GemContactAvatarImage::Initials { text: "Q".into() });
+        assert_eq!(row("", None), GemContactAvatarImage::Placeholder);
+        assert_eq!(
+            row("ada", Some("avatar.png")),
+            GemContactAvatarImage::Image {
+                image_url: "avatar.png".into(),
+                initials: "AD".into()
+            }
         );
-        assert_eq!(contact_row(Contact { name: "Q".into(), ..Contact::mock() }).initials, "Q");
-        assert_eq!(contact_row(Contact { name: "".into(), ..Contact::mock() }).initials, "");
     }
 }

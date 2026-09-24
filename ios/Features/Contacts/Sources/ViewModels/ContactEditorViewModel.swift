@@ -117,19 +117,11 @@ public final class ContactEditorViewModel {
     }
 
     var avatarImage: AssetImage {
-        let initials = session.initials()
-        return switch session.avatar {
-        case .empty: initials.isEmpty ? .image(Images.System.personCircleFill) : AssetImage(type: .text(initials))
-        case let .image(imageUrl): AssetImage(type: .text(initials), imageURL: ImageSource(imageUrl).url)
-        case let .emoji(emoji): AssetImage(type: .emoji(emoji))
-        }
+        session.avatarImage().assetImage
     }
 
     var avatarStyle: AssetImageView.Style? {
-        switch session.avatar {
-        case .empty: session.initials().isEmpty ? AssetImageView.Style(foregroundColor: Colors.grayLightFaded) : nil
-        case .image, .emoji: nil
-        }
+        session.avatarImage().style
     }
 
     var onClearAvatar: VoidAction {

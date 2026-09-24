@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.settings.contacts.viewmodels.models
 
 import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
+import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ContactAddress
@@ -18,9 +19,9 @@ enum class ContactEditorPage {
 data class ContactEditorUIState(
     val isEdit: Boolean = false,
     val name: String = "",
-    val initials: String = "",
     val description: String = "",
-    val avatar: ContactAvatarState = ContactAvatarState.Empty,
+    val avatar: ListItemImage = ListItemImage.Initials(""),
+    val hasAvatar: Boolean = false,
     val addresses: List<ContactAddress> = emptyList(),
     val addressRows: List<ContactAddressRowUIModel> = emptyList(),
     val addAddressListItem: ListItemModel? = null,

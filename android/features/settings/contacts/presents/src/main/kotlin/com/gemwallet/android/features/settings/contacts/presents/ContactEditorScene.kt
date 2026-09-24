@@ -16,7 +16,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAvatarState
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactEditorUIState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
@@ -54,14 +53,13 @@ fun ContactEditorScene(state: ContactEditorUIState, snackbar: SnackbarHostState?
                     contentAlignment = Alignment.Center,
                 ) {
                     ContactAvatar(
-                        initials = state.initials,
-                        avatar = state.avatar,
+                        image = state.avatar,
                         size = extraLargeIconSize,
                         modifier = Modifier.clickable { onAction(ContactEditorAction.SelectAvatar) },
-                        onRemove = if (state.avatar is ContactAvatarState.Empty) {
-                            null
-                        } else {
+                        onRemove = if (state.hasAvatar) {
                             { onAction(ContactEditorAction.RemoveAvatar) }
+                        } else {
+                            null
                         },
                     )
                 }

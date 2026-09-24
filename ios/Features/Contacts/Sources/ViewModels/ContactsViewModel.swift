@@ -105,13 +105,13 @@ public final class ContactsViewModel {
         }
     }
 
-    private func listItemModel(contact: ContactData, row: GemContactRow) -> ListItemModel {
+    private func listItemModel(contact _: ContactData, row: GemContactRow) -> ListItemModel {
         ListItemModel(
             title: row.title,
             titleExtra: row.subtitle,
             titleStyleExtra: .calloutSecondary,
             titleExtraLineLimit: 1,
-            imageStyle: .asset(assetImage: contact.contact.avatarImage(initials: row.initials)),
+            imageStyle: .asset(assetImage: row.avatar.assetImage),
         )
     }
 
