@@ -18,7 +18,8 @@ public struct ConnectionsScene: View {
     }
 
     public var body: some View {
-        List {
+        let sections = model.sections
+        return List {
             Section {
                 ButtonListItem(
                     title: model.pasteButtonTitle,
@@ -32,7 +33,7 @@ public struct ConnectionsScene: View {
                 )
             }
 
-            ForEach(Array(model.sections.enumerated()), id: \.offset) { _, section in
+            ForEach(Array(sections.enumerated()), id: \.offset) { _, section in
                 Section(section.title) {
                     ForEach(section.connections, id: \.connection.session.id) { item in
                         let connection = item.connection.toPrimitives()
@@ -54,7 +55,7 @@ public struct ConnectionsScene: View {
         .bindQuery(model.query)
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .overlay {
-            if model.sections.isEmpty {
+            if sections.isEmpty {
                 EmptyContentView(model: model.emptyContentModel)
                     .padding(.horizontal, .medium)
             }

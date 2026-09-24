@@ -18,6 +18,8 @@ import SwiftUI
 public struct ConnectionProposalViewModel {
     private let confirmTransferDelegate: TransferDataCallback.ConfirmTransferDelegate
     private let pairingProposal: WCPairingProposal
+    private let row: GemConnectionRow
+    private let verification: GemVerificationLevel
 
     var walletSelectorModel: SelectWalletViewModel
 
@@ -27,6 +29,8 @@ public struct ConnectionProposalViewModel {
     ) {
         self.confirmTransferDelegate = confirmTransferDelegate
         self.pairingProposal = pairingProposal
+        row = applicationConnectionRow(metadata: pairingProposal.proposal.metadata.toGem())
+        verification = verificationLevel(status: pairingProposal.verificationStatus.toGem())
         walletSelectorModel = SelectWalletViewModel(
             rows: walletRows(wallets: pairingProposal.proposal.wallets.map { $0.toGem() }),
             selectedRow: walletRow(wallet: pairingProposal.proposal.defaultWallet.toGem()),
@@ -77,10 +81,6 @@ public struct ConnectionProposalViewModel {
         row.iconUrl.flatMap(URL.init(string:))
     }
 
-    private var verification: GemVerificationLevel {
-        verificationLevel(status: pairingProposal.verificationStatus.toGem())
-    }
-
     var verificationImage: Image {
         verification.image
     }
@@ -120,14 +120,6 @@ public struct ConnectionProposalViewModel {
             name: appName,
             subtitleSymbol: websiteText,
         )
-    }
-
-    private var payload: WalletConnectionSessionProposal {
-        pairingProposal.proposal
-    }
-
-    private var row: GemConnectionRow {
-        applicationConnectionRow(metadata: payload.metadata.toGem())
     }
 }
 

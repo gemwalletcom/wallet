@@ -5,7 +5,6 @@ import struct Gemstone.GemWalletRow
 import enum Gemstone.GemWalletSecret
 import enum Gemstone.GemWalletSecretKind
 import protocol Gemstone.GemWalletServiceProtocol
-import func Gemstone.walletRow
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -28,9 +27,9 @@ public final class WalletDetailViewModel {
     var isPresentingDeleteConfirmation: Bool?
     var isPresentingExportWallet: GemWalletSecret?
 
-    public let walletQuery: ObservableQuery<WalletRequest>
+    public let walletQuery: ObservableQuery<MappedRequest<WalletRequest, WalletDetailsValue>>
     public var wallet: Wallet {
-        walletQuery.value
+        walletQuery.value.wallet
     }
 
     public init(
@@ -46,11 +45,14 @@ public final class WalletDetailViewModel {
         isPresentingAlertMessage = nil
         isPresentingDeleteConfirmation = nil
         isPresentingExportWallet = nil
-        walletQuery = ObservableQuery(WalletRequest(walletId: wallet.id), initialValue: wallet)
+        let details: @Sendable (Wallet) -> WalletDetailsValue = { [service] in
+            WalletDetailsValue(wallet: $0, details: service.walletDetails(wallet: $0.toGem()))
+        }
+        walletQuery = ObservableQuery(MappedRequest(WalletRequest(walletId: wallet.id), transform: details), initialValue: details(wallet))
     }
 
     var details: GemWalletDetails {
-        service.walletDetails(wallet: wallet.toGem())
+        walletQuery.value.details
     }
 
     var row: GemWalletRow {
@@ -81,8 +83,8 @@ public final class WalletDetailViewModel {
         )
     }
 
-    func avatarAssetImage(for wallet: Wallet) -> AssetImage {
-        let avatar = walletRow(wallet: wallet.toGem()).avatarImage
+    var avatarAssetImage: AssetImage {
+        let avatar = row.avatarImage
         return AssetImage(
             type: avatar.type,
             imageURL: avatar.imageURL,
@@ -148,4 +150,9 @@ extension WalletDetailViewModel {
             return false
         }
     }
+}
+
+public struct WalletDetailsValue: Equatable, Sendable {
+    let wallet: Wallet
+    let details: GemWalletDetails
 }

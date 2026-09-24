@@ -19,6 +19,7 @@ final class ImportWalletSceneViewModel {
     private let service: any GemWalletServiceProtocol
     let preferences: ObservablePreferences
     let type: ImportWalletType
+    private let importScreen: GemWalletImportScreen
 
     private(set) var session = GemWalletImportSession(kind: .phrase, text: "", cursor: nil, isImporting: false)
     let nameRecordViewModel: NameRecordViewModel
@@ -39,6 +40,10 @@ final class ImportWalletSceneViewModel {
         self.service = service
         self.preferences = preferences
         self.type = type
+        importScreen = switch type {
+        case .multicoin: service.importScreen(chain: nil)
+        case let .chain(chain): service.importScreen(chain: chain.toGem())
+        }
         self.onComplete = onComplete
         nameRecordViewModel = NameRecordViewModel(nameService: nameService)
     }
@@ -107,10 +112,6 @@ final class ImportWalletSceneViewModel {
 
     var importTypes: [GemWalletImportKind] {
         importScreen.kinds
-    }
-
-    private var importScreen: GemWalletImportScreen {
-        service.importScreen(chain: chain?.toGem())
     }
 
     var footerText: String? {

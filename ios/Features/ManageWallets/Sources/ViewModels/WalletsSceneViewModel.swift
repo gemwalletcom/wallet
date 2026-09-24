@@ -1,5 +1,6 @@
 import Components
 import Foundation
+import struct Gemstone.GemWalletRow
 import protocol Gemstone.GemWalletServiceProtocol
 import func Gemstone.walletRows
 import GemstonePrimitives
@@ -26,12 +27,10 @@ public final class WalletsSceneViewModel {
         service.currentWalletId
     }
 
-    let pinnedWalletsQuery: ObservableQuery<WalletsRequest>
-    let walletsQuery: ObservableQuery<WalletsRequest>
+    let pinnedWalletsQuery: ObservableQuery<MappedRequest<WalletsRequest, [WalletEntry]>>
+    let walletsQuery: ObservableQuery<MappedRequest<WalletsRequest, [WalletEntry]>>
 
-    var pinnedWallets: [Wallet] { sorted(pinnedWalletsQuery.value) }
-    var wallets: [Wallet] { sorted(walletsQuery.value) }
-    var hasWallets: Bool { wallets.isNotEmpty || pinnedWallets.isNotEmpty }
+    var hasWallets: Bool { walletsQuery.value.isNotEmpty || pinnedWalletsQuery.value.isNotEmpty }
 
     public init(
         navigationPath: Binding<NavigationPath>,
@@ -47,30 +46,24 @@ public final class WalletsSceneViewModel {
         walletDelete = nil
         self.isPresentingCreateWalletSheet = isPresentingCreateWalletSheet
         self.isPresentingImportWalletSheet = isPresentingImportWalletSheet
-        pinnedWalletsQuery = ObservableQuery(WalletsRequest(isPinned: true), initialValue: [])
-        walletsQuery = ObservableQuery(WalletsRequest(isPinned: false), initialValue: [])
+        let entries: @Sendable ([Wallet]) -> [WalletEntry] = { [walletService] wallets in
+            let sorted = walletService.sorted(wallets: wallets)
+            return zip(sorted, walletRows(wallets: sorted.map { $0.toGem() })).map(WalletEntry.init)
+        }
+        pinnedWalletsQuery = ObservableQuery(MappedRequest(WalletsRequest(isPinned: true), transform: entries), initialValue: [])
+        walletsQuery = ObservableQuery(MappedRequest(WalletsRequest(isPinned: false), transform: entries), initialValue: [])
     }
 
     var title: String {
         Localized.Wallets.title
     }
 
-    private func sorted(_ wallets: [Wallet]) -> [Wallet] {
-        service.sorted(wallets: wallets)
-    }
-
     var pinnedItems: [(wallet: Wallet, listItem: ListItemModel)] {
-        items(pinnedWallets)
+        pinnedWalletsQuery.value.map { ($0.wallet, $0.row.listItem) }
     }
 
     var walletItems: [(wallet: Wallet, listItem: ListItemModel)] {
-        items(wallets)
-    }
-
-    private func items(_ wallets: [Wallet]) -> [(wallet: Wallet, listItem: ListItemModel)] {
-        zip(wallets, walletRows(wallets: wallets.map { $0.toGem() })).map { wallet, row in
-            (wallet, row.listItem)
-        }
+        walletsQuery.value.map { ($0.wallet, $0.row.listItem) }
     }
 }
 
@@ -145,4 +138,9 @@ extension WalletsSceneViewModel {
             isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
+}
+
+public struct WalletEntry: Equatable, Sendable {
+    let wallet: Wallet
+    let row: GemWalletRow
 }

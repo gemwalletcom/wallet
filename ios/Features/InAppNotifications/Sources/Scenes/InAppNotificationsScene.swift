@@ -14,13 +14,14 @@ public struct InAppNotificationsScene: View {
     }
 
     public var body: some View {
-        List {
+        let sections = model.sections
+        return List {
             if let error = model.loadError {
                 Section {
                     ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
                 }
             }
-            ForEach(model.sections) { section in
+            ForEach(sections) { section in
                 Section(header: section.title.map { Text($0) }) {
                     ForEach(section.values) { itemModel in
                         notificationRow(itemModel)
@@ -31,7 +32,7 @@ public struct InAppNotificationsScene: View {
         }
         .listSectionSpacing(.compact)
         .overlay {
-            if model.sections.isEmpty, model.loadError == nil {
+            if sections.isEmpty, model.loadError == nil {
                 EmptyContentView(model: model.emptyContentModel)
             }
         }

@@ -28,10 +28,18 @@ public final class RewardsViewModel: Sendable {
     private let service: any GemRewardsServiceProtocol
     private let activateCode: String?
 
-    private(set) var selectedWallet: Wallet
+    private(set) var selectedWallet: Wallet {
+        didSet { selectedWalletRow = walletRow(wallet: selectedWallet.toGem()) }
+    }
+
+    private(set) var selectedWalletRow: GemWalletRow
     private(set) var wallets: [Wallet]
 
-    private(set) var session: GemRewardsSession
+    private(set) var session: GemRewardsSession {
+        didSet { viewState = session.viewState(now: Date()) }
+    }
+
+    private(set) var viewState: GemRewardsViewState
     var toastMessage: ToastMessage?
     var isPresentingSheet: RewardsSheetType?
     var isPresentingAlert: AlertMessage?
@@ -45,8 +53,11 @@ public final class RewardsViewModel: Sendable {
         let core = wallets.map { $0.toGem() }
         guard let wallet = service.selectedWallet(current: currentWallet?.toGem(), wallets: core).map({ $0.toPrimitives() }) else { return nil }
         self.service = service
-        session = rewardsSession().onSelectWallet(walletId: wallet.id.id)
+        let session = rewardsSession().onSelectWallet(walletId: wallet.id.id)
+        self.session = session
+        viewState = session.viewState(now: Date())
         selectedWallet = wallet
+        selectedWalletRow = walletRow(wallet: wallet.toGem())
         self.wallets = service.wallets(wallets: core).map { $0.toPrimitives() }
         self.activateCode = activateCode
     }
@@ -124,10 +135,6 @@ public final class RewardsViewModel: Sendable {
         rewardsState.redemptions.map { RewardRedemptionOptionViewModel(redemption: $0) }
     }
 
-    var viewState: GemRewardsViewState {
-        session.viewState(now: Date())
-    }
-
     var rewardsState: GemRewardsState {
         viewState.rewards
     }
@@ -161,10 +168,6 @@ public final class RewardsViewModel: Sendable {
 
     var activatePendingButtonType: ButtonType {
         pendingReferral?.isEnabled == true ? .primary() : .primary(.disabled)
-    }
-
-    var selectedWalletRow: GemWalletRow {
-        walletRow(wallet: selectedWallet.toGem())
     }
 
     var walletBarViewModel: WalletBarViewViewModel {

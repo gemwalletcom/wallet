@@ -22,13 +22,19 @@ public final class ChainSettingsSceneViewModel {
     var isPresentingImportNode: Bool = false
     var isPresentingAlertMessage: AlertMessage?
 
-    private var session: GemNodeListSession
+    private var session: GemNodeListSession {
+        didSet { nodesModels = session.rows().map { ChainNodeViewModel(row: $0) } }
+    }
+
+    private(set) var nodesModels: [ChainNodeViewModel]
 
     public init(chain: Chain, service: any GemChainSettingsServiceProtocol) {
         self.chain = chain
         self.service = service
         explorers = service.explorerRows(chain: chain.rawValue)
-        session = service.newNodeListSession(chain: chain.rawValue)
+        let session = service.newNodeListSession(chain: chain.rawValue)
+        self.session = session
+        nodesModels = session.rows().map { ChainNodeViewModel(row: $0) }
     }
 
     var title: String {
@@ -37,10 +43,6 @@ public final class ChainSettingsSceneViewModel {
 
     var sections: [ChainSettingsSectionViewModel] {
         ChainSettingsSectionViewModel.Kind.allCases.map(ChainSettingsSectionViewModel.init)
-    }
-
-    var nodesModels: [ChainNodeViewModel] {
-        session.rows().map { ChainNodeViewModel(row: $0) }
     }
 
     var deleteButtonTitle: String {

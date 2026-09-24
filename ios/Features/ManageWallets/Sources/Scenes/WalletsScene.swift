@@ -40,9 +40,10 @@ public struct WalletsScene: View {
                 )
             }
 
-            if !model.pinnedWallets.isEmpty {
+            let pinnedItems = model.pinnedItems
+            if !pinnedItems.isEmpty {
                 Section {
-                    ForEach(model.pinnedItems, id: \.wallet.id) { wallet, listItem in
+                    ForEach(pinnedItems, id: \.wallet.id) { wallet, listItem in
                         WalletListItemView(
                             wallet: wallet,
                             listItem: listItem,

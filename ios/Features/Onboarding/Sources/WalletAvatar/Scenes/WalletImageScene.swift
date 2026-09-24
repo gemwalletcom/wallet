@@ -63,25 +63,26 @@ public struct WalletImageScene: View {
     }
 
     private var collectionsView: some View {
-        ScrollView {
+        let items = model.nftAssetItems
+        return ScrollView {
             LazyVGrid(
                 columns: model.nftColumns,
                 alignment: .center,
                 spacing: .medium,
             ) {
-                nftAssetListView
+                nftAssetListView(items)
             }
             .padding(.horizontal, .medium)
         }
         .overlay {
-            if model.nftAssetItems.isEmpty {
+            if items.isEmpty {
                 EmptyContentView(model: model.emptyContentModel)
             }
         }
     }
 
-    private var nftAssetListView: some View {
-        ForEach(model.nftAssetItems) { item in
+    private func nftAssetListView(_ items: [WalletImageViewModel.NFTAssetImageItem]) -> some View {
+        ForEach(items) { item in
             let view = GridPosterView(model: GridPosterViewModel(assetImage: item.assetImage, title: nil))
             NavigationCustomLink(with: view) {
                 onSelectNftAsset(item)
