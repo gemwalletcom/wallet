@@ -136,6 +136,9 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
 
     public func setAssetsEnabled(assetIds: [AssetId], enabled: Bool) async throws {
         onSetAssetsEnabled?(assetIds, enabled)
+        if let error {
+            throw error
+        }
     }
 
     public func addRecent(action _: GemAssetAction, asset _: Asset) async throws {}

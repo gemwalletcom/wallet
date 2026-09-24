@@ -51,6 +51,7 @@ public struct SelectAssetScene: View {
                     isPresenting: $model.isPresentingCopyToast,
                 )
             }
+            .toast(message: $model.isPresentingToastMessage)
             .navigationBarTitle(model.title)
     }
 

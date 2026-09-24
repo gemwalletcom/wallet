@@ -34,7 +34,7 @@ impl GemReceiveService {
     }
 
     pub async fn enable_asset(&self, wallet_id: WalletId, asset_id: AssetId) -> Result<(), GemServiceError> {
-        self.balances.set_assets_enabled(wallet_id, vec![asset_id.clone()], true).await?;
+        self.balances.enable_assets(wallet_id, vec![asset_id.clone()]).await?;
         if let Ok(asset) = self.asset(asset_id).await {
             let _ = self.recent_activity.add_recent(GemAssetAction::Receive, asset).await;
         }

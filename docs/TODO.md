@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Security and bugs:** AUD59, BD20.
+1. **Security and bugs:** BD20.
 2. **Generated constants:** D174.
 3. **Deletions:** VM173, VM174, VM177 (the FFI trim; extend `check-ffi-surface.py` first).
 4. **Pass-throughs:** VM175, VM176.
@@ -47,7 +47,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | VM176 |
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
 | Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | — |
-| Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | AUD59, VM69, VM175; retain existing native QR/share adapters |
+| Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | VM69, VM175; retain existing native QR/share adapters |
 | Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | VM128, VM177 |
 | Recipient/address/name input | `GemRecipientSession`, `GemNameService`, existing input component | VM177; keep debounce/observation native |
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountEntry`, `GemAutocloseDraft`, existing provider inputs | VM124, VM125, VM179 |
@@ -57,7 +57,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | VM169, BD61 |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM172 |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | VM172, VM177 |
-| Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | AUD59, VM171; preserve exact atomic values |
+| Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | VM171; preserve exact atomic values |
 | Earn list, provider and deposit amount | Existing stake/earn owner and amount extras | BD60; preserve the existing feature gate |
 | NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM134, VM175, BD20, BD62 |
 | Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM67, VM172, VM178 |
@@ -87,7 +87,6 @@ An id belongs in this table only while its bullet exists below. The upstream ite
 
 Transaction-critical input, a user-visible outcome that a swallowed error hides, a write that runs when nothing changed, and a policy the two apps run on different triggers.
 
-- **AUD59** **S** **Surface the first balance fetch after enabling an asset.** [`refresh_enabled_assets`](../core/gemstone/src/services/balance/mod.rs) runs `let _ = self.update(...)` from `set_assets_enabled` and `setup_wallet`, so a just-enabled token sits at zero with no error until a refresh. Returning the failure alone does not help: both apps only `debugLog` a failed toggle, and iOS `AssetSceneViewModel.onSelectEnable` would drop its "asset shown" toast although the asset was enabled; side-effect callers (fiat quote, reward redemption, transaction post-processing, discovery) would fail their own action on a balance fetch. **Decided:** an error toast after the successful enable. Return the failure from the user-facing toggles only and give the side-effect callers a write-only enable.
 
 ## 2. One view state per screen
 

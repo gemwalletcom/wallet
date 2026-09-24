@@ -2,6 +2,7 @@
 
 @testable import Assets
 import AssetsTestKit
+import enum Gemstone.GemServiceError
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import Primitives
@@ -98,5 +99,14 @@ struct SelectAssetViewModelTests {
             await SelectAssetViewModel.mock(selectType: .receive(.asset), service: enabler)
                 .setAssetEnabled(assetId: .mock(), enabled: true)
         }
+    }
+
+    @Test
+    func aFailedToggleShowsTheError() async {
+        let model = SelectAssetViewModel.mock(selectType: .manage, service: GemAssetSelectionServiceMock(error: GemServiceError.Offline))
+
+        await model.setAssetEnabled(assetId: .mock(), enabled: true)
+
+        #expect(model.isPresentingToastMessage != nil)
     }
 }

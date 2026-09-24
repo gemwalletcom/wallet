@@ -398,6 +398,8 @@ public extension AssetSceneViewModel {
             do {
                 try await service.setAssetsEnabled(assetIds: [asset.id.identifier], enabled: enabled)
                 isPresentingToastMessage = .showAsset(visible: enabled)
+            } catch let error as GemServiceError {
+                isPresentingToastMessage = .error(error.text().text)
             } catch {
                 debugLog("onSelectEnable error: \(error)")
             }

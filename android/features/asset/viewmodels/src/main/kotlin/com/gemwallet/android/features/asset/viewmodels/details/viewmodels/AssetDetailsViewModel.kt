@@ -202,7 +202,7 @@ class AssetDetailsViewModel @Inject constructor(
         val assetInfo = chainAssetInfo.value?.assetInfo ?: return@launch
         runCatchingCancellable { assetDetailsService.setAssetsEnabled(listOf(assetInfo.id().toIdentifier()), true) }
             .onSuccess { emitToast(assetAddedToast(context)) }
-            .onFailure { Log.e(TAG, "enabling ${assetInfo.id().toIdentifier()} failed", it) }
+            .onFailure { emitToast(ToastMessage(it.errorText().text(context), R.drawable.ic_error)) }
     }
 
     fun togglePriceAlert(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {

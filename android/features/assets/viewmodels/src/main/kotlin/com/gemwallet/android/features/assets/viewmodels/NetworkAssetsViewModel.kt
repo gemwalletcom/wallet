@@ -10,10 +10,16 @@ import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
+import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.screen.assetAddedToast
+import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.models.ToastEmitter
+import com.gemwallet.android.ui.models.ToastEmitterImpl
+import com.gemwallet.android.ui.models.ToastMessage
 import com.gemwallet.android.ui.models.navigation.requireChain
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
@@ -44,8 +50,9 @@ class NetworkAssetsViewModel @Inject constructor(
     private val service: GemWalletHomeServiceInterface,
     savedStateHandle: SavedStateHandle,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    @ApplicationContext context: Context,
-) : ViewModel() {
+    @param:ApplicationContext private val context: Context,
+) : ViewModel(),
+    ToastEmitter by ToastEmitterImpl() {
 
     private val chain: Chain = savedStateHandle.requireChain()
 
@@ -104,18 +111,20 @@ class NetworkAssetsViewModel @Inject constructor(
         )
     }
 
-    fun hideAsset(assetId: AssetId) = setEnabled(assetId, false)
+    fun hideAsset(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {
+        runCatchingCancellable { service.setAssetsEnabled(listOf(assetId.toIdentifier()), false) }
+            .onFailure { Log.e(TAG, "hiding ${assetId.toIdentifier()} failed", it) }
+    }
 
-    fun addToWallet(assetId: AssetId) = setEnabled(assetId, true)
+    fun addToWallet(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {
+        runCatchingCancellable { service.setAssetsEnabled(listOf(assetId.toIdentifier()), true) }
+            .onSuccess { emitToast(assetAddedToast(context)) }
+            .onFailure { emitToast(ToastMessage(it.errorText().text(context), R.drawable.ic_error)) }
+    }
 
     fun togglePin(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable { service.setAssetPinned(assetId.toIdentifier(), assetGroups.value.pinned.none { it.id == assetId }) }
             .onFailure { Log.e(TAG, "pinning ${assetId.toIdentifier()} failed", it) }
-    }
-
-    private fun setEnabled(assetId: AssetId, enabled: Boolean) = viewModelScope.launch(ioDispatcher) {
-        runCatchingCancellable { service.setAssetsEnabled(listOf(assetId.toIdentifier()), enabled) }
-            .onFailure { Log.e(TAG, "setting ${assetId.toIdentifier()} enabled=$enabled failed", it) }
     }
 
     private companion object {

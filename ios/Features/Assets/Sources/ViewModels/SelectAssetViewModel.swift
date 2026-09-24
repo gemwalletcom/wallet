@@ -9,6 +9,7 @@ import protocol Gemstone.GemRecentActivityServiceProtocol
 import struct Gemstone.GemSelectAssetFlow
 import enum Gemstone.GemSelectAssetState
 import struct Gemstone.GemSelectAssetWalletFlow
+import enum Gemstone.GemServiceError
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -39,6 +40,7 @@ public final class SelectAssetViewModel {
     }
 
     var isPresentingCopyToast: Bool = false
+    var isPresentingToastMessage: ToastMessage?
     var copyTypeViewModel: CopyTypeViewModel?
 
     public var isPresentingAddToken: Bool = false
@@ -180,6 +182,8 @@ extension SelectAssetViewModel {
         case .toggle:
             do {
                 try await service.setAssetsEnabled(assetIds: [assetId.identifier], enabled: enabled)
+            } catch let error as GemServiceError {
+                isPresentingToastMessage = .error(error.text().text)
             } catch {
                 debugLog("SelectAssetViewModel set asset enabled error: \(error)")
             }

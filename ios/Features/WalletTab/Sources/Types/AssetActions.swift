@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemServiceError
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -41,6 +42,8 @@ extension AssetActions {
             do {
                 try await setAssetsEnabled([assetId], enabled: true)
                 isPresentingToastMessage = .addedToWallet()
+            } catch let error as GemServiceError {
+                isPresentingToastMessage = .error(error.text().text)
             } catch {
                 debugLog("\(Self.self) enable asset error: \(error)")
             }

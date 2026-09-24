@@ -207,7 +207,7 @@ impl GemAddAssetService {
     pub async fn add(&self, wallet: Wallet, asset_id: AssetId) -> Result<(), GemServiceError> {
         required_account(&wallet, asset_id.chain)?;
         let asset = self.assets.ensure_token_asset(asset_id).await?;
-        self.balances.set_assets_enabled(wallet.id, vec![asset.id], true).await
+        self.balances.enable_assets(wallet.id, vec![asset.id]).await
     }
 }
 

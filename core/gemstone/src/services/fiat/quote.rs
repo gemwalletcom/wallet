@@ -77,7 +77,7 @@ impl GemFiatQuoteService {
     pub async fn quote_url(&self, asset_id: AssetId, quote_id: String) -> Result<FiatQuoteUrl, GemServiceError> {
         let wallet_id = self.session.current_wallet_id()?;
         let url = self.fiat.get_quote_url(wallet_id.clone(), quote_id).await?;
-        self.balances.set_assets_enabled(wallet_id, vec![asset_id], true).await?;
+        self.balances.enable_assets(wallet_id, vec![asset_id]).await?;
         Ok(url)
     }
 }
