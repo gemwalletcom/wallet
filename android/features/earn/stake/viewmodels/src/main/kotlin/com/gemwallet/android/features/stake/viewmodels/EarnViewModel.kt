@@ -73,26 +73,34 @@ class EarnViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val positions = session.filterNotNull()
+    private val delegations = session.filterNotNull()
         .flatMapLatest { current -> getDelegations(current.wallet.id, assetId, StakeProviderType.Earn) }
-        .map { delegations -> stakeService.positions(delegations.map { it.toGem() }).map { it.toPrimitives() } }
+
+    private val earnView = combine(providers, delegations, assetInfo, session) { providers, delegations, assetInfo, current ->
+        stakeService.earnView(
+            (current?.wallet?.type ?: WalletType.View).toGem(),
+            providers.map { it.toGem() },
+            delegations.map { it.toGem() },
+            assetInfo?.metadata?.earnApr,
+        )
+    }
         .flowOn(ioDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val positions = earnView.map { view -> view?.positions?.map { it.toPrimitives() }.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val positionRows = combine(positions, assetInfo.filterNotNull()) { positions, assetInfo -> positions.delegationRows(assetInfo) }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val aprRow: StateFlow<GemListRow> = combine(providers, assetInfo) { items, current ->
-        stakeService.earnAprRow(items.map { it.toGem() }, current?.metadata?.earnApr)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, GemListRow.Text(GemListRowTitle.STAKE_APR, ""))
+    val aprRow: StateFlow<GemListRow> = earnView.map { it?.aprRow ?: GemListRow.Text(GemListRowTitle.STAKE_APR, "") }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, GemListRow.Text(GemListRowTitle.STAKE_APR, ""))
 
     val depositListItem = ListItemModel(title = context.getString(R.string.wallet_deposit))
 
-    val depositParams = combine(providers, session) { items, current ->
-        val provider = stakeService.earnActions((current?.wallet?.type ?: WalletType.View).toGem(), items.map { it.toGem() }).depositProvider ?: return@combine null
-        AmountParams.Earn.Deposit(assetId, provider.id)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    val depositParams = earnView.map { view -> view?.depositProvider?.let { AmountParams.Earn.Deposit(assetId, it.id) } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val sync = MutableStateFlow(true)
     private val loadState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)

@@ -19,7 +19,7 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::{GemContractCallData, GemEarnType};
 
 pub use model::{
-    GemDelegationAction, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationStatus, GemEarnActions, GemStakeAction, GemStakeActionItem, GemStakeActionTap, GemStakeAmountInput, GemStakeDelegationItem,
+    GemDelegationAction, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationStatus, GemEarnView, GemStakeAction, GemStakeActionItem, GemStakeActionTap, GemStakeAmountInput, GemStakeDelegationItem,
     GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorSelection, GemStakeViewState, GemValidatorRow,
 };
 pub use store::GemStakeStore;
@@ -77,10 +77,6 @@ impl GemStakeService {
         rules::validator_selection(chain, &input)
     }
 
-    pub fn earn_apr_row(&self, providers: Vec<DelegationValidator>, asset_apr: Option<f64>) -> GemListRow {
-        rules::earn_apr_row(&providers, asset_apr)
-    }
-
     pub fn validator_rows(&self, validators: Vec<DelegationValidator>) -> Vec<GemValidatorRow> {
         validators
             .iter()
@@ -99,8 +95,8 @@ impl GemStakeService {
         GemLoadState::refreshed(self.sync_earn(asset_id).await, has_rows)
     }
 
-    pub fn earn_actions(&self, wallet_type: WalletType, providers: Vec<DelegationValidator>) -> GemEarnActions {
-        rules::earn_actions(wallet_type, providers)
+    pub fn earn_view(&self, wallet_type: WalletType, providers: Vec<DelegationValidator>, delegations: Vec<Delegation>, asset_apr: Option<f64>) -> GemEarnView {
+        rules::earn_view(wallet_type, providers, delegations, asset_apr)
     }
 
     pub fn delegation_destination(&self, wallet_type: WalletType, asset: Asset, delegation: Delegation) -> GemDelegationDestination {
@@ -109,10 +105,6 @@ impl GemStakeService {
 
     pub fn delegation_action_destination(&self, asset: Asset, delegation: Delegation, action: GemDelegationAction, validators: Vec<DelegationValidator>) -> GemDelegationDestination {
         rules::delegation_action_destination(asset, delegation, action, validators)
-    }
-
-    pub fn positions(&self, delegations: Vec<Delegation>) -> Vec<Delegation> {
-        rules::positions(delegations)
     }
 
     pub fn resource_options(&self, chain: Chain) -> Vec<Resource> {

@@ -2,7 +2,7 @@
 
 import Components
 import Foundation
-import enum Gemstone.GemListRow
+import struct Gemstone.GemEarnView
 import enum Gemstone.GemLoadState
 import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitives
@@ -30,14 +30,6 @@ public final class EarnSceneViewModel {
         assetQuery.value
     }
 
-    public var positions: [Delegation] {
-        positionsQuery.value
-    }
-
-    public var providers: [DelegationValidator] {
-        selectable(providersQuery.value)
-    }
-
     public init(
         wallet: Wallet,
         asset: Asset,
@@ -63,16 +55,17 @@ public final class EarnSceneViewModel {
         Localized.Common.earn
     }
 
-    private func selectable(_ validators: [DelegationValidator]) -> [DelegationValidator] {
-        service.selectableValidators(validators: validators.map { $0.toGem() }).map { $0.toPrimitives() }
-    }
-
     var assetModel: AssetViewModel {
         AssetViewModel(asset: asset)
     }
 
-    var aprRow: GemListRow {
-        service.earnAprRow(providers: providers.map { $0.toGem() }, assetApr: assetData.metadata.earnApr)
+    var earnView: GemEarnView {
+        service.earnView(
+            walletType: wallet.type.toGem(),
+            providers: providersQuery.value.map { $0.toGem() },
+            delegations: positionsQuery.value.map { $0.toGem() },
+            assetApr: assetData.metadata.earnApr,
+        )
     }
 
     var noDataListItem: ListItemModel {
@@ -83,29 +76,16 @@ public final class EarnSceneViewModel {
         ListItemModel(title: Localized.Wallet.deposit)
     }
 
-    var canDeposit: Bool {
-        depositRoute != nil
-    }
-
-    private var depositRoute: StakeRoute? {
-        guard let provider = service.earnActions(walletType: wallet.type.toGem(), providers: providersQuery.value.map { $0.toGem() }).depositProvider else { return nil }
-        return .transfer(.amount(AmountInput(type: .earn(.deposit(provider)), asset: asset)))
+    func depositRoute(_ view: GemEarnView) -> StakeRoute? {
+        view.depositProvider.map { .transfer(.amount(AmountInput(type: .earn(.deposit($0)), asset: asset))) }
     }
 
     var emptyContentModel: EmptyContentTypeViewModel {
         EmptyContentTypeViewModel(type: EmptyContentType(.earn, symbol: asset.symbol))
     }
 
-    var positionItems: [(delegation: Delegation, model: DelegationViewModel)] {
-        DelegationViewModel.items(earnPositions, asset: asset, price: assetData.price?.price, currency: service.getCurrency().toPrimitives())
-    }
-
-    var hasPositions: Bool {
-        earnPositions.isNotEmpty
-    }
-
-    private var earnPositions: [Delegation] {
-        service.positions(delegations: positions.map { $0.toGem() }).map { Delegation(core: $0) }
+    func positionItems(_ view: GemEarnView) -> [(delegation: Delegation, model: DelegationViewModel)] {
+        DelegationViewModel.items(view.positions.map { Delegation(core: $0) }, asset: asset, price: assetData.price?.price, currency: service.getCurrency().toPrimitives())
     }
 
     func route(delegation: Delegation) -> StakeRoute {
@@ -113,16 +93,16 @@ public final class EarnSceneViewModel {
             .route(delegation: delegation, validators: [])
     }
 
-    var showEmptyState: Bool {
-        !hasPositions && viewState != .loading
+    func showsEmptyState(_ view: GemEarnView) -> Bool {
+        view.positions.isEmpty && viewState != .loading
     }
 
-    var positionsSectionTitle: String {
-        hasPositions ? Localized.Perpetual.positions : .empty
+    func positionsSectionTitle(_ view: GemEarnView) -> String {
+        view.positions.isEmpty ? .empty : Localized.Perpetual.positions
     }
 
-    var providersState: StateViewType<Bool> {
-        viewState.stateViewType(providers).map { _ in true }
+    func providersState(_ view: GemEarnView) -> StateViewType<Bool> {
+        viewState.stateViewType(view.providers).map { _ in true }
     }
 }
 
@@ -134,11 +114,11 @@ extension EarnSceneViewModel {
     }
 
     func onSelectDeposit() {
-        depositRoute.map { onNavigate?($0) }
+        depositRoute(earnView).map { onNavigate?($0) }
     }
 
     func load() async {
         viewState = .loading
-        viewState = await service.refreshEarn(assetId: asset.id.identifier, hasRows: hasPositions)
+        viewState = await service.refreshEarn(assetId: asset.id.identifier, hasRows: earnView.positions.isNotEmpty)
     }
 }

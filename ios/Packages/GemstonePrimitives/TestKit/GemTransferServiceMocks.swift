@@ -217,14 +217,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         return GemStakeValidatorSelection(options: options, recommended: [], validator: options.first, canSelect: true)
     }
 
-    public func positions(delegations: [Gemstone.Delegation]) -> [Gemstone.Delegation] {
-        delegations.filter { BigInt($0.base.balance) > 0 }
-    }
-
-    public func earnAprRow(providers _: [Gemstone.DelegationValidator], assetApr _: Double?) -> GemListRow {
-        .text(title: .stakeApr, value: "")
-    }
-
     public func stakeViewState(input: GemStakeInput) -> GemStakeViewState {
         let actions = [
             GemStakeActionItem(
@@ -314,8 +306,13 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         refreshState
     }
 
-    public func earnActions(walletType: Gemstone.WalletType, providers: [Gemstone.DelegationValidator]) -> GemEarnActions {
-        GemEarnActions(depositProvider: walletType == .view ? nil : providers.first)
+    public func earnView(walletType: Gemstone.WalletType, providers: [Gemstone.DelegationValidator], delegations: [Gemstone.Delegation], assetApr _: Double?) -> GemEarnView {
+        GemEarnView(
+            aprRow: .text(title: .stakeApr, value: ""),
+            providers: providers,
+            depositProvider: walletType == .view ? nil : providers.first,
+            positions: delegations.filter { BigInt($0.base.balance) > 0 },
+        )
     }
 }
 

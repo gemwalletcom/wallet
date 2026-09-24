@@ -12,7 +12,7 @@ use rand::seq::IndexedRandom;
 use std::str::FromStr;
 
 use super::model::{
-    GemDelegationAction, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationListRow, GemDelegationStatus, GemEarnActions, GemStakeAction, GemStakeActionItem, GemStakeActionTap, GemStakeAmountInput,
+    GemDelegationAction, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationListRow, GemDelegationStatus, GemEarnView, GemStakeAction, GemStakeActionItem, GemStakeActionTap, GemStakeAmountInput,
     GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorSelection, GemStakeViewState, GemValidatorRow,
 };
 use crate::config::image::GemImage;
@@ -549,9 +549,13 @@ impl GemAssetBalance {
     }
 }
 
-pub fn earn_actions(wallet_type: WalletType, providers: Vec<DelegationValidator>) -> GemEarnActions {
-    GemEarnActions {
-        deposit_provider: (wallet_type != WalletType::View).then(|| selectable_validators(providers).into_iter().next()).flatten(),
+pub fn earn_view(wallet_type: WalletType, providers: Vec<DelegationValidator>, delegations: Vec<Delegation>, asset_apr: Option<f64>) -> GemEarnView {
+    let providers = selectable_validators(providers);
+    GemEarnView {
+        apr_row: earn_apr_row(&providers, asset_apr),
+        deposit_provider: (wallet_type != WalletType::View).then(|| providers.first().cloned()).flatten(),
+        positions: positions(delegations),
+        providers,
     }
 }
 
@@ -1757,9 +1761,15 @@ mod tests {
         let mut inactive = DelegationValidator::mock_cosmos("inactive");
         inactive.is_active = false;
 
-        assert_eq!(earn_actions(WalletType::Multicoin, vec![worse.clone(), best.clone()]).deposit_provider.map(|provider| provider.id), Some(best.id.clone()));
-        assert_eq!(earn_actions(WalletType::View, vec![best]).deposit_provider, None, "a watch wallet cannot deposit");
-        assert_eq!(earn_actions(WalletType::Multicoin, vec![inactive]).deposit_provider, None, "an inactive provider is no provider");
+        let deposit = |wallet_type, providers| earn_view(wallet_type, providers, vec![], None).deposit_provider;
+        assert_eq!(deposit(WalletType::Multicoin, vec![worse.clone(), best.clone()]).map(|provider| provider.id), Some(best.id.clone()));
+        assert_eq!(deposit(WalletType::View, vec![best.clone()]), None, "a watch wallet cannot deposit");
+        assert_eq!(deposit(WalletType::Multicoin, vec![inactive.clone()]), None, "an inactive provider is no provider");
+
+        let view = earn_view(WalletType::Multicoin, vec![worse, inactive, best], vec![], Some(1.0));
+        assert_eq!(view.providers.first().map(|provider| provider.apr), Some(9.0), "the listed providers are the selectable ones, best first");
+        assert_eq!(view.providers.len(), 2);
+        assert_eq!(view.apr_row, earn_apr_row(&view.providers, Some(1.0)), "the rate comes from the provider that would take the deposit");
     }
 
     #[test]

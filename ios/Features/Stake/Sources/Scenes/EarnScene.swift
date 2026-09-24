@@ -14,10 +14,11 @@ public struct EarnScene: View {
     }
 
     public var body: some View {
+        let earn = model.earnView
         List {
             ListAssetHeaderView(model: model.assetModel)
 
-            switch model.providersState {
+            switch model.providersState(earn) {
             case .noData:
                 Section {
                     ListItemView(model: model.noDataListItem)
@@ -27,13 +28,13 @@ public struct EarnScene: View {
                     .id(UUID())
             case .data:
                 Section {
-                    GemListRowView(row: model.aprRow)
+                    GemListRowView(row: earn.aprRow)
                 }
             case let .error(error):
                 ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
             }
 
-            if model.canDeposit {
+            if model.depositRoute(earn) != nil {
                 Section(Localized.Common.manage) {
                     NavigationCustomLink(with: ListItemView(model: model.depositListItem)) {
                         model.onSelectDeposit()
@@ -41,15 +42,15 @@ public struct EarnScene: View {
                 }
             }
 
-            Section(model.positionsSectionTitle) {
-                if model.hasPositions {
-                    ForEach(model.positionItems, id: \.delegation.id) { delegation, item in
+            Section(model.positionsSectionTitle(earn)) {
+                if earn.positions.isNotEmpty {
+                    ForEach(model.positionItems(earn), id: \.delegation.id) { delegation, item in
                         NavigationCustomLink(with: DelegationView(delegation: item)) {
                             model.onSelect(delegation: delegation)
                         }
                     }
                     .listRowInsets(.assetListRowInsets)
-                } else if model.showEmptyState {
+                } else if model.showsEmptyState(earn) {
                     EmptyContentView(model: model.emptyContentModel)
                         .cleanListRow()
                 }

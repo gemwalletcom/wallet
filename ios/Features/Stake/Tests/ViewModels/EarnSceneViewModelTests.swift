@@ -21,7 +21,7 @@ struct EarnSceneViewModelTests {
         )
         model.providersQuery.value = [provider]
 
-        #expect(model.canDeposit)
+        #expect(model.depositRoute(model.earnView) != nil)
         model.onSelectDeposit()
 
         guard case let .transfer(.amount(input)) = route, case .earn = input.type else {
@@ -35,7 +35,7 @@ struct EarnSceneViewModelTests {
         var route: StakeRoute?
         let model = EarnSceneViewModel.mock(onNavigate: { route = $0 })
 
-        #expect(model.canDeposit == false)
+        #expect(model.depositRoute(model.earnView) == nil)
         model.onSelectDeposit()
 
         #expect(route == nil)

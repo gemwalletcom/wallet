@@ -33,7 +33,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemEarnActions
+import uniffi.gemstone.GemEarnView
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 import java.math.BigInteger
@@ -49,9 +49,14 @@ class EarnViewModelTest {
 
     private val aprRow = GemListRow.Text(GemListRowTitle.STAKE_APR, "4.00%")
     private val stakeService = mockk<uniffi.gemstone.GemStakeServiceInterface>(relaxed = true) {
-        every { earnAprRow(any(), any()) } returns aprRow
-        every { earnActions(any(), any()) } answers {
-            GemEarnActions(depositProvider = secondArg<List<uniffi.gemstone.DelegationValidator>>().firstOrNull().takeIf { firstArg<uniffi.gemstone.WalletType>() != uniffi.gemstone.WalletType.VIEW })
+        every { earnView(any(), any(), any(), any()) } answers {
+            val providers = secondArg<List<uniffi.gemstone.DelegationValidator>>()
+            GemEarnView(
+                aprRow = aprRow,
+                providers = providers,
+                depositProvider = providers.firstOrNull().takeIf { firstArg<uniffi.gemstone.WalletType>() != uniffi.gemstone.WalletType.VIEW },
+                positions = listOf(funded.toGem()),
+            )
         }
     }
     private val getAssetInfo = mockk<GetAssetInfo> {
@@ -85,7 +90,6 @@ class EarnViewModelTest {
 
     @Test
     fun `positions are the ones core keeps`() = runTest(testDispatcher) {
-        every { stakeService.positions(any()) } returns listOf(funded.toGem())
         val model = viewModel()
 
         val shown = model.positions.first { it.isNotEmpty() }
