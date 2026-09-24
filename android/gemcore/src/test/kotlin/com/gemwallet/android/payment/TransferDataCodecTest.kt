@@ -1,6 +1,5 @@
 package com.gemwallet.android.payment
 
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.domains.confirm.asset
 import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.domains.confirm.unpackTransferData
@@ -8,7 +7,6 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.math.fromHex
 import com.gemwallet.android.math.has0xPrefix
-import com.gemwallet.android.testkit.includeGemstoneLibs
 import com.gemwallet.android.testkit.mockApplicationMetadata
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetSolana
@@ -23,21 +21,13 @@ import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.junit.runner.RunWith
 import uniffi.gemstone.ApprovalData
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.TransactionInputType
 import java.math.BigInteger
 
-@RunWith(AndroidJUnit4::class)
 class TransferDataCodecTest {
-
-    companion object {
-        init {
-            includeGemstoneLibs()
-        }
-    }
 
     private fun roundTrip(transfer: GemTransferData): GemTransferData = requireNotNull(unpackTransferData(requireNotNull(transfer.pack())))
 

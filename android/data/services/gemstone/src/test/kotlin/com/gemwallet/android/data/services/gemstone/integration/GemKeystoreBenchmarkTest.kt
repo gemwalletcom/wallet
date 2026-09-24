@@ -1,4 +1,4 @@
-package com.gemwallet.android.data.services.gemstone.keystore
+package com.gemwallet.android.data.services.gemstone.integration
 
 import android.content.Context
 import android.util.Log
@@ -7,7 +7,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.math.fromHex
 import com.gemwallet.android.testkit.KEYSTORE_TEST_PASSWORD
 import com.gemwallet.android.testkit.TEST_PHRASE
-import com.gemwallet.android.testkit.includeGemstoneLibs
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -62,10 +61,6 @@ class GemKeystoreBenchmarkTest {
     }
 
     private companion object {
-        init {
-            includeGemstoneLibs()
-        }
-
         const val TAG = "GemKeystoreBenchmark"
         const val ITERATIONS = 5
     }

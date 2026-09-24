@@ -82,7 +82,5 @@ dependencies {
     implementation(libs.ktx.core)
     testImplementation(libs.junit)
     testImplementation(testFixtures(project(":gemcore")))
-    testImplementation(libs.androidx.junit)
     testImplementation(libs.room.testing)
-    testImplementation(libs.robolectric)
 }

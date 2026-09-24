@@ -1,14 +1,14 @@
-package com.gemwallet.android.services
+package com.gemwallet.android.integration
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.data.services.gemstone.keystore.GemMigrateKeystoreOperator
+import com.gemwallet.android.services.MigrateV3KeystoreService
 import com.gemwallet.android.testkit.KEYSTORE_TEST_ETH_ADDRESS
 import com.gemwallet.android.testkit.KEYSTORE_TEST_PASSWORD
-import com.gemwallet.android.testkit.includeGemstoneLibs
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
@@ -26,9 +26,11 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import java.io.File
 
-class MigrateV3KeystoreServiceTest {
+@RunWith(AndroidJUnit4::class)
+class MigrateV3KeystoreFilesTest {
 
     private val context = ApplicationProvider.getApplicationContext<Context>()
     private val baseDir = context.dataDir
@@ -98,8 +100,7 @@ class MigrateV3KeystoreServiceTest {
     }
 
     private fun prepareV3File(walletId: WalletId, assetName: String) {
-        val fixture = InstrumentationRegistry.getInstrumentation().context.assets
-            .open(assetName).bufferedReader().use { it.readText() }
+        val fixture = checkNotNull(javaClass.classLoader?.getResourceAsStream(assetName)).bufferedReader().use { it.readText() }
         File(baseDir, walletId.id).writeText(fixture)
         every { passwordStore.getPassword(walletId.id) } returns KEYSTORE_TEST_PASSWORD
     }
@@ -111,10 +112,6 @@ class MigrateV3KeystoreServiceTest {
     }
 
     companion object {
-        init {
-            includeGemstoneLibs()
-        }
-
         private const val EXPECTED_PRIVATE_KEY = "ae8794f84919b14ff9d1f0f7cf490a4c04e608de16864f53fe8b40af127b9da3"
     }
 }

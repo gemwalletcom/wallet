@@ -48,11 +48,6 @@ android {
             }
             manifest.srcFile(gemstoneSrc.resolve("main/AndroidManifest.xml"))
         }
-        getByName("androidTest") {
-            kotlin {
-                directories.add(gemstoneSrc.resolve("androidTest/java").absolutePath)
-            }
-        }
     }
 }
 
@@ -120,6 +115,4 @@ tasks.configureEach {
 dependencies {
     api("net.java.dev.jna:jna:5.18.1@aar")
     implementation(libs.kotlinx.coroutines.android)
-    androidTestImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
 }

@@ -1,4 +1,4 @@
-package com.gemwallet.android.ui.components.fields
+package com.gemwallet.android.ui.integration
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.text.BasicTextField
@@ -16,12 +16,19 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextInputSelection
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.text.TextRange
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.gemwallet.android.ui.components.fields.AmountField
+import com.gemwallet.android.ui.components.fields.AmountInputTransformation
+import com.gemwallet.android.ui.components.fields.AmountSymbolPlacement
+import com.gemwallet.android.ui.components.fields.AmountSymbolUIModel
 import com.gemwallet.android.ui.theme.WalletTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 import java.text.DecimalFormatSymbols
 
+@RunWith(AndroidJUnit4::class)
 class AmountInputTest {
     @get:Rule
     val composeRule = createComposeRule()

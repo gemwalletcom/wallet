@@ -314,11 +314,8 @@ dependencies {
     testImplementation(libs.mockk.android)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
-    androidTestImplementation(libs.mockk.android)
-    androidTestImplementation(libs.mockk.agent)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.uiautomator)
-    androidTestImplementation(testFixtures(project(":gemcore")))
     androidTestImplementation(libs.androidx.junit.runner)
 }

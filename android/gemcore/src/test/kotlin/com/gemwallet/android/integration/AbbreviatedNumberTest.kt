@@ -1,6 +1,7 @@
-package com.gemwallet.android.model
+package com.gemwallet.android.integration
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.gemwallet.android.model.text
 import junit.framework.TestCase.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith

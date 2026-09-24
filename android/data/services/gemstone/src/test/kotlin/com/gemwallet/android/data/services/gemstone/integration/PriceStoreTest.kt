@@ -1,4 +1,4 @@
-package com.gemwallet.android.data.services.gemstone.stores
+package com.gemwallet.android.data.services.gemstone.integration
 
 import android.database.sqlite.SQLiteException
 import androidx.room.Room
@@ -7,6 +7,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.data.service.store.database.GemDatabase
 import com.gemwallet.android.data.service.store.database.entities.DbFiatRate
 import com.gemwallet.android.data.service.store.database.entities.DbPrice
+import com.gemwallet.android.data.services.gemstone.stores.GemstonePriceStore
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset

@@ -13,7 +13,6 @@ android {
     defaultConfig {
         minSdk = 28
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
 
@@ -71,9 +70,5 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk.android)
-    androidTestImplementation(testFixtures(project(":gemcore")))
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.junit.runner)
-    androidTestImplementation(libs.room.runtime)
-    androidTestImplementation(libs.kotlinx.coroutines.android)
+    testImplementation(libs.room.runtime)
 }

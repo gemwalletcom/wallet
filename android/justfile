@@ -95,10 +95,10 @@ build-test:
     @./gradlew assembleGoogleDebugAndroidTest
 
 test:
-    @./gradlew --continue testGoogleDebugUnitTest testDebugUnitTest -PskipIntegrationTests
+    @./gradlew --continue testGoogleDebugUnitTest testDebugUnitTest -PintegrationTests=skip
 
 test-integration:
-    @./gradlew :data:services:store:testDebugUnitTest --tests '*.integration.*'
+    @./gradlew --continue testGoogleDebugUnitTest testDebugUnitTest -PintegrationTests=only
 
 lint:
     @./gradlew lint -x :gemstone:lintDebug

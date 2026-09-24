@@ -273,7 +273,7 @@ An entry is dated rationale, not a current completion claim. Landed items are on
 
 **AUD39 (2026-09-23).** Declined, then its ledger line was dropped in `da61e19671`; recorded here so it is not re-raised: coin, token and staking balances stay separate, independent calls, because a shared per-chain snapshot would let one component's failure or latency hold back the others. The implementation was reverted in `98bbdca63e`. Do not merge them to save the repeated account read on Tron, Cosmos or Stellar.
 
-**AUD35 (2026-09-24).** The `store_contract_tests` emulator job from `4c1f0cd0f4` is gone. The store's Room DAO and migration tests run on Robolectric in the `integration_tests` job (`just test-integration`); do not add an emulator job for them.
+**AUD35 (2026-09-24).** The `store_contract_tests` emulator job from `4c1f0cd0f4` is gone. Tests that need Android run on Robolectric in `integration` packages and in the `integration_tests` job (`just test-integration`); only the app's Keystore and screenshot tests need a device. Do not add an emulator job.
 
 ### Landed
 

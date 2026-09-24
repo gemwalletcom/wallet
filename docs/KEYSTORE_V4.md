@@ -77,7 +77,7 @@ Current crypto:
 - The guarantee holds regardless of how callers construct keystores. Both apps provide a shared `GemKeystore`; the remaining Android transaction-signing adapter can also open a transient instance. Every instance serializes through the same static lock.
 - Concurrent create/read/delete on one wallet — across threads and across separate keystore instances through the UniFFI binding — cannot corrupt the file or produce duplicates, and create stays idempotent (deterministic id, atomic rename).
 - A poisoned lock is recovered with `PoisonError::into_inner`, so subsequent file access remains serialized instead of panicking across the FFI boundary.
-- Coverage: Android instrumented `GemKeystoreConcurrencyTest` races 8 threads through create/read/delete on one wallet from independent `GemKeystore` instances.
+- Coverage: Android `GemKeystoreConcurrencyTest` (a Robolectric integration test) races 8 threads through create/read/delete on one wallet from independent `GemKeystore` instances.
 
 ## Secret Payload
 
@@ -252,7 +252,7 @@ The Argon2id KDF defaults dominate every encrypt/decrypt. Measure with:
 
 - Rust (release): `cargo bench -p gem_keystore --features storage`
 - iOS: `KeystoreBenchmarkTests` in the Keystore package (prints medians)
-- Android: `GemKeystoreBenchmarkTest` instrumented test (logs medians, `GemKeystoreBenchmark` tag)
+- Android: `GemKeystoreBenchmarkTest` integration test (logs medians, `GemKeystoreBenchmark` tag); it runs on the JVM against the debug host library, so its numbers are not device numbers
 
 Mobile numbers are only representative on a real device with a release Gemstone build; debug builds are several times slower.
 

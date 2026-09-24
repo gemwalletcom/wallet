@@ -5,13 +5,13 @@
 - Run tests through Gradle or the Android `justfile`
 - Default commands:
   - `just test` — unit tests for every module (`testGoogleDebugUnitTest` for `:app` plus `testDebugUnitTest` for library modules) with `--continue`, so every failing module is reported; Gradle builds and fingerprints the host Gemstone library for JNA, including when running a single module
-  - `just test-integration` — the Room DAO and migration tests in `integration` packages, on Robolectric (no emulator); `just test` skips them
-  - `./gradlew connectedGoogleDebugAndroidTest connectedDebugAndroidTest` — instrumented tests for every module (requires emulator)
+  - `just test-integration` — every module's tests in `integration` packages, on Robolectric (no emulator); `just test` skips them
+  - `./gradlew :app:connectedGoogleDebugAndroidTest` — the app's device-only tests (requires emulator)
   - `./gradlew :app:testGoogleDebugUnitTest` — app module only
   - `./gradlew :<module>:testDebugUnitTest` — one feature or shared module
   - `./gradlew testGoogleDebugUnitTest` on its own runs the app module only: library modules have no flavored test task, so their tests are silently skipped and the build still succeeds. Use `just test` to cover both.
 - Run the narrowest relevant target while iterating, then finish with broader validation
-- For local instrumented tests, start the emulator from the repo root first with `just start-emulator`, then run the instrumented tests from `android/`
+- For the app's device-only tests, start the emulator from the repo root first with `just start-emulator`, then run them from `android/`
 
 ## Test Structure
 
@@ -31,13 +31,14 @@
 
 ### Integration Tests (`src/test/kotlin/…/integration/`)
 
-- Test database migrations and Room queries against a real SQLite on the JVM with Robolectric, at the SDK set in the module's `robolectric.properties`
-- Use `AndroidJUnit4` runner and `ApplicationProvider` for context; `MigrationTestHelper` reads the exported schemas from the test assets
+- A test that needs Android — a `Context`, resources, Room, Compose UI or `android.icu` — goes in an `integration` package under the module's `src/test` and runs on the JVM with Robolectric; `just test` skips it and `just test-integration` runs it
+- Annotate the class with `@RunWith(AndroidJUnit4::class)` and get a context from `ApplicationProvider`. Robolectric and the AndroidX test runner are on every module's test classpath, and every module runs at the SDK in `gradle/robolectric/robolectric.properties`
+- A module whose tests read Android resources, assets or a test activity sets `testOptions.unitTests.isIncludeAndroidResources = true`; plain fixture files go in `src/test/resources`
+- Robolectric runs a fake clock: advance it with `shadowOf(Looper.getMainLooper()).idleFor(…)` and the compose `mainClock` instead of waiting on real time
 
-### Instrumented Tests (`src/androidTest/kotlin/`)
+### Device Tests (`app/src/androidTest/kotlin/`)
 
-- Test Android-specific behavior that needs a device, such as the Android Keystore
-- Use `AndroidJUnit4` runner and `ApplicationProvider` for context
+- Only `:app` may have `src/androidTest`, and only for what Robolectric cannot run, such as the Android Keystore; the build fails for any other module with an `androidTest` source set
 
 ## Shared TestKit
 

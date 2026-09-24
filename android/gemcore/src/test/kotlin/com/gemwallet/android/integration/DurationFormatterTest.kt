@@ -1,6 +1,7 @@
-package com.gemwallet.android.domains.duration
+package com.gemwallet.android.integration
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.gemwallet.android.domains.duration.formatEstimatedConfirmation
 import junit.framework.TestCase.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith

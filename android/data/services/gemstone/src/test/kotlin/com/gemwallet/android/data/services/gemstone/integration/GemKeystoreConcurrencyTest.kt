@@ -1,4 +1,4 @@
-package com.gemwallet.android.data.services.gemstone.keystore
+package com.gemwallet.android.data.services.gemstone.integration
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
@@ -6,7 +6,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.math.fromHex
 import com.gemwallet.android.testkit.KEYSTORE_TEST_PASSWORD
 import com.gemwallet.android.testkit.TEST_PHRASE
-import com.gemwallet.android.testkit.includeGemstoneLibs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -81,10 +80,6 @@ class GemKeystoreConcurrencyTest {
     }
 
     companion object {
-        init {
-            includeGemstoneLibs()
-        }
-
         private const val THREADS = 8
     }
 }
