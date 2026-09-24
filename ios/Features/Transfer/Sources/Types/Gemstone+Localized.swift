@@ -79,8 +79,8 @@ extension GemAmountError: @retroactive LocalizedError {
         switch display() {
         case .none: nil
         case .invalidAmount: Localized.Errors.invalidAmount
-        case let .belowMinimum(asset, minimum):
-            Localized.Transfer.minimumAmount(ValueFormatter(style: .auto).string(minimum, asset: asset.toPrimitives()).boldMarkdown())
+        case let .belowMinimum(minimum, _):
+            Localized.Transfer.minimumAmount(minimum.text().boldMarkdown())
         case let .insufficientBalance(title):
             Localized.Transfer.insufficientBalance(title.boldMarkdown())
         }

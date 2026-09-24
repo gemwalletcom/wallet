@@ -2,12 +2,11 @@ package com.gemwallet.android.features.transfer_amount.viewmodels.localization
 
 import android.content.Context
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.model.ValueFormatter
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.localization.stringRes
 import uniffi.gemstone.GemAmountErrorDisplay
 import uniffi.gemstone.GemAmountTitle
-import uniffi.gemstone.GemValueStyle
 
 fun GemAmountTitle.text(context: Context): String = when (this) {
     GemAmountTitle.Send -> context.getString(R.string.transfer_send_title)
@@ -26,13 +25,7 @@ fun GemAmountTitle.text(context: Context): String = when (this) {
 
 fun GemAmountErrorDisplay.text(context: Context): String = when (this) {
     is GemAmountErrorDisplay.None -> ""
-
     is GemAmountErrorDisplay.InvalidAmount -> context.getString(R.string.errors_invalid_amount)
-
-    is GemAmountErrorDisplay.BelowMinimum -> context.getString(
-        R.string.transfer_minimum_amount,
-        ValueFormatter(style = GemValueStyle.AUTO).string(minimum, asset.decimals, asset.symbol),
-    )
-
+    is GemAmountErrorDisplay.BelowMinimum -> context.getString(R.string.transfer_minimum_amount, minimum.text())
     is GemAmountErrorDisplay.InsufficientBalance -> context.getString(R.string.transfer_insufficient_balance, title)
 }

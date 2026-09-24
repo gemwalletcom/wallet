@@ -2,6 +2,7 @@ use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::list::GemInfoTopic;
 use crate::payment::GemPaymentRecipient;
+use crate::precision::GemValueStyle;
 use crate::services::balance::GemBalanceRequirement;
 use crate::services::stake::model::GemValidatorRow;
 use primitives::{Asset, Delegation, PerpetualDirection, Resource};
@@ -166,7 +167,7 @@ pub enum GemAmountError {
 pub enum GemAmountErrorDisplay {
     None,
     InvalidAmount,
-    BelowMinimum { asset: Asset, minimum: GemBigInt },
+    BelowMinimum { minimum: GemFormattedNumber, topic: GemInfoTopic },
     InsufficientBalance { title: String },
 }
 
@@ -177,8 +178,11 @@ impl GemAmountError {
             Self::Zero => GemAmountErrorDisplay::None,
             Self::InvalidNumber | Self::PriceMissing => GemAmountErrorDisplay::InvalidAmount,
             Self::BelowMinimum { asset, minimum } => GemAmountErrorDisplay::BelowMinimum {
-                asset: asset.clone(),
-                minimum: minimum.clone(),
+                minimum: GemFormattedNumber::asset_amount(minimum, asset, GemValueStyle::Auto),
+                topic: GemInfoTopic::MinimumAmount {
+                    asset: asset.clone(),
+                    minimum: minimum.clone(),
+                },
             },
             Self::InsufficientBalance { asset, .. } => GemAmountErrorDisplay::InsufficientBalance { title: asset.display_title() },
         }
@@ -189,10 +193,7 @@ impl GemAmountError {
 impl GemAmountErrorDisplay {
     pub fn info(&self) -> Option<GemInfoTopic> {
         match self {
-            Self::BelowMinimum { asset, minimum } => Some(GemInfoTopic::MinimumAmount {
-                asset: asset.clone(),
-                minimum: minimum.clone(),
-            }),
+            Self::BelowMinimum { topic, .. } => Some(topic.clone()),
             Self::None | Self::InvalidAmount | Self::InsufficientBalance { .. } => None,
         }
     }
@@ -243,6 +244,7 @@ impl GemNumberFormat {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::formatted_number::GemNumberUnit;
     use primitives::Chain;
 
     #[test]
@@ -290,8 +292,19 @@ mod tests {
             }
             .display()
             .info(),
-            Some(GemInfoTopic::MinimumAmount { asset, minimum })
+            Some(GemInfoTopic::MinimumAmount {
+                asset: asset.clone(),
+                minimum: minimum.clone()
+            })
         );
+        let GemAmountErrorDisplay::BelowMinimum { minimum: formatted, .. } = GemAmountError::BelowMinimum {
+            asset,
+            minimum: GemBigInt::from(10u64.pow(16)),
+        }
+        .display() else {
+            panic!("a below-minimum error displays its minimum");
+        };
+        assert_eq!((formatted.value, formatted.unit), (0.01, GemNumberUnit::Symbol { symbol: "ETH".to_string() }));
         assert_eq!(GemAmountErrorDisplay::None.info(), None);
         assert_eq!(GemAmountErrorDisplay::InvalidAmount.info(), None);
         assert_eq!(GemAmountErrorDisplay::InsufficientBalance { title: "ETH".to_string() }.info(), None);

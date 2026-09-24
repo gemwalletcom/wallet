@@ -118,7 +118,6 @@ The same product rule written in both apps, or in one app while the other reads 
 [A number crosses as a value and a style](ARCHITECTURE.md#a-number-crosses-as-a-value-and-a-style-never-as-a-string-or-a-callback) and [the record carries the finished value](ARCHITECTURE.md#the-record-carries-the-finished-value-not-the-ingredients). Each item is a raw amount, price or seconds value that both apps format, convert or compose themselves.
 
 - **VM56** **M** **Amount screen labels come formatted.** Both apps format the available balance, the reserved fee and the asset equivalent with `ValueFormatter(.auto)` (iOS `AmountSceneViewModel` `balanceText`/`infoText`/`secondaryText`, Android `AmountViewModel`); `GemAmountInput`/`GemAmountEntry` should return `GemFormattedNumber`.
-- **VM57** **S** **Amount errors carry formatted numbers.** The minimum-amount error text is formatted with `ValueFormatter` in both apps' transfer mappers.
 - **VM58** **S** **Swap receive amount comes formatted.** iOS `toValueFormatter` and Android `QuoteState.formattedToAmount` format the quote's receive amount.
 - **VM59** **M** **Swap equivalents come from Core.** Both apps convert pay and receive amounts to fiat themselves — Android `pay.calculateFiat(input)` and `receive.calculateFiat(quote.toValue)`, iOS through `PriceViewModel.fiatValueText` and `CryptoFiatConverter`.
 - **VM60** **S** **Swap minimum-amount error carries a number.** Both swap mappers format `GemSwapErrorDisplay.minimumAmount` with `ValueFormatter`.
