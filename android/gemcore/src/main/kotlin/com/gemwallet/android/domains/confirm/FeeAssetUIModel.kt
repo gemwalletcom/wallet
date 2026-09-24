@@ -19,7 +19,7 @@ data class FeeAssetUIModel(val asset: Asset, val price: AssetPriceInfo?, val ava
     val priceValue: AssetPriceValue by lazy { AssetPriceValue(asset, price) }
     val isZeroBalance: Boolean get() = available.signum() == 0
     val balance: String by lazy { ValueFormatter(style = GemValueStyle.SHORT).string(amount, asset.symbol) }
-    val equivalent: String by lazy { priceValue.formatFiat(priceValue.calculateFiat(amount)) }
+    val equivalent: String by lazy { priceValue.fiatEquivalent(available) }
 
     private val amount: BigDecimal by lazy { Crypto(available).value(asset.decimals) }
 

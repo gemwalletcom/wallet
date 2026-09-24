@@ -40,7 +40,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Recipient/address/name input | `GemRecipientSession`, `GemNameService`, existing input component | Keep debounce/observation native |
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountEntry`, `GemAutocloseDraft`, existing provider inputs | VM56, VM57, VM106, VM124, VM125, VM154 |
 | Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | AUD5, VM4, VM45, VM61, VM62, VM63, VM102, VM129, VM144, VM145 |
-| Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM3, VM59, VM60, AUD50 |
+| Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM3, AUD50 |
 | Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM62, VM145, VM146, VM147, VM160, VM98 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | VM160 |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | — |
@@ -108,7 +108,6 @@ The same product rule written in both apps, or in one app while the other reads 
 [A number crosses as a value and a style](ARCHITECTURE.md#a-number-crosses-as-a-value-and-a-style-never-as-a-string-or-a-callback) and [the record carries the finished value](ARCHITECTURE.md#the-record-carries-the-finished-value-not-the-ingredients). Each item is a raw amount, price or seconds value that both apps format, convert or compose themselves.
 
 - **VM56** **M** **Amount screen labels come formatted.** Both apps format the available balance, the reserved fee and the asset equivalent with `ValueFormatter(.auto)` (iOS `AmountSceneViewModel` `balanceText`/`infoText`/`secondaryText`, Android `AmountViewModel`); `GemAmountInput`/`GemAmountEntry` should return `GemFormattedNumber`.
-- **VM59** **M** **Swap equivalents come from Core.** Both apps convert pay and receive amounts to fiat themselves — Android `pay.calculateFiat(input)` and `receive.calculateFiat(quote.toValue)`, iOS through `PriceViewModel.fiatValueText` and `CryptoFiatConverter`.
 - **VM62** **M** **Transaction headers carry formatted amounts.** `GemTransactionHeader` carries a raw `GemTransactionAmount`; both apps format it and convert to fiat — iOS `display` to `AmountDisplay`, Android `amountText`/`valueText`/`fiat` through `CryptoFiatConverter.toFiatString` in `ConfirmHeaderUIModel` and `TransactionDetailsRowUIModel`.
 - **VM63** **S** **Fee asset equivalent comes from Core.** Android `FeeAssetUIModel` and iOS `FeeAssetItem` convert the fee asset's value to fiat app-side. Land with VM144.
 - **VM64** **S** **Delete Android's fiat helpers once unused.** Android gemcore `AssetPriceValue.calculateFiat`, `CryptoFiatConverter.kt` and `AssetInfoExt.calculateFiat` wrap Core's converter per value; they go when the swap and fee items land.

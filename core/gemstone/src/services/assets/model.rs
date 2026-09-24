@@ -1,6 +1,7 @@
 use primitives::{Asset, AssetId, AssetMetaData, AssetType, BalanceMetadata, Banner, BlockExplorerLink, Chain, Currency, PriceAlert, RecentActivityType, VerificationStatus, Wallet};
 
 use crate::formatted_number::GemFormattedNumber;
+use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListRow, GemListSectionTitle};
 use crate::precision::GemCurrencyStyle;
 use crate::services::balance::{GemAssetBalance, GemAssetBalanceRow};
@@ -453,6 +454,12 @@ pub struct GemNetworkAssetIds {
     pub unpinned: Vec<AssetId>,
     pub hidden: Vec<AssetId>,
     pub sections: GemNetworkAssetSections,
+}
+
+#[uniffi::export]
+pub fn fiat_equivalent(asset: Asset, value: GemBigInt, price: Option<f64>, currency: Currency) -> Option<GemFormattedNumber> {
+    let value = value.to_biguint()?;
+    super::rules::fiat_amount_of(&asset, &value, price, currency, GemCurrencyStyle::Currency)
 }
 
 #[uniffi::export]

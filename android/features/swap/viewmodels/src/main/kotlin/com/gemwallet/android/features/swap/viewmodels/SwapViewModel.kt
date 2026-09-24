@@ -15,8 +15,7 @@ import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
 import com.gemwallet.android.application.swap.cases.toGem
-import com.gemwallet.android.domains.asset.calculateFiat
-import com.gemwallet.android.domains.asset.formatFiat
+import com.gemwallet.android.domains.asset.fiatEquivalent
 import com.gemwallet.android.domains.asset.swapValue
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.gemConfig
@@ -29,10 +28,10 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.swap.viewmodels.models.QuoteState
 import com.gemwallet.android.features.swap.viewmodels.models.SwapUiState
 import com.gemwallet.android.features.swap.viewmodels.models.createSwapUiState
-import com.gemwallet.android.features.swap.viewmodels.models.receiveEquivalent
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.text
 import com.gemwallet.android.model.toAssetPriceValue
 import com.gemwallet.android.model.toGem
@@ -84,7 +83,6 @@ import uniffi.gemstone.availableBalanceText
 import uniffi.gemstone.formattedPercentage
 import uniffi.gemstone.newSlippageSession
 import uniffi.gemstone.swapperQuoteSummary
-import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
 
@@ -148,7 +146,8 @@ class SwapViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val payEquivalentFormatted = combine(payValueFlow, payAsset) { text, pay ->
-        pay?.formatFiat(pay.calculateFiat(text.parseInputNumberOrNull() ?: BigDecimal.ZERO)) ?: ""
+        val value = text.parseInputNumberOrNull() ?: return@combine ""
+        pay?.fiatEquivalent(Crypto(value, pay.asset.decimals).atomicValue) ?: ""
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
@@ -191,7 +190,7 @@ class SwapViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val toEquivalentFormatted = quote.mapLatest { quote ->
-        quote?.receive?.formatFiat(quote.receiveEquivalent) ?: ""
+        quote?.receive?.fiatEquivalent(quote.quote.toValue) ?: ""
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 

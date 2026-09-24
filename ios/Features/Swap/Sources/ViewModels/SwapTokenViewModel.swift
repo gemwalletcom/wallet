@@ -4,6 +4,7 @@ import Components
 import Formatters
 import Foundation
 import Gemstone
+import func Gemstone.fiatEquivalent
 import struct Gemstone.GemSwapSideInteraction
 import GemstonePrimitives
 import Localization
@@ -67,7 +68,7 @@ struct SwapTokenViewModel {
         switch type {
         case let .selected(model):
             guard let value = try? NumberInput.value(amount, decimals: model.asset.decimals.asInt) else { return nil }
-            return model.priceViewModel.fiatValueText(value: value, decimals: model.asset.decimals.asInt)
+            return fiatEquivalent(asset: model.asset.toGem(), value: value, price: model.assetData.price?.price, currency: model.currency.toGem())?.text()
         case .placeholder:
             return nil
         }

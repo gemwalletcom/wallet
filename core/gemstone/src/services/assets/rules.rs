@@ -987,6 +987,19 @@ mod tests {
     }
 
     #[test]
+    fn test_a_fiat_equivalent_needs_a_positive_value_and_a_price() {
+        use super::super::model::fiat_equivalent;
+        use crate::models::custom_types::GemBigInt;
+        let eth = Asset::from_chain(Chain::Ethereum);
+        let one = GemBigInt::from(10u64.pow(18));
+
+        assert_eq!(fiat_equivalent(eth.clone(), one.clone(), Some(2000.0), Currency::USD).map(|number| number.value), Some(2000.0));
+        assert_eq!(fiat_equivalent(eth.clone(), one, None, Currency::USD), None);
+        assert_eq!(fiat_equivalent(eth.clone(), GemBigInt::from(0), Some(2000.0), Currency::USD), None);
+        assert_eq!(fiat_equivalent(eth, GemBigInt::from(-5), Some(2000.0), Currency::USD), None);
+    }
+
+    #[test]
     fn test_the_network_screen_lists_the_chain_tokens_without_its_coin() {
         let coin = AssetId::from_chain(Chain::Ethereum);
         let usdc = Asset::mock_ethereum_usdc().id;
