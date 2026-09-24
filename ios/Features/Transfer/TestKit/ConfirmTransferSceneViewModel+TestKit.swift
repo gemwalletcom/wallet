@@ -2,6 +2,7 @@
 
 import func Gemstone.addressCopy
 import struct Gemstone.AddressName
+import class Gemstone.GemAddressService
 import struct Gemstone.GemConfirmLoad
 import enum Gemstone.GemConfirmRowContent
 import enum Gemstone.GemSubmitResult
@@ -36,6 +37,7 @@ public extension ConfirmTransferSceneViewModel {
             let recipient: GemConfirmRowContent = .recipient(
                 destination: .recipient(name: addressName?.name, address: data.recipient.address),
                 name: addressName?.name,
+                text: addressName?.name ?? GemAddressService.shared.format(address: data.recipient.address, chain: data.chain, style: .short),
                 address: data.recipient.address,
                 memo: data.recipient.memo,
                 chain: data.chain.rawValue,

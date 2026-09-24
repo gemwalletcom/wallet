@@ -3,6 +3,7 @@ package com.gemwallet.android.features.confirm.viewmodels.models
 import android.content.Context
 import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.gemwallet.android.ext.networkName
+import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.confirm.viewmodels.localization.title
@@ -13,6 +14,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemTagType
 import com.gemwallet.android.ui.localization.stringRes
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemAvatar
@@ -23,15 +25,22 @@ import uniffi.gemstone.GemListRow
 sealed interface ConfirmRowUIModel {
     data class Row(val row: GemListRow) : ConfirmRowUIModel
     data class Item(val model: ListItemModel) : ConfirmRowUIModel
-    data class Address(val title: String, val name: String?, val address: String, val chain: Chain, val explorerLink: BlockExplorerLink, val avatar: ListItemImage?) : ConfirmRowUIModel
+    data class Address(val title: String, val text: String, val address: String, val chain: Chain, val explorerLink: BlockExplorerLink, val avatar: ListItemImage?) : ConfirmRowUIModel
     data class Validator(val title: String, val name: String, val address: String, val chain: Chain, val explorerLink: BlockExplorerLink) : ConfirmRowUIModel
-    data class PaymentAsset(val model: ListItemModel, val selectable: Boolean) : ConfirmRowUIModel
+    data class PaymentAsset(val model: ListItemModel, val selectable: Boolean, val assetIds: List<AssetId>) : ConfirmRowUIModel
 }
 
 internal fun GemConfirmRowContent.uiModel(context: Context): ConfirmRowUIModel? = when (this) {
     is GemConfirmRowContent.Row -> ConfirmRowUIModel.Row(row)
+
     is GemConfirmRowContent.Recipient -> uiModel(context)
-    is GemConfirmRowContent.PaymentAsset -> ConfirmRowUIModel.PaymentAsset(model = ListItemModel(title = context.getString(R.string.transfer_pay_with), subtitle = symbol), selectable = selectable)
+
+    is GemConfirmRowContent.PaymentAsset -> ConfirmRowUIModel.PaymentAsset(
+        model = ListItemModel(title = context.getString(R.string.transfer_pay_with), subtitle = symbol),
+        selectable = selectable,
+        assetIds = assetIds.mapNotNull { it.toAssetId() },
+    )
+
     is GemConfirmRowContent.Details -> null
 }
 
@@ -52,7 +61,7 @@ private fun GemConfirmRowContent.Recipient.uiModel(context: Context): ConfirmRow
 
         else -> ConfirmRowUIModel.Address(
             title = title,
-            name = name,
+            text = text,
             address = address,
             chain = chain.toChain(),
             explorerLink = link.toPrimitives(),

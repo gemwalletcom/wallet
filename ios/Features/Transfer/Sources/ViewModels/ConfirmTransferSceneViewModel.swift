@@ -226,8 +226,12 @@ extension ConfirmTransferSceneViewModel {
     }
 
     func onSelectPaymentAsset() {
-        guard state.screen.phase != .loading, let invoice = transfer.invoice else { return }
-        isPresentingSheet = .paymentAsset(.payment(invoice.quotes.map { AssetId(core: $0.assetId) }))
+        let assetIds = viewState.rowContents.lazy.compactMap { content -> [String]? in
+            guard case let .paymentAsset(_, selectable, assetIds) = content, selectable else { return nil }
+            return assetIds
+        }.first
+        guard let assetIds else { return }
+        isPresentingSheet = .paymentAsset(.payment(assetIds.map { AssetId(core: $0) }))
     }
 
     public func selectPaymentAsset(_ asset: Asset) {

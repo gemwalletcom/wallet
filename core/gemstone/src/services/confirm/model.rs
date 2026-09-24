@@ -453,6 +453,7 @@ pub enum GemConfirmRowContent {
     Recipient {
         destination: GemConfirmDestination,
         name: Option<String>,
+        text: String,
         address: String,
         memo: Option<String>,
         chain: Chain,
@@ -464,6 +465,7 @@ pub enum GemConfirmRowContent {
     PaymentAsset {
         symbol: String,
         selectable: bool,
+        asset_ids: Vec<AssetId>,
     },
 }
 

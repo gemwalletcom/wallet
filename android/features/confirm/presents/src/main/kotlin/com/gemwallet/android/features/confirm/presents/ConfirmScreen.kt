@@ -119,7 +119,6 @@ fun ConfirmScreen(
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
     val title by viewModel.title.collectAsStateWithLifecycle()
     val isExternalRequest by viewModel.isExternalRequest.collectAsStateWithLifecycle()
-    val paymentAssetIds by viewModel.paymentAssetIds.collectAsStateWithLifecycle()
     val verification by viewModel.verification.collectAsStateWithLifecycle()
     val isVerificationVisible by viewModel.isVerificationVisible.collectAsStateWithLifecycle()
 
@@ -237,7 +236,7 @@ fun ConfirmScreen(
                     is ConfirmRowUIModel.PaymentAsset -> ListItem(
                         model = row.model,
                         listPosition = listPosition,
-                        modifier = if (row.selectable) Modifier.clickable { onSelectPaymentAsset(paymentAssetIds) } else Modifier,
+                        modifier = if (row.selectable) Modifier.clickable { onSelectPaymentAsset(row.assetIds) } else Modifier,
                         accessory = if (row.selectable) {
                             { DataBadgeChevron() }
                         } else {

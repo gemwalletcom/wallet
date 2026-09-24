@@ -576,8 +576,10 @@ pub fn confirm_row_contents(transfer: &GemTransferData, wallet: Wallet, address_
                 let avatar = contact_avatar(address_name.as_ref(), destination.name().as_deref());
                 let address = destination.address();
                 let short_address = format_address(&address, Some(chain), GemAddressFormatStyle::Short);
+                let name = GemAddressService::new().name_text(destination.name(), short_address.clone(), avatar.is_some());
                 GemConfirmRowContent::Recipient {
-                    name: GemAddressService::new().name_text(destination.name(), short_address, avatar.is_some()),
+                    text: name.clone().unwrap_or(short_address),
+                    name,
                     is_selectable: !address.is_empty(),
                     address,
                     destination,
@@ -614,6 +616,7 @@ pub fn confirm_row_contents(transfer: &GemTransferData, wallet: Wallet, address_
                 TransactionInputType::Payment { asset, invoice, .. } => Some(GemConfirmRowContent::PaymentAsset {
                     symbol: asset.symbol.clone(),
                     selectable: invoice.quotes.len() > 1,
+                    asset_ids: invoice.quotes.iter().map(|quote| quote.asset_id.clone()).collect(),
                 }),
                 _ => None,
             },
@@ -1514,21 +1517,25 @@ mod tests {
             confirm_row_contents(&transfer, Wallet::mock(), address_name, link)
                 .into_iter()
                 .find_map(|content| match content {
-                    GemConfirmRowContent::Recipient { name, address, avatar, is_selectable, .. } => Some((name, address, avatar, is_selectable)),
+                    GemConfirmRowContent::Recipient {
+                        name, text, address, avatar, is_selectable, ..
+                    } => Some((name, text, address, avatar, is_selectable)),
                     _ => None,
                 })
                 .unwrap()
         };
 
-        let (name, address, avatar, is_selectable) = recipient(Some(contact));
+        let (name, text, address, avatar, is_selectable) = recipient(Some(contact));
+        assert_eq!(text, "John Smith");
         assert_eq!(avatar.as_ref().map(|avatar| avatar.initials.clone()), Some("JO".to_string()), "a contact reads as the initials Core writes everywhere else");
         assert_eq!(name, Some("John Smith".to_string()), "a contact with a picture needs no address beside its name");
         assert_eq!(address, "recipient");
         assert!(is_selectable);
 
-        let (nameless, _, no_avatar, _) = recipient(None);
+        let (nameless, text, _, no_avatar, _) = recipient(None);
         assert_eq!(no_avatar, None, "an address nobody named shows no avatar");
         assert_eq!(nameless, None, "an unnamed address has no name text");
+        assert_eq!(text, "recipient", "an unnamed address reads as its short form");
 
         let validator = DelegationValidator::stake(Chain::HyperCore, "0x000000000056f99d36b6f2e0c51fd41496bbacb8".into(), "ValiDAO".into(), true, 0.0, 0.0);
         let unstake = GemTransferData::mock(TransactionInputType::Stake {

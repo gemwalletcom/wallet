@@ -15,13 +15,11 @@ import com.gemwallet.android.domains.confirm.applicationMetadata
 import com.gemwallet.android.domains.confirm.asset
 import com.gemwallet.android.domains.confirm.nftAsset
 import com.gemwallet.android.domains.confirm.pack
-import com.gemwallet.android.domains.confirm.paymentInvoice
 import com.gemwallet.android.domains.confirm.perpetualType
 import com.gemwallet.android.domains.confirm.swapData
 import com.gemwallet.android.domains.confirm.toAsset
 import com.gemwallet.android.domains.confirm.toFeeAssetUIModel
 import com.gemwallet.android.domains.confirm.unpackTransferData
-import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toAssetPriceValue
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
@@ -210,9 +208,6 @@ class ConfirmViewModel @Inject constructor(
 
     private val isPaymentPlaceholder = transfer.map { it?.inputType is TransactionInputType.Payment && it.value == BigInteger.ZERO }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    val paymentAssetIds = transfer.map { it?.inputType?.paymentInvoice?.quotes?.mapNotNull { quote -> quote.assetId.toAssetId() }.orEmpty() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val simulation = content
         .map { it?.load?.simulation?.toSimulation(context) ?: Simulation() }

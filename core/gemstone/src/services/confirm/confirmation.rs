@@ -102,7 +102,18 @@ impl GemConfirmation {
             button: screen.button(),
             fee_row: screen.fee_row(),
             fee_rates: self.fee_rate_rows(),
-            row_contents: self.row_contents(address_name),
+            row_contents: self
+                .row_contents(address_name)
+                .into_iter()
+                .map(|content| match content {
+                    GemConfirmRowContent::PaymentAsset { symbol, selectable, asset_ids } => GemConfirmRowContent::PaymentAsset {
+                        selectable: selectable && screen.phase != super::model::GemConfirmPhase::Loading,
+                        symbol,
+                        asset_ids,
+                    },
+                    content => content,
+                })
+                .collect(),
         }
     }
 

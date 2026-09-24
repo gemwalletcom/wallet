@@ -9,6 +9,7 @@ import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmHeaderUIModel
+import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmRowUIModel
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetEthereumUSDT
@@ -48,6 +49,7 @@ import org.junit.Test
 import uniffi.gemstone.GemConfirmHeader
 import uniffi.gemstone.GemConfirmLoad
 import uniffi.gemstone.GemConfirmLoadOptions
+import uniffi.gemstone.GemConfirmRowContent
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmation
 import uniffi.gemstone.GemTransactionHeader
@@ -75,10 +77,15 @@ class ConfirmViewModelPaymentAssetTest {
     }
 
     @Test
-    fun paymentAssetIdsAreTheInvoiceQuotes() = runTest(testDispatcher) {
+    fun thePaymentAssetRowOffersTheAssetsCorePicked() = runTest(testDispatcher) {
+        every { confirmation.rowContents(any()) } returns listOf(
+            GemConfirmRowContent.PaymentAsset(symbol = ethereum.symbol, selectable = true, assetIds = listOf(ethereum.id.toIdentifier(), usdt.id.toIdentifier())),
+        )
         val viewModel = viewModel(payment(ethereum)).also { model = it }
 
-        assertEquals(listOf(ethereum.id, usdt.id), viewModel.paymentAssetIds.first { it.isNotEmpty() })
+        val row = viewModel.transactionRows.first { rows -> rows.any { it is ConfirmRowUIModel.PaymentAsset } }
+            .filterIsInstance<ConfirmRowUIModel.PaymentAsset>().single()
+        assertEquals(listOf(ethereum.id, usdt.id), row.assetIds)
     }
 
     @Test

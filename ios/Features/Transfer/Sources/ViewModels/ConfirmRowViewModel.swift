@@ -2,7 +2,6 @@
 
 import Components
 import Foundation
-import class Gemstone.GemAddressService
 import enum Gemstone.GemConfirmDestination
 import enum Gemstone.GemConfirmRowContent
 import GemstonePrimitives
@@ -30,7 +29,7 @@ extension ConfirmRowViewModel: ItemModelProvidable {
         switch content {
         case let .row(row):
             .row(row)
-        case let .recipient(destination, name, address, memo, chain, link, avatar, isSelectable):
+        case let .recipient(destination, name, text, address, memo, chain, link, avatar, isSelectable):
             .recipient(
                 AddressListItemViewModel(
                     title: destination.title,
@@ -41,12 +40,12 @@ extension ConfirmRowViewModel: ItemModelProvidable {
                         memo: memo,
                         assetImage: avatar.map { AssetImage(type: .text($0.initials), imageURL: $0.imageUrl.map { ImageSource($0).url }) },
                     ),
-                    mode: .text(name ?? GemAddressService.shared.format(address: address, chain: Chain(core: chain), style: .short)),
+                    mode: .text(text),
                     addressLink: link.toPrimitives(),
                     onSelect: isSelectable ? selectAction(chainAddress: ChainAddress(chain: Chain(core: chain), address: address)) : nil,
                 ),
             )
-        case let .paymentAsset(symbol, selectable):
+        case let .paymentAsset(symbol, selectable, _):
             .paymentAsset(ListItemModel(title: Localized.Transfer.payWith, subtitle: symbol), selectable: selectable)
         case .details:
             .empty

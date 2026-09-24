@@ -9,7 +9,6 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.StakeType
 import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.PaymentInvoice
 import uniffi.gemstone.PerpetualType
 import uniffi.gemstone.SwapData
 import uniffi.gemstone.TransactionInputType
@@ -22,9 +21,6 @@ val TransactionInputType.toAsset: Asset?
 
 val TransactionInputType.applicationMetadata: ApplicationMetadata?
     get() = (this as? TransactionInputType.Generic)?.metadata?.toPrimitives()
-
-val TransactionInputType.paymentInvoice: PaymentInvoice?
-    get() = (this as? TransactionInputType.Payment)?.invoice
 
 val TransactionInputType.swapData: SwapData?
     get() = (this as? TransactionInputType.Swap)?.swapData

@@ -59,7 +59,11 @@ struct ConfirmTransferSceneViewModelTests {
     func selectingAnotherPaymentAssetReloadsWithIt() async {
         let invoice = PaymentInvoice.mock(quotes: [.mock(asset: .mockEthereum()), .mock(asset: .mockBNB())])
         let bnb = GemTransferData.mockPayment(asset: .mockBNB(), invoice: invoice)
-        let confirmation = GemConfirmationMock(state: .mock(fee: nil), load: .success(.mock(transfer: bnb)))
+        let confirmation = GemConfirmationMock(
+            state: .mock(fee: nil),
+            load: .success(.mock(transfer: bnb)),
+            rows: { _ in [.paymentAsset(symbol: "ETH", selectable: true, assetIds: [Asset.mockEthereum().id.identifier, Asset.mockBNB().id.identifier])] },
+        )
         let model = ConfirmTransferSceneViewModel.mock(data: .mockPayment(asset: .mockEthereum(), invoice: invoice), confirmation: confirmation)
         model.state.screen = .mock(phase: .ready)
         model.onSelectPaymentAsset()

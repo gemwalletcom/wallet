@@ -60,6 +60,7 @@ struct ConfirmRowViewModelTests {
         ConfirmRowViewModel(content: .recipient(
             destination: destination,
             name: nil,
+            text: address,
             address: address,
             memo: nil,
             chain: Chain.ethereum.rawValue,
