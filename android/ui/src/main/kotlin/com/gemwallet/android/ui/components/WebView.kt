@@ -39,7 +39,7 @@ private class HostWebViewClient(private val host: String) : WebViewClient() {
         if (request.url.scheme !in webSchemes) return true
         if (!request.isForMainFrame) return false
         val target = request.url.host.orEmpty()
-        if (target == host || target.endsWith(".$host")) return false
+        if (request.url.scheme == "https" && (target == host || target.endsWith(".$host"))) return false
         runCatching { view.context.startActivity(Intent(Intent.ACTION_VIEW, request.url)) }
         return true
     }
