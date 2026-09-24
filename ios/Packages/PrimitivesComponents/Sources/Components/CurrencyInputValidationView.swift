@@ -30,17 +30,26 @@ public struct CurrencyInputValidationView: View {
                 config: config,
             )
 
-            if let error, !(error is SilentValidationError) {
+            if let error, let message = message(error) {
                 HStack {
                     if let action = infoAction(error) {
                         InfoButton(action: action)
                     }
-                    Text(.init(error.localizedDescription))
+                    Text(.init(message))
                         .multilineTextAlignment(.center)
                         .textStyle(TextStyle(font: .footnote, color: Colors.red))
                         .transition(.opacity)
                 }
             }
         }
+    }
+}
+
+// MARK: - Private
+
+extension CurrencyInputValidationView {
+    private func message(_ error: any Error) -> String? {
+        guard let error = error as? LocalizedError else { return error.localizedDescription }
+        return error.errorDescription
     }
 }

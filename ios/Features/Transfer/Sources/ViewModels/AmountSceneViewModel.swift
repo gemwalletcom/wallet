@@ -246,15 +246,7 @@ private extension AmountSceneViewModel {
 
     func refreshEntry() {
         entry = provider.entry(from: assetData, inputType: amountInputType, text: NumberInput.plain(amountInputModel.text), currency: currency)
-        amountInputModel.update(error: entryError)
-    }
-
-    var entryError: (any Error)? {
-        switch entry.error {
-        case .none: nil
-        case .Zero: SilentValidationError()
-        case let .some(error): error
-        }
+        amountInputModel.update(error: entry.error)
     }
 
     var input: GemAmountInput {
