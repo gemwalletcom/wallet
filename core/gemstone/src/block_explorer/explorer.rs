@@ -80,6 +80,21 @@ mod tests {
     }
 
     #[test]
+    fn test_dash_explorers() {
+        let chain = Chain::Dash;
+        let explorers = get_block_explorers(chain);
+
+        assert_eq!(explorers.len(), 2);
+        assert_eq!(explorers[0].name(), "Blockchair");
+        assert_eq!(explorers[1].name(), "Dash Explorer");
+
+        let explorer = Explorer { chain };
+
+        assert_eq!(explorer.get_transaction_url(&explorers[0].name(), "transaction_id"), "https://blockchair.com/dash/transaction/transaction_id");
+        assert_eq!(explorer.get_address_url(&explorers[0].name(), "address"), "https://blockchair.com/dash/address/address");
+    }
+
+    #[test]
     fn test_ethereum_explorers() {
         let chain = Chain::Ethereum;
         let explorers = get_block_explorers(chain);
