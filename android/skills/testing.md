@@ -5,12 +5,13 @@
 - Run tests through Gradle or the Android `justfile`
 - Default commands:
   - `just test` — unit tests for every module (`testGoogleDebugUnitTest` for `:app` plus `testDebugUnitTest` for library modules) with `--continue`, so every failing module is reported; Gradle builds and fingerprints the host Gemstone library for JNA, including when running a single module
-  - `just test-integration` — instrumented tests for every module (requires emulator)
+  - `just test-integration` — the Room DAO and migration tests in `integration` packages, on Robolectric (no emulator); `just test` skips them
+  - `./gradlew connectedGoogleDebugAndroidTest connectedDebugAndroidTest` — instrumented tests for every module (requires emulator)
   - `./gradlew :app:testGoogleDebugUnitTest` — app module only
   - `./gradlew :<module>:testDebugUnitTest` — one feature or shared module
   - `./gradlew testGoogleDebugUnitTest` on its own runs the app module only: library modules have no flavored test task, so their tests are silently skipped and the build still succeeds. Use `just test` to cover both.
 - Run the narrowest relevant target while iterating, then finish with broader validation
-- For local instrumented tests, start the emulator from the repo root first with `just start-emulator`, then run `just android test-integration`
+- For local instrumented tests, start the emulator from the repo root first with `just start-emulator`, then run the instrumented tests from `android/`
 
 ## Test Structure
 
@@ -28,9 +29,14 @@
 - Keep `runTest`'s default timeout. A test's first call into Core loads the native library, which a CI runner can take well over ten seconds to do, so a tighter global timeout fails healthy tests there
 - Drive the queued work with `advanceUntilIdle()`, then assert on `.value`. `coVerify(timeout = …)`, `verify(timeout = …)`, `Thread.sleep`, and poll loops never advance the test scheduler — they only hide a race that a slower CI runner loses later (issue #1271)
 
+### Integration Tests (`src/test/kotlin/…/integration/`)
+
+- Test database migrations and Room queries against a real SQLite on the JVM with Robolectric, at the SDK set in the module's `robolectric.properties`
+- Use `AndroidJUnit4` runner and `ApplicationProvider` for context; `MigrationTestHelper` reads the exported schemas from the test assets
+
 ### Instrumented Tests (`src/androidTest/kotlin/`)
 
-- Test database migrations, Room queries, and Android-specific behavior
+- Test Android-specific behavior that needs a device, such as the Android Keystore
 - Use `AndroidJUnit4` runner and `ApplicationProvider` for context
 
 ## Shared TestKit

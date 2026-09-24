@@ -37,14 +37,13 @@ If you need Android-specific behavior on top of generated types, add adapters, m
 
 ### Room Migration Tests
 
-Database migration tests require an emulator or device. Run them separately:
+Database migration tests run on the JVM with Robolectric, no emulator needed:
 ```bash
-cd ..
-just start-emulator
-cd android
 just test-integration
 ```
 Do not skip migration tests when changing Room schemas — they catch data loss bugs that unit tests cannot.
+
+A migration runs on the SQLite of the oldest supported Android version, which is older than the SQLite on a recent device or emulator. Use only SQL that version supports: remove or rename columns by rebuilding the table, and avoid JSON functions, `RETURNING` and upserts. Robolectric's SQLite is older than a recent device's, so it catches most of these, but not every feature newer than the minSdk SQLite.
 
 ### Unit Tests Fail Loading Gemstone
 

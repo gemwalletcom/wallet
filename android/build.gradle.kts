@@ -43,6 +43,9 @@ subprojects {
             .withPropertyName("gemstoneHostLibrary")
             .withPathSensitivity(PathSensitivity.NONE)
         systemProperty("jna.library.path", gemstoneHostLibrary.parentFile.absolutePath)
+        if (providers.gradleProperty("skipIntegrationTests").isPresent) {
+            exclude("**/integration/**")
+        }
     }
     listOf("com.android.library", "com.android.application").forEach { pluginId ->
         plugins.withId(pluginId) {
