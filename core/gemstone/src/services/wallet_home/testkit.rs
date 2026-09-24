@@ -30,7 +30,7 @@ impl WalletHomeTestkit {
         let service = GemWalletHomeService::new(
             discovery.balance.clone(),
             discovery.discovery.clone(),
-            Arc::new(GemBannerService::new(Arc::new(MemoryBannerStore::default()))),
+            Arc::new(GemBannerService::new(Arc::new(MemoryBannerStore::default()), primitives::Platform::IOS)),
             discovery.wallet_preferences.clone(),
             discovery.preferences.clone(),
             discovery.session.clone(),

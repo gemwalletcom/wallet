@@ -1,5 +1,6 @@
+use super::with_utm_source;
 use crate::models::GemStakeChain;
-use primitives::Asset;
+use primitives::{Asset, Platform};
 
 #[derive(uniffi::Enum, Clone, Debug, PartialEq)]
 pub enum DocsUrl {
@@ -39,6 +40,12 @@ pub enum DocsUrl {
 const DOCS_URL: &str = "https://docs.gemwallet.com";
 
 #[uniffi::export]
+impl DocsUrl {
+    pub fn url_for(&self, platform: Platform) -> String {
+        with_utm_source(&self.url(), platform)
+    }
+}
+
 impl DocsUrl {
     pub fn url(&self) -> String {
         let path = match self {
@@ -86,6 +93,7 @@ mod tests {
     #[test]
     fn test_get_docs_url() {
         assert_eq!(DocsUrl::WhatIsSecretPhrase.url(), "https://docs.gemwallet.com/faq/secret-recovery-phrase/");
+        assert_eq!(DocsUrl::WhatIsSecretPhrase.url_for(Platform::IOS), "https://docs.gemwallet.com/faq/secret-recovery-phrase/?utm_source=gemwallet_ios");
     }
 
     #[test]

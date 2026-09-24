@@ -1,4 +1,5 @@
-use primitives::{GEM_ANDROID_PACKAGE_ID, GEM_API_HOST};
+use super::with_utm_source;
+use primitives::{GEM_ANDROID_PACKAGE_ID, GEM_API_HOST, Platform};
 
 #[derive(uniffi::Enum, Clone)]
 pub enum PublicUrl {
@@ -23,6 +24,12 @@ pub fn device_stream_url() -> String {
 }
 
 #[uniffi::export]
+impl PublicUrl {
+    pub fn url_for(&self, platform: Platform) -> String {
+        with_utm_source(&self.url(), platform)
+    }
+}
+
 impl PublicUrl {
     pub fn url(&self) -> String {
         match self {

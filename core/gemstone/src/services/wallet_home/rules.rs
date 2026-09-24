@@ -121,7 +121,7 @@ mod tests {
     #[test]
     fn test_a_blocked_multi_signature_account_disables_the_header_buttons() {
         use primitives::{Banner, BannerState};
-        let row = |event| GemBannerRow::new(Banner::mock(event, BannerState::Active));
+        let row = |event| GemBannerRow::new(Banner::mock(event, BannerState::Active), primitives::Platform::IOS);
 
         assert!(header_buttons_enabled(&[]));
         assert!(header_buttons_enabled(&[row(BannerEvent::Onboarding)]));

@@ -22,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
-import com.gemwallet.android.ui.components.banner.BannerDestination
 import com.gemwallet.android.ui.components.banner.BannerItemUIModel
 import com.gemwallet.android.ui.components.banner.BannerRowUIModel
 import com.gemwallet.android.ui.components.image.ListItemImageView
@@ -35,13 +34,14 @@ import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.BannerEvent
+import uniffi.gemstone.GemBannerDestination
 import uniffi.gemstone.GemBannerKey
 import uniffi.gemstone.GemBannerStyle
 
 private val bannerEmojiFontSize = 32.sp
 
 @Composable
-fun BannersScene(banners: List<BannerRowUIModel>, onSelect: (BannerDestination) -> Unit, onClose: (GemBannerKey) -> Unit, onBuy: () -> Unit = {}, onReceive: () -> Unit = {}) {
+fun BannersScene(banners: List<BannerRowUIModel>, onSelect: (GemBannerDestination) -> Unit, onClose: (GemBannerKey) -> Unit, onBuy: () -> Unit = {}, onReceive: () -> Unit = {}) {
     val pageState = rememberPagerState { banners.size }
 
     if (banners.isEmpty()) {

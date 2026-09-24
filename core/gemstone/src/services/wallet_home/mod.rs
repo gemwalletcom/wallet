@@ -79,7 +79,7 @@ impl GemWalletHomeService {
         let wallet_type = wallet.wallet_type;
         let is_wallet_empty = balances.iter().all(|balance| balance.amount == 0.0);
         let total_value = self.total_fiat_value(wallet.id.clone(), balances, perpetual);
-        let visible_banners = GemBannerContext::wallet(wallet, is_wallet_empty).visible_banners(banners);
+        let visible_banners = self.banners.visible_banners(&GemBannerContext::wallet(wallet, is_wallet_empty), banners);
         let currency = self.preferences.get_currency();
         let header = balance_rules::total_header(&total_value, currency);
         GemWalletHomeViewState {

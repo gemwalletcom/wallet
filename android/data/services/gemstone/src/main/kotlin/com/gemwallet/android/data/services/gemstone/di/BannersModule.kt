@@ -16,6 +16,7 @@ import uniffi.gemstone.GemBannerService
 import uniffi.gemstone.GemBannerStore
 import uniffi.gemstone.GemNotificationPermissions
 import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.Platform
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -40,5 +41,5 @@ object BannersModule {
 
     @Provides
     @Singleton
-    fun provideGemBannerService(store: GemBannerStore): GemBannerService = GemBannerService(store)
+    fun provideGemBannerService(store: GemBannerStore): GemBannerService = GemBannerService(store, Platform.ANDROID)
 }

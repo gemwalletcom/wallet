@@ -1,9 +1,8 @@
-use crate::config::docs::DocsUrl;
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::GemBigUint;
 use crate::services::balance::GemAssetBalance;
 use crate::services::transfer::GemTransferData;
-use primitives::{Asset, AssetId, AssetMetaData, Banner, BannerEvent, BannerState, Chain, Wallet, WalletId};
+use primitives::{Asset, AssetId, AssetMetaData, Banner, BannerEvent, BannerState, Chain, Platform, Wallet, WalletId};
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemBannerContext {
@@ -25,10 +24,10 @@ pub struct GemBannerRow {
 }
 
 impl GemBannerRow {
-    pub fn new(banner: Banner) -> Self {
+    pub fn new(banner: Banner, platform: Platform) -> Self {
         Self {
             key: GemBannerKey::from(&banner),
-            content: super::rules::banner_content(banner.event, banner.asset.as_ref(), banner.state),
+            content: super::rules::banner_content(banner.event, banner.asset.as_ref(), banner.state, platform),
             banner,
         }
     }
@@ -36,8 +35,8 @@ impl GemBannerRow {
 
 #[uniffi::export]
 impl GemBannerContext {
-    pub fn visible_banners(&self, stored: Vec<Banner>) -> Vec<GemBannerRow> {
-        super::rules::visible_banners(stored, self).into_iter().map(GemBannerRow::new).collect()
+    pub fn visible_banners(&self, stored: Vec<Banner>, platform: Platform) -> Vec<GemBannerRow> {
+        super::rules::visible_banners(stored, self).into_iter().map(|banner| GemBannerRow::new(banner, platform)).collect()
     }
 }
 
@@ -183,19 +182,13 @@ pub enum GemBannerDescription {
     TradePerpetuals,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
-pub enum GemBannerLink {
-    Docs { item: DocsUrl },
-    External { url: String },
-}
-
 #[derive(Debug, Clone, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
 pub enum GemBannerDestination {
     Stake,
     ActivateAsset { transfer: GemTransferData },
     Perpetuals,
-    Url { link: GemBannerLink },
+    Url { url: String },
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -265,7 +258,7 @@ mod tests {
             state: BannerState::Active,
         };
 
-        let row = GemBannerRow::new(banner);
+        let row = GemBannerRow::new(banner, Platform::IOS);
 
         assert_eq!(
             row.key,

@@ -48,7 +48,6 @@ import com.gemwallet.android.features.nft.presents.CollectionsPreviewSection
 import com.gemwallet.android.features.perpetual.views.PerpetualsPreviewSection
 import com.gemwallet.android.features.update_app.presents.InAppUpdateBanner
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.banner.BannerDestination
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.SnackbarHost
@@ -59,6 +58,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.AssetId
+import uniffi.gemstone.GemBannerDestination
 
 private const val AssetsHeadItemKey = "assets_head"
 private const val InAppUpdateBannerItemKey = "in_app_update_banner"
@@ -151,11 +151,11 @@ fun AssetsScreen(onAction: (AssetsAction) -> Unit, onContentReady: () -> Unit = 
                         banners = bannerRows,
                         onSelect = { destination ->
                             when (destination) {
-                                is BannerDestination.OpenUrl -> uriHandler.open(context, destination.url)
+                                is GemBannerDestination.Url -> uriHandler.open(context, destination.url)
 
-                                BannerDestination.Stake,
-                                BannerDestination.Perpetuals,
-                                is BannerDestination.Activate,
+                                GemBannerDestination.Stake,
+                                GemBannerDestination.Perpetuals,
+                                is GemBannerDestination.ActivateAsset,
                                 -> Unit
                             }
                         },

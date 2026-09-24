@@ -304,8 +304,8 @@ public extension AssetSceneViewModel {
             case .perpetuals:
                 preferences.isPerpetualEnabled = true
                 onSelectPerpetuals?()
-            case let .url(link):
-                onSelect(url: link.url)
+            case let .url(url):
+                onSelect(url: URL(string: url))
             }
         case let .button(bannerButton):
             switch bannerButton {

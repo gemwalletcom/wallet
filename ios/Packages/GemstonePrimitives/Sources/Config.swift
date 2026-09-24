@@ -51,22 +51,16 @@ public enum NodeURL {
 }
 
 public enum AppUrl {
-    private static let utmSource = "gemwallet_ios"
-
     public static func docs(_ item: DocsUrl) -> URL {
-        URL(string: item.url())!
-            .withUTM(source: utmSource)
+        URL(string: item.urlFor(platform: .ios))!
     }
 
     public static func page(_ item: PublicUrl) -> URL {
-        URL(string: item.url())!
-            .withUTM(source: utmSource)
+        URL(string: item.urlFor(platform: .ios))!
     }
 
     public static func rewards(_ item: RewardsUrl) -> URL {
-        let locale = Locale.current.identifier
-        return URL(string: item.url(locale: locale))!
-            .withUTM(source: utmSource)
+        URL(string: item.urlFor(locale: Locale.current.identifier, platform: .ios))!
     }
 }
 

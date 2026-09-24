@@ -43,7 +43,7 @@ impl AppStartTestkit {
         let device_key = Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)));
         let device_api = Arc::new(GemDeviceApiClient::new(provider.clone(), device_key));
         let banner_store = Arc::new(MemoryBannerStore::default());
-        let banners = Arc::new(GemBannerService::new(banner_store.clone()));
+        let banners = Arc::new(GemBannerService::new(banner_store.clone(), primitives::Platform::IOS));
         let support_store = Arc::new(MemorySupportStore::default());
         let service = GemAppStartService::new(
             Arc::new(GemConfigService::new(Arc::new(GemApiClient::new(provider.clone())), preferences.clone())),

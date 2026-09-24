@@ -148,7 +148,7 @@ impl GemAssetDetailsService {
             fee_balance_metadata,
         } = input;
         let wallet_type = wallet.wallet_type;
-        let visible_banners = GemBannerContext::asset(Some(wallet), asset.clone(), &metadata, &balance).visible_banners(banners);
+        let visible_banners = self.banners.visible_banners(&GemBannerContext::asset(Some(wallet), asset.clone(), &metadata, &balance), banners);
         let banner_events: Vec<BannerEvent> = visible_banners.iter().map(|row| row.banner.event).collect();
         let chain = asset.chain();
         let has_balance = balance.available > GemBigUint::ZERO;

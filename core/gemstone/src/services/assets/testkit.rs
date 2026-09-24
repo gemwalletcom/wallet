@@ -166,7 +166,7 @@ impl AssetDetailsTestkit {
             discovery.assets.clone(),
             discovery.balance.clone(),
             discovery.transactions.clone(),
-            Arc::new(GemBannerService::new(Arc::new(MemoryBannerStore::default()))),
+            Arc::new(GemBannerService::new(Arc::new(MemoryBannerStore::default()), primitives::Platform::IOS)),
             swap,
             Arc::new(GemExplorerService::new(preferences.clone())),
             Arc::new(GemPriceAlertService::new(device_api, preferences, Arc::new(MemoryPriceAlertStore::default()), Arc::new(DeniedNotificationPermissions))),

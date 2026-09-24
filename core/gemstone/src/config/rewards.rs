@@ -1,3 +1,6 @@
+use super::with_utm_source;
+use primitives::Platform;
+
 #[derive(uniffi::Enum, Clone)]
 pub enum RewardsUrl {
     Rewards,
@@ -6,6 +9,12 @@ pub enum RewardsUrl {
 const WEBSITE_URL: &str = "https://gemwallet.com";
 
 #[uniffi::export]
+impl RewardsUrl {
+    pub fn url_for(&self, locale: Option<String>, platform: Platform) -> String {
+        with_utm_source(&self.url(locale), platform)
+    }
+}
+
 impl RewardsUrl {
     pub fn url(&self, locale: Option<String>) -> String {
         let path = match self {
@@ -82,5 +91,6 @@ mod tests {
         assert_eq!(RewardsUrl::Rewards.url(Some("zh-Hans".to_string())), "https://gemwallet.com/zh-cn/rewards");
         assert_eq!(RewardsUrl::Rewards.url(Some("zh-Hant".to_string())), "https://gemwallet.com/zh-tw/rewards");
         assert_eq!(RewardsUrl::Rewards.url(Some("pt-BR".to_string())), "https://gemwallet.com/pt-br/rewards");
+        assert_eq!(RewardsUrl::Rewards.url_for(Some("ru".to_string()), Platform::Android), "https://gemwallet.com/ru/rewards?utm_source=gemwallet_android");
     }
 }

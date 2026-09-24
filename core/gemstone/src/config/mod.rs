@@ -14,6 +14,25 @@ pub mod swap_config;
 pub mod validators;
 pub mod wallet_connect;
 
+use primitives::Platform;
+
+pub fn with_utm_source(url: &str, platform: Platform) -> String {
+    let separator = if url.contains('?') { '&' } else { '?' };
+    format!("{url}{separator}utm_source=gemwallet_{}", platform.as_str())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::public::PublicUrl;
+
+    #[test]
+    fn test_a_url_with_a_query_gains_the_source_as_another_parameter() {
+        assert_eq!(PublicUrl::PlayStore.url_for(Platform::Android), format!("{}&utm_source=gemwallet_android", PublicUrl::PlayStore.url()));
+        assert_eq!(PublicUrl::Website.url_for(Platform::IOS), "https://gemwallet.com?utm_source=gemwallet_ios");
+    }
+}
+
 use crate::config::chain::ChainConfig;
 use primitives::{Chain, node_config::NodeRegion};
 use std::time::Duration;

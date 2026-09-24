@@ -201,7 +201,7 @@ public extension WalletSceneViewModel {
         switch action.type {
         case let .destination(destination):
             switch destination {
-            case let .url(link): isPresentingUrl = link.url
+            case let .url(url): isPresentingUrl = URL(string: url)
             case .stake, .activateAsset, .perpetuals: break
             }
         case .closeBanner:

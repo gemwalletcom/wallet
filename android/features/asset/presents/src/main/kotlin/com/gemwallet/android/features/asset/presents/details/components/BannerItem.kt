@@ -4,9 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import com.gemwallet.android.features.banner.views.BannersScene
-import com.gemwallet.android.ui.components.banner.BannerDestination
 import com.gemwallet.android.ui.components.banner.BannerRowUIModel
 import com.gemwallet.android.ui.open
+import uniffi.gemstone.GemBannerDestination
 import uniffi.gemstone.GemBannerKey
 import uniffi.gemstone.GemTransferData
 
@@ -19,10 +19,10 @@ internal fun BannerItem(banners: List<BannerRowUIModel>, onStake: () -> Unit, on
         banners = banners,
         onSelect = { destination ->
             when (destination) {
-                BannerDestination.Stake -> onStake()
-                is BannerDestination.Activate -> onActivate(destination.transfer)
-                BannerDestination.Perpetuals -> onOpenPerpetuals()
-                is BannerDestination.OpenUrl -> uriHandler.open(context, destination.url)
+                GemBannerDestination.Stake -> onStake()
+                is GemBannerDestination.ActivateAsset -> onActivate(destination.transfer)
+                GemBannerDestination.Perpetuals -> onOpenPerpetuals()
+                is GemBannerDestination.Url -> uriHandler.open(context, destination.url)
             }
         },
         onClose = onClose,
