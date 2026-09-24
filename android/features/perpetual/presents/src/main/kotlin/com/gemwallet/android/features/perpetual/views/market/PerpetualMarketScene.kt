@@ -28,8 +28,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.features.perpetual.viewmodels.localization.stringRes
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualMarketSceneState
-import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualMarketSectionUIModel
 import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualPositionRowUIModel
 import com.gemwallet.android.features.perpetual.views.components.PerpetualItem
 import com.gemwallet.android.model.text
@@ -69,6 +69,7 @@ import com.wallet.core.primitives.WalletType
 import uniffi.gemstone.GemCurrencyStyle
 import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemPerpetualBalanceHeader
+import uniffi.gemstone.GemPerpetualMarketSection
 import uniffi.gemstone.PerpetualBalance
 import uniffi.gemstone.perpetualBalanceHeader
 import uniffi.gemstone.priceRow
@@ -82,7 +83,7 @@ internal fun PerpetualMarketScene(
     pinnedPerpetuals: List<PerpetualDataAggregate>,
     recent: List<Asset> = emptyList(),
     query: TextFieldState,
-    sections: List<PerpetualMarketSectionUIModel>,
+    sections: List<GemPerpetualMarketSection>,
     isSearching: Boolean,
     onAction: (PerpetualMarketAction) -> Unit,
 ) {
@@ -147,14 +148,14 @@ internal fun PerpetualMarketScene(
                 }
                 sections.forEach { section ->
                     when (section) {
-                        PerpetualMarketSectionUIModel.Recents -> recentPerpetuals(
+                        GemPerpetualMarketSection.RECENTS -> recentPerpetuals(
                             items = recent,
                             onSeeAll = { onAction(PerpetualMarketAction.OpenRecentsSheet) },
                             onSelect = { asset -> onAction(PerpetualMarketAction.OpenRecent(asset)) },
                         )
 
-                        is PerpetualMarketSectionUIModel.Positions -> {
-                            section.title?.let { title -> item { SubheaderItem(title) } }
+                        GemPerpetualMarketSection.POSITIONS -> {
+                            section.stringRes()?.let { title -> item { SubheaderItem(title) } }
                             itemsPositioned(positions) { position, item ->
                                 ListItem(
                                     model = item.model,
@@ -164,7 +165,7 @@ internal fun PerpetualMarketScene(
                             }
                         }
 
-                        PerpetualMarketSectionUIModel.Pinned -> {
+                        GemPerpetualMarketSection.PINNED -> {
                             item {
                                 Spacer16()
                                 PinnedAssetsHeaderItem(AssetsGroupType.Pinned)
@@ -180,8 +181,8 @@ internal fun PerpetualMarketScene(
                             }
                         }
 
-                        is PerpetualMarketSectionUIModel.Markets -> {
-                            section.title?.let { title -> item { SubheaderItem(title) } }
+                        GemPerpetualMarketSection.MARKETS -> {
+                            section.stringRes()?.let { title -> item { SubheaderItem(title) } }
                             itemsPositioned(unpinnedPerpetuals) { position, item ->
                                 PerpetualItem(
                                     item = item,
@@ -193,7 +194,7 @@ internal fun PerpetualMarketScene(
                             }
                         }
 
-                        PerpetualMarketSectionUIModel.Empty -> item {
+                        GemPerpetualMarketSection.EMPTY -> item {
                             EmptyContentView(
                                 type = EmptyContentType(GemEmptyStateKind.SEARCH_PERPETUALS),
                                 modifier = Modifier

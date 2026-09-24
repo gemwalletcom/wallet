@@ -18,9 +18,7 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualMarketSceneState
-import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualMarketSectionUIModel
 import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualPositionRowUIModel
-import com.gemwallet.android.features.perpetual.viewmodels.models.uiModel
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.ui.components.perpetual.listItem
@@ -48,6 +46,7 @@ import uniffi.gemstone.GemMarketsRefreshTrigger
 import uniffi.gemstone.GemPerpetual
 import uniffi.gemstone.GemPerpetualBalanceHeader
 import uniffi.gemstone.GemPerpetualMarketCounts
+import uniffi.gemstone.GemPerpetualMarketSection
 import uniffi.gemstone.GemPerpetualMarketSession
 import uniffi.gemstone.GemPerpetualServiceInterface
 import uniffi.gemstone.GemPerpetualSubscription
@@ -124,7 +123,7 @@ class PerpetualMarketViewModel @Inject constructor(
             .map { items -> items.map { it.asset } }
             .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val sections: StateFlow<List<PerpetualMarketSectionUIModel>> = combine(positions, pinnedPerpetuals, unpinnedPerpetuals, recent, session) { positions, pinned, markets, recents, session ->
+    val sections: StateFlow<List<GemPerpetualMarketSection>> = combine(positions, pinnedPerpetuals, unpinnedPerpetuals, recent, session) { positions, pinned, markets, recents, session ->
         session.sections(
             GemPerpetualMarketCounts(
                 positions = positions.size.toUInt(),
@@ -132,7 +131,7 @@ class PerpetualMarketViewModel @Inject constructor(
                 markets = markets.size.toUInt(),
                 recents = recents.size.toUInt(),
             ),
-        ).map { it.uiModel(context) }
+        )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun onRefresh() {

@@ -38,10 +38,10 @@ struct ContactAddressEditorViewModelTests {
     func memoFieldFollowsTheChain() {
         let model = ContactAddressEditorViewModel.mock()
 
-        model.addressInputModel.chain = .bitcoin
+        model.onSelectChain(.bitcoin)
         #expect(model.fields == [.network, .address])
 
-        model.addressInputModel.chain = .cosmos
+        model.onSelectChain(.cosmos)
         #expect(model.fields == [.network, .address, .memo])
     }
 

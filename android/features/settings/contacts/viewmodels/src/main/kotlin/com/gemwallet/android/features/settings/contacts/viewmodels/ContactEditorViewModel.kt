@@ -37,12 +37,14 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemContactAddressField
 import uniffi.gemstone.GemContactAddressInput
 import uniffi.gemstone.GemContactAvatar
 import uniffi.gemstone.GemContactAvatarChoice
 import uniffi.gemstone.GemContactEditorServiceInterface
 import uniffi.gemstone.GemContactSession
 import uniffi.gemstone.GemNameServiceInterface
+import uniffi.gemstone.contactAddressFields
 import javax.inject.Inject
 
 @HiltViewModel
@@ -106,6 +108,7 @@ class ContactEditorViewModel @Inject constructor(
                     nameResolveIndicator = resolve.indicator(),
                     isAddressValid = isValid,
                     addressError = addressError?.string(context).orEmpty(),
+                    showsMemo = GemContactAddressField.MEMO in form.fields,
                 )
             },
         )
@@ -202,7 +205,7 @@ class ContactEditorViewModel @Inject constructor(
     fun setChain(chain: Chain) {
         addressInput.setChain(chain)
         state.update {
-            it.copy(page = ContactEditorPage.Address, form = it.form?.copy(chain = chain, memo = ""))
+            it.copy(page = ContactEditorPage.Address, form = it.form?.copy(chain = chain, memo = "", fields = contactAddressFields(chain.string)))
         }
     }
 

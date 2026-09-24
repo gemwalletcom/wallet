@@ -15,8 +15,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
-import com.gemwallet.android.features.asset_select.viewmodels.models.AssetRowSubtitle
-import com.gemwallet.android.features.asset_select.viewmodels.models.AssetRowTrailing
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.setCopy
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
@@ -29,6 +27,8 @@ import com.gemwallet.android.ui.theme.iconSize
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import kotlinx.collections.immutable.toImmutableList
+import uniffi.gemstone.GemAssetSubtitleStyle
+import uniffi.gemstone.GemAssetTrailingStyle
 
 @Composable
 fun AssetSelectScreen(
@@ -48,23 +48,23 @@ fun AssetSelectScreen(
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
     val support: (AssetInfoDataAggregate) -> (@Composable () -> Unit)? = when (flow.subtitle) {
-        AssetRowSubtitle.Network -> { item ->
+        GemAssetSubtitleStyle.NETWORK -> { item ->
             item.network?.let { network -> @Composable { ListItemSupportText(network) } }
         }
 
-        AssetRowSubtitle.Price -> { item -> assetPriceSupport(item.price) }
+        GemAssetSubtitleStyle.PRICE -> { item -> assetPriceSupport(item.price) }
     }
     val itemTrailing: (@Composable (AssetInfoDataAggregate) -> Unit)? = when (flow.trailing) {
-        AssetRowTrailing.Balance -> { item -> getBalanceInfo(item)() }
+        GemAssetTrailingStyle.BALANCE -> { item -> getBalanceInfo(item)() }
 
-        AssetRowTrailing.Toggle -> { item ->
+        GemAssetTrailingStyle.TOGGLE -> { item ->
             Switch(
                 checked = item.balanceEnabled,
                 onCheckedChange = { viewModel.onChangeVisibility(item.asset.id, it) },
             )
         }
 
-        AssetRowTrailing.Copy -> { item ->
+        GemAssetTrailingStyle.COPY -> { item ->
             IconButton(
                 onClick = { clipboardManager.setCopy(context, viewModel.addressCopy(item)) },
                 modifier = Modifier.size(iconSize),
@@ -78,7 +78,7 @@ fun AssetSelectScreen(
             }
         }
 
-        AssetRowTrailing.None -> null
+        GemAssetTrailingStyle.NONE -> null
     }
     val uiStates by viewModel.uiState.collectAsStateWithLifecycle()
     val popular by viewModel.popular.collectAsStateWithLifecycle()

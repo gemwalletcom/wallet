@@ -46,6 +46,7 @@ public final class ContactAddressEditorViewModel {
 
     var addressInputModel: AddressInputViewModel
     var memo: String = ""
+    private(set) var fields: [GemContactAddressField]
     var isPresentingScanner = false
 
     public init(
@@ -62,11 +63,13 @@ public final class ContactAddressEditorViewModel {
         self.onComplete = onComplete
         title = Localized.Common.address
 
+        let chain = mode.contactAddress?.chain ?? service.defaultContactChain
         addressInputModel = AddressInputViewModel(
-            chain: mode.contactAddress?.chain ?? service.defaultContactChain,
+            chain: chain,
             nameService: nameService,
             placeholder: title,
         )
+        fields = contactAddressFields(chain: chain.rawValue)
 
         if let address = mode.contactAddress {
             addressInputModel.text = address.address
@@ -78,20 +81,6 @@ public final class ContactAddressEditorViewModel {
 
     var chain: Chain {
         addressInputModel.chain
-    }
-
-    var fields: [GemContactAddressField] {
-        contactAddressFields(chain: chain.rawValue)
-    }
-
-    var fieldList: [ContactAddressField] {
-        fields.map { field in
-            switch field {
-            case .network: .network
-            case .address: .address
-            case .memo: .memo
-            }
-        }
     }
 
     var networkTitle: String {
@@ -131,6 +120,7 @@ public final class ContactAddressEditorViewModel {
 extension ContactAddressEditorViewModel {
     func onSelectChain(_ chain: Chain) {
         addressInputModel.chain = chain
+        fields = contactAddressFields(chain: chain.rawValue)
         memo = ""
     }
 

@@ -6,31 +6,11 @@ import uniffi.gemstone.GemAssetSubtitleStyle
 import uniffi.gemstone.GemAssetTrailingStyle
 import uniffi.gemstone.GemSelectAssetFlow
 
-enum class AssetRowSubtitle {
-    Network,
-    Price,
-}
-
-enum class AssetRowTrailing {
-    Balance,
-    Toggle,
-    Copy,
-    None,
-}
-
-data class AssetSelectFlowUIModel(val title: String, val subtitle: AssetRowSubtitle, val trailing: AssetRowTrailing, val showsBalanceFilter: Boolean)
+data class AssetSelectFlowUIModel(val title: String, val subtitle: GemAssetSubtitleStyle, val trailing: GemAssetTrailingStyle, val showsBalanceFilter: Boolean)
 
 internal fun GemSelectAssetFlow.uiModel(context: Context): AssetSelectFlowUIModel = AssetSelectFlowUIModel(
     title = context.getString(title.stringRes()),
     showsBalanceFilter = balanceFilter,
-    subtitle = when (rowStyle.subtitle) {
-        GemAssetSubtitleStyle.NETWORK -> AssetRowSubtitle.Network
-        GemAssetSubtitleStyle.PRICE -> AssetRowSubtitle.Price
-    },
-    trailing = when (rowStyle.trailing) {
-        GemAssetTrailingStyle.BALANCE -> AssetRowTrailing.Balance
-        GemAssetTrailingStyle.TOGGLE -> AssetRowTrailing.Toggle
-        GemAssetTrailingStyle.COPY -> AssetRowTrailing.Copy
-        GemAssetTrailingStyle.NONE -> AssetRowTrailing.None
-    },
+    subtitle = rowStyle.subtitle,
+    trailing = rowStyle.trailing,
 )

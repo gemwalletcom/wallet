@@ -43,7 +43,7 @@ data class ContactEditorState(
     val errorText: String? = null,
 )
 
-data class ContactAddressForm(val editingId: String? = null, val chain: Chain, val memo: String = "")
+data class ContactAddressForm(val editingId: String? = null, val chain: Chain, val memo: String = "", val fields: List<GemContactAddressField> = contactAddressFields(chain.string))
 
 data class ContactAddressInput(
     val editingId: String? = null,
@@ -53,10 +53,8 @@ data class ContactAddressInput(
     val nameResolveIndicator: NameResolveIndicatorUIModel? = null,
     val isAddressValid: Boolean = false,
     val addressError: String = "",
+    val showsMemo: Boolean = false,
 ) {
-    val showsMemo: Boolean
-        get() = GemContactAddressField.MEMO in contactAddressFields(chain.string)
-
     val isConfirmEnabled: Boolean
         get() = isAddressValid
 }
