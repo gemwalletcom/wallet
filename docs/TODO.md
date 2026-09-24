@@ -31,7 +31,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemWalletImportSession`, `GemVerifyPhraseSession`, keystore and native auth ports | VM126, VM92 |
 | Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | — |
 | Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM5, D74 |
-| Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM37, VM127, VM156 |
+| Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM127, VM156 |
 | Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | VM5 |
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
 | Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | — |
