@@ -7,9 +7,10 @@ import protocol Gemstone.GemAssetSelectionServiceProtocol
 import enum Gemstone.GemImage
 import struct Gemstone.GemNftEntry
 import struct Gemstone.GemWalletSearchCounts
+import struct Gemstone.GemWalletSearchInput
 import struct Gemstone.GemWalletSearchLimits
 import struct Gemstone.GemWalletSearchState
-import func Gemstone.walletSearchState
+import struct Gemstone.GemWalletSearchView
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -94,11 +95,28 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var sections: WalletSearchSections {
-        .from(searchResult, nfts: nftSearchItems)
+        derived.sections
     }
 
-    private var nftSearchItems: [GemNftEntry] {
-        service.searchCollections(data: searchResult.collections.map { $0.toGem() }, query: searchQuery.request.searchBy)
+    private var view: GemWalletSearchView {
+        derived.view
+    }
+
+    private var derived: WalletSearchDerived {
+        let result = searchResult
+        let nfts = service.searchCollections(data: result.collections.map { $0.toGem() }, query: searchQuery.request.searchBy)
+        let sections = WalletSearchSections.from(result, nfts: nfts)
+        let counts = GemWalletSearchCounts(
+            recents: UInt32(recentModel.assets.count),
+            pinnedAssets: UInt32(sections.pinnedAssets.count),
+            assets: UInt32(sections.assets.count),
+            pinnedPerpetuals: UInt32(sections.pinnedPerpetuals.count),
+            perpetuals: UInt32(sections.perpetuals.count),
+            lists: UInt32(sections.lists.count),
+            nfts: UInt32(sections.nfts.count),
+        )
+        let view = service.walletSearchView(input: GemWalletSearchInput(wallet: wallet.toGem(), query: searchableQuery, isLoading: loadState.isLoading, counts: counts))
+        return WalletSearchDerived(sections: sections, view: view)
     }
 
     var searchDebounce: Duration {
@@ -124,26 +142,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     private var state: GemWalletSearchState {
-        walletSearchState(
-            counts: GemWalletSearchCounts(
-                recents: showsRecents ? UInt32(recentModel.assets.count) : 0,
-                pinnedAssets: UInt32(sections.pinnedAssets.count),
-                assets: UInt32(sections.assets.count),
-                pinnedPerpetuals: showsPerpetuals ? UInt32(sections.pinnedPerpetuals.count) : 0,
-                perpetuals: showsPerpetuals ? UInt32(sections.perpetuals.count) : 0,
-                lists: UInt32(sections.lists.count),
-                nfts: UInt32(sections.nfts.count),
-            ),
-            isLoading: loadState.isLoading,
-        )
-    }
-
-    private var showsRecents: Bool {
-        service.flow(selectType: .walletSearch).showsRecents(isSearching: searchableQuery.isNotEmpty, hasRecents: recentModel.hasAssets)
-    }
-
-    private var showsPerpetuals: Bool {
-        service.showPerpetuals(walletType: wallet.type.toGem(), chains: wallet.chains.map(\.rawValue))
+        view.state
     }
 
     var showRecents: Bool {
@@ -175,11 +174,11 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var showAddToken: Bool {
-        service.walletFlow(selectType: .walletSearch, wallet: wallet.toGem()).showsAddToken
+        view.showsAddToken
     }
 
     private var limits: GemWalletSearchLimits {
-        service.walletSearchLimits(query: searchableQuery)
+        view.limits
     }
 
     var previewAssets: [AssetData] {
@@ -195,15 +194,15 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var hasMoreAssets: Bool {
-        limits.hasMoreAssets(count: UInt32(sections.assets.count))
+        view.hasMoreAssets
     }
 
     var hasMorePerpetuals: Bool {
-        limits.hasMorePerpetuals(count: UInt32(sections.perpetuals.count))
+        view.hasMorePerpetuals
     }
 
     var hasMoreNFTs: Bool {
-        limits.hasMoreNfts(count: UInt32(sections.nfts.count))
+        view.hasMoreNfts
     }
 
     var assetsResultsDestination: Scenes.AssetsResults {
@@ -348,4 +347,9 @@ extension WalletSearchSceneViewModel {
     var assetItems: ListAssetItemsViewModel {
         ListAssetItemsViewModel(currency: currency, rowStyle: service.flow(selectType: .walletSearch).rowStyle)
     }
+}
+
+struct WalletSearchDerived {
+    let sections: WalletSearchSections
+    let view: GemWalletSearchView
 }

@@ -11,7 +11,7 @@ use super::model::{
     AssetList, GemAssetAction, GemAssetBalanceScope, GemAssetDetailRow, GemAssetDetailSection, GemAssetDetailsState, GemAssetEmptyAction, GemAssetFilter, GemAssetListRow, GemAssetListRowInput, GemAssetMenuAction, GemAssetMenuInput,
     GemAssetNetworkDestination, GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemFeeAmount, GemHeaderActions, GemHeaderButton, GemHeaderButtonKind,
     GemNetworkAssetIds, GemNetworkAssetSections, GemPriceRow, GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetState, GemSelectAssetTitle, GemSelectAssetType, GemSelectRowAction, GemWalletSearchCounts,
-    GemWalletSearchLimits, GemWalletSearchState,
+    GemWalletSearchLimits, GemWalletSearchState, GemWalletSearchView,
 };
 use crate::config::search_config::{ASSETS_INITIAL_LIMIT, ASSETS_SEARCH_LIMIT, NFTS_PREVIEW_LIMIT, PERPETUALS_PREVIEW_LIMIT, RESULTS_LIMIT};
 use crate::config::stake::EARN_OFFERED;
@@ -471,6 +471,24 @@ pub fn wallet_search_state(counts: &GemWalletSearchCounts, is_loading: bool) -> 
         shows_perpetuals: counts.perpetuals > 0,
         shows_lists: counts.lists > 0,
         shows_nfts: counts.nfts > 0,
+    }
+}
+
+pub fn wallet_search_view(counts: &GemWalletSearchCounts, query: &str, is_loading: bool, shows_recents: bool, shows_perpetuals: bool, shows_add_token: bool) -> GemWalletSearchView {
+    let counts = GemWalletSearchCounts {
+        recents: if shows_recents { counts.recents } else { 0 },
+        pinned_perpetuals: if shows_perpetuals { counts.pinned_perpetuals } else { 0 },
+        perpetuals: if shows_perpetuals { counts.perpetuals } else { 0 },
+        ..*counts
+    };
+    let limits = wallet_search_limits(query);
+    GemWalletSearchView {
+        state: wallet_search_state(&counts, is_loading),
+        has_more_assets: limits.has_more_assets(counts.assets),
+        has_more_perpetuals: limits.has_more_perpetuals(counts.perpetuals),
+        has_more_nfts: limits.has_more_nfts(counts.nfts),
+        shows_add_token,
+        limits,
     }
 }
 
@@ -1103,6 +1121,29 @@ mod tests {
         assert!(state.shows_assets && state.shows_lists && state.shows_pinned_perpetuals);
         assert!(state.shows_pinned, "a pinned perpetual alone still opens the pinned section");
         assert!(!state.shows_recents && !state.shows_perpetuals && !state.shows_nfts);
+    }
+
+    #[test]
+    fn test_the_wallet_search_view_hides_what_the_wallet_cannot_show() {
+        let counts = GemWalletSearchCounts {
+            recents: 2,
+            pinned_assets: 0,
+            assets: 30,
+            pinned_perpetuals: 1,
+            perpetuals: 1,
+            lists: 0,
+            nfts: 0,
+        };
+
+        let view = wallet_search_view(&counts, "", false, false, false, true);
+        assert!(!view.state.shows_recents);
+        assert!(!view.state.shows_perpetuals && !view.state.shows_pinned_perpetuals);
+        assert!(view.state.shows_assets);
+        assert!(view.has_more_assets, "more assets than the preview shows");
+        assert!(view.shows_add_token);
+
+        let shown = wallet_search_view(&counts, "", false, true, true, false);
+        assert!(shown.state.shows_recents && shown.state.shows_perpetuals);
     }
 
     #[test]

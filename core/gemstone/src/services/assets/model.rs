@@ -512,6 +512,24 @@ pub struct GemWalletSearchState {
     pub shows_nfts: bool,
 }
 
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemWalletSearchInput {
+    pub wallet: Wallet,
+    pub query: String,
+    pub is_loading: bool,
+    pub counts: GemWalletSearchCounts,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemWalletSearchView {
+    pub state: GemWalletSearchState,
+    pub limits: GemWalletSearchLimits,
+    pub has_more_assets: bool,
+    pub has_more_perpetuals: bool,
+    pub has_more_nfts: bool,
+    pub shows_add_token: bool,
+}
+
 #[uniffi::export]
 pub fn wallet_search_state(counts: GemWalletSearchCounts, is_loading: bool) -> GemWalletSearchState {
     super::rules::wallet_search_state(&counts, is_loading)

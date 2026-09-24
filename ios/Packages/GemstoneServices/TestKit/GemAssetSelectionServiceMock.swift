@@ -14,9 +14,12 @@ import enum Gemstone.GemSearchScope
 import struct Gemstone.GemSelectAssetFlow
 import enum Gemstone.GemSelectAssetType
 import struct Gemstone.GemSelectAssetWalletFlow
+import struct Gemstone.GemWalletSearchInput
 import struct Gemstone.GemWalletSearchLimits
+import struct Gemstone.GemWalletSearchView
 import typealias Gemstone.NftData
 import struct Gemstone.Wallet
+import func Gemstone.walletSearchState
 import enum Gemstone.WalletType
 import Primitives
 
@@ -53,6 +56,27 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
 
     public func walletSearchLimits(query _: String) -> GemWalletSearchLimits {
         GemWalletSearchLimits(assets: 12, fetch: 13, perpetuals: 3, nfts: 3, results: 100)
+    }
+
+    public func walletSearchView(input: GemWalletSearchInput) -> GemWalletSearchView {
+        let limits = walletSearchLimits(query: input.query)
+        let showsRecents = flow(selectType: .walletSearch).showsRecents(isSearching: input.query.isNotEmpty, hasRecents: input.counts.recents > 0)
+        var counts = input.counts
+        if !showsRecents {
+            counts.recents = 0
+        }
+        if !perpetualsShown {
+            counts.perpetuals = 0
+            counts.pinnedPerpetuals = 0
+        }
+        return GemWalletSearchView(
+            state: walletSearchState(counts: counts, isLoading: input.isLoading),
+            limits: limits,
+            hasMoreAssets: limits.hasMoreAssets(count: counts.assets),
+            hasMorePerpetuals: limits.hasMorePerpetuals(count: counts.perpetuals),
+            hasMoreNfts: limits.hasMoreNfts(count: counts.nfts),
+            showsAddToken: walletFlow(selectType: .walletSearch, wallet: input.wallet).showsAddToken,
+        )
     }
 
     public var perpetualsShown = true

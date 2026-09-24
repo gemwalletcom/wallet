@@ -4,7 +4,7 @@ use primitives::currency::Currency;
 use primitives::{Asset, AssetBasic, AssetId, Chain, NFTData, Wallet, WalletType};
 
 use super::GemAssetsService;
-use super::model::{GemAssetAction, GemSelectAssetFlow, GemSelectAssetType, GemSelectAssetWalletFlow, GemWalletSearchLimits};
+use super::model::{GemAssetAction, GemSelectAssetFlow, GemSelectAssetType, GemSelectAssetWalletFlow, GemWalletSearchInput, GemWalletSearchLimits, GemWalletSearchView};
 use super::rules;
 use crate::services::chain::rules as chain_rules;
 use crate::services::nft::model::GemNftEntry;
@@ -74,6 +74,13 @@ impl GemAssetSelectionService {
 
     pub fn wallet_search_limits(&self, query: String) -> GemWalletSearchLimits {
         rules::wallet_search_limits(&query)
+    }
+
+    pub fn wallet_search_view(&self, input: GemWalletSearchInput) -> GemWalletSearchView {
+        let shows_recents = self.flow(GemSelectAssetType::WalletSearch).shows_recents(!input.query.is_empty(), input.counts.recents > 0);
+        let shows_perpetuals = self.show_perpetuals(input.wallet.wallet_type, input.wallet.chains());
+        let shows_add_token = self.wallet_flow(GemSelectAssetType::WalletSearch, input.wallet).shows_add_token;
+        rules::wallet_search_view(&input.counts, &input.query, input.is_loading, shows_recents, shows_perpetuals, shows_add_token)
     }
 
     pub fn get_currency(&self) -> Currency {
