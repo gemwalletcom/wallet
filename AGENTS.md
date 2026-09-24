@@ -38,6 +38,7 @@ If a task spans platforms, read every affected guide. Generation and parity requ
 
 Cross-platform subsystem references live in [docs/](docs). Read the relevant one before changing that area:
 
+- [Product](docs/PRODUCT.md) — How the wallet behaves from the user's side, one short page per area under [docs/product/](docs/product); when a change settles an important user-facing rule, add it to that area's page in the same change (important rules only, not every case)
 - [Architecture](docs/ARCHITECTURE.md) — Ownership contracts, worked examples, and the screen-service map
 - [Product behavior](docs/PRODUCT.md) — how each area is meant to behave for the user: the UX intent, the rules with their reason and guarding test, failure behavior, intentional platform differences and the open decisions. Read the area's section before changing its owner; a change that would break a stated rule is a product decision for the user, never a simplification
 - [Open work](docs/TODO.md) — Every open item, ordered, with the exemplar to copy for each; delete an item's line in the commit that lands it

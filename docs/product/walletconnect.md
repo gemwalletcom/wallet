@@ -26,3 +26,4 @@ flowchart LR
 
 - A request is signed only from its review screen, and an expired request is never signed.
 - A dapp that fails verification is shown as such before the user connects.
+- A message to sign is checked like a transaction: a site flagged as malicious is refused before anything is signed, and a flagged spender in a permit shows a critical warning on the review.
