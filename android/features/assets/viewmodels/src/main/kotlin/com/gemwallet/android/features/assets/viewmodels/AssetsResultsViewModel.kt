@@ -21,7 +21,6 @@ import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectVie
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.ListSelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
-import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.assetPinnedToast
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -39,9 +38,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAssetSelectionServiceInterface
+import uniffi.gemstone.GemSelectAssetState
 import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.GemWalletSearchCounts
-import uniffi.gemstone.GemWalletSearchPhase
 import uniffi.gemstone.walletSearchState
 import javax.inject.Inject
 
@@ -90,7 +89,7 @@ class AssetsResultsViewModel @Inject constructor(
             MutableStateFlow(emptyList<PerpetualDataAggregate>())
     }
 
-    val state: StateFlow<UIState> = combine(
+    val state: StateFlow<GemSelectAssetState> = combine(
         pinned,
         unpinned,
         previewPerpetuals,
@@ -105,13 +104,9 @@ class AssetsResultsViewModel @Inject constructor(
             lists = 0u,
             nfts = 0u,
         )
-        when (walletSearchState(counts, fetching).phase) {
-            GemWalletSearchPhase.RESULTS -> UIState.Idle
-            GemWalletSearchPhase.LOADING -> UIState.Loading
-            GemWalletSearchPhase.EMPTY -> UIState.Empty
-        }
+        walletSearchState(counts, fetching).phase
     }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, UIState.Loading)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, GemSelectAssetState.LOADING)
 
     init {
         queryState.setTextAndPlaceCursorAtEnd(savedStateHandle.get<String?>(RouteArgument.Query.key).orEmpty())

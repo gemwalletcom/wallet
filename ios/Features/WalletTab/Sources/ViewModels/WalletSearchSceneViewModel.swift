@@ -111,7 +111,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
 
     var searchState: SearchContentState {
         switch state.phase {
-        case .results:
+        case .idle:
             .results
         case .loading:
             .loading

@@ -10,7 +10,7 @@ use primitives::{
 use super::model::{
     AssetList, GemAssetAction, GemAssetBalanceScope, GemAssetDetailRow, GemAssetDetailSection, GemAssetDetailsState, GemAssetEmptyAction, GemAssetFilter, GemAssetListRow, GemAssetListRowInput, GemAssetMenuAction, GemAssetMenuInput,
     GemAssetNetworkDestination, GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemHeaderActions, GemHeaderButton, GemHeaderButtonKind, GemPriceRow,
-    GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetTitle, GemSelectAssetType, GemSelectRowAction, GemWalletSearchCounts, GemWalletSearchLimits, GemWalletSearchPhase, GemWalletSearchState,
+    GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetState, GemSelectAssetTitle, GemSelectAssetType, GemSelectRowAction, GemWalletSearchCounts, GemWalletSearchLimits, GemWalletSearchState,
 };
 use crate::config::search_config::{ASSETS_INITIAL_LIMIT, ASSETS_SEARCH_LIMIT, NFTS_PREVIEW_LIMIT, PERPETUALS_PREVIEW_LIMIT, RESULTS_LIMIT};
 use crate::config::stake::EARN_OFFERED;
@@ -447,9 +447,9 @@ pub fn wallet_search_state(counts: &GemWalletSearchCounts, is_loading: bool) -> 
     let shown = counts.recents + counts.pinned_assets + counts.assets + counts.pinned_perpetuals + counts.perpetuals + counts.lists + counts.nfts;
     GemWalletSearchState {
         phase: match (shown > 0, is_loading) {
-            (true, _) => GemWalletSearchPhase::Results,
-            (false, true) => GemWalletSearchPhase::Loading,
-            (false, false) => GemWalletSearchPhase::Empty,
+            (true, _) => GemSelectAssetState::Idle,
+            (false, true) => GemSelectAssetState::Loading,
+            (false, false) => GemSelectAssetState::Empty,
         },
         shows_recents: counts.recents > 0,
         shows_pinned: counts.pinned_assets > 0 || counts.pinned_perpetuals > 0,
@@ -1020,14 +1020,14 @@ mod tests {
             nfts: 0,
         };
 
-        assert_eq!(wallet_search_state(&empty, false).phase, GemWalletSearchPhase::Empty);
-        assert_eq!(wallet_search_state(&empty, true).phase, GemWalletSearchPhase::Loading);
+        assert_eq!(wallet_search_state(&empty, false).phase, GemSelectAssetState::Empty);
+        assert_eq!(wallet_search_state(&empty, true).phase, GemSelectAssetState::Loading);
         assert_eq!(
             wallet_search_state(&GemWalletSearchCounts { nfts: 1, ..empty }, true).phase,
-            GemWalletSearchPhase::Results,
+            GemSelectAssetState::Idle,
             "a section with results is not a loading screen"
         );
-        assert_eq!(wallet_search_state(&GemWalletSearchCounts { recents: 2, ..empty }, false).phase, GemWalletSearchPhase::Results);
+        assert_eq!(wallet_search_state(&GemWalletSearchCounts { recents: 2, ..empty }, false).phase, GemSelectAssetState::Idle);
         for counts in [
             GemWalletSearchCounts { lists: 1, ..empty },
             GemWalletSearchCounts { assets: 1, ..empty },
@@ -1035,7 +1035,7 @@ mod tests {
             GemWalletSearchCounts { pinned_perpetuals: 1, ..empty },
             GemWalletSearchCounts { perpetuals: 1, ..empty },
         ] {
-            assert_eq!(wallet_search_state(&counts, false).phase, GemWalletSearchPhase::Results, "every section keeps the empty state away");
+            assert_eq!(wallet_search_state(&counts, false).phase, GemSelectAssetState::Idle, "every section keeps the empty state away");
         }
     }
 

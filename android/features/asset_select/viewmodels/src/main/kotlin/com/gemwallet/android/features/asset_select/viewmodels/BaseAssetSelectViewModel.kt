@@ -21,7 +21,6 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.asset_select.viewmodels.models.AssetSelectFlowUIModel
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
-import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
 import com.gemwallet.android.features.asset_select.viewmodels.models.uiModel
 import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.ui.components.screen.assetAddedToast
@@ -195,13 +194,9 @@ open class BaseAssetSelectViewModel(
             popular = sections.popular.size.toUInt(),
             assets = sections.unpinned.size.toUInt(),
         )
-        when (flow.state(counts, isSearching)) {
-            GemSelectAssetState.IDLE -> UIState.Idle
-            GemSelectAssetState.LOADING -> UIState.Loading
-            GemSelectAssetState.EMPTY -> UIState.Empty
-        }
+        flow.state(counts, isSearching)
     }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, UIState.Idle)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, GemSelectAssetState.IDLE)
 
     val isChainFilterAvailable = combine(getSession(), availableChains) { session, chains ->
         flow.showsChainFilter(session?.wallet?.type == WalletType.Multicoin, chains.isNotEmpty())

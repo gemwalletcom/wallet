@@ -482,16 +482,9 @@ pub struct GemWalletSearchCounts {
     pub nfts: u32,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemWalletSearchPhase {
-    Results,
-    Loading,
-    Empty,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
 pub struct GemWalletSearchState {
-    pub phase: GemWalletSearchPhase,
+    pub phase: GemSelectAssetState,
     pub shows_recents: bool,
     pub shows_pinned: bool,
     pub shows_assets: bool,

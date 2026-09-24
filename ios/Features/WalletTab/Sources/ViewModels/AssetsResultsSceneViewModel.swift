@@ -99,7 +99,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
 
     var searchState: SearchContentState {
         switch state.phase {
-        case .results: .results
+        case .idle: .results
         case .loading: .loading
         case .empty: .empty(EmptyContentType(.searchAssets))
         }

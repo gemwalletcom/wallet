@@ -40,7 +40,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.empty.EmptyContentType
@@ -71,6 +70,7 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.drop
 import uniffi.gemstone.GemEmptyStateAction
 import uniffi.gemstone.GemEmptyStateKind
+import uniffi.gemstone.GemSelectAssetState
 
 @Composable
 fun AssetSelectScene(
@@ -79,7 +79,7 @@ fun AssetSelectScene(
     pinned: ImmutableList<AssetInfoDataAggregate>,
     unpinned: ImmutableList<AssetInfoDataAggregate>,
     recent: ImmutableList<Asset>,
-    state: UIState,
+    state: GemSelectAssetState,
     titleBadge: (AssetInfoDataAggregate) -> String?,
     support: ((AssetInfoDataAggregate) -> (@Composable () -> Unit)?)?,
     query: TextFieldState,
@@ -137,7 +137,7 @@ fun AssetSelectScene(
     pinned: ImmutableList<AssetInfoDataAggregate>,
     unpinned: ImmutableList<AssetInfoDataAggregate>,
     recent: ImmutableList<Asset>,
-    state: UIState,
+    state: GemSelectAssetState,
     titleBadge: (AssetInfoDataAggregate) -> String?,
     support: ((AssetInfoDataAggregate) -> (@Composable () -> Unit)?)?,
     query: TextFieldState,
@@ -348,9 +348,9 @@ fun AssetSelectRow(
     }
 }
 
-fun LazyListScope.searchState(state: UIState, isAddAvailable: Boolean = false, topOffset: Int = 0, onAddAsset: (() -> Unit)? = null) {
+fun LazyListScope.searchState(state: GemSelectAssetState, isAddAvailable: Boolean = false, topOffset: Int = 0, onAddAsset: (() -> Unit)? = null) {
     when (state) {
-        UIState.Loading -> item {
+        GemSelectAssetState.LOADING -> item {
             Box(
                 modifier = Modifier
                     .animateItem()
@@ -361,7 +361,7 @@ fun LazyListScope.searchState(state: UIState, isAddAvailable: Boolean = false, t
             }
         }
 
-        UIState.Empty -> item {
+        GemSelectAssetState.EMPTY -> item {
             EmptyContentView(
                 type = EmptyContentType(
                     GemEmptyStateKind.SEARCH_ASSETS,
@@ -374,7 +374,7 @@ fun LazyListScope.searchState(state: UIState, isAddAvailable: Boolean = false, t
             )
         }
 
-        UIState.Idle -> Unit
+        GemSelectAssetState.IDLE -> Unit
     }
 }
 
@@ -417,7 +417,7 @@ fun PreviewAssetScreenUI() {
             unpinned = emptyList<AssetInfoDataAggregate>().toImmutableList(),
             popular = emptyList<AssetInfoDataAggregate>().toImmutableList(),
             recent = emptyList<Asset>().toImmutableList(),
-            state = UIState.Idle,
+            state = GemSelectAssetState.IDLE,
             title = "Send",
             titleBadge = { it.asset.symbol },
             support = null,

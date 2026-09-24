@@ -14,7 +14,6 @@ import com.gemwallet.android.ext.chainIds
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
-import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
 import com.gemwallet.android.features.assets.viewmodels.models.AssetListRowUIModel
 import com.gemwallet.android.features.assets.viewmodels.models.uiModel
 import com.gemwallet.android.ui.components.screen.assetPinnedToast
@@ -37,9 +36,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemSearchScope
+import uniffi.gemstone.GemSelectAssetState
 import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.GemWalletSearchCounts
-import uniffi.gemstone.GemWalletSearchPhase
 import uniffi.gemstone.walletSearchState
 import javax.inject.Inject
 
@@ -162,13 +161,13 @@ class WalletSearchViewModel @Inject constructor(
         )
     }
 
-    val state: StateFlow<UIState> = combine(uiState, searchCounts) { base, counts ->
-        when (walletSearchState(counts, base is UIState.Loading).phase) {
-            GemWalletSearchPhase.RESULTS -> UIState.Idle
-            GemWalletSearchPhase.LOADING, GemWalletSearchPhase.EMPTY -> base
+    val state: StateFlow<GemSelectAssetState> = combine(uiState, searchCounts) { base, counts ->
+        when (walletSearchState(counts, base == GemSelectAssetState.LOADING).phase) {
+            GemSelectAssetState.IDLE -> GemSelectAssetState.IDLE
+            GemSelectAssetState.LOADING, GemSelectAssetState.EMPTY -> base
         }
     }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, UIState.Idle)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, GemSelectAssetState.IDLE)
 
     private fun limits(query: String = queryState.text.toString()) = service.walletSearchLimits(query)
 
