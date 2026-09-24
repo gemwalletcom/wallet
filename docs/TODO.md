@@ -251,7 +251,6 @@ The API never returns internal text: `ApiError::Internal` logs its detail on the
 
 - **BD54** **S** **`FEATURES.md` describes a `scanEnable` switch that doesn't exist and says scan settings have no cache delay.** `docs/FEATURES.md:167` vs `scanTypeEnable.<type>` (`config_param_key.rs:135-137`) read through the 60s cache (`scan_client.rs:89,162`); scans also run for `Payment` (`core/gemstone/src/services/scan/rules.rs:10`).
 - **BD56** **S** **The wallet-home "Loading" row disappears after a failed discovery.** `docs/PRODUCT.md:144,151,159,194` vs iOS `WalletSceneViewModel.swift:243-257`, Android `AssetsViewModel.kt:104-112` (cleared even when `refresh()` threw).
-- **BD57** **S** **A deep link with an unknown action opens a token page instead of the browser.** `docs/DEEPLINKS.md:29` vs `core/crates/primitives/src/deeplink.rs:62-69` (falls back to `Deeplink::Asset`, so `gem://tokens/bitcoin/stake` is token id `stake`).
 
 ## Decisions to make
 

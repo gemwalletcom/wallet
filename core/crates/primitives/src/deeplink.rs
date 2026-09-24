@@ -1,7 +1,7 @@
 use url::Url;
 
 use crate::url_query::query_value;
-use crate::{AssetId, GEM_URL_SCHEME, HTTPS_URL_SCHEME};
+use crate::{AssetId, Chain, GEM_URL_SCHEME, HTTPS_URL_SCHEME};
 
 const DEEPLINK_HOST: &str = "gemwallet.com";
 
@@ -91,7 +91,12 @@ impl Deeplink {
 }
 
 fn asset_id_from_segments(segments: &[String]) -> Option<AssetId> {
-    Some(AssetId::from(segments.first()?.parse().ok()?, segments.get(1).cloned()))
+    let chain: Chain = segments.first()?.parse().ok()?;
+    match segments {
+        [_] => Some(chain.as_asset_id()),
+        [_, token_id] if chain.default_asset_type().is_some() => Some(AssetId::from_token(chain, token_id)),
+        _ => None,
+    }
 }
 
 fn amount_from_query(url: &Url) -> Option<i32> {
@@ -289,5 +294,7 @@ mod tests {
         );
         assert_eq!(Deeplink::from_url("gem://tokens/buy"), None);
         assert_eq!(Deeplink::from_url("gem://tokens/notachain/buy"), None);
+        assert_eq!(Deeplink::from_url("gem://tokens/bitcoin/stake"), None);
+        assert_eq!(Deeplink::from_url("gem://tokens/ethereum/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/stake"), None);
     }
 }
