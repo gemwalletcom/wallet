@@ -372,6 +372,13 @@ impl GemSwapSession {
         self.current_quote().cloned()
     }
 
+    pub fn receive_amount(&self) -> Option<GemFormattedNumber> {
+        self.current_quote().map(|quote| {
+            let value = BigNumberFormatter::f64_value(quote.to_value.to_string(), quote.request.to_asset.decimals);
+            GemFormattedNumber::amount(value, None, GemValueStyle::Auto)
+        })
+    }
+
     fn quote_error(&self) -> Option<SwapperError> {
         match &self.quote_phase {
             GemSwapQuotePhase::Failed { error, .. } => Some(error.clone()),
@@ -672,6 +679,17 @@ mod tests {
         assert_eq!(refreshed.on_fetch_started(GemSwapRequest::mock()), refreshed);
 
         assert!(GemSwapSession::default().start_transfer().is_none());
+    }
+
+    #[test]
+    fn test_the_receive_amount_is_the_selected_quote_in_the_receive_asset_units() {
+        let ready = GemSwapSession::mock_ready();
+        let quote = ready.quote().unwrap();
+        let amount = ready.receive_amount().unwrap();
+
+        assert_eq!(amount.value, BigNumberFormatter::f64_value(quote.to_value.to_string(), quote.request.to_asset.decimals));
+        assert_eq!(amount.unit, crate::formatted_number::GemNumberUnit::Plain, "the receive field shows the number without a symbol");
+        assert!(GemSwapSession::default().receive_amount().is_none());
     }
 
     #[test]

@@ -88,8 +88,6 @@ public final class SwapSceneViewModel {
         TimeInterval(service.refreshIntervalMilliseconds()) / 1000
     }
 
-    private let toValueFormatter = ValueFormatter(style: .auto)
-
     public init(
         service: any GemSwapQuoteServiceProtocol,
         input: SwapInput,
@@ -261,8 +259,8 @@ extension SwapSceneViewModel {
     }
 
     func onChangeSwapQuote(_ _: SwapperQuote?, _ newQuote: SwapperQuote?) {
-        guard !isTransferDataLoading, let newQuote, let toAsset else { return }
-        setToValue(quote: newQuote, asset: toAsset.asset)
+        guard !isTransferDataLoading, newQuote != nil else { return }
+        setToValue()
     }
 
     func onChangeFromValue(_: String, _: String) {
@@ -398,8 +396,8 @@ extension SwapSceneViewModel {
         toValue = ""
     }
 
-    private func setToValue(quote: SwapperQuote, asset: Asset) {
-        toValue = toValueFormatter.string(BigInt(quote.toValue), decimals: asset.decimals.asInt)
+    private func setToValue() {
+        toValue = session.receiveAmount()?.text() ?? ""
     }
 
     private func setFromValue(percent: Int, assetData: AssetData) {
@@ -463,9 +461,7 @@ extension SwapSceneViewModel {
         do {
             let swapQuotes = try await service.getQuotes(fromAsset: fromAsset.asset, toAsset: toAsset.asset, input: input)
             session = session.onQuoteResults(results: GemSwapQuotesResult(request: input.request, quotes: swapQuotes, error: nil))
-            if let selectedSwapQuote {
-                setToValue(quote: selectedSwapQuote, asset: toAsset.asset)
-            }
+            setToValue()
         } catch let error as SwapperError {
             guard !Task.isCancelled else { return }
             session = session.onQuoteResults(results: GemSwapQuotesResult(request: input.request, quotes: [], error: error))

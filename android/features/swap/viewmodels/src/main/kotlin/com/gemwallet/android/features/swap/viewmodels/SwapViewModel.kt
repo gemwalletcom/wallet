@@ -29,11 +29,11 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.swap.viewmodels.models.QuoteState
 import com.gemwallet.android.features.swap.viewmodels.models.SwapUiState
 import com.gemwallet.android.features.swap.viewmodels.models.createSwapUiState
-import com.gemwallet.android.features.swap.viewmodels.models.formattedToAmount
 import com.gemwallet.android.features.swap.viewmodels.models.receiveEquivalent
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.text
 import com.gemwallet.android.model.toAssetPriceValue
 import com.gemwallet.android.model.toGem
 import com.gemwallet.android.ui.components.swap.SlippageStateUIModel
@@ -181,7 +181,7 @@ class SwapViewModel @Inject constructor(
         }
     }
         .distinctUntilChanged()
-        .onEach { state -> setReceive(state?.formattedToAmount ?: "") }
+        .onEach { state -> setReceive(state?.let { session.value.receiveAmount()?.text() }.orEmpty()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val providers = combine(session, quote) { quoteSession, current ->
