@@ -64,7 +64,7 @@ async fn authorize_webhook(access: &AccessClient, kind: WebhookKind, sender: &st
     let exists = access
         .is_webhook_sender_allowed(secret, kind, sender)
         .await
-        .map_err(|_| ApiError::InternalServerError("Failed to load webhook endpoint".to_string()))?;
+        .map_err(|error| ApiError::Internal(format!("Failed to load webhook endpoint: {error}")))?;
     if !exists {
         return Err(ApiError::NotFound("Webhook endpoint not found".to_string()));
     }

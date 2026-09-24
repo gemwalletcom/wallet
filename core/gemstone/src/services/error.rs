@@ -49,6 +49,7 @@ impl From<GemApiError> for GemServiceError {
     fn from(error: GemApiError) -> Self {
         match error {
             GemApiError::Network { msg } if msg.contains(&AlienError::Offline.to_string()) => Self::Offline,
+            GemApiError::Http { status, .. } | GemApiError::Response { status, .. } if status >= 500 => Self::Api { msg: String::new() },
             error => Self::Api { msg: error.to_string() },
         }
     }

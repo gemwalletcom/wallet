@@ -67,6 +67,22 @@ mod tests {
     }
 
     #[test]
+    fn test_a_server_error_never_carries_its_text_to_the_app() {
+        let response = GemApiError::from(ClientError::Response {
+            status: 500,
+            message: "duplicate key value violates unique constraint".to_string(),
+            body: Vec::new(),
+        });
+        let opaque = GemApiError::from(ClientError::Http { status: 502, body: b"Bad Gateway".to_vec() });
+
+        for error in [response, opaque] {
+            let error = GemServiceError::from(error);
+            assert_eq!(error, GemServiceError::Api { msg: String::new() });
+            assert_eq!(error.text(), crate::services::error_text::GemErrorText::Unknown);
+        }
+    }
+
+    #[test]
     fn test_an_opaque_error_body_keeps_its_status_and_text() {
         let error = GemApiError::from(ClientError::Http { status: 502, body: b"Bad Gateway".to_vec() });
 

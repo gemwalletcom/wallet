@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use cacher::{CacherClient, GLOBAL_RATE_LIMIT_SCOPE, RateLimiter};
 use config_keys::{ConfigKey, RateLimitKey, RateLimitWindow};
+use gem_tracing::error_with_fields;
 use primitives::rewards::{RewardRedemptionOption, RewardStatus};
 use primitives::{Localize, NaiveDateTimeExt, Platform, ReferralLeaderboard, RewardEvent, Rewards, WalletId, WalletSource, WalletType, now};
 use pusher::PusherClient;
@@ -63,11 +64,14 @@ impl RewardsClient {
     }
 
     fn map_username_error(&self, error: Box<dyn Error + Send + Sync>, locale: &str) -> RewardsError {
-        if let Some(username_error) = error.downcast_ref::<UsernameError>() {
-            RewardsError::Username(username_error.localize(locale))
-        } else {
-            RewardsError::Username(error.to_string())
+        let error = match error.downcast::<UsernameError>() {
+            Ok(error) => *error,
+            Err(error) => UsernameError::internal(error),
+        };
+        if matches!(error, UsernameError::Internal(_)) {
+            error_with_fields!("username creation failed", &error);
         }
+        RewardsError::Username(error.localize(locale))
     }
 
     pub async fn get_rewards_by_wallet_id(&self, wallet_id: i32) -> Result<Rewards, Box<dyn Error + Send + Sync>> {
@@ -111,7 +115,7 @@ impl RewardsClient {
             .db
             .run(move |client| create_username(client, wallet_id, &username, &rules))
             .await
-            .map_err(|error| RewardsError::Username(UsernameError::internal(error).localize(locale)))?
+            .map_err(|error| self.map_username_error(error.into(), locale))?
             .map_err(|error| RewardsError::Username(UsernameError::Validation(error).localize(locale)))?;
         self.publish_events(vec![event_id]).await?;
         Ok(rewards)

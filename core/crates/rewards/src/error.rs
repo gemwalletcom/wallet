@@ -199,7 +199,7 @@ impl Localize for UsernameError {
         match self {
             Self::LimitReached(_) => localizer.rewards_error_username_daily_limit_reached(),
             Self::Validation(e) => e.to_string(),
-            Self::Internal(message) => message.clone(),
+            Self::Internal(_) => localizer.errors_generic(),
         }
     }
 }
@@ -213,5 +213,22 @@ impl From<UsernameValidationError> for UsernameError {
 impl UsernameError {
     pub fn internal(error: impl fmt::Display) -> Self {
         Self::Internal(error.to_string())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use primitives::Localize;
+
+    use super::*;
+
+    #[test]
+    fn test_internal_errors_localize_to_generic_text() {
+        let raw = "duplicate key value violates unique constraint \"usernames_pkey\"";
+        let generic = LanguageLocalizer::new_with_language("en").errors_generic();
+
+        assert_eq!(UsernameError::internal(raw).localize("en"), generic);
+        assert_eq!(ReferralError::Internal(raw.to_string()).localize("en"), generic);
+        assert_eq!(UsernameError::internal(raw).to_string(), raw);
     }
 }
