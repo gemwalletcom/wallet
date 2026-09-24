@@ -29,7 +29,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 |---|---|---|
 | App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79, VM162, D75 |
 | Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemWalletImportSession`, `GemVerifyPhraseSession`, keystore and native auth ports | VM126, VM92 |
-| Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM161 |
+| Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | — |
 | Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM5, D74 |
 | Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM37, VM127, VM156 |
 | Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | VM5 |
@@ -50,13 +50,13 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Earn list, provider and deposit amount | Existing stake/earn owner and amount extras | VM36; preserve the existing feature gate |
 | NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM134 |
 | Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM67, VM156 |
-| Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM161 |
+| Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | — |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | — |
-| Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | VM161 |
-| Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM161; retain native locale/theme application |
+| Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | — |
+| Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | retain native locale/theme application |
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | Retain platform-only privacy lock |
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | BD58, D75 |
-| WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | VM161; retain Android-only one-click auth |
+| WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | retain Android-only one-click auth |
 | Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per module | VM6, VM17, VM64, VM88, VM89, VM146 |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | VM159; retain native widget scheduling |
 | Stores and persistence | `Gem*Store` traits and both adapters | VM98 |
@@ -129,7 +129,6 @@ The same product rule written in both apps, or in one app while the other reads 
 
 [A screen derives its record once and passes it down](ARCHITECTURE.md#a-screen-derives-its-record-once-and-passes-it-down). Android gets this from collecting once per emission; on iOS a computed property that calls Core crosses again for every getter the body reads. VM42 landed the shape for price alerts; these are the screens that still cross per getter, grouped so each lands as one change per package.
 
-- **VM161** **S** **The iOS wallet bar and phrase verification derive once.** `WalletSceneViewModel.walletBarModel` calls `walletRow(wallet:)` on every render; map it with the wallet query as `WalletIDetailViewModel` now does. `VerifyPhraseViewModel.buttonState` sits beside the session because `GemVerifyPhraseViewState` has no button state; the session needs a creating step and a `button` like `GemAddAssetViewState` before the local state can go.
 
 ## 7. Orchestration, services and stores
 

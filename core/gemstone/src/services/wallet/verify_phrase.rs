@@ -1,12 +1,14 @@
 use std::fmt;
 
 use super::rules::{PHRASE_VERIFICATION_GROUP, phrase_verification_words};
+use crate::models::button::GemButtonState;
 
 #[derive(Clone, PartialEq, uniffi::Record)]
 pub struct GemVerifyPhraseSession {
     pub words: Vec<String>,
     pub choices: Vec<String>,
     pub picked: Vec<u32>,
+    pub is_creating: bool,
 }
 
 #[derive(Clone, PartialEq, uniffi::Record)]
@@ -23,6 +25,7 @@ pub struct GemVerifyPhraseViewState {
     pub current_group: Option<u32>,
     pub next_index: Option<u32>,
     pub is_complete: bool,
+    pub button: GemButtonState,
 }
 
 impl fmt::Debug for GemVerifyPhraseSession {
@@ -45,6 +48,7 @@ impl fmt::Debug for GemVerifyPhraseViewState {
             .field("current_group", &self.current_group)
             .field("next_index", &self.next_index)
             .field("is_complete", &self.is_complete)
+            .field("button", &self.button)
             .finish()
     }
 }
@@ -55,6 +59,7 @@ impl GemVerifyPhraseSession {
             choices: phrase_verification_words(words.clone()),
             words,
             picked: vec![],
+            is_creating: false,
         }
     }
 
@@ -77,8 +82,13 @@ impl GemVerifyPhraseSession {
         }
     }
 
+    pub fn on_creating(&self, is_creating: bool) -> Self {
+        Self { is_creating, ..self.clone() }
+    }
+
     pub fn view_state(&self) -> GemVerifyPhraseViewState {
         let verified_count = self.picked.len();
+        let is_complete = !self.words.is_empty() && verified_count == self.words.len();
         let next_index = (verified_count < self.words.len()).then_some(verified_count as u32);
         let choices: Vec<GemVerifyPhraseChoice> = self
             .choices
@@ -95,7 +105,12 @@ impl GemVerifyPhraseSession {
             groups: choices.chunks(PHRASE_VERIFICATION_GROUP).map(<[GemVerifyPhraseChoice]>::to_vec).collect(),
             current_group: next_index.map(|index| index / PHRASE_VERIFICATION_GROUP as u32),
             next_index,
-            is_complete: !self.words.is_empty() && verified_count == self.words.len(),
+            is_complete,
+            button: match (self.is_creating, is_complete) {
+                (true, _) => GemButtonState::Loading,
+                (false, true) => GemButtonState::Enabled,
+                (false, false) => GemButtonState::Disabled,
+            },
         }
     }
 }
@@ -109,6 +124,7 @@ mod tests {
             words: words.iter().map(|word| word.to_string()).collect(),
             choices: choices.iter().map(|word| word.to_string()).collect(),
             picked: vec![],
+            is_creating: false,
         }
     }
 
@@ -127,6 +143,16 @@ mod tests {
         assert!(state.is_complete);
         assert!(state.groups.iter().flatten().all(|choice| choice.is_picked));
         assert_eq!(state.current_group, None);
+    }
+
+    #[test]
+    fn test_the_button_opens_on_completion_and_loads_while_creating() {
+        let session = session(&["alpha"], &["alpha"]);
+
+        assert_eq!(session.view_state().button, GemButtonState::Disabled);
+        assert_eq!(session.on_pick(0).view_state().button, GemButtonState::Enabled);
+        assert_eq!(session.on_pick(0).on_creating(true).view_state().button, GemButtonState::Loading);
+        assert_eq!(session.on_pick(0).on_creating(true).on_creating(false).view_state().button, GemButtonState::Enabled);
     }
 
     #[test]

@@ -83,25 +83,26 @@ class CreateWalletViewModel @Inject constructor(private val service: GemWalletSe
     }
 
     fun createWallet(onCreated: () -> Unit) {
-        if (state.value.loading) {
+        val current = verification.value ?: return
+        if (current.isCreating) {
             return
         }
-        state.update { it.copy(isShowSafeMessage = true, loading = true) }
+        verification.value = current.onCreating(true)
+        state.update { it.copy(isShowSafeMessage = true) }
         viewModelScope.launch(ioDispatcher) {
-            val newState = try {
+            try {
                 service.importWallet(GemWalletImportKind.PHRASE, null, state.value.data.joinToString(" "), null, WalletSource.Create, context)
                 withContext(Dispatchers.Main) { onCreated() }
-                state.value.copy(loading = false)
             } catch (err: CancellationException) {
                 throw err
             } catch (err: Throwable) {
-                state.value.copy(loading = false, dataError = err.errorText())
+                verification.update { it?.onCreating(false) }
+                state.update { it.copy(dataError = err.errorText()) }
             }
-            state.update { newState }
         }
     }
 }
 
-data class CreateWalletViewModelState(val loading: Boolean = false, val data: List<String> = emptyList(), val dataError: GemErrorText? = null, val isShowSafeMessage: Boolean = false) {
-    override fun toString() = "CreateWalletViewModelState(loading=$loading, wordCount=${data.size}, isShowSafeMessage=$isShowSafeMessage)"
+data class CreateWalletViewModelState(val data: List<String> = emptyList(), val dataError: GemErrorText? = null, val isShowSafeMessage: Boolean = false) {
+    override fun toString() = "CreateWalletViewModelState(wordCount=${data.size}, isShowSafeMessage=$isShowSafeMessage)"
 }

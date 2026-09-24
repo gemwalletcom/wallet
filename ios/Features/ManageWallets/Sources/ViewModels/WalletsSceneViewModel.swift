@@ -1,6 +1,5 @@
 import Components
 import Foundation
-import struct Gemstone.GemWalletRow
 import protocol Gemstone.GemWalletServiceProtocol
 import func Gemstone.walletRows
 import GemstonePrimitives
@@ -138,9 +137,4 @@ extension WalletsSceneViewModel {
             isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
-}
-
-public struct WalletEntry: Equatable, Sendable {
-    let wallet: Wallet
-    let row: GemWalletRow
 }

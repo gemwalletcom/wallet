@@ -16,9 +16,11 @@ import SwiftUI
 final class VerifyPhraseViewModel {
     private let onComplete: ([String]) async throws -> Void
 
-    private var session: GemVerifyPhraseSession
+    private var session: GemVerifyPhraseSession {
+        didSet { viewState = session.viewState() }
+    }
+
     private var viewState: GemVerifyPhraseViewState
-    var buttonState = ButtonState.disabled
     var isPresentingAlertMessage: AlertMessage?
 
     init(
@@ -52,12 +54,12 @@ final class VerifyPhraseViewModel {
         }
     }
 
+    var buttonState: ButtonState {
+        viewState.button.state
+    }
+
     func pickWord(index: WordIndex) {
         session = session.onPick(choice: UInt32(index.index))
-        viewState = session.viewState()
-        if viewState.isComplete {
-            buttonState = .normal
-        }
     }
 
     func isVerified(index: WordIndex) -> Bool {
@@ -69,7 +71,7 @@ final class VerifyPhraseViewModel {
 
 extension VerifyPhraseViewModel {
     func onContinue() {
-        buttonState = .loading(showProgress: true)
+        session = session.onCreating(isCreating: true)
         Task {
             await complete()
         }
@@ -79,7 +81,7 @@ extension VerifyPhraseViewModel {
         do {
             try await onComplete(session.words)
         } catch {
-            buttonState = .normal
+            session = session.onCreating(isCreating: false)
             isPresentingAlertMessage = AlertMessage(title: Localized.Errors.createWallet(""), error: error)
         }
     }

@@ -48,6 +48,7 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPaddingValues
+import uniffi.gemstone.GemButtonState
 import uniffi.gemstone.GemCopy
 import uniffi.gemstone.secretPhraseCopy
 
@@ -81,7 +82,6 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
                 CheckPhrase(
                     state = verification,
                     rows = verifiedRows,
-                    loading = uiState.loading,
                     onPick = viewModel::onPickWord,
                     onDone = { viewModel.createWallet(onCreated) },
                     onCancel = viewModel::dismissSafeMessage,
@@ -97,7 +97,7 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
             )
         }
     }
-    if (uiState.loading) {
+    if (verificationState?.button == GemButtonState.LOADING) {
         Dialog(
             onDismissRequest = {},
             DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),

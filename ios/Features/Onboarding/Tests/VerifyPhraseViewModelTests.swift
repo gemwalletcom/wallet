@@ -8,11 +8,12 @@ import Testing
 
 @MainActor
 struct VerifyPhraseViewModelTests {
-    private let session = GemVerifyPhraseSession(words: ["alpha", "beta", "gamma", "delta"], choices: ["alpha", "beta", "gamma", "delta"], picked: [])
+    private let session = GemVerifyPhraseSession(words: ["alpha", "beta", "gamma", "delta"], choices: ["alpha", "beta", "gamma", "delta"], picked: [], isCreating: false)
+    private let completed = GemVerifyPhraseSession(words: ["alpha", "beta", "gamma", "delta"], choices: ["alpha", "beta", "gamma", "delta"], picked: [0, 1, 2, 3], isCreating: false)
 
     @Test
     func failedCreationReEnablesTheButtonAndShowsTheError() async {
-        let model = VerifyPhraseViewModel(session: session) { _ in throw AnyError("keystore write failed") }
+        let model = VerifyPhraseViewModel(session: completed) { _ in throw AnyError("keystore write failed") }
         model.onContinue()
 
         await model.complete()
@@ -23,7 +24,7 @@ struct VerifyPhraseViewModelTests {
 
     @Test
     func cancelledPromptReEnablesTheButtonWithoutAnError() async {
-        let model = VerifyPhraseViewModel(session: session) { _ in throw GemServiceError.Cancelled }
+        let model = VerifyPhraseViewModel(session: completed) { _ in throw GemServiceError.Cancelled }
         model.onContinue()
 
         await model.complete()
@@ -34,7 +35,7 @@ struct VerifyPhraseViewModelTests {
 
     @Test
     func successfulCreationKeepsTheButtonBusyWhileTheFlowMovesOn() async {
-        let model = VerifyPhraseViewModel(session: session) { _ in }
+        let model = VerifyPhraseViewModel(session: completed) { _ in }
         model.onContinue()
 
         await model.complete()

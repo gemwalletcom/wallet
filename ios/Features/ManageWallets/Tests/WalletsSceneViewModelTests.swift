@@ -2,12 +2,12 @@
 
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
-import func Gemstone.walletRow
 import GemstoneServices
 import GemstoneServicesTestKit
 @testable import ManageWallets
 import ManageWalletsTestKit
 import Primitives
+import PrimitivesComponents
 import PrimitivesTestKit
 @testable import Store
 import StoreTestKit
@@ -26,7 +26,7 @@ struct WalletsSceneViewModelTests {
         try session.setCurrent(walletId: .multicoin(address: "0x1"))
 
         let model = WalletsSceneViewModel.mock(walletService: service)
-        model.walletsQuery.value = try await session.getWallets().map { WalletEntry(wallet: $0, row: walletRow(wallet: $0.toGem())) }
+        model.walletsQuery.value = try await session.getWallets().map(WalletEntry.init(wallet:))
 
         #expect(model.currentWalletId == .multicoin(address: "0x1"))
 
