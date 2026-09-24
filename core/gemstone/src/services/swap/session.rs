@@ -113,7 +113,7 @@ pub enum GemSwapErrorDisplay {
     NotSupportedAsset,
     NoQuote,
     Offline,
-    MinimumAmount { asset: Asset, min_amount: GemBigInt },
+    MinimumAmount { minimum: GemFormattedNumber },
     AmountTooSmall,
 }
 
@@ -134,7 +134,9 @@ impl GemSwapErrorDisplay {
             SwapperError::NoQuoteAvailable | SwapperError::NoAvailableProvider | SwapperError::InvalidRoute | SwapperError::ComputeQuoteError(_) | SwapperError::TransactionError(_) => Self::NoQuote,
             SwapperError::Offline => Self::Offline,
             SwapperError::InputAmountError { .. } => match (pay_asset, rules::minimum_amount(Some(error))) {
-                (Some(asset), Some(min_amount)) => Self::MinimumAmount { asset: asset.clone(), min_amount },
+                (Some(asset), Some(min_amount)) => Self::MinimumAmount {
+                    minimum: GemFormattedNumber::asset_amount(&min_amount, asset, GemValueStyle::Auto),
+                },
                 _ => Self::AmountTooSmall,
             },
         }
@@ -497,8 +499,7 @@ mod tests {
         assert_eq!(GemSwapErrorDisplay::AmountTooSmall.info(), None);
         assert_eq!(
             GemSwapErrorDisplay::MinimumAmount {
-                asset: Asset::from_chain(Chain::Ethereum),
-                min_amount: GemBigInt::from(1),
+                minimum: GemFormattedNumber::asset_amount(&GemBigInt::from(1), &Asset::from_chain(Chain::Ethereum), GemValueStyle::Auto),
             }
             .info(),
             None
@@ -512,8 +513,7 @@ mod tests {
         assert_eq!(
             display(Some("123456"), Some(&asset)),
             GemSwapErrorDisplay::MinimumAmount {
-                asset: asset.clone(),
-                min_amount: GemBigInt::from(123456)
+                minimum: GemFormattedNumber::asset_amount(&GemBigInt::from(123456), &asset, GemValueStyle::Auto),
             }
         );
         assert_eq!(display(Some("123456"), None), GemSwapErrorDisplay::AmountTooSmall);
