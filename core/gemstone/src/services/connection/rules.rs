@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use primitives::ConnectionStatus;
 
-use super::GemRefreshKind;
+use super::{GemReconnection, GemRefreshKind};
 use crate::models::GemConnectionComponent;
 
 const RECONNECT_MULTIPLIER_MILLISECONDS: f64 = 300.0;
@@ -13,8 +13,16 @@ const MARKET_REFRESH: Duration = Duration::from_secs(60);
 const WALLET_REFRESH: Duration = Duration::from_secs(300);
 const STREAMING_REFRESH: Duration = Duration::from_secs(900);
 
-pub fn reconnect_delay_milliseconds(attempt: u32) -> u64 {
-    (RECONNECT_MULTIPLIER_MILLISECONDS * f64::from(attempt).exp()).min(RECONNECT_MAXIMUM_MILLISECONDS) as u64
+pub fn reconnection(attempt: u32, connected: Duration) -> GemReconnection {
+    let attempt = if connected >= Duration::from_millis(PING_INTERVAL_MILLISECONDS) { 0 } else { attempt };
+    GemReconnection {
+        next_attempt: attempt.saturating_add(1),
+        delay: reconnect_delay(attempt),
+    }
+}
+
+fn reconnect_delay(attempt: u32) -> Duration {
+    Duration::from_millis((RECONNECT_MULTIPLIER_MILLISECONDS * f64::from(attempt).exp()).min(RECONNECT_MAXIMUM_MILLISECONDS) as u64)
 }
 
 pub fn offline_debounce_milliseconds() -> u64 {
@@ -55,24 +63,64 @@ mod tests {
     fn test_keepalive_pings_before_the_reconnect_backoff_caps_out() {
         assert_eq!(ping_interval_milliseconds(), 30_000);
         assert!(
-            ping_interval_milliseconds() >= reconnect_delay_milliseconds(0),
+            Duration::from_millis(ping_interval_milliseconds()) >= reconnect_delay(0),
             "a keepalive that fires faster than the first reconnect would ping a socket that is still coming up"
         );
     }
 
     #[test]
     fn test_reconnect_delay_grows_exponentially_and_caps() {
-        assert_eq!(reconnect_delay_milliseconds(0), 300);
-        assert_eq!(reconnect_delay_milliseconds(1), 815);
-        assert_eq!(reconnect_delay_milliseconds(3), 6_025);
-        assert_eq!(reconnect_delay_milliseconds(4), 16_379);
-        assert_eq!(reconnect_delay_milliseconds(5), RECONNECT_MAXIMUM_MILLISECONDS as u64, "the curve is capped from the attempt it first exceeds the maximum");
-        assert_eq!(reconnect_delay_milliseconds(u32::MAX), RECONNECT_MAXIMUM_MILLISECONDS as u64, "an overflowing exponent still yields the cap");
+        assert_eq!(reconnect_delay(0), Duration::from_millis(300));
+        assert_eq!(reconnect_delay(1), Duration::from_millis(815));
+        assert_eq!(reconnect_delay(3), Duration::from_millis(6_025));
+        assert_eq!(reconnect_delay(4), Duration::from_millis(16_379));
+        assert_eq!(
+            reconnect_delay(5),
+            Duration::from_millis(RECONNECT_MAXIMUM_MILLISECONDS as u64),
+            "the curve is capped from the attempt it first exceeds the maximum"
+        );
+        assert_eq!(reconnect_delay(u32::MAX), Duration::from_millis(RECONNECT_MAXIMUM_MILLISECONDS as u64), "an overflowing exponent still yields the cap");
+    }
+
+    #[test]
+    fn test_reconnection() {
+        let ping_interval = Duration::from_millis(PING_INTERVAL_MILLISECONDS);
+        assert_eq!(
+            reconnection(0, Duration::ZERO),
+            GemReconnection {
+                next_attempt: 1,
+                delay: Duration::from_millis(300)
+            }
+        );
+        assert_eq!(
+            reconnection(3, Duration::ZERO),
+            GemReconnection {
+                next_attempt: 4,
+                delay: Duration::from_millis(6_025)
+            },
+            "a connection that never opened keeps backing off"
+        );
+        assert_eq!(
+            reconnection(3, ping_interval - Duration::from_millis(1)),
+            GemReconnection {
+                next_attempt: 4,
+                delay: Duration::from_millis(6_025)
+            },
+            "a connection the server drops right away keeps backing off"
+        );
+        assert_eq!(
+            reconnection(3, ping_interval),
+            GemReconnection {
+                next_attempt: 1,
+                delay: Duration::from_millis(300)
+            },
+            "a connection that outlived a keepalive restarts the backoff"
+        );
     }
 
     #[test]
     fn test_reconnect_delay_never_decreases() {
-        let delays: Vec<u64> = (0..10).map(reconnect_delay_milliseconds).collect();
+        let delays: Vec<Duration> = (0..10).map(reconnect_delay).collect();
         assert!(delays.windows(2).all(|pair| pair[0] <= pair[1]));
     }
 

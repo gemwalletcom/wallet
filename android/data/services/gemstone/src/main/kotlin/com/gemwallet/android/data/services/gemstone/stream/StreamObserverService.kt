@@ -20,6 +20,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemConnectionServiceInterface
 import uniffi.gemstone.GemStreamServiceInterface
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 
 class StreamObserverService(
     private val getSession: GetSession,
@@ -45,19 +47,21 @@ class StreamObserverService(
                         .onFailure { Log.e(TAG, "Stream session update error", it) }
                 }
             }
-            var failedAttempts = 0
+            var failedAttempts = 0u
             while (isActive) {
+                var subscribedAt: TimeMark? = null
                 runCatchingCancellable {
                     val connects = service.prepareConnection()
                     currentCoroutineContext().ensureActive()
                     when (connects) {
-                        true -> observeConnection(onSubscribed = { failedAttempts = 0 })
+                        true -> observeConnection(onSubscribed = { subscribedAt = TimeSource.Monotonic.markNow() })
                         false -> wallets.first { it != null }
                     }
                 }.onFailure {
                     Log.e(TAG, "Stream connection error", it)
-                    delay(connectionService.reconnectDelayMilliseconds(failedAttempts.toUInt()).toLong())
-                    failedAttempts++
+                    val reconnection = connectionService.reconnection(failedAttempts, subscribedAt.connectedDuration())
+                    failedAttempts = reconnection.nextAttempt
+                    delay(reconnection.delay.toMillis())
                 }
             }
         }

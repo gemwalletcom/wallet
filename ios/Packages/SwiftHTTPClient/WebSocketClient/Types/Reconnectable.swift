@@ -3,6 +3,6 @@
 import Foundation
 
 public protocol Reconnectable: Sendable {
-    func reconnectDelayMilliseconds(attempt: UInt32) -> UInt64
+    func reconnection(attempt: UInt32, connectedFor duration: Duration) -> Reconnection
     func pingIntervalMilliseconds() -> UInt64
 }

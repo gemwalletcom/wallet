@@ -31,6 +31,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemConnectionServiceInterface
+import uniffi.gemstone.GemReconnection
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemStreamEvent
 import uniffi.gemstone.GemStreamServiceInterface
@@ -310,7 +311,7 @@ class StreamObserverServiceTest {
     }
 
     private val connectionService = mockk<GemConnectionServiceInterface> {
-        every { reconnectDelayMilliseconds(any()) } returns 1_000uL
+        every { reconnection(any(), any()) } returns GemReconnection(nextAttempt = 1u, delay = Duration.ofSeconds(1))
     }
 
     @Test
