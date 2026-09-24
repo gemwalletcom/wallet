@@ -12,10 +12,9 @@ import uniffi.gemstone.GemAssetIconImage
 import uniffi.gemstone.GemImage
 import java.util.concurrent.ConcurrentHashMap
 
-private val assetIcons = ConcurrentHashMap<String, GemAssetIcon>()
 private val nftImages = ConcurrentHashMap<String, String>()
 
-fun AssetId.icon(): GemAssetIcon = assetIcons.computeIfAbsent(toIdentifier(), assetConfig::assetIcon)
+fun AssetId.icon(): GemAssetIcon = assetConfig.assetIcon(toIdentifier())
 
 fun Chain.iconChain(): Chain = chainConfig().iconChain.toChain()
 

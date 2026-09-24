@@ -266,6 +266,7 @@ impl GemSimulationValue {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemSimulationBalanceChange {
     pub asset: Asset,
+    pub icon: crate::services::assets::icon::GemAssetIcon,
     pub value: GemBigInt,
     pub sign: GemAmountSign,
     pub tone: GemValueTone,

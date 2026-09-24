@@ -30,6 +30,7 @@ pub fn coins(ids: &[AssetId], assets: Vec<AssetBasic>, currency: &str, size: Gem
         .filter_map(|asset| {
             let price = asset.price.as_ref()?;
             Some(GemWidgetCoin {
+                icon: crate::services::assets::icon::asset_icon(&asset.asset.id),
                 asset_id: asset.asset.id.clone(),
                 name: asset.asset.name.clone(),
                 symbol: asset.asset.symbol.clone(),

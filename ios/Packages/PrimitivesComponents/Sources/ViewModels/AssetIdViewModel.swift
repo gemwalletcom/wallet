@@ -9,24 +9,6 @@ import GemstonePrimitives
 import Primitives
 import SwiftUI
 
-private final class AssetIconCache: @unchecked Sendable {
-    static let shared = AssetIconCache()
-
-    private var icons: [String: GemAssetIcon] = [:]
-    private let lock = NSLock()
-
-    func icon(for identifier: String) -> GemAssetIcon {
-        lock.withLock {
-            if let cached = icons[identifier] {
-                return cached
-            }
-            let icon = GemAssetConfigService.shared.assetIcon(assetId: identifier)
-            icons[identifier] = icon
-            return icon
-        }
-    }
-}
-
 public struct AssetIdViewModel: Sendable {
     private let assetId: AssetId
 
@@ -44,7 +26,7 @@ public struct AssetIdViewModel: Sendable {
     }
 
     public var assetImage: AssetImage {
-        AssetImage(icon: AssetIconCache.shared.icon(for: assetId.identifier))
+        AssetImage(icon: GemAssetConfigService.shared.assetIcon(assetId: assetId.identifier))
     }
 }
 

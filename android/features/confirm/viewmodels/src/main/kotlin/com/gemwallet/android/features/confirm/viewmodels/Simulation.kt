@@ -47,5 +47,5 @@ fun GemSimulationBalanceChange.listItem(): ListItemModel = ListItemModel(
     title = asset.name,
     subtitle = formattedValue(),
     subtitleStyle = tone.textStyle(),
-    image = ListItemImage.Asset(asset.toPrimitives().id),
+    image = ListItemImage.Asset(icon),
 )

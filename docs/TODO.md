@@ -31,7 +31,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemWalletImportSession`, `GemVerifyPhraseSession`, keystore and native auth ports | VM126, VM92 |
 | Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | — |
 | Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | D74 |
-| Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM127, VM156 |
+| Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM127 |
 | Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | — |
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
 | Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | — |
@@ -49,7 +49,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | VM20, AUD59; preserve exact atomic values |
 | Earn list, provider and deposit amount | Existing stake/earn owner and amount extras | VM36; preserve the existing feature gate |
 | NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM134 |
-| Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM67, VM156 |
+| Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM67 |
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | — |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | — |
 | Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | — |
@@ -119,7 +119,6 @@ The same product rule written in both apps, or in one app while the other reads 
 - **VM6** **L** **Views take Core records; the adapter protocols go.** Five app-side view protocols force a model per Core record: `ItemModelProvidable` (10 conformances on 2026-09-23, mostly confirm and transaction details), `ListSectionProvideable` (10, settings-style screens that already hold `GemListSection`), `SimpleListItemViewable` (4), `ValueHeaderViewModel` (7) and `ListAssetItemViewable` (8). Once the items in § 2 and § 3 leave no decision in those models, the shared views take the Core record directly and render it through the module's mapper extensions, and each adapter is deleted rather than kept as a pass-through. Update [An app row model stores the row and nothing else](ARCHITECTURE.md#an-app-row-model-stores-the-row-and-nothing-else) in the same change: it currently lets a model stand when "a list protocol demands one", which is the allowance these adapters live on.
 - **VM17** **S** **Core returns finished docs and page URLs.** Both apps build them: [iOS `AppUrl`](../ios/Packages/GemstonePrimitives/Sources/Config.swift) and [Android `AppUrl`](../android/gemcore/src/main/kotlin/com/gemwallet/android/AppUrl.kt) each turn a `DocsUrl`/`PublicUrl` into a URL and append `utm_source` with their platform name, and each resolves `GemBannerLink.docs` itself. Android keeps `BannerDestination` only so the resolved URL is computed outside the composable; with the URL finished in Core (the platform passed in once), `GemBannerDestination` reaches the view as it is and `BannerDestination` goes.
 - **VM20** **M** **Generate `StakeType` and `RedelegateData`.** Both apps hand-write them ([iOS](../ios/Packages/Primitives/Sources/Staking.swift), [Android](../android/gemcore/src/main/kotlin/com/wallet/core/primitives/Staking.kt)) plus their mappers. Annotating the Rust types for typeshare is not enough (tried 2026-09-23): Android `Delegation` has no Kotlin serializer because of its big-integer fields, and iOS maps `Delegation` through `init(core:)` rather than the `toPrimitives()` the remote mapper generator emits. Close those two generator gaps first, then annotate and delete the hand-written copies.
-- **VM156** **S** **The asset icon travels on every row.** The asset, price alert, transaction, perpetual market and position rows and the in-app notification icon now carry `icon: GemAssetIcon` on both apps. Left: `GemWidgetCoin`, the simulation balance changes, and the single-asset screens that look the icon up per render go through iOS `AssetIconCache` (`AssetIdViewModel.swift`) and the Android `assetIcons` map (`IconUrlGeneration.kt`); once those rows carry the icon, delete both caches and `AssetId.icon()`.
 
 ## 6. Crossings: derive once per render
 

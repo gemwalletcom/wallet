@@ -12,6 +12,7 @@ pub enum GemWidgetSize {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemWidgetCoin {
     pub asset_id: AssetId,
+    pub icon: crate::services::assets::icon::GemAssetIcon,
     pub name: String,
     pub symbol: String,
     pub price: GemFormattedNumber,

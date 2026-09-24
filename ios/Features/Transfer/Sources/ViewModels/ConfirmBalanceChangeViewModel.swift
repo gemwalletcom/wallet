@@ -33,7 +33,7 @@ public struct ConfirmBalanceChangeViewModel {
     }
 
     public var assetImage: AssetImage {
-        AssetIdViewModel(assetId: asset.id).assetImage
+        AssetImage(icon: balanceChange.icon)
     }
 
     public var amount: TextValue {
