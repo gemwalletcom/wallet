@@ -17,8 +17,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemSwapProviderRow
 import uniffi.gemstone.GemValueStyle
-import uniffi.gemstone.SwapPriceImpact
-import uniffi.gemstone.SwapPriceImpactType
 import uniffi.gemstone.SwapProvider
 import uniffi.gemstone.swapProviderRow
 import uniffi.gemstone.swapQuoteSummary
@@ -34,12 +32,6 @@ class SwapDetailsUIModelFactoryTest {
         val result = swapDetails(
             toValue = "990000000000000000",
             etaInSeconds = 30u,
-            priceImpact = SwapPriceImpact(
-                percentage = -1.0,
-                impactType = SwapPriceImpactType.LOW,
-                isHigh = false,
-                showsInSummary = false,
-            ),
         )
 
         assertEquals("-1.00%", result!!.priceImpact!!.value.text())
@@ -58,12 +50,6 @@ class SwapDetailsUIModelFactoryTest {
             providers = listOf(provider),
             etaInSeconds = 180u,
             isProviderSelectable = true,
-            priceImpact = SwapPriceImpact(
-                percentage = -5.0,
-                impactType = SwapPriceImpactType.MEDIUM,
-                isHigh = false,
-                showsInSummary = true,
-            ),
         )
 
         assertEquals("-5.00%", result!!.summaryPriceImpactText)
@@ -76,13 +62,7 @@ class SwapDetailsUIModelFactoryTest {
     @Test
     fun `price impact uses shared ios rounding behavior`() {
         val result = swapDetails(
-            toValue = DEFAULT_TO_VALUE,
-            priceImpact = SwapPriceImpact(
-                percentage = 2.345,
-                impactType = SwapPriceImpactType.POSITIVE,
-                isHigh = false,
-                showsInSummary = false,
-            ),
+            toValue = "1023400000000000000",
         )
 
         assertEquals("+2.34%", result!!.priceImpact!!.value.text())
@@ -142,7 +122,6 @@ class SwapDetailsUIModelFactoryTest {
         slippageBps: UInt = DEFAULT_SLIPPAGE_BPS,
         etaInSeconds: UInt? = null,
         isProviderSelectable: Boolean = false,
-        priceImpact: SwapPriceImpact? = null,
     ): SwapDetailsUIModel? {
         val summary = summary(fromValue, toValue, slippageBps, etaInSeconds, payAsset, receiveAsset)
         return SwapDetailsUIModelFactory.create(
@@ -155,7 +134,6 @@ class SwapDetailsUIModelFactoryTest {
                 slippageBps = slippageBps,
                 selectedSlippage = slippageBps,
                 isProviderSelectable = isProviderSelectable,
-                priceImpact = priceImpact,
             ),
         )
     }
@@ -164,6 +142,8 @@ class SwapDetailsUIModelFactoryTest {
         mockSwapQuote(fromAmount = fromValue.toBigInteger(), toAmount = toValue.toBigInteger(), slippageBps = slippageBps, etaInSeconds = etaInSeconds),
         payAsset.asset.toGem(),
         receiveAsset.asset.toGem(),
+        payAsset.price?.price?.price,
+        receiveAsset.price?.price?.price,
     )
 
     private fun provider(toValue: String, receiveAsset: AssetPriceValue = this.receiveAsset) = swapProviderRow(

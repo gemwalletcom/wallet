@@ -25,7 +25,7 @@ public struct SwapDetailsListView: View {
                     if model.shouldShowPriceImpactInDetails, let value = model.priceImpactValue {
                         HStack(spacing: .zero) {
                             Text("(").textStyle(.calloutSecondary)
-                            Text(value).textStyle(model.priceImpactModel.priceImpactStyle)
+                            Text(value).textStyle(model.priceImpactStyle)
                             Text(")").textStyle(.calloutSecondary)
                         }
                     }

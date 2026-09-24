@@ -436,7 +436,7 @@ class ConfirmViewModel @Inject constructor(
         content ?: return null
         val fromAsset = content.assetPrice(transfer.asset)
         val toAsset = transfer.inputType.toAsset?.let(content::assetPrice) ?: return null
-        val summary = swapQuoteSummary(swapData.quote, fromAsset.asset.toGem(), toAsset.asset.toGem())
+        val summary = swapQuoteSummary(swapData.quote, fromAsset.asset.toGem(), toAsset.asset.toGem(), fromAsset.price?.price?.price, toAsset.price?.price?.price)
 
         val provider = swapProviderRow(
             provider = swapData.quote.providerData.provider,
@@ -456,8 +456,6 @@ class ConfirmViewModel @Inject constructor(
                 slippageBps = swapData.quote.slippageBps,
                 selectedSlippage = swapData.quote.slippageBps,
                 isProviderSelectable = false,
-                priceImpact = fromAsset.swapValue(swapData.quote.fromValue)
-                    .priceImpact(toAsset.swapValue(swapData.quote.toValue)),
             ),
         ) ?: return null
 

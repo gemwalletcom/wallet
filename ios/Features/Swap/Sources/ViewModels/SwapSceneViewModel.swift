@@ -123,8 +123,13 @@ public final class SwapSceneViewModel {
 
     public var swapDetailsViewModel: SwapDetailsViewModel? {
         guard let selectedSwapQuote, let fromAsset, let toAsset else { return nil }
-        let summary = swapperQuoteSummary(quote: selectedSwapQuote, fromAsset: fromAsset.asset.toGem(), toAsset: toAsset.asset.toGem())
-        let selectedQuote = summary.quote
+        let summary = swapperQuoteSummary(
+            quote: selectedSwapQuote,
+            fromAsset: fromAsset.asset.toGem(),
+            toAsset: toAsset.asset.toGem(),
+            fromPrice: fromAsset.price?.price,
+            toPrice: toAsset.price?.price,
+        )
         let fromAssetPrice = AssetPriceValue(asset: fromAsset.asset, price: fromAsset.price)
         let toAssetPrice = AssetPriceValue(asset: toAsset.asset, price: toAsset.price)
         return SwapDetailsViewModel(
@@ -135,8 +140,6 @@ public final class SwapSceneViewModel {
             slippagePercent: selectedSlippage.bps.map { service.slippagePercent(bps: $0) },
             currency: service.currency.rawValue,
             allowSelectProvider: viewState.allowsProviderSelection,
-            swapPriceImpact: fromAssetPrice.swapValue(selectedQuote.fromValue)
-                .priceImpact(receive: toAssetPrice.swapValue(selectedQuote.toValue)),
             swapProviderSelectAction: { [weak self] provider in
                 self?.onFinishSwapProviderSelection(provider)
             },
@@ -482,9 +485,7 @@ extension SwapSceneViewModel {
         case .insufficientBalance: break
         case let .useMinimumAmount(value): setFromValue(minimum: value)
         case .swap:
-            if let priceImpactModel = swapDetailsViewModel?.priceImpactModel,
-               let warningText = priceImpactModel.highImpactWarningDescription,
-               priceImpactModel.showPriceImpactWarning
+            if let warningText = swapDetailsViewModel?.highImpactWarningDescription
             {
                 isPresentingPriceImpactConfirmation = warningText
                 return

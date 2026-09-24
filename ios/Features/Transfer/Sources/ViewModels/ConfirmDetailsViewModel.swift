@@ -36,10 +36,9 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
         switch type {
         case let .swap(fromAsset, toAsset, swapData):
             let quote = swapData.quote
-            let summary = swapQuoteSummary(quote: quote, fromAsset: fromAsset, toAsset: toAsset)
-            let toAsset = toAsset.toPrimitives()
             let fromAssetPrice = AssetPriceValue(asset: fromAsset.toPrimitives(), price: metadata?.assetPrice)
-            let toAssetPrice = AssetPriceValue(asset: toAsset, price: metadata?.assetPrices[toAsset.id])
+            let toAssetPrice = AssetPriceValue(asset: toAsset.toPrimitives(), price: metadata?.assetPrices[toAsset.toPrimitives().id])
+            let summary = swapQuoteSummary(quote: quote, fromAsset: fromAsset, toAsset: toAsset, fromPrice: fromAssetPrice.price?.price, toPrice: toAssetPrice.price?.price)
             return .swapDetails(
                 SwapDetailsViewModel(
                     fromAssetPrice: fromAssetPrice,
@@ -48,8 +47,6 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
                     slippagePercent: summary.slippagePercent(),
                     currency: confirmation.currency.rawValue,
                     allowSelectProvider: false,
-                    swapPriceImpact: fromAssetPrice.swapValue(quote.fromValue)
-                        .priceImpact(receive: toAssetPrice.swapValue(quote.toValue)),
                 ),
             )
         case let .perpetual(_, perpetualType):

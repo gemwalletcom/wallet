@@ -14,10 +14,9 @@ public extension SwapDetailsViewModel {
         SwapDetailsViewModel(
             fromAssetPrice: AssetPriceValue(asset: .mockEthereum(), price: .mock()),
             toAssetPrice: AssetPriceValue(asset: .mockEthereumUSDT(), price: .mock()),
-            summary: swapQuoteSummary(quote: selectedQuote, fromAsset: Asset.mockEthereum().toGem(), toAsset: Asset.mockEthereumUSDT().toGem()),
+            summary: swapQuoteSummary(quote: selectedQuote, fromAsset: Asset.mockEthereum().toGem(), toAsset: Asset.mockEthereumUSDT().toGem(), fromPrice: nil, toPrice: nil),
             slippagePercent: nil,
             currency: Currency.usd.rawValue,
-            swapPriceImpact: nil,
         )
     }
 }

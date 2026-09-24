@@ -1,7 +1,6 @@
 use crate::config::swap_config::get_swap_config;
 use crate::models::custom_types::GemBigUint;
 use number_formatter::BigNumberFormatter;
-use std::sync::Arc;
 
 pub use primitives::swap::{ApprovalData, SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProviderData, SwapQuote, SwapQuoteData};
 pub use swapper::SwapperProvider;
@@ -26,21 +25,19 @@ impl GemSlippageCheck {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Object)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GemSwapValue {
     value: GemBigUint,
     decimals: u32,
     price: Option<f64>,
 }
 
-#[uniffi::export]
 impl GemSwapValue {
-    #[uniffi::constructor]
     pub fn new(value: GemBigUint, decimals: u32, price: Option<f64>) -> Self {
         Self { value, decimals, price }
     }
 
-    pub fn price_impact(&self, receive: Arc<GemSwapValue>) -> Option<SwapPriceImpact> {
+    pub fn price_impact(&self, receive: &GemSwapValue) -> Option<SwapPriceImpact> {
         calculate_swap_price_impact(self.fiat_value()?, receive.fiat_value()?)
     }
 }
@@ -83,7 +80,6 @@ fn round_to_places(value: f64, places: i32) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::{GemSlippageCheck, GemSwapValue, SwapPriceImpact, SwapPriceImpactType, calculate_swap_price_impact, round_to_places};
-    use std::sync::Arc;
 
     #[test]
     fn test_a_high_slippage_still_confirms_and_a_bounded_one_does_not() {
@@ -95,10 +91,10 @@ mod tests {
 
     #[test]
     fn test_swap_price_impact_needs_a_price_on_both_sides() {
-        assert_eq!(Arc::new(GemSwapValue::new(100u32.into(), 2, None)).price_impact(Arc::new(GemSwapValue::new(100u32.into(), 2, Some(1.0)))), None);
-        assert_eq!(Arc::new(GemSwapValue::new(100u32.into(), 2, Some(1.0))).price_impact(Arc::new(GemSwapValue::new(100u32.into(), 2, None))), None);
+        assert_eq!(GemSwapValue::new(100u32.into(), 2, None).price_impact(&GemSwapValue::new(100u32.into(), 2, Some(1.0))), None);
+        assert_eq!(GemSwapValue::new(100u32.into(), 2, Some(1.0)).price_impact(&GemSwapValue::new(100u32.into(), 2, None)), None);
 
-        let impact = Arc::new(GemSwapValue::new(200u32.into(), 2, Some(1.0))).price_impact(Arc::new(GemSwapValue::new(100u32.into(), 2, Some(1.0)))).expect("impact");
+        let impact = GemSwapValue::new(200u32.into(), 2, Some(1.0)).price_impact(&GemSwapValue::new(100u32.into(), 2, Some(1.0))).expect("impact");
         assert_eq!(impact.percentage, -50.0);
     }
 

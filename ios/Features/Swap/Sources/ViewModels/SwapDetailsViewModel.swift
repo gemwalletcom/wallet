@@ -7,7 +7,6 @@ import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
 import struct Gemstone.GemSwapQuoteSummary
 import struct Gemstone.GemSwapRate
-import struct Gemstone.SwapPriceImpact
 import enum Gemstone.SwapProvider
 import struct Gemstone.SwapProviderData
 import func Gemstone.swapProviderRow
@@ -16,6 +15,7 @@ import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
+import Style
 
 @Observable
 public final class SwapDetailsViewModel {
@@ -33,7 +33,6 @@ public final class SwapDetailsViewModel {
     private let priceViewModel: PriceViewModel
     private let currency: String
     let allowSelectProvider: Bool
-    private let swapPriceImpact: SwapPriceImpact?
     private let minReceiveValue: BigInt
     private let etaSeconds: UInt32?
     private let swapProviderSelectAction: ((SwapProvider) -> Void)?
@@ -46,7 +45,6 @@ public final class SwapDetailsViewModel {
         slippagePercent: Double?,
         currency: String,
         allowSelectProvider: Bool = true,
-        swapPriceImpact: SwapPriceImpact?,
         swapProviderSelectAction: ((SwapProvider) -> Void)? = nil,
     ) {
         self.state = state
@@ -60,7 +58,6 @@ public final class SwapDetailsViewModel {
         priceViewModel = PriceViewModel(price: toAssetPrice.price, currencyCode: currency)
         self.currency = currency
         self.allowSelectProvider = allowSelectProvider
-        self.swapPriceImpact = swapPriceImpact
         minReceiveValue = BigInt(summary.minReceiveValue)
         etaSeconds = summary.quote.etaInSeconds
         self.swapProviderSelectAction = swapProviderSelectAction
@@ -75,11 +72,7 @@ public final class SwapDetailsViewModel {
     }
 
     var detailRows: [GemListRow] {
-        summary.detailRows(
-            receiveAsset: toAssetPrice.asset.toGem(),
-            priceImpact: swapPriceImpact,
-            hasSelectedSlippage: slippagePercent != nil,
-        )
+        summary.detailRows(hasSelectedSlippage: slippagePercent != nil)
     }
 
     // MARK: - Provider
@@ -123,19 +116,23 @@ public final class SwapDetailsViewModel {
     // MARK: - Price Impact
 
     var highImpactWarningTitle: String {
-        priceImpactModel.highImpactWarningTitle
+        Localized.Swap.PriceImpactWarning.title
     }
 
-    var priceImpactModel: PriceImpactViewModel {
-        PriceImpactViewModel(fromAssetPrice: fromAssetPrice, swapPriceImpact: swapPriceImpact)
+    var highImpactWarningDescription: String? {
+        summary.priceImpactRow?.warning?.text
     }
 
     var shouldShowPriceImpactInDetails: Bool {
-        priceImpactModel.showsInSummary
+        summary.priceImpactRow?.showsInSummary == true
     }
 
     var priceImpactValue: String? {
-        priceImpactModel.priceImpactText
+        summary.priceImpactRow?.value.text()
+    }
+
+    var priceImpactStyle: TextStyle {
+        TextStyle(font: .callout, color: summary.priceImpactRow?.value.tone.color ?? Colors.gray)
     }
 }
 

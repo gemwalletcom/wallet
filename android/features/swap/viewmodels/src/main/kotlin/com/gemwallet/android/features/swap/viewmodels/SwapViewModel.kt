@@ -16,7 +16,6 @@ import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
 import com.gemwallet.android.application.swap.cases.toGem
 import com.gemwallet.android.domains.asset.fiatEquivalent
-import com.gemwallet.android.domains.asset.swapValue
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.gemConfig
 import com.gemwallet.android.domains.swap.SwapItemType
@@ -203,7 +202,7 @@ class SwapViewModel @Inject constructor(
         if (quote == null) {
             return@combine null
         }
-        val summary = swapperQuoteSummary(quote.quote, quote.pay.asset.toGem(), quote.receive.asset.toGem())
+        val summary = swapperQuoteSummary(quote.quote, quote.pay.asset.toGem(), quote.receive.asset.toGem(), quote.pay.price?.price?.price, quote.receive.price?.price?.price)
 
         val provider = providers.firstOrNull { it.isSelected } ?: return@combine null
 
@@ -217,8 +216,6 @@ class SwapViewModel @Inject constructor(
                 slippageBps = quote.quote.data.slippageBps,
                 selectedSlippage = selectedSlippageBps.value,
                 isProviderSelectable = state?.allowsProviderSelection ?: false,
-                priceImpact = quote.pay.swapValue(quote.quote.fromValue)
-                    .priceImpact(quote.receive.swapValue(quote.quote.toValue)),
             ),
         )
     }

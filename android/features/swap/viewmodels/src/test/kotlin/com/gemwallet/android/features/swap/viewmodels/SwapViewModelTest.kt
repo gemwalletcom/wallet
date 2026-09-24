@@ -65,18 +65,17 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemSwapPairSelection
 import uniffi.gemstone.GemSwapPairSuggestion
+import uniffi.gemstone.GemSwapPriceImpactRow
 import uniffi.gemstone.GemSwapProviderRow
 import uniffi.gemstone.GemSwapQuoteServiceInterface
 import uniffi.gemstone.GemSwapRequest
 import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.SwapPriceImpact
-import uniffi.gemstone.SwapPriceImpactType
 import uniffi.gemstone.SwapProvider
 import uniffi.gemstone.SwapperException
 import uniffi.gemstone.SwapperQuote
-import uniffi.gemstone.swapPriceImpactRow
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -619,10 +618,7 @@ class SwapViewModelTest {
                 isSelected = true,
             ),
             rate = AssetRatePair(forward = "1 SOL = 2.5 USDC", reverse = "1 USDC = 0.4 SOL"),
-            priceImpact = swapPriceImpactRow(
-                SwapPriceImpact(percentage = -15.0, impactType = SwapPriceImpactType.HIGH, isHigh = true, showsInSummary = true),
-                "SOL",
-            ),
+            priceImpact = GemSwapPriceImpactRow(value = mockFormattedNumber(-15.0), showsInSummary = true, warning = GemLocalizedText.Text(text = "high impact")),
             minimumReceive = "2.1 USDC",
             slippageText = "0.5%",
             slippageBps = 50u,
