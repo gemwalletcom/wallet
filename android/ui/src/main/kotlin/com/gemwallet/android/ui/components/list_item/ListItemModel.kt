@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.gemwallet.android.domains.asset.icon
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
@@ -40,6 +41,7 @@ import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.space6
 import com.wallet.core.primitives.AssetId
+import uniffi.gemstone.GemAssetIcon
 
 data class ListItemModel(
     val title: String,
@@ -104,7 +106,9 @@ enum class ListItemTagType {
 sealed interface ListItemImage {
     val style: ListItemImageStyle
 
-    data class Asset(val assetId: AssetId) : ListItemImage {
+    data class Asset(val icon: GemAssetIcon) : ListItemImage {
+        constructor(assetId: AssetId) : this(assetId.icon())
+
         override val style: ListItemImageStyle = ListItemImageStyle.Avatar
     }
 

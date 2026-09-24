@@ -39,7 +39,7 @@ struct PerpetualPositionItemViewModel: ListAssetItemViewable, Identifiable {
     }
 
     var assetImage: AssetImage {
-        AssetIdViewModel(assetId: AssetId(core: row.assetId)).assetImage
+        AssetImage(icon: row.icon)
     }
 
     var subtitleView: ListAssetItemSubtitleView {

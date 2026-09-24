@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemPerpetualMarketRow
 import uniffi.gemstone.GemPriceRow
 import uniffi.gemstone.perpetualMarketQuery
@@ -43,6 +44,8 @@ class GetPerpetualsImpl @Inject constructor(private val perpetualStore: Gemstone
         override val id: PerpetualId = data.perpetual.id
 
         override val asset: Asset = data.asset
+
+        override val icon: GemAssetIcon = row.icon
 
         override val price: GemPriceRow = row.price
 

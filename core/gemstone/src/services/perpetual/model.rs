@@ -87,6 +87,7 @@ pub fn perpetual_confirm_details(perpetual_type: PerpetualType) -> Option<GemPer
 pub struct GemPerpetualPositionRow {
     pub id: String,
     pub asset_id: AssetId,
+    pub icon: crate::services::assets::icon::GemAssetIcon,
     pub title: String,
     pub direction: PerpetualDirection,
     pub position: GemLocalizedText,
@@ -121,6 +122,7 @@ pub fn perpetual_position_rows(positions: Vec<PerpetualPositionData>) -> Vec<Gem
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemPerpetualMarketRow {
     pub asset_id: AssetId,
+    pub icon: crate::services::assets::icon::GemAssetIcon,
     pub title: String,
     pub price: GemPriceRow,
     pub volume_24h: GemFormattedNumber,

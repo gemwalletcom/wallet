@@ -38,5 +38,5 @@ private fun InAppNotification.uiModel(row: GemNotificationRow, context: Context)
 private fun GemNotificationIcon.image(): ListItemImage? = when (this) {
     is GemNotificationIcon.Emoji -> ListItemImage.Emoji(glyph)
     is GemNotificationIcon.Image -> ListItemImage.Url(url)
-    is GemNotificationIcon.Asset -> assetId.toAssetId()?.let { ListItemImage.Asset(it) }
+    is GemNotificationIcon.Asset -> ListItemImage.Asset(icon)
 }

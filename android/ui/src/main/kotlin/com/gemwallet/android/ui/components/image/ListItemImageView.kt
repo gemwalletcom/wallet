@@ -30,10 +30,10 @@ import com.gemwallet.android.ui.theme.space12
 fun ListItemImageView(image: ListItemImage, modifier: Modifier = Modifier, style: ListItemImageStyle = image.style, size: Dp = style.size) {
     when (image) {
         is ListItemImage.Asset -> AsyncImage(
-            model = image.assetId.iconModel(),
+            model = image.icon.iconModel(),
             modifier = modifier,
             size = size,
-            placeholderText = image.assetId.icon().placeholder,
+            placeholderText = image.icon.placeholder,
         )
 
         is ListItemImage.Url -> AsyncImage(model = image.url, modifier = modifier, size = size, placeholderText = image.placeholder)

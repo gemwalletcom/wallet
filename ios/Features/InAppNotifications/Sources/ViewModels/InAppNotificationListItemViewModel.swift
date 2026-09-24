@@ -53,7 +53,7 @@ public struct InAppNotificationListItemViewModel: Identifiable, Sendable {
     private func assetImage(for icon: GemNotificationIcon) -> AssetImage {
         switch icon {
         case let .emoji(glyph): AssetImage(type: .emoji(glyph))
-        case let .asset(assetId): AssetIdViewModel(assetId: Primitives.AssetId(core: assetId)).assetImage
+        case let .asset(_, icon): AssetImage(icon: icon)
         case let .image(url): AssetImage(imageURL: url.asURL)
         }
     }

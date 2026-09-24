@@ -34,8 +34,8 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
-import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.GemCurrencyStyle
+import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.priceRow
 
 private val trailingMinWidth = 40.dp
@@ -77,6 +77,7 @@ fun PerpetualItem(item: PerpetualDataAggregate, modifier: Modifier = Modifier, l
 fun PerpetualItem(item: PerpetualDataAggregate, modifier: Modifier = Modifier, listPosition: ListPosition = ListPosition.Single) {
     AssetListItem(
         asset = item.asset,
+        icon = item.icon,
         title = item.title,
         modifier = modifier,
         listPosition = listPosition,

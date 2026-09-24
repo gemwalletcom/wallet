@@ -710,6 +710,7 @@ fn tooltip_cell(row: GemCandleTooltipRow, value: GemFormattedNumber) -> GemCandl
 
 pub fn market_row(perpetual: &Perpetual, asset: &Asset) -> GemPerpetualMarketRow {
     GemPerpetualMarketRow {
+        icon: crate::services::assets::icon::asset_icon(&asset.id),
         asset_id: perpetual.asset_id.clone(),
         title: match perpetual.name.is_empty() {
             true => asset.symbol.clone(),
@@ -733,6 +734,7 @@ pub fn open_row(direction: PerpetualDirection, leverage: u8, size: f64) -> GemPe
 pub fn position_row(perpetual: &Perpetual, asset: &Asset, position: &PerpetualPosition) -> GemPerpetualPositionRow {
     let (pnl, pnl_tone) = pnl_text(position.pnl, position.margin_amount);
     GemPerpetualPositionRow {
+        icon: crate::services::assets::icon::asset_icon(&asset.id),
         id: position.id.clone(),
         asset_id: perpetual.asset_id.clone(),
         title: match asset.symbol.is_empty() {

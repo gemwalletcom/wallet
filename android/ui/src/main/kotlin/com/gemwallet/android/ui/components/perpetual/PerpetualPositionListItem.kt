@@ -31,5 +31,5 @@ fun GemPerpetualPositionRow.listItem(context: Context, hideBalance: Boolean = fa
     subtitleStyle = ListItemTextStyle.Body,
     subtitleExtra = pnl.string(context).hiddenWhen(hideBalance),
     subtitleExtraStyle = pnlTone.textStyle(),
-    image = assetId.toAssetId()?.let(ListItemImage::Asset),
+    image = ListItemImage.Asset(icon),
 )

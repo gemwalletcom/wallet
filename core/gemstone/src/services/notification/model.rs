@@ -3,7 +3,7 @@ use primitives::{AssetId, CoreListItemIcon, InAppNotification, UrlAction};
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemNotificationIcon {
     Emoji { glyph: String },
-    Asset { asset_id: AssetId },
+    Asset { asset_id: AssetId, icon: crate::services::assets::icon::GemAssetIcon },
     Image { url: String },
 }
 
@@ -47,7 +47,10 @@ pub fn notification_row(notification: InAppNotification) -> GemNotificationRow {
         is_unread: notification.read_at.is_none(),
         icon: notification.item.icon.map(|icon| match icon {
             CoreListItemIcon::Emoji(emoji) => GemNotificationIcon::Emoji { glyph: emoji.glyph().to_string() },
-            CoreListItemIcon::Asset(asset_id) => GemNotificationIcon::Asset { asset_id },
+            CoreListItemIcon::Asset(asset_id) => GemNotificationIcon::Asset {
+                icon: crate::services::assets::icon::asset_icon(&asset_id),
+                asset_id,
+            },
             CoreListItemIcon::Image(url) => GemNotificationIcon::Image { url },
         }),
     }
