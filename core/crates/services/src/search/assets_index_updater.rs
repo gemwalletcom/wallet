@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::time::Duration;
 
 use super::sync::{SearchSyncClient, SearchSyncResult};
 use crate::ConfigCacher;
@@ -11,22 +10,22 @@ use storage::{AssetTagLink, AssetWithMarket, AssetsUsageRanksRepository, AssetsW
 pub struct AssetsIndexUpdater {
     database: Database,
     sync_client: SearchSyncClient,
-    primary_price_max_age: Duration,
+    config: Arc<ConfigCacher>,
 }
 
 impl AssetsIndexUpdater {
-    pub fn new(database: Database, config: Arc<ConfigCacher>, search_index: &SearchIndexClient, primary_price_max_age: Duration) -> Self {
+    pub fn new(database: Database, config: Arc<ConfigCacher>, search_index: &SearchIndexClient) -> Self {
         Self {
-            sync_client: SearchSyncClient::new(config, search_index),
+            sync_client: SearchSyncClient::new(config.clone(), search_index),
             database,
-            primary_price_max_age,
+            config,
         }
     }
 
     pub async fn update(&self) -> Result<SearchSyncResult, Box<dyn std::error::Error + Send + Sync>> {
         let sync = self.sync_client.for_key(ConfigKey::SearchAssetsLastUpdatedAt).await?;
         let filters = sync.since().map(AssetsWithPricesFilter::UpdatedSince).into_iter().collect();
-        let primary_price_max_age = self.primary_price_max_age;
+        let primary_price_max_age = self.config.get_duration(ConfigKey::PricePrimaryMaxAge).await?;
         let assets = self.database.run(move |client| client.get_assets_markets(filters, primary_price_max_age)).await?;
 
         if assets.is_empty() {

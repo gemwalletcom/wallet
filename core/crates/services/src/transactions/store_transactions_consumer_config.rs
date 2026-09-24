@@ -1,10 +1,14 @@
+use std::error::Error;
 use std::time::Duration;
 
 use chrono::NaiveDateTime;
+use config_keys::ConfigKey;
 use number_formatter::BigNumberFormatter;
 use primitives::{Asset, Chain, Price, Transaction, TransactionState, TransactionType, transaction_metadata_types::TransactionAssetTransfersMetadata};
 use serde::Deserialize;
 use swapper::cross_chain::{self, SendAddressMap};
+
+use crate::config::ConfigCacher;
 
 pub struct StoreTransactionsConsumerConfig {
     pub swap_outdated_timeout: Duration,
@@ -16,6 +20,17 @@ pub struct StoreTransactionsConsumerConfig {
 }
 
 impl StoreTransactionsConsumerConfig {
+    pub async fn read(config: &ConfigCacher) -> Result<Self, Box<dyn Error + Send + Sync>> {
+        Ok(Self {
+            swap_outdated_timeout: config.get_duration(ConfigKey::TransactionSwapOutdatedTimeout).await?,
+            outdated_block_count: config.get_i64(ConfigKey::TransactionsOutdatedBlockCount).await? as u64,
+            outdated_min_timeout: config.get_duration(ConfigKey::TransactionsOutdatedMinTimeout).await?,
+            max_asset_transfer_count: config.get_usize(ConfigKey::TransactionsMaxAssetTransferCount).await?,
+            min_amount_usd: config.get_f64(ConfigKey::TransactionsMinAmountUsd).await?,
+            primary_price_max_age: config.get_duration(ConfigKey::PricePrimaryMaxAge).await?,
+        })
+    }
+
     pub fn is_transaction_outdated(&self, transaction_created_at: NaiveDateTime, chain: Chain, transaction_type: TransactionType) -> bool {
         let elapsed = (chrono::Utc::now().naive_utc() - transaction_created_at).to_std().unwrap_or_default();
         elapsed > self.outdated_timeout(chain, transaction_type)

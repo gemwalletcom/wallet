@@ -1,4 +1,6 @@
 use std::collections::HashSet;
+use std::sync::Arc;
+use std::time::Duration;
 use std::{collections::HashMap, error::Error};
 
 use async_trait::async_trait;
@@ -11,6 +13,7 @@ use swapper::cross_chain::{self, DepositAddressMap, SendAddressMap};
 use super::StoreTransactionsConsumerConfig;
 use super::SwapVaultAddressClient;
 use crate::assets::add_transaction_addresses;
+use crate::config::ConfigCacher;
 use crate::notifications::Pusher;
 
 const TRANSACTION_BATCH_SIZE: usize = 100;
@@ -21,7 +24,7 @@ pub struct StoreTransactionsConsumer {
     pub database: Database,
     pub stream_producer: StreamProducer,
     pub pusher: Pusher,
-    pub config: StoreTransactionsConsumerConfig,
+    pub config: Arc<ConfigCacher>,
     pub vault_client: SwapVaultAddressClient,
 }
 
@@ -32,16 +35,17 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
     }
 
     async fn process(&self, payload: TransactionsPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
+        let config = StoreTransactionsConsumerConfig::read(&self.config).await?;
         let chain = payload.chain;
         let is_notify_devices = payload.should_notify_devices();
         let deposit_addresses = self.vault_client.get_deposit_address_map().await?;
         let send_addresses = self.vault_client.get_send_address_map().await?;
         let transactions = Self::transactions_for_storage(payload.transactions, &deposit_addresses, &send_addresses)
             .into_iter()
-            .filter(|transaction| self.config.is_transaction_within_asset_transfer_limit(transaction))
+            .filter(|transaction| config.is_transaction_within_asset_transfer_limit(transaction))
             .collect::<Vec<_>>();
 
-        let min_amount = self.config.min_amount_usd;
+        let min_amount = config.min_amount_usd;
 
         let addresses: Vec<_> = transactions.iter().flat_map(|transaction| transaction.addresses()).collect::<HashSet<_>>().into_iter().collect();
         let subscriptions = self.database.run(move |client| client.get_subscriptions_by_chain_addresses(chain, addresses)).await?;
@@ -57,7 +61,7 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
             .into_iter()
             .collect();
 
-        let (existing_assets, missing_assets) = self.get_existing_and_missing_assets(asset_ids).await?;
+        let (existing_assets, missing_assets) = self.get_existing_and_missing_assets(asset_ids, config.primary_price_max_age).await?;
         let existing_assets_map: HashMap<AssetId, primitives::AssetPriceMetadata> = existing_assets.into_iter().map(|asset| (asset.asset.asset.id.clone(), asset)).collect();
 
         let _ = self.stream_producer.publish_fetch_assets(missing_assets).await;
@@ -82,7 +86,7 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
                 let transaction = transaction.finalize(vec![subscription.address.clone()]);
                 existing_assets_map
                     .get(&transaction.asset_id)
-                    .is_some_and(|asset_price| !self.config.is_transaction_insufficient_amount(&transaction, &asset_price.asset.asset, asset_price.price, min_amount))
+                    .is_some_and(|asset_price| !config.is_transaction_insufficient_amount(&transaction, &asset_price.asset.asset, asset_price.price, min_amount))
             })
             .collect::<Vec<_>>();
         let transactions_map = subscribed_transactions.iter().map(|(_, transaction)| (transaction.id.clone(), (*transaction).clone())).collect::<HashMap<_, _>>();
@@ -109,7 +113,7 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
             .iter()
             .flat_map(|subscription| {
                 publishable_transactions.iter().filter_map(|transaction| {
-                    if !transaction.addresses().contains(&subscription.address) || !self.config.should_notify_transaction(transaction, is_notify_devices, &send_addresses) {
+                    if !transaction.addresses().contains(&subscription.address) || !config.should_notify_transaction(transaction, is_notify_devices, &send_addresses) {
                         return None;
                     }
 
@@ -219,9 +223,8 @@ impl StoreTransactionsConsumer {
             && cross_chain::is_cross_chain_swap(transaction, deposit_addresses)
     }
 
-    async fn get_existing_and_missing_assets(&self, assets_ids: Vec<AssetId>) -> Result<(Vec<primitives::AssetPriceMetadata>, Vec<AssetId>), Box<dyn Error + Send + Sync>> {
+    async fn get_existing_and_missing_assets(&self, assets_ids: Vec<AssetId>, primary_price_max_age: Duration) -> Result<(Vec<primitives::AssetPriceMetadata>, Vec<AssetId>), Box<dyn Error + Send + Sync>> {
         let filters = vec![AssetFilter::Ids(assets_ids.clone().ids())];
-        let primary_price_max_age = self.config.primary_price_max_age;
         let assets_with_prices = self.database.run(move |client| client.get_assets_with_prices(filters, primary_price_max_age)).await?;
         let existing_ids = assets_with_prices.iter().map(|asset| asset.asset.asset.id.clone()).collect::<HashSet<_>>();
         let missing_assets = assets_ids.into_iter().filter(|asset_id| !existing_ids.contains(asset_id)).collect();

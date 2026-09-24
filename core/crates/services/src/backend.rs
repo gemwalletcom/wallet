@@ -14,7 +14,7 @@ use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use gem_jsonrpc::JsonRpcClient;
 use lists::CoinGeckoListProvider;
 use nft::NFTProviderConfig;
-use primitives::{AccessTokenCacher, Chain, ChainType, EVMChain, FiatProviderName, PriceConfig};
+use primitives::{AccessTokenCacher, Chain, ChainType, EVMChain, FiatProviderName};
 use pusher::PusherClient;
 use rewards::{AbuseIPDBClient, EvmClientProvider, IpApiClient, IpCheckProvider, TransferRedemptionService, WalletConfig};
 use search_index::{SearchIndexClient, SearchIndexConfig};
@@ -138,8 +138,8 @@ impl Services {
         PriceClient::new(self.database(), self.config(), cacher)
     }
 
-    pub fn charts(&self, config: PriceConfig) -> ChartClient {
-        ChartClient::new(self.database(), config)
+    pub fn charts(&self) -> ChartClient {
+        ChartClient::new(self.database(), self.config())
     }
 
     pub fn markets(&self, cacher: CacherClient) -> MarketsClient {
@@ -196,14 +196,8 @@ impl Services {
         ChainProviders::for_chain(chain, &self.settings, user_agent)
     }
 
-    pub async fn price_config(&self) -> Result<PriceConfig, Box<dyn Error + Send + Sync>> {
-        Ok(PriceConfig {
-            primary_price_max_age: self.config().get_duration(ConfigKey::PricePrimaryMaxAge).await?,
-        })
-    }
-
-    pub fn assets(&self, config: PriceConfig) -> AssetsClient {
-        AssetsClient::new(self.database(), config)
+    pub fn assets(&self) -> AssetsClient {
+        AssetsClient::new(self.database(), self.config())
     }
 
     pub async fn search(&self, price_client: PriceClient) -> Result<SearchClient, Box<dyn Error + Send + Sync>> {
@@ -234,8 +228,8 @@ impl Services {
         RewardsRedemptionClient::new(self.database(), self.config(), stream_producer)
     }
 
-    pub fn portfolio(&self, config: PriceConfig) -> PortfolioClient {
-        PortfolioClient::new(self.database(), config)
+    pub fn portfolio(&self) -> PortfolioClient {
+        PortfolioClient::new(self.database(), self.config())
     }
 
     pub fn transactions(&self) -> TransactionsClient {

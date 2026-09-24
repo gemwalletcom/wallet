@@ -1,15 +1,19 @@
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
 use std::error::Error;
+use std::sync::Arc;
 use std::time::Duration;
 
+use config_keys::ConfigKey;
 use number_formatter::BigNumberFormatter;
-use primitives::{ChartPeriod, ChartValue, ChartValuePercentage, PortfolioAllocation, PortfolioAsset, PortfolioAssets, PriceConfig};
+use primitives::{ChartPeriod, ChartValue, ChartValuePercentage, PortfolioAllocation, PortfolioAsset, PortfolioAssets};
 use storage::{AssetsRepository, ChartsRepository, Database, DatabaseClient, DatabaseError, PricesRepository};
+
+use crate::ConfigCacher;
 
 pub struct PortfolioClient {
     database: Database,
-    config: PriceConfig,
+    config: Arc<ConfigCacher>,
 }
 
 struct ResolvedAsset {
@@ -20,12 +24,12 @@ struct ResolvedAsset {
 }
 
 impl PortfolioClient {
-    pub fn new(database: Database, config: PriceConfig) -> Self {
+    pub fn new(database: Database, config: Arc<ConfigCacher>) -> Self {
         Self { database, config }
     }
 
     pub async fn get_portfolio_charts(&self, assets: Vec<PortfolioAsset>, period: ChartPeriod) -> Result<PortfolioAssets, Box<dyn Error + Send + Sync>> {
-        let primary_price_max_age = self.config.primary_price_max_age;
+        let primary_price_max_age = self.config.get_duration(ConfigKey::PricePrimaryMaxAge).await?;
         let (assets, chart_data) = self
             .database
             .run(move |client| -> Result<_, DatabaseError> {

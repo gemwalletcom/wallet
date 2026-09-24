@@ -174,10 +174,9 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
 
     let services = Services::new(Arc::new(settings.clone()))?;
     let cacher_client = services.cacher().await?;
-    let price_config = services.price_config().await?;
 
     let price_client = services.prices(cacher_client.clone());
-    let charts_client = services.charts(price_config);
+    let charts_client = services.charts();
     let config_client = services.app_config();
     let price_alert_client = services.price_alerts();
     let name_config = NameConfig {
@@ -188,7 +187,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let user_agent = settings::service_user_agent("api", None);
     let chain_client = services.chain(&user_agent);
     let nodes_status_client = services.nodes_status();
-    let portfolio_client = services.portfolio(price_config);
+    let portfolio_client = services.portfolio();
     let endpoints = ProviderFactory::get_chain_endpoints(&settings);
     let native_provider = Arc::new(swapper::NativeProvider::new_with_endpoints(endpoints));
     let swapper = GemSwapper::new(native_provider.clone());
@@ -203,7 +202,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let metrics = Arc::new(metrics::Metrics::new(&providers));
     let scan_client = services.scan(providers, cacher_client.clone(), metrics.clone()).await?;
     let wallet_configuration_client = services.wallet_configuration(cacher_client.clone(), &user_agent);
-    let assets_client = services.assets(price_config);
+    let assets_client = services.assets();
     let search_client = services.search(price_client.clone()).await?;
     let fee_estimates_client = services.fee_estimates(assets_client.clone(), price_client.clone(), cacher_client.clone(), &user_agent);
     let swap_client = services.swap();

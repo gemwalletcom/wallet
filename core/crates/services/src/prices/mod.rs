@@ -36,4 +36,4 @@ pub use prices_cleanup_updater::PricesCleanupUpdater;
 pub use prices_metrics_updater::PricesMetricsUpdater;
 pub use prices_updater::PricesUpdater;
 use std::sync::Arc;
-pub use store_prices_consumer::{StorePricesConsumer, StorePricesConsumerConfig};
+pub use store_prices_consumer::StorePricesConsumer;

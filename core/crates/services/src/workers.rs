@@ -1,6 +1,5 @@
 use std::error::Error;
 use std::sync::Arc;
-use std::time::Duration;
 
 use cacher::CacherClient;
 use chain_providers::{ChainProviders, ProviderFactory};
@@ -242,12 +241,11 @@ pub struct SearchJobs {
     database: Database,
     config: Arc<ConfigCacher>,
     search_index: SearchIndexClient,
-    primary_price_max_age: Duration,
 }
 
 impl SearchJobs {
     pub fn assets_index_updater(&self) -> AssetsIndexUpdater {
-        AssetsIndexUpdater::new(self.database.clone(), self.config.clone(), &self.search_index, self.primary_price_max_age)
+        AssetsIndexUpdater::new(self.database.clone(), self.config.clone(), &self.search_index)
     }
 
     pub fn asset_lists_index_updater(&self) -> AssetListsIndexUpdater {
@@ -403,7 +401,6 @@ impl Services {
         Ok(SearchJobs {
             database: self.database(),
             search_index: self.search_index().await?,
-            primary_price_max_age: config.get_duration(ConfigKey::PricePrimaryMaxAge).await?,
             config,
         })
     }
