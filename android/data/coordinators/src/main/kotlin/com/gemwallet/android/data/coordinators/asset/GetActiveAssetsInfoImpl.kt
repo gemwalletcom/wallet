@@ -4,7 +4,7 @@ import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
+import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
 import com.gemwallet.android.model.AssetInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -41,7 +41,7 @@ internal class AssetRows(private val style: GemAssetRowStyle) {
         val presentation = Presentation(hideBalance = hideBalance, locale = Locale.getDefault())
         val reused = if (presentation == this.presentation) previous else emptyMap()
         val missing = items.filterNot(reused::containsKey).distinct()
-        val built = missing.associateWith { it.toAssetInfoDataAggregate(style = style, hideBalance = hideBalance) }
+        val built = missing.zip(missing.toAssetInfoDataAggregates(style = style, hideBalance = hideBalance)).toMap()
         val aggregates = items.map { reused[it] ?: built.getValue(it) }
         this.presentation = presentation
         previous = items.zip(aggregates).toMap()

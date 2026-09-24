@@ -98,12 +98,9 @@ public struct SelectAssetScene: View {
     }
 
     func assetsList(assets: [AssetData]) -> some View {
-        ForEach(assets) { assetData in
-            let itemView = ListAssetItemSelectionView(
-                assetData: model.displayAssetData(assetData),
-                itemsModel: model.assetItems,
-                action: model.onAssetAction,
-            )
+        let items = model.assetItems.items(assets.map(model.displayAssetData), action: model.onAssetAction)
+        return ForEach(Array(zip(assets, items)), id: \.0.id) { assetData, item in
+            let itemView = ListAssetItemView(model: item)
             switch model.flow.rowAction {
             case .navigate:
                 NavigationCustomLink(with: itemView) {

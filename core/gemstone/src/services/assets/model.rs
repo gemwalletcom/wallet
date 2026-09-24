@@ -148,6 +148,11 @@ pub fn asset_list_row(input: GemAssetListRowInput) -> GemAssetListRow {
     super::rules::asset_list_row(input)
 }
 
+#[uniffi::export]
+pub fn asset_list_rows(inputs: Vec<GemAssetListRowInput>) -> Vec<GemAssetListRow> {
+    inputs.into_iter().map(super::rules::asset_list_row).collect()
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
 pub struct GemAssetRowStyle {
     pub title: GemAssetTitleStyle,

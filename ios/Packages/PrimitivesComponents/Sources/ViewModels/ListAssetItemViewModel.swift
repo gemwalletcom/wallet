@@ -26,22 +26,40 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
         showBalancePrivacy: Binding<Bool>,
         assetDataModel: AssetDataViewModel,
         rowStyle: GemAssetRowStyle,
+        row: GemAssetListRow,
         action: ((ListAssetItemAction) -> Void)? = nil,
     ) {
         self.showBalancePrivacy = showBalancePrivacy
         self.assetDataModel = assetDataModel
         self.rowStyle = rowStyle
+        self.row = row
         self.action = action
-        row = assetListRow(
-            input: GemAssetListRowInput(
-                asset: assetDataModel.asset.toGem(),
-                balance: GemAssetBalance(assetDataModel.assetData.balance, assetId: assetDataModel.asset.id, isActive: assetDataModel.assetData.metadata.isActive),
-                scope: .total,
-                price: assetDataModel.assetData.price?.price,
-                change: assetDataModel.assetData.price?.priceChangePercentage24h,
-                currency: assetDataModel.currency.toGem(),
-                style: rowStyle,
-            ),
+    }
+
+    public init(
+        showBalancePrivacy: Binding<Bool>,
+        assetDataModel: AssetDataViewModel,
+        rowStyle: GemAssetRowStyle,
+        action: ((ListAssetItemAction) -> Void)? = nil,
+    ) {
+        self.init(
+            showBalancePrivacy: showBalancePrivacy,
+            assetDataModel: assetDataModel,
+            rowStyle: rowStyle,
+            row: assetListRow(input: Self.rowInput(assetDataModel, rowStyle: rowStyle)),
+            action: action,
+        )
+    }
+
+    static func rowInput(_ assetDataModel: AssetDataViewModel, rowStyle: GemAssetRowStyle) -> GemAssetListRowInput {
+        GemAssetListRowInput(
+            asset: assetDataModel.asset.toGem(),
+            balance: GemAssetBalance(assetDataModel.assetData.balance, assetId: assetDataModel.asset.id, isActive: assetDataModel.assetData.metadata.isActive),
+            scope: .total,
+            price: assetDataModel.assetData.price?.price,
+            change: assetDataModel.assetData.price?.priceChangePercentage24h,
+            currency: assetDataModel.currency.toGem(),
+            style: rowStyle,
         )
     }
 

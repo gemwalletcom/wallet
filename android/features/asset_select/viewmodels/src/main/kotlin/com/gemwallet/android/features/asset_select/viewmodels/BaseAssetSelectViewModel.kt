@@ -10,7 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
+import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
 import com.gemwallet.android.domains.asset.assetSections
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.requireChain
@@ -131,9 +131,9 @@ open class BaseAssetSelectViewModel(
         items
             .map { item ->
                 val owner = item.owner ?: wallet?.getAccount(item.asset.id.chain)
-                val assetInfo = if (item.owner == owner) item else item.copy(owner = owner)
-                assetInfo.toAssetInfoDataAggregate(flow.rowStyle)
+                if (item.owner == owner) item else item.copy(owner = owner)
             }
+            .toAssetInfoDataAggregates(flow.rowStyle)
     }
         .flowOn(ioDispatcher)
         .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
