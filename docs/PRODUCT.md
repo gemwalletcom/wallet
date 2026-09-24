@@ -8,7 +8,7 @@ Every section has the same parts: what the user gets, how it works, the rules wi
 
 ## Principles
 
-**Secure.** The user always sees what they are about to sign: amount, recipient, network and fee. Nothing is signed or sent without that screen. Secret phrases and keys stay in the platform's secure storage and never reach a log, a screenshot or an unprotected clipboard. When something security-related is missing or unsupported, the wallet refuses instead of guessing. Details are in [Security](../skills/security.md).
+**Secure.** The user always sees what they are about to sign: amount, recipient, network and fee. Nothing is signed or sent without that screen. Secret Phrases and private keys stay in the platform's secure storage and never reach a log, a screenshot or an unprotected clipboard. When something security-related is missing or unsupported, the wallet refuses instead of guessing. Details are in [Security](../skills/security.md).
 
 **Fast.** Whatever is already stored shows at once, and a refresh replaces it in place; the screen never goes blank while loading. Independent requests start together and none waits for a slower one. A source that fails keeps what was on screen and never hides the sources that answered. Budgets are in [Performance](PERFORMANCE.md).
 
@@ -18,65 +18,65 @@ Every section has the same parts: what the user gets, how it works, the rules wi
 
 ## Create wallet
 
-**What the user gets.** Tap "Create a New Wallet", accept the terms once, read the security reminder, see a fresh 12-word phrase, prove you saved it by tapping the words back in order, and land on the wallet screen with the new wallet current and named "Wallet #N". A wrong tap in the test changes nothing and reveals nothing. The phrase never leaves the device.
+**What the user gets.** Tap "Create a New Wallet", accept the terms once, read the security reminder, see a new 12-word Secret Phrase, verify it by tapping the words back in order, and land on the wallet screen with the new wallet current and named "Wallet #N". A wrong tap during verification changes nothing and reveals nothing. The Secret Phrase never leaves the device.
 
 **How it works.**
 
-1. Terms: three items (self custody, recovery, responsibility). "Agree and Continue" enables when all three are ticked. Asked once per install.
+1. Accept Terms: three items (self custody, recovery, responsibility). "Agree and Continue" enables when all three are ticked. Asked once per install.
 2. Security reminder: "Store It Somewhere Safe", "Do Not Share It With Anyone", "We Can't Help You Recover It". Shown on every create.
-3. Phrase: 12 English words from the system's random source, shown in two numbered columns with a Copy button.
-4. Quick test: the words are shuffled inside groups of four and the user taps them back in order. Only the correct next word is accepted. Continue enables when every word is placed.
-5. Store: one Core call stores the wallet, names it and makes it current. The wallet screen replaces onboarding. On iOS the app then asks for push permission if the system has not decided yet.
+3. Secret Phrase (the "New Wallet" screen): 12 English words from the system's random source, shown in two numbered columns with a Copy button.
+4. Secret Phrase verification (the "Confirm" screen): the words are shuffled inside groups of four and the user taps them back in order. Only the correct next word is accepted. Continue enables when every word is placed.
+5. Wallet created: one Core call creates the wallet, names it and makes it current. The wallet screen replaces onboarding. On iOS the app then asks for push permission if the system has not decided yet.
 
 ```mermaid
 flowchart LR
-    A[Terms] --> B[Security reminder] --> C[New phrase] --> D[Quick test] --> E[Wallet stored] --> F[Wallet screen]
+    A[Accept Terms] --> B[Security reminder] --> C[Secret Phrase] --> D[Secret Phrase verification] --> E[Wallet created] --> F[Wallet screen]
 ```
 
 **Rules.**
 
 - All three terms must be ticked, and they are asked once per install, because they bind the person, not the wallet.
-- The security reminder shows on every create, because the phrase is the only way to recover the wallet and the user must hear it before seeing it.
-- Every visit generates a new random 12-word phrase. A phrase is never reused or predictable.
-- A copied phrase is a sensitive clipboard value that expires after one minute, because other apps read the clipboard.
-- The test shuffles only inside groups of four, accepts only the next word, and never hints which word is next.
-- Storing, naming and making the wallet current is one step. A blank name is refused.
+- The security reminder shows on every create, because the Secret Phrase is the only way to recover the wallet and the user must hear it before seeing it.
+- Every visit generates a new random 12-word Secret Phrase. It is never reused or predictable.
+- A copied Secret Phrase is a sensitive clipboard value that expires after one minute, because other apps read the clipboard.
+- Verification shuffles only inside groups of four, accepts only the next word, and never hints which word is next.
+- Creating, naming and making the wallet current is one step. A blank name is refused.
 - The keystore password is created once, while the keystore is empty, and the user never types it.
 - If the wallet record cannot be stored, the secret just written is deleted, so a retry starts clean.
-- Nothing about the phrase is ever written to a log.
+- The Secret Phrase is never written to a log.
 
 **If something fails.**
 
 | Step | What the user sees | What is stored |
 | --- | --- | --- |
-| Phrase generation fails | An error; the reminder screen stays | Nothing |
-| Keystore prompt cancelled (iOS) | Back on the test screen, no error | Nothing |
+| Secret Phrase generation fails | An error; the reminder screen stays | Nothing |
+| Keystore prompt cancelled (iOS) | Back on the Confirm screen, no error | Nothing |
 | Keystore or wallet write fails | An error; the user can retry | Nothing |
 | A setup step fails after the wallet is current (assets, banners, balances) | The wallet screen shows anyway | The wallet; the step is logged |
 
 **Platform differences.**
 
-- Android blocks screenshots and recording on the phrase screens. iOS cannot block, so it detects a screenshot, warns, and hides the content during recording.
+- Android blocks screenshots and recording on the Secret Phrase screens. iOS cannot block, so it detects a screenshot, warns, and hides the content during recording.
 - Android keeps the system splash until the wallet is ready. iOS shows the tabs on the first frame that has a wallet.
 - Storing a further wallet on iOS may ask for Face ID, because the iOS keystore can be protected by biometrics. Android reads it without a prompt.
-- On Android an uninstall wipes the keys, so reinstalling without the phrase loses the wallet. On iOS the Keychain survives removal. Support must never suggest a reinstall.
+- On Android an uninstall wipes the keys, so reinstalling without the Secret Phrase loses the wallet. On iOS the Keychain survives removal. Support must never suggest a reinstall.
 
 **Open questions.**
 
 - Android skips the terms check when create or import starts from the wallets list; iOS checks at every entry. Which is intended?
-- A wrong tap in the test shakes the chip red on Android and does nothing visible on iOS. Which is intended?
-- On Android a failure after the quick test shows no message on that screen. Where should it show?
+- A wrong tap during verification shakes the chip red on Android and does nothing visible on iOS. Which is intended?
+- On Android a failure after verification shows no message on that screen. Where should it show?
 - When exactly to ask for push permission is D75 in [TODO.md](TODO.md#decisions-to-make).
 
 ## Import wallet
 
-**What the user gets.** Pick Multi-Coin or one network, then type, paste or (on iOS) scan a secret phrase, a private key or an address. The wallet is validated, stored, named and made current in one step. While typing a phrase, word suggestions follow the cursor. Invalid input is refused with a message that names the problem. Importing a wallet that already exists is not an error: the app names it and opens it. A watch wallet (an address) shows balances and history but cannot send.
+**What the user gets.** Pick Multi-Coin or one network, then type, paste or (on iOS) scan a Secret Phrase, a private key or an address. The wallet is validated, stored, named and made current in one step. While typing a Secret Phrase, word suggestions follow the cursor. Invalid input is refused with a message that names the problem. Importing a wallet that already exists is not an error: the app names it and opens it. A watch-only wallet (an address) shows balances and history but cannot send.
 
 **How it works.**
 
-1. Type picker: Multi-Coin first, then every network by rank, with a search field.
-2. Kinds: Multi-Coin offers only a phrase. A network offers a phrase, a private key where the network supports one, and an address.
-3. Input: no autocorrect. Pasting a phrase or a key clears the clipboard afterwards; pasting an address does not. An address can be typed as a name and is resolved while typing.
+1. Import Wallet screen: Multi-Coin first, then every network by rank, with a search field.
+2. Import types: Multi-Coin offers only a Secret Phrase. A network offers a Secret Phrase, a private key where the network supports one, and an address.
+3. Input: no autocorrect. Pasting a Secret Phrase or a private key clears the clipboard afterwards; pasting an address does not. An address can be typed as a name and is resolved while typing.
 4. Import: Core validates the input, derives the wallet id, and if that wallet already exists returns it and makes it current. Otherwise it writes the secret to the keystore (never for an address), stores the wallet with its address names, and makes it current.
 5. Multi-coin wallets automatically gain the networks that later app versions add.
 
@@ -99,21 +99,21 @@ sequenceDiagram
 
 **Rules.**
 
-- Multi-Coin accepts only a phrase. A private key is offered only where the network can use one.
-- Word suggestions appear only for a phrase, follow the word at the cursor, and never repeat the word already typed.
-- Changing the kind clears the input, so a phrase never lingers in a key field.
-- The clipboard is cleared after pasting a phrase or a key, never after pasting an address.
-- A phrase is lowercased and split on whitespace. Unknown words are named in the error ("Invalid Secret Phrase word: …"); a bad checksum says "Invalid Secret Phrase".
-- A key or an address is validated for its network before anything is stored.
+- Multi-Coin accepts only a Secret Phrase. A private key is offered only where the network can use one.
+- Word suggestions appear only for a Secret Phrase, follow the word at the cursor, and never repeat the word already typed.
+- Changing the import type clears the input, so a Secret Phrase never lingers in the private key field.
+- The clipboard is cleared after pasting a Secret Phrase or a private key, never after pasting an address.
+- A Secret Phrase is lowercased and split on whitespace. Unknown words are named in the error ("Invalid Secret Phrase word: …"); a bad checksum says "Invalid Secret Phrase".
+- A private key or an address is validated for its network before anything is stored.
 - The same secret imported as a different wallet type (multi-coin, single network, watch) is a different wallet, not a duplicate.
-- A watch wallet never touches the keystore and never offers a secret to export.
+- A watch-only wallet never touches the keystore and never offers a secret to export.
 - The naming, password, cleanup and logging rules of Create wallet apply, because both share one store path.
 
 **If something fails.**
 
 | Step | What the user sees | What is stored |
 | --- | --- | --- |
-| Invalid phrase, key or address | The message naming the problem | Nothing |
+| Invalid Secret Phrase, private key or address | The message naming the problem | Nothing |
 | Name resolution is pending or fails | The typed text is validated as an address | As validated |
 | Wallet already exists | A sheet with its name and "This wallet has already been imported."; Continue opens it | Nothing new; it becomes current |
 | Keystore or wallet write fails | An error; the user can retry | Nothing; a new keystore file is deleted |
@@ -121,12 +121,12 @@ sequenceDiagram
 **Platform differences.**
 
 - iOS offers a QR scan for a single-network import; Android has no scan on this screen. No reason is recorded.
-- Android colors invalid phrase words while typing; iOS shows the error after Import. No reason is recorded.
+- Android colors invalid Secret Phrase words while typing; iOS shows the error after Import. No reason is recorded.
 - iOS shows import errors in an alert; Android shows them under the field. Each follows its platform's form style.
 
 **Open questions.**
 
-- Should both apps paste the same way? Android adds a trailing space after a pasted phrase; iOS trims it (VM126 in [TODO.md](TODO.md)).
+- Should both apps paste the same way? Android adds a trailing space after a pasted Secret Phrase; iOS trims it (VM126 in [TODO.md](TODO.md)).
 - Should iOS highlight invalid words while typing, or should Android stop (VM92)?
 - Should Android get the QR scan?
 - When an import finds an existing wallet, it is already made current before the sheet shows. On Android, backing out of the sheet leaves the wallet switched. Intended?
@@ -137,7 +137,7 @@ Both flows end on the wallet screen. They differ only in what the network is ask
 
 ```mermaid
 flowchart TD
-    A[Create or import] --> B[Wallet stored and made current]
+    A[Create or import] --> B[Wallet created or imported, set as current]
     B --> C[Wallet screen opens from the store]
     C --> D{Created here?}
     D -- yes --> E[No network requests]
