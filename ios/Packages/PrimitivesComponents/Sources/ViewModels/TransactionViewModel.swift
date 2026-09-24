@@ -146,10 +146,6 @@ public struct TransactionViewModel: Sendable, Identifiable, Equatable {
         row.equivalentValue.textValue(textStyle: .footnote)
     }
 
-    private var assetId: AssetId {
-        row.asset.toPrimitives().id
-    }
-
     private func participantTitle(prefix: String, participant: String) -> String? {
         guard participant.isNotEmpty else { return nil }
         return String(format: "%@ %@", prefix, participant)

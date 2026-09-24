@@ -4,7 +4,6 @@ import Foundation
 import class Gemstone.GemAmountService
 import class Gemstone.GemApiClient
 import class Gemstone.GemAppUpdateService
-import class Gemstone.GemAssetConfigService
 import class Gemstone.GemAssetDiscoveryService
 import class Gemstone.GemAssetsService
 import class Gemstone.GemAvatarService
@@ -41,7 +40,6 @@ import class Gemstone.GemStreamSubscriptionService
 import protocol Gemstone.GemSupportServiceProtocol
 import class Gemstone.GemSwapService
 import class Gemstone.GemTransactionsService
-import class Gemstone.GemTransactionStateService
 import class Gemstone.GemWalletConnectService
 import class Gemstone.GemWalletPreferencesService
 import class Gemstone.GemWalletService
@@ -55,7 +53,6 @@ import SwiftUI
 
 public struct ViewModelFactory: Sendable {
     let apiClient: GemApiClient
-    let assetConfig: GemAssetConfigService
     let assetDiscoveryService: GemAssetDiscoveryService
     let assetsService: GemAssetsService
     let avatarService: GemAvatarService
@@ -84,7 +81,6 @@ public struct ViewModelFactory: Sendable {
     let stakeService: GemStakeService
     let streamSubscriptionService: GemStreamSubscriptionService
     let swapService: GemSwapService
-    let transactionStateService: GemTransactionStateService
     let transactionsService: GemTransactionsService
     let walletService: GemWalletService
     let walletSessionService: GemWalletSessionService

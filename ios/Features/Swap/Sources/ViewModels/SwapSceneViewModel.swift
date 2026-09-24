@@ -71,7 +71,7 @@ public final class SwapSceneViewModel {
         viewState.quote
     }
 
-    var amountInputModel: InputValidationViewModel = .init(mode: .onDemand)
+    var amountInputModel = InputValidationViewModel()
     var toValue: String = ""
     var loadTrigger: SwapLoadTrigger?
 
@@ -219,7 +219,6 @@ public final class SwapSceneViewModel {
                 AssetDataViewModel(
                     assetData: assetData,
                     currency: service.currency,
-                    currencyFormatterType: .currency,
                 ),
             ),
             interaction: interaction,

@@ -45,16 +45,8 @@ public final class SecurityViewModel {
         Localized.Settings.security
     }
 
-    var errorTitle: String {
-        Localized.Errors.errorOccurred
-    }
-
     var lockPeriodTitle: String {
         Localized.Lock.requireAuthentication
-    }
-
-    var lockPeriod: GemLockPeriod {
-        storedLockPeriod
     }
 
     var allLockPeriods: [GemLockPeriod] {

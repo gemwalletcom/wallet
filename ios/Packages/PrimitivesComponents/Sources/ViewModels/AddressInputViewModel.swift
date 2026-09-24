@@ -34,10 +34,7 @@ public final class AddressInputViewModel {
         self.placeholder = placeholder
         nameRecordViewModel = NameRecordViewModel(nameService: nameService)
         self.nameService = nameService
-        inputModel = InputValidationViewModel(
-            mode: .manual,
-            validators: Self.validators(placeholder: placeholder),
-        )
+        inputModel = InputValidationViewModel()
     }
 
     public var text: String {
@@ -61,13 +58,9 @@ public final class AddressInputViewModel {
         nameService.validateRecipient(chain: chain.rawValue, input: text, state: nameResolveState)
     }
 
-    @discardableResult
-    public func update() -> Bool {
-        inputModel.update()
-    }
-
     public func update(text: String) {
-        inputModel.update(text: text)
+        self.text = text
+        update(error: nil)
     }
 
     public func update(error: (any Error)?) {
@@ -77,7 +70,8 @@ public final class AddressInputViewModel {
     @discardableResult
     public func validate() -> Bool {
         guard text.isNotEmpty else {
-            return update()
+            update(error: nil)
+            return true
         }
         let validation = self.validation
         update(error: validation.error)
@@ -111,22 +105,12 @@ extension AddressInputViewModel {
 extension AddressInputViewModel {
     private func onChangeChain() {
         nameRecordViewModel.reset()
-        let currentText = text
+        update(error: nil)
 
-        inputModel = InputValidationViewModel(
-            mode: .manual,
-            validators: Self.validators(placeholder: placeholder),
-        )
-        text = currentText
-
-        if nameRecordViewModel.isNameSupported(name: currentText) {
-            nameRecordViewModel.getNameRecord(name: currentText, chain: chain)
-        } else if currentText.isNotEmpty {
+        if nameRecordViewModel.isNameSupported(name: text) {
+            nameRecordViewModel.getNameRecord(name: text, chain: chain)
+        } else if text.isNotEmpty {
             validate()
         }
-    }
-
-    private static func validators(placeholder _: String) -> [any TextValidator] {
-        []
     }
 }

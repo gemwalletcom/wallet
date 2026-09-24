@@ -13,8 +13,6 @@ import Style
 public struct AddressListItemViewModel {
     public enum Mode {
         case auto(addressStyle: GemAddressFormatStyle)
-        case address(addressStyle: GemAddressFormatStyle)
-        case nameOrAddress
         case text(String)
     }
 
@@ -44,8 +42,6 @@ public struct AddressListItemViewModel {
     public var subtitle: String {
         switch mode {
         case let .auto(style): auto(for: style)
-        case let .address(style): address(for: style)
-        case .nameOrAddress: account.name ?? account.address
         case let .text(text): text
         }
     }

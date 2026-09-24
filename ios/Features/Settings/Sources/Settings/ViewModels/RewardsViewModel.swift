@@ -68,28 +68,12 @@ public final class RewardsViewModel: Sendable {
         Localized.Rewards.title
     }
 
-    var referralCountTitle: String {
-        Localized.Rewards.referrals
-    }
-
-    var pointsTitle: String {
-        Localized.Rewards.points
-    }
-
     var errorTitle: String {
         Localized.Errors.errorOccurred
     }
 
-    var invitedByTitle: String {
-        Localized.Rewards.invitedBy
-    }
-
     var createCodeButtonTitle: String {
         Localized.Common.getStarted
-    }
-
-    var myReferralCodeTitle: String {
-        Localized.Rewards.myReferralCode
     }
 
     var createCodeTitle: String {
@@ -106,10 +90,6 @@ public final class RewardsViewModel: Sendable {
 
     var activateCodeFooterDescription: String {
         Localized.Rewards.ActivateReferralCode.description
-    }
-
-    var statsSectionTitle: String {
-        Localized.Common.info
     }
 
     var showsWalletSelector: Bool {
@@ -139,10 +119,6 @@ public final class RewardsViewModel: Sendable {
         viewState.rewards
     }
 
-    var referralCode: String? {
-        rewardsState.referralCode
-    }
-
     var sections: [ListSection<GemListSectionRow>] {
         rewardsState.sections.listSections
     }
@@ -156,10 +132,6 @@ public final class RewardsViewModel: Sendable {
             guard case let .activatePendingReferral(code, isEnabled) = action else { return nil }
             return (code, isEnabled)
         }.first
-    }
-
-    var invitedBy: String? {
-        rewardsState.usedReferralCode
     }
 
     var pendingReferralButtonTitle: String {

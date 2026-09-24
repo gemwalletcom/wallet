@@ -57,10 +57,7 @@ final class ImportWalletSceneViewModel {
         self.service = service
         self.preferences = preferences
         self.type = type
-        importScreen = switch type {
-        case .multicoin: service.importScreen(chain: nil)
-        case let .chain(chain): service.importScreen(chain: chain.toGem())
-        }
+        importScreen = service.importScreen(chain: type.chain?.toGem())
         self.onComplete = onComplete
         nameRecordViewModel = NameRecordViewModel(nameService: nameService)
     }
@@ -97,13 +94,6 @@ final class ImportWalletSceneViewModel {
         Localized.Errors.validation("")
     }
 
-    var chain: Chain? {
-        switch type {
-        case .multicoin: .none
-        case let .chain(chain): chain
-        }
-    }
-
     var showImportTypes: Bool {
         importScreen.showsKinds
     }
@@ -133,7 +123,7 @@ final class ImportWalletSceneViewModel {
 
 extension ImportWalletSceneViewModel {
     func onChangeInput(_: String, newValue: String) {
-        if showsNameRecord, let chain {
+        if showsNameRecord, let chain = type.chain {
             nameRecordViewModel.getNameRecord(name: newValue, chain: chain)
         } else {
             nameRecordViewModel.reset()
@@ -189,7 +179,7 @@ extension ImportWalletSceneViewModel {
     private func importWallet() async throws {
         let result = try await service.importWallet(
             kind: importType,
-            chain: chain,
+            chain: type.chain,
             input: input,
             nameRecord: showsNameRecord ? nameRecordViewModel.state.record() : nil,
             source: .import,

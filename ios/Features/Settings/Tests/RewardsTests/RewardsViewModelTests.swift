@@ -45,7 +45,7 @@ struct RewardsViewModelTests {
         await model.refresh()
 
         #expect(service.rewardsCalls == [first.id.id])
-        #expect(model.referralCode == "test123")
+        #expect(model.rewardsState.referralCode == "test123")
         #expect(model.referralLink == "https://gemwallet.com/join?code=test123")
     }
 
@@ -61,7 +61,7 @@ struct RewardsViewModelTests {
             Issue.record("a failed load must not read as a wallet without a code")
             return
         }
-        #expect(model.referralCode == nil)
+        #expect(model.rewardsState.referralCode == nil)
         #expect(model.shareText == nil)
     }
 

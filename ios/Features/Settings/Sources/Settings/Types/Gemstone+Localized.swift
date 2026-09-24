@@ -5,7 +5,6 @@ import enum Gemstone.GemLockPeriod
 import enum Gemstone.GemNodeCheckRow
 import enum Gemstone.GemNodeSubtitle
 import GemstonePrimitives
-import enum GemstoneServices.KeystoreAuthentication
 import Localization
 import Primitives
 
@@ -49,20 +48,6 @@ extension GemNodeSubtitle {
     var text: String {
         switch self {
         case let .latestBlock(value): text(latestBlockLabel: title, latestBlockValue: value?.text())
-        }
-    }
-}
-
-extension KeystoreAuthentication {
-    var enableTitle: String {
-        switch self {
-        case .biometrics:
-            if let name = KeystoreAuthentication.availableBiometryName {
-                Localized.Settings.enableValue(name)
-            } else {
-                Localized.Settings.enablePasscode
-            }
-        case .passcode, .none: Localized.Settings.enablePasscode
         }
     }
 }

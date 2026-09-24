@@ -1,12 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Foundation
 import class Gemstone.GemAssetConfigService
 import enum Gemstone.GemConfirmError
 import struct Gemstone.GemSimulationBalanceChange
 import struct Gemstone.GemSimulationPayloadRow
-import struct Gemstone.GemSimulationValue
 import enum Gemstone.GemSubmitResult
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
@@ -59,32 +57,6 @@ struct ConfirmSubmissionTests {
         }
 
         #expect(reported.values == ["hash-1"])
-    }
-
-    @Test
-    func simulationStateMapsTheHeader() async {
-        let usdt = Asset.mockEthereumUSDT()
-        let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
-            simulation: .mock(header: GemSimulationValue(asset: usdt.toGem(), value: .exact(value: 1_000_000))),
-        )))
-        await model.load()
-
-        let state = model.state.simulation
-
-        #expect(state.headerData == GemSimulationValue(asset: usdt.toGem(), value: .exact(value: BigUInt(1_000_000))))
-        #expect(state.payload.primaryFields.isEmpty)
-        #expect(state.payload.secondaryFields.isEmpty)
-    }
-
-    @Test
-    func simulationStateMapsAnUnlimitedHeader() async {
-        let usdt = Asset.mockEthereumUSDT()
-        let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
-            simulation: .mock(header: GemSimulationValue(asset: usdt.toGem(), value: .unlimited)),
-        )))
-        await model.load()
-
-        #expect(model.state.simulation.headerData == GemSimulationValue(asset: usdt.toGem(), value: .unlimited))
     }
 
     @Test

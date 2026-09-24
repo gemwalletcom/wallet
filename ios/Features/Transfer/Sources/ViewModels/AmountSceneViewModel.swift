@@ -58,7 +58,7 @@ public final class AmountSceneViewModel {
         provider = .make(from: input, service: service, stakeService: stakeService)
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: input.asset.id), initialValue: .with(asset: input.asset))
         entry = provider.entry(from: assetQuery.value, inputType: .asset, text: .empty, currency: currency)
-        amountInputModel = InputValidationViewModel(mode: .manual)
+        amountInputModel = InputValidationViewModel()
 
         if let amount = provider.prefilledAmount {
             amountInputModel.text = amount

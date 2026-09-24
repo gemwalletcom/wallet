@@ -120,7 +120,6 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     }
 
     var homeState: WalletHomeState {
-        let currency = observablePreferences.currency
         let viewState = service.viewState(
             wallet: wallet,
             balances: fiatValuesQuery.value,
@@ -135,7 +134,6 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
                 pnlTone: viewState.pnlTone,
                 actions: viewState.headerActions,
             ),
-            currency: currency,
             showPerpetuals: viewState.showsPerpetuals,
             showCollections: viewState.showCollections,
             visibleBanners: viewState.visibleBanners,

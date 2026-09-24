@@ -30,7 +30,6 @@ public final class SwapDetailsViewModel {
     private let slippagePercent: Double?
     private let rate: GemSwapRate?
     private var isRateInverse = false
-    private let priceViewModel: PriceViewModel
     private let currency: String
     let allowSelectProvider: Bool
     private let minReceiveValue: BigInt
@@ -55,7 +54,6 @@ public final class SwapDetailsViewModel {
         selectedQuote = summary.quote
         self.slippagePercent = slippagePercent
         rate = summary.rate
-        priceViewModel = PriceViewModel(price: toAssetPrice.price, currencyCode: currency)
         self.currency = currency
         self.allowSelectProvider = allowSelectProvider
         minReceiveValue = BigInt(summary.minReceiveValue)

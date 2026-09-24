@@ -19,7 +19,7 @@ final class AddNodeSceneViewModel {
 
     let chain: Chain
 
-    var urlInputModel = InputValidationViewModel(mode: .onDemand)
+    var urlInputModel = InputValidationViewModel()
     private var session: GemAddNodeSession
     var isPresentingScanner: Bool = false
     var isPresentingAlertMessage: AlertMessage?

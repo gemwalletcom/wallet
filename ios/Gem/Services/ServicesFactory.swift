@@ -352,7 +352,6 @@ struct ServicesFactory {
         )
         let viewModelFactory = ViewModelFactory(
             apiClient: apiClient,
-            assetConfig: Gemstone.GemAssetConfigService(),
             assetDiscoveryService: assetDiscoveryService,
             assetsService: assetsService,
             avatarService: avatarService,
@@ -385,7 +384,6 @@ struct ServicesFactory {
             stakeService: stakeService,
             streamSubscriptionService: streamSubscriptionService,
             swapService: swapService,
-            transactionStateService: transactionStateService,
             transactionsService: transactionsService,
             walletService: walletService,
             walletSessionService: walletSessionService,

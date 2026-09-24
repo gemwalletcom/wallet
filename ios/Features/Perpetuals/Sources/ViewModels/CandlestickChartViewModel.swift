@@ -7,7 +7,6 @@ import func Gemstone.candlestickHeader
 import struct Gemstone.GemChartHeader
 import struct Gemstone.GemPerpetualChartLayout
 import func Gemstone.perpetualChartLayout
-import class Gemstone.PriceChangeCalculator
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -15,7 +14,6 @@ import Style
 import SwiftUI
 
 struct CandlestickChartViewModel {
-    private let priceChangeCalculator = PriceChangeCalculator()
     enum Constants {
         static let labelOverlapSpacing: CGFloat = 115
     }

@@ -125,7 +125,6 @@ public extension ViewModelFactory {
     @MainActor
     func chartScene(
         asset: Asset,
-        walletId: WalletId,
         onSetPriceAlert: @escaping (Asset) -> Void,
         onSelectAddress: @escaping @MainActor @Sendable (ChainAddress) -> Void,
     ) -> ChartSceneViewModel {
@@ -138,7 +137,6 @@ public extension ViewModelFactory {
             ),
             preferences: observablePreferences,
             assetModel: AssetViewModel(asset: asset),
-            walletId: walletId,
             onSetPriceAlert: onSetPriceAlert,
             onSelectAddress: onSelectAddress,
         )

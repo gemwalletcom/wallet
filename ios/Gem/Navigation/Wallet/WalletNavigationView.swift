@@ -149,7 +149,6 @@ struct WalletNavigationView: View {
             ChartScene(
                 model: viewModelFactory.chartScene(
                     asset: $0.asset,
-                    walletId: model.wallet.id,
                     onSetPriceAlert: { presenter.isPresentingPriceAlert.wrappedValue = $0 },
                     onSelectAddress: { model.isPresentingSheet = .addressDetails($0) },
                 ),

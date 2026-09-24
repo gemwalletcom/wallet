@@ -17,7 +17,6 @@ import Style
 @MainActor
 public final class RecentsSceneViewModel {
     private let service: any GemRecentActivityServiceProtocol
-    private let walletId: WalletId
 
     public let query: ObservableQuery<RecentActivityRequest>
     public let onSelect: (Asset) -> Void
@@ -44,7 +43,6 @@ public final class RecentsSceneViewModel {
         service: any GemRecentActivityServiceProtocol,
         onSelect: @escaping (Asset) -> Void,
     ) {
-        self.walletId = walletId
         self.service = service
         query = ObservableQuery(RecentActivityRequest(walletId: walletId, limit: .max, types: types, filters: filters), initialValue: [])
         self.onSelect = onSelect
