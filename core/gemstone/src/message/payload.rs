@@ -3,6 +3,7 @@ use primitives::{BlockExplorerLink, Chain, SimulationPayloadField, SimulationPay
 use std::borrow::Cow;
 use std::collections::HashSet;
 
+use crate::services::localization::GemLocalizedText;
 use crate::services::simulation::{GemSimulationPayloadRow, payload_rows};
 use crate::{
     message::eip712::{GemEIP712Message, GemEIP712Value, GemEIP712ValueType},
@@ -13,6 +14,7 @@ use crate::{
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct MessagePayloadPreview {
     pub message_type: MessageType,
+    pub title: GemLocalizedText,
     pub primary: Vec<GemSimulationPayloadRow>,
     pub secondary: Vec<GemSimulationPayloadRow>,
 }
@@ -27,6 +29,7 @@ pub struct MessagePayloadFields {
 impl MessagePayloadFields {
     pub(super) fn rows(self, chain: Chain, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> MessagePayloadPreview {
         MessagePayloadPreview {
+            title: self.message_type.title(),
             message_type: self.message_type,
             primary: payload_rows(&self.primary, chain, &address_url),
             secondary: payload_rows(&self.secondary, chain, &address_url),

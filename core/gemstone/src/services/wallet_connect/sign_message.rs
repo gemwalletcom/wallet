@@ -13,8 +13,9 @@ use crate::services::assets::rules::asset_text;
 use crate::services::confirm::GemSimulationValue;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
+use crate::services::localization::GemLocalizedText;
 use crate::services::name::GemNameService;
-use crate::services::simulation::{GemSimulationFormatter, GemSimulationPayloadRow, address_requests, named_payload_rows};
+use crate::services::simulation::{GemSimulationFormatter, GemSimulationPayloadRow, address_requests, named_payload_rows, simulation_warning_rows};
 use crate::services::wallet::GemKeystorePassword;
 use crate::services::wallet::model::wallet_row;
 use crate::services::wallet_connect::model::GemWalletConnectMessageRequest;
@@ -22,13 +23,14 @@ use primitives::BlockExplorerLink;
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemSignMessagePreview {
-    pub message_type: MessageType,
+    pub title: GemLocalizedText,
     pub text: String,
     pub primary_fields: Vec<GemSimulationPayloadRow>,
     pub secondary_fields: Vec<GemSimulationPayloadRow>,
     pub has_critical_warning: bool,
     pub header: Option<GemSimulationValue>,
     pub rows: Vec<GemListRow>,
+    pub warnings: Vec<GemListRow>,
 }
 
 #[derive(uniffi::Object)]
@@ -71,17 +73,19 @@ impl GemSignMessageService {
         } = request;
         let signer = MessageSigner::new(message);
         let has_critical_warning = simulation.has_critical_warning();
+        let warnings = simulation_warning_rows(simulation.warnings.clone());
         let header = GemSimulationValue::from_simulation(&simulation, &assets);
         let payload_fields = self.simulation_formatter.payload_fields(simulation.payload, header.is_some());
         let address_url = |chain, address| self.explorer.get_address_url(chain, address);
         let payload = signer.payload_preview(payload_fields, address_url).ok().flatten();
         GemSignMessagePreview {
-            message_type: payload.as_ref().map(|preview| preview.message_type).unwrap_or(MessageType::Text),
+            title: payload.as_ref().map(|preview| preview.message_type).unwrap_or(MessageType::Text).title(),
             text: signer.plain_preview(),
             primary_fields: payload.as_ref().map(|preview| preview.primary.clone()).unwrap_or_default(),
             secondary_fields: payload.map(|preview| preview.secondary).unwrap_or_default(),
             has_critical_warning,
             rows: review_rows(chain, &wallet, &account, &session.metadata, header.is_some(), address_url),
+            warnings,
             header,
         }
     }

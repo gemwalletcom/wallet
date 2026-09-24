@@ -35,6 +35,8 @@ pub enum GemLocalizedText {
     StakeProvider { provider: StakeProviderType },
     NftCollections,
     NftUnverified,
+    SignInWith { chain: Chain },
+    ReviewRequest,
     EnableDeveloper,
     RewardsRedeemAsset { value: GemFormattedNumber },
     DisableDeveloper,

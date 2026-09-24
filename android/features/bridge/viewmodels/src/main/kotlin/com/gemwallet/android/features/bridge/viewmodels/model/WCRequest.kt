@@ -12,12 +12,11 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import uniffi.gemstone.GemConnectionRow
 import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemSignMessagePreview
 import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.GemSimulationPayloadRow
-import uniffi.gemstone.MessageType
 import uniffi.gemstone.SimulationResult
-import uniffi.gemstone.simulationWarningRows
 import uniffi.gemstone.SignMessage as GemSignMessage
 
 sealed class WCRequest(internal val pending: WalletConnectPendingRequest, private val row: GemConnectionRow) {
@@ -53,13 +52,13 @@ sealed class WCRequest(internal val pending: WalletConnectPendingRequest, privat
 
         val rows: List<GemListRow> get() = preview.rows
 
-        override val messageType: MessageType get() = preview.messageType
+        override val title: GemLocalizedText get() = preview.title
 
         override val message: String
             get() = preview.text
 
         override val warnings: List<GemListRow>
-            get() = simulationWarningRows(simulation.warnings)
+            get() = preview.warnings
 
         override val hasCriticalWarning: Boolean
             get() = preview.hasCriticalWarning

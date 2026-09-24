@@ -121,6 +121,10 @@ public extension GemLocalizedText {
             Localized.Asset.Verification.unverified
         case let .rewardsRedeemAsset(value):
             Localized.Rewards.WaysSpend.Asset.title(value.text())
+        case let .signInWith(chain):
+            Localized.Common.signInWith(Chain(core: chain).networkName)
+        case .reviewRequest:
+            Localized.Transfer.reviewRequest
         case .enableDeveloper:
             Localized.Settings.enableValue(Localized.Settings.developer)
         case .disableDeveloper:

@@ -1,14 +1,15 @@
 package com.gemwallet.android.testkit
 
+import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemSignMessagePreview
-import uniffi.gemstone.MessageType
 
 fun mockGemSignMessagePreview(hasCriticalWarning: Boolean = false) = GemSignMessagePreview(
-    messageType = MessageType.TEXT,
+    title = GemLocalizedText.ReviewRequest,
     text = "Sign in",
     primaryFields = emptyList(),
     secondaryFields = emptyList(),
     hasCriticalWarning = hasCriticalWarning,
     header = null,
     rows = emptyList(),
+    warnings = emptyList(),
 )

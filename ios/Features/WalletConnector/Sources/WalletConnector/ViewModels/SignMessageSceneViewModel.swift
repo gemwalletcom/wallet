@@ -10,7 +10,6 @@ import struct Gemstone.GemSimulationPayloadRow
 import struct Gemstone.GemSimulationValue
 import struct Gemstone.GemWalletConnectMessageRequest
 import func Gemstone.signerFailure
-import func Gemstone.simulationWarningRows
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -54,7 +53,7 @@ public final class SignMessageSceneViewModel {
     }
 
     public var title: String {
-        preview.messageType.title
+        preview.title.text
     }
 
     public var buttonTitle: String {
@@ -94,7 +93,7 @@ public final class SignMessageSceneViewModel {
     }
 
     public var simulationWarnings: [GemListRow] {
-        simulationWarningRows(warnings: request.simulation.warnings)
+        preview.warnings
     }
 
     public var payloadModel: SimulationPayloadModel {

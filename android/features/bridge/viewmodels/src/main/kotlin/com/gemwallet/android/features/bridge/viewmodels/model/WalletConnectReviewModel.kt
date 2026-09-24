@@ -4,8 +4,8 @@ import com.gemwallet.android.ui.components.list_head.SimulationHeaderUIModel
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemSimulationPayloadRow
-import uniffi.gemstone.MessageType
 
 interface WalletConnectReviewModel {
     val viewFullMessageListItem: ListItemModel
@@ -15,7 +15,7 @@ interface WalletConnectReviewModel {
     val chain: Chain
     val primaryPayloadFields: List<GemSimulationPayloadRow>
     val secondaryPayloadFields: List<GemSimulationPayloadRow>
-    val messageType: MessageType
+    val title: GemLocalizedText
     val message: String
     val warnings: List<GemListRow> get() = emptyList()
     val hasCriticalWarning: Boolean get() = false

@@ -15,13 +15,3 @@ extension GemVerificationLevel {
         }
     }
 }
-
-extension MessageType {
-    var title: String {
-        switch self {
-        case .siwe: Localized.Common.signInWith(Chain.ethereum.networkName)
-        case .siws: Localized.Common.signInWith(Chain.solana.networkName)
-        case .text, .eip712: Localized.Transfer.reviewRequest
-        }
-    }
-}

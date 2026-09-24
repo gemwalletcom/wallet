@@ -40,12 +40,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.GemSimulationPayloadRow
 import uniffi.gemstone.GemWalletConnectAuthAccount
 import uniffi.gemstone.GemWalletConnectException
 import uniffi.gemstone.GemWalletConnectServiceInterface
-import uniffi.gemstone.MessageType
 import uniffi.gemstone.SignDigestType
 import uniffi.gemstone.SignMessage
 import uniffi.gemstone.applicationConnectionRow
@@ -257,7 +257,7 @@ class WCAuthViewModel @Inject constructor(
             payloadParams = payloadParams,
             issuer = issuer,
             message = message,
-            messageType = payloadPreview.messageType,
+            title = payloadPreview.title,
             primaryPayloadFields = payloadPreview.primaryFields,
             secondaryPayloadFields = payloadPreview.secondaryFields,
         )
@@ -273,7 +273,7 @@ class WCAuthViewModel @Inject constructor(
         ),
     )?.let { preview ->
         AuthPayloadPreview(
-            messageType = preview.messageType,
+            title = preview.title,
             primaryFields = preview.primary,
             secondaryFields = preview.secondary,
         )
@@ -315,7 +315,7 @@ sealed interface AuthSceneState {
         override val chain: Chain get() = approval.chain
         override val primaryPayloadFields: List<GemSimulationPayloadRow> get() = approval.primaryPayloadFields
         override val secondaryPayloadFields: List<GemSimulationPayloadRow> get() = approval.secondaryPayloadFields
-        override val messageType: MessageType get() = approval.messageType
+        override val title: GemLocalizedText get() = approval.title
         override val message: String get() = approval.message
     }
 
@@ -344,11 +344,11 @@ data class AuthApproval(
     val payloadParams: WalletConnectAuthPayloadParams,
     val issuer: String,
     val message: String,
-    val messageType: MessageType,
+    val title: GemLocalizedText,
     val primaryPayloadFields: List<GemSimulationPayloadRow>,
     val secondaryPayloadFields: List<GemSimulationPayloadRow>,
 ) {
     val chain: Chain get() = account.chain
 }
 
-private data class AuthPayloadPreview(val messageType: MessageType = MessageType.TEXT, val primaryFields: List<GemSimulationPayloadRow> = emptyList(), val secondaryFields: List<GemSimulationPayloadRow> = emptyList())
+private data class AuthPayloadPreview(val title: GemLocalizedText = GemLocalizedText.ReviewRequest, val primaryFields: List<GemSimulationPayloadRow> = emptyList(), val secondaryFields: List<GemSimulationPayloadRow> = emptyList())

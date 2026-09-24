@@ -12,7 +12,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.features.bridge.localization.string
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectReviewModel
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
@@ -24,6 +23,7 @@ import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsContent
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -39,7 +39,7 @@ internal fun WalletConnectReviewScene(model: WalletConnectReviewModel, buttonSta
     }
 
     Scene(
-        title = model.messageType.string(),
+        title = model.title.string(context),
         backHandle = true,
         closeIcon = true,
         mainAction = {

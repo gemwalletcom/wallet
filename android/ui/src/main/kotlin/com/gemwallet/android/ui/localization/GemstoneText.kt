@@ -207,6 +207,10 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     is GemLocalizedText.RewardsRedeemAsset -> context.getString(R.string.rewards_ways_spend_asset_title, value.text())
 
+    is GemLocalizedText.SignInWith -> context.getString(R.string.common_sign_in_with, chain.requireChain().networkName())
+
+    GemLocalizedText.ReviewRequest -> context.getString(R.string.transfer_review_request)
+
     GemLocalizedText.EnableDeveloper -> context.getString(R.string.settings_enable_value, context.getString(R.string.settings_developer))
 
     GemLocalizedText.DisableDeveloper -> context.getString(R.string.settings_disable_value, context.getString(R.string.settings_developer))
