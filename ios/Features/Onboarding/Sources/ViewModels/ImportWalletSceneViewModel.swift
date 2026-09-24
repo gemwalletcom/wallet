@@ -161,9 +161,8 @@ extension ImportWalletSceneViewModel {
     }
 
     func onSelectWord(_ word: String) {
-        let completed = PhraseInput(text: input, cursor: inputCursor).completing(with: word)
-        input = completed.text
-        inputCursor = completed.cursor
+        input = String(input.dropLast(lastWord.count)) + word + " "
+        inputCursor = input.utf16.count
     }
 
     func onPaste() {
@@ -204,12 +203,19 @@ extension ImportWalletSceneViewModel {
 }
 
 extension ImportWalletSceneViewModel {
+    private var lastWord: String {
+        input.split(omittingEmptySubsequences: false, whereSeparator: \.isWhitespace).last.map(String.init) ?? ""
+    }
+
+    private var isTypingLastWord: Bool {
+        inputCursor.map { $0 >= input.utf16.count } ?? true
+    }
+
     private func refreshSuggestions() {
-        guard importType.supportsPhraseSuggestions() else {
+        guard importType.supportsPhraseSuggestions(), isTypingLastWord else {
             wordsSuggestion = []
             return
         }
-        let phrase = PhraseInput(text: input, cursor: inputCursor)
-        wordsSuggestion = phraseSuggestions(word: phrase.word, cursor: UInt32(phrase.wordCursor))
+        wordsSuggestion = phraseSuggestions(word: lastWord)
     }
 }

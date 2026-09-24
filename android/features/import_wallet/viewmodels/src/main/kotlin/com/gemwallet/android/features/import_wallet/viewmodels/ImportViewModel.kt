@@ -48,12 +48,13 @@ class ImportViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val state = MutableStateFlow(ImportViewModelState())
-    private val input = MutableStateFlow(PhraseInput.of("", null))
+    private val input = MutableStateFlow("")
+    private val isTypingLastWord = MutableStateFlow(true)
     private val isImporting = MutableStateFlow(false)
     val uiState = combine(state, isImporting) { state, importing -> state.toUIState(importing, context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ImportUIState())
-    val suggestions: StateFlow<List<String>> = combine(input, state) { input, state ->
-        if (state.importType.kind.supportsPhraseSuggestions()) phraseSuggestions(input.word, input.wordCursor.toUInt()) else emptyList()
+    val suggestions: StateFlow<List<String>> = combine(input, isTypingLastWord, state) { input, isTypingLastWord, state ->
+        if (isTypingLastWord && state.importType.kind.supportsPhraseSuggestions()) phraseSuggestions(input.lastWord()) else emptyList()
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -74,7 +75,8 @@ class ImportViewModel @Inject constructor(
     }
 
     fun onInput(value: String, cursor: Int) {
-        input.value = PhraseInput.of(value, cursor)
+        input.value = value
+        isTypingLastWord.value = cursor >= value.length
         val importType = state.value.importType
         if (importType.kind.resolvesNames()) {
             nameRecordController.getNameRecord(value, importType.chain)
@@ -83,13 +85,14 @@ class ImportViewModel @Inject constructor(
         }
     }
 
-    fun selectSuggestion(word: String): ImportTextUIModel {
-        val next = input.updateAndGet { it.completing(word) }
-        return ImportTextUIModel(next.text, next.cursor)
+    fun selectSuggestion(word: String): String {
+        isTypingLastWord.value = true
+        return input.updateAndGet { it.dropLast(it.lastWord().length) + word + " " }
     }
 
     fun clearInput() {
-        input.value = PhraseInput.of("", null)
+        input.value = ""
+        isTypingLastWord.value = true
     }
 
     private fun resetInput() {
@@ -116,7 +119,7 @@ class ImportViewModel @Inject constructor(
         }
         val nameRecord = nameRecordController.state.value.record()
         isImporting.value = true
-        val data = input.value.text
+        val data = input.value
 
         viewModelScope.launch(ioDispatcher) {
             try {
@@ -178,8 +181,6 @@ data class ImportUIState(
     val existingWalletName: String? = null,
 )
 
-data class ImportTextUIModel(val text: String, val cursor: Int)
-
 data class ImportTabUIModel(val type: ImportType, @StringRes val title: Int, val isSelected: Boolean)
 
 data class ImportInputUIModel(@StringRes val placeholder: Int, val protectsInput: Boolean, val supportsPhraseSuggestions: Boolean, val showsViewOnlyWarning: Boolean)
@@ -190,3 +191,5 @@ internal fun GemWalletImportKind.inputUiModel() = ImportInputUIModel(
     supportsPhraseSuggestions = supportsPhraseSuggestions(),
     showsViewOnlyWarning = showsViewOnlyWarning(),
 )
+
+private fun String.lastWord(): String = takeLastWhile { !it.isWhitespace() }

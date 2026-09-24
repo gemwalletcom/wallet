@@ -62,4 +62,33 @@ struct ImportWalletSceneViewModelTests {
 
         #expect(model.nameRecordViewModel.isResolving == true)
     }
+
+    @Test
+    func aSuggestionCompletesTheLastWord() {
+        let model = ImportWalletSceneViewModel.mock()
+
+        model.input = "abandon woo"
+
+        #expect(model.wordsSuggestion == ["wood", "wool"])
+
+        model.onSelectWord("wood")
+
+        #expect(model.input == "abandon wood ")
+        #expect(model.inputCursor == 13)
+        #expect(model.wordsSuggestion.isEmpty)
+    }
+
+    @Test
+    func aCursorInsideThePhraseHidesSuggestions() {
+        let model = ImportWalletSceneViewModel.mock()
+        model.input = "abandon woo"
+
+        model.inputCursor = 3
+
+        #expect(model.wordsSuggestion.isEmpty)
+
+        model.inputCursor = 11
+
+        #expect(model.wordsSuggestion == ["wood", "wool"])
+    }
 }

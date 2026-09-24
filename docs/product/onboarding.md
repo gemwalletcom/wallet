@@ -24,7 +24,7 @@ flowchart LR
 ```
 
 - Multi-Coin takes a Secret Phrase; a single network takes a Secret Phrase, a private key where the network supports one, or an address for a watch-only wallet.
-- While typing a Secret Phrase, word suggestions follow the cursor and a tap completes the word.
+- While typing a Secret Phrase, word suggestions complete the last word and a tap replaces it; with the cursor inside the phrase no suggestions show, so a tap never changes the wrong word.
 - An address can be typed as a name; the resolved name becomes the wallet name.
 - The wallet is imported, named and selected in one step; a wallet that already exists is simply opened.
 

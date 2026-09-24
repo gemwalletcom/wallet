@@ -45,7 +45,6 @@ import com.gemwallet.android.features.import_wallet.components.ImportInput
 import com.gemwallet.android.features.import_wallet.components.ImportKindTab
 import com.gemwallet.android.features.import_wallet.viewmodels.ImportInputUIModel
 import com.gemwallet.android.features.import_wallet.viewmodels.ImportTabUIModel
-import com.gemwallet.android.features.import_wallet.viewmodels.ImportTextUIModel
 import com.gemwallet.android.features.import_wallet.viewmodels.ImportViewModel
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.DetectScreenshot
@@ -161,7 +160,7 @@ private fun ImportScene(
     onInput: (String, Int) -> Unit,
     onTypeChange: (ImportType) -> Unit,
     suggestions: List<String>,
-    onSelectSuggestion: (String) -> ImportTextUIModel,
+    onSelectSuggestion: (String) -> String,
     onCancel: () -> Unit,
 ) {
     var dataErrorState by remember(dataError) { mutableStateOf(dataError) }
@@ -222,7 +221,7 @@ private fun DataInput(
     inputState: MutableState<TextFieldValue>,
     nameResolveIndicator: NameResolveIndicatorUIModel?,
     suggestions: List<String>,
-    onSelectSuggestion: (String) -> ImportTextUIModel,
+    onSelectSuggestion: (String) -> String,
     onInput: (String, Int) -> Unit,
     onChange: () -> Unit,
 ) {
@@ -244,8 +243,8 @@ private fun DataInput(
             items(suggestions) { word ->
                 SuggestionChip(
                     onClick = {
-                        val edit = onSelectSuggestion(word)
-                        inputState.value = TextFieldValue(text = edit.text, selection = TextRange(edit.cursor))
+                        val text = onSelectSuggestion(word)
+                        inputState.value = TextFieldValue(text = text, selection = TextRange(text.length))
                         onChange()
                     },
                     label = { Text(text = word) },
@@ -312,7 +311,7 @@ fun PreviewImportAddress() {
                 onInput = { _, _ -> },
                 onTypeChange = {},
                 suggestions = emptyList(),
-                onSelectSuggestion = { ImportTextUIModel("", 0) },
+                onSelectSuggestion = { "" },
                 onCancel = {},
             )
         }

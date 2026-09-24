@@ -113,4 +113,33 @@ class ImportViewModelTest {
         assertEquals("Wallet", request.captured.defaultName)
         assertEquals("abandon ability", request.captured.input)
     }
+
+    @Test
+    fun aSuggestionCompletesTheLastWord() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        val viewModel = viewModel(NameServiceMock(), dispatcher)
+
+        viewModel.importSelect(ImportType(GemWalletImportKind.PHRASE, chain))
+        viewModel.onInput("abandon woo", 11)
+        advanceUntilIdle()
+
+        assertEquals(listOf("wood", "wool"), viewModel.suggestions.value)
+        assertEquals("abandon wood ", viewModel.selectSuggestion("wood"))
+        advanceUntilIdle()
+        assertEquals(emptyList<String>(), viewModel.suggestions.value)
+    }
+
+    @Test
+    fun aCursorInsideThePhraseHidesSuggestions() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        val viewModel = viewModel(NameServiceMock(), dispatcher)
+
+        viewModel.importSelect(ImportType(GemWalletImportKind.PHRASE, chain))
+        viewModel.onInput("abandon woo", 3)
+        advanceUntilIdle()
+
+        assertEquals(emptyList<String>(), viewModel.suggestions.value)
+    }
 }
