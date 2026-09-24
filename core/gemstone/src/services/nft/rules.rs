@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use primitives::{AddressFormatStyle, Asset, BlockExplorerLink, Chain, NFTAssetData, NFTAttribute, NFTAttributeType, NFTData, VerificationStatus, WalletType};
 
-use super::model::{GemCollectibleAction, GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleSection, GemNftItem, GemNftList, GemNftListScreen, GemNftRow, GemNftUnverifiedRow};
+use super::model::{GemCollectibleAction, GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleSection, GemNftEntry, GemNftItem, GemNftList, GemNftListScreen, GemNftRow, GemNftUnverifiedRow};
 use crate::address_formatter::format_address;
 use crate::config::chain::supports_nft_transfer;
 use crate::config::social::social_links;
@@ -16,7 +16,7 @@ fn unverified_collections(data: Vec<NFTData>) -> Vec<NFTData> {
     collections(data, false)
 }
 
-pub fn list_screen(data: &[NFTData], list: GemNftList) -> GemNftListScreen {
+pub fn list_screen(data: Vec<NFTData>, list: GemNftList) -> GemNftListScreen {
     GemNftListScreen {
         title: match list {
             GemNftList::Collection => match data.first().map(|item| item.collection.name.clone()) {
@@ -28,7 +28,13 @@ pub fn list_screen(data: &[NFTData], list: GemNftList) -> GemNftListScreen {
         },
         offers_receive: !matches!(list, GemNftList::Unverified),
         syncs_on_appear: matches!(list, GemNftList::Collections | GemNftList::Avatar),
+        unverified_row: unverified_row(data.clone(), list),
+        items: entries(list_items(data, list)),
     }
+}
+
+pub fn entries(items: Vec<GemNftItem>) -> Vec<GemNftEntry> {
+    items.into_iter().map(|item| GemNftEntry { row: row(&item), item }).collect()
 }
 
 pub fn unverified_row(data: Vec<NFTData>, list: GemNftList) -> Option<GemNftUnverifiedRow> {
@@ -229,18 +235,21 @@ mod tests {
         let data = vec![NFTData::mock()];
         let name = data[0].collection.name.clone();
 
-        assert_eq!(list_screen(&data, GemNftList::Collection).title, GemLocalizedText::Text { text: name });
-        assert_eq!(list_screen(&[], GemNftList::Collection).title, GemLocalizedText::NftCollections, "a collection with nothing in it still needs a title");
-        assert_eq!(list_screen(&data, GemNftList::Collections).title, GemLocalizedText::NftCollections);
-        assert_eq!(list_screen(&data, GemNftList::Unverified).title, GemLocalizedText::NftUnverified);
+        assert_eq!(list_screen(data.clone(), GemNftList::Collection).title, GemLocalizedText::Text { text: name });
+        assert_eq!(list_screen(vec![], GemNftList::Collection).title, GemLocalizedText::NftCollections, "a collection with nothing in it still needs a title");
+        assert_eq!(list_screen(data.clone(), GemNftList::Collections).title, GemLocalizedText::NftCollections);
+        assert_eq!(list_screen(data.clone(), GemNftList::Unverified).title, GemLocalizedText::NftUnverified);
 
-        assert!(list_screen(&data, GemNftList::Collections).offers_receive);
-        assert!(list_screen(&data, GemNftList::Collection).offers_receive);
-        assert!(!list_screen(&data, GemNftList::Unverified).offers_receive, "nothing unverified is worth asking for");
+        assert!(list_screen(data.clone(), GemNftList::Collections).offers_receive);
+        assert!(list_screen(data.clone(), GemNftList::Collection).offers_receive);
+        assert!(!list_screen(data.clone(), GemNftList::Unverified).offers_receive, "nothing unverified is worth asking for");
 
-        assert!(list_screen(&data, GemNftList::Collections).syncs_on_appear);
-        assert!(!list_screen(&data, GemNftList::Collection).syncs_on_appear, "a single collection is already in what the root synced; a pull still refetches");
-        assert!(!list_screen(&data, GemNftList::Unverified).syncs_on_appear);
+        assert!(list_screen(data.clone(), GemNftList::Collections).syncs_on_appear);
+        assert!(
+            !list_screen(data.clone(), GemNftList::Collection).syncs_on_appear,
+            "a single collection is already in what the root synced; a pull still refetches"
+        );
+        assert!(!list_screen(data.clone(), GemNftList::Unverified).syncs_on_appear);
     }
 
     #[test]

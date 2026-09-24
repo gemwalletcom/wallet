@@ -1,9 +1,9 @@
 package com.gemwallet.android.ui.models
 
 import com.wallet.core.primitives.NFTAssetId
+import uniffi.gemstone.GemNftEntry
 import uniffi.gemstone.GemNftItem
 import uniffi.gemstone.GemNftRow
-import uniffi.gemstone.nftRows
 
 sealed interface NftItemTarget {
     data class Collection(val id: String) : NftItemTarget
@@ -17,9 +17,9 @@ data class NftItemUIModel(val row: GemNftRow, val target: NftItemTarget) {
     val countText: String? get() = row.countText
 }
 
-fun List<GemNftItem>.toUIModels(): List<NftItemUIModel> = zip(nftRows(this)) { item, row ->
-    when (item) {
-        is GemNftItem.Collection -> NftItemUIModel(row, NftItemTarget.Collection(item.data.collection.id))
-        is GemNftItem.Asset -> NftItemUIModel(row, NftItemTarget.Asset(NFTAssetId(item.data.asset.id)))
+fun List<GemNftEntry>.toUIModels(): List<NftItemUIModel> = map { entry ->
+    when (val item = entry.item) {
+        is GemNftItem.Collection -> NftItemUIModel(entry.row, NftItemTarget.Collection(item.data.collection.id))
+        is GemNftItem.Asset -> NftItemUIModel(entry.row, NftItemTarget.Asset(NFTAssetId(item.data.asset.id)))
     }
 }

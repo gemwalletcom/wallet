@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import GemstonePrimitives
+import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import NFT
 import Primitives
@@ -84,10 +85,10 @@ struct WalletSearchSceneViewModelTests {
         let service = GemAssetSelectionServiceMock()
         let model = WalletSearchSceneViewModel.mock(service: service)
 
-        service.nftSearchItems = (0 ..< 3).map { _ in .asset(data: NFTAssetData.mock().toGem()) }
+        service.nftSearchItems = (0 ..< 3).map { _ in .mock(item: .asset(data: NFTAssetData.mock().toGem())) }
         #expect(model.hasMoreNFTs == false)
 
-        service.nftSearchItems = (0 ..< 4).map { _ in .asset(data: NFTAssetData.mock().toGem()) }
+        service.nftSearchItems = (0 ..< 4).map { _ in .mock(item: .asset(data: NFTAssetData.mock().toGem())) }
         #expect(model.hasMoreNFTs == true)
     }
 
@@ -99,8 +100,8 @@ struct WalletSearchSceneViewModelTests {
         #expect(model.showNFTs == false)
 
         service.nftSearchItems = [
-            .collection(data: NFTData.mock(assets: [.mock(), .mock()]).toGem()),
-            .asset(data: NFTAssetData.mock().toGem()),
+            .mock(item: .collection(data: NFTData.mock(assets: [.mock(), .mock()]).toGem())),
+            .mock(item: .asset(data: NFTAssetData.mock().toGem())),
         ]
 
         #expect(model.showNFTs == true)

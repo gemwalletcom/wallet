@@ -33,6 +33,6 @@ public final class UnverifiedCollectionsViewModel: CollectionsViewable, Sendable
     }
 
     public var content: CollectionsContent {
-        CollectionsContent(items: NFTGridPosterBuilder.items(service.listItems(data: query.value.map { $0.toGem() }, list: .unverified)))
+        CollectionsContent(items: NFTGridPosterBuilder.items(screen.items))
     }
 }

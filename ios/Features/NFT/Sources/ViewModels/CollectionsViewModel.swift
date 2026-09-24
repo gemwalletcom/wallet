@@ -37,10 +37,10 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
     }
 
     public var content: CollectionsContent {
-        let data = query.value.map { $0.toGem() }
+        let screen = screen
         return CollectionsContent(
-            items: NFTGridPosterBuilder.items(service.listItems(data: data, list: .collections)),
-            unverifiedCount: service.unverifiedRow(data: data, list: .collections)?.countText,
+            items: NFTGridPosterBuilder.items(screen.items),
+            unverifiedCount: screen.unverifiedRow?.countText,
         )
     }
 

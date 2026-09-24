@@ -25,11 +25,19 @@ pub struct GemNftUnverifiedRow {
     pub count_text: String,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemNftEntry {
+    pub item: GemNftItem,
+    pub row: GemNftRow,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
 pub struct GemNftListScreen {
     pub title: GemLocalizedText,
     pub offers_receive: bool,
     pub syncs_on_appear: bool,
+    pub items: Vec<GemNftEntry>,
+    pub unverified_row: Option<GemNftUnverifiedRow>,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -39,11 +47,6 @@ pub struct GemNftRow {
     pub image_url: String,
     pub count_text: Option<String>,
     pub is_verified: bool,
-}
-
-#[uniffi::export]
-pub fn nft_rows(items: Vec<GemNftItem>) -> Vec<GemNftRow> {
-    items.iter().map(super::rules::row).collect()
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

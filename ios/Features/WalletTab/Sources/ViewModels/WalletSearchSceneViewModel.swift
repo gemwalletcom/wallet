@@ -5,7 +5,7 @@ import Foundation
 import func Gemstone.addressCopy
 import protocol Gemstone.GemAssetSelectionServiceProtocol
 import enum Gemstone.GemImage
-import enum Gemstone.GemNftItem
+import struct Gemstone.GemNftEntry
 import struct Gemstone.GemWalletSearchCounts
 import struct Gemstone.GemWalletSearchLimits
 import struct Gemstone.GemWalletSearchState
@@ -97,7 +97,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         .from(searchResult, nfts: nftSearchItems)
     }
 
-    private var nftSearchItems: [GemNftItem] {
+    private var nftSearchItems: [GemNftEntry] {
         service.searchCollections(data: searchResult.collections.map { $0.toGem() }, query: searchQuery.request.searchBy)
     }
 
@@ -193,7 +193,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         sections.perpetuals.prefix(Int(limits.perpetuals)).asArray()
     }
 
-    var previewNFTs: [GemNftItem] {
+    var previewNFTs: [GemNftEntry] {
         sections.nfts.prefix(Int(limits.nfts)).asArray()
     }
 

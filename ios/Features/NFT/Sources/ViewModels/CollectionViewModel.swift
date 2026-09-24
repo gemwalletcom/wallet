@@ -38,6 +38,6 @@ public final class CollectionViewModel: CollectionsViewable, Sendable {
     }
 
     public var content: CollectionsContent {
-        CollectionsContent(items: NFTGridPosterBuilder.items(service.listItems(data: query.value.map { $0.toGem() }, list: .collection)))
+        CollectionsContent(items: NFTGridPosterBuilder.items(screen.items))
     }
 }

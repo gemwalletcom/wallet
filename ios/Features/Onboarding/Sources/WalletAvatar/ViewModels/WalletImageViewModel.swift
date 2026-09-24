@@ -4,7 +4,6 @@ import Components
 import Foundation
 import struct Gemstone.GemWalletRow
 import protocol Gemstone.GemWalletServiceProtocol
-import func Gemstone.nftRows
 import func Gemstone.walletAvatarEmojis
 import func Gemstone.walletRow
 import Localization
@@ -61,8 +60,7 @@ public final class WalletImageViewModel: Sendable {
     }
 
     var nftAssetItems: [NFTAssetImageItem] {
-        let items = service.avatarItems(data: nftDataList.map { $0.toGem() })
-        return zip(items, nftRows(items: items)).map { _, row in
+        service.avatarItems(data: nftDataList.map { $0.toGem() }).map(\.row).map { row in
             NFTAssetImageItem(
                 id: row.id,
                 assetImage: AssetImage(

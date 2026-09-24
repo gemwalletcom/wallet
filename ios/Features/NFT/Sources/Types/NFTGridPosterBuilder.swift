@@ -2,9 +2,9 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemNftEntry
 import enum Gemstone.GemNftItem
 import struct Gemstone.GemNftRow
-import func Gemstone.nftRows
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -12,8 +12,8 @@ import Store
 import SwiftUI
 
 public enum NFTGridPosterBuilder {
-    public static func items(_ items: [GemNftItem]) -> [GridPosterViewItem] {
-        zip(items, nftRows(items: items)).map(item)
+    public static func items(_ entries: [GemNftEntry]) -> [GridPosterViewItem] {
+        entries.map { item($0.item, $0.row) }
     }
 
     private static func item(_ item: GemNftItem, _ row: GemNftRow) -> GridPosterViewItem {

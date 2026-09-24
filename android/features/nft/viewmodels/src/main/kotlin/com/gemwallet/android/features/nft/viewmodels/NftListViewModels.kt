@@ -66,6 +66,7 @@ class NftListViewModels @Inject constructor(
 
     private val screen: StateFlow<GemNftListScreen> = nftData
         .map { data -> nftService.listScreen(data.map { it.toGem() }, list) }
+        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, nftService.listScreen(emptyList(), list))
 
     val title: StateFlow<String> = screen
@@ -76,20 +77,16 @@ class NftListViewModels @Inject constructor(
         .map { it.offersReceive }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val collections = nftData
-        .map { data -> nftService.listItems(data.map { it.toGem() }, list).toUIModels() }
+    val collections = screen
+        .map { it.items.toUIModels() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val errorRow: StateFlow<GemListRow?> = combine(loadState, collections) { state, items ->
         loadError(state, items.isNotEmpty())?.let { GemListRow.Error(it) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val unverifiedListItem: StateFlow<ListItemModel?> = nftData
-        .map { data ->
-            nftService.unverifiedRow(data.map { it.toGem() }, list)
-                ?.let { ListItemModel(title = context.getString(R.string.asset_verification_unverified), subtitle = it.countText) }
-        }
-        .flowOn(Dispatchers.Default)
+    val unverifiedListItem: StateFlow<ListItemModel?> = screen
+        .map { screen -> screen.unverifiedRow?.let { ListItemModel(title = context.getString(R.string.asset_verification_unverified), subtitle = it.countText) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun syncIfNeeded() {

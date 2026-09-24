@@ -41,7 +41,7 @@ use crate::services::explorer::GemExplorerService;
 use crate::services::file::GemFileStore;
 use crate::services::localization::GemLocalizedText;
 use crate::services::name::GemNameService;
-use crate::services::nft::model::{GemNftItem, GemNftList};
+use crate::services::nft::model::{GemNftEntry, GemNftList};
 use crate::services::nft::rules as nft_rules;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
@@ -238,8 +238,8 @@ impl GemWalletService {
         self.avatar.set_image_url(wallet_id, url).await
     }
 
-    pub fn avatar_items(&self, data: Vec<NFTData>) -> Vec<GemNftItem> {
-        nft_rules::list_items(data, GemNftList::Avatar)
+    pub fn avatar_items(&self, data: Vec<NFTData>) -> Vec<GemNftEntry> {
+        nft_rules::entries(nft_rules::list_items(data, GemNftList::Avatar))
     }
 
     pub async fn remove_avatar_image(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
