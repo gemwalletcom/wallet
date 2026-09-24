@@ -100,9 +100,10 @@ pub(super) fn sections(details: &GemAddressDetails) -> Vec<GemListSection> {
         .into_iter()
         .chain([
             section(vec![GemListRow::Icon { chain }]),
-            section(vec![GemListRow::Address {
-                address: details.address.clone(),
+            section(vec![GemListRow::Identifier {
+                title: GemListRowTitle::Address,
                 copy: details.copy.clone(),
+                explorer: None,
             }]),
             section(info),
         ])
@@ -319,15 +320,16 @@ mod tests {
     }
 
     #[test]
-    fn test_the_header_row_carries_the_address_to_copy() {
+    fn test_the_address_row_copies_the_address() {
         let address = "0x1234567890abcdef1234567890abcdef12345678".to_string();
         let details = details(Chain::Ethereum, address.clone(), BlockExplorerLink::mock(), GemLoad::loading());
 
         assert_eq!(
             sections(&details)[1].rows,
-            vec![GemListRow::Address {
-                address: address.clone(),
-                copy: address_copy(Chain::Ethereum, address.clone()),
+            vec![GemListRow::Identifier {
+                title: GemListRowTitle::Address,
+                copy: address_copy(Chain::Ethereum, address),
+                explorer: None,
             }]
         );
     }

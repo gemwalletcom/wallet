@@ -322,10 +322,6 @@ pub enum GemListRow {
     Icon {
         chain: Chain,
     },
-    Address {
-        address: String,
-        copy: GemCopy,
-    },
     Explorer {
         name: String,
         url: String,
