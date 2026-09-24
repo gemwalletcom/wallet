@@ -28,8 +28,6 @@ fun Chain.asset(): Asset = chainAsset().asset
 
 fun Chain.networkName(): String = chainAsset().networkName
 
-fun Chain.Companion.available() = Chain.entries.toSet()
-
 fun Chain.isMemoSupport() = chainConfig().isMemoSupported
 
 fun uniffi.gemstone.Chain.requireChain(): Chain = requireNotNull(Chain.entries.firstOrNull { it.string == this }) { "unknown chain: $this" }

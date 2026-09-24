@@ -75,7 +75,7 @@ class WCRequestViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val sceneState = combine(state, request, namedRequest) { state, request, named ->
-        state.toSceneState(named?.takeIf { it.pending === request?.pending } ?: request, ReviewTexts(context))
+        state.toSceneState(named?.takeIf { it.pending === request?.pending } ?: request)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, RequestSceneState.Loading)
 
     val buttonState = sceneState.map { scene ->
@@ -199,9 +199,9 @@ class WCRequestViewModel @Inject constructor(
 }
 
 private data class RequestViewModelState(val sessionRequest: WalletConnectSessionRequest? = null, val approved: WCRequest? = null, val responseState: RequestResponseState = RequestResponseState.Idle) {
-    fun toSceneState(request: WCRequest?, texts: ReviewTexts): RequestSceneState {
+    fun toSceneState(request: WCRequest?): RequestSceneState {
         request ?: return RequestSceneState.Loading
-        val requestState = RequestSceneState.Request(walletName = request.wallet.name, request = request)
+        val requestState = RequestSceneState.Request(request = request)
         return when (responseState) {
             RequestResponseState.Idle -> requestState
             RequestResponseState.Responding -> RequestSceneState.Responding(requestState)
@@ -218,14 +218,12 @@ sealed interface RequestSceneState {
     data object Loading : RequestSceneState
 
     sealed interface Content : RequestSceneState {
-        val walletName: String
         val request: WCRequest
     }
 
-    class Request(override val walletName: String, override val request: WCRequest) : Content
+    class Request(override val request: WCRequest) : Content
 
     class Responding(private val requestState: Request) : Content {
-        override val walletName: String get() = requestState.walletName
         override val request: WCRequest get() = requestState.request
     }
 }

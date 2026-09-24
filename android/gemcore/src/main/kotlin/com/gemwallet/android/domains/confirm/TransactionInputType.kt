@@ -1,13 +1,9 @@
 package com.gemwallet.android.domains.confirm
 
-import com.gemwallet.android.domains.asset.toGem
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.wallet.core.primitives.AccountDataType
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.NFTAsset
-import com.wallet.core.primitives.StakeType
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.PerpetualType
 import uniffi.gemstone.SwapData
@@ -28,18 +24,5 @@ val TransactionInputType.swapData: SwapData?
 val TransactionInputType.nftAsset: NFTAsset?
     get() = (this as? TransactionInputType.TransferNft)?.nftAsset?.toPrimitives()
 
-val TransactionInputType.stakeType: StakeType?
-    get() = (this as? TransactionInputType.Stake)?.stakeType?.toPrimitives()
-
 val TransactionInputType.perpetualType: PerpetualType?
     get() = (this as? TransactionInputType.Perpetual)?.perpetualType
-
-fun TransactionInputType.Companion.transfer(asset: Asset): TransactionInputType = TransactionInputType.Transfer(asset.toGem())
-
-fun TransactionInputType.Companion.deposit(asset: Asset): TransactionInputType = TransactionInputType.Deposit(asset.toGem())
-
-fun TransactionInputType.Companion.transferNft(asset: Asset, nftAsset: NFTAsset): TransactionInputType = TransactionInputType.TransferNft(asset.toGem(), nftAsset.toGem())
-
-fun TransactionInputType.Companion.swap(fromAsset: Asset, toAsset: Asset, swapData: SwapData): TransactionInputType = TransactionInputType.Swap(fromAsset.toGem(), toAsset.toGem(), swapData)
-
-fun TransactionInputType.Companion.account(asset: Asset, accountType: AccountDataType): TransactionInputType = TransactionInputType.Account(asset.toGem(), accountType.toGem())

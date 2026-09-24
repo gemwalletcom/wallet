@@ -224,7 +224,7 @@ class WCRequestViewModelTest {
 
         val scene = model.awaitContent()
         assertTrue(scene is RequestSceneState.Request)
-        assertEquals("Main Wallet", scene.walletName)
+        assertEquals("Main Wallet", scene.request.wallet.name)
         assertEquals(ButtonState.Enabled, model.buttonState.value)
 
         job.cancel()
@@ -305,7 +305,7 @@ class WCRequestViewModelTest {
         assertEquals("0xdeadbeef", signature.await())
         job.join()
         val scene = model.sceneState.first { it is RequestSceneState.Responding }
-        assertEquals("Main Wallet", (scene as RequestSceneState.Content).walletName)
+        assertEquals("Main Wallet", (scene as RequestSceneState.Content).request.wallet.name)
         assertEquals(ButtonState.Loading, model.buttonState.first { it == ButtonState.Loading })
     }
 }

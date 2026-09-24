@@ -17,7 +17,6 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualMarketSceneState
 import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualPositionRowUIModel
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.RecentAssetsRequest
@@ -43,7 +42,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAssetAction
 import uniffi.gemstone.GemMarketsRefreshTrigger
-import uniffi.gemstone.GemPerpetual
 import uniffi.gemstone.GemPerpetualBalanceHeader
 import uniffi.gemstone.GemPerpetualMarketCounts
 import uniffi.gemstone.GemPerpetualMarketSection
@@ -88,7 +86,7 @@ class PerpetualMarketViewModel @Inject constructor(
     fun setQuery(value: String) {
         session.update { it.onQueryChanged(value) }
     }
-    val sceneState = MutableStateFlow<PerpetualMarketSceneState>(PerpetualMarketSceneState.Idle)
+    val isRefreshing = MutableStateFlow(false)
     private val perpetualSections = getPerpetuals.getPerpetualSections(query)
         .stateIn(viewModelScope, SharingStarted.Eagerly, PerpetualSections())
     val unpinnedPerpetuals = perpetualSections.map { it.markets }
@@ -135,10 +133,10 @@ class PerpetualMarketViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun onRefresh() {
-        sceneState.update { PerpetualMarketSceneState.Refreshing }
+        isRefreshing.value = true
         viewModelScope.launch(ioDispatcher) {
             refresh(GemMarketsRefreshTrigger.USER_REQUESTED)
-            sceneState.update { PerpetualMarketSceneState.Idle }
+            isRefreshing.value = false
         }
     }
 

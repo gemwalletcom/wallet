@@ -402,7 +402,7 @@ class FiatViewModelTest {
             runCurrent()
 
             val provider = viewModel.providers.value.first()
-            assertEquals(fiatFormatter.string(200.0 * provider.cryptoAmount), provider.fiatFormatted)
+            assertEquals(fiatFormatter.string(200.0 * provider.row.cryptoAmount.value), provider.fiatFormatted)
         } finally {
             viewModel.viewModelScope.cancel()
         }

@@ -95,7 +95,6 @@ import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemConfirmStage
 import uniffi.gemstone.GemConfirmTransferServiceInterface
 import uniffi.gemstone.GemConfirmation
-import uniffi.gemstone.GemPerpetual
 import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.GemSubmitResult
 import uniffi.gemstone.GemTransferAmountResult

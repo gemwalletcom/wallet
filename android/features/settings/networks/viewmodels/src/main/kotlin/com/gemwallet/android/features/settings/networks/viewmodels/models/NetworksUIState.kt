@@ -11,14 +11,7 @@ import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemExplorerRow
 import uniffi.gemstone.GemNodeRow
 
-data class NetworksUIState(
-    val selectChain: Boolean = true,
-    val chain: Chain? = null,
-    val chains: List<Chain> = emptyList(),
-    val sections: List<NetworkSectionUIModel> = emptyList(),
-    val availableAddNode: Boolean = false,
-    val errorText: String? = null,
-)
+data class NetworksUIState(val selectChain: Boolean = true, val chain: Chain? = null, val chains: List<Chain> = emptyList(), val sections: List<NetworkSectionUIModel> = emptyList(), val errorText: String? = null)
 
 sealed class NetworkSectionUIModel(@StringRes val title: Int) {
     data class Nodes(val rows: List<NodeRowUIModel>) : NetworkSectionUIModel(R.string.settings_networks_source)

@@ -125,12 +125,12 @@ class FiatViewModel @Inject constructor(
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.toUiState())
 
-    val providers = combine(assetInfoUIModel.filterNotNull(), viewState) { asset, state ->
-        state.quoteRows.map { row -> row.toProviderUIModel(asset.asset) }
+    val providers = combine(assetInfoUIModel.filterNotNull(), viewState) { _, state ->
+        state.quoteRows.map { row -> row.toProviderUIModel() }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val selectedProvider = combine(assetInfoUIModel, viewState) { asset, state ->
-        asset?.let { state.selectedQuoteRow?.toProviderUIModel(it.asset) }
+        asset?.let { state.selectedQuoteRow?.toProviderUIModel() }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val providerListItem: StateFlow<ListItemModel?> = selectedProvider.map { provider ->

@@ -62,7 +62,6 @@ class NetworksViewModel @Inject constructor(private val service: GemChainSetting
                 chain = chain,
                 selectChain = false,
                 explorers = service.explorerRows(chain.string),
-                availableAddNode = true,
                 session = service.newNodeListSession(chain.string),
             )
         }
@@ -151,7 +150,6 @@ class NetworksViewModel @Inject constructor(private val service: GemChainSetting
         val session: GemNodeListSession? = null,
         val availableChains: List<Chain> = emptyList(),
         val selectChain: Boolean = true,
-        val availableAddNode: Boolean = true,
         val errorText: String? = null,
     )
 
@@ -163,7 +161,6 @@ class NetworksViewModel @Inject constructor(private val service: GemChainSetting
             NetworkSectionUIModel.Nodes(session?.rows().orEmpty().map { it.uiModel(context) }),
             NetworkSectionUIModel.Explorers(explorers.map { it.uiModel() }),
         ),
-        availableAddNode = availableAddNode,
         errorText = errorText,
     )
 }

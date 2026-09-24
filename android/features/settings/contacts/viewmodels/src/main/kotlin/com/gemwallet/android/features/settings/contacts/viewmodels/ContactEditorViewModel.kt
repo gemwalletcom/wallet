@@ -91,7 +91,6 @@ class ContactEditorViewModel @Inject constructor(
             description = session.description,
             avatar = session.avatarImage().listItemImage(current.emojiBackground),
             hasAvatar = session.avatar !is GemContactAvatarChoice.Empty,
-            addresses = addresses,
             addressRows = addresses.rows(service),
             addAddressListItem = addAddressListItem(context),
             page = current.page,
@@ -216,7 +215,7 @@ class ContactEditorViewModel @Inject constructor(
 
     fun confirmAddress() {
         val input = uiState.value.addressInput ?: return
-        if (!input.isConfirmEnabled) return
+        if (!input.isAddressValid) return
 
         val address = addressInput.resolvedAddress
         addressInput.reset()

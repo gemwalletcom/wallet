@@ -54,10 +54,8 @@ internal fun NetworkScene(state: NetworksUIState, snackbar: SnackbarHostState? =
         title = chain.networkName(),
         snackbar = snackbar,
         actions = {
-            if (state.availableAddNode) {
-                IconButton(onClick = { isShowAddSource = true }) {
-                    Icon(imageVector = AppIcons.Add, contentDescription = "")
-                }
+            IconButton(onClick = { isShowAddSource = true }) {
+                Icon(imageVector = AppIcons.Add, contentDescription = "")
             }
         },
         onClose = { onAction(NetworkAction.Cancel) },

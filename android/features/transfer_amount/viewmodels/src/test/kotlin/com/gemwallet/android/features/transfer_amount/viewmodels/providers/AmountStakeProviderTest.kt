@@ -1,8 +1,8 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
-import com.gemwallet.android.domains.confirm.stakeType
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.testkit.mockAssetCosmos
@@ -171,5 +171,5 @@ class AmountStakeProviderTest {
         assertEquals(Resource.Energy, (provider.stakeType() as StakeType.Unfreeze).content)
     }
 
-    private suspend fun AmountStakeProvider.stakeType(): StakeType? = buildTransfer(Crypto(BigInteger.ONE), isMax = false).inputType.stakeType
+    private suspend fun AmountStakeProvider.stakeType(): StakeType? = (buildTransfer(Crypto(BigInteger.ONE), isMax = false).inputType as? TransactionInputType.Stake)?.stakeType?.toPrimitives()
 }

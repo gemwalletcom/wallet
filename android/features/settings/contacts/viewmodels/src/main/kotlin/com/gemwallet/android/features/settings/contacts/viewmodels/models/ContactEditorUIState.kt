@@ -4,7 +4,6 @@ import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.ContactAddress
 import uniffi.gemstone.GemContactAddressField
 import uniffi.gemstone.GemContactSession
 import uniffi.gemstone.contactAddressFields
@@ -22,7 +21,6 @@ data class ContactEditorUIState(
     val description: String = "",
     val avatar: ListItemImage = ListItemImage.Initials(""),
     val hasAvatar: Boolean = false,
-    val addresses: List<ContactAddress> = emptyList(),
     val addressRows: List<ContactAddressRowUIModel> = emptyList(),
     val addAddressListItem: ListItemModel? = null,
     val page: ContactEditorPage = ContactEditorPage.Form,
@@ -54,7 +52,4 @@ data class ContactAddressInput(
     val isAddressValid: Boolean = false,
     val addressError: String = "",
     val showsMemo: Boolean = false,
-) {
-    val isConfirmEnabled: Boolean
-        get() = isAddressValid
-}
+)

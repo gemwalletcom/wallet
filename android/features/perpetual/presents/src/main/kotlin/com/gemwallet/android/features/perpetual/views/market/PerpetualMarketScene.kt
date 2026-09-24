@@ -29,7 +29,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.perpetual.viewmodels.localization.stringRes
-import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualMarketSceneState
 import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualPositionRowUIModel
 import com.gemwallet.android.features.perpetual.views.components.PerpetualItem
 import com.gemwallet.android.model.text
@@ -76,7 +75,7 @@ import uniffi.gemstone.priceRow
 
 @Composable
 internal fun PerpetualMarketScene(
-    sceneState: PerpetualMarketSceneState,
+    isRefreshing: Boolean,
     balanceHeader: GemPerpetualBalanceHeader?,
     positions: List<PerpetualPositionRowUIModel>,
     unpinnedPerpetuals: List<PerpetualDataAggregate>,
@@ -117,7 +116,7 @@ internal fun PerpetualMarketScene(
         },
     ) {
         PullToRefreshBox(
-            isRefreshing = sceneState.isRefreshing,
+            isRefreshing = isRefreshing,
             onRefresh = { onAction(PerpetualMarketAction.Refresh) },
         ) {
             LazyColumn(
@@ -247,7 +246,7 @@ private fun LazyListScope.recentPerpetuals(items: List<Asset>, onSeeAll: () -> U
 fun PreviewPerpetualMarketScene() {
     WalletTheme {
         PerpetualMarketScene(
-            sceneState = PerpetualMarketSceneState.Idle,
+            isRefreshing = false,
             query = androidx.compose.foundation.text.input.TextFieldState(),
             sections = emptyList(),
             isSearching = false,

@@ -148,7 +148,6 @@ class ImportViewModel @Inject constructor(
 }
 
 data class ImportViewModelState(
-    val error: String = "",
     val importType: ImportType = ImportType(GemWalletImportKind.PHRASE),
     val title: String = "",
     val tabs: List<GemWalletImportKind> = emptyList(),
@@ -158,7 +157,6 @@ data class ImportViewModelState(
 ) {
     fun toUIState(loading: Boolean, context: Context): ImportUIState = ImportUIState(
         loading = loading,
-        error = error,
         title = title,
         showsTabs = showsTabs,
         tabs = tabs.map { kind -> ImportTabUIModel(type = importType.copy(kind = kind), title = kind.tabStringRes(), isSelected = kind == importType.kind) },
@@ -171,7 +169,6 @@ data class ImportViewModelState(
 
 data class ImportUIState(
     val loading: Boolean = false,
-    val error: String = "",
     val importType: ImportType = ImportType(GemWalletImportKind.PHRASE),
     val title: String = "",
     val tabs: List<ImportTabUIModel> = emptyList(),

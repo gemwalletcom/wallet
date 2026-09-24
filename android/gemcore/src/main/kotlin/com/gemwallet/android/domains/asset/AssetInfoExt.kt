@@ -7,12 +7,6 @@ import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemValueStyle
 import java.math.BigInteger
 
-val AssetInfo.symbol: String
-    get() = asset.symbol
-
-val AssetInfo.decimals: Int
-    get() = asset.decimals
-
 val AssetInfo.chain: Chain
     get() = asset.chain
 

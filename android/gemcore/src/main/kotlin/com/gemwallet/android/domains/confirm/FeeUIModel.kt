@@ -24,9 +24,5 @@ sealed interface FeeUIModel {
         val cryptoAmount: String by lazy { display.amount.text() }
 
         val fiatAmount: String by lazy { display.fiat?.text().orEmpty() }
-
-        val cryptoAmountWithFiat: String by lazy {
-            if (fiatAmount.isEmpty()) cryptoAmount else "$cryptoAmount (~$fiatAmount)"
-        }
     }
 }
