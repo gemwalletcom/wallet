@@ -105,7 +105,7 @@ class BaseAssetSelectViewModelTest {
             override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> = filters.filterNotNull().map { current ->
                 val query = current.queryFilters()
                 val chains = query.chains()
-                items.filter { (chains.isEmpty() || it.asset.id.chain in chains) && (GemAssetFilter.HasBalance !in query || it.balance.totalAmount > 0.0) }.take(current.limit)
+                items.filter { (chains.isEmpty() || it.asset.id.chain in chains) && (GemAssetFilter.HasBalance !in query || it.balance.balance.available.signum() > 0) }.take(current.limit)
             }
         }
         return BaseAssetSelectViewModel(session, recents, service, search, GemSelectAssetType.Send, dispatcher, mockk(relaxed = true))

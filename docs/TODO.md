@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Security and bugs:** AUD67, AUD68, AUD5, AUD59, BD20.
+1. **Security and bugs:** AUD67, AUD5, AUD59, BD20.
 2. **Generated constants:** D174.
 3. **Deletions:** VM173, VM174, VM177 (the FFI trim; extend `check-ffi-surface.py` first).
 4. **Pass-throughs:** VM175, VM176.
@@ -42,7 +42,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79, D75 |
 | Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | VM175 |
 | Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM175, VM176 |
-| Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | D74, VM172, VM175, VM178, AUD68 |
+| Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | D74, VM172, VM175, VM178 |
 | Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM127, VM167, VM176, VM178, BD64 |
 | Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | VM176 |
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
@@ -94,7 +94,6 @@ Transaction-critical input, a user-visible outcome that a swallowed error hides,
   - **iOS:** `AutocloseSceneViewModel.onSelectConfirm` returns on `try?`.
   - **Android:** `AutocloseViewModel.onConfirm` returns on `runCatching { … }.getOrNull()`.
   - **Expected:** both show Core's error text (`GemServiceError.text()`), as other confirm failures do.
-- **AUD68** **S** **Android rebuilds every asset row on every database emission.** `Balance<T>.hashCode` starts from `super.hashCode()`, the identity hash (`gemcore/.../model/Balance.kt:33-34`), so equal `AssetInfo`s hash differently and the row cache in `GetActiveAssetsInfoImpl.kt:38-47` never hits; each Room emission (`AssetStore.kt:96` builds new objects) crosses `assetListRows` for every asset. `GetActiveAssetsInfoImplTest.onlyTheChangedRowIsRebuilt` misses it because it reuses the same instances. Delete both overrides (the `equals` only repeats the data class), the write-only `AssetBalance.balanceAmount/totalAmount/fiatTotalAmount` (`AssetBalance.kt:13-15`) that force the generic, make `Balance` non-generic, and make the test build fresh equal instances. iOS uses synthesized `Hashable`.
 
 ## 2. One view state per screen
 

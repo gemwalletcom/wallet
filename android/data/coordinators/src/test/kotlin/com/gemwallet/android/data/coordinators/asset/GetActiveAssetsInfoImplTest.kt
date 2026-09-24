@@ -77,7 +77,7 @@ class GetActiveAssetsInfoImplTest {
         val first = subject.assetsInfo().first { it.isNotEmpty() }
 
         walletAssets.value = assets.mapIndexed { index, item ->
-            if (index == 0) item.copy(price = mockAssetPriceInfo(price = 51000.0, priceChangePercentage24h = 2.5)) else item
+            if (index == 0) item.copy(price = mockAssetPriceInfo(price = 51000.0, priceChangePercentage24h = 2.5)) else item.copy(balance = item.balance.copy(balance = item.balance.balance.copy()))
         }
         val second = subject.assetsInfo().first { it.first().price.price?.text() == "\$51,000.00" }
 
