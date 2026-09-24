@@ -6,7 +6,6 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
-import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.model.AmountParams
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -18,7 +17,6 @@ class AmountProviderFactory @Inject constructor(
     private val getAssetInfo: GetAssetInfo,
     private val getDelegation: GetDelegation,
     private val getStakeValidator: GetStakeValidator,
-    private val getValidators: GetValidators,
     private val getPerpetual: GetPerpetual,
     private val getSession: GetSession,
     private val service: GemAmountServiceInterface,
@@ -39,9 +37,6 @@ class AmountProviderFactory @Inject constructor(
         is AmountParams.Stake -> AmountStakeProvider(
             params = params,
             getAssetInfo = getAssetInfo,
-            getDelegation = getDelegation,
-            getStakeValidator = getStakeValidator,
-            getValidators = getValidators,
             stakeService = stakeService,
             scope = scope,
         )

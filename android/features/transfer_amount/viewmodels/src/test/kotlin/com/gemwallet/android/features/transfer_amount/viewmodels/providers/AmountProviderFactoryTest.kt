@@ -4,7 +4,7 @@ import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegation
-import com.gemwallet.android.application.stake.cases.GetValidators
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.testkit.mockAmountParamsPerpetual
 import com.gemwallet.android.testkit.mockAmountParamsTransfer
@@ -21,6 +21,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemStakeAmountInput
 
 class AmountProviderFactoryTest {
 
@@ -34,9 +35,6 @@ class AmountProviderFactoryTest {
             every { this@mockk.invoke(any(), any(), any()) } returns flowOf(null)
         },
         getStakeValidator = mockk(relaxed = true),
-        getValidators = mockk<GetValidators>(relaxed = true) {
-            every { this@mockk.invoke(any(), any()) } returns flowOf(emptyList())
-        },
         getPerpetual = mockk<GetPerpetual>(relaxed = true) {
             every { getPerpetual(any()) } returns flowOf(null)
         },
@@ -58,11 +56,8 @@ class AmountProviderFactoryTest {
 
     @Test
     fun `Stake variants produce StakeProvider`() {
-        assertTrue(factory.create(AmountParams.Stake.Delegate(asset.id), scope) is AmountStakeProvider)
-        assertTrue(factory.create(AmountParams.Stake.Rewards(asset.id), scope) is AmountStakeProvider)
-        assertTrue(factory.create(AmountParams.Stake.Withdraw(asset.id, "v1", "d1"), scope) is AmountStakeProvider)
-        assertTrue(factory.create(AmountParams.Stake.Freeze(asset.id, Resource.Bandwidth), scope) is AmountStakeProvider)
-        assertTrue(factory.create(AmountParams.Stake.Unfreeze(asset.id, Resource.Bandwidth), scope) is AmountStakeProvider)
+        assertTrue(factory.create(AmountParams.Stake(asset.id, GemStakeAmountInput.Stake(emptyList(), null)), scope) is AmountStakeProvider)
+        assertTrue(factory.create(AmountParams.Stake(asset.id, GemStakeAmountInput.Freeze(Resource.Bandwidth.toGem())), scope) is AmountStakeProvider)
     }
 
     @Test

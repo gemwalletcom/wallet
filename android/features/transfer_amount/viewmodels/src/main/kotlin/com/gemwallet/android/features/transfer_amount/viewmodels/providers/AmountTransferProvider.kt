@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.stateIn
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountTransfer
 import uniffi.gemstone.GemAmountType
-import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemTransferData
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -28,13 +27,8 @@ class AmountTransferProvider(private val params: AmountParams, private val servi
 
     private val transfer: GemAmountTransfer = when (params) {
         is AmountParams.Deposit -> GemAmountTransfer.Deposit
-
         is AmountParams.Withdraw -> GemAmountTransfer.Withdraw
-
-        is AmountParams.Transfer -> GemAmountTransfer.Send(
-            GemPaymentRecipient(params.destination.copy(memo = params.memo, references = params.references), params.amount),
-        )
-
+        is AmountParams.Transfer -> GemAmountTransfer.Send(params.payment)
         else -> error("AmountTransferProvider requires Transfer, Deposit or Withdraw params")
     }
 

@@ -181,7 +181,7 @@ class RecipientViewModel @Inject constructor(
     private fun route(recipient: RecipientState.Ready, next: GemRecipientNext, amountAction: AmountTransactionAction, confirmAction: ConfirmTransactionAction) {
         when (next) {
             is GemRecipientNext.Amount -> amountAction(
-                AmountParams.Transfer(recipient.asset.id, next.payment.recipient, next.payment.recipient.memo, next.payment.recipient.references, next.payment.amount),
+                AmountParams.Transfer(recipient.asset.id, next.payment),
             )
 
             is GemRecipientNext.Confirm -> confirmAction(ConfirmTransferInput(next.transfer))

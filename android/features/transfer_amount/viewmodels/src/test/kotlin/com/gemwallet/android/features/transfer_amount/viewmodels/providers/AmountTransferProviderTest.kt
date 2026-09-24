@@ -65,7 +65,7 @@ class AmountTransferProviderTest {
 
     @Test
     fun `Core decides the prefilled amount`() {
-        assertEquals("1.5", makeProvider(params.copy(amount = "1.5")).prefilledAmount)
+        assertEquals("1.5", makeProvider(params.copy(payment = params.payment.copy(amount = "1.5"))).prefilledAmount)
         assertEquals(null, makeProvider().prefilledAmount)
         assertEquals(null, makeProvider(AmountParams.Deposit(asset.id)).prefilledAmount)
         assertEquals(null, makeProvider(AmountParams.Withdraw(asset.id)).prefilledAmount)

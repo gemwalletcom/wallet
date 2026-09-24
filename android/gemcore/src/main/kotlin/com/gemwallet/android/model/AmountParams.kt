@@ -7,15 +7,13 @@ import com.gemwallet.android.serializer.unpackRoutePayload
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
-import com.wallet.core.primitives.Resource
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import uniffi.gemstone.Delegation
 import uniffi.gemstone.EarnType
 import uniffi.gemstone.GemDelegationAmountInput
+import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemPerpetualPositionAction
-import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemStakeAmountInput
 
 @Serializable
@@ -26,7 +24,7 @@ sealed interface AmountParams {
 
     @Serializable
     @SerialName("transfer")
-    data class Transfer(override val assetId: AssetId, val destination: @Contextual GemRecipient, val memo: String? = null, val references: List<String> = emptyList(), val amount: String? = null) : AmountParams
+    data class Transfer(override val assetId: AssetId, val payment: @Contextual GemPaymentRecipient) : AmountParams
 
     @Serializable
     @SerialName("perpetual.deposit")
@@ -37,36 +35,8 @@ sealed interface AmountParams {
     data class Withdraw(override val assetId: AssetId) : AmountParams
 
     @Serializable
-    sealed interface Stake : AmountParams {
-
-        @Serializable
-        @SerialName("stake.delegate")
-        data class Delegate(override val assetId: AssetId, val validatorId: String? = null) : Stake
-
-        @Serializable
-        @SerialName("stake.undelegate")
-        data class Undelegate(override val assetId: AssetId, val validatorId: String, val delegationId: String) : Stake
-
-        @Serializable
-        @SerialName("stake.redelegate")
-        data class Redelegate(override val assetId: AssetId, val validatorId: String, val delegationId: String) : Stake
-
-        @Serializable
-        @SerialName("stake.withdraw")
-        data class Withdraw(override val assetId: AssetId, val validatorId: String, val delegationId: String) : Stake
-
-        @Serializable
-        @SerialName("stake.rewards")
-        data class Rewards(override val assetId: AssetId, val delegations: List<@Contextual Delegation> = emptyList(), val validatorId: String? = null) : Stake
-
-        @Serializable
-        @SerialName("stake.freeze")
-        data class Freeze(override val assetId: AssetId, val resource: Resource) : Stake
-
-        @Serializable
-        @SerialName("stake.unfreeze")
-        data class Unfreeze(override val assetId: AssetId, val resource: Resource) : Stake
-    }
+    @SerialName("stake")
+    data class Stake(override val assetId: AssetId, val input: @Contextual GemStakeAmountInput) : AmountParams
 
     @Serializable
     sealed interface Earn : AmountParams {
@@ -92,15 +62,7 @@ sealed interface AmountParams {
 }
 
 fun GemDelegationAmountInput.toAmountParams(assetId: AssetId): AmountParams = when (this) {
-    is GemDelegationAmountInput.Stake -> when (val input = input) {
-        is GemStakeAmountInput.Stake -> AmountParams.Stake.Delegate(assetId, validatorId = input.validator?.id)
-        is GemStakeAmountInput.Redelegate -> AmountParams.Stake.Redelegate(assetId, input.delegation.validator.id, input.delegation.base.delegationId)
-        is GemStakeAmountInput.Unstake -> AmountParams.Stake.Undelegate(assetId, input.delegation.validator.id, input.delegation.base.delegationId)
-        is GemStakeAmountInput.Withdraw -> AmountParams.Stake.Withdraw(assetId, input.delegation.validator.id, input.delegation.base.delegationId)
-        is GemStakeAmountInput.Rewards -> AmountParams.Stake.Rewards(assetId, input.delegations, input.validator?.id)
-        is GemStakeAmountInput.Freeze -> AmountParams.Stake.Freeze(assetId, input.resource.toPrimitives())
-        is GemStakeAmountInput.Unfreeze -> AmountParams.Stake.Unfreeze(assetId, input.resource.toPrimitives())
-    }
+    is GemDelegationAmountInput.Stake -> AmountParams.Stake(assetId, input)
 
     is GemDelegationAmountInput.Earn -> when (val earnType = earnType) {
         is EarnType.Deposit -> AmountParams.Earn.Deposit(assetId, providerId = earnType.v1.id)
