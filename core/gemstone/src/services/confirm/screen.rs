@@ -1,7 +1,8 @@
+use crate::models::button::GemButtonState;
 use primitives::SimulationResult;
 
 use super::error::GemConfirmError;
-use super::model::{GemConfirmAction, GemConfirmButton, GemConfirmButtonKind, GemConfirmButtonState, GemConfirmFailure, GemConfirmFeeRow, GemConfirmLoad, GemConfirmPhase, GemConfirmScreen, GemConfirmStage, GemTransferAmountResult};
+use super::model::{GemConfirmAction, GemConfirmButton, GemConfirmButtonKind, GemConfirmFailure, GemConfirmFeeRow, GemConfirmLoad, GemConfirmPhase, GemConfirmScreen, GemConfirmStage, GemTransferAmountResult};
 
 impl GemConfirmScreen {
     pub fn initial(simulation: Option<&SimulationResult>) -> Self {
@@ -31,11 +32,11 @@ impl GemConfirmScreen {
     pub fn button(&self) -> GemConfirmButton {
         let button = |kind, state| GemConfirmButton { kind, state };
         match self.phase {
-            GemConfirmPhase::Loading | GemConfirmPhase::Confirming => button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Loading),
-            GemConfirmPhase::Failed if self.is_account_missing() => button(GemConfirmButtonKind::AccountMissing, GemConfirmButtonState::Disabled),
-            GemConfirmPhase::Failed => button(GemConfirmButtonKind::Retry, GemConfirmButtonState::Enabled),
-            GemConfirmPhase::Ready if !self.has_fee || self.failure.is_some() || self.has_critical_warning => button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Disabled),
-            GemConfirmPhase::Ready => button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Enabled),
+            GemConfirmPhase::Loading | GemConfirmPhase::Confirming => button(GemConfirmButtonKind::Confirm, GemButtonState::Loading),
+            GemConfirmPhase::Failed if self.is_account_missing() => button(GemConfirmButtonKind::AccountMissing, GemButtonState::Disabled),
+            GemConfirmPhase::Failed => button(GemConfirmButtonKind::Retry, GemButtonState::Enabled),
+            GemConfirmPhase::Ready if !self.has_fee || self.failure.is_some() || self.has_critical_warning => button(GemConfirmButtonKind::Confirm, GemButtonState::Disabled),
+            GemConfirmPhase::Ready => button(GemConfirmButtonKind::Confirm, GemButtonState::Enabled),
         }
     }
 
@@ -125,7 +126,7 @@ mod tests {
             missing.button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::AccountMissing,
-                state: GemConfirmButtonState::Disabled
+                state: GemButtonState::Disabled
             }
         );
         assert_eq!(missing.action(), None);
@@ -143,7 +144,7 @@ mod tests {
             GemConfirmScreen::initial(None).button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Confirm,
-                state: GemConfirmButtonState::Loading
+                state: GemButtonState::Loading
             }
         );
         assert_eq!(
@@ -154,7 +155,7 @@ mod tests {
             .button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Confirm,
-                state: GemConfirmButtonState::Loading
+                state: GemButtonState::Loading
             }
         );
         assert_eq!(
@@ -166,7 +167,7 @@ mod tests {
             .button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Retry,
-                state: GemConfirmButtonState::Enabled
+                state: GemButtonState::Enabled
             }
         );
         assert_eq!(
@@ -180,21 +181,21 @@ mod tests {
             .button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Confirm,
-                state: GemConfirmButtonState::Disabled
+                state: GemButtonState::Disabled
             }
         );
         assert_eq!(
             GemConfirmScreen { has_critical_warning: true, ..ready.clone() }.button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Confirm,
-                state: GemConfirmButtonState::Disabled
+                state: GemButtonState::Disabled
             }
         );
         assert_eq!(
             ready.button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Confirm,
-                state: GemConfirmButtonState::Enabled
+                state: GemButtonState::Enabled
             }
         );
     }
@@ -212,7 +213,7 @@ mod tests {
             waiting.button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Confirm,
-                state: GemConfirmButtonState::Disabled
+                state: GemButtonState::Disabled
             }
         );
         assert_eq!(waiting.action(), None);
@@ -275,7 +276,7 @@ mod tests {
             amount_failed.button(),
             GemConfirmButton {
                 kind: GemConfirmButtonKind::Confirm,
-                state: GemConfirmButtonState::Disabled,
+                state: GemButtonState::Disabled,
             }
         );
         assert_eq!(amount_failed.action(), None, "an amount the wallet cannot cover is not retried by pressing the button");

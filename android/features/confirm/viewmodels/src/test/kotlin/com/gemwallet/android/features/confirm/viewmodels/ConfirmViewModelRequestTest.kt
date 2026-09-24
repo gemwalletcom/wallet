@@ -38,7 +38,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemConfirmButtonState
+import uniffi.gemstone.GemButtonState
 import uniffi.gemstone.GemConfirmFeeSelection
 import uniffi.gemstone.GemConfirmHeader
 import uniffi.gemstone.GemConfirmPhase
@@ -73,7 +73,7 @@ class ConfirmViewModelRequestTest {
 
         assertNull(viewModel.title.first())
         assertEquals(GemConfirmPhase.LOADING, viewModel.screen.value.phase)
-        assertEquals(GemConfirmButtonState.LOADING, viewModel.button.value.state)
+        assertEquals(GemButtonState.LOADING, viewModel.button.value.state)
         verify(exactly = 0) { confirmService.confirmation(any(), any(), any()) }
     }
 

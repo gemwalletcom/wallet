@@ -8,7 +8,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.list_item.infoSheet
 import com.gemwallet.android.ui.models.ButtonState
-import uniffi.gemstone.GemSwapButtonState
+import com.gemwallet.android.ui.models.buttonState
 import uniffi.gemstone.GemSwapSessionAction
 import uniffi.gemstone.GemSwapViewState
 
@@ -52,11 +52,7 @@ data class SwapUiState(
 
 internal fun createSwapUiState(state: GemSwapViewState, context: Context) = SwapUiState(
     actionTitle = state.buttonAction.stringRes(),
-    buttonState = when (state.buttonState) {
-        GemSwapButtonState.DISABLED -> ButtonState.Disabled
-        GemSwapButtonState.LOADING -> ButtonState.Loading
-        GemSwapButtonState.ENABLED -> ButtonState.Enabled
-    },
+    buttonState = state.buttonState.buttonState(),
     errorText = state.error?.text(context),
     errorInfo = state.error?.info()?.infoSheet(context, null),
     isQuoteLoading = state.isQuoteLoading,

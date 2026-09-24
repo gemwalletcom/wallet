@@ -1,3 +1,4 @@
+use crate::models::button::GemButtonState;
 use std::iter::once;
 use std::sync::Arc;
 
@@ -21,18 +22,11 @@ pub enum GemAddAssetPhase {
     Failed,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemAddAssetButton {
-    Loading,
-    Enabled,
-    Disabled,
-}
-
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAddAssetViewState {
     pub phase: GemAddAssetPhase,
     pub can_add: bool,
-    pub button: GemAddAssetButton,
+    pub button: GemButtonState,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -162,9 +156,9 @@ impl GemAddAssetSession {
         };
         let can_add = matches!(phase, GemAddAssetPhase::Found { .. });
         let button = match (self.is_loading || self.is_adding, can_add) {
-            (true, _) => GemAddAssetButton::Loading,
-            (false, true) => GemAddAssetButton::Enabled,
-            (false, false) => GemAddAssetButton::Disabled,
+            (true, _) => GemButtonState::Loading,
+            (false, true) => GemButtonState::Enabled,
+            (false, false) => GemButtonState::Disabled,
         };
         GemAddAssetViewState { can_add, button, phase }
     }
@@ -244,13 +238,13 @@ mod session_tests {
     #[test]
     fn test_the_button_spins_while_looking_up_or_adding_and_enables_on_a_found_token() {
         let idle = GemAddAssetSession::new(Some(Chain::Ethereum)).on_address("0xabc".to_string());
-        assert_eq!(idle.view_state().button, GemAddAssetButton::Disabled);
-        assert_eq!(idle.on_loading().view_state().button, GemAddAssetButton::Loading);
+        assert_eq!(idle.view_state().button, GemButtonState::Disabled);
+        assert_eq!(idle.on_loading().view_state().button, GemButtonState::Loading);
 
         let found = idle.on_found(Chain::Ethereum, "0xabc".to_string(), Asset::mock());
-        assert_eq!(found.view_state().button, GemAddAssetButton::Enabled);
-        assert_eq!(found.on_adding(true).view_state().button, GemAddAssetButton::Loading);
-        assert_eq!(found.on_adding(true).on_adding(false).view_state().button, GemAddAssetButton::Enabled);
+        assert_eq!(found.view_state().button, GemButtonState::Enabled);
+        assert_eq!(found.on_adding(true).view_state().button, GemButtonState::Loading);
+        assert_eq!(found.on_adding(true).on_adding(false).view_state().button, GemButtonState::Enabled);
     }
 
     #[test]

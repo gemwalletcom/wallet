@@ -1,6 +1,7 @@
 use super::error::GemConfirmError;
 use super::rules::approval_value_from;
 use crate::formatted_number::GemValueTone;
+use crate::models::button::GemButtonState;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
 use crate::models::list::GemListRow;
@@ -321,17 +322,10 @@ pub enum GemConfirmButtonKind {
     AccountMissing,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
-pub enum GemConfirmButtonState {
-    Disabled,
-    Loading,
-    Enabled,
-}
-
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemConfirmButton {
     pub kind: GemConfirmButtonKind,
-    pub state: GemConfirmButtonState,
+    pub state: GemButtonState,
 }
 
 #[uniffi::export]

@@ -15,7 +15,6 @@ import com.gemwallet.android.ui.models.ButtonState
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FeePriority
-import uniffi.gemstone.GemConfirmButtonState
 import uniffi.gemstone.GemConfirmHeader
 import uniffi.gemstone.GemTransactionHeader
 import java.math.BigInteger
@@ -70,10 +69,4 @@ private fun GemTransactionHeader.uiModel(currency: Currency): ConfirmHeaderUIMod
         equivalent = amount.fiat(currency).takeIf { showsFiat },
         asset = amount.asset.toPrimitives(),
     )
-}
-
-internal fun GemConfirmButtonState.buttonState(): ButtonState = when (this) {
-    GemConfirmButtonState.DISABLED -> ButtonState.Disabled
-    GemConfirmButtonState.LOADING -> ButtonState.Loading
-    GemConfirmButtonState.ENABLED -> ButtonState.Enabled
 }

@@ -17,7 +17,7 @@ use crate::services::assets::GemAssetsService;
 
 pub use model::{GemFiatAmountCheck, GemFiatTransactionBadge, GemFiatTransactionStatus};
 pub use quote::GemFiatQuoteService;
-pub use session::{GemFiatButtonAction, GemFiatButtonState, GemFiatOperation, GemFiatQuotePhase, GemFiatQuoteRequest, GemFiatQuotesResult, GemFiatSession};
+pub use session::{GemFiatButtonAction, GemFiatOperation, GemFiatQuotePhase, GemFiatQuoteRequest, GemFiatQuotesResult, GemFiatSession};
 pub use store::GemFiatStore;
 
 const QUOTE_DEBOUNCE_MILLISECONDS: u64 = 250;

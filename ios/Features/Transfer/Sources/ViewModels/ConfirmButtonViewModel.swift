@@ -5,6 +5,7 @@ import struct Gemstone.GemConfirmButton
 import enum Gemstone.GemKeystoreAuthentication
 import GemstoneServices
 import Primitives
+import PrimitivesComponents
 import Style
 import SwiftUI
 
@@ -36,11 +37,7 @@ struct ConfirmButtonViewModel: StateButtonViewable {
     }
 
     var type: ButtonType {
-        switch button.state {
-        case .disabled: .primary(.disabled)
-        case .loading: .primary(.loading())
-        case .enabled: .primary(.normal)
-        }
+        .primary(button.state.state)
     }
 
     func action() {

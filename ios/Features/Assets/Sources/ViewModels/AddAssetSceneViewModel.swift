@@ -53,11 +53,7 @@ public final class AddAssetSceneViewModel {
     }
 
     var buttonState: ButtonState {
-        switch session.viewState().button {
-        case .loading: .loading()
-        case .enabled: .normal
-        case .disabled: .disabled
-        }
+        session.viewState().button.state
     }
 
     var title: String {

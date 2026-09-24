@@ -1,3 +1,4 @@
+use crate::models::button::GemButtonState;
 use primitives::{FiatProviderName, FiatQuote, FiatQuoteType};
 
 use super::model::{GemFiatAmountCheck, GemFiatQuoteRow};
@@ -45,13 +46,6 @@ pub enum GemFiatButtonAction {
     RetryQuote,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemFiatButtonState {
-    Disabled,
-    Loading,
-    Enabled,
-}
-
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemFiatOperation {
     pub quote_type: FiatQuoteType,
@@ -72,7 +66,7 @@ pub struct GemFiatViewState {
     pub can_select_provider: bool,
     pub amount_check: GemFiatAmountCheck,
     pub button_action: GemFiatButtonAction,
-    pub button_state: GemFiatButtonState,
+    pub button_state: GemButtonState,
     pub shows_type_picker: bool,
 }
 
@@ -225,15 +219,15 @@ impl GemFiatSession {
         }
     }
 
-    fn button_state(&self, is_url_loading: bool) -> GemFiatButtonState {
+    fn button_state(&self, is_url_loading: bool) -> GemButtonState {
         if is_url_loading {
-            return GemFiatButtonState::Loading;
+            return GemButtonState::Loading;
         }
         match self.current().phase {
-            GemFiatQuotePhase::Loading { .. } => GemFiatButtonState::Loading,
-            GemFiatQuotePhase::Failed { .. } => GemFiatButtonState::Enabled,
-            GemFiatQuotePhase::Ready if self.selected_quote().is_some() && self.amount_check() == GemFiatAmountCheck::Valid => GemFiatButtonState::Enabled,
-            _ => GemFiatButtonState::Disabled,
+            GemFiatQuotePhase::Loading { .. } => GemButtonState::Loading,
+            GemFiatQuotePhase::Failed { .. } => GemButtonState::Enabled,
+            GemFiatQuotePhase::Ready if self.selected_quote().is_some() && self.amount_check() == GemFiatAmountCheck::Valid => GemButtonState::Enabled,
+            _ => GemButtonState::Disabled,
         }
     }
 }
@@ -366,7 +360,7 @@ mod tests {
         assert_eq!(session.on_amount_changed("4".to_string()).quote_request(), None);
         assert_eq!(session.on_amount_changed("12,5".to_string()).current().phase, GemFiatQuotePhase::InvalidInput);
         assert_eq!(session.on_amount_changed("12".to_string()).current().phase, GemFiatQuotePhase::Loading { amount: 12.0 });
-        assert_eq!(session.on_amount_changed("4".to_string()).button_state(false), GemFiatButtonState::Disabled);
+        assert_eq!(session.on_amount_changed("4".to_string()).button_state(false), GemButtonState::Disabled);
     }
 
     #[test]
@@ -381,7 +375,7 @@ mod tests {
         assert!(changed.current().quotes.is_empty());
         assert_eq!(changed.current().phase, GemFiatQuotePhase::Loading { amount: 75.0 });
         assert_eq!(changed.selected_quote(), None);
-        assert_eq!(changed.button_state(false), GemFiatButtonState::Loading);
+        assert_eq!(changed.button_state(false), GemButtonState::Loading);
     }
 
     #[test]
@@ -405,7 +399,7 @@ mod tests {
         }]));
         assert_eq!(ready.current().phase, GemFiatQuotePhase::Ready);
         assert_eq!(ready.selected_quote().map(|quote| quote.provider.id), Some(FiatProviderName::Transak));
-        assert_eq!(ready.button_state(false), GemFiatButtonState::Enabled);
+        assert_eq!(ready.button_state(false), GemButtonState::Enabled);
         assert_eq!(ready.button_action(), GemFiatButtonAction::Continue);
 
         let refreshed = ready.on_fetch_started(GemFiatQuoteRequest {
@@ -430,7 +424,7 @@ mod tests {
 
         let empty = session.on_quote_results(GemFiatQuotesResult::mock(vec![]));
         assert_eq!(empty.current().phase, GemFiatQuotePhase::NoQuotes);
-        assert_eq!(empty.button_state(false), GemFiatButtonState::Disabled);
+        assert_eq!(empty.button_state(false), GemButtonState::Disabled);
         assert_eq!(empty.button_action(), GemFiatButtonAction::Continue);
         assert!(empty.quote_request().is_some());
 
@@ -448,9 +442,9 @@ mod tests {
             }
         );
         assert!(failed.current().quotes.is_empty());
-        assert_eq!(failed.button_state(false), GemFiatButtonState::Enabled);
+        assert_eq!(failed.button_state(false), GemButtonState::Enabled);
         assert_eq!(failed.button_action(), GemFiatButtonAction::RetryQuote);
-        assert_eq!(failed.button_state(true), GemFiatButtonState::Loading);
+        assert_eq!(failed.button_state(true), GemButtonState::Loading);
     }
 
     #[test]
@@ -519,11 +513,11 @@ mod tests {
 
         assert_eq!(session.current().phase, GemFiatQuotePhase::Ready);
         assert!(matches!(session.amount_check(), GemFiatAmountCheck::InsufficientBalance { .. }));
-        assert_eq!(session.button_state(false), GemFiatButtonState::Disabled);
+        assert_eq!(session.button_state(false), GemButtonState::Disabled);
 
         let funded = session.on_balance_changed(BigUint::from(1_000_000_000_000_000_000u64));
         assert_eq!(funded.amount_check(), GemFiatAmountCheck::Valid);
-        assert_eq!(funded.button_state(false), GemFiatButtonState::Enabled);
+        assert_eq!(funded.button_state(false), GemButtonState::Enabled);
     }
 
     #[test]
@@ -582,8 +576,8 @@ mod tests {
         assert_eq!(state.selected_quote_row.map(|row| row.provider), session.selected_quote().map(|quote| quote.provider.id));
         assert!(state.can_select_provider);
         assert_eq!(state.button_action, GemFiatButtonAction::Continue);
-        assert_eq!(state.button_state, GemFiatButtonState::Enabled);
-        assert_eq!(session.view_state(None, true, false).button_state, GemFiatButtonState::Loading);
+        assert_eq!(state.button_state, GemButtonState::Enabled);
+        assert_eq!(session.view_state(None, true, false).button_state, GemButtonState::Loading);
         assert!(!session.view_state(None, false, false).shows_type_picker);
         assert!(session.view_state(None, false, true).shows_type_picker);
     }
@@ -600,7 +594,7 @@ mod tests {
             can_select_provider: false,
             amount_check: GemFiatAmountCheck::Valid,
             button_action: GemFiatButtonAction::Continue,
-            button_state: GemFiatButtonState::Disabled,
+            button_state: GemButtonState::Disabled,
             shows_type_picker: false,
         };
 

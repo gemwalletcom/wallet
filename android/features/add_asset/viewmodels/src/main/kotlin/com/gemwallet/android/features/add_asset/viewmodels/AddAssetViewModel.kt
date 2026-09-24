@@ -19,6 +19,7 @@ import com.gemwallet.android.features.add_asset.viewmodels.models.verificationWa
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
+import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -37,7 +38,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemAddAssetButton
 import uniffi.gemstone.GemAddAssetPhase
 import uniffi.gemstone.GemAddAssetServiceInterface
 import uniffi.gemstone.GemAddAssetSession
@@ -118,11 +118,7 @@ class AddAssetViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val buttonState = combine(session, uiState) { session, uiState ->
-        when (session.onAdding(uiState.isLoading).viewState().button) {
-            GemAddAssetButton.LOADING -> ButtonState.Loading
-            GemAddAssetButton.ENABLED -> ButtonState.Enabled
-            GemAddAssetButton.DISABLED -> ButtonState.Disabled
-        }
+        session.onAdding(uiState.isLoading).viewState().button.buttonState()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Disabled)
 
     fun onQrScan() {

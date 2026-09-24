@@ -141,11 +141,7 @@ public final class FiatSceneViewModel {
     }
 
     func actionButtonState(_ viewState: GemFiatViewState) -> ButtonState {
-        switch viewState.buttonState {
-        case .disabled: .disabled
-        case .loading: .loading(showProgress: true)
-        case .enabled: .normal
-        }
+        viewState.buttonState.state
     }
 
     var providerTitle: String {

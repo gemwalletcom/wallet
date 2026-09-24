@@ -4,8 +4,8 @@ import androidx.annotation.StringRes
 import com.gemwallet.android.features.buy.localization.stringRes
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ButtonState
+import com.gemwallet.android.ui.models.buttonState
 import uniffi.gemstone.GemFiatButtonAction
-import uniffi.gemstone.GemFiatButtonState
 import uniffi.gemstone.GemFiatQuotePhase
 import uniffi.gemstone.GemFiatViewState
 
@@ -25,10 +25,6 @@ internal fun createFiatUiState(state: GemFiatViewState, amountError: String?, qu
     quotesMessage = quotesMessage,
     actionTitle = state.buttonAction.stringRes(),
     retries = state.buttonAction == GemFiatButtonAction.RETRY_QUOTE,
-    buttonState = when (state.buttonState) {
-        GemFiatButtonState.DISABLED -> ButtonState.Disabled
-        GemFiatButtonState.LOADING -> ButtonState.Loading
-        GemFiatButtonState.ENABLED -> ButtonState.Enabled
-    },
+    buttonState = state.buttonState.buttonState(),
     canSelectProvider = state.canSelectProvider,
 )

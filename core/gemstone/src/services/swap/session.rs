@@ -1,3 +1,4 @@
+use crate::models::button::GemButtonState;
 use number_formatter::BigNumberFormatter;
 use primitives::{Asset, AssetId, Currency};
 use swapper::{Quote as SwapperQuote, SwapperError, SwapperProvider};
@@ -79,13 +80,6 @@ pub enum GemSwapSessionAction {
     TransferError { error: SwapperError },
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemSwapButtonState {
-    Disabled,
-    Loading,
-    Enabled,
-}
-
 #[uniffi::export]
 pub fn swap_error_display(error: SwapperError, pay_asset: Option<Asset>) -> GemSwapErrorDisplay {
     GemSwapErrorDisplay::new(&error, pay_asset.as_ref())
@@ -152,7 +146,7 @@ pub struct GemSwapViewState {
     pub quotes_state: GemSwapQuotesState,
     pub action: GemSwapSessionAction,
     pub button_action: GemSwapButtonAction,
-    pub button_state: GemSwapButtonState,
+    pub button_state: GemButtonState,
     pub quote: Option<SwapperQuote>,
     pub quote_error: Option<GemSwapErrorDisplay>,
     pub error: Option<GemSwapErrorDisplay>,
@@ -412,12 +406,12 @@ impl GemSwapSession {
         .action()
     }
 
-    fn button_state(&self, action: GemSwapButtonAction) -> GemSwapButtonState {
+    fn button_state(&self, action: GemSwapButtonAction) -> GemButtonState {
         match action {
-            GemSwapButtonAction::InsufficientBalance => GemSwapButtonState::Disabled,
-            _ if self.is_quote_loading() || self.is_transfer_loading() => GemSwapButtonState::Loading,
-            GemSwapButtonAction::Swap if self.current_quote().is_none() => GemSwapButtonState::Disabled,
-            GemSwapButtonAction::Swap | GemSwapButtonAction::RetryQuote | GemSwapButtonAction::RetryTransfer | GemSwapButtonAction::UseMinimumAmount { .. } => GemSwapButtonState::Enabled,
+            GemSwapButtonAction::InsufficientBalance => GemButtonState::Disabled,
+            _ if self.is_quote_loading() || self.is_transfer_loading() => GemButtonState::Loading,
+            GemSwapButtonAction::Swap if self.current_quote().is_none() => GemButtonState::Disabled,
+            GemSwapButtonAction::Swap | GemSwapButtonAction::RetryQuote | GemSwapButtonAction::RetryTransfer | GemSwapButtonAction::UseMinimumAmount { .. } => GemButtonState::Enabled,
         }
     }
 }
@@ -700,22 +694,22 @@ mod tests {
     #[test]
     fn test_button_state_follows_the_phases() {
         let idle = GemSwapSession::default();
-        assert_eq!(idle.button_state(GemSwapButtonAction::Swap), GemSwapButtonState::Disabled);
+        assert_eq!(idle.button_state(GemSwapButtonAction::Swap), GemButtonState::Disabled);
 
         let loading = idle.on_request_changed(Some(GemSwapRequest::mock()));
-        assert_eq!(loading.button_state(GemSwapButtonAction::Swap), GemSwapButtonState::Loading);
+        assert_eq!(loading.button_state(GemSwapButtonAction::Swap), GemButtonState::Loading);
 
         let session = GemSwapSession::mock_ready();
         assert_eq!(session.button_action(GemBigInt::from(200)), GemSwapButtonAction::Swap);
-        assert_eq!(session.button_state(GemSwapButtonAction::Swap), GemSwapButtonState::Enabled);
+        assert_eq!(session.button_state(GemSwapButtonAction::Swap), GemButtonState::Enabled);
         assert_eq!(session.button_action(GemBigInt::from(50)), GemSwapButtonAction::InsufficientBalance);
-        assert_eq!(session.button_state(GemSwapButtonAction::InsufficientBalance), GemSwapButtonState::Disabled);
+        assert_eq!(session.button_state(GemSwapButtonAction::InsufficientBalance), GemButtonState::Disabled);
 
         let started = session.start_transfer().unwrap();
-        assert_eq!(started.button_state(GemSwapButtonAction::Swap), GemSwapButtonState::Loading);
+        assert_eq!(started.button_state(GemSwapButtonAction::Swap), GemButtonState::Loading);
         let failed = started.on_transfer_failed(started.transfer_phase.clone(), SwapperError::TransactionError("boom".into()));
         assert_eq!(failed.button_action(GemBigInt::from(200)), GemSwapButtonAction::RetryTransfer);
-        assert_eq!(failed.button_state(GemSwapButtonAction::RetryTransfer), GemSwapButtonState::Enabled);
+        assert_eq!(failed.button_state(GemSwapButtonAction::RetryTransfer), GemButtonState::Enabled);
     }
 
     #[test]
@@ -755,21 +749,21 @@ mod tests {
         assert!(stale.selected_quote.is_some(), "the selection outlives the results it came from");
         assert!(stale.quote().is_none());
         assert_eq!(stale.action(), GemSwapSessionAction::None);
-        assert_eq!(stale.button_state(GemSwapButtonAction::Swap), GemSwapButtonState::Disabled);
+        assert_eq!(stale.button_state(GemSwapButtonAction::Swap), GemButtonState::Disabled);
     }
 
     #[test]
     fn test_view_state_carries_the_quote_and_button_at_once() {
         let idle = GemSwapSession::default().view_state(GemBigInt::from(0), None);
         assert!(idle.is_input_empty);
-        assert_eq!(idle.button_state, GemSwapButtonState::Disabled);
+        assert_eq!(idle.button_state, GemButtonState::Disabled);
 
         let session = GemSwapSession::mock_ready();
         let state = session.view_state(GemBigInt::from(200), None);
         assert_eq!(state.quote, session.quote());
         assert_eq!(state.action, GemSwapSessionAction::Ready);
         assert_eq!(state.button_action, GemSwapButtonAction::Swap);
-        assert_eq!(state.button_state, GemSwapButtonState::Enabled);
+        assert_eq!(state.button_state, GemButtonState::Enabled);
         assert!(!state.is_quote_loading);
         assert_eq!(state.quotes_state, GemSwapQuotesState::Quotes);
         assert_eq!(session.view_state(GemBigInt::from(50), None).button_action, GemSwapButtonAction::InsufficientBalance);

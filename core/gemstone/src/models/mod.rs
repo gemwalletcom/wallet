@@ -1,4 +1,5 @@
 pub mod asset;
+pub mod button;
 pub mod connection;
 pub mod copy;
 pub(crate) mod custom_types;
