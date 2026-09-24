@@ -168,7 +168,7 @@ fn available_rows<const N: usize>(rows: [Option<GemListRow>; N]) -> Vec<GemListR
     rows.into_iter().flatten().collect()
 }
 
-pub fn chart_bounds(values: &[ChartDateValue]) -> GemChartBounds {
+pub fn chart_bounds(values: &[ChartDateValue], currency: Currency) -> GemChartBounds {
     let extreme = |better: fn(f64, f64) -> bool| {
         values
             .iter()
@@ -191,6 +191,8 @@ pub fn chart_bounds(values: &[ChartDateValue]) -> GemChartBounds {
         upper_index: upper_index as u32,
         y_min: lower - padding,
         y_max: upper + padding,
+        low: GemFormattedNumber::currency(lower, currency.clone(), GemCurrencyStyle::Currency),
+        high: GemFormattedNumber::currency(upper, currency, GemCurrencyStyle::Currency),
     }
 }
 
@@ -441,17 +443,18 @@ mod tests {
     fn test_chart_bounds_pad_the_range_and_point_at_the_first_extremes() {
         let points = |values: &[f64]| values.iter().map(|value| ChartDateValue { date: Utc::now(), value: *value }).collect::<Vec<_>>();
 
-        let bounds = chart_bounds(&points(&[100.0, 150.0, 80.0, 120.0, 80.0]));
+        let bounds = chart_bounds(&points(&[100.0, 150.0, 80.0, 120.0, 80.0]), Currency::USD);
         assert_eq!((bounds.lower_index, bounds.upper_index), (2, 1));
+        assert_eq!((bounds.low.value, bounds.high.value), (80.0, 150.0), "the labels name the extremes, not the padded range");
         assert!((bounds.y_min - 76.5).abs() < 1e-9 && (bounds.y_max - 153.5).abs() < 1e-9);
 
-        let flat = chart_bounds(&points(&[5.0, 5.0]));
+        let flat = chart_bounds(&points(&[5.0, 5.0]), Currency::USD);
         assert!((flat.y_min - 4.95).abs() < 1e-9 && (flat.y_max - 5.05).abs() < 1e-9, "a flat line pads by one percent");
 
-        let zero = chart_bounds(&points(&[0.0, 0.0]));
+        let zero = chart_bounds(&points(&[0.0, 0.0]), Currency::USD);
         assert!((zero.y_min + 0.01).abs() < 1e-9 && (zero.y_max - 0.01).abs() < 1e-9, "a flat line at zero keeps a minimum range");
 
-        let negative = chart_bounds(&points(&[-2.0, -2.0]));
+        let negative = chart_bounds(&points(&[-2.0, -2.0]), Currency::USD);
         assert!((negative.y_min + 2.01).abs() < 1e-9 && (negative.y_max + 1.99).abs() < 1e-9);
     }
 

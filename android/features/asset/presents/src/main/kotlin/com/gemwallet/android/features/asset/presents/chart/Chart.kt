@@ -12,6 +12,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.ChartViewModel
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.chart.ChartStateView
 import com.gemwallet.android.ui.components.chart.GemLineChart
 import com.gemwallet.android.ui.format.rowDateFormatter
@@ -46,8 +47,8 @@ internal fun ChartSection(state: ChartUIModel.State, onPeriodSelect: (ChartPerio
                 lineColor = MaterialTheme.colorScheme.primary,
                 selectedIndex = selectedIndex,
                 onSelectionChanged = { selectedIndex = it },
-                minLabel = model.minLabel,
-                maxLabel = model.maxLabel,
+                minLabel = model.bounds.low.text(),
+                maxLabel = model.bounds.high.text(),
             )
         }
     }

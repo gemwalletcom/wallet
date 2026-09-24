@@ -16,8 +16,7 @@ public struct ChartValuesViewModel: Sendable {
     let charts: [ChartDateValue]
 
     private let chartData: GemChartData
-    private let bounds: GemChartBounds
-    private let formatter: CurrencyFormatter
+    let bounds: GemChartBounds
     private let dateFormatter = ChartDateFormatter()
 
     public init(
@@ -28,7 +27,6 @@ public struct ChartValuesViewModel: Sendable {
         self.period = period
         self.chartData = chartData
         self.lineColor = lineColor
-        formatter = CurrencyFormatter(currencyCode: chartData.currency.toPrimitives().rawValue)
         charts = chartData.values.map { $0.toPrimitives() }
         bounds = chartData.bounds()
     }
@@ -48,14 +46,6 @@ public struct ChartValuesViewModel: Sendable {
 
     var upperBoundDate: Date {
         charts[Int(bounds.upperIndex)].date
-    }
-
-    var lowerBoundValueText: String {
-        formatter.string(charts[Int(bounds.lowerIndex)].value)
-    }
-
-    var upperBoundValueText: String {
-        formatter.string(charts[Int(bounds.upperIndex)].value)
     }
 
     var chartHeader: GemChartHeader? {

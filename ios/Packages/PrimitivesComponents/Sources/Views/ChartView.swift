@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI
@@ -130,12 +131,12 @@ extension ChartView {
                     let chartBounds = geometry[plotFrame]
 
                     if let lowerBoundX = proxy.position(forX: model.lowerBoundDate) {
-                        boundLabel(model.lowerBoundValueText)
+                        boundLabel(model.bounds.low.text())
                             .offset(x: labelX(lowerBoundX, geoWidth: geometry.size.width), y: chartBounds.maxY + Spacing.small)
                     }
 
                     if let upperBoundX = proxy.position(forX: model.upperBoundDate) {
-                        boundLabel(model.upperBoundValueText)
+                        boundLabel(model.bounds.high.text())
                             .offset(x: labelX(upperBoundX, geoWidth: geometry.size.width), y: chartBounds.minY - Spacing.large)
                     }
                 }
