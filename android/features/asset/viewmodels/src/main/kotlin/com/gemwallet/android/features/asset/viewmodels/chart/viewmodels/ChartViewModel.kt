@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -63,9 +64,8 @@ class ChartViewModel internal constructor(
             getCurrentCurrency.getCurrency().collect { currency -> session.update { it.onCurrency(currency.toGem()) } }
         }
         viewModelScope.launch {
-            session.collectLatest { current ->
-                if (current.isLoading || current.isRefreshing) load()
-            }
+            session.distinctUntilChangedBy { Triple(it.period, it.currency, it.isLoading || it.isRefreshing) }
+                .collectLatest { current -> if (current.isLoading || current.isRefreshing) load() }
         }
     }
 
@@ -94,7 +94,7 @@ class ChartViewModel internal constructor(
             period = state.period.toPrimitives(),
             chart = when (val phase = state.phase) {
                 GemChartPhase.Loading -> StateViewType.Loading
-                is GemChartPhase.Data -> StateViewType.Data(ChartUIModel(phase.data))
+                is GemChartPhase.Data -> StateViewType.Data(ChartUIModel(phase.data, phase.viewport))
                 GemChartPhase.NoData -> StateViewType.NoData
                 is GemChartPhase.Failed -> StateViewType.Error(phase.error.errorText().text(context))
             },
@@ -115,6 +115,10 @@ class ChartViewModel internal constructor(
 
     fun refresh() {
         session.update { it.onRefresh() }
+    }
+
+    fun onZoom(magnification: Float) {
+        session.update { it.onZoom(magnification.toDouble()) }
     }
 
     private suspend fun load() {

@@ -11,7 +11,7 @@ struct CandlestickChartViewModelTests {
     @Test
     func labelOffsetsFollowTheOverlapLevels() {
         let model = CandlestickChartViewModel(
-            candles: [.mock(high: 200, low: 100)],
+            viewState: .mock(candles: [.mock(high: 200, low: 100)]),
             position: .mock(
                 entryPrice: 121,
                 liquidationPrice: 120,

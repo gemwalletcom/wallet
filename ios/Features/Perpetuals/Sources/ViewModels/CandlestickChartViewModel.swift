@@ -3,11 +3,11 @@
 import Components
 import Formatters
 import Foundation
-import func Gemstone.candlestickHeader
+import struct Gemstone.GemCandleViewport
+import struct Gemstone.GemCandleViewState
 import struct Gemstone.GemChartHeader
 import struct Gemstone.GemPerpetualChartLayout
 import func Gemstone.perpetualChartLayout
-import class Gemstone.PriceChangeCalculator
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -15,29 +15,30 @@ import Style
 import SwiftUI
 
 struct CandlestickChartViewModel {
-    private let priceChangeCalculator = PriceChangeCalculator()
     enum Constants {
         static let labelOverlapSpacing: CGFloat = 115
+        static let candleBodyWidthRatio: Double = 0.6
     }
 
     let candles: [ChartCandleStick]
 
+    private let viewState: GemCandleViewState
     private let layout: GemPerpetualChartLayout
+    private let timeAxis: ChartTimeAxis
     private let period: ChartPeriod
     private let dateFormatter = ChartDateFormatter()
 
-    init(
-        candles: [ChartCandleStick],
-        period: ChartPeriod = .day,
-        position: PerpetualPosition? = nil,
-    ) {
-        self.candles = candles
-        layout = perpetualChartLayout(candles: candles.map { $0.toGem() }, position: position?.toGem())
-        self.period = period
+    init(viewState: GemCandleViewState, position: PerpetualPosition? = nil) {
+        self.viewState = viewState
+        let viewport = viewState.viewport
+        candles = viewport.candles.map { $0.toPrimitives() }
+        layout = perpetualChartLayout(candles: viewport.candles, position: position?.toGem())
+        timeAxis = ChartTimeAxis(ticks: viewport.ticks, format: viewport.tickFormat)
+        period = viewState.period.toPrimitives()
     }
 
     var xAxisRange: ClosedRange<Date> {
-        (candles.first?.date ?? Date()) ... (candles.last?.date ?? Date())
+        viewport.start ... viewport.end
     }
 
     var yAxisRange: ClosedRange<Double> {
@@ -56,8 +57,12 @@ struct CandlestickChartViewModel {
         layout.ticks[safe: index]?.text() ?? ""
     }
 
-    var xAxisTickCount: Int {
-        Int(layout.xTickCount)
+    var xAxisTicks: [Date] {
+        timeAxis.ticks
+    }
+
+    func xAxisLabel(for date: Date) -> String {
+        timeAxis.label(for: date)
     }
 
     var lineLabelOffsets: [CGFloat] {
@@ -81,8 +86,8 @@ struct CandlestickChartViewModel {
     }
 
     func header(for selectedCandle: ChartCandleStick?) -> GemChartHeader? {
-        guard let target = selectedCandle ?? candles.last, let base = candles.first?.close else { return nil }
-        return candlestickHeader(base: base, value: target.close)
+        guard let target = selectedCandle ?? candles.last else { return nil }
+        return viewState.headerAt(value: target.close)
     }
 
     func dateText(for selectedCandle: ChartCandleStick?) -> String? {
@@ -91,6 +96,22 @@ struct CandlestickChartViewModel {
 
     func tooltipModel(for candle: ChartCandleStick) -> CandleTooltipViewModel {
         CandleTooltipViewModel(candle: candle)
+    }
+
+    func bodyStart(for candle: ChartCandleStick) -> Date {
+        candle.date.addingTimeInterval(-bodyHalfWidth)
+    }
+
+    func bodyEnd(for candle: ChartCandleStick) -> Date {
+        candle.date.addingTimeInterval(bodyHalfWidth)
+    }
+
+    private var bodyHalfWidth: TimeInterval {
+        TimeInterval(viewport.intervalSeconds) * Constants.candleBodyWidthRatio / 2
+    }
+
+    private var viewport: GemCandleViewport {
+        viewState.viewport
     }
 
     func candle(for date: Date) -> ChartCandleStick? {

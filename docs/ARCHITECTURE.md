@@ -654,7 +654,7 @@ Never pre-assign a freshly loading record and pass it back in as the shown state
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemChartPhase {
     Loading,
-    Data { data: GemChartData },
+    Data { data: GemChartData, viewport: GemChartViewport },
     NoData,
     Failed { error: GemServiceError },
 }
@@ -674,7 +674,7 @@ impl GemChartSession {
 var chartState: StateViewType<ChartValuesViewModel> {
     switch session.viewState(price: currentPrice).phase {
     case .loading: .loading
-    case let .data(data): .data(ChartValuesViewModel(period: selectedPeriod, chartData: data))
+    case let .data(data, viewport): .data(ChartValuesViewModel(period: selectedPeriod, chartData: data, viewport: viewport))
     case .noData: .noData
     case let .failed(error): .error(error)
     }
@@ -702,7 +702,7 @@ Four rules keep the collapse honest:
 - **The phase has one source of truth.** A chart session derives its phase from the canonical loaded chart, last error and loading facts. A session that stores a canonical phase instead must not also store equivalent independent flags. Do not add a second representation of the same state.
 - **Empty is not a failure.** `NoData` is its own variant, so a series with one point renders the empty state instead of an error, and neither app has to guess from an `Option`.
 - **A progress flag that coexists with content is a field, not a variant.** A refresh happens *while* data is on screen, so `is_refreshing` sits beside the phase; anything that replaces the screen is a variant.
-- **Everything the phase needs is inside the session.** The chart session carries its display currency because the phase cannot be computed without it, so no caller supplies a currency. The observed spot price is the one `view_state` argument: the session cannot read the store, and a price older than the last chart point leaves the header where it is. A `view_state` that takes what the screen already asked Core for is a parameter the session should own.
+- **Everything the phase needs is inside the session.** The chart session carries its display currency because the phase cannot be computed without it, so no caller supplies a currency. The observed spot price is the one `view_state` argument: the session cannot read the store, and a price older than the last chart point leaves the header where it is. A `view_state` that takes what the screen already asked Core for is a parameter the session should own. The pinch zoom is session state for the same reason: the viewport cannot be computed without it, `on_zoom` clamps against the points the session holds, and a new period starts unzoomed by construction.
 
 The app switches and stops. No `if isLoading` ahead of the switch, no `default:` inside it: the exhaustiveness is what makes a new variant a compile error on both platforms instead of a blank screen on one.
 

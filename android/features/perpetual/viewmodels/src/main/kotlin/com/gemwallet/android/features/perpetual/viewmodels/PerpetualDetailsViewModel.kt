@@ -50,6 +50,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -149,22 +150,25 @@ class PerpetualDetailsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, candles.value.period.toPrimitives())
 
     private val candleViewState = candles.map { it.viewState() }
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, candles.value.viewState())
 
     val isRefreshing: StateFlow<Boolean> = candleViewState.map { it.isRefreshing }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val chart: StateFlow<StateViewType<PerpetualChartUIModel>> = combine(candleViewState, position) { state, position ->
-        when (val error = loadError(state.state, state.candles.isNotEmpty())) {
+        when (val error = loadError(state.state, state.viewport.candles.isNotEmpty())) {
             null -> when (state.state) {
                 GemLoadState.Loading -> StateViewType.Loading
                 GemLoadState.NoData -> StateViewType.NoData
-                else -> StateViewType.Data(PerpetualChartUIModel.from(state.candles.map { it.toPrimitives() }, position?.position, context))
+                else -> StateViewType.Data(PerpetualChartUIModel.from(state, position?.position, context))
             }
 
             else -> StateViewType.Error(error.errorText().text(context))
         }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), StateViewType.Loading)
+    }
+        .flowOn(ioDispatcher)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), StateViewType.Loading)
 
     fun tooltip(candle: ChartCandleStick): CandlestickTooltipUIModel = candleTooltip(candle.toGem()).uiModel(context)
 
@@ -172,7 +176,7 @@ class PerpetualDetailsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            combine(perpetual.map { it?.perpetual }.distinctUntilChanged(), candles, ::Pair).collectLatest { (market, session) ->
+            combine(perpetual.map { it?.perpetual }.distinctUntilChanged(), candles.distinctUntilChangedBy { it.request() to it.needsCandles() }, ::Pair).collectLatest { (market, session) ->
                 val selected = market?.let { session.onSelectMarket(it.toGem()) } ?: return@collectLatest
                 if (selected != session) {
                     candles.value = selected
@@ -185,10 +189,7 @@ class PerpetualDetailsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             perpetualObserver.chartUpdates.collect { update ->
-                val market = perpetual.value?.perpetual ?: return@collect
-                val session = candles.value
-                val merged = withContext(ioDispatcher) { service.mergedCandles(session.candles, update.toGem(), market.toGem(), session.period) } ?: return@collect
-                candles.update { it.onCandles(merged) }
+                candles.update { it.onCandleUpdate(update.toGem()) }
             }
         }
         viewModelScope.launch {
@@ -231,6 +232,10 @@ class PerpetualDetailsViewModel @Inject constructor(
                 .onFailure { Log.e(TAG, "storing the chart period failed", it) }
         }
         candles.update { it.onSelectPeriod(period.toGem()) }
+    }
+
+    fun onZoom(magnification: Float) {
+        candles.update { it.onZoom(magnification.toDouble()) }
     }
 
     private val errorState = MutableStateFlow<String?>(null)

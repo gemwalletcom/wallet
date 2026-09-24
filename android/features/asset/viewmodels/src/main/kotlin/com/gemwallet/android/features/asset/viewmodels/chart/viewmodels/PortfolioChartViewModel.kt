@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -59,6 +60,7 @@ class PortfolioChartViewModel internal constructor(
 
     private val viewState: StateFlow<GemPortfolioViewState> = session
         .map { it.viewState() }
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.viewState())
 
     val selectedType: StateFlow<PortfolioType> = viewState
@@ -123,6 +125,8 @@ class PortfolioChartViewModel internal constructor(
         session.update { it.onRefresh() }
     }
 
+    fun onZoom(magnification: Float) = session.update { it.onZoom(magnification.toDouble()) }
+
     private suspend fun load() {
         val current = wallet.value ?: return
         val result = withContext(ioDispatcher) { service.refresh(current.toGem(), session.value.request()) }
@@ -131,7 +135,7 @@ class PortfolioChartViewModel internal constructor(
 
     private fun GemPortfolioPhase.chartState(): StateViewType<ChartUIModel> = when (this) {
         GemPortfolioPhase.Loading -> StateViewType.Loading
-        is GemPortfolioPhase.Data -> StateViewType.Data(ChartUIModel(chart = chart))
+        is GemPortfolioPhase.Data -> StateViewType.Data(ChartUIModel(chart = chart, viewport = viewport))
         GemPortfolioPhase.NoData -> StateViewType.NoData
         is GemPortfolioPhase.Failed -> StateViewType.Error(error.errorText().text(context))
     }

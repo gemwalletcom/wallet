@@ -6,32 +6,23 @@ import Primitives
 import Style
 import SwiftUI
 
-public struct ChartStateView: View {
-    private let state: StateViewType<ChartValuesViewModel>
-    private let periods: [ChartPeriod]
+public struct ChartStateView<Model: ChartListViewable>: View {
+    @Bindable private var model: Model
 
-    @Binding private var selectedPeriod: ChartPeriod
-
-    public init(
-        state: StateViewType<ChartValuesViewModel>,
-        selectedPeriod: Binding<ChartPeriod>,
-        periods: [ChartPeriod] = [.hour, .day, .week, .month, .year, .all],
-    ) {
-        self.state = state
-        _selectedPeriod = selectedPeriod
-        self.periods = periods
+    public init(model: Model) {
+        self.model = model
     }
 
     public var body: some View {
         VStack {
             VStack {
-                switch state {
+                switch model.chartState {
                 case .noData:
                     StateEmptyView(title: Localized.Common.notAvailable, image: Images.EmptyContent.activity)
                 case .loading:
                     LoadingView()
-                case let .data(model):
-                    ChartView(model: model)
+                case let .data(chart):
+                    ChartView(model: chart, isPinching: $model.isPinching, onZoom: model.onZoom)
                 case let .error(error):
                     StateEmptyView(
                         title: error.networkOrNoDataDescription,
@@ -41,7 +32,7 @@ public struct ChartStateView: View {
             }
             .frame(height: Sizing.chart.height)
 
-            PeriodSelectorView(selectedPeriod: $selectedPeriod, periods: periods)
+            PeriodSelectorView(selectedPeriod: $model.selectedPeriod, periods: model.periods)
                 .padding(.horizontal, Spacing.medium)
         }
     }

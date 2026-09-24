@@ -46,10 +46,10 @@ const CHART_RANGE_PADDING_FRACTION: f64 = 0.05;
 const CHART_RANGE_FLOOR_FRACTION: f64 = 0.95;
 const CHART_LINE_VISIBILITY_BUFFER_FRACTION: f64 = 0.5;
 const CHART_LABEL_OVERLAP_FRACTION: f64 = 0.06;
+const CHART_CURRENT_PRICE_CLEARANCE_FRACTION: f64 = 0.08;
 const CHART_MINIMUM_SPAN_FRACTION: f64 = 0.001;
 const CHART_MINIMUM_SPAN: f64 = 1e-9;
 const CHART_TICK_COUNT: usize = 4;
-const CHART_X_TICK_COUNT: usize = 6;
 
 pub fn perpetual_asset_basics(data: &[PerpetualData]) -> Vec<AssetBasic> {
     data.iter()
@@ -276,6 +276,7 @@ pub fn chart_layout(candles: &[ChartCandleStick], position: Option<&PerpetualPos
     let price_low = if lowest > 0.0 { (lowest - padding).max(lowest * CHART_RANGE_FLOOR_FRACTION) } else { lowest - padding };
     let price_high = highest + padding;
     let overlap_threshold = (price_high - price_low) * CHART_LABEL_OVERLAP_FRACTION;
+    let current_price_clearance = (price_high - price_low) * CHART_CURRENT_PRICE_CLEARANCE_FRACTION;
     let mut previous: Option<(f64, u32)> = None;
     let lines = lines
         .into_iter()
@@ -295,16 +296,15 @@ pub fn chart_layout(candles: &[ChartCandleStick], position: Option<&PerpetualPos
     GemPerpetualChartLayout {
         price_low,
         price_high,
-        ticks: chart_ticks(candle_low, candle_high).into_iter().map(|tick| GemFormattedNumber::adaptive(tick, None)).collect(),
-        x_tick_count: chart_x_tick_count(candles.len()),
+        ticks: chart_ticks(candle_low, candle_high)
+            .into_iter()
+            .filter(|tick| candles.last().is_none_or(|candle| (tick - candle.close).abs() >= current_price_clearance))
+            .map(|tick| GemFormattedNumber::adaptive(tick, None))
+            .collect(),
         lines,
         current_price: candles.last().map(|candle| GemFormattedNumber::adaptive(candle.close, None)),
         tones: candles.iter().map(|candle| value_tone(candle.close - candle.open)).collect(),
     }
-}
-
-fn chart_x_tick_count(candle_count: usize) -> u32 {
-    if candle_count < 2 { 0 } else { CHART_X_TICK_COUNT.min(candle_count) as u32 }
 }
 
 fn chart_ticks(candle_low: f64, candle_high: f64) -> Vec<f64> {
@@ -638,8 +638,8 @@ pub fn symbol(perpetual: &Perpetual) -> String {
     perpetual.name.clone()
 }
 
-pub fn merged_candles(candles: Vec<ChartCandleStick>, update: ChartCandleUpdate, perpetual: &Perpetual, period: &ChartPeriod) -> Option<Vec<ChartCandleStick>> {
-    (update.coin == symbol(perpetual) && update.interval == candle_interval(period)).then(|| merge_candle(candles, update.candle))
+pub fn merged_candles(candles: Vec<ChartCandleStick>, update: ChartCandleUpdate, symbol: &str, period: &ChartPeriod) -> Option<Vec<ChartCandleStick>> {
+    (!candles.is_empty() && update.coin == symbol && update.interval == candle_interval(period)).then(|| merge_candle(candles, update.candle))
 }
 
 fn merge_candle(candles: Vec<ChartCandleStick>, candle: ChartCandleStick) -> Vec<ChartCandleStick> {
@@ -1167,14 +1167,20 @@ mod tests {
     }
 
     #[test]
-    fn test_chart_layout_pads_the_candle_range_and_draws_four_ticks() {
+    fn test_chart_layout_pads_the_candle_range_and_keeps_its_ticks_clear_of_the_current_price() {
         let layout = chart_layout(&[ChartCandleStick::mock_range(9.0, 12.0), ChartCandleStick::mock_range(10.0, 13.0)], None);
+        let between = chart_layout(&[ChartCandleStick::mock_range(9.0, 13.0), ChartCandleStick::mock_range(10.0, 12.3)], None);
 
         assert!(layout.price_low < 9.0 && layout.price_low >= 9.0 * CHART_RANGE_FLOOR_FRACTION);
         assert!(layout.price_high > 13.0);
-        assert_eq!(layout.ticks.len(), 4);
+        assert_eq!(layout.ticks.len(), 3, "the top level sits on the last close of 13");
         assert_eq!(layout.ticks[0].value, 9.0);
-        assert_eq!(layout.ticks[3].value, 13.0);
+        assert_eq!(between.ticks.len(), 4, "a close between the levels keeps all four");
+        assert_eq!(
+            chart_layout(&[ChartCandleStick::mock_range(9.0, 13.0), ChartCandleStick::mock_range(10.0, 12.7)], None).ticks.len(),
+            3,
+            "a level within the current price label.s height of the close is left out"
+        );
         assert!(layout.lines.is_empty());
     }
 
@@ -1187,14 +1193,6 @@ mod tests {
         let layout = chart_layout(&[rising, falling, flat], None);
 
         assert_eq!(layout.tones, vec![GemValueTone::Positive, GemValueTone::Negative, GemValueTone::Neutral]);
-    }
-
-    #[test]
-    fn test_chart_x_tick_count_never_exceeds_the_candles_it_can_mark() {
-        assert_eq!(chart_x_tick_count(0), 0, "an empty series draws no gridlines");
-        assert_eq!(chart_x_tick_count(1), 0, "a single candle spans nothing to divide");
-        assert_eq!(chart_x_tick_count(4), 4);
-        assert_eq!(chart_x_tick_count(40), CHART_X_TICK_COUNT as u32);
     }
 
     #[test]
@@ -1229,7 +1227,7 @@ mod tests {
     fn test_chart_layout_keeps_a_measurable_range_for_flat_and_negative_series() {
         let flat = chart_layout(&[ChartCandleStick::mock_range(100.0, 100.0)], None);
         assert!(flat.price_low < flat.price_high);
-        assert_eq!(flat.ticks.iter().map(|tick| tick.value).collect::<Vec<_>>(), vec![100.0]);
+        assert_eq!(flat.ticks.len(), 0, "the only level of a flat series is the current price itself");
 
         let negative = chart_layout(&[ChartCandleStick::mock_range(-10.0, -5.0)], None);
         assert!(negative.price_low < -10.0);
@@ -1921,13 +1919,13 @@ mod tests {
         assert_eq!(merge_candle(candles.clone(), ChartCandleStick::mock(500, 90.0)), candles);
         assert_eq!(merge_candle(Vec::new(), ChartCandleStick::mock(500, 90.0)), Vec::new());
 
-        let perpetual = Perpetual::mock();
+        let coin = symbol(&Perpetual::mock());
         let update = ChartCandleUpdate {
-            coin: symbol(&perpetual),
+            coin: coin.clone(),
             interval: "30m".to_string(),
             candle: ChartCandleStick::mock(3000, 110.0),
         };
-        assert_eq!(merged_candles(candles.clone(), update.clone(), &perpetual, &ChartPeriod::Day), Some(appended));
+        assert_eq!(merged_candles(candles.clone(), update.clone(), &coin, &ChartPeriod::Day), Some(appended));
         assert_eq!(
             merged_candles(
                 candles.clone(),
@@ -1935,13 +1933,14 @@ mod tests {
                     interval: "1m".to_string(),
                     ..update.clone()
                 },
-                &perpetual,
+                &coin,
                 &ChartPeriod::Day
             ),
             None,
             "a candle for another interval is not this chart's"
         );
-        assert_eq!(merged_candles(candles, ChartCandleUpdate { coin: "OTHER".to_string(), ..update }, &perpetual, &ChartPeriod::Day), None);
+        assert_eq!(merged_candles(candles, ChartCandleUpdate { coin: "OTHER".to_string(), ..update.clone() }, &coin, &ChartPeriod::Day), None);
+        assert_eq!(merged_candles(Vec::new(), update, &coin, &ChartPeriod::Day), None, "a streamed candle before the first load is not an empty chart");
     }
 
     #[test]

@@ -17,12 +17,20 @@ private enum ChartKey {
 }
 
 struct CandlestickChartView: View {
-    private let model: CandlestickChartViewModel
+    private enum Metrics {
+        static let dateLabelWidth: CGFloat = 60
+    }
 
+    private let model: CandlestickChartViewModel
+    private let onZoom: @MainActor (Double) -> Void
+
+    @Binding private var isPinching: Bool
     @State private var selectedCandle: ChartCandleStick?
 
-    init(model: CandlestickChartViewModel) {
+    init(model: CandlestickChartViewModel, isPinching: Binding<Bool>, onZoom: @escaping @MainActor (Double) -> Void) {
         self.model = model
+        _isPinching = isPinching
+        self.onZoom = onZoom
     }
 
     var body: some View {
@@ -31,6 +39,7 @@ struct CandlestickChartView: View {
             chart
                 .padding(.bottom, Spacing.small)
         }
+        .sensoryFeedback(.selection, trigger: selectedCandle?.date) { _, date in date != nil }
     }
 
     private var priceHeader: some View {
@@ -45,25 +54,23 @@ struct CandlestickChartView: View {
 
     private var chart: some View {
         Chart {
+            currentPriceMark
             candlestickMarks
             linesMarks
             selectionMarks
         }
         .chartOverlay { proxy in
             GeometryReader { geometry in
-                Rectangle()
-                    .fill(.clear)
-                    .contentShape(Rectangle())
-                    .gesture(
-                        DragGesture(minimumDistance: 0)
-                            .onChanged { value in
-                                if let candle = findCandle(location: value.location, proxy: proxy, geometry: geometry) {
-                                    selectedCandle = candle
-                                }
+                Color.clear
+                    .chartGestures(
+                        isPinching: $isPinching,
+                        onScrub: { location in
+                            if let candle = findCandle(location: location, proxy: proxy, geometry: geometry) {
+                                selectedCandle = candle
                             }
-                            .onEnded { _ in
-                                selectedCandle = nil
-                            },
+                        },
+                        onScrubEnd: { selectedCandle = nil },
+                        onZoom: onZoom,
                     )
 
                 if let selectedCandle {
@@ -72,9 +79,18 @@ struct CandlestickChartView: View {
             }
         }
         .chartXAxis {
-            AxisMarks(position: .bottom, values: .automatic(desiredCount: model.xAxisTickCount)) { _ in
+            AxisMarks(position: .bottom, values: model.xAxisTicks) { value in
                 AxisGridLine(stroke: ChartGridStyle.strokeStyle)
                     .foregroundStyle(ChartGridStyle.color)
+                AxisValueLabel(horizontalSpacing: -Metrics.dateLabelWidth / 2, verticalSpacing: Spacing.small) {
+                    if let date = value.as(Date.self) {
+                        Text(model.xAxisLabel(for: date))
+                            .font(.caption2)
+                            .foregroundStyle(Colors.gray)
+                            .fixedSize()
+                            .frame(width: Metrics.dateLabelWidth)
+                    }
+                }
             }
         }
         .chartYAxis {
@@ -109,6 +125,15 @@ struct CandlestickChartView: View {
     }
 
     @ChartContentBuilder
+    private var currentPriceMark: some ChartContent {
+        if let currentPrice = model.currentPrice {
+            RuleMark(y: .value(ChartKey.price, currentPrice))
+                .foregroundStyle(Colors.gray.opacity(.semiStrong))
+                .lineStyle(StrokeStyle(lineWidth: 1, dash: [2, 3]))
+        }
+    }
+
+    @ChartContentBuilder
     private var candlestickMarks: some ChartContent {
         ForEach(model.candleMarks, id: \.candle.date) { candle, color in
             RuleMark(
@@ -120,10 +145,10 @@ struct CandlestickChartView: View {
             .foregroundStyle(color)
 
             RectangleMark(
-                x: .value(ChartKey.date, candle.date),
+                xStart: .value(ChartKey.date, model.bodyStart(for: candle)),
+                xEnd: .value(ChartKey.date, model.bodyEnd(for: candle)),
                 yStart: .value(ChartKey.open, candle.open),
                 yEnd: .value(ChartKey.close, candle.close),
-                width: .fixed(.space4),
             )
             .foregroundStyle(color)
         }

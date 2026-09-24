@@ -17,7 +17,7 @@ public extension ChartValuesViewModel {
         period: ChartPeriod = .day,
         chartData: GemChartData = .mock(),
     ) -> ChartValuesViewModel {
-        ChartValuesViewModel(period: period, chartData: chartData)
+        ChartValuesViewModel(period: period, chartData: chartData, viewport: .mock(chartData: chartData))
     }
 }
 

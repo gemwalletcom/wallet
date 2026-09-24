@@ -31,6 +31,7 @@ public final class ChartSceneViewModel: ChartListViewable {
     let assetModel: AssetViewModel
 
     private var session: GemChartSession
+    public var isPinching = false
     public var selectedPeriod: ChartPeriod {
         get { session.period.toPrimitives() }
         set {
@@ -63,8 +64,8 @@ public final class ChartSceneViewModel: ChartListViewable {
     public var chartState: StateViewType<ChartValuesViewModel> {
         switch session.viewState(price: currentPrice).phase {
         case .loading: .loading
-        case let .data(data):
-            .data(ChartValuesViewModel(period: selectedPeriod, chartData: data))
+        case let .data(data, viewport):
+            .data(ChartValuesViewModel(period: selectedPeriod, chartData: data, viewport: viewport))
         case .noData: .noData
         case let .failed(error): .error(error)
         }
@@ -133,6 +134,10 @@ public extension ChartSceneViewModel {
         } catch {
             debugLog("chart scene: load error \(error)")
         }
+    }
+
+    func onZoom(_ magnification: Double) {
+        session = session.onZoom(magnification: magnification)
     }
 
     var currency: Primitives.Currency {

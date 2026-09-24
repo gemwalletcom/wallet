@@ -1,7 +1,10 @@
+use std::iter;
+
 use chrono::{DateTime, Utc};
 use primitives::{Asset, AssetLink, AssetMarket, AssetPrice, BlockExplorerLink, ChartDateValue, ChartPeriod, ChartValue, ChartValuePercentage, Currency, PriceAlert, PriceChangeCalculator};
 
-use super::model::{GemChartBounds, GemChartData, GemChartDateStyle, GemChartHeader, GemChartValueType};
+use super::model::{GemChartBounds, GemChartData, GemChartDateStyle, GemChartHeader, GemChartValueType, GemChartViewport};
+use super::zoom::GemChartZoom;
 use super::{GemChart, GemChartCurrent};
 use crate::config::social::social_links;
 use crate::formatted_number::GemFormattedNumber;
@@ -22,6 +25,7 @@ pub fn date_style(period: ChartPeriod) -> GemChartDateStyle {
 
 const MARKET_CAP_RANK_BADGE_LIMIT: i32 = 1000;
 const MIN_CHART_POINTS: usize = 2;
+const MAX_RENDER_POINTS: usize = 120;
 const RANGE_PADDING: f64 = 0.05;
 const FLAT_LINE_PADDING: f64 = 0.01;
 const FLAT_LINE_MIN_PADDING: f64 = 0.01;
@@ -43,7 +47,7 @@ pub fn current_value(values: &[ChartDateValue], latest: Option<AssetPrice>, now:
     let latest = latest?;
     let is_newer = values.last().is_none_or(|last| latest.updated_at > last.date);
     is_newer.then(|| GemChartCurrent {
-        date: now,
+        date: now.max(latest.updated_at),
         value: latest.price,
         change_percentage: change_percentage(period, base_value, &latest),
     })
@@ -196,6 +200,77 @@ pub fn chart_bounds(values: &[ChartDateValue], currency: Currency) -> GemChartBo
     }
 }
 
+pub fn viewport(values: &[ChartDateValue], currency: Currency, zoom: GemChartZoom) -> GemChartViewport {
+    let zoom = zoom.clamped(values.len());
+    let end = values.last().map(|last| last.date).unwrap_or_default();
+    let start = values.first().map_or(end, |first| zoom.visible_start(first.date, end));
+    let visible = &values[values.partition_point(|value| value.date < start)..];
+    let drawn = sampled_values(values, render_points(zoom));
+    let first_drawn = drawn.partition_point(|value| value.date < start).saturating_sub(1);
+    GemChartViewport {
+        start,
+        end,
+        values: visible.to_vec(),
+        render_values: drawn.into_iter().skip(first_drawn).collect(),
+        bounds: chart_bounds(visible, currency),
+    }
+}
+
+fn render_points(zoom: GemChartZoom) -> usize {
+    MAX_RENDER_POINTS << zoom.scale.log2().floor() as usize
+}
+
+fn sampled_values(values: &[ChartDateValue], count: usize) -> Vec<ChartDateValue> {
+    if values.len() <= count {
+        return values.to_vec();
+    }
+    let [first, inner @ .., last] = values else {
+        return values.to_vec();
+    };
+    let buckets = count.saturating_sub(2);
+    let edge = |index: usize| index * inner.len() / buckets;
+    let bucket = |index: usize| &inner[edge(index)..edge(index + 1)];
+    let next = |index: usize| match index + 1 < buckets {
+        true => centroid(bucket(index + 1)),
+        false => Point::from(last),
+    };
+    let picked = (0..buckets).scan(first, |previous, index| {
+        let from = Point::from(*previous);
+        let to = next(index);
+        let area = |value: &ChartDateValue| triangle_area(from, Point::from(value), to);
+        *previous = bucket(index).iter().max_by(|a, b| area(a).total_cmp(&area(b)))?;
+        Some(*previous)
+    });
+    iter::once(first).chain(picked).chain(iter::once(last)).cloned().collect()
+}
+
+#[derive(Clone, Copy)]
+struct Point {
+    x: f64,
+    y: f64,
+}
+
+impl From<&ChartDateValue> for Point {
+    fn from(value: &ChartDateValue) -> Self {
+        Self {
+            x: value.date.timestamp_millis() as f64,
+            y: value.value,
+        }
+    }
+}
+
+fn centroid(values: &[ChartDateValue]) -> Point {
+    let count = values.len() as f64;
+    Point {
+        x: values.iter().map(|value| Point::from(value).x).sum::<f64>() / count,
+        y: values.iter().map(|value| value.value).sum::<f64>() / count,
+    }
+}
+
+fn triangle_area(a: Point, b: Point, c: Point) -> f64 {
+    ((b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y)).abs() / 2.0
+}
+
 pub fn price_chart_data(chart: GemChart, currency: Currency) -> Option<GemChartData> {
     let base = chart.base_value;
     let current = chart.current;
@@ -301,6 +376,59 @@ mod tests {
         assert_eq!(date_style(ChartPeriod::Month), GemChartDateStyle::DayTime);
         assert_eq!(date_style(ChartPeriod::Year), GemChartDateStyle::Day, "a year of points needs no clock");
         assert_eq!(date_style(ChartPeriod::All), GemChartDateStyle::Day);
+    }
+
+    #[test]
+    fn test_viewport() {
+        let values: Vec<ChartDateValue> = (0..600).map(|second| ChartDateValue::mock(second * 10, 100.0 + (second % 7) as f64)).collect();
+        let whole = viewport(&values, Currency::USD, GemChartZoom::identity());
+        let zoomed = viewport(&values, Currency::USD, GemChartZoom { scale: 3.0 });
+        let closer = viewport(&values, Currency::USD, GemChartZoom { scale: 3.5 });
+        let close = viewport(&values, Currency::USD, GemChartZoom { scale: 100.0 });
+
+        assert_eq!((whole.start, whole.end), (values[0].date, values[599].date));
+        assert_eq!(whole.values, values);
+        assert_eq!(whole.render_values, sampled_values(&values, 120));
+        assert_eq!(zoomed.start, DateTime::from_timestamp_millis(3_993_334).unwrap(), "the window is a third of the period ending at the last point");
+        assert_eq!(zoomed.values, values[400..], "only the points inside the window are scrubbed and bound");
+        assert_eq!(zoomed.bounds, chart_bounds(&values[400..], Currency::USD));
+        assert_eq!(zoomed.render_values, sampled_values(&values, 240)[159..], "zooming in doubles the detail and draws one point before the window");
+        assert_eq!(closer.render_values, zoomed.render_values[11..], "a nearby window within the same detail draws the same points");
+        assert_eq!(close.values, values[592..], "a zoom past the points held is clamped to the minimum visible points");
+        assert_eq!(close.render_values, values[591..], "a narrow window draws every point");
+        assert_eq!(viewport(&[], Currency::USD, GemChartZoom::identity()).render_values, Vec::new(), "a chart with no points draws nothing");
+    }
+
+    #[test]
+    fn test_render_points() {
+        assert_eq!(render_points(GemChartZoom::identity()), 120);
+        assert_eq!(render_points(GemChartZoom { scale: 1.9 }), 120, "detail only changes at whole doublings, so points stay put while pinching");
+        assert_eq!(render_points(GemChartZoom { scale: 2.0 }), 240);
+        assert_eq!(render_points(GemChartZoom { scale: 7.5 }), 480);
+    }
+
+    #[test]
+    fn test_sampled_values() {
+        let bumps: Vec<ChartDateValue> = [0.0, 1.0, 5.0, 2.0, 3.0, 9.0, 4.0, 6.0].into_iter().zip(0..).map(|(value, second)| ChartDateValue::mock(second, value)).collect();
+        let spiked: Vec<ChartDateValue> = (0..600).map(|second| ChartDateValue::mock(second, if second == 333 { 1000.0 } else { 100.0 + (second % 7) as f64 })).collect();
+        let sampled = sampled_values(&spiked, 120);
+
+        assert_eq!(
+            sampled_values(&bumps, 4),
+            vec![bumps[0].clone(), bumps[2].clone(), bumps[5].clone(), bumps[7].clone()],
+            "each bucket keeps the point that spans the largest triangle"
+        );
+        assert_eq!(sampled.len(), 120);
+        assert_eq!((sampled.first(), sampled.last()), (spiked.first(), spiked.last()));
+        assert_eq!(sampled.iter().filter(|value| value.value == 1000.0).count(), 1, "a spike survives the sampling");
+        assert_eq!(sampled_values(&spiked[..120], 120), spiked[..120].to_vec());
+
+        for count in [130, 300, 600] {
+            for step in 1..count {
+                let steps: Vec<ChartDateValue> = (0..count).map(|second| ChartDateValue::mock(second, if second < step { 1.0 } else { 2.0 })).collect();
+                assert!(sampled_values(&steps, 120).is_sorted_by(|a, b| a.date < b.date), "a step at {step} of {count} points keeps the points in order, each once");
+            }
+        }
     }
 
     #[test]
@@ -426,6 +554,11 @@ mod tests {
         assert_eq!(current_value(&points, Some(newer.clone()), now, ChartPeriod::Week, 3.0).unwrap().change_percentage, 200.0);
         assert_eq!(current_value(&points, Some(newer.clone()), now, ChartPeriod::Week, 0.0).unwrap().change_percentage, 0.0);
 
+        assert_eq!(
+            current_value(&points, Some(newer.clone()), DateTime::from_timestamp(15, 0).unwrap(), ChartPeriod::Day, 1.0).unwrap().date,
+            newer.updated_at,
+            "a device clock behind the server still places the live price after the last chart point"
+        );
         assert_eq!(current_value(&points, Some(same_age.clone()), now, ChartPeriod::Day, 1.0), None);
         assert_eq!(current_value(&points, None, now, ChartPeriod::Day, 1.0), None);
         assert!(current_value(&[], Some(same_age), now, ChartPeriod::Day, 0.0).is_some());

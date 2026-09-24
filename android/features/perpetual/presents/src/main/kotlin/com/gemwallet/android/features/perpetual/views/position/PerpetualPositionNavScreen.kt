@@ -70,6 +70,7 @@ fun PerpetualPositionNavScreen(
                 PerpetualDetailsAction.Autoclose -> showAutoclose = true
                 is PerpetualDetailsAction.OpenPosition -> viewModel.openPosition(action.direction, amountAction)
                 is PerpetualDetailsAction.SelectChartPeriod -> viewModel.period(action.period)
+                is PerpetualDetailsAction.ZoomChart -> viewModel.onZoom(action.magnification)
                 is PerpetualDetailsAction.OpenTransaction -> onTransaction(action.transactionId)
             }
         },

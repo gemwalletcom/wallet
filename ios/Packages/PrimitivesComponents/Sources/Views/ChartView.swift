@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import GemstonePrimitives
 import Primitives
 import Style
@@ -20,11 +21,15 @@ public struct ChartView: View {
     }
 
     private let model: ChartValuesViewModel
+    private let onZoom: @MainActor (Double) -> Void
 
+    @Binding private var isPinching: Bool
     @State private var selectedElement: ChartDateValue?
 
-    public init(model: ChartValuesViewModel) {
+    public init(model: ChartValuesViewModel, isPinching: Binding<Bool>, onZoom: @escaping @MainActor (Double) -> Void) {
         self.model = model
+        _isPinching = isPinching
+        self.onZoom = onZoom
     }
 
     public var body: some View {
@@ -32,6 +37,7 @@ public struct ChartView: View {
             priceHeader
             chart
         }
+        .sensoryFeedback(.selection, trigger: selectedElement?.date) { _, date in date != nil }
     }
 }
 
@@ -52,7 +58,7 @@ extension ChartView {
 
     private var chart: some View {
         Chart {
-            ForEach(model.charts, id: \.date) { item in
+            ForEach(model.renderValues, id: \.date) { item in
                 AreaMark(
                     x: .value(ChartKey.date, item.date),
                     y: .value(ChartKey.value, item.value),
@@ -94,17 +100,12 @@ extension ChartView {
         }
         .chartOverlay { proxy in
             GeometryReader { geometry in
-                Rectangle()
-                    .fill(.clear)
-                    .contentShape(Rectangle())
-                    .gesture(
-                        DragGesture(minimumDistance: 0)
-                            .onChanged { value in
-                                onDragChange(location: value.location, proxy: proxy, geometry: geometry)
-                            }
-                            .onEnded { _ in
-                                onDragEnd()
-                            },
+                Color.clear
+                    .chartGestures(
+                        isPinching: $isPinching,
+                        onScrub: { onScrub(location: $0, proxy: proxy, geometry: geometry) },
+                        onScrubEnd: { selectedElement = nil },
+                        onZoom: onZoom,
                     )
 
                 if let lastPoint = model.charts.last,
@@ -125,6 +126,9 @@ extension ChartView {
         .chartYAxis(.hidden)
         .chartYScale(domain: model.yScale)
         .chartXScale(domain: model.xScale)
+        .chartPlotStyle { plotArea in
+            plotArea.clipped()
+        }
         .chartBackground { proxy in
             GeometryReader { geometry in
                 if let plotFrame = proxy.plotFrame {
@@ -177,20 +181,16 @@ extension ChartView {
 // MARK: - Actions
 
 extension ChartView {
-    private func onDragChange(location: CGPoint, proxy: ChartProxy, geometry: GeometryProxy) {
+    private func onScrub(location: CGPoint, proxy: ChartProxy, geometry: GeometryProxy) {
         guard let plotFrame = proxy.plotFrame else { return }
 
         let relativeX = location.x - geometry[plotFrame].origin.x
         guard let targetDate = proxy.value(atX: relativeX) as Date?,
-              let element = model.charts.min(by: { abs($0.date.distance(to: targetDate)) < abs($1.date.distance(to: targetDate)) })
+              let element = model.value(for: targetDate)
         else {
             return
         }
 
         selectedElement = element
-    }
-
-    private func onDragEnd() {
-        selectedElement = nil
     }
 }
