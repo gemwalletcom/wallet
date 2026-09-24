@@ -2,6 +2,7 @@
 
 import BigInt
 import Formatters
+import enum Gemstone.AddressType
 import enum Gemstone.DelegationState
 import enum Gemstone.FeeOption
 import enum Gemstone.GemApprovalValue
@@ -99,6 +100,8 @@ public extension GemLocalizedText {
             Localized.Simulation.warningExternallyOwnedSpenderDescription
         case .suspiciousAddress:
             Localized.Common.suspiciousAddress
+        case let .addressType(addressType):
+            addressType.title
         case .invalidTokenId:
             Localized.Errors.Token.invalidId
         case let .triggerOrder(order, price):
@@ -814,6 +817,18 @@ extension GemCopyKind {
         case .secretPhrase: Localized.Common.copied(Localized.Common.secretPhrase)
         case .privateKey: Localized.Common.copied(Localized.Common.privateKey)
         case let .address(chain): Localized.Common.copied(String(format: "%@ (%@)", Chain(core: chain).networkName, display))
+        }
+    }
+}
+
+extension Gemstone.AddressType {
+    var title: String {
+        switch self {
+        case .address: Localized.Common.address
+        case .contract: Localized.Asset.contract
+        case .validator: Localized.Stake.validator
+        case .contact: Localized.Contacts.contact
+        case .internalWallet: Localized.Common.wallet
         }
     }
 }

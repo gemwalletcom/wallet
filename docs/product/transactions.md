@@ -26,3 +26,4 @@ flowchart LR
 
 - A sent transaction appears as Pending at once and stays tracked until the network settles it, whatever screen the user is on.
 - Amounts and status come from the network, never from the app's guess; a failed or reverted transaction is shown as such.
+- The address screen shows what the backend knows about an address in one call: its name, its type (Address, Contract or Validator) and its balances; an address the backend flags shows a "Suspicious address" warning, and a validator shows no balances.
