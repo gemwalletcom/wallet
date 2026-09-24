@@ -200,7 +200,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
 
     let providers = services.scan_providers(cacher_client.clone()).await?;
     let metrics = Arc::new(metrics::Metrics::new(&providers));
-    let scan_client = services.scan(providers, cacher_client.clone(), metrics.clone()).await?;
+    let scan_client = services.scan(providers, cacher_client.clone(), metrics.clone());
     let wallet_configuration_client = services.wallet_configuration(cacher_client.clone(), &user_agent);
     let assets_client = services.assets();
     let search_client = services.search(price_client.clone()).await?;

@@ -197,7 +197,7 @@ The API never returns internal text: `ApiError::Internal` logs its detail on the
 
 ### Freshness
 
-- **BD45** **S** **`ScanTimeout` and `ScanRequiredSuccesses` only change on API restart; with a live provider switch every scan can become incomplete.** Read once in `core/crates/services/src/backend.rs:277-286`; flags read per request in `core/crates/services/src/security/scan_client.rs:89,97,125,162`; completion at `core/crates/security/src/transaction_scan/evaluate.rs:21-25`.
+- **BD45** **S** **`ScanTimeout` only changes on API restart.** It is the HTTP client timeout the scan providers are built with (`core/crates/services/src/backend.rs` `scan_providers`, `core/crates/security/src/factory.rs`); a live value needs a per-check timeout in `ScanClient::run_check` and one for the token-scan consumer. `ScanRequiredSuccesses` is now read per scan.
 - **BD47** **S** **An asset can show a price in lists while its chart returns 404 "Price not found" for 1–7 days.** `core/crates/services/src/prices/chart_client.rs:25` needs a price within `PricePrimaryMaxAge` (24h); lists read Redis (TTL `PriceOutdated` 7d, `price_client.rs:84-90`); portfolio drops it (`prices/portfolio.rs:88`).
 - **BD48** **S** **The daemon reads the enabled price providers once; the API picks the primary provider live.** `core/crates/services/src/workers.rs:372-387` vs `core/crates/storage/src/repositories/prices_repository.rs:364`. Likely.
 - **BD50** **S** **Public `/chain/fee-estimates` can serve very old estimates.** `core/crates/services/src/chain/fee_estimates_client.rs:73-76` has no freshness check (TTL 5 years, `core/crates/cacher/src/keys.rs:155`); the per-chain route refreshes (`:55-70`). Used by the website, not the apps.

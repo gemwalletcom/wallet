@@ -28,12 +28,6 @@ pub fn scan_providers(settings: &Settings, cacher: CacherClient, timeout: Durati
     ScanProviderFactory::new_transaction_providers(&config, Arc::new(AccessTokenCacherClient::new(cacher, GoPlusProvider::<ReqwestClient>::NAME)))
 }
 
-#[derive(Clone)]
-pub struct TransactionScanConfig {
-    pub providers: TransactionScanProviders,
-    pub required_successes: usize,
-}
-
 struct SafeCacheKey {
     scan_type: ScanType,
     target: String,
@@ -50,17 +44,17 @@ pub struct ScanClient {
     database: Database,
     config_cacher: Arc<ConfigCacher>,
     cacher: CacherClient,
-    config: TransactionScanConfig,
+    providers: TransactionScanProviders,
     metrics: Arc<dyn ScanMetrics>,
 }
 
 impl ScanClient {
-    pub fn new(database: Database, config_cacher: Arc<ConfigCacher>, cacher: CacherClient, config: TransactionScanConfig, metrics: Arc<dyn ScanMetrics>) -> Self {
+    pub fn new(database: Database, config_cacher: Arc<ConfigCacher>, cacher: CacherClient, providers: TransactionScanProviders, metrics: Arc<dyn ScanMetrics>) -> Self {
         Self {
             database,
             config_cacher,
             cacher,
-            config,
+            providers,
             metrics,
         }
     }
@@ -115,7 +109,7 @@ impl ScanClient {
             assets,
             verdicts,
             safe,
-            required_successes: self.config.required_successes,
+            required_successes: self.config_cacher.get_usize(ConfigKey::ScanRequiredSuccesses).await?,
         })
     }
 
@@ -163,7 +157,7 @@ impl ScanClient {
                 enabled.push(provider);
             }
         }
-        let providers = self.config.providers.filter_enabled(&enabled);
+        let providers = self.providers.filter_enabled(&enabled);
         let (addresses, poisoning, websites) = future::join3(
             future::join_all(targets.address.iter().flat_map(|target| {
                 providers

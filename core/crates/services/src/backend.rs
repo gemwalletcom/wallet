@@ -42,7 +42,7 @@ use crate::prices::PortfolioClient;
 use crate::prices::{ChartClient, MarketsClient, PriceAlertClient, PriceClient};
 use crate::rewards::IpSecurityClient;
 use crate::rewards::{RewardsClient, RewardsRedemptionClient};
-use crate::security::{ScanClient, ScanMetrics, TransactionScanConfig, scan_providers};
+use crate::security::{ScanClient, ScanMetrics, scan_providers};
 use crate::support::SupportApiClient;
 use crate::support::SupportClient;
 use crate::swap::{NearIntentsProxyClient, SwapClient, SwapsXyzProxyClient};
@@ -272,12 +272,8 @@ impl Services {
         scan_providers(&self.settings, cacher, self.config().get_duration(ConfigKey::ScanTimeout).await?)
     }
 
-    pub async fn scan(&self, providers: TransactionScanProviders, cacher: CacherClient, metrics: Arc<dyn ScanMetrics>) -> Result<ScanClient, Box<dyn Error + Send + Sync>> {
-        let config = TransactionScanConfig {
-            providers,
-            required_successes: self.config().get_usize(ConfigKey::ScanRequiredSuccesses).await?,
-        };
-        Ok(ScanClient::new(self.database(), self.config(), cacher, config, metrics))
+    pub fn scan(&self, providers: TransactionScanProviders, cacher: CacherClient, metrics: Arc<dyn ScanMetrics>) -> ScanClient {
+        ScanClient::new(self.database(), self.config(), cacher, providers, metrics)
     }
 
     pub fn support_api(&self) -> SupportApiClient {
