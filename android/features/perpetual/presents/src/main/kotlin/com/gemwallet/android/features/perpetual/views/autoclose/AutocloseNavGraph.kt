@@ -57,8 +57,7 @@ fun AutocloseNavGraph(onDismiss: () -> Unit, finishAction: FinishConfirmAction, 
 @Composable
 private fun AutocloseNavGraphContent(onDismiss: () -> Unit, finishAction: FinishConfirmAction, onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit) {
     val viewModel: AutocloseViewModel = hiltViewModel()
-    val uiModel by viewModel.uiModel.collectAsStateWithLifecycle()
-    val priceRows by viewModel.priceRows.collectAsStateWithLifecycle()
+    val viewState by viewModel.viewState.collectAsStateWithLifecycle()
     val positionListItem by viewModel.positionListItem.collectAsStateWithLifecycle()
     val takeProfitText by viewModel.takeProfitText.collectAsStateWithLifecycle()
     val stopLossText by viewModel.stopLossText.collectAsStateWithLifecycle()
@@ -81,10 +80,9 @@ private fun AutocloseNavGraphContent(onDismiss: () -> Unit, finishAction: Finish
 
     val entryProvider = entryProvider<NavKey> {
         entry<AutocloseRoute> {
-            val model = uiModel ?: return@entry
+            val model = viewState ?: return@entry
             AutocloseScene(
                 model = model,
-                priceRows = priceRows,
                 positionListItem = positionListItem,
                 takeProfitText = takeProfitText,
                 stopLossText = stopLossText,

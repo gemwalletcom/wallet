@@ -9,7 +9,7 @@ use primitives::{Asset, AssetBasic, AssetId, AssetProperties, AssetScore, Autocl
 
 use super::details::GemPerpetualDetailsService;
 use super::model::{GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualTransferData};
-use super::{GemAutocloseField, GemAutocloseModify, GemPerpetualService, GemPerpetualStore};
+use super::{GemAutocloseEstimate, GemAutocloseField, GemAutocloseModify, GemPerpetualService, GemPerpetualStore};
 use crate::api::GemDeviceApiClient;
 use crate::gateway::GemGateway;
 use crate::services::assets::testkit::MemoryAssetStore;
@@ -254,6 +254,17 @@ impl GemAutocloseField {
                 false => AutocloseValidation::InvalidAmount,
             },
             order_id,
+        }
+    }
+}
+
+impl GemAutocloseEstimate {
+    pub fn mock() -> Self {
+        Self {
+            entry_price: 100.0,
+            size: 1.0,
+            leverage: 5,
+            is_open: false,
         }
     }
 }

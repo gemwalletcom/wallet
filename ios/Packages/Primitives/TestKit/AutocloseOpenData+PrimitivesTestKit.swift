@@ -9,6 +9,7 @@ public extension AutocloseOpenData {
         direction: PerpetualDirection = .long,
         leverage: UInt8 = 10,
         size: Double = 1.0,
+        takeProfit: String? = nil,
     ) -> AutocloseOpenData {
         AutocloseOpenData(
             assetId: .mock(.bitcoin),
@@ -18,7 +19,7 @@ public extension AutocloseOpenData {
             leverage: leverage,
             size: size,
             assetDecimals: 8,
-            takeProfit: nil,
+            takeProfit: takeProfit,
             stopLoss: nil,
         )
     }

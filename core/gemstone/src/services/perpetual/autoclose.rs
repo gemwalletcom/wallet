@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::formatted_number::{GemFormattedNumber, GemValueTone, value_tone};
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListRow, GemListRowTitle};
@@ -77,8 +75,7 @@ pub struct GemAutocloseFieldState {
     pub validation: AutocloseValidation,
 }
 
-#[uniffi::export]
-pub fn autoclose_field_state(field: GemAutocloseField, estimator: Arc<GemAutocloseEstimator>, shows_errors: bool) -> GemAutocloseFieldState {
+fn autoclose_field_state(field: GemAutocloseField, estimator: &GemAutocloseEstimator, shows_errors: bool) -> GemAutocloseFieldState {
     let estimate = field.price.map(|price| {
         let percent = GemFormattedNumber::percentage(estimator.roe(price), GemPercentageStyle::Signed);
         match estimator.has_size() {
@@ -173,9 +170,19 @@ pub struct GemAutoclosePrices {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAutocloseEstimate {
+    pub entry_price: f64,
+    pub size: f64,
+    pub leverage: u8,
+    pub is_open: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAutocloseViewState {
     pub confirm_enabled: bool,
     pub shows_errors: bool,
+    pub take_profit: GemAutocloseFieldState,
+    pub stop_loss: GemAutocloseFieldState,
     pub price_rows: Vec<GemListRow>,
     pub position_row: Option<GemPerpetualPositionRow>,
 }
@@ -189,6 +196,7 @@ pub struct GemAutocloseSession {
     pub provider: PerpetualProvider,
     pub decimals: i32,
     pub position_row: Option<GemPerpetualPositionRow>,
+    pub estimate: GemAutocloseEstimate,
 }
 
 fn price_row(title: GemListRowTitle, price: f64) -> GemListRow {
@@ -218,14 +226,20 @@ impl GemAutocloseSession {
         }
     }
 
-    pub fn initial_text(&self, tpsl_type: TpslType, decimal_separator: String) -> Option<String> {
-        self.field(tpsl_type)
-            .original_price
-            .map(|price| GemPerpetual::new(self.provider.clone()).format_input_price(price, self.decimals, decimal_separator))
+    pub fn on_percent_selected(&self, tpsl_type: TpslType, percent: i32) -> Self {
+        let price = self.estimator().target_price_from_roe(percent, tpsl_type);
+        self.on_price(tpsl_type, Some(price))
+    }
+
+    pub fn input_text(&self, tpsl_type: TpslType, decimal_separator: String) -> Option<String> {
+        self.field(tpsl_type).price.map(|price| GemPerpetual::new(self.provider.clone()).format_input_price(price, self.decimals, decimal_separator))
     }
 
     pub fn view_state(&self) -> GemAutocloseViewState {
+        let estimator = self.estimator();
         GemAutocloseViewState {
+            take_profit: autoclose_field_state(self.modify.take_profit.clone(), &estimator, self.submit_attempted),
+            stop_loss: autoclose_field_state(self.modify.stop_loss.clone(), &estimator, self.submit_attempted),
             confirm_enabled: match (self.policy, self.submit_attempted) {
                 (GemAutocloseConfirmPolicy::WhenBuildable, _) => self.modify.is_complete(),
                 (GemAutocloseConfirmPolicy::UntilSubmitted, true) => self.modify.can_build(),
@@ -242,8 +256,9 @@ impl GemAutocloseSession {
 }
 
 impl GemAutocloseSession {
-    pub fn new(modify: GemAutocloseModify, policy: GemAutocloseConfirmPolicy, prices: GemAutoclosePrices, provider: PerpetualProvider, decimals: i32, position_row: Option<GemPerpetualPositionRow>) -> Self {
+    pub fn new(modify: GemAutocloseModify, policy: GemAutocloseConfirmPolicy, prices: GemAutoclosePrices, provider: PerpetualProvider, decimals: i32, position_row: Option<GemPerpetualPositionRow>, estimate: GemAutocloseEstimate) -> Self {
         Self {
+            estimate,
             modify,
             policy,
             submit_attempted: false,
@@ -251,6 +266,14 @@ impl GemAutocloseSession {
             provider,
             decimals,
             position_row,
+        }
+    }
+
+    fn estimator(&self) -> GemAutocloseEstimator {
+        let direction = self.modify.direction.clone();
+        match self.estimate.is_open {
+            true => GemAutocloseEstimator::for_open(self.estimate.entry_price, self.estimate.size, self.estimate.leverage, direction),
+            false => GemAutocloseEstimator::new(self.estimate.entry_price, self.estimate.size, direction, self.estimate.leverage),
         }
     }
 
@@ -297,11 +320,17 @@ pub fn autoclose_session(perpetual: Perpetual, asset: Asset, position: Perpetual
         perpetual.provider.clone(),
         asset.decimals,
         Some(super::rules::position_row(&perpetual, &asset, &position)),
+        GemAutocloseEstimate {
+            entry_price: position.entry_price,
+            size: position.size,
+            leverage: position.leverage,
+            is_open: false,
+        },
     )
 }
 
 #[uniffi::export]
-pub fn autoclose_open_session(direction: PerpetualDirection, market_price: f64, decimals: i32, provider: PerpetualProvider) -> GemAutocloseSession {
+pub fn autoclose_open_session(direction: PerpetualDirection, market_price: f64, size: f64, leverage: u8, decimals: i32, provider: PerpetualProvider) -> GemAutocloseSession {
     let empty = |tpsl_type: TpslType| GemAutocloseField {
         tpsl_type,
         price: None,
@@ -322,6 +351,12 @@ pub fn autoclose_open_session(direction: PerpetualDirection, market_price: f64, 
         provider,
         decimals,
         None,
+        GemAutocloseEstimate {
+            entry_price: market_price,
+            size,
+            leverage,
+            is_open: true,
+        },
     )
 }
 
@@ -390,12 +425,12 @@ mod tests {
 
     #[test]
     fn test_an_open_position_starts_empty_and_prices_against_the_snapshot_it_was_given() {
-        let session = autoclose_open_session(PerpetualDirection::Long, 100.0, 2, PerpetualProvider::Hypercore);
+        let session = autoclose_open_session(PerpetualDirection::Long, 100.0, 1.0, 5, 2, PerpetualProvider::Hypercore);
         let state = session.view_state();
 
         assert!(!state.confirm_enabled, "nothing has been entered yet");
         assert_eq!(state.price_rows, vec![price_row(GemListRowTitle::MarketPrice, 100.0)], "an unopened position has no entry price");
-        assert_eq!(session.initial_text(TpslType::TakeProfit, ".".to_string()), None);
+        assert_eq!(session.input_text(TpslType::TakeProfit, ".".to_string()), None);
 
         let above = session.on_price(TpslType::TakeProfit, Some(120.0));
         assert_eq!(above.modify.take_profit.validation, AutocloseValidation::Valid);
@@ -410,8 +445,8 @@ mod tests {
     fn test_each_platform_gates_confirm_the_way_its_policy_says() {
         let changed = GemAutocloseModify::mock(GemAutocloseField::mock(Some(110.0), Some(100.0), true, None), GemAutocloseField::mock(None, None, true, None));
         let prices = GemAutoclosePrices { entry: Some(100.0), market: 110.0 };
-        let ios = GemAutocloseSession::new(changed.clone(), GemAutocloseConfirmPolicy::WhenBuildable, prices.clone(), PerpetualProvider::Hypercore, 2, None);
-        let android = GemAutocloseSession::new(changed, GemAutocloseConfirmPolicy::UntilSubmitted, prices, PerpetualProvider::Hypercore, 2, None);
+        let ios = GemAutocloseSession::new(changed.clone(), GemAutocloseConfirmPolicy::WhenBuildable, prices.clone(), PerpetualProvider::Hypercore, 2, None, GemAutocloseEstimate::mock());
+        let android = GemAutocloseSession::new(changed, GemAutocloseConfirmPolicy::UntilSubmitted, prices, PerpetualProvider::Hypercore, 2, None, GemAutocloseEstimate::mock());
 
         assert_eq!(ios.view_state().confirm_enabled, ios.modify.can_build());
         assert_eq!(
@@ -447,6 +482,19 @@ mod tests {
     }
 
     #[test]
+    fn test_a_percent_pick_prices_the_field_and_its_state_comes_with_the_view() {
+        let session = autoclose_open_session(PerpetualDirection::Long, 100.0, 1.0, 5, 2, PerpetualProvider::Hypercore);
+
+        let picked = session.on_percent_selected(TpslType::TakeProfit, 50);
+        assert!(picked.modify.take_profit.price.is_some_and(|price| price > 100.0));
+        assert!(picked.input_text(TpslType::TakeProfit, ".".to_string()).is_some());
+        let state = picked.view_state();
+        assert!(state.take_profit.estimate.is_some());
+        assert!(state.stop_loss.estimate.is_none());
+        assert_eq!(state.take_profit.tpsl_type, TpslType::TakeProfit);
+    }
+
+    #[test]
     fn test_errors_only_show_after_a_submit_attempt() {
         let session = GemAutocloseSession::new(
             GemAutocloseModify::mock(GemAutocloseField::mock(Some(110.0), None, false, None), GemAutocloseField::mock(None, None, true, None)),
@@ -455,6 +503,7 @@ mod tests {
             PerpetualProvider::Hypercore,
             2,
             None,
+            GemAutocloseEstimate::mock(),
         );
 
         assert!(!session.view_state().shows_errors);
@@ -465,10 +514,10 @@ mod tests {
 
     #[test]
     fn test_a_field_estimates_from_any_typed_price_and_names_its_outcome() {
-        let estimator = Arc::new(GemAutocloseEstimator::new(100.0, 2.0, PerpetualDirection::Long, 5));
-        let profit = autoclose_field_state(GemAutocloseField::mock(Some(120.0), None, true, None), estimator.clone(), true);
-        let loss = autoclose_field_state(GemAutocloseField::mock(Some(80.0), None, false, None), estimator.clone(), true);
-        let empty = autoclose_field_state(GemAutocloseField::mock(None, None, false, None), estimator.clone(), true);
+        let estimator = GemAutocloseEstimator::new(100.0, 2.0, PerpetualDirection::Long, 5);
+        let profit = autoclose_field_state(GemAutocloseField::mock(Some(120.0), None, true, None), &estimator, true);
+        let loss = autoclose_field_state(GemAutocloseField::mock(Some(80.0), None, false, None), &estimator, true);
+        let empty = autoclose_field_state(GemAutocloseField::mock(None, None, false, None), &estimator, true);
 
         assert!(profit.is_profit);
         assert_eq!(profit.tone, GemValueTone::Positive);
@@ -479,7 +528,7 @@ mod tests {
         assert_eq!(empty.tone, GemValueTone::Neutral);
         assert!(profit.suggestions.iter().all(|value| value.unit == crate::formatted_number::GemNumberUnit::Percent));
         assert_eq!(
-            autoclose_field_state(GemAutocloseField::mock(Some(80.0), None, false, None), estimator, false).validation,
+            autoclose_field_state(GemAutocloseField::mock(Some(80.0), None, false, None), &estimator, false).validation,
             AutocloseValidation::Valid,
             "errors wait for a submit attempt"
         );
@@ -596,7 +645,7 @@ mod tests {
         assert_eq!(session.prices.entry, Some(position.entry_price));
         assert!(!session.view_state().confirm_enabled, "an untouched form has nothing to submit");
         assert!(session.view_state().position_row.is_some(), "the modify screen shows the position it edits");
-        assert!(autoclose_open_session(PerpetualDirection::Long, 100.0, 2, PerpetualProvider::Hypercore).view_state().position_row.is_none());
+        assert!(autoclose_open_session(PerpetualDirection::Long, 100.0, 1.0, 5, 2, PerpetualProvider::Hypercore).view_state().position_row.is_none());
     }
 
     #[test]

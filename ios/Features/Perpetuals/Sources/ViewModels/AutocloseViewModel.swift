@@ -2,9 +2,6 @@
 
 import Components
 import Foundation
-import func Gemstone.autocloseFieldState
-import class Gemstone.GemAutocloseEstimator
-import struct Gemstone.GemAutocloseField
 import struct Gemstone.GemAutocloseFieldState
 import GemstonePrimitives
 import Localization
@@ -16,23 +13,8 @@ import SwiftUI
 public struct AutocloseViewModel {
     private let state: GemAutocloseFieldState
 
-    public init(
-        type: TpslType,
-        price: Double?,
-        estimator: GemAutocloseEstimator,
-    ) {
-        state = autocloseFieldState(
-            field: GemAutocloseField(
-                tpslType: type.toGem(),
-                price: price,
-                originalPrice: nil,
-                formattedPrice: nil,
-                validation: .valid,
-                orderId: nil,
-            ),
-            estimator: estimator,
-            showsErrors: false,
-        )
+    public init(state: GemAutocloseFieldState) {
+        self.state = state
     }
 
     public var priceTitle: String {
@@ -57,5 +39,9 @@ public struct AutocloseViewModel {
 
     public var percentSuggestions: [PercentageSuggestion] {
         state.suggestions.map { PercentageSuggestion(number: $0) }
+    }
+
+    var error: (any Error)? {
+        state.validation == .valid ? nil : state.validation
     }
 }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -14,13 +15,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.ext.PerpetualFormatter
-import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountPerpetualProvider
-import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.PercentSuggestionsBar
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.perpetual.AutocloseInputSection
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
@@ -34,32 +34,24 @@ import com.wallet.core.primitives.TpslType
 @Composable
 internal fun AmountAutocloseSheet(isVisible: Boolean, provider: AmountPerpetualProvider, amount: String, onDismiss: () -> Unit) {
     if (!isVisible) return
-    val perpetual = provider.perpetual.collectAsStateWithLifecycle().value ?: run {
+    if (provider.perpetual.collectAsStateWithLifecycle().value == null) {
         onDismiss()
         return
     }
     val storedTakeProfit by provider.takeProfit.collectAsStateWithLifecycle()
     val storedStopLoss by provider.stopLoss.collectAsStateWithLifecycle()
 
-    val assetDecimals = perpetual.asset.decimals
-    val perpetualProvider = perpetual.perpetual.provider
-
     var takeProfitText by remember { mutableStateOf(storedTakeProfit.orEmpty()) }
     var stopLossText by remember { mutableStateOf(storedStopLoss.orEmpty()) }
-    var submitAttempted by remember { mutableStateOf(false) }
     var focused: TpslType? by remember { mutableStateOf(null) }
 
-    var session by remember { mutableStateOf(provider.autocloseSession(perpetual)) }
-    val viewState = session.viewState()
-    val estimator = remember(amount, session.prices.market) { provider.estimatorFor(amount, session.prices.market) }
-    val takeProfitField = provider.autocloseField(session.modify.takeProfit, estimator, submitAttempted)
-    val stopLossField = provider.autocloseField(session.modify.stopLoss, estimator, submitAttempted)
+    LaunchedEffect(Unit) { provider.onAutocloseOpened(amount) }
+    val viewState = provider.autocloseViewState.collectAsStateWithLifecycle().value ?: return
 
-    val activeField = focused?.let {
-        when (it) {
-            TpslType.TakeProfit -> takeProfitField
-            TpslType.StopLoss -> stopLossField
-        }
+    val activeField = when (focused) {
+        TpslType.TakeProfit -> viewState.takeProfit
+        TpslType.StopLoss -> viewState.stopLoss
+        null -> null
     }
     val activeText = when (focused) {
         TpslType.TakeProfit -> takeProfitText
@@ -81,15 +73,16 @@ internal fun AmountAutocloseSheet(isVisible: Boolean, provider: AmountPerpetualP
         ) {
             provider.openPositionListItem(amount)?.let { ListItem(model = it, listPosition = ListPosition.Single) }
             Spacer16()
-            ListItem(model = provider.marketPriceListItem(session.prices.market), listPosition = ListPosition.Single)
+            viewState.priceRows.forEachIndexed { index, row ->
+                GemListRowView(row = row, listPosition = ListPosition.getPosition(index, viewState.priceRows.size))
+            }
             Spacer16()
             AutocloseInputSection(
-                field = takeProfitField,
+                field = viewState.takeProfit,
                 text = takeProfitText,
                 onTextChanged = {
-                    submitAttempted = false
                     takeProfitText = it
-                    session = session.onPrice(TpslType.TakeProfit.toGem(), it.parseInputNumberOrNull()?.toDouble())
+                    provider.onAutocloseChanged(TpslType.TakeProfit, it)
                 },
                 onFocusChanged = { hasFocus ->
                     if (hasFocus) {
@@ -101,12 +94,11 @@ internal fun AmountAutocloseSheet(isVisible: Boolean, provider: AmountPerpetualP
             )
             Spacer16()
             AutocloseInputSection(
-                field = stopLossField,
+                field = viewState.stopLoss,
                 text = stopLossText,
                 onTextChanged = {
-                    submitAttempted = false
                     stopLossText = it
-                    session = session.onPrice(TpslType.StopLoss.toGem(), it.parseInputNumberOrNull()?.toDouble())
+                    provider.onAutocloseChanged(TpslType.StopLoss, it)
                 },
                 onFocusChanged = { hasFocus ->
                     if (hasFocus) {
@@ -119,20 +111,14 @@ internal fun AmountAutocloseSheet(isVisible: Boolean, provider: AmountPerpetualP
             Spacer(Modifier.weight(1f))
             if (activeField != null && activeText.isEmpty()) {
                 PercentSuggestionsBar(
-                    suggestions = activeField.percentSuggestions,
+                    suggestions = activeField.suggestions,
                     onPercentSelected = { percent ->
-                        val target = estimator.targetPriceFromRoe(percent, activeField.type.toGem())
-                        val formatted = PerpetualFormatter.formatInputPrice(
-                            provider = perpetualProvider,
-                            price = target,
-                            decimals = assetDecimals,
-                        )
-                        submitAttempted = false
-                        when (activeField.type) {
-                            TpslType.TakeProfit -> takeProfitText = formatted
-                            TpslType.StopLoss -> stopLossText = formatted
+                        val type = activeField.tpslType.toPrimitives()
+                        val text = provider.onAutoclosePercentSelected(type, percent).orEmpty()
+                        when (type) {
+                            TpslType.TakeProfit -> takeProfitText = text
+                            TpslType.StopLoss -> stopLossText = text
                         }
-                        session = session.onPrice(activeField.type.toGem(), formatted.parseInputNumberOrNull()?.toDouble())
                     },
                 )
             } else {
@@ -140,8 +126,7 @@ internal fun AmountAutocloseSheet(isVisible: Boolean, provider: AmountPerpetualP
                     title = stringResource(R.string.common_done),
                     state = buttonState(enabled = viewState.confirmEnabled),
                     onClick = {
-                        submitAttempted = true
-                        if (viewState.confirmEnabled) {
+                        if (provider.onAutocloseSubmitted()) {
                             provider.setTakeProfit(takeProfitText.takeIf { it.isNotEmpty() })
                             provider.setStopLoss(stopLossText.takeIf { it.isNotEmpty() })
                             onDismiss()

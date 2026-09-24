@@ -8,7 +8,6 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositionByAsset
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
-import com.gemwallet.android.ext.PerpetualFormatter
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.math.parseInputNumberOrNull
@@ -16,8 +15,6 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.perpetual.listItem
 import com.gemwallet.android.ui.models.navigation.requireAssetId
-import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModel
-import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModelFactory
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.TpslType
@@ -36,10 +33,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import uniffi.gemstone.GemAutocloseEstimator
-import uniffi.gemstone.GemAutocloseField
 import uniffi.gemstone.GemAutocloseSession
-import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemAutocloseViewState
 import uniffi.gemstone.autocloseSession
 import javax.inject.Inject
 
@@ -77,20 +72,17 @@ class AutocloseViewModel @Inject constructor(
 
     private val submitAttempted = MutableStateFlow(false)
 
-    val uiModel: StateFlow<AutocloseUIModel?> = combine(
+    val viewState: StateFlow<GemAutocloseViewState?> = combine(
         position,
         takeProfitText,
         stopLossText,
         submitAttempted,
     ) { position, takeProfit, stopLoss, attempted ->
-        position?.let { buildUiModel(it, takeProfit, stopLoss, attempted) }
+        position?.let { session(it, takeProfit, stopLoss).let { session -> if (attempted) session.onSubmitAttempt() else session }.viewState() }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val positionListItem: StateFlow<ListItemModel?> = uiModel.map { it?.positionRow?.listItem(context) }
+    val positionListItem: StateFlow<ListItemModel?> = viewState.map { it?.positionRow?.listItem(context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val priceRows: StateFlow<List<GemListRow>> = uiModel.map { it?.priceRows.orEmpty() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun onTakeProfitChanged(text: String) {
         submitAttempted.value = false
@@ -105,16 +97,12 @@ class AutocloseViewModel @Inject constructor(
     fun onPercentSelected(type: TpslType, percent: Int) {
         submitAttempted.value = false
         val position = position.value ?: return
-        val estimator = estimator(position)
-        val target = estimator.targetPriceFromRoe(percent, type.toGem())
-        val formatted = PerpetualFormatter.formatInputPrice(
-            provider = position.perpetual.provider,
-            price = target,
-            decimals = position.asset.decimals,
-        )
+        val text = session(position, takeProfitText.value, stopLossText.value)
+            .onPercentSelected(type.toGem(), percent)
+            .inputText(type.toGem(), numberFormat().decimalSeparator.toString())
         when (type) {
-            TpslType.TakeProfit -> userTakeProfitText.value = formatted
-            TpslType.StopLoss -> userStopLossText.value = formatted
+            TpslType.TakeProfit -> userTakeProfitText.value = text
+            TpslType.StopLoss -> userStopLossText.value = text
         }
     }
 
@@ -131,27 +119,10 @@ class AutocloseViewModel @Inject constructor(
         .onPrice(TpslType.TakeProfit.toGem(), takeProfitText.parseInputNumberOrNull()?.toDouble())
         .onPrice(TpslType.StopLoss.toGem(), stopLossText.parseInputNumberOrNull()?.toDouble())
 
-    private fun buildUiModel(position: PerpetualPositionData, takeProfitText: String, stopLossText: String, submitAttempted: Boolean): AutocloseUIModel {
-        val session = session(position, takeProfitText, stopLossText).let { if (submitAttempted) it.onSubmitAttempt() else it }
-        return AutocloseUIModelFactory.create(
-            position = position,
-            takeProfit = session.modify.takeProfit,
-            stopLoss = session.modify.stopLoss,
-            state = session.viewState(),
-        )
-    }
-
-    private fun estimator(position: PerpetualPositionData) = GemAutocloseEstimator(
-        entryPrice = position.position.entryPrice,
-        positionSize = position.position.size,
-        direction = position.position.direction.toGem(),
-        leverage = position.position.leverage,
-    )
-
     private fun initialText(position: PerpetualPositionData?, type: TpslType): String {
         position ?: return ""
         return autocloseSession(position.perpetual.toGem(), position.asset.toGem(), position.position.toGem())
-            .initialText(type.toGem(), numberFormat().decimalSeparator.toString())
+            .inputText(type.toGem(), numberFormat().decimalSeparator.toString())
             .orEmpty()
     }
 }

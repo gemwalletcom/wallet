@@ -25,6 +25,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -103,5 +104,16 @@ class AutocloseViewModelTest {
         model.onTakeProfitChanged("12a3.4b5")
 
         assertEquals("123.45", model.takeProfitText.first { it.isNotEmpty() })
+    }
+
+    @Test
+    fun `the view state carries each field's estimate once a price is entered`() = runTest(dispatcher) {
+        val model = viewModel()
+        model.position.first { it != null }
+
+        model.onTakeProfitChanged("150")
+
+        val state = model.viewState.first { it?.takeProfit?.estimate != null }
+        assertNull(state?.stopLoss?.estimate)
     }
 }

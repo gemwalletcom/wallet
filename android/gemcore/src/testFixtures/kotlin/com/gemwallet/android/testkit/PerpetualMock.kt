@@ -1,6 +1,5 @@
 package com.gemwallet.android.testkit
 
-import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Perpetual
@@ -14,12 +13,6 @@ import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.PerpetualTriggerOrder
-import com.wallet.core.primitives.TpslType
-import uniffi.gemstone.AutocloseValidation
-import uniffi.gemstone.GemAutocloseField
-import uniffi.gemstone.GemAutocloseViewState
-import uniffi.gemstone.GemListRow
-import uniffi.gemstone.GemListRowTitle
 
 fun mockPerpetual(price: Double = 0.0, pricePercentChange24h: Double = 0.0, volume24h: Double = 0.0, funding: Double = 0.0) = Perpetual(
     id = PerpetualId(provider = PerpetualProvider.Hypercore, symbol = "TON"),
@@ -85,23 +78,4 @@ fun mockPerpetualTriggerOrder(price: Double = 100.0) = PerpetualTriggerOrder(
     price = price,
     order_type = PerpetualOrderType.Limit,
     order_id = "order-$price",
-)
-
-fun mockAutocloseField(type: TpslType = TpslType.TakeProfit, price: Double? = null, validation: AutocloseValidation = AutocloseValidation.VALID) = GemAutocloseField(
-    tpslType = type.toGem(),
-    price = price,
-    originalPrice = null,
-    formattedPrice = price?.toString(),
-    validation = validation,
-    orderId = null,
-)
-
-fun mockAutocloseViewState(confirmEnabled: Boolean = false, showsErrors: Boolean = false) = GemAutocloseViewState(
-    confirmEnabled = confirmEnabled,
-    showsErrors = showsErrors,
-    priceRows = listOf(
-        GemListRow.Amount(title = GemListRowTitle.ENTRY_PRICE, amount = mockFormattedNumber(100.0), info = null),
-        GemListRow.Amount(title = GemListRowTitle.MARKET_PRICE, amount = mockFormattedNumber(110.0), info = null),
-    ),
-    positionRow = null,
 )

@@ -8,12 +8,12 @@ import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.PerpetualFormatter
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.transfer_amount.viewmodels.models.AmountExtrasUIModel
+import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.math.toUnsignedInts
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.text
 import com.gemwallet.android.model.toGem
 import com.gemwallet.android.ui.R
@@ -23,10 +23,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.components.list_item.listItemModel
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.stringRes
-import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModel
-import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModelFactory
 import com.gemwallet.android.ui.style.textStyle
-import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TpslType
@@ -41,13 +38,13 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemAssetBalance
-import uniffi.gemstone.GemAutocloseEstimator
-import uniffi.gemstone.GemAutocloseField
 import uniffi.gemstone.GemAutocloseSession
+import uniffi.gemstone.GemAutocloseViewState
 import uniffi.gemstone.GemPerpetualAutoclose
 import uniffi.gemstone.GemPerpetualPositionAction
 import uniffi.gemstone.GemTransferData
@@ -103,25 +100,35 @@ class AmountPerpetualProvider(
         userSelectedLeverage.value = value
     }
 
-    fun autocloseSession(market: PerpetualData): GemAutocloseSession = autocloseOpenSession(
-        direction = direction.toGem(),
-        marketPrice = market.perpetual.price,
-        decimals = market.asset.decimals,
-        provider = PerpetualProvider.HYPERCORE,
-    )
+    private val autoclose = MutableStateFlow<GemAutocloseSession?>(null)
 
-    fun autocloseField(field: GemAutocloseField, estimator: GemAutocloseEstimator, showErrors: Boolean): AutocloseUIModel.Field = AutocloseUIModelFactory.createField(field = field, estimator = estimator, showErrors = showErrors)
+    val autocloseViewState: StateFlow<GemAutocloseViewState?> = autoclose.map { it?.viewState() }
+        .stateIn(scope, SharingStarted.Eagerly, null)
 
-    fun estimatorFor(amount: String, marketPrice: Double): GemAutocloseEstimator {
-        val leverage = leverageState.value?.current?.value ?: perpetual.value?.perpetual?.maxLeverage?.toUByte() ?: 1u
-        val usdAmount = amount.parseInputNumberOrNull()?.toDouble() ?: 0.0
-        return GemAutocloseEstimator.forOpen(
-            marketPrice = marketPrice,
-            size = usdAmount,
-            leverage = leverage,
+    fun onAutocloseOpened(amount: String) {
+        val market = perpetual.value ?: return
+        autoclose.value = autocloseOpenSession(
             direction = direction.toGem(),
+            marketPrice = market.perpetual.price,
+            size = amount.parseInputNumberOrNull()?.toDouble() ?: 0.0,
+            leverage = leverageState.value?.current?.value ?: market.perpetual.maxLeverage.toUByte(),
+            decimals = market.asset.decimals,
+            provider = PerpetualProvider.HYPERCORE,
         )
+            .onPrice(TpslType.TakeProfit.toGem(), takeProfit.value?.parseInputNumberOrNull()?.toDouble())
+            .onPrice(TpslType.StopLoss.toGem(), stopLoss.value?.parseInputNumberOrNull()?.toDouble())
     }
+
+    fun onAutocloseChanged(type: TpslType, text: String) {
+        autoclose.update { it?.onPrice(type.toGem(), text.parseInputNumberOrNull()?.toDouble()) }
+    }
+
+    fun onAutoclosePercentSelected(type: TpslType, percent: Int): String? {
+        val session = autoclose.updateAndGet { it?.onPercentSelected(type.toGem(), percent) } ?: return null
+        return session.inputText(type.toGem(), numberFormat().decimalSeparator.toString())
+    }
+
+    fun onAutocloseSubmitted(): Boolean = autoclose.updateAndGet { it?.onSubmitAttempt() }?.viewState()?.confirmEnabled == true
 
     private val defaultAutoclose: StateFlow<GemPerpetualAutoclose?> = if (isOpenAction) {
         combine(perpetual.filterNotNull(), leverageState.filterNotNull()) { market, state ->
@@ -142,8 +149,6 @@ class AmountPerpetualProvider(
 
     val takeProfit: StateFlow<String?> = draft.map { it.takeProfit.value }.stateIn(scope, SharingStarted.Eagerly, null)
     val stopLoss: StateFlow<String?> = draft.map { it.stopLoss.value }.stateIn(scope, SharingStarted.Eagerly, null)
-
-    private val usdFormatter = CurrencyFormatter(currency = Currency.USD)
 
     val leverageListItem: StateFlow<ListItemModel?> = leverageState.map { state ->
         state?.let {
@@ -166,8 +171,6 @@ class AmountPerpetualProvider(
             autoclose = autoclose.takeIf { showsAutoclose },
         )
     }.stateIn(scope, SharingStarted.Eagerly, AmountExtrasUIModel.None)
-
-    fun marketPriceListItem(price: Double): ListItemModel = ListItemModel(title = context.getString(R.string.perpetual_market_price), subtitle = usdFormatter.string(price))
 
     fun openPositionListItem(amount: String): ListItemModel? {
         val market = perpetual.value ?: return null

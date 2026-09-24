@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.PercentSuggestionsBar
 import com.gemwallet.android.ui.components.buttons.MainActionButton
@@ -20,16 +21,16 @@ import com.gemwallet.android.ui.components.perpetual.AutocloseInputSection
 import com.gemwallet.android.ui.components.screen.MainActionWidth
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModel
+import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.wallet.core.primitives.TpslType
-import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemAutocloseViewState
 
 @Composable
-internal fun AutocloseScene(model: AutocloseUIModel, priceRows: List<GemListRow>, positionListItem: ListItemModel?, takeProfitText: String, stopLossText: String, onAction: (AutocloseAction) -> Unit) {
+internal fun AutocloseScene(model: GemAutocloseViewState, positionListItem: ListItemModel?, takeProfitText: String, stopLossText: String, onAction: (AutocloseAction) -> Unit) {
     var focusedField: TpslType? by remember { mutableStateOf(null) }
 
     val activeField = focusedField?.let { type ->
@@ -57,13 +58,13 @@ internal fun AutocloseScene(model: AutocloseUIModel, priceRows: List<GemListRow>
         mainAction = {
             if (isPercentBarVisible) {
                 PercentSuggestionsBar(
-                    suggestions = activeField.percentSuggestions,
-                    onPercentSelected = { percent -> onAction(AutocloseAction.SelectPercent(activeField.type, percent)) },
+                    suggestions = activeField.suggestions,
+                    onPercentSelected = { percent -> onAction(AutocloseAction.SelectPercent(activeField.tpslType.toPrimitives(), percent)) },
                 )
             } else {
                 MainActionButton(
                     title = stringResource(R.string.transfer_confirm),
-                    state = model.buttonState,
+                    state = buttonState(enabled = model.confirmEnabled),
                     onClick = { onAction(AutocloseAction.Confirm) },
                 )
             }
@@ -75,8 +76,8 @@ internal fun AutocloseScene(model: AutocloseUIModel, priceRows: List<GemListRow>
                 Spacer16()
             }
             item {
-                priceRows.forEachIndexed { index, row ->
-                    GemListRowView(row = row, listPosition = ListPosition.getPosition(index, priceRows.size))
+                model.priceRows.forEachIndexed { index, row ->
+                    GemListRowView(row = row, listPosition = ListPosition.getPosition(index, model.priceRows.size))
                 }
                 Spacer16()
             }

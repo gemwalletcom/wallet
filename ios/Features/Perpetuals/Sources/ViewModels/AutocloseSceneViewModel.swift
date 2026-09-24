@@ -5,7 +5,6 @@ import Foundation
 import func Gemstone.autocloseOpenSession
 import func Gemstone.autocloseSession
 import enum Gemstone.GemAutocloseConfirmPolicy
-import class Gemstone.GemAutocloseEstimator
 import struct Gemstone.GemAutocloseSession
 import struct Gemstone.GemAutocloseViewState
 import enum Gemstone.GemListRow
@@ -19,31 +18,11 @@ import SwiftUI
 @Observable
 @MainActor
 public final class AutocloseSceneViewModel {
-    private let perpetualFormatter = PerpetualFormatter(provider: .hypercore)
     private let type: AutocloseType
-    private let estimator: GemAutocloseEstimator
+    private let decimalSeparator = NumberInput.format(.current).decimalSeparator
 
     var input: AutocloseInput
     private var session: GemAutocloseSession
-
-    private static func estimator(for type: AutocloseType) -> GemAutocloseEstimator {
-        switch type {
-        case let .modify(position, _):
-            GemAutocloseEstimator(
-                entryPrice: position.position.entryPrice,
-                positionSize: position.position.size,
-                direction: position.position.direction.toGem(),
-                leverage: position.position.leverage,
-            )
-        case let .open(data, _):
-            GemAutocloseEstimator.forOpen(
-                marketPrice: data.marketPrice,
-                size: data.size,
-                leverage: data.leverage,
-                direction: data.direction.toGem(),
-            )
-        }
-    }
 
     public init(type: AutocloseType) {
         let session = Self.session(for: type)
@@ -51,11 +30,9 @@ public final class AutocloseSceneViewModel {
 
         self.type = type
         self.session = session
-        estimator = Self.estimator(for: type)
         input = AutocloseInput(
-            type: type,
-            takeProfitText: session.initialText(tpslType: .takeProfit, decimalSeparator: separator),
-            stopLossText: session.initialText(tpslType: .stopLoss, decimalSeparator: separator),
+            takeProfitText: session.inputText(tpslType: .takeProfit, decimalSeparator: separator),
+            stopLossText: session.inputText(tpslType: .stopLoss, decimalSeparator: separator),
         )
     }
 
@@ -71,9 +48,13 @@ public final class AutocloseSceneViewModel {
             autocloseOpenSession(
                 direction: data.direction.toGem(),
                 marketPrice: data.marketPrice,
+                size: data.size,
+                leverage: data.leverage,
                 decimals: data.assetDecimals,
                 provider: .hypercore,
             )
+            .onPrice(tpslType: .takeProfit, price: data.takeProfit.flatMap { NumberInput.double($0) })
+            .onPrice(tpslType: .stopLoss, price: data.stopLoss.flatMap { NumberInput.double($0) })
         }
     }
 
@@ -86,11 +67,11 @@ public final class AutocloseSceneViewModel {
     }
 
     public var takeProfitModel: AutocloseViewModel {
-        autocloseModel(type: .takeProfit, price: takeProfitPrice)
+        AutocloseViewModel(state: viewState.takeProfit)
     }
 
     public var stopLossModel: AutocloseViewModel {
-        autocloseModel(type: .stopLoss, price: stopLossPrice)
+        AutocloseViewModel(state: viewState.stopLoss)
     }
 
     public var positionItemViewModel: (any ListAssetItemViewable)? {
@@ -128,12 +109,13 @@ public extension AutocloseSceneViewModel {
     }
 
     func onSelectConfirm() {
-        input.update()
         onChangePrice()
 
         let attempted = session.onSubmitAttempt()
         session = attempted
-        guard attempted.viewState().confirmEnabled else { return }
+        let state = attempted.viewState()
+        input.update(state: state)
+        guard state.confirmEnabled else { return }
 
         switch type {
         case let .modify(position, onTransferAction):
@@ -147,10 +129,8 @@ public extension AutocloseSceneViewModel {
 
     func onSelectPercent(_ percent: Int) {
         guard let type = input.focusedType, let focused = input.focused else { return }
-        focused.text = perpetualFormatter.formatInputPrice(
-            estimator.targetPriceFromRoe(roePercent: Int32(percent), triggerType: type.toGem()),
-            decimals: assetDecimals,
-        )
+        session = session.onPercentSelected(tpslType: type.toGem(), percent: Int32(percent))
+        focused.text = session.inputText(tpslType: type.toGem(), decimalSeparator: decimalSeparator) ?? .empty
     }
 }
 
@@ -163,16 +143,5 @@ extension AutocloseSceneViewModel {
 
     private var stopLossPrice: Double? {
         NumberInput.double(input.stopLoss.text)
-    }
-
-    private var assetDecimals: Int32 {
-        switch type {
-        case let .modify(position, _): position.asset.decimals
-        case let .open(data, _): data.assetDecimals
-        }
-    }
-
-    private func autocloseModel(type: TpslType, price: Double?) -> AutocloseViewModel {
-        AutocloseViewModel(type: type, price: price, estimator: estimator)
     }
 }

@@ -24,7 +24,7 @@ use std::collections::HashMap;
 use crate::config::perpetual_config::PRICES_UPDATE_INTERVAL_SECONDS;
 use crate::services::preferences::GemPreferencesService;
 
-pub use autoclose::{GemAutocloseField, GemAutocloseModify};
+pub use autoclose::{GemAutocloseEstimate, GemAutocloseField, GemAutocloseModify};
 pub use candles::{GemCandleRequest, GemCandleResult, GemCandleSession, GemCandleViewState};
 pub use details::GemPerpetualDetailsService;
 pub use model::{
