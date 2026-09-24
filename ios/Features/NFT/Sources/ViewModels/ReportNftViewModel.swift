@@ -7,6 +7,7 @@ import GemstonePrimitives
 import GemstoneServices
 import Localization
 import Primitives
+import PrimitivesComponents
 
 @Observable
 @MainActor
@@ -16,6 +17,7 @@ public final class ReportNftViewModel {
     private let onComplete: VoidAction
 
     var state: StateViewType<Bool> = .noData
+    var isPresentingAlertMessage: AlertMessage?
 
     let reasons = ReportReason.allCases
 
@@ -44,8 +46,8 @@ public final class ReportNftViewModel {
             state = .data(true)
             onComplete?()
         } catch {
-            debugLog("Report NFT error: \(error)")
             state = .error(error)
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
 }
