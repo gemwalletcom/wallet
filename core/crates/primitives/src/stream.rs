@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use crate::response::ErrorDetail;
 use crate::{AssetId, InAppNotification, SupportStreamEvent, TransactionId, WalletId, WebSocketPricePayload};
 
 pub const DEVICE_STREAM_CHANNEL_PREFIX: &str = "stream:device:";
@@ -21,6 +22,7 @@ pub enum StreamEvent {
     InAppNotification(StreamNotificationUpdate),
     FiatTransaction(StreamWalletUpdate),
     Support(SupportStreamEvent),
+    Error(ErrorDetail),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -93,5 +95,15 @@ mod tests {
 
         let legacy_only = r#"{"walletId":"multicoin_0x1","assetId":"ethereum"}"#;
         assert!(serde_json::from_str::<StreamBalanceUpdate>(legacy_only).is_err());
+    }
+
+    #[test]
+    fn test_stream_event_error() {
+        let event = StreamEvent::Error(ErrorDetail {
+            message: "unknown variant `dash`".to_string(),
+            data: None,
+        });
+
+        assert_eq!(serde_json::to_string(&event).unwrap(), r#"{"event":"error","data":{"message":"unknown variant `dash`"}}"#);
     }
 }

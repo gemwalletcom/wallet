@@ -176,6 +176,7 @@ impl GemStreamService {
                 self.support.update_typing(typing)?;
                 Ok(GemStreamEvent::SupportTyping { is_typing })
             }
+            StreamEvent::Error(detail) => Err(GemServiceError::Api { msg: detail.message }),
         }
     }
 }
