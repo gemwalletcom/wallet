@@ -152,6 +152,7 @@ pub fn validator_row(validator: &DelegationValidator) -> GemValidatorRow {
             value: (validator.apr > 0.0).then(|| GemFormattedNumber::percentage(validator.apr, GemPercentageStyle::Unsigned)),
         },
         validator: validator.clone(),
+        explorer: None,
     }
 }
 

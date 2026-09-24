@@ -18,7 +18,6 @@ public final class ValidatorSelectSceneViewModel {
     public var selectValidator: ((DelegationValidator) -> Void)?
     private let service: any GemStakeServiceProtocol
     private let rowsById: [String: GemValidatorRow]
-    private let explorerLinksById: [String: BlockExplorerLink]
 
     public init(
         service: any GemStakeServiceProtocol,
@@ -38,10 +37,6 @@ public final class ValidatorSelectSceneViewModel {
             zip(all.map(\.id), service.validatorRows(validators: all.map { $0.toGem() })),
             uniquingKeysWith: { first, _ in first },
         )
-        explorerLinksById = Dictionary(
-            all.compactMap { validator in service.validatorUrl(validator: validator.toGem()).map { (validator.id, $0.toPrimitives()) } },
-            uniquingKeysWith: { first, _ in first },
-        )
     }
 
     public var title: String {
@@ -59,13 +54,9 @@ public final class ValidatorSelectSceneViewModel {
         ].filter(\.values.isNotEmpty)
     }
 
-    public func explorerLink(for validator: DelegationValidator) -> BlockExplorerLink? {
-        explorerLinksById[validator.id]
-    }
-
     public func explorerContext(for validator: DelegationValidator) -> ExplorerContextData? {
-        explorerLink(for: validator).map {
-            ExplorerContextData(copyValue: .address(value: validator.id, chain: validator.chain), explorerLink: $0)
+        rowsById[validator.id]?.explorer.map {
+            ExplorerContextData(copyValue: .address(value: validator.id, chain: validator.chain), explorerLink: $0.toPrimitives())
         }
     }
 

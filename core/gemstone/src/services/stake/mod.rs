@@ -31,7 +31,6 @@ use crate::services::preferences::GemPreferencesService;
 use crate::services::transfer::GemTransferData;
 use crate::services::transfer::rules as transfer_rules;
 use crate::services::wallet_session::GemWalletSessionService;
-use primitives::BlockExplorerLink;
 
 #[derive(uniffi::Object)]
 pub struct GemStakeService {
@@ -84,12 +83,13 @@ impl GemStakeService {
     }
 
     pub fn validator_rows(&self, validators: Vec<DelegationValidator>) -> Vec<GemValidatorRow> {
-        validators.iter().map(rules::validator_row).collect()
-    }
-
-    pub fn validator_url(&self, validator: DelegationValidator) -> Option<BlockExplorerLink> {
-        let address = rules::validator_explorer_address(&validator)?;
-        self.explorer.get_validator_url(validator.chain, address)
+        validators
+            .iter()
+            .map(|validator| GemValidatorRow {
+                explorer: rules::validator_explorer_address(validator).and_then(|address| self.explorer.get_validator_url(validator.chain, address)),
+                ..rules::validator_row(validator)
+            })
+            .collect()
     }
 
     pub async fn refresh(&self, chain: Chain, delegations: Vec<Delegation>) -> GemLoadState {

@@ -20,6 +20,7 @@ public extension GemValidatorRow {
             placeholder: String(validator.name.prefix(1)),
             provider: .none,
             apr: .apr(value: apr),
+            explorer: nil,
         )
     }
 }

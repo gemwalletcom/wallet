@@ -13,4 +13,5 @@ fun mockGemValidatorRow(validator: DelegationValidator = mockDelegationValidator
     placeholder = validator.name.take(1),
     provider = null,
     apr = GemLocalizedText.Apr(apr),
+    explorer = null,
 )

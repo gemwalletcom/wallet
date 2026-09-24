@@ -6,7 +6,7 @@ use crate::services::amount::rules as amount_rules;
 use crate::services::error::GemServiceError;
 use crate::services::localization::GemLocalizedText;
 use crate::services::transfer::GemTransferData;
-use primitives::{Asset, Currency, Delegation, DelegationState, DelegationValidator, EarnType, Resource, StakeType, YieldProvider};
+use primitives::{Asset, BlockExplorerLink, Currency, Delegation, DelegationState, DelegationValidator, EarnType, Resource, StakeType, YieldProvider};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemStakeSection {
@@ -195,4 +195,5 @@ pub struct GemValidatorRow {
     pub placeholder: String,
     pub provider: Option<YieldProvider>,
     pub apr: GemLocalizedText,
+    pub explorer: Option<BlockExplorerLink>,
 }

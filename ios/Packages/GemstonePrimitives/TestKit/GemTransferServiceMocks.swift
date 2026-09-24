@@ -277,11 +277,11 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     }
 
     public func validatorRows(validators: [Gemstone.DelegationValidator]) -> [Gemstone.GemValidatorRow] {
-        validators.map { Gemstone.validatorRow(validator: $0) }
-    }
-
-    public func validatorUrl(validator _: Gemstone.DelegationValidator) -> Gemstone.BlockExplorerLink? {
-        explorerAddress.map { Gemstone.BlockExplorerLink(name: "MockExplorer", link: "https://explorer.mock/validator/\($0)") }
+        validators.map { validator in
+            var row = Gemstone.validatorRow(validator: validator)
+            row.explorer = explorerAddress.map { Gemstone.BlockExplorerLink(name: "MockExplorer", link: "https://explorer.mock/validator/\($0)") }
+            return row
+        }
     }
 
     public func showsRewards(delegation _: Gemstone.DelegationBase) -> Bool {
