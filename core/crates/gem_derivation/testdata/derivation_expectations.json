@@ -13,6 +13,7 @@
   "arbitrum": { "address": "0x9858EfFD232B4033E47d90003D41EC34EcaEda94", "path": "m/44'/60'/0'/0/0" },
   "ton": { "address": "UQAzWZa6nM5mJev91wGc7VCSfBoIsYRqKJpV78N8Add9-RKY", "path": "m/44'/607'/0'" },
   "tron": { "address": "TUEZSdKsoDHQMeZwihtdoBiN46zxhGWYdH", "path": "m/44'/195'/0'/0/0" },
+  "dash": { "address": "XoJA8qE3N2Y3jMLEtZ3vcN42qseZ8LvFf5", "path": "m/44'/5'/0'/0/0" },
   "doge": { "address": "DBus3bamQjgJULBJtYXpEzDWQRwF5iwxgC", "path": "m/44'/3'/0'/0/0" },
   "zcash": { "address": "t1XVXWCvpMgBvUaed4XDqWtgQgJSu1Ghz7F", "path": "m/44'/133'/0'/0/0" },
   "optimism": { "address": "0x9858EfFD232B4033E47d90003D41EC34EcaEda94", "path": "m/44'/60'/0'/0/0" },
