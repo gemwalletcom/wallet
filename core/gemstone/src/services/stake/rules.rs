@@ -190,7 +190,7 @@ fn completion_title(delegation: &Delegation) -> Option<GemListRowTitle> {
     }
 }
 
-pub fn delegation_details(delegation: &Delegation, asset: &Asset, price: Option<f64>, currency: Currency, rows: Vec<GemListRow>) -> GemDelegationDetails {
+pub fn delegation_details(wallet_type: WalletType, delegation: &Delegation, asset: &Asset, price: Option<f64>, currency: Currency, rows: Vec<GemListRow>) -> GemDelegationDetails {
     let amount = |value: &BigUint| GemFormattedNumber::asset_amount(&BigInt::from(value.clone()), asset, GemValueStyle::Auto);
     let fiat = |value: &BigUint| crate::services::assets::rules::fiat_amount_of(asset, value, price, currency.clone(), GemCurrencyStyle::Currency);
     let shows_rewards = shows_rewards(&delegation.base);
@@ -199,11 +199,13 @@ pub fn delegation_details(delegation: &Delegation, asset: &Asset, price: Option<
         title: GemLocalizedText::StakeProvider {
             provider: delegation.validator.provider_type,
         },
+        header: delegation_list_row(delegation, asset, price, currency.clone()),
+        actions: delegation_actions(wallet_type, delegation),
         balance: amount(&delegation.base.balance),
         fiat: fiat(&delegation.base.balance),
         rewards: shows_rewards.then(|| amount(&delegation.base.rewards)),
         rewards_fiat: shows_rewards.then(|| fiat(&delegation.base.rewards)).flatten(),
-        claim: shows_rewards.then(|| {
+        claim: can_claim_rewards(wallet_type, delegation).then(|| {
             crate::services::transfer::rules::stake_transfer_data(
                 asset.clone(),
                 StakeType::Rewards(vec![delegation.validator.clone()]),
@@ -723,7 +725,8 @@ mod tests {
             delegation.base.balance = BigUint::from(838u64);
             delegation.base.rewards = BigUint::from(rewards);
             delegation.base.state = DelegationState::Active;
-            delegation_details(&delegation, &asset, Some(2.0), Currency::USD, vec![])
+            delegation.base.asset_id = asset.id.clone();
+            delegation_details(WalletType::Multicoin, &delegation, &asset, Some(2.0), Currency::USD, vec![])
         };
 
         assert_eq!(
@@ -1379,6 +1382,22 @@ mod tests {
                 value: String::new()
             }
         );
+    }
+
+    #[test]
+    fn test_delegation_details_offer_a_claim_only_when_it_can_be_claimed() {
+        let asset = Asset::from_chain(Chain::Cosmos);
+        let delegation = Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 10);
+
+        let owned = delegation_details(WalletType::Multicoin, &delegation, &asset, None, Currency::USD, vec![]);
+        assert!(owned.claim.is_some());
+        assert!(owned.rewards.is_some());
+        assert_eq!(owned.actions, delegation_actions(WalletType::Multicoin, &delegation));
+        assert_eq!(owned.header, delegation_list_row(&delegation, &asset, None, Currency::USD));
+
+        let watched = delegation_details(WalletType::View, &delegation, &asset, None, Currency::USD, vec![]);
+        assert!(watched.claim.is_none(), "a watch-only wallet sees its rewards but cannot claim them");
+        assert!(watched.rewards.is_some());
     }
 
     #[test]

@@ -69,7 +69,6 @@ class DelegationViewModelTest {
                 every { getCurrency() } returns Currency.USD.toGem()
             },
             getSession = getSession,
-            ioDispatcher = testDispatcher,
             savedStateHandle = SavedStateHandle(
                 mapOf(
                     RouteArgument.ValidatorId.key to "v1",

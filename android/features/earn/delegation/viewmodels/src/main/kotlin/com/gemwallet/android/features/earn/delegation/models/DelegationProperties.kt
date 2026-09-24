@@ -8,7 +8,7 @@ import uniffi.gemstone.GemDelegationAction
 import uniffi.gemstone.GemDelegationDetails
 import uniffi.gemstone.GemListRow
 
-class DelegationProperties(val rows: List<DelegationRowUIModel>, val details: GemDelegationDetails, val asset: Asset)
+class DelegationProperties(val rows: List<DelegationRowUIModel>, val details: GemDelegationDetails, val actions: List<DelegationActionUIModel>, val asset: Asset)
 
 sealed interface DelegationRowUIModel {
     data class Row(val row: GemListRow) : DelegationRowUIModel

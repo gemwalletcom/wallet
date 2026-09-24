@@ -2,7 +2,6 @@
 
 import Components
 import Foundation
-import func Gemstone.delegationListRow
 import enum Gemstone.GemDelegationAction
 import struct Gemstone.GemDelegationDetails
 import enum Gemstone.GemListRow
@@ -50,28 +49,21 @@ public struct DelegationSceneViewModel {
         return { onSelectAddress(ChainAddress(chain: chain, address: $0)) }
     }
 
-    public var model: DelegationViewModel {
-        DelegationViewModel(row: delegationListRow(delegation: delegation.toGem(), asset: asset.toGem(), price: price, currency: service.getCurrency()))
+    public var details: GemDelegationDetails {
+        service.delegationDetails(walletType: wallet.type.toGem(), delegation: delegation.toGem(), asset: asset.toGem(), price: price, currency: service.getCurrency())
     }
 
-    private var details: GemDelegationDetails {
-        service.delegationDetails(delegation: delegation.toGem(), asset: asset.toGem(), price: price, currency: service.getCurrency())
+    public func headerModel(_ details: GemDelegationDetails) -> DelegationViewModel {
+        DelegationViewModel(row: details.header)
     }
 
     private var price: Double? {
         delegation.price?.price
     }
 
-    public var title: String {
-        details.title.text
-    }
-
-    public var rows: [GemListRow] {
-        details.rows
-    }
-
-    public var rewardsItem: ListItemModel? {
-        details.rewards.map { rewards in
+    public func rewardsItem(_ details: GemDelegationDetails) -> ListItemModel? {
+        let model = headerModel(details)
+        return details.rewards.map { rewards in
             ListItemModel(
                 title: Localized.Stake.rewards,
                 titleStyle: model.titleStyle,
@@ -95,18 +87,6 @@ public struct DelegationSceneViewModel {
     public var assetImageStyle: ListItemImageStyle? {
         .asset(assetImage: AssetViewModel(asset: asset).assetImage)
     }
-
-    public var availableActions: [GemDelegationAction] {
-        service.delegationActions(walletType: wallet.type.toGem(), delegation: delegation.toGem())
-    }
-
-    public var showManage: Bool {
-        availableActions.isNotEmpty
-    }
-
-    public var canClaimRewards: Bool {
-        service.canClaimDelegationRewards(walletType: wallet.type.toGem(), delegation: delegation.toGem())
-    }
 }
 
 // MARK: - Actions
@@ -121,8 +101,7 @@ public extension DelegationSceneViewModel {
         }
     }
 
-    func onClaimRewards() {
-        guard let claim = details.claim else { return }
+    func onClaimRewards(_ claim: GemTransferData) {
         onNavigate?(.transfer(.confirm(claim)))
     }
 }

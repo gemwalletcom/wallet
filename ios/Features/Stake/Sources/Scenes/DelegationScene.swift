@@ -12,10 +12,11 @@ public struct DelegationScene: View {
     }
 
     public var body: some View {
+        let details = model.details
         List {
             Section {} header: {
                 ValueHeaderView(
-                    model: model.model,
+                    model: model.headerModel(details),
                     isPrivacyEnabled: .constant(false),
                     titleActionType: .none,
                     onHeaderAction: nil,
@@ -26,16 +27,16 @@ public struct DelegationScene: View {
             .cleanListRow()
 
             Section {
-                ForEach(model.rows, id: \.self) { row in
+                ForEach(details.rows, id: \.self) { row in
                     GemListRowView(row: row, onSelectAddress: model.onSelectProvider)
                 }
             }
 
-            if let rewardsItem = model.rewardsItem {
+            if let rewardsItem = model.rewardsItem(details) {
                 Section {
-                    if model.canClaimRewards {
+                    if let claim = details.claim {
                         NavigationCustomLink(with: ListItemView(model: rewardsItem)) {
-                            model.onClaimRewards()
+                            model.onClaimRewards(claim)
                         }
                     } else {
                         ListItemView(model: rewardsItem)
@@ -43,9 +44,9 @@ public struct DelegationScene: View {
                 }
             }
 
-            if model.showManage {
+            if details.actions.isNotEmpty {
                 Section(model.manageTitle) {
-                    ForEach(model.availableActions) { action in
+                    ForEach(details.actions) { action in
                         NavigationCustomLink(with: ListItemView(model: model.actionListItem(action))) {
                             model.onSelectAction(action)
                         }
@@ -53,7 +54,7 @@ public struct DelegationScene: View {
                 }
             }
         }
-        .navigationTitle(model.title)
+        .navigationTitle(details.title.text)
         .listSectionSpacing(.compact)
     }
 }

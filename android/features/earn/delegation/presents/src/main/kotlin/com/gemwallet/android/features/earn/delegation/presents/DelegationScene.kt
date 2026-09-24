@@ -11,6 +11,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.earn.delegation.models.DelegationRowUIModel
 import com.gemwallet.android.features.earn.delegation.viewmodels.DelegationViewModel
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_head.AmountListHead
 import com.gemwallet.android.ui.components.list_item.GemListRowView
@@ -28,56 +29,52 @@ import com.wallet.core.primitives.ChainAddress
 
 @Composable
 fun DelegationScene(onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction, onOpenAddress: (ChainAddress) -> Unit, onCancel: () -> Unit, viewModel: DelegationViewModel = hiltViewModel()) {
-    val delegationInfo by viewModel.delegationInfo.collectAsStateWithLifecycle()
-    val properties by viewModel.properties.collectAsStateWithLifecycle()
-    val actions by viewModel.actions.collectAsStateWithLifecycle()
-    val canClaimRewards by viewModel.canClaimRewards.collectAsStateWithLifecycle()
+    val current by viewModel.properties.collectAsStateWithLifecycle()
+    val properties = current
 
-    if (delegationInfo == null) {
+    if (properties == null) {
         LoadingScene(title = stringResource(id = R.string.transfer_stake_title), onCancel = onCancel)
         return
     }
+    val details = properties.details
+    val canClaimRewards = details.claim != null
     Scene(
-        title = properties?.details?.title?.string(LocalContext.current) ?: stringResource(R.string.transfer_stake_title),
+        title = details.title.string(LocalContext.current),
         onClose = onCancel,
     ) {
         LazyColumn {
-            delegationInfo?.let { info ->
-                item {
-                    AmountListHead(
-                        amount = info.cryptoFormatted,
-                        equivalent = info.fiatFormatted,
-                        icon = info.iconUrl,
-                        iconPlaceholder = info.iconPlaceholder,
+            item {
+                AmountListHead(
+                    amount = details.balance.text(),
+                    equivalent = details.fiat?.text().orEmpty(),
+                    icon = details.header.validator.imageUrl,
+                    iconPlaceholder = details.header.validator.placeholder,
+                )
+            }
+            itemsPositioned(properties.rows) { position, row ->
+                when (row) {
+                    is DelegationRowUIModel.Row -> GemListRowView(
+                        row = row.row,
+                        listPosition = position,
+                        onSelectAddress = { onOpenAddress(ChainAddress(properties.asset.id.chain, it)) },
+                    )
+
+                    DelegationRowUIModel.Rewards -> PropertyAssetBalanceItem(
+                        asset = properties.asset,
+                        amount = properties.details.rewards ?: return@itemsPositioned,
+                        fiat = properties.details.rewardsFiat,
+                        title = stringResource(R.string.stake_rewards),
+                        modifier = if (canClaimRewards) Modifier.clickable { viewModel.onClaimRewards(onConfirm) } else Modifier,
+                        showChevron = canClaimRewards,
+                        listPosition = position,
                     )
                 }
             }
-            properties?.let { properties ->
-                itemsPositioned(properties.rows) { position, row ->
-                    when (row) {
-                        is DelegationRowUIModel.Row -> GemListRowView(
-                            row = row.row,
-                            listPosition = position,
-                            onSelectAddress = { onOpenAddress(ChainAddress(properties.asset.id.chain, it)) },
-                        )
 
-                        DelegationRowUIModel.Rewards -> PropertyAssetBalanceItem(
-                            asset = properties.asset,
-                            amount = properties.details.rewards ?: return@itemsPositioned,
-                            fiat = properties.details.rewardsFiat,
-                            title = stringResource(R.string.stake_rewards),
-                            modifier = if (canClaimRewards) Modifier.clickable { viewModel.onClaimRewards(onConfirm) } else Modifier,
-                            showChevron = canClaimRewards,
-                            listPosition = position,
-                        )
-                    }
-                }
-            }
-
-            if (actions.isNotEmpty()) {
+            if (properties.actions.isNotEmpty()) {
                 item { SubheaderItem(R.string.common_manage) }
             }
-            itemsPositioned(actions) { position, item ->
+            itemsPositioned(properties.actions) { position, item ->
                 ListItem(
                     model = item.model,
                     listPosition = position,

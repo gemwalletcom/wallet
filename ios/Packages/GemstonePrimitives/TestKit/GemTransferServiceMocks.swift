@@ -240,8 +240,13 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         []
     }
 
-    public func delegationDetails(delegation: Gemstone.Delegation, asset: Gemstone.Asset, price: Double?, currency: Gemstone.Currency) -> GemDelegationDetails {
-        Gemstone.delegationDetails(delegation: delegation, asset: asset, price: price, currency: currency)
+    public func delegationDetails(walletType: Gemstone.WalletType, delegation: Gemstone.Delegation, asset: Gemstone.Asset, price: Double?, currency: Gemstone.Currency) -> GemDelegationDetails {
+        var details = Gemstone.delegationDetails(walletType: walletType, delegation: delegation, asset: asset, price: price, currency: currency)
+        details.actions = actions
+        if !claimable {
+            details.claim = nil
+        }
+        return details
     }
 
     public func stakeTransferData(asset: Gemstone.Asset, stakeType: Gemstone.StakeType, value: Gemstone.GemBigInt, useMaxAmount: Bool) -> GemTransferData {
@@ -259,14 +264,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         validators _: [Gemstone.DelegationValidator],
     ) -> GemDelegationDestination {
         .details
-    }
-
-    public func delegationActions(walletType _: Gemstone.WalletType, delegation _: Gemstone.Delegation) -> [Gemstone.GemDelegationAction] {
-        actions
-    }
-
-    public func canClaimDelegationRewards(walletType _: Gemstone.WalletType, delegation _: Gemstone.Delegation) -> Bool {
-        claimable
     }
 
     public func getCurrency() -> Gemstone.Currency {

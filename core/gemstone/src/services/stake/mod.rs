@@ -104,20 +104,12 @@ impl GemStakeService {
         rules::earn_actions(wallet_type, providers)
     }
 
-    pub fn delegation_actions(&self, wallet_type: WalletType, delegation: Delegation) -> Vec<GemDelegationAction> {
-        rules::delegation_actions(wallet_type, &delegation)
-    }
-
     pub fn delegation_destination(&self, wallet_type: WalletType, asset: Asset, delegation: Delegation) -> GemDelegationDestination {
         rules::delegation_destination(wallet_type, asset, delegation)
     }
 
     pub fn delegation_action_destination(&self, asset: Asset, delegation: Delegation, action: GemDelegationAction, validators: Vec<DelegationValidator>) -> GemDelegationDestination {
         rules::delegation_action_destination(asset, delegation, action, validators)
-    }
-
-    pub fn can_claim_delegation_rewards(&self, wallet_type: WalletType, delegation: Delegation) -> bool {
-        rules::can_claim_rewards(wallet_type, &delegation)
     }
 
     pub fn sorted_delegations(&self, delegations: Vec<Delegation>) -> Vec<Delegation> {
@@ -144,9 +136,9 @@ impl GemStakeService {
         rules::stake_info_rows(&asset, staking_apr)
     }
 
-    pub fn delegation_details(&self, delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency) -> GemDelegationDetails {
+    pub fn delegation_details(&self, wallet_type: WalletType, delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency) -> GemDelegationDetails {
         let rows = self.delegation_rows(delegation.clone());
-        rules::delegation_details(&delegation, &asset, price, currency, rows)
+        rules::delegation_details(wallet_type, &delegation, &asset, price, currency, rows)
     }
 
     pub fn claim_rewards(&self, chain: Chain, delegations: Vec<Delegation>) -> GemClaimRewards {

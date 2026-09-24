@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegation
@@ -13,7 +12,6 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.earn.delegation.models.DelegationProperties
 import com.gemwallet.android.features.earn.delegation.models.DelegationRowUIModel
-import com.gemwallet.android.features.earn.delegation.models.HeadDelegationInfo
 import com.gemwallet.android.features.earn.delegation.models.uiModel
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.toAmountParams
@@ -25,7 +23,6 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.StakeType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -33,12 +30,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemDelegationAction
 import uniffi.gemstone.GemDelegationDestination
 import uniffi.gemstone.GemStakeServiceInterface
-import uniffi.gemstone.validatorRow
 import java.math.BigInteger
 import javax.inject.Inject
 
@@ -49,7 +43,6 @@ class DelegationViewModel @Inject constructor(
     private val getDelegation: GetDelegation,
     private val stakeService: GemStakeServiceInterface,
     getSession: GetSession,
-    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     savedStateHandle: SavedStateHandle,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
@@ -74,11 +67,13 @@ class DelegationViewModel @Inject constructor(
     val properties = combine(
         delegation,
         assetInfo,
-    ) { delegation, assetInfo ->
+        getSession().filterNotNull(),
+    ) { delegation, assetInfo, session ->
         if (delegation == null || assetInfo == null) {
             return@combine null
         }
         val details = stakeService.delegationDetails(
+            session.wallet.type.toGem(),
             delegation.toGem(),
             assetInfo.asset.toGem(),
             assetInfo.price?.price?.price,
@@ -87,33 +82,8 @@ class DelegationViewModel @Inject constructor(
         DelegationProperties(
             rows = details.rows.map { DelegationRowUIModel.Row(it) } + listOfNotNull(DelegationRowUIModel.Rewards.takeIf { details.rewards != null }),
             details = details,
+            actions = details.actions.map { it.uiModel(context) },
             asset = assetInfo.asset,
-        )
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val actions = combine(delegation.filterNotNull(), getSession().filterNotNull()) { delegation, session ->
-        stakeService.delegationActions(session.wallet.type.toGem(), delegation.toGem()).map { it.uiModel(context) }
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    val canClaimRewards = combine(delegation.filterNotNull(), getSession().filterNotNull()) { delegation, session ->
-        stakeService.canClaimDelegationRewards(session.wallet.type.toGem(), delegation.toGem())
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    val delegationInfo = combine(delegation, assetInfo) { delegation, assetInfo ->
-        if (assetInfo == null || delegation == null) {
-            return@combine null
-        }
-        HeadDelegationInfo(
-            details = stakeService.delegationDetails(
-                delegation.toGem(),
-                assetInfo.asset.toGem(),
-                assetInfo.price?.price?.price,
-                (assetInfo.price?.currency ?: Currency.USD).toGem(),
-            ),
-            validator = validatorRow(delegation.validator.toGem()),
         )
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -129,19 +99,8 @@ class DelegationViewModel @Inject constructor(
     }
 
     fun onClaimRewards(call: ConfirmTransactionAction) {
-        val assetInfo = assetInfo.value ?: return
-        val delegation = delegation.value ?: return
-        viewModelScope.launch {
-            val transfer = withContext(ioDispatcher) {
-                stakeService.delegationDetails(
-                    delegation.toGem(),
-                    assetInfo.asset.toGem(),
-                    assetInfo.price?.price?.price,
-                    (assetInfo.price?.currency ?: Currency.USD).toGem(),
-                ).claim
-            } ?: return@launch
-            call(ConfirmTransferInput(transfer))
-        }
+        val transfer = properties.value?.details?.claim ?: return
+        call(ConfirmTransferInput(transfer))
     }
 }
 

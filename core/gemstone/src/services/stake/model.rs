@@ -6,7 +6,7 @@ use crate::services::amount::rules as amount_rules;
 use crate::services::error::GemServiceError;
 use crate::services::localization::GemLocalizedText;
 use crate::services::transfer::GemTransferData;
-use primitives::{Asset, BlockExplorerLink, Currency, Delegation, DelegationState, DelegationValidator, EarnType, Resource, StakeType, YieldProvider};
+use primitives::{Asset, BlockExplorerLink, Currency, Delegation, DelegationState, DelegationValidator, EarnType, Resource, StakeType, WalletType, YieldProvider};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemStakeSection {
@@ -24,6 +24,8 @@ pub struct GemDelegationStatus {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemDelegationDetails {
     pub title: GemLocalizedText,
+    pub header: GemDelegationListRow,
+    pub actions: Vec<GemDelegationAction>,
     pub balance: GemFormattedNumber,
     pub fiat: Option<GemFormattedNumber>,
     pub rewards: Option<GemFormattedNumber>,
@@ -43,8 +45,8 @@ pub struct GemDelegationListRow {
 }
 
 #[uniffi::export]
-pub fn delegation_details(delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency) -> GemDelegationDetails {
-    rules::delegation_details(&delegation, &asset, price, currency, Vec::new())
+pub fn delegation_details(wallet_type: WalletType, delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency) -> GemDelegationDetails {
+    rules::delegation_details(wallet_type, &delegation, &asset, price, currency, Vec::new())
 }
 
 #[uniffi::export]
