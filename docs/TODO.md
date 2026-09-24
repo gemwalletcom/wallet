@@ -19,17 +19,16 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Security and bugs:** BD20.
-2. **Generated constants:** D174.
-3. **Deletions:** VM173, VM174, VM177 (the FFI trim; extend `check-ffi-surface.py` first).
-4. **Pass-throughs:** VM175, VM176.
-5. **Derive once:** VM178, VM179.
-6. **Settled differences:** VM102, VM124, VM127, VM128, VM129, BD58, D74, D75, BD59, BD60, BD61, BD62, BD63, BD64, BD56, AUD50.
-7. **One view state:** VM168, VM167, VM169, VM170, VM171, VM144, VM125, VM134, VM89.
-8. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
-9. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
-10. **Balances and storage:** D76, D77, VM98 (an Android migration).
-11. **Server:** BD23, BD51, BD52.
+1. **Generated constants:** D174.
+2. **Deletions:** VM173, VM174, VM177 (the FFI trim; extend `check-ffi-surface.py` first).
+3. **Pass-throughs:** VM175, VM176.
+4. **Derive once:** VM178, VM179.
+5. **Settled differences:** VM102, VM124, VM127, VM128, VM129, BD58, D74, D75, BD59, BD60, BD61, BD62, BD63, BD64, BD56, AUD50.
+6. **One view state:** VM168, VM167, VM169, VM170, VM171, VM144, VM125, VM134, VM89.
+7. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
+8. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
+9. **Balances and storage:** D76, D77, VM98 (an Android migration).
+10. **Server:** BD23, BD51, BD52.
 
 Waiting on the owner: BD29 and BD50 (server), VM79. Waiting on a date or a release: X168, X163.
 
@@ -59,7 +58,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | VM172, VM177 |
 | Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | VM171; preserve exact atomic values |
 | Earn list, provider and deposit amount | Existing stake/earn owner and amount extras | BD60; preserve the existing feature gate |
-| NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM134, VM175, BD20, BD62 |
+| NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM134, VM175, BD62 |
 | Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM67, VM172, VM178 |
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | BD59 |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | — |
@@ -269,10 +268,6 @@ Differences between the apps, or between an app and the server, each with its de
   - **iOS:** `localizedDescription` (`ConnectionsViewModel.swift:114,125`).
   - **Android:** `GemErrorText.Message` (`WalletConnectCoordinator.kt:108,118,272`), plus hardcoded English at `ReownWalletConnectClient.kt:120`.
   - **Expected:** we write strings for an expired pairing, an unknown topic and a relay outage in all 21 languages, and both apps show them instead of the SDK's text.
-- **BD20** **S** **A failed NFT action reads differently.** Both apps show the error.
-  - **iOS:** a failed report, avatar or image save shows an alert with the error's text (`ReportNftViewModel.submitReport`, `CollectibleViewModel.onSelectSetAsAvatar`).
-  - **Android:** the same failures show the generic "An error occurred" snackbar (`NftDetailsScene.kt:106,115,124,162`), because `NftDetailsViewModel` returns only `isSuccess`.
-  - **Expected:** both show Core's error text (`GemServiceError.text()`); Android's view model returns the error and the snackbar shows its text.
 
 ### Same rule, different answers
 
