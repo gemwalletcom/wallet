@@ -175,7 +175,7 @@ flowchart TD
 **How it works.**
 
 - **Header.** The total is the sum of every enabled asset's balance times its price, plus perpetual collateral when the wallet has a perpetual account. The 24h change shows only when the wallet holds value and moved.
-- **Buttons.** Send, Receive and Buy for every signing wallet. Swap for a multi-coin wallet, or a single-network wallet whose network supports swaps. A watch wallet shows "Watch-only wallet. You don't control these funds." instead of buttons.
+- **Buttons.** Send, Receive and Buy for every signing wallet. Swap for a multi-coin wallet, or a single-network wallet whose network supports swaps. A watch-only wallet shows "Watch-only wallet. You don't control these funds." instead of buttons.
 - **List.** Pinned assets first, then the rest ordered by fiat value, then by rank. Hidden assets are not in the list. A native coin is titled by its network; the price and change sit under the name; balance and fiat value on the right, greyed when empty.
 - **Hide balances.** One preference masks the header, the rows and the perpetual preview. Toggled from the header or Settings.
 - **Banners.** Only two can appear here: the warning that an account can be controlled by someone else (always on, cannot be closed, disables the buttons) and the welcome for a wallet created in the app (shows while every balance is zero). Closing a banner is permanent.
