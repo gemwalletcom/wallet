@@ -4,7 +4,6 @@ import com.gemwallet.android.application.update.cases.ObserveAppUpdateOffer
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.application.update.cases.SyncAppUpdate
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AppUpdateChannel
 import com.gemwallet.android.model.AppUpdateOffer
 import com.gemwallet.android.model.BuildInfo
@@ -13,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemAppUpdateOffer
 import uniffi.gemstone.GemAppUpdateService
 import uniffi.gemstone.GemAppUpdateServiceInterface
 
@@ -27,18 +27,18 @@ class AppUpdateCoordinator(private val appUpdateService: GemAppUpdateServiceInte
 
     override fun observeAppUpdateOffer(): Flow<AppUpdateOffer?> = offer
 
-    override suspend fun skipAppUpdate(version: String) {
-        withContext(Dispatchers.IO) { appUpdateService.skip(version) }
+    override suspend fun skipAppUpdate(update: AppUpdateOffer) {
+        withContext(Dispatchers.IO) { appUpdateService.skip(GemAppUpdateOffer(update.version, update.canSkip)) }
         offer.value = check()
     }
 
     private suspend fun check(): AppUpdateOffer? {
-        val release = withContext(Dispatchers.IO) {
+        val update = withContext(Dispatchers.IO) {
             runCatching { appUpdateService.check(buildInfo.platformStore.toGem(), buildInfo.versionName) }.getOrNull()
-        }?.toPrimitives() ?: return null
+        } ?: return null
         return AppUpdateOffer(
-            version = release.version,
-            isRequired = release.upgradeRequired,
+            version = update.version,
+            canSkip = update.canSkip,
             channel = deliveryChannel(),
         )
     }

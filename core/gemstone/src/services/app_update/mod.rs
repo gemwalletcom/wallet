@@ -8,6 +8,12 @@ use primitives::{PlatformStore, Release, is_version_higher};
 use crate::services::config::GemConfigService;
 use crate::services::preferences::GemPreferencesService;
 
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct GemAppUpdateOffer {
+    pub version: String,
+    pub can_skip: bool,
+}
+
 #[derive(uniffi::Object)]
 pub struct GemAppUpdateService {
     config: Arc<GemConfigService>,
@@ -29,20 +35,52 @@ impl GemAppUpdateService {
         Ok(rules::newest_release(&config.releases, store, &current_version))
     }
 
-    pub async fn check(&self, store: PlatformStore, current_version: String) -> Result<Option<Release>, GemServiceError> {
+    pub async fn check(&self, store: PlatformStore, current_version: String) -> Result<Option<GemAppUpdateOffer>, GemServiceError> {
         if store == PlatformStore::Local {
             return Ok(None);
         }
         let config = self.config.get_config().await?;
         let skipped_version = self.preferences.get_skipped_app_version();
-        Ok(rules::available_update(&config.releases, store, &current_version, skipped_version.as_deref()))
+        Ok(rules::available_update(&config.releases, store, &current_version, skipped_version.as_deref()).map(rules::update_offer))
     }
 
-    pub fn skip(&self, version: String) -> Result<(), GemServiceError> {
-        self.preferences.set_skipped_app_version(version)
+    pub fn skip(&self, offer: GemAppUpdateOffer) -> Result<(), GemServiceError> {
+        if !offer.can_skip {
+            return Err(GemServiceError::InvalidInput {
+                msg: format!("update {} is required", offer.version),
+            });
+        }
+        self.preferences.set_skipped_app_version(offer.version)
     }
 
     pub fn is_version_higher(&self, new: String, current: String) -> bool {
         is_version_higher(new, current)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::services::preferences::testkit::MemoryPreferencesStore;
+
+    #[test]
+    fn test_a_required_update_cannot_be_skipped() {
+        let preferences = Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default())));
+        let service = GemAppUpdateService::new(Arc::new(GemConfigService::mock(Arc::new(crate::testkit::TestAlienProvider::with_status(500)))), preferences.clone());
+
+        let required = GemAppUpdateOffer {
+            version: "2.0.0".to_string(),
+            can_skip: false,
+        };
+        assert!(service.skip(required).is_err());
+        assert_eq!(preferences.get_skipped_app_version(), None);
+
+        service
+            .skip(GemAppUpdateOffer {
+                version: "2.1.0".to_string(),
+                can_skip: true,
+            })
+            .unwrap();
+        assert_eq!(preferences.get_skipped_app_version(), Some("2.1.0".to_string()));
     }
 }

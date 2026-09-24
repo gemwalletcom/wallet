@@ -8,6 +8,13 @@ pub fn available_update(releases: &[Release], store: PlatformStore, current_vers
     newest_release(releases, store, current_version).filter(|release| release.upgrade_required || skipped_version != Some(release.version.as_str()))
 }
 
+pub fn update_offer(release: Release) -> super::GemAppUpdateOffer {
+    super::GemAppUpdateOffer {
+        can_skip: !release.upgrade_required,
+        version: release.version,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -82,7 +82,6 @@
 		D896B57E2E2EE2D300ADE083 /* Perpetuals in Frameworks */ = {isa = PBXBuildFile; productRef = D896B57D2E2EE2D300ADE083 /* Perpetuals */; };
 		D89BB5EE2D1A085C00C7E510 /* ConfirmTransferNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D89BB5ED2D1A085C00C7E510 /* ConfirmTransferNavigationStack.swift */; };
 		D89CD7A92CC70C7C007A2BAC /* SelectedAssetNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D89CD7A72CC70C7C007A2BAC /* SelectedAssetNavigationStack.swift */; };
-		D8A1B2C42E90000100AAAA02 /* AppUpdateAlertTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1B2C32E90000100AAAA01 /* AppUpdateAlertTests.swift */; };
 		D8A200000000000000E41807 /* ViewModelFactory+Activity.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A100000000000000E41807 /* ViewModelFactory+Activity.swift */; };
 		D8A200010000000000E41807 /* ViewModelFactory+Collectibles.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A100010000000000E41807 /* ViewModelFactory+Collectibles.swift */; };
 		D8A200020000000000E41807 /* ViewModelFactory+Perpetuals.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A100020000000000E41807 /* ViewModelFactory+Perpetuals.swift */; };
@@ -258,7 +257,6 @@
 		D8A100040000000000E41807 /* ViewModelFactory+Transfer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewModelFactory+Transfer.swift"; sourceTree = "<group>"; };
 		D8A100050000000000E41807 /* ViewModelFactory+Wallet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewModelFactory+Wallet.swift"; sourceTree = "<group>"; };
 		D8A100060000000000E41807 /* ViewModelFactory+Wallets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewModelFactory+Wallets.swift"; sourceTree = "<group>"; };
-		D8A1B2C32E90000100AAAA01 /* AppUpdateAlertTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateAlertTests.swift; sourceTree = "<group>"; };
 		D8A1F8732B17F21E00B15F54 /* Screenshots.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Screenshots.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D8A1F8772B17F21E00B15F54 /* ScreenshotsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotsLaunchTests.swift; sourceTree = "<group>"; };
 		D8B738D32C59643D004EF083 /* MainTabViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabViewModel.swift; sourceTree = "<group>"; };
@@ -591,7 +589,6 @@
 		C30952C4299C39D80004C0F9 /* GemTests */ = {
 			isa = PBXGroup;
 			children = (
-				D8A1B2C32E90000100AAAA01 /* AppUpdateAlertTests.swift */,
 				D8D726BF2C716C5B00A6B559 /* Screenshots */,
 				C34C7CF729FDE942009EEC21 /* unit_frameworks.xctestplan */,
 				D87316B72E3AF30300C11634 /* ui_tests.xctestplan */,
@@ -1078,7 +1075,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D8A1B2C42E90000100AAAA02 /* AppUpdateAlertTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

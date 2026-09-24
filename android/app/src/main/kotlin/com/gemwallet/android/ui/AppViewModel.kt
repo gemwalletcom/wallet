@@ -113,16 +113,13 @@ class AppViewModel @Inject constructor(
 
     fun onSkip() = viewModelScope.launch {
         val update = state.value.update ?: return@launch
-        if (update.isRequired) {
-            return@launch
-        }
-        runCatchingCancellable { skipAppUpdate.skipAppUpdate(update.version) }
+        runCatchingCancellable { skipAppUpdate.skipAppUpdate(update) }
+            .onSuccess { state.update { it.copy(update = null) } }
             .onFailure { Log.e(TAG, "skipping update ${update.version} failed", it) }
-        state.update { it.copy(update = null) }
     }
 
     fun onCancelUpdate() {
-        if (state.value.update?.isRequired == true) {
+        if (state.value.update?.canSkip == false) {
             return
         }
         state.update { it.copy(update = null) }

@@ -371,11 +371,11 @@ public final class GemAppUpdateServiceMock: GemAppUpdateServiceProtocol, @unchec
         newestValue = newest
     }
 
-    public func check(store _: Gemstone.PlatformStore, currentVersion _: String) async throws -> Gemstone.Release? {
+    public func check(store _: Gemstone.PlatformStore, currentVersion _: String) async throws -> GemAppUpdateOffer? {
         if let newestError {
             throw newestError
         }
-        return newestValue
+        return newestValue.map { GemAppUpdateOffer(version: $0.version, canSkip: !$0.upgradeRequired) }
     }
 
     public func isVersionHigher(new: String, current: String) -> Bool {
@@ -389,8 +389,8 @@ public final class GemAppUpdateServiceMock: GemAppUpdateServiceProtocol, @unchec
         return newestValue
     }
 
-    public func skip(version: String) throws {
-        skippedVersions.append(version)
+    public func skip(offer: GemAppUpdateOffer) throws {
+        skippedVersions.append(offer.version)
     }
 }
 

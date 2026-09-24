@@ -44,7 +44,7 @@ class InAppUpdateViewModelTest {
 
     @Test
     fun `in app apk offer is available`() = runTest(testDispatcher) {
-        offer.value = mockAppUpdateOffer(isRequired = true, channel = AppUpdateChannel.InAppApk)
+        offer.value = mockAppUpdateOffer(canSkip = false, channel = AppUpdateChannel.InAppApk)
 
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -52,7 +52,7 @@ class InAppUpdateViewModelTest {
         val update = viewModel.updateAvailable.value
         assertNotNull(update)
         assertEquals("2.0.0", update?.version)
-        assertTrue(update?.isRequired == true)
+        assertTrue(update?.canSkip == false)
     }
 
     @Test
@@ -63,19 +63,6 @@ class InAppUpdateViewModelTest {
         advanceUntilIdle()
 
         assertNull(viewModel.updateAvailable.value)
-    }
-
-    @Test
-    fun `skip ignores required update`() = runTest(testDispatcher) {
-        offer.value = mockAppUpdateOffer(isRequired = true, channel = AppUpdateChannel.InAppApk)
-
-        val viewModel = createViewModel()
-        advanceUntilIdle()
-
-        viewModel.skip()
-        advanceUntilIdle()
-
-        assertTrue(skipAppUpdate.skippedVersions.isEmpty())
     }
 
     @Test
@@ -135,8 +122,8 @@ class InAppUpdateViewModelTest {
     private class FakeSkipAppUpdate : SkipAppUpdate {
         val skippedVersions = mutableListOf<String>()
 
-        override suspend fun skipAppUpdate(version: String) {
-            skippedVersions.add(version)
+        override suspend fun skipAppUpdate(update: AppUpdateOffer) {
+            skippedVersions.add(update.version)
         }
     }
 

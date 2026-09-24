@@ -5,6 +5,7 @@ import AppService
 import Components
 import Foundation
 import protocol Gemstone.GemAppStartServiceProtocol
+import struct Gemstone.GemAppUpdateOffer
 import protocol Gemstone.GemAppUpdateServiceProtocol
 import protocol Gemstone.GemDeviceServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
@@ -195,20 +196,20 @@ extension RootSceneViewModel {
 
     private func checkForUpdate() async {
         do {
-            guard let release = try await appUpdateService.checkForUpdate() else { return }
-            updateVersionAlertMessage = makeUpdateAlert(for: release)
+            guard let offer = try await appUpdateService.checkForUpdate() else { return }
+            updateVersionAlertMessage = makeUpdateAlert(for: offer)
         } catch {
             debugLog("checkForUpdate error: \(error)")
         }
     }
 
-    private func makeUpdateAlert(for release: Release) -> AlertMessage {
+    private func makeUpdateAlert(for offer: GemAppUpdateOffer) -> AlertMessage {
         let skipAction = AlertAction(
             title: Localized.Common.skip,
             role: .cancel,
             action: { [appUpdateService] in
                 do {
-                    try appUpdateService.skip(version: release.version)
+                    try appUpdateService.skip(offer: offer)
                 } catch {
                     debugLog("skipRelease error: \(error)")
                 }
@@ -223,17 +224,11 @@ extension RootSceneViewModel {
                 }
             },
         )
-        let actions = Self.updateAlertActions(for: release, skip: skipAction, update: updateAction)
-
         return AlertMessage(
             title: Localized.UpdateApp.title,
-            message: Localized.UpdateApp.description(release.version),
-            actions: actions,
+            message: Localized.UpdateApp.description(offer.version),
+            actions: offer.canSkip ? [skipAction, updateAction] : [updateAction],
         )
-    }
-
-    static func updateAlertActions(for release: Release, skip: AlertAction, update: AlertAction) -> [AlertAction] {
-        release.upgradeRequired ? [update] : [skip, update]
     }
 
     private func requestPushPermissions() {

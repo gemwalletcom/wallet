@@ -119,7 +119,7 @@ fun WalletApp(
     state.update?.let { update ->
         ShowUpdateDialog(
             version = update.version,
-            isRequired = update.isRequired,
+            isRequired = !update.canSkip,
             onSkip = viewModel::onSkip,
             onCancel = viewModel::onCancelUpdate,
         )

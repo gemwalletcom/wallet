@@ -1,5 +1,6 @@
 package com.gemwallet.android
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.device.cases.GetPushEnabled
@@ -18,6 +19,8 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -35,6 +38,7 @@ import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAppStartServiceInterface
+import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemWalletSessionServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -44,13 +48,18 @@ class AppViewModelTest {
     private val models = mutableListOf<AppViewModel>()
 
     @Before
-    fun setUp() = Dispatchers.setMain(dispatcher)
+    fun setUp() {
+        Dispatchers.setMain(dispatcher)
+        mockkStatic(Log::class)
+        every { Log.e(any(), any(), any()) } returns 0
+    }
 
     @After
     fun tearDown() {
         models.forEach { it.viewModelScope.cancel() }
         models.clear()
         Dispatchers.resetMain()
+        unmockkStatic(Log::class)
     }
 
     private fun viewModel(currentWalletId: String? = null, update: AppUpdateOffer? = null, skip: SkipAppUpdate = mockk(relaxed = true)): AppViewModel {
@@ -106,9 +115,11 @@ class AppViewModelTest {
     }
 
     @Test
-    fun `a required update cannot be skipped or dismissed`() = runTest(dispatcher) {
-        val skip: SkipAppUpdate = mockk(relaxed = true)
-        val model = viewModel(update = mockAppUpdateOffer(isRequired = true), skip = skip)
+    fun `a required update Core refuses to skip stays offered and cannot be dismissed`() = runTest(dispatcher) {
+        val skip: SkipAppUpdate = mockk {
+            coEvery { skipAppUpdate(any()) } throws GemServiceException.InvalidInput("update 2.0.0 is required")
+        }
+        val model = viewModel(update = mockAppUpdateOffer(canSkip = false), skip = skip)
         val offered = model.uiState.first { it.update != null }
         assertNotNull(offered.update)
 
@@ -116,7 +127,6 @@ class AppViewModelTest {
         model.onCancelUpdate()
 
         assertNotNull(model.uiState.value.update)
-        coVerify(exactly = 0) { skip.skipAppUpdate(any()) }
     }
 
     @Test
@@ -128,6 +138,6 @@ class AppViewModelTest {
         model.onSkip().join()
 
         assertNull(model.uiState.value.update)
-        coVerify { skip.skipAppUpdate("2.0.0") }
+        coVerify { skip.skipAppUpdate(match { it.version == "2.0.0" }) }
     }
 }

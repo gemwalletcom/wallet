@@ -59,7 +59,7 @@ fun InAppUpdateBanner() {
 
     val update = updateAvailable ?: return
     if (state == DownloadState.Success) return
-    val canDismiss = !update.isRequired
+    val canDismiss = update.canSkip
 
     val action = {
         when (state) {

@@ -83,11 +83,8 @@ class InAppUpdateViewModel @Inject constructor(observeAppUpdateOffer: ObserveApp
 
     fun skip() {
         val update = updateAvailable.value ?: return
-        if (update.isRequired) {
-            return
-        }
         viewModelScope.launch {
-            runCatchingCancellable { skipAppUpdate.skipAppUpdate(update.version) }
+            runCatchingCancellable { skipAppUpdate.skipAppUpdate(update) }
                 .onFailure { Log.e(TAG, "skipping update ${update.version} failed", it) }
         }
     }
