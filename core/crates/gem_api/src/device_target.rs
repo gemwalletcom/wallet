@@ -109,6 +109,7 @@ pub enum GemDeviceApiTarget {
         chain: String,
     },
     GetAddressNames(Vec<ChainAddress>),
+    GetAddressDetails(ChainAddress),
 
     GetPortfolioAssets {
         period: ChartPeriod,
@@ -135,7 +136,8 @@ impl GemDeviceApiTarget {
             | Self::GetFiatQuotes { .. }
             | Self::GetFiatQuoteUrl { .. }
             | Self::GetFiatTransactions { .. }
-            | Self::GetNameRecord { .. } => GemApiMethod::Get,
+            | Self::GetNameRecord { .. }
+            | Self::GetAddressDetails(_) => GemApiMethod::Get,
             Self::UpdateDevice(_) => GemApiMethod::Put,
             Self::DeleteSubscriptions(_) | Self::DeletePriceAlerts(_) => GemApiMethod::Delete,
             Self::AddDevice(_)
@@ -193,6 +195,7 @@ impl GemDeviceApiTarget {
             Self::GetFiatTransactions { .. } => "/v2/devices/fiat/transactions".to_string(),
             Self::GetNameRecord { name, chain } => format!("/v2/devices/name/resolve/{name}?chain={chain}"),
             Self::GetAddressNames(_) => "/v2/devices/address_names".to_string(),
+            Self::GetAddressDetails(request) => format!("/v2/devices/addresses/{}/{}", request.chain.as_ref(), request.address),
             Self::GetPortfolioAssets { period, .. } => format!("/v2/devices/portfolio/assets?period={}", period.as_ref()),
         }
     }

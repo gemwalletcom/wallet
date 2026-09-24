@@ -46,7 +46,7 @@ use crate::security::{ScanClient, ScanMetrics, scan_providers};
 use crate::support::SupportApiClient;
 use crate::support::SupportClient;
 use crate::swap::{NearIntentsProxyClient, SwapClient, SwapsXyzProxyClient};
-use crate::transactions::{AddressNamesClient, TransactionsClient};
+use crate::transactions::{AddressDetailsClient, AddressNamesClient, TransactionsClient};
 use crate::webhooks::WebhooksClient;
 
 #[derive(Clone)]
@@ -238,6 +238,10 @@ impl Services {
 
     pub fn address_names(&self) -> AddressNamesClient {
         AddressNamesClient::new(self.database())
+    }
+
+    pub fn address_details(&self, user_agent: &str) -> AddressDetailsClient {
+        AddressDetailsClient::new(self.database(), self.config(), self.chain(user_agent))
     }
 
     pub fn indexer(&self, cacher: CacherClient, stream_producer: StreamProducer) -> IndexerClient {

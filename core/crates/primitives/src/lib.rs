@@ -164,6 +164,8 @@ pub mod address_formatter;
 pub use self::address_formatter::{AddressFormatStyle, AddressFormatter};
 pub mod address_name;
 pub use self::address_name::AddressName;
+pub mod address_details;
+pub use self::address_details::{AddressDetails, AddressDetailsBalances};
 pub mod verification_status;
 pub use self::verification_status::VerificationStatus;
 pub mod address_status;
