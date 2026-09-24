@@ -73,7 +73,7 @@ impl GemTransactionStateService {
 
     pub async fn track_pending(&self) -> Result<(), GemServiceError> {
         let pending = self.store.get_pending_transactions(TransactionState::pending()).await?;
-        let tracked = pending.into_iter().map(|pending| self.track_transaction(pending.wallet.id, pending.transaction));
+        let tracked = pending.into_iter().map(|pending| self.track_transaction(pending.wallet_id, pending.transaction));
         futures::future::join_all(tracked).await;
         Ok(())
     }
@@ -104,7 +104,7 @@ impl GemTransactionStateService {
 
     pub async fn clear_pending_transactions(&self) -> Result<(), GemServiceError> {
         for pending in self.store.get_pending_transactions(TransactionState::pending()).await? {
-            self.store.delete_transaction(pending.wallet.id, pending.transaction.id).await?;
+            self.store.delete_transaction(pending.wallet_id, pending.transaction.id).await?;
         }
         Ok(())
     }

@@ -153,7 +153,7 @@ mod tests {
         };
         let store = MemoryTransactionStateStore {
             pending: Mutex::new(vec![GemPendingTransaction {
-                wallet: Wallet::mock(),
+                wallet_id: Wallet::mock().id,
                 transaction: replaced.clone(),
             }]),
             ..Default::default()

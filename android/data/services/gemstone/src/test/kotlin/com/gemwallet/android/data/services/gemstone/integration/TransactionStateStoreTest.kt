@@ -7,7 +7,6 @@ import com.gemwallet.android.data.service.store.database.GemDatabase
 import com.gemwallet.android.data.service.store.database.RoomStoreTransactionRunner
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStateStore
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockAssetId
@@ -34,8 +33,7 @@ class TransactionStateStoreTest {
         ).build()
         try {
             val runner = RoomStoreTransactionRunner(database)
-            val wallets = GemstoneWalletStore(database.walletsDao(), database.accountsDao(), database.assetsDao(), runner)
-            val store = GemstoneTransactionStateStore(database.transactionsDao(), wallets, runner)
+            val store = GemstoneTransactionStateStore(database.transactionsDao(), runner)
             val wallet = mockWallet()
             val otherWallet = mockWallet(id = "wallet-2")
             database.walletsDao().insert(wallet.toRecord())

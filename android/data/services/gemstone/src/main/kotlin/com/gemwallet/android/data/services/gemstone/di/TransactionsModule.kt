@@ -6,7 +6,6 @@ import com.gemwallet.android.data.service.store.database.TransactionsDao
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAddressStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStateStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStore
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import com.gemwallet.android.data.services.gemstone.transactions.TransactionStatusService
 import dagger.Lazy
 import dagger.Module
@@ -59,8 +58,7 @@ object TransactionsModule {
 
     @Singleton
     @Provides
-    fun provideTransactionStateStore(transactionsDao: TransactionsDao, walletStore: GemstoneWalletStore, transactionRunner: StoreTransactionRunner): GemstoneTransactionStateStore =
-        GemstoneTransactionStateStore(transactionsDao, walletStore, transactionRunner)
+    fun provideTransactionStateStore(transactionsDao: TransactionsDao, transactionRunner: StoreTransactionRunner): GemstoneTransactionStateStore = GemstoneTransactionStateStore(transactionsDao, transactionRunner)
 
     @Singleton
     @Provides
