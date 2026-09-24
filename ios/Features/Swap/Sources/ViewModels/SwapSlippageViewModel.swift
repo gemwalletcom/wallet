@@ -1,13 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Formatters
 import Foundation
-import struct Gemstone.GemNumberFormat
-import enum Gemstone.GemSlippageCheck
 import enum Gemstone.GemSlippageSelection
 import struct Gemstone.GemSlippageSession
 import struct Gemstone.GemSlippageViewState
-import protocol Gemstone.GemSwapQuoteServiceProtocol
+import func Gemstone.newSlippageSession
 import GemstonePrimitives
 import InfoSheet
 import Localization
@@ -17,29 +14,17 @@ import PrimitivesComponents
 @MainActor
 @Observable
 public final class SwapSlippageViewModel {
-    private let service: any GemSwapQuoteServiceProtocol
     private let onSelect: (GemSlippageSelection) -> Void
+    private var session: GemSlippageSession
+    private(set) var viewState: GemSlippageViewState
 
-    let placeholder: String
-    var isAuto: Bool
-    var inputModel: InputValidationViewModel
     var infoSheet: InfoSheetType?
 
-    public init(service: any GemSwapQuoteServiceProtocol, chain: Chain, slippage: GemSlippageSelection, onSelect: @escaping (GemSlippageSelection) -> Void) {
-        self.service = service
+    public init(chain: Chain, slippage: GemSlippageSelection, onSelect: @escaping (GemSlippageSelection) -> Void) {
         self.onSelect = onSelect
-        placeholder = Self.format(bps: service.defaultSlippage(chain: chain.rawValue).bps, service: service)
-        let input: String
-        switch slippage {
-        case .auto:
-            isAuto = true
-            input = ""
-        case let .manual(value):
-            isAuto = false
-            input = Self.format(bps: value, service: service)
-        }
-        inputModel = InputValidationViewModel(mode: .onDemand)
-        inputModel.text = input
+        let session = newSlippageSession(selection: slippage, chain: chain.rawValue, format: NumberInput.format())
+        self.session = session
+        viewState = session.viewState()
     }
 
     var title: String {
@@ -54,21 +39,23 @@ public final class SwapSlippageViewModel {
         Localized.Swap.slippageAutoDescription
     }
 
-    var selectedBps: UInt32 {
-        Self.bps(from: inputModel.text, service: service) ?? 0
+    var placeholder: String {
+        viewState.placeholder
+    }
+
+    var isAuto: Bool {
+        get { viewState.isAuto }
+        set { update(session.onAuto(isAuto: newValue)) }
+    }
+
+    var input: String {
+        get { viewState.input }
+        set { update(session.onInput(text: newValue)) }
     }
 
     var errorText: String? {
-        guard Self.bps(from: inputModel.text, service: service) != nil else { return nil }
-        let state = viewState
-        return state.check.errorText(
-            minimum: state.minimum,
-            maximum: state.maximum,
-        )
-    }
-
-    private var viewState: GemSlippageViewState {
-        service.newSlippageSession(selection: isAuto ? .auto : .manual(bps: selectedBps)).viewState()
+        guard viewState.showsCheck else { return nil }
+        return viewState.check.errorText(minimum: viewState.minimum, maximum: viewState.maximum)
     }
 
     var isConfirmEnabled: Bool {
@@ -82,37 +69,28 @@ public final class SwapSlippageViewModel {
 
     var suggestions: [SlippageSuggestion] {
         viewState.suggestions.map {
-            SlippageSuggestion(bps: $0.bps, title: $0.percent.text(), inputValue: Self.format(bps: $0.bps, service: service))
+            SlippageSuggestion(bps: $0.bps, title: $0.percent.text(), inputValue: $0.input)
         }
     }
 
     func onSelect(suggestion: SlippageSuggestion) {
-        inputModel.text = suggestion.inputValue
+        input = suggestion.inputValue
     }
 
     func onSelectInfo() {
         infoSheet = .slippage
     }
 
-    func sanitize(_ text: String) -> String {
-        let state = viewState
-        return NumberInput.format().sanitize(
-            input: text,
-            maximumFractionDigits: state.maximumFractionDigits,
-            maximumIntegerDigits: state.maximumIntegerDigits,
-        )
-    }
-
     func confirm() {
-        onSelect(isAuto ? .auto : .manual(bps: selectedBps))
+        onSelect(viewState.selection)
     }
+}
 
-    nonisolated static func bps(from text: String, service: any GemSwapQuoteServiceProtocol) -> UInt32? {
-        guard let percent = NumberInput.double(text) else { return nil }
-        return service.slippageBpsFromPercent(percent: percent)
-    }
+// MARK: - Private
 
-    private static func format(bps: UInt32, service: any GemSwapQuoteServiceProtocol) -> String {
-        service.slippagePercentText(bps: bps, format: NumberInput.format())
+extension SwapSlippageViewModel {
+    private func update(_ session: GemSlippageSession) {
+        self.session = session
+        viewState = session.viewState()
     }
 }

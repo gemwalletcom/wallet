@@ -72,6 +72,7 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemPercentageStyle
 import uniffi.gemstone.GemSlippageSelection
+import uniffi.gemstone.GemSlippageSession
 import uniffi.gemstone.GemSwapButtonAction
 import uniffi.gemstone.GemSwapPairSelection
 import uniffi.gemstone.GemSwapQuoteInput
@@ -81,6 +82,7 @@ import uniffi.gemstone.SwapProvider
 import uniffi.gemstone.SwapperException
 import uniffi.gemstone.availableBalanceText
 import uniffi.gemstone.formattedPercentage
+import uniffi.gemstone.newSlippageSession
 import uniffi.gemstone.swapperQuoteSummary
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -109,13 +111,10 @@ class SwapViewModel @Inject constructor(
     private val selectedSlippageBps = MutableStateFlow<UInt?>(null)
     val selectedSlippage: StateFlow<UInt?> = selectedSlippageBps.asStateFlow()
 
-    fun slippageState(bps: UInt?, isAuto: Boolean): SlippageStateUIModel = swapQuoteService.newSlippageSession(if (isAuto) GemSlippageSelection.Auto else GemSlippageSelection.Manual(bps ?: 0u))
-        .viewState()
-        .uiModel(context)
-
-    fun slippageBps(percent: Double): UInt? = swapQuoteService.slippageBpsFromPercent(percent)
-
-    fun slippageText(bps: UInt): String = swapQuoteService.slippagePercentText(bps, SwapSlippage.numberFormat())
+    private val slippageSession = MutableStateFlow<GemSlippageSession?>(null)
+    val slippage: StateFlow<SlippageStateUIModel?> = slippageSession
+        .map { it?.viewState()?.uiModel(context) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val refreshRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     private val refreshEnabled = MutableStateFlow(false)
@@ -132,10 +131,6 @@ class SwapViewModel @Inject constructor(
 
     val payAsset = payAssetIdFlow
         .flatMapLatest { assetId -> assetId?.let { getAssetInfo(it) } ?: flow { emit(null) } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val defaultSlippageBps: StateFlow<UInt?> = payAsset
-        .map { asset -> asset?.let { swapQuoteService.defaultSlippage(it.asset.id.chain.string).bps } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val receiveAsset = receiveAssetIdFlow
@@ -289,7 +284,29 @@ class SwapViewModel @Inject constructor(
         session.update { it.onProviderSelected(provider) }
     }
 
-    fun setSlippage(slippageBps: UInt?) {
+    fun openSlippage() {
+        val chain = payAsset.value?.asset?.id?.chain ?: return
+        val selection = selectedSlippageBps.value?.let { GemSlippageSelection.Manual(it) } ?: GemSlippageSelection.Auto
+        slippageSession.value = newSlippageSession(selection, chain.string, SwapSlippage.numberFormat())
+    }
+
+    fun onSlippageAuto(isAuto: Boolean) {
+        slippageSession.update { it?.onAuto(isAuto) }
+    }
+
+    fun onSlippageInput(text: String) {
+        slippageSession.update { it?.onInput(text) }
+    }
+
+    fun closeSlippage() {
+        val state = slippageSession.value?.viewState() ?: return
+        slippageSession.value = null
+        if (state.allowsConfirm) {
+            setSlippage((state.selection as? GemSlippageSelection.Manual)?.bps)
+        }
+    }
+
+    private fun setSlippage(slippageBps: UInt?) {
         if (slippageBps == selectedSlippageBps.value) {
             return
         }

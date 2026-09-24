@@ -40,8 +40,7 @@ public struct SwapSlippageScene: View {
                             SuffixTextField(
                                 placeholder: model.placeholder,
                                 suffix: "%",
-                                sanitizer: model.sanitize,
-                                text: $model.inputModel.text,
+                                text: $model.input,
                                 field: Field.slippage,
                                 focusedField: $focusedField,
                             )

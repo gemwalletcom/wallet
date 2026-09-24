@@ -161,7 +161,6 @@ public final class SwapSceneViewModel {
     var swapSlippageViewModel: SwapSlippageViewModel? {
         guard let fromAsset else { return nil }
         return SwapSlippageViewModel(
-            service: service,
             chain: fromAsset.asset.chain,
             slippage: selectedSlippage,
             onSelect: { [weak self] slippage in

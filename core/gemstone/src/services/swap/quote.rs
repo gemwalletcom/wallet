@@ -1,15 +1,11 @@
-use crate::services::amount::model::GemNumberFormat;
 use std::sync::Arc;
 
-use primitives::{Asset, AssetId, Chain, Currency};
-use swapper::{Quote, SwapperError, SwapperSlippage};
-
-use super::slippage::{GemSlippageSelection, GemSlippageSession};
+use primitives::{Asset, AssetId, Currency};
+use swapper::{Quote, SwapperError};
 
 use super::model::{GemSwapPairSelection, GemSwapSide};
 use super::rules;
 use super::{GemSwapPairSuggestion, GemSwapService, GemSwapSession, GemSwapTransfer};
-use crate::config::swap_config::get_default_slippage;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
@@ -80,28 +76,12 @@ impl GemSwapQuoteService {
         rules::select_pair_asset(selection, side, asset_id)
     }
 
-    pub fn new_slippage_session(&self, selection: GemSlippageSelection) -> GemSlippageSession {
-        GemSlippageSession::new(selection)
-    }
-
-    pub fn slippage_bps_from_percent(&self, percent: f64) -> Option<u32> {
-        rules::slippage_bps_from_percent(percent)
-    }
-
     pub fn amount_for_percent(&self, available: GemBigInt, percent: u32) -> GemBigInt {
         rules::amount_for_percent(&available, percent)
     }
 
     pub fn slippage_percent(&self, bps: u32) -> f64 {
         rules::slippage_percent(bps)
-    }
-
-    pub fn slippage_percent_text(&self, bps: u32, format: GemNumberFormat) -> String {
-        rules::slippage_percent_text(bps, &format.decimal_separator)
-    }
-
-    pub fn default_slippage(&self, chain: Chain) -> SwapperSlippage {
-        get_default_slippage(&chain)
     }
 
     pub fn refresh_interval_milliseconds(&self) -> u64 {
@@ -148,6 +128,7 @@ impl GemSwapQuoteService {
 #[cfg(test)]
 mod tests {
     use futures::executor::block_on;
+    use primitives::Chain;
     use std::sync::atomic::Ordering;
 
     use super::super::testkit::SwapQuoteTestkit;

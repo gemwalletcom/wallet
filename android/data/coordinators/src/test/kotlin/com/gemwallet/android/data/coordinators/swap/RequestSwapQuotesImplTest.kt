@@ -19,9 +19,6 @@ import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import uniffi.gemstone.GemNumberFormat
-import uniffi.gemstone.GemSlippageSelection
-import uniffi.gemstone.GemSlippageSession
 import uniffi.gemstone.GemSwapPairFailure
 import uniffi.gemstone.GemSwapPairSelection
 import uniffi.gemstone.GemSwapPairSuggestion
@@ -31,7 +28,6 @@ import uniffi.gemstone.GemSwapSide
 import uniffi.gemstone.GemSwapTransfer
 import uniffi.gemstone.SwapperException
 import uniffi.gemstone.SwapperQuote
-import uniffi.gemstone.SwapperSlippage
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -269,8 +265,6 @@ class RequestSwapQuotesImplTest {
 
         override fun getCurrency(): uniffi.gemstone.Currency = com.wallet.core.primitives.Currency.USD.toGem()
 
-        override fun defaultSlippage(chain: String): SwapperSlippage = throw UnsupportedOperationException()
-
         override fun quoteDebounceMilliseconds(): ULong = 0u
 
         override fun refreshIntervalMilliseconds(): ULong = 0u
@@ -279,13 +273,7 @@ class RequestSwapQuotesImplTest {
 
         override fun slippageBps(): UInt? = null
 
-        override fun slippagePercentText(bps: UInt, format: GemNumberFormat): String = throw UnsupportedOperationException()
-
-        override fun newSlippageSession(selection: GemSlippageSelection): GemSlippageSession = throw UnsupportedOperationException()
-
         override fun amountForPercent(available: java.math.BigInteger, percent: UInt): java.math.BigInteger = available * percent.toInt().toBigInteger() / java.math.BigInteger.valueOf(100)
-
-        override fun slippageBpsFromPercent(percent: Double): UInt? = throw UnsupportedOperationException()
 
         override fun selectPairAsset(selection: GemSwapPairSelection, side: GemSwapSide, assetId: String): GemSwapPairSelection = throw UnsupportedOperationException()
 

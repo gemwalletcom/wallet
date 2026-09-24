@@ -4,11 +4,7 @@ import BigInt
 import Foundation
 import typealias Gemstone.Asset
 import typealias Gemstone.AssetId
-import typealias Gemstone.Chain
 import typealias Gemstone.Currency
-import struct Gemstone.GemNumberFormat
-import enum Gemstone.GemSlippageSelection
-import struct Gemstone.GemSlippageSession
 import struct Gemstone.GemSwapPairFailure
 import struct Gemstone.GemSwapPairSelection
 import struct Gemstone.GemSwapPairSuggestion
@@ -18,7 +14,6 @@ import struct Gemstone.GemSwapSession
 import enum Gemstone.GemSwapSide
 import struct Gemstone.GemSwapTransfer
 import struct Gemstone.SwapperQuote
-import struct Gemstone.SwapperSlippage
 import func Gemstone.swapQuote
 import struct Gemstone.SwapQuoteData
 import GemstonePrimitives
@@ -81,27 +76,12 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         storedSlippageBps = bps
     }
 
-    public func newSlippageSession(selection: GemSlippageSelection) -> GemSlippageSession {
-        switch selection {
-        case .auto: GemSlippageSession(isAuto: true, bps: 0)
-        case let .manual(bps): GemSlippageSession(isAuto: false, bps: bps)
-        }
-    }
-
     public func amountForPercent(available: BigInt, percent: UInt32) -> BigInt {
         available * BigInt(percent) / BigInt(100)
     }
 
-    public func slippageBpsFromPercent(percent: Double) -> UInt32? {
-        percent > 0 ? UInt32((percent * 100).rounded()) : .none
-    }
-
     public func slippagePercent(bps: UInt32) -> Double {
         Double(bps) / 100
-    }
-
-    public func slippagePercentText(bps: UInt32, format: GemNumberFormat) -> String {
-        (Decimal(bps) / 100).description.replacingOccurrences(of: ".", with: format.decimalSeparator)
     }
 
     public func selectPairAsset(selection: GemSwapPairSelection, side: GemSwapSide, assetId: String) -> GemSwapPairSelection {
@@ -109,10 +89,6 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         case .pay: GemSwapPairSelection(payAssetId: assetId, receiveAssetId: selection.receiveAssetId)
         case .receive: GemSwapPairSelection(payAssetId: selection.payAssetId, receiveAssetId: assetId)
         }
-    }
-
-    public func defaultSlippage(chain _: Chain) -> SwapperSlippage {
-        SwapperSlippage(bps: 100, mode: .auto)
     }
 
     public func refreshIntervalMilliseconds() -> UInt64 {

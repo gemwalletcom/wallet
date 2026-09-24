@@ -195,14 +195,34 @@ class SwapViewModelTest {
     }
 
     @Test
-    fun `setSlippage persists user preference`() = runTest(testDispatcher) {
+    fun `a typed slippage is saved when the sheet closes`() = runTest(testDispatcher) {
         val viewModel = createViewModel(swapSavedState())
         advanceUntilIdle()
 
-        viewModel.setSlippage(200u)
+        viewModel.openSlippage()
+        viewModel.onSlippageAuto(false)
+        viewModel.onSlippageInput("2")
+        viewModel.closeSlippage()
         advanceUntilIdle()
 
         coVerify { swapQuoteService.setSlippageBps(200u) }
+        assertEquals(200u, viewModel.selectedSlippage.value)
+        assertNull(viewModel.slippage.value)
+    }
+
+    @Test
+    fun `a slippage outside the allowed range is not saved`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(swapSavedState())
+        advanceUntilIdle()
+
+        viewModel.openSlippage()
+        viewModel.onSlippageAuto(false)
+        viewModel.onSlippageInput("25")
+        viewModel.closeSlippage()
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { swapQuoteService.setSlippageBps(any()) }
+        assertNull(viewModel.selectedSlippage.value)
     }
 
     @Test
