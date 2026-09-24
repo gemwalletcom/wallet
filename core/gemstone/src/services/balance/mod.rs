@@ -110,9 +110,8 @@ impl GemBalanceService {
 
     pub async fn setup_wallet(&self, wallet: Wallet) -> Result<(), GemServiceError> {
         let (enabled, disabled) = crate::services::assets::rules::default_balances(&wallet);
-        let stored = self.store.get_available_balances(wallet.id.clone(), [enabled.clone(), disabled.clone()].concat()).await?;
-        let has_synced = !stored.is_empty();
-        let stored_ids: Vec<AssetId> = stored.into_iter().map(|balance| balance.asset_id).collect();
+        let stored_ids = self.store.get_balance_asset_ids(wallet.id.clone(), [enabled.clone(), disabled.clone()].concat()).await?;
+        let has_synced = !stored_ids.is_empty();
         let enabled = rules::missing_asset_ids(&enabled, &stored_ids);
         let disabled = rules::missing_asset_ids(&disabled, &stored_ids);
         self.assets.add_balances(wallet.id.clone(), enabled.clone(), true).await?;
@@ -126,8 +125,7 @@ impl GemBalanceService {
     }
 
     async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
-        let stored = self.store.get_available_balances(wallet_id.clone(), asset_ids.clone()).await?;
-        let stored_ids: Vec<AssetId> = stored.into_iter().map(|balance| balance.asset_id).collect();
+        let stored_ids = self.store.get_balance_asset_ids(wallet_id.clone(), asset_ids.clone()).await?;
         self.assets.add_missing_balances(wallet_id, rules::missing_asset_ids(&asset_ids, &stored_ids)).await
     }
 

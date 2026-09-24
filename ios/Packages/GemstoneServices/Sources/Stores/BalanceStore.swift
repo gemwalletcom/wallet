@@ -23,6 +23,10 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
             .map { GemAssetBalance($0.balance, assetId: $0.assetId, isActive: $0.isActive) }
     }
 
+    public func getBalanceAssetIds(walletId: String, assetIds: [Gemstone.AssetId]) throws -> [Gemstone.AssetId] {
+        try store.getBalanceAssetIds(walletId: WalletId.from(id: walletId), assetIds: assetIds.map { try Primitives.AssetId(id: $0) })
+    }
+
     public func updateBalances(walletId: String, balances: [GemBalanceRecord]) async throws {
         let walletId = try WalletId.from(id: walletId)
         let updates = try balances.map { balance in

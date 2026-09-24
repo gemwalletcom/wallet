@@ -38,7 +38,7 @@ public final class GemstoneStakeStore: GemStakeStore, @unchecked Sendable {
     }
 
     public func getDelegationIds(walletId: String, assetId: Gemstone.AssetId, providerType: Gemstone.StakeProviderType) async throws -> [String] {
-        try store.getDelegations(walletId: WalletId.from(id: walletId), assetId: Primitives.AssetId(id: assetId), providerType: providerType.toPrimitives()).map(\.id)
+        try store.getDelegationIds(walletId: WalletId.from(id: walletId), assetId: Primitives.AssetId(id: assetId), providerType: providerType.toPrimitives())
     }
 
     public func updateDelegations(walletId: String, delegations: [Gemstone.DelegationBase], deleteIds: [String]) async throws {

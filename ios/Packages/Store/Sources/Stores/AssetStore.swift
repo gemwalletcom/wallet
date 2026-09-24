@@ -76,6 +76,15 @@ public struct AssetStore: Sendable {
         }
     }
 
+    public func getAssetIds(for assetIds: [String]) throws -> [String] {
+        try db.read { db in
+            try AssetRecord
+                .filter(assetIds.contains(AssetRecord.Columns.id))
+                .select(AssetRecord.Columns.id, as: String.self)
+                .fetchAll(db)
+        }
+    }
+
     @discardableResult
     public func setAssetIsBuyable(for assetIds: [String], value: Bool) throws -> Int {
         try setColumn(for: assetIds, column: AssetRecord.Columns.isBuyable, value: value)

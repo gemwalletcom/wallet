@@ -20,6 +20,8 @@ class GemstoneBalanceStore(private val balancesDao: BalancesDao, private val ass
         balancesDao.getByAssets(walletId, assetIds).map { it.toGemAssetBalance() }
     }
 
+    override suspend fun getBalanceAssetIds(walletId: String, assetIds: List<String>): List<String> = balancesDao.getAssetIds(walletId, assetIds)
+
     override suspend fun getEnabledAssetIds(walletId: String): List<String> = balancesDao.getEnabledAssetIds(walletId)
 
     override suspend fun setAssetConfiguration(walletId: String, assetIds: List<String>, configuration: GemAssetConfiguration) =

@@ -101,6 +101,9 @@ impl GemBalanceStore for MemoryBalanceStore {
         }
         Ok(stored)
     }
+    async fn get_balance_asset_ids(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
+        Ok(self.get_available_balances(wallet_id, asset_ids).await?.into_iter().map(|balance| balance.asset_id).collect())
+    }
     async fn update_balances(&self, wallet_id: WalletId, balances: Vec<GemBalanceRecord>) -> Result<(), GemServiceError> {
         let mut stored = self.balances.lock().unwrap();
         let wallet = stored.entry(wallet_id).or_default();
