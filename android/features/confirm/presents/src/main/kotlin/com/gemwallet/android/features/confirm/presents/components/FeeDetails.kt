@@ -61,7 +61,6 @@ import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.listItemIconSize
@@ -72,7 +71,6 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.FeeUnitType
-import uniffi.gemstone.GemCustomFeeCheck
 import java.math.BigInteger
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -304,11 +302,7 @@ private fun ColumnScope.CustomFeeInput(model: NetworkFeeCustomViewModel, unitSym
     }
     Text(
         modifier = Modifier.padding(horizontal = paddingLarge, vertical = paddingHalfSmall),
-        text = when (val check = model.check) {
-            is GemCustomFeeCheck.BelowMinimum -> stringResource(R.string.common_minimum_value, check.rate.string(LocalContext.current))
-            is GemCustomFeeCheck.OverMaximum -> stringResource(R.string.common_maximum_value, check.rate.string(LocalContext.current))
-            GemCustomFeeCheck.Valid -> ""
-        },
+        text = model.errorText(LocalContext.current).orEmpty(),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.error,
     )

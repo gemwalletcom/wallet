@@ -2,7 +2,9 @@
 
 import Components
 import Formatters
+import func Gemstone.addressCopy
 import struct Gemstone.GemAssetRowStyle
+import GemstonePrimitives
 import Primitives
 import SwiftUI
 
@@ -26,5 +28,9 @@ public struct ListAssetItemsViewModel {
             rowStyle: rowStyle,
             action: action,
         )
+    }
+
+    public func copyMessage(chain: Chain, address: String) -> String {
+        CopyTypeViewModel(content: addressCopy(chain: chain.toGem(), address: address)).message
     }
 }

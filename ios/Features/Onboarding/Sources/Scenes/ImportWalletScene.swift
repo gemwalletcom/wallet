@@ -94,7 +94,7 @@ struct ImportWalletScene: View {
         .listSectionSpacing(.compact)
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .safeAreaView {
-            if model.importType.supportsPhraseSuggestions(), model.wordsSuggestion.isNotEmpty, focusedField == .input {
+            if model.showsPhraseSuggestions, focusedField == .input {
                 WordSuggestionView(
                     words: model.wordsSuggestion,
                     selectWord: model.onSelectWord,

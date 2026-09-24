@@ -62,6 +62,10 @@ final class ImportWalletSceneViewModel {
         set { session = session.onKindChanged(kind: newValue) }
     }
 
+    var showsPhraseSuggestions: Bool {
+        importType.supportsPhraseSuggestions() && wordsSuggestion.isNotEmpty
+    }
+
     var wordsSuggestion: [String] {
         session.suggestions()
     }

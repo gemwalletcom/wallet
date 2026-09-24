@@ -2,7 +2,6 @@
 
 import Components
 import Foundation
-import func Gemstone.addressCopy
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -44,7 +43,7 @@ struct WalletAssetsList: View {
                     .contextMenu(
                         AssetContextMenu.items(
                             for: asset,
-                            onCopy: { onCopyAddress?(CopyTypeViewModel(content: addressCopy(chain: asset.asset.chain.toGem(), address: $0)).message) },
+                            onCopy: { onCopyAddress?(itemsModel.copyMessage(chain: asset.asset.chain, address: $0)) },
                             onPin: { onPinAsset?(asset.asset, !asset.metadata.isPinned) },
                             onHide: asset.metadata.isBalanceEnabled ? { onHideAsset?(asset.asset.id) } : nil,
                             onAddToWallet: onAddToWallet.map { action in { action(asset.asset.id) } },
