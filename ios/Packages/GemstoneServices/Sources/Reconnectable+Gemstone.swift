@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Foundation
 import class Gemstone.GemConnectionService
 import WebSocketClient
 
