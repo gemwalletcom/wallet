@@ -202,7 +202,7 @@ The API never returns internal text: `ApiError::Internal` logs its detail on the
 
 ### Hardcoded versus configured
 
-- **BD53** **S** **The app's scan timeout is a hardcoded 3s while the server's `ScanTimeout` is configurable, so the app can give up first and skip the verdict.** `core/gemstone/src/config/mod.rs:26` (applied at iOS `ServicesFactory.swift:79-80`, Android `GatewayModule.kt:185-190`) vs `config_key.rs:364`.
+- **BD53** **S** **The app's scan timeout is a hardcoded 3s while the server's `ScanTimeout` is configurable, so the app can give up first and skip the verdict.** `core/gemstone/src/config/mod.rs:26` (applied at iOS `ServicesFactory.swift:79-80`, Android `GatewayModule.kt:185-190`) vs `config_key.rs:364`. **Waits on the config decision (2026-09-24):** the server default is 1.2s per provider, under the app's 3s; how the app reads server-side timing is the open generated-constants question.
 
 ### Docs versus code
 
