@@ -18,6 +18,10 @@ public final class GemstoneNotificationStore: GemNotificationStore, @unchecked S
         try store.addNotifications(notifications.map { $0.toPrimitives() })
     }
 
+    public func markNotificationsRead(walletId: String, createdBefore: Date) async throws {
+        try store.markNotificationsRead(walletId: WalletId.from(id: walletId), createdBefore: createdBefore)
+    }
+
     public func hasUnreadNotifications(walletId: String) async throws -> Bool {
         try store.hasUnreadNotifications(walletId: WalletId.from(id: walletId))
     }

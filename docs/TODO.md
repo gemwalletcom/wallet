@@ -232,7 +232,6 @@ The API never returns internal text: `ApiError::Internal` logs its detail on the
 
 ### Freshness
 
-- **BD44** **S** **The in-app notifications "New" tag never clears on the device.** `core/gemstone/src/services/notification/mod.rs:46-53` marks read on the server only; later syncs fetch `created_at > timestamp` (`notifications_repository.rs:39-41`), so local `read_at` stays null (iOS `InAppNotificationListItemViewModel.swift:33`, Android `NotificationRowUIModel.kt:28`).
 - **BD45** **S** **`ScanTimeout` and `ScanRequiredSuccesses` only change on API restart; with a live provider switch every scan can become incomplete.** Read once in `core/crates/services/src/backend.rs:277-286`; flags read per request in `core/crates/services/src/security/scan_client.rs:89,97,125,162`; completion at `core/crates/security/src/transaction_scan/evaluate.rs:21-25`.
 - **BD46** **S** **`PricePrimaryMaxAge` is frozen at API start but live for price alerts.** `core/crates/services/src/backend.rs:199-203`, `core/apps/api/src/main.rs:177-206`, `consumers.rs:116,129`, `workers.rs:406` vs `core/crates/services/src/prices/price_alerts_sender.rs:25`.
 - **BD47** **S** **An asset can show a price in lists while its chart returns 404 "Price not found" for 1–7 days.** `core/crates/services/src/prices/chart_client.rs:25` needs a price within `PricePrimaryMaxAge` (24h); lists read Redis (TTL `PriceOutdated` 7d, `price_client.rs:84-90`); portfolio drops it (`prices/portfolio.rs:88`).
@@ -249,7 +248,7 @@ The API never returns internal text: `ApiError::Internal` logs its detail on the
 ### Docs versus code
 
 - **BD54** **S** **`FEATURES.md` describes a `scanEnable` switch that doesn't exist and says scan settings have no cache delay.** `docs/FEATURES.md:167` vs `scanTypeEnable.<type>` (`config_param_key.rs:135-137`) read through the 60s cache (`scan_client.rs:89,162`); scans also run for `Payment` (`core/gemstone/src/services/scan/rules.rs:10`).
-- **BD56** **S** **The wallet-home "Loading" row disappears after a failed discovery.** `docs/PRODUCT.md:144,151,159,194` vs iOS `WalletSceneViewModel.swift:243-257`, Android `AssetsViewModel.kt:104-112` (cleared even when `refresh()` threw).
+- **BD56** **S** **The wallet-home "Loading" row disappears after a failed discovery.** `docs/PRODUCT.md:144,151,159,194` vs iOS `WalletSceneViewModel.swift:243-257`, Android `AssetsViewModel.kt:104-112` (cleared even when `refresh()` threw). Needs a decision: after a failed discovery, keep "Loading" until a later refresh completes it, or show a retry state; both apps clear it today, and the next launch shows it again because the step is not marked complete.
 
 ## Decisions to make
 

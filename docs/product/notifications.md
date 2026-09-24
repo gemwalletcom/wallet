@@ -17,3 +17,4 @@ flowchart LR
 
 - Nothing is pushed without the user's permission.
 - A price alert fires once per target and is then removed from the list.
+- In-app notifications that arrived since the last visit are tagged "New" for this visit only.
