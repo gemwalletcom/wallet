@@ -44,6 +44,7 @@ pub fn default_derivation_path(chain: Chain) -> &'static str {
         Chain::Ton => "m/44'/607'/0'",
         Chain::Tron => "m/44'/195'/0'/0/0",
         Chain::Doge => "m/44'/3'/0'/0/0",
+        Chain::Dash => "m/44'/5'/0'/0/0",
         Chain::Zcash => "m/44'/133'/0'/0/0",
         Chain::Aptos => "m/44'/637'/0'/0'/0'",
         Chain::Sui => "m/44'/784'/0'/0'/0'",

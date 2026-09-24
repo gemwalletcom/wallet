@@ -31,6 +31,7 @@ fun Chain.iconResource(): Int? = when (string) {
     "celestia" -> R.drawable.chain_celestia
     "celo" -> R.drawable.chain_celo
     "cosmos" -> R.drawable.chain_cosmos
+    "dash" -> R.drawable.chain_dash
     "doge" -> R.drawable.chain_doge
     "ethereum" -> R.drawable.chain_ethereum
     "fantom" -> R.drawable.chain_fantom

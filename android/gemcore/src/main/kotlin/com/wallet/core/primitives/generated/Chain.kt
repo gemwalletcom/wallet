@@ -39,6 +39,8 @@ enum class Chain(val string: String) {
 	Tron("tron"),
 	@SerialName("doge")
 	Doge("doge"),
+	@SerialName("dash")
+	Dash("dash"),
 	@SerialName("zcash")
 	Zcash("zcash"),
 	@SerialName("optimism")

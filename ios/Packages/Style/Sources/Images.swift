@@ -29,6 +29,7 @@ public enum Images {
         public static let celestia = Image(.celestia)
         public static let celo = Image(.celo)
         public static let cosmos = Image(.cosmos)
+        public static let dash = Image(.dash)
         public static let doge = Image(.doge)
         public static let ethereum = Image(.ethereum)
         public static let fantom = Image(.fantom)

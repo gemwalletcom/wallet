@@ -18,7 +18,7 @@ const ZCASH_P2PKH_OUTPUT_SIZE: u128 = 34;
 pub(super) fn estimate_fee(chain: BitcoinChain, inputs: &[PlanInput], outputs: &[PlanOutput], fee_rate: u64) -> u64 {
     let fee = match chain {
         BitcoinChain::Zcash => estimate_zcash_fee(inputs, outputs),
-        BitcoinChain::Bitcoin | BitcoinChain::BitcoinCash | BitcoinChain::Litecoin | BitcoinChain::Doge => estimate_bitcoin_fee(inputs, outputs, fee_rate),
+        BitcoinChain::Bitcoin | BitcoinChain::BitcoinCash | BitcoinChain::Litecoin | BitcoinChain::Doge | BitcoinChain::Dash => estimate_bitcoin_fee(inputs, outputs, fee_rate),
     };
     fee as u64
 }

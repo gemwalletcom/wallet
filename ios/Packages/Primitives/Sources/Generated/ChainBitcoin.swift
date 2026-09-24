@@ -9,5 +9,6 @@ public enum BitcoinChain: String, Codable, CaseIterable, Equatable, Sendable {
 	case bitcoinCash = "bitcoincash"
 	case litecoin
 	case doge
+	case dash
 	case zcash
 }

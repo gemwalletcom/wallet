@@ -41,7 +41,7 @@ fn encode_extended_public_key(xpub: &Xpub, version: u32) -> String {
 fn extended_public_key_version(chain: BitcoinChain) -> u32 {
     match chain {
         BitcoinChain::Bitcoin | BitcoinChain::Litecoin => ZPUB_VERSION,
-        BitcoinChain::BitcoinCash | BitcoinChain::Zcash => XPUB_VERSION,
+        BitcoinChain::BitcoinCash | BitcoinChain::Dash | BitcoinChain::Zcash => XPUB_VERSION,
         BitcoinChain::Doge => DGUB_VERSION,
     }
 }

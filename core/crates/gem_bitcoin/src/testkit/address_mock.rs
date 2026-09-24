@@ -27,6 +27,7 @@ impl BitcoinAddress {
             BitcoinChain::BitcoinCash => mock_addr_by_hash(chain, [2u8; 20]),
             BitcoinChain::Litecoin => mock_addr_by_hash(chain, [3u8; 20]),
             BitcoinChain::Doge => mock_addr_by_hash(chain, [4u8; 20]),
+            BitcoinChain::Dash => mock_addr_by_hash(chain, [6u8; 20]),
             BitcoinChain::Zcash => mock_addr_by_hash(chain, [5u8; 20]),
         }
     }
@@ -38,6 +39,7 @@ pub(crate) fn mock_addr_by_hash(chain: BitcoinChain, hash: [u8; 20]) -> String {
         BitcoinChain::BitcoinCash => mock_bch_address(hash),
         BitcoinChain::Litecoin => prefixed_address(&[48], hash),
         BitcoinChain::Doge => prefixed_address(&[30], hash),
+        BitcoinChain::Dash => prefixed_address(&[76], hash),
         BitcoinChain::Zcash => mock_zec_address(hash),
     }
 }
@@ -72,7 +74,7 @@ pub fn mock_sender_address(chain: BitcoinChain) -> String {
 pub fn mock_destination_address(chain: BitcoinChain) -> String {
     let hash = match chain {
         BitcoinChain::Bitcoin => public_key_hash(&mock_public_key().to_bytes()),
-        BitcoinChain::BitcoinCash | BitcoinChain::Litecoin | BitcoinChain::Doge => [2u8; 20],
+        BitcoinChain::BitcoinCash | BitcoinChain::Litecoin | BitcoinChain::Doge | BitcoinChain::Dash => [2u8; 20],
         BitcoinChain::Zcash => [3u8; 20],
     };
     mock_addr_by_hash(chain, hash)

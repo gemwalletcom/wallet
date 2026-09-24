@@ -29,12 +29,13 @@ const DEFAULT_DEADLINE_MINUTES: i64 = 30;
 const BITCOIN_DEADLINE_MINUTES: i64 = 120;
 
 // Supported-chain subset of https://docs.near-intents.org/security-compliance/treasury-addresses
-const TREASURY_ADDRESSES: [&str; 16] = [
+const TREASURY_ADDRESSES: [&str; 17] = [
     "0x2CfF890f0378a11913B6129B2E97417a2c302680",                         // EVM chains
     "0x233c5370CCfb3cD7409d9A3fb98ab94dE94Cb4Cd",                         // Monad, XLayer
     "1C6XJtNXiuXvk4oUAVMkKF57CRpaTrN5Ra",                                 // Bitcoin
     "1LxByjYMdnogW9Nc73srT4NCbS8oPVaXvZ",                                 // Bitcoin Cash
     "DRmCnxzL9U11EJzLmWkm2ikaZikPFbLuQD",                                 // Dogecoin
+    "XxA9DbXaFpF4GFY8KUNX7eAxhZPsWtcKhc",                                 // Dash
     "LQjEMkuiA2pCwFeUPwsu6ktzUubBVLsahX",                                 // Litecoin
     "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML",                                // Zcash
     "intents.near",                                                       // NEAR

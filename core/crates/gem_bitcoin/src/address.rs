@@ -4,7 +4,7 @@ use primitives::{Address as AddressTrait, BitcoinChain, Chain, SignerError};
 
 use crate::hash::hash160;
 use crate::models::address::Address as ModelAddress;
-use crate::signer::address::{DOGE_P2PKH_PREFIX, LITECOIN_HRP, ZCASH_TRANSPARENT_P2PKH_PREFIX, script_for_address};
+use crate::signer::address::{DASH_P2PKH_PREFIX, DOGE_P2PKH_PREFIX, LITECOIN_HRP, ZCASH_TRANSPARENT_P2PKH_PREFIX, script_for_address};
 
 #[derive(Debug, Clone)]
 pub struct BitcoinAddress {
@@ -30,6 +30,7 @@ impl BitcoinAddress {
             BitcoinChain::BitcoinCash => bitcoin_cash_address(public_key_hash)?,
             BitcoinChain::Litecoin => segwit_address(LITECOIN_HRP, &public_key_hash)?,
             BitcoinChain::Doge => prefixed_base58_address(&DOGE_P2PKH_PREFIX, &public_key_hash),
+            BitcoinChain::Dash => prefixed_base58_address(&DASH_P2PKH_PREFIX, &public_key_hash),
             BitcoinChain::Zcash => prefixed_base58_address(&ZCASH_TRANSPARENT_P2PKH_PREFIX, &public_key_hash),
         };
         Self::try_parse_for_chain(&address, chain).ok_or_else(|| SignerError::invalid_input("invalid derived Bitcoin address"))
@@ -38,7 +39,7 @@ impl BitcoinAddress {
 
 impl AddressTrait for BitcoinAddress {
     fn try_parse(address: &str) -> Option<Self> {
-        [BitcoinChain::Bitcoin, BitcoinChain::BitcoinCash, BitcoinChain::Litecoin, BitcoinChain::Doge, BitcoinChain::Zcash]
+        [BitcoinChain::Bitcoin, BitcoinChain::BitcoinCash, BitcoinChain::Litecoin, BitcoinChain::Doge, BitcoinChain::Dash, BitcoinChain::Zcash]
             .into_iter()
             .find_map(|chain| Self::try_parse_for_chain(address, chain))
     }
@@ -86,6 +87,7 @@ mod tests {
         let bitcoin_cash = BitcoinAddress::mock_with_chain(BitcoinChain::BitcoinCash);
         let litecoin = BitcoinAddress::mock_with_chain(BitcoinChain::Litecoin);
         let doge = BitcoinAddress::mock_with_chain(BitcoinChain::Doge);
+        let dash = BitcoinAddress::mock_with_chain(BitcoinChain::Dash);
         let zcash = BitcoinAddress::mock_with_chain(BitcoinChain::Zcash);
 
         assert!(validate_address(&bitcoin.encode(), Chain::Bitcoin));
@@ -93,6 +95,7 @@ mod tests {
         assert!(validate_address(bitcoin_cash.encode().strip_prefix(BITCOINCASH_PREFIX).unwrap(), Chain::BitcoinCash));
         assert!(validate_address(&litecoin.encode(), Chain::Litecoin));
         assert!(validate_address(&doge.encode(), Chain::Doge));
+        assert!(validate_address(&dash.encode(), Chain::Dash));
         assert!(validate_address(&zcash.encode(), Chain::Zcash));
         assert!(!validate_address(&bitcoin.encode(), Chain::Litecoin));
         assert!(!validate_address("invalid", Chain::Bitcoin));

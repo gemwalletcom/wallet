@@ -27,6 +27,7 @@ pub enum Chain {
     Ton,
     Tron,
     Doge,
+    Dash,
     Zcash,
     Optimism,
     Aptos,

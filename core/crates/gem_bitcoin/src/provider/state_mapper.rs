@@ -12,6 +12,7 @@ impl BlockbookChain for BitcoinChain {
             BitcoinChain::BitcoinCash => "Bcash",
             BitcoinChain::Litecoin => "Litecoin",
             BitcoinChain::Doge => "Dogecoin",
+            BitcoinChain::Dash => "Dash",
             BitcoinChain::Zcash => "Zcash",
         }
     }
