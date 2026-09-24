@@ -129,10 +129,11 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
             font: .callout,
             color: openData.direction.toPrimitives().color,
         )
-        let options = service.perpetualLeverageOptions(maxLeverage: maxLeverage).map(LeverageOption.init(option:))
-        guard let selected = LeverageOption.selected(service.perpetualLeverage(maxLeverage: maxLeverage), in: options) else {
+        guard let leverage = service.perpetualLeverageSelection(maxLeverage: maxLeverage) else {
             return (nil, textStyle)
         }
+        let options = leverage.options.map(LeverageOption.init(option:))
+        let selected = LeverageOption(option: leverage.selected)
         let selection = SelectionState(
             options: options,
             selected: selected,

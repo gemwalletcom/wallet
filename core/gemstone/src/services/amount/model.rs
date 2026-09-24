@@ -241,6 +241,12 @@ impl GemNumberFormat {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemLeverageSelection {
+    pub options: Vec<crate::services::settings::rules::GemPickerOption>,
+    pub selected: crate::services::settings::rules::GemPickerOption,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -7,7 +7,9 @@ use std::sync::Arc;
 
 use primitives::{Asset, Currency, PerpetualDirection};
 
-pub use model::{GemAmountEarnType, GemAmountEntry, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType, GemAmountTransfer, GemAmountType, GemPerpetualAutoclose};
+pub use model::{
+    GemAmountEarnType, GemAmountEntry, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType, GemAmountTransfer, GemAmountType, GemLeverageSelection, GemPerpetualAutoclose,
+};
 
 use crate::config::perpetual_config::{leverage_options, select_leverage};
 
@@ -42,12 +44,12 @@ impl GemAmountService {
         self.preferences.get_currency()
     }
 
-    pub fn perpetual_leverage(&self, max_leverage: u8) -> u8 {
-        select_leverage(self.preferences.get_perpetual_leverage(), &leverage_options(max_leverage))
-    }
-
-    pub fn perpetual_leverage_options(&self, max_leverage: u8) -> Vec<GemPickerOption> {
-        leverage_options(max_leverage).into_iter().map(leverage_option).collect()
+    pub fn perpetual_leverage_selection(&self, max_leverage: u8) -> Option<GemLeverageSelection> {
+        let options = leverage_options(max_leverage);
+        let selected = select_leverage(self.preferences.get_perpetual_leverage(), &options);
+        let options: Vec<GemPickerOption> = options.into_iter().map(leverage_option).collect();
+        let selected = options.iter().find(|option| option.value == selected)?.clone();
+        Some(GemLeverageSelection { options, selected })
     }
 
     pub fn perpetual_autoclose(&self, price: f64, direction: PerpetualDirection, leverage: u8) -> GemPerpetualAutoclose {

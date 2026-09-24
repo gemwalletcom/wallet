@@ -91,11 +91,9 @@ class AmountPerpetualProvider(
 
     val leverageState: StateFlow<LeverageState?> = if (isOpenAction) {
         combine(perpetual.filterNotNull(), userSelectedLeverage) { current, override ->
-            val options = service.perpetualLeverageOptions(current.perpetual.maxLeverage.toUByte())
-            val selected = override ?: service.perpetualLeverage(current.perpetual.maxLeverage.toUByte())
-            options.firstOrNull { it.value == selected }?.let { option ->
-                LeverageState(current = option, options = options, direction = params.direction)
-            }
+            val leverage = service.perpetualLeverageSelection(current.perpetual.maxLeverage.toUByte()) ?: return@combine null
+            val selected = override?.let { value -> leverage.options.firstOrNull { it.value == value } } ?: leverage.selected
+            LeverageState(current = selected, options = leverage.options, direction = params.direction)
         }.stateIn(scope, SharingStarted.Eagerly, null)
     } else {
         MutableStateFlow(null)

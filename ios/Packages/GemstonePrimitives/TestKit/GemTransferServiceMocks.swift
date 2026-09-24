@@ -28,12 +28,9 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
         throw AnyError("not stubbed")
     }
 
-    public func perpetualLeverage(maxLeverage: UInt8) -> UInt8 {
-        min(5, maxLeverage)
-    }
-
-    public func perpetualLeverageOptions(maxLeverage: UInt8) -> [GemPickerOption] {
-        stride(from: UInt8(1), through: maxLeverage, by: 1).map { GemPickerOption(value: $0, label: .text(text: "\($0)x")) }
+    public func perpetualLeverageSelection(maxLeverage: UInt8) -> GemLeverageSelection? {
+        let options = stride(from: UInt8(1), through: maxLeverage, by: 1).map { GemPickerOption(value: $0, label: .text(text: "\($0)x")) }
+        return options.first { $0.value == min(5, maxLeverage) }.map { GemLeverageSelection(options: options, selected: $0) }
     }
 
     public func perpetualAmountType(action: GemPerpetualPositionAction, leverage: UInt8) -> GemAmountType {

@@ -26,6 +26,7 @@ import uniffi.gemstone.GemAmountPerpetualPosition
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountTitle
 import uniffi.gemstone.GemAmountType
+import uniffi.gemstone.GemLeverageSelection
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemLocalizedText
@@ -87,10 +88,12 @@ class AmountPerpetualProviderTest {
             every { perpetualAmountType(any(), any()) } answers {
                 GemAmountType.Perpetual(position = GemAmountPerpetualPosition.Open, direction = direction.toGem(), price = 0.0, leverage = 1u, sizeDecimals = 0)
             }
-            every { perpetualLeverage(any()) } returns 5u
-            every { perpetualLeverageOptions(any()) } returns listOf(
-                GemPickerOption(value = 5u, label = GemLocalizedText.Text("5x")),
-                GemPickerOption(value = 10u, label = GemLocalizedText.Text("10x")),
+            every { perpetualLeverageSelection(any()) } returns GemLeverageSelection(
+                options = listOf(
+                    GemPickerOption(value = 5u, label = GemLocalizedText.Text("5x")),
+                    GemPickerOption(value = 10u, label = GemLocalizedText.Text("10x")),
+                ),
+                selected = GemPickerOption(value = 5u, label = GemLocalizedText.Text("5x")),
             )
             every { perpetualAutoclose(any(), any(), any()) } answers { autoclose(thirdArg<Byte>().toUByte()) }
             every { perpetualAutocloseRow(any(), any()) } returns GemListRow.Lines(GemListRowTitle.AUTO_CLOSE, emptyList(), null)
