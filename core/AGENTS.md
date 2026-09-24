@@ -27,7 +27,6 @@ Subsystem references live in [docs/](../docs). Read the relevant one before chan
 - [Device Authentication](../docs/DEVICE_AUTHENTICATION.md) — Ed25519 request signing and the `Gem` Authorization header
 - [Wallet Authentication](../docs/WALLET_AUTHENTICATION.md)
 - [Device WebSockets](../docs/DEVICE_WEBSOCKETS.md)
-- [Rewards and Referrals](../docs/REWARDS_AND_REFERRALS.md)
 - [Core Features and Providers](../docs/FEATURES.md) — chain capabilities and indexing, WalletConnect, swap, fiat, and NFT provider coverage
 
 ## Before Coding

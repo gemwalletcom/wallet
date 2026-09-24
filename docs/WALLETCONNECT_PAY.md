@@ -1,6 +1,6 @@
 # WalletConnect Pay
 
-A merchant shows a WalletConnect Pay link; the wallet resolves it through the WalletConnect gateway, pays with the coin or token the user picks, reports the result to the gateway and records the payment in activity. Core owns the whole flow; the apps render screens and host the identity form. Decoding of the link itself, and of every other payment QR, is in [PAYMENTS.md](PAYMENTS.md).
+A merchant shows a WalletConnect Pay link; the wallet resolves it through the WalletConnect gateway, pays with the coin or token the user picks, reports the result to the gateway and records the payment in activity. Core owns the whole flow; the apps render screens and host the identity form. Decoding of the link itself, and of every other payment QR, is in [product/transfer.md](product/transfer.md).
 
 ## Payment links
 

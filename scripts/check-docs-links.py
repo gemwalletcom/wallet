@@ -16,6 +16,7 @@ SOURCE_SUFFIXES = (".swift", ".kt", ".rs")
 
 def documents():
     yield from sorted(ROOT.glob("docs/*.md"))
+    yield from sorted(ROOT.glob("docs/product/*.md"))
     yield from sorted(ROOT.glob("skills/*.md"))
     yield from sorted(ROOT.glob("*/AGENTS.md"))
     yield ROOT / "AGENTS.md"
