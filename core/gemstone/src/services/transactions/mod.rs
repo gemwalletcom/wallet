@@ -1,12 +1,10 @@
 pub mod details;
 pub mod model;
 pub mod rules;
-pub mod store;
-#[cfg(test)]
-pub(crate) mod testkit;
 
 use crate::models::state::GemLoadState;
 use crate::services::error::GemServiceError;
+use crate::services::transaction_state::GemTransactionStateStore;
 use std::sync::Arc;
 
 use chrono::Utc;
@@ -18,7 +16,6 @@ pub use model::{
     GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipant, GemTransactionParticipantRole, GemTransactionRow, GemTransactionRowSubtitle, GemTransactionRowValue, GemTransactionStateTone, GemTransactionStatus,
     GemTransactionTitle,
 };
-pub use store::GemTransactionStore;
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::assets::GemAssetsService;
@@ -33,7 +30,7 @@ use crate::services::wallet_session::GemWalletSessionService;
 pub struct GemTransactionsService {
     api: Arc<GemDeviceApiClient>,
     assets: Arc<GemAssetsService>,
-    store: Arc<dyn GemTransactionStore>,
+    store: Arc<dyn GemTransactionStateStore>,
     names: Arc<GemNameService>,
     wallet_preferences: Arc<GemWalletPreferencesService>,
     session: Arc<GemWalletSessionService>,
@@ -54,7 +51,7 @@ impl GemTransactionsService {
     pub fn new(
         api: Arc<GemDeviceApiClient>,
         assets: Arc<GemAssetsService>,
-        store: Arc<dyn GemTransactionStore>,
+        store: Arc<dyn GemTransactionStateStore>,
         names: Arc<GemNameService>,
         wallet_preferences: Arc<GemWalletPreferencesService>,
         session: Arc<GemWalletSessionService>,
@@ -82,7 +79,7 @@ impl GemTransactionsService {
 
 impl GemTransactionsService {
     pub async fn save_transactions(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
-        self.store.save_transactions(wallet_id, transactions).await
+        self.store.add_transactions(wallet_id, transactions).await
     }
 
     async fn sync(&self, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
@@ -104,7 +101,7 @@ impl GemTransactionsService {
             self.assets.add_missing_balances(wallet_id.clone(), new_asset_ids).await?;
         }
         let pending = rules::pending_transactions(&response.transactions);
-        self.store.save_transactions(wallet_id.clone(), response.transactions).await?;
+        self.store.add_transactions(wallet_id.clone(), response.transactions).await?;
         self.names.save_names(response.address_names).await?;
         self.wallet_preferences.set_transactions_timestamp(wallet_id.clone(), asset_id, timestamp)?;
         if !pending.is_empty() {

@@ -25,9 +25,9 @@ use crate::services::preferences::testkit::MemoryPreferencesStore;
 use crate::services::price::GemPriceService;
 use crate::services::price::testkit::MemoryPriceStore;
 use crate::services::stream::testkit::SubscriptionTestkit;
+use crate::services::transaction_state::testkit::MemoryTransactionStateStore;
 use crate::services::transaction_state::testkit::RecordingTransactionStatus;
 use crate::services::transactions::GemTransactionsService;
-use crate::services::transactions::testkit::MemoryTransactionStore;
 use crate::services::transfer::GemRecentActivityService;
 use crate::services::transfer::testkit::MemoryRecentActivityStore;
 use crate::services::wallet::testkit::{MemoryAddressStore, MemoryWalletStore};
@@ -180,7 +180,7 @@ impl PerpetualTestkit {
         let transactions = Arc::new(GemTransactionsService::new(
             device_api.clone(),
             Arc::new(GemAssetsService::mock(self.provider.clone(), self.asset_store.clone())),
-            Arc::new(MemoryTransactionStore::default()),
+            Arc::new(MemoryTransactionStateStore::default()),
             Arc::new(GemNameService::new(device_api.clone(), Arc::new(MemoryAddressStore::default()))),
             self.wallet_preferences.clone(),
             self.session.clone(),

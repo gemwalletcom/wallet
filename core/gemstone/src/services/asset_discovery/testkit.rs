@@ -27,7 +27,6 @@ use crate::services::stream::testkit::SubscriptionTestkit;
 use crate::services::transaction_state::GemTransactionStateService;
 use crate::services::transaction_state::testkit::{MemoryTransactionStateStore, RecordingTransactionStatus};
 use crate::services::transactions::GemTransactionsService;
-use crate::services::transactions::testkit::MemoryTransactionStore;
 use crate::services::wallet::testkit::{MemoryAddressStore, MemoryWalletStore};
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_preferences::testkit::MemoryWalletPreferencesStore;
@@ -88,7 +87,7 @@ impl DiscoveryTestkit {
         let transactions = Arc::new(GemTransactionsService::new(
             device_api.clone(),
             assets.clone(),
-            Arc::new(MemoryTransactionStore::default()),
+            Arc::new(MemoryTransactionStateStore::default()),
             names.clone(),
             wallet_preferences.clone(),
             session.clone(),
