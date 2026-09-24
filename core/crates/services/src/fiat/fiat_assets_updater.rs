@@ -49,7 +49,6 @@ impl FiatAssetsUpdater {
                 let sellable_assets_ids = client
                     .get_assets_by_filter(vec![AssetFilter::IsEnabled(true), AssetFilter::IsSellable(true)])?
                     .into_iter()
-                    .filter(|x| x.score.rank > 25)
                     .map(|x| x.asset.id)
                     .collect::<Vec<AssetId>>();
 
