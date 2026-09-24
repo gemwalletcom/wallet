@@ -151,7 +151,7 @@ class PortfolioChartViewModelTest {
     @Test
     fun `shows error state when the portfolio request fails`() = runTest(testDispatcher) {
         coEvery { service.refresh(any(), any()) } answers {
-            GemPortfolioResult(request = secondArg(), state = GemLoadState.Error(GemServiceException.Core("network down")), data = null)
+            GemPortfolioResult(request = secondArg(), state = GemLoadState.Error(GemServiceException.Gateway("network down")), data = null)
         }
         val viewModel = createViewModel()
         backgroundScope.launch { viewModel.chartUIState.collect {} }

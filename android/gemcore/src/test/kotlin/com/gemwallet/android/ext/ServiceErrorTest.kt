@@ -8,12 +8,12 @@ import uniffi.gemstone.GemServiceException
 class ServiceErrorTest {
 
     @Test
-    fun coreServiceErrorsReadAsTheirMessage() {
+    fun coreServiceErrorsReadAsTheirMessageAndStorageAsUnknown() {
         assertEquals(
             GemErrorText.Message("Rewards are not enabled for this user"),
             GemServiceException.Api("Rewards are not enabled for this user").errorText(),
         )
-        assertEquals(GemErrorText.Message("disk full"), GemServiceException.Store("disk full").errorText())
+        assertEquals(GemErrorText.Unknown, GemServiceException.Store("disk full").errorText())
     }
 
     @Test

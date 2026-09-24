@@ -110,11 +110,12 @@ public final class WalletImageViewModel: Sendable {
     }
 
     private func setImage(_ image: UIImage) {
+        guard let data = image.compress() else {
+            isPresentingAlertMessage = AlertMessage(message: Localized.Errors.unknown)
+            return
+        }
         Task {
             do {
-                guard let data = image.compress() else {
-                    throw AnyError("Compression image failed")
-                }
                 try await service.setImage(data: data, for: wallet)
             } catch {
                 isPresentingAlertMessage = AlertMessage(error: error)

@@ -100,7 +100,7 @@ class AddAssetViewModelTest {
 
     @Test
     fun `a failed add stays on the screen and reports the Core message`() = runTest {
-        coEvery { service.add(any(), any()) } throws GemServiceException.Store("disk full")
+        coEvery { service.add(any(), any()) } throws GemServiceException.Api("disk full")
         val viewModel = AddAssetViewModel(getSession, service, dispatcher, mockk(relaxed = true))
         try {
             withContext(Dispatchers.Main) {

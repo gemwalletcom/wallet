@@ -177,7 +177,8 @@ mod tests {
         );
         assert_eq!(
             session.clone().on_add_failed(Some(GemServiceError::Store { msg: "disk full".to_string() })).error,
-            Some(GemErrorText::Message { text: "disk full".to_string() })
+            Some(GemErrorText::Unknown),
+            "storage text is internal"
         );
         assert_eq!(session.on_check_failed("https://node".to_string(), None).error, Some(GemErrorText::Unknown));
     }

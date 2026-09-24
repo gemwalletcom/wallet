@@ -50,9 +50,8 @@ impl GemErrorText {
 impl GemServiceError {
     pub fn text(&self) -> GemErrorText {
         match self {
-            Self::Api { msg } | Self::Gateway { msg } | Self::Store { msg } | Self::Core { msg } | Self::Platform { msg } | Self::InvalidInput { msg } | Self::NotFound { msg } | Self::Unsupported { msg } => {
-                GemErrorText::message(msg.clone())
-            }
+            Self::Api { msg } | Self::Gateway { msg } | Self::Platform { msg } | Self::InvalidInput { msg } | Self::Unsupported { msg } => GemErrorText::message(msg.clone()),
+            Self::Store { .. } | Self::Core { .. } | Self::NotFound { .. } => GemErrorText::Unknown,
             Self::NoAccountForChain { .. } => GemErrorText::NoAccountForChain,
             Self::Offline => GemErrorText::NetworkOffline,
             Self::WalletImport { error } => error.text(),
@@ -187,6 +186,8 @@ mod tests {
     #[test]
     fn test_a_carried_message_stays_the_message_and_a_decision_becomes_a_key() {
         assert_eq!(GemServiceError::Api { msg: "boom".into() }.text(), GemErrorText::Message { text: "boom".into() });
+        assert_eq!(GemServiceError::Store { msg: "database is locked".into() }.text(), GemErrorText::Unknown, "storage text is internal");
+        assert_eq!(GemServiceError::NotFound { msg: "wallet 7 not found".into() }.text(), GemErrorText::Unknown);
         assert_eq!(GemServiceError::Cancelled.text(), GemErrorText::Cancelled);
         assert_eq!(GatewayError::Offline.text(), GemErrorText::NetworkOffline);
         assert_eq!(
