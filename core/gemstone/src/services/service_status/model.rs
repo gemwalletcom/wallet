@@ -1,8 +1,11 @@
+use std::collections::HashMap;
 use std::time::Duration;
 
 use primitives::{Latency, LatencyType};
 
+use super::rules;
 use crate::formatted_number::GemValueTone;
+use crate::models::list::GemListSection;
 
 #[derive(uniffi::Enum, Clone, Debug, PartialEq)]
 pub enum GemLatencyStatus {
@@ -23,6 +26,49 @@ impl GemLatencyStatus {
                 LatencyType::Slow => GemValueTone::Negative,
             },
         }
+    }
+}
+
+#[derive(uniffi::Enum, Clone, Debug, PartialEq)]
+pub enum GemServiceStatusTarget {
+    Endpoint { host: String },
+    Stream,
+}
+
+#[derive(uniffi::Record, Clone, Debug, PartialEq)]
+pub struct GemServiceStatusSession {
+    pub endpoints: HashMap<String, GemLatencyStatus>,
+    pub stream: GemLatencyStatus,
+}
+
+impl Default for GemServiceStatusSession {
+    fn default() -> Self {
+        Self {
+            endpoints: HashMap::new(),
+            stream: GemLatencyStatus::Loading,
+        }
+    }
+}
+
+#[uniffi::export]
+impl GemServiceStatusSession {
+    pub fn targets(&self) -> Vec<GemServiceStatusTarget> {
+        rules::targets()
+    }
+
+    pub fn on_status(&self, target: GemServiceStatusTarget, status: GemLatencyStatus) -> Self {
+        match target {
+            GemServiceStatusTarget::Endpoint { host } => {
+                let mut endpoints = self.endpoints.clone();
+                endpoints.insert(host, status);
+                Self { endpoints, ..self.clone() }
+            }
+            GemServiceStatusTarget::Stream => Self { stream: status, ..self.clone() },
+        }
+    }
+
+    pub fn sections(&self) -> Vec<GemListSection> {
+        rules::sections(&self.endpoints, self.stream.clone())
     }
 }
 

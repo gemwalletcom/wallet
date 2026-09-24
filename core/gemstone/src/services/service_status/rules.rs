@@ -3,7 +3,16 @@ use std::collections::HashMap;
 use primitives::{GEM_API_HOST, node_config::NodeRegion};
 
 use super::GemLatencyStatus;
+use super::model::GemServiceStatusTarget;
 use crate::models::list::{GemListRow, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle};
+
+pub fn targets() -> Vec<GemServiceStatusTarget> {
+    std::iter::once(GEM_API_HOST)
+        .chain(NodeRegion::all().into_iter().map(|region| region.host()))
+        .map(|host| GemServiceStatusTarget::Endpoint { host: host.to_string() })
+        .chain(std::iter::once(GemServiceStatusTarget::Stream))
+        .collect()
+}
 
 pub fn sections(statuses: &HashMap<String, GemLatencyStatus>, stream: GemLatencyStatus) -> Vec<GemListSection> {
     let row = |title, host: &str, suffix: String| GemListRow::Latency {

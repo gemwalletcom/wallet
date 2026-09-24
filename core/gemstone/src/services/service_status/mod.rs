@@ -3,19 +3,14 @@ pub(crate) mod rules;
 
 use std::{
     collections::HashMap,
-    iter::once,
     sync::Arc,
     time::{Duration, Instant},
 };
 
-use futures::future::join_all;
-use primitives::{GEM_API_HOST, node_config::NodeRegion};
-
 use crate::alien::{AlienHttpMethod, AlienProvider, AlienTarget};
-use crate::models::list::GemListSection;
 use crate::services::stream::GemStreamConnection;
 
-pub use model::GemLatencyStatus;
+pub use model::{GemLatencyStatus, GemServiceStatusSession, GemServiceStatusTarget};
 
 #[uniffi::export]
 pub fn service_status_timeout() -> Duration {
@@ -35,15 +30,15 @@ impl GemServiceStatus {
         Self { provider, stream }
     }
 
-    pub fn sections(&self) -> Vec<GemListSection> {
-        rules::sections(&HashMap::new(), GemLatencyStatus::Loading)
+    pub fn new_session(&self) -> GemServiceStatusSession {
+        GemServiceStatusSession::default()
     }
 
-    pub async fn load(&self) -> Vec<GemListSection> {
-        let hosts = once(GEM_API_HOST).chain(NodeRegion::all().into_iter().map(|region| region.host()));
-        let requests = hosts.map(|host| async move { (host.to_string(), self.endpoint_status(host).await) });
-        let (statuses, stream) = futures::join!(join_all(requests), self.stream.latency());
-        rules::sections(&statuses.into_iter().collect(), stream.into())
+    pub async fn status(&self, target: GemServiceStatusTarget) -> GemLatencyStatus {
+        match target {
+            GemServiceStatusTarget::Endpoint { host } => self.endpoint_status(&host).await,
+            GemServiceStatusTarget::Stream => self.stream.latency().await.into(),
+        }
     }
 }
 
@@ -63,28 +58,57 @@ impl GemServiceStatus {
 #[cfg(test)]
 mod tests {
     use futures::executor::block_on;
+    use primitives::{GEM_API_HOST, node_config::NodeRegion};
 
     use super::*;
     use crate::models::list::GemListRow;
     use crate::services::stream::testkit::MemoryStreamConnection;
     use crate::testkit::TestAlienProvider;
 
-    #[test]
-    fn test_load_reports_reachable_endpoints_and_stream_failure_independently() {
-        let service = GemServiceStatus::new(Arc::new(TestAlienProvider::with_status(200)), Arc::new(MemoryStreamConnection::default()));
-        let sections = block_on(service.load());
-        assert!(matches!(sections[0].rows[0], GemListRow::Latency { status: GemLatencyStatus::Result { .. }, .. }));
-        assert!(matches!(sections[0].rows[1], GemListRow::Latency { status: GemLatencyStatus::Error, .. }));
-        assert!(sections[1].rows.iter().all(|row| matches!(row, GemListRow::Latency { status: GemLatencyStatus::Result { .. }, .. })));
+    fn api() -> GemServiceStatusTarget {
+        GemServiceStatusTarget::Endpoint { host: GEM_API_HOST.into() }
     }
 
     #[test]
-    fn test_load_reports_http_failure_and_stream_latency_independently() {
+    fn test_status_reports_reachable_endpoints_and_stream_failure_independently() {
+        let service = GemServiceStatus::new(Arc::new(TestAlienProvider::with_status(200)), Arc::new(MemoryStreamConnection::default()));
+        assert!(matches!(block_on(service.status(api())), GemLatencyStatus::Result { .. }));
+        assert_eq!(block_on(service.status(GemServiceStatusTarget::Stream)), GemLatencyStatus::Error);
+    }
+
+    #[test]
+    fn test_status_reports_http_failure_and_stream_latency_independently() {
         let stream = Arc::new(MemoryStreamConnection::default());
         *stream.latency.lock().unwrap() = Some(Duration::from_millis(125));
         let service = GemServiceStatus::new(Arc::new(TestAlienProvider::offline()), stream);
-        let sections = block_on(service.load());
-        assert!(matches!(sections[0].rows[0], GemListRow::Latency { status: GemLatencyStatus::Error, .. }));
-        assert!(matches!(&sections[0].rows[1], GemListRow::Latency { status, .. } if *status == GemLatencyStatus::from(Some(Duration::from_millis(125)))));
+        assert_eq!(block_on(service.status(api())), GemLatencyStatus::Error);
+        assert_eq!(block_on(service.status(GemServiceStatusTarget::Stream)), GemLatencyStatus::from(Some(Duration::from_millis(125))));
+    }
+
+    #[test]
+    fn test_a_finished_check_shows_while_the_others_keep_loading() {
+        let session = GemServiceStatusSession::default().on_status(GemServiceStatusTarget::Endpoint { host: NodeRegion::Asia.host().into() }, GemLatencyStatus::Error);
+        let statuses: Vec<GemLatencyStatus> = session
+            .sections()
+            .into_iter()
+            .flat_map(|section| section.rows)
+            .map(|row| match row {
+                GemListRow::Latency { status, .. } => status,
+                _ => panic!("status rows are latency rows"),
+            })
+            .collect();
+        assert_eq!(
+            statuses,
+            vec![GemLatencyStatus::Loading, GemLatencyStatus::Loading, GemLatencyStatus::Loading, GemLatencyStatus::Error, GemLatencyStatus::Loading]
+        );
+        assert_eq!(session.on_status(GemServiceStatusTarget::Stream, GemLatencyStatus::Error).stream, GemLatencyStatus::Error);
+    }
+
+    #[test]
+    fn test_targets_cover_every_row() {
+        let targets = GemServiceStatusSession::default().targets();
+        assert_eq!(targets.first(), Some(&api()));
+        assert_eq!(targets.last(), Some(&GemServiceStatusTarget::Stream));
+        assert_eq!(targets.len(), NodeRegion::all().len() + 2);
     }
 }
