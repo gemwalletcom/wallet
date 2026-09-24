@@ -80,18 +80,9 @@ impl GemPriceAlertSession {
     pub fn alert(&self) -> Option<PriceAlert> {
         let input = self.input?;
         let direction = self.direction()?;
-        let (price, price_percent_change) = match self.notification_type {
-            PriceAlertNotificationType::PricePercentChange => (None, Some(input)),
-            PriceAlertNotificationType::Price | PriceAlertNotificationType::Auto => (Some(input), None),
-        };
-        Some(PriceAlert {
-            identifier: self.asset_id.to_string(),
-            asset_id: self.asset_id.clone(),
-            currency: self.currency.clone(),
-            price,
-            price_percent_change,
-            price_direction: Some(direction),
-            last_notified_at: None,
+        Some(match self.notification_type {
+            PriceAlertNotificationType::PricePercentChange => PriceAlert::new_price_percent(self.asset_id.clone(), self.currency.clone(), input, direction),
+            PriceAlertNotificationType::Price | PriceAlertNotificationType::Auto => PriceAlert::new_price(self.asset_id.clone(), self.currency.clone(), input, direction),
         })
     }
 
@@ -191,6 +182,20 @@ mod tests {
 
         assert_eq!((price.price, price.price_percent_change), (Some(120.0), None));
         assert_eq!((percent.price, percent.price_percent_change), (None, Some(5.0)));
+    }
+
+    #[test]
+    fn test_an_alert_is_keyed_by_what_it_watches_and_never_takes_the_auto_alert_key() {
+        let session = GemPriceAlertSession::mock();
+        let auto = PriceAlert::new_auto(session.asset_id.clone(), Currency::USD);
+        let price = session.on_input(Some(120.0)).alert().unwrap();
+        let other_price = session.on_input(Some(130.0)).alert().unwrap();
+        let percent = session.on_type(PriceAlertNotificationType::PricePercentChange).on_input(Some(5.0)).alert().unwrap();
+
+        assert_eq!(price.id(), "ethereum_USD_120_up");
+        assert_eq!(percent.id(), "ethereum_USD_5_up");
+        assert_ne!(price.id(), auto.id());
+        assert_ne!(price.id(), other_price.id());
     }
 
     #[test]
