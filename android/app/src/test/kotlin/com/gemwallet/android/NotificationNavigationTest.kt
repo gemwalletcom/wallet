@@ -26,6 +26,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import uniffi.gemstone.GemNavigationServiceInterface
+import uniffi.gemstone.GemNavigationTab
 import uniffi.gemstone.GemNavigationTarget
 import uniffi.gemstone.GemPushNotification
 import uniffi.gemstone.GemPushNotificationService
@@ -43,7 +44,7 @@ class NotificationNavigationTest {
     fun `an asset Core opened becomes its route`() = runBlocking {
         val asset = mockAsset(chain = Chain.Ethereum)
 
-        val routes = navigation(GemNavigationTarget.Asset(asset.toGem(), walletId = null, isPerpetual = false)).prepareNavigation(GemPushNotification.Rewards)
+        val routes = navigation(GemNavigationTarget.Asset(asset.toGem(), walletId = null, isPerpetual = false)).prepareNavigation(GemPushNotification.Rewards).routes
 
         assertEquals(listOf(AssetRoute(asset.id)), routes)
     }
@@ -52,7 +53,7 @@ class NotificationNavigationTest {
     fun `a perpetual opens its market before its position`() = runBlocking {
         val asset = mockAsset(chain = Chain.HyperCore, tokenId = "perpetual::UNI", type = AssetType.PERPETUAL)
 
-        val routes = navigation(GemNavigationTarget.Asset(asset.toGem(), walletId = null, isPerpetual = true)).prepareNavigation(GemPushNotification.Rewards)
+        val routes = navigation(GemNavigationTarget.Asset(asset.toGem(), walletId = null, isPerpetual = true)).prepareNavigation(GemPushNotification.Rewards).routes
 
         assertEquals(listOf(PerpetualRoute, PerpetualPositionRoute(asset.id)), routes)
     }
@@ -60,26 +61,26 @@ class NotificationNavigationTest {
     @Test
     fun `a transaction Core opened routes to its details`() = runBlocking {
         val assetId = mockAssetId(Chain.Ethereum)
-        val walletId = mockWalletId()
+        val walletId = mockWalletId("multicoin_0x1")
         val asset = mockAsset(chain = assetId.chain, tokenId = assetId.tokenId)
         val transaction = mockTransaction(assetId = assetId)
 
         val routes = navigation(GemNavigationTarget.Transaction(asset.toGem(), walletId.id, transaction.toGem(), isPerpetual = false))
             .prepareNavigation(
                 GemPushNotification.Transaction(walletId = walletId.id, assetId = assetId.toIdentifier(), transaction = transaction.toGem()),
-            )
+            ).routes
 
         assertEquals(listOf(AssetRoute(asset.id), TransactionDetailsRoute(transaction.id)), routes)
     }
 
     @Test
     fun `support and rewards need no asset at all`() = runBlocking {
-        assertEquals(listOf(SupportRoute), navigation(GemNavigationTarget.Support).prepareNavigation(GemPushNotification.Support))
-        assertEquals(listOf(ReferralRoute(code = null)), navigation(GemNavigationTarget.Rewards(null)).prepareNavigation(GemPushNotification.Rewards))
+        assertEquals(PendingNavigation.Routes(listOf(SupportRoute), GemNavigationTab.SETTINGS), navigation(GemNavigationTarget.Support).prepareNavigation(GemPushNotification.Support))
+        assertEquals(PendingNavigation.Routes(listOf(ReferralRoute(code = null)), GemNavigationTab.SETTINGS), navigation(GemNavigationTarget.Rewards(null)).prepareNavigation(GemPushNotification.Rewards))
     }
 
     @Test
     fun `a target Core could not prepare navigates nowhere`() = runBlocking {
-        assertEquals(emptyList<Any>(), navigation(GemNavigationTarget.None).prepareNavigation(GemPushNotification.Test))
+        assertEquals(emptyList<Any>(), navigation(GemNavigationTarget.None).prepareNavigation(GemPushNotification.Test).routes)
     }
 }

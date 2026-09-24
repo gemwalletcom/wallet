@@ -28,19 +28,19 @@ import uniffi.gemstone.GemPushNotificationServiceInterface
 import javax.inject.Inject
 
 class NotificationNavigation @Inject constructor(private val navigationService: GemNavigationServiceInterface, private val pushNotificationService: GemPushNotificationServiceInterface) {
-    suspend fun prepareNavigation(intent: Intent): List<NavKey> {
+    internal suspend fun prepareNavigation(intent: Intent): PendingNavigation.Routes {
         if (!intent.hasNotificationPayload()) {
-            return emptyList()
+            return PendingNavigation.Routes(emptyList())
         }
-        val notificationType = intent.getStringExtra(PushNotificationField.Type.key) ?: return emptyList()
+        val notificationType = intent.getStringExtra(PushNotificationField.Type.key) ?: return PendingNavigation.Routes(emptyList())
         val notification = pushNotificationService.parse(
             notificationType = notificationType,
             data = intent.getStringExtra(PushNotificationField.Data.key),
-        ) ?: return emptyList()
+        ) ?: return PendingNavigation.Routes(emptyList())
         return prepareNavigation(notification)
     }
 
-    internal suspend fun prepareNavigation(notification: GemPushNotification): List<NavKey> = navigationService.openNotification(notification).routes()
+    internal suspend fun prepareNavigation(notification: GemPushNotification): PendingNavigation.Routes = navigationService.openNotification(notification).destination()
 }
 
 internal fun Intent.putNotificationPayload(type: String?, rawData: String?): Intent = apply {

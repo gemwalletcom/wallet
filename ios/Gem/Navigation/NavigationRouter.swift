@@ -6,6 +6,7 @@ import enum Gemstone.Deeplink
 import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemDeeplinkServiceProtocol
 import protocol Gemstone.GemNavigationServiceProtocol
+import enum Gemstone.GemNavigationTab
 import enum Gemstone.GemNavigationTarget
 import protocol Gemstone.GemPaymentServiceProtocol
 import enum Gemstone.GemPaymentTarget
@@ -146,7 +147,6 @@ extension NavigationRouter {
 
     private func openDeeplink(_ deeplink: Deeplink) async throws {
         try await open(target: navigationService.openDeeplink(deeplink: deeplink))
-        selectTab(for: deeplink.selectTab)
     }
 
     private func open(target: GemNavigationTarget) async throws {
@@ -176,6 +176,7 @@ extension NavigationRouter {
         case .none:
             break
         }
+        selectTab(target.tab())
     }
 
     private func openTarget(path: [any Hashable & Codable], walletId: String?) throws {
@@ -258,7 +259,6 @@ extension NavigationRouter {
 extension NavigationRouter {
     private func open(notification: GemPushNotification) async throws {
         try await open(target: navigationService.openNotification(notification: notification))
-        selectTab(for: notification.selectTab)
     }
 }
 
@@ -271,9 +271,12 @@ extension NavigationRouter {
         toastPresenter.toastMessage = .error(error.localizedDescription)
     }
 
-    private func selectTab(for tab: TabItem?) {
-        guard let tab else { return }
-        navigationState.selectedTab = tab
+    private func selectTab(_ tab: GemNavigationTab?) {
+        switch tab {
+        case .wallet: navigationState.selectedTab = .wallet
+        case .settings: navigationState.selectedTab = .settings
+        case .none: break
+        }
     }
 
     private func openWallet(_ walletId: WalletId, path: [any Hashable & Codable]) throws {
@@ -310,28 +313,5 @@ extension NavigationRouter {
 
     func resetNavigation() {
         navigationState.reset()
-    }
-}
-
-// MARK: - TabItem Selection
-
-private extension Deeplink {
-    var selectTab: TabItem? {
-        switch self {
-        case .asset, .perpetuals: .wallet
-        case .rewards: .settings
-        case .receive, .buy, .sell, .swap: nil
-        }
-    }
-}
-
-private extension GemPushNotification {
-    var selectTab: TabItem? {
-        switch self {
-        case .transaction, .asset, .fiatTransaction, .priceAlert, .stake: .wallet
-        case .buyAsset, .swapAsset: nil
-        case .support, .rewards: .settings
-        case .test: nil
-        }
     }
 }

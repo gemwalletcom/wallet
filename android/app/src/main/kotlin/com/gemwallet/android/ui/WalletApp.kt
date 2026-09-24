@@ -34,10 +34,12 @@ import com.gemwallet.android.ui.navigation.WalletRootRoute
 import com.gemwallet.android.ui.navigation.rememberWalletNavigationState
 import com.gemwallet.android.ui.navigation.routes.assetsRoute
 import com.gemwallet.android.ui.theme.Spacer16
+import uniffi.gemstone.GemNavigationTab
 
 @Composable
 fun WalletApp(
     pendingRoutes: List<NavKey> = emptyList(),
+    pendingTab: GemNavigationTab? = null,
     onPendingNavigationConsumed: () -> Unit = {},
     onContentReady: () -> Unit = {},
     activeWalletConnectRequest: ActiveWalletConnectRequest? = null,
@@ -61,7 +63,7 @@ fun WalletApp(
 
     LaunchedEffect(pendingRoutes, navigator) {
         if (pendingRoutes.isEmpty()) return@LaunchedEffect
-        if (navigator.openPendingNavigation(pendingRoutes)) {
+        if (navigator.openPendingNavigation(pendingRoutes, pendingTab)) {
             onPendingNavigationConsumed()
         }
     }

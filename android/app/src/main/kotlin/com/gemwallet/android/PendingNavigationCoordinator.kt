@@ -13,6 +13,7 @@ import uniffi.gemstone.Deeplink
 import uniffi.gemstone.GemDeeplinkService
 import uniffi.gemstone.GemDeeplinkServiceInterface
 import uniffi.gemstone.GemNavigationServiceInterface
+import uniffi.gemstone.GemNavigationTab
 import uniffi.gemstone.Payment
 import uniffi.gemstone.UrlAction
 import uniffi.gemstone.WalletConnectLink
@@ -31,7 +32,7 @@ internal sealed interface PendingNavigation {
 
     data class FromScan(override val code: String) : Input
 
-    data class Routes(val routes: List<NavKey>) : PendingNavigation
+    data class Routes(val routes: List<NavKey>, val tab: GemNavigationTab? = null) : PendingNavigation
 
     data class Loading(val input: Input) : PendingNavigation
 }
@@ -74,38 +75,39 @@ class PendingNavigationCoordinator @Inject constructor(
             null
         }
 
-        val routes = when {
-            action != null -> routes(action, walletConnect)
+        val destination = when {
+            action != null -> destination(action, walletConnect)
             pending is PendingNavigation.FromIntent -> notificationNavigation.prepareNavigation(pending.intent)
-            else -> emptyList()
+            else -> PendingNavigation.Routes(emptyList())
         }
+        val hasRoutes = destination.routes.isNotEmpty()
 
-        replace(loading ?: pending, routes.takeIf { it.isNotEmpty() }?.let(PendingNavigation::Routes))
+        replace(loading ?: pending, destination.takeIf { hasRoutes })
 
         return when (pending) {
-            is PendingNavigation.FromIntent -> routes.isNotEmpty() || action !is UrlAction.Payment
-            is PendingNavigation.FromScan -> routes.isNotEmpty() || action is UrlAction.WalletConnect
+            is PendingNavigation.FromIntent -> hasRoutes || action !is UrlAction.Payment
+            is PendingNavigation.FromScan -> hasRoutes || action is UrlAction.WalletConnect
         }
     }
 
-    private suspend fun routes(action: UrlAction, walletConnect: WalletConnectHandler): List<NavKey> = when (action) {
+    private suspend fun destination(action: UrlAction, walletConnect: WalletConnectHandler): PendingNavigation.Routes = when (action) {
         is UrlAction.WalletConnect -> {
             when (val link = action.link) {
                 is WalletConnectLink.Connect -> walletConnect.onPairing(link.uri)
                 WalletConnectLink.Request -> walletConnect.onRequest()
                 is WalletConnectLink.Session -> Unit
             }
-            emptyList()
+            PendingNavigation.Routes(emptyList())
         }
 
-        is UrlAction.Deeplink -> routes(action.deeplink)
+        is UrlAction.Deeplink -> destination(action.deeplink)
 
-        is UrlAction.Payment -> paymentNavigation.routes(action.payment)
+        is UrlAction.Payment -> PendingNavigation.Routes(paymentNavigation.routes(action.payment))
     }
 
-    private suspend fun routes(deeplink: Deeplink): List<NavKey> = runCatching { navigationService.openDeeplink(deeplink).routes() }
+    private suspend fun destination(deeplink: Deeplink): PendingNavigation.Routes = runCatching { navigationService.openDeeplink(deeplink).destination() }
         .onFailure { Log.e(TAG, "preparing a deep link failed", it) }
-        .getOrDefault(emptyList())
+        .getOrDefault(PendingNavigation.Routes(emptyList()))
 
     private fun replace(pending: PendingNavigation, replacement: PendingNavigation?) {
         _pendingNavigation.update { current -> if (current === pending) replacement else current }

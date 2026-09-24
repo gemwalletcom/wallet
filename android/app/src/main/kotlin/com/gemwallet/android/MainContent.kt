@@ -32,7 +32,8 @@ internal fun MainContent(
     onWalletConnectError: (String) -> Unit,
     onErrorDismiss: () -> Unit,
 ) {
-    val pendingRoutes = (pendingNavigation as? PendingNavigation.Routes)?.routes.orEmpty()
+    val pendingDestination = pendingNavigation as? PendingNavigation.Routes
+    val pendingRoutes = pendingDestination?.routes.orEmpty()
     val canAttemptSystemAuth = !systemAuthEnrollmentMissing
     val requiresAuthPrompt = state.initialAuth == AuthState.Required || state.authState == AuthState.Required
     val isWalletUnlocked = state.initialAuth == AuthState.Success
@@ -58,6 +59,7 @@ internal fun MainContent(
             if (state.hasUnlockedApp) {
                 WalletApp(
                     pendingRoutes = unlockedPendingRoutes,
+                    pendingTab = pendingDestination?.tab,
                     onPendingNavigationConsumed = onPendingNavigationConsumed,
                     onContentReady = onWalletContentReady,
                     activeWalletConnectRequest = activeWalletConnectRequest.takeIf { walletConnectEnabled },

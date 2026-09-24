@@ -83,6 +83,7 @@ import com.gemwallet.android.ui.navigation.routes.WalletSearchRoute
 import com.gemwallet.android.ui.navigation.routes.WalletSecurityReminderRoute
 import com.gemwallet.android.ui.navigation.routes.WalletsRoute
 import com.gemwallet.android.ui.navigation.routes.assetsRoute
+import com.gemwallet.android.ui.navigation.routes.settingsRoute
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainAddress
@@ -99,6 +100,7 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemDeeplinkServiceInterface
 import uniffi.gemstone.GemNavigationServiceInterface
+import uniffi.gemstone.GemNavigationTab
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.UrlAction
 class WalletNavigator(
@@ -235,8 +237,9 @@ class WalletNavigator(
     fun openUrlAction(action: UrlAction): Boolean {
         val deeplink = (action as? UrlAction.Deeplink)?.deeplink ?: return false
         scope.launch {
-            val routes = withContext(Dispatchers.IO) { navigationService.openDeeplink(deeplink).routes() }
-            routes.forEach(::push)
+            val target = withContext(Dispatchers.IO) { navigationService.openDeeplink(deeplink) }
+            selectTab(target.tab())
+            target.routes().forEach(::push)
         }
         return true
     }
@@ -323,12 +326,21 @@ class WalletNavigator(
         )
     }
 
-    internal fun openPendingNavigation(routes: List<NavKey>): Boolean {
+    internal fun openPendingNavigation(routes: List<NavKey>, tab: GemNavigationTab? = null): Boolean {
         if (routes.isEmpty()) return false
         if (backStack.firstOrNull() != WalletRootRoute) return false
         resetToWallet()
+        selectTab(tab)
         routes.forEach(::push)
         return true
+    }
+
+    private fun selectTab(tab: GemNavigationTab?) {
+        currentTab.value = when (tab) {
+            GemNavigationTab.WALLET -> assetsRoute
+            GemNavigationTab.SETTINGS -> settingsRoute
+            null -> return
+        }
     }
 
     fun popConfirmFlow(toast: String? = null) {

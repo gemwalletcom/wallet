@@ -25,6 +25,23 @@ pub enum GemNavigationTarget {
     None,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemNavigationTab {
+    Wallet,
+    Settings,
+}
+
+#[uniffi::export]
+impl GemNavigationTarget {
+    pub fn tab(&self) -> Option<GemNavigationTab> {
+        match self {
+            Self::Asset { .. } | Self::Transaction { .. } | Self::Perpetuals => Some(GemNavigationTab::Wallet),
+            Self::Rewards { .. } | Self::Support => Some(GemNavigationTab::Settings),
+            Self::Receive { .. } | Self::Fiat { .. } | Self::Swap { .. } | Self::None => None,
+        }
+    }
+}
+
 #[derive(uniffi::Object)]
 pub struct GemNavigationService {
     assets: Arc<GemAssetsService>,
@@ -126,6 +143,16 @@ fn target(asset: Asset, wallet_id: Option<WalletId>) -> GemNavigationTarget {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_a_target_opens_on_the_tab_that_holds_it() {
+        let asset = Asset::from_chain(primitives::Chain::Ethereum);
+        assert_eq!(GemNavigationTarget::Perpetuals.tab(), Some(GemNavigationTab::Wallet));
+        assert_eq!(GemNavigationTarget::Support.tab(), Some(GemNavigationTab::Settings));
+        assert_eq!(GemNavigationTarget::Rewards { code: None }.tab(), Some(GemNavigationTab::Settings));
+        assert_eq!(GemNavigationTarget::Receive { asset }.tab(), None, "a sheet keeps the tab it opens over");
+        assert_eq!(GemNavigationTarget::None.tab(), None);
+    }
     use crate::services::asset_discovery::testkit::DiscoveryTestkit;
     use crate::services::assets::GemAssetStore;
     use crate::services::assets::rules::default_asset_basic;

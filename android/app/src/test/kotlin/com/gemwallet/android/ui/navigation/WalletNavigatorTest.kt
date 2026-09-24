@@ -35,6 +35,7 @@ import com.gemwallet.android.ui.navigation.routes.PriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveSelectRoute
 import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute
+import com.gemwallet.android.ui.navigation.routes.ReferralRoute
 import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
 import com.gemwallet.android.ui.navigation.routes.StakeRoute
 import com.gemwallet.android.ui.navigation.routes.SwapPairRoute
@@ -46,6 +47,7 @@ import com.gemwallet.android.ui.navigation.routes.WalletPhraseRoute
 import com.gemwallet.android.ui.navigation.routes.WalletSecurityReminderRoute
 import com.gemwallet.android.ui.navigation.routes.WalletsRoute
 import com.gemwallet.android.ui.navigation.routes.assetsRoute
+import com.gemwallet.android.ui.navigation.routes.settingsRoute
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAssetId
 import io.mockk.coEvery
@@ -61,6 +63,7 @@ import org.junit.Test
 import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemDeeplinkService
 import uniffi.gemstone.GemNavigationServiceInterface
+import uniffi.gemstone.GemNavigationTab
 import uniffi.gemstone.GemWalletImportKind
 import uniffi.gemstone.GemWalletSecretKind
 
@@ -133,6 +136,15 @@ class WalletNavigatorTest {
 
         assertTrue(opened)
         assertEquals(listOf(WalletRootRoute, route), navigator.backStack.toList())
+    }
+
+    @Test
+    fun openPendingNavigation_selectsTheTabCoreNamed() {
+        val navigator = navigatorWith(WalletRootRoute)
+
+        navigator.openPendingNavigation(listOf(ReferralRoute(code = null)), GemNavigationTab.SETTINGS)
+
+        assertEquals(settingsRoute, navigator.currentTab.value)
     }
 
     @Test

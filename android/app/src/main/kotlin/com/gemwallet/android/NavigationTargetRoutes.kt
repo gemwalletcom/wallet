@@ -13,6 +13,8 @@ import com.gemwallet.android.ui.navigation.routes.SwapPairRoute
 import com.gemwallet.android.ui.navigation.routes.TransactionDetailsRoute
 import uniffi.gemstone.GemNavigationTarget
 
+internal fun GemNavigationTarget.destination(): PendingNavigation.Routes = PendingNavigation.Routes(routes(), tab())
+
 internal fun GemNavigationTarget.routes(): List<NavKey> = when (this) {
     is GemNavigationTarget.Asset -> assetRoutes(asset.toPrimitives().id, isPerpetual)
     is GemNavigationTarget.Receive -> listOf(ReceiveRoute(asset.toPrimitives().id))

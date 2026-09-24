@@ -22,6 +22,7 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 import uniffi.gemstone.GemDeeplinkService
 import uniffi.gemstone.GemNavigationServiceInterface
+import uniffi.gemstone.GemNavigationTab
 import uniffi.gemstone.GemNavigationTarget
 
 class PendingNavigationCoordinatorTest {
@@ -148,21 +149,20 @@ class PendingNavigationCoordinatorTest {
     @Test
     fun buildRoutes_notificationPayload_storesRouteFromNotificationNavigation() = runTest {
         val intent = intent(uri = null, hasNotificationPayload = true)
-        val expected = listOf(ReferralRoute(code = "from-notification"))
+        val expected = PendingNavigation.Routes(listOf(ReferralRoute(code = "from-notification")), GemNavigationTab.SETTINGS)
         coEvery { notificationNavigation.prepareNavigation(intent) } returns expected
         coordinator.setIntent(intent)
 
         coordinator.buildRoutes(NoOpWalletConnect)
 
         coVerify(exactly = 1) { notificationNavigation.prepareNavigation(intent) }
-        val routes = (coordinator.pendingNavigation.value as PendingNavigation.Routes).routes
-        assertEquals(expected, routes)
+        assertEquals(expected, coordinator.pendingNavigation.value)
     }
 
     @Test
     fun buildRoutes_notificationPayloadWithNoRoute_clears() = runTest {
         val intent = intent(uri = null, hasNotificationPayload = true)
-        coEvery { notificationNavigation.prepareNavigation(intent) } returns emptyList()
+        coEvery { notificationNavigation.prepareNavigation(intent) } returns PendingNavigation.Routes(emptyList())
         coordinator.setIntent(intent)
 
         coordinator.buildRoutes(NoOpWalletConnect)
