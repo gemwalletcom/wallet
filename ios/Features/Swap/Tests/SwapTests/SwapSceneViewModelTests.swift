@@ -105,13 +105,13 @@ struct SwapSceneViewModelTests {
         model.session = .mockLoading()
         #expect(model.isQuoteLoading)
         #expect(model.isTransferDataLoading == false)
-        #expect(model.isQuoteInteractionEnabled)
+        #expect(model.viewState.pay.isAmountEditable)
         #expect(model.isReceiveFieldLoading)
 
         model.session = try #require(GemSwapSession.mockReady().startTransfer())
         #expect(model.isQuoteLoading == false)
         #expect(model.isTransferDataLoading)
-        #expect(model.isQuoteInteractionEnabled == false)
+        #expect(model.viewState.pay.isAmountEditable == false)
         #expect(model.isReceiveFieldLoading == false)
     }
 

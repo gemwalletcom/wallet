@@ -193,12 +193,8 @@ public final class SwapSceneViewModel {
         viewState.error
     }
 
-    var isQuoteInteractionEnabled: Bool {
-        !isTransferDataLoading
-    }
-
     var isReceiveFieldLoading: Bool {
-        isQuoteLoading
+        viewState.isReceiveLoading
     }
 
     var assetIds: Set<AssetId> {
@@ -214,18 +210,10 @@ public final class SwapSceneViewModel {
         }
     }
 
-    private var payTokenInteraction: SwapTokenInteraction {
-        .pay(isEnabled: isQuoteInteractionEnabled)
-    }
-
-    private var receiveTokenInteraction: SwapTokenInteraction {
-        .receive(isEnabled: isQuoteInteractionEnabled)
-    }
-
     func swapTokenModel(type: SelectAssetSwapType) -> SwapTokenViewModel {
         let interaction = switch type {
-        case .pay: payTokenInteraction
-        case .receive: receiveTokenInteraction
+        case .pay: viewState.pay
+        case .receive: viewState.receive
         }
         guard let assetData: AssetData = type == .pay ? fromAsset : toAsset else {
             return SwapTokenViewModel(

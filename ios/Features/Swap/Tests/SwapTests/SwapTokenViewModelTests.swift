@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemSwapSideInteraction
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
@@ -9,17 +10,8 @@ import Testing
 
 struct SwapTokenViewModelTests {
     @Test
-    func theReceiveRowNeverTakesAnAmountAndThePayRowFollowsTheScene() {
-        #expect(SwapTokenInteraction.pay(isEnabled: true).isAmountEditable)
-        #expect(SwapTokenInteraction.pay(isEnabled: false).isAmountEditable == false)
-        #expect(SwapTokenInteraction.receive(isEnabled: true).isAmountEditable == false)
-        #expect(SwapTokenInteraction.receive(isEnabled: true).isAssetSelectable)
-        #expect(SwapTokenInteraction.receive(isEnabled: true).isBalanceActionEnabled == false)
-    }
-
-    @Test
     func aPlaceholderRowAsksForAnAssetAndShowsNoBalance() {
-        let model = SwapTokenViewModel(type: .placeholder, interaction: .pay(isEnabled: true))
+        let model = SwapTokenViewModel(type: .placeholder, interaction: GemSwapSideInteraction(isAmountEditable: true, isAssetSelectable: true, isBalanceActionEnabled: true))
 
         #expect(model.availableBalanceText == nil)
         #expect(model.assetImage == nil)
@@ -36,7 +28,7 @@ struct SwapTokenViewModelTests {
             formatter: .short,
             currency: .usd,
         )
-        let model = SwapTokenViewModel(type: .selected(assetData), interaction: .pay(isEnabled: true))
+        let model = SwapTokenViewModel(type: .selected(assetData), interaction: GemSwapSideInteraction(isAmountEditable: true, isAssetSelectable: true, isBalanceActionEnabled: true))
 
         #expect(model.actionTitle == asset.symbol)
         #expect(model.amountPlaceholder == "0")

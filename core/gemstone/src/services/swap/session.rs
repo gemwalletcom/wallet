@@ -156,6 +156,16 @@ pub struct GemSwapViewState {
     pub is_transfer_loading: bool,
     pub allows_provider_selection: bool,
     pub is_input_empty: bool,
+    pub pay: GemSwapSideInteraction,
+    pub receive: GemSwapSideInteraction,
+    pub is_receive_loading: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+pub struct GemSwapSideInteraction {
+    pub is_amount_editable: bool,
+    pub is_asset_selectable: bool,
+    pub is_balance_action_enabled: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -344,6 +354,17 @@ impl GemSwapSession {
             is_transfer_loading: self.is_transfer_loading(),
             allows_provider_selection: self.allows_provider_selection(),
             is_input_empty: self.is_input_empty(),
+            pay: GemSwapSideInteraction {
+                is_amount_editable: !self.is_transfer_loading(),
+                is_asset_selectable: !self.is_transfer_loading(),
+                is_balance_action_enabled: !self.is_transfer_loading(),
+            },
+            receive: GemSwapSideInteraction {
+                is_amount_editable: false,
+                is_asset_selectable: !self.is_transfer_loading(),
+                is_balance_action_enabled: false,
+            },
+            is_receive_loading: self.is_quote_loading() && !self.is_transfer_loading(),
         }
     }
 
@@ -651,6 +672,30 @@ mod tests {
         assert_eq!(refreshed.on_fetch_started(GemSwapRequest::mock()), refreshed);
 
         assert!(GemSwapSession::default().start_transfer().is_none());
+    }
+
+    #[test]
+    fn test_a_loading_transfer_locks_both_sides_and_the_receive_side_is_never_typed_into() {
+        let ready = GemSwapSession::mock_ready().view_state(GemBigInt::from(1000), None);
+        assert_eq!(
+            (ready.pay, ready.receive),
+            (
+                GemSwapSideInteraction {
+                    is_amount_editable: true,
+                    is_asset_selectable: true,
+                    is_balance_action_enabled: true
+                },
+                GemSwapSideInteraction {
+                    is_amount_editable: false,
+                    is_asset_selectable: true,
+                    is_balance_action_enabled: false
+                },
+            )
+        );
+
+        let transfer = GemSwapSession::mock_ready().start_transfer().unwrap().view_state(GemBigInt::from(1000), None);
+        assert!(!transfer.pay.is_amount_editable && !transfer.pay.is_asset_selectable && !transfer.receive.is_asset_selectable);
+        assert!(!transfer.is_receive_loading, "a transfer in flight is not a quote loading");
     }
 
     #[test]

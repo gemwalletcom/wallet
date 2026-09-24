@@ -10,23 +10,8 @@ import com.gemwallet.android.ui.components.list_item.infoSheet
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import uniffi.gemstone.GemSwapSessionAction
+import uniffi.gemstone.GemSwapSideInteraction
 import uniffi.gemstone.GemSwapViewState
-
-data class SwapItemInteraction(val isAmountEditable: Boolean, val isAssetSelectable: Boolean, val isBalanceActionEnabled: Boolean) {
-    companion object {
-        fun pay(isEnabled: Boolean) = SwapItemInteraction(
-            isAmountEditable = isEnabled,
-            isAssetSelectable = isEnabled,
-            isBalanceActionEnabled = isEnabled,
-        )
-
-        fun receive(isEnabled: Boolean) = SwapItemInteraction(
-            isAmountEditable = false,
-            isAssetSelectable = isEnabled,
-            isBalanceActionEnabled = false,
-        )
-    }
-}
 
 data class SwapUiState(
     @StringRes val actionTitle: Int = R.string.wallet_swap,
@@ -36,18 +21,12 @@ data class SwapUiState(
     val isQuoteLoading: Boolean = false,
     val isTransferLoading: Boolean = false,
     val isInputEmpty: Boolean = true,
+    val payItemInteraction: GemSwapSideInteraction = GemSwapSideInteraction(isAmountEditable = true, isAssetSelectable = true, isBalanceActionEnabled = true),
+    val receiveItemInteraction: GemSwapSideInteraction = GemSwapSideInteraction(isAmountEditable = false, isAssetSelectable = true, isBalanceActionEnabled = false),
+    val isReceiveLoading: Boolean = false,
 ) {
-    val isReceiveLoading: Boolean
-        get() = isQuoteLoading && !isTransferLoading
-
     val isQuoteInteractionEnabled: Boolean
         get() = !isTransferLoading
-
-    val payItemInteraction: SwapItemInteraction
-        get() = SwapItemInteraction.pay(isQuoteInteractionEnabled)
-
-    val receiveItemInteraction: SwapItemInteraction
-        get() = SwapItemInteraction.receive(isQuoteInteractionEnabled)
 }
 
 internal fun createSwapUiState(state: GemSwapViewState, context: Context) = SwapUiState(
@@ -58,4 +37,7 @@ internal fun createSwapUiState(state: GemSwapViewState, context: Context) = Swap
     isQuoteLoading = state.isQuoteLoading,
     isTransferLoading = state.isTransferLoading,
     isInputEmpty = state.isInputEmpty,
+    payItemInteraction = state.pay,
+    receiveItemInteraction = state.receive,
+    isReceiveLoading = state.isReceiveLoading,
 )

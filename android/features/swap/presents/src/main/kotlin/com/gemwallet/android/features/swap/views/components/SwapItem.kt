@@ -26,7 +26,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import com.gemwallet.android.features.swap.viewmodels.models.SwapItemInteraction
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clickable
@@ -46,6 +45,7 @@ import com.gemwallet.android.ui.theme.smallPadding
 import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.Asset
 import uniffi.gemstone.GemLocalizedText
+import uniffi.gemstone.GemSwapSideInteraction
 
 @Composable
 internal fun SwapItem(
@@ -53,7 +53,7 @@ internal fun SwapItem(
     balance: GemLocalizedText?,
     equivalent: String,
     calculating: Boolean = false,
-    interaction: SwapItemInteraction,
+    interaction: GemSwapSideInteraction,
     state: TextFieldState = rememberTextFieldState(),
     onBalanceClick: () -> Unit,
     onAssetSelect: () -> Unit,
@@ -164,7 +164,7 @@ private fun SwapEquivalent(calculating: Boolean, equivalent: String) {
 }
 
 @Composable
-private fun SwapBalance(balance: GemLocalizedText?, interaction: SwapItemInteraction, onBalanceClick: () -> Unit) {
+private fun SwapBalance(balance: GemLocalizedText?, interaction: GemSwapSideInteraction, onBalanceClick: () -> Unit) {
     Text(
         modifier = Modifier
             .clickable(
@@ -183,7 +183,7 @@ private fun SwapBalance(balance: GemLocalizedText?, interaction: SwapItemInterac
 }
 
 @Composable
-private fun SwapItemInput(calculating: Boolean, interaction: SwapItemInteraction, assetSelected: Boolean, state: TextFieldState = rememberTextFieldState()) {
+private fun SwapItemInput(calculating: Boolean, interaction: GemSwapSideInteraction, assetSelected: Boolean, state: TextFieldState = rememberTextFieldState()) {
     val focusRequester = remember { FocusRequester() }
     val amountTextStyle = MaterialTheme.typography.headlineSmall
     val inputTextStyle = amountTextStyle.copy(
