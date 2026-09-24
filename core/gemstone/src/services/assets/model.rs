@@ -1,9 +1,10 @@
-use primitives::{Asset, AssetId, AssetMetaData, AssetType, BalanceMetadata, BannerEvent, BlockExplorerLink, Chain, Currency, PriceAlert, RecentActivityType, VerificationStatus, WalletType};
+use primitives::{Asset, AssetId, AssetMetaData, AssetType, BalanceMetadata, Banner, BlockExplorerLink, Chain, Currency, PriceAlert, RecentActivityType, VerificationStatus, Wallet};
 
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::list::{GemListRow, GemListSectionTitle};
 use crate::precision::GemCurrencyStyle;
 use crate::services::balance::{GemAssetBalance, GemAssetBalanceRow};
+use crate::services::banner::GemBannerRow;
 use crate::services::price_alert::rules::GemPriceAlertToggle;
 use crate::services::swap::GemSwapPairSuggestion;
 use strum::IntoEnumIterator;
@@ -551,7 +552,7 @@ pub struct GemAssetDetailSection {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemAssetDetailsInput {
-    pub wallet_type: WalletType,
+    pub wallet: Wallet,
     pub asset: Asset,
     pub owner_address: Option<String>,
     pub metadata: AssetMetaData,
@@ -559,7 +560,7 @@ pub struct GemAssetDetailsInput {
     pub price: Option<f64>,
     pub price_change_percentage_24h: Option<f64>,
     pub currency: Currency,
-    pub banner_events: Vec<BannerEvent>,
+    pub banners: Vec<Banner>,
     pub price_alerts: Vec<PriceAlert>,
     pub fee_balance_metadata: Option<BalanceMetadata>,
 }
@@ -567,6 +568,7 @@ pub struct GemAssetDetailsInput {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemAssetDetails {
     pub state: GemAssetDetailsState,
+    pub visible_banners: Vec<GemBannerRow>,
     pub balance_value: GemFormattedNumber,
     pub sections: Vec<GemAssetDetailSection>,
     pub title: String,

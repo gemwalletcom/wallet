@@ -1,9 +1,8 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.assets.cases.GetAssetInfo
-import com.gemwallet.android.application.banner.cases.GetActiveBanners
+import com.gemwallet.android.application.banner.cases.GetAssetBanners
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.coordinators.banner.GetActiveBannersImpl
+import com.gemwallet.android.data.coordinators.banner.GetAssetBannersImpl
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore
 import dagger.Module
 import dagger.Provides
@@ -17,5 +16,5 @@ object BannerModule {
 
     @Provides
     @Singleton
-    fun provideGetActiveBanners(getSession: GetSession, getAssetInfo: GetAssetInfo, bannerStore: GemstoneBannerStore): GetActiveBanners = GetActiveBannersImpl(getSession, getAssetInfo, bannerStore)
+    fun provideGetAssetBanners(getSession: GetSession, bannerStore: GemstoneBannerStore): GetAssetBanners = GetAssetBannersImpl(getSession, bannerStore)
 }

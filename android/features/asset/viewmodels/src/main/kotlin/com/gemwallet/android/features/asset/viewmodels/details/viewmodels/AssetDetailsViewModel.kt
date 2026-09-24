@@ -8,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
-import com.gemwallet.android.application.banner.cases.GetActiveBanners
+import com.gemwallet.android.application.banner.cases.GetAssetBanners
 import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
@@ -34,6 +34,7 @@ import com.gemwallet.android.ui.models.ToastEmitterImpl
 import com.gemwallet.android.ui.models.ToastMessage
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Banner
 import com.wallet.core.primitives.PriceAlert
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -59,7 +60,6 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAssetDetailsInput
 import uniffi.gemstone.GemAssetDetailsServiceInterface
 import uniffi.gemstone.GemBannerKey
-import uniffi.gemstone.GemBannerRow
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPriceAlertToggle
@@ -76,7 +76,7 @@ class AssetDetailsViewModel @Inject constructor(
     private val getWalletAssets: GetWalletAssets,
     private val getTransactions: GetTransactions,
     private val assetDetailsService: GemAssetDetailsServiceInterface,
-    private val getActiveBanners: GetActiveBanners,
+    private val getAssetBanners: GetAssetBanners,
     private val getPriceAlerts: GetPriceAlerts,
     private val assetInfoUIModelFactory: AssetInfoUIModelFactory,
     private val userConfig: UserConfig,
@@ -130,7 +130,7 @@ class AssetDetailsViewModel @Inject constructor(
         .map { it.assetInfo.asset }
         .distinctUntilChanged()
         .flatMapLatest { asset ->
-            getActiveBanners(asset)
+            getAssetBanners(asset)
         }
 
     private val priceAlerts = getPriceAlerts.assetPriceAlerts(assetId)
@@ -139,13 +139,13 @@ class AssetDetailsViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private fun uiModel(chainInfo: ChainAssetInfo?, session: Session?, banners: List<GemBannerRow>, priceAlerts: List<PriceAlert>): AssetInfoUIModel? {
+    private fun uiModel(chainInfo: ChainAssetInfo?, session: Session?, banners: List<Banner>, priceAlerts: List<PriceAlert>): AssetInfoUIModel? {
         session ?: return null
         val wallet = session.wallet
         val assetInfo = chainInfo?.assetInfo ?: return null
         val details = assetDetailsService.details(
             GemAssetDetailsInput(
-                walletType = wallet.type.toGem(),
+                wallet = wallet.toGem(),
                 asset = assetInfo.asset.toGem(),
                 ownerAddress = assetInfo.owner?.address,
                 metadata = assetInfo.metadata.toGem(),
@@ -153,12 +153,12 @@ class AssetDetailsViewModel @Inject constructor(
                 price = assetInfo.price?.price?.price,
                 priceChangePercentage24h = assetInfo.price?.price?.priceChangePercentage24h,
                 currency = session.currency.toGem(),
-                bannerEvents = banners.map { row -> row.banner.event },
+                banners = banners.map { banner -> banner.toGem() },
                 priceAlerts = priceAlerts.map { alert -> alert.toGem() },
                 feeBalanceMetadata = chainInfo.feeAssetInfo.balance.metadata?.toGem(),
             ),
         )
-        return assetInfoUIModelFactory.create(chainAssetInfo = chainInfo, details = details, banners = banners)
+        return assetInfoUIModelFactory.create(chainAssetInfo = chainInfo, details = details, banners = details.visibleBanners)
     }
 
     fun refresh() {

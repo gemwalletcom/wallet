@@ -1,13 +1,13 @@
 use futures::TryFutureExt;
 use std::sync::Arc;
 
-use primitives::{AssetId, Deeplink};
+use primitives::{AssetId, BannerEvent, Deeplink};
 
 use crate::deeplink::GemDeeplinkService;
 use crate::models::custom_types::GemBigUint;
 use crate::models::state::GemLoadState;
 use crate::services::balance::GemBalanceService;
-use crate::services::banner::{GemBannerKey, GemBannerService};
+use crate::services::banner::{GemBannerContext, GemBannerKey, GemBannerService};
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::price_alert::GemPriceAlertService;
@@ -135,7 +135,7 @@ impl GemAssetDetailsService {
 
     pub fn details(&self, input: GemAssetDetailsInput) -> GemAssetDetails {
         let GemAssetDetailsInput {
-            wallet_type,
+            wallet,
             asset,
             owner_address,
             metadata,
@@ -143,10 +143,13 @@ impl GemAssetDetailsService {
             price,
             price_change_percentage_24h,
             currency,
-            banner_events,
+            banners,
             price_alerts,
             fee_balance_metadata,
         } = input;
+        let wallet_type = wallet.wallet_type;
+        let visible_banners = GemBannerContext::asset(Some(wallet), asset.clone(), &metadata, &balance).visible_banners(banners);
+        let banner_events: Vec<BannerEvent> = visible_banners.iter().map(|row| row.banner.event).collect();
         let chain = asset.chain();
         let has_balance = balance.available > GemBigUint::ZERO;
         GemAssetDetails {
@@ -154,6 +157,7 @@ impl GemAssetDetailsService {
             balance_value: crate::services::balance::rules::balance_amount(&balance.total(), &asset),
             fiat_value: rules::fiat_value(&asset, &balance, price, currency.clone()),
             state: rules::details_state(wallet_type, &metadata, &banner_events, &price_alerts),
+            visible_banners,
             sections: rules::details_sections(rules::DetailsSectionsInput {
                 wallet_type,
                 asset: &asset,

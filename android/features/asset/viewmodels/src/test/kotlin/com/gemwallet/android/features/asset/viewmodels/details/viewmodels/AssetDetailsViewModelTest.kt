@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
-import com.gemwallet.android.application.banner.cases.GetActiveBanners
+import com.gemwallet.android.application.banner.cases.GetAssetBanners
 import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
@@ -22,6 +22,7 @@ import com.gemwallet.android.testkit.mockGemAssetDetailsState
 import com.gemwallet.android.testkit.mockPriceAlert
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.Banner
 import com.wallet.core.primitives.PriceAlert
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -48,7 +49,6 @@ import org.junit.Test
 import uniffi.gemstone.GemAssetDetailsInput
 import uniffi.gemstone.GemAssetDetailsServiceInterface
 import uniffi.gemstone.GemAssetRefresh
-import uniffi.gemstone.GemBannerRow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPriceAlertToggle
 
@@ -62,7 +62,7 @@ class AssetDetailsViewModelTest {
         mockChainAssetInfo(mockAssetInfo(asset)),
     )
     private val sessionFlow = MutableStateFlow<Session?>(mockSession())
-    private val banners = MutableSharedFlow<List<GemBannerRow>>(replay = 1)
+    private val banners = MutableSharedFlow<List<Banner>>(replay = 1)
     private val priceAlerts = MutableSharedFlow<List<PriceAlert>>(replay = 1)
 
     private val getChainAssetInfo = mockk<GetChainAssetInfo>(relaxed = true)
@@ -71,7 +71,7 @@ class AssetDetailsViewModelTest {
     }
     private val getSession = mockk<GetSession>(relaxed = true)
     private val getTransactions = mockk<GetTransactions>(relaxed = true)
-    private val getActiveBanners = mockk<GetActiveBanners>(relaxed = true)
+    private val getAssetBanners = mockk<GetAssetBanners>(relaxed = true)
     private val getPriceAlerts = mockk<GetPriceAlerts>(relaxed = true)
     private val service = mockk<GemAssetDetailsServiceInterface>(relaxed = true)
 
@@ -82,11 +82,11 @@ class AssetDetailsViewModelTest {
         every { getSession() } returns sessionFlow
         every { getTransactions.getTransactions(any()) } returns MutableStateFlow(emptyList())
         every { getTransactions.stored(any()) } returns emptyList()
-        every { getActiveBanners(any()) } returns banners
+        every { getAssetBanners(any()) } returns banners
         every { getPriceAlerts.assetPriceAlerts(asset.id) } returns priceAlerts
         every { service.details(any()) } answers {
             val input = firstArg<GemAssetDetailsInput>()
-            mockGemAssetDetails(asset, mockGemAssetDetailsState(showsBanners = input.bannerEvents.isNotEmpty(), priceAlertsCount = input.priceAlerts.size))
+            mockGemAssetDetails(asset, mockGemAssetDetailsState(showsBanners = input.banners.isNotEmpty(), priceAlertsCount = input.priceAlerts.size))
         }
     }
 
@@ -133,7 +133,7 @@ class AssetDetailsViewModelTest {
         getWalletAssets = getWalletAssets,
         getTransactions = getTransactions,
         assetDetailsService = service,
-        getActiveBanners = getActiveBanners,
+        getAssetBanners = getAssetBanners,
         getPriceAlerts = getPriceAlerts,
         assetInfoUIModelFactory = AssetInfoUIModelFactory(mockk<Context> { every { getString(any()) } answers { firstArg<Int>().toString() } }),
         userConfig = mockk(relaxed = true),

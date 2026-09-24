@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import func Gemstone.assetBannerContext
 import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemAssetBalanceRow
 import enum Gemstone.GemAssetDetailRow
@@ -9,7 +8,6 @@ import struct Gemstone.GemAssetDetails
 import struct Gemstone.GemAssetDetailsInput
 import protocol Gemstone.GemAssetDetailsServiceProtocol
 import enum Gemstone.GemAssetNetworkDestination
-import struct Gemstone.GemBannerContext
 import struct Gemstone.GemBannerRow
 import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemHeaderButtonKind
@@ -180,7 +178,7 @@ public final class AssetSceneViewModel: Sendable {
     public var details: GemAssetDetails {
         service.details(
             input: GemAssetDetailsInput(
-                walletType: wallet.type.toGem(),
+                wallet: wallet.toGem(),
                 asset: asset.toGem(),
                 ownerAddress: assetDataModel.address,
                 metadata: assetData.metadata.toGem(),
@@ -188,7 +186,7 @@ public final class AssetSceneViewModel: Sendable {
                 price: assetData.price?.price,
                 priceChangePercentage24h: assetData.price?.priceChangePercentage24h,
                 currency: preferences.currency.toGem(),
-                bannerEvents: visibleBanners.map(\.banner.event),
+                banners: banners.map { $0.toGem() },
                 priceAlerts: assetData.priceAlerts.map { $0.toGem() },
                 feeBalanceMetadata: chainAssetData.feeAssetData.balance.metadata?.toGem(),
             ),
@@ -220,16 +218,8 @@ public final class AssetSceneViewModel: Sendable {
         )
     }
 
-    var visibleBanners: [GemBannerRow] {
-        bannerContext.visibleBanners(stored: banners.map { $0.toGem() })
-    }
-
     func bannerModel(for row: GemBannerRow) -> BannerViewModel {
         BannerViewModel(row: row)
-    }
-
-    private var bannerContext: GemBannerContext {
-        assetBannerContext(wallet: wallet.toGem(), asset: asset.toGem(), metadata: assetData.metadata.toGem(), balance: stakeBalance)
     }
 
     func assetHeaderModel(_ details: GemAssetDetails) -> AssetHeaderViewModel {

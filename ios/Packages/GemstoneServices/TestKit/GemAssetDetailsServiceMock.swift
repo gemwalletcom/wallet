@@ -39,12 +39,13 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
     public func details(input: GemAssetDetailsInput) -> GemAssetDetails {
         GemAssetDetails(
             state: GemAssetDetailsState(
-                isViewOnly: input.walletType == .view,
-                headerActions: input.walletType == .view ? .watchOnly : .buttons(buttons: []),
-                showsBanners: input.walletType != .view,
+                isViewOnly: input.wallet.walletType == .view,
+                headerActions: input.wallet.walletType == .view ? .watchOnly : .buttons(buttons: []),
+                showsBanners: input.wallet.walletType != .view,
                 priceAlert: .disabled,
                 emptyTransactionsAction: nil,
             ),
+            visibleBanners: [],
             balanceValue: .mock(value: 0, unit: .symbol(symbol: input.asset.symbol)),
             sections: [],
             title: input.asset.name,

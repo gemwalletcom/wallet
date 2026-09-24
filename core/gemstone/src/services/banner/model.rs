@@ -46,11 +46,6 @@ pub fn wallet_banner_events() -> Vec<BannerEvent> {
     super::rules::wallet_banner_events()
 }
 
-#[uniffi::export]
-pub fn asset_banner_context(wallet: Option<Wallet>, asset: Asset, metadata: AssetMetaData, balance: GemAssetBalance) -> GemBannerContext {
-    GemBannerContext::asset(wallet, asset, &metadata, &balance)
-}
-
 impl GemBannerContext {
     pub fn asset(wallet: Option<Wallet>, asset: Asset, metadata: &AssetMetaData, balance: &GemAssetBalance) -> Self {
         Self {
