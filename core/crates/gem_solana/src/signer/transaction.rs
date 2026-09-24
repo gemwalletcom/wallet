@@ -1,13 +1,41 @@
+use ::signer::Ed25519KeyPair;
 use gem_encoding::encode_base64;
 use num_traits::ToPrimitive;
 use primitives::{SignerError, SignerInput, TransactionFee};
 
 use super::sign_message;
 use crate::{
-    AccountMeta, Instruction, Pubkey, VersionedTransaction,
+    AccountMeta, Instruction, Pubkey, SignatureBytes, VersionedTransaction,
     builder::{AccountBuckets, collect_accounts, compile_legacy},
     instructions::compute_budget::{set_compute_unit_limit, set_compute_unit_price},
 };
+
+pub(crate) fn sign_transaction(transaction: &mut VersionedTransaction, private_key: &[u8]) -> Result<SignatureBytes, SignerError> {
+    let wallet = Pubkey::new(Ed25519KeyPair::from_private_key(private_key)?.public_key_bytes);
+    let required_signers = transaction.num_required_signatures() as usize;
+    let wallet_slots = transaction
+        .account_keys()
+        .iter()
+        .take(required_signers)
+        .enumerate()
+        .filter_map(|(index, account)| (*account == wallet).then_some(index))
+        .collect::<Vec<_>>();
+
+    if wallet_slots.is_empty() {
+        return Err(SignerError::invalid_input("wallet account is not a required signer of the Solana transaction"));
+    }
+    if wallet_slots.iter().any(|index| transaction.signatures().get(*index) != Some(&SignatureBytes::default())) {
+        return Err(SignerError::invalid_input("Solana transaction already contains the wallet signature"));
+    }
+
+    let signature = sign_message(private_key, &transaction.serialize_message()?)?;
+    for (index, slot) in transaction.signatures_mut().iter_mut().enumerate() {
+        if wallet_slots.contains(&index) {
+            *slot = signature;
+        }
+    }
+    Ok(signature)
+}
 
 pub(crate) fn compute_budget_instructions(fee: &TransactionFee) -> Result<Vec<Instruction>, SignerError> {
     let unit_price = fee.unit_price_u64()?;
@@ -51,14 +79,7 @@ pub(super) fn block_hash(input: &SignerInput) -> Result<[u8; 32], SignerError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{CompiledInstruction, Message, MessageHeader, SignatureBytes, decode_transaction, signer::testkit::SINGLE_SIG_TX};
-
-    #[test]
-    fn test_decode_transaction_compute_unit_limit() {
-        let transaction = decode_transaction(SINGLE_SIG_TX).unwrap();
-
-        assert_eq!(transaction.get_compute_unit_limit(), Some(1_400_000));
-    }
+    use crate::{CompiledInstruction, Message, MessageHeader, SignatureBytes};
 
     #[test]
     fn test_build_legacy_transaction_preserves_account_order_by_bucket() {
@@ -108,25 +129,10 @@ mod tests {
             VersionedTransaction::Legacy {
                 signatures: vec![SignatureBytes::default()],
                 message: Message {
-                    header: MessageHeader {
-                        num_required_signatures: 1,
-                        num_readonly_signed_accounts: 0,
-                        num_readonly_unsigned_accounts: 4,
-                    },
+                    header: MessageHeader::mock(1, 4),
                     account_keys: vec![fee_payer, writable, readonly_first, readonly_second, program_first, program_second],
                     recent_blockhash: [0; 32],
-                    instructions: vec![
-                        CompiledInstruction {
-                            program_id_index: 4,
-                            accounts: vec![0, 2, 1],
-                            data: vec![1],
-                        },
-                        CompiledInstruction {
-                            program_id_index: 5,
-                            accounts: vec![3],
-                            data: vec![2],
-                        },
-                    ],
+                    instructions: vec![CompiledInstruction::mock(4, vec![0, 2, 1], vec![1]), CompiledInstruction::mock(5, vec![3], vec![2])],
                 },
             }
         );

@@ -1,9 +1,9 @@
 use std::{collections::HashSet, iter::once};
 
-use crate::{AccountMeta, AddressLookupTableAccount, Instruction, Message, Pubkey, Result, SignatureBytes, SolanaError, VersionedMessageV0, VersionedTransaction};
+use crate::{AccountMeta, AddressLookupTableAccount, Instruction, Message, Pubkey, Result, SignatureBytes, SolanaError, VersionedMessageV0, VersionedTransaction, instructions::system::is_advance_nonce_account, types::MAX_ACCOUNT_KEYS};
 
 use super::{
-    accounts::{AccountBuckets, MAX_ACCOUNT_KEYS, collect_accounts, compile_instructions, index_accounts},
+    accounts::{AccountBuckets, collect_accounts, compile_instructions, index_accounts},
     lookup::{LoadedAccounts, lookup_locations},
 };
 
@@ -42,13 +42,14 @@ impl TransactionBuilder {
     pub fn build_v0(self, address_lookup_tables: &[AddressLookupTableAccount]) -> Result<VersionedTransaction> {
         let lookup_locations = lookup_locations(address_lookup_tables);
         let program_ids = self.instructions.iter().map(|instruction| instruction.program_id).collect::<HashSet<_>>();
+        let nonce_account = durable_nonce_account(&self.instructions);
         let accounts = collect_accounts(self.fee_payer, program_first_accounts(&self.instructions));
         let mut static_accounts = AccountBuckets::default();
         let mut loaded_accounts = LoadedAccounts::new(address_lookup_tables.len());
 
         for account in accounts {
             match lookup_locations.get(&account.pubkey).copied() {
-                Some(location) if !account.is_signer && !program_ids.contains(&account.pubkey) => loaded_accounts.push(account, location),
+                Some(location) if !account.is_signer && !program_ids.contains(&account.pubkey) && Some(account.pubkey) != nonce_account => loaded_accounts.push(account, location),
                 _ => static_accounts.push(account),
             }
         }
@@ -90,6 +91,11 @@ impl TransactionBuilder {
     }
 }
 
+fn durable_nonce_account(instructions: &[Instruction]) -> Option<Pubkey> {
+    let instruction = instructions.first().filter(|instruction| is_advance_nonce_account(instruction))?;
+    instruction.accounts.first().map(|account| account.pubkey)
+}
+
 fn program_first_accounts(instructions: &[Instruction]) -> impl Iterator<Item = AccountMeta> + '_ {
     instructions.iter().flat_map(|instruction| once(AccountMeta::new_readonly(instruction.program_id)).chain(instruction.accounts.iter().cloned()))
 }
@@ -119,14 +125,14 @@ mod tests {
 
     use super::TransactionBuilder;
     use crate::{
-        AccountMeta, AddressLookupTableAccount, CompiledInstruction, Instruction, Message, MessageAddressTableLookup, MessageHeader, Pubkey, SignatureBytes, SolanaError, VersionedMessageV0, VersionedTransaction,
+        AccountMeta, AddressLookupTableAccount, CompiledInstruction, Instruction, MessageAddressTableLookup, Pubkey, SignatureBytes, SolanaError, VersionedTransaction,
         builder::InstructionBuilder,
         instructions::{
             program_ids::{system_program, token_program},
-            system::transfer,
+            system::{ADVANCE_NONCE_ACCOUNT_DISCRIMINANT, transfer},
             token::transfer_checked,
         },
-        testkit::TEST_BLOCKHASH,
+        testkit::{TEST_BLOCKHASH, mock_v0_transaction},
     };
 
     #[test]
@@ -188,28 +194,32 @@ mod tests {
 
         let mut data = 2u32.to_le_bytes().to_vec();
         data.extend_from_slice(&123u64.to_le_bytes());
+        assert_eq!(parsed, mock_v0_transaction(vec![fee_payer, recipient, system_program()], vec![CompiledInstruction::mock(2, vec![0, 1], data)], vec![],));
+    }
+
+    #[test]
+    fn test_versioned_transaction_builder_keeps_the_nonce_account_static() {
+        let fee_payer = Pubkey::mock(1);
+        let nonce_account = Pubkey::mock(2);
+        let looked_up_account = Pubkey::mock(3);
+        let advance_nonce = InstructionBuilder::new(system_program())
+            .account(nonce_account, false, true)
+            .account(looked_up_account, false, false)
+            .data(ADVANCE_NONCE_ACCOUNT_DISCRIMINANT.to_vec())
+            .build();
+        let lookup_table = AddressLookupTableAccount::new(Pubkey::mock(4), vec![nonce_account, looked_up_account]);
+
+        let mut builder = TransactionBuilder::new(fee_payer, TEST_BLOCKHASH);
+        builder.add_instruction(advance_nonce);
+        let transaction = builder.build_v0(&[lookup_table]).unwrap();
+
         assert_eq!(
-            parsed,
-            VersionedTransaction::V0 {
-                signatures: vec![SignatureBytes::default()],
-                message: VersionedMessageV0 {
-                    message: Message {
-                        header: MessageHeader {
-                            num_required_signatures: 1,
-                            num_readonly_signed_accounts: 0,
-                            num_readonly_unsigned_accounts: 1
-                        },
-                        account_keys: vec![fee_payer, recipient, system_program()],
-                        recent_blockhash: TEST_BLOCKHASH,
-                        instructions: vec![CompiledInstruction {
-                            program_id_index: 2,
-                            accounts: vec![0, 1],
-                            data
-                        }],
-                    },
-                    address_table_lookups: vec![],
-                },
-            }
+            transaction,
+            mock_v0_transaction(
+                vec![fee_payer, nonce_account, system_program()],
+                vec![CompiledInstruction::mock(2, vec![1, 3], ADVANCE_NONCE_ACCOUNT_DISCRIMINANT.to_vec())],
+                vec![MessageAddressTableLookup::new(Pubkey::mock(4), vec![], vec![1])],
+            )
         );
     }
 
@@ -232,26 +242,11 @@ mod tests {
 
         assert_eq!(
             parsed,
-            VersionedTransaction::V0 {
-                signatures: vec![SignatureBytes::default()],
-                message: VersionedMessageV0 {
-                    message: Message {
-                        header: MessageHeader {
-                            num_required_signatures: 1,
-                            num_readonly_signed_accounts: 0,
-                            num_readonly_unsigned_accounts: 1
-                        },
-                        account_keys: vec![fee_payer, program_id],
-                        recent_blockhash: TEST_BLOCKHASH,
-                        instructions: vec![CompiledInstruction {
-                            program_id_index: 1,
-                            accounts: vec![0, 2],
-                            data: vec![1, 2, 3]
-                        }],
-                    },
-                    address_table_lookups: vec![MessageAddressTableLookup::new(Pubkey::mock(4), vec![0], vec![])],
-                },
-            }
+            mock_v0_transaction(
+                vec![fee_payer, program_id],
+                vec![CompiledInstruction::mock(1, vec![0, 2], vec![1, 2, 3])],
+                vec![MessageAddressTableLookup::new(Pubkey::mock(4), vec![0], vec![])],
+            )
         );
     }
 

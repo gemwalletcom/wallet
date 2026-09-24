@@ -1,9 +1,10 @@
 use crate::{
     Result,
-    instructions::program_ids::{associated_token_program, rent_sysvar, system_program},
+    instructions::program_ids::{associated_token_program, system_program},
     types::{AccountMeta, Instruction, Pubkey, find_program_address},
 };
 
+const CREATE_DISCRIMINANT: u8 = 0;
 const CREATE_IDEMPOTENT_DISCRIMINANT: u8 = 1;
 
 pub fn create_associated_token_account_idempotent(payer: &Pubkey, wallet: &Pubkey, mint: &Pubkey, token_program: &Pubkey) -> Result<Instruction> {
@@ -21,10 +22,13 @@ pub fn create_associated_token_account_idempotent_with_address(payer: &Pubkey, a
             AccountMeta::new_readonly(*mint),
             AccountMeta::new_readonly(system_program()),
             AccountMeta::new_readonly(*token_program),
-            AccountMeta::new_readonly(rent_sysvar()),
         ],
         data: vec![CREATE_IDEMPOTENT_DISCRIMINANT],
     }
+}
+
+pub fn is_create_account_data(data: &[u8]) -> bool {
+    data.is_empty() || data == [CREATE_DISCRIMINANT] || data == [CREATE_IDEMPOTENT_DISCRIMINANT]
 }
 
 pub fn get_associated_token_address_with_program_id(wallet: &Pubkey, mint: &Pubkey, token_program: &Pubkey) -> Result<Pubkey> {
@@ -49,8 +53,10 @@ mod tests {
 
         let instruction = create_associated_token_account_idempotent(&payer, &wallet, &mint, &token_program()).unwrap();
         assert_eq!(instruction.program_id, associated_token_program());
-        assert_eq!(instruction.accounts[1].pubkey, token_address);
-        assert_eq!(instruction.accounts[5].pubkey, token_program());
+        assert_eq!(
+            instruction.accounts.iter().map(|account| account.pubkey).collect::<Vec<_>>(),
+            vec![payer, token_address, wallet, mint, system_program(), token_program()]
+        );
         assert_eq!(instruction.data, [CREATE_IDEMPOTENT_DISCRIMINANT]);
     }
 }
