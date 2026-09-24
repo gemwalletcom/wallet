@@ -6,24 +6,31 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemServiceStatusInterface
 import javax.inject.Inject
 
 @HiltViewModel
 class ServiceStatusViewModel @Inject constructor(private val service: GemServiceStatusInterface) : ViewModel() {
-    private val _sections = MutableStateFlow(service.sections())
-    val sections = _sections.asStateFlow()
+    private val session = MutableStateFlow(service.newSession())
+    val sections = session.map { it.sections() }.stateIn(viewModelScope, SharingStarted.Eagerly, session.value.sections())
     private var fetchJob: Job? = null
 
     fun fetch() {
         fetchJob?.cancel()
-        _sections.value = service.sections()
+        session.value = service.newSession()
         fetchJob = viewModelScope.launch {
-            val result = service.load()
-            ensureActive()
-            _sections.value = result
+            session.value.targets().forEach { target ->
+                launch {
+                    val status = service.status(target)
+                    ensureActive()
+                    session.update { it.onStatus(target, status) }
+                }
+            }
         }
     }
 }

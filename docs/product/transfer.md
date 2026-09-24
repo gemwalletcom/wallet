@@ -39,6 +39,7 @@ flowchart LR
 
 - Nothing is signed or sent without the confirmation screen showing the amount, recipient, network and fee.
 - A simulation that cannot answer never blocks sending; a simulation that finds a risk shows it before the user confirms.
+- When a network rejects a sent transaction, the user sees the network's own reason, because it is often the only explanation there is.
 - Dash sends standard non-replaceable payments, which the Dash network automatically attempts to lock with InstantSend when their inputs are eligible; until the provider exposes that lock, Activity remains Pending until the transaction is mined.
 
 ## Test codes
