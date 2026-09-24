@@ -50,7 +50,7 @@ fun PortfolioChartScene(onCancel: () -> Unit, viewModel: PortfolioChartViewModel
     val showSegmentedControl by viewModel.showSegmentedControl.collectAsStateWithLifecycle()
     val selectedChartType by viewModel.selectedChartType.collectAsStateWithLifecycle()
     val state by viewModel.chartUIState.collectAsStateWithLifecycle()
-    val showChartTypePicker = selectedType == PortfolioType.Perpetuals
+    val showChartTypePicker by viewModel.showChartTypePicker.collectAsStateWithLifecycle()
 
     Scene(
         titleContent = {

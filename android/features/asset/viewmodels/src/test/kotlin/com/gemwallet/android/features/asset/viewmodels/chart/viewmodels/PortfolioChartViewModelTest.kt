@@ -3,7 +3,6 @@ package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockPortfolioData
@@ -54,7 +53,6 @@ class PortfolioChartViewModelTest {
     private val getSession = mockk<GetSession> {
         every { this@mockk.invoke() } returns sessionFlow
     }
-    private val observePerpetualWallet = mockk<ObservePerpetualWallet>(relaxed = true)
     private val service = mockk<uniffi.gemstone.GemPortfolioServiceInterface>()
 
     private fun stubPortfolio(type: PortfolioType? = null, period: ChartPeriod? = null, data: PortfolioData) {
@@ -71,7 +69,7 @@ class PortfolioChartViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        every { observePerpetualWallet() } returns flowOf(null)
+        every { service.showPerpetuals(any(), any()) } returns false
     }
 
     @After
@@ -191,7 +189,6 @@ class PortfolioChartViewModelTest {
     private fun createViewModel(initialType: PortfolioType = PortfolioType.Wallet) = PortfolioChartViewModel(
         service = service,
         getSession = getSession,
-        observePerpetualWallet = observePerpetualWallet,
         initialType = initialType,
         connectionStatusObserver = mockk(relaxed = true),
         ioDispatcher = testDispatcher,

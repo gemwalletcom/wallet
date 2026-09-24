@@ -188,11 +188,13 @@ fun AssetsScreen(onAction: (AssetsAction) -> Unit, onContentReady: () -> Unit = 
                         }
                     }
                 }
-                item(key = PerpetualsSectionItemKey) {
-                    PerpetualsPreviewSection(
-                        onOpenPerpetuals = { onAction(AssetsAction.Perpetuals) },
-                        onOpenPerpetualDetails = { onAction(AssetsAction.OpenPerpetualDetails(it)) },
-                    )
+                if (walletSummary?.showPerpetuals == true) {
+                    item(key = PerpetualsSectionItemKey) {
+                        PerpetualsPreviewSection(
+                            onOpenPerpetuals = { onAction(AssetsAction.Perpetuals) },
+                            onOpenPerpetualDetails = { onAction(AssetsAction.OpenPerpetualDetails(it)) },
+                        )
+                    }
                 }
                 assets(
                     items = pinnedAssets,

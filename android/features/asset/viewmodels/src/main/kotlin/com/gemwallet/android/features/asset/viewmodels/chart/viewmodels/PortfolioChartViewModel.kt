@@ -7,12 +7,11 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
-import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWallet
+import com.gemwallet.android.ext.chainIds
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
-import com.gemwallet.android.features.asset.viewmodels.chart.models.StopTimeoutMillis
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.StateViewType
 import com.wallet.core.primitives.ChartPeriod
@@ -49,7 +48,6 @@ import javax.inject.Inject
 class PortfolioChartViewModel internal constructor(
     private val service: GemPortfolioServiceInterface,
     getSession: GetSession,
-    observePerpetualWallet: ObservePerpetualWallet,
     initialType: PortfolioType,
     connectionStatusObserver: ConnectionStatusObserver,
     private val ioDispatcher: CoroutineDispatcher,
@@ -91,9 +89,13 @@ class PortfolioChartViewModel internal constructor(
         .map { state -> ChartUIModel.State(period = state.period.toPrimitives(), chart = state.phase.chartState()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ChartUIModel.State())
 
-    val showSegmentedControl = observePerpetualWallet()
-        .map { it != null }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), false)
+    val showSegmentedControl: StateFlow<Boolean> = wallet
+        .map { wallet -> wallet?.let { service.showPerpetuals(it.type.toGem(), it.chainIds) } ?: false }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val showChartTypePicker: StateFlow<Boolean> = viewState
+        .map { it.showsChartTypePicker }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.showsChartTypePicker)
 
     val refreshIntervalMillis = connectionStatusObserver.refreshIntervalMillis(GemRefreshKind.CHART)
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
@@ -138,7 +140,6 @@ class PortfolioChartViewModel internal constructor(
     constructor(
         service: GemPortfolioServiceInterface,
         getSession: GetSession,
-        observePerpetualWallet: ObservePerpetualWallet,
         savedStateHandle: SavedStateHandle,
         connectionStatusObserver: ConnectionStatusObserver,
         @IoDispatcher ioDispatcher: CoroutineDispatcher,
@@ -146,7 +147,6 @@ class PortfolioChartViewModel internal constructor(
     ) : this(
         service = service,
         getSession = getSession,
-        observePerpetualWallet = observePerpetualWallet,
         initialType = savedStateHandle.portfolioType(),
         connectionStatusObserver = connectionStatusObserver,
         ioDispatcher = ioDispatcher,

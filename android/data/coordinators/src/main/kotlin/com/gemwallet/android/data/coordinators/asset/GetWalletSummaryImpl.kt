@@ -45,7 +45,8 @@ class GetWalletSummaryImpl(
             getPerpetualBalance.getCollateral(),
             bannerStore.observeWalletBanners(wallet.id.id, walletBannerEvents().map { it.toPrimitives() }),
             userConfig.isHideBalances(),
-        ) { balances, perpetualBalance, banners, hideBalances ->
+            userConfig.isPerpetualEnabled(),
+        ) { balances, perpetualBalance, banners, hideBalances, _ ->
             val state = walletHomeService.viewState(
                 wallet = wallet.toGem(),
                 balances = balances,

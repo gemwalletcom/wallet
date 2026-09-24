@@ -18,5 +18,6 @@ interface WalletSummaryAggregate {
     val changeTone: GemValueTone get() = state.pnlTone
     val headerActions: GemHeaderActions get() = state.headerActions
     val showCollections: Boolean get() = state.showCollections
+    val showPerpetuals: Boolean get() = state.showsPerpetuals
     val banners: List<GemBannerRow> get() = state.visibleBanners
 }
