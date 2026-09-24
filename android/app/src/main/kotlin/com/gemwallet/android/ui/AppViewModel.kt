@@ -9,12 +9,9 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
-import com.gemwallet.android.application.session.cases.GetCurrentWallet
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.application.update.cases.SyncAppUpdate
-import com.gemwallet.android.application.wallet.cases.GetWallets
-import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
@@ -33,29 +30,27 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAppStartServiceInterface
+import uniffi.gemstone.GemWalletSessionServiceInterface
 import javax.inject.Inject
 
 @HiltViewModel
 class AppViewModel @Inject constructor(
     private val getSession: GetSession,
-    private val getCurrentWallet: GetCurrentWallet,
-    private val setCurrentWallet: SetCurrentWallet,
     private val userConfig: UserConfig,
     private val getPushEnabled: GetPushEnabled,
     private val switchPushEnabled: SwitchPushEnabled,
-    private val getWallets: GetWallets,
     private val syncAppUpdate: SyncAppUpdate,
     private val skipAppUpdate: SkipAppUpdate,
     private val notificationsAvailable: NotificationsAvailable,
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
     private val appStartService: GemAppStartServiceInterface,
+    private val walletSessionService: GemWalletSessionServiceInterface,
     getWalletSummary: GetWalletSummary,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -169,21 +164,9 @@ class AppViewModel @Inject constructor(
     }
 
     private suspend fun getStartDestination(): NavKey = withContext(ioDispatcher) {
-        if (getCurrentWallet.getCurrentWallet() != null) {
-            WalletRootRoute
-        } else {
-            val wallet = getWallets().firstOrNull()
-                ?.filter { it.accounts.isNotEmpty() }
-                ?.sortedWith(compareBy({ it.index }, { it.id.id }))
-                ?.firstOrNull()
-            if (wallet != null) {
-                if (getCurrentWallet.getCurrentWallet() == null) {
-                    setCurrentWallet.setCurrentWallet(wallet.id)
-                }
-                WalletRootRoute
-            } else {
-                OnboardingRoute
-            }
+        when (walletSessionService.ensureCurrentWallet()) {
+            null -> OnboardingRoute
+            else -> WalletRootRoute
         }
     }
 

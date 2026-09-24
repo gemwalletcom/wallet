@@ -9,6 +9,7 @@ use primitives::{Wallet, WalletId};
 
 use crate::services::error::GemServiceError;
 use crate::services::wallet::GemWalletStore;
+use crate::services::wallet::rules::next_current_wallet;
 
 pub use store::GemWalletSessionStore;
 
@@ -43,6 +44,15 @@ impl GemWalletSessionService {
             Some(wallet_id) => self.wallets.get_wallet(wallet_id).await,
             None => Ok(None),
         }
+    }
+
+    pub async fn ensure_current_wallet(&self) -> Result<Option<WalletId>, GemServiceError> {
+        if self.get_current_wallet().await?.is_some() {
+            return self.store.get_current_wallet_id();
+        }
+        let wallet_id = next_current_wallet(&self.wallets.get_wallets().await?);
+        self.set_current_wallet_id(wallet_id.clone())?;
+        Ok(wallet_id)
     }
 
     pub fn shows_rewards(&self, wallets: Vec<Wallet>) -> bool {
@@ -85,13 +95,40 @@ mod tests {
     use crate::services::wallet::testkit::MemoryWalletStore;
 
     fn service(wallet: Option<Wallet>, current: Option<WalletId>) -> GemWalletSessionService {
+        service_with(wallet.into_iter().collect(), current)
+    }
+
+    fn service_with(wallets: Vec<Wallet>, current: Option<WalletId>) -> GemWalletSessionService {
         GemWalletSessionService::new(
             Arc::new(MemoryWalletSessionStore { current: Mutex::new(current) }),
             Arc::new(MemoryWalletStore {
-                wallets: Mutex::new(wallet.into_iter().collect()),
+                wallets: Mutex::new(wallets),
                 ..Default::default()
             }),
         )
+    }
+
+    #[test]
+    fn test_a_launch_without_a_current_wallet_recovers_one_from_the_stored_wallets() {
+        block_on(async {
+            let mut view = Wallet::mock_with_id(WalletId::View(primitives::Chain::Ethereum, "0xv".to_string()), &[primitives::Chain::Ethereum]);
+            view.index = 0;
+            let mut multicoin = Wallet::mock_with_id(WalletId::Multicoin("0x1".to_string()), &[primitives::Chain::Ethereum]);
+            multicoin.index = 1;
+
+            let missing = service_with(vec![view.clone(), multicoin.clone()], None);
+            assert_eq!(missing.ensure_current_wallet().await.unwrap(), Some(multicoin.id.clone()));
+            assert_eq!(missing.get_current_wallet_id().unwrap(), Some(multicoin.id.clone()));
+
+            let stale = service_with(vec![view.clone()], Some(multicoin.id.clone()));
+            assert_eq!(stale.ensure_current_wallet().await.unwrap(), Some(view.id.clone()), "a current id whose wallet is gone is replaced");
+
+            let kept = service_with(vec![view.clone(), multicoin], Some(view.id.clone()));
+            assert_eq!(kept.ensure_current_wallet().await.unwrap(), Some(view.id));
+
+            let none = service_with(vec![], None);
+            assert_eq!(none.ensure_current_wallet().await.unwrap(), None);
+        })
     }
 
     #[test]

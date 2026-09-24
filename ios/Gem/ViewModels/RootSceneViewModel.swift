@@ -111,6 +111,7 @@ final class RootSceneViewModel {
 extension RootSceneViewModel {
     func setup() {
         rateService.requestReviewIfDue()
+        Task { await ensureCurrentWallet() }
         Task { await checkForUpdate() }
         Task { await appLifecycleService.setup() }
         Task { await setupWallets() }
@@ -176,6 +177,14 @@ extension RootSceneViewModel {
                 debugLog("wallet start \(failure.step) failed: \(failure.message)")
             }
             await appLifecycleService.updateWalletConnections()
+        }
+    }
+
+    private func ensureCurrentWallet() async {
+        do {
+            _ = try await walletSessionService.ensureCurrentWallet()
+        } catch {
+            debugLog("current wallet recovery failed: \(error)")
         }
     }
 

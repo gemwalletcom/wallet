@@ -4,18 +4,14 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
-import com.gemwallet.android.application.session.cases.GetCurrentWallet
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.application.update.cases.SyncAppUpdate
-import com.gemwallet.android.application.wallet.cases.GetWallets
-import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.model.AppUpdateChannel
 import com.gemwallet.android.model.AppUpdateOffer
 import com.gemwallet.android.testkit.mockAppUpdateOffer
-import com.gemwallet.android.testkit.mockWalletMulticoin
 import com.gemwallet.android.ui.AppViewModel
 import com.gemwallet.android.ui.navigation.WalletRootRoute
 import io.mockk.coEvery
@@ -39,6 +35,7 @@ import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAppStartServiceInterface
+import uniffi.gemstone.GemWalletSessionServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AppViewModelTest {
@@ -56,18 +53,10 @@ class AppViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private val wallet = mockWalletMulticoin()
-
-    private fun viewModel(
-        current: com.wallet.core.primitives.Wallet? = null,
-        wallets: List<com.wallet.core.primitives.Wallet> = emptyList(),
-        update: AppUpdateOffer? = null,
-        setCurrent: SetCurrentWallet = mockk(relaxed = true),
-        skip: SkipAppUpdate = mockk(relaxed = true),
-    ): AppViewModel {
+    private fun viewModel(currentWalletId: String? = null, update: AppUpdateOffer? = null, skip: SkipAppUpdate = mockk(relaxed = true)): AppViewModel {
         val session: GetSession = mockk { every { this@mockk.invoke() } returns MutableStateFlow(null) }
-        val currentWallet: GetCurrentWallet = mockk(relaxed = true) {
-            coEvery { getCurrentWallet() } returns current
+        val walletSession: GemWalletSessionServiceInterface = mockk {
+            coEvery { ensureCurrentWallet() } returns currentWalletId
         }
         val config: UserConfig = mockk(relaxed = true) {
             every { isTermsAccepted() } returns flowOf(true)
@@ -75,22 +64,19 @@ class AppViewModelTest {
             every { shouldRequestReview() } returns false
         }
         val push: GetPushEnabled = mockk { every { getPushEnabled() } returns flowOf(true) }
-        val getWallets: GetWallets = mockk { every { this@mockk.invoke() } returns flowOf(wallets) }
         val sync: SyncAppUpdate = mockk { coEvery { syncAppUpdate() } returns update }
         val summary: GetWalletSummary = mockk { every { getWalletSummary() } returns flowOf(null) }
         return AppViewModel(
             session,
-            currentWallet,
-            setCurrent,
             config,
             push,
             mockk<SwitchPushEnabled>(relaxed = true),
-            getWallets,
             sync,
             skip,
             true,
             mockk(relaxed = true),
             mockk<GemAppStartServiceInterface>(relaxed = true),
+            walletSession,
             summary,
             dispatcher,
         ).also { models.add(it) }
@@ -104,12 +90,10 @@ class AppViewModelTest {
     }
 
     @Test
-    fun `a stored wallet with accounts becomes the current one and starts on the wallet`() = runTest(dispatcher) {
-        val setCurrent: SetCurrentWallet = mockk(relaxed = true)
-        val model = viewModel(wallets = listOf(wallet), setCurrent = setCurrent)
+    fun `a current wallet Core ensured starts on the wallet`() = runTest(dispatcher) {
+        val model = viewModel(currentWalletId = "multicoin_0x1")
 
         assertEquals(WalletRootRoute, model.startDestinationState.first { it != null })
-        coVerify { setCurrent.setCurrentWallet(wallet.id) }
     }
 
     @Test
