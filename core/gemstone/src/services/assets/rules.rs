@@ -9,7 +9,7 @@ use primitives::{
 
 use super::model::{
     AssetList, GemAssetAction, GemAssetBalanceScope, GemAssetDetailRow, GemAssetDetailSection, GemAssetDetailsState, GemAssetEmptyAction, GemAssetFilter, GemAssetListRow, GemAssetListRowInput, GemAssetMenuAction, GemAssetMenuInput,
-    GemAssetNetworkDestination, GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemHeaderActions, GemHeaderButton, GemHeaderButtonKind,
+    GemAssetNetworkDestination, GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemFeeAmount, GemHeaderActions, GemHeaderButton, GemHeaderButtonKind,
     GemNetworkAssetIds, GemNetworkAssetSections, GemPriceRow, GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetState, GemSelectAssetTitle, GemSelectAssetType, GemSelectRowAction, GemWalletSearchCounts,
     GemWalletSearchLimits, GemWalletSearchState,
 };
@@ -20,7 +20,7 @@ use crate::models::custom_types::GemBigUint;
 use crate::models::list::{GemListRow, GemListRowIcon, GemListRowTitle, GemListSectionTitle};
 use crate::percentage::GemPercentageStyle;
 use crate::perpetual::GemPerpetual;
-use crate::precision::GemCurrencyStyle;
+use crate::precision::{GemCurrencyStyle, GemValueStyle};
 use crate::services::balance::rules::{balance_amount, balance_resource_rows};
 use crate::services::balance::{GemAssetBalance, GemAssetBalanceRow, GemBalanceRow, GemBalanceRowValue};
 use crate::services::nft::rules::nft_chains;
@@ -497,6 +497,14 @@ pub fn asset_title(asset: &Asset) -> String {
 
 pub fn fiat_value(asset: &Asset, balance: &GemAssetBalance, price: Option<f64>, currency: Currency) -> Option<GemFormattedNumber> {
     fiat_amount(asset, &balance.total(), price, currency, GemCurrencyStyle::Currency)
+}
+
+pub fn fee_amount(asset: &Asset, value: &num_bigint::BigInt, price: Option<f64>, currency: Currency) -> GemFeeAmount {
+    let amount = GemFormattedNumber::asset_amount(value, asset, GemValueStyle::Auto);
+    GemFeeAmount {
+        fiat: price.map(|price| GemFormattedNumber::currency(amount.value * price, currency, GemCurrencyStyle::Currency)),
+        amount,
+    }
 }
 
 pub fn fiat_amount_of(asset: &Asset, value: &num_bigint::BigUint, price: Option<f64>, currency: Currency, style: GemCurrencyStyle) -> Option<GemFormattedNumber> {
@@ -997,6 +1005,17 @@ mod tests {
         assert_eq!(fiat_equivalent(eth.clone(), one, None, Currency::USD), None);
         assert_eq!(fiat_equivalent(eth.clone(), GemBigInt::from(0), Some(2000.0), Currency::USD), None);
         assert_eq!(fiat_equivalent(eth, GemBigInt::from(-5), Some(2000.0), Currency::USD), None);
+    }
+
+    #[test]
+    fn test_a_fee_reads_in_its_asset_and_in_fiat_when_priced() {
+        let eth = Asset::from_chain(Chain::Ethereum);
+        let fee = num_bigint::BigInt::from(10u64.pow(15));
+
+        let priced = fee_amount(&eth, &fee, Some(2000.0), Currency::USD);
+        assert_eq!(priced.amount.value, 0.001);
+        assert_eq!(priced.fiat.map(|fiat| fiat.value), Some(2.0));
+        assert_eq!(fee_amount(&eth, &fee, None, Currency::USD).fiat, None);
     }
 
     #[test]

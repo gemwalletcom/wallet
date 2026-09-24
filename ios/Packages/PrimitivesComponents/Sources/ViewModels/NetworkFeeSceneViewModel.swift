@@ -2,7 +2,9 @@
 
 import BigInt
 import Components
+import func Gemstone.feeAmount
 import enum Gemstone.GemConfirmFeeSelection
+import struct Gemstone.GemFeeAmount
 import struct Gemstone.GemFeeOptionItem
 import struct Gemstone.GemFeeRateRow
 import struct Gemstone.GemFeeRateRows
@@ -57,8 +59,8 @@ public struct NetworkFeeSceneViewModel {
 
     public var title: String { Localized.Transfer.networkFee }
     public var infoIcon: String { Localized.FeeRates.info }
-    public var value: String? { feeAmount.map { display(for: $0).amount.text } }
-    public var fiatValue: String? { feeAmount.flatMap { display(for: $0).fiat?.text } }
+    public var value: String? { feeAmount.map { display(for: $0).amount.text() } }
+    public var fiatValue: String? { feeAmount.flatMap { display(for: $0).fiat?.text() } }
     public var showFeeRates: Bool { feeRates?.showsOptions ?? false }
     public var showFeeDetails: Bool { showFeeAssets || feeRates != nil }
     public var feeAssetSymbol: String? { showFeeAssets && fiatValue != nil ? feeAsset.symbol : nil }
@@ -66,7 +68,7 @@ public struct NetworkFeeSceneViewModel {
     var feeItems: [ListItemModel] {
         additionalFees.map { item in
             let amount = display(for: item.value)
-            return ListItemModel(title: item.option.title, subtitle: amount.amount.text, subtitleExtra: amount.fiat?.text)
+            return ListItemModel(title: item.option.title, subtitle: amount.amount.text(), subtitleExtra: amount.fiat?.text())
         }
     }
 
@@ -96,7 +98,7 @@ public struct NetworkFeeSceneViewModel {
     }
 
     public func fiatValueForRate(_ rate: FeeRateViewModel) -> String? {
-        rate.fee.flatMap { display(for: $0).fiat?.text }
+        rate.fee.flatMap { display(for: $0).fiat?.text() }
     }
 
     // MARK: - Custom Fee
@@ -150,13 +152,7 @@ private extension NetworkFeeSceneViewModel {
         )
     }
 
-    func display(for amount: BigInt) -> AmountDisplay {
-        AmountDisplay.numeric(
-            asset: feeAsset,
-            price: feeAssetPrice,
-            value: amount,
-            currency: currency.rawValue,
-            formatter: .auto,
-        )
+    func display(for amount: BigInt) -> GemFeeAmount {
+        Gemstone.feeAmount(asset: feeAsset.toGem(), value: amount, price: feeAssetPrice?.price, currency: currency.toGem())
     }
 }

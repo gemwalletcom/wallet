@@ -456,6 +456,17 @@ pub struct GemNetworkAssetIds {
     pub sections: GemNetworkAssetSections,
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemFeeAmount {
+    pub amount: GemFormattedNumber,
+    pub fiat: Option<GemFormattedNumber>,
+}
+
+#[uniffi::export]
+pub fn fee_amount(asset: Asset, value: GemBigInt, price: Option<f64>, currency: Currency) -> GemFeeAmount {
+    super::rules::fee_amount(&asset, &value, price, currency)
+}
+
 #[uniffi::export]
 pub fn fiat_equivalent(asset: Asset, value: GemBigInt, price: Option<f64>, currency: Currency) -> Option<GemFormattedNumber> {
     let value = value.to_biguint()?;

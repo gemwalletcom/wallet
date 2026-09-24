@@ -1,12 +1,12 @@
 package com.gemwallet.android.domains.confirm
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AssetPriceValue
-import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.CryptoFiatConverter
-import com.gemwallet.android.model.CurrencyFormatter
+import com.gemwallet.android.model.text
 import com.wallet.core.primitives.FeePriority
 import uniffi.gemstone.GemFeeRateRow
+import uniffi.gemstone.feeAmount
 
 data class FeeRateUIModel(val row: GemFeeRateRow, val feeAsset: AssetPriceValue) {
     val priority: FeePriority = row.priority.toPrimitives()
@@ -15,8 +15,7 @@ data class FeeRateUIModel(val row: GemFeeRateRow, val feeAsset: AssetPriceValue)
         get() {
             val priceInfo = feeAsset.price ?: return ""
             val fee = row.fee ?: return ""
-            val fiat = CryptoFiatConverter.toFiat(Crypto(fee), feeAsset.asset.decimals, priceInfo.price.price)
-            return CurrencyFormatter(currency = priceInfo.currency).string(fiat.atomicValue)
+            return feeAmount(feeAsset.asset.toGem(), fee, priceInfo.price.price, priceInfo.currency.toGem()).fiat?.text().orEmpty()
         }
 
     val emoji: String

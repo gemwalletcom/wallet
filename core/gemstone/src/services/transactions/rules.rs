@@ -18,7 +18,8 @@ use crate::config::image::GemImage;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::asset::wallet_default_assets;
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
-use crate::precision::{GemCurrencyStyle, GemValueStyle};
+use crate::precision::GemValueStyle;
+use crate::services::assets::rules::fee_amount;
 use crate::services::collections::unique;
 use crate::services::localization::GemLocalizedText;
 use crate::services::swap::model::GemSwapRate;
@@ -168,11 +169,12 @@ pub fn detail_rows(extended: &TransactionExtended, wallet_type: WalletType, part
 }
 
 fn fee_row(fee: &GemTransactionAmount, currency: Currency) -> GemTransactionFeeRow {
-    let value = BigNumberFormatter::f64_value(fee.value.to_string(), fee.asset.decimals as u32);
+    let value = num_bigint::BigInt::from(fee.value.clone());
+    let display = fee_amount(&fee.asset, &value, fee.price.as_ref().map(|price| price.price), currency);
     GemTransactionFeeRow {
         title: GemListRowTitle::NetworkFee,
-        amount: GemFormattedNumber::amount(value, Some(fee.asset.symbol.clone()), GemValueStyle::Auto),
-        fiat: fee.price.as_ref().map(|price| GemFormattedNumber::currency(value * price.price, currency, GemCurrencyStyle::Currency)),
+        amount: display.amount,
+        fiat: display.fiat,
         info: GemInfoTopic::NetworkFee { asset: fee.asset.clone() },
     }
 }
@@ -1186,7 +1188,7 @@ mod tests {
         };
         assert_eq!(
             detail_rows(&priced, WalletType::Multicoin, None, explorer.clone(), Currency::USD).fee_row.fiat,
-            Some(GemFormattedNumber::currency(unnamed.fee_row.amount.value * 4.0, Currency::USD, GemCurrencyStyle::Currency))
+            Some(GemFormattedNumber::currency(unnamed.fee_row.amount.value * 4.0, Currency::USD, crate::precision::GemCurrencyStyle::Currency))
         );
         assert!(matches!(unnamed.header, GemTransactionHeader::Amount { shows_fiat: true, .. }));
         assert_eq!(

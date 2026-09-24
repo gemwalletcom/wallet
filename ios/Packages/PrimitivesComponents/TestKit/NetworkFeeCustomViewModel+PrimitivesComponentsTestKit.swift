@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import func Gemstone.feeAmount
 import struct Gemstone.GemFeeRateRows
 import GemstonePrimitives
 import Primitives
@@ -35,7 +36,7 @@ public extension NetworkFeeCustomViewModel {
             baseFee: baseFee,
             initialRate: initialRate,
             onSelect: onSelect,
-            display: { AmountDisplay.numeric(asset: feeAsset, price: nil, value: $0, currency: Currency.usd.rawValue, formatter: .auto) },
+            display: { feeAmount(asset: feeAsset.toGem(), value: $0, price: nil, currency: .usd) },
         )
     }
 }

@@ -5,6 +5,7 @@ import Components
 import Formatters
 import Foundation
 import class Gemstone.GemCustomFee
+import struct Gemstone.GemFeeAmount
 import struct Gemstone.GemFeeRateRows
 import GemstonePrimitives
 import Localization
@@ -19,7 +20,7 @@ public final class NetworkFeeCustomViewModel {
     private let rows: GemFeeRateRows
     private let baseFee: BigInt?
     private let onSelect: @MainActor (BigInt) -> Void
-    private let display: (BigInt) -> AmountDisplay
+    private let display: (BigInt) -> GemFeeAmount
 
     public var input: String = ""
 
@@ -30,7 +31,7 @@ public final class NetworkFeeCustomViewModel {
         baseFee: BigInt?,
         initialRate: BigInt?,
         onSelect: @escaping @MainActor (BigInt) -> Void,
-        display: @escaping (BigInt) -> AmountDisplay,
+        display: @escaping (BigInt) -> GemFeeAmount,
     ) {
         self.chain = chain
         self.feeAsset = feeAsset
@@ -57,11 +58,11 @@ public final class NetworkFeeCustomViewModel {
     }
 
     public var value: String? {
-        feeAmount.map { display($0).amount.text }
+        feeAmount.map { display($0).amount.text() }
     }
 
     public var fiatValue: String? {
-        feeAmount.flatMap { display($0).fiat?.text }
+        feeAmount.flatMap { display($0).fiat?.text() }
     }
 
     public var errorText: String? {
