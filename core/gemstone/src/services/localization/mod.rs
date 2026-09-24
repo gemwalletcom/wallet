@@ -1,4 +1,4 @@
-use primitives::{Chain, DelegationState, FeeUnitType, PerpetualDirection, PerpetualMarginType, Resource, StakeProviderType, TransactionState};
+use primitives::{AddressType, Chain, DelegationState, FeeUnitType, PerpetualDirection, PerpetualMarginType, Resource, StakeProviderType, TransactionState};
 
 use crate::duration_formatter::GemDurationPart;
 use crate::formatted_number::GemFormattedNumber;
@@ -24,6 +24,7 @@ pub enum GemLocalizedText {
     UnlimitedApprovalWarning,
     ExternallyOwnedSpenderWarning,
     SuspiciousAddress,
+    AddressType { address_type: AddressType },
     InvalidTokenId,
     TriggerOrder { order: GemTriggerOrder, price: Option<GemFormattedNumber> },
     Pnl { amount: GemFormattedNumber, percent: GemFormattedNumber },

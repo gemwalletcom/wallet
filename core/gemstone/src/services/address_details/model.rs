@@ -1,4 +1,4 @@
-use primitives::{Chain, block_explorer::BlockExplorerLink};
+use primitives::{AddressType, Chain, VerificationStatus, block_explorer::BlockExplorerLink};
 
 use super::rules;
 use crate::models::copy::GemCopy;
@@ -11,6 +11,8 @@ pub struct GemAddressDetails {
     pub chain: Chain,
     pub address: String,
     pub name: Option<String>,
+    pub address_type: Option<AddressType>,
+    pub status: VerificationStatus,
     pub copy: GemCopy,
     pub link: BlockExplorerLink,
     pub state: GemLoadState,
