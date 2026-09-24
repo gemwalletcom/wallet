@@ -27,7 +27,7 @@ These need no further answer; work them in this order, one family per change.
 6. **Settled differences:** VM102, VM124, VM126, VM127, VM128, VM129, VM92, BD58, D74, D75, BD59, BD60, BD61, BD62, BD63, BD64, BD56, AUD50.
 7. **One view state:** VM168, VM167, VM169, VM170, VM171, VM144, VM125, VM134, VM89.
 8. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
-9. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), then VM6.
+9. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
 10. **Balances and storage:** D76, D77, VM98 (an Android migration).
 11. **Server:** BD23, BD51, BD52.
 
@@ -69,7 +69,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | Retain platform-only privacy lock |
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | BD58, D75 |
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | VM175, BD59; retain Android-only one-click auth |
-| Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per module | VM6, VM64, VM88, VM89, VM172, D174 |
+| Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per module | VM6, VM64, VM88, VM89, VM172, VM180, D174 |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
 | Stores and persistence | `Gem*Store` traits and both adapters | VM98 |
 | Verification | Core `rules.rs` tests, `just check-*`, CI | VM177 |
@@ -209,6 +209,10 @@ The same product rule written in both apps, or in one app while the other reads 
   - **Duplicates:** `GemChainSettingsService::chains` and `GemAddAssetService::matching_chains` repeat `GemChainService::get_chains`/`get_matching_chains`; `GemNameService.is_name_supported` is iOS's pre-check of what `name_input_step` already asks (iOS follows Android's reset-then-`getNameRecord` order); `GemCandleSession.needs_candles` and `request` fold into one `request()`; the single-row `perpetual_position_row` and `transaction_row` beside their list forms; `GemWalletHomeService.asset_row_style`, a constant both apps hand straight back in every `GemAssetListRowInput` (Core picks the style from the input).
   - **Unread output fields:** `GemSwapViewState.quote_error`, `GemAutocloseViewState.shows_errors`, `GemWalletHomeViewState.total_value`, `ChainConfig.chain_type`.
   - **`GemPaymentService.load`:** Android calls `prepare` as iOS does, once `prepare_link` keeps `GemPaymentError` typed (today it flattens the error into `Gateway { msg }`, which would turn Android's localized toast into raw text); then `load` becomes a plain `impl`.
+- **VM180** **M** **One localization mapper and one style mapper per app.** The owner wants the Core-to-platform mappers in one file per app (2026-09-24); today [ARCHITECTURE § One mapper per module](ARCHITECTURE.md#one-mapper-per-module-names-every-core-key-it-renders) asks for two files per module, so the same Core enum can be mapped in several modules and `just check-mappers` compares module by module. Rewrite that section in the same change.
+  - **iOS:** 17 `Gemstone+Localized.swift` files (one per feature, plus `PrimitivesComponents` and `WalletConnectorService`) and 6 `Gemstone+Style.swift` files. They merge into `PrimitivesComponents/Extensions/Gemstone+Localized.swift` and `Gemstone+Style.swift`, which every feature already imports.
+  - **Android:** 25 `localization/GemstoneText.kt` files (`ui`, `app` and 23 feature modules) and 4 `style/GemstoneStyle.kt` files. They merge into `ui/localization/GemstoneText.kt` and `ui/style/GemstoneStyle.kt`, where the shared strings already live.
+  - **Expected:** one file of each per app; a mapper written in two modules (the same Core enum mapped twice) becomes one; `scripts/check-mapper-parity.py` compares the two app files directly.
 
 ## 6. Crossings: derive once per render
 
