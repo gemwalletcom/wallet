@@ -115,7 +115,7 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
             .balance(
                 balance: TextValue(
                     text: row.amount.text(),
-                    style: TextStyle(font: .callout, color: row.hasBalance ? Colors.black : Colors.gray, fontWeight: .semibold),
+                    style: TextStyle(font: .callout, color: row.amount.tone.color, fontWeight: .semibold),
                 ),
                 totalFiat: TextValue(
                     text: row.fiat?.text() ?? .empty,

@@ -15,7 +15,7 @@ use super::model::{
 };
 use crate::config::search_config::{ASSETS_INITIAL_LIMIT, ASSETS_SEARCH_LIMIT, NFTS_PREVIEW_LIMIT, PERPETUALS_PREVIEW_LIMIT, RESULTS_LIMIT};
 use crate::config::stake::EARN_OFFERED;
-use crate::formatted_number::GemFormattedNumber;
+use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigUint;
 use crate::models::list::{GemListRow, GemListRowIcon, GemListRowTitle, GemListSectionTitle};
 use crate::percentage::GemPercentageStyle;
@@ -240,9 +240,11 @@ pub fn asset_list_row(input: GemAssetListRowInput) -> GemAssetListRow {
         icon: super::icon::asset_icon(&asset.id),
         text: asset_row_text(&asset, style),
         price: price_row(price, change, currency.clone(), GemCurrencyStyle::Short),
-        amount: crate::services::balance::rules::balance_amount_styled(&value, &asset, crate::precision::GemValueStyle::Short),
+        amount: GemFormattedNumber {
+            tone: if value > GemBigUint::ZERO { GemValueTone::Plain } else { GemValueTone::Neutral },
+            ..crate::services::balance::rules::balance_amount_styled(&value, &asset, crate::precision::GemValueStyle::Short)
+        },
         fiat: fiat_amount(&asset, &value, price, currency, GemCurrencyStyle::Short),
-        has_balance: value > GemBigUint::ZERO,
     }
 }
 
@@ -747,7 +749,7 @@ mod tests {
         assert_eq!(total.amount.unit, crate::formatted_number::GemNumberUnit::Symbol { symbol: usdc.symbol.clone() });
         assert_eq!(total.fiat.expect("a priced balance is worth something").value, 3.0);
         assert_eq!(total.price, price_row(Some(1.0), Some(-2.5), Currency::USD, GemCurrencyStyle::Short), "the row's price is the list-width one");
-        assert!(total.has_balance);
+        assert_eq!(total.amount.tone, GemValueTone::Plain);
 
         let available = row(held.clone(), GemAssetBalanceScope::Available, Some(1.0));
         assert_eq!(available.amount.value, 1.0, "the buy screen spends what is available, not what is staked");
@@ -755,7 +757,7 @@ mod tests {
         assert_eq!(row(held, GemAssetBalanceScope::Total, None).fiat, None, "an unpriced asset is worth nothing the row can name");
 
         let empty = row(GemAssetBalance::mock(), GemAssetBalanceScope::Total, Some(1.0));
-        assert!(!empty.has_balance, "an empty balance greys the row on both apps");
+        assert_eq!(empty.amount.tone, GemValueTone::Neutral, "an empty balance greys the row on both apps");
         assert_eq!(empty.fiat, None);
     }
 

@@ -141,7 +141,6 @@ pub struct GemAssetListRow {
     pub price: GemPriceRow,
     pub amount: GemFormattedNumber,
     pub fiat: Option<GemFormattedNumber>,
-    pub has_balance: bool,
 }
 
 #[uniffi::export]
