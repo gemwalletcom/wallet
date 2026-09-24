@@ -19,17 +19,26 @@ import com.gemwallet.android.ui.components.list_item.dateSectionedList
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.rememberDateSections
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.models.navigation.RouteMessage
 import uniffi.gemstone.GemEmptyStateKind
 
 @Composable
-fun InAppNotificationsScene(onAction: (InAppNotificationsAction) -> Unit, viewModel: InAppNotificationsViewModel = hiltViewModel()) {
+fun InAppNotificationsScene(
+    message: RouteMessage?,
+    onMessageShown: () -> Unit,
+    onAction: (InAppNotificationsAction) -> Unit,
+    viewModel: InAppNotificationsViewModel = hiltViewModel(),
+) {
     val notifications by viewModel.notifications.collectAsStateWithLifecycle()
     val errorRow by viewModel.errorRow.collectAsStateWithLifecycle()
+    val snackbar = rememberSnackbarState(message = message, onShown = onMessageShown)
 
     Scene(
         title = stringResource(R.string.settings_notifications_title),
         onClose = { onAction(InAppNotificationsAction.Cancel) },
+        snackbar = snackbar,
     ) {
         val sections = rememberDateSections(notifications) { it.createdAt }
         if (notifications.isEmpty()) {

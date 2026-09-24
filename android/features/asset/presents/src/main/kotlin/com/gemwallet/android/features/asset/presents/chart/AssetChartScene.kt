@@ -11,12 +11,12 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.AssetChartViewModel
 import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.ChartViewModel
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.components.list_item.gemListSections
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
+import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChainAddress
 import uniffi.gemstone.GemListRowTitle
@@ -28,8 +28,8 @@ fun AssetChartScene(
     onPriceAlerts: (AssetId) -> Unit,
     onAddPriceAlertTarget: (AssetId) -> Unit,
     onOpenAddress: (ChainAddress) -> Unit,
-    toastMessage: String? = null,
-    onToastShown: () -> Unit = {},
+    message: RouteMessage?,
+    onMessageShown: () -> Unit,
     viewModel: AssetChartViewModel = hiltViewModel(),
     chartViewModel: ChartViewModel = hiltViewModel(),
 ) {
@@ -39,11 +39,7 @@ fun AssetChartScene(
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val title by viewModel.title.collectAsStateWithLifecycle()
     val isChartRefreshing by chartViewModel.isRefreshing.collectAsStateWithLifecycle()
-    val snackbar = rememberSnackbarState(
-        message = toastMessage,
-        iconRes = R.drawable.ic_notifications,
-        onShown = onToastShown,
-    )
+    val snackbar = rememberSnackbarState(message = message, onShown = onMessageShown)
 
     Scene(
         title = title,

@@ -15,18 +15,15 @@ import com.gemwallet.android.features.settings.price_alerts.viewmodels.PriceAler
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.components.screen.showSnackbar
+import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.wallet.core.primitives.AssetId
 import kotlinx.coroutines.launch
 
 @Composable
-fun PriceAlertsNavScreen(toastMessage: String? = null, onToastShown: () -> Unit = {}, onChart: (AssetId) -> Unit, onAddPriceAlertTarget: (AssetId) -> Unit, onCancel: () -> Unit, viewModel: PriceAlertViewModel = hiltViewModel()) {
+fun PriceAlertsNavScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChart: (AssetId) -> Unit, onAddPriceAlertTarget: (AssetId) -> Unit, onCancel: () -> Unit, viewModel: PriceAlertViewModel = hiltViewModel()) {
     val resources = LocalResources.current
     val scope = rememberCoroutineScope()
-    val snackbar = rememberSnackbarState(
-        message = toastMessage,
-        iconRes = R.drawable.ic_notifications,
-        onShown = onToastShown,
-    )
+    val snackbar = rememberSnackbarState(message = message, onShown = onMessageShown)
     val error by viewModel.error.collectAsStateWithLifecycle()
     val errorMessage = error
     LaunchedEffect(errorMessage) {

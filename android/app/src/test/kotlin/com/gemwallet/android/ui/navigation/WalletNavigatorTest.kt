@@ -1,10 +1,12 @@
 package com.gemwallet.android.ui.navigation
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.domains.wallet.WalletSecretInput
+import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.create_wallet.navigation.CreateWalletAlertRoute
@@ -20,6 +22,7 @@ import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockNftAsset
 import com.gemwallet.android.testkit.mockWalletId
+import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.gemwallet.android.ui.navigation.routes.AddPriceAlertTargetRoute
 import com.gemwallet.android.ui.navigation.routes.AmountRoute
 import com.gemwallet.android.ui.navigation.routes.AssetChartRoute
@@ -38,6 +41,7 @@ import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute
 import com.gemwallet.android.ui.navigation.routes.ReferralRoute
 import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
 import com.gemwallet.android.ui.navigation.routes.StakeRoute
+import com.gemwallet.android.ui.navigation.routes.SupportRoute
 import com.gemwallet.android.ui.navigation.routes.SwapPairRoute
 import com.gemwallet.android.ui.navigation.routes.SwapRoute
 import com.gemwallet.android.ui.navigation.routes.SwapSelectRoute
@@ -51,23 +55,76 @@ import com.gemwallet.android.ui.navigation.routes.settingsRoute
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAssetId
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.job
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemDeeplinkService
 import uniffi.gemstone.GemNavigationServiceInterface
 import uniffi.gemstone.GemNavigationTab
+import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemWalletImportKind
 import uniffi.gemstone.GemWalletSecretKind
 
 class WalletNavigatorTest {
+
+    @Before
+    fun setUp() {
+        mockkStatic(Log::class)
+        every { Log.e(any(), any(), any()) } returns 0
+    }
+
+    @After
+    fun tearDown() {
+        unmockkStatic(Log::class)
+    }
+
+    @Test
+    fun openNotificationUrl_reportsTheFailureToTheScreenTheLinkWasTappedOn() = runTest {
+        val error = GemServiceException.NotFound("asset not found")
+        val navigationService = mockk<GemNavigationServiceInterface> {
+            coEvery { openDeeplink(any()) } throws error
+        }
+        val navigator = navigatorWith(WalletRootRoute, SupportRoute, navigationService = navigationService, scope = this)
+
+        val handled = navigator.openNotificationUrl("https://gemwallet.com/tokens/ethereum/0x1111111111111111111111111111111111111111/buy")
+        coroutineContext.job.children.toList().joinAll()
+
+        assertTrue(handled)
+        assertEquals(listOf(WalletRootRoute, SupportRoute), navigator.backStack.toList())
+        assertEquals(RouteMessage.Error(error.errorText()), navigator.routeMessage(SupportRoute))
+        assertNull(navigator.routeMessage(WalletRootRoute))
+
+        navigator.clearRouteMessage(SupportRoute)
+
+        assertNull(navigator.routeMessage(SupportRoute))
+    }
+
+    @Test
+    fun openAsset_leavesTheStackAloneWhenCoreFailsToOpenIt() = runTest {
+        val assetId = mockAssetId(Chain.Tron)
+        val assetsService = mockk<GemAssetsServiceInterface> {
+            coEvery { openAsset(assetId.toIdentifier()) } throws GemServiceException.Api("offline")
+        }
+        val navigator = navigatorWith(WalletRootRoute, assetsService = assetsService, scope = this)
+
+        navigator.openAsset(assetId).join()
+
+        assertEquals(listOf(WalletRootRoute), navigator.backStack.toList())
+    }
 
     @Test
     fun openAsset_pushesOnlyAssetsCoreOpens() = runTest {
@@ -550,12 +607,12 @@ class WalletNavigatorTest {
         navigator.popWithToast("Created")
 
         assertEquals(listOf(WalletRootRoute, target), navigator.backStack.toList())
-        assertEquals("Created", navigator.toastMessage(target))
-        assertNull(navigator.toastMessage(otherTarget))
+        assertEquals(RouteMessage.Toast("Created"), navigator.routeMessage(target))
+        assertNull(navigator.routeMessage(otherTarget))
 
-        navigator.clearToastMessage(target)
+        navigator.clearRouteMessage(target)
 
-        assertNull(navigator.toastMessage(target))
+        assertNull(navigator.routeMessage(target))
     }
 
     @Test

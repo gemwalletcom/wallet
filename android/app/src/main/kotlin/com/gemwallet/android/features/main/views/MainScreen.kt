@@ -32,6 +32,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -50,6 +51,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.ConnectionStatusBannerHost
 import com.gemwallet.android.ui.components.LocalConnectionBannerHandled
 import com.gemwallet.android.ui.components.animation.NavigationAnimation
+import com.gemwallet.android.ui.components.screen.text
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.actions.SettingsSceneAction
 import com.gemwallet.android.ui.navigation.WalletNavigator
@@ -81,8 +83,8 @@ fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onW
     )
 
     MessageToast(
-        message = navigator.toastMessage(WalletRootRoute),
-        onShown = { navigator.clearToastMessage(WalletRootRoute) },
+        message = navigator.routeMessage(WalletRootRoute)?.text(LocalContext.current),
+        onShown = { navigator.clearRouteMessage(WalletRootRoute) },
     )
 
     BackHandler(isRootRouteActive && currentTab.value != assetsRoute) {
