@@ -22,8 +22,9 @@ impl GemCurrencyService {
         Self { prices }
     }
 
-    pub fn sections(&self, currency: Currency, locale: Option<Currency>, query: String, localized_names: HashMap<String, String>) -> Vec<GemCurrencySection> {
-        rules::sections(currency, locale, &query, &localized_names)
+    pub async fn sections(&self, currency: Currency, locale: Option<Currency>, query: String, localized_names: HashMap<String, String>) -> Result<Vec<GemCurrencySection>, GemServiceError> {
+        let rated = self.prices.rated_currencies().await?;
+        Ok(rules::sections(currency, locale, &query, &localized_names, &rated))
     }
 
     pub async fn set_currency(&self, currency: Currency) -> Result<(), GemServiceError> {
@@ -53,6 +54,19 @@ mod tests {
         assert!(block_on(service.set_currency(Currency::EUR)).is_err());
         assert_eq!(preferences.get_currency(), previous);
         assert!(prices.converted.lock().unwrap().is_empty());
+    }
+
+    #[test]
+    fn test_the_picker_offers_only_currencies_with_a_rate() {
+        let (service, _, _) = service(MemoryPriceStore::with_rate(Currency::EUR, 0.9));
+
+        let currencies: Vec<Currency> = block_on(service.sections(Currency::GBP, None, String::new(), HashMap::new()))
+            .unwrap()
+            .into_iter()
+            .flat_map(|section| section.rows.into_iter().map(|row| row.currency))
+            .collect();
+
+        assert_eq!(currencies, vec![Currency::GBP, Currency::USD, Currency::EUR], "the current and the base currency stay offered");
     }
 
     #[test]

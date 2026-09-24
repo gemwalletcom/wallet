@@ -44,15 +44,18 @@ class CurrenciesViewModel @Inject constructor(
 
     val query = TextFieldState()
 
+    private val errorState = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = errorState.asStateFlow()
+
     val sections = combine(getCurrentCurrency.getCurrency(), snapshotFlow { query.text.toString() }) { currency, query ->
         val localizedNames = Currency.entries.associate { it.string to android.icu.util.Currency.getInstance(it.string).displayName }
-        service.sections(currency.toGem(), localeCurrency?.toGem(), query, localizedNames).map { it.uiModel(context) }
+        runCatchingCancellable { service.sections(currency.toGem(), localeCurrency?.toGem(), query, localizedNames) }
+            .onFailure { errorState.value = it.errorText().text(context) }
+            .getOrDefault(emptyList())
+            .map { it.uiModel(context) }
     }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    private val errorState = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = errorState.asStateFlow()
 
     fun setCurrency(currency: Currency, onSelected: () -> Unit) = viewModelScope.launch {
         runCatchingCancellable { setCurrentCurrency.setCurrentCurrency(currency) }

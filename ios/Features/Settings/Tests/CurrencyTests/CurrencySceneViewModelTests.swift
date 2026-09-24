@@ -13,7 +13,7 @@ import Testing
 @MainActor
 struct CurrencySceneViewModelTests {
     @Test
-    func searchUsesGemstoneSections() {
+    func searchUsesGemstoneSections() async {
         let preferences = GemPreferencesService(store: GemPreferencesStoreMock())
         let service = GemCurrencyServiceMock(preferencesService: preferences)
         let viewModel = CurrencySceneViewModel(preferences: ObservablePreferences(preferencesService: preferences), service: service)
@@ -21,9 +21,12 @@ struct CurrencySceneViewModelTests {
             GemCurrencySection(kind: .all, rows: [GemCurrencyRow(currency: Currency.ars.toGem(), title: "ARS", isSelected: false)]),
         ]
 
+        #expect(viewModel.sections == nil)
         viewModel.searchQuery = " arS "
+        await viewModel.refreshSections()
         #expect(viewModel.sections == service.sectionsValue)
         viewModel.searchQuery = ""
+        await viewModel.refreshSections()
         #expect(viewModel.sections == service.sectionsValue)
         #expect(service.queries == [" arS ", ""])
     }

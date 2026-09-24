@@ -18,6 +18,7 @@ public final class CurrencySceneViewModel {
 
     var isPresentingAlertMessage: AlertMessage?
     var searchQuery = ""
+    private(set) var sections: [GemCurrencySection]?
 
     public init(preferences: ObservablePreferences, service: any GemCurrencyServiceProtocol) {
         self.preferences = preferences
@@ -28,15 +29,19 @@ public final class CurrencySceneViewModel {
         Localized.Settings.currency
     }
 
-    var sections: [GemCurrencySection] {
-        service.sections(
-            currency: preferences.currency.toGem(),
-            locale: Locale.current.currency.flatMap { Primitives.Currency(rawValue: $0.identifier) }?.toGem(),
-            query: searchQuery,
-            localizedNames: Dictionary(uniqueKeysWithValues: Primitives.Currency.allCases.map {
-                ($0.rawValue, Locale.current.localizedString(forCurrencyCode: $0.rawValue) ?? .empty)
-            }),
-        )
+    func refreshSections() async {
+        do {
+            sections = try await service.sections(
+                currency: preferences.currency.toGem(),
+                locale: Locale.current.currency.flatMap { Primitives.Currency(rawValue: $0.identifier) }?.toGem(),
+                query: searchQuery,
+                localizedNames: Dictionary(uniqueKeysWithValues: Primitives.Currency.allCases.map {
+                    ($0.rawValue, Locale.current.localizedString(forCurrencyCode: $0.rawValue) ?? .empty)
+                }),
+            )
+        } catch {
+            isPresentingAlertMessage = AlertMessage(error: error)
+        }
     }
 }
 

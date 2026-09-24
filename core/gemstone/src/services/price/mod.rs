@@ -46,6 +46,10 @@ impl GemPriceService {
 }
 
 impl GemPriceService {
+    pub async fn rated_currencies(&self) -> Result<Vec<Currency>, GemServiceError> {
+        Ok(self.store.get_rates().await?.into_iter().map(|rate| rate.symbol).collect())
+    }
+
     pub async fn prices(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetPrice>, GemServiceError> {
         Ok(self.store.get_prices(asset_ids).await?.into_iter().filter(AssetPrice::has_price).collect())
     }

@@ -13,7 +13,7 @@ public struct CurrencyScene: View {
     }
 
     public var body: some View {
-        let sections = model.sections
+        let sections = model.sections ?? []
         List(sections, id: \.kind) { section in
             Section(section.kind.title) {
                 ForEach(section.rows, id: \.currency) { row in
@@ -33,9 +33,12 @@ public struct CurrencyScene: View {
         .textInputAutocapitalization(.never)
         .scrollDismissesKeyboard(.interactively)
         .overlay {
-            if sections.isEmpty {
+            if model.sections?.isEmpty == true {
                 ContentUnavailableView.search(text: model.searchQuery)
             }
+        }
+        .task(id: model.searchQuery) {
+            await model.refreshSections()
         }
         .navigationTitle(model.title)
         .alertSheet($model.isPresentingAlertMessage)

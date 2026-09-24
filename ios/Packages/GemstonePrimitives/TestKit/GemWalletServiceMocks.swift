@@ -311,7 +311,7 @@ public final class GemCurrencyServiceMock: GemCurrencyServiceProtocol, @unchecke
         try preferencesService.setCurrency(currency: currency)
     }
 
-    public func sections(currency _: Gemstone.Currency, locale _: Gemstone.Currency?, query: String, localizedNames _: [String: String]) -> [GemCurrencySection] {
+    public func sections(currency _: Gemstone.Currency, locale _: Gemstone.Currency?, query: String, localizedNames _: [String: String]) async throws -> [GemCurrencySection] {
         queries.append(query)
         return sectionsValue
     }
