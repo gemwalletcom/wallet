@@ -29,7 +29,7 @@ Before changing how an area works, read its page. A change that breaks a rule wr
 - [Perpetuals](product/perpetuals.md) — markets, positions, leverage, take profit and stop loss
 - [NFT](product/nft.md) — collections, an NFT's details and actions, unverified collections
 - [WalletConnect](product/walletconnect.md) — connecting dapps, requests, signing, WalletConnect Pay
-- [Notifications](product/notifications.md) — push, in-app notifications, price alerts
+- [Notifications](product/notifications.md) — push and price alerts
 - [Settings](product/settings.md) — preferences, security and lock, networks, about, app update
 - [Contacts](product/contacts.md) — saved addresses and the recipient picker
 - [Rewards](product/rewards.md) — referral codes, points, redeeming
