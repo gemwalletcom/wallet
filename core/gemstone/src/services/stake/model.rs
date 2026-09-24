@@ -80,17 +80,23 @@ pub enum GemStakeAction {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemStakeActionItem {
     pub action: GemStakeAction,
-    pub is_enabled: bool,
-    pub requires_frozen_balance: bool,
     pub value: Option<GemFormattedNumber>,
-    pub destination: GemStakeDestination,
+    pub tap: GemStakeActionTap,
+}
+
+#[derive(Debug, Clone, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
+pub enum GemStakeActionTap {
+    Open { destination: GemStakeDestination },
+    FrozenBalanceInfo,
+    Disabled,
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
 pub enum GemStakeDestination {
     Amount { input: GemStakeAmountInput },
-    ClaimRewards,
+    Confirm { transfer: GemTransferData },
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]
@@ -136,19 +142,6 @@ pub struct GemStakeViewState {
     pub resource_rows: Vec<GemListRow>,
     pub delegations: Vec<GemStakeDelegationItem>,
     pub validators: Vec<DelegationValidator>,
-    pub claim_rewards: GemClaimRewards,
-}
-
-#[derive(Debug, Clone, uniffi::Record)]
-pub struct GemClaimRewards {
-    pub destination: GemClaimRewardsDestination,
-}
-
-#[derive(Debug, Clone, uniffi::Enum)]
-#[allow(clippy::large_enum_variant)]
-pub enum GemClaimRewardsDestination {
-    Transfer { transfer: GemTransferData },
-    Amount { delegations: Vec<Delegation> },
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]

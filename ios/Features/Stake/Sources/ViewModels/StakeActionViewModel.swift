@@ -16,14 +16,6 @@ struct StakeSectionViewModel: Identifiable {
     var id: String { String(describing: section) }
 }
 
-struct StakeActionViewModel: Identifiable {
-    let id: String
-    let model: ListItemModel
-    let destination: GemStakeDestination
-    let infoAction: InfoSheetAction?
-    let isEnabled: Bool
-}
-
 extension GemStakeDelegationItem: @retroactive Identifiable {
     public var id: String {
         Delegation(core: delegation).id

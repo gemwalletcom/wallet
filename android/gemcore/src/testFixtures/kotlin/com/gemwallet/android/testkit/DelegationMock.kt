@@ -7,8 +7,6 @@ import com.wallet.core.primitives.DelegationBase
 import com.wallet.core.primitives.DelegationState
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.StakeProviderType
-import uniffi.gemstone.GemClaimRewards
-import uniffi.gemstone.GemClaimRewardsDestination
 import java.math.BigInteger
 
 fun mockDelegationValidator(chain: Chain = Chain.Bitcoin, id: String = "validator-id", apr: Double = 10.0, providerType: StakeProviderType = StakeProviderType.Stake) = DelegationValidator(
@@ -57,8 +55,4 @@ fun mockDelegation(
         validatorId = validatorId,
     ),
     validator = validator,
-)
-
-fun mockClaimRewards() = GemClaimRewards(
-    destination = GemClaimRewardsDestination.Amount(emptyList()),
 )

@@ -186,7 +186,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     private let infoRows: [GemListRow]
     private let freezes: Bool
     private let wholeAmounts: Bool
-    private let claimRewardsDestination: GemClaimRewardsDestination?
+    private let claimRewardsDestination: GemStakeDestination?
     private let refreshState: GemLoadState
 
     public init(
@@ -197,7 +197,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         infoRows: [GemListRow] = [],
         freezes: Bool = false,
         wholeAmounts: Bool = false,
-        claimRewardsDestination: GemClaimRewardsDestination? = nil,
+        claimRewardsDestination: GemStakeDestination? = nil,
         refreshState: GemLoadState = .data,
     ) {
         self.claimable = claimable
@@ -232,10 +232,13 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         let actions = [
             GemStakeActionItem(
                 action: .stake,
-                isEnabled: validators.isEmpty == false,
-                requiresFrozenBalance: false,
                 value: nil,
-                destination: .amount(input: .stake(validators: validators, validator: nil)),
+                tap: validators.isEmpty ? .disabled : .open(destination: .amount(input: .stake(validators: validators, validator: nil))),
+            ),
+            GemStakeActionItem(
+                action: .claimRewards,
+                value: nil,
+                tap: .open(destination: claimRewardsDestination ?? .amount(input: .rewards(delegations: input.delegations, validator: nil))),
             ),
         ]
         return GemStakeViewState(
@@ -251,7 +254,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
                 )
             },
             validators: validators,
-            claimRewards: GemClaimRewards(destination: claimRewardsDestination ?? .amount(delegations: input.delegations)),
         )
     }
 

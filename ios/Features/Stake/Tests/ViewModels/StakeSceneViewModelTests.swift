@@ -3,6 +3,7 @@
 import Foundation
 import struct Gemstone.GemDurationPart
 import enum Gemstone.GemListRow
+import enum Gemstone.GemStakeDestination
 import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
@@ -58,25 +59,32 @@ struct StakeSceneViewModelTests {
         tron.assetQuery.value = .mock(asset: Chain.tron.asset, balance: .mock(frozen: 1))
 
         let stake = tron.viewState.actions.first { $0.action == .stake }
-        #expect(stake?.isEnabled == false)
-        #expect(stake?.requiresFrozenBalance == false)
+        guard case .disabled = stake?.tap else {
+            Issue.record("expected a disabled stake action")
+            return
+        }
     }
 
     @Test
     func claimRewardsRoutesToConfirm() {
         let transfer = GemTransferData.mock()
-        let model = StakeSceneViewModel.mock(chain: .tron, stakeService: GemStakeServiceMock(claimRewardsDestination: .transfer(transfer: transfer)))
+        let model = StakeSceneViewModel.mock(chain: .tron, stakeService: GemStakeServiceMock(claimRewardsDestination: .confirm(transfer: transfer)))
 
-        #expect(model.route(destination: .claimRewards, state: model.viewState) == .transfer(.confirm(transfer)))
+        #expect(claimDestination(model).map(model.route(destination:)) == .transfer(.confirm(transfer)))
     }
 
     @Test
     func claimRewardsAcrossValidatorsRoutesToAmount() {
         let model = StakeSceneViewModel.mock(chain: .tron)
 
-        guard case .transfer(.amount) = model.route(destination: .claimRewards, state: model.viewState) else {
+        guard case .transfer(.amount) = claimDestination(model).map(model.route(destination:)) else {
             Issue.record("expected an amount route")
             return
         }
+    }
+
+    private func claimDestination(_ model: StakeSceneViewModel) -> GemStakeDestination? {
+        guard case let .open(destination) = model.viewState.actions.first(where: { $0.action == .claimRewards })?.tap else { return nil }
+        return destination
     }
 }

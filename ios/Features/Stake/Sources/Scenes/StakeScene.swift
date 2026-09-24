@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemStakeActionItem
 import struct Gemstone.GemStakeViewState
 import Localization
 import Primitives
@@ -55,8 +56,8 @@ extension StakeScene {
     private func content(for section: StakeSectionViewModel, state: GemStakeViewState) -> some View {
         switch section.section {
         case .manage:
-            ForEach(model.actionModels(state)) { item in
-                actionLink(item, state: state)
+            ForEach(state.actions, id: \.action) { item in
+                actionLink(item)
             }
         case .resources:
             ForEach(state.resourceRows, id: \.self) { row in
@@ -68,14 +69,17 @@ extension StakeScene {
     }
 
     @ViewBuilder
-    private func actionLink(_ item: StakeActionViewModel, state: GemStakeViewState) -> some View {
-        if let infoAction = item.infoAction {
-            NavigationCustomLink(with: ListItemView(model: item.model), action: infoAction)
-        } else {
-            NavigationCustomLink(with: ListItemView(model: item.model)) {
-                model.onSelect(destination: item.destination, state: state)
+    private func actionLink(_ item: GemStakeActionItem) -> some View {
+        switch item.tap {
+        case .frozenBalanceInfo:
+            NavigationCustomLink(with: ListItemView(model: model.listItem(item)), action: model.onStakeFrozenInfo)
+        case .disabled:
+            NavigationCustomLink(with: ListItemView(model: model.listItem(item))) {}
+                .enabled(false)
+        case let .open(destination):
+            NavigationCustomLink(with: ListItemView(model: model.listItem(item))) {
+                model.onSelect(destination: destination)
             }
-            .enabled(item.isEnabled)
         }
     }
 

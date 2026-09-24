@@ -4,7 +4,6 @@ import Components
 import Formatters
 import Foundation
 import struct Gemstone.GemAssetBalance
-import struct Gemstone.GemClaimRewards
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
 import enum Gemstone.GemLoadState
@@ -93,18 +92,6 @@ public final class StakeSceneViewModel {
         !state.sections.contains(.delegations)
     }
 
-    func actionModels(_ state: GemStakeViewState) -> [StakeActionViewModel] {
-        state.actions.map { item in
-            StakeActionViewModel(
-                id: String(describing: item.action),
-                model: actionListItem(item),
-                destination: item.destination,
-                infoAction: frozenBalanceInfoAction(for: item),
-                isEnabled: item.isEnabled,
-            )
-        }
-    }
-
     var emptyContentModel: EmptyContentTypeViewModel {
         EmptyContentTypeViewModel(type: EmptyContentType(.stake, symbol: assetModel.symbol))
     }
@@ -113,22 +100,18 @@ public final class StakeSceneViewModel {
         delegationsState.stateViewType(state.delegations)
     }
 
-    func route(destination: GemStakeDestination, state: GemStakeViewState) -> StakeRoute {
+    func route(destination: GemStakeDestination) -> StakeRoute {
         switch destination {
         case let .amount(input): route(amount: .stake(input))
-        case .claimRewards: claimRewardsRoute(state.claimRewards)
+        case let .confirm(transfer): .transfer(.confirm(transfer))
         }
     }
 
-    func actionListItem(_ item: GemStakeActionItem) -> ListItemModel {
-        if let infoAction = frozenBalanceInfoAction(for: item) {
-            return ListItemModel(title: item.action.title, titleStyle: .bodySecondary, infoAction: infoAction)
+    func listItem(_ item: GemStakeActionItem) -> ListItemModel {
+        switch item.tap {
+        case .frozenBalanceInfo: ListItemModel(title: item.action.title, titleStyle: .bodySecondary, infoAction: onStakeFrozenInfo)
+        case .open, .disabled: ListItemModel(title: item.action.title, subtitle: item.value?.text())
         }
-        return ListItemModel(title: item.action.title, subtitle: item.value?.text())
-    }
-
-    func frozenBalanceInfoAction(for item: GemStakeActionItem) -> InfoSheetAction? {
-        item.requiresFrozenBalance ? onStakeFrozenInfo : .none
     }
 }
 
@@ -140,8 +123,8 @@ extension StakeSceneViewModel {
         delegationsState = await service.refresh(chain: chain.chain.rawValue, delegations: viewState.delegations.map(\.delegation))
     }
 
-    func onSelect(destination: GemStakeDestination, state: GemStakeViewState) {
-        onNavigate?(route(destination: destination, state: state))
+    func onSelect(destination: GemStakeDestination) {
+        onNavigate?(route(destination: destination))
     }
 
     func onSelect(delegation item: GemStakeDelegationItem, state: GemStakeViewState) {
@@ -167,13 +150,6 @@ extension StakeSceneViewModel {
 
     private var asset: Asset {
         chain.chain.asset
-    }
-
-    private func claimRewardsRoute(_ claimRewards: GemClaimRewards) -> StakeRoute {
-        switch claimRewards.destination {
-        case let .transfer(transfer): .transfer(.confirm(transfer))
-        case let .amount(delegations): route(amount: .stake(.rewards(delegations: delegations, validator: nil)))
-        }
     }
 
     private func route(amount: AmountType) -> StakeRoute {

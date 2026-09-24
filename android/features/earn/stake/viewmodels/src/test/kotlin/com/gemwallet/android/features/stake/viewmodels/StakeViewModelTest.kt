@@ -10,7 +10,6 @@ import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
-import com.gemwallet.android.testkit.mockClaimRewards
 import com.gemwallet.android.testkit.mockDelegation
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -71,7 +70,6 @@ class StakeViewModelTest {
             resourceRows = emptyList(),
             delegations = emptyList(),
             validators = emptyList(),
-            claimRewards = mockClaimRewards(),
         )
     }
 

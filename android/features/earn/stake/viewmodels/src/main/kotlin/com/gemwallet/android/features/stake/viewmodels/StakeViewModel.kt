@@ -49,7 +49,6 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemClaimRewardsDestination
 import uniffi.gemstone.GemDelegationDestination
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLoadState
@@ -178,14 +177,6 @@ class StakeViewModel @Inject constructor(
             GemDelegationDestination.Details -> onOpenDetail(delegation.validator.id, delegation.base.delegationId)
             is GemDelegationDestination.Confirm -> onConfirm(ConfirmTransferInput(destination.transfer))
             is GemDelegationDestination.Amount -> onAmount(destination.input.toAmountParams(destination.asset.toPrimitives().id))
-        }
-    }
-
-    fun onRewards(onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {
-        val assetInfo = assetInfo.value ?: return
-        when (val destination = viewState.value?.claimRewards?.destination ?: return) {
-            is GemClaimRewardsDestination.Transfer -> onConfirm(ConfirmTransferInput(destination.transfer))
-            is GemClaimRewardsDestination.Amount -> onAmount(AmountParams.Stake.Rewards(assetInfo.asset.id, destination.delegations))
         }
     }
 

@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.features.stake.viewmodels.StakeViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.LoadingScene
@@ -41,7 +42,7 @@ fun StakeScreen(amountAction: AmountTransactionAction, onConfirm: ConfirmTransac
             onAction = { action ->
                 when (action) {
                     StakeSceneAction.Refresh -> viewModel.onRefresh()
-                    StakeSceneAction.ClaimRewards -> viewModel.onRewards(amountAction, onConfirm)
+                    is StakeSceneAction.Confirm -> onConfirm(ConfirmTransferInput(action.transfer))
                     is StakeSceneAction.OpenDelegation -> viewModel.onDelegation(action.delegation, onDelegation, amountAction, onConfirm)
                     StakeSceneAction.Cancel -> onCancel()
                 }

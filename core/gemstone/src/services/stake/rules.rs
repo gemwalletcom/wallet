@@ -12,8 +12,8 @@ use rand::seq::IndexedRandom;
 use std::str::FromStr;
 
 use super::model::{
-    GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationListRow, GemDelegationStatus, GemEarnActions, GemStakeAction, GemStakeActionItem,
-    GemStakeAmountInput, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorSelection, GemStakeViewState, GemValidatorRow,
+    GemDelegationAction, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationListRow, GemDelegationStatus, GemEarnActions, GemStakeAction, GemStakeActionItem, GemStakeActionTap, GemStakeAmountInput,
+    GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorSelection, GemStakeViewState, GemValidatorRow,
 };
 use crate::config::image::GemImage;
 use crate::config::stake::EARN_OFFERED;
@@ -282,7 +282,6 @@ pub fn stake_view_state(input: GemStakeInput) -> GemStakeViewState {
         sections: stake_sections(uses_freeze(chain), !actions.is_empty(), !delegations.is_empty()),
         info_rows: stake_info_rows(&asset, staking_apr),
         resource_rows: crate::services::balance::rules::balance_resource_rows(balance_metadata),
-        claim_rewards: claim_rewards(chain, delegations.clone()),
         delegations: delegations
             .into_iter()
             .map(|delegation| GemStakeDelegationItem {
@@ -455,14 +454,16 @@ pub fn stake_actions(wallet_type: WalletType, chain: Chain, validators: &[Delega
         GemStakeAction::Unfreeze => GemStakeDestination::Amount {
             input: GemStakeAmountInput::Unfreeze { resource },
         },
-        GemStakeAction::ClaimRewards => GemStakeDestination::ClaimRewards,
+        GemStakeAction::ClaimRewards => claim_destination(chain, delegations.to_vec()),
     };
     let item = |action: GemStakeAction, is_enabled: bool, requires_frozen_balance: bool| GemStakeActionItem {
         action,
-        is_enabled,
-        requires_frozen_balance,
         value: None,
-        destination: destination(action),
+        tap: match (requires_frozen_balance, is_enabled) {
+            (true, _) => GemStakeActionTap::FrozenBalanceInfo,
+            (false, false) => GemStakeActionTap::Disabled,
+            (false, true) => GemStakeActionTap::Open { destination: destination(action) },
+        },
     };
     let rewards = rewards_value(delegations);
     [
@@ -484,18 +485,19 @@ fn rewards_amount(chain: Chain, rewards: &BigUint) -> Option<GemFormattedNumber>
     Some(GemFormattedNumber::amount(BigNumberFormatter::f64_value(rewards, asset.decimals as u32), Some(asset.symbol), GemValueStyle::Auto))
 }
 
-pub fn claim_rewards(chain: Chain, delegations: Vec<Delegation>) -> GemClaimRewards {
+pub fn claim_destination(chain: Chain, delegations: Vec<Delegation>) -> GemStakeDestination {
     let with_rewards: Vec<Delegation> = delegations.into_iter().filter(|delegation| delegation.base.rewards > BigUint::ZERO).collect();
     let value = BigInt::from(rewards_value(&with_rewards));
-    let destination = if can_claim_all_rewards(chain, with_rewards.len()) {
+    if can_claim_all_rewards(chain, with_rewards.len()) {
         let validators = with_rewards.into_iter().map(|delegation| delegation.validator).collect();
-        GemClaimRewardsDestination::Transfer {
-            transfer: transfer_rules::stake_transfer_data(Asset::from_chain(chain), StakeType::Rewards(validators), value.clone(), false),
+        GemStakeDestination::Confirm {
+            transfer: transfer_rules::stake_transfer_data(Asset::from_chain(chain), StakeType::Rewards(validators), value, false),
         }
     } else {
-        GemClaimRewardsDestination::Amount { delegations: with_rewards }
-    };
-    GemClaimRewards { destination }
+        GemStakeDestination::Amount {
+            input: GemStakeAmountInput::Rewards { delegations: with_rewards, validator: None },
+        }
+    }
 }
 
 impl GemAssetBalance {
@@ -1271,7 +1273,10 @@ mod tests {
             stake_actions(WalletType::Multicoin, chain, &validators, &GemAssetBalance::mock(), &[])
                 .into_iter()
                 .find(|item| item.action == action)
-                .map(|item| item.destination)
+                .and_then(|item| match item.tap {
+                    GemStakeActionTap::Open { destination } => Some(destination),
+                    GemStakeActionTap::FrozenBalanceInfo | GemStakeActionTap::Disabled => None,
+                })
         };
 
         assert!(matches!(destination(Chain::Cosmos, GemStakeAction::Stake), Some(GemStakeDestination::Amount { input: GemStakeAmountInput::Stake { .. } })));
@@ -1295,7 +1300,11 @@ mod tests {
         let actions = |chain, has_validators: bool, balance: GemAssetBalance, rewards: Vec<Delegation>| {
             stake_actions(WalletType::Multicoin, chain, &validators(has_validators), &balance, &rewards)
                 .into_iter()
-                .map(|item| (item.action, item.is_enabled, item.requires_frozen_balance))
+                .map(|item| match item.tap {
+                    GemStakeActionTap::Open { .. } => (item.action, true, false),
+                    GemStakeActionTap::Disabled => (item.action, false, false),
+                    GemStakeActionTap::FrozenBalanceInfo => (item.action, true, true),
+                })
                 .collect::<Vec<_>>()
         };
 
@@ -1366,15 +1375,15 @@ mod tests {
         assert!(can_claim_all_rewards(Chain::Sui, 1));
         assert!(!can_claim_all_rewards(Chain::Bitcoin, 2));
 
-        let one = claim_rewards(
+        let one = claim_destination(
             Chain::Sui,
             vec![
                 Delegation::mock_with(Chain::Sui, StakeProviderType::Stake, DelegationState::Active, 0),
                 Delegation::mock_with(Chain::Sui, StakeProviderType::Stake, DelegationState::Active, 7),
             ],
         );
-        assert!(matches!(one.destination, GemClaimRewardsDestination::Transfer { ref transfer } if transfer.value == BigInt::from(7)));
-        let several = claim_rewards(
+        assert!(matches!(one, GemStakeDestination::Confirm { ref transfer } if transfer.value == BigInt::from(7)));
+        let several = claim_destination(
             Chain::Sui,
             vec![
                 Delegation::mock_with(Chain::Sui, StakeProviderType::Stake, DelegationState::Active, 3),
@@ -1382,15 +1391,15 @@ mod tests {
                 Delegation::mock_with(Chain::Sui, StakeProviderType::Stake, DelegationState::Active, 0),
             ],
         );
-        assert!(matches!(several.destination, GemClaimRewardsDestination::Amount { ref delegations } if delegations.len() == 2));
-        let cosmos = claim_rewards(
+        assert!(matches!(several, GemStakeDestination::Amount { input: GemStakeAmountInput::Rewards { ref delegations, validator: None } } if delegations.len() == 2));
+        let cosmos = claim_destination(
             Chain::Cosmos,
             vec![
                 Delegation::mock_with(Chain::Sui, StakeProviderType::Stake, DelegationState::Active, 3),
                 Delegation::mock_with(Chain::Sui, StakeProviderType::Stake, DelegationState::Active, 4),
             ],
         );
-        assert!(matches!(cosmos.destination, GemClaimRewardsDestination::Transfer { .. }));
+        assert!(matches!(cosmos, GemStakeDestination::Confirm { .. }));
     }
 
     #[test]

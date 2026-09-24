@@ -90,7 +90,7 @@ internal fun StakeScene(
                             actions = actions,
                             assetId = assetInfo.id(),
                             amountAction = amountAction,
-                            onRewards = { onAction(StakeSceneAction.ClaimRewards) },
+                            onConfirm = { onAction(StakeSceneAction.Confirm(it)) },
                         )
 
                         is StakeSectionUIModel.Resources -> itemsIndexed(section.rows) { index, row ->
