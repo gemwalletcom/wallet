@@ -52,7 +52,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM67, VM109, VM149, VM156 |
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | VM161 |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | — |
-| Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | VM40, VM161 |
+| Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | VM161 |
 | Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM86, VM161; retain native locale/theme application |
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | Retain platform-only privacy lock |
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | VM78, D75 |
@@ -97,7 +97,6 @@ A screen whose state changes is a session, and a screen that reads gets one reco
 - **VM35** **M** **Stake reads one view state.** Both apps assemble stake from separate calls — iOS [`StakeSceneViewModel`](../ios/Features/Stake/Sources/ViewModels/StakeSceneViewModel.swift) calls `sortedDelegations`, `selectableValidators`, `stakeSections`, `stakeInfoRows`, `stakeActions` and `delegationDestination`, several inside computed properties re-run per render; Android [`StakeViewModel`](../android/features/earn/stake/viewmodels/src/main/kotlin/com/gemwallet/android/features/stake/viewmodels/StakeViewModel.kt) calls four of them. VM104 lands on the same record.
 - **VM36** **M** **Earn reads one view state.** iOS [`EarnSceneViewModel`](../ios/Features/Stake/Sources/ViewModels/EarnSceneViewModel.swift) and Android `EarnViewModel` each call `earnActions`, `earnAprRow`, `positions` and `selectableValidators` separately; iOS also builds the "No data" and "Deposit" rows and picks the positions title by `hasPositions`.
 - **VM37** **M** **Wallet search and asset results read one view state.** iOS [`WalletSearchSceneViewModel`](../ios/Features/WalletTab/Sources/ViewModels/WalletSearchSceneViewModel.swift) makes 14 distinct Core calls and `AssetsResultsSceneViewModel` 10; Android combines five flows into `GemWalletSearchCounts` before asking `walletSearchState`.
-- **VM40** **M** **Network settings read their sections from Core.** iOS `ChainSettingsSectionViewModel.Kind` and Android `NetworksViewModel` both build the nodes and explorers sections and their titles app-side.
 - **VM43** **M** **Swap view state carries each side's interaction.** Both apps derive pay/receive editability, asset selection and receive-loading from loading flags: iOS `payTokenInteraction`/`receiveTokenInteraction`, Android [`SwapUiState`](../android/features/swap/viewmodels/src/main/kotlin/com/gemwallet/android/features/swap/viewmodels/models/SwapUiState.kt).
 - **VM45** **S** **Confirm decides section visibility app-side.** iOS [`ConfirmTransferSceneViewModel`](../ios/Features/Transfer/Sources/ViewModels/ConfirmTransferSceneViewModel.swift) shows the warnings, payload and balance-change sections by testing each for emptiness; land with AUD45 and VM4.
 
@@ -306,6 +305,8 @@ An entry is dated rationale, not a current completion claim. Only decisions and 
 **AUD35 (2026-09-24).** The `store_contract_tests` emulator job from `4c1f0cd0f4` is gone. Tests that need Android run on Robolectric in `integration` packages and in the `integration_tests` job (`just test-integration`); only the app's Keystore and screenshot tests need a device. Do not add an emulator job.
 
 ### Decided and closed as correct
+
+**VM40 (2026-09-24).** Closed as correct: the network settings screen is always the same two sections, nodes then explorers, with fixed titles and no rule behind them. Each app already takes both lists from Core (`GemNodeListSession.rows`, `explorer_rows`); asking Core for the layout too would add a crossing that returns a constant.
 
 **BD24 (2026-09-24).** Closed as correct: Solana's 3% default is sent as Auto, and the slippage view state never warns on Auto (`shows_warning: !self.is_auto && …` in [`slippage.rs`](../core/gemstone/src/services/swap/slippage.rs)). Only a manually chosen 3% warns, which is the documented rule "a warning from 3%" in [product/swap.md](product/swap.md).
 
