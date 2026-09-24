@@ -1,9 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
-import Formatters
 import Foundation
-import struct Gemstone.Asset
 import enum Gemstone.GemAcquireAssetFlow
 import enum Gemstone.GemAmountError
 import enum Gemstone.GemAmountTitle
@@ -101,41 +98,37 @@ extension GemConfirmErrorDisplay: @retroactive LocalizedError {
         case .cancelled: Localized.Errors.cancelled
         case .accountMissing: Localized.Errors.walletAccountMissing
         case .unknown: Localized.Errors.unknown
-        case let .balanceRequired(asset, requirement):
+        case let .balanceRequired(_, requirement):
             Localized.Info.balanceRequiredDescription(
-                Self.amount(requirement.required, asset: asset).boldMarkdown(),
-                Self.amount(requirement.available, asset: asset).boldMarkdown(),
-                Self.amount(requirement.shortfall, asset: asset).boldMarkdown(),
+                requirement.required.text().boldMarkdown(),
+                requirement.available.text().boldMarkdown(),
+                requirement.shortfall.text().boldMarkdown(),
             )
         case let .networkFeeRequired(asset, _, requirement):
             Localized.Info.InsufficientNetworkFeeBalance.description(
-                Self.amount(requirement.required, asset: asset).boldMarkdown(),
+                requirement.required.text().boldMarkdown(),
                 asset.toPrimitives().chain.networkName.boldMarkdown(),
-                Self.amount(requirement.available, asset: asset).boldMarkdown(),
-                Self.amount(requirement.shortfall, asset: asset).boldMarkdown(),
+                requirement.available.text().boldMarkdown(),
+                requirement.shortfall.text().boldMarkdown(),
             )
         case let .networkFeeMissing(_, title):
             Localized.Transfer.insufficientNetworkFeeBalance(title.boldMarkdown())
-        case let .minimumAccountBalance(asset, required):
-            Localized.Transfer.minimumAccountBalance(Self.amount(required, asset: asset).boldMarkdown())
-        case let .destinationAccountActivation(asset, required):
-            Localized.Transfer.destinationAccountActivation(Self.amount(required, asset: asset).boldMarkdown())
-        case let .swapMinimum(asset, _, providerName, requirement):
+        case let .minimumAccountBalance(_, required):
+            Localized.Transfer.minimumAccountBalance(required.text().boldMarkdown())
+        case let .destinationAccountActivation(_, required):
+            Localized.Transfer.destinationAccountActivation(required.text().boldMarkdown())
+        case let .swapMinimum(_, _, providerName, requirement):
             Localized.Info.swapMinimumAmountDescription(
                 providerName.boldMarkdown(),
-                Self.amount(requirement.required, asset: asset).boldMarkdown(),
-                Self.amount(requirement.available, asset: asset).boldMarkdown(),
-                Self.amount(requirement.shortfall, asset: asset).boldMarkdown(),
+                requirement.required.text().boldMarkdown(),
+                requirement.available.text().boldMarkdown(),
+                requirement.shortfall.text().boldMarkdown(),
             )
         case .dustThreshold: Localized.Errors.dustThresholdShort
         case .insufficientFunds: Localized.Info.InsufficientBalance.title
         case let .payment(status): status.errorText
         case let .message(msg): msg
         }
-    }
-
-    private static func amount(_ value: BigInt, asset: Gemstone.Asset) -> String {
-        ValueFormatter(style: .auto).string(value, asset: asset.toPrimitives())
     }
 }
 

@@ -3,6 +3,7 @@ use crate::formatted_number::GemFormattedNumber;
 use crate::gateway::GatewayError;
 use crate::models::custom_types::GemBigInt;
 use crate::payment::GemPaymentError;
+use crate::precision::GemValueStyle;
 use crate::services::balance::GemBalanceRequirement;
 use crate::services::confirm::model::GemAcquireAsset;
 use crate::services::error::GemServiceError;
@@ -116,12 +117,12 @@ pub enum GemConfirmErrorDisplay {
     Unknown,
     BalanceRequired {
         asset: Asset,
-        requirement: GemBalanceRequirement,
+        requirement: GemConfirmRequirement,
     },
     NetworkFeeRequired {
         asset: Asset,
         title: String,
-        requirement: GemBalanceRequirement,
+        requirement: GemConfirmRequirement,
     },
     NetworkFeeMissing {
         asset: Asset,
@@ -129,17 +130,17 @@ pub enum GemConfirmErrorDisplay {
     },
     MinimumAccountBalance {
         asset: Asset,
-        required: GemBigInt,
+        required: GemFormattedNumber,
     },
     DestinationAccountActivation {
         asset: Asset,
-        required: GemBigInt,
+        required: GemFormattedNumber,
     },
     SwapMinimum {
         asset: Asset,
         provider: SwapProvider,
         provider_name: String,
-        requirement: GemBalanceRequirement,
+        requirement: GemConfirmRequirement,
     },
     DustThreshold {
         chain: Chain,
@@ -151,6 +152,24 @@ pub enum GemConfirmErrorDisplay {
     Message {
         msg: String,
     },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemConfirmRequirement {
+    pub required: GemFormattedNumber,
+    pub available: GemFormattedNumber,
+    pub shortfall: GemFormattedNumber,
+}
+
+impl GemConfirmRequirement {
+    pub fn new(requirement: &GemBalanceRequirement, asset: &Asset) -> Self {
+        let amount = |value: &GemBigInt| GemFormattedNumber::asset_amount(value, asset, GemValueStyle::Auto);
+        Self {
+            required: amount(&requirement.required),
+            available: amount(&requirement.available),
+            shortfall: amount(&requirement.shortfall),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -196,13 +215,13 @@ impl GemConfirmError {
             Self::SenderMismatch { .. } => GemConfirmErrorDisplay::Unknown,
             Self::InsufficientBalance { asset, requirement } => GemConfirmErrorDisplay::BalanceRequired {
                 asset: asset.clone(),
-                requirement: requirement.clone(),
+                requirement: GemConfirmRequirement::new(requirement, asset),
             },
             Self::InsufficientNetworkFee { asset, requirement } => match requirement {
                 Some(requirement) => GemConfirmErrorDisplay::NetworkFeeRequired {
                     title: asset.display_title(),
                     asset: asset.clone(),
-                    requirement: requirement.clone(),
+                    requirement: GemConfirmRequirement::new(requirement, asset),
                 },
                 None => GemConfirmErrorDisplay::NetworkFeeMissing {
                     title: asset.display_title(),
@@ -211,17 +230,17 @@ impl GemConfirmError {
             },
             Self::MinimumAccountBalanceTooLow { asset, requirement } => GemConfirmErrorDisplay::MinimumAccountBalance {
                 asset: asset.clone(),
-                required: requirement.required.clone(),
+                required: GemFormattedNumber::asset_amount(&requirement.required, asset, GemValueStyle::Auto),
             },
             Self::DestinationAccountActivation { asset, required } => GemConfirmErrorDisplay::DestinationAccountActivation {
                 asset: asset.clone(),
-                required: required.clone(),
+                required: GemFormattedNumber::asset_amount(required, asset, GemValueStyle::Auto),
             },
             Self::BelowSwapMinimum { asset, provider, provider_name, requirement } => GemConfirmErrorDisplay::SwapMinimum {
                 asset: asset.clone(),
                 provider: *provider,
                 provider_name: provider_name.clone(),
-                requirement: requirement.clone(),
+                requirement: GemConfirmRequirement::new(requirement, asset),
             },
             Self::Sign { error, chain, msg } => match error {
                 GemSignerError::DustThreshold => GemConfirmErrorDisplay::DustThreshold { chain: *chain },

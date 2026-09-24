@@ -3,10 +3,9 @@ use crate::address_formatter::{GemAddressFormatStyle, GemAddressService, format_
 use crate::application;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::copy::address_copy;
-use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListRow, GemListRowTitle};
 use crate::models::placeholder::text_or_placeholder;
-use crate::precision::GemValueStyle;
+use crate::precision::GemCurrencyStyle;
 use crate::services::assets::rules::asset_text;
 use crate::services::contact::model::contact_initials;
 use crate::services::transfer::model::{GemConfirmRow, GemTransferData};
@@ -18,7 +17,7 @@ use primitives::{
     Asset, AssetId, Chain, ChainType, EVMChain, FeePriority, FeeUnitType, GasPriceType, ScanTransaction, SimulationResult, SimulationWarningType, Transaction, TransactionType, TransferDataOutputAction, TransferDataOutputType, Wallet,
 };
 
-use super::error::{GemConfirmError, GemConfirmErrorDisplay, GemConfirmErrorInfo, GemConfirmErrorSheet};
+use super::error::{GemConfirmError, GemConfirmErrorDisplay, GemConfirmErrorInfo, GemConfirmErrorSheet, GemConfirmRequirement};
 use super::model::{
     ConfirmState, GemAcquireAsset, GemAcquireAssetFlow, GemApprovalValue, GemConfirmData, GemConfirmFee, GemConfirmFeeLoad, GemConfirmFeeSelection, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata, GemConfirmSimulationState,
     GemFeeAsset, GemFeeRateRow, GemFeeRateRows, GemTransferAmountResult, SendInput,
@@ -311,18 +310,18 @@ fn asset_balance(balances: &[GemAssetBalance], asset_id: &AssetId) -> Result<Gem
 }
 
 pub fn error_info(display: &GemConfirmErrorDisplay, prices: &[AssetPrice], currency: Currency, input_asset_id: &AssetId, fee_asset_id: &AssetId) -> Option<GemConfirmErrorInfo> {
-    let info = |sheet: GemConfirmErrorSheet, asset: Option<&Asset>, title: String, requirement: Option<&GemBalanceRequirement>, required: Option<&GemBigInt>| {
-        let required = required.or(requirement.map(|requirement| &requirement.required));
+    let info = |sheet: GemConfirmErrorSheet, asset: Option<&Asset>, title: String, requirement: Option<&GemConfirmRequirement>, required: Option<&GemFormattedNumber>| {
+        let required = required.or(requirement.map(|requirement| &requirement.required)).cloned();
         let price = asset.and_then(|asset| prices.iter().find(|price| price.asset_id == asset.id)).map(|price| price.price);
         let buy_amount = matches!(sheet, GemConfirmErrorSheet::NetworkFeeRequired | GemConfirmErrorSheet::NetworkFeeMissing).then(|| get_fiat_config().insufficient_network_fee_buy_amount);
         GemConfirmErrorInfo {
             sheet,
             asset: asset.cloned(),
             title,
-            required: asset.zip(required).map(|(asset, value)| GemFormattedNumber::asset_amount(value, asset, GemValueStyle::Auto)),
-            required_fiat: asset.zip(required).zip(price).map(|((asset, value), price)| GemFormattedNumber::asset_fiat(value, asset, price, currency)),
-            available: asset.zip(requirement).map(|(asset, requirement)| GemFormattedNumber::asset_amount(&requirement.available, asset, GemValueStyle::Auto)),
-            shortfall: asset.zip(requirement).map(|(asset, requirement)| GemFormattedNumber::asset_amount(&requirement.shortfall, asset, GemValueStyle::Auto)),
+            required_fiat: required.as_ref().zip(price).map(|(required, price)| GemFormattedNumber::currency(required.value * price, currency, GemCurrencyStyle::Currency)),
+            required,
+            available: requirement.map(|requirement| requirement.available.clone()),
+            shortfall: requirement.map(|requirement| requirement.shortfall.clone()),
             acquire: asset.map(|asset| GemAcquireAsset {
                 flow: acquire_asset_flow(asset.chain()),
                 buy_amount,
@@ -1107,7 +1106,7 @@ mod tests {
         let display = GemConfirmErrorDisplay::NetworkFeeRequired {
             asset: asset.clone(),
             title: asset.display_title(),
-            requirement: requirement.clone(),
+            requirement: GemConfirmRequirement::new(&requirement, &asset),
         };
 
         let prices = vec![AssetPrice::new(asset.id.clone(), 2_000.0, 0.0, chrono::Utc::now())];
@@ -1124,7 +1123,10 @@ mod tests {
         assert_eq!(acquire.buy_amount, Some(get_fiat_config().insufficient_network_fee_buy_amount), "a fee sheet buys the fee amount");
         assert_eq!(acquire.swap_pair, acquire_swap_pair(&token, &asset.id, asset.id.clone()));
 
-        let balance = GemConfirmErrorDisplay::BalanceRequired { asset: asset.clone(), requirement };
+        let balance = GemConfirmErrorDisplay::BalanceRequired {
+            requirement: GemConfirmRequirement::new(&requirement, &asset),
+            asset: asset.clone(),
+        };
         assert_eq!(
             error_info(&balance, &prices, Currency::USD, &token, &asset.id).unwrap().acquire.unwrap().buy_amount,
             None,
