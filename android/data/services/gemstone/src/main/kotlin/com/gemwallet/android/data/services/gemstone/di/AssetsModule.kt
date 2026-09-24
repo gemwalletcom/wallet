@@ -40,12 +40,12 @@ import uniffi.gemstone.GemBannerService
 import uniffi.gemstone.GemConnectionService
 import uniffi.gemstone.GemConnectionServiceInterface
 import uniffi.gemstone.GemDeeplinkService
+import uniffi.gemstone.GemDeviceApiClient
 import uniffi.gemstone.GemDeviceKeyService
 import uniffi.gemstone.GemDeviceService
 import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemFiatService
 import uniffi.gemstone.GemGateway
-import uniffi.gemstone.GemNameService
 import uniffi.gemstone.GemNavigationService
 import uniffi.gemstone.GemNavigationServiceInterface
 import uniffi.gemstone.GemNftService
@@ -215,7 +215,7 @@ object AssetsModule {
         GemReceiveService(balanceService, assetsService, recentActivityService)
 
     @Provides
-    fun provideGemAddressDetailsService(gateway: GemGateway, explorerService: GemExplorerService, nameService: GemNameService): GemAddressDetailsServiceInterface = GemAddressDetailsService(gateway, explorerService, nameService)
+    fun provideGemAddressDetailsService(apiClient: GemDeviceApiClient, explorerService: GemExplorerService): GemAddressDetailsServiceInterface = GemAddressDetailsService(apiClient, explorerService)
 
     @Provides
     fun provideGemAddAssetService(assetsService: GemAssetsService, balanceService: GemBalanceService, explorerService: GemExplorerService): GemAddAssetServiceInterface = GemAddAssetService(assetsService, balanceService, explorerService)

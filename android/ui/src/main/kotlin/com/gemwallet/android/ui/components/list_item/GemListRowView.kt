@@ -35,6 +35,7 @@ import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.style.icon
 import com.gemwallet.android.ui.theme.Spacer16
+import com.gemwallet.android.ui.theme.headerIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallIconSize
@@ -142,14 +143,25 @@ fun GemListRowView(
             HeaderIcon(row.asset)
         }
 
+        is GemListRowUIModel.Avatar -> Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = paddingDefault, bottom = paddingSmall),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            ListItemImageView(image = row.image, size = headerIconSize)
+        }
+
+        is GemListRowUIModel.Address -> GemListRowMenu(items = row.menu, onClick = { clipboardManager.setCopy(context, row.copy) }) { menuModifier ->
+            AddressRow(address = row.address, listPosition = listPosition, modifier = menuModifier)
+        }
+
         is GemListRowUIModel.Network -> PropertyNetworkItem(
             chain = row.chain,
             value = row.name,
             listPosition = listPosition,
             onOpenNetwork = onSelect?.let { select -> { select(GemListRowTitle.NETWORK) } },
         )
-
-        is GemListRowUIModel.Address -> AddressCard(row = row) { clipboardManager.setCopy(context, row.copy) }
 
         is GemListRowUIModel.Toggle -> ListItem(
             model = row.model,
@@ -194,7 +206,7 @@ fun GemListRowView(
 }
 
 @Composable
-private fun GemListRowMenu(items: List<GemListRowMenuItem>, content: @Composable (Modifier) -> Unit) {
+private fun GemListRowMenu(items: List<GemListRowMenuItem>, onClick: () -> Unit = {}, content: @Composable (Modifier) -> Unit) {
     if (items.isEmpty()) {
         content(Modifier)
         return
@@ -208,7 +220,7 @@ private fun GemListRowMenu(items: List<GemListRowMenuItem>, content: @Composable
         isExpanded = isExpanded,
         onDismiss = { isExpanded = false },
         onLongClick = { isExpanded = true },
-        onClick = {},
+        onClick = onClick,
         content = content,
         menuItems = {
             items.forEach { item ->

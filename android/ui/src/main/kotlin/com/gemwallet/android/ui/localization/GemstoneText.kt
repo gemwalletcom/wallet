@@ -24,6 +24,7 @@ import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.ScanReceiveMode
 import com.wallet.core.primitives.TpslType
 import com.wallet.core.primitives.TransactionState
+import uniffi.gemstone.AddressType
 import uniffi.gemstone.AutocloseValidation
 import uniffi.gemstone.DelegationState
 import uniffi.gemstone.FeeOption
@@ -184,6 +185,8 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
     GemLocalizedText.ExternallyOwnedSpenderWarning -> context.getString(R.string.simulation_warning_externally_owned_spender_description)
 
     GemLocalizedText.SuspiciousAddress -> context.getString(R.string.common_suspicious_address)
+
+    is GemLocalizedText.AddressType -> context.getString(addressType.stringRes())
 
     GemLocalizedText.InvalidTokenId -> context.getString(R.string.errors_token_invalid_id)
 
@@ -673,6 +676,15 @@ fun GemSlippageCheck.footerText(context: Context, minimumText: String, maximumTe
 fun GemTriggerOrder.stringRes(): Int = when (this) {
     GemTriggerOrder.TAKE_PROFIT -> R.string.perpetual_take_profit
     GemTriggerOrder.STOP_LOSS -> R.string.perpetual_stop_loss
+}
+
+@StringRes
+fun AddressType.stringRes(): Int = when (this) {
+    AddressType.ADDRESS -> R.string.common_address
+    AddressType.CONTRACT -> R.string.asset_contract
+    AddressType.VALIDATOR -> R.string.stake_validator
+    AddressType.CONTACT -> R.string.contacts_contact
+    AddressType.INTERNAL_WALLET -> R.string.common_wallet
 }
 
 @StringRes
