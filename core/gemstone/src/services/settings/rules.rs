@@ -188,6 +188,12 @@ pub fn security_sections(input: GemSecurityInput) -> Vec<GemListSection> {
     ]
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAboutViewState {
+    pub sections: Vec<GemListSection>,
+    pub developer_toggle: GemLocalizedText,
+}
+
 pub fn about_sections(version: String, build: String, update: Option<Release>) -> Vec<GemListSection> {
     let page = |title: GemListRowTitle, url: PublicUrl| GemListRow::Url {
         title,

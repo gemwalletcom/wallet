@@ -119,6 +119,10 @@ public extension GemLocalizedText {
             Localized.Nft.collections
         case .nftUnverified:
             Localized.Asset.Verification.unverified
+        case .enableDeveloper:
+            Localized.Settings.enableValue(Localized.Settings.developer)
+        case .disableDeveloper:
+            Localized.Settings.disableValue(Localized.Settings.developer)
         case let .stakeProvider(provider):
             switch provider {
             case .stake: Localized.Transfer.Stake.title

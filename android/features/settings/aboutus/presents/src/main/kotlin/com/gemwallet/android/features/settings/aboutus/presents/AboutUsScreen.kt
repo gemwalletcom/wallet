@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -25,17 +26,19 @@ import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.titleRes
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AboutUsScreen(onCancel: () -> Unit, viewModel: AboutUsViewModel = hiltViewModel()) {
-    val isDeveloperEnabled by viewModel.isDeveloperEnabled.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val viewState by viewModel.viewState.collectAsStateWithLifecycle()
     var isShowDevelopEnable by remember { mutableStateOf(false) }
 
     Scene(title = stringResource(id = R.string.settings_aboutus), onClose = onCancel) {
         LazyColumn {
-            viewModel.sections.forEachIndexed { index, section ->
+            viewState.sections.forEachIndexed { index, section ->
                 section.title?.titleRes()?.let { title -> item(key = "section:$index") { SubheaderItem(title) } }
                 itemsPositioned(section.rows) { position, row ->
                     val opensMenu = row.opensDeveloperMenu()
@@ -55,7 +58,7 @@ fun AboutUsScreen(onCancel: () -> Unit, viewModel: AboutUsViewModel = hiltViewMo
                                 containerColor = MaterialTheme.colorScheme.background,
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text(viewModel.developerMenuTitle(isDeveloperEnabled)) },
+                                    text = { Text(viewState.developerToggle.string(context)) },
                                     onClick = {
                                         isShowDevelopEnable = false
                                         viewModel.toggleDeveloperMode()

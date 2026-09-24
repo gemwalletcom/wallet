@@ -1,7 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import func Gemstone.aboutSections
+import func Gemstone.aboutViewState
+import struct Gemstone.GemAboutViewState
 import protocol Gemstone.GemAppUpdateServiceProtocol
 import enum Gemstone.GemListRow
 import GemstonePrimitives
@@ -38,7 +39,7 @@ public final class AboutUsViewModel: Sendable {
             [
                 .copy(value: value),
                 .custom(
-                    title: contextDevTitle,
+                    title: developerToggleTitle,
                     systemImage: SystemImage.info,
                     action: toggleDeveloperMode,
                 ),
@@ -47,22 +48,23 @@ public final class AboutUsViewModel: Sendable {
         }
     }
 
-    var contextDevTitle: String {
-        if preferences.isDeveloperEnabled {
-            Localized.Settings.disableValue(Localized.Settings.developer)
-        } else {
-            Localized.Settings.enableValue(Localized.Settings.developer)
-        }
+    var developerToggleTitle: String {
+        viewState.developerToggle.text
+    }
+
+    private var viewState: GemAboutViewState {
+        aboutViewState(
+            version: Bundle.main.releaseVersionNumber,
+            build: String(Bundle.main.buildVersionNumber),
+            update: release?.toGem(),
+            developerEnabled: preferences.isDeveloperEnabled,
+        )
     }
 }
 
 extension AboutUsViewModel: ListSectionProvideable {
     public var sections: [ListSection<GemListSectionRow>] {
-        aboutSections(
-            version: Bundle.main.releaseVersionNumber,
-            build: String(Bundle.main.buildVersionNumber),
-            update: release?.toGem(),
-        ).listSections
+        viewState.sections.listSections
     }
 }
 

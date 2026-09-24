@@ -205,6 +205,10 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     GemLocalizedText.NftUnverified -> context.getString(R.string.asset_verification_unverified)
 
+    GemLocalizedText.EnableDeveloper -> context.getString(R.string.settings_enable_value, context.getString(R.string.settings_developer))
+
+    GemLocalizedText.DisableDeveloper -> context.getString(R.string.settings_disable_value, context.getString(R.string.settings_developer))
+
     is GemLocalizedText.StakeProvider -> when (provider) {
         StakeProviderType.STAKE -> context.getString(R.string.transfer_stake_title)
         StakeProviderType.EARN -> context.getString(R.string.common_earn)

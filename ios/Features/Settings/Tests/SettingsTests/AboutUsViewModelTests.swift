@@ -56,12 +56,12 @@ struct AboutUsViewModelTests {
         let preferences = ObservablePreferences.mock()
         preferences.isDeveloperEnabled = false
         let model = AboutUsViewModel.mock(preferences: preferences)
-        let offTitle = model.contextDevTitle
+        let offTitle = model.developerToggleTitle
 
         model.toggleDeveloperMode()
 
         #expect(preferences.isDeveloperEnabled)
-        #expect(model.contextDevTitle != offTitle)
+        #expect(model.developerToggleTitle != offTitle)
         #expect(model.contextMenuItems(for: .text(title: .version, value: "1.0 (1)")).count == 2)
         #expect(model.contextMenuItems(for: .loading).isEmpty)
     }

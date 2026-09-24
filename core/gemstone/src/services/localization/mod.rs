@@ -35,6 +35,8 @@ pub enum GemLocalizedText {
     StakeProvider { provider: StakeProviderType },
     NftCollections,
     NftUnverified,
+    EnableDeveloper,
+    DisableDeveloper,
     PositionChange { change: GemPositionChange, direction: PerpetualDirection },
 }
 

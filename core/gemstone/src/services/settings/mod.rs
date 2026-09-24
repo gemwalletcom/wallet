@@ -8,10 +8,11 @@ use primitives::{Release, Wallet};
 
 use crate::models::list::GemListSection;
 use crate::services::error::GemServiceError;
+use crate::services::localization::GemLocalizedText;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::wallet_session;
 
-pub use rules::{GemPerpetualDefaults, GemPerpetualPickers, GemPickerOption, GemPreferencesInput, GemSecurityInput};
+pub use rules::{GemAboutViewState, GemPerpetualDefaults, GemPerpetualPickers, GemPickerOption, GemPreferencesInput, GemSecurityInput};
 
 #[derive(uniffi::Object)]
 pub struct GemSettingsService {
@@ -68,13 +69,25 @@ pub fn notifications_sections(push_enabled: bool) -> Vec<GemListSection> {
 }
 
 #[uniffi::export]
-pub fn about_sections(version: String, build: String, update: Option<Release>) -> Vec<GemListSection> {
-    rules::about_sections(version, build, update)
+pub fn about_view_state(version: String, build: String, update: Option<Release>, developer_enabled: bool) -> GemAboutViewState {
+    GemAboutViewState {
+        sections: rules::about_sections(version, build, update),
+        developer_toggle: match developer_enabled {
+            true => GemLocalizedText::DisableDeveloper,
+            false => GemLocalizedText::EnableDeveloper,
+        },
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_the_about_view_state_names_the_developer_toggle_from_the_flag() {
+        assert_eq!(about_view_state("1".to_string(), "2".to_string(), None, false).developer_toggle, GemLocalizedText::EnableDeveloper);
+        assert_eq!(about_view_state("1".to_string(), "2".to_string(), None, true).developer_toggle, GemLocalizedText::DisableDeveloper);
+    }
 
     #[test]
     fn test_the_perpetual_defaults_the_screen_shows_are_the_ones_it_last_wrote() {
