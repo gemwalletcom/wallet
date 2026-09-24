@@ -11,4 +11,8 @@ interface GetPerpetuals {
     fun getPerpetuals(searchQuery: Flow<String?>): Flow<List<PerpetualDataAggregate>> = searchQuery.flatMapLatest { getPerpetuals(it) }
 
     fun getPerpetuals(searchQuery: String? = null): Flow<List<PerpetualDataAggregate>>
+
+    fun getPerpetualSections(searchQuery: Flow<String?>): Flow<PerpetualSections>
 }
+
+data class PerpetualSections(val pinned: List<PerpetualDataAggregate> = emptyList(), val markets: List<PerpetualDataAggregate> = emptyList())

@@ -9,6 +9,7 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
+import com.gemwallet.android.application.perpetual.cases.PerpetualSections
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
@@ -89,11 +90,11 @@ class PerpetualMarketViewModel @Inject constructor(
         session.update { it.onQueryChanged(value) }
     }
     val sceneState = MutableStateFlow<PerpetualMarketSceneState>(PerpetualMarketSceneState.Idle)
-    private val perpetuals = getPerpetuals.getPerpetuals(query)
+    private val perpetualSections = getPerpetuals.getPerpetualSections(query)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, PerpetualSections())
+    val unpinnedPerpetuals = perpetualSections.map { it.markets }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-    val unpinnedPerpetuals = perpetuals.map { items -> items.filter { !it.isPinned } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-    val pinnedPerpetuals = perpetuals.map { items -> items.filter { it.isPinned } }
+    val pinnedPerpetuals = perpetualSections.map { it.pinned }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val positions = combine(getPositions.getPerpetualPositions(), query) { items, q ->
         val needle = q.orEmpty()

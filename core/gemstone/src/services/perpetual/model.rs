@@ -133,6 +133,30 @@ pub fn perpetual_market_rows(markets: Vec<PerpetualData>) -> Vec<GemPerpetualMar
     markets.iter().map(|data| rules::market_row(&data.perpetual, &data.asset)).collect()
 }
 
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemPerpetualMarketItem {
+    pub data: PerpetualData,
+    pub row: GemPerpetualMarketRow,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemPerpetualMarketSections {
+    pub pinned: Vec<GemPerpetualMarketItem>,
+    pub markets: Vec<GemPerpetualMarketItem>,
+}
+
+#[uniffi::export]
+pub fn perpetual_market_sections(markets: Vec<PerpetualData>) -> GemPerpetualMarketSections {
+    let (pinned, markets): (Vec<_>, Vec<_>) = markets
+        .into_iter()
+        .map(|data| GemPerpetualMarketItem {
+            row: rules::market_row(&data.perpetual, &data.asset),
+            data,
+        })
+        .partition(|item| item.data.metadata.is_pinned);
+    GemPerpetualMarketSections { pinned, markets }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemPerpetualChartLineKind {
     Entry,
@@ -369,6 +393,23 @@ impl GemPerpetualMarketSession {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_market_sections_split_pinned_markets_and_keep_their_order() {
+        let market = |name: &str, is_pinned: bool| PerpetualData {
+            perpetual: primitives::Perpetual {
+                name: name.to_string(),
+                ..primitives::Perpetual::mock()
+            },
+            asset: primitives::Asset::mock(),
+            metadata: primitives::PerpetualMetadata { is_pinned },
+        };
+
+        let sections = perpetual_market_sections(vec![market("A", false), market("B", true), market("C", false)]);
+
+        assert_eq!(sections.pinned.iter().map(|item| item.data.perpetual.name.as_str()).collect::<Vec<_>>(), vec!["B"]);
+        assert_eq!(sections.markets.iter().map(|item| item.data.perpetual.name.as_str()).collect::<Vec<_>>(), vec!["A", "C"]);
+    }
 
     #[test]
     fn test_browsing_lists_traded_markets_and_a_search_reaches_every_one() {

@@ -5,6 +5,7 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
+import com.gemwallet.android.application.perpetual.cases.PerpetualSections
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
@@ -92,11 +93,11 @@ class PerpetualMarketViewModelTest {
     @Test
     fun `pinned and unpinned markets share one market observation`() = runTest(dispatcher) {
         var collections = 0
-        val pinned = mockk<PerpetualDataAggregate> { every { isPinned } returns true }
-        val unpinned = mockk<PerpetualDataAggregate> { every { isPinned } returns false }
+        val pinned = mockk<PerpetualDataAggregate>()
+        val unpinned = mockk<PerpetualDataAggregate>()
         val markets = flow {
             collections++
-            emit(listOf(pinned, unpinned))
+            emit(PerpetualSections(pinned = listOf(pinned), markets = listOf(unpinned)))
         }
 
         val subject = viewModel(mockk(relaxed = true), perpetuals = markets)
@@ -112,10 +113,10 @@ class PerpetualMarketViewModelTest {
         positions: List<PerpetualPositionDataAggregate> = emptyList(),
         balance: PerpetualBalance? = null,
         walletType: WalletType = WalletType.Multicoin,
-        perpetuals: Flow<List<PerpetualDataAggregate>> = flowOf(emptyList()),
+        perpetuals: Flow<PerpetualSections> = flowOf(PerpetualSections()),
     ): PerpetualMarketViewModel {
         val getPerpetuals = mockk<GetPerpetuals>()
-        every { getPerpetuals.getPerpetuals(any<Flow<String?>>()) } returns perpetuals
+        every { getPerpetuals.getPerpetualSections(any()) } returns perpetuals
         val getPositions = mockk<GetPerpetualPositions>()
         every { getPositions.getPerpetualPositions() } returns flowOf(positions)
         val getBalance = mockk<GetPerpetualBalance>()

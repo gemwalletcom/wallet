@@ -7,6 +7,7 @@ import enum Gemstone.GemMarketsRefreshTrigger
 import struct Gemstone.GemPerpetualBalanceHeader
 import struct Gemstone.GemPerpetualMarketCounts
 import enum Gemstone.GemPerpetualMarketSection
+import struct Gemstone.GemPerpetualMarketSections
 import struct Gemstone.GemPerpetualMarketSession
 import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
@@ -30,7 +31,7 @@ public final class PerpetualsSceneViewModel {
     let wallet: Wallet
 
     let positionsQuery: ObservableQuery<PerpetualPositionsRequest>
-    let perpetualsQuery: ObservableQuery<PerpetualsRequest>
+    let perpetualsQuery: ObservableQuery<MappedRequest<PerpetualsRequest, GemPerpetualMarketSections>>
     let walletBalanceQuery: ObservableQuery<PerpetualWalletBalanceRequest>
     let recentModel: RecentAssetsModel
 
@@ -38,7 +39,7 @@ public final class PerpetualsSceneViewModel {
         positionsQuery.value
     }
 
-    var perpetuals: [PerpetualData] {
+    var sections: GemPerpetualMarketSections {
         perpetualsQuery.value
     }
 
@@ -79,7 +80,7 @@ public final class PerpetualsSceneViewModel {
         self.onSelectAsset = onSelectAsset
         self.onSelectPortfolio = onSelectPortfolio
         positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.id, searchQuery: ""), initialValue: [])
-        perpetualsQuery = ObservableQuery(.market(search: .empty), initialValue: [])
+        perpetualsQuery = ObservableQuery(.marketSections(search: .empty), initialValue: GemPerpetualMarketSections(pinned: [], markets: []))
         walletBalanceQuery = ObservableQuery(
             PerpetualWalletBalanceRequest(walletId: wallet.id, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
             initialValue: nil,
@@ -114,10 +115,6 @@ public final class PerpetualsSceneViewModel {
 
     var showSearchEmptyState: Bool {
         marketSectionList.contains(.empty)
-    }
-
-    var sections: PerpetualsSections {
-        .from(perpetuals)
     }
 
     var headerViewModel: PerpetualsHeaderViewModel {
@@ -173,7 +170,7 @@ extension PerpetualsSceneViewModel {
 
     func onSearchQueryChange(_ _: String, _: String) {
         let query = session.searchQuery()
-        perpetualsQuery.request = .market(search: query)
+        perpetualsQuery.request = .marketSections(search: query)
         positionsQuery.request = PerpetualPositionsRequest(walletId: wallet.id, searchQuery: query)
     }
 

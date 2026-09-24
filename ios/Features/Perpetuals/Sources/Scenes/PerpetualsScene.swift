@@ -113,7 +113,7 @@ extension PerpetualsScene {
         case .pinned:
             Section {
                 PerpetualSectionView(
-                    perpetuals: model.sections.pinned,
+                    items: model.sections.pinned,
                     onPin: model.onPinPerpetual,
                     onSelect: model.onSelectPerpetual,
                 )
@@ -127,7 +127,7 @@ extension PerpetualsScene {
         case .markets:
             Section {
                 PerpetualSectionView(
-                    perpetuals: model.sections.markets,
+                    items: model.sections.markets,
                     onPin: model.onPinPerpetual,
                     onSelect: model.onSelectPerpetual,
                 )
