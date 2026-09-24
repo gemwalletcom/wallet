@@ -51,23 +51,7 @@ impl Config {
         get_wallet_connect_config()
     }
 
-    fn get_node_regions(&self) -> Vec<NodeRegion> {
-        NodeRegion::all()
-    }
-
     fn get_node_url(&self, chain: Chain, region: NodeRegion) -> String {
         region.url(chain)
-    }
-
-    fn get_node_region(&self, url: &str) -> Option<NodeRegion> {
-        NodeRegion::from_url(url)
-    }
-
-    fn get_node_region_flag(&self, region: NodeRegion) -> String {
-        region.flag().to_string()
-    }
-
-    fn get_node_region_priority(&self, region: NodeRegion) -> i32 {
-        region.priority()
     }
 }

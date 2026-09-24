@@ -45,22 +45,8 @@ public extension Config {
 }
 
 public enum NodeURL {
-    public static let regions = Config.shared.getNodeRegions()
-
     public static func url(chain: Primitives.Chain, region: NodeRegion) -> URL {
         URL(string: Config.shared.getNodeUrl(chain: chain.rawValue, region: region))!
-    }
-
-    public static func region(url: String) -> NodeRegion? {
-        Config.shared.getNodeRegion(url: url)
-    }
-
-    public static func flag(region: NodeRegion) -> String {
-        Config.shared.getNodeRegionFlag(region: region)
-    }
-
-    public static func priority(region: NodeRegion) -> Int32 {
-        Config.shared.getNodeRegionPriority(region: region)
     }
 }
 

@@ -1,4 +1,4 @@
-use primitives::{Currency, PriceAlert, PriceAlertData, PriceAlertNotificationType};
+use primitives::{Currency, PriceAlert, PriceAlertData};
 
 use crate::services::price_alert::rules::{self, GemPriceAlertListSection, GemPriceAlertRow};
 
@@ -14,10 +14,6 @@ impl PriceAlertFormatter {
 
     pub fn alert_id(&self, alert: PriceAlert) -> String {
         alert.id()
-    }
-
-    pub fn notification_type(&self, alert: PriceAlert) -> PriceAlertNotificationType {
-        alert.notification_type()
     }
 
     pub fn row(&self, data: PriceAlertData, price_currency: Currency) -> GemPriceAlertRow {

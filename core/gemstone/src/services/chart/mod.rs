@@ -68,11 +68,7 @@ impl GemChartService {
     }
 
     pub fn new_session(&self) -> GemChartSession {
-        GemChartSession::new(self.chart_period(), self.get_currency())
-    }
-
-    pub fn get_currency(&self) -> Currency {
-        self.preferences.get_currency()
+        GemChartSession::new(self.chart_period(), self.preferences.get_currency())
     }
 
     pub fn chart_period(&self) -> ChartPeriod {
@@ -84,7 +80,7 @@ impl GemChartService {
     }
 
     pub async fn sync_charts(&self, asset_id: AssetId, period: ChartPeriod) -> Result<GemChart, GemServiceError> {
-        let currency = self.get_currency();
+        let currency = self.preferences.get_currency();
         let charts = self.api.client.get_charts(asset_id.clone(), period).await.map_err(GemApiError::from)?;
         if let Some(market) = charts.market {
             self.price.update_market(asset_id.clone(), market).await?;

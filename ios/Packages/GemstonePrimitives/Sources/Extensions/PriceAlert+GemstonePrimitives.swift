@@ -15,9 +15,3 @@ extension PriceAlertData: @retroactive Identifiable {
         asset.id.identifier + priceAlert.id
     }
 }
-
-public extension PriceAlert {
-    var type: PriceAlertNotificationType {
-        PriceAlertFormatter.shared.notificationType(alert: toGem()).toPrimitives()
-    }
-}

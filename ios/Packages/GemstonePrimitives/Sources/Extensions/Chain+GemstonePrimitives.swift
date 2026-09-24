@@ -23,10 +23,6 @@ public extension Primitives.Chain {
         ChainConfig.config(chain: self).isMemoSupported
     }
 
-    var type: Primitives.ChainType {
-        ChainConfig.config(chain: self).chainType.toPrimitives()
-    }
-
     var iconChain: Primitives.Chain {
         Primitives.Chain(core: ChainConfig.config(chain: self).iconChain)
     }

@@ -36,10 +36,4 @@ public extension GemWalletSessionServiceProtocol {
     func setCurrent(walletId: WalletId?) throws {
         try setCurrentWalletId(walletId: walletId?.id)
     }
-
-    func setCurrent(wallet: Wallet) async throws {
-        try await MainActor.run {
-            try setCurrent(walletId: wallet.id)
-        }
-    }
 }

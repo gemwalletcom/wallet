@@ -194,14 +194,6 @@ impl GemWalletService {
         }
     }
 
-    pub async fn setup_chains(&self, chains: Vec<Chain>) -> Result<Vec<Wallet>, GemServiceError> {
-        let SetupChainsOutcome { wallets, failures } = self.setup_chains_outcome(chains).await?;
-        match failures.into_iter().next() {
-            Some((_, error)) if wallets.is_empty() => Err(error),
-            _ => Ok(wallets),
-        }
-    }
-
     pub async fn migrate_to_shared_password(&self) -> Result<u32, GemServiceError> {
         let legacy: Vec<(Wallet, String)> = self
             .store
@@ -567,12 +559,12 @@ mod tests {
             let reads = || context.passwords.create_requests.lock().unwrap().len();
             let before = reads();
 
-            context.service.setup_chains(vec![Chain::Ethereum]).await.unwrap();
+            context.service.setup_chains_outcome(vec![Chain::Ethereum]).await.unwrap();
 
             assert_eq!(reads(), before, "a wallet that misses no chain never unlocks the keystore");
 
             let _ = context.service.keystore.delete(keystore_id_for_wallet(wallet.id.id()));
-            context.service.setup_chains(vec![Chain::Ethereum, Chain::Solana]).await.unwrap();
+            context.service.setup_chains_outcome(vec![Chain::Ethereum, Chain::Solana]).await.unwrap();
 
             assert_eq!(reads(), before, "a wallet with no keystore is skipped before the password is read");
             assert_eq!(context.service.wallets().await.unwrap()[0].accounts.len(), 1);
@@ -600,19 +592,6 @@ mod tests {
     }
 
     #[test]
-    fn test_setup_chains_reports_the_error_when_no_wallet_could_be_set_up() {
-        block_on(async {
-            let context = WalletTestkit::new();
-            let only = context.import("Only", PHRASE).await;
-            context.lock_out(&only);
-
-            let error = context.service.setup_chains(vec![Chain::Ethereum, Chain::Solana]).await;
-
-            assert!(error.is_err(), "a setup that added nothing must surface the failure");
-        });
-    }
-
-    #[test]
     fn test_every_wallet_change_bumps_the_subscriptions_version() {
         block_on(async {
             let context = WalletTestkit::new();
@@ -621,11 +600,11 @@ mod tests {
             let wallet = context.import("Imported", PHRASE).await;
             assert_eq!(context.service.app_preferences.get_subscriptions_version(), 5, "import must bump");
 
-            context.service.setup_chains(vec![Chain::Ethereum, Chain::Solana]).await.unwrap();
+            context.service.setup_chains_outcome(vec![Chain::Ethereum, Chain::Solana]).await.unwrap();
             assert_eq!(context.service.app_preferences.get_subscriptions_version(), 6, "adding a chain must bump");
 
             let before = context.service.app_preferences.get_subscriptions_version();
-            context.service.setup_chains(vec![Chain::Ethereum, Chain::Solana]).await.unwrap();
+            context.service.setup_chains_outcome(vec![Chain::Ethereum, Chain::Solana]).await.unwrap();
             assert_eq!(context.service.app_preferences.get_subscriptions_version(), before, "a setup that adds no chain must not bump");
 
             let second = context.import("Second", OTHER_PHRASE).await;

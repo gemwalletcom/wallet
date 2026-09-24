@@ -36,7 +36,7 @@ struct WalletServiceTests {
         let service = GemWalletService.mock(db: db, sessionStore: sessionStore)
 
         let wallet = try await service.importWallet(request: importRequest()).wallet().toPrimitives()
-        try await session.setCurrent(wallet: wallet)
+        try session.setCurrent(walletId: wallet.id)
 
         try await confirmation { confirm in
             withObservationTracking {

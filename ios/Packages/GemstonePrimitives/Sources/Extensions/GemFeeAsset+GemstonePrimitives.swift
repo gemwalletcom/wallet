@@ -36,22 +36,11 @@ public extension GemFeeAsset {
 }
 
 public extension GemConfirmMetadata {
-    var assetId: Primitives.AssetId { Primitives.AssetId(core: assetBalance.assetId) }
-    var feeAssetId: Primitives.AssetId { Primitives.AssetId(core: feeAssetBalance.assetId) }
-
-    var available: BigInt { BigInt(assetBalance.available) }
-
     var assetPrice: Primitives.Price? { assetPrice().map { $0.toPrimitives().mapToPrice() } }
     var feePrice: Primitives.Price? { feePrice().map { $0.toPrimitives().mapToPrice() } }
 
-    var balance: Primitives.Balance { Primitives.Balance(assetBalance) }
-
     func price(for assetId: String) -> Primitives.Price? {
         price(assetId: assetId).map { $0.toPrimitives().mapToPrice() }
-    }
-
-    func price(for assetId: Primitives.AssetId) -> Primitives.Price? {
-        price(for: assetId.identifier)
     }
 
     var assetPrices: [Primitives.AssetId: Primitives.Price] {
