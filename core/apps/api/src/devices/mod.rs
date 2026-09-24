@@ -9,6 +9,7 @@ use crate::responders::{ApiError, ApiResponse};
 use auth_config::AuthConfig;
 use body::DeviceJson;
 use gem_auth::create_device_token;
+use gem_tracing::error_with_fields;
 use guard::{AuthenticatedDevice, AuthenticatedDeviceWallet, VerifiedDeviceId};
 use name_resolver::NameClient;
 use primitives::DeviceToken;
@@ -171,7 +172,9 @@ pub async fn update_device_v2(device: AuthenticatedDevice, device_input: DeviceJ
     if device_input.id != device.record.device.id {
         return Err(ApiError::BadRequest("Device id mismatch".to_string()));
     }
-    support_client.update_contact(device.record.id, &device_input).await?;
+    if let Err(error) = support_client.update_contact(device.record.id, &device_input).await {
+        error_with_fields!("support contact update failed", &*error, device_id = device.record.id);
+    }
     let updated_device = client.update_device(device_input).await?;
     Ok(updated_device.into())
 }
