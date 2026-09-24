@@ -8,7 +8,7 @@ use primitives::rewards::{RewardRedemptionOption, RewardStatus};
 use primitives::{Localize, NaiveDateTimeExt, Platform, ReferralLeaderboard, RewardEvent, Rewards, WalletId, WalletSource, WalletType, now};
 use pusher::PusherClient;
 use rewards::{ReferralError, ReferralValidationError, RewardsError, RiskScoreConfig, RiskScoringInput, UsernameError};
-use storage::{Database, DatabaseError, DeviceRecord, NewWallet, RewardsRedemptionsRepository, RewardsRepository, WalletsRepository};
+use storage::{Database, DatabaseError, DeviceRecord, NewWallet, RewardsRedemptionsRepository, RewardsRepository, WalletRecord, WalletsRepository};
 use streamer::{RewardsNotificationPayload, StreamProducer, StreamProducerQueue};
 
 use super::ip_security_client::IpSecurityClient;
@@ -96,9 +96,8 @@ impl RewardsClient {
         Ok(self.db.run(move |client| client.get_redemption_option(&code)).await?)
     }
 
-    pub async fn create_username(&self, wallet_identifier: &str, code: &str, device_id: i32, ip_address: &str, locale: &str) -> Result<Rewards, Box<dyn Error + Send + Sync>> {
-        let wallet_identifier = wallet_identifier.to_string();
-        let wallet = self.db.run(move |client| client.get_wallet(&wallet_identifier)).await?;
+    pub async fn create_username(&self, address: &str, code: &str, device_id: i32, ip_address: &str, locale: &str) -> Result<Rewards, Box<dyn Error + Send + Sync>> {
+        let wallet = self.multicoin_wallet(address).await?;
 
         self.consume_username_creation_limits(ip_address, device_id).await.map_err(|error| self.map_username_error(error, locale))?;
 
@@ -121,6 +120,20 @@ impl RewardsClient {
         Ok(rewards)
     }
 
+    async fn multicoin_wallet(&self, address: &str) -> Result<WalletRecord, Box<dyn Error + Send + Sync>> {
+        let wallet_id = WalletId::Multicoin(address.to_string());
+        Ok(self
+            .db
+            .run(move |client| {
+                client.get_or_create_wallet(NewWallet {
+                    wallet_id,
+                    wallet_type: WalletType::Multicoin,
+                    source: WalletSource::Import,
+                })
+            })
+            .await?)
+    }
+
     async fn consume_username_creation_limits(&self, ip_address: &str, device_id: i32) -> Result<(), Box<dyn Error + Send + Sync>> {
         let device_id = device_id.to_string();
         for (key, scope) in [
@@ -139,17 +152,7 @@ impl RewardsClient {
 
     pub async fn use_referral_code(&self, device: &DeviceRecord, address: &str, code: &str, ip_address: &str, user_agent: &str) -> Result<Vec<RewardEvent>, Box<dyn Error + Send + Sync>> {
         let locale = device.device.locale.as_ref();
-        let wallet_id = WalletId::Multicoin(address.to_string());
-        let wallet = self
-            .db
-            .run(move |client| {
-                client.get_or_create_wallet(NewWallet {
-                    wallet_id,
-                    wallet_type: WalletType::Multicoin,
-                    source: WalletSource::Import,
-                })
-            })
-            .await?;
+        let wallet = self.multicoin_wallet(address).await?;
 
         let wallet_id = wallet.id;
         let device_id = device.id;

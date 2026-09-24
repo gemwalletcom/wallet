@@ -144,9 +144,8 @@ pub async fn get_device_rewards_redemption_v2(_device: AuthenticatedDevice, code
 
 #[post("/devices/rewards/referrals/create", format = "json", data = "<request>")]
 pub async fn create_device_referral_v2(device: AuthenticatedDevice, request: WalletSigned<primitives::ReferralCode>, ip: std::net::IpAddr, client: &State<RewardsClient>) -> Result<ApiResponse<Rewards>, ApiError> {
-    let wallet_identifier = primitives::WalletId::Multicoin(request.address.clone()).id();
     Ok(client
-        .create_username(&wallet_identifier, &request.data.code, device.record.id, &ip.to_string(), device.record.device.locale.as_ref())
+        .create_username(&request.address, &request.data.code, device.record.id, &ip.to_string(), device.record.device.locale.as_ref())
         .await?
         .into())
 }
