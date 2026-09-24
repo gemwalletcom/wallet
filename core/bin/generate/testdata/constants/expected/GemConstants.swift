@@ -18,7 +18,4 @@ public enum GemConstants {
     public static let lockPeriods: [Gemstone.GemLockPeriod] = [Gemstone.GemLockPeriod.immediate, Gemstone.GemLockPeriod.oneMinute]
     public static let activityTypes: [Primitives.TransactionType] = [Primitives.TransactionType.transferNFT, Primitives.TransactionType.swap]
     public static let quoteCurrency: Primitives.Currency = Primitives.Currency.usd
-    public static let limits: Gemstone.GemAttachmentLimits = Gemstone.GemAttachmentLimits(maxDimension: 2048, jpegQuality: 90)
-    public static let rejectedError: Gemstone.GemRpcError = Gemstone.GemRpcError(code: 4001, message: "User rejected the request")
-    public static let labels: [Gemstone.GemLabel] = [Gemstone.GemLabel.none, Gemstone.GemLabel.number(value: 2.0, digits: 1), Gemstone.GemLabel.plain("text")]
 }

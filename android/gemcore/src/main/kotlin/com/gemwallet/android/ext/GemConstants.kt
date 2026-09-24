@@ -22,7 +22,10 @@ object GemConstants {
     val serviceStatusTimeout: Duration = 30.seconds
     val transactionsListLimit: Int = 1000
     val recentAssetsLimit: Int = 10
-    val supportAttachmentLimits: uniffi.gemstone.GemSupportAttachmentLimits = uniffi.gemstone.GemSupportAttachmentLimits(maxDimension = 2048u, jpegQuality = 90u)
+    val supportAttachmentMaxDimension: Int = 2048
+    val supportAttachmentJpegQuality: Int = 90
+    val walletConnectUserRejectedErrorCode: Int = 4001
+    val walletConnectUserRejectedErrorMessage: String = "User rejected the request"
     val walletBannerEvents: List<com.wallet.core.primitives.BannerEvent> = listOf<com.wallet.core.primitives.BannerEvent>(com.wallet.core.primitives.BannerEvent.AccountBlockedMultiSignature, com.wallet.core.primitives.BannerEvent.Onboarding)
     val perpetualActivityTypes: List<com.wallet.core.primitives.TransactionType> = listOf<com.wallet.core.primitives.TransactionType>(com.wallet.core.primitives.TransactionType.PerpetualOpenPosition, com.wallet.core.primitives.TransactionType.PerpetualClosePosition, com.wallet.core.primitives.TransactionType.PerpetualModifyPosition)
     val acceptTermsItems: List<uniffi.gemstone.GemAcceptTermsItem> = listOf<uniffi.gemstone.GemAcceptTermsItem>(uniffi.gemstone.GemAcceptTermsItem.SELF_CUSTODY, uniffi.gemstone.GemAcceptTermsItem.RECOVERY, uniffi.gemstone.GemAcceptTermsItem.RESPONSIBILITY)
@@ -30,5 +33,4 @@ object GemConstants {
     val transactionFilters: List<uniffi.gemstone.GemTransactionFilter> = listOf<uniffi.gemstone.GemTransactionFilter>(uniffi.gemstone.GemTransactionFilter.TRANSFERS, uniffi.gemstone.GemTransactionFilter.SWAPS, uniffi.gemstone.GemTransactionFilter.STAKE, uniffi.gemstone.GemTransactionFilter.SMART_CONTRACT, uniffi.gemstone.GemTransactionFilter.PERPETUALS, uniffi.gemstone.GemTransactionFilter.OTHERS)
     val lockPeriods: List<uniffi.gemstone.GemLockPeriod> = listOf<uniffi.gemstone.GemLockPeriod>(uniffi.gemstone.GemLockPeriod.IMMEDIATE, uniffi.gemstone.GemLockPeriod.ONE_MINUTE, uniffi.gemstone.GemLockPeriod.FIVE_MINUTES, uniffi.gemstone.GemLockPeriod.FIFTEEN_MINUTES, uniffi.gemstone.GemLockPeriod.ONE_HOUR, uniffi.gemstone.GemLockPeriod.SIX_HOURS)
     val walletAvatarEmojis: List<String> = listOf<String>("💎", "🦄", "🚀", "❤️", "😍", "🔥", "💩", "😭", "🏆", "🏴‍☠️", "✅", "⚠️", "💰", "🎁", "🎈", "🌈", "⭐️", "👑", "💔", "🔒", "🏦", "🥷", "👨‍💻", "🛢", "🔑", "🛡", "📈", "📉", "💥", "👽", "🔮", "⚡️", "🌍", "⏳", "🤖", "🛰", "🐉", "🐙", "🦅", "👀", "💪", "🔷", "👻", "🌪", "🕶", "👾", "🕵️‍♂️", "⌛️", "✨", "🍀", "☠️", "💀", "🕸", "🕷", "🎰", "☄️", "🏔", "🏜", "🌊", "🎆", "🎖", "🔭", "⛽️", "🏭", "🌉", "🏰", "🔨", "🧰", "💼", "🏷", "♟", "⚓️", "🎡", "🎢", "🎃", "📦")
-    val userRejectedError: uniffi.gemstone.GemWalletConnectRpcError = uniffi.gemstone.GemWalletConnectRpcError(code = 4001, message = "User rejected the request")
 }

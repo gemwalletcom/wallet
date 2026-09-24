@@ -26,9 +26,3 @@ pub enum GemSupportMessageOutcome {
 pub fn support_chat_groups(messages: Vec<SupportMessage>) -> Vec<GemSupportChatGroup> {
     rules::chat_groups(messages)
 }
-
-#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
-pub struct GemSupportAttachmentLimits {
-    pub max_dimension: u32,
-    pub jpeg_quality: u32,
-}

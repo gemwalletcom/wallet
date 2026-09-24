@@ -168,7 +168,9 @@ class WCRequestViewModel @Inject constructor(
         }
         requestJob?.cancel()
         val sessionRequest = state.value.sessionRequest ?: return
-        respond(sessionRequest, GemConstants.userRejectedError.toJsonRpcResponse(), onError = { Log.e(TAG, "Request rejection failed id=${sessionRequest.request.id}: $it") })
+        respond(sessionRequest, WalletConnectJsonRpcResponse.Error(code = GemConstants.walletConnectUserRejectedErrorCode, message = GemConstants.walletConnectUserRejectedErrorMessage), onError = {
+            Log.e(TAG, "Request rejection failed id=${sessionRequest.request.id}: $it")
+        })
     }
 
     private fun toRequest(pending: WalletConnectPendingRequest): WCRequest {

@@ -14,21 +14,4 @@ pub const EMOJIS: &[&str] = &["💎", "🦄"];
 pub const LOCK_PERIODS: &[GemLockPeriod] = &[GemLockPeriod::Immediate, GemLockPeriod::OneMinute];
 pub const ACTIVITY_TYPES: &[TransactionType] = &[TransactionType::TransferNFT, TransactionType::Swap];
 pub const QUOTE_CURRENCY: Currency = Currency::USD;
-pub const LIMITS: GemAttachmentLimits = GemAttachmentLimits { jpeg_quality: 90, max_dimension: 2048 };
-const REJECTED_CODE: i32 = 4001;
 const INTERNAL: u8 = 7;
-
-pub fn rejected_error() -> GemRpcError {
-    GemRpcError {
-        code: REJECTED_CODE,
-        message: "User rejected the request".to_string(),
-    }
-}
-
-pub fn labels() -> Vec<GemLabel> {
-    vec![GemLabel::None, GemLabel::Number { value: 2.0, digits: Some(1) }, GemLabel::Plain("text".into())]
-}
-
-fn private_helper() -> u8 {
-    INTERNAL
-}

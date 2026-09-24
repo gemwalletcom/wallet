@@ -4,11 +4,7 @@ use primitives::{BannerEvent, Currency, TransactionType};
 
 use crate::services::onboarding::{GemAcceptTermsItem, GemSecurityReminderItem};
 use crate::services::security::GemLockPeriod;
-use crate::services::support::model::GemSupportAttachmentLimits;
 use crate::services::transactions::GemTransactionFilter;
-use crate::services::wallet_connect::GemWalletConnectRpcError;
-
-pub(crate) const USER_REJECTED_ERROR_CODE: i32 = 4001;
 
 pub const SEARCH_DEBOUNCE: Duration = Duration::from_millis(250);
 pub const NODE_CHECK_DEBOUNCE: Duration = Duration::from_millis(250);
@@ -24,7 +20,10 @@ pub const SCAN_TIMEOUT: Duration = Duration::from_secs(3);
 pub const SERVICE_STATUS_TIMEOUT: Duration = Duration::from_secs(30);
 pub const TRANSACTIONS_LIST_LIMIT: usize = 1000;
 pub const RECENT_ASSETS_LIMIT: usize = 10;
-pub const SUPPORT_ATTACHMENT_LIMITS: GemSupportAttachmentLimits = GemSupportAttachmentLimits { max_dimension: 2048, jpeg_quality: 90 };
+pub const SUPPORT_ATTACHMENT_MAX_DIMENSION: usize = 2048;
+pub const SUPPORT_ATTACHMENT_JPEG_QUALITY: usize = 90;
+pub const WALLET_CONNECT_USER_REJECTED_ERROR_CODE: i32 = 4001;
+pub const WALLET_CONNECT_USER_REJECTED_ERROR_MESSAGE: &str = "User rejected the request";
 pub const WALLET_BANNER_EVENTS: &[BannerEvent] = &[BannerEvent::AccountBlockedMultiSignature, BannerEvent::Onboarding];
 pub const PERPETUAL_ACTIVITY_TYPES: &[TransactionType] = &[TransactionType::PerpetualOpenPosition, TransactionType::PerpetualClosePosition, TransactionType::PerpetualModifyPosition];
 pub const ACCEPT_TERMS_ITEMS: &[GemAcceptTermsItem] = &[GemAcceptTermsItem::SelfCustody, GemAcceptTermsItem::Recovery, GemAcceptTermsItem::Responsibility];
@@ -123,13 +122,6 @@ pub const WALLET_AVATAR_EMOJIS: &[&str] = &[
     "🎃",
     "📦",
 ];
-
-pub fn user_rejected_error() -> GemWalletConnectRpcError {
-    GemWalletConnectRpcError {
-        code: USER_REJECTED_ERROR_CODE,
-        message: "User rejected the request".to_string(),
-    }
-}
 
 #[cfg(test)]
 mod tests {

@@ -1,4 +1,4 @@
-use crate::constants::USER_REJECTED_ERROR_CODE;
+use crate::constants::{WALLET_CONNECT_USER_REJECTED_ERROR_CODE, WALLET_CONNECT_USER_REJECTED_ERROR_MESSAGE};
 use std::collections::HashSet;
 use std::str::FromStr;
 
@@ -171,7 +171,7 @@ pub fn session(topic: String, chains: Vec<Chain>, expire_at: DateTime<Utc>, meta
 
 pub fn session_rejection(reason: GemWalletConnectRejectionReason) -> GemWalletConnectRejection {
     let (code, message) = match reason {
-        GemWalletConnectRejectionReason::UserRejected => (USER_REJECTED_ERROR_CODE, "User rejected the session"),
+        GemWalletConnectRejectionReason::UserRejected => (WALLET_CONNECT_USER_REJECTED_ERROR_CODE, "User rejected the session"),
         GemWalletConnectRejectionReason::UnsupportedChains => (UNSUPPORTED_CHAINS_ERROR_CODE, "Unsupported chains"),
         GemWalletConnectRejectionReason::UnsupportedMethods => (UNSUPPORTED_METHODS_ERROR_CODE, "Unsupported methods"),
         GemWalletConnectRejectionReason::UnsupportedAccounts => (UNSUPPORTED_ACCOUNTS_ERROR_CODE, "Unsupported accounts"),
@@ -182,6 +182,13 @@ pub fn session_rejection(reason: GemWalletConnectRejectionReason) -> GemWalletCo
         code,
         message: message.to_string(),
         deletes_session: true,
+    }
+}
+
+pub fn user_rejected_error() -> GemWalletConnectRpcError {
+    GemWalletConnectRpcError {
+        code: WALLET_CONNECT_USER_REJECTED_ERROR_CODE,
+        message: WALLET_CONNECT_USER_REJECTED_ERROR_MESSAGE.to_string(),
     }
 }
 
@@ -360,7 +367,7 @@ mod tests {
         assert_eq!(rejection.message, "Unsupported chains");
         assert!(rejection.deletes_session);
 
-        assert_eq!(session_rejection(GemWalletConnectRejectionReason::UserRejected).code, USER_REJECTED_ERROR_CODE);
+        assert_eq!(session_rejection(GemWalletConnectRejectionReason::UserRejected).code, WALLET_CONNECT_USER_REJECTED_ERROR_CODE);
         assert_eq!(session_rejection(GemWalletConnectRejectionReason::UnsupportedMethods).code, 5101);
         assert_eq!(session_rejection(GemWalletConnectRejectionReason::UnsupportedEvents).code, 5102);
         assert_eq!(session_rejection(GemWalletConnectRejectionReason::UnsupportedAccounts).code, 5103);

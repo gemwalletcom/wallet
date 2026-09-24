@@ -20,7 +20,10 @@ public enum GemConstants {
     public static let serviceStatusTimeout: Duration = .seconds(30)
     public static let transactionsListLimit: Int = 1000
     public static let recentAssetsLimit: Int = 10
-    public static let supportAttachmentLimits: Gemstone.GemSupportAttachmentLimits = Gemstone.GemSupportAttachmentLimits(maxDimension: 2048, jpegQuality: 90)
+    public static let supportAttachmentMaxDimension: Int = 2048
+    public static let supportAttachmentJpegQuality: Int = 90
+    public static let walletConnectUserRejectedErrorCode: Int32 = 4001
+    public static let walletConnectUserRejectedErrorMessage: String = "User rejected the request"
     public static let walletBannerEvents: [Primitives.BannerEvent] = [Primitives.BannerEvent.accountBlockedMultiSignature, Primitives.BannerEvent.onboarding]
     public static let perpetualActivityTypes: [Primitives.TransactionType] = [Primitives.TransactionType.perpetualOpenPosition, Primitives.TransactionType.perpetualClosePosition, Primitives.TransactionType.perpetualModifyPosition]
     public static let acceptTermsItems: [Gemstone.GemAcceptTermsItem] = [Gemstone.GemAcceptTermsItem.selfCustody, Gemstone.GemAcceptTermsItem.recovery, Gemstone.GemAcceptTermsItem.responsibility]
@@ -28,5 +31,4 @@ public enum GemConstants {
     public static let transactionFilters: [Gemstone.GemTransactionFilter] = [Gemstone.GemTransactionFilter.transfers, Gemstone.GemTransactionFilter.swaps, Gemstone.GemTransactionFilter.stake, Gemstone.GemTransactionFilter.smartContract, Gemstone.GemTransactionFilter.perpetuals, Gemstone.GemTransactionFilter.others]
     public static let lockPeriods: [Gemstone.GemLockPeriod] = [Gemstone.GemLockPeriod.immediate, Gemstone.GemLockPeriod.oneMinute, Gemstone.GemLockPeriod.fiveMinutes, Gemstone.GemLockPeriod.fifteenMinutes, Gemstone.GemLockPeriod.oneHour, Gemstone.GemLockPeriod.sixHours]
     public static let walletAvatarEmojis: [String] = ["💎", "🦄", "🚀", "❤️", "😍", "🔥", "💩", "😭", "🏆", "🏴‍☠️", "✅", "⚠️", "💰", "🎁", "🎈", "🌈", "⭐️", "👑", "💔", "🔒", "🏦", "🥷", "👨‍💻", "🛢", "🔑", "🛡", "📈", "📉", "💥", "👽", "🔮", "⚡️", "🌍", "⏳", "🤖", "🛰", "🐉", "🐙", "🦅", "👀", "💪", "🔷", "👻", "🌪", "🕶", "👾", "🕵️‍♂️", "⌛️", "✨", "🍀", "☠️", "💀", "🕸", "🕷", "🎰", "☄️", "🏔", "🏜", "🌊", "🎆", "🎖", "🔭", "⛽️", "🏭", "🌉", "🏰", "🔨", "🧰", "💼", "🏷", "♟", "⚓️", "🎡", "🎢", "🎃", "📦"]
-    public static let userRejectedError: Gemstone.GemWalletConnectRpcError = Gemstone.GemWalletConnectRpcError(code: 4001, message: "User rejected the request")
 }

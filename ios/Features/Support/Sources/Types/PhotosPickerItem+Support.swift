@@ -10,10 +10,9 @@ extension PhotosPickerItem {
     func imageAttachment() async throws -> Data? {
         guard let data = try await loadTransferable(type: Data.self) else { return nil }
         guard let image = UIImage(data: data) else { return nil }
-        let limits = GemConstants.supportAttachmentLimits
         return image
-            .fitting(maxDimension: CGFloat(limits.maxDimension))
-            .compress(compressionQuality: CGFloat(limits.jpegQuality) / 100)
+            .fitting(maxDimension: CGFloat(GemConstants.supportAttachmentMaxDimension))
+            .compress(compressionQuality: CGFloat(GemConstants.supportAttachmentJpegQuality) / 100)
     }
 }
 

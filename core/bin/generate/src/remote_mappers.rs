@@ -768,7 +768,7 @@ pub(crate) fn uniffi_swift_case(variant: &str) -> String {
 /// UniFFI lowers a variant with `heck`, which treats a run of capitals as one word: `TransferNFT`
 /// becomes `transferNft`, where TypeShare keeps `transferNFT`. The two sides of a mapper therefore
 /// spell the same variant differently whenever it contains an acronym.
-pub(crate) fn uniffi_type_name(name: &str) -> String {
+fn uniffi_type_name(name: &str) -> String {
     let camel = uniffi_swift_case(name);
     camel[..1].to_ascii_uppercase() + &camel[1..]
 }
