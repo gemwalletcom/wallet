@@ -32,8 +32,3 @@ pub struct GemSupportAttachmentLimits {
     pub max_dimension: u32,
     pub jpeg_quality: u32,
 }
-
-#[uniffi::export]
-pub fn support_attachment_limits() -> GemSupportAttachmentLimits {
-    super::rules::attachment_limits()
-}

@@ -20,6 +20,7 @@ import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.gemConfig
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.domains.swap.toGem
+import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
@@ -165,8 +166,8 @@ class SwapViewModel @Inject constructor(
         refreshRequests = refreshRequests,
         refreshEnabled = quoteRefreshEnabled,
         onFetchStarted = ::onQuoteFetchStarted,
-        refreshIntervalMillis = swapQuoteService.refreshIntervalMilliseconds().toLong(),
-        debounceMillis = swapQuoteService.quoteDebounceMilliseconds().toLong(),
+        refreshIntervalMillis = GemConstants.swapQuoteRefreshInterval.inWholeMilliseconds,
+        debounceMillis = GemConstants.swapQuoteDebounce.inWholeMilliseconds,
     )
 
     val quote = combine(session, payAsset, receiveAsset) { quoteSession, pay, receive ->

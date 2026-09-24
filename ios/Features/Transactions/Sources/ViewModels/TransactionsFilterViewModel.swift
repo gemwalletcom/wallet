@@ -3,7 +3,7 @@
 import Components
 import Foundation
 import enum Gemstone.GemTransactionFilter
-import func Gemstone.transactionsListLimit
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -39,7 +39,7 @@ public final class TransactionsFilterViewModel {
             walletId: wallet.id,
             type: type,
             filters: TransactionsRequestFilter.activity(chains: [], filters: []),
-            limit: Int(transactionsListLimit()),
+            limit: GemConstants.transactionsListLimit,
         )
         query = ObservableQuery(MappedRequest(request, transform: TransactionViewModel.sections), initialValue: [])
     }

@@ -19,16 +19,15 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Generated constants:** D174.
-2. **Deletions:** VM173, VM174, VM177 (the FFI trim; extend `check-ffi-surface.py` first).
-3. **Pass-throughs:** VM175, VM176.
-4. **Derive once:** VM178, VM179.
-5. **Settled differences:** VM102, VM124, VM127, VM128, VM129, BD58, D74, D75, BD59, BD60, BD61, BD62, BD63, BD64, BD56, AUD50.
-6. **One view state:** VM168, VM167, VM169, VM170, VM171, VM144, VM125, VM134, VM89.
-7. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
-8. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
-9. **Balances and storage:** D76, D77, VM98 (an Android migration).
-10. **Server:** BD23, BD51, BD52.
+1. **Deletions:** VM173, VM174, VM177 (the FFI trim; extend `check-ffi-surface.py` first).
+2. **Pass-throughs:** VM175, VM176.
+3. **Derive once:** VM178, VM179.
+4. **Settled differences:** VM102, VM124, VM127, VM128, VM129, BD58, D74, D75, BD59, BD60, BD61, BD62, BD63, BD64, BD56, AUD50.
+5. **One view state:** VM168, VM167, VM169, VM170, VM171, VM144, VM125, VM134, VM89.
+6. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
+7. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
+8. **Balances and storage:** D76, D77, VM98 (an Android migration).
+9. **Server:** BD23, BD51, BD52.
 
 Waiting on the owner: BD29 and BD50 (server), VM79. Waiting on a date or a release: X168, X163.
 
@@ -67,7 +66,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | Retain platform-only privacy lock |
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | BD58, D75 |
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | VM175, BD59; retain Android-only one-click auth |
-| Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per module | VM6, VM64, VM88, VM89, VM172, VM180, D174 |
+| Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per module | VM6, VM64, VM88, VM89, VM172, VM180 |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
 | Stores and persistence | `Gem*Store` traits and both adapters | VM98 |
 | Verification | Core `rules.rs` tests, `just check-*`, CI | VM177 |
@@ -232,10 +231,6 @@ Core has no runtime, so scheduling, timers and OS callbacks stay in the apps; wh
   - **Expected:** iOS's moment on both (after a wallet is created or imported); `should_ask_notifications` answers the whole condition (push state and wallet presence included) and both record the ask through Core, so the 30-day re-ask applies to both.
 - **D76** **S** **Whether one failed balance request discards its network's other answers.** `chain_balances` in [`balance/mod.rs`](../core/gemstone/src/services/balance/mod.rs) joins the coin, staking, token and earn results with `?`, so a failed staking or earn request throws away the coin and token balances that succeeded on that network, and no test covers the case; the product intent in [product/wallet.md](product/wallet.md) says a slow or failing request must not hold back the others. **Decided:** publish the components that answered and return the first component failure (extend `published_balances` to per-component results, add the test).
 - **D77** **S** **When the wallet list updates during a balance refresh.** `update` waits for every network (`join_all`) and every component (`join!`) before its single write, so the fastest network's coin balance shows only when the slowest has answered or failed; [ARCHITECTURE](ARCHITECTURE.md#publish-a-multi-source-refresh-as-one-batch) chose one batch on purpose (fewer observer notifications, no mixed-age totals), and the product owner wants balances "as soon as possible". **Decided:** write each network as it finishes, each write atomic and lane-ordered, per the product rule in [product/wallet.md](product/wallet.md); update the ARCHITECTURE section in the same change.
-- **D174** **M** **Fixed values are generated constants, not FFI calls.** Migrate the apps now. Twenty-one exports take no argument and return a constant or a fixed list, and both apps call them: `search_debounce_milliseconds`; `banner_settle_delay`, `offline_debounce_milliseconds` and `ping_interval_milliseconds`; `node_check_debounce_milliseconds`; the swap `refresh_interval_milliseconds` and `quote_debounce_milliseconds`; `service_status_timeout`; `support_attachment_limits`; `transactions_list_limit`; `recent_assets_limit`; `wallet_avatar_emojis`; `wallet_banner_events`; `accept_terms_items`; `security_reminder_items`; `perpetual_pickers`; `transaction_filters`; `lock_periods`; `user_rejected_error`; `GemPerpetualDetailsService.activity_types`; `GemServiceStatus.sections`; `GemFiatQuoteService.get_currency`.
-  - **Generator:** `core/bin/generate`, which already emits the models and remote mappers, emits one constants file per app (`GemConstants.swift`, `GemConstants.kt`) from one typed Rust source that Core's own code reads too, so each value is defined once.
-  - **Types:** integers and limits; durations as the platform type (Swift `Duration`, Kotlin `kotlin.time.Duration`) instead of `_milliseconds` integers; strings; lists (the avatar emojis, banner events, terms and security-reminder items, pickers, transaction filters, lock periods, activity types); small records (`support_attachment_limits`); and values of enums the generator already emits (`user_rejected_error`, `get_currency`).
-  - **Migration:** switch every call site on both apps to the constant and delete the 21 exports; the app's 3s scan timeout (`core/gemstone/src/config/mod.rs:26`, under the server's 1.2s `ScanTimeout` per provider) joins them. A generator test fails when a checked-in constants file is stale, as the remote-mapper expected-file tests do. A value that depends on an input (a chain, a locale, a wallet) stays a function.
 
 ## 8. Rows and taps
 

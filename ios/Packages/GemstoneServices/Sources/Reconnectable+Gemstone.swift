@@ -2,12 +2,17 @@
 
 import Foundation
 import class Gemstone.GemConnectionService
+import GemstonePrimitives
+import Primitives
 import WebSocketClient
 
 extension GemConnectionService: @retroactive Reconnectable {
     public func reconnection(attempt: UInt32, connectedFor duration: Duration) -> Reconnection {
-        let (seconds, attoseconds) = duration.components
-        let next = reconnection(attempt: attempt, connected: TimeInterval(seconds) + TimeInterval(attoseconds) / 1e18)
+        let next = reconnection(attempt: attempt, connected: duration.timeInterval)
         return Reconnection(nextAttempt: next.nextAttempt, delay: .seconds(next.delay))
+    }
+
+    public var pingInterval: Duration {
+        GemConstants.pingInterval
     }
 }

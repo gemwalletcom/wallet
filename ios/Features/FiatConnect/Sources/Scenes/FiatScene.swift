@@ -1,4 +1,5 @@
 import Components
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Store
@@ -35,10 +36,10 @@ public struct FiatScene: View {
         .contentMargins([.top], .zero, for: .scrollContent)
         .frame(maxWidth: .infinity)
         .onChange(of: model.type, model.onChangeType)
-        .debouncedTask(id: model.loadTrigger, interval: model.quoteDebounce) {
+        .debouncedTask(id: model.loadTrigger, interval: GemConstants.fiatQuoteDebounce) {
             await model.load()
         }
-        .onTimer(every: model.quoteRefreshInterval, id: model.loadTrigger) {
+        .onTimer(every: GemConstants.fiatQuoteRefreshInterval.timeInterval, id: model.loadTrigger) {
             await model.refreshQuotes()
         }
         .alertSheet($model.isPresentingAlertMessage)

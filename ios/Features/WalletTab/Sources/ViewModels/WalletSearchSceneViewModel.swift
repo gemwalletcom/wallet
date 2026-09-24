@@ -119,10 +119,6 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         return WalletSearchDerived(sections: sections, view: view)
     }
 
-    var searchDebounce: Duration {
-        .milliseconds(service.searchDebounceMilliseconds())
-    }
-
     var currency: Currency {
         service.getCurrency().toPrimitives()
     }

@@ -50,10 +50,6 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
         selectType.flow()
     }
 
-    public func searchDebounceMilliseconds() -> UInt64 {
-        250
-    }
-
     public func walletSearchLimits(query _: String) -> GemWalletSearchLimits {
         GemWalletSearchLimits(assets: 12, fetch: 13, perpetuals: 3, nfts: 3, results: 100)
     }

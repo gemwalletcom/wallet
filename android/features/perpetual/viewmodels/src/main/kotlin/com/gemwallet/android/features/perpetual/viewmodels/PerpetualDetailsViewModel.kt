@@ -13,6 +13,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
+import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
@@ -94,7 +95,7 @@ class PerpetualDetailsViewModel @Inject constructor(
 
     private val transactionFilters = listOf(
         TransactionsRequestFilter.Asset(assetId),
-        TransactionsRequestFilter.Types(service.activityTypes().map { it.toPrimitives() }),
+        TransactionsRequestFilter.Types(GemConstants.perpetualActivityTypes),
     )
 
     private val storedRefreshRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)

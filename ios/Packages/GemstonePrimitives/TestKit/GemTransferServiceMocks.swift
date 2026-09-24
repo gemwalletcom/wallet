@@ -63,10 +63,6 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
         self.quotes = quotes
     }
 
-    public func getCurrency() -> Gemstone.Currency {
-        Primitives.Currency.usd.toGem()
-    }
-
     public func suggestedAmounts() -> [GemFiatSuggestedAmount] {
         [100, 250].map { GemFiatSuggestedAmount(amount: $0, value: .mock(value: Double($0), display: .number(precision: .fraction(min: 0, max: 0)), notation: .plain)) }
     }
@@ -85,14 +81,6 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
 
     public func randomAmount() -> UInt32 {
         50
-    }
-
-    public func quoteDebounceMilliseconds() -> UInt64 {
-        250
-    }
-
-    public func quoteRefreshIntervalMilliseconds() -> UInt64 {
-        300_000
     }
 
     public func refreshTransactions(hasTransactions _: Bool) async -> GemLoadState {

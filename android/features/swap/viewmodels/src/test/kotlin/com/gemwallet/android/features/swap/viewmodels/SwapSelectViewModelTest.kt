@@ -47,7 +47,6 @@ class SwapSelectViewModelTest {
         every { service.flow(any()) } answers { firstArg<GemSelectAssetType>().flow() }
         coEvery { service.searchAssets(any()) } returns emptyList()
         every { service.walletFlow(any(), any()) } answers { GemSelectAssetWalletFlow(flow = firstArg<GemSelectAssetType>().flow(), chains = emptyList(), showsAddToken = false, showsChainFilter = false) }
-        every { service.searchDebounceMilliseconds() } returns 250uL
     }
 
     @After

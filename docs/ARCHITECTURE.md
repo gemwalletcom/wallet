@@ -185,6 +185,8 @@ The test is what the caller could not have worked out: if the answer depends onl
 
 The one exception is a [projection](#a-row-is-projected-from-its-value-never-fetched-from-a-service).
 
+**A fixed value is a generated constant, not an export.** A debounce, a timeout, a limit or a fixed list of options takes no input, so asking Core for it is a crossing per read. It lives in [`constants.rs`](../core/gemstone/src/constants.rs), which Core's own code reads, and `just generate-models` writes it to both apps as `GemConstants`: durations as Swift `Duration` and Kotlin `kotlin.time.Duration`, TypeShare enums as the app's own type, everything else as the binding type. A generator test fails when a checked-in constants file is stale. A value that depends on an input (a chain, a locale, a wallet) or is built by a formatter stays a function.
+
 **An export also loses its place when the last app caller goes**, because the generated interface, the wrapper and the mock requirement stay behind on both apps. `just check-ffi` reports every `#[uniffi::export] pub fn` that no app names; a function Core still uses keeps its body and loses only the export, one nothing uses is deleted. The composition services are where this happens most, and `GemExplorerService` is the finished shape: only its constructor is exported, because the composition root builds the object, while `get_address_url` and `get_transaction_link` sit in a plain `impl` block that the screen services call — every screen reads its explorer link through [its own screen service](#composition-services-are-reached-through-the-screen-service).
 
 ### A staged load names what each stage waits for

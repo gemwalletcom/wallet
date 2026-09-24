@@ -1,3 +1,4 @@
+use crate::constants::USER_REJECTED_ERROR_CODE;
 use std::collections::HashSet;
 use std::str::FromStr;
 
@@ -21,7 +22,6 @@ use primitives::GasPriceType;
 use primitives::TransactionInputType;
 use primitives::{Asset, TransactionType, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType};
 
-pub const USER_REJECTED_ERROR_CODE: i32 = 4001;
 const UNSUPPORTED_CHAINS_ERROR_CODE: i32 = 5100;
 const UNSUPPORTED_METHODS_ERROR_CODE: i32 = 5101;
 const UNSUPPORTED_ACCOUNTS_ERROR_CODE: i32 = 5103;
@@ -189,13 +189,6 @@ pub fn signer_failure(error: GemErrorText) -> GemSignerFailure {
     match error {
         GemErrorText::Cancelled => GemSignerFailure::Reject,
         error => GemSignerFailure::Retry { error },
-    }
-}
-
-pub fn user_rejected_error() -> GemWalletConnectRpcError {
-    GemWalletConnectRpcError {
-        code: USER_REJECTED_ERROR_CODE,
-        message: "User rejected the request".to_string(),
     }
 }
 

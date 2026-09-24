@@ -3,7 +3,6 @@
 import Components
 import Foundation
 import enum Gemstone.GemSecurityReminderItem
-import func Gemstone.securityReminderItems
 import GemstonePrimitives
 import Localization
 import Style
@@ -26,7 +25,7 @@ final class SecurityReminderViewModel {
         ListItemModel(title: item.title, titleLineLimit: 2, titleExtra: item.subtitle, titleStyleExtra: .bodySecondary, imageStyle: item.image)
     }
 
-    var items: [GemSecurityReminderItem] = securityReminderItems()
+    var items: [GemSecurityReminderItem] = GemConstants.securityReminderItems
     var docsUrl: URL {
         AppUrl.docs(.whatIsSecretPhrase)
     }

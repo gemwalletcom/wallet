@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import GemstonePrimitives
 import Localization
 import PrimitivesComponents
 import QRScanner
@@ -32,7 +33,7 @@ struct AddNodeScene: View {
         .onChange(of: model.urlInputModel.text) {
             model.onChangeInput()
         }
-        .debouncedTask(id: model.loadTrigger, interval: model.nodeCheckDebounce) {
+        .debouncedTask(id: model.loadTrigger, interval: GemConstants.nodeCheckDebounce) {
             await model.load()
         }
         .safeAreaButton {

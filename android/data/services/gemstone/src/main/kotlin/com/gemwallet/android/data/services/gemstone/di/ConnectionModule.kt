@@ -25,7 +25,7 @@ object ConnectionModule {
     @Singleton
     fun provideConnectionStatusObserver(@ApplicationContext context: Context, connectionService: GemConnectionService, streamHealth: ConnectionComponentHealth): ConnectionStatusObserver = ConnectionStatusObserver(
         monitors = listOf(
-            InternetConnectionMonitor(context, connectionService),
+            InternetConnectionMonitor(context),
             streamHealth,
         ),
         connectionService = connectionService,

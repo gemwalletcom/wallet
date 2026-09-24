@@ -205,10 +205,6 @@ impl GemWalletConnectService {
         rules::session_rejection(reason)
     }
 
-    pub fn user_rejected_error(&self) -> GemWalletConnectRpcError {
-        rules::user_rejected_error()
-    }
-
     pub async fn request_outcome(&self, request: GemWalletConnectSessionRequest) -> GemWalletConnectOutcome {
         if !self.should_process_message(rules::request_message_id(&request.topic, &request.request_id)) {
             return GemWalletConnectOutcome::ignored();

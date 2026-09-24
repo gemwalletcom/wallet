@@ -126,10 +126,10 @@ public actor WebSocketConnection: WebSocketConnectable {
 
     private func startKeepalive() {
         cancelKeepalive()
-        let interval = configuration.reconnection.pingIntervalMilliseconds()
+        let interval = configuration.reconnection.pingInterval
         keepaliveTask = Task { [weak self] in
             while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(interval))
+                try? await Task.sleep(for: interval)
                 guard !Task.isCancelled else { return }
                 _ = try? await self?.ping()
             }

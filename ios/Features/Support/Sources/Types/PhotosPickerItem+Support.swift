@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import func Gemstone.supportAttachmentLimits
+import GemstonePrimitives
 import PhotosUI
 import SwiftUI
 import UIKit
@@ -10,7 +10,7 @@ extension PhotosPickerItem {
     func imageAttachment() async throws -> Data? {
         guard let data = try await loadTransferable(type: Data.self) else { return nil }
         guard let image = UIImage(data: data) else { return nil }
-        let limits = supportAttachmentLimits()
+        let limits = GemConstants.supportAttachmentLimits
         return image
             .fitting(maxDimension: CGFloat(limits.maxDimension))
             .compress(compressionQuality: CGFloat(limits.jpegQuality) / 100)

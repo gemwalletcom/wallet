@@ -12,6 +12,7 @@ import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
 import com.gemwallet.android.domains.asset.assetSections
+import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.requireChain
@@ -109,7 +110,7 @@ open class BaseAssetSelectViewModel(
     protected val currentQuery = snapshotFlow { queryState.text.toString() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
-    private val searchRequests = currentQuery.debounce(service.searchDebounceMilliseconds().toLong()).distinctUntilChanged()
+    private val searchRequests = currentQuery.debounce(GemConstants.searchDebounce).distinctUntilChanged()
 
     private val filters = combine(
         session,

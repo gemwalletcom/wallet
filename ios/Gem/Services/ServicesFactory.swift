@@ -53,7 +53,7 @@ struct ServicesFactory {
         let connectionStatusObserver = ConnectionStatusObserver(
             connectionService: connectionService,
             monitors: [
-                InternetConnectionMonitor(connectionService: connectionService),
+                InternetConnectionMonitor(),
                 streamHealth,
             ],
         )
@@ -77,7 +77,7 @@ struct ServicesFactory {
         let nameService = Gemstone.GemNameService(api: deviceApiClient, store: gemstoneAddressStore)
         let assetsService = gatewayService.assetsService(api: apiClient, store: gemstoneAssetStore, price: priceService, preferences: preferencesService, session: walletSessionService)
         let scanConfiguration = URLSessionConfiguration.default
-        scanConfiguration.timeoutIntervalForRequest = Config().scanTimeout()
+        scanConfiguration.timeoutIntervalForRequest = GemConstants.scanTimeout.timeInterval
         let scanService = Gemstone.GemScanService(
             api: Self.makeDeviceApiClient(
                 provider: NativeProvider(session: URLSession(configuration: scanConfiguration)),
@@ -88,7 +88,7 @@ struct ServicesFactory {
         let transactionSimulationService = GemSimulationService(provider: nativeProvider, nodes: nodeService)
         let webSocket = Self.makeWebSocket(deviceKeyService: deviceKeyService, reconnection: connectionService)
         let serviceStatusConfiguration = URLSessionConfiguration.default
-        serviceStatusConfiguration.timeoutIntervalForRequest = serviceStatusTimeout()
+        serviceStatusConfiguration.timeoutIntervalForRequest = GemConstants.serviceStatusTimeout.timeInterval
         let serviceStatusService = Gemstone.GemServiceStatus(
             provider: NativeProvider(session: URLSession(configuration: serviceStatusConfiguration)),
             stream: GemstoneStreamConnection(webSocket: webSocket),

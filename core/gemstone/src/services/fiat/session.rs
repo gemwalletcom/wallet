@@ -211,7 +211,7 @@ impl GemFiatSession {
     fn amount_check(&self) -> GemFiatAmountCheck {
         let operation = self.current();
         match operation.parsed_amount() {
-            Some(amount) => rules::amount_check(&get_fiat_config(), operation.quote_type, amount, operation.selected_quote().as_ref(), &self.available, super::quote::CURRENCY),
+            Some(amount) => rules::amount_check(&get_fiat_config(), operation.quote_type, amount, operation.selected_quote().as_ref(), &self.available, crate::constants::FIAT_QUOTE_CURRENCY),
             None => GemFiatAmountCheck::Valid,
         }
     }
@@ -251,7 +251,7 @@ impl GemFiatOperation {
         match rules::parse_amount(amount) {
             rules::FiatAmountInput::Empty => GemFiatQuotePhase::NoInput,
             rules::FiatAmountInput::Invalid => GemFiatQuotePhase::InvalidInput,
-            rules::FiatAmountInput::Value(value) => match rules::amount_check(&get_fiat_config(), quote_type, value, None, &Default::default(), super::quote::CURRENCY) {
+            rules::FiatAmountInput::Value(value) => match rules::amount_check(&get_fiat_config(), quote_type, value, None, &Default::default(), crate::constants::FIAT_QUOTE_CURRENCY) {
                 GemFiatAmountCheck::Valid => GemFiatQuotePhase::Loading { amount: value },
                 check => GemFiatQuotePhase::Invalid { check },
             },

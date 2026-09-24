@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.features.settings.security.viewmodels.localization.stringRes
 import com.gemwallet.android.features.settings.security.viewmodels.models.LockPeriodOption
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +20,6 @@ import uniffi.gemstone.GemListSection
 import uniffi.gemstone.GemSecurityInput
 import uniffi.gemstone.GemSettingsServiceInterface
 import uniffi.gemstone.lockPeriodFromMinutes
-import uniffi.gemstone.lockPeriods
 import javax.inject.Inject
 
 @HiltViewModel
@@ -32,7 +32,7 @@ class SecurityViewModel @Inject constructor(
 
     private val authRequired = MutableStateFlow(userConfig.authRequired())
 
-    val lockPeriods = lockPeriods().map { LockPeriodOption(it.minutes().toInt(), it.stringRes()) }
+    val lockPeriods = GemConstants.lockPeriods.map { LockPeriodOption(it.minutes().toInt(), it.stringRes()) }
 
     val lockInterval = userConfig.getLockInterval()
 

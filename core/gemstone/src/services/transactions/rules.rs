@@ -27,17 +27,6 @@ use crate::services::swap::model::GemSwapRate;
 use crate::services::swap::rules as swap_rules;
 use swapper::{ProviderType as SwapperProviderType, SwapperProvider, SwapperProviderMode};
 
-pub fn transaction_filters() -> Vec<GemTransactionFilter> {
-    vec![
-        GemTransactionFilter::Transfers,
-        GemTransactionFilter::Swaps,
-        GemTransactionFilter::Stake,
-        GemTransactionFilter::SmartContract,
-        GemTransactionFilter::Perpetuals,
-        GemTransactionFilter::Others,
-    ]
-}
-
 fn transaction_filter(transaction_type: &TransactionType) -> GemTransactionFilter {
     match transaction_type {
         TransactionType::Transfer | TransactionType::TransferNFT => GemTransactionFilter::Transfers,
@@ -758,7 +747,7 @@ mod tests {
     }
     #[test]
     fn test_every_transaction_type_belongs_to_exactly_one_filter_in_list_order() {
-        let filters = transaction_filters();
+        let filters = crate::constants::TRANSACTION_FILTERS;
         assert_eq!(filters.len(), 6);
         let grouped: Vec<TransactionType> = filters.iter().flat_map(|filter| filter_transaction_types(*filter)).collect();
         assert_eq!(grouped.len(), TransactionType::all().len());
@@ -770,7 +759,7 @@ mod tests {
         assert_eq!(transaction_filter(&TransactionType::AssetActivation), GemTransactionFilter::Others);
         assert_eq!(
             filter_transaction_types(GemTransactionFilter::Perpetuals),
-            vec![TransactionType::PerpetualOpenPosition, TransactionType::PerpetualClosePosition, TransactionType::PerpetualModifyPosition],
+            crate::constants::PERPETUAL_ACTIVITY_TYPES,
             "the perpetual screen reads this list for its activity"
         );
     }

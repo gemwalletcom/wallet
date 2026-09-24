@@ -51,10 +51,6 @@ public final class GemChainSettingsServiceMock: GemChainSettingsServiceProtocol,
         GemNodeListSession(chain: chain, nodes: [], statuses: [:])
     }
 
-    public func nodeCheckDebounceMilliseconds() -> UInt64 {
-        0
-    }
-
     public func nodeStatus(chain _: Chain, url: String) async -> GemNodeStatusState {
         statusCallsStorage.withLock { $0.append(url) }
         return statusByUrl[url] ?? .error

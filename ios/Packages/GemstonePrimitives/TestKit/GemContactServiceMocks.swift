@@ -132,10 +132,6 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
     public func updateSessions(sessions: [Gemstone.WalletConnectionSession]) async throws {
         updatedSessions.append(sessions)
     }
-
-    public func userRejectedError() -> GemWalletConnectRpcError {
-        GemWalletConnectRpcError(code: 4001, message: "User rejected")
-    }
 }
 
 public final class GemSupportServiceMock: GemSupportServiceProtocol, @unchecked Sendable {

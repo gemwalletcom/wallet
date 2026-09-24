@@ -1,4 +1,5 @@
 use super::model::{GemAuthPromptOutcome, GemLockPeriod};
+use crate::constants::LOCK_PERIODS;
 
 const MILLISECONDS_PER_MINUTE: u32 = 60 * 1_000;
 
@@ -42,20 +43,8 @@ impl GemAuthPromptOutcome {
 }
 
 #[uniffi::export]
-pub fn lock_periods() -> Vec<GemLockPeriod> {
-    vec![
-        GemLockPeriod::Immediate,
-        GemLockPeriod::OneMinute,
-        GemLockPeriod::FiveMinutes,
-        GemLockPeriod::FifteenMinutes,
-        GemLockPeriod::OneHour,
-        GemLockPeriod::SixHours,
-    ]
-}
-
-#[uniffi::export]
 pub fn lock_period_from_minutes(minutes: Option<u32>) -> GemLockPeriod {
-    minutes.and_then(|minutes| lock_periods().into_iter().find(|period| period.minutes() == minutes)).unwrap_or(GemLockPeriod::OneMinute)
+    minutes.and_then(|minutes| LOCK_PERIODS.iter().copied().find(|period| period.minutes() == minutes)).unwrap_or(GemLockPeriod::OneMinute)
 }
 
 pub(super) fn should_relock(elapsed_milliseconds: i64, lock_interval_minutes: u32, auth_required: bool) -> bool {
@@ -86,7 +75,7 @@ mod tests {
 
     #[test]
     fn test_lock_periods_carry_the_same_minutes_on_both_platforms() {
-        let minutes: Vec<u32> = lock_periods().into_iter().map(GemLockPeriod::minutes).collect();
+        let minutes: Vec<u32> = LOCK_PERIODS.iter().copied().map(GemLockPeriod::minutes).collect();
         assert_eq!(minutes, vec![0, 1, 5, 15, 60, 360]);
         assert_eq!(GemLockPeriod::SixHours.milliseconds(), 21_600_000);
         assert_eq!(lock_period_from_minutes(Some(15)), GemLockPeriod::FifteenMinutes);

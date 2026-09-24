@@ -27,11 +27,6 @@ impl GemTransactionFilter {
     }
 }
 
-#[uniffi::export]
-pub fn transaction_filters() -> Vec<GemTransactionFilter> {
-    rules::transaction_filters()
-}
-
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemActivityFilters {
     pub asset_rank_greater_than: i32,
@@ -261,11 +256,6 @@ pub fn transactions_empty_state(chains: Vec<Chain>, filters: Vec<GemTransactionF
         true => GemEmptyStateKind::Activity,
         false => GemEmptyStateKind::SearchActivity,
     }
-}
-
-#[uniffi::export]
-pub fn transactions_list_limit() -> u32 {
-    primitives::TRANSACTIONS_LIMIT as u32
 }
 
 #[uniffi::export]

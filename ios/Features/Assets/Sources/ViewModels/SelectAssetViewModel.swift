@@ -149,10 +149,6 @@ public final class SelectAssetViewModel {
         flow.showsRecents(isSearching: !searchableQuery.isEmpty, hasRecents: recentModel.hasAssets)
     }
 
-    var searchDebounce: Duration {
-        .milliseconds(service.searchDebounceMilliseconds())
-    }
-
     var assetItems: ListAssetItemsViewModel {
         ListAssetItemsViewModel(currency: currency, rowStyle: flow.rowStyle)
     }

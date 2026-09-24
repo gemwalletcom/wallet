@@ -9,6 +9,7 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
 import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
+import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.tickerFlow
 import com.gemwallet.android.ext.toGem
@@ -72,7 +73,7 @@ class FiatViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val currency = service.getCurrency().toPrimitives()
+    private val currency = GemConstants.fiatQuoteCurrency
     private val assetId: AssetId = savedStateHandle.requireAssetId(RouteArgument.AssetId)
 
     private val session = MutableStateFlow(
@@ -147,7 +148,7 @@ class FiatViewModel @Inject constructor(
     private val refreshEnabled = MutableStateFlow(false)
     private val ticker = combine(refreshEnabled, session) { isEnabled, quoteSession -> quoteSession.refreshesQuotes(isEnabled) }
         .distinctUntilChanged()
-        .flatMapLatest { refreshes -> if (refreshes) tickerFlow(service.quoteRefreshIntervalMilliseconds().toLong()) {} else emptyFlow() }
+        .flatMapLatest { refreshes -> if (refreshes) tickerFlow(GemConstants.fiatQuoteRefreshInterval.inWholeMilliseconds) {} else emptyFlow() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
     private val quoteRetry = MutableStateFlow(0L)
 
@@ -162,7 +163,7 @@ class FiatViewModel @Inject constructor(
             .launchIn(viewModelScope)
 
         combine(
-            session.map { it.quoteRequest() }.distinctUntilChanged().debounce(service.quoteDebounceMilliseconds().toLong()),
+            session.map { it.quoteRequest() }.distinctUntilChanged().debounce(GemConstants.fiatQuoteDebounce),
             assetData.filterNotNull().map { it.asset.id }.distinctUntilChanged(),
             ticker,
             quoteRetry,

@@ -26,10 +26,6 @@ final class AddNodeSceneViewModel {
     var loadTrigger: AddNodeLoadTrigger?
     private var loadAttempt = 0
 
-    var nodeCheckDebounce: Duration {
-        .milliseconds(service.nodeCheckDebounceMilliseconds())
-    }
-
     init(chain: Chain, service: any GemChainSettingsServiceProtocol) {
         self.chain = chain
         self.service = service

@@ -24,6 +24,7 @@ import com.gemwallet.android.application.notifications.NotificationPermissionReq
 import com.gemwallet.android.application.security.cases.AuthRequester
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
+import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.localization.stringRes
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.AppViewModel
@@ -124,7 +125,7 @@ class MainActivity :
             }
             val connectionBannerState = remember { ConnectionBannerState() }
             LaunchedEffect(connectionStatus) {
-                delay(connectionService.bannerSettleDelay().toMillis())
+                delay(GemConstants.connectionBannerSettleDelay)
                 connectionBannerState.update(connectionStatus.stringRes()?.let(::getString))
             }
             val appearance by viewModel.appearance.collectAsStateWithLifecycle()

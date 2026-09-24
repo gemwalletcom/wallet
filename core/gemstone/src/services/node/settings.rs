@@ -69,10 +69,6 @@ impl GemChainSettingsService {
         GemAddNodeSession::new(chain)
     }
 
-    pub fn node_check_debounce_milliseconds(&self) -> u64 {
-        rules::node_check_debounce_milliseconds()
-    }
-
     pub async fn check_node(&self, chain: Chain, url: String) -> Result<GemNodeCheck, GemAddNodeError> {
         let url = rules::node_url(&url).ok_or(GemAddNodeError::InvalidUrl)?;
         Ok(self.gateway.check_node(chain, &url).await?)

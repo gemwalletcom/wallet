@@ -27,14 +27,6 @@ import SwiftUI
 public final class FiatSceneViewModel {
     private let service: any GemFiatQuoteServiceProtocol
 
-    var quoteDebounce: Duration {
-        .milliseconds(service.quoteDebounceMilliseconds())
-    }
-
-    var quoteRefreshInterval: TimeInterval {
-        TimeInterval(service.quoteRefreshIntervalMilliseconds()) / 1000
-    }
-
     private let wallet: Wallet
     private let assetAddress: AssetAddress
     private let currencyFormatter: CurrencyFormatter
@@ -63,7 +55,7 @@ public final class FiatSceneViewModel {
     ) {
         self.service = service
         self.locale = locale
-        currencyFormatter = CurrencyFormatter(locale: locale, currencyCode: service.currency.rawValue)
+        currencyFormatter = CurrencyFormatter(locale: locale, currencyCode: GemConstants.fiatQuoteCurrency.rawValue)
         self.assetAddress = assetAddress
         self.wallet = wallet
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: assetAddress.asset.id), initialValue: .with(asset: assetAddress.asset))

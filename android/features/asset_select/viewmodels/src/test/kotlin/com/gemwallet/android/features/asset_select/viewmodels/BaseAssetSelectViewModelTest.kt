@@ -94,7 +94,6 @@ class BaseAssetSelectViewModelTest {
         },
         service: GemAssetSelectionServiceInterface = mockk(relaxed = true) {
             every { flow(any()) } returns sendFlow()
-            every { searchDebounceMilliseconds() } returns 0u
             every { walletFlow(any(), any()) } answers { GemSelectAssetWalletFlow(flow = firstArg<GemSelectAssetType>().flow(), chains = emptyList(), showsAddToken = false, showsChainFilter = false) }
         },
     ): BaseAssetSelectViewModel {
@@ -171,7 +170,6 @@ class BaseAssetSelectViewModelTest {
     fun `pinning an asset tells Core and names it in the toast`() = runTest(dispatcher) {
         val service: GemAssetSelectionServiceInterface = mockk(relaxed = true) {
             every { flow(any()) } returns sendFlow()
-            every { searchDebounceMilliseconds() } returns 0u
             every { walletFlow(any(), any()) } answers { GemSelectAssetWalletFlow(flow = firstArg<GemSelectAssetType>().flow(), chains = emptyList(), showsAddToken = false, showsChainFilter = false) }
         }
         val model = viewModel(listOf(mockAssetInfo(asset = ethereum)), service = service)

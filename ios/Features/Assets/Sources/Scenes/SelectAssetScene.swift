@@ -1,4 +1,5 @@
 import Components
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -24,7 +25,7 @@ public struct SelectAssetScene: View {
             .if(model.isNetworkSearchEnabled) {
                 $0.debounce(
                     value: $model.searchableQuery.wrappedValue,
-                    interval: model.searchDebounce,
+                    interval: GemConstants.searchDebounce,
                     action: model.search(query:),
                 )
             }

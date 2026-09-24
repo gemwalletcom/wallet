@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import enum Gemstone.GemTransactionFilter
-import func Gemstone.transactionFilters
 import func Gemstone.transactionsFilterSummary
+import GemstonePrimitives
 import Primitives
 
 public struct TransactionTypesFilterViewModel: Equatable {
@@ -10,7 +10,7 @@ public struct TransactionTypesFilterViewModel: Equatable {
     public var selectedTypes: [GemTransactionFilter]
 
     public init() {
-        allTransactionsTypes = transactionFilters()
+        allTransactionsTypes = GemConstants.transactionFilters
         selectedTypes = []
     }
 

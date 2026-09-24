@@ -191,7 +191,7 @@ extension WalletConnectorService {
 
     private func rejectRequest(_ request: Request, error: Error) async {
         do {
-            try await WalletKit.instance.respond(topic: request.topic, requestId: request.id, response: GemWalletConnectResponse.error(error: service.userRejectedError()).map())
+            try await WalletKit.instance.respond(topic: request.topic, requestId: request.id, response: GemWalletConnectResponse.error(error: GemConstants.userRejectedError).map())
         } catch {
             debugLog("Error rejecting request: \(error)")
         }

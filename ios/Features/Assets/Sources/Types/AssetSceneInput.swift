@@ -2,7 +2,7 @@
 
 import Components
 import Foundation
-import func Gemstone.transactionsListLimit
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Store
@@ -25,7 +25,7 @@ public struct AssetSceneInput: Sendable {
         )
 
         transactionsRequest = MappedRequest(
-            TransactionsRequest.assetScene(walletId: wallet.id, assetId: asset.id, limit: Int(transactionsListLimit())),
+            TransactionsRequest.assetScene(walletId: wallet.id, assetId: asset.id, limit: GemConstants.transactionsListLimit),
             transform: TransactionViewModel.sections,
         )
 

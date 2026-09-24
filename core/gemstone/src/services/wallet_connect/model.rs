@@ -88,7 +88,7 @@ impl GemWalletConnectOutcome {
     pub fn rejected(failure: Option<GemWalletConnectFailure>) -> Self {
         Self {
             response: Some(GemWalletConnectResponse::Error {
-                error: crate::services::wallet_connect::rules::user_rejected_error(),
+                error: crate::constants::user_rejected_error(),
             }),
             failure,
         }

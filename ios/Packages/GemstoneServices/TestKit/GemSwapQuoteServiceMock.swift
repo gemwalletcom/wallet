@@ -91,14 +91,6 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         }
     }
 
-    public func refreshIntervalMilliseconds() -> UInt64 {
-        30000
-    }
-
-    public func quoteDebounceMilliseconds() -> UInt64 {
-        250
-    }
-
     public func refreshPair(assetIds: [AssetId]) async -> [GemSwapPairFailure] {
         priceSubscriptions.append(assetIds)
         balanceUpdates.append(assetIds)

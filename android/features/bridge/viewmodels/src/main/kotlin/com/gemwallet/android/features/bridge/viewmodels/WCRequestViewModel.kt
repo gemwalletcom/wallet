@@ -14,6 +14,7 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectSessionRequ
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.toJsonRpcResponse
+import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.bridge.viewmodels.localization.text
 import com.gemwallet.android.features.bridge.viewmodels.model.ReviewTexts
@@ -167,7 +168,7 @@ class WCRequestViewModel @Inject constructor(
         }
         requestJob?.cancel()
         val sessionRequest = state.value.sessionRequest ?: return
-        respond(sessionRequest, service.userRejectedError().toJsonRpcResponse(), onError = { Log.e(TAG, "Request rejection failed id=${sessionRequest.request.id}: $it") })
+        respond(sessionRequest, GemConstants.userRejectedError.toJsonRpcResponse(), onError = { Log.e(TAG, "Request rejection failed id=${sessionRequest.request.id}: $it") })
     }
 
     private fun toRequest(pending: WalletConnectPendingRequest): WCRequest {

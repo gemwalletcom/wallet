@@ -4,17 +4,17 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
+import com.gemwallet.android.ext.GemConstants
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.supportAttachmentLimits
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class SupportImageAttachmentFactory @Inject constructor(@param:ApplicationContext private val context: Context) {
-    private val limits = supportAttachmentLimits()
+    private val limits = GemConstants.supportAttachmentLimits
 
     suspend fun fromUri(uri: Uri): ByteArray? = withContext(Dispatchers.IO) {
         val source = ImageDecoder.createSource(context.contentResolver, uri)

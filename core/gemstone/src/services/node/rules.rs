@@ -11,7 +11,6 @@ use primitives::node_status::NodeStatus;
 use url::Url;
 
 const NODE_URL_SCHEME: &str = "https";
-const NODE_CHECK_DEBOUNCE_MILLISECONDS: u64 = 250;
 
 pub fn merge_nodes(default_nodes: Vec<Node>, stored_nodes: Vec<Node>) -> Vec<Node> {
     unique_by(default_nodes.into_iter().chain(stored_nodes), |node| node.url.clone())
@@ -87,10 +86,6 @@ pub fn default_nodes(chain: Chain) -> Vec<Node> {
         .map(|region| region_node(chain, region))
         .chain(node_config::get_nodes_for_chain(chain).into_iter().map(config_node))
         .collect()
-}
-
-pub fn node_check_debounce_milliseconds() -> u64 {
-    NODE_CHECK_DEBOUNCE_MILLISECONDS
 }
 
 pub fn node_url(input: &str) -> Option<String> {

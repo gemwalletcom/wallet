@@ -150,13 +150,6 @@ pub struct GemRecentsSections {
     pub empty: Option<GemEmptyStateKind>,
 }
 
-const RECENT_ASSETS_LIMIT: u32 = 10;
-
-#[uniffi::export]
-pub fn recent_assets_limit() -> u32 {
-    RECENT_ASSETS_LIMIT
-}
-
 #[uniffi::export]
 impl GemRecentsCounts {
     pub fn sections(&self, is_searching: bool) -> GemRecentsSections {

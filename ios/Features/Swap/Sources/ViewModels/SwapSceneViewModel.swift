@@ -75,18 +75,10 @@ public final class SwapSceneViewModel {
     var toValue: String = ""
     var loadTrigger: SwapLoadTrigger?
 
-    var quoteDebounce: Duration {
-        .milliseconds(service.quoteDebounceMilliseconds())
-    }
-
     var selectedSlippage: GemSlippageSelection = .auto
 
     private let onSwap: TransferDataAction
     private let service: any GemSwapQuoteServiceProtocol
-
-    var quoteRefreshInterval: TimeInterval {
-        TimeInterval(service.refreshIntervalMilliseconds()) / 1000
-    }
 
     public init(
         service: any GemSwapQuoteServiceProtocol,
