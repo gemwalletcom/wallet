@@ -37,7 +37,8 @@ impl RewardsRedemptionClient {
         self.check_redemption_limits(&username, &rewards).await?;
 
         let option_id = id.to_string();
-        let response = self.database.run(move |client| redeem_points(client, &username, &option_id, device_id, wallet_id)).await?;
+        let points = rewards.points;
+        let response = self.database.run(move |client| redeem_points(client, &username, points, &option_id, device_id, wallet_id)).await?;
         self.stream_producer.publish_rewards_redemption(RewardsRedemptionPayload::new(response.redemption_id)).await?;
 
         Ok(response.result)

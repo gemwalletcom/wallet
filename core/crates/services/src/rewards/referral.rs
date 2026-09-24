@@ -4,7 +4,7 @@ use std::time::Duration;
 use config_keys::ConfigKey;
 use primitives::rewards::RewardStatus;
 use primitives::{Chain, RewardEvent, now};
-use rewards::{DeviceWallet, NewReferralVerification, Referral, ReferralUseFacts, ReferredRewards, new_referral_verification, referral_verification_delay};
+use rewards::{DeviceWallet, NewReferralVerification, Referral, ReferralError, ReferralUseFacts, ReferredRewards, new_referral_verification, referral_verification_delay};
 use storage::{DatabaseClient, DatabaseError, ReferralRecord, RewardsRepository, WalletsRepository};
 
 use crate::ConfigCacher;
@@ -80,7 +80,7 @@ pub fn use_or_verify_referral(
 
     if let Some(record) = client.get_referral_by_referred_username(&referred_username)? {
         let referral_id = record.id;
-        referral(record).validate_confirmation(referrer_username, device_id)?;
+        referral(record).validate_confirmation(referrer_username, device_id).map_err(ReferralError::from)?;
         if !can_verify {
             return Ok(vec![]);
         }

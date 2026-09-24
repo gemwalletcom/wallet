@@ -84,6 +84,7 @@ impl Error for UsernameValidationError {}
 #[derive(Debug)]
 pub enum ReferralError {
     Validation(ReferralValidationError),
+    Confirmation(ReferralConfirmationError),
     ReferrerLimitReached,
     RiskScoreExceeded { score: i64, max_allowed: i64 },
     DuplicateAttempt,
@@ -98,6 +99,7 @@ impl fmt::Display for ReferralError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ReferralError::Validation(e) => write!(f, "{}", e),
+            ReferralError::Confirmation(e) => write!(f, "{}", e),
             ReferralError::ReferrerLimitReached => write!(f, "referrer_limit_reached"),
             ReferralError::RiskScoreExceeded { score, max_allowed } => write!(f, "risk_score: {} (max allowed: {})", score, max_allowed),
             ReferralError::DuplicateAttempt => write!(f, "duplicate_attempt"),
@@ -121,11 +123,19 @@ impl Localize for ReferralError {
             Self::Validation(ReferralValidationError::CannotReferSelf) => localizer.rewards_error_referral_cannot_refer_self(),
             Self::Validation(ReferralValidationError::EligibilityExpired(days)) => localizer.rewards_error_referral_eligibility_expired(*days),
             Self::Validation(ReferralValidationError::RewardsNotEnabled(_)) => localizer.rewards_error_referral_rewards_not_enabled(),
+            Self::Confirmation(ReferralConfirmationError::AlreadyVerified) => localizer.rewards_error_referral_device_already_used(),
+            Self::Confirmation(ReferralConfirmationError::CodeMismatch | ReferralConfirmationError::DeviceMismatch) => localizer.rewards_error_referral_limit_reached(),
             Self::ReferrerLimitReached => localizer.rewards_error_referral_referrer_limit_reached(),
             Self::IpCountryIneligible(country) => localizer.rewards_error_referral_country_ineligible(country),
             Self::RiskScoreExceeded { .. } | Self::DuplicateAttempt | Self::IpTorNotAllowed | Self::LimitReached | Self::InvalidDeviceToken(_) => localizer.rewards_error_referral_limit_reached(),
             Self::Internal(_) => localizer.errors_generic(),
         }
+    }
+}
+
+impl From<ReferralConfirmationError> for ReferralError {
+    fn from(error: ReferralConfirmationError) -> Self {
+        ReferralError::Confirmation(error)
     }
 }
 
@@ -230,5 +240,13 @@ mod tests {
         assert_eq!(UsernameError::internal(raw).localize("en"), generic);
         assert_eq!(ReferralError::Internal(raw.to_string()).localize("en"), generic);
         assert_eq!(UsernameError::internal(raw).to_string(), raw);
+    }
+
+    #[test]
+    fn test_confirmation_errors_localize_to_referral_text() {
+        let localizer = LanguageLocalizer::new_with_language("en");
+
+        assert_eq!(ReferralError::from(ReferralConfirmationError::AlreadyVerified).localize("en"), localizer.rewards_error_referral_device_already_used());
+        assert_eq!(ReferralError::from(ReferralConfirmationError::DeviceMismatch).localize("en"), localizer.rewards_error_referral_limit_reached());
     }
 }

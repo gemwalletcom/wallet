@@ -174,7 +174,7 @@ impl RewardsClient {
                     if !referrer_info.status.is_verified() && referrer_info.status != RewardStatus::Attribution {
                         return Err(RewardsError::Referral(ReferralError::from(ReferralValidationError::RewardsNotEnabled(referrer_username.clone())).localize(&referral_locale)).into());
                     }
-                    let events = use_or_verify_referral(client, &referrer_username, referrer_info.status, wallet_id, device_id, None, verification_config)?;
+                    let events = use_or_verify_referral(client, &referrer_username, referrer_info.status, wallet_id, device_id, None, verification_config).map_err(|error| localized_referral_error(error, &referral_locale))?;
                     return Ok(ReferralCodeUse::Applied(events));
                 }
 
@@ -182,7 +182,7 @@ impl RewardsClient {
                     facts
                         .validate_use(&referrer_username, referrer_info.wallet_id, device_created_at, None, now())
                         .map_err(|error| RewardsError::Referral(ReferralError::from(error).localize(&referral_locale)))?;
-                    let events = use_or_verify_referral(client, &referrer_username, referrer_info.status, wallet_id, device_id, None, verification_config)?;
+                    let events = use_or_verify_referral(client, &referrer_username, referrer_info.status, wallet_id, device_id, None, verification_config).map_err(|error| localized_referral_error(error, &referral_locale))?;
                     return Ok(ReferralCodeUse::Applied(events));
                 }
                 Ok(ReferralCodeUse::NeedsScoring(referrer_username))
@@ -199,7 +199,8 @@ impl RewardsClient {
                 let events = self
                     .db
                     .run(move |client| use_or_verify_referral(client, &referrer_username, referrer_status, wallet_id, device_id, Some(risk_signal_id), verification_config))
-                    .await?;
+                    .await
+                    .map_err(|error| localized_referral_error(error, locale))?;
                 Ok(events)
             }
             ReferralProcessResult::Failed(error) => {
@@ -390,5 +391,12 @@ impl RewardsClient {
     async fn publish_events(&self, event_ids: Vec<i32>) -> Result<(), Box<dyn Error + Send + Sync>> {
         self.stream_producer.publish_rewards_events(event_ids.into_iter().map(RewardsNotificationPayload::new).collect()).await?;
         Ok(())
+    }
+}
+
+fn localized_referral_error(error: Box<dyn Error + Send + Sync>, locale: &str) -> Box<dyn Error + Send + Sync> {
+    match error.downcast::<ReferralError>() {
+        Ok(error) => RewardsError::Referral(error.localize(locale)).into(),
+        Err(error) => error,
     }
 }
