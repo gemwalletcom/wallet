@@ -30,6 +30,8 @@ https://gemwallet.com/tokens/solana/buy?amount=25
 
 Sell availability controls whether Sell can be selected in the screen. A direct sell link still opens Sell when the asset is not marked as sellable.
 
+A Receive, Buy, Sell or Swap link for a network the current wallet has no account on opens nothing and says the wallet has no account for that network.
+
 ## Links in the support chat
 
 Support chat messages are parsed in Core, and a link whose URL is a deep link is rendered as an in-app row and opens inside the app instead of the browser. This is the path chat agents use: emit a normal markdown link with a `gem://` or `https://gemwallet.com/` URL and the app routes it.
