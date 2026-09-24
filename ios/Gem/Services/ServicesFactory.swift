@@ -351,6 +351,7 @@ struct ServicesFactory {
             transactionStatus: GemstoneTransactionStatusService(service: transactionStateService),
         )
         let viewModelFactory = ViewModelFactory(
+            addressDetailsService: Gemstone.GemAddressDetailsService(api: deviceApiClient, explorer: explorerService),
             apiClient: apiClient,
             assetDiscoveryService: assetDiscoveryService,
             assetsService: assetsService,

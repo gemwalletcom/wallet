@@ -50,7 +50,7 @@ public extension ViewModelFactory {
     func addressDetailsScene(chainAddress: ChainAddress) -> AddressDetailsSceneViewModel {
         AddressDetailsSceneViewModel(
             chainAddress: chainAddress,
-            service: gatewayService.addressDetailsService(explorer: explorerService, names: nameService),
+            service: addressDetailsService,
         )
     }
 

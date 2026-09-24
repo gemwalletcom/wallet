@@ -3,12 +3,10 @@
 import Foundation
 
 enum GemListRowPresentationType: Identifiable, Equatable {
-    case copy
     case url(URL)
 
     var id: String {
         switch self {
-        case .copy: "copy"
         case let .url(url): "url-\(url)"
         }
     }

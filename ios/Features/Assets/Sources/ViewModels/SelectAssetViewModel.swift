@@ -39,9 +39,8 @@ public final class SelectAssetViewModel {
         assetsQuery.value
     }
 
-    var isPresentingCopyToast: Bool = false
+    var copyToast: CopyTypeViewModel?
     var isPresentingToastMessage: ToastMessage?
-    var copyTypeViewModel: CopyTypeViewModel?
 
     public var isPresentingAddToken: Bool = false
     public var assetSelection: SelectAssetInput?
@@ -211,8 +210,7 @@ extension SelectAssetViewModel {
             }
         case .copy:
             let address = assetData.account.address
-            copyTypeViewModel = CopyTypeViewModel(content: addressCopy(chain: asset.chain.toGem(), address: address))
-            isPresentingCopyToast = true
+            copyToast = CopyTypeViewModel(content: addressCopy(chain: asset.chain.toGem(), address: address))
             Task {
                 await setAssetEnabled(assetId: asset.id, enabled: true)
             }

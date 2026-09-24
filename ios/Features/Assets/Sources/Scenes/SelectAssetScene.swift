@@ -46,12 +46,7 @@ public struct SelectAssetScene: View {
             .bindQuery(model.assetsQuery, model.recentModel.query)
             .onChange(of: model.filterModel, model.onChangeFilterModel)
             .onChange(of: model.searchableQuery, model.updateRequest)
-            .ifLet(model.copyTypeViewModel) {
-                $0.copyToast(
-                    model: $1,
-                    isPresenting: $model.isPresentingCopyToast,
-                )
-            }
+            .copyToast($model.copyToast)
             .toast(message: $model.isPresentingToastMessage)
             .navigationBarTitle(model.title)
     }

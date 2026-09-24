@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import class Gemstone.GemAddressDetailsService
 import class Gemstone.GemAmountService
 import class Gemstone.GemApiClient
 import class Gemstone.GemAppUpdateService
@@ -52,6 +53,7 @@ import Store
 import SwiftUI
 
 public struct ViewModelFactory: Sendable {
+    let addressDetailsService: GemAddressDetailsService
     let apiClient: GemApiClient
     let assetDiscoveryService: GemAssetDiscoveryService
     let assetsService: GemAssetsService
