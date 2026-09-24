@@ -34,12 +34,12 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM37, VM127, VM156 |
 | Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | VM5 |
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
-| Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | VM148 |
+| Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | — |
 | Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | AUD59, VM69; retain existing native QR/share adapters |
 | Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | VM128 |
 | Recipient/address/name input | `GemRecipientSession`, `GemNameService`, existing input component | Keep debounce/observation native |
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountEntry`, `GemAutocloseDraft`, existing provider inputs | VM106, VM124, VM125 |
-| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | AUD5, VM61, VM62, VM102, VM129, VM144, VM145 |
+| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | AUD5, VM62, VM102, VM129, VM144, VM145 |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | AUD50 |
 | Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM62, VM145, VM146, VM147, VM98 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | — |
@@ -58,7 +58,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | BD58, D75 |
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | retain Android-only one-click auth |
 | Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per module | VM6, VM17, VM64, VM88, VM89, VM146 |
-| Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | VM159; retain native widget scheduling |
+| Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
 | Stores and persistence | `Gem*Store` traits and both adapters | VM98 |
 | Verification | Core `rules.rs` tests, `just check-*`, CI | — |
 
