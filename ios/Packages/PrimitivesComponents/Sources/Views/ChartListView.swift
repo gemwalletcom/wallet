@@ -30,6 +30,9 @@ public struct ChartListView<Model: ChartListViewable, Content: View>: View {
         .task(id: model.selectedPeriod) {
             await model.load()
         }
+        .refreshable {
+            await model.load()
+        }
         .refreshableTimer(every: connectionStatus.refreshInterval(for: .chart)) { @MainActor _ in
             await model.load()
         }
