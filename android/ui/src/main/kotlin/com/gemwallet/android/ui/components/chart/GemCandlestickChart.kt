@@ -76,6 +76,7 @@ private object CandlestickMetrics {
     val axisLabelSize = 11.sp
 
     const val SELECTION_LINE_ALPHA = 0.50f
+    const val TEXT_CACHE_SIZE = 32
 }
 
 @Composable
@@ -83,7 +84,7 @@ fun GemCandlestickChart(model: CandlestickChartUIModel, selectedIndex: Int? = nu
     if (model.candles.isEmpty()) return
 
     val density = LocalDensity.current
-    val textMeasurer = rememberTextMeasurer()
+    val textMeasurer = rememberTextMeasurer(cacheSize = CandlestickMetrics.TEXT_CACHE_SIZE)
 
     val upColor = ListItemTextStyle.Positive.color()
     val downColor = ListItemTextStyle.Negative.color()

@@ -150,6 +150,7 @@ class PerpetualDetailsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, candles.value.period.toPrimitives())
 
     private val candleViewState = candles.map { it.viewState() }
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, candles.value.viewState())
 
     val isRefreshing: StateFlow<Boolean> = candleViewState.map { it.isRefreshing }
@@ -165,7 +166,9 @@ class PerpetualDetailsViewModel @Inject constructor(
 
             else -> StateViewType.Error(error.errorText().text(context))
         }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), StateViewType.Loading)
+    }
+        .flowOn(ioDispatcher)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), StateViewType.Loading)
 
     fun tooltip(candle: ChartCandleStick): CandlestickTooltipUIModel = candleTooltip(candle.toGem()).uiModel(context)
 
