@@ -55,7 +55,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | VM161 |
 | Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM161; retain native locale/theme application |
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | Retain platform-only privacy lock |
-| Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | VM78, D75 |
+| Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | BD58, D75 |
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | VM161; retain Android-only one-click auth |
 | Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per module | VM6, VM17, VM64, VM65, VM88, VM89, VM146 |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | VM159; retain native widget scheduling |
@@ -141,7 +141,6 @@ The same product rule written in both apps, or in one app while the other reads 
 
 Core has no runtime, so scheduling, timers and OS callbacks stay in the apps; what moves is the decision — what to do, in what order, under what condition — returned as one call or one record. And [a store returns what Core reads](ARCHITECTURE.md#4-the-store-trait-is-the-apps-only-persistence-obligation), through one trait per responsibility.
 
-- **VM78** **S** **Settings holds one service.** iOS `SettingsViewModel` holds `GemNotificationsService` only to call `enableForSupport`; the owning service should expose it (Android routes it through `EnablePushForSupport`).
 - **VM79** **S** **The root scene stops reading the wallet store.** iOS [`RootSceneViewModel`](../ios/Gem/ViewModels/RootSceneViewModel.swift) reads `stores.walletStore.getWallet` directly; the session service answers the current wallet. Blocked on a synchronous answer: `GemWalletSessionService::get_current_wallet` is async (the wallet store port is async), and the root view needs the wallet on its first render or it flashes onboarding at every launch; either the port gains a synchronous read or the root keeps a stored wallet it can seed before first render.
 - **VM88** **M** **Info sheets come from Core.** Around 25 topics are written twice: iOS [`InfoSheetModelFactory`](../ios/Features/InfoSheet/Sources/Factory/InfoSheetModelFactory.swift) (252 lines) and Android `InfoBottomSheet` (414 lines) each choose title, description, image and docs link; Core has `GemInfoTopic` but no sheet content.
 - **VM89** **S** **Docs links come with the screen.** Screens pick docs URLs themselves (`StakeSceneViewModel` `.staking(chain)`, `ConnectionsViewModel` `.walletConnect`). Waits on the per-screen config decision raised on 2026-09-24 (generated constants and config on flow records instead of one-off exports): a docs link per screen is that kind of fixed data.
@@ -195,6 +194,7 @@ The API never returns internal text: `ApiError::Internal` logs its detail on the
 
 ### iOS and Android differ
 
+- **BD58** **S** **A failed push registration when opening support is shown on Android and dropped on iOS.** Android `SettingsViewModel.openSupport` shows `GemPushResult.NotRegistered`; iOS `SettingsViewModel.openSupport` discards the state while the support sheet opens, so the alert would need to show on the support scene.
 
 ### Freshness
 
@@ -291,6 +291,8 @@ An entry is dated rationale, not a current completion claim. Only decisions and 
 **AUD35 (2026-09-24).** The `store_contract_tests` emulator job from `4c1f0cd0f4` is gone. Tests that need Android run on Robolectric in `integration` packages and in the `integration_tests` job (`just test-integration`); only the app's Keystore and screenshot tests need a device. Do not add an emulator job.
 
 ### Decided and closed as correct
+
+**VM78 (2026-09-24).** Closed as correct: settings holds the push owner for the one support prompt on both apps — iOS the `GemNotificationsService`, Android `EnablePushForSupport` on `DevicePushSettings`, which also records the push state and stops the notifications prompt. Routing it through `GemSettingsService` would bypass those Android side effects without removing a dependency.
 
 **VM40 (2026-09-24).** Closed as correct: the network settings screen is always the same two sections, nodes then explorers, with fixed titles and no rule behind them. Each app already takes both lists from Core (`GemNodeListSession.rows`, `explorer_rows`); asking Core for the layout too would add a crossing that returns a constant.
 
