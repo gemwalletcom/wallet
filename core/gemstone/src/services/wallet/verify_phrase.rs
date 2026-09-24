@@ -1,6 +1,6 @@
 use std::fmt;
 
-use super::rules::phrase_verification_words;
+use super::rules::{PHRASE_VERIFICATION_GROUP, phrase_verification_words};
 
 #[derive(Clone, PartialEq, uniffi::Record)]
 pub struct GemVerifyPhraseSession {
@@ -11,6 +11,7 @@ pub struct GemVerifyPhraseSession {
 
 #[derive(Clone, PartialEq, uniffi::Record)]
 pub struct GemVerifyPhraseChoice {
+    pub index: u32,
     pub word: String,
     pub is_picked: bool,
 }
@@ -18,7 +19,8 @@ pub struct GemVerifyPhraseChoice {
 #[derive(Clone, PartialEq, uniffi::Record)]
 pub struct GemVerifyPhraseViewState {
     pub verified: Vec<String>,
-    pub choices: Vec<GemVerifyPhraseChoice>,
+    pub groups: Vec<Vec<GemVerifyPhraseChoice>>,
+    pub current_group: Option<u32>,
     pub next_index: Option<u32>,
     pub is_complete: bool,
 }
@@ -31,7 +33,7 @@ impl fmt::Debug for GemVerifyPhraseSession {
 
 impl fmt::Debug for GemVerifyPhraseChoice {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("GemVerifyPhraseChoice").field("is_picked", &self.is_picked).finish()
+        f.debug_struct("GemVerifyPhraseChoice").field("index", &self.index).field("is_picked", &self.is_picked).finish()
     }
 }
 
@@ -39,7 +41,8 @@ impl fmt::Debug for GemVerifyPhraseViewState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("GemVerifyPhraseViewState")
             .field("verified_count", &self.verified.iter().filter(|word| !word.is_empty()).count())
-            .field("choices", &self.choices)
+            .field("groups", &self.groups)
+            .field("current_group", &self.current_group)
             .field("next_index", &self.next_index)
             .field("is_complete", &self.is_complete)
             .finish()
@@ -76,18 +79,22 @@ impl GemVerifyPhraseSession {
 
     pub fn view_state(&self) -> GemVerifyPhraseViewState {
         let verified_count = self.picked.len();
+        let next_index = (verified_count < self.words.len()).then_some(verified_count as u32);
+        let choices: Vec<GemVerifyPhraseChoice> = self
+            .choices
+            .iter()
+            .enumerate()
+            .map(|(index, word)| GemVerifyPhraseChoice {
+                index: index as u32,
+                word: word.clone(),
+                is_picked: self.picked.contains(&(index as u32)),
+            })
+            .collect();
         GemVerifyPhraseViewState {
             verified: self.words.iter().enumerate().map(|(index, word)| if index < verified_count { word.clone() } else { String::new() }).collect(),
-            choices: self
-                .choices
-                .iter()
-                .enumerate()
-                .map(|(index, word)| GemVerifyPhraseChoice {
-                    word: word.clone(),
-                    is_picked: self.picked.contains(&(index as u32)),
-                })
-                .collect(),
-            next_index: (verified_count < self.words.len()).then_some(verified_count as u32),
+            groups: choices.chunks(PHRASE_VERIFICATION_GROUP).map(<[GemVerifyPhraseChoice]>::to_vec).collect(),
+            current_group: next_index.map(|index| index / PHRASE_VERIFICATION_GROUP as u32),
+            next_index,
             is_complete: !self.words.is_empty() && verified_count == self.words.len(),
         }
     }
@@ -118,7 +125,8 @@ mod tests {
         assert_eq!(state.verified, vec!["alpha", "beta", "gamma"]);
         assert_eq!(state.next_index, None);
         assert!(state.is_complete);
-        assert!(state.choices.iter().all(|choice| choice.is_picked));
+        assert!(state.groups.iter().flatten().all(|choice| choice.is_picked));
+        assert_eq!(state.current_group, None);
     }
 
     #[test]
@@ -129,7 +137,7 @@ mod tests {
         assert_eq!(session.on_pick(7), session, "there is no eighth chip");
         let picked = session.on_pick(1);
         assert_eq!(picked.on_pick(1), picked, "a chip is used once");
-        assert_eq!(picked.view_state().choices.iter().map(|choice| choice.is_picked).collect::<Vec<_>>(), vec![false, true]);
+        assert_eq!(picked.view_state().groups.iter().flatten().map(|choice| choice.is_picked).collect::<Vec<_>>(), vec![false, true]);
     }
 
     #[test]
@@ -138,6 +146,24 @@ mod tests {
 
         assert!(session.on_pick(2).on_pick(0).on_pick(1).view_state().is_complete);
         assert!(session.on_pick(0).on_pick(2).on_pick(1).view_state().is_complete);
+    }
+
+    #[test]
+    fn test_choices_come_in_the_groups_they_were_shuffled_in_and_the_current_group_follows_the_next_word() {
+        let words: Vec<String> = (0..24).map(|index| format!("word{index}")).collect();
+        let session = GemVerifyPhraseSession::new(words.clone());
+
+        let state = session.view_state();
+        assert_eq!(state.groups.len(), 6);
+        assert!(state.groups.iter().all(|group| group.len() == PHRASE_VERIFICATION_GROUP));
+        assert_eq!(state.groups.iter().flatten().map(|choice| choice.index).collect::<Vec<_>>(), (0..24).collect::<Vec<u32>>());
+        assert_eq!(state.current_group, Some(0));
+
+        let picked = (0..5).fold(session.clone(), |session, position| {
+            let choice = session.choices.iter().position(|word| *word == words[position]).unwrap() as u32;
+            session.on_pick(choice)
+        });
+        assert_eq!(picked.view_state().current_group, Some(1));
     }
 
     #[test]

@@ -47,10 +47,10 @@ struct VerifyPhraseViewModelTests {
     func pickingEveryWordInOrderEnablesTheButton() {
         let model = VerifyPhraseViewModel(session: session) { _ in }
 
-        model.selectRows.forEach(model.pickWord)
+        model.groups.joined().forEach(model.pickWord)
 
         #expect(model.buttonState == .normal)
-        #expect(model.selectRows.allSatisfy(model.isVerified))
+        #expect(model.groups.joined().allSatisfy(model.isVerified))
         #expect(model.wordsIndex == nil)
     }
 
@@ -58,10 +58,10 @@ struct VerifyPhraseViewModelTests {
     func aWrongWordLeavesTheButtonDisabled() {
         let model = VerifyPhraseViewModel(session: session) { _ in }
 
-        model.pickWord(index: model.selectRows[1])
+        model.pickWord(index: Array(model.groups.joined())[1])
 
         #expect(model.buttonState == .disabled)
-        #expect(model.isVerified(index: model.selectRows[1]) == false)
+        #expect(model.isVerified(index: Array(model.groups.joined())[1]) == false)
         #expect(model.wordsIndex == 0)
     }
 }

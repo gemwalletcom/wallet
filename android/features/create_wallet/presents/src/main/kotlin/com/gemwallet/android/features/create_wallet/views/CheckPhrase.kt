@@ -31,16 +31,15 @@ import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 import com.gemwallet.android.ui.theme.space8
 import uniffi.gemstone.GemVerifyPhraseViewState
 
-private const val wordsPerGroup = 4
-
-private const val verifyGroupCount = 3
-
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun CheckPhrase(state: GemVerifyPhraseViewState, rows: List<PhraseRow>, loading: Boolean, onPick: (Int) -> Boolean, onDone: () -> Unit, onCancel: () -> Unit) {
     val isSmallScreen = isCompactDimension(WindowDimension.Height)
-    val progress = state.nextIndex?.toInt() ?: state.verified.size
-    val choices = state.choices.withIndex().toList()
+    val groups = if (isSmallScreen) {
+        listOfNotNull(state.currentGroup?.let { state.groups.getOrNull(it.toInt()) })
+    } else {
+        state.groups
+    }
 
     Scene(
         title = stringResource(id = R.string.transfer_confirm),
@@ -67,23 +66,23 @@ internal fun CheckPhrase(state: GemVerifyPhraseViewState, rows: List<PhraseRow>,
                 highlightIndex = state.nextIndex?.toInt(),
             )
             AnimatedVisibility(visible = !state.isComplete || !isSmallScreen) {
-                FlowRow(
+                Column(
                     modifier = Modifier
                         .padding(vertical = paddingDefault)
                         .widthIn(max = SceneSizing.contentMaxWidth)
                         .fillMaxWidth(),
-                    maxItemsInEachRow = wordsPerGroup,
-                    horizontalArrangement = Arrangement.spacedBy(space8, Alignment.CenterHorizontally),
                     verticalArrangement = Arrangement.spacedBy(space8),
                 ) {
-                    val visible = if (isSmallScreen) {
-                        val group = progress / wordsPerGroup
-                        if (group < verifyGroupCount) choices.drop(group * wordsPerGroup).take(wordsPerGroup) else emptyList()
-                    } else {
-                        choices
-                    }
-                    visible.forEach { (index, choice) ->
-                        WordChip(choice.word, !choice.isPicked) { onPick(index) }
+                    groups.forEach { group ->
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(space8, Alignment.CenterHorizontally),
+                            verticalArrangement = Arrangement.spacedBy(space8),
+                        ) {
+                            group.forEach { choice ->
+                                WordChip(choice.word, !choice.isPicked) { onPick(choice.index.toInt()) }
+                            }
+                        }
                     }
                 }
             }

@@ -28,7 +28,7 @@ struct VerifyPhraseWalletScene: View {
 
             Section {
                 Grid(alignment: .center) {
-                    ForEach(model.rowsSections, id: \.self) { section in
+                    ForEach(model.groups, id: \.self) { section in
                         GridRow(alignment: .center) {
                             ForEach(section) { row in
                                 if model.isVerified(index: row) {

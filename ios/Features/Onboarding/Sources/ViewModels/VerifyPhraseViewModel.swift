@@ -17,6 +17,7 @@ final class VerifyPhraseViewModel {
     private let onComplete: ([String]) async throws -> Void
 
     private var session: GemVerifyPhraseSession
+    private var viewState: GemVerifyPhraseViewState
     var buttonState = ButtonState.disabled
     var isPresentingAlertMessage: AlertMessage?
 
@@ -25,11 +26,8 @@ final class VerifyPhraseViewModel {
         onComplete: @escaping ([String]) async throws -> Void,
     ) {
         self.session = session
+        viewState = session.viewState()
         self.onComplete = onComplete
-    }
-
-    private var viewState: GemVerifyPhraseViewState {
-        session.viewState()
     }
 
     var wordsIndex: Int? {
@@ -48,27 +46,22 @@ final class VerifyPhraseViewModel {
         SecretPhraseRow.rows(for: viewState.verified)
     }
 
-    var rowsSections: [[WordIndex]] {
-        selectRows.chunks(4)
-    }
-
-    var selectRows: [WordIndex] {
-        viewState.choices
-            .enumerated()
-            .map {
-                WordIndex(index: $0.offset, word: $0.element.word)
-            }
+    var groups: [[WordIndex]] {
+        viewState.groups.map { group in
+            group.map { WordIndex(index: Int($0.index), word: $0.word) }
+        }
     }
 
     func pickWord(index: WordIndex) {
         session = session.onPick(choice: UInt32(index.index))
+        viewState = session.viewState()
         if viewState.isComplete {
             buttonState = .normal
         }
     }
 
     func isVerified(index: WordIndex) -> Bool {
-        viewState.choices[index.index].isPicked
+        viewState.groups.joined().first { Int($0.index) == index.index }?.isPicked == true
     }
 }
 
