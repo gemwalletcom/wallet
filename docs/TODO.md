@@ -236,7 +236,6 @@ The API never returns internal text: `ApiError::Internal` logs its detail on the
 
 ### Docs versus code
 
-- **BD54** **S** **`FEATURES.md` describes a `scanEnable` switch that doesn't exist and says scan settings have no cache delay.** `docs/FEATURES.md:167` vs `scanTypeEnable.<type>` (`config_param_key.rs:135-137`) read through the 60s cache (`scan_client.rs:89,162`); scans also run for `Payment` (`core/gemstone/src/services/scan/rules.rs:10`).
 - **BD56** **S** **The wallet-home "Loading" row disappears after a failed discovery.** `docs/PRODUCT.md:144,151,159,194` vs iOS `WalletSceneViewModel.swift:243-257`, Android `AssetsViewModel.kt:104-112` (cleared even when `refresh()` threw). Needs a decision: after a failed discovery, keep "Loading" until a later refresh completes it, or show a retry state; both apps clear it today, and the next launch shows it again because the step is not marked complete.
 
 ## Decisions to make
