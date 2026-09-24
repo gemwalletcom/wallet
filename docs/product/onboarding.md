@@ -18,7 +18,9 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    A[Import Wallet] --> B[Multi-Coin or a network] --> C[Secret Phrase, private key or address] --> D[Wallet imported] --> E[Wallet screen]
+    A[Import Wallet] --> B[Multi-Coin or a network] --> C[Secret Phrase, private key or address] --> D{Already in the app?}
+    D -- yes --> E[Opens the existing wallet]
+    D -- no --> F[Wallet imported] --> G[Wallet screen]
 ```
 
 - Multi-Coin takes a Secret Phrase; a single network takes a Secret Phrase, a private key where the network supports one, or an address for a watch-only wallet.

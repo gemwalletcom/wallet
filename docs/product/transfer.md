@@ -6,7 +6,9 @@ Send an asset to an address, a name or a contact, or pay a scanned QR code or pa
 
 ```mermaid
 flowchart LR
-    A[Send] --> B[Pick asset] --> C[Recipient] --> D[Amount] --> E[Confirm] --> F[Sent] --> G[Pending in Activity] --> H[Confirmed]
+    A[Send] --> B[Pick asset] --> C[Recipient] --> D[Amount] --> E[Confirm] --> F{Approve?}
+    F -- authenticate --> G[Sent] --> H[Pending in Activity] --> I[Confirmed]
+    F -- cancel --> C
 ```
 
 - The user taps Send on the wallet screen or an asset and picks the asset to send.
@@ -17,6 +19,16 @@ flowchart LR
 - The transaction appears at once as Pending in Activity and on the asset, is tracked until the network confirms it, and its balance updates then.
 
 ## Scanned codes and payment links
+
+```mermaid
+flowchart LR
+    A[Scan or paste] --> B{What is it?}
+    B -- complete payment --> C[Confirm]
+    B -- partial payment --> D[Recipient screen to complete]
+    B -- plain address on several networks --> E[Pick the asset] --> C
+    B -- WalletConnect Pay link --> F[Merchant request review] --> C
+    B -- WalletConnect code --> G[Connection proposal]
+```
 
 - Supported codes: a plain address; Bitcoin, Litecoin, Bitcoin Cash, Dogecoin and Zcash payment codes (amount, memo, label); XRP with a destination tag; Ethereum coin and token transfers; Solana Pay; TON transfers with a comment; WalletConnect Pay links.
 - The scanner reads them from the camera or a picked image.

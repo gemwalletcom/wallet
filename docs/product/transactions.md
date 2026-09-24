@@ -16,6 +16,12 @@ flowchart LR
 - A push about a transaction opens its details.
 - An empty wallet reads "Your activity will appear here. Make your first transaction".
 
+```mermaid
+flowchart LR
+    A[Activity] --> B[Filter by type or network] --> C[Row] --> D[Transaction details] --> E[View on explorer]
+    D --> F[Swap Again]
+```
+
 ## Rules
 
 - A sent transaction appears as Pending at once and stays tracked until the network settles it, whatever screen the user is on.

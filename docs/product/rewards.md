@@ -21,6 +21,13 @@ sequenceDiagram
 - A friend taps "Redeem code"; after the waiting period "Your bonus is ready!" and both get points.
 - "Ways to Spend" lists assets the user can get for points; redeeming asks for confirmation and shows the result on the same screen.
 
+```mermaid
+flowchart LR
+    A[Ways to Spend] --> B[Get X] --> C{Enough points?}
+    C -- no --> D[Insufficient points]
+    C -- yes --> E[Confirm] --> F[Received, points deducted]
+```
+
 ## Rules
 
 - A username is permanent; a wallet that has one cannot set another.

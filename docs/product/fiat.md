@@ -4,7 +4,9 @@ Buy crypto from a partner provider, or sell to one, from inside the wallet: the 
 
 ```mermaid
 flowchart LR
-    A[Buy or Sell] --> B[Pick asset] --> C[Amount] --> D[Quotes from every provider at once] --> E[Provider and Rate] --> F[Continue] --> G[Asset switched on in the wallet] --> H[Provider page] --> I[Activity]
+    A[Buy or Sell] --> B[Pick asset] --> C[Amount] --> D[Quotes from every provider at once] --> E{Any quote?}
+    E -- no --> F[No quotes available]
+    E -- yes --> G[Provider and Rate] --> H[Continue] --> I[Asset switched on in the wallet] --> J[Provider page] --> K[Activity]
 ```
 
 - The user taps Buy on the wallet screen, an asset or the welcome banner and picks an asset; the screen opens as "Buy X", with a Buy | Sell switch when the asset can be sold.

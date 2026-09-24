@@ -4,7 +4,15 @@ Trade one asset for another from inside the wallet, on one network or across two
 
 ```mermaid
 flowchart LR
-    A[Pick the pair] --> B[Enter amount] --> C[Quotes from every provider at once] --> D[Best quote shown] --> E[Swap] --> F[Confirm]
+    A[Pick the pair] --> B[Enter amount] --> C[Quotes from every provider at once] --> D{Any quote?}
+    D -- no --> E[No quote available, Try Again]
+    D -- yes --> F[Best quote shown] --> G[Swap] --> H{Price impact 10% or more?}
+    H -- yes --> I[High Price Impact warning]
+    I -- proceed --> J[Confirm]
+    H -- no --> J
+    J --> K{Approval needed?}
+    K -- yes --> L[Approve and swap signed together]
+    K -- no --> M[Swap signed]
 ```
 
 - The user opens Swap from the wallet screen, an asset, or Swap Again on a past swap; the pair is filled in (a token the wallet does not hold is paid with its network's coin, otherwise the most recently used pair), never the same asset on both sides.

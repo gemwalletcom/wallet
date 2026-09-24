@@ -9,6 +9,15 @@ Reach the wallets, protect the app, tune currency, language and appearance, choo
 
 ```mermaid
 flowchart LR
+    A[App goes to the background] --> B{Lock period passed on return?}
+    B -- no --> C[App as it was]
+    B -- yes --> D[Covered until Face ID, Touch ID or passcode] --> E{Success?}
+    E -- yes --> C
+    E -- cancelled --> F[Unlock button]
+```
+
+```mermaid
+flowchart LR
     A[Add node] --> B[Type, paste or scan URL] --> C[Check: Chain ID, In Sync, Latest Block, Latency] --> D[Import] --> E[Node selected]
 ```
 

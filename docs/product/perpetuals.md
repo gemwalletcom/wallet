@@ -16,6 +16,12 @@ flowchart LR
 - A position shows its PnL with percent, Auto Close, Size, Entry Price, Liquidation price, Margin and Funding Payments; Modify increases or reduces it, Close goes straight to confirmation with the expected PnL.
 - Deposit moves USDC from the wallet's Arbitrum account (at least 5 USDC); Withdraw moves the withdrawable balance back (at least 2 USDC).
 
+```mermaid
+flowchart LR
+    A[Perpetual balance] --> B[Deposit from the wallet's Arbitrum USDC] --> C[Confirm] --> D[Available balance]
+    A --> E[Withdraw the withdrawable balance] --> C
+```
+
 ## Rules
 
 - Perpetuals are offered only to a Multi-Coin wallet with a Hyperliquid account, and only after the user switches them on.

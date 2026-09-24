@@ -5,7 +5,9 @@ Earn rewards on a network's coin by delegating it to a validator (on TRON, by fr
 ```mermaid
 flowchart LR
     A[Stake] --> B[Amount and validator] --> C[Confirm] --> D[Pending or Activating] --> E[Active]
-    E --> F[Unstake] --> G[Deactivating] --> H[Awaiting Withdrawal] --> I[Withdraw]
+    E --> F[Claim Rewards] --> C
+    E --> G[Redelegate] --> C
+    E --> H[Unstake] --> C --> I[Deactivating] --> J[Awaiting Withdrawal] --> K[Withdraw] --> C
 ```
 
 - The user opens a stakeable coin and taps its Staked row or the "Start staking" banner; the Stake screen shows the APR, the Lock Time and the Minimum amount.

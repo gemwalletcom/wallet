@@ -4,8 +4,15 @@ Connect the wallet to a dapp by scanning or pasting its code, then approve or re
 
 ```mermaid
 flowchart LR
-    A[Scan or paste code] --> B[Connection proposal] --> C[Approve] --> D[Connected]
-    D --> E[Request from the dapp] --> F[Review: app, wallet, network, what is signed] --> G[Approve, signed and sent back]
+    A[Scan or paste code] --> B[Connection proposal: app, verification, wallet, permissions] --> C{Approve?}
+    C -- yes --> D[Connected, listed in Settings]
+    C -- no --> E[Rejected, nothing connected]
+    D --> F[Request from the dapp] --> G{Still valid?}
+    G -- expired --> H[Request expired, refused]
+    G -- yes --> I[Review: app, wallet, network, what is signed] --> J{Approve?}
+    J -- yes --> K[Authenticate, signed, sent back to the dapp]
+    J -- no --> L[Rejected, dapp told]
+    D --> M[Disconnect]
 ```
 
 - The user scans or pastes a WalletConnect code; the proposal shows the app, its verification level, the wallet it will connect and the permissions ("View your balance and activity", "Send approval requests").
