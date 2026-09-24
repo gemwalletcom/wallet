@@ -14,6 +14,7 @@ import uniffi.gemstone.GemDeeplinkService
 import uniffi.gemstone.GemDeeplinkServiceInterface
 import uniffi.gemstone.GemNavigationServiceInterface
 import uniffi.gemstone.GemNavigationTab
+import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.Payment
 import uniffi.gemstone.UrlAction
 import uniffi.gemstone.WalletConnectLink
@@ -106,6 +107,7 @@ class PendingNavigationCoordinator @Inject constructor(
     }
 
     private suspend fun destination(deeplink: Deeplink): PendingNavigation.Routes = runCatching { navigationService.openDeeplink(deeplink).destination() }
+        .onFailure { if (it is GemServiceException.NoAccountForChain) throw it }
         .onFailure { Log.e(TAG, "preparing a deep link failed", it) }
         .getOrDefault(PendingNavigation.Routes(emptyList()))
 

@@ -2,6 +2,7 @@
 
 import Components
 import protocol Gemstone.GemAssetsServiceProtocol
+import enum Gemstone.GemErrorText
 import protocol Gemstone.GemNftServiceProtocol
 import enum Gemstone.GemTransactionHeaderAction
 import GemstonePrimitives
@@ -55,7 +56,9 @@ extension NavigationPresenter {
     }
 
     func presentAssetInput(type: SelectedAssetType, for asset: Asset, wallet: Wallet) throws {
-        let account = try wallet.account(for: asset.chain)
+        guard let account = try? wallet.account(for: asset.chain) else {
+            throw GemErrorText.noAccountForChain
+        }
         isPresentingAssetInput.wrappedValue = SelectedAssetInput(
             type: type,
             assetData: .with(asset: asset, account: account),

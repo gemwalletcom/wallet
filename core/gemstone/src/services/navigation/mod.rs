@@ -61,13 +61,11 @@ impl GemNavigationService {
             Deeplink::Asset { asset_id } => self.open_asset(asset_id).await,
             Deeplink::Perpetuals => Ok(GemNavigationTarget::Perpetuals),
             Deeplink::Rewards { code } => Ok(GemNavigationTarget::Rewards { code: rules::code(code) }),
-            Deeplink::Receive { asset_id } => Ok(GemNavigationTarget::Receive {
-                asset: self.assets.ensure_asset(asset_id).await?,
-            }),
+            Deeplink::Receive { asset_id } => Ok(GemNavigationTarget::Receive { asset: self.account_asset(asset_id).await? }),
             Deeplink::Buy { asset_id, amount } => self.fiat(asset_id, amount, FiatQuoteType::Buy).await,
             Deeplink::Sell { asset_id, amount } => self.fiat(asset_id, amount, FiatQuoteType::Sell).await,
             Deeplink::Swap { asset_id } => Ok(GemNavigationTarget::Swap {
-                from: self.assets.ensure_asset(asset_id).await?,
+                from: self.account_asset(asset_id).await?,
                 to: None,
             }),
         }
@@ -78,8 +76,8 @@ impl GemNavigationService {
             GemPushNotification::Asset { asset_id } | GemPushNotification::PriceAlert { asset_id } => self.open_asset(asset_id).await,
             GemPushNotification::BuyAsset { asset_id } => self.fiat(asset_id, None, FiatQuoteType::Buy).await,
             GemPushNotification::SwapAsset { from_asset_id, to_asset_id } => Ok(GemNavigationTarget::Swap {
-                from: self.assets.ensure_asset(from_asset_id).await?,
-                to: Some(self.assets.ensure_asset(to_asset_id).await?),
+                from: self.account_asset(from_asset_id).await?,
+                to: Some(self.account_asset(to_asset_id).await?),
             }),
             GemPushNotification::FiatTransaction { wallet_id, asset_id } | GemPushNotification::Stake { wallet_id, asset_id } => self.open_wallet_asset(wallet_id, asset_id).await,
             GemPushNotification::Transaction { wallet_id, asset_id, transaction } => self.open_transaction(wallet_id, asset_id, transaction).await,
@@ -125,10 +123,21 @@ impl GemNavigationService {
 
     async fn fiat(&self, asset_id: AssetId, amount: Option<i32>, quote_type: FiatQuoteType) -> Result<GemNavigationTarget, GemServiceError> {
         Ok(GemNavigationTarget::Fiat {
-            asset: self.assets.ensure_asset(asset_id).await?,
+            asset: self.account_asset(asset_id).await?,
             amount,
             quote_type,
         })
+    }
+}
+
+impl GemNavigationService {
+    async fn account_asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {
+        if let Some(wallet) = self.session.get_current_wallet().await?
+            && wallet.account(asset_id.chain).is_none()
+        {
+            return Err(GemServiceError::NoAccountForChain { chain: asset_id.chain });
+        }
+        self.assets.ensure_asset(asset_id).await
     }
 }
 
@@ -192,6 +201,23 @@ mod tests {
                 }
             );
             assert_eq!(*testkit.status.tracked.lock().unwrap(), vec![vec![transaction]]);
+        });
+    }
+
+    #[test]
+    fn test_a_link_for_a_chain_the_wallet_lacks_names_the_missing_account() {
+        block_on(async {
+            let testkit = DiscoveryTestkit::with_status(200);
+            let wallet = Wallet::mock();
+            *testkit.wallets.wallets.lock().unwrap() = vec![wallet.clone()];
+            testkit.session.set_current_wallet_id(Some(wallet.id.clone())).unwrap();
+            let bitcoin = Asset::from_chain(Chain::Bitcoin);
+            testkit.asset_store.save_assets(vec![default_asset_basic(bitcoin.clone())]).await.unwrap();
+            let service = GemNavigationService::new(testkit.assets.clone(), testkit.session.clone(), testkit.state.clone());
+
+            let result = service.open_deeplink(Deeplink::Receive { asset_id: bitcoin.id.clone() }).await;
+
+            assert!(matches!(result, Err(GemServiceError::NoAccountForChain { chain: Chain::Bitcoin })));
         });
     }
 }
