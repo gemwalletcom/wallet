@@ -127,8 +127,12 @@ pub struct SwapQuoteTestkit {
 
 impl SwapQuoteTestkit {
     pub fn with_status(status: u16) -> Self {
+        Self::with_wallet(status, Wallet::mock())
+    }
+
+    pub fn with_wallet(status: u16, wallet: Wallet) -> Self {
         let provider = Arc::new(TestAlienProvider::with_status(status));
-        let discovery = DiscoveryTestkit::with_provider(provider, Wallet::mock());
+        let discovery = DiscoveryTestkit::with_provider(provider, wallet);
         let subscription = SubscriptionTestkit::new(&[], &[]);
         let connection = subscription.connection.clone();
         let service = GemSwapQuoteService::new(
