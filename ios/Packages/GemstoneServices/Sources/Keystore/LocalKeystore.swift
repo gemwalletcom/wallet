@@ -40,8 +40,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
                 throw KeystoreError.missingPassword
             }
             let newPassword = try SecureRandom.generateKey(length: 32).hex
-            try keystorePassword.setPassword(newPassword, authentication: .none)
-            return newPassword
+            return try keystorePassword.createPassword(newPassword, authentication: keystorePassword.getAuthentication())
         }
     }
 

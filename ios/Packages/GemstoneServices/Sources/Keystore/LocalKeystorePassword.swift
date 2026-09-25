@@ -14,9 +14,12 @@ public final class LocalKeystorePassword: KeystorePassword {
         static let passwordAuthenticationPrivacyLock = "password_authentication_privacy_lock"
     }
 
-    private let keychain: Keychain = KeychainDefault()
+    private static let lock = NSLock()
+    private let keychain: Keychain
 
-    public init() {}
+    public init(keychain: Keychain = KeychainDefault()) {
+        self.keychain = keychain
+    }
 
     public func getAvailableAuthentication() -> KeystoreAuthentication {
         KeystoreAuthentication.availableAuthenticationType
@@ -52,19 +55,21 @@ public final class LocalKeystorePassword: KeystorePassword {
     }
 
     public func enableAuthentication(_ enable: Bool, context: LAContext) throws {
-        switch enable {
-        case true:
-            let authentication = getAvailableAuthentication()
-            switch authentication {
-            case .biometrics, .passcode:
-                try changeAuthentication(authentication: authentication, context: context)
-            case .none:
-                throw AnyError("No authentication available")
+        try Self.lock.withLock {
+            switch enable {
+            case true:
+                let authentication = getAvailableAuthentication()
+                switch authentication {
+                case .biometrics, .passcode:
+                    try changeAuthentication(authentication: authentication, context: context)
+                case .none:
+                    throw AnyError("No authentication available")
+                }
+            case false:
+                try changeAuthentication(authentication: .none, context: context)
+                try setPrivacyLockStatus(.disabled)
+                try setAuthenticationLockPeriod(period: .default)
             }
-        case false:
-            try changeAuthentication(authentication: .none, context: context)
-            try setPrivacyLockStatus(.disabled)
-            try setAuthenticationLockPeriod(period: .default)
         }
     }
 
@@ -79,7 +84,31 @@ public final class LocalKeystorePassword: KeystorePassword {
     }
 
     public func setPassword(_ password: String, authentication: KeystoreAuthentication) throws {
-        try setPassword(password, authentication: authentication, context: LAContext())
+        try Self.lock.withLock {
+            try setPassword(password, authentication: authentication, context: LAContext())
+        }
+    }
+
+    public func createPassword(_ password: String, authentication: KeystoreAuthentication) throws -> String {
+        try Self.lock.withLock {
+            guard password.isNotEmpty else {
+                throw KeystoreError.emptyPassword
+            }
+            try keychain.set(authentication.rawValue, key: Keys.passwordAuthentication)
+            let added = try keychain
+                .accessibility(.whenUnlockedThisDeviceOnly, authenticationPolicy: authentication.policy)
+                .authenticationContext(LAContext())
+                .add(password, key: Keys.password)
+            if added {
+                return password
+            }
+            let existing = try getPassword()
+            if existing.isNotEmpty {
+                return existing
+            }
+            try setPassword(password, authentication: authentication, context: LAContext())
+            return password
+        }
     }
 
     public func remove() throws {
@@ -98,6 +127,9 @@ extension LocalKeystorePassword {
         authentication: KeystoreAuthentication,
         context: LAContext,
     ) throws {
+        guard password.isNotEmpty else {
+            throw KeystoreError.emptyPassword
+        }
         try keychain
             .set(authentication.rawValue, key: Keys.passwordAuthentication)
 
@@ -109,6 +141,9 @@ extension LocalKeystorePassword {
 
     private func changeAuthentication(authentication: KeystoreAuthentication, context: LAContext) throws {
         let password = try getPassword(context: context)
+        guard password.isNotEmpty else {
+            return try keychain.set(authentication.rawValue, key: Keys.passwordAuthentication)
+        }
         try setPassword(password, authentication: authentication, context: context)
     }
 }

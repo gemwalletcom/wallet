@@ -4,4 +4,5 @@ import Foundation
 
 public enum KeystoreError: Error, Sendable {
     case missingPassword
+    case emptyPassword
 }
