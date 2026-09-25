@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.wallet_connect.cases.DisconnectWalletConnection
-import com.gemwallet.android.application.wallet_connect.cases.GetWalletConnections
+import com.gemwallet.android.data.services.store.queries.ConnectionQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.bridge.viewmodels.model.listItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
@@ -33,7 +33,7 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ConnectionViewModel @Inject constructor(
-    getWalletConnections: GetWalletConnections,
+    connectionQuery: ConnectionQuery,
     private val disconnectWalletConnection: DisconnectWalletConnection,
     private val service: GemWalletConnectServiceInterface,
     savedState: SavedStateHandle,
@@ -43,7 +43,7 @@ class ConnectionViewModel @Inject constructor(
 
     private val connectionId = savedState.requireString(RouteArgument.ConnectionId)
 
-    val details = getWalletConnections.observeConnection(connectionId)
+    val details = connectionQuery(connectionId)
         .mapLatest { connection -> connection?.let { service.connectionDetails(it.toGem()) } }
         .stateIn(viewModelScope, SharingStarted.Companion.Eagerly, null)
 

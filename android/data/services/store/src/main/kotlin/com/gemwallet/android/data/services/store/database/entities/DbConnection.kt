@@ -54,6 +54,8 @@ fun DbConnection.toSession(): WalletConnectionSession = WalletConnectionSession(
 
 fun DbConnection.toDTO(wallet: Wallet): WalletConnection = WalletConnection(wallet = wallet, session = toSession())
 
+fun DbConnection.toDTO(wallets: List<Wallet>): WalletConnection? = wallets.firstOrNull { it.id.id == walletId }?.let { toDTO(it) }
+
 fun WalletConnection.toRecord(): DbConnection = DbConnection(
     id = session.id,
     sessionId = session.sessionId,

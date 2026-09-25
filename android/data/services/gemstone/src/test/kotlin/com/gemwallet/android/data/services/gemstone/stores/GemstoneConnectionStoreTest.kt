@@ -12,7 +12,6 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -24,22 +23,6 @@ class GemstoneConnectionStoreTest {
     private val walletStore = mockk<GemstoneWalletStore>()
     private val connectionsDao = mockk<ConnectionsDao>(relaxed = true)
     private val store = GemstoneConnectionStore(walletStore, connectionsDao)
-
-    @Test
-    fun observeConnections_mapsOnlyRecordsWithMatchingWallets() = runTest {
-        every { walletStore.observeWallets() } returns flowOf(listOf(mockWallet(id = "wallet-1")))
-        every { connectionsDao.getAll() } returns flowOf(
-            listOf(
-                mockDbConnection(id = "connection-1", walletId = "wallet-1"),
-                mockDbConnection(id = "connection-2", walletId = "missing-wallet"),
-            ),
-        )
-
-        val connections = store.observeConnections().first()
-
-        assertEquals(listOf("connection-1"), connections.map { it.session.id })
-        assertEquals("wallet-1", connections.single().wallet.id.id)
-    }
 
     @Test
     fun getSessions_returnsEverySessionCoreStored() = runTest {

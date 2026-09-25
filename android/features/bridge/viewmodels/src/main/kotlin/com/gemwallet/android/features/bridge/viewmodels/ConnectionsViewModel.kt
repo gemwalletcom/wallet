@@ -4,8 +4,9 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.wallet_connect.cases.GetWalletConnections
 import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
+import com.gemwallet.android.application.wallet_connect.cases.SyncWalletConnectSessions
+import com.gemwallet.android.data.services.store.queries.ConnectionsQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.bridge.viewmodels.model.rowUIModel
 import com.gemwallet.android.ui.R
@@ -29,14 +30,15 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ConnectionsViewModel @Inject constructor(
-    private val getWalletConnections: GetWalletConnections,
+    connectionsQuery: ConnectionsQuery,
+    private val syncWalletConnectSessions: SyncWalletConnectSessions,
     private val pairWalletConnect: PairWalletConnect,
     private val service: GemWalletConnectServiceInterface,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
-    private val view = getWalletConnections.observeConnections()
+    private val view = connectionsQuery()
         .mapLatest { connections -> service.connectionsView(connections.map { it.toGem() }) }
         .stateIn(viewModelScope, SharingStarted.Companion.Lazily, null)
 
@@ -53,7 +55,7 @@ class ConnectionsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Companion.Lazily, null)
 
     init {
-        viewModelScope.launch(ioDispatcher) { getWalletConnections.syncSessions() }
+        viewModelScope.launch(ioDispatcher) { syncWalletConnectSessions.syncSessions() }
     }
 
     val pasteListItem = ListItemModel(title = context.getString(R.string.common_paste), image = ListItemImage.Symbol(ListItemSymbol.Paste))

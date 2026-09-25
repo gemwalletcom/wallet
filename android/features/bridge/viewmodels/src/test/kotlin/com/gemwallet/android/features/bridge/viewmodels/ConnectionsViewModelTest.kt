@@ -3,8 +3,10 @@ package com.gemwallet.android.features.bridge.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.cases.DisconnectWalletConnection
-import com.gemwallet.android.application.wallet_connect.cases.GetWalletConnections
 import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
+import com.gemwallet.android.application.wallet_connect.cases.SyncWalletConnectSessions
+import com.gemwallet.android.data.services.store.queries.ConnectionQuery
+import com.gemwallet.android.data.services.store.queries.ConnectionsQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockGemConnectionRow
 import com.gemwallet.android.testkit.mockWalletConnectionSession
@@ -67,24 +69,26 @@ class ConnectionsViewModelTest {
         val service: GemWalletConnectServiceInterface = mockk(relaxed = true) {
             every { connectionsView(any()) } returns GemConnectionsView(sections, "https://docs.gemwallet.com/guides/walletconnect/")
         }
-        val connections: GetWalletConnections = mockk {
-            every { observeConnections() } returns flowOf(listOf(connection))
+        val connectionsQuery: ConnectionsQuery = mockk {
+            every { this@mockk() } returns flowOf(listOf(connection))
+        }
+        val syncSessions: SyncWalletConnectSessions = mockk {
             coJustRun { syncSessions() }
         }
-        val model = ConnectionsViewModel(connections, mockk(relaxed = true), service, dispatcher, mockk(relaxed = true)).also { scopes.add(it) }
+        val model = ConnectionsViewModel(connectionsQuery, syncSessions, mockk(relaxed = true), service, dispatcher, mockk(relaxed = true)).also { scopes.add(it) }
 
         assertEquals(sections.map { it.title }, model.sections.first { it.isNotEmpty() }.map { it.title })
-        coVerify { connections.syncSessions() }
+        verify { service.connectionsView(listOf(connection.toGem())) }
+        coVerify { syncSessions.syncSessions() }
     }
 
     @Test
     fun `pairing forwards the uri`() = runTest(dispatcher) {
         val pair: PairWalletConnect = mockk(relaxed = true)
-        val connections: GetWalletConnections = mockk {
-            every { observeConnections() } returns flowOf(emptyList())
-            coJustRun { syncSessions() }
+        val connectionsQuery: ConnectionsQuery = mockk {
+            every { this@mockk() } returns flowOf(emptyList())
         }
-        val model = ConnectionsViewModel(connections, pair, mockk(relaxed = true), dispatcher, mockk(relaxed = true)).also { scopes.add(it) }
+        val model = ConnectionsViewModel(connectionsQuery, mockk(relaxed = true), pair, mockk(relaxed = true), dispatcher, mockk(relaxed = true)).also { scopes.add(it) }
 
         model.addPairing("wc:topic@2", onSuccess = {}, onError = {})
         advanceUntilIdle()
@@ -101,11 +105,11 @@ class ConnectionsViewModelTest {
         val service: GemWalletConnectServiceInterface = mockk(relaxed = true) {
             every { connectionDetails(any()) } returns details
         }
-        val connections: GetWalletConnections = mockk {
-            every { observeConnection("connection-1") } returns flowOf(connection)
+        val connectionQuery: ConnectionQuery = mockk {
+            every { this@mockk("connection-1") } returns flowOf(connection)
         }
         val model = ConnectionViewModel(
-            connections,
+            connectionQuery,
             mockk(relaxed = true),
             service,
             SavedStateHandle(mapOf(RouteArgument.ConnectionId.key to "connection-1")),
@@ -119,11 +123,11 @@ class ConnectionsViewModelTest {
     @Test
     fun `disconnecting without a connection still finishes`() = runTest(dispatcher) {
         val disconnect: DisconnectWalletConnection = mockk(relaxed = true)
-        val connections: GetWalletConnections = mockk {
-            every { observeConnection(any()) } returns flowOf(null)
+        val connectionQuery: ConnectionQuery = mockk {
+            every { this@mockk(any()) } returns flowOf(null)
         }
         val model = ConnectionViewModel(
-            connections,
+            connectionQuery,
             disconnect,
             mockk(relaxed = true),
             SavedStateHandle(mapOf(RouteArgument.ConnectionId.key to "gone")),
@@ -148,14 +152,14 @@ class ConnectionsViewModelTest {
         val service: GemWalletConnectServiceInterface = mockk(relaxed = true) {
             every { connectionDetails(any()) } returns details
         }
-        val connections: GetWalletConnections = mockk {
-            every { observeConnection("connection-1") } returns flowOf(connection)
+        val connectionQuery: ConnectionQuery = mockk {
+            every { this@mockk("connection-1") } returns flowOf(connection)
         }
         val disconnect: DisconnectWalletConnection = mockk {
             coEvery { disconnect(any(), any(), any()) } answers { thirdArg<(GemErrorText) -> Unit>()(GemErrorText.Message("session gone")) }
         }
         val model = ConnectionViewModel(
-            connections,
+            connectionQuery,
             disconnect,
             service,
             SavedStateHandle(mapOf(RouteArgument.ConnectionId.key to "connection-1")),
