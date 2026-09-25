@@ -7,7 +7,7 @@ import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionSt
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.TransactionExtended
+import com.wallet.core.primitives.TransactionListItem
 import com.wallet.core.primitives.WalletId
 import io.mockk.every
 import io.mockk.mockk
@@ -30,7 +30,7 @@ class GetTransactionsImplTest {
     private val store = mockk<GemstoneTransactionStore> {
         every { observeTransactions(any(), any()) } returns flow {
             subscriptions.incrementAndGet()
-            emit(emptyList<TransactionExtended>())
+            emit(emptyList<TransactionListItem>())
             awaitCancellation()
         }
     }

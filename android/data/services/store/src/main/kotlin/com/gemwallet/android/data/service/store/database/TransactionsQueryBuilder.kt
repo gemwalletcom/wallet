@@ -19,9 +19,9 @@ private fun TransactionsRequestFilter.toSqlClause(): SqlClause = when (this) {
     is TransactionsRequestFilter.States -> SqlClause.inList("tx.state", states.map { it.name })
 }
 
-fun buildExtendedTransactionsSql(walletId: WalletId, filters: List<TransactionsRequestFilter>, limit: Int): SqlQuery {
-    val source = EXTENDED_SOURCE.replace(":walletId", "?")
-    return SqlQueryBuilder(baseSql = "SELECT $EXTENDED_COLUMNS $source", baseArgs = listOf(walletId.id))
+fun buildTransactionListSql(walletId: WalletId, filters: List<TransactionsRequestFilter>, limit: Int): SqlQuery {
+    val source = TRANSACTION_LIST_SOURCE.replace(":walletId", "?")
+    return SqlQueryBuilder(baseSql = "SELECT $TRANSACTION_LIST_COLUMNS $source", baseArgs = listOf(walletId.id))
         .whereAll(filters.map { it.toSqlClause() })
         .orderBy("tx.createdAt DESC")
         .limit(limit)
@@ -29,7 +29,7 @@ fun buildExtendedTransactionsSql(walletId: WalletId, filters: List<TransactionsR
 }
 
 fun buildTransactionsCountSql(walletId: WalletId, filters: List<TransactionsRequestFilter>): SqlQuery {
-    val source = EXTENDED_SOURCE.replace(":walletId", "?")
+    val source = TRANSACTION_LIST_SOURCE.replace(":walletId", "?")
     return SqlQueryBuilder(baseSql = "SELECT COUNT(DISTINCT tx.id) $source", baseArgs = listOf(walletId.id))
         .whereAll(filters.map { it.toSqlClause() })
         .build()

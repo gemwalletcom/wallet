@@ -6,7 +6,7 @@ import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.data.service.store.database.GemDatabase
-import com.gemwallet.android.data.service.store.database.buildExtendedTransactionsSql
+import com.gemwallet.android.data.service.store.database.buildTransactionListSql
 import com.gemwallet.android.data.service.store.database.di.Migration_99_100
 import com.gemwallet.android.ext.GemConstants
 import com.wallet.core.primitives.WalletId
@@ -38,7 +38,7 @@ class Migration_99_100Test {
         helper.createDatabase(testDb, 99).close()
 
         helper.runMigrationsAndValidate(testDb, 100, true, Migration_99_100).use { database ->
-            val history = buildExtendedTransactionsSql(WalletId("wallet-1"), emptyList(), GemConstants.transactionsListLimit)
+            val history = buildTransactionListSql(WalletId("wallet-1"), emptyList(), GemConstants.transactionsListLimit)
             database.query(SimpleSQLiteQuery("EXPLAIN QUERY PLAN ${history.sql}", history.args.toTypedArray())).use { cursor ->
                 val plan = buildList { while (cursor.moveToNext()) add(cursor.getString(cursor.getColumnIndexOrThrow("detail"))) }
                 assertTrue(plan.toString(), plan.any { it.contains("index_transactions_walletId_createdAt") })

@@ -59,12 +59,10 @@ fun DbTransactionExtended.toDTO(): TransactionExtended? {
 
 private fun DbPrice.toAssetPrice(): AssetPrice? = value?.let { AssetPrice(assetId.toAssetId() ?: return null, it, dayChanged ?: 0.0, 0L) }
 
-private fun DbAddressProjection.toAddressName(address: String): AddressName = AddressName(
+internal fun DbAddressProjection.toAddressName(address: String): AddressName = AddressName(
     chain = chain,
     address = address,
     name = name,
     type = type,
     status = status,
 )
-
-fun List<DbTransactionExtended>.toDTO() = mapNotNull { it.toDTO() }

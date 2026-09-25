@@ -39,6 +39,7 @@ pub mod support_mock;
 pub mod swap_mock;
 mod transaction_extended_mock;
 pub mod transaction_fee_mock;
+mod transaction_list_item_mock;
 pub mod transaction_load_input_mock;
 pub mod transaction_load_metadata_mock;
 pub mod transaction_mock;

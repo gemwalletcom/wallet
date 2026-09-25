@@ -23,7 +23,7 @@ public struct TransactionsRequest: DatabaseQueryable {
         self.limit = limit
     }
 
-    public func fetch(_ db: Database) throws -> [TransactionExtended] {
+    public func fetch(_ db: Database) throws -> [TransactionListItem] {
         try Self.fetch(db, type: type, filters: filters, walletId: walletId, limit: limit)
     }
 
@@ -33,12 +33,25 @@ public struct TransactionsRequest: DatabaseQueryable {
         filters: [TransactionsRequestFilter],
         walletId: WalletId,
         limit: Int? = nil,
-    ) throws -> [TransactionExtended] {
+    ) throws -> [TransactionListItem] {
         let request = query(walletId: walletId, type: type, filters: filters)
         return try fetch(db, request: limit.map { request.limit($0) } ?? request)
     }
 
-    static func fetch(_ db: Database, request: QueryInterfaceRequest<TransactionRecord>) throws -> [TransactionExtended] {
+    static func fetch(_ db: Database, request: QueryInterfaceRequest<TransactionRecord>) throws -> [TransactionListItem] {
+        try request
+            .including(required: TransactionRecord.asset)
+            .joining(required: TransactionRecord.feeAsset)
+            .including(all: TransactionRecord.assets)
+            .including(optional: TransactionRecord.fromAddress)
+            .including(optional: TransactionRecord.toAddress)
+            .order(TransactionRecord.Columns.date.desc)
+            .asRequest(of: TransactionListInfo.self)
+            .fetchAll(db)
+            .map { $0.mapToTransactionListItem() }
+    }
+
+    static func fetchExtended(_ db: Database, request: QueryInterfaceRequest<TransactionRecord>) throws -> [TransactionExtended] {
         try request
             .including(required: TransactionRecord.asset)
             .including(required: TransactionRecord.feeAsset)

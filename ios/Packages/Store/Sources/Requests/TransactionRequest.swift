@@ -17,7 +17,7 @@ public struct TransactionRequest: DatabaseQueryable {
         let request = TransactionRecord
             .filter(TransactionRecord.Columns.walletId == walletId.id)
             .filter(TransactionRecord.Columns.id == recordId)
-        guard let transaction = try TransactionsRequest.fetch(db, request: request).first else {
+        guard let transaction = try TransactionsRequest.fetchExtended(db, request: request).first else {
             throw RecordError.recordNotFound(databaseTableName: TransactionRecord.databaseTableName, key: [:])
         }
         return transaction

@@ -6,7 +6,7 @@ import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStore
 import com.gemwallet.android.ext.toGem
-import com.wallet.core.primitives.TransactionExtended
+import com.wallet.core.primitives.TransactionListItem
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -46,12 +46,12 @@ class GetTransactionsImpl(private val getSession: GetSession, private val getCur
 
 internal class TransactionRows {
 
-    private class FilterRows(val walletId: WalletId, val items: Map<TransactionExtended, GemTransactionRow>, val rows: List<GemTransactionRow>)
+    private class FilterRows(val walletId: WalletId, val items: Map<TransactionListItem, GemTransactionRow>, val rows: List<GemTransactionRow>)
 
     private val current = RecentFilters<FilterRows>()
 
-    fun rows(walletId: WalletId, filters: List<TransactionsRequestFilter>, items: List<TransactionExtended>): List<GemTransactionRow> = synchronized(this) {
-        val reused = HashMap<TransactionExtended, GemTransactionRow>()
+    fun rows(walletId: WalletId, filters: List<TransactionsRequestFilter>, items: List<TransactionListItem>): List<GemTransactionRow> = synchronized(this) {
+        val reused = HashMap<TransactionListItem, GemTransactionRow>()
         current.values().forEach { reused.putAll(it.items) }
         val missing = items.filterNot(reused::containsKey).distinct()
         val built = missing.zip(transactionRows(missing.map { it.toGem() })).toMap()

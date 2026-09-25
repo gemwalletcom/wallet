@@ -11,10 +11,10 @@ import androidx.sqlite.db.SupportSQLiteQuery
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.data.service.store.database.entities.DbAddress
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
-import com.gemwallet.android.data.service.store.database.entities.DbPrice
 import com.gemwallet.android.data.service.store.database.entities.DbTransaction
 import com.gemwallet.android.data.service.store.database.entities.DbTransactionAsset
 import com.gemwallet.android.data.service.store.database.entities.DbTransactionExtended
+import com.gemwallet.android.data.service.store.database.entities.DbTransactionListItem
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
 
-const val EXTENDED_COLUMNS = """
+const val TRANSACTION_LIST_COLUMNS = """
     tx.*,
     tx.id AS tx_key,
     asset.id AS asset_id,
@@ -34,15 +34,6 @@ const val EXTENDED_COLUMNS = """
     asset.symbol AS asset_symbol,
     asset.decimals AS asset_decimals,
     asset.type AS asset_type,
-    feeAsset.id AS fee_asset_id,
-    feeAsset.name AS fee_asset_name,
-    feeAsset.symbol AS fee_asset_symbol,
-    feeAsset.decimals AS fee_asset_decimals,
-    feeAsset.type AS fee_asset_type,
-    prices.value AS price_value,
-    prices.day_changed AS price_day_changed,
-    feePrices.value AS fee_price_value,
-    feePrices.day_changed AS fee_price_day_changed,
     from_addr.chain AS from_address_chain,
     from_addr.name AS from_address_name,
     from_addr.type AS from_address_type,
@@ -53,14 +44,36 @@ const val EXTENDED_COLUMNS = """
     to_addr.status AS to_address_status
 """
 
-const val EXTENDED_SOURCE = """
+const val EXTENDED_COLUMNS = """
+    $TRANSACTION_LIST_COLUMNS,
+    feeAsset.id AS fee_asset_id,
+    feeAsset.name AS fee_asset_name,
+    feeAsset.symbol AS fee_asset_symbol,
+    feeAsset.decimals AS fee_asset_decimals,
+    feeAsset.type AS fee_asset_type,
+    prices.value AS price_value,
+    prices.day_changed AS price_day_changed,
+    feePrices.value AS fee_price_value,
+    feePrices.day_changed AS fee_price_day_changed
+"""
+
+const val TRANSACTION_JOINS = """
     FROM transactions as tx
     INNER JOIN asset ON tx.assetId = asset.id
     INNER JOIN asset as feeAsset ON tx.feeAssetId = feeAsset.id
-    LEFT JOIN prices ON tx.assetId = prices.asset_id
-    LEFT JOIN prices as feePrices ON tx.feeAssetId = feePrices.asset_id
     LEFT JOIN addresses as from_addr ON from_addr.chain = asset.chain AND from_addr.address = tx.owner
     LEFT JOIN addresses as to_addr ON to_addr.chain = asset.chain AND to_addr.address = tx.recipient
+"""
+
+const val TRANSACTION_LIST_SOURCE = """
+    $TRANSACTION_JOINS
+    WHERE tx.walletId = :walletId
+"""
+
+const val EXTENDED_SOURCE = """
+    $TRANSACTION_JOINS
+    LEFT JOIN prices ON tx.assetId = prices.asset_id
+    LEFT JOIN prices as feePrices ON tx.feeAssetId = feePrices.asset_id
     WHERE tx.walletId = :walletId
 """
 
@@ -92,16 +105,14 @@ interface TransactionsDao {
         observedEntities = [
             DbTransaction::class,
             DbAsset::class,
-            DbPrice::class,
             DbTransactionAsset::class,
             DbAddress::class,
         ],
     )
     @Transaction
-    fun getExtendedTransactions(query: SupportSQLiteQuery): Flow<List<DbTransactionExtended>>
+    fun getTransactionListItems(query: SupportSQLiteQuery): Flow<List<DbTransactionListItem>>
 
-    fun getExtendedTransactions(walletId: WalletId, filters: List<TransactionsRequestFilter>, limit: Int): Flow<List<DbTransactionExtended>> =
-        getExtendedTransactions(buildExtendedTransactionsSql(walletId, filters, limit).toSupportSQLiteQuery())
+    fun getTransactionListItems(walletId: WalletId, filters: List<TransactionsRequestFilter>, limit: Int): Flow<List<DbTransactionListItem>> = getTransactionListItems(buildTransactionListSql(walletId, filters, limit).toSupportSQLiteQuery())
 
     @RawQuery(
         observedEntities = [

@@ -2,6 +2,7 @@ remote:
   - Currency
   - TransactionUtxoInput
   - TransactionExtended
+  - TransactionListItem
   - TransactionDirection
   - Transaction
   - PriceProvider

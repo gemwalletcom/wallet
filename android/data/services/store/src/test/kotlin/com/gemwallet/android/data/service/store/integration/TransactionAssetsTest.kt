@@ -53,8 +53,15 @@ class TransactionAssetsTest {
     }
 
     @Test
-    fun aTransactionCarriesEveryAssetItTouchesWithTheirPrices() = runBlocking(Dispatchers.IO) {
-        val transaction = database.transactionsDao().getExtendedTransactions(wallet.id, emptyList(), 100).first().single().toDTO()
+    fun aListedTransactionCarriesEveryAssetItTouches() = runBlocking(Dispatchers.IO) {
+        val transaction = database.transactionsDao().getTransactionListItems(wallet.id, emptyList(), 100).first().single().toDTO()
+
+        assertEquals(setOf(bitcoin, usdt), transaction?.assets?.toSet())
+    }
+
+    @Test
+    fun theTransactionDetailCarriesThePricesOfEveryAssetItTouches() = runBlocking(Dispatchers.IO) {
+        val transaction = database.transactionsDao().getExtendedTransaction(wallet.id, swap.id).first()?.toDTO()
 
         assertEquals(setOf(bitcoin, usdt), transaction?.assets?.toSet())
         assertEquals(listOf(AssetPrice(usdt.id, 1.0, 0.5, 0L)), transaction?.prices)
@@ -64,7 +71,7 @@ class TransactionAssetsTest {
     fun theAssetFilterMatchesAnyAssetTheTransactionTouches() = runBlocking(Dispatchers.IO) {
         val transactions = database.transactionsDao()
 
-        assertEquals(1, transactions.getExtendedTransactions(wallet.id, listOf(TransactionsRequestFilter.Asset(usdt.id)), 100).first().size)
-        assertEquals(0, transactions.getExtendedTransactions(wallet.id, listOf(TransactionsRequestFilter.Asset(mockAssetEthereum().id)), 100).first().size)
+        assertEquals(1, transactions.getTransactionListItems(wallet.id, listOf(TransactionsRequestFilter.Asset(usdt.id)), 100).first().size)
+        assertEquals(0, transactions.getTransactionListItems(wallet.id, listOf(TransactionsRequestFilter.Asset(mockAssetEthereum().id)), 100).first().size)
     }
 }

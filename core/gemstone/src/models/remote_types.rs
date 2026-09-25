@@ -16,8 +16,9 @@ use primitives::{
     RewardRedemptionType, RewardStatus, Rewards, SimulationBalanceChange, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult,
     SimulationSeverity, SimulationWarning, SimulationWarningApproval, SimulationWarningType, SolanaNftStandard, SolanaTokenProgramId, StakeProviderType, StakeType, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageSender,
     SupportMessageStatus, SupportTyping, SupportTypingStatus, SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProvider, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType, TPSLOrderData, TotalFiatValue, TpslType,
-    Transaction, TransactionDirection, TransactionExtended, TransactionInputType, TransactionState, TransactionType, TransactionUtxoInput, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze,
-    TronVote, UTXO, VerificationStatus, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus, WalletSource, WalletType, YieldProvider,
+    Transaction, TransactionDirection, TransactionExtended, TransactionInputType, TransactionListItem, TransactionState, TransactionType, TransactionUtxoInput, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType,
+    TronStakeData, TronUnfreeze, TronVote, UTXO, VerificationStatus, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus, WalletSource, WalletType,
+    YieldProvider,
 };
 use std::str::FromStr;
 
@@ -1798,6 +1799,15 @@ pub struct TransactionExtended {
     pub from_address: Option<AddressName>,
     pub to_address: Option<AddressName>,
     pub confirmation_eta_seconds: Option<u32>,
+}
+
+#[uniffi::remote(Record)]
+pub struct TransactionListItem {
+    pub transaction: Transaction,
+    pub asset: Asset,
+    pub assets: Vec<Asset>,
+    pub from_address: Option<AddressName>,
+    pub to_address: Option<AddressName>,
 }
 
 #[uniffi::remote(Record)]

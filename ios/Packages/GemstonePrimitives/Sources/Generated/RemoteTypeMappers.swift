@@ -3291,6 +3291,30 @@ public extension Primitives.TransactionExtended {
     }
 }
 
+public extension Gemstone.TransactionListItem {
+    func toPrimitives() -> Primitives.TransactionListItem {
+        Primitives.TransactionListItem(
+            transaction: transaction.toPrimitives(),
+            asset: asset.toPrimitives(),
+            assets: assets.map { $0.toPrimitives() },
+            fromAddress: fromAddress.map { $0.toPrimitives() },
+            toAddress: toAddress.map { $0.toPrimitives() },
+        )
+    }
+}
+
+public extension Primitives.TransactionListItem {
+    func toGem() -> Gemstone.TransactionListItem {
+        Gemstone.TransactionListItem(
+            transaction: transaction.toGem(),
+            asset: asset.toGem(),
+            assets: assets.map { $0.toGem() },
+            fromAddress: fromAddress.map { $0.toGem() },
+            toAddress: toAddress.map { $0.toGem() },
+        )
+    }
+}
+
 public extension Gemstone.TransactionUtxoInput {
     func toPrimitives() -> Primitives.TransactionUtxoInput {
         Primitives.TransactionUtxoInput(

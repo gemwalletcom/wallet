@@ -4,8 +4,8 @@ use strum::IntoEnumIterator;
 
 use number_formatter::BigNumberFormatter;
 use primitives::{
-    Asset, AssetId, AssetPrice, AssetType, BlockExplorerLink, Chain, ChainAsset, Currency, PerpetualDirection, Price, Transaction, TransactionDirection, TransactionExtended, TransactionNFTTransferMetadata, TransactionPerpetualMetadata,
-    TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionType, TransactionWalletConnectMetadata, TransferDataOutputAction, WalletType,
+    AddressName, Asset, AssetId, AssetPrice, AssetType, BlockExplorerLink, Chain, ChainAsset, Currency, PerpetualDirection, Price, Transaction, TransactionDirection, TransactionExtended, TransactionListItem, TransactionNFTTransferMetadata,
+    TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionType, TransactionWalletConnectMetadata, TransferDataOutputAction, WalletType,
 };
 
 use super::model::{
@@ -18,6 +18,7 @@ use crate::config::image::GemImage;
 use crate::duration_formatter::estimated_duration_parts;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::asset::wallet_default_assets;
+use crate::models::custom_types::GemBigUint;
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
 use crate::services::assets::icon::{GemAssetIcon, GemAssetIconImage};
@@ -59,23 +60,23 @@ pub fn transaction_asset_ids(transactions: &[Transaction]) -> Vec<AssetId> {
     unique(transactions.iter().flat_map(|transaction| transaction.associated_asset_ids()))
 }
 
-pub fn row(extended: &TransactionExtended) -> GemTransactionRow {
-    let transaction = &extended.transaction;
-    let value = row_value(extended, transaction_value(transaction));
+pub fn row(item: &TransactionListItem) -> GemTransactionRow {
+    let transaction = &item.transaction;
+    let value = row_value(item, transaction_value(transaction));
     GemTransactionRow {
-        icon: crate::services::assets::icon::asset_icon(&extended.asset.id),
+        icon: crate::services::assets::icon::asset_icon(&item.asset.id),
         id: transaction.id.clone(),
-        asset: extended.asset.clone(),
+        asset: item.asset.clone(),
         transaction_type: transaction.transaction_type.clone(),
         direction: transaction.direction.clone(),
         state: transaction.state,
         created_at: transaction.created_at,
         status: status(transaction.state),
         title: transaction_title(transaction),
-        subtitle: row_subtitle(extended),
+        subtitle: row_subtitle(item),
         value_tone: value_tone(&value),
         value,
-        equivalent_value: row_value(extended, transaction_equivalent_value(transaction)),
+        equivalent_value: row_value(item, transaction_equivalent_value(transaction)),
         nft_image_url: transaction.nft_asset_id().map(|asset_id| GemImage::NftAsset { asset_id: asset_id.to_string() }.url()),
         badge: badge(&transaction.transaction_type, &transaction.direction),
     }
@@ -108,7 +109,7 @@ pub fn badge(transaction_type: &TransactionType, direction: &TransactionDirectio
 pub fn participant(extended: &TransactionExtended, link: impl FnOnce(&str) -> BlockExplorerLink) -> Option<GemTransactionParticipant> {
     let transaction = &extended.transaction;
     let (role, address) = transaction_participant(transaction)?;
-    let name = address_name(extended, &address);
+    let name = address_name(&extended.from_address, &extended.to_address, &address);
     let can_add_contact = name.is_none() && matches!(transaction.transaction_type, TransactionType::Transfer | TransactionType::TransferNFT);
     Some(GemTransactionParticipant {
         role,
@@ -280,14 +281,14 @@ fn status_row(rows: &GemTransactionDetailRows) -> GemListRow {
     }
 }
 
-fn row_subtitle(extended: &TransactionExtended) -> GemTransactionRowSubtitle {
-    match transaction_subtitle(&extended.transaction) {
+fn row_subtitle(item: &TransactionListItem) -> GemTransactionRowSubtitle {
+    match transaction_subtitle(&item.transaction) {
         GemTransactionSubtitle::None => GemTransactionRowSubtitle::None,
         GemTransactionSubtitle::ToAddress { address } => GemTransactionRowSubtitle::ToAddress {
-            participant: participant_name(extended, &address),
+            participant: participant_name(item, &address),
         },
         GemTransactionSubtitle::FromAddress { address } => GemTransactionRowSubtitle::FromAddress {
-            participant: participant_name(extended, &address),
+            participant: participant_name(item, &address),
         },
         GemTransactionSubtitle::ToResource { resource } => GemTransactionRowSubtitle::ToResource { resource },
         GemTransactionSubtitle::FromResource { resource } => GemTransactionRowSubtitle::FromResource { resource },
@@ -309,10 +310,10 @@ pub fn status(state: TransactionState) -> GemTransactionStatus {
     }
 }
 
-fn participant_name(extended: &TransactionExtended, address: &str) -> String {
-    address_name(extended, address)
+fn participant_name(item: &TransactionListItem, address: &str) -> String {
+    address_name(&item.from_address, &item.to_address, address)
         .map(|name| name.name)
-        .unwrap_or_else(|| format_address(address, Some(extended.transaction.asset_id.chain), GemAddressFormatStyle::Short))
+        .unwrap_or_else(|| format_address(address, Some(item.transaction.asset_id.chain), GemAddressFormatStyle::Short))
 }
 
 fn value_tone(value: &GemTransactionRowValue) -> GemValueTone {
@@ -326,20 +327,21 @@ fn value_tone(value: &GemTransactionRowValue) -> GemValueTone {
     }
 }
 
-fn amount_value(amount: GemTransactionAmount) -> GemTransactionRowValue {
+fn amount_value(sign: GemAmountSign, value: &GemBigUint, asset: &Asset) -> GemTransactionRowValue {
     GemTransactionRowValue::Number {
-        number: amount.sign.amount(&amount.value, &amount.asset, GemValueStyle::Short),
+        number: sign.amount(value, asset, GemValueStyle::Short),
     }
 }
 
-fn row_value(extended: &TransactionExtended, value: GemTransactionValue) -> GemTransactionRowValue {
-    let transaction = &extended.transaction;
+fn row_value(item: &TransactionListItem, value: GemTransactionValue) -> GemTransactionRowValue {
+    let transaction = &item.transaction;
+    let swap_value = |leg: SwapLeg, sign: GemAmountSign| swap_leg_value(transaction, &item.asset, &item.assets, leg).map_or(GemTransactionRowValue::None, |(asset, value)| amount_value(sign, &value, &asset));
     match value {
         GemTransactionValue::None => GemTransactionRowValue::None,
-        GemTransactionValue::AssetSymbol => GemTransactionRowValue::AssetSymbol { asset: extended.asset.clone() },
-        GemTransactionValue::Amount { sign } => amount_value(transaction_amount(extended, sign)),
-        GemTransactionValue::SwapReceived => swap_leg(extended, SwapLeg::To, GemAmountSign::Incoming).map_or(GemTransactionRowValue::None, amount_value),
-        GemTransactionValue::SwapSpent => swap_leg(extended, SwapLeg::From, GemAmountSign::Outgoing).map_or(GemTransactionRowValue::None, amount_value),
+        GemTransactionValue::AssetSymbol => GemTransactionRowValue::AssetSymbol { asset: item.asset.clone() },
+        GemTransactionValue::Amount { sign } => amount_value(sign, &transaction.value, &item.asset),
+        GemTransactionValue::SwapReceived => swap_value(SwapLeg::To, GemAmountSign::Incoming),
+        GemTransactionValue::SwapSpent => swap_value(SwapLeg::From, GemAmountSign::Outgoing),
         GemTransactionValue::PerpetualNotional => perpetual_collateral_asset()
             .map(|asset| BigNumberFormatter::f64_value(&transaction.value, asset.decimals as u32))
             .map_or(GemTransactionRowValue::None, |value| GemTransactionRowValue::Number { number: GemFormattedNumber::usd(value) }),
@@ -416,14 +418,19 @@ enum SwapLeg {
     To,
 }
 
-fn swap_leg(extended: &TransactionExtended, leg: SwapLeg, sign: GemAmountSign) -> Option<GemTransactionAmount> {
-    let metadata = extended.transaction.swap_metadata()?;
+fn swap_leg_value(transaction: &Transaction, asset: &Asset, assets: &[Asset], leg: SwapLeg) -> Option<(Asset, GemBigUint)> {
+    let metadata = transaction.swap_metadata()?;
     let (asset_id, value) = match leg {
         SwapLeg::From => (metadata.from_asset, metadata.from_value),
         SwapLeg::To => (metadata.to_asset, metadata.to_value),
     };
-    let asset = extended.assets.iter().chain([&extended.asset]).find(|asset| asset.id == asset_id)?.clone();
-    let price = extended.prices.iter().find(|price| price.asset_id == asset_id && price.has_price()).cloned();
+    let asset = assets.iter().chain([asset]).find(|asset| asset.id == asset_id)?.clone();
+    Some((asset, value))
+}
+
+fn swap_leg(extended: &TransactionExtended, leg: SwapLeg, sign: GemAmountSign) -> Option<GemTransactionAmount> {
+    let (asset, value) = swap_leg_value(&extended.transaction, &extended.asset, &extended.assets, leg)?;
+    let price = extended.prices.iter().find(|price| price.asset_id == asset.id && price.has_price()).cloned();
     Some(GemTransactionAmount { asset, value, sign, price })
 }
 
@@ -454,8 +461,8 @@ fn asset_price(price: Option<&Price>, asset_id: &AssetId) -> Option<AssetPrice> 
         .filter(AssetPrice::has_price)
 }
 
-fn address_name(extended: &TransactionExtended, address: &str) -> Option<primitives::AddressName> {
-    [extended.from_address.as_ref(), extended.to_address.as_ref()].into_iter().flatten().find(|name| name.address == address).cloned()
+fn address_name(from_address: &Option<AddressName>, to_address: &Option<AddressName>, address: &str) -> Option<AddressName> {
+    [from_address.as_ref(), to_address.as_ref()].into_iter().flatten().find(|name| name.address == address).cloned()
 }
 
 fn perpetual_collateral_asset() -> Option<Asset> {
@@ -723,18 +730,11 @@ mod tests {
 
     #[test]
     fn test_the_value_tone_greens_an_incoming_amount_and_signs_a_pnl() {
-        use super::super::model::{GemAmountSign, GemTransactionAmount, GemTransactionRowValue};
+        use super::super::model::{GemAmountSign, GemTransactionRowValue};
         use super::{amount_value, value_tone};
         use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 
-        let amount = |sign| {
-            amount_value(GemTransactionAmount {
-                asset: Asset::from_chain(Chain::Ethereum),
-                value: Transaction::mock().value,
-                sign,
-                price: None,
-            })
-        };
+        let amount = |sign| amount_value(sign, &Transaction::mock().value, &Asset::from_chain(Chain::Ethereum));
         let usd = |number| GemTransactionRowValue::Number { number };
         let number_of = |value| match value {
             GemTransactionRowValue::Number { number } => number,
@@ -1089,12 +1089,12 @@ mod tests {
 
     #[test]
     fn test_row_resolves_the_swap_legs_from_the_metadata_and_the_known_assets() {
-        let extended = TransactionExtended {
+        let item = TransactionListItem {
             assets: vec![Asset::mock_eth(), Asset::mock_btc()],
-            ..TransactionExtended::mock_transaction(Transaction::mock_swap_with_provider(TransactionState::Confirmed, None))
+            ..TransactionListItem::mock_transaction(Transaction::mock_swap_with_provider(TransactionState::Confirmed, None))
         };
 
-        let swap_row = row(&extended);
+        let swap_row = row(&item);
 
         assert_eq!(swap_row.title, GemTransactionTitle::Swap);
         assert_eq!(
@@ -1119,7 +1119,7 @@ mod tests {
             "a swap row shows both legs"
         );
         assert_eq!(
-            row(&TransactionExtended::mock_transaction(Transaction::mock_swap_with_provider(TransactionState::Confirmed, None))).value,
+            row(&TransactionListItem::mock_transaction(Transaction::mock_swap_with_provider(TransactionState::Confirmed, None))).value,
             GemTransactionRowValue::None,
             "a leg whose asset is unknown is not shown as a number"
         );
@@ -1137,11 +1137,11 @@ mod tests {
 
     #[test]
     fn test_row_shows_the_counterparty_name_when_the_wallet_knows_the_address() {
-        let mut incoming = TransactionExtended::mock_transaction(Transaction::mock_with_state(TransactionType::Transfer, TransactionState::Confirmed, TransactionDirection::Incoming));
+        let mut incoming = TransactionListItem::mock_transaction(Transaction::mock_with_state(TransactionType::Transfer, TransactionState::Confirmed, TransactionDirection::Incoming));
         incoming.from_address = Some(primitives::AddressName::mock("from", "Alice", primitives::AddressType::Address, primitives::VerificationStatus::Verified));
         assert_eq!(row(&incoming).subtitle, GemTransactionRowSubtitle::FromAddress { participant: "Alice".to_string() });
 
-        let outgoing = TransactionExtended::mock_transaction(Transaction::mock_with_state(TransactionType::Transfer, TransactionState::Confirmed, TransactionDirection::Outgoing));
+        let outgoing = TransactionListItem::mock_transaction(Transaction::mock_with_state(TransactionType::Transfer, TransactionState::Confirmed, TransactionDirection::Outgoing));
         assert_eq!(row(&outgoing).subtitle, GemTransactionRowSubtitle::ToAddress { participant: "to".to_string() });
         assert_eq!(
             row(&outgoing).value,
@@ -1162,14 +1162,14 @@ mod tests {
         let mut nft = Transaction::mock_with_state(TransactionType::TransferNFT, TransactionState::Confirmed, TransactionDirection::Outgoing);
         let asset_id = primitives::NFTAssetId::new(Chain::Ethereum, "0xcontract", "7");
         nft.metadata = Some(serde_json::to_value(TransactionNFTTransferMetadata::new(asset_id.clone(), Some("Punk".to_string()))).unwrap());
-        let nft_row = row(&TransactionExtended::mock_transaction(nft));
+        let nft_row = row(&TransactionListItem::mock_transaction(nft));
         assert!(nft_row.nft_image_url.as_deref().is_some_and(|url| url.contains(&asset_id.to_string())));
         assert_eq!(nft_row.value, GemTransactionRowValue::None);
 
         let mut open = Transaction::mock_with_state(TransactionType::PerpetualOpenPosition, TransactionState::Confirmed, TransactionDirection::Outgoing);
         open.value = 1_500_000u32.into();
         assert_eq!(
-            row(&TransactionExtended::mock_transaction(open)).value,
+            row(&TransactionListItem::mock_transaction(open)).value,
             GemTransactionRowValue::Number { number: GemFormattedNumber::usd(1.5) },
             "the notional is the value in collateral units"
         );

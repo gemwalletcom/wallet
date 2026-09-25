@@ -40,19 +40,13 @@ public struct TransactionView: View {
         metadata: nil,
         createdAt: Date(),
     )
-    let pendingTransactionExtendedMock = TransactionExtended(
-        recordId: 1,
+    let pendingTransactionListItemMock = TransactionListItem(
         transaction: pendingTransactionMock,
         asset: Primitives.Chain.smartChain.asset,
-        feeAsset: Primitives.Chain.smartChain.asset,
-        price: nil,
-        feePrice: nil,
         assets: [],
-        prices: [],
         fromAddress: AddressName(chain: .smartChain, address: "0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB", name: "test1", type: .address, status: .verified, imageUrl: nil),
         toAddress: AddressName(chain: .smartChain, address: "0x8d7460E51bCf4eD26877cb77E56f3ce7E9f5EB8F", name: "test2", type: .address, status: .verified, imageUrl: nil),
-        confirmationEtaSeconds: nil,
     )
 
-    TransactionView(model: TransactionViewModel(transaction: pendingTransactionExtendedMock))
+    TransactionView(model: TransactionViewModel(transaction: pendingTransactionListItemMock))
 }

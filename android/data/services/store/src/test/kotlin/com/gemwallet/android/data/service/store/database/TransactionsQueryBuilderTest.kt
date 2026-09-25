@@ -15,11 +15,11 @@ class TransactionsQueryBuilderTest {
 
     private val walletId = WalletId("wallet-1")
     private val limit = 1000
-    private val baseArgCount = 1 // walletId is the only bound arg in EXTENDED_SOURCE
+    private val baseArgCount = 1 // walletId is the only bound arg in TRANSACTION_LIST_SOURCE
 
     @Test
     fun emptyFilters_baseQueryHasNoExtraConditions() {
-        val query = buildExtendedTransactionsSql(walletId, limit = limit, filters = emptyList())
+        val query = buildTransactionListSql(walletId, limit = limit, filters = emptyList())
         assertTrue(query.sql.trimStart().startsWith("SELECT"))
         assertTrue(query.sql.contains("FROM transactions as tx"))
         assertTrue(query.sql.trimEnd().endsWith("ORDER BY tx.createdAt DESC LIMIT ?"))
@@ -28,13 +28,13 @@ class TransactionsQueryBuilderTest {
 
     @Test
     fun emptyChainsOrTypes_areNoOps() {
-        val baseline = buildExtendedTransactionsSql(walletId, limit = limit, filters = emptyList()).sql
-        val chainsOnly = buildExtendedTransactionsSql(
+        val baseline = buildTransactionListSql(walletId, limit = limit, filters = emptyList()).sql
+        val chainsOnly = buildTransactionListSql(
             walletId,
             limit = limit,
             filters = listOf(TransactionsRequestFilter.Chains(emptyList())),
         ).sql
-        val typesOnly = buildExtendedTransactionsSql(
+        val typesOnly = buildTransactionListSql(
             walletId,
             limit = limit,
             filters = listOf(TransactionsRequestFilter.Types(emptyList())),
@@ -45,7 +45,7 @@ class TransactionsQueryBuilderTest {
 
     @Test
     fun chainsFilter_buildsInClauseOnJoinedAsset() {
-        val query = buildExtendedTransactionsSql(
+        val query = buildTransactionListSql(
             walletId,
             limit = limit,
             filters = listOf(TransactionsRequestFilter.Chains(listOf(Chain.Ethereum, Chain.Bitcoin))),
@@ -57,7 +57,7 @@ class TransactionsQueryBuilderTest {
 
     @Test
     fun typesFilter_buildsInClauseWithEnumNames() {
-        val query = buildExtendedTransactionsSql(
+        val query = buildTransactionListSql(
             walletId,
             limit = limit,
             filters = listOf(TransactionsRequestFilter.Types(listOf(TransactionType.Transfer, TransactionType.Swap))),
@@ -69,7 +69,7 @@ class TransactionsQueryBuilderTest {
 
     @Test
     fun assetRankGreaterThan_buildsInequalityOnJoinedAsset() {
-        val query = buildExtendedTransactionsSql(
+        val query = buildTransactionListSql(
             walletId,
             limit = limit,
             filters = listOf(TransactionsRequestFilter.AssetRankGreaterThan(15)),
@@ -81,7 +81,7 @@ class TransactionsQueryBuilderTest {
     @Test
     fun assetFilter_matchesMainAndTransactionAssets_bindsIdTwice() {
         val assetId = AssetId(chain = Chain.Ethereum, tokenId = "0xABC")
-        val query = buildExtendedTransactionsSql(
+        val query = buildTransactionListSql(
             walletId,
             limit = limit,
             filters = listOf(TransactionsRequestFilter.Asset(assetId)),
@@ -94,7 +94,7 @@ class TransactionsQueryBuilderTest {
 
     @Test
     fun statesFilter_buildsInClauseWithEnumNames() {
-        val query = buildExtendedTransactionsSql(
+        val query = buildTransactionListSql(
             walletId,
             limit = limit,
             filters = listOf(TransactionsRequestFilter.States(listOf(TransactionState.Pending, TransactionState.InTransit))),
@@ -107,8 +107,8 @@ class TransactionsQueryBuilderTest {
     @Test
     fun multipleFilters_addOneAndPerFilter() {
         val baselineAndCount = " AND ".toRegex()
-            .findAll(buildExtendedTransactionsSql(walletId, limit = limit, filters = emptyList()).sql).count()
-        val query = buildExtendedTransactionsSql(
+            .findAll(buildTransactionListSql(walletId, limit = limit, filters = emptyList()).sql).count()
+        val query = buildTransactionListSql(
             walletId,
             limit = limit,
             filters = listOf(
@@ -139,8 +139,14 @@ class TransactionsQueryBuilderTest {
     }
 
     @Test
+    fun theListAndTheCountReadNoPrices() {
+        assertFalse(buildTransactionListSql(walletId, limit = limit, filters = emptyList()).sql.contains("prices"))
+        assertFalse(buildTransactionsCountSql(walletId, filters = emptyList()).sql.contains("prices"))
+    }
+
+    @Test
     fun walletIdIsBoundOnce() {
-        val query = buildExtendedTransactionsSql(walletId, limit = limit, filters = emptyList())
+        val query = buildTransactionListSql(walletId, limit = limit, filters = emptyList())
         assertEquals(walletId.id, query.args[0])
     }
 }

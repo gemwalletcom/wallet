@@ -2217,6 +2217,22 @@ fun com.wallet.core.primitives.TransactionExtended.toGem(): uniffi.gemstone.Tran
     confirmationEtaSeconds = confirmationEtaSeconds,
 )
 
+fun uniffi.gemstone.TransactionListItem.toPrimitives(): com.wallet.core.primitives.TransactionListItem = com.wallet.core.primitives.TransactionListItem(
+    transaction = transaction.toPrimitives(),
+    asset = asset.toPrimitives(),
+    assets = assets.map { it.toPrimitives() },
+    fromAddress = fromAddress?.let { it.toPrimitives() },
+    toAddress = toAddress?.let { it.toPrimitives() },
+)
+
+fun com.wallet.core.primitives.TransactionListItem.toGem(): uniffi.gemstone.TransactionListItem = uniffi.gemstone.TransactionListItem(
+    transaction = transaction.toGem(),
+    asset = asset.toGem(),
+    assets = assets.map { it.toGem() },
+    fromAddress = fromAddress?.let { it.toGem() },
+    toAddress = toAddress?.let { it.toGem() },
+)
+
 fun uniffi.gemstone.TransactionUtxoInput.toPrimitives(): com.wallet.core.primitives.TransactionUtxoInput = com.wallet.core.primitives.TransactionUtxoInput(
     address = address,
     value = value.toString(),

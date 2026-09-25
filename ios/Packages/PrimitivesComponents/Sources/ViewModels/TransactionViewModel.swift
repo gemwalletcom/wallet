@@ -15,8 +15,8 @@ import SwiftUI
 public struct TransactionViewModel: Sendable, Identifiable, Equatable {
     private let row: GemTransactionRow
 
-    public init(transaction: TransactionExtended) {
-        self.init(row: transactionRows(transactions: [transaction.toGem()])[0])
+    public init(transaction: TransactionListItem) {
+        self.init(row: transactionRows(items: [transaction.toGem()])[0])
     }
 
     public init(row: GemTransactionRow) {
@@ -35,8 +35,8 @@ public struct TransactionViewModel: Sendable, Identifiable, Equatable {
         row.createdAt
     }
 
-    public static func sections(_ transactions: [TransactionExtended]) -> [ListSection<TransactionViewModel>] {
-        let models = transactionRows(transactions: transactions.map { $0.toGem() }).map(TransactionViewModel.init(row:))
+    public static func sections(_ transactions: [TransactionListItem]) -> [ListSection<TransactionViewModel>] {
+        let models = transactionRows(items: transactions.map { $0.toGem() }).map(TransactionViewModel.init(row:))
         return DateSectionBuilder(items: models, dateKeyPath: \.createdAt).build()
     }
 

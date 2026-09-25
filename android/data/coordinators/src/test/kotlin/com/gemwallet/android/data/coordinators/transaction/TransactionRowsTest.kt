@@ -3,8 +3,8 @@ package com.gemwallet.android.data.coordinators.transaction
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.testkit.mockTransaction
-import com.gemwallet.android.testkit.mockTransactionExtended
 import com.gemwallet.android.testkit.mockTransactionId
+import com.gemwallet.android.testkit.mockTransactionListItem
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.WalletId
@@ -21,8 +21,8 @@ class TransactionRowsTest {
     private val activity = TransactionsRequestFilter.activityDefaults()
     private val asset = listOf(TransactionsRequestFilter.Chains(listOf(Chain.Bitcoin)))
 
-    private val first = mockTransactionExtended(mockTransaction(id = mockTransactionId(hash = "first")))
-    private val second = mockTransactionExtended(mockTransaction(id = mockTransactionId(hash = "second")))
+    private val first = mockTransactionListItem(mockTransaction(id = mockTransactionId(hash = "first")))
+    private val second = mockTransactionListItem(mockTransaction(id = mockTransactionId(hash = "second")))
 
     @Test
     fun unchangedTransactionsKeepTheirRow() {

@@ -34,9 +34,8 @@ public struct TransactionStore: Sendable {
 
     public func getTransaction(walletId: WalletId, transactionId: TransactionId) throws -> TransactionExtended {
         try db.read { db in
-            guard let transaction = try TransactionsRequest.fetch(
-                db, type: .transaction(id: transactionId.identifier), filters: [], walletId: walletId,
-            ).first else {
+            let request = TransactionsRequest.query(walletId: walletId, type: .transaction(id: transactionId.identifier), filters: [])
+            guard let transaction = try TransactionsRequest.fetchExtended(db, request: request).first else {
                 throw RecordError.recordNotFound(databaseTableName: TransactionRecord.databaseTableName, key: [:])
             }
             return transaction

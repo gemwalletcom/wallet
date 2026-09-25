@@ -4,7 +4,7 @@ use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::precision::GemValueStyle;
 use crate::services::swap::model::GemSwapRate;
 use chrono::{DateTime, Utc};
-use primitives::{AddressName, Asset, AssetId, AssetPrice, Chain, NFTAssetId, PerpetualDirection, Resource, Transaction, TransactionDirection, TransactionExtended, TransactionId, TransactionState, TransactionType};
+use primitives::{AddressName, Asset, AssetId, AssetPrice, Chain, NFTAssetId, PerpetualDirection, Resource, Transaction, TransactionDirection, TransactionId, TransactionListItem, TransactionState, TransactionType};
 
 use super::rules;
 use crate::services::empty_state::GemEmptyStateKind;
@@ -258,8 +258,8 @@ pub fn transactions_empty_state(chains: Vec<Chain>, filters: Vec<GemTransactionF
 }
 
 #[uniffi::export]
-pub fn transaction_rows(transactions: Vec<TransactionExtended>) -> Vec<GemTransactionRow> {
-    transactions.iter().map(rules::row).collect()
+pub fn transaction_rows(items: Vec<TransactionListItem>) -> Vec<GemTransactionRow> {
+    items.iter().map(rules::row).collect()
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
