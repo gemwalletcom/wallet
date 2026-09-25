@@ -29,9 +29,9 @@ The repo follows a GitFlow-like release model:
 
 - Run the relevant tests, linters, and formatters before committing
 - Stage only task-owned paths or hunks and inspect the staged diff; preserve pre-existing staged changes. Do not use `git add -A` in a shared checkout
-- Write concise commit messages that explain the reason for the change, not just the file edits
+- The subject is one short imperative line of at most 72 characters that names the change, not its contents: an optional area prefix (`iOS:`, `Android:`, `Core:`, `Docs:`) and the TODO id in parentheses at the end, as in `Android: swap quotes without a case (MOD320)` or `Generate swap and chart mocks (GEN298)`. What changed in detail, the reason, the behaviour kept and the measured effect go in the body, after a blank line; never join clauses with `;` in the subject
 - Do not hard-wrap commit messages or PR bodies; see [Task Workflow](task-workflow.md)
-- Do not add agent attribution trailers, `Co-Authored-By` lines, or session links to commits or PR descriptions. Match the repository style: a short imperative subject, optionally followed by a numbered list of the changes
+- Do not add agent attribution trailers, `Co-Authored-By` lines, or session links to commits or PR descriptions. The body is optional: a sentence or a numbered list of the changes
 - For a cross-stack feature, keep dependency-ordered commits that each build on their own (Core, then the Core provider or swap layer, then apps). Do not squash or re-split them without asking; that shape is what makes review and bisect work
 
 ## Release Builds
