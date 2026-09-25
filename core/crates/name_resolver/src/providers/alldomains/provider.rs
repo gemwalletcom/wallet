@@ -39,7 +39,7 @@ impl NameResolver for AllDomainsProvider {
 
     async fn resolve(&self, query: &NameQuery, _chain: Chain) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
         if query.suffix.is_empty() || query.suffix.contains('.') {
-            return Err(format!("invalid domain: {}", query.domain).into());
+            return Ok(None);
         }
         let tld = format!(".{}", query.suffix);
         let root = Pubkey::from_str(SOLANA_ALLDOMAINS_ROOT_PUBLIC_KEY)?;
@@ -50,7 +50,7 @@ impl NameResolver for AllDomainsProvider {
             return Ok(None);
         };
         if record.owner == nft_record_key(&name_account, &tld_house_key(&tld)?)? {
-            return Err("NFT owner resolution is not supported".into());
+            return Ok(None);
         }
         Ok(Some(record.owner.to_string()))
     }

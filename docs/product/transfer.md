@@ -39,6 +39,7 @@ flowchart LR
 ## Rules
 
 - Nothing is signed or sent without the confirmation screen showing the amount, recipient, network and fee.
+- A name resolves only to a real address: a name that is not registered or has no address for the network shows as not found, never as an empty or zero address, and a name service that cannot be reached shows as an error, not as a missing name.
 - A payment code's amount fills the amount field in the device's number format and keeps its exact value, because a "0.001" read with a comma decimal separator would become 1.
 - A simulation that cannot answer never blocks sending; a simulation that finds a risk shows it before the user confirms.
 - The balance changes a simulation predicts show every digit of the amount, never a rounded value, so what the user approves is exactly what moves.

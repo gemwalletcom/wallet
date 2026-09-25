@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Server:** BD23, BD30, BD51, BD52.
+1. **Server:** BD30, BD51, BD52.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181. Waiting on a date or a release: X168, X163.
 
@@ -115,7 +115,6 @@ Differences between the apps, or between an app and the server, each with its de
 
 ### Same rule, different answers
 
-- **BD23** **S** **ENS/UD names with a first part over 20 characters, and provider outages, both look like "name not found".** `core/crates/name_resolver/src/client.rs:26-29` with `max_name_length: 20` (`core/Settings.yaml:156`); `core/apps/api/src/devices/mod.rs:197-200` discards errors (`.ok().flatten()`); Core accepts any label (`core/gemstone/src/services/name/rules.rs:28-31,57-62`). **Decided:** the API answers a provider outage with the standard `ApiError`, so Core reads it as an error rather than a missing name, and a missing name keeps its 200 answer with no record; `max_name_length` stays 20.
 - **BD29** **S** **Redemption options with unlimited stock are never listed.** `summary.rs:18` (`remaining.unwrap_or_default() > 0` drops `None`) vs storage `rewards_redemptions_repository.rs:48,96` and Core `rules.rs:146` (`None` = unlimited). Needs a decision: `test_available_redemption_options` pins a `None` stock as hidden, so confirm whether options stored without a stock are meant to be offered before changing the server.
 - **BD30** **S** **"Use code" is offered when it can't succeed.** Core always offers `UseReferralCode` (`core/gemstone/src/services/rewards/rules.rs`, `actions`), but the server only accepts a code on a device and wallet set up within the eligibility window (`core/crates/rewards/src/referral.rs`, `validate_use`; attribution referrers skip it in `rewards_client.rs`). Hiding it needs the device and wallet age facts in the rewards summary.
 

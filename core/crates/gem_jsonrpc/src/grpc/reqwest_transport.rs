@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use std::error::Error;
 
-use super::{GrpcTransport, grpc_headers, validate_http_status};
+use super::{GrpcStatusError, GrpcTransport, grpc_headers, validate_http_status};
 
 #[derive(Clone, Debug)]
 pub struct ReqwestGrpcTransport {
@@ -46,7 +46,7 @@ fn validate_grpc_status(response: &reqwest::Response) -> Result<(), Box<dyn Erro
         && code != "0"
     {
         let message = decode_grpc_status_message(header("grpc-message").unwrap_or_default());
-        return Err(format!("gRPC error {code}: {message}").into());
+        return Err(Box::new(GrpcStatusError { code: code.to_string(), message }));
     }
     Ok(())
 }

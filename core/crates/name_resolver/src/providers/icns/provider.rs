@@ -35,10 +35,10 @@ impl NameResolver for IcnsProvider {
     }
 
     async fn resolve(&self, query: &NameQuery, chain: Chain) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
-        let suffix_chain = DOMAINS.iter().find_map(|(domain, chain)| (*domain == query.suffix).then_some(*chain)).ok_or(format!("unsupported domain: {}", query.suffix))?;
-        if suffix_chain != chain {
-            return Err(format!("domain {} does not match chain {chain}", query.suffix).into());
+        if !DOMAINS.contains(&(query.suffix.as_str(), chain)) {
+            return Ok(None);
         }
-        Ok(Some(self.client.get_record(&query.domain).await?.bech32_address))
+        let address = self.client.get_record(&query.domain).await?.bech32_address;
+        Ok((!address.is_empty()).then_some(address))
     }
 }

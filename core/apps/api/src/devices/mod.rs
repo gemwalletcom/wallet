@@ -203,7 +203,7 @@ pub async fn report_device_nft_v2(device: AuthenticatedDevice, request: DeviceJs
 
 #[get("/devices/name/resolve/<name>?<chain>")]
 pub async fn get_device_name_resolve_v2(_device: AuthenticatedDevice, name: &str, chain: ChainParam, client: &State<NameClient>) -> Result<ApiResponse<Option<NameRecord>>, ApiError> {
-    Ok(client.resolve(name, chain.0).await.ok().flatten().into())
+    Ok(client.resolve(name, chain.0).await?.into())
 }
 
 #[post("/devices/scan/transaction", data = "<request>")]
