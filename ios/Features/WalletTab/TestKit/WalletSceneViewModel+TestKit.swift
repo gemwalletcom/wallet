@@ -14,9 +14,10 @@ public extension WalletSceneViewModel {
     static func mock(
         wallet: Wallet = .mock(),
         db: DB? = nil,
+        service: GemWalletHomeServiceMock = GemWalletHomeServiceMock(),
     ) -> WalletSceneViewModel {
         let model = WalletSceneViewModel(
-            service: GemWalletHomeServiceMock(),
+            service: service,
             observablePreferences: .mock(),
             collectionsModel: .mock(wallet: wallet),
             wallet: wallet,

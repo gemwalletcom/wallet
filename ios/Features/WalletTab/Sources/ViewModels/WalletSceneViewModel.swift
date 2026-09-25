@@ -139,7 +139,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
 
 public extension WalletSceneViewModel {
     internal func load() async {
-        await updateWallet()
+        await updateWallet(wallet: wallet)
     }
 
     internal func loadOnce() async {
@@ -230,29 +230,18 @@ extension WalletSceneViewModel {
     }
 
     private func loadOnce(wallet: Wallet) async {
-        let shouldShowLoadingAssets = shouldShowInitialLoadingAssets
-
-        if shouldShowLoadingAssets {
-            isLoadingAssets = true
-        }
-
-        await updateWallet()
-
-        if shouldShowLoadingAssets, self.wallet.id == wallet.id {
-            isLoadingAssets = false
-        }
+        isLoadingAssets = service.showsInitialLoading()
+        await updateWallet(wallet: wallet)
     }
 
-    private func updateWallet() async {
+    private func updateWallet(wallet: Wallet) async {
         do {
             try await service.refresh()
         } catch {
             debugLog("WalletSceneViewModel refresh error: \(error)")
         }
-    }
-
-    private var shouldShowInitialLoadingAssets: Bool {
-        service.showsInitialLoading()
+        guard self.wallet.id == wallet.id else { return }
+        isLoadingAssets = service.showsInitialLoading()
     }
 
     func setAssetPinned(_ assetId: AssetId, pinned: Bool) async throws {

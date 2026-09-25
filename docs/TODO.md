@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Settled differences:** BD56, AUD50.
+1. **Settled differences:** AUD50.
 2. **One view state:** VM168, VM167, VM169, VM170, VM171, VM144, VM125, VM134, VM89.
 3. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
 4. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
@@ -200,10 +200,6 @@ Differences between the apps, or between an app and the server, each with its de
 - **BD50** **S** **Public `/chain/fee-estimates` can serve very old estimates.** `core/crates/services/src/chain/fee_estimates_client.rs:73-76` has no freshness check (TTL 5 years, `core/crates/cacher/src/keys.rs:155`); the per-chain route refreshes (`:55-70`). Used by the website, not the apps. **Needs a decision (2026-09-24):** either the public route drops entries past the one-hour fresh key (the website loses chains nobody requested lately) or it refreshes them (a public route then triggers node calls).
 - **BD51** **S** **The country from an IP check is cached 30 days for rewards but 1 day for fiat.** `core/crates/cacher/src/keys.rs:122` vs `:137`. Likely. **Decided:** one day for both.
 - **BD52** **S** **The fiat quote cache lasts exactly the app's refresh interval and is keyed by IP, so Buy late or after a network change gives "Forbidden".** `core/crates/cacher/src/keys.rs:136` (5 min), key `fiat_cacher_client.rs:52`, miss → 403 (`:40`); app refresh `core/gemstone/src/services/fiat/mod.rs:24` (5 min, active screen only). **Decided:** key the quote cache by device instead of IP, and keep it for 15 minutes.
-
-### Docs versus code
-
-- **BD56** **S** **The wallet-home "Loading" row disappears after a failed discovery.** `docs/PRODUCT.md:144,151,159,194` vs iOS `WalletSceneViewModel.swift:243-257`, Android `AssetsViewModel.kt:104-112` (cleared even when `refresh()` threw). Both apps clear it today, and the next launch shows it again because the step is not marked complete. **Decided:** keep "Loading" until a later refresh completes; iOS's current flow is the reference for the implementation.
 
 ## Blocked upstream
 

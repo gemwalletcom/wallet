@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.assets.viewmodels
 
+import android.util.Log
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.session.cases.GetSession
@@ -14,6 +15,8 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -32,6 +35,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemWalletHomeServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -60,11 +64,14 @@ class AssetsViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
+        mockkStatic(Log::class)
+        every { Log.e(any(), any(), any()) } returns 0
     }
 
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+        unmockkStatic(Log::class)
     }
 
     @Test
@@ -81,7 +88,7 @@ class AssetsViewModelTest {
     fun `the loading row follows core's first load answer around the refresh`() = runTest(testDispatcher) {
         val refreshStarted = CompletableDeferred<Unit>()
         val refreshGate = CompletableDeferred<Unit>()
-        every { service.showsInitialLoading() } returns true
+        every { service.showsInitialLoading() } returnsMany listOf(true, false)
         coEvery { service.refresh() } coAnswers {
             refreshStarted.complete(Unit)
             refreshGate.await()
@@ -115,6 +122,25 @@ class AssetsViewModelTest {
         refreshStarted.await()
         assertFalse(viewModel.isLoadingAssets.value)
         refreshGate.complete(Unit)
+    }
+
+    @Test
+    fun `a failed discovery keeps the loading row until a later refresh completes it`() = runTest(testDispatcher) {
+        var discovered = false
+        every { service.showsInitialLoading() } answers { !discovered }
+        coEvery { service.refresh() } throws GemServiceException.Gateway("offline")
+        session.value = mockSession(wallet = mockWallet())
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.isLoadingAssets.value)
+
+        coEvery { service.refresh() } answers { discovered = true }
+        viewModel.onRefresh()
+        advanceUntilIdle()
+
+        assertFalse(viewModel.isLoadingAssets.value)
     }
 
     private fun createViewModel() = AssetsViewModel(

@@ -219,6 +219,7 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
     public private(set) var pinned: [(assetId: Gemstone.AssetId, pinned: Bool)] = []
     public private(set) var enabled: [(assetIds: [Gemstone.AssetId], enabled: Bool)] = []
     public var showsLoading = false
+    public var refreshError: (any Error)?
 
     public init() {}
 
@@ -255,7 +256,11 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
         showsLoading
     }
 
-    public func refresh() async throws {}
+    public func refresh() async throws {
+        if let refreshError {
+            throw refreshError
+        }
+    }
 
     public func setAssetPinned(assetId: Gemstone.AssetId, pinned isPinned: Bool) async throws {
         pinned.append((assetId, isPinned))

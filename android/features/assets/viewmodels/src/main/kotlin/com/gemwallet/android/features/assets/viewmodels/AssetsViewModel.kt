@@ -102,18 +102,14 @@ class AssetsViewModel @Inject constructor(
     }
 
     private suspend fun loadOnce() {
-        val showsLoading = service.showsInitialLoading()
-        if (showsLoading) isLoadingAssets.value = true
-        try {
-            refresh()
-        } finally {
-            if (showsLoading) isLoadingAssets.value = false
-        }
+        isLoadingAssets.value = service.showsInitialLoading()
+        refresh()
     }
 
     private suspend fun refresh() {
         runCatchingCancellable { service.refresh() }
             .onFailure { Log.e(TAG, "assets refresh failed", it) }
+        isLoadingAssets.value = service.showsInitialLoading()
     }
 
     fun hideAsset(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {
