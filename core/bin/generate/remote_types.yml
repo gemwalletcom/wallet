@@ -72,7 +72,6 @@ remote:
   - PerpetualAccountMode
   - PerpetualDirection
   - PerpetualMarginType
-  - PerpetualAccountSummary
   - PerpetualPortfolioTimeframeData
   - UTXO
   - MarketsAssets

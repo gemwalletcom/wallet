@@ -2744,28 +2744,6 @@ public extension Primitives.Perpetual {
     }
 }
 
-public extension Gemstone.PerpetualAccountSummary {
-    func toPrimitives() -> Primitives.PerpetualAccountSummary {
-        Primitives.PerpetualAccountSummary(
-            accountValue: accountValue,
-            accountLeverage: accountLeverage,
-            marginUsage: marginUsage,
-            unrealizedPnl: unrealizedPnl,
-        )
-    }
-}
-
-public extension Primitives.PerpetualAccountSummary {
-    func toGem() -> Gemstone.PerpetualAccountSummary {
-        Gemstone.PerpetualAccountSummary(
-            accountValue: accountValue,
-            accountLeverage: accountLeverage,
-            marginUsage: marginUsage,
-            unrealizedPnl: unrealizedPnl,
-        )
-    }
-}
-
 public extension Gemstone.PerpetualBalance {
     func toPrimitives() -> Primitives.PerpetualBalance {
         Primitives.PerpetualBalance(

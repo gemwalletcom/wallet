@@ -6,7 +6,6 @@ notification_unstake_title = 🔒 Unstake {$value}
 notification_claim_rewards_title = 🎁 Claim Rewards {$value}
 notification_withdraw_title = 🔓 Withdraw {$value}
 notification_redelegate_title = 🔄 Redelegate {$value}
-notification_redelegate_validator_title = 🔄 Redelegate {$value} to {$validator}
 notification_swap_title = 🔄 Swap from {$from_symbol} to {$to_symbol}
 notification_swap_description = {$from_value} > {$to_value}
 notification_test = Test
@@ -21,9 +20,6 @@ notification_price_alert_all_time_high_description = {$symbol} has reached a new
 notification_nft_sent_title = 🖼️ Sent NFT: {$value}
 notification_nft_received_title = 🖼️ Received NFT: {$value}
 notification_onboarding_buy_asset_title = 🚀 Buy {$name}
-notification_onboarding_create_import_wallet_title = 💎 Create or Import Wallet
-notification_onboarding_create_import_wallet_description = Create a new wallet or import yours in just few taps.
-notification_onboarding_welcome_description = Start your crypto journey. Tap to set up your crypto wallet.
 notification_onboarding_buy_asset_description = Securely buy {$name} today—simple, reliable, and instant.
 notification_fiat_purchase_title = 🚀 Bought {$value}
 notification_fiat_sale_title = 💰 Sold {$value}
@@ -51,7 +47,6 @@ rewards_error_referral_eligibility_expired = Referral codes can only be used on 
     *[other] {$value} days
     }.
 notification_reward_pending_title = 💎 New Referral
-notification_reward_pending_description = Someone used your referral code. Pending verification.
 rewards_error_username_too_short = Username is too short. Minimum length: {$value}.
 rewards_error_username_too_long = Username is too long. Maximum length: {$value}.
 rewards_error_username_invalid_characters = Username can only use the letters A–Z and the numbers 0–9.

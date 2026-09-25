@@ -6,7 +6,6 @@ notification_unstake_title = 🔒 Unstake {$value}
 notification_claim_rewards_title = 🎁 Belohnungen einfordern {$value}
 notification_withdraw_title = 🔓 Stake {$value} abheben
 notification_redelegate_title = 🔄 Redelegate {$value}
-notification_redelegate_validator_title = 🔄 Redelegate {$value} zu {$validator}
 notification_swap_title = 🔄 Swap von {$from_symbol} zu {$to_symbol}
 notification_swap_description = {$from_value} > {$to_value}
 notification_test = Test
@@ -21,9 +20,6 @@ notification_price_alert_all_time_high_description = {$symbol} hat mit {$price} 
 notification_nft_sent_title = 🖼️ Gesendetes NFT: {$value}
 notification_nft_received_title = 🖼️ NFT erhalten: {$value}
 notification_onboarding_buy_asset_title = 🚀 Kaufen Sie {$name}
-notification_onboarding_create_import_wallet_title = 💎 Wallet erstellen oder importieren
-notification_onboarding_create_import_wallet_description = Erstellen Sie mit nur wenigen Fingertipps eine neue Brieftasche oder importieren Sie Ihre eigene.
-notification_onboarding_welcome_description = Beginnen Sie Ihre Krypto-Reise. Tippen Sie hier, um Ihr Krypto-Wallet einzurichten.
 notification_onboarding_buy_asset_description = Kaufen Sie {$name} noch heute sicher – einfach, zuverlässig und sofort.
 support_new_message_title = Neue Nachricht vom Support
 notification_freeze_title = {$value} einfrieren
@@ -49,7 +45,6 @@ rewards_error_referral_eligibility_expired = Empfehlungscodes können nur auf ei
     *[other] in den letzten {$value} Tagen
     } eingerichtet wurden.
 notification_reward_pending_title = 💎 Neue Empfehlung
-notification_reward_pending_description = Jemand hat Ihren Empfehlungscode verwendet. Überprüfung ausstehend.
 rewards_error_username_too_short = Der Benutzername ist zu kurz. Mindestlänge: {$value}.
 rewards_error_username_too_long = Der Benutzername ist zu lang. Maximale Länge: {$value}.
 rewards_error_username_invalid_characters = Der Benutzername darf nur die Buchstaben A–Z und die Ziffern 0–9 enthalten.

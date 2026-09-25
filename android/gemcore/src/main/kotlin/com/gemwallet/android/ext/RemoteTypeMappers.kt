@@ -1854,20 +1854,6 @@ fun com.wallet.core.primitives.Perpetual.toGem(): uniffi.gemstone.Perpetual = un
     isIsolatedOnly = isIsolatedOnly,
 )
 
-fun uniffi.gemstone.PerpetualAccountSummary.toPrimitives(): com.wallet.core.primitives.PerpetualAccountSummary = com.wallet.core.primitives.PerpetualAccountSummary(
-    accountValue = accountValue,
-    accountLeverage = accountLeverage,
-    marginUsage = marginUsage,
-    unrealizedPnl = unrealizedPnl,
-)
-
-fun com.wallet.core.primitives.PerpetualAccountSummary.toGem(): uniffi.gemstone.PerpetualAccountSummary = uniffi.gemstone.PerpetualAccountSummary(
-    accountValue = accountValue,
-    accountLeverage = accountLeverage,
-    marginUsage = marginUsage,
-    unrealizedPnl = unrealizedPnl,
-)
-
 fun uniffi.gemstone.PerpetualBalance.toPrimitives(): com.wallet.core.primitives.PerpetualBalance = com.wallet.core.primitives.PerpetualBalance(
     available = available,
     reserved = reserved,

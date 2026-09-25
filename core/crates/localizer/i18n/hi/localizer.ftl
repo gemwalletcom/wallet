@@ -6,7 +6,6 @@ notification_unstake_title = 🔒 Unstake {$value}
 notification_claim_rewards_title = 🎁 Claim Rewards {$value}
 notification_withdraw_title = 🔓 Withdraw {$value}
 notification_redelegate_title = 🔄 Redelegate {$value}
-notification_redelegate_validator_title = 🔄 Redelegate {$value} to {$validator}
 notification_swap_title = 🔄 {$from_symbol} से {$to_symbol} पर स्वैप करें
 notification_swap_description = {$from_value} > {$to_value}
 notification_test = Test
@@ -21,9 +20,6 @@ notification_price_alert_all_time_high_description = {$symbol} एक नए स
 notification_nft_sent_title = 🖼️ भेजा गया NFT: {$value}
 notification_nft_received_title = 🖼️ प्राप्त NFT: {$value}
 notification_onboarding_buy_asset_title = 🚀 {$name} खरीदें
-notification_onboarding_create_import_wallet_title = 💎 वॉलेट बनाएं या आयात करें
-notification_onboarding_create_import_wallet_description = बस कुछ ही टैप में नया वॉलेट बनाएं या अपना वॉलेट आयात करें।
-notification_onboarding_welcome_description = अपनी क्रिप्टो यात्रा शुरू करें। अपना क्रिप्टो वॉलेट सेट अप करने के लिए टैप करें।
 notification_onboarding_buy_asset_description = आज ही सुरक्षित रूप से {$name} खरीदें—सरल, विश्वसनीय और तत्काल।
 support_new_message_title = समर्थन से नया संदेश
 notification_freeze_title = {$value} को स्थिर करें
@@ -49,7 +45,6 @@ rewards_error_referral_eligibility_expired = रेफरल कोड का �
     *[other] पिछले {$value} दिनों
     } में सेट किया गया हो।
 notification_reward_pending_title = 💎 नया रेफरल
-notification_reward_pending_description = किसी ने आपका रेफरल कोड इस्तेमाल किया है। सत्यापन की प्रक्रिया जारी है।
 rewards_error_username_too_short = उपयोगकर्ता नाम बहुत छोटा है। न्यूनतम लंबाई: {$value}।
 rewards_error_username_too_long = उपयोगकर्ता नाम बहुत लंबा है। अधिकतम लंबाई: {$value}।
 rewards_error_username_invalid_characters = उपयोगकर्ता नाम में केवल A–Z अक्षर और 0–9 अंक हो सकते हैं।
