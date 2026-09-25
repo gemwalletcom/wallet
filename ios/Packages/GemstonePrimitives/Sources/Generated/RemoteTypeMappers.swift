@@ -1090,24 +1090,6 @@ public extension Primitives.Resource {
     }
 }
 
-public extension Gemstone.SolanaTokenProgramId {
-    func toPrimitives() -> Primitives.SolanaTokenProgramId {
-        switch self {
-        case .token: .token
-        case .token2022: .token2022
-        }
-    }
-}
-
-public extension Primitives.SolanaTokenProgramId {
-    func toGem() -> Gemstone.SolanaTokenProgramId {
-        switch self {
-        case .token: .token
-        case .token2022: .token2022
-        }
-    }
-}
-
 public extension Gemstone.StakeProviderType {
     func toPrimitives() -> Primitives.StakeProviderType {
         switch self {
@@ -2383,68 +2365,6 @@ public extension Primitives.Latency {
     }
 }
 
-public extension Gemstone.MarketDominance {
-    func toPrimitives() -> Primitives.MarketDominance {
-        Primitives.MarketDominance(
-            assetId: assetId,
-            dominance: dominance,
-        )
-    }
-}
-
-public extension Primitives.MarketDominance {
-    func toGem() -> Gemstone.MarketDominance {
-        Gemstone.MarketDominance(
-            assetId: assetId,
-            dominance: dominance,
-        )
-    }
-}
-
-public extension Gemstone.Markets {
-    func toPrimitives() -> Primitives.Markets {
-        Primitives.Markets(
-            marketCap: marketCap,
-            marketCapChangePercentage24h: marketCapChangePercentage24h,
-            assets: assets.toPrimitives(),
-            dominance: dominance.map { $0.toPrimitives() },
-            totalVolume24h: totalVolume24h,
-        )
-    }
-}
-
-public extension Primitives.Markets {
-    func toGem() -> Gemstone.Markets {
-        Gemstone.Markets(
-            marketCap: marketCap,
-            marketCapChangePercentage24h: marketCapChangePercentage24h,
-            assets: assets.toGem(),
-            dominance: dominance.map { $0.toGem() },
-            totalVolume24h: totalVolume24h,
-        )
-    }
-}
-
-public extension Gemstone.MarketsAssets {
-    func toPrimitives() -> Primitives.MarketsAssets {
-        Primitives.MarketsAssets(
-            trending: trending.map { Primitives.AssetId(core: $0) },
-            gainers: gainers.map { Primitives.AssetId(core: $0) },
-            losers: losers.map { Primitives.AssetId(core: $0) },
-        )
-    }
-}
-
-public extension Primitives.MarketsAssets {
-    func toGem() -> Gemstone.MarketsAssets {
-        Gemstone.MarketsAssets(
-            trending: trending.map { $0.identifier },
-            gainers: gainers.map { $0.identifier },
-            losers: losers.map { $0.identifier },
-        )
-    }
-}
-
 public extension Gemstone.NftAsset {
     func toPrimitives() -> Primitives.NFTAsset {
         Primitives.NFTAsset(
@@ -2786,26 +2706,6 @@ public extension Primitives.PerpetualMetadata {
     }
 }
 
-public extension Gemstone.PerpetualPortfolioTimeframeData {
-    func toPrimitives() -> Primitives.PerpetualPortfolioTimeframeData {
-        Primitives.PerpetualPortfolioTimeframeData(
-            accountValueHistory: accountValueHistory.map { $0.toPrimitives() },
-            pnlHistory: pnlHistory.map { $0.toPrimitives() },
-            volume: volume,
-        )
-    }
-}
-
-public extension Primitives.PerpetualPortfolioTimeframeData {
-    func toGem() -> Gemstone.PerpetualPortfolioTimeframeData {
-        Gemstone.PerpetualPortfolioTimeframeData(
-            accountValueHistory: accountValueHistory.map { $0.toGem() },
-            pnlHistory: pnlHistory.map { $0.toGem() },
-            volume: volume,
-        )
-    }
-}
-
 public extension Gemstone.PerpetualPosition {
     func toPrimitives() -> Primitives.PerpetualPosition {
         Primitives.PerpetualPosition(
@@ -3120,26 +3020,6 @@ public extension Primitives.SupportTyping {
         Gemstone.SupportTyping(
             status: status.toGem(),
             agent: agent.toGem(),
-        )
-    }
-}
-
-public extension Gemstone.TotalFiatValue {
-    func toPrimitives() -> Primitives.TotalFiatValue {
-        Primitives.TotalFiatValue(
-            value: value,
-            pnlAmount: pnlAmount,
-            pnlPercentage: pnlPercentage,
-        )
-    }
-}
-
-public extension Primitives.TotalFiatValue {
-    func toGem() -> Gemstone.TotalFiatValue {
-        Gemstone.TotalFiatValue(
-            value: value,
-            pnlAmount: pnlAmount,
-            pnlPercentage: pnlPercentage,
         )
     }
 }

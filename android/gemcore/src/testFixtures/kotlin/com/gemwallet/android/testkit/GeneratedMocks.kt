@@ -67,15 +67,12 @@ import com.wallet.core.primitives.NFTType
 import com.wallet.core.primitives.NameProvider
 import com.wallet.core.primitives.NameRecord
 import com.wallet.core.primitives.Perpetual
-import com.wallet.core.primitives.PerpetualAccountSummary
 import com.wallet.core.primitives.PerpetualBasic
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualMetadata
-import com.wallet.core.primitives.PerpetualPortfolio
-import com.wallet.core.primitives.PerpetualPortfolioTimeframeData
 import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.PerpetualProvider
@@ -95,7 +92,6 @@ import com.wallet.core.primitives.SupportMessage
 import com.wallet.core.primitives.SupportMessageImage
 import com.wallet.core.primitives.SupportMessageSender
 import com.wallet.core.primitives.SupportMessageStatus
-import com.wallet.core.primitives.TotalFiatValue
 import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionExtended
@@ -694,18 +690,6 @@ fun mockPerpetual(
     isIsolatedOnly = isIsolatedOnly,
 )
 
-fun mockPerpetualAccountSummary(
-    accountValue: Double = 0.0,
-    accountLeverage: Double = 0.0,
-    marginUsage: Double = 0.0,
-    unrealizedPnl: Double = 0.0,
-) = PerpetualAccountSummary(
-    accountValue = accountValue,
-    accountLeverage = accountLeverage,
-    marginUsage = marginUsage,
-    unrealizedPnl = unrealizedPnl,
-)
-
 fun mockPerpetualData(
     perpetual: Perpetual = mockPerpetual(),
     asset: Asset = mockAsset(),
@@ -720,30 +704,6 @@ fun mockPerpetualMetadata(
     isPinned: Boolean = false,
 ) = PerpetualMetadata(
     isPinned = isPinned,
-)
-
-fun mockPerpetualPortfolio(
-    day: PerpetualPortfolioTimeframeData? = null,
-    week: PerpetualPortfolioTimeframeData? = null,
-    month: PerpetualPortfolioTimeframeData? = null,
-    allTime: PerpetualPortfolioTimeframeData? = null,
-    accountSummary: PerpetualAccountSummary? = null,
-) = PerpetualPortfolio(
-    day = day,
-    week = week,
-    month = month,
-    allTime = allTime,
-    accountSummary = accountSummary,
-)
-
-fun mockPerpetualPortfolioTimeframeData(
-    accountValueHistory: List<ChartDateValue> = emptyList(),
-    pnlHistory: List<ChartDateValue> = emptyList(),
-    volume: Double = 0.0,
-) = PerpetualPortfolioTimeframeData(
-    accountValueHistory = accountValueHistory,
-    pnlHistory = pnlHistory,
-    volume = volume,
 )
 
 fun mockPerpetualPosition(
@@ -874,16 +834,6 @@ fun mockSupportMessageImage(
     fileSize = fileSize,
     width = width,
     height = height,
-)
-
-fun mockTotalFiatValue(
-    value: Double = 0.0,
-    pnlAmount: Double = 0.0,
-    pnlPercentage: Double = 0.0,
-) = TotalFiatValue(
-    value = value,
-    pnlAmount = pnlAmount,
-    pnlPercentage = pnlPercentage,
 )
 
 fun mockTransaction(
@@ -1720,6 +1670,16 @@ fun mockPerpetualModifyConfirmData(
     modifyTypes = modifyTypes,
     takeProfitOrderId = takeProfitOrderId,
     stopLossOrderId = stopLossOrderId,
+)
+
+fun mockPerpetualPortfolioTimeframeData(
+    accountValueHistory: List<uniffi.gemstone.ChartDateValue> = emptyList(),
+    pnlHistory: List<uniffi.gemstone.ChartDateValue> = emptyList(),
+    volume: Double = 0.0,
+) = uniffi.gemstone.PerpetualPortfolioTimeframeData(
+    accountValueHistory = accountValueHistory,
+    pnlHistory = pnlHistory,
+    volume = volume,
 )
 
 fun mockPerpetualReduceData(

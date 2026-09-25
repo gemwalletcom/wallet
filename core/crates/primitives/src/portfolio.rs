@@ -31,7 +31,6 @@ pub struct PortfolioChartData {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct PerpetualAccountSummary {
     pub account_value: f64,
@@ -41,7 +40,6 @@ pub struct PerpetualAccountSummary {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct PerpetualPortfolioTimeframeData {
     pub account_value_history: Vec<ChartDateValue>,
@@ -50,7 +48,6 @@ pub struct PerpetualPortfolioTimeframeData {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct PerpetualPortfolio {
     pub day: Option<PerpetualPortfolioTimeframeData>,

@@ -752,16 +752,6 @@ fun com.wallet.core.primitives.Resource.toGem(): uniffi.gemstone.Resource = when
     com.wallet.core.primitives.Resource.Energy -> uniffi.gemstone.Resource.ENERGY
 }
 
-fun uniffi.gemstone.SolanaTokenProgramId.toPrimitives(): com.wallet.core.primitives.SolanaTokenProgramId = when (this) {
-    uniffi.gemstone.SolanaTokenProgramId.TOKEN -> com.wallet.core.primitives.SolanaTokenProgramId.Token
-    uniffi.gemstone.SolanaTokenProgramId.TOKEN2022 -> com.wallet.core.primitives.SolanaTokenProgramId.Token2022
-}
-
-fun com.wallet.core.primitives.SolanaTokenProgramId.toGem(): uniffi.gemstone.SolanaTokenProgramId = when (this) {
-    com.wallet.core.primitives.SolanaTokenProgramId.Token -> uniffi.gemstone.SolanaTokenProgramId.TOKEN
-    com.wallet.core.primitives.SolanaTokenProgramId.Token2022 -> uniffi.gemstone.SolanaTokenProgramId.TOKEN2022
-}
-
 fun uniffi.gemstone.StakeProviderType.toPrimitives(): com.wallet.core.primitives.StakeProviderType = when (this) {
     uniffi.gemstone.StakeProviderType.STAKE -> com.wallet.core.primitives.StakeProviderType.Stake
     uniffi.gemstone.StakeProviderType.EARN -> com.wallet.core.primitives.StakeProviderType.Earn
@@ -1613,44 +1603,6 @@ fun com.wallet.core.primitives.Latency.toGem(): uniffi.gemstone.Latency = uniffi
     value = value,
 )
 
-fun uniffi.gemstone.MarketDominance.toPrimitives(): com.wallet.core.primitives.MarketDominance = com.wallet.core.primitives.MarketDominance(
-    assetId = assetId,
-    dominance = dominance,
-)
-
-fun com.wallet.core.primitives.MarketDominance.toGem(): uniffi.gemstone.MarketDominance = uniffi.gemstone.MarketDominance(
-    assetId = assetId,
-    dominance = dominance,
-)
-
-fun uniffi.gemstone.Markets.toPrimitives(): com.wallet.core.primitives.Markets = com.wallet.core.primitives.Markets(
-    marketCap = marketCap,
-    marketCapChangePercentage24h = marketCapChangePercentage24h,
-    assets = assets.toPrimitives(),
-    dominance = dominance.map { it.toPrimitives() },
-    totalVolume24h = totalVolume24h,
-)
-
-fun com.wallet.core.primitives.Markets.toGem(): uniffi.gemstone.Markets = uniffi.gemstone.Markets(
-    marketCap = marketCap,
-    marketCapChangePercentage24h = marketCapChangePercentage24h,
-    assets = assets.toGem(),
-    dominance = dominance.map { it.toGem() },
-    totalVolume24h = totalVolume24h,
-)
-
-fun uniffi.gemstone.MarketsAssets.toPrimitives(): com.wallet.core.primitives.MarketsAssets = com.wallet.core.primitives.MarketsAssets(
-    trending = trending.map { com.wallet.core.primitives.AssetId(it) },
-    gainers = gainers.map { com.wallet.core.primitives.AssetId(it) },
-    losers = losers.map { com.wallet.core.primitives.AssetId(it) },
-)
-
-fun com.wallet.core.primitives.MarketsAssets.toGem(): uniffi.gemstone.MarketsAssets = uniffi.gemstone.MarketsAssets(
-    trending = trending.map { it.toIdentifier() },
-    gainers = gainers.map { it.toIdentifier() },
-    losers = losers.map { it.toIdentifier() },
-)
-
 fun uniffi.gemstone.NftAsset.toPrimitives(): com.wallet.core.primitives.NFTAsset = com.wallet.core.primitives.NFTAsset(
     id = com.wallet.core.primitives.NFTAssetId(id),
     collectionId = com.wallet.core.primitives.NFTCollectionId(collectionId),
@@ -1872,18 +1824,6 @@ fun com.wallet.core.primitives.PerpetualMetadata.toGem(): uniffi.gemstone.Perpet
     isPinned = isPinned,
 )
 
-fun uniffi.gemstone.PerpetualPortfolioTimeframeData.toPrimitives(): com.wallet.core.primitives.PerpetualPortfolioTimeframeData = com.wallet.core.primitives.PerpetualPortfolioTimeframeData(
-    accountValueHistory = accountValueHistory.map { it.toPrimitives() },
-    pnlHistory = pnlHistory.map { it.toPrimitives() },
-    volume = volume,
-)
-
-fun com.wallet.core.primitives.PerpetualPortfolioTimeframeData.toGem(): uniffi.gemstone.PerpetualPortfolioTimeframeData = uniffi.gemstone.PerpetualPortfolioTimeframeData(
-    accountValueHistory = accountValueHistory.map { it.toGem() },
-    pnlHistory = pnlHistory.map { it.toGem() },
-    volume = volume,
-)
-
 fun uniffi.gemstone.PerpetualPosition.toPrimitives(): com.wallet.core.primitives.PerpetualPosition = com.wallet.core.primitives.PerpetualPosition(
     id = id,
     perpetualId = com.wallet.core.primitives.PerpetualId(perpetualId),
@@ -2088,18 +2028,6 @@ fun uniffi.gemstone.SupportTyping.toPrimitives(): com.wallet.core.primitives.Sup
 fun com.wallet.core.primitives.SupportTyping.toGem(): uniffi.gemstone.SupportTyping = uniffi.gemstone.SupportTyping(
     status = status.toGem(),
     agent = agent.toGem(),
-)
-
-fun uniffi.gemstone.TotalFiatValue.toPrimitives(): com.wallet.core.primitives.TotalFiatValue = com.wallet.core.primitives.TotalFiatValue(
-    value = value,
-    pnlAmount = pnlAmount,
-    pnlPercentage = pnlPercentage,
-)
-
-fun com.wallet.core.primitives.TotalFiatValue.toGem(): uniffi.gemstone.TotalFiatValue = uniffi.gemstone.TotalFiatValue(
-    value = value,
-    pnlAmount = pnlAmount,
-    pnlPercentage = pnlPercentage,
 )
 
 fun uniffi.gemstone.Transaction.toPrimitives(): com.wallet.core.primitives.Transaction = com.wallet.core.primitives.Transaction(

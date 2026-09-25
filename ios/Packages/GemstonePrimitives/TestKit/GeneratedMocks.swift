@@ -880,6 +880,20 @@ public extension Gemstone.PerpetualModifyConfirmData {
     }
 }
 
+public extension Gemstone.PerpetualPortfolioTimeframeData {
+    static func mock(
+        accountValueHistory: [Gemstone.ChartDateValue] = [],
+        pnlHistory: [Gemstone.ChartDateValue] = [],
+        volume: Double = 0,
+    ) -> Gemstone.PerpetualPortfolioTimeframeData {
+        Gemstone.PerpetualPortfolioTimeframeData(
+            accountValueHistory: accountValueHistory,
+            pnlHistory: pnlHistory,
+            volume: volume,
+        )
+    }
+}
+
 public extension Gemstone.PerpetualReduceData {
     static func mock(
         data: Gemstone.PerpetualConfirmData = .mock(),

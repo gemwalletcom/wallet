@@ -15,30 +15,6 @@ data class ChartValuePercentage (
 )
 
 @Serializable
-data class PerpetualAccountSummary (
-	val accountValue: Double,
-	val accountLeverage: Double,
-	val marginUsage: Double,
-	val unrealizedPnl: Double
-)
-
-@Serializable
-data class PerpetualPortfolioTimeframeData (
-	val accountValueHistory: List<ChartDateValue>,
-	val pnlHistory: List<ChartDateValue>,
-	val volume: Double
-)
-
-@Serializable
-data class PerpetualPortfolio (
-	val day: PerpetualPortfolioTimeframeData? = null,
-	val week: PerpetualPortfolioTimeframeData? = null,
-	val month: PerpetualPortfolioTimeframeData? = null,
-	val allTime: PerpetualPortfolioTimeframeData? = null,
-	val accountSummary: PerpetualAccountSummary? = null
-)
-
-@Serializable
 enum class PortfolioChartType(val string: String) {
 	@SerialName("value")
 	Value("value"),

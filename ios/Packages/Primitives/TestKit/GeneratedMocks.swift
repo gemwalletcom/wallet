@@ -737,22 +737,6 @@ public extension Perpetual {
     }
 }
 
-public extension PerpetualAccountSummary {
-    static func mock(
-        accountValue: Double = 0,
-        accountLeverage: Double = 0,
-        marginUsage: Double = 0,
-        unrealizedPnl: Double = 0,
-    ) -> PerpetualAccountSummary {
-        PerpetualAccountSummary(
-            accountValue: accountValue,
-            accountLeverage: accountLeverage,
-            marginUsage: marginUsage,
-            unrealizedPnl: unrealizedPnl,
-        )
-    }
-}
-
 public extension PerpetualData {
     static func mock(
         perpetual: Perpetual = .mock(),
@@ -773,38 +757,6 @@ public extension PerpetualMetadata {
     ) -> PerpetualMetadata {
         PerpetualMetadata(
             isPinned: isPinned,
-        )
-    }
-}
-
-public extension PerpetualPortfolio {
-    static func mock(
-        day: PerpetualPortfolioTimeframeData? = nil,
-        week: PerpetualPortfolioTimeframeData? = nil,
-        month: PerpetualPortfolioTimeframeData? = nil,
-        allTime: PerpetualPortfolioTimeframeData? = nil,
-        accountSummary: PerpetualAccountSummary? = nil,
-    ) -> PerpetualPortfolio {
-        PerpetualPortfolio(
-            day: day,
-            week: week,
-            month: month,
-            allTime: allTime,
-            accountSummary: accountSummary,
-        )
-    }
-}
-
-public extension PerpetualPortfolioTimeframeData {
-    static func mock(
-        accountValueHistory: [ChartDateValue] = [],
-        pnlHistory: [ChartDateValue] = [],
-        volume: Double = 0,
-    ) -> PerpetualPortfolioTimeframeData {
-        PerpetualPortfolioTimeframeData(
-            accountValueHistory: accountValueHistory,
-            pnlHistory: pnlHistory,
-            volume: volume,
         )
     }
 }
@@ -971,20 +923,6 @@ public extension SupportMessageImage {
             fileSize: fileSize,
             width: width,
             height: height,
-        )
-    }
-}
-
-public extension TotalFiatValue {
-    static func mock(
-        value: Double = 0,
-        pnlAmount: Double = 0,
-        pnlPercentage: Double = 0,
-    ) -> TotalFiatValue {
-        TotalFiatValue(
-            value: value,
-            pnlAmount: pnlAmount,
-            pnlPercentage: pnlPercentage,
         )
     }
 }
