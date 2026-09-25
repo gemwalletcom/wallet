@@ -148,7 +148,7 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
 
 public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Sendable {
     private let claimable: Bool
-    private let actions: [Gemstone.GemDelegationAction]
+    private let actions: [GemDelegationActionItem]
     private let validators: [Gemstone.DelegationValidator]
     private let infoRows: [GemListRow]
     private let freezes: Bool
@@ -158,7 +158,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
 
     public init(
         claimable: Bool = false,
-        actions: [Gemstone.GemDelegationAction] = [],
+        actions: [GemDelegationActionItem] = [],
         validators: [Gemstone.DelegationValidator] = [],
         infoRows: [GemListRow] = [],
         freezes: Bool = false,
@@ -176,9 +176,12 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         self.refreshState = refreshState
     }
 
-    public func stakeValidatorSelection(chain _: Gemstone.Chain, input _: GemStakeAmountInput) -> GemStakeValidatorSelection {
-        let options = validators.map { Gemstone.GemValidatorRow.mock(validator: $0) }
-        return GemStakeValidatorSelection(options: options, recommended: [], validator: options.first, canSelect: true)
+    public func stakeAmountSelection(chain _: Gemstone.Chain, input _: GemStakeAmountInput) -> GemStakeAmountSelection {
+        .validator(validator: validators.first.map { .mock(validator: $0) } ?? .mock(), canSelect: true)
+    }
+
+    public func stakeValidatorOptions(chain _: Gemstone.Chain, input _: GemStakeAmountInput, validators: [Gemstone.DelegationValidator]) -> GemStakeValidatorOptions {
+        GemStakeValidatorOptions(recommended: [], options: validators.map { Gemstone.GemValidatorRow.mock(validator: $0) })
     }
 
     public func stakeViewState(input: GemStakeInput) -> GemStakeViewState {
@@ -186,12 +189,13 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
             GemStakeActionItem(
                 action: .stake,
                 row: .action(title: .stake, value: nil, info: nil),
-                tap: validators.isEmpty ? .disabled : .open(destination: .amount(input: .stake(validators: validators, validator: nil))),
+                tap: validators.first.map { .open(destination: .amount(input: .stake(validator: $0))) } ?? .disabled,
             ),
             GemStakeActionItem(
                 action: .claimRewards,
                 row: .action(title: .claimRewards, value: nil, info: nil),
-                tap: .open(destination: claimRewardsDestination ?? .amount(input: .rewards(delegations: input.delegations, validator: nil))),
+                tap: (claimRewardsDestination ?? input.delegations.first.map { .amount(input: .rewards(delegations: input.delegations, validator: $0.validator)) })
+                    .map { .open(destination: $0) } ?? .disabled,
             ),
         ]
         return GemStakeViewState(
@@ -202,7 +206,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
             delegations: zip(input.delegations, Gemstone.delegationListRows(delegations: input.delegations, asset: input.asset, price: input.price, currency: input.currency)).map {
                 GemStakeDelegationItem(delegation: $0, row: $1, destination: .details)
             },
-            validators: validators,
             docsUrl: nil,
         )
     }
@@ -211,7 +214,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         []
     }
 
-    public func delegationDetails(walletType: Gemstone.WalletType, delegation: Gemstone.Delegation, asset: Gemstone.Asset, price: Double?, currency: Gemstone.Currency) -> GemDelegationDetails {
+    public func delegationDetails(walletType: Gemstone.WalletType, delegation: Gemstone.Delegation, asset: Gemstone.Asset, price: Double?, currency: Gemstone.Currency, validators _: [Gemstone.DelegationValidator]) -> GemDelegationDetails {
         var details = Gemstone.delegationDetails(walletType: walletType, delegation: delegation, asset: asset, price: price, currency: currency)
         details.actions = actions
         if !claimable {
@@ -224,21 +227,8 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         .details
     }
 
-    public func delegationActionDestination(
-        asset _: Gemstone.Asset,
-        delegation _: Gemstone.Delegation,
-        action _: Gemstone.GemDelegationAction,
-        validators _: [Gemstone.DelegationValidator],
-    ) -> GemDelegationDestination {
-        .details
-    }
-
     public func getCurrency() -> Gemstone.Currency {
         Primitives.Currency.usd.toGem()
-    }
-
-    public func resourceOptions(chain _: Gemstone.Chain) -> [Gemstone.Resource] {
-        [.bandwidth, .energy]
     }
 
     public func refresh(chain _: Gemstone.Chain, delegations _: [Gemstone.Delegation]) async -> GemLoadState {

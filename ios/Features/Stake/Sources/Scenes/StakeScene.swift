@@ -99,7 +99,7 @@ extension StakeScene {
         case let .data(items):
             ForEach(items, id: \.id) { item in
                 NavigationCustomLink(with: DelegationView(delegation: DelegationViewModel(row: item.row))) {
-                    model.onSelect(delegation: item, state: state)
+                    model.onSelect(delegation: item)
                 }
             }
             .listRowInsets(.assetListRowInsets)

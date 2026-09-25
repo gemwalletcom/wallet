@@ -11,15 +11,15 @@ use chrono::Utc;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use primitives::{Asset, AssetId, Chain, Currency, Delegation, DelegationBase, DelegationValidator, Platform, Resource, StakeProviderType, WalletId, WalletType};
+use primitives::{Asset, AssetId, Chain, Currency, Delegation, DelegationBase, DelegationValidator, Platform, StakeProviderType, WalletId, WalletType};
 
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
 use crate::models::{GemContractCallData, GemEarnType};
 
 pub use model::{
-    GemDelegationAction, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationStatus, GemEarnInput, GemEarnView, GemStakeAction, GemStakeActionItem, GemStakeActionTap, GemStakeAmountInput,
-    GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorSelection, GemStakeViewState, GemValidatorRow,
+    GemDelegationAction, GemDelegationActionItem, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationStatus, GemEarnInput, GemEarnView, GemStakeAction, GemStakeActionItem, GemStakeActionTap,
+    GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorOptions, GemStakeViewState, GemValidatorRow,
 };
 pub use store::GemStakeStore;
 
@@ -69,17 +69,19 @@ impl GemStakeService {
         self.preferences.get_currency()
     }
 
-    pub fn stake_validator_selection(&self, chain: Chain, input: GemStakeAmountInput) -> GemStakeValidatorSelection {
-        let selection = rules::validator_selection(chain, &input);
+    pub fn stake_amount_selection(&self, chain: Chain, input: GemStakeAmountInput) -> GemStakeAmountSelection {
+        rules::amount_selection(chain, &input)
+    }
+
+    pub fn stake_validator_options(&self, chain: Chain, input: GemStakeAmountInput, validators: Vec<DelegationValidator>) -> GemStakeValidatorOptions {
+        let options = rules::validator_options(chain, &input, validators);
         let with_explorer = |row: GemValidatorRow| GemValidatorRow {
             explorer: rules::validator_explorer_address(&row.validator).and_then(|address| self.explorer.get_validator_url(row.validator.chain, address)),
             ..row
         };
-        GemStakeValidatorSelection {
-            options: selection.options.into_iter().map(with_explorer).collect(),
-            recommended: selection.recommended.into_iter().map(with_explorer).collect(),
-            validator: selection.validator.map(with_explorer),
-            can_select: selection.can_select,
+        GemStakeValidatorOptions {
+            recommended: options.recommended.into_iter().map(with_explorer).collect(),
+            options: options.options.into_iter().map(with_explorer).collect(),
         }
     }
 
@@ -95,21 +97,13 @@ impl GemStakeService {
         rules::earn_view(input)
     }
 
-    pub fn delegation_action_destination(&self, asset: Asset, delegation: Delegation, action: GemDelegationAction, validators: Vec<DelegationValidator>) -> GemDelegationDestination {
-        rules::delegation_action_destination(asset, delegation, action, validators)
-    }
-
-    pub fn resource_options(&self, chain: Chain) -> Vec<Resource> {
-        rules::resource_options(chain)
-    }
-
     pub fn stake_view_state(&self, input: GemStakeInput) -> GemStakeViewState {
         rules::stake_view_state(input, self.platform)
     }
 
-    pub fn delegation_details(&self, wallet_type: WalletType, delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency) -> GemDelegationDetails {
+    pub fn delegation_details(&self, wallet_type: WalletType, delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency, validators: Vec<DelegationValidator>) -> GemDelegationDetails {
         let rows = self.delegation_rows(delegation.clone());
-        rules::delegation_details(wallet_type, &delegation, &asset, price, currency, rows)
+        rules::delegation_details(wallet_type, &delegation, &asset, price, currency, rows, &validators)
     }
 }
 

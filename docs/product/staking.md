@@ -15,6 +15,6 @@ flowchart LR
 - Continue opens the confirmation screen with the amount, the validator, the network and the fee.
 - Each delegation shows its validator, its state (Active, Pending, Activating, Deactivating, Inactive, Awaiting Withdrawal), its amount and value, and Rewards when an Active one has any; a countdown says when it activates or becomes available.
 - Delegations are listed largest first; tapping one opens its details, except one awaiting withdrawal in a wallet that can sign, which goes straight to Withdraw.
-- A delegation's details offer only the actions its state and network allow: Unstake (part or all), Redelegate (never to the validator being left), Withdraw when awaiting withdrawal, and Claim Rewards.
+- A delegation's details offer only the actions its state and network allow: Unstake (part or all), Redelegate (only when another active validator exists, never to the validator being left), Withdraw when awaiting withdrawal, and Claim Rewards.
 - On TRON the user freezes and unfreezes TRX and sees Energy and Bandwidth as "available / total".
 - Earn (deposit with the best provider) sits behind the same screens but is behind a flag and not offered in the shipped apps.

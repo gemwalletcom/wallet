@@ -75,7 +75,11 @@ struct StakeSceneViewModelTests {
 
     @Test
     func claimRewardsAcrossValidatorsRoutesToAmount() {
-        let model = StakeSceneViewModel.mock(chain: .tron)
+        let delegation = Delegation.mock().toGem()
+        let model = StakeSceneViewModel.mock(
+            chain: .tron,
+            stakeService: GemStakeServiceMock(claimRewardsDestination: .amount(input: .rewards(delegations: [delegation], validator: delegation.validator))),
+        )
 
         guard case .transfer(.amount) = claimDestination(model).map(model.route(destination:)) else {
             Issue.record("expected an amount route")

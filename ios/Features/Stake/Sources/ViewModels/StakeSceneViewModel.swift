@@ -111,9 +111,8 @@ extension StakeSceneViewModel {
         onNavigate?(route(destination: destination))
     }
 
-    func onSelect(delegation item: GemStakeDelegationItem, state: GemStakeViewState) {
-        let delegation = item.delegation.toPrimitives()
-        onNavigate?(item.destination.route(delegation: delegation, validators: state.validators.map { $0.toPrimitives() }))
+    func onSelect(delegation item: GemStakeDelegationItem) {
+        onNavigate?(item.destination.route(delegation: item.delegation.toPrimitives()))
     }
 
     func onInfo(_ topic: GemInfoTopic) {

@@ -106,7 +106,7 @@ public final class EarnSceneViewModel {
 
 extension EarnSceneViewModel {
     func onSelect(item: GemStakeDelegationItem) {
-        onNavigate?(item.destination.route(delegation: item.delegation.toPrimitives(), validators: []))
+        onNavigate?(item.destination.route(delegation: item.delegation.toPrimitives()))
     }
 
     func onSelectDeposit() {

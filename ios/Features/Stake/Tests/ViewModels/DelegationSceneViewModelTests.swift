@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import enum Gemstone.GemDelegationAction
+import struct Gemstone.GemDelegationActionItem
 import GemstonePrimitivesTestKit
 import Localization
 import Primitives
@@ -10,6 +10,7 @@ import PrimitivesTestKit
 import StakeTestKit
 import Testing
 
+@MainActor
 struct DelegationSceneViewModelTests {
     @Test
     func claimingRewardsNavigatesToConfirm() {
@@ -44,7 +45,7 @@ struct DelegationSceneViewModelTests {
         var route: StakeRoute?
         let model = DelegationSceneViewModel.mock(onNavigate: { route = $0 })
 
-        model.onSelectAction(.unstake)
+        model.onSelectAction(GemDelegationActionItem(action: .unstake, destination: .details))
 
         #expect(route == nil)
     }
@@ -68,7 +69,7 @@ struct DelegationSceneViewModelTests {
         #expect(hidden.rewardsItem(hidden.details) == nil)
     }
 
-    @Test @MainActor
+    @Test
     func theValidatorRowOpensAddressDetailsOnItsChain() {
         var selected: ChainAddress?
         let model = DelegationSceneViewModel.mock(chain: .cosmos, onSelectAddress: { selected = $0 })

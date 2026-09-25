@@ -2,29 +2,39 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemStakeAmountInput
+import protocol Gemstone.GemStakeServiceProtocol
 import struct Gemstone.GemValidatorRow
 import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
+import Store
 
+@MainActor
 @Observable
 public final class ValidatorSelectSceneViewModel {
-    public let currentValidator: DelegationValidator?
-    private let recommended: [GemValidatorRow]
-    private let validators: [GemValidatorRow]
-    public var selectValidator: ((GemValidatorRow) -> Void)?
+    public let validatorsQuery: ObservableQuery<ValidatorsRequest>
+
+    private let service: any GemStakeServiceProtocol
+    private let chain: Chain
+    private let input: GemStakeAmountInput
+    private let currentValidatorId: String
+    private let selectValidator: (GemValidatorRow) -> Void
 
     public init(
-        currentValidator: DelegationValidator?,
-        recommended: [GemValidatorRow],
-        validators: [GemValidatorRow],
-        selectValidator: ((GemValidatorRow) -> Void)? = nil,
+        service: any GemStakeServiceProtocol,
+        chain: Chain,
+        input: GemStakeAmountInput,
+        currentValidatorId: String,
+        selectValidator: @escaping (GemValidatorRow) -> Void,
     ) {
-        self.currentValidator = currentValidator
-        self.recommended = recommended
-        self.validators = validators
+        self.service = service
+        self.chain = chain
+        self.input = input
+        self.currentValidatorId = currentValidatorId
         self.selectValidator = selectValidator
+        validatorsQuery = ObservableQuery(ValidatorsRequest(chain: chain, providerType: .stake), initialValue: [])
     }
 
     public var title: String {
@@ -36,10 +46,19 @@ public final class ValidatorSelectSceneViewModel {
     }
 
     public var list: [ListItemValueSection<GemValidatorRow>] {
-        [
-            listSection(title: Localized.Common.recommended, rows: recommended),
-            listSection(title: Localized.Stake.active, rows: validators),
+        let options = service.stakeValidatorOptions(chain: chain.rawValue, input: input, validators: validatorsQuery.value.map { $0.toGem() })
+        return [
+            listSection(title: Localized.Common.recommended, rows: options.recommended),
+            listSection(title: Localized.Stake.active, rows: options.options),
         ].filter(\.values.isNotEmpty)
+    }
+
+    public func isSelected(_ row: GemValidatorRow) -> Bool {
+        row.validator.id == currentValidatorId
+    }
+
+    public func onSelect(_ row: GemValidatorRow) {
+        selectValidator(row)
     }
 
     public func explorerContext(for row: GemValidatorRow) -> ExplorerContextData? {
@@ -49,24 +68,11 @@ public final class ValidatorSelectSceneViewModel {
         }
     }
 
-    public func listSection(title: String, rows: [GemValidatorRow]) -> ListItemValueSection<GemValidatorRow> {
+    private func listSection(title: String, rows: [GemValidatorRow]) -> ListItemValueSection<GemValidatorRow> {
         ListItemValueSection(
             section: title,
-            values: rows.map(listItem),
+            values: rows.map { ListItemValue(value: $0) },
         )
-    }
-
-    public func listItem(row: GemValidatorRow) -> ListItemValue<GemValidatorRow> {
-        let model = ValidatorViewModel(row: row)
-        return ListItemValue(
-            title: model.name,
-            subtitle: model.aprText,
-            value: row,
-        )
-    }
-
-    public func validatorModel(for row: GemValidatorRow) -> ValidatorViewModel {
-        ValidatorViewModel(row: row)
     }
 }
 

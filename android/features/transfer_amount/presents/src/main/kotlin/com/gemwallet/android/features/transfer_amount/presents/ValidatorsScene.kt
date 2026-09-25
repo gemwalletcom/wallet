@@ -16,12 +16,12 @@ import com.gemwallet.android.ui.theme.WalletTheme
 import uniffi.gemstone.DelegationValidator
 import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemLocalizedText
-import uniffi.gemstone.GemStakeValidatorSelection
+import uniffi.gemstone.GemStakeValidatorOptions
 import uniffi.gemstone.GemValidatorRow
 import uniffi.gemstone.StakeProviderType
 
 @Composable
-fun ValidatorsScene(selection: GemStakeValidatorSelection, selectedValidatorId: String, onSelect: (String) -> Unit, onCancel: () -> Unit) {
+fun ValidatorsScene(selection: GemStakeValidatorOptions, selectedValidatorId: String, onSelect: (String) -> Unit, onCancel: () -> Unit) {
     Scene(
         title = stringResource(id = R.string.stake_validators),
         onClose = onCancel,
@@ -67,15 +67,13 @@ fun ValidatorsScene(selection: GemStakeValidatorSelection, selectedValidatorId: 
 fun PreviewValidatorsScene() {
     WalletTheme {
         ValidatorsScene(
-            selection = GemStakeValidatorSelection(
+            selection = GemStakeValidatorOptions(
                 options = listOf(
                     previewRow("some_validator_id", "Castlenode"),
                     previewRow("some_validator_id_1", "Ubik Capital 0%Fee"),
                     previewRow("some_validator_id_2", "Virtual Hive"),
                 ),
                 recommended = emptyList(),
-                validator = null,
-                canSelect = true,
             ),
             selectedValidatorId = "some_validator_id_1",
             onCancel = {},

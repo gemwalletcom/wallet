@@ -54,7 +54,7 @@ struct AmountSceneViewModelTests {
             balance: .mock(available: 2_000_000_000_000_000_000),
         )
         let model = AmountSceneViewModel.mock(
-            type: .stake(.stake(validators: [DelegationValidator.mock().toGem()], validator: nil)),
+            type: .stake(.stake(validator: DelegationValidator.mock().toGem())),
             assetData: assetData,
         )
 
@@ -78,17 +78,12 @@ struct AmountSceneViewModelTests {
             assetData: assetData,
         )
 
-        guard let stake = model.stake,
-              case let .resource(resourceSelection) = stake.selection else { return }
-
-        resourceSelection.selected = .energy
-        model.onChangeResource(.bandwidth, .energy)
+        model.onSelectResource(.energy)
         model.amountInputModel.text = "2.0"
         model.onChangeAmountText("", "2.0")
         #expect(model.amountInputModel.error == nil)
 
-        resourceSelection.selected = .bandwidth
-        model.onChangeResource(.energy, .bandwidth)
+        model.onSelectResource(.bandwidth)
         model.amountInputModel.text = "2.0"
         model.onChangeAmountText("", "2.0")
         #expect(model.amountInputModel.error != nil)
@@ -103,7 +98,7 @@ struct AmountSceneViewModelTests {
             balance: .mock(available: 5_000_000_000_000_000_000),
         )
         let model = AmountSceneViewModel.mock(
-            type: .stake(.stake(validators: [validator1.toGem(), validator2.toGem()], validator: nil)),
+            type: .stake(.stake(validator: validator1.toGem())),
             assetData: assetData,
         )
 
@@ -112,6 +107,11 @@ struct AmountSceneViewModelTests {
         model.onValidatorSelected(.mock(validator: validator2.toGem()))
 
         #expect(model.amountInputModel.text == "1.5")
+        guard case let .validator(validator, _) = model.stake?.selection else {
+            Issue.record("Expected a validator selection")
+            return
+        }
+        #expect(validator.row.validator.id == "2")
     }
 
     @Test

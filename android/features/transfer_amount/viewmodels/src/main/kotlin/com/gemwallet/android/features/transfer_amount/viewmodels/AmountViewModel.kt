@@ -14,6 +14,7 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
+import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
@@ -80,6 +81,7 @@ class AmountViewModel @Inject constructor(
     getPerpetual: GetPerpetual,
     getDelegation: GetDelegation,
     getStakeValidator: GetStakeValidator,
+    getValidators: GetValidators,
     getSession: GetSession,
     savedStateHandle: SavedStateHandle,
     @param:ApplicationContext private val context: Context,
@@ -88,7 +90,7 @@ class AmountViewModel @Inject constructor(
 
     private val params: AmountParams = savedStateHandle.requireAmountParams()
 
-    private val stakeProvider = (params as? AmountParams.Stake)?.let { AmountStakeProvider(it, stakeService, viewModelScope) }
+    private val stakeProvider = (params as? AmountParams.Stake)?.let { AmountStakeProvider(it, getValidators(it.assetId), stakeService, viewModelScope, ioDispatcher) }
 
     val perpetualProvider = (params as? AmountParams.Perpetual)?.let { AmountPerpetualProvider(it, context, service, getAssetInfo, getPerpetual, viewModelScope) }
 
@@ -205,8 +207,8 @@ class AmountViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, AmountUiState())
 
     val validatorPicker: StateFlow<ValidatorPickerUIModel?> = stakeProvider?.let { stake ->
-        combine(stake.validatorSelection, stake.validatorState) { selection, selected ->
-            selection?.let { ValidatorPickerUIModel(selection = it, selectedId = selected?.validator?.id.orEmpty()) }
+        combine(stake.validatorOptions, stake.selectedValidatorId) { options, selectedId ->
+            options?.let { ValidatorPickerUIModel(selection = it, selectedId = selectedId.orEmpty()) }
         }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
     } ?: MutableStateFlow(null)
 
