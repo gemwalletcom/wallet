@@ -13,7 +13,7 @@ use crate::services::transfer::model::{GemRecipient, GemTransferData};
 use chain_primitives::checksum_address;
 use num_bigint::{BigInt, BigUint};
 use number_formatter::BigNumberFormatter;
-use payment::{PaymentLoad, PaymentService, PaymentTransaction, PaymentURLDecoder, PaymentUpdate, WalletConnectPayAuth};
+use payment::{PaymentLoad, PaymentService, PaymentTransaction, PaymentURLDecoder, PaymentUpdate, VerificationOutcome, WalletConnectPayAuth, verification_outcome};
 use primitives::TransactionInputType;
 use primitives::{
     Asset, AssetId, Chain, ChainAddress, ChainType, PaymentInvoice, PaymentLink, PaymentQuote, PaymentStatus, PaymentVerification, TransactionChange, TransactionState, TransactionType, TransactionUpdate, TransferDataExtra,
@@ -45,6 +45,22 @@ impl From<GemServiceError> for GemPaymentError {
 pub enum GemPaymentLoad {
     Sign { transfer: GemTransferData },
     Verify { invoice: GemPaymentInvoice, asset_id: AssetId, url: String },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPaymentVerificationOutcome {
+    Complete,
+    Error,
+    Ignored,
+}
+
+#[uniffi::export]
+pub fn payment_verification_outcome(message_type: String) -> GemPaymentVerificationOutcome {
+    match verification_outcome(&message_type) {
+        VerificationOutcome::Complete => GemPaymentVerificationOutcome::Complete,
+        VerificationOutcome::Error => GemPaymentVerificationOutcome::Error,
+        VerificationOutcome::Ignored => GemPaymentVerificationOutcome::Ignored,
+    }
 }
 
 #[derive(uniffi::Object)]

@@ -128,7 +128,8 @@ class ConfirmViewModel @Inject constructor(
 
     val isErrorSheetVisible = MutableStateFlow(false)
     val isVerificationVisible = MutableStateFlow(false)
-    val verificationBridge = PaymentVerificationBridge(::onPaymentVerified)
+    val isVerificationFailed = MutableStateFlow(false)
+    val verificationBridge = PaymentVerificationBridge(::onPaymentVerified, ::onPaymentVerificationFailed)
     private val loadOptions = MutableStateFlow<GemConfirmLoadOptions?>(null)
     private val requestSimulation = MutableStateFlow<SimulationResult?>(null)
     private val requestWallet = MutableStateFlow<Wallet?>(null)
@@ -302,6 +303,15 @@ class ConfirmViewModel @Inject constructor(
     private fun onPaymentVerified() {
         isVerificationVisible.value = false
         fetch()
+    }
+
+    private fun onPaymentVerificationFailed() {
+        isVerificationVisible.value = false
+        isVerificationFailed.value = true
+    }
+
+    fun dismissVerificationError() {
+        isVerificationFailed.value = false
     }
 
     private fun showError(error: Throwable) {

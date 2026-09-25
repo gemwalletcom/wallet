@@ -270,7 +270,11 @@ extension NavigationRouter {
 extension NavigationRouter {
     private func showError(_ error: any Error) {
         debugLog("NavigationRouter error: \(error)")
-        toastPresenter.toastMessage = .error(error.localizedDescription)
+        showError(message: error.localizedDescription)
+    }
+
+    func showError(message: String) {
+        toastPresenter.toastMessage = .error(message)
     }
 
     private func selectTab(_ tab: GemNavigationTab?) {

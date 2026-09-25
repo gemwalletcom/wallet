@@ -45,7 +45,9 @@ class PaymentVerificationViewModel @Inject constructor(
 
     val url: StateFlow<String> = urlState.asStateFlow()
     val confirm: StateFlow<ConfirmTransferInput?> = confirmState.asStateFlow()
-    val verificationBridge = PaymentVerificationBridge(::onPaymentVerified)
+    private val failedState = MutableStateFlow(false)
+    val isFailed: StateFlow<Boolean> = failedState.asStateFlow()
+    val verificationBridge = PaymentVerificationBridge(::onPaymentVerified) { failedState.value = true }
     private var verifying: Job? = null
 
     private fun onPaymentVerified() {

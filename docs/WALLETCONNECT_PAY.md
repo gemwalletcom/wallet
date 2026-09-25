@@ -74,7 +74,7 @@ Every action of a payment is signed as `TransactionInputType::Payment`; `is_broa
 
 ## Identity verification
 
-The form is the gateway's web page, opened in a web view restricted to the link's host. The page tells the wallet it is done through the bridge it finds: `window.webkit.messageHandlers.payDataCollectionComplete.postMessage({type})` on iOS, `window.AndroidWallet.onDataCollectionComplete(json)` on Android, with `IC_COMPLETE` (or `IC_ERROR`). On completion the app loads the link again, or reloads the confirm when the form was opened from its verification row, and lands on a signable transfer. Closing the form leaves the confirm untouched underneath. iOS hosts the form in `PaymentVerificationScene` (a sheet from both entry points); Android in `PaymentVerificationScreen` from a scanned link and in a full bottom sheet from the confirm.
+The form is the gateway's web page, opened in a web view restricted to the link's host. The page tells the wallet it is done through the bridge it finds: `window.webkit.messageHandlers.payDataCollectionComplete.postMessage({type})` on iOS, `window.AndroidWallet.onDataCollectionComplete(json)` on Android, with `IC_COMPLETE` or `IC_ERROR`; Core's `payment_verification_outcome` reads the type. On `IC_ERROR` the form closes and the app shows the generic error. On completion the app loads the link again, or reloads the confirm when the form was opened from its verification row, and lands on a signable transfer. Closing the form leaves the confirm untouched underneath. iOS hosts the form in `PaymentVerificationScene` (a sheet from both entry points); Android in `PaymentVerificationScreen` from a scanned link and in a full bottom sheet from the confirm.
 
 ## On chain
 

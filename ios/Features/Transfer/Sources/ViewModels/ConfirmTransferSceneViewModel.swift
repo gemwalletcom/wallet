@@ -245,6 +245,11 @@ extension ConfirmTransferSceneViewModel {
         Task { await load() }
     }
 
+    public func onPaymentVerificationFailed() {
+        isPresentingSheet = nil
+        isPresentingAlertMessage = AlertMessage(message: Localized.Errors.errorOccurred)
+    }
+
     func onSelectFeePicker() {
         isPresentingSheet = .networkFeeSelector
     }

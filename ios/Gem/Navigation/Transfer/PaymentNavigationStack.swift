@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import enum Gemstone.PaymentLink
+import Localization
 import Primitives
 import SwiftUI
 import Transfer
@@ -23,7 +24,7 @@ struct PaymentNavigationStack: View {
         case let .confirm(transfer):
             ConfirmTransferNavigationStack(wallet: wallet, transferData: transfer, onComplete: onComplete)
         case let .verify(url, link):
-            PaymentVerificationScene(model: PaymentVerificationSceneViewModel(url: url, onComplete: { onVerified(link) }))
+            PaymentVerificationScene(model: PaymentVerificationSceneViewModel(url: url, onComplete: { onVerified(link) }, onError: onVerificationFailed))
         case let .recipient(input):
             SelectedAssetNavigationStack(input: input, wallet: wallet, onComplete: onComplete)
         case let .selectAsset(type, chains):
@@ -37,6 +38,11 @@ struct PaymentNavigationStack: View {
 extension PaymentNavigationStack {
     private func onComplete() {
         presenter.isPresentingPayment.wrappedValue = nil
+    }
+
+    private func onVerificationFailed() {
+        onComplete()
+        navigationRouter.showError(message: Localized.Errors.errorOccurred)
     }
 
     private func onVerified(_ link: PaymentLink) {

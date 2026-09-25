@@ -35,7 +35,7 @@ struct ConfirmTransferNavigationView: View {
                         ),
                     )
                 case let .paymentVerification(url):
-                    PaymentVerificationScene(model: PaymentVerificationSceneViewModel(url: url, onComplete: model.onPaymentVerified))
+                    PaymentVerificationScene(model: PaymentVerificationSceneViewModel(url: url, onComplete: model.onPaymentVerified, onError: model.onPaymentVerificationFailed))
                 case .payloadDetails:
                     NavigationStack {
                         SimulationPayloadDetailsScene(
