@@ -8,8 +8,8 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.device.cases.EnablePushForSupport
 import com.gemwallet.android.application.support.cases.ClearSupportTyping
-import com.gemwallet.android.application.support.cases.GetSupportMessages
 import com.gemwallet.android.application.support.cases.GetSupportTyping
+import com.gemwallet.android.data.services.store.queries.SupportMessagesQuery
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
@@ -40,7 +40,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SupportChatSceneViewModel @Inject constructor(
     private val supportService: GemSupportServiceInterface,
-    private val getSupportMessages: GetSupportMessages,
+    private val supportMessagesQuery: SupportMessagesQuery,
     private val getSupportTyping: GetSupportTyping,
     private val clearSupportTyping: ClearSupportTyping,
     private val enablePushForSupport: EnablePushForSupport,
@@ -49,7 +49,7 @@ class SupportChatSceneViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
-    private val messages = getSupportMessages()
+    private val messages = supportMessagesQuery()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val days = messages

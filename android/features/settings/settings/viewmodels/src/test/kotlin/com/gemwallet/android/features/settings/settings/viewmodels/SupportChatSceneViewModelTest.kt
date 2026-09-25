@@ -2,6 +2,7 @@ package com.gemwallet.android.features.settings.settings.viewmodels
 
 import android.content.Context
 import com.gemwallet.android.application.device.cases.EnablePushForSupport
+import com.gemwallet.android.data.services.store.queries.SupportMessagesQuery
 import com.gemwallet.android.ui.R
 import io.mockk.coEvery
 import io.mockk.every
@@ -29,7 +30,7 @@ class SupportChatSceneViewModelTest {
         }
         val viewModel = SupportChatSceneViewModel(
             supportService = mockk(relaxed = true),
-            getSupportMessages = mockk { every { this@mockk.invoke() } returns flowOf(emptyList()) },
+            supportMessagesQuery = mockk<SupportMessagesQuery> { every { this@mockk() } returns flowOf(emptyList()) },
             getSupportTyping = mockk(relaxed = true),
             clearSupportTyping = mockk(relaxed = true),
             enablePushForSupport = enablePushForSupport,
