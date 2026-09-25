@@ -248,6 +248,7 @@ class ConfirmViewModel @Inject constructor(
             price = content.feeAssetUIModel.price?.price?.price,
             currency = content.currency,
             priority = fee.selectedPriority.toPrimitives(),
+            display = fee.formatted,
         )
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -359,9 +360,9 @@ class ConfirmViewModel @Inject constructor(
 
     private fun changeFeeSelection(selection: GemConfirmFeeSelection) = loadOptions.update { it?.onFeeSelection(selection) }
 
-    fun feeDetailsModel(currentFee: FeeUIModel.FeeInfo, feeAsset: FeeAssetUIModel): FeeDetailsModel? {
+    fun feeDetailsModel(currentFee: FeeUIModel.FeeInfo): FeeDetailsModel? {
         val rows = viewState.value?.feeRates ?: return null
-        return FeeDetailsModel(currentFee, feeAsset, rows)
+        return FeeDetailsModel(currentFee, rows)
     }
 
     fun changePaymentAsset(assetId: AssetId) {

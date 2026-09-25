@@ -37,6 +37,7 @@ ALLOWED = {
     "GemConfirmScreen.fee_row": DOUBLE,
     "confirm_error_info": DOUBLE,
     "delegation_list_rows": DOUBLE,
+    "fee_amount": DOUBLE,
 }
 
 

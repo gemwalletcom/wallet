@@ -6,7 +6,7 @@ use crate::models::copy::address_copy;
 use crate::models::list::{GemListRow, GemListRowTitle};
 use crate::models::placeholder::text_or_placeholder;
 use crate::precision::GemCurrencyStyle;
-use crate::services::assets::rules::asset_text;
+use crate::services::assets::rules::{asset_text, fee_amount};
 use crate::services::contact::model::contact_avatar;
 use crate::services::error_text::GemErrorText;
 use crate::services::localization::{GemLocalizedText, GemPerpetualConfirmedAction};
@@ -26,7 +26,7 @@ use super::model::{
 use crate::config::chain::custom_fee_enabled;
 use crate::config::fiat_config::get_fiat_config;
 use crate::fee::fee_rate_text;
-use crate::models::custom_types::GemBigUint;
+use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::{GemBroadcastOptions, GemFeeRate};
 use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionLoadFee, GemTransactionLoadInput};
 use crate::services::balance::GemAssetBalance;
@@ -173,16 +173,30 @@ pub fn approval_value_from(value: Option<&GemBigUint>, is_unlimited: bool) -> Ge
 }
 
 impl GemConfirmData {
-    pub(super) fn fee_rate_rows(&self, fee_asset: &Asset) -> GemFeeRateRows {
-        fee_rate_rows(self.input.transfer.input_type.get_asset().chain(), fee_asset, &self.fee_rates, &self.fee_selection, &self.fee)
+    pub(super) fn fee_rate_rows(&self, fee_asset: &Asset, price: Option<f64>, currency: Currency) -> GemFeeRateRows {
+        let rows = fee_rate_rows(self.input.transfer.input_type.get_asset().chain(), fee_asset, &self.fee_rates, &self.fee_selection, &self.fee);
+        GemFeeRateRows {
+            rows: rows
+                .rows
+                .into_iter()
+                .map(|row| GemFeeRateRow {
+                    amount: row.fee.as_ref().map(|fee| fee_amount(fee_asset, fee, price, currency.clone())),
+                    ..row
+                })
+                .collect(),
+            ..rows
+        }
     }
 
-    pub(super) fn fee_load(self, metadata: GemConfirmMetadata, fee_asset: Asset) -> Result<GemConfirmFeeLoad, GemConfirmError> {
+    pub(super) fn fee_load(self, metadata: GemConfirmMetadata, fee_asset: Asset, currency: Currency) -> Result<GemConfirmFeeLoad, GemConfirmError> {
         let amount = self.preload_amount(&metadata, &fee_asset)?;
+        let price = metadata.fee_price().map(|price| price.price);
+        let formatted = |value: &GemBigInt| fee_amount(&fee_asset, value, price, currency.clone());
         Ok(GemConfirmFeeLoad {
             fee: GemConfirmFee {
                 value: self.fee.fee.clone(),
-                additional_fees: self.fee.options.items(),
+                formatted: formatted(&self.fee.fee),
+                additional_fees: self.fee.options.items(formatted),
                 selected_priority: self.selected_priority,
                 amount,
             },
@@ -474,6 +488,7 @@ fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[GemFeeRate], selectio
                 GemFeeRateRow {
                     priority: rate.priority,
                     fee,
+                    amount: None,
                     value: fee_rate_text(unit_type, &display_value, unit_decimals, &fee_asset.symbol),
                     is_selected: match selection {
                         GemConfirmFeeSelection::Priority { priority } => *priority == rate.priority,
@@ -880,10 +895,14 @@ mod tests {
             fee_rates: rates,
             ..GemConfirmData::mock(Chain::Ethereum, TransactionInputType::Transfer { asset: Asset::mock() })
         };
-        let rows = confirm.fee_rate_rows(&Asset::mock());
+        let rows = confirm.fee_rate_rows(&Asset::mock(), Some(2.0), Currency::USD);
 
         assert_eq!(rows.selected_total, Some(BigInt::from(10)));
         assert_eq!(rows.rows.iter().map(|row| (row.priority, row.is_selected)).collect::<Vec<_>>(), vec![(FeePriority::Normal, true)]);
+        assert!(
+            rows.rows.iter().all(|row| row.amount == row.fee.as_ref().map(|fee| fee_amount(&Asset::mock(), fee, Some(2.0), Currency::USD))),
+            "each rate row carries its fee in the fee asset and the currency"
+        );
     }
 
     #[test]

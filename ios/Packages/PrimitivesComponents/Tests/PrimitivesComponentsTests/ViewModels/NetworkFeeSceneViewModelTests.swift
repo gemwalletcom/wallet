@@ -27,7 +27,7 @@ struct NetworkFeeSceneViewModelTests {
         let model = NetworkFeeSceneViewModel.mock(
             feeAsset: .mockSolana(),
             feeAmount: 1_495_940,
-            additionalFees: [.init(option: .tokenAccountCreation, value: 1_488_440), .init(option: .tokenAccountCreation, value: 1000)],
+            additionalFees: [(.tokenAccountCreation, 1_488_440), (.tokenAccountCreation, 1000)],
         )
 
         #expect(model.value == "0.001495 SOL")

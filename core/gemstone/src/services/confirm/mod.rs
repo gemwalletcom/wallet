@@ -38,6 +38,7 @@ use crate::services::transfer::rules::TransferInput;
 use crate::signer::GemSignerError;
 use num_bigint::BigInt;
 use primitives::TransactionInputType;
+use primitives::currency::Currency;
 use primitives::{Asset, AssetId, BlockExplorerLink, Chain, SimulationPayloadFieldDisplay, SimulationResult, Transaction, TransactionFee, WalletId};
 
 #[derive(uniffi::Object)]
@@ -87,7 +88,7 @@ impl GemConfirmService {
         rules::build_metadata(asset_id, fee_asset_id, balances?, prices?)
     }
 
-    pub async fn load(&self, wallet_id: &WalletId, input: &GemConfirmInput, options: &GemConfirmLoadOptions) -> Result<GemConfirmFeeLoad, GemConfirmError> {
+    pub async fn load(&self, wallet_id: &WalletId, input: &GemConfirmInput, options: &GemConfirmLoadOptions, currency: Currency) -> Result<GemConfirmFeeLoad, GemConfirmError> {
         let transfer = &input.transfer;
         let asset = transfer.input_type.get_asset();
         let chain = asset.id.chain;
@@ -157,7 +158,7 @@ impl GemConfirmService {
             metadata: load.metadata,
             simulation,
         };
-        confirm_data.fee_load(confirm_metadata?, fee_asset?)
+        confirm_data.fee_load(confirm_metadata?, fee_asset?, currency)
     }
 
     pub fn simulation(&self, input_type: TransactionInputType, simulation: Option<SimulationResult>, assets: Vec<Asset>, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> Result<GemConfirmSimulation, GemConfirmError> {
@@ -352,7 +353,7 @@ mod tests {
                 asset_id: None,
             };
 
-            let result = testkit.confirm.load(&wallet.id, &input, &options).await;
+            let result = testkit.confirm.load(&wallet.id, &input, &options, primitives::currency::Currency::USD).await;
             (result, provider.requested_paths())
         })
     }

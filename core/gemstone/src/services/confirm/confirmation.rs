@@ -81,7 +81,7 @@ impl GemConfirmation {
 
     async fn load_fee(&self, input: &GemConfirmInput, options: &GemConfirmLoadOptions) -> Result<GemConfirmFeeLoad, GemConfirmError> {
         let input_type = &input.transfer.input_type;
-        let fee = match self.service.confirm().load(&self.wallet.id, input, options).await {
+        let fee = match self.service.confirm().load(&self.wallet.id, input, options, self.service.get_currency()).await {
             Ok(fee) => fee,
             Err(error) => return Err(self.service.missing_network_fee(self.wallet.id.clone(), input_type.clone()).await.unwrap_or(error)),
         };
@@ -138,7 +138,12 @@ impl GemConfirmation {
     pub fn fee_rate_rows(&self) -> Option<GemFeeRateRows> {
         let stored = self.stored();
         let state = stored.as_ref()?;
-        Some(state.confirm_data.as_ref()?.fee_rate_rows(&state.load.fee_asset))
+        Some(
+            state
+                .confirm_data
+                .as_ref()?
+                .fee_rate_rows(&state.load.fee_asset, state.load.metadata.fee_price().map(|price| price.price), self.service.get_currency()),
+        )
     }
 
     pub fn get_currency(&self) -> Currency {

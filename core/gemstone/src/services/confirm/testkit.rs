@@ -234,6 +234,7 @@ impl GemConfirmFee {
     pub fn mock(amount: GemTransferAmountResult) -> Self {
         GemConfirmFee {
             value: BigInt::from(1),
+            formatted: crate::services::assets::rules::fee_amount(&primitives::Asset::from_chain(primitives::Chain::Ethereum), &BigInt::from(1), None, primitives::currency::Currency::USD),
             additional_fees: vec![],
             selected_priority: FeePriority::Normal,
             amount,

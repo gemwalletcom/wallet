@@ -80,7 +80,7 @@ fun FeeDetails(
     feeItems: List<ListItemModel>,
     feeListItem: ListItemModel?,
     selection: FeeSelectionUIModel,
-    feeDetailsModel: (FeeUIModel.FeeInfo, FeeAssetUIModel) -> FeeDetailsModel?,
+    feeDetailsModel: (FeeUIModel.FeeInfo) -> FeeDetailsModel?,
     feeAsset: FeeAssetUIModel?,
     feeAssets: List<FeeAssetUIModel>,
     showFeeAssets: Boolean,
@@ -93,7 +93,7 @@ fun FeeDetails(
     feeAsset ?: return
     val context = LocalContext.current
     val model = remember(currentFee, feeAsset, selection) {
-        feeDetailsModel(currentFee, feeAsset)
+        feeDetailsModel(currentFee)
     } ?: return
     val unitSymbol = feeUnitSuffix(model.feeUnitType, feeAsset.asset.symbol)
 

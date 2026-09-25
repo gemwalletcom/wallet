@@ -6,6 +6,7 @@ use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
 use crate::models::list::GemListRow;
 use crate::models::transaction::{GemFeeOptionItem, GemTransactionLoadFee, GemTransactionLoadMetadata};
+use crate::services::assets::model::GemFeeAmount;
 use crate::services::balance::GemAssetBalance;
 use crate::services::contact::model::GemAvatar;
 use crate::services::error_text::GemErrorText;
@@ -163,6 +164,7 @@ impl GemConfirmMetadata {
 pub struct GemFeeRateRow {
     pub priority: FeePriority,
     pub fee: Option<GemBigInt>,
+    pub amount: Option<GemFeeAmount>,
     pub value: GemLocalizedText,
     pub is_selected: bool,
 }
@@ -215,6 +217,7 @@ pub struct GemConfirmLoad {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmFee {
     pub value: GemBigInt,
+    pub formatted: GemFeeAmount,
     pub additional_fees: Vec<GemFeeOptionItem>,
     pub selected_priority: FeePriority,
     pub amount: GemTransferAmountResult,

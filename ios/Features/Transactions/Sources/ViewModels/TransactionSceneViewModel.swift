@@ -4,6 +4,7 @@ import BigInt
 import Components
 import Formatters
 import Foundation
+import struct Gemstone.GemFeeAmount
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemTransactionDetailRow
 import struct Gemstone.GemTransactionDetailRows
@@ -166,13 +167,11 @@ extension TransactionSceneViewModel {
     }
 
     var feeDetailsViewModel: NetworkFeeSceneViewModel {
-        let fee = rows.fee
-        return NetworkFeeSceneViewModel(
-            feeAsset: fee.asset.toPrimitives(),
+        NetworkFeeSceneViewModel(
+            feeAsset: rows.fee.asset.toPrimitives(),
             currency: service.getCurrency().toPrimitives(),
             selection: .priority(priority: .normal),
-            feeAssetPrice: fee.price.map { $0.toPrimitives().mapToPrice() },
-            feeAmount: BigInt(fee.value),
+            fee: GemFeeAmount(amount: rows.feeRow.amount, fiat: rows.feeRow.fiat),
         )
     }
 }

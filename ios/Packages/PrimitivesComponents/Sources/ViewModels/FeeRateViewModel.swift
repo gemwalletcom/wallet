@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Components
 import Foundation
+import struct Gemstone.GemFeeAmount
 import enum Gemstone.GemLocalizedText
 import Localization
 import Primitives
@@ -12,13 +12,13 @@ import SwiftUI
 public struct FeeRateViewModel: Identifiable {
     public let priority: FeePriority
     public let value: GemLocalizedText
-    public let fee: BigInt?
+    public let fee: GemFeeAmount?
     public let isSelected: Bool
 
     public init(
         priority: FeePriority,
         value: GemLocalizedText,
-        fee: BigInt?,
+        fee: GemFeeAmount?,
         isSelected: Bool,
     ) {
         self.priority = priority

@@ -126,6 +126,7 @@ public final class ConfirmTransferSceneViewModel {
             feeRates: viewState.feeRates,
             feeAssetPrice: state.metadata?.feePrice,
             feeAmount: state.fee?.value,
+            fee: state.fee?.formatted,
             additionalFees: state.fee?.additionalFees ?? [],
             feeAssets: state.feeAssets.map { $0.feeAssetItem(currency: confirmation.currency) },
             showsFeeAssets: state.load?.showsFeeAssets() ?? false,
