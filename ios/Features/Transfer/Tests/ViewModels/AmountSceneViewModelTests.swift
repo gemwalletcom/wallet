@@ -2,6 +2,7 @@
 
 import BigInt
 import GemstonePrimitives
+import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store
@@ -108,7 +109,7 @@ struct AmountSceneViewModelTests {
 
         model.amountInputModel.text = "1.5"
         model.onChangeAmountText("", "1.5")
-        model.onValidatorSelected(validator2)
+        model.onValidatorSelected(.mock(validator: validator2.toGem()))
 
         #expect(model.amountInputModel.text == "1.5")
     }

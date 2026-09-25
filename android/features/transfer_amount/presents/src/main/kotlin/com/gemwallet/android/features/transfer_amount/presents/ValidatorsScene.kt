@@ -5,21 +5,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.gemwallet.android.features.transfer_amount.viewmodels.models.ValidatorsUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.ValidatorItem
-import com.gemwallet.android.ui.components.list_item.ValidatorRowUIModel
-import com.gemwallet.android.ui.components.list_item.aprText
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.theme.WalletTheme
+import uniffi.gemstone.DelegationValidator
 import uniffi.gemstone.GemEmptyStateKind
+import uniffi.gemstone.GemLocalizedText
+import uniffi.gemstone.GemStakeValidatorSelection
+import uniffi.gemstone.GemValidatorRow
+import uniffi.gemstone.StakeProviderType
 
 @Composable
-fun ValidatorsScene(selection: ValidatorsUIModel, selectedValidatorId: String, onSelect: (String) -> Unit, onCancel: () -> Unit) {
+fun ValidatorsScene(selection: GemStakeValidatorSelection, selectedValidatorId: String, onSelect: (String) -> Unit, onCancel: () -> Unit) {
     Scene(
         title = stringResource(id = R.string.stake_validators),
         onClose = onCancel,
@@ -34,11 +36,11 @@ fun ValidatorsScene(selection: ValidatorsUIModel, selectedValidatorId: String, o
                 item {
                     SubheaderItem(R.string.common_recommended)
                 }
-                itemsPositioned(selection.recommended, key = { _, item -> "recommended-${item.id}" }) { position, item ->
+                itemsPositioned(selection.recommended, key = { _, item -> "recommended-${item.validator.id}" }) { position, item ->
                     ValidatorItem(
                         data = item,
                         listPosition = position,
-                        isSelected = selectedValidatorId == item.id,
+                        isSelected = selectedValidatorId == item.validator.id,
                         onClick = onSelect,
                     )
                 }
@@ -47,11 +49,11 @@ fun ValidatorsScene(selection: ValidatorsUIModel, selectedValidatorId: String, o
                 item {
                     SubheaderItem(R.string.stake_active)
                 }
-                itemsPositioned(selection.options, key = { _, item -> item.id }) { position, item ->
+                itemsPositioned(selection.options, key = { _, item -> item.validator.id }) { position, item ->
                     ValidatorItem(
                         data = item,
                         listPosition = position,
-                        isSelected = selectedValidatorId == item.id,
+                        isSelected = selectedValidatorId == item.validator.id,
                         onClick = onSelect,
                     )
                 }
@@ -65,13 +67,15 @@ fun ValidatorsScene(selection: ValidatorsUIModel, selectedValidatorId: String, o
 fun PreviewValidatorsScene() {
     WalletTheme {
         ValidatorsScene(
-            selection = ValidatorsUIModel(
-                recommended = emptyList(),
+            selection = GemStakeValidatorSelection(
                 options = listOf(
-                    previewRow("some_validator_id", "Castlenode", 9.10),
-                    previewRow("some_validator_id_1", "Ubik Capital 0%Fee", 10.000),
-                    previewRow("some_validator_id_2", "Virtual Hive", 9.50),
+                    previewRow("some_validator_id", "Castlenode"),
+                    previewRow("some_validator_id_1", "Ubik Capital 0%Fee"),
+                    previewRow("some_validator_id_2", "Virtual Hive"),
                 ),
+                recommended = emptyList(),
+                validator = null,
+                canSelect = true,
             ),
             selectedValidatorId = "some_validator_id_1",
             onCancel = {},
@@ -80,10 +84,20 @@ fun PreviewValidatorsScene() {
     }
 }
 
-private fun previewRow(id: String, name: String, apr: Double) = ValidatorRowUIModel(
-    id = id,
+private fun previewRow(id: String, name: String) = GemValidatorRow(
+    validator = DelegationValidator(
+        chain = "cosmos",
+        id = id,
+        name = name,
+        isActive = true,
+        commission = 0.0,
+        apr = 9.1,
+        providerType = StakeProviderType.STAKE,
+    ),
     name = name,
-    imageUrl = null,
+    imageUrl = "",
     placeholder = name.take(1),
-    apr = apr.aprText(),
+    provider = null,
+    apr = GemLocalizedText.Apr(null),
+    explorer = null,
 )

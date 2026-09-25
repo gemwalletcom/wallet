@@ -4,12 +4,9 @@ import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.transfer_amount.viewmodels.models.AmountExtrasUIModel
-import com.gemwallet.android.features.transfer_amount.viewmodels.models.ValidatorsUIModel
-import com.gemwallet.android.features.transfer_amount.viewmodels.models.uiModel
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.ui.components.list_item.uiModel
 import com.wallet.core.primitives.Resource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -64,10 +61,6 @@ class AmountStakeProvider(val params: AmountParams.Stake, getAssetInfo: GetAsset
         .map { it?.validators }
         .stateIn(scope, SharingStarted.Eagerly, null)
 
-    val validatorRows: StateFlow<ValidatorsUIModel?> = validatorSelection
-        .map { it?.uiModel() }
-        .stateIn(scope, SharingStarted.Eagerly, null)
-
     val validatorState: StateFlow<GemValidatorRow?> = selected
         .map { it?.validators?.validator }
         .stateIn(scope, SharingStarted.Eagerly, null)
@@ -90,7 +83,7 @@ class AmountStakeProvider(val params: AmountParams.Stake, getAssetInfo: GetAsset
         is GemStakeAmountInput.Freeze, is GemStakeAmountInput.Unfreeze -> selectedResource.map { AmountExtrasUIModel.Resources(resourceOptions, it) }
 
         else -> combine(validatorState, canSelectValidator) { row, canSelect ->
-            row?.let { AmountExtrasUIModel.Validator(it.uiModel(), canSelect) } ?: AmountExtrasUIModel.None
+            row?.let { AmountExtrasUIModel.Validator(it, canSelect) } ?: AmountExtrasUIModel.None
         }
     }.stateIn(scope, SharingStarted.Eagerly, AmountExtrasUIModel.None)
 

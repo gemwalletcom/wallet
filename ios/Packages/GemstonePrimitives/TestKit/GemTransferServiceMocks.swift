@@ -161,7 +161,6 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
 
 public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Sendable {
     private let claimable: Bool
-    private let explorerAddress: String?
     private let actions: [Gemstone.GemDelegationAction]
     private let validators: [Gemstone.DelegationValidator]
     private let infoRows: [GemListRow]
@@ -172,7 +171,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
 
     public init(
         claimable: Bool = false,
-        explorerAddress: String? = nil,
         actions: [Gemstone.GemDelegationAction] = [],
         validators: [Gemstone.DelegationValidator] = [],
         infoRows: [GemListRow] = [],
@@ -182,7 +180,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         refreshState: GemLoadState = .data,
     ) {
         self.claimable = claimable
-        self.explorerAddress = explorerAddress
         self.actions = actions
         self.validators = validators
         self.infoRows = infoRows
@@ -190,10 +187,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         self.wholeAmounts = wholeAmounts
         self.claimRewardsDestination = claimRewardsDestination
         self.refreshState = refreshState
-    }
-
-    public func sortedDelegations(delegations: [Gemstone.Delegation]) -> [Gemstone.Delegation] {
-        delegations
     }
 
     public func stakeValidatorSelection(chain _: Gemstone.Chain, input _: GemStakeAmountInput) -> GemStakeValidatorSelection {
@@ -260,20 +253,8 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         Primitives.Currency.usd.toGem()
     }
 
-    public func validatorRows(validators: [Gemstone.DelegationValidator]) -> [Gemstone.GemValidatorRow] {
-        validators.map { validator in
-            var row = Gemstone.validatorRow(validator: validator)
-            row.explorer = explorerAddress.map { Gemstone.BlockExplorerLink(name: "MockExplorer", link: "https://explorer.mock/validator/\($0)") }
-            return row
-        }
-    }
-
     public func resourceOptions(chain _: Gemstone.Chain) -> [Gemstone.Resource] {
         [.bandwidth, .energy]
-    }
-
-    public func selectableValidators(validators _: [Gemstone.DelegationValidator]) -> [Gemstone.DelegationValidator] {
-        validators
     }
 
     public func refresh(chain _: Gemstone.Chain, delegations _: [Gemstone.Delegation]) async -> GemLoadState {

@@ -10,6 +10,7 @@ import enum Gemstone.GemAmountInputType
 import protocol Gemstone.GemAmountServiceProtocol
 import protocol Gemstone.GemStakeServiceProtocol
 import struct Gemstone.GemTransferData
+import struct Gemstone.GemValidatorRow
 import GemstonePrimitives
 import GemstoneServices
 import InfoSheet
@@ -212,9 +213,9 @@ extension AmountSceneViewModel {
         }
     }
 
-    public func onValidatorSelected(_ validator: DelegationValidator) {
+    public func onValidatorSelected(_ row: GemValidatorRow) {
         guard case let .stake(stake) = provider else { return }
-        stake.select(validator)
+        stake.select(row)
         refreshEntry()
     }
 

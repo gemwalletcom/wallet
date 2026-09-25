@@ -149,8 +149,8 @@ class AmountViewModel @Inject constructor(service: GemAmountServiceInterface, fa
     val perpetualProvider = provider as? AmountPerpetualProvider
 
     val validatorPicker: StateFlow<ValidatorPickerUIModel?> = stakeProvider?.let { stake ->
-        combine(stake.validatorRows, stake.validatorState) { rows, selected ->
-            rows?.let { ValidatorPickerUIModel(rows = it, selectedId = selected?.validator?.id.orEmpty()) }
+        combine(stake.validatorSelection, stake.validatorState) { selection, selected ->
+            selection?.let { ValidatorPickerUIModel(selection = it, selectedId = selected?.validator?.id.orEmpty()) }
         }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
     } ?: MutableStateFlow(null)
 

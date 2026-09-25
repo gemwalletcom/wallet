@@ -9,7 +9,6 @@ import com.gemwallet.android.features.transfer_amount.viewmodels.models.AmountEx
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.ui.components.list_item.uiModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -67,7 +66,7 @@ class AmountEarnProvider(
             .stateIn(scope, SharingStarted.Eagerly, null)
 
     override val extras: StateFlow<AmountExtrasUIModel> = amountType
-        .map { type -> (type as? GemAmountType.Earn)?.let { AmountExtrasUIModel.EarnProvider(it.provider.uiModel()) } ?: AmountExtrasUIModel.None }
+        .map { type -> (type as? GemAmountType.Earn)?.let { AmountExtrasUIModel.EarnProvider(it.provider) } ?: AmountExtrasUIModel.None }
         .stateIn(scope, SharingStarted.Eagerly, AmountExtrasUIModel.None)
 
     override suspend fun buildTransfer(amount: Crypto, isMax: Boolean): GemTransferData {

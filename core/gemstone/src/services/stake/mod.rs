@@ -74,17 +74,17 @@ impl GemStakeService {
     }
 
     pub fn stake_validator_selection(&self, chain: Chain, input: GemStakeAmountInput) -> GemStakeValidatorSelection {
-        rules::validator_selection(chain, &input)
-    }
-
-    pub fn validator_rows(&self, validators: Vec<DelegationValidator>) -> Vec<GemValidatorRow> {
-        validators
-            .iter()
-            .map(|validator| GemValidatorRow {
-                explorer: rules::validator_explorer_address(validator).and_then(|address| self.explorer.get_validator_url(validator.chain, address)),
-                ..rules::validator_row(validator)
-            })
-            .collect()
+        let selection = rules::validator_selection(chain, &input);
+        let with_explorer = |row: GemValidatorRow| GemValidatorRow {
+            explorer: rules::validator_explorer_address(&row.validator).and_then(|address| self.explorer.get_validator_url(row.validator.chain, address)),
+            ..row
+        };
+        GemStakeValidatorSelection {
+            options: selection.options.into_iter().map(with_explorer).collect(),
+            recommended: selection.recommended.into_iter().map(with_explorer).collect(),
+            validator: selection.validator.map(with_explorer),
+            can_select: selection.can_select,
+        }
     }
 
     pub async fn refresh(&self, chain: Chain, delegations: Vec<Delegation>) -> GemLoadState {
@@ -115,11 +115,6 @@ impl GemStakeService {
         let rows = self.delegation_rows(delegation.clone());
         rules::delegation_details(wallet_type, &delegation, &asset, price, currency, rows)
     }
-}
-
-#[uniffi::export]
-pub fn validator_row(validator: DelegationValidator) -> GemValidatorRow {
-    rules::validator_row(&validator)
 }
 
 impl GemStakeService {

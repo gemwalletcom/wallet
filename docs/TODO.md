@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **One view state:** VM171, VM144, VM125, VM134, VM89.
+1. **One view state:** VM144, VM125, VM134, VM89.
 2. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
 3. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
 4. **Balances and storage:** D76, D77, VM98 (an Android migration).
@@ -50,7 +50,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | — |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM172 |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | VM172 |
-| Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | VM171; preserve exact atomic values |
+| Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | Preserve exact atomic values |
 | NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM134 |
 | Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM67, VM172 |
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | — |
@@ -99,9 +99,7 @@ The same product rule written in both apps, or in one app while the other reads 
   - **iOS:** decides the verified badge from the domain status (`CollectibleViewModel.swift:81-83`); assembles the header from `can_send` plus `actions` (`:65-79,97-112`), and its image context menu re-lists save and avatar whatever `actions` says; picks `Localized.Nft.properties`/`Localized.Social.links` by `GemCollectibleSection` in the body (`CollectibleScene.swift:24-45`).
   - **Android:** the same badge rule (`NftDetailsUIModel.kt:32`); switches `GemCollectibleAction` inside the composable to pick `stringResource` (`NftHeaderActions.kt:41-106`); section titles in `NftDetailsUIModel.kt:43-55`.
   - **Expected:** both read Core's answers, and the context menu follows `actions`.
-- **VM171** **S** **The validator picker takes `GemStakeValidatorSelection` with explorer links.** `stake_validator_selection` ([`stake/mod.rs`](../core/gemstone/src/services/stake/mod.rs)) fills `explorer` on its rows, and the single-row `validator_row` export goes.
-  - **iOS:** turns the selection's `GemValidatorRow`s back into `DelegationValidator`s (`AmountStakeViewModel.swift:55`, `AmountNavigationView.swift:59-60`), then re-crosses `validatorRows` with a `validator_row` fallback and rebuilds the Recommended and Active sections (`ValidatorSelectSceneViewModel.swift:35-55,83-85`), because the selection rows lack the explorer link. Delete `rowsById`, `recommendedValidators` and the round trip.
-  - **Android:** maps the selection directly (`ValidatorsUIModel.kt`); `ValidatorRowUIModel` copies five row fields and `Double.aprText()` repeats Core's APR rule for previews only (`ValidatorRowUIModel.kt:8-18`). Hold the row.
+
 ## 4. Numbers and text the apps still format
 
 [A number crosses as a value and a style](ARCHITECTURE.md#a-number-crosses-as-a-value-and-a-style-never-as-a-string-or-a-callback) and [the record carries the finished value](ARCHITECTURE.md#the-record-carries-the-finished-value-not-the-ingredients). Each item is a raw amount, price or seconds value that both apps format, convert or compose themselves.
