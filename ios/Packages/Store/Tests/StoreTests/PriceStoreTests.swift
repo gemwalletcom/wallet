@@ -37,6 +37,36 @@ struct PriceStoreTests {
     }
 
     @Test
+    func ratesAndPricesOfATickCommitTogether() throws {
+        let db = DB.mockWithChains([.ethereum, .bitcoin])
+        let priceStore = PriceStore(db: db)
+        let ethereum = Chain.ethereum.assetId
+        let bitcoin = Chain.bitcoin.assetId
+        let rate = FiatRate(symbol: .eur, rate: 0.9)
+        let price = { (assetId: AssetId) in try priceStore.getPrices(for: [assetId.identifier]).first?.price }
+        try priceStore.saveRates([FiatRate(symbol: .eur, rate: 0.8)])
+        try priceStore.updatePrices([.mock(assetId: ethereum, price: 100, rate: 0.8)])
+        try db.dbQueue.write { db in
+            try db.execute(sql: "CREATE TRIGGER reject_price BEFORE INSERT ON prices BEGIN SELECT RAISE(ABORT, 'price failed'); END")
+        }
+
+        #expect(throws: DatabaseError.self) {
+            try priceStore.saveRatesAndPrices([rate], conversion: rate, prices: [.mock(assetId: bitcoin, price: 200, rate: 0.9)])
+        }
+        #expect(try priceStore.getRate(currency: "EUR")?.rate == 0.8)
+        #expect(try price(ethereum) == 80)
+
+        try db.dbQueue.write { db in
+            try db.execute(sql: "DROP TRIGGER reject_price")
+        }
+        try priceStore.saveRatesAndPrices([rate], conversion: rate, prices: [.mock(assetId: bitcoin, price: 200, rate: 0.9)])
+
+        #expect(try priceStore.getRate(currency: "EUR")?.rate == 0.9)
+        #expect(try price(ethereum) == 90)
+        #expect(try price(bitcoin) == 180)
+    }
+
+    @Test
     func savingAnotherCurrencyDoesNotReprice() throws {
         let db = DB.mockWithChains([.ethereum])
         let priceStore = PriceStore(db: db)

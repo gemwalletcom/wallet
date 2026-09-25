@@ -23,9 +23,10 @@ interface PricesDao {
     suspend fun setRates(rates: List<DbFiatRate>)
 
     @Transaction
-    suspend fun saveRates(rates: List<DbFiatRate>, conversion: DbFiatRate?) {
+    suspend fun saveRatesAndPrices(rates: List<DbFiatRate>, conversion: DbFiatRate?, prices: List<DbPrice>) {
         setRates(rates)
         conversion?.let { updateValues(it.currency, it.rate) }
+        insert(prices)
     }
 
     @Query("UPDATE prices SET value = usd_value * :rate, currency = :currency")

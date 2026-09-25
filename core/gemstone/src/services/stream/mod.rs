@@ -140,8 +140,7 @@ impl GemStreamService {
                     prices: payload.prices.len() as u32,
                     rates: payload.rates.len() as u32,
                 };
-                self.price.update_rates(payload.rates).await?;
-                self.price.update_prices(payload.prices).await?;
+                self.price.update_rates_and_prices(payload.rates, payload.prices).await?;
                 Ok(handled)
             }
             StreamEvent::Balances(update) => Ok(GemStreamEvent::Balances {

@@ -24,25 +24,14 @@ class GemstonePriceStore(private val pricesDao: PricesDao, private val assetsDao
 
     override suspend fun getRates(): List<uniffi.gemstone.FiatRate> = pricesDao.getRates().toDTO().map { it.toGem() }
 
-    override suspend fun saveRates(rates: List<uniffi.gemstone.FiatRate>, conversion: uniffi.gemstone.FiatRate?) = pricesDao.saveRates(
+    override suspend fun saveRatesAndPrices(currency: uniffi.gemstone.Currency, rates: List<uniffi.gemstone.FiatRate>, conversion: uniffi.gemstone.FiatRate?, prices: List<GemPriceUpdate>) = pricesDao.saveRatesAndPrices(
         rates = rates.map { it.toPrimitives().toRecord() },
         conversion = conversion?.toPrimitives()?.toRecord(),
+        prices = prices.map { it.toRecord(currency.toPrimitives()) },
     )
 
     override suspend fun savePrices(currency: uniffi.gemstone.Currency, prices: List<GemPriceUpdate>) {
-        val currency = currency.toPrimitives()
-        pricesDao.insert(
-            prices.map {
-                DbPrice(
-                    assetId = it.assetId,
-                    value = it.price,
-                    usdValue = it.priceUsd,
-                    dayChanged = it.priceChangePercentage24h,
-                    currency = currency,
-                    updatedAt = it.updatedAt,
-                )
-            },
-        )
+        pricesDao.insert(prices.map { it.toRecord(currency.toPrimitives()) })
     }
 
     override suspend fun convertPrices(currency: uniffi.gemstone.Currency, rate: Double) = pricesDao.updateValues(currency.toPrimitives(), rate)
@@ -53,3 +42,12 @@ class GemstonePriceStore(private val pricesDao: PricesDao, private val assetsDao
 
     fun observeUsdPrice(assetId: AssetId): Flow<Double?> = pricesDao.getUsdPrice(assetId.toIdentifier())
 }
+
+private fun GemPriceUpdate.toRecord(currency: Currency) = DbPrice(
+    assetId = assetId,
+    value = price,
+    usdValue = priceUsd,
+    dayChanged = priceChangePercentage24h,
+    currency = currency,
+    updatedAt = updatedAt,
+)

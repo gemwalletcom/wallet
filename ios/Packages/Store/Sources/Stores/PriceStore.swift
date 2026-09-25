@@ -25,29 +25,44 @@ public struct PriceStore: Sendable {
 
     public func saveRates(_ rates: [FiatRate], conversion: FiatRate? = nil) throws {
         try db.write { db in
-            for rate in rates {
-                try rate.record.upsert(db)
-            }
-            if let conversion {
-                _ = try convertPrices(db, rate: conversion.rate)
-            }
+            try saveRates(db, rates: rates, conversion: conversion)
         }
     }
 
     public func updatePrices(_ updates: [PriceUpdate]) throws {
         try db.write { db in
-            for update in updates {
-                _ = try update.record.upsertAndFetch(
-                    db,
-                    onConflict: [],
-                    doUpdate: { _ in [
-                        PriceRecord.Columns.price.set(to: update.price),
-                        PriceRecord.Columns.priceUsd.set(to: update.priceUsd),
-                        PriceRecord.Columns.priceChangePercentage24h.set(to: update.priceChangePercentage24h),
-                        PriceRecord.Columns.updatedAt.set(to: update.updatedAt),
-                    ] },
-                )
-            }
+            try updatePrices(db, updates: updates)
+        }
+    }
+
+    public func saveRatesAndPrices(_ rates: [FiatRate], conversion: FiatRate?, prices: [PriceUpdate]) throws {
+        try db.write { db in
+            try saveRates(db, rates: rates, conversion: conversion)
+            try updatePrices(db, updates: prices)
+        }
+    }
+
+    private func saveRates(_ db: Database, rates: [FiatRate], conversion: FiatRate?) throws {
+        for rate in rates {
+            try rate.record.upsert(db)
+        }
+        if let conversion {
+            _ = try convertPrices(db, rate: conversion.rate)
+        }
+    }
+
+    private func updatePrices(_ db: Database, updates: [PriceUpdate]) throws {
+        for update in updates {
+            _ = try update.record.upsertAndFetch(
+                db,
+                onConflict: [],
+                doUpdate: { _ in [
+                    PriceRecord.Columns.price.set(to: update.price),
+                    PriceRecord.Columns.priceUsd.set(to: update.priceUsd),
+                    PriceRecord.Columns.priceChangePercentage24h.set(to: update.priceChangePercentage24h),
+                    PriceRecord.Columns.updatedAt.set(to: update.updatedAt),
+                ] },
+            )
         }
     }
 
