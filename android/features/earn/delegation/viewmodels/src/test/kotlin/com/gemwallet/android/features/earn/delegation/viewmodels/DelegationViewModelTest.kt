@@ -11,6 +11,7 @@ import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockDelegation
+import com.gemwallet.android.testkit.mockDelegationBase
 import com.gemwallet.android.testkit.mockDelegationValidator
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
@@ -67,8 +68,16 @@ class DelegationViewModelTest {
     fun `delegation lookup is scoped to the session wallet, not just validator and delegation id`() = runTest(testDispatcher) {
         val ownWalletId = WalletId("wallet-own")
         val otherWalletId = WalletId("wallet-other")
-        val ownDelegation = mockDelegation(assetId = asset.id, balance = BigInteger("77"), validatorId = "v1", delegationId = "d1")
-        val otherWalletDelegation = mockDelegation(assetId = asset.id, balance = BigInteger("999999"), validatorId = "v1", delegationId = "d1")
+        val ownDelegation =
+            mockDelegation(
+                base = mockDelegationBase(assetId = asset.id, balance = BigInteger("77"), shares = BigInteger("77"), delegationId = "d1", validatorId = "v1"),
+                validator = mockDelegationValidator(chain = asset.id.chain, id = "v1"),
+            )
+        val otherWalletDelegation =
+            mockDelegation(
+                base = mockDelegationBase(assetId = asset.id, balance = BigInteger("999999"), shares = BigInteger("999999"), delegationId = "d1", validatorId = "v1"),
+                validator = mockDelegationValidator(chain = asset.id.chain, id = "v1"),
+            )
 
         every { delegationQuery(ownWalletId, "v1", "d1") } returns flowOf(ownDelegation)
         every { delegationQuery(otherWalletId, "v1", "d1") } returns flowOf(otherWalletDelegation)
@@ -102,7 +111,8 @@ class DelegationViewModelTest {
     @Test
     fun `the delegation actions are decided with the stored validators`() = runTest(testDispatcher) {
         val walletId = WalletId("wallet-own")
-        every { delegationQuery(walletId, "v1", "d1") } returns flowOf(mockDelegation(assetId = asset.id, validatorId = "v1", delegationId = "d1"))
+        every { delegationQuery(walletId, "v1", "d1") } returns
+            flowOf(mockDelegation(base = mockDelegationBase(assetId = asset.id, delegationId = "d1", validatorId = "v1"), validator = mockDelegationValidator(chain = asset.id.chain, id = "v1")))
         val stakeService = mockk<GemStakeServiceInterface>(relaxed = true) {
             every { getCurrency() } returns Currency.USD.toGem()
         }

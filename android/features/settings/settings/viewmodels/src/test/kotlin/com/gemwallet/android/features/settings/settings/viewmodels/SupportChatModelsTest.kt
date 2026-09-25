@@ -22,7 +22,7 @@ class SupportChatModelsTest {
 
     @Test
     fun groupsByDaySortedAscending() {
-        val days = buildSupportChatDays(listOf(mockSupportMessage("b", user, day2), mockSupportMessage("a", user, day1)))
+        val days = buildSupportChatDays(listOf(mockSupportMessage(id = "b", content = "b", sender = user, createdAt = day2), mockSupportMessage(id = "a", content = "a", sender = user, createdAt = day1)))
 
         assertEquals(2, days.size)
         assertEquals(listOf("a"), days[0].groups.flatMap { it.messages }.map { it.id })
@@ -33,9 +33,9 @@ class SupportChatModelsTest {
     fun groupsCarryTheSenderAndTheMessages() {
         val days = buildSupportChatDays(
             listOf(
-                mockSupportMessage("a", user, day1),
-                mockSupportMessage("b", ann, day1 + 1_000L),
-                mockSupportMessage("c", ann, day1 + 2_000L),
+                mockSupportMessage(id = "a", content = "a", sender = user, createdAt = day1),
+                mockSupportMessage(id = "b", content = "b", sender = ann, createdAt = day1 + 1_000L),
+                mockSupportMessage(id = "c", content = "c", sender = ann, createdAt = day1 + 2_000L),
             ),
         )
 

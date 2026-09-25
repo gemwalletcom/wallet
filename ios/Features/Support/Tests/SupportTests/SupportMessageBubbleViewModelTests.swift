@@ -30,7 +30,7 @@ struct SupportMessageBubbleViewModelTests {
 
     @Test
     func anEmptyMessageWithAnImageStillHasContentToShow() {
-        let model = SupportMessageBubbleViewModel.mock(message: .mock(content: "", images: [.mock()]))
+        let model = SupportMessageBubbleViewModel.mock(message: .mock(content: "", images: [.mock(url: "https://gemwallet.com/a.png")]))
 
         #expect(model.hasContent == false)
         #expect(model.hasImages)

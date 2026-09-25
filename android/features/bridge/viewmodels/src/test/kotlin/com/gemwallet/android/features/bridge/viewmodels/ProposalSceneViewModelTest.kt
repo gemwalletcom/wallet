@@ -65,9 +65,9 @@ class ProposalSceneViewModelTest {
 
     private fun service(): GemWalletConnectServiceInterface = mockk(relaxed = true) {
         every { shouldProcessProposal(any()) } returns true
-        every { applicationMetadata(any(), any(), any(), any()) } returns mockApplicationMetadata().toGem()
+        every { applicationMetadata(any(), any(), any(), any()) } returns mockApplicationMetadata(name = "Uniswap").toGem()
         coEvery { prepareSessionProposal(any(), any(), any(), any(), any()) } returns GemSessionProposal(
-            proposal = mockWalletConnectionSessionProposal(defaultWallet = main, wallets = listOf(main, secondary)).toGem(),
+            proposal = mockWalletConnectionSessionProposal(defaultWallet = main, wallets = listOf(main, secondary), metadata = mockApplicationMetadata(name = "Uniswap")).toGem(),
             verificationStatus = WalletConnectionVerificationStatus.VERIFIED,
         )
     }

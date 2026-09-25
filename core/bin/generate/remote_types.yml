@@ -221,6 +221,7 @@ identifiers:
 mocks:
   - Account
   - AddressName
+  - ApplicationMetadata
   - Asset
   - AssetBasic
   - AssetFull
@@ -230,8 +231,23 @@ mocks:
   - AssetPrice
   - AssetProperties
   - AssetScore
+  - Banner
+  - BlockExplorerLink
   - ChartCandleStick
   - ChartDateValue
+  - Contact
+  - ContactAddress
+  - ContactData
+  - CoreListItem
+  - Delegation
+  - DelegationBase
+  - DelegationValidator
+  - Device
+  - FiatRate
+  - FiatTransaction
+  - FiatTransactionAssetData
+  - FiatTransactionData
+  - InAppNotification
   - NameRecord
   - NFTAsset
   - NFTAssetData
@@ -249,6 +265,11 @@ mocks:
   - PerpetualPositionData
   - Price
   - PriceAlert
+  - PriceAlertData
+  - RedelegateData
+  - SupportAgent
+  - SupportMessage
+  - SupportMessageImage
   - TotalFiatValue
   - Transaction
   - TransactionExtended
@@ -256,6 +277,10 @@ mocks:
   - TransactionPerpetualMetadata
   - TransactionSwapMetadata
   - Wallet
+  - WalletConnection
+  - WalletConnectionSession
+  - WalletConnectionSessionProposal
+  - WCPairingProposal
 
 # Type names the generator has to know besides the ones above: what passes through a mapper
 # untouched, and what gemstone declares under another name (an unqualified name is a gemstone

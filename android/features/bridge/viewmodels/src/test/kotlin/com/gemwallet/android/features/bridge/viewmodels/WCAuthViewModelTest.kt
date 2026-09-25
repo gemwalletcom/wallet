@@ -86,9 +86,9 @@ class WCAuthViewModelTest {
     private val verifyContext = mockWalletConnectVerifyContext()
 
     private fun service(accounts: (String) -> List<GemWalletConnectAuthAccount>): GemWalletConnectServiceInterface = mockk(relaxed = true) {
-        every { applicationMetadata(any(), any(), any(), any()) } returns mockApplicationMetadata().toGem()
+        every { applicationMetadata(any(), any(), any(), any()) } returns mockApplicationMetadata(name = "Uniswap").toGem()
         coEvery { prepareSessionProposal(any(), any(), any(), any(), any()) } returns GemSessionProposal(
-            proposal = mockWalletConnectionSessionProposal(defaultWallet = main, wallets = listOf(main, secondary)).toGem(),
+            proposal = mockWalletConnectionSessionProposal(defaultWallet = main, wallets = listOf(main, secondary), metadata = mockApplicationMetadata(name = "Uniswap")).toGem(),
             verificationStatus = WalletConnectionVerificationStatus.VERIFIED,
         )
         every { authenticationChainIds(any()) } returns listOf("eip155:1")

@@ -10,8 +10,8 @@ struct StakeStoreTests {
     @Test
     func deactivateValidatorsKeepsRow() throws {
         let store = StakeStore(db: .mock(chains: [.cosmos]))
-        let elected = DelegationValidator.mock(.cosmos, id: "elected")
-        let dropped = DelegationValidator.mock(.cosmos, id: "dropped")
+        let elected = DelegationValidator.mock(chain: .cosmos, id: "elected", isActive: true)
+        let dropped = DelegationValidator.mock(chain: .cosmos, id: "dropped", isActive: true)
         try store.updateValidators([elected, dropped])
 
         try store.deactivateValidators(assetId: Chain.cosmos.assetId, validatorIds: [dropped.id])
@@ -29,8 +29,8 @@ struct StakeStoreTests {
         let store = StakeStore(db: .mock(chains: [.cosmos, .celestia]))
         let sharedId = "valoper1shared"
         try store.updateValidators([
-            DelegationValidator.mock(.cosmos, id: sharedId),
-            DelegationValidator.mock(.celestia, id: sharedId),
+            DelegationValidator.mock(chain: .cosmos, id: sharedId, isActive: true),
+            DelegationValidator.mock(chain: .celestia, id: sharedId, isActive: true),
         ])
 
         try store.deactivateValidators(assetId: Chain.cosmos.assetId, validatorIds: [sharedId])

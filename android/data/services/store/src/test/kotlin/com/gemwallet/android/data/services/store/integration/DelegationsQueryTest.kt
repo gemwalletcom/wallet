@@ -9,6 +9,7 @@ import com.gemwallet.android.data.services.store.database.entities.DbWallet
 import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.data.services.store.queries.DelegationsQuery
 import com.gemwallet.android.testkit.mockDelegation
+import com.gemwallet.android.testkit.mockDelegationBase
 import com.gemwallet.android.testkit.mockDelegationValidator
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
@@ -42,10 +43,21 @@ class DelegationsQueryTest {
     private val stakeValidator = mockDelegationValidator(chain = Chain.Cosmos, id = "stake")
     private val earnValidator = mockDelegationValidator(chain = Chain.Cosmos, id = "earn", providerType = StakeProviderType.Earn)
     private val osmoValidator = mockDelegationValidator(chain = Chain.Osmosis, id = "osmo")
-    private val staked = mockDelegation(assetId = cosmos, balance = BigInteger("123456789012345678901234567890"), rewards = BigInteger("987654321"), delegationId = "d1", validatorId = "stake", validator = stakeValidator)
-    private val earning = mockDelegation(assetId = cosmos, balance = BigInteger("500"), delegationId = "d2", validatorId = "earn", validator = earnValidator)
-    private val otherWallet = mockDelegation(assetId = cosmos, balance = BigInteger("999"), delegationId = "d3", validatorId = "stake", validator = stakeValidator)
-    private val osmo = mockDelegation(assetId = osmosis, balance = BigInteger("42"), delegationId = "d4", validatorId = "osmo", validator = osmoValidator)
+    private val staked =
+        mockDelegation(
+            base = mockDelegationBase(
+                assetId = cosmos,
+                balance = BigInteger("123456789012345678901234567890"),
+                shares = BigInteger("123456789012345678901234567890"),
+                rewards = BigInteger("987654321"),
+                delegationId = "d1",
+                validatorId = "stake",
+            ),
+            validator = stakeValidator,
+        )
+    private val earning = mockDelegation(base = mockDelegationBase(assetId = cosmos, balance = BigInteger("500"), shares = BigInteger("500"), delegationId = "d2", validatorId = "earn"), validator = earnValidator)
+    private val otherWallet = mockDelegation(base = mockDelegationBase(assetId = cosmos, balance = BigInteger("999"), shares = BigInteger("999"), delegationId = "d3", validatorId = "stake"), validator = stakeValidator)
+    private val osmo = mockDelegation(base = mockDelegationBase(assetId = osmosis, balance = BigInteger("42"), shares = BigInteger("42"), delegationId = "d4", validatorId = "osmo"), validator = osmoValidator)
 
     @Before
     fun setUp() = runBlocking(Dispatchers.IO) {
@@ -76,7 +88,7 @@ class DelegationsQueryTest {
 
     @Test
     fun severalDelegationsOfTheWalletAreAllListed() = runBlocking(Dispatchers.IO) {
-        val second = mockDelegation(assetId = cosmos, balance = BigInteger("7"), delegationId = "d5", validatorId = "stake", validator = stakeValidator)
+        val second = mockDelegation(base = mockDelegationBase(assetId = cosmos, balance = BigInteger("7"), shares = BigInteger("7"), delegationId = "d5", validatorId = "stake"), validator = stakeValidator)
         database.stakeDao().upsertDelegations(listOf(second.base).toRecord(wallet1))
 
         assertEquals(setOf(staked, second), query(wallet1, cosmos, StakeProviderType.Stake).first().toSet())

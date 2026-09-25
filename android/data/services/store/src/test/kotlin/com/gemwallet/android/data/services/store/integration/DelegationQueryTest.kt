@@ -9,6 +9,7 @@ import com.gemwallet.android.data.services.store.database.entities.DbWallet
 import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.data.services.store.queries.DelegationQuery
 import com.gemwallet.android.testkit.mockDelegation
+import com.gemwallet.android.testkit.mockDelegationBase
 import com.gemwallet.android.testkit.mockDelegationValidator
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
@@ -40,9 +41,13 @@ class DelegationQueryTest {
     private val cosmos = AssetId(Chain.Cosmos)
     private val stakeValidator = mockDelegationValidator(chain = Chain.Cosmos, id = "stake")
     private val earnValidator = mockDelegationValidator(chain = Chain.Cosmos, id = "earn", providerType = StakeProviderType.Earn)
-    private val own = mockDelegation(assetId = cosmos, balance = BigInteger("123456789012345678901234567890"), rewards = BigInteger("55"), delegationId = "d1", validatorId = "stake", validator = stakeValidator)
-    private val ownEarn = mockDelegation(assetId = cosmos, balance = BigInteger("500"), delegationId = "d1", validatorId = "earn", validator = earnValidator)
-    private val otherWallet = mockDelegation(assetId = cosmos, balance = BigInteger("999"), delegationId = "d1", validatorId = "stake", validator = stakeValidator)
+    private val own =
+        mockDelegation(
+            base = mockDelegationBase(assetId = cosmos, balance = BigInteger("123456789012345678901234567890"), shares = BigInteger("123456789012345678901234567890"), rewards = BigInteger("55"), delegationId = "d1", validatorId = "stake"),
+            validator = stakeValidator,
+        )
+    private val ownEarn = mockDelegation(base = mockDelegationBase(assetId = cosmos, balance = BigInteger("500"), shares = BigInteger("500"), delegationId = "d1", validatorId = "earn"), validator = earnValidator)
+    private val otherWallet = mockDelegation(base = mockDelegationBase(assetId = cosmos, balance = BigInteger("999"), shares = BigInteger("999"), delegationId = "d1", validatorId = "stake"), validator = stakeValidator)
 
     @Before
     fun setUp() = runBlocking(Dispatchers.IO) {

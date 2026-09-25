@@ -71,7 +71,7 @@ class WCRequestViewModelTest {
 
     private val sessionRequest = mockWalletConnectSessionRequest(id = 42L, topic = topic)
 
-    private val verifyContext = mockWalletConnectVerifyContext()
+    private val verifyContext = mockWalletConnectVerifyContext(origin = "https://app.uniswap.org")
 
     private fun service(onProcess: suspend (GemWalletConnectSessionRequest) -> GemWalletConnectOutcome = { idle }): GemWalletConnectServiceInterface = mockk(relaxed = true) {
         coEvery { requestOutcome(any()) } coAnswers { onProcess(firstArg()) }

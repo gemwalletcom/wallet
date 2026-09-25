@@ -6,6 +6,8 @@ package com.gemwallet.android.testkit
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.AddressType
+import com.wallet.core.primitives.ApplicationMetadata
+import com.wallet.core.primitives.ApplicationMetadataSource
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetAssociation
 import com.wallet.core.primitives.AssetBasic
@@ -18,11 +20,35 @@ import com.wallet.core.primitives.AssetPrice
 import com.wallet.core.primitives.AssetProperties
 import com.wallet.core.primitives.AssetScore
 import com.wallet.core.primitives.AssetType
+import com.wallet.core.primitives.Banner
+import com.wallet.core.primitives.BannerEvent
+import com.wallet.core.primitives.BannerState
+import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartDateValue
 import com.wallet.core.primitives.ChartValuePercentage
+import com.wallet.core.primitives.Contact
+import com.wallet.core.primitives.ContactAddress
+import com.wallet.core.primitives.ContactData
+import com.wallet.core.primitives.CoreListItem
+import com.wallet.core.primitives.CoreListItemBadge
+import com.wallet.core.primitives.CoreListItemIcon
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.Delegation
+import com.wallet.core.primitives.DelegationBase
+import com.wallet.core.primitives.DelegationState
+import com.wallet.core.primitives.DelegationValidator
+import com.wallet.core.primitives.Device
+import com.wallet.core.primitives.DeviceLocale
+import com.wallet.core.primitives.FiatProviderName
+import com.wallet.core.primitives.FiatQuoteType
+import com.wallet.core.primitives.FiatRate
+import com.wallet.core.primitives.FiatTransaction
+import com.wallet.core.primitives.FiatTransactionAssetData
+import com.wallet.core.primitives.FiatTransactionData
+import com.wallet.core.primitives.FiatTransactionStatus
+import com.wallet.core.primitives.InAppNotification
 import com.wallet.core.primitives.JsonValue
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.NFTAssetData
@@ -50,10 +76,21 @@ import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.PerpetualTriggerOrder
+import com.wallet.core.primitives.Platform
+import com.wallet.core.primitives.PlatformStore
 import com.wallet.core.primitives.Price
 import com.wallet.core.primitives.PriceAlert
+import com.wallet.core.primitives.PriceAlertData
 import com.wallet.core.primitives.PriceAlertDirection
+import com.wallet.core.primitives.RedelegateData
+import com.wallet.core.primitives.SerializedBigInteger
 import com.wallet.core.primitives.SerializedDate
+import com.wallet.core.primitives.StakeProviderType
+import com.wallet.core.primitives.SupportAgent
+import com.wallet.core.primitives.SupportMessage
+import com.wallet.core.primitives.SupportMessageImage
+import com.wallet.core.primitives.SupportMessageSender
+import com.wallet.core.primitives.SupportMessageStatus
 import com.wallet.core.primitives.TotalFiatValue
 import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.TransactionDirection
@@ -66,7 +103,13 @@ import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.TransactionUtxoInput
 import com.wallet.core.primitives.VerificationStatus
+import com.wallet.core.primitives.WCPairingProposal
 import com.wallet.core.primitives.Wallet
+import com.wallet.core.primitives.WalletConnection
+import com.wallet.core.primitives.WalletConnectionSession
+import com.wallet.core.primitives.WalletConnectionSessionProposal
+import com.wallet.core.primitives.WalletConnectionState
+import com.wallet.core.primitives.WalletConnectionVerificationStatus
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
@@ -97,6 +140,20 @@ fun mockAddressName(
     type = type,
     status = status,
     imageUrl = imageUrl,
+)
+
+fun mockApplicationMetadata(
+    name: String = "",
+    description: String = "",
+    url: String = "",
+    icon: String = "",
+    source: ApplicationMetadataSource = ApplicationMetadataSource.WalletConnect,
+) = ApplicationMetadata(
+    name = name,
+    description = description,
+    url = url,
+    icon = icon,
+    source = source,
 )
 
 fun mockAsset(
@@ -245,6 +302,26 @@ fun mockAssetScore(
     rank = rank,
 )
 
+fun mockBanner(
+    walletId: WalletId? = null,
+    asset: Asset? = null,
+    event: BannerEvent = BannerEvent.Stake,
+    state: BannerState = BannerState.Active,
+) = Banner(
+    walletId = walletId,
+    asset = asset,
+    event = event,
+    state = state,
+)
+
+fun mockBlockExplorerLink(
+    name: String = "",
+    link: String = "",
+) = BlockExplorerLink(
+    name = name,
+    link = link,
+)
+
 fun mockChartCandleStick(
     date: SerializedDate = 0L,
     open: Double = 0.0,
@@ -267,6 +344,216 @@ fun mockChartDateValue(
 ) = ChartDateValue(
     date = date,
     value = value,
+)
+
+fun mockContact(
+    id: String = "",
+    name: String = "",
+    description: String? = null,
+    imageUrl: String? = null,
+    createdAt: SerializedDate = 0L,
+    updatedAt: SerializedDate = 0L,
+) = Contact(
+    id = id,
+    name = name,
+    description = description,
+    imageUrl = imageUrl,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+)
+
+fun mockContactAddress(
+    id: String = "",
+    contactId: String = "",
+    address: String = "",
+    chain: Chain = Chain.Bitcoin,
+    memo: String? = null,
+) = ContactAddress(
+    id = id,
+    contactId = contactId,
+    address = address,
+    chain = chain,
+    memo = memo,
+)
+
+fun mockContactData(
+    contact: Contact = mockContact(),
+    addresses: List<ContactAddress> = emptyList(),
+) = ContactData(
+    contact = contact,
+    addresses = addresses,
+)
+
+fun mockCoreListItem(
+    id: String = "",
+    title: String = "",
+    subtitle: String? = null,
+    value: String? = null,
+    subvalue: String? = null,
+    icon: CoreListItemIcon? = null,
+    badge: CoreListItemBadge? = null,
+    url: String? = null,
+) = CoreListItem(
+    id = id,
+    title = title,
+    subtitle = subtitle,
+    value = value,
+    subvalue = subvalue,
+    icon = icon,
+    badge = badge,
+    url = url,
+)
+
+fun mockDelegation(
+    base: DelegationBase = mockDelegationBase(),
+    validator: DelegationValidator = mockDelegationValidator(),
+    price: Price? = null,
+) = Delegation(
+    base = base,
+    validator = validator,
+    price = price,
+)
+
+fun mockDelegationBase(
+    assetId: AssetId = mockAssetId(),
+    state: DelegationState = DelegationState.Active,
+    balance: SerializedBigInteger = java.math.BigInteger.ZERO,
+    shares: SerializedBigInteger = java.math.BigInteger.ZERO,
+    rewards: SerializedBigInteger = java.math.BigInteger.ZERO,
+    completionDate: SerializedDate? = null,
+    delegationId: String = "",
+    validatorId: String = "",
+) = DelegationBase(
+    assetId = assetId,
+    state = state,
+    balance = balance,
+    shares = shares,
+    rewards = rewards,
+    completionDate = completionDate,
+    delegationId = delegationId,
+    validatorId = validatorId,
+)
+
+fun mockDelegationValidator(
+    chain: Chain = Chain.Bitcoin,
+    id: String = "",
+    name: String = "",
+    isActive: Boolean = false,
+    commission: Double = 0.0,
+    apr: Double = 0.0,
+    providerType: StakeProviderType = StakeProviderType.Stake,
+) = DelegationValidator(
+    chain = chain,
+    id = id,
+    name = name,
+    isActive = isActive,
+    commission = commission,
+    apr = apr,
+    providerType = providerType,
+)
+
+fun mockDevice(
+    id: String = "",
+    platform: Platform = Platform.IOS,
+    platformStore: PlatformStore = PlatformStore.AppStore,
+    os: String = "",
+    model: String = "",
+    token: String = "",
+    locale: DeviceLocale = DeviceLocale.AR,
+    version: String = "",
+    currency: Currency = Currency.MXN,
+    isPushEnabled: Boolean = false,
+    isPriceAlertsEnabled: Boolean? = null,
+    subscriptionsVersion: Int = 0,
+) = Device(
+    id = id,
+    platform = platform,
+    platformStore = platformStore,
+    os = os,
+    model = model,
+    token = token,
+    locale = locale,
+    version = version,
+    currency = currency,
+    isPushEnabled = isPushEnabled,
+    isPriceAlertsEnabled = isPriceAlertsEnabled,
+    subscriptionsVersion = subscriptionsVersion,
+)
+
+fun mockFiatRate(
+    symbol: Currency = Currency.MXN,
+    rate: Double = 0.0,
+) = FiatRate(
+    symbol = symbol,
+    rate = rate,
+)
+
+fun mockFiatTransaction(
+    id: String = "",
+    assetId: AssetId = mockAssetId(),
+    transactionType: FiatQuoteType = FiatQuoteType.Buy,
+    provider: FiatProviderName = FiatProviderName.Mercuryo,
+    status: FiatTransactionStatus = FiatTransactionStatus.Complete,
+    fiatAmount: Double = 0.0,
+    fiatCurrency: String = "",
+    value: String = "0",
+    createdAt: SerializedDate = 0L,
+    updatedAt: SerializedDate = 0L,
+) = FiatTransaction(
+    id = id,
+    assetId = assetId,
+    transactionType = transactionType,
+    provider = provider,
+    status = status,
+    fiatAmount = fiatAmount,
+    fiatCurrency = fiatCurrency,
+    value = value,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+)
+
+fun mockFiatTransactionAssetData(
+    id: String = "",
+    asset: Asset = mockAsset(),
+    transactionType: FiatQuoteType = FiatQuoteType.Buy,
+    provider: FiatProviderName = FiatProviderName.Mercuryo,
+    status: FiatTransactionStatus = FiatTransactionStatus.Complete,
+    fiatAmount: Double = 0.0,
+    fiatCurrency: String = "",
+    value: String = "0",
+    createdAt: SerializedDate = 0L,
+    detailsUrl: String? = null,
+) = FiatTransactionAssetData(
+    id = id,
+    asset = asset,
+    transactionType = transactionType,
+    provider = provider,
+    status = status,
+    fiatAmount = fiatAmount,
+    fiatCurrency = fiatCurrency,
+    value = value,
+    createdAt = createdAt,
+    detailsUrl = detailsUrl,
+)
+
+fun mockFiatTransactionData(
+    transaction: FiatTransaction = mockFiatTransaction(),
+    detailsUrl: String? = null,
+) = FiatTransactionData(
+    transaction = transaction,
+    detailsUrl = detailsUrl,
+)
+
+fun mockInAppNotification(
+    walletId: WalletId = mockWalletId(),
+    readAt: SerializedDate? = null,
+    createdAt: SerializedDate = 0L,
+    item: CoreListItem = mockCoreListItem(),
+) = InAppNotification(
+    walletId = walletId,
+    readAt = readAt,
+    createdAt = createdAt,
+    item = item,
 )
 
 fun mockNftAsset(
@@ -507,6 +794,66 @@ fun mockPriceAlert(
     lastNotifiedAt = lastNotifiedAt,
 )
 
+fun mockPriceAlertData(
+    asset: Asset = mockAsset(),
+    price: Price? = null,
+    priceAlert: PriceAlert = mockPriceAlert(),
+    rankScore: Int = 0,
+) = PriceAlertData(
+    asset = asset,
+    price = price,
+    priceAlert = priceAlert,
+    rankScore = rankScore,
+)
+
+fun mockRedelegateData(
+    delegation: Delegation = mockDelegation(),
+    toValidator: DelegationValidator = mockDelegationValidator(),
+) = RedelegateData(
+    delegation = delegation,
+    toValidator = toValidator,
+)
+
+fun mockSupportAgent(
+    name: String = "",
+) = SupportAgent(
+    name = name,
+)
+
+fun mockSupportMessage(
+    id: String = "",
+    content: String = "",
+    sender: SupportMessageSender = SupportMessageSender.User,
+    status: SupportMessageStatus = SupportMessageStatus.Sending,
+    createdAt: SerializedDate = 0L,
+    images: List<SupportMessageImage> = emptyList(),
+) = SupportMessage(
+    id = id,
+    content = content,
+    sender = sender,
+    status = status,
+    createdAt = createdAt,
+    images = images,
+)
+
+fun mockSupportMessageImage(
+    id: String = "",
+    url: String = "",
+    thumbnailUrl: String? = null,
+    fileName: String? = null,
+    fileSize: Long? = null,
+    width: Int? = null,
+    height: Int? = null,
+) = SupportMessageImage(
+    id = id,
+    url = url,
+    thumbnailUrl = thumbnailUrl,
+    fileName = fileName,
+    fileSize = fileSize,
+    width = width,
+    height = height,
+)
+
 fun mockTotalFiatValue(
     value: Double = 0.0,
     pnlAmount: Double = 0.0,
@@ -625,6 +972,16 @@ fun mockTransactionSwapMetadata(
     provider = provider,
 )
 
+fun mockWcPairingProposal(
+    pairingId: String = "",
+    proposal: WalletConnectionSessionProposal = mockWalletConnectionSessionProposal(),
+    verificationStatus: WalletConnectionVerificationStatus = WalletConnectionVerificationStatus.Verified,
+) = WCPairingProposal(
+    pairingId = pairingId,
+    proposal = proposal,
+    verificationStatus = verificationStatus,
+)
+
 fun mockWallet(
     id: WalletId = mockWalletId(),
     externalId: String? = null,
@@ -645,4 +1002,40 @@ fun mockWallet(
     isPinned = isPinned,
     imageUrl = imageUrl,
     source = source,
+)
+
+fun mockWalletConnection(
+    session: WalletConnectionSession = mockWalletConnectionSession(),
+    wallet: Wallet = mockWallet(),
+) = WalletConnection(
+    session = session,
+    wallet = wallet,
+)
+
+fun mockWalletConnectionSession(
+    id: String = "",
+    sessionId: String = "",
+    state: WalletConnectionState = WalletConnectionState.Started,
+    chains: List<Chain> = emptyList(),
+    createdAt: SerializedDate = 0L,
+    expireAt: SerializedDate = 0L,
+    metadata: ApplicationMetadata = mockApplicationMetadata(),
+) = WalletConnectionSession(
+    id = id,
+    sessionId = sessionId,
+    state = state,
+    chains = chains,
+    createdAt = createdAt,
+    expireAt = expireAt,
+    metadata = metadata,
+)
+
+fun mockWalletConnectionSessionProposal(
+    defaultWallet: Wallet = mockWallet(),
+    wallets: List<Wallet> = emptyList(),
+    metadata: ApplicationMetadata = mockApplicationMetadata(),
+) = WalletConnectionSessionProposal(
+    defaultWallet = defaultWallet,
+    wallets = wallets,
+    metadata = metadata,
 )

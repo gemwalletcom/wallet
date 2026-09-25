@@ -4,11 +4,14 @@ import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualQuery
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.testkit.mockAmountParamsPerpetual
+import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockGemPerpetualTransferData
 import com.gemwallet.android.testkit.mockPerpetualData
+import com.gemwallet.android.testkit.mockPerpetualId
 import com.gemwallet.android.testkit.mockPerpetualPosition
 import com.gemwallet.android.testkit.mockWalletId
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
 import io.mockk.every
@@ -105,7 +108,7 @@ class AmountPerpetualProviderTest {
             every { this@mockk(any<PerpetualId>()) } returns flowOf(perpetualAggregate)
         }
         return AmountPerpetualProvider(
-            params = mockAmountParamsPerpetual(positionAction),
+            params = AmountParams.Perpetual(assetId = mockAssetId(chain = Chain.HyperCore, tokenId = "UBTC::0x8f254b963e8468305d409b33aa137c67::197"), perpetualId = mockPerpetualId(symbol = "BTC-PERP"), positionAction = positionAction),
             context = mockk(relaxed = true),
             service = service,
             getCurrentWalletId = getCurrentWalletId,

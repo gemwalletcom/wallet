@@ -13,7 +13,7 @@ struct FiatTransactionViewModelTests {
     @Test
     func theRowComesFromCore() {
         let model = FiatTransactionViewModel.models(
-            [.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), status: .pending, fiatAmount: 25, value: "1500000000000000000")],
+            [.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), transactionType: .buy, provider: .moonPay, status: .pending, fiatAmount: 25, fiatCurrency: "USD", value: "1500000000000000000")],
             locale: Locale(identifier: "en_US"),
         )[0]
 

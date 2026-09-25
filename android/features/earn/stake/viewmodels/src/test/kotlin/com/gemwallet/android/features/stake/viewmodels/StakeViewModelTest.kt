@@ -13,6 +13,8 @@ import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockDelegation
+import com.gemwallet.android.testkit.mockDelegationBase
+import com.gemwallet.android.testkit.mockDelegationValidator
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -50,7 +52,7 @@ class StakeViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val asset = mockAsset(id = mockAssetId(chain = Chain.Cosmos), name = "Cosmos", symbol = "ATOM", decimals = 6)
-    private val delegation = mockDelegation(assetId = asset.id, balance = BigInteger("77"))
+    private val delegation = mockDelegation(base = mockDelegationBase(assetId = asset.id, balance = BigInteger("77"), shares = BigInteger("77")), validator = mockDelegationValidator(chain = asset.id.chain))
 
     private val walletId = mockWalletId()
     private val getCurrentWalletId = mockk<GetCurrentWalletId> {

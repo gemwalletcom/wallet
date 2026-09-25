@@ -7,6 +7,7 @@ import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockDelegation
+import com.gemwallet.android.testkit.mockDelegationBase
 import com.gemwallet.android.testkit.mockDelegationValidator
 import com.gemwallet.android.testkit.mockGemStakeValidatorOptions
 import com.gemwallet.android.testkit.mockGemValidatorRow
@@ -36,13 +37,11 @@ class AmountStakeProviderTest {
     private val asset = mockAsset(id = mockAssetId(chain = Chain.Cosmos), name = "Cosmos", symbol = "ATOM", decimals = 6)
     private val validator = mockDelegationValidator(chain = asset.id.chain, id = "v1")
     private val otherValidator = mockDelegationValidator(chain = asset.id.chain, id = "v2")
-    private val delegation = mockDelegation(
-        assetId = asset.id,
-        balance = BigInteger("100"),
-        rewards = BigInteger("5"),
-        validatorId = "v1",
-        delegationId = "d1",
-    )
+    private val delegation =
+        mockDelegation(
+            base = mockDelegationBase(assetId = asset.id, balance = BigInteger("100"), shares = BigInteger("100"), rewards = BigInteger("5"), delegationId = "d1", validatorId = "v1"),
+            validator = mockDelegationValidator(chain = asset.id.chain, id = "v1"),
+        )
     private val storedValidators = MutableStateFlow(listOf(validator, otherValidator))
 
     private val stakeService = mockk<GemStakeServiceInterface> {

@@ -9,7 +9,6 @@ import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.testkit.mockAmountParamsTransfer
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetBalance
 import com.gemwallet.android.testkit.mockAssetId
@@ -219,28 +218,29 @@ class AmountViewModelTest {
     private fun assetInfo(available: BigInteger) =
         mockAssetInfo(asset = asset, balance = mockAssetBalance(asset = asset, balance = mockBalance(available = available)), price = mockAssetPriceInfo(currency = Currency.USD, price = mockAssetPrice(price = 10.0)))
 
-    private fun viewModelTest(params: AmountParams = mockAmountParamsTransfer(assetId = asset.id), block: suspend TestScope.(AmountViewModel) -> Unit) = runTest(testDispatcher) {
-        val viewModel = AmountViewModel(
-            service = service,
-            stakeService = stakeService,
-            getCurrentWalletId = getCurrentWalletId,
-            assetQuery = assetQuery,
-            perpetualQuery = mockk(relaxed = true),
-            delegationQuery = mockk(relaxed = true),
-            validatorQuery = mockk(relaxed = true),
-            validatorsQuery = mockk { every { this@mockk.invoke(any(), any()) } returns flowOf(emptyList<DelegationValidator>()) },
-            getSession = mockk(relaxed = true),
-            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to params.pack())),
-            context = context,
-            ioDispatcher = testDispatcher,
-        )
-        try {
-            runCurrent()
-            block(viewModel)
-        } finally {
-            viewModel.viewModelScope.cancel()
+    private fun viewModelTest(params: AmountParams = AmountParams.Transfer(assetId = asset.id, payment = GemPaymentRecipient(GemRecipient(address = "to", memo = null), null)), block: suspend TestScope.(AmountViewModel) -> Unit) =
+        runTest(testDispatcher) {
+            val viewModel = AmountViewModel(
+                service = service,
+                stakeService = stakeService,
+                getCurrentWalletId = getCurrentWalletId,
+                assetQuery = assetQuery,
+                perpetualQuery = mockk(relaxed = true),
+                delegationQuery = mockk(relaxed = true),
+                validatorQuery = mockk(relaxed = true),
+                validatorsQuery = mockk { every { this@mockk.invoke(any(), any()) } returns flowOf(emptyList<DelegationValidator>()) },
+                getSession = mockk(relaxed = true),
+                savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to params.pack())),
+                context = context,
+                ioDispatcher = testDispatcher,
+            )
+            try {
+                runCurrent()
+                block(viewModel)
+            } finally {
+                viewModel.viewModelScope.cancel()
+            }
         }
-    }
 
     private fun AmountViewModel.confirm(): GemTransferData? {
         var confirmed: GemTransferData? = null

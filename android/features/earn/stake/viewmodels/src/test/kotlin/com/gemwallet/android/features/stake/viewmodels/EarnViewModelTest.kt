@@ -13,6 +13,7 @@ import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockDelegation
+import com.gemwallet.android.testkit.mockDelegationBase
 import com.gemwallet.android.testkit.mockDelegationValidator
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
@@ -52,8 +53,8 @@ class EarnViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val asset = mockAsset(id = mockAssetId(chain = Chain.Cosmos), name = "Cosmos", symbol = "ATOM", decimals = 6)
     private val provider = mockDelegationValidator(id = "earn-provider", apr = 4.0, providerType = StakeProviderType.Earn)
-    private val funded = mockDelegation(assetId = asset.id, balance = BigInteger("500"), validator = provider)
-    private val empty = mockDelegation(assetId = asset.id, balance = BigInteger.ZERO, delegationId = "empty", validator = provider)
+    private val funded = mockDelegation(base = mockDelegationBase(assetId = asset.id, balance = BigInteger("500"), shares = BigInteger("500")), validator = provider)
+    private val empty = mockDelegation(base = mockDelegationBase(assetId = asset.id, balance = BigInteger.ZERO, shares = BigInteger.ZERO, delegationId = "empty"), validator = provider)
 
     private val aprRow = GemListRow.Text(GemListRowTitle.STAKE_APR, "4.00%")
     private var destination: GemDelegationDestination = GemDelegationDestination.Details
