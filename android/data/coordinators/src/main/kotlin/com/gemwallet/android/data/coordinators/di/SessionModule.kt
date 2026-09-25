@@ -5,7 +5,6 @@ import com.gemwallet.android.application.session.cases.GetCurrentWallet
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.session.cases.SetCurrentCurrency
-import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.data.coordinators.session.GetCurrentWalletIdImpl
 import com.gemwallet.android.data.coordinators.session.SessionCoordinator
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletSessionStore
@@ -63,10 +62,6 @@ object SessionModule {
     @Provides
     @Singleton
     fun provideSetCurrentCurrency(coordinator: SessionCoordinator): SetCurrentCurrency = coordinator
-
-    @Provides
-    @Singleton
-    fun provideSetCurrentWallet(coordinator: SessionCoordinator): SetCurrentWallet = coordinator
 
     @Provides
     @Singleton

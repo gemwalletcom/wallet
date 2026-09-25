@@ -2,8 +2,8 @@ package com.gemwallet.android.services
 
 import android.content.Context
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.data.services.gemstone.keystore.MigrateKeystoreOperator
+import com.gemwallet.android.data.services.store.queries.WalletsQuery
 import com.gemwallet.android.math.fromHex
 import com.gemwallet.android.testkit.KEYSTORE_TEST_ETH_ADDRESS
 import com.gemwallet.android.testkit.KEYSTORE_TEST_PASSWORD
@@ -29,7 +29,7 @@ class MigrateV3KeystoreServiceTest {
 
     private lateinit var baseDir: File
     private lateinit var passwordStore: PasswordStore
-    private lateinit var getWallets: GetWallets
+    private lateinit var walletsQuery: WalletsQuery
     private lateinit var migrateKeystoreOperator: MigrateKeystoreOperator
     private lateinit var service: MigrateV3KeystoreService
 
@@ -40,9 +40,9 @@ class MigrateV3KeystoreServiceTest {
             every { dataDir } returns baseDir
         }
         passwordStore = mockk()
-        getWallets = mockk()
+        walletsQuery = mockk()
         migrateKeystoreOperator = mockk()
-        service = MigrateV3KeystoreService(context, getWallets, passwordStore, migrateKeystoreOperator)
+        service = MigrateV3KeystoreService(context, walletsQuery, passwordStore, migrateKeystoreOperator)
     }
 
     @After
@@ -54,7 +54,7 @@ class MigrateV3KeystoreServiceTest {
     fun migrateWallet_invokesOperatorWithDecodedPasswordAndZeroizesIt() = runBlocking {
         val walletId = WalletId("privateKey_ethereum_$KEYSTORE_TEST_ETH_ADDRESS")
         val current = mockWallet(id = walletId.id, type = WalletType.PrivateKey, source = WalletSource.Import)
-        every { getWallets() } answers { flowOf(listOf(current)) }
+        every { walletsQuery() } answers { flowOf(listOf(current)) }
         prepareV3File(walletId)
         var capturedLegacyPassword = byteArrayOf()
         var capturedNewPassword = byteArrayOf()
@@ -82,7 +82,7 @@ class MigrateV3KeystoreServiceTest {
             baseDir.mkdirs()
             val walletId = WalletId("privateKey_ethereum_$KEYSTORE_TEST_ETH_ADDRESS")
             val current = mockWallet(id = walletId.id, type = WalletType.PrivateKey, source = WalletSource.Import)
-            every { getWallets() } answers { flowOf(listOf(current)) }
+            every { walletsQuery() } answers { flowOf(listOf(current)) }
             prepareV3File(walletId, password)
 
             service()

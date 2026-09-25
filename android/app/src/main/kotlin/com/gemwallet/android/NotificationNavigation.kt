@@ -3,7 +3,6 @@ package com.gemwallet.android
 import android.content.Intent
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
@@ -19,16 +18,22 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.FiatQuoteType
 import com.wallet.core.primitives.Wallet
-import com.wallet.core.primitives.WalletId
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemNavigationServiceInterface
 import uniffi.gemstone.GemPushNotification
 import uniffi.gemstone.GemPushNotificationService
 import uniffi.gemstone.GemPushNotificationServiceInterface
+import uniffi.gemstone.GemWalletSessionServiceInterface
 import javax.inject.Inject
 
-class NotificationNavigation @Inject constructor(private val navigationService: GemNavigationServiceInterface, private val pushNotificationService: GemPushNotificationServiceInterface, private val setCurrentWallet: SetCurrentWallet) {
+class NotificationNavigation @Inject constructor(
+    private val navigationService: GemNavigationServiceInterface,
+    private val pushNotificationService: GemPushNotificationServiceInterface,
+    private val walletSessionService: GemWalletSessionServiceInterface,
+) {
     internal suspend fun prepareNavigation(intent: Intent): PendingNavigation.Routes {
         if (!intent.hasNotificationPayload()) {
             return PendingNavigation.Routes(emptyList())
@@ -43,7 +48,7 @@ class NotificationNavigation @Inject constructor(private val navigationService: 
 
     internal suspend fun prepareNavigation(notification: GemPushNotification): PendingNavigation.Routes {
         val target = navigationService.openNotification(notification)
-        target.walletId()?.let { setCurrentWallet.setCurrentWallet(WalletId(it)) }
+        target.walletId()?.let { walletId -> withContext(Dispatchers.IO) { walletSessionService.setCurrentWalletId(walletId) } }
         return target.destination()
     }
 }

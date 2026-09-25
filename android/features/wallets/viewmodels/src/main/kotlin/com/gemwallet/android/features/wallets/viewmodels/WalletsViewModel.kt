@@ -4,9 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.wallet.cases.DeleteWallet
 import com.gemwallet.android.application.wallet.cases.GetAllWallets
-import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.domains.wallet.aggregates.WalletDataAggregate
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -27,15 +25,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemWalletDeletion
 import uniffi.gemstone.GemWalletServiceInterface
 import javax.inject.Inject
 
 @HiltViewModel
 class WalletsViewModel @Inject constructor(
     private val getAllWallets: GetAllWallets,
-    private val setCurrentWallet: SetCurrentWallet,
     private val service: GemWalletServiceInterface,
-    private val deleteWallet: DeleteWallet,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
@@ -52,13 +49,18 @@ class WalletsViewModel @Inject constructor(
     val error: StateFlow<String?> = errorState.asStateFlow()
 
     fun selectWallet(walletId: WalletId, onSelected: () -> Unit) = viewModelScope.launch {
-        runCatchingCancellable { withContext(ioDispatcher) { setCurrentWallet.setCurrentWallet(walletId) } }
+        runCatchingCancellable { withContext(ioDispatcher) { service.setCurrentWalletId(walletId.id) } }
             .onSuccess { onSelected() }
             .onFailure(::showError)
     }
 
     fun deleteWallet(walletId: WalletId, onBoard: () -> Unit) = viewModelScope.launch {
-        runCatchingCancellable { deleteWallet.deleteWallet(walletId, onBoard) {} }
+        runCatchingCancellable {
+            when (withContext(ioDispatcher) { service.deleteWallet(walletId.id) }) {
+                GemWalletDeletion.WALLETS_REMAINING -> Unit
+                GemWalletDeletion.LAST_WALLET_DELETED -> onBoard()
+            }
+        }
             .onFailure(::showError)
     }
 

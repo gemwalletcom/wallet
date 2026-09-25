@@ -1,7 +1,5 @@
 package com.gemwallet.android
 
-import com.gemwallet.android.application.wallet.cases.GetWallet
-import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAccount
@@ -19,9 +17,9 @@ import com.gemwallet.android.ui.navigation.routes.TransactionDetailsRoute
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -31,16 +29,17 @@ import uniffi.gemstone.GemNavigationTab
 import uniffi.gemstone.GemNavigationTarget
 import uniffi.gemstone.GemPushNotification
 import uniffi.gemstone.GemPushNotificationService
+import uniffi.gemstone.GemWalletSessionServiceInterface
 
 class NotificationNavigationTest {
 
-    private val setCurrentWallet = mockk<SetCurrentWallet>(relaxed = true)
+    private val walletSessionService = mockk<GemWalletSessionServiceInterface>(relaxed = true)
 
     private fun navigation(target: GemNavigationTarget): NotificationNavigation {
         val navigationService = mockk<GemNavigationServiceInterface> {
             coEvery { openNotification(any()) } returns target
         }
-        return NotificationNavigation(navigationService, GemPushNotificationService(), setCurrentWallet)
+        return NotificationNavigation(navigationService, GemPushNotificationService(), walletSessionService)
     }
 
     @Test
@@ -74,14 +73,14 @@ class NotificationNavigationTest {
             ).routes
 
         assertEquals(listOf(AssetRoute(asset.id), TransactionDetailsRoute(transaction.id)), routes)
-        coVerify { setCurrentWallet.setCurrentWallet(walletId) }
+        verify { walletSessionService.setCurrentWalletId(walletId.id) }
     }
 
     @Test
     fun `support and rewards need no asset at all`() = runBlocking {
         assertEquals(PendingNavigation.Routes(listOf(SupportRoute), GemNavigationTab.SETTINGS), navigation(GemNavigationTarget.Support).prepareNavigation(GemPushNotification.Support))
         assertEquals(PendingNavigation.Routes(listOf(ReferralRoute(code = null)), GemNavigationTab.SETTINGS), navigation(GemNavigationTarget.Rewards(null)).prepareNavigation(GemPushNotification.Rewards))
-        coVerify(exactly = 0) { setCurrentWallet.setCurrentWallet(any()) }
+        verify(exactly = 0) { walletSessionService.setCurrentWalletId(any()) }
     }
 
     @Test

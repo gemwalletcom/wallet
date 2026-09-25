@@ -4,7 +4,6 @@ import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetCurrentWallet
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.session.cases.SetCurrentCurrency
-import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletSessionStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import com.gemwallet.android.ext.toGem
@@ -47,8 +46,7 @@ class SessionCoordinator(
 ) : GetSession,
     GetCurrentWallet,
     GetCurrentCurrency,
-    SetCurrentCurrency,
-    SetCurrentWallet {
+    SetCurrentCurrency {
 
     private val currencyState = MutableStateFlow(preferencesService.getCurrency().toPrimitives())
 
@@ -84,10 +82,6 @@ class SessionCoordinator(
         }
         currencyService.setCurrency(currency.toGem())
         currencyState.value = currency
-    }
-
-    override suspend fun setCurrentWallet(walletId: WalletId) = withContext(Dispatchers.IO) {
-        walletSessionService.setCurrentWalletId(walletId.id)
     }
 
     private suspend fun setCurrency(currency: Currency) = withContext(Dispatchers.IO) {

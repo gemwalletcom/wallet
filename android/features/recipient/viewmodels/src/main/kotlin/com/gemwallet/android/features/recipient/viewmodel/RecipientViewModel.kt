@@ -8,8 +8,8 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.contacts.values.ContactRecipient
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.data.services.store.queries.ContactRecipientsQuery
+import com.gemwallet.android.data.services.store.queries.WalletsQuery
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.asset
@@ -67,7 +67,7 @@ import javax.inject.Inject
 @HiltViewModel
 class RecipientViewModel @Inject constructor(
     private val getSession: GetSession,
-    private val getWallets: GetWallets,
+    private val walletsQuery: WalletsQuery,
     private val contactRecipientsQuery: ContactRecipientsQuery,
     private val getAssetInfo: GetAssetInfo,
     savedStateHandle: SavedStateHandle,
@@ -105,7 +105,7 @@ class RecipientViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, RecipientState.Loading)
 
-    private val wallets = combine(session, getWallets()) { _, wallets -> wallets.map { it.toGem() } }
+    private val wallets = combine(session, walletsQuery()) { _, wallets -> wallets.map { it.toGem() } }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

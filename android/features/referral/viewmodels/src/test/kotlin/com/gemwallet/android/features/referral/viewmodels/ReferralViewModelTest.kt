@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.wallet.cases.GetWallets
+import com.gemwallet.android.data.services.store.queries.WalletsQuery
 import com.gemwallet.android.features.referral.viewmodels.models.IncomingCodeUIModel
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockGemRewardsResult
@@ -45,8 +45,8 @@ class ReferralViewModelTest {
     private val walletsFlow = MutableStateFlow(listOf(wallet))
     private val sessionFlow = MutableStateFlow<Session?>(mockSession(wallet))
 
-    private val getWallets = object : GetWallets {
-        override fun invoke() = walletsFlow
+    private val walletsQuery = mockk<WalletsQuery> {
+        every { this@mockk() } returns walletsFlow
     }
     private val getSession = object : GetSession {
         override fun invoke(): StateFlow<Session?> = sessionFlow
@@ -186,7 +186,7 @@ class ReferralViewModelTest {
         code?.let { arguments[RouteArgument.Code.key] = it }
         return ReferralViewModel(
             getSession = getSession,
-            getWallets = getWallets,
+            walletsQuery = walletsQuery,
             service = service,
             savedStateHandle = SavedStateHandle(arguments),
             context = context,

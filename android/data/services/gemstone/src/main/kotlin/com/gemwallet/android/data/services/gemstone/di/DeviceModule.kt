@@ -7,12 +7,12 @@ import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.RequestPushToken
 import com.gemwallet.android.application.device.cases.SetPushToken
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
-import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.data.services.gemstone.device.DeviceObserverService
 import com.gemwallet.android.data.services.gemstone.device.DevicePushSettings
 import com.gemwallet.android.data.services.gemstone.device.GemstoneDevicePlatform
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import com.gemwallet.android.data.services.store.ConfigStore
+import com.gemwallet.android.data.services.store.queries.WalletsQuery
 import com.gemwallet.android.model.BuildInfo
 import com.gemwallet.android.model.NotificationsAvailable
 import dagger.Lazy
@@ -111,8 +111,8 @@ object DeviceModule {
 
     @Provides
     @Singleton
-    fun provideDeviceObserverService(getWallets: GetWallets, deviceService: GemDeviceService): DeviceObserverService = DeviceObserverService(
-        getWallets = getWallets,
+    fun provideDeviceObserverService(walletsQuery: WalletsQuery, deviceService: GemDeviceService): DeviceObserverService = DeviceObserverService(
+        walletsQuery = walletsQuery,
         deviceService = deviceService,
     )
 

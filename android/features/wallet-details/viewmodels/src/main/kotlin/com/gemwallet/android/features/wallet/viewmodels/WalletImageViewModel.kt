@@ -5,8 +5,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.wallet.cases.GetWalletDetails
 import com.gemwallet.android.data.services.store.queries.NFTQuery
+import com.gemwallet.android.data.services.store.queries.WalletQuery
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
@@ -21,20 +21,23 @@ import com.wallet.core.primitives.NFTAssetData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemWalletServiceInterface
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class WalletImageViewModel @Inject constructor(
-    getWalletDetails: GetWalletDetails,
+    walletQuery: WalletQuery,
     nftQuery: NFTQuery,
     private val walletService: GemWalletServiceInterface,
     savedStateHandle: SavedStateHandle,
@@ -44,7 +47,8 @@ class WalletImageViewModel @Inject constructor(
 
     private val walletId = savedStateHandle.requireWalletId()
 
-    val details: StateFlow<WalletDetailsUIModel?> = getWalletDetails.getWallet(walletId)
+    val details: StateFlow<WalletDetailsUIModel?> = walletQuery(walletId)
+        .mapLatest { wallet -> wallet?.let { walletService.walletDetails(it.toGem()) } }
         .map { it?.uiModel() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

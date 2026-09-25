@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.wallet.cases.GetWallets
+import com.gemwallet.android.data.services.store.queries.WalletsQuery
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
@@ -52,7 +52,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ReferralViewModel @Inject constructor(
     getSession: GetSession,
-    getWallets: GetWallets,
+    walletsQuery: WalletsQuery,
     private val service: GemRewardsServiceInterface,
     private val savedStateHandle: SavedStateHandle,
     @param:ApplicationContext private val context: Context,
@@ -98,7 +98,7 @@ class ReferralViewModel @Inject constructor(
     val referralLink = rewardsState.mapLatest { it.referralLink }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val availableWallets = getWallets().mapLatest { wallets -> service.wallets(wallets.map { it.toGem() }).map { it.toPrimitives() } }
+    val availableWallets = walletsQuery().mapLatest { wallets -> service.wallets(wallets.map { it.toGem() }).map { it.toPrimitives() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val availableWalletSections = availableWallets.mapLatest { wallets -> walletSections(wallets.map { it.toGem() }) }

@@ -6,9 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
-import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.data.services.store.queries.WalletsQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.NotificationsAvailable
 import com.gemwallet.android.ui.localization.text
@@ -33,7 +33,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val userConfig: UserConfig,
-    private val getWallets: GetWallets,
+    private val walletsQuery: WalletsQuery,
     private val switchPushEnabled: SwitchPushEnabled,
     private val getPushEnabled: GetPushEnabled,
     val notificationsAvailable: NotificationsAvailable,
@@ -43,7 +43,7 @@ class SettingsViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
-    private val wallets = getWallets()
+    private val wallets = walletsQuery()
     private val developerEnabled = MutableStateFlow(userConfig.developEnabled())
 
     val sections = combine(wallets, developerEnabled) { wallets, _ ->
