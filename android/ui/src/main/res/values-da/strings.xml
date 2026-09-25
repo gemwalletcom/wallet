@@ -58,6 +58,7 @@
   <string name="common_token">Token</string>
   <string name="common_expiration">Udløb</string>
   <string name="common_suspicious_address">Mistænkelig adresse</string>
+  <string name="common_suspicious_address_description">Denne adresse er forbundet med mistænkelig eller skadelig aktivitet.</string>
   <string name="common_refresh">Opdater</string>
   <string name="common_grant_permission">Giv tilladelse</string>
   <string name="common_required_field">%1$s er påkrævet</string>

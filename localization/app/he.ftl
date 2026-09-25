@@ -58,6 +58,7 @@ common_method = אמצעי
 common_token = אֲסִימוֹן
 common_expiration = תפוגה
 common_suspicious_address = כתובת חשודה
+common_suspicious_address_description = כתובת זו קשורה לפעילות חשודה או מזיקה.
 common_refresh = לְרַעֲנֵן
 common_grant_permission = תן רשות
 common_required_field = %@ נדרש

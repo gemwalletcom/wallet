@@ -58,6 +58,7 @@ common_method = 방법
 common_token = 토큰
 common_expiration = 만료
 common_suspicious_address = 의심스러운 주소
+common_suspicious_address_description = 이 주소는 의심스럽거나 유해한 활동과 관련되어 있습니다.
 common_refresh = 새로고침
 common_grant_permission = 권한 부여
 common_required_field = %@ 이(가) 필요합니다

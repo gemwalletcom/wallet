@@ -58,6 +58,7 @@
   <string name="common_token">Jeton</string>
   <string name="common_expiration">Expiration</string>
   <string name="common_suspicious_address">Adresse suspecte</string>
+  <string name="common_suspicious_address_description">Cette adresse est associée à une activité suspecte ou malveillante.</string>
   <string name="common_refresh">Rafraîchir</string>
   <string name="common_grant_permission">Donner la permission</string>
   <string name="common_required_field">%1$s est requis</string>

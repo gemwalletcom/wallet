@@ -58,6 +58,7 @@
   <string name="common_token">Token</string>
   <string name="common_expiration">Expirare</string>
   <string name="common_suspicious_address">Adresă suspectă</string>
+  <string name="common_suspicious_address_description">Această adresă este asociată cu o activitate suspectă sau dăunătoare.</string>
   <string name="common_refresh">Reîmprospăta</string>
   <string name="common_grant_permission">Acordați permisiunea</string>
   <string name="common_required_field">%1$s este necesar</string>

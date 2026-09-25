@@ -58,6 +58,7 @@
   <string name="common_token">Token</string>
   <string name="common_expiration">Vervaldatum</string>
   <string name="common_suspicious_address">Verdacht adres</string>
+  <string name="common_suspicious_address_description">Dit adres wordt in verband gebracht met verdachte of schadelijke activiteiten.</string>
   <string name="common_refresh">Vernieuwen</string>
   <string name="common_grant_permission">Geef toestemming</string>
   <string name="common_required_field">%1$s is vereist</string>

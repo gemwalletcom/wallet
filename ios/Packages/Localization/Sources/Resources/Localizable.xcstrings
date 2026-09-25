@@ -23112,6 +23112,197 @@
         }
       }
     },
+    "common.suspicious_address_description": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "هذا العنوان مرتبط بنشاط مشبوه أو ضار."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই ঠিকানাটি সন্দেহজনক বা ক্ষতিকারক কার্যকলাপের সাথে সম্পর্কিত।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tato adresa je spojena s podezřelou nebo škodlivou aktivitou."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne adresse er forbundet med mistænkelig eller skadelig aktivitet."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Adresse steht im Zusammenhang mit verdächtigen oder schädlichen Aktivitäten."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This address is associated with suspicious or harmful activity."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta dirección está asociada con actividades sospechosas o dañinas."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "این آدرس با فعالیت مشکوک یا مضر مرتبط است."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ang address na ito ay nauugnay sa kahina-hinala o nakakapinsalang aktibidad."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette adresse est associée à une activité suspecte ou malveillante."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wannan adireshin yana da alaƙa da ayyuka masu ban tsoro ko cutarwa."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "כתובת זו קשורה לפעילות חשודה או מזיקה."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यह पता संदिग्ध या हानिकारक गतिविधि से संबंधित है।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alamat ini dikaitkan dengan aktivitas yang mencurigakan atau berbahaya."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo indirizzo è associato ad attività sospette o dannose."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このアドレスは不審または悪意のある活動に関連しています。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 주소는 의심스럽거나 유해한 활동과 관련되어 있습니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alamat ini dikaitkan dengan aktiviti yang mencurigakan atau berbahaya."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit adres wordt in verband gebracht met verdachte of schadelijke activiteiten."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ten adres jest powiązany z podejrzaną lub szkodliwą aktywnością."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este endereço está associado a atividades suspeitas ou prejudiciais."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Această adresă este asociată cu o activitate suspectă sau dăunătoare."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Этот адрес связан с подозрительной или вредоносной активностью."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anwani hii inahusishwa na shughuli za kutiliwa shaka au hatari."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ที่อยู่นี้เกี่ยวข้องกับกิจกรรมที่น่าสงสัยหรือเป็นอันตราย"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu adres şüpheli veya zararlı bir etkinlikle ilişkili."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ця адреса пов'язана з підозрілою або шкідливою активністю."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "یہ پتہ مشکوک یا نقصان دہ سرگرمی سے وابستہ ہے۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Địa chỉ này có liên quan đến hoạt động đáng ngờ hoặc có hại."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此地址与可疑或恶意行为有关。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此位址與可疑或惡意行為有關。"
+          }
+        }
+      }
+    },
     "common.token": {
       "extractionState": "manual",
       "localizations": {

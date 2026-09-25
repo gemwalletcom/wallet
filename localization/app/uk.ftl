@@ -58,6 +58,7 @@ common_method = Метод
 common_token = Токен
 common_expiration = Термін дії
 common_suspicious_address = Підозріла адреса
+common_suspicious_address_description = Ця адреса пов'язана з підозрілою або шкідливою активністю.
 common_refresh = Оновити
 common_grant_permission = Надати дозвіл
 common_required_field = %@ є обов'язковим

@@ -58,6 +58,7 @@ common_method = Metode
 common_token = Token
 common_expiration = Udløb
 common_suspicious_address = Mistænkelig adresse
+common_suspicious_address_description = Denne adresse er forbundet med mistænkelig eller skadelig aktivitet.
 common_refresh = Opdater
 common_grant_permission = Giv tilladelse
 common_required_field = %@ er påkrævet

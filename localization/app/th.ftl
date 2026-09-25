@@ -58,6 +58,7 @@ common_method = วิธี
 common_token = โทเค็น
 common_expiration = วันหมดอายุ
 common_suspicious_address = ที่อยู่น่าสงสัย
+common_suspicious_address_description = ที่อยู่นี้เกี่ยวข้องกับกิจกรรมที่น่าสงสัยหรือเป็นอันตราย
 common_refresh = รีเฟรช
 common_grant_permission = ให้สิทธิ์
 common_required_field = จำเป็นต้องระบุ %@

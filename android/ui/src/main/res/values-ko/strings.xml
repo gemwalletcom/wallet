@@ -58,6 +58,7 @@
   <string name="common_token">토큰</string>
   <string name="common_expiration">만료</string>
   <string name="common_suspicious_address">의심스러운 주소</string>
+  <string name="common_suspicious_address_description">이 주소는 의심스럽거나 유해한 활동과 관련되어 있습니다.</string>
   <string name="common_refresh">새로고침</string>
   <string name="common_grant_permission">권한 부여</string>
   <string name="common_required_field">%1$s 이(가) 필요합니다</string>

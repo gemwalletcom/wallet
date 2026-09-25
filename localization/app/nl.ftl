@@ -58,6 +58,7 @@ common_method = Methode
 common_token = Token
 common_expiration = Vervaldatum
 common_suspicious_address = Verdacht adres
+common_suspicious_address_description = Dit adres wordt in verband gebracht met verdachte of schadelijke activiteiten.
 common_refresh = Vernieuwen
 common_grant_permission = Geef toestemming
 common_required_field = %@ is vereist

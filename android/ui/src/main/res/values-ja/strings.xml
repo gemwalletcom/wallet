@@ -58,6 +58,7 @@
   <string name="common_token">トークン</string>
   <string name="common_expiration">有効期限</string>
   <string name="common_suspicious_address">不審なアドレス</string>
+  <string name="common_suspicious_address_description">このアドレスは不審または悪意のある活動に関連しています。</string>
   <string name="common_refresh">更新</string>
   <string name="common_grant_permission">許可する</string>
   <string name="common_required_field">%1$sは必須です</string>

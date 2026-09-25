@@ -58,6 +58,7 @@ common_method = Méthode
 common_token = Jeton
 common_expiration = Expiration
 common_suspicious_address = Adresse suspecte
+common_suspicious_address_description = Cette adresse est associée à une activité suspecte ou malveillante.
 common_refresh = Rafraîchir
 common_grant_permission = Donner la permission
 common_required_field = %@ est requis

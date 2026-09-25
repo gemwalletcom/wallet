@@ -123,6 +123,8 @@ common_token = Token
 common_expiration = Expiration
 # Used in shared app UI for the suspicious address label.
 common_suspicious_address = Suspicious address
+# Used in the suspicious address warning on the address and confirm screens, under its title.
+common_suspicious_address_description = This address is associated with suspicious or harmful activity.
 # Used in shared app UI for the refresh label.
 common_refresh = Refresh
 # Used in shared app UI for the grant permission label.

@@ -58,6 +58,7 @@ common_method = 方法
 common_token = トークン
 common_expiration = 有効期限
 common_suspicious_address = 不審なアドレス
+common_suspicious_address_description = このアドレスは不審または悪意のある活動に関連しています。
 common_refresh = 更新
 common_grant_permission = 許可する
 common_required_field = %@は必須です

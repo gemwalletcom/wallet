@@ -58,6 +58,7 @@
   <string name="common_token">Token</string>
   <string name="common_expiration">Hết hạn</string>
   <string name="common_suspicious_address">Địa chỉ đáng ngờ</string>
+  <string name="common_suspicious_address_description">Địa chỉ này có liên quan đến hoạt động đáng ngờ hoặc có hại.</string>
   <string name="common_refresh">Làm mới</string>
   <string name="common_grant_permission">Cấp phép</string>
   <string name="common_required_field">%1$s là bắt buộc</string>

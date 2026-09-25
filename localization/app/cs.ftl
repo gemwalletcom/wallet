@@ -58,6 +58,7 @@ common_method = Metoda
 common_token = Token
 common_expiration = Vypršení platnosti
 common_suspicious_address = Podezřelá adresa
+common_suspicious_address_description = Tato adresa je spojena s podezřelou nebo škodlivou aktivitou.
 common_refresh = Obnovit
 common_grant_permission = Udělte povolení
 common_required_field = Je vyžadováno %@

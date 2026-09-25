@@ -58,6 +58,7 @@
   <string name="common_token">Token</string>
   <string name="common_expiration">Tamat tempoh</string>
   <string name="common_suspicious_address">Alamat yang mencurigakan</string>
+  <string name="common_suspicious_address_description">Alamat ini dikaitkan dengan aktiviti yang mencurigakan atau berbahaya.</string>
   <string name="common_refresh">Segarkan semula</string>
   <string name="common_grant_permission">Berikan kebenaran</string>
   <string name="common_required_field">%1$s diperlukan</string>

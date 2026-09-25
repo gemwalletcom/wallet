@@ -58,6 +58,7 @@
   <string name="common_token">Токен</string>
   <string name="common_expiration">Термін дії</string>
   <string name="common_suspicious_address">Підозріла адреса</string>
+  <string name="common_suspicious_address_description">Ця адреса пов\'язана з підозрілою або шкідливою активністю.</string>
   <string name="common_refresh">Оновити</string>
   <string name="common_grant_permission">Надати дозвіл</string>
   <string name="common_required_field">%1$s є обов\'язковим</string>

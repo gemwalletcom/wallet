@@ -335,6 +335,8 @@ public enum Localized {
     public static let skip = Localized.tr("Localizable", "common.skip", fallback: "Skip")
     /// Suspicious address
     public static let suspiciousAddress = Localized.tr("Localizable", "common.suspicious_address", fallback: "Suspicious address")
+    /// This address is associated with suspicious or harmful activity.
+    public static let suspiciousAddressDescription = Localized.tr("Localizable", "common.suspicious_address_description", fallback: "This address is associated with suspicious or harmful activity.")
     /// Token
     public static let token = Localized.tr("Localizable", "common.token", fallback: "Token")
     /// Try Again
