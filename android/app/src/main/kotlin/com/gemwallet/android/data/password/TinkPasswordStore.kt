@@ -21,19 +21,37 @@ private val PASSWORD_STORE_CONFIG = TinkStoreConfig(
     masterKeyAlias = PASSWORD_STORE_MASTER_KEY_ALIAS,
 )
 
-class TinkPasswordStore internal constructor(private val encryptedStore: SecureStringStore, private val legacyStore: SecureStringStore, private val random: SecureRandom) : PasswordStore {
+class TinkPasswordStore internal constructor(private val encryptedStore: SecureStringStore, private val legacyStore: SecureStringStore, private val random: SecureRandom, private val keyset: PasswordKeyset? = null) : PasswordStore {
 
-    constructor(context: Context) : this(
-        encryptedStore = TinkEncryptedKeyValueStore.create(
+    constructor(context: Context) : this(context, PasswordKeyset(context, PASSWORD_STORE_CONFIG))
+
+    private constructor(context: Context, keyset: PasswordKeyset) : this(
+        encryptedStore = TinkEncryptedKeyValueStore(
             context = context,
             config = PASSWORD_STORE_CONFIG,
+            aeadProvider = keyset::get,
         ),
         legacyStore = LegacyEncryptedPreferences(
             context = context,
             preferencesFileName = LEGACY_PREFERENCES_FILE_NAME,
         ),
         random = SecureRandom(),
+        keyset = keyset,
     )
+
+    fun authenticationRequired(): Boolean = keyset?.authenticationRequired == true
+
+    @Synchronized
+    fun setAuthenticationRequired(required: Boolean, walletIds: List<String>) {
+        val keyset = checkNotNull(keyset)
+        if (required && !keyset.authenticationRequired) {
+            for (key in walletIds + PasswordStore.Keys.Password.key) {
+                encryptedStore.getOrMigrate(legacyStore, key)
+                check(legacyStore.removeString(key)) { "Legacy wallet password removal failed" }
+            }
+        }
+        keyset.setAuthenticationRequired(required)
+    }
 
     @Synchronized
     override fun getOrCreatePassword(key: String): String {
@@ -52,7 +70,7 @@ class TinkPasswordStore internal constructor(private val encryptedStore: SecureS
 
     override fun removePassword(key: String): Boolean = encryptedStore.removeString(key) and legacyStore.removeString(key)
 
-    override fun hasPassword(key: String): Boolean = encryptedStore.getOrMigrate(legacyStore, key) != null
+    override fun hasPassword(key: String): Boolean = encryptedStore.contains(key) || legacyStore.contains(key)
 
     override fun getPassword(key: String): String = encryptedStore.getOrMigrate(legacyStore, key) ?: throw PasswordNotFoundException()
 

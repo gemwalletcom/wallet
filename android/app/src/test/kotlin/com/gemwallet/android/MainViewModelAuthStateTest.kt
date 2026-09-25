@@ -1,6 +1,7 @@
 package com.gemwallet.android
 
 import android.util.Log
+import com.gemwallet.android.application.WalletPasswordProtection
 import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
 import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
@@ -9,6 +10,7 @@ import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.services.MigrateV3KeystoreService
 import com.wallet.core.primitives.Appearance
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
@@ -110,13 +112,64 @@ class MainViewModelAuthStateTest {
         }
     }
 
-    private fun mainViewModel(authRequired: Boolean, walletService: uniffi.gemstone.GemWalletService = mockk(relaxed = true)): MainViewModel {
+    @Test
+    fun protectedKeysetRequiresInitialAuthWhenThePreferenceWasTamperedOff() {
+        val protection = mockk<WalletPasswordProtection>(relaxed = true)
+        every { protection.authenticationRequired() } returns true
+        val viewModel = mainViewModel(authRequired = false, protection = protection)
+
+        assertEquals(AuthState.Required, viewModel.uiState.value.initialAuth)
+        assertFalse(viewModel.uiState.value.hasUnlockedApp)
+        assertTrue(viewModel.isAuthRequired())
+    }
+
+    @Test
+    fun enabledAuthenticationProtectsThePasswordAfterTheFirstUnlock() {
+        val protection = mockk<WalletPasswordProtection>(relaxed = true)
+        every { protection.authenticationRequired() } returns false
+        val walletService = mockk<uniffi.gemstone.GemWalletService>(relaxed = true)
+        coEvery { walletService.migrateToSharedPassword() } returns 0u
+        val viewModel = mainViewModel(authRequired = true, protection = protection, walletService = walletService)
+
+        viewModel.maintain()
+        coVerify(exactly = 0) { protection.setAuthenticationRequired(any()) }
+
+        viewModel.onInitialAuth(AuthState.Success)
+
+        coVerify(exactly = 1) { protection.setAuthenticationRequired(true) }
+        assertNull(viewModel.uiState.value.startupError)
+    }
+
+    @Test
+    fun failedPasswordProtectionIsShownAndStartupContinues() {
+        mockkStatic(Log::class)
+        every { Log.e(any(), any(), any()) } returns 0
+        val protection = mockk<WalletPasswordProtection>(relaxed = true)
+        every { protection.authenticationRequired() } returns false
+        coEvery { protection.setAuthenticationRequired(true) } throws IllegalStateException("Wallet keyset write failed")
+        val walletService = mockk<uniffi.gemstone.GemWalletService>(relaxed = true)
+        coEvery { walletService.migrateToSharedPassword() } returns 0u
+        val viewModel = mainViewModel(authRequired = true, protection = protection, walletService = walletService)
+
+        try {
+            viewModel.maintain()
+            viewModel.onInitialAuth(AuthState.Success)
+
+            assertEquals("Wallet keyset write failed", viewModel.uiState.value.startupError)
+            coVerify(exactly = 1) { walletService.migrateToSharedPassword() }
+        } finally {
+            unmockkStatic(Log::class)
+        }
+    }
+
+    private fun mainViewModel(authRequired: Boolean, protection: WalletPasswordProtection = mockk(relaxed = true), walletService: uniffi.gemstone.GemWalletService = mockk(relaxed = true)): MainViewModel {
         val userConfig = mockk<UserConfig>()
         every { userConfig.authRequired() } returns authRequired
         every { userConfig.appearance() } returns flowOf(Appearance.System)
 
         return MainViewModel(
             userConfig = userConfig,
+            passwordProtection = protection,
             isWalletConnectEnabledCase = mockk<IsWalletConnectEnabled>(relaxed = true),
             pairWalletConnect = mockk<PairWalletConnect>(relaxed = true),
             appStartService = mockk<GemAppStartServiceInterface>(relaxed = true),

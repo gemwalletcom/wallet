@@ -4,10 +4,15 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
+import com.gemwallet.android.application.WalletPasswordProtection
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.features.settings.security.viewmodels.models.LockPeriodOption
 import com.gemwallet.android.ui.localization.stringRes
+
+import com.gemwallet.android.ui.localization.text
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -25,12 +30,23 @@ import javax.inject.Inject
 @HiltViewModel
 class SecurityViewModel @Inject constructor(
     private val userConfig: UserConfig,
+    private val passwordProtection: WalletPasswordProtection,
     private val settingsService: GemSettingsServiceInterface,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
+    val error = MutableStateFlow<String?>(null)
+
     private val authRequired = MutableStateFlow(userConfig.authRequired())
+
+    init {
+        viewModelScope.launch(ioDispatcher) {
+            runCatchingCancellable {
+                authRequired.value = passwordProtection.authenticationRequired() || userConfig.authRequired()
+            }.onFailure { error.value = it.errorText().text(context) }
+        }
+    }
 
     val lockPeriods = GemConstants.lockPeriods.map { LockPeriodOption(it.minutes().toInt(), it.stringRes()) }
 
@@ -52,9 +68,26 @@ class SecurityViewModel @Inject constructor(
         ),
     )
 
+    val isUpdatingAuthentication = MutableStateFlow(false)
+
     fun setAuthRequired(required: Boolean) {
-        userConfig.setAuthRequired(required)
-        authRequired.value = required
+        if (isUpdatingAuthentication.value) return
+        isUpdatingAuthentication.value = true
+        viewModelScope.launch(ioDispatcher) {
+            try {
+                runCatchingCancellable {
+                    passwordProtection.setAuthenticationRequired(required)
+                    userConfig.setAuthRequired(required)
+                    authRequired.value = required
+                }.onFailure { error.value = it.errorText().text(context) }
+            } finally {
+                isUpdatingAuthentication.value = false
+            }
+        }
+    }
+
+    fun clearError() {
+        error.value = null
     }
 
     fun setLockInterval(minutes: Int) = viewModelScope.launch(ioDispatcher) {

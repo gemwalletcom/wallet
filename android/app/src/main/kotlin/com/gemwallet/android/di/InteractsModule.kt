@@ -3,6 +3,8 @@ package com.gemwallet.android.di
 import android.content.Context
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.data.password.TinkPasswordStore
+import com.gemwallet.android.application.WalletPasswordProtection
+import com.gemwallet.android.data.password.WalletPasswordProtectionService
 import com.gemwallet.android.data.services.gemstone.keystore.GemMigrateKeystoreOperator
 import com.gemwallet.android.data.services.gemstone.keystore.KeystoreTransactionSigner
 import com.gemwallet.android.data.services.gemstone.keystore.MigrateKeystoreOperator
@@ -28,5 +30,11 @@ object InteractsModule {
 
     @Provides
     @Singleton
-    fun providePasswordStore(@ApplicationContext context: Context): PasswordStore = TinkPasswordStore(context)
+    fun provideTinkPasswordStore(@ApplicationContext context: Context): TinkPasswordStore = TinkPasswordStore(context)
+
+    @Provides
+    fun providePasswordStore(store: TinkPasswordStore): PasswordStore = store
+
+    @Provides
+    fun providePasswordProtection(service: WalletPasswordProtectionService): WalletPasswordProtection = service
 }

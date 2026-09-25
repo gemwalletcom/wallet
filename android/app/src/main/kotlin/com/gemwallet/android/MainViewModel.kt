@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
+import com.gemwallet.android.application.WalletPasswordProtection
 import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
 import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
@@ -25,6 +26,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -41,6 +43,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val userConfig: UserConfig,
+    private val passwordProtection: WalletPasswordProtection,
     private val isWalletConnectEnabledCase: IsWalletConnectEnabled,
     private val pairWalletConnect: PairWalletConnect,
     private val appStartService: GemAppStartServiceInterface,
@@ -53,7 +56,7 @@ class MainViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
-    private val isInitialAuthRequired = userConfig.authRequired()
+    private val isInitialAuthRequired = passwordProtection.authenticationRequired() || userConfig.authRequired()
 
     private val _uiState = MutableStateFlow(
         MainUIState(
@@ -120,7 +123,7 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun isAuthRequired(): Boolean = userConfig.authRequired()
+    fun isAuthRequired(): Boolean = passwordProtection.authenticationRequired() || userConfig.authRequired()
 
     private var isMaintained = false
 
@@ -129,7 +132,15 @@ class MainViewModel @Inject constructor(
         isMaintained = true
         viewModelScope.launch(ioDispatcher) { appStartService.run().forEach(::logAppStartFailure) }
         viewModelScope.launch(ioDispatcher) {
+            uiState.first { it.initialAuth == AuthState.Success }
             migratePriceAlertsPreference()
+            if (userConfig.authRequired() && !passwordProtection.authenticationRequired()) {
+                runCatching { passwordProtection.setAuthenticationRequired(true) }
+                    .onFailure { error ->
+                        Log.e("MainViewModel", "wallet password protection failed", error)
+                        _uiState.update { it.copy(startupError = error.errorText().text(context)) }
+                    }
+            }
             migrateV3KeystoreService()
             runCatching { walletService.migrateToSharedPassword() }
                 .onFailure { error ->
