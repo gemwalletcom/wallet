@@ -8,7 +8,7 @@ Before editing these areas, identify the security invariants and confirm the cha
 
 - Seed phrases, private keys, backup material, wallet import and export
 - Transaction construction, signing, simulation, and submission
-- Address parsing, chain selection, asset identifiers, and amount conversion
+- Address parsing, chain selection, asset identifiers, and amount conversion ([human input vs machine strings](../docs/ARCHITECTURE.md#number-parsing-human-input-vs-machine-strings))
 - Authentication, biometrics, lock flows, session handling, and secure preferences
 - QR scanning, deep links, WalletConnect, browser-to-wallet handoff, and external payload parsing
 - Any `core/` cryptographic, signing, encoding, or generated-model change
