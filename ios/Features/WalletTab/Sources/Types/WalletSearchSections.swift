@@ -2,6 +2,9 @@
 
 import Foundation
 import struct Gemstone.GemNftEntry
+import struct Gemstone.GemPerpetualMarketItem
+import func Gemstone.perpetualMarketSections
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Store
@@ -10,8 +13,8 @@ struct WalletSearchSections: Equatable {
     let pinnedAssets: [AssetData]
     let assets: [AssetData]
 
-    let pinnedPerpetuals: [PerpetualData]
-    let perpetuals: [PerpetualData]
+    let pinnedPerpetuals: [GemPerpetualMarketItem]
+    let perpetuals: [GemPerpetualMarketItem]
 
     let nfts: [GemNftEntry]
 
@@ -19,18 +22,12 @@ struct WalletSearchSections: Equatable {
 
     static func from(_ result: WalletSearchResult, nfts: [GemNftEntry]) -> WalletSearchSections {
         let assets = AssetsSections.from(result.assets)
-        let (pinnedPerpetuals, perpetuals) = result.perpetuals.reduce(into: ([PerpetualData](), [PerpetualData]())) {
-            if $1.metadata.isPinned {
-                $0.0.append($1)
-            } else {
-                $0.1.append($1)
-            }
-        }
+        let perpetuals = perpetualMarketSections(markets: result.perpetuals.map { $0.toGem() })
         return WalletSearchSections(
             pinnedAssets: assets.pinned,
             assets: assets.assets,
-            pinnedPerpetuals: pinnedPerpetuals,
-            perpetuals: perpetuals,
+            pinnedPerpetuals: perpetuals.pinned,
+            perpetuals: perpetuals.markets,
             nfts: nfts,
             lists: result.lists,
         )

@@ -51,11 +51,6 @@ pub fn delegation_details(wallet_type: WalletType, delegation: Delegation, asset
 }
 
 #[uniffi::export]
-pub fn delegation_list_row(delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency) -> GemDelegationListRow {
-    rules::delegation_list_row(&delegation, &asset, price, currency)
-}
-
-#[uniffi::export]
 pub fn delegation_list_rows(delegations: Vec<Delegation>, asset: Asset, price: Option<f64>, currency: Currency) -> Vec<GemDelegationListRow> {
     delegations.iter().map(|delegation| rules::delegation_list_row(delegation, &asset, price, currency.clone())).collect()
 }
@@ -142,6 +137,7 @@ pub struct GemStakeViewState {
     pub resource_rows: Vec<GemListRow>,
     pub delegations: Vec<GemStakeDelegationItem>,
     pub validators: Vec<DelegationValidator>,
+    pub docs_url: Option<String>,
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]
@@ -180,10 +176,6 @@ impl GemStakeAmountInput {
         amount_rules::stake_amount_type(self)
     }
 
-    pub fn stake_type(&self) -> Result<StakeType, GemServiceError> {
-        rules::stake_type(self)
-    }
-
     pub fn with_validator(&self, validator: DelegationValidator) -> GemStakeAmountInput {
         rules::with_validator(self, validator)
     }
@@ -200,6 +192,12 @@ impl GemStakeAmountInput {
     }
 }
 
+impl GemStakeAmountInput {
+    pub fn stake_type(&self) -> Result<StakeType, GemServiceError> {
+        rules::stake_type(self)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemStakeValidatorSelection {
     pub options: Vec<GemValidatorRow>,
@@ -208,12 +206,23 @@ pub struct GemStakeValidatorSelection {
     pub can_select: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, uniffi::Record)]
 pub struct GemEarnView {
     pub apr_row: GemListRow,
     pub providers: Vec<DelegationValidator>,
     pub deposit_provider: Option<DelegationValidator>,
-    pub positions: Vec<Delegation>,
+    pub positions: Vec<GemStakeDelegationItem>,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemEarnInput {
+    pub wallet_type: WalletType,
+    pub asset: Asset,
+    pub providers: Vec<DelegationValidator>,
+    pub delegations: Vec<Delegation>,
+    pub asset_apr: Option<f64>,
+    pub price: Option<f64>,
+    pub currency: Currency,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

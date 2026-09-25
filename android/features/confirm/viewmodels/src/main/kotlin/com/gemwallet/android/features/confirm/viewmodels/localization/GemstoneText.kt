@@ -10,6 +10,7 @@ import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.perpetual.title
 import com.gemwallet.android.ui.localization.errorText
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.text
 import uniffi.gemstone.GemAcquireAssetFlow
 import uniffi.gemstone.GemConfirmButtonKind
@@ -17,6 +18,7 @@ import uniffi.gemstone.GemConfirmDestination
 import uniffi.gemstone.GemConfirmErrorDisplay
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemConfirmScreen
+import uniffi.gemstone.GemSubmitMessage
 
 fun GemConfirmErrorDisplay.text(context: Context): String = when (this) {
     is GemConfirmErrorDisplay.Offline -> context.getString(R.string.errors_network_offline)
@@ -100,3 +102,8 @@ internal fun GemConfirmButtonKind.label(context: Context): String = when (this) 
 internal fun Throwable.broadcastLabel(context: Context): String = (this as? GemConfirmException)?.display()?.text(context)
     ?: errorTextOrNull()?.text(context)
     ?: "${context.getString(R.string.errors_transfer_error)}: ${message ?: toString()}"
+
+fun GemSubmitMessage.text(context: Context): String = when (this) {
+    is GemSubmitMessage.Warning -> text.text(context)
+    is GemSubmitMessage.Confirmed -> text.string(context)
+}

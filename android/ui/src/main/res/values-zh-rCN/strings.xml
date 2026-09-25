@@ -58,6 +58,7 @@
   <string name="common_token">代币</string>
   <string name="common_expiration">有效期</string>
   <string name="common_suspicious_address">可疑地址</string>
+  <string name="common_suspicious_address_description">此地址与可疑或恶意行为有关。</string>
   <string name="common_refresh">刷新</string>
   <string name="common_grant_permission">授予权限</string>
   <string name="common_required_field">%1$s为必填项</string>

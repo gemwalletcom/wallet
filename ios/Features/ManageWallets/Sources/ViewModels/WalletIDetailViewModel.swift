@@ -75,11 +75,13 @@ public final class WalletDetailViewModel {
         details.secretKind
     }
 
-    var address: WalletDetailAddress? {
+    var addressModel: AddressListItemViewModel? {
         guard let account = details.address?.toPrimitives(), let link = details.addressExplorer?.toPrimitives() else { return .none }
-        return .account(
-            SimpleAccount(name: .none, chain: account.chain, address: account.address, assetImage: .none),
-            link: link,
+        return AddressListItemViewModel(
+            title: Localized.Common.address,
+            account: SimpleAccount(name: .none, chain: account.chain, address: account.address, assetImage: .none),
+            mode: .auto(addressStyle: .short),
+            addressLink: link,
         )
     }
 

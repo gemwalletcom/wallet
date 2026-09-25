@@ -12,7 +12,7 @@ extension ConfirmTransferState {
     static func mock(
         transfer: GemTransferData = .mock(),
         load: GemConfirmLoad? = nil,
-        simulation: ConfirmSimulationState = .mock(),
+        simulation: ConfirmSimulationState = ConfirmSimulationState(),
         feeAsset: Asset = .mock(),
         screen: GemConfirmScreen = .mock(),
     ) -> ConfirmTransferState {

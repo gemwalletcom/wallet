@@ -7,8 +7,8 @@ import PrimitivesComponents
 
 @MainActor
 struct AutocloseInput {
-    var takeProfit = InputValidationViewModel(mode: .manual)
-    var stopLoss = InputValidationViewModel(mode: .manual)
+    var takeProfit = InputValidationViewModel()
+    var stopLoss = InputValidationViewModel()
     var focusField: AutocloseScene.Field?
 
     init(takeProfitText: String?, stopLossText: String?) {

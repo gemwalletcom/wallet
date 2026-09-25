@@ -43,6 +43,10 @@ impl BigNumberFormatter {
         Self::big_decimal_value(&value.to_string(), decimals).ok().and_then(|value| value.to_f64()).unwrap_or_default()
     }
 
+    pub fn plain_value(value: &BigUint, decimals: u32) -> Result<String, NumberFormatterError> {
+        Ok(Self::big_decimal_value(&value.to_string(), decimals)?.normalized().to_plain_string())
+    }
+
     pub fn value_as_u64(value: &str, decimals: u32) -> Result<u64, NumberFormatterError> {
         Self::big_decimal_value(value, decimals)?.to_u64().ok_or_else(|| NumberFormatterError::ConversionError("Cannot convert to u64".to_string()))
     }
@@ -119,6 +123,15 @@ mod tests {
 
         let huge = BigInt::from(10).pow(400);
         assert!(BigNumberFormatter::f64_value(huge, 0).is_infinite(), "a value past f64 range saturates instead of failing");
+    }
+
+    #[test]
+    fn test_plain_value_keeps_every_digit() {
+        assert_eq!(BigNumberFormatter::plain_value(&BigUint::from(1u32), 18).unwrap(), "0.000000000000000001");
+        assert_eq!(BigNumberFormatter::plain_value(&BigUint::from(1_500_000u32), 6).unwrap(), "1.5");
+        assert_eq!(BigNumberFormatter::plain_value(&BigUint::from(1_000u32), 0).unwrap(), "1000");
+        assert_eq!(BigNumberFormatter::plain_value(&BigUint::ZERO, 18).unwrap(), "0");
+        assert_eq!(BigNumberFormatter::plain_value(&BigUint::from_str("123456789012345678901234567890").unwrap(), 18).unwrap(), "123456789012.34567890123456789");
     }
 
     #[test]

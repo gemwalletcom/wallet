@@ -58,6 +58,7 @@
   <string name="common_token">رمز مميز</string>
   <string name="common_expiration">انتهاء الصلاحية</string>
   <string name="common_suspicious_address">عنوان مشبوه</string>
+  <string name="common_suspicious_address_description">هذا العنوان مرتبط بنشاط مشبوه أو ضار.</string>
   <string name="common_refresh">ينعش</string>
   <string name="common_grant_permission">يعطي الأذن</string>
   <string name="common_required_field">%1$s مطلوب</string>

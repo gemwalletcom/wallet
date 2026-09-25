@@ -58,6 +58,7 @@ pub struct GemFormattedNumber {
     pub notation: GemNumberNotation,
     pub tone: GemValueTone,
     pub rounding: GemNumberRounding,
+    pub exact: Option<String>,
 }
 
 impl GemFormattedNumber {
@@ -71,13 +72,20 @@ impl GemFormattedNumber {
             notation: GemNumberNotation::Plain,
             tone: GemValueTone::Plain,
             rounding: GemNumberRounding::ToNearest,
+            exact: None,
             unit: GemNumberUnit::Currency { code },
             display: currency_display(value, style),
         }
     }
 
     pub fn asset_amount(value: &num_bigint::BigInt, asset: &primitives::Asset, style: GemValueStyle) -> Self {
-        Self::amount(asset_value(value, asset.decimals), Some(asset.symbol.clone()), style)
+        Self {
+            exact: match style {
+                GemValueStyle::Full => number_formatter::BigNumberFormatter::plain_value(value.magnitude(), asset.decimals as u32).ok(),
+                GemValueStyle::Short | GemValueStyle::Auto => None,
+            },
+            ..Self::amount(asset_value(value, asset.decimals), Some(asset.symbol.clone()), style)
+        }
     }
 
     pub fn usd(value: f64) -> Self {
@@ -120,6 +128,7 @@ impl GemFormattedNumber {
             notation: GemNumberNotation::Plain,
             tone: GemValueTone::Plain,
             rounding: GemNumberRounding::ToNearest,
+            exact: None,
             unit: unit(symbol),
             display: GemNumberDisplay::Number {
                 precision: crate::precision::adaptive_precision(value),
@@ -134,6 +143,7 @@ impl GemFormattedNumber {
             notation: GemNumberNotation::Plain,
             tone: GemValueTone::Plain,
             rounding: GemNumberRounding::ToNearest,
+            exact: None,
             unit: GemNumberUnit::Percent,
             display: GemNumberDisplay::Number { precision: format.precision },
         };
@@ -149,6 +159,7 @@ impl GemFormattedNumber {
             notation: GemNumberNotation::Plain,
             tone: GemValueTone::Plain,
             rounding: GemNumberRounding::TowardZero,
+            exact: None,
             unit: unit(symbol),
             display: value_display(value, style),
         }
@@ -160,6 +171,7 @@ impl GemFormattedNumber {
             notation: GemNumberNotation::Plain,
             tone: GemValueTone::Plain,
             rounding: GemNumberRounding::ToNearest,
+            exact: None,
             unit: GemNumberUnit::Multiplier,
             display: GemNumberDisplay::Number {
                 precision: number_formatter::Precision::UP_TO_TWO_PLACES.into(),
@@ -182,6 +194,7 @@ impl GemFormattedNumber {
             notation: GemNumberNotation::Plain,
             tone: GemValueTone::Plain,
             rounding: GemNumberRounding::ToNearest,
+            exact: None,
             unit: GemNumberUnit::Plain,
             display: GemNumberDisplay::Number {
                 precision: GemPrecision::Fraction { min: 0, max: 0 },
@@ -197,24 +210,13 @@ fn unit(symbol: Option<String>) -> GemNumberUnit {
     }
 }
 
-#[uniffi::export]
 pub fn value_tone(value: f64) -> GemValueTone {
     GemValueTone::of(value)
 }
 
 #[uniffi::export]
-pub fn formatted_adaptive(value: f64, symbol: Option<String>) -> GemFormattedNumber {
-    GemFormattedNumber::adaptive(value, symbol)
-}
-
-#[uniffi::export]
 pub fn formatted_currency(value: f64, code: String, style: GemCurrencyStyle) -> GemFormattedNumber {
     GemFormattedNumber::currency_code(value, code, style)
-}
-
-#[uniffi::export]
-pub fn formatted_signed_currency(value: f64, code: String, style: GemCurrencyStyle) -> GemFormattedNumber {
-    GemFormattedNumber::currency_code(value, code, style).signed()
 }
 
 #[uniffi::export]

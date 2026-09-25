@@ -41,6 +41,7 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAddAssetPhase
 import uniffi.gemstone.GemAddAssetServiceInterface
 import uniffi.gemstone.GemAddAssetSession
+import uniffi.gemstone.GemChainServiceInterface
 import uniffi.gemstone.GemListSection
 import javax.inject.Inject
 
@@ -49,6 +50,7 @@ import javax.inject.Inject
 class AddAssetViewModel @Inject constructor(
     getSession: GetSession,
     private val service: GemAddAssetServiceInterface,
+    private val chainService: GemChainServiceInterface,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
@@ -73,7 +75,7 @@ class AddAssetViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val chains = snapshotFlow { chainFilter.text }.combine(availableChains) { query, availableChains ->
-        availableChains?.let { service.matchingChains(it.map { chain -> chain.string }, query.toString()).map { chain -> chain.requireChain() } } ?: emptyList()
+        availableChains?.let { chainService.getMatchingChains(it.map { chain -> chain.string }, query.toString()).map { chain -> chain.requireChain() } } ?: emptyList()
     }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

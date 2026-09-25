@@ -4,9 +4,9 @@ import Foundation
 import Primitives
 
 public extension PerpetualPositionData {
-    static func mock(position: PerpetualPosition = .mock()) -> PerpetualPositionData {
+    static func mock(perpetual: Perpetual = .mock(), position: PerpetualPosition = .mock()) -> PerpetualPositionData {
         PerpetualPositionData(
-            perpetual: .mock(),
+            perpetual: perpetual,
             asset: .mock(),
             position: position,
         )

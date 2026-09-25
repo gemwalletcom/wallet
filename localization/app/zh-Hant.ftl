@@ -58,6 +58,7 @@ common_method = 方法
 common_token = 代幣
 common_expiration = 有效期限
 common_suspicious_address = 可疑地址
+common_suspicious_address_description = 此位址與可疑或惡意行為有關。
 common_refresh = 重新整理
 common_grant_permission = 允許
 common_required_field = %@ 為必填欄位

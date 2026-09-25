@@ -18,6 +18,7 @@ struct FormattedNumberTests {
             notation: .plain,
             tone: .plain,
             rounding: .toNearest,
+            exact: nil,
         )
         let towardZero = GemFormattedNumber(
             value: 1_235_999,
@@ -26,10 +27,32 @@ struct FormattedNumberTests {
             notation: .plain,
             tone: .plain,
             rounding: .towardZero,
+            exact: nil,
         )
 
         #expect(toNearest.text(locale: .US) == "$1.24M")
         #expect(towardZero.text(locale: .US) == "$1.23M", "the record asks for truncation and gets it")
+    }
+
+    @Test
+    func aFullAmountReadsItsExactDigits() {
+        let exact = "123.456789012345678901"
+        let spent = GemFormattedNumber(
+            value: -123.456789012345678901,
+            unit: .symbol(symbol: "ETH"),
+            display: .number(precision: .fraction(min: 0, max: 32)),
+            notation: .signed,
+            tone: .negative,
+            rounding: .towardZero,
+            exact: exact,
+        )
+
+        #expect(spent.text(locale: .US) == "-123.456789012345678901 ETH", "every digit past what a double holds")
+        #expect(
+            GemFormattedNumber(value: 0.5, unit: .symbol(symbol: "SOL"), display: .number(precision: .fraction(min: 0, max: 32)), notation: .plain, tone: .plain, rounding: .towardZero, exact: "0.5")
+                .text(locale: Locale(identifier: "de_DE")) == "0,5 SOL",
+            "the digits follow the reader's separator",
+        )
     }
 
     @Test
@@ -41,11 +64,12 @@ struct FormattedNumberTests {
             notation: .signed,
             tone: .positive,
             rounding: .toNearest,
+            exact: nil,
         )
 
         #expect(incoming.text(locale: .US) == "+$1.24M")
-        #expect(GemFormattedNumber(value: -1_235_999, unit: .currency(code: "USD"), display: .abbreviated, notation: .signed, tone: .plain, rounding: .toNearest).text(locale: .US) == "-$1.24M")
-        #expect(GemFormattedNumber(value: -1_235_999, unit: .currency(code: "USD"), display: .abbreviated, notation: .plain, tone: .plain, rounding: .toNearest).text(locale: .US) == "-$1.24M")
+        #expect(GemFormattedNumber(value: -1_235_999, unit: .currency(code: "USD"), display: .abbreviated, notation: .signed, tone: .plain, rounding: .toNearest, exact: nil).text(locale: .US) == "-$1.24M")
+        #expect(GemFormattedNumber(value: -1_235_999, unit: .currency(code: "USD"), display: .abbreviated, notation: .plain, tone: .plain, rounding: .toNearest, exact: nil).text(locale: .US) == "-$1.24M")
     }
 
     @Test

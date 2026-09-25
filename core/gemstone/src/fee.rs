@@ -1,12 +1,15 @@
 use num_bigint::BigInt;
 use number_formatter::BigNumberFormatter;
-use primitives::{Asset, Chain, CustomFee, FeeUnitType};
+use primitives::currency::Currency;
+use primitives::{Asset, CustomFee, FeeUnitType};
 
 use crate::config::fee_config::get_fee_config;
 use crate::formatted_number::GemFormattedNumber;
 use crate::precision::GemValueStyle;
 use crate::services::amount::model::GemNumberFormat;
 use crate::services::amount::rules::value_from_input;
+use crate::services::assets::model::GemFeeAmount;
+use crate::services::assets::rules::fee_amount;
 use crate::services::confirm::GemFeeRateRows;
 use crate::services::localization::GemLocalizedText;
 
@@ -17,14 +20,25 @@ pub enum GemCustomFeeCheck {
     OverMaximum { rate: GemLocalizedText },
 }
 
-#[derive(uniffi::Object, Clone, Debug, PartialEq)]
-pub struct GemCustomFee {
-    fee: CustomFee,
-    rate: Option<BigInt>,
-    base_total: Option<BigInt>,
-    unit_type: FeeUnitType,
-    unit_decimals: u32,
-    symbol: String,
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemCustomFeeInput {
+    pub fee_asset: Asset,
+    pub input: String,
+    pub format: GemNumberFormat,
+    pub rows: GemFeeRateRows,
+    pub loaded_fee: Option<BigInt>,
+    pub price: Option<f64>,
+    pub currency: Currency,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemCustomFeeEstimate {
+    pub rate: Option<BigInt>,
+    pub placeholder: Option<GemFormattedNumber>,
+    pub fee_value: BigInt,
+    pub fee: Option<GemFeeAmount>,
+    pub check: GemCustomFeeCheck,
+    pub is_valid: bool,
 }
 
 pub fn fee_rate_text(unit_type: FeeUnitType, rate: &BigInt, decimals: u32, symbol: &str) -> GemLocalizedText {
@@ -38,54 +52,51 @@ pub fn fee_rate_text(unit_type: FeeUnitType, rate: &BigInt, decimals: u32, symbo
 }
 
 #[uniffi::export]
-impl GemCustomFee {
-    #[uniffi::constructor]
-    pub fn estimate(chain: Chain, input: String, format: GemNumberFormat, rows: GemFeeRateRows, loaded_fee: BigInt) -> Self {
-        let config = get_fee_config(chain);
-        let rate = value_from_input(&format.decimal_separator, &input, rows.unit_decimals).ok().filter(|rate| rate > &BigInt::ZERO);
-        let base_total = rows.selected_total.clone().unwrap_or_default();
-        let normal_total = rows.normal_total.unwrap_or_else(|| base_total.clone());
-        Self {
-            fee: CustomFee::calculate(rate.clone(), loaded_fee, base_total, normal_total, config.max_multiplier, config.minimum_custom_fee_rate.map(BigInt::from)),
-            rate,
-            base_total: rows.selected_total,
-            unit_type: rows.unit_type,
-            unit_decimals: rows.unit_decimals,
-            symbol: Asset::from_chain(chain).symbol,
-        }
-    }
-
-    pub fn rate(&self) -> Option<BigInt> {
-        self.rate.clone()
-    }
-
-    pub fn fee_value(&self) -> BigInt {
-        self.fee.fee_value.clone()
-    }
-
-    pub fn placeholder(&self) -> Option<GemFormattedNumber> {
-        let total = self.base_total.as_ref()?;
-        let value = BigNumberFormatter::f64_value(total, self.unit_decimals);
-        Some(GemFormattedNumber::amount(value, None, GemValueStyle::Auto))
-    }
-
-    pub fn check(&self) -> GemCustomFeeCheck {
-        let text = |rate: &BigInt| fee_rate_text(self.unit_type, rate, self.unit_decimals, &self.symbol);
-        match (&self.fee.minimum_rate, self.fee.is_below_minimum, self.fee.is_over_max) {
-            (Some(minimum), true, _) => GemCustomFeeCheck::BelowMinimum { rate: text(minimum) },
-            (_, _, true) => GemCustomFeeCheck::OverMaximum { rate: text(&self.fee.max_rate) },
-            _ => GemCustomFeeCheck::Valid,
-        }
-    }
-
-    pub fn is_valid(&self) -> bool {
-        self.fee.is_valid
+pub fn custom_fee_estimate(input: GemCustomFeeInput) -> GemCustomFeeEstimate {
+    let GemCustomFeeInput {
+        fee_asset,
+        input,
+        format,
+        rows,
+        loaded_fee,
+        price,
+        currency,
+    } = input;
+    let config = get_fee_config(fee_asset.chain());
+    let rate = value_from_input(&format.decimal_separator, &input, rows.unit_decimals).ok().filter(|rate| rate > &BigInt::ZERO);
+    let base_total = rows.selected_total.clone().unwrap_or_default();
+    let normal_total = rows.normal_total.clone().unwrap_or_else(|| base_total.clone());
+    let fee = CustomFee::calculate(
+        rate.clone(),
+        loaded_fee.clone().unwrap_or_default(),
+        base_total,
+        normal_total,
+        config.max_multiplier,
+        config.minimum_custom_fee_rate.map(BigInt::from),
+    );
+    let text = |rate: &BigInt| fee_rate_text(rows.unit_type, rate, rows.unit_decimals, &fee_asset.symbol);
+    let check = match (&fee.minimum_rate, fee.is_below_minimum, fee.is_over_max) {
+        (Some(minimum), true, _) => GemCustomFeeCheck::BelowMinimum { rate: text(minimum) },
+        (_, _, true) => GemCustomFeeCheck::OverMaximum { rate: text(&fee.max_rate) },
+        _ => GemCustomFeeCheck::Valid,
+    };
+    GemCustomFeeEstimate {
+        placeholder: rows
+            .selected_total
+            .as_ref()
+            .map(|total| GemFormattedNumber::amount(BigNumberFormatter::f64_value(total, rows.unit_decimals), None, GemValueStyle::Auto)),
+        fee: loaded_fee.map(|_| fee_amount(&fee_asset, &fee.fee_value, price, currency)),
+        fee_value: fee.fee_value,
+        is_valid: fee.is_valid,
+        check,
+        rate,
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::Chain;
 
     fn rows(selected_total: Option<u32>) -> GemFeeRateRows {
         GemFeeRateRows {
@@ -100,39 +111,58 @@ mod tests {
         }
     }
 
-    fn estimate(chain: Chain, input: &str) -> GemCustomFee {
-        GemCustomFee::estimate(chain, input.to_string(), GemNumberFormat { decimal_separator: ".".to_string() }, rows(Some(100)), BigInt::from(1_000))
+    fn estimate_with(chain: Chain, input: &str, rows: GemFeeRateRows, loaded_fee: Option<BigInt>) -> GemCustomFeeEstimate {
+        custom_fee_estimate(GemCustomFeeInput {
+            fee_asset: Asset::from_chain(chain),
+            input: input.to_string(),
+            format: GemNumberFormat { decimal_separator: ".".to_string() },
+            rows,
+            loaded_fee,
+            price: Some(2.0),
+            currency: Currency::USD,
+        })
+    }
+
+    fn estimate(chain: Chain, input: &str) -> GemCustomFeeEstimate {
+        estimate_with(chain, input, rows(Some(100)), Some(BigInt::from(1_000)))
     }
 
     #[test]
     fn test_the_typed_rate_is_read_in_the_fee_unit() {
-        assert_eq!(estimate(Chain::Bitcoin, "2.5").rate(), Some(BigInt::from(25)));
-        assert_eq!(estimate(Chain::Bitcoin, "").rate(), None);
-        assert_eq!(estimate(Chain::Bitcoin, "0").rate(), None, "a zero rate is no rate");
-        assert!(!estimate(Chain::Bitcoin, "").is_valid());
-        assert_eq!(estimate(Chain::Bitcoin, "").check(), GemCustomFeeCheck::Valid, "an empty field shows no error");
-        assert_eq!(estimate(Chain::Bitcoin, "").placeholder(), Some(GemFormattedNumber::amount(10.0, None, GemValueStyle::Auto)));
-        let unloaded = GemCustomFee::estimate(Chain::Bitcoin, "20".to_string(), GemNumberFormat { decimal_separator: ".".to_string() }, rows(None), BigInt::from(1_000));
-        assert_eq!(unloaded.placeholder(), None, "no loaded rate, no placeholder");
+        assert_eq!(estimate(Chain::Bitcoin, "2.5").rate, Some(BigInt::from(25)));
+        assert_eq!(estimate(Chain::Bitcoin, "").rate, None);
+        assert_eq!(estimate(Chain::Bitcoin, "0").rate, None, "a zero rate is no rate");
+        assert!(!estimate(Chain::Bitcoin, "").is_valid);
+        assert_eq!(estimate(Chain::Bitcoin, "").check, GemCustomFeeCheck::Valid, "an empty field shows no error");
+        assert_eq!(estimate(Chain::Bitcoin, "").placeholder, Some(GemFormattedNumber::amount(10.0, None, GemValueStyle::Auto)));
+        let unloaded = estimate_with(Chain::Bitcoin, "20", rows(None), Some(BigInt::from(1_000)));
+        assert_eq!(unloaded.placeholder, None, "no loaded rate, no placeholder");
     }
 
     #[test]
     fn test_the_check_names_the_bound_a_custom_rate_breaks_with_its_rate() {
-        assert_eq!(estimate(Chain::Bitcoin, "20").check(), GemCustomFeeCheck::Valid);
+        assert_eq!(estimate(Chain::Bitcoin, "20").check, GemCustomFeeCheck::Valid);
         assert_eq!(
-            estimate(Chain::BitcoinCash, "1").check(),
+            estimate(Chain::BitcoinCash, "1").check,
             GemCustomFeeCheck::BelowMinimum {
                 rate: fee_rate_text(FeeUnitType::SatVb, &BigInt::from(50), 1, "BCH")
             }
         );
         let over = estimate(Chain::Bitcoin, "100000");
         assert_eq!(
-            over.check(),
+            over.check,
             GemCustomFeeCheck::OverMaximum {
                 rate: fee_rate_text(FeeUnitType::SatVb, &BigInt::from(1_000), 1, "BTC")
             }
         );
-        assert!(!over.is_valid());
+        assert!(!over.is_valid);
+    }
+
+    #[test]
+    fn test_the_fee_reads_in_the_fee_asset_once_a_fee_is_loaded() {
+        let loaded = estimate(Chain::Bitcoin, "20");
+        assert_eq!(loaded.fee, Some(fee_amount(&Asset::from_chain(Chain::Bitcoin), &loaded.fee_value, Some(2.0), Currency::USD)));
+        assert_eq!(estimate_with(Chain::Bitcoin, "20", rows(Some(100)), None).fee, None, "no loaded fee, no amount to show");
     }
 
     #[test]

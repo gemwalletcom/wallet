@@ -171,6 +171,17 @@ class PendingNavigationCoordinatorTest {
     }
 
     @Test
+    fun pendIntent_malformedExtras_isIgnored() {
+        val intent = mockk<Intent>(relaxed = true)
+        every { intent.dataString } returns null
+        every { intent.hasExtra(any()) } throws RuntimeException("Parcelable encountered ClassNotFoundException reading a Serializable object")
+
+        coordinator.pendIntent(intent)
+
+        assertNull(coordinator.pendingNavigation.value)
+    }
+
+    @Test
     fun clear_clearsPendingNavigation() {
         coordinator.pendScan("https://example.com")
 

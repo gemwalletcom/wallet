@@ -6,10 +6,6 @@ import struct Gemstone.GemFiatSession
 import Primitives
 
 public extension GemFiatQuoteServiceProtocol {
-    var currency: Primitives.Currency {
-        getCurrency().toPrimitives()
-    }
-
     func newSession(type: FiatQuoteType, amount: Int?) -> GemFiatSession {
         newSession(quoteType: type.toGem(), amount: amount.map { UInt32($0) })
     }

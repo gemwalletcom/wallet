@@ -1,23 +1,25 @@
 use super::error::GemConfirmError;
 use super::rules::approval_value_from;
-use crate::formatted_number::GemValueTone;
+use crate::formatted_number::GemFormattedNumber;
 use crate::models::button::GemButtonState;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
 use crate::models::list::GemListRow;
 use crate::models::transaction::{GemFeeOptionItem, GemTransactionLoadFee, GemTransactionLoadMetadata};
+use crate::services::assets::model::GemFeeAmount;
 use crate::services::balance::GemAssetBalance;
+use crate::services::contact::model::GemAvatar;
 use crate::services::error_text::GemErrorText;
 use crate::services::localization::GemLocalizedText;
 use crate::services::simulation::{GemSimulationPayloadRow, address_requests, named_payload_rows};
 use crate::services::swap::model::GemSwapPairSelection;
-use crate::services::transactions::GemAmountSign;
 use crate::services::transfer::GemTransferData;
-use crate::services::transfer::model::GemConfirmDestination;
+use crate::services::transfer::model::{GemConfirmDestination, GemConfirmTitle};
+use crate::services::wallet::GemKeystoreAuthentication;
 use crate::transfer_amount::GemTransferAmount;
-use primitives::AssetPrice;
 use primitives::BlockExplorerLink;
 use primitives::{Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationResult, Wallet};
+use primitives::{AssetPrice, PaymentVerification};
 
 pub type GemAccount = Account;
 
@@ -103,8 +105,14 @@ pub struct GemConfirmData {
 
 #[derive(Debug, Clone, uniffi::Enum)]
 pub enum GemSubmitResult {
-    Signed { data: Vec<String>, warning: Option<GemErrorText> },
-    Sent { hashes: Vec<String>, warning: Option<GemErrorText> },
+    Signed { data: Vec<String>, message: Option<GemSubmitMessage> },
+    Sent { hashes: Vec<String>, message: Option<GemSubmitMessage> },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemSubmitMessage {
+    Warning { text: GemErrorText },
+    Confirmed { text: GemLocalizedText },
 }
 
 #[derive(Debug, Clone)]
@@ -155,6 +163,7 @@ impl GemConfirmMetadata {
 pub struct GemFeeRateRow {
     pub priority: FeePriority,
     pub fee: Option<GemBigInt>,
+    pub amount: Option<GemFeeAmount>,
     pub value: GemLocalizedText,
     pub is_selected: bool,
 }
@@ -207,6 +216,7 @@ pub struct GemConfirmLoad {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmFee {
     pub value: GemBigInt,
+    pub formatted: GemFeeAmount,
     pub additional_fees: Vec<GemFeeOptionItem>,
     pub selected_priority: FeePriority,
     pub amount: GemTransferAmountResult,
@@ -267,9 +277,7 @@ impl GemSimulationValue {
 pub struct GemSimulationBalanceChange {
     pub asset: Asset,
     pub icon: crate::services::assets::icon::GemAssetIcon,
-    pub value: GemBigInt,
-    pub sign: GemAmountSign,
-    pub tone: GemValueTone,
+    pub amount: GemFormattedNumber,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -350,6 +358,11 @@ pub struct GemConfirmViewState {
     pub fee_row: GemConfirmFeeRow,
     pub fee_rates: Option<GemFeeRateRows>,
     pub row_contents: Vec<GemConfirmRowContent>,
+    pub simulation_warnings: Vec<GemListRow>,
+    pub title: GemConfirmTitle,
+    pub verification: Option<PaymentVerification>,
+    pub authentication: GemKeystoreAuthentication,
+    pub notice: Option<GemListRow>,
 }
 
 #[cfg(test)]
@@ -468,11 +481,4 @@ pub enum GemConfirmRowContent {
         selectable: bool,
         asset_ids: Vec<AssetId>,
     },
-}
-
-/// What a contact shows next to a recipient: its picture when it has one, its initials otherwise.
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemAvatar {
-    pub image_url: Option<String>,
-    pub initials: String,
 }

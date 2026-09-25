@@ -1,12 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Foundation
 import class Gemstone.GemAssetConfigService
 import enum Gemstone.GemConfirmError
 import struct Gemstone.GemSimulationBalanceChange
 import struct Gemstone.GemSimulationPayloadRow
-import struct Gemstone.GemSimulationValue
 import enum Gemstone.GemSubmitResult
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
@@ -30,7 +28,7 @@ struct ConfirmSubmissionTests {
         let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
         try await ConfirmTransferSceneViewModel.mock(
             request: request,
-            execute: .success(.sent(hashes: ["hash-1", "hash-2"], warning: nil)),
+            execute: .success(.sent(hashes: ["hash-1", "hash-2"], message: nil)),
         ).submit(request: request)
 
         #expect(reported.values == ["hash-1", "hash-2"])
@@ -41,7 +39,7 @@ struct ConfirmSubmissionTests {
         let reported = ReportedValues()
 
         let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
-        try await ConfirmTransferSceneViewModel.mock(request: request, execute: .success(.signed(data: ["signed"], warning: nil))).submit(request: request)
+        try await ConfirmTransferSceneViewModel.mock(request: request, execute: .success(.signed(data: ["signed"], message: nil))).submit(request: request)
 
         #expect(reported.values == ["signed"])
     }
@@ -62,32 +60,6 @@ struct ConfirmSubmissionTests {
     }
 
     @Test
-    func simulationStateMapsTheHeader() async {
-        let usdt = Asset.mockEthereumUSDT()
-        let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
-            simulation: .mock(header: GemSimulationValue(asset: usdt.toGem(), value: .exact(value: 1_000_000))),
-        )))
-        await model.load()
-
-        let state = model.state.simulation
-
-        #expect(state.headerData == GemSimulationValue(asset: usdt.toGem(), value: .exact(value: BigUInt(1_000_000))))
-        #expect(state.payload.primaryFields.isEmpty)
-        #expect(state.payload.secondaryFields.isEmpty)
-    }
-
-    @Test
-    func simulationStateMapsAnUnlimitedHeader() async {
-        let usdt = Asset.mockEthereumUSDT()
-        let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
-            simulation: .mock(header: GemSimulationValue(asset: usdt.toGem(), value: .unlimited)),
-        )))
-        await model.load()
-
-        #expect(model.state.simulation.headerData == GemSimulationValue(asset: usdt.toGem(), value: .unlimited))
-    }
-
-    @Test
     func simulationStateKeepsPrimaryAndSecondaryFieldsApart() async {
         let primary = GemSimulationPayloadRow(title: .contract, value: .text(text: "0x1"))
         let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
@@ -97,20 +69,20 @@ struct ConfirmSubmissionTests {
 
         let state = model.state.simulation
 
-        #expect(state.payload.primaryFields.count == 1)
-        #expect(state.payload.primaryFields.first?.title == .contract)
-        #expect(state.payload.secondaryFields.isEmpty)
+        #expect(state.primaryFields.count == 1)
+        #expect(state.primaryFields.first?.title == .contract)
+        #expect(state.secondaryFields.isEmpty)
     }
 
     @Test
     func simulationStateMapsBalanceChanges() async {
         let usdt = Asset.mockEthereumUSDT()
         let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
-            simulation: .mock(balanceChanges: [GemSimulationBalanceChange(asset: usdt.toGem(), icon: GemAssetConfigService.shared.assetIcon(assetId: usdt.id.identifier), value: "-25", sign: .outgoing, tone: .negative)]),
+            simulation: .mock(balanceChanges: [GemSimulationBalanceChange(asset: usdt.toGem(), icon: GemAssetConfigService.shared.assetIcon(assetId: usdt.id.identifier), amount: .mock())]),
         )))
         await model.load()
 
-        #expect(model.state.simulation.balanceChanges == [GemSimulationBalanceChange(asset: usdt.toGem(), icon: GemAssetConfigService.shared.assetIcon(assetId: usdt.id.identifier), value: "-25", sign: .outgoing, tone: .negative)])
+        #expect(model.state.simulation.balanceChanges == [GemSimulationBalanceChange(asset: usdt.toGem(), icon: GemAssetConfigService.shared.assetIcon(assetId: usdt.id.identifier), amount: .mock())])
     }
 }
 

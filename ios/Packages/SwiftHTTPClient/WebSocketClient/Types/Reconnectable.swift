@@ -4,5 +4,5 @@ import Foundation
 
 public protocol Reconnectable: Sendable {
     func reconnection(attempt: UInt32, connectedFor duration: Duration) -> Reconnection
-    func pingIntervalMilliseconds() -> UInt64
+    var pingInterval: Duration { get }
 }

@@ -17,7 +17,6 @@ import enum Gemstone.GemListRow
 import protocol Gemstone.GemPreferencesServiceProtocol
 import struct Gemstone.GemSimulationPayloadRow
 import enum Gemstone.GemSubmitResult
-import enum Gemstone.GemTransferAmountResult
 import struct Gemstone.GemTransferData
 import struct Gemstone.SimulationResult
 import GemstonePrimitives
@@ -66,12 +65,12 @@ public final class ConfirmTransferSceneViewModel {
         let loadOptions = confirmation.loadOptions()
         let state = ConfirmTransferState(
             transfer: request.data,
-            simulation: ConfirmSimulationState(result: request.simulation),
+            simulation: ConfirmSimulationState(),
             screen: confirmation.screen(),
         )
         self.loadOptions = loadOptions
         self.state = state
-        viewState = confirmation.viewState(screen: state.screen, addressName: state.addressName?.toGem())
+        viewState = confirmation.viewState(screen: state.screen)
     }
 
     var payloadDetailsListItem: ListItemModel {
@@ -79,7 +78,7 @@ public final class ConfirmTransferSceneViewModel {
     }
 
     var title: String {
-        transfer.title().title
+        viewState.title.title
     }
 
     var progressMessage: String {
@@ -90,25 +89,19 @@ public final class ConfirmTransferSceneViewModel {
         state.screen.phase == .confirming
     }
 
-    var isHeaderVisible: Bool {
-        guard case .payment = transfer.inputType, transfer.value.isZero else {
-            return true
-        }
-        return state.fee != nil
-    }
-
     var simulationWarnings: [GemListRow] {
-        state.simulation.warnings
+        viewState.simulationWarnings
     }
 
-    public var payloadModel: SimulationPayloadModel { state.simulation.payload }
+    public var primaryPayloadFields: [GemSimulationPayloadRow] { state.simulation.primaryFields }
+    public var secondaryPayloadFields: [GemSimulationPayloadRow] { state.simulation.secondaryFields }
 
     var transfer: GemTransferData { state.transfer }
 
     var confirmButtonModel: ConfirmButtonViewModel {
         ConfirmButtonViewModel(
             button: viewState.button,
-            authentication: confirmation.authentication(),
+            authentication: viewState.authentication,
             onAction: { [weak self] in self?.onSelectConfirm() },
         )
     }
@@ -133,6 +126,7 @@ public final class ConfirmTransferSceneViewModel {
             feeRates: viewState.feeRates,
             feeAssetPrice: state.metadata?.feePrice,
             feeAmount: state.fee?.value,
+            fee: state.fee?.formatted,
             additionalFees: state.fee?.additionalFees ?? [],
             feeAssets: state.feeAssets.map { $0.feeAssetItem(currency: confirmation.currency) },
             showsFeeAssets: state.load?.showsFeeAssets() ?? false,
@@ -148,11 +142,12 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
     public var sections: [ListSection<ConfirmTransferItem>] {
         [
             ListSection(type: .header, [.header]),
+            viewState.notice == nil ? nil : ListSection(type: .notice, [.notice]),
             ListSection(type: .details, detailItems),
             simulationWarnings.isEmpty ? nil : ListSection(type: .warnings, [.warnings]),
-            payloadModel.primaryFields.isEmpty ? nil : ListSection(type: .payload, [.payload]),
+            primaryPayloadFields.isEmpty ? nil : ListSection(type: .payload, [.payload]),
             balanceChangeModels.isEmpty ? nil : ListSection(type: .balanceChanges, balanceChangeModels.indices.map(ConfirmTransferItem.balanceChange)),
-            ListSection(type: .fee, [state.verification == nil ? .networkFee : .verification]),
+            ListSection(type: .fee, [viewState.verification == nil ? .networkFee : .verification]),
             ListSection(type: .error, [.error]),
         ].compactMap(\.self)
     }
@@ -164,7 +159,9 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
     public func itemModel(for item: ConfirmTransferItem) -> any ItemModelProvidable<ConfirmTransferItemModel> {
         switch item {
         case .header:
-            ConfirmHeaderViewModel(header: confirmation.header(), currency: confirmation.currency)
+            ConfirmHeaderViewModel(header: confirmation.header(screen: state.screen))
+        case .notice:
+            viewState.notice.map(ConfirmTransferItemModel.row) ?? .empty
         case .warnings:
             ConfirmTransferItemModel.warnings(simulationWarnings)
         case let .row(index):
@@ -177,7 +174,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
         case .details:
             detailsViewModel
         case .payload:
-            ConfirmTransferItemModel.payload(fieldModels(for: payloadModel.primaryFields))
+            ConfirmTransferItemModel.payload(fieldModels(for: primaryPayloadFields))
         case let .balanceChange(index):
             ConfirmTransferItemModel.balanceChange(balanceChangeModels[index])
         case .networkFee:
@@ -188,7 +185,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             )
         case .error:
             ConfirmErrorViewModel(
-                error: state.transactionError,
+                error: viewState.notice == nil ? state.loadError : nil,
                 onSelectListError: onSelectListError,
             )
         }
@@ -198,9 +195,8 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
 // MARK: - Business Logic
 
 extension ConfirmTransferSceneViewModel {
-    func onSelectListError(error: ConfirmTransferError) {
-        guard case let .confirm(confirmError) = error,
-              let info = confirmation.errorInfo(error: confirmError) else { return }
+    func onSelectListError(error: GemConfirmError) {
+        guard let info = confirmation.errorInfo(error: error) else { return }
         isPresentingSheet = .info(ConfirmInfoSheetBuilder.build(
             for: info,
             onGetAsset: { [weak self] asset, acquire in self?.onSelectGetAsset(asset, acquire: acquire) },
@@ -212,7 +208,7 @@ extension ConfirmTransferSceneViewModel {
     }
 
     public func fieldModels(for fields: [GemSimulationPayloadRow]) -> [SimulationPayloadFieldViewModel] {
-        payloadModel.fieldModels(
+        SimulationPayloadFieldViewModel.models(
             for: fields,
             onSelectAddress: { [weak self] address in
                 guard let self else { return }
@@ -240,7 +236,7 @@ extension ConfirmTransferSceneViewModel {
     }
 
     func onSelectVerification() {
-        guard let verification = state.verification, let url = URL(string: verification.url) else { return }
+        guard let verification = viewState.verification, let url = URL(string: verification.url) else { return }
         isPresentingSheet = .paymentVerification(url)
     }
 
@@ -251,6 +247,11 @@ extension ConfirmTransferSceneViewModel {
     public func onPaymentVerified() {
         isPresentingSheet = nil
         Task { await load() }
+    }
+
+    public func onPaymentVerificationFailed() {
+        isPresentingSheet = nil
+        isPresentingAlertMessage = AlertMessage(message: Localized.Errors.errorOccurred)
     }
 
     func onSelectFeePicker() {
@@ -294,14 +295,9 @@ extension ConfirmTransferSceneViewModel {
     }
 
     private func onStateChange(state: ConfirmTransferState) {
-        viewState = confirmation.viewState(screen: state.screen, addressName: state.addressName?.toGem())
-        guard let error = state.transactionError else { return }
-        switch error {
-        case .confirm:
-            onSelectListError(error: error)
-        case .other:
-            break
-        }
+        viewState = confirmation.viewState(screen: state.screen)
+        guard state.screen.presentsSheet(), let error = state.loadError else { return }
+        onSelectListError(error: error)
     }
 
     func changeFeeSelection(_ selection: GemConfirmFeeSelection) {

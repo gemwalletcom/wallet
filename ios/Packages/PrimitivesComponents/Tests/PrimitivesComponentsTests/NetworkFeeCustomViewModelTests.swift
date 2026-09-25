@@ -26,7 +26,7 @@ struct NetworkFeeCustomViewModelTests {
 
     @Test
     func aBitcoinRateBelowTheMinimumIsRejectedWithItsOwnMessage() {
-        let model = NetworkFeeCustomViewModel.mock(chain: .bitcoin, feeAsset: .mock(), unitType: .satVb, decimals: 0, baseFee: BigInt(200), baseTotal: BigInt(200), normalTotal: BigInt(400))
+        let model = NetworkFeeCustomViewModel.mock(feeAsset: .mock(), unitType: .satVb, decimals: 0, baseFee: BigInt(200), baseTotal: BigInt(200), normalTotal: BigInt(400))
         model.input = "0"
 
         #expect(model.isConfirmEnabled == false)

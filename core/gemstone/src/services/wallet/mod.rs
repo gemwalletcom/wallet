@@ -48,10 +48,10 @@ use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
 pub use error::GemWalletImportError;
-pub use model::{GemWalletDeletion, GemWalletDetails, GemWalletImportKind, GemWalletImportRequest, GemWalletImportResult, GemWalletImportScreen, GemWalletImportSession, GemWalletImportType, GemWalletSecret};
+pub use model::{GemWalletDeletion, GemWalletDetails, GemWalletImportKind, GemWalletImportRequest, GemWalletImportResult, GemWalletImportScreen, GemWalletImportType, GemWalletSecret};
 pub use password::{GemKeystoreAuthentication, GemKeystorePassword};
 pub use store::GemWalletStore;
-pub use verify_phrase::GemVerifyPhraseSession;
+pub use verify_phrase::{GemVerifyPhraseSession, GemVerifyPhraseSetup};
 
 const SETUP_CHAINS_WALLETS_LIMIT: usize = 25;
 
@@ -135,8 +135,8 @@ impl GemWalletService {
         })
     }
 
-    pub fn verify_phrase_session(&self, words: Vec<String>) -> GemVerifyPhraseSession {
-        GemVerifyPhraseSession::new(words)
+    pub fn verify_phrase_setup(&self, words: Vec<String>) -> GemVerifyPhraseSetup {
+        GemVerifyPhraseSetup::new(words)
     }
 
     pub fn import_screen(&self, chain: Option<Chain>) -> GemWalletImportScreen {

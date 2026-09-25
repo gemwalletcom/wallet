@@ -4,21 +4,22 @@ import android.content.Context
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.transfer_amount.viewmodels.models.AmountExtrasUIModel
-import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountDataProvider
-import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountProviderFactory
+import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.testkit.mockAmountParamsTransfer
+import com.gemwallet.android.testkit.mockAssetBalance
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetPriceInfo
-import com.gemwallet.android.testkit.mockGemAmountInput
-import com.gemwallet.android.testkit.mockGemAssetBalance
+import com.gemwallet.android.testkit.mockDelegationValidator
+import com.gemwallet.android.testkit.mockGemStakeValidatorSelection
+import com.gemwallet.android.testkit.mockGemValidatorRow
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import io.mockk.coEvery
 import io.mockk.every
@@ -29,7 +30,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -41,14 +41,14 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemAmountException
-import uniffi.gemstone.GemAmountInput
 import uniffi.gemstone.GemAmountInputType
 import uniffi.gemstone.GemAmountServiceInterface
-import uniffi.gemstone.GemAmountTitle
-import uniffi.gemstone.GemAmountType
-import uniffi.gemstone.GemAssetBalance
+import uniffi.gemstone.GemPaymentRecipient
+import uniffi.gemstone.GemRecipient
+import uniffi.gemstone.GemStakeAmountInput
+import uniffi.gemstone.GemStakeServiceInterface
 import uniffi.gemstone.GemTransferData
+import java.math.BigDecimal
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -57,28 +57,20 @@ class AmountViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val asset = mockAssetCosmos()
 
-    private val assetInfoFlow = MutableStateFlow<AssetInfo?>(
-        mockAssetInfo(asset = asset, price = mockAssetPriceInfo(price = 10.0)),
-    )
-    private val inputFlow = MutableStateFlow<GemAmountInput?>(mockGemAmountInput(HundredAtom))
+    private val assetInfoFlow = MutableStateFlow<AssetInfo?>(assetInfo(HundredAtom))
 
-    private val builtAmounts = mutableListOf<Crypto>()
-    private val builtIsMax = mutableListOf<Boolean>()
+    private val sentValues = mutableListOf<BigInteger>()
+    private val sentIsMax = mutableListOf<Boolean>()
     private val confirmInput = mockk<GemTransferData>(relaxed = true)
 
-    private val balanceFlow = MutableStateFlow<GemAssetBalance?>(mockGemAssetBalance(asset, HundredAtom))
-
-    private val provider = mockk<AmountDataProvider>(relaxed = true) {
-        every { assetInfo } returns assetInfoFlow
-        every { amountType } returns MutableStateFlow(GemAmountType.Transfer)
-        every { balance } returns balanceFlow
-        every { input } returns inputFlow
-        every { title } returns MutableStateFlow(GemAmountTitle.Send)
-        every { extras } returns MutableStateFlow(AmountExtrasUIModel.None)
-        coEvery { buildTransfer(capture(builtAmounts), capture(builtIsMax)) } returns confirmInput
+    private val service = mockk<GemAmountServiceInterface>(relaxed = true) {
+        every { getCurrency() } returns Currency.USD.toGem()
+        coEvery { transferData(any(), any(), capture(sentValues), capture(sentIsMax)) } returns confirmInput
     }
-    private val factory = mockk<AmountProviderFactory> { every { create(any(), any()) } returns provider }
-    private val service = mockk<GemAmountServiceInterface> { every { getCurrency() } returns Currency.USD.toGem() }
+    private val stakeService = mockk<GemStakeServiceInterface>(relaxed = true) {
+        every { stakeValidatorSelection(any(), any()) } returns mockGemStakeValidatorSelection(mockGemValidatorRow(mockDelegationValidator(chain = Chain.Cosmos)))
+    }
+    private val getAssetInfo = mockk<GetAssetInfo> { every { this@mockk.invoke(any()) } returns assetInfoFlow }
 
     @Before
     fun setUp() = Dispatchers.setMain(testDispatcher)
@@ -106,19 +98,28 @@ class AmountViewModelTest {
         viewModel.setAmount("0")
         assertEquals(ButtonState.Disabled, viewModel.uiState.value.buttonState)
 
-        inputFlow.value = mockGemAmountInput(OneAtom)
-        balanceFlow.value = mockGemAssetBalance(asset, OneAtom)
+        assetInfoFlow.value = assetInfo(OneAtom)
         viewModel.setAmount("5")
         assertEquals(ButtonState.Disabled, viewModel.uiState.value.buttonState)
         assertEquals("string:${R.string.transfer_insufficient_balance}", viewModel.uiState.value.error)
     }
 
     @Test
-    fun `onNext converts crypto input to the atomic amount that is sent`() = viewModelTest { viewModel ->
+    fun `a prefilled payment amount fills the amount once`() = viewModelTest(AmountParams.Transfer(asset.id, GemPaymentRecipient(GemRecipient(address = "to"), "1.5"))) { viewModel ->
+        assertEquals("1.5", viewModel.amount)
+
+        viewModel.setAmount("")
+        assetInfoFlow.value = assetInfo(OneAtom)
+        runCurrent()
+        assertEquals("", viewModel.amount)
+    }
+
+    @Test
+    fun `onNext sends the atomic amount the crypto input names`() = viewModelTest { viewModel ->
         viewModel.setAmount("1.5")
 
         assertEquals(confirmInput, viewModel.confirm())
-        assertEquals(BigInteger("1500000"), builtAmounts.last().atomicValue)
+        assertEquals(BigInteger("1500000"), sentValues.last())
         assertEquals("", viewModel.uiState.value.error)
     }
 
@@ -129,28 +130,27 @@ class AmountViewModelTest {
 
         viewModel.confirm()
 
-        assertEquals(BigInteger("2000000"), builtAmounts.last().atomicValue)
+        assertEquals(BigInteger("2000000"), sentValues.last())
     }
 
     @Test
     fun `onNext rejects an amount over balance without confirming`() = viewModelTest { viewModel ->
-        inputFlow.value = mockGemAmountInput(OneAtom)
-        balanceFlow.value = mockGemAssetBalance(asset, OneAtom)
+        assetInfoFlow.value = assetInfo(OneAtom)
         viewModel.setAmount("5")
 
         assertNull(viewModel.confirm())
-        assertTrue(builtAmounts.isEmpty())
+        assertTrue(sentValues.isEmpty())
         assertEquals("string:${R.string.transfer_insufficient_balance}", viewModel.uiState.value.error)
     }
 
     @Test
     fun `onNext marks isMax when the amount equals the max value`() = viewModelTest { viewModel ->
-        inputFlow.value = mockGemAmountInput(OneAtom)
+        assetInfoFlow.value = assetInfo(OneAtom)
         viewModel.setAmount("1")
 
         viewModel.confirm()
 
-        assertEquals(true, builtIsMax.last())
+        assertEquals(true, sentIsMax.last())
     }
 
     @Test
@@ -167,7 +167,8 @@ class AmountViewModelTest {
 
     @Test
     fun `onMaxAmount in fiat mode enters the max in asset units`() = viewModelTest { viewModel ->
-        inputFlow.value = mockGemAmountInput(BigInteger("2000000"))
+        assetInfoFlow.value = assetInfo(BigInteger("2000000"))
+        runCurrent()
         viewModel.switchInputType()
 
         viewModel.onMaxAmount()
@@ -177,13 +178,14 @@ class AmountViewModelTest {
         assertEquals(GemAmountInputType.ASSET, viewModel.amountInputType.value)
         assertEquals("2", viewModel.amount)
         viewModel.confirm()
-        assertEquals(BigInteger("2000000"), builtAmounts.last().atomicValue)
-        assertEquals(true, builtIsMax.last())
+        assertEquals(BigInteger("2000000"), sentValues.last())
+        assertEquals(true, sentIsMax.last())
     }
 
     @Test
     fun `onMaxAmount fills the full spendable balance`() = viewModelTest { viewModel ->
-        inputFlow.value = mockGemAmountInput(BigInteger("2000000"))
+        assetInfoFlow.value = assetInfo(BigInteger("2000000"))
+        runCurrent()
 
         viewModel.onMaxAmount()
         runCurrent()
@@ -192,29 +194,34 @@ class AmountViewModelTest {
     }
 
     @Test
-    fun `onMaxAmount reserves the network fee from the balance`() = viewModelTest { viewModel ->
-        inputFlow.value = mockGemAmountInput(available = BigInteger("2000000"), max = BigInteger("1500000"), reservedFee = BigInteger("500000"))
+    fun `a stake max keeps the network fee back and says so`() = viewModelTest(AmountParams.Stake(asset.id, GemStakeAmountInput.Stake(emptyList(), null))) { viewModel ->
+        assetInfoFlow.value = assetInfo(BigInteger("2000000"))
+        runCurrent()
 
         viewModel.onMaxAmount()
         runCurrent()
+        Snapshot.sendApplyNotifications()
+        testDispatcher.scheduler.advanceUntilIdle()
 
-        assertEquals("1.5", viewModel.amount)
-    }
-
-    @Test
-    fun `typing the max amount by hand shows the reserved fee note`() = viewModelTest { viewModel ->
-        inputFlow.value = mockGemAmountInput(available = BigInteger("2000000"), max = BigInteger("1500000"), reservedFee = BigInteger("500000"))
-
-        viewModel.setAmount("1")
-        assertNull(viewModel.uiState.value.reserveForFee)
-
-        viewModel.setAmount("1.5")
+        assertTrue("a stake max stays under the balance", viewModel.amount.toBigDecimal() < BigDecimal(2))
         assertNotNull(viewModel.uiState.value.reserveForFee)
     }
 
-    private fun viewModelTest(block: suspend TestScope.(AmountViewModel) -> Unit) = runTest(testDispatcher) {
-        val params = mockAmountParamsTransfer(assetId = asset.id)
-        val viewModel = AmountViewModel(service, factory, SavedStateHandle(mapOf(RouteArgument.Params.key to params.pack())), context)
+    private fun assetInfo(available: BigInteger) = mockAssetInfo(asset = asset, balance = mockAssetBalance(asset, available = available), price = mockAssetPriceInfo(price = 10.0))
+
+    private fun viewModelTest(params: AmountParams = mockAmountParamsTransfer(assetId = asset.id), block: suspend TestScope.(AmountViewModel) -> Unit) = runTest(testDispatcher) {
+        val viewModel = AmountViewModel(
+            service = service,
+            stakeService = stakeService,
+            getAssetInfo = getAssetInfo,
+            getPerpetual = mockk(relaxed = true),
+            getDelegation = mockk(relaxed = true),
+            getStakeValidator = mockk(relaxed = true),
+            getSession = mockk(relaxed = true),
+            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to params.pack())),
+            context = context,
+            ioDispatcher = testDispatcher,
+        )
         try {
             runCurrent()
             block(viewModel)

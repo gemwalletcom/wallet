@@ -10,6 +10,7 @@ import class Gemstone.GemRecipientService
 import enum Gemstone.GemRecipientType
 import class Gemstone.GemSwapQuoteService
 import struct Gemstone.GemTransferData
+import struct Gemstone.GemValidatorRow
 import struct Gemstone.GemWalletConnectMessageRequest
 import struct Gemstone.SimulationResult
 import GemstonePrimitives
@@ -28,12 +29,11 @@ public extension ViewModelFactory {
     @MainActor
     func validatorSelectScene(
         currentValidator: DelegationValidator?,
-        recommended: [DelegationValidator],
-        validators: [DelegationValidator],
-        selectValidator: @escaping (DelegationValidator) -> Void,
+        recommended: [GemValidatorRow],
+        validators: [GemValidatorRow],
+        selectValidator: @escaping (GemValidatorRow) -> Void,
     ) -> ValidatorSelectSceneViewModel {
         ValidatorSelectSceneViewModel(
-            service: stakeService,
             currentValidator: currentValidator,
             recommended: recommended,
             validators: validators,
@@ -58,7 +58,7 @@ public extension ViewModelFactory {
             wallet: wallet,
             confirmation: confirmTransferService().confirmation(wallet: wallet.toGem(), transfer: data, simulation: simulation),
             onComplete: { [toastPresenter] result in
-                Task { toastPresenter.present(.transfer(result, for: data.inputType)) }
+                Task { toastPresenter.present(.transfer(result)) }
                 onComplete?()
             },
         )

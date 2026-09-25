@@ -10,6 +10,7 @@ import SwiftUI
 
 enum ConfirmTransferSectionType: String, Identifiable, Equatable {
     case header
+    case notice
     case warnings
     case details
     case balanceChanges
@@ -24,6 +25,7 @@ enum ConfirmTransferSectionType: String, Identifiable, Equatable {
 
 public enum ConfirmTransferItem: Identifiable, Hashable, Sendable {
     case header
+    case notice
     case warnings
     case row(Int)
     case verification
@@ -39,7 +41,7 @@ public enum ConfirmTransferItem: Identifiable, Hashable, Sendable {
 }
 
 public enum ConfirmTransferItemModel {
-    case header(TransactionHeaderItemModel)
+    case header(TransactionHeaderType, isReserved: Bool)
     case row(GemListRow)
     case recipient(AddressListItemViewModel)
     case paymentAsset(ListItemModel, selectable: Bool)

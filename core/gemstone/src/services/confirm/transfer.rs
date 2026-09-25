@@ -8,7 +8,7 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::list::GemListRow;
 use crate::models::transaction::GemSignedTransaction;
 use crate::payment::{GemPaymentError, GemPaymentService};
-use crate::services::confirm::rules::{confirm_row_contents, is_broadcast, is_insufficient_network_fee};
+use crate::services::confirm::rules::{confirm_row_contents, is_broadcast, is_insufficient_network_fee, submit_message};
 use crate::services::confirm::{GemConfirmError, GemConfirmInput, GemConfirmLoad, GemConfirmRowContent, GemConfirmService, GemConfirmSimulationState, GemConfirmation, GemSubmitResult, GemTransactionSigner, SendInput};
 use crate::services::error_text::{GemErrorText, payment_error_text};
 use crate::services::explorer::GemExplorerService;
@@ -104,12 +104,18 @@ impl GemConfirmTransferService {
         let data: Vec<String> = signatures.iter().map(|transaction| transaction.data.clone()).collect();
         if transactions.is_empty() {
             let warning = self.report_payment(&input, data.clone(), &signatures).await;
-            return Ok(GemSubmitResult::Signed { data, warning });
+            return Ok(GemSubmitResult::Signed {
+                data,
+                message: submit_message(input_type, warning),
+            });
         }
         let hashes = self.confirm.send(&input, transactions).await?;
         let _ = self.recent_activity.add(input_type.clone(), input.wallet.id.clone()).await;
         let warning = self.report_payment(&input, [hashes.clone(), data].concat(), &signatures).await;
-        Ok(GemSubmitResult::Sent { hashes, warning })
+        Ok(GemSubmitResult::Sent {
+            hashes,
+            message: submit_message(input_type, warning),
+        })
     }
 
     async fn report_payment(&self, input: &SendInput, action_results: Vec<String>, signatures: &[GemSignedTransaction]) -> Option<GemErrorText> {

@@ -13,6 +13,7 @@ use crate::models::swap::GemSlippageCheck;
 use crate::percentage::GemPercentageStyle;
 use crate::services::amount::model::GemNumberFormat;
 use crate::services::amount::rules::value_from_input;
+use crate::services::assets::{GemAssetAction, GemAssetFilter};
 use crate::services::localization::GemLocalizedText;
 use crate::services::swap::model::{GemAssetRate, GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSelection, GemSwapPairSuggestion, GemSwapPriceImpactRow, GemSwapRate, GemSwapSide, GemSwapTransfer};
 use crate::services::swap::session::{GemSwapQuoteInput, GemSwapRequest};
@@ -133,17 +134,6 @@ pub fn swap_transfer(wallet: &Wallet, quote: &Quote, data: SwapQuoteData) -> Res
     })
 }
 
-const QUOTE_REFRESH_INTERVAL_MILLISECONDS: u64 = 30_000;
-const QUOTE_DEBOUNCE_MILLISECONDS: u64 = 250;
-
-pub fn quote_refresh_interval_milliseconds() -> u64 {
-    QUOTE_REFRESH_INTERVAL_MILLISECONDS
-}
-
-pub fn quote_debounce_milliseconds() -> u64 {
-    QUOTE_DEBOUNCE_MILLISECONDS
-}
-
 pub fn swap_rate(from_asset: &Asset, from_value: &BigUint, to_asset: &Asset, to_value: &BigUint) -> Option<GemSwapRate> {
     let from_amount = amount(from_value, from_asset.decimals)?;
     let to_amount = amount(to_value, to_asset.decimals)?;
@@ -244,6 +234,14 @@ pub fn first_supported_receive_asset(asset_ids: Vec<AssetId>, pay_asset_id: &Ass
 pub const CANDIDATES_LIMIT: u32 = 50;
 /// The swap history a default pair is chosen from.
 pub const RECENTS_LIMIT: u32 = 20;
+
+pub fn pay_candidate_filters() -> Vec<GemAssetFilter> {
+    vec![GemAssetFilter::Enabled, GemAssetFilter::Swappable]
+}
+
+pub fn receive_candidate_filters(supported: AssetList) -> Vec<GemAssetFilter> {
+    [GemAssetAction::SwapReceive.filters(), vec![GemAssetFilter::from(supported)]].concat()
+}
 
 pub fn assets_in_wallet(supported: AssetList, wallet: &Wallet) -> AssetList {
     let has_account = |chain: &Chain| wallet.accounts.iter().any(|account| &account.chain == chain);
@@ -763,5 +761,28 @@ mod tests {
 
         assert_eq!(assets.chains, supported.chains);
         assert_eq!(assets.asset_ids, supported.asset_ids);
+    }
+
+    #[test]
+    fn test_a_default_pay_asset_is_any_enabled_swappable_asset_even_without_an_available_balance() {
+        assert_eq!(pay_candidate_filters(), vec![GemAssetFilter::Enabled, GemAssetFilter::Swappable]);
+        assert!(GemAssetAction::SwapPay.filters().contains(&GemAssetFilter::HasAvailableBalance), "the pay picker is stricter than the default");
+    }
+
+    #[test]
+    fn test_receive_candidates_are_the_swap_receive_assets_scoped_to_what_the_pay_asset_reaches() {
+        let supported = AssetList::mock();
+
+        assert_eq!(
+            receive_candidate_filters(supported.clone()),
+            vec![
+                GemAssetFilter::Enabled,
+                GemAssetFilter::Swappable,
+                GemAssetFilter::ChainsOrAssetIds {
+                    chains: supported.chains,
+                    asset_ids: supported.asset_ids,
+                },
+            ]
+        );
     }
 }

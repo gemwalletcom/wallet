@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Components
 import Formatters
 import Foundation
+import struct Gemstone.GemFeeAmount
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemTransactionDetailRow
 import struct Gemstone.GemTransactionDetailRows
@@ -96,22 +96,15 @@ extension TransactionSceneViewModel: ListSectionProvideable {
     }
 
     private var headerItem: TransactionItemModel {
-        let headerType = rows.header.headerType(currency: service.getCurrency().toPrimitives())
-        let showClearHeader = switch headerType {
-        case .amount, .nft, .asset, .assetValue: true
-        case .swap: false
-        }
-        return .header(TransactionHeaderItemModel(headerType: headerType, showClearHeader: showClearHeader))
+        .header(rows.header.headerType)
     }
 
     private var swapProgressItem: TransactionItemModel {
         guard let progress = rows.swapProgress else { return .empty }
-        let fromAsset = progress.fromAsset.toPrimitives()
-        let amount = ValueFormatter.auto.string(BigInt(progress.fromValue), asset: fromAsset)
         return .swapProgress(TransactionSwapProgressItemModel(
-            transfer: .init(title: Localized.Transfer.title, subtitle: progress.transferText(formattedValue: amount), state: progress.transfer),
+            transfer: .init(title: Localized.Transfer.title, subtitle: "\(progress.amount.text()) (\(progress.network))", state: progress.transfer),
             swap: .init(title: Localized.Wallet.swap, subtitle: progress.providerName, state: progress.swap),
-            estimatedTime: progress.etaSeconds.map { EstimatedConfirmationFormatter().string(seconds: $0) },
+            estimatedTime: progress.etaSeconds.flatMap { EstimatedConfirmationFormatter().string(seconds: $0) },
         ))
     }
 
@@ -171,13 +164,11 @@ extension TransactionSceneViewModel {
     }
 
     var feeDetailsViewModel: NetworkFeeSceneViewModel {
-        let fee = rows.fee
-        return NetworkFeeSceneViewModel(
-            feeAsset: fee.asset.toPrimitives(),
+        NetworkFeeSceneViewModel(
+            feeAsset: rows.fee.asset.toPrimitives(),
             currency: service.getCurrency().toPrimitives(),
             selection: .priority(priority: .normal),
-            feeAssetPrice: fee.price.map { $0.toPrimitives().mapToPrice() },
-            feeAmount: BigInt(fee.value),
+            fee: GemFeeAmount(amount: rows.feeRow.amount, fiat: rows.feeRow.fiat),
         )
     }
 }

@@ -22,7 +22,6 @@ import enum Gemstone.GemListRowTitle
 import enum Gemstone.GemListSectionFooter
 import enum Gemstone.GemListSectionTitle
 import enum Gemstone.GemLocalizedText
-import class Gemstone.GemPerpetual
 import enum Gemstone.GemPriceAlertLabel
 import struct Gemstone.GemPriceAlertRow
 import enum Gemstone.GemPriceAlertText
@@ -39,7 +38,6 @@ import enum Gemstone.GemWalletSubtitle
 import enum Gemstone.LinkType
 import enum Gemstone.PaymentStatus
 import enum Gemstone.PerpetualDirection
-import enum Gemstone.PerpetualType
 import class Gemstone.PriceChangeCalculator
 import GemstonePrimitives
 import Localization
@@ -98,8 +96,8 @@ public extension GemLocalizedText {
             Localized.Simulation.Warning.UnlimitedTokenApproval.description
         case .externallyOwnedSpenderWarning:
             Localized.Simulation.warningExternallyOwnedSpenderDescription
-        case .suspiciousAddress:
-            Localized.Common.suspiciousAddress
+        case .suspiciousAddressDescription:
+            Localized.Common.suspiciousAddressDescription
         case let .addressType(addressType):
             addressType.title
         case .invalidTokenId:
@@ -141,6 +139,14 @@ public extension GemLocalizedText {
             switch change {
             case .increase: Localized.Perpetual.increaseDirection(direction.toPrimitives().title)
             case .reduce: Localized.Perpetual.reduceDirection(direction.toPrimitives().title)
+            }
+        case let .perpetualConfirmed(action):
+            switch action {
+            case let .open(direction): Localized.Perpetual.openDirection(direction.toPrimitives().title)
+            case .close: Localized.Perpetual.closePosition
+            case .modify: Localized.Perpetual.modifyPosition
+            case .increase: Localized.Perpetual.increasePosition
+            case .reduce: Localized.Perpetual.reducePosition
             }
         }
     }
@@ -420,18 +426,6 @@ public extension GemAssetMenuAction {
     }
 }
 
-public extension PerpetualType {
-    var confirmedTitle: String {
-        switch self {
-        case let .open(data): Localized.Perpetual.openDirection(data.direction.toPrimitives().title)
-        case .close: Localized.Perpetual.closePosition
-        case .modify: Localized.Perpetual.modifyPosition
-        case .increase: Localized.Perpetual.increasePosition
-        case .reduce: Localized.Perpetual.reducePosition
-        }
-    }
-}
-
 public extension ScanReceiveMode {
     var title: String {
         switch self {
@@ -681,6 +675,7 @@ public extension GemListSectionTitle {
         case .manage: Localized.Common.manage
         case .resources: Localized.Asset.resources
         case .socialLinks: Localized.Social.links
+        case .properties: Localized.Nft.properties
         }
     }
 }
@@ -769,6 +764,7 @@ public extension GemListRowTitle {
         case .rewardsUnverified: Localized.Rewards.Unverified.title
         case .rewardsPending: Localized.Rewards.Pending.title
         case .warning: Localized.Common.warning
+        case .suspiciousAddress: Localized.Common.suspiciousAddress
         case .unlimitedApproval: Localized.Simulation.Warning.UnlimitedTokenApproval.title
         case .nftCollectionApproval: Localized.Simulation.Warning.NftCollectionApproval.title
         case .symbol: Localized.Asset.symbol
@@ -826,6 +822,7 @@ extension Gemstone.AddressType {
         switch self {
         case .address: Localized.Common.address
         case .contract: Localized.Asset.contract
+        case .asset: Localized.Common.token
         case .validator: Localized.Stake.validator
         case .contact: Localized.Contacts.contact
         case .internalWallet: Localized.Common.wallet

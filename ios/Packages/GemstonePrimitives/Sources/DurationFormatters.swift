@@ -12,8 +12,8 @@ public struct EstimatedConfirmationFormatter {
         calendar = .current(locale: locale)
     }
 
-    public func string(seconds: UInt32) -> String {
-        string(parts: estimatedDurationParts(seconds: Int64(seconds)))
+    public func string(seconds: UInt32) -> String? {
+        estimatedDurationParts(seconds: Int64(seconds)).map { string(parts: $0) }
     }
 
     public func string(parts: [GemDurationPart]) -> String {

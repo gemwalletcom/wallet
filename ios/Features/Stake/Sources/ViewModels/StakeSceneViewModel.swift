@@ -58,10 +58,6 @@ public final class StakeSceneViewModel {
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: chain.chain.assetId), initialValue: .with(asset: chain.chain.asset))
     }
 
-    public var stakeInfoUrl: URL {
-        AppUrl.docs(.staking(chain.rawValue))
-    }
-
     var title: String {
         Localized.Transfer.Stake.title
     }
@@ -82,16 +78,12 @@ public final class StakeSceneViewModel {
         )
     }
 
-    func sectionModels(_ state: GemStakeViewState) -> [StakeSectionViewModel] {
-        state.sections.map { StakeSectionViewModel(section: $0, title: $0.title) }
-    }
-
     func showsDelegationsPlaceholder(_ state: GemStakeViewState) -> Bool {
         !state.sections.contains(.delegations)
     }
 
     var emptyContentModel: EmptyContentTypeViewModel {
-        EmptyContentTypeViewModel(type: EmptyContentType(.stake, symbol: assetModel.symbol))
+        EmptyContentTypeViewModel(type: EmptyContentType(.stake, symbol: asset.symbol))
     }
 
     func delegationsViewState(_ state: GemStakeViewState) -> StateViewType<[GemStakeDelegationItem]> {
@@ -124,7 +116,7 @@ extension StakeSceneViewModel {
     }
 
     func onInfo(_ topic: GemInfoTopic) {
-        isPresentingInfoSheet = InfoSheetType(topic: topic, assetImage: assetModel.assetImage)
+        isPresentingInfoSheet = InfoSheetType(topic: topic, assetImage: AssetIdViewModel(assetId: asset.id).assetImage)
     }
 
     func onStakeFrozenInfo() {

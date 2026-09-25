@@ -17,21 +17,22 @@ public final class FiatTransactionsViewModel {
     private let service: any GemFiatQuoteServiceProtocol
     let walletId: WalletId
 
-    public let query: ObservableQuery<FiatTransactionsRequest>
+    public let query: ObservableQuery<MappedRequest<FiatTransactionsRequest, [ListSection<FiatTransactionViewModel>]>>
 
     private var loadState: GemLoadState = .loading
-    var transactions: [FiatTransactionAssetData] {
-        query.value
-    }
-
     var sections: [ListSection<FiatTransactionViewModel>] {
-        DateSectionBuilder(items: FiatTransactionViewModel.models(transactions), dateKeyPath: \.createdAt).build()
+        query.value
     }
 
     init(walletId: WalletId, service: any GemFiatQuoteServiceProtocol) {
         self.walletId = walletId
         self.service = service
-        query = ObservableQuery(FiatTransactionsRequest(walletId: walletId), initialValue: [])
+        query = ObservableQuery(
+            MappedRequest(FiatTransactionsRequest(walletId: walletId)) {
+                DateSectionBuilder(items: FiatTransactionViewModel.models($0), dateKeyPath: \.createdAt).build()
+            },
+            initialValue: [],
+        )
     }
 
     var title: String {
@@ -39,7 +40,7 @@ public final class FiatTransactionsViewModel {
     }
 
     var loadError: Error? {
-        Gemstone.loadError(state: loadState, hasRows: !transactions.isEmpty)
+        Gemstone.loadError(state: loadState, hasRows: !sections.isEmpty)
     }
 
     var emptyContentModel: EmptyContentTypeViewModel {
@@ -47,6 +48,6 @@ public final class FiatTransactionsViewModel {
     }
 
     func load() async {
-        loadState = await service.refreshTransactions(hasTransactions: transactions.isNotEmpty)
+        loadState = await service.refreshTransactions(hasTransactions: !sections.isEmpty)
     }
 }

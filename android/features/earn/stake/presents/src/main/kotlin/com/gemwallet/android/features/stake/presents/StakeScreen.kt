@@ -16,7 +16,6 @@ import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 fun StakeScreen(amountAction: AmountTransactionAction, onConfirm: ConfirmTransactionAction, onDelegation: (String, String) -> Unit, onCancel: () -> Unit, viewModel: StakeViewModel = hiltViewModel()) {
     val inSync by viewModel.isSync.collectAsStateWithLifecycle()
     val assetInfo by viewModel.assetInfo.collectAsStateWithLifecycle()
-    val delegations by viewModel.delegations.collectAsStateWithLifecycle()
     val actions by viewModel.actionRows.collectAsStateWithLifecycle()
     val stakeInfoUrl by viewModel.stakeInfoUrl.collectAsStateWithLifecycle()
     val sections by viewModel.sections.collectAsStateWithLifecycle()

@@ -58,6 +58,7 @@
   <string name="common_token">توکن</string>
   <string name="common_expiration">انقضا</string>
   <string name="common_suspicious_address">آدرس مشکوک</string>
+  <string name="common_suspicious_address_description">این آدرس با فعالیت مشکوک یا مضر مرتبط است.</string>
   <string name="common_refresh">تازه کردن</string>
   <string name="common_grant_permission">اجازه بدهید</string>
   <string name="common_required_field">%1$s مورد نیاز است.</string>

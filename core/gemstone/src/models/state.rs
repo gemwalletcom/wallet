@@ -8,6 +8,21 @@ pub enum GemLoadState {
     Error { error: GemServiceError },
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemRefreshResult {
+    pub state: GemLoadState,
+    pub toast: Option<GemServiceError>,
+}
+
+impl GemRefreshResult {
+    pub fn new(synced: Result<(), GemServiceError>, shows_value: bool) -> Self {
+        Self {
+            toast: synced.as_ref().err().filter(|_| shows_value).cloned(),
+            state: GemLoadState::refreshed(synced, shows_value),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct GemLoad<T> {
     pub state: GemLoadState,
@@ -112,5 +127,27 @@ mod tests {
         assert_eq!(GemLoadState::refreshed(Ok(()), false), GemLoadState::Data);
         assert_eq!(GemLoadState::refreshed(failed(), true), GemLoadState::Data);
         assert!(matches!(GemLoadState::refreshed(failed(), false), GemLoadState::Error { .. }));
+    }
+
+    #[test]
+    fn test_a_failed_refresh_over_shown_rows_is_a_toast() {
+        let error = GemServiceError::Gateway { msg: "offline".to_string() };
+
+        assert_eq!(
+            GemRefreshResult::new(Err(error.clone()), true),
+            GemRefreshResult {
+                state: GemLoadState::Data,
+                toast: Some(error.clone())
+            }
+        );
+        assert_eq!(
+            GemRefreshResult::new(Err(error.clone()), false),
+            GemRefreshResult {
+                state: GemLoadState::Error { error },
+                toast: None
+            },
+            "an empty screen shows the error row instead"
+        );
+        assert_eq!(GemRefreshResult::new(Ok(()), true).toast, None);
     }
 }

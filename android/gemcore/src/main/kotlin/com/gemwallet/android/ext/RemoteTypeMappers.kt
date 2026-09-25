@@ -14,6 +14,7 @@ fun com.wallet.core.primitives.AccountDataType.toGem(): uniffi.gemstone.AccountD
 fun uniffi.gemstone.AddressType.toPrimitives(): com.wallet.core.primitives.AddressType = when (this) {
     uniffi.gemstone.AddressType.ADDRESS -> com.wallet.core.primitives.AddressType.Address
     uniffi.gemstone.AddressType.CONTRACT -> com.wallet.core.primitives.AddressType.Contract
+    uniffi.gemstone.AddressType.ASSET -> com.wallet.core.primitives.AddressType.Asset
     uniffi.gemstone.AddressType.VALIDATOR -> com.wallet.core.primitives.AddressType.Validator
     uniffi.gemstone.AddressType.CONTACT -> com.wallet.core.primitives.AddressType.Contact
     uniffi.gemstone.AddressType.INTERNAL_WALLET -> com.wallet.core.primitives.AddressType.InternalWallet
@@ -22,6 +23,7 @@ fun uniffi.gemstone.AddressType.toPrimitives(): com.wallet.core.primitives.Addre
 fun com.wallet.core.primitives.AddressType.toGem(): uniffi.gemstone.AddressType = when (this) {
     com.wallet.core.primitives.AddressType.Address -> uniffi.gemstone.AddressType.ADDRESS
     com.wallet.core.primitives.AddressType.Contract -> uniffi.gemstone.AddressType.CONTRACT
+    com.wallet.core.primitives.AddressType.Asset -> uniffi.gemstone.AddressType.ASSET
     com.wallet.core.primitives.AddressType.Validator -> uniffi.gemstone.AddressType.VALIDATOR
     com.wallet.core.primitives.AddressType.Contact -> uniffi.gemstone.AddressType.CONTACT
     com.wallet.core.primitives.AddressType.InternalWallet -> uniffi.gemstone.AddressType.INTERNAL_WALLET

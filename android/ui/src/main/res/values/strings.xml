@@ -58,6 +58,7 @@
   <string name="common_token">Token</string>
   <string name="common_expiration">Expiration</string>
   <string name="common_suspicious_address">Suspicious address</string>
+  <string name="common_suspicious_address_description">This address is associated with suspicious or harmful activity.</string>
   <string name="common_refresh">Refresh</string>
   <string name="common_grant_permission">Grant permission</string>
   <string name="common_required_field">%1$s is required</string>

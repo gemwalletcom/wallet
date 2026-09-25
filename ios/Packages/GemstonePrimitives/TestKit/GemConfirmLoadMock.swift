@@ -18,6 +18,7 @@ public import enum Gemstone.GemTransferAmountResult
 public import struct Gemstone.TransferDataExtra
 import Foundation
 import struct Gemstone.ApprovalData
+import func Gemstone.feeAmount
 import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import Primitives
@@ -30,7 +31,13 @@ public extension GemConfirmFee {
         selectedPriority: Gemstone.FeePriority = .normal,
         amount: GemTransferAmountResult = .amount(amount: GemTransferAmount(value: 1, networkFee: 1, isMaxAmount: false)),
     ) -> GemConfirmFee {
-        GemConfirmFee(value: value, additionalFees: additionalFees, selectedPriority: selectedPriority, amount: amount)
+        GemConfirmFee(
+            value: value,
+            formatted: Gemstone.feeAmount(asset: Asset.mockEthereum().toGem(), value: value, price: nil, currency: Primitives.Currency.usd.toGem()),
+            additionalFees: additionalFees,
+            selectedPriority: selectedPriority,
+            amount: amount,
+        )
     }
 }
 

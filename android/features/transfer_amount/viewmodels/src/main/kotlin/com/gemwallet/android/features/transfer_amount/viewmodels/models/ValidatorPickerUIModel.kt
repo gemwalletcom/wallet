@@ -1,3 +1,5 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.models
 
-data class ValidatorPickerUIModel(val rows: ValidatorsUIModel, val selectedId: String)
+import uniffi.gemstone.GemStakeValidatorSelection
+
+data class ValidatorPickerUIModel(val selection: GemStakeValidatorSelection, val selectedId: String)

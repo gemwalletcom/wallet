@@ -9,7 +9,6 @@ import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
@@ -46,6 +45,7 @@ import uniffi.gemstone.GemLatencyStatus
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemListSectionTitle
 import uniffi.gemstone.GemLocalizedText
+import uniffi.gemstone.GemPerpetualConfirmedAction
 import uniffi.gemstone.GemPositionChange
 import uniffi.gemstone.GemRecipientErrorDisplay
 import uniffi.gemstone.GemRecipientSectionKind
@@ -184,7 +184,7 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     GemLocalizedText.ExternallyOwnedSpenderWarning -> context.getString(R.string.simulation_warning_externally_owned_spender_description)
 
-    GemLocalizedText.SuspiciousAddress -> context.getString(R.string.common_suspicious_address)
+    GemLocalizedText.SuspiciousAddressDescription -> context.getString(R.string.common_suspicious_address_description)
 
     is GemLocalizedText.AddressType -> context.getString(addressType.stringRes())
 
@@ -226,6 +226,14 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
     is GemLocalizedText.PositionChange -> when (change) {
         GemPositionChange.INCREASE -> context.getString(R.string.perpetual_increase_direction, context.getString(direction.toPrimitives().stringRes()))
         GemPositionChange.REDUCE -> context.getString(R.string.perpetual_reduce_direction, context.getString(direction.toPrimitives().stringRes()))
+    }
+
+    is GemLocalizedText.PerpetualConfirmed -> when (val action = action) {
+        is GemPerpetualConfirmedAction.Open -> context.getString(R.string.perpetual_open_direction, context.getString(action.direction.toPrimitives().stringRes()))
+        GemPerpetualConfirmedAction.Close -> context.getString(R.string.perpetual_close_position)
+        GemPerpetualConfirmedAction.Modify -> context.getString(R.string.perpetual_modify_position)
+        GemPerpetualConfirmedAction.Increase -> context.getString(R.string.perpetual_increase_position)
+        GemPerpetualConfirmedAction.Reduce -> context.getString(R.string.perpetual_reduce_position)
     }
 
     is GemLocalizedText.FeeRate -> when (unit) {
@@ -551,6 +559,7 @@ fun GemListSectionTitle.titleRes(): Int? = when (this) {
     GemListSectionTitle.MANAGE -> R.string.common_manage
     GemListSectionTitle.RESOURCES -> R.string.asset_resources
     GemListSectionTitle.SOCIAL_LINKS -> R.string.social_links
+    GemListSectionTitle.PROPERTIES -> R.string.nft_properties
 }
 
 fun GemListRowTitle.text(context: Context): String = when (this) {
@@ -617,6 +626,7 @@ fun GemListRowTitle.text(context: Context): String = when (this) {
     GemListRowTitle.REWARDS_UNVERIFIED -> context.getString(R.string.rewards_unverified_title)
     GemListRowTitle.REWARDS_PENDING -> context.getString(R.string.rewards_pending_title)
     GemListRowTitle.WARNING -> context.getString(R.string.common_warning)
+    GemListRowTitle.SUSPICIOUS_ADDRESS -> context.getString(R.string.common_suspicious_address)
     GemListRowTitle.UNLIMITED_APPROVAL -> context.getString(R.string.simulation_warning_unlimited_token_approval_title)
     GemListRowTitle.NFT_COLLECTION_APPROVAL -> context.getString(R.string.simulation_warning_nft_collection_approval_title)
     GemListRowTitle.SYMBOL -> context.getString(R.string.asset_symbol)
@@ -682,6 +692,7 @@ fun GemTriggerOrder.stringRes(): Int = when (this) {
 fun AddressType.stringRes(): Int = when (this) {
     AddressType.ADDRESS -> R.string.common_address
     AddressType.CONTRACT -> R.string.asset_contract
+    AddressType.ASSET -> R.string.common_token
     AddressType.VALIDATOR -> R.string.stake_validator
     AddressType.CONTACT -> R.string.contacts_contact
     AddressType.INTERNAL_WALLET -> R.string.common_wallet

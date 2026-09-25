@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemNftListScreen
 import Localization
 
 public struct CollectionsContent: Sendable {
@@ -12,15 +13,15 @@ public struct CollectionsContent: Sendable {
         unverifiedCount.map { ListItemModel(title: Localized.Asset.Verification.unverified, subtitle: $0) }
     }
 
-    public var isEmpty: Bool {
-        items.isEmpty && unverifiedCount == nil
-    }
-
     public init(
         items: [GridPosterViewItem],
         unverifiedCount: String? = nil,
     ) {
         self.items = items
         self.unverifiedCount = unverifiedCount
+    }
+
+    init(_ screen: GemNftListScreen) {
+        self.init(items: NFTGridPosterBuilder.items(screen.items), unverifiedCount: screen.unverifiedRow?.countText)
     }
 }

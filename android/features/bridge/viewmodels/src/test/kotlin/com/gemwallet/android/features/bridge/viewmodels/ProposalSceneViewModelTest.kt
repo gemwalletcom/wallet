@@ -89,7 +89,7 @@ class ProposalSceneViewModelTest {
 
         assertEquals(main, model.selectedWallet.first { it != null })
         assertEquals(listOf(main, secondary), model.availableWallets.value)
-        assertEquals(listOf("Main Wallet", "Second Wallet"), model.availableWalletRows.value.map { it.name })
+        assertEquals(listOf("Main Wallet", "Second Wallet"), model.availableWalletSections.value.flatMap { it.rows }.map { it.name })
         assertEquals("Uniswap", model.proposal.value?.title)
         assertEquals(WalletConnectionVerificationStatus.VERIFIED, model.state.value.verificationStatus)
         assertEquals(ButtonState.Enabled, model.buttonState.first { it == ButtonState.Enabled })

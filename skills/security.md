@@ -8,7 +8,7 @@ Before editing these areas, identify the security invariants and confirm the cha
 
 - Seed phrases, private keys, backup material, wallet import and export
 - Transaction construction, signing, simulation, and submission
-- Address parsing, chain selection, asset identifiers, and amount conversion
+- Address parsing, chain selection, asset identifiers, and amount conversion ([human input vs machine strings](../docs/ARCHITECTURE.md#number-parsing-human-input-vs-machine-strings))
 - Authentication, biometrics, lock flows, session handling, and secure preferences
 - QR scanning, deep links, WalletConnect, browser-to-wallet handoff, and external payload parsing
 - Any `core/` cryptographic, signing, encoding, or generated-model change
@@ -16,7 +16,7 @@ Before editing these areas, identify the security invariants and confirm the cha
 ## Non-Negotiable Rules
 
 - Never log, print, persist, or transmit secret material outside the approved secure-storage path
-- A secret phrase or private key crosses into Gemstone only for the operation that needs it (import, export, signing), once, at that moment. Editing the input stays in the app: typing, pasting and trimming never hand the secret to Core, a session record never carries it between events, and a word suggestion takes only the word being typed. Every crossing is a copy Core cannot zero, so each one is kept out of the stack and memory as long as possible (AUD69 in [TODO](../docs/TODO.md) tracks the two sessions that still carry one).
+- A secret phrase or private key crosses into Gemstone only for the operation that needs it (import, export, signing), once, at that moment. Editing the input stays in the app: typing, pasting and trimming never hand the secret to Core, a session record never carries it between events, and a word suggestion takes only the word being typed. Every crossing is a copy Core cannot zero, so each one is kept out of the stack and memory as long as possible.
 - Never add test fixtures containing real secrets, production credentials, or reusable wallet material
 - Do not weaken existing confirmation, signing, simulation, or authentication checks for convenience
 - Keep transaction-critical values explicit: chain, asset, amount, recipient, fee, nonce, calldata, and signature context must not become ambiguous

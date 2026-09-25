@@ -60,8 +60,7 @@ public struct AmountScene: View {
                 }
             }
 
-            switch model.provider {
-            case let .stake(stake):
+            if let stake = model.stake {
                 switch stake.selection {
                 case let .validator(validatorSelection):
                     Section(validatorSelection.title) {
@@ -89,8 +88,9 @@ public struct AmountScene: View {
                     }
                     .cleanListRow()
                 }
+            }
 
-            case let .perpetual(perpetual):
+            if let perpetual = model.perpetual {
                 if let leverageListItem = perpetual.leverageListItem {
                     Section {
                         NavigationCustomLink(
@@ -108,16 +108,12 @@ public struct AmountScene: View {
                         )
                     }
                 }
+            }
 
-            case let .earn(earn):
-                Section(earn.providerTitle) {
-                    if let row = earn.providerRow {
-                        ValidatorView(model: ValidatorViewModel(row: row))
-                    }
+            if let row = model.earnProviderRow {
+                Section(model.providerTitle) {
+                    ValidatorView(model: ValidatorViewModel(row: row))
                 }
-
-            case .transfer:
-                EmptyView()
             }
         }
         .safeAreaButton {
@@ -143,9 +139,9 @@ public struct AmountScene: View {
         .frame(maxWidth: .infinity)
         .navigationTitle(model.title)
         .onChange(of: model.amountInputModel.text, model.onChangeAmountText)
-        .onAppear(perform: model.onAppear)
         .taskOnce {
-            if model.shouldFocusOnAppear {
+            model.prefillAmount()
+            if model.input.focusesInput {
                 focusedField = true
             }
         }

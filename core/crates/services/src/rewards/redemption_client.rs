@@ -2,9 +2,10 @@ use std::error::Error;
 use std::sync::Arc;
 
 use config_keys::{ConfigKey, RateLimitKey, RateLimitWindow};
+use primitives::Localize;
 use primitives::rewards::{RedemptionResult, Rewards};
 use primitives::{NaiveDateTimeExt, now};
-use rewards::RewardsRedemptionError;
+use rewards::{RewardsError, RewardsRedemptionError};
 use storage::{Database, RewardsRedemptionsRepository, RewardsRepository};
 use streamer::{RewardsRedemptionPayload, StreamProducer, StreamProducerQueue};
 
@@ -24,12 +25,16 @@ impl RewardsRedemptionClient {
         Self { database, config, stream_producer }
     }
 
-    pub async fn redeem_by_wallet_id(&self, wallet_id: i32, id: &str, device_id: i32) -> Result<RedemptionResult, Box<dyn Error + Send + Sync>> {
+    pub async fn redeem_by_wallet_id(&self, wallet_id: i32, id: &str, device_id: i32, locale: &str) -> Result<RedemptionResult, Box<dyn Error + Send + Sync>> {
+        self.redeem(wallet_id, id, device_id).await.map_err(|error| localized_redemption_error(error, locale))
+    }
+
+    async fn redeem(&self, wallet_id: i32, id: &str, device_id: i32) -> Result<RedemptionResult, Box<dyn Error + Send + Sync>> {
         let rules = username_rules(&self.config).await?;
         let rewards = self.database.run(move |client| rewards_by_wallet_id(client, wallet_id, &rules)).await?;
 
         if !rewards.status.is_verified() {
-            return Err(RewardsRedemptionError::NotEligible("Not eligible for rewards".to_string()).into());
+            return Err(RewardsRedemptionError::NotEligible.into());
         }
 
         let username = rewards.code.clone().ok_or(RewardsRedemptionError::NoUsername)?;
@@ -70,5 +75,26 @@ impl RewardsRedemptionClient {
                 Ok(())
             })
             .await
+    }
+}
+
+fn localized_redemption_error(error: Box<dyn Error + Send + Sync>, locale: &str) -> Box<dyn Error + Send + Sync> {
+    match error.downcast::<RewardsRedemptionError>() {
+        Ok(error) => RewardsError::Redemption(error.localize(locale)).into(),
+        Err(error) => error,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_a_rejected_redemption_reads_in_the_device_language_and_other_errors_pass_through() {
+        let rejected = localized_redemption_error(RewardsRedemptionError::NotEnoughPoints.into(), "es");
+        assert!(rejected.downcast_ref::<RewardsError>().is_some());
+        assert_eq!(rejected.to_string(), "No tienes suficientes puntos para esta recompensa.");
+
+        assert_eq!(localized_redemption_error("connection refused".into(), "es").to_string(), "connection refused");
     }
 }

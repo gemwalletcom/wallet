@@ -58,6 +58,7 @@ common_method = Paraan
 common_token = Token
 common_expiration = Pag-expire
 common_suspicious_address = Kahina-hinalang address
+common_suspicious_address_description = Ang address na ito ay nauugnay sa kahina-hinala o nakakapinsalang aktibidad.
 common_refresh = I-refresh
 common_grant_permission = Magbigay ng pahintulot
 common_required_field = Kinakailangan ang %@

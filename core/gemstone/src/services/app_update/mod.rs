@@ -12,6 +12,7 @@ use crate::services::preferences::GemPreferencesService;
 pub struct GemAppUpdateOffer {
     pub version: String,
     pub can_skip: bool,
+    pub apk_url: Option<String>,
 }
 
 #[derive(uniffi::Object)]
@@ -71,6 +72,7 @@ mod tests {
         let required = GemAppUpdateOffer {
             version: "2.0.0".to_string(),
             can_skip: false,
+            apk_url: None,
         };
         assert!(service.skip(required).is_err());
         assert_eq!(preferences.get_skipped_app_version(), None);
@@ -79,6 +81,7 @@ mod tests {
             .skip(GemAppUpdateOffer {
                 version: "2.1.0".to_string(),
                 can_skip: true,
+                apk_url: None,
             })
             .unwrap();
         assert_eq!(preferences.get_skipped_app_version(), Some("2.1.0".to_string()));

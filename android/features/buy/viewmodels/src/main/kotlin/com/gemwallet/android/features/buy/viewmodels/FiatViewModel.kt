@@ -9,18 +9,18 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
 import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
+import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.tickerFlow
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.buy.localization.amountErrorText
 import com.gemwallet.android.features.buy.localization.quotesMessage
-import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
+import com.gemwallet.android.features.buy.localization.string
 import com.gemwallet.android.features.buy.viewmodels.models.FiatUiState
 import com.gemwallet.android.features.buy.viewmodels.models.createFiatUiState
 import com.gemwallet.android.features.buy.viewmodels.models.toProviderUIModel
-import com.gemwallet.android.model.AssetData
+import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemModel
@@ -55,6 +55,7 @@ import uniffi.gemstone.GemAssetBalanceScope
 import uniffi.gemstone.GemFiatQuoteRequest
 import uniffi.gemstone.GemFiatQuoteServiceInterface
 import uniffi.gemstone.GemFiatQuotesResult
+import uniffi.gemstone.GemFiatSuggestedAmount
 import uniffi.gemstone.GemFiatViewState
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemSelectAssetType
@@ -72,7 +73,7 @@ class FiatViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val currency = service.getCurrency().toPrimitives()
+    private val currency = GemConstants.fiatQuoteCurrency
     private val assetId: AssetId = savedStateHandle.requireAssetId(RouteArgument.AssetId)
 
     private val session = MutableStateFlow(
@@ -86,24 +87,23 @@ class FiatViewModel @Inject constructor(
     val type: StateFlow<FiatQuoteType> = session.map { it.quoteType.toPrimitives() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.quoteType.toPrimitives())
 
-    private val assetData: StateFlow<AssetData?> = getBuyAssetInfo(assetId)
+    private val assetInfo: StateFlow<AssetInfo?> = getBuyAssetInfo(assetId)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val assetPriceUsd: StateFlow<Double?> = getAssetPriceUsd(assetId)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val viewState = combine(session, isUrlLoading, assetPriceUsd, assetData) { session, isUrlLoading, priceUsd, assetData ->
-        session.viewState(priceUsd, isUrlLoading, assetData?.metadata?.isSellEnabled == true)
+    private val viewState = combine(session, isUrlLoading, assetPriceUsd, assetInfo) { session, isUrlLoading, priceUsd, assetInfo ->
+        session.viewState(priceUsd, isUrlLoading, assetInfo?.metadata?.isSellEnabled == true)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, session.value.viewState(null, false, false))
 
     val amount: StateFlow<String> = viewState.map { it.amount }
         .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.amount)
 
-    val assetInfoUIModel = assetData
+    val assetInfoUIModel = assetInfo
         .mapNotNull { it }
         .map {
-            val assetInfo = it.toAssetInfo()
-            assetInfo.toAssetInfoDataAggregate(
+            it.toAssetInfoDataAggregate(
                 style = GemSelectAssetType.Buy.flow().rowStyle,
                 scope = GemAssetBalanceScope.AVAILABLE,
             )
@@ -113,23 +113,19 @@ class FiatViewModel @Inject constructor(
     val showsTypePicker: StateFlow<Boolean> = viewState.map { it.showsTypePicker }
         .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.showsTypePicker)
 
-    val suggestedAmounts = type.mapLatest {
-        service.suggestedAmounts().map {
-            FiatSuggestion.SuggestionAmount(it.value.text(), it.amount.toDouble())
-        } + FiatSuggestion.RandomAmount
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val suggestedAmounts: List<GemFiatSuggestedAmount> = service.suggestedAmounts()
 
     val uiState: StateFlow<FiatUiState> = combine(viewState, assetInfoUIModel) { state, asset ->
         state.toUiState()
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.toUiState())
 
-    val providers = combine(assetInfoUIModel.filterNotNull(), viewState) { asset, state ->
-        state.quoteRows.map { row -> row.toProviderUIModel(asset.asset) }
+    val providers = combine(assetInfoUIModel.filterNotNull(), viewState) { _, state ->
+        state.quoteRows.map { row -> row.toProviderUIModel() }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val selectedProvider = combine(assetInfoUIModel, viewState) { asset, state ->
-        asset?.let { state.selectedQuoteRow?.toProviderUIModel(it.asset) }
+        asset?.let { state.selectedQuoteRow?.toProviderUIModel() }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val providerListItem: StateFlow<ListItemModel?> = selectedProvider.map { provider ->
@@ -147,12 +143,12 @@ class FiatViewModel @Inject constructor(
     private val refreshEnabled = MutableStateFlow(false)
     private val ticker = combine(refreshEnabled, session) { isEnabled, quoteSession -> quoteSession.refreshesQuotes(isEnabled) }
         .distinctUntilChanged()
-        .flatMapLatest { refreshes -> if (refreshes) tickerFlow(service.quoteRefreshIntervalMilliseconds().toLong()) {} else emptyFlow() }
+        .flatMapLatest { refreshes -> if (refreshes) tickerFlow(GemConstants.fiatQuoteRefreshInterval.inWholeMilliseconds) {} else emptyFlow() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
     private val quoteRetry = MutableStateFlow(0L)
 
     init {
-        assetData.filterNotNull()
+        assetInfo.filterNotNull()
             .onEach { data ->
                 session.update {
                     it.onBalanceChanged(data.balance.balance.available)
@@ -162,8 +158,8 @@ class FiatViewModel @Inject constructor(
             .launchIn(viewModelScope)
 
         combine(
-            session.map { it.quoteRequest() }.distinctUntilChanged().debounce(service.quoteDebounceMilliseconds().toLong()),
-            assetData.filterNotNull().map { it.asset.id }.distinctUntilChanged(),
+            session.map { it.quoteRequest() }.distinctUntilChanged().debounce(GemConstants.fiatQuoteDebounce),
+            assetInfo.filterNotNull().map { it.asset.id }.distinctUntilChanged(),
             ticker,
             quoteRetry,
         ) { request, assetId, tick, retry -> request?.let { QuoteFetch(it, assetId, tick, retry) } }
@@ -187,12 +183,12 @@ class FiatViewModel @Inject constructor(
         session.update { it.onAmountChanged(newAmount) }
     }
 
-    fun updateAmount(suggestion: FiatSuggestion) {
-        val value = when (suggestion) {
-            FiatSuggestion.RandomAmount -> service.randomAmount().toInt().toString()
-            is FiatSuggestion.SuggestionAmount -> suggestion.value.toInt().toString()
-        }
-        updateAmount(value)
+    fun selectAmount(suggestion: GemFiatSuggestedAmount) {
+        updateAmount(suggestion.amount.toString())
+    }
+
+    fun selectRandomAmount() {
+        updateAmount(service.randomAmount().toString())
     }
 
     fun setProvider(provider: FiatProviderName) {
@@ -224,7 +220,7 @@ class FiatViewModel @Inject constructor(
 
     private fun GemFiatViewState.toUiState(): FiatUiState = createFiatUiState(
         state = this,
-        amountError = amountErrorText(context),
+        amountError = amountError?.string(context),
         quotesMessage = quotesMessage(context),
     )
 

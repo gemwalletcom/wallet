@@ -9,7 +9,6 @@ import enum Gemstone.GemChartPhase
 import protocol Gemstone.GemChartServiceProtocol
 import struct Gemstone.GemChartSession
 import enum Gemstone.GemInfoTopic
-import enum Gemstone.GemListRow
 import struct Gemstone.GemListSection
 import enum Gemstone.GemServiceError
 import GemstonePrimitives
@@ -27,7 +26,6 @@ public final class ChartSceneViewModel: ChartListViewable {
     private let service: any GemChartServiceProtocol
     private let preferences: ObservablePreferences
 
-    let walletId: WalletId
     let assetModel: AssetViewModel
 
     private var session: GemChartSession
@@ -81,28 +79,18 @@ public final class ChartSceneViewModel: ChartListViewable {
         }
     }
 
-    func rowAction(for row: GemListRow) -> ChartRowAction? {
-        switch row {
-        case .link(.priceAlerts, _, _): .priceAlerts
-        case .link(.setPriceAlert, _, _): .setPriceAlert
-        default: nil
-        }
-    }
-
     private(set) var sections: [GemListSection] = []
 
     public init(
         service: any GemChartServiceProtocol,
         preferences: ObservablePreferences,
         assetModel: AssetViewModel,
-        walletId: WalletId,
         onSetPriceAlert: @escaping (Asset) -> Void,
         onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)? = nil,
     ) {
         self.service = service
         self.preferences = preferences
         self.assetModel = assetModel
-        self.walletId = walletId
         session = service.newSession()
         priceQuery = ObservableQuery(PriceRequest(assetId: assetModel.asset.id), initialValue: .with(asset: assetModel.asset))
         self.onSetPriceAlert = onSetPriceAlert

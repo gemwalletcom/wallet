@@ -54,7 +54,6 @@ class AddNodeViewModelTest {
 
     private fun service(answer: () -> GemNodeCheck): GemChainSettingsServiceInterface = mockk(relaxed = true) {
         every { newAddNodeSession(any()) } answers { GemAddNodeSession(firstArg(), "", null, null, false) }
-        every { nodeCheckDebounceMilliseconds() } returns 0UL
         coEvery { checkNode(any(), any()) } answers { answer() }
         coEvery { addNode(any(), any()) } returns Unit
     }

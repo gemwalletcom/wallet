@@ -6,20 +6,24 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.ext.assetType
 import com.gemwallet.android.ext.networkName
+import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ChainItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.AssetId
+import uniffi.gemstone.GemReceiveNetwork
 
 @Composable
-internal fun ReceiveNetworkSelector(isVisible: Boolean, assetIds: List<AssetId>, onSelect: (AssetId) -> Unit, onDismiss: () -> Unit) {
+internal fun ReceiveNetworkSelector(isVisible: Boolean, networks: List<GemReceiveNetwork>, onSelect: (AssetId) -> Unit, onDismiss: () -> Unit) {
+    val context = LocalContext.current
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismiss,
@@ -31,12 +35,13 @@ internal fun ReceiveNetworkSelector(isVisible: Boolean, assetIds: List<AssetId>,
                 .fillMaxWidth()
                 .padding(bottom = paddingDefault),
         ) {
-            itemsIndexed(assetIds) { index, assetId ->
+            itemsIndexed(networks) { index, network ->
+                val assetId = network.assetId.toAssetId()!!
                 ChainItem(
                     title = assetId.chain.networkName(),
                     icon = assetId.chain,
-                    subtitle = assetId.chain.assetType()?.string,
-                    listPosition = ListPosition.getPosition(index, assetIds.size),
+                    subtitle = network.standard?.string(context),
+                    listPosition = ListPosition.getPosition(index, networks.size),
                     trailing = { DataBadgeChevron() },
                     onClick = {
                         onSelect(assetId)

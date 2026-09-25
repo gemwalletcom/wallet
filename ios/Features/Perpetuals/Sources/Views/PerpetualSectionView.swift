@@ -20,7 +20,7 @@ public struct PerpetualSectionView: View {
         self.onSelect = onSelect
     }
 
-    init(
+    public init(
         items: [GemPerpetualMarketItem],
         onPin: @escaping (PerpetualData) -> Void,
         onSelect: @escaping (Asset) -> Void,

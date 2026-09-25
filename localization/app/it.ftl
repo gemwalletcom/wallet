@@ -58,6 +58,7 @@ common_method = Metodo
 common_token = Token
 common_expiration = Scadenza
 common_suspicious_address = Indirizzo sospetto
+common_suspicious_address_description = Questo indirizzo è associato ad attività sospette o dannose.
 common_refresh = Aggiorna
 common_grant_permission = Concedere l'autorizzazione
 common_required_field = %@ è obbligatorio

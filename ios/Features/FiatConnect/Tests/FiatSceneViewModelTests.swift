@@ -88,6 +88,16 @@ final class FiatSceneViewModelTests {
     }
 
     @Test
+    func aZeroBalanceShows() {
+        let asset = Asset.mockTron()
+        let model = FiatSceneViewModel.mock(assetAddress: .mock(asset: asset))
+
+        model.assetQuery.value = .mock(asset: asset, balance: .zero)
+
+        #expect(model.assetBalance == "0 TRX")
+    }
+
+    @Test
     func theTypePickerShowsWhenSellIsEnabledWithZeroBalance() {
         let model = FiatSceneViewModel.mock()
 
@@ -153,39 +163,39 @@ final class FiatSceneViewModelTests {
         )
         model.session = model.session.onQuoteResults(results: .mock(quotes: [affordable, unaffordable], amount: 100, type: .sell))
 
-        #expect(model.selectedQuote(model.viewState)?.quoteId == affordable.id)
-        #expect(model.allowSelectProvider(model.viewState))
+        #expect(model.viewState.selectedQuoteRow?.quoteId == affordable.id)
+        #expect(model.viewState.canSelectProvider)
         #expect(model.amountError(model.viewState) == nil)
-        #expect(model.actionButtonState(model.viewState) == .normal)
+        #expect(model.viewState.buttonState.state == .normal)
 
         model.onSelectQuotes([FiatQuoteViewModel(row: .mock(provider: .transak))])
 
-        #expect(model.selectedQuote(model.viewState)?.quoteId == unaffordable.id)
+        #expect(model.viewState.selectedQuoteRow?.quoteId == unaffordable.id)
         #expect(model.amountError(model.viewState)?.localizedDescription == Localized.Transfer.insufficientBalance("**\(model.asset.name) (\(model.asset.symbol))**"))
-        #expect(model.actionButtonState(model.viewState) == .disabled)
+        #expect(model.viewState.buttonState.state == .disabled)
         #expect(!model.isPresentingFiatProvider)
     }
 
     @Test
     func actionButtonStateFollowsTheSession() {
         let model = FiatSceneViewModel.mock()
-        #expect(model.actionButtonState(model.viewState) == .loading(showProgress: true))
+        #expect(model.viewState.buttonState.state == .loading(showProgress: true))
 
         model.session = model.session.onQuoteResults(results: .mock())
-        #expect(model.actionButtonState(model.viewState) == .disabled)
+        #expect(model.viewState.buttonState.state == .disabled)
         #expect(model.emptyTitle(model.viewState) == Localized.Buy.noResults)
 
         model.amount = "0"
-        #expect(model.actionButtonState(model.viewState) == .disabled)
+        #expect(model.viewState.buttonState.state == .disabled)
         #expect(model.emptyTitle(model.viewState) == Localized.Input.enterAmountTo(Localized.Wallet.buy))
 
         model.amount = "100"
         model.session = model.session.onQuoteResults(results: .mock(quotes: [.mock(fiatAmount: 100, cryptoAmount: 1)], amount: 100))
-        #expect(model.actionButtonState(model.viewState) == .normal)
-        #expect(model.actionButtonTitle(model.viewState) == Localized.Common.continue)
+        #expect(model.viewState.buttonState.state == .normal)
+        #expect(model.viewState.buttonAction.title == Localized.Common.continue)
 
         model.urlState = .loading
-        #expect(model.actionButtonState(model.viewState) == .loading(showProgress: true))
+        #expect(model.viewState.buttonState.state == .loading(showProgress: true))
     }
 
     @Test
@@ -194,7 +204,7 @@ final class FiatSceneViewModelTests {
         model.session = model.session.onQuoteResults(results: .mock(error: .Api(msg: "offline")))
 
         #expect(model.quotesState(model.viewState).isError)
-        #expect(model.actionButtonTitle(model.viewState) == Localized.Common.tryAgain)
+        #expect(model.viewState.buttonAction.title == Localized.Common.tryAgain)
     }
 
     @Test
@@ -318,7 +328,7 @@ final class FiatSceneViewModelTests {
         #expect(model.amountError(model.viewState) == nil)
 
         model.session = model.session.onQuoteResults(results: .mock(quotes: [.mock(fiatAmount: 100, cryptoAmount: 1)], amount: 100))
-        #expect(model.selectedQuote(model.viewState) != nil)
+        #expect(model.viewState.selectedQuoteRow != nil)
         #expect(model.amountError(model.viewState) == nil)
 
         model.amount = "200"

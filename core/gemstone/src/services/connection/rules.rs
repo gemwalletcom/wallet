@@ -3,19 +3,17 @@ use std::time::Duration;
 use primitives::ConnectionStatus;
 
 use super::{GemReconnection, GemRefreshKind};
+use crate::constants::PING_INTERVAL;
 use crate::models::GemConnectionComponent;
 
 const RECONNECT_MULTIPLIER_MILLISECONDS: f64 = 300.0;
 const RECONNECT_MAXIMUM_MILLISECONDS: f64 = 30_000.0;
-const OFFLINE_DEBOUNCE_MILLISECONDS: u64 = 500;
-const PING_INTERVAL_MILLISECONDS: u64 = 30_000;
 const MARKET_REFRESH: Duration = Duration::from_secs(60);
 const WALLET_REFRESH: Duration = Duration::from_secs(300);
 const STREAMING_REFRESH: Duration = Duration::from_secs(900);
-const BANNER_SETTLE_DELAY: Duration = Duration::from_secs(10);
 
 pub fn reconnection(attempt: u32, connected: Duration) -> GemReconnection {
-    let attempt = if connected >= Duration::from_millis(PING_INTERVAL_MILLISECONDS) { 0 } else { attempt };
+    let attempt = if connected >= PING_INTERVAL { 0 } else { attempt };
     GemReconnection {
         next_attempt: attempt.saturating_add(1),
         delay: reconnect_delay(attempt),
@@ -24,18 +22,6 @@ pub fn reconnection(attempt: u32, connected: Duration) -> GemReconnection {
 
 fn reconnect_delay(attempt: u32) -> Duration {
     Duration::from_millis((RECONNECT_MULTIPLIER_MILLISECONDS * f64::from(attempt).exp()).min(RECONNECT_MAXIMUM_MILLISECONDS) as u64)
-}
-
-pub fn banner_settle_delay() -> Duration {
-    BANNER_SETTLE_DELAY
-}
-
-pub fn offline_debounce_milliseconds() -> u64 {
-    OFFLINE_DEBOUNCE_MILLISECONDS
-}
-
-pub fn ping_interval_milliseconds() -> u64 {
-    PING_INTERVAL_MILLISECONDS
 }
 
 pub fn refresh_interval(kind: GemRefreshKind, status: ConnectionStatus) -> Duration {
@@ -66,11 +52,7 @@ mod tests {
 
     #[test]
     fn test_keepalive_pings_before_the_reconnect_backoff_caps_out() {
-        assert_eq!(ping_interval_milliseconds(), 30_000);
-        assert!(
-            Duration::from_millis(ping_interval_milliseconds()) >= reconnect_delay(0),
-            "a keepalive that fires faster than the first reconnect would ping a socket that is still coming up"
-        );
+        assert!(PING_INTERVAL >= reconnect_delay(0), "a keepalive that fires faster than the first reconnect would ping a socket that is still coming up");
     }
 
     #[test]
@@ -89,7 +71,7 @@ mod tests {
 
     #[test]
     fn test_reconnection() {
-        let ping_interval = Duration::from_millis(PING_INTERVAL_MILLISECONDS);
+        let ping_interval = PING_INTERVAL;
         assert_eq!(
             reconnection(0, Duration::ZERO),
             GemReconnection {
@@ -127,11 +109,6 @@ mod tests {
     fn test_reconnect_delay_never_decreases() {
         let delays: Vec<Duration> = (0..10).map(reconnect_delay).collect();
         assert!(delays.windows(2).all(|pair| pair[0] <= pair[1]));
-    }
-
-    #[test]
-    fn test_offline_debounce_holds_a_drop_before_reporting_it() {
-        assert_eq!(offline_debounce_milliseconds(), 500);
     }
 
     #[test]

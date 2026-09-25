@@ -58,6 +58,7 @@ common_method = तरीका
 common_token = टोकन
 common_expiration = समाप्ति
 common_suspicious_address = संदिग्ध पता
+common_suspicious_address_description = यह पता संदिग्ध या हानिकारक गतिविधि से संबंधित है।
 common_refresh = ताज़ा करना
 common_grant_permission = अनुमति प्रदान करें
 common_required_field = %@ आवश्यक है

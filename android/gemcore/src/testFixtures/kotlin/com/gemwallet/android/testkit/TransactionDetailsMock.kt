@@ -9,6 +9,8 @@ import com.wallet.core.primitives.TransactionExtended
 import uniffi.gemstone.BlockExplorerLink
 import uniffi.gemstone.GemAmountSign
 import uniffi.gemstone.GemCurrencyStyle
+import uniffi.gemstone.GemFormattedNumber
+import uniffi.gemstone.GemHeaderAmount
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemNumberNotation
@@ -36,9 +38,12 @@ fun mockGemTransactionAmount(asset: Asset = mockAsset(), value: BigInteger = Big
     price = price?.toGem(),
 )
 
+fun mockGemHeaderAmount(asset: Asset = mockAsset(), amount: GemFormattedNumber = mockFormattedNumber(1.0, GemNumberUnit.Symbol(asset.symbol)), fiat: GemFormattedNumber? = mockFormattedNumber(2.0)) =
+    GemHeaderAmount(asset = asset.toGem(), amount = amount, fiat = fiat)
+
 fun mockGemTransactionDetailRows(
     transaction: TransactionExtended = mockTransactionExtended(),
-    header: GemTransactionHeader = GemTransactionHeader.Amount(mockGemTransactionAmount(), showsFiat = true),
+    header: GemTransactionHeader = GemTransactionHeader.Amount(mockGemHeaderAmount()),
     headerAction: GemTransactionHeaderAction? = null,
     swapProgress: GemSwapProgress? = null,
     swapAgain: GemSwapAgain? = null,

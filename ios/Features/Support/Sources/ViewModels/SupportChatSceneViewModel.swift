@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import enum Gemstone.GemLoadState
+import protocol Gemstone.GemNotificationsServiceProtocol
 import protocol Gemstone.GemSupportServiceProtocol
 import func Gemstone.loadError
 import GemstonePrimitives
@@ -18,6 +19,7 @@ import SwiftUI
 @MainActor
 public final class SupportChatSceneViewModel {
     private let service: any GemSupportServiceProtocol
+    private let notifications: any GemNotificationsServiceProtocol
     private let typing: ObservableSupportTyping
     public let query: ObservableQuery<SupportMessagesRequest>
     var previewURL: URL?
@@ -25,8 +27,9 @@ public final class SupportChatSceneViewModel {
 
     private var loadState: GemLoadState = .loading
 
-    public init(service: any GemSupportServiceProtocol, typing: ObservableSupportTyping) {
+    public init(service: any GemSupportServiceProtocol, notifications: any GemNotificationsServiceProtocol, typing: ObservableSupportTyping) {
         self.service = service
+        self.notifications = notifications
         self.typing = typing
         query = ObservableQuery(SupportMessagesRequest(), initialValue: [])
     }
@@ -59,6 +62,11 @@ public final class SupportChatSceneViewModel {
     func load() async {
         let fromTimestamp = service.syncFromTimestamp(messages: query.value.map { $0.toGem() })
         loadState = await service.refresh(fromTimestamp: fromTimestamp, hasMessages: !isEmpty)
+    }
+
+    func enableNotificationsForSupport() async {
+        guard case let .notRegistered(error) = await notifications.enableForSupport()?.result else { return }
+        isPresentingAlertMessage = AlertMessage(message: error.text)
     }
 
     func onScenePhaseChange(_: ScenePhase, _ newPhase: ScenePhase) {

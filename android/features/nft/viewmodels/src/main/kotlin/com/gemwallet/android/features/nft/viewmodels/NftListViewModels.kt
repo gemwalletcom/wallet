@@ -7,11 +7,16 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.nft.cases.GetNftCollections
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.nft.viewmodels.localization.stringRes
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.models.ToastEmitter
+import com.gemwallet.android.ui.models.ToastEmitterImpl
+import com.gemwallet.android.ui.models.ToastMessage
 import com.gemwallet.android.ui.models.toUIModels
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.WalletId
@@ -44,7 +49,8 @@ class NftListViewModels @Inject constructor(
     savedStateHandle: SavedStateHandle,
     @param:ApplicationContext private val context: Context,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) : ViewModel() {
+) : ViewModel(),
+    ToastEmitter by ToastEmitterImpl() {
 
     val list: GemNftList = savedStateHandle.nftList()
 
@@ -81,8 +87,8 @@ class NftListViewModels @Inject constructor(
         .map { it.items.toUIModels() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val errorRow: StateFlow<GemListRow?> = combine(loadState, collections) { state, items ->
-        loadError(state, items.isNotEmpty())?.let { GemListRow.Error(it) }
+    val errorRow: StateFlow<GemListRow?> = combine(loadState, screen) { state, screen ->
+        loadError(state, screen.hasContent)?.let { GemListRow.Error(it) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val unverifiedListItem: StateFlow<ListItemModel?> = screen
@@ -111,6 +117,8 @@ class NftListViewModels @Inject constructor(
     }
 
     private suspend fun sync() {
-        loadState.update { nftService.refresh(collections.value.isNotEmpty()) }
+        val result = nftService.refresh(screen.value.hasContent)
+        loadState.update { result.state }
+        result.toast?.let { emitToast(ToastMessage(it.errorText().text(context), R.drawable.ic_error)) }
     }
 }

@@ -31,10 +31,6 @@ impl GemNameService {
         recipient_rules::validation(chain, &input, &state)
     }
 
-    pub fn is_name_supported(&self, name: String) -> bool {
-        rules::is_name_supported(&name)
-    }
-
     pub fn name_input_step(&self, state: GemNameRecordState, name: String, chain: Option<Chain>) -> GemNameInputStep {
         rules::name_input_step(&state, &name, chain)
     }

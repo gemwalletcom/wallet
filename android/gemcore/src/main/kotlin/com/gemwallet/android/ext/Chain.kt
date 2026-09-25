@@ -3,7 +3,6 @@ package com.gemwallet.android.ext
 import com.gemwallet.android.domains.asset.assetConfig
 import com.gemwallet.android.domains.gemConfig
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainAsset
 import uniffi.gemstone.ChainConfig
@@ -22,13 +21,9 @@ private val chainConfigCache: Map<Chain, ChainConfig> by lazy {
 
 fun Chain.chainConfig(): ChainConfig = chainConfigCache.getValue(this)
 
-fun Chain.assetType(): AssetType? = chainConfig().defaultAssetType?.toPrimitives()
-
 fun Chain.asset(): Asset = chainAsset().asset
 
 fun Chain.networkName(): String = chainAsset().networkName
-
-fun Chain.Companion.available() = Chain.entries.toSet()
 
 fun Chain.isMemoSupport() = chainConfig().isMemoSupported
 

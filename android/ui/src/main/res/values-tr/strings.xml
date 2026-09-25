@@ -58,6 +58,7 @@
   <string name="common_token">Jeton</string>
   <string name="common_expiration">Son kullanma</string>
   <string name="common_suspicious_address">Şüpheli adres</string>
+  <string name="common_suspicious_address_description">Bu adres şüpheli veya zararlı bir etkinlikle ilişkili.</string>
   <string name="common_refresh">Yenile</string>
   <string name="common_grant_permission">İzin ver</string>
   <string name="common_required_field">%1$s gerekli</string>

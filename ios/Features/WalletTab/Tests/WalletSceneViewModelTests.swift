@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemServiceError
+import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import Observation
 import Primitives
@@ -30,5 +32,21 @@ struct WalletSceneViewModelTests {
         }
 
         #expect(model.walletBarModel.name == "Renamed")
+    }
+
+    @Test
+    func aFailedDiscoveryKeepsTheLoadingRowUntilALaterRefreshCompletesIt() async {
+        let service = GemWalletHomeServiceMock()
+        service.showsLoading = true
+        service.refreshError = GemServiceError.Gateway(msg: "offline")
+        let model = WalletSceneViewModel.mock(service: service)
+
+        await model.loadOnce()
+        #expect(model.isLoadingAssets)
+
+        service.refreshError = nil
+        service.showsLoading = false
+        await model.load()
+        #expect(model.isLoadingAssets == false)
     }
 }

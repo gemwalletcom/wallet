@@ -6,11 +6,15 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.gemwallet.android.data.service.store.database.entities.DbAccount
+import com.wallet.core.primitives.Chain
 
 @Dao
 interface AccountsDao {
     @Query("SELECT * FROM accounts WHERE wallet_id = :walletId")
     suspend fun getByWalletId(walletId: String): List<DbAccount>
+
+    @Query("SELECT * FROM accounts WHERE chain = :chain AND address = :address")
+    suspend fun getByAddress(chain: Chain, address: String): List<DbAccount>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(account: DbAccount)

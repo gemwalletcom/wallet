@@ -16,7 +16,8 @@ public extension GemFormattedNumber {
         notation: GemNumberNotation = .signed,
         tone: GemValueTone = .plain,
         rounding: GemNumberRounding = .toNearest,
+        exact: String? = nil,
     ) -> GemFormattedNumber {
-        GemFormattedNumber(value: value, unit: unit, display: display, notation: notation, tone: tone, rounding: rounding)
+        GemFormattedNumber(value: value, unit: unit, display: display, notation: notation, tone: tone, rounding: rounding, exact: exact)
     }
 }

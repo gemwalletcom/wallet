@@ -1,8 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemPerpetualMarketItem
 import struct Gemstone.GemWalletSearchState
 import struct Gemstone.GemWalletSearchView
+import GemstonePrimitives
 import GemstoneServices
 import Localization
 import NFT
@@ -38,7 +40,7 @@ public struct WalletSearchScene: View {
         .autocorrectionDisabled(true)
         .debounce(
             value: $model.searchableQuery.wrappedValue,
-            interval: model.searchDebounce,
+            interval: GemConstants.searchDebounce,
             action: model.onSearch(query:),
         )
         .onChange(of: model.searchableQuery, model.onChangeSearchQuery)
@@ -150,7 +152,7 @@ public struct WalletSearchScene: View {
         }
     }
 
-    private func perpetualItems(for items: [PerpetualData]) -> some View {
-        PerpetualSectionView(perpetuals: items, onPin: model.onSelectPinPerpetual, onSelect: model.onSelectAsset)
+    private func perpetualItems(for items: [GemPerpetualMarketItem]) -> some View {
+        PerpetualSectionView(items: items, onPin: model.onSelectPinPerpetual, onSelect: model.onSelectAsset)
     }
 }

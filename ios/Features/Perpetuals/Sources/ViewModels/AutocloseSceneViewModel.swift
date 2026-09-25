@@ -7,7 +7,6 @@ import func Gemstone.autocloseSession
 import enum Gemstone.GemAutocloseConfirmPolicy
 import struct Gemstone.GemAutocloseSession
 import struct Gemstone.GemAutocloseViewState
-import enum Gemstone.GemListRow
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -22,6 +21,7 @@ public final class AutocloseSceneViewModel {
     private let decimalSeparator = NumberInput.format(.current).decimalSeparator
 
     var input: AutocloseInput
+    var isPresentingAlertMessage: AlertMessage?
     private var session: GemAutocloseSession
 
     public init(type: AutocloseType) {
@@ -62,30 +62,26 @@ public final class AutocloseSceneViewModel {
         Localized.Perpetual.autoClose
     }
 
-    public var priceRows: [GemListRow] {
-        viewState.priceRows
+    var viewState: GemAutocloseViewState {
+        session.viewState()
     }
 
-    public var takeProfitModel: AutocloseViewModel {
+    func takeProfitModel(_ viewState: GemAutocloseViewState) -> AutocloseViewModel {
         AutocloseViewModel(state: viewState.takeProfit)
     }
 
-    public var stopLossModel: AutocloseViewModel {
+    func stopLossModel(_ viewState: GemAutocloseViewState) -> AutocloseViewModel {
         AutocloseViewModel(state: viewState.stopLoss)
     }
 
-    public var positionItemViewModel: (any ListAssetItemViewable)? {
+    func positionItemViewModel(_ viewState: GemAutocloseViewState) -> (any ListAssetItemViewable)? {
         switch type {
         case .modify: viewState.positionRow.map { PerpetualPositionItemViewModel(row: $0) }
         case let .open(data, _): OpenPositionItemViewModel(data: data)
         }
     }
 
-    private var viewState: GemAutocloseViewState {
-        session.viewState()
-    }
-
-    public var confirmButtonType: ButtonType {
+    func confirmButtonType(_ viewState: GemAutocloseViewState) -> ButtonType {
         .primary(viewState.confirmEnabled ? .normal : .disabled)
     }
 }
@@ -119,8 +115,11 @@ public extension AutocloseSceneViewModel {
 
         switch type {
         case let .modify(position, onTransferAction):
-            guard let transfer = try? attempted.modify.transfer(provider: position.perpetual.provider.toGem(), asset: position.asset.toGem()) else { return }
-            onTransferAction?(transfer)
+            do {
+                try onTransferAction?(attempted.modify.transfer(provider: position.perpetual.provider.toGem(), asset: position.asset.toGem()))
+            } catch {
+                isPresentingAlertMessage = AlertMessage(error: error)
+            }
 
         case let .open(_, onComplete):
             onComplete(input.selection)

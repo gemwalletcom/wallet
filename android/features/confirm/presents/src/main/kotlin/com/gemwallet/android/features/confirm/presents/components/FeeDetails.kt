@@ -41,7 +41,6 @@ import com.gemwallet.android.features.confirm.viewmodels.models.FeeRateRowUIMode
 import com.gemwallet.android.features.confirm.viewmodels.models.FeeSelectionUIModel
 import com.gemwallet.android.features.confirm.viewmodels.models.NetworkFeeCustomViewModel
 import com.gemwallet.android.features.confirm.viewmodels.models.customFeeRowUIModel
-import com.gemwallet.android.features.confirm.viewmodels.models.listItem
 import com.gemwallet.android.features.confirm.viewmodels.models.rowUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SuffixTextField
@@ -81,7 +80,7 @@ fun FeeDetails(
     feeItems: List<ListItemModel>,
     feeListItem: ListItemModel?,
     selection: FeeSelectionUIModel,
-    feeDetailsModel: (FeeUIModel.FeeInfo, FeeAssetUIModel) -> FeeDetailsModel?,
+    feeDetailsModel: (FeeUIModel.FeeInfo) -> FeeDetailsModel?,
     feeAsset: FeeAssetUIModel?,
     feeAssets: List<FeeAssetUIModel>,
     showFeeAssets: Boolean,
@@ -94,7 +93,7 @@ fun FeeDetails(
     feeAsset ?: return
     val context = LocalContext.current
     val model = remember(currentFee, feeAsset, selection) {
-        feeDetailsModel(currentFee, feeAsset)
+        feeDetailsModel(currentFee)
     } ?: return
     val unitSymbol = feeUnitSuffix(model.feeUnitType, feeAsset.asset.symbol)
 
@@ -307,7 +306,7 @@ private fun ColumnScope.CustomFeeInput(model: NetworkFeeCustomViewModel, unitSym
         color = MaterialTheme.colorScheme.error,
     )
     ListItem(
-        model = model.networkFee.listItem(LocalContext.current, model.networkFee.feeAsset),
+        model = model.networkFeeItem(LocalContext.current),
         listPosition = ListPosition.Single,
     )
     LaunchedEffect(Unit) { runCatching { focusRequester.requestFocus() } }

@@ -58,6 +58,7 @@ common_method = طریقہ
 common_token = ٹوکن
 common_expiration = میعاد ختم
 common_suspicious_address = مشکوک پتہ
+common_suspicious_address_description = یہ پتہ مشکوک یا نقصان دہ سرگرمی سے وابستہ ہے۔
 common_refresh = ریفریش کریں۔
 common_grant_permission = اجازت دیں۔
 common_required_field = %@ درکار ہے۔

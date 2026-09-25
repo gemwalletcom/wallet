@@ -45,7 +45,6 @@ import com.gemwallet.android.features.import_wallet.components.ImportInput
 import com.gemwallet.android.features.import_wallet.components.ImportKindTab
 import com.gemwallet.android.features.import_wallet.viewmodels.ImportInputUIModel
 import com.gemwallet.android.features.import_wallet.viewmodels.ImportTabUIModel
-import com.gemwallet.android.features.import_wallet.viewmodels.ImportTextUIModel
 import com.gemwallet.android.features.import_wallet.viewmodels.ImportViewModel
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.DetectScreenshot
@@ -104,7 +103,6 @@ fun ImportScreen(importType: ImportType, onImported: () -> Unit, onCancel: () ->
         onImport = { viewModel.import(onImported) },
         onInput = viewModel::onInput,
         onTypeChange = viewModel::importKind,
-        invalidWords = viewModel::invalidPhraseWords,
         suggestions = suggestions,
         onSelectSuggestion = viewModel::selectSuggestion,
         onCancel = onCancel,
@@ -161,9 +159,8 @@ private fun ImportScene(
     onImport: () -> Unit,
     onInput: (String, Int) -> Unit,
     onTypeChange: (ImportType) -> Unit,
-    invalidWords: (String) -> Set<String>,
     suggestions: List<String>,
-    onSelectSuggestion: (String) -> ImportTextUIModel,
+    onSelectSuggestion: (String) -> String,
     onCancel: () -> Unit,
 ) {
     var dataErrorState by remember(dataError) { mutableStateOf(dataError) }
@@ -195,7 +192,7 @@ private fun ImportScene(
                         onTypeChange(type)
                         inputState.value = TextFieldValue()
                     }
-                    DataInput(input, inputState, nameResolveIndicator, invalidWords, suggestions, onSelectSuggestion, onInput) {
+                    DataInput(input, inputState, nameResolveIndicator, suggestions, onSelectSuggestion, onInput) {
                         dataErrorState = null
                     }
                     ErrorMessage(dataErrorState)
@@ -223,14 +220,12 @@ private fun DataInput(
     input: ImportInputUIModel,
     inputState: MutableState<TextFieldValue>,
     nameResolveIndicator: NameResolveIndicatorUIModel?,
-    invalidWords: (String) -> Set<String>,
     suggestions: List<String>,
-    onSelectSuggestion: (String) -> ImportTextUIModel,
+    onSelectSuggestion: (String) -> String,
     onInput: (String, Int) -> Unit,
     onChange: () -> Unit,
 ) {
     ImportInput(
-        invalidWords = invalidWords,
         inputState = inputState.value,
         input = input,
         indicator = nameResolveIndicator,
@@ -248,8 +243,8 @@ private fun DataInput(
             items(suggestions) { word ->
                 SuggestionChip(
                     onClick = {
-                        val edit = onSelectSuggestion(word)
-                        inputState.value = TextFieldValue(text = edit.text, selection = TextRange(edit.cursor))
+                        val text = onSelectSuggestion(word)
+                        inputState.value = TextFieldValue(text = text, selection = TextRange(text.length))
                         onChange()
                     },
                     label = { Text(text = word) },
@@ -303,7 +298,6 @@ fun PreviewImportAddress() {
                 ),
                 input = ImportInputUIModel(
                     placeholder = R.string.wallet_import_address_field,
-                    isPhrase = false,
                     protectsInput = false,
                     supportsPhraseSuggestions = false,
                     showsViewOnlyWarning = true,
@@ -316,9 +310,8 @@ fun PreviewImportAddress() {
                 onImport = {},
                 onInput = { _, _ -> },
                 onTypeChange = {},
-                invalidWords = { emptySet() },
                 suggestions = emptyList(),
-                onSelectSuggestion = { ImportTextUIModel("", 0) },
+                onSelectSuggestion = { "" },
                 onCancel = {},
             )
         }

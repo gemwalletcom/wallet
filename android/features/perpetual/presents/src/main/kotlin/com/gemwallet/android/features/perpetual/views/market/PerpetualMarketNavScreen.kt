@@ -27,7 +27,7 @@ fun PerpetualMarketNavScreen(
     viewModel: PerpetualMarketViewModel = hiltViewModel(),
     recentsViewModel: RecentsSheetViewModel = hiltViewModel(),
 ) {
-    val sceneState by viewModel.sceneState.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val unpinnedPerpetuals by viewModel.unpinnedPerpetuals.collectAsStateWithLifecycle()
     val pinnedPerpetuals by viewModel.pinnedPerpetuals.collectAsStateWithLifecycle()
     val positions by viewModel.positionRows.collectAsStateWithLifecycle()
@@ -54,7 +54,7 @@ fun PerpetualMarketNavScreen(
     }
 
     PerpetualMarketScene(
-        sceneState = sceneState,
+        isRefreshing = isRefreshing,
         balanceHeader = balanceHeader,
         unpinnedPerpetuals = unpinnedPerpetuals,
         pinnedPerpetuals = pinnedPerpetuals,

@@ -6,6 +6,7 @@ import enum Gemstone.GemConfirmFeeSelection
 import struct Gemstone.GemFeeRateRows
 import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemLocalizedText
+import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import Primitives
 @testable import PrimitivesComponents
@@ -27,7 +28,7 @@ struct NetworkFeeSceneViewModelTests {
         let model = NetworkFeeSceneViewModel.mock(
             feeAsset: .mockSolana(),
             feeAmount: 1_495_940,
-            additionalFees: [.init(option: .tokenAccountCreation, value: 1_488_440), .init(option: .tokenAccountCreation, value: 1000)],
+            additionalFees: [(.tokenAccountCreation, 1_488_440), (.tokenAccountCreation, 1000)],
         )
 
         #expect(model.value == "0.001495 SOL")
@@ -292,6 +293,6 @@ struct NetworkFeeSceneViewModelTests {
 
 extension Asset {
     func feeText(_ value: BigInt) -> String {
-        AmountDisplay.numeric(asset: self, price: nil, value: value, currency: Currency.usd.rawValue, formatter: .auto).amount.text
+        ValueFormatter.auto.string(value, asset: self)
     }
 }

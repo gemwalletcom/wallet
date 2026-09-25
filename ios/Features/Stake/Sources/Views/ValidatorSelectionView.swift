@@ -2,21 +2,22 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemValidatorRow
 import Primitives
 import Style
 import SwiftUI
 
 struct ValidatorSelectionView: View {
-    private let value: ListItemValue<DelegationValidator>
+    private let value: ListItemValue<GemValidatorRow>
     private let validatorModel: ValidatorViewModel
     private let selection: String?
-    private let action: ((DelegationValidator) -> Void)?
+    private let action: ((GemValidatorRow) -> Void)?
 
     init(
-        value: ListItemValue<DelegationValidator>,
+        value: ListItemValue<GemValidatorRow>,
         validatorModel: ValidatorViewModel,
         selection: String?,
-        action: ((DelegationValidator) -> Void)?,
+        action: ((GemValidatorRow) -> Void)?,
     ) {
         self.value = value
         self.validatorModel = validatorModel
@@ -30,7 +31,7 @@ struct ValidatorSelectionView: View {
         } label: {
             HStack {
                 ValidatorImageView(model: validatorModel)
-                    .assetBadge(value.value.id == selection ? Images.Wallets.selected : nil)
+                    .assetBadge(value.value.validator.id == selection ? Images.Wallets.selected : nil)
                 ListItemView(model: value.listItem)
             }
         }

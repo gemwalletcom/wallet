@@ -18,7 +18,8 @@ public struct ConnectionsScene: View {
     }
 
     public var body: some View {
-        let sections = model.sections
+        let view = model.view
+        let sections = view.sections
         return List {
             Section {
                 ButtonListItem(
@@ -69,7 +70,9 @@ public struct ConnectionsScene: View {
         .sheet(isPresented: $model.isPresentingScanner) {
             ScanQRCodeNavigationStack(scanType: .walletConnect, action: onHandleScan)
         }
-        .toolbarInfoButton(url: model.docsUrl)
+        .ifLet(view.docsUrl.asURL) { content, url in
+            content.toolbarInfoButton(url: url)
+        }
         .alertSheet($model.isPresentingAlertMessage)
         .toast(
             isPresenting: $model.isPresentingConnectorBar,

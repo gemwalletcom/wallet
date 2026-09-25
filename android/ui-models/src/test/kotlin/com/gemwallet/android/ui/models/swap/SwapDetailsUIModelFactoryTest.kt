@@ -29,13 +29,11 @@ class SwapDetailsUIModelFactoryTest {
     fun `low price impact stays in details and is hidden in summary`() {
         val result = swapDetails(
             toValue = "990000000000000000",
-            etaInSeconds = 30u,
         )
 
         assertEquals("-1.00%", result!!.priceImpact!!.value.text())
         assertNull(result.summaryPriceImpactText)
         assertNull(result.summaryPriceImpactBadgeText)
-        assertEquals(30u, result.etaInSeconds)
     }
 
     @Test
@@ -45,7 +43,6 @@ class SwapDetailsUIModelFactoryTest {
             toValue = "950000000000000000",
             provider = provider,
             providers = listOf(provider),
-            etaInSeconds = 180u,
             isProviderSelectable = true,
         )
 
@@ -53,7 +50,6 @@ class SwapDetailsUIModelFactoryTest {
         assertEquals("(-5.00%)", result.summaryPriceImpactBadgeText)
         assertFalse(result.shouldShowPriceImpactWarning)
         assertTrue(result.isProviderSelectable)
-        assertEquals(180u, result.etaInSeconds)
     }
 
     @Test
@@ -79,7 +75,7 @@ class SwapDetailsUIModelFactoryTest {
         val usdc = mockAssetPriceValue(asset = mockAsset(symbol = "USDC", name = "USDC", decimals = 6), price = mockAssetPriceInfo(price = 1.0))
         val result = SwapDetailsUIModelFactory.create(
             SwapDetailsUIModelInput(
-                summary = summary("1000000000000000000", "2000000000", DEFAULT_SLIPPAGE_BPS, null, eth, usdc),
+                summary = summary("1000000000000000000", "2000000000", DEFAULT_SLIPPAGE_BPS, eth, usdc),
                 provider = provider(
                     toValue = "2000000000",
                     receiveAsset = usdc,
@@ -115,10 +111,9 @@ class SwapDetailsUIModelFactoryTest {
         provider: GemSwapProviderRow = provider(toValue),
         providers: List<GemSwapProviderRow> = emptyList(),
         slippageBps: UInt = DEFAULT_SLIPPAGE_BPS,
-        etaInSeconds: UInt? = null,
         isProviderSelectable: Boolean = false,
     ): SwapDetailsUIModel? {
-        val summary = summary(fromValue, toValue, slippageBps, etaInSeconds, payAsset, receiveAsset)
+        val summary = summary(fromValue, toValue, slippageBps, payAsset, receiveAsset)
         return SwapDetailsUIModelFactory.create(
             SwapDetailsUIModelInput(
                 summary = summary,
@@ -131,8 +126,8 @@ class SwapDetailsUIModelFactoryTest {
         )
     }
 
-    private fun summary(fromValue: String, toValue: String, slippageBps: UInt, etaInSeconds: UInt?, payAsset: AssetPriceValue, receiveAsset: AssetPriceValue) = swapQuoteSummary(
-        mockSwapQuote(fromAmount = fromValue.toBigInteger(), toAmount = toValue.toBigInteger(), slippageBps = slippageBps, etaInSeconds = etaInSeconds),
+    private fun summary(fromValue: String, toValue: String, slippageBps: UInt, payAsset: AssetPriceValue, receiveAsset: AssetPriceValue) = swapQuoteSummary(
+        mockSwapQuote(fromAmount = fromValue.toBigInteger(), toAmount = toValue.toBigInteger(), slippageBps = slippageBps),
         payAsset.asset.toGem(),
         receiveAsset.asset.toGem(),
         payAsset.price?.price?.price,

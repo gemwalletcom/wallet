@@ -30,11 +30,9 @@ public final class SwapDetailsViewModel {
     private let slippagePercent: Double?
     private let rate: GemSwapRate?
     private var isRateInverse = false
-    private let priceViewModel: PriceViewModel
     private let currency: String
     let allowSelectProvider: Bool
     private let minReceiveValue: BigInt
-    private let etaSeconds: UInt32?
     private let swapProviderSelectAction: ((SwapProvider) -> Void)?
 
     public init(
@@ -55,11 +53,9 @@ public final class SwapDetailsViewModel {
         selectedQuote = summary.quote
         self.slippagePercent = slippagePercent
         rate = summary.rate
-        priceViewModel = PriceViewModel(price: toAssetPrice.price, currencyCode: currency)
         self.currency = currency
         self.allowSelectProvider = allowSelectProvider
         minReceiveValue = BigInt(summary.minReceiveValue)
-        etaSeconds = summary.quote.etaInSeconds
         self.swapProviderSelectAction = swapProviderSelectAction
     }
 

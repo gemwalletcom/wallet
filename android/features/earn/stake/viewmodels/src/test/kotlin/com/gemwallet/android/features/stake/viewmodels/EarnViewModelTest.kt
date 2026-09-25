@@ -33,9 +33,13 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemDelegationDestination
+import uniffi.gemstone.GemEarnInput
 import uniffi.gemstone.GemEarnView
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
+import uniffi.gemstone.GemStakeDelegationItem
+import uniffi.gemstone.delegationListRows
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -48,14 +52,15 @@ class EarnViewModelTest {
     private val empty = mockDelegation(assetId = asset.id, balance = BigInteger.ZERO, delegationId = "empty", validator = provider)
 
     private val aprRow = GemListRow.Text(GemListRowTitle.STAKE_APR, "4.00%")
+    private var destination: GemDelegationDestination = GemDelegationDestination.Details
     private val stakeService = mockk<uniffi.gemstone.GemStakeServiceInterface>(relaxed = true) {
-        every { earnView(any(), any(), any(), any()) } answers {
-            val providers = secondArg<List<uniffi.gemstone.DelegationValidator>>()
+        every { earnView(any()) } answers {
+            val input = firstArg<GemEarnInput>()
             GemEarnView(
                 aprRow = aprRow,
-                providers = providers,
-                depositProvider = providers.firstOrNull().takeIf { firstArg<uniffi.gemstone.WalletType>() != uniffi.gemstone.WalletType.VIEW },
-                positions = listOf(funded.toGem()),
+                providers = input.providers,
+                depositProvider = input.providers.firstOrNull().takeIf { input.walletType != uniffi.gemstone.WalletType.VIEW },
+                positions = listOf(GemStakeDelegationItem(funded.toGem(), delegationListRows(listOf(funded.toGem()), input.asset, null, input.currency).first(), destination)),
             )
         }
     }
@@ -92,9 +97,20 @@ class EarnViewModelTest {
     fun `positions are the ones core keeps`() = runTest(testDispatcher) {
         val model = viewModel()
 
-        val shown = model.positions.first { it.isNotEmpty() }
+        val shown = model.positionRows.first { it.isNotEmpty() }
 
-        assertEquals(listOf(funded.base.delegationId), shown.map { it.base.delegationId })
+        assertEquals(listOf(funded.base.delegationId), shown.map { it.delegation.base.delegationId })
+    }
+
+    @Test
+    fun `a position opens where core points it`() = runTest(testDispatcher) {
+        val model = viewModel()
+        model.positionRows.first { it.isNotEmpty() }
+        var opened: Pair<String, String>? = null
+
+        model.onPosition(funded, onOpenDetail = { validator, delegation -> opened = validator to delegation }, onAmount = {}, onConfirm = {})
+
+        assertEquals(funded.validator.id to funded.base.delegationId, opened)
     }
 
     @Test

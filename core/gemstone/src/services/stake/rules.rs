@@ -4,6 +4,7 @@ use crate::services::collections::{stale, unique};
 
 use num_bigint::{BigInt, BigUint};
 use primitives::AddressName;
+use primitives::Platform;
 use primitives::{
     AddressFormatStyle, AddressFormatter, AddressType, Asset, Chain, Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, EarnType, RedelegateData, Resource, StakeChain, StakeProviderType, StakeType,
     VerificationStatus, WalletType, YieldProvider,
@@ -12,8 +13,8 @@ use rand::seq::IndexedRandom;
 use std::str::FromStr;
 
 use super::model::{
-    GemDelegationAction, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationListRow, GemDelegationStatus, GemEarnView, GemStakeAction, GemStakeActionItem, GemStakeActionTap, GemStakeAmountInput,
-    GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorSelection, GemStakeViewState, GemValidatorRow,
+    GemDelegationAction, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationListRow, GemDelegationStatus, GemEarnInput, GemEarnView, GemStakeAction, GemStakeActionItem, GemStakeActionTap,
+    GemStakeAmountInput, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorSelection, GemStakeViewState, GemValidatorRow,
 };
 use crate::config::image::GemImage;
 use crate::config::stake::EARN_OFFERED;
@@ -31,6 +32,7 @@ use chrono::{DateTime, Utc};
 use number_formatter::BigNumberFormatter;
 
 use crate::config::chain::account_activation_fee_url;
+use crate::config::docs::DocsUrl;
 use crate::config::stake::{StakeChainConfig, get_stake_config};
 use crate::config::validators::get_validators;
 
@@ -262,7 +264,7 @@ fn stake_config(chain: Chain) -> Option<StakeChainConfig> {
     StakeChain::from_chain(chain).map(get_stake_config)
 }
 
-pub fn stake_view_state(input: GemStakeInput) -> GemStakeViewState {
+pub fn stake_view_state(input: GemStakeInput, platform: Platform) -> GemStakeViewState {
     let GemStakeInput {
         wallet_type,
         asset,
@@ -292,6 +294,7 @@ pub fn stake_view_state(input: GemStakeInput) -> GemStakeViewState {
             .collect(),
         actions,
         validators,
+        docs_url: StakeChain::from_chain(chain).map(|chain| DocsUrl::Staking(chain).url_for(platform)),
     }
 }
 
@@ -315,9 +318,9 @@ pub fn stake_info_rows(asset: &Asset, staking_apr: Option<f64>) -> Vec<GemListRo
             amount: GemFormattedNumber::percentage(apr, GemPercentageStyle::Unsigned).toned(),
             info: Some(GemInfoTopic::StakeApr),
         }),
-        (lock_time_seconds(chain) > 0).then(|| GemListRow::Duration {
+        lock_time_parts(chain).map(|parts| GemListRow::Duration {
             title: GemListRowTitle::LockTime,
-            parts: lock_time_parts(chain),
+            parts,
             info: Some(GemInfoTopic::StakeLockTime),
             estimate: false,
         }),
@@ -352,12 +355,9 @@ pub fn delegation_rows(delegation: &Delegation, now: DateTime<Utc>) -> Vec<GemLi
             info: None,
             progress: false,
         }),
-        completion_title(delegation).map(|title| GemListRow::Duration {
-            title,
-            parts: completion_countdown_parts(delegation, now),
-            info: None,
-            estimate: false,
-        }),
+        completion_title(delegation)
+            .zip(completion_countdown_parts(delegation, now))
+            .map(|(title, parts)| GemListRow::Duration { title, parts, info: None, estimate: false }),
     ]
     .into_iter()
     .flatten()
@@ -389,19 +389,13 @@ fn lock_time_seconds(chain: Chain) -> u64 {
     stake_config(chain).map(|config| config.time_lock).unwrap_or_default()
 }
 
-fn lock_time_parts(chain: Chain) -> Vec<GemDurationPart> {
+fn lock_time_parts(chain: Chain) -> Option<Vec<GemDurationPart>> {
     day_parts(lock_time_seconds(chain) as i64)
 }
 
-fn completion_countdown_parts(delegation: &Delegation, now: DateTime<Utc>) -> Vec<GemDurationPart> {
-    let Some(completion_date) = delegation.base.completion_date else {
-        return vec![];
-    };
-    let remaining = (completion_date - now).num_seconds();
-    if remaining <= 0 {
-        return vec![];
-    }
-    countdown_parts(remaining)
+fn completion_countdown_parts(delegation: &Delegation, now: DateTime<Utc>) -> Option<Vec<GemDurationPart>> {
+    let remaining = (delegation.base.completion_date? - now).num_seconds();
+    (remaining > 0).then(|| countdown_parts(remaining))
 }
 
 fn min_stake_amount(chain: Chain) -> BigInt {
@@ -549,12 +543,28 @@ impl GemAssetBalance {
     }
 }
 
-pub fn earn_view(wallet_type: WalletType, providers: Vec<DelegationValidator>, delegations: Vec<Delegation>, asset_apr: Option<f64>) -> GemEarnView {
+pub fn earn_view(input: GemEarnInput) -> GemEarnView {
+    let GemEarnInput {
+        wallet_type,
+        asset,
+        providers,
+        delegations,
+        asset_apr,
+        price,
+        currency,
+    } = input;
     let providers = selectable_validators(providers);
     GemEarnView {
         apr_row: earn_apr_row(&providers, asset_apr),
         deposit_provider: (wallet_type != WalletType::View).then(|| providers.first().cloned()).flatten(),
-        positions: positions(delegations),
+        positions: sorted_delegations(positions(delegations))
+            .into_iter()
+            .map(|delegation| GemStakeDelegationItem {
+                row: delegation_list_row(&delegation, &asset, price, currency.clone()),
+                destination: delegation_destination(wallet_type, asset.clone(), delegation.clone()),
+                delegation,
+            })
+            .collect(),
         providers,
     }
 }
@@ -970,7 +980,7 @@ mod tests {
             rows[1],
             GemListRow::Duration {
                 title: GemListRowTitle::LockTime,
-                parts: lock_time_parts(Chain::Tron),
+                parts: lock_time_parts(Chain::Tron).unwrap(),
                 info: Some(GemInfoTopic::StakeLockTime),
                 estimate: false,
             }
@@ -1082,11 +1092,12 @@ mod tests {
     fn test_the_lock_time_reads_as_whole_days() {
         assert_eq!(
             lock_time_parts(Chain::Cosmos),
-            vec![GemDurationPart {
+            Some(vec![GemDurationPart {
                 value: (lock_time_seconds(Chain::Cosmos) / 86_400) as i64,
                 unit: GemDurationUnit::Day
-            }]
+            }])
         );
+        assert_eq!(lock_time_parts(Chain::Bitcoin), None);
     }
 
     #[test]
@@ -1095,9 +1106,13 @@ mod tests {
         let mut pending = Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Deactivating, 0);
         pending.base.completion_date = Some(now + Duration::days(2));
 
-        assert_eq!(completion_countdown_parts(&pending, now).first().map(|part| (part.value, part.unit)), Some((2, GemDurationUnit::Day)));
+        assert_eq!(completion_countdown_parts(&pending, now).and_then(|parts| parts.first().map(|part| (part.value, part.unit))), Some((2, GemDurationUnit::Day)));
         pending.base.completion_date = Some(now - Duration::hours(1));
-        assert!(completion_countdown_parts(&pending, now).is_empty());
+        assert_eq!(completion_countdown_parts(&pending, now), None);
+        assert!(
+            !delegation_rows(&pending, now).iter().any(|row| matches!(row, GemListRow::Duration { .. })),
+            "a passed completion date leaves no empty countdown row"
+        );
     }
 
     #[test]
@@ -1263,17 +1278,20 @@ mod tests {
             Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 10),
         ];
         let validators = vec![DelegationValidator::mock()];
-        let state = stake_view_state(GemStakeInput {
-            wallet_type: WalletType::Multicoin,
-            asset: asset.clone(),
-            balance: GemAssetBalance::mock(),
-            balance_metadata: None,
-            staking_apr: None,
-            price: None,
-            currency: Currency::USD,
-            validators: validators.clone(),
-            delegations: delegations.clone(),
-        });
+        let state = stake_view_state(
+            GemStakeInput {
+                wallet_type: WalletType::Multicoin,
+                asset: asset.clone(),
+                balance: GemAssetBalance::mock(),
+                balance_metadata: None,
+                staking_apr: None,
+                price: None,
+                currency: Currency::USD,
+                validators: validators.clone(),
+                delegations: delegations.clone(),
+            },
+            Platform::IOS,
+        );
 
         let sorted = sorted_delegations(delegations);
         assert_eq!(state.delegations.iter().map(|item| item.delegation.clone()).collect::<Vec<_>>(), sorted);
@@ -1281,6 +1299,7 @@ mod tests {
         assert_eq!(state.sections, stake_sections(uses_freeze(Chain::Cosmos), !state.actions.is_empty(), true));
         assert_eq!(state.delegations[0].row, delegation_list_row(&sorted[0], &asset, None, Currency::USD));
         assert!(state.resource_rows.is_empty());
+        assert_eq!(state.docs_url, Some(DocsUrl::Staking(StakeChain::Cosmos).url_for(Platform::IOS)), "the screen links its chain's staking guide");
     }
 
     #[test]
@@ -1753,6 +1772,32 @@ mod tests {
     }
 
     #[test]
+    fn test_earn_positions_sort_by_balance_and_carry_their_tap() {
+        let small = Delegation::mock_base(DelegationBase::mock_with_balance(10, 0));
+        let awaiting = Delegation::mock_base(DelegationBase {
+            state: DelegationState::AwaitingWithdrawal,
+            ..DelegationBase::mock_with_balance(50, 0)
+        });
+        let view = |wallet_type| {
+            earn_view(GemEarnInput {
+                wallet_type,
+                asset: Asset::from_chain(Chain::Ethereum),
+                providers: vec![],
+                delegations: vec![small.clone(), awaiting.clone()],
+                asset_apr: None,
+                price: None,
+                currency: Currency::USD,
+            })
+        };
+
+        let positions = view(WalletType::Multicoin).positions;
+        assert_eq!(positions.iter().map(|item| item.delegation.clone()).collect::<Vec<_>>(), vec![awaiting.clone(), small.clone()]);
+        assert!(!matches!(positions[0].destination, GemDelegationDestination::Details), "an awaiting withdrawal opens Withdraw");
+        assert!(matches!(positions[1].destination, GemDelegationDestination::Details));
+        assert!(matches!(view(WalletType::View).positions[0].destination, GemDelegationDestination::Details), "a watch wallet only opens details");
+    }
+
+    #[test]
     fn test_only_a_signing_wallet_deposits_and_it_deposits_with_the_best_provider() {
         let mut best = DelegationValidator::mock_cosmos("best");
         best.apr = 9.0;
@@ -1761,12 +1806,23 @@ mod tests {
         let mut inactive = DelegationValidator::mock_cosmos("inactive");
         inactive.is_active = false;
 
-        let deposit = |wallet_type, providers| earn_view(wallet_type, providers, vec![], None).deposit_provider;
+        let earn = |wallet_type, providers, asset_apr| {
+            earn_view(GemEarnInput {
+                wallet_type,
+                asset: Asset::from_chain(Chain::Cosmos),
+                providers,
+                delegations: vec![],
+                asset_apr,
+                price: None,
+                currency: Currency::USD,
+            })
+        };
+        let deposit = |wallet_type, providers| earn(wallet_type, providers, None).deposit_provider;
         assert_eq!(deposit(WalletType::Multicoin, vec![worse.clone(), best.clone()]).map(|provider| provider.id), Some(best.id.clone()));
         assert_eq!(deposit(WalletType::View, vec![best.clone()]), None, "a watch wallet cannot deposit");
         assert_eq!(deposit(WalletType::Multicoin, vec![inactive.clone()]), None, "an inactive provider is no provider");
 
-        let view = earn_view(WalletType::Multicoin, vec![worse, inactive, best], vec![], Some(1.0));
+        let view = earn(WalletType::Multicoin, vec![worse, inactive, best], Some(1.0));
         assert_eq!(view.providers.first().map(|provider| provider.apr), Some(9.0), "the listed providers are the selectable ones, best first");
         assert_eq!(view.providers.len(), 2);
         assert_eq!(view.apr_row, earn_apr_row(&view.providers, Some(1.0)), "the rate comes from the provider that would take the deposit");

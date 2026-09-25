@@ -84,6 +84,7 @@ struct MainTabView: View {
             )
         }
         .sheet(item: presenter.isPresentingPayment) { PaymentNavigationStack(type: $0, wallet: wallet) }
+        .sheet(item: presenter.isPresentingAddressDetails) { AddressDetailsDestination(chainAddress: $0) }
         .sheet(item: presenter.isPresentingPriceAlert) { asset in
             SetPriceAlertNavigationStack(
                 model: viewModelFactory.setPriceAlertScene(walletId: wallet.id, asset: asset, onComplete: onSetPriceAlertComplete),

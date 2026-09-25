@@ -104,7 +104,7 @@ private fun AuthRequestContent(state: AuthSceneState.Content, buttonState: Butto
 
     WalletSelectionSheet(
         isVisible = isShowSelectWallets,
-        walletRows = state.availableWalletRows,
+        walletSections = state.availableWalletSections,
         selectedWalletId = state.selectedWallet.id,
         onWalletSelected = onWalletSelected,
         onDismissRequest = { isShowSelectWallets = false },

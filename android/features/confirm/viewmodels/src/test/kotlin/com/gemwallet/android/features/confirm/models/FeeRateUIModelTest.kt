@@ -2,9 +2,8 @@ package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAssetEthereum
-import com.gemwallet.android.testkit.mockAssetPriceInfo
-import com.gemwallet.android.testkit.mockAssetPriceValue
 import com.gemwallet.android.testkit.mockFormattedNumber
+import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FeePriority
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -12,6 +11,7 @@ import uniffi.gemstone.FeeUnitType
 import uniffi.gemstone.GemFeeRateRow
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemNumberUnit
+import uniffi.gemstone.feeAmount
 import java.math.BigInteger
 
 class FeeRateUIModelTest {
@@ -22,10 +22,10 @@ class FeeRateUIModelTest {
             row = GemFeeRateRow(
                 priority = FeePriority.Fast.toGem(),
                 fee = BigInteger("500000000000000000"),
+                amount = feeAmount(mockAssetEthereum().toGem(), BigInteger("500000000000000000"), 1.0, Currency.USD.toGem()),
                 value = GemLocalizedText.FeeRate(mockFormattedNumber(value = 2.5, unit = GemNumberUnit.Plain), FeeUnitType.GWEI),
                 isSelected = false,
             ),
-            feeAsset = mockAssetPriceValue(mockAssetEthereum(), mockAssetPriceInfo(price = 1.0)),
         )
 
         assertEquals(FeePriority.Fast, model.priority)
@@ -38,10 +38,10 @@ class FeeRateUIModelTest {
             row = GemFeeRateRow(
                 priority = FeePriority.Normal.toGem(),
                 fee = null,
+                amount = null,
                 value = GemLocalizedText.FeeRate(mockFormattedNumber(value = 1.0, unit = GemNumberUnit.Plain), FeeUnitType.NATIVE),
                 isSelected = false,
             ),
-            feeAsset = mockAssetPriceValue(mockAssetEthereum()),
         )
 
         assertEquals("", model.fiatValue)

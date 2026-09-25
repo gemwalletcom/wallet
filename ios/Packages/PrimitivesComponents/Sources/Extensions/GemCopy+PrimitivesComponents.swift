@@ -4,6 +4,10 @@ import struct Gemstone.GemCopy
 import Primitives
 
 public extension GemCopy {
+    var copyModel: CopyTypeViewModel {
+        CopyTypeViewModel(content: self)
+    }
+
     var copyValue: CopyValue {
         switch kind {
         case let .address(chain): .address(value: value, chain: Chain(core: chain))

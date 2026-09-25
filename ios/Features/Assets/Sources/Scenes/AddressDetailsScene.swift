@@ -14,12 +14,14 @@ public struct AddressDetailsScene: View {
 
     public var body: some View {
         ListSectionView(provider: model) { row in
-            GemListRowView(row: row)
+            GemListRowView(row: row, onCopy: model.onCopy)
         }
         .listSectionSpacing(.compact)
         .contentMargins([.top], .small, for: .scrollContent)
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
+        .bindQuery(model.addressNameQuery)
+        .copyToast($model.copyToast)
         .refreshable {
             await model.refresh()
         }

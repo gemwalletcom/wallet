@@ -1,13 +1,14 @@
 package com.gemwallet.android.ui.models.chart
 
+import com.gemwallet.android.testkit.mockFormattedNumber
 import com.wallet.core.primitives.ChartCandleStick
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.GemNumberUnit
 import uniffi.gemstone.GemPerpetualChartLayout
 import uniffi.gemstone.GemPerpetualChartLine
 import uniffi.gemstone.GemPerpetualChartLineKind
 import uniffi.gemstone.GemValueTone
-import uniffi.gemstone.formattedAdaptive
 
 class CandlestickChartUIModelTest {
 
@@ -20,10 +21,10 @@ class CandlestickChartUIModelTest {
     private val layout = GemPerpetualChartLayout(
         priceLow = 8.0,
         priceHigh = 14.0,
-        ticks = listOf(9.0, 11.0, 13.0).map { formattedAdaptive(it, null) },
+        ticks = listOf(9.0, 11.0, 13.0).map { mockFormattedNumber(it, GemNumberUnit.Plain) },
         xTickCount = 6u,
-        lines = listOf(GemPerpetualChartLine(GemPerpetualChartLineKind.ENTRY, formattedAdaptive(10.5, null), 0u)),
-        currentPrice = formattedAdaptive(10.0, null),
+        lines = listOf(GemPerpetualChartLine(GemPerpetualChartLineKind.ENTRY, mockFormattedNumber(10.5, GemNumberUnit.Plain), 0u)),
+        currentPrice = mockFormattedNumber(10.0, GemNumberUnit.Plain),
         tones = listOf(GemValueTone.POSITIVE, GemValueTone.NEGATIVE, GemValueTone.NEUTRAL),
     )
 

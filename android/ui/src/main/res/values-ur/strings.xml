@@ -58,6 +58,7 @@
   <string name="common_token">ٹوکن</string>
   <string name="common_expiration">میعاد ختم</string>
   <string name="common_suspicious_address">مشکوک پتہ</string>
+  <string name="common_suspicious_address_description">یہ پتہ مشکوک یا نقصان دہ سرگرمی سے وابستہ ہے۔</string>
   <string name="common_refresh">ریفریش کریں۔</string>
   <string name="common_grant_permission">اجازت دیں۔</string>
   <string name="common_required_field">%1$s درکار ہے۔</string>

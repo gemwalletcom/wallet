@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
+import com.gemwallet.android.application.device.cases.EnablePushForNewWallet
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ui.components.screen.PhraseRow
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -35,7 +37,12 @@ import uniffi.gemstone.secretPhraseCopy
 import javax.inject.Inject
 
 @HiltViewModel
-class CreateWalletViewModel @Inject constructor(private val service: GemWalletServiceInterface, @param:ApplicationContext private val context: Context, @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher) : ViewModel() {
+class CreateWalletViewModel @Inject constructor(
+    private val service: GemWalletServiceInterface,
+    private val enablePushForNewWallet: EnablePushForNewWallet,
+    @param:ApplicationContext private val context: Context,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+) : ViewModel() {
 
     private val state = MutableStateFlow(CreateWalletViewModelState())
     val uiState = state.asStateFlow()
@@ -45,13 +52,19 @@ class CreateWalletViewModel @Inject constructor(private val service: GemWalletSe
 
     private val verification = MutableStateFlow<GemVerifyPhraseSession?>(null)
 
+    private val choices = MutableStateFlow<List<String>>(emptyList())
+    val verificationChoices: StateFlow<List<String>> = choices
+
     val verificationState: StateFlow<GemVerifyPhraseViewState?> = verification.map { it?.viewState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val phraseRows: StateFlow<List<PhraseRow>> = state.map { phraseRows(it.data) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val verifiedRows: StateFlow<List<PhraseRow>> = verificationState.map { phraseRows(it?.verified.orEmpty()) }
+    val verifiedRows: StateFlow<List<PhraseRow>> = combine(verificationState, state) { verification, current ->
+        val count = verification?.verifiedCount?.toInt() ?: 0
+        phraseRows(current.data.mapIndexed { index, word -> if (index < count) word else "" })
+    }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun phraseCopy(): GemCopy = secretPhraseCopy(state.value.data)
@@ -78,7 +91,9 @@ class CreateWalletViewModel @Inject constructor(private val service: GemWalletSe
     }
 
     fun confirmPhrase() {
-        verification.value = service.verifyPhraseSession(state.value.data)
+        val setup = service.verifyPhraseSetup(state.value.data)
+        choices.value = setup.choices
+        verification.value = setup.session
         state.update { it.copy(isShowSafeMessage = true) }
     }
 
@@ -92,6 +107,7 @@ class CreateWalletViewModel @Inject constructor(private val service: GemWalletSe
         viewModelScope.launch(ioDispatcher) {
             try {
                 service.importWallet(GemWalletImportKind.PHRASE, null, state.value.data.joinToString(" "), null, WalletSource.Create, context)
+                enablePushForNewWallet.enablePushForNewWallet()
                 withContext(Dispatchers.Main) { onCreated() }
             } catch (err: CancellationException) {
                 throw err

@@ -52,8 +52,9 @@ class AssetInfoUIModelFactoryTest {
     fun `balance rows show the values core formatted`() {
         val staked = mockFormattedNumber(value = 2.0, unit = GemNumberUnit.Symbol(symbol = "ATOM"))
         val apr = mockFormattedNumber(value = 5.0, unit = GemNumberUnit.Percent)
+        val asset = mockAsset(chain = Chain.Cosmos)
         val section = model(
-            mockAssetInfo(asset = mockAsset(chain = Chain.Cosmos), owner = null),
+            mockAssetInfo(asset = asset, owner = null),
             sections = listOf(
                 GemAssetDetailSection(
                     GemListSectionTitle.BALANCES,
@@ -70,20 +71,12 @@ class AssetInfoUIModelFactoryTest {
 
         assertEquals(R.string.asset_balances, section.title)
         assertEquals(4, balances.size)
-        assertEquals(
-            listOf(
-                AssetInfoUIModel.BalanceViewType.Stake,
-                AssetInfoUIModel.BalanceViewType.Reserved,
-                AssetInfoUIModel.BalanceViewType.Stake,
-                AssetInfoUIModel.BalanceViewType.Stake,
-            ),
-            balances.map { it.type },
-        )
+        val stake = AssetDetailsAction.Stake(asset.id)
+        assertEquals(listOf(stake, AssetDetailsAction.OpenUrl("https://reserve"), stake, stake), balances.map { it.action })
         assertEquals(
             listOf(staked.text(), staked.text(), "${R.string.stake_apr}${apr.text()}", "${R.string.stake_apr}"),
             balances.map { it.model.subtitle },
         )
-        assertEquals("https://reserve", balances[1].url)
     }
 
     @Test
@@ -148,6 +141,5 @@ class AssetInfoUIModelFactoryTest {
     ) = AssetInfoUIModelFactory(context).create(
         mockChainAssetInfo(assetInfo),
         mockGemAssetDetails(assetInfo.asset, mockGemAssetDetailsState(showsBanners = true), sections, fiatValue, balanceValue),
-        banners = emptyList(),
     )
 }

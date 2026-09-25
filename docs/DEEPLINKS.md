@@ -15,6 +15,7 @@ An asset is written as `{chain}` for a coin and `{chain}/{token_id}` for a token
 | Swap | `/tokens/{asset}/swap` | Opens swap with the asset to pay from | iOS and Android |
 | Perpetuals | `/perpetuals` | — | iOS and Android |
 | Rewards | `/rewards?code={code}`, `/join/{code}` | Referral code is optional | iOS and Android |
+| Address | `/address/{chain}/{address}` | The full address, exactly as the chain writes it | iOS and Android |
 
 Examples:
 
@@ -23,10 +24,11 @@ gem://tokens/bitcoin/receive
 gem://tokens/bitcoin/buy?amount=100
 gem://tokens/ethereum/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/sell?amount=49
 gem://tokens/solana/swap
+gem://address/smartchain/0xBAd1d35bCe0e8F28F5a3403e7a0bA96c5b0a0b4C
 https://gemwallet.com/tokens/solana/buy?amount=25
 ```
 
-`amount` is a fiat amount in whole USD, not a crypto amount. Values that are not a positive whole number, including fractional ones like `49.5`, are ignored and the screen opens with its default amount. A locale segment in front of the path is accepted and skipped, so `https://gemwallet.com/zh-cn/tokens/bitcoin/buy` resolves like `https://gemwallet.com/tokens/bitcoin/buy`. Every action requires an asset. A link with an unknown path, an unknown chain, an unknown action, or a missing asset is not a deep link and opens in the browser.
+`amount` is a fiat amount in whole USD, not a crypto amount. Values that are not a positive whole number, including fractional ones like `49.5`, are ignored and the screen opens with its default amount. A locale segment in front of the path is accepted and skipped, so `https://gemwallet.com/zh-cn/tokens/bitcoin/buy` resolves like `https://gemwallet.com/tokens/bitcoin/buy`. Every action requires an asset. An address link needs both the chain and the address. A link with an unknown path, an unknown chain, an unknown action, or a missing asset is not a deep link and opens in the browser.
 
 Sell availability controls whether Sell can be selected in the screen. A direct sell link still opens Sell when the asset is not marked as sellable.
 
@@ -61,7 +63,7 @@ Bitcoin: <https://gemwallet.com/tokens/bitcoin>
 
 `https://gemwallet.com/` links only reach the app when the app declares them and the website publishes the matching association. They should also have a browser fallback for people without the app.
 
-- `https://gemwallet.com/.well-known/apple-app-site-association` lists the WalletConnect, token, join, perpetual and rewards paths, each with its locale-prefixed form where the app declares one
+- `https://gemwallet.com/.well-known/apple-app-site-association` lists the WalletConnect, token, address, join, perpetual and rewards paths, each with its locale-prefixed form where the app declares one
 - `https://gemwallet.com/.well-known/assetlinks.json` must list the Android package and signing certificate
 - Android declares the same set in its intent filters, so a path added to one must be added to the other
 - As checked on 2026-09-02, token action URLs such as `/tokens/bitcoin/buy` return `404` in a browser. Publishing a non-app fallback remains required

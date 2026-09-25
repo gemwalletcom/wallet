@@ -1,17 +1,7 @@
-use super::model::{GemSupportAttachmentLimits, GemSupportChatGroup, GemSupportMessageOutcome, GemSupportMessageRow};
+use super::model::{GemSupportChatGroup, GemSupportMessageOutcome, GemSupportMessageRow};
 use crate::support::parse_support_message_display_content;
 use chrono::{DateTime, Utc};
 use primitives::{SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus};
-
-const ATTACHMENT_MAX_DIMENSION: u32 = 2048;
-const ATTACHMENT_JPEG_QUALITY: u32 = 90;
-
-pub fn attachment_limits() -> GemSupportAttachmentLimits {
-    GemSupportAttachmentLimits {
-        max_dimension: ATTACHMENT_MAX_DIMENSION,
-        jpeg_quality: ATTACHMENT_JPEG_QUALITY,
-    }
-}
 
 pub fn sync_from_timestamp(messages: Vec<SupportMessage>) -> u64 {
     messages.iter().rev().find(|message| !message.sender.is_user()).map(|message| message.created_at.timestamp().max(0) as u64).unwrap_or_default()

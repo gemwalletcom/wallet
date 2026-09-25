@@ -8,7 +8,8 @@ flowchart LR
     E[Price Alerts] --> F[Add an asset] --> G[Set a target: a price or a percentage] --> H[Push when it hits]
 ```
 
-- Settings, Notifications holds one switch for push and a link to Price Alerts; the app asks the system for permission when the switch is turned on, and the first ask happens on a moment the user is likely to want it.
+- Settings, Notifications holds one switch for push and a link to Price Alerts; the app asks the system for permission when the switch is turned on.
+- The app offers push right after a wallet is created or imported, and asks again no sooner than 30 days later unless the user turned push off.
 - Pushes cover the wallet's transactions, its Price Alerts and support replies; tapping one opens the transaction, the asset or the chat, switching first to the wallet the push belongs to.
 - Price Alerts lists the assets the user tracks; adding one enables the automatic alert ("Get notified when there's a significant price change"), and the user can also set a target as a price or a percentage; the direction (over or under, increase or decrease) follows the value against the current price.
 - An asset's screen shows whether alerts are on for it; "Set price alert" confirms with the target.

@@ -6,8 +6,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmHeaderUIModel
 import com.gemwallet.android.features.confirm.viewmodels.models.confirmHeader
 import com.gemwallet.android.testkit.mockAsset
-import com.gemwallet.android.testkit.mockGemTransactionAmount
-import com.wallet.core.primitives.Currency
+import com.gemwallet.android.testkit.mockGemHeaderAmount
 import io.mockk.mockk
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -39,7 +38,7 @@ class ConfirmHeaderUIModelTest {
         val asset = mockAsset()
         val header = GemConfirmHeader.Value(GemSimulationValue(asset.toGem(), GemApprovalValue.Unlimited))
 
-        val model = confirmHeader(header, isLoading = false, isPayment = false, context = context, currency = Currency.USD)
+        val model = confirmHeader(header, context = context)
 
         assertEquals(ConfirmHeaderUIModel.Simulation::class, model::class)
     }
@@ -49,7 +48,7 @@ class ConfirmHeaderUIModelTest {
         val asset = mockAsset()
         val header = GemConfirmHeader.Placeholder(asset.id.toIdentifier())
 
-        val model = confirmHeader(header, isLoading = false, isPayment = false, context = context, currency = Currency.USD)
+        val model = confirmHeader(header, context = context)
 
         assertEquals(ConfirmHeaderUIModel.Placeholder::class, model::class)
     }
@@ -57,24 +56,17 @@ class ConfirmHeaderUIModelTest {
     @Test
     fun `a payment request reserves the head's height without showing it`() {
         val asset = mockAsset()
-        val header = GemConfirmHeader.Transaction(GemTransactionHeader.Amount(mockGemTransactionAmount(asset = asset), showsFiat = true))
+        val header = GemConfirmHeader.Reserved(GemTransactionHeader.Amount(mockGemHeaderAmount(asset = asset)))
 
-        assertEquals(
-            ConfirmHeaderUIModel.ReservedSpace(asset),
-            confirmHeader(header, isLoading = true, isPayment = true, context = context, currency = Currency.USD),
-        )
-        assertEquals(
-            ConfirmHeaderUIModel.Amount::class,
-            confirmHeader(header, isLoading = true, isPayment = false, context = context, currency = Currency.USD)::class,
-        )
+        assertEquals(ConfirmHeaderUIModel.ReservedSpace(asset), confirmHeader(header, context = context))
     }
 
     @Test
     fun `a transaction header draws the amount Core carried`() {
         val asset = mockAsset()
-        val header = GemConfirmHeader.Transaction(GemTransactionHeader.Amount(mockGemTransactionAmount(asset = asset), showsFiat = true))
+        val header = GemConfirmHeader.Transaction(GemTransactionHeader.Amount(mockGemHeaderAmount(asset = asset)))
 
-        val model = confirmHeader(header, isLoading = false, isPayment = false, context = context, currency = Currency.USD)
+        val model = confirmHeader(header, context = context)
 
         assertEquals(asset, (model as ConfirmHeaderUIModel.Amount).asset)
     }

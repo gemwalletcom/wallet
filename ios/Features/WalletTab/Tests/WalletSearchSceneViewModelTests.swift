@@ -26,10 +26,10 @@ struct WalletSearchSceneViewModelTests {
         let unpinned = { AssetData.mock(metadata: .mock(isPinned: false)) }
 
         model.searchQuery.value = .mock(assets: (0 ..< 12).map { _ in unpinned() })
-        #expect(model.hasMoreAssets == false)
+        #expect(model.derived.view.hasMoreAssets == false)
 
         model.searchQuery.value = .mock(assets: (0 ..< 13).map { _ in unpinned() })
-        #expect(model.hasMoreAssets == true)
+        #expect(model.derived.view.hasMoreAssets == true)
     }
 
     @Test
@@ -37,8 +37,8 @@ struct WalletSearchSceneViewModelTests {
         let model = WalletSearchSceneViewModel.mock()
         model.searchQuery.value = .mock(assets: (0 ..< 13).map { _ in AssetData.mock() })
 
-        #expect(model.previewAssets.isEmpty)
-        #expect(model.hasMoreAssets == false)
+        #expect(model.derived.previewAssets.isEmpty)
+        #expect(model.derived.view.hasMoreAssets == false)
     }
 
     @Test
@@ -46,10 +46,10 @@ struct WalletSearchSceneViewModelTests {
         let model = WalletSearchSceneViewModel.mock()
 
         model.searchQuery.value = .mock(perpetuals: (0 ..< 3).map { _ in .mock() })
-        #expect(model.hasMorePerpetuals == false)
+        #expect(model.derived.view.hasMorePerpetuals == false)
 
         model.searchQuery.value = .mock(perpetuals: (0 ..< 4).map { _ in .mock() })
-        #expect(model.hasMorePerpetuals == true)
+        #expect(model.derived.view.hasMorePerpetuals == true)
     }
 
     @Test
@@ -63,20 +63,20 @@ struct WalletSearchSceneViewModelTests {
                 .mock(metadata: .mock(isPinned: true)),
             ],
         )
-        #expect(model.showPerpetuals == false)
-        #expect(model.showPinnedPerpetuals == false)
+        #expect(model.derived.view.state.showsPerpetuals == false)
+        #expect(model.derived.view.state.showsPinnedPerpetuals == false)
     }
 
     @Test
     func listsSection() {
         let model = WalletSearchSceneViewModel.mock()
 
-        #expect(model.showLists == false)
+        #expect(model.derived.view.state.showsLists == false)
 
         let list = AssetList(id: "stocks", name: "Stocks", count: 2)
         model.searchQuery.value = .mock(lists: [list])
 
-        #expect(model.showLists == true)
+        #expect(model.derived.view.state.showsLists == true)
         #expect(model.listDestination(for: list) == Scenes.AssetsResults(searchQuery: "", scope: .list("stocks"), title: "Stocks"))
     }
 
@@ -86,10 +86,10 @@ struct WalletSearchSceneViewModelTests {
         let model = WalletSearchSceneViewModel.mock(service: service)
 
         service.nftSearchItems = (0 ..< 3).map { _ in .mock(item: .asset(data: NFTAssetData.mock().toGem())) }
-        #expect(model.hasMoreNFTs == false)
+        #expect(model.derived.view.hasMoreNfts == false)
 
         service.nftSearchItems = (0 ..< 4).map { _ in .mock(item: .asset(data: NFTAssetData.mock().toGem())) }
-        #expect(model.hasMoreNFTs == true)
+        #expect(model.derived.view.hasMoreNfts == true)
     }
 
     @Test
@@ -97,15 +97,15 @@ struct WalletSearchSceneViewModelTests {
         let service = GemAssetSelectionServiceMock()
         let model = WalletSearchSceneViewModel.mock(service: service)
 
-        #expect(model.showNFTs == false)
+        #expect(model.derived.view.state.showsNfts == false)
 
         service.nftSearchItems = [
             .mock(item: .collection(data: NFTData.mock(assets: [.mock(), .mock()]).toGem())),
             .mock(item: .asset(data: NFTAssetData.mock().toGem())),
         ]
 
-        #expect(model.showNFTs == true)
-        #expect(model.collectionsContent.items.count == 2)
+        #expect(model.derived.view.state.showsNfts == true)
+        #expect(model.derived.collectionsContent.items.count == 2)
     }
 
     @Test
@@ -113,8 +113,8 @@ struct WalletSearchSceneViewModelTests {
         let model = WalletSearchSceneViewModel.mock()
         model.searchQuery.value = .mock(lists: [AssetList(id: "stocks", name: "Stocks", count: 2)])
 
-        if case .results = model.searchState {} else {
-            Issue.record("expected results, got \(model.searchState)")
+        if case .results = model.searchState(model.derived) {} else {
+            Issue.record("expected results, got \(model.searchState(model.derived))")
         }
     }
 
@@ -123,13 +123,13 @@ struct WalletSearchSceneViewModelTests {
         let service = GemAssetSelectionServiceMock()
         let model = WalletSearchSceneViewModel.mock(service: service)
 
-        #expect(model.showAddToken == false, "there is no chain to add a token to")
+        #expect(model.derived.view.showsAddToken == false, "there is no chain to add a token to")
 
         service.filterChainsResult = [Primitives.Chain.ethereum.toGem()]
-        #expect(model.showAddToken)
+        #expect(model.derived.view.showsAddToken)
 
         service.tokensSupported = false
-        #expect(model.showAddToken == false)
+        #expect(model.derived.view.showsAddToken == false)
     }
 
     @Test

@@ -66,11 +66,11 @@ public final class PortfolioSceneViewModel: ChartListViewable {
     }
 
     var showSegmentedControl: Bool {
-        preferences.isPerpetualEnabled && service.showPerpetuals(walletType: wallet.type.toGem(), chains: wallet.chains.map(\.rawValue))
+        service.showPerpetuals(walletType: wallet.type.toGem(), chains: wallet.chains.map(\.rawValue))
     }
 
     var navigationTitle: String {
-        showSegmentedControl ? "" : typeTitle(for: state.portfolioType.toPrimitives())
+        showSegmentedControl ? "" : state.portfolioType.toPrimitives().title
     }
 
     var statisticRows: [GemListRow] {
@@ -98,14 +98,6 @@ extension PortfolioSceneViewModel {
     func loadIfNeeded() async {
         guard session.needsLoad() else { return }
         await load()
-    }
-
-    func typeTitle(for type: PortfolioType) -> String {
-        type.title
-    }
-
-    func chartTypeTitle(for type: PortfolioChartType) -> String {
-        type.title
     }
 
     private func update(_ session: GemPortfolioSession) {

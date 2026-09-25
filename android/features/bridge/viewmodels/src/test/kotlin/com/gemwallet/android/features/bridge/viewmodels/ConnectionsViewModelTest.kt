@@ -36,6 +36,7 @@ import org.junit.Test
 import uniffi.gemstone.GemConnection
 import uniffi.gemstone.GemConnectionDetails
 import uniffi.gemstone.GemConnectionSection
+import uniffi.gemstone.GemConnectionsView
 import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemWalletConnectServiceInterface
 
@@ -64,7 +65,7 @@ class ConnectionsViewModelTest {
     fun `the sections come from Core`() = runTest(dispatcher) {
         val sections = listOf(GemConnectionSection(title = "Active", connections = emptyList()))
         val service: GemWalletConnectServiceInterface = mockk(relaxed = true) {
-            every { connectionSections(any()) } returns sections
+            every { connectionsView(any()) } returns GemConnectionsView(sections, "https://docs.gemwallet.com/guides/walletconnect/")
         }
         val connections: GetWalletConnections = mockk {
             every { observeConnections() } returns flowOf(listOf(connection))

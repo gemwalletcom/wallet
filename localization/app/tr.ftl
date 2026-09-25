@@ -58,6 +58,7 @@ common_method = Yöntem
 common_token = Jeton
 common_expiration = Son kullanma
 common_suspicious_address = Şüpheli adres
+common_suspicious_address_description = Bu adres şüpheli veya zararlı bir etkinlikle ilişkili.
 common_refresh = Yenile
 common_grant_permission = İzin ver
 common_required_field = %@ gerekli

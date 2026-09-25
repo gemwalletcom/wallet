@@ -1,20 +1,18 @@
 use super::model::GemFiatSuggestedAmount;
 use std::sync::Arc;
 
-use primitives::currency::Currency;
 use primitives::{AssetId, FiatQuote, FiatQuoteType, FiatQuoteUrl};
 
 use super::session::GemFiatSession;
 use super::{GemFiatService, rules};
 use crate::config::fiat_config::get_fiat_config;
+use crate::constants::FIAT_QUOTE_CURRENCY;
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::state::GemLoadState;
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
 use crate::services::transfer::GemRecentActivityService;
 use crate::services::wallet_session::GemWalletSessionService;
-
-pub(super) const CURRENCY: Currency = Currency::USD;
 
 #[derive(uniffi::Object)]
 pub struct GemFiatQuoteService {
@@ -31,17 +29,13 @@ impl GemFiatQuoteService {
         Self { fiat, balances, session, recent_activity }
     }
 
-    pub fn get_currency(&self) -> Currency {
-        CURRENCY
-    }
-
     pub fn suggested_amounts(&self) -> Vec<GemFiatSuggestedAmount> {
         get_fiat_config()
             .suggested_amounts
             .into_iter()
             .map(|amount| GemFiatSuggestedAmount {
                 amount: amount.unsigned_abs(),
-                value: GemFormattedNumber::whole_currency(f64::from(amount), CURRENCY),
+                value: GemFormattedNumber::whole_currency(f64::from(amount), FIAT_QUOTE_CURRENCY),
             })
             .collect()
     }
@@ -54,14 +48,6 @@ impl GemFiatQuoteService {
         rules::random_amount(&get_fiat_config())
     }
 
-    pub fn quote_debounce_milliseconds(&self) -> u64 {
-        self.fiat.quote_debounce_milliseconds()
-    }
-
-    pub fn quote_refresh_interval_milliseconds(&self) -> u64 {
-        self.fiat.quote_refresh_interval_milliseconds()
-    }
-
     pub async fn refresh_transactions(&self, has_transactions: bool) -> GemLoadState {
         GemLoadState::refreshed(self.sync_transactions().await, has_transactions)
     }
@@ -71,13 +57,13 @@ impl GemFiatQuoteService {
         if let Ok(asset) = self.fiat.asset(asset_id.clone()).await {
             let _ = self.recent_activity.add_recent(rules::quote_action(&quote_type), asset).await;
         }
-        self.fiat.get_quotes(wallet_id, quote_type, asset_id, amount, CURRENCY).await
+        self.fiat.get_quotes(wallet_id, quote_type, asset_id, amount, FIAT_QUOTE_CURRENCY).await
     }
 
     pub async fn quote_url(&self, asset_id: AssetId, quote_id: String) -> Result<FiatQuoteUrl, GemServiceError> {
         let wallet_id = self.session.current_wallet_id()?;
         let url = self.fiat.get_quote_url(wallet_id.clone(), quote_id).await?;
-        self.balances.set_assets_enabled(wallet_id, vec![asset_id], true).await?;
+        self.balances.enable_assets(wallet_id, vec![asset_id]).await?;
         Ok(url)
     }
 }

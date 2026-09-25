@@ -58,6 +58,7 @@
   <string name="common_token">Token</string>
   <string name="common_expiration">Vypršení platnosti</string>
   <string name="common_suspicious_address">Podezřelá adresa</string>
+  <string name="common_suspicious_address_description">Tato adresa je spojena s podezřelou nebo škodlivou aktivitou.</string>
   <string name="common_refresh">Obnovit</string>
   <string name="common_grant_permission">Udělte povolení</string>
   <string name="common_required_field">Je vyžadováno %1$s</string>

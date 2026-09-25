@@ -165,7 +165,7 @@ internal fun RecipientScreen(
                     model = item.model,
                     listPosition = position,
                     modifier = Modifier.clickable {
-                        item.memo?.let { onAction(RecipientAction.SetMemo(it)) }
+                        item.recipient.memo?.let { onAction(RecipientAction.SetMemo(it)) }
                         onAction(RecipientAction.Select(item.recipient))
                     },
                     accessory = { DataBadgeChevron() },

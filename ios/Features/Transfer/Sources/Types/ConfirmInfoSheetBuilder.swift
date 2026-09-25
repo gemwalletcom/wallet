@@ -16,7 +16,7 @@ enum ConfirmInfoSheetBuilder {
         onGetAsset: @escaping @MainActor @Sendable (Asset, GemAcquireAsset) -> Void,
     ) -> InfoSheetType {
         let asset = info.asset?.toPrimitives()
-        let image = asset.map { AssetViewModel(asset: $0).assetImage } ?? AssetImage()
+        let image = asset.map { AssetIdViewModel(assetId: $0.id).assetImage } ?? AssetImage()
         let button = acquireButton(info, asset: asset, onGetAsset: onGetAsset)
 
         return switch info.sheet {

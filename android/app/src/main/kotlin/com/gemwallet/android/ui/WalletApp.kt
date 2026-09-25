@@ -25,7 +25,6 @@ import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.BuildConfig
 import com.gemwallet.android.WalletConnectRequestContent
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
-import com.gemwallet.android.ext.updateUrl
 import com.gemwallet.android.features.onboarding.AcceptTermsDestination
 import com.gemwallet.android.features.onboarding.OnboardScreen
 import com.gemwallet.android.flavors.ReviewManager
@@ -48,7 +47,6 @@ fun WalletApp(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val startDestination by viewModel.startDestinationState.collectAsStateWithLifecycle()
-    val askNotifications by viewModel.askNotifications.collectAsStateWithLifecycle()
     val isTermsAccepted by viewModel.isTermsAccepted.collectAsStateWithLifecycle()
 
     val start = startDestination ?: return
@@ -134,12 +132,6 @@ fun WalletApp(
             ReviewManager().open(activity)
         }
     }
-
-    LaunchedEffect(askNotifications) {
-        if (askNotifications) {
-            viewModel.onNotificationsEnable()
-        }
-    }
 }
 
 @Composable
@@ -159,11 +151,7 @@ private fun ShowUpdateDialog(version: String, isRequired: Boolean, onSkip: () ->
         },
         confirmButton = {
             TextButton(onClick = {
-                openUpdateDestination(
-                    context = context,
-                    version = version,
-                    isPlayStoreInstall = isPlayStoreInstall,
-                )
+                openUpdateDestination(context = context, isPlayStoreInstall = isPlayStoreInstall)
                 if (!isRequired) {
                     onCancel()
                 }
@@ -195,20 +183,14 @@ private fun ShowUpdateDialog(version: String, isRequired: Boolean, onSkip: () ->
     )
 }
 
-private fun openUpdateDestination(context: Context, version: String, isPlayStoreInstall: Boolean) {
+private fun openUpdateDestination(context: Context, isPlayStoreInstall: Boolean) {
     val urls = if (isPlayStoreInstall) {
         listOf(
             "market://details?id=${context.packageName}",
             BuildConfig.UPDATE_URL,
         )
     } else {
-        listOf(
-            updateUrl(
-                flavor = BuildConfig.FLAVOR,
-                version = version,
-                fallbackUrl = BuildConfig.UPDATE_URL,
-            ),
-        )
+        listOf(BuildConfig.UPDATE_URL)
     }
 
     for (uri in urls) {

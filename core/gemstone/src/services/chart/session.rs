@@ -6,6 +6,7 @@ use super::rules;
 use crate::services::error::GemServiceError;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
 pub enum GemChartPhase {
     Loading,
     Data { data: GemChartData },

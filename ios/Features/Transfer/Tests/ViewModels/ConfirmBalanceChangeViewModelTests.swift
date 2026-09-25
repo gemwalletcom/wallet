@@ -1,9 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import class Gemstone.GemAssetConfigService
 import struct Gemstone.GemSimulationBalanceChange
+import enum Gemstone.GemValueTone
 @testable import GemstonePrimitives
+import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesTestKit
 import Style
@@ -14,20 +15,15 @@ struct ConfirmBalanceChangeViewModelTests {
     @Test
     func balanceChange() {
         let solana = Asset.mockSolana()
-        let negative = ConfirmBalanceChangeViewModel(balanceChange: GemSimulationBalanceChange(
-            asset: solana.toGem(),
-            icon: GemAssetConfigService.shared.assetIcon(assetId: solana.id.identifier),
-            value: BigInt(-1_500_000_000),
-            sign: .outgoing,
-            tone: .negative,
-        ))
-        let positive = ConfirmBalanceChangeViewModel(balanceChange: GemSimulationBalanceChange(
-            asset: solana.toGem(),
-            icon: GemAssetConfigService.shared.assetIcon(assetId: solana.id.identifier),
-            value: BigInt(1_500_000_000),
-            sign: .incoming,
-            tone: .positive,
-        ))
+        let change = { (value: Double, tone: GemValueTone) in
+            ConfirmBalanceChangeViewModel(balanceChange: GemSimulationBalanceChange(
+                asset: solana.toGem(),
+                icon: GemAssetConfigService.shared.assetIcon(assetId: solana.id.identifier),
+                amount: .mock(value: value, unit: .symbol(symbol: "SOL"), display: .number(precision: .fraction(min: 0, max: 32)), tone: tone, exact: "1.5"),
+            ))
+        }
+        let negative = change(-1.5, .negative)
+        let positive = change(1.5, .positive)
 
         #expect(negative.assetTitle == "Solana")
         #expect(negative.amount.text == "-1.5 SOL")

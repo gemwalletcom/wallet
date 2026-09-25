@@ -35,8 +35,8 @@ struct AssetsResultsSceneViewModelTests {
 
         await model.refresh()
 
-        if case .empty = model.searchState {} else {
-            Issue.record("expected the empty state, got \(model.searchState)")
+        if case .empty = model.searchState(model.state) {} else {
+            Issue.record("expected the empty state, got \(model.searchState(model.state))")
         }
     }
 
@@ -46,8 +46,8 @@ struct AssetsResultsSceneViewModelTests {
 
         await model.refresh()
 
-        if case .empty = model.searchState {} else {
-            Issue.record("expected the empty state, got \(model.searchState)")
+        if case .empty = model.searchState(model.state) {} else {
+            Issue.record("expected the empty state, got \(model.searchState(model.state))")
         }
     }
 
@@ -59,10 +59,10 @@ struct AssetsResultsSceneViewModelTests {
             .mock(asset: .mock(id: .mock(.bitcoin)), metadata: .mock(isPinned: false)),
         ])
 
-        #expect(model.showPinned)
-        #expect(model.showAssets)
-        if case .results = model.searchState {} else {
-            Issue.record("expected results, got \(model.searchState)")
+        #expect(model.state.showsPinned)
+        #expect(model.state.showsAssets)
+        if case .results = model.searchState(model.state) {} else {
+            Issue.record("expected results, got \(model.searchState(model.state))")
         }
     }
 
@@ -72,14 +72,14 @@ struct AssetsResultsSceneViewModelTests {
         let listModel = AssetsResultsSceneViewModel.mock(service: service, request: WalletSearchRequest(walletId: .mock(), scope: .list("trending"), types: [.perpetual]))
         listModel.searchQuery.value = .mock(perpetuals: [PerpetualData.mock()])
 
-        #expect(listModel.showPerpetuals)
+        #expect(listModel.state.showsPerpetuals)
 
         service.perpetualsShown = false
-        #expect(listModel.showPerpetuals == false)
+        #expect(listModel.state.showsPerpetuals == false)
 
         let allModel = AssetsResultsSceneViewModel.mock()
         allModel.searchQuery.value = .mock(perpetuals: [PerpetualData.mock()])
-        #expect(allModel.showPerpetuals == false)
+        #expect(allModel.state.showsPerpetuals == false)
     }
 
     @Test
@@ -90,7 +90,7 @@ struct AssetsResultsSceneViewModelTests {
             .mock(metadata: .mock(isPinned: false)),
         ])
 
-        #expect(model.showPerpetuals)
+        #expect(model.state.showsPerpetuals)
         #expect(model.perpetuals.count == 2)
     }
 

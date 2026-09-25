@@ -8,14 +8,12 @@ public final class GemChainSettingsServiceMock: GemChainSettingsServiceProtocol,
     public var nodesByCall: [[GemNodeSelection]] = []
     public var statusByUrl: [String: GemNodeStatusState] = [:]
     public var explorerRowsValue: [GemExplorerRow] = []
-    public var chainsValue: [Chain] = []
     public var checkResult: Result<GemNodeCheck, GemAddNodeError> = .failure(.InvalidUrl)
 
     public private(set) var selectedNodes: [String] = []
     public private(set) var deletedNodes: [String] = []
     public private(set) var addedNodes: [String] = []
     public private(set) var setExplorerNames: [String] = []
-    public private(set) var chainQueries: [String] = []
     public private(set) var nodesCalls = 0
     private let statusCallsStorage = Locked(wrappedValue: [String]())
     public var statusCalls: [String] { statusCallsStorage.wrappedValue }
@@ -24,11 +22,6 @@ public final class GemChainSettingsServiceMock: GemChainSettingsServiceProtocol,
 
     public func addNode(chain _: Chain, url: String) async throws {
         addedNodes.append(url)
-    }
-
-    public func chains(query: String) -> [Chain] {
-        chainQueries.append(query)
-        return chainsValue
     }
 
     public func checkNode(chain _: Chain, url _: String) async throws -> GemNodeCheck {
@@ -49,10 +42,6 @@ public final class GemChainSettingsServiceMock: GemChainSettingsServiceProtocol,
 
     public func newNodeListSession(chain: Chain) -> GemNodeListSession {
         GemNodeListSession(chain: chain, nodes: [], statuses: [:])
-    }
-
-    public func nodeCheckDebounceMilliseconds() -> UInt64 {
-        0
     }
 
     public func nodeStatus(chain _: Chain, url: String) async -> GemNodeStatusState {

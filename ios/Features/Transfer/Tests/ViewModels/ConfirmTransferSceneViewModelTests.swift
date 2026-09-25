@@ -39,23 +39,6 @@ import Testing
 @MainActor
 struct ConfirmTransferSceneViewModelTests {
     @Test
-    func paymentHeaderAppearsAfterLoading() {
-        let data = GemTransferData.mockPayment()
-        let model = ConfirmTransferSceneViewModel.mock(data: data)
-
-        #expect(model.isHeaderVisible == false)
-        model.state.load = .mock(fee: .mock())
-        #expect(model.isHeaderVisible == true)
-    }
-
-    @Test
-    func paymentHeaderShowsWhenAmountIsKnown() {
-        let model = ConfirmTransferSceneViewModel.mock(data: .mockPayment(value: 1))
-
-        #expect(model.isHeaderVisible == true)
-    }
-
-    @Test
     func selectingAnotherPaymentAssetReloadsWithIt() async {
         let invoice = PaymentInvoice.mock(quotes: [.mock(asset: .mockEthereum()), .mock(asset: .mockBNB())])
         let bnb = GemTransferData.mockPayment(asset: .mockBNB(), invoice: invoice)
@@ -118,7 +101,7 @@ struct ConfirmTransferSceneViewModelTests {
 
         #expect(model.transfer.chain == .ethereum, "the header follows the asset the load failed for")
         #expect(model.state.load != nil, "a failed load keeps what the screen already showed")
-        #expect(model.state.transactionError != nil)
+        #expect(model.state.loadError != nil)
     }
 
     @Test
@@ -312,7 +295,7 @@ struct ConfirmTransferSceneViewModelTests {
     func aFeeChangeAndARefreshEachLeaveOneConsistentViewState() async {
         let confirmation = GemConfirmationMock(feeRates: .mock([(.normal, 20, nil), (.fast, 30, nil)]))
         let model = ConfirmTransferSceneViewModel.mock(confirmation: confirmation)
-        let expected = { confirmation.viewState(screen: model.state.screen, addressName: model.state.addressName?.toGem()) }
+        let expected = { confirmation.viewState(screen: model.state.screen) }
 
         model.changeFeeSelection(.priority(priority: .fast))
         #expect(model.viewState == expected())
@@ -324,16 +307,18 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func fetchAfterFeeChangeReplacesTheSceneWithTheServiceAnswer() async {
         let priorities: [Gemstone.FeePriority] = [.normal, .fast]
-        let model = ConfirmTransferSceneViewModel.mock(confirmation: GemConfirmationMock(feeRates: .mock([(.normal, 20, nil), (.fast, 30, nil)])))
+        let warning: GemListRow = .notice(title: .warning, message: .externallyOwnedSpenderWarning, kind: .warning)
+        let model = ConfirmTransferSceneViewModel.mock(confirmation: GemConfirmationMock(feeRates: .mock([(.normal, 20, nil), (.fast, 30, nil)]), warnings: [warning]))
+
+        #expect(model.simulationWarnings == [warning], "the request's warnings show before the load")
 
         await model.load()
         #expect(model.viewState.feeRates?.rows.map(\.priority) == priorities)
 
-        model.state.simulation = .mock(warnings: [.notice(title: .warning, message: .externallyOwnedSpenderWarning, kind: .warning)])
         model.changeFeeSelection(.priority(priority: .fast))
         await model.load()
 
-        #expect(model.state.simulation.warnings.isEmpty)
+        #expect(model.simulationWarnings.isEmpty)
         #expect(model.viewState.feeRates?.rows.map(\.priority) == priorities)
     }
 
@@ -374,13 +359,13 @@ struct ConfirmTransferSceneViewModelTests {
         await confirmation { preloading in
             confirmationMock.onLoad = {
                 #expect(model.state.screen.phase == .loading)
-                #expect(model.state.addressName?.name == "vitalik.eth")
+                #expect(model.state.load?.addressName?.name == "vitalik.eth")
                 preloading()
             }
             await model.load()
         }
         #expect(model.state.fee != nil)
-        #expect(model.state.addressName?.name == "vitalik.eth")
+        #expect(model.state.load?.addressName?.name == "vitalik.eth")
     }
 
     @Test
@@ -575,34 +560,9 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func simulationWarningsHideBoundedApprovalsAndKeepExternallyOwnedSpenderWarnings() {
-        let model = ConfirmTransferSceneViewModel.mock(
-            simulation: .mock(warnings: [
-                .mock(warning: .permitApproval(.mock(value: 1000))),
-                .mock(warning: .externallyOwnedSpender),
-            ]),
-        )
-
-        #expect(model.simulationWarnings == [.notice(title: .warning, message: .externallyOwnedSpenderWarning, kind: .warning)])
-        #expect(model.viewState.button.state != .disabled)
-    }
-
-    @Test
-    func simulationWarningsPassThroughValidationWarnings() {
-        let model = ConfirmTransferSceneViewModel.mock(
-            simulation: .mock(warnings: [
-                .mock(warning: .permitApproval(.mock(value: 1000))),
-                .mock(severity: .critical, warning: .validationError, message: "Unable to verify spender is a contract"),
-            ]),
-        )
-
-        #expect(model.simulationWarnings == [.notice(title: .error, message: .text(text: "Unable to verify spender is a contract"), kind: .error)])
-    }
-
-    @Test
     func scanTransactionMaliciousError() {
         let model = ConfirmTransferSceneViewModel.mock()
-        model.onSelectListError(error: .confirm(.ScanMalicious))
+        model.onSelectListError(error: .ScanMalicious)
 
         guard case .info(.maliciousTransaction) = model.isPresentingSheet else {
             Issue.record("Expected maliciousTransaction sheet")
@@ -613,7 +573,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func scanTransactionMemoRequiredError() {
         let model = ConfirmTransferSceneViewModel.mock()
-        model.onSelectListError(error: .confirm(.ScanMemoRequired(symbol: "BTC")))
+        model.onSelectListError(error: .ScanMemoRequired(symbol: "BTC"))
 
         guard case let .info(.memoRequired(symbol)) = model.isPresentingSheet else {
             Issue.record("Expected memoRequired sheet")
@@ -626,7 +586,7 @@ struct ConfirmTransferSceneViewModelTests {
     func insufficientNetworkFeeErrorShowsRequiredAmount() {
         let model = ConfirmTransferSceneViewModel.mock()
         let required = BigInt(21_000_000_000_000)
-        model.onSelectListError(error: .confirm(.InsufficientNetworkFee(asset: Asset.mockEthereum().toGem(), requirement: GemBalanceRequirement(required: required, available: 0, shortfall: required))))
+        model.onSelectListError(error: .InsufficientNetworkFee(asset: Asset.mockEthereum().toGem(), requirement: GemBalanceRequirement(required: required, available: 0, shortfall: required)))
 
         guard case let .info(.insufficientNetworkFee(info, _, _)) = model.isPresentingSheet else {
             Issue.record("Expected insufficientNetworkFee sheet")
@@ -639,7 +599,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func insufficientNetworkFeeBuyActionUsesSmallDefaultAmount() {
         let model = ConfirmTransferSceneViewModel.mock()
-        model.onSelectListError(error: .confirm(.InsufficientNetworkFee(asset: Asset.mockEthereum().toGem(), requirement: nil)))
+        model.onSelectListError(error: .InsufficientNetworkFee(asset: Asset.mockEthereum().toGem(), requirement: nil))
 
         guard case let .info(.insufficientNetworkFee(_, _, .action(_, action))) = model.isPresentingSheet else {
             Issue.record("Expected insufficientNetworkFee sheet")
@@ -658,7 +618,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func tronInsufficientBalanceActionShowsGetOptions() {
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mockTronUSDT())))
-        model.onSelectListError(error: .confirm(.InsufficientBalance(asset: Asset.mockTron().toGem(), requirement: GemBalanceRequirement(required: 36_798_300, available: 36_070_000, shortfall: 728_300))))
+        model.onSelectListError(error: .InsufficientBalance(asset: Asset.mockTron().toGem(), requirement: GemBalanceRequirement(required: 36_798_300, available: 36_070_000, shortfall: 728_300)))
 
         guard case let .info(sheet) = model.isPresentingSheet,
               case let .balanceRequired(info, _, .action(_, action)) = sheet
@@ -687,7 +647,7 @@ struct ConfirmTransferSceneViewModelTests {
     func tronTokenInsufficientBalancePreservesAsset() {
         let asset = Asset.mockTronUSDT()
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(asset)))
-        model.onSelectListError(error: .confirm(.InsufficientBalance(asset: asset.toGem(), requirement: GemBalanceRequirement(required: 2, available: 1, shortfall: 1))))
+        model.onSelectListError(error: .InsufficientBalance(asset: asset.toGem(), requirement: GemBalanceRequirement(required: 2, available: 1, shortfall: 1)))
 
         guard case let .info(.balanceRequired(_, _, .action(_, action))) = model.isPresentingSheet else {
             Issue.record("Expected balanceRequired sheet")
@@ -708,7 +668,7 @@ struct ConfirmTransferSceneViewModelTests {
     func insufficientBalanceBuyActionUsesErrorAsset() {
         let asset = Asset.mockEthereumUSDT()
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(asset)))
-        model.onSelectListError(error: .confirm(.InsufficientBalance(asset: asset.toGem(), requirement: GemBalanceRequirement(required: 2, available: 1, shortfall: 1))))
+        model.onSelectListError(error: .InsufficientBalance(asset: asset.toGem(), requirement: GemBalanceRequirement(required: 2, available: 1, shortfall: 1)))
 
         guard case let .info(.balanceRequired(_, _, .action(_, action))) = model.isPresentingSheet else {
             Issue.record("Expected balanceRequired sheet")
@@ -755,7 +715,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func tronInsufficientNetworkFeeUsesFeeAsset() {
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mockTronUSDT())))
-        model.onSelectListError(error: .confirm(.InsufficientNetworkFee(asset: Asset.mockTron().toGem(), requirement: nil)))
+        model.onSelectListError(error: .InsufficientNetworkFee(asset: Asset.mockTron().toGem(), requirement: nil))
 
         guard case let .info(sheet) = model.isPresentingSheet,
               case let .insufficientNetworkFee(info, _, .action(_, action)) = sheet

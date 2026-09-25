@@ -2,21 +2,20 @@ package com.gemwallet.android.model
 
 import java.math.BigInteger
 
-data class Balance<T>(val available: T, val frozen: T, val locked: T, val staked: T, val pending: T, val rewards: T, val reserved: T, val withdrawable: T, val pendingUnconfirmed: T, val earn: T) {
-    override fun equals(other: Any?): Boolean = other is Balance<*> &&
-        other.available == available &&
-        other.frozen == frozen &&
-        other.locked == locked &&
-        other.staked == staked &&
-        other.pending == pending &&
-        other.rewards == rewards &&
-        other.reserved == reserved &&
-        other.withdrawable == withdrawable &&
-        other.pendingUnconfirmed == pendingUnconfirmed &&
-        other.earn == earn
-
+data class Balance(
+    val available: BigInteger,
+    val frozen: BigInteger,
+    val locked: BigInteger,
+    val staked: BigInteger,
+    val pending: BigInteger,
+    val rewards: BigInteger,
+    val reserved: BigInteger,
+    val withdrawable: BigInteger,
+    val pendingUnconfirmed: BigInteger,
+    val earn: BigInteger,
+) {
     companion object {
-        fun zero(): Balance<BigInteger> = Balance(
+        fun zero(): Balance = Balance(
             available = BigInteger.ZERO,
             frozen = BigInteger.ZERO,
             locked = BigInteger.ZERO,
@@ -28,20 +27,5 @@ data class Balance<T>(val available: T, val frozen: T, val locked: T, val staked
             pendingUnconfirmed = BigInteger.ZERO,
             earn = BigInteger.ZERO,
         )
-    }
-
-    override fun hashCode(): Int {
-        var result = super.hashCode()
-        result = 31 * result + available.hashCode()
-        result = 31 * result + frozen.hashCode()
-        result = 31 * result + locked.hashCode()
-        result = 31 * result + staked.hashCode()
-        result = 31 * result + pending.hashCode()
-        result = 31 * result + rewards.hashCode()
-        result = 31 * result + reserved.hashCode()
-        result = 31 * result + withdrawable.hashCode()
-        result = 31 * result + pendingUnconfirmed.hashCode()
-        result = 31 * result + earn.hashCode()
-        return result
     }
 }

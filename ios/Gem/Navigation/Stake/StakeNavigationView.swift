@@ -20,9 +20,6 @@ struct StakeNavigationView: View {
             model: model,
         )
         .bindQuery(model.delegationsQuery, model.assetQuery, model.validatorsQuery)
-        .ifLet(model.stakeInfoUrl, content: { view, url in
-            view.toolbarInfoButton(url: url)
-        })
         .sheet(item: $model.isPresentingInfoSheet) {
             InfoSheetScene(type: $0)
         }

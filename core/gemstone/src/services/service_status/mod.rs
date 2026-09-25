@@ -1,21 +1,12 @@
 pub mod model;
 pub(crate) mod rules;
 
-use std::{
-    collections::HashMap,
-    sync::Arc,
-    time::{Duration, Instant},
-};
+use std::{collections::HashMap, sync::Arc, time::Instant};
 
 use crate::alien::{AlienHttpMethod, AlienProvider, AlienTarget};
 use crate::services::stream::GemStreamConnection;
 
 pub use model::{GemLatencyStatus, GemServiceStatusSession, GemServiceStatusTarget};
-
-#[uniffi::export]
-pub fn service_status_timeout() -> Duration {
-    gem_client::DEFAULT_REQUEST_TIMEOUT
-}
 
 #[derive(uniffi::Object)]
 pub struct GemServiceStatus {
@@ -57,6 +48,8 @@ impl GemServiceStatus {
 
 #[cfg(test)]
 mod tests {
+    use std::time::Duration;
+
     use futures::executor::block_on;
     use primitives::{GEM_API_HOST, node_config::NodeRegion};
 

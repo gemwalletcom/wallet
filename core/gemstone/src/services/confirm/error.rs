@@ -2,6 +2,7 @@ use crate::GemstoneError;
 use crate::formatted_number::GemFormattedNumber;
 use crate::gateway::GatewayError;
 use crate::models::custom_types::GemBigInt;
+use crate::models::list::{GemListRow, GemNoticeKind, suspicious_address_notice};
 use crate::payment::GemPaymentError;
 use crate::precision::GemValueStyle;
 use crate::services::balance::GemBalanceRequirement;
@@ -100,6 +101,31 @@ impl GemConfirmError {
             | Self::ApprovalInvalid { .. }
             | Self::Payment { .. }
             | Self::Cancelled => false,
+        }
+    }
+
+    pub(crate) fn notice(&self) -> Option<GemListRow> {
+        match self {
+            Self::ScanMalicious => Some(suspicious_address_notice(GemNoticeKind::Error)),
+            Self::ScanMemoRequired { .. }
+            | Self::FeeRatesMissing
+            | Self::Offline
+            | Self::Network { .. }
+            | Self::Load { .. }
+            | Self::Broadcast { .. }
+            | Self::Record { .. }
+            | Self::AccountMissing { .. }
+            | Self::BalanceMissing { .. }
+            | Self::InsufficientBalance { .. }
+            | Self::InsufficientNetworkFee { .. }
+            | Self::MinimumAccountBalanceTooLow { .. }
+            | Self::DestinationAccountActivation { .. }
+            | Self::BelowSwapMinimum { .. }
+            | Self::SenderMismatch { .. }
+            | Self::Sign { .. }
+            | Self::ApprovalInvalid { .. }
+            | Self::Payment { .. }
+            | Self::Cancelled => None,
         }
     }
 }
@@ -348,6 +374,13 @@ pub(super) fn broadcast_error(hashes: Vec<String>, error: GatewayError) -> GemCo
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_only_a_flagged_recipient_shows_the_suspicious_address_notice() {
+        assert_eq!(GemConfirmError::ScanMalicious.notice(), Some(suspicious_address_notice(GemNoticeKind::Error)));
+        assert_eq!(GemConfirmError::ScanMemoRequired { symbol: "XRP".to_string() }.notice(), None);
+        assert_eq!(GemConfirmError::Offline.notice(), None);
+    }
 
     #[test]
     fn test_a_cancelled_signer_is_a_cancel_not_a_failure() {

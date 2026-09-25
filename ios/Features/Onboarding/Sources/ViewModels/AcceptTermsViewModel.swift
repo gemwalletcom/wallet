@@ -2,7 +2,6 @@
 
 import Components
 import Foundation
-import func Gemstone.acceptTermsItems
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -30,7 +29,7 @@ final class AcceptTermsViewModel {
     let title: String = Localized.Onboarding.AcceptTerms.title
     let message: String = Localized.Onboarding.AcceptTerms.message
 
-    var items: [TermItemViewModel] = acceptTermsItems().map { TermItemViewModel(message: $0.message) }
+    var items: [TermItemViewModel] = GemConstants.acceptTermsItems.map { TermItemViewModel(message: $0.message) }
 
     var isConfirmed: Bool {
         items.allSatisfy(\.isConfirmed)

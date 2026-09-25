@@ -18,7 +18,7 @@ use primitives::{
 
 use crate::models::copy::{GemCopy, address_copy};
 use crate::models::custom_types::GemBigInt;
-use crate::models::list::{GemListRow, GemListRowTitle, GemNoticeKind};
+use crate::models::list::{GemListRow, GemListRowTitle, GemNoticeKind, suspicious_address_title};
 use crate::services::localization::GemLocalizedText;
 use crate::{
     GemstoneError,
@@ -184,18 +184,14 @@ fn map_transaction_object(transaction: &WcEthereumTransactionData) -> Transactio
     }
 }
 
-#[derive(Default, uniffi::Object)]
+#[derive(Default)]
 pub struct GemSimulationFormatter {}
 
-#[uniffi::export]
 impl GemSimulationFormatter {
-    #[uniffi::constructor]
     pub fn new() -> Self {
         Self {}
     }
-}
 
-impl GemSimulationFormatter {
     pub fn payload_fields(&self, payload: Vec<SimulationPayloadField>, shows_header: bool) -> Vec<SimulationPayloadField> {
         if !shows_header {
             return payload;
@@ -328,7 +324,7 @@ impl WarningKind {
             Self::UnlimitedApproval => GemListRowTitle::UnlimitedApproval,
             Self::NftCollectionApproval => GemListRowTitle::NftCollectionApproval,
             Self::ExternallyOwnedSpender => GemListRowTitle::Warning,
-            Self::SuspiciousSpender => GemListRowTitle::Error,
+            Self::SuspiciousSpender => suspicious_address_title(notice_kind(severity)),
             Self::ValidationError => match severity {
                 SimulationSeverity::Critical => GemListRowTitle::Error,
                 SimulationSeverity::Low | SimulationSeverity::Warning => GemListRowTitle::Warning,
@@ -340,7 +336,7 @@ impl WarningKind {
         match self {
             Self::UnlimitedApproval => Some(GemLocalizedText::UnlimitedApprovalWarning),
             Self::ExternallyOwnedSpender => Some(GemLocalizedText::ExternallyOwnedSpenderWarning),
-            Self::SuspiciousSpender => Some(GemLocalizedText::SuspiciousAddress),
+            Self::SuspiciousSpender => Some(GemLocalizedText::SuspiciousAddressDescription),
             Self::NftCollectionApproval => None,
             Self::ValidationError => match severity {
                 SimulationSeverity::Critical => Some(GemLocalizedText::ErrorOccurred),
@@ -350,9 +346,11 @@ impl WarningKind {
     }
 }
 
-#[uniffi::export]
-pub fn simulation_warning_rows(warnings: Vec<SimulationWarning>) -> Vec<GemListRow> {
-    warning_rows(&warnings)
+fn notice_kind(severity: SimulationSeverity) -> GemNoticeKind {
+    match severity {
+        SimulationSeverity::Critical => GemNoticeKind::Error,
+        SimulationSeverity::Low | SimulationSeverity::Warning => GemNoticeKind::Warning,
+    }
 }
 
 pub fn warning_rows(warnings: &[SimulationWarning]) -> Vec<GemListRow> {
@@ -370,10 +368,7 @@ pub fn warning_rows(warnings: &[SimulationWarning]) -> Vec<GemListRow> {
             Some(GemListRow::Notice {
                 title: kind.title(warning.severity),
                 message: warning.message.clone().map(|text| GemLocalizedText::Text { text }).or_else(|| kind.default_message(warning.severity)),
-                kind: match warning.severity {
-                    SimulationSeverity::Critical => GemNoticeKind::Error,
-                    SimulationSeverity::Low | SimulationSeverity::Warning => GemNoticeKind::Warning,
-                },
+                kind: notice_kind(warning.severity),
             })
         })
         .collect()
@@ -388,6 +383,7 @@ pub struct GemSimulationChange {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::models::list::suspicious_address_notice;
     use crate::services::node::GemNodeService;
     use crate::testkit::{TestAlienProvider, mock_wc_ethereum_transaction_data};
     use num_bigint::BigInt;
@@ -422,7 +418,7 @@ mod tests {
                 unlimited,
                 notice(GemListRowTitle::NftCollectionApproval, None),
                 notice(GemListRowTitle::Warning, Some(GemLocalizedText::ExternallyOwnedSpenderWarning)),
-                notice(GemListRowTitle::Error, Some(GemLocalizedText::SuspiciousAddress)),
+                suspicious_address_notice(GemNoticeKind::Warning),
                 GemListRow::Notice {
                     title: GemListRowTitle::Error,
                     message: Some(GemLocalizedText::Text { text: "Chain ID mismatch".to_string() }),

@@ -13,6 +13,7 @@ flowchart LR
 - A market shows a candlestick chart with a period picker, the position if there is one, Long and Short (or Modify and Close), Volume, Open Interest and Funding APR, and its activity.
 - Long or Short takes the USDC margin, a leverage from 1x to the market's cap (default from Settings), and an Auto Close prefilled from the default take profit and stop loss; changing the leverage refreshes an untouched default and keeps an edited price. Reopening Auto Close before confirming shows the prices already set, with their expected PnL.
 - Confirm shows the position ("Long 5x"), the size, the price with 2% slippage, and the take profit and stop loss prices.
+- After a position is opened, closed, increased, reduced or modified, a message confirms what was done ("Open Long", "Close position").
 - A position shows its PnL with percent, Auto Close, Size, Entry Price, Liquidation price, Margin and Funding Payments; Modify increases or reduces it, Close goes straight to confirmation with the expected PnL.
 - Deposit moves USDC from the wallet's Arbitrum account (at least 5 USDC); Withdraw moves the withdrawable balance back (at least 2 USDC).
 

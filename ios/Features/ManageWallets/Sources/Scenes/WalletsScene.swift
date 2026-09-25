@@ -18,7 +18,8 @@ public struct WalletsScene: View {
     }
 
     public var body: some View {
-        List {
+        let currentWalletId = model.currentWalletId
+        return List {
             Section {
                 Button(
                     action: model.onSelectCreateWallet,
@@ -48,7 +49,7 @@ public struct WalletsScene: View {
                             wallet: wallet,
                             listItem: listItem,
                             isPinned: wallet.isPinned,
-                            currentWalletId: model.currentWalletId,
+                            currentWalletId: currentWalletId,
                             onSelect: { model.onSelect(wallet: $0, dismiss: dismiss) },
                             onEdit: model.onEdit,
                             onPin: { wallet in Task { await model.onPin(wallet: wallet) } },
@@ -69,7 +70,7 @@ public struct WalletsScene: View {
                         wallet: wallet,
                         listItem: listItem,
                         isPinned: wallet.isPinned,
-                        currentWalletId: model.currentWalletId,
+                        currentWalletId: currentWalletId,
                         onSelect: { model.onSelect(wallet: $0, dismiss: dismiss) },
                         onEdit: model.onEdit,
                         onPin: { wallet in Task { await model.onPin(wallet: wallet) } },

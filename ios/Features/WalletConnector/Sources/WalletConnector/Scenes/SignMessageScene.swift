@@ -22,7 +22,7 @@ public struct SignMessageScene: View {
     public var body: some View {
         List {
             if let headerModel = model.headerModel {
-                TransactionHeaderListItemView(headerType: .assetValue(headerModel), showClearHeader: true)
+                TransactionHeaderListItemView(headerType: .assetValue(headerModel))
             } else {
                 ListAssetHeaderView(model: model.appPreview, subtitleLayout: .vertical)
             }
@@ -37,11 +37,11 @@ public struct SignMessageScene: View {
                 }
             }
 
-            if model.payloadModel.hasFields {
+            if model.hasPayloadFields {
                 Section {
-                    SimulationPayloadFieldsContent(models: model.fieldModels(for: model.payloadModel.primaryFields))
+                    SimulationPayloadFieldsContent(models: model.fieldModels(for: model.primaryPayloadFields))
 
-                    if model.payloadModel.hasDetails {
+                    if !model.secondaryPayloadFields.isEmpty {
                         NavigationCustomLink(with: ListItemView(model: model.payloadDetailsListItem)) {
                             model.onViewPayloadDetails()
                         }

@@ -1,12 +1,16 @@
 use chrono::{DateTime, Utc};
 use primitives::{AddressFormatStyle, Asset, BlockExplorerLink, Chain, NFTAssetData, NFTAttribute, NFTAttributeType, NFTData, VerificationStatus, WalletType};
 
-use super::model::{GemCollectibleAction, GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleSection, GemNftEntry, GemNftItem, GemNftList, GemNftListScreen, GemNftRow, GemNftUnverifiedRow};
+use super::model::{
+    GemCollectibleAction, GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleSection, GemCollectibleSectionGroup, GemNftEntry, GemNftItem, GemNftList, GemNftListScreen, GemNftRow,
+    GemNftUnverifiedRow,
+};
 use crate::address_formatter::format_address;
 use crate::config::chain::supports_nft_transfer;
 use crate::config::social::social_links;
 use crate::models::copy::{GemCopy, GemCopyKind, address_copy};
-use crate::models::list::{GemListRow, GemListRowTitle};
+use crate::models::list::{GemListRow, GemListRowTitle, GemListSectionTitle};
+use crate::services::assets::model::{GemHeaderActions, GemHeaderButton, GemHeaderButtonKind};
 use crate::services::assets::rules::asset_text;
 use crate::services::localization::GemLocalizedText;
 
@@ -17,19 +21,23 @@ fn unverified_collections(data: Vec<NFTData>) -> Vec<NFTData> {
 }
 
 pub fn list_screen(data: Vec<NFTData>, list: GemNftList) -> GemNftListScreen {
-    GemNftListScreen {
-        title: match list {
-            GemNftList::Collection => match data.first().map(|item| item.collection.name.clone()) {
-                Some(name) => GemLocalizedText::Text { text: name },
-                None => GemLocalizedText::NftCollections,
-            },
-            GemNftList::Unverified => GemLocalizedText::NftUnverified,
-            GemNftList::Collections | GemNftList::Avatar => GemLocalizedText::NftCollections,
+    let title = match list {
+        GemNftList::Collection => match data.first().map(|item| item.collection.name.clone()) {
+            Some(name) => GemLocalizedText::Text { text: name },
+            None => GemLocalizedText::NftCollections,
         },
+        GemNftList::Unverified => GemLocalizedText::NftUnverified,
+        GemNftList::Collections | GemNftList::Avatar => GemLocalizedText::NftCollections,
+    };
+    let unverified_row = unverified_row(data.clone(), list);
+    let items = entries(list_items(data, list));
+    GemNftListScreen {
+        title,
         offers_receive: !matches!(list, GemNftList::Unverified),
         syncs_on_appear: matches!(list, GemNftList::Collections | GemNftList::Avatar),
-        unverified_row: unverified_row(data.clone(), list),
-        items: entries(list_items(data, list)),
+        has_content: !items.is_empty() || unverified_row.is_some(),
+        unverified_row,
+        items,
     }
 }
 
@@ -133,17 +141,42 @@ pub fn can_send(wallet_type: &WalletType, chain: Chain, is_owned: bool) -> bool 
 }
 
 pub fn collectible_details(wallet_type: &WalletType, data: &NFTAssetData, is_owned: bool, contract_explorer: Option<BlockExplorerLink>, token_explorer: Option<BlockExplorerLink>, can_save_image: bool) -> GemCollectibleDetails {
-    let status = (data.collection.status != VerificationStatus::Verified).then_some(GemCollectibleSection::Status { status: data.collection.status });
-    let info = GemCollectibleSection::Info {
-        rows: info_rows(data, contract_explorer, token_explorer),
-    };
-    let attributes = (!data.asset.attributes.is_empty()).then(|| GemCollectibleSection::Attributes {
-        attributes: data.asset.attributes.iter().map(attribute).collect(),
+    let group = |title: GemListSectionTitle, section: GemCollectibleSection| GemCollectibleSectionGroup { title, section };
+    let status = (data.collection.status != VerificationStatus::Verified).then(|| group(GemListSectionTitle::None, GemCollectibleSection::Status { status: data.collection.status }));
+    let info = group(
+        GemListSectionTitle::None,
+        GemCollectibleSection::Info {
+            rows: info_rows(data, contract_explorer, token_explorer),
+        },
+    );
+    let attributes = (!data.asset.attributes.is_empty()).then(|| {
+        group(
+            GemListSectionTitle::Properties,
+            GemCollectibleSection::Attributes {
+                attributes: data.asset.attributes.iter().map(attribute).collect(),
+            },
+        )
     });
-    let links = Some(social_links(data.collection.links.clone())).filter(|links| !links.is_empty()).map(|links| GemCollectibleSection::Links { links });
+    let links = Some(social_links(data.collection.links.clone()))
+        .filter(|links| !links.is_empty())
+        .map(|links| group(GemListSectionTitle::SocialLinks, GemCollectibleSection::Links { links }));
+    let actions = collectible_actions(can_save_image);
     GemCollectibleDetails {
-        can_send: can_send(wallet_type, data.asset.chain, is_owned),
-        actions: collectible_actions(can_save_image),
+        is_verified: data.collection.status == VerificationStatus::Verified,
+        header: GemHeaderActions::Buttons {
+            buttons: vec![
+                GemHeaderButton {
+                    kind: GemHeaderButtonKind::Send,
+                    is_enabled: can_send(wallet_type, data.asset.chain, is_owned),
+                },
+                GemHeaderButton {
+                    kind: GemHeaderButtonKind::More,
+                    is_enabled: true,
+                },
+            ],
+        },
+        image_actions: actions.iter().copied().filter(|action| matches!(action, GemCollectibleAction::SaveImage | GemCollectibleAction::SetAvatar)).collect(),
+        actions,
         sections: [status, Some(info), attributes, links].into_iter().flatten().collect(),
     }
 }
@@ -356,7 +389,14 @@ mod tests {
         suspicious.asset.attributes = vec![NFTAttribute::new("Color", "Blue", NFTAttributeType::String)];
 
         assert_eq!(section_names(&collectible_details(&WalletType::Multicoin, &verified, true, None, None, false)), vec!["info"]);
-        assert_eq!(section_names(&collectible_details(&WalletType::Multicoin, &suspicious, true, None, None, false)), vec!["status", "info", "attributes", "links"]);
+        let details = collectible_details(&WalletType::Multicoin, &suspicious, true, None, None, false);
+        assert_eq!(section_names(&details), vec!["status", "info", "attributes", "links"]);
+        assert_eq!(
+            details.sections.iter().map(|group| group.title).collect::<Vec<_>>(),
+            vec![GemListSectionTitle::None, GemListSectionTitle::None, GemListSectionTitle::Properties, GemListSectionTitle::SocialLinks]
+        );
+        assert!(!details.is_verified);
+        assert!(collectible_details(&WalletType::Multicoin, &verified, true, None, None, false).is_verified);
     }
 
     #[test]
@@ -368,15 +408,29 @@ mod tests {
             vec![GemCollectibleAction::SetAvatar, GemCollectibleAction::Refresh, GemCollectibleAction::Report]
         );
         assert_eq!(collectible_details(&WalletType::Multicoin, &data, true, None, None, true).actions.first(), Some(&GemCollectibleAction::SaveImage));
+        assert_eq!(
+            collectible_details(&WalletType::Multicoin, &data, true, None, None, false).image_actions,
+            vec![GemCollectibleAction::SetAvatar],
+            "the image menu follows the actions"
+        );
+        assert_eq!(
+            collectible_details(&WalletType::Multicoin, &data, true, None, None, true).image_actions,
+            vec![GemCollectibleAction::SaveImage, GemCollectibleAction::SetAvatar]
+        );
     }
 
     #[test]
     fn test_collectible_details_can_send_follows_the_wallet_and_ownership() {
         let data = NFTAssetData::mock();
 
-        assert!(collectible_details(&WalletType::Multicoin, &data, true, None, None, false).can_send);
-        assert!(!collectible_details(&WalletType::Multicoin, &data, false, None, None, false).can_send);
-        assert!(!collectible_details(&WalletType::View, &data, true, None, None, false).can_send);
+        let send = |wallet_type: WalletType, is_owned: bool| match collectible_details(&wallet_type, &data, is_owned, None, None, false).header {
+            GemHeaderActions::Buttons { buttons } => buttons.iter().find(|button| button.kind == GemHeaderButtonKind::Send).map(|button| button.is_enabled),
+            GemHeaderActions::WatchOnly => None,
+        };
+
+        assert_eq!(send(WalletType::Multicoin, true), Some(true));
+        assert_eq!(send(WalletType::Multicoin, false), Some(false));
+        assert_eq!(send(WalletType::View, true), Some(false));
     }
 
     #[test]
@@ -487,7 +541,7 @@ mod tests {
         details
             .sections
             .iter()
-            .map(|section| match section {
+            .map(|group| match group.section {
                 GemCollectibleSection::Status { .. } => "status",
                 GemCollectibleSection::Info { .. } => "info",
                 GemCollectibleSection::Attributes { .. } => "attributes",
@@ -526,5 +580,14 @@ mod tests {
         assert_eq!(unverified_row(data.clone(), GemNftList::Collections).map(|row| row.count_text), Some("1".to_string()));
         assert_eq!(unverified_row(vec![NFTData::mock_with("verified", VerificationStatus::Verified, 1)], GemNftList::Collections), None);
         assert_eq!(unverified_row(data, GemNftList::Unverified), None);
+    }
+
+    #[test]
+    fn test_an_unverified_row_alone_is_content() {
+        let spam = vec![NFTData::mock_with("spam", VerificationStatus::Unverified, 1)];
+
+        assert!(list_screen(spam.clone(), GemNftList::Collections).items.is_empty());
+        assert!(list_screen(spam, GemNftList::Collections).has_content);
+        assert!(!list_screen(vec![], GemNftList::Collections).has_content);
     }
 }

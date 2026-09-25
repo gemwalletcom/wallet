@@ -58,6 +58,7 @@
   <string name="common_token">Alamar Token</string>
   <string name="common_expiration">Ƙarewa</string>
   <string name="common_suspicious_address">Adireshin da ake zargi</string>
+  <string name="common_suspicious_address_description">Wannan adireshin yana da alaƙa da ayyuka masu ban tsoro ko cutarwa.</string>
   <string name="common_refresh">Sabuntawa</string>
   <string name="common_grant_permission">Ba da izini</string>
   <string name="common_required_field">%1$s ana bukata</string>

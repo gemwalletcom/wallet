@@ -76,10 +76,6 @@ impl GemChartService {
         GemChartSession::new(self.chart_period(), self.preferences.get_currency())
     }
 
-    pub fn chart_period(&self) -> ChartPeriod {
-        self.preferences.get_chart_period()
-    }
-
     pub fn set_chart_period(&self, period: ChartPeriod) -> Result<(), GemServiceError> {
         self.preferences.set_chart_period(period)
     }
@@ -98,5 +94,11 @@ impl GemChartService {
         let base_value = rules::base_value(&values);
         let current = rules::current_value(&values, latest, Utc::now(), period, base_value);
         Ok(GemChart { values, base_value, current })
+    }
+}
+
+impl GemChartService {
+    pub fn chart_period(&self) -> ChartPeriod {
+        self.preferences.get_chart_period()
     }
 }

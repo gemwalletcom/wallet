@@ -2,7 +2,6 @@ package com.gemwallet.android.features.activities.viewmodels
 
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
-import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
@@ -28,6 +27,7 @@ import org.junit.Test
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemServiceException
+import uniffi.gemstone.GemTransactionRow
 import uniffi.gemstone.GemTransactionsService
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -38,7 +38,7 @@ class TransactionsViewModelSyncTest {
         every { filterChains(any()) } returns emptyList()
     }
     private val getTransactions = mockk<GetTransactions> {
-        every { getTransactions(any()) } returns MutableStateFlow(emptyList<TransactionDataAggregate>())
+        every { getTransactions(any()) } returns MutableStateFlow(emptyList<GemTransactionRow>())
         every { stored(any()) } returns emptyList()
     }
     private val getSession = mockk<GetSession>(relaxed = true) {

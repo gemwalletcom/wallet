@@ -58,6 +58,7 @@ common_method = Kaedah
 common_token = Token
 common_expiration = Tamat tempoh
 common_suspicious_address = Alamat yang mencurigakan
+common_suspicious_address_description = Alamat ini dikaitkan dengan aktiviti yang mencurigakan atau berbahaya.
 common_refresh = Segarkan semula
 common_grant_permission = Berikan kebenaran
 common_required_field = %@ diperlukan

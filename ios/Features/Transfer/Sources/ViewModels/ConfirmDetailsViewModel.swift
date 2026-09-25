@@ -37,7 +37,7 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
         case let .swap(fromAsset, toAsset, swapData):
             let quote = swapData.quote
             let fromAssetPrice = AssetPriceValue(asset: fromAsset.toPrimitives(), price: metadata?.assetPrice)
-            let toAssetPrice = AssetPriceValue(asset: toAsset.toPrimitives(), price: metadata?.assetPrices[toAsset.toPrimitives().id])
+            let toAssetPrice = AssetPriceValue(asset: toAsset.toPrimitives(), price: metadata?.price(for: toAsset.id))
             let summary = swapQuoteSummary(quote: quote, fromAsset: fromAsset, toAsset: toAsset, fromPrice: fromAssetPrice.price?.price, toPrice: toAssetPrice.price?.price)
             return .swapDetails(
                 SwapDetailsViewModel(

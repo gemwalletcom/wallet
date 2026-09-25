@@ -2,6 +2,7 @@
 
 import BigInt
 import GemstonePrimitives
+import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store
@@ -14,10 +15,10 @@ struct AmountSceneViewModelTests {
     @Test
     func maxButton() {
         let model = AmountSceneViewModel.mock()
-        #expect(model.amountInputModel.isValid)
+        #expect(model.amountInputModel.error == nil)
 
         model.onSelectMaxButton()
-        #expect(model.amountInputModel.isValid)
+        #expect(model.amountInputModel.error == nil)
         #expect(model.entry.isMax)
 
         model.onSelectInputButton()
@@ -25,7 +26,7 @@ struct AmountSceneViewModelTests {
         model.onSelectMaxButton()
         #expect(model.amountInputType == .asset)
         #expect(model.entry.isMax)
-        #expect(model.amountInputModel.isValid)
+        #expect(model.amountInputModel.error == nil)
     }
 
     @Test
@@ -42,7 +43,7 @@ struct AmountSceneViewModelTests {
         model.onChangeAmountText("", "10")
 
         #expect(model.entry.value == BigInt(4_000_000_000_000_000_000))
-        #expect(model.amountInputModel.isValid)
+        #expect(model.amountInputModel.error == nil)
         #expect(!model.entry.isMax)
     }
 
@@ -77,20 +78,20 @@ struct AmountSceneViewModelTests {
             assetData: assetData,
         )
 
-        guard case let .stake(stake) = model.provider,
+        guard let stake = model.stake,
               case let .resource(resourceSelection) = stake.selection else { return }
 
         resourceSelection.selected = .energy
         model.onChangeResource(.bandwidth, .energy)
         model.amountInputModel.text = "2.0"
         model.onChangeAmountText("", "2.0")
-        #expect(model.amountInputModel.isValid == true)
+        #expect(model.amountInputModel.error == nil)
 
         resourceSelection.selected = .bandwidth
         model.onChangeResource(.energy, .bandwidth)
         model.amountInputModel.text = "2.0"
         model.onChangeAmountText("", "2.0")
-        #expect(model.amountInputModel.isValid == false)
+        #expect(model.amountInputModel.error != nil)
     }
 
     @Test
@@ -108,7 +109,7 @@ struct AmountSceneViewModelTests {
 
         model.amountInputModel.text = "1.5"
         model.onChangeAmountText("", "1.5")
-        model.onValidatorSelected(validator2)
+        model.onValidatorSelected(.mock(validator: validator2.toGem()))
 
         #expect(model.amountInputModel.text == "1.5")
     }
@@ -129,7 +130,7 @@ struct AmountSceneViewModelTests {
     }
 
     @Test
-    func onAppearSetsMaxForFixedValue() {
+    func aFixedValueFillsItself() {
         let delegation = Delegation.mock(base: .mock(state: .active, balance: 1_000_000))
         let assetData = AssetData.mock(asset: .mockBNB())
         let model = AmountSceneViewModel.mock(
@@ -139,8 +140,9 @@ struct AmountSceneViewModelTests {
 
         #expect(model.isInputDisabled == true)
 
-        model.onAppear()
+        model.prefillAmount()
         #expect(model.amountInputModel.text.isEmpty == false)
+        #expect(model.input.focusesInput == false)
     }
 
     @Test

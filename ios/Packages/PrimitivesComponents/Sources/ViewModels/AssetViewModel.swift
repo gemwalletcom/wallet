@@ -38,10 +38,6 @@ public struct AssetViewModel: Sendable, Identifiable, AssetPreviewable {
         AssetIdViewModel(assetId: asset.id).assetImage
     }
 
-    public var networkAssetImage: AssetImage {
-        AssetIdViewModel(assetId: asset.id).networkAssetImage
-    }
-
     public var networkName: String {
         text.networkName
     }

@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import func Gemstone.formattedAdaptive
 import struct Gemstone.GemAssetRate
 import struct Gemstone.GemSwapRate
 import GemstonePrimitives
+import GemstonePrimitivesTestKit
 @testable import PrimitivesComponents
 import Testing
 
@@ -13,8 +13,8 @@ struct AssetRateViewModelTests {
     func textShowsOneBaseUnitInEachDirection() {
         let model = AssetRateViewModel(
             rate: GemSwapRate(
-                direct: GemAssetRate(baseSymbol: "ETH", value: formattedAdaptive(value: 250_000, symbol: "USDT")),
-                inverse: GemAssetRate(baseSymbol: "USDT", value: formattedAdaptive(value: 0.000004, symbol: "ETH")),
+                direct: GemAssetRate(baseSymbol: "ETH", value: .mock(value: 250_000, unit: .symbol(symbol: "USDT"), notation: .plain)),
+                inverse: GemAssetRate(baseSymbol: "USDT", value: .mock(value: 0.000004, unit: .symbol(symbol: "ETH"), display: .number(precision: .significant(max: 4)), notation: .plain)),
             ),
             locale: Locale(identifier: "en_US"),
         )

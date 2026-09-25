@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
-use primitives::{Asset, AssetBasic, AssetFull, AssetId, Chain, Transaction, Wallet, WalletId};
+use primitives::{Asset, AssetBasic, AssetFull, AssetId, Chain, Wallet, WalletId};
 
 use super::{
     GemConfirmData, GemConfirmFee, GemConfirmFeeSelection, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata, GemConfirmService, GemConfirmSimulationState, GemConfirmTransferService, GemTransactionSigner, GemTransferAmountResult,
@@ -26,7 +26,8 @@ use crate::services::price::{GemPriceService, testkit::MemoryPriceStore};
 use crate::services::stake::GemStakeService;
 use crate::services::stake::testkit::UnusedStakeStore;
 use crate::services::stream::testkit::SubscriptionTestkit;
-use crate::services::transaction_state::{GemTransactionStateService, GemTransactionStatusService, testkit::MemoryTransactionStateStore};
+use crate::services::transaction_state::GemTransactionStateService;
+use crate::services::transaction_state::testkit::{MemoryTransactionStateStore, RecordingTransactionStatus};
 use crate::services::transfer::GemTransferData;
 use crate::services::transfer::{GemRecentActivityService, testkit::MemoryRecentActivityStore};
 use crate::services::wallet::testkit::{MemoryAddressStore, MemoryKeystorePassword, MemoryWalletStore};
@@ -41,6 +42,8 @@ pub struct ConfirmTestkit {
     pub service: Arc<GemConfirmTransferService>,
     pub confirm: Arc<GemConfirmService>,
     pub balances: Arc<MemoryBalanceStore>,
+    pub transaction_store: Arc<MemoryTransactionStateStore>,
+    pub status: Arc<RecordingTransactionStatus>,
 }
 
 impl ConfirmTestkit {
@@ -87,18 +90,13 @@ impl ConfirmTestkit {
             explorer.clone(),
             preferences.clone(),
             session.clone(),
+            primitives::Platform::IOS,
         ));
         let nft = Arc::new(GemNftService::new(device_api.clone(), Arc::new(MemoryNftStore::default()), session.clone()));
         let payment = Arc::new(GemPaymentService::new(provider.clone(), assets.clone()));
-        let transactions = Arc::new(GemTransactionStateService::new(
-            gateway.clone(),
-            Arc::new(MemoryTransactionStateStore::default()),
-            assets.clone(),
-            balance.clone(),
-            stake,
-            nft,
-            payment.clone(),
-        ));
+        let transaction_store = Arc::new(MemoryTransactionStateStore::default());
+        let status = Arc::new(RecordingTransactionStatus::default());
+        let transactions = Arc::new(GemTransactionStateService::new(gateway.clone(), transaction_store.clone(), assets.clone(), balance.clone(), stake, nft, payment.clone()));
         let confirm = Arc::new(GemConfirmService::new(
             gateway,
             Arc::new(GemSimulationService::new(provider, Arc::new(GemNodeService::mock()))),
@@ -107,7 +105,7 @@ impl ConfirmTestkit {
             balance,
             price,
             assets,
-            Arc::new(UnusedTransactionStatus),
+            status.clone(),
         ));
         let service = Arc::new(GemConfirmTransferService::new(
             confirm.clone(),
@@ -119,7 +117,13 @@ impl ConfirmTestkit {
             preferences,
             payment,
         ));
-        Self { service, confirm, balances }
+        Self {
+            service,
+            confirm,
+            balances,
+            transaction_store,
+            status,
+        }
     }
 }
 
@@ -171,14 +175,6 @@ struct UnusedSigner;
 impl GemTransactionSigner for UnusedSigner {
     async fn sign(&self, _: Wallet, _: GemSignerInput) -> Result<Vec<GemSignedTransaction>, GemstoneError> {
         panic!("unexpected signing")
-    }
-}
-
-struct UnusedTransactionStatus;
-
-impl GemTransactionStatusService for UnusedTransactionStatus {
-    fn track(&self, _: WalletId, _: Vec<Transaction>) {
-        panic!("unexpected transaction tracking")
     }
 }
 
@@ -239,6 +235,7 @@ impl GemConfirmFee {
     pub fn mock(amount: GemTransferAmountResult) -> Self {
         GemConfirmFee {
             value: BigInt::from(1),
+            formatted: crate::services::assets::rules::fee_amount(&primitives::Asset::from_chain(primitives::Chain::Ethereum), &BigInt::from(1), None, primitives::currency::Currency::USD),
             additional_fees: vec![],
             selected_priority: FeePriority::Normal,
             amount,

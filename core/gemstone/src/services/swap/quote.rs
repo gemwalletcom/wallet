@@ -84,14 +84,6 @@ impl GemSwapQuoteService {
         rules::slippage_percent(bps)
     }
 
-    pub fn refresh_interval_milliseconds(&self) -> u64 {
-        rules::quote_refresh_interval_milliseconds()
-    }
-
-    pub fn quote_debounce_milliseconds(&self) -> u64 {
-        rules::quote_debounce_milliseconds()
-    }
-
     pub async fn get_quotes(&self, from_asset: Asset, to_asset: Asset, value: GemBigUint, use_max_amount: bool, slippage_bps: Option<u32>) -> Result<Vec<Quote>, SwapperError> {
         let wallet = self.session.require_current_wallet().await.map_err(|error| SwapperError::ComputeQuoteError(error.to_string()))?;
         self.swap.get_quotes(wallet, from_asset, to_asset, value, use_max_amount, slippage_bps).await

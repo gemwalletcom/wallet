@@ -2,8 +2,10 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemEarnInput
 import struct Gemstone.GemEarnView
 import enum Gemstone.GemLoadState
+import struct Gemstone.GemStakeDelegationItem
 import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
@@ -60,12 +62,15 @@ public final class EarnSceneViewModel {
     }
 
     var earnView: GemEarnView {
-        service.earnView(
+        service.earnView(input: GemEarnInput(
             walletType: wallet.type.toGem(),
+            asset: asset.toGem(),
             providers: providersQuery.value.map { $0.toGem() },
             delegations: positionsQuery.value.map { $0.toGem() },
             assetApr: assetData.metadata.earnApr,
-        )
+            price: assetData.price?.price,
+            currency: service.getCurrency(),
+        ))
     }
 
     var noDataListItem: ListItemModel {
@@ -84,15 +89,6 @@ public final class EarnSceneViewModel {
         EmptyContentTypeViewModel(type: EmptyContentType(.earn, symbol: asset.symbol))
     }
 
-    func positionItems(_ view: GemEarnView) -> [(delegation: Delegation, model: DelegationViewModel)] {
-        DelegationViewModel.items(view.positions.map { $0.toPrimitives() }, asset: asset, price: assetData.price?.price, currency: service.getCurrency().toPrimitives())
-    }
-
-    func route(delegation: Delegation) -> StakeRoute {
-        service.delegationDestination(walletType: wallet.type.toGem(), asset: asset.toGem(), delegation: delegation.toGem())
-            .route(delegation: delegation, validators: [])
-    }
-
     func showsEmptyState(_ view: GemEarnView) -> Bool {
         view.positions.isEmpty && viewState != .loading
     }
@@ -109,8 +105,8 @@ public final class EarnSceneViewModel {
 // MARK: - Actions
 
 extension EarnSceneViewModel {
-    func onSelect(delegation: Delegation) {
-        onNavigate?(route(delegation: delegation))
+    func onSelect(item: GemStakeDelegationItem) {
+        onNavigate?(item.destination.route(delegation: item.delegation.toPrimitives(), validators: []))
     }
 
     func onSelectDeposit() {

@@ -53,7 +53,7 @@ struct ServicesFactory {
         let connectionStatusObserver = ConnectionStatusObserver(
             connectionService: connectionService,
             monitors: [
-                InternetConnectionMonitor(connectionService: connectionService),
+                InternetConnectionMonitor(),
                 streamHealth,
             ],
         )
@@ -77,7 +77,7 @@ struct ServicesFactory {
         let nameService = Gemstone.GemNameService(api: deviceApiClient, store: gemstoneAddressStore)
         let assetsService = gatewayService.assetsService(api: apiClient, store: gemstoneAssetStore, price: priceService, preferences: preferencesService, session: walletSessionService)
         let scanConfiguration = URLSessionConfiguration.default
-        scanConfiguration.timeoutIntervalForRequest = Config().scanTimeout()
+        scanConfiguration.timeoutIntervalForRequest = GemConstants.scanTimeout.timeInterval
         let scanService = Gemstone.GemScanService(
             api: Self.makeDeviceApiClient(
                 provider: NativeProvider(session: URLSession(configuration: scanConfiguration)),
@@ -88,7 +88,7 @@ struct ServicesFactory {
         let transactionSimulationService = GemSimulationService(provider: nativeProvider, nodes: nodeService)
         let webSocket = Self.makeWebSocket(deviceKeyService: deviceKeyService, reconnection: connectionService)
         let serviceStatusConfiguration = URLSessionConfiguration.default
-        serviceStatusConfiguration.timeoutIntervalForRequest = serviceStatusTimeout()
+        serviceStatusConfiguration.timeoutIntervalForRequest = GemConstants.serviceStatusTimeout.timeInterval
         let serviceStatusService = Gemstone.GemServiceStatus(
             provider: NativeProvider(session: URLSession(configuration: serviceStatusConfiguration)),
             stream: GemstoneStreamConnection(webSocket: webSocket),
@@ -234,6 +234,7 @@ struct ServicesFactory {
             session: walletSessionService,
             assets: assetsService,
             signMessage: signMessageService,
+            platform: .ios,
         )
         let walletConnector = WalletConnectorService(
             walletSessionService: walletSessionService,
@@ -353,7 +354,6 @@ struct ServicesFactory {
         let viewModelFactory = ViewModelFactory(
             addressDetailsService: Gemstone.GemAddressDetailsService(api: deviceApiClient, explorer: explorerService),
             apiClient: apiClient,
-            assetConfig: Gemstone.GemAssetConfigService(),
             assetDiscoveryService: assetDiscoveryService,
             assetsService: assetsService,
             avatarService: avatarService,
@@ -382,11 +382,9 @@ struct ServicesFactory {
             priceService: priceService,
             rewardsService: rewardsService,
             searchService: searchService,
-            simulationFormatter: Gemstone.GemSimulationFormatter(),
             stakeService: stakeService,
             streamSubscriptionService: streamSubscriptionService,
             swapService: swapService,
-            transactionStateService: transactionStateService,
             transactionsService: transactionsService,
             walletService: walletService,
             walletSessionService: walletSessionService,
@@ -443,7 +441,7 @@ struct ServicesFactory {
             rateService: rateService,
             onstartService: onStartService,
             appStartService: appStartService,
-            pushNotificationEnablerService: pushNotificationEnablerService,
+            notificationsService: Gemstone.GemNotificationsService(device: deviceService, preferences: preferencesService, permissions: notificationPermissions),
             walletConnectorPresenter: walletConnectorPresenter,
             toastPresenter: toastPresenter,
             viewModelFactory: viewModelFactory,

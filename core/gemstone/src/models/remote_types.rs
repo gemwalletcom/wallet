@@ -30,6 +30,7 @@ pub enum AccountDataType {
 pub enum AddressType {
     Address,
     Contract,
+    Asset,
     Validator,
     Contact,
     InternalWallet,

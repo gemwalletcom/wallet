@@ -86,6 +86,35 @@ pub fn swap_error_display(error: SwapperError, pay_asset: Option<Asset>) -> GemS
 }
 
 impl GemSwapSession {
+    fn quote_error(&self) -> Option<SwapperError> {
+        match &self.quote_phase {
+            GemSwapQuotePhase::Failed { error, .. } => Some(error.clone()),
+            GemSwapQuotePhase::NoInput | GemSwapQuotePhase::Loading { .. } | GemSwapQuotePhase::Ready => None,
+        }
+    }
+
+    fn allows_provider_selection(&self) -> bool {
+        self.quotes.as_ref().is_some_and(|quotes| quotes.quotes.len() > 1) && !self.is_transfer_loading()
+    }
+
+    fn is_quote_loading(&self) -> bool {
+        matches!(self.quote_phase, GemSwapQuotePhase::Loading { .. })
+    }
+
+    fn is_input_empty(&self) -> bool {
+        matches!(self.quote_phase, GemSwapQuotePhase::NoInput)
+    }
+
+    fn button_action(&self, available_balance: GemBigInt) -> GemSwapButtonAction {
+        GemSwapButtonInput {
+            value: self.input.as_ref().map(|input| GemBigInt::from(input.request.value.clone())).unwrap_or_default(),
+            available_balance,
+            quote_error: self.quote_error(),
+            transfer_error: self.transfer_error(),
+        }
+        .action()
+    }
+
     fn quotes_state(&self, pay_asset: Option<&Asset>) -> GemSwapQuotesState {
         if self.is_quote_loading() {
             return GemSwapQuotesState::Loading;
@@ -150,7 +179,6 @@ pub struct GemSwapViewState {
     pub button_action: GemSwapButtonAction,
     pub button_state: GemButtonState,
     pub quote: Option<SwapperQuote>,
-    pub quote_error: Option<GemSwapErrorDisplay>,
     pub error: Option<GemSwapErrorDisplay>,
     pub is_quote_loading: bool,
     pub is_transfer_loading: bool,
@@ -348,7 +376,6 @@ impl GemSwapSession {
             button_state: self.button_state(button_action.clone()),
             button_action,
             quote: self.quote(),
-            quote_error: self.quote_error_display(pay_asset.as_ref()),
             error: self.error_display(pay_asset.as_ref()),
             is_quote_loading: self.is_quote_loading(),
             is_transfer_loading: self.is_transfer_loading(),
@@ -379,31 +406,12 @@ impl GemSwapSession {
         })
     }
 
-    fn quote_error(&self) -> Option<SwapperError> {
-        match &self.quote_phase {
-            GemSwapQuotePhase::Failed { error, .. } => Some(error.clone()),
-            GemSwapQuotePhase::NoInput | GemSwapQuotePhase::Loading { .. } | GemSwapQuotePhase::Ready => None,
-        }
-    }
-
     fn error(&self) -> Option<SwapperError> {
         self.transfer_error().or_else(|| self.quote_error())
     }
 
-    fn allows_provider_selection(&self) -> bool {
-        self.quotes.as_ref().is_some_and(|quotes| quotes.quotes.len() > 1) && !self.is_transfer_loading()
-    }
-
-    fn is_quote_loading(&self) -> bool {
-        matches!(self.quote_phase, GemSwapQuotePhase::Loading { .. })
-    }
-
     pub fn is_transfer_loading(&self) -> bool {
         matches!(self.transfer_phase, GemSwapTransferPhase::Loading { .. })
-    }
-
-    fn is_input_empty(&self) -> bool {
-        matches!(self.quote_phase, GemSwapQuotePhase::NoInput)
     }
 
     pub fn refreshes_quotes(&self, is_screen_active: bool) -> bool {
@@ -424,16 +432,6 @@ impl GemSwapSession {
                 }
             }
         }
-    }
-
-    fn button_action(&self, available_balance: GemBigInt) -> GemSwapButtonAction {
-        GemSwapButtonInput {
-            value: self.input.as_ref().map(|input| GemBigInt::from(input.request.value.clone())).unwrap_or_default(),
-            available_balance,
-            quote_error: self.quote_error(),
-            transfer_error: self.transfer_error(),
-        }
-        .action()
     }
 
     fn button_state(&self, action: GemSwapButtonAction) -> GemButtonState {

@@ -9,6 +9,7 @@ use primitives::Localize;
 pub enum RewardsError {
     Username(String),
     Referral(String),
+    Redemption(String),
 }
 
 impl fmt::Display for RewardsError {
@@ -16,6 +17,7 @@ impl fmt::Display for RewardsError {
         match self {
             RewardsError::Username(msg) => write!(f, "{}", msg),
             RewardsError::Referral(msg) => write!(f, "{}", msg),
+            RewardsError::Redemption(msg) => write!(f, "{}", msg),
         }
     }
 }
@@ -66,15 +68,21 @@ impl Error for ReferralConfirmationError {}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum UsernameValidationError {
-    Invalid(String),
+    TooShort(usize),
+    TooLong(usize),
+    InvalidCharacters,
     AlreadyTaken,
+    WalletHasUsername,
 }
 
 impl fmt::Display for UsernameValidationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Invalid(msg) => write!(f, "{}", msg),
+            Self::TooShort(min_length) => write!(f, "Username must be at least {} characters", min_length),
+            Self::TooLong(max_length) => write!(f, "Username must be at most {} characters", max_length),
+            Self::InvalidCharacters => write!(f, "Username must contain only letters and digits"),
             Self::AlreadyTaken => write!(f, "Username already taken"),
+            Self::WalletHasUsername => write!(f, "Wallet already has a username"),
         }
     }
 }
@@ -159,7 +167,7 @@ impl From<Box<dyn Error + Send + Sync>> for ReferralError {
 
 #[derive(Debug)]
 pub enum RewardsRedemptionError {
-    NotEligible(String),
+    NotEligible,
     LimitReached,
     AccountTooNew,
     CooldownNotElapsed,
@@ -171,7 +179,7 @@ pub enum RewardsRedemptionError {
 impl fmt::Display for RewardsRedemptionError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            RewardsRedemptionError::NotEligible(msg) => write!(f, "{}", msg),
+            RewardsRedemptionError::NotEligible => write!(f, "Not eligible for rewards"),
             RewardsRedemptionError::LimitReached => write!(f, "Redemption limit reached"),
             RewardsRedemptionError::AccountTooNew => write!(f, "Account too new for redemption"),
             RewardsRedemptionError::CooldownNotElapsed => write!(f, "Must wait after recent referral activity"),
@@ -183,6 +191,21 @@ impl fmt::Display for RewardsRedemptionError {
 }
 
 impl Error for RewardsRedemptionError {}
+
+impl Localize for RewardsRedemptionError {
+    fn localize(&self, locale: &str) -> String {
+        let localizer = LanguageLocalizer::new_with_language(locale);
+        match self {
+            Self::NotEligible => localizer.rewards_error_redemption_not_eligible(),
+            Self::LimitReached => localizer.rewards_error_redemption_limit_reached(),
+            Self::AccountTooNew => localizer.rewards_error_redemption_account_too_new(),
+            Self::CooldownNotElapsed => localizer.rewards_error_redemption_cooldown(),
+            Self::NotEnoughPoints => localizer.rewards_error_redemption_not_enough_points(),
+            Self::OptionNotAvailable => localizer.rewards_error_redemption_option_not_available(),
+            Self::NoUsername => localizer.rewards_error_redemption_no_username(),
+        }
+    }
+}
 
 #[derive(Debug)]
 pub enum UsernameError {
@@ -207,8 +230,12 @@ impl Localize for UsernameError {
     fn localize(&self, locale: &str) -> String {
         let localizer = LanguageLocalizer::new_with_language(locale);
         match self {
-            Self::LimitReached(_) => localizer.rewards_error_username_daily_limit_reached(),
-            Self::Validation(e) => e.to_string(),
+            Self::LimitReached(_) => localizer.rewards_error_username_limit_reached(),
+            Self::Validation(UsernameValidationError::TooShort(min_length)) => localizer.rewards_error_username_too_short(*min_length),
+            Self::Validation(UsernameValidationError::TooLong(max_length)) => localizer.rewards_error_username_too_long(*max_length),
+            Self::Validation(UsernameValidationError::InvalidCharacters) => localizer.rewards_error_username_invalid_characters(),
+            Self::Validation(UsernameValidationError::AlreadyTaken) => localizer.rewards_error_username_taken(),
+            Self::Validation(UsernameValidationError::WalletHasUsername) => localizer.rewards_error_username_wallet_has_username(),
             Self::Internal(_) => localizer.errors_generic(),
         }
     }
@@ -240,6 +267,29 @@ mod tests {
         assert_eq!(UsernameError::internal(raw).localize("en"), generic);
         assert_eq!(ReferralError::Internal(raw.to_string()).localize("en"), generic);
         assert_eq!(UsernameError::internal(raw).to_string(), raw);
+    }
+
+    #[test]
+    fn test_redemption_errors_read_in_the_requested_language() {
+        assert_eq!(RewardsRedemptionError::OptionNotAvailable.localize("de"), "Diese Prämie ist nicht mehr verfügbar.");
+        assert_eq!(RewardsRedemptionError::NoUsername.localize("en"), "Create a username to redeem rewards.");
+        assert_eq!(RewardsRedemptionError::LimitReached.to_string(), "Redemption limit reached", "logs keep the English reason");
+    }
+
+    #[test]
+    fn test_username_errors_read_in_the_requested_language() {
+        assert_eq!(UsernameError::from(UsernameValidationError::AlreadyTaken).localize("de"), "Dieser Benutzername ist bereits vergeben.");
+        assert_eq!(UsernameError::from(UsernameValidationError::InvalidCharacters).localize("en"), "Username can only use the letters A–Z and the numbers 0–9.");
+        assert_eq!(
+            UsernameError::from(UsernameValidationError::TooShort(4)).localize("fr"),
+            LanguageLocalizer::new_with_language("fr").rewards_error_username_too_short(4)
+        );
+        assert!(UsernameError::from(UsernameValidationError::TooLong(16)).localize("es").contains("16"));
+        assert_eq!(
+            UsernameError::LimitReached(RateLimitKey::UsernameCreationPerDeviceLimit).localize("en"),
+            "Too many username attempts. Please try again later.",
+            "the limit spans days and counts failed attempts, so it names no day"
+        );
     }
 
     #[test]

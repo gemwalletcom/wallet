@@ -14,7 +14,7 @@ public struct ReconnectableMock: Reconnectable {
         Reconnection(nextAttempt: attempt + 1, delay: .milliseconds(delayMilliseconds))
     }
 
-    public func pingIntervalMilliseconds() -> UInt64 {
-        0
+    public var pingInterval: Duration {
+        .zero
     }
 }

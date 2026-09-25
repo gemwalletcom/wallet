@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.coordinators.transaction
 
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.testkit.mockTransaction
 import com.gemwallet.android.testkit.mockTransactionExtended
 import com.gemwallet.android.testkit.mockTransactionId
@@ -27,46 +28,46 @@ class TransactionRowsTest {
     fun unchangedTransactionsKeepTheirRow() {
         val items = listOf(first, second)
 
-        val rows = subject.aggregates(wallet, activity, items)
+        val rows = subject.rows(wallet, activity, items)
 
-        assertEquals(rows, subject.aggregates(wallet, activity, items))
-        assertSame(rows.first(), subject.aggregates(wallet, activity, items).first())
+        assertEquals(rows, subject.rows(wallet, activity, items))
+        assertSame(rows.first(), subject.rows(wallet, activity, items).first())
     }
 
     @Test
     fun changedTransactionGetsANewRow() {
         val pending = first.copy(transaction = first.transaction.copy(state = TransactionState.Pending))
-        val rows = subject.aggregates(wallet, activity, listOf(pending, second))
+        val rows = subject.rows(wallet, activity, listOf(pending, second))
 
-        val updated = subject.aggregates(wallet, activity, listOf(first, second))
+        val updated = subject.rows(wallet, activity, listOf(first, second))
 
         assertNotSame(rows.first(), updated.first())
-        assertEquals(TransactionState.Confirmed, updated.first().state)
+        assertEquals(TransactionState.Confirmed, updated.first().state.toPrimitives())
         assertSame(rows.last(), updated.last())
     }
 
     @Test
     fun droppedTransactionIsNotKeptAlive() {
-        subject.aggregates(wallet, activity, listOf(first, second))
+        subject.rows(wallet, activity, listOf(first, second))
 
-        val remaining = subject.aggregates(wallet, activity, listOf(second))
+        val remaining = subject.rows(wallet, activity, listOf(second))
 
         assertEquals(1, remaining.size)
     }
 
     @Test
     fun rowBuiltForOneFilterIsReusedByAnother() {
-        val rows = subject.aggregates(wallet, activity, listOf(first, second))
+        val rows = subject.rows(wallet, activity, listOf(first, second))
 
-        val filtered = subject.aggregates(wallet, asset, listOf(second))
+        val filtered = subject.rows(wallet, asset, listOf(second))
 
         assertSame(rows.last(), filtered.single())
-        assertSame(rows.first(), subject.aggregates(wallet, activity, listOf(first)).single())
+        assertSame(rows.first(), subject.rows(wallet, activity, listOf(first)).single())
     }
 
     @Test
     fun storedRowsBelongToTheirWallet() {
-        val rows = subject.aggregates(wallet, activity, listOf(first))
+        val rows = subject.rows(wallet, activity, listOf(first))
 
         assertEquals(rows, subject.stored(wallet, activity))
         assertTrue(subject.stored(WalletId("other"), activity).isEmpty())
@@ -74,9 +75,9 @@ class TransactionRowsTest {
 
     @Test
     fun visitingManyFiltersKeepsOnlyTheRecentOnesAndTheActivity() {
-        subject.aggregates(wallet, activity, listOf(first))
+        subject.rows(wallet, activity, listOf(first))
         val chains = Chain.entries.take(RecentFilters.LIMIT * 2).map { listOf(TransactionsRequestFilter.Chains(listOf(it))) }
-        chains.forEach { subject.aggregates(wallet, it, listOf(second)) }
+        chains.forEach { subject.rows(wallet, it, listOf(second)) }
 
         assertTrue(subject.stored(wallet, chains.first()).isEmpty())
         assertEquals(1, subject.stored(wallet, chains.last()).size)

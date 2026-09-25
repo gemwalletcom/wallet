@@ -1,4 +1,5 @@
 import Components
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -16,7 +17,9 @@ public struct SelectAssetScene: View {
     }
 
     public var body: some View {
-        list
+        let sections = model.sections
+        let listState = model.listState(sections)
+        return list(sections)
             .searchable(
                 text: $model.searchableQuery,
                 placement: .navigationBarDrawer(displayMode: .always),
@@ -24,14 +27,14 @@ public struct SelectAssetScene: View {
             .if(model.isNetworkSearchEnabled) {
                 $0.debounce(
                     value: $model.searchableQuery.wrappedValue,
-                    interval: model.searchDebounce,
+                    interval: GemConstants.searchDebounce,
                     action: model.search(query:),
                 )
             }
             .overlay {
-                if model.showLoading {
+                if listState == .loading {
                     LoadingView()
-                } else if model.showEmpty {
+                } else if listState != .idle {
                     EmptyContentView(
                         model: EmptyContentTypeViewModel(
                             type: EmptyContentType(
@@ -45,17 +48,14 @@ public struct SelectAssetScene: View {
             .bindQuery(model.assetsQuery, model.recentModel.query)
             .onChange(of: model.filterModel, model.onChangeFilterModel)
             .onChange(of: model.searchableQuery, model.updateRequest)
-            .ifLet(model.copyTypeViewModel) {
-                $0.copyToast(
-                    model: $1,
-                    isPresenting: $model.isPresentingCopyToast,
-                )
-            }
+            .copyToast($model.copyToast)
+            .toast(message: $model.isPresentingToastMessage)
             .navigationBarTitle(model.title)
     }
 
-    var list: some View {
-        List {
+    func list(_ sections: AssetsSections) -> some View {
+        let assetItems = model.assetItems
+        return List {
             if model.showRecents {
                 RecentAssetsSectionView(
                     model: model.recentModel,
@@ -63,9 +63,9 @@ public struct SelectAssetScene: View {
                 )
             }
 
-            if model.showPopularSection {
+            if sections.popular.isNotEmpty {
                 Section {
-                    assetsList(assets: model.sections.popular)
+                    assetsList(assets: sections.popular, assetItems: assetItems)
                 } header: {
                     HStack {
                         model.popularImage
@@ -75,18 +75,18 @@ public struct SelectAssetScene: View {
                 .listRowInsets(.assetListRowInsets)
             }
 
-            if model.showPinnedSection {
+            if sections.pinned.isNotEmpty {
                 Section {
-                    assetsList(assets: model.sections.pinned)
+                    assetsList(assets: sections.pinned, assetItems: assetItems)
                 } header: {
                     PinnedSectionHeader()
                 }
                 .listRowInsets(.assetListRowInsets)
             }
 
-            if model.showAssetsSection {
+            if sections.assets.isNotEmpty {
                 Section {
-                    assetsList(assets: model.sections.assets)
+                    assetsList(assets: sections.assets, assetItems: assetItems)
                 } header: {
                     Text(model.assetsTitle)
                 }
@@ -97,8 +97,8 @@ public struct SelectAssetScene: View {
         .listSectionSpacing(.compact)
     }
 
-    func assetsList(assets: [AssetData]) -> some View {
-        let items = model.assetItems.items(assets.map(model.displayAssetData), action: model.onAssetAction)
+    func assetsList(assets: [AssetData], assetItems: ListAssetItemsViewModel) -> some View {
+        let items = assetItems.items(assets.map(model.displayAssetData), action: model.onAssetAction)
         return ForEach(Array(zip(assets, items)), id: \.0.id) { assetData, item in
             let itemView = ListAssetItemView(model: item)
             switch model.flow.rowAction {

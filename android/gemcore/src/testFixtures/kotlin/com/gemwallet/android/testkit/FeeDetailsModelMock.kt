@@ -1,14 +1,10 @@
 package com.gemwallet.android.testkit
 
-import com.gemwallet.android.domains.confirm.FeeAssetUIModel
 import com.gemwallet.android.domains.confirm.FeeDetailsModel
-import java.math.BigInteger
+import com.gemwallet.android.domains.confirm.FeeUIModel
+import uniffi.gemstone.GemFeeRateRows
 
-fun mockFeeDetailsModel(): FeeDetailsModel {
-    val currentFee = mockFeeInfo()
-    return FeeDetailsModel(
-        currentFee = currentFee,
-        feeAsset = FeeAssetUIModel(asset = currentFee.feeAsset, price = null, available = BigInteger("1000000")),
-        rows = mockGemFeeRateRows(),
-    )
-}
+fun mockFeeDetailsModel(currentFee: FeeUIModel.FeeInfo = mockFeeInfo(), rows: GemFeeRateRows = mockGemFeeRateRows()): FeeDetailsModel = FeeDetailsModel(
+    currentFee = currentFee,
+    rows = rows,
+)

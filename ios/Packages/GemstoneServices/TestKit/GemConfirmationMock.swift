@@ -30,6 +30,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     private let rows: (Gemstone.AddressName?) -> [GemConfirmRowContent]
     private let selection: GemTransferData?
     private let feeRates: GemFeeRateRows?
+    private let warnings: [GemListRow]
     private var loaded: GemConfirmLoad?
     private var selected: GemTransferData?
     public private(set) var requestedOptions: [GemConfirmLoadOptions] = []
@@ -38,11 +39,12 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     public init(
         state: GemConfirmLoad = .mock(),
         load: Result<GemConfirmLoad, any Error> = .success(.mock()),
-        execute: Result<GemSubmitResult, any Error> = .success(.signed(data: [], warning: nil)),
+        execute: Result<GemSubmitResult, any Error> = .success(.signed(data: [], message: nil)),
         authentication: GemKeystoreAuthentication = .none,
         rows: @escaping (Gemstone.AddressName?) -> [GemConfirmRowContent] = { _ in [] },
         selection: GemTransferData? = nil,
         feeRates: GemFeeRateRows? = nil,
+        warnings: [GemListRow] = [],
     ) {
         initialState = state
         loadResult = load
@@ -51,6 +53,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         self.rows = rows
         self.selection = selection
         self.feeRates = feeRates
+        self.warnings = warnings
     }
 
     public var headerValue: GemConfirmHeader = .transaction(header: .symbol(asset: Asset.mock().toGem()))
@@ -63,16 +66,21 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         GemConfirmLoadOptions(feeSelection: .priority(priority: .normal), feeAssetId: nil, assetId: nil)
     }
 
-    public func header() -> GemConfirmHeader {
+    public func header(screen _: GemConfirmScreen) -> GemConfirmHeader {
         headerValue
     }
 
-    public func viewState(screen: GemConfirmScreen, addressName: Gemstone.AddressName?) -> GemConfirmViewState {
+    public func viewState(screen: GemConfirmScreen) -> GemConfirmViewState {
         GemConfirmViewState(
             button: screen.button(),
             feeRow: screen.feeRow(),
             feeRates: feeRateRows(),
-            rowContents: rowContents(addressName: addressName),
+            rowContents: rowContents(addressName: loaded?.addressName),
+            simulationWarnings: loaded?.simulation.warnings ?? warnings,
+            title: transfer().title(),
+            verification: transfer().verification(),
+            authentication: authenticationValue,
+            notice: nil,
         )
     }
 
@@ -85,7 +93,9 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     }
 
     public func state() async throws -> GemConfirmLoad {
-        loaded ?? initialState
+        let state = loaded ?? initialState
+        loaded = state
+        return state
     }
 
     public func load(options: GemConfirmLoadOptions) async throws -> GemConfirmLoad {
@@ -104,10 +114,6 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
 
     public func getCurrency() -> Currency {
         Primitives.Currency.usd.toGem()
-    }
-
-    public func authentication() -> GemKeystoreAuthentication {
-        authenticationValue
     }
 
     public func rowContents(addressName: Gemstone.AddressName?) -> [GemConfirmRowContent] {

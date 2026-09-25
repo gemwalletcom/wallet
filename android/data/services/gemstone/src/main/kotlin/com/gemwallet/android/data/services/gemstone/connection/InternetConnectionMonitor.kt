@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
+import com.gemwallet.android.ext.GemConstants
 import com.wallet.core.primitives.ConnectionComponent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
@@ -12,11 +13,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.mapLatest
-import uniffi.gemstone.GemConnectionService
-import uniffi.gemstone.GemConnectionServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class InternetConnectionMonitor(private val context: Context, private val connectionService: GemConnectionServiceInterface) : ConnectionComponentMonitor {
+class InternetConnectionMonitor(private val context: Context) : ConnectionComponentMonitor {
 
     override val component: ConnectionComponent = ConnectionComponent.Internet
 
@@ -37,7 +36,7 @@ class InternetConnectionMonitor(private val context: Context, private val connec
     }
         .mapLatest { isHealthy ->
             if (!isHealthy) {
-                delay(connectionService.offlineDebounceMilliseconds().toLong())
+                delay(GemConstants.offlineDebounce)
             }
             isHealthy
         }

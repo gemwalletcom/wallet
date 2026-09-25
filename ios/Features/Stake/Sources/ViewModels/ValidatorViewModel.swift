@@ -19,10 +19,6 @@ public struct ValidatorViewModel: Sendable {
         self.row = row
     }
 
-    public var validator: DelegationValidator {
-        row.validator.toPrimitives()
-    }
-
     public var listItem: ListItemModel {
         ListItemModel(title: name, subtitle: aprText)
     }

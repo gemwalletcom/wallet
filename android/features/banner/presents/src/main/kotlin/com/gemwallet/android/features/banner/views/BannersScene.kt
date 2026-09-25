@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,29 +39,21 @@ import uniffi.gemstone.GemBannerStyle
 private val bannerEmojiFontSize = 32.sp
 
 @Composable
-fun BannersScene(banners: List<BannerRowUIModel>, onSelect: (GemBannerDestination) -> Unit, onClose: (GemBannerKey) -> Unit, onBuy: () -> Unit = {}, onReceive: () -> Unit = {}) {
-    val pageState = rememberPagerState { banners.size }
-
-    if (banners.isEmpty()) {
+fun BannerScene(banner: BannerRowUIModel, onSelect: (GemBannerDestination) -> Unit, onClose: (GemBannerKey) -> Unit, onBuy: () -> Unit = {}, onReceive: () -> Unit = {}) {
+    val model = banner.model
+    if (model.style == GemBannerStyle.WELCOME) {
+        WelcomeBanner(model = model, onBuy = onBuy, onReceive = onReceive, onClose = { onClose(banner.key) })
         return
     }
-    HorizontalPager(pageState, pageSpacing = paddingDefault) { page ->
-        val key = banners[page].key
-        val model = banners[page].model
-        if (model.style == GemBannerStyle.WELCOME) {
-            WelcomeBanner(model = model, onBuy = onBuy, onReceive = onReceive, onClose = { onClose(key) })
-            return@HorizontalPager
-        }
-        Box(
-            modifier = Modifier.listItem(ListPosition.Single).clickable {
-                model.destination?.let(onSelect)
-            },
-        ) {
-            BannerText(
-                model = model,
-                onCancel = { onClose(key) },
-            )
-        }
+    Box(
+        modifier = Modifier.listItem(ListPosition.Single).clickable {
+            model.destination?.let(onSelect)
+        },
+    ) {
+        BannerText(
+            model = model,
+            onCancel = { onClose(banner.key) },
+        )
     }
 }
 

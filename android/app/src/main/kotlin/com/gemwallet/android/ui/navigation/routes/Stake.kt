@@ -41,6 +41,7 @@ fun EntryProviderScope<NavKey>.stake(onAmount: AmountTransactionAction, onConfir
         EarnScreen(
             amountAction = onAmount,
             onDelegation = onDelegation,
+            onConfirm = onConfirm,
             onCancel = onCancel,
         )
     }

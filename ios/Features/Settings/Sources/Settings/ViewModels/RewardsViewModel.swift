@@ -15,7 +15,7 @@ import struct Gemstone.GemWalletRow
 import func Gemstone.incomingReferralCode
 import func Gemstone.rewardsSession
 import func Gemstone.walletRow
-import func Gemstone.walletRows
+import func Gemstone.walletSections
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -68,28 +68,12 @@ public final class RewardsViewModel: Sendable {
         Localized.Rewards.title
     }
 
-    var referralCountTitle: String {
-        Localized.Rewards.referrals
-    }
-
-    var pointsTitle: String {
-        Localized.Rewards.points
-    }
-
     var errorTitle: String {
         Localized.Errors.errorOccurred
     }
 
-    var invitedByTitle: String {
-        Localized.Rewards.invitedBy
-    }
-
     var createCodeButtonTitle: String {
         Localized.Common.getStarted
-    }
-
-    var myReferralCodeTitle: String {
-        Localized.Rewards.myReferralCode
     }
 
     var createCodeTitle: String {
@@ -108,17 +92,13 @@ public final class RewardsViewModel: Sendable {
         Localized.Rewards.ActivateReferralCode.description
     }
 
-    var statsSectionTitle: String {
-        Localized.Common.info
-    }
-
     var showsWalletSelector: Bool {
         wallets.count > 1
     }
 
     var walletSelectorModel: SelectWalletViewModel {
         SelectWalletViewModel(
-            rows: walletRows(wallets: wallets.map { $0.toGem() }),
+            sections: walletSections(wallets: wallets.map { $0.toGem() }),
             selectedRow: selectedWalletRow,
         )
     }
@@ -139,10 +119,6 @@ public final class RewardsViewModel: Sendable {
         viewState.rewards
     }
 
-    var referralCode: String? {
-        rewardsState.referralCode
-    }
-
     var sections: [ListSection<GemListSectionRow>] {
         rewardsState.sections.listSections
     }
@@ -156,10 +132,6 @@ public final class RewardsViewModel: Sendable {
             guard case let .activatePendingReferral(code, isEnabled) = action else { return nil }
             return (code, isEnabled)
         }.first
-    }
-
-    var invitedBy: String? {
-        rewardsState.usedReferralCode
     }
 
     var pendingReferralButtonTitle: String {

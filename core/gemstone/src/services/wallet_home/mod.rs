@@ -25,14 +25,13 @@ pub use rules::GemPerpetualCollateral;
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemWalletHomeViewState {
-    pub total_value: TotalFiatValue,
     pub total: GemFormattedNumber,
     pub pnl: Option<GemLocalizedText>,
     pub pnl_tone: GemValueTone,
     pub header_actions: GemHeaderActions,
     pub show_collections: bool,
     pub shows_perpetuals: bool,
-    pub visible_banners: Vec<GemBannerRow>,
+    pub banner: Option<GemBannerRow>,
 }
 
 #[derive(uniffi::Object)]
@@ -89,8 +88,7 @@ impl GemWalletHomeService {
             header_actions: rules::header_actions(wallet_type, &chains, rules::header_buttons_enabled(&visible_banners)),
             show_collections: self.preferences.show_collections(wallet_type, chains.clone()),
             shows_perpetuals: self.preferences.show_perpetuals(wallet_type, chains),
-            visible_banners,
-            total_value,
+            banner: visible_banners.into_iter().next(),
         }
     }
 
@@ -187,10 +185,10 @@ mod tests {
             price: 1.0,
             price_change_percentage_24h: 0.0,
         };
-        let shown = |balances: Vec<AssetFiatValue>| testkit.service.view_state(Wallet::mock(), balances, None, vec![onboarding.clone()]).visible_banners.len();
+        let shown = |balances: Vec<AssetFiatValue>| testkit.service.view_state(Wallet::mock(), balances, None, vec![onboarding.clone()]).banner.is_some();
 
-        assert_eq!(shown(vec![value(0.0)]), 1);
-        assert_eq!(shown(vec![value(0.0), value(2.0)]), 0);
+        assert!(shown(vec![value(0.0)]));
+        assert!(!shown(vec![value(0.0), value(2.0)]));
     }
 
     #[test]

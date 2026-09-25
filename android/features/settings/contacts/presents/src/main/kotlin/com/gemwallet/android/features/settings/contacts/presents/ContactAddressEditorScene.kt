@@ -30,7 +30,7 @@ fun ContactAddressEditorScene(input: ContactAddressInput, onAddressChange: (Stri
         title = stringResource(R.string.common_address),
         onClose = { onAction(ContactAddressEditorAction.Cancel) },
         actions = {
-            IconButton(onClick = { onAction(ContactAddressEditorAction.Confirm) }, enabled = input.isConfirmEnabled) {
+            IconButton(onClick = { onAction(ContactAddressEditorAction.Confirm) }, enabled = input.isAddressValid) {
                 Icon(imageVector = AppIcons.Check, contentDescription = "")
             }
         },

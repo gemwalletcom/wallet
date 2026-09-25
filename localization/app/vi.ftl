@@ -58,6 +58,7 @@ common_method = Phương thức
 common_token = Token
 common_expiration = Hết hạn
 common_suspicious_address = Địa chỉ đáng ngờ
+common_suspicious_address_description = Địa chỉ này có liên quan đến hoạt động đáng ngờ hoặc có hại.
 common_refresh = Làm mới
 common_grant_permission = Cấp phép
 common_required_field = %@ là bắt buộc

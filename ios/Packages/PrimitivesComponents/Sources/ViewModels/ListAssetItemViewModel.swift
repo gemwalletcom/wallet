@@ -63,25 +63,6 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
         )
     }
 
-    public init(
-        showBalancePrivacy: Binding<Bool>,
-        assetData: AssetData,
-        formatter _: ValueFormatter,
-        currency: Currency,
-        rowStyle: GemAssetRowStyle,
-    ) {
-        let model = AssetDataViewModel(
-            assetData: assetData,
-            currency: currency,
-        )
-        self.init(
-            showBalancePrivacy: showBalancePrivacy,
-            assetDataModel: model,
-            rowStyle: rowStyle,
-            action: nil,
-        )
-    }
-
     public var name: String {
         row.text.title
     }

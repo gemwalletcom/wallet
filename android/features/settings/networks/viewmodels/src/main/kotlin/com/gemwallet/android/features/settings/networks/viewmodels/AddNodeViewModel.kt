@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
+import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.features.settings.networks.viewmodels.models.AddNodeUIModel
 import com.gemwallet.android.features.settings.networks.viewmodels.models.uiModel
 import com.wallet.core.primitives.Chain
@@ -50,7 +51,7 @@ class AddNodeViewModel @Inject constructor(private val service: GemChainSettings
             return
         }
         checkUrlJob = viewModelScope.launch {
-            delay(service.nodeCheckDebounceMilliseconds().toLong())
+            delay(GemConstants.nodeCheckDebounce)
             checkUrl(current)
         }
     }

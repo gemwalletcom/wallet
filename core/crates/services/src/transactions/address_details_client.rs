@@ -35,7 +35,7 @@ impl AddressDetailsClient {
         let details = map_address_details(request, assets.into_iter().next(), scan_addresses.into_iter().next(), &verdicts);
         let balances = match details.address_type {
             AddressType::Validator => None,
-            AddressType::Address | AddressType::Contract | AddressType::Contact | AddressType::InternalWallet => self.get_balances(&details).await,
+            AddressType::Address | AddressType::Contract | AddressType::Asset | AddressType::Contact | AddressType::InternalWallet => self.get_balances(&details).await,
         };
         Ok(AddressDetails { balances, ..details })
     }
@@ -62,7 +62,7 @@ fn map_address_details(request: ChainAddress, asset: Option<Asset>, scan_address
         (false, None, None) => VerificationStatus::Unverified,
     };
     let (name, address_type) = match (asset, scan_address) {
-        (Some(asset), _) => (Some(asset.name), AddressType::Contract),
+        (Some(asset), _) => (Some(asset.name), AddressType::Asset),
         (None, Some(scan_address)) => (scan_address.name, scan_address.address_type.unwrap_or(AddressType::Address)),
         (None, None) => (None, AddressType::Address),
     };
@@ -120,18 +120,18 @@ mod tests {
         assert_eq!(map_address_details(request.clone(), None, None, &[]), expected(None, AddressType::Address, VerificationStatus::Unverified));
         assert_eq!(
             map_address_details(request.clone(), Some(asset.clone()), Some(router.clone()), &[]),
-            expected(Some("Tether USD"), AddressType::Contract, VerificationStatus::Verified)
+            expected(Some("Tether USD"), AddressType::Asset, VerificationStatus::Verified)
         );
         assert_eq!(map_address_details(request.clone(), None, Some(router), &[]), expected(Some("Uniswap"), AddressType::Contract, VerificationStatus::Verified));
         assert_eq!(map_address_details(request.clone(), None, Some(validator), &[]), expected(Some("Stakin"), AddressType::Validator, VerificationStatus::Verified));
         assert_eq!(map_address_details(request.clone(), None, Some(fraudulent.clone()), &[]), expected(None, AddressType::Address, VerificationStatus::Suspicious));
         assert_eq!(
             map_address_details(request.clone(), Some(asset.clone()), Some(fraudulent), &[]),
-            expected(Some("Tether USD"), AddressType::Contract, VerificationStatus::Suspicious)
+            expected(Some("Tether USD"), AddressType::Asset, VerificationStatus::Suspicious)
         );
         assert_eq!(
             map_address_details(request.clone(), Some(asset), None, slice::from_ref(&verdict)),
-            expected(Some("Tether USD"), AddressType::Contract, VerificationStatus::Suspicious)
+            expected(Some("Tether USD"), AddressType::Asset, VerificationStatus::Suspicious)
         );
         assert_eq!(
             map_address_details(request, None, None, &[ScanVerdict { chain: Some(Chain::SmartChain), ..verdict }]),

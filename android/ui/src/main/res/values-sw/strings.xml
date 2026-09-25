@@ -58,6 +58,7 @@
   <string name="common_token">Tokeni</string>
   <string name="common_expiration">Muda wa kuisha</string>
   <string name="common_suspicious_address">Anwani ya kutiliwa shaka</string>
+  <string name="common_suspicious_address_description">Anwani hii inahusishwa na shughuli za kutiliwa shaka au hatari.</string>
   <string name="common_refresh">Onyesha upya</string>
   <string name="common_grant_permission">Toa ruhusa</string>
   <string name="common_required_field">%1$s inahitajika</string>

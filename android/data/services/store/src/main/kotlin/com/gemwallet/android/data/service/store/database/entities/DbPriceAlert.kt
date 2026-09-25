@@ -23,7 +23,6 @@ data class DbPriceAlert(
 )
 
 fun DbPriceAlert.toDTO(): PriceAlertInfo = PriceAlertInfo(
-    id = id,
     priceAlert = PriceAlert(
         assetId = assetId.toAssetId() ?: throw IllegalStateException(),
         price = price,

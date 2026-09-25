@@ -1,3 +1,4 @@
+mod constants;
 mod localization;
 mod remote_mappers;
 #[cfg(test)]
@@ -84,6 +85,17 @@ fn main() {
     }
 
     generate_remote_mappers(&generator_type, &platform_directory_path);
+    generate_constants(&generator_type, &platform_directory_path);
+}
+
+fn generate_constants(generator_type: &GeneratorType, platform_directory_path: &str) {
+    let constants = constants::Constants::load(Path::new("."));
+    let (contents, path) = match generator_type {
+        GeneratorType::Swift => (constants.swift(), format!("{platform_directory_path}/{}", constants::SWIFT_PATH)),
+        GeneratorType::Kotlin => (constants.kotlin(), format!("{platform_directory_path}/{}", constants::KOTLIN_PATH)),
+        GeneratorType::TypeScript => return,
+    };
+    write_generated(&path, contents);
 }
 
 fn generate_remote_mappers(generator_type: &GeneratorType, platform_directory_path: &str) {

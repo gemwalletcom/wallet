@@ -9,7 +9,6 @@ import protocol Gemstone.GemContactEditorServiceProtocol
 import struct Gemstone.GemContactSession
 import protocol Gemstone.GemNameServiceProtocol
 import struct Gemstone.GemRecipient
-import func Gemstone.walletAvatarEmojis
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -37,7 +36,7 @@ public final class ContactEditorViewModel {
     var isPresentingAvatar: Bool = false
     var isPresentingAlertMessage: AlertMessage?
 
-    let emojiList: [EmojiValue] = walletAvatarEmojis().map { EmojiValue(emoji: $0, color: Colors.grayVeryLight) }
+    let emojiList: [EmojiValue] = GemConstants.walletAvatarEmojis.map { EmojiValue(emoji: $0, color: Colors.grayVeryLight) }
 
     public init(
         service: any GemContactEditorServiceProtocol,
@@ -48,7 +47,7 @@ public final class ContactEditorViewModel {
         self.nameService = nameService
         self.mode = mode
 
-        nameInputModel = InputValidationViewModel(mode: .onDemand, validators: [])
+        nameInputModel = InputValidationViewModel()
 
         switch mode {
         case let .add(recipient, chain):
@@ -71,10 +70,6 @@ public final class ContactEditorViewModel {
 
     var title: String {
         Localized.Contacts.contact
-    }
-
-    var defaultChain: Chain {
-        service.defaultContactChain
     }
 
     var isAddMode: Bool {

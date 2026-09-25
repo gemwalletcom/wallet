@@ -17,9 +17,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import com.gemwallet.android.domains.asset.icon
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
+import com.gemwallet.android.ui.components.clipboard.setCopy
 import com.gemwallet.android.ui.components.clipboard.setPlainText
+import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_head.HeaderIcon
 import com.gemwallet.android.ui.components.list_item.property.AssetRatePropertyItem
@@ -34,6 +37,7 @@ import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.style.icon
 import com.gemwallet.android.ui.theme.Spacer16
+import com.gemwallet.android.ui.theme.headerIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallIconSize
@@ -75,6 +79,7 @@ fun GemListRowView(
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
+    val clipboardManager = context.clipboardManager()
 
     val actionTitle = row.actionTitle()
     when (val row = row.uiModel(context, infoIcon)) {
@@ -137,7 +142,20 @@ fun GemListRowView(
                 .padding(top = paddingDefault, bottom = paddingSmall),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            HeaderIcon(row.asset)
+            row.imageUrl?.let { url -> IconWithBadge(icon = url, placeholder = row.assetId.icon().placeholder, size = headerIconSize) } ?: HeaderIcon(row.assetId)
+        }
+
+        is GemListRowUIModel.Avatar -> Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = paddingDefault, bottom = paddingSmall),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            ListItemImageView(image = row.image, size = headerIconSize)
+        }
+
+        is GemListRowUIModel.Address -> GemListRowMenu(items = row.menu, onClick = { clipboardManager.setCopy(context, row.copy) }) { menuModifier ->
+            AddressRow(address = row.address, listPosition = listPosition, modifier = menuModifier)
         }
 
         is GemListRowUIModel.Network -> PropertyNetworkItem(
@@ -190,7 +208,7 @@ fun GemListRowView(
 }
 
 @Composable
-private fun GemListRowMenu(items: List<GemListRowMenuItem>, content: @Composable (Modifier) -> Unit) {
+private fun GemListRowMenu(items: List<GemListRowMenuItem>, onClick: () -> Unit = {}, content: @Composable (Modifier) -> Unit) {
     if (items.isEmpty()) {
         content(Modifier)
         return
@@ -204,7 +222,7 @@ private fun GemListRowMenu(items: List<GemListRowMenuItem>, content: @Composable
         isExpanded = isExpanded,
         onDismiss = { isExpanded = false },
         onLongClick = { isExpanded = true },
-        onClick = {},
+        onClick = onClick,
         content = content,
         menuItems = {
             items.forEach { item ->

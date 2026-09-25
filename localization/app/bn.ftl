@@ -58,6 +58,7 @@ common_method = পদ্ধতি
 common_token = টোকেন
 common_expiration = মেয়াদ শেষ
 common_suspicious_address = সন্দেহজনক ঠিকানা
+common_suspicious_address_description = এই ঠিকানাটি সন্দেহজনক বা ক্ষতিকারক কার্যকলাপের সাথে সম্পর্কিত।
 common_refresh = রিফ্রেশ
 common_grant_permission = অনুমতি দিন
 common_required_field = %@ প্রয়োজন

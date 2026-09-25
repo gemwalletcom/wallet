@@ -50,10 +50,6 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
         selectType.flow()
     }
 
-    public func searchDebounceMilliseconds() -> UInt64 {
-        250
-    }
-
     public func walletSearchLimits(query _: String) -> GemWalletSearchLimits {
         GemWalletSearchLimits(assets: 12, fetch: 13, perpetuals: 3, nfts: 3, results: 100)
     }
@@ -72,9 +68,9 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
         return GemWalletSearchView(
             state: walletSearchState(counts: counts, isLoading: input.isLoading),
             limits: limits,
-            hasMoreAssets: limits.hasMoreAssets(count: counts.assets),
-            hasMorePerpetuals: limits.hasMorePerpetuals(count: counts.perpetuals),
-            hasMoreNfts: limits.hasMoreNfts(count: counts.nfts),
+            hasMoreAssets: counts.assets > limits.assets,
+            hasMorePerpetuals: counts.perpetuals > limits.perpetuals,
+            hasMoreNfts: counts.nfts > limits.nfts,
             showsAddToken: walletFlow(selectType: .walletSearch, wallet: input.wallet).showsAddToken,
         )
     }
@@ -136,6 +132,9 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
 
     public func setAssetsEnabled(assetIds: [AssetId], enabled: Bool) async throws {
         onSetAssetsEnabled?(assetIds, enabled)
+        if let error {
+            throw error
+        }
     }
 
     public func addRecent(action _: GemAssetAction, asset _: Asset) async throws {}

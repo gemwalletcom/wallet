@@ -2,7 +2,6 @@ use primitives::{Asset, AssetType, BitcoinChain, Chain, ChainType, EVMChain};
 
 #[derive(uniffi::Record, Debug, Clone, PartialEq)]
 pub struct ChainConfig {
-    pub chain_type: ChainType,
     pub default_asset_type: Option<AssetType>,
     pub icon_chain: Chain,
     pub is_memo_supported: bool,
@@ -10,7 +9,6 @@ pub struct ChainConfig {
 
 pub fn get_chain_config(chain: Chain) -> ChainConfig {
     ChainConfig {
-        chain_type: chain.chain_type(),
         default_asset_type: chain.default_asset_type(),
         icon_chain: icon_chain(chain),
         is_memo_supported: is_memo_supported(chain),

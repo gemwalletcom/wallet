@@ -34,12 +34,19 @@ impl GemAmountType {
         let reserve = reserve_for_fee(self, asset);
         let max_after_fee = (&available - &reserve).max(BigInt::from(0));
         let reserved_fee = reserves_fee(self, &reserve, &max_after_fee, &minimum_value(self, asset)).then_some(reserve);
+        let max_value = if reserved_fee.is_some() { max_after_fee } else { available.clone() };
+        let can_change_value = can_change_value(self, asset);
         GemAmountInput {
             balance: GemFormattedNumber::asset_amount(&available, asset, GemValueStyle::Auto),
-            available_value: available.clone(),
-            max_value: if reserved_fee.is_some() { max_after_fee } else { available },
+            available_value: available,
+            prefill: (!can_change_value).then(|| GemAmountMaxEntry {
+                input_type: GemAmountInputType::Asset,
+                value: max_value.clone(),
+            }),
+            max_value,
             reserved_fee,
-            can_change_value: can_change_value(self, asset),
+            can_change_value,
+            focuses_input: can_change_value,
             shows_asset_balance: shows_asset_balance(self, asset),
             uses_whole_amounts: uses_whole_amounts(self, asset),
         }
@@ -213,10 +220,19 @@ pub fn transfer_display_asset(transfer: &GemAmountTransfer, asset: Asset) -> Ass
     }
 }
 
-pub fn transfer_prefilled_amount(transfer: &GemAmountTransfer) -> Option<String> {
-    match transfer {
-        GemAmountTransfer::Send { payment } => payment.amount.clone(),
+pub fn transfer_input(transfer: &GemAmountTransfer, asset: &Asset, balance: &GemAssetBalance) -> GemAmountInput {
+    let input = transfer_amount_type(transfer).input(asset, balance);
+    let requested = match transfer {
+        GemAmountTransfer::Send { payment } => payment.amount.as_deref().and_then(|amount| BigNumberFormatter::value_from_amount(amount, asset.decimals as u32).ok()),
         GemAmountTransfer::Deposit | GemAmountTransfer::Withdraw => None,
+    };
+    let prefill = requested.and_then(|value| GemBigInt::from_str(&value).ok()).map(|value| GemAmountMaxEntry {
+        input_type: GemAmountInputType::Asset,
+        value,
+    });
+    GemAmountInput {
+        prefill: prefill.or(input.prefill.clone()),
+        ..input
     }
 }
 
@@ -490,6 +506,24 @@ fn without_leading_zeros(text: &str) -> String {
 mod tests {
 
     #[test]
+    fn test_a_request_answers_its_own_amount_type_and_display_asset() {
+        use super::super::model::{GemAmountRequest, GemAmountStakeType, GemAmountTransfer, GemAmountType};
+        use crate::services::stake::model::GemStakeAmountInput;
+        use primitives::{Asset, Chain};
+
+        let usdc = Asset::from_chain(Chain::Arbitrum);
+        let deposit = GemAmountRequest::Transfer { transfer: GemAmountTransfer::Deposit };
+        assert_eq!(deposit.amount_type(), GemAmountType::Deposit);
+        assert_eq!(deposit.display_asset(usdc.clone()), super::transfer_display_asset(&GemAmountTransfer::Deposit, usdc.clone()));
+
+        let stake = GemAmountRequest::Stake {
+            input: GemStakeAmountInput::Stake { validators: vec![], validator: None },
+        };
+        assert_eq!(stake.amount_type(), GemAmountType::Stake { stake_type: GemAmountStakeType::Stake });
+        assert_eq!(stake.display_asset(usdc.clone()), usdc, "only a transfer shows another asset");
+    }
+
+    #[test]
     fn test_a_value_echoes_into_the_field_without_grouping_or_trailing_zeros() {
         assert_eq!(super::value_text(".", 67000.0), "67000");
         assert_eq!(super::value_text(",", 1234.5), "1234,5");
@@ -706,6 +740,8 @@ mod tests {
         let stake_input = GemAmountType::Stake { stake_type: GemAmountStakeType::Stake }.input(&cosmos, &GemAssetBalance::mock_with_available(config.reserved_for_fees * 10 + config.min_amount * 10));
         assert_eq!(stake_input.reserved_fee, Some(BigInt::from(config.reserved_for_fees)));
         assert!(stake_input.can_change_value);
+        assert!(stake_input.focuses_input);
+        assert_eq!(stake_input.prefill, None);
         assert_eq!(stake_input.max_value, BigInt::from(config.reserved_for_fees * 9 + config.min_amount * 10));
 
         let tron = Asset::from_chain(Chain::Tron);
@@ -758,6 +794,8 @@ mod tests {
         let solana_unstake = unstake.input(&Asset::from_chain(Chain::Solana), &GemAssetBalance::mock_with_available(1));
         assert!(!solana_unstake.can_change_value);
         assert!(!solana_unstake.shows_asset_balance);
+        assert!(!solana_unstake.focuses_input, "a fixed amount takes no typing");
+        assert_eq!(solana_unstake.prefill, Some(solana_unstake.max_entry()), "a fixed amount fills itself");
         let cosmos_unstake = unstake.input(&cosmos, &GemAssetBalance::mock_with_available(1));
         assert!(cosmos_unstake.can_change_value);
         assert!(cosmos_unstake.shows_asset_balance);
@@ -1371,7 +1409,14 @@ mod tests {
             GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset()
         );
 
-        assert_eq!(transfer_prefilled_amount(&send).as_deref(), Some("2"));
-        assert_eq!(transfer_prefilled_amount(&GemAmountTransfer::Withdraw), None);
+        let balance = GemAssetBalance::mock();
+        assert_eq!(
+            transfer_input(&send, &Asset::mock_hypercore_usdc(), &balance).prefill,
+            Some(GemAmountMaxEntry {
+                input_type: GemAmountInputType::Asset,
+                value: GemBigInt::from(2_000_000),
+            })
+        );
+        assert_eq!(transfer_input(&GemAmountTransfer::Withdraw, &Asset::mock_hypercore_usdc(), &balance).prefill, None);
     }
 }

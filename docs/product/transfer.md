@@ -14,7 +14,7 @@ flowchart LR
 - The user taps Send on the wallet screen or an asset and picks the asset to send.
 - Recipient: the user pastes or types an address or a name, scans a QR code, or picks a contact or one of their own wallets; a name is resolved while typing, and a memo field appears on networks that use one.
 - Amount: the user types in crypto or in fiat and switches between them, or taps Max, which keeps the network fee back on a native coin; the available balance is shown.
-- Confirm shows the amount with its value, the recipient with its name when known, the network, the fee (with faster or slower options and a custom fee where the network allows), the wallet, and any warning from the simulation of the transaction.
+- Confirm shows the amount with its value, the recipient with its name when known, the network, the fee (with faster or slower options and a custom fee where the network allows), the wallet, and any warning from the simulation of the transaction. When the recipient is flagged, a "Suspicious address" warning with one line on why appears under the amount and the transfer cannot be confirmed.
 - The user confirms with the device's authentication; the transaction is sent and the app returns to where Send started.
 - The transaction appears at once as Pending in Activity and on the asset, is tracked until the network confirms it, and its balance updates then.
 
@@ -38,7 +38,10 @@ flowchart LR
 ## Rules
 
 - Nothing is signed or sent without the confirmation screen showing the amount, recipient, network and fee.
+- A payment code's amount fills the amount field in the device's number format and keeps its exact value, because a "0.001" read with a comma decimal separator would become 1.
 - A simulation that cannot answer never blocks sending; a simulation that finds a risk shows it before the user confirms.
+- The balance changes a simulation predicts show every digit of the amount, never a rounded value, so what the user approves is exactly what moves.
+- When Confirm loads with a problem the user can act on (not enough balance or network fee, a required memo, a risky transaction), its explanation opens by itself; other load errors stay in the error row.
 - When a network rejects a sent transaction, the user sees the network's own reason, because it is often the only explanation there is.
 - Dash sends standard non-replaceable payments, which the Dash network automatically attempts to lock with InstantSend when their inputs are eligible; until the provider exposes that lock, Activity remains Pending until the transaction is mined.
 

@@ -41,7 +41,7 @@ public final class ReceiveViewModel: Sendable {
         self.address = address
         self.service = service
         networks = service.networks(
-            assetId: asset.id.identifier,
+            asset: asset.toGem(),
             associations: associations.map(\.assetId.identifier),
             wallet: wallet.toGem(),
         )
@@ -91,7 +91,14 @@ public final class ReceiveViewModel: Sendable {
 
     var networkSelectorModel: ReceiveNetworkSelectorViewModel {
         ReceiveNetworkSelectorViewModel(
-            assetIds: networks.assetIds.map { AssetId(core: $0) },
+            assetIds: networks.networks.map { AssetId(core: $0.assetId) },
+        )
+    }
+
+    func chainModel(for assetId: AssetId) -> ChainViewModel {
+        ChainViewModel(
+            chain: assetId.chain,
+            standard: networks.networks.first { $0.assetId == assetId.identifier }?.standard?.text,
         )
     }
 
@@ -166,9 +173,9 @@ extension ReceiveViewModel {
         presentation = .networkSelector
     }
 
-    func onFinishNetworkSelection(_ items: [ReceiveNetworkItem]) {
+    func onFinishNetworkSelection(_ assetIds: [AssetId]) {
         presentation = nil
-        guard let assetId = items.first?.assetId, assetId != assetModel.asset.id else { return }
+        guard let assetId = assetIds.first, assetId != assetModel.asset.id else { return }
 
         selectNetworkTask?.cancel()
         selectNetworkTask = Task { await selectNetwork(assetId: assetId) }

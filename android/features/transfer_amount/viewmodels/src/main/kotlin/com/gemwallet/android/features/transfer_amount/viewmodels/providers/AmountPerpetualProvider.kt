@@ -9,12 +9,9 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.transfer_amount.viewmodels.models.AmountExtrasUIModel
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.math.parseInputNumberOrNull
-import com.gemwallet.android.math.toUnsignedInts
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.text
-import com.gemwallet.android.model.toGem
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
@@ -39,13 +36,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemAmountRequest
 import uniffi.gemstone.GemAmountServiceInterface
-import uniffi.gemstone.GemAmountType
-import uniffi.gemstone.GemAssetBalance
 import uniffi.gemstone.GemAutocloseSession
 import uniffi.gemstone.GemAutocloseViewState
 import uniffi.gemstone.GemPerpetualPositionAction
-import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.PerpetualProvider
 import uniffi.gemstone.autocloseDraft
 import uniffi.gemstone.autocloseOpenSession
@@ -59,7 +54,7 @@ class AmountPerpetualProvider(
     getAssetInfo: GetAssetInfo,
     getPerpetual: GetPerpetual,
     private val scope: CoroutineScope,
-) : AmountDataProvider(scope) {
+) {
 
     private val isOpenAction: Boolean =
         params.positionAction is GemPerpetualPositionAction.Open
@@ -155,7 +150,7 @@ class AmountPerpetualProvider(
     val autocloseListItem: StateFlow<ListItemModel?> = draft.map { service.perpetualAutocloseRow(it, decimalSeparator).listItemModel(context) }
         .stateIn(scope, SharingStarted.Eagerly, null)
 
-    override val extras: StateFlow<AmountExtrasUIModel> = combine(leverageState, leverageListItem, autocloseListItem) { state, leverage, autoclose ->
+    val extras: StateFlow<AmountExtrasUIModel> = combine(leverageState, leverageListItem, autocloseListItem) { state, leverage, autoclose ->
         AmountExtrasUIModel.Perpetual(
             leverage = leverage,
             leverages = state?.options.orEmpty(),
@@ -181,27 +176,15 @@ class AmountPerpetualProvider(
         )
     }
 
-    override val amountType: StateFlow<GemAmountType?> = combine(
+    val request: StateFlow<GemAmountRequest?> = combine(
         perpetual.filterNotNull(),
         leverageState,
-    ) { _, state ->
-        service.perpetualAmountType(params.positionAction, state?.current?.value ?: params.positionAction.transferData().leverage)
+        draft,
+    ) { _, state, draft ->
+        GemAmountRequest.Perpetual(params.positionAction, state?.current?.value ?: params.positionAction.transferData().leverage, draft, decimalSeparator)
     }.stateIn(scope, SharingStarted.Eagerly, null)
 
-    override val assetInfo: StateFlow<AssetInfo?> = perpetual.filterNotNull()
+    val assetInfo: StateFlow<AssetInfo?> = perpetual.filterNotNull()
         .flatMapLatest { getAssetInfo(HypercoreUSDC.id) }
         .stateIn(scope, SharingStarted.Eagerly, null)
-
-    override val balance: StateFlow<GemAssetBalance?> = assetInfo
-        .map { it?.balance?.toGem() }
-        .stateIn(scope, SharingStarted.Eagerly, null)
-
-    override suspend fun buildTransfer(amount: Crypto, isMax: Boolean): GemTransferData = service.perpetualTransferData(
-        action = params.positionAction,
-        value = amount.atomicValue,
-        useMaxAmount = isMax,
-        leverage = leverageState.value?.current?.value ?: params.positionAction.transferData().leverage,
-        draft = draft.value,
-        decimalSeparator = decimalSeparator,
-    )
 }

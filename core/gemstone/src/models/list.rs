@@ -1,17 +1,18 @@
 use chrono::{DateTime, Utc};
-use primitives::{Asset, BlockExplorerLink, Chain, TransactionState};
+use primitives::{Asset, AssetId, BlockExplorerLink, Chain, TransactionState};
 
 use crate::config::social::GemSocialLink;
 use crate::duration_formatter::GemDurationPart;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::copy::GemCopy;
 use crate::models::custom_types::GemBigInt;
+use crate::services::contact::model::GemAvatar;
 use crate::services::error::GemServiceError;
 use crate::services::localization::GemLocalizedText;
 use crate::services::service_status::GemLatencyStatus;
 use crate::services::swap::GemAssetRate;
 use crate::services::transactions::GemTransactionStateTone;
-use crate::services::wallet::model::GemWalletRow;
+use crate::services::wallet::model::{GemWalletPlaceholder, GemWalletRow};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemListSectionTitle {
@@ -22,6 +23,7 @@ pub enum GemListSectionTitle {
     Manage,
     Resources,
     SocialLinks,
+    Properties,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -98,6 +100,7 @@ pub enum GemListRowTitle {
     RewardsUnverified,
     RewardsPending,
     Warning,
+    SuspiciousAddress,
     UnlimitedApproval,
     NftCollectionApproval,
     Symbol,
@@ -135,6 +138,21 @@ pub enum GemListRowTitle {
     Contract,
     TokenId,
     Collection,
+}
+
+pub(crate) fn suspicious_address_title(kind: GemNoticeKind) -> GemListRowTitle {
+    match kind {
+        GemNoticeKind::Error => GemListRowTitle::SuspiciousAddress,
+        GemNoticeKind::Warning | GemNoticeKind::Info => GemListRowTitle::Warning,
+    }
+}
+
+pub(crate) fn suspicious_address_notice(kind: GemNoticeKind) -> GemListRow {
+    GemListRow::Notice {
+        title: suspicious_address_title(kind),
+        message: Some(GemLocalizedText::SuspiciousAddressDescription),
+        kind,
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -320,7 +338,19 @@ pub enum GemListRow {
         links: Vec<GemSocialLink>,
     },
     Icon {
-        chain: Chain,
+        asset_id: AssetId,
+        image_url: Option<String>,
+    },
+    Avatar {
+        avatar: GemAvatar,
+    },
+    WalletAvatar {
+        image_url: Option<String>,
+        placeholder: GemWalletPlaceholder,
+    },
+    Address {
+        address: String,
+        copy: GemCopy,
     },
     Explorer {
         name: String,

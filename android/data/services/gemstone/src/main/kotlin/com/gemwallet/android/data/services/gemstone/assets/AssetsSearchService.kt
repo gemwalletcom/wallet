@@ -59,7 +59,7 @@ class AssetsSearchService @Inject constructor(private val assetsDao: AssetsDao, 
     }
 }
 
-private fun AssetsDao.filteredSearch(walletId: String, query: String, limit: Int, filters: Set<GemAssetFilter>, withPriority: Boolean): Flow<List<DbAssetInfo>> {
+internal fun AssetsDao.filteredSearch(walletId: String, query: String, limit: Int, filters: Set<GemAssetFilter>, withPriority: Boolean): Flow<List<DbAssetInfo>> {
     val scope = filters.chainsOrAssetIds()
     val selectedChains = filters.chains()
     val search = if (withPriority) ::searchWithPriority else ::search

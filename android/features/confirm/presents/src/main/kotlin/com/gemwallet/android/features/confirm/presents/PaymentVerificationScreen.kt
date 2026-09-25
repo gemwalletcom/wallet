@@ -1,9 +1,12 @@
 package com.gemwallet.android.features.confirm.presents
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -28,6 +31,7 @@ import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 fun PaymentVerificationScreen(onCancel: () -> Unit, onConfirm: ConfirmTransactionAction, viewModel: PaymentVerificationViewModel = hiltViewModel()) {
     val url by viewModel.url.collectAsStateWithLifecycle()
     val confirm by viewModel.confirm.collectAsStateWithLifecycle()
+    val isFailed by viewModel.isFailed.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     var isInfoVisible by remember { mutableStateOf(false) }
     ToastEffect(viewModel.toastEvents, snackbar)
@@ -56,5 +60,17 @@ fun PaymentVerificationScreen(onCancel: () -> Unit, onConfirm: ConfirmTransactio
 
     if (isInfoVisible) {
         InfoBottomSheet(InfoSheetEntity.PaymentVerificationInfo) { isInfoVisible = false }
+    }
+
+    if (isFailed) {
+        AlertDialog(
+            onDismissRequest = onCancel,
+            confirmButton = {
+                Button(onCancel) { Text(stringResource(R.string.common_done)) }
+            },
+            text = {
+                Text(stringResource(R.string.errors_error_occurred))
+            },
+        )
     }
 }

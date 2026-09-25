@@ -1,10 +1,10 @@
 import func Gemstone.formattedCurrency
 import func Gemstone.formattedPercentage
-import func Gemstone.formattedSignedCurrency
 import struct Gemstone.GemFormattedNumber
-import enum Gemstone.GemHeaderActions
 import struct Gemstone.GemHeaderButton
 import enum Gemstone.GemLocalizedText
+import struct Gemstone.GemWalletHomeViewState
+import GemstonePrimitivesTestKit
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesTestKit
@@ -38,30 +38,33 @@ struct WalletHeaderViewModelTests {
 
     @Test
     func buttonsDisabled() {
-        let model = WalletHeaderViewModel(
+        let model = WalletHeaderViewModel(state: .mock(
             total: currency(0),
-            pnl: nil,
-            pnlTone: .plain,
-            actions: .buttons(buttons: [GemHeaderButton(kind: .send, isEnabled: false), GemHeaderButton(kind: .swap, isEnabled: false)]),
-        )
+            headerActions: .buttons(buttons: [GemHeaderButton(kind: .send, isEnabled: false), GemHeaderButton(kind: .swap, isEnabled: false)]),
+        ))
         #expect(model.buttons.allSatisfy { !$0.isEnabled })
     }
 
     private func model(total: Double, pnlAmount: Double? = nil, pnlPercentage: Double = 0) -> WalletHeaderViewModel {
-        WalletHeaderViewModel(
+        WalletHeaderViewModel(state: .mock(
             total: currency(total),
             pnl: pnlAmount.map {
                 .pnl(
-                    amount: formattedSignedCurrency(value: $0, code: Currency.usd.rawValue, style: .fiat),
+                    amount: signed(currency($0)),
                     percent: formattedPercentage(value: pnlPercentage, style: .unsigned),
                 )
             },
             pnlTone: .positive,
-            actions: .buttons(buttons: []),
-        )
+        ))
     }
 
     private func currency(_ value: Double) -> GemFormattedNumber {
         formattedCurrency(value: value, code: Currency.usd.rawValue, style: .fiat)
+    }
+
+    private func signed(_ number: GemFormattedNumber) -> GemFormattedNumber {
+        var signed = number
+        signed.notation = .signed
+        return signed
     }
 }

@@ -44,7 +44,6 @@ import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.GemWalletConnectFailure
 import uniffi.gemstone.GemWalletConnectOutcome
 import uniffi.gemstone.GemWalletConnectResponse
-import uniffi.gemstone.GemWalletConnectRpcError
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.GemWalletConnectSessionRequest
 import uniffi.gemstone.WalletConnectResponseType
@@ -75,7 +74,6 @@ class WCRequestViewModelTest {
     private val verifyContext = mockWalletConnectVerifyContext()
 
     private fun service(onProcess: suspend (GemWalletConnectSessionRequest) -> GemWalletConnectOutcome = { idle }): GemWalletConnectServiceInterface = mockk(relaxed = true) {
-        every { userRejectedError() } returns GemWalletConnectRpcError(code = 4001, message = "User rejected")
         coEvery { requestOutcome(any()) } coAnswers { onProcess(firstArg()) }
     }
 
@@ -226,7 +224,7 @@ class WCRequestViewModelTest {
 
         val scene = model.awaitContent()
         assertTrue(scene is RequestSceneState.Request)
-        assertEquals("Main Wallet", scene.walletName)
+        assertEquals("Main Wallet", scene.request.wallet.name)
         assertEquals(ButtonState.Enabled, model.buttonState.value)
 
         job.cancel()
@@ -307,7 +305,7 @@ class WCRequestViewModelTest {
         assertEquals("0xdeadbeef", signature.await())
         job.join()
         val scene = model.sceneState.first { it is RequestSceneState.Responding }
-        assertEquals("Main Wallet", (scene as RequestSceneState.Content).walletName)
+        assertEquals("Main Wallet", (scene as RequestSceneState.Content).request.wallet.name)
         assertEquals(ButtonState.Loading, model.buttonState.first { it == ButtonState.Loading })
     }
 }

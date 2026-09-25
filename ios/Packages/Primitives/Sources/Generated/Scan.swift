@@ -7,6 +7,7 @@ import Foundation
 public enum AddressType: String, Codable, CaseIterable, Equatable, Sendable {
 	case address
 	case contract
+	case asset
 	case validator
 	case contact
 	case internalWallet

@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.di
 
 import android.content.Context
+import com.gemwallet.android.application.device.cases.EnablePushForNewWallet
 import com.gemwallet.android.application.device.cases.EnablePushForSupport
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.GetPushToken
@@ -8,7 +9,6 @@ import com.gemwallet.android.application.device.cases.SetPushToken
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.data.service.store.ConfigStore
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.device.DeviceObserverService
 import com.gemwallet.android.data.services.gemstone.device.DevicePushSettings
 import com.gemwallet.android.data.services.gemstone.device.GemstoneDevicePlatform
@@ -64,7 +64,6 @@ object DeviceModule {
         preferencesService: GemPreferencesService,
         deviceService: Lazy<GemDeviceService>,
         notificationsService: Lazy<GemNotificationsService>,
-        userConfig: UserConfig,
     ): DevicePushSettings = DevicePushSettings(
         context = context,
         configStore = ConfigStore(context.getSharedPreferences("device-info", Context.MODE_PRIVATE)),
@@ -72,7 +71,6 @@ object DeviceModule {
         preferencesService = preferencesService,
         deviceService = deviceService,
         notificationsService = notificationsService,
-        userConfig = userConfig,
     )
 
     @Provides
@@ -101,6 +99,9 @@ object DeviceModule {
 
     @Provides
     fun provideEnablePushForSupportCase(pushSettings: DevicePushSettings): EnablePushForSupport = pushSettings
+
+    @Provides
+    fun provideEnablePushForNewWalletCase(pushSettings: DevicePushSettings): EnablePushForNewWallet = pushSettings
 
     @Provides
     fun provideGetPushEnabledCase(pushSettings: DevicePushSettings): GetPushEnabled = pushSettings

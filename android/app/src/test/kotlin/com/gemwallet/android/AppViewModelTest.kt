@@ -3,15 +3,11 @@ package com.gemwallet.android
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
-import com.gemwallet.android.application.device.cases.GetPushEnabled
-import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.application.update.cases.SyncAppUpdate
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.features.onboarding.OnboardingRoute
-import com.gemwallet.android.model.AppUpdateChannel
-import com.gemwallet.android.model.AppUpdateOffer
 import com.gemwallet.android.testkit.mockAppUpdateOffer
 import com.gemwallet.android.ui.AppViewModel
 import com.gemwallet.android.ui.navigation.WalletRootRoute
@@ -38,6 +34,7 @@ import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAppStartServiceInterface
+import uniffi.gemstone.GemAppUpdateOffer
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemWalletSessionServiceInterface
 
@@ -62,27 +59,22 @@ class AppViewModelTest {
         unmockkStatic(Log::class)
     }
 
-    private fun viewModel(currentWalletId: String? = null, update: AppUpdateOffer? = null, skip: SkipAppUpdate = mockk(relaxed = true)): AppViewModel {
+    private fun viewModel(currentWalletId: String? = null, update: GemAppUpdateOffer? = null, skip: SkipAppUpdate = mockk(relaxed = true)): AppViewModel {
         val session: GetSession = mockk { every { this@mockk.invoke() } returns MutableStateFlow(null) }
         val walletSession: GemWalletSessionServiceInterface = mockk {
             coEvery { ensureCurrentWallet() } returns currentWalletId
         }
         val config: UserConfig = mockk(relaxed = true) {
             every { isTermsAccepted() } returns flowOf(true)
-            every { isAskNotifications() } returns flowOf(false)
             every { shouldRequestReview() } returns false
         }
-        val push: GetPushEnabled = mockk { every { getPushEnabled() } returns flowOf(true) }
         val sync: SyncAppUpdate = mockk { coEvery { syncAppUpdate() } returns update }
         val summary: GetWalletSummary = mockk { every { getWalletSummary() } returns flowOf(null) }
         return AppViewModel(
             session,
             config,
-            push,
-            mockk<SwitchPushEnabled>(relaxed = true),
             sync,
             skip,
-            true,
             mockk(relaxed = true),
             mockk<GemAppStartServiceInterface>(relaxed = true),
             walletSession,
@@ -107,7 +99,7 @@ class AppViewModelTest {
 
     @Test
     fun `an update outside the store is never offered`() = runTest(dispatcher) {
-        val model = viewModel(update = mockAppUpdateOffer(channel = AppUpdateChannel.InAppApk))
+        val model = viewModel(update = mockAppUpdateOffer(apkUrl = "https://apk.gemwallet.com/gem_wallet_universal_2.0.0.apk"))
 
         model.startDestinationState.first { it != null }
 

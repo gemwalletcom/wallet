@@ -16,6 +16,11 @@ import Localization
 import Primitives
 import Style
 
+struct AddressRowModel {
+    let address: String
+    let copyModel: CopyTypeViewModel
+}
+
 enum GemListRowItem {
     case notice(title: String, message: String?, kind: GemNoticeKind)
     case listItem(ListItemModel)
@@ -31,6 +36,7 @@ enum GemListRowItem {
     case wallet(ListItemModel, context: ExplorerContextData)
     case memo(ListItemModel, copy: String?)
     case icon(AssetImage)
+    case address(AddressRowModel)
     case social([GemSocialLink])
     case loading
 }
@@ -158,8 +164,14 @@ extension GemListRow {
             identifierItem(title: title, copy: copy, explorer: explorer?.toPrimitives())
         case let .explorer(name, url):
             .page(ListItemModel(title: Localized.Transaction.viewOn(name)), url: URL(string: url) ?? BlockExplorerLink(name: name, link: url).url)
-        case let .icon(chain):
-            .icon(AssetIdViewModel(assetId: Chain(core: chain).assetId).assetImage)
+        case let .icon(assetId, imageUrl):
+            .icon(headerImage(assetId: AssetId(core: assetId), imageUrl: imageUrl))
+        case let .avatar(avatar):
+            .icon(avatar.assetImage)
+        case let .walletAvatar(imageUrl, placeholder):
+            .icon(AssetImage(imageURL: imageUrl.map { ImageSource($0).url }, placeholder: placeholder.image))
+        case let .address(address, copy):
+            .address(AddressRowModel(address: address, copyModel: copy.copyModel))
         case .loading:
             .loading
         }
@@ -207,5 +219,13 @@ public extension GemListRow {
     func listItemModel(onInfo: ((GemInfoTopic) -> Void)? = nil) -> ListItemModel? {
         guard case let .listItem(model) = item(onInfo: onInfo) else { return nil }
         return model
+    }
+}
+
+private extension GemListRow {
+    func headerImage(assetId: AssetId, imageUrl: String?) -> AssetImage {
+        let assetImage = AssetIdViewModel(assetId: assetId).assetImage
+        guard let imageUrl else { return assetImage }
+        return AssetImage(imageURL: URL(string: imageUrl), placeholder: assetImage.placeholder)
     }
 }

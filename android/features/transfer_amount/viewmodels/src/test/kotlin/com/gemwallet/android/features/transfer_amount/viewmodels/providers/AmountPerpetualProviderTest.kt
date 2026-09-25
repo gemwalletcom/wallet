@@ -22,10 +22,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import uniffi.gemstone.GemAmountPerpetualPosition
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountTitle
-import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemLeverageSelection
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
@@ -40,7 +38,7 @@ class AmountPerpetualProviderTest {
     @Test
     fun `title carries the direction`() {
         val provider = makeProvider(direction = PerpetualDirection.Short)
-        val title = provider.title.value as GemAmountTitle.PerpetualOpen
+        val title = provider.request.value?.amountType()?.title() as GemAmountTitle.PerpetualOpen
         assertEquals(PerpetualDirection.Short.toGem(), title.direction)
     }
 
@@ -85,9 +83,6 @@ class AmountPerpetualProviderTest {
             every { this@mockk.invoke(any()) } returns flowOf(null)
         }
         val service = mockk<GemAmountServiceInterface> {
-            every { perpetualAmountType(any(), any()) } answers {
-                GemAmountType.Perpetual(position = GemAmountPerpetualPosition.Open, direction = direction.toGem(), price = 0.0, leverage = 1u, sizeDecimals = 0)
-            }
             every { perpetualLeverageSelection(any()) } returns GemLeverageSelection(
                 options = listOf(
                     GemPickerOption(value = 5u, label = GemLocalizedText.Text("5x")),

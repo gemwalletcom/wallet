@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import func Gemstone.feeAmount
 import struct Gemstone.GemFeeRateRows
 import GemstonePrimitives
 import Primitives
@@ -10,7 +9,6 @@ import PrimitivesTestKit
 
 public extension NetworkFeeCustomViewModel {
     static func mock(
-        chain: Chain = .ethereum,
         feeAsset: Asset = .mockEthereum(),
         unitType: FeeUnitType = .gwei,
         decimals: Int = 9,
@@ -21,7 +19,6 @@ public extension NetworkFeeCustomViewModel {
         onSelect: @escaping @MainActor (BigInt) -> Void = { _ in },
     ) -> NetworkFeeCustomViewModel {
         NetworkFeeCustomViewModel(
-            chain: chain,
             feeAsset: feeAsset,
             rows: GemFeeRateRows(
                 rows: [],
@@ -35,8 +32,9 @@ public extension NetworkFeeCustomViewModel {
             ),
             baseFee: baseFee,
             initialRate: initialRate,
+            price: nil,
+            currency: .usd,
             onSelect: onSelect,
-            display: { feeAmount(asset: feeAsset.toGem(), value: $0, price: nil, currency: .usd) },
         )
     }
 }

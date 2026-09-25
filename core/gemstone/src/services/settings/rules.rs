@@ -520,7 +520,17 @@ mod tests {
             | GemListRow::Picker { title, .. }
             | GemListRow::Lines { title, .. }
             | GemListRow::Provider { title, .. } => Some(*title),
-            GemListRow::App { .. } | GemListRow::Wallet { .. } | GemListRow::Memo { .. } | GemListRow::Social { .. } | GemListRow::Icon { .. } | GemListRow::Explorer { .. } | GemListRow::Loading | GemListRow::Error { .. } => None,
+            GemListRow::App { .. }
+            | GemListRow::Wallet { .. }
+            | GemListRow::Memo { .. }
+            | GemListRow::Social { .. }
+            | GemListRow::Icon { .. }
+            | GemListRow::Avatar { .. }
+            | GemListRow::WalletAvatar { .. }
+            | GemListRow::Address { .. }
+            | GemListRow::Explorer { .. }
+            | GemListRow::Loading
+            | GemListRow::Error { .. } => None,
         }
     }
 }

@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemConnectionService
 import Localization
 import Primitives
 import Style
@@ -15,10 +14,6 @@ public struct ConnectionStatusViewModel {
 
     public var isVisible: Bool {
         status != .online
-    }
-
-    public static var bannerSettleDelay: Duration {
-        .seconds(GemConnectionService.shared.bannerSettleDelay())
     }
 
     public var title: String? {

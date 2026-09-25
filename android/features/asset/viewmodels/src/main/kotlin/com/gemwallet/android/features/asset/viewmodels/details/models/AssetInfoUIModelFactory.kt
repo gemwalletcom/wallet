@@ -14,12 +14,11 @@ import uniffi.gemstone.GemAssetBalanceRow
 import uniffi.gemstone.GemAssetDetailRow
 import uniffi.gemstone.GemAssetDetails
 import uniffi.gemstone.GemBalanceRow
-import uniffi.gemstone.GemBannerRow
 import javax.inject.Inject
 
 class AssetInfoUIModelFactory @Inject constructor(@ApplicationContext private val context: Context) {
 
-    fun create(chainAssetInfo: ChainAssetInfo, details: GemAssetDetails, banners: List<GemBannerRow>): AssetInfoUIModel {
+    fun create(chainAssetInfo: ChainAssetInfo, details: GemAssetDetails): AssetInfoUIModel {
         val assetInfo = chainAssetInfo.assetInfo
         val asset = assetInfo.asset
         return AssetInfoUIModel(
@@ -27,7 +26,7 @@ class AssetInfoUIModelFactory @Inject constructor(@ApplicationContext private va
             details = details,
             priceAlertMenu = details.state.priceAlert.menu(),
             emptyTransactions = details.state.emptyTransactionsAction.emptyTransactions(),
-            banners = banners.map { it.uiModel(context) },
+            banner = details.banner?.uiModel(context),
             sections = details.sections.map { section ->
                 AssetInfoUIModel.SectionUIModel(section.title.titleRes(), section.rows.map { row(it, asset.id, details.networkDestination.navigation()) })
             },
@@ -35,20 +34,19 @@ class AssetInfoUIModelFactory @Inject constructor(@ApplicationContext private va
     }
 
     private fun row(row: GemAssetDetailRow, assetId: AssetId, network: AssetDetailsAction.Navigation?): AssetInfoUIModel.RowUIModel = when (row) {
-        is GemAssetDetailRow.Balance -> balance(row.row)
+        is GemAssetDetailRow.Balance -> balance(row.row, assetId)
         is GemAssetDetailRow.Row -> AssetInfoUIModel.RowUIModel.Row(row.row, row.row.detailsAction(assetId) ?: row.row.networkAction(network))
     }
 
-    private fun balance(item: GemAssetBalanceRow): AssetInfoUIModel.RowUIModel.Balance {
+    private fun balance(item: GemAssetBalanceRow, assetId: AssetId): AssetInfoUIModel.RowUIModel.Balance {
         val row = item.row
         return AssetInfoUIModel.RowUIModel.Balance(
-            type = row.viewType(),
-            url = (row as? GemBalanceRow.Reserved)?.url,
             model = ListItemModel(
                 title = row.title().text(context),
                 subtitle = item.value.text(context),
                 info = InfoSheetEntity.PendingUnconfirmedBalanceInfo.takeIf { row is GemBalanceRow.PendingUnconfirmed },
             ),
+            action = row.detailsAction(assetId),
         )
     }
 }

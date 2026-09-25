@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Style
@@ -23,7 +24,7 @@ private struct ConnectionStatusBannerModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         let model = model
-        let isPresented = isVisible && !isDismissed
+        let isPresented = GemConstants.connectionBannerEnabled && isVisible && !isDismissed
         return content
             .contentMargins(.bottom, isPresented ? bannerHeight + .small : nil, for: .scrollContent)
             .overlay(alignment: .bottom) {
@@ -39,7 +40,7 @@ private struct ConnectionStatusBannerModifier: ViewModifier {
             }
             .task(id: model.isVisible) {
                 let isVisible = model.isVisible
-                guard (try? await Task.sleep(for: ConnectionStatusViewModel.bannerSettleDelay)) != nil else { return }
+                guard await (try? Task.sleep(for: GemConstants.connectionBannerSettleDelay)) != nil else { return }
                 self.isVisible = isVisible
                 if !isVisible {
                     isDismissed = false

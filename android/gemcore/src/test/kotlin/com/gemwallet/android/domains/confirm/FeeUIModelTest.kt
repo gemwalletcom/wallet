@@ -7,7 +7,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.FeeOption
-import uniffi.gemstone.GemFeeOptionItem
 import java.math.BigInteger
 import java.util.Locale
 
@@ -29,8 +28,8 @@ class FeeUIModelTest {
             amount = BigInteger("1495940"),
             feeAsset = mockAssetSolana(),
             additionalFees = listOf(
-                GemFeeOptionItem(FeeOption.TOKEN_ACCOUNT_CREATION, BigInteger("1488440")),
-                GemFeeOptionItem(FeeOption.TOKEN_ACCOUNT_CREATION, BigInteger("1000")),
+                FeeOption.TOKEN_ACCOUNT_CREATION to BigInteger("1488440"),
+                FeeOption.TOKEN_ACCOUNT_CREATION to BigInteger("1000"),
             ),
         )
 
@@ -49,7 +48,5 @@ class FeeUIModelTest {
         assertEquals("1 SOL", noPrice.cryptoAmount)
         assertEquals("", noPrice.fiatAmount)
         assertEquals("$200.00", withPrice.fiatAmount)
-        assertEquals("1 SOL", noPrice.cryptoAmountWithFiat)
-        assertEquals("1 SOL (~$200.00)", withPrice.cryptoAmountWithFiat)
     }
 }

@@ -3,7 +3,6 @@ package com.gemwallet.android.ext
 import com.gemwallet.android.domains.asset.iconChain
 import com.gemwallet.android.domains.asset.supportIconChain
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -13,7 +12,6 @@ import uniffi.gemstone.GemImage
 class ChainExtTest {
     @Test
     fun seiEvm_usesEvmMappings() {
-        assertEquals(AssetType.ERC20, Chain.SeiEvm.assetType())
         assertEquals(Chain.Sei, Chain.SeiEvm.iconChain())
     }
 

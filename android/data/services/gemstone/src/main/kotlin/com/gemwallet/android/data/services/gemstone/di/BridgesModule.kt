@@ -15,6 +15,7 @@ import uniffi.gemstone.GemSimulationService
 import uniffi.gemstone.GemWalletConnectService
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.GemWalletSessionService
+import uniffi.gemstone.Platform
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -49,6 +50,7 @@ object BridgesModule {
         session = walletSessionService,
         assets = assetsService,
         signMessage = signMessageService,
+        platform = Platform.ANDROID,
     )
 
     @Provides

@@ -71,22 +71,14 @@ public final class SwapSceneViewModel {
         viewState.quote
     }
 
-    var amountInputModel: InputValidationViewModel = .init(mode: .onDemand)
+    var amountInputModel = InputValidationViewModel()
     var toValue: String = ""
     var loadTrigger: SwapLoadTrigger?
-
-    var quoteDebounce: Duration {
-        .milliseconds(service.quoteDebounceMilliseconds())
-    }
 
     var selectedSlippage: GemSlippageSelection = .auto
 
     private let onSwap: TransferDataAction
     private let service: any GemSwapQuoteServiceProtocol
-
-    var quoteRefreshInterval: TimeInterval {
-        TimeInterval(service.refreshIntervalMilliseconds()) / 1000
-    }
 
     public init(
         service: any GemSwapQuoteServiceProtocol,
@@ -227,7 +219,6 @@ public final class SwapSceneViewModel {
                 AssetDataViewModel(
                     assetData: assetData,
                     currency: service.currency,
-                    currencyFormatterType: .currency,
                 ),
             ),
             interaction: interaction,

@@ -85,7 +85,7 @@ public struct DelegationSceneViewModel {
     }
 
     public var assetImageStyle: ListItemImageStyle? {
-        .asset(assetImage: AssetViewModel(asset: asset).assetImage)
+        .asset(assetImage: AssetIdViewModel(assetId: asset.id).assetImage)
     }
 }
 

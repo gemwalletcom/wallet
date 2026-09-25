@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.assetType
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ui.LocalChainService
@@ -22,10 +21,7 @@ import com.wallet.core.primitives.Chain
 fun rememberMatchingChains(availableChains: List<Chain>, query: String): List<Chain> {
     val chainService = LocalChainService.current
     return remember(chainService, availableChains, query) {
-        val matching = chainService.getMatchingChains(availableChains.map { it.string }, query).map { it.requireChain() }
-        availableChains.filter { chain ->
-            matching.contains(chain) || chain.assetType()?.string?.contains(query, ignoreCase = true) == true
-        }
+        chainService.getMatchingChains(availableChains.map { it.string }, query).map { it.requireChain() }
     }
 }
 

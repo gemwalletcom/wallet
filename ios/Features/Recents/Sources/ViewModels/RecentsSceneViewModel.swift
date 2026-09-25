@@ -17,7 +17,6 @@ import Style
 @MainActor
 public final class RecentsSceneViewModel {
     private let service: any GemRecentActivityServiceProtocol
-    private let walletId: WalletId
 
     public let query: ObservableQuery<RecentActivityRequest>
     public let onSelect: (Asset) -> Void
@@ -25,11 +24,10 @@ public final class RecentsSceneViewModel {
     var searchQuery: String = ""
 
     func listItem(for asset: Asset) -> ListItemModel {
-        let assetModel = AssetViewModel(asset: asset)
-        return ListItemModel(
-            title: assetModel.name,
+        ListItemModel(
+            title: asset.name,
             titleStyle: TextStyle(font: .body, color: .primary, fontWeight: .semibold),
-            imageStyle: .asset(assetImage: assetModel.assetImage),
+            imageStyle: .asset(assetImage: AssetIdViewModel(assetId: asset.id).assetImage),
         )
     }
 
@@ -44,7 +42,6 @@ public final class RecentsSceneViewModel {
         service: any GemRecentActivityServiceProtocol,
         onSelect: @escaping (Asset) -> Void,
     ) {
-        self.walletId = walletId
         self.service = service
         query = ObservableQuery(RecentActivityRequest(walletId: walletId, limit: .max, types: types, filters: filters), initialValue: [])
         self.onSelect = onSelect

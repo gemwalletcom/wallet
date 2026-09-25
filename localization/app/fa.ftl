@@ -58,6 +58,7 @@ common_method = روش
 common_token = توکن
 common_expiration = انقضا
 common_suspicious_address = آدرس مشکوک
+common_suspicious_address_description = این آدرس با فعالیت مشکوک یا مضر مرتبط است.
 common_refresh = تازه کردن
 common_grant_permission = اجازه بدهید
 common_required_field = %@ مورد نیاز است.

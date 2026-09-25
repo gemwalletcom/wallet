@@ -6,6 +6,7 @@ import enum Gemstone.GemListRowTitle
 import enum Gemstone.GemLockPeriod
 import struct Gemstone.GemSecurityInput
 import protocol Gemstone.GemSettingsServiceProtocol
+import GemstonePrimitives
 import GemstoneServices
 import Localization
 import Primitives
@@ -44,20 +45,12 @@ public final class SecurityViewModel {
         Localized.Settings.security
     }
 
-    var errorTitle: String {
-        Localized.Errors.errorOccurred
-    }
-
     var lockPeriodTitle: String {
         Localized.Lock.requireAuthentication
     }
 
-    var lockPeriod: GemLockPeriod {
-        storedLockPeriod
-    }
-
     var allLockPeriods: [GemLockPeriod] {
-        GemLockPeriod.offered
+        GemConstants.lockPeriods
     }
 
     private var authenticationName: String? {

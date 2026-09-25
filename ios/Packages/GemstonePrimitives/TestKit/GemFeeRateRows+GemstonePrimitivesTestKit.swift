@@ -19,7 +19,7 @@ public extension GemFeeRateRows {
         customRate: GemLocalizedText? = nil,
     ) -> GemFeeRateRows {
         GemFeeRateRows(
-            rows: rows.map { GemFeeRateRow(priority: $0.0, fee: $0.2, value: value, isSelected: $0.0 == selected) },
+            rows: rows.map { GemFeeRateRow(priority: $0.0, fee: $0.2, amount: nil, value: value, isSelected: $0.0 == selected) },
             showsOptions: rows.count > 1,
             unitType: unitType,
             unitDecimals: decimals,

@@ -1,6 +1,6 @@
 use primitives::{Asset, AssetId, Banner, BannerEvent, BannerState, Chain, ChainAsset, Platform, VerificationStatus, Wallet, WalletSource, WalletType};
 
-use super::model::{BannerScope, GemBannerButton, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerDestination, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerStyle, GemBannerTitle, banner_scope};
+use super::model::{GemBannerButton, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerDestination, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerStyle, GemBannerTitle};
 use crate::config::chain::account_activation_fee_url;
 use crate::config::docs::DocsUrl;
 use crate::formatted_number::GemFormattedNumber;
@@ -154,10 +154,6 @@ fn network_name(chain: Chain) -> String {
     ChainAsset::from_chain(chain).network_name
 }
 
-pub fn wallet_banner_events() -> Vec<BannerEvent> {
-    BannerEvent::all().into_iter().filter(|event| banner_scope(*event) != BannerScope::Asset).collect()
-}
-
 pub(super) fn visible_banners(stored: Vec<Banner>, context: &GemBannerContext) -> Vec<Banner> {
     let asset_id = context.asset_id();
     let mut banners: Vec<GemBannerItem> = Vec::new();
@@ -231,6 +227,7 @@ fn event_priority(event: BannerEvent) -> u8 {
 
 #[cfg(test)]
 mod tests {
+    use super::super::model::{BannerScope, banner_scope};
     use super::*;
     use primitives::known_assets::TRON_USDT;
     use primitives::{AccountDataType, TransactionInputType};
@@ -351,7 +348,8 @@ mod tests {
         ];
 
         assert_eq!(events(&visible_banners(stored, &context)), vec![BannerEvent::AccountBlockedMultiSignature, BannerEvent::Onboarding]);
-        assert_eq!(wallet_banner_events(), vec![BannerEvent::AccountBlockedMultiSignature, BannerEvent::Onboarding], "the apps ask their stores for these");
+        let wallet_events: Vec<BannerEvent> = BannerEvent::all().into_iter().filter(|event| banner_scope(*event) != BannerScope::Asset).collect();
+        assert_eq!(wallet_events, crate::constants::WALLET_BANNER_EVENTS, "the apps ask their stores for every banner that is not an asset's");
     }
 
     #[test]

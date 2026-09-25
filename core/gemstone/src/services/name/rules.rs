@@ -21,7 +21,7 @@ pub fn address_name_update(name: AddressName) -> GemAddressNameUpdate {
 fn names_the_user_owns(address_type: &AddressType) -> bool {
     match address_type {
         AddressType::Contact | AddressType::InternalWallet => true,
-        AddressType::Address | AddressType::Contract | AddressType::Validator => false,
+        AddressType::Address | AddressType::Contract | AddressType::Asset | AddressType::Validator => false,
     }
 }
 
@@ -176,12 +176,15 @@ mod tests {
             .replaces_types
         };
 
-        assert_eq!(update(AddressType::Address), vec![AddressType::Address, AddressType::Contract, AddressType::Validator]);
+        assert_eq!(update(AddressType::Address), vec![AddressType::Address, AddressType::Contract, AddressType::Asset, AddressType::Validator]);
         assert_eq!(
             update(AddressType::Contact),
-            vec![AddressType::Address, AddressType::Contract, AddressType::Validator, AddressType::Contact],
+            vec![AddressType::Address, AddressType::Contract, AddressType::Asset, AddressType::Validator, AddressType::Contact],
             "a contact replaces a remote name and its own, never the wallet's"
         );
-        assert_eq!(update(AddressType::InternalWallet), vec![AddressType::Address, AddressType::Contract, AddressType::Validator, AddressType::InternalWallet]);
+        assert_eq!(
+            update(AddressType::InternalWallet),
+            vec![AddressType::Address, AddressType::Contract, AddressType::Asset, AddressType::Validator, AddressType::InternalWallet]
+        );
     }
 }

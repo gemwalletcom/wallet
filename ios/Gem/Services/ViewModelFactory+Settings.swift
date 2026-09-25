@@ -28,7 +28,6 @@ public extension ViewModelFactory {
     func settingsScene() -> SettingsViewModel {
         SettingsViewModel(
             service: GemSettingsService(preferences: preferencesService),
-            notifications: GemNotificationsService(device: deviceService, preferences: preferencesService, permissions: notificationPermissions),
             observablePreferences: observablePreferences,
         )
     }
@@ -107,7 +106,11 @@ public extension ViewModelFactory {
 
     @MainActor
     func supportChatScene() -> SupportChatSceneViewModel {
-        SupportChatSceneViewModel(service: supportService, typing: supportTyping)
+        SupportChatSceneViewModel(
+            service: supportService,
+            notifications: GemNotificationsService(device: deviceService, preferences: preferencesService, permissions: notificationPermissions),
+            typing: supportTyping,
+        )
     }
 
     @MainActor

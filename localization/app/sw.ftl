@@ -58,6 +58,7 @@ common_method = Mbinu
 common_token = Tokeni
 common_expiration = Muda wa kuisha
 common_suspicious_address = Anwani ya kutiliwa shaka
+common_suspicious_address_description = Anwani hii inahusishwa na shughuli za kutiliwa shaka au hatari.
 common_refresh = Onyesha upya
 common_grant_permission = Toa ruhusa
 common_required_field = %@ inahitajika

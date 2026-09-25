@@ -78,11 +78,11 @@ class AssetsViewModel @Inject constructor(
     val walletSummary = getWalletSummary.getWalletSummary()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val bannerRows: StateFlow<List<BannerRowUIModel>> = walletSummary.map { summary -> summary?.banners.orEmpty().map { it.uiModel(context) } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val bannerRow: StateFlow<BannerRowUIModel?> = walletSummary.map { summary -> summary?.state?.banner?.uiModel(context) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val collectionsAvailable = walletSummary
-        .map { it?.showCollections ?: false }
+        .map { it?.state?.showCollections ?: false }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
@@ -102,18 +102,14 @@ class AssetsViewModel @Inject constructor(
     }
 
     private suspend fun loadOnce() {
-        val showsLoading = service.showsInitialLoading()
-        if (showsLoading) isLoadingAssets.value = true
-        try {
-            refresh()
-        } finally {
-            if (showsLoading) isLoadingAssets.value = false
-        }
+        isLoadingAssets.value = service.showsInitialLoading()
+        refresh()
     }
 
     private suspend fun refresh() {
         runCatchingCancellable { service.refresh() }
             .onFailure { Log.e(TAG, "assets refresh failed", it) }
+        isLoadingAssets.value = service.showsInitialLoading()
     }
 
     fun hideAsset(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {

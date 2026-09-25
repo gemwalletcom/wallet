@@ -2,12 +2,14 @@ package com.gemwallet.android.features.confirm.viewmodels
 
 import io.mockk.every
 import uniffi.gemstone.GemConfirmScreen
+import uniffi.gemstone.GemConfirmTitle
 import uniffi.gemstone.GemConfirmViewState
 import uniffi.gemstone.GemConfirmation
+import uniffi.gemstone.GemKeystoreAuthentication
 
 internal fun GemConfirmation.stubViewState(): GemConfirmation = apply {
-    every { viewState(any(), any()) } answers {
+    every { viewState(any()) } answers {
         val screen = firstArg<GemConfirmScreen>()
-        GemConfirmViewState(screen.button(), screen.feeRow(), feeRateRows(), rowContents(secondArg()))
+        GemConfirmViewState(screen.button(), screen.feeRow(), feeRateRows(), rowContents(null), emptyList(), GemConfirmTitle.Send, null, GemKeystoreAuthentication.NONE, null)
     }
 }

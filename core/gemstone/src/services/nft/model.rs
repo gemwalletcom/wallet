@@ -3,7 +3,8 @@ use chrono::{DateTime, Utc};
 use primitives::{NFTAssetData, NFTData, VerificationStatus};
 
 use crate::config::social::GemSocialLink;
-use crate::models::list::GemListRow;
+use crate::models::list::{GemListRow, GemListSectionTitle};
+use crate::services::assets::model::GemHeaderActions;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemNftList {
@@ -38,6 +39,7 @@ pub struct GemNftListScreen {
     pub syncs_on_appear: bool,
     pub items: Vec<GemNftEntry>,
     pub unverified_row: Option<GemNftUnverifiedRow>,
+    pub has_content: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -51,9 +53,17 @@ pub struct GemNftRow {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemCollectibleDetails {
-    pub can_send: bool,
+    pub is_verified: bool,
+    pub header: GemHeaderActions,
     pub actions: Vec<GemCollectibleAction>,
-    pub sections: Vec<GemCollectibleSection>,
+    pub image_actions: Vec<GemCollectibleAction>,
+    pub sections: Vec<GemCollectibleSectionGroup>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemCollectibleSectionGroup {
+    pub title: GemListSectionTitle,
+    pub section: GemCollectibleSection,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

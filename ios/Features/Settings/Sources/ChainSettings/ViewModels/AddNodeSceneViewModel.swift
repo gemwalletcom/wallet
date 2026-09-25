@@ -19,16 +19,12 @@ final class AddNodeSceneViewModel {
 
     let chain: Chain
 
-    var urlInputModel = InputValidationViewModel(mode: .onDemand)
+    var urlInputModel = InputValidationViewModel()
     private var session: GemAddNodeSession
     var isPresentingScanner: Bool = false
     var isPresentingAlertMessage: AlertMessage?
     var loadTrigger: AddNodeLoadTrigger?
     private var loadAttempt = 0
-
-    var nodeCheckDebounce: Duration {
-        .milliseconds(service.nodeCheckDebounceMilliseconds())
-    }
 
     init(chain: Chain, service: any GemChainSettingsServiceProtocol) {
         self.chain = chain
@@ -70,12 +66,7 @@ final class AddNodeSceneViewModel {
             title: Localized.Asset.Verification.warningTitle,
             titleExtra: Localized.Nodes.ImportNode.warningMessage,
             titleStyleExtra: .bodySecondary,
-            imageStyle: ListItemImageStyle(
-                assetImage: AssetImage(type: .emoji(Emoji.WalletAvatar.warning.rawValue)),
-                imageSize: .image.semiMedium,
-                alignment: .top,
-                cornerRadiusType: .none,
-            ),
+            imageStyle: .emoji(Emoji.WalletAvatar.warning.rawValue),
         )
     }
 }

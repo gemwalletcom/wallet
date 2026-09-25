@@ -4,8 +4,6 @@ import BigInt
 import Components
 import Formatters
 import Foundation
-import class Gemstone.CryptoFiatConverter
-import enum Gemstone.GemCurrencyStyle
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -14,21 +12,13 @@ import SwiftUI
 
 public struct AssetDataViewModel: Sendable {
     public let assetData: AssetData
-
-    public let priceViewModel: PriceViewModel
     public let currency: Currency
 
     public init(
         assetData: AssetData,
         currency: Currency,
-        currencyFormatterType: GemCurrencyStyle = .currency,
     ) {
         self.assetData = assetData
-        priceViewModel = PriceViewModel(
-            price: assetData.price,
-            currencyCode: currency.rawValue,
-            currencyFormatterType: currencyFormatterType,
-        )
         self.currency = currency
     }
 

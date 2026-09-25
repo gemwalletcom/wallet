@@ -58,6 +58,7 @@ common_method = Hanyar
 common_token = Alamar Token
 common_expiration = Ƙarewa
 common_suspicious_address = Adireshin da ake zargi
+common_suspicious_address_description = Wannan adireshin yana da alaƙa da ayyuka masu ban tsoro ko cutarwa.
 common_refresh = Sabuntawa
 common_grant_permission = Ba da izini
 common_required_field = %@ ana bukata

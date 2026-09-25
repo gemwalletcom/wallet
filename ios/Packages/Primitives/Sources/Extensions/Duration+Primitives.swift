@@ -10,4 +10,9 @@ public extension Duration {
     static func max(_ lhs: Duration, _ rhs: Duration) -> Duration {
         lhs < rhs ? rhs : lhs
     }
+
+    var timeInterval: TimeInterval {
+        let (seconds, attoseconds) = components
+        return TimeInterval(seconds) + TimeInterval(attoseconds) / 1e18
+    }
 }

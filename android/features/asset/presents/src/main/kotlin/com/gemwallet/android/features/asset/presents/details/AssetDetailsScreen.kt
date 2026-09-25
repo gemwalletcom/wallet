@@ -2,6 +2,8 @@ package com.gemwallet.android.features.asset.presents.details
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -12,6 +14,7 @@ import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.ToastEffect
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
+import com.gemwallet.android.ui.open
 
 @Composable
 fun AssetDetailsScreen(onAction: (AssetDetailsAction.Navigation) -> Unit) {
@@ -20,6 +23,8 @@ fun AssetDetailsScreen(onAction: (AssetDetailsAction.Navigation) -> Unit) {
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
     val transactionsErrorRow by viewModel.transactionsErrorRow.collectAsStateWithLifecycle()
     val priceAlertError by viewModel.error.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
     val snackBar = rememberSnackbarState(message = priceAlertError, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
     ToastEffect(viewModel.toastEvents, snackBar)
     val uiModel by viewModel.uiModel.collectAsStateWithLifecycle()
@@ -45,6 +50,8 @@ fun AssetDetailsScreen(onAction: (AssetDetailsAction.Navigation) -> Unit) {
                     is AssetDetailsAction.TogglePriceAlert -> viewModel.togglePriceAlert(action.assetId)
 
                     is AssetDetailsAction.CloseBanner -> viewModel.closeBanner(action.key)
+
+                    is AssetDetailsAction.OpenUrl -> uriHandler.open(context, action.url)
 
                     AssetDetailsAction.OpenPerpetuals -> {
                         viewModel.enablePerpetuals()

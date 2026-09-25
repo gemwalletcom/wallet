@@ -105,9 +105,11 @@ fun ConfirmScreen(
     val feeItems by viewModel.feeItems.collectAsStateWithLifecycle()
     val balanceChangeRows by viewModel.balanceChangeRows.collectAsStateWithLifecycle()
     val loadError by viewModel.loadError.collectAsStateWithLifecycle()
+    val notice by viewModel.notice.collectAsStateWithLifecycle()
     val acquireRequest by viewModel.acquireRequest.collectAsStateWithLifecycle()
     val feeInfo by viewModel.feeInfo.collectAsStateWithLifecycle()
     val executeErrorText by viewModel.executeErrorText.collectAsStateWithLifecycle()
+    val isVerificationFailed by viewModel.isVerificationFailed.collectAsStateWithLifecycle()
     val buttonLabel by viewModel.buttonLabel.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
     val header by viewModel.header.collectAsStateWithLifecycle()
@@ -116,6 +118,7 @@ fun ConfirmScreen(
     val showsFeeAssets by viewModel.showsFeeAssets.collectAsStateWithLifecycle()
     val feeAsset by viewModel.feeAsset.collectAsStateWithLifecycle()
     val simulation by viewModel.simulation.collectAsStateWithLifecycle()
+    val simulationWarnings by viewModel.simulationWarnings.collectAsStateWithLifecycle()
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
     val title by viewModel.title.collectAsStateWithLifecycle()
     val isExternalRequest by viewModel.isExternalRequest.collectAsStateWithLifecycle()
@@ -210,6 +213,9 @@ fun ConfirmScreen(
                     null -> Unit
                 }
             }
+            notice?.let { row ->
+                item { GemListRowView(row = row, listPosition = ListPosition.Single) }
+            }
             val sectionSize = transactionRows.size + detailElements.size
             itemsIndexed(transactionRows) { index, row ->
                 val listPosition = ListPosition.getPosition(index, sectionSize)
@@ -253,7 +259,7 @@ fun ConfirmScreen(
                     onClick = { selectedDetailElement = item },
                 )
             }
-            itemsPositioned(simulation.warnings) { position, row -> GemListRowView(row = row, listPosition = position) }
+            itemsPositioned(simulationWarnings) { position, row -> GemListRowView(row = row, listPosition = position) }
             simulationPayloadFieldsContent(
                 fields = simulation.primaryPayloadFields,
                 onAddressClick = openPayloadAddress,
@@ -357,6 +363,18 @@ fun ConfirmScreen(
         InfoBottomSheet(
             item = InfoSheetEntity.PaymentVerificationInfo.takeIf { isVerificationInfoVisible },
             onClose = { isVerificationInfoVisible = false },
+        )
+    }
+
+    if (isVerificationFailed) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissVerificationError,
+            confirmButton = {
+                Button(viewModel::dismissVerificationError) { Text(stringResource(R.string.common_done)) }
+            },
+            text = {
+                Text(stringResource(R.string.errors_error_occurred))
+            },
         )
     }
 

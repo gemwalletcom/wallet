@@ -6,6 +6,7 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositionByA
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockPerpetual
 import com.gemwallet.android.testkit.mockPerpetualPositionData
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -19,7 +20,9 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -115,5 +118,21 @@ class AutocloseViewModelTest {
 
         val state = model.viewState.first { it?.takeProfit?.estimate != null }
         assertNull(state?.stopLoss?.estimate)
+    }
+
+    @Test
+    fun `a transfer Core refuses reports its error instead of doing nothing`() = runTest(dispatcher) {
+        val model = viewModel(mockPerpetualPositionData(perpetual = mockPerpetual(price = 100.0).copy(identifier = "BTC")))
+        model.position.first { it != null }
+        val errors = mutableListOf<String>()
+        backgroundScope.launch { model.errors.collect { errors.add(it) } }
+
+        model.onTakeProfitChanged("150")
+        model.viewState.first { it?.takeProfit?.estimate != null }
+        model.onConfirm()
+        advanceUntilIdle()
+
+        assertEquals(1, errors.size)
+        assertEquals(0, model.confirmRequests.replayCache.size)
     }
 }

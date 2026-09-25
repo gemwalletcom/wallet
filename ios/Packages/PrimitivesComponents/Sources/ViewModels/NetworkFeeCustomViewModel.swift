@@ -4,8 +4,9 @@ import BigInt
 import Components
 import Formatters
 import Foundation
-import class Gemstone.GemCustomFee
-import struct Gemstone.GemFeeAmount
+import func Gemstone.customFeeEstimate
+import struct Gemstone.GemCustomFeeEstimate
+import struct Gemstone.GemCustomFeeInput
 import struct Gemstone.GemFeeRateRows
 import GemstonePrimitives
 import Localization
@@ -15,31 +16,37 @@ import Primitives
 @Observable
 @MainActor
 public final class NetworkFeeCustomViewModel {
-    private let chain: Chain
     private let feeAsset: Asset
     private let rows: GemFeeRateRows
     private let baseFee: BigInt?
+    private let price: Double?
+    private let currency: Currency
     private let onSelect: @MainActor (BigInt) -> Void
-    private let display: (BigInt) -> GemFeeAmount
 
-    public var input: String = ""
+    public var input: String {
+        didSet { estimate = Self.estimate(input: input, feeAsset: feeAsset, rows: rows, baseFee: baseFee, price: price, currency: currency) }
+    }
+
+    private var estimate: GemCustomFeeEstimate
 
     public init(
-        chain: Chain,
         feeAsset: Asset,
         rows: GemFeeRateRows,
         baseFee: BigInt?,
         initialRate: BigInt?,
+        price: Double?,
+        currency: Currency,
         onSelect: @escaping @MainActor (BigInt) -> Void,
-        display: @escaping (BigInt) -> GemFeeAmount,
     ) {
-        self.chain = chain
         self.feeAsset = feeAsset
         self.rows = rows
         self.baseFee = baseFee
+        self.price = price
+        self.currency = currency
         self.onSelect = onSelect
-        self.display = display
-        input = initialRate.flatMap { NumberInput.format().inputText(value: $0.description, decimals: rows.unitDecimals) } ?? ""
+        let input = initialRate.flatMap { NumberInput.format().inputText(value: $0.description, decimals: rows.unitDecimals) } ?? ""
+        self.input = input
+        estimate = Self.estimate(input: input, feeAsset: feeAsset, rows: rows, baseFee: baseFee, price: price, currency: currency)
     }
 
     public var title: String { Localized.FeeRate.custom }
@@ -54,19 +61,19 @@ public final class NetworkFeeCustomViewModel {
     }
 
     public var placeholder: String {
-        estimate.placeholder()?.text() ?? ""
+        estimate.placeholder?.text() ?? ""
     }
 
     public var value: String? {
-        feeAmount.map { display($0).amount.text() }
+        estimate.fee?.amount.text()
     }
 
     public var fiatValue: String? {
-        feeAmount.flatMap { display($0).fiat?.text() }
+        estimate.fee?.fiat?.text()
     }
 
     public var errorText: String? {
-        switch estimate.check() {
+        switch estimate.check {
         case let .belowMinimum(rate): Localized.Common.minimumValue(rate.text)
         case let .overMaximum(rate): Localized.Common.maximumValue(rate.text)
         case .valid: nil
@@ -74,7 +81,7 @@ public final class NetworkFeeCustomViewModel {
     }
 
     public var isConfirmEnabled: Bool {
-        estimate.isValid()
+        estimate.isValid
     }
 
     public func sanitize(_ text: String) -> String {
@@ -82,22 +89,19 @@ public final class NetworkFeeCustomViewModel {
     }
 
     public func confirm() {
-        let estimate = estimate
-        guard let rate = estimate.rate(), estimate.isValid() else { return }
+        guard let rate = estimate.rate, estimate.isValid else { return }
         onSelect(rate)
     }
 
-    private var estimate: GemCustomFee {
-        GemCustomFee.estimate(
-            chain: chain.rawValue,
+    private static func estimate(input: String, feeAsset: Asset, rows: GemFeeRateRows, baseFee: BigInt?, price: Double?, currency: Currency) -> GemCustomFeeEstimate {
+        customFeeEstimate(input: GemCustomFeeInput(
+            feeAsset: feeAsset.toGem(),
             input: input,
             format: NumberInput.format(),
             rows: rows,
-            loadedFee: baseFee ?? .zero,
-        )
-    }
-
-    private var feeAmount: BigInt? {
-        baseFee.map { _ in estimate.feeValue() }
+            loadedFee: baseFee,
+            price: price,
+            currency: currency.toGem(),
+        ))
     }
 }

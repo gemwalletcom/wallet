@@ -23,8 +23,6 @@ import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.components.list_item.color
-import com.gemwallet.android.ui.models.CryptoFormattedUIModel
-import com.gemwallet.android.ui.models.FiatFormattedUIModel
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.style.textStyle
@@ -163,19 +161,6 @@ fun PriceInfo(
 }
 
 fun getBalanceInfo(asset: AssetInfoDataAggregate): @Composable () -> Unit = getBalanceInfo(asset.balance, asset.balanceEquivalent, asset.isZeroBalance)
-
-fun getBalanceInfo(crypto: CryptoFormattedUIModel, fiatFormattedUIModel: FiatFormattedUIModel): @Composable () -> Unit = (
-    @Composable {
-        val color = MaterialTheme.colorScheme.let {
-            if (crypto.isZeroAmount) it.secondary else it.onSurface
-        }
-        BalanceInfo(
-            crypto = crypto.cryptoFormatted,
-            equivalent = fiatFormattedUIModel.fiatFormatted.takeIf { !crypto.isZeroAmount }.orEmpty(),
-            color = color,
-        )
-    }
-    )
 
 fun getBalanceInfo(crypto: String, equivalent: String, isZero: Boolean): @Composable () -> Unit = (
     @Composable {

@@ -27,9 +27,9 @@ public struct CreateWalletNavigationStack: View {
                 }
                 .navigationDestination(for: Scenes.CreateWallet.self) { _ in
                     ShowSecretDataScene(
-                        model: NewSecretPhraseViewModel(
-                            words: model.words,
-                            onContinue: { navigate(to: .verifyPhrase) },
+                        model: SecretDataViewModel(
+                            secret: .words(words: model.words),
+                            continueAction: { navigate(to: .verifyPhrase) },
                         ),
                     )
                 }

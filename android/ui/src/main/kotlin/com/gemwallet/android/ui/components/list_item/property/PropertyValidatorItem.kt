@@ -14,13 +14,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
-import com.gemwallet.android.ui.components.list_item.ValidatorRowUIModel
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.paddingMiddle
+import uniffi.gemstone.GemValidatorRow
 
 @Composable
-fun PropertyValidatorItem(validator: ValidatorRowUIModel, listPosition: ListPosition = ListPosition.Single, onClick: (() -> Unit)? = null) {
+fun PropertyValidatorItem(validator: GemValidatorRow, listPosition: ListPosition = ListPosition.Single, onClick: (() -> Unit)? = null) {
     PropertyItem(
         modifier = Modifier.clickable(enabled = onClick != null) { onClick?.invoke() },
         title = {

@@ -58,6 +58,7 @@ common_method = طريقة
 common_token = رمز مميز
 common_expiration = انتهاء الصلاحية
 common_suspicious_address = عنوان مشبوه
+common_suspicious_address_description = هذا العنوان مرتبط بنشاط مشبوه أو ضار.
 common_refresh = ينعش
 common_grant_permission = يعطي الأذن
 common_required_field = %@ مطلوب

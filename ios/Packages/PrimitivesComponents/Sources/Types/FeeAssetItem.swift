@@ -45,7 +45,7 @@ extension FeeAssetItem: SimpleListItemViewable {
     }
 
     public var assetImage: AssetImage {
-        let image = AssetViewModel(asset: asset).assetImage
+        let image = AssetIdViewModel(assetId: asset.id).assetImage
         return AssetImage(
             type: image.type,
             imageURL: image.imageURL,

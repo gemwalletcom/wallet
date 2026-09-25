@@ -1,9 +1,7 @@
 package com.gemwallet.android.model
 
-import com.wallet.core.primitives.Currency
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import uniffi.gemstone.GemCurrencyStyle
 import uniffi.gemstone.GemFormattedNumber
 import uniffi.gemstone.GemNumberDisplay
 import uniffi.gemstone.GemNumberNotation
@@ -11,7 +9,6 @@ import uniffi.gemstone.GemNumberRounding
 import uniffi.gemstone.GemNumberUnit
 import uniffi.gemstone.GemPrecision
 import uniffi.gemstone.GemValueTone
-import uniffi.gemstone.formattedCurrency
 import java.util.Locale
 
 class FormattedNumberTest {
@@ -25,6 +22,7 @@ class FormattedNumberTest {
             notation = GemNumberNotation.PLAIN,
             tone = GemValueTone.PLAIN,
             rounding = GemNumberRounding.TOWARD_ZERO,
+            exact = null,
         )
 
         assertEquals("5.2 ATOM", amount.text(Locale.US))
@@ -40,6 +38,7 @@ class FormattedNumberTest {
             notation = GemNumberNotation.PLAIN,
             tone = GemValueTone.PLAIN,
             rounding = GemNumberRounding.TO_NEAREST,
+            exact = null,
         )
         val turkish = Locale.forLanguageTag("tr")
 
@@ -50,12 +49,18 @@ class FormattedNumberTest {
     }
 
     @Test
-    fun `a short price reads like the currency formatter`() {
-        val formatter = CurrencyFormatter(style = GemCurrencyStyle.SHORT, currency = Currency.USD, locale = Locale.US)
+    fun `a full amount reads its exact digits`() {
+        val spent = GemFormattedNumber(
+            value = -123.456789012345678901,
+            unit = GemNumberUnit.Symbol(symbol = "ETH"),
+            display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 0u, max = 32u)),
+            notation = GemNumberNotation.SIGNED,
+            tone = GemValueTone.NEGATIVE,
+            rounding = GemNumberRounding.TOWARD_ZERO,
+            exact = "123.456789012345678901",
+        )
 
-        listOf(0.00000783, 0.0001, 0.0345, 1234.5).forEach { value ->
-            assertEquals(formatter.string(value), formattedCurrency(value, "USD", GemCurrencyStyle.SHORT).text(Locale.US))
-        }
-        assertEquals("<$0.0001", formattedCurrency(0.00000783, "USD", GemCurrencyStyle.SHORT).text(Locale.US))
+        assertEquals("every digit past what a double holds", "-123.456789012345678901 ETH", spent.text(Locale.US))
+        assertEquals("the digits follow the reader's separator", "0,5 SOL", spent.copy(value = 0.5, unit = GemNumberUnit.Symbol(symbol = "SOL"), notation = GemNumberNotation.PLAIN, exact = "0.5").text(Locale.GERMANY))
     }
 }

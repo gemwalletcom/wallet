@@ -9,9 +9,9 @@ use primitives::{
 };
 
 use super::model::{
-    GemActivityFilters, GemAmountSign, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemTransactionAmount, GemTransactionBadge, GemTransactionDetailRow, GemTransactionDetailRows, GemTransactionDetailSection, GemTransactionDetails,
-    GemTransactionFeeRow, GemTransactionFilter, GemTransactionHeader, GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipant, GemTransactionParticipantRole, GemTransactionRow, GemTransactionRowSubtitle,
-    GemTransactionRowValue, GemTransactionStateTone, GemTransactionStatus, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue,
+    GemActivityFilters, GemAmountSign, GemHeaderAmount, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemTransactionAmount, GemTransactionBadge, GemTransactionDetailRow, GemTransactionDetailRows, GemTransactionDetailSection,
+    GemTransactionDetails, GemTransactionFeeRow, GemTransactionFilter, GemTransactionHeader, GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipant, GemTransactionParticipantRole, GemTransactionRow,
+    GemTransactionRowSubtitle, GemTransactionRowValue, GemTransactionStateTone, GemTransactionStatus, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue,
 };
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::config::image::GemImage;
@@ -19,24 +19,13 @@ use crate::duration_formatter::estimated_duration_parts;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::asset::wallet_default_assets;
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
-use crate::precision::GemValueStyle;
-use crate::services::assets::rules::fee_amount;
+use crate::precision::{GemCurrencyStyle, GemValueStyle};
+use crate::services::assets::rules::{fee_amount, fiat_amount_of};
 use crate::services::collections::unique;
 use crate::services::localization::GemLocalizedText;
 use crate::services::swap::model::GemSwapRate;
 use crate::services::swap::rules as swap_rules;
 use swapper::{ProviderType as SwapperProviderType, SwapperProvider, SwapperProviderMode};
-
-pub fn transaction_filters() -> Vec<GemTransactionFilter> {
-    vec![
-        GemTransactionFilter::Transfers,
-        GemTransactionFilter::Swaps,
-        GemTransactionFilter::Stake,
-        GemTransactionFilter::SmartContract,
-        GemTransactionFilter::Perpetuals,
-        GemTransactionFilter::Others,
-    ]
-}
 
 fn transaction_filter(transaction_type: &TransactionType) -> GemTransactionFilter {
     match transaction_type {
@@ -151,7 +140,7 @@ pub fn detail_rows(extended: &TransactionExtended, wallet_type: WalletType, part
         created_at: transaction.created_at,
         status: status(transaction.state),
         title: transaction_title(transaction),
-        header: header(extended),
+        header: header(extended, &currency),
         header_action: header_action(transaction),
         swap_progress: details.swap_progress,
         swap_again: details.swap_again,
@@ -190,10 +179,10 @@ pub fn detail_sections(rows: &GemTransactionDetailRows) -> Vec<GemTransactionDet
             date: rows.created_at,
         })),
         Some(list(status_row(rows))),
-        rows.estimated_confirmation_seconds.map(|seconds| {
+        rows.estimated_confirmation_seconds.and_then(|seconds| estimated_duration_parts(i64::from(seconds))).map(|parts| {
             list(GemListRow::Duration {
                 title: GemListRowTitle::EstimatedConfirmation,
-                parts: estimated_duration_parts(i64::from(seconds)),
+                parts,
                 info: Some(GemInfoTopic::EstimatedConfirmation { chain: rows.asset.chain() }),
                 estimate: true,
             })
@@ -322,7 +311,7 @@ fn value_tone(value: &GemTransactionRowValue) -> GemValueTone {
 
 fn amount_value(amount: GemTransactionAmount) -> GemTransactionRowValue {
     GemTransactionRowValue::Number {
-        number: amount.sign.amount(amount.value.into(), amount.asset.decimals as u32, Some(amount.asset.symbol), GemValueStyle::Short),
+        number: amount.sign.amount(&amount.value, &amount.asset, GemValueStyle::Short),
     }
 }
 
@@ -343,16 +332,26 @@ fn row_value(extended: &TransactionExtended, value: GemTransactionValue) -> GemT
     }
 }
 
-fn header(extended: &TransactionExtended) -> GemTransactionHeader {
+pub fn header_amount(amount: GemTransactionAmount, currency: &Currency, shows_fiat: bool) -> GemHeaderAmount {
+    GemHeaderAmount {
+        amount: amount.sign.amount(&amount.value, &amount.asset, GemValueStyle::Auto),
+        fiat: fiat_amount_of(&amount.asset, &amount.value, amount.price.map(|price| price.price), currency.clone(), GemCurrencyStyle::Currency).filter(|_| shows_fiat),
+        asset: amount.asset,
+    }
+}
+
+fn header(extended: &TransactionExtended, currency: &Currency) -> GemTransactionHeader {
     let transaction = &extended.transaction;
     let amount = |shows_fiat: bool| GemTransactionHeader::Amount {
-        amount: transaction_amount(extended, value_sign(transaction)),
-        shows_fiat,
+        amount: header_amount(transaction_amount(extended, value_sign(transaction)), currency, shows_fiat),
     };
     match header_kind(transaction) {
         GemTransactionHeaderKind::Amount { shows_fiat } => amount(shows_fiat),
         GemTransactionHeaderKind::Swap => match (swap_leg(extended, SwapLeg::From, GemAmountSign::None), swap_leg(extended, SwapLeg::To, GemAmountSign::None)) {
-            (Some(from), Some(to)) => GemTransactionHeader::Swap { from, to },
+            (Some(from), Some(to)) => GemTransactionHeader::Swap {
+                from: header_amount(from, currency, true),
+                to: header_amount(to, currency, true),
+            },
             _ => amount(true),
         },
         GemTransactionHeaderKind::Nft => match nft_metadata(transaction) {
@@ -646,8 +645,8 @@ fn swap_progress(extended: &TransactionExtended, metadata: Option<&TransactionSw
         TransactionState::Confirmed => return None,
     };
     Some(GemSwapProgress {
-        from_asset: from_asset.clone(),
-        from_value: metadata.from_value.clone(),
+        amount: GemFormattedNumber::asset_amount(&metadata.from_value.clone().into(), from_asset, GemValueStyle::Auto),
+        network: ChainAsset::from_chain(from_asset.chain()).network_name,
         provider_name: provider.name.clone(),
         transfer: transfer.state(),
         swap: swap.state(),
@@ -758,7 +757,7 @@ mod tests {
     }
     #[test]
     fn test_every_transaction_type_belongs_to_exactly_one_filter_in_list_order() {
-        let filters = transaction_filters();
+        let filters = crate::constants::TRANSACTION_FILTERS;
         assert_eq!(filters.len(), 6);
         let grouped: Vec<TransactionType> = filters.iter().flat_map(|filter| filter_transaction_types(*filter)).collect();
         assert_eq!(grouped.len(), TransactionType::all().len());
@@ -770,7 +769,7 @@ mod tests {
         assert_eq!(transaction_filter(&TransactionType::AssetActivation), GemTransactionFilter::Others);
         assert_eq!(
             filter_transaction_types(GemTransactionFilter::Perpetuals),
-            vec![TransactionType::PerpetualOpenPosition, TransactionType::PerpetualClosePosition, TransactionType::PerpetualModifyPosition],
+            crate::constants::PERPETUAL_ACTIVITY_TYPES,
             "the perpetual screen reads this list for its activity"
         );
     }
@@ -1171,7 +1170,7 @@ mod tests {
         match rows.header {
             GemTransactionHeader::Swap { from, to } => {
                 assert_eq!((from.asset.id, to.asset.id), (AssetId::from_chain(Chain::Ethereum), AssetId::from_chain(Chain::Bitcoin)));
-                assert_eq!((from.sign, to.sign), (GemAmountSign::None, GemAmountSign::None), "the header shows both legs unsigned");
+                assert_eq!((from.amount.notation, to.amount.notation), (GemNumberNotation::Plain, GemNumberNotation::Plain), "the header shows both legs unsigned");
             }
             other => panic!("a swap with both assets shows the swap header, got {other:?}"),
         }
@@ -1205,7 +1204,7 @@ mod tests {
             detail_rows(&priced, WalletType::Multicoin, None, explorer.clone(), Currency::USD).fee_row.fiat,
             Some(GemFormattedNumber::currency(unnamed.fee_row.amount.value * 4.0, Currency::USD, crate::precision::GemCurrencyStyle::Currency))
         );
-        assert!(matches!(unnamed.header, GemTransactionHeader::Amount { shows_fiat: true, .. }));
+        assert!(matches!(unnamed.header, GemTransactionHeader::Amount { .. }));
         assert_eq!(
             unnamed.header_action,
             Some(GemTransactionHeaderAction::Asset {
@@ -1268,7 +1267,7 @@ mod tests {
             estimate,
             Some(GemListRow::Duration {
                 title: GemListRowTitle::EstimatedConfirmation,
-                parts: estimated_duration_parts(90),
+                parts: estimated_duration_parts(90).unwrap(),
                 info: Some(GemInfoTopic::EstimatedConfirmation { chain: sending.asset.chain() }),
                 estimate: true,
             }),
@@ -1394,7 +1393,7 @@ mod tests {
         });
         let progress = pending.swap_progress.unwrap();
         assert_eq!((progress.transfer.step, progress.swap.step, progress.eta_seconds), (GemSwapProgressStep::Pending, GemSwapProgressStep::Waiting, Some(90)));
-        assert_eq!(progress.from_value, 5u32.into());
+        assert_eq!((progress.amount.value, progress.network.as_str()), (5e-18, "Ethereum"), "the transfer step reads what left and on which network");
         assert_eq!(pending.provider_name.as_deref(), Some(progress.provider_name.as_str()));
         assert_eq!(pending.estimated_confirmation_seconds, None, "the progress steps carry the eta");
         assert!(pending.swap_again.is_none());

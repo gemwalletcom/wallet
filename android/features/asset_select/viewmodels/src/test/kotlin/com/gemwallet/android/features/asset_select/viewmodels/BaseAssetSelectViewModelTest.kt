@@ -94,7 +94,6 @@ class BaseAssetSelectViewModelTest {
         },
         service: GemAssetSelectionServiceInterface = mockk(relaxed = true) {
             every { flow(any()) } returns sendFlow()
-            every { searchDebounceMilliseconds() } returns 0u
             every { walletFlow(any(), any()) } answers { GemSelectAssetWalletFlow(flow = firstArg<GemSelectAssetType>().flow(), chains = emptyList(), showsAddToken = false, showsChainFilter = false) }
         },
     ): BaseAssetSelectViewModel {
@@ -105,7 +104,7 @@ class BaseAssetSelectViewModelTest {
             override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> = filters.filterNotNull().map { current ->
                 val query = current.queryFilters()
                 val chains = query.chains()
-                items.filter { (chains.isEmpty() || it.asset.id.chain in chains) && (GemAssetFilter.HasBalance !in query || it.balance.totalAmount > 0.0) }.take(current.limit)
+                items.filter { (chains.isEmpty() || it.asset.id.chain in chains) && (GemAssetFilter.HasBalance !in query || it.balance.balance.available.signum() > 0) }.take(current.limit)
             }
         }
         return BaseAssetSelectViewModel(session, recents, service, search, GemSelectAssetType.Send, dispatcher, mockk(relaxed = true))
@@ -171,7 +170,6 @@ class BaseAssetSelectViewModelTest {
     fun `pinning an asset tells Core and names it in the toast`() = runTest(dispatcher) {
         val service: GemAssetSelectionServiceInterface = mockk(relaxed = true) {
             every { flow(any()) } returns sendFlow()
-            every { searchDebounceMilliseconds() } returns 0u
             every { walletFlow(any(), any()) } answers { GemSelectAssetWalletFlow(flow = firstArg<GemSelectAssetType>().flow(), chains = emptyList(), showsAddToken = false, showsChainFilter = false) }
         }
         val model = viewModel(listOf(mockAssetInfo(asset = ethereum)), service = service)

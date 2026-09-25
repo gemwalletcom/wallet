@@ -36,7 +36,7 @@ public struct PortfolioScene: View {
                     ToolbarItem(placement: .principal) {
                         Picker("", selection: $model.selectedType) {
                             ForEach(PortfolioType.allCases) { type in
-                                Text(model.typeTitle(for: type)).tag(type)
+                                Text(type.title).tag(type)
                             }
                         }
                         .pickerStyle(.segmented)
@@ -48,11 +48,11 @@ public struct PortfolioScene: View {
                         Menu {
                             Picker("", selection: $model.selectedChartType) {
                                 ForEach(PortfolioChartType.allCases) { type in
-                                    Text(model.chartTypeTitle(for: type)).tag(type)
+                                    Text(type.title).tag(type)
                                 }
                             }
                         } label: {
-                            Text(model.chartTypeTitle(for: model.selectedChartType))
+                            Text(model.selectedChartType.title)
                                 .fontWeight(.semibold)
                         }
                     }

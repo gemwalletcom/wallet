@@ -7,6 +7,7 @@ import uniffi.gemstone.GemNumberNotation
 import uniffi.gemstone.GemNumberRounding
 import uniffi.gemstone.GemNumberUnit
 import uniffi.gemstone.GemPrecision
+import uniffi.gemstone.GemTransactionRowValue
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.DecimalFormat
@@ -30,7 +31,7 @@ private val GemFormattedNumber.numberRounding: RoundingMode
 private fun GemFormattedNumber.body(locale: Locale): String = when (val display = display) {
     is GemNumberDisplay.Number -> when (unit) {
         is GemNumberUnit.Percent -> percentText(BigDecimal.valueOf(value), display.precision, showsSign, numberRounding, locale)
-        else -> appendSymbol(numberText(BigDecimal.valueOf(value), display.precision, locale))
+        else -> appendSymbol(numberText(decimalValue, display.precision, locale))
     }
 
     is GemNumberDisplay.Abbreviated -> appendSymbol(abbreviatedText(BigDecimal.valueOf(value), locale))
@@ -39,6 +40,9 @@ private fun GemFormattedNumber.body(locale: Locale): String = when (val display 
         "$signText<${numberText(BigDecimal.valueOf(display.threshold), GemPrecision.Fraction(display.places, display.places), locale, withSign = false)}",
     )
 }
+
+private val GemFormattedNumber.decimalValue: BigDecimal
+    get() = exact?.let { BigDecimal(it).let { magnitude -> if (value < 0) magnitude.negate() else magnitude } } ?: BigDecimal.valueOf(value)
 
 private val GemFormattedNumber.signText: String
     get() = when {
@@ -120,3 +124,9 @@ private fun GemFormattedNumber.abbreviatedText(value: BigDecimal, locale: Locale
 private fun GemFormattedNumber.numberFormat(locale: Locale): NumberFormat = currencyCode?.let { code ->
     NumberFormat.getCurrencyInstance(locale).apply { currency = java.util.Currency.getInstance(code) }
 } ?: NumberFormat.getInstance(locale)
+
+fun GemTransactionRowValue.text(): String? = when (this) {
+    GemTransactionRowValue.None -> null
+    is GemTransactionRowValue.AssetSymbol -> asset.symbol
+    is GemTransactionRowValue.Number -> number.text()
+}

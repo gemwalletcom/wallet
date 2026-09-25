@@ -3,19 +3,17 @@
 import struct Gemstone.GemConfirmSimulation
 import struct Gemstone.GemSimulationBalanceChange
 import struct Gemstone.GemSimulationPayloadRow
-import struct Gemstone.GemSimulationValue
 
 public extension GemConfirmSimulation {
     static func mock(
         primaryFields: [GemSimulationPayloadRow] = [],
-        header: GemSimulationValue? = nil,
         balanceChanges: [GemSimulationBalanceChange] = [],
         hasCriticalWarning: Bool = false,
     ) -> GemConfirmSimulation {
         GemConfirmSimulation(
             primaryFields: primaryFields,
             secondaryFields: [],
-            header: header,
+            header: nil,
             balanceChanges: balanceChanges,
             hasCriticalWarning: hasCriticalWarning,
         )

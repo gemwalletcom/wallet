@@ -11,6 +11,8 @@ import com.gemwallet.android.application.session.cases.SetCurrentCurrency
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.features.settings.currency.viewmodels.models.CurrencyRowUIModel
 import com.gemwallet.android.features.settings.currency.viewmodels.models.uiModel
 import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.Currency
@@ -57,8 +59,8 @@ class CurrenciesViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    fun setCurrency(currency: Currency, onSelected: () -> Unit) = viewModelScope.launch {
-        runCatchingCancellable { setCurrentCurrency.setCurrentCurrency(currency) }
+    fun setCurrency(row: CurrencyRowUIModel, onSelected: () -> Unit) = viewModelScope.launch {
+        runCatchingCancellable { setCurrentCurrency.setCurrentCurrency(row.row.currency.toPrimitives()) }
             .onSuccess { onSelected() }
             .onFailure { errorState.value = it.errorText().text(context) }
     }
