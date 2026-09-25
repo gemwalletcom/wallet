@@ -7,8 +7,6 @@ import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.PendingNavigationCoordinator
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
-import com.gemwallet.android.application.device.cases.GetPushEnabled
-import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.application.update.cases.SyncAppUpdate
@@ -16,7 +14,6 @@ import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.onboarding.OnboardingRoute
-import com.gemwallet.android.model.NotificationsAvailable
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.ui.navigation.WalletRootRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -42,11 +39,8 @@ import javax.inject.Inject
 class AppViewModel @Inject constructor(
     private val getSession: GetSession,
     private val userConfig: UserConfig,
-    private val getPushEnabled: GetPushEnabled,
-    private val switchPushEnabled: SwitchPushEnabled,
     private val syncAppUpdate: SyncAppUpdate,
     private val skipAppUpdate: SkipAppUpdate,
-    private val notificationsAvailable: NotificationsAvailable,
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
     private val appStartService: GemAppStartServiceInterface,
     private val walletSessionService: GemWalletSessionServiceInterface,
@@ -78,14 +72,6 @@ class AppViewModel @Inject constructor(
 
     val isTermsAccepted = userConfig.isTermsAccepted()
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    val askNotifications = combine(
-        userConfig.isAskNotifications(),
-        getSession(),
-        getPushEnabled.getPushEnabled(),
-    ) { isAsk, session, pushEnabled ->
-        notificationsAvailable && isAsk && session != null && !pushEnabled
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     init {
         viewModelScope.launch(ioDispatcher) {
@@ -135,12 +121,6 @@ class AppViewModel @Inject constructor(
     fun acceptTerms() {
         viewModelScope.launch(ioDispatcher) {
             userConfig.acceptTerms()
-        }
-    }
-
-    fun onNotificationsEnable() {
-        viewModelScope.launch(ioDispatcher) {
-            switchPushEnabled.switchPushEnabled(true)
         }
     }
 

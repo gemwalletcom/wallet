@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
+import com.gemwallet.android.application.device.cases.EnablePushForNewWallet
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ui.components.screen.PhraseRow
@@ -36,7 +37,12 @@ import uniffi.gemstone.secretPhraseCopy
 import javax.inject.Inject
 
 @HiltViewModel
-class CreateWalletViewModel @Inject constructor(private val service: GemWalletServiceInterface, @param:ApplicationContext private val context: Context, @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher) : ViewModel() {
+class CreateWalletViewModel @Inject constructor(
+    private val service: GemWalletServiceInterface,
+    private val enablePushForNewWallet: EnablePushForNewWallet,
+    @param:ApplicationContext private val context: Context,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+) : ViewModel() {
 
     private val state = MutableStateFlow(CreateWalletViewModelState())
     val uiState = state.asStateFlow()
@@ -101,6 +107,7 @@ class CreateWalletViewModel @Inject constructor(private val service: GemWalletSe
         viewModelScope.launch(ioDispatcher) {
             try {
                 service.importWallet(GemWalletImportKind.PHRASE, null, state.value.data.joinToString(" "), null, WalletSource.Create, context)
+                enablePushForNewWallet.enablePushForNewWallet()
                 withContext(Dispatchers.Main) { onCreated() }
             } catch (err: CancellationException) {
                 throw err

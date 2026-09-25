@@ -27,7 +27,7 @@ struct GemApp: App {
                     walletConnectorPresenter: resolver.services.walletConnectorPresenter,
                     onstartService: resolver.services.onstartService,
                     appStartService: resolver.services.appStartService,
-                    pushNotificationEnablerService: resolver.services.pushNotificationEnablerService,
+                    notificationsService: resolver.services.notificationsService,
                     appLifecycleService: resolver.services.appLifecycleService,
                     navigationRouter: resolver.services.navigationRouter,
                     lockWindow: LockWindow(
@@ -39,7 +39,6 @@ struct GemApp: App {
                     appUpdateService: resolver.services.appUpdateService,
                     rateService: resolver.services.rateService,
                     toastPresenter: resolver.services.toastPresenter,
-                    deviceService: resolver.services.deviceService,
                 ),
             )
             .databaseQueue(resolver.storages.db.dbQueue)

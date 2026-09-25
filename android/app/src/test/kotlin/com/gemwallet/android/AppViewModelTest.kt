@@ -3,8 +3,6 @@ package com.gemwallet.android
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
-import com.gemwallet.android.application.device.cases.GetPushEnabled
-import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.application.update.cases.SyncAppUpdate
@@ -68,20 +66,15 @@ class AppViewModelTest {
         }
         val config: UserConfig = mockk(relaxed = true) {
             every { isTermsAccepted() } returns flowOf(true)
-            every { isAskNotifications() } returns flowOf(false)
             every { shouldRequestReview() } returns false
         }
-        val push: GetPushEnabled = mockk { every { getPushEnabled() } returns flowOf(true) }
         val sync: SyncAppUpdate = mockk { coEvery { syncAppUpdate() } returns update }
         val summary: GetWalletSummary = mockk { every { getWalletSummary() } returns flowOf(null) }
         return AppViewModel(
             session,
             config,
-            push,
-            mockk<SwitchPushEnabled>(relaxed = true),
             sync,
             skip,
-            true,
             mockk(relaxed = true),
             mockk<GemAppStartServiceInterface>(relaxed = true),
             walletSession,

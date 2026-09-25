@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
+import com.gemwallet.android.application.device.cases.EnablePushForNewWallet
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.features.import_wallet.viewmodels.localization.fieldStringRes
 import com.gemwallet.android.features.import_wallet.viewmodels.localization.tabStringRes
@@ -43,6 +44,7 @@ import javax.inject.Inject
 class ImportViewModel @Inject constructor(
     private val service: GemWalletServiceInterface,
     nameService: GemNameServiceInterface,
+    private val enablePushForNewWallet: EnablePushForNewWallet,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
@@ -129,7 +131,11 @@ class ImportViewModel @Inject constructor(
                 isImporting.value = false
                 withContext(Dispatchers.Main) {
                     when (imported) {
-                        is GemWalletImportResult.New -> onImported()
+                        is GemWalletImportResult.New -> {
+                            enablePushForNewWallet.enablePushForNewWallet()
+                            onImported()
+                        }
+
                         is GemWalletImportResult.Existing -> state.update { it.copy(existingWalletName = imported.wallet.name) }
                     }
                 }

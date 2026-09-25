@@ -2,11 +2,9 @@ package com.gemwallet.android.data.services.gemstone.device
 
 import android.content.Context
 import com.gemwallet.android.data.service.store.ConfigStore
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import dagger.Lazy
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -28,16 +26,16 @@ class DevicePushSettingsTest {
 
     private val deviceService = mockk<GemDeviceService>(relaxed = true)
     private val notificationsService = mockk<GemNotificationsService>(relaxed = true)
-    private val userConfig = mockk<UserConfig>(relaxed = true)
 
     @Test
-    fun `switching push asks for permission before it records the ask`() = runTest {
-        settings(ConfigStore(mockk(relaxed = true))).switchPushEnabled(true)
+    fun `a new wallet asks Core and keeps the state it answered`() = runTest {
+        coEvery { notificationsService.enableForNewWallet() } returns GemPushState(isEnabled = true, result = GemPushResult.Stored)
+        val subject = settings(ConfigStore(mockk(relaxed = true)))
 
-        coVerifyOrder {
-            notificationsService.setEnabled(true)
-            userConfig.stopAskNotifications()
-        }
+        subject.enablePushForNewWallet()
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { notificationsService.enableForNewWallet() }
     }
 
     @Test
@@ -99,7 +97,6 @@ class DevicePushSettingsTest {
         preferencesService = mockk<GemPreferencesService>(relaxed = true),
         deviceService = mockk<Lazy<GemDeviceService>> { every { get() } returns deviceService },
         notificationsService = mockk<Lazy<GemNotificationsService>> { every { get() } returns notificationsService },
-        userConfig = userConfig,
         scope = this,
     )
 }

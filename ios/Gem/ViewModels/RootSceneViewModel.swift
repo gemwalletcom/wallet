@@ -7,7 +7,7 @@ import Foundation
 import protocol Gemstone.GemAppStartServiceProtocol
 import struct Gemstone.GemAppUpdateOffer
 import protocol Gemstone.GemAppUpdateServiceProtocol
-import protocol Gemstone.GemDeviceServiceProtocol
+import protocol Gemstone.GemNotificationsServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import protocol Gemstone.GemWalletSessionServiceProtocol
 import GemstonePrimitives
@@ -24,13 +24,12 @@ import WalletConnector
 final class RootSceneViewModel {
     private let onstartService: OnstartService
     private let appStartService: any GemAppStartServiceProtocol
-    private let pushNotificationEnablerService: PushNotificationEnablerService
+    private let notificationsService: any GemNotificationsServiceProtocol
     private let appLifecycleService: AppLifecycleService
     private let navigationRouter: NavigationRouter
     private let appUpdateService: any GemAppUpdateServiceProtocol
     private let rateService: RateService
     private let toastPresenter: ToastPresenter
-    private let deviceService: any GemDeviceServiceProtocol
 
     let observablePreferences: ObservablePreferences
     private let viewModelFactory: ViewModelFactory
@@ -79,7 +78,7 @@ final class RootSceneViewModel {
         walletConnectorPresenter: WalletConnectorPresenter,
         onstartService: OnstartService,
         appStartService: any GemAppStartServiceProtocol,
-        pushNotificationEnablerService: PushNotificationEnablerService,
+        notificationsService: any GemNotificationsServiceProtocol,
         appLifecycleService: AppLifecycleService,
         navigationRouter: NavigationRouter,
         lockWindow: LockWindow,
@@ -88,13 +87,12 @@ final class RootSceneViewModel {
         appUpdateService: any GemAppUpdateServiceProtocol,
         rateService: RateService,
         toastPresenter: ToastPresenter,
-        deviceService: any GemDeviceServiceProtocol,
     ) {
         self.observablePreferences = observablePreferences
         self.walletConnectorPresenter = walletConnectorPresenter
         self.onstartService = onstartService
         self.appStartService = appStartService
-        self.pushNotificationEnablerService = pushNotificationEnablerService
+        self.notificationsService = notificationsService
         self.appLifecycleService = appLifecycleService
         self.navigationRouter = navigationRouter
         self.lockWindow = lockWindow
@@ -103,7 +101,6 @@ final class RootSceneViewModel {
         self.appUpdateService = appUpdateService
         self.rateService = rateService
         self.toastPresenter = toastPresenter
-        self.deviceService = deviceService
     }
 }
 
@@ -232,14 +229,8 @@ extension RootSceneViewModel {
     }
 
     private func requestPushPermissions() {
-        Task {
-            do {
-                if try await pushNotificationEnablerService.requestPermissionsIfNotDetermined() {
-                    try await deviceService.synchronizeIfNeeded()
-                }
-            } catch {
-                debugLog("requestPushPermissions error: \(error)")
-            }
+        Task { [notificationsService] in
+            _ = await notificationsService.enableForNewWallet()
         }
     }
 }

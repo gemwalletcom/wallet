@@ -47,7 +47,6 @@ fun WalletApp(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val startDestination by viewModel.startDestinationState.collectAsStateWithLifecycle()
-    val askNotifications by viewModel.askNotifications.collectAsStateWithLifecycle()
     val isTermsAccepted by viewModel.isTermsAccepted.collectAsStateWithLifecycle()
 
     val start = startDestination ?: return
@@ -131,12 +130,6 @@ fun WalletApp(
         if (state.intent == AppIntent.ShowReview && activity != null) {
             viewModel.onReviewOpen()
             ReviewManager().open(activity)
-        }
-    }
-
-    LaunchedEffect(askNotifications) {
-        if (askNotifications) {
-            viewModel.onNotificationsEnable()
         }
     }
 }

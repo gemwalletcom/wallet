@@ -52,7 +52,6 @@ class UserConfig(private val context: Context, private val configStore: ConfigSt
     private val perpetualEnabledState = MutableStateFlow(preferencesService.isPerpetualEnabled())
     private val appearanceState = MutableStateFlow(preferencesService.getAppearance().toPrimitives())
     private val termsAcceptedState = MutableStateFlow(preferencesService.isAcceptTermsCompleted())
-    private val askNotificationsState = MutableStateFlow(preferencesService.shouldAskNotifications())
     private val lockIntervalState = MutableStateFlow(
         secureStore.get(SecureKey.LockInterval.string)?.toIntOrNull() ?: lockPeriodFromMinutes(null).minutes().toInt(),
     )
@@ -91,7 +90,6 @@ class UserConfig(private val context: Context, private val configStore: ConfigSt
         perpetualEnabledState.value = preferencesService.isPerpetualEnabled()
         appearanceState.value = preferencesService.getAppearance().toPrimitives()
         termsAcceptedState.value = preferencesService.isAcceptTermsCompleted()
-        askNotificationsState.value = preferencesService.shouldAskNotifications()
     }
 
     fun getLockInterval(): Flow<Int> = lockIntervalState.onStart { migrateLockInterval() }
@@ -113,13 +111,6 @@ class UserConfig(private val context: Context, private val configStore: ConfigSt
     fun acceptTerms() {
         preferencesService.setAcceptTermsCompleted()
         termsAcceptedState.value = preferencesService.isAcceptTermsCompleted()
-    }
-
-    fun isAskNotifications(): Flow<Boolean> = askNotificationsState
-
-    fun stopAskNotifications() {
-        preferencesService.setNotificationsAsked()
-        askNotificationsState.value = preferencesService.shouldAskNotifications()
     }
 
     private fun <T> read(key: Preferences.Key<T>, default: T): Flow<T> = context.dataStore.data.map { it[key] ?: default }

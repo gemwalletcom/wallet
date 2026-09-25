@@ -440,7 +440,7 @@ struct ServicesFactory {
             rateService: rateService,
             onstartService: onStartService,
             appStartService: appStartService,
-            pushNotificationEnablerService: pushNotificationEnablerService,
+            notificationsService: Gemstone.GemNotificationsService(device: deviceService, preferences: preferencesService, permissions: notificationPermissions),
             walletConnectorPresenter: walletConnectorPresenter,
             toastPresenter: toastPresenter,
             viewModelFactory: viewModelFactory,

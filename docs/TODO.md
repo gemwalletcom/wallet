@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Settled differences:** D75, BD59, BD60, BD61, BD62, BD63, BD64, BD56, AUD50.
+1. **Settled differences:** BD59, BD60, BD61, BD62, BD63, BD64, BD56, AUD50.
 2. **One view state:** VM168, VM167, VM169, VM170, VM171, VM144, VM125, VM134, VM89.
 3. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
 4. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
@@ -34,7 +34,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 
 | Screens / entry points | Existing owner or infrastructure to extend | Open work |
 |---|---|---|
-| App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79, D75 |
+| App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79 |
 | Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | — |
 | Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | — |
 | Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM172 |
@@ -60,7 +60,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | — |
 | Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | retain native locale/theme application |
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | Retain platform-only privacy lock |
-| Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | D75 |
+| Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | — |
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | BD59; retain Android-only one-click auth |
 | Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per module | VM6, VM64, VM88, VM89, VM172, VM180 |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
@@ -155,10 +155,6 @@ Core has no runtime, so scheduling, timers and OS callbacks stay in the apps; wh
   - **Expected, the iOS content:** the network fee title key (iOS `info.network_fee.title`, Android `transfer_network_fee`); the network-fee-required title argument (iOS the asset's display title, Android the native symbol) and image (iOS the fee asset, Android the native asset); the account-minimum-balance and stake-frozen images (iOS logo, Android the asset icon; Android also passes an unused `titleArgs`); the stake lock time and APR images (iOS the placeholder only, Android the asset icon); bold `available` and `shortfall` in the swap-minimum sheet (iOS only); the network-fees link on the staking-reserved-fees sheet (iOS only); a balance-required or swap-minimum sheet without an acquire action (iOS shows it without a button, Android shows none).
   - **Expected, Android's rule:** every row that carries a topic opens it. iOS drops the autoclose topic on the amount screen (`AmountPerpetualViewModel.swift:58`) and on the confirm modify-autoclose row (`ConfirmTransferScene.swift:80`). Android's network-fee-required docs link, which can never open, goes.
 - **VM89** **S** **Docs links come with the screen.** Screens pick docs URLs themselves (iOS `StakeSceneViewModel` `.staking(chain)` and `ConnectionsViewModel` `.walletConnect`; Android `Asset.stakeChain`/`AppUrl.staking`). The screen's existing Core record carries the finished `docs_url` (`GemStakeViewState`, the connections state), the way VM88 carries it on a sheet, so no export returns a constant; delete the app-side choices.
-- **D75** **S** **When the app asks for push permission.** ARCHITECTURE lists Android's prompt tracking as a one-sided feature; the support prompt is a different trigger.
-  - **iOS:** asks only when a create or import sheet is dismissed (`RootSceneViewModel.swift:159-167,230-240`) and never records the ask, so Core's 30-day re-ask ([`preferences/rules.rs`](../core/gemstone/src/services/preferences/rules.rs)) and the `has_asked` input of `notification_prompt` never see an iOS ask.
-  - **Android:** composes the trigger from three flows (`AppViewModel.kt:88-94`: notifications available, Core's `isAsk`, a session, push off) and records the ask through `DevicePushSettings.stopAskNotifications`.
-  - **Expected:** iOS's moment on both (after a wallet is created or imported); `should_ask_notifications` answers the whole condition (push state and wallet presence included) and both record the ask through Core, so the 30-day re-ask applies to both.
 - **D76** **S** **Whether one failed balance request discards its network's other answers.** `chain_balances` in [`balance/mod.rs`](../core/gemstone/src/services/balance/mod.rs) joins the coin, staking, token and earn results with `?`, so a failed staking or earn request throws away the coin and token balances that succeeded on that network, and no test covers the case; the product intent in [product/wallet.md](product/wallet.md) says a slow or failing request must not hold back the others. **Decided:** publish the components that answered and return the first component failure (extend `published_balances` to per-component results, add the test).
 - **D77** **S** **When the wallet list updates during a balance refresh.** `update` waits for every network (`join_all`) and every component (`join!`) before its single write, so the fastest network's coin balance shows only when the slowest has answered or failed; [ARCHITECTURE](ARCHITECTURE.md#publish-a-multi-source-refresh-as-one-batch) chose one batch on purpose (fewer observer notifications, no mixed-age totals), and the product owner wants balances "as soon as possible". **Decided:** write each network as it finishes, each write atomic and lane-ordered, per the product rule in [product/wallet.md](product/wallet.md); update the ARCHITECTURE section in the same change.
 

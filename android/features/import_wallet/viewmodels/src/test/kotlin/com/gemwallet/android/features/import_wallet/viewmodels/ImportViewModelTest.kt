@@ -51,6 +51,7 @@ class ImportViewModelTest {
     private fun viewModel(nameService: GemNameServiceInterface, ioDispatcher: CoroutineDispatcher, service: GemWalletServiceInterface = service()) = ImportViewModel(
         service = service,
         nameService = nameService,
+        enablePushForNewWallet = mockk(relaxed = true),
         ioDispatcher = ioDispatcher,
         context = mockk<Context> {
             every { getString(any()) } returns "Wallet"

@@ -27,4 +27,8 @@ public final class GemNotificationsServiceMock: GemNotificationsServiceProtocol,
         guard offersForSupport else { return nil }
         return await setEnabled(enabled: true)
     }
+
+    public func enableForNewWallet() async -> GemPushState? {
+        nil
+    }
 }
