@@ -46,7 +46,7 @@ struct AmountStakeViewModelTests {
         let model = AmountStakeViewModel.mock(type: .stake(validator: DelegationValidator.mock(id: "first").toGem()))
         #expect(model.validator?.id == "first")
 
-        model.select(GemValidatorRow.mock(validator: DelegationValidator.mock(id: "second").toGem()))
+        model.select(GemValidatorRow.mock(validator: DelegationValidator.mock(id: "second").toGem(), apr: .apr(value: nil)))
         #expect(model.validator?.id == "second")
     }
 

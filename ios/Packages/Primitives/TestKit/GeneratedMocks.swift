@@ -577,6 +577,18 @@ public extension InAppNotification {
     }
 }
 
+public extension Latency {
+    static func mock(
+        latencyType: LatencyType = .fast,
+        value: Double = 0,
+    ) -> Latency {
+        Latency(
+            latencyType: latencyType,
+            value: value,
+        )
+    }
+}
+
 public extension NFTAsset {
     static func mock(
         id: NFTAssetId = .mock(),

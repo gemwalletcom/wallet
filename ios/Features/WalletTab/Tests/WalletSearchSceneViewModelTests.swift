@@ -85,10 +85,10 @@ struct WalletSearchSceneViewModelTests {
         let service = GemAssetSelectionServiceMock()
         let model = WalletSearchSceneViewModel.mock(service: service)
 
-        service.nftSearchItems = (0 ..< 3).map { _ in .mock(item: .asset(data: NFTAssetData.mock().toGem())) }
+        service.nftSearchItems = (0 ..< 3).map { .mock(item: .asset(data: NFTAssetData.mock().toGem()), row: .mock(id: "\($0)", isVerified: true)) }
         #expect(model.derived.view.hasMoreNfts == false)
 
-        service.nftSearchItems = (0 ..< 4).map { _ in .mock(item: .asset(data: NFTAssetData.mock().toGem())) }
+        service.nftSearchItems = (0 ..< 4).map { .mock(item: .asset(data: NFTAssetData.mock().toGem()), row: .mock(id: "\($0)", isVerified: true)) }
         #expect(model.derived.view.hasMoreNfts == true)
     }
 
@@ -100,8 +100,8 @@ struct WalletSearchSceneViewModelTests {
         #expect(model.derived.view.state.showsNfts == false)
 
         service.nftSearchItems = [
-            .mock(item: .collection(data: NFTData.mock(assets: [.mock(), .mock()]).toGem())),
-            .mock(item: .asset(data: NFTAssetData.mock().toGem())),
+            .mock(item: .collection(data: NFTData.mock(assets: [.mock(), .mock()]).toGem()), row: .mock(id: "collection", isVerified: true)),
+            .mock(item: .asset(data: NFTAssetData.mock().toGem()), row: .mock(id: "asset", isVerified: true)),
         ]
 
         #expect(model.derived.view.state.showsNfts == true)

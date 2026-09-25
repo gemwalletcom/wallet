@@ -27,6 +27,8 @@ import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemNumberUnit
 import uniffi.gemstone.GemValueTone
+import uniffi.gemstone.GemWalletPlaceholder
+import uniffi.gemstone.GemWalletSubtitle
 import uniffi.gemstone.Latency
 import uniffi.gemstone.LatencyType
 import java.math.BigInteger
@@ -74,7 +76,7 @@ class GemListRowUIModelTest {
     @Test
     fun `a wallet row copies its address and opens the explorer`() {
         val row = GemListRow.Wallet(
-            wallet = mockGemWalletRow(),
+            wallet = mockGemWalletRow(id = "wallet-1", name = "Wallet", subtitle = GemWalletSubtitle.Multicoin, placeholder = GemWalletPlaceholder.Multicoin),
             copy = GemCopy(kind = GemCopyKind.Address("ethereum"), value = "0x1", display = "0x1"),
             explorer = BlockExplorerLink(name = "Etherscan", link = "https://etherscan.io/address/0x1"),
         )

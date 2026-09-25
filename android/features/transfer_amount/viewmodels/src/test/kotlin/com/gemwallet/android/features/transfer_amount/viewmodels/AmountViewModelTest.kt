@@ -48,6 +48,7 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAmountInputType
 import uniffi.gemstone.GemAmountServiceInterface
+import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemStakeAmountInput
@@ -74,7 +75,13 @@ class AmountViewModelTest {
         coEvery { transferData(any(), any(), capture(sentValues), capture(sentIsMax)) } returns confirmInput
     }
     private val stakeService = mockk<GemStakeServiceInterface>(relaxed = true) {
-        every { stakeAmountSelection(any(), any()) } returns GemStakeAmountSelection.Validator(mockGemValidatorRow(mockDelegationValidator(chain = Chain.Cosmos)), true)
+        every { stakeAmountSelection(any(), any()) } returns
+            GemStakeAmountSelection.Validator(
+                mockDelegationValidator(chain = Chain.Cosmos).let { validator ->
+                    mockGemValidatorRow(validator = validator.toGem(), name = validator.name, placeholder = validator.name.take(1), apr = GemLocalizedText.Apr(null))
+                },
+                true,
+            )
     }
     private val walletId = mockWalletId()
     private val getCurrentWalletId = mockk<GetCurrentWalletId> { every { this@mockk.invoke() } returns flowOf(walletId) }

@@ -28,7 +28,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemWalletDeletion
+import uniffi.gemstone.GemWalletPlaceholder
 import uniffi.gemstone.GemWalletServiceInterface
+import uniffi.gemstone.GemWalletSubtitle
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WalletsViewModelTest {
@@ -50,9 +52,9 @@ class WalletsViewModelTest {
     @Test
     fun `the pinned wallets come first and each row is already rendered`() = runTest(dispatcher) {
         wallets.value = listOf(
-            mockWalletDataAggregate(mockGemWalletRow(id = "pinned", name = "Pinned", isPinned = true)),
-            mockWalletDataAggregate(mockGemWalletRow(id = "unpinned", name = "Plain")),
-            mockWalletDataAggregate(mockGemWalletRow(id = "second-pinned", name = "Second", isPinned = true)),
+            mockWalletDataAggregate(mockGemWalletRow(id = "pinned", name = "Pinned", subtitle = GemWalletSubtitle.Multicoin, placeholder = GemWalletPlaceholder.Multicoin, isPinned = true)),
+            mockWalletDataAggregate(mockGemWalletRow(id = "unpinned", name = "Plain", subtitle = GemWalletSubtitle.Multicoin, placeholder = GemWalletPlaceholder.Multicoin)),
+            mockWalletDataAggregate(mockGemWalletRow(id = "second-pinned", name = "Second", subtitle = GemWalletSubtitle.Multicoin, placeholder = GemWalletPlaceholder.Multicoin, isPinned = true)),
         )
         val model = viewModel()
         advanceUntilIdle()

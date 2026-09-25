@@ -86,7 +86,13 @@ struct ConfirmHeaderItemTests {
 
     @Test
     func aTransactionHeaderReadsThroughTheSharedMapper() {
-        let model = GemConfirmHeader.transaction(header: .amount(amount: .mock(asset: .mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20))))
+        let model = GemConfirmHeader.transaction(header: .amount(amount: .mock(asset: Primitives.Asset.mock(
+            id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"),
+            name: "Tether",
+            symbol: "USDT",
+            decimals: 6,
+            type: .erc20,
+        ).toGem())))
 
         guard case let .header(headerType, _) = model.itemModel, case .amount = headerType else {
             Issue.record("Expected the amount header")
@@ -97,7 +103,13 @@ struct ConfirmHeaderItemTests {
 
     @Test
     func aReservedHeaderKeepsItsPlaceHidden() {
-        let model = GemConfirmHeader.reserved(header: .amount(amount: .mock(asset: .mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20))))
+        let model = GemConfirmHeader.reserved(header: .amount(amount: .mock(asset: Primitives.Asset.mock(
+            id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"),
+            name: "Tether",
+            symbol: "USDT",
+            decimals: 6,
+            type: .erc20,
+        ).toGem())))
 
         guard case let .header(headerType, isReserved) = model.itemModel, case .amount = headerType else {
             Issue.record("Expected the amount header")

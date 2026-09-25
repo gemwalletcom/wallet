@@ -402,9 +402,93 @@ public extension Gemstone.GemFormattedNumber {
     }
 }
 
+public extension Gemstone.GemHeaderAmount {
+    static func mock(
+        asset: Gemstone.Asset = Primitives.Asset.mock().toGem(),
+        amount: Gemstone.GemFormattedNumber = .mock(),
+        fiat: Gemstone.GemFormattedNumber? = nil,
+    ) -> Gemstone.GemHeaderAmount {
+        Gemstone.GemHeaderAmount(
+            asset: asset,
+            amount: amount,
+            fiat: fiat,
+        )
+    }
+}
+
 public extension Gemstone.GemLocalizedText {
     static func mock() -> Gemstone.GemLocalizedText {
         .walletDefaultName(index: 0)
+    }
+}
+
+public extension Gemstone.GemNftEntry {
+    static func mock(
+        item: Gemstone.GemNftItem = .mock(),
+        row: Gemstone.GemNftRow = .mock(),
+    ) -> Gemstone.GemNftEntry {
+        Gemstone.GemNftEntry(
+            item: item,
+            row: row,
+        )
+    }
+}
+
+public extension Gemstone.GemNftItem {
+    static func mock() -> Gemstone.GemNftItem {
+        .collection(data: Primitives.NFTData.mock().toGem())
+    }
+}
+
+public extension Gemstone.GemNftRow {
+    static func mock(
+        id: String = "",
+        title: String = "",
+        imageUrl: String = "",
+        countText: String? = nil,
+        isVerified: Bool = false,
+    ) -> Gemstone.GemNftRow {
+        Gemstone.GemNftRow(
+            id: id,
+            title: title,
+            imageUrl: imageUrl,
+            countText: countText,
+            isVerified: isVerified,
+        )
+    }
+}
+
+public extension Gemstone.GemNodeCheck {
+    static func mock(
+        url: String = "",
+        chainId: String? = nil,
+        latestBlockNumber: UInt64 = 0,
+        isInSync: Bool = false,
+        latency: Gemstone.Latency = Primitives.Latency.mock().toGem(),
+    ) -> Gemstone.GemNodeCheck {
+        Gemstone.GemNodeCheck(
+            url: url,
+            chainId: chainId,
+            latestBlockNumber: latestBlockNumber,
+            isInSync: isInSync,
+            latency: latency,
+        )
+    }
+}
+
+public extension Gemstone.GemNodeSelection {
+    static func mock(
+        url: String = "",
+        host: String = "",
+        isSelected: Bool = false,
+        gemNodeFlag: String? = nil,
+    ) -> Gemstone.GemNodeSelection {
+        Gemstone.GemNodeSelection(
+            url: url,
+            host: host,
+            isSelected: isSelected,
+            gemNodeFlag: gemNodeFlag,
+        )
     }
 }
 
@@ -586,6 +670,74 @@ public extension Gemstone.GemTransferData {
             recipient: recipient,
             value: value,
             useMaxAmount: useMaxAmount,
+        )
+    }
+}
+
+public extension Gemstone.GemValidatorRow {
+    static func mock(
+        validator: Gemstone.DelegationValidator = Primitives.DelegationValidator.mock().toGem(),
+        name: String = "",
+        imageUrl: String = "",
+        placeholder: String = "",
+        provider: Gemstone.YieldProvider? = nil,
+        apr: Gemstone.GemLocalizedText = .mock(),
+        explorer: Gemstone.BlockExplorerLink? = nil,
+    ) -> Gemstone.GemValidatorRow {
+        Gemstone.GemValidatorRow(
+            validator: validator,
+            name: name,
+            imageUrl: imageUrl,
+            placeholder: placeholder,
+            provider: provider,
+            apr: apr,
+            explorer: explorer,
+        )
+    }
+}
+
+public extension Gemstone.GemWalletHomeViewState {
+    static func mock(
+        total: Gemstone.GemFormattedNumber = .mock(),
+        pnl: Gemstone.GemLocalizedText? = nil,
+        pnlTone: Gemstone.GemValueTone = .plain,
+        headerActions: Gemstone.GemHeaderActions = .watchOnly,
+        showCollections: Bool = false,
+        showsPerpetuals: Bool = false,
+        banner: Gemstone.GemBannerRow? = nil,
+    ) -> Gemstone.GemWalletHomeViewState {
+        Gemstone.GemWalletHomeViewState(
+            total: total,
+            pnl: pnl,
+            pnlTone: pnlTone,
+            headerActions: headerActions,
+            showCollections: showCollections,
+            showsPerpetuals: showsPerpetuals,
+            banner: banner,
+        )
+    }
+}
+
+public extension Gemstone.GemWalletRow {
+    static func mock(
+        id: String = "",
+        name: String = "",
+        subtitle: Gemstone.GemWalletSubtitle = .multicoin,
+        placeholder: Gemstone.GemWalletPlaceholder = .multicoin,
+        showsWatchBadge: Bool = false,
+        isPinned: Bool = false,
+        hasAvatar: Bool = false,
+        imageUrl: String? = nil,
+    ) -> Gemstone.GemWalletRow {
+        Gemstone.GemWalletRow(
+            id: id,
+            name: name,
+            subtitle: subtitle,
+            placeholder: placeholder,
+            showsWatchBadge: showsWatchBadge,
+            isPinned: isPinned,
+            hasAvatar: hasAvatar,
+            imageUrl: imageUrl,
         )
     }
 }

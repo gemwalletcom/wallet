@@ -1,7 +1,9 @@
 package com.gemwallet.android.features.activities.viewmodels.models
 
 import android.content.Context
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.text
+import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockFormattedNumber
 import com.gemwallet.android.testkit.mockGemHeaderAmount
 import com.gemwallet.android.testkit.mockGemTransactionDetailRows
@@ -24,7 +26,10 @@ class TransactionDetailsRowUIModelTest {
     @Test
     fun `a swap header reads both legs from the record`() {
         val rows = mockGemTransactionDetailRows(
-            header = GemTransactionHeader.Swap(from = mockGemHeaderAmount(), to = mockGemHeaderAmount(amount = mockFormattedNumber(2.0, GemNumberUnit.Symbol("BTC")))),
+            header = GemTransactionHeader.Swap(
+                from = mockGemHeaderAmount(asset = mockAsset().toGem(), amount = mockFormattedNumber(1.0, GemNumberUnit.Symbol(mockAsset().symbol)), fiat = mockFormattedNumber(2.0)),
+                to = mockGemHeaderAmount(asset = mockAsset().toGem(), amount = mockFormattedNumber(2.0, GemNumberUnit.Symbol("BTC")), fiat = mockFormattedNumber(2.0)),
+            ),
         )
 
         val head = rows.uiModel(GemTransactionDetailRow.Header, context)
@@ -36,7 +41,7 @@ class TransactionDetailsRowUIModelTest {
 
     @Test
     fun `an approval header is the asset image and a symbol header is its text`() {
-        val asset = mockGemHeaderAmount().asset
+        val asset = mockGemHeaderAmount(asset = mockAsset().toGem(), amount = mockFormattedNumber(1.0, GemNumberUnit.Symbol(mockAsset().symbol)), fiat = mockFormattedNumber(2.0)).asset
         val image = mockGemTransactionDetailRows(header = GemTransactionHeader.AssetImage(asset)).uiModel(GemTransactionDetailRow.Header, context)
         val symbol = mockGemTransactionDetailRows(header = GemTransactionHeader.Symbol(asset)).uiModel(GemTransactionDetailRow.Header, context)
 

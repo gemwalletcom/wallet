@@ -57,7 +57,7 @@ class NetworksViewModelTest {
     @Test
     fun `selecting a chain loads its nodes and a status for each`() = runTest(dispatcher) {
         val service = service(
-            nodesByCall = listOf(listOf(mockGemNodeSelection("a"), mockGemNodeSelection("b"))),
+            nodesByCall = listOf(listOf(mockGemNodeSelection(url = "a", host = "a"), mockGemNodeSelection(url = "b", host = "b"))),
             statuses = mapOf("a" to mockGemNodeStatusState(10UL), "b" to mockGemNodeStatusState(11UL)),
         )
         val viewModel = NetworksViewModel(
@@ -80,7 +80,7 @@ class NetworksViewModelTest {
     @Test
     fun `deleting a node drops the status it had`() = runTest(dispatcher) {
         val service = service(
-            nodesByCall = listOf(listOf(mockGemNodeSelection("a"), mockGemNodeSelection("b")), listOf(mockGemNodeSelection("a"))),
+            nodesByCall = listOf(listOf(mockGemNodeSelection(url = "a", host = "a"), mockGemNodeSelection(url = "b", host = "b")), listOf(mockGemNodeSelection(url = "a", host = "a"))),
             statuses = mapOf("a" to mockGemNodeStatusState(10UL), "b" to mockGemNodeStatusState(11UL)),
         )
         val viewModel = NetworksViewModel(

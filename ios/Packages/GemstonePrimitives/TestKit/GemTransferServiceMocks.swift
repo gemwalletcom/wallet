@@ -181,7 +181,10 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     }
 
     public func stakeValidatorOptions(chain _: Gemstone.Chain, input _: GemStakeAmountInput, validators: [Gemstone.DelegationValidator]) -> GemStakeValidatorOptions {
-        GemStakeValidatorOptions(recommended: [], options: validators.map { Gemstone.GemValidatorRow.mock(validator: $0) })
+        GemStakeValidatorOptions(
+            recommended: [],
+            options: validators.map { Gemstone.GemValidatorRow.mock(validator: $0, name: $0.name, imageUrl: "https://assets.gemwallet.com/validator.png", placeholder: String($0.name.prefix(1)), apr: .apr(value: nil)) },
+        )
     }
 
     public func stakeViewState(input: GemStakeInput) -> GemStakeViewState {

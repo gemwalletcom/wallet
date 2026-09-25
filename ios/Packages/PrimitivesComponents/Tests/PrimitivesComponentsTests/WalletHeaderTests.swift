@@ -55,6 +55,7 @@ struct WalletHeaderTests {
                 )
             },
             pnlTone: .positive,
+            headerActions: .buttons(buttons: []),
         ).valueHeader
     }
 

@@ -270,7 +270,13 @@ mocks:
   - GemFiatQuoteRow
   - GemFiatQuotesResult
   - GemFormattedNumber
+  - GemHeaderAmount
   - GemLocalizedText
+  - GemNftEntry
+  - GemNftItem
+  - GemNftRow
+  - GemNodeCheck
+  - GemNodeSelection
   - GemNumberDisplay
   - GemNumberUnit
   - GemPaymentRecipient
@@ -284,7 +290,11 @@ mocks:
   - GemTransferAmount
   - GemTransferAmountResult
   - GemTransferData
+  - GemValidatorRow
+  - GemWalletHomeViewState
+  - GemWalletRow
   - InAppNotification
+  - Latency
   - NameRecord
   - NFTAsset
   - NFTAssetData

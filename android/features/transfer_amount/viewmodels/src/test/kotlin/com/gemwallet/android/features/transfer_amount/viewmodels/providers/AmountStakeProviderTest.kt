@@ -27,6 +27,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.DelegationValidator
 import uniffi.gemstone.GemAmountRequest
+import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemStakeAmountInput
 import uniffi.gemstone.GemStakeAmountSelection
 import uniffi.gemstone.GemStakeServiceInterface
@@ -45,9 +46,14 @@ class AmountStakeProviderTest {
     private val storedValidators = MutableStateFlow(listOf(validator, otherValidator))
 
     private val stakeService = mockk<GemStakeServiceInterface> {
-        every { stakeAmountSelection(any(), any()) } returns GemStakeAmountSelection.Validator(mockGemValidatorRow(validator), true)
+        every { stakeAmountSelection(any(), any()) } returns
+            GemStakeAmountSelection.Validator(mockGemValidatorRow(validator = validator.toGem(), name = validator.name, placeholder = validator.name.take(1), apr = GemLocalizedText.Apr(null)), true)
         every { stakeValidatorOptions(any(), any(), any()) } answers {
-            mockGemStakeValidatorOptions(thirdArg<List<DelegationValidator>>().map { mockGemValidatorRow(it.toPrimitives()) })
+            mockGemStakeValidatorOptions(
+                thirdArg<List<DelegationValidator>>().map {
+                    mockGemValidatorRow(validator = it.toPrimitives().toGem(), name = it.toPrimitives().name, placeholder = it.toPrimitives().name.take(1), apr = GemLocalizedText.Apr(null))
+                },
+            )
         }
     }
 
@@ -104,7 +110,8 @@ class AmountStakeProviderTest {
 
     @Test
     fun `the validator row follows what Core allows`() = runBlocking {
-        every { stakeService.stakeAmountSelection(any(), any()) } returns GemStakeAmountSelection.Validator(mockGemValidatorRow(validator), false)
+        every { stakeService.stakeAmountSelection(any(), any()) } returns
+            GemStakeAmountSelection.Validator(mockGemValidatorRow(validator = validator.toGem(), name = validator.name, placeholder = validator.name.take(1), apr = GemLocalizedText.Apr(null)), false)
         val locked = makeProvider(GemStakeAmountInput.Unstake(delegation.toGem()))
 
         val extras = locked.extras.first { it is AmountExtrasUIModel.Validator } as AmountExtrasUIModel.Validator

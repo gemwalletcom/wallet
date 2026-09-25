@@ -38,12 +38,9 @@ fun mockGemTransactionAmount(asset: Asset = mockAsset(), value: BigInteger = Big
     price = price?.toGem(),
 )
 
-fun mockGemHeaderAmount(asset: Asset = mockAsset(), amount: GemFormattedNumber = mockFormattedNumber(1.0, GemNumberUnit.Symbol(asset.symbol)), fiat: GemFormattedNumber? = mockFormattedNumber(2.0)) =
-    GemHeaderAmount(asset = asset.toGem(), amount = amount, fiat = fiat)
-
 fun mockGemTransactionDetailRows(
     transaction: TransactionExtended = mockTransactionExtended(),
-    header: GemTransactionHeader = GemTransactionHeader.Amount(mockGemHeaderAmount()),
+    header: GemTransactionHeader = GemTransactionHeader.Amount(mockGemHeaderAmount(asset = mockAsset().toGem(), amount = mockFormattedNumber(1.0, GemNumberUnit.Symbol(mockAsset().symbol)), fiat = mockFormattedNumber(2.0))),
     headerAction: GemTransactionHeaderAction? = null,
     swapProgress: GemSwapProgress? = null,
     swapAgain: GemSwapAgain? = null,
