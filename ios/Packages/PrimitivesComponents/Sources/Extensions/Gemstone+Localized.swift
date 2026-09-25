@@ -96,8 +96,8 @@ public extension GemLocalizedText {
             Localized.Simulation.Warning.UnlimitedTokenApproval.description
         case .externallyOwnedSpenderWarning:
             Localized.Simulation.warningExternallyOwnedSpenderDescription
-        case .suspiciousAddress:
-            Localized.Common.suspiciousAddress
+        case .suspiciousAddressDescription:
+            Localized.Common.suspiciousAddressDescription
         case let .addressType(addressType):
             addressType.title
         case .invalidTokenId:
@@ -764,6 +764,7 @@ public extension GemListRowTitle {
         case .rewardsUnverified: Localized.Rewards.Unverified.title
         case .rewardsPending: Localized.Rewards.Pending.title
         case .warning: Localized.Common.warning
+        case .suspiciousAddress: Localized.Common.suspiciousAddress
         case .unlimitedApproval: Localized.Simulation.Warning.UnlimitedTokenApproval.title
         case .nftCollectionApproval: Localized.Simulation.Warning.NftCollectionApproval.title
         case .symbol: Localized.Asset.symbol
@@ -821,6 +822,7 @@ extension Gemstone.AddressType {
         switch self {
         case .address: Localized.Common.address
         case .contract: Localized.Asset.contract
+        case .asset: Localized.Common.token
         case .validator: Localized.Stake.validator
         case .contact: Localized.Contacts.contact
         case .internalWallet: Localized.Common.wallet

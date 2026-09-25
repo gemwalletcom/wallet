@@ -26,6 +26,7 @@ public extension Gemstone.AddressType {
         switch self {
         case .address: .address
         case .contract: .contract
+        case .asset: .asset
         case .validator: .validator
         case .contact: .contact
         case .internalWallet: .internalWallet
@@ -38,6 +39,7 @@ public extension Primitives.AddressType {
         switch self {
         case .address: .address
         case .contract: .contract
+        case .asset: .asset
         case .validator: .validator
         case .contact: .contact
         case .internalWallet: .internalWallet

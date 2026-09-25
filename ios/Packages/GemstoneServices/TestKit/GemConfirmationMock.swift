@@ -80,6 +80,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
             title: transfer().title(),
             verification: transfer().verification(),
             authentication: authenticationValue,
+            notice: nil,
         )
     }
 

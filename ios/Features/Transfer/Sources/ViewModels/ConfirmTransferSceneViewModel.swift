@@ -142,6 +142,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
     public var sections: [ListSection<ConfirmTransferItem>] {
         [
             ListSection(type: .header, [.header]),
+            viewState.notice == nil ? nil : ListSection(type: .notice, [.notice]),
             ListSection(type: .details, detailItems),
             simulationWarnings.isEmpty ? nil : ListSection(type: .warnings, [.warnings]),
             primaryPayloadFields.isEmpty ? nil : ListSection(type: .payload, [.payload]),
@@ -159,6 +160,8 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
         switch item {
         case .header:
             ConfirmHeaderViewModel(header: confirmation.header(screen: state.screen), currency: confirmation.currency)
+        case .notice:
+            viewState.notice.map(ConfirmTransferItemModel.row) ?? .empty
         case .warnings:
             ConfirmTransferItemModel.warnings(simulationWarnings)
         case let .row(index):
@@ -182,7 +185,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             )
         case .error:
             ConfirmErrorViewModel(
-                error: state.loadError,
+                error: viewState.notice == nil ? state.loadError : nil,
                 onSelectListError: onSelectListError,
             )
         }

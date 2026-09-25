@@ -164,8 +164,8 @@ extension GemListRow {
             identifierItem(title: title, copy: copy, explorer: explorer?.toPrimitives())
         case let .explorer(name, url):
             .page(ListItemModel(title: Localized.Transaction.viewOn(name)), url: URL(string: url) ?? BlockExplorerLink(name: name, link: url).url)
-        case let .icon(chain):
-            .icon(AssetIdViewModel(assetId: Chain(core: chain).assetId).assetImage)
+        case let .icon(assetId, imageUrl):
+            .icon(headerImage(assetId: AssetId(core: assetId), imageUrl: imageUrl))
         case let .avatar(avatar):
             .icon(avatar.assetImage)
         case let .walletAvatar(imageUrl, placeholder):
@@ -219,5 +219,13 @@ public extension GemListRow {
     func listItemModel(onInfo: ((GemInfoTopic) -> Void)? = nil) -> ListItemModel? {
         guard case let .listItem(model) = item(onInfo: onInfo) else { return nil }
         return model
+    }
+}
+
+private extension GemListRow {
+    func headerImage(assetId: AssetId, imageUrl: String?) -> AssetImage {
+        let assetImage = AssetIdViewModel(assetId: assetId).assetImage
+        guard let imageUrl else { return assetImage }
+        return AssetImage(imageURL: URL(string: imageUrl), placeholder: assetImage.placeholder)
     }
 }
