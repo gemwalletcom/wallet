@@ -7,8 +7,9 @@ import androidx.compose.foundation.text.input.clearText
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.assets.values.toQueryFilter
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
+import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
 import com.gemwallet.android.domains.asset.assetSections
@@ -24,7 +25,6 @@ import com.gemwallet.android.features.asset_select.viewmodels.models.AssetSelect
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.uiModel
-import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.assetAddedToast
 import com.gemwallet.android.ui.components.screen.assetPinnedToast
@@ -49,6 +49,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -71,7 +72,7 @@ import uniffi.gemstone.addressCopy
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 open class BaseAssetSelectViewModel(
     getSession: GetSession,
-    private val recentAssetsService: RecentAssetsService,
+    private val recentActivityQuery: RecentActivityQuery,
     protected val service: GemAssetSelectionServiceInterface,
     val search: SelectSearch,
     selectType: GemSelectAssetType,
@@ -92,6 +93,11 @@ open class BaseAssetSelectViewModel(
 
     private val session = getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val walletId = session
+        .filterNotNull()
+        .map { it.wallet.id }
+        .distinctUntilChanged()
 
     private val isSearching = MutableStateFlow(false)
 
@@ -186,7 +192,7 @@ open class BaseAssetSelectViewModel(
             if (query.isNotEmpty() || !flow.recents) {
                 flow { emit(emptyList()) }
             } else {
-                recentAssetsService.getRecentAssets(RecentAssetsRequest(types = recentTypes, filters = filters))
+                walletId.flatMapLatest { recentActivityQuery(it, recentTypes, filters.map { filter -> filter.toQueryFilter() }.toSet()) }
             }
         }
         .map { items -> items.map { it.asset }.toImmutableList() }

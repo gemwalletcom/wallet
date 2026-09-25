@@ -7,10 +7,10 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.connection.cases.ObserveRefreshInterval
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.data.services.store.queries.PerpetualPositionsQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualWalletBalanceQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualsQuery
+import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualSections
 import com.gemwallet.android.domains.perpetual.aggregates.marketSections
 import com.gemwallet.android.domains.perpetual.aggregates.positionAggregates
@@ -20,7 +20,6 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualPositionRowUIModel
-import com.gemwallet.android.model.RecentAssetsRequest
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
@@ -63,7 +62,7 @@ class PerpetualMarketViewModel @Inject constructor(
     private val perpetualPositionsQuery: PerpetualPositionsQuery,
     private val perpetualWalletBalanceQuery: PerpetualWalletBalanceQuery,
     private val getSession: GetSession,
-    private val recentAssetsService: RecentAssetsService,
+    private val recentActivityQuery: RecentActivityQuery,
     private val service: GemPerpetualServiceInterface,
     private val perpetualObserver: PerpetualObserver,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -133,10 +132,13 @@ class PerpetualMarketViewModel @Inject constructor(
     ) { balance, walletType -> perpetualBalanceHeader(balance?.toGem(), walletType.toGem()) }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-    val recent: StateFlow<List<Asset>> =
-        recentAssetsService.getRecentAssets(RecentAssetsRequest(types = listOf(RecentActivityType.Perpetual)))
-            .map { items -> items.map { it.asset } }
-            .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val recent: StateFlow<List<Asset>> = getSession()
+        .filterNotNull()
+        .map { it.wallet.id }
+        .distinctUntilChanged()
+        .flatMapLatest { recentActivityQuery(it, listOf(RecentActivityType.Perpetual)) }
+        .map { items -> items.map { it.asset } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val sections: StateFlow<List<GemPerpetualMarketSection>> = combine(positions, pinnedPerpetuals, unpinnedPerpetuals, recent, session) { positions, pinned, markets, recents, session ->
         session.sections(

@@ -1,12 +1,12 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.assets.values.AssetsQueryFilter
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
+import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.model.chains
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
@@ -90,8 +90,8 @@ class BaseAssetSelectViewModelTest {
 
     private fun viewModel(
         items: List<AssetInfo>,
-        recents: RecentAssetsService = mockk(relaxed = true) {
-            every { getRecentAssets(any()) } returns flowOf(emptyList())
+        recents: RecentActivityQuery = mockk(relaxed = true) {
+            every { this@mockk(any(), any(), any(), any()) } returns flowOf(emptyList())
         },
         service: GemAssetSelectionServiceInterface = mockk(relaxed = true) {
             every { flow(any()) } returns sendFlow()
@@ -151,10 +151,10 @@ class BaseAssetSelectViewModelTest {
 
     @Test
     fun `recents follow the chain filter`() = runTest(dispatcher) {
-        val requests = MutableStateFlow<List<RecentAssetsRequest>>(emptyList())
-        val recents: RecentAssetsService = mockk(relaxed = true) {
-            every { getRecentAssets(any()) } answers {
-                requests.value += firstArg<RecentAssetsRequest>()
+        val requests = MutableStateFlow<List<Set<AssetsQueryFilter>>>(emptyList())
+        val recents: RecentActivityQuery = mockk(relaxed = true) {
+            every { this@mockk(wallet.id, any(), any(), any()) } answers {
+                requests.value += listOf(thirdArg<Set<AssetsQueryFilter>>())
                 flowOf(emptyList())
             }
         }
@@ -162,9 +162,9 @@ class BaseAssetSelectViewModelTest {
 
         model.setChainFilter(listOf(Chain.Bitcoin))
 
-        val bitcoin = setOf(GemAssetFilter.Chains(listOf(Chain.Bitcoin.string)))
-        assertEquals(bitcoin, requests.first { it.lastOrNull()?.filters == bitcoin }.last().filters)
-        assertEquals(bitcoin, model.assetFilters())
+        val bitcoin = setOf(AssetsQueryFilter.Chains(listOf(Chain.Bitcoin)))
+        assertEquals(bitcoin, requests.first { it.lastOrNull() == bitcoin }.last())
+        assertEquals(setOf(GemAssetFilter.Chains(listOf(Chain.Bitcoin.string))), model.assetFilters())
     }
 
     @Test

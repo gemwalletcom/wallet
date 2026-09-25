@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
-import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
+import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsSheetUIModel
 import com.gemwallet.android.model.RecentAsset
@@ -8,6 +9,7 @@ import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.RecentActivityType
+import com.wallet.core.primitives.WalletId
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -16,6 +18,7 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -49,7 +52,10 @@ class RecentsSheetViewModelTest {
         RecentAsset(asset = ethAsset, addedAt = 2000L),
     )
 
-    private val recentAssetsService = mockk<RecentAssetsService>(relaxed = true)
+    private val getCurrentWalletId = object : GetCurrentWalletId {
+        override fun invoke(): Flow<WalletId> = flowOf(WalletId("wallet-1"))
+    }
+    private val recentActivityQuery = mockk<RecentActivityQuery>(relaxed = true)
     private val recentActivityService = mockk<GemRecentActivityService>(relaxed = true) {
         every { viewState(any(), any()) } answers {
             val assets = firstArg<List<uniffi.gemstone.Asset>>()
@@ -72,7 +78,7 @@ class RecentsSheetViewModelTest {
 
     @Test
     fun `show makes visible and dismiss hides`() = runTest(testDispatcher) {
-        val vm = RecentsSheetViewModel(recentAssetsService, recentActivityService, testDispatcher)
+        val vm = RecentsSheetViewModel(getCurrentWalletId, recentActivityQuery, recentActivityService, testDispatcher)
 
         assertFalse(vm.visible.value)
 
@@ -87,8 +93,8 @@ class RecentsSheetViewModelTest {
 
     @Test
     fun `uiModel keeps content after dismiss`() = runTest(testDispatcher) {
-        every { recentAssetsService.getRecentAssets(any()) } returns flowOf(recentItems)
-        val vm = RecentsSheetViewModel(recentAssetsService, recentActivityService, testDispatcher)
+        every { recentActivityQuery(WalletId("wallet-1"), any(), any(), 0) } returns flowOf(recentItems)
+        val vm = RecentsSheetViewModel(getCurrentWalletId, recentActivityQuery, recentActivityService, testDispatcher)
 
         vm.show()
         vm.uiModel.first { it.items.isNotEmpty() }
@@ -100,7 +106,7 @@ class RecentsSheetViewModelTest {
 
     @Test
     fun `clear delegates to coordinator with current types`() = runTest(testDispatcher) {
-        val vm = RecentsSheetViewModel(recentAssetsService, recentActivityService, testDispatcher)
+        val vm = RecentsSheetViewModel(getCurrentWalletId, recentActivityQuery, recentActivityService, testDispatcher)
         val types = listOf(RecentActivityType.Swap)
         vm.show(types = types)
         advanceUntilIdle()

@@ -7,6 +7,9 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
+import com.gemwallet.android.application.assets.values.AssetsQueryFilter
+import com.gemwallet.android.application.assets.values.chains
+import com.gemwallet.android.application.assets.values.chainsOrAssets
 import com.gemwallet.android.data.services.store.database.entities.DbAsset
 import com.gemwallet.android.data.services.store.database.entities.DbAssetBasicUpdate
 import com.gemwallet.android.data.services.store.database.entities.DbAssetFiatValue
@@ -226,14 +229,14 @@ interface AssetsDao {
         selectedChains: List<Chain>,
     ): List<DbAssetInfo>
 
-    suspend fun getWalletAssets(walletId: String, filters: Set<AssetsRequestFilter> = emptySet()): List<DbAssetInfo> = getWalletAssetsQuery(
+    suspend fun getWalletAssets(walletId: String, filters: Set<AssetsQueryFilter> = emptySet()): List<DbAssetInfo> = getWalletAssetsQuery(
         walletId = walletId,
-        enabled = AssetsRequestFilter.Enabled in filters,
-        buyable = AssetsRequestFilter.Buyable in filters,
-        sellable = AssetsRequestFilter.Sellable in filters,
-        swappable = AssetsRequestFilter.Swappable in filters,
-        hasBalance = AssetsRequestFilter.HasBalance in filters,
-        hasAvailableBalance = AssetsRequestFilter.HasAvailableBalance in filters,
+        enabled = AssetsQueryFilter.Enabled in filters,
+        buyable = AssetsQueryFilter.Buyable in filters,
+        sellable = AssetsQueryFilter.Sellable in filters,
+        swappable = AssetsQueryFilter.Swappable in filters,
+        hasBalance = AssetsQueryFilter.HasBalance in filters,
+        hasAvailableBalance = AssetsQueryFilter.HasAvailableBalance in filters,
         byChainsOrAssetIds = filters.chainsOrAssets() != null,
         chains = filters.chainsOrAssets()?.chains.orEmpty(),
         assetIds = filters.chainsOrAssets()?.assetIds.orEmpty(),
@@ -408,14 +411,14 @@ interface AssetsDao {
         limit: Int,
     ): Flow<List<DbRecentAsset>>
 
-    fun getRecentAssets(walletId: String, type: List<RecentActivityType>, filters: Set<AssetsRequestFilter> = emptySet(), limit: Int = 10): Flow<List<DbRecentAsset>> = getRecentAssetsQuery(
+    fun getRecentAssets(walletId: String, type: List<RecentActivityType>, filters: Set<AssetsQueryFilter> = emptySet(), limit: Int = 10): Flow<List<DbRecentAsset>> = getRecentAssetsQuery(
         walletId = walletId,
         type = type,
-        enabled = AssetsRequestFilter.Enabled in filters,
-        buyable = AssetsRequestFilter.Buyable in filters,
-        swappable = AssetsRequestFilter.Swappable in filters,
-        hasBalance = AssetsRequestFilter.HasBalance in filters,
-        hasAvailableBalance = AssetsRequestFilter.HasAvailableBalance in filters,
+        enabled = AssetsQueryFilter.Enabled in filters,
+        buyable = AssetsQueryFilter.Buyable in filters,
+        swappable = AssetsQueryFilter.Swappable in filters,
+        hasBalance = AssetsQueryFilter.HasBalance in filters,
+        hasAvailableBalance = AssetsQueryFilter.HasAvailableBalance in filters,
         byChainsOrAssetIds = filters.chainsOrAssets() != null,
         chains = filters.chainsOrAssets()?.chains.orEmpty(),
         assetIds = filters.chainsOrAssets()?.assetIds.orEmpty(),

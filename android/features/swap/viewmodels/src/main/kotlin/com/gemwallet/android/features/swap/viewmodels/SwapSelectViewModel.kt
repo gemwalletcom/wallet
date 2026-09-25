@@ -5,7 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
-import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
+import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
@@ -22,14 +22,14 @@ import javax.inject.Inject
 class SwapSelectViewModel @Inject constructor(
     getSession: GetSession,
     searchService: AssetsSearchService,
-    recentAssetsService: RecentAssetsService,
+    recentActivityQuery: RecentActivityQuery,
     service: GemAssetSelectionServiceInterface,
     savedStateHandle: SavedStateHandle,
     @IoDispatcher ioDispatcher: CoroutineDispatcher,
     @ApplicationContext context: Context,
 ) : BaseAssetSelectViewModel(
     getSession = getSession,
-    recentAssetsService = recentAssetsService,
+    recentActivityQuery = recentActivityQuery,
     service = service,
     search = BaseSelectSearch(searchService),
     selectType = when (savedStateHandle.requireSwapItemType()) {

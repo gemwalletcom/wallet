@@ -1,9 +1,10 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
+import com.gemwallet.android.application.assets.values.toQueryFilter
+import com.gemwallet.android.data.services.gemstone.assets.filteredSearch
 import com.gemwallet.android.data.services.store.database.AssetsDao
 import com.gemwallet.android.data.services.store.database.TransactionsDao
 import com.gemwallet.android.data.services.store.database.entities.toDTO
-import com.gemwallet.android.data.services.gemstone.assets.filteredSearch
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.TransactionType
@@ -27,7 +28,7 @@ class GemstoneSwapStore(private val assetsDao: AssetsDao, private val transactio
         assetsDao.getRecentAssets(
             walletId = walletId,
             type = types.map { it.toPrimitives() },
-            filters = filters.map { it.toRequestFilter() }.toSet(),
+            filters = filters.map { it.toQueryFilter() }.toSet(),
             limit = limit.toInt(),
         ).firstOrNull().orEmpty().map { it.asset.id }
     }

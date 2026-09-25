@@ -1373,7 +1373,7 @@ fun togglePriceAlerts(enable: Boolean) = viewModelScope.launch(ioDispatcher) {
 
 [`PriceAlertsQuery`](../android/data/services/store/src/main/kotlin/com/gemwallet/android/data/services/store/queries/PriceAlertsQuery.kt) separately observes the stored alerts with their asset and price; it does not wrap commands. Core classifies each alert through `alert_kind` and `PriceAlertFormatter`; the query only selects and joins the stored rows.
 
-For a real platform-only concern, iOS uses a feature service in `Features/<Feature>/Sources/Services/`, constructed by the app and injected. Android uses an interface in `gemcore` `application/<area>/cases/`, implemented in `data/coordinators/<area>/`; once MOD320 lands, that is the only thing a case is for. Neither path bypasses a Core persistence owner. Recent activity commands belong to `GemRecentActivityService`; the native stores supply persistence and observation.
+For a real platform-only concern, iOS uses a feature service in `Features/<Feature>/Sources/Services/`, constructed by the app and injected. Android uses an interface in `gemcore` `application/<area>/cases/`, implemented in `data/coordinators/<area>/`; once MOD320 lands, that is the only thing a case is for. Neither path bypasses a Core persistence owner. Recent activity commands belong to `GemRecentActivityService`; the native stores supply persistence and observation, which both apps read through `RecentActivityQuery`.
 
 ### Composition services are reached through the screen service
 
@@ -1790,11 +1790,11 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemNotificationService` | — | `InAppNotificationsViewModel` | `InAppNotificationsViewModel` |
 | `GemNotificationsService` | — | `NotificationsViewModel`, `SupportChatSceneViewModel`, `RootSceneViewModel` | `DevicePushSettings` behind `GetPushEnabled`, `SwitchPushEnabled`, `EnablePushForSupport`, `EnablePushForNewWallet` and `SetPushToken` (keeps the push-enabled state in memory for the Settings switch and `FCM`, asks for a new wallet outside the create and import view models, migrates the legacy DataStore flag and stores the FCM token); `RequestPushToken` is the FCM or stub flavor port |
 | `GemPerpetualDetailsService` | — | `PerpetualSceneViewModel` | `PerpetualDetailsViewModel` (+ `PerpetualQuery`, `PerpetualPositionsQuery`) |
-| `GemPerpetualService` | — | `PerpetualsSceneViewModel` (+ recent activity) | `PerpetualMarketViewModel` (+ recent activity, `PerpetualsQuery`, `PerpetualPositionsQuery`, `PerpetualWalletBalanceQuery`) |
+| `GemPerpetualService` | — | `PerpetualsSceneViewModel` (+ recent activity) | `PerpetualMarketViewModel` (+ `RecentActivityQuery`, `PerpetualsQuery`, `PerpetualPositionsQuery`, `PerpetualWalletBalanceQuery`) |
 | `GemPortfolioService` | — | `PortfolioSceneViewModel` | `PortfolioChartViewModel` |
 | `GemPriceAlertService` | — | `PriceAlertsSceneViewModel`, `SetPriceAlertViewModel` | `PriceAlertViewModel`, `PriceAlertTargetViewModel` |
 | `GemReceiveService` | — | `ReceiveViewModel` | `ReceiveViewModel` |
-| `GemRecentActivityService` | — | `RecentsSceneViewModel`, and `RecentAssetsModel` vended by `SelectAssetViewModel` and `PerpetualsSceneViewModel` | `RecentsSheetViewModel` |
+| `GemRecentActivityService` | — | `RecentsSceneViewModel`, and `RecentAssetsModel` vended by `SelectAssetViewModel` and `PerpetualsSceneViewModel` | `RecentsSheetViewModel` (+ `RecentActivityQuery`) |
 | `GemRecipientService` | — | `RecipientSceneViewModel` (+ `nameService`) | `RecipientViewModel` (+ `GemNameServiceInterface`) |
 | `GemRewardsService` | — | `RewardsViewModel`, `CreateRewardsCodeViewModel`, `RedeemRewardsCodeViewModel` | `ReferralViewModel` |
 | `GemServiceStatus` | — | `ServiceStatusViewModel` | `ServiceStatusViewModel` |

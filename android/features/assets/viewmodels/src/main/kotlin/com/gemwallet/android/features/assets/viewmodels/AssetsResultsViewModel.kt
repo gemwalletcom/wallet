@@ -8,8 +8,8 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
-import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.data.services.store.queries.PerpetualsQuery
+import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.marketAggregates
 import com.gemwallet.android.domains.search.WalletSearchTag
@@ -51,7 +51,7 @@ import javax.inject.Inject
 class AssetsResultsViewModel @Inject constructor(
     private val getSession: GetSession,
     searchService: AssetsSearchService,
-    recentAssetsService: RecentAssetsService,
+    recentActivityQuery: RecentActivityQuery,
     service: GemAssetSelectionServiceInterface,
     perpetualsQuery: PerpetualsQuery,
     @IoDispatcher ioDispatcher: CoroutineDispatcher,
@@ -59,7 +59,7 @@ class AssetsResultsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : BaseAssetSelectViewModel(
     getSession,
-    recentAssetsService,
+    recentActivityQuery,
     service,
     selectSearchOf(savedStateHandle, searchService, service),
     GemSelectAssetType.WalletSearchResults,

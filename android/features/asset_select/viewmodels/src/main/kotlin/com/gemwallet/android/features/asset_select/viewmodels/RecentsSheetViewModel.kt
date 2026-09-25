@@ -7,14 +7,15 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
+import com.gemwallet.android.application.assets.values.toQueryFilter
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
+import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsSheetUIModel
 import com.gemwallet.android.model.RecentAsset
-import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.RecentActivityType
@@ -39,7 +40,8 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class RecentsSheetViewModel @Inject constructor(
-    private val recentAssetsService: RecentAssetsService,
+    private val getCurrentWalletId: GetCurrentWalletId,
+    private val recentActivityQuery: RecentActivityQuery,
     private val recentActivityService: GemRecentActivityServiceInterface,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -56,7 +58,7 @@ class RecentsSheetViewModel @Inject constructor(
         .filterNotNull()
         .flatMapLatest { config ->
             combine(
-                recentAssetsService.getRecentAssets(RecentAssetsRequest(types = config.types, filters = config.filters, limit = 0)),
+                getCurrentWalletId().flatMapLatest { recentActivityQuery(it, config.types, config.filters.map { filter -> filter.toQueryFilter() }.toSet(), limit = 0) },
                 snapshotFlow { query.text.toString() },
                 ::buildUIModel,
             )

@@ -4,7 +4,7 @@ import android.content.Context
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
-import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
+import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -20,13 +20,13 @@ class AssetSelectViewModel @AssistedInject constructor(
     @Assisted selectType: GemSelectAssetType,
     getSession: GetSession,
     searchService: AssetsSearchService,
-    recentAssetsService: RecentAssetsService,
+    recentActivityQuery: RecentActivityQuery,
     service: GemAssetSelectionServiceInterface,
     @IoDispatcher ioDispatcher: CoroutineDispatcher,
     @ApplicationContext context: Context,
 ) : BaseAssetSelectViewModel(
     getSession,
-    recentAssetsService,
+    recentActivityQuery,
     service,
     BaseSelectSearch(searchService),
     selectType,

@@ -5,7 +5,7 @@ import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
-import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
+import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import io.mockk.coEvery
@@ -34,7 +34,7 @@ class SwapSelectViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
 
     private val getSession = mockk<GetSession>()
-    private val recentAssetsService = mockk<RecentAssetsService>()
+    private val recentActivityQuery = mockk<RecentActivityQuery>()
     private val service = mockk<GemAssetSelectionServiceInterface>()
     private val searchService = mockk<AssetsSearchService>()
 
@@ -42,7 +42,7 @@ class SwapSelectViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         every { getSession() } returns MutableStateFlow(null)
-        every { recentAssetsService.getRecentAssets(any()) } returns flowOf(emptyList())
+        every { recentActivityQuery(any(), any(), any(), any()) } returns flowOf(emptyList())
         every { searchService.search(any(), any(), any(), any()) } returns flowOf(emptyList())
         every { service.flow(any()) } answers { firstArg<GemSelectAssetType>().flow() }
         coEvery { service.searchAssets(any()) } returns emptyList()
@@ -68,7 +68,7 @@ class SwapSelectViewModelTest {
 
     private fun createViewModel(type: SwapItemType) = SwapSelectViewModel(
         getSession = getSession,
-        recentAssetsService = recentAssetsService,
+        recentActivityQuery = recentActivityQuery,
         service = service,
         searchService = searchService,
         ioDispatcher = testDispatcher,

@@ -3,11 +3,11 @@ package com.gemwallet.android.features.perpetual.viewmodels
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.data.services.store.queries.PerpetualPositionsQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualWalletBalance
 import com.gemwallet.android.data.services.store.queries.PerpetualWalletBalanceQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualsQuery
+import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockPerpetual
@@ -130,8 +130,9 @@ class PerpetualMarketViewModelTest {
         val perpetualWalletBalanceQuery = mockk<PerpetualWalletBalanceQuery> {
             every { this@mockk(any(), any()) } returns flowOf(balance?.let { PerpetualWalletBalance(balance = it, price = 1.0) })
         }
-        val recentAssetsService = mockk<RecentAssetsService>()
-        every { recentAssetsService.getRecentAssets(any()) } returns flowOf(emptyList())
+        val recentActivityQuery = mockk<RecentActivityQuery> {
+            every { this@mockk(any(), any(), any(), any()) } returns flowOf(emptyList())
+        }
         val perpetualObserver = mockk<PerpetualObserver>()
         val getSession = mockk<GetSession>()
         every { getSession() } returns MutableStateFlow(mockSession(wallet = mockWallet(type = walletType)))
@@ -141,7 +142,7 @@ class PerpetualMarketViewModelTest {
             perpetualPositionsQuery = perpetualPositionsQuery,
             perpetualWalletBalanceQuery = perpetualWalletBalanceQuery,
             getSession = getSession,
-            recentAssetsService = recentAssetsService,
+            recentActivityQuery = recentActivityQuery,
             service = service,
             perpetualObserver = perpetualObserver,
             ioDispatcher = dispatcher,
