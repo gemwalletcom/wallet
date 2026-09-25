@@ -158,3 +158,18 @@ debug = "line-tables-only"
 
 [profile.dev.package.argon2]
 opt-level = 3
+
+[profile.dev.package.hmac]
+opt-level = 3
+
+[profile.dev.package.pbkdf2]
+opt-level = 3
+
+[profile.dev.package.salsa20]
+opt-level = 3
+
+[profile.dev.package.scrypt]
+opt-level = 3
+
+[profile.dev.package.sha2]
+opt-level = 3
