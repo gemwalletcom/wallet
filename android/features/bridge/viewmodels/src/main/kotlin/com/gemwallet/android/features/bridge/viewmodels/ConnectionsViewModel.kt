@@ -36,13 +36,21 @@ class ConnectionsViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
-    val sections = getWalletConnections.observeConnections()
-        .mapLatest { connections ->
-            service.connectionSections(connections.map { it.toGem() }).map { section ->
+    private val view = getWalletConnections.observeConnections()
+        .mapLatest { connections -> service.connectionsView(connections.map { it.toGem() }) }
+        .stateIn(viewModelScope, SharingStarted.Companion.Lazily, null)
+
+    val sections = view
+        .map { view ->
+            view?.sections.orEmpty().map { section ->
                 ListSection(id = section.title, title = section.title, items = section.connections.map { it.rowUIModel() })
             }
         }
         .stateIn(viewModelScope, SharingStarted.Companion.Lazily, emptyList())
+
+    val docsUrl = view
+        .map { it?.docsUrl }
+        .stateIn(viewModelScope, SharingStarted.Companion.Lazily, null)
 
     init {
         viewModelScope.launch(ioDispatcher) { getWalletConnections.syncSessions() }

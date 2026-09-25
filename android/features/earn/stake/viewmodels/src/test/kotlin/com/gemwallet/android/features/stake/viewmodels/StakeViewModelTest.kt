@@ -70,6 +70,7 @@ class StakeViewModelTest {
             resourceRows = emptyList(),
             delegations = emptyList(),
             validators = emptyList(),
+            docsUrl = null,
         )
     }
 

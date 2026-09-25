@@ -19,11 +19,10 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **One view state:** VM89.
-2. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
-3. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
-4. **Balances and storage:** D76, D77, VM98 (an Android migration).
-5. **Server:** BD23, BD51, BD52.
+1. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
+2. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
+3. **Balances and storage:** D76, D77, VM98 (an Android migration).
+4. **Server:** BD23, BD51, BD52.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181. Waiting on a date or a release: X168, X163.
 
@@ -60,7 +59,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | Retain platform-only privacy lock |
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | — |
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | retain Android-only one-click auth |
-| Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per module | VM6, VM64, VM88, VM89, VM172, VM180 |
+| Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per module | VM6, VM64, VM88, VM172, VM180 |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
 | Stores and persistence | `Gem*Store` traits and both adapters | VM98 |
 
@@ -128,7 +127,6 @@ Core has no runtime, so scheduling, timers and OS callbacks stay in the apps; wh
   - **Android:** one mapper `GemInfoSheet → InfoSheetEntity`; delete the 33 subclasses, `GemInfoTopic.infoSheet` and the sheet building in `ConfirmErrorUIModel`.
   - **Expected, the iOS content:** the network fee title key (iOS `info.network_fee.title`, Android `transfer_network_fee`); the network-fee-required title argument (iOS the asset's display title, Android the native symbol) and image (iOS the fee asset, Android the native asset); the account-minimum-balance and stake-frozen images (iOS logo, Android the asset icon; Android also passes an unused `titleArgs`); the stake lock time and APR images (iOS the placeholder only, Android the asset icon); bold `available` and `shortfall` in the swap-minimum sheet (iOS only); the network-fees link on the staking-reserved-fees sheet (iOS only); a balance-required or swap-minimum sheet without an acquire action (iOS shows it without a button, Android shows none).
   - **Expected, Android's rule:** every row that carries a topic opens it. iOS drops the autoclose topic on the amount screen (`AmountPerpetualViewModel.swift:58`) and on the confirm modify-autoclose row (`ConfirmTransferScene.swift:80`). Android's network-fee-required docs link, which can never open, goes.
-- **VM89** **S** **Docs links come with the screen.** Screens pick docs URLs themselves (iOS `StakeSceneViewModel` `.staking(chain)` and `ConnectionsViewModel` `.walletConnect`; Android `Asset.stakeChain`/`AppUrl.staking`). The screen's existing Core record carries the finished `docs_url` (`GemStakeViewState`, the connections state), the way VM88 carries it on a sheet, so no export returns a constant; delete the app-side choices.
 - **D76** **S** **Whether one failed balance request discards its network's other answers.** `chain_balances` in [`balance/mod.rs`](../core/gemstone/src/services/balance/mod.rs) joins the coin, staking, token and earn results with `?`, so a failed staking or earn request throws away the coin and token balances that succeeded on that network, and no test covers the case; the product intent in [product/wallet.md](product/wallet.md) says a slow or failing request must not hold back the others. **Decided:** publish the components that answered and return the first component failure (extend `published_balances` to per-component results, add the test).
 - **D77** **S** **When the wallet list updates during a balance refresh.** `update` waits for every network (`join_all`) and every component (`join!`) before its single write, so the fastest network's coin balance shows only when the slowest has answered or failed; [ARCHITECTURE](ARCHITECTURE.md#publish-a-multi-source-refresh-as-one-batch) chose one batch on purpose (fewer observer notifications, no mixed-age totals), and the product owner wants balances "as soon as possible". **Decided:** write each network as it finishes, each write atomic and lane-ordered, per the product rule in [product/wallet.md](product/wallet.md); update the ARCHITECTURE section in the same change.
 

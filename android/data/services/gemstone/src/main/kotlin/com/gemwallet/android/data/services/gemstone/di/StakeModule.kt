@@ -19,6 +19,7 @@ import uniffi.gemstone.GemStakeServiceInterface
 import uniffi.gemstone.GemStakeStore
 import uniffi.gemstone.GemStaticApiClient
 import uniffi.gemstone.GemWalletSessionService
+import uniffi.gemstone.Platform
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -42,7 +43,7 @@ object StakeModule {
         explorerService: GemExplorerService,
         preferencesService: GemPreferencesService,
         walletSessionService: GemWalletSessionService,
-    ): GemStakeService = GemStakeService(gateway, staticApiClient, store, nameService, explorerService, preferencesService, walletSessionService)
+    ): GemStakeService = GemStakeService(gateway, staticApiClient, store, nameService, explorerService, preferencesService, walletSessionService, Platform.ANDROID)
 
     @Provides
     @Singleton

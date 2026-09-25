@@ -11,7 +11,7 @@ use chrono::Utc;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use primitives::{Asset, AssetId, Chain, Currency, Delegation, DelegationBase, DelegationValidator, Resource, StakeProviderType, WalletId, WalletType};
+use primitives::{Asset, AssetId, Chain, Currency, Delegation, DelegationBase, DelegationValidator, Platform, Resource, StakeProviderType, WalletId, WalletType};
 
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
@@ -37,6 +37,7 @@ pub struct GemStakeService {
     explorer: Arc<GemExplorerService>,
     preferences: Arc<GemPreferencesService>,
     session: Arc<GemWalletSessionService>,
+    platform: Platform,
 }
 
 #[uniffi::export]
@@ -50,6 +51,7 @@ impl GemStakeService {
         explorer: Arc<GemExplorerService>,
         preferences: Arc<GemPreferencesService>,
         session: Arc<GemWalletSessionService>,
+        platform: Platform,
     ) -> Self {
         Self {
             gateway,
@@ -59,6 +61,7 @@ impl GemStakeService {
             explorer,
             preferences,
             session,
+            platform,
         }
     }
 
@@ -101,7 +104,7 @@ impl GemStakeService {
     }
 
     pub fn stake_view_state(&self, input: GemStakeInput) -> GemStakeViewState {
-        rules::stake_view_state(input)
+        rules::stake_view_state(input, self.platform)
     }
 
     pub fn delegation_details(&self, wallet_type: WalletType, delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency) -> GemDelegationDetails {

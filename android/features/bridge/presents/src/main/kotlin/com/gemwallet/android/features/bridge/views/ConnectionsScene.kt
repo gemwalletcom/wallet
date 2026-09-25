@@ -20,7 +20,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.AppUrl
 import com.gemwallet.android.features.bridge.viewmodels.ConnectionsViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DocsInfoButton
@@ -41,7 +40,6 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.QRScanType
 import kotlinx.coroutines.launch
-import uniffi.gemstone.DocsUrl
 import uniffi.gemstone.GemConnection
 import uniffi.gemstone.GemEmptyStateKind
 
@@ -51,6 +49,7 @@ fun ConnectionsScene(onConnection: (String) -> Unit, onCancel: () -> Unit, viewM
     var scannerShowed by remember { mutableStateOf(false) }
 
     val sections by viewModel.sections.collectAsStateWithLifecycle()
+    val docsUrl by viewModel.docsUrl.collectAsStateWithLifecycle()
 
     var pairError by remember { mutableStateOf("") }
 
@@ -62,7 +61,7 @@ fun ConnectionsScene(onConnection: (String) -> Unit, onCancel: () -> Unit, viewM
         title = stringResource(id = R.string.wallet_connect_title),
         snackbar = snackbar,
         actions = {
-            DocsInfoButton(AppUrl.docs(DocsUrl.WalletConnect))
+            docsUrl?.let { DocsInfoButton(it) }
         },
         onClose = onCancel,
     ) {

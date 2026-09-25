@@ -172,6 +172,12 @@ pub struct GemConnectionSection {
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
+pub struct GemConnectionsView {
+    pub sections: Vec<GemConnectionSection>,
+    pub docs_url: String,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConnectionDetails {
     pub connection: GemConnection,
     pub rows: Vec<GemListRow>,

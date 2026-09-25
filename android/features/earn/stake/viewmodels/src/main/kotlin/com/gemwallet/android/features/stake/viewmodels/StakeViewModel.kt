@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.AppUrl
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
@@ -13,7 +12,6 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.domains.asset.stakeChain
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
@@ -79,10 +77,6 @@ class StakeViewModel @Inject constructor(
         .flatMapLatest { getAssetInfo(it) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, getWalletAssets().value.firstOrNull { it.asset.id == initialAssetId })
 
-    val stakeInfoUrl = assetInfo
-        .mapLatest { it?.asset?.stakeChain?.let { chain -> AppUrl.staking(chain.string) } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
     private val session = getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -119,6 +113,10 @@ class StakeViewModel @Inject constructor(
             ),
         )
     }.flowOn(ioDispatcher).stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val stakeInfoUrl: StateFlow<String?> = viewState
+        .map { it?.docsUrl }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val infoRows: StateFlow<List<GemListRow>> = viewState
         .map { it?.infoRows.orEmpty() }

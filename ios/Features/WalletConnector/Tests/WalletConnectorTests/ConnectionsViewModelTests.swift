@@ -24,15 +24,15 @@ struct ConnectionsViewModelTests {
         let model = ConnectionsViewModel.mock(service: service)
         model.query.value = [connection]
 
-        #expect(model.sections.map(\.title) == ["Active"])
-        #expect(model.sections.first?.connections.count == 1)
+        #expect(model.view.sections.map(\.title) == ["Active"])
+        #expect(model.view.sections.first?.connections.count == 1)
     }
 
     @Test
     func noConnectionsMeanNoSections() {
         let model = ConnectionsViewModel.mock()
 
-        #expect(model.sections.isEmpty)
+        #expect(model.view.sections.isEmpty)
         #expect(model.connections.isEmpty)
     }
 

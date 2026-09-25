@@ -58,10 +58,6 @@ public final class StakeSceneViewModel {
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: chain.chain.assetId), initialValue: .with(asset: chain.chain.asset))
     }
 
-    public var stakeInfoUrl: URL {
-        AppUrl.docs(.staking(chain.rawValue))
-    }
-
     var title: String {
         Localized.Transfer.Stake.title
     }

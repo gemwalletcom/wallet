@@ -203,6 +203,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
                 GemStakeDelegationItem(delegation: $0, row: $1, destination: .details)
             },
             validators: validators,
+            docsUrl: nil,
         )
     }
 

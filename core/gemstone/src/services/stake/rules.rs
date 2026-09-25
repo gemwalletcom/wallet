@@ -4,6 +4,7 @@ use crate::services::collections::{stale, unique};
 
 use num_bigint::{BigInt, BigUint};
 use primitives::AddressName;
+use primitives::Platform;
 use primitives::{
     AddressFormatStyle, AddressFormatter, AddressType, Asset, Chain, Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, EarnType, RedelegateData, Resource, StakeChain, StakeProviderType, StakeType,
     VerificationStatus, WalletType, YieldProvider,
@@ -31,6 +32,7 @@ use chrono::{DateTime, Utc};
 use number_formatter::BigNumberFormatter;
 
 use crate::config::chain::account_activation_fee_url;
+use crate::config::docs::DocsUrl;
 use crate::config::stake::{StakeChainConfig, get_stake_config};
 use crate::config::validators::get_validators;
 
@@ -262,7 +264,7 @@ fn stake_config(chain: Chain) -> Option<StakeChainConfig> {
     StakeChain::from_chain(chain).map(get_stake_config)
 }
 
-pub fn stake_view_state(input: GemStakeInput) -> GemStakeViewState {
+pub fn stake_view_state(input: GemStakeInput, platform: Platform) -> GemStakeViewState {
     let GemStakeInput {
         wallet_type,
         asset,
@@ -292,6 +294,7 @@ pub fn stake_view_state(input: GemStakeInput) -> GemStakeViewState {
             .collect(),
         actions,
         validators,
+        docs_url: StakeChain::from_chain(chain).map(|chain| DocsUrl::Staking(chain).url_for(platform)),
     }
 }
 
@@ -1275,17 +1278,20 @@ mod tests {
             Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 10),
         ];
         let validators = vec![DelegationValidator::mock()];
-        let state = stake_view_state(GemStakeInput {
-            wallet_type: WalletType::Multicoin,
-            asset: asset.clone(),
-            balance: GemAssetBalance::mock(),
-            balance_metadata: None,
-            staking_apr: None,
-            price: None,
-            currency: Currency::USD,
-            validators: validators.clone(),
-            delegations: delegations.clone(),
-        });
+        let state = stake_view_state(
+            GemStakeInput {
+                wallet_type: WalletType::Multicoin,
+                asset: asset.clone(),
+                balance: GemAssetBalance::mock(),
+                balance_metadata: None,
+                staking_apr: None,
+                price: None,
+                currency: Currency::USD,
+                validators: validators.clone(),
+                delegations: delegations.clone(),
+            },
+            Platform::IOS,
+        );
 
         let sorted = sorted_delegations(delegations);
         assert_eq!(state.delegations.iter().map(|item| item.delegation.clone()).collect::<Vec<_>>(), sorted);
@@ -1293,6 +1299,7 @@ mod tests {
         assert_eq!(state.sections, stake_sections(uses_freeze(Chain::Cosmos), !state.actions.is_empty(), true));
         assert_eq!(state.delegations[0].row, delegation_list_row(&sorted[0], &asset, None, Currency::USD));
         assert!(state.resource_rows.is_empty());
+        assert_eq!(state.docs_url, Some(DocsUrl::Staking(StakeChain::Cosmos).url_for(Platform::IOS)), "the screen links its chain's staking guide");
     }
 
     #[test]

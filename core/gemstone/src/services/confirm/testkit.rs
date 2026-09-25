@@ -90,6 +90,7 @@ impl ConfirmTestkit {
             explorer.clone(),
             preferences.clone(),
             session.clone(),
+            primitives::Platform::IOS,
         ));
         let nft = Arc::new(GemNftService::new(device_api.clone(), Arc::new(MemoryNftStore::default()), session.clone()));
         let payment = Arc::new(GemPaymentService::new(provider.clone(), assets.clone()));

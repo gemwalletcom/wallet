@@ -234,6 +234,7 @@ struct ServicesFactory {
             session: walletSessionService,
             assets: assetsService,
             signMessage: signMessageService,
+            platform: .ios,
         )
         let walletConnector = WalletConnectorService(
             walletSessionService: walletSessionService,

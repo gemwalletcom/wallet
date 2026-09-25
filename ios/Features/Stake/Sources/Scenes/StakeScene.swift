@@ -38,6 +38,9 @@ public struct StakeScene: View {
             await model.load()
         }
         .navigationTitle(model.title)
+        .ifLet(state.docsUrl?.asURL) { view, url in
+            view.toolbarInfoButton(url: url)
+        }
         .taskOnce {
             Task {
                 await model.load()

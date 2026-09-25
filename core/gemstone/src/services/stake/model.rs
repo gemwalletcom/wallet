@@ -137,6 +137,7 @@ pub struct GemStakeViewState {
     pub resource_rows: Vec<GemListRow>,
     pub delegations: Vec<GemStakeDelegationItem>,
     pub validators: Vec<DelegationValidator>,
+    pub docs_url: Option<String>,
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]

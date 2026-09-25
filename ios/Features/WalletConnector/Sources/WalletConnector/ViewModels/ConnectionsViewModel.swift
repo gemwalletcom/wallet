@@ -3,7 +3,7 @@
 import Components
 import Foundation
 import struct Gemstone.GemConnection
-import struct Gemstone.GemConnectionSection
+import struct Gemstone.GemConnectionsView
 import protocol Gemstone.GemWalletConnectServiceProtocol
 import GemstonePrimitives
 import Localization
@@ -56,12 +56,8 @@ public final class ConnectionsViewModel {
         Localized.Wallet.scanQrCode
     }
 
-    var docsUrl: URL {
-        AppUrl.docs(.walletConnect)
-    }
-
-    var sections: [GemConnectionSection] {
-        service.connectionSections(connections: connections.map { $0.toGem() })
+    var view: GemConnectionsView {
+        service.connectionsView(connections: connections.map { $0.toGem() })
     }
 
     var emptyContentModel: EmptyContentTypeViewModel {
