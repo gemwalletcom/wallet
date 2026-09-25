@@ -14,6 +14,8 @@ pub const FIAT_QUOTE_DEBOUNCE: Duration = Duration::from_millis(250);
 pub const FIAT_QUOTE_REFRESH_INTERVAL: Duration = Duration::from_secs(300);
 pub const FIAT_QUOTE_CURRENCY: Currency = Currency::USD;
 pub const CONNECTION_BANNER_SETTLE_DELAY: Duration = Duration::from_secs(10);
+// TODO: Enable the connection banner once it is polished.
+pub const CONNECTION_BANNER_ENABLED: bool = false;
 pub const OFFLINE_DEBOUNCE: Duration = Duration::from_millis(500);
 pub const PING_INTERVAL: Duration = Duration::from_secs(30);
 pub const SCAN_TIMEOUT: Duration = Duration::from_secs(3);

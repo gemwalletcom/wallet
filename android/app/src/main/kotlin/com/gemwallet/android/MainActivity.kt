@@ -125,6 +125,7 @@ class MainActivity :
             }
             val connectionBannerState = remember { ConnectionBannerState() }
             LaunchedEffect(connectionStatus) {
+                if (!GemConstants.connectionBannerEnabled) return@LaunchedEffect
                 delay(GemConstants.connectionBannerSettleDelay)
                 connectionBannerState.update(connectionStatus.stringRes()?.let(::getString))
             }

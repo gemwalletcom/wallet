@@ -24,7 +24,7 @@ private struct ConnectionStatusBannerModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         let model = model
-        let isPresented = isVisible && !isDismissed
+        let isPresented = GemConstants.connectionBannerEnabled && isVisible && !isDismissed
         return content
             .contentMargins(.bottom, isPresented ? bannerHeight + .small : nil, for: .scrollContent)
             .overlay(alignment: .bottom) {
