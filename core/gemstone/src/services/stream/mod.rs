@@ -98,6 +98,9 @@ impl GemStreamService {
 
     pub async fn disconnected(&self) {
         self.subscriptions.reset().await;
+        if let Err(error) = self.support.clear_typing() {
+            error!(%error, "stream support typing reset failed");
+        }
     }
 
     pub async fn decode_event(&self, event: String) -> Result<GemStreamEvent, GemServiceError> {

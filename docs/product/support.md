@@ -18,3 +18,4 @@ flowchart LR
 ## Rules
 
 - A message the user sends shows at once and never disappears; a failure marks it, it does not remove it.
+- The typing indicator lives only as long as the live connection: when the app loses it, the indicator goes away rather than stay under a reply that already arrived.
