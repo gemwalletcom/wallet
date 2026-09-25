@@ -1,16 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Components
 import Formatters
 import Foundation
 import func Gemstone.autocloseDraft
 import protocol Gemstone.GemAmountServiceProtocol
-import enum Gemstone.GemAmountType
+import enum Gemstone.GemAmountRequest
 import struct Gemstone.GemAutocloseDraft
 import enum Gemstone.GemPerpetualPositionAction
 import struct Gemstone.GemPerpetualTransferData
-import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import Localization
 import Perpetuals
@@ -19,7 +17,7 @@ import PrimitivesComponents
 import Style
 
 @Observable
-public final class AmountPerpetualViewModel: AmountDataProvidable {
+public final class AmountPerpetualViewModel {
     let asset: Asset
     let action: GemPerpetualPositionAction
     let leverageSelection: SelectionState<LeverageOption>?
@@ -78,23 +76,8 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         transferData.direction.toPrimitives()
     }
 
-    var title: String {
-        gemAmountType.title().title
-    }
-
-    var gemAmountType: GemAmountType {
-        service.perpetualAmountType(action: action, leverage: leverage)
-    }
-
-    func makeTransferData(value: BigInt, useMaxAmount: Bool) -> GemTransferData {
-        service.perpetualTransferData(
-            action: action,
-            value: value,
-            useMaxAmount: useMaxAmount,
-            leverage: leverage,
-            draft: draft,
-            decimalSeparator: decimalSeparator,
-        )
+    var request: GemAmountRequest {
+        .perpetual(action: action, leverage: leverage, draft: draft, decimalSeparator: decimalSeparator)
     }
 
     func makeAutocloseData(size: Double) -> AutocloseOpenData {

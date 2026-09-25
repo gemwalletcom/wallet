@@ -1,11 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Foundation
-import enum Gemstone.GemAmountType
+import enum Gemstone.GemAmountRequest
 import enum Gemstone.GemStakeAmountInput
 import protocol Gemstone.GemStakeServiceProtocol
-import struct Gemstone.GemTransferData
 import struct Gemstone.GemValidatorRow
 import GemstonePrimitives
 import Localization
@@ -24,7 +22,7 @@ public extension SelectionState where T == GemValidatorRow {
     }
 }
 
-public final class AmountStakeViewModel: AmountDataProvidable {
+public final class AmountStakeViewModel {
     let asset: Asset
     public let selection: AmountStakeSelection
     public let recommendedValidators: [GemValidatorRow]
@@ -56,16 +54,8 @@ public final class AmountStakeViewModel: AmountDataProvidable {
         }
     }
 
-    var title: String {
-        gemAmountType.title().title
-    }
-
-    var gemAmountType: GemAmountType {
-        action.amountType()
-    }
-
-    func makeTransferData(value: BigInt, useMaxAmount: Bool) throws -> GemTransferData {
-        try service.stakeTransferData(asset: asset.toGem(), stakeType: action.stakeType(), value: value, useMaxAmount: useMaxAmount)
+    var request: GemAmountRequest {
+        .stake(input: action)
     }
 
     func select(_ row: GemValidatorRow) {

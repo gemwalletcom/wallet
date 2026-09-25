@@ -20,29 +20,16 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
         Primitives.Currency.usd.toGem()
     }
 
-    public func perpetualTransferData(action: GemPerpetualPositionAction, value: Gemstone.GemBigInt, useMaxAmount: Bool, leverage: UInt8, draft: GemAutocloseDraft, decimalSeparator: String) -> GemTransferData {
-        builder.perpetualTransferData(action: action, value: value, useMaxAmount: useMaxAmount, leverage: leverage, draft: draft, decimalSeparator: decimalSeparator)
-    }
-
-    public func earnTransferData(asset _: Gemstone.Asset, earnType _: Gemstone.EarnType, value _: Gemstone.GemBigInt, useMaxAmount _: Bool) async throws -> GemTransferData {
-        throw AnyError("not stubbed")
-    }
-
     public func perpetualLeverageSelection(maxLeverage: UInt8) -> GemLeverageSelection? {
         let options = stride(from: UInt8(1), through: maxLeverage, by: 1).map { GemPickerOption(value: $0, label: .text(text: "\($0)x")) }
         return options.first { $0.value == min(5, maxLeverage) }.map { GemLeverageSelection(options: options, selected: $0) }
     }
 
-    public func perpetualAmountType(action: GemPerpetualPositionAction, leverage: UInt8) -> GemAmountType {
-        builder.perpetualAmountType(action: action, leverage: leverage)
-    }
-
-    public func earnAmountType(earnType: Gemstone.EarnType) -> GemAmountType {
-        builder.earnAmountType(earnType: earnType)
-    }
-
-    public func transferData(asset: Gemstone.Asset, transfer: GemAmountTransfer, value: Gemstone.GemBigInt, useMaxAmount: Bool) async throws -> GemTransferData {
-        try await builder.transferData(asset: asset, transfer: transfer, value: value, useMaxAmount: useMaxAmount)
+    public func transferData(asset: Gemstone.Asset, request: GemAmountRequest, value: Gemstone.GemBigInt, useMaxAmount: Bool) async throws -> GemTransferData {
+        if case .earn = request {
+            throw AnyError("not stubbed")
+        }
+        return try await builder.transferData(asset: asset, request: request, value: value, useMaxAmount: useMaxAmount)
     }
 
     public var perpetualAutocloseValue: @Sendable (UInt8) -> GemPerpetualAutoclose = { _ in GemPerpetualAutoclose(takeProfit: nil, stopLoss: nil) }
@@ -230,10 +217,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
             details.claim = nil
         }
         return details
-    }
-
-    public func stakeTransferData(asset: Gemstone.Asset, stakeType: Gemstone.StakeType, value: Gemstone.GemBigInt, useMaxAmount: Bool) -> GemTransferData {
-        GemTransferData(inputType: .stake(asset: asset, stakeType: stakeType), recipient: GemRecipient(address: ""), value: value, useMaxAmount: useMaxAmount)
     }
 
     public func delegationDestination(walletType _: Gemstone.WalletType, asset _: Gemstone.Asset, delegation _: Gemstone.Delegation) -> GemDelegationDestination {

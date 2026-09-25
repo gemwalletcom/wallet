@@ -506,6 +506,24 @@ fn without_leading_zeros(text: &str) -> String {
 mod tests {
 
     #[test]
+    fn test_a_request_answers_its_own_amount_type_and_display_asset() {
+        use super::super::model::{GemAmountRequest, GemAmountStakeType, GemAmountTransfer, GemAmountType};
+        use crate::services::stake::model::GemStakeAmountInput;
+        use primitives::{Asset, Chain};
+
+        let usdc = Asset::from_chain(Chain::Arbitrum);
+        let deposit = GemAmountRequest::Transfer { transfer: GemAmountTransfer::Deposit };
+        assert_eq!(deposit.amount_type(), GemAmountType::Deposit);
+        assert_eq!(deposit.display_asset(usdc.clone()), super::transfer_display_asset(&GemAmountTransfer::Deposit, usdc.clone()));
+
+        let stake = GemAmountRequest::Stake {
+            input: GemStakeAmountInput::Stake { validators: vec![], validator: None },
+        };
+        assert_eq!(stake.amount_type(), GemAmountType::Stake { stake_type: GemAmountStakeType::Stake });
+        assert_eq!(stake.display_asset(usdc.clone()), usdc, "only a transfer shows another asset");
+    }
+
+    #[test]
     fn test_a_value_echoes_into_the_field_without_grouping_or_trailing_zeros() {
         assert_eq!(super::value_text(".", 67000.0), "67000");
         assert_eq!(super::value_text(",", 1234.5), "1234,5");

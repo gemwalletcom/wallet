@@ -11,11 +11,10 @@ use chrono::Utc;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use primitives::{Asset, AssetId, Chain, Currency, Delegation, DelegationBase, DelegationValidator, Resource, StakeProviderType, StakeType, WalletId, WalletType};
+use primitives::{Asset, AssetId, Chain, Currency, Delegation, DelegationBase, DelegationValidator, Resource, StakeProviderType, WalletId, WalletType};
 
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
-use crate::models::custom_types::GemBigInt;
 use crate::models::{GemContractCallData, GemEarnType};
 
 pub use model::{
@@ -27,8 +26,6 @@ pub use store::GemStakeStore;
 use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemNameService;
 use crate::services::preferences::GemPreferencesService;
-use crate::services::transfer::GemTransferData;
-use crate::services::transfer::rules as transfer_rules;
 use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
@@ -67,10 +64,6 @@ impl GemStakeService {
 
     pub fn get_currency(&self) -> Currency {
         self.preferences.get_currency()
-    }
-
-    pub fn stake_transfer_data(&self, asset: Asset, stake_type: StakeType, value: GemBigInt, use_max_amount: bool) -> GemTransferData {
-        transfer_rules::stake_transfer_data(asset, stake_type, value, use_max_amount)
     }
 
     pub fn stake_validator_selection(&self, chain: Chain, input: GemStakeAmountInput) -> GemStakeValidatorSelection {

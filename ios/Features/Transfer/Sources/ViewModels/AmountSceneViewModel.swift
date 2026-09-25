@@ -7,7 +7,10 @@ import struct Gemstone.GemAmountEntry
 import enum Gemstone.GemAmountError
 import struct Gemstone.GemAmountInput
 import enum Gemstone.GemAmountInputType
+import enum Gemstone.GemAmountRequest
 import protocol Gemstone.GemAmountServiceProtocol
+import enum Gemstone.GemAmountType
+import struct Gemstone.GemAssetBalance
 import protocol Gemstone.GemStakeServiceProtocol
 import struct Gemstone.GemTransferData
 import struct Gemstone.GemValidatorRow
@@ -31,7 +34,10 @@ public final class AmountSceneViewModel {
     let currencyFormatter: CurrencyFormatter
     private let currency: Currency
 
-    public let provider: AmountDataProvider
+    public let asset: Asset
+    public let stake: AmountStakeViewModel?
+    public let perpetual: AmountPerpetualViewModel?
+    private let baseRequest: GemAmountRequest
 
     public let assetQuery: ObservableQuery<AssetRequest>
     var assetData: AssetData {
@@ -57,20 +63,56 @@ public final class AmountSceneViewModel {
         self.onTransferAction = onTransferAction
         currency = service.getCurrency().toPrimitives()
         currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: currency.rawValue)
-        provider = .make(from: input, service: service, stakeService: stakeService)
+        asset = input.asset
+        var stake: AmountStakeViewModel?
+        var perpetual: AmountPerpetualViewModel?
+        switch input.type {
+        case let .transfer(recipient): baseRequest = .transfer(transfer: .send(payment: recipient))
+        case .deposit: baseRequest = .transfer(transfer: .deposit)
+        case .withdraw: baseRequest = .transfer(transfer: .withdraw)
+        case let .earn(earnType): baseRequest = .earn(earnType: earnType)
+        case let .stake(type):
+            let model = AmountStakeViewModel(asset: input.asset, type: type, service: stakeService)
+            stake = model
+            baseRequest = model.request
+        case let .perpetual(action):
+            let model = AmountPerpetualViewModel(asset: input.asset, action: action, service: service)
+            perpetual = model
+            baseRequest = model.request
+        }
+        self.stake = stake
+        self.perpetual = perpetual
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: input.asset.id), initialValue: .with(asset: input.asset))
-        let amountInput = provider.input(from: assetQuery.value)
+        let request = stake?.request ?? perpetual?.request ?? baseRequest
+        let amountInput = Self.input(request: request, asset: input.asset, assetData: assetQuery.value)
         self.input = amountInput
-        entry = provider.entry(from: assetQuery.value, input: amountInput, inputType: .asset, text: .empty, currency: currency)
+        entry = Self.entry(amountType: request.amountType(), asset: input.asset, assetData: assetQuery.value, input: amountInput, inputType: .asset, text: .empty, currency: currency)
         amountInputModel = InputValidationViewModel()
     }
 
-    public var asset: Asset {
-        provider.asset
+    var request: GemAmountRequest {
+        stake?.request ?? perpetual?.request ?? baseRequest
+    }
+
+    var amountType: GemAmountType {
+        request.amountType()
     }
 
     var title: String {
-        provider.title
+        amountType.title().title
+    }
+
+    var earnProviderRow: GemValidatorRow? {
+        guard case let .earn(_, provider) = amountType else { return nil }
+        return provider
+    }
+
+    var providerTitle: String {
+        Localized.Common.provider
+    }
+
+    var displayAsset: Asset {
+        request.displayAsset(asset: asset.toGem()).toPrimitives()
     }
 
     var canChangeValue: Bool {
@@ -86,10 +128,7 @@ public final class AmountSceneViewModel {
     }
 
     var assetImage: AssetImage {
-        if case let .transfer(transfer) = provider {
-            return AssetIdViewModel(assetId: transfer.displayAsset.id).assetImage
-        }
-        return AssetIdViewModel(assetId: asset.id).assetImage
+        AssetIdViewModel(assetId: displayAsset.id).assetImage
     }
 
     var assetName: String {
@@ -126,7 +165,7 @@ public final class AmountSceneViewModel {
 
     var inputConfig: any CurrencyInputConfigurable {
         AmountInputConfig(
-            canSwitchInputType: provider.gemAmountType.canSwitchInputType(),
+            canSwitchInputType: amountType.canSwitchInputType(),
             inputType: amountInputType,
             asset: asset,
             currencyFormatter: currencyFormatter,
@@ -181,40 +220,33 @@ extension AmountSceneViewModel {
     }
 
     func onSelectLeverage() {
-        guard case let .perpetual(perpetual) = provider,
-              let selection = perpetual.leverageSelection else { return }
+        guard let selection = perpetual?.leverageSelection else { return }
         isPresentingSheet = .leverageSelector(selection: selection)
     }
 
     func onSelectAutoclose() {
-        guard case let .perpetual(perpetual) = provider else { return }
+        guard let perpetual else { return }
         let amount = NumberInput.double(amountInputModel.text) ?? .zero
         isPresentingSheet = .autoclose(perpetual.makeAutocloseData(size: amount))
     }
 
     public func onAutocloseComplete(_ selection: AutocloseSelection) {
-        if case let .perpetual(perpetual) = provider {
-            perpetual.updateAutoclose(takeProfit: selection.takeProfit, stopLoss: selection.stopLoss)
-        }
+        perpetual?.updateAutoclose(takeProfit: selection.takeProfit, stopLoss: selection.stopLoss)
         isPresentingSheet = nil
     }
 
     func onChangeResource(_: Resource, _ resource: Resource) {
-        if case let .stake(stake) = provider {
-            stake.select(resource)
-        }
+        stake?.select(resource)
         cleanInput()
     }
 
     public func onChangeLeverage(_: LeverageOption, _: LeverageOption) {
         refreshEntry()
-        if case let .perpetual(perpetual) = provider {
-            perpetual.onChangeLeverage()
-        }
+        perpetual?.onChangeLeverage()
     }
 
     public func onValidatorSelected(_ row: GemValidatorRow) {
-        guard case let .stake(stake) = provider else { return }
+        guard let stake else { return }
         stake.select(row)
         refreshEntry()
     }
@@ -240,8 +272,8 @@ private extension AmountSceneViewModel {
     }
 
     func refreshEntry() {
-        input = provider.input(from: assetData)
-        entry = provider.entry(from: assetData, input: input, inputType: amountInputType, text: NumberInput.plain(amountInputModel.text), currency: currency)
+        input = Self.input(request: request, asset: asset, assetData: assetData)
+        entry = Self.entry(amountType: amountType, asset: asset, assetData: assetData, input: input, inputType: amountInputType, text: NumberInput.plain(amountInputModel.text), currency: currency)
         amountInputModel.update(error: entry.error)
     }
 
@@ -254,7 +286,7 @@ private extension AmountSceneViewModel {
         guard let value = entry.value else { return }
         do {
             transferState = .loading
-            let transfer = try await provider.makeTransferData(value: value, useMaxAmount: entry.isMax)
+            let transfer = try await service.transferData(asset: asset.toGem(), request: request, value: value, useMaxAmount: entry.isMax)
             transferState = .noData
             onTransferAction?(transfer)
         } catch {
@@ -265,5 +297,13 @@ private extension AmountSceneViewModel {
 
     var secondaryText: String {
         entry.equivalent.text()
+    }
+
+    static func input(request: GemAmountRequest, asset: Asset, assetData: AssetData) -> GemAmountInput {
+        request.input(asset: asset.toGem(), balance: GemAssetBalance(assetData.balance, assetId: asset.id, isActive: assetData.metadata.isActive))
+    }
+
+    static func entry(amountType: GemAmountType, asset: Asset, assetData: AssetData, input: GemAmountInput, inputType: GemAmountInputType, text: String, currency: Currency) -> GemAmountEntry {
+        amountType.entry(asset: asset.toGem(), input: input, price: assetData.price?.price, inputType: inputType, text: text, currency: currency.toGem())
     }
 }

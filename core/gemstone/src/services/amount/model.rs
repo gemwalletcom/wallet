@@ -1,10 +1,13 @@
 use crate::formatted_number::GemFormattedNumber;
+use crate::models::GemEarnType;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::list::GemInfoTopic;
 use crate::payment::GemPaymentRecipient;
 use crate::precision::GemValueStyle;
 use crate::services::balance::{GemAssetBalance, GemBalanceRequirement};
-use crate::services::stake::model::GemValidatorRow;
+use crate::services::perpetual::GemPerpetualPositionAction;
+use crate::services::perpetual::autoclose::GemAutocloseDraft;
+use crate::services::stake::model::{GemStakeAmountInput, GemValidatorRow};
 use primitives::{Asset, Delegation, PerpetualDirection, Resource};
 
 #[allow(clippy::large_enum_variant)]
@@ -59,18 +62,49 @@ pub enum GemAmountTransfer {
     Withdraw,
 }
 
+#[derive(Debug, Clone, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
+pub enum GemAmountRequest {
+    Transfer {
+        transfer: GemAmountTransfer,
+    },
+    Stake {
+        input: GemStakeAmountInput,
+    },
+    Earn {
+        earn_type: GemEarnType,
+    },
+    Perpetual {
+        action: GemPerpetualPositionAction,
+        leverage: u8,
+        draft: GemAutocloseDraft,
+        decimal_separator: String,
+    },
+}
+
 #[uniffi::export]
-impl GemAmountTransfer {
+impl GemAmountRequest {
     pub fn amount_type(&self) -> GemAmountType {
-        super::rules::transfer_amount_type(self)
+        match self {
+            Self::Transfer { transfer } => super::rules::transfer_amount_type(transfer),
+            Self::Stake { input } => input.amount_type(),
+            Self::Earn { earn_type } => super::rules::earn_amount_type(earn_type.clone()),
+            Self::Perpetual { action, leverage, .. } => super::rules::perpetual_amount_type(action, *leverage),
+        }
     }
 
     pub fn display_asset(&self, asset: Asset) -> Asset {
-        super::rules::transfer_display_asset(self, asset)
+        match self {
+            Self::Transfer { transfer } => super::rules::transfer_display_asset(transfer, asset),
+            Self::Stake { .. } | Self::Earn { .. } | Self::Perpetual { .. } => asset,
+        }
     }
 
     pub fn input(&self, asset: Asset, balance: GemAssetBalance) -> GemAmountInput {
-        super::rules::transfer_input(self, &asset, &balance)
+        match self {
+            Self::Transfer { transfer } => super::rules::transfer_input(transfer, &asset, &balance),
+            Self::Stake { .. } | Self::Earn { .. } | Self::Perpetual { .. } => self.amount_type().input(&asset, &balance),
+        }
     }
 }
 

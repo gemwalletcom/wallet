@@ -175,10 +175,6 @@ impl GemStakeAmountInput {
         amount_rules::stake_amount_type(self)
     }
 
-    pub fn stake_type(&self) -> Result<StakeType, GemServiceError> {
-        rules::stake_type(self)
-    }
-
     pub fn with_validator(&self, validator: DelegationValidator) -> GemStakeAmountInput {
         rules::with_validator(self, validator)
     }
@@ -192,6 +188,12 @@ impl GemStakeAmountInput {
             Self::Freeze { resource } | Self::Unfreeze { resource } => Some(*resource),
             Self::Stake { .. } | Self::Redelegate { .. } | Self::Unstake { .. } | Self::Withdraw { .. } | Self::Rewards { .. } => None,
         }
+    }
+}
+
+impl GemStakeAmountInput {
+    pub fn stake_type(&self) -> Result<StakeType, GemServiceError> {
+        rules::stake_type(self)
     }
 }
 

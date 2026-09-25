@@ -1,12 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import class Gemstone.GemAmountService
+import struct Gemstone.GemAmountInput
+import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemPerpetualAutoclose
 import struct Gemstone.GemTransferData
 import enum Gemstone.PerpetualType
 import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesTestKit
+import GemstoneServicesTestKit
 import Testing
 @testable import Transfer
 import TransferTestKit
@@ -17,8 +21,8 @@ struct AmountPerpetualViewModelTests {
         let openLong = AmountPerpetualViewModel.mock(action: .open(data: .mock(direction: .long)))
         let openShort = AmountPerpetualViewModel.mock(action: .open(data: .mock(direction: .short)))
 
-        #expect(openLong.title == "Long")
-        #expect(openShort.title == "Short")
+        #expect(amountTitle(openLong) == "Long")
+        #expect(amountTitle(openShort) == "Short")
     }
 
     @Test
@@ -26,8 +30,8 @@ struct AmountPerpetualViewModelTests {
         let increase = AmountPerpetualViewModel.mock(action: .increase(data: .mock(direction: .long)))
         let reduce = AmountPerpetualViewModel.mock(action: .reduce(data: .mock(), position: PerpetualPosition.mock(marginAmount: 0.001).toGem()))
 
-        #expect(increase.title.contains("Long"))
-        #expect(reduce.title.contains("Long"))
+        #expect(amountTitle(increase).contains("Long"))
+        #expect(amountTitle(reduce).contains("Long"))
     }
 
     @Test
@@ -58,8 +62,8 @@ struct AmountPerpetualViewModelTests {
         let open = AmountPerpetualViewModel.mock()
         let reduce = AmountPerpetualViewModel.mock(action: .reduce(data: .mock(), position: PerpetualPosition.mock(marginAmount: 0.001).toGem()))
 
-        #expect(open.input(from: assetData).availableValue == 5000)
-        #expect(reduce.input(from: assetData).availableValue == 1000)
+        #expect(amountInput(open, assetData).availableValue == 5000)
+        #expect(amountInput(reduce, assetData).availableValue == 1000)
     }
 
     @Test
@@ -107,10 +111,10 @@ struct AmountPerpetualViewModelTests {
     }
 
     @Test
-    func makeTransferData() {
-        let open = AmountPerpetualViewModel.mock().makeTransferData(value: 100, useMaxAmount: false)
-        let increase = AmountPerpetualViewModel.mock(action: .increase(data: .mock())).makeTransferData(value: 200, useMaxAmount: false)
-        let reduce = AmountPerpetualViewModel.mock(action: .reduce(data: .mock(), position: PerpetualPosition.mock(marginAmount: 0.001).toGem())).makeTransferData(value: 300, useMaxAmount: false)
+    func makeTransferData() async throws {
+        let open = try await transferData(AmountPerpetualViewModel.mock(), value: 100)
+        let increase = try await transferData(AmountPerpetualViewModel.mock(action: .increase(data: .mock())), value: 200)
+        let reduce = try await transferData(AmountPerpetualViewModel.mock(action: .reduce(data: .mock(), position: PerpetualPosition.mock(marginAmount: 0.001).toGem())), value: 300)
 
         #expect(perpetualType(open).map {
             if case .open = $0 {
@@ -141,5 +145,17 @@ struct AmountPerpetualViewModelTests {
     private func perpetualType(_ data: GemTransferData) -> Gemstone.PerpetualType? {
         guard case let .perpetual(_, perpetualType) = data.inputType else { return nil }
         return perpetualType
+    }
+
+    private func amountTitle(_ model: AmountPerpetualViewModel) -> String {
+        model.request.amountType().title().title
+    }
+
+    private func transferData(_ model: AmountPerpetualViewModel, value: BigInt) async throws -> GemTransferData {
+        try await GemAmountService.mock().transferData(asset: Asset.mock().toGem(), request: model.request, value: value, useMaxAmount: false)
+    }
+
+    private func amountInput(_ model: AmountPerpetualViewModel, _ assetData: AssetData) -> GemAmountInput {
+        model.request.input(asset: model.asset.toGem(), balance: GemAssetBalance(assetData.balance, assetId: model.asset.id, isActive: assetData.metadata.isActive))
     }
 }

@@ -8,12 +8,12 @@ use std::sync::Arc;
 use primitives::{Asset, Currency};
 
 pub use model::{
-    GemAmountEarnType, GemAmountEntry, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType, GemAmountTransfer, GemAmountType, GemLeverageSelection, GemPerpetualAutoclose,
+    GemAmountEarnType, GemAmountEntry, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountRequest, GemAmountStakeType, GemAmountTransfer, GemAmountType, GemLeverageSelection,
+    GemPerpetualAutoclose,
 };
 
 use crate::config::perpetual_config::{leverage_options, select_leverage};
 
-use crate::models::GemEarnType;
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::GemListRow;
 use crate::services::error::{GemServiceError, required_account};
@@ -62,38 +62,33 @@ impl GemAmountService {
         perpetual_rules::amount_autoclose_row(take_profit, stop_loss)
     }
 
-    pub fn perpetual_transfer_data(&self, action: GemPerpetualPositionAction, value: GemBigInt, use_max_amount: bool, leverage: u8, draft: GemAutocloseDraft, decimal_separator: String) -> GemTransferData {
-        let (take_profit, stop_loss) = match action.shows_autoclose() {
-            true => draft.prices(&decimal_separator),
-            false => (None, None),
-        };
-        perpetual_rules::order_transfer(action, value, use_max_amount, leverage, take_profit, stop_loss)
-    }
-
-    pub fn perpetual_amount_type(&self, action: GemPerpetualPositionAction, leverage: u8) -> GemAmountType {
-        rules::perpetual_amount_type(&action, leverage)
-    }
-
-    pub fn earn_amount_type(&self, earn_type: GemEarnType) -> GemAmountType {
-        rules::earn_amount_type(earn_type)
-    }
-
-    pub async fn transfer_data(&self, asset: Asset, transfer: GemAmountTransfer, value: GemBigInt, use_max_amount: bool) -> Result<GemTransferData, GemServiceError> {
-        let owner = match transfer {
-            GemAmountTransfer::Withdraw => {
+    pub async fn transfer_data(&self, asset: Asset, request: GemAmountRequest, value: GemBigInt, use_max_amount: bool) -> Result<GemTransferData, GemServiceError> {
+        match request {
+            GemAmountRequest::Transfer { transfer } => {
+                let owner = match transfer {
+                    GemAmountTransfer::Withdraw => {
+                        let wallet = self.session.require_current_wallet().await?;
+                        let account = required_account(&wallet, asset.chain())?;
+                        Some(GemRecipient::named(account.address.clone(), wallet.name.clone()))
+                    }
+                    GemAmountTransfer::Send { .. } | GemAmountTransfer::Deposit => None,
+                };
+                rules::transfer_data(asset, transfer, owner, value, use_max_amount)
+            }
+            GemAmountRequest::Stake { input } => Ok(transfer_rules::stake_transfer_data(asset, input.stake_type()?, value, use_max_amount)),
+            GemAmountRequest::Earn { earn_type } => {
                 let wallet = self.session.require_current_wallet().await?;
                 let account = required_account(&wallet, asset.chain())?;
-                Some(GemRecipient::named(account.address.clone(), wallet.name.clone()))
+                let data = self.stake.get_earn_data(asset.id.clone(), account.address.clone(), value.to_string(), earn_type.clone()).await?;
+                Ok(transfer_rules::earn_transfer_data(asset, earn_type, data, value, use_max_amount))
             }
-            GemAmountTransfer::Send { .. } | GemAmountTransfer::Deposit => None,
-        };
-        rules::transfer_data(asset, transfer, owner, value, use_max_amount)
-    }
-
-    pub async fn earn_transfer_data(&self, asset: Asset, earn_type: GemEarnType, value: GemBigInt, use_max_amount: bool) -> Result<GemTransferData, GemServiceError> {
-        let wallet = self.session.require_current_wallet().await?;
-        let account = required_account(&wallet, asset.chain())?;
-        let data = self.stake.get_earn_data(asset.id.clone(), account.address.clone(), value.to_string(), earn_type.clone()).await?;
-        Ok(transfer_rules::earn_transfer_data(asset, earn_type, data, value, use_max_amount))
+            GemAmountRequest::Perpetual { action, leverage, draft, decimal_separator } => {
+                let (take_profit, stop_loss) = match action.shows_autoclose() {
+                    true => draft.prices(&decimal_separator),
+                    false => (None, None),
+                };
+                Ok(perpetual_rules::order_transfer(action, value, use_max_amount, leverage, take_profit, stop_loss))
+            }
+        }
     }
 }

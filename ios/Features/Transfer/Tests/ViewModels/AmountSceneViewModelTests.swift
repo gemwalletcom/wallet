@@ -78,7 +78,7 @@ struct AmountSceneViewModelTests {
             assetData: assetData,
         )
 
-        guard case let .stake(stake) = model.provider,
+        guard let stake = model.stake,
               case let .resource(resourceSelection) = stake.selection else { return }
 
         resourceSelection.selected = .energy
