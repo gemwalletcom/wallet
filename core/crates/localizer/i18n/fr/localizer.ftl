@@ -44,7 +44,10 @@ fiat_error_quote_unavailable = Ce devis n'est plus disponible. Veuillez réessay
 rewards_error_referral_country_ineligible = Les parrainages ne sont actuellement pas disponibles pour votre pays : {$value}.
 notification_rewards_disabled_title = Code de parrainage désactivé
 notification_rewards_disabled_description = Ce code de parrainage a été désactivé en raison de violations répétées des conditions de notre programme de parrainage.
-rewards_error_referral_eligibility_expired = Les codes de parrainage doivent être appliqués dans les {$value} jours de création de votre nom d'utilisateur.
+rewards_error_referral_eligibility_expired = Les codes de parrainage ne peuvent être utilisés que sur un appareil et un portefeuille configurés { $value ->
+     [one] au cours du dernier jour
+    *[other] au cours des {$value} derniers jours
+    }.
 notification_reward_pending_title = 💎 Nouvelle recommandation
 notification_reward_pending_description = Quelqu'un a utilisé votre code de parrainage. Vérification en cours.
 rewards_error_username_too_short = Le nom d'utilisateur est trop court. Longueur minimale : {$value}.

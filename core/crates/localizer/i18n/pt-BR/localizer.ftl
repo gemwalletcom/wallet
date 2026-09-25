@@ -44,7 +44,10 @@ fiat_error_quote_unavailable = Esta cotação não está mais disponível. Tente
 rewards_error_referral_country_ineligible = No momento, não há encaminhamentos disponíveis para o seu país: {$value}.
 notification_rewards_disabled_title = Código de indicação desativado
 notification_rewards_disabled_description = Este código de indicação foi desativado devido a repetidas violações dos termos do nosso programa de indicações.
-rewards_error_referral_eligibility_expired = Os códigos de referência devem ser aplicados dentro de {$value} dias para criar seu nome de usuário.
+rewards_error_referral_eligibility_expired = Os códigos de indicação só podem ser usados em um dispositivo e uma carteira configurados { $value ->
+     [one] no último dia
+    *[other] nos últimos {$value} dias
+    }.
 notification_reward_pending_title = 💎 Nova Indicação
 notification_reward_pending_description = Alguém usou seu código de indicação. Aguardando verificação.
 rewards_error_username_too_short = O nome de usuário é muito curto. Comprimento mínimo: {$value}.

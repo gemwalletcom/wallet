@@ -44,7 +44,10 @@ fiat_error_quote_unavailable = Ta wycena nie jest już dostępna. Spróbuj ponow
 rewards_error_referral_country_ineligible = Polecenia są obecnie niedostępne dla Twojego kraju: {$value}.
 notification_rewards_disabled_title = Kod polecający został dezaktywowany
 notification_rewards_disabled_description = Ten kod polecający został wyłączony z powodu powtarzających się naruszeń warunków naszego programu poleceń.
-rewards_error_referral_eligibility_expired = Kody polecające muszą zostać zastosowane w ciągu {$value} dni od utworzenia nazwy użytkownika.
+rewards_error_referral_eligibility_expired = Kodów polecających można używać tylko na urządzeniu i z portfelem skonfigurowanymi { $value ->
+     [one] w ciągu ostatniego dnia
+    *[other] w ciągu ostatnich {$value} dni
+    }.
 notification_reward_pending_title = 💎 Nowe polecenie
 notification_reward_pending_description = Ktoś użył Twojego kodu polecającego. Oczekuje na weryfikację.
 rewards_error_username_too_short = Nazwa użytkownika jest za krótka. Minimalna długość: {$value}.

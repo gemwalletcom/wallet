@@ -44,7 +44,10 @@ fiat_error_quote_unavailable = Dieses Angebot ist nicht mehr verfügbar. Bitte v
 rewards_error_referral_country_ineligible = Für Ihr Land sind derzeit keine Überweisungen möglich: {$value}Die
 notification_rewards_disabled_title = Empfehlungscode deaktiviert
 notification_rewards_disabled_description = Dieser Empfehlungscode wurde aufgrund wiederholter Verstöße gegen die Bedingungen unseres Empfehlungsprogramms deaktiviert.
-rewards_error_referral_eligibility_expired = Empfehlungscodes müssen innerhalb von {$value} Tage bis zur Erstellung Ihres Benutzernamens.
+rewards_error_referral_eligibility_expired = Empfehlungscodes können nur auf einem Gerät und mit einer Brieftasche verwendet werden, die { $value ->
+     [one] am letzten Tag
+    *[other] in den letzten {$value} Tagen
+    } eingerichtet wurden.
 notification_reward_pending_title = 💎 Neue Empfehlung
 notification_reward_pending_description = Jemand hat Ihren Empfehlungscode verwendet. Überprüfung ausstehend.
 rewards_error_username_too_short = Der Benutzername ist zu kurz. Mindestlänge: {$value}.

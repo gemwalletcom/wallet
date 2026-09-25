@@ -44,7 +44,10 @@ fiat_error_quote_unavailable = Questo preventivo non è più disponibile. Riprov
 rewards_error_referral_country_ineligible = Al momento i referral non sono disponibili per il tuo Paese: {$value}.
 notification_rewards_disabled_title = Codice di riferimento disattivato
 notification_rewards_disabled_description = Questo codice di riferimento è stato disattivato a causa di ripetute violazioni dei termini del nostro programma di riferimento.
-rewards_error_referral_eligibility_expired = I codici di riferimento devono essere applicati entro {$value} giorni dalla creazione del tuo nome utente.
+rewards_error_referral_eligibility_expired = I codici di riferimento possono essere usati solo su un dispositivo e un portafoglio configurati { $value ->
+     [one] nell'ultimo giorno
+    *[other] negli ultimi {$value} giorni
+    }.
 notification_reward_pending_title = 💎 Nuovo referral
 notification_reward_pending_description = Qualcuno ha utilizzato il tuo codice di riferimento. In attesa di verifica.
 rewards_error_username_too_short = Il nome utente è troppo corto. Lunghezza minima: {$value}.

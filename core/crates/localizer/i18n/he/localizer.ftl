@@ -44,7 +44,11 @@ fiat_error_quote_unavailable = הצעת המחיר הזו כבר לא זמינה
 rewards_error_referral_country_ineligible = הפניות אינן זמינות כעת עבור המדינה שלך: {$value}.
 notification_rewards_disabled_title = קוד ההפניה הושבת
 notification_rewards_disabled_description = קוד הפניה זה הושבת עקב הפרות חוזרות ונשנות של תנאי תוכנית ההפניות שלנו.
-rewards_error_referral_eligibility_expired = יש להחיל קודי הפניה בתוך {$value} ימים של יצירת שם המשתמש שלך.
+rewards_error_referral_eligibility_expired = ניתן להשתמש בקודי הפניה רק במכשיר ובארנק שהוגדרו { $value ->
+     [one] ביום האחרון
+     [two] ביומיים האחרונים
+    *[other] ב־{$value} הימים האחרונים
+    }.
 notification_reward_pending_title = 💎 הפניה חדשה
 notification_reward_pending_description = מישהו השתמש בקוד ההפניה שלך. ממתין לאימות.
 rewards_error_username_too_short = שם המשתמש קצר מדי. אורך מינימלי: {$value}.
