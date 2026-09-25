@@ -1272,7 +1272,7 @@ The generated code mapper crashing on an unknown `Chain` or `Currency` is not th
 
 Use tolerant entry decoding only where the payload contract permits independent entries to be skipped. The price/rate stream uses `deserialize_known_entries`, so one unknown currency does not discard all prices. This is not a blanket rule for transaction, wallet recovery or authorization payloads: required inputs must remain complete and fail closed under the [security contract](../skills/security.md).
 
-An app's persisted aggregate is not a typeshare candidate just because Core has one of the same name (D175 replaces this with generated UniFFI records, where big integers stay numeric). `AssetData` is the standing example: typeshare renders a `BigUint` as a `String`, so the ten big-integer fields of Core's `Balance` would reach both apps as text to parse; Android's `Balance<T>` is a generic container it instantiates with `BigInteger` and with `Double`, which typeshare cannot express; and the two apps' `AssetData` differ from each other — iOS carries price alerts, Android a wallet id — as well as from Core's. Both are persisted, which is where a twin belongs. Revisit a shape like this only if it keeps the atomic values numeric.
+An app's persisted aggregate is not a typeshare candidate just because Core has one of the same name. `AssetData` is the standing example: typeshare renders a `BigUint` as a `String`, so the ten big-integer fields of Core's `Balance` would reach both apps as text to parse; Android's `Balance<T>` is a generic container it instantiates with `BigInteger` and with `Double`, which typeshare cannot express; and the two apps' `AssetData` differ from each other — iOS carries price alerts, Android a wallet id — as well as from Core's. Both are persisted, which is where a twin belongs. Revisit a shape like this only if it keeps the atomic values numeric.
 
 A generated mapper names its direction on both apps: `toPrimitives()` reads a Core value into the app's type and `toGem()` sends one back. An untyped `map()` on both sides made a diff unreadable and let a reviewer miss a crossing going the wrong way. A mapper between two app types keeps `map()` — the directional names mark the FFI boundary and nothing else.
 
@@ -1284,7 +1284,7 @@ Encoding members are scaffolding, not a pattern to copy. `core/bin/generate/remo
 
 Rust signatures use domain types (`WalletId`, `AssetId`, `Chain`, `Currency`). The generated representation differs: `Currency` is a remote enum; `Chain` crosses as its string code; identifiers such as `AssetId`, `WalletId` and `TransactionId` cross as their stored strings. Map at the boundary with the generated conversions; do not replace typed Rust parameters with bare strings.
 
-The identifier string matches native database storage. Mapping the binding directly to an app wrapper would also break Android's dependency direction: its primitives live in `:gemcore`, which depends on the standalone `:gemstone` artifact. Swift's ability to name `Primitives.WalletId` through UniFFI does not make that bridge symmetric. D175 changes this: `Chain` becomes a generated enum and the identifiers generated records, with generated stored-string conversions on both apps.
+The identifier string matches native database storage. Mapping the binding directly to an app wrapper would also break Android's dependency direction: its primitives live in `:gemcore`, which depends on the standalone `:gemstone` artifact. Swift's ability to name `Primitives.WalletId` through UniFFI does not make that bridge symmetric. Revisit only if the module boundary changes.
 
 ## 7. At most one Core service on iOS; narrow cases on Android
 
@@ -1726,9 +1726,9 @@ Understand the rationale before changing one of these. Code-style exceptions bel
 
 Gemstone (the Rust-to-mobile bridge) is built and bundled from source rather than fetched as a prebuilt package. This ensures the mobile apps always link against the exact Core revision in the repo and avoids version drift between Core logic and mobile bindings.
 
-### UniFFI generates the apps' types
+### TypeShare + UniFFI for code generation
 
-The apps use the UniFFI-generated records and enums as their only model types. TypeShare still generates TypeScript for the web from `crates/primitives`; its Swift and Kotlin output, and the `toPrimitives()`/`toGem()` mappers between the two type systems, are being retired type by type ([D175](TODO.md#one-generated-type-system)). Until that lands, new app code uses the generated UniFFI type wherever one exists and never adds a TypeShare-side twin.
+TypeShare generates shared model types; UniFFI generates FFI bindings. Both run from `just generate`. Two tools are used because TypeShare handles pure data models efficiently while UniFFI handles the full FFI bridge (functions, callbacks, async). Do not consolidate them.
 
 ### Android distribution channels come from one matrix
 

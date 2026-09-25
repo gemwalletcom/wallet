@@ -22,11 +22,11 @@ These need no further answer; work them in this order, one family per change.
 1. **Delete first:** VM187 (Android).
 2. **Small shared rules:** VM182, VM184, VM183, VM186, VM196, VM194.
 3. **Screens:** VM189, VM191, VM190, VM192 with VM193.
-4. **Generated types only:** D175 phase by phase; VM195, VM276, VM278 and VM288 land inside it.
+4. **Models:** VM195.
 5. **Sessions:** VM185.
 6. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 
-Waiting on the owner: BD29 and BD50 (server), VM79, VM181. Waiting on a date or a release: X168, X163.
+Waiting on the owner: BD29 and BD50 (server), VM79, VM181, D175 (on hold). Waiting on a date or a release: X168, X163.
 
 ## Screen coverage and existing infrastructure
 
@@ -143,7 +143,7 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### One generated type system
 
-- **D175** **L** **The apps use only the UniFFI-generated types.** Decided 2026-09-25. TypeShare keeps generating TypeScript for the web; its Swift and Kotlin models (`Primitives/Sources/Generated`, `gemcore/.../primitives/generated`, 161 types) and the generated mappers between the two systems (`RemoteTypeMappers.swift`, `RemoteTypeMappers.kt`) go.
+- **D175** **L** **The apps use only the UniFFI-generated types.** On hold by the owner (2026-09-25). TypeShare keeps generating TypeScript for the web; its Swift and Kotlin models (`Primitives/Sources/Generated`, `gemcore/.../primitives/generated`, 161 types) and the generated mappers between the two systems (`RemoteTypeMappers.swift`, `RemoteTypeMappers.kt`) go.
   - **Today:** 141 of the 161 TypeShare types already have a UniFFI twin (`core/bin/generate/remote_types.yml`). 936 iOS files and 638 Android files import the TypeShare models, and about 210 files per app convert with `toPrimitives()`/`toGem()`. `Chain` crosses as its string code, and `AssetId`, `WalletId`, `TransactionId`, `NFTAssetId`, `NFTCollectionId` and `PerpetualId` cross as their stored strings. iOS `Store` depends on `Primitives` but not on `Gemstone`.
   - **Phase 1, coverage:** declare the 20 TypeShare types the bindings lack, or delete their app use: `AssetPriceInfo`, `AssetSubtype`, `BitcoinChain`, `ChartValue`, `ContactData`, `CosmosChain`, `Device`, `EVMChain`, `FiatAssets`, `PerpetualAccountSummary`, `PerpetualPortfolio`, `PerpetualPositionsSummary`, `PriceData`, `QRScanType`, `ScanReceiveMode`, `StakeChain`, `TransactionNFTTransferMetadata`, `TransactionPerpetualMetadata`, `TransactionSwapMetadata`, `WCPairingProposal`.
   - **Phase 2, enums and identifiers:** `Chain` becomes a generated UniFFI enum and the identifiers generated records (`AssetId` carries chain and token id). `just generate-models` emits their stored-string conversions on both apps, so no app parses an identifier by hand.
