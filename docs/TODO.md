@@ -26,7 +26,7 @@ These need no further answer; work them in this order, one family per change.
 5. **Sessions:** VM185.
 6. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 7. **Generated mappers:** BD299, then GEN300.
-8. **Module layout:** the renames MOD303 to MOD306, then MOD307 before MOD308, MOD309 with MOD310, MOD311, MOD312, MOD313, then MOD314 to MOD317.
+8. **Module layout:** the renames MOD304 to MOD306, then MOD307 before MOD308, MOD309 with MOD310, MOD311, MOD312, MOD313, then MOD314 to MOD317.
 9. **Unused code:** CLN318.
 10. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -672,11 +672,10 @@ Test mocks for generated types are written by hand three times, once per languag
 
 ## 11. Module layout
 
-A feature module is one product area, and both apps give it the same name. iOS groups by product area and is the reference; Android splits many areas into one module per screen and names several differently (`bridge`, `buy`), and its `assets` is the wallet tab while iOS `Assets` is the asset screens.
+A feature module is one product area, and both apps give it the same name. iOS groups by product area and is the reference; Android splits many areas into one module per screen and names several differently (`buy`), and its `assets` is the wallet tab while iOS `Assets` is the asset screens.
 
 **The standard, for every item below.** Names and packages follow [Cross-Platform Awareness rule 7](../skills/cross-platform-awareness.md); on Android that means no `views`, `navigation` or `details` package roots and no singular `viewmodel`. A move renames the Gradle path in `settings.gradle.kts`, every `project(":features:…")` dependency and the imports, and changes no behaviour. One module per change. Verify with `cd android && ./gradlew assembleGoogleDebug test` for an Android move, `cd ios && just build` and `just test-package <Package>` for an iOS rename.
 
-- **MOD303** **S** **Android `bridge` becomes `wallet_connector`**, as iOS `WalletConnector`.
 - **MOD304** **M** **Rewards is its own module on both apps.**
   - **iOS:** `RewardsScene`, its view models and `RewardsTests` live in the `Settings` package.
   - **Android:** `features/referral`, packages `referral.views` and `referral.viewmodels`.
@@ -707,8 +706,8 @@ A feature module is one product area, and both apps give it the same name. iOS g
 - **MOD313** **S** **Android names a screen's view-model-bound entry one way.** 33 entries end in `Screen` and 16 in `NavScreen` (`TransactionsNavScreen`, `FiatNavScreen`, `ContactsNavScreen`, `WalletNavScreen`, …) for the same role; the stateless composable is `XScene` on both apps. Rename the `NavScreen` ones to `Screen`, each with its module's move where it has one.
 - **MOD314** **S** **Confirmation stays in Transfer, and only the app opens it.** Transfer, swap, stake, perpetuals and WalletConnect all end on it.
   - **iOS:** the confirm scene and its view models are in `Transfer`; the app opens the screen (`ConfirmTransferNavigationView`), and no other feature imports it.
-  - **Android:** `features/confirm` is its own module; `bridge` and `perpetual` build `ConfirmScreen` themselves, and `perpetual` uses `AcquireAssetAction` from it (iOS `GetAssetAction`, in `Transfer`).
-  - **Expected:** Android `bridge` and `perpetual` stop importing `ConfirmScreen` and the app opens it, as on iOS; `AcquireAssetAction` becomes the transfer module's type once MOD309 lands.
+  - **Android:** `features/confirm` is its own module; `wallet_connector` and `perpetual` build `ConfirmScreen` themselves, and `perpetual` uses `AcquireAssetAction` from it (iOS `GetAssetAction`, in `Transfer`).
+  - **Expected:** Android `wallet_connector` and `perpetual` stop importing `ConfirmScreen` and the app opens it, as on iOS; `AcquireAssetAction` becomes the transfer module's type once MOD309 lands.
 - **MOD315** **M** **The secret data and wallet image screens belong to Wallets on both apps**, as [wallets.md](product/wallets.md).
   - **iOS:** `ShowSecretDataScene`, `ExportWalletNavigationStack` and `WalletAvatar` (`WalletImageScene`) are in `Onboarding`, so `Wallets` depends on `Onboarding`; the wallet image is used only from `WalletsNavigationStack`, and create-wallet reuses `ShowSecretDataScene` for the new phrase.
   - **Android:** `WalletSecretDataNavScreen` and `WalletImageScene` are in `wallets`; create-wallet draws the phrase with its own `WordChip` view.

@@ -2,8 +2,8 @@ package com.gemwallet.android.ui.navigation.routes
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.features.bridge.views.ConnectionScene
-import com.gemwallet.android.features.bridge.views.ConnectionsScene
+import com.gemwallet.android.features.wallet_connector.presents.ConnectionScene
+import com.gemwallet.android.features.wallet_connector.presents.ConnectionsScene
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.navigation.routeArguments
 import kotlinx.serialization.Serializable
