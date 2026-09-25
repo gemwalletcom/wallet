@@ -4,6 +4,7 @@ use ::bitcoin::Network;
 use ::bitcoin::bip32::{DerivationPath, Xpriv, Xpub};
 use primitives::{BitcoinChain, Chain};
 
+use super::bip32::ZeroizedXpriv;
 use crate::AccountDerivationError;
 use crate::private_key::default_derivation_path;
 
@@ -14,11 +15,11 @@ const DGUB_VERSION: u32 = 0x02fa_cafd;
 
 pub(super) fn derive_extended_public_key(seed: &[u8], bitcoin_chain: BitcoinChain) -> Result<String, AccountDerivationError> {
     let secp = ::bitcoin::secp256k1::Secp256k1::signing_only();
-    let master = Xpriv::new_master(Network::Bitcoin, seed).map_err(map_bitcoin_error)?;
+    let master = ZeroizedXpriv(Xpriv::new_master(Network::Bitcoin, seed).map_err(map_bitcoin_error)?);
     let chain = bitcoin_chain.get_chain();
     let account_path = account_derivation_path(chain)?;
-    let account_private_key = master.derive_priv(&secp, &account_path).map_err(map_bitcoin_error)?;
-    let account_public_key = Xpub::from_priv(&secp, &account_private_key);
+    let account_private_key = ZeroizedXpriv(master.0.derive_priv(&secp, &account_path).map_err(map_bitcoin_error)?);
+    let account_public_key = Xpub::from_priv(&secp, &account_private_key.0);
 
     Ok(encode_extended_public_key(&account_public_key, extended_public_key_version(bitcoin_chain)))
 }
