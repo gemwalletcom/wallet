@@ -4,7 +4,7 @@ import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.service.store.database.entities.toDTO
+import com.gemwallet.android.data.services.store.database.entities.toDTO
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore

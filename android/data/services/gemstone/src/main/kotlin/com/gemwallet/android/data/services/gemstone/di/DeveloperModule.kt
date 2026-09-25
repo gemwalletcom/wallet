@@ -1,10 +1,10 @@
 package com.gemwallet.android.data.services.gemstone.di
 
-import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.BannersDao
-import com.gemwallet.android.data.service.store.database.PricesDao
-import com.gemwallet.android.data.service.store.database.StakeDao
-import com.gemwallet.android.data.service.store.database.TransactionsDao
+import com.gemwallet.android.data.services.store.database.AssetsDao
+import com.gemwallet.android.data.services.store.database.BannersDao
+import com.gemwallet.android.data.services.store.database.PricesDao
+import com.gemwallet.android.data.services.store.database.StakeDao
+import com.gemwallet.android.data.services.store.database.TransactionsDao
 import com.gemwallet.android.data.services.gemstone.device.GemstoneDevicePlatform
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneDeveloperStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStateStore

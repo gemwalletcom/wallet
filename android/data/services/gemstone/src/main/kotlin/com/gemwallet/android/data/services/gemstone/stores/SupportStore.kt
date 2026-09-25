@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.data.service.store.database.SupportMessagesDao
-import com.gemwallet.android.data.service.store.database.entities.toModel
-import com.gemwallet.android.data.service.store.database.entities.toRecord
+import com.gemwallet.android.data.services.store.database.SupportMessagesDao
+import com.gemwallet.android.data.services.store.database.entities.toModel
+import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.SupportAgent
 import com.wallet.core.primitives.SupportMessage

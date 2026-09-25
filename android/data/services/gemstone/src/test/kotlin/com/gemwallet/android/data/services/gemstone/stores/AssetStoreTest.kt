@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.entities.DbAsset
-import com.gemwallet.android.data.service.store.database.entities.DbBalance
+import com.gemwallet.android.data.services.store.database.AssetsDao
+import com.gemwallet.android.data.services.store.database.entities.DbAsset
+import com.gemwallet.android.data.services.store.database.entities.DbBalance
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetSolana

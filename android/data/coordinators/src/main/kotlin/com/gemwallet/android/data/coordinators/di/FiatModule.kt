@@ -8,7 +8,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.coordinators.fiat.GetAssetPriceUsdImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyAssetInfoImpl
 import com.gemwallet.android.data.coordinators.fiat.ObserveFiatTransactionsImpl
-import com.gemwallet.android.data.service.store.database.FiatTransactionsDao
+import com.gemwallet.android.data.services.store.database.FiatTransactionsDao
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneFiatStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePriceStore
 import dagger.Module

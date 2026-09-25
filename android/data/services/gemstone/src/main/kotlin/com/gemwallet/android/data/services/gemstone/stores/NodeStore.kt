@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.data.service.store.database.NodesDao
-import com.gemwallet.android.data.service.store.database.entities.DbNode
+import com.gemwallet.android.data.services.store.database.NodesDao
+import com.gemwallet.android.data.services.store.database.entities.DbNode
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives

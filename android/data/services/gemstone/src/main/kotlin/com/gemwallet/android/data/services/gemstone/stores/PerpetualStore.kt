@@ -1,16 +1,16 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.data.service.store.database.BalancesDao
-import com.gemwallet.android.data.service.store.database.PerpetualDao
-import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
-import com.gemwallet.android.data.service.store.database.SearchDao
-import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
-import com.gemwallet.android.data.service.store.database.entities.DbBalance
-import com.gemwallet.android.data.service.store.database.entities.DbPerpetualData
-import com.gemwallet.android.data.service.store.database.entities.toDB
-import com.gemwallet.android.data.service.store.database.entities.toDTO
-import com.gemwallet.android.data.service.store.database.entities.toDto
-import com.gemwallet.android.data.service.store.database.entities.toRecord
+import com.gemwallet.android.data.services.store.database.BalancesDao
+import com.gemwallet.android.data.services.store.database.PerpetualDao
+import com.gemwallet.android.data.services.store.database.PerpetualPositionDao
+import com.gemwallet.android.data.services.store.database.SearchDao
+import com.gemwallet.android.data.services.store.database.StoreTransactionRunner
+import com.gemwallet.android.data.services.store.database.entities.DbBalance
+import com.gemwallet.android.data.services.store.database.entities.DbPerpetualData
+import com.gemwallet.android.data.services.store.database.entities.toDB
+import com.gemwallet.android.data.services.store.database.entities.toDTO
+import com.gemwallet.android.data.services.store.database.entities.toDto
+import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives

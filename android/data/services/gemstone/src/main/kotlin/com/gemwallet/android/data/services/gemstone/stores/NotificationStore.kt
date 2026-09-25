@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
-import com.gemwallet.android.data.service.store.database.entities.toModel
-import com.gemwallet.android.data.service.store.database.entities.toRecord
+import com.gemwallet.android.data.services.store.database.InAppNotificationsDao
+import com.gemwallet.android.data.services.store.database.entities.toModel
+import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.InAppNotification
 import com.wallet.core.primitives.WalletId

@@ -1,0 +1,71 @@
+package com.gemwallet.android.data.services.store.database.entities
+
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
+import androidx.room.PrimaryKey
+import com.wallet.core.primitives.ApplicationMetadata
+import com.wallet.core.primitives.ApplicationMetadataSource
+import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.Wallet
+import com.wallet.core.primitives.WalletConnection
+import com.wallet.core.primitives.WalletConnectionSession
+import com.wallet.core.primitives.WalletConnectionState
+
+@Entity(
+    tableName = "wallets_connections",
+    foreignKeys = [
+        ForeignKey(DbWallet::class, ["id"], ["wallet_id"], onDelete = ForeignKey.CASCADE, onUpdate = ForeignKey.CASCADE),
+    ],
+    indices = [Index("wallet_id")],
+)
+data class DbConnection(
+    @PrimaryKey val id: String,
+    @ColumnInfo("wallet_id") val walletId: String,
+    @ColumnInfo("session_id") val sessionId: String,
+    val state: WalletConnectionState,
+    val chains: List<Chain>,
+    @ColumnInfo("created_at") val createdAt: Long,
+    @ColumnInfo("expire_at") val expireAt: Long,
+    @ColumnInfo("app_name") val appName: String,
+    @ColumnInfo("app_description") val appDescription: String,
+    @ColumnInfo("app_url") val appUrl: String,
+    @ColumnInfo("app_icon") val appIcon: String,
+    @ColumnInfo("redirect_native") val redirectNative: String?,
+    @ColumnInfo("redirect_universal") val redirectUniversal: String?,
+)
+
+fun DbConnection.toSession(): WalletConnectionSession = WalletConnectionSession(
+    id = id,
+    sessionId = sessionId,
+    state = state,
+    createdAt = createdAt,
+    expireAt = expireAt,
+    chains = chains,
+    metadata = ApplicationMetadata(
+        name = appName,
+        description = appDescription,
+        icon = appIcon,
+        url = appUrl,
+        source = ApplicationMetadataSource.WalletConnect,
+    ),
+)
+
+fun DbConnection.toDTO(wallet: Wallet): WalletConnection = WalletConnection(wallet = wallet, session = toSession())
+
+fun WalletConnection.toRecord(): DbConnection = DbConnection(
+    id = session.id,
+    sessionId = session.sessionId,
+    state = session.state,
+    chains = session.chains,
+    createdAt = session.createdAt,
+    expireAt = session.expireAt,
+    appName = session.metadata.name,
+    appDescription = session.metadata.description,
+    appIcon = session.metadata.icon,
+    appUrl = session.metadata.url,
+    redirectNative = null,
+    redirectUniversal = null,
+    walletId = wallet.id.id,
+)

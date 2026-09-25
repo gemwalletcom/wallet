@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.data.service.store.database.AssetsRequestFilter
-import com.gemwallet.android.data.service.store.database.entities.DbBalance
-import com.gemwallet.android.data.service.store.database.entities.DbPrice
+import com.gemwallet.android.data.services.store.database.AssetsRequestFilter
+import com.gemwallet.android.data.services.store.database.entities.DbBalance
+import com.gemwallet.android.data.services.store.database.entities.DbPrice
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toGem
 import uniffi.gemstone.AssetPrice

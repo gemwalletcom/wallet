@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.services.gemstone.di
 
-import com.gemwallet.android.data.service.store.database.AddressesDao
-import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
-import com.gemwallet.android.data.service.store.database.TransactionsDao
+import com.gemwallet.android.data.services.store.database.AddressesDao
+import com.gemwallet.android.data.services.store.database.StoreTransactionRunner
+import com.gemwallet.android.data.services.store.database.TransactionsDao
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAddressStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStateStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStore

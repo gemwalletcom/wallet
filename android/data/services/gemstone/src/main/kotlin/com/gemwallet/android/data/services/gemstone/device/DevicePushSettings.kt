@@ -10,7 +10,7 @@ import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.GetPushToken
 import com.gemwallet.android.application.device.cases.SetPushToken
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
-import com.gemwallet.android.data.service.store.ConfigStore
+import com.gemwallet.android.data.services.store.ConfigStore
 import com.gemwallet.android.model.NotificationsAvailable
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineDispatcher

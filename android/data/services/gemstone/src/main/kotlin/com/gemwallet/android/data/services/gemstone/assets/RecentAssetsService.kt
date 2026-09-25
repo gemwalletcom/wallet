@@ -1,9 +1,9 @@
 package com.gemwallet.android.data.services.gemstone.assets
 
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
-import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.entities.DbRecentActivity
-import com.gemwallet.android.data.service.store.database.entities.toDTO
+import com.gemwallet.android.data.services.store.database.AssetsDao
+import com.gemwallet.android.data.services.store.database.entities.DbRecentActivity
+import com.gemwallet.android.data.services.store.database.entities.toDTO
 import com.gemwallet.android.data.services.gemstone.stores.toRequestFilter
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.RecentAsset

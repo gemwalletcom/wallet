@@ -5,7 +5,7 @@ import androidx.core.app.NotificationManagerCompat
 import com.gemwallet.android.application.device.cases.GetPushToken
 import com.gemwallet.android.application.device.cases.RequestPushToken
 import com.gemwallet.android.application.device.cases.SetPushToken
-import com.gemwallet.android.data.service.store.ConfigStore
+import com.gemwallet.android.data.services.store.ConfigStore
 import com.wallet.core.primitives.PlatformStore
 import dagger.Lazy
 import io.mockk.coEvery

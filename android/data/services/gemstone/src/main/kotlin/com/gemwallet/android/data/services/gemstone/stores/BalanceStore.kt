@@ -1,9 +1,9 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.BalancesDao
-import com.gemwallet.android.data.service.store.database.StoreConverters
-import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
+import com.gemwallet.android.data.services.store.database.AssetsDao
+import com.gemwallet.android.data.services.store.database.BalancesDao
+import com.gemwallet.android.data.services.store.database.StoreConverters
+import com.gemwallet.android.data.services.store.database.StoreTransactionRunner
 import com.gemwallet.android.ext.toPrimitives
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

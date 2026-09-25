@@ -46,9 +46,9 @@ IOS_MIGRATIONS = ROOT / "ios/Packages/Store/Sources/Migrations.swift"
 IOS_START_MIGRATIONS = re.compile(r"mutating func run\(.*?mutating func runChanges\(", re.S)
 ALTERATION = re.compile(r"\balter\(table:|\baddColumnIfMissing\(|\bdrop\(column:")
 
-ROOM_DATABASE = ROOT / "android/data/services/store/src/main/kotlin/com/gemwallet/android/data/service/store/database/GemDatabase.kt"
+ROOM_DATABASE = ROOT / "android/data/services/store/src/main/kotlin/com/gemwallet/android/data/services/store/database/GemDatabase.kt"
 ROOM_MIGRATIONS = ROOM_DATABASE.parent / "di"
-ROOM_SCHEMAS = ROOT / "android/data/services/store/schemas/com.gemwallet.android.data.service.store.database.GemDatabase"
+ROOM_SCHEMAS = ROOT / "android/data/services/store/schemas/com.gemwallet.android.data.services.store.database.GemDatabase"
 ROOM_VERSION = re.compile(r"^\s*version\s*=\s*(\d+)", re.M)
 ROOM_MIGRATION = re.compile(r"\b(?:object|class)\s+(\w+)[^:{]*:\s*Migration\((\d+),\s*(\d+)\)")
 DESTRUCTIVE_FALLBACK = re.compile(r"\bfallbackToDestructiveMigration\w*\(")

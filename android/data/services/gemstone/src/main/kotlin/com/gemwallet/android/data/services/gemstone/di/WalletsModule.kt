@@ -1,11 +1,11 @@
 package com.gemwallet.android.data.services.gemstone.di
 
 import android.content.Context
-import com.gemwallet.android.data.service.store.LocalStore
-import com.gemwallet.android.data.service.store.database.AccountsDao
-import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
-import com.gemwallet.android.data.service.store.database.WalletsDao
+import com.gemwallet.android.data.services.store.LocalStore
+import com.gemwallet.android.data.services.store.database.AccountsDao
+import com.gemwallet.android.data.services.store.database.AssetsDao
+import com.gemwallet.android.data.services.store.database.StoreTransactionRunner
+import com.gemwallet.android.data.services.store.database.WalletsDao
 import com.gemwallet.android.data.services.gemstone.GemstoneFileStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletPreferencesStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore

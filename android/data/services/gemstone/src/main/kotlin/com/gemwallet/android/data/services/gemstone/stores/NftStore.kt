@@ -1,9 +1,9 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.data.service.store.database.NftDao
-import com.gemwallet.android.data.service.store.database.entities.DbNFTAsset
-import com.gemwallet.android.data.service.store.database.entities.DbNFTAssociation
-import com.gemwallet.android.data.service.store.database.entities.DbNFTCollection
+import com.gemwallet.android.data.services.store.database.NftDao
+import com.gemwallet.android.data.services.store.database.entities.DbNFTAsset
+import com.gemwallet.android.data.services.store.database.entities.DbNFTAssociation
+import com.gemwallet.android.data.services.store.database.entities.DbNFTCollection
 import com.gemwallet.android.data.services.gemstone.nft.toAssetModel
 import com.gemwallet.android.data.services.gemstone.nft.toAssetModels
 import com.gemwallet.android.data.services.gemstone.nft.toCollectionModel

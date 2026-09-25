@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.banner
 
 import com.gemwallet.android.application.banner.cases.GetAssetBanners
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.service.store.database.entities.toDTO
+import com.gemwallet.android.data.services.store.database.entities.toDTO
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Banner

@@ -1,11 +1,11 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.data.service.store.database.BalancesDao
-import com.gemwallet.android.data.service.store.database.PerpetualDao
-import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
-import com.gemwallet.android.data.service.store.database.SearchDao
-import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
-import com.gemwallet.android.data.service.store.database.entities.mockDbPerpetualData
+import com.gemwallet.android.data.services.store.database.BalancesDao
+import com.gemwallet.android.data.services.store.database.PerpetualDao
+import com.gemwallet.android.data.services.store.database.PerpetualPositionDao
+import com.gemwallet.android.data.services.store.database.SearchDao
+import com.gemwallet.android.data.services.store.database.StoreTransactionRunner
+import com.gemwallet.android.data.services.store.database.entities.mockDbPerpetualData
 import com.gemwallet.android.testkit.mockAssetEthereum
 import io.mockk.every
 import io.mockk.mockk

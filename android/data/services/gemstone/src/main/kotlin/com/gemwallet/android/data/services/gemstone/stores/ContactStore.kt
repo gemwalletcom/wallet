@@ -1,9 +1,9 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
 import com.gemwallet.android.application.contacts.values.ContactRecipient
-import com.gemwallet.android.data.service.store.database.ContactsDao
-import com.gemwallet.android.data.service.store.database.entities.toModel
-import com.gemwallet.android.data.service.store.database.entities.toRecord
+import com.gemwallet.android.data.services.store.database.ContactsDao
+import com.gemwallet.android.data.services.store.database.entities.toModel
+import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.Chain

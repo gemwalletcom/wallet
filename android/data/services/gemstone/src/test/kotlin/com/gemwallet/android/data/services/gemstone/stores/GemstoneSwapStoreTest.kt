@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.AssetsRequestFilter
-import com.gemwallet.android.data.service.store.database.TransactionsDao
+import com.gemwallet.android.data.services.store.database.AssetsDao
+import com.gemwallet.android.data.services.store.database.AssetsRequestFilter
+import com.gemwallet.android.data.services.store.database.TransactionsDao
 import com.gemwallet.android.testkit.mockWalletId
 import com.wallet.core.primitives.Chain
 import io.mockk.every

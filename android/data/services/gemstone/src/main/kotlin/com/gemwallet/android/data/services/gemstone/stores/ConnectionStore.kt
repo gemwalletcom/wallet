@@ -1,10 +1,10 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.data.service.store.database.ConnectionsDao
-import com.gemwallet.android.data.service.store.database.entities.DbConnection
-import com.gemwallet.android.data.service.store.database.entities.toDTO
-import com.gemwallet.android.data.service.store.database.entities.toRecord
-import com.gemwallet.android.data.service.store.database.entities.toSession
+import com.gemwallet.android.data.services.store.database.ConnectionsDao
+import com.gemwallet.android.data.services.store.database.entities.DbConnection
+import com.gemwallet.android.data.services.store.database.entities.toDTO
+import com.gemwallet.android.data.services.store.database.entities.toRecord
+import com.gemwallet.android.data.services.store.database.entities.toSession
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.Wallet

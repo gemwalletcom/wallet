@@ -1,12 +1,12 @@
 package com.gemwallet.android.data.services.gemstone.assets
 
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
-import com.gemwallet.android.data.service.store.database.AssetListDao
-import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.SearchDao
-import com.gemwallet.android.data.service.store.database.entities.DbAssetInfo
-import com.gemwallet.android.data.service.store.database.entities.toAssetInfoModel
-import com.gemwallet.android.data.service.store.database.entities.toDTO
+import com.gemwallet.android.data.services.store.database.AssetListDao
+import com.gemwallet.android.data.services.store.database.AssetsDao
+import com.gemwallet.android.data.services.store.database.SearchDao
+import com.gemwallet.android.data.services.store.database.entities.DbAssetInfo
+import com.gemwallet.android.data.services.store.database.entities.toAssetInfoModel
+import com.gemwallet.android.data.services.store.database.entities.toDTO
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.NO_QUERY_LIMIT

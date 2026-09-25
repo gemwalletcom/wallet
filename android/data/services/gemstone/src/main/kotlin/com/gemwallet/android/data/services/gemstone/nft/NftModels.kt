@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.nft
 
-import com.gemwallet.android.data.service.store.database.entities.DbNFTAsset
-import com.gemwallet.android.data.service.store.database.entities.DbNFTCollection
+import com.gemwallet.android.data.services.store.database.entities.DbNFTAsset
+import com.gemwallet.android.data.services.store.database.entities.DbNFTCollection
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.NFTCollection
 import com.wallet.core.primitives.NFTData

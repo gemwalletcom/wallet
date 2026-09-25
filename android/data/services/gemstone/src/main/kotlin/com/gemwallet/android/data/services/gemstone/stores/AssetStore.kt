@@ -1,15 +1,15 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.entities.DbBalance
-import com.gemwallet.android.data.service.store.database.entities.toAssetBasic
-import com.gemwallet.android.data.service.store.database.entities.toAssetInfoModel
-import com.gemwallet.android.data.service.store.database.entities.toAssetInfoModels
-import com.gemwallet.android.data.service.store.database.entities.toAssetLinkRecord
-import com.gemwallet.android.data.service.store.database.entities.toAssetLinksModel
-import com.gemwallet.android.data.service.store.database.entities.toDTO
-import com.gemwallet.android.data.service.store.database.entities.toRecord
-import com.gemwallet.android.data.service.store.database.entities.toUpdateRecord
+import com.gemwallet.android.data.services.store.database.AssetsDao
+import com.gemwallet.android.data.services.store.database.entities.DbBalance
+import com.gemwallet.android.data.services.store.database.entities.toAssetBasic
+import com.gemwallet.android.data.services.store.database.entities.toAssetInfoModel
+import com.gemwallet.android.data.services.store.database.entities.toAssetInfoModels
+import com.gemwallet.android.data.services.store.database.entities.toAssetLinkRecord
+import com.gemwallet.android.data.services.store.database.entities.toAssetLinksModel
+import com.gemwallet.android.data.services.store.database.entities.toDTO
+import com.gemwallet.android.data.services.store.database.entities.toRecord
+import com.gemwallet.android.data.services.store.database.entities.toUpdateRecord
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives

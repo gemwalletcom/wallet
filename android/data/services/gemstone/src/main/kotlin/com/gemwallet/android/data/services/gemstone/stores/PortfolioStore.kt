@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.entities.toAssetInfoModels
+import com.gemwallet.android.data.services.store.database.AssetsDao
+import com.gemwallet.android.data.services.store.database.entities.toAssetInfoModels
 import com.gemwallet.android.model.toGem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

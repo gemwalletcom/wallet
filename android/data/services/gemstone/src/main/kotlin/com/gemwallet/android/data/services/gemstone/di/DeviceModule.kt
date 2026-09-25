@@ -8,7 +8,7 @@ import com.gemwallet.android.application.device.cases.GetPushToken
 import com.gemwallet.android.application.device.cases.SetPushToken
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.application.wallet.cases.GetWallets
-import com.gemwallet.android.data.service.store.ConfigStore
+import com.gemwallet.android.data.services.store.ConfigStore
 import com.gemwallet.android.data.services.gemstone.device.DeviceObserverService
 import com.gemwallet.android.data.services.gemstone.device.DevicePushSettings
 import com.gemwallet.android.data.services.gemstone.device.GemstoneDevicePlatform

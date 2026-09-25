@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.di
 
 import android.content.Context
-import com.gemwallet.android.data.service.store.ConfigStore
+import com.gemwallet.android.data.services.store.ConfigStore
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import dagger.Module
 import dagger.Provides

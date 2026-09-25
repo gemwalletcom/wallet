@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
-import com.gemwallet.android.data.service.store.database.TransactionsDao
-import com.gemwallet.android.data.service.store.database.entities.toDTO
+import com.gemwallet.android.data.services.store.database.TransactionsDao
+import com.gemwallet.android.data.services.store.database.entities.toDTO
 import com.gemwallet.android.ext.GemConstants
 import com.wallet.core.primitives.TransactionExtended
 import com.wallet.core.primitives.TransactionId

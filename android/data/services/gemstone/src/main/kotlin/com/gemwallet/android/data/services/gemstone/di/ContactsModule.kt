@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.di
 
-import com.gemwallet.android.data.service.store.database.AddressesDao
-import com.gemwallet.android.data.service.store.database.ContactsDao
+import com.gemwallet.android.data.services.store.database.AddressesDao
+import com.gemwallet.android.data.services.store.database.ContactsDao
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneContactStore
 import dagger.Module
 import dagger.Provides

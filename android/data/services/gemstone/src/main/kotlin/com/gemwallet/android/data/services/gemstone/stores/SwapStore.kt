@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.TransactionsDao
-import com.gemwallet.android.data.service.store.database.entities.toDTO
+import com.gemwallet.android.data.services.store.database.AssetsDao
+import com.gemwallet.android.data.services.store.database.TransactionsDao
+import com.gemwallet.android.data.services.store.database.entities.toDTO
 import com.gemwallet.android.data.services.gemstone.assets.filteredSearch
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives

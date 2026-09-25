@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.perpetuals
 
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.service.store.database.PricesDao
+import com.gemwallet.android.data.services.store.database.PricesDao
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.toGem

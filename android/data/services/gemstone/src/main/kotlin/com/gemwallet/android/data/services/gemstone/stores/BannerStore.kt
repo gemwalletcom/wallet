@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.data.service.store.database.BannersDao
-import com.gemwallet.android.data.service.store.database.entities.DbBanner
-import com.gemwallet.android.data.service.store.database.entities.DbBannerWithAsset
+import com.gemwallet.android.data.services.store.database.BannersDao
+import com.gemwallet.android.data.services.store.database.entities.DbBanner
+import com.gemwallet.android.data.services.store.database.entities.DbBannerWithAsset
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives

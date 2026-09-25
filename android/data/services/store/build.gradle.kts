@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.gemwallet.android.service.store"
+    namespace = "com.gemwallet.android.data.services.store"
     compileSdk = 37
 
     defaultConfig {
