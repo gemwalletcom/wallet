@@ -6,9 +6,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
-import com.gemwallet.android.application.banner.cases.GetAssetBanners
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
+import com.gemwallet.android.data.services.store.requests.BannersRequest
 import com.gemwallet.android.data.services.store.requests.PriceAlertsRequest
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModelFactory
@@ -71,7 +71,7 @@ class AssetDetailsViewModelTest {
     }
     private val getSession = mockk<GetSession>(relaxed = true)
     private val getTransactions = mockk<GetTransactions>(relaxed = true)
-    private val getAssetBanners = mockk<GetAssetBanners>(relaxed = true)
+    private val bannersRequest = mockk<BannersRequest>(relaxed = true)
     private val priceAlertsRequest = mockk<PriceAlertsRequest>(relaxed = true)
     private val service = mockk<GemAssetDetailsServiceInterface>(relaxed = true)
 
@@ -82,7 +82,7 @@ class AssetDetailsViewModelTest {
         every { getSession() } returns sessionFlow
         every { getTransactions.getTransactions(any()) } returns MutableStateFlow(emptyList())
         every { getTransactions.stored(any()) } returns emptyList()
-        every { getAssetBanners(any()) } returns banners
+        every { bannersRequest(mockSession().wallet.id.id, asset.id) } returns banners
         every { priceAlertsRequest(asset.id) } returns priceAlerts
         every { service.details(any()) } answers {
             val input = firstArg<GemAssetDetailsInput>()
@@ -133,7 +133,7 @@ class AssetDetailsViewModelTest {
         getWalletAssets = getWalletAssets,
         getTransactions = getTransactions,
         assetDetailsService = service,
-        getAssetBanners = getAssetBanners,
+        bannersRequest = bannersRequest,
         priceAlertsRequest = priceAlertsRequest,
         assetInfoUIModelFactory = AssetInfoUIModelFactory(mockk<Context> { every { getString(any()) } answers { firstArg<Int>().toString() } }),
         userConfig = mockk(relaxed = true),

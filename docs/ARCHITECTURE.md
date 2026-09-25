@@ -1592,9 +1592,9 @@ try store.addBanners([NewBanner(id: id, walletId: walletId, assetId: assetId, ev
 ```
 
 ```kotlin
-// worth keeping — the query the adapter runs, which Core cannot reach
+// worth keeping — the query the request runs, which Core cannot reach
 database.bannersDao().addBanners(listOf(warning.copy(id = "other-wallet", walletId = "wallet-2")))
-val banners = database.bannersDao().observeAssetBanners("wallet-1", tokenId, assetId).first().map { it.toDTO() }
+val banners = BannersRequest(database.bannersDao())("wallet-1", tokenId).first()
 
 assertEquals(setOf(BannerEvent.AccountBlockedMultiSignature), banners.map { it.event }.toSet())
 ```

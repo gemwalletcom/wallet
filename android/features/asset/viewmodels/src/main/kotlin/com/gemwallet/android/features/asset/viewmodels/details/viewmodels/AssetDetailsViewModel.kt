@@ -8,12 +8,12 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
-import com.gemwallet.android.application.banner.cases.GetAssetBanners
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
+import com.gemwallet.android.data.services.store.requests.BannersRequest
 import com.gemwallet.android.data.services.store.requests.PriceAlertsRequest
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -76,7 +76,7 @@ class AssetDetailsViewModel @Inject constructor(
     private val getWalletAssets: GetWalletAssets,
     private val getTransactions: GetTransactions,
     private val assetDetailsService: GemAssetDetailsServiceInterface,
-    private val getAssetBanners: GetAssetBanners,
+    private val bannersRequest: BannersRequest,
     private val priceAlertsRequest: PriceAlertsRequest,
     private val assetInfoUIModelFactory: AssetInfoUIModelFactory,
     private val userConfig: UserConfig,
@@ -130,7 +130,7 @@ class AssetDetailsViewModel @Inject constructor(
         .map { it.assetInfo.asset }
         .distinctUntilChanged()
         .flatMapLatest { asset ->
-            getAssetBanners(asset)
+            session.flatMapLatest { bannersRequest(it?.wallet?.id?.id, asset.id) }
         }
 
     private val priceAlerts = priceAlertsRequest(assetId).map { alerts -> alerts.map { it.priceAlert } }

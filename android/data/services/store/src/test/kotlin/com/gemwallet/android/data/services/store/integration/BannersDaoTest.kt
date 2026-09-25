@@ -9,10 +9,8 @@ import com.gemwallet.android.data.services.store.database.entities.toDTO
 import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAssetTron
-import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.BannerEvent
 import com.wallet.core.primitives.BannerState
-import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -57,33 +55,6 @@ class BannersDaoTest {
             .first().single().toDTO()
 
         assertEquals(asset, banner.asset)
-    }
-
-    @Test
-    fun nativeAssetWarningIncludesStoredAsset() = runBlocking(Dispatchers.IO) {
-        val banner = database.bannersDao()
-            .observeAssetBanners("wallet-1", asset.id.toIdentifier(), asset.id.toIdentifier())
-            .first().single().toDTO()
-
-        assertEquals(asset, banner.asset)
-    }
-
-    @Test
-    fun tokenLoadsCandidatesForTheSameWalletAndChain() = runBlocking(Dispatchers.IO) {
-        database.bannersDao().addBanners(
-            listOf(
-                warning.copy(id = "other-wallet", walletId = "wallet-2"),
-                warning.copy(id = "other-chain", assetId = Chain.Ethereum.string),
-                warning.copy(id = "stake", walletId = null, event = BannerEvent.Stake),
-            ),
-        )
-        val tokenId = AssetId(Chain.Tron, "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")
-        val banners = database.bannersDao()
-            .observeAssetBanners("wallet-1", tokenId.toIdentifier(), asset.id.toIdentifier())
-            .first().map { it.toDTO() }
-
-        assertEquals(setOf(BannerEvent.AccountBlockedMultiSignature, BannerEvent.Stake), banners.map { it.event }.toSet())
-        assertEquals(listOf(asset, asset), banners.map { it.asset })
     }
 
     @Test
