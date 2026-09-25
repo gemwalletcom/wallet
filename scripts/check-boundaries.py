@@ -224,6 +224,38 @@ def only_services_reach_infra():
                 yield f"{path} no longer depends on {crate}; remove it from INFRA_DEPENDENTS"
 
 
+ANDROID_FEATURES = ROOT / "android/features"
+DATA_INTERNALS = re.compile(r'project\(":data:(?:services:gemstone|coordinators)"\)')
+DATA_INTERNAL_DEPENDENTS = {
+    "android/features/activities/viewmodels/build.gradle.kts",
+    "android/features/asset/viewmodels/build.gradle.kts",
+    "android/features/asset_select/viewmodels/build.gradle.kts",
+    "android/features/assets/viewmodels/build.gradle.kts",
+    "android/features/confirm/viewmodels/build.gradle.kts",
+    "android/features/perpetual/viewmodels/build.gradle.kts",
+    "android/features/settings/aboutus/viewmodels/build.gradle.kts",
+    "android/features/settings/price_alerts/viewmodels/build.gradle.kts",
+    "android/features/settings/security/viewmodels/build.gradle.kts",
+    "android/features/settings/settings/viewmodels/build.gradle.kts",
+    "android/features/swap/viewmodels/build.gradle.kts",
+}
+
+
+def android_features_stay_off_data_internals():
+    """§ 5: an Android feature observes through requests and calls Core services, never the data layer behind them."""
+    found = set()
+    for path in sorted(ANDROID_FEATURES.rglob("build.gradle.kts")):
+        if "build" in path.relative_to(ANDROID_FEATURES).parts[:-1]:
+            continue
+        relative = str(path.relative_to(ROOT))
+        if DATA_INTERNALS.search(path.read_text()):
+            found.add(relative)
+            if relative not in DATA_INTERNAL_DEPENDENTS:
+                yield f"{relative} depends on :data:services:gemstone or :data:coordinators"
+    for relative in sorted(DATA_INTERNAL_DEPENDENTS - found):
+        yield f"{relative} no longer depends on the data internals; remove it from DATA_INTERNAL_DEPENDENTS"
+
+
 RULES = [
     ("services are injected, never constructed at a call site", services_are_injected),
     ("one localization mapper names every Core key it renders", one_localization_mapper),
@@ -235,6 +267,7 @@ RULES = [
     ("the Room version ships with its migration", room_version_ships_with_its_migration),
     ("Room never drops user data", room_never_drops_user_data),
     ("only services depends on infra crates", only_services_reach_infra),
+    ("Android features stay off the data internals", android_features_stay_off_data_internals),
 ]
 
 
