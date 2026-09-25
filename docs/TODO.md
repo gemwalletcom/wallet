@@ -615,6 +615,11 @@ Differences between the apps, or between an app and the server, each with its de
 
 ### Same rule, different answers
 
+- **BD322** **S** **Buy checks the wallet's account for the asset's chain on one app only.**
+  - **iOS:** `FiatSceneViewModel` observes `AssetQuery` for the asset and shows it whether or not the wallet has an account on its chain.
+  - **Android:** `FiatViewModel` shows the asset only when the session wallet has an account on its chain and the asset is stored (`AssetQueryOptional`), and fetches no quotes otherwise.
+  - **Expected:** needs a decision.
+- **VM323** **S** **iOS navigation resolves deep links through stores.** `NavigationRouter` holds `AssetStore` and `TransactionStore` (`ios/Gem/Navigation/NavigationRouter.swift`), the same reach past the service as a view model holding a store ([ARCHITECTURE § 7](ARCHITECTURE.md#7-at-most-one-core-service-observed-reads-are-queries)). It reads a stored transaction to open a transaction push and the asset's data to open a recipient link. **Expected:** the router reads through the owning Core service or a query.
 - **BD29** **S** **Redemption options with unlimited stock are never listed.** `summary.rs:18` (`remaining.unwrap_or_default() > 0` drops `None`) vs storage `rewards_redemptions_repository.rs:48,96` and Core `rules.rs:146` (`None` = unlimited). Needs a decision: `test_available_redemption_options` pins a `None` stock as hidden, so confirm whether options stored without a stock are meant to be offered before changing the server.
 
 ### Freshness
