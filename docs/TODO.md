@@ -26,7 +26,7 @@ These need no further answer; work them in this order, one family per change.
 5. **Sessions:** VM185.
 6. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 7. **Generated mappers:** BD299, then GEN300.
-8. **Module layout:** MOD301, then the renames MOD302 to MOD306, then MOD307 before MOD308, MOD309 with MOD310, MOD311, MOD312, MOD313, then MOD314 to MOD317; MOD320 area by area.
+8. **Module layout:** MOD301, then the renames MOD302 to MOD306, then MOD307 before MOD308, MOD309 with MOD310, MOD311, MOD312, MOD313, then MOD314 to MOD317.
 9. **Unused code:** CLN318.
 10. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -689,8 +689,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
   - **iOS:** `QRScanner` and `InfoSheet` are feature packages; `BannerView` is in `PrimitivesComponents`, used by `AssetScene` and `WalletScene`.
   - **Android:** the QR scanner and the info sheet are in `ui/components`; banners are the `banner` feature, used by `asset` and the wallet tab.
   - **Expected:** Android moves `QRScanner.kt` into a `qr_scanner` feature; `BannerView` moves into iOS `Assets` and the Android `banner` module folds into `assets`, with `wallet_tab` depending on `assets`; iOS `InfoSheet` moves from `Features/` to `Packages/`.
-
-- **MOD320** **S** **Android support messages are a query, as on iOS** ([ARCHITECTURE § 5](ARCHITECTURE.md#android)). `GetSupportMessages`, implemented in `data/coordinators` over `GemstoneSupportStore.observeMessages`, is the last observed read behind a case: it becomes `SupportMessagesQuery` in `data/services/store/queries/`, named as the iOS query, with an in-memory Room test beside [`PriceAlertsQueryTest`](../android/data/services/store/src/test/kotlin/com/gemwallet/android/data/services/store/integration/PriceAlertsQueryTest.kt), keeping the same rows and order; the case, its `Impl`, its Hilt binding and the store observer go, and `SupportChatSceneViewModel` observes the query. Every other remaining case is a port or Android-only state that § 5 names.
 
 ## 12. Cleanup sweeps
 
