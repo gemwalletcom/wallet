@@ -26,7 +26,7 @@ These need no further answer; work them in this order, one family per change.
 5. **Sessions:** VM185.
 6. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 7. **Generated mappers:** BD299, then GEN300.
-8. **Module layout:** MOD301, then the renames MOD302 to MOD306, then MOD307 before MOD308, MOD309 with MOD310, MOD311, MOD312, MOD313, then MOD314 to MOD317.
+8. **Module layout:** the renames MOD302 to MOD306, then MOD307 before MOD308, MOD309 with MOD310, MOD311, MOD312, MOD313, then MOD314 to MOD317.
 9. **Unused code:** CLN318.
 10. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -676,10 +676,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 **The standard, for every item below.** Names and packages follow [Cross-Platform Awareness rule 7](../skills/cross-platform-awareness.md); on Android that means no `views`, `navigation` or `details` package roots and no singular `viewmodel`. A move renames the Gradle path in `settings.gradle.kts`, every `project(":features:…")` dependency and the imports, and changes no behaviour. One module per change. Verify with `cd android && ./gradlew assembleGoogleDebug test` for an Android move, `cd ios && just build` and `just test-package <Package>` for an iOS rename.
 
-- **MOD301** **S** **Wallet list and wallet details are one module.**
-  - **iOS:** `ManageWallets` holds `WalletsScene` and `WalletDetailScene`.
-  - **Android:** `features/wallets` holds the list; `features/wallet-details` (the only hyphenated module, package `features.wallet`) holds the detail, secret data and wallet image screens, and `wallets:presents` depends on it.
-  - **Expected:** one Android `wallets` module; iOS `ManageWallets` becomes `Wallets`.
 - **MOD302** **S** **Android `activities` becomes `transactions`**, as iOS `Transactions` and [transactions.md](product/transactions.md).
 - **MOD303** **S** **Android `bridge` becomes `wallet_connector`**, as iOS `WalletConnector`.
 - **MOD304** **M** **Rewards is its own module on both apps.**
@@ -715,9 +711,9 @@ A feature module is one product area, and both apps give it the same name. iOS g
   - **Android:** `features/confirm` is its own module; `bridge` and `perpetual` build `ConfirmScreen` themselves, and `perpetual` uses `AcquireAssetAction` from it (iOS `GetAssetAction`, in `Transfer`).
   - **Expected:** Android `bridge` and `perpetual` stop importing `ConfirmScreen` and the app opens it, as on iOS; `AcquireAssetAction` becomes the transfer module's type once MOD309 lands.
 - **MOD315** **M** **The secret data and wallet image screens belong to Wallets on both apps**, as [wallets.md](product/wallets.md).
-  - **iOS:** `ShowSecretDataScene`, `ExportWalletNavigationStack` and `WalletAvatar` (`WalletImageScene`) are in `Onboarding`, so `ManageWallets` depends on `Onboarding`; the wallet image is used only from `WalletsNavigationStack`, and create-wallet reuses `ShowSecretDataScene` for the new phrase.
-  - **Android:** `WalletSecretDataNavScreen` and `WalletImageScene` are in `wallet-details`; create-wallet draws the phrase with its own `WordChip` view.
-  - **Expected:** iOS moves the export flow and `WalletAvatar` to `Wallets` and drops its `Onboarding` dependency. The grid of phrase words becomes one shared component (`PrimitivesComponents`, `ui`) that create-wallet and export use on both apps. Lands after MOD301.
+  - **iOS:** `ShowSecretDataScene`, `ExportWalletNavigationStack` and `WalletAvatar` (`WalletImageScene`) are in `Onboarding`, so `Wallets` depends on `Onboarding`; the wallet image is used only from `WalletsNavigationStack`, and create-wallet reuses `ShowSecretDataScene` for the new phrase.
+  - **Android:** `WalletSecretDataNavScreen` and `WalletImageScene` are in `wallets`; create-wallet draws the phrase with its own `WordChip` view.
+  - **Expected:** iOS moves the export flow and `WalletAvatar` to `Wallets` and drops its `Onboarding` dependency. The grid of phrase words becomes one shared component (`PrimitivesComponents`, `ui`) that create-wallet and export use on both apps.
 - **MOD316** **S** **Recents belong to Assets, and the chart is a `Market` module on both apps.**
   - **iOS:** recents are the `Recents` package, used by `Assets`, `Perpetuals` and `WalletTab`; the chart is `ChartScene` in `MarketInsight`.
   - **Android:** `RecentsBottomSheet` is in `features/asset_select`, used by the same three areas; `AssetChartScene` and its view model are under `chart` in `features/asset`.

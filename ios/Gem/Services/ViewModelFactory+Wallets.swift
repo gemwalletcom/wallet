@@ -4,12 +4,12 @@ import Contacts
 import Foundation
 import GemstonePrimitives
 import GemstoneServices
-import ManageWallets
 import Onboarding
 import Primitives
 import PrimitivesComponents
 import Store
 import SwiftUI
+import Wallets
 
 public extension ViewModelFactory {
     @MainActor

@@ -257,7 +257,6 @@ dependencies {
     implementation(project(":features:recipient:presents"))
     implementation(project(":features:recipient:viewmodels"))
     implementation(project(":features:nft:presents"))
-    implementation(project(":features:wallet-details:presents"))
     implementation(project(":features:bridge:presents"))
     implementation(project(":features:bridge:viewmodels"))
     implementation(project(":features:assets:presents"))

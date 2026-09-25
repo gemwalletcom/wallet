@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import ManageWallets
 import Onboarding
 import Primitives
 import Style
 import SwiftUI
+import Wallets
 
 struct WalletsNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory

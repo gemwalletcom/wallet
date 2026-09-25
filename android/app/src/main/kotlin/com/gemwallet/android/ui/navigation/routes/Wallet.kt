@@ -6,9 +6,9 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.domains.wallet.WalletSecretInput
 import com.gemwallet.android.features.create_wallet.views.PhraseAlertDialog
-import com.gemwallet.android.features.wallet.presents.WalletImageNavScreen
-import com.gemwallet.android.features.wallet.presents.WalletNavScreen
-import com.gemwallet.android.features.wallet.presents.WalletSecretDataNavScreen
+import com.gemwallet.android.features.wallets.presents.WalletImageNavScreen
+import com.gemwallet.android.features.wallets.presents.WalletNavScreen
+import com.gemwallet.android.features.wallets.presents.WalletSecretDataNavScreen
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.navigation.RouteArgument
