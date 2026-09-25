@@ -403,10 +403,17 @@ impl GemTransferData {
                 };
                 Some(GemConfirmDestination::Provider {
                     name: provider.name.clone(),
-                    address: provider.id.clone(),
+                    address: self.recipient.address.clone(),
                 })
             }
-            TransactionInputType::Swap { .. } | TransactionInputType::Account { .. } | TransactionInputType::Perpetual { .. } => None,
+            TransactionInputType::Swap { swap_data, .. } => match swap_data.data.data_type {
+                SwapQuoteDataType::Contract => Some(GemConfirmDestination::Provider {
+                    name: swap_data.quote.provider_data.name.clone(),
+                    address: swap_data.data.to.clone(),
+                }),
+                SwapQuoteDataType::Transfer => None,
+            },
+            TransactionInputType::Account { .. } | TransactionInputType::Perpetual { .. } => None,
         }
     }
 }
@@ -976,6 +983,40 @@ mod tests {
             })
             .destination(),
             Some(GemConfirmDestination::Contract { name: None, address: "recipient".into() })
+        );
+
+        let swap = |swap_data: SwapData| {
+            GemTransferData::mock(TransactionInputType::Swap {
+                from_asset: eth.clone(),
+                to_asset: Asset::mock_erc20(),
+                swap_data,
+            })
+            .destination()
+        };
+        let contract = SwapData::mock();
+        assert_eq!(
+            swap(contract.clone()),
+            Some(GemConfirmDestination::Provider {
+                name: contract.quote.provider_data.name.clone(),
+                address: contract.data.to.clone()
+            }),
+            "a contract quote shows the router it calls"
+        );
+        assert_eq!(swap(SwapData::mock_transfer(SwapProvider::NearIntents, "1", "1", "deposit")), None, "a deposit address stays plain");
+
+        let provider = DelegationValidator::mock();
+        let data = ContractCallData {
+            contract_address: "0xvault".to_string(),
+            call_data: "0x".to_string(),
+            approval: None,
+            gas_limit: None,
+        };
+        assert_eq!(
+            earn_transfer_data(eth.clone(), EarnType::Deposit(provider.clone()), data, BigInt::from(1), false).destination(),
+            Some(GemConfirmDestination::Provider {
+                name: provider.name,
+                address: "0xvault".into()
+            })
         );
     }
 

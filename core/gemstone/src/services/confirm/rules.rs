@@ -570,6 +570,7 @@ pub fn confirm_row_contents(transfer: &GemTransferData, wallet: Wallet, address_
                 let address = destination.address();
                 let short_address = format_address(&address, Some(chain), GemAddressFormatStyle::Short);
                 let name = GemAddressService::new().name_text(destination.name(), short_address.clone(), avatar.is_some());
+                let link = address_url(chain, address.clone());
                 GemConfirmRowContent::Recipient {
                     text: name.clone().unwrap_or(short_address),
                     name,
@@ -579,7 +580,7 @@ pub fn confirm_row_contents(transfer: &GemTransferData, wallet: Wallet, address_
                     avatar,
                     memo: transfer.recipient.memo.clone(),
                     chain,
-                    link: address_url(chain, transfer.recipient.address.clone()),
+                    link,
                 }
             }),
             GemConfirmRow::Network => {

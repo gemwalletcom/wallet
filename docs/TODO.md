@@ -19,12 +19,11 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Settled differences:** AUD50.
-2. **One view state:** VM168, VM167, VM169, VM170, VM171, VM144, VM125, VM134, VM89.
-3. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
-4. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
-5. **Balances and storage:** D76, D77, VM98 (an Android migration).
-6. **Server:** BD23, BD51, BD52.
+1. **One view state:** VM168, VM167, VM169, VM170, VM171, VM144, VM125, VM134, VM89.
+2. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
+3. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
+4. **Balances and storage:** D76, D77, VM98 (an Android migration).
+5. **Server:** BD23, BD51, BD52.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181. Waiting on a date or a release: X168, X163.
 
@@ -46,7 +45,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | — |
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountEntry`, `GemAutocloseDraft`, existing provider inputs | VM125 |
 | Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM62, VM144, VM145, VM168, VM170 |
-| Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | AUD50, VM166 |
+| Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM166 |
 | Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM62, VM145, VM98 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | VM169 |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM172 |
@@ -161,7 +160,6 @@ Core has no runtime, so scheduling, timers and OS callbacks stay in the apps; wh
 
 Taps on rows that already exist, not new row types.
 
-- **AUD50** **S** **Open address details from the swap quote provider when the quote calls a contract.** Swap details shows only the provider name ([`SwapDetailsView`](../ios/Features/Swap/Sources/Views/SwapDetailsView.swift), [`SwapCurrentProviderRow`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/swap/SwapDetailsComponents.kt)). The selected quote already distinguishes the two cases: `SwapQuoteDataType::Contract` with `data.to` as the router, and `Transfer` as a deposit address. Tap the existing provider row only for a contract quote, on the quote's from-asset chain. A transfer quote, including NEAR Intents, stays plain. Reuse `GemListRow::Provider` rather than a second name row; the provider and rate stay the rich rows `GemSwapQuoteSummary::detail_rows` already leaves to the apps. The swapper `Quote` ([`models.rs`](../core/crates/swapper/src/models.rs)) carries no `SwapQuoteData`; the contract/transfer split and `data.to` exist only after `get_quote_data` runs on the Swap tap. **Decided:** show the address on the confirm screen, where the data is already loaded; swap details keep the provider name only, as iOS does today.
 
 ## 8. Persistence and parity
 

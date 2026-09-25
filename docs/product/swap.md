@@ -27,5 +27,6 @@ flowchart LR
 
 - A quote is never cached; every eligible provider is asked again for the live amount.
 - A swap that needs a spending approval signs it together with the swap and shows one fee for both.
+- When the quote calls a contract, the confirmation screen shows the Provider with that contract, which opens its address details on the paying network; a quote that pays a deposit address shows no Provider row. Swap Details names the provider only.
 - A max swap of a native coin keeps the network fee, and anything the provider attaches on top, out of the quoted amount, so the confirmed amount is the one that can be sent; when a provider's minimum is then above it, the user is told the minimum rather than "insufficient balance".
 - Every eligible provider is awaited, so the slowest one decides how long a quote takes; cached routes are only hints and every quote uses live chain state.
