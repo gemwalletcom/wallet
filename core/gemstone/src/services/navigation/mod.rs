@@ -88,16 +88,20 @@ impl GemNavigationService {
             GemPushNotification::Test => Ok(GemNavigationTarget::None),
         }
     }
-}
 
-impl GemNavigationService {
-    async fn open_asset(&self, asset_id: AssetId) -> Result<GemNavigationTarget, GemServiceError> {
+    pub async fn open_asset(&self, asset_id: AssetId) -> Result<GemNavigationTarget, GemServiceError> {
         Ok(match self.assets.open_asset(asset_id).await? {
             Some(asset) => target(asset, None),
             None => GemNavigationTarget::None,
         })
     }
 
+    pub fn asset_target(&self, asset: Asset) -> GemNavigationTarget {
+        target(asset, None)
+    }
+}
+
+impl GemNavigationService {
     async fn open_wallet_asset(&self, wallet_id: WalletId, asset_id: AssetId) -> Result<GemNavigationTarget, GemServiceError> {
         let Some(wallet) = self.session.get_wallet(wallet_id.clone()).await? else {
             return Ok(GemNavigationTarget::None);
@@ -204,6 +208,27 @@ mod tests {
             );
             assert_eq!(*testkit.status.tracked.lock().unwrap(), vec![vec![transaction]]);
         });
+    }
+
+    #[test]
+    fn test_only_a_perpetual_opens_the_perpetual_screen() {
+        let testkit = DiscoveryTestkit::with_status(200);
+        let service = GemNavigationService::new(testkit.assets.clone(), testkit.session.clone(), testkit.state.clone());
+        let coin = Asset::from_chain(Chain::Ethereum);
+        let perpetual = Asset {
+            asset_type: AssetType::PERPETUAL,
+            ..Asset::from_chain(Chain::HyperCore)
+        };
+
+        assert_eq!(
+            service.asset_target(coin.clone()),
+            GemNavigationTarget::Asset {
+                asset: coin,
+                wallet_id: None,
+                is_perpetual: false
+            }
+        );
+        assert!(matches!(service.asset_target(perpetual), GemNavigationTarget::Asset { is_perpetual: true, .. }));
     }
 
     #[test]

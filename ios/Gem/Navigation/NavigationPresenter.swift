@@ -3,6 +3,7 @@
 import Components
 import protocol Gemstone.GemAssetsServiceProtocol
 import enum Gemstone.GemErrorText
+import protocol Gemstone.GemNavigationServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
 import enum Gemstone.GemTransactionHeaderAction
 import GemstonePrimitives
@@ -23,13 +24,16 @@ final class NavigationPresenter: Sendable {
     @MainActor private var _isPresentingSupport: Bool = false
     @MainActor private var _isPresentingWallets: Bool = false
     private let assetsService: any GemAssetsServiceProtocol
+    private let navigationService: any GemNavigationServiceProtocol
     private let nftService: any GemNftServiceProtocol
 
     init(
         assetsService: any GemAssetsServiceProtocol,
+        navigationService: any GemNavigationServiceProtocol,
         nftService: any GemNftServiceProtocol,
     ) {
         self.assetsService = assetsService
+        self.navigationService = navigationService
         self.nftService = nftService
     }
 }
@@ -90,10 +94,7 @@ extension NavigationPresenter {
     ) async throws {
         switch action {
         case let .asset(assetId), let .perpetual(assetId):
-            guard let asset = try await assetsService.openAsset(assetId: assetId)?.toPrimitives() else {
-                return
-            }
-            navigationState.openAsset(asset)
+            try await navigationState.openAsset(target: navigationService.openAsset(assetId: assetId))
         case let .swap(fromAssetId, toAssetId):
             try await presentSwap(
                 from: AssetId(core: fromAssetId),

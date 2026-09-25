@@ -38,7 +38,7 @@ struct WalletNavigationView: View {
                     model: viewModelFactory.walletSearchScene(
                         wallet: model.wallet,
                         onDismissSearch: model.onToggleSearch,
-                        onSelectAssetAction: navigationState.openAsset,
+                        onSelectAssetAction: navigationRouter.openAsset,
                         onAddToken: model.onSelectAddCustomToken,
                     ),
                 )
@@ -159,7 +159,7 @@ struct WalletNavigationView: View {
                 model: viewModelFactory.perpetualsScene(
                     wallet: model.wallet,
                     onSelectAmount: { model.isPresentingSheet = .amount($0) },
-                    onSelectAsset: navigationState.openAsset,
+                    onSelectAsset: navigationRouter.openAsset,
                     onSelectPortfolio: { model.isPresentingSheet = .portfolio(.perpetuals) },
                 ),
             )
@@ -174,7 +174,7 @@ struct WalletNavigationView: View {
                         scope: destination.scope,
                     ),
                     title: destination.title ?? Localized.Assets.title,
-                    onSelectAsset: navigationState.openAsset,
+                    onSelectAsset: navigationRouter.openAsset,
                 ),
             )
         }

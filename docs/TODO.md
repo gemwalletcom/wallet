@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Small shared rules:** VM182, VM184, VM183, VM186, VM196, VM194.
+1. **Small shared rules:** VM184, VM183, VM186, VM196, VM194.
 2. **Screens:** VM189, VM191, VM190, VM192 with VM193.
 3. **Models:** VM195.
 4. **Sessions:** VM185.
@@ -37,11 +37,11 @@ This map routes work to current owners. It groups existing ids rather than creat
 
 | Screens / entry points | Existing owner or infrastructure to extend | Open work |
 |---|---|---|
-| App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79, VM182, VM185, VM275 |
+| App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79, VM185, VM275 |
 | Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | VM183, VM241, VM242, VM294 |
 | Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM184, VM237, VM238, VM239, VM240, VM294 |
 | Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM196, VM200, VM202, VM204, VM264, VM269 |
-| Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM182, VM250, VM251, VM252, VM254, VM262, VM263, VM286 |
+| Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM250, VM251, VM252, VM254, VM262, VM263, VM286 |
 | Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | VM189, VM253, VM261, VM285 |
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
 | Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | VM189, VM232 |
@@ -110,10 +110,6 @@ The same product rule written in both apps, or in one app while the other reads 
   - **iOS:** `TransactionsQueryFilter+Activity.swift` builds `activity`, `activityDefaults` and `pendingActivity` into the Store's `TransactionsQueryFilter` enum.
   - **Android:** the `TransactionsQueryFilter` companion (`gemcore/.../transactions/values/TransactionsQueryFilter.kt`) builds the same three into its own enum.
   - **Expected:** the native activity queries read `GemActivityFilters` (plus the asset and state filters they add) directly; both enums and both conversions go.
-- **VM182** **S** **Whether an asset opens the asset or the perpetual screen is decided in the apps.** Core already answers it for pushes and deep links: `GemNavigationTarget::Asset` and `::Transaction` carry `is_perpetual` (`core/gemstone/src/services/navigation/mod.rs`).
-  - **iOS:** `NavigationRouter.open(target:)` drops that flag (`case let .asset(asset, walletId, _)`) and re-derives it from `asset.type` in `getPath(for:)` (twice). `NavigationStateManager.openAsset` branches on `asset.type == .perpetual` for every in-app open.
-  - **Android:** `NavigationTargetRoutes.kt` reads `isPerpetual`, but `WalletSearchScreen.kt` branches on `AssetType.PERPETUAL` when a recent is opened.
-  - **Expected:** one Core answer for both paths: iOS reads `is_perpetual` from the target, and an in-app open asks the navigation service for the same target instead of checking the type; all three type checks go.
 - **VM183** **S** **Phrase suggestions are cut and applied by each app.** Core returns suggestions for one word (`phrase_suggestions`, `core/gemstone/src/mnemonic.rs`); the input handling around it is written twice.
   - **iOS:** `ImportWalletSceneViewModel` takes the last whitespace-separated word, offers suggestions only while the cursor is at the end, and applies a pick by dropping the last word and appending the word and a space.
   - **Android:** `ImportViewModel` does the same with its own `lastWord()`, cursor check and `selectSuggestion`.

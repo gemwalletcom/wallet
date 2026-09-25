@@ -13,6 +13,7 @@ import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.domains.wallet.WalletSecretInput
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset_select.presents.navigation.AssetsManageRoute
 import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
@@ -88,6 +89,7 @@ import com.gemwallet.android.ui.navigation.routes.WalletSecurityReminderRoute
 import com.gemwallet.android.ui.navigation.routes.WalletsRoute
 import com.gemwallet.android.ui.navigation.routes.assetsRoute
 import com.gemwallet.android.ui.navigation.routes.settingsRoute
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainAddress
@@ -105,6 +107,7 @@ import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemDeeplinkServiceInterface
 import uniffi.gemstone.GemNavigationServiceInterface
 import uniffi.gemstone.GemNavigationTab
+import uniffi.gemstone.GemNavigationTarget
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.UrlAction
 class WalletNavigator(
@@ -262,6 +265,11 @@ class WalletNavigator(
     fun openAddPriceAlertTarget(assetId: AssetId) = push(AddPriceAlertTargetRoute(assetId))
     fun openPerpetuals() = push(PerpetualRoute)
     fun openPerpetualDetails(assetId: AssetId) = push(PerpetualPositionRoute(assetId))
+
+    fun openRecent(asset: Asset) {
+        val target = navigationService.assetTarget(asset.toGem()) as? GemNavigationTarget.Asset ?: return
+        if (target.isPerpetual) openPerpetualDetails(asset.id) else openAsset(asset.id)
+    }
     fun openEarn(assetId: AssetId) = push(EarnRoute(assetId))
 
     fun openStake(assetId: AssetId) = push(StakeRoute(assetId))

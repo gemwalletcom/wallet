@@ -32,7 +32,6 @@ import com.gemwallet.android.ui.components.screen.ToastEffect
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.NftItemTarget
 import com.gemwallet.android.ui.theme.space0
-import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.PerpetualId
 import kotlinx.collections.immutable.toImmutableList
 
@@ -65,14 +64,6 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
 
             WalletSearchAction.OpenRecentsSheet -> recentsViewModel.show(filters = viewModel.assetFilters())
 
-            is WalletSearchAction.OpenRecent -> onAction(
-                if (action.asset.type == AssetType.PERPETUAL) {
-                    WalletSearchAction.OpenPerpetual(action.asset)
-                } else {
-                    WalletSearchAction.OpenAsset(action.asset)
-                },
-            )
-
             is WalletSearchAction.OpenAsset -> {
                 viewModel.openRecent(action.asset)
                 onAction(action)
@@ -90,6 +81,7 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
             is WalletSearchAction.OpenNftCollection,
             is WalletSearchAction.OpenNftAsset,
             is WalletSearchAction.OpenList,
+            is WalletSearchAction.OpenRecent,
             is WalletSearchAction.ShowAllAssets,
             -> onAction(action)
         }

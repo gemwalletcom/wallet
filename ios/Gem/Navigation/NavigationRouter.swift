@@ -126,6 +126,11 @@ final class NavigationRouter: Sendable {
     }
 
     @MainActor
+    func openAsset(_ asset: Asset) {
+        navigationState.openAsset(target: navigationService.assetTarget(asset: asset.toGem()))
+    }
+
+    @MainActor
     func openInApp(url: URL) -> Bool {
         guard let action = deeplinkService.urlAction(url: url.absoluteString) else { return false }
         Task { await open(action: action) }
@@ -151,8 +156,8 @@ extension NavigationRouter {
 
     private func open(target: GemNavigationTarget) async throws {
         switch target {
-        case let .asset(asset, walletId, _):
-            try openTarget(path: getPath(for: asset.toPrimitives()), walletId: walletId)
+        case let .asset(asset, walletId, isPerpetual):
+            try openTarget(path: [NavigationStateManager.assetScene(asset.toPrimitives(), isPerpetual: isPerpetual)], walletId: walletId)
         case let .receive(asset):
             try await presentAssetInput(type: .receive(.asset), for: asset.toPrimitives())
         case let .fiat(asset, amount, quoteType):
@@ -172,9 +177,9 @@ extension NavigationRouter {
             presenter.isPresentingSupport.wrappedValue = true
         case let .address(chain, address):
             presenter.isPresentingAddressDetails.wrappedValue = ChainAddress(chain: Chain(core: chain), address: address)
-        case let .transaction(asset, walletId, transaction, _):
+        case let .transaction(asset, walletId, transaction, isPerpetual):
             let stored = try transactionStore.getTransaction(walletId: Primitives.WalletId.from(id: walletId), transactionId: transaction.toPrimitives().id)
-            try openTarget(path: getPath(for: asset.toPrimitives(), transactionId: stored.transaction.id), walletId: walletId)
+            try openTarget(path: transactionPath(asset: asset.toPrimitives(), isPerpetual: isPerpetual, transactionId: stored.transaction.id), walletId: walletId)
         case .none:
             break
         }
@@ -295,17 +300,10 @@ extension NavigationRouter {
         navigationState.pendingWalletPath = path
     }
 
-    private func getPath(for asset: Asset) -> [any Hashable & Codable] {
-        switch asset.type {
-        case .perpetual: [Scenes.Perpetual(asset)]
-        default: [Scenes.Asset(asset: asset)]
-        }
-    }
-
-    private func getPath(for asset: Asset, transactionId: TransactionId) -> [any Hashable & Codable] {
-        switch asset.type {
-        case .perpetual: [Scenes.Perpetuals(), Scenes.Perpetual(asset), Scenes.Transaction(id: transactionId)]
-        default: [Scenes.Asset(asset: asset), Scenes.Transaction(id: transactionId)]
+    private func transactionPath(asset: Asset, isPerpetual: Bool, transactionId: TransactionId) -> [any Hashable & Codable] {
+        switch isPerpetual {
+        case true: [Scenes.Perpetuals(), Scenes.Perpetual(asset), Scenes.Transaction(id: transactionId)]
+        case false: [Scenes.Asset(asset: asset), Scenes.Transaction(id: transactionId)]
         }
     }
 

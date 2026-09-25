@@ -28,3 +28,4 @@ flowchart LR
 - Perpetuals are offered only to a Multi-Coin wallet with a Hyperliquid account, and only after the user switches them on.
 - An order is priced 2% against the trader, because it must fill while the price moves.
 - Every perpetual value is in dollars whatever currency the wallet uses, because the collateral is USDC.
+- A perpetual opens its market screen wherever it is opened from (search, recents, a transaction, a notification or a link), because Core decides which screen an asset opens for both apps.

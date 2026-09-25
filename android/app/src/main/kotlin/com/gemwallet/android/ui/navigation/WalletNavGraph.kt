@@ -102,6 +102,7 @@ fun WalletNavGraph(
                         WalletSearchAction.OpenCollections -> navigator.openNftList()
                         is WalletSearchAction.OpenAsset -> navigator.openAsset(action.asset.id)
                         is WalletSearchAction.OpenPerpetual -> navigator.openPerpetualDetails(action.asset.id)
+                        is WalletSearchAction.OpenRecent -> navigator.openRecent(action.asset)
                         is WalletSearchAction.OpenNftCollection -> navigator.openNftCollection(action.collectionId)
                         is WalletSearchAction.OpenNftAsset -> navigator.openNftAsset(action.assetId)
                         is WalletSearchAction.ShowAllAssets -> navigator.openAssetsResults(action.query)
