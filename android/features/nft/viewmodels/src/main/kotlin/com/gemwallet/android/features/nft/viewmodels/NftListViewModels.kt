@@ -5,8 +5,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.nft.cases.GetNftCollections
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.store.queries.NFTQuery
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ui.R
@@ -24,10 +24,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -41,10 +45,11 @@ import uniffi.gemstone.GemNftServiceInterface
 import uniffi.gemstone.loadError
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class NftListViewModels @Inject constructor(
     private val nftService: GemNftServiceInterface,
-    getNftCollections: GetNftCollections,
+    nftQuery: NFTQuery,
     getSession: GetSession,
     savedStateHandle: SavedStateHandle,
     @param:ApplicationContext private val context: Context,
@@ -67,7 +72,12 @@ class NftListViewModels @Inject constructor(
 
     private var lastSyncedWalletId: WalletId? = null
 
-    private val nftData: StateFlow<List<NFTData>> = getNftCollections(savedStateHandle.nftCollectionId())
+    private val collectionId = savedStateHandle.nftCollectionId()
+
+    private val nftData: StateFlow<List<NFTData>> = session
+        .filterNotNull()
+        .distinctUntilChangedBy { it.wallet.id }
+        .flatMapLatest { nftQuery(it.wallet.id.id, collectionId) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val screen: StateFlow<GemNftListScreen> = nftData

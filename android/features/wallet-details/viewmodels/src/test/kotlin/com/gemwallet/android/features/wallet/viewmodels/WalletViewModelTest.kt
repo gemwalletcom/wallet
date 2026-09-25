@@ -2,9 +2,9 @@ package com.gemwallet.android.features.wallet.viewmodels
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.nft.cases.GetListNft
 import com.gemwallet.android.application.wallet.cases.DeleteWallet
 import com.gemwallet.android.application.wallet.cases.GetWalletDetails
+import com.gemwallet.android.data.services.store.queries.NFTQuery
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -110,7 +110,7 @@ class WalletViewModelTest {
             every { avatarItems(any()) } returns emptyList()
         }
         val details: GetWalletDetails = mockk { every { getWallet(any()) } returns flowOf(null) }
-        val nfts: GetListNft = mockk { every { getListNft(any()) } returns flowOf(emptyList()) }
+        val nfts: NFTQuery = mockk { every { this@mockk.invoke(any(), any()) } returns flowOf(emptyList()) }
         val model = WalletImageViewModel(details, nfts, service, route(), dispatcher, mockk(relaxed = true)).also { models.add(it) }
 
         model.setNftImage("https://example.com/a.png").join()

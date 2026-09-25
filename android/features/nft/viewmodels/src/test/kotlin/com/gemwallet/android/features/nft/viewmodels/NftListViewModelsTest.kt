@@ -2,13 +2,17 @@ package com.gemwallet.android.features.nft.viewmodels
 
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
-import com.gemwallet.android.application.nft.cases.GetNftCollections
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.store.queries.NFTQuery
+import com.gemwallet.android.model.Session
+import com.gemwallet.android.testkit.mockSession
+import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ToastMessage
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -49,23 +53,24 @@ class NftListViewModelsTest {
         Dispatchers.resetMain()
     }
 
+    private val onlyUnverified = GemNftListScreen(
+        title = GemLocalizedText.NftCollections,
+        offersReceive = true,
+        syncsOnAppear = true,
+        items = emptyList(),
+        unverifiedRow = GemNftUnverifiedRow(countText = "1"),
+        hasContent = true,
+    )
+
     @Test
     fun `a failed refresh over only unverified collections toasts and keeps the list`() = runTest(dispatcher) {
-        val onlyUnverified = GemNftListScreen(
-            title = GemLocalizedText.NftCollections,
-            offersReceive = true,
-            syncsOnAppear = true,
-            items = emptyList(),
-            unverifiedRow = GemNftUnverifiedRow(countText = "1"),
-            hasContent = true,
-        )
         val service = mockk<GemNftServiceInterface> {
             every { listScreen(any(), any()) } returns onlyUnverified
             coEvery { refresh(true) } returns GemRefreshResult(state = GemLoadState.Data, toast = GemServiceException.Gateway("offline"))
         }
         val viewModel = NftListViewModels(
             nftService = service,
-            getNftCollections = mockk<GetNftCollections> { every { this@mockk.invoke(any()) } returns flowOf(emptyList()) },
+            nftQuery = mockk<NFTQuery>(),
             getSession = mockk<GetSession> { every { this@mockk.invoke() } returns MutableStateFlow(null) },
             savedStateHandle = SavedStateHandle(),
             context = mockk<Context>(relaxed = true),
@@ -80,5 +85,29 @@ class NftListViewModelsTest {
         assertEquals(R.drawable.ic_error, toast.await().image)
         assertNull(viewModel.errorRow.value)
         collector.cancel()
+    }
+
+    @Test
+    fun `collections follow the session wallet and ignore updates to the same wallet`() = runTest(dispatcher) {
+        val service = mockk<GemNftServiceInterface> { every { listScreen(any(), any()) } returns onlyUnverified }
+        val query = mockk<NFTQuery> { every { this@mockk.invoke(any(), any()) } returns flowOf(emptyList()) }
+        val sessions = MutableStateFlow<Session?>(mockSession(wallet = mockWallet(id = "wallet-a")))
+        NftListViewModels(
+            nftService = service,
+            nftQuery = query,
+            getSession = mockk<GetSession> { every { this@mockk.invoke() } returns sessions },
+            savedStateHandle = SavedStateHandle(),
+            context = mockk<Context>(relaxed = true),
+            ioDispatcher = dispatcher,
+        )
+        advanceUntilIdle()
+
+        sessions.value = mockSession(wallet = mockWallet(id = "wallet-b"))
+        advanceUntilIdle()
+        sessions.value = mockSession(wallet = mockWallet(id = "wallet-b", name = "Renamed"))
+        advanceUntilIdle()
+
+        verify(exactly = 1) { query("wallet-a", null) }
+        verify(exactly = 1) { query("wallet-b", null) }
     }
 }

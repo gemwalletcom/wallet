@@ -5,8 +5,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.nft.cases.GetListNft
 import com.gemwallet.android.application.wallet.cases.GetWalletDetails
+import com.gemwallet.android.data.services.store.queries.NFTQuery
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
@@ -35,7 +35,7 @@ import javax.inject.Inject
 @HiltViewModel
 class WalletImageViewModel @Inject constructor(
     getWalletDetails: GetWalletDetails,
-    getListNftCase: GetListNft,
+    nftQuery: NFTQuery,
     private val walletService: GemWalletServiceInterface,
     savedStateHandle: SavedStateHandle,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -50,7 +50,7 @@ class WalletImageViewModel @Inject constructor(
 
     val emojis: List<String> = AvatarEmoji.all
 
-    val nftImages: StateFlow<List<NftItemUIModel>> = getListNftCase.getListNft(walletId)
+    val nftImages: StateFlow<List<NftItemUIModel>> = nftQuery(walletId.id)
         .map { data -> walletService.avatarItems(data.map { it.toGem() }).toUIModels() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

@@ -13,8 +13,8 @@ import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -47,7 +47,7 @@ class NftDetailsViewModelTest {
             coEvery { report(any(), any()) } throws RuntimeException("rate limited")
         }
         val details = mockk<GetNftAssetDetails> {
-            every { this@mockk.invoke(any(), any()) } returns flowOf(null)
+            every { this@mockk.invoke(any(), any()) } returns emptyFlow()
         }
         val viewModel = NftDetailsViewModel(
             getNftAssetDetails = details,

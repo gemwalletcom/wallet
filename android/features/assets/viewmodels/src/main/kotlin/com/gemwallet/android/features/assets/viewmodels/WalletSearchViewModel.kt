@@ -3,12 +3,12 @@ package com.gemwallet.android.features.assets.viewmodels
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.nft.cases.GetNftCollections
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.perpetual.cases.PerpetualSections
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
+import com.gemwallet.android.data.services.store.queries.NFTQuery
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.ext.toGem
@@ -29,6 +29,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -51,7 +53,7 @@ class WalletSearchViewModel @Inject constructor(
     recentAssetsService: RecentAssetsService,
     service: GemAssetSelectionServiceInterface,
     getPerpetuals: GetPerpetuals,
-    getNftCollections: GetNftCollections,
+    nftQuery: NFTQuery,
     @IoDispatcher ioDispatcher: CoroutineDispatcher,
     @ApplicationContext context: Context,
 ) : BaseAssetSelectViewModel(
@@ -72,7 +74,10 @@ class WalletSearchViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, PerpetualSections())
 
-    private val nftData: Flow<List<NFTData>> = getNftCollections(null)
+    private val nftData: Flow<List<NFTData>> = getSession()
+        .filterNotNull()
+        .distinctUntilChangedBy { it.wallet.id }
+        .flatMapLatest { nftQuery(it.wallet.id.id) }
         .map { data -> data.filter { it.assets.isNotEmpty() } }
         .flowOn(ioDispatcher)
 

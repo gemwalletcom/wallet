@@ -7,9 +7,13 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.NFTAttribute
+import com.wallet.core.primitives.NFTCollection
 import com.wallet.core.primitives.NFTCollectionId
+import com.wallet.core.primitives.NFTImages
+import com.wallet.core.primitives.NFTResource
 import com.wallet.core.primitives.NFTType
 import com.wallet.core.primitives.VerificationStatus
 
@@ -92,3 +96,32 @@ data class DbNFTAsset(
     indices = [Index("asset_id")],
 )
 data class DbNFTAssociation(@ColumnInfo("wallet_id") val walletId: String, @ColumnInfo("asset_id") val assetId: NFTAssetId)
+
+fun List<DbNFTCollection>.toCollectionModels() = map { it.toCollectionModel() }
+
+fun DbNFTCollection.toCollectionModel() = NFTCollection(
+    id = id,
+    name = name,
+    description = description,
+    chain = chain,
+    contractAddress = contractAddress,
+    images = NFTImages(NFTResource(imageUrl, "")),
+    status = status ?: VerificationStatus.Unverified,
+    links = links ?: emptyList(),
+)
+
+fun List<DbNFTAsset>.toAssetModels(): List<NFTAsset> = map { it.toAssetModel() }
+
+fun DbNFTAsset.toAssetModel() = NFTAsset(
+    id = id,
+    collectionId = collectionId,
+    tokenId = tokenId,
+    tokenType = tokenType,
+    contractAddress = contractAddress,
+    name = name,
+    description = description,
+    chain = chain,
+    resource = NFTResource("", ""),
+    images = NFTImages(NFTResource(imageUrl, "")),
+    attributes = attributes ?: emptyList(),
+)
