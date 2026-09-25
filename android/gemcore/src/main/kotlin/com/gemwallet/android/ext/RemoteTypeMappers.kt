@@ -3,14 +3,6 @@
 
 package com.gemwallet.android.ext
 
-fun uniffi.gemstone.AccountDataType.toPrimitives(): com.wallet.core.primitives.AccountDataType = when (this) {
-    uniffi.gemstone.AccountDataType.ACTIVATE -> com.wallet.core.primitives.AccountDataType.Activate
-}
-
-fun com.wallet.core.primitives.AccountDataType.toGem(): uniffi.gemstone.AccountDataType = when (this) {
-    com.wallet.core.primitives.AccountDataType.Activate -> uniffi.gemstone.AccountDataType.ACTIVATE
-}
-
 fun uniffi.gemstone.AddressType.toPrimitives(): com.wallet.core.primitives.AddressType = when (this) {
     uniffi.gemstone.AddressType.ADDRESS -> com.wallet.core.primitives.AddressType.Address
     uniffi.gemstone.AddressType.CONTRACT -> com.wallet.core.primitives.AddressType.Contract
@@ -131,42 +123,6 @@ fun uniffi.gemstone.Chain.toChain(): com.wallet.core.primitives.Chain = com.wall
     ?: throw IllegalStateException("Core returned a Chain this build does not know: $this")
 
 fun com.wallet.core.primitives.Chain.toGem(): uniffi.gemstone.Chain = string
-
-fun uniffi.gemstone.ChainType.toPrimitives(): com.wallet.core.primitives.ChainType = when (this) {
-    uniffi.gemstone.ChainType.ETHEREUM -> com.wallet.core.primitives.ChainType.Ethereum
-    uniffi.gemstone.ChainType.BITCOIN -> com.wallet.core.primitives.ChainType.Bitcoin
-    uniffi.gemstone.ChainType.SOLANA -> com.wallet.core.primitives.ChainType.Solana
-    uniffi.gemstone.ChainType.COSMOS -> com.wallet.core.primitives.ChainType.Cosmos
-    uniffi.gemstone.ChainType.TON -> com.wallet.core.primitives.ChainType.Ton
-    uniffi.gemstone.ChainType.TRON -> com.wallet.core.primitives.ChainType.Tron
-    uniffi.gemstone.ChainType.APTOS -> com.wallet.core.primitives.ChainType.Aptos
-    uniffi.gemstone.ChainType.SUI -> com.wallet.core.primitives.ChainType.Sui
-    uniffi.gemstone.ChainType.XRP -> com.wallet.core.primitives.ChainType.Xrp
-    uniffi.gemstone.ChainType.NEAR -> com.wallet.core.primitives.ChainType.Near
-    uniffi.gemstone.ChainType.STELLAR -> com.wallet.core.primitives.ChainType.Stellar
-    uniffi.gemstone.ChainType.ALGORAND -> com.wallet.core.primitives.ChainType.Algorand
-    uniffi.gemstone.ChainType.POLKADOT -> com.wallet.core.primitives.ChainType.Polkadot
-    uniffi.gemstone.ChainType.CARDANO -> com.wallet.core.primitives.ChainType.Cardano
-    uniffi.gemstone.ChainType.HYPER_CORE -> com.wallet.core.primitives.ChainType.HyperCore
-}
-
-fun com.wallet.core.primitives.ChainType.toGem(): uniffi.gemstone.ChainType = when (this) {
-    com.wallet.core.primitives.ChainType.Ethereum -> uniffi.gemstone.ChainType.ETHEREUM
-    com.wallet.core.primitives.ChainType.Bitcoin -> uniffi.gemstone.ChainType.BITCOIN
-    com.wallet.core.primitives.ChainType.Solana -> uniffi.gemstone.ChainType.SOLANA
-    com.wallet.core.primitives.ChainType.Cosmos -> uniffi.gemstone.ChainType.COSMOS
-    com.wallet.core.primitives.ChainType.Ton -> uniffi.gemstone.ChainType.TON
-    com.wallet.core.primitives.ChainType.Tron -> uniffi.gemstone.ChainType.TRON
-    com.wallet.core.primitives.ChainType.Aptos -> uniffi.gemstone.ChainType.APTOS
-    com.wallet.core.primitives.ChainType.Sui -> uniffi.gemstone.ChainType.SUI
-    com.wallet.core.primitives.ChainType.Xrp -> uniffi.gemstone.ChainType.XRP
-    com.wallet.core.primitives.ChainType.Near -> uniffi.gemstone.ChainType.NEAR
-    com.wallet.core.primitives.ChainType.Stellar -> uniffi.gemstone.ChainType.STELLAR
-    com.wallet.core.primitives.ChainType.Algorand -> uniffi.gemstone.ChainType.ALGORAND
-    com.wallet.core.primitives.ChainType.Polkadot -> uniffi.gemstone.ChainType.POLKADOT
-    com.wallet.core.primitives.ChainType.Cardano -> uniffi.gemstone.ChainType.CARDANO
-    com.wallet.core.primitives.ChainType.HyperCore -> uniffi.gemstone.ChainType.HYPER_CORE
-}
 
 fun uniffi.gemstone.ChartPeriod.toPrimitives(): com.wallet.core.primitives.ChartPeriod = when (this) {
     uniffi.gemstone.ChartPeriod.HOUR -> com.wallet.core.primitives.ChartPeriod.Hour
@@ -2241,30 +2197,6 @@ fun uniffi.gemstone.TransactionUtxoInput.toPrimitives(): com.wallet.core.primiti
 fun com.wallet.core.primitives.TransactionUtxoInput.toGem(): uniffi.gemstone.TransactionUtxoInput = uniffi.gemstone.TransactionUtxoInput(
     address = address,
     value = java.math.BigInteger(value),
-)
-
-fun uniffi.gemstone.TronVote.toPrimitives(): com.wallet.core.primitives.TronVote = com.wallet.core.primitives.TronVote(
-    validator = validator,
-    count = count.toLong(),
-)
-
-fun com.wallet.core.primitives.TronVote.toGem(): uniffi.gemstone.TronVote = uniffi.gemstone.TronVote(
-    validator = validator,
-    count = count.toULong(),
-)
-
-fun uniffi.gemstone.Utxo.toPrimitives(): com.wallet.core.primitives.UTXO = com.wallet.core.primitives.UTXO(
-    transaction_id = transactionId,
-    vout = vout,
-    value = value.toString(),
-    address = address,
-)
-
-fun com.wallet.core.primitives.UTXO.toGem(): uniffi.gemstone.Utxo = uniffi.gemstone.Utxo(
-    transactionId = transaction_id,
-    vout = vout,
-    value = java.math.BigInteger(value),
-    address = address,
 )
 
 fun uniffi.gemstone.Wallet.toPrimitives(): com.wallet.core.primitives.Wallet = com.wallet.core.primitives.Wallet(

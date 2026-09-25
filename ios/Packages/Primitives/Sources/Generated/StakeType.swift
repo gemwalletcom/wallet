@@ -14,16 +14,6 @@ public struct RedelegateData: Codable, Equatable, Hashable, Sendable {
 	}
 }
 
-public struct TronVote: Codable, Equatable, Hashable, Sendable {
-	public let validator: String
-	public let count: UInt64
-
-	public init(validator: String, count: UInt64) {
-		self.validator = validator
-		self.count = count
-	}
-}
-
 public enum Resource: String, Codable, Equatable, Hashable, Sendable {
 	case bandwidth
 	case energy

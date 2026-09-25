@@ -34,7 +34,6 @@ pub enum StakeType {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 pub struct TronVote {
     pub validator: String,
     pub count: UInt64,

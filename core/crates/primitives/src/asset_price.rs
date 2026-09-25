@@ -110,7 +110,6 @@ pub struct Charts {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct ChartValue {
     pub timestamp: i32,

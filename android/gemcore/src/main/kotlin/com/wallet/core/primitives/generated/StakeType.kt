@@ -14,12 +14,6 @@ data class RedelegateData (
 )
 
 @Serializable
-data class TronVote (
-	val validator: String,
-	val count: Long
-)
-
-@Serializable
 enum class Resource(val string: String) {
 	@SerialName("bandwidth")
 	Bandwidth("bandwidth"),

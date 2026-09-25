@@ -5,22 +5,6 @@ import BigInt
 import Gemstone
 import Primitives
 
-public extension Gemstone.AccountDataType {
-    func toPrimitives() -> Primitives.AccountDataType {
-        switch self {
-        case .activate: .activate
-        }
-    }
-}
-
-public extension Primitives.AccountDataType {
-    func toGem() -> Gemstone.AccountDataType {
-        switch self {
-        case .activate: .activate
-        }
-    }
-}
-
 public extension Gemstone.AddressType {
     func toPrimitives() -> Primitives.AddressType {
         switch self {
@@ -203,50 +187,6 @@ public extension Primitives.Chain {
 
     func toGem() -> Gemstone.Chain {
         rawValue
-    }
-}
-
-public extension Gemstone.ChainType {
-    func toPrimitives() -> Primitives.ChainType {
-        switch self {
-        case .ethereum: .ethereum
-        case .bitcoin: .bitcoin
-        case .solana: .solana
-        case .cosmos: .cosmos
-        case .ton: .ton
-        case .tron: .tron
-        case .aptos: .aptos
-        case .sui: .sui
-        case .xrp: .xrp
-        case .near: .near
-        case .stellar: .stellar
-        case .algorand: .algorand
-        case .polkadot: .polkadot
-        case .cardano: .cardano
-        case .hyperCore: .hyperCore
-        }
-    }
-}
-
-public extension Primitives.ChainType {
-    func toGem() -> Gemstone.ChainType {
-        switch self {
-        case .ethereum: .ethereum
-        case .bitcoin: .bitcoin
-        case .solana: .solana
-        case .cosmos: .cosmos
-        case .ton: .ton
-        case .tron: .tron
-        case .aptos: .aptos
-        case .sui: .sui
-        case .xrp: .xrp
-        case .near: .near
-        case .stellar: .stellar
-        case .algorand: .algorand
-        case .polkadot: .polkadot
-        case .cardano: .cardano
-        case .hyperCore: .hyperCore
-        }
     }
 }
 
@@ -3329,46 +3269,6 @@ public extension Primitives.TransactionUtxoInput {
         Gemstone.TransactionUtxoInput(
             address: address,
             value: BigUInt(stringLiteral: value),
-        )
-    }
-}
-
-public extension Gemstone.TronVote {
-    func toPrimitives() -> Primitives.TronVote {
-        Primitives.TronVote(
-            validator: validator,
-            count: count,
-        )
-    }
-}
-
-public extension Primitives.TronVote {
-    func toGem() -> Gemstone.TronVote {
-        Gemstone.TronVote(
-            validator: validator,
-            count: count,
-        )
-    }
-}
-
-public extension Gemstone.Utxo {
-    func toPrimitives() -> Primitives.UTXO {
-        Primitives.UTXO(
-            transaction_id: transactionId,
-            vout: vout,
-            value: value.description,
-            address: address,
-        )
-    }
-}
-
-public extension Primitives.UTXO {
-    func toGem() -> Gemstone.Utxo {
-        Gemstone.Utxo(
-            transactionId: transaction_id,
-            vout: vout,
-            value: BigUInt(stringLiteral: value),
-            address: address,
         )
     }
 }

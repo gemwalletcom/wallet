@@ -85,7 +85,6 @@ pub struct PerpetualData {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 pub struct PerpetualPositionsSummary {
     pub positions: Vec<PerpetualPosition>,
     pub balance: PerpetualBalance,
@@ -140,7 +139,6 @@ pub struct PerpetualConfirmData {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub enum AccountDataType {
     Activate,

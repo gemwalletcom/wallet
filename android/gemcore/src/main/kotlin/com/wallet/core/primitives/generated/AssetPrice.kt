@@ -29,12 +29,6 @@ data class AssetPrice (
 )
 
 @Serializable
-data class ChartValue (
-	val timestamp: Int,
-	val value: Float
-)
-
-@Serializable
 enum class ChartPeriod(val string: String) {
 	@SerialName("hour")
 	Hour("hour"),

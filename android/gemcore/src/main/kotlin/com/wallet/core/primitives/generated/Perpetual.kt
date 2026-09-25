@@ -67,22 +67,10 @@ data class PerpetualPositionData (
 )
 
 @Serializable
-data class PerpetualPositionsSummary (
-	val positions: List<PerpetualPosition>,
-	val balance: PerpetualBalance
-)
-
-@Serializable
 data class PerpetualSearchData (
 	val perpetual: Perpetual,
 	val asset: Asset
 )
-
-@Serializable
-enum class AccountDataType(val string: String) {
-	@SerialName("activate")
-	Activate("activate"),
-}
 
 @Serializable
 enum class PerpetualAccountMode(val string: String) {

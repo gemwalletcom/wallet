@@ -42,16 +42,6 @@ public struct AssetPrice: Codable, Equatable, Hashable, Sendable {
 	}
 }
 
-public struct ChartValue: Codable, Equatable, Hashable, Sendable {
-	public let timestamp: Int32
-	public let value: Float
-
-	public init(timestamp: Int32, value: Float) {
-		self.timestamp = timestamp
-		self.value = value
-	}
-}
-
 public enum ChartPeriod: String, Codable, Equatable, Hashable, Sendable {
 	case hour
 	case day

@@ -108,16 +108,6 @@ public struct PerpetualPositionData: Codable, Equatable, Hashable, Sendable {
 	}
 }
 
-public struct PerpetualPositionsSummary: Codable, Equatable, Hashable, Sendable {
-	public let positions: [PerpetualPosition]
-	public let balance: PerpetualBalance
-
-	public init(positions: [PerpetualPosition], balance: PerpetualBalance) {
-		self.positions = positions
-		self.balance = balance
-	}
-}
-
 public struct PerpetualSearchData: Codable, Sendable {
 	public let perpetual: Perpetual
 	public let asset: Asset
@@ -126,10 +116,6 @@ public struct PerpetualSearchData: Codable, Sendable {
 		self.perpetual = perpetual
 		self.asset = asset
 	}
-}
-
-public enum AccountDataType: String, Codable, Equatable, Hashable, Sendable {
-	case activate
 }
 
 public enum PerpetualAccountMode: String, Codable, Equatable, Hashable, Sendable {
