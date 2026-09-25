@@ -4,8 +4,8 @@ import Components
 import Formatters
 import Foundation
 import func Gemstone.autocloseDraft
-import protocol Gemstone.GemAmountServiceProtocol
 import enum Gemstone.GemAmountRequest
+import protocol Gemstone.GemAmountServiceProtocol
 import struct Gemstone.GemAutocloseDraft
 import enum Gemstone.GemPerpetualPositionAction
 import struct Gemstone.GemPerpetualTransferData

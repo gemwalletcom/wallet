@@ -560,6 +560,7 @@ fun GemListSectionTitle.titleRes(): Int? = when (this) {
     GemListSectionTitle.MANAGE -> R.string.common_manage
     GemListSectionTitle.RESOURCES -> R.string.asset_resources
     GemListSectionTitle.SOCIAL_LINKS -> R.string.social_links
+    GemListSectionTitle.PROPERTIES -> R.string.nft_properties
 }
 
 fun GemListRowTitle.text(context: Context): String = when (this) {

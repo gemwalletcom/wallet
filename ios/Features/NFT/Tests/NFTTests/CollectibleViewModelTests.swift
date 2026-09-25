@@ -52,14 +52,14 @@ struct CollectibleViewModelTests {
         let held = CollectibleViewModel.mock(assetData: assetData)
         let viewOnly = CollectibleViewModel.mock(wallet: .mock(type: .view), assetData: assetData)
 
-        #expect(held.details.canSend == false)
+        #expect(sendEnabled(held) == false)
         held.query.value = NFTAssetDetails(assetData: assetData, isOwned: true)
-        #expect(held.details.canSend)
+        #expect(sendEnabled(held))
         held.query.value = NFTAssetDetails(assetData: assetData, isOwned: false)
-        #expect(held.details.canSend == false)
+        #expect(sendEnabled(held) == false)
 
         viewOnly.query.value = NFTAssetDetails(assetData: assetData, isOwned: true)
-        #expect(viewOnly.details.canSend == false)
+        #expect(sendEnabled(viewOnly) == false)
     }
 
     @Test
@@ -72,10 +72,12 @@ struct CollectibleViewModelTests {
             ),
             asset: .mock(tokenId: "11871", chain: .ethereum, attributes: [NFTAttribute(name: "Color", value: "Blue", percentage: nil)]),
         ))
-        let sections = model.sections
+        let sections = model.details.sections
 
         #expect(sections.count == 4)
-        guard case let .info(rows) = sections[1], case let .identifier(title, copy, explorer) = try #require(rows.last) else {
+        #expect(sections.map(\.title) == [.none, .none, .properties, .socialLinks])
+        #expect(model.details.isVerified == false)
+        guard case let .info(rows) = sections[1].section, case let .identifier(title, copy, explorer) = try #require(rows.last) else {
             Issue.record("expected the token id row to close the info section")
             return
         }
@@ -88,7 +90,8 @@ struct CollectibleViewModelTests {
     func verifiedAssetWithoutExtrasOnlyListsItsInfo() {
         let model = CollectibleViewModel.mock(assetData: .mock(collection: .mock(status: .verified, links: []), asset: .mock(attributes: [])))
 
-        #expect(model.sections.count == 1)
+        #expect(model.details.sections.count == 1)
+        #expect(model.details.isVerified)
     }
 
     @Test
@@ -101,5 +104,9 @@ struct CollectibleViewModelTests {
 
         #expect(selected == ChainAddress(chain: assetData.asset.chain, address: "0xcontract"))
         #expect(CollectibleViewModel.mock().onSelectContract == nil)
+    }
+
+    private func sendEnabled(_ model: CollectibleViewModel) -> Bool {
+        model.headerButtons(model.details).first { $0.type == .send }?.isEnabled == true
     }
 }

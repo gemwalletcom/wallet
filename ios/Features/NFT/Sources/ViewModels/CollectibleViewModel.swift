@@ -7,7 +7,6 @@ import enum Gemstone.GemCollectibleAction
 import struct Gemstone.GemCollectibleAttribute
 import enum Gemstone.GemCollectibleAttributeValue
 import struct Gemstone.GemCollectibleDetails
-import enum Gemstone.GemCollectibleSection
 import protocol Gemstone.GemCollectibleServiceProtocol
 import enum Gemstone.GemHeaderButtonKind
 import GemstonePrimitives
@@ -65,53 +64,32 @@ public final class CollectibleViewModel {
         assetData.asset.name
     }
 
-    var imageContextMenuItems: [ContextMenuItemType] {
+    func imageContextMenuItems(_ details: GemCollectibleDetails) -> [ContextMenuItemType] {
         guard isImageLoaded else { return [] }
-        return [
-            .custom(
-                title: Localized.Nft.saveToPhotos,
-                systemImage: SystemImage.gallery,
-                action: onSelectSaveToGallery,
-            ),
-            .custom(
-                title: Localized.Nft.setAsAvatar,
-                systemImage: SystemImage.emoji,
-                action: onSelectSetAsAvatar,
-            ),
-        ]
-    }
-
-    var isVerified: Bool {
-        assetData.collection.status == .verified
+        return details.imageActions.compactMap(contextMenuItem)
     }
 
     var details: GemCollectibleDetails {
         service.details(walletType: wallet.type.toGem(), assetData: assetData.toGem(), isOwned: query.value.isOwned, canSaveImage: true)
     }
 
-    var sections: [GemCollectibleSection] {
-        details.sections
-    }
-
     var assetImage: AssetImage {
         AssetImage(type: .text(assetData.asset.name), imageURL: assetData.asset.images.preview.url.asURL, placeholder: .none, chainPlaceholder: .none)
     }
 
-    var headerButtons: [HeaderButton] {
-        [
-            HeaderButton(
-                type: .send,
-                isEnabled: details.canSend,
-            ),
-            HeaderButton(
-                type: .more,
-                viewType: .menuButton(
-                    title: title,
-                    items: details.actions.map(menuItem),
-                ),
-                isEnabled: true,
-            ),
-        ]
+    func headerButtons(_ details: GemCollectibleDetails) -> [HeaderButton] {
+        details.header.headerButtons.map { button in
+            guard button.type == .more else { return button }
+            return HeaderButton(type: .more, viewType: .menuButton(title: title, items: details.actions.map(menuItem)), isEnabled: button.isEnabled)
+        }
+    }
+
+    private func contextMenuItem(_ action: GemCollectibleAction) -> ContextMenuItemType? {
+        switch action {
+        case .saveImage: .custom(title: Localized.Nft.saveToPhotos, systemImage: SystemImage.gallery, action: onSelectSaveToGallery)
+        case .setAvatar: .custom(title: Localized.Nft.setAsAvatar, systemImage: SystemImage.emoji, action: onSelectSetAsAvatar)
+        case .refresh, .report: nil
+        }
     }
 
     private func menuItem(_ action: GemCollectibleAction) -> ActionMenuItemType {

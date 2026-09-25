@@ -675,6 +675,7 @@ public extension GemListSectionTitle {
         case .manage: Localized.Common.manage
         case .resources: Localized.Asset.resources
         case .socialLinks: Localized.Social.links
+        case .properties: Localized.Nft.properties
         }
     }
 }

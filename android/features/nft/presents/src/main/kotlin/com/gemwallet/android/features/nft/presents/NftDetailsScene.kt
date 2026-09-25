@@ -47,6 +47,7 @@ import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.wallet.core.primitives.ChainAddress
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.ReportReason
+import uniffi.gemstone.GemCollectibleAction
 
 @Composable
 fun NFTDetailsScene(cancelAction: CancelAction, onRecipient: (NFTAsset) -> Unit, onOpenAddress: (ChainAddress) -> Unit) {
@@ -88,13 +89,17 @@ fun NFTDetailsScene(cancelAction: CancelAction, onRecipient: (NFTAsset) -> Unit,
                     contentAlignment = Alignment.Center,
                 ) {
                     NftHeaderActions(
-                        canSend = model.canSend,
+                        header = model.header,
                         actions = model.actions,
                         onSend = { onRecipient(model.asset) },
-                        onRefresh = { viewModel.refresh() },
-                        onSaveImage = { viewModel.saveImage() },
-                        onSetAsAvatar = { viewModel.setAsAvatar() },
-                        onReport = { isReportVisible = true },
+                        onAction = { action ->
+                            when (action) {
+                                GemCollectibleAction.REFRESH -> viewModel.refresh()
+                                GemCollectibleAction.SAVE_IMAGE -> viewModel.saveImage()
+                                GemCollectibleAction.SET_AVATAR -> viewModel.setAsAvatar()
+                                GemCollectibleAction.REPORT -> isReportVisible = true
+                            }
+                        },
                     )
                 }
             }

@@ -23,6 +23,7 @@ pub enum GemListSectionTitle {
     Manage,
     Resources,
     SocialLinks,
+    Properties,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

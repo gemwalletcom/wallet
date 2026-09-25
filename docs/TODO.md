@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **One view state:** VM134, VM89.
+1. **One view state:** VM89.
 2. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
 3. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
 4. **Balances and storage:** D76, D77, VM98 (an Android migration).
@@ -51,7 +51,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM172 |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | VM172 |
 | Stake, validators, delegation and claim | `GemStakeService`, validator/delegation records, generated transfer input | Preserve exact atomic values |
-| NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM134 |
+| NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | — |
 | Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM67, VM172 |
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | — |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | — |
@@ -91,11 +91,6 @@ A screen whose state changes is a session, and a screen that reads gets one reco
 ## 3. Decisions the apps still make
 
 The same product rule written in both apps, or in one app while the other reads Core ([the app maps; it does not decide](ARCHITECTURE.md#5-the-app-maps-it-does-not-decide), [a view never names a Core type](ARCHITECTURE.md#a-view-never-names-a-core-type)). Where the two apps answer differently today the item says how.
-
-- **VM134** **S** **Collectible details carry the verified title, the header actions and the section titles.** [`collectible_details`](../core/gemstone/src/services/nft/rules.rs) returns `is_verified`, a `header: GemHeaderActions` (the perpetual balance header shape, `can_send` folded into the Send button) and a `GemListSectionTitle` per section. Delete iOS `isVerified`, `headerButtons`, `imageContextMenuItems` and the body switch; Android `isVerified`, the `canSend` plumbing and the composable switch.
-  - **iOS:** decides the verified badge from the domain status (`CollectibleViewModel.swift:81-83`); assembles the header from `can_send` plus `actions` (`:65-79,97-112`), and its image context menu re-lists save and avatar whatever `actions` says; picks `Localized.Nft.properties`/`Localized.Social.links` by `GemCollectibleSection` in the body (`CollectibleScene.swift:24-45`).
-  - **Android:** the same badge rule (`NftDetailsUIModel.kt:32`); switches `GemCollectibleAction` inside the composable to pick `stringResource` (`NftHeaderActions.kt:41-106`); section titles in `NftDetailsUIModel.kt:43-55`.
-  - **Expected:** both read Core's answers, and the context menu follows `actions`.
 
 ## 4. Numbers and text the apps still format
 

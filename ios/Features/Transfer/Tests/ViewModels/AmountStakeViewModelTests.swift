@@ -1,16 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import class Gemstone.GemAmountService
 import struct Gemstone.GemAmountInput
+import class Gemstone.GemAmountService
 import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemTransferData
 import struct Gemstone.GemValidatorRow
 import enum Gemstone.StakeType
 import GemstonePrimitives
+import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
-import GemstoneServicesTestKit
 import Testing
 @testable import Transfer
 import TransferTestKit

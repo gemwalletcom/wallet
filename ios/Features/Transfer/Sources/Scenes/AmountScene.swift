@@ -88,7 +88,6 @@ public struct AmountScene: View {
                     }
                     .cleanListRow()
                 }
-
             }
 
             if let perpetual = model.perpetual {
@@ -109,7 +108,6 @@ public struct AmountScene: View {
                         )
                     }
                 }
-
             }
 
             if let row = model.earnProviderRow {
