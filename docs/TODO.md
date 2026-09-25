@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Settled differences:** BD64, BD56, AUD50.
+1. **Settled differences:** BD56, AUD50.
 2. **One view state:** VM168, VM167, VM169, VM170, VM171, VM144, VM125, VM134, VM89.
 3. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
 4. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
@@ -38,7 +38,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | — |
 | Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | — |
 | Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM172 |
-| Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM167, BD64 |
+| Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM167 |
 | Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | — |
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
 | Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | — |
@@ -194,13 +194,6 @@ Differences between the apps, or between an app and the server, each with its de
 - **BD23** **S** **ENS/UD names with a first part over 20 characters, and provider outages, both look like "name not found".** `core/crates/name_resolver/src/client.rs:26-29` with `max_name_length: 20` (`core/Settings.yaml:156`); `core/apps/api/src/devices/mod.rs:197-200` discards errors (`.ok().flatten()`); Core accepts any label (`core/gemstone/src/services/name/rules.rs:28-31,57-62`). **Decided:** the API answers a provider outage with the standard `ApiError`, so Core reads it as an error rather than a missing name, and a missing name keeps its 200 answer with no record; `max_name_length` stays 20.
 - **BD29** **S** **Redemption options with unlimited stock are never listed.** `summary.rs:18` (`remaining.unwrap_or_default() > 0` drops `None`) vs storage `rewards_redemptions_repository.rs:48,96` and Core `rules.rs:146` (`None` = unlimited). Needs a decision: `test_available_redemption_options` pins a `None` stock as hidden, so confirm whether options stored without a stock are meant to be offered before changing the server.
 - **BD30** **S** **The referral time-window message names the wrong rule, and "Use code" is offered when it can't succeed.** `localizer.ftl:47` ("within N days of creating your username") vs `core/crates/rewards/src/referral.rs:57-67` (device and wallet age; attribution referrers skip it, `rewards_client.rs:176,257`); Core always offers `UseReferralCode` (`rewards/rules.rs:39`). **Copy:** we reword the message for the device and wallet age rule in all 21 languages; hiding "Use code" needs the age facts in the rewards summary.
-
-### iOS and Android differ
-
-- **BD64** **S** **Chain search matching the token standard.**
-  - **iOS:** matches the chain name and symbol through Core (`NetworkSelectorViewModel.swift:38-40`); Android's add-asset search does the same (`AddAssetViewModel.kt:76`).
-  - **Android:** the asset and activity filters also match the token standard, so "erc20" finds Ethereum (`SelectFilterChain.kt:22-29`).
-  - **Expected:** no token-standard match on either app; Android's filters drop it and use Core's `get_matching_chains` alone.
 
 ### Freshness
 
