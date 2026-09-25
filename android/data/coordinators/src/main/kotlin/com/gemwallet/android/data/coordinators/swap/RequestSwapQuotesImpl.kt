@@ -4,7 +4,7 @@ import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
 import com.gemwallet.android.ext.toGem
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -22,7 +22,7 @@ import uniffi.gemstone.GemSwapRequest
 import uniffi.gemstone.SwapperException
 import java.math.BigInteger
 
-class RequestSwapQuotesImpl(private val swapService: GemSwapQuoteServiceInterface) : RequestSwapQuotes {
+class RequestSwapQuotesImpl(private val swapService: GemSwapQuoteServiceInterface, private val ioDispatcher: CoroutineDispatcher) : RequestSwapQuotes {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun invoke(
@@ -58,7 +58,7 @@ class RequestSwapQuotesImpl(private val swapService: GemSwapQuoteServiceInterfac
                     }
             }
         }
-            .flowOn(Dispatchers.IO)
+            .flowOn(ioDispatcher)
     }
 
     private suspend fun requestQuotes(params: SwapQuoteRequestParams): SwapQuotesResult = try {

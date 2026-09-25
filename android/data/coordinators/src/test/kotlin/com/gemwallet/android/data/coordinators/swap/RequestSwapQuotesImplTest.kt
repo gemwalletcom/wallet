@@ -13,7 +13,9 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
@@ -37,9 +39,9 @@ class RequestSwapQuotesImplTest {
     private val refreshEnabled = MutableStateFlow(true)
 
     @Test
-    fun `canceled in flight quote request does not emit an error result`() = runBlocking {
+    fun `canceled in flight quote request does not emit an error result`() = runTest {
         val fakeQuotes = StubSwapService(delayOnFirst = 5_000)
-        val requester = RequestSwapQuotesImpl(fakeQuotes)
+        val requester = requester(fakeQuotes)
         val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(mockSwapQuoteRequestParams())
         val results = mutableListOf<SwapQuotesResult?>()
 
@@ -63,9 +65,9 @@ class RequestSwapQuotesImplTest {
     }
 
     @Test
-    fun `invalid input clears quote and late success is ignored`() = runBlocking {
+    fun `invalid input clears quote and late success is ignored`() = runTest {
         val fakeQuotes = StubSwapService(nonCancellableOnFirst = true)
-        val requester = RequestSwapQuotesImpl(fakeQuotes)
+        val requester = requester(fakeQuotes)
         val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(mockSwapQuoteRequestParams())
         val results = mutableListOf<SwapQuotesResult?>()
 
@@ -98,9 +100,9 @@ class RequestSwapQuotesImplTest {
     }
 
     @Test
-    fun `successful quote refresh waits for the configured interval`() = runBlocking {
+    fun `successful quote refresh waits for the configured interval`() = runTest {
         val fakeQuotes = StubSwapService()
-        val requester = RequestSwapQuotesImpl(fakeQuotes)
+        val requester = requester(fakeQuotes)
         val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(mockSwapQuoteRequestParams())
 
         val job = launch {
@@ -109,13 +111,13 @@ class RequestSwapQuotesImplTest {
                 refreshRequests = refreshRequests,
                 refreshEnabled = refreshEnabled,
                 onFetchStarted = {},
-                refreshIntervalMillis = 100,
+                refreshIntervalMillis = 1_000,
                 debounceMillis = 500,
             ).collect()
         }
 
         awaitCondition { fakeQuotes.requestCount >= 1 }
-        delay(70)
+        delay(700)
         assertEquals(1, fakeQuotes.requestCount)
         awaitCondition { fakeQuotes.requestCount >= 2 }
 
@@ -123,9 +125,9 @@ class RequestSwapQuotesImplTest {
     }
 
     @Test
-    fun `quote errors do not schedule automatic retries`() = runBlocking {
+    fun `quote errors do not schedule automatic retries`() = runTest {
         val fakeQuotes = StubSwapService(shouldFail = true)
-        val requester = RequestSwapQuotesImpl(fakeQuotes)
+        val requester = requester(fakeQuotes)
         val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(mockSwapQuoteRequestParams())
         val results = mutableListOf<SwapQuotesResult?>()
 
@@ -150,9 +152,9 @@ class RequestSwapQuotesImplTest {
     }
 
     @Test
-    fun `automatic refresh stops in background and resumes in foreground`() = runBlocking {
+    fun `automatic refresh stops in background and resumes in foreground`() = runTest {
         val fakeQuotes = StubSwapService()
-        val requester = RequestSwapQuotesImpl(fakeQuotes)
+        val requester = requester(fakeQuotes)
         val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(mockSwapQuoteRequestParams())
 
         val job = launch {
@@ -179,9 +181,9 @@ class RequestSwapQuotesImplTest {
     }
 
     @Test
-    fun `null params emits null without calling quotes service`() = runBlocking {
+    fun `null params emits null without calling quotes service`() = runTest {
         val fakeQuotes = StubSwapService()
-        val requester = RequestSwapQuotesImpl(fakeQuotes)
+        val requester = requester(fakeQuotes)
         val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(null)
         val results = mutableListOf<SwapQuotesResult?>()
 
@@ -204,9 +206,9 @@ class RequestSwapQuotesImplTest {
     }
 
     @Test
-    fun `changing params during debounce does not emit stale result`() = runBlocking {
+    fun `changing params during debounce does not emit stale result`() = runTest {
         val fakeQuotes = StubSwapService()
-        val requester = RequestSwapQuotesImpl(fakeQuotes)
+        val requester = requester(fakeQuotes)
         val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(mockSwapQuoteRequestParams())
         val results = mutableListOf<SwapQuotesResult?>()
 
@@ -231,6 +233,8 @@ class RequestSwapQuotesImplTest {
 
         assertEquals(1, results.size)
     }
+
+    private fun TestScope.requester(service: GemSwapQuoteServiceInterface) = RequestSwapQuotesImpl(service, StandardTestDispatcher(testScheduler))
 
     private suspend fun awaitCondition(timeoutMs: Long = 2_000, condition: () -> Boolean) {
         withTimeout(timeoutMs) {

@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.di
 
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
 import com.gemwallet.android.data.coordinators.swap.RequestSwapQuotesImpl
@@ -7,6 +8,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineDispatcher
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemBalanceService
 import uniffi.gemstone.GemNodeService
@@ -49,5 +51,5 @@ object SwapModule {
 
     @Singleton
     @Provides
-    fun provideRequestSwapQuotes(swapService: GemSwapQuoteServiceInterface): RequestSwapQuotes = RequestSwapQuotesImpl(swapService)
+    fun provideRequestSwapQuotes(swapService: GemSwapQuoteServiceInterface, @IoDispatcher ioDispatcher: CoroutineDispatcher): RequestSwapQuotes = RequestSwapQuotesImpl(swapService, ioDispatcher)
 }
