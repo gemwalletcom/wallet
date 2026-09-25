@@ -102,7 +102,7 @@ class ConnectionsViewModelTest {
     @Test
     fun `the details come from Core for the connection the route names`() = runTest(dispatcher) {
         val details = GemConnectionDetails(
-            connection = GemConnection(connection = connection.toGem(), row = mockGemConnectionRow(iconUrl = null)),
+            connection = GemConnection(connection = connection.toGem(), row = mockGemConnectionRow(title = "Uniswap")),
             rows = emptyList(),
         )
         val service: GemWalletConnectServiceInterface = mockk(relaxed = true) {
@@ -149,7 +149,7 @@ class ConnectionsViewModelTest {
     @Test
     fun `a failed disconnect stays on the screen with the error`() = runTest(dispatcher) {
         val details = GemConnectionDetails(
-            connection = GemConnection(connection = connection.toGem(), row = mockGemConnectionRow(iconUrl = null)),
+            connection = GemConnection(connection = connection.toGem(), row = mockGemConnectionRow()),
             rows = emptyList(),
         )
         val service: GemWalletConnectServiceInterface = mockk(relaxed = true) {

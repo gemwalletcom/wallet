@@ -24,6 +24,10 @@ mocks:
       path: "m/44'/0'/0'/0/0"
       state: NotReachable
 
+# Aliases gemstone uses from other crates, which UniFFI resolves to the aliased type.
+aliases:
+  RowIcon: GemIcon
+
 # Type names the generator has to know besides the ones above: what passes through a mapper
 # untouched, and what gemstone declares under another name (an unqualified name is a gemstone
 # custom type, and the declarations import it).

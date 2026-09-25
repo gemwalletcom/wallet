@@ -1,8 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import struct Gemstone.GemChartHeader
+import struct Gemstone.GemChartData
 import GemstonePrimitives
+import GemstonePrimitivesTestKit
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesComponentsTestKit
@@ -12,29 +13,29 @@ import Testing
 struct ChartHeaderTests {
     @Test
     func theValueReadsAsAPriceOrAsAChange() {
-        #expect(GemChartHeader.mock(value: 100).value.text() == "$100.00")
-        #expect(GemChartHeader.mock(value: 100, base: 0, valueType: .priceChange).value.text() == "+$100.00")
-        #expect(GemChartHeader.mock(value: -50, base: 0, valueType: .priceChange).value.text() == "-$50.00")
+        #expect(GemChartData.mock(currency: .usd).headerAt(value: 100).value.text() == "$100.00")
+        #expect(GemChartData.mock(valueType: .priceChange, base: 0, currency: .usd).headerAt(value: 100).value.text() == "+$100.00")
+        #expect(GemChartData.mock(valueType: .priceChange, base: 0, currency: .usd).headerAt(value: -50).value.text() == "-$50.00")
     }
 
     @Test
     func onlyAChangeIsToned() {
-        #expect(GemChartHeader.mock(value: 100).value.tone.color == Colors.black)
-        #expect(GemChartHeader.mock(value: 100, base: 0, valueType: .priceChange).value.tone.color == Colors.green)
+        #expect(GemChartData.mock(currency: .usd).headerAt(value: 100).value.tone.color == Colors.black)
+        #expect(GemChartData.mock(valueType: .priceChange, base: 0, currency: .usd).headerAt(value: 100).value.tone.color == Colors.green)
     }
 
     @Test
     func theChangeCarriesItsSignBracketsAndTone() {
-        #expect(GemChartHeader.mock(value: 105.5, base: 100).change?.text() == "+5.50%")
-        #expect(GemChartHeader.mock(value: 0, base: 0).change == nil)
-        #expect(GemChartHeader.mock(value: 110, base: 100, valueType: .priceChange, showsSecondaryValue: true).change?.text() == "(10.00%)")
-        #expect(GemChartHeader.mock(value: 110, base: 100).change?.tone.color == Colors.green)
-        #expect(GemChartHeader.mock(value: 90, base: 100).change?.tone.color == Colors.red)
+        #expect(GemChartData.mock(base: 100, currency: .usd).headerAt(value: 105.5).change?.text() == "+5.50%")
+        #expect(GemChartData.mock(base: 0, currency: .usd).headerAt(value: 0).change == nil)
+        #expect(GemChartData.mock(valueType: .priceChange, base: 100, showsSecondaryValue: true, currency: .usd).headerAt(value: 110).change?.text() == "(10.00%)")
+        #expect(GemChartData.mock(base: 100, currency: .usd).headerAt(value: 110).change?.tone.color == Colors.green)
+        #expect(GemChartData.mock(base: 100, currency: .usd).headerAt(value: 90).change?.tone.color == Colors.red)
     }
 
     @Test
     func theSecondaryValueIsTheOneTheChangeIsMeasuredAgainst() {
-        #expect(GemChartHeader.mock().secondaryValue == nil)
-        #expect(GemChartHeader.mock(value: 1500, base: 100, valueType: .priceChange, showsSecondaryValue: true).secondaryValue?.text() == "$1,500.00")
+        #expect(GemChartData.mock(currency: .usd).headerAt(value: 100).secondaryValue == nil)
+        #expect(GemChartData.mock(valueType: .priceChange, base: 100, showsSecondaryValue: true, currency: .usd).headerAt(value: 1500).secondaryValue?.text() == "$1,500.00")
     }
 }

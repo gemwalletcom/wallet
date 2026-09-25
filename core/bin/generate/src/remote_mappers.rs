@@ -1,6 +1,6 @@
 use config::{File, FileFormat};
 use serde::Deserialize;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
 
@@ -24,6 +24,8 @@ pub struct Config {
     defaults: BTreeMap<String, String>,
     #[serde(default)]
     mocks: Vec<Mock>,
+    #[serde(default)]
+    aliases: BTreeMap<String, String>,
 }
 
 /// A `mocks:` entry: a type name, or a type name with the values of the fields the default rules
@@ -160,6 +162,7 @@ pub struct Generator {
     pub(crate) app_types: BTreeMap<String, AppType>,
     pub(crate) core_types: BTreeMap<String, RemoteType>,
     pub(crate) core_aliases: BTreeMap<String, String>,
+    pub(crate) core_errors: BTreeSet<String>,
 }
 
 /// A TypeShare declaration as the apps see it: its module, and for an enum its variants.
@@ -259,7 +262,8 @@ impl Generator {
                 primitives.display()
             );
         }
-        let (core_types, core_aliases) = core_types(gemstone);
+        let (core_types, mut core_aliases, core_errors) = core_types(gemstone);
+        core_aliases.extend(config.aliases.clone());
         for name in &mocks {
             let declarations = mocked.iter().filter(|mock| mock.name() == *name).count();
             let core = core_types.contains_key(*name) || found.iter().any(|remote| remote.name() == *name && !remote.typeshared());
@@ -279,6 +283,7 @@ impl Generator {
             app_types,
             core_types,
             core_aliases,
+            core_errors,
         }
     }
 
@@ -435,14 +440,16 @@ pub(crate) fn source_files(directory: &Path) -> Vec<std::path::PathBuf> {
 
 /// The records and enums gemstone exports with `#[derive(uniffi::Record)]` or `#[derive(uniffi::Enum)]`,
 /// by name, and the type aliases that name one of them under another name.
-fn core_types(gemstone: &Path) -> (BTreeMap<String, RemoteType>, BTreeMap<String, String>) {
+fn core_types(gemstone: &Path) -> (BTreeMap<String, RemoteType>, BTreeMap<String, String>, BTreeSet<String>) {
     let mut found = BTreeMap::new();
     let mut aliases = BTreeMap::new();
+    let mut errors = BTreeSet::new();
     for path in source_files(gemstone) {
         let Ok(source) = fs::read_to_string(&path) else { continue };
         let mut lines = source.lines();
         let mut exported = false;
         while let Some(line) = lines.next() {
+            errors.extend(result_errors(line));
             if let Some((alias, aliased)) = line.trim().strip_prefix("pub type ").and_then(|rest| rest.trim_end_matches(';').split_once(" = ")) {
                 aliases.insert(alias.trim().to_string(), aliased.trim().to_string());
             }
@@ -474,7 +481,27 @@ fn core_types(gemstone: &Path) -> (BTreeMap<String, RemoteType>, BTreeMap<String
             found.insert(name, declaration);
         }
     }
-    (found, aliases)
+    (found, aliases, errors)
+}
+
+/// The error types of the `Result`s on a line, which UniFFI names as errors.
+fn result_errors(line: &str) -> Vec<String> {
+    line.match_indices("Result<")
+        .filter_map(|(start, _)| {
+            let mut depth = 0;
+            let mut error = None;
+            for (offset, character) in line[start + "Result".len()..].char_indices() {
+                match character {
+                    '<' => depth += 1,
+                    '>' if depth == 1 => return error.map(|from: usize| line[from..start + "Result".len() + offset].trim().rsplit("::").next().unwrap_or_default().to_string()),
+                    '>' => depth -= 1,
+                    ',' if depth == 1 => error = Some(start + "Result".len() + offset + 1),
+                    _ => {}
+                }
+            }
+            None
+        })
+        .collect()
 }
 
 fn declaration(line: &str) -> Option<(&'static str, String)> {

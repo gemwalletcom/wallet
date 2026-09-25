@@ -128,6 +128,58 @@ public extension Gemstone.GemAssetBalance {
     }
 }
 
+public extension Gemstone.GemAssetDetails {
+    static func mock(
+        state: Gemstone.GemAssetDetailsState = .mock(),
+        banner: Gemstone.GemBannerRow? = nil,
+        balanceValue: Gemstone.GemFormattedNumber = .mock(),
+        sections: [Gemstone.GemAssetDetailSection] = [],
+        title: String = "",
+        fiatValue: Gemstone.GemFormattedNumber? = nil,
+        explorerName: String = "",
+        addressLink: Gemstone.BlockExplorerLink? = nil,
+        tokenLink: Gemstone.BlockExplorerLink? = nil,
+        verificationStatus: Gemstone.VerificationStatus? = nil,
+        networkDestination: Gemstone.GemAssetNetworkDestination? = nil,
+        shareUrl: String = "",
+        swapPair: Gemstone.GemSwapPairSuggestion = .mock(),
+    ) -> Gemstone.GemAssetDetails {
+        Gemstone.GemAssetDetails(
+            state: state,
+            banner: banner,
+            balanceValue: balanceValue,
+            sections: sections,
+            title: title,
+            fiatValue: fiatValue,
+            explorerName: explorerName,
+            addressLink: addressLink,
+            tokenLink: tokenLink,
+            verificationStatus: verificationStatus,
+            networkDestination: networkDestination,
+            shareUrl: shareUrl,
+            swapPair: swapPair,
+        )
+    }
+}
+
+public extension Gemstone.GemAssetDetailsState {
+    static func mock(
+        isViewOnly: Bool = false,
+        headerActions: Gemstone.GemHeaderActions = .watchOnly,
+        showsBanners: Bool = false,
+        priceAlert: Gemstone.GemPriceAlertToggle = .enabled,
+        emptyTransactionsAction: Gemstone.GemAssetEmptyAction? = nil,
+    ) -> Gemstone.GemAssetDetailsState {
+        Gemstone.GemAssetDetailsState(
+            isViewOnly: isViewOnly,
+            headerActions: headerActions,
+            showsBanners: showsBanners,
+            priceAlert: priceAlert,
+            emptyTransactionsAction: emptyTransactionsAction,
+        )
+    }
+}
+
 public extension Gemstone.GemAssetIcon {
     static func mock(
         image: Gemstone.GemAssetIconImage = .mock(),
@@ -176,6 +228,70 @@ public extension Gemstone.GemAssetItemTrailing {
     }
 }
 
+public extension Gemstone.GemAssetRowStyle {
+    static func mock(
+        title: Gemstone.GemAssetTitleStyle = .asset,
+        showsSymbol: Bool = false,
+        subtitle: Gemstone.GemAssetSubtitleStyle = .network,
+        trailing: Gemstone.GemAssetTrailingStyle = .balance,
+    ) -> Gemstone.GemAssetRowStyle {
+        Gemstone.GemAssetRowStyle(
+            title: title,
+            showsSymbol: showsSymbol,
+            subtitle: subtitle,
+            trailing: trailing,
+        )
+    }
+}
+
+public extension Gemstone.GemChart {
+    static func mock(
+        values: [Gemstone.ChartDateValue] = [],
+        baseValue: Double = 0,
+        current: Gemstone.GemChartCurrent? = nil,
+    ) -> Gemstone.GemChart {
+        Gemstone.GemChart(
+            values: values,
+            baseValue: baseValue,
+            current: current,
+        )
+    }
+}
+
+public extension Gemstone.GemChartData {
+    static func mock(
+        valueType: Gemstone.GemChartValueType = .price,
+        base: Double = 0,
+        showsSecondaryValue: Bool = false,
+        currency: Gemstone.Currency = .mxn,
+        values: [Gemstone.ChartDateValue] = [],
+        header: Gemstone.GemChartHeader? = nil,
+    ) -> Gemstone.GemChartData {
+        Gemstone.GemChartData(
+            valueType: valueType,
+            base: base,
+            showsSecondaryValue: showsSecondaryValue,
+            currency: currency,
+            values: values,
+            header: header,
+        )
+    }
+}
+
+public extension Gemstone.GemChartHeader {
+    static func mock(
+        value: Gemstone.GemFormattedNumber = .mock(),
+        secondaryValue: Gemstone.GemFormattedNumber? = nil,
+        change: Gemstone.GemFormattedNumber? = nil,
+    ) -> Gemstone.GemChartHeader {
+        Gemstone.GemChartHeader(
+            value: value,
+            secondaryValue: secondaryValue,
+            change: change,
+        )
+    }
+}
+
 public extension Gemstone.GemConfirmFee {
     static func mock(
         value: BigInt = 0,
@@ -191,6 +307,12 @@ public extension Gemstone.GemConfirmFee {
             selectedPriority: selectedPriority,
             amount: amount,
         )
+    }
+}
+
+public extension Gemstone.GemConfirmFeeSelection {
+    static func mock() -> Gemstone.GemConfirmFeeSelection {
+        .priority(priority: .normal)
     }
 }
 
@@ -214,6 +336,20 @@ public extension Gemstone.GemConfirmLoad {
             simulation: simulation,
             addressName: addressName,
             fee: fee,
+        )
+    }
+}
+
+public extension Gemstone.GemConfirmLoadOptions {
+    static func mock(
+        feeSelection: Gemstone.GemConfirmFeeSelection = .mock(),
+        feeAssetId: String? = nil,
+        assetId: String? = nil,
+    ) -> Gemstone.GemConfirmLoadOptions {
+        Gemstone.GemConfirmLoadOptions(
+            feeSelection: feeSelection,
+            feeAssetId: feeAssetId,
+            assetId: assetId,
         )
     }
 }
@@ -282,6 +418,22 @@ public extension Gemstone.GemConfirmSimulationState {
     }
 }
 
+public extension Gemstone.GemConnectionRow {
+    static func mock(
+        title: String = "",
+        host: String? = nil,
+        initial: String = "",
+        iconUrl: String? = nil,
+    ) -> Gemstone.GemConnectionRow {
+        Gemstone.GemConnectionRow(
+            title: title,
+            host: host,
+            initial: initial,
+            iconUrl: iconUrl,
+        )
+    }
+}
+
 public extension Gemstone.GemFeeAmount {
     static func mock(
         amount: Gemstone.GemFormattedNumber = .mock(),
@@ -334,6 +486,24 @@ public extension Gemstone.GemFeeRateRows {
     }
 }
 
+public extension Gemstone.GemFiatOperation {
+    static func mock(
+        quoteType: Gemstone.FiatQuoteType = .buy,
+        amount: String = "",
+        quotes: [Gemstone.FiatQuote] = [],
+        selectedProvider: Gemstone.FiatProviderName? = nil,
+        phase: Gemstone.GemFiatQuotePhase = .noInput,
+    ) -> Gemstone.GemFiatOperation {
+        Gemstone.GemFiatOperation(
+            quoteType: quoteType,
+            amount: amount,
+            quotes: quotes,
+            selectedProvider: selectedProvider,
+            phase: phase,
+        )
+    }
+}
+
 public extension Gemstone.GemFiatQuoteRequest {
     static func mock(
         quoteType: Gemstone.FiatQuoteType = .buy,
@@ -380,6 +550,22 @@ public extension Gemstone.GemFiatQuotesResult {
     }
 }
 
+public extension Gemstone.GemFiatSession {
+    static func mock(
+        quoteType: Gemstone.FiatQuoteType = .buy,
+        buy: Gemstone.GemFiatOperation = .mock(),
+        sell: Gemstone.GemFiatOperation = .mock(),
+        available: BigUInt = 0,
+    ) -> Gemstone.GemFiatSession {
+        Gemstone.GemFiatSession(
+            quoteType: quoteType,
+            buy: buy,
+            sell: sell,
+            available: available,
+        )
+    }
+}
+
 public extension Gemstone.GemFormattedNumber {
     static func mock(
         value: Double = 0,
@@ -413,6 +599,12 @@ public extension Gemstone.GemHeaderAmount {
             amount: amount,
             fiat: fiat,
         )
+    }
+}
+
+public extension Gemstone.GemInfoTopic {
+    static func mock() -> Gemstone.GemInfoTopic {
+        .networkFee(asset: Primitives.Asset.mock().toGem())
     }
 }
 
@@ -489,6 +681,12 @@ public extension Gemstone.GemNodeSelection {
             isSelected: isSelected,
             gemNodeFlag: gemNodeFlag,
         )
+    }
+}
+
+public extension Gemstone.GemNodeStatusState {
+    static func mock() -> Gemstone.GemNodeStatusState {
+        .loading
     }
 }
 
@@ -600,6 +798,20 @@ public extension Gemstone.GemRewardsRedemption {
     }
 }
 
+public extension Gemstone.GemRewardsResult {
+    static func mock(
+        walletId: String = Primitives.WalletId.mock().id,
+        state: Gemstone.GemLoadState = .noData,
+        rewards: Gemstone.Rewards? = nil,
+    ) -> Gemstone.GemRewardsResult {
+        Gemstone.GemRewardsResult(
+            walletId: walletId,
+            state: state,
+            rewards: rewards,
+        )
+    }
+}
+
 public extension Gemstone.GemRewardsState {
     static func mock(
         actions: [Gemstone.GemRewardsAction] = [],
@@ -634,6 +846,260 @@ public extension Gemstone.GemRowText {
         Gemstone.GemRowText(
             text: text,
             tone: tone,
+        )
+    }
+}
+
+public extension Gemstone.GemSignMessagePreview {
+    static func mock(
+        title: Gemstone.GemLocalizedText = .mock(),
+        text: String = "",
+        primaryFields: [Gemstone.GemSimulationPayloadRow] = [],
+        secondaryFields: [Gemstone.GemSimulationPayloadRow] = [],
+        hasCriticalWarning: Bool = false,
+        header: Gemstone.GemSimulationValue? = nil,
+        rows: [Gemstone.GemListRow] = [],
+        warnings: [Gemstone.GemListRow] = [],
+    ) -> Gemstone.GemSignMessagePreview {
+        Gemstone.GemSignMessagePreview(
+            title: title,
+            text: text,
+            primaryFields: primaryFields,
+            secondaryFields: secondaryFields,
+            hasCriticalWarning: hasCriticalWarning,
+            header: header,
+            rows: rows,
+            warnings: warnings,
+        )
+    }
+}
+
+public extension Gemstone.GemSocialLink {
+    static func mock(
+        linkType: Gemstone.LinkType = .x,
+        url: String = "",
+        host: String? = nil,
+    ) -> Gemstone.GemSocialLink {
+        Gemstone.GemSocialLink(
+            linkType: linkType,
+            url: url,
+            host: host,
+        )
+    }
+}
+
+public extension Gemstone.GemStakeValidatorOptions {
+    static func mock(
+        recommended: [Gemstone.GemValidatorRow] = [],
+        options: [Gemstone.GemValidatorRow] = [],
+    ) -> Gemstone.GemStakeValidatorOptions {
+        Gemstone.GemStakeValidatorOptions(
+            recommended: recommended,
+            options: options,
+        )
+    }
+}
+
+public extension Gemstone.GemSwapPairSuggestion {
+    static func mock(
+        payAssetId: String = Primitives.AssetId.mock().identifier,
+        receiveAssetId: String? = nil,
+    ) -> Gemstone.GemSwapPairSuggestion {
+        Gemstone.GemSwapPairSuggestion(
+            payAssetId: payAssetId,
+            receiveAssetId: receiveAssetId,
+        )
+    }
+}
+
+public extension Gemstone.GemSwapQuoteInput {
+    static func mock(
+        request: Gemstone.GemSwapRequest = .mock(),
+        useMaxAmount: Bool = false,
+    ) -> Gemstone.GemSwapQuoteInput {
+        Gemstone.GemSwapQuoteInput(
+            request: request,
+            useMaxAmount: useMaxAmount,
+        )
+    }
+}
+
+public extension Gemstone.GemSwapQuotesResult {
+    static func mock(
+        request: Gemstone.GemSwapRequest = .mock(),
+        quotes: [Gemstone.SwapperQuote] = [],
+        error: Gemstone.SwapperError? = nil,
+    ) -> Gemstone.GemSwapQuotesResult {
+        Gemstone.GemSwapQuotesResult(
+            request: request,
+            quotes: quotes,
+            error: error,
+        )
+    }
+}
+
+public extension Gemstone.GemSwapRequest {
+    static func mock(
+        payAssetId: String = Primitives.AssetId.mock().identifier,
+        receiveAssetId: String = Primitives.AssetId.mock().identifier,
+        value: BigUInt = 0,
+        slippageBps: UInt32? = nil,
+    ) -> Gemstone.GemSwapRequest {
+        Gemstone.GemSwapRequest(
+            payAssetId: payAssetId,
+            receiveAssetId: receiveAssetId,
+            value: value,
+            slippageBps: slippageBps,
+        )
+    }
+}
+
+public extension Gemstone.GemSwapSession {
+    static func mock(
+        quotes: Gemstone.GemSwapQuotesResult? = nil,
+        selectedProvider: Gemstone.SwapProvider? = nil,
+        selectedQuote: Gemstone.SwapperQuote? = nil,
+        quotePhase: Gemstone.GemSwapQuotePhase = .noInput,
+        transferPhase: Gemstone.GemSwapTransferPhase = .idle,
+        refreshPausedUntilRestart: Bool = false,
+        input: Gemstone.GemSwapQuoteInput? = nil,
+        payValue: BigUInt? = nil,
+    ) -> Gemstone.GemSwapSession {
+        Gemstone.GemSwapSession(
+            quotes: quotes,
+            selectedProvider: selectedProvider,
+            selectedQuote: selectedQuote,
+            quotePhase: quotePhase,
+            transferPhase: transferPhase,
+            refreshPausedUntilRestart: refreshPausedUntilRestart,
+            input: input,
+            payValue: payValue,
+        )
+    }
+}
+
+public extension Gemstone.GemSwapTransfer {
+    static func mock(
+        quote: Gemstone.SwapQuote = .mock(),
+        data: Gemstone.SwapQuoteData = .mock(),
+        recipient: String = "",
+        value: BigUInt = 0,
+        useMaxAmount: Bool = false,
+    ) -> Gemstone.GemSwapTransfer {
+        Gemstone.GemSwapTransfer(
+            quote: quote,
+            data: data,
+            recipient: recipient,
+            value: value,
+            useMaxAmount: useMaxAmount,
+        )
+    }
+}
+
+public extension Gemstone.GemTransactionAmount {
+    static func mock(
+        asset: Gemstone.Asset = Primitives.Asset.mock().toGem(),
+        value: BigUInt = 0,
+        sign: Gemstone.GemAmountSign = .none,
+        price: Gemstone.AssetPrice? = nil,
+    ) -> Gemstone.GemTransactionAmount {
+        Gemstone.GemTransactionAmount(
+            asset: asset,
+            value: value,
+            sign: sign,
+            price: price,
+        )
+    }
+}
+
+public extension Gemstone.GemTransactionDetailRows {
+    static func mock(
+        id: String = Primitives.TransactionId.mock().identifier,
+        asset: Gemstone.Asset = Primitives.Asset.mock().toGem(),
+        transactionType: Gemstone.TransactionType = .transfer,
+        direction: Gemstone.TransactionDirection = .selfTransfer,
+        state: Gemstone.TransactionState = .pending,
+        createdAt: Date = Date(timeIntervalSince1970: 0),
+        status: Gemstone.GemTransactionStatus = .mock(),
+        title: Gemstone.GemTransactionTitle = .received,
+        header: Gemstone.GemTransactionHeader = .mock(),
+        headerAction: Gemstone.GemTransactionHeaderAction? = nil,
+        swapProgress: Gemstone.GemSwapProgress? = nil,
+        swapAgain: Gemstone.GemSwapAgain? = nil,
+        estimatedConfirmationSeconds: UInt32? = nil,
+        participant: Gemstone.GemTransactionParticipant? = nil,
+        providerName: String? = nil,
+        providerContract: String? = nil,
+        memo: String? = nil,
+        resource: Gemstone.Resource? = nil,
+        rate: Gemstone.GemSwapRate? = nil,
+        pnl: Gemstone.GemFormattedNumber? = nil,
+        price: Gemstone.GemFormattedNumber? = nil,
+        fee: Gemstone.GemTransactionAmount = .mock(),
+        feeRow: Gemstone.GemTransactionFeeRow = .mock(),
+        explorer: Gemstone.BlockExplorerLink = Primitives.BlockExplorerLink.mock().toGem(),
+    ) -> Gemstone.GemTransactionDetailRows {
+        Gemstone.GemTransactionDetailRows(
+            id: id,
+            asset: asset,
+            transactionType: transactionType,
+            direction: direction,
+            state: state,
+            createdAt: createdAt,
+            status: status,
+            title: title,
+            header: header,
+            headerAction: headerAction,
+            swapProgress: swapProgress,
+            swapAgain: swapAgain,
+            estimatedConfirmationSeconds: estimatedConfirmationSeconds,
+            participant: participant,
+            providerName: providerName,
+            providerContract: providerContract,
+            memo: memo,
+            resource: resource,
+            rate: rate,
+            pnl: pnl,
+            price: price,
+            fee: fee,
+            feeRow: feeRow,
+            explorer: explorer,
+        )
+    }
+}
+
+public extension Gemstone.GemTransactionFeeRow {
+    static func mock(
+        title: Gemstone.GemListRowTitle = .api,
+        amount: Gemstone.GemFormattedNumber = .mock(),
+        fiat: Gemstone.GemFormattedNumber? = nil,
+        info: Gemstone.GemInfoTopic = .mock(),
+    ) -> Gemstone.GemTransactionFeeRow {
+        Gemstone.GemTransactionFeeRow(
+            title: title,
+            amount: amount,
+            fiat: fiat,
+            info: info,
+        )
+    }
+}
+
+public extension Gemstone.GemTransactionHeader {
+    static func mock() -> Gemstone.GemTransactionHeader {
+        .amount(amount: .mock())
+    }
+}
+
+public extension Gemstone.GemTransactionStatus {
+    static func mock(
+        tone: Gemstone.GemTransactionStateTone = .pending,
+        showsBadge: Bool = false,
+        showsProgress: Bool = false,
+    ) -> Gemstone.GemTransactionStatus {
+        Gemstone.GemTransactionStatus(
+            tone: tone,
+            showsBadge: showsBadge,
+            showsProgress: showsProgress,
         )
     }
 }
@@ -692,6 +1158,68 @@ public extension Gemstone.GemValidatorRow {
             provider: provider,
             apr: apr,
             explorer: explorer,
+        )
+    }
+}
+
+public extension Gemstone.GemWalletConnectAuthAccount {
+    static func mock(
+        account: Gemstone.Account = Primitives.Account.mock().toGem(),
+        chainId: String = "",
+        issuer: String = "",
+    ) -> Gemstone.GemWalletConnectAuthAccount {
+        Gemstone.GemWalletConnectAuthAccount(
+            account: account,
+            chainId: chainId,
+            issuer: issuer,
+        )
+    }
+}
+
+public extension Gemstone.GemWalletConnectMessageRequest {
+    static func mock(
+        sessionId: String = "",
+        chain: String = Primitives.Chain.bitcoin.rawValue,
+        wallet: Gemstone.Wallet = Primitives.Wallet.mock().toGem(),
+        account: Gemstone.Account = Primitives.Account.mock().toGem(),
+        session: Gemstone.WalletConnectionSession = Primitives.WalletConnectionSession.mock().toGem(),
+        simulation: Gemstone.SimulationResult = .mock(),
+        message: Gemstone.SignMessage = .mock(),
+        assets: [Gemstone.Asset] = [],
+    ) -> Gemstone.GemWalletConnectMessageRequest {
+        Gemstone.GemWalletConnectMessageRequest(
+            sessionId: sessionId,
+            chain: chain,
+            wallet: wallet,
+            account: account,
+            session: session,
+            simulation: simulation,
+            message: message,
+            assets: assets,
+        )
+    }
+}
+
+public extension Gemstone.GemWalletConnectTransactionRequest {
+    static func mock(
+        sessionId: String = "",
+        chain: String = Primitives.Chain.bitcoin.rawValue,
+        wallet: Gemstone.Wallet = Primitives.Wallet.mock().toGem(),
+        account: Gemstone.Account = Primitives.Account.mock().toGem(),
+        session: Gemstone.WalletConnectionSession = Primitives.WalletConnectionSession.mock().toGem(),
+        simulation: Gemstone.SimulationResult = .mock(),
+        transfer: Gemstone.GemTransferData = .mock(),
+        action: Gemstone.GemWalletConnectTransactionAction = .sign,
+    ) -> Gemstone.GemWalletConnectTransactionRequest {
+        Gemstone.GemWalletConnectTransactionRequest(
+            sessionId: sessionId,
+            chain: chain,
+            wallet: wallet,
+            account: account,
+            session: session,
+            simulation: simulation,
+            transfer: transfer,
+            action: action,
         )
     }
 }
@@ -1202,6 +1730,134 @@ public extension Gemstone.SwapQuoteData {
             memo: memo,
             approval: approval,
             gasLimit: gasLimit,
+        )
+    }
+}
+
+public extension Gemstone.SwapperOptions {
+    static func mock(
+        slippage: Gemstone.SwapperSlippage = .mock(),
+        useMaxAmount: Bool = false,
+    ) -> Gemstone.SwapperOptions {
+        Gemstone.SwapperOptions(
+            slippage: slippage,
+            useMaxAmount: useMaxAmount,
+        )
+    }
+}
+
+public extension Gemstone.SwapperProviderData {
+    static func mock(
+        provider: Gemstone.SwapperProviderType = .mock(),
+        slippageBps: UInt32 = 0,
+        routes: [Gemstone.SwapperRoute] = [],
+    ) -> Gemstone.SwapperProviderData {
+        Gemstone.SwapperProviderData(
+            provider: provider,
+            slippageBps: slippageBps,
+            routes: routes,
+        )
+    }
+}
+
+public extension Gemstone.SwapperProviderType {
+    static func mock(
+        id: Gemstone.SwapProvider = .uniswapV3,
+        name: String = "",
+        protocol: String = "",
+        protocolId: String = "",
+        mode: Gemstone.SwapperProviderMode = .onChain,
+        slippageMode: Gemstone.SwapperSlippageMode = .auto,
+    ) -> Gemstone.SwapperProviderType {
+        Gemstone.SwapperProviderType(
+            id: id,
+            name: name,
+            protocol: `protocol`,
+            protocolId: protocolId,
+            mode: mode,
+            slippageMode: slippageMode,
+        )
+    }
+}
+
+public extension Gemstone.SwapperQuote {
+    static func mock(
+        fromValue: BigUInt = 0,
+        minFromValue: BigUInt? = nil,
+        toValue: BigUInt = 0,
+        data: Gemstone.SwapperProviderData = .mock(),
+        request: Gemstone.SwapperQuoteRequest = .mock(),
+        etaInSeconds: UInt32? = nil,
+    ) -> Gemstone.SwapperQuote {
+        Gemstone.SwapperQuote(
+            fromValue: fromValue,
+            minFromValue: minFromValue,
+            toValue: toValue,
+            data: data,
+            request: request,
+            etaInSeconds: etaInSeconds,
+        )
+    }
+}
+
+public extension Gemstone.SwapperQuoteAsset {
+    static func mock(
+        id: String = "",
+        symbol: String = "",
+        decimals: UInt32 = 0,
+        assetType: Gemstone.AssetType = .native,
+    ) -> Gemstone.SwapperQuoteAsset {
+        Gemstone.SwapperQuoteAsset(
+            id: id,
+            symbol: symbol,
+            decimals: decimals,
+            assetType: assetType,
+        )
+    }
+}
+
+public extension Gemstone.SwapperQuoteRequest {
+    static func mock(
+        fromAsset: Gemstone.SwapperQuoteAsset = .mock(),
+        toAsset: Gemstone.SwapperQuoteAsset = .mock(),
+        walletAddress: String = "",
+        destinationAddress: String = "",
+        value: BigUInt = 0,
+        options: Gemstone.SwapperOptions = .mock(),
+    ) -> Gemstone.SwapperQuoteRequest {
+        Gemstone.SwapperQuoteRequest(
+            fromAsset: fromAsset,
+            toAsset: toAsset,
+            walletAddress: walletAddress,
+            destinationAddress: destinationAddress,
+            value: value,
+            options: options,
+        )
+    }
+}
+
+public extension Gemstone.SwapperRoute {
+    static func mock(
+        input: String = Primitives.AssetId.mock().identifier,
+        output: String = Primitives.AssetId.mock().identifier,
+        routeData: String = "",
+    ) -> Gemstone.SwapperRoute {
+        Gemstone.SwapperRoute(
+            input: input,
+            output: output,
+            routeData: routeData,
+        )
+    }
+}
+
+public extension Gemstone.SwapperSlippage {
+    static func mock(
+        bps: UInt32 = 0,
+        mode: Gemstone.SwapperSlippageMode = .auto,
+    ) -> Gemstone.SwapperSlippage {
+        Gemstone.SwapperSlippage(
+            bps: bps,
+            mode: mode,
         )
     }
 }

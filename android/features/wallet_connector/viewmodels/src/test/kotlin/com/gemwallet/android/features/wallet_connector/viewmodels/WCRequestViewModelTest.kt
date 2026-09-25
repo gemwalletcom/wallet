@@ -5,8 +5,10 @@ import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectReque
 import com.gemwallet.android.application.wallet_connect.WalletConnectJsonRpcResponse
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequests
 import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConnectRequest
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockGemSignMessagePreview
 import com.gemwallet.android.testkit.mockGemWalletConnectMessageRequest
+import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletConnectSessionRequest
 import com.gemwallet.android.testkit.mockWalletConnectVerifyContext
 import com.gemwallet.android.testkit.mockWalletConnectionSession
@@ -78,7 +80,7 @@ class WCRequestViewModelTest {
     }
 
     private fun signMessageService(hasCriticalWarning: Boolean = false): GemSignMessageServiceInterface = mockk(relaxed = true) {
-        every { preview(any()) } returns mockGemSignMessagePreview(hasCriticalWarning)
+        every { preview(any()) } returns mockGemSignMessagePreview(hasCriticalWarning = hasCriticalWarning)
         coEvery { withAddressNames(any(), any()) } answers { secondArg() }
     }
 
@@ -100,8 +102,11 @@ class WCRequestViewModelTest {
         },
     ).also { models.add(it) }
 
-    private fun TestScope.pending(requests: WalletConnectPendingRequests, signature: CompletableDeferred<String>? = null): Job =
-        launch { runCatching { requests.signMessage(mockGemWalletConnectMessageRequest(session = mockWalletConnectionSession(sessionId = topic))) }.onSuccess { signature?.complete(it) } }
+    private fun TestScope.pending(requests: WalletConnectPendingRequests, signature: CompletableDeferred<String>? = null): Job = launch {
+        runCatching {
+            requests.signMessage(mockGemWalletConnectMessageRequest(sessionId = topic, wallet = mockWallet(name = "Main Wallet").toGem(), session = mockWalletConnectionSession(sessionId = topic).toGem()))
+        }.onSuccess { signature?.complete(it) }
+    }
 
     private suspend fun WCRequestViewModel.awaitContent(): RequestSceneState.Content = sceneState.first { it !is RequestSceneState.Loading } as RequestSceneState.Content
 

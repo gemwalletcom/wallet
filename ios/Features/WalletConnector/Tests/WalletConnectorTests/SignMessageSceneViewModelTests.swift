@@ -61,7 +61,7 @@ struct SignMessageSceneViewModelTests {
     @MainActor
     func walletTextDisplaysPayloadWallet() {
         let wallet = Wallet.mock(name: "My Secure Wallet")
-        let payload = GemWalletConnectMessageRequest.mock(wallet: wallet)
+        let payload = GemWalletConnectMessageRequest.mock(wallet: wallet.toGem())
 
         let viewModel = SignMessageSceneViewModel.mock(request: payload)
 
@@ -76,10 +76,10 @@ struct SignMessageSceneViewModelTests {
     @MainActor
     func appTextUsesShortNameWithoutDomain() {
         let payload = GemWalletConnectMessageRequest.mock(
-            session: .mock(metadata: .mock(
+            session: WalletConnectionSession.mock(metadata: .mock(
                 name: "PancakeSwap - Trade",
                 url: "https://pancakeswap.finance/swap",
-            )),
+            )).toGem(),
         )
 
         let viewModel = SignMessageSceneViewModel.mock(request: payload)
@@ -98,7 +98,7 @@ struct SignMessageSceneViewModelTests {
     @Test
     @MainActor
     func payloadStoresValidatedChainNotMessageChain() {
-        let payload = GemWalletConnectMessageRequest.mock(message: .mock(chain: "bitcoin"))
+        let payload = GemWalletConnectMessageRequest.mock(chain: Chain.ethereum.rawValue, message: .mock(chain: "bitcoin"))
 
         #expect(payload.chain == Chain.ethereum.rawValue)
         #expect(payload.message.chain == "bitcoin")
@@ -107,7 +107,7 @@ struct SignMessageSceneViewModelTests {
     @Test
     @MainActor
     func networkTextUsesPayloadChain() {
-        let payload = GemWalletConnectMessageRequest.mock(message: .mock(chain: "bitcoin"))
+        let payload = GemWalletConnectMessageRequest.mock(chain: Chain.ethereum.rawValue, message: .mock(chain: "bitcoin"))
 
         let viewModel = SignMessageSceneViewModel.mock(request: payload)
 
@@ -186,13 +186,13 @@ struct SignMessageSceneViewModelTests {
     @MainActor
     func permitBatchExternallyOwnedSpenderKeepsWarningAndPayload() {
         let payload = GemWalletConnectMessageRequest.mock(
-            message: .mock(chain: "ethereum", signType: .eip712, data: permitBatch),
             simulation: .mock(warnings: [.mock(severity: .warning, warning: .externallyOwnedSpender)], payload: [
                 .mock(kind: .method, value: "Permit Batch", fieldType: .text, display: .primary),
                 .mock(kind: .contract, value: "0x000000000022D473030F116dDEE9F6B43aC78BA3", fieldType: .address, display: .primary),
                 .mock(kind: .spender, value: "0x3333333333333333333333333333333333333333", fieldType: .address, display: .primary),
                 .mock(kind: .value, value: "Unlimited", fieldType: .text, display: .primary),
             ]),
+            message: .mock(chain: "ethereum", signType: .eip712, data: permitBatch),
         )
 
         let viewModel = SignMessageSceneViewModel.mock(request: payload)
@@ -239,10 +239,10 @@ struct SignMessageSceneViewModelTests {
         .joined(separator: "\n")
 
         let payload = GemWalletConnectMessageRequest.mock(
-            message: .mock(data: Data(message.utf8)),
             simulation: .mock(warnings: [
                 .mock(severity: .critical, warning: .validationError, message: "Chain ID mismatch"),
             ]),
+            message: .mock(data: Data(message.utf8)),
         )
 
         let viewModel = SignMessageSceneViewModel.mock(request: payload)
@@ -258,14 +258,14 @@ struct SignMessageSceneViewModelTests {
     func permitHeaderReplacesValueField() {
         let asset = Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20)
         let payload = GemWalletConnectMessageRequest.mock(
-            message: .mock(chain: "ethereum", signType: .eip712, data: permitBatch),
             simulation: .mock(payload: [
                 .mock(kind: .method, value: "Permit Batch", fieldType: .text, display: .primary),
                 .mock(kind: .contract, value: "0x000000000022D473030F116dDEE9F6B43aC78BA3", fieldType: .address, display: .primary),
                 .mock(kind: .spender, value: "0x3333333333333333333333333333333333333333", fieldType: .address, display: .primary),
                 .mock(kind: .value, value: "Unlimited", fieldType: .text, display: .primary),
             ], header: SimulationHeader(assetId: asset.id.identifier, value: nil, isUnlimited: true)),
-            assets: [asset],
+            message: .mock(chain: "ethereum", signType: .eip712, data: permitBatch),
+            assets: [asset.toGem()],
         )
 
         let viewModel = SignMessageSceneViewModel.mock(request: payload)
@@ -278,13 +278,13 @@ struct SignMessageSceneViewModelTests {
     @MainActor
     func permitWithoutHeaderKeepsValueField() {
         let payload = GemWalletConnectMessageRequest.mock(
-            message: .mock(chain: "ethereum", signType: .eip712, data: permitBatch),
             simulation: .mock(payload: [
                 .mock(kind: .method, value: "Permit Batch", fieldType: .text, display: .primary),
                 .mock(kind: .contract, value: "0x000000000022D473030F116dDEE9F6B43aC78BA3", fieldType: .address, display: .primary),
                 .mock(kind: .spender, value: "0x3333333333333333333333333333333333333333", fieldType: .address, display: .primary),
                 .mock(kind: .value, value: "Unlimited", fieldType: .text, display: .primary),
             ]),
+            message: .mock(chain: "ethereum", signType: .eip712, data: permitBatch),
         )
 
         let viewModel = SignMessageSceneViewModel.mock(request: payload)

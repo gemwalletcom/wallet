@@ -3,7 +3,7 @@
 import struct Gemstone.GemDurationPart
 import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemListRow
-import struct Gemstone.SwapperQuote
+import struct Gemstone.SwapQuote
 import GemstonePrimitives
 import GemstoneServicesTestKit
 import Primitives
@@ -16,14 +16,14 @@ import Testing
 struct SwapDetailsViewModelTests {
     @Test
     func theEstimatedTimeRowAppearsOnlyWhenTheQuoteGivesOne() {
-        #expect(durationParts(SwapperQuote.mock(etaInSeconds: nil)) == nil)
-        #expect(durationParts(SwapperQuote.mock(etaInSeconds: 30))?.isEmpty == false)
-        #expect(durationParts(SwapperQuote.mock(etaInSeconds: 180))?.isEmpty == false)
+        #expect(durationParts(SwapQuote.mock(etaInSeconds: nil)) == nil)
+        #expect(durationParts(SwapQuote.mock(etaInSeconds: 30))?.isEmpty == false)
+        #expect(durationParts(SwapQuote.mock(etaInSeconds: 180))?.isEmpty == false)
     }
 
     @Test
     func switchRate() {
-        let model = SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(toValue: 250_000_000_000).swapQuote)
+        let model = SwapDetailsViewModel.mock(selectedQuote: .mock(fromValue: 1_000_000_000_000_000_000, toValue: 250_000_000_000, slippageBps: 50))
 
         #expect(model.rateText(isInverse: false) == "1 ETH ≈ 250,000.00 USDT")
         #expect(model.rateText(isInverse: true) == "1 USDT ≈ 0.000004 ETH")
@@ -31,7 +31,7 @@ struct SwapDetailsViewModelTests {
 
     @Test
     func minReceiveAppliesSlippageBasisPoints() {
-        let model = SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(toValue: 250_000_000_000).swapQuote)
+        let model = SwapDetailsViewModel.mock(selectedQuote: .mock(fromValue: 1_000_000_000_000_000_000, toValue: 250_000_000_000, slippageBps: 50))
         let minReceive = model.detailRows.compactMap { row -> GemFormattedNumber? in
             guard case let .amount(title, amount, _) = row, title == .minimumReceive else { return nil }
             return amount
@@ -40,8 +40,8 @@ struct SwapDetailsViewModelTests {
         #expect(minReceive?.text() == "248,750 USDT")
     }
 
-    private func durationParts(_ quote: SwapperQuote) -> [GemDurationPart]? {
-        SwapDetailsViewModel.mock(selectedQuote: quote.swapQuote).detailRows.compactMap { row -> [GemDurationPart]? in
+    private func durationParts(_ quote: SwapQuote) -> [GemDurationPart]? {
+        SwapDetailsViewModel.mock(selectedQuote: quote).detailRows.compactMap { row -> [GemDurationPart]? in
             guard case let .duration(title, parts, _, _) = row, title == .estimatedTime else { return nil }
             return parts
         }.first

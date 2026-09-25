@@ -50,7 +50,7 @@ class AmountStakeProviderTest {
             GemStakeAmountSelection.Validator(mockGemValidatorRow(validator = validator.toGem(), name = validator.name, placeholder = validator.name.take(1), apr = GemLocalizedText.Apr(null)), true)
         every { stakeValidatorOptions(any(), any(), any()) } answers {
             mockGemStakeValidatorOptions(
-                thirdArg<List<DelegationValidator>>().map {
+                options = thirdArg<List<DelegationValidator>>().map {
                     mockGemValidatorRow(validator = it.toPrimitives().toGem(), name = it.toPrimitives().name, placeholder = it.toPrimitives().name.take(1), apr = GemLocalizedText.Apr(null))
                 },
             )

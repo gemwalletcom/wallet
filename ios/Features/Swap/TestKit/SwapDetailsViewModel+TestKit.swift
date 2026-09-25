@@ -1,16 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.SwapperQuote
 import struct Gemstone.SwapQuote
 import func Gemstone.swapQuoteDetails
 import GemstonePrimitives
-import GemstoneServicesTestKit
+import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesTestKit
 import Swap
 
 public extension SwapDetailsViewModel {
-    static func mock(selectedQuote: SwapQuote = SwapperQuote.mock().swapQuote) -> SwapDetailsViewModel {
+    static func mock(selectedQuote: SwapQuote = .mock()) -> SwapDetailsViewModel {
         SwapDetailsViewModel(
             details: swapQuoteDetails(
                 quote: selectedQuote,

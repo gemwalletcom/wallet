@@ -95,7 +95,12 @@ class AssetDetailsViewModelTest {
         every { priceAlertsQuery(asset.id) } returns priceAlerts
         every { service.details(any()) } answers {
             val input = firstArg<GemAssetDetailsInput>()
-            mockGemAssetDetails(asset, mockGemAssetDetailsState(showsBanners = input.banners.isNotEmpty(), priceAlertsCount = input.priceAlerts.size))
+            mockGemAssetDetails(
+                state = mockGemAssetDetailsState(
+                    showsBanners = input.banners.isNotEmpty(),
+                    priceAlert = if (input.priceAlerts.isEmpty()) GemPriceAlertToggle.DISABLED else GemPriceAlertToggle.ENABLED,
+                ),
+            )
         }
     }
 

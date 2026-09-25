@@ -9,11 +9,23 @@ pub struct GemAccountRow {
     pub subtitle: Option<String>,
     pub rows: Vec<GemRow>,
     pub icon: GemIcon,
+    pub badge: RowIcon,
+    pub failure: Option<GemRowError>,
     pub data: Vec<u8>,
     pub labels: HashMap<String, String>,
     pub action: GemRowAction,
     pub r#type: String,
+    pub protocol: String,
     pub created_at: DateTimeUtc,
+}
+
+#[derive(Debug, Clone, uniffi::Enum)]
+pub enum GemRowError {
+    Missing,
+}
+
+pub fn row(id: String) -> Result<GemAccountRow, GemRowError> {
+    Err(GemRowError::Missing)
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]

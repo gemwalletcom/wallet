@@ -24,6 +24,7 @@ import com.gemwallet.android.testkit.mockBalance
 import com.gemwallet.android.testkit.mockFiatProvider
 import com.gemwallet.android.testkit.mockFiatQuote
 import com.gemwallet.android.testkit.mockFormattedNumber
+import com.gemwallet.android.testkit.mockGemFiatOperation
 import com.gemwallet.android.testkit.mockGemFiatSession
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
@@ -60,6 +61,7 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.FiatQuoteUrl
 import uniffi.gemstone.GemCurrencyStyle
+import uniffi.gemstone.GemFiatQuotePhase
 import uniffi.gemstone.GemFiatQuoteServiceInterface
 import uniffi.gemstone.GemFiatSuggestedAmount
 import uniffi.gemstone.GemLocalizedText
@@ -92,7 +94,15 @@ class FiatViewModelTest {
     }
     private val service = mockk<GemFiatQuoteServiceInterface> {
         every { suggestedAmounts() } returns listOf(GemFiatSuggestedAmount(100u, mockFormattedNumber(100.0)), GemFiatSuggestedAmount(250u, mockFormattedNumber(250.0)))
-        every { newSession(any(), any()) } answers { mockGemFiatSession(firstArg(), secondArg()) }
+        every { newSession(any(), any()) } answers {
+            val quoteType = firstArg<uniffi.gemstone.FiatQuoteType>()
+            val amount = secondArg<UInt?>()
+            val operation = { type: uniffi.gemstone.FiatQuoteType, default: UInt ->
+                val value = amount?.takeIf { type == quoteType } ?: default
+                mockGemFiatOperation(quoteType = type, amount = value.toString(), phase = GemFiatQuotePhase.Loading(value.toDouble()))
+            }
+            mockGemFiatSession(quoteType = quoteType, buy = operation(uniffi.gemstone.FiatQuoteType.BUY, 50u), sell = operation(uniffi.gemstone.FiatQuoteType.SELL, 100u))
+        }
         every { randomAmount() } returns 500u
         coEvery { quotes(any(), any(), any()) } returns
             listOf(

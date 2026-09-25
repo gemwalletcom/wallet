@@ -19,10 +19,13 @@ public extension Gemstone.GemAccountRow {
         subtitle: String? = nil,
         rows: [Gemstone.GemRow] = [],
         icon: Gemstone.GemIcon = .asset,
+        badge: Gemstone.GemIcon = .asset,
+        failure: Gemstone.GemRowError? = nil,
         data: Data = Data(),
         labels: [String: String] = [:],
         action: Gemstone.GemRowAction = .mock(),
         type: String = "",
+        protocol: String = "",
         createdAt: Date = Date(timeIntervalSince1970: 0),
     ) -> Gemstone.GemAccountRow {
         Gemstone.GemAccountRow(
@@ -35,10 +38,13 @@ public extension Gemstone.GemAccountRow {
             subtitle: subtitle,
             rows: rows,
             icon: icon,
+            badge: badge,
+            failure: failure,
             data: data,
             labels: labels,
             action: action,
             type: type,
+            protocol: `protocol`,
             createdAt: createdAt,
         )
     }

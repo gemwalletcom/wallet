@@ -68,7 +68,6 @@ class TransactionDetailsViewModelTest {
     fun theDetailRowsComeFromCoreForTheStoredTransactionAndTheWalletType() {
         val wallet = mockWallet(type = WalletType.View)
         val rows = mockGemTransactionDetailRows(
-            transaction = transactionExtended,
             explorer = GemBlockExplorerLink("NEAR Intents", "https://explorer.near-intents.org/transactions/recipient-address"),
         )
         every { transactionQuery(wallet.id, transactionId) } returns flowOf(transactionExtended)
@@ -86,7 +85,7 @@ class TransactionDetailsViewModelTest {
         val first = mockWallet(id = WalletId("first"))
         val second = mockWallet(id = WalletId("second"))
         session.value = mockSession(wallet = first)
-        val rows = mockGemTransactionDetailRows(transaction = transactionExtended)
+        val rows = mockGemTransactionDetailRows()
         every { transactionQuery(first.id, transactionId) } returns flowOf(transactionExtended)
         every { transactionQuery(second.id, transactionId) } returns flowOf(null)
         every { service.detailRows(any(), any()) } returns rows
@@ -102,7 +101,7 @@ class TransactionDetailsViewModelTest {
     fun theDetailsClearWhenTheShownRecordIsDeleted() {
         val wallet = mockWallet()
         val record = MutableStateFlow<TransactionExtended?>(transactionExtended)
-        val rows = mockGemTransactionDetailRows(transaction = transactionExtended)
+        val rows = mockGemTransactionDetailRows()
         every { transactionQuery(wallet.id, transactionId) } returns record
         every { service.detailRows(any(), any()) } returns rows
 

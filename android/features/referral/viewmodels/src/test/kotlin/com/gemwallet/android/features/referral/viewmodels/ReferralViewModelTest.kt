@@ -37,6 +37,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemRewardsAction
 import uniffi.gemstone.GemRewardsServiceInterface
 import uniffi.gemstone.GemServiceException
@@ -64,7 +65,17 @@ class ReferralViewModelTest {
     private val service = mockk<GemRewardsServiceInterface> {
         every { wallets(any()) } answers { firstArg() }
         every { selectedWallet(any(), any()) } answers { firstArg() }
-        coEvery { refresh(any()) } answers { mockGemRewardsResult(walletId = firstArg()) }
+        coEvery { refresh(any()) } answers {
+            mockGemRewardsResult(
+                walletId = firstArg(),
+                state = GemLoadState.Data,
+                rewards = mockRewards(
+                    inviteRewardPoints = 100,
+                    status = RewardStatus.VERIFIED,
+                    referralAllowance = mockReferralAllowance(daily = mockReferralQuota(limit = 5, available = 5), weekly = mockReferralQuota(limit = 20, available = 20)),
+                ),
+            )
+        }
         coEvery { useReferralCode(any(), any()) } returns
             mockRewards(
                 inviteRewardPoints = 100,
@@ -105,7 +116,7 @@ class ReferralViewModelTest {
     @Test
     fun `a failed load reads as an error instead of a wallet without a code`() = runTest(testDispatcher) {
         coEvery { service.refresh(any()) } answers {
-            mockGemRewardsResult(walletId = firstArg(), rewards = null, error = GemServiceException.Gateway("offline"))
+            mockGemRewardsResult(walletId = firstArg(), state = GemLoadState.Error(GemServiceException.Gateway("offline")))
         }
         val viewModel = createViewModel()
 
@@ -123,6 +134,7 @@ class ReferralViewModelTest {
         coEvery { service.refresh(any()) } answers {
             mockGemRewardsResult(
                 walletId = wallet.id.id,
+                state = GemLoadState.Data,
                 rewards = mockRewards(
                     code = "first",
                     inviteRewardPoints = 100,
@@ -182,6 +194,7 @@ class ReferralViewModelTest {
         coEvery { service.refresh(any()) } answers {
             mockGemRewardsResult(
                 walletId = firstArg(),
+                state = GemLoadState.Data,
                 rewards = mockRewards(
                     code = "GEM123",
                     inviteRewardPoints = 100,

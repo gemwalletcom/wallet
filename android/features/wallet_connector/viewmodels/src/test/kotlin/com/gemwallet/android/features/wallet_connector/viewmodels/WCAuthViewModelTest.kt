@@ -125,7 +125,7 @@ class WCAuthViewModelTest {
     fun `a malicious origin notifies the scene and rejects the request`() = runTest(dispatcher) {
         val notified = CompletableDeferred<String>()
         val approve = approval()
-        val service = service { listOf(mockGemWalletConnectAuthAccount()) }
+        val service = service { listOf(mockGemWalletConnectAuthAccount(account = mockAccount(chain = Chain.Ethereum, address = "0xabc").toGem(), chainId = "eip155:1", issuer = "did:pkh:eip155:1:0xabc")) }
         coEvery { service.prepareSessionProposal(any(), any(), any(), any(), any()) } throws GemWalletConnectException.InvalidOrigin()
         val model = viewModel(service, approve)
 
@@ -138,7 +138,7 @@ class WCAuthViewModelTest {
 
     @Test
     fun `a prepared request offers the default wallet and the peer`() = runTest(dispatcher) {
-        val model = viewModel(service { listOf(mockGemWalletConnectAuthAccount()) })
+        val model = viewModel(service { listOf(mockGemWalletConnectAuthAccount(account = mockAccount(chain = Chain.Ethereum, address = "0xabc").toGem(), chainId = "eip155:1", issuer = "did:pkh:eip155:1:0xabc")) })
 
         model.onRequest(request, verifyContext) {}
 
@@ -155,7 +155,17 @@ class WCAuthViewModelTest {
 
     @Test
     fun `the same authentication request keeps the selected wallet`() = runTest(dispatcher) {
-        val model = viewModel(service { walletId -> listOf(mockGemWalletConnectAuthAccount(if (walletId == "multicoin_0xdef") "0xdef" else "0xabc")) })
+        val model = viewModel(
+            service { walletId ->
+                listOf(
+                    if (walletId == "multicoin_0xdef") {
+                        mockGemWalletConnectAuthAccount(account = mockAccount(chain = Chain.Ethereum, address = "0xdef").toGem(), chainId = "eip155:1", issuer = "did:pkh:eip155:1:0xdef")
+                    } else {
+                        mockGemWalletConnectAuthAccount(account = mockAccount(chain = Chain.Ethereum, address = "0xabc").toGem(), chainId = "eip155:1", issuer = "did:pkh:eip155:1:0xabc")
+                    },
+                )
+            },
+        )
 
         model.onRequest(request, verifyContext) {}
         model.awaitContent()
@@ -168,7 +178,17 @@ class WCAuthViewModelTest {
 
     @Test
     fun `selecting a wallet rebuilds the approval for its account`() = runTest(dispatcher) {
-        val model = viewModel(service { walletId -> listOf(mockGemWalletConnectAuthAccount(if (walletId == "multicoin_0xdef") "0xdef" else "0xabc")) })
+        val model = viewModel(
+            service { walletId ->
+                listOf(
+                    if (walletId == "multicoin_0xdef") {
+                        mockGemWalletConnectAuthAccount(account = mockAccount(chain = Chain.Ethereum, address = "0xdef").toGem(), chainId = "eip155:1", issuer = "did:pkh:eip155:1:0xdef")
+                    } else {
+                        mockGemWalletConnectAuthAccount(account = mockAccount(chain = Chain.Ethereum, address = "0xabc").toGem(), chainId = "eip155:1", issuer = "did:pkh:eip155:1:0xabc")
+                    },
+                )
+            },
+        )
 
         model.onRequest(request, verifyContext) {}
         model.awaitContent()
@@ -199,7 +219,7 @@ class WCAuthViewModelTest {
             approved.complete(thirdArg())
             Unit
         }
-        val service = service { listOf(mockGemWalletConnectAuthAccount()) }
+        val service = service { listOf(mockGemWalletConnectAuthAccount(account = mockAccount(chain = Chain.Ethereum, address = "0xabc").toGem(), chainId = "eip155:1", issuer = "did:pkh:eip155:1:0xabc")) }
         val model = viewModel(service, approve)
 
         model.onRequest(request, verifyContext) {}
@@ -214,7 +234,7 @@ class WCAuthViewModelTest {
     @Test
     fun `rejecting rejects the authentication once`() = runTest(dispatcher) {
         val approve = approval()
-        val model = viewModel(service { listOf(mockGemWalletConnectAuthAccount()) }, approve)
+        val model = viewModel(service { listOf(mockGemWalletConnectAuthAccount(account = mockAccount(chain = Chain.Ethereum, address = "0xabc").toGem(), chainId = "eip155:1", issuer = "did:pkh:eip155:1:0xabc")) }, approve)
 
         model.onRequest(request, verifyContext) {}
         model.awaitContent()

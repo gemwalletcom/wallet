@@ -14,6 +14,8 @@ import struct Gemstone.GemSwapSession
 import enum Gemstone.GemSwapSide
 import struct Gemstone.GemSwapTransfer
 import struct Gemstone.SwapperQuote
+import struct Gemstone.SwapProviderData
+import struct Gemstone.SwapQuote
 import struct Gemstone.SwapQuoteData
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
@@ -111,5 +113,21 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
 
     public func suggestPair(payAssetId _: AssetId?) async -> GemSwapPairSuggestion? {
         pairSuggestion
+    }
+}
+
+private extension SwapperQuote {
+    var swapQuote: SwapQuote {
+        SwapQuote(
+            fromAddress: request.walletAddress,
+            fromValue: fromValue,
+            minFromValue: minFromValue,
+            toAddress: request.destinationAddress,
+            toValue: toValue,
+            providerData: SwapProviderData(provider: data.provider.id, name: data.provider.name, protocolName: data.provider.protocol),
+            slippageBps: data.slippageBps,
+            etaInSeconds: etaInSeconds,
+            useMaxAmount: request.options.useMaxAmount,
+        )
     }
 }

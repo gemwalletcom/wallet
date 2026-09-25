@@ -24,7 +24,10 @@ import com.gemwallet.android.testkit.mockBalance
 import com.gemwallet.android.testkit.mockGemSwapSession
 import com.gemwallet.android.testkit.mockGemSwapTransfer
 import com.gemwallet.android.testkit.mockSession
+import com.gemwallet.android.testkit.mockSwapQuote
 import com.gemwallet.android.testkit.mockSwapperQuote
+import com.gemwallet.android.testkit.mockSwapperQuoteAsset
+import com.gemwallet.android.testkit.mockSwapperQuoteRequest
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.R
@@ -366,7 +369,7 @@ class SwapViewModelTest {
 
         requestQuote(viewModel, "0.5")
         requestQuote(viewModel, "")
-        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote())))
+        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote(fromValue = BigInteger("1000000000"), toValue = BigInteger("2500000"), request = mockSwapperQuoteRequest(toAsset = mockSwapperQuoteAsset(decimals = 6u))))))
         advanceUntilIdle()
 
         assertNull(viewModel.swapDetails.value)
@@ -379,7 +382,7 @@ class SwapViewModelTest {
         advanceUntilIdle()
         viewModel.setRefreshEnabled(true)
         requestQuote(viewModel, "1")
-        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote())))
+        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote(fromValue = BigInteger("1000000000"), toValue = BigInteger("2500000"), request = mockSwapperQuoteRequest(toAsset = mockSwapperQuoteAsset(decimals = 6u))))))
         runCurrent()
 
         viewModel.payValue.setTextAndPlaceCursorAtEnd("1.0")
@@ -396,7 +399,7 @@ class SwapViewModelTest {
         advanceUntilIdle()
         viewModel.setRefreshEnabled(true)
         requestQuote(viewModel, "1")
-        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote())))
+        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote(fromValue = BigInteger("1000000000"), toValue = BigInteger("2500000"), request = mockSwapperQuoteRequest(toAsset = mockSwapperQuoteAsset(decimals = 6u))))))
         runCurrent()
 
         advanceTimeBy(GemConstants.swapQuoteRefreshInterval.inWholeMilliseconds)
@@ -424,7 +427,7 @@ class SwapViewModelTest {
         advanceUntilIdle()
         viewModel.setRefreshEnabled(true)
         requestQuote(viewModel, "1")
-        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote())))
+        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote(fromValue = BigInteger("1000000000"), toValue = BigInteger("2500000"), request = mockSwapperQuoteRequest(toAsset = mockSwapperQuoteAsset(decimals = 6u))))))
         runCurrent()
 
         viewModel.setRefreshEnabled(false)
@@ -455,7 +458,7 @@ class SwapViewModelTest {
         viewModel.swap { confirmed += it }
         awaitCondition { viewModel.uiState.value.isTransferLoading }
 
-        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote(toValue = BigInteger("2600000")))))
+        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote(fromValue = BigInteger("1000000000"), toValue = BigInteger("2600000"), request = mockSwapperQuoteRequest(toAsset = mockSwapperQuoteAsset(decimals = 6u))))))
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value.isTransferLoading)
@@ -509,7 +512,7 @@ class SwapViewModelTest {
         assertEquals(ButtonState.Enabled, state.buttonState)
         assertEquals(2.5, viewModel.swapDetails.value?.provider?.amount?.value)
 
-        coEvery { swapQuoteService.getTransfer(any()) } returns mockGemSwapTransfer(from = solInfo.owner!!, toAddress = "0xconfirm")
+        coEvery { swapQuoteService.getTransfer(any()) } returns mockGemSwapTransfer(recipient = solInfo.owner!!.address)
 
         var confirmed: GemTransferData? = null
         viewModel.onPrimaryAction(
@@ -562,7 +565,7 @@ class SwapViewModelTest {
         advanceUntilIdle()
         viewModel.setRefreshEnabled(true)
         requestQuote(viewModel, "1")
-        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote())))
+        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote(fromValue = BigInteger("1000000000"), toValue = BigInteger("2500000"), request = mockSwapperQuoteRequest(toAsset = mockSwapperQuoteAsset(decimals = 6u))))))
         runCurrent()
 
         viewModel.swap {}
@@ -585,7 +588,7 @@ class SwapViewModelTest {
         advanceUntilIdle()
         viewModel.setRefreshEnabled(true)
         requestQuote(viewModel, "1")
-        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote())))
+        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote(fromValue = BigInteger("1000000000"), toValue = BigInteger("2500000"), request = mockSwapperQuoteRequest(toAsset = mockSwapperQuoteAsset(decimals = 6u))))))
         runCurrent()
         assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
         assertNull(viewModel.uiState.value.errorText)
@@ -759,11 +762,10 @@ class SwapViewModelTest {
             beforeReturn()
             val quote = firstArg<SwapperQuote>()
             mockGemSwapTransfer(
-                from = solInfo.owner!!,
-                fromAmount = quote.fromValue,
-                toAmount = quote.toValue,
+                quote = mockSwapQuote(fromValue = quote.fromValue, toValue = quote.toValue, useMaxAmount = quote.request.options.useMaxAmount),
+                recipient = solInfo.owner!!.address,
+                value = quote.fromValue,
                 useMaxAmount = quote.request.options.useMaxAmount,
-                toAddress = "0xconfirm",
             )
         }
     }
@@ -780,7 +782,7 @@ class SwapViewModelTest {
     private fun seedReadyQuote(viewModel: SwapViewModel) {
         viewModel.setRefreshEnabled(true)
         requestQuote(viewModel, "1")
-        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote())))
+        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote(fromValue = BigInteger("1000000000"), toValue = BigInteger("2500000"), request = mockSwapperQuoteRequest(toAsset = mockSwapperQuoteAsset(decimals = 6u))))))
         testDispatcher.scheduler.runCurrent()
         viewModel.setRefreshEnabled(false)
         awaitCondition { viewModel.uiState.value.buttonState == ButtonState.Enabled && viewModel.uiState.value.errorText == null }

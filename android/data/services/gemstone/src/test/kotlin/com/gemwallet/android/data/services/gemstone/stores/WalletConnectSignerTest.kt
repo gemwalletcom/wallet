@@ -40,7 +40,7 @@ class WalletConnectSignerTest {
 
     @Test
     fun `sign message waits for the approved pending request`() = runTest {
-        val request = mockGemWalletConnectMessageRequest(wallet = wallet, session = session, message = mockSignMessage(chain = Chain.Ethereum.string, signType = SignDigestType.EIP191, data = "hello".toByteArray()))
+        val request = mockGemWalletConnectMessageRequest(wallet = wallet.toGem(), session = session.toGem(), message = mockSignMessage(chain = Chain.Ethereum.string, signType = SignDigestType.EIP191, data = "hello".toByteArray()))
         val result = async { pendingRequests.signMessage(request) }
         val pending = pendingRequests.current.filterNotNull().first()
         assertEquals(wallet.id, pending.wallet.id)
@@ -67,7 +67,7 @@ class WalletConnectSignerTest {
             recipient = GemRecipient(address = "recipient"),
             value = BigInteger.ONE,
         )
-        val request = mockGemWalletConnectTransactionRequest(transfer, GemWalletConnectTransactionAction.SEND, wallet = wallet, session = session)
+        val request = mockGemWalletConnectTransactionRequest(wallet = wallet.toGem(), session = session.toGem(), transfer = transfer, action = GemWalletConnectTransactionAction.SEND)
         val result = async { pendingRequests.signTransaction(request) }
         val pending = pendingRequests.current.filterNotNull().first() as WalletConnectPendingRequest.Transaction
         assertTrue(pending.isSendable)

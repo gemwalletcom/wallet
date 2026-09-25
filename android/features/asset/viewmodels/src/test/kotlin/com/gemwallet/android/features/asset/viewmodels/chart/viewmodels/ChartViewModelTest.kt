@@ -7,6 +7,7 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
+import com.gemwallet.android.testkit.mockChartDateValue
 import com.gemwallet.android.testkit.mockGemChart
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.dataOrNull
@@ -76,7 +77,7 @@ class ChartViewModelTest {
 
     @Test
     fun `historical chart renders when token info flow emits null`() = runTest(testDispatcher) {
-        val chart = mockGemChart(values = listOf(10f, 12f, 14f))
+        val chart = mockGemChart(values = listOf(mockChartDateValue(date = 1000L, value = 10.0).toGem(), mockChartDateValue(date = 61000L, value = 12.0).toGem(), mockChartDateValue(date = 121000L, value = 14.0).toGem()), baseValue = 10.0)
         coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns chart
 
         val viewModel = createViewModel()
@@ -89,7 +90,8 @@ class ChartViewModelTest {
 
     @Test
     fun `current point overlay is skipped when local price info is missing`() = runTest(testDispatcher) {
-        val chart = mockGemChart(values = listOf(100f, 105f, 110f))
+        val chart =
+            mockGemChart(values = listOf(mockChartDateValue(date = 1000L, value = 100.0).toGem(), mockChartDateValue(date = 61000L, value = 105.0).toGem(), mockChartDateValue(date = 121000L, value = 110.0).toGem()), baseValue = 100.0)
         coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns chart
 
         val viewModel = createViewModel()
@@ -101,7 +103,7 @@ class ChartViewModelTest {
 
     @Test
     fun `initial request uses currency flow without waiting for session object`() = runTest(testDispatcher) {
-        val chart = mockGemChart(values = listOf(1f, 2f))
+        val chart = mockGemChart(values = listOf(mockChartDateValue(date = 1000L, value = 1.0).toGem(), mockChartDateValue(date = 61000L, value = 2.0).toGem()), baseValue = 1.0)
         coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns chart
 
         val viewModel = createViewModel()
@@ -116,7 +118,7 @@ class ChartViewModelTest {
 
     @Test
     fun `initial request uses saved chart period`() = runTest(testDispatcher) {
-        val chart = mockGemChart(values = listOf(1f, 2f))
+        val chart = mockGemChart(values = listOf(mockChartDateValue(date = 1000L, value = 1.0).toGem(), mockChartDateValue(date = 61000L, value = 2.0).toGem()), baseValue = 1.0)
         savedPeriod = ChartPeriod.Month
         coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Month.toGem()) } returns chart
 
@@ -142,8 +144,8 @@ class ChartViewModelTest {
 
     @Test
     fun `selecting a period loads the chart without the refresh indicator`() = runTest(testDispatcher) {
-        val day = mockGemChart(values = listOf(1f, 2f))
-        val week = mockGemChart(values = listOf(3f, 4f, 5f))
+        val day = mockGemChart(values = listOf(mockChartDateValue(date = 1000L, value = 1.0).toGem(), mockChartDateValue(date = 61000L, value = 2.0).toGem()), baseValue = 1.0)
+        val week = mockGemChart(values = listOf(mockChartDateValue(date = 1000L, value = 3.0).toGem(), mockChartDateValue(date = 61000L, value = 4.0).toGem(), mockChartDateValue(date = 121000L, value = 5.0).toGem()), baseValue = 3.0)
         coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns day
 
         val viewModel = createViewModel()
@@ -173,7 +175,7 @@ class ChartViewModelTest {
 
     @Test
     fun `opening the chart loads it without the refresh indicator`() = runTest(testDispatcher) {
-        val chart = mockGemChart(values = listOf(1f, 2f))
+        val chart = mockGemChart(values = listOf(mockChartDateValue(date = 1000L, value = 1.0).toGem(), mockChartDateValue(date = 61000L, value = 2.0).toGem()), baseValue = 1.0)
         val inFlight = CompletableDeferred<Unit>()
         coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } coAnswers {
             inFlight.await()
@@ -197,7 +199,7 @@ class ChartViewModelTest {
 
     @Test
     fun `a pull to refresh keeps the chart that is already drawn`() = runTest(testDispatcher) {
-        val chart = mockGemChart(values = listOf(1f, 2f, 3f))
+        val chart = mockGemChart(values = listOf(mockChartDateValue(date = 1000L, value = 1.0).toGem(), mockChartDateValue(date = 61000L, value = 2.0).toGem(), mockChartDateValue(date = 121000L, value = 3.0).toGem()), baseValue = 1.0)
         coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns chart
 
         val viewModel = createViewModel()
@@ -226,7 +228,7 @@ class ChartViewModelTest {
 
     @Test
     fun `a failed refresh leaves the loaded chart alone`() = runTest(testDispatcher) {
-        val chart = mockGemChart(values = listOf(1f, 2f, 3f))
+        val chart = mockGemChart(values = listOf(mockChartDateValue(date = 1000L, value = 1.0).toGem(), mockChartDateValue(date = 61000L, value = 2.0).toGem(), mockChartDateValue(date = 121000L, value = 3.0).toGem()), baseValue = 1.0)
         coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns chart
 
         val viewModel = createViewModel()

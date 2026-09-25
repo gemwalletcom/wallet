@@ -69,7 +69,7 @@ class AssetInfoDataAggregateTest {
             asset = btcAsset,
             balance = mockAssetBalance(asset = btcAsset, balance = mockBalance(available = BigInteger("100000000"))),
             price = mockAssetPriceInfo(currency = Currency.EUR, price = mockAssetPrice(price = 3000.0, priceChangePercentage24h = -5.0)),
-        ).toAssetInfoDataAggregate(mockGemAssetRowStyle())
+        ).toAssetInfoDataAggregate(mockGemAssetRowStyle(subtitle = GemAssetSubtitleStyle.PRICE))
         val trailing = aggregate.row.trailing as GemAssetItemTrailing.Value
 
         assertEquals("1 BTC", trailing.value.string)
@@ -95,7 +95,7 @@ class AssetInfoDataAggregateTest {
             asset = btcAsset,
             balance = mockAssetBalance(asset = btcAsset, balance = mockBalance(available = BigInteger("100000000"))),
             price = mockAssetPriceInfo(currency = Currency.USD, price = mockAssetPrice(price = Double.NaN, priceChangePercentage24h = -5.2)),
-        ).toAssetInfoDataAggregate(mockGemAssetRowStyle()).row
+        ).toAssetInfoDataAggregate(mockGemAssetRowStyle(subtitle = GemAssetSubtitleStyle.PRICE)).row
 
         assertNull(row.subtitle)
         assertNull((row.trailing as GemAssetItemTrailing.Value).extra)
@@ -116,7 +116,7 @@ class AssetInfoDataAggregateTest {
             ),
             mockAssetInfo(asset = btcAsset, price = null),
         )
-        val style = mockGemAssetRowStyle(title = GemAssetTitleStyle.CANONICAL_ASSET)
+        val style = mockGemAssetRowStyle(title = GemAssetTitleStyle.CANONICAL_ASSET, subtitle = GemAssetSubtitleStyle.PRICE)
 
         assertEquals(items.map { it.toAssetInfoDataAggregate(style, hideBalance = true) }, items.toAssetInfoDataAggregates(style, hideBalance = true))
         assertEquals(items.toAssetInfoDataAggregates(style), items.toAssetInfoDataAggregates())

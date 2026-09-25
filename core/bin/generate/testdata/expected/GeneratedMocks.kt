@@ -81,10 +81,13 @@ fun mockGemAccountRow(
     subtitle: String? = null,
     rows: List<uniffi.gemstone.GemRow> = emptyList(),
     icon: uniffi.gemstone.GemIcon = uniffi.gemstone.GemIcon.ASSET,
+    badge: uniffi.gemstone.GemIcon = uniffi.gemstone.GemIcon.ASSET,
+    failure: uniffi.gemstone.GemRowException? = null,
     data: ByteArray = byteArrayOf(),
     labels: Map<String, String> = emptyMap(),
     action: uniffi.gemstone.GemRowAction = mockGemRowAction(),
     type: String = "",
+    protocol: String = "",
     createdAt: Long = 0L,
 ) = uniffi.gemstone.GemAccountRow(
     account = account,
@@ -96,10 +99,13 @@ fun mockGemAccountRow(
     subtitle = subtitle,
     rows = rows,
     icon = icon,
+    badge = badge,
+    failure = failure,
     data = data,
     labels = labels,
     action = action,
     type = type,
+    protocol = protocol,
     createdAt = createdAt,
 )
 

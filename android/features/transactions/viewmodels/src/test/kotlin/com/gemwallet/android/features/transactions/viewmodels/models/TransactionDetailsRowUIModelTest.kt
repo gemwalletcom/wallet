@@ -7,6 +7,7 @@ import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockFormattedNumber
 import com.gemwallet.android.testkit.mockGemHeaderAmount
 import com.gemwallet.android.testkit.mockGemTransactionDetailRows
+import com.gemwallet.android.testkit.mockGemTransactionFeeRow
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
@@ -52,7 +53,7 @@ class TransactionDetailsRowUIModelTest {
 
     @Test
     fun `a fee row reads the numbers core formatted`() {
-        val rows = mockGemTransactionDetailRows()
+        val rows = mockGemTransactionDetailRows(feeRow = mockGemTransactionFeeRow(amount = mockFormattedNumber(1.0, GemNumberUnit.Symbol("BTC"))))
 
         val fee = rows.uiModel(GemTransactionDetailRow.Fee, context)
 

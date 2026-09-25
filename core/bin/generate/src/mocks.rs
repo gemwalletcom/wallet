@@ -10,6 +10,7 @@ pub(crate) struct MockSyntax {
     parameter: &'static str,
     body: &'static str,
     argument: &'static str,
+    keywords: &'static str,
     close: &'static str,
     enum_mock: &'static str,
     reference: &'static str,
@@ -46,7 +47,8 @@ pub(crate) const SWIFT_MOCKS: MockSyntax = MockSyntax {
     open: "\npublic extension {type} {\n    static func mock(\n",
     parameter: "        {label}: {type} = {value},\n",
     body: "    ) -> {type} {\n        {type}(\n",
-    argument: "            {label}: {label},\n",
+    argument: "            {label}: {name},\n",
+    keywords: "as associatedtype break case catch class continue default defer deinit do else enum extension fallthrough false fileprivate for func guard if import in init inout internal is let nil operator private protocol public repeat rethrows return self static struct subscript super switch throw throws true try typealias var where while",
     close: "        )\n    }\n}\n",
     enum_mock: "\npublic extension {type} {\n    static func mock() -> {type} {\n        {value}\n    }\n}\n",
     reference: ".mock()",
@@ -126,9 +128,10 @@ pub(crate) const KOTLIN_MOCKS: MockSyntax = MockSyntax {
     core_header: "",
     import: "import {}\n",
     open: "\nfun mock{function}(\n",
-    parameter: "    {label}: {type} = {value},\n",
+    parameter: "    {name}: {type} = {value},\n",
     body: ") = {type}(\n",
-    argument: "    {label} = {label},\n",
+    argument: "    {name} = {name},\n",
+    keywords: "as break class continue do else false for fun if in interface is null object package return super this throw true try typealias typeof val var when while",
     close: ")\n",
     enum_mock: "\nfun mock{function}(): {type} = {value}\n",
     reference: "mock{function}()",
@@ -411,7 +414,7 @@ impl Generator {
                 if self.config.identifiers.iter().chain(&self.config.codes).any(|identifier| identifier == name) {
                     return "String".to_string();
                 }
-                match name.strip_suffix("Error").filter(|_| !self.core_types.contains_key(name)) {
+                match name.strip_suffix("Error").filter(|_| !self.core_types.contains_key(name) || self.core_errors.contains(name)) {
                     Some(stem) => format!("{}{}{}", syntax.core_qualifier, uniffi_type_name(stem), syntax.core_error_suffix),
                     None => format!("{}{}", syntax.core_qualifier, uniffi_type_name(name)),
                 }
@@ -501,14 +504,29 @@ impl Generator {
 fn record_mock(syntax: &MockSyntax, type_name: &str, function: &str, parameters: &[(String, String, String)]) -> String {
     let mut out = syntax.open.replace("{type}", type_name).replace("{function}", function);
     for (label, parameter_type, value) in parameters {
-        out.push_str(&syntax.parameter.replace("{label}", label).replace("{type}", parameter_type).replace("{value}", value));
+        out.push_str(
+            &syntax
+                .parameter
+                .replace("{label}", label)
+                .replace("{name}", &identifier(syntax, label))
+                .replace("{type}", parameter_type)
+                .replace("{value}", value),
+        );
     }
     out.push_str(&syntax.body.replace("{type}", type_name));
     for (label, ..) in parameters {
-        out.push_str(&syntax.argument.replace("{label}", label));
+        out.push_str(&syntax.argument.replace("{label}", label).replace("{name}", &identifier(syntax, label)));
     }
     out.push_str(syntax.close);
     out
+}
+
+/// A label that is a keyword of the app's language, quoted so it reads as a name.
+fn identifier(syntax: &MockSyntax, label: &str) -> String {
+    match syntax.keywords.split(' ').any(|keyword| keyword == label) {
+        true => format!("`{label}`"),
+        false => label.to_string(),
+    }
 }
 
 /// UniFFI names a field in lower camel case and drops the raw-identifier prefix.

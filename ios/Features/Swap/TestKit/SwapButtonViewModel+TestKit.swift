@@ -3,10 +3,9 @@
 import BigInt
 import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemSwapAssetData
-import struct Gemstone.GemSwapRequest
 import struct Gemstone.GemSwapSession
 import GemstonePrimitives
-import GemstoneServicesTestKit
+import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Swap
@@ -14,7 +13,7 @@ import PrimitivesTestKit
 extension SwapButtonViewModel {
     static func mock(
         session: GemSwapSession = .mock(),
-        availableBalance: BigInt = BigInt(GemSwapRequest.mock.value),
+        availableBalance: BigInt = .zero,
         fromAsset: AssetData? = .mock(),
     ) -> SwapButtonViewModel {
         SwapButtonViewModel(

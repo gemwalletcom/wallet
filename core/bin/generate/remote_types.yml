@@ -253,30 +253,43 @@ mocks:
   - FiatTransactionAssetData
   - FiatTransactionData
   - GemAssetBalance
+  - GemAssetDetails
+  - GemAssetDetailsState
   - GemAssetIcon
   - GemAssetIconImage
   - GemAssetItemRow
   - GemAssetItemTrailing
+  - GemAssetRowStyle
+  - GemChart
+  - GemChartData
+  - GemChartHeader
   - GemConfirmFee
+  - GemConfirmFeeSelection
   - GemConfirmLoad
+  - GemConfirmLoadOptions
   - GemConfirmMetadata
   - GemConfirmScreen
   - GemConfirmSimulation
   - GemConfirmSimulationState
+  - GemConnectionRow
   - GemFeeAmount
   - GemFeeAsset
   - GemFeeRateRows
+  - GemFiatOperation
   - GemFiatQuoteRequest
   - GemFiatQuoteRow
   - GemFiatQuotesResult
+  - GemFiatSession
   - GemFormattedNumber
   - GemHeaderAmount
+  - GemInfoTopic
   - GemLocalizedText
   - GemNftEntry
   - GemNftItem
   - GemNftRow
   - GemNodeCheck
   - GemNodeSelection
+  - GemNodeStatusState
   - GemNumberDisplay
   - GemNumberUnit
   - GemPaymentRecipient
@@ -285,12 +298,30 @@ mocks:
   - GemPrecision
   - GemRecipient
   - GemRewardsRedemption
+  - GemRewardsResult
   - GemRewardsState
   - GemRowText
+  - GemSignMessagePreview
+  - GemSocialLink
+  - GemStakeValidatorOptions
+  - GemSwapPairSuggestion
+  - GemSwapQuoteInput
+  - GemSwapQuotesResult
+  - GemSwapRequest
+  - GemSwapSession
+  - GemSwapTransfer
+  - GemTransactionAmount
+  - GemTransactionDetailRows
+  - GemTransactionFeeRow
+  - GemTransactionHeader
+  - GemTransactionStatus
   - GemTransferAmount
   - GemTransferAmountResult
   - GemTransferData
   - GemValidatorRow
+  - GemWalletConnectAuthAccount
+  - GemWalletConnectMessageRequest
+  - GemWalletConnectTransactionRequest
   - GemWalletHomeViewState
   - GemWalletRow
   - InAppNotification
@@ -340,6 +371,14 @@ mocks:
   - SupportMessage
   - SupportMessageImage
   - SwapData
+  - SwapperOptions
+  - SwapperProviderData
+  - SwapperProviderType
+  - SwapperQuote
+  - SwapperQuoteAsset
+  - SwapperQuoteRequest
+  - SwapperRoute
+  - SwapperSlippage
   - SwapProviderData
   - SwapQuote
   - SwapQuoteData
@@ -404,6 +443,9 @@ conversions:
       - "AnyCodableValue(core: {})"
       - "{}.json()"
 
+# Aliases gemstone uses from other crates, which UniFFI resolves to the aliased type.
+aliases:
+  SwapperProvider: SwapProvider
 declared:
   NaiveDateTime: primitives::chrono::NaiveDateTime
   BigInt: GemBigInt

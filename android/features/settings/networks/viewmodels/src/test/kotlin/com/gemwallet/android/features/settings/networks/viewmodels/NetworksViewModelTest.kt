@@ -2,9 +2,10 @@ package com.gemwallet.android.features.settings.networks.viewmodels
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.settings.networks.viewmodels.models.NetworkSectionUIModel
 import com.gemwallet.android.testkit.mockGemNodeSelection
-import com.gemwallet.android.testkit.mockGemNodeStatusState
+import com.gemwallet.android.testkit.mockLatency
 import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
 import io.mockk.every
@@ -58,7 +59,10 @@ class NetworksViewModelTest {
     fun `selecting a chain loads its nodes and a status for each`() = runTest(dispatcher) {
         val service = service(
             nodesByCall = listOf(listOf(mockGemNodeSelection(url = "a", host = "a"), mockGemNodeSelection(url = "b", host = "b"))),
-            statuses = mapOf("a" to mockGemNodeStatusState(10UL), "b" to mockGemNodeStatusState(11UL)),
+            statuses = mapOf(
+                "a" to GemNodeStatusState.Result(latestBlockNumber = 10UL, latency = mockLatency(value = 10.0).toGem()),
+                "b" to GemNodeStatusState.Result(latestBlockNumber = 11UL, latency = mockLatency(value = 10.0).toGem()),
+            ),
         )
         val viewModel = NetworksViewModel(
             service,
@@ -81,7 +85,10 @@ class NetworksViewModelTest {
     fun `deleting a node drops the status it had`() = runTest(dispatcher) {
         val service = service(
             nodesByCall = listOf(listOf(mockGemNodeSelection(url = "a", host = "a"), mockGemNodeSelection(url = "b", host = "b")), listOf(mockGemNodeSelection(url = "a", host = "a"))),
-            statuses = mapOf("a" to mockGemNodeStatusState(10UL), "b" to mockGemNodeStatusState(11UL)),
+            statuses = mapOf(
+                "a" to GemNodeStatusState.Result(latestBlockNumber = 10UL, latency = mockLatency(value = 10.0).toGem()),
+                "b" to GemNodeStatusState.Result(latestBlockNumber = 11UL, latency = mockLatency(value = 10.0).toGem()),
+            ),
         )
         val viewModel = NetworksViewModel(
             service,
