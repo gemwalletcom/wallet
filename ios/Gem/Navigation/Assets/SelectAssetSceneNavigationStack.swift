@@ -30,7 +30,7 @@ struct SelectAssetSceneNavigationStack: View {
             SelectAssetScene(
                 model: model,
             )
-            .onChange(of: model.assetSelection, onChangeAssetSelection)
+            .onChange(of: model.route, onChangeRoute)
             .toolbar {
                 ToolbarDismissItem(
                     type: .close,
@@ -137,10 +137,13 @@ extension SelectAssetSceneNavigationStack {
         isPresentingFilteringView.toggle()
     }
 
-    private func onChangeAssetSelection(_: SelectAssetInput?, new: SelectAssetInput?) {
+    private func onChangeRoute(_: SelectAssetRoute?, new: SelectAssetRoute?) {
         guard let new else { return }
-        model.assetSelection = nil
-        navigationPath.append(new)
+        model.route = nil
+        switch new {
+        case let .asset(input): navigationPath.append(input)
+        case let .transfer(route): navigate(to: route)
+        }
     }
 
     private func navigate(to route: TransferRoute) {

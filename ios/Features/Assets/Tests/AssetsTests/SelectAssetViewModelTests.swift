@@ -74,10 +74,10 @@ struct SelectAssetViewModelTests {
         )
 
         model.onSelectRecent(.mockSolana())
-        #expect(model.assetSelection == nil)
+        #expect(model.route == nil)
 
         model.onSelectRecent(.mockEthereum())
-        #expect(model.assetSelection != nil)
+        #expect(model.route != nil)
     }
 
     @Test

@@ -212,6 +212,8 @@ extension NavigationRouter {
                 throw AnyError(Localized.Errors.notSupported)
             }
             return .verify(url, link: link)
+        case let .amount(asset, payment):
+            return .amount(AmountInput(type: .transfer(recipient: payment), asset: asset.toPrimitives()))
         case let .recipient(asset, payment):
             let asset = asset.toPrimitives()
             guard let assetData = try assetStore.getAssetsData(walletId: wallet.id, filters: [.chainsOrAssets([], [asset.id.identifier])]).first else {

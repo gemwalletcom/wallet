@@ -5,6 +5,7 @@ import Components
 import Foundation
 import protocol Gemstone.GemAssetSelectionServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
+import class Gemstone.GemPaymentService
 import class Gemstone.GemRecentActivityService
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
@@ -28,6 +29,7 @@ public extension SelectAssetViewModel {
             wallet: wallet,
             selectType: selectType,
             service: service,
+            paymentService: GemPaymentService.mock(),
             recentAssetsService: GemRecentActivityService(store: GemstoneRecentActivityStore(store: .mock()), session: .mock()),
             chains: chains,
         )

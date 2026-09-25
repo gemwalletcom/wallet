@@ -42,7 +42,7 @@ struct ScanReceiveNavigationStack: View {
                     .frame(width: Sizing.picker.segmentedWidth)
                 }
             }
-            .onChange(of: model.selectAssetModel.assetSelection, model.onChangeAssetSelection)
+            .onChange(of: model.selectAssetModel.route, model.onChangeRoute)
         }
         .id(model.mode)
         .sheet(item: $model.isPresentingReceive) { input in

@@ -24,15 +24,16 @@ flowchart LR
 flowchart LR
     A[Scan or paste] --> B{What is it?}
     B -- complete payment --> C[Confirm]
-    B -- partial payment --> D[Recipient screen to complete]
-    B -- plain address on several networks --> E[Pick the asset] --> C
+    B -- address without an amount --> H[Amount] --> C
+    B -- required memo missing --> D[Recipient screen to complete]
+    B -- plain address on several networks --> E[Pick the asset] --> B
     B -- WalletConnect Pay link --> F[Merchant request review] --> C
     B -- WalletConnect code --> G[Connection proposal]
 ```
 
 - Supported codes: a plain address; Bitcoin, Litecoin, Bitcoin Cash, Dogecoin, Dash and Zcash payment codes (amount, memo, label); XRP with a destination tag; Ethereum coin and token transfers; Solana Pay; TON transfers with a comment; WalletConnect Pay links.
 - The scanner reads them from the camera or a picked image.
-- A complete payment (asset, amount and, where required, memo) opens Confirm directly; a partial one opens the recipient screen for review; a plain address that matches several networks asks which asset to send.
+- A complete payment (asset, amount and, where required, memo) opens Confirm directly; one without an amount opens the amount screen (an amount with more decimals than the asset has is dropped, never rounded); the recipient screen opens only when a network that uses a memo has none, or the address is not valid for the asset; a plain address that matches several networks asks which asset to send, then follows the same rule.
 - A WalletConnect Pay link opens a review of the merchant's request and, once confirmed, pays it and reports the result back to the merchant.
 
 ## Rules
@@ -54,13 +55,13 @@ Scan these from another device with a test wallet; do not submit the transaction
 
 | | |
 |---|---|
-| **Bitcoin amount**<br><img src="../data/payments/bitcoin-exact-amount.png" width="180" alt="Bitcoin amount QR code"><br>`bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=0.0001`<br>Confirm `0.0001 BTC`. | **Bitcoin address only**<br><img src="../data/payments/bitcoin-address-only.png" width="180" alt="Bitcoin address QR code"><br>`bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4`<br>Open the recipient screen. |
-| **Plain EVM address**<br><img src="../data/payments/evm-address-selection.png" width="180" alt="EVM address QR code"><br>`0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326`<br>Select an asset when multiple EVM chains match. | **Ethereum USDC**<br><img src="../data/payments/ethereum-usdc.png" width="180" alt="Ethereum USDC QR code"><br>`ethereum:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48@1/transfer?address=0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326&uint256=1500000`<br>Confirm `1.5 USDC`. |
+| **Bitcoin amount**<br><img src="../data/payments/bitcoin-exact-amount.png" width="180" alt="Bitcoin amount QR code"><br>`bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=0.0001`<br>Confirm `0.0001 BTC`. | **Bitcoin address only**<br><img src="../data/payments/bitcoin-address-only.png" width="180" alt="Bitcoin address QR code"><br>`bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4`<br>Open the amount screen. |
+| **Plain EVM address**<br><img src="../data/payments/evm-address-selection.png" width="180" alt="EVM address QR code"><br>`0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326`<br>Select an asset when multiple EVM chains match, then open the amount screen. | **Ethereum USDC**<br><img src="../data/payments/ethereum-usdc.png" width="180" alt="Ethereum USDC QR code"><br>`ethereum:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48@1/transfer?address=0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326&uint256=1500000`<br>Confirm `1.5 USDC`. |
 | **Solana USDC**<br><img src="../data/payments/solana-usdc.png" width="180" alt="Solana USDC QR code"><br>`solana:HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5?amount=1&spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`<br>Confirm `1 USDC`. | **XRP destination tag**<br><img src="../data/payments/xrp-destination-tag.png" width="180" alt="XRP destination tag QR code"><br>`ripple:rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh?amount=10&dt=12345`<br>Confirm amount `10` with tag `12345`. |
 | **Uppercase parameter keys**<br><img src="../data/payments/bitcoin-uppercase-keys.png" width="180" alt="Bitcoin uppercase parameter QR code"><br>`bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?AMOUNT=0.001`<br>Confirm `0.001 BTC`; the key case is ignored. | **Bitcoin address-less URI**<br><img src="../data/payments/bitcoin-address-less.png" width="180" alt="Bitcoin address-less QR code"><br>`bitcoin:?bc=bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4&amount=0.001`<br>Confirm `0.001 BTC` from the `bc` instruction. |
-| **TON comment**<br><img src="../data/payments/ton-comment.png" width="180" alt="TON comment QR code"><br>`ton://transfer/UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA?amount=1000000000&text=order+7`<br>Confirm `1 TON` with comment `order 7`. | **Excess BTC precision**<br><img src="../data/payments/bitcoin-too-precise.png" width="180" alt="Bitcoin excessive precision QR code"><br>`bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=0.000000001`<br>Do not round; open recipient review. |
+| **TON comment**<br><img src="../data/payments/ton-comment.png" width="180" alt="TON comment QR code"><br>`ton://transfer/UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA?amount=1000000000&text=order+7`<br>Confirm `1 TON` with comment `order 7`. | **Excess BTC precision**<br><img src="../data/payments/bitcoin-too-precise.png" width="180" alt="Bitcoin excessive precision QR code"><br>`bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=0.000000001`<br>Do not round; the amount is dropped and entered on the amount screen. |
 
-**Partially specified payments** open the recipient screen for review or completion.
+**Partially specified payments** open the recipient screen when a required memo is missing or the address does not fit the asset, the amount screen otherwise.
 
 | | |
 |---|---|
@@ -70,6 +71,6 @@ Scan these from another device with a test wallet; do not submit the transaction
 
 | | |
 |---|---|
-| **Light on dark**<br><img src="../data/payments/bitcoin-address-only-inverted.png" width="180" alt="Inverted Bitcoin address QR code"><br>`bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4`<br>WalletConnect and dark-mode screenshots draw the code this way; open the recipient screen. | |
+| **Light on dark**<br><img src="../data/payments/bitcoin-address-only-inverted.png" width="180" alt="Inverted Bitcoin address QR code"><br>`bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4`<br>WalletConnect and dark-mode screenshots draw the code this way; open the amount screen. | |
 
 </details>
