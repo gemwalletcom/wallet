@@ -242,6 +242,7 @@ Rules:
 - Keep v3 parsing capped and typed-error based.
 - Keep WalletCore references out of production keystore flows except explicit legacy migration support during rollout.
 - A thrown Keychain or Keystore read error is not "absent". Only a confirmed not-found result may create a new password; errors propagate and never remove, overwrite, or regenerate existing password or keystore material.
+- Android verifies an empty preferences load against the file on disk (backup first, as the platform restores it) before treating a password or keyset as absent, wraps the Tink keyset with the Keystore master key on every path and re-wraps a cleartext keyset in place, and generates a new keyset only while the value file is empty. A shared-password migration failure is shown at startup, not only logged (`SecureStorageFailureInstrumentedTest`, `EncryptedKeysetTest`).
 - Uninstall semantics differ by platform: iOS Keychain items survive app removal, so a broken password item persists across reinstall, while Android app removal wipes the password store, master key, and keystore files, so reinstalling without a backed-up phrase loses the wallet. Recovery guidance and support scripts must never recommend reinstall as a fix.
 
 ## Misc
