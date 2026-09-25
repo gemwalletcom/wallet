@@ -1,15 +1,16 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
 import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.AssetsRequestFilter
 import com.gemwallet.android.data.service.store.database.TransactionsDao
-import com.gemwallet.android.ext.requireChain
-import com.wallet.core.primitives.RecentActivityType
+import com.gemwallet.android.data.services.gemstone.assets.filteredSearch
+import com.gemwallet.android.ext.toPrimitives
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemAssetFilter
 import uniffi.gemstone.GemSwapPair
 import uniffi.gemstone.GemSwapStore
+import uniffi.gemstone.RecentActivityType
 
 class GemstoneSwapStore(private val assetsDao: AssetsDao, private val transactionsDao: TransactionsDao) : GemSwapStore {
 
@@ -17,35 +18,16 @@ class GemstoneSwapStore(private val assetsDao: AssetsDao, private val transactio
         transactionsDao.getSwapPairs(walletId).map { GemSwapPair(it.fromAssetId, it.toAssetId) }
     }
 
-    override suspend fun getRecentAssetIds(walletId: String, limit: UInt): List<String> = withContext(Dispatchers.IO) {
+    override suspend fun getRecentAssetIds(walletId: String, types: List<RecentActivityType>, filters: List<GemAssetFilter>, limit: UInt): List<String> = withContext(Dispatchers.IO) {
         assetsDao.getRecentAssets(
             walletId = walletId,
-            type = listOf(RecentActivityType.SwapSelect, RecentActivityType.Swap),
-            filters = setOf(AssetsRequestFilter.Enabled, AssetsRequestFilter.Swappable),
+            type = types.map { it.toPrimitives() },
+            filters = filters.map { it.toRequestFilter() }.toSet(),
             limit = limit.toInt(),
         ).firstOrNull().orEmpty().map { it.asset.id }
     }
 
-    override suspend fun getPayAssetIds(walletId: String, limit: UInt): List<String> = withContext(Dispatchers.IO) {
-        assetsDao.search(
-            walletId = walletId,
-            query = "",
-            limit = limit.toInt(),
-            enabled = true,
-            swappable = true,
-        ).firstOrNull().orEmpty().map { it.id }
-    }
-
-    override suspend fun getReceiveAssetIds(walletId: String, chains: List<String>, assetIds: List<String>, limit: UInt): List<String> = withContext(Dispatchers.IO) {
-        assetsDao.search(
-            walletId = walletId,
-            query = "",
-            limit = limit.toInt(),
-            enabled = true,
-            swappable = true,
-            byChainsOrAssetIds = true,
-            chains = chains.map { it.requireChain() },
-            assetIds = assetIds,
-        ).firstOrNull().orEmpty().map { it.id }
+    override suspend fun getAssetIds(walletId: String, filters: List<GemAssetFilter>, limit: UInt): List<String> = withContext(Dispatchers.IO) {
+        assetsDao.filteredSearch(walletId = walletId, query = "", limit = limit.toInt(), filters = filters.toSet(), withPriority = false).firstOrNull().orEmpty().map { it.id }
     }
 }
