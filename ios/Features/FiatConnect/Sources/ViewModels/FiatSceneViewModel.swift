@@ -82,22 +82,7 @@ public final class FiatSceneViewModel {
     }
 
     func amountError(_ viewState: GemFiatViewState) -> (any Error)? {
-        switch viewState.phase {
-        case .noInput, .loading, .noQuotes, .failed: nil
-        case .invalidInput: viewState.phase.inputErrorText.map(AnyError.init)
-        case let .invalid(check): check.errorText(locale: locale).map(AnyError.init)
-        case .ready: viewState.amountCheck.errorText(locale: locale).map(AnyError.init)
-        }
-    }
-
-    func providerModel(_ viewState: GemFiatViewState) -> FiatProviderViewModel {
-        FiatProviderViewModel(
-            quotesState: quotesState(viewState),
-            emptyTitle: emptyTitle(viewState),
-            selectedQuote: selectedQuote(viewState),
-            allowSelectProvider: allowSelectProvider(viewState),
-            rateRow: viewState.rateRow,
-        )
+        viewState.amountError.map { AnyError($0.text(locale: locale)) }
     }
 
     func quotesState(_ viewState: GemFiatViewState) -> StateViewType<[GemFiatQuoteRow]> {
@@ -109,18 +94,10 @@ public final class FiatSceneViewModel {
         }
     }
 
-    func selectedQuote(_ viewState: GemFiatViewState) -> GemFiatQuoteRow? {
-        viewState.selectedQuoteRow
-    }
-
     var title: String {
         switch type {
         case .buy, .sell: type.title(asset: asset.name)
         }
-    }
-
-    func allowSelectProvider(_ viewState: GemFiatViewState) -> Bool {
-        viewState.canSelectProvider
     }
 
     func currencyInputConfig(_ viewState: GemFiatViewState) -> any CurrencyInputConfigurable {
@@ -129,14 +106,6 @@ public final class FiatSceneViewModel {
             currencySymbol: currencyFormatter.symbol,
             numberFormat: NumberInput.format(locale),
         )
-    }
-
-    func actionButtonTitle(_ viewState: GemFiatViewState) -> String {
-        viewState.buttonAction.title
-    }
-
-    func actionButtonState(_ viewState: GemFiatViewState) -> ButtonState {
-        viewState.buttonState.state
     }
 
     var providerTitle: String {
@@ -185,7 +154,7 @@ public final class FiatSceneViewModel {
 
     var fiatProviderViewModel: FiatProvidersViewModel {
         let viewState = viewState
-        let selected = selectedQuote(viewState)
+        let selected = viewState.selectedQuoteRow
         return FiatProvidersViewModel(state: quotesState(viewState).map { items in
             .plain(items.map {
                 FiatQuoteViewModel(
@@ -198,7 +167,7 @@ public final class FiatSceneViewModel {
     }
 
     func cryptoAmountValue(_ viewState: GemFiatViewState) -> String {
-        guard let quote = selectedQuote(viewState) else { return " " }
+        guard let quote = viewState.selectedQuoteRow else { return " " }
         let model = FiatQuoteViewModel(row: quote, locale: locale)
         return model.row.cryptoEstimateText(formattedValue: model.amountText)
     }
@@ -288,7 +257,7 @@ extension FiatSceneViewModel {
     }
 
     private func openQuoteUrl() {
-        guard let quote = selectedQuote(viewState) else { return }
+        guard let quote = viewState.selectedQuoteRow else { return }
 
         Task {
             urlState = .loading

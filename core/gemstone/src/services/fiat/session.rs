@@ -1,7 +1,7 @@
 use crate::models::button::GemButtonState;
 use primitives::{FiatProviderName, FiatQuote, FiatQuoteType};
 
-use super::model::{GemFiatAmountCheck, GemFiatQuoteRow};
+use super::model::{GemFiatAmountCheck, GemFiatAmountError, GemFiatQuoteRow};
 use super::rules;
 use crate::config::fiat_config::get_fiat_config;
 use crate::models::custom_types::GemBigUint;
@@ -64,7 +64,7 @@ pub struct GemFiatViewState {
     pub selected_quote_row: Option<GemFiatQuoteRow>,
     pub rate_row: Option<GemListRow>,
     pub can_select_provider: bool,
-    pub amount_check: GemFiatAmountCheck,
+    pub amount_error: Option<GemFiatAmountError>,
     pub button_action: GemFiatButtonAction,
     pub button_state: GemButtonState,
     pub shows_type_picker: bool,
@@ -79,6 +79,26 @@ pub struct GemFiatSession {
 }
 
 impl GemFiatSession {
+    fn current(&self) -> GemFiatOperation {
+        self.operation(self.quote_type).clone()
+    }
+
+    fn selected_quote(&self) -> Option<FiatQuote> {
+        self.current().selected_quote()
+    }
+
+    fn button_state(&self, is_url_loading: bool) -> GemButtonState {
+        if is_url_loading {
+            return GemButtonState::Loading;
+        }
+        match self.current().phase {
+            GemFiatQuotePhase::Loading { .. } => GemButtonState::Loading,
+            GemFiatQuotePhase::Failed { .. } => GemButtonState::Enabled,
+            GemFiatQuotePhase::Ready if self.selected_quote().is_some() && self.amount_check() == GemFiatAmountCheck::Valid => GemButtonState::Enabled,
+            _ => GemButtonState::Disabled,
+        }
+    }
+
     fn quote_rows(&self, asset_price: Option<f64>) -> Vec<GemFiatQuoteRow> {
         self.current().quotes.iter().map(|quote| rules::quote_row(quote, asset_price)).collect()
     }
@@ -89,6 +109,15 @@ impl GemFiatSession {
 
     fn can_select_provider(&self) -> bool {
         self.current().quotes.len() > 1
+    }
+
+    fn amount_error(&self) -> Option<GemFiatAmountError> {
+        match self.current().phase {
+            GemFiatQuotePhase::InvalidInput => Some(GemFiatAmountError::InvalidAmount),
+            GemFiatQuotePhase::Invalid { check } => check.error(),
+            GemFiatQuotePhase::Ready => self.amount_check().error(),
+            GemFiatQuotePhase::NoInput | GemFiatQuotePhase::Loading { .. } | GemFiatQuotePhase::NoQuotes | GemFiatQuotePhase::Failed { .. } => None,
+        }
     }
 
     fn amount_check(&self) -> GemFiatAmountCheck {
@@ -165,15 +194,11 @@ impl GemFiatSession {
             }),
             selected_quote_row,
             can_select_provider: self.can_select_provider(),
-            amount_check: self.amount_check(),
+            amount_error: self.amount_error(),
             button_action: self.button_action(),
             button_state: self.button_state(is_url_loading),
             shows_type_picker: is_sell_enabled,
         }
-    }
-
-    fn current(&self) -> GemFiatOperation {
-        self.operation(self.quote_type).clone()
     }
 
     pub fn on_type_changed(&self, quote_type: FiatQuoteType) -> GemFiatSession {
@@ -217,22 +242,6 @@ impl GemFiatSession {
 
     pub fn on_provider_selected(&self, provider: FiatProviderName) -> GemFiatSession {
         self.with_operation(self.current().on_provider_selected(provider))
-    }
-
-    fn selected_quote(&self) -> Option<FiatQuote> {
-        self.current().selected_quote()
-    }
-
-    fn button_state(&self, is_url_loading: bool) -> GemButtonState {
-        if is_url_loading {
-            return GemButtonState::Loading;
-        }
-        match self.current().phase {
-            GemFiatQuotePhase::Loading { .. } => GemButtonState::Loading,
-            GemFiatQuotePhase::Failed { .. } => GemButtonState::Enabled,
-            GemFiatQuotePhase::Ready if self.selected_quote().is_some() && self.amount_check() == GemFiatAmountCheck::Valid => GemButtonState::Enabled,
-            _ => GemButtonState::Disabled,
-        }
     }
 }
 
@@ -519,9 +528,22 @@ mod tests {
         assert!(matches!(session.amount_check(), GemFiatAmountCheck::InsufficientBalance { .. }));
         assert_eq!(session.button_state(false), GemButtonState::Disabled);
 
+        assert!(matches!(session.view_state(None, false, true).amount_error, Some(GemFiatAmountError::InsufficientBalance { .. })));
+
         let funded = session.on_balance_changed(BigUint::from(1_000_000_000_000_000_000u64));
         assert_eq!(funded.amount_check(), GemFiatAmountCheck::Valid);
         assert_eq!(funded.button_state(false), GemButtonState::Enabled);
+        assert_eq!(funded.view_state(None, false, true).amount_error, None);
+    }
+
+    #[test]
+    fn test_the_amount_error_follows_the_phase() {
+        let error = |amount: &str| GemFiatSession::new(FiatQuoteType::Buy, None).on_amount_changed(amount.to_string()).view_state(None, false, false).amount_error;
+
+        assert_eq!(error("abc"), Some(GemFiatAmountError::InvalidAmount));
+        assert!(matches!(error("1"), Some(GemFiatAmountError::BelowMinimum { .. })));
+        assert_eq!(error(""), None);
+        assert_eq!(error("100"), None, "a loading amount has no error yet");
     }
 
     #[test]
@@ -600,7 +622,7 @@ mod tests {
             selected_quote_row: None,
             rate_row: None,
             can_select_provider: false,
-            amount_check: GemFiatAmountCheck::Valid,
+            amount_error: None,
             button_action: GemFiatButtonAction::Continue,
             button_state: GemButtonState::Disabled,
             shows_type_picker: false,

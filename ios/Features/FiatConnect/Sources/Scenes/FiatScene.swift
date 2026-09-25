@@ -1,4 +1,5 @@
 import Components
+import struct Gemstone.GemFiatViewState
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -24,12 +25,12 @@ public struct FiatScene: View {
             .padding(.top, .medium)
             .listGroupRowStyle()
             amountSelectorSection
-            providerSection(model.providerModel(viewState))
+            providerSection(viewState)
         }
         .safeAreaButton {
             StateButton(
-                text: model.actionButtonTitle(viewState),
-                type: .primary(model.actionButtonState(viewState)),
+                text: viewState.buttonAction.title,
+                type: .primary(viewState.buttonState.state),
                 action: model.onSelectContinue,
             )
         }
@@ -80,22 +81,22 @@ extension FiatScene {
         }
     }
 
-    private func providerSection(_ provider: FiatProviderViewModel) -> some View {
+    private func providerSection(_ viewState: GemFiatViewState) -> some View {
         Section {
-            switch provider.quotesState {
+            switch model.quotesState(viewState) {
             case .noData:
-                StateEmptyView(title: provider.emptyTitle)
+                StateEmptyView(title: model.emptyTitle(viewState))
             case .loading:
                 ListItemLoadingView()
                     .id(UUID())
             case .data:
-                if let quote = provider.selectedQuote {
+                if let quote = viewState.selectedQuoteRow {
                     let view = ListItemImageView(
                         title: model.providerTitle,
                         subtitle: quote.providerName,
                         assetImage: model.providerAssetImage(quote.provider),
                     )
-                    if provider.allowSelectProvider {
+                    if viewState.canSelectProvider {
                         NavigationCustomLink(
                             with: view,
                             action: model.onSelectFiatProviders,
@@ -103,7 +104,7 @@ extension FiatScene {
                     } else {
                         view
                     }
-                    if let rateRow = provider.rateRow {
+                    if let rateRow = viewState.rateRow {
                         GemListRowView(row: rateRow)
                     }
                 }

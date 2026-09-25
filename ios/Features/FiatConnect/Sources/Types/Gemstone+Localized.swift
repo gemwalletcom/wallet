@@ -1,9 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import enum Gemstone.GemFiatAmountCheck
+import enum Gemstone.GemFiatAmountError
 import enum Gemstone.GemFiatButtonAction
-import enum Gemstone.GemFiatQuotePhase
 import enum Gemstone.GemFiatQuotesMessage
 import GemstonePrimitives
 import Localization
@@ -19,13 +18,13 @@ extension GemFiatButtonAction {
     }
 }
 
-extension GemFiatAmountCheck {
-    func errorText(locale: Locale) -> String? {
+extension GemFiatAmountError {
+    func text(locale: Locale) -> String {
         switch self {
+        case .invalidAmount: Localized.Errors.invalidAmount
         case let .belowMinimum(minimum): Localized.Transfer.minimumAmount(minimum.text(locale: locale))
         case let .aboveMaximum(maximum): Localized.Transfer.maximumAmount(maximum.text(locale: locale))
         case let .insufficientBalance(title): Localized.Transfer.insufficientBalance(title.boldMarkdown())
-        case .valid: nil
         }
     }
 }
@@ -40,11 +39,3 @@ extension GemFiatQuotesMessage {
     }
 }
 
-extension GemFiatQuotePhase {
-    var inputErrorText: String? {
-        switch self {
-        case .invalidInput: Localized.Errors.invalidAmount
-        case .noInput, .invalid, .loading, .ready, .noQuotes, .failed: nil
-        }
-    }
-}

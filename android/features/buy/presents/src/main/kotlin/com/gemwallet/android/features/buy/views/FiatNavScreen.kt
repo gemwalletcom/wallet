@@ -25,8 +25,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.features.buy.localization.titleRes
 import com.gemwallet.android.features.buy.viewmodels.FiatViewModel
-import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.features.buy.viewmodels.models.FiatUiState
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.ObserveStartedState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.TabsBar
@@ -42,11 +42,11 @@ import com.gemwallet.android.ui.theme.space6
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.FiatQuoteType
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemFiatSuggestedAmount
 
 @Composable
 fun FiatNavScreen(cancelAction: CancelAction, onFiatTransactions: () -> Unit, viewModel: FiatViewModel = hiltViewModel()) {
     val type by viewModel.type.collectAsStateWithLifecycle()
-    val suggestedAmounts by viewModel.suggestedAmounts.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val asset by viewModel.assetInfoUIModel.collectAsStateWithLifecycle()
     val amount by viewModel.amount.collectAsStateWithLifecycle()
@@ -78,7 +78,7 @@ fun FiatNavScreen(cancelAction: CancelAction, onFiatTransactions: () -> Unit, vi
         rateRow = rateRow,
         cancelAction = cancelAction,
         fiatAmount = amount,
-        suggestedAmounts = suggestedAmounts,
+        suggestedAmounts = viewModel.suggestedAmounts,
         titleContent = {
             FiatTitle(
                 asset = currentAsset,
@@ -88,7 +88,8 @@ fun FiatNavScreen(cancelAction: CancelAction, onFiatTransactions: () -> Unit, vi
             )
         },
         onAmount = viewModel::updateAmount,
-        onLotSelect = viewModel::updateAmount,
+        onLotSelect = viewModel::selectAmount,
+        onRandomAmount = viewModel::selectRandomAmount,
         onProviderSelect = viewModel::setProvider,
         onRetry = viewModel::retry,
         onFiatTransactions = onFiatTransactions,
@@ -118,7 +119,7 @@ private fun FiatTitle(asset: Asset, type: FiatQuoteType, showsTypePicker: Boolea
 }
 
 @Composable
-fun LotButton(fiatSuggestion: FiatSuggestion, onLotClick: (FiatSuggestion) -> Unit) {
+fun LotButton(fiatSuggestion: GemFiatSuggestedAmount, onLotClick: (GemFiatSuggestedAmount) -> Unit) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(paddingSmall))
@@ -129,7 +130,7 @@ fun LotButton(fiatSuggestion: FiatSuggestion, onLotClick: (FiatSuggestion) -> Un
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = fiatSuggestion.text,
+            text = fiatSuggestion.value.text(),
             color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.W500),
         )

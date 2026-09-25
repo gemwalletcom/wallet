@@ -25,7 +25,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.features.buy.viewmodels.models.BuyFiatProviderUIModel
-import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.features.buy.viewmodels.models.FiatUiState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
@@ -54,6 +53,7 @@ import com.gemwallet.android.ui.theme.space1
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.FiatQuoteType
+import uniffi.gemstone.GemFiatSuggestedAmount
 import uniffi.gemstone.GemListRow
 
 private val loadingIndicatorSize = 30.dp
@@ -71,11 +71,12 @@ fun BuyScene(
     providerListItem: ListItemModel?,
     rateRow: GemListRow?,
     fiatAmount: String,
-    suggestedAmounts: List<FiatSuggestion>,
+    suggestedAmounts: List<GemFiatSuggestedAmount>,
     cancelAction: CancelAction,
     snackbar: SnackbarHostState,
     titleContent: @Composable () -> Unit,
-    onLotSelect: (FiatSuggestion) -> Unit,
+    onLotSelect: (GemFiatSuggestedAmount) -> Unit,
+    onRandomAmount: () -> Unit,
     onAmount: (String) -> Unit,
     onProviderSelect: (FiatProviderName) -> Unit,
     onRetry: () -> Unit,
@@ -125,13 +126,13 @@ fun BuyScene(
             asset = asset,
             listPosition = ListPosition.Single,
             support = { ListItemSupportText(assetInfo?.balance ?: " ") },
-            trailing = assetRowSuggestions.takeIf { it.isNotEmpty() }?.let { suggestions ->
-                {
-                    FiatSuggestionRow(
-                        suggestedAmounts = suggestions,
-                        onLotSelect = onLotSelect,
-                    )
-                }
+            trailing = {
+                FiatSuggestionRow(
+                    suggestedAmounts = assetRowSuggestions,
+                    showsRandom = !isCompactWidth || assetRowSuggestions.isEmpty(),
+                    onLotSelect = onLotSelect,
+                    onRandomAmount = onRandomAmount,
+                )
             },
         )
 
@@ -192,32 +193,23 @@ fun BuyScene(
 }
 
 @Composable
-private fun FiatSuggestionRow(suggestedAmounts: List<FiatSuggestion>, onLotSelect: (FiatSuggestion) -> Unit) {
+private fun FiatSuggestionRow(suggestedAmounts: List<GemFiatSuggestedAmount>, showsRandom: Boolean, onLotSelect: (GemFiatSuggestedAmount) -> Unit, onRandomAmount: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(paddingSmall),
     ) {
-        suggestedAmounts.forEach { suggestion ->
-            when (suggestion) {
-                FiatSuggestion.RandomAmount -> RandomGradientButton(
-                    size = iconSize,
-                    borderWidth = 2f,
-                    onClick = { onLotSelect(FiatSuggestion.RandomAmount) },
-                )
-
-                is FiatSuggestion.SuggestionAmount -> LotButton(suggestion, onLotSelect)
-            }
+        suggestedAmounts.forEach { suggestion -> LotButton(suggestion, onLotSelect) }
+        if (showsRandom) {
+            RandomGradientButton(
+                size = iconSize,
+                borderWidth = 2f,
+                onClick = onRandomAmount,
+            )
         }
     }
 }
 
-internal fun visibleSuggestedAmountsInAssetRow(suggestedAmounts: List<FiatSuggestion>, isCompactWidth: Boolean): List<FiatSuggestion> {
-    if (!isCompactWidth) {
-        return suggestedAmounts
-    }
-
-    return listOfNotNull(
-        suggestedAmounts.firstOrNull { it is FiatSuggestion.SuggestionAmount }
-            ?: suggestedAmounts.firstOrNull(),
-    )
+internal fun visibleSuggestedAmountsInAssetRow(suggestedAmounts: List<GemFiatSuggestedAmount>, isCompactWidth: Boolean): List<GemFiatSuggestedAmount> = when (isCompactWidth) {
+    true -> suggestedAmounts.take(1)
+    false -> suggestedAmounts
 }

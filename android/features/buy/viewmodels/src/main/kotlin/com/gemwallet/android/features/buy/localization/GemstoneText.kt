@@ -7,7 +7,7 @@ import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.FiatQuoteType
-import uniffi.gemstone.GemFiatAmountCheck
+import uniffi.gemstone.GemFiatAmountError
 import uniffi.gemstone.GemFiatButtonAction
 import uniffi.gemstone.GemFiatQuotePhase
 import uniffi.gemstone.GemFiatQuotesMessage
@@ -31,25 +31,11 @@ fun GemFiatButtonAction.stringRes(): Int = when (this) {
     GemFiatButtonAction.RETRY_QUOTE -> R.string.common_try_again
 }
 
-fun GemFiatAmountCheck.string(context: Context): String? = when (this) {
-    is GemFiatAmountCheck.BelowMinimum -> context.getString(R.string.transfer_minimum_amount, minimum.text())
-    is GemFiatAmountCheck.AboveMaximum -> context.getString(R.string.transfer_maximum_amount, maximum.text())
-    is GemFiatAmountCheck.InsufficientBalance -> context.getString(R.string.transfer_insufficient_balance, title)
-    GemFiatAmountCheck.Valid -> null
-}
-
-fun GemFiatViewState.amountErrorText(context: Context): String? = when (val phase = phase) {
-    GemFiatQuotePhase.InvalidInput -> context.getString(R.string.errors_invalid_amount)
-
-    is GemFiatQuotePhase.Invalid -> phase.check.string(context)
-
-    GemFiatQuotePhase.Ready -> amountCheck.string(context)
-
-    GemFiatQuotePhase.NoInput,
-    is GemFiatQuotePhase.Loading,
-    GemFiatQuotePhase.NoQuotes,
-    is GemFiatQuotePhase.Failed,
-    -> null
+fun GemFiatAmountError.string(context: Context): String = when (this) {
+    GemFiatAmountError.InvalidAmount -> context.getString(R.string.errors_invalid_amount)
+    is GemFiatAmountError.BelowMinimum -> context.getString(R.string.transfer_minimum_amount, minimum.text())
+    is GemFiatAmountError.AboveMaximum -> context.getString(R.string.transfer_maximum_amount, maximum.text())
+    is GemFiatAmountError.InsufficientBalance -> context.getString(R.string.transfer_insufficient_balance, title)
 }
 
 fun GemFiatViewState.quotesMessage(context: Context): String? = when (val message = quotesMessage()) {

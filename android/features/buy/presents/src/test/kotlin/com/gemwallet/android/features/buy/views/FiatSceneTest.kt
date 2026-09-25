@@ -1,40 +1,34 @@
 package com.gemwallet.android.features.buy.views
 
-import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
+import com.gemwallet.android.testkit.mockFormattedNumber
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.GemFiatSuggestedAmount
 
 class FiatSceneTest {
 
+    private val suggestions = listOf(
+        GemFiatSuggestedAmount(100u, mockFormattedNumber(100.0)),
+        GemFiatSuggestedAmount(250u, mockFormattedNumber(250.0)),
+    )
+
     @Test
     fun `compact width keeps only primary shortcut`() {
-        val suggestions = listOf(
-            FiatSuggestion.SuggestionAmount("$100", 100.0),
-            FiatSuggestion.SuggestionAmount("$250", 250.0),
-            FiatSuggestion.RandomAmount,
-        )
-
         val visibleSuggestions = visibleSuggestedAmountsInAssetRow(
             suggestedAmounts = suggestions,
             isCompactWidth = true,
         )
 
-        assertEquals(listOf("$100"), visibleSuggestions.map { it.text })
+        assertEquals(listOf(100u), visibleSuggestions.map { it.amount })
     }
 
     @Test
     fun `regular width keeps all shortcuts visible`() {
-        val suggestions = listOf(
-            FiatSuggestion.SuggestionAmount("$100", 100.0),
-            FiatSuggestion.SuggestionAmount("$250", 250.0),
-            FiatSuggestion.RandomAmount,
-        )
-
         val visibleSuggestions = visibleSuggestedAmountsInAssetRow(
             suggestedAmounts = suggestions,
             isCompactWidth = false,
         )
 
-        assertEquals(listOf("$100", "$250", "Random"), visibleSuggestions.map { it.text })
+        assertEquals(listOf(100u, 250u), visibleSuggestions.map { it.amount })
     }
 }
