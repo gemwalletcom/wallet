@@ -8,8 +8,9 @@ use primitives::Platform;
 
 use std::{
     fs::{self, DirEntry},
+    io::Write,
     path::Path,
-    process::Command,
+    process::{Command, Stdio},
     vec,
 };
 
@@ -126,21 +127,26 @@ fn generate_remote_mappers(generator_type: &GeneratorType, platform_directory_pa
 
 fn write_generated(path: &str, contents: String) {
     let path = Path::new(path);
+    let contents = if path.extension().is_some_and(|extension| extension == "rs") { format_rust(path, &contents) } else { contents };
+    if fs::read_to_string(path).is_ok_and(|existing| existing == contents) {
+        return;
+    }
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).expect("failed to create generated directory");
     }
     fs::write(path, contents).expect("failed to write generated file");
-    if path.extension().is_some_and(|extension| extension == "rs") {
-        format_rust(path);
-    }
 }
 
-fn format_rust(path: &Path) {
-    let status = Command::new("rustfmt").arg(path).status().expect("failed to run rustfmt");
-    assert!(status.success(), "rustfmt failed on {}", path.display());
+fn format_rust(path: &Path, contents: &str) -> String {
+    let mut child = Command::new("rustfmt").args(["--emit", "stdout"]).stdin(Stdio::piped()).stdout(Stdio::piped()).spawn().expect("failed to run rustfmt");
+    child.stdin.take().expect("rustfmt stdin").write_all(contents.as_bytes()).expect("failed to write to rustfmt");
+    let output = child.wait_with_output().expect("failed to wait for rustfmt");
+    assert!(output.status.success(), "rustfmt failed on {}", path.display());
+    String::from_utf8(output.stdout).expect("rustfmt output is not UTF-8")
 }
 
 fn process_paths(paths: Vec<String>, _folder: &str, generator_type: &GeneratorType, platform_directory_path: &str, ignored_files: &[&str]) {
+    let mut commands = vec![];
     for path in paths {
         // Example path:
         // ./crates/primitives/src/utxo.rs
@@ -171,13 +177,16 @@ fn process_paths(paths: Vec<String>, _folder: &str, generator_type: &GeneratorTy
             continue;
         }
         let input_path = format!("./{}/src/{}", vec[0], directory_paths.join("/"));
+        if !fs::read_to_string(&input_path).expect("failed to read source file").contains("#[typeshare") {
+            continue;
+        }
 
         match generator_type {
             GeneratorType::Swift => {
                 let ios_new_file_name = file_name(&file_path, LANGUAGE_SWIFT);
                 let ios_new_path = format!("{}/{}", directory_paths_capitalized.join("/"), ios_new_file_name);
                 let ios_output_path = output_path(Platform::IOS, platform_directory_path, str_capitlize(module_name).as_str(), ios_new_path);
-                generate_files(LANGUAGE_SWIFT, input_path.as_str(), ios_output_path.as_str(), None);
+                commands.push(typeshare_command(LANGUAGE_SWIFT, input_path.as_str(), ios_output_path.as_str(), None));
             }
             GeneratorType::Kotlin => {
                 let kt_new_file_name = file_name(&file_path, LANG_KOTLIN_ETX);
@@ -186,17 +195,18 @@ fn process_paths(paths: Vec<String>, _folder: &str, generator_type: &GeneratorTy
                 let android_output_path = output_path(Platform::Android, platform_directory_path, module_name, kt_new_path.clone());
                 let directory_package = directory_paths_lowercased.join(".");
                 let android_package_name = format!("{}.{}{}", ANDROID_PACKAGE_PREFIX, module_name, if directory_package.is_empty() { String::new() } else { format!(".{directory_package}") });
-                generate_files(LANGUAGE_KOTLIN, input_path.as_str(), android_output_path.as_str(), Some(android_package_name.as_str()));
+                commands.push(typeshare_command(LANGUAGE_KOTLIN, input_path.as_str(), android_output_path.as_str(), Some(android_package_name.as_str())));
             }
             GeneratorType::TypeScript => {
                 let ts_new_file_name = file_name(&file_path, LANG_TYPESCRIPT_EXT);
                 let directory_paths_lowercased: Vec<String> = directory_paths_capitalized.iter().map(|x| x.to_lowercase()).collect();
                 let ts_new_path = format!("{}/{}", directory_paths_lowercased.join("/"), ts_new_file_name);
                 let web_output_path = output_path_web(platform_directory_path, module_name, ts_new_path);
-                generate_files(LANGUAGE_TYPESCRIPT, input_path.as_str(), web_output_path.as_str(), None);
+                commands.push(typeshare_command(LANGUAGE_TYPESCRIPT, input_path.as_str(), web_output_path.as_str(), None));
             }
         }
     }
+    run_typeshare(commands);
 }
 
 fn output_path(platform: Platform, directory: &str, module_name: &str, path: String) -> String {
@@ -217,9 +227,9 @@ fn file_name(name: &str, file_extension: &str) -> String {
     format!("{new_name}.{file_extension}")
 }
 
-fn generate_files(language: &str, input_path: &str, output_path: &str, package_name: Option<&str>) {
+fn typeshare_command(language: &str, input_path: &str, output_path: &str, package_name: Option<&str>) -> Command {
     if let Some(parent) = Path::new(output_path).parent() {
-        fs::create_dir_all(parent).unwrap();
+        fs::create_dir_all(parent).expect("failed to create generated directory");
     }
 
     let mut command = Command::new("typeshare");
@@ -228,8 +238,19 @@ fn generate_files(language: &str, input_path: &str, output_path: &str, package_n
     if let Some(package_name) = package_name {
         command.arg(format!("--java-package={package_name}"));
     }
+    command.stdout(Stdio::null()).stderr(Stdio::piped());
+    command
+}
 
-    command.output().unwrap();
+fn run_typeshare(mut commands: Vec<Command>) {
+    let parallelism = std::thread::available_parallelism().map_or(1, usize::from);
+    for batch in commands.chunks_mut(parallelism) {
+        let children: Vec<_> = batch.iter_mut().map(|command| (format!("{command:?}"), command.spawn().expect("failed to run typeshare"))).collect();
+        for (command, child) in children {
+            let output = child.wait_with_output().expect("failed to wait for typeshare");
+            assert!(output.status.success(), "{command} failed: {}", String::from_utf8_lossy(&output.stderr));
+        }
+    }
 }
 
 fn get_paths(_folder: &str, path: String) -> Vec<String> {
