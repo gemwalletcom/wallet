@@ -123,12 +123,6 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
     public func notificationPrompt(isGranted: Bool) -> Gemstone.GemNotificationPrompt {
         isGranted ? .enable : .request
     }
-
-    public func shouldAskNotifications() -> Bool {
-        false
-    }
-
-    public func setNotificationsAsked() throws {}
 }
 
 public final class GemStreamServiceMock: GemStreamServiceProtocol, @unchecked Sendable {

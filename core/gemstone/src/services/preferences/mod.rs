@@ -141,18 +141,8 @@ impl GemPreferencesService {
         self.store.set(RATE_APPLICATION_SHOWN.to_string(), "true".to_string())
     }
 
-    pub fn should_ask_notifications(&self) -> bool {
-        let last_asked_at: u64 = self.store.get(NOTIFICATIONS_ASKED_AT.to_string()).and_then(|value| value.parse().ok()).unwrap_or(0);
-        rules::should_ask_notifications(self.is_push_notifications_declined(), last_asked_at, unix_seconds().unwrap_or(last_asked_at))
-    }
-
     pub fn notification_prompt(&self, is_granted: bool) -> rules::GemNotificationPrompt {
         rules::notification_prompt(is_granted, !self.should_ask_notifications())
-    }
-
-    pub fn set_notifications_asked(&self) -> Result<(), GemServiceError> {
-        let now = unix_seconds().map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
-        self.store.set(NOTIFICATIONS_ASKED_AT.to_string(), now.to_string())
     }
 
     #[uniffi::constructor]
@@ -170,6 +160,16 @@ impl GemPreferencesService {
 }
 
 impl GemPreferencesService {
+    pub fn should_ask_notifications(&self) -> bool {
+        let last_asked_at: u64 = self.store.get(NOTIFICATIONS_ASKED_AT.to_string()).and_then(|value| value.parse().ok()).unwrap_or(0);
+        rules::should_ask_notifications(self.is_push_notifications_declined(), last_asked_at, unix_seconds().unwrap_or(last_asked_at))
+    }
+
+    pub fn set_notifications_asked(&self) -> Result<(), GemServiceError> {
+        let now = unix_seconds().map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
+        self.store.set(NOTIFICATIONS_ASKED_AT.to_string(), now.to_string())
+    }
+
     pub fn show_perpetuals(&self, wallet_type: WalletType, chains: Vec<Chain>) -> bool {
         crate::services::perpetual::rules::show_perpetuals(self.is_perpetual_enabled(), wallet_type, &chains)
     }
