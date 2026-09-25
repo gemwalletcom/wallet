@@ -313,6 +313,7 @@ extension ConfirmTransferSceneViewModel {
             let load = try await confirmation.load(options: loadOptions)
             state = ConfirmTransferState(load, screen: state.screen.onLoaded(load: load))
         } catch let error as GemConfirmError {
+            if case .Cancelled = error { return }
             guard !Task.isCancelled else { return }
             state.transfer = confirmation.transfer()
             state.screen = state.screen.onLoadFailed(error: error)

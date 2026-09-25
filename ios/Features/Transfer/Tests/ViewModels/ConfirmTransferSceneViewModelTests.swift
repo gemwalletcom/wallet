@@ -105,6 +105,15 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
+    func loadSupersededByANewerLoadShowsNoError() async {
+        let model = ConfirmTransferSceneViewModel.mock(load: .failure(GemConfirmError.Cancelled))
+
+        await model.load()
+
+        #expect(model.state.loadError == nil)
+    }
+
+    @Test
     func selectingTheSamePaymentAssetOnlyClosesTheSheet() async {
         let invoice = PaymentInvoice.mock(quotes: [.mock(asset: .mockBNB())])
         let model = ConfirmTransferSceneViewModel.mock(data: .mockPayment(asset: .mockBNB(), invoice: invoice))
