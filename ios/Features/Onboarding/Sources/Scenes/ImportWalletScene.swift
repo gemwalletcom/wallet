@@ -108,18 +108,8 @@ struct ImportWalletScene: View {
         }
         .navigationBarTitle(model.title)
         .alertSheet($model.isPresentingAlertMessage)
-        .sheet(isPresented: $model.isPresentingExistingWalletName.mappedToBool()) {
-            InfoSheetScene(
-                model: InfoSheetModel(
-                    title: model.isPresentingExistingWalletName ?? "",
-                    description: Localized.Wallet.Import.alreadyImportedMessage,
-                    image: .image(Images.Logo.logo),
-                    button: .action(
-                        title: Localized.Common.continue,
-                        action: model.onSelectExistingWalletContinue,
-                    ),
-                ),
-            )
+        .sheet(item: $model.isPresentingExistingWallet) {
+            InfoSheetScene(sheet: $0, onAction: { _ in model.onSelectExistingWalletContinue() })
         }
         .sheet(isPresented: $model.isPresentingScanner) {
             ScanQRCodeNavigationStack(scanType: scanType, action: model.onHandleScan)

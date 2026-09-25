@@ -1,11 +1,12 @@
 use chrono::{DateTime, Utc};
-use primitives::{Asset, AssetId, BlockExplorerLink, Chain, TransactionState};
+use primitives::{Asset, AssetId, BlockExplorerLink, Chain, TransactionState, VerificationStatus};
 
 use crate::config::social::GemSocialLink;
 use crate::duration_formatter::GemDurationPart;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::copy::GemCopy;
 use crate::models::custom_types::GemBigInt;
+use crate::services::assets::icon::GemAssetIcon;
 use crate::services::contact::model::GemAvatar;
 use crate::services::error::GemServiceError;
 use crate::services::localization::GemLocalizedText;
@@ -171,10 +172,10 @@ pub enum GemInfoTopic {
     NoQuote,
     OpenInterest,
     FundingApr,
-    StakeApr,
-    StakeLockTime,
+    StakeApr { chain: Chain },
+    StakeLockTime { chain: Chain },
     StakeFrozenRequired,
-    TransactionStatus { state: TransactionState, tone: GemTransactionStateTone },
+    TransactionStatus { state: TransactionState, tone: GemTransactionStateTone, icon: GemAssetIcon },
     AutoClose,
     LiquidationPrice,
     FundingPayments,
@@ -183,6 +184,12 @@ pub enum GemInfoTopic {
     TotalSupply,
     MaxSupply,
     EstimatedConfirmation { chain: Chain },
+    WatchWallet,
+    PaymentVerification,
+    StakingReservedFees { asset: Asset },
+    PendingUnconfirmedBalance,
+    AssetStatus { status: VerificationStatus },
+    ExistingWalletImported { name: String },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

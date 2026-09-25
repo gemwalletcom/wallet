@@ -11,6 +11,8 @@ import com.gemwallet.android.ui.components.empty.EmptyStateImage
 import com.gemwallet.android.ui.components.fields.AmountSymbolPlacement
 import com.gemwallet.android.ui.components.fields.AmountSymbolUIModel
 import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
+import com.gemwallet.android.ui.components.image.iconModel
+import com.gemwallet.android.ui.components.image.supportIconModel
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemImageStyle
 import com.gemwallet.android.ui.components.list_item.ListItemSymbol
@@ -30,6 +32,7 @@ import uniffi.gemstone.GemBannerIcon
 import uniffi.gemstone.GemEmptyStateImage
 import uniffi.gemstone.GemFiatTransactionBadge
 import uniffi.gemstone.GemHeaderButtonKind
+import uniffi.gemstone.GemInfoImage
 import uniffi.gemstone.GemNameRecordState
 import uniffi.gemstone.GemNoticeKind
 import uniffi.gemstone.GemSwapProgressStep
@@ -211,3 +214,36 @@ fun GemBannerIcon.image(): ListItemImage = when (this) {
     GemBannerIcon.Bitcoin -> ListItemImage.Symbol(ListItemSymbol.CurrencyBitcoin, tint = ListItemTextStyle.Secondary, style = ListItemImageStyle.Banner)
     GemBannerIcon.Perpetuals -> ListItemImage.Drawable(R.drawable.ic_perpetuals, style = ListItemImageStyle.Banner)
 }
+
+fun GemInfoImage.iconModel(): Any? = when (this) {
+    GemInfoImage.Logo -> R.drawable.ic_splash
+
+    GemInfoImage.NetworkFee -> R.drawable.ic_network_fee
+
+    GemInfoImage.WatchWallet -> R.drawable.watch_badge
+
+    is GemInfoImage.AssetStatus -> when (status) {
+        uniffi.gemstone.VerificationStatus.VERIFIED -> null
+        uniffi.gemstone.VerificationStatus.UNVERIFIED -> R.drawable.unverified
+        uniffi.gemstone.VerificationStatus.SUSPICIOUS -> R.drawable.suspicious
+    }
+
+    is GemInfoImage.SwapProvider -> provider.iconModel()
+
+    is GemInfoImage.Asset -> icon.iconModel()
+
+    is GemInfoImage.TransactionState -> icon.iconModel()
+}
+
+fun GemInfoImage.badgeIconModel(): Any? = when (this) {
+    is GemInfoImage.Asset -> icon.supportIconModel()
+    is GemInfoImage.TransactionState -> tone.badgeIconRes()
+    GemInfoImage.Logo, GemInfoImage.NetworkFee, GemInfoImage.WatchWallet, is GemInfoImage.AssetStatus, is GemInfoImage.SwapProvider -> null
+}
+
+val GemInfoImage.placeholder: String?
+    get() = when (this) {
+        is GemInfoImage.Asset -> icon.placeholder
+        is GemInfoImage.TransactionState -> icon.placeholder
+        GemInfoImage.Logo, GemInfoImage.NetworkFee, GemInfoImage.WatchWallet, is GemInfoImage.AssetStatus, is GemInfoImage.SwapProvider -> null
+    }

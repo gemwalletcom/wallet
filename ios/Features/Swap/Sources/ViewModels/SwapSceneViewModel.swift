@@ -176,7 +176,7 @@ public final class SwapSceneViewModel {
             return nil
         }
         return VoidAction { [weak self] in
-            self?.isPresentingInfoSheet = .info(InfoSheetType(topic: topic, assetImage: nil))
+            self?.isPresentingInfoSheet = .info(topic.infoSheet)
         }
     }
 

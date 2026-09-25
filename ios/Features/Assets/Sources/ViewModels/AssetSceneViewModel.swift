@@ -10,6 +10,7 @@ import protocol Gemstone.GemAssetDetailsServiceProtocol
 import enum Gemstone.GemAssetNetworkDestination
 import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemHeaderButtonKind
+import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
 import enum Gemstone.GemListRowTitle
 import enum Gemstone.GemLoadState
@@ -278,7 +279,7 @@ public extension AssetSceneViewModel {
     }
 
     internal func onSelectWalletHeaderInfo() {
-        isPresentingAssetSheet = .info(.watchWallet)
+        isPresentingAssetSheet = .info(GemInfoTopic.watchWallet.infoSheet)
     }
 
     internal func onSelectBanner(_ action: BannerAction) {
@@ -353,11 +354,11 @@ public extension AssetSceneViewModel {
 
     func onSelectTokenStatus() {
         guard let status = verificationStatus(details) else { return }
-        isPresentingAssetSheet = .info(.assetStatus(status))
+        isPresentingAssetSheet = .info(GemInfoTopic.assetStatus(status: status.toGem()).infoSheet)
     }
 
     func onSelectPendingUnconfirmedInfo() {
-        isPresentingAssetSheet = .info(.pendingUnconfirmedBalance)
+        isPresentingAssetSheet = .info(GemInfoTopic.pendingUnconfirmedBalance.infoSheet)
     }
 
     func onSelect(_ title: GemListRowTitle) {

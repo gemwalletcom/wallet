@@ -22,8 +22,8 @@ struct StakeSceneViewModelTests {
     @Test
     func theInfoSectionShowsTheRowsCoreReturns() {
         let rows: [GemListRow] = [
-            .amount(title: .stakeApr, amount: .mock(value: 12.5, tone: .positive), info: .stakeApr),
-            .duration(title: .lockTime, parts: [GemDurationPart(value: 14, unit: .day)], info: .stakeLockTime, estimate: false),
+            .amount(title: .stakeApr, amount: .mock(value: 12.5, tone: .positive), info: .stakeApr(chain: Primitives.Chain.tron.rawValue)),
+            .duration(title: .lockTime, parts: [GemDurationPart(value: 14, unit: .day)], info: .stakeLockTime(chain: Primitives.Chain.tron.rawValue), estimate: false),
         ]
         let model = StakeSceneViewModel.mock(chain: .tron, stakeService: GemStakeServiceMock(infoRows: rows))
 
@@ -34,11 +34,11 @@ struct StakeSceneViewModelTests {
     func theInfoSheetMatchesTheRowThatOpenedIt() {
         let model = StakeSceneViewModel.mock(chain: .tron)
 
-        model.onInfo(.stakeApr)
-        #expect(model.isPresentingInfoSheet?.id == "stakeApr")
+        model.onInfo(.stakeApr(chain: Primitives.Chain.tron.rawValue))
+        #expect(model.isPresentingInfoSheet?.title == .apr)
 
-        model.onInfo(.stakeLockTime)
-        #expect(model.isPresentingInfoSheet?.id == "stakeLockTime")
+        model.onInfo(.stakeLockTime(chain: Primitives.Chain.tron.rawValue))
+        #expect(model.isPresentingInfoSheet?.title == .lockTime)
     }
 
     @Test

@@ -130,13 +130,13 @@ struct GemListRowItemTests {
     @Test
     func anInfoTopicBecomesTheRowsInfoAction() {
         var opened: GemInfoTopic?
-        let row = GemListRow.label(title: .status, text: .transactionState(state: .confirmed), tone: .positive, info: .stakeApr, progress: false)
+        let row = GemListRow.label(title: .status, text: .transactionState(state: .confirmed), tone: .positive, info: .stakeApr(chain: Primitives.Chain.tron.rawValue), progress: false)
         guard case let .listItem(model) = row.item(onInfo: { opened = $0 }) else {
             Issue.record("Expected a list item")
             return
         }
         model.infoAction?()
-        #expect(opened == .stakeApr)
+        #expect(opened == .stakeApr(chain: Primitives.Chain.tron.rawValue))
     }
 
     @Test

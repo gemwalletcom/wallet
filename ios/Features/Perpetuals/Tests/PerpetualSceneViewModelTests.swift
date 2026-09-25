@@ -137,19 +137,19 @@ struct PerpetualSceneViewModelTests {
         let model = PerpetualSceneViewModel.mock()
 
         model.onInfo(.fundingApr)
-        #expect(model.isPresentingInfoSheet == .fundingApr)
+        #expect(model.isPresentingInfoSheet?.title == .fundingApr)
 
         model.onInfo(.fundingPayments)
-        #expect(model.isPresentingInfoSheet == .fundingPayments)
+        #expect(model.isPresentingInfoSheet?.title == .fundingPayments)
 
         model.onInfo(.liquidationPrice)
-        #expect(model.isPresentingInfoSheet == .liquidationPrice)
+        #expect(model.isPresentingInfoSheet?.title == .liquidationPrice)
 
         model.onInfo(.openInterest)
-        #expect(model.isPresentingInfoSheet == .openInterest)
+        #expect(model.isPresentingInfoSheet?.title == .openInterest)
 
         model.onInfo(.autoClose)
-        #expect(model.isPresentingInfoSheet == .autoclose)
+        #expect(model.isPresentingInfoSheet?.title == .autoClose)
     }
 
     @Test

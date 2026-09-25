@@ -1,7 +1,5 @@
 package com.gemwallet.android.ui.components
 
-import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,325 +11,41 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import com.gemwallet.android.AppUrl
-import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.networkName
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.dialog.DialogBar
 import com.gemwallet.android.ui.components.image.IconWithBadge
-import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
-import com.gemwallet.android.ui.localization.statusLabelRes
+import com.gemwallet.android.ui.localization.label
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.open
+import com.gemwallet.android.ui.style.badgeIconModel
+import com.gemwallet.android.ui.style.iconModel
+import com.gemwallet.android.ui.style.placeholder
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.StakeChain
-import com.wallet.core.primitives.TransactionState
-import uniffi.gemstone.DocsUrl
-import uniffi.gemstone.SwapProvider
+import uniffi.gemstone.GemConfirmErrorInfo
+import uniffi.gemstone.GemInfoAction
+import uniffi.gemstone.GemInfoImage
+import uniffi.gemstone.GemInfoSheet
+import uniffi.gemstone.GemInfoTopic
+import uniffi.gemstone.Platform
 
 internal val infoSheetIconSize = extraLargeIconSize
 
-sealed class InfoSheetEntity(
-    val icon: Any?,
-    val badgeIcon: Any? = null,
-    @param:StringRes val title: Int? = null,
-    @param:StringRes val description: Int? = null,
-    val titleText: String? = null,
-    val descriptionText: String? = null,
-    val titleArgs: List<Any>? = null,
-    val descriptionArgs: List<Any>? = null,
-    val actionLabel: String? = null,
-    val action: (() -> Unit)? = null,
-    val infoUrl: (() -> String)? = null,
-) {
-    class NetworkFeeInfo(networkTitle: String, networkSymbol: String) :
-        InfoSheetEntity(
-            icon = R.drawable.ic_network_fee,
-            title = R.string.transfer_network_fee,
-            description = R.string.info_network_fee_description,
-            infoUrl = { AppUrl.networkFees },
-            descriptionArgs = listOf("**$networkTitle**", "**$networkSymbol**"),
-        )
+data class InfoSheetEntity(val sheet: GemInfoSheet, val onAction: ((GemInfoAction) -> Unit)? = null)
 
-    class NetworkBalanceRequiredInfo(chain: Chain, required: String, available: String, shortfall: String, actionLabel: String, action: () -> Unit) :
-        InfoSheetEntity(
-            icon = chain.asset().iconModel(),
-            title = R.string.info_balance_required_title,
-            description = R.string.info_insufficient_network_fee_balance_description,
-            infoUrl = { AppUrl.networkFees },
-            action = action,
-            actionLabel = actionLabel,
-            titleArgs = listOf(chain.asset().symbol),
-            descriptionArgs = listOf("**$required**", "**${chain.networkName()}**", "**$available**", "**$shortfall**"),
-        )
+fun GemInfoTopic.infoSheet(onAction: ((GemInfoAction) -> Unit)? = null): InfoSheetEntity = InfoSheetEntity(sheet(Platform.ANDROID), onAction)
 
-    class NetworkFeeRequiredInfo(chain: Chain, title: String, actionLabel: String, action: () -> Unit) :
-        InfoSheetEntity(
-            icon = chain.asset().iconModel(),
-            title = R.string.info_balance_required_title,
-            description = R.string.transfer_insufficient_network_fee_balance,
-            infoUrl = { AppUrl.networkFees },
-            action = action,
-            actionLabel = actionLabel,
-            titleArgs = listOf(chain.asset().symbol),
-            descriptionArgs = listOf("**$title**"),
-        )
-
-    class BalanceRequiredInfo(asset: Asset, required: String, available: String, shortfall: String, actionLabel: String, action: () -> Unit) :
-        InfoSheetEntity(
-            icon = asset.iconModel(),
-            title = R.string.info_balance_required_title,
-            description = R.string.info_balance_required_description,
-            action = action,
-            actionLabel = actionLabel,
-            titleArgs = listOf(asset.symbol),
-            descriptionArgs = listOf("**$required**", "**$available**", "**$shortfall**"),
-        )
-
-    class MinimumAccountBalanceInfo(asset: Asset, value: String) :
-        InfoSheetEntity(
-            icon = asset.iconModel(),
-            title = R.string.info_account_minimum_balance_title,
-            description = R.string.transfer_minimum_account_balance,
-            infoUrl = { AppUrl.docs(DocsUrl.AccountMinimalBalance) },
-            titleArgs = listOf(asset.symbol),
-            descriptionArgs = listOf("**$value**"),
-        )
-
-    class MinimumAmountInfo(networkTitle: String, value: String, actionLabel: String?, action: (() -> Unit)?) :
-        InfoSheetEntity(
-            icon = R.drawable.ic_splash,
-            title = R.string.info_minimum_amount_title,
-            description = R.string.info_minimum_amount_description,
-            action = action,
-            actionLabel = actionLabel,
-            descriptionArgs = listOf("**$networkTitle**", "**$value**"),
-        )
-
-    class SwapMinimumAmountInfo(provider: SwapProvider, providerName: String, required: String, available: String, shortfall: String, actionLabel: String, action: () -> Unit) :
-        InfoSheetEntity(
-            icon = provider.iconModel(),
-            title = R.string.info_minimum_amount_title,
-            description = R.string.info_swap_minimum_amount_description,
-            action = action,
-            actionLabel = actionLabel,
-            descriptionArgs = listOf("**$providerName**", "**$required**", available, shortfall),
-        )
-
-    class DustThresholdInfo(chain: Chain) :
-        InfoSheetEntity(
-            icon = chain.asset().iconModel(),
-            title = R.string.errors_transfer_error,
-            description = R.string.errors_dust_threshold,
-            infoUrl = { AppUrl.docs(DocsUrl.Dust) },
-            descriptionArgs = listOf("**${chain.networkName()}**"),
-        )
-
-    class ReserveForFee(icon: Any?) :
-        InfoSheetEntity(
-            icon = icon,
-            title = R.string.info_stake_reserved_title,
-            description = R.string.info_stake_reserved_description,
-        )
-
-    class StakeLockTimeInfo(icon: Any?) :
-        InfoSheetEntity(
-            icon = icon,
-            title = R.string.stake_lock_time,
-            description = R.string.info_lock_time_description,
-            infoUrl = { AppUrl.docs(DocsUrl.StakingLockTime) },
-        )
-
-    class StakeAprInfo(icon: Any?) :
-        InfoSheetEntity(
-            icon = icon,
-            title = R.string.stake_apr,
-            titleArgs = listOf(""),
-            description = R.string.info_stake_apr_description,
-            infoUrl = { AppUrl.docs(DocsUrl.StakingApr) },
-        )
-
-    class StakeFrozenRequired(icon: Any?) :
-        InfoSheetEntity(
-            icon = icon,
-            title = R.string.info_stake_frozen_required_title,
-            description = R.string.info_stake_frozen_required_description,
-            infoUrl = { AppUrl.staking(StakeChain.Tron.string) },
-        )
-
-    class TransactionInfo(icon: Any?, state: TransactionState, @DrawableRes badgeIcon: Int, @StringRes description: Int) :
-        InfoSheetEntity(
-            icon = icon,
-            badgeIcon = badgeIcon,
-            title = state.statusLabelRes(),
-            description = description,
-            infoUrl = { AppUrl.docs(DocsUrl.TransactionStatus) },
-        )
-
-    object PendingUnconfirmedBalanceInfo : InfoSheetEntity(
-        icon = R.drawable.ic_splash,
-        title = R.string.stake_pending,
-        description = R.string.info_transaction_pending_description,
-    )
-
-    class EstimatedConfirmationInfo(chain: Chain) :
-        InfoSheetEntity(
-            icon = R.drawable.ic_network_fee,
-            title = R.string.transaction_estimated_confirmation,
-            description = R.string.info_estimated_confirmation_description,
-            descriptionArgs = listOf("**${chain.networkName()}**"),
-        )
-
-    object WatchWalletInfo : InfoSheetEntity(
-        icon = R.drawable.watch_badge,
-        title = R.string.info_watch_wallet_title,
-        description = R.string.info_watch_wallet_description,
-        infoUrl = { AppUrl.docs(DocsUrl.WhatIsWatchWallet) },
-    )
-
-    object PriceImpactInfo : InfoSheetEntity(
-        icon = R.drawable.ic_splash,
-        title = R.string.swap_price_impact,
-        description = R.string.info_price_impact_description,
-        infoUrl = { AppUrl.docs(DocsUrl.PriceImpact) },
-    )
-
-    object Slippage : InfoSheetEntity(
-        icon = R.drawable.ic_splash,
-        title = R.string.swap_slippage,
-        description = R.string.info_slippage_description,
-        infoUrl = { AppUrl.docs(DocsUrl.Slippage) },
-    )
-
-    object PaymentVerificationInfo : InfoSheetEntity(
-        icon = R.drawable.ic_splash,
-        title = R.string.info_payment_verification_title,
-        description = R.string.info_payment_verification_description,
-    )
-
-    object NoQuoteInfo : InfoSheetEntity(
-        icon = R.drawable.ic_splash,
-        title = R.string.errors_swap_no_quote_available,
-        description = R.string.info_no_quote_description,
-        infoUrl = { AppUrl.docs(DocsUrl.NoQuotes) },
-    )
-
-    object MaliciousTransactionInfo : InfoSheetEntity(
-        icon = R.drawable.ic_splash,
-        title = R.string.errors_scan_transaction_malicious_title,
-        description = R.string.errors_scan_transaction_malicious_description,
-    )
-
-    class MemoRequiredInfo(symbol: String) :
-        InfoSheetEntity(
-            icon = R.drawable.ic_splash,
-            title = R.string.common_warning,
-            description = R.string.errors_scan_transaction_memo_required,
-            descriptionArgs = listOf("**$symbol**"),
-        )
-
-    object AssetStatusSuspiciousInfo : InfoSheetEntity(
-        icon = R.drawable.suspicious,
-        title = R.string.asset_verification_suspicious,
-        description = R.string.info_asset_status_suspicious_description,
-        infoUrl = { AppUrl.tokenVerification },
-    )
-
-    object AssetStatusUnverifiedInfo : InfoSheetEntity(
-        icon = R.drawable.unverified,
-        title = R.string.asset_verification_unverified,
-        description = R.string.info_asset_status_unverified_description,
-        infoUrl = { AppUrl.tokenVerification },
-    )
-
-    object OpenInterestInfo : InfoSheetEntity(
-        icon = R.drawable.ic_splash,
-        title = R.string.info_perpetual_open_interest_title,
-        description = R.string.info_perpetual_open_interest_description,
-        infoUrl = { AppUrl.docs(DocsUrl.PerpetualsOpenInterest) },
-    )
-
-    object AutoCloseInfo : InfoSheetEntity(
-        icon = R.drawable.ic_splash,
-        title = R.string.perpetual_auto_close,
-        description = R.string.info_perpetual_auto_close_description,
-        infoUrl = { AppUrl.docs(DocsUrl.PerpetualsAutoclose) },
-    )
-
-    object LiquidationPriceInfo : InfoSheetEntity(
-        icon = R.drawable.ic_splash,
-        title = R.string.info_perpetual_liquidation_price_title,
-        description = R.string.info_perpetual_liquidation_price_description,
-        infoUrl = { AppUrl.docs(DocsUrl.PerpetualsLiquidationPrice) },
-    )
-
-    object FundingPayments : InfoSheetEntity(
-        icon = R.drawable.ic_splash,
-        title = R.string.info_perpetual_funding_payments_title,
-        description = R.string.info_perpetual_funding_payments_description,
-        infoUrl = { AppUrl.docs(DocsUrl.PerpetualsFundingPayments) },
-    )
-
-    object FundingAprInfo : InfoSheetEntity(
-        icon = R.drawable.ic_splash,
-        title = R.string.info_perpetual_funding_apr_title,
-        description = R.string.info_perpetual_funding_apr_description,
-        infoUrl = { AppUrl.docs(DocsUrl.PerpetualsFundingRate) },
-    )
-
-    object FullyDilutedValuation : InfoSheetEntity(
-        icon = R.drawable.ic_splash,
-        title = R.string.info_fully_diluted_valuation_title,
-        description = R.string.info_fully_diluted_valuation_description,
-        infoUrl = null,
-    )
-
-    object CirculatingSupply : InfoSheetEntity(
-        icon = R.drawable.ic_splash,
-        title = R.string.asset_circulating_supply,
-        description = R.string.info_circulating_supply_description,
-        infoUrl = null,
-    )
-
-    object TotalSupply : InfoSheetEntity(
-        icon = R.drawable.ic_splash,
-        title = R.string.asset_total_supply,
-        description = R.string.info_total_supply_description,
-        infoUrl = null,
-    )
-
-    object MaxSupply : InfoSheetEntity(
-        icon = R.drawable.ic_splash,
-        title = R.string.info_max_supply_title,
-        description = R.string.info_max_supply_description,
-        infoUrl = null,
-    )
-
-    class ExistingWalletImported(walletName: String, actionLabel: String, action: () -> Unit) :
-        InfoSheetEntity(
-            icon = R.drawable.ic_splash,
-            titleText = walletName,
-            description = R.string.wallet_import_already_imported_message,
-            actionLabel = actionLabel,
-            action = action,
-        )
-}
+fun GemConfirmErrorInfo.infoSheet(onAction: ((GemInfoAction) -> Unit)? = null): InfoSheetEntity = InfoSheetEntity(sheet(Platform.ANDROID), onAction)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -344,6 +58,9 @@ fun InfoBottomSheet(item: InfoSheetEntity?, onClose: () -> Unit) {
         containerColor = MaterialTheme.colorScheme.background,
         onDismissRequest = onClose,
     ) { shownItem ->
+        val sheet = shownItem.sheet
+        val action = sheet.action
+        val onAction = shownItem.onAction
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -351,13 +68,13 @@ fun InfoBottomSheet(item: InfoSheetEntity?, onClose: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             DialogBar(onDismissRequest = onClose)
-            InfoSheetIcon(shownItem)
+            InfoSheetIcon(sheet.image)
             Spacer16()
             Text(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = paddingDefault),
-                text = parseMarkdownToAnnotatedString(infoText(shownItem.title, shownItem.titleText, shownItem.titleArgs)),
+                text = parseMarkdownToAnnotatedString(sheet.title.string(context)),
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.headlineMedium,
@@ -365,23 +82,25 @@ fun InfoBottomSheet(item: InfoSheetEntity?, onClose: () -> Unit) {
             )
             Text(
                 modifier = Modifier.padding(vertical = paddingSmall, horizontal = paddingDefault),
-                text = parseMarkdownToAnnotatedString(infoText(shownItem.description, shownItem.descriptionText, shownItem.descriptionArgs)),
+                text = parseMarkdownToAnnotatedString(sheet.description.string(context)),
                 color = MaterialTheme.colorScheme.secondary,
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
             )
-            if (shownItem.action != null || shownItem.infoUrl != null) {
+            if (action is GemInfoAction.LearnMore || (action != null && onAction != null)) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = paddingDefault, horizontal = paddingDefault),
                 ) {
                     MainActionButton(
-                        title = shownItem.actionLabel ?: stringResource(R.string.common_learn_more),
+                        title = action.label(context),
                         onClick = {
                             onClose()
-                            shownItem.action?.invoke()
-                                ?: shownItem.infoUrl?.let { uriHandler.open(context, it()) }
+                            when (action) {
+                                is GemInfoAction.LearnMore -> uriHandler.open(context, action.url)
+                                else -> onAction?.invoke(action)
+                            }
                         },
                     )
                 }
@@ -391,24 +110,17 @@ fun InfoBottomSheet(item: InfoSheetEntity?, onClose: () -> Unit) {
 }
 
 @Composable
-private fun InfoSheetIcon(item: InfoSheetEntity) {
+private fun InfoSheetIcon(image: GemInfoImage) {
     Box(
         modifier = Modifier.size(infoSheetIconSize),
         contentAlignment = Alignment.Center,
     ) {
         IconWithBadge(
-            icon = item.icon,
-            supportIcon = item.badgeIcon,
+            icon = image.iconModel(),
+            placeholder = image.placeholder,
+            supportIcon = image.badgeIconModel(),
             size = infoSheetIconSize,
             badgeBackgroundColor = MaterialTheme.colorScheme.background,
         )
     }
 }
-
-@Composable
-private fun formattedStringResource(@StringRes resId: Int, args: List<Any>?): String = args?.takeIf { it.isNotEmpty() }
-    ?.let { stringResource(resId, *it.toTypedArray()) }
-    ?: stringResource(resId)
-
-@Composable
-private fun infoText(@StringRes resId: Int?, text: String?, args: List<Any>?): String = text ?: formattedStringResource(requireNotNull(resId), args)

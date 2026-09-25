@@ -27,7 +27,7 @@ import com.gemwallet.android.testkit.mockSwapQuotesResult
 import com.gemwallet.android.testkit.mockSwapperQuote
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Currency
@@ -62,6 +62,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemSwapPairSelection
 import uniffi.gemstone.GemSwapPairSuggestion
 import uniffi.gemstone.GemSwapQuoteServiceInterface
@@ -360,7 +361,7 @@ class SwapViewModelTest {
         viewModel.swap {}
         awaitCondition { viewModel.uiState.value.errorText != null }
 
-        assertEquals(InfoSheetEntity.NoQuoteInfo, viewModel.uiState.value.errorInfo)
+        assertEquals(GemInfoTopic.NoQuote.infoSheet(), viewModel.uiState.value.errorInfo)
         assertEquals(2.5, viewModel.swapDetails.value?.provider?.amount?.value)
     }
 

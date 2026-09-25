@@ -152,7 +152,7 @@ extension TransactionSceneViewModel {
     }
 
     func onInfo(_ topic: GemInfoTopic) {
-        isPresentingTransactionSheet = .info(InfoSheetType(topic: topic, assetImage: TransactionViewModel(transaction: transactionExtended).assetImage))
+        isPresentingTransactionSheet = .info(topic.infoSheet)
     }
 }
 

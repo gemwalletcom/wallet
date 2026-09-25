@@ -84,7 +84,7 @@ public struct PerpetualScene: View {
         .navigationBarTitleDisplayMode(.inline)
         .alertSheet($model.isPresentingAlertMessage)
         .sheet(item: $model.isPresentingInfoSheet) {
-            InfoSheetScene(type: $0)
+            InfoSheetScene(sheet: $0)
         }
         .alert(
             model.modifyTitle,

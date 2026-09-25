@@ -12,7 +12,6 @@ import com.gemwallet.android.ui.components.perpetual.title
 import com.gemwallet.android.ui.localization.errorText
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.text
-import uniffi.gemstone.GemAcquireAssetFlow
 import uniffi.gemstone.GemConfirmButtonKind
 import uniffi.gemstone.GemConfirmDestination
 import uniffi.gemstone.GemConfirmErrorDisplay
@@ -75,14 +74,6 @@ fun GemConfirmErrorDisplay.text(context: Context): String = when (this) {
 
     is GemConfirmErrorDisplay.Message -> msg
 }
-
-internal fun GemAcquireAssetFlow.actionLabel(context: Context, symbol: String): String = context.getString(
-    when (this) {
-        GemAcquireAssetFlow.OPTIONS -> R.string.asset_get_asset
-        GemAcquireAssetFlow.FIAT -> R.string.asset_buy_asset
-    },
-    symbol,
-)
 
 @StringRes
 fun GemConfirmDestination.title(): Int = when (this) {

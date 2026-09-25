@@ -19,6 +19,7 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.ListPosition
@@ -26,6 +27,7 @@ import com.gemwallet.android.ui.style.textStyle
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.VerificationStatus
+import uniffi.gemstone.GemInfoTopic
 
 fun LazyListScope.verificationStatusItem(status: VerificationStatus, listPosition: ListPosition = ListPosition.Single) {
     if (status == VerificationStatus.Verified) {
@@ -86,12 +88,12 @@ private fun VerificationStatus.display(): VerificationStatusDisplay? = when (thi
     VerificationStatus.Unverified -> VerificationStatusDisplay(
         labelRes = R.string.asset_verification_unverified,
         badgeIconRes = R.drawable.unverified,
-        infoSheetEntity = InfoSheetEntity.AssetStatusUnverifiedInfo,
+        infoSheetEntity = GemInfoTopic.AssetStatus(uniffi.gemstone.VerificationStatus.UNVERIFIED).infoSheet(),
     )
 
     VerificationStatus.Suspicious -> VerificationStatusDisplay(
         labelRes = R.string.asset_verification_suspicious,
         badgeIconRes = R.drawable.suspicious,
-        infoSheetEntity = InfoSheetEntity.AssetStatusSuspiciousInfo,
+        infoSheetEntity = GemInfoTopic.AssetStatus(uniffi.gemstone.VerificationStatus.SUSPICIOUS).infoSheet(),
     )
 }

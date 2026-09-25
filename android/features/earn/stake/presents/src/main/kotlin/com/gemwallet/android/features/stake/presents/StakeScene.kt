@@ -81,7 +81,7 @@ internal fun StakeScene(
                     )
                 }
 
-                stakeInfoSection(infoRows, assetInfo.id().iconModel())
+                stakeInfoSection(infoRows)
 
                 sections.forEach { section ->
                     item { SubheaderItem(section.title) }
@@ -121,6 +121,6 @@ internal fun StakeScene(
     }
 }
 
-private fun LazyListScope.stakeInfoSection(rows: List<GemListRow>, icon: Any?) {
-    itemsPositioned(rows) { position, row -> GemListRowView(row = row, listPosition = position, infoIcon = icon) }
+private fun LazyListScope.stakeInfoSection(rows: List<GemListRow>) {
+    itemsPositioned(rows) { position, row -> GemListRowView(row = row, listPosition = position) }
 }

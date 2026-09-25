@@ -3,8 +3,8 @@ package com.gemwallet.android.features.asset.viewmodels.details.models
 import android.content.Context
 import com.gemwallet.android.model.ChainAssetInfo
 import com.gemwallet.android.model.text
-import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.banner.uiModel
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.localization.titleRes
@@ -14,6 +14,7 @@ import uniffi.gemstone.GemAssetBalanceRow
 import uniffi.gemstone.GemAssetDetailRow
 import uniffi.gemstone.GemAssetDetails
 import uniffi.gemstone.GemBalanceRow
+import uniffi.gemstone.GemInfoTopic
 import javax.inject.Inject
 
 class AssetInfoUIModelFactory @Inject constructor(@ApplicationContext private val context: Context) {
@@ -44,7 +45,7 @@ class AssetInfoUIModelFactory @Inject constructor(@ApplicationContext private va
             model = ListItemModel(
                 title = row.title().text(context),
                 subtitle = item.value.text(context),
-                info = InfoSheetEntity.PendingUnconfirmedBalanceInfo.takeIf { row is GemBalanceRow.PendingUnconfirmed },
+                info = GemInfoTopic.PendingUnconfirmedBalance.infoSheet().takeIf { row is GemBalanceRow.PendingUnconfirmed },
             ),
             action = row.detailsAction(assetId),
         )

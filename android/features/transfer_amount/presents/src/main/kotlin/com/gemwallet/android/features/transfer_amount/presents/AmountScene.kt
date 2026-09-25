@@ -23,21 +23,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
-import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.fields.AmountField
 import com.gemwallet.android.ui.components.fields.AmountSymbolUIModel
 import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
-import com.gemwallet.android.ui.components.image.iconModel
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.isKeyboardVisible
-import com.gemwallet.android.ui.components.list_item.infoSheet
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyAssetInfoItem
 import com.gemwallet.android.ui.components.screen.Scene
@@ -74,8 +72,6 @@ internal fun AmountScene(
     additionParams: (@Composable () -> Unit)? = null,
 ) {
     val focusRequester = remember { FocusRequester() }
-    val context = LocalContext.current
-    val errorInfo = errorTopic?.infoSheet(context, null) { onAction(AmountAction.Buy) }
     var showsErrorInfo by remember { mutableStateOf(false) }
     val isKeyBoardOpen = WindowInsets.isKeyboardVisible
     val density = LocalDensity.current
@@ -119,7 +115,7 @@ internal fun AmountScene(
                     readOnly = readOnly,
                     keyboardType = if (usesWholeAmounts) KeyboardType.Number else KeyboardType.Decimal,
                     error = error,
-                    errorInfo = errorInfo?.let { { showsErrorInfo = true } },
+                    errorInfo = errorTopic?.let { { showsErrorInfo = true } },
                     onValueChange = { onAction(AmountAction.SetAmount(it)) },
                     onNext = { onAction(AmountAction.Next) },
                 )
@@ -142,8 +138,8 @@ internal fun AmountScene(
         }
     }
 
-    if (showsErrorInfo && errorInfo != null) {
-        InfoBottomSheet(errorInfo) { showsErrorInfo = false }
+    if (showsErrorInfo && errorTopic != null) {
+        InfoBottomSheet(errorTopic.infoSheet { onAction(AmountAction.Buy) }) { showsErrorInfo = false }
     }
 
     LaunchedEffect(focusesInput) {
@@ -178,7 +174,7 @@ private fun ReserveForFeeItem(asset: Asset, reserveForFee: String) {
         )
     }
     if (showInfoSheet) {
-        InfoBottomSheet(InfoSheetEntity.ReserveForFee(asset.iconModel())) {
+        InfoBottomSheet(GemInfoTopic.StakingReservedFees(asset.toGem()).infoSheet()) {
             showInfoSheet = false
         }
     }

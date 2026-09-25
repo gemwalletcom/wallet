@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemInfoSheet
 import Primitives
 import Style
 import SwiftUI
@@ -11,8 +12,8 @@ public struct InfoSheetScene: View {
 
     private let model: InfoSheetModel
 
-    public init(type: InfoSheetType) {
-        model = InfoSheetModelFactory.create(from: type)
+    public init(sheet: GemInfoSheet, onAction: InfoSheetActionHandler? = nil) {
+        model = InfoSheetModel(sheet: sheet, onAction: onAction)
     }
 
     public init(model: InfoSheetModel) {

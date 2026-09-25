@@ -22,8 +22,8 @@ struct ConfirmTransferNavigationView: View {
         ConfirmTransferScene(model: model)
             .sheet(item: $model.isPresentingSheet) {
                 switch $0 {
-                case let .info(type):
-                    InfoSheetScene(type: type)
+                case let .info(sheet):
+                    InfoSheetScene(sheet: sheet, onAction: model.onInfoAction)
                 case .networkFeeSelector:
                     NetworkFeeSheet(model: model.feeModel)
                 case let .paymentAsset(type):

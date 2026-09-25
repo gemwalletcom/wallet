@@ -8,6 +8,7 @@ import struct Gemstone.GemChart
 import enum Gemstone.GemChartPhase
 import protocol Gemstone.GemChartServiceProtocol
 import struct Gemstone.GemChartSession
+import struct Gemstone.GemInfoSheet
 import enum Gemstone.GemInfoTopic
 import struct Gemstone.GemListSection
 import enum Gemstone.GemServiceError
@@ -46,7 +47,7 @@ public final class ChartSceneViewModel: ChartListViewable {
         priceQuery.value
     }
 
-    var isPresentingInfoSheet: InfoSheetType?
+    var isPresentingInfoSheet: GemInfoSheet?
     private let onSetPriceAlert: (Asset) -> Void
     private let onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)?
 
@@ -155,6 +156,6 @@ public extension ChartSceneViewModel {
     }
 
     internal func onInfo(_ topic: GemInfoTopic) {
-        isPresentingInfoSheet = InfoSheetType(topic: topic, assetImage: nil)
+        isPresentingInfoSheet = topic.infoSheet
     }
 }

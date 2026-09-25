@@ -316,12 +316,12 @@ pub fn stake_info_rows(asset: &Asset, staking_apr: Option<f64>) -> Vec<GemListRo
         staking_apr.filter(|apr| *apr != 0.0).map(|apr| GemListRow::Amount {
             title: GemListRowTitle::StakeApr,
             amount: GemFormattedNumber::percentage(apr, GemPercentageStyle::Unsigned).toned(),
-            info: Some(GemInfoTopic::StakeApr),
+            info: Some(GemInfoTopic::StakeApr { chain }),
         }),
         lock_time_parts(chain).map(|parts| GemListRow::Duration {
             title: GemListRowTitle::LockTime,
             parts,
-            info: Some(GemInfoTopic::StakeLockTime),
+            info: Some(GemInfoTopic::StakeLockTime { chain }),
             estimate: false,
         }),
         (minimum > BigInt::ZERO).then(|| BigNumberFormatter::f64_value(&minimum, asset.decimals as u32)).map(|value| GemListRow::Amount {
@@ -973,7 +973,7 @@ mod tests {
             GemListRow::Amount {
                 title: GemListRowTitle::StakeApr,
                 amount: GemFormattedNumber::percentage(12.5, GemPercentageStyle::Unsigned).toned(),
-                info: Some(GemInfoTopic::StakeApr),
+                info: Some(GemInfoTopic::StakeApr { chain: Chain::Tron }),
             }
         );
         assert_eq!(
@@ -981,7 +981,7 @@ mod tests {
             GemListRow::Duration {
                 title: GemListRowTitle::LockTime,
                 parts: lock_time_parts(Chain::Tron).unwrap(),
-                info: Some(GemInfoTopic::StakeLockTime),
+                info: Some(GemInfoTopic::StakeLockTime { chain: Chain::Tron }),
                 estimate: false,
             }
         );

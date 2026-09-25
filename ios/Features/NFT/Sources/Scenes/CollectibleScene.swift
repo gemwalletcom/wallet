@@ -68,7 +68,7 @@ public struct CollectibleScene: View {
             ReportNavigationStack(model: model.reportModel())
         }
         .sheet(item: $model.isPresentingInfoSheet) {
-            InfoSheetScene(model: InfoSheetModelFactory.create(from: $0))
+            InfoSheetScene(sheet: $0)
         }
         .bindQuery(model.query)
     }

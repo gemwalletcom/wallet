@@ -2,13 +2,14 @@
 
 import Foundation
 import struct Gemstone.GemAcquireAsset
+import struct Gemstone.GemInfoSheet
 import GemstonePrimitives
 import InfoSheet
 import Primitives
 import PrimitivesComponents
 
 public enum ConfirmTransferSheetType: Identifiable, Sendable {
-    case info(InfoSheetType)
+    case info(GemInfoSheet)
     case networkFeeSelector
     case paymentAsset(SelectAssetType)
     case paymentVerification(URL)
@@ -22,7 +23,7 @@ public enum ConfirmTransferSheetType: Identifiable, Sendable {
 
     public var id: String {
         switch self {
-        case let .info(type): "info-\(type.id)"
+        case let .info(sheet): "info-\(sheet.hashValue)"
         case .networkFeeSelector: "network-fee-selector"
         case let .paymentAsset(type): "payment-asset-\(type.id)"
         case let .paymentVerification(url): "payment-verification-\(url)"

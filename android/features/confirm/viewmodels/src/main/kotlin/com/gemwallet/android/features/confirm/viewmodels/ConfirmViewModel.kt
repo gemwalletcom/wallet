@@ -37,13 +37,13 @@ import com.gemwallet.android.features.confirm.viewmodels.models.FeeSelectionUIMo
 import com.gemwallet.android.features.confirm.viewmodels.models.acquireOptions
 import com.gemwallet.android.features.confirm.viewmodels.models.confirmHeader
 import com.gemwallet.android.features.confirm.viewmodels.models.feeItems
-import com.gemwallet.android.features.confirm.viewmodels.models.infoSheet
 import com.gemwallet.android.features.confirm.viewmodels.models.listItem
 import com.gemwallet.android.features.confirm.viewmodels.models.uiModel
 import com.gemwallet.android.features.confirm.viewmodels.models.verificationListItem
 import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
@@ -94,6 +94,7 @@ import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemConfirmStage
 import uniffi.gemstone.GemConfirmTransferServiceInterface
 import uniffi.gemstone.GemConfirmation
+import uniffi.gemstone.GemInfoAction
 import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.GemSubmitResult
 import uniffi.gemstone.GemTransferAmountResult
@@ -270,7 +271,7 @@ class ConfirmViewModel @Inject constructor(
         val error = screen.failure?.takeIf { it.stage == GemConfirmStage.LOAD }?.error ?: return@combine null
         ConfirmErrorUIModel(
             text = error.display().text(context),
-            info = confirmation?.errorInfo(error)?.infoSheet(context, ::acquire),
+            info = confirmation?.errorInfo(error)?.infoSheet { action -> (action as? GemInfoAction.Acquire)?.let { acquire(it.asset.toPrimitives(), it.acquire) } },
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

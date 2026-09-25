@@ -1,32 +1,48 @@
 package com.gemwallet.android.ui.components
 
+import android.content.Context
+import com.gemwallet.android.model.text
+import com.gemwallet.android.testkit.mockFormattedNumber
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.style.badgeIconModel
+import com.gemwallet.android.ui.style.iconModel
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import uniffi.gemstone.GemInfoAmount
+import uniffi.gemstone.GemInfoDescription
+import uniffi.gemstone.GemInfoTopic
+import uniffi.gemstone.GemNumberUnit
 
 class InfoSheetEntityTest {
 
     @Test
-    fun watchWalletInfo_usesStandaloneWatchIcon() {
-        assertEquals(R.drawable.watch_badge, InfoSheetEntity.WatchWalletInfo.icon)
-        assertNull(InfoSheetEntity.WatchWalletInfo.badgeIcon)
+    fun theWatchWalletSheetShowsTheStandaloneWatchIcon() {
+        val image = GemInfoTopic.WatchWallet.infoSheet().sheet.image
+
+        assertEquals(R.drawable.watch_badge, image.iconModel())
+        assertNull(image.badgeIconModel())
     }
 
     @Test
-    fun scanWarningsExplainThemselvesLikeOnTheOtherApp() {
-        assertEquals(R.string.errors_scan_transaction_malicious_title, InfoSheetEntity.MaliciousTransactionInfo.title)
-        assertEquals(R.string.errors_scan_transaction_malicious_description, InfoSheetEntity.MaliciousTransactionInfo.description)
+    fun aMemoWarningBoldsTheSymbol() {
+        val context = mockk<Context> {
+            every { getString(R.string.errors_scan_transaction_memo_required, "**XRP**") } returns "Memo XRP"
+        }
 
-        val memo = InfoSheetEntity.MemoRequiredInfo(symbol = "XRP")
-        assertEquals(R.string.common_warning, memo.title)
-        assertEquals(R.string.errors_scan_transaction_memo_required, memo.description)
-        assertEquals(listOf("**XRP**"), memo.descriptionArgs)
+        assertEquals("Memo XRP", GemInfoDescription.MemoRequired("XRP").string(context))
     }
 
     @Test
-    fun noQuoteInfo_usesSwapErrorStrings() {
-        assertEquals(R.string.errors_swap_no_quote_available, InfoSheetEntity.NoQuoteInfo.title)
-        assertEquals(R.string.info_no_quote_description, InfoSheetEntity.NoQuoteInfo.description)
+    fun aRequiredAmountReadsWithTheFiatItIsWorthWhenPriced() {
+        val amount = mockFormattedNumber(0.002, GemNumberUnit.Symbol("ETH"))
+        val fiat = mockFormattedNumber(4.0, GemNumberUnit.Currency("USD"))
+
+        assertEquals("${amount.text()} (~${fiat.text()})", GemInfoAmount(amount, fiat).text())
+        assertEquals(amount.text(), GemInfoAmount(amount, null).text())
     }
 }

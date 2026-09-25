@@ -20,14 +20,6 @@ public struct TransactionStateViewModel: Equatable, Sendable {
         state.statusTitle
     }
 
-    public var description: String {
-        tone.infoDescription
-    }
-
-    public var stateImage: Image {
-        tone.image
-    }
-
     public var color: Color {
         tone.color
     }

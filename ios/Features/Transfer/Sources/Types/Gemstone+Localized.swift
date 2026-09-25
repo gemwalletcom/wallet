@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import enum Gemstone.GemAcquireAssetFlow
 import enum Gemstone.GemAmountError
 import enum Gemstone.GemAmountTitle
 import enum Gemstone.GemConfirmButtonKind
@@ -161,15 +160,6 @@ extension GemRecipientSectionKind {
         case .contacts: Localized.Contacts.title
         case .wallets: Localized.Transfer.Recipient.myWallets
         case .viewWallets: Localized.Transfer.Recipient.viewWallets
-        }
-    }
-}
-
-extension GemAcquireAssetFlow {
-    func actionTitle(symbol: String) -> String {
-        switch self {
-        case .options: Localized.Asset.getAsset(symbol)
-        case .fiat: Localized.Asset.buyAsset(symbol)
         }
     }
 }

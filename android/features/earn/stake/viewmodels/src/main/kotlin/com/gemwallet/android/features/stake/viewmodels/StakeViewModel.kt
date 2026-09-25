@@ -157,8 +157,8 @@ class StakeViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
-    val actionRows: StateFlow<List<StakeActionUIModel>> = combine(viewState.filterNotNull(), assetInfo.filterNotNull()) { state, info ->
-        state.actions.map { it.uiModel(context, info) }
+    val actionRows: StateFlow<List<StakeActionUIModel>> = viewState.filterNotNull().map { state ->
+        state.actions.map { it.uiModel(context) }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

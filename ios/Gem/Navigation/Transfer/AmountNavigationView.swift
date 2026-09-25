@@ -23,8 +23,8 @@ struct AmountNavigationView: View {
             .onChangeBindQuery(model.assetQuery, action: model.onChangeAssetBalance)
             .sheet(item: $model.isPresentingSheet) {
                 switch $0 {
-                case let .infoAction(type):
-                    InfoSheetScene(type: type)
+                case let .infoAction(sheet):
+                    InfoSheetScene(sheet: sheet, onAction: model.onInfoAction)
                 case let .fiatConnect(assetAddress, wallet):
                     NavigationStack {
                         FiatConnectNavigationView(

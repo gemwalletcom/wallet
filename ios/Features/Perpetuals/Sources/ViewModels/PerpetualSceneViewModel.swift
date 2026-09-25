@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemInfoSheet
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemPerpetualButton
 import struct Gemstone.GemPerpetualButtonRow
@@ -46,7 +47,7 @@ public final class PerpetualSceneViewModel {
 
     public let chart: PerpetualChartModel
 
-    public var isPresentingInfoSheet: InfoSheetType?
+    public var isPresentingInfoSheet: GemInfoSheet?
     public var isPresentingModifyAlert: Bool?
     public var isPresentingAutoclose: PerpetualPositionData?
     public var isPresentingAlertMessage: AlertMessage?
@@ -147,7 +148,7 @@ public extension PerpetualSceneViewModel {
     }
 
     func onInfo(_ topic: GemInfoTopic) {
-        isPresentingInfoSheet = InfoSheetType(topic: topic, assetImage: nil)
+        isPresentingInfoSheet = topic.infoSheet
     }
 
     func onSelectAutoclose() {

@@ -51,9 +51,9 @@ import com.gemwallet.android.ui.DetectScreenshot
 import com.gemwallet.android.ui.DisableScreenShooting
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
-import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.sectionHeaderItem
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
@@ -68,6 +68,7 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.Chain
+import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemWalletImportKind
 
 private val loadingDialogSize = 100.dp
@@ -127,14 +128,10 @@ fun ImportScreen(importType: ImportType, onImported: () -> Unit, onCancel: () ->
     }
     uiState.existingWalletName?.let { walletName ->
         InfoBottomSheet(
-            item = InfoSheetEntity.ExistingWalletImported(
-                walletName = walletName,
-                actionLabel = stringResource(R.string.common_continue),
-                action = {
-                    viewModel.dismissExistingWallet()
-                    onImported()
-                },
-            ),
+            item = GemInfoTopic.ExistingWalletImported(walletName).infoSheet {
+                viewModel.dismissExistingWallet()
+                onImported()
+            },
             onClose = {
                 viewModel.dismissExistingWallet()
                 viewModel.clearInput()

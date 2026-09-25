@@ -4,6 +4,7 @@ import Components
 import Formatters
 import Foundation
 import enum Gemstone.GemHeaderButtonKind
+import enum Gemstone.GemInfoTopic
 import struct Gemstone.GemPerpetualCollateral
 import enum Gemstone.GemServiceError
 import protocol Gemstone.GemWalletHomeServiceProtocol
@@ -181,7 +182,7 @@ public extension WalletSceneViewModel {
     }
 
     internal func onSelectWatchWalletInfo() {
-        isPresentingSheet = .infoSheet(.watchWallet)
+        isPresentingSheet = .infoSheet(GemInfoTopic.watchWallet.infoSheet)
     }
 
     internal func onBanner(action: BannerAction) {

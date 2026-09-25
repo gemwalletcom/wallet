@@ -13,6 +13,8 @@ import enum Gemstone.GemConfirmRowContent
 import struct Gemstone.GemConfirmSimulationState
 import struct Gemstone.GemConfirmViewState
 import struct Gemstone.GemFeeRateRows
+import enum Gemstone.GemInfoAction
+import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
 import protocol Gemstone.GemPreferencesServiceProtocol
 import struct Gemstone.GemSimulationPayloadRow
@@ -198,14 +200,20 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
 extension ConfirmTransferSceneViewModel {
     func onSelectListError(error: GemConfirmError) {
         guard let info = confirmation.errorInfo(error: error) else { return }
-        isPresentingSheet = .info(ConfirmInfoSheetBuilder.build(
-            for: info,
-            onGetAsset: { [weak self] asset, acquire in self?.onSelectGetAsset(asset, acquire: acquire) },
-        ))
+        isPresentingSheet = .info(info.infoSheet)
+    }
+
+    func onInfo(_ topic: GemInfoTopic) {
+        isPresentingSheet = .info(topic.infoSheet)
+    }
+
+    public func onInfoAction(_ action: GemInfoAction) {
+        guard case let .acquire(asset, acquire) = action else { return }
+        onSelectGetAsset(asset.toPrimitives(), acquire: acquire)
     }
 
     func onSelectNetworkFeeInfo() {
-        isPresentingSheet = .info(.networkFee(state.feeAsset))
+        isPresentingSheet = .info(GemInfoTopic.networkFee(asset: state.feeAsset.toGem()).infoSheet)
     }
 
     public func fieldModels(for fields: [GemSimulationPayloadRow]) -> [SimulationPayloadFieldViewModel] {
@@ -242,7 +250,7 @@ extension ConfirmTransferSceneViewModel {
     }
 
     func onSelectVerificationInfo() {
-        isPresentingSheet = .info(.paymentVerification)
+        isPresentingSheet = .info(GemInfoTopic.paymentVerification.infoSheet)
     }
 
     public func onPaymentVerified() {

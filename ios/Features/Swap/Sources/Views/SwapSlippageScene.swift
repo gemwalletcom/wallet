@@ -85,7 +85,7 @@ public struct SwapSlippageScene: View {
                 }
             }
             .sheet(item: $model.infoSheet) {
-                InfoSheetScene(type: $0)
+                InfoSheetScene(sheet: $0)
             }
         }
     }

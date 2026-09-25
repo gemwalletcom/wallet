@@ -7,6 +7,8 @@ import func Gemstone.autocloseDraft
 import enum Gemstone.GemAmountRequest
 import protocol Gemstone.GemAmountServiceProtocol
 import struct Gemstone.GemAutocloseDraft
+import enum Gemstone.GemInfoTopic
+import enum Gemstone.GemListRow
 import enum Gemstone.GemPerpetualPositionAction
 import struct Gemstone.GemPerpetualTransferData
 import GemstonePrimitives
@@ -25,9 +27,10 @@ public final class AmountPerpetualViewModel {
     private let service: any GemAmountServiceProtocol
 
     private let decimalSeparator = NumberInput.format(.current).decimalSeparator
-    private(set) var autocloseListItem: ListItemModel?
+    var onInfo: ((GemInfoTopic) -> Void)?
+    private(set) var autocloseRow: GemListRow
     private var draft: GemAutocloseDraft {
-        didSet { autocloseListItem = autocloseRow(draft) }
+        didSet { autocloseRow = Self.autocloseRow(draft, service: service, decimalSeparator: decimalSeparator) }
     }
 
     init(asset: Asset, action: GemPerpetualPositionAction, service: any GemAmountServiceProtocol) {
@@ -40,8 +43,13 @@ public final class AmountPerpetualViewModel {
             leverage: leverageSelection?.selected.value ?? action.transferData().leverage,
             decimalSeparator: decimalSeparator,
         )
-        draft = autocloseDraft(takeProfit: defaults.takeProfit, stopLoss: defaults.stopLoss)
-        autocloseListItem = autocloseRow(draft)
+        let draft = autocloseDraft(takeProfit: defaults.takeProfit, stopLoss: defaults.stopLoss)
+        self.draft = draft
+        autocloseRow = Self.autocloseRow(draft, service: service, decimalSeparator: decimalSeparator)
+    }
+
+    var autocloseListItem: ListItemModel? {
+        autocloseRow.listItemModel(onInfo: onInfo)
     }
 
     var takeProfit: String? {
@@ -56,8 +64,8 @@ public final class AmountPerpetualViewModel {
         leverageSelection.map { ListItemModel(title: $0.title, subtitle: $0.selected.displayText, subtitleStyle: leverageTextStyle) }
     }
 
-    private func autocloseRow(_ draft: GemAutocloseDraft) -> ListItemModel? {
-        service.perpetualAutocloseRow(draft: draft, decimalSeparator: decimalSeparator).listItemModel()
+    private static func autocloseRow(_ draft: GemAutocloseDraft, service: any GemAmountServiceProtocol, decimalSeparator: String) -> GemListRow {
+        service.perpetualAutocloseRow(draft: draft, decimalSeparator: decimalSeparator)
     }
 
     private var transferData: GemPerpetualTransferData {

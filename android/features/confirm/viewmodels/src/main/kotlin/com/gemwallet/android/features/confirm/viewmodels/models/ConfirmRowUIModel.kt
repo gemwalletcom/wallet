@@ -2,14 +2,14 @@ package com.gemwallet.android.features.confirm.viewmodels.models
 
 import android.content.Context
 import com.gemwallet.android.domains.confirm.FeeUIModel
-import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.confirm.viewmodels.localization.title
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemTagType
@@ -22,6 +22,7 @@ import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemConfirmDestination
 import uniffi.gemstone.GemConfirmRowContent
 import uniffi.gemstone.GemFeeAmount
+import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemListRow
 
 sealed interface ConfirmRowUIModel {
@@ -95,12 +96,12 @@ fun GemFeeAmount?.networkFeeListItem(context: Context, feeAsset: Asset): ListIte
     info = networkFeeInfo(feeAsset),
 )
 
-private fun networkFeeInfo(feeAsset: Asset?) = InfoSheetEntity.NetworkFeeInfo(feeAsset?.id?.chain?.networkName().orEmpty(), feeAsset?.symbol.orEmpty())
+private fun networkFeeInfo(feeAsset: Asset?) = feeAsset?.let { GemInfoTopic.NetworkFee(it.toGem()).infoSheet() }
 
 internal fun verificationListItem(context: Context): ListItemModel = ListItemModel(
     title = context.getString(R.string.info_payment_verification_title),
     subtitleTagType = ListItemTagType.Pending,
-    info = InfoSheetEntity.PaymentVerificationInfo,
+    info = GemInfoTopic.PaymentVerification.infoSheet(),
 )
 
 internal fun FeeUIModel.FeeInfo.feeItems(context: Context): List<ListItemModel> = feeItems.map { (option, info) ->

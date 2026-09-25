@@ -60,6 +60,7 @@ import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.components.image.supportIconModel
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.isHidden
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.components.list_item.color
@@ -87,6 +88,7 @@ import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemHeaderActions
 import uniffi.gemstone.GemHeaderButton
 import uniffi.gemstone.GemHeaderButtonKind
+import uniffi.gemstone.GemInfoTopic
 import kotlin.math.floor
 
 private val headerChangeTextHeight = 24.dp
@@ -258,7 +260,7 @@ fun AssetHeadActions(model: HeadActionsUIModel) {
 @Composable
 private fun AssetWatchOnly() {
     var showInfoSheet by remember { mutableStateOf<InfoSheetEntity?>(null) }
-    val openWatchWalletInfo = { showInfoSheet = InfoSheetEntity.WatchWalletInfo }
+    val openWatchWalletInfo = { showInfoSheet = GemInfoTopic.WatchWallet.infoSheet() }
     Button(
         modifier = Modifier
             .fillMaxWidth()

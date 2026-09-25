@@ -1,16 +1,17 @@
 package com.gemwallet.android.features.confirm.viewmodels.models
 
-import android.content.Context
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockAssetEthereum
-import io.mockk.every
-import io.mockk.mockk
+import com.gemwallet.android.ui.localization.text
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.Currency
 import uniffi.gemstone.GemBalanceRequirement
 import uniffi.gemstone.GemConfirmException
+import uniffi.gemstone.GemInfoDescription
+import uniffi.gemstone.Platform
 import uniffi.gemstone.confirmErrorInfo
 import java.math.BigInteger
 import java.util.Locale
@@ -35,8 +36,8 @@ class ConfirmErrorUIModelTest {
         )
 
         assertEquals(
-            listOf("**1.23 ETH**", "**0.9876 ETH**", "**0.2469 ETH**"),
-            error.sheet()?.descriptionArgs,
+            listOf("1.23 ETH", "0.9876 ETH", "0.2469 ETH"),
+            error.amounts(),
         )
     }
 
@@ -52,8 +53,8 @@ class ConfirmErrorUIModelTest {
         )
 
         assertEquals(
-            listOf("**12,345.67 ETH**", "**0.000000000000000001 ETH**", "**12,345.67 ETH**"),
-            error.sheet()?.descriptionArgs,
+            listOf("12,345.67 ETH", "0.000000000000000001 ETH", "12,345.67 ETH"),
+            error.amounts(),
         )
     }
 
@@ -69,8 +70,8 @@ class ConfirmErrorUIModelTest {
         )
 
         assertEquals(
-            listOf("**0.00063 ETH**", "**Ethereum**", "**0.0005 ETH**", "**0.00013 ETH**"),
-            error.sheet()?.descriptionArgs,
+            listOf("0.00063 ETH", "Ethereum", "0.0005 ETH", "0.00013 ETH"),
+            error.amounts(),
         )
     }
 
@@ -80,11 +81,9 @@ class ConfirmErrorUIModelTest {
         shortfall = BigInteger(shortfall),
     )
 
-    private fun GemConfirmException.sheet() = confirmErrorInfo(this, emptyList(), Currency.USD, "ethereum", "ethereum")?.infoSheet(
-        context = mockk<Context> {
-            every { getString(any()) } returns "Error"
-            every { getString(any(), *anyVararg()) } returns "Error"
-        },
-        onAcquire = { _, _ -> },
-    )
+    private fun GemConfirmException.amounts(): List<String> = when (val description = confirmErrorInfo(this, emptyList(), Currency.USD, "ethereum", "ethereum")?.sheet(Platform.ANDROID)?.description) {
+        is GemInfoDescription.BalanceRequired -> listOfNotNull(description.required, description.available, description.shortfall).map { it.text() }
+        is GemInfoDescription.InsufficientNetworkFeeBalance -> listOfNotNull(description.required?.text(), description.network, description.available.text(), description.shortfall?.text())
+        else -> emptyList()
+    }
 }

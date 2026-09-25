@@ -43,10 +43,10 @@ import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmRowUIMode
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
-import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.components.WebView
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_head.AmountListHead
 import com.gemwallet.android.ui.components.list_head.AssetValueListHead
 import com.gemwallet.android.ui.components.list_head.NftHead
@@ -75,6 +75,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChainAddress
 import uniffi.gemstone.GemConfirmAction
+import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.SimulationResult
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -361,7 +362,7 @@ fun ConfirmScreen(
         }
 
         InfoBottomSheet(
-            item = InfoSheetEntity.PaymentVerificationInfo.takeIf { isVerificationInfoVisible },
+            item = GemInfoTopic.PaymentVerification.infoSheet().takeIf { isVerificationInfoVisible },
             onClose = { isVerificationInfoVisible = false },
         )
     }

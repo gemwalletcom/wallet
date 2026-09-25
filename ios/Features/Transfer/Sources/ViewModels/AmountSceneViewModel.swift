@@ -11,6 +11,8 @@ import enum Gemstone.GemAmountRequest
 import protocol Gemstone.GemAmountServiceProtocol
 import enum Gemstone.GemAmountType
 import struct Gemstone.GemAssetBalance
+import enum Gemstone.GemInfoAction
+import enum Gemstone.GemInfoTopic
 import protocol Gemstone.GemStakeServiceProtocol
 import struct Gemstone.GemTransferData
 import struct Gemstone.GemValidatorRow
@@ -88,6 +90,9 @@ public final class AmountSceneViewModel {
         self.input = amountInput
         entry = Self.entry(amountType: request.amountType(), asset: input.asset, assetData: assetQuery.value, input: amountInput, inputType: .asset, text: .empty, currency: currency)
         amountInputModel = InputValidationViewModel()
+        perpetual?.onInfo = { [weak self] topic in
+            self?.isPresentingSheet = .infoAction(topic.infoSheet)
+        }
     }
 
     var request: GemAmountRequest {
@@ -210,7 +215,7 @@ extension AmountSceneViewModel {
     }
 
     func onSelectReservedFeesInfo() {
-        isPresentingSheet = .infoAction(.stakingReservedFees(image: assetImage))
+        isPresentingSheet = .infoAction(GemInfoTopic.stakingReservedFees(asset: asset.toGem()).infoSheet)
     }
 
     func onSelectBuy() {
@@ -256,9 +261,13 @@ extension AmountSceneViewModel {
             return nil
         }
         return { [weak self] in
-            guard let self else { return }
-            isPresentingSheet = .infoAction(InfoSheetType(topic: topic, assetImage: assetImage, buyAction: onSelectBuy))
+            self?.isPresentingSheet = .infoAction(topic.infoSheet)
         }
+    }
+
+    public func onInfoAction(_ action: GemInfoAction) {
+        guard case .buy = action else { return }
+        onSelectBuy()
     }
 }
 

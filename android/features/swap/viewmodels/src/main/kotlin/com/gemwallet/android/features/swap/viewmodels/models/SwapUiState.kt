@@ -7,7 +7,7 @@ import com.gemwallet.android.features.swap.viewmodels.localization.text
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
-import com.gemwallet.android.ui.components.list_item.infoSheet
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import uniffi.gemstone.GemLocalizedText
@@ -39,7 +39,7 @@ internal fun createSwapUiState(state: GemSwapViewState, context: Context) = Swap
     actionTitle = state.buttonAction.stringRes(),
     buttonState = state.buttonState.buttonState(),
     errorText = state.error?.text(context),
-    errorInfo = state.error?.info()?.infoSheet(context, null),
+    errorInfo = state.error?.info()?.infoSheet(),
     isQuoteLoading = state.isQuoteLoading,
     isTransferLoading = state.isTransferLoading,
     isInputEmpty = state.isInputEmpty,

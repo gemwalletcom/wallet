@@ -19,11 +19,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.SuffixTextField
 import com.gemwallet.android.ui.components.SuggestionsBar
 import com.gemwallet.android.ui.components.fields.decimalKeyboardOptions
 import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.SwitchProperty
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
@@ -34,6 +34,7 @@ import com.gemwallet.android.ui.theme.adaptivePadding
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.paddingSmall
+import uniffi.gemstone.GemInfoTopic
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,7 +73,7 @@ fun SwapSlippageBottomSheet(state: SlippageStateUIModel?, onAuto: (Boolean) -> U
                 ) {
                     PropertyTitleText(
                         stringResource(R.string.swap_slippage),
-                        info = InfoSheetEntity.Slippage,
+                        info = GemInfoTopic.Slippage.infoSheet(),
                     )
                     SuffixTextField(
                         modifier = Modifier

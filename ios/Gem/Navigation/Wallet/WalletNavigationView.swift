@@ -215,7 +215,7 @@ struct WalletNavigationView: View {
                         ),
                     )
                 case let .infoSheet(type):
-                    InfoSheetScene(type: type)
+                    InfoSheetScene(sheet: type)
                 case let .transferData(data):
                     ConfirmTransferNavigationStack(
                         wallet: model.wallet,

@@ -5,6 +5,7 @@ import Formatters
 import enum Gemstone.AddressType
 import enum Gemstone.DelegationState
 import enum Gemstone.FeeOption
+import enum Gemstone.GemAcquireAssetFlow
 import enum Gemstone.GemApprovalValue
 import enum Gemstone.GemAssetMenuAction
 import enum Gemstone.GemBalanceRowValue
@@ -17,7 +18,12 @@ import enum Gemstone.GemEmptyStateAction
 import enum Gemstone.GemEmptyStateText
 import enum Gemstone.GemErrorText
 import enum Gemstone.GemFiatTransactionBadge
+import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemHeaderButtonKind
+import enum Gemstone.GemInfoAction
+import struct Gemstone.GemInfoAmount
+import enum Gemstone.GemInfoDescription
+import enum Gemstone.GemInfoTitle
 import enum Gemstone.GemListRowTitle
 import enum Gemstone.GemListSectionFooter
 import enum Gemstone.GemListSectionTitle
@@ -830,5 +836,125 @@ extension GemTriggerOrder {
         case .takeProfit: Localized.Perpetual.takeProfit
         case .stopLoss: Localized.Perpetual.stopLoss
         }
+    }
+}
+
+public extension GemInfoTitle {
+    var text: String {
+        switch self {
+        case .networkFee: Localized.Info.NetworkFee.title
+        case let .balanceRequired(symbol): Localized.Info.balanceRequiredTitle(symbol)
+        case let .transactionState(state): state.toPrimitives().statusTitle
+        case .estimatedConfirmation: Localized.Transaction.estimatedConfirmation
+        case .watchWallet: Localized.Info.WatchWallet.title
+        case .paymentVerification: Localized.Info.paymentVerificationTitle
+        case .lockTime: Localized.Stake.lockTime
+        case .apr: Localized.Stake.apr("")
+        case .priceImpact: Localized.Swap.priceImpact
+        case .slippage: Localized.Swap.slippage
+        case .noQuote: Localized.Errors.Swap.noQuoteAvailable
+        case let .assetStatus(status): status.toPrimitives().statusTitle
+        case .accountMinimumBalance: Localized.Info.AccountMinimumBalance.title
+        case .minimumAmount: Localized.Info.MinimumAmount.title
+        case .stakingReservedFees: Localized.Info.Stake.Reserved.title
+        case .pending: Localized.Stake.pending
+        case .stakeFrozenRequired: Localized.Info.stakeFrozenRequiredTitle
+        case .fundingApr: Localized.Info.Perpetual.FundingApr.title
+        case .fundingPayments: Localized.Info.Perpetual.FundingPayments.title
+        case .liquidationPrice: Localized.Info.Perpetual.LiquidationPrice.title
+        case .openInterest: Localized.Info.Perpetual.OpenInterest.title
+        case .autoClose: Localized.Perpetual.autoClose
+        case .maliciousTransaction: Localized.Errors.ScanTransaction.Malicious.title
+        case .warning: Localized.Common.warning
+        case .transferError: Localized.Errors.transferError
+        case .fullyDilutedValuation: Localized.Info.FullyDilutedValuation.title
+        case .circulatingSupply: Localized.Asset.circulatingSupply
+        case .totalSupply: Localized.Asset.totalSupply
+        case .maxSupply: Localized.Info.MaxSupply.title
+        case let .walletName(name): name
+        }
+    }
+}
+
+public extension GemInfoDescription {
+    var text: String {
+        switch self {
+        case let .networkFee(network, symbol):
+            Localized.Info.NetworkFee.description(network.boldMarkdown(), symbol.boldMarkdown())
+        case let .balanceRequired(required, available, shortfall):
+            Localized.Info.balanceRequiredDescription(required.boldText, available.boldText, shortfall.boldText)
+        case let .insufficientNetworkFeeBalance(required, network, available, shortfall):
+            Localized.Info.InsufficientNetworkFeeBalance.description(required.boldText, network.boldMarkdown(), available.text().boldMarkdown(), shortfall.boldText)
+        case let .insufficientNetworkFee(title):
+            Localized.Transfer.insufficientNetworkFeeBalance(title.boldMarkdown())
+        case let .transactionState(tone): tone.infoDescription
+        case let .estimatedConfirmation(network): Localized.Info.estimatedConfirmationDescription(network.boldMarkdown())
+        case .watchWallet: Localized.Info.WatchWallet.description
+        case .paymentVerification: Localized.Info.paymentVerificationDescription
+        case .lockTime: Localized.Info.LockTime.description
+        case .apr: Localized.Info.Stake.Apr.description
+        case .priceImpact: Localized.Info.PriceImpact.description
+        case .slippage: Localized.Info.Slippage.description
+        case .noQuote: Localized.Info.NoQuote.description
+        case let .assetStatus(status): status.toPrimitives().statusDescription
+        case let .accountMinimumBalance(amount): Localized.Transfer.minimumAccountBalance(amount.boldText)
+        case let .minimumAmount(network, amount): Localized.Info.MinimumAmount.description(network.boldMarkdown(), amount.text().boldMarkdown())
+        case let .swapMinimumAmount(provider, required, available, shortfall):
+            Localized.Info.swapMinimumAmountDescription(provider.boldMarkdown(), required.boldText, available.boldText, shortfall.boldText)
+        case .stakingReservedFees: Localized.Info.Stake.Reserved.description
+        case .pending: Localized.Info.Transaction.Pending.description
+        case .stakeFrozenRequired: Localized.Info.stakeFrozenRequiredDescription
+        case .fundingApr: Localized.Info.Perpetual.FundingApr.description
+        case .fundingPayments: Localized.Info.Perpetual.FundingPayments.description
+        case .liquidationPrice: Localized.Info.Perpetual.LiquidationPrice.description
+        case .openInterest: Localized.Info.Perpetual.OpenInterest.description
+        case .autoClose: Localized.Info.Perpetual.AutoClose.description
+        case .maliciousTransaction: Localized.Errors.ScanTransaction.Malicious.description
+        case let .memoRequired(symbol): Localized.Errors.ScanTransaction.memoRequired(symbol.boldMarkdown())
+        case let .dustThreshold(network): Localized.Errors.dustThreshold(network.boldMarkdown())
+        case .fullyDilutedValuation: Localized.Info.FullyDilutedValuation.description
+        case .circulatingSupply: Localized.Info.CirculatingSupply.description
+        case .totalSupply: Localized.Info.TotalSupply.description
+        case .maxSupply: Localized.Info.MaxSupply.description
+        case .existingWalletImported: Localized.Wallet.Import.alreadyImportedMessage
+        }
+    }
+}
+
+public extension GemInfoAmount {
+    var text: String {
+        fiat.map { "\(amount.text()) (~\($0.text()))" } ?? amount.text()
+    }
+}
+
+public extension GemInfoAction {
+    var title: String {
+        switch self {
+        case .learnMore: Localized.Common.learnMore
+        case let .buy(symbol): Localized.Asset.buyAsset(symbol)
+        case let .acquire(asset, acquire): acquire.flow.actionTitle(symbol: asset.symbol)
+        case .continue: Localized.Common.continue
+        }
+    }
+}
+
+public extension GemAcquireAssetFlow {
+    func actionTitle(symbol: String) -> String {
+        switch self {
+        case .options: Localized.Asset.getAsset(symbol)
+        case .fiat: Localized.Asset.buyAsset(symbol)
+        }
+    }
+}
+
+private extension GemFormattedNumber? {
+    var boldText: String {
+        self?.text().boldMarkdown() ?? .empty
+    }
+}
+
+private extension GemInfoAmount? {
+    var boldText: String {
+        self?.text.boldMarkdown() ?? .empty
     }
 }

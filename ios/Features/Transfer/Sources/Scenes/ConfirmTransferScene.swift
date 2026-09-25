@@ -74,7 +74,7 @@ extension ConfirmTransferScene {
             )
         case let .perpetualModifyPosition(row):
             if let row {
-                GemListRowView(row: row)
+                GemListRowView(row: row, onInfo: model.onInfo)
             }
         case let .networkFee(model, selectable):
             if selectable {

@@ -4,6 +4,7 @@ import Components
 import Formatters
 import Foundation
 import struct Gemstone.GemAssetBalance
+import struct Gemstone.GemInfoSheet
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
 import enum Gemstone.GemLoadState
@@ -41,7 +42,7 @@ public final class StakeSceneViewModel {
         assetQuery.value
     }
 
-    public var isPresentingInfoSheet: InfoSheetType? = .none
+    public var isPresentingInfoSheet: GemInfoSheet? = .none
 
     public init(
         wallet: Wallet,
@@ -116,11 +117,11 @@ extension StakeSceneViewModel {
     }
 
     func onInfo(_ topic: GemInfoTopic) {
-        isPresentingInfoSheet = InfoSheetType(topic: topic, assetImage: AssetIdViewModel(assetId: asset.id).assetImage)
+        isPresentingInfoSheet = topic.infoSheet
     }
 
     func onStakeFrozenInfo() {
-        isPresentingInfoSheet = .stakeFrozenRequired
+        isPresentingInfoSheet = GemInfoTopic.stakeFrozenRequired.infoSheet
     }
 }
 

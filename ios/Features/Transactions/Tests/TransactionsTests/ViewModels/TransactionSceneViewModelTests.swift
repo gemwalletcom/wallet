@@ -3,6 +3,8 @@ import Foundation
 import enum Gemstone.GemListRow
 import enum Gemstone.GemTransactionDetailRow
 import enum Gemstone.GemTransactionHeaderAction
+import enum Gemstone.GemTransactionStateTone
+import enum Gemstone.GemValueTone
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import Localization
@@ -115,27 +117,23 @@ struct TransactionSceneViewModelTests {
 
     @Test
     func statusItemModel() {
-        #expect(statusRow(TransactionSceneViewModel.mock(state: .confirmed)) == .label(
-            title: .status,
-            text: .transactionState(state: .confirmed),
-            tone: .positive,
-            info: .transactionStatus(state: .confirmed, tone: .success),
-            progress: false,
-        ))
-        #expect(statusRow(TransactionSceneViewModel.mock(state: .pending)) == .label(
-            title: .status,
-            text: .transactionState(state: .pending),
-            tone: .warning,
-            info: .transactionStatus(state: .pending, tone: .pending),
-            progress: true,
-        ))
-        #expect(statusRow(TransactionSceneViewModel.mock(state: .inTransit)) == .label(
-            title: .status,
-            text: .transactionState(state: .inTransit),
-            tone: .warning,
-            info: .transactionStatus(state: .inTransit, tone: .pending),
-            progress: true,
-        ))
+        let expected: [(TransactionState, GemValueTone, GemTransactionStateTone, Bool)] = [
+            (.confirmed, .positive, .success, false),
+            (.pending, .warning, .pending, true),
+            (.inTransit, .warning, .pending, true),
+        ]
+        for (state, tone, stateTone, progress) in expected {
+            guard case let .label(title, text, rowTone, .transactionStatus(topicState, topicTone, _)?, rowProgress) = statusRow(TransactionSceneViewModel.mock(state: state)) else {
+                Issue.record("Expected a status label for \(state)")
+                continue
+            }
+            #expect(title == .status)
+            #expect(text == .transactionState(state: state.toGem()))
+            #expect(rowTone == tone)
+            #expect(topicState == state.toGem())
+            #expect(topicTone == stateTone)
+            #expect(rowProgress == progress)
+        }
     }
 
     @Test

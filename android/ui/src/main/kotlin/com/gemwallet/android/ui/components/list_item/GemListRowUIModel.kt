@@ -8,20 +8,15 @@ import com.gemwallet.android.domains.swap.AssetRateFormatter
 import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.errorText
-import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.requireChain
-import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.property.icon
 import com.gemwallet.android.ui.format.rowDateFormatter
-import com.gemwallet.android.ui.localization.infoDescriptionRes
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.localization.text
-import com.gemwallet.android.ui.style.badgeIconRes
 import com.gemwallet.android.ui.style.textStyle
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -29,14 +24,12 @@ import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemAvatar
 import uniffi.gemstone.GemCopy
 import uniffi.gemstone.GemCopyKind
-import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemLatencyStatus
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowIcon
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemNoticeKind
 import uniffi.gemstone.GemSocialLink
-import uniffi.gemstone.GemValueStyle
 import uniffi.gemstone.GemValueTone
 import java.time.ZoneId
 import java.util.Locale
@@ -64,7 +57,7 @@ internal sealed interface GemListRowMenuItem {
     data class Open(override val title: String, val url: String) : GemListRowMenuItem
 }
 
-internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemListRowUIModel = when (this) {
+internal fun GemListRow.uiModel(context: Context): GemListRowUIModel = when (this) {
     is GemListRow.Latency -> GemListRowUIModel.Item(status.listItemModel(context, title.text(context) + titleSuffix, host))
 
     is GemListRow.Notice -> GemListRowUIModel.Notice(title = title.text(context), message = message?.string(context), kind = kind)
@@ -77,7 +70,7 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
     )
 
     is GemListRow.Amount -> GemListRowUIModel.Item(
-        ListItemModel(title = title.text(context), subtitle = amount.text(), subtitleStyle = amount.tone.subtitleStyle(), info = info?.infoSheet(context, infoIcon)),
+        ListItemModel(title = title.text(context), subtitle = amount.text(), subtitleStyle = amount.tone.subtitleStyle(), info = info?.infoSheet()),
     )
 
     is GemListRow.Rate -> inverse?.let { inverse ->
@@ -89,7 +82,7 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
             title = title.text(context),
             titleStyle = if (info == null) ListItemTextStyle.Body else ListItemTextStyle.Faded,
             subtitle = value?.text(),
-            info = info?.infoSheet(context, infoIcon),
+            info = info?.infoSheet(),
         ),
     )
 
@@ -118,7 +111,7 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
         ListItemModel(
             title = title.text(context),
             subtitle = if (estimate) parts.formatEstimate() else parts.formatDuration(),
-            info = info?.infoSheet(context, infoIcon),
+            info = info?.infoSheet(),
         ),
     )
 
@@ -128,7 +121,7 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
             subtitle = text.string(context),
             subtitleStyle = tone.subtitleStyle(),
             subtitleTagType = if (progress) ListItemTagType.Progress else ListItemTagType.None,
-            info = info?.infoSheet(context, infoIcon),
+            info = info?.infoSheet(),
         ),
     )
 
@@ -165,7 +158,7 @@ internal fun GemListRow.uiModel(context: Context, infoIcon: Any? = null): GemLis
             title = title.text(context),
             subtitle = lines.firstOrNull()?.string(context),
             subtitleExtra = lines.getOrNull(1)?.string(context),
-            info = info?.infoSheet(context, infoIcon),
+            info = info?.infoSheet(),
         ),
     )
 
@@ -251,59 +244,7 @@ private fun GemListRowIcon.image(): ListItemImage? = when (this) {
     GemListRowIcon.ADD_TO_WALLET -> ListItemImage.Symbol(ListItemSymbol.AddCircle)
 }
 
-fun GemInfoTopic.infoSheet(context: Context, icon: Any?, onBuy: (() -> Unit)? = null): InfoSheetEntity = when (this) {
-    is GemInfoTopic.NetworkFee -> asset.toPrimitives().let { InfoSheetEntity.NetworkFeeInfo(it.chain.networkName(), it.symbol) }
-
-    is GemInfoTopic.MinimumAmount -> asset.toPrimitives().let {
-        InfoSheetEntity.MinimumAmountInfo(
-            networkTitle = it.chain.networkName(),
-            value = ValueFormatter(style = GemValueStyle.FULL).string(minimum, it.decimals, it.symbol),
-            actionLabel = onBuy?.let { _ -> context.getString(R.string.asset_buy_asset, it.symbol) },
-            action = onBuy,
-        )
-    }
-
-    GemInfoTopic.NoQuote -> InfoSheetEntity.NoQuoteInfo
-
-    GemInfoTopic.PriceImpact -> InfoSheetEntity.PriceImpactInfo
-
-    GemInfoTopic.Slippage -> InfoSheetEntity.Slippage
-
-    GemInfoTopic.OpenInterest -> InfoSheetEntity.OpenInterestInfo
-
-    GemInfoTopic.FundingApr -> InfoSheetEntity.FundingAprInfo
-
-    GemInfoTopic.StakeApr -> InfoSheetEntity.StakeAprInfo(icon)
-
-    GemInfoTopic.StakeLockTime -> InfoSheetEntity.StakeLockTimeInfo(icon)
-
-    GemInfoTopic.StakeFrozenRequired -> InfoSheetEntity.StakeFrozenRequired(icon)
-
-    GemInfoTopic.AutoClose -> InfoSheetEntity.AutoCloseInfo
-
-    GemInfoTopic.LiquidationPrice -> InfoSheetEntity.LiquidationPriceInfo
-
-    GemInfoTopic.FundingPayments -> InfoSheetEntity.FundingPayments
-
-    GemInfoTopic.FullyDilutedValuation -> InfoSheetEntity.FullyDilutedValuation
-
-    GemInfoTopic.CirculatingSupply -> InfoSheetEntity.CirculatingSupply
-
-    GemInfoTopic.TotalSupply -> InfoSheetEntity.TotalSupply
-
-    GemInfoTopic.MaxSupply -> InfoSheetEntity.MaxSupply
-
-    is GemInfoTopic.EstimatedConfirmation -> InfoSheetEntity.EstimatedConfirmationInfo(chain.requireChain())
-
-    is GemInfoTopic.TransactionStatus -> InfoSheetEntity.TransactionInfo(
-        icon = icon,
-        state = state.toPrimitives(),
-        badgeIcon = tone.badgeIconRes(),
-        description = tone.infoDescriptionRes(),
-    )
-}
-
-fun GemListRow.listItemModel(context: Context, infoIcon: Any? = null): ListItemModel? = (uiModel(context, infoIcon) as? GemListRowUIModel.Item)?.model
+fun GemListRow.listItemModel(context: Context): ListItemModel? = (uiModel(context) as? GemListRowUIModel.Item)?.model
 
 fun GemLatencyStatus.listItemModel(context: Context, title: String, titleExtra: String?): ListItemModel = ListItemModel(
     title = title,

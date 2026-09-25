@@ -17,7 +17,6 @@ import com.gemwallet.android.testkit.mockGemConfirmScreen
 import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
-import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Chain
@@ -48,6 +47,7 @@ import uniffi.gemstone.GemConfirmHeader
 import uniffi.gemstone.GemConfirmPhase
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmation
+import uniffi.gemstone.GemInfoAction
 import uniffi.gemstone.GemSwapPairSelection
 import uniffi.gemstone.GemTransactionHeader
 import uniffi.gemstone.confirmErrorInfo
@@ -102,7 +102,7 @@ class ConfirmViewModelNetworkFeeSheetTest {
 
         val error = requireNotNull(viewModel.loadError.value)
         assertEquals("Error", error.text)
-        assertTrue(error.info is InfoSheetEntity.NetworkFeeRequiredInfo)
+        assertTrue(error.info?.sheet?.action is GemInfoAction.Acquire)
 
         val acquire = GemAcquireAsset(GemAcquireAssetFlow.FIAT, 10, GemSwapPairSelection(payAssetId = payAsset.id.toIdentifier(), receiveAssetId = asset.id.toIdentifier()))
         viewModel.acquire(asset, acquire)

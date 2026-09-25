@@ -1,7 +1,7 @@
 #![allow(clippy::result_large_err)]
 
 mod confirmation;
-mod error;
+pub(crate) mod error;
 pub(crate) mod header;
 mod model;
 pub(crate) mod rules;

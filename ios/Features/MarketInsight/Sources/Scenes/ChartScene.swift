@@ -55,7 +55,7 @@ public struct ChartScene: View {
         }
         .navigationTitle(model.title)
         .sheet(item: $model.isPresentingInfoSheet) {
-            InfoSheetScene(type: $0)
+            InfoSheetScene(sheet: $0)
         }
     }
 }

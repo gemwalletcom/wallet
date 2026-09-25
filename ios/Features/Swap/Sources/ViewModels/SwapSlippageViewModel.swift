@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemInfoSheet
+import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemSlippageSelection
 import struct Gemstone.GemSlippageSession
 import struct Gemstone.GemSlippageSuggestion
@@ -19,7 +21,7 @@ public final class SwapSlippageViewModel {
     private var session: GemSlippageSession
     private(set) var viewState: GemSlippageViewState
 
-    var infoSheet: InfoSheetType?
+    var infoSheet: GemInfoSheet?
 
     public init(chain: Chain, slippage: GemSlippageSelection, onSelect: @escaping (GemSlippageSelection) -> Void) {
         self.onSelect = onSelect
@@ -71,7 +73,7 @@ public final class SwapSlippageViewModel {
     }
 
     func onSelectInfo() {
-        infoSheet = .slippage
+        infoSheet = GemInfoTopic.slippage.infoSheet
     }
 
     func confirm() {

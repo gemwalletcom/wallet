@@ -5,9 +5,8 @@ import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.activities.viewmodels.localization.stringRes
 import com.gemwallet.android.model.text
-import com.gemwallet.android.ui.components.image.iconModel
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.ListItemModel
-import com.gemwallet.android.ui.components.list_item.infoSheet
 import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -26,7 +25,7 @@ sealed interface TransactionDetailsRowUIModel {
     data class Address(val title: String, val address: String, val chain: Chain?, val text: String, val explorerLink: BlockExplorerLink?) : TransactionDetailsRowUIModel
     data class Fee(val model: ListItemModel) : TransactionDetailsRowUIModel
     data class SwapProgress(val model: SwapProgressUIModel) : TransactionDetailsRowUIModel
-    data class Row(val row: GemListRow, val infoIcon: Any?) : TransactionDetailsRowUIModel
+    data class Row(val row: GemListRow) : TransactionDetailsRowUIModel
     data class NftHead(val metadata: TransactionNFTTransferMetadata) : TransactionDetailsRowUIModel
     data class AmountHead(val asset: Asset, val amount: String, val equivalent: String?) : TransactionDetailsRowUIModel
     data class AssetHead(val asset: Asset) : TransactionDetailsRowUIModel
@@ -55,11 +54,11 @@ internal fun GemTransactionDetailRows.uiModel(row: GemTransactionDetailRow, cont
                 title = feeRow.title.text(context),
                 subtitle = feeRow.amount.text(),
                 subtitleExtra = feeRow.fiat?.text(),
-                info = feeRow.info.infoSheet(context, asset.iconModel()),
+                info = feeRow.info.infoSheet(),
             ),
         )
 
-        is GemTransactionDetailRow.Row -> TransactionDetailsRowUIModel.Row(row.row, asset.iconModel())
+        is GemTransactionDetailRow.Row -> TransactionDetailsRowUIModel.Row(row.row)
     }
 }
 

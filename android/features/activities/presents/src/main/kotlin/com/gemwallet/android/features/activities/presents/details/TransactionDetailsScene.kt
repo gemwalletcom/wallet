@@ -81,7 +81,6 @@ internal fun TransactionDetailsScene(title: String, sections: List<ListSection<T
                     is TransactionDetailsRowUIModel.Row -> GemListRowView(
                         row = row.row,
                         listPosition = position,
-                        infoIcon = row.infoIcon,
                         onSelectAddress = { address -> onAction(TransactionDetailsAction.OpenAddress(ChainAddress(chain, address))) },
                     )
 

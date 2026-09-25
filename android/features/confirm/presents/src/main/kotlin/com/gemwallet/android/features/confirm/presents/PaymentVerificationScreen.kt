@@ -20,12 +20,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.confirm.viewmodels.PaymentVerificationViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
-import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.WebView
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.ToastEffect
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
+import uniffi.gemstone.GemInfoTopic
 
 @Composable
 fun PaymentVerificationScreen(onCancel: () -> Unit, onConfirm: ConfirmTransactionAction, viewModel: PaymentVerificationViewModel = hiltViewModel()) {
@@ -59,7 +60,7 @@ fun PaymentVerificationScreen(onCancel: () -> Unit, onConfirm: ConfirmTransactio
     }
 
     if (isInfoVisible) {
-        InfoBottomSheet(InfoSheetEntity.PaymentVerificationInfo) { isInfoVisible = false }
+        InfoBottomSheet(GemInfoTopic.PaymentVerification.infoSheet()) { isInfoVisible = false }
     }
 
     if (isFailed) {

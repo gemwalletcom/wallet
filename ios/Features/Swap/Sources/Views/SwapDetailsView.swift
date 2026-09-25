@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemInfoSheet
 import InfoSheet
 import Localization
 import Primitives
@@ -15,7 +16,7 @@ public struct SwapDetailsView: View {
 
     @State private var isPresentingProviderSelection = false
     @State private var isRateInverse = false
-    @State private var infoSheet: InfoSheetType?
+    @State private var infoSheet: GemInfoSheet?
 
     public init(model: SwapDetailsViewModel) {
         self.model = model
@@ -40,7 +41,7 @@ public struct SwapDetailsView: View {
         .listSectionSpacing(.compact)
         .contentMargins([.top], .extraSmall, for: .scrollContent)
         .sheet(item: $infoSheet) {
-            InfoSheetScene(type: $0)
+            InfoSheetScene(sheet: $0)
         }
         .sheet(isPresented: $isPresentingProviderSelection) {
             SelectableListNavigationStack(
@@ -81,7 +82,7 @@ public struct SwapDetailsView: View {
                     )
                 }
                 ForEach(Array(model.detailRows.enumerated()), id: \.offset) { _, row in
-                    GemListRowView(row: row, onInfo: { infoSheet = InfoSheetType(topic: $0, assetImage: nil) })
+                    GemListRowView(row: row, onInfo: { infoSheet = $0.infoSheet })
                 }
             }
         }

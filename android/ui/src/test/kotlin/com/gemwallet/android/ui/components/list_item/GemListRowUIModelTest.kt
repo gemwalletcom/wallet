@@ -7,17 +7,19 @@ import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockFormattedNumber
 import com.gemwallet.android.testkit.mockGemWalletRow
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.gemwallet.android.ui.components.infoSheet
+import com.gemwallet.android.ui.localization.label
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.style.textStyle
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.BlockExplorerLink
 import uniffi.gemstone.GemCopy
 import uniffi.gemstone.GemCopyKind
+import uniffi.gemstone.GemInfoTitle
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemLatencyStatus
 import uniffi.gemstone.GemListRow
@@ -123,7 +125,7 @@ class GemListRowUIModelTest {
         assertEquals("Auto Close", model.title)
         assertEquals("Take Profit: $65,000", model.subtitle)
         assertEquals("Stop Loss: $55,000", model.subtitleExtra)
-        assertEquals(InfoSheetEntity.AutoCloseInfo, model.info)
+        assertEquals(GemInfoTopic.AutoClose.infoSheet(), model.info)
     }
 
     @Test
@@ -170,29 +172,19 @@ class GemListRowUIModelTest {
 
     @Test
     fun `a below minimum amount names the network the minimum and the buy action`() {
+        every { context.getString(R.string.info_minimum_amount_description, "**Bitcoin**", "**0.0005 BTC**") } returns "Minimum"
         every { context.getString(R.string.asset_buy_asset, "BTC") } returns "Buy BTC"
-        var bought = false
 
-        val sheet = GemInfoTopic.MinimumAmount(mockAsset().toGem(), BigInteger("50000")).infoSheet(context, null) { bought = true }
+        val sheet = GemInfoTopic.MinimumAmount(mockAsset().toGem(), BigInteger("50000")).infoSheet().sheet
 
-        assertEquals(R.string.info_minimum_amount_title, sheet.title)
-        assertEquals(listOf("**Bitcoin**", "**0.0005 BTC**"), sheet.descriptionArgs)
-        assertEquals("Buy BTC", sheet.actionLabel)
-        sheet.action?.invoke()
-        assertTrue(bought)
-    }
-
-    @Test
-    fun `a below minimum amount without a buy route offers no action`() {
-        val sheet = GemInfoTopic.MinimumAmount(mockAsset().toGem(), BigInteger("50000")).infoSheet(context, null)
-
-        assertNull(sheet.action)
-        assertNull(sheet.actionLabel)
+        assertEquals(GemInfoTitle.MinimumAmount, sheet.title)
+        assertEquals("Minimum", sheet.description.string(context))
+        assertEquals("Buy BTC", sheet.action?.label(context))
     }
 
     @Test
     fun `a missing swap quote opens the no quote sheet`() {
-        assertEquals(InfoSheetEntity.NoQuoteInfo, GemInfoTopic.NoQuote.infoSheet(context, null))
+        assertEquals(GemInfoTitle.NoQuote, GemInfoTopic.NoQuote.infoSheet().sheet.title)
     }
 
     private fun GemListRow.menu(): List<GemListRowMenuItem> = (uiModel(context) as GemListRowUIModel.Item).menu

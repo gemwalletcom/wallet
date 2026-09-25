@@ -9,6 +9,8 @@ import enum Gemstone.GemCollectibleAttributeValue
 import struct Gemstone.GemCollectibleDetails
 import protocol Gemstone.GemCollectibleServiceProtocol
 import enum Gemstone.GemHeaderButtonKind
+import struct Gemstone.GemInfoSheet
+import enum Gemstone.GemInfoTopic
 import GemstonePrimitives
 import GemstoneServices
 import ImageGalleryService
@@ -34,7 +36,7 @@ public final class CollectibleViewModel {
     var isPresentingToast: ToastMessage?
     var isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
     var isPresentingReportSheet = false
-    var isPresentingInfoSheet: InfoSheetType?
+    var isPresentingInfoSheet: GemInfoSheet?
     var isImageLoaded = false
 
     public init(
@@ -209,7 +211,7 @@ extension CollectibleViewModel {
     }
 
     func onSelectStatus() {
-        isPresentingInfoSheet = .assetStatus(assetData.collection.status)
+        isPresentingInfoSheet = GemInfoTopic.assetStatus(status: assetData.collection.status.toGem()).infoSheet
     }
 }
 

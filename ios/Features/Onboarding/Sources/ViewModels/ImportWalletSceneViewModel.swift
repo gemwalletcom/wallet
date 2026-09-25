@@ -1,5 +1,7 @@
 import Components
 import Foundation
+import struct Gemstone.GemInfoSheet
+import enum Gemstone.GemInfoTopic
 import protocol Gemstone.GemNameServiceProtocol
 import enum Gemstone.GemWalletImportKind
 import struct Gemstone.GemWalletImportScreen
@@ -7,6 +9,7 @@ import protocol Gemstone.GemWalletServiceProtocol
 import func Gemstone.phraseSuggestions
 import GemstonePrimitives
 import GemstoneServices
+import InfoSheet
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -43,7 +46,7 @@ final class ImportWalletSceneViewModel {
 
     var isPresentingScanner = false
     var isPresentingAlertMessage: AlertMessage?
-    var isPresentingExistingWalletName: String?
+    var isPresentingExistingWallet: GemInfoSheet?
 
     private let onComplete: VoidAction
 
@@ -187,7 +190,7 @@ extension ImportWalletSceneViewModel {
         isImporting = false
         switch result {
         case .new: onComplete?()
-        case let .existing(wallet): isPresentingExistingWalletName = wallet.name
+        case let .existing(wallet): isPresentingExistingWallet = GemInfoTopic.existingWalletImported(name: wallet.name).infoSheet
         }
     }
 }

@@ -20,6 +20,7 @@ use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::asset::wallet_default_assets;
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
+use crate::services::assets::icon::{GemAssetIcon, GemAssetIconImage};
 use crate::services::assets::rules::{fee_amount, fiat_amount_of};
 use crate::services::collections::unique;
 use crate::services::localization::GemLocalizedText;
@@ -249,6 +250,18 @@ pub fn detail_sections(rows: &GemTransactionDetailRows) -> Vec<GemTransactionDet
     .collect()
 }
 
+fn status_icon(rows: &GemTransactionDetailRows) -> GemAssetIcon {
+    let icon = crate::services::assets::icon::asset_icon(&rows.asset.id);
+    match &rows.header {
+        GemTransactionHeader::Nft { image_url, .. } => GemAssetIcon {
+            image: GemAssetIconImage::Remote { url: image_url.clone() },
+            badge: None,
+            ..icon
+        },
+        _ => icon,
+    }
+}
+
 fn status_row(rows: &GemTransactionDetailRows) -> GemListRow {
     GemListRow::Label {
         title: GemListRowTitle::Status,
@@ -258,7 +271,11 @@ fn status_row(rows: &GemTransactionDetailRows) -> GemListRow {
             GemTransactionStateTone::Success => GemValueTone::Positive,
             GemTransactionStateTone::Error => GemValueTone::Negative,
         },
-        info: Some(GemInfoTopic::TransactionStatus { state: rows.state, tone: rows.status.tone }),
+        info: Some(GemInfoTopic::TransactionStatus {
+            state: rows.state,
+            tone: rows.status.tone,
+            icon: status_icon(rows),
+        }),
         progress: rows.status.shows_progress,
     }
 }
@@ -1356,6 +1373,7 @@ mod tests {
                     info: Some(GemInfoTopic::TransactionStatus {
                         state: TransactionState::Confirmed,
                         tone: GemTransactionStateTone::Success,
+                        icon: crate::services::assets::icon::asset_icon(&transfer.asset.id),
                     }),
                     progress: false,
                 },
