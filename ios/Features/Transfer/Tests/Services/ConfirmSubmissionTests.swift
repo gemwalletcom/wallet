@@ -76,7 +76,7 @@ struct ConfirmSubmissionTests {
 
     @Test
     func simulationStateMapsBalanceChanges() async {
-        let usdt = Asset.mockEthereumUSDT()
+        let usdt = Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20)
         let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
             simulation: .mock(balanceChanges: [GemSimulationBalanceChange(asset: usdt.toGem(), icon: GemAssetConfigService.shared.assetIcon(assetId: usdt.id.identifier), amount: .mock())]),
         )))

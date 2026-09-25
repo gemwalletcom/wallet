@@ -15,7 +15,7 @@ public extension TransactionViewModel {
         fromAddress: AddressName? = nil,
         toAddress: AddressName? = nil,
         value: String = "1000000000000000000",
-        asset: Asset = .mockEthereum(),
+        asset: Asset = .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18),
         metadata: AnyCodableValue? = nil,
     ) -> TransactionViewModel {
         TransactionViewModel(
@@ -30,7 +30,10 @@ public extension TransactionViewModel {
                     metadata: metadata,
                 ),
                 asset: asset,
-                assets: [.mockEthereum(), .mockEthereumUSDT()],
+                assets: [
+                    .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18),
+                    .mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20),
+                ],
                 fromAddress: fromAddress,
                 toAddress: toAddress,
             ),

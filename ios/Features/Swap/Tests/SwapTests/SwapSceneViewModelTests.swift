@@ -25,35 +25,35 @@ struct SwapSceneViewModelTests {
         let model = SwapSceneViewModel.mock()
         let assetIds = model.assetIds
 
-        model.fromAssetQuery.value = .mock(asset: .mockEthereumUSDT())
-        model.toAssetQuery.value = .mock(asset: .mockEthereum(), balance: .mock())
+        model.fromAssetQuery.value = .mock(asset: .mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20))
+        model.toAssetQuery.value = .mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), balance: .mock())
 
         #expect(model.assetIds == assetIds)
-        #expect(model.assetIds == [AssetId.mockEthereum(), AssetId.mockEthereumUSDT()])
+        #expect(model.assetIds == [AssetId.mock(chain: .ethereum), AssetId.mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7")])
     }
 
     @Test
     func suggestPairAppliesTheCoreSuggestion() async {
-        let suggestion = GemSwapPairSuggestion(payAssetId: AssetId.mockEthereum().identifier, receiveAssetId: AssetId.mockEthereumUSDT().identifier)
+        let suggestion = GemSwapPairSuggestion(payAssetId: AssetId.mock(chain: .ethereum).identifier, receiveAssetId: AssetId.mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7").identifier)
         let model = SwapSceneViewModel.mock(service: GemSwapQuoteServiceMock(pairSuggestion: suggestion))
 
         await model.suggestPair()
 
-        #expect(model.pairSelectorModel.fromAssetId == .mockEthereum())
-        #expect(model.pairSelectorModel.toAssetId == .mockEthereumUSDT())
+        #expect(model.pairSelectorModel.fromAssetId == .mock(chain: .ethereum))
+        #expect(model.pairSelectorModel.toAssetId == .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"))
     }
 
     @Test
     func suggestPairKeepsAnAlreadySelectedReceiveAsset() async {
-        let suggestion = GemSwapPairSuggestion(payAssetId: AssetId.mockEthereum().identifier, receiveAssetId: AssetId.mockSolana().identifier)
+        let suggestion = GemSwapPairSuggestion(payAssetId: AssetId.mock(chain: .ethereum).identifier, receiveAssetId: AssetId.mock(chain: .solana).identifier)
         let model = SwapSceneViewModel.mock(
             service: GemSwapQuoteServiceMock(pairSuggestion: suggestion),
-            pairSelector: SwapPairSelectorViewModel(fromAssetId: .mockEthereum(), toAssetId: .mockEthereumUSDT()),
+            pairSelector: SwapPairSelectorViewModel(fromAssetId: .mock(chain: .ethereum), toAssetId: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7")),
         )
 
         await model.suggestPair()
 
-        #expect(model.pairSelectorModel.toAssetId == .mockEthereumUSDT())
+        #expect(model.pairSelectorModel.toAssetId == .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"))
     }
 
     @Test
@@ -203,7 +203,7 @@ struct SwapSceneViewModelTests {
 
         model.session = model.session.failedTransfer(.TransactionError("nonce"))
         model.loadTrigger = nil
-        model.toAssetQuery.value = .mock(asset: .mockBNB())
+        model.toAssetQuery.value = .mock(asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18))
         model.onChangeToAsset(old: oldAsset, new: model.toAsset)
 
         #expect(model.amountInputModel.text == "1")
@@ -219,7 +219,7 @@ struct SwapSceneViewModelTests {
         await model.load()
         let oldAsset = model.fromAsset
 
-        model.fromAssetQuery.value = .mock(asset: .mockBNB(), balance: .mock())
+        model.fromAssetQuery.value = .mock(asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18), balance: .mock())
         model.onChangeFromAsset(old: oldAsset, new: model.fromAsset)
 
         #expect(model.amountInputModel.text.isEmpty)
@@ -242,7 +242,10 @@ struct SwapSceneViewModelTests {
         #expect(model.loadTrigger?.isImmediate == true)
 
         model.loadTrigger = nil
-        model.onChangeToAsset(old: .mock(asset: .mockEthereum()), new: .mock(asset: .mockEthereumUSDT()))
+        model.onChangeToAsset(
+            old: .mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)),
+            new: .mock(asset: .mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20)),
+        )
 
         #expect(model.loadTrigger?.isImmediate == true)
 
@@ -368,8 +371,11 @@ struct SwapSceneViewModelTests {
         let model = SwapSceneViewModel.mock(service: service)
 
         model.onFinishSwapProviderSelection(.thorchain)
-        model.toAssetQuery.value = .mock(asset: .mockSolana())
-        model.onChangeToAsset(old: .mock(asset: .mockEthereumUSDT()), new: .mock(asset: .mockSolana()))
+        model.toAssetQuery.value = .mock(asset: .mock(id: .mock(chain: .solana), name: "Solana", symbol: "SOL", decimals: 9))
+        model.onChangeToAsset(
+            old: .mock(asset: .mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20)),
+            new: .mock(asset: .mock(id: .mock(chain: .solana), name: "Solana", symbol: "SOL", decimals: 9)),
+        )
         await model.load()
 
         #expect(model.selectedSwapQuote?.data.provider.id == .uniswapV3)
@@ -395,7 +401,7 @@ struct SwapSceneViewModelTests {
         await model.onAssetIdsChange(assetIds: model.assetIds)
         #expect(service.priceSubscriptions.count == 1)
         #expect(service.balanceUpdates.count == 1, "the balance the Max button spends from is refreshed with the prices")
-        #expect(Set(service.priceSubscriptions[0]) == Set([AssetId.mockEthereum(), AssetId.mockEthereumUSDT()].map(\.identifier)))
+        #expect(Set(service.priceSubscriptions[0]) == Set([AssetId.mock(chain: .ethereum), AssetId.mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7")].map(\.identifier)))
 
         model.amountInputModel.text = "2"
         model.onChangeFromValue("1", "2")
@@ -403,7 +409,7 @@ struct SwapSceneViewModelTests {
         model.onSelectSlippage(.manual(bps: 150))
         #expect(service.priceSubscriptions.count == 1, "typing, Max and slippage do not touch the pair")
 
-        model.toAssetQuery.value = .mock(asset: .mockSolana())
+        model.toAssetQuery.value = .mock(asset: .mock(id: .mock(chain: .solana), name: "Solana", symbol: "SOL", decimals: 9))
         await model.onAssetIdsChange(assetIds: model.assetIds)
         #expect(service.priceSubscriptions.count == 2)
         #expect(service.balanceUpdates.count == 2)

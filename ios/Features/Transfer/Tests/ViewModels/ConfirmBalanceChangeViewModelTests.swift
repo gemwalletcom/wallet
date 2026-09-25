@@ -14,7 +14,7 @@ import Testing
 struct ConfirmBalanceChangeViewModelTests {
     @Test
     func balanceChange() {
-        let solana = Asset.mockSolana()
+        let solana = Asset.mock(id: .mock(chain: .solana), name: "Solana", symbol: "SOL", decimals: 9)
         let change = { (value: Double, tone: GemValueTone) in
             ConfirmBalanceChangeViewModel(balanceChange: GemSimulationBalanceChange(
                 asset: solana.toGem(),

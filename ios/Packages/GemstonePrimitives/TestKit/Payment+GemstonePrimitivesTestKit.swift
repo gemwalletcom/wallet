@@ -37,7 +37,7 @@ public extension PaymentPrice {
 }
 
 public extension PaymentQuote {
-    static func mock(asset: Asset = .mockEthereum(), value: BigUInt = BigUInt(1_000_000_000_000_000)) -> PaymentQuote {
+    static func mock(asset: Asset = .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), value: BigUInt = BigUInt(1_000_000_000_000_000)) -> PaymentQuote {
         PaymentQuote(id: "option-\(asset.id.identifier)", assetId: asset.id.identifier, value: value)
     }
 }

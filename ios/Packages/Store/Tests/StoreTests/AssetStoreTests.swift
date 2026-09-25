@@ -24,12 +24,12 @@ struct AssetStoreTests {
     func addKeepsTheBackendPropertiesOnInsertAndOnUpdate() throws {
         let db = DB.mock()
         let store = AssetStore(db: db)
-        let asset = AssetBasic.mock(asset: .mockEthereum(), properties: .mock(hasImage: true))
+        let asset = AssetBasic.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), properties: .mock(hasImage: true))
 
         try store.add(assets: [asset])
         #expect(try store.getAssetBasics(for: [asset.asset.id.identifier]).first?.properties.hasImage == true)
 
-        try store.add(assets: [AssetBasic.mock(asset: .mockEthereum(), properties: .mock(hasImage: false))])
+        try store.add(assets: [AssetBasic.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), properties: .mock(hasImage: false))])
         #expect(try store.getAssetBasics(for: [asset.asset.id.identifier]).first?.properties.hasImage == false)
     }
 

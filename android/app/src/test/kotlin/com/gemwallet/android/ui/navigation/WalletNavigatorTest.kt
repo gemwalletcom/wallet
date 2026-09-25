@@ -138,7 +138,7 @@ class WalletNavigatorTest {
             }
             coEvery { openAsset(opened.toIdentifier()) } answers {
                 callingThreads += Thread.currentThread().name
-                mockAsset(chain = Chain.Tron).toGem()
+                mockAsset(id = mockAssetId(chain = Chain.Tron)).toGem()
             }
         }
         val navigator = navigatorWith(WalletRootRoute, assetsService = assetsService, scope = this)

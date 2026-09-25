@@ -25,13 +25,13 @@ struct ConfirmHeaderItemTests {
     func swapHidesClearHeader() {
         let headerType = TransactionHeaderType.swap(
             from: SwapAmountField(
-                assetId: .mockEthereum(),
+                assetId: .mock(chain: .ethereum),
                 assetImage: AssetImage(),
                 amount: "1 ETH",
                 fiatAmount: "$1",
             ),
             to: SwapAmountField(
-                assetId: Asset.mockEthereumUSDT().id,
+                assetId: Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20).id,
                 assetImage: AssetImage(),
                 amount: "2 USDC",
                 fiatAmount: "$2",
@@ -52,7 +52,10 @@ struct ConfirmHeaderItemTests {
 
     @Test
     func aValueHeaderDrawsTheAssetAndWhatItApproves() {
-        let value = GemSimulationValue(asset: Asset.mockEthereumUSDT().toGem(), value: .exact(value: BigUInt(1_000_000)))
+        let value = GemSimulationValue(
+            asset: Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20).toGem(),
+            value: .exact(value: BigUInt(1_000_000)),
+        )
         let model = GemConfirmHeader.value(value: value)
 
         guard case let .header(headerType, _) = model.itemModel,
@@ -68,7 +71,7 @@ struct ConfirmHeaderItemTests {
 
     @Test
     func aPlaceholderKeepsTheHeadInPlaceUntilTheValueArrives() {
-        let model = GemConfirmHeader.placeholder(assetId: Asset.mockEthereumUSDT().id.identifier)
+        let model = GemConfirmHeader.placeholder(assetId: Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20).id.identifier)
 
         guard case let .header(headerType, _) = model.itemModel,
               case let .assetValue(header) = headerType
@@ -83,7 +86,7 @@ struct ConfirmHeaderItemTests {
 
     @Test
     func aTransactionHeaderReadsThroughTheSharedMapper() {
-        let model = GemConfirmHeader.transaction(header: .amount(amount: .mock(asset: .mockEthereumUSDT())))
+        let model = GemConfirmHeader.transaction(header: .amount(amount: .mock(asset: .mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20))))
 
         guard case let .header(headerType, _) = model.itemModel, case .amount = headerType else {
             Issue.record("Expected the amount header")
@@ -94,7 +97,7 @@ struct ConfirmHeaderItemTests {
 
     @Test
     func aReservedHeaderKeepsItsPlaceHidden() {
-        let model = GemConfirmHeader.reserved(header: .amount(amount: .mock(asset: .mockEthereumUSDT())))
+        let model = GemConfirmHeader.reserved(header: .amount(amount: .mock(asset: .mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20))))
 
         guard case let .header(headerType, isReserved) = model.itemModel, case .amount = headerType else {
             Issue.record("Expected the amount header")

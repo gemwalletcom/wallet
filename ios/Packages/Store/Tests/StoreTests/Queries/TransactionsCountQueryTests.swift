@@ -11,7 +11,7 @@ struct TransactionsCountQueryTests {
     func countMatchesActivityList() throws {
         let db = DB.mockAssets(assets: [
             .mock(asset: .mock(), score: .mock(rank: 20)),
-            .mock(asset: .mockBNB(), score: .mock(rank: 0)),
+            .mock(asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18), score: .mock(rank: 0)),
         ])
         let walletId = WalletId.multicoin(address: "0x0000000000000000000000000000000000000000")
         let store = TransactionStore(db: db)

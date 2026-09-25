@@ -27,7 +27,7 @@ struct TransactionsQueryTests {
     @Test
     func perpetualScene() {
         let walletId = WalletId.multicoin(address: "wallet")
-        let assetId = Asset.mockHypercoreUSDC().id
+        let assetId = Asset.mock(id: .mock(chain: .hyperCore, tokenId: "perpetual::USDC"), name: "USDC", symbol: "USDC", decimals: 6, type: .perpetual).id
 
         #expect(
             TransactionsQuery.perpetualScene(

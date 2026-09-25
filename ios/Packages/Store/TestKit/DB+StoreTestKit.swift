@@ -55,9 +55,9 @@ public extension DB {
     }
 
     static func mockAssetsWithPerpetualCollateralBalance() throws -> DB {
-        let ethereum = Asset.mockEthereum()
-        let bnb = Asset.mockBNB()
-        let perpetual = Asset.mockHypercoreUSDC()
+        let ethereum = Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)
+        let bnb = Asset.mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18)
+        let perpetual = Asset.mock(id: .mock(chain: .hyperCore, tokenId: "perpetual::USDC"), name: "USDC", symbol: "USDC", decimals: 6, type: .perpetual)
         let db = DB.mockAssets(assets: [
             .mock(asset: ethereum),
             .mock(asset: bnb),

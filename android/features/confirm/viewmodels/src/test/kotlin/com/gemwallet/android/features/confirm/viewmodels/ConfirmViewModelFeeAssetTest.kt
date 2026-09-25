@@ -8,8 +8,8 @@ import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAccount
-import com.gemwallet.android.testkit.mockAssetEthereum
-import com.gemwallet.android.testkit.mockAssetEthereumUSDT
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockGemConfirmLoad
 import com.gemwallet.android.testkit.mockGemConfirmLoadOptions
 import com.gemwallet.android.testkit.mockGemConfirmScreen
@@ -17,6 +17,7 @@ import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import io.mockk.coEvery
@@ -46,8 +47,8 @@ import uniffi.gemstone.GemTransactionHeader
 class ConfirmViewModelFeeAssetTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
-    private val ethereum = mockAssetEthereum()
-    private val usdt = mockAssetEthereumUSDT()
+    private val ethereum = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
+    private val usdt = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xdac17f958d2ee523a2206206994597c13d831ec7"), name = "Tether", symbol = "USDT", decimals = 6, type = AssetType.ERC20)
     private val account = mockAccount(chain = Chain.Ethereum)
     private val confirmService = mockk<GemConfirmTransferService>(relaxed = true)
     private val confirmation = mockk<GemConfirmation>(relaxed = true).stubViewState()

@@ -17,7 +17,7 @@ import PrimitivesTestKit
 
 public extension NetworkFeeSceneViewModel {
     static func mock(
-        feeAsset: Asset = .mockEthereum(),
+        feeAsset: Asset = .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18),
         selection: GemConfirmFeeSelection = .priority(priority: .normal),
         feeRates: GemFeeRateRows? = nil,
         feeAssetPrice: Price? = nil,
@@ -59,7 +59,7 @@ public extension NetworkFeeSceneViewModel {
 }
 
 public extension FeeAssetItem {
-    static func mock(asset: Asset = .mockEthereum()) -> FeeAssetItem {
+    static func mock(asset: Asset = .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)) -> FeeAssetItem {
         FeeAssetItem(asset: asset, row: .mock(asset: asset), isSelected: false)
     }
 }

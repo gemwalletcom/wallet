@@ -210,7 +210,7 @@ struct SignMessageSceneViewModelTests {
     @Test
     @MainActor
     func permitHeaderReplacesValueField() {
-        let asset = Asset.mockEthereumUSDT()
+        let asset = Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20)
         let payload = GemWalletConnectMessageRequest.mock(
             message: .mockPermitBatch(),
             simulation: .mockPermitBatch(header: SimulationHeader(assetId: asset.id.identifier, value: nil, isUnlimited: true)),

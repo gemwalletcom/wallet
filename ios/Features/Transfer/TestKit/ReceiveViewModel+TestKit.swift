@@ -11,7 +11,7 @@ public extension ReceiveViewModel {
         service: any GemReceiveServiceProtocol = GemReceiveServiceMock(),
     ) -> ReceiveViewModel {
         ReceiveViewModel(
-            assetAddress: AssetAddress(asset: .mock(id: .mock(.bitcoin)), address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"),
+            assetAddress: AssetAddress(asset: .mock(id: .mock(chain: .bitcoin)), address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"),
             wallet: .mock(accounts: [.mock(chain: .bitcoin, address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"), .mock(chain: .ethereum, address: "0xabc"), .mock(chain: .solana, address: "So1ana")]),
             service: service,
         )

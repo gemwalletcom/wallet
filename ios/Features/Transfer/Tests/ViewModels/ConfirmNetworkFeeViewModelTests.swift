@@ -41,8 +41,8 @@ struct ConfirmNetworkFeeViewModelTests {
 
     @Test
     func loadedWithSelectableFeeAssetShowsSymbolOnRight() {
-        let pathUSD = FeeAssetItem.mock(asset: .mockTempoPathUSD())
-        let usdc = FeeAssetItem.mock(asset: .mockTempoUSDC())
+        let pathUSD = FeeAssetItem.mock(asset: .mock(id: .mock(chain: .tempo, tokenId: "0x20C0000000000000000000000000000000000000"), name: "pathUSD", symbol: "pathUSD", decimals: 6, type: .tip20))
+        let usdc = FeeAssetItem.mock(asset: .mock(id: .mock(chain: .tempo, tokenId: "0x20C000000000000000000000b9537d11c60E8b50"), name: "Bridged USDC", symbol: "USDC.e", decimals: 6, type: .tip20))
         let feeModel = NetworkFeeSceneViewModel.mock(
             feeAsset: pathUSD.asset,
             feeAssetPrice: .mock(price: 1),
@@ -68,8 +68,8 @@ struct ConfirmNetworkFeeViewModelTests {
 
     @Test
     func error() {
-        let pathUSD = FeeAssetItem.mock(asset: .mockTempoPathUSD())
-        let usdc = FeeAssetItem.mock(asset: .mockTempoUSDC())
+        let pathUSD = FeeAssetItem.mock(asset: .mock(id: .mock(chain: .tempo, tokenId: "0x20C0000000000000000000000000000000000000"), name: "pathUSD", symbol: "pathUSD", decimals: 6, type: .tip20))
+        let usdc = FeeAssetItem.mock(asset: .mock(id: .mock(chain: .tempo, tokenId: "0x20C000000000000000000000b9537d11c60E8b50"), name: "Bridged USDC", symbol: "USDC.e", decimals: 6, type: .tip20))
         let model = ConfirmNetworkFeeViewModel(
             feeRow: .unavailable(text: "-"),
             feeModel: .mock(

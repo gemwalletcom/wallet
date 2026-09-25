@@ -14,16 +14,20 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModelFactory
 import com.gemwallet.android.model.ChainAssetInfo
 import com.gemwallet.android.model.Session
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfo
-import com.gemwallet.android.testkit.mockAssetSolanaUSDC
 import com.gemwallet.android.testkit.mockChainAssetInfo
 import com.gemwallet.android.testkit.mockGemAssetDetails
 import com.gemwallet.android.testkit.mockGemAssetDetailsState
 import com.gemwallet.android.testkit.mockPriceAlert
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Banner
 import com.wallet.core.primitives.PriceAlertData
+import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.PriceAlert
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -55,7 +59,7 @@ import uniffi.gemstone.GemPriceAlertToggle
 @OptIn(ExperimentalCoroutinesApi::class)
 class AssetDetailsViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
-    private val asset = mockAssetSolanaUSDC()
+    private val asset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6, type = AssetType.SPL)
     private val viewModels = mutableListOf<ViewModel>()
 
     private val chainAssetInfoFlow = MutableStateFlow<ChainAssetInfo?>(

@@ -7,7 +7,7 @@ public extension TransactionSwapMetadata {
     static func mock(
         fromAsset: AssetId = .mock(),
         fromValue: String = "0",
-        toAsset: AssetId = .mock(.smartChain),
+        toAsset: AssetId = .mock(chain: .smartChain),
         toValue: String = "0",
         provider: String? = nil,
     ) -> TransactionSwapMetadata {

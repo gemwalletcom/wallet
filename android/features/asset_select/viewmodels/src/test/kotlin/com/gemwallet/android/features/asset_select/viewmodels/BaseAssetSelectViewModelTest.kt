@@ -10,7 +10,7 @@ import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.model.chains
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
-import com.gemwallet.android.testkit.mockAssetEthereum
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
@@ -70,8 +70,8 @@ class BaseAssetSelectViewModelTest {
         accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xabc"), mockAccount(chain = Chain.Bitcoin, address = "bc1q")),
     )
 
-    private val ethereum = mockAssetEthereum()
-    private val bitcoin = mockAsset()
+    private val ethereum = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
+    private val bitcoin = mockAsset(name = "Bitcoin", symbol = "BTC", decimals = 8)
 
     private fun sendFlow(): GemSelectAssetFlow = mockk(relaxed = true) {
         every { action } returns GemAssetAction.SEND
@@ -143,7 +143,7 @@ class BaseAssetSelectViewModelTest {
 
     @Test
     fun `the picker lists at most a hundred assets`() = runTest(dispatcher) {
-        val model = viewModel((1..101).map { mockAssetInfo(asset = mockAsset(chain = Chain.Ethereum, tokenId = "0x$it", type = AssetType.ERC20)) })
+        val model = viewModel((1..101).map { mockAssetInfo(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0x$it"), type = AssetType.ERC20)) })
 
         assertEquals(100, model.unpinned.first { it.isNotEmpty() }.size)
     }

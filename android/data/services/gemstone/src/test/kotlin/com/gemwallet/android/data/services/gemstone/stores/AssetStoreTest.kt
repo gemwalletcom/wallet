@@ -4,9 +4,10 @@ import com.gemwallet.android.data.services.store.database.AssetsDao
 import com.gemwallet.android.data.services.store.database.entities.DbAsset
 import com.gemwallet.android.data.services.store.database.entities.DbBalance
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.testkit.mockAssetEthereum
-import com.gemwallet.android.testkit.mockAssetSolana
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockWalletId
+import com.wallet.core.primitives.Chain
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
@@ -21,8 +22,8 @@ class GemstoneAssetStoreTest {
 
     @Test
     fun addMissingBalances_insertsHiddenBalancesInOneStatement() = runBlocking {
-        val solana = mockAssetSolana()
-        val ethereum = mockAssetEthereum()
+        val solana = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9)
+        val ethereum = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
         val walletId = mockWalletId()
 
         subject.addMissingBalances(walletId.id, listOf(solana.id.toIdentifier(), ethereum.id.toIdentifier()))

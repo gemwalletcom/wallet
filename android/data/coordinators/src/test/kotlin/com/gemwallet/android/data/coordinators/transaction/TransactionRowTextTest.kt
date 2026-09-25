@@ -5,9 +5,7 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.text
 import com.gemwallet.android.serializer.jsonEncoder
 import com.gemwallet.android.testkit.mockAsset
-import com.gemwallet.android.testkit.mockAssetEthereum
-import com.gemwallet.android.testkit.mockAssetEthereumUSDT
-import com.gemwallet.android.testkit.mockAssetSmartChain
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockTransaction
 import com.gemwallet.android.testkit.mockTransactionId
 import com.gemwallet.android.testkit.mockTransactionListItem
@@ -72,9 +70,9 @@ class TransactionRowTextTest {
         System.clearProperty(gemstoneLibraryOverrideProperty)
     }
 
-    private val btcAsset = mockAsset()
+    private val btcAsset = mockAsset(name = "Bitcoin", symbol = "BTC", decimals = 8)
 
-    private val ethAsset = mockAssetEthereum()
+    private val ethAsset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
 
     private fun row(transaction: TransactionListItem): GemTransactionRow = transactionRows(listOf(transaction.toGem())).first()
 
@@ -87,7 +85,7 @@ class TransactionRowTextTest {
             type = TransactionType.Transfer,
             direction = TransactionDirection.Incoming,
         )
-        val item = mockTransactionListItem(transaction)
+        val item = mockTransactionListItem(transaction, asset = btcAsset)
         val row = row(item)
 
         assertEquals(TransactionId(Chain.Bitcoin, "test-id-123"), TransactionId(row.id))
@@ -258,7 +256,8 @@ class TransactionRowTextTest {
             direction = TransactionDirection.Outgoing,
             value = "1000000",
         )
-        val item = mockTransactionListItem(transaction, asset = mockAssetEthereumUSDT())
+        val item =
+            mockTransactionListItem(transaction, asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xdac17f958d2ee523a2206206994597c13d831ec7"), name = "Tether", symbol = "USDT", decimals = 6, type = AssetType.ERC20))
         val row = row(item)
 
         assertEquals("USDT", row.value.text().orEmpty())
@@ -281,10 +280,9 @@ class TransactionRowTextTest {
 
     @Test
     fun testValue_swap() {
-        val bnbAsset = mockAssetSmartChain()
+        val bnbAsset = mockAsset(id = mockAssetId(chain = Chain.SmartChain), name = "BNB", symbol = "BNB", decimals = 18)
         val tonAsset = mockAsset(
-            chain = Chain.SmartChain,
-            tokenId = "0x76A797A59Ba2C17726896976B7B3747BfD1d220f",
+            id = mockAssetId(chain = Chain.SmartChain, tokenId = "0x76A797A59Ba2C17726896976B7B3747BfD1d220f"),
             name = "Ton",
             symbol = "TON",
             decimals = 9,

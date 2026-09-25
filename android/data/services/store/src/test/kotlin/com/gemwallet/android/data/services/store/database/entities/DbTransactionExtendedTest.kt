@@ -1,9 +1,11 @@
 package com.gemwallet.android.data.services.store.database.entities
 
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.testkit.mockAssetEthereum
-import com.gemwallet.android.testkit.mockAssetEthereumUSDT
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.wallet.core.primitives.AssetPrice
+import com.wallet.core.primitives.AssetType
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.TransactionType
 import org.junit.Assert.assertEquals
@@ -11,8 +13,8 @@ import org.junit.Test
 
 class DbTransactionExtendedTest {
 
-    private val eth = mockAssetEthereum()
-    private val usdt = mockAssetEthereumUSDT()
+    private val eth = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
+    private val usdt = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xdac17f958d2ee523a2206206994597c13d831ec7"), name = "Tether", symbol = "USDT", decimals = 6, type = AssetType.ERC20)
 
     @Test
     fun toDTO_pricesEveryTransactionAsset() {

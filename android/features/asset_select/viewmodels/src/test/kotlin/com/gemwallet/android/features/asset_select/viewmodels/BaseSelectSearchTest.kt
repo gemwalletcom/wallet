@@ -4,7 +4,8 @@ import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.mockSelectAssetFilters
 import com.gemwallet.android.model.NO_QUERY_LIMIT
-import com.gemwallet.android.testkit.mockAssetEthereum
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.wallet.core.primitives.Chain
 import io.mockk.every
@@ -23,7 +24,7 @@ import uniffi.gemstone.GemSelectAssetScope
 @OptIn(ExperimentalCoroutinesApi::class)
 class BaseSelectSearchTest {
 
-    private val results = listOf(mockAssetInfo(asset = mockAssetEthereum()))
+    private val results = listOf(mockAssetInfo(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)))
 
     @Test
     fun `non-empty query with no matches emits empty list`() = runTest {

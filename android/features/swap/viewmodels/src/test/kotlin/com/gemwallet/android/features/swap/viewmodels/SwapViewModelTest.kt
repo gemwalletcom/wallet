@@ -14,11 +14,11 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.testkit.mockAccount
+import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetBalance
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetPriceInfo
-import com.gemwallet.android.testkit.mockAssetSolana
-import com.gemwallet.android.testkit.mockAssetSolanaUSDC
 import com.gemwallet.android.testkit.mockGemSwapSession
 import com.gemwallet.android.testkit.mockGemSwapTransfer
 import com.gemwallet.android.testkit.mockSession
@@ -30,6 +30,8 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.AssetType
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import io.mockk.clearMocks
 import io.mockk.coEvery
@@ -78,8 +80,8 @@ class SwapViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
 
-    private val solAsset = mockAssetSolana()
-    private val usdcAsset = mockAssetSolanaUSDC()
+    private val solAsset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9)
+    private val usdcAsset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6, type = AssetType.SPL)
     private val solInfo = mockAssetInfo(
         asset = solAsset,
         balance = mockAssetBalance(solAsset, available = BigInteger("1000000000")),

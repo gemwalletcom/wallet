@@ -76,7 +76,7 @@ final class FiatSceneViewModelTests {
 
     @Test
     func assetBalanceIncludesSymbol() {
-        let asset = Asset.mockTron()
+        let asset = Asset.mock(id: .mock(chain: .tron), name: "TRON", symbol: "TRX", decimals: 6)
         let model = FiatSceneViewModel.mock(assetAddress: .mock(asset: asset))
 
         model.assetQuery.value = .mock(
@@ -89,7 +89,7 @@ final class FiatSceneViewModelTests {
 
     @Test
     func aZeroBalanceShows() {
-        let asset = Asset.mockTron()
+        let asset = Asset.mock(id: .mock(chain: .tron), name: "TRON", symbol: "TRX", decimals: 6)
         let model = FiatSceneViewModel.mock(assetAddress: .mock(asset: asset))
 
         model.assetQuery.value = .mock(asset: asset, balance: .zero)
@@ -127,8 +127,9 @@ final class FiatSceneViewModelTests {
 
     @Test
     func rateValue() {
-        let model = FiatSceneViewModel.mock()
-        model.session = model.session.onQuoteResults(results: .mock(quotes: [.mock(fiatAmount: 1200, cryptoAmount: 2.0)]))
+        let asset = Asset.mock(name: "Bitcoin", symbol: "BTC", decimals: 8)
+        let model = FiatSceneViewModel.mock(assetAddress: .mock(asset: asset))
+        model.session = model.session.onQuoteResults(results: .mock(quotes: [.mock(asset: asset, fiatAmount: 1200, cryptoAmount: 2.0)]))
 
         guard case let .rate(_, rate, _) = model.viewState.rateRow else {
             Issue.record("a selected quote shows its rate")
@@ -140,7 +141,7 @@ final class FiatSceneViewModelTests {
 
     @Test
     func balanceChangeReachesTheSession() {
-        let asset = Asset.mockEthereumUSDT()
+        let asset = Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20)
         let model = FiatSceneViewModel.mock(assetAddress: .mock(asset: asset), type: .sell)
 
         model.onAssetDataChange(
@@ -153,13 +154,14 @@ final class FiatSceneViewModelTests {
 
     @Test
     func selectingProviderRevalidatesSellBalance() {
-        let affordable = FiatQuote.mock(fiatAmount: 100, cryptoAmount: 1, type: .sell)
-        let unaffordable = FiatQuote.mock(fiatAmount: 100, cryptoAmount: 3, type: .sell, providerId: .transak)
-        let model = FiatSceneViewModel.mock(type: .sell)
+        let asset = Asset.mock(name: "Bitcoin", symbol: "BTC", decimals: 8)
+        let affordable = FiatQuote.mock(asset: asset, fiatAmount: 100, cryptoAmount: 1, type: .sell)
+        let unaffordable = FiatQuote.mock(asset: asset, fiatAmount: 100, cryptoAmount: 3, type: .sell, providerId: .transak)
+        let model = FiatSceneViewModel.mock(assetAddress: .mock(asset: asset), type: .sell)
 
         model.onAssetDataChange(
-            .mock(),
-            .mock(balance: .mock(available: BigInt(200_000_000))),
+            .mock(asset: asset),
+            .mock(asset: asset, balance: .mock(available: BigInt(200_000_000))),
         )
         model.session = model.session.onQuoteResults(results: .mock(quotes: [affordable, unaffordable], amount: 100, type: .sell))
 

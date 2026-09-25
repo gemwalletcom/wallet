@@ -1,7 +1,9 @@
 package com.gemwallet.android.domains.confirm
 
-import com.gemwallet.android.testkit.mockAssetSolana
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockFeeInfo
+import com.wallet.core.primitives.Chain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -26,7 +28,7 @@ class FeeUIModelTest {
     @Test fun additionalFeesKeepNetworkFeeTotal() {
         val fee = mockFeeInfo(
             amount = BigInteger("1495940"),
-            feeAsset = mockAssetSolana(),
+            feeAsset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9),
             additionalFees = listOf(
                 FeeOption.TOKEN_ACCOUNT_CREATION to BigInteger("1488440"),
                 FeeOption.TOKEN_ACCOUNT_CREATION to BigInteger("1000"),
@@ -38,12 +40,12 @@ class FeeUIModelTest {
         assertEquals(listOf(FeeOption.TOKEN_ACCOUNT_CREATION, FeeOption.TOKEN_ACCOUNT_CREATION), fee.feeItems.map { it.first })
         assertEquals(BigInteger("1488440"), fee.feeItems.first().second.amount)
         assertEquals("0.001488 SOL", fee.feeItems.first().second.cryptoAmount)
-        assertEquals(emptyList<Pair<FeeOption, FeeUIModel.FeeInfo>>(), mockFeeInfo(amount = BigInteger("1000000000"), feeAsset = mockAssetSolana()).feeItems)
+        assertEquals(emptyList<Pair<FeeOption, FeeUIModel.FeeInfo>>(), mockFeeInfo(amount = BigInteger("1000000000"), feeAsset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9)).feeItems)
     }
 
     @Test fun formatsCryptoAndFiat() {
-        val noPrice = mockFeeInfo(amount = BigInteger("1000000000"), feeAsset = mockAssetSolana())
-        val withPrice = mockFeeInfo(amount = BigInteger("1000000000"), feeAsset = mockAssetSolana(), price = 200.0)
+        val noPrice = mockFeeInfo(amount = BigInteger("1000000000"), feeAsset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9))
+        val withPrice = mockFeeInfo(amount = BigInteger("1000000000"), feeAsset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9), price = 200.0)
 
         assertEquals("1 SOL", noPrice.cryptoAmount)
         assertEquals("", noPrice.fiatAmount)

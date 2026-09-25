@@ -12,8 +12,8 @@ import PrimitivesTestKit
 
 public extension GemSwapRequest {
     static let mock = GemSwapRequest(
-        payAssetId: AssetId.mockEthereum().identifier,
-        receiveAssetId: AssetId.mockEthereumUSDT().identifier,
+        payAssetId: AssetId.mock(chain: .ethereum).identifier,
+        receiveAssetId: AssetId.mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7").identifier,
         value: 1_000_000_000_000_000_000,
         slippageBps: nil,
     )

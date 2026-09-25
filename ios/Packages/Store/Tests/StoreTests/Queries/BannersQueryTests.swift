@@ -13,9 +13,9 @@ struct BannersQueryTests {
 
     init() throws {
         try AssetStore(db: db).add(assets: [
-            .mock(asset: .mockTron()),
-            .mock(asset: .mockTronUSDT()),
-            .mock(asset: .mockEthereum()),
+            .mock(asset: .mock(id: .mock(chain: .tron), name: "TRON", symbol: "TRX", decimals: 6)),
+            .mock(asset: .mock(id: .mock(chain: .tron, tokenId: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"), name: "Tether USD", symbol: "USDT", decimals: 6, type: .trc20)),
+            .mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)),
         ])
         try WalletStore(db: db).addWallet(wallet)
         try WalletStore(db: db).addWallet(otherWallet)
@@ -24,14 +24,17 @@ struct BannersQueryTests {
         ])
     }
 
-    @Test(arguments: [Asset.mockTron().id, Asset.mockTronUSDT().id])
+    @Test(arguments: [
+        Asset.mock(id: .mock(chain: .tron), name: "TRON", symbol: "TRX", decimals: 6).id,
+        Asset.mock(id: .mock(chain: .tron, tokenId: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"), name: "Tether USD", symbol: "USDT", decimals: 6, type: .trc20).id,
+    ])
     func nativeAndTokenAssetsIncludeMultiSignatureWarning(assetId: AssetId) throws {
         let banners = try db.dbQueue.read {
             try BannersQuery(walletId: wallet.id, assetId: assetId, events: BannerEvent.allCases).fetch($0)
         }
 
         #expect(banners.map(\.event) == [.accountBlockedMultiSignature])
-        #expect(banners.first?.asset == .mockTron())
+        #expect(banners.first?.asset == .mock(id: .mock(chain: .tron), name: "TRON", symbol: "TRX", decimals: 6))
     }
 
     @Test
@@ -42,20 +45,20 @@ struct BannersQueryTests {
             NewBanner(id: "stake", assetId: Chain.tron.assetId, event: .stake, state: .active),
         ])
         let banners = try db.dbQueue.read {
-            try BannersQuery(walletId: wallet.id, assetId: Asset.mockTronUSDT().id, events: BannerEvent.allCases).fetch($0)
+            try BannersQuery(walletId: wallet.id, assetId: Asset.mock(id: .mock(chain: .tron, tokenId: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"), name: "Tether USD", symbol: "USDT", decimals: 6, type: .trc20).id, events: BannerEvent.allCases).fetch($0)
         }
 
         #expect(banners.count == 2)
         #expect(Set(banners.map(\.event)) == [.accountBlockedMultiSignature, .stake])
         #expect(banners.first { $0.event == .accountBlockedMultiSignature }?.walletId == wallet.id)
-        #expect(banners.allSatisfy { $0.asset == .mockTron() })
+        #expect(banners.allSatisfy { $0.asset == .mock(id: .mock(chain: .tron), name: "TRON", symbol: "TRX", decimals: 6) })
     }
 
     @Test
     func cancelledWarningKeepsItsStateForCore() throws {
         try BannerStore(db: db).updateState("tron-warning", state: .cancelled)
         let banners = try db.dbQueue.read {
-            try BannersQuery(walletId: wallet.id, assetId: Asset.mockTronUSDT().id, events: BannerEvent.allCases).fetch($0)
+            try BannersQuery(walletId: wallet.id, assetId: Asset.mock(id: .mock(chain: .tron, tokenId: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"), name: "Tether USD", symbol: "USDT", decimals: 6, type: .trc20).id, events: BannerEvent.allCases).fetch($0)
         }
 
         #expect(banners.map(\.state) == [.cancelled])

@@ -27,7 +27,7 @@ public extension GemTransferData {
     }
 
     static func mockPayment(
-        asset: Asset = .mockSolana(),
+        asset: Asset = .mock(id: .mock(chain: .solana), name: "Solana", symbol: "SOL", decimals: 9),
         transaction: String = "transaction",
         recipient: GemRecipient = .mock(),
         value: BigInt = .zero,

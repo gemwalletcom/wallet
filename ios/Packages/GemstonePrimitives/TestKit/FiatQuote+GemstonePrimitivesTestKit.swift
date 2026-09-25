@@ -20,6 +20,7 @@ import PrimitivesTestKit
 public extension FiatQuote {
     static func mock(
         id: String = UUID().uuidString,
+        asset: Primitives.Asset = .mock(),
         fiatAmount: Double = 0,
         cryptoAmount: Double = 0,
         type: FiatQuoteType = .buy,
@@ -28,7 +29,7 @@ public extension FiatQuote {
     ) -> FiatQuote {
         FiatQuote(
             id: id,
-            asset: Primitives.Asset.mock().toGem(),
+            asset: asset.toGem(),
             provider: .mock(id: providerId),
             quoteType: type,
             fiatAmount: fiatAmount,

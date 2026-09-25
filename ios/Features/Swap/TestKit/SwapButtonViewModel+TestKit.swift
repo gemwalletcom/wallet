@@ -20,8 +20,8 @@ extension SwapButtonViewModel {
         SwapButtonViewModel(
             state: session.viewState(
                 pay: GemSwapAssetData(
-                    asset: Asset.mockEthereum().toGem(),
-                    balance: GemAssetBalance(Balance.mock(available: availableBalance), assetId: Asset.mockEthereum().id, isActive: true),
+                    asset: Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).toGem(),
+                    balance: GemAssetBalance(Balance.mock(available: availableBalance), assetId: Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).id, isActive: true),
                     price: nil,
                 ),
                 receive: nil,

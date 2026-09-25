@@ -45,7 +45,7 @@ class NotificationNavigationTest {
 
     @Test
     fun `an asset Core opened becomes its route`() = runBlocking {
-        val asset = mockAsset(chain = Chain.Ethereum)
+        val asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum))
 
         val routes = navigation(GemNavigationTarget.Asset(asset.toGem(), walletId = null, isPerpetual = false)).prepareNavigation(GemPushNotification.Rewards).routes
 
@@ -54,7 +54,7 @@ class NotificationNavigationTest {
 
     @Test
     fun `a perpetual opens its market before its position`() = runBlocking {
-        val asset = mockAsset(chain = Chain.HyperCore, tokenId = "perpetual::UNI", type = AssetType.PERPETUAL)
+        val asset = mockAsset(id = mockAssetId(chain = Chain.HyperCore, tokenId = "perpetual::UNI"), type = AssetType.PERPETUAL)
 
         val routes = navigation(GemNavigationTarget.Asset(asset.toGem(), walletId = null, isPerpetual = true)).prepareNavigation(GemPushNotification.Rewards).routes
 
@@ -65,7 +65,7 @@ class NotificationNavigationTest {
     fun `a transaction Core opened routes to its details`() = runBlocking {
         val assetId = mockAssetId(Chain.Ethereum)
         val walletId = mockWalletId("multicoin_0x1")
-        val asset = mockAsset(chain = assetId.chain, tokenId = assetId.tokenId)
+        val asset = mockAsset(id = assetId)
         val transaction = mockTransaction(assetId = assetId)
 
         val routes = navigation(GemNavigationTarget.Transaction(asset.toGem(), walletId.id, transaction.toGem(), isPerpetual = false))

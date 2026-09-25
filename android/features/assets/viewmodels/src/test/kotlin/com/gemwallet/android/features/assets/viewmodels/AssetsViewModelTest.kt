@@ -6,11 +6,12 @@ import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.model.Session
-import com.gemwallet.android.testkit.mockAssetEthereum
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfoDataAggregate
-import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
+import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -44,8 +45,8 @@ class AssetsViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val activeAssetsFlow = MutableStateFlow(
         listOf(
-            mockAssetInfoDataAggregate(asset = mockAssetSolana(), pinned = true),
-            mockAssetInfoDataAggregate(asset = mockAssetEthereum()),
+            mockAssetInfoDataAggregate(asset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9), pinned = true),
+            mockAssetInfoDataAggregate(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)),
         ),
     )
 
@@ -91,8 +92,8 @@ class AssetsViewModelTest {
     fun `a pin change moves the asset between the sections in one update`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
         advanceUntilIdle()
-        val solana = mockAssetInfoDataAggregate(asset = mockAssetSolana())
-        val ethereum = mockAssetInfoDataAggregate(asset = mockAssetEthereum(), pinned = true)
+        val solana = mockAssetInfoDataAggregate(asset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9))
+        val ethereum = mockAssetInfoDataAggregate(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18), pinned = true)
 
         activeAssetsFlow.value = listOf(solana, ethereum)
         advanceUntilIdle()

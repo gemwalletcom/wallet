@@ -1,5 +1,7 @@
 package com.gemwallet.android.data.services.store.integration
 
+import com.gemwallet.android.testkit.mockAssetId
+import com.gemwallet.android.testkit.mockAsset
 import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -8,7 +10,6 @@ import com.gemwallet.android.data.services.store.database.entities.DbBanner
 import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.data.services.store.queries.BannersQuery
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.testkit.mockAssetTron
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.BannerEvent
 import com.wallet.core.primitives.BannerState
@@ -25,7 +26,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class BannersQueryTest {
     private lateinit var database: GemDatabase
-    private val asset = mockAssetTron()
+    private val asset = mockAsset(id = mockAssetId(chain = Chain.Tron), name = "Tron", symbol = "TRX", decimals = 6)
     private val tokenId = AssetId(Chain.Tron, "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")
     private val warning = DbBanner(
         id = "tron-multisignature",

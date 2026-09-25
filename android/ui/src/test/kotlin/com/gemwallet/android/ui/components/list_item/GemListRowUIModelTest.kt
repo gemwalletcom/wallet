@@ -175,7 +175,7 @@ class GemListRowUIModelTest {
         every { context.getString(R.string.info_minimum_amount_description, "**Bitcoin**", "**0.0005 BTC**") } returns "Minimum"
         every { context.getString(R.string.asset_buy_asset, "BTC") } returns "Buy BTC"
 
-        val sheet = GemInfoTopic.MinimumAmount(mockAsset().toGem(), BigInteger("50000")).infoSheet().sheet
+        val sheet = GemInfoTopic.MinimumAmount(mockAsset(name = "Bitcoin", symbol = "BTC", decimals = 8).toGem(), BigInteger("50000")).infoSheet().sheet
 
         assertEquals(GemInfoTitle.MinimumAmount, sheet.title)
         assertEquals("Minimum", sheet.description.string(context))

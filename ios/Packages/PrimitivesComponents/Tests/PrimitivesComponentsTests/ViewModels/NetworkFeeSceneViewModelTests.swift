@@ -26,7 +26,7 @@ struct NetworkFeeSceneViewModelTests {
     @Test
     func additionalFeesKeepNetworkFeeTotal() {
         let model = NetworkFeeSceneViewModel.mock(
-            feeAsset: .mockSolana(),
+            feeAsset: .mock(id: .mock(chain: .solana), name: "Solana", symbol: "SOL", decimals: 9),
             feeAmount: 1_495_940,
             additionalFees: [(.tokenAccountCreation, 1_488_440), (.tokenAccountCreation, 1000)],
         )
@@ -45,8 +45,8 @@ struct NetworkFeeSceneViewModelTests {
 
     @Test
     func showFeeAssetsOnlyWhenAlternativeAssetIsSelectable() {
-        let pathUSD = FeeAssetItem.mock(asset: .mockTempoPathUSD())
-        let usdc = FeeAssetItem.mock(asset: .mockTempoUSDC())
+        let pathUSD = FeeAssetItem.mock(asset: .mock(id: .mock(chain: .tempo, tokenId: "0x20C0000000000000000000000000000000000000"), name: "pathUSD", symbol: "pathUSD", decimals: 6, type: .tip20))
+        let usdc = FeeAssetItem.mock(asset: .mock(id: .mock(chain: .tempo, tokenId: "0x20C000000000000000000000b9537d11c60E8b50"), name: "Bridged USDC", symbol: "USDC.e", decimals: 6, type: .tip20))
         let onSelect: @MainActor (AssetId) -> Void = { _ in }
         let selectable = NetworkFeeSceneViewModel.mock(feeAsset: pathUSD.asset, feeAssets: [pathUSD, usdc], showsFeeAssets: true, onSelectFeeAsset: onSelect)
 
@@ -58,8 +58,8 @@ struct NetworkFeeSceneViewModelTests {
 
     @Test
     func feeAssetSymbolShownOnlyWhenSelectable() {
-        let pathUSD = FeeAssetItem.mock(asset: .mockTempoPathUSD())
-        let usdc = FeeAssetItem.mock(asset: .mockTempoUSDC())
+        let pathUSD = FeeAssetItem.mock(asset: .mock(id: .mock(chain: .tempo, tokenId: "0x20C0000000000000000000000000000000000000"), name: "pathUSD", symbol: "pathUSD", decimals: 6, type: .tip20))
+        let usdc = FeeAssetItem.mock(asset: .mock(id: .mock(chain: .tempo, tokenId: "0x20C000000000000000000000b9537d11c60E8b50"), name: "Bridged USDC", symbol: "USDC.e", decimals: 6, type: .tip20))
         let onSelect: @MainActor (AssetId) -> Void = { _ in }
 
         #expect(NetworkFeeSceneViewModel.mock(feeAsset: pathUSD.asset).feeAssetSymbol == nil)
@@ -81,8 +81,8 @@ struct NetworkFeeSceneViewModelTests {
 
     @Test
     func selectFeeAssetForwardsAssetIdToOwner() async {
-        let pathUSD = FeeAssetItem.mock(asset: .mockTempoPathUSD())
-        let usdc = FeeAssetItem.mock(asset: .mockTempoUSDC())
+        let pathUSD = FeeAssetItem.mock(asset: .mock(id: .mock(chain: .tempo, tokenId: "0x20C0000000000000000000000000000000000000"), name: "pathUSD", symbol: "pathUSD", decimals: 6, type: .tip20))
+        let usdc = FeeAssetItem.mock(asset: .mock(id: .mock(chain: .tempo, tokenId: "0x20C000000000000000000000b9537d11c60E8b50"), name: "Bridged USDC", symbol: "USDC.e", decimals: 6, type: .tip20))
 
         await confirmation { selected in
             let model = NetworkFeeSceneViewModel.mock(
@@ -145,7 +145,7 @@ struct NetworkFeeSceneViewModelTests {
     @Test
     func fiatValueForNativeFeeType() throws {
         let model = NetworkFeeSceneViewModel.mock(
-            feeAsset: .mockSolana(),
+            feeAsset: .mock(id: .mock(chain: .solana), name: "Solana", symbol: "SOL", decimals: 9),
             feeRates: .mock([(.normal, 5000, 5000)], unitType: .native, decimals: 9),
             feeAssetPrice: .mock(price: 150.0),
             feeAmount: BigInt(5000),
@@ -170,7 +170,7 @@ struct NetworkFeeSceneViewModelTests {
     @Test
     func fiatValueNilWithoutPriceData() throws {
         let model = NetworkFeeSceneViewModel.mock(
-            feeAsset: .mockSolana(),
+            feeAsset: .mock(id: .mock(chain: .solana), name: "Solana", symbol: "SOL", decimals: 9),
             feeRates: .mock([(.normal, 5000, 5000)], unitType: .native, decimals: 9),
             feeAmount: BigInt(5000),
         )
@@ -182,7 +182,7 @@ struct NetworkFeeSceneViewModelTests {
     @Test
     func selectForwardsSelectionToOwner() async {
         await confirmation { selected in
-            NetworkFeeSceneViewModel.mock(feeAsset: .mockSolana(), onSelect: {
+            NetworkFeeSceneViewModel.mock(feeAsset: .mock(id: .mock(chain: .solana), name: "Solana", symbol: "SOL", decimals: 9), onSelect: {
                 #expect($0 == .priority(priority: .fast))
                 selected()
             })
@@ -280,14 +280,14 @@ struct NetworkFeeSceneViewModelTests {
     @Test
     func valueUsesFeeAssetForHyperCorePerpetualFee() {
         let feeAmount = BigInt(12_345_678)
-        let feeAsset = Asset.mockHypercoreUSDC()
+        let feeAsset = Asset.mock(id: .mock(chain: .hyperCore, tokenId: "perpetual::USDC"), name: "USDC", symbol: "USDC", decimals: 6, type: .perpetual)
         let model = NetworkFeeSceneViewModel.mock(
             feeAsset: feeAsset,
             feeAmount: feeAmount,
         )
 
         #expect(model.value == feeAsset.feeText(feeAmount))
-        #expect(model.value != Asset.mockHypercore().feeText(feeAmount))
+        #expect(model.value != Asset.mock(id: .mock(chain: .hyperCore), name: "Hyperliquid", symbol: "HYPE", decimals: 8).feeText(feeAmount))
     }
 }
 

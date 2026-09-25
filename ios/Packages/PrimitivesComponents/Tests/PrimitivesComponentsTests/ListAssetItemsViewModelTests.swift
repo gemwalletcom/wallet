@@ -28,7 +28,7 @@ struct ListAssetItemsViewModelTests {
     @Test
     func theSymbolShowsOnlyWhenItAddsToTheTitleTheRowShows() {
         let usdc = AssetData.mock(asset: .mock(id: AssetId(chain: .ethereum, tokenId: "0xusdc"), name: "USDC", symbol: "USDC", decimals: 6, type: .erc20))
-        let ethereum = AssetData.mock(asset: .mockEthereum())
+        let ethereum = AssetData.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18))
 
         #expect(row(usdc, .receive).titleExtra == nil, "a name that already is the symbol is not repeated")
         #expect(row(ethereum, .receive).titleExtra == "ETH")
@@ -37,8 +37,8 @@ struct ListAssetItemsViewModelTests {
 
     @Test
     func theBalanceAndItsFiatAreTheOnesCoreFormatted() {
-        let held = row(.mock(asset: .mockEthereum(), balance: .mock(available: BigInt("2000000000000000000")), price: .mock(price: 1500)), .send)
-        let empty = row(.mock(asset: .mockEthereum(), balance: .zero, price: .mock(price: 1500)), .send)
+        let held = row(.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), balance: .mock(available: BigInt("2000000000000000000")), price: .mock(price: 1500)), .send)
+        let empty = row(.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), balance: .zero, price: .mock(price: 1500)), .send)
 
         guard case let .value(balance, fiat) = held.trailing, case let .value(_, emptyFiat) = empty.trailing else {
             Issue.record("a send row trails its balance")
@@ -51,13 +51,13 @@ struct ListAssetItemsViewModelTests {
 
     @Test
     func theNetworkSubtitleNamesTheChainForTokensOnly() {
-        #expect(row(.mock(asset: .mockEthereumUSDT()), .receive).subtitle?.text.text == "Ethereum")
-        #expect(row(.mock(asset: .mockEthereum()), .receive).subtitle == nil, "a coin's row already names its network")
+        #expect(row(.mock(asset: .mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20)), .receive).subtitle?.text.text == "Ethereum")
+        #expect(row(.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)), .receive).subtitle == nil, "a coin's row already names its network")
     }
 
     @Test
     func theWalletListHidesItsBalancesWithThePrivacyToggle() {
-        let wallet = ListAssetItemsViewModel(currency: .usd).rows([.mock(asset: .mockEthereum(), price: .mock(price: 1500))])
+        let wallet = ListAssetItemsViewModel(currency: .usd).rows([.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), price: .mock(price: 1500))])
 
         #expect(wallet.first?.masksBalance == true)
     }

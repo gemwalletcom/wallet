@@ -10,11 +10,12 @@ import com.gemwallet.android.data.services.store.database.entities.toDTO
 import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
-import com.gemwallet.android.testkit.mockAssetEthereum
-import com.gemwallet.android.testkit.mockAssetEthereumUSDT
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockTransaction
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.AssetPrice
+import com.wallet.core.primitives.AssetType
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.TransactionType
 import kotlinx.coroutines.Dispatchers
@@ -31,7 +32,7 @@ class TransactionAssetsTest {
     private lateinit var database: GemDatabase
     private val wallet = mockWallet()
     private val bitcoin = mockAsset()
-    private val usdt = mockAssetEthereumUSDT()
+    private val usdt = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xdac17f958d2ee523a2206206994597c13d831ec7"), name = "Tether", symbol = "USDT", decimals = 6, type = AssetType.ERC20)
     private val swap = mockTransaction(type = TransactionType.Swap)
 
     @Before
@@ -41,7 +42,7 @@ class TransactionAssetsTest {
             GemDatabase::class.java,
         ).build()
         database.walletsDao().insert(wallet.toRecord())
-        database.assetsDao().insert(listOf(bitcoin, mockAssetEthereum(), usdt).map { it.toRecord() })
+        database.assetsDao().insert(listOf(bitcoin, mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18), usdt).map { it.toRecord() })
         database.pricesDao().insert(DbPrice(assetId = usdt.id.toIdentifier(), value = 1.0, dayChanged = 0.5, currency = Currency.USD))
         database.transactionsDao().insert(listOf(swap.toRecord(wallet.id)))
         database.transactionsDao().replaceTransactionAssets(mapOf(swap.id.identifier to listOf(bitcoin.id.toIdentifier(), usdt.id.toIdentifier())))
@@ -72,6 +73,6 @@ class TransactionAssetsTest {
         val transactions = database.transactionsDao()
 
         assertEquals(1, transactions.getTransactionListItems(wallet.id, listOf(TransactionsRequestFilter.Asset(usdt.id)), 100).first().size)
-        assertEquals(0, transactions.getTransactionListItems(wallet.id, listOf(TransactionsRequestFilter.Asset(mockAssetEthereum().id)), 100).first().size)
+        assertEquals(0, transactions.getTransactionListItems(wallet.id, listOf(TransactionsRequestFilter.Asset(mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18).id)), 100).first().size)
     }
 }

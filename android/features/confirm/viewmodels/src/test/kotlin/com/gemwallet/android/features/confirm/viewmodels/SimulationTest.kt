@@ -2,10 +2,11 @@ package com.gemwallet.android.features.confirm.viewmodels
 
 import com.gemwallet.android.domains.asset.icon
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.testkit.mockAssetSolana
-import com.gemwallet.android.testkit.mockAssetSolanaUSDC
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockFormattedNumber
 import com.gemwallet.android.testkit.mockGemConfirmSimulationState
+import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
@@ -27,8 +28,8 @@ class SimulationTest {
 
     @Test
     fun `balance changes keep their sign and asset`() {
-        val solana = mockAssetSolana()
-        val usdc = mockAssetSolanaUSDC()
+        val solana = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9)
+        val usdc = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6, type = AssetType.SPL)
         val simulation = mockGemConfirmSimulationState(
             balanceChanges = listOf(
                 GemSimulationBalanceChange(asset = solana.toGem(), icon = solana.id.icon(), amount = fullAmount(-0.100005, "SOL", GemValueTone.NEGATIVE, "0.100005")),

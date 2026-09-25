@@ -233,7 +233,7 @@ struct WalletIdMigrationTests {
             accounts: [.mock(chain: .ethereum, address: ethAddress)],
         )
 
-        let asset = AssetBasic.mock(asset: .mock(id: .mockEthereum()))
+        let asset = AssetBasic.mock(asset: .mock(id: .mock(chain: .ethereum)))
         try assetStore.add(assets: [asset])
         try db.dbQueue.write { db in
             try db.execute(

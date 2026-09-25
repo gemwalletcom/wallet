@@ -1,8 +1,8 @@
 package com.gemwallet.android.domains.asset
 
 import com.gemwallet.android.testkit.mockAsset
-import com.gemwallet.android.testkit.mockAssetSolana
-import com.gemwallet.android.testkit.mockAssetSolanaUSDC
+import com.gemwallet.android.testkit.mockAssetId
+import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -13,7 +13,7 @@ class AssetDefaultsTest {
 
     @Test
     fun defaultBasic_nativeAsset_usesChainDefaults() {
-        val asset = mockAssetSolana()
+        val asset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9)
 
         val basic = asset.defaultBasic
 
@@ -27,7 +27,7 @@ class AssetDefaultsTest {
 
     @Test
     fun defaultBasic_tokenAsset_isNeverStakeable() {
-        val asset = mockAssetSolanaUSDC()
+        val asset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6, type = AssetType.SPL)
 
         val basic = asset.defaultBasic
 
@@ -37,7 +37,7 @@ class AssetDefaultsTest {
 
     @Test
     fun defaultBasic_negativeRankNativeAsset_isDisabled() {
-        val basic = mockAsset(chain = Chain.Tempo).defaultBasic
+        val basic = mockAsset(id = mockAssetId(chain = Chain.Tempo)).defaultBasic
 
         assertEquals(-1, basic.score.rank)
         assertFalse(basic.properties.isEnabled)

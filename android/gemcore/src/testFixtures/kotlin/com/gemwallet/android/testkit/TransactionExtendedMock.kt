@@ -7,8 +7,7 @@ import com.wallet.core.primitives.TransactionExtended
 fun mockTransactionExtended(
     transaction: Transaction = mockTransaction(),
     asset: Asset = mockAsset(
-        chain = transaction.assetId.chain,
-        tokenId = transaction.assetId.tokenId,
+        id = transaction.assetId,
     ),
     feeAsset: Asset = asset,
     assets: List<Asset> = listOf(asset),

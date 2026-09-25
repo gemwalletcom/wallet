@@ -11,19 +11,19 @@ struct AssetIdViewModelTests {
     @Test
     func networkAssetImage() {
         #expect(
-            AssetIdViewModel(assetId: .mock(.bitcoin)).networkAssetImage == AssetImage(
+            AssetIdViewModel(assetId: .mock(chain: .bitcoin)).networkAssetImage == AssetImage(
                 type: .text(.empty),
                 placeholder: ChainImage(chain: .bitcoin).image,
             ),
         )
         #expect(
-            AssetIdViewModel(assetId: .mock(.ethereum)).networkAssetImage == AssetImage(
+            AssetIdViewModel(assetId: .mock(chain: .ethereum)).networkAssetImage == AssetImage(
                 type: .text(.empty),
                 placeholder: ChainImage(chain: .ethereum).image,
             ),
         )
         #expect(
-            AssetIdViewModel(assetId: .mock(.arbitrum)).networkAssetImage == AssetImage(
+            AssetIdViewModel(assetId: .mock(chain: .arbitrum)).networkAssetImage == AssetImage(
                 type: .text(.empty),
                 placeholder: ChainImage(chain: .arbitrum).image,
             ),
@@ -54,26 +54,26 @@ struct AssetIdViewModelTests {
     @Test
     func assetImage() {
         #expect(
-            AssetIdViewModel(assetId: .mock(.bitcoin)).assetImage == AssetImage(
+            AssetIdViewModel(assetId: .mock(chain: .bitcoin)).assetImage == AssetImage(
                 type: .text(.empty),
                 placeholder: ChainImage(chain: .bitcoin).image,
             ),
         )
         #expect(
-            AssetIdViewModel(assetId: .mock(.ethereum)).assetImage == AssetImage(
+            AssetIdViewModel(assetId: .mock(chain: .ethereum)).assetImage == AssetImage(
                 type: .text("ERC20"),
                 placeholder: ChainImage(chain: .ethereum).image,
             ),
         )
         #expect(
-            AssetIdViewModel(assetId: .mock(.arbitrum)).assetImage == AssetImage(
+            AssetIdViewModel(assetId: .mock(chain: .arbitrum)).assetImage == AssetImage(
                 type: .text("ERC20"),
                 placeholder: ChainImage(chain: .ethereum).image,
                 chainPlaceholder: ChainImage(chain: .arbitrum).image,
             ),
         )
         #expect(
-            AssetIdViewModel(assetId: .mock(.robinhood)).assetImage == AssetImage(
+            AssetIdViewModel(assetId: .mock(chain: .robinhood)).assetImage == AssetImage(
                 type: .text("ERC20"),
                 placeholder: ChainImage(chain: .ethereum).image,
                 chainPlaceholder: ChainImage(chain: .robinhood).image,

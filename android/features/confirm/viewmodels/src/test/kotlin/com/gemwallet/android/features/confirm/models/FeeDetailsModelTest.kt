@@ -1,6 +1,7 @@
 package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockFeeDetailsModel
 import com.gemwallet.android.testkit.mockFeeInfo
 import com.gemwallet.android.testkit.mockGemFeeRateRows
@@ -28,7 +29,7 @@ class FeeDetailsModelTest {
         assertEquals(BigInteger("1"), fractional.rate)
         assertTrue(fractional.isValid)
 
-        val belowMinimum = mockFeeDetailsModel(mockFeeInfo(feeAsset = mockAsset(chain = Chain.Litecoin)), mockGemFeeRateRows(unitDecimals = 1u)).customFee("0.5")
+        val belowMinimum = mockFeeDetailsModel(mockFeeInfo(feeAsset = mockAsset(id = mockAssetId(chain = Chain.Litecoin))), mockGemFeeRateRows(unitDecimals = 1u)).customFee("0.5")
         val minimum = (belowMinimum.check as GemCustomFeeCheck.BelowMinimum).rate as GemLocalizedText.FeeRate
         assertEquals(5.0, minimum.rate.value, 0.0)
         assertFalse(belowMinimum.isValid)

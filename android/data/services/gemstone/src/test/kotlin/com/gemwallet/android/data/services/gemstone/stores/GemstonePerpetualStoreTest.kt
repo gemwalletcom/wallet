@@ -6,7 +6,9 @@ import com.gemwallet.android.data.services.store.database.PerpetualPositionDao
 import com.gemwallet.android.data.services.store.database.SearchDao
 import com.gemwallet.android.data.services.store.database.StoreTransactionRunner
 import com.gemwallet.android.data.services.store.database.entities.mockDbPerpetualData
-import com.gemwallet.android.testkit.mockAssetEthereum
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
+import com.wallet.core.primitives.Chain
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -23,7 +25,7 @@ class GemstonePerpetualStoreTest {
     private val searchDao = mockk<SearchDao>()
 
     private val bitcoin = mockDbPerpetualData()
-    private val ethereum = mockDbPerpetualData(asset = mockAssetEthereum(), identifier = "ETH-PERP")
+    private val ethereum = mockDbPerpetualData(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18), identifier = "ETH-PERP")
 
     private val store = GemstonePerpetualStore(
         perpetualDao = perpetualDao,

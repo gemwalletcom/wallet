@@ -8,12 +8,13 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.math.fromHex
 import com.gemwallet.android.math.has0xPrefix
 import com.gemwallet.android.testkit.mockApplicationMetadata
-import com.gemwallet.android.testkit.mockAssetEthereum
-import com.gemwallet.android.testkit.mockAssetSolana
-import com.gemwallet.android.testkit.mockAssetSolanaUSDC
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockTransferDataExtra
 import com.wallet.core.primitives.ApplicationMetadataSource
+import com.wallet.core.primitives.AssetType
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.TransferDataOutputAction
 import com.wallet.core.primitives.TransferDataOutputType
@@ -33,7 +34,7 @@ class TransferDataCodecTest {
 
     @Test
     fun transferPackRoundTripsThroughCoreCodec() {
-        val asset = mockAssetSolanaUSDC()
+        val asset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6, type = AssetType.SPL)
         val original = mockGemTransferData(
             asset = asset,
             recipient = GemRecipient(address = "recipient", name = "recipient.sol", memo = "payment-memo", references = listOf("reference")),
@@ -55,7 +56,7 @@ class TransferDataCodecTest {
 
     @Test
     fun genericPackRoundTripsThroughCoreCodec() {
-        val asset = mockAssetSolana()
+        val asset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9)
         val approval = ApprovalData(token = "token", spender = "spender", value = BigInteger.ONE, isUnlimited = false)
         val original = mockGemTransferData(
             inputType = TransactionInputType.Generic(
@@ -94,7 +95,7 @@ class TransferDataCodecTest {
         val data = "0xa9059cbb00000000000000000000000000000000000000000000000000000000000000ff"
         val original = mockGemTransferData(
             inputType = TransactionInputType.Generic(
-                asset = mockAssetEthereum().toGem(),
+                asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18).toGem(),
                 metadata = mockApplicationMetadata().toGem(),
                 extra = mockTransferDataExtra(
                     to = "0x000000000022D473030F116dDEE9F6B43aC78BA3",
@@ -117,7 +118,7 @@ class TransferDataCodecTest {
 
     @Test
     fun nativeTransferPackRoundTripsThroughCoreCodec() {
-        val asset = mockAssetSolana()
+        val asset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9)
         val original = mockGemTransferData(asset = asset)
 
         val transfer = roundTrip(original)

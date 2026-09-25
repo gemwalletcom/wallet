@@ -6,6 +6,7 @@ import com.gemwallet.android.model.Session
 import com.gemwallet.android.serializer.jsonEncoder
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockGemTransactionDetailRows
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockTransaction
@@ -47,7 +48,7 @@ class GetTransactionDetailsImplTest {
 
     @Test
     fun getTransactionDetails_buildsTheAggregateFromTheCoreRows() = runTest {
-        val asset = mockAsset(chain = Chain.Near)
+        val asset = mockAsset(id = mockAssetId(chain = Chain.Near))
         val transaction = mockTransaction(
             assetId = asset.id,
             from = "sender.near",

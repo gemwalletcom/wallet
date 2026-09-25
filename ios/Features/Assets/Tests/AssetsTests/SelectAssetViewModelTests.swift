@@ -73,10 +73,10 @@ struct SelectAssetViewModelTests {
             selectType: .send(.none),
         )
 
-        model.onSelectRecent(.mockSolana())
+        model.onSelectRecent(.mock(id: .mock(chain: .solana), name: "Solana", symbol: "SOL", decimals: 9))
         #expect(model.route == nil)
 
-        model.onSelectRecent(.mockEthereum())
+        model.onSelectRecent(.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18))
         #expect(model.route != nil)
     }
 

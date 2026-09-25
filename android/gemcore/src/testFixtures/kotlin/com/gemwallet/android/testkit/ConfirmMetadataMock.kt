@@ -2,11 +2,12 @@ package com.gemwallet.android.testkit
 
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemAssetBalance
 import uniffi.gemstone.GemConfirmMetadata
 import java.math.BigInteger
 
-fun mockGemAssetBalance(asset: Asset = mockAssetEthereum(), available: BigInteger = BigInteger.ZERO) = GemAssetBalance(
+fun mockGemAssetBalance(asset: Asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18), available: BigInteger = BigInteger.ZERO) = GemAssetBalance(
     assetId = asset.id.toIdentifier(),
     available = available,
     frozen = BigInteger.ZERO,
@@ -22,7 +23,7 @@ fun mockGemAssetBalance(asset: Asset = mockAssetEthereum(), available: BigIntege
     isActive = true,
 )
 
-fun mockGemConfirmMetadata(asset: Asset = mockAssetEthereum()) = GemConfirmMetadata(
+fun mockGemConfirmMetadata(asset: Asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)) = GemConfirmMetadata(
     assetBalance = mockGemAssetBalance(asset),
     feeAssetBalance = mockGemAssetBalance(asset),
     prices = emptyList(),

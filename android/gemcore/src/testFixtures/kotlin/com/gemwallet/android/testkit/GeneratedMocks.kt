@@ -5,9 +5,11 @@ package com.gemwallet.android.testkit
 
 import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.AddressType
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.AssetScore
+import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.NFTAsset
@@ -42,6 +44,20 @@ fun mockAddressName(
     type = type,
     status = status,
     imageUrl = imageUrl,
+)
+
+fun mockAsset(
+    id: AssetId = mockAssetId(),
+    name: String = "",
+    symbol: String = "",
+    decimals: Int = 0,
+    type: AssetType = AssetType.NATIVE,
+) = Asset(
+    id = id,
+    name = name,
+    symbol = symbol,
+    decimals = decimals,
+    type = type,
 )
 
 fun mockAssetScore(

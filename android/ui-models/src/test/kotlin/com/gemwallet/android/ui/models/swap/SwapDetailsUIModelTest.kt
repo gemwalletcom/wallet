@@ -4,10 +4,11 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockAsset
-import com.gemwallet.android.testkit.mockAssetEthereum
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockAssetPriceValue
 import com.gemwallet.android.testkit.mockSwapQuote
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -57,7 +58,7 @@ class SwapDetailsUIModelTest {
 
     @Test
     fun `rate handles cross decimal assets`() {
-        val eth = mockAssetPriceValue(asset = mockAssetEthereum(), price = mockAssetPriceInfo(price = 1.0))
+        val eth = mockAssetPriceValue(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18), price = mockAssetPriceInfo(price = 1.0))
         val usdc = mockAssetPriceValue(asset = mockAsset(symbol = "USDC", name = "USDC", decimals = 6), price = mockAssetPriceInfo(price = 1.0))
         val result = swapDetails(toValue = "2000000000", pay = eth, receive = usdc)
 

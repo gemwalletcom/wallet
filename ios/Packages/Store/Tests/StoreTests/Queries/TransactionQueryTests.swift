@@ -13,7 +13,7 @@ import XCTest
 struct TransactionQueryTests {
     @Test(arguments: [false, true])
     func observationSurvivesHashUpdate(existingTarget: Bool) async throws {
-        let db = DB.mockAssets(assets: [.mock(asset: .mockEthereum())])
+        let db = DB.mockAssets(assets: [.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18))])
         let store = TransactionStore(db: db)
         let walletId = WalletId.mock()
         let pendingId = TransactionId(chain: .ethereum, hash: "pending")
@@ -58,7 +58,7 @@ struct TransactionQueryTests {
 
     @Test
     func recordIdentitySurvivesHashUpdateBeforeObservationStarts() throws {
-        let db = DB.mockAssets(assets: [.mock(asset: .mockEthereum())])
+        let db = DB.mockAssets(assets: [.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18))])
         let store = TransactionStore(db: db)
         let oldId = TransactionId(chain: .ethereum, hash: "pending")
         let newId = TransactionId(chain: .ethereum, hash: "confirmed")

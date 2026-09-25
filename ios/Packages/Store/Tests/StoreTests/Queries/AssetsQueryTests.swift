@@ -147,7 +147,7 @@ struct AssetsQueryTests {
         let searchStore = SearchStore(db: db)
 
         let query = "usdt ethereum"
-        try searchStore.add(type: .asset, query: query, ids: [Asset.mockEthereumUSDT().id.identifier])
+        try searchStore.add(type: .asset, query: query, ids: [Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20).id.identifier])
         try searchStore.add(type: .asset, query: "T", ids: [AssetBasic].mock().reversed().map(\.asset.id.identifier))
 
         try db.dbQueue.read { db in
@@ -171,7 +171,7 @@ struct AssetsQueryTests {
 
     @Test func typedSearchKeepsPinnedFirst() throws {
         let db = DB.mockAssets()
-        let usdt = Asset.mockEthereumUSDT().id
+        let usdt = Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20).id
         try BalanceStore(db: db).setConfiguration(walletId: .mock(), assetIds: [usdt], configuration: .pinned(true))
 
         try db.dbQueue.read { db in

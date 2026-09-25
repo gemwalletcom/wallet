@@ -138,7 +138,13 @@ struct TransactionSceneViewModelTests {
 
     @Test
     func swapProgressItemModel() {
-        let model = TransactionSceneViewModel.mock(type: .swap, state: .inTransit, asset: .mockEthereum(), swapToAsset: .mockNear(), confirmationEtaSeconds: 720)
+        let model = TransactionSceneViewModel.mock(
+            type: .swap,
+            state: .inTransit,
+            asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18),
+            swapToAsset: .mock(id: .mock(chain: .near), name: "NEAR", symbol: "NEAR", decimals: 24),
+            confirmationEtaSeconds: 720,
+        )
 
         if case let .swapProgress(progress) = model.itemModel(for: GemTransactionDetailRow.swapProgress) {
             #expect(progress.transfer.title == Localized.Transfer.title)
@@ -182,11 +188,11 @@ struct TransactionSceneViewModelTests {
 
     @Test
     func memoItemModel() {
-        let withMemo = listRows(TransactionSceneViewModel.mock(asset: .mock(id: .mock(.cosmos)), memo: "Test memo"))
+        let withMemo = listRows(TransactionSceneViewModel.mock(asset: .mock(id: .mock(chain: .cosmos)), memo: "Test memo"))
         #expect(withMemo.contains(.memo(value: "Test memo", copy: "Test memo")))
 
-        #expect(listRows(TransactionSceneViewModel.mock(asset: .mock(id: .mock(.cosmos)), memo: nil)).contains { kind($0) == "memo" } == false)
-        #expect(listRows(TransactionSceneViewModel.mock(asset: .mock(id: .mock(.cosmos)), memo: "")).contains { kind($0) == "memo" } == false)
+        #expect(listRows(TransactionSceneViewModel.mock(asset: .mock(id: .mock(chain: .cosmos)), memo: nil)).contains { kind($0) == "memo" } == false)
+        #expect(listRows(TransactionSceneViewModel.mock(asset: .mock(id: .mock(chain: .cosmos)), memo: "")).contains { kind($0) == "memo" } == false)
     }
 
     @Test
@@ -218,10 +224,16 @@ struct TransactionSceneViewModelTests {
 
     @Test
     func sectionsComeFromCoreWithOnlyTheRowsTheTransactionHas() {
-        let transfer = TransactionSceneViewModel.mock(asset: .mock(id: .mock(.cosmos)), memo: "gm").sections
+        let transfer = TransactionSceneViewModel.mock(asset: .mock(id: .mock(chain: .cosmos)), memo: "gm").sections
         #expect(transfer.map { $0.values.map(kind) } == [["header"], ["date", "status", "participant", "memo", "network"], ["fee"], ["explorer"]])
 
-        let swap = TransactionSceneViewModel.mock(type: .swap, state: .inTransit, asset: .mockEthereum(), swapToAsset: .mockNear(), confirmationEtaSeconds: 720).sections
+        let swap = TransactionSceneViewModel.mock(
+            type: .swap,
+            state: .inTransit,
+            asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18),
+            swapToAsset: .mock(id: .mock(chain: .near), name: "NEAR", symbol: "NEAR", decimals: 24),
+            confirmationEtaSeconds: 720,
+        ).sections
         #expect(swap.map { $0.values.map(kind) } == [["header"], ["swapProgress"], ["date", "status", "rate", "network", "provider"], ["fee"], ["explorer"]])
     }
 

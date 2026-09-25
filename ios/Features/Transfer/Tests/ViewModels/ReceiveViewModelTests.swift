@@ -14,9 +14,9 @@ import TransferTestKit
 
 @MainActor
 struct ReceiveViewModelTests {
-    private let bitcoin = Primitives.Asset.mock(id: .mock(.bitcoin))
-    private let ethereum = Primitives.Asset.mock(id: .mock(.ethereum))
-    private let solana = Primitives.Asset.mock(id: .mock(.solana))
+    private let bitcoin = Primitives.Asset.mock(id: .mock(chain: .bitcoin))
+    private let ethereum = Primitives.Asset.mock(id: .mock(chain: .ethereum))
+    private let solana = Primitives.Asset.mock(id: .mock(chain: .solana))
 
     @Test
     func theNetworksComeFromCore() {

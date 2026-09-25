@@ -8,12 +8,14 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.DelegationsQuery
 import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.testkit.mockAssetCosmos
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockDelegation
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.StakeProviderType
+import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -45,7 +47,7 @@ import kotlin.time.Duration.Companion.seconds
 class StakeViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
-    private val asset = mockAssetCosmos()
+    private val asset = mockAsset(id = mockAssetId(chain = Chain.Cosmos), name = "Cosmos", symbol = "ATOM", decimals = 6)
     private val delegation = mockDelegation(assetId = asset.id, balance = BigInteger("77"))
 
     private val getAssetInfo = mockk<GetAssetInfo> {

@@ -4,7 +4,8 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequ
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequests
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockApplicationMetadata
-import com.gemwallet.android.testkit.mockAssetSolana
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockGemWalletConnectMessageRequest
 import com.gemwallet.android.testkit.mockGemWalletConnectTransactionRequest
@@ -12,6 +13,7 @@ import com.gemwallet.android.testkit.mockSignMessage
 import com.gemwallet.android.testkit.mockTransferDataExtra
 import com.gemwallet.android.testkit.mockWalletConnectionSession
 import com.gemwallet.android.testkit.mockWalletMulticoin
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionType
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.filterNotNull
@@ -45,7 +47,7 @@ class WalletConnectSignerTest {
     fun `send transaction is marked sendable`() = runTest {
         val transfer = mockGemTransferData(
             inputType = TransactionInputType.Generic(
-                asset = mockAssetSolana().toGem(),
+                asset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9).toGem(),
                 metadata = mockApplicationMetadata().toGem(),
                 extra = mockTransferDataExtra(data = "tx".toByteArray(), transactionType = TransactionType.SmartContractCall),
             ),

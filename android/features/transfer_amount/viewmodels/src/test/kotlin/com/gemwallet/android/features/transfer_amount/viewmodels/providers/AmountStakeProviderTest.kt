@@ -4,11 +4,13 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.transfer_amount.viewmodels.models.AmountExtrasUIModel
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.testkit.mockAssetCosmos
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockDelegation
 import com.gemwallet.android.testkit.mockDelegationValidator
 import com.gemwallet.android.testkit.mockGemStakeValidatorOptions
 import com.gemwallet.android.testkit.mockGemValidatorRow
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Resource
 import io.mockk.every
 import io.mockk.mockk
@@ -31,7 +33,7 @@ import java.math.BigInteger
 
 class AmountStakeProviderTest {
 
-    private val asset = mockAssetCosmos()
+    private val asset = mockAsset(id = mockAssetId(chain = Chain.Cosmos), name = "Cosmos", symbol = "ATOM", decimals = 6)
     private val validator = mockDelegationValidator(chain = asset.id.chain, id = "v1")
     private val otherValidator = mockDelegationValidator(chain = asset.id.chain, id = "v2")
     private val delegation = mockDelegation(

@@ -9,7 +9,7 @@ import PrimitivesTestKit
 
 public extension NetworkFeeCustomViewModel {
     static func mock(
-        feeAsset: Asset = .mockEthereum(),
+        feeAsset: Asset = .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18),
         unitType: FeeUnitType = .gwei,
         decimals: Int = 9,
         initialRate: BigInt? = nil,

@@ -1,9 +1,11 @@
 package com.gemwallet.android.data.services.store.database.entities
 
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.testkit.mockAssetEthereum
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
@@ -11,7 +13,7 @@ import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.WalletId
 
 fun mockDbTransactionExtended(type: TransactionType = TransactionType.Transfer, priceValue: Double? = null, assets: List<Asset> = emptyList(), prices: List<DbPrice> = emptyList()): DbTransactionExtended {
-    val asset = mockAssetEthereum()
+    val asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
     val id = TransactionId(asset.id.chain, "0xhash")
     return DbTransactionExtended(
         transaction = DbTransaction(

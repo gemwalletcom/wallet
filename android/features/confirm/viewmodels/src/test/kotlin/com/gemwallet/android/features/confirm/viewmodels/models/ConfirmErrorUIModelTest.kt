@@ -2,8 +2,10 @@ package com.gemwallet.android.features.confirm.viewmodels.models
 
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.text
-import com.gemwallet.android.testkit.mockAssetEthereum
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.ui.localization.text
+import com.wallet.core.primitives.Chain
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -17,7 +19,7 @@ import java.math.BigInteger
 import java.util.Locale
 
 class ConfirmErrorUIModelTest {
-    private val asset = mockAssetEthereum()
+    private val asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
 
     @Before
     fun setUp() {

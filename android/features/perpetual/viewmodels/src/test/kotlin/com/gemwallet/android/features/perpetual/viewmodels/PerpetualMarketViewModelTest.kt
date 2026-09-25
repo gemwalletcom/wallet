@@ -11,6 +11,7 @@ import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregate
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
@@ -144,7 +145,7 @@ class PerpetualMarketViewModelTest {
         val position = mockk<PerpetualPositionDataAggregate>(relaxed = true) {
             every { title } returns "Bitcoin"
             every { perpetualId } returns PerpetualId(PerpetualProvider.Hypercore, "BTC-USD")
-            every { asset } returns mockAsset(chain = Chain.Bitcoin, name = "Bitcoin", symbol = "BTC")
+            every { asset } returns mockAsset(id = mockAssetId(chain = Chain.Bitcoin), name = "Bitcoin", symbol = "BTC")
         }
         val viewModel = viewModel(mockk(relaxed = true), positions = listOf(position))
         viewModel.setQuery("btc-usd")

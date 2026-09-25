@@ -2,6 +2,7 @@ package com.gemwallet.android.testkit
 
 import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FeePriority
 import uniffi.gemstone.GemConfirmFee
@@ -11,7 +12,7 @@ import uniffi.gemstone.GemTransferAmountResult
 import uniffi.gemstone.feeAmount
 import java.math.BigInteger
 
-fun mockGemConfirmLoad(asset: Asset = mockAssetEthereum(), fee: GemConfirmFee? = null) = GemConfirmLoad(
+fun mockGemConfirmLoad(asset: Asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18), fee: GemConfirmFee? = null) = GemConfirmLoad(
     transfer = mockGemTransferData(asset = asset),
     sender = mockAccount(chain = asset.id.chain).toGem(),
     feeAsset = asset.toGem(),
@@ -24,7 +25,7 @@ fun mockGemConfirmLoad(asset: Asset = mockAssetEthereum(), fee: GemConfirmFee? =
 
 fun mockGemConfirmFee(amount: GemTransferAmountResult = GemTransferAmountResult.Amount(GemTransferAmount(value = BigInteger.ONE, networkFee = BigInteger.ONE, isMaxAmount = false))) = GemConfirmFee(
     value = BigInteger.ONE,
-    formatted = feeAmount(mockAssetEthereum().toGem(), BigInteger.ONE, null, Currency.USD.toGem()),
+    formatted = feeAmount(mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18).toGem(), BigInteger.ONE, null, Currency.USD.toGem()),
     additionalFees = emptyList(),
     selectedPriority = FeePriority.Normal.toGem(),
     amount = amount,

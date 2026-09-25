@@ -220,6 +220,7 @@ identifiers:
 # those fields where the rule would build an invalid value.
 mocks:
   - AddressName
+  - Asset
   - AssetScore
   - NameRecord
   - NFTAsset

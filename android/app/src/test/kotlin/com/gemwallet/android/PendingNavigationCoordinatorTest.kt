@@ -4,6 +4,7 @@ import android.content.Intent
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.PushNotificationField
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
 import com.gemwallet.android.ui.navigation.routes.ReferralRoute
@@ -77,7 +78,7 @@ class PendingNavigationCoordinatorTest {
 
     @Test
     fun buildRoutes_buyDeepLink_storesRouteWhenCoreOpensTheAsset() = runTest {
-        val asset = mockAsset(chain = Chain.Bitcoin)
+        val asset = mockAsset(id = mockAssetId(chain = Chain.Bitcoin))
         coEvery { navigationService.openDeeplink(any()) } returns GemNavigationTarget.Fiat(asset.toGem(), 100, FiatQuoteType.Buy.toGem())
         coordinator.pendScan("gem://tokens/bitcoin/buy?amount=100")
 

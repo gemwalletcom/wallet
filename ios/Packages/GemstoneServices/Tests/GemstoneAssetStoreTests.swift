@@ -11,8 +11,8 @@ import Testing
 
 struct GemstoneAssetStoreTests {
     private let wallet = Wallet.mock(id: .multicoin(address: "0xtest"), accounts: [.mock(chain: .cosmos), .mock(chain: .ethereum)])
-    private let ethereum = AssetId.mockEthereum()
-    private let cosmos = AssetId.mock(.cosmos)
+    private let ethereum = AssetId.mock(chain: .ethereum)
+    private let cosmos = AssetId.mock(chain: .cosmos)
 
     @Test
     func addBalancesCarriesTheEnabledFlagCoreDecided() async throws {

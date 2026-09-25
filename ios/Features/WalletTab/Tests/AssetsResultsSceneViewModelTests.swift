@@ -55,8 +55,8 @@ struct AssetsResultsSceneViewModelTests {
     func assetsAndPinnedAssetsSplitOnTheirMetadata() {
         let model = AssetsResultsSceneViewModel.mock()
         model.searchQuery.value = .mock(assets: [
-            .mock(asset: .mockEthereum(), metadata: .mock(isPinned: true)),
-            .mock(asset: .mock(id: .mock(.bitcoin)), metadata: .mock(isPinned: false)),
+            .mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), metadata: .mock(isPinned: true)),
+            .mock(asset: .mock(id: .mock(chain: .bitcoin)), metadata: .mock(isPinned: false)),
         ])
 
         #expect(model.state.showsPinned)
@@ -112,7 +112,7 @@ struct AssetsResultsSceneViewModelTests {
             onSetAssetPinned: { id, value in calls.record(assetId: id, pinned: value) },
         )
         let model = AssetsResultsSceneViewModel.mock(service: service)
-        let assetId = AssetId.mock(.ethereum)
+        let assetId = AssetId.mock(chain: .ethereum)
 
         try await model.setAssetPinned(assetId, pinned: true)
         try await model.setAssetsEnabled([assetId], enabled: false)

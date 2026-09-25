@@ -9,8 +9,9 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.testkit.mockAmountParamsTransfer
+import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetBalance
-import com.gemwallet.android.testkit.mockAssetCosmos
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockDelegationValidator
@@ -57,7 +58,7 @@ import java.math.BigInteger
 class AmountViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
-    private val asset = mockAssetCosmos()
+    private val asset = mockAsset(id = mockAssetId(chain = Chain.Cosmos), name = "Cosmos", symbol = "ATOM", decimals = 6)
 
     private val assetInfoFlow = MutableStateFlow<AssetInfo?>(assetInfo(HundredAtom))
 

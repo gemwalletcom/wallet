@@ -19,7 +19,7 @@ public extension DelegationSceneViewModel {
         onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)? = nil,
     ) -> DelegationSceneViewModel {
         let validator = DelegationValidator.mock(chain, providerType: providerType)
-        let base = DelegationBase.mock(state: state, assetId: .mock(chain), rewards: rewards)
+        let base = DelegationBase.mock(state: state, assetId: .mock(chain: chain), rewards: rewards)
         let delegation = Delegation.mock(state: state, validator: validator, base: base)
         return DelegationSceneViewModel(
             wallet: wallet,

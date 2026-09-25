@@ -1,6 +1,7 @@
 package com.gemwallet.android.testkit
 
 import com.gemwallet.android.ext.toGem
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.FiatQuoteType
 import uniffi.gemstone.FiatProvider
@@ -13,9 +14,9 @@ import uniffi.gemstone.formattedAmount
 import uniffi.gemstone.formattedCurrency
 import java.math.BigInteger
 
-fun mockFiatQuote(quoteType: FiatQuoteType = FiatQuoteType.Buy) = FiatQuote(
+fun mockFiatQuote(quoteType: FiatQuoteType = FiatQuoteType.Buy, asset: Asset = mockAsset()) = FiatQuote(
     id = "quote-1",
-    asset = mockAsset().toGem(),
+    asset = asset.toGem(),
     provider = FiatProvider(
         id = FiatProviderName.Mercuryo.toGem(),
         name = "Mercuryo",

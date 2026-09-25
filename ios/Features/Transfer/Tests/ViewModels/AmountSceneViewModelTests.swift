@@ -32,7 +32,7 @@ struct AmountSceneViewModelTests {
     @Test
     func fiatInputConvertsWithThePrice() {
         let assetData = AssetData.mock(
-            asset: .mockBNB(),
+            asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18),
             balance: .mock(available: 5_000_000_000_000_000_000),
             price: .mock(price: 2.5),
         )
@@ -50,7 +50,7 @@ struct AmountSceneViewModelTests {
     @Test
     func stakingReservedFeesText() {
         let assetData = AssetData.mock(
-            asset: .mockBNB(),
+            asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18),
             balance: .mock(available: 2_000_000_000_000_000_000),
         )
         let model = AmountSceneViewModel.mock(
@@ -70,7 +70,7 @@ struct AmountSceneViewModelTests {
     @Test
     func unfreezeResourceSwitch() {
         let assetData = AssetData.mock(
-            asset: .mockTron(),
+            asset: .mock(id: .mock(chain: .tron), name: "TRON", symbol: "TRX", decimals: 6),
             balance: .mock(frozen: 0, locked: 5_000_000),
         )
         let model = AmountSceneViewModel.mock(
@@ -94,7 +94,7 @@ struct AmountSceneViewModelTests {
         let validator1 = DelegationValidator.mock(id: "1")
         let validator2 = DelegationValidator.mock(id: "2")
         let assetData = AssetData.mock(
-            asset: .mockBNB(),
+            asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18),
             balance: .mock(available: 5_000_000_000_000_000_000),
         )
         let model = AmountSceneViewModel.mock(
@@ -132,7 +132,7 @@ struct AmountSceneViewModelTests {
     @Test
     func aFixedValueFillsItself() {
         let delegation = Delegation.mock(base: .mock(state: .active, balance: 1_000_000))
-        let assetData = AssetData.mock(asset: .mockBNB())
+        let assetData = AssetData.mock(asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18))
         let model = AmountSceneViewModel.mock(
             type: .stake(.withdraw(delegation: delegation.toGem())),
             assetData: assetData,
@@ -147,7 +147,7 @@ struct AmountSceneViewModelTests {
 
     @Test
     func buyWithoutAccountDoesNotPresentSheet() {
-        let assetData = AssetData.mock(asset: .mockBNB())
+        let assetData = AssetData.mock(asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18))
         let model = AmountSceneViewModel.mock(assetData: assetData)
         model.onSelectBuy()
         #expect(model.isPresentingSheet == nil)

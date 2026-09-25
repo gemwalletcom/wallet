@@ -8,13 +8,15 @@ import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.testkit.mockAssetCosmos
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockDelegation
 import com.gemwallet.android.testkit.mockDelegationValidator
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.StakeProviderType
 import com.wallet.core.primitives.WalletType
 import io.mockk.every
@@ -46,7 +48,7 @@ import java.math.BigInteger
 class EarnViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
-    private val asset = mockAssetCosmos()
+    private val asset = mockAsset(id = mockAssetId(chain = Chain.Cosmos), name = "Cosmos", symbol = "ATOM", decimals = 6)
     private val provider = mockDelegationValidator(id = "earn-provider", apr = 4.0, providerType = StakeProviderType.Earn)
     private val funded = mockDelegation(assetId = asset.id, balance = BigInteger("500"), validator = provider)
     private val empty = mockDelegation(assetId = asset.id, balance = BigInteger.ZERO, delegationId = "empty", validator = provider)

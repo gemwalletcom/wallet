@@ -4,7 +4,7 @@ import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetBalance
-import com.gemwallet.android.testkit.mockAssetEthereum
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetMetaData
 import com.gemwallet.android.testkit.mockAssetPriceInfo
@@ -25,9 +25,9 @@ import java.math.BigInteger
 
 class AssetInfoDataAggregateTest {
 
-    private val btcAsset = mockAsset()
+    private val btcAsset = mockAsset(name = "Bitcoin", symbol = "BTC", decimals = 8)
 
-    private val ethAsset = mockAssetEthereum()
+    private val ethAsset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
 
     @Test
     fun theAggregateKeepsTheAssetIdentityNextToItsRow() {
@@ -45,7 +45,7 @@ class AssetInfoDataAggregateTest {
 
     @Test
     fun theTitleSymbolAndNetworkAreTheOnesCoreResolved() {
-        val usdc = mockAsset(chain = Chain.Ethereum, tokenId = "0xusdc", name = "USDC", symbol = "USDC")
+        val usdc = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xusdc"), name = "USDC", symbol = "USDC")
         val assetInfo = mockAssetInfo(asset = usdc)
         val networked = assetInfo.toAssetInfoDataAggregate(
             mockGemAssetRowStyle(title = GemAssetTitleStyle.NETWORK, showsSymbol = true, subtitle = GemAssetSubtitleStyle.NETWORK),

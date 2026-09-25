@@ -33,7 +33,7 @@ public extension GemConfirmFee {
     ) -> GemConfirmFee {
         GemConfirmFee(
             value: value,
-            formatted: Gemstone.feeAmount(asset: Asset.mockEthereum().toGem(), value: value, price: nil, currency: Primitives.Currency.usd.toGem()),
+            formatted: Gemstone.feeAmount(asset: Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).toGem(), value: value, price: nil, currency: Primitives.Currency.usd.toGem()),
             additionalFees: additionalFees,
             selectedPriority: selectedPriority,
             amount: amount,
@@ -112,7 +112,7 @@ public extension GemConfirmLoad {
     static func mock(
         transfer: GemTransferData = .mock(),
         sender: Primitives.Account = .mock(),
-        feeAsset: Primitives.Asset = .mockEthereum(),
+        feeAsset: Primitives.Asset = .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18),
         metadata: GemConfirmMetadata = .mock(),
         feeAssets: [GemFeeAsset] = [],
         simulation: GemConfirmSimulation? = nil,

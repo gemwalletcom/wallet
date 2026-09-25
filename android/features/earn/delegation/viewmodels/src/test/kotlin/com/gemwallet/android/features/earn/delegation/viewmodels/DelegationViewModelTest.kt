@@ -6,7 +6,8 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.DelegationQuery
 import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.testkit.mockAssetCosmos
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockDelegation
 import com.gemwallet.android.testkit.mockDelegationValidator
@@ -14,6 +15,7 @@ import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.StakeProviderType
 import io.mockk.every
@@ -39,7 +41,7 @@ import java.math.BigInteger
 class DelegationViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
-    private val asset = mockAssetCosmos()
+    private val asset = mockAsset(id = mockAssetId(chain = Chain.Cosmos), name = "Cosmos", symbol = "ATOM", decimals = 6)
 
     private val getAssetInfo = mockk<GetAssetInfo> {
         every { this@mockk(asset.id) } returns flowOf(mockAssetInfo(asset = asset))

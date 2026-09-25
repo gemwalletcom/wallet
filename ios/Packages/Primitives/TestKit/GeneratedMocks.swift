@@ -24,6 +24,24 @@ public extension AddressName {
     }
 }
 
+public extension Asset {
+    static func mock(
+        id: AssetId = .mock(),
+        name: String = "",
+        symbol: String = "",
+        decimals: Int32 = 0,
+        type: AssetType = .native,
+    ) -> Asset {
+        Asset(
+            id: id,
+            name: name,
+            symbol: symbol,
+            decimals: decimals,
+            type: type,
+        )
+    }
+}
+
 public extension AssetScore {
     static func mock(
         rank: Int32 = 0,

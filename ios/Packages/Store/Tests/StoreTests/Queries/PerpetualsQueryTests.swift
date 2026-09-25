@@ -9,10 +9,10 @@ import Testing
 struct PerpetualsQueryTests {
     @Test
     func browsingListsTradedMarketsAndKeepsAPinnedOneOutsideTheCap() throws {
-        let db = DB.mockAssets(assets: [.mock(asset: .mockEthereum()), .mock(asset: .mock(id: .mock(.bitcoin), symbol: "BTC"))])
+        let db = DB.mockAssets(assets: [.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18)), .mock(asset: .mock(id: .mock(chain: .bitcoin), symbol: "BTC"))])
         let store = PerpetualStore(db: db)
-        let traded = Perpetual.mock(id: PerpetualId(provider: .hypercore, symbol: "ETH"), assetId: .mock(.ethereum), volume24h: 10)
-        let delisted = Perpetual.mock(id: PerpetualId(provider: .hypercore, symbol: "BTC"), name: "BTC-USD", assetId: .mock(.bitcoin), volume24h: 0)
+        let traded = Perpetual.mock(id: PerpetualId(provider: .hypercore, symbol: "ETH"), assetId: .mock(chain: .ethereum), volume24h: 10)
+        let delisted = Perpetual.mock(id: PerpetualId(provider: .hypercore, symbol: "BTC"), name: "BTC-USD", assetId: .mock(chain: .bitcoin), volume24h: 0)
 
         try store.upsertPerpetuals([traded, delisted])
 
@@ -31,9 +31,9 @@ struct PerpetualsQueryTests {
 
     @Test
     func aSearchReachesAMarketThatHasNotTraded() throws {
-        let db = DB.mockAssets(assets: [.mock(asset: .mock(id: .mock(.bitcoin), symbol: "BTC"))])
+        let db = DB.mockAssets(assets: [.mock(asset: .mock(id: .mock(chain: .bitcoin), symbol: "BTC"))])
         let store = PerpetualStore(db: db)
-        let delisted = Perpetual.mock(id: PerpetualId(provider: .hypercore, symbol: "BTC"), name: "BTC-USD", assetId: .mock(.bitcoin), volume24h: 0)
+        let delisted = Perpetual.mock(id: PerpetualId(provider: .hypercore, symbol: "BTC"), name: "BTC-USD", assetId: .mock(chain: .bitcoin), volume24h: 0)
 
         try store.upsertPerpetuals([delisted])
 

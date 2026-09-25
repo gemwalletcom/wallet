@@ -7,6 +7,7 @@ import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.wallet.core.primitives.AssetId
@@ -30,9 +31,9 @@ import uniffi.gemstone.GemLocalizedText
 
 class GetActiveAssetsInfoImplTest {
     private val assets = listOf(
-        mockAssetInfo(asset = mockAsset(Chain.Bitcoin), price = mockAssetPriceInfo(price = 50000.0, priceChangePercentage24h = 2.5)),
-        mockAssetInfo(asset = mockAsset(Chain.Ethereum), price = mockAssetPriceInfo(price = 3000.0, currency = Currency.EUR)),
-        mockAssetInfo(asset = mockAsset(Chain.Solana)),
+        mockAssetInfo(asset = mockAsset(id = mockAssetId(chain = Chain.Bitcoin)), price = mockAssetPriceInfo(price = 50000.0, priceChangePercentage24h = 2.5)),
+        mockAssetInfo(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum)), price = mockAssetPriceInfo(price = 3000.0, currency = Currency.EUR)),
+        mockAssetInfo(asset = mockAsset(id = mockAssetId(chain = Chain.Solana))),
     )
 
     private val walletAssets = MutableStateFlow(assets)

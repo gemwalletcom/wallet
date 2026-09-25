@@ -5,6 +5,7 @@ import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockChainAssetInfo
 import com.gemwallet.android.testkit.mockFormattedNumber
@@ -39,10 +40,10 @@ class AssetInfoUIModelFactoryTest {
     @Before
     fun setUp() {
         mockkStatic("com.gemwallet.android.ext.ChainKt")
-        every { Chain.Cosmos.asset() } returns mockAsset(chain = Chain.Cosmos, name = "Cosmos")
-        every { Chain.Solana.asset() } returns mockAsset(chain = Chain.Solana, name = "Solana")
-        every { Chain.Tron.asset() } returns mockAsset(chain = Chain.Tron, name = "Tron")
-        every { Chain.Bitcoin.asset() } returns mockAsset(chain = Chain.Bitcoin, name = "Bitcoin")
+        every { Chain.Cosmos.asset() } returns mockAsset(id = mockAssetId(chain = Chain.Cosmos), name = "Cosmos")
+        every { Chain.Solana.asset() } returns mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana")
+        every { Chain.Tron.asset() } returns mockAsset(id = mockAssetId(chain = Chain.Tron), name = "Tron")
+        every { Chain.Bitcoin.asset() } returns mockAsset(id = mockAssetId(chain = Chain.Bitcoin), name = "Bitcoin")
     }
 
     @After
@@ -52,7 +53,7 @@ class AssetInfoUIModelFactoryTest {
     fun `balance rows show the values core formatted`() {
         val staked = mockFormattedNumber(value = 2.0, unit = GemNumberUnit.Symbol(symbol = "ATOM"))
         val apr = mockFormattedNumber(value = 5.0, unit = GemNumberUnit.Percent)
-        val asset = mockAsset(chain = Chain.Cosmos)
+        val asset = mockAsset(id = mockAssetId(chain = Chain.Cosmos))
         val section = model(
             mockAssetInfo(asset = asset, owner = null),
             sections = listOf(

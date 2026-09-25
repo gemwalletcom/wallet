@@ -46,7 +46,7 @@ struct AssetFiatValuesQueryTests {
         let db = try DB.mockAssetsWithPerpetualCollateralBalance()
 
         try db.dbQueue.read { db in
-            let result = try PerpetualWalletBalanceQuery(walletId: .mock(), assetId: Asset.mockHypercoreUSDC().id).fetch(db)
+            let result = try PerpetualWalletBalanceQuery(walletId: .mock(), assetId: Asset.mock(id: .mock(chain: .hyperCore, tokenId: "perpetual::USDC"), name: "USDC", symbol: "USDC", decimals: 6, type: .perpetual).id).fetch(db)
 
             #expect(result?.balance.available == 50)
             #expect(result?.balance.reserved == 25)

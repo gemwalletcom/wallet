@@ -8,9 +8,11 @@ import com.gemwallet.android.data.services.store.database.entities.DbBanner
 import com.gemwallet.android.data.services.store.database.entities.toDTO
 import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.testkit.mockAssetTron
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.wallet.core.primitives.BannerEvent
 import com.wallet.core.primitives.BannerState
+import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -24,7 +26,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class BannersDaoTest {
     private lateinit var database: GemDatabase
-    private val asset = mockAssetTron()
+    private val asset = mockAsset(id = mockAssetId(chain = Chain.Tron), name = "Tron", symbol = "TRX", decimals = 6)
     private val warning = DbBanner(
         id = "tron-multisignature",
         walletId = "wallet-1",

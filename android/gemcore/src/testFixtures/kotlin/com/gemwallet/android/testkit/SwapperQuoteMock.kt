@@ -2,6 +2,8 @@ package com.gemwallet.android.testkit
 
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import com.wallet.core.primitives.AssetType
+import com.wallet.core.primitives.Chain
 import uniffi.gemstone.SwapProvider
 import uniffi.gemstone.SwapperOptions
 import uniffi.gemstone.SwapperProviderData
@@ -17,8 +19,8 @@ import java.math.BigInteger
 
 fun mockSwapperQuote(toValue: BigInteger = BigInteger("2500000")): SwapperQuote {
     val fromValue = BigInteger("1000000000")
-    val fromAsset = mockAssetSolana()
-    val toAsset = mockAssetSolanaUSDC()
+    val fromAsset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9)
+    val toAsset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6, type = AssetType.SPL)
     return SwapperQuote(
         fromValue = fromValue,
         minFromValue = null,

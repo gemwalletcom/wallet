@@ -12,7 +12,7 @@ public extension AutocloseOpenData {
         takeProfit: String? = nil,
     ) -> AutocloseOpenData {
         AutocloseOpenData(
-            assetId: .mock(.bitcoin),
+            assetId: .mock(chain: .bitcoin),
             symbol: symbol,
             direction: direction,
             marketPrice: 100.0,
