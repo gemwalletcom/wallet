@@ -16,7 +16,6 @@ import com.gemwallet.android.features.referral.viewmodels.models.RewardsSectionU
 import com.gemwallet.android.features.referral.viewmodels.models.sectionModels
 import com.gemwallet.android.features.referral.viewmodels.models.uiModel
 import com.gemwallet.android.model.text
-import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,7 +36,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemIncomingCode
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemRewardsAction
@@ -47,7 +45,7 @@ import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.incomingReferralCode
 import uniffi.gemstone.loadError
 import uniffi.gemstone.rewardsSession
-import uniffi.gemstone.walletRows
+import uniffi.gemstone.walletSections
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -103,7 +101,7 @@ class ReferralViewModel @Inject constructor(
     val availableWallets = getWallets().mapLatest { wallets -> service.wallets(wallets.map { it.toGem() }).map { it.toPrimitives() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val availableWalletRows = availableWallets.mapLatest { wallets -> walletRows(wallets.map { it.toGem() }) }
+    val availableWalletSections = availableWallets.mapLatest { wallets -> walletSections(wallets.map { it.toGem() }) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val incomingCode: StateFlow<IncomingCodeUIModel> = combine(referralCode, availableWallets) { code, wallets ->

@@ -159,6 +159,23 @@ pub fn wallet_rows(wallets: Vec<Wallet>) -> Vec<GemWalletRow> {
     rules::rows(&wallets)
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemWalletSectionKind {
+    Pinned,
+    Wallets,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemWalletSection {
+    pub kind: GemWalletSectionKind,
+    pub rows: Vec<GemWalletRow>,
+}
+
+#[uniffi::export]
+pub fn wallet_sections(wallets: Vec<Wallet>) -> Vec<GemWalletSection> {
+    rules::sections(&wallets)
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemWalletDetails {
     pub row: GemWalletRow,

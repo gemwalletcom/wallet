@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.wallets.presents.views.components
+package com.gemwallet.android.ui.components.list_item
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,13 +12,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.sectionHeaderHorizontalPadding
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space24
 import com.gemwallet.android.ui.theme.tinyIconSize
-internal fun LazyListScope.pinnedHeader() {
+fun LazyListScope.pinnedHeader() {
     item {
         Row(
             modifier = Modifier.padding(

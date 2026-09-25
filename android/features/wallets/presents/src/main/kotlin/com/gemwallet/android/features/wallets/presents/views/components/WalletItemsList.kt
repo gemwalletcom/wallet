@@ -17,6 +17,7 @@ import com.gemwallet.android.features.wallets.viewmodels.models.WalletItemUIMode
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
 import com.gemwallet.android.ui.components.list_item.WalletItem
+import com.gemwallet.android.ui.components.list_item.pinnedHeader
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.WalletId

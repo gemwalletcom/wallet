@@ -9,8 +9,12 @@ import com.gemwallet.android.ui.localization.string
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemWalletPlaceholder
 import uniffi.gemstone.GemWalletRow
+import uniffi.gemstone.GemWalletSection
+import uniffi.gemstone.GemWalletSectionKind
 
 data class WalletRowUIModel(val id: String, val name: String, val subtitle: String, val icon: Any?, val supportIcon: String?)
+
+data class WalletSectionUIModel(val kind: GemWalletSectionKind, val rows: List<WalletRowUIModel>)
 
 fun GemWalletRow.uiModel(context: Context) = WalletRowUIModel(
     id = id,
@@ -19,6 +23,8 @@ fun GemWalletRow.uiModel(context: Context) = WalletRowUIModel(
     icon = walletImageModel(context, imageUrl) ?: placeholder.iconModel(),
     supportIcon = supportIcon(),
 )
+
+fun GemWalletSection.uiModel(context: Context) = WalletSectionUIModel(kind = kind, rows = rows.map { it.uiModel(context) })
 
 fun GemWalletRow.listItemImage(): ListItemImage = walletListItemImage(imageUrl, placeholder)
 

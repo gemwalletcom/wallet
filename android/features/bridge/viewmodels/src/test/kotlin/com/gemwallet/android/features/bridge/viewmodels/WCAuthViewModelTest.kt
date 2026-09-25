@@ -144,7 +144,7 @@ class WCAuthViewModelTest {
         assertEquals("Uniswap", content.peer.title)
         assertEquals(main, content.selectedWallet)
         assertEquals(listOf(main, secondary), content.availableWallets)
-        assertEquals(listOf("Main Wallet", "Second Wallet"), content.availableWalletRows.map { it.name })
+        assertEquals(listOf("Main Wallet", "Second Wallet"), content.availableWalletSections.flatMap { it.rows }.map { it.name })
         assertEquals("0xabc", content.approval.account.address)
         assertEquals("did:pkh:eip155:1:0xabc", content.approval.issuer)
         assertEquals("app.uniswap.org wants you to sign in", content.message)

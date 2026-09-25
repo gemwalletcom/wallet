@@ -30,7 +30,7 @@ import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
-import com.gemwallet.android.ui.components.list_item.WalletRowUIModel
+import com.gemwallet.android.ui.components.list_item.WalletSectionUIModel
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.LoadingScene
@@ -55,7 +55,7 @@ fun ProposalScene(proposal: WalletConnectSessionProposal, verifyContext: WalletC
     val peer by viewModel.proposal.collectAsStateWithLifecycle()
     val selectedWallet by viewModel.selectedWallet.collectAsStateWithLifecycle()
     val availableWallets by viewModel.availableWallets.collectAsStateWithLifecycle()
-    val availableWalletRows by viewModel.availableWalletRows.collectAsStateWithLifecycle()
+    val availableWalletSections by viewModel.availableWalletSections.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
 
     LaunchedEffect(proposal) {
@@ -80,7 +80,7 @@ fun ProposalScene(proposal: WalletConnectSessionProposal, verifyContext: WalletC
             permissionListItems = viewModel.permissionListItems,
             selectedWallet = selectedWallet,
             availableWallets = availableWallets,
-            availableWalletRows = availableWalletRows,
+            availableWalletSections = availableWalletSections,
             buttonState = buttonState,
             onReject = viewModel::onReject,
             onApprove = { viewModel.onApprove { error -> onError(error.text(context)) } },
@@ -99,7 +99,7 @@ private fun Proposal(
     permissionListItems: List<ListItemModel>,
     selectedWallet: com.wallet.core.primitives.Wallet?,
     availableWallets: List<com.wallet.core.primitives.Wallet>,
-    availableWalletRows: List<WalletRowUIModel>,
+    availableWalletSections: List<WalletSectionUIModel>,
     buttonState: ButtonState,
     onReject: () -> Unit,
     onApprove: () -> Unit,
@@ -168,7 +168,7 @@ private fun Proposal(
 
     WalletSelectionSheet(
         isVisible = isShowSelectWallets,
-        walletRows = availableWalletRows,
+        walletSections = availableWalletSections,
         selectedWalletId = selectedWallet?.id,
         onWalletSelected = onWalletSelected,
         onDismissRequest = { isShowSelectWallets = false },

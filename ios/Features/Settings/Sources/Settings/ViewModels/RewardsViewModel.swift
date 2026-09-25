@@ -15,7 +15,7 @@ import struct Gemstone.GemWalletRow
 import func Gemstone.incomingReferralCode
 import func Gemstone.rewardsSession
 import func Gemstone.walletRow
-import func Gemstone.walletRows
+import func Gemstone.walletSections
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -98,7 +98,7 @@ public final class RewardsViewModel: Sendable {
 
     var walletSelectorModel: SelectWalletViewModel {
         SelectWalletViewModel(
-            rows: walletRows(wallets: wallets.map { $0.toGem() }),
+            sections: walletSections(wallets: wallets.map { $0.toGem() }),
             selectedRow: selectedWalletRow,
         )
     }

@@ -2,7 +2,7 @@ use gem_keystore::Mnemonic;
 use primitives::{Account, AddressName, AddressType, Chain, ChainAddress, NameRecord, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
 
 use super::error::GemWalletImportError;
-use super::model::{GemSecretPhraseRow, GemWalletDetails, GemWalletImportKind, GemWalletImportScreen, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSecretKind, GemWalletSubtitle};
+use super::model::{GemSecretPhraseRow, GemWalletDetails, GemWalletImportKind, GemWalletImportScreen, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSecretKind, GemWalletSection, GemWalletSectionKind, GemWalletSubtitle};
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::services::localization::GemLocalizedText;
 
@@ -162,6 +162,15 @@ pub fn rows(wallets: &[Wallet]) -> Vec<GemWalletRow> {
     wallets.iter().map(row).collect()
 }
 
+pub fn sections(wallets: &[Wallet]) -> Vec<GemWalletSection> {
+    let (pinned, rest): (Vec<GemWalletRow>, Vec<GemWalletRow>) = rows(wallets).into_iter().partition(|row| row.is_pinned);
+    [(GemWalletSectionKind::Pinned, pinned), (GemWalletSectionKind::Wallets, rest)]
+        .into_iter()
+        .filter(|(_, rows)| !rows.is_empty())
+        .map(|(kind, rows)| GemWalletSection { kind, rows })
+        .collect()
+}
+
 pub fn details(wallet: &Wallet) -> GemWalletDetails {
     GemWalletDetails {
         row: row(wallet),
@@ -271,6 +280,22 @@ pub fn existing_wallet(wallets: &[Wallet], wallet_id: &WalletId, wallet_type: Wa
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_pinned_wallets_get_their_own_section_first() {
+        let pinned = Wallet { is_pinned: true, ..Wallet::mock() };
+        let plain = Wallet {
+            id: primitives::WalletId::Multicoin("plain".into()),
+            ..Wallet::mock()
+        };
+
+        let sections = sections(&[plain.clone(), pinned.clone()]);
+        assert_eq!(sections.iter().map(|section| section.kind).collect::<Vec<_>>(), vec![GemWalletSectionKind::Pinned, GemWalletSectionKind::Wallets]);
+        assert_eq!(sections[0].rows, vec![row(&pinned)]);
+        assert_eq!(sections[1].rows, vec![row(&plain)]);
+
+        assert_eq!(super::sections(&[plain]).len(), 1, "no empty pinned section");
+    }
 
     #[test]
     fn test_only_a_created_wallet_that_never_synced_is_new() {

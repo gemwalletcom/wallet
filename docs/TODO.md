@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Settled differences:** BD59, BD60, BD61, BD62, BD63, BD64, BD56, AUD50.
+1. **Settled differences:** BD60, BD61, BD62, BD63, BD64, BD56, AUD50.
 2. **One view state:** VM168, VM167, VM169, VM170, VM171, VM144, VM125, VM134, VM89.
 3. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
 4. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
@@ -55,13 +55,13 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Earn list, provider and deposit amount | Existing stake/earn owner and amount extras | BD60; preserve the existing feature gate |
 | NFT root/collection/unverified, detail/report/avatar | `GemNftService`, `GemCollectibleService`, shared rich rows and avatar flow | VM134, BD62 |
 | Price-alert list/target/auto-alert controls | `GemPriceAlertService`, alert session and existing notification port | VM67, VM172 |
-| Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | BD59 |
+| Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | — |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | — |
 | Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | — |
 | Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | retain native locale/theme application |
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | Retain platform-only privacy lock |
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | — |
-| WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | BD59; retain Android-only one-click auth |
+| WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | retain Android-only one-click auth |
 | Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per module | VM6, VM64, VM88, VM89, VM172, VM180 |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
 | Stores and persistence | `Gem*Store` traits and both adapters | VM98 |
@@ -198,10 +198,6 @@ Differences between the apps, or between an app and the server, each with its de
 
 ### iOS and Android differ
 
-- **BD59** **S** **The WalletConnect and rewards wallet pickers group pinned wallets on iOS only.**
-  - **iOS:** a "Pinned" section, then the rest (`SelectWalletViewModel.swift:25-31`, used by `ConnectionProposalViewModel.swift:34` and `RewardsViewModel.swift:119-123`).
-  - **Android:** a flat list (`WalletConnectReviewContent.kt:103-120`, `ReferralNavScreen.kt:98-114`).
-  - **Expected:** iOS: a pinned section on both, from `wallet_rows` ([`wallet/model.rs`](../core/gemstone/src/services/wallet/model.rs)) returning the sections, as the wallets screen already partitions.
 - **BD60** **S** **An earn position's tap and order.**
   - **iOS:** an awaiting-withdrawal position in a signing wallet opens Withdraw through `delegation_destination` (`EarnSceneViewModel.swift:92`); positions keep Core's unsorted order (`positions()` in `earn_view`).
   - **Android:** always opens details (`EarnScreen.kt:102`); positions are sorted by `sorted_delegations` in `StakeReadsImpl.kt:28,35`.
