@@ -1021,22 +1021,22 @@ Core computes a complete domain change; one feature-store operation commits rela
 
 The existing hide/unpin adapters are the atomic-write example: [iOS balance updates](../ios/Packages/Store/Sources/Stores/BalanceStore.swift) and [Android asset configuration](../android/data/services/store/src/main/kotlin/com/gemwallet/android/data/service/store/database/AssetsDao.kt) update both fields together. Core sends one asset-configuration patch, so separate hide and unpin calls would weaken the contract. Address-name replacement stays conditional, and perpetual collateral clearing stays one transaction.
 
-Atomicity of one batch does not order overlapping operations. The [balance publication contract](#publish-a-multi-source-refresh-as-one-batch) is how stale responses and different balance-kind updates publish without overwriting newer data. Preserve explicit wallet/asset identity and independent requests; a global lock is not a default solution.
+Atomicity of one batch does not order overlapping operations. The [balance publication contract](#publish-each-source-of-a-refresh-as-it-answers) is how stale responses and different balance-kind updates publish without overwriting newer data. Preserve explicit wallet/asset identity and independent requests; a global lock is not a default solution.
 
 Observed queries stay native. Their product contract specifies wallet scope, inclusion, ordering, limits and missing rows; paired adapter/query fixtures verify those semantics. Do not solve query parity by copying an unbounded wallet across FFI and sorting it on every emission. `BalanceStoreTests` and `BalancesDaoTest` are those contract tests, through the real GRDB/Room adapters (MIG6).
 
-### Publish a multi-source refresh as one batch
+### Publish each source of a refresh as it answers
 
-A refresh that asks several sources at once — [`GemBalanceService.update`](../core/gemstone/src/services/balance/mod.rs) asks every chain of a wallet concurrently — publishes **one** store write carrying every source that answered. The contract each app's observers rely on:
+A refresh that asks several sources at once — [`GemBalanceService.update`](../core/gemstone/src/services/balance/mod.rs) asks every chain of a wallet concurrently, and on each chain the coin, staking, token and earn balances separately — writes each chain as soon as that chain has answered, so the fastest network shows first ([product/wallet.md](product/wallet.md)). The contract each app's observers rely on:
 
-- **One write per refresh, and it is atomic.** Both adapters write the batch inside a single database transaction, so an observed query never sees a wallet half updated and a portfolio total never mixes rows from two different refreshes of the same call.
-- **A source that fails holds nothing back.** The sources that answered are written; the first failure in request order is returned after the write, so the caller can report it without discarding good data. `published_balances` owns that split and is tested on its own.
+- **One write per chain, and it is atomic.** Both adapters write a chain's batch inside a single database transaction, so an observed query never sees a chain half updated.
+- **A source that fails holds nothing back.** On a chain, the components that answered are written even when another failed; across chains, one chain's failure never delays another's write. The first failure in request order is returned after every chain has finished, so the caller can report it without discarding good data. `published_balances` owns the component split and is tested on its own.
 - **A source that fails leaves its rows as they were.** There is no "unknown" state: the previous values stay and stay visible, so a total computed while one chain is offline is a total of older values for that chain, not a total missing it.
 - **The wallet is named, not implied.** Every write is keyed by the `WalletId` the refresh was asked for, so a response that lands after the user switched wallets writes the wallet it belongs to and never the one on screen.
 - **Only rows whose values differ are written.** The refresh reads the stored rows, folds its updates onto them by kind — a stake answer does not clear a coin's available balance — and drops the rows that come back equal.
 - **Overlapping refreshes publish in order, one wallet at a time.** Each refresh takes a sequence number when its fetch starts and holds that wallet's publication lane for its read-fold-write, so a concurrent coin and stake answer cannot lose each other and a response that arrives after a newer one for the same asset and kind is dropped instead of written. Other wallets and the price socket lane stay concurrent.
 
-Per-source publication would increase observer notifications and mixed-age totals; preserve the batch contract until the owner defines and tests a replacement.
+A write per chain notifies the observers once per chain, and a total read between two writes mixes the new values of one chain with the older values of another for that moment; the owner chose that over holding every chain back for the slowest.
 
 ## 5. The app maps; it does not decide
 

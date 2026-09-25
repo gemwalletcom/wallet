@@ -9,7 +9,7 @@ use crate::models::copy::address_copy;
 use crate::models::list::{GemListRow, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle, GemNoticeKind, suspicious_address_notice};
 use crate::models::state::{GemLoad, GemLoadState};
 use crate::services::assets::rules::asset_text;
-use crate::services::balance::rules::{balance_amount, balance_updates, chain_balances};
+use crate::services::balance::rules::{BalanceKind, balance_amount, balance_updates};
 use crate::services::balance::{GemAssetBalance, GemBalanceRow};
 use crate::services::contact::model::contact_avatar;
 use crate::services::error::GemServiceError;
@@ -146,7 +146,7 @@ fn display_name(name: Option<String>, address: &str) -> Option<String> {
 }
 
 fn balance_rows(chain: Chain, coin: AssetBalance, stake: Option<AssetBalance>) -> Vec<GemBalanceRow> {
-    let balance = balance_updates(chain_balances(vec![coin], stake.into_iter().collect(), Vec::new(), Vec::new()))
+    let balance = balance_updates(once((BalanceKind::Coin, coin)).chain(stake.map(|stake| (BalanceKind::Stake, stake))).collect())
         .iter()
         .fold(GemAssetBalance::zero(AssetId::from_chain(chain)), |balance, update| balance.applying(update));
     let breakdown = balance.detail_rows(chain, false).into_iter().filter(|row| match row {

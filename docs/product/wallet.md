@@ -30,12 +30,13 @@ sequenceDiagram
         and earn
             App->>Chain: earn balances
         end
+        App-->>Screen: that network's rows update as soon as it has answered
     end
-    App-->>Screen: list updates once, with every network that answered
 ```
 
 - Every network is asked at the same time, and on each network the coin, staking, token and earn balances are separate requests, so the fastest answer is never held back by the slowest.
-- Whatever answered updates the list in one go; unchanged rows are not touched; a network that did not answer keeps its last values.
+- Each network updates the list as soon as it has answered, in one write for that network, so the fastest network shows first; unchanged rows are not touched.
+- A request that fails holds nothing back: the other balances of that network still update, and a network or balance that did not answer keeps its last values.
 - Prices are kept in USD and converted once to the chosen currency, so every screen shows the same value.
 
 ## Asset screen

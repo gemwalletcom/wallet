@@ -9,8 +9,9 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
-use futures::future::join_all;
+use futures::StreamExt;
 use futures::lock::Mutex as AsyncMutex;
+use futures::stream::FuturesUnordered;
 use primitives::{Asset, AssetBalance, AssetId, Wallet, WalletId};
 use std::mem::{Discriminant, discriminant};
 
@@ -101,16 +102,25 @@ impl GemBalanceService {
         };
         let sequence = self.next_sequence();
         let requests = rules::balance_requests(&wallet.accounts, &asset_ids);
-        let results = join_all(requests.iter().map(|request| self.chain_balances(request))).await;
-        let (balances, failure) = rules::published_balances(results);
-        if !balances.is_empty() {
-            let assets = self.assets.assets(balances.iter().map(|(_, balance)| balance.asset_id.clone()).collect()).await?;
-            self.write_balances(wallet_id, sequence, rules::balance_updates(balances), &assets).await?;
+        let mut networks: FuturesUnordered<_> = requests.iter().enumerate().map(|(index, request)| async move { (index, self.chain_balances(request).await) }).collect();
+        let mut failures = Vec::new();
+        while let Some((index, components)) = networks.next().await {
+            let (balances, network_failure) = rules::published_balances(components);
+            let written = self.write_network_balances(&wallet_id, sequence, balances).await.err();
+            failures.extend(network_failure.or(written).map(|error| (index, error)));
         }
-        match failure {
-            Some(error) => Err(error),
+        match failures.into_iter().min_by_key(|(index, _)| *index) {
+            Some((_, error)) => Err(error),
             None => Ok(()),
         }
+    }
+
+    async fn write_network_balances(&self, wallet_id: &WalletId, sequence: u64, balances: Vec<(BalanceKind, AssetBalance)>) -> Result<(), GemServiceError> {
+        if balances.is_empty() {
+            return Ok(());
+        }
+        let assets = self.assets.assets(balances.iter().map(|(_, balance)| balance.asset_id.clone()).collect()).await?;
+        self.write_balances(wallet_id.clone(), sequence, rules::balance_updates(balances), &assets).await
     }
 
     pub async fn update_enabled_balances(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
@@ -193,7 +203,7 @@ impl GemBalanceService {
         self.store.update_balances(wallet_id, records).await
     }
 
-    async fn chain_balances(&self, request: &BalanceRequest) -> Result<Vec<(BalanceKind, AssetBalance)>, GemServiceError> {
+    async fn chain_balances(&self, request: &BalanceRequest) -> Vec<Result<Vec<(BalanceKind, AssetBalance)>, GemServiceError>> {
         let token_ids = rules::request_token_ids(&request.token_ids);
         let (coin, stake, tokens, earn) = futures::join!(
             async {
@@ -225,7 +235,12 @@ impl GemBalanceService {
                 }
             },
         );
-        Ok(rules::chain_balances(coin?, stake?, tokens?, earn?))
+        vec![
+            rules::kind_balances(BalanceKind::Coin, coin.map_err(Into::into)),
+            rules::kind_balances(BalanceKind::Stake, stake.map_err(Into::into)),
+            rules::kind_balances(BalanceKind::Token, tokens.map_err(Into::into)),
+            rules::kind_balances(BalanceKind::Earn, earn.map_err(Into::into)),
+        ]
     }
 }
 
@@ -404,6 +419,26 @@ mod tests {
                 let writes = testkit.balances.configuration_writes.lock().unwrap().clone();
                 assert_eq!(writes.last().map(|(_, configuration)| configuration.is_enabled), Some(Some(true)), "the asset is enabled either way");
             }
+        });
+    }
+
+    #[test]
+    fn test_each_network_is_written_as_it_answers() {
+        block_on(async {
+            let wallet = Wallet::mock_with_chains(&[Chain::Bitcoin, Chain::Litecoin]);
+            let provider = Arc::new(TestAlienProvider::with_json_by_path(200, &[("/v2/address/", r#"{"balance":"1000"}"#)]));
+            let testkit = DiscoveryTestkit::with_provider(provider, wallet.clone());
+            testkit
+                .asset_store
+                .save_assets(vec![default_asset_basic(Asset::from_chain(Chain::Bitcoin)), default_asset_basic(Asset::from_chain(Chain::Litecoin))])
+                .await
+                .unwrap();
+
+            testkit.balance.update(wallet.id.clone(), vec![AssetId::from_chain(Chain::Bitcoin), AssetId::from_chain(Chain::Litecoin)]).await.unwrap();
+
+            let writes = testkit.balances.balance_writes.lock().unwrap().clone();
+            assert_eq!(writes.len(), 2, "each network writes its own balances without waiting for the other");
+            assert!(writes.iter().all(|records| records.len() == 1), "a write holds the one network that answered");
         });
     }
 

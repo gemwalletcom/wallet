@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Balances and storage:** D76, D77, VM98 (an Android migration).
+1. **Balances and storage:** VM98 (an Android migration).
 2. **Server:** BD23, BD30, BD51, BD52.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181. Waiting on a date or a release: X168, X163.
@@ -101,8 +101,6 @@ The same product rule written in both apps, or in one app while the other reads 
 Core has no runtime, so scheduling, timers and OS callbacks stay in the apps; what moves is the decision — what to do, in what order, under what condition — returned as one call or one record. And [a store returns what Core reads](ARCHITECTURE.md#4-the-store-trait-is-the-apps-only-persistence-obligation), through one trait per responsibility.
 
 - **VM79** **S** **The root scene stops reading the wallet store.** iOS [`RootSceneViewModel`](../ios/Gem/ViewModels/RootSceneViewModel.swift) reads `stores.walletStore.getWallet` directly; the session service answers the current wallet. Blocked on a synchronous answer: `GemWalletSessionService::get_current_wallet` is async (the wallet store port is async), and the root view needs the wallet on its first render or it flashes onboarding at every launch; either the port gains a synchronous read or the root keeps a stored wallet it can seed before first render.
-- **D76** **S** **Whether one failed balance request discards its network's other answers.** `chain_balances` in [`balance/mod.rs`](../core/gemstone/src/services/balance/mod.rs) joins the coin, staking, token and earn results with `?`, so a failed staking or earn request throws away the coin and token balances that succeeded on that network, and no test covers the case; the product intent in [product/wallet.md](product/wallet.md) says a slow or failing request must not hold back the others. **Decided:** publish the components that answered and return the first component failure (extend `published_balances` to per-component results, add the test).
-- **D77** **S** **When the wallet list updates during a balance refresh.** `update` waits for every network (`join_all`) and every component (`join!`) before its single write, so the fastest network's coin balance shows only when the slowest has answered or failed; [ARCHITECTURE](ARCHITECTURE.md#publish-a-multi-source-refresh-as-one-batch) chose one batch on purpose (fewer observer notifications, no mixed-age totals), and the product owner wants balances "as soon as possible". **Decided:** write each network as it finishes, each write atomic and lane-ordered, per the product rule in [product/wallet.md](product/wallet.md); update the ARCHITECTURE section in the same change.
 
 ## 7. Rows and taps
 
