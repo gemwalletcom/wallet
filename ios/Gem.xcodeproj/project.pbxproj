@@ -54,7 +54,6 @@
 		BD953F7FE9F1DB860BBB3737 /* ScanReceiveSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB63698068D10CFB743007B3 /* ScanReceiveSheet.swift */; };
 		BEA8854FFA434DB886A503B4 /* SwapNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4AD1B5383754B81B27D46BF /* SwapNavigationStack.swift */; };
 		C30952B4299C39D70004C0F9 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = C30952B3299C39D70004C0F9 /* App.swift */; };
-		C34C7CF829FDE942009EEC21 /* unit_frameworks.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = C34C7CF729FDE942009EEC21 /* unit_frameworks.xctestplan */; };
 		C35DA07C2A9C3B4B008CCEFA /* Settings in Frameworks */ = {isa = PBXBuildFile; productRef = C35DA07B2A9C3B4B008CCEFA /* Settings */; };
 		C366790A2A0B7E5800F1D74D /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36679092A0B7E5800F1D74D /* Environment.swift */; };
 		C366791D2A18623800F1D74D /* QRScanner in Frameworks */ = {isa = PBXBuildFile; productRef = C366791C2A18623800F1D74D /* QRScanner */; };
@@ -120,13 +119,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		C30952C2299C39D80004C0F9 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = C30952A8299C39D70004C0F9 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = C30952AF299C39D70004C0F9;
-			remoteInfo = wallet;
-		};
 		D83096B22D5D4F1E00FFEE3E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C30952A8299C39D70004C0F9 /* Project object */;
@@ -213,7 +205,6 @@
 		C30952B3299C39D70004C0F9 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		C30952B7299C39D80004C0F9 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		C30952B9299C39D80004C0F9 /* Gem.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Gem.entitlements; sourceTree = "<group>"; };
-		C30952C1299C39D80004C0F9 /* GemTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GemTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C34C7CF729FDE942009EEC21 /* unit_frameworks.xctestplan */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = unit_frameworks.xctestplan; sourceTree = "<group>"; };
 		C3549B4C29CA3A9000B4BE01 /* Store */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Store; sourceTree = "<group>"; };
 		C36679092A0B7E5800F1D74D /* Environment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
@@ -332,13 +323,6 @@
 				D9F015752F10654000000003 /* InAppNotifications in Frameworks */,
 				83B6C2102D5E3F2600F9DF8A /* WalletTab in Frameworks */,
 				83D6808B2CCA90D900B45089 /* InfoSheet in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		C30952BE299C39D80004C0F9 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -560,7 +544,6 @@
 			isa = PBXGroup;
 			children = (
 				C30952B0299C39D70004C0F9 /* Gem.app */,
-				C30952C1299C39D80004C0F9 /* GemTests.xctest */,
 				D8A1F8732B17F21E00B15F54 /* Screenshots.xctest */,
 				D83096AC2D5D4F1E00FFEE3E /* GemUITests.xctest */,
 				D83819492E256A5A0076CDB3 /* GemPriceWidget.appex */,
@@ -784,32 +767,6 @@
 			productReference = C30952B0299C39D70004C0F9 /* Gem.app */;
 			productType = "com.apple.product-type.application";
 		};
-		C30952C0299C39D80004C0F9 /* GemTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = C30952D8299C39D80004C0F9 /* Build configuration list for PBXNativeTarget "GemTests" */;
-			buildPhases = (
-				C30952BD299C39D80004C0F9 /* Sources */,
-				C30952BE299C39D80004C0F9 /* Frameworks */,
-				C30952BF299C39D80004C0F9 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				D869D9432E358A9C0025A94D /* PBXTargetDependency */,
-				D869D94D2E358A9C0025A94D /* PBXTargetDependency */,
-				D869D95F2E358A9C0025A94D /* PBXTargetDependency */,
-				D869D9612E358A9C0025A94D /* PBXTargetDependency */,
-				D869D9672E358A9C0025A94D /* PBXTargetDependency */,
-				D869D96D2E358A9C0025A94D /* PBXTargetDependency */,
-				C30952C3299C39D80004C0F9 /* PBXTargetDependency */,
-			);
-			name = GemTests;
-			packageProductDependencies = (
-			);
-			productName = walletTests;
-			productReference = C30952C1299C39D80004C0F9 /* GemTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 		D83096AB2D5D4F1E00FFEE3E /* GemUITests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = D83096B42D5D4F1E00FFEE3E /* Build configuration list for PBXNativeTarget "GemUITests" */;
@@ -892,10 +849,6 @@
 					C30952AF299C39D70004C0F9 = {
 						CreatedOnToolsVersion = 14.2;
 					};
-					C30952C0299C39D80004C0F9 = {
-						CreatedOnToolsVersion = 14.2;
-						TestTargetID = C30952AF299C39D70004C0F9;
-					};
 					D83096AB2D5D4F1E00FFEE3E = {
 						CreatedOnToolsVersion = 16.2;
 						TestTargetID = C30952AF299C39D70004C0F9;
@@ -955,7 +908,6 @@
 			projectRoot = "";
 			targets = (
 				C30952AF299C39D70004C0F9 /* Gem */,
-				C30952C0299C39D80004C0F9 /* GemTests */,
 				D83096AB2D5D4F1E00FFEE3E /* GemUITests */,
 				D8A1F8722B17F21E00B15F54 /* Screenshots */,
 				D83819482E256A5A0076CDB3 /* GemPriceWidget */,
@@ -970,14 +922,6 @@
 			files = (
 				D8C4A3672C8BA114006FABE8 /* Images.xcassets in Resources */,
 				DF1167112BC36240000F8C8C /* PrivacyInfo.xcprivacy in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		C30952BF299C39D80004C0F9 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				C34C7CF829FDE942009EEC21 /* unit_frameworks.xctestplan in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1067,13 +1011,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		C30952BD299C39D80004C0F9 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		D83096A82D5D4F1E00FFEE3E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1105,39 +1042,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		C30952C3299C39D80004C0F9 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = C30952AF299C39D70004C0F9 /* Gem */;
-			targetProxy = C30952C2299C39D80004C0F9 /* PBXContainerItemProxy */;
-		};
 		D83096B32D5D4F1E00FFEE3E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = C30952AF299C39D70004C0F9 /* Gem */;
 			targetProxy = D83096B22D5D4F1E00FFEE3E /* PBXContainerItemProxy */;
-		};
-		D869D9432E358A9C0025A94D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			productRef = D869D9422E358A9C0025A94D /* GemstoneServicesTestKit */;
-		};
-		D869D94D2E358A9C0025A94D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			productRef = D869D94C2E358A9C0025A94D /* WalletConnectorServiceTestKit */;
-		};
-		D869D95F2E358A9C0025A94D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			productRef = D869D95E2E358A9C0025A94D /* WalletTabTestKit */;
-		};
-		D869D9612E358A9C0025A94D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			productRef = D869D9602E358A9C0025A94D /* PerpetualsTestKit */;
-		};
-		D869D9672E358A9C0025A94D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			productRef = D869D9662E358A9C0025A94D /* StoreTestKit */;
-		};
-		D869D96D2E358A9C0025A94D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			productRef = D869D96C2E358A9C0025A94D /* PrimitivesTestKit */;
 		};
 		D8A1F87A2B17F21E00B15F54 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1419,48 +1327,6 @@
 			};
 			name = Release;
 		};
-		C30952D9299C39D80004C0F9 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 220;
-				DEAD_CODE_STRIPPING = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MACOSX_DEPLOYMENT_TARGET = 13.1;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.gemwallet.iosTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Gem.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Gem";
-			};
-			name = Debug;
-		};
-		C30952DA299C39D80004C0F9 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 220;
-				DEAD_CODE_STRIPPING = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MACOSX_DEPLOYMENT_TARGET = 13.1;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.gemwallet.iosTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Gem.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Gem";
-			};
-			name = Release;
-		};
 		D83096B52D5D4F1E00FFEE3E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1640,15 +1506,6 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C30952D8299C39D80004C0F9 /* Build configuration list for PBXNativeTarget "GemTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				C30952D9299C39D80004C0F9 /* Debug */,
-				C30952DA299C39D80004C0F9 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		D83096B42D5D4F1E00FFEE3E /* Build configuration list for PBXNativeTarget "GemUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -1786,30 +1643,6 @@
 		D85AD2A52CD7017E0010DEF8 /* NativeProviderService */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = NativeProviderService;
-		};
-		D869D9422E358A9C0025A94D /* GemstoneServicesTestKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = GemstoneServicesTestKit;
-		};
-		D869D94C2E358A9C0025A94D /* WalletConnectorServiceTestKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = WalletConnectorServiceTestKit;
-		};
-		D869D95E2E358A9C0025A94D /* WalletTabTestKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = WalletTabTestKit;
-		};
-		D869D9602E358A9C0025A94D /* PerpetualsTestKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = PerpetualsTestKit;
-		};
-		D869D9662E358A9C0025A94D /* StoreTestKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = StoreTestKit;
-		};
-		D869D96C2E358A9C0025A94D /* PrimitivesTestKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = PrimitivesTestKit;
 		};
 		D896B57D2E2EE2D300ADE083 /* Perpetuals */ = {
 			isa = XCSwiftPackageProductDependency;
