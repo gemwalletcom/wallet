@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import enum Gemstone.GemListRowTitle
+import struct Gemstone.GemListSection
 import struct Gemstone.GemPerpetualDefaults
 import struct Gemstone.GemPerpetualPickers
 import struct Gemstone.GemPickerOption
@@ -115,10 +116,8 @@ public final class PreferencesViewModel {
     }
 }
 
-// MARK: - ListSectionProvideable
-
-extension PreferencesViewModel: ListSectionProvideable {
-    public var sections: [ListSection<GemListSectionRow>] {
+public extension PreferencesViewModel {
+    var sections: [GemListSection] {
         settings.preferencesSections(
             input: GemPreferencesInput(
                 currency: preferences.currency.toGem(),
@@ -131,7 +130,7 @@ extension PreferencesViewModel: ListSectionProvideable {
                     stopLossPercent: perpetualStopLoss.value,
                 ),
             ),
-        ).listSections
+        )
     }
 }
 

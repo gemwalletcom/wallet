@@ -46,7 +46,7 @@ struct AssetSceneViewModelTests {
         let asset = Asset.mockEthereum()
         let model = AssetSceneViewModel.mock(.mock(asset: asset, balance: .mock()))
 
-        #expect(model.assetHeaderModel(model.details).title == GemFormattedNumber.mock(value: 0, unit: .symbol(symbol: asset.symbol)).text())
+        #expect(model.assetHeader(model.details).title == GemFormattedNumber.mock(value: 0, unit: .symbol(symbol: asset.symbol)).text())
     }
 
     @Test

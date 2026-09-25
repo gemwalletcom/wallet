@@ -71,27 +71,27 @@ public final class TransactionSceneViewModel {
     }
 }
 
-// MARK: - ListSectionProvideable
+// MARK: - Sections
 
-extension TransactionSceneViewModel: ListSectionProvideable {
+extension TransactionSceneViewModel {
     public var sections: [ListSection<GemTransactionDetailRow>] {
         transactionDetailSections(rows: rows).map(ListSection.init)
     }
 
-    public func itemModel(for row: GemTransactionDetailRow) -> any ItemModelProvidable<TransactionItemModel> {
+    public func itemModel(for row: GemTransactionDetailRow) -> TransactionItemModel {
         switch row {
         case .header: headerItem
         case .swapProgress: swapProgressItem
-        case .swapAgain: rows.swapAgain == nil ? TransactionItemModel.empty : .swapAgain(text: Localized.Transaction.swapAgain)
+        case .swapAgain: rows.swapAgain == nil ? .empty : .swapAgain(text: Localized.Transaction.swapAgain)
         case .participant: TransactionParticipantViewModel(
                 participant: rows.participant,
                 chain: transactionExtended.transaction.assetId.chain,
                 memo: transactionExtended.transaction.memo,
                 onAddContact: onAddContact,
                 onSelectAddress: onSelectAddress,
-            )
+            ).itemModel
         case .fee: feeItem
-        case let .row(row): TransactionItemModel.row(row)
+        case let .row(row): .row(row)
         }
     }
 

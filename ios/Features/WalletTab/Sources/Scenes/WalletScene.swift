@@ -24,7 +24,7 @@ public struct WalletScene: View {
         List {
             Section {} header: {
                 ValueHeaderView(
-                    model: state.header,
+                    header: state.header,
                     isPrivacyEnabled: $preferences.isHideBalanceEnabled,
                     titleActionType: .privacyToggle,
                     onHeaderAction: model.onHeaderAction,

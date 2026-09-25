@@ -28,6 +28,7 @@ import Localization
 import Primitives
 import PrimitivesComponents
 import Store
+import Style
 import Swap
 import SwiftUI
 import WalletConnector
@@ -139,9 +140,9 @@ public final class ConfirmTransferSceneViewModel {
     }
 }
 
-// MARK: - ListSectionProvideable
+// MARK: - Sections
 
-extension ConfirmTransferSceneViewModel: ListSectionProvideable {
+extension ConfirmTransferSceneViewModel {
     public var sections: [ListSection<ConfirmTransferItem>] {
         [
             ListSection(type: .header, [.header]),
@@ -159,39 +160,57 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
         viewState.rowContents.indices.map { viewState.rowContents[$0].item(at: $0) }
     }
 
-    public func itemModel(for item: ConfirmTransferItem) -> any ItemModelProvidable<ConfirmTransferItemModel> {
+    public func itemModel(for item: ConfirmTransferItem) -> ConfirmTransferItemModel {
         switch item {
         case .header:
-            ConfirmHeaderViewModel(header: confirmation.header(screen: state.screen))
+            confirmation.header(screen: state.screen).itemModel
         case .notice:
             viewState.notice.map(ConfirmTransferItemModel.row) ?? .empty
         case .warnings:
-            ConfirmTransferItemModel.warnings(simulationWarnings)
+            .warnings(simulationWarnings)
         case let .row(index):
             ConfirmRowViewModel(
                 content: viewState.rowContents[index],
                 onSelectAddress: { [weak self] in self?.onSelectAddress($0) },
-            )
+            ).itemModel
         case .verification:
-            ConfirmVerificationViewModel(infoAction: onSelectVerificationInfo)
+            verificationItem
         case .details:
-            detailsViewModel
+            detailsViewModel.itemModel
         case .payload:
-            ConfirmTransferItemModel.payload(fieldModels(for: primaryPayloadFields))
+            .payload(fieldModels(for: primaryPayloadFields))
         case let .balanceChange(index):
-            ConfirmTransferItemModel.balanceChange(balanceChangeModels[index])
+            .balanceChange(balanceChangeModels[index])
         case .networkFee:
             ConfirmNetworkFeeViewModel(
                 feeRow: viewState.feeRow,
                 feeModel: feeModel,
                 infoAction: onSelectNetworkFeeInfo,
-            )
+            ).itemModel
         case .error:
-            ConfirmErrorViewModel(
-                error: viewState.notice == nil ? state.loadError : nil,
-                onSelectListError: onSelectListError,
-            )
+            errorItem(viewState.notice == nil ? state.loadError : nil)
         }
+    }
+
+    private var verificationItem: ConfirmTransferItemModel {
+        .verification(
+            ListItemModel(
+                title: Localized.Info.paymentVerificationTitle,
+                subtitle: "",
+                subtitleStyle: TextStyle(font: .body, color: Colors.orange),
+                subtitleTagType: .image(Image(systemName: SystemImage.clockBadgeExclamationmark)),
+                infoAction: onSelectVerificationInfo,
+            ),
+        )
+    }
+
+    private func errorItem(_ error: GemConfirmError?) -> ConfirmTransferItemModel {
+        guard let error else { return .empty }
+        return .error(
+            title: Localized.Errors.errorOccurred,
+            error: error,
+            onInfoAction: error.display().hasInfoSheet() ? { [weak self] in self?.onSelectListError(error: error) } : nil,
+        )
     }
 }
 

@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import enum Gemstone.GemListRowTitle
+import struct Gemstone.GemListSection
 import protocol Gemstone.GemNotificationsServiceProtocol
 import enum Gemstone.GemPushResult
 import func Gemstone.notificationsSections
@@ -29,11 +30,9 @@ public final class NotificationsViewModel {
     }
 }
 
-// MARK: - ListSectionProvideable
-
-extension NotificationsViewModel: ListSectionProvideable {
-    public var sections: [ListSection<GemListSectionRow>] {
-        notificationsSections(pushEnabled: isEnabled).listSections
+public extension NotificationsViewModel {
+    var sections: [GemListSection] {
+        notificationsSections(pushEnabled: isEnabled)
     }
 }
 

@@ -13,14 +13,15 @@ import Testing
 @testable import Transfer
 @testable import TransferTestKit
 
-struct ConfirmErrorViewModelTests {
+@MainActor
+struct ConfirmErrorItemTests {
     @Test
     func loadFailureFillsTheList() {
         let error = GemConfirmError.Load(msg: "test error")
         let state = ConfirmTransferState.mock(screen: .mock(phase: .failed, failure: GemConfirmFailure(stage: .load, error: error)))
-        let model = ConfirmErrorViewModel(error: state.loadError, onSelectListError: { _ in })
+        let item = errorItem(state)
 
-        guard case let .error(title, errorValue, onInfoAction) = model.itemModel else {
+        guard case let .error(title, errorValue, onInfoAction) = item else {
             Issue.record("Expected .error")
             return
         }
@@ -33,9 +34,9 @@ struct ConfirmErrorViewModelTests {
     func submitFailureStaysOutOfTheList() {
         let failure = GemConfirmFailure(stage: .execute, error: .Broadcast(hashes: [], msg: "rejected"))
         let state = ConfirmTransferState.mock(load: .mock(fee: .mock()), screen: .mock(phase: .failed, failure: failure))
-        let model = ConfirmErrorViewModel(error: state.loadError, onSelectListError: { _ in })
+        let item = errorItem(state)
 
-        guard case .empty = model.itemModel else {
+        guard case .empty = item else {
             Issue.record("Expected .empty")
             return
         }
@@ -46,9 +47,9 @@ struct ConfirmErrorViewModelTests {
         let error = GemConfirmError.InsufficientBalance(asset: Asset.mock().toGem(), requirement: GemBalanceRequirement(required: 1, available: 0, shortfall: 1))
         let fee = GemConfirmFee.mock(amount: .error(error: error))
         let state = ConfirmTransferState.mock(load: .mock(fee: fee), screen: .mock(phase: .ready, failure: GemConfirmFailure(stage: .load, error: error)))
-        let model = ConfirmErrorViewModel(error: state.loadError, onSelectListError: { _ in })
+        let item = errorItem(state)
 
-        guard case let .error(_, _, onInfoAction) = model.itemModel else {
+        guard case let .error(_, _, onInfoAction) = item else {
             Issue.record("Expected .error")
             return
         }
@@ -58,10 +59,16 @@ struct ConfirmErrorViewModelTests {
     @Test
     func loaded() {
         let state = ConfirmTransferState.mock(load: .mock(fee: .mock()), screen: .mock(phase: .ready))
-        let model = ConfirmErrorViewModel(error: state.loadError, onSelectListError: { _ in })
-        guard case .empty = model.itemModel else {
+        let item = errorItem(state)
+        guard case .empty = item else {
             Issue.record("Expected .empty")
             return
         }
+    }
+
+    private func errorItem(_ state: ConfirmTransferState) -> ConfirmTransferItemModel {
+        let model = ConfirmTransferSceneViewModel.mock()
+        model.state = state
+        return model.itemModel(for: .error)
     }
 }

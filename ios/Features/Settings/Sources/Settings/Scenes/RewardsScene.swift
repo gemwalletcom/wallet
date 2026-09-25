@@ -68,7 +68,7 @@ public struct RewardsScene: View {
                         model.isPresentingSheet = nil
                     },
                     listContent: { wallet in
-                        SimpleListItemView(model: wallet)
+                        ListItemView(model: wallet.nameListItem)
                     },
                 )
             case .share:

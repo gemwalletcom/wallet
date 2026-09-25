@@ -23,7 +23,7 @@ public struct NetworkFeeScene: View {
             if model.showFeeAssets, let selectedFeeAsset = model.selectedFeeAssetItem {
                 Section {
                     NavigationCustomLink(
-                        with: SimpleListItemView(model: selectedFeeAsset),
+                        with: ListItemView(model: selectedFeeAsset.listItem),
                         action: { isPresentingFeeAssetSelection = true },
                     )
                 } header: {
@@ -98,7 +98,7 @@ public struct NetworkFeeScene: View {
                     }
                     isPresentingFeeAssetSelection = false
                 },
-                listContent: { SimpleListItemView(model: $0) },
+                listContent: { ListItemView(model: $0.listItem) },
             )
         }
     }

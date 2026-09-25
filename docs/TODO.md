@@ -19,9 +19,8 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Shared records:** VM6.
-2. **Balances and storage:** D76, D77, VM98 (an Android migration).
-3. **Server:** BD23, BD30, BD51, BD52.
+1. **Balances and storage:** D76, D77, VM98 (an Android migration).
+2. **Server:** BD23, BD30, BD51, BD52.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181. Waiting on a date or a release: X168, X163.
 
@@ -58,7 +57,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | Retain platform-only privacy lock |
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | — |
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | retain Android-only one-click auth |
-| Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | VM6 |
+| Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | — |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
 | Stores and persistence | `Gem*Store` traits and both adapters | VM98 |
 
@@ -95,7 +94,6 @@ The same product rule written in both apps, or in one app while the other reads 
 
 [An app row model stores the row and nothing else](ARCHITECTURE.md#an-app-row-model-stores-the-row-and-nothing-else), [a details screen gets a details record](ARCHITECTURE.md#a-details-screen-gets-a-details-record-not-a-row-plus-the-object-it-came-from), and a type that only crosses the FFI is used as the generated type. Delete-first items are at the end.
 
-- **VM6** **L** **Views take Core records; the adapter protocols go.** Four app-side view protocols force a model per Core record: `ItemModelProvidable` (10 conformances on 2026-09-23, mostly confirm and transaction details), `ListSectionProvideable` (10, settings-style screens that already hold `GemListSection`), `SimpleListItemViewable` (4) and `ValueHeaderViewModel` (7). Once the items in § 2 and § 3 leave no decision in those models, the shared views take the Core record directly and render it through the module's mapper extensions, and each adapter is deleted rather than kept as a pass-through. Update [An app row model stores the row and nothing else](ARCHITECTURE.md#an-app-row-model-stores-the-row-and-nothing-else) in the same change: it currently lets a model stand when "a list protocol demands one", which is the allowance these adapters live on. Each adapter goes once its screen's model holds no decision.
 - **VM181** **S** **Keystore secrets are exported only for the flows that need them.** `GemKeystore.create_store`, `export_private_key` and `export_recovery_phrase` are exported for app tests alone (iOS `LocalKeystore+Export.swift`, `LocalKeystore+Keystore.swift`; Android `MigrateV3KeystoreFilesTest`, `GemKeystoreBenchmarkTest`, `GemKeystoreConcurrencyTest`), while the apps import and export through the wallet service. Move those tests onto the production path, then make the three methods a plain `impl`, so no secret-exporting symbol exists that no flow uses ([security](../skills/security.md)). `check-ffi-surface.py` allows the three until then. Needs a decision: no production flow reaches these three, but `GemWalletService.export_secret` returns the same secrets in the same process, so dropping them narrows the binding rather than closing a path, and it costs rewriting the iOS keystore test kit (`LocalKeystore+Keystore.swift`, which most wallet tests use to create a wallet) and the keystore integration, benchmark and v3-migration tests on both apps onto `import_wallet` and `export_secret`. Drop them, or keep them for those tests?
 
 ## 6. Orchestration, services and stores

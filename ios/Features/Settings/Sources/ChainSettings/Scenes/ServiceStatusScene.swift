@@ -14,7 +14,7 @@ public struct ServiceStatusScene: View {
     }
 
     public var body: some View {
-        ListSectionView(provider: model) { row in
+        ListSectionView(sections: model.sections) { row in
             GemListRowView(row: row)
         }
         .listRowInsets(.assetListRowInsets)

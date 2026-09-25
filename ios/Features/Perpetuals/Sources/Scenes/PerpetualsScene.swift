@@ -64,7 +64,7 @@ struct PerpetualsScene: View {
             if !model.isSearching {
                 Section {} header: {
                     ValueHeaderView(
-                        model: model.headerViewModel,
+                        header: model.header,
                         isPrivacyEnabled: .constant(false),
                         titleActionType: .action(model.onSelectBalance),
                         onHeaderAction: model.onSelectHeaderAction,

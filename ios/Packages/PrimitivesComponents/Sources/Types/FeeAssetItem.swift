@@ -20,37 +20,29 @@ public struct FeeAssetItem: Sendable {
     }
 }
 
-extension FeeAssetItem: SimpleListItemViewable {
-    public var title: String { row.title }
-    public var titleExtra: String? { row.titleExtra }
-    public var subtitle: String? { trailingValue?.value.text.text }
-    public var subtitleExtra: String? { trailingValue?.extra?.text.text }
-
-    public var titleStyle: TextStyle {
-        TextStyle(font: .callout, color: Colors.black, fontWeight: .semibold)
-    }
-
-    public var subtitleStyle: TextStyle {
-        TextStyle(font: .callout, color: Colors.black, fontWeight: .semibold)
-    }
-
-    public var subtitleStyleExtra: TextStyle {
-        TextStyle(font: .footnote, color: Colors.gray)
-    }
-
-    public var assetImage: AssetImage {
+public extension FeeAssetItem {
+    var listItem: ListItemModel {
+        let value: (value: GemRowText, extra: GemRowText?)? = if case let .value(value, extra) = row.trailing {
+            (value, extra)
+        } else {
+            nil
+        }
         let image = AssetImage(icon: row.icon)
-        return AssetImage(
-            type: image.type,
-            imageURL: image.imageURL,
-            placeholder: image.placeholder,
-            chainPlaceholder: isSelected ? Images.Wallets.selected : nil,
+        return ListItemModel(
+            title: row.title,
+            titleStyle: TextStyle(font: .callout, color: Colors.black, fontWeight: .semibold),
+            titleExtra: row.titleExtra,
+            subtitle: value?.value.text.text,
+            subtitleStyle: TextStyle(font: .callout, color: Colors.black, fontWeight: .semibold),
+            subtitleExtra: value?.extra?.text.text,
+            subtitleStyleExtra: TextStyle(font: .footnote, color: Colors.gray),
+            imageStyle: .asset(assetImage: AssetImage(
+                type: image.type,
+                imageURL: image.imageURL,
+                placeholder: image.placeholder,
+                chainPlaceholder: isSelected ? Images.Wallets.selected : nil,
+            )),
         )
-    }
-
-    private var trailingValue: (value: GemRowText, extra: GemRowText?)? {
-        guard case let .value(value, extra) = row.trailing else { return nil }
-        return (value, extra)
     }
 }
 

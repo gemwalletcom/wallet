@@ -10,7 +10,7 @@ public enum TransactionHeaderType {
     case swap(from: SwapAmountField, to: SwapAmountField)
     case nft(name: String?, image: AssetImage)
     case asset(image: AssetImage)
-    case assetValue(any ValueHeaderViewModel)
+    case assetValue(ValueHeader)
 }
 
 public extension TransactionHeaderType {
@@ -39,7 +39,7 @@ public struct TransactionHeaderView: View {
             switch type {
             case let .amount(display):
                 ValueHeaderView(
-                    model: TransactionAmountHeaderViewModel(display: display),
+                    header: display.valueHeader,
                     isPrivacyEnabled: .constant(false),
                     titleActionType: .none,
                     spacing: .transactionAmount,
@@ -53,9 +53,9 @@ public struct TransactionHeaderView: View {
             case let .asset(image):
                 AssetImageView(assetImage: image, size: .image.large)
                     .padding(.bottom, .space12)
-            case let .assetValue(model):
+            case let .assetValue(header):
                 ValueHeaderView(
-                    model: model,
+                    header: header,
                     isPrivacyEnabled: .constant(false),
                     titleActionType: .none,
                     onHeaderAction: nil,

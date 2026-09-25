@@ -28,10 +28,10 @@ public struct ConfirmDetailsViewModel {
     }
 }
 
-// MARK: - ItemModelProvidable
+// MARK: - Item Model
 
-extension ConfirmDetailsViewModel: ItemModelProvidable {
-    public var itemModel: ConfirmTransferItemModel {
+public extension ConfirmDetailsViewModel {
+    var itemModel: ConfirmTransferItemModel {
         switch type {
         case let .swap(fromAsset, toAsset, swapData):
             return .swapDetails(

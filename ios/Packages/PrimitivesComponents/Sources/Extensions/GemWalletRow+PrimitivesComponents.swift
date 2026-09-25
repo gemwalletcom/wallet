@@ -32,12 +32,8 @@ public extension GemWalletRow {
 
 extension GemWalletRow: @retroactive Identifiable {}
 
-extension GemWalletRow: @retroactive SimpleListItemViewable {
-    public var title: String {
-        name
-    }
-
-    public var assetImage: AssetImage {
-        avatarImage
+public extension GemWalletRow {
+    var nameListItem: ListItemModel {
+        ListItemModel(title: name, imageStyle: .asset(assetImage: avatarImage))
     }
 }

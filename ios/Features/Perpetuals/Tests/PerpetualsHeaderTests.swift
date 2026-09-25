@@ -8,14 +8,12 @@ import Primitives
 import PrimitivesComponents
 import Testing
 
-struct PerpetualsHeaderViewModelTests {
-    private func model(available: Double, reserved: Double, withdrawable: Double? = nil, walletType: WalletType = .multicoin) -> PerpetualsHeaderViewModel {
-        PerpetualsHeaderViewModel(
-            header: perpetualBalanceHeader(
-                balance: PerpetualBalance(available: available, reserved: reserved, withdrawable: withdrawable ?? available),
-                walletType: walletType.toGem(),
-            ),
-        )
+struct PerpetualsHeaderTests {
+    private func model(available: Double, reserved: Double, withdrawable: Double? = nil, walletType: WalletType = .multicoin) -> ValueHeader {
+        perpetualBalanceHeader(
+            balance: PerpetualBalance(available: available, reserved: reserved, withdrawable: withdrawable ?? available),
+            walletType: walletType.toGem(),
+        ).valueHeader
     }
 
     @Test

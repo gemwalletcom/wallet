@@ -16,38 +16,22 @@ public struct SwapProviderItem: Sendable {
     }
 }
 
-// MARK: - SimpleListItemViewable
+// MARK: - List Item
 
-extension SwapProviderItem: SimpleListItemViewable {
-    public var title: String {
-        row.title
-    }
-
-    public var titleStyle: TextStyle {
-        TextStyle(font: .callout, color: Colors.black, fontWeight: .semibold)
-    }
-
-    public var subtitle: String? {
-        row.amount.text()
-    }
-
-    public var assetImage: AssetImage {
-        AssetImage(
-            placeholder: row.provider.toPrimitives().image,
-            chainPlaceholder: row.isSelected ? Images.Wallets.selected : nil,
+public extension SwapProviderItem {
+    var listItem: ListItemModel {
+        ListItemModel(
+            title: row.title,
+            titleStyle: TextStyle(font: .callout, color: Colors.black, fontWeight: .semibold),
+            subtitle: row.amount.text(),
+            subtitleStyle: TextStyle(font: .callout, color: Colors.black, fontWeight: .semibold),
+            subtitleExtra: row.fiat?.text(),
+            subtitleStyleExtra: TextStyle(font: .footnote, color: Colors.gray),
+            imageStyle: .asset(assetImage: AssetImage(
+                placeholder: row.provider.toPrimitives().image,
+                chainPlaceholder: row.isSelected ? Images.Wallets.selected : nil,
+            )),
         )
-    }
-
-    public var subtitleExtra: String? {
-        row.fiat?.text()
-    }
-
-    public var subtitleStyle: TextStyle {
-        TextStyle(font: .callout, color: Colors.black, fontWeight: .semibold)
-    }
-
-    public var subtitleStyleExtra: TextStyle {
-        TextStyle(font: .footnote, color: Colors.gray)
     }
 }
 

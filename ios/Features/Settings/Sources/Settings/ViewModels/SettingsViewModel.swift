@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemListSection
 import protocol Gemstone.GemSettingsServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
@@ -33,13 +34,13 @@ public final class SettingsViewModel {
     }
 }
 
-extension SettingsViewModel: ListSectionProvideable {
-    public var sections: [ListSection<GemListSectionRow>] {
+public extension SettingsViewModel {
+    var sections: [GemListSection] {
         observablePreferences.changes
         return service.sections(
             wallets: walletsQuery.value.map { $0.toGem() },
             notificationsAvailable: true,
             walletConnectAvailable: true,
-        ).listSections
+        )
     }
 }

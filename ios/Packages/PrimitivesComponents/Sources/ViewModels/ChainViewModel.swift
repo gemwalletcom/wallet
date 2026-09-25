@@ -31,24 +31,16 @@ extension ChainViewModel: Identifiable {
     }
 }
 
-// MARK: - SimpleListItemViewable
+// MARK: - List Item
 
-extension ChainViewModel: SimpleListItemViewable {
-    public var titleStyle: TextStyle {
-        standard == nil
-            ? .body
-            : .body.weight(.medium)
-    }
-
-    public var titleExtra: String? {
-        standard
-    }
-
-    public var titleStyleExtra: TextStyle {
-        .calloutSecondary
-    }
-
-    public var assetImage: AssetImage {
-        AssetImage.image(image)
+public extension ChainViewModel {
+    var listItem: ListItemModel {
+        ListItemModel(
+            title: title,
+            titleStyle: standard == nil ? .body : .body.weight(.medium),
+            titleExtra: standard,
+            titleStyleExtra: .calloutSecondary,
+            imageStyle: .asset(assetImage: AssetImage.image(image)),
+        )
     }
 }

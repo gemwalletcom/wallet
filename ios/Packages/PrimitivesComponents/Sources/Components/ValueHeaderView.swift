@@ -55,7 +55,7 @@ public struct ValueHeaderViewSpacing: Sendable {
 }
 
 public struct ValueHeaderView: View {
-    private let model: any ValueHeaderViewModel
+    private let model: ValueHeader
 
     @Binding var isPrivacyEnabled: Bool
 
@@ -66,7 +66,7 @@ public struct ValueHeaderView: View {
     private let onInfoAction: VoidAction
 
     public init(
-        model: any ValueHeaderViewModel,
+        header model: ValueHeader,
         isPrivacyEnabled: Binding<Bool>,
         titleActionType: HeaderTitleActionType,
         spacing: ValueHeaderViewSpacing = .standard,
@@ -204,7 +204,7 @@ public struct ValueHeaderView: View {
         amount.notation = .signed
         return amount
     }()
-    let model = WalletHeaderViewModel(state: GemWalletHomeViewState(
+    let header = GemWalletHomeViewState(
         total: formattedCurrency(value: 1000, code: Currency.usd.rawValue, style: .fiat),
         pnl: .pnl(
             amount: amount,
@@ -215,10 +215,10 @@ public struct ValueHeaderView: View {
         showCollections: false,
         showsPerpetuals: false,
         banner: nil,
-    ))
+    ).valueHeader
 
     ValueHeaderView(
-        model: model,
+        header: header,
         isPrivacyEnabled: .constant(false),
         titleActionType: .privacyToggle,
         onHeaderAction: .none,

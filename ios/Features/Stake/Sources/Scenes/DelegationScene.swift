@@ -16,7 +16,7 @@ public struct DelegationScene: View {
         List {
             Section {} header: {
                 ValueHeaderView(
-                    model: model.headerModel(details),
+                    header: model.header(details),
                     isPrivacyEnabled: .constant(false),
                     titleActionType: .none,
                     onHeaderAction: nil,

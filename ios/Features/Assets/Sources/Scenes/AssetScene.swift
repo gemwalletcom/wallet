@@ -22,7 +22,7 @@ public struct AssetScene: View {
         return List {
             Section {} header: {
                 ValueHeaderView(
-                    model: model.assetHeaderModel(details),
+                    header: model.assetHeader(details),
                     isPrivacyEnabled: .constant(false),
                     titleActionType: .none,
                     onHeaderAction: model.onSelectHeader,

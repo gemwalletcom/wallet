@@ -20,6 +20,6 @@ struct PerpetualDetailsViewModelTests {
         let model = PerpetualDetailsViewModel.mock(.open(data: .mock(entryPrice: 48000.0)))
 
         #expect(model.sections.count == 3, "position, amounts and prices; no autoclose section without a trigger order")
-        #expect(model.sections.last?.values.count == 3)
+        #expect(model.sections.last?.rows.count == 3)
     }
 }

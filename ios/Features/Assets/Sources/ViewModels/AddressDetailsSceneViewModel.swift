@@ -5,6 +5,7 @@ import Foundation
 import struct Gemstone.GemAddressDetails
 import protocol Gemstone.GemAddressDetailsServiceProtocol
 import enum Gemstone.GemListRow
+import struct Gemstone.GemListSection
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -35,11 +36,9 @@ public final class AddressDetailsSceneViewModel {
     }
 }
 
-// MARK: - ListSectionProvideable
-
-extension AddressDetailsSceneViewModel: ListSectionProvideable {
-    public var sections: [ListSection<GemListSectionRow>] {
-        details.sections(addressName: addressNameQuery.value?.toGem()).listSections
+public extension AddressDetailsSceneViewModel {
+    var sections: [GemListSection] {
+        details.sections(addressName: addressNameQuery.value?.toGem())
     }
 }
 

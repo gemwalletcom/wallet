@@ -113,8 +113,8 @@ public final class PerpetualsSceneViewModel {
         ))
     }
 
-    var headerViewModel: PerpetualsHeaderViewModel {
-        PerpetualsHeaderViewModel(header: balanceHeader)
+    var header: ValueHeader {
+        balanceHeader.valueHeader
     }
 }
 

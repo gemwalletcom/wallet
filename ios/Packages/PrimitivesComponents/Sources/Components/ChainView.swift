@@ -4,14 +4,14 @@ import Components
 import SwiftUI
 
 public struct ChainView: View {
-    private let model: any SimpleListItemViewable
+    private let model: ChainViewModel
 
-    public init(model: any SimpleListItemViewable) {
+    public init(model: ChainViewModel) {
         self.model = model
     }
 
     public var body: some View {
-        SimpleListItemView(model: model)
+        ListItemView(model: model.listItem)
     }
 }
 

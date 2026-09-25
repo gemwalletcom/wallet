@@ -131,9 +131,3 @@ extension GemListRowView {
         )
     }
 }
-
-extension GemListRow: ItemModelProvidable {
-    public var itemModel: GemListRow {
-        self
-    }
-}

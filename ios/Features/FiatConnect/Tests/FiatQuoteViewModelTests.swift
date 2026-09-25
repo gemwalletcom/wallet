@@ -20,7 +20,7 @@ struct FiatQuoteViewModelTests {
 
     @Test
     func fiatTextIsTheAmountCoreResolved() {
-        #expect(FiatQuoteViewModel.mock(row: .mock(fiatAmount: 48.8)).subtitleExtra == "$48.80")
-        #expect(FiatQuoteViewModel.mock(row: .mock(fiatAmount: 100)).subtitleExtra == "$100.00")
+        #expect(FiatQuoteViewModel.mock(row: .mock(fiatAmount: 48.8)).listItem.subtitleExtra == "$48.80")
+        #expect(FiatQuoteViewModel.mock(row: .mock(fiatAmount: 100)).listItem.subtitleExtra == "$100.00")
     }
 }

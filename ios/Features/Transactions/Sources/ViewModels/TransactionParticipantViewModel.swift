@@ -31,7 +31,7 @@ struct TransactionParticipantViewModel {
     }
 }
 
-extension TransactionParticipantViewModel: ItemModelProvidable {
+extension TransactionParticipantViewModel {
     var itemModel: TransactionItemModel {
         guard let participant else { return .empty }
         return participantItemModel(participant)

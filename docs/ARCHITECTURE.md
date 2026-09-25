@@ -804,7 +804,7 @@ Currency symbols and placement come from the platform's locale renderer. Shared 
 
 ### An app row model stores the row and nothing else
 
-A row model that copies `url`, `host` and `isSelected` out of a Core record is a partial twin: the copy has to be maintained, and a field added in Core reaches the screen only after someone widens the copy. Hold the record and read through it. A model still earns its place when a list protocol demands one, or when it owns something the record cannot — formatting that depends on locale or user preference, a binding, a bundled asset, or a join to app-side data — but one stored property is the whole of it.
+A row model that copies `url`, `host` and `isSelected` out of a Core record is a partial twin: the copy has to be maintained, and a field added in Core reaches the screen only after someone widens the copy. Hold the record and read through it. A model still earns its place when it owns something the record cannot — formatting that depends on locale or user preference, a binding, a bundled asset, or a join to app-side data — but one stored property is the whole of it. No view protocol forces a model per record: a shared view takes the Core record, or the one `ListItemModel` or `ValueHeader` a mapper extension builds from it, so a model that would only pass fields through is not written.
 
 The test is what the model carries that the record cannot, not how much they overlap. A screen input that holds two app assets and a max-amount flag and *projects* the Core request from them is not a twin, however many field names rhyme; a record that carries the same fields re-typed, so that both have to move together, is one whatever it is called. Holding the domain object *and* the row is the twin this rule exists to prevent: the model then has two places to answer the same question, and the two apps answer it differently.
 
@@ -819,12 +819,13 @@ struct ChainNodeViewModel {
 
 `GemNodeRow` already carries the node, its title, its latest-block subtitle, its latency status and whether it can be deleted, so the model stores the row and every member reads through it. This is the same rule as [no hand-written twins](#6-where-derived-domain-answers-live), applied to the presentation layer. A view-facing UI model that turns the row into platform values for a composable (Android's `GemNodeRow.uiModel(context)`) is the [translation](#a-ui-state-class-translates-the-view-state-it-does-not-re-shape-it), not a twin: it holds no Core type.
 
-The type that conforms to a list protocol reads the same way:
+A shared view reads the record through the same kind of extension:
 
 ```swift
-extension FeeAssetItem: SimpleListItemViewable {
-    public var title: String { row.title }
-    public var titleExtra: String? { row.titleExtra }
+extension GemPerpetualBalanceHeader {
+    public var valueHeader: ValueHeader {
+        ValueHeader(title: total.text(), subtitle: Localized.Wallet.availableBalance(available.text()), buttons: actions.headerButtons)
+    }
 }
 ```
 

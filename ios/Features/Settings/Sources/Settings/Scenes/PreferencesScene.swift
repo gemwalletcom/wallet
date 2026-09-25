@@ -17,7 +17,7 @@ public struct PreferencesScene: View {
     }
 
     public var body: some View {
-        ListSectionView(provider: model) { row in
+        ListSectionView(sections: model.sections) { row in
             content(for: row)
                 .listRowInsets(.assetListRowInsets)
         }

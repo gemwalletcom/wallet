@@ -40,34 +40,22 @@ extension FiatQuoteViewModel: Identifiable {
     }
 }
 
-// MARK: - SimpleListItemViewable
+// MARK: - List Item
 
-extension FiatQuoteViewModel: SimpleListItemViewable {
-    var titleStyle: TextStyle {
-        TextStyle(font: .callout, color: Colors.black, fontWeight: .semibold)
-    }
-
-    var assetImage: AssetImage {
-        AssetImage(
-            placeholder: row.provider.toPrimitives().image,
-            chainPlaceholder: isSelected ? Images.Wallets.selected : nil,
+extension FiatQuoteViewModel {
+    var listItem: ListItemModel {
+        ListItemModel(
+            title: title,
+            titleStyle: TextStyle(font: .callout, color: Colors.black, fontWeight: .semibold),
+            subtitle: amountText,
+            subtitleStyle: TextStyle(font: .callout, color: Colors.black, fontWeight: .semibold),
+            subtitleExtra: row.fiatAmount.text(locale: locale),
+            subtitleStyleExtra: TextStyle(font: .footnote, color: Colors.gray),
+            imageStyle: .asset(assetImage: AssetImage(
+                placeholder: row.provider.toPrimitives().image,
+                chainPlaceholder: isSelected ? Images.Wallets.selected : nil,
+            )),
         )
-    }
-
-    var subtitle: String? {
-        amountText
-    }
-
-    var subtitleExtra: String? {
-        row.fiatAmount.text(locale: locale)
-    }
-
-    var subtitleStyle: TextStyle {
-        TextStyle(font: .callout, color: Colors.black, fontWeight: .semibold)
-    }
-
-    var subtitleStyleExtra: TextStyle {
-        TextStyle(font: .footnote, color: Colors.gray)
     }
 }
 

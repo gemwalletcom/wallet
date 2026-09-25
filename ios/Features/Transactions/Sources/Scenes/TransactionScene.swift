@@ -14,10 +14,9 @@ public struct TransactionScene: View {
     }
 
     public var body: some View {
-        ListSectionView(
-            provider: model,
-            content: content(for:),
-        )
+        ListSectionView(sections: model.sections) { item in
+            content(for: model.itemModel(for: item))
+        }
         .contentMargins([.top], .small, for: .scrollContent)
         .listSectionSpacing(.compact)
         .background(Colors.grayBackground)

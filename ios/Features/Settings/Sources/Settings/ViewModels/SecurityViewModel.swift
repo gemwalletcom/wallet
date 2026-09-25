@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import enum Gemstone.GemListRowTitle
+import struct Gemstone.GemListSection
 import enum Gemstone.GemLockPeriod
 import struct Gemstone.GemSecurityInput
 import protocol Gemstone.GemSettingsServiceProtocol
@@ -61,10 +62,8 @@ public final class SecurityViewModel {
     }
 }
 
-// MARK: - ListSectionProvideable
-
-extension SecurityViewModel: ListSectionProvideable {
-    public var sections: [ListSection<GemListSectionRow>] {
+public extension SecurityViewModel {
+    var sections: [GemListSection] {
         settings.securitySections(
             input: GemSecurityInput(
                 authenticationEnabled: isEnabled,
@@ -74,7 +73,7 @@ extension SecurityViewModel: ListSectionProvideable {
                 privacyLockSupported: true,
                 hideBalanceEnabled: preferences.isHideBalanceEnabled,
             ),
-        ).listSections
+        )
     }
 }
 

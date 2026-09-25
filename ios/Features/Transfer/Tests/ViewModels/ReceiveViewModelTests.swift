@@ -32,8 +32,8 @@ struct ReceiveViewModelTests {
 
         #expect(model.networkSelectorModel.items == [bitcoin.id, ethereum.id])
         #expect(model.showNetworkSelector)
-        #expect(model.chainModel(for: ethereum.id).titleExtra == "ERC20")
-        #expect(model.chainModel(for: bitcoin.id).titleExtra == nil, "a coin names no token standard")
+        #expect(model.chainModel(for: ethereum.id).listItem.titleExtra == "ERC20")
+        #expect(model.chainModel(for: bitcoin.id).listItem.titleExtra == nil, "a coin names no token standard")
     }
 
     @Test

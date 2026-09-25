@@ -14,7 +14,7 @@ public struct SecurityScene: View {
     }
 
     public var body: some View {
-        ListSectionView(provider: model) { row in
+        ListSectionView(sections: model.sections) { row in
             GemListRowView(row: row, onToggle: model.onToggle, onSelect: model.onSelect)
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)

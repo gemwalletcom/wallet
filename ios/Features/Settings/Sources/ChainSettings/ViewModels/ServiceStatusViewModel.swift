@@ -24,8 +24,8 @@ public final class ServiceStatusViewModel {
     var title: String { Localized.Transaction.status }
 }
 
-extension ServiceStatusViewModel: ListSectionProvideable {
-    public var sections: [ListSection<GemListSectionRow>] { session.sections().listSections }
+public extension ServiceStatusViewModel {
+    var sections: [GemListSection] { session.sections() }
 }
 
 // MARK: - Actions

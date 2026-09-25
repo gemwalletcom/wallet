@@ -53,8 +53,8 @@ public struct DelegationSceneViewModel {
         service.delegationDetails(walletType: wallet.type.toGem(), delegation: delegation.toGem(), asset: asset.toGem(), price: price, currency: service.getCurrency())
     }
 
-    public func headerModel(_ details: GemDelegationDetails) -> DelegationViewModel {
-        DelegationViewModel(row: details.header)
+    public func header(_ details: GemDelegationDetails) -> ValueHeader {
+        DelegationViewModel(row: details.header).header
     }
 
     private var price: Double? {
@@ -62,7 +62,7 @@ public struct DelegationSceneViewModel {
     }
 
     public func rewardsItem(_ details: GemDelegationDetails) -> ListItemModel? {
-        let model = headerModel(details)
+        let model = DelegationViewModel(row: details.header)
         return details.rewards.map { rewards in
             ListItemModel(
                 title: Localized.Stake.rewards,

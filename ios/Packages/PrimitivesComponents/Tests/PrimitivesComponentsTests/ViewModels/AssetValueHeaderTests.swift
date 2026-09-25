@@ -9,12 +9,10 @@ import Primitives
 import PrimitivesTestKit
 import Testing
 
-struct AssetValueHeaderViewModelTests {
+struct AssetValueHeaderTests {
     @Test
     func unlimitedTitle() {
-        let model = AssetValueHeaderViewModel(
-            data: GemSimulationValue(asset: Asset.mockEthereumUSDT().toGem(), value: .unlimited),
-        )
+        let model = GemSimulationValue(asset: Asset.mockEthereumUSDT().toGem(), value: .unlimited).valueHeader
 
         #expect(model.title == Localized.Simulation.Header.unlimitedAsset("USDT"))
         #expect(model.subtitle == nil)
@@ -22,9 +20,7 @@ struct AssetValueHeaderViewModelTests {
 
     @Test
     func formattedNumericTitle() {
-        let model = AssetValueHeaderViewModel(
-            data: GemSimulationValue(asset: Asset.mockEthereumUSDT().toGem(), value: .exact(value: BigUInt(1_000_000))),
-        )
+        let model = GemSimulationValue(asset: Asset.mockEthereumUSDT().toGem(), value: .exact(value: BigUInt(1_000_000))).valueHeader
 
         #expect(model.title == "1 USDT")
     }

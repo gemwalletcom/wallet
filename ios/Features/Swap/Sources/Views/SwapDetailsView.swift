@@ -50,7 +50,7 @@ public struct SwapDetailsView: View {
                     model.onFinishSwapProviderSelection(item: $0)
                     isPresentingProviderSelection = false
                 },
-                listContent: { SimpleListItemView(model: $0) },
+                listContent: { ListItemView(model: $0.listItem) },
             )
         }
     }
@@ -58,7 +58,7 @@ public struct SwapDetailsView: View {
     private var listView: some View {
         List {
             Section {
-                let view = SimpleListItemView(model: model.selectedProviderItem)
+                let view = ListItemView(model: model.selectedProviderItem.listItem)
                 if model.allowSelectProvider {
                     NavigationCustomLink(
                         with: view,

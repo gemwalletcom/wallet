@@ -406,6 +406,6 @@ final class FiatSceneViewModelTests {
 
         let row = model.fiatProviderViewModel.state.value?.items.first
 
-        #expect(row?.subtitleExtra == "$48.80")
+        #expect(row?.listItem.subtitleExtra == "$48.80")
     }
 }

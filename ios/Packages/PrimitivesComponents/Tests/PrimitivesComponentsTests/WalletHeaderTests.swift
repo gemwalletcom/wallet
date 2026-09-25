@@ -10,7 +10,7 @@ import Primitives
 import PrimitivesTestKit
 import Testing
 
-struct WalletHeaderViewModelTests {
+struct WalletHeaderTests {
     @Test
     func title() {
         #expect(model(total: 1000).title == "$1,000.00")
@@ -38,15 +38,15 @@ struct WalletHeaderViewModelTests {
 
     @Test
     func buttonsDisabled() {
-        let model = WalletHeaderViewModel(state: .mock(
+        let model = GemWalletHomeViewState.mock(
             total: currency(0),
             headerActions: .buttons(buttons: [GemHeaderButton(kind: .send, isEnabled: false), GemHeaderButton(kind: .swap, isEnabled: false)]),
-        ))
+        ).valueHeader
         #expect(model.buttons.allSatisfy { !$0.isEnabled })
     }
 
-    private func model(total: Double, pnlAmount: Double? = nil, pnlPercentage: Double = 0) -> WalletHeaderViewModel {
-        WalletHeaderViewModel(state: .mock(
+    private func model(total: Double, pnlAmount: Double? = nil, pnlPercentage: Double = 0) -> ValueHeader {
+        GemWalletHomeViewState.mock(
             total: currency(total),
             pnl: pnlAmount.map {
                 .pnl(
@@ -55,7 +55,7 @@ struct WalletHeaderViewModelTests {
                 )
             },
             pnlTone: .positive,
-        ))
+        ).valueHeader
     }
 
     private func currency(_ value: Double) -> GemFormattedNumber {

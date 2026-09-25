@@ -5,7 +5,7 @@ import PrimitivesComponents
 
 struct WalletHomeState {
     let sections: AssetsSections
-    let header: WalletHeaderViewModel
+    let header: ValueHeader
     let showPerpetuals: Bool
     let showCollections: Bool
     let banner: GemBannerRow?

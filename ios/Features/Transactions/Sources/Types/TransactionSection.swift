@@ -30,9 +30,3 @@ public enum TransactionItemModel {
     case swapAgain(text: String)
     case empty
 }
-
-extension TransactionItemModel: ItemModelProvidable {
-    public var itemModel: TransactionItemModel {
-        self
-    }
-}

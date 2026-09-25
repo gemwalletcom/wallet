@@ -60,30 +60,10 @@ public struct DelegationViewModel: Sendable {
     }
 }
 
-// MARK: - ValueHeaderViewModel
+// MARK: - Header
 
-extension DelegationViewModel: ValueHeaderViewModel {
-    public var isWatchWallet: Bool {
-        false
-    }
-
-    public var buttons: [HeaderButton] {
-        []
-    }
-
-    public var assetImage: AssetImage? {
-        validatorImage
-    }
-
-    public var title: String {
-        balanceText
-    }
-
-    public var subtitle: String? {
-        fiatValueText
-    }
-
-    public var subtitleColor: Color {
-        .secondary
+public extension DelegationViewModel {
+    var header: ValueHeader {
+        ValueHeader(assetImage: validatorImage, title: balanceText, subtitle: fiatValueText, subtitleColor: .secondary)
     }
 }

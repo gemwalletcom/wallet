@@ -2,6 +2,7 @@
 
 import BigInt
 import Components
+import enum Gemstone.GemConfirmHeader
 import struct Gemstone.GemSimulationValue
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
@@ -13,7 +14,7 @@ import Testing
 @testable import Transfer
 @testable import TransferTestKit
 
-struct ConfirmHeaderViewModelTests {
+struct ConfirmHeaderItemTests {
     @Test
     func amountShowsClearHeader() {
         let headerType = TransactionHeaderType.amount(.numeric(.mock()))
@@ -52,23 +53,7 @@ struct ConfirmHeaderViewModelTests {
     @Test
     func aValueHeaderDrawsTheAssetAndWhatItApproves() {
         let value = GemSimulationValue(asset: Asset.mockEthereumUSDT().toGem(), value: .exact(value: BigUInt(1_000_000)))
-        let model = ConfirmHeaderViewModel(header: .value(value: value))
-
-        guard case let .header(headerType, _) = model.itemModel,
-              case let .assetValue(header) = headerType,
-              let data = header as? AssetValueHeaderViewModel
-        else {
-            Issue.record("Expected assetValue header")
-            return
-        }
-        #expect(data.data.asset == Asset.mockEthereumUSDT().toGem())
-        #expect(data.data.value == .exact(value: BigUInt(1_000_000)))
-        #expect(headerType.showsClearHeader)
-    }
-
-    @Test
-    func aPlaceholderKeepsTheHeadInPlaceUntilTheValueArrives() {
-        let model = ConfirmHeaderViewModel(header: .placeholder(assetId: Asset.mockEthereumUSDT().id.identifier))
+        let model = GemConfirmHeader.value(value: value)
 
         guard case let .header(headerType, _) = model.itemModel,
               case let .assetValue(header) = headerType
@@ -76,13 +61,29 @@ struct ConfirmHeaderViewModelTests {
             Issue.record("Expected assetValue header")
             return
         }
-        #expect(header is AssetValueHeaderPlaceholder)
+        #expect(header.title == "1 USDT")
+        #expect(header.assetImage != nil)
+        #expect(headerType.showsClearHeader)
+    }
+
+    @Test
+    func aPlaceholderKeepsTheHeadInPlaceUntilTheValueArrives() {
+        let model = GemConfirmHeader.placeholder(assetId: Asset.mockEthereumUSDT().id.identifier)
+
+        guard case let .header(headerType, _) = model.itemModel,
+              case let .assetValue(header) = headerType
+        else {
+            Issue.record("Expected assetValue header")
+            return
+        }
+        #expect(header.title.isEmpty)
+        #expect(header.assetImage != nil)
         #expect(headerType.showsClearHeader)
     }
 
     @Test
     func aTransactionHeaderReadsThroughTheSharedMapper() {
-        let model = ConfirmHeaderViewModel(header: .transaction(header: .amount(amount: .mock(asset: .mockEthereumUSDT()))))
+        let model = GemConfirmHeader.transaction(header: .amount(amount: .mock(asset: .mockEthereumUSDT())))
 
         guard case let .header(headerType, _) = model.itemModel, case .amount = headerType else {
             Issue.record("Expected the amount header")
@@ -93,7 +94,7 @@ struct ConfirmHeaderViewModelTests {
 
     @Test
     func aReservedHeaderKeepsItsPlaceHidden() {
-        let model = ConfirmHeaderViewModel(header: .reserved(header: .amount(amount: .mock(asset: .mockEthereumUSDT()))))
+        let model = GemConfirmHeader.reserved(header: .amount(amount: .mock(asset: .mockEthereumUSDT())))
 
         guard case let .header(headerType, isReserved) = model.itemModel, case .amount = headerType else {
             Issue.record("Expected the amount header")

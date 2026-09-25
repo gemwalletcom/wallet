@@ -22,9 +22,9 @@ struct ConfirmRowViewModel {
     }
 }
 
-// MARK: - ItemModelProvidable
+// MARK: - Item Model
 
-extension ConfirmRowViewModel: ItemModelProvidable {
+extension ConfirmRowViewModel {
     var itemModel: ConfirmTransferItemModel {
         switch content {
         case let .row(row):

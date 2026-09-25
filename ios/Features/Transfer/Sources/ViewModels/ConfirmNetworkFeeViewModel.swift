@@ -5,7 +5,7 @@ import enum Gemstone.GemConfirmFeeRow
 import Primitives
 import PrimitivesComponents
 
-struct ConfirmNetworkFeeViewModel: ItemModelProvidable {
+struct ConfirmNetworkFeeViewModel {
     private let feeRow: GemConfirmFeeRow
     private let feeModel: NetworkFeeSceneViewModel
     private let infoAction: VoidAction
@@ -21,7 +21,7 @@ struct ConfirmNetworkFeeViewModel: ItemModelProvidable {
     }
 }
 
-// MARK: - ItemModelProvidable
+// MARK: - Item Model
 
 extension ConfirmNetworkFeeViewModel {
     var itemModel: ConfirmTransferItemModel {

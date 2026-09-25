@@ -25,7 +25,7 @@ public struct SettingsScene: View {
     }
 
     public var body: some View {
-        ListSectionView(provider: model) { row in
+        ListSectionView(sections: model.sections) { row in
             content(for: row)
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)

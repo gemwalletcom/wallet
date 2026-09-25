@@ -79,8 +79,8 @@ public final class SignMessageSceneViewModel {
         )
     }
 
-    public var headerModel: AssetValueHeaderViewModel? {
-        headerData.map { AssetValueHeaderViewModel(data: $0) }
+    public var headerModel: ValueHeader? {
+        headerData?.valueHeader
     }
 
     public var headerData: GemSimulationValue? {
