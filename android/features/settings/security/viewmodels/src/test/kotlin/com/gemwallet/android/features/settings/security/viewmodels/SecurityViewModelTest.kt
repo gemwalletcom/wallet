@@ -1,9 +1,12 @@
 package com.gemwallet.android.features.settings.security.viewmodels
 
 import android.content.Context
+import com.gemwallet.android.application.WalletPasswordProtection
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.ui.R
+import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -66,14 +69,14 @@ class SecurityViewModelTest {
     @Test
     fun `the rows come from core with the authentication flag`() {
         val settings = settings()
-        SecurityViewModel(userConfig(authRequired = true), settings, dispatcher, context())
+        SecurityViewModel(userConfig(authRequired = true), mockk(relaxed = true), settings, dispatcher, context())
 
         verify { settings.securitySections(match { it.authenticationEnabled }) }
     }
 
     @Test
     fun `the stored preferences are what the scene starts from`() = runTest(dispatcher) {
-        val model = SecurityViewModel(userConfig(authRequired = true, lockMinutes = 5, hideBalances = true), settings(), dispatcher, context())
+        val model = SecurityViewModel(userConfig(authRequired = true, lockMinutes = 5, hideBalances = true), mockk(relaxed = true), settings(), dispatcher, context())
         advanceUntilIdle()
 
         val rows = model.sections.value.flatMap { it.rows }
@@ -86,7 +89,7 @@ class SecurityViewModelTest {
     @Test
     fun `changing the lock interval and the balance privacy writes through`() = runTest(dispatcher) {
         val config = userConfig()
-        val model = SecurityViewModel(config, settings(), dispatcher, context())
+        val model = SecurityViewModel(config, mockk(relaxed = true), settings(), dispatcher, context())
 
         model.setAuthRequired(true)
         model.setLockInterval(15)
@@ -98,6 +101,35 @@ class SecurityViewModelTest {
         verify { config.setAuthRequired(true) }
         coVerify { config.setLockInterval(15) }
         coVerify { config.hideBalances() }
+    }
+
+    @Test
+    fun `authentication is enabled only after password protection succeeds`() = runTest(dispatcher) {
+        val config = userConfig()
+        val protection = mockk<WalletPasswordProtection>(relaxed = true)
+        val model = SecurityViewModel(config, protection, settings(), dispatcher, context())
+
+        model.setAuthRequired(true)
+        advanceUntilIdle()
+
+        coVerifyOrder {
+            protection.setAuthenticationRequired(true)
+            config.setAuthRequired(true)
+        }
+    }
+
+    @Test
+    fun `cancelled protection does not change the authentication preference`() = runTest(dispatcher) {
+        val config = userConfig()
+        val protection = mockk<WalletPasswordProtection>()
+        coEvery { protection.setAuthenticationRequired(true) } throws kotlinx.coroutines.CancellationException()
+        val model = SecurityViewModel(config, protection, settings(), dispatcher, context())
+
+        model.setAuthRequired(true)
+        advanceUntilIdle()
+
+        verify(exactly = 0) { config.setAuthRequired(any()) }
+        assertEquals(false, model.isUpdatingAuthentication.value)
     }
 
     private fun context(): Context = mockk { every { getString(any()) } answers { firstArg<Int>().toString() } }

@@ -8,8 +8,10 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,12 +39,23 @@ import com.gemwallet.android.ui.theme.compactIconSize
 fun SecurityScene(onCancel: () -> Unit, viewModel: SecurityViewModel = hiltViewModel()) {
     val context = LocalContext.current
     val sections by viewModel.sections.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
+    val updatingAuthentication by viewModel.isUpdatingAuthentication.collectAsStateWithLifecycle()
     val lockInterval by viewModel.lockInterval.collectAsStateWithLifecycle(null)
     var isShowLockPeriods by remember { mutableStateOf(false) }
+
+    val snackbar = remember { SnackbarHostState() }
+    LaunchedEffect(error) {
+        error?.let {
+            snackbar.showSnackbar(it)
+            viewModel.clearError()
+        }
+    }
 
     Scene(
         title = stringResource(id = (R.string.settings_security)),
         onClose = onCancel,
+        snackbar = snackbar,
     ) {
         LazyColumn {
             sections.forEach { section ->
@@ -52,8 +65,12 @@ fun SecurityScene(onCancel: () -> Unit, viewModel: SecurityViewModel = hiltViewM
                         listPosition = position,
                         onToggle = { title, isOn ->
                             when (title.securityAction()) {
-                                SecurityRowAction.Authentication -> context.requestAuth(AuthRequest.Required) { viewModel.setAuthRequired(isOn) }
+                                SecurityRowAction.Authentication -> if (!updatingAuthentication) {
+                                    context.requestAuth(AuthRequest.Required) { viewModel.setAuthRequired(isOn) }
+                                }
+
                                 SecurityRowAction.HideBalance -> viewModel.setHideBalances()
+
                                 null -> Unit
                             }
                         },

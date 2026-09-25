@@ -1,7 +1,9 @@
 package com.gemwallet.android
 
 import android.text.format.DateUtils
+import com.gemwallet.android.application.WalletPasswordProtection
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
@@ -48,10 +50,20 @@ class LockTimerTest {
         assertTrue("an open request never holds the lock off", timer.shouldRelock(now = Long.MAX_VALUE))
     }
 
+    @Test
+    fun protectedPasswordStillRelocksWhenPreferenceIsFalse() = runTest {
+        val config = mockk<UserConfig> {
+            every { authRequired() } returns false
+            every { getLockInterval() } returns flowOf(0)
+        }
+        val protection = mockk<WalletPasswordProtection> { coEvery { authenticationRequired() } returns true }
+        assertTrue(LockTimer(config, protection, GemSecurityService()).shouldRelock(now = 1L))
+    }
+
     private fun lockTimer(authRequired: Boolean, lockIntervalMinutes: Int): LockTimer {
         val userConfig = mockk<UserConfig>()
         every { userConfig.authRequired() } returns authRequired
         every { userConfig.getLockInterval() } returns flowOf(lockIntervalMinutes)
-        return LockTimer(userConfig, GemSecurityService())
+        return LockTimer(userConfig, mockk<WalletPasswordProtection> { coEvery { authenticationRequired() } returns false }, GemSecurityService())
     }
 }
