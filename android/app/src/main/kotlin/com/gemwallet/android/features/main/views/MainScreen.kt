@@ -40,13 +40,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.MessageToast
-import com.gemwallet.android.features.activities.presents.list.TransactionsNavScreen
 import com.gemwallet.android.features.assets.viewmodels.AssetsViewModel
 import com.gemwallet.android.features.assets.views.AssetsAction
 import com.gemwallet.android.features.assets.views.AssetsScreen
 import com.gemwallet.android.features.main.models.BottomNavItem
 import com.gemwallet.android.features.main.viewmodels.MainScreenViewModel
 import com.gemwallet.android.features.settings.settings.presents.views.SettingsScene
+import com.gemwallet.android.features.transactions.presents.list.TransactionsNavScreen
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.ConnectionStatusBannerHost
 import com.gemwallet.android.ui.components.LocalConnectionBannerHandled

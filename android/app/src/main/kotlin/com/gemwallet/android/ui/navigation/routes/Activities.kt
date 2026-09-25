@@ -2,8 +2,8 @@ package com.gemwallet.android.ui.navigation.routes
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.features.activities.presents.details.TransactionDetailsAction
-import com.gemwallet.android.features.activities.presents.details.TransactionDetailsNavScreen
+import com.gemwallet.android.features.transactions.presents.details.TransactionDetailsAction
+import com.gemwallet.android.features.transactions.presents.details.TransactionDetailsNavScreen
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.navigation.routeArguments
 import com.wallet.core.primitives.TransactionId

@@ -1239,7 +1239,7 @@ val data: StateFlow<GemTransactionDetailRows?> = getSession()
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 ```
 
-The Flow example is [`TransactionDetailsViewModel`](../android/features/activities/viewmodels/src/main/kotlin/com/gemwallet/android/features/activities/viewmodels/TransactionDetailsViewModel.kt): `TransactionQuery` supplies the stored transaction, the view model's one service projects it, and the injected `ioDispatcher` keeps both off main.
+The Flow example is [`TransactionDetailsViewModel`](../android/features/transactions/viewmodels/src/main/kotlin/com/gemwallet/android/features/transactions/viewmodels/TransactionDetailsViewModel.kt): `TransactionQuery` supplies the stored transaction, the view model's one service projects it, and the injected `ioDispatcher` keeps both off main.
 
 ## 6. Where derived domain answers live
 

@@ -208,8 +208,8 @@ dependencies {
     implementation(project(":data:coordinators"))
 
     // Features
-    implementation(project(":features:activities:presents"))
-    implementation(project(":features:activities:viewmodels"))
+    implementation(project(":features:transactions:presents"))
+    implementation(project(":features:transactions:viewmodels"))
     implementation(project(":features:add_asset:presents"))
     implementation(project(":features:add_asset:viewmodels"))
     implementation(project(":features:asset:presents"))
