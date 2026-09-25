@@ -9,8 +9,9 @@ import com.gemwallet.android.data.coordinators.asset.GetActiveAssetsInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetWalletSummaryImpl
 import com.gemwallet.android.data.coordinators.asset.WalletAssetsCoordinator
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore
+import com.gemwallet.android.data.services.store.queries.AssetFiatValuesQuery
+import com.gemwallet.android.data.services.store.queries.AssetsQuery
+import com.gemwallet.android.data.services.store.queries.BannersQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualWalletBalanceQuery
 import dagger.Module
 import dagger.Provides
@@ -41,16 +42,16 @@ object AssetModule {
     @Singleton
     fun provideGetWalletSummary(
         getSession: GetSession,
-        assetStore: GemstoneAssetStore,
+        assetFiatValuesQuery: AssetFiatValuesQuery,
         perpetualWalletBalanceQuery: PerpetualWalletBalanceQuery,
-        bannerStore: GemstoneBannerStore,
+        bannersQuery: BannersQuery,
         userConfig: UserConfig,
         walletHomeService: GemWalletHomeServiceInterface,
     ): GetWalletSummary = GetWalletSummaryImpl(
         getSession = getSession,
-        assetStore = assetStore,
+        assetFiatValuesQuery = assetFiatValuesQuery,
         perpetualWalletBalanceQuery = perpetualWalletBalanceQuery,
-        bannerStore = bannerStore,
+        bannersQuery = bannersQuery,
         userConfig = userConfig,
         walletHomeService = walletHomeService,
     )
@@ -92,5 +93,5 @@ object AssetModule {
 
     @Provides
     @Singleton
-    fun provideGetWalletAssets(assetStore: GemstoneAssetStore, getCurrentWalletId: GetCurrentWalletId): GetWalletAssets = WalletAssetsCoordinator(assetStore, getCurrentWalletId)
+    fun provideGetWalletAssets(assetsQuery: AssetsQuery, getCurrentWalletId: GetCurrentWalletId): GetWalletAssets = WalletAssetsCoordinator(assetsQuery, getCurrentWalletId)
 }

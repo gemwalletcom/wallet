@@ -11,14 +11,11 @@ import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetPrice
 import com.gemwallet.android.testkit.mockAssetPriceInfo
-import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.WalletId
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -41,9 +38,6 @@ class GetActiveAssetsInfoImplTest {
 
     private val getWalletAssets = object : GetWalletAssets {
         override fun invoke(): StateFlow<List<AssetInfo>> = walletAssets
-        override fun invoke(walletId: WalletId): Flow<List<AssetInfo>> = walletAssets
-        override fun invoke(assetIds: List<AssetId>): Flow<List<AssetInfo>> = walletAssets
-        override fun byIdentifiers(assetIds: List<String>): Flow<List<AssetInfo>> = walletAssets
     }
 
     private val hideBalances = MutableStateFlow(false)

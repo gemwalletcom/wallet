@@ -21,11 +21,9 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetFilter
 import uniffi.gemstone.GemAssetStore
-import uniffi.gemstone.AssetFiatValue as GemAssetFiatValue
 
 class GemstoneAssetStore(private val assetsDao: AssetsDao) : GemAssetStore {
 
@@ -88,14 +86,6 @@ class GemstoneAssetStore(private val assetsDao: AssetsDao) : GemAssetStore {
         isVisible = isVisible,
         updatedAt = null,
     )
-
-    fun observeAssetsInfo(walletId: String): Flow<List<AssetInfo>> = assetsDao.getAssetsInfo(walletId).toAssetInfoModel()
-
-    fun observeAssetFiatValues(walletId: String): Flow<List<GemAssetFiatValue>> = assetsDao.getAssetFiatValues(walletId).map { rows ->
-        rows.map { GemAssetFiatValue(amount = it.amount, price = it.price, priceChangePercentage24h = it.priceChangePercentage24h) }
-    }
-
-    fun observeAssetsInfo(walletId: String, assetIds: List<String>): Flow<List<AssetInfo>> = assetsDao.getAssetsInfoByIds(walletId, assetIds).toAssetInfoModel()
 
     fun observeAssetsInfoByChain(walletId: String, chain: Chain): Flow<List<AssetInfo>> = assetsDao.getAssetsInfoByChain(walletId, chain).toAssetInfoModel()
 

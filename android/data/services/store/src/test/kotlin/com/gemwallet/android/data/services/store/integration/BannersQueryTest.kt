@@ -1,7 +1,5 @@
 package com.gemwallet.android.data.services.store.integration
 
-import com.gemwallet.android.testkit.mockAssetId
-import com.gemwallet.android.testkit.mockAsset
 import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -10,6 +8,8 @@ import com.gemwallet.android.data.services.store.database.entities.DbBanner
 import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.data.services.store.queries.BannersQuery
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.BannerEvent
 import com.wallet.core.primitives.BannerState
@@ -70,6 +70,13 @@ class BannersQueryTest {
         val banners = BannersQuery(database.bannersDao())("wallet-1", tokenId).first()
 
         assertEquals(setOf(BannerEvent.AccountBlockedMultiSignature, BannerEvent.Stake, BannerEvent.ActivateAsset), banners.map { it.event }.toSet())
+    }
+
+    @Test
+    fun walletBannersListTheWalletAndSharedBannersForTheEvents() = runBlocking(Dispatchers.IO) {
+        val banners = BannersQuery(database.bannersDao())("wallet-1", listOf(BannerEvent.AccountBlockedMultiSignature, BannerEvent.Stake)).first()
+
+        assertEquals(mapOf(BannerEvent.AccountBlockedMultiSignature to 2, BannerEvent.Stake to 1), banners.groupingBy { it.event }.eachCount())
     }
 
     @Test
