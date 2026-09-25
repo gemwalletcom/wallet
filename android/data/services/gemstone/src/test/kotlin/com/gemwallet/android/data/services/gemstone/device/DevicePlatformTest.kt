@@ -2,9 +2,7 @@ package com.gemwallet.android.data.services.gemstone.device
 
 import android.content.Context
 import androidx.core.app.NotificationManagerCompat
-import com.gemwallet.android.application.device.cases.GetPushToken
 import com.gemwallet.android.application.device.cases.RequestPushToken
-import com.gemwallet.android.application.device.cases.SetPushToken
 import com.gemwallet.android.data.services.store.ConfigStore
 import com.wallet.core.primitives.PlatformStore
 import dagger.Lazy
@@ -32,7 +30,9 @@ class DevicePlatformTest {
 
     @Test
     fun emptyRecoveredToken_isNotStored() = runTest {
-        val setPushToken = mockk<SetPushToken>(relaxed = true)
+        val pushSettings = mockk<DevicePushSettings>(relaxed = true) {
+            coEvery { getPushToken() } returns ""
+        }
         val requestPushToken = mockk<RequestPushToken> {
             coEvery { requestToken(any()) } answers {
                 firstArg<(String) -> Unit>()("")
@@ -40,8 +40,7 @@ class DevicePlatformTest {
         }
         val subject = GemstoneDevicePlatform(
             context = mockk<Context>(relaxed = true),
-            getPushToken = mockk<GetPushToken> { coEvery { getPushToken() } returns "" },
-            setPushToken = setPushToken,
+            pushSettings = pushSettings,
             requestPushToken = requestPushToken,
             platformStore = PlatformStore.GooglePlay,
             notificationsAvailable = true,
@@ -54,7 +53,7 @@ class DevicePlatformTest {
         advanceUntilIdle()
 
         coVerify(exactly = 1) { requestPushToken.requestToken(any()) }
-        verify(exactly = 0) { setPushToken.setPushToken(any()) }
+        verify(exactly = 0) { pushSettings.setPushToken(any()) }
     }
 
     @Test
@@ -80,8 +79,7 @@ class DevicePlatformTest {
 
     private fun platform(preferencesService: GemPreferencesService) = GemstoneDevicePlatform(
         context = mockk<Context>(relaxed = true),
-        getPushToken = mockk<GetPushToken>(relaxed = true),
-        setPushToken = mockk<SetPushToken>(relaxed = true),
+        pushSettings = mockk<DevicePushSettings>(relaxed = true),
         requestPushToken = mockk<RequestPushToken>(relaxed = true),
         platformStore = PlatformStore.GooglePlay,
         notificationsAvailable = true,

@@ -4,15 +4,15 @@ import android.content.Context
 import com.gemwallet.android.application.device.cases.EnablePushForNewWallet
 import com.gemwallet.android.application.device.cases.EnablePushForSupport
 import com.gemwallet.android.application.device.cases.GetPushEnabled
-import com.gemwallet.android.application.device.cases.GetPushToken
+import com.gemwallet.android.application.device.cases.RequestPushToken
 import com.gemwallet.android.application.device.cases.SetPushToken
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.application.wallet.cases.GetWallets
-import com.gemwallet.android.data.services.store.ConfigStore
 import com.gemwallet.android.data.services.gemstone.device.DeviceObserverService
 import com.gemwallet.android.data.services.gemstone.device.DevicePushSettings
 import com.gemwallet.android.data.services.gemstone.device.GemstoneDevicePlatform
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
+import com.gemwallet.android.data.services.store.ConfigStore
 import com.gemwallet.android.model.BuildInfo
 import com.gemwallet.android.model.NotificationsAvailable
 import dagger.Lazy
@@ -82,12 +82,12 @@ object DeviceModule {
         preferencesService: GemPreferencesService,
         notificationsAvailable: NotificationsAvailable,
         pushSettings: DevicePushSettings,
+        requestPushToken: RequestPushToken,
     ): GemstoneDevicePlatform = GemstoneDevicePlatform(
         context = context,
         deviceKeyService = deviceKeyService,
-        getPushToken = pushSettings,
-        setPushToken = pushSettings,
-        requestPushToken = buildInfo.requestPushToken,
+        pushSettings = pushSettings,
+        requestPushToken = requestPushToken,
         platformStore = buildInfo.platformStore,
         notificationsAvailable = notificationsAvailable,
         versionName = buildInfo.versionName,
@@ -108,9 +108,6 @@ object DeviceModule {
 
     @Provides
     fun provideSetPushTokenCase(pushSettings: DevicePushSettings): SetPushToken = pushSettings
-
-    @Provides
-    fun provideGetPushTokenCase(pushSettings: DevicePushSettings): GetPushToken = pushSettings
 
     @Provides
     @Singleton
