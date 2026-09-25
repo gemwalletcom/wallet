@@ -14,6 +14,7 @@ fun mockFormattedNumber(
     tone: GemValueTone = GemValueTone.PLAIN,
     precision: GemPrecision = GemPrecision.Fraction(min = 2u, max = 2u),
     notation: GemNumberNotation = GemNumberNotation.PLAIN,
+    exact: String? = null,
 ) = GemFormattedNumber(
     value = value,
     unit = unit,
@@ -21,4 +22,5 @@ fun mockFormattedNumber(
     notation = notation,
     tone = tone,
     rounding = GemNumberRounding.TO_NEAREST,
+    exact = exact,
 )

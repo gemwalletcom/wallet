@@ -10,6 +10,7 @@ use crate::config::image::GemImage;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::perpetual::GemPerpetual;
 use crate::services::transactions::model::{GemAmountSign, GemTransactionAmount, GemTransactionHeader, GemTransactionHeaderKind};
+use crate::services::transactions::rules::header_amount;
 use crate::services::transfer::model::GemTransferData;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -50,15 +51,14 @@ fn is_amountless_payment(transfer: &GemTransferData) -> bool {
 fn transaction_header(transfer: &GemTransferData, load: Option<&GemConfirmLoad>, currency: Currency) -> GemTransactionHeader {
     let prices = load.map(|load| load.metadata.prices.as_slice()).unwrap_or_default();
     let amount = |shows_fiat: bool| GemTransactionHeader::Amount {
-        amount: amount(transfer, load, prices, currency),
-        shows_fiat,
+        amount: header_amount(amount(transfer, load, prices, &currency), &currency, shows_fiat),
     };
     match transfer.header_kind() {
         GemTransactionHeaderKind::Amount { shows_fiat } => amount(shows_fiat),
         GemTransactionHeaderKind::Swap => match &transfer.input_type {
             TransactionInputType::Swap { from_asset, to_asset, swap_data } => GemTransactionHeader::Swap {
-                from: leg(from_asset.clone(), swap_data.quote.from_value.clone(), prices),
-                to: leg(to_asset.clone(), swap_data.quote.to_value.clone(), prices),
+                from: header_amount(leg(from_asset.clone(), swap_data.quote.from_value.clone(), prices), &currency, true),
+                to: header_amount(leg(to_asset.clone(), swap_data.quote.to_value.clone(), prices), &currency, true),
             },
             _ => amount(true),
         },
@@ -83,7 +83,7 @@ fn header_asset(transfer: &GemTransferData) -> Asset {
     }
 }
 
-fn amount(transfer: &GemTransferData, load: Option<&GemConfirmLoad>, prices: &[AssetPrice], currency: Currency) -> GemTransactionAmount {
+fn amount(transfer: &GemTransferData, load: Option<&GemConfirmLoad>, prices: &[AssetPrice], currency: &Currency) -> GemTransactionAmount {
     let asset = header_asset(transfer);
     let value = match load.and_then(|load| load.fee.as_ref()).map(|fee| &fee.amount) {
         Some(GemTransferAmountResult::Amount { amount }) => amount.value.to_biguint().unwrap_or_default(),
@@ -91,7 +91,7 @@ fn amount(transfer: &GemTransferData, load: Option<&GemConfirmLoad>, prices: &[A
     };
     if let TransactionInputType::Payment { invoice, .. } = &transfer.input_type
         && let Some(price) = &invoice.price
-        && Currency::from_str(&price.currency) == Ok(currency)
+        && Currency::from_str(&price.currency).is_ok_and(|price_currency| price_currency == *currency)
         && value != GemBigUint::ZERO
     {
         return GemTransactionAmount {
@@ -119,6 +119,8 @@ mod tests {
 
     use super::super::error::GemConfirmError;
     use super::super::model::GemApprovalValue;
+    use crate::formatted_number::GemFormattedNumber;
+    use crate::precision::GemValueStyle;
 
     use super::*;
 
@@ -211,13 +213,16 @@ mod tests {
         };
 
         let GemConfirmHeader::Transaction {
-            header: GemTransactionHeader::Amount { amount, shows_fiat },
+            header: GemTransactionHeader::Amount { amount },
         } = header(&sent, None, None, Currency::USD, &ready())
         else {
             panic!("a transfer reads as an amount")
         };
-        assert_eq!(amount.value, GemBigUint::from(150_000u32), "the head is not empty while the fee loads");
-        assert!(shows_fiat);
+        assert_eq!(
+            amount.amount,
+            GemFormattedNumber::asset_amount(&150_000u32.into(), &Asset::mock(), GemValueStyle::Auto),
+            "the head is not empty while the fee loads"
+        );
     }
 
     #[test]
@@ -254,12 +259,12 @@ mod tests {
         };
 
         let GemConfirmHeader::Transaction {
-            header: GemTransactionHeader::Amount { amount, shows_fiat: true },
+            header: GemTransactionHeader::Amount { amount },
         } = header(&payment, None, None, Currency::USD, &ready())
         else {
             panic!("a payment reads as an amount with its fiat");
         };
-        let fiat = amount.price.map(|price| price.price * BigNumberFormatter::f64_value(&amount.value, asset.decimals as u32)).unwrap();
+        let fiat = amount.fiat.unwrap().value;
         assert!((fiat - 0.1).abs() < 1e-9, "the fiat is the invoice price, not the market price: {fiat}");
 
         let GemConfirmHeader::Transaction {
@@ -268,7 +273,7 @@ mod tests {
         else {
             panic!("a payment reads as an amount");
         };
-        assert_eq!(amount.price, None, "another wallet currency falls back to the market price");
+        assert_eq!(amount.fiat, None, "another wallet currency falls back to the market price");
     }
 
     #[test]

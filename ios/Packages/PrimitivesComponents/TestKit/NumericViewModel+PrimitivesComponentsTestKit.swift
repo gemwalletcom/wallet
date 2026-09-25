@@ -1,28 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
-import Formatters
-import enum Gemstone.GemAmountSign
-import GemstonePrimitives
-import Primitives
-@testable import PrimitivesComponents
-import PrimitivesTestKit
+import struct Gemstone.GemHeaderAmount
+import GemstonePrimitivesTestKit
+import PrimitivesComponents
 
 public extension NumericViewModel {
-    static func mock(
-        asset: Asset = Asset.mock(),
-        price: Price? = Price.mock(price: 1.0),
-        value: BigInt = BigInt(100_000_000),
-        sign: GemAmountSign = .none,
-        formatter: ValueFormatter = .full,
-        currencyCode: String = "USD",
-    ) -> NumericViewModel {
-        let data = AssetValuePrice(asset: asset, value: value, price: price)
-        let style = AmountDisplayStyle(
-            sign: sign,
-            formatter: formatter,
-            currencyCode: currencyCode,
-        )
-        return NumericViewModel(data: data, style: style)
+    static func mock(header: GemHeaderAmount = .mock()) -> NumericViewModel {
+        NumericViewModel(header: header)
     }
 }

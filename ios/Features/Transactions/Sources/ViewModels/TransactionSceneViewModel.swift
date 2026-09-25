@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Components
 import Formatters
 import Foundation
@@ -97,15 +96,13 @@ extension TransactionSceneViewModel: ListSectionProvideable {
     }
 
     private var headerItem: TransactionItemModel {
-        .header(rows.header.headerType(currency: service.getCurrency().toPrimitives()))
+        .header(rows.header.headerType)
     }
 
     private var swapProgressItem: TransactionItemModel {
         guard let progress = rows.swapProgress else { return .empty }
-        let fromAsset = progress.fromAsset.toPrimitives()
-        let amount = ValueFormatter.auto.string(BigInt(progress.fromValue), asset: fromAsset)
         return .swapProgress(TransactionSwapProgressItemModel(
-            transfer: .init(title: Localized.Transfer.title, subtitle: progress.transferText(formattedValue: amount), state: progress.transfer),
+            transfer: .init(title: Localized.Transfer.title, subtitle: "\(progress.amount.text()) (\(progress.network))", state: progress.transfer),
             swap: .init(title: Localized.Wallet.swap, subtitle: progress.providerName, state: progress.swap),
             estimatedTime: progress.etaSeconds.flatMap { EstimatedConfirmationFormatter().string(seconds: $0) },
         ))

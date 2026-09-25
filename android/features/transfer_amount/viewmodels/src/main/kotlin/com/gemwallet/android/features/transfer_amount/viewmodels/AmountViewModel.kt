@@ -27,7 +27,6 @@ import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.math.plainInputNumber
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.text
 import com.gemwallet.android.model.toGem
 import com.gemwallet.android.ui.components.fields.AmountSymbolUIModel
@@ -68,7 +67,6 @@ import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountTitle
 import uniffi.gemstone.GemAmountTransfer
 import uniffi.gemstone.GemAmountType
-import uniffi.gemstone.GemCurrencyStyle
 import uniffi.gemstone.GemStakeServiceInterface
 import java.math.BigInteger
 import javax.inject.Inject
@@ -136,7 +134,6 @@ class AmountViewModel @Inject constructor(
     private val amountError = MutableStateFlow<Throwable?>(null)
 
     val currency: Currency = service.getCurrency().toPrimitives()
-    private val currencyFormatter = CurrencyFormatter(style = GemCurrencyStyle.FIAT, currency = currency)
 
     private val amountSymbol: StateFlow<AmountSymbolUIModel> = combine(amountInputType, assetInfo) { inputType, current ->
         inputType.amountSymbol(current?.asset?.symbol.orEmpty(), currency)

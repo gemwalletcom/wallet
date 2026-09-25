@@ -7,11 +7,9 @@ import PrimitivesComponents
 
 struct ConfirmHeaderViewModel {
     private let header: GemConfirmHeader
-    private let currency: Currency
 
-    init(header: GemConfirmHeader, currency: Currency) {
+    init(header: GemConfirmHeader) {
         self.header = header
-        self.currency = currency
     }
 }
 
@@ -33,7 +31,7 @@ private extension ConfirmHeaderViewModel {
         case let .placeholder(assetId):
             .assetValue(AssetValueHeaderPlaceholder(assetImage: AssetIdViewModel(assetId: AssetId(core: assetId)).assetImage))
         case let .transaction(header), let .reserved(header):
-            header.headerType(currency: currency)
+            header.headerType
         }
     }
 

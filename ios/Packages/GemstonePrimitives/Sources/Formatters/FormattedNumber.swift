@@ -65,6 +65,11 @@ private extension GemFormattedNumber {
         }
     }
 
+    var exactValue: Decimal? {
+        guard let exact, let magnitude = Decimal(string: exact, locale: Locale(identifier: "en_US_POSIX")) else { return nil }
+        return value < 0 ? -magnitude : magnitude
+    }
+
     var roundingRule: FloatingPointRoundingRule {
         switch rounding {
         case .toNearest: .toNearestOrEven
@@ -91,6 +96,9 @@ private extension GemFormattedNumber {
             )
         }
         guard let currencyCode else {
+            if let exactValue {
+                return exactValue.formatted(.number.locale(locale).precision(precision.formatStyle).sign(strategy: numberSign).rounded(rule: roundingRule))
+            }
             return value.formatted(.number.locale(locale).precision(precision.formatStyle).sign(strategy: numberSign).rounded(rule: roundingRule))
         }
         return value.formatted(.currency(code: currencyCode).locale(locale).precision(precision.formatStyle).sign(strategy: currencySign).rounded(rule: roundingRule))

@@ -2,7 +2,6 @@ package com.gemwallet.android.features.confirm.viewmodels
 
 import android.content.Context
 import com.gemwallet.android.ext.requireChain
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.list_head.SimulationHeaderUIModel
 import com.gemwallet.android.ui.components.list_head.headerUIModel
@@ -13,7 +12,6 @@ import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemConfirmSimulationState
 import uniffi.gemstone.GemSimulationBalanceChange
 import uniffi.gemstone.GemSimulationPayloadRow
-import uniffi.gemstone.GemValueStyle
 
 data class Simulation(
     val hasCriticalWarning: Boolean = false,
@@ -37,11 +35,9 @@ fun GemConfirmSimulationState.toSimulation(context: Context): Simulation {
     )
 }
 
-fun GemSimulationBalanceChange.formattedValue(): String = sign.amount(value, asset.decimals.toUInt(), asset.symbol, GemValueStyle.FULL).text()
-
 fun GemSimulationBalanceChange.listItem(): ListItemModel = ListItemModel(
     title = asset.name,
-    subtitle = formattedValue(),
-    subtitleStyle = tone.textStyle(),
+    subtitle = amount.text(),
+    subtitleStyle = amount.tone.textStyle(),
     image = ListItemImage.Asset(icon),
 )

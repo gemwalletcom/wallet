@@ -4,7 +4,7 @@ use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::precision::GemValueStyle;
 use crate::services::swap::model::GemSwapRate;
 use chrono::{DateTime, Utc};
-use primitives::{AddressName, Asset, AssetId, AssetPrice, Chain, ChainAsset, NFTAssetId, PerpetualDirection, Resource, Transaction, TransactionDirection, TransactionExtended, TransactionId, TransactionState, TransactionType};
+use primitives::{AddressName, Asset, AssetId, AssetPrice, Chain, NFTAssetId, PerpetualDirection, Resource, Transaction, TransactionDirection, TransactionExtended, TransactionId, TransactionState, TransactionType};
 
 use super::rules;
 use crate::services::empty_state::GemEmptyStateKind;
@@ -125,10 +125,9 @@ pub enum GemAmountSign {
     Outgoing,
 }
 
-#[uniffi::export]
 impl GemAmountSign {
-    pub fn amount(&self, value: GemBigInt, decimals: u32, symbol: Option<String>, style: GemValueStyle) -> GemFormattedNumber {
-        let number = GemFormattedNumber::amount(number_formatter::BigNumberFormatter::f64_value(value.magnitude(), decimals), symbol, style);
+    pub fn amount(&self, value: &GemBigUint, asset: &Asset, style: GemValueStyle) -> GemFormattedNumber {
+        let number = GemFormattedNumber::asset_amount(&GemBigInt::from(value.clone()), asset, style);
         match self {
             Self::None => number,
             _ if number.value == 0.0 => number,
@@ -183,6 +182,13 @@ pub struct GemTransactionAmount {
     pub value: GemBigUint,
     pub sign: GemAmountSign,
     pub price: Option<AssetPrice>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemHeaderAmount {
+    pub asset: Asset,
+    pub amount: GemFormattedNumber,
+    pub fiat: Option<GemFormattedNumber>,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -257,9 +263,10 @@ pub fn transaction_rows(transactions: Vec<TransactionExtended>) -> Vec<GemTransa
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
 pub enum GemTransactionHeader {
-    Amount { amount: GemTransactionAmount, shows_fiat: bool },
-    Swap { from: GemTransactionAmount, to: GemTransactionAmount },
+    Amount { amount: GemHeaderAmount },
+    Swap { from: GemHeaderAmount, to: GemHeaderAmount },
     Nft { asset_id: NFTAssetId, name: Option<String>, image_url: String },
     Symbol { asset: Asset },
     AssetImage { asset: Asset },
@@ -351,19 +358,12 @@ pub struct GemTransactionDetails {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSwapProgress {
-    pub from_asset: Asset,
-    pub from_value: GemBigUint,
+    pub amount: GemFormattedNumber,
+    pub network: String,
     pub provider_name: String,
     pub transfer: GemSwapProgressState,
     pub swap: GemSwapProgressState,
     pub eta_seconds: Option<u32>,
-}
-
-#[uniffi::export]
-impl GemSwapProgress {
-    pub fn transfer_text(&self, formatted_value: String) -> String {
-        format!("{formatted_value} ({})", ChainAsset::from_chain(self.from_asset.chain()).network_name)
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
@@ -418,31 +418,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_a_swap_transfer_names_the_network_beside_the_amount() {
-        let progress = GemSwapProgress {
-            from_asset: Asset::from_chain(Chain::Ethereum),
-            from_value: GemBigUint::ZERO,
-            provider_name: "Thorchain".to_string(),
-            transfer: GemSwapProgressState {
-                step: GemSwapProgressStep::Pending,
-                marker: GemSwapProgressMarker::Spinner,
-            },
-            swap: GemSwapProgressState {
-                step: GemSwapProgressStep::Waiting,
-                marker: GemSwapProgressMarker::Spinner,
-            },
-            eta_seconds: None,
-        };
-
-        assert_eq!(progress.transfer_text("0.5 ETH".to_string()), "0.5 ETH (Ethereum)");
-    }
-    use super::GemAmountSign;
-
-    #[test]
     fn test_a_signed_amount_carries_its_direction_and_an_unsigned_one_does_not() {
-        use crate::formatted_number::{GemNumberNotation, GemValueTone};
-        use crate::precision::GemValueStyle;
-        let number = |sign: GemAmountSign, value: i64| sign.amount(value.into(), 2, Some("BTC".to_string()), GemValueStyle::Auto);
+        let asset = Asset {
+            decimals: 2,
+            ..Asset::from_chain(Chain::Bitcoin)
+        };
+        let number = |sign: GemAmountSign, value: u32| sign.amount(&value.into(), &asset, GemValueStyle::Auto);
 
         let incoming = number(GemAmountSign::Incoming, 100);
         assert_eq!((incoming.value, incoming.notation, incoming.tone), (1.0, GemNumberNotation::Signed, GemValueTone::Positive));
@@ -453,10 +434,17 @@ mod tests {
         let unsigned = number(GemAmountSign::None, 100);
         assert_eq!((unsigned.value, unsigned.notation), (1.0, GemNumberNotation::Plain));
 
-        let negative_outgoing = number(GemAmountSign::Outgoing, -100);
-        assert_eq!(negative_outgoing.value, -1.0, "the direction decides the sign, not the stored value");
-
         let zero = number(GemAmountSign::Incoming, 0);
         assert_eq!(zero.notation, GemNumberNotation::Plain, "nothing moved, so nothing is signed");
+    }
+
+    #[test]
+    fn test_a_full_amount_keeps_every_digit_past_what_a_double_holds() {
+        let value = GemBigUint::from(123_456_789_012_345_678_901u128);
+        let full = GemAmountSign::Outgoing.amount(&value, &Asset::from_chain(Chain::Ethereum), GemValueStyle::Full);
+        assert_eq!((full.exact.as_deref(), full.value < 0.0), (Some("123.456789012345678901"), true), "the exact digits carry no sign; the value does");
+
+        let auto = GemAmountSign::None.amount(&value, &Asset::from_chain(Chain::Ethereum), GemValueStyle::Auto);
+        assert_eq!(auto.exact, None, "a rounded amount has no exact digits to keep");
     }
 }

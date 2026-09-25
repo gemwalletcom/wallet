@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **Numbers and copy:** VM62 with VM145 (then VM64), VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
+1. **Numbers and copy:** VM69, and the copy for BD4, BD5, BD7, BD9, BD15, BD19, BD30 and VM67 through the translation-review flow.
 2. **Shared records:** VM166 (swap), VM172 (one asset-like row), VM88 (info sheets), VM180 (one mapper file per app), then VM6.
 3. **Balances and storage:** D76, D77, VM98 (an Android migration).
 4. **Server:** BD23, BD51, BD52.
@@ -43,9 +43,9 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | VM69; retain existing native QR/share adapters |
 | Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | — |
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | — |
-| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM62, VM145 |
+| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | — |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | VM166 |
-| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM62, VM145, VM98 |
+| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM98 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | — |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | VM172 |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | VM172 |
@@ -59,7 +59,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | Retain platform-only privacy lock |
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | — |
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | retain Android-only one-click auth |
-| Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per module | VM6, VM64, VM88, VM172, VM180 |
+| Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per module | VM6, VM88, VM172, VM180 |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
 | Stores and persistence | `Gem*Store` traits and both adapters | VM98 |
 
@@ -95,11 +95,8 @@ The same product rule written in both apps, or in one app while the other reads 
 
 [A number crosses as a value and a style](ARCHITECTURE.md#a-number-crosses-as-a-value-and-a-style-never-as-a-string-or-a-callback) and [the record carries the finished value](ARCHITECTURE.md#the-record-carries-the-finished-value-not-the-ingredients). Each item is a raw amount, price or seconds value that both apps format, convert or compose themselves.
 
-- **VM62** **M** **Transaction headers carry formatted amounts.** `GemTransactionHeader` carries a raw `GemTransactionAmount`; both apps format it and convert to fiat — iOS `display` to `AmountDisplay`, Android `amountText`/`valueText`/`fiat` through `CryptoFiatConverter.toFiatString` in `ConfirmHeaderUIModel` and `TransactionDetailsRowUIModel`. **Decided:** `GemFormattedNumber` carries an `f64`, so a `Full` amount loses digits past about 16 significant figures (iOS renders these exactly from the `BigInt` today); it gains the exact decimal text, and a `Full` amount prints from that text.
-- **VM64** **S** **Delete Android's `CryptoFiatConverter` once unused.** Its only live caller is `GemTransactionAmount.fiat` (`GemTransactionAmountUIModel.kt:18-20`); the fee rows no longer use it. It goes with VM62, together with the `Fiat` class (`Amount.kt:19`), the test-only `CryptoFiatConverter.fiatValue` and `CurrencyFormatter`, whose other references are an unused private val (`AmountViewModel.kt:75`) and the dead `FiatFormattedUIModel`.
 - **VM67** **M** **Price-alert confirmation text comes from Core.** Both apps build "added for …" by choosing a title from type and direction and lowercasing a localized string, which is locale-unsafe (iOS `SetPriceAlertViewModel`, Android `PriceAlertTargetNavScreen`). **Copy:** we write one full sentence per kind and direction ("Alert added for price over {value}" and three siblings), translated into every language through the translation-review flow, replacing `price_alerts_added_for` plus the lowercased title; Core then returns it as a `GemLocalizedText` case.
 - **VM69** **S** **Token standard labels are not raw values on either app.** iOS `ChainViewModel` shows `assetType?.rawValue` as user-facing text; Android receive shows `asset.type.string` (`ReceiveScreen.kt:147`, `ReceiveNetworkSelector.kt:38`). The label is a `GemLocalizedText` case both mappers render. **Decided:** keep `ERC20`, `BEP20`, `TRC20`, `SPL` and `JETTON` as labels; `NATIVE`, `TOKEN`, `SPL2022`, `PERPETUAL` and `SPOT` show no subtitle.
-- **VM145** **S** **Simulation balance changes and swap progress carry formatted amounts.** `GemSimulationBalanceChange { value, sign, tone }` ([`confirm/model.rs`](../core/gemstone/src/services/confirm/model.rs)) is formatted per row on both apps (iOS `ConfirmBalanceChangeViewModel.swift:39-49` through `NumericViewModel` with `AmountDisplayStyle(sign:, formatter: .full)`, Android `Simulation.kt:44-48` `sign.amount(value, decimals, symbol, FULL).text()`, one Core crossing per row), and `GemSwapProgress { from_value: GemBigUint }` ([`transactions/model.rs`](../core/gemstone/src/services/transactions/model.rs)) is formatted before being handed back to `transfer_text(formatted_value:)` (iOS `TransactionSceneViewModel.swift:104-108`, Android `SwapProgressUIModel.kt:31-33`). Both records carry `amount: GemFormattedNumber` (the balance change built with the change in `simulation.rs`, the progress with `network` so `transfer_text` goes and the join moves into each mapper). Delete the iOS `NumericViewModel` use and both `ValueFormatter` calls; Android `formattedValue`. Land with VM62. **Decided:** `GemFormattedNumber` gains the exact decimal text (see VM62).
 
 ## 5. Twins, adapters, redundant models and dead code
 

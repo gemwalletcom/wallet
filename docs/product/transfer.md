@@ -40,6 +40,7 @@ flowchart LR
 - Nothing is signed or sent without the confirmation screen showing the amount, recipient, network and fee.
 - A payment code's amount fills the amount field in the device's number format and keeps its exact value, because a "0.001" read with a comma decimal separator would become 1.
 - A simulation that cannot answer never blocks sending; a simulation that finds a risk shows it before the user confirms.
+- The balance changes a simulation predicts show every digit of the amount, never a rounded value, so what the user approves is exactly what moves.
 - When Confirm loads with a problem the user can act on (not enough balance or network fee, a required memo, a risky transaction), its explanation opens by itself; other load errors stay in the error row.
 - When a network rejects a sent transaction, the user sees the network's own reason, because it is often the only explanation there is.
 - Dash sends standard non-replaceable payments, which the Dash network automatically attempts to lock with InstantSend when their inputs are eligible; until the provider exposes that lock, Activity remains Pending until the transaction is mined.

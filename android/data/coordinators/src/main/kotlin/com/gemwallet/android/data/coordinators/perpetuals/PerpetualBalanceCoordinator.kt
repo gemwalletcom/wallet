@@ -7,7 +7,6 @@ import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStor
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualBalance
 import kotlinx.coroutines.ExperimentalCoroutinesApi

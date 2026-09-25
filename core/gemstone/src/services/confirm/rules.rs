@@ -5,7 +5,7 @@ use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::copy::address_copy;
 use crate::models::list::{GemListRow, GemListRowTitle};
 use crate::models::placeholder::text_or_placeholder;
-use crate::precision::GemCurrencyStyle;
+use crate::precision::{GemCurrencyStyle, GemValueStyle};
 use crate::services::assets::rules::{asset_text, fee_amount};
 use crate::services::contact::model::contact_avatar;
 use crate::services::error_text::GemErrorText;
@@ -276,19 +276,20 @@ impl GemConfirmLoad {
     }
 }
 
-pub fn balance_change_tone(sign: GemAmountSign) -> GemValueTone {
-    match sign {
-        GemAmountSign::Incoming => GemValueTone::Positive,
-        GemAmountSign::Outgoing => GemValueTone::Negative,
-        GemAmountSign::None => GemValueTone::Neutral,
-    }
-}
-
-pub fn balance_change_sign(value: &BigInt) -> GemAmountSign {
-    match value.sign() {
+pub fn balance_change_amount(value: &BigInt, asset: &Asset) -> GemFormattedNumber {
+    let sign = match value.sign() {
         Sign::Plus => GemAmountSign::Incoming,
         Sign::Minus => GemAmountSign::Outgoing,
         Sign::NoSign => GemAmountSign::None,
+    };
+    let tone = match sign {
+        GemAmountSign::Incoming => GemValueTone::Positive,
+        GemAmountSign::Outgoing => GemValueTone::Negative,
+        GemAmountSign::None => GemValueTone::Neutral,
+    };
+    GemFormattedNumber {
+        tone,
+        ..sign.amount(value.magnitude(), asset, GemValueStyle::Full)
     }
 }
 
@@ -1430,17 +1431,25 @@ mod tests {
     }
 
     #[test]
-    fn test_balance_change_sign_follows_the_value() {
-        assert_eq!(balance_change_sign(&BigInt::from(750_000)), GemAmountSign::Incoming);
-        assert_eq!(balance_change_sign(&BigInt::from(-100_005_000)), GemAmountSign::Outgoing);
-        assert_eq!(balance_change_sign(&BigInt::ZERO), GemAmountSign::None);
-    }
+    fn test_a_balance_change_reads_every_digit_signed_and_toned_by_its_direction() {
+        use crate::formatted_number::GemNumberNotation;
+        let solana = Asset::from_chain(Chain::Solana);
+        let usdc = Asset {
+            decimals: 6,
+            ..Asset::from_chain(Chain::Ethereum)
+        };
 
-    #[test]
-    fn test_the_balance_change_tone_follows_its_sign() {
-        assert_eq!(balance_change_tone(GemAmountSign::Incoming), GemValueTone::Positive);
-        assert_eq!(balance_change_tone(GemAmountSign::Outgoing), GemValueTone::Negative);
-        assert_eq!(balance_change_tone(GemAmountSign::None), GemValueTone::Neutral, "a change of nothing is neither a gain nor a loss");
+        let spent = balance_change_amount(&BigInt::from(-100_005_000), &solana);
+        assert_eq!(
+            (spent.value, spent.exact.as_deref(), spent.notation, spent.tone),
+            (-0.100005, Some("0.100005"), GemNumberNotation::Signed, GemValueTone::Negative)
+        );
+
+        let received = balance_change_amount(&BigInt::from(750_000), &usdc);
+        assert_eq!((received.exact.as_deref(), received.notation, received.tone), (Some("0.75"), GemNumberNotation::Signed, GemValueTone::Positive));
+
+        let nothing = balance_change_amount(&BigInt::ZERO, &solana);
+        assert_eq!((nothing.notation, nothing.tone), (GemNumberNotation::Plain, GemValueTone::Neutral), "a change of nothing is neither a gain nor a loss");
     }
 
     #[test]

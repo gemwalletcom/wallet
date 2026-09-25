@@ -9,7 +9,6 @@ import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R

@@ -3,7 +3,6 @@
 import BigInt
 import Components
 import struct Gemstone.GemSimulationValue
-import struct Gemstone.GemTransactionAmount
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 @testable import Primitives
@@ -17,9 +16,7 @@ import Testing
 struct ConfirmHeaderViewModelTests {
     @Test
     func amountShowsClearHeader() {
-        let headerType = TransactionHeaderType.amount(
-            .numeric(.mock(asset: .mockEthereumUSDT(), price: nil, value: 1)),
-        )
+        let headerType = TransactionHeaderType.amount(.numeric(.mock()))
         #expect(headerType.showsClearHeader == true)
     }
 
@@ -55,7 +52,7 @@ struct ConfirmHeaderViewModelTests {
     @Test
     func aValueHeaderDrawsTheAssetAndWhatItApproves() {
         let value = GemSimulationValue(asset: Asset.mockEthereumUSDT().toGem(), value: .exact(value: BigUInt(1_000_000)))
-        let model = ConfirmHeaderViewModel(header: .value(value: value), currency: .usd)
+        let model = ConfirmHeaderViewModel(header: .value(value: value))
 
         guard case let .header(headerType, _) = model.itemModel,
               case let .assetValue(header) = headerType,
@@ -71,7 +68,7 @@ struct ConfirmHeaderViewModelTests {
 
     @Test
     func aPlaceholderKeepsTheHeadInPlaceUntilTheValueArrives() {
-        let model = ConfirmHeaderViewModel(header: .placeholder(assetId: Asset.mockEthereumUSDT().id.identifier), currency: .usd)
+        let model = ConfirmHeaderViewModel(header: .placeholder(assetId: Asset.mockEthereumUSDT().id.identifier))
 
         guard case let .header(headerType, _) = model.itemModel,
               case let .assetValue(header) = headerType
@@ -85,9 +82,7 @@ struct ConfirmHeaderViewModelTests {
 
     @Test
     func aTransactionHeaderReadsThroughTheSharedMapper() {
-        let asset = Asset.mockEthereumUSDT()
-        let amount = GemTransactionAmount(asset: asset.toGem(), value: BigUInt(1_000_000), sign: .none, price: nil)
-        let model = ConfirmHeaderViewModel(header: .transaction(header: .amount(amount: amount, showsFiat: true)), currency: .usd)
+        let model = ConfirmHeaderViewModel(header: .transaction(header: .amount(amount: .mock(asset: .mockEthereumUSDT()))))
 
         guard case let .header(headerType, _) = model.itemModel, case .amount = headerType else {
             Issue.record("Expected the amount header")
@@ -98,8 +93,7 @@ struct ConfirmHeaderViewModelTests {
 
     @Test
     func aReservedHeaderKeepsItsPlaceHidden() {
-        let amount = GemTransactionAmount(asset: Asset.mockEthereumUSDT().toGem(), value: BigUInt(1_000_000), sign: .none, price: nil)
-        let model = ConfirmHeaderViewModel(header: .reserved(header: .amount(amount: amount, showsFiat: true)), currency: .usd)
+        let model = ConfirmHeaderViewModel(header: .reserved(header: .amount(amount: .mock(asset: .mockEthereumUSDT()))))
 
         guard case let .header(headerType, isReserved) = model.itemModel, case .amount = headerType else {
             Issue.record("Expected the amount header")

@@ -6,6 +6,7 @@ import enum Gemstone.GemConfirmFeeSelection
 import struct Gemstone.GemFeeRateRows
 import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemLocalizedText
+import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import Primitives
 @testable import PrimitivesComponents
@@ -292,6 +293,6 @@ struct NetworkFeeSceneViewModelTests {
 
 extension Asset {
     func feeText(_ value: BigInt) -> String {
-        AmountDisplay.numeric(asset: self, price: nil, value: value, currency: Currency.usd.rawValue, formatter: .auto).amount.text
+        ValueFormatter.auto.string(value, asset: self)
     }
 }

@@ -18,7 +18,6 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualPositionRowUIModel
-import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.ui.components.perpetual.listItem
 import com.wallet.core.primitives.Asset

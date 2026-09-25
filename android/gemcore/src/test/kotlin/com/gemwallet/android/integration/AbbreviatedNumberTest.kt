@@ -28,6 +28,7 @@ class AbbreviatedNumberTest {
         notation = notation,
         tone = tone,
         rounding = rounding,
+        exact = null,
     ).text(us)
 
     @Test

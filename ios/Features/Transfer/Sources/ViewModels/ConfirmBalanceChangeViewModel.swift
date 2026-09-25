@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Components
 import struct Gemstone.GemSimulationBalanceChange
 import GemstonePrimitives
@@ -37,14 +36,9 @@ public struct ConfirmBalanceChangeViewModel {
     }
 
     public var amount: TextValue {
-        NumericViewModel(
-            data: AssetValuePrice(asset: asset, value: abs(balanceChange.value), price: nil),
-            style: AmountDisplayStyle(
-                sign: balanceChange.sign,
-                formatter: .full,
-                currencyCode: "",
-                textStyle: TextStyle(font: .body, color: balanceChange.tone.color, fontWeight: .medium),
-            ),
-        ).amount
+        TextValue(
+            text: balanceChange.amount.text(),
+            style: TextStyle(font: .body, color: balanceChange.amount.tone.color, fontWeight: .medium),
+        )
     }
 }

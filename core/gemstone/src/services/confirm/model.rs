@@ -1,6 +1,6 @@
 use super::error::GemConfirmError;
 use super::rules::approval_value_from;
-use crate::formatted_number::GemValueTone;
+use crate::formatted_number::GemFormattedNumber;
 use crate::models::button::GemButtonState;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
@@ -13,7 +13,6 @@ use crate::services::error_text::GemErrorText;
 use crate::services::localization::GemLocalizedText;
 use crate::services::simulation::{GemSimulationPayloadRow, address_requests, named_payload_rows};
 use crate::services::swap::model::GemSwapPairSelection;
-use crate::services::transactions::GemAmountSign;
 use crate::services::transfer::GemTransferData;
 use crate::services::transfer::model::{GemConfirmDestination, GemConfirmTitle};
 use crate::services::wallet::GemKeystoreAuthentication;
@@ -278,9 +277,7 @@ impl GemSimulationValue {
 pub struct GemSimulationBalanceChange {
     pub asset: Asset,
     pub icon: crate::services::assets::icon::GemAssetIcon,
-    pub value: GemBigInt,
-    pub sign: GemAmountSign,
-    pub tone: GemValueTone,
+    pub amount: GemFormattedNumber,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]

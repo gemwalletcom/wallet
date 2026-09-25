@@ -37,7 +37,7 @@ class TransactionDetailsViewModel @Inject constructor(private val getTransaction
     val sections: StateFlow<List<ListSection<TransactionDetailsRowUIModel>>> = data.map { details ->
         details?.let { current ->
             transactionDetailSections(current.rows).mapIndexed { index, section ->
-                ListSection(id = index.toString(), items = section.rows.map { row -> current.rows.uiModel(row, context, current.currency) })
+                ListSection(id = index.toString(), items = section.rows.map { row -> current.rows.uiModel(row, context) })
             }
         }.orEmpty()
     }

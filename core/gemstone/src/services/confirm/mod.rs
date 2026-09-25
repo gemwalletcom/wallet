@@ -177,13 +177,10 @@ impl GemConfirmService {
             .into_iter()
             .filter_map(|change| {
                 let asset = assets.iter().find(|asset| asset.id == change.asset_id)?.clone();
-                let sign = rules::balance_change_sign(&change.value);
                 Some(GemSimulationBalanceChange {
                     icon: crate::services::assets::icon::asset_icon(&asset.id),
+                    amount: rules::balance_change_amount(&change.value, &asset),
                     asset,
-                    tone: rules::balance_change_tone(sign),
-                    sign,
-                    value: change.value,
                 })
             })
             .collect();

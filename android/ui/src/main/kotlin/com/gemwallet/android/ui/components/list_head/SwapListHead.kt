@@ -15,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
-import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
@@ -24,19 +23,11 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 
 @Composable
-fun SwapListHead(
-    fromAsset: AssetPriceValue?,
-    fromValueText: String,
-    fromEquivalentText: String?,
-    toAsset: AssetPriceValue?,
-    toValueText: String,
-    toEquivalentText: String?,
-    onSwapClick: (() -> Unit)? = null,
-    onAssetClick: ((AssetId) -> Unit)? = null,
-) {
+fun SwapListHead(fromAsset: Asset?, fromValueText: String, fromEquivalentText: String?, toAsset: Asset?, toValueText: String, toEquivalentText: String?, onSwapClick: (() -> Unit)? = null, onAssetClick: ((AssetId) -> Unit)? = null) {
     if (fromAsset == null || toAsset == null) {
         return
     }
@@ -49,7 +40,7 @@ fun SwapListHead(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             SwapItem(
-                assetInfo = fromAsset,
+                asset = fromAsset,
                 valueText = fromValueText,
                 equivalentText = fromEquivalentText,
                 onSwapClick = onSwapClick,
@@ -66,7 +57,7 @@ fun SwapListHead(
             }
             Spacer16()
             SwapItem(
-                assetInfo = toAsset,
+                asset = toAsset,
                 valueText = toValueText,
                 equivalentText = toEquivalentText,
                 onSwapClick = onSwapClick,
@@ -77,8 +68,7 @@ fun SwapListHead(
 }
 
 @Composable
-private fun SwapItem(assetInfo: AssetPriceValue, valueText: String, equivalentText: String?, onSwapClick: (() -> Unit)?, onAssetClick: ((AssetId) -> Unit)?) {
-    val asset = assetInfo.asset
+private fun SwapItem(asset: Asset, valueText: String, equivalentText: String?, onSwapClick: (() -> Unit)?, onAssetClick: ((AssetId) -> Unit)?) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,

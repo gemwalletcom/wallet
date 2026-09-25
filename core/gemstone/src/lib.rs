@@ -7,7 +7,6 @@ pub mod auth;
 pub mod block_explorer;
 pub mod config;
 pub mod constants;
-pub mod crypto_fiat_converter;
 pub mod day_section;
 pub mod deeplink;
 pub mod device;

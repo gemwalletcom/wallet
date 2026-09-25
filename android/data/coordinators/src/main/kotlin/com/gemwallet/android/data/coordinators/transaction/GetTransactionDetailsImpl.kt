@@ -23,10 +23,7 @@ class GetTransactionDetailsImpl(private val getSession: GetSession, private val 
             session ?: return@flatMapLatest flowOf(null)
             transactionStore.observeTransaction(session.wallet.id, id).map { data ->
                 data?.let {
-                    TransactionDetails(
-                        rows = transactionDetailsService.detailRows(it.toGem(), session.wallet.type.toGem()),
-                        currency = session.currency,
-                    )
+                    TransactionDetails(rows = transactionDetailsService.detailRows(it.toGem(), session.wallet.type.toGem()))
                 }
             }
         }

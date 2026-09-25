@@ -159,7 +159,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
     public func itemModel(for item: ConfirmTransferItem) -> any ItemModelProvidable<ConfirmTransferItemModel> {
         switch item {
         case .header:
-            ConfirmHeaderViewModel(header: confirmation.header(screen: state.screen), currency: confirmation.currency)
+            ConfirmHeaderViewModel(header: confirmation.header(screen: state.screen))
         case .notice:
             viewState.notice.map(ConfirmTransferItemModel.row) ?? .empty
         case .warnings:

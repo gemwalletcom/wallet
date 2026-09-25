@@ -53,6 +53,7 @@ pub struct GemPortfolioResult {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
 pub enum GemPortfolioPhase {
     Loading,
     Data { chart: GemChartData },

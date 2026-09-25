@@ -10,7 +10,7 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.CurrencyFormatter
+import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetBalance
 import com.gemwallet.android.testkit.mockAssetInfo
@@ -55,6 +55,7 @@ import uniffi.gemstone.GemCurrencyStyle
 import uniffi.gemstone.GemFiatQuoteServiceInterface
 import uniffi.gemstone.GemFiatSuggestedAmount
 import uniffi.gemstone.GemServiceException
+import uniffi.gemstone.formattedCurrency
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -71,7 +72,6 @@ class FiatViewModelTest {
     private val getAssetPriceUsd = object : GetAssetPriceUsd {
         override fun invoke(assetId: AssetId): Flow<Double?> = assetPriceUsdFlow
     }
-    private val fiatFormatter = CurrencyFormatter(style = GemCurrencyStyle.FIAT, currency = Currency.USD)
     private val context = mockk<Context> {
         every { getString(any()) } answers { "string:${firstArg<Int>()}" }
         every { getString(any(), *anyVararg()) } answers { "string:${firstArg<Int>()}" }
@@ -401,7 +401,7 @@ class FiatViewModelTest {
             runCurrent()
 
             val provider = viewModel.providers.value.first()
-            assertEquals(fiatFormatter.string(200.0 * provider.row.cryptoAmount.value), provider.fiatFormatted)
+            assertEquals(formattedCurrency(200.0 * provider.row.cryptoAmount.value, Currency.USD.string, GemCurrencyStyle.FIAT).text(), provider.fiatFormatted)
         } finally {
             viewModel.viewModelScope.cancel()
         }

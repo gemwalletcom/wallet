@@ -1,38 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
-import Formatters
 import Primitives
 @testable import PrimitivesComponents
+import PrimitivesComponentsTestKit
 import PrimitivesTestKit
 import Testing
 
 struct AmountDisplayTests {
     let asset = Asset.mock()
-    let price = Price.mock(price: 1.5)
-    let value = BigInt(100_000_000)
-    let currency = "USD"
-
-    @Test
-    func numericFactory() {
-        let display = AmountDisplay.numeric(
-            asset: asset,
-            price: price,
-            value: value,
-            sign: .incoming,
-            currency: currency,
-            formatter: .full,
-        )
-
-        guard case let .numeric(viewModel) = display else {
-            Issue.record("Expected numeric display type")
-            return
-        }
-
-        #expect(viewModel.amount.text.contains(asset.symbol))
-        #expect(viewModel.amount.text == "+1 BTC")
-        #expect(viewModel.fiat?.text == "$1.50")
-    }
 
     @Test
     func symbolFactory() {
@@ -48,46 +23,12 @@ struct AmountDisplayTests {
 
     @Test
     func amountDisplayable() {
-        let numericDisplay = AmountDisplay.numeric(
-            asset: asset,
-            price: price,
-            value: value,
-            currency: currency,
-        )
+        let numericDisplay = AmountDisplay.numeric(.mock())
         let symbolDisplay = AmountDisplay.symbol(asset: asset)
 
-        #expect(numericDisplay.amount.text.contains(asset.symbol))
+        #expect(numericDisplay.amount.text == "1 BTC")
         #expect(symbolDisplay.amount.text == asset.symbol)
-        #expect(numericDisplay.fiat?.text == "$1.50")
+        #expect(numericDisplay.fiat?.text == "$2.00")
         #expect(symbolDisplay.fiat == nil)
-    }
-
-    @Test
-    func fiatVisibility() {
-        let display = AmountDisplay.numeric(
-            asset: asset,
-            price: price,
-            value: value,
-            currency: currency,
-        )
-
-        let withFiat = display.fiatVisibility(true)
-        let withoutFiat = display.fiatVisibility(false)
-
-        #expect(withFiat.fiat?.text == "$1.50")
-        #expect(withoutFiat.fiat == nil)
-    }
-
-    @Test
-    func fiatVisibilitySymbolUnchanged() {
-        let display = AmountDisplay.symbol(asset: asset)
-        let modified = display.fiatVisibility(false)
-
-        guard case .symbol = modified else {
-            Issue.record("Symbol display should remain unchanged")
-            return
-        }
-
-        #expect(modified.amount.text == asset.symbol)
     }
 }
