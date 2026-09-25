@@ -19,7 +19,7 @@ import com.wallet.core.primitives.WalletId
     foreignKeys = [
         ForeignKey(DbWallet::class, ["id"], ["walletId"], onDelete = ForeignKey.CASCADE, onUpdate = ForeignKey.CASCADE),
     ],
-    indices = [Index("walletId"), Index(value = ["walletId", "id"], unique = true)],
+    indices = [Index(value = ["walletId", "id"], unique = true), Index(value = ["walletId", "createdAt"])],
 )
 data class DbTransaction(
     val id: TransactionId,
