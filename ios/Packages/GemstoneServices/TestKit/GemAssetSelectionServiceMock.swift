@@ -68,9 +68,9 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
         return GemWalletSearchView(
             state: walletSearchState(counts: counts, isLoading: input.isLoading),
             limits: limits,
-            hasMoreAssets: limits.hasMoreAssets(count: counts.assets),
-            hasMorePerpetuals: limits.hasMorePerpetuals(count: counts.perpetuals),
-            hasMoreNfts: limits.hasMoreNfts(count: counts.nfts),
+            hasMoreAssets: counts.assets > limits.assets,
+            hasMorePerpetuals: counts.perpetuals > limits.perpetuals,
+            hasMoreNfts: counts.nfts > limits.nfts,
             showsAddToken: walletFlow(selectType: .walletSearch, wallet: input.wallet).showsAddToken,
         )
     }

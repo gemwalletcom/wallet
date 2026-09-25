@@ -6,10 +6,9 @@ import func Gemstone.addressCopy
 import protocol Gemstone.GemAssetSelectionServiceProtocol
 import enum Gemstone.GemImage
 import struct Gemstone.GemNftEntry
+import struct Gemstone.GemPerpetualMarketItem
 import struct Gemstone.GemWalletSearchCounts
 import struct Gemstone.GemWalletSearchInput
-import struct Gemstone.GemWalletSearchLimits
-import struct Gemstone.GemWalletSearchState
 import struct Gemstone.GemWalletSearchView
 import GemstonePrimitives
 import GemstoneServices
@@ -90,18 +89,6 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         Localized.Nft.collections
     }
 
-    var collectionsContent: CollectionsContent {
-        derived.collectionsContent
-    }
-
-    var sections: WalletSearchSections {
-        derived.sections
-    }
-
-    private var view: GemWalletSearchView {
-        derived.view
-    }
-
     var derived: WalletSearchDerived {
         let result = searchResult
         let nfts = service.searchCollections(data: result.collections.map { $0.toGem() }, query: searchQuery.request.searchBy)
@@ -123,10 +110,6 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         service.getCurrency().toPrimitives()
     }
 
-    var searchState: SearchContentState {
-        searchState(derived)
-    }
-
     func searchState(_ derived: WalletSearchDerived) -> SearchContentState {
         switch derived.view.state.phase {
         case .idle:
@@ -139,70 +122,6 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
                 actions: [.addCustomToken: derived.view.showsAddToken ? { [weak self] in self?.onSelectAddCustomToken() } : nil],
             ))
         }
-    }
-
-    private var state: GemWalletSearchState {
-        view.state
-    }
-
-    var showRecents: Bool {
-        state.showsRecents
-    }
-
-    var showPerpetuals: Bool {
-        state.showsPerpetuals
-    }
-
-    var showPinned: Bool {
-        state.showsPinned
-    }
-
-    var showPinnedPerpetuals: Bool {
-        state.showsPinnedPerpetuals
-    }
-
-    var showAssets: Bool {
-        state.showsAssets
-    }
-
-    var showLists: Bool {
-        state.showsLists
-    }
-
-    var showNFTs: Bool {
-        state.showsNfts
-    }
-
-    var showAddToken: Bool {
-        view.showsAddToken
-    }
-
-    private var limits: GemWalletSearchLimits {
-        view.limits
-    }
-
-    var previewAssets: [AssetData] {
-        derived.previewAssets
-    }
-
-    var previewPerpetuals: [PerpetualData] {
-        derived.previewPerpetuals
-    }
-
-    var previewNFTs: [GemNftEntry] {
-        derived.previewNFTs
-    }
-
-    var hasMoreAssets: Bool {
-        view.hasMoreAssets
-    }
-
-    var hasMorePerpetuals: Bool {
-        view.hasMorePerpetuals
-    }
-
-    var hasMoreNFTs: Bool {
-        view.hasMoreNfts
     }
 
     var assetsResultsDestination: Scenes.AssetsResults {
@@ -312,7 +231,7 @@ extension WalletSearchSceneViewModel {
         var request = searchQuery.request
         request.searchBy = searchableQuery
         request.searchKey = service.searchKey(query: searchableQuery, scope: request.scope.gemScope)
-        request.limit = Int(limits.fetch)
+        request.limit = Int(service.walletSearchLimits(query: searchableQuery).fetch)
         searchQuery.request = request
         loadState = searchableQuery.isNotEmpty ? .loading : .noData
     }
@@ -359,7 +278,7 @@ extension WalletSearchDerived {
         sections.assets.prefix(Int(view.limits.assets)).asArray()
     }
 
-    var previewPerpetuals: [PerpetualData] {
+    var previewPerpetuals: [GemPerpetualMarketItem] {
         sections.perpetuals.prefix(Int(view.limits.perpetuals)).asArray()
     }
 

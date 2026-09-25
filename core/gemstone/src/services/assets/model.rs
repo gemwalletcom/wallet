@@ -411,7 +411,6 @@ pub struct GemWalletSearchLimits {
     pub results: u32,
 }
 
-#[uniffi::export]
 impl GemWalletSearchLimits {
     pub fn has_more_assets(&self, count: u32) -> bool {
         count > self.assets

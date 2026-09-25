@@ -58,24 +58,12 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
         .from(searchResult, nfts: [])
     }
 
-    var showPinned: Bool {
-        state.showsPinned
-    }
-
-    var showAssets: Bool {
-        state.showsAssets
-    }
-
     var perpetualsTitle: String {
         Localized.Perpetuals.title
     }
 
     var perpetuals: [PerpetualData] {
         searchResult.perpetuals
-    }
-
-    var showPerpetuals: Bool {
-        state.showsPerpetuals
     }
 
     private var listsPerpetuals: Bool {
@@ -95,10 +83,6 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
             ),
             isLoading: loadState.isLoading,
         )
-    }
-
-    var searchState: SearchContentState {
-        searchState(state)
     }
 
     func searchState(_ state: GemWalletSearchState) -> SearchContentState {
