@@ -4,14 +4,16 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
-import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.store.queries.AssetQueryOptional
+import com.gemwallet.android.data.services.store.queries.PriceUsdQuery
 import com.gemwallet.android.domains.asset.aggregates.trailingValue
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.text
+import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetBalance
 import com.gemwallet.android.testkit.mockAssetInfo
@@ -20,10 +22,12 @@ import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockFiatQuote
 import com.gemwallet.android.testkit.mockFormattedNumber
 import com.gemwallet.android.testkit.mockGemFiatSession
+import com.gemwallet.android.testkit.mockSession
+import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatQuoteType
 import io.mockk.coEvery
@@ -36,7 +40,6 @@ import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
@@ -67,12 +70,17 @@ class FiatViewModelTest {
     private val asset = mockAsset()
     private val assetInfoFlow = MutableStateFlow<AssetInfo?>(mockAssetInfo(price = mockAssetPriceInfo(price = 100.0)))
 
-    private val getBuyAssetInfo = object : GetBuyAssetInfo {
-        override fun invoke(assetId: AssetId): Flow<AssetInfo?> = assetInfoFlow
+    private val wallet = mockWallet(accounts = listOf(mockAccount(chain = Chain.Bitcoin)))
+    private val sessionFlow = MutableStateFlow(mockSession(wallet = wallet))
+    private val getSession = mockk<GetSession> {
+        every { this@mockk.invoke() } returns sessionFlow
+    }
+    private val assetQuery = mockk<AssetQueryOptional> {
+        every { this@mockk.invoke(wallet.id.id, asset.id) } returns assetInfoFlow
     }
     private val assetPriceUsdFlow = MutableStateFlow<Double?>(100.0)
-    private val getAssetPriceUsd = object : GetAssetPriceUsd {
-        override fun invoke(assetId: AssetId): Flow<Double?> = assetPriceUsdFlow
+    private val priceUsdQuery = mockk<PriceUsdQuery> {
+        every { this@mockk.invoke(asset.id) } returns assetPriceUsdFlow
     }
     private val context = mockk<Context> {
         every { getString(any()) } answers { "string:${firstArg<Int>()}" }
@@ -136,6 +144,22 @@ class FiatViewModelTest {
             coVerify(exactly = 1) {
                 service.quotes(FiatQuoteType.Buy.toGem(), asset.id.toIdentifier(), 50.0)
             }
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `an asset on a chain the wallet has no account for is not offered`() = runTest(testDispatcher) {
+        sessionFlow.value = mockSession(wallet = mockWallet(accounts = listOf(mockAccount(chain = Chain.Ethereum))))
+        val viewModel = createViewModel()
+
+        try {
+            advanceTimeBy(DebounceSettleMs)
+            runCurrent()
+
+            assertNull(viewModel.assetInfoUIModel.value)
+            coVerify(exactly = 0) { service.quotes(any(), any(), any()) }
         } finally {
             viewModel.viewModelScope.cancel()
         }
@@ -462,8 +486,9 @@ class FiatViewModelTest {
         initialAmount?.let { arguments[RouteArgument.FiatAmount.key] = it }
         initialType?.let { arguments[RouteArgument.Type.key] = it }
         return FiatViewModel(
-            getBuyAssetInfo = getBuyAssetInfo,
-            getAssetPriceUsd = getAssetPriceUsd,
+            getSession = getSession,
+            assetQuery = assetQuery,
+            priceUsdQuery = priceUsdQuery,
             service = service,
             context = context,
             ioDispatcher = testDispatcher,

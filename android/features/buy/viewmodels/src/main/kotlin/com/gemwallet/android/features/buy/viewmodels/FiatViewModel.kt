@@ -6,10 +6,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
-import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.store.queries.AssetQueryOptional
+import com.gemwallet.android.data.services.store.queries.PriceUsdQuery
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.ext.GemConstants
+import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.tickerFlow
 import com.gemwallet.android.ext.toGem
@@ -65,8 +67,9 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
 class FiatViewModel @Inject constructor(
-    getBuyAssetInfo: GetBuyAssetInfo,
-    getAssetPriceUsd: GetAssetPriceUsd,
+    getSession: GetSession,
+    assetQuery: AssetQueryOptional,
+    priceUsdQuery: PriceUsdQuery,
     private val service: GemFiatQuoteServiceInterface,
     @ApplicationContext private val context: Context,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -87,10 +90,13 @@ class FiatViewModel @Inject constructor(
     val type: StateFlow<FiatQuoteType> = session.map { it.quoteType.toPrimitives() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.quoteType.toPrimitives())
 
-    private val assetInfo: StateFlow<AssetInfo?> = getBuyAssetInfo(assetId)
+    private val assetInfo: StateFlow<AssetInfo?> = combine(
+        getSession(),
+        getSession().filterNotNull().map { it.wallet.id.id }.distinctUntilChanged().flatMapLatest { walletId -> assetQuery(walletId, assetId) },
+    ) { walletSession, info -> info?.takeIf { walletSession?.wallet?.getAccount(assetId) != null } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val assetPriceUsd: StateFlow<Double?> = getAssetPriceUsd(assetId)
+    private val assetPriceUsd: StateFlow<Double?> = priceUsdQuery(assetId)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val viewState = combine(session, isUrlLoading, assetPriceUsd, assetInfo) { session, isUrlLoading, priceUsd, assetInfo ->
