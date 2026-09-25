@@ -4,9 +4,8 @@ use primitives::{Chain, Wallet};
 
 use super::model::{GemRecipientError, GemRecipientNext, GemRecipientScan, GemRecipientSection, GemRecipientType};
 use super::rules::{recipient_sections, scan_route, select_step};
-use crate::GemstoneError;
 use crate::models::payment::GemPayment;
-use crate::payment::{GemPaymentDestination, GemPaymentService, GemPaymentWalletAsset};
+use crate::payment::{GemPaymentService, asset_step};
 use crate::services::transfer::model::GemRecipient;
 use crate::services::wallet_session::GemWalletSessionService;
 
@@ -31,28 +30,15 @@ impl GemRecipientService {
 
     pub fn scan(&self, url: String, recipient_type: GemRecipientType) -> Result<GemRecipientScan, GemRecipientError> {
         let asset = recipient_type.asset();
-        let destination = self
-            .scan_destination(
-                url,
-                GemPaymentWalletAsset {
-                    asset_id: asset.id.clone(),
-                    decimals: asset.decimals,
-                },
-            )
-            .map_err(|_| GemRecipientError::InvalidAddress { chain: asset.chain() })?;
-        scan_route(destination, &recipient_type, |transfer| self.payments.transfer_data(transfer, asset))
+        let step = match self.payments.decode_url(url) {
+            Ok(GemPayment::Request { request }) => asset_step(&request, &asset),
+            Ok(GemPayment::Link { .. }) | Err(_) => None,
+        };
+        let step = step.ok_or(GemRecipientError::InvalidAddress { chain: asset.chain() })?;
+        Ok(scan_route(step, &recipient_type))
     }
 
     pub fn select(&self, recipient_type: GemRecipientType, recipient: GemRecipient) -> Result<GemRecipientNext, GemRecipientError> {
         select_step(recipient_type, recipient)
-    }
-}
-
-impl GemRecipientService {
-    fn scan_destination(&self, url: String, asset: GemPaymentWalletAsset) -> Result<GemPaymentDestination, GemstoneError> {
-        Ok(match self.payments.decode_url(url)? {
-            GemPayment::Request { request } => self.payments.transfer_destination(request, asset),
-            GemPayment::Link { link: _ } => GemPaymentDestination::Unsupported,
-        })
     }
 }

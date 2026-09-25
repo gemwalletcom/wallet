@@ -1,8 +1,10 @@
 package com.gemwallet.android.ui.navigation.routes
 
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.asset_select.presents.views.SelectSendScreen
+import com.gemwallet.android.features.asset_select.viewmodels.SendPaymentViewModel
 import com.gemwallet.android.features.recipient.presents.RecipientScreen
 import com.gemwallet.android.serializer.packRoutePayload
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
@@ -27,10 +29,13 @@ data class SendSelectRoute(val payment: @Contextual GemPaymentRecipient? = null,
 
 fun EntryProviderScope<NavKey>.recipientInput(navigator: WalletNavigator, cancelAction: CancelAction, amountAction: AmountTransactionAction, confirmAction: ConfirmTransactionAction) {
     entry<SendSelectRoute> { key ->
+        val paymentViewModel: SendPaymentViewModel = hiltViewModel()
         SelectSendScreen(
             chains = key.chains,
             onCancel = cancelAction::invoke,
-            onSelect = { navigator.openRecipient(it, key.payment) },
+            onSelect = { assetId ->
+                paymentViewModel.onSelect(assetId, key.payment, { id, payment -> navigator.openRecipient(id, payment) }, amountAction, confirmAction)
+            },
         )
     }
 

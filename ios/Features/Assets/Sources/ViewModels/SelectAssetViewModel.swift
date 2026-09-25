@@ -5,6 +5,8 @@ import Foundation
 import func Gemstone.addressCopy
 import struct Gemstone.GemAssetSectionCounts
 import protocol Gemstone.GemAssetSelectionServiceProtocol
+import struct Gemstone.GemPaymentRecipient
+import protocol Gemstone.GemPaymentServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import struct Gemstone.GemSelectAssetFlow
 import enum Gemstone.GemSelectAssetState
@@ -24,6 +26,7 @@ import SwiftUI
 @MainActor
 public final class SelectAssetViewModel {
     private let service: any GemAssetSelectionServiceProtocol
+    private let paymentService: any GemPaymentServiceProtocol
     let selectType: SelectAssetType
     let flow: GemSelectAssetFlow
     private let walletFlow: GemSelectAssetWalletFlow
@@ -43,7 +46,7 @@ public final class SelectAssetViewModel {
     var isPresentingToastMessage: ToastMessage?
 
     public var isPresentingAddToken: Bool = false
-    public var assetSelection: SelectAssetInput?
+    public var route: SelectAssetRoute?
 
     public var filterModel: AssetsFilterViewModel
     public var onSelectAssetAction: AssetAction
@@ -52,11 +55,13 @@ public final class SelectAssetViewModel {
         wallet: Wallet,
         selectType: SelectAssetType,
         service: any GemAssetSelectionServiceProtocol,
+        paymentService: any GemPaymentServiceProtocol,
         recentAssetsService: any GemRecentActivityServiceProtocol,
         selectAssetAction: AssetAction = .none,
         chains: [Chain] = [],
     ) {
         self.service = service
+        self.paymentService = paymentService
         self.wallet = wallet
         self.selectType = selectType
         let walletFlow = service.walletFlow(selectType: selectType.flowType, wallet: wallet.toGem())
@@ -194,7 +199,7 @@ extension SelectAssetViewModel {
 
     func onSelectAsset(_ assetData: AssetData) {
         recordSelection(asset: assetData.asset)
-        assetSelection = SelectAssetInput(type: selectType, assetData: assetData)
+        select(assetData)
     }
 
     func displayAssetData(_ assetData: AssetData) -> AssetData {
@@ -213,7 +218,9 @@ extension SelectAssetViewModel {
     public func onSelectRecent(_ asset: Asset) {
         switch flow.rowAction {
         case .navigate:
-            assetSelection = assetData(for: asset).map { SelectAssetInput(type: selectType, assetData: $0) }
+            if let assetData = assetData(for: asset) {
+                select(assetData)
+            }
         case .select:
             onSelectAssetAction?(asset)
         case .toggle:
@@ -244,6 +251,29 @@ extension SelectAssetViewModel {
                     debugLog("Failed to update recent activity: \(error)")
                 }
             }
+        }
+    }
+
+    private func select(_ assetData: AssetData) {
+        switch selectType {
+        case let .send(payment?):
+            Task {
+                await selectPayment(payment, assetData: assetData)
+            }
+        case .send(.none), .receive, .buy, .swap, .payment, .manage, .priceAlert, .deposit, .withdraw:
+            route = .asset(SelectAssetInput(type: selectType, assetData: assetData))
+        }
+    }
+
+    private func selectPayment(_ payment: GemPaymentRecipient, assetData: AssetData) async {
+        do {
+            switch try await paymentService.prepareAsset(payment: payment, assetId: assetData.asset.id.identifier) {
+            case let .confirm(transfer): route = .transfer(.confirm(transfer))
+            case let .amount(payment): route = .transfer(.amount(AmountInput(type: .transfer(recipient: payment), asset: assetData.asset)))
+            case let .recipient(payment): route = .asset(SelectAssetInput(type: .send(payment), assetData: assetData))
+            }
+        } catch {
+            debugLog("SelectAssetScene payment step error: \(error)")
         }
     }
 

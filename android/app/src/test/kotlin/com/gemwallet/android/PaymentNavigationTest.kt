@@ -6,6 +6,8 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
 import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockSession
+import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.ui.navigation.routes.AmountRoute
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
 import com.gemwallet.android.ui.navigation.routes.PaymentVerificationRoute
 import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute
@@ -47,6 +49,15 @@ class PaymentNavigationTest {
         val route = navigation(GemPaymentTarget.Confirm(transfer)).routes(payment).single() as ConfirmRoute
 
         assertEquals(transfer.value, requireNotNull(unpackTransferData(route.params)).value)
+    }
+
+    @Test
+    fun `an address without an amount opens the amount input`() = runTest {
+        val asset = mockAssetSolanaUSDC()
+
+        val route = navigation(GemPaymentTarget.Amount(asset.toGem(), recipient())).routes(payment).single()
+
+        assertEquals(AmountParams.Transfer(asset.id, recipient()), AmountParams.unpack((route as AmountRoute).params))
     }
 
     @Test

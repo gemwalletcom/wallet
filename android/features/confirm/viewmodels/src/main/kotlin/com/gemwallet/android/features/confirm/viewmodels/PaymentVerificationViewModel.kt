@@ -58,7 +58,7 @@ class PaymentVerificationViewModel @Inject constructor(
                 when (val target = paymentService.prepare(Payment.Link(link), wallet.toGem())) {
                     is GemPaymentTarget.Confirm -> confirmState.value = ConfirmTransferInput(target.transfer)
                     is GemPaymentTarget.Verify -> urlState.value = target.url
-                    is GemPaymentTarget.Recipient, is GemPaymentTarget.SelectAsset, GemPaymentTarget.Unsupported -> Unit
+                    is GemPaymentTarget.Amount, is GemPaymentTarget.Recipient, is GemPaymentTarget.SelectAsset, GemPaymentTarget.Unsupported -> Unit
                 }
             } catch (error: CancellationException) {
                 throw error

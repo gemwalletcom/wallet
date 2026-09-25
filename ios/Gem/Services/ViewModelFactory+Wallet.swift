@@ -166,6 +166,7 @@ public extension ViewModelFactory {
             wallet: wallet,
             selectType: selectType,
             service: assetSelectionService(),
+            paymentService: paymentService,
             recentAssetsService: recentAssetsService,
             selectAssetAction: selectAssetAction,
             chains: chains,

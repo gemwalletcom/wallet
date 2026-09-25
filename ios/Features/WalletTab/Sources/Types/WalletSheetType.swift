@@ -2,7 +2,6 @@
 
 import Foundation
 import struct Gemstone.GemInfoSheet
-import enum Gemstone.GemPerpetualPositionAction
 import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import InfoSheet
@@ -14,7 +13,6 @@ public enum WalletSheetType: Identifiable, Equatable, Sendable {
     case amount(AmountInput)
     case infoSheet(GemInfoSheet)
     case transferData(GemTransferData)
-    case perpetualPosition(GemPerpetualPositionAction)
     case addAsset
     case portfolio(PortfolioType)
     case addContact(AddContactType)
@@ -27,7 +25,6 @@ public enum WalletSheetType: Identifiable, Equatable, Sendable {
         case let .amount(input): "amount-\(input.type)-\(input.asset.id.identifier)"
         case let .infoSheet(sheet): "infoSheet-\(sheet.hashValue)"
         case let .transferData(data): "transferData-\(data.id)"
-        case .perpetualPosition: "perpetualPosition"
         case .addAsset: "addAsset"
         case let .portfolio(type): "portfolio-\(type.id)"
         case let .addContact(type): "addContact-\(type.id)"

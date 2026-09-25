@@ -184,7 +184,7 @@ struct WalletNavigationView: View {
                     asset: $0.asset,
                     wallet: model.wallet,
                     onTransferData: { model.isPresentingSheet = .transferData($0) },
-                    onPerpetualPosition: { model.isPresentingSheet = .perpetualPosition($0) },
+                    onPerpetualPosition: { model.isPresentingSheet = .amount(AmountInput(type: .perpetual($0), asset: Chain.hyperCore.defaultAsset(type: .perpetual))) },
                 ),
                 isPresentingSheet: $model.isPresentingSheet,
             )
@@ -207,12 +207,10 @@ struct WalletNavigationView: View {
                         ),
                     )
                 case let .amount(input):
-                    AmountNavigationView(
-                        model: viewModelFactory.amountScene(
-                            input: input,
-                            wallet: model.wallet,
-                            onTransferAction: { model.isPresentingSheet = .transferData($0) },
-                        ),
+                    AmountNavigationStack(
+                        input: input,
+                        wallet: model.wallet,
+                        onComplete: model.onTransferComplete,
                     )
                 case let .infoSheet(type):
                     InfoSheetScene(sheet: type)
@@ -221,12 +219,6 @@ struct WalletNavigationView: View {
                         wallet: model.wallet,
                         transferData: data,
                         onComplete: model.onTransferComplete,
-                    )
-                case let .perpetualPosition(action):
-                    PerpetualPositionNavigationStack(
-                        positionAction: action,
-                        wallet: model.wallet,
-                        onComplete: { model.isPresentingSheet = nil },
                     )
                 case .addAsset:
                     AddAssetNavigationStack(wallet: model.wallet)

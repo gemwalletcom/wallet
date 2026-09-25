@@ -1,27 +1,26 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemPerpetualPositionAction
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import SwiftUI
 import Transfer
 
-struct PerpetualPositionNavigationStack: View {
+struct AmountNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
 
     @State private var navigationPath = NavigationPath()
 
-    let positionAction: GemPerpetualPositionAction
+    let input: AmountInput
     let wallet: Wallet
     let onComplete: VoidAction
 
     init(
-        positionAction: GemPerpetualPositionAction,
+        input: AmountInput,
         wallet: Wallet,
         onComplete: VoidAction,
     ) {
-        self.positionAction = positionAction
+        self.input = input
         self.wallet = wallet
         self.onComplete = onComplete
     }
@@ -30,10 +29,7 @@ struct PerpetualPositionNavigationStack: View {
         NavigationStack(path: $navigationPath) {
             AmountNavigationView(
                 model: viewModelFactory.amountScene(
-                    input: AmountInput(
-                        type: .perpetual(positionAction),
-                        asset: Chain.hyperCore.defaultAsset(type: .perpetual),
-                    ),
+                    input: input,
                     wallet: wallet,
                     onTransferAction: {
                         navigationPath.append(ConfirmTransferInput(data: $0))
@@ -51,9 +47,7 @@ struct PerpetualPositionNavigationStack: View {
                     model: viewModelFactory.confirmTransferScene(
                         wallet: wallet,
                         data: $0.data,
-                        onComplete: {
-                            onComplete?()
-                        },
+                        onComplete: onComplete,
                     ),
                 )
             }
