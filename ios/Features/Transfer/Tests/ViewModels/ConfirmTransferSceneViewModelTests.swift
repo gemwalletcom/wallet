@@ -584,6 +584,23 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
+    func aRefreshThatFindsTheSameProblemLeavesTheDismissedSheetClosed() async {
+        let required = BigInt(21_000_000_000_000)
+        let problem = GemConfirmError.InsufficientNetworkFee(asset: Asset.mockEthereum().toGem(), requirement: GemBalanceRequirement(required: required, available: 0, shortfall: required))
+        let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(fee: .mock(amount: .error(error: problem)))))
+
+        await model.load()
+        guard case .info = model.isPresentingSheet else {
+            Issue.record("Expected the insufficient network fee sheet")
+            return
+        }
+
+        model.isPresentingSheet = nil
+        await model.load()
+        #expect(model.isPresentingSheet == nil)
+    }
+
+    @Test
     func insufficientNetworkFeeErrorShowsRequiredAmount() {
         let model = ConfirmTransferSceneViewModel.mock()
         let required = BigInt(21_000_000_000_000)

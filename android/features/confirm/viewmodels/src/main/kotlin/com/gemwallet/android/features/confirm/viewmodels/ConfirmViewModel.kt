@@ -172,7 +172,7 @@ class ConfirmViewModel @Inject constructor(
                 val load = session.load(options)
                 emit(load)
                 screen.update { it.onLoaded(load) }
-                isErrorSheetVisible.value = screen.value.presentsSheet()
+                if (screen.value.presentsSheet()) isErrorSheetVisible.value = true
             } catch (error: CancellationException) {
                 throw error
             } catch (err: Throwable) {
@@ -321,7 +321,7 @@ class ConfirmViewModel @Inject constructor(
 
     private fun showError(error: Throwable) {
         screen.update { it.onLoadFailed(error.toConfirmError()) }
-        isErrorSheetVisible.value = screen.value.presentsSheet()
+        if (screen.value.presentsSheet()) isErrorSheetVisible.value = true
     }
 
     val feeListItem: StateFlow<ListItemModel?> = combine(feeUIModel, feeAsset, showsFeeAssets, verification) { fee, asset, showsFeeAssets, verification ->

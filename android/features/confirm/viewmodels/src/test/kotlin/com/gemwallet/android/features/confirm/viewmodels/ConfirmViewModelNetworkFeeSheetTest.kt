@@ -11,6 +11,7 @@ import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetRequ
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
+import com.gemwallet.android.testkit.mockGemConfirmFee
 import com.gemwallet.android.testkit.mockGemConfirmLoad
 import com.gemwallet.android.testkit.mockGemConfirmLoadOptions
 import com.gemwallet.android.testkit.mockGemConfirmScreen
@@ -44,12 +45,14 @@ import uniffi.gemstone.GemAcquireAsset
 import uniffi.gemstone.GemAcquireAssetFlow
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemConfirmHeader
+import uniffi.gemstone.GemConfirmLoad
 import uniffi.gemstone.GemConfirmPhase
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmation
 import uniffi.gemstone.GemInfoAction
 import uniffi.gemstone.GemSwapPairSelection
 import uniffi.gemstone.GemTransactionHeader
+import uniffi.gemstone.GemTransferAmountResult
 import uniffi.gemstone.confirmErrorInfo
 import java.math.BigInteger
 
@@ -96,6 +99,28 @@ class ConfirmViewModelNetworkFeeSheetTest {
     }
 
     @Test
+    fun refreshThatFindsTheSameProblemKeepsTheSheetAsTheUserLeftIt() = runTest(testDispatcher) {
+        val problem = GemConfirmException.InsufficientNetworkFee(asset = asset.toGem(), requirement = null)
+        val viewModel = viewModel { mockGemConfirmLoad(asset, fee = mockGemConfirmFee(GemTransferAmountResult.Error(problem))) }.also { model = it }
+        advanceUntilIdle()
+
+        assertEquals(GemConfirmPhase.READY, viewModel.screen.value.phase)
+        assertTrue(viewModel.isErrorSheetVisible.value)
+
+        viewModel.fetch()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.isErrorSheetVisible.value)
+
+        viewModel.dismissErrorSheet()
+        viewModel.fetch()
+        advanceUntilIdle()
+
+        assertEquals(GemConfirmPhase.READY, viewModel.screen.value.phase)
+        assertFalse(viewModel.isErrorSheetVisible.value)
+    }
+
+    @Test
     fun loadErrorCarriesItsTextAndInfoSheet() = runTest(testDispatcher) {
         val viewModel = viewModel().also { model = it }
         advanceUntilIdle()
@@ -112,7 +137,7 @@ class ConfirmViewModelNetworkFeeSheetTest {
         assertEquals(null, viewModel.acquireRequest.value)
     }
 
-    private fun viewModel(): ConfirmViewModel {
+    private fun viewModel(load: () -> GemConfirmLoad = { throw GemConfirmException.InsufficientNetworkFee(asset = asset.toGem(), requirement = null) }): ConfirmViewModel {
         val transfer = mockGemTransferData(asset = asset, value = BigInteger.TEN)
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
         every { confirmation.errorInfo(any()) } answers { confirmErrorInfo(firstArg(), emptyList(), Currency.USD.toGem(), asset.id.toIdentifier(), asset.id.toIdentifier()) }
@@ -121,9 +146,7 @@ class ConfirmViewModelNetworkFeeSheetTest {
         every { confirmation.loadOptions() } returns mockGemConfirmLoadOptions()
         every { confirmation.header(any()) } returns GemConfirmHeader.Transaction(GemTransactionHeader.Symbol(asset.toGem()))
         coEvery { confirmation.state() } returns mockGemConfirmLoad(asset)
-        coEvery { confirmation.load(any()) } answers {
-            throw GemConfirmException.InsufficientNetworkFee(asset = asset.toGem(), requirement = null)
-        }
+        coEvery { confirmation.load(any()) } answers { load() }
         return ConfirmViewModel(
             getSession = mockk<GetSession> {
                 every { this@mockk() } returns MutableStateFlow(

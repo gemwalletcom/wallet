@@ -1,7 +1,7 @@
 use crate::models::button::GemButtonState;
 use primitives::SimulationResult;
 
-use super::error::GemConfirmError;
+use super::error::{GemConfirmError, GemConfirmErrorSheet};
 use super::model::{GemConfirmAction, GemConfirmButton, GemConfirmButtonKind, GemConfirmFailure, GemConfirmFeeRow, GemConfirmLoad, GemConfirmPhase, GemConfirmScreen, GemConfirmStage, GemTransferAmountResult};
 
 impl GemConfirmScreen {
@@ -11,7 +11,12 @@ impl GemConfirmScreen {
             has_critical_warning: simulation.is_some_and(SimulationResult::has_critical_warning),
             failure: None,
             has_fee: true,
+            shown_sheet: None,
         }
+    }
+
+    fn load_sheet(&self) -> Option<GemConfirmErrorSheet> {
+        self.failure.as_ref().filter(|failure| failure.stage == GemConfirmStage::Load).and_then(|failure| failure.error.display().sheet())
     }
 
     fn is_account_missing(&self) -> bool {
@@ -34,7 +39,7 @@ impl GemConfirmScreen {
     }
 
     pub fn presents_sheet(&self) -> bool {
-        self.failure.as_ref().is_some_and(|failure| failure.stage == GemConfirmStage::Load && failure.error.display().has_info_sheet())
+        self.load_sheet().is_some_and(|sheet| self.shown_sheet.as_ref() != Some(&sheet))
     }
 
     pub fn button(&self) -> GemConfirmButton {
@@ -72,11 +77,17 @@ impl GemConfirmScreen {
     }
 
     pub fn on_load_started(&self) -> GemConfirmScreen {
+        let shown_sheet = match self.phase {
+            GemConfirmPhase::Loading => self.shown_sheet.clone(),
+            GemConfirmPhase::Ready => self.load_sheet(),
+            GemConfirmPhase::Confirming | GemConfirmPhase::Failed => None,
+        };
         Self {
             phase: GemConfirmPhase::Loading,
             has_critical_warning: self.has_critical_warning,
             failure: None,
             has_fee: self.has_fee,
+            shown_sheet,
         }
     }
 
@@ -90,6 +101,7 @@ impl GemConfirmScreen {
             has_critical_warning: load.simulation.simulation.as_ref().is_some_and(|simulation| simulation.has_critical_warning),
             failure: amount_error.map(|error| GemConfirmFailure { stage: GemConfirmStage::Load, error }),
             has_fee: load.fee.is_some(),
+            shown_sheet: self.shown_sheet.clone(),
         }
     }
 
@@ -125,6 +137,7 @@ mod tests {
     use super::super::model::{GemConfirmData, GemConfirmFee};
     use super::*;
     use crate::models::placeholder::EMPTY_VALUE;
+    use crate::services::balance::GemBalanceRequirement;
 
     #[test]
     fn test_a_load_error_with_an_info_sheet_presents_it() {
@@ -134,6 +147,47 @@ mod tests {
         assert!(screen.on_load_failed(GemConfirmError::ScanMalicious).presents_sheet());
         assert!(!screen.on_load_failed(GemConfirmError::Load { msg: "offline".into() }).presents_sheet());
         assert!(!screen.on_execute_failed(GemConfirmError::ScanMalicious).presents_sheet(), "an execute error stays in its row");
+    }
+
+    #[test]
+    fn test_a_refresh_that_finds_the_same_problem_leaves_its_sheet_closed() {
+        let network_fee_missing = |required: u64| GemConfirmError::InsufficientNetworkFee {
+            asset: Asset::mock_eth(),
+            requirement: Some(GemBalanceRequirement::new(required.into(), 0u64.into())),
+        };
+        let problem = |error: GemConfirmError| {
+            let mut load = GemConfirmLoad::mock();
+            load.fee = Some(GemConfirmFee::mock(GemTransferAmountResult::Error { error }));
+            load
+        };
+        let shown = GemConfirmScreen::initial(None).on_load_started().on_loaded(problem(network_fee_missing(21_000)));
+        assert!(shown.presents_sheet());
+
+        let refreshed = shown.on_load_started().on_loaded(problem(network_fee_missing(42_000)));
+        assert!(!refreshed.presents_sheet(), "a new fee changes the amounts, not the problem");
+        assert!(
+            !shown.on_load_started().on_load_started().on_loaded(problem(network_fee_missing(42_000))).presents_sheet(),
+            "a fee change during a refresh is still a refresh"
+        );
+
+        let balance_missing = GemConfirmError::InsufficientBalance {
+            asset: Asset::mock_eth(),
+            requirement: GemBalanceRequirement::new(10u64.into(), 0u64.into()),
+        };
+        assert!(refreshed.on_load_started().on_loaded(problem(balance_missing)).presents_sheet(), "a different problem opens its own sheet");
+
+        let resolved = refreshed.on_load_started().on_loaded(GemConfirmLoad::mock());
+        assert!(
+            resolved.on_load_started().on_loaded(problem(network_fee_missing(21_000))).presents_sheet(),
+            "a problem that comes back after a load without it opens again"
+        );
+    }
+
+    #[test]
+    fn test_retry_opens_the_sheet_of_a_problem_that_is_still_there() {
+        let failed = GemConfirmScreen::initial(None).on_load_failed(GemConfirmError::ScanMalicious);
+        assert!(failed.presents_sheet());
+        assert!(failed.on_load_started().on_load_failed(GemConfirmError::ScanMalicious).presents_sheet());
     }
 
     #[test]

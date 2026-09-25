@@ -1,4 +1,4 @@
-use super::error::GemConfirmError;
+use super::error::{GemConfirmError, GemConfirmErrorSheet};
 use super::rules::approval_value_from;
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::button::GemButtonState;
@@ -317,6 +317,8 @@ pub struct GemConfirmScreen {
     pub failure: Option<GemConfirmFailure>,
     #[uniffi(default = true)]
     pub has_fee: bool,
+    #[uniffi(default = None)]
+    pub shown_sheet: Option<GemConfirmErrorSheet>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

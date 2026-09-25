@@ -282,16 +282,25 @@ impl GemConfirmError {
 #[uniffi::export]
 impl GemConfirmErrorDisplay {
     pub fn has_info_sheet(&self) -> bool {
+        self.sheet().is_some()
+    }
+}
+
+impl GemConfirmErrorDisplay {
+    pub(crate) fn sheet(&self) -> Option<GemConfirmErrorSheet> {
         match self {
-            Self::Malicious
-            | Self::MemoRequired { .. }
-            | Self::BalanceRequired { .. }
-            | Self::NetworkFeeRequired { .. }
-            | Self::NetworkFeeMissing { .. }
-            | Self::MinimumAccountBalance { .. }
-            | Self::SwapMinimum { .. }
-            | Self::DustThreshold { .. } => true,
-            Self::Offline | Self::FeeRatesMissing | Self::Cancelled | Self::AccountMissing | Self::Unknown | Self::InsufficientFunds | Self::DestinationAccountActivation { .. } | Self::Payment { .. } | Self::Message { .. } => false,
+            Self::Malicious => Some(GemConfirmErrorSheet::Malicious),
+            Self::MemoRequired { symbol } => Some(GemConfirmErrorSheet::MemoRequired { symbol: symbol.clone() }),
+            Self::BalanceRequired { .. } => Some(GemConfirmErrorSheet::BalanceRequired),
+            Self::NetworkFeeRequired { .. } => Some(GemConfirmErrorSheet::NetworkFeeRequired),
+            Self::NetworkFeeMissing { .. } => Some(GemConfirmErrorSheet::NetworkFeeMissing),
+            Self::MinimumAccountBalance { .. } => Some(GemConfirmErrorSheet::MinimumAccountBalance),
+            Self::SwapMinimum { provider, provider_name, .. } => Some(GemConfirmErrorSheet::SwapMinimum {
+                provider: *provider,
+                provider_name: provider_name.clone(),
+            }),
+            Self::DustThreshold { chain } => Some(GemConfirmErrorSheet::DustThreshold { chain: *chain }),
+            Self::Offline | Self::FeeRatesMissing | Self::Cancelled | Self::AccountMissing | Self::Unknown | Self::InsufficientFunds | Self::DestinationAccountActivation { .. } | Self::Payment { .. } | Self::Message { .. } => None,
         }
     }
 }
