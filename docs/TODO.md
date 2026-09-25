@@ -26,7 +26,7 @@ These need no further answer; work them in this order, one family per change.
 5. **Sessions:** VM185.
 6. **App models to Core records:** VM197 to VM208 (shared components, which later items reuse), then VM209 to VM260 area by area as grouped in section 5, then VM261 to VM289 (second round) and VM290 to VM295 (scenes) in the same way.
 7. **Generated mappers:** BD299, then GEN300.
-8. **Module layout:** the renames MOD304 to MOD306, then MOD307 before MOD308, MOD309 with MOD310, MOD311, MOD312, MOD313, then MOD314 to MOD317.
+8. **Module layout:** MOD304, then MOD307 before MOD308, MOD309 with MOD310, MOD311, MOD312, MOD313, then MOD314 to MOD317.
 9. **Unused code:** CLN318.
 10. **Unit test review, last:** CLN319, after every other ready item, so it reviews the tests that remain once rules have moved into Core.
 
@@ -672,7 +672,7 @@ Test mocks for generated types are written by hand three times, once per languag
 
 ## 11. Module layout
 
-A feature module is one product area, and both apps give it the same name. iOS groups by product area and is the reference; Android splits many areas into one module per screen and names several differently (`buy`), and its `assets` is the wallet tab while iOS `Assets` is the asset screens.
+A feature module is one product area, and both apps give it the same name. iOS groups by product area and is the reference; Android splits many areas into one module per screen, and its `assets` is the wallet tab while iOS `Assets` is the asset screens.
 
 **The standard, for every item below.** Names and packages follow [Cross-Platform Awareness rule 7](../skills/cross-platform-awareness.md); on Android that means no `views`, `navigation` or `details` package roots and no singular `viewmodel`. A move renames the Gradle path in `settings.gradle.kts`, every `project(":features:…")` dependency and the imports, and changes no behaviour. One module per change. Verify with `cd android && ./gradlew assembleGoogleDebug test` for an Android move, `cd ios && just build` and `just test-package <Package>` for an iOS rename.
 
@@ -680,7 +680,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
   - **iOS:** `RewardsScene`, its view models and `RewardsTests` live in the `Settings` package.
   - **Android:** `features/referral`, packages `referral.views` and `referral.viewmodels`.
   - **Expected:** iOS `Rewards` and Android `rewards`, as [rewards.md](product/rewards.md).
-- **MOD306** **S** **Android `buy` becomes `fiat_connect`**, as iOS `FiatConnect`; it already holds sell and the fiat history.
 - **MOD307** **S** **The wallet tab is `wallet_tab`.**
   - **iOS:** `WalletTab` holds `WalletScene`, `NetworkAssetsScene`, `WalletSearchScene`, `AssetsResultsScene` and `PortfolioScene`.
   - **Android:** `features/assets` holds the same screens except the portfolio, whose `PortfolioChartScene` is in `features/asset`.
