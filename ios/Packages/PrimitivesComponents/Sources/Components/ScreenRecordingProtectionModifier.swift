@@ -8,12 +8,16 @@ struct ScreenRecordingProtectionModifier: ViewModifier {
     @Environment(\.scenePhase) private var scenePhase
     @State private var isRecording = false
 
+    private var isHidden: Bool {
+        isRecording || scenePhase != .active
+    }
+
     func body(content: Content) -> some View {
         ZStack {
             content
-                .opacity(isRecording ? 0 : 1)
+                .opacity(isHidden ? 0 : 1)
 
-            if isRecording {
+            if isHidden {
                 Text(Localized.SecretPhrase.ContentHidden.description)
                     .font(.callout)
                     .foregroundStyle(Colors.secondaryText)
