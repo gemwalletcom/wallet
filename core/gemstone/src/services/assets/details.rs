@@ -16,7 +16,7 @@ use crate::services::swap::GemSwapService;
 use crate::services::transactions::GemTransactionsService;
 use crate::services::wallet_session::GemWalletSessionService;
 
-use crate::services::failures::{StepFailure, record, record_result};
+use crate::services::failures::{StepFailure, record_result};
 
 use super::{GemAssetDetails, GemAssetDetailsInput, GemAssetsService, rules};
 
@@ -103,15 +103,15 @@ impl GemAssetDetailsService {
                 };
             }
         };
-        record(&mut failures, GemAssetRefreshStep::AddPrices, self.stream.add_prices(vec![asset_id.clone()])).await;
-
-        record(&mut failures, GemAssetRefreshStep::SyncAsset, self.assets.sync_asset_associations(asset_id.clone()).map_ok(|_| ())).await;
-
-        let (balances, transactions, price_alerts) = futures::join!(
-            self.balances.update(wallet_id.clone(), vec![asset_id.clone()]),
+        let (prices, associations, balances, transactions, price_alerts) = futures::join!(
+            self.stream.add_prices(vec![asset_id.clone()]),
+            self.assets.sync_asset_associations(asset_id.clone()).map_ok(|_| ()),
+            self.balances.sync_assets_and_update(wallet_id.clone(), vec![asset_id.clone()]),
             self.transactions.sync_wallet(wallet_id, Some(asset_id.clone())),
             self.price_alerts.sync(Some(asset_id))
         );
+        record_result(&mut failures, GemAssetRefreshStep::AddPrices, prices);
+        record_result(&mut failures, GemAssetRefreshStep::SyncAsset, associations);
         record_result(&mut failures, GemAssetRefreshStep::SyncPriceAlerts, price_alerts);
         record_result(&mut failures, GemAssetRefreshStep::UpdateBalances, balances);
         record_result(&mut failures, GemAssetRefreshStep::SyncTransactions, transactions.clone());
