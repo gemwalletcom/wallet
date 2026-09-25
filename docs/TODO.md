@@ -17,7 +17,13 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 ## Ready next
 
-Nothing is ready without an answer. Waiting on the owner: BD29 and BD50 (server), VM79, VM181. Waiting on a date or a release: X168, X163.
+These need no further answer; work them in this order, one family per change.
+
+1. **Delete first:** VM187 (Android).
+2. **Small shared rules:** VM182, VM184, VM183, VM186.
+3. **Sessions:** VM185, then VM188.
+
+Waiting on the owner: BD29 and BD50 (server), VM79, VM181. Waiting on a date or a release: X168, X163.
 
 ## Screen coverage and existing infrastructure
 
@@ -25,20 +31,20 @@ This map routes work to current owners. It groups existing ids rather than creat
 
 | Screens / entry points | Existing owner or infrastructure to extend | Open work |
 |---|---|---|
-| App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79 |
-| Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | — |
-| Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | — |
+| App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79, VM182, VM185 |
+| Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | VM183 |
+| Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM184 |
 | Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | — |
-| Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | — |
+| Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM182 |
 | Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | — |
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
 | Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | — |
 | Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | Retain existing native QR/share adapters |
-| Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | — |
+| Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | VM185 |
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | — |
 | Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | — |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | — |
-| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | — |
+| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM186 |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | — |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | — |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | — |
@@ -49,12 +55,12 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | — |
 | Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | — |
 | Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | retain native locale/theme application |
-| Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | Retain platform-only privacy lock |
+| Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | VM188; retain platform-only privacy lock |
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | — |
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | retain Android-only one-click auth |
 | Info sheets, docs links and shared display components | `GemInfoTopic`, `GemFormattedNumber`, shared rich/plain renderers, the two mapper files per app | — |
 | Widgets | `GemWidgetService` (Android); the iOS widget stays off Gemstone by rule | retain native widget scheduling |
-| Stores and persistence | `Gem*Store` traits and both adapters | — |
+| Stores and persistence | `Gem*Store` traits and both adapters | VM187 |
 
 An id belongs in this table only while its bullet exists below. The upstream items stay in their own section.
 
@@ -80,21 +86,45 @@ A screen whose state changes is a session, and a screen that reads gets one reco
 
 The same product rule written in both apps, or in one app while the other reads Core ([the app maps; it does not decide](ARCHITECTURE.md#5-the-app-maps-it-does-not-decide), [a view never names a Core type](ARCHITECTURE.md#a-view-never-names-a-core-type)). Where the two apps answer differently today the item says how.
 
+- **VM182** **S** **Whether an asset opens the asset or the perpetual screen is decided in the apps.** Core already answers it for pushes and deep links: `GemNavigationTarget::Asset` and `::Transaction` carry `is_perpetual` (`core/gemstone/src/services/navigation/mod.rs`).
+  - **iOS:** `NavigationRouter.open(target:)` drops that flag (`case let .asset(asset, walletId, _)`) and re-derives it from `asset.type` in `getPath(for:)` (twice). `NavigationStateManager.openAsset` branches on `asset.type == .perpetual` for every in-app open.
+  - **Android:** `NavigationTargetRoutes.kt` reads `isPerpetual`, but `WalletSearchScreen.kt` branches on `AssetType.PERPETUAL` when a recent is opened.
+  - **Expected:** one Core answer for both paths: iOS reads `is_perpetual` from the target, and an in-app open asks the navigation service for the same target instead of checking the type; all three type checks go.
+- **VM183** **S** **Phrase suggestions are cut and applied by each app.** Core returns suggestions for one word (`phrase_suggestions`, `core/gemstone/src/mnemonic.rs`); the input handling around it is written twice.
+  - **iOS:** `ImportWalletSceneViewModel` takes the last whitespace-separated word, offers suggestions only while the cursor is at the end, and applies a pick by dropping the last word and appending the word and a space.
+  - **Android:** `ImportViewModel` does the same with its own `lastWord()`, cursor check and `selectSuggestion`.
+  - **Expected:** Core owns both steps beside `phrase_suggestions`: one call takes the input and whether the cursor is at the end and returns the suggestions, one returns the input with the picked word applied.
+- **VM184** **S** **How long a copied secret stays on the clipboard is hardcoded in each app.** `GemCopyKind::is_sensitive` (`core/gemstone/src/models/copy.rs`) says which copies are secret; the lifetime is not in Core ([security](../skills/security.md)).
+  - **iOS:** `CopyTypeViewModel` gives a sensitive copy a local-only pasteboard item that expires after 60 seconds.
+  - **Android:** `ClipboardExt.setClip` marks it sensitive and schedules `clearPrimaryClip()` after one minute, which also wipes anything the user copied after it.
+  - **Expected:** the copy kind carries the lifetime next to `is_sensitive` and both apps read it; Android clears the clipboard only while it still holds that copy, like the iOS expiry.
+- **VM185** **M** **What opening a link or a scanned code shows is decided in each app.** Core parses the code (`GemDeeplinkService.url_action`) and builds the target; the outcome around it is not shared.
+  - **iOS:** `NavigationRouter.open(code:)` shows "Not supported" for any code without an action, shows a loading toast for a payment link, and shows every failure as an error alert.
+  - **Android:** `PendingNavigationCoordinator.buildRoutes` holds the code until unlock and decides "handled" per source (an unmatched link from an intent is silent unless it is a payment; a scan is unhandled unless it has routes or is WalletConnect). The coordinator swallows every deep-link failure except `NoAccountForChain`, and `MainViewModel` shows a payment failure only while its loading state is up and a service failure only when the input had a code.
+  - **Expected:** iOS behaviour, decided in Core: one call returns the outcome for a code (open this target, pair WalletConnect, show loading first, or show this unsupported/failure text), and the apps keep only the unlock wait and the native presentation.
+
 ## 4. Numbers and text the apps still format
 
 [A number crosses as a value and a style](ARCHITECTURE.md#a-number-crosses-as-a-value-and-a-style-never-as-a-string-or-a-callback) and [the record carries the finished value](ARCHITECTURE.md#the-record-carries-the-finished-value-not-the-ingredients). Each item is a raw amount, price or seconds value that both apps format, convert or compose themselves.
+
+- **VM186** **S** **Both apps put "≈" in front of an estimated duration.** iOS `EstimatedConfirmationFormatter` (`GemstonePrimitives/Sources/DurationFormatters.swift`) and Android `formatEstimate` (`gemcore/.../domains/duration/DurationFormatter.kt`, used by `GemListRowUIModel` for estimate rows) each compose `"≈ " + duration`. The fiat quote row already composes its estimate in Core around the platform-formatted value (`GemFiatQuoteRow::crypto_estimate_text`); give the duration estimate the same method and delete both prefixes.
 
 
 ## 5. Twins, adapters, redundant models and dead code
 
 [An app row model stores the row and nothing else](ARCHITECTURE.md#an-app-row-model-stores-the-row-and-nothing-else), [a details screen gets a details record](ARCHITECTURE.md#a-details-screen-gets-a-details-record-not-a-row-plus-the-object-it-came-from), and a type that only crosses the FFI is used as the generated type. Delete-first items are at the end.
 
+- **VM187** **S** **Android keeps helpers nothing calls.** `String.words()` (`gemcore/.../ext/StringExt.kt`, only its own test), `AssetsDao.insertBalance` (the plural is used), `BannersDao.observeBanner`, `TransactionsDao.deleteByState` and the three `toSearchRecord` overloads in `DbSearch.kt`. Delete them and the test that only covers `words()`.
 - **VM181** **S** **Keystore secrets are exported only for the flows that need them.** `GemKeystore.create_store`, `export_private_key` and `export_recovery_phrase` are exported for app tests alone (iOS `LocalKeystore+Export.swift`, `LocalKeystore+Keystore.swift`; Android `MigrateV3KeystoreFilesTest`, `GemKeystoreBenchmarkTest`, `GemKeystoreConcurrencyTest`), while the apps import and export through the wallet service. Move those tests onto the production path, then make the three methods a plain `impl`, so no secret-exporting symbol exists that no flow uses ([security](../skills/security.md)). `check-ffi-surface.py` allows the three until then. Needs a decision: no production flow reaches these three, but `GemWalletService.export_secret` returns the same secrets in the same process, so dropping them narrows the binding rather than closing a path, and it costs rewriting the iOS keystore test kit (`LocalKeystore+Keystore.swift`, which most wallet tests use to create a wallet) and the keystore integration, benchmark and v3-migration tests on both apps onto `import_wallet` and `export_secret`. Drop them, or keep them for those tests?
 
 ## 6. Orchestration, services and stores
 
 Core has no runtime, so scheduling, timers and OS callbacks stay in the apps; what moves is the decision — what to do, in what order, under what condition — returned as one call or one record. And [a store returns what Core reads](ARCHITECTURE.md#4-the-store-trait-is-the-apps-only-persistence-obligation), through one trait per responsibility.
 
+- **VM188** **M** **The app lock state machine is written twice.** Core shares only the elapsed-time check (`GemSecurityService.should_relock`).
+  - **iOS:** `LockSceneViewModel` keeps its own phases (locked, unlocking, cancelled, unlocked), stamps the background time only while unlocked, invalidates an unlock attempt the app left mid-prompt, re-prompts on return, and shows the Unlock button after a cancel.
+  - **Android:** `MainViewModel` keeps `AuthState` for the initial and per-request prompts, `LockTimer` stamps every pause, and `onActivityResumed` relocks when due; retry and cancel go through `retryInitialAuth` and `onInitialAuth`.
+  - **Expected:** a Core lock session takes lifecycle and prompt-result events and returns the phase and whether to prompt now; the OS prompt, the clock source, the iOS privacy cover and the Android per-request auth queue stay native.
 - **VM79** **S** **The root scene stops reading the wallet store.** iOS [`RootSceneViewModel`](../ios/Gem/ViewModels/RootSceneViewModel.swift) reads `stores.walletStore.getWallet` directly; the session service answers the current wallet. Blocked on a synchronous answer: `GemWalletSessionService::get_current_wallet` is async (the wallet store port is async), and the root view needs the wallet on its first render or it flashes onboarding at every launch; either the port gains a synchronous read or the root keeps a stored wallet it can seed before first render.
 
 ## 7. Rows and taps
