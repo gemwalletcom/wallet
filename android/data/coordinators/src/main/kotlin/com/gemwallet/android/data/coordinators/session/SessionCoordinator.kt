@@ -1,11 +1,10 @@
 package com.gemwallet.android.data.coordinators.session
 
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
-import com.gemwallet.android.application.session.cases.GetCurrentWallet
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.session.cases.SetCurrentCurrency
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletSessionStore
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
+import com.gemwallet.android.data.services.store.queries.WalletQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.Session
@@ -20,31 +19,23 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemCurrencyService
 import uniffi.gemstone.GemCurrencyServiceInterface
-import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPreferencesServiceInterface
-import uniffi.gemstone.GemWalletSessionService
-import uniffi.gemstone.GemWalletSessionServiceInterface
 import java.util.Locale
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SessionCoordinator(
     private val sessionStore: GemstoneWalletSessionStore,
-    private val walletStore: GemstoneWalletStore,
-    private val walletSessionService: GemWalletSessionServiceInterface,
+    private val walletQuery: WalletQuery,
     private val preferencesService: GemPreferencesServiceInterface,
     private val currencyService: GemCurrencyServiceInterface,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetSession,
-    GetCurrentWallet,
     GetCurrentCurrency,
     SetCurrentCurrency {
 
@@ -53,7 +44,7 @@ class SessionCoordinator(
     private val currentWallet: Flow<Wallet?> = sessionStore.observeWalletId()
         .flatMapLatest { walletId ->
             val id = walletId ?: return@flatMapLatest flow { emit(null) }
-            walletStore.observeWallet(WalletId(id))
+            walletQuery(WalletId(id))
         }
 
     private val session: StateFlow<Session?> = combine(currentWallet, currencyState) { wallet, currency ->
@@ -67,12 +58,6 @@ class SessionCoordinator(
     }
 
     override fun invoke(): StateFlow<Session?> = session
-
-    override suspend fun getCurrentWallet(): Wallet? = withContext(Dispatchers.IO) {
-        walletSessionService.getCurrentWallet()?.toPrimitives()
-    }
-
-    override fun observe(): Flow<Wallet?> = session.map { it?.wallet }.distinctUntilChanged()
 
     override fun getCurrency(): StateFlow<Currency> = currencyState
 

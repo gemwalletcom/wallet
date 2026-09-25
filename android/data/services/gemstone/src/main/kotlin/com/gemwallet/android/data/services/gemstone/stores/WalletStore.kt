@@ -16,8 +16,6 @@ import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemWalletStore
 
@@ -40,10 +38,6 @@ class GemstoneWalletStore(private val walletsDao: WalletsDao, private val accoun
     override suspend fun setImageUrl(walletId: String, imageUrl: String?) = setImageUrl(WalletId(walletId), imageUrl)
 
     fun observeWallets(): Flow<List<Wallet>> = walletsDao.getAll().toDTO()
-
-    fun observeWallet(walletId: WalletId): Flow<Wallet?> = walletsDao.getById(walletId.id)
-        .map { record -> record?.toDTO(accountsDao.getByWalletId(walletId.id)) }
-        .flowOn(Dispatchers.IO)
 
     suspend fun getAllNow(): List<Wallet> = walletsDao.getAllNow().toDTO()
 

@@ -1,14 +1,13 @@
 package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
-import com.gemwallet.android.application.session.cases.GetCurrentWallet
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.session.cases.SetCurrentCurrency
 import com.gemwallet.android.data.coordinators.session.GetCurrentWalletIdImpl
 import com.gemwallet.android.data.coordinators.session.SessionCoordinator
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletSessionStore
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
+import com.gemwallet.android.data.services.store.queries.WalletQuery
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,7 +16,6 @@ import uniffi.gemstone.GemCurrencyService
 import uniffi.gemstone.GemCurrencyServiceInterface
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPriceService
-import uniffi.gemstone.GemWalletSessionService
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -33,16 +31,9 @@ object SessionModule {
 
     @Provides
     @Singleton
-    fun provideSessionCoordinator(
-        sessionStore: GemstoneWalletSessionStore,
-        walletStore: GemstoneWalletStore,
-        walletSessionService: GemWalletSessionService,
-        preferencesService: GemPreferencesService,
-        currencyService: GemCurrencyService,
-    ): SessionCoordinator = SessionCoordinator(
+    fun provideSessionCoordinator(sessionStore: GemstoneWalletSessionStore, walletQuery: WalletQuery, preferencesService: GemPreferencesService, currencyService: GemCurrencyService): SessionCoordinator = SessionCoordinator(
         sessionStore = sessionStore,
-        walletStore = walletStore,
-        walletSessionService = walletSessionService,
+        walletQuery = walletQuery,
         preferencesService = preferencesService,
         currencyService = currencyService,
     )
@@ -50,10 +41,6 @@ object SessionModule {
     @Provides
     @Singleton
     fun provideGetSession(coordinator: SessionCoordinator): GetSession = coordinator
-
-    @Provides
-    @Singleton
-    fun provideGetCurrentWallet(coordinator: SessionCoordinator): GetCurrentWallet = coordinator
 
     @Provides
     @Singleton
